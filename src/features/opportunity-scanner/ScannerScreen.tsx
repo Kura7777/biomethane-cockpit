@@ -112,7 +112,7 @@ export function ScannerScreen() {
               Pricing Side: <strong className="text-teal-300 uppercase">{pricingSide}</strong>
             </span>
           </div>
-          <p className="text-stone-400 text-xs mt-0.5 font-mono">
+          <p className="text-stone-400 text-xs mt-0.5">
             Consignment: <strong className="text-stone-200">{consignment.originCountry} ({consignment.feedstockName})</strong> • Commissioning: {consignment.commissioningDateRange}
           </p>
         </div>
@@ -155,13 +155,13 @@ export function ScannerScreen() {
               <AlertTriangle className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-micro font-mono uppercase tracking-widest text-amber-400 font-bold">
+              <div className="text-micro font-mono uppercase tracking-widest text-amber-400 font-semibold">
                 Highest Blocked Opportunity Uncovered
               </div>
-              <div className="text-sm font-bold text-stone-100 font-mono">
+              <div className="text-sm font-semibold text-stone-100 font-mono">
                 {highestBlocked.market} (Theoretical Netback: <span className="text-amber-300">€{highestBlocked.netback.toFixed(2)}/MWh</span>) is blocked
               </div>
-              <p className="text-xs text-stone-300 mt-0.5 max-w-2xl font-mono">
+              <p className="text-xs text-stone-300 mt-0.5 max-w-2xl">
                 {highestBlocked.blockingReason}
               </p>
               <div className="text-xs text-teal-400 font-mono font-semibold mt-1">
@@ -172,7 +172,7 @@ export function ScannerScreen() {
 
           <button
             onClick={() => navigate(`/trade?marketId=${highestBlocked.marketId}`)}
-            className="shrink-0 bg-teal-600 hover:bg-teal-500 text-white font-mono text-xs font-bold px-3 py-1.5 rounded transition-colors"
+            className="shrink-0 bg-teal-600 hover:bg-teal-500 text-white font-mono text-xs font-semibold px-3 py-1.5 rounded transition-colors"
           >
             Inspect in Trade Builder →
           </button>
@@ -182,7 +182,7 @@ export function ScannerScreen() {
       {/* Interactive Carbon Intensity Sensitivity Simulation */}
       <div className="bg-stone-900 border border-stone-800 p-2 space-y-2">
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-1 text-xs">
-          <div className="flex items-center gap-1.5 font-mono font-bold text-stone-200">
+          <div className="flex items-center gap-1.5 font-mono font-semibold text-stone-200">
             <Sliders className="w-3.5 h-3.5 text-teal-400" />
             <span>Carbon Intensity Sensitivity Simulation</span>
           </div>
@@ -230,7 +230,7 @@ export function ScannerScreen() {
       {/* Ranked Netback Table (Financial Terminal Density 28-32px rows) */}
       <div className="bg-stone-900 border border-stone-800 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs font-mono tabular-nums">
+          <table className="w-full text-left text-xs font-mono font-num tabular-nums">
             <thead className="bg-stone-950 text-stone-400 uppercase font-semibold text-micro tracking-wider border-b border-stone-800">
               <tr>
                 <th className="py-2 px-3 w-10 text-center">Rank</th>
@@ -267,7 +267,7 @@ export function ScannerScreen() {
                       }`}
                     >
                       {/* Rank */}
-                      <td className="py-1.5 px-3 text-center font-bold">
+                      <td className="py-1.5 px-3 text-center font-semibold">
                         {row.rank !== null && row.rank > 0 ? (
                           <span className={`inline-flex items-center justify-center w-5 h-5 rounded text-meta font-bold ${
                             row.rank === 1 ? 'bg-teal-600 text-white' : 'bg-stone-800 text-stone-300'
@@ -288,7 +288,7 @@ export function ScannerScreen() {
                           </span>
                           {row.isModelled && (
                             <span 
-                              className="text-micro bg-sky-950 text-sky-300 border border-sky-800 px-1 rounded uppercase font-bold"
+                              className="text-micro bg-sky-950 text-sky-300 border border-sky-800 px-1 rounded uppercase font-semibold"
                               title="Modelled deficit closure value — no broker mark entered"
                             >
                               MODELLED
@@ -352,7 +352,7 @@ export function ScannerScreen() {
                               )}
                               {!row.isComplete && (
                                 <span 
-                                  className="text-amber-400 text-meta font-bold cursor-help"
+                                  className="text-amber-400 text-meta font-semibold cursor-help"
                                   title={`Incomplete cost basis: Missing ${row.missingInputs.join(', ')}`}
                                 >
                                   *
@@ -420,10 +420,10 @@ export function ScannerScreen() {
                         <td colSpan={9} className="p-3 border-t border-b border-sky-900/50">
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div className="p-2.5 bg-stone-900/90 rounded border border-stone-800">
-                              <div className="text-micro font-bold text-stone-400 uppercase">
+                              <div className="text-micro font-semibold text-stone-400 uppercase">
                                 Branch 1: Without Double Counting (1× Single count)
                               </div>
-                              <div className="text-sm font-bold text-stone-100 mt-0.5">
+                              <div className="text-sm font-semibold text-stone-100 mt-0.5">
                                 Netback: €{row.uncertaintyBranches[0].netNetback?.toFixed(2)}/MWh
                               </div>
                               <div className="text-sky-300 text-meta mt-0.5">
@@ -435,10 +435,10 @@ export function ScannerScreen() {
                             </div>
 
                             <div className="p-2.5 bg-stone-900/90 rounded border border-teal-900/80">
-                              <div className="text-micro font-bold text-teal-400 uppercase">
+                              <div className="text-micro font-semibold text-teal-400 uppercase">
                                 Branch 2: If double counting is retained (2×)
                               </div>
-                              <div className="text-sm font-bold text-teal-300 mt-0.5">
+                              <div className="text-sm font-semibold text-teal-300 mt-0.5">
                                 Netback: €{row.uncertaintyBranches[1].netNetback?.toFixed(2)}/MWh
                               </div>
                               <div className="text-sky-300 text-meta mt-0.5">
@@ -465,13 +465,13 @@ export function ScannerScreen() {
                             return (
                               <div className="p-3 bg-stone-900 border border-sky-900/60 space-y-2 text-xs">
                                 <div className="flex items-center justify-between">
-                                  <span className="font-bold text-sky-300 flex items-center gap-1.5 uppercase text-meta">
+                                  <span className="font-semibold text-sky-300 flex items-center gap-1.5 uppercase text-meta">
                                     <Truck className="w-3.5 h-3.5 text-sky-400" />
                                     Cross-Border Gas Delivery & Flow Options: {consignment.originCountry} → {targetC} ({logRoute.distanceKm !== null ? `~${logRoute.distanceKm.toLocaleString()} km` : 'Distance unmapped'})
                                   </span>
                                   <button
                                     onClick={() => setLogisticsModalRoute({ origin: consignment.originCountry, target: targetC })}
-                                    className="px-2 py-0.5 rounded bg-sky-950 border border-sky-700 text-sky-300 hover:bg-sky-900 font-bold text-micro"
+                                    className="px-2 py-0.5 rounded bg-sky-950 border border-sky-700 text-sky-300 hover:bg-sky-900 font-semibold text-micro"
                                   >
                                     Open Detailed Guide & Playbook →
                                   </button>
@@ -479,24 +479,24 @@ export function ScannerScreen() {
 
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-meta">
                                   <div className="p-2.5 bg-stone-950 rounded border border-teal-900/80">
-                                    <div className="text-teal-400 font-bold text-micro uppercase">Option A: Virtual Swap (UDB)</div>
-                                    <div className="text-sm font-bold text-teal-300 mt-0.5">
+                                    <div className="text-teal-400 font-semibold text-micro uppercase">Option A: Virtual Swap (UDB)</div>
+                                    <div className="text-sm font-semibold text-teal-300 mt-0.5">
                                       {logRoute.modes.virtualSwap.totalCostEurMwh !== null ? `€${logRoute.modes.virtualSwap.totalCostEurMwh.toFixed(2)}/MWh` : '—'}
                                     </div>
                                     <div className="text-micro text-stone-400 mt-0.5">Basis spread + electronic UDB PoS transfer</div>
                                   </div>
 
                                   <div className="p-2.5 bg-stone-950 rounded border border-sky-900/80">
-                                    <div className="text-sky-400 font-bold text-micro uppercase">Option B: Physical Pipeline Wheel</div>
-                                    <div className="text-sm font-bold text-sky-300 mt-0.5">
+                                    <div className="text-sky-400 font-semibold text-micro uppercase">Option B: Physical Pipeline Wheel</div>
+                                    <div className="text-sm font-semibold text-sky-300 mt-0.5">
                                       {logRoute.modes.physicalPipeline.totalCostEurMwh !== null ? `€${logRoute.modes.physicalPipeline.totalCostEurMwh.toFixed(2)}/MWh` : <span className="text-amber-400 text-xs">Tariff Incomplete</span>}
                                     </div>
                                     <div className="text-micro text-stone-400 mt-0.5">{logRoute.physicalRoute.transitingCountries.join(' → ')} via PRISMA</div>
                                   </div>
 
                                   <div className="p-2.5 bg-stone-950 rounded border border-amber-900/80">
-                                    <div className="text-amber-400 font-bold text-micro uppercase">Option C: Bio-LNG Road</div>
-                                    <div className="text-sm font-bold text-amber-300 mt-0.5">
+                                    <div className="text-amber-400 font-semibold text-micro uppercase">Option C: Bio-LNG Road</div>
+                                    <div className="text-sm font-semibold text-amber-300 mt-0.5">
                                       {logRoute.modes.bioLng.totalCostEurMwh !== null ? `€${logRoute.modes.bioLng.totalCostEurMwh.toFixed(2)}/MWh` : '—'}
                                     </div>
                                     <div className="text-micro text-stone-400 mt-0.5">Cryogenic ISO road trailer freight</div>
@@ -508,7 +508,7 @@ export function ScannerScreen() {
 
                           {/* Regulatory Gate Audit */}
                           <div className="space-y-2 max-w-4xl pt-1">
-                            <div className="font-bold text-xs uppercase tracking-wider text-stone-300 flex items-center justify-between">
+                            <div className="font-semibold text-xs uppercase tracking-wider text-stone-300 flex items-center justify-between">
                               <span>Regulatory Compliance Gates: {row.marketName}</span>
                               <span className="text-micro text-stone-400 font-mono">
                                 {el.gates.filter(g => g.verdict === 'PASS').length}/{el.gates.length} Gates Clear
@@ -518,7 +518,7 @@ export function ScannerScreen() {
                               {el.gates.map((g, gIdx) => (
                                 <div key={gIdx} className="bg-stone-900 border border-stone-800 rounded p-2.5 text-xs space-y-1">
                                   <div className="flex items-center justify-between">
-                                    <span className="font-bold text-stone-200 text-meta">{g.gateLabel}</span>
+                                    <span className="font-semibold text-stone-200 text-meta">{g.gateLabel}</span>
                                     <StatusChip variant={g.verdict} size="xs" />
                                   </div>
                                   <p className="text-stone-400 text-meta leading-relaxed">{g.reason}</p>

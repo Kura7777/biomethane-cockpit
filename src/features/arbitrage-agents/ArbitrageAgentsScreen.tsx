@@ -188,7 +188,7 @@ Try asking me:
               {getModelBadgeName(selectedModel)}
             </span>
           </div>
-          <p className="text-stone-400 text-xs mt-0.5 font-mono">
+          <p className="text-stone-400 text-xs mt-0.5">
             Autonomous combinatorial scanner calculating realistic desk margins (€1.50–€6.00/MWh) across 20 European producing origins.
           </p>
         </div>
@@ -210,7 +210,7 @@ Try asking me:
       </div>
 
       {/* Commercial Margin & Value Stack Explanation Banner */}
-      <div className="bg-stone-900/90 border border-stone-800 p-3 flex items-start gap-2.5 text-xs font-mono text-stone-300">
+      <div className="bg-stone-900/90 border border-stone-800 p-3 flex items-start gap-2.5 text-xs text-stone-300">
         <Info className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" />
         <div className="leading-relaxed">
           <strong className="text-white">Desk Economics Note:</strong> In European compliance markets, upstream producers price index-linked to the compliance value stack (~88–92%). An intermediary trading desk captures a realistic gross margin of <strong>€2.50–€3.50/MWh</strong> on transport compliance, <strong>€5.00–€8.00/MWh</strong> on maritime bio-LNG insetting, and <strong>€1.00–€1.50/MWh</strong> on wholesale balancing.
@@ -218,9 +218,9 @@ Try asking me:
       </div>
 
       {/* Regulatory "What-If" Disruption Switchboard */}
-      <div className="bg-stone-900 border border-stone-800 p-2 space-y-2.5 font-mono text-xs">
+      <div className="bg-stone-900 border border-stone-800 p-2 space-y-2.5 text-xs">
         <div className="flex items-center justify-between border-b border-stone-800 pb-1.5">
-          <div className="flex items-center gap-1.5 font-bold text-stone-200 uppercase text-meta">
+          <div className="flex items-center gap-1.5 font-semibold text-stone-200 uppercase text-meta">
             <Scale className="w-3.5 h-3.5 text-amber-400" />
             <span>Regulatory "What-If" Disruption Simulator</span>
           </div>
@@ -231,13 +231,13 @@ Try asking me:
           
           {/* 1. Germany Double Counting Switch */}
           <div className="p-2.5 bg-stone-950 border border-stone-800 rounded space-y-1">
-            <label className="block text-micro font-bold text-stone-400 uppercase">
+            <label className="block text-micro font-semibold text-stone-400 uppercase">
               German THG Double Counting (§37a)
             </label>
             <select
               value={scenario.deDoubleCounting}
               onChange={e => setScenario({ ...scenario, deDoubleCounting: e.target.value as any })}
-              className="w-full bg-stone-900 border border-stone-700 rounded px-2 py-1 text-teal-300 font-bold"
+              className="w-full bg-stone-900 border border-stone-700 rounded px-2 py-1 text-teal-300 font-semibold"
             >
               <option value="DC_OFF">1× Single Counting (Eliminated Baseline)</option>
               <option value="DC_ON">2× Double Counting (If Retained)</option>
@@ -246,13 +246,13 @@ Try asking me:
 
           {/* 2. UK UDB Grid Boundary Switch */}
           <div className="p-2.5 bg-stone-950 border border-stone-800 rounded space-y-1">
-            <label className="block text-micro font-bold text-stone-400 uppercase">
+            <label className="block text-micro font-semibold text-stone-400 uppercase">
               UK / EU Mutual UDB Recognition
             </label>
             <select
               value={scenario.ukUdbRecognition ? 'TRUE' : 'FALSE'}
               onChange={e => setScenario({ ...scenario, ukUdbRecognition: e.target.value === 'TRUE' })}
-              className="w-full bg-stone-900 border border-stone-700 rounded px-2 py-1 text-teal-300 font-bold"
+              className="w-full bg-stone-900 border border-stone-700 rounded px-2 py-1 text-teal-300 font-semibold"
             >
               <option value="FALSE">Current Law: UK Grid Injected BLOCKED at UDB</option>
               <option value="TRUE">Simulated: UK-EU Mutual Grid Recognition</option>
@@ -261,13 +261,13 @@ Try asking me:
 
           {/* 3. FuelEU Escalation Year */}
           <div className="p-2.5 bg-stone-950 border border-stone-800 rounded space-y-1">
-            <label className="block text-micro font-bold text-stone-400 uppercase">
+            <label className="block text-micro font-semibold text-stone-400 uppercase">
               FuelEU Maritime Non-Compliance Year
             </label>
             <select
               value={scenario.fuelEUEscalationYears}
               onChange={e => setScenario({ ...scenario, fuelEUEscalationYears: Number(e.target.value) as any })}
-              className="w-full bg-stone-900 border border-stone-700 rounded px-2 py-1 text-teal-300 font-bold"
+              className="w-full bg-stone-900 border border-stone-700 rounded px-2 py-1 text-teal-300 font-semibold"
             >
               <option value="1">Year 1: 0% Escalation (€2,400/t penalty)</option>
               <option value="2">Year 2: +10% Escalation (€2,640/t penalty)</option>
@@ -282,7 +282,7 @@ Try asking me:
       {/* Top High-Alpha Arbitrage Opportunities Grid */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 font-mono text-xs font-bold text-stone-200 uppercase">
+          <div className="flex items-center gap-2 font-mono text-xs font-semibold text-stone-200 uppercase">
             <TrendingUp className="w-4 h-4 text-emerald-400" />
             <span>Top High-Alpha European Cross-Border Routes</span>
           </div>
@@ -291,7 +291,7 @@ Try asking me:
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 font-mono text-xs">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
           {topOpportunities.slice(0, 6).map((opp, idx) => (
             <div
               key={opp.id}
@@ -301,7 +301,7 @@ Try asking me:
               {/* Card Header: Route & Rank */}
               <div className="flex items-start justify-between gap-1 border-b border-stone-800 pb-2">
                 <div>
-                  <div className="flex items-center gap-1.5 font-bold text-sm text-stone-100">
+                  <div className="flex items-center gap-1.5 font-semibold text-sm text-stone-100">
                     <span>{opp.originFlag} {opp.originCountry}</span>
                     <ArrowRight className="w-3.5 h-3.5 text-teal-400" />
                     <span>{opp.targetFlag} {opp.targetMarketName}</span>
@@ -311,7 +311,7 @@ Try asking me:
                   </div>
                 </div>
 
-                <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-teal-600 text-white font-bold text-micro">
+                <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-teal-600 text-white font-semibold text-micro">
                   #{idx + 1}
                 </span>
               </div>
@@ -320,7 +320,7 @@ Try asking me:
               <div className="bg-stone-950 p-2.5 rounded space-y-1 text-meta">
                 <div className="flex justify-between text-stone-400">
                   <span>Total Delivered Value:</span>
-                  <span className="text-stone-200 font-bold">€{opp.totalTerminalValueStackEurPerMWh?.toFixed(2) ?? '—'}/MWh</span>
+                  <span className="text-stone-200 font-semibold">€{opp.totalTerminalValueStackEurPerMWh?.toFixed(2) ?? '—'}/MWh</span>
                 </div>
                 <div className="flex justify-between text-stone-400">
                   <span>Producer Pay (Index-Linked):</span>
@@ -330,7 +330,7 @@ Try asking me:
                   <span>Grid Transit Tariff:</span>
                   <span className="text-stone-400">−€{opp.transitCostEurPerMWh.toFixed(2)}/MWh</span>
                 </div>
-                <div className="flex justify-between text-stone-200 border-t border-stone-800 pt-1 font-bold text-xs">
+                <div className="flex justify-between text-stone-200 border-t border-stone-800 pt-1 font-semibold text-xs">
                   <span className="text-emerald-400">Real Desk Net Margin:</span>
                   <span className="text-emerald-400">
                     +€{opp.deskNetMarginEurPerMWh?.toFixed(2) ?? '—'}/MWh
@@ -341,7 +341,7 @@ Try asking me:
               {/* Volume P&L & Gating Chip */}
               <div className="flex items-center justify-between text-micro pt-0.5">
                 <StatusChip variant={opp.overallVerdict} size="xs" />
-                <span className="font-bold text-teal-400">
+                <span className="font-semibold text-teal-400">
                   10k MWh Profit: €{(opp.totalDealProfitEur ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                 </span>
               </div>
@@ -351,21 +351,21 @@ Try asking me:
       </div>
 
       {/* Interactive 20×14 European Arbitrage Heatmap Matrix */}
-      <div className="bg-stone-900 border border-stone-800 p-2 space-y-3 font-mono text-xs">
+      <div className="bg-stone-900 border border-stone-800 p-2 space-y-3 text-xs">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-stone-800 pb-2 gap-2">
           <div className="flex items-center gap-2">
             <Layers className="w-4 h-4 text-teal-400" />
-            <h2 className="text-xs font-bold text-stone-200 uppercase">
+            <h2 className="text-xs font-semibold text-stone-200 uppercase">
               Pan-European Cross-Border Modelled Desk Margin Heatmap (€/MWh)
             </h2>
           </div>
 
           <div className="flex items-center gap-2">
-            <label className="text-micro text-stone-400 uppercase font-bold">Feedstock:</label>
+            <label className="text-micro text-stone-400 uppercase font-semibold">Feedstock:</label>
             <select
               value={selectedFeedstock}
               onChange={e => handleFeedstockChange(e.target.value)}
-              className="bg-stone-950 border border-stone-700 rounded px-2 py-1 text-teal-300 font-bold text-xs"
+              className="bg-stone-950 border border-stone-700 rounded px-2 py-1 text-teal-300 font-semibold text-xs"
             >
               {Object.entries(FEEDSTOCK_REGISTRY).map(([k, v]) => (
                 <option key={k} value={k}>{v.name} (CI: {v.defaultCI})</option>
@@ -378,7 +378,7 @@ Try asking me:
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-center text-micro tabular-nums border-collapse">
+          <table className="w-full text-center text-micro font-num tabular-nums border-collapse">
             <thead>
               <tr className="bg-stone-950 text-stone-400 uppercase">
                 <th className="p-1.5 text-left border border-stone-800">Origin</th>
@@ -392,7 +392,7 @@ Try asking me:
             <tbody>
               {matrixOrigins.map(originCode => (
                 <tr key={originCode} className="hover:bg-stone-800">
-                  <td className="p-1.5 text-left font-bold text-stone-200 bg-stone-950 border border-stone-800 whitespace-nowrap">
+                  <td className="p-1.5 text-left font-semibold text-stone-200 bg-stone-950 border border-stone-800 whitespace-nowrap">
                     {originCode}
                   </td>
                   {matrixMarkets.map(mId => {
@@ -442,9 +442,9 @@ Try asking me:
         {/* Heatmap 3-State Legend */}
         <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-stone-800 text-meta text-stone-400 font-mono">
           <div className="flex items-center gap-3">
-            <span className="font-bold text-stone-300 uppercase text-micro">Matrix Legend:</span>
+            <span className="font-semibold text-stone-300 uppercase text-micro">Matrix Legend:</span>
             <span className="inline-flex items-center gap-1">
-              <span className="px-1.5 py-0.5 bg-emerald-900 text-emerald-200 border border-emerald-700 rounded text-micro font-bold">+€5.0+</span>
+              <span className="px-1.5 py-0.5 bg-emerald-900 text-emerald-200 border border-emerald-700 rounded text-micro font-semibold">+€5.0+</span>
               <span>High Margin (Priced)</span>
             </span>
             <span className="inline-flex items-center gap-1">
@@ -456,7 +456,7 @@ Try asking me:
               <span>Unpriceable (No Mark)</span>
             </span>
             <span className="inline-flex items-center gap-1">
-              <span className="px-1.5 py-0.5 bg-red-950 text-red-400 border border-red-800 rounded text-micro font-bold">✕</span>
+              <span className="px-1.5 py-0.5 bg-red-950 text-red-400 border border-red-800 rounded text-micro font-semibold">✕</span>
               <span>Regulatory Blocked</span>
             </span>
           </div>
@@ -465,11 +465,11 @@ Try asking me:
       </div>
 
       {/* Interactive AI Trader Copilot Chat & Dossier Synthesis */}
-      <div className="bg-stone-900 border border-stone-800 p-2 space-y-3 font-mono text-xs">
+      <div className="bg-stone-900 border border-stone-800 p-2 space-y-3 text-xs">
         <div className="flex items-center justify-between border-b border-stone-800 pb-2">
           <div className="flex items-center gap-2">
             <MessageSquare className="w-4 h-4 text-sky-400" />
-            <h2 className="text-xs font-bold text-stone-200 uppercase">
+            <h2 className="text-xs font-semibold text-stone-200 uppercase">
               Autonomous Trader Copilot & Legal Dossier Assistant
             </h2>
           </div>
@@ -480,7 +480,7 @@ Try asking me:
 
         {/* Quick Suggestion Pills */}
         <div className="flex flex-wrap items-center gap-1.5 text-meta">
-          <span className="text-micro text-stone-400 uppercase font-bold">Quick Analysis:</span>
+          <span className="text-micro text-stone-400 uppercase font-semibold">Quick Analysis:</span>
           <button
             onClick={() => handleSendPrompt('Analyze the top alpha trade for Danish manure right now')}
             className="px-2 py-0.5 rounded border border-teal-800 bg-teal-950/60 text-teal-300 hover:bg-teal-900 transition-colors"
@@ -519,7 +519,7 @@ Try asking me:
               }`}
             >
               <div className="flex items-center justify-between text-micro text-stone-400 border-b border-stone-800/80 pb-1 mb-1">
-                <span className="font-bold text-teal-400 uppercase">{msg.sender === 'user' ? 'Trader' : msg.agentRole || 'Copilot Agent'}</span>
+                <span className="font-semibold text-teal-400 uppercase">{msg.sender === 'user' ? 'Trader' : msg.agentRole || 'Copilot Agent'}</span>
                 <span>{msg.timestamp}</span>
               </div>
               <div className="prose prose-invert prose-xs max-w-none whitespace-pre-wrap">
@@ -549,7 +549,7 @@ Try asking me:
           <button
             onClick={() => handleSendPrompt()}
             disabled={chatLoading || !chatInput.trim()}
-            className="bg-teal-600 hover:bg-teal-500 disabled:opacity-50 text-white font-bold px-3 py-1.5 rounded text-xs transition-colors flex items-center gap-1"
+            className="bg-teal-600 hover:bg-teal-500 disabled:opacity-50 text-white font-semibold px-3 py-1.5 rounded text-xs transition-colors flex items-center gap-1"
           >
             <Send className="w-3.5 h-3.5" /> Send
           </button>
@@ -558,10 +558,10 @@ Try asking me:
 
       {/* Gemini Model & API Key Configuration Modal */}
       {showKeyModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 z-50 font-mono text-xs">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 z-50 text-xs">
           <div className="bg-stone-900 border border-stone-800 p-3 max-w-md w-full space-y-2 shadow-2xl">
             <div className="flex items-center justify-between border-b border-stone-800 pb-2">
-              <span className="font-bold text-stone-100 flex items-center gap-1.5">
+              <span className="font-semibold text-stone-100 flex items-center gap-1.5">
                 <Cpu className="w-4 h-4 text-teal-400" /> Configure Google Gemini Model & API Key
               </span>
               <button onClick={() => setShowKeyModal(false)} aria-label="Close" className="text-stone-400 hover:text-stone-300 cursor-pointer"><X className="w-4 h-4" aria-hidden="true" /></button>
@@ -573,11 +573,11 @@ Try asking me:
 
             {/* Model Selector Dropdown */}
             <div>
-              <label className="block text-micro font-bold text-stone-400 uppercase mb-1">AI Reasoning Model</label>
+              <label className="block text-micro font-semibold text-stone-400 uppercase mb-1">AI Reasoning Model</label>
               <select
                 value={selectedModel}
                 onChange={e => setSelectedModel(e.target.value as GeminiModelId)}
-                className="w-full bg-stone-950 border border-stone-700 rounded p-2 text-teal-300 font-bold outline-none focus:border-teal-500 font-mono"
+                className="w-full bg-stone-950 border border-stone-700 rounded p-2 text-teal-300 font-semibold outline-none focus:border-teal-500"
               >
                 <option value="gemini-3.7-flash">Gemini 3.7 Flash (Recommended / High Speed & Reasoning)</option>
                 <option value="gemini-3.7-pro">Gemini 3.7 Pro (Deep Legal & Directives Synthesis)</option>
@@ -588,13 +588,13 @@ Try asking me:
 
             {/* API Key Input */}
             <div>
-              <label className="block text-micro font-bold text-stone-400 uppercase mb-1">Google AI Studio API Key</label>
+              <label className="block text-micro font-semibold text-stone-400 uppercase mb-1">Google AI Studio API Key</label>
               <input
                 type="password"
                 placeholder="AIzaSy..."
                 value={geminiApiKey}
                 onChange={e => setGeminiApiKey(e.target.value)}
-                className="w-full bg-stone-950 border border-stone-800 rounded p-2 text-stone-200 outline-none focus:border-teal-500 font-mono"
+                className="w-full bg-stone-950 border border-stone-800 rounded p-2 text-stone-200 outline-none focus:border-teal-500"
               />
               <p className="text-micro text-stone-400 mt-1">
                 Keys are stored locally in your browser only. Get a key at <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-teal-400 underline">aistudio.google.com</a>.
@@ -610,7 +610,7 @@ Try asking me:
               </button>
               <button
                 onClick={() => handleSaveApiKey(geminiApiKey, selectedModel)}
-                className="bg-teal-600 hover:bg-teal-500 text-white font-bold px-4 py-1.5 rounded"
+                className="bg-teal-600 hover:bg-teal-500 text-white font-semibold px-4 py-1.5 rounded"
               >
                 Save & Connect
               </button>
@@ -621,11 +621,11 @@ Try asking me:
 
       {/* Selected Opportunity Route Modal */}
       {selectedOpportunity && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 z-50 font-mono text-xs">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 z-50 text-xs">
           <div className="bg-stone-900 border border-stone-800 p-3 max-w-xl w-full space-y-3.5 shadow-2xl">
             <div className="flex items-center justify-between border-b border-stone-800 pb-2">
               <div>
-                <span className="font-bold text-sm text-stone-100 flex items-center gap-2">
+                <span className="font-semibold text-sm text-stone-100 flex items-center gap-2">
                   <span>{selectedOpportunity.originFlag} {selectedOpportunity.originCountryName}</span>
                   <ArrowRight className="w-3.5 h-3.5 text-teal-400" />
                   <span>{selectedOpportunity.targetFlag} {selectedOpportunity.targetMarketName}</span>
@@ -651,7 +651,7 @@ Try asking me:
                 <span>Cross-Border Transit Tariff:</span>
                 <strong className="text-stone-400">−€{selectedOpportunity.transitCostEurPerMWh.toFixed(2)}/MWh</strong>
               </div>
-              <div className="flex justify-between text-stone-200 border-t border-stone-800 pt-1.5 font-bold">
+              <div className="flex justify-between text-stone-200 border-t border-stone-800 pt-1.5 font-semibold">
                 <span className="text-emerald-400">Real Desk Net Margin:</span>
                 <span className="text-emerald-400">
                   +€{selectedOpportunity.deskNetMarginEurPerMWh?.toFixed(2) ?? '—'}/MWh
@@ -674,7 +674,7 @@ Try asking me:
                 onClick={() => {
                   navigate(`/trade?marketId=${selectedOpportunity.targetMarketId}`);
                 }}
-                className="bg-teal-600 hover:bg-teal-500 text-white font-bold px-4 py-1.5 rounded flex items-center gap-1.5"
+                className="bg-teal-600 hover:bg-teal-500 text-white font-semibold px-4 py-1.5 rounded flex items-center gap-1.5"
               >
                 Open Full Dossier in Trade Builder <ArrowRight className="w-3.5 h-3.5" />
               </button>

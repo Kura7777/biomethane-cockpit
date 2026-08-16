@@ -20,7 +20,7 @@ export function CitationBlock({ citation, compact = false }: CitationBlockProps)
   return (
     <div className="bg-stone-900 border border-stone-800 rounded p-3 text-xs mt-1.5 space-y-1">
       <div className="flex items-center justify-between">
-        <div className="font-bold text-stone-200 flex items-center gap-1.5">
+        <div className="font-semibold text-stone-200 flex items-center gap-1.5">
           <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
           <span>{citation.shortName}</span>
         </div>

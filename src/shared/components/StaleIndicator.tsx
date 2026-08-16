@@ -28,7 +28,7 @@ export function StaleIndicator({ updatedAt, provenance, target, showText = true,
   if (status === 'STALE_CRITICAL') {
     return (
       <span
-        className="inline-flex items-center gap-1 text-micro text-red-400 font-mono font-bold bg-red-950/60 border border-red-800 px-1.5 py-0.5 rounded"
+        className="inline-flex items-center gap-1 text-micro text-red-400 font-mono font-semibold bg-red-950/60 border border-red-800 px-1.5 py-0.5 rounded"
         title={`Mark entered ${ageDays} days ago`}
         aria-label={`Mark critically stale: entered ${ageDays} days ago`}
       >

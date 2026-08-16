@@ -86,15 +86,35 @@ red and green figures in the same column.
 
 ## 2. Typography
 
-### 2.1 Families
+### 2.1 Families — mono is for data, Inter is for language
 
-| Role | Family | Rule |
-|---|---|---|
-| UI / prose | `Inter` (`font-sans`) | Headings, labels, sentences, help text |
-| Numeric / terminal | `JetBrains Mono` (`font-mono`) | **All figures**, tickers, codes, dates, chips |
+The split is the difference between a terminal and a toy. Monospace running prose is the
+single loudest amateur signal; the codebase was 134 `font-mono` to 10 `font-sans`, with
+`font-mono` sitting on 84 *containers* so entire paragraphs inherited a data face.
 
-Any column of numbers uses `.font-num` (mono + `tabular-nums` + tightened tracking) so
-digits align vertically and values don't jitter as they update.
+| Use `JetBrains Mono` for | Use `Inter` for |
+|---|---|
+| Figures, prices, volumes, GHG values | Sentences, descriptions, help text |
+| Table and grid cells | Button and control labels |
+| Screen titles (uppercase — reads as a terminal function header) | Proper nouns and market names in headings |
+| Column headers, eyebrows, section labels | Screen subtitles and explanatory copy |
+| Codes, tickers, IDs, legal citations, ISO codes | Field labels in forms |
+| Chips and badges | Error and empty-state messages |
+
+Two rules keep it from drifting back:
+
+1. **Never put `font-mono` on a container.** Put it on the leaf that holds the data.
+   A container passes it to every sentence inside.
+2. **Every numeric cell carries `.font-num`** (mono + `tabular-nums` + tightened
+   tracking) *explicitly*, never by inheritance — otherwise it silently falls back to
+   Inter the moment a parent is refactored, and the column stops aligning.
+
+### 2.1b Weight
+
+`font-bold` was 215 of 298 weight declarations — when nearly everything is bold, nothing
+is emphasised. Bold is reserved for `text-base` and larger: true headings and hero
+figures. Labels, eyebrows and table headers use `font-semibold`; body text is
+`font-normal`.
 
 ### 2.2 Scale — no arbitrary pixel sizes
 

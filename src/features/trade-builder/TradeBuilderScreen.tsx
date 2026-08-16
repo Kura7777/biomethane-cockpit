@@ -344,7 +344,7 @@ export function TradeBuilderScreen() {
     const areAllClear = passGatesCount === totalGatesCount;
 
     return (
-      <div className="bg-stone-900 rounded p-3 space-y-2.5 font-mono text-xs">
+      <div className="bg-stone-900 rounded p-3 space-y-2.5 text-xs">
         
         {/* Header & Global Toggle */}
         <div className="flex items-center justify-between border-b border-stone-800 pb-2">
@@ -470,7 +470,7 @@ export function TradeBuilderScreen() {
                 {consignment.originCountryName} → {selectedMarket.countryName || 'Pan-EU'}
               </span>
             </div>
-            <p className="text-stone-400 text-meta mt-0.5 font-mono">
+            <p className="text-stone-400 text-meta mt-0.5">
               RED III regulatory clearance & commercial netback economics
             </p>
           </div>
@@ -525,7 +525,7 @@ export function TradeBuilderScreen() {
               </span>
             </div>
 
-            <div className="bg-stone-900 rounded p-3 space-y-3 font-mono text-xs">
+            <div className="bg-stone-900 rounded p-3 space-y-3 text-xs">
               
               {/* Reference Label & Counterparty */}
               <div className="grid grid-cols-2 gap-2">
@@ -722,7 +722,7 @@ export function TradeBuilderScreen() {
               </div>
 
               {/* Delivery Period & Compliance Year (Phase 2) */}
-              <div className="p-2 bg-stone-950 rounded space-y-1.5 border border-stone-800/60 font-mono">
+              <div className="p-2 bg-stone-950 rounded space-y-1.5 border border-stone-800/60">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-stone-400 text-micro uppercase tracking-wide">Delivery Tenor & Compliance Year</span>
                   <span className={`text-micro ${consignment.deliveryPeriod?.complianceYear ? 'text-teal-400' : 'text-amber-500'}`}>
@@ -907,7 +907,7 @@ export function TradeBuilderScreen() {
                         {/* 4. Netback (€/MWh) - Decimal Aligned, no repetitive currency symbol */}
                         <td className="py-1 pr-2 text-right whitespace-nowrap">
                           {nb.netNetback !== null ? (
-                            <span className={`font-semibold tabular-nums text-meta ${
+                            <span className={`font-semibold font-num tabular-nums text-meta ${
                               isSelected ? 'text-teal-400' : isBlocked ? 'text-stone-400' : 'text-stone-100'
                             }`}>
                               {nb.netNetback.toFixed(1)}
@@ -969,7 +969,7 @@ export function TradeBuilderScreen() {
             </div>
 
             {/* Flattened single container without nested card borders */}
-            <div className="bg-stone-900 rounded p-3 space-y-3 text-xs font-mono">
+            <div className="bg-stone-900 rounded p-3 space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-micro text-stone-400 mb-1">Transfer (€/MWh)</label>
@@ -1136,7 +1136,7 @@ export function TradeBuilderScreen() {
                       placeholder="e.g. 0.90"
                     />
                     {/* Echo the percentage so a fraction field cannot be misread */}
-                    <div className="text-micro text-stone-400 tabular-nums">
+                    <div className="text-micro text-stone-400 font-num tabular-nums">
                       {state.costs.producerPricing?.indexLinkedShare != null
                         ? `= ${(state.costs.producerPricing.indexLinkedShare * 100).toFixed(1)}% to producer, ${((1 - state.costs.producerPricing.indexLinkedShare) * 100).toFixed(1)}% desk share`
                         : 'Enter a fraction between 0.00 and 1.00'}
@@ -1239,7 +1239,7 @@ export function TradeBuilderScreen() {
                 <div className="flex items-center gap-1.5 self-end sm:self-auto">
                   <button
                     onClick={() => setIsLogisticsOpen(true)}
-                    className="inline-flex items-center gap-1 px-2 py-1 text-meta font-medium rounded bg-stone-900 text-stone-400 hover:text-stone-100 hover:bg-stone-800 transition-colors font-mono"
+                    className="inline-flex items-center gap-1 px-2 py-1 text-meta font-medium rounded bg-stone-900 text-stone-400 hover:text-stone-100 hover:bg-stone-800 transition-colors"
                   >
                     <Truck className="w-3 h-3 text-teal-400" />
                     Corridor
@@ -1248,7 +1248,7 @@ export function TradeBuilderScreen() {
                   <button
                     onClick={handleSaveToLibrary}
                     aria-label="Save assessment to dossier library"
-                    className={`inline-flex items-center gap-1 px-2 py-1 text-meta font-medium rounded transition-colors font-mono ${
+                    className={`inline-flex items-center gap-1 px-2 py-1 text-meta font-medium rounded transition-colors ${
                       saveSuccess
                         ? 'bg-teal-400 text-stone-950'
                         : 'bg-stone-900 text-stone-400 hover:text-stone-100 hover:bg-stone-800'
@@ -1262,7 +1262,7 @@ export function TradeBuilderScreen() {
 
               {/* Middle Row: Market Title + Tenor Badge + Runner-up */}
               <div className="flex items-center gap-2.5 flex-wrap">
-                <h2 className="text-xl font-bold text-stone-100 tracking-tight font-mono">
+                <h2 className="text-xl font-bold text-stone-100 tracking-tight">
                   {selectedMarket.name}
                 </h2>
                 <span className="text-teal-400 text-micro font-mono font-medium px-2 py-0.5 bg-stone-950 rounded border border-stone-800">
@@ -1276,13 +1276,13 @@ export function TradeBuilderScreen() {
                       setSelectedMarketId(runnerUp.market.id);
                       setSearchParams({ marketId: runnerUp.market.id, originCountry: consignment.originCountry });
                     }}
-                    className="inline-flex items-center gap-1.5 text-micro font-mono text-stone-400 hover:text-teal-400 px-2 py-0.5 bg-stone-950 rounded border border-stone-800 hover:border-teal-400/50 transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1.5 text-micro text-stone-400 hover:text-teal-400 px-2 py-0.5 bg-stone-950 rounded border border-stone-800 hover:border-teal-400/50 transition-colors cursor-pointer"
                     title="Click to switch target market to best alternative"
                   >
                     <span>Runner-up:</span>
                     <span className="text-stone-100 font-medium">{runnerUp.market.shortName || runnerUp.market.name}</span>
-                    <span className="text-teal-400">€{runnerUp.netback.toFixed(2)}</span>
-                    <span className={runnerUp.spread >= 0 ? 'text-teal-400' : 'text-stone-400'}>
+                    <span className="text-teal-400 font-num">€{runnerUp.netback.toFixed(2)}</span>
+                    <span className={`font-num ${runnerUp.spread >= 0 ? 'text-teal-400' : 'text-stone-400'}`}>
                       ({runnerUp.spread >= 0 ? '+' : ''}€{runnerUp.spread.toFixed(2)})
                     </span>
                   </button>
@@ -1290,12 +1290,12 @@ export function TradeBuilderScreen() {
               </div>
 
               {/* Bottom Row: Metadata info */}
-              <div className="text-micro text-stone-400 font-mono flex items-center gap-2 flex-wrap pt-0.5">
-                <span>Registry: <strong className="text-stone-100 font-normal">{selectedMarket.registry || selectedMarket.countryName}</strong></span>
+              <div className="text-micro text-stone-400 flex items-center gap-2 flex-wrap pt-0.5">
+                <span>Registry: <strong className="text-stone-100 font-normal font-mono">{selectedMarket.registry || selectedMarket.countryName}</strong></span>
                 <span>•</span>
-                <span>Basis: <strong className="text-stone-100 font-normal">{selectedMarket.legalBasis}</strong></span>
+                <span>Basis: <strong className="text-stone-100 font-normal font-mono">{selectedMarket.legalBasis}</strong></span>
                 <span>•</span>
-                <span>Counterparty: <strong className="text-stone-100 font-normal">{consignment.counterparty || 'Open Desk / Unassigned'}</strong></span>
+                <span>Counterparty: <strong className="text-stone-100 font-normal font-mono">{consignment.counterparty || 'Open Desk / Unassigned'}</strong></span>
               </div>
             </div>
 
@@ -1303,13 +1303,13 @@ export function TradeBuilderScreen() {
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs py-1 border-b border-stone-800">
               <div className="flex items-center gap-2">
                 <StatusChip variant={eligibility.overallVerdict} size="xs" />
-                <span className="text-stone-400 text-xs font-mono">{eligibility.summary}</span>
+                <span className="text-stone-400 text-xs leading-relaxed">{eligibility.summary}</span>
               </div>
               <StaleIndicator target={markEntry} />
             </div>
 
             {/* UNIFIED TRADITIONAL FINANCIAL DEAL TICKET & P&L STATEMENT */}
-            <div className="bg-stone-950 rounded border border-stone-800 p-2 space-y-2 font-mono text-xs">
+            <div className="bg-stone-950 rounded border border-stone-800 p-2 space-y-2 text-xs">
               
               {/* Table Column Headers */}
               <div className="flex justify-between items-center text-micro text-stone-400 uppercase tracking-wider pb-2 border-b border-stone-800">
@@ -1348,7 +1348,7 @@ export function TradeBuilderScreen() {
 
               {/* 1. PROCUREMENT (BUY PRODUCER LEG) */}
               <div className="space-y-1.5">
-                <div className="flex justify-between items-center text-meta font-bold text-amber-500 uppercase tracking-wider">
+                <div className="flex justify-between items-center text-meta font-semibold text-amber-500 uppercase tracking-wider">
                   <span>1. Procurement (Buy Leg)</span>
                   <span className="text-micro text-stone-400 font-normal">Origin: {consignment.originCountryName}</span>
                 </div>
@@ -1375,7 +1375,7 @@ export function TradeBuilderScreen() {
                       </button>
                     )}
                   </div>
-                  <div className="flex items-center gap-3 tabular-nums">
+                  <div className="flex items-center gap-3 font-num tabular-nums">
                     <span className="w-28 shrink-0 text-right whitespace-nowrap font-medium text-amber-500">
                       {netback.producerPayable !== null ? signedEur(netback.producerPayable, 'outflow') : 'Not set'}
                     </span>
@@ -1390,7 +1390,7 @@ export function TradeBuilderScreen() {
 
               {/* 2. REVENUE (SELL OFFTAKE LEG) */}
               <div className="space-y-1.5 pt-2 border-t border-stone-800">
-                <div className="flex justify-between items-center text-meta font-bold text-teal-400 uppercase tracking-wider">
+                <div className="flex justify-between items-center text-meta font-semibold text-teal-400 uppercase tracking-wider">
                   <span>2. Revenue / Offtake (Sell Leg)</span>
                   <span className="text-micro text-stone-400 font-normal">Offtake: {selectedMarket.name}</span>
                 </div>
@@ -1417,7 +1417,7 @@ export function TradeBuilderScreen() {
                       })}
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 tabular-nums">
+                  <div className="flex items-center gap-3 font-num tabular-nums">
                     <span className="w-28 shrink-0 text-right whitespace-nowrap font-medium text-teal-400">
                       {netback.certificateValue?.valueEurPerMWh != null ? signedEur(netback.certificateValue.valueEurPerMWh) : 'Not set'}
                     </span>
@@ -1451,7 +1451,7 @@ export function TradeBuilderScreen() {
                       })}
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 tabular-nums">
+                  <div className="flex items-center gap-3 font-num tabular-nums">
                     <span className="w-28 shrink-0 text-right whitespace-nowrap font-medium text-stone-100">
                       {netback.moleculeValue !== null ? signedEur(netback.moleculeValue) : 'Not set'}
                     </span>
@@ -1469,7 +1469,7 @@ export function TradeBuilderScreen() {
                     <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
                     <span>Logistics, Tariffs &amp; Certification</span>
                   </div>
-                  <div className="flex items-center gap-3 tabular-nums">
+                  <div className="flex items-center gap-3 font-num tabular-nums">
                     <span className="w-28 shrink-0 text-right whitespace-nowrap text-stone-100">
                       {netback.totalCosts !== null ? signedEur(netback.totalCosts, 'outflow') : 'Not set'}
                     </span>
@@ -1496,11 +1496,11 @@ export function TradeBuilderScreen() {
                       </span>
                     )}
                   </div>
-                  <div className={`flex items-center gap-3 tabular-nums ${netback.netNetback !== null && netback.netNetback < 0 ? 'text-red-500' : 'text-teal-400'}`}>
-                    <span className="w-28 shrink-0 text-right whitespace-nowrap font-bold">
+                  <div className={`flex items-center gap-3 font-num tabular-nums ${netback.netNetback !== null && netback.netNetback < 0 ? 'text-red-500' : 'text-teal-400'}`}>
+                    <span className="w-28 shrink-0 text-right whitespace-nowrap font-semibold">
                       {netback.netNetback !== null ? signedEur(netback.netNetback) : 'N/A'}
                     </span>
-                    <span className="w-40 shrink-0 text-right whitespace-nowrap font-bold">
+                    <span className="w-40 shrink-0 text-right whitespace-nowrap font-semibold">
                       {consignment.volumeMWh !== null && netback.netNetback !== null
                         ? signedEur(netback.netNetback * consignment.volumeMWh)
                         : '—'}
@@ -1532,7 +1532,7 @@ export function TradeBuilderScreen() {
                       : 'Awaiting producer terms to finalize desk profit'}
                   </div>
                 </div>
-                <div className="flex items-center gap-3 tabular-nums">
+                <div className="flex items-center gap-3 font-num tabular-nums">
                   <span className="w-28 shrink-0 text-right whitespace-nowrap text-base font-bold">
                     {netback.deskMargin !== null ? signedEur(netback.deskMargin) : '—'}
                   </span>
@@ -1547,7 +1547,7 @@ export function TradeBuilderScreen() {
               {/* 4. REGULATORY SPREAD SENSITIVITY (Scenario Analysis) */}
               {netback.valuationRange && netback.uncertaintyBranches && netback.uncertaintyBranches.length >= 2 && (
                 <div className="bg-amber-950 border border-amber-500/35 rounded p-2.5 space-y-2 text-xs">
-                  <div className="flex justify-between items-center text-micro font-bold uppercase tracking-wider text-amber-500">
+                  <div className="flex justify-between items-center text-micro font-semibold uppercase tracking-wider text-amber-500">
                     <span className="flex items-center gap-1.5">
                       <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
                       Regulatory Risk Spread (§37a BImSchG Double Counting Scenarios)
@@ -1574,7 +1574,7 @@ export function TradeBuilderScreen() {
                           <div className={`text-micro uppercase font-semibold ${accent ? 'text-teal-400' : 'text-stone-400'}`}>
                             {title}
                           </div>
-                          <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 tabular-nums">
+                          <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 font-num tabular-nums">
                             <dt className="text-stone-400">Netback</dt>
                             <dd className="m-0 text-right text-stone-100 whitespace-nowrap">
                               {branch.netNetback != null ? `${signedEur(branch.netNetback)}/MWh` : '—'}

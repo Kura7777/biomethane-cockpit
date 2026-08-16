@@ -106,12 +106,25 @@ export function MarksScreen() {
               Desk Marks & Price Ingestion
             </h1>
           </div>
-          <p className="text-stone-400 text-xs mt-0.5 font-mono">
+          <p className="text-stone-400 text-xs mt-0.5">
             Manual desk marks with full timestamp tracking and age-based staleness warnings (&gt;7d amber, &gt;30d red).
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
+          <button
+            onClick={() => {
+              dispatch({ type: 'SIMULATE_DESK' });
+              setSuccessMessage('Simulated desk loaded — synthetic test prices, not real marks.');
+              setTimeout(() => setSuccessMessage(null), 4000);
+            }}
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-amber-950 border border-amber-700 text-amber-300 hover:bg-amber-900 transition-colors"
+            title="Fill every market, TTF, FX and cost input with synthetic test prices"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            Simulate Prices
+          </button>
+
           <button
             onClick={handleExportJSON}
             className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-stone-950 border border-stone-800 text-stone-300 hover:bg-stone-800 transition-colors"
@@ -129,7 +142,7 @@ export function MarksScreen() {
       </div>
 
       {successMessage && (
-        <div className="bg-emerald-950/70 border border-emerald-800 text-emerald-300 text-xs p-2.5 rounded flex items-center gap-2 font-mono">
+        <div className="bg-emerald-950/70 border border-emerald-800 text-emerald-300 text-xs p-2.5 rounded flex items-center gap-2">
           <Check className="w-4 h-4 text-emerald-400" />
           <span>{successMessage}</span>
         </div>
@@ -139,9 +152,9 @@ export function MarksScreen() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         
         {/* TTF Gas Index */}
-        <div className="bg-stone-900 border border-stone-800 p-2 space-y-2 font-mono text-xs">
+        <div className="bg-stone-900 border border-stone-800 p-2 space-y-2 text-xs">
           <div className="flex items-center justify-between">
-            <span className="font-bold text-stone-200 flex items-center gap-1.5">
+            <span className="font-semibold text-stone-200 flex items-center gap-1.5">
               <Flame className="w-4 h-4 text-amber-500" />
               Natural Gas Molecule Index (TTF)
             </span>
@@ -195,7 +208,7 @@ export function MarksScreen() {
                   offer: state.marks.gasIndex.offer,
                   mid: e.target.value === '' ? null : Number(e.target.value),
                 })}
-                className="w-full bg-stone-950 border border-teal-800 rounded px-2 py-1 font-bold text-teal-300"
+                className="w-full bg-stone-950 border border-teal-800 rounded px-2 py-1 font-semibold text-teal-300"
                 placeholder="28.50"
               />
             </div>
@@ -203,9 +216,9 @@ export function MarksScreen() {
         </div>
 
         {/* Foreign Exchange Rates */}
-        <div className="bg-stone-900 border border-stone-800 p-2 space-y-2 font-mono text-xs">
+        <div className="bg-stone-900 border border-stone-800 p-2 space-y-2 text-xs">
           <div className="flex items-center justify-between">
-            <span className="font-bold text-stone-200 flex items-center gap-1.5">
+            <span className="font-semibold text-stone-200 flex items-center gap-1.5">
               <ArrowLeftRight className="w-4 h-4 text-teal-400" />
               FX Cross Rates (UK RTFO, Swiss)
             </span>
@@ -224,7 +237,7 @@ export function MarksScreen() {
                   currency: 'gbpEur',
                   value: e.target.value === '' ? null : Number(e.target.value),
                 })}
-                className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1 font-bold text-teal-300"
+                className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1 font-semibold text-teal-300"
                 placeholder="1.180"
               />
             </div>
@@ -252,7 +265,7 @@ export function MarksScreen() {
       {/* Marks Table */}
       <div className="bg-stone-900 border border-stone-800 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs font-mono tabular-nums">
+          <table className="w-full text-left text-xs font-mono font-num tabular-nums">
             <thead className="bg-stone-950 text-stone-400 uppercase font-semibold text-micro tracking-wider border-b border-stone-800">
               <tr>
                 <th className="py-2 px-3">Market</th>
@@ -275,7 +288,7 @@ export function MarksScreen() {
                     <td className="py-1.5 px-3 font-semibold text-xs whitespace-nowrap">
                       <div className="flex items-center gap-1.5">
                         <span className="text-stone-400">{m.country || 'EU'}</span>
-                        <span className="text-stone-100 font-bold">{m.name}</span>
+                        <span className="text-stone-100 font-semibold">{m.name}</span>
                       </div>
                     </td>
 
@@ -315,11 +328,11 @@ export function MarksScreen() {
                         step="any"
                         value={mark.mid ?? ''}
                         onChange={e => handleMarkChange(m.id, 'mid', e.target.value)}
-                        className="w-full bg-stone-950 border border-teal-800/80 rounded px-1.5 py-0.5 text-xs text-teal-300 font-bold focus:border-teal-500 outline-none"
+                        className="w-full bg-stone-950 border border-teal-800/80 rounded px-1.5 py-0.5 text-xs text-teal-300 font-semibold focus:border-teal-500 outline-none"
                         placeholder="Mid"
                       />
                       {mark.bid !== null && mark.offer !== null && mark.bid > mark.offer && (
-                        <div className="text-micro text-amber-400 font-bold mt-0.5 flex items-center gap-1">
+                        <div className="text-micro text-amber-400 font-semibold mt-0.5 flex items-center gap-1">
                           <AlertTriangle className="w-3 h-3 shrink-0" aria-hidden="true" /> Crossed market: bid exceeds offer
                         </div>
                       )}

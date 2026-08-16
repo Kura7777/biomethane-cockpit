@@ -245,7 +245,7 @@ export function FloatingAgentDrawer() {
             <Bot className="w-4 h-4 text-teal-400 group-hover:scale-110 transition-transform" />
             <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
           </div>
-          <span className="text-xs font-mono font-bold text-stone-100 group-hover:text-teal-300 transition-colors">
+          <span className="text-xs font-mono font-semibold text-stone-100 group-hover:text-teal-300 transition-colors">
             Ask Copilot
           </span>
           <span className="hidden sm:inline-block text-micro text-teal-400/90 font-mono bg-teal-950/90 border border-teal-800/80 px-1.5 py-0.5 rounded">
@@ -271,8 +271,8 @@ export function FloatingAgentDrawer() {
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <span className="font-bold text-white text-xs">AI Desk Copilot</span>
-                  <span className="text-micro bg-teal-950 text-teal-300 border border-teal-800 px-1 rounded font-bold">
+                  <span className="font-semibold text-white text-xs">AI Desk Copilot</span>
+                  <span className="text-micro bg-teal-950 text-teal-300 border border-teal-800 px-1 rounded font-semibold">
                     Context: {pageMeta.title.split(' ')[0]}
                   </span>
                 </div>
@@ -326,7 +326,7 @@ export function FloatingAgentDrawer() {
           {showKeyInput && (
             <div className="p-2.5 bg-stone-950 border-b border-stone-800 space-y-2 animate-in slide-in-from-top-2 duration-150">
               <div className="flex justify-between items-center text-micro">
-                <span className="text-stone-300 font-bold flex items-center gap-1">
+                <span className="text-stone-300 font-semibold flex items-center gap-1">
                   <Key className="w-3 h-3 text-amber-400" />
                   <span>Google Gemini API Key (Optional):</span>
                 </span>
@@ -349,7 +349,7 @@ export function FloatingAgentDrawer() {
                 />
                 <button
                   onClick={() => handleSaveApiKey(apiKey)}
-                  className="bg-teal-600 hover:bg-teal-500 text-white font-bold px-2.5 py-1 rounded text-xs"
+                  className="bg-teal-600 hover:bg-teal-500 text-white font-semibold px-2.5 py-1 rounded text-xs"
                 >
                   Save
                 </button>
@@ -418,7 +418,7 @@ export function FloatingAgentDrawer() {
 
           {/* Quick Context-Aware Suggested Questions */}
           <div className="p-2 bg-stone-950/80 border-t border-stone-800 shrink-0">
-            <span className="text-micro font-bold text-stone-400 uppercase tracking-wider block mb-1">
+            <span className="text-micro font-semibold text-stone-400 uppercase tracking-wider block mb-1">
               Suggested for {pageMeta.title.split(' ')[0]}:
             </span>
             <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
@@ -451,7 +451,7 @@ export function FloatingAgentDrawer() {
             <button
               onClick={() => handleSendMessage()}
               disabled={!inputQuery.trim() || isQuerying}
-              className="bg-teal-600 hover:bg-teal-500 disabled:opacity-40 text-white font-bold px-3 py-2 rounded flex items-center justify-center transition-colors cursor-pointer"
+              className="bg-teal-600 hover:bg-teal-500 disabled:opacity-40 text-white font-semibold px-3 py-2 rounded flex items-center justify-center transition-colors cursor-pointer"
               title="Send (Enter)"
             >
               <Send className="w-3.5 h-3.5" />

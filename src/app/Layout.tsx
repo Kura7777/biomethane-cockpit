@@ -69,7 +69,7 @@ export function Layout() {
       {/* Skip link — first tab stop, lets keyboard users bypass the 7-item nav */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:px-3 focus:py-2 focus:rounded focus:bg-teal-600 focus:text-white focus:text-xs focus:font-mono focus:font-bold"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:px-3 focus:py-2 focus:rounded focus:bg-teal-600 focus:text-white focus:text-xs focus:font-mono focus:font-semibold"
       >
         Skip to main content
       </a>
@@ -86,11 +86,11 @@ export function Layout() {
             aria-label="Biomethane Desk — go to Map"
             className="flex items-center gap-2 shrink-0 cursor-pointer group rounded focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-900"
           >
-            <div className="w-7 h-7 rounded bg-teal-600/20 border border-teal-500/40 flex items-center justify-center text-teal-400 font-mono font-bold text-xs group-hover:bg-teal-600/30 transition-colors">
+            <div className="w-7 h-7 rounded bg-teal-600/20 border border-teal-500/40 flex items-center justify-center text-teal-400 font-mono font-semibold text-xs group-hover:bg-teal-600/30 transition-colors">
               <Terminal className="w-4 h-4" aria-hidden="true" />
             </div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-sm font-bold text-white tracking-tight uppercase font-mono group-hover:text-teal-300 transition-colors">
+              <span className="text-sm font-semibold text-white tracking-tight uppercase font-mono group-hover:text-teal-300 transition-colors">
                 Biomethane Desk
               </span>
               {/* Sub-0.5 padding compiles to no CSS; use the 4px scale */}
@@ -144,7 +144,7 @@ export function Layout() {
               role="group"
               aria-label="Pricing side"
             >
-              <span className="hidden lg:inline text-stone-400 px-1 text-micro uppercase font-bold">Side:</span>
+              <span className="hidden lg:inline text-stone-400 px-1 text-micro uppercase font-semibold">Side:</span>
               {PRICING_SIDES.map(({ side, label, hint }) => (
                 <button
                   key={side}
@@ -215,7 +215,7 @@ export function Layout() {
 
       {/* Footer Info Strip. stone-500 measured 4.06:1 here and failed AA;
           stone-400 is 7.8:1 (MASTER §1.2). */}
-      <footer className="border-t border-stone-800 bg-stone-900/60 py-2.5 px-6 text-meta text-stone-400 font-mono flex flex-col sm:flex-row justify-between items-center gap-2">
+      <footer className="border-t border-stone-800 bg-stone-900/60 py-2.5 px-6 text-meta text-stone-400 flex flex-col sm:flex-row justify-between items-center gap-2">
         <div>
           RED III Transport Baseline: <strong className="text-stone-200">94.0 gCO₂e/MJ</strong> • FuelEU Maritime: <strong className="text-stone-200">Reg. 2023/1805</strong> • European Plants: <strong className="text-stone-200">1,986 Active</strong>
         </div>

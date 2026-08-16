@@ -86,11 +86,11 @@ export function PlantsScreen() {
             <h1 className="text-base font-bold text-white font-mono uppercase tracking-tight">
               Pan-European Biomethane Facility Register
             </h1>
-            <span className="text-micro font-mono bg-teal-950 text-teal-300 border border-teal-800 px-2 py-0.5 rounded font-bold">
+            <span className="text-micro font-mono bg-teal-950 text-teal-300 border border-teal-800 px-2 py-0.5 rounded font-semibold">
               {BIOMETHANE_PLANTS.length} Operating Facilities Verified
             </span>
           </div>
-          <p className="text-stone-400 text-xs mt-0.5 font-mono">
+          <p className="text-stone-400 text-xs mt-0.5">
             Verified master register of European biomethane producing facilities, developer portfolios, and national macro statistics.
           </p>
         </div>
@@ -125,24 +125,24 @@ export function PlantsScreen() {
       </div>
 
       {/* Macro Statistics KPI Ribbon */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-xs">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
         <div className="bg-stone-900 border border-stone-800 p-3">
-          <div className="text-micro text-stone-400 uppercase font-bold">Verified European Facilities</div>
+          <div className="text-micro text-stone-400 uppercase font-semibold">Verified European Facilities</div>
           <div className="text-lg font-bold text-white mt-0.5">{BIOMETHANE_PLANTS.length} Sites</div>
           <div className="text-micro text-teal-400 mt-0.5">26 Producing Nations</div>
         </div>
         <div className="bg-stone-900 border border-stone-800 p-3">
-          <div className="text-micro text-stone-400 uppercase font-bold">European Annual Production</div>
+          <div className="text-micro text-stone-400 uppercase font-semibold">European Annual Production</div>
           <div className="text-lg font-bold text-teal-300 mt-0.5">~34.5 TWh/yr</div>
           <div className="text-micro text-stone-400 mt-0.5">EBA Statistical Report</div>
         </div>
         <div className="bg-stone-900 border border-stone-800 p-3">
-          <div className="text-micro text-stone-400 uppercase font-bold">Data Provenance</div>
+          <div className="text-micro text-stone-400 uppercase font-semibold">Data Provenance</div>
           <div className="text-lg font-bold text-stone-100 mt-0.5">GIE / EBA 2026</div>
           <div className="text-micro text-stone-400 mt-0.5">European Biomethane Map</div>
         </div>
         <div className="bg-stone-900 border border-stone-800 p-3">
-          <div className="text-micro text-stone-400 uppercase font-bold">Grid Interconnection</div>
+          <div className="text-micro text-stone-400 uppercase font-semibold">Grid Interconnection</div>
           <div className="text-lg font-bold text-stone-100 mt-0.5">Single EU MB Area</div>
           <div className="text-micro text-stone-400 mt-0.5">RED III Art. 31a Network</div>
         </div>
@@ -153,7 +153,7 @@ export function PlantsScreen() {
         <div className="space-y-3">
           
           {/* Search & Filter Bar */}
-          <div className="bg-stone-900 border border-stone-800 p-3 flex flex-wrap items-center justify-between gap-3 font-mono text-xs">
+          <div className="bg-stone-900 border border-stone-800 p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex flex-wrap items-center gap-2 flex-1">
               {/* Search Input */}
               <div className="min-w-[280px] flex-1 relative">
@@ -210,9 +210,9 @@ export function PlantsScreen() {
           </div>
 
           {/* Plants Table */}
-          <div className="bg-stone-900 border border-stone-800 overflow-hidden font-mono text-xs">
+          <div className="bg-stone-900 border border-stone-800 overflow-hidden text-xs">
             <div className="overflow-x-auto">
-              <table className="w-full text-left tabular-nums">
+              <table className="w-full text-left font-num tabular-nums">
                 <thead className="bg-stone-950 text-stone-400 uppercase font-semibold text-micro tracking-wider border-b border-stone-800">
                   <tr>
                     <th className="py-2.5 px-3">Facility Code</th>
@@ -230,10 +230,10 @@ export function PlantsScreen() {
                       onClick={() => setSelectedPlantDetail(plant)}
                       className="h-10 hover:bg-stone-800/60 cursor-pointer transition-colors"
                     >
-                      <td className="py-2 px-3 text-teal-400 font-bold whitespace-nowrap">
+                      <td className="py-2 px-3 text-teal-400 font-semibold whitespace-nowrap">
                         {plant.id.toUpperCase().replace('PLANT_', '')}
                       </td>
-                      <td className="py-2 px-3 font-bold text-stone-100 whitespace-nowrap">
+                      <td className="py-2 px-3 font-semibold text-stone-100 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
                           <span>{plant.countryFlag}</span>
                           <span>{plant.name}</span>
@@ -243,7 +243,7 @@ export function PlantsScreen() {
                         {plant.country} ({plant.countryCode})
                       </td>
                       <td className="py-2 px-3 text-center whitespace-nowrap">
-                        <span className="px-2 py-0.5 bg-emerald-950 text-emerald-300 border border-emerald-800 rounded text-micro font-bold">
+                        <span className="px-2 py-0.5 bg-emerald-950 text-emerald-300 border border-emerald-800 rounded text-micro font-semibold">
                           {plant.status || 'Active'}
                         </span>
                       </td>
@@ -255,7 +255,7 @@ export function PlantsScreen() {
                           onClick={() => {
                             navigate(`/trade?originCountry=${plant.countryCode}`);
                           }}
-                          className="px-2.5 py-1 bg-teal-950 text-teal-300 hover:bg-teal-900 border border-teal-800 rounded text-micro font-bold transition-colors whitespace-nowrap"
+                          className="px-2.5 py-1 bg-teal-950 text-teal-300 hover:bg-teal-900 border border-teal-800 rounded text-micro font-semibold transition-colors whitespace-nowrap"
                           title="Simulate Export Trade for this Origin Country"
                         >
                           Simulate Trade →
@@ -298,12 +298,12 @@ export function PlantsScreen() {
 
       {/* TAB 2: DEVELOPER PORTFOLIOS */}
       {activeTab === 'DEVELOPERS' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 font-mono text-xs">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
           {DEVELOPER_PORTFOLIOS.map((dev) => (
             <div key={dev.id} className="bg-stone-900 border border-stone-800 p-2 space-y-3">
               <div className="flex items-start justify-between border-b border-stone-800 pb-2">
                 <div>
-                  <div className="font-bold text-sm text-stone-100 flex items-center gap-1.5">
+                  <div className="font-semibold text-sm text-stone-100 flex items-center gap-1.5">
                     <Building2 className="w-4 h-4 text-teal-400" />
                     <span>{dev.name}</span>
                   </div>
@@ -312,7 +312,7 @@ export function PlantsScreen() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm font-bold text-teal-300">
+                  <div className="text-sm font-semibold text-teal-300">
                     {dev.totalCapacityGWh != null ? `${dev.totalCapacityGWh.toLocaleString()} GWh/yr` : '—'}
                   </div>
                   <div className="text-micro text-stone-400">Portfolio Capacity</div>
@@ -337,9 +337,9 @@ export function PlantsScreen() {
 
       {/* TAB 3: MACRO COUNTRY CAPACITIES */}
       {activeTab === 'MACRO' && (
-        <div className="bg-stone-900 border border-stone-800 overflow-hidden font-mono text-xs">
+        <div className="bg-stone-900 border border-stone-800 overflow-hidden text-xs">
           <div className="overflow-x-auto">
-            <table className="w-full text-left tabular-nums">
+            <table className="w-full text-left font-num tabular-nums">
               <thead className="bg-stone-950 text-stone-400 uppercase font-semibold text-micro tracking-wider border-b border-stone-800">
                 <tr>
                   <th className="py-2.5 px-3">Country / Registry</th>
@@ -355,17 +355,17 @@ export function PlantsScreen() {
               <tbody className="divide-y divide-stone-800/80">
                 {COUNTRY_MACRO_STATS.map((m) => (
                   <tr key={m.iso} className="h-10 hover:bg-stone-800/60 transition-colors">
-                    <td className="py-2 px-3 font-bold text-stone-100 whitespace-nowrap">
+                    <td className="py-2 px-3 font-semibold text-stone-100 whitespace-nowrap">
                       <div className="flex items-center gap-1.5">
                         <span>{m.flag}</span>
                         <span>{m.country}</span>
                         <span className="text-micro text-stone-400 font-normal">({m.nationalRegistry})</span>
                       </div>
                     </td>
-                    <td className="py-2 px-3 text-right font-bold text-stone-200">
+                    <td className="py-2 px-3 text-right font-semibold text-stone-200">
                       {m.activePlants}
                     </td>
-                    <td className="py-2 px-3 text-right text-teal-300 font-bold">
+                    <td className="py-2 px-3 text-right text-teal-300 font-semibold">
                       {m.installedCapacityTWh != null ? `${m.installedCapacityTWh.toFixed(2)} TWh` : '—'}
                     </td>
                     <td className="py-2 px-3 text-right text-stone-300">
@@ -393,18 +393,18 @@ export function PlantsScreen() {
 
       {/* Selected Plant Detail Modal */}
       {selectedPlantDetail && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 z-50 font-mono text-xs">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 z-50 text-xs">
           <div className="bg-stone-900 border border-stone-800 p-3 max-w-xl w-full space-y-2 shadow-2xl">
             <div className="flex items-center justify-between border-b border-stone-800 pb-2">
               <div>
-                <span className="font-bold text-sm text-stone-100 flex items-center gap-2">
+                <span className="font-semibold text-sm text-stone-100 flex items-center gap-2">
                   <span>{selectedPlantDetail.countryFlag} {selectedPlantDetail.name}</span>
                 </span>
                 <span className="text-micro text-stone-400">
                   {selectedPlantDetail.country} • Sourced: {selectedPlantDetail.provenance}
                 </span>
               </div>
-              <span className="px-2 py-0.5 bg-emerald-950 text-emerald-300 border border-emerald-800 rounded text-micro font-bold">
+              <span className="px-2 py-0.5 bg-emerald-950 text-emerald-300 border border-emerald-800 rounded text-micro font-semibold">
                 {selectedPlantDetail.status || 'Active'}
               </span>
             </div>
@@ -412,21 +412,21 @@ export function PlantsScreen() {
             {/* Grid of details with verified vs unverified indicators */}
             <div className="grid grid-cols-2 gap-2 text-meta">
               <div className="p-2.5 bg-stone-950 rounded border border-stone-800">
-                <span className="text-micro text-stone-400 uppercase block font-bold">Location & Country</span>
+                <span className="text-micro text-stone-400 uppercase block font-semibold">Location & Country</span>
                 <strong className="text-stone-200">{selectedPlantDetail.name}, {selectedPlantDetail.country}</strong>
                 <span className="text-micro text-emerald-400 flex items-center gap-1 mt-0.5"><Check className="w-3 h-3 shrink-0" aria-hidden="true" />Verified in GIE/EBA Map</span>
               </div>
               <div className="p-2.5 bg-stone-950 rounded border border-stone-800">
-                <span className="text-micro text-stone-400 uppercase block font-bold">Facility Code</span>
+                <span className="text-micro text-stone-400 uppercase block font-semibold">Facility Code</span>
                 <strong className="text-teal-300">{selectedPlantDetail.id.toUpperCase()}</strong>
                 <span className="text-micro text-emerald-400 flex items-center gap-1 mt-0.5"><Check className="w-3 h-3 shrink-0" aria-hidden="true" />Sourced National ID</span>
               </div>
               <div className="p-2.5 bg-stone-950 rounded border border-stone-800">
-                <span className="text-micro text-stone-400 uppercase block font-bold">Operator / Developer</span>
+                <span className="text-micro text-stone-400 uppercase block font-semibold">Operator / Developer</span>
                 <span className="text-stone-400">{selectedPlantDetail.operator || <span className="italic text-stone-600">Unverified in GIE/EBA source map</span>}</span>
               </div>
               <div className="p-2.5 bg-stone-950 rounded border border-stone-800">
-                <span className="text-micro text-stone-400 uppercase block font-bold">Capacity / Upgrading</span>
+                <span className="text-micro text-stone-400 uppercase block font-semibold">Capacity / Upgrading</span>
                 <span className="text-stone-400">{selectedPlantDetail.capacityNm3h != null ? `${selectedPlantDetail.capacityNm3h} Nm³/h` : <span className="italic text-stone-600">Unverified in GIE/EBA source map</span>}</span>
               </div>
             </div>
@@ -451,7 +451,7 @@ export function PlantsScreen() {
                 onClick={() => {
                   navigate(`/trade?originCountry=${selectedPlantDetail.countryCode}`);
                 }}
-                className="bg-teal-600 hover:bg-teal-500 text-white font-bold px-4 py-1.5 rounded flex items-center gap-1.5"
+                className="bg-teal-600 hover:bg-teal-500 text-white font-semibold px-4 py-1.5 rounded flex items-center gap-1.5"
               >
                 Simulate Trade for {selectedPlantDetail.country} <ArrowRight className="w-3.5 h-3.5" />
               </button>

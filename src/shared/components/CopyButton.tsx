@@ -100,10 +100,10 @@ export function CopyButton({ text, label = 'Copy', className = '', praWarning = 
                 <AlertTriangle className="w-5 h-5" aria-hidden="true" />
               </div>
               <div>
-                <h3 id="pra-modal-title" className="text-sm font-bold text-white font-mono uppercase tracking-wide">
+                <h3 id="pra-modal-title" className="text-sm font-semibold text-white font-mono uppercase tracking-wide">
                   PRA Subscription Licence Notice
                 </h3>
-                <p className="text-xs text-stone-300 mt-1.5 leading-relaxed font-mono">
+                <p className="text-xs text-stone-300 mt-1.5 leading-relaxed">
                   This assessment includes <strong className="text-amber-300">Price Reporting Agency (PRA)</strong> data{formattedSources ? ` (${formattedSources})` : ''}.
                 </p>
                 <p className="text-xs text-stone-400 mt-2 leading-relaxed">
@@ -112,7 +112,7 @@ export function CopyButton({ text, label = 'Copy', className = '', praWarning = 
               </div>
             </div>
 
-            <div className="bg-stone-950 border border-stone-800 rounded p-3 text-meta font-mono text-stone-400">
+            <div className="bg-stone-950 border border-stone-800 rounded p-3 text-meta text-stone-400">
               Ensure you have commercial rights or internal clearance before sending this dossier externally.
             </div>
 
@@ -129,7 +129,7 @@ export function CopyButton({ text, label = 'Copy', className = '', praWarning = 
                   setShowPraModal(false);
                   performCopy();
                 }}
-                className="px-3 py-1.5 rounded bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold cursor-pointer transition-colors focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-900"
+                className="px-3 py-1.5 rounded bg-amber-600 hover:bg-amber-500 text-stone-950 font-semibold cursor-pointer transition-colors focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-900"
               >
                 Acknowledge &amp; Copy
               </button>

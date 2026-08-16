@@ -81,7 +81,7 @@ export function LibraryScreen() {
               Trade Dossier Archive
             </h1>
           </div>
-          <p className="text-stone-400 text-xs mt-0.5 font-mono">
+          <p className="text-stone-400 text-xs mt-0.5">
             Persisted counterparty trade dossiers. Recalculate economics against live marks anytime.
           </p>
         </div>
@@ -101,32 +101,32 @@ export function LibraryScreen() {
       </div>
 
       {recalcMessage && (
-        <div className="bg-teal-950/70 border border-teal-800 text-teal-300 text-xs p-2.5 rounded flex items-center gap-2 font-mono">
+        <div className="bg-teal-950/70 border border-teal-800 text-teal-300 text-xs p-2.5 rounded flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 text-teal-400" />
           <span>{recalcMessage}</span>
         </div>
       )}
 
       {assessments.length === 0 ? (
-        <div className="bg-stone-900 border border-stone-800 p-8 text-center space-y-3 font-mono">
+        <div className="bg-stone-900 border border-stone-800 p-8 text-center space-y-3">
           <div className="w-10 h-10 bg-stone-950 rounded-full flex items-center justify-center mx-auto text-stone-400 border border-stone-800">
             <FolderArchive className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-bold text-stone-200 text-sm">No Saved Trade Dossiers</h3>
+            <h3 className="font-semibold text-stone-200 text-sm">No Saved Trade Dossiers</h3>
             <p className="text-xs text-stone-400 max-w-sm mx-auto mt-0.5">
               Construct a trade in Trade Builder and click "Save Dossier" to store an auditable compliance snapshot.
             </p>
           </div>
           <button
             onClick={() => navigate('/trade')}
-            className="bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold px-3 py-1.5 rounded transition-colors inline-flex items-center gap-1.5"
+            className="bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold px-3 py-1.5 rounded transition-colors inline-flex items-center gap-1.5"
           >
             Create New Trade Dossier <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 font-mono">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-2">
           
           {/* Saved Dossier List */}
           <div className="lg:col-span-5 space-y-2">
@@ -144,7 +144,7 @@ export function LibraryScreen() {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <h4 className="font-bold text-xs text-stone-100">{a.consignment.name}</h4>
+                      <h4 className="font-semibold text-xs text-stone-100">{a.consignment.name}</h4>
                       <div className="text-meta text-stone-400 mt-0.5">
                         Target: {a.targetMarketName}
                       </div>
@@ -156,7 +156,7 @@ export function LibraryScreen() {
                     <span className="text-stone-400 text-micro">
                       CI: {a.consignment.carbonIntensity} • {a.consignment.originCountry}
                     </span>
-                    <span className="font-bold text-teal-300">
+                    <span className="font-semibold text-teal-300">
                       {a.netback.netNetback != null ? `€${a.netback.netNetback.toFixed(2)}/MWh` : '—'}
                     </span>
                   </div>
@@ -191,7 +191,7 @@ export function LibraryScreen() {
               <div className="bg-stone-900 border border-stone-800 p-2 space-y-3 sticky top-16">
                 <div className="flex items-center justify-between border-b border-stone-800 pb-2.5">
                   <div>
-                    <h3 className="font-bold text-sm text-stone-100">{selectedAssessment.consignment.name}</h3>
+                    <h3 className="font-semibold text-sm text-stone-100">{selectedAssessment.consignment.name}</h3>
                     <div className="text-meta text-stone-400">
                       Target: {selectedAssessment.targetMarketName} • Saved: {selectedAssessment.createdAt}
                     </div>
