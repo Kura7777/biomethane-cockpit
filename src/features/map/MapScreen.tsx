@@ -32,6 +32,7 @@ import {
   Plus,
   Minus,
   Maximize2,
+  Minimize2,
   Navigation,
   Compass,
   Check,
@@ -172,6 +173,9 @@ export function MapScreen() {
   const { state } = useAppState();
   const mapCanvasRef = useRef<HTMLDivElement>(null);
 
+  // Fullscreen state
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+
   // Active Origin and Consignment Parameters
   const [originCountry, setOriginCountry] = useState<string>('LT');
   const [targetCountry, setTargetCountry] = useState<string>('DE');
@@ -199,6 +203,38 @@ export function MapScreen() {
   // Right Drawer Tab State: 'PLANTS' | 'COMPLIANCE'
   const [drawerTab, setDrawerTab] = useState<'PLANTS' | 'COMPLIANCE'>('PLANTS');
   const [plantFeedstockFilter, setPlantFeedstockFilter] = useState<string>('ALL');
+
+  // Toggle Fullscreen using HTML5 Fullscreen API with fallback
+  const toggleFullscreen = () => {
+    const el = mapCanvasRef.current;
+    if (!el) return;
+
+    if (!document.fullscreenElement) {
+      if (el.requestFullscreen) {
+        el.requestFullscreen().catch(() => {
+          setIsFullscreen(true);
+        });
+      } else {
+        setIsFullscreen(true);
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {
+          setIsFullscreen(false);
+        });
+      } else {
+        setIsFullscreen(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
 
   // Open right click context menu at cursor
   const openContextMenuForIso2 = (clientX: number, clientY: number, iso2: string) => {
@@ -596,10 +632,14 @@ export function MapScreen() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         
-        {/* SVG Google Maps Style Interactive Canvas */}
+        {/* SVG Google Maps Style Interactive Canvas with Fullscreen Support */}
         <div 
           ref={mapCanvasRef}
-          className="lg:col-span-7 bg-[#0b1329] border border-stone-800 rounded-xl overflow-hidden relative flex flex-col min-h-[600px] shadow-lg"
+          className={`${
+            isFullscreen
+              ? 'fixed inset-0 z-50 rounded-none w-screen h-screen'
+              : 'lg:col-span-7 rounded-xl min-h-[600px]'
+          } bg-[#0b1329] border border-stone-800 overflow-hidden relative flex flex-col shadow-lg transition-all duration-150`}
         >
           
           {/* Dynamic Map Legend */}
@@ -632,28 +672,35 @@ export function MapScreen() {
           {/* Map Vector Component with Google Maps Contrast Styling */}
           <div className="flex-1 relative w-full h-full min-h-[520px] flex items-center justify-center bg-[#0c1427] select-none">
             
-            {/* Zoom / Pan Navigation Controls */}
+            {/* Zoom / Pan & Fullscreen Navigation Controls */}
             <div className="absolute top-3 right-3 z-20 flex flex-col bg-slate-900/90 border border-slate-700 rounded-lg shadow-xl overflow-hidden">
               <button
                 onClick={handleZoomIn}
                 className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors border-b border-slate-800"
-                title="Zoom In"
+                title="Zoom In (+)"
               >
                 <Plus className="w-4 h-4" />
               </button>
               <button
                 onClick={handleZoomOut}
                 className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors border-b border-slate-800"
-                title="Zoom Out"
+                title="Zoom Out (-)"
               >
                 <Minus className="w-4 h-4" />
               </button>
               <button
                 onClick={handleResetZoom}
-                className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
+                className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors border-b border-slate-800"
                 title="Reset View"
               >
-                <Maximize2 className="w-4 h-4" />
+                <RotateCcw className="w-4 h-4" />
+              </button>
+              <button
+                onClick={toggleFullscreen}
+                className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
+                title={isFullscreen ? "Exit Fullscreen (Esc)" : "Fullscreen Mode"}
+              >
+                {isFullscreen ? <Minimize2 className="w-4 h-4 text-teal-400" /> : <Maximize2 className="w-4 h-4" />}
               </button>
             </div>
 
