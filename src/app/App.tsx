@@ -1,6 +1,6 @@
 import React from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
-import { AppProvider, useAppState } from '../store/context';
+import { AppProvider } from '../store/context';
 import { Layout } from './Layout';
 import { MapScreen } from '../features/map/MapScreen';
 import { TradeBuilderScreen } from '../features/trade-builder/TradeBuilderScreen';
@@ -9,16 +9,10 @@ import { MarksScreen } from '../features/marks/MarksScreen';
 import { LibraryScreen } from '../features/trade-library/LibraryScreen';
 
 function AppContent() {
-  const { state } = useAppState();
-  // Count stale marks
-  const staleCount = Object.values(state.marks.marks).filter(m => {
-    return m.bid === null && m.offer === null && m.mid === null;
-  }).length;
-
   return (
     <HashRouter>
       <Routes>
-        <Route element={<Layout staleMarkCount={staleCount} />}>
+        <Route element={<Layout />}>
           <Route path="/" element={<MapScreen />} />
           <Route path="/trade" element={<TradeBuilderScreen />} />
           <Route path="/scanner" element={<ScannerScreen />} />

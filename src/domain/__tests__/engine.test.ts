@@ -1,10 +1,19 @@
 import { describe, it, expect } from 'vitest';
 import { evaluateEligibility } from '../eligibility/engine';
-import { computeCertificateValue, computeNetback, tCO2ePerMWh } from '../netback/engine';
+import { 
+  computeCertificateValue, 
+  computeNetback, 
+  tCO2ePerMWh, 
+  computeFuelEUDeficitClosureValue,
+  selectMarkPrice
+} from '../netback/engine';
 import { getMarketById, MARKETS } from '../markets/registry';
+import { getMarkAgeDays, getMarkStaleness } from '../markets/types';
 import { Consignment } from '../consignment/types';
 import { MarksState, CostInputs } from '../netback/types';
 import { rankNetbacks, getHighestBlockedOpportunity } from '../netback/ranking';
+import { migrateState, CURRENT_SCHEMA_VERSION } from '../../store/context';
+import { REFERENCE_CONSIGNMENTS } from '../consignment/feedstocks';
 
 const emptyCosts: CostInputs = {
   transferCosts: null,
@@ -14,42 +23,53 @@ const emptyCosts: CostInputs = {
   otherCosts: null,
 };
 
-const sampleMarks: MarksState = {
-  marks: {
-    DE_THG: { bid: 300, offer: 300, mid: 300 },
-    FR_CPB: { bid: 150, offer: 150, mid: 150 }, // Above €100 cap
-    NL_ERE: { bid: 0.30, offer: 0.30, mid: 0.30 },
-    VOL_SCOPE1: { bid: 40, offer: 40, mid: 40 },
-    FUELEU: { bid: 220, offer: 220, mid: 220 },
-  },
-  gasIndex: { bid: 28.50, offer: 28.50, mid: 28.50 },
-  fx: { gbpEur: 1.18, chfEur: 1.06 },
+const completeCosts: CostInputs = {
+  transferCosts: 2.0,
+  certificationCosts: 0.5,
+  logistics: 1.5,
+  deliveredCost: 85.0,
+  otherCosts: 0.0,
 };
 
-describe('Biomethane Trading Cockpit — Acceptance Criteria Tests', () => {
+const sampleMarks: MarksState = {
+  marks: {
+    DE_THG: { marketId: 'DE_THG', bid: 290, offer: 310, mid: 300, updatedAt: new Date().toISOString(), source: 'Argus' },
+    FR_CPB: { marketId: 'FR_CPB', bid: 145, offer: 155, mid: 150, updatedAt: new Date().toISOString(), source: 'EEX' },
+    NL_ERE: { marketId: 'NL_ERE', bid: 0.28, offer: 0.32, mid: 0.30, updatedAt: new Date().toISOString(), source: 'NEa' },
+    VOL_SCOPE1: { marketId: 'VOL_SCOPE1', bid: 35, offer: 45, mid: 40, updatedAt: new Date().toISOString(), source: 'Broker' },
+    FUELEU: { marketId: 'FUELEU', bid: 220, offer: 260, mid: 240, updatedAt: new Date().toISOString(), source: 'Broker' },
+    IT_CIC: { marketId: 'IT_CIC', bid: 360, offer: 390, mid: 375, updatedAt: new Date().toISOString(), source: 'GSE' },
+  },
+  gasIndex: { bid: 28.00, offer: 29.00, mid: 28.50, updatedAt: new Date().toISOString() },
+  fx: { gbpEur: 1.18, chfEur: 1.06, updatedAt: new Date().toISOString() },
+  pricingSide: 'bid',
+};
 
-  describe('Eligibility Engine Acceptance Criteria', () => {
+describe('Biomethane Trading Cockpit — Domain Engine & Regression Tests', () => {
+
+  describe('1. Core Physical & Mathematical Anchors', () => {
     
-    it('Scenario 1: UK origin, food waste, injected UK grid, ISCC EU, mass balance -> blocked at UDB, not scheme', () => {
-      const consignment: Consignment = {
-        id: 'uk_food_waste',
-        name: 'UK Food Waste',
-        originCountry: 'GB',
-        originCountryName: 'United Kingdom',
-        feedstock: 'food_waste',
-        feedstockName: 'Bio-waste (food waste)',
-        annexClassification: 'IX_A',
-        carbonIntensity: 20,
-        commissioningDateRange: 'POST_2021_TO_2025',
-        certificationScheme: 'ISCC_EU',
-        chainOfCustody: 'MASS_BALANCE',
-        injectionCountry: 'GB',
-        injectionIsEU: false,
-        udbStatus: 'NOT_RECORDED',
-        posStatus: 'ISSUED',
-        volumeMWh: 5000,
-      };
+    it('anchors: tCO2e_per_MWh formula precision verification', () => {
+      const manureFactor = tCO2ePerMWh(-100);
+      const wasteFactor = tCO2ePerMWh(20);
 
+      // (94 - -100) * 3600 / 1e6 = 194 * 3600 / 1e6 = 0.6984
+      expect(manureFactor).toBeCloseTo(0.6984, 4);
+
+      // (94 - 20) * 3600 / 1e6 = 74 * 3600 / 1e6 = 0.2664
+      expect(wasteFactor).toBeCloseTo(0.2664, 4);
+
+      // 2.62x difference from feedstock GHG accounting
+      const ratio = manureFactor / wasteFactor;
+      expect(ratio).toBeCloseTo(2.6216, 2);
+    });
+
+  });
+
+  describe('2. Regulatory Eligibility Scenarios', () => {
+    
+    it('Scenario 1: UK origin, food waste, injected UK grid, ISCC EU -> blocked at UDB, not scheme', () => {
+      const consignment = REFERENCE_CONSIGNMENTS.UK_FOOD_WASTE;
       const deMarket = getMarketById('DE_THG')!;
       const result = evaluateEligibility(consignment, deMarket);
 
@@ -67,26 +87,8 @@ describe('Biomethane Trading Cockpit — Acceptance Criteria Tests', () => {
       expect(udbGate?.reason).toContain('non-EU gas grid');
     });
 
-    it('Scenario 2: Danish manure, EU grid, ISCC EU, mass balance, UDB recorded -> Germany returns UNRESOLVED, never ELIGIBLE', () => {
-      const consignment: Consignment = {
-        id: 'dk_manure',
-        name: 'Danish Manure',
-        originCountry: 'DK',
-        originCountryName: 'Denmark',
-        feedstock: 'manure',
-        feedstockName: 'Animal manure and slurry',
-        annexClassification: 'IX_A',
-        carbonIntensity: -100,
-        commissioningDateRange: 'POST_2021_TO_2025',
-        certificationScheme: 'ISCC_EU',
-        chainOfCustody: 'MASS_BALANCE',
-        injectionCountry: 'DK',
-        injectionIsEU: true,
-        udbStatus: 'RECORDED',
-        posStatus: 'ISSUED',
-        volumeMWh: 10000,
-      };
-
+    it('Scenario 2: Danish manure, EU grid, ISCC EU, mass balance -> Germany returns UNRESOLVED, never ELIGIBLE', () => {
+      const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
       const deMarket = getMarketById('DE_THG')!;
       const result = evaluateEligibility(consignment, deMarket);
 
@@ -97,26 +99,8 @@ describe('Biomethane Trading Cockpit — Acceptance Criteria Tests', () => {
       expect(marketGate?.reason).toContain('negative carbon intensity is a property of the GHG CALCULATION');
     });
 
-    it('Scenario 3: Same Danish consignment is ELIGIBLE or CONDITIONAL for French CPB and Dutch ERE', () => {
-      const consignment: Consignment = {
-        id: 'dk_manure',
-        name: 'Danish Manure',
-        originCountry: 'DK',
-        originCountryName: 'Denmark',
-        feedstock: 'manure',
-        feedstockName: 'Animal manure and slurry',
-        annexClassification: 'IX_A',
-        carbonIntensity: -100,
-        commissioningDateRange: 'POST_2021_TO_2025',
-        certificationScheme: 'ISCC_EU',
-        chainOfCustody: 'MASS_BALANCE',
-        injectionCountry: 'DK',
-        injectionIsEU: true,
-        udbStatus: 'RECORDED',
-        posStatus: 'ISSUED',
-        volumeMWh: 10000,
-      };
-
+    it('Scenario 3: Same Danish consignment is ELIGIBLE for French CPB and Dutch ERE', () => {
+      const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
       const frCpb = getMarketById('FR_CPB')!;
       const nlEre = getMarketById('NL_ERE')!;
 
@@ -127,26 +111,8 @@ describe('Biomethane Trading Cockpit — Acceptance Criteria Tests', () => {
       expect(['ELIGIBLE', 'CONDITIONAL']).toContain(nlResult.overallVerdict);
     });
 
-    it('Scenario 4: Any ISCC PLUS consignment fails every compliance market at scheme gate, passes voluntary', () => {
-      const consignment: Consignment = {
-        id: 'iscc_plus_consignment',
-        name: 'ISCC PLUS Test',
-        originCountry: 'FR',
-        originCountryName: 'France',
-        feedstock: 'food_waste',
-        feedstockName: 'Food Waste',
-        annexClassification: 'IX_A',
-        carbonIntensity: 20,
-        commissioningDateRange: 'POST_2021_TO_2025',
-        certificationScheme: 'ISCC_PLUS',
-        chainOfCustody: 'MASS_BALANCE',
-        injectionCountry: 'FR',
-        injectionIsEU: true,
-        udbStatus: 'RECORDED',
-        posStatus: 'ISSUED',
-        volumeMWh: 5000,
-      };
-
+    it('Scenario 4: ISCC PLUS fails compliance markets at scheme gate, passes voluntary', () => {
+      const consignment = REFERENCE_CONSIGNMENTS.ISCC_PLUS_VOLUNTARY;
       const complianceMarkets = ['DE_THG', 'NL_ERE', 'FR_CPB', 'IT_CIC', 'AT_EGG', 'SE_TAX', 'FUELEU', 'EU_ETS1'];
 
       complianceMarkets.forEach(mId => {
@@ -166,22 +132,8 @@ describe('Biomethane Trading Cockpit — Acceptance Criteria Tests', () => {
 
     it('Scenario 5: Book-and-claim fails FuelEU Maritime, passes voluntary', () => {
       const consignment: Consignment = {
-        id: 'book_claim_consignment',
-        name: 'Book and Claim Test',
-        originCountry: 'NL',
-        originCountryName: 'Netherlands',
-        feedstock: 'manure',
-        feedstockName: 'Manure',
-        annexClassification: 'IX_A',
-        carbonIntensity: -100,
-        commissioningDateRange: 'POST_2021_TO_2025',
-        certificationScheme: 'ISCC_EU',
+        ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
         chainOfCustody: 'BOOK_AND_CLAIM',
-        injectionCountry: 'NL',
-        injectionIsEU: true,
-        udbStatus: 'RECORDED',
-        posStatus: 'ISSUED',
-        volumeMWh: 5000,
       };
 
       const fueleu = getMarketById('FUELEU')!;
@@ -194,26 +146,8 @@ describe('Biomethane Trading Cockpit — Acceptance Criteria Tests', () => {
       expect(resVol.overallVerdict).toBe('ELIGIBLE');
     });
 
-    it('Scenario 6: EU ETS2 always returns UNKNOWN and not-tradeable until 2028', () => {
-      const consignment: Consignment = {
-        id: 'test',
-        name: 'Test',
-        originCountry: 'DE',
-        originCountryName: 'Germany',
-        feedstock: 'manure',
-        feedstockName: 'Manure',
-        annexClassification: 'IX_A',
-        carbonIntensity: -100,
-        commissioningDateRange: 'POST_2021_TO_2025',
-        certificationScheme: 'ISCC_EU',
-        chainOfCustody: 'MASS_BALANCE',
-        injectionCountry: 'DE',
-        injectionIsEU: true,
-        udbStatus: 'RECORDED',
-        posStatus: 'ISSUED',
-        volumeMWh: 5000,
-      };
-
+    it('Scenario 6: EU ETS2 always returns UNKNOWN and not tradeable until 2028', () => {
+      const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
       const ets2 = getMarketById('EU_ETS2')!;
       const res = evaluateEligibility(consignment, ets2);
       expect(res.overallVerdict).toBe('UNKNOWN');
@@ -221,119 +155,61 @@ describe('Biomethane Trading Cockpit — Acceptance Criteria Tests', () => {
       const marketGate = res.gates.find(g => g.gate === 'MARKET_SPECIFIC');
       expect(marketGate?.reason).toContain('postponed to 2028');
     });
+
   });
 
-  describe('Netback Engine Acceptance Criteria', () => {
-
-    it('Scenario 7: tCO2e_per_MWh formula precision verification', () => {
-      const manureFactor = tCO2ePerMWh(-100);
-      const wasteFactor = tCO2ePerMWh(20);
-
-      // (94 - -100) * 3600 / 1e6 = 194 * 3600 / 1e6 = 0.6984
-      expect(manureFactor).toBeCloseTo(0.6984, 4);
-
-      // (94 - 20) * 3600 / 1e6 = 74 * 3600 / 1e6 = 0.2664
-      expect(wasteFactor).toBeCloseTo(0.2664, 4);
-
-      // 2.6x difference from feedstock alone
-      const ratio = manureFactor / wasteFactor;
-      expect(ratio).toBeCloseTo(2.6216, 2);
-    });
-
-    it('Scenario 8: German certificate value at CI -100 and €300/t mark ≈ €209.52/MWh, DC returns ~2x and both branches present', () => {
-      const consignment: Consignment = {
-        id: 'dk_manure',
-        name: 'Danish Manure',
-        originCountry: 'DK',
-        originCountryName: 'Denmark',
-        feedstock: 'manure',
-        feedstockName: 'Manure',
-        annexClassification: 'IX_A',
-        carbonIntensity: -100,
-        commissioningDateRange: 'POST_2021_TO_2025',
-        certificationScheme: 'ISCC_EU',
-        chainOfCustody: 'MASS_BALANCE',
-        injectionCountry: 'DK',
-        injectionIsEU: true,
-        udbStatus: 'RECORDED',
-        posStatus: 'ISSUED',
-        volumeMWh: 10000,
-      };
-
+  describe('3. Commercial Netbacks, Completeness & Pricing Sides', () => {
+    
+    it('Scenario 7: German THG dual branches and pricing side selection', () => {
+      const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
       const deMarket = getMarketById('DE_THG')!;
-      const netback = computeNetback(deMarket, consignment, sampleMarks, emptyCosts);
 
-      // 0.6984 * 300 = 209.52
-      expect(netback.certificateValue?.valueEurPerMWh).toBeCloseTo(209.52, 1);
+      // Bid side (290)
+      const netbackBid = computeNetback(deMarket, consignment, sampleMarks, completeCosts, 'bid');
+      expect(netbackBid.certificateValue?.valueEurPerMWh).toBeCloseTo(0.6984 * 290, 1);
+      expect(netbackBid.uncertaintyBranches?.[0].certificateValue.valueEurPerMWh).toBeCloseTo(0.6984 * 290, 1);
+      expect(netbackBid.uncertaintyBranches?.[1].certificateValue.valueEurPerMWh).toBeCloseTo(0.6984 * 290 * 2, 1);
 
-      // Verify both DC branches
-      expect(netback.uncertaintyBranches).toBeDefined();
-      expect(netback.uncertaintyBranches?.length).toBe(2);
-
-      const branchOff = netback.uncertaintyBranches![0];
-      const branchOn = netback.uncertaintyBranches![1];
-
-      expect(branchOff.branchId).toBe('DC_OFF');
-      expect(branchOn.branchId).toBe('DC_ON');
-
-      expect(branchOff.certificateValue.valueEurPerMWh).toBeCloseTo(209.52, 1);
-      expect(branchOn.certificateValue.valueEurPerMWh).toBeCloseTo(419.04, 1);
-      expect(branchOn.certificateValue.valueEurPerMWh! / branchOff.certificateValue.valueEurPerMWh!).toBeCloseTo(2.0, 1);
+      // Mid side (300)
+      const netbackMid = computeNetback(deMarket, consignment, sampleMarks, completeCosts, 'mid');
+      expect(netbackMid.certificateValue?.valueEurPerMWh).toBeCloseTo(0.6984 * 300, 1); // 209.52
     });
 
-    it('Scenario 9: French CPB netback is capped at €100/MWh regardless of mark entered', () => {
-      const consignment: Consignment = {
-        id: 'fr_agro',
-        name: 'French Agro Biomethane',
-        originCountry: 'FR',
-        originCountryName: 'France',
-        feedstock: 'agricultural_residues',
-        feedstockName: 'Straw',
-        annexClassification: 'IX_A',
-        carbonIntensity: 18,
-        commissioningDateRange: 'POST_2021_TO_2025',
-        certificationScheme: 'ISCC_EU',
-        chainOfCustody: 'MASS_BALANCE',
-        injectionCountry: 'FR',
-        injectionIsEU: true,
-        udbStatus: 'RECORDED',
-        posStatus: 'ISSUED',
-        volumeMWh: 10000,
-      };
-
+    it('Scenario 8: French CPB penalty ceiling enforced at €100/MWh', () => {
+      const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
       const frCpb = getMarketById('FR_CPB')!;
-      // sampleMarks has FR_CPB at 150 (above 100 cap)
+      // sampleMarks has FR_CPB bid at 145 (above 100)
       const certVal = computeCertificateValue(frCpb, consignment, sampleMarks);
 
       expect(certVal?.valueEurPerMWh).toBe(100);
       expect(certVal?.capped).toBe(true);
-      expect(certVal?.capReason).toContain('French CPB penalty ceiling');
+      expect(certVal?.capReason).toContain('French CPB penalty ceiling: €100/MWh');
     });
 
-    it('Scenario 10: Market with no mark returns null, never zero', () => {
-      const consignment: Consignment = {
-        id: 'test',
-        name: 'Test',
-        originCountry: 'AT',
-        originCountryName: 'Austria',
-        feedstock: 'manure',
-        feedstockName: 'Manure',
-        annexClassification: 'IX_A',
-        carbonIntensity: -100,
-        commissioningDateRange: 'POST_2021_TO_2025',
-        certificationScheme: 'ISCC_EU',
-        chainOfCustody: 'MASS_BALANCE',
-        injectionCountry: 'AT',
-        injectionIsEU: true,
-        udbStatus: 'RECORDED',
-        posStatus: 'ISSUED',
-        volumeMWh: 10000,
-      };
+    it('Scenario 9: Cost completeness tracking preserves missing inputs without silent zeros', () => {
+      const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
+      const deMarket = getMarketById('DE_THG')!;
 
+      const incompleteResult = computeNetback(deMarket, consignment, sampleMarks, emptyCosts);
+      expect(incompleteResult.isComplete).toBe(false);
+      expect(incompleteResult.missingInputs).toContain('transferCosts');
+      expect(incompleteResult.missingInputs).toContain('certificationCosts');
+      expect(incompleteResult.missingInputs).toContain('logistics');
+      expect(incompleteResult.missingInputs).toContain('deliveredCost');
+
+      const completeResult = computeNetback(deMarket, consignment, sampleMarks, completeCosts);
+      expect(completeResult.isComplete).toBe(true);
+      expect(completeResult.missingInputs.length).toBe(0);
+      expect(completeResult.impliedMargin).not.toBeNull();
+    });
+
+    it('Scenario 10: Missing mark returns null, never zero', () => {
+      const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
       const emptyMarks: MarksState = {
         marks: {},
-        gasIndex: { bid: null, offer: null, mid: null },
-        fx: { gbpEur: null, chfEur: null },
+        gasIndex: { bid: null, offer: null, mid: null, updatedAt: null },
+        fx: { gbpEur: null, chfEur: null, updatedAt: null },
+        pricingSide: 'bid',
       };
 
       const atMarket = getMarketById('AT_EGG')!;
@@ -345,36 +221,69 @@ describe('Biomethane Trading Cockpit — Acceptance Criteria Tests', () => {
       expect(netback.netNetback).not.toBe(0);
     });
 
-    it('Scenario 11: Ranking UK reference consignment returns Germany as not tradeable, with blocking reason and non-null theoretical netback', () => {
-      const consignment: Consignment = {
-        id: 'uk_ref',
-        name: 'UK Reference Consignment',
-        originCountry: 'GB',
-        originCountryName: 'United Kingdom',
-        feedstock: 'food_waste',
-        feedstockName: 'Food waste',
-        annexClassification: 'IX_A',
-        carbonIntensity: 20,
-        commissioningDateRange: 'POST_2021_TO_2025',
-        certificationScheme: 'ISCC_EU',
-        chainOfCustody: 'MASS_BALANCE',
-        injectionCountry: 'GB',
-        injectionIsEU: false,
-        udbStatus: 'NOT_RECORDED',
-        posStatus: 'ISSUED',
-        volumeMWh: 10000,
+    it('Scenario 11: FuelEU Maritime deficit-closure model calculates compliance value with escalation', () => {
+      // Year 1 (no escalation): bio-LNG with CI -100 vs target 89.34
+      const year1 = computeFuelEUDeficitClosureValue(-100, 1);
+      expect(year1.valueEurPerMWh).toBeGreaterThan(200);
+
+      // Year 2 (10% escalation multiplier)
+      const year2 = computeFuelEUDeficitClosureValue(-100, 2);
+      expect(year2.valueEurPerMWh / year1.valueEurPerMWh).toBeCloseTo(1.10, 2);
+
+      // Year 3 (20% escalation multiplier)
+      const year3 = computeFuelEUDeficitClosureValue(-100, 3);
+      expect(year3.valueEurPerMWh / year1.valueEurPerMWh).toBeCloseTo(1.20, 2);
+    });
+
+    it('Scenario 12: True Mark staleness calculation flags marks correctly', () => {
+      const now = new Date();
+      const freshDate = new Date(now.getTime() - 2 * 86400000).toISOString(); // 2 days ago
+      const staleWarnDate = new Date(now.getTime() - 10 * 86400000).toISOString(); // 10 days ago
+      const staleCritDate = new Date(now.getTime() - 35 * 86400000).toISOString(); // 35 days ago
+
+      expect(getMarkStaleness(freshDate)).toBe('FRESH');
+      expect(getMarkStaleness(staleWarnDate)).toBe('STALE_WARNING');
+      expect(getMarkStaleness(staleCritDate)).toBe('STALE_CRITICAL');
+      expect(getMarkStaleness(null)).toBe('UNFILLED');
+
+      expect(getMarkAgeDays(freshDate)).toBe(2);
+      expect(getMarkAgeDays(staleWarnDate)).toBe(10);
+      expect(getMarkAgeDays(staleCritDate)).toBe(35);
+      expect(getMarkAgeDays(null)).toBeNull();
+    });
+
+    it('Scenario 13: State schema migration upgrades v1 state safely', () => {
+      const legacyV1State = {
+        marks: {
+          marks: {
+            DE_THG: { bid: 300, offer: 310, mid: 305 },
+          },
+          gasIndex: { bid: 28, offer: 29, mid: 28.5 },
+          fx: { gbpEur: 1.18, chfEur: null },
+        },
+        consignments: [],
       };
 
+      const migrated = migrateState(legacyV1State);
+      expect(migrated.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+      expect(migrated.marks.marks.DE_THG.mid).toBe(305);
+      expect(migrated.marks.marks.DE_THG.marketId).toBe('DE_THG');
+      expect(migrated.consignments.length).toBeGreaterThan(0);
+    });
+
+    it('Scenario 14: Highest blocked opportunity returns dynamic market ID and remedy', () => {
+      const consignment = REFERENCE_CONSIGNMENTS.UK_FOOD_WASTE;
       const deMarket = getMarketById('DE_THG')!;
       const el = evaluateEligibility(consignment, deMarket);
       const nb = computeNetback(deMarket, consignment, sampleMarks, emptyCosts);
 
       const elMap = new Map([[deMarket.id, el]]);
       const ranked = rankNetbacks([nb], elMap);
+      const blockedOpp = getHighestBlockedOpportunity(ranked, elMap);
 
-      expect(ranked[0].eligibilityVerdict).toBe('HARD_BLOCK');
-      expect(ranked[0].rank).toBe(0); // not tradeable -> rank 0
-      expect(ranked[0].netNetback).toBeGreaterThan(0); // theoretical netback calculated
+      expect(blockedOpp).not.toBeNull();
+      expect(blockedOpp?.marketId).toBe('DE_THG');
+      expect(blockedOpp?.remedy).toContain('Deliver physically as segregated bio-LNG');
     });
 
   });

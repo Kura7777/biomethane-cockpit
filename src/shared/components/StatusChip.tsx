@@ -1,23 +1,23 @@
 import React from 'react';
 
-type ChipVariant = 'PASS' | 'ELIGIBLE' | 'CONDITIONAL' | 'HARD_BLOCK' | 'UNRESOLVED' | 'UNKNOWN';
+export type ChipVariant = 'PASS' | 'ELIGIBLE' | 'CONDITIONAL' | 'HARD_BLOCK' | 'UNRESOLVED' | 'UNKNOWN';
 
 const CHIP_STYLES: Record<ChipVariant, string> = {
-  PASS: 'bg-green-50 text-green-700 border-green-200',
-  ELIGIBLE: 'bg-green-50 text-green-700 border-green-200',
-  CONDITIONAL: 'bg-amber-50 text-amber-700 border-amber-200',
-  HARD_BLOCK: 'bg-red-50 text-red-700 border-red-200',
-  UNRESOLVED: 'bg-blue-50 text-blue-700 border-blue-200',
-  UNKNOWN: 'bg-stone-100 text-stone-500 border-stone-200',
+  PASS: 'bg-emerald-950/80 text-emerald-300 border-emerald-700/80',
+  ELIGIBLE: 'bg-emerald-950/80 text-emerald-300 border-emerald-700/80',
+  CONDITIONAL: 'bg-amber-950/80 text-amber-300 border-amber-700/80',
+  HARD_BLOCK: 'bg-red-950/80 text-red-300 border-red-700/80',
+  UNRESOLVED: 'bg-sky-950/80 text-sky-300 border-sky-700/80',
+  UNKNOWN: 'bg-stone-800/90 text-stone-400 border-stone-700/80',
 };
 
 const CHIP_LABELS: Record<ChipVariant, string> = {
-  PASS: 'Pass',
-  ELIGIBLE: 'Eligible',
-  CONDITIONAL: 'Conditional',
-  HARD_BLOCK: 'Blocked',
-  UNRESOLVED: 'Unresolved',
-  UNKNOWN: 'Unknown',
+  PASS: 'PASS',
+  ELIGIBLE: 'ELIGIBLE',
+  CONDITIONAL: 'CONDITIONAL',
+  HARD_BLOCK: 'BLOCKED',
+  UNRESOLVED: 'UNRESOLVED',
+  UNKNOWN: 'UNKNOWN',
 };
 
 const CHIP_ICONS: Record<ChipVariant, string> = {
@@ -31,20 +31,24 @@ const CHIP_ICONS: Record<ChipVariant, string> = {
 
 interface StatusChipProps {
   variant: ChipVariant;
-  label?: string;  // Override default label
-  size?: 'sm' | 'md';
+  label?: string;
+  size?: 'xs' | 'sm' | 'md';
 }
 
-export function StatusChip({ variant, label, size = 'md' }: StatusChipProps) {
+export function StatusChip({ variant, label, size = 'sm' }: StatusChipProps) {
   const styles = CHIP_STYLES[variant] || CHIP_STYLES.UNKNOWN;
   const displayLabel = label || CHIP_LABELS[variant] || variant;
   const icon = CHIP_ICONS[variant] || '?';
-  const sizeClasses = size === 'sm' ? 'text-xs px-2 py-0.5' : 'text-sm px-3 py-1';
+
+  const sizeClasses = 
+    size === 'xs' ? 'text-[9px] px-1.5 py-0.2 tracking-wider font-mono' :
+    size === 'sm' ? 'text-[10px] px-2 py-0.5 tracking-wider font-mono' :
+    'text-xs px-2.5 py-1 tracking-wider font-mono';
 
   return (
-    <span className={`inline-flex items-center gap-1.5 font-medium border rounded-full ${styles} ${sizeClasses}`}>
-      <span className="text-[0.7em]">{icon}</span>
-      {displayLabel}
+    <span className={`inline-flex items-center gap-1 font-bold border rounded ${styles} ${sizeClasses}`}>
+      <span className="text-[0.8em]">{icon}</span>
+      <span>{displayLabel}</span>
     </span>
   );
 }

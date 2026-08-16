@@ -5,11 +5,12 @@ import { MARKETS } from '../../domain/markets/registry';
 import { Market, MarketStatus } from '../../domain/markets/types';
 import { useAppState } from '../../store/context';
 import { StatusChip } from '../../shared/components/StatusChip';
+import { StaleIndicator } from '../../shared/components/StaleIndicator';
 import { evaluateEligibility } from '../../domain/eligibility/engine';
 import { computeNetback } from '../../domain/netback/engine';
-import { FEEDSTOCK_REGISTRY } from '../../domain/consignment/feedstocks';
+import { FEEDSTOCK_REGISTRY, REFERENCE_CONSIGNMENTS } from '../../domain/consignment/feedstocks';
 import { Consignment } from '../../domain/consignment/types';
-import { Globe, ArrowRight, ShieldCheck, AlertTriangle, TrendingUp, Info, Layers, CheckCircle2, XCircle } from 'lucide-react';
+import { Globe, ArrowRight, ShieldCheck, AlertTriangle, TrendingUp, Info, Layers, Terminal } from 'lucide-react';
 
 const COUNTRY_ISO2_TO_ISO3: Record<string, string> = {
   AT: 'AUT', BE: 'BEL', BG: 'BGR', HR: 'HRV', CY: 'CYP', CZ: 'CZE',
@@ -51,24 +52,7 @@ export function MapScreen() {
   const activeConsignment: Consignment = useMemo(() => {
     const found = state.consignments.find(c => c.id === state.activeConsignmentId);
     if (found) return found;
-    return {
-      id: 'default_consignment',
-      name: 'Danish Manure Benchmark (ISCC EU)',
-      originCountry: 'DK',
-      originCountryName: 'Denmark',
-      feedstock: 'manure',
-      feedstockName: 'Animal manure and slurry',
-      annexClassification: 'IX_A',
-      carbonIntensity: -100,
-      commissioningDateRange: 'POST_2021_TO_2025',
-      certificationScheme: 'ISCC_EU',
-      chainOfCustody: 'MASS_BALANCE',
-      injectionCountry: 'DK',
-      injectionIsEU: true,
-      udbStatus: 'RECORDED',
-      posStatus: 'ISSUED',
-      volumeMWh: 10000,
-    };
+    return REFERENCE_CONSIGNMENTS.DANISH_MANURE;
   }, [state.consignments, state.activeConsignmentId]);
 
   const marketByIso3 = useMemo(() => {
@@ -84,16 +68,16 @@ export function MapScreen() {
 
   const getFillColor = (iso3: string) => {
     const market = marketByIso3.get(iso3);
-    if (!market) return '#f5f5f4'; // stone-100
+    if (!market) return '#1c1917'; // stone-900 (not in registry)
     switch (market.status) {
       case 'ACTIVE':
-        return '#0f766e'; // teal-700
+        return '#0d9488'; // teal-600
       case 'EMERGING':
-        return '#fde68a'; // amber-200
+        return '#854d0e'; // amber-800
       case 'FUTURE':
-        return '#bfdbfe'; // blue-200
+        return '#1e3a8a'; // blue-900
       default:
-        return '#e7e5e4'; // stone-200
+        return '#292524'; // stone-800
     }
   };
 
@@ -105,148 +89,96 @@ export function MapScreen() {
     navigate(`/trade?marketId=${marketId}`);
   };
 
-  const handleLoadPreset = (preset: 'dk_manure' | 'uk_food' | 'iscc_plus') => {
-    let newConsignment: Consignment;
-    if (preset === 'dk_manure') {
-      newConsignment = {
-        id: 'preset_dk_manure',
-        name: 'Danish Manure -> German THG Benchmark',
-        originCountry: 'DK',
-        originCountryName: 'Denmark',
-        feedstock: 'manure',
-        feedstockName: 'Animal manure and slurry',
-        annexClassification: 'IX_A',
-        carbonIntensity: -100,
-        commissioningDateRange: 'POST_2021_TO_2025',
-        certificationScheme: 'ISCC_EU',
-        chainOfCustody: 'MASS_BALANCE',
-        injectionCountry: 'DK',
-        injectionIsEU: true,
-        udbStatus: 'RECORDED',
-        posStatus: 'ISSUED',
-        volumeMWh: 10000,
-      };
-      setSelectedMarketForArc('DE_THG');
-    } else if (preset === 'uk_food') {
-      newConsignment = {
-        id: 'preset_uk_food',
-        name: 'UK Food Waste (Non-EU Grid Blocked)',
-        originCountry: 'GB',
-        originCountryName: 'United Kingdom',
-        feedstock: 'food_waste',
-        feedstockName: 'Bio-waste (food waste)',
-        annexClassification: 'IX_A',
-        carbonIntensity: 20,
-        commissioningDateRange: 'POST_2021_TO_2025',
-        certificationScheme: 'ISCC_EU',
-        chainOfCustody: 'MASS_BALANCE',
-        injectionCountry: 'GB',
-        injectionIsEU: false,
-        udbStatus: 'NOT_RECORDED',
-        posStatus: 'ISSUED',
-        volumeMWh: 8000,
-      };
-      setSelectedMarketForArc('DE_THG');
-    } else {
-      newConsignment = {
-        id: 'preset_iscc_plus',
-        name: 'ISCC PLUS Voluntary Consignment',
-        originCountry: 'FR',
-        originCountryName: 'France',
-        feedstock: 'agricultural_residues',
-        feedstockName: 'Straw and agricultural residues',
-        annexClassification: 'IX_A',
-        carbonIntensity: 18,
-        commissioningDateRange: 'POST_2021_TO_2025',
-        certificationScheme: 'ISCC_PLUS',
-        chainOfCustody: 'MASS_BALANCE',
-        injectionCountry: 'FR',
-        injectionIsEU: true,
-        udbStatus: 'RECORDED',
-        posStatus: 'ISSUED',
-        volumeMWh: 5000,
-      };
-      setSelectedMarketForArc('VOL_SCOPE1');
-    }
-
-    dispatch({ type: 'ADD_CONSIGNMENT', consignment: newConsignment });
-  };
-
   const originCoords = COUNTRY_COORDINATES[activeConsignment.originCountry] || [10, 50];
   const targetMarket = MARKETS.find(m => m.id === selectedMarketForArc);
   const destCoords = targetMarket?.country ? COUNTRY_COORDINATES[targetMarket.country] : undefined;
 
   return (
-    <div className="space-y-6">
-      {/* Header Bar with Context & Quick Presets */}
-      <div className="bg-white border border-stone-200 rounded-2xl p-6 shadow-xs flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+    <div className="space-y-4 font-sans text-stone-100 pb-16">
+      
+      {/* Top Banner with Presets */}
+      <div className="bg-stone-900 border border-stone-800 rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <Globe className="w-5 h-5 text-teal-700" />
-            <h2 className="text-xl font-bold text-stone-900">European Biomethane Compliance Map</h2>
-            <span className="bg-teal-100 text-teal-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">RED III Active</span>
+            <Globe className="w-4 h-4 text-teal-400" />
+            <h1 className="text-base font-bold text-white font-mono uppercase tracking-tight">
+              European Biomethane Regulatory Map
+            </h1>
+            <span className="text-[10px] font-mono bg-teal-950 text-teal-300 border border-teal-800 px-1.5 py-0.5 rounded">
+              RED III Verified
+            </span>
           </div>
-          <p className="text-stone-600 text-sm mt-1">
-            Real-time regulatory status across 30+ European jurisdictions. Click any country to validate trade eligibility, netbacks, and legal citations.
+          <p className="text-stone-400 text-xs mt-0.5 font-mono">
+            Click any country to jump into the trade validator or select a reference flow.
           </p>
         </div>
 
-        {/* Quick Presets for Demo / Boss Presentation */}
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Demo Presets:</span>
+        {/* Demo Presets */}
+        <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
+          <span className="text-[10px] text-stone-500 uppercase font-bold">Presets:</span>
           <button
-            onClick={() => handleLoadPreset('dk_manure')}
-            className="text-xs font-medium px-3 py-1.5 rounded-lg border border-teal-200 bg-teal-50 text-teal-800 hover:bg-teal-100 transition-colors"
+            onClick={() => {
+              dispatch({ type: 'ADD_CONSIGNMENT', consignment: REFERENCE_CONSIGNMENTS.DANISH_MANURE });
+              setSelectedMarketForArc('DE_THG');
+            }}
+            className="px-2.5 py-1 rounded border border-teal-800 bg-teal-950/60 text-teal-300 hover:bg-teal-900/80 transition-colors"
           >
-            🇩🇰 DK Manure (CI −100)
+            🇩🇰 DK Manure (THG)
           </button>
           <button
-            onClick={() => handleLoadPreset('uk_food')}
-            className="text-xs font-medium px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-800 hover:bg-red-100 transition-colors"
+            onClick={() => {
+              dispatch({ type: 'ADD_CONSIGNMENT', consignment: REFERENCE_CONSIGNMENTS.UK_FOOD_WASTE });
+              setSelectedMarketForArc('DE_THG');
+            }}
+            className="px-2.5 py-1 rounded border border-red-800 bg-red-950/60 text-red-300 hover:bg-red-900/80 transition-colors"
           >
             🇬🇧 UK Grid (UDB Block)
           </button>
           <button
-            onClick={() => handleLoadPreset('iscc_plus')}
-            className="text-xs font-medium px-3 py-1.5 rounded-lg border border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 transition-colors"
+            onClick={() => {
+              dispatch({ type: 'ADD_CONSIGNMENT', consignment: REFERENCE_CONSIGNMENTS.ISCC_PLUS_VOLUNTARY });
+              setSelectedMarketForArc('VOL_SCOPE1');
+            }}
+            className="px-2.5 py-1 rounded border border-amber-800 bg-amber-950/60 text-amber-300 hover:bg-amber-900/80 transition-colors"
           >
-            📋 ISCC PLUS (Voluntary Only)
+            📋 ISCC PLUS (Voluntary)
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Map Container */}
-        <div className="lg:col-span-8 bg-stone-900 rounded-2xl shadow-md border border-stone-800 overflow-hidden relative flex flex-col min-h-[580px]">
-          {/* Map Status Overlay Bar */}
-          <div className="p-4 bg-stone-950/80 backdrop-blur-sm border-b border-stone-800 flex flex-wrap items-center justify-between gap-3 text-xs z-10">
-            <div className="flex items-center gap-4">
-              <span className="flex items-center gap-1.5 text-stone-200 font-medium">
-                <span className="w-3 h-3 rounded-full bg-teal-600 inline-block ring-2 ring-teal-400/30"></span>
-                ACTIVE Obligation ({MARKETS.filter(m => m.status === 'ACTIVE').length})
-              </span>
-              <span className="flex items-center gap-1.5 text-stone-300">
-                <span className="w-3 h-3 rounded-full bg-amber-200 inline-block"></span>
-                EMERGING (17)
-              </span>
-              <span className="flex items-center gap-1.5 text-stone-300">
-                <span className="w-3 h-3 rounded-full bg-blue-300 inline-block"></span>
-                FUTURE 2028 (ETS2)
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        
+        {/* SVG Map Canvas */}
+        <div className="lg:col-span-8 bg-stone-900 border border-stone-800 rounded-xl overflow-hidden relative flex flex-col min-h-[540px]">
+          
+          {/* Status Key Bar */}
+          <div className="p-3 bg-stone-950/90 border-b border-stone-800 flex flex-wrap items-center justify-between gap-3 text-[11px] font-mono z-10">
+            <div className="flex items-center gap-3">
+              <span className="flex items-center gap-1.5 text-stone-200">
+                <span className="w-2.5 h-2.5 rounded-full bg-teal-600"></span>
+                ACTIVE (14)
               </span>
               <span className="flex items-center gap-1.5 text-stone-400">
-                <span className="w-3 h-3 rounded-full bg-stone-700 inline-block"></span>
-                NONE / Niche
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-800"></span>
+                EMERGING (17)
+              </span>
+              <span className="flex items-center gap-1.5 text-stone-400">
+                <span className="w-2.5 h-2.5 rounded-full bg-blue-900"></span>
+                FUTURE 2028
+              </span>
+              <span className="flex items-center gap-1.5 text-stone-500">
+                <span className="w-2.5 h-2.5 rounded-full bg-stone-800"></span>
+                NONE
               </span>
             </div>
 
-            <div className="text-stone-400 text-xs flex items-center gap-1">
-              <span>Active Consignment:</span>
-              <span className="font-semibold text-teal-400">{activeConsignment.originCountry} ({activeConsignment.feedstockName})</span>
+            <div className="text-stone-400 text-[10px]">
+              Origin: <strong className="text-teal-400">{activeConsignment.originCountry} ({activeConsignment.feedstockName})</strong>
             </div>
           </div>
 
-          {/* SVG Map Canvas */}
-          <div className="flex-1 relative w-full h-full min-h-[500px] flex items-center justify-center">
+          {/* Map Vector Component */}
+          <div className="flex-1 relative w-full h-full min-h-[460px] flex items-center justify-center bg-stone-950">
             <ComposableMap
               projection="geoMercator"
               projectionConfig={{ scale: 720, center: [14, 54] }}
@@ -265,12 +197,12 @@ export function MapScreen() {
                           key={geo.rsmKey}
                           geography={geo}
                           fill={getFillColor(iso3)}
-                          stroke="#292524"
+                          stroke="#1c1917"
                           strokeWidth={0.6}
                           style={{
                             default: { outline: 'none', transition: 'all 200ms' },
                             hover: {
-                              fill: isClickable ? '#14b8a6' : '#a8a29e',
+                              fill: isClickable ? '#14b8a6' : '#44403c',
                               outline: 'none',
                               cursor: isClickable ? 'pointer' : 'default',
                             },
@@ -292,37 +224,36 @@ export function MapScreen() {
                   }
                 </Geographies>
 
-                {/* Draw Origin Marker */}
+                {/* Origin Marker */}
                 {originCoords && (
                   <Marker coordinates={originCoords}>
-                    <circle r={7} fill="#38bdf8" stroke="#ffffff" strokeWidth={2} className="animate-pulse" />
+                    <circle r={6} fill="#38bdf8" stroke="#ffffff" strokeWidth={2} />
                     <text
                       textAnchor="middle"
-                      y={-12}
-                      style={{ fontFamily: 'Inter, sans-serif', fill: '#38bdf8', fontSize: 10, fontWeight: 700 }}
+                      y={-10}
+                      style={{ fontFamily: 'JetBrains Mono, monospace', fill: '#38bdf8', fontSize: 10, fontWeight: 700 }}
                     >
                       ORIGIN ({activeConsignment.originCountry})
                     </text>
                   </Marker>
                 )}
 
-                {/* Draw Destination Marker & Arc if selected */}
+                {/* Destination Arc */}
                 {destCoords && destCoords !== originCoords && (
                   <>
                     <Line
                       from={originCoords}
                       to={destCoords}
                       stroke="#2dd4bf"
-                      strokeWidth={2.5}
-                      strokeDasharray="4 4"
-                      strokeLinecap="round"
+                      strokeWidth={2}
+                      strokeDasharray="3 3"
                     />
                     <Marker coordinates={destCoords}>
-                      <circle r={6} fill="#2dd4bf" stroke="#ffffff" strokeWidth={2} />
+                      <circle r={5} fill="#2dd4bf" stroke="#ffffff" strokeWidth={1.5} />
                       <text
                         textAnchor="middle"
-                        y={-10}
-                        style={{ fontFamily: 'Inter, sans-serif', fill: '#2dd4bf', fontSize: 9, fontWeight: 700 }}
+                        y={-8}
+                        style={{ fontFamily: 'JetBrains Mono, monospace', fill: '#2dd4bf', fontSize: 9, fontWeight: 700 }}
                       >
                         TARGET ({targetMarket?.country})
                       </text>
@@ -332,35 +263,29 @@ export function MapScreen() {
               </ZoomableGroup>
             </ComposableMap>
 
-            {/* Hover Tooltip / Floating Card */}
+            {/* Hover Floating Card */}
             {hoveredCountry && (
-              <div className="absolute bottom-4 left-4 z-20 bg-stone-950/95 backdrop-blur-md border border-stone-700 rounded-xl p-4 shadow-xl text-stone-100 max-w-sm pointer-events-none">
+              <div className="absolute bottom-3 left-3 z-20 bg-stone-900/95 border border-stone-700 rounded-lg p-3 text-stone-100 max-w-xs font-mono text-xs shadow-xl pointer-events-none">
                 <div className="flex items-center justify-between gap-2">
-                  <h4 className="font-bold text-base text-white">{hoveredCountry.name}</h4>
+                  <span className="font-bold text-white text-sm">{hoveredCountry.name}</span>
                   {hoveredCountry.market ? (
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                      hoveredCountry.market.status === 'ACTIVE' ? 'bg-teal-900 text-teal-200 border border-teal-700' :
-                      hoveredCountry.market.status === 'EMERGING' ? 'bg-amber-900 text-amber-200 border border-amber-700' :
-                      hoveredCountry.market.status === 'FUTURE' ? 'bg-blue-900 text-blue-200 border border-blue-700' :
+                    <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${
+                      hoveredCountry.market.status === 'ACTIVE' ? 'bg-teal-950 text-teal-300 border border-teal-800' :
+                      hoveredCountry.market.status === 'EMERGING' ? 'bg-amber-950 text-amber-300 border border-amber-800' :
                       'bg-stone-800 text-stone-400'
                     }`}>
                       {hoveredCountry.market.status}
                     </span>
                   ) : (
-                    <span className="text-xs text-stone-500">Non-EU / Other</span>
+                    <span className="text-[10px] text-stone-500">Non-EU</span>
                   )}
                 </div>
 
                 {hoveredCountry.market && (
-                  <div className="mt-2 space-y-1 text-xs">
-                    <p className="text-stone-300 font-medium">{hoveredCountry.market.name}</p>
-                    <p className="text-stone-400 font-mono">Unit: {hoveredCountry.market.unitLabel}</p>
-                    <p className="text-stone-400">Legal: {hoveredCountry.market.legalBasis}</p>
-                    {hoveredCountry.market.status === 'ACTIVE' && (
-                      <div className="mt-2 pt-2 border-t border-stone-800 text-teal-400 font-semibold flex items-center gap-1">
-                        Click country to validate trade in Trade Builder →
-                      </div>
-                    )}
+                  <div className="mt-1.5 space-y-0.5 text-[11px]">
+                    <div className="text-stone-300">{hoveredCountry.market.name}</div>
+                    <div className="text-stone-400">Unit: {hoveredCountry.market.unitLabel}</div>
+                    <div className="text-stone-500 text-[10px] truncate">{hoveredCountry.market.legalBasis}</div>
                   </div>
                 )}
               </div>
@@ -368,60 +293,50 @@ export function MapScreen() {
           </div>
         </div>
 
-        {/* Right Sidebar: Active Markets & Tradeability Previews */}
-        <div className="lg:col-span-4 space-y-6">
-          {/* Active National Markets List */}
-          <div className="bg-white border border-stone-200 rounded-2xl p-5 shadow-xs">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-bold text-stone-900 text-sm uppercase tracking-wider flex items-center gap-2">
-                <Layers className="w-4 h-4 text-teal-700" />
-                Active National Markets
-              </h3>
-              <span className="text-xs text-stone-500 font-mono">{activeNationalMarkets.length} live pools</span>
+        {/* Sidebar List */}
+        <div className="lg:col-span-4 space-y-4 font-mono text-xs">
+          <div className="bg-stone-900 border border-stone-800 rounded-xl p-3.5 space-y-2">
+            <div className="flex items-center justify-between border-b border-stone-800 pb-1.5">
+              <span className="font-bold text-stone-200 uppercase text-[11px]">Active National Markets</span>
+              <span className="text-[10px] text-stone-500">{activeNationalMarkets.length} live</span>
             </div>
 
-            <div className="space-y-2.5 max-h-[360px] overflow-y-auto pr-1">
+            <div className="space-y-1.5 max-h-[340px] overflow-y-auto pr-1">
               {activeNationalMarkets.map(m => {
                 const eligibility = evaluateEligibility(activeConsignment, m);
-                const netback = computeNetback(m, activeConsignment, state.marks, state.costs);
+                const netback = computeNetback(m, activeConsignment, state.marks, state.costs, state.marks.pricingSide);
                 const isTargetSelected = selectedMarketForArc === m.id;
 
                 return (
                   <div
                     key={m.id}
-                    className={`p-3 rounded-xl border transition-all cursor-pointer ${
+                    className={`p-2 rounded border transition-all cursor-pointer ${
                       isTargetSelected
-                        ? 'border-teal-600 bg-teal-50/50 shadow-xs'
-                        : 'border-stone-200 hover:border-teal-400 bg-white hover:bg-stone-50'
+                        ? 'border-teal-500 bg-teal-950/50'
+                        : 'border-stone-800 bg-stone-950 hover:border-stone-700'
                     }`}
-                    onClick={() => {
-                      setSelectedMarketForArc(m.id);
-                    }}
+                    onClick={() => setSelectedMarketForArc(m.id)}
                   >
-                    <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start justify-between">
                       <div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-bold text-sm text-stone-900">{m.country}</span>
-                          <span className="font-semibold text-xs text-stone-800">{m.name}</span>
-                        </div>
-                        <span className="text-stone-500 text-xs font-mono">{m.unitLabel}</span>
+                        <div className="font-bold text-stone-200">{m.country} {m.name}</div>
+                        <div className="text-stone-500 text-[10px]">{m.unitLabel}</div>
                       </div>
-                      <StatusChip variant={eligibility.overallVerdict} size="sm" />
+                      <StatusChip variant={eligibility.overallVerdict} size="xs" />
                     </div>
 
-                    <div className="mt-2.5 pt-2 border-t border-stone-100 flex items-center justify-between text-xs">
-                      <span className="text-stone-500">Netback:</span>
-                      <span className="font-mono font-bold text-stone-900">
-                        {netback.netNetback !== null ? `€${netback.netNetback.toFixed(2)}/MWh` : 'Mark not set'}
+                    <div className="mt-1.5 pt-1 border-t border-stone-900 flex items-center justify-between text-[11px]">
+                      <span className="text-stone-400">
+                        {netback.netNetback !== null ? `€${netback.netNetback.toFixed(2)}/MWh` : 'No mark'}
                       </span>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleLaunchTrade(m.id);
                         }}
-                        className="text-teal-700 hover:text-teal-900 font-semibold inline-flex items-center gap-0.5 text-xs"
+                        className="text-teal-400 hover:text-teal-300 font-bold inline-flex items-center gap-0.5 text-[10px]"
                       >
-                        Trade <ArrowRight className="w-3 h-3" />
+                        Trade <ArrowRight className="w-2.5 h-2.5" />
                       </button>
                     </div>
                   </div>
@@ -430,33 +345,31 @@ export function MapScreen() {
             </div>
           </div>
 
-          {/* EU-Wide & Scope 1 Compliance Programs */}
-          <div className="bg-white border border-stone-200 rounded-2xl p-5 shadow-xs">
-            <h3 className="font-bold text-stone-900 text-sm uppercase tracking-wider mb-3 flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-teal-700" />
+          <div className="bg-stone-900 border border-stone-800 rounded-xl p-3.5 space-y-2">
+            <span className="font-bold text-stone-200 uppercase text-[11px] block border-b border-stone-800 pb-1.5">
               EU-Wide & Voluntary Schemes
-            </h3>
-
-            <div className="space-y-2.5">
+            </span>
+            <div className="space-y-1.5">
               {euWideMarkets.map(m => {
                 const eligibility = evaluateEligibility(activeConsignment, m);
                 return (
                   <div
                     key={m.id}
                     onClick={() => handleLaunchTrade(m.id)}
-                    className="p-3 rounded-xl border border-stone-200 hover:border-teal-400 bg-white hover:bg-stone-50 transition-all cursor-pointer flex items-center justify-between"
+                    className="p-2 rounded border border-stone-800 bg-stone-950 hover:border-teal-600 transition-all cursor-pointer flex items-center justify-between"
                   >
                     <div>
-                      <div className="font-semibold text-xs text-stone-900">{m.name}</div>
-                      <div className="text-stone-500 text-xs font-mono">{m.unitLabel} • {m.status}</div>
+                      <div className="font-bold text-stone-200">{m.name}</div>
+                      <div className="text-stone-500 text-[10px]">{m.unitLabel} • {m.status}</div>
                     </div>
-                    <StatusChip variant={eligibility.overallVerdict} size="sm" />
+                    <StatusChip variant={eligibility.overallVerdict} size="xs" />
                   </div>
                 );
               })}
             </div>
           </div>
         </div>
+
       </div>
     </div>
   );

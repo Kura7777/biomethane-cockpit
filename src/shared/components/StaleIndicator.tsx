@@ -1,55 +1,47 @@
 import React from 'react';
-import { STALE_MARK_DAYS, VERY_STALE_MARK_DAYS } from '../../domain/markets/constants';
+import { getMarkAgeDays, getMarkStaleness, StalenessStatus } from '../../domain/markets/types';
 
 interface StaleIndicatorProps {
-  timestamp: string | null;
+  updatedAt: string | null;
   showText?: boolean;
+  compact?: boolean;
 }
 
-function daysSince(timestamp: string | null): number | null {
-  if (!timestamp) return null;
-  const diff = Date.now() - new Date(timestamp).getTime();
-  return Math.floor(diff / (1000 * 60 * 60 * 24));
-}
+export function StaleIndicator({ updatedAt, showText = true, compact = false }: StaleIndicatorProps) {
+  const status = getMarkStaleness(updatedAt);
+  const ageDays = getMarkAgeDays(updatedAt);
 
-export function StaleIndicator({ timestamp, showText = true }: StaleIndicatorProps) {
-  if (!timestamp) {
-    return <span className="text-xs text-stone-400">No mark</span>;
-  }
-
-  const days = daysSince(timestamp);
-  if (days === null) return null;
-
-  if (days >= VERY_STALE_MARK_DAYS) {
+  if (status === 'UNFILLED') {
     return (
-      <span className="inline-flex items-center gap-1 text-xs text-red-600">
-        <span className="w-2 h-2 rounded-full bg-red-500" />
-        {showText && `${days}d ago`}
+      <span className="inline-flex items-center gap-1 text-[10px] text-stone-500 font-mono">
+        <span className="w-1.5 h-1.5 rounded-full bg-stone-600" />
+        {showText && 'No mark'}
       </span>
     );
   }
 
-  if (days >= STALE_MARK_DAYS) {
+  if (status === 'STALE_CRITICAL') {
     return (
-      <span className="inline-flex items-center gap-1 text-xs text-amber-600">
-        <span className="w-2 h-2 rounded-full bg-amber-500" />
-        {showText && `${days}d ago`}
+      <span className="inline-flex items-center gap-1 text-[10px] text-red-400 font-mono font-bold bg-red-950/60 border border-red-800 px-1.5 py-0.5 rounded" title={`Mark entered ${ageDays} days ago`}>
+        <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+        {showText && `${ageDays}d ago [STALE]`}
+      </span>
+    );
+  }
+
+  if (status === 'STALE_WARNING') {
+    return (
+      <span className="inline-flex items-center gap-1 text-[10px] text-amber-400 font-mono font-semibold bg-amber-950/60 border border-amber-800 px-1.5 py-0.5 rounded" title={`Mark entered ${ageDays} days ago`}>
+        <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+        {showText && `${ageDays}d ago`}
       </span>
     );
   }
 
   return (
-    <span className="inline-flex items-center gap-1 text-xs text-green-600">
-      <span className="w-2 h-2 rounded-full bg-green-500" />
-      {showText && (days === 0 ? 'Today' : days === 1 ? '1d ago' : `${days}d ago`)}
+    <span className="inline-flex items-center gap-1 text-[10px] text-emerald-400 font-mono" title={`Mark entered ${ageDays === 0 ? 'today' : `${ageDays} days ago`}`}>
+      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+      {showText && (ageDays === 0 ? 'Today' : ageDays === 1 ? '1d ago' : `${ageDays}d ago`)}
     </span>
   );
-}
-
-export function getStaleMarkCount(marks: Record<string, { timestamp?: string | null }>): number {
-  return Object.values(marks).filter(m => {
-    if (!m.timestamp) return true; // no mark = stale
-    const days = daysSince(m.timestamp);
-    return days !== null && days >= STALE_MARK_DAYS;
-  }).length;
 }

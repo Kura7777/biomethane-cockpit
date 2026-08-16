@@ -36,10 +36,10 @@ export function rankNetbacks(
   // Assign ranks to tradeable markets only
   let rank = 1;
   for (const r of ranked) {
-    if (['ELIGIBLE', 'CONDITIONAL', 'UNRESOLVED'].includes(r.eligibilityVerdict)) {
+    if (['ELIGIBLE', 'CONDITIONAL', 'UNRESOLVED'].includes(r.eligibilityVerdict) && r.netNetback !== null) {
       r.rank = rank++;
     } else {
-      r.rank = 0; // blocked markets get no rank
+      r.rank = null; // blocked or markless markets get no rank
     }
   }
 
@@ -48,12 +48,13 @@ export function rankNetbacks(
 
 /**
  * Find the highest-value blocked opportunity — the banner message.
- * "Highest theoretical netback (Market, €X/MWh) is not currently tradeable"
+ * Returns marketId, marketName, netback, blockingReason, and remedy.
  */
 export function getHighestBlockedOpportunity(
   ranked: RankedNetback[],
   eligibilityResults: Map<string, EligibilityAssessment>
 ): {
+  marketId: string;
   market: string;
   netback: number;
   blockingReason: string;
@@ -76,6 +77,7 @@ export function getHighestBlockedOpportunity(
   const blockingGateResult = eligibility?.gates.find(g => g.verdict === 'HARD_BLOCK');
 
   return {
+    marketId: highest.marketId,
     market: highest.marketName,
     netback: highest.netNetback,
     blockingReason: blockingGateResult?.reason ?? highest.blockingReason ?? 'Blocked by eligibility gate',

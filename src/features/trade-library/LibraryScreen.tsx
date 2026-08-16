@@ -12,15 +12,10 @@ import {
   FolderArchive, 
   Trash2, 
   RefreshCw, 
-  ExternalLink, 
-  FileText, 
-  Calendar, 
-  Sparkles,
-  Search,
-  Filter,
-  CheckCircle2,
-  AlertTriangle,
-  ArrowRight
+  Search, 
+  CheckCircle2, 
+  ArrowRight,
+  Sparkles
 } from 'lucide-react';
 
 export function LibraryScreen() {
@@ -51,7 +46,7 @@ export function LibraryScreen() {
     if (!market) return;
 
     const newEligibility = evaluateEligibility(assessment.consignment, market);
-    const newNetback = computeNetback(market, assessment.consignment, state.marks, state.costs);
+    const newNetback = computeNetback(market, assessment.consignment, state.marks, state.costs, state.marks.pricingSide);
 
     const updated: TradeAssessment = {
       ...assessment,
@@ -74,110 +69,110 @@ export function LibraryScreen() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-16">
+    <div className="space-y-4 font-sans text-stone-100 pb-16">
       
       {/* Header */}
-      <div className="bg-white border border-stone-200 rounded-2xl p-6 shadow-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-stone-900 border border-stone-800 rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-2 bg-teal-50 text-teal-700 rounded-lg">
-              <FolderArchive className="w-5 h-5" />
-            </span>
-            <h1 className="text-xl font-bold text-stone-900">Trade Library & Dossier Archive</h1>
+            <FolderArchive className="w-4 h-4 text-teal-400" />
+            <h1 className="text-base font-bold text-white font-mono uppercase tracking-tight">
+              Trade Dossier Archive
+            </h1>
           </div>
-          <p className="text-stone-600 text-sm mt-1">
-            Persisted historical trade assessments, compliance validations, and client quotes. Recalculate economics with current broker marks anytime.
+          <p className="text-stone-400 text-xs mt-0.5 font-mono">
+            Persisted counterparty trade dossiers. Recalculate economics against live marks anytime.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 font-mono text-xs">
           <div className="relative">
-            <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-stone-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Search dossiers..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="pl-9 pr-4 py-1.5 text-xs border border-stone-300 rounded-lg outline-none focus:ring-1 focus:ring-teal-500 bg-white"
+              className="pl-8 pr-3 py-1 text-xs bg-stone-950 border border-stone-800 rounded text-stone-200 outline-none focus:border-teal-500"
             />
           </div>
         </div>
       </div>
 
       {recalcMessage && (
-        <div className="bg-teal-50 border border-teal-200 text-teal-900 text-sm p-3.5 rounded-xl flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-teal-600" />
+        <div className="bg-teal-950/70 border border-teal-800 text-teal-300 text-xs p-2.5 rounded-lg flex items-center gap-2 font-mono">
+          <CheckCircle2 className="w-4 h-4 text-teal-400" />
           <span>{recalcMessage}</span>
         </div>
       )}
 
       {assessments.length === 0 ? (
-        <div className="bg-white border border-stone-200 rounded-2xl p-12 text-center space-y-4">
-          <div className="w-12 h-12 bg-stone-100 rounded-full flex items-center justify-center mx-auto text-stone-400">
-            <FolderArchive className="w-6 h-6" />
+        <div className="bg-stone-900 border border-stone-800 rounded-xl p-8 text-center space-y-3 font-mono">
+          <div className="w-10 h-10 bg-stone-950 rounded-full flex items-center justify-center mx-auto text-stone-500 border border-stone-800">
+            <FolderArchive className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-bold text-stone-900">No Saved Trade Dossiers</h3>
-            <p className="text-xs text-stone-500 max-w-sm mx-auto mt-1">
-              Construct a trade in Trade Builder and click "Save Trade" to create an auditable record for counterparty proposals.
+            <h3 className="font-bold text-stone-200 text-sm">No Saved Trade Dossiers</h3>
+            <p className="text-xs text-stone-500 max-w-sm mx-auto mt-0.5">
+              Construct a trade in Trade Builder and click "Save Dossier" to store an auditable compliance snapshot.
             </p>
           </div>
           <button
             onClick={() => navigate('/trade')}
-            className="bg-teal-700 hover:bg-teal-800 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all inline-flex items-center gap-1.5"
+            className="bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold px-3 py-1.5 rounded transition-all inline-flex items-center gap-1.5"
           >
             Create New Trade Dossier <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 font-mono">
           
           {/* Saved Dossier List */}
-          <div className="lg:col-span-5 space-y-3">
+          <div className="lg:col-span-5 space-y-2">
             {filteredAssessments.map(a => {
               const isSelected = selectedAssessment?.id === a.id;
               return (
                 <div
                   key={a.id}
                   onClick={() => setSelectedAssessmentId(a.id)}
-                  className={`p-4 rounded-xl border transition-all cursor-pointer ${
+                  className={`p-3 rounded-lg border transition-all cursor-pointer ${
                     isSelected
-                      ? 'border-teal-600 bg-teal-50/50 shadow-xs ring-1 ring-teal-600'
-                      : 'border-stone-200 bg-white hover:border-teal-300 hover:bg-stone-50'
+                      ? 'border-teal-500 bg-teal-950/40 ring-1 ring-teal-500'
+                      : 'border-stone-800 bg-stone-900 hover:border-stone-700'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <h4 className="font-bold text-sm text-stone-900">{a.consignment.name}</h4>
-                      <div className="text-xs text-stone-500 font-mono mt-0.5">
+                      <h4 className="font-bold text-xs text-stone-100">{a.consignment.name}</h4>
+                      <div className="text-[11px] text-stone-400 mt-0.5">
                         Target: {a.targetMarketName}
                       </div>
                     </div>
-                    <StatusChip variant={a.eligibility.overallVerdict} size="sm" />
+                    <StatusChip variant={a.eligibility.overallVerdict} size="xs" />
                   </div>
 
-                  <div className="mt-3 pt-2 border-t border-stone-100 flex items-center justify-between text-xs font-mono">
-                    <span className="text-stone-500">
-                      CI: {a.consignment.carbonIntensity} gCO₂e • {a.consignment.originCountry}
+                  <div className="mt-2 pt-1.5 border-t border-stone-800 flex items-center justify-between text-xs">
+                    <span className="text-stone-500 text-[10px]">
+                      CI: {a.consignment.carbonIntensity} • {a.consignment.originCountry}
                     </span>
-                    <span className="font-bold text-teal-800">
+                    <span className="font-bold text-teal-300">
                       {a.netback.netNetback != null ? `€${a.netback.netNetback.toFixed(2)}/MWh` : '—'}
                     </span>
                   </div>
 
-                  <div className="mt-2 text-[10px] text-stone-400 flex items-center justify-between">
+                  <div className="mt-1.5 text-[10px] text-stone-500 flex items-center justify-between">
                     <span>Saved: {a.createdAt}</span>
                     <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
                       <button
                         onClick={() => handleRecalculateCurrentMarks(a)}
-                        className="p-1 hover:bg-stone-200 rounded text-stone-600 hover:text-teal-700"
+                        className="p-1 hover:bg-stone-800 rounded text-stone-400 hover:text-teal-300"
                         title="Recalculate with live marks"
                       >
                         <RefreshCw className="w-3 h-3" />
                       </button>
                       <button
                         onClick={() => handleDelete(a.id)}
-                        className="p-1 hover:bg-red-100 rounded text-stone-400 hover:text-red-600"
+                        className="p-1 hover:bg-red-950 rounded text-stone-500 hover:text-red-400"
                         title="Delete dossier"
                       >
                         <Trash2 className="w-3 h-3" />
@@ -192,28 +187,28 @@ export function LibraryScreen() {
           {/* Detailed Dossier Viewer */}
           <div className="lg:col-span-7">
             {selectedAssessment && (
-              <div className="bg-white border border-stone-200 rounded-2xl p-6 shadow-xs space-y-6 sticky top-20">
-                <div className="flex items-center justify-between border-b border-stone-100 pb-4">
+              <div className="bg-stone-900 border border-stone-800 rounded-xl p-4 space-y-3 sticky top-16">
+                <div className="flex items-center justify-between border-b border-stone-800 pb-2.5">
                   <div>
-                    <h3 className="font-bold text-lg text-stone-900">{selectedAssessment.consignment.name}</h3>
-                    <div className="text-xs text-stone-500 font-mono">
+                    <h3 className="font-bold text-sm text-stone-100">{selectedAssessment.consignment.name}</h3>
+                    <div className="text-[11px] text-stone-400">
                       Target: {selectedAssessment.targetMarketName} • Saved: {selectedAssessment.createdAt}
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <CopyButton text={generateTradeSummary(selectedAssessment)} label="Copy Summary" />
+                    <CopyButton text={generateTradeSummary(selectedAssessment)} label="Copy Dossier" />
                     <button
                       onClick={() => handleRecalculateCurrentMarks(selectedAssessment)}
-                      className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg border border-teal-200 bg-teal-50 text-teal-800 hover:bg-teal-100"
+                      className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded border border-teal-700 bg-teal-950/70 text-teal-300 hover:bg-teal-900"
                     >
-                      <RefreshCw className="w-3.5 h-3.5" /> Recalculate
+                      <RefreshCw className="w-3 h-3" /> Recalc
                     </button>
                   </div>
                 </div>
 
-                {/* Preformatted boss summary */}
-                <div className="bg-stone-900 text-stone-100 rounded-xl p-4 font-mono text-xs overflow-x-auto max-h-[500px] leading-relaxed select-all">
+                {/* Preformatted text preview */}
+                <div className="bg-stone-950 border border-stone-800 rounded p-3 text-[11px] text-stone-300 overflow-x-auto max-h-[440px] leading-relaxed select-all">
                   <pre>{generateTradeSummary(selectedAssessment)}</pre>
                 </div>
               </div>

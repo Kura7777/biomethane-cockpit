@@ -2,10 +2,17 @@ import React, { createContext, useContext, useReducer, useEffect, ReactNode } fr
 import { Consignment } from '../domain/consignment/types';
 import { MarksState, CostInputs } from '../domain/netback/types';
 import { TradeAssessment } from '../domain/trade/types';
+import { PriceSide, MarkEntry, getMarkStaleness } from '../domain/markets/types';
 import { MARKETS } from '../domain/markets/registry';
+import { REFERENCE_CONSIGNMENTS } from '../domain/consignment/feedstocks';
+
+export const CURRENT_SCHEMA_VERSION = 2;
+const STORAGE_KEY = 'biomethane-desk-state-v2';
+const LEGACY_STORAGE_KEY = 'biomethane-desk-state';
 
 // State shape
 export interface AppState {
+  schemaVersion: number;
   marks: MarksState;
   consignments: Consignment[];
   activeConsignmentId: string | null;
@@ -15,10 +22,11 @@ export interface AppState {
 }
 
 // Actions
-type AppAction =
-  | { type: 'SET_MARK'; marketId: string; bid: number | null; offer: number | null; mid: number | null }
-  | { type: 'SET_GAS_INDEX'; bid: number | null; offer: number | null; mid: number | null }
-  | { type: 'SET_FX'; currency: 'gbpEur' | 'chfEur'; value: number | null }
+export type AppAction =
+  | { type: 'SET_MARK'; marketId: string; bid: number | null; offer: number | null; mid: number | null; source?: string | null; updatedAt?: string | null }
+  | { type: 'SET_GAS_INDEX'; bid: number | null; offer: number | null; mid: number | null; updatedAt?: string | null }
+  | { type: 'SET_FX'; currency: 'gbpEur' | 'chfEur'; value: number | null; updatedAt?: string | null }
+  | { type: 'SET_PRICING_SIDE'; side: PriceSide }
   | { type: 'ADD_CONSIGNMENT'; consignment: Consignment }
   | { type: 'UPDATE_CONSIGNMENT'; consignment: Consignment }
   | { type: 'SET_ACTIVE_CONSIGNMENT'; id: string | null }
@@ -29,31 +37,104 @@ type AppAction =
   | { type: 'IMPORT_STATE'; state: AppState }
   | { type: 'RESET' };
 
-const STORAGE_KEY = 'biomethane-desk-state';
-
-// Initial state
-function getInitialState(): AppState {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) return JSON.parse(stored);
-  } catch (e) {
-    console.warn('Failed to load state from localStorage', e);
+/**
+ * Migration function to upgrade legacy state shapes safely without data loss
+ */
+export function migrateState(raw: any): AppState {
+  if (!raw || typeof raw !== 'object') {
+    return createDefaultState();
   }
-  
-  // Initialize marks with empty entries for all active markets
-  const initialMarks: MarksState = {
-    marks: {},
-    gasIndex: { bid: null, offer: null, mid: null },
-    fx: { gbpEur: null, chfEur: null },
-  };
+
+  const stateVersion = raw.schemaVersion || 1;
+  let migrated = { ...raw };
+
+  if (stateVersion < 2) {
+    // Migrate marks shape to include updatedAt and source
+    const rawMarks = raw.marks?.marks || {};
+    const updatedMarks: Record<string, MarkEntry> = {};
+
+    MARKETS.filter(m => m.status === 'ACTIVE').forEach(m => {
+      const existing = rawMarks[m.id];
+      if (existing) {
+        updatedMarks[m.id] = {
+          marketId: m.id,
+          bid: existing.bid ?? null,
+          offer: existing.offer ?? null,
+          mid: existing.mid ?? null,
+          updatedAt: existing.updatedAt || existing.timestamp || null,
+          source: existing.source || existing.sourceNote || 'Imported mark',
+        };
+      } else {
+        updatedMarks[m.id] = {
+          marketId: m.id,
+          bid: null,
+          offer: null,
+          mid: null,
+          updatedAt: null,
+          source: null,
+        };
+      }
+    });
+
+    migrated.marks = {
+      marks: updatedMarks,
+      gasIndex: {
+        bid: raw.marks?.gasIndex?.bid ?? null,
+        offer: raw.marks?.gasIndex?.offer ?? null,
+        mid: raw.marks?.gasIndex?.mid ?? null,
+        updatedAt: raw.marks?.gasIndex?.updatedAt ?? null,
+      },
+      fx: {
+        gbpEur: raw.marks?.fx?.gbpEur ?? null,
+        chfEur: raw.marks?.fx?.chfEur ?? null,
+        updatedAt: raw.marks?.fx?.updatedAt ?? null,
+      },
+      pricingSide: raw.marks?.pricingSide ?? 'bid',
+    };
+
+    migrated.schemaVersion = CURRENT_SCHEMA_VERSION;
+  }
+
+  // Ensure default reference consignments exist if list is empty
+  if (!Array.isArray(migrated.consignments) || migrated.consignments.length === 0) {
+    migrated.consignments = [
+      REFERENCE_CONSIGNMENTS.DANISH_MANURE,
+      REFERENCE_CONSIGNMENTS.UK_FOOD_WASTE,
+      REFERENCE_CONSIGNMENTS.ISCC_PLUS_VOLUNTARY,
+    ];
+    migrated.activeConsignmentId = REFERENCE_CONSIGNMENTS.DANISH_MANURE.id;
+  }
+
+  return migrated as AppState;
+}
+
+export function createDefaultState(): AppState {
+  const initialMarks: Record<string, MarkEntry> = {};
   MARKETS.filter(m => m.status === 'ACTIVE').forEach(m => {
-    initialMarks.marks[m.id] = { bid: null, offer: null, mid: null };
+    initialMarks[m.id] = {
+      marketId: m.id,
+      bid: null,
+      offer: null,
+      mid: null,
+      updatedAt: null,
+      source: null,
+    };
   });
 
   return {
-    marks: initialMarks,
-    consignments: [],
-    activeConsignmentId: null,
+    schemaVersion: CURRENT_SCHEMA_VERSION,
+    marks: {
+      marks: initialMarks,
+      gasIndex: { bid: null, offer: null, mid: null, updatedAt: null },
+      fx: { gbpEur: null, chfEur: null, updatedAt: null },
+      pricingSide: 'bid',
+    },
+    consignments: [
+      REFERENCE_CONSIGNMENTS.DANISH_MANURE,
+      REFERENCE_CONSIGNMENTS.UK_FOOD_WASTE,
+      REFERENCE_CONSIGNMENTS.ISCC_PLUS_VOLUNTARY,
+    ],
+    activeConsignmentId: REFERENCE_CONSIGNMENTS.DANISH_MANURE.id,
     costs: {
       transferCosts: null,
       certificationCosts: null,
@@ -62,29 +143,85 @@ function getInitialState(): AppState {
       otherCosts: null,
     },
     savedAssessments: [],
-    selectedMarketId: null,
+    selectedMarketId: 'DE_THG',
   };
+}
+
+function getInitialState(): AppState {
+  try {
+    const storedV2 = localStorage.getItem(STORAGE_KEY);
+    if (storedV2) {
+      return migrateState(JSON.parse(storedV2));
+    }
+    const legacyStored = localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (legacyStored) {
+      const migrated = migrateState(JSON.parse(legacyStored));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+      return migrated;
+    }
+  } catch (e) {
+    console.warn('Failed to load or migrate state from localStorage', e);
+  }
+  return createDefaultState();
 }
 
 // Reducer
 function appReducer(state: AppState, action: AppAction): AppState {
+  const now = new Date().toISOString();
+
   switch (action.type) {
     case 'SET_MARK': {
+      const existing = state.marks.marks[action.marketId];
+      const updatedEntry: MarkEntry = {
+        marketId: action.marketId,
+        bid: action.bid,
+        offer: action.offer,
+        mid: action.mid,
+        updatedAt: action.updatedAt ?? (action.bid !== null || action.offer !== null || action.mid !== null ? now : null),
+        source: action.source ?? existing?.source ?? 'Desk Entry',
+      };
+
       return {
         ...state,
         marks: {
           ...state.marks,
           marks: {
             ...state.marks.marks,
-            [action.marketId]: { bid: action.bid, offer: action.offer, mid: action.mid },
+            [action.marketId]: updatedEntry,
           },
         },
       };
     }
-    case 'SET_GAS_INDEX':
-      return { ...state, marks: { ...state.marks, gasIndex: { bid: action.bid, offer: action.offer, mid: action.mid } } };
-    case 'SET_FX':
-      return { ...state, marks: { ...state.marks, fx: { ...state.marks.fx, [action.currency]: action.value } } };
+    case 'SET_GAS_INDEX': {
+      const hasValue = action.bid !== null || action.offer !== null || action.mid !== null;
+      return {
+        ...state,
+        marks: {
+          ...state.marks,
+          gasIndex: {
+            bid: action.bid,
+            offer: action.offer,
+            mid: action.mid,
+            updatedAt: action.updatedAt ?? (hasValue ? now : null),
+          },
+        },
+      };
+    }
+    case 'SET_FX': {
+      return {
+        ...state,
+        marks: {
+          ...state.marks,
+          fx: {
+            ...state.marks.fx,
+            [action.currency]: action.value,
+            updatedAt: action.updatedAt ?? (action.value !== null ? now : null),
+          },
+        },
+      };
+    }
+    case 'SET_PRICING_SIDE':
+      return { ...state, marks: { ...state.marks, pricingSide: action.side } };
     case 'ADD_CONSIGNMENT':
       return { ...state, consignments: [...state.consignments, action.consignment], activeConsignmentId: action.consignment.id };
     case 'UPDATE_CONSIGNMENT':
@@ -94,15 +231,21 @@ function appReducer(state: AppState, action: AppAction): AppState {
     case 'SET_COSTS':
       return { ...state, costs: { ...state.costs, ...action.costs } };
     case 'SAVE_ASSESSMENT':
-      return { ...state, savedAssessments: [action.assessment, ...state.savedAssessments] };
+      return {
+        ...state,
+        savedAssessments: [
+          action.assessment,
+          ...state.savedAssessments.filter(a => a.id !== action.assessment.id),
+        ],
+      };
     case 'DELETE_ASSESSMENT':
       return { ...state, savedAssessments: state.savedAssessments.filter(a => a.id !== action.id) };
     case 'SELECT_MARKET':
       return { ...state, selectedMarketId: action.id };
     case 'IMPORT_STATE':
-      return action.state;
+      return migrateState(action.state);
     case 'RESET':
-      return getInitialState();
+      return createDefaultState();
     default:
       return state;
   }
@@ -114,7 +257,7 @@ const AppContext = createContext<{ state: AppState; dispatch: React.Dispatch<App
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, null, getInitialState);
 
-  // Auto-save to localStorage on every state change (debounced)
+  // Auto-save to localStorage on change
   useEffect(() => {
     const timeout = setTimeout(() => {
       try {
@@ -135,11 +278,11 @@ export function useAppState() {
   return ctx;
 }
 
-// Export/import for JSON persistence
 export function exportState(state: AppState): string {
   return JSON.stringify(state, null, 2);
 }
 
 export function importState(json: string): AppState {
-  return JSON.parse(json) as AppState;
+  const parsed = JSON.parse(json);
+  return migrateState(parsed);
 }
