@@ -12,6 +12,7 @@ import {
   FolderArchive, 
   Terminal
 } from 'lucide-react';
+import { FloatingAgentDrawer } from '../shared/components/FloatingAgentDrawer';
 
 const NAV_ITEMS = [
   { to: '/', label: 'Map', keyHint: '1', icon: Globe, end: true },
@@ -183,6 +184,9 @@ export function Layout() {
       <main className="flex-1 max-w-[1600px] w-full mx-auto px-3 sm:px-6 py-5">
         <Outlet />
       </main>
+
+      {/* Omnipresent Floating AI Copilot for Every Page */}
+      <FloatingAgentDrawer />
 
       {/* Footer Info Strip */}
       <footer className="border-t border-stone-800 bg-stone-900/60 py-2.5 px-6 text-[11px] text-stone-500 font-mono flex flex-col sm:flex-row justify-between items-center gap-2">
