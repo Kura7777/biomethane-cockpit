@@ -181,8 +181,8 @@ export function Layout() {
         </div>
       </header>
 
-      {/* Main Container */}
-      <main className="flex-1 max-w-[1600px] w-full mx-auto px-3 sm:px-6 py-5">
+      {/* Main Container - Full Viewport Width */}
+      <main className="flex-1 w-full px-4 py-4">
         <ErrorBoundary>
           <Outlet />
         </ErrorBoundary>
