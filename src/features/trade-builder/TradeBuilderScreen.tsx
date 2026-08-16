@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { MARKETS, getMarketById } from '../../domain/markets/registry';
 import { FEEDSTOCK_REGISTRY, REFERENCE_CONSIGNMENTS } from '../../domain/consignment/feedstocks';
 import { Consignment, CertificationScheme, ChainOfCustody, AnnexClassification, UDBStatus, PoSStatus } from '../../domain/consignment/types';
@@ -29,7 +29,8 @@ import {
   Sliders,
   CheckCircle2,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  ArrowRight
 } from 'lucide-react';
 import { LogisticsModal } from '../logistics/LogisticsModal';
 import { calculateLogisticsRoute } from '../../domain/logistics/engine';
@@ -38,6 +39,7 @@ const EU_COUNTRY_CODES = ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE'
 
 export function TradeBuilderScreen() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const preSelectedMarketId = searchParams.get('marketId') || 'DE_THG';
   const { state, dispatch } = useAppState();
   const [isLogisticsOpen, setIsLogisticsOpen] = useState(false);
@@ -556,7 +558,7 @@ export function TradeBuilderScreen() {
           </div>
 
           {/* GROUP 3: Cost Structure & Producer Offtake (Zero Nested Borders) */}
-          <div className="space-y-2">
+          <div id="cost-procurement-section" className="space-y-2 scroll-mt-20">
             <div className="flex items-center justify-between font-mono">
               <span className="text-[10px] font-semibold text-[#8B98A5] uppercase tracking-wider">
                 3. Cost & Procurement Terms
@@ -891,36 +893,133 @@ export function TradeBuilderScreen() {
               <StaleIndicator target={markEntry} />
             </div>
 
-            {/* Top 3 Executive KPI Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="p-3 bg-[#0B0E11] rounded">
-                <div className="text-[10px] font-normal text-[#8B98A5] uppercase tracking-wider font-mono">Delivered Netback</div>
-                <div className="text-[36px] font-semibold font-mono text-[#2DD4BF] tabular-nums mt-1 leading-none">
-                  {netback.netNetback !== null ? `€${netback.netNetback.toFixed(2)}` : '—'}
-                </div>
-                <div className="text-[10px] text-[#8B98A5] mt-1 font-mono">Molecule + Compliance</div>
-              </div>
+            {/* HERO VALUATION ROW (Phase 3) */}
+            <div className={`p-3 rounded transition-colors ${
+              netback.deskMargin !== null && netback.deskMargin < 0 
+                ? 'bg-[#1C0E10] border border-[#D64545]/50' 
+                : 'bg-[#0B0E11]'
+            }`}>
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-stretch">
+                
+                {/* 1. Hero Number: Delivered Netback (36px, 600 weight, monospace) */}
+                <div className="sm:col-span-6 flex flex-col justify-between p-2">
+                  <div className="text-[10px] font-normal text-[#8B98A5] uppercase tracking-wider font-mono">
+                    Delivered Netback
+                  </div>
 
-              <div className="p-3 bg-[#0B0E11] rounded">
-                <div className="text-[10px] font-normal text-[#8B98A5] uppercase tracking-wider font-mono">Producer Payable</div>
-                <div className="text-[18px] font-semibold font-mono text-[#E8EDF2] tabular-nums mt-1">
-                  {netback.producerPayable !== null ? `€${netback.producerPayable.toFixed(2)}/MWh` : '—'}
+                  {netback.netNetback !== null ? (
+                    <div>
+                      <div className={`text-[36px] font-semibold font-mono tabular-nums leading-none mt-1.5 ${
+                        netback.netNetback < 0 ? 'text-[#D64545]' : 'text-[#2DD4BF]'
+                      }`}>
+                        €{netback.netNetback.toFixed(2)}
+                        <span className="text-xs font-normal text-[#8B98A5] ml-1">/MWh</span>
+                      </div>
+                      <div className="text-[10px] text-[#8B98A5] mt-1.5 font-mono">
+                        Molecule (€{(netback.moleculeValue ?? 0).toFixed(2)}) + Compliance (€{(netback.certificateValue?.valueEurPerMWh ?? 0).toFixed(2)})
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mt-2">
+                      <button
+                        onClick={() => navigate(`/marks?marketId=${selectedMarket.id}`)}
+                        className="inline-flex items-center gap-1.5 text-xs text-[#2DD4BF] hover:underline font-mono font-medium"
+                      >
+                        Enter mark in Marks screen <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                      <div className="text-[10px] text-[#8B98A5] mt-1 font-mono">
+                        Awaiting market certificate mark
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div className="text-[10px] text-[#8B98A5] mt-1 font-mono">
-                  {state.costs.producerPricing?.mode === 'INDEX_LINKED' 
-                    ? `${((state.costs.producerPricing.indexLinkedShare ?? 0) * 100).toFixed(1)}% Share` 
-                    : state.costs.producerPricing?.mode === 'FIXED_PRICE' ? 'Fixed Price' : 'Unset'}
-                </div>
-              </div>
 
-              <div className="p-3 bg-[#0B0E11] rounded">
-                <div className="text-[10px] font-normal text-[#8B98A5] uppercase tracking-wider font-mono">Desk Margin</div>
-                <div className="text-[18px] font-semibold font-mono text-[#2DD4BF] tabular-nums mt-1">
-                  {netback.deskMargin !== null ? `€${netback.deskMargin.toFixed(2)}/MWh` : '—'}
+                {/* 2. Producer Payable (18px section size) */}
+                <div className="sm:col-span-3 flex flex-col justify-between p-2 border-t sm:border-t-0 sm:border-l border-[#1E262F]">
+                  <div className="text-[10px] font-normal text-[#8B98A5] uppercase tracking-wider font-mono">
+                    Producer Payable
+                  </div>
+
+                  {netback.producerPayable !== null ? (
+                    <div>
+                      <div className="text-[18px] font-semibold font-mono text-[#E8EDF2] tabular-nums mt-1">
+                        €{netback.producerPayable.toFixed(2)}
+                        <span className="text-[10px] font-normal text-[#8B98A5] ml-0.5">/MWh</span>
+                      </div>
+                      <div className="text-[10px] text-[#8B98A5] mt-1 font-mono truncate">
+                        {state.costs.producerPricing?.mode === 'INDEX_LINKED' 
+                          ? `${((state.costs.producerPricing.indexLinkedShare ?? 0) * 100).toFixed(0)}% Share` 
+                          : state.costs.producerPricing?.mode === 'FIXED_PRICE' ? 'Fixed Price' : 'Unset'}
+                      </div>
+                    </div>
+                  ) : netback.netNetback !== null ? (
+                    <div className="mt-1">
+                      <button
+                        onClick={() => {
+                          const el = document.getElementById('cost-procurement-section');
+                          el?.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                        className="inline-flex items-center gap-1 text-[11px] text-[#D99A2B] hover:underline font-mono font-medium text-left"
+                      >
+                        Set producer pricing <ArrowRight className="w-3 h-3" />
+                      </button>
+                      <div className="text-[10px] text-[#8B98A5] mt-1 font-mono">
+                        Pricing mode unset
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="text-[18px] font-semibold font-mono text-[#8B98A5] tabular-nums mt-1">—</div>
+                      <div className="text-[10px] text-[#8B98A5] mt-1 font-mono">Unset</div>
+                    </div>
+                  )}
                 </div>
-                <div className="text-[10px] text-[#8B98A5] mt-1 font-mono">
-                  {netback.marginPercent !== null ? `${netback.marginPercent.toFixed(1)}% Capture` : 'Awaiting cost'}
+
+                {/* 3. Desk Margin (18px section size, red on loss) */}
+                <div className="sm:col-span-3 flex flex-col justify-between p-2 border-t sm:border-t-0 sm:border-l border-[#1E262F]">
+                  <div className="text-[10px] font-normal text-[#8B98A5] uppercase tracking-wider font-mono">
+                    Desk Margin
+                  </div>
+
+                  {netback.deskMargin !== null ? (
+                    <div>
+                      <div className={`text-[18px] font-semibold font-mono tabular-nums mt-1 ${
+                        netback.deskMargin < 0 ? 'text-[#D64545]' : 'text-[#2DD4BF]'
+                      }`}>
+                        €{netback.deskMargin.toFixed(2)}
+                        <span className="text-[10px] font-normal opacity-70 ml-0.5">/MWh</span>
+                      </div>
+                      <div className={`text-[10px] mt-1 font-mono truncate ${
+                        netback.deskMargin < 0 ? 'text-[#D64545] font-semibold' : 'text-[#8B98A5]'
+                      }`}>
+                        {netback.marginPercent !== null 
+                          ? `${netback.marginPercent.toFixed(1)}% ${netback.deskMargin < 0 ? 'Loss' : 'Capture'}` 
+                          : 'Calculated'}
+                      </div>
+                    </div>
+                  ) : netback.netNetback !== null ? (
+                    <div className="mt-1">
+                      <button
+                        onClick={() => {
+                          const el = document.getElementById('cost-procurement-section');
+                          el?.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                        className="inline-flex items-center gap-1 text-[11px] text-[#8B98A5] hover:text-[#E8EDF2] hover:underline font-mono text-left"
+                      >
+                        Calculate margin <ArrowRight className="w-3 h-3" />
+                      </button>
+                      <div className="text-[10px] text-[#8B98A5] mt-1 font-mono">
+                        Awaiting producer cost
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="text-[18px] font-semibold font-mono text-[#8B98A5] tabular-nums mt-1">—</div>
+                      <div className="text-[10px] text-[#8B98A5] mt-1 font-mono">Awaiting netback</div>
+                    </div>
+                  )}
                 </div>
+
               </div>
             </div>
 
