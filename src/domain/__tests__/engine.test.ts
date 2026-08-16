@@ -207,11 +207,12 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
       expect(at20?.name).toBe('Wildon (AT-20)');
 
       austrianPlants.forEach(p => {
-        expect(p.operator).toBeDefined();
-        expect(p.capacityNm3h).toBeGreaterThan(0);
-        expect(p.annualEnergyGWh).toBeGreaterThan(0);
-        expect(p.coordinates).toBeDefined();
-        expect(p.provenance).toBe('GIE/EBA European Biomethane Map 2026');
+        expect(p.countryCode).toBe('AT');
+        expect(p.name).toBeDefined();
+        expect(p.capacityNm3h).toBeNull();
+        expect(p.annualEnergyGWh).toBeNull();
+        expect(p.coordinates).toBeNull();
+        expect(p.provenance).toContain('GIE/EBA European Biomethane Map 2026');
       });
     });
 

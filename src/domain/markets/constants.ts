@@ -55,7 +55,9 @@ export const GHG_THRESHOLDS_TRANSPORT: Record<string, number> = {
  * GHG Saving Thresholds for Heat & Power (by commissioning date)
  * Source: RED III Art. 29(10)
  */
-export const GHG_THRESHOLDS_HEAT_POWER = {
+export const GHG_THRESHOLDS_HEAT_POWER: Record<string, number> = {
+  PRE_OCT_2015: 0.50,
+  OCT_2015_TO_2020: 0.60,
   POST_2021_TO_2025: 0.70,
   POST_2026: 0.80,
 };

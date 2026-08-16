@@ -258,23 +258,23 @@ export function PlantsScreen() {
                           <span>{plant.name}</span>
                         </div>
                       </td>
-                      <td className="py-2 px-3 text-stone-300 font-medium whitespace-nowrap max-w-[180px] truncate" title={plant.operator || 'Operator'}>
-                        {plant.operator || 'National Operator'}
+                      <td className="py-2 px-3 text-stone-400 whitespace-nowrap max-w-[180px] truncate" title={plant.operator || 'Unverified'}>
+                        {plant.operator || <span className="text-stone-600 italic">Unverified</span>}
                       </td>
                       <td className="py-2 px-3 text-right text-teal-300 font-bold font-mono">
-                        {plant.capacityNm3h != null ? plant.capacityNm3h.toLocaleString() : '—'}
+                        {plant.capacityNm3h != null ? plant.capacityNm3h.toLocaleString() : <span className="text-stone-600">—</span>}
                       </td>
                       <td className="py-2 px-3 text-right text-stone-200 font-bold font-mono">
-                        {plant.annualEnergyGWh != null ? plant.annualEnergyGWh.toLocaleString() : '—'}
+                        {plant.annualEnergyGWh != null ? plant.annualEnergyGWh.toLocaleString() : <span className="text-stone-600">—</span>}
                       </td>
-                      <td className="py-2 px-3 text-stone-300 text-[11px] max-w-[200px] truncate" title={plant.feedstockDetails || ''}>
-                        {plant.primaryFeedstockCategory || 'Agri-residues & biowaste'}
+                      <td className="py-2 px-3 text-stone-400 text-[11px] max-w-[200px] truncate" title={plant.primaryFeedstockCategory || 'Unverified'}>
+                        {plant.primaryFeedstockCategory || <span className="text-stone-600 italic">Unverified</span>}
                       </td>
-                      <td className="py-2 px-3 text-stone-400 text-[11px] max-w-[160px] truncate" title={plant.upgradingTechnology || ''}>
-                        {plant.upgradingTechnology || 'Membrane Separation'}
+                      <td className="py-2 px-3 text-stone-400 text-[11px] max-w-[160px] truncate" title={plant.upgradingTechnology || 'Unverified'}>
+                        {plant.upgradingTechnology || <span className="text-stone-600 italic">Unverified</span>}
                       </td>
-                      <td className="py-2 px-3 text-stone-400 text-[11px] max-w-[160px] truncate" title={plant.networkOperator || ''}>
-                        {plant.networkOperator || 'National Grid'}
+                      <td className="py-2 px-3 text-stone-400 text-[11px] max-w-[160px] truncate" title={plant.networkOperator || 'Unverified'}>
+                        {plant.networkOperator || <span className="text-stone-600 italic">Unverified</span>}
                       </td>
                       <td className="py-2 px-3 text-center" onClick={e => e.stopPropagation()}>
                         <button
