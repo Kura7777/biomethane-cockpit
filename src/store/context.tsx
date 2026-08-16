@@ -2,12 +2,12 @@ import React, { createContext, useContext, useReducer, useEffect, ReactNode } fr
 import { Consignment } from '../domain/consignment/types';
 import { MarksState, CostInputs } from '../domain/netback/types';
 import { TradeAssessment } from '../domain/trade/types';
-import { PriceSide, MarkEntry, getMarkStaleness } from '../domain/markets/types';
+import { PriceSide, MarkEntry, MarkProvenance, getMarkStaleness } from '../domain/markets/types';
 import { MARKETS } from '../domain/markets/registry';
 import { REFERENCE_CONSIGNMENTS } from '../domain/consignment/feedstocks';
 
-export const CURRENT_SCHEMA_VERSION = 4;
-const STORAGE_KEY = 'biomethane-desk-state-v4';
+export const CURRENT_SCHEMA_VERSION = 5;
+const STORAGE_KEY = 'biomethane-desk-state-v5';
 const LEGACY_STORAGE_KEY = 'biomethane-desk-state';
 
 // State shape
@@ -23,9 +23,9 @@ export interface AppState {
 
 // Actions
 export type AppAction =
-  | { type: 'SET_MARK'; marketId: string; bid: number | null; offer: number | null; mid: number | null; source?: string | null; updatedAt?: string | null }
-  | { type: 'SET_GAS_INDEX'; bid: number | null; offer: number | null; mid: number | null; updatedAt?: string | null }
-  | { type: 'SET_FX'; currency: 'gbpEur' | 'chfEur'; value: number | null; updatedAt?: string | null }
+  | { type: 'SET_MARK'; marketId: string; bid: number | null; offer: number | null; mid: number | null; source?: string | null; updatedAt?: string | null; provenance?: MarkProvenance | null }
+  | { type: 'SET_GAS_INDEX'; bid: number | null; offer: number | null; mid: number | null; updatedAt?: string | null; provenance?: MarkProvenance | null }
+  | { type: 'SET_FX'; currency: 'gbpEur' | 'chfEur'; value: number | null; updatedAt?: string | null; provenance?: MarkProvenance | null }
   | { type: 'SET_PRICING_SIDE'; side: PriceSide }
   | { type: 'ADD_CONSIGNMENT'; consignment: Consignment }
   | { type: 'UPDATE_CONSIGNMENT'; consignment: Consignment }
@@ -112,6 +112,77 @@ export function migrateState(raw: any): AppState {
     }
   }
 
+  if (stateVersion < 5) {
+    // Schema v5 migration: existing marks get provenance with all fields null, observedAt seeded from existing updatedAt
+    const rawMarks = migrated.marks?.marks || {};
+    const updatedMarks: Record<string, MarkEntry> = {};
+
+    MARKETS.filter(m => m.status === 'ACTIVE').forEach(m => {
+      const existing = rawMarks[m.id];
+      if (existing) {
+        updatedMarks[m.id] = {
+          ...existing,
+          marketId: m.id,
+          provenance: existing.provenance ?? {
+            sourceType: null,
+            sourceName: null,
+            sourceUrl: null,
+            observedAt: existing.updatedAt ?? null,
+            note: null,
+          },
+        };
+      } else {
+        updatedMarks[m.id] = {
+          marketId: m.id,
+          bid: null,
+          offer: null,
+          mid: null,
+          updatedAt: null,
+          source: null,
+          provenance: {
+            sourceType: null,
+            sourceName: null,
+            sourceUrl: null,
+            observedAt: null,
+            note: null,
+          },
+        };
+      }
+    });
+
+    migrated.marks = {
+      ...migrated.marks,
+      marks: updatedMarks,
+      gasIndex: {
+        ...migrated.marks?.gasIndex,
+        bid: migrated.marks?.gasIndex?.bid ?? null,
+        offer: migrated.marks?.gasIndex?.offer ?? null,
+        mid: migrated.marks?.gasIndex?.mid ?? null,
+        updatedAt: migrated.marks?.gasIndex?.updatedAt ?? null,
+        provenance: migrated.marks?.gasIndex?.provenance ?? {
+          sourceType: null,
+          sourceName: null,
+          sourceUrl: null,
+          observedAt: migrated.marks?.gasIndex?.updatedAt ?? null,
+          note: null,
+        },
+      },
+      fx: {
+        ...migrated.marks?.fx,
+        gbpEur: migrated.marks?.fx?.gbpEur ?? null,
+        chfEur: migrated.marks?.fx?.chfEur ?? null,
+        updatedAt: migrated.marks?.fx?.updatedAt ?? null,
+        provenance: migrated.marks?.fx?.provenance ?? {
+          sourceType: null,
+          sourceName: null,
+          sourceUrl: null,
+          observedAt: migrated.marks?.fx?.updatedAt ?? null,
+          note: null,
+        },
+      },
+    };
+  }
+
   migrated.schemaVersion = CURRENT_SCHEMA_VERSION;
 
   // Ensure default reference consignments exist if list is empty
@@ -137,6 +208,13 @@ export function createDefaultState(): AppState {
       mid: null,
       updatedAt: null,
       source: null,
+      provenance: {
+        sourceType: null,
+        sourceName: null,
+        sourceUrl: null,
+        observedAt: null,
+        note: null,
+      },
     };
   });
 
@@ -144,8 +222,31 @@ export function createDefaultState(): AppState {
     schemaVersion: CURRENT_SCHEMA_VERSION,
     marks: {
       marks: initialMarks,
-      gasIndex: { bid: null, offer: null, mid: null, updatedAt: null },
-      fx: { gbpEur: null, chfEur: null, updatedAt: null },
+      gasIndex: {
+        bid: null,
+        offer: null,
+        mid: null,
+        updatedAt: null,
+        provenance: {
+          sourceType: null,
+          sourceName: null,
+          sourceUrl: null,
+          observedAt: null,
+          note: null,
+        },
+      },
+      fx: {
+        gbpEur: null,
+        chfEur: null,
+        updatedAt: null,
+        provenance: {
+          sourceType: null,
+          sourceName: null,
+          sourceUrl: null,
+          observedAt: null,
+          note: null,
+        },
+      },
       pricingSide: 'bid',
     },
     consignments: [
@@ -169,6 +270,7 @@ export function createDefaultState(): AppState {
 
 function getInitialState(): AppState {
   const KNOWN_STORAGE_KEYS = [
+    'biomethane-desk-state-v5',
     'biomethane-desk-state-v4',
     'biomethane-desk-state-v3',
     'biomethane-desk-state-v2',
@@ -199,13 +301,21 @@ function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     case 'SET_MARK': {
       const existing = state.marks.marks[action.marketId];
+      const updatedTimestamp = action.updatedAt ?? (action.bid !== null || action.offer !== null || action.mid !== null ? now : null);
       const updatedEntry: MarkEntry = {
         marketId: action.marketId,
         bid: action.bid,
         offer: action.offer,
         mid: action.mid,
-        updatedAt: action.updatedAt ?? (action.bid !== null || action.offer !== null || action.mid !== null ? now : null),
-        source: action.source ?? existing?.source ?? 'Desk Entry',
+        updatedAt: updatedTimestamp,
+        source: action.source ?? existing?.source ?? null,
+        provenance: action.provenance !== undefined ? action.provenance : (existing?.provenance ?? {
+          sourceType: null,
+          sourceName: null,
+          sourceUrl: null,
+          observedAt: updatedTimestamp,
+          note: null,
+        }),
       };
 
       return {
@@ -221,6 +331,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
     }
     case 'SET_GAS_INDEX': {
       const hasValue = action.bid !== null || action.offer !== null || action.mid !== null;
+      const gasUpdatedAt = action.updatedAt ?? (hasValue ? now : null);
       return {
         ...state,
         marks: {
@@ -229,12 +340,20 @@ function appReducer(state: AppState, action: AppAction): AppState {
             bid: action.bid,
             offer: action.offer,
             mid: action.mid,
-            updatedAt: action.updatedAt ?? (hasValue ? now : null),
+            updatedAt: gasUpdatedAt,
+            provenance: action.provenance !== undefined ? action.provenance : (state.marks.gasIndex.provenance ?? {
+              sourceType: null,
+              sourceName: null,
+              sourceUrl: null,
+              observedAt: gasUpdatedAt,
+              note: null,
+            }),
           },
         },
       };
     }
     case 'SET_FX': {
+      const fxUpdatedAt = action.updatedAt ?? (action.value !== null ? now : null);
       return {
         ...state,
         marks: {
@@ -242,7 +361,14 @@ function appReducer(state: AppState, action: AppAction): AppState {
           fx: {
             ...state.marks.fx,
             [action.currency]: action.value,
-            updatedAt: action.updatedAt ?? (action.value !== null ? now : null),
+            updatedAt: fxUpdatedAt,
+            provenance: action.provenance !== undefined ? action.provenance : (state.marks.fx.provenance ?? {
+              sourceType: null,
+              sourceName: null,
+              sourceUrl: null,
+              observedAt: fxUpdatedAt,
+              note: null,
+            }),
           },
         },
       };

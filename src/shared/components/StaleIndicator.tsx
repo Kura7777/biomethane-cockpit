@@ -1,15 +1,18 @@
 import React from 'react';
-import { getMarkAgeDays, getMarkStaleness, StalenessStatus } from '../../domain/markets/types';
+import { getMarkAgeDays, getMarkStaleness, StalenessStatus, MarkProvenance, MarkTimeObject } from '../../domain/markets/types';
 
 interface StaleIndicatorProps {
-  updatedAt: string | null;
+  updatedAt?: string | null;
+  provenance?: MarkProvenance | null;
+  target?: string | null | MarkTimeObject;
   showText?: boolean;
   compact?: boolean;
 }
 
-export function StaleIndicator({ updatedAt, showText = true, compact = false }: StaleIndicatorProps) {
-  const status = getMarkStaleness(updatedAt);
-  const ageDays = getMarkAgeDays(updatedAt);
+export function StaleIndicator({ updatedAt, provenance, target, showText = true, compact = false }: StaleIndicatorProps) {
+  const timeTarget = target !== undefined ? target : (provenance ? { provenance, updatedAt } : updatedAt);
+  const status = getMarkStaleness(timeTarget);
+  const ageDays = getMarkAgeDays(timeTarget);
 
   if (status === 'UNFILLED') {
     return (

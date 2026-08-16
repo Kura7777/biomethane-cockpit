@@ -1,4 +1,4 @@
-import { MarkEntry, PriceSide } from '../markets/types';
+import { MarkEntry, PriceSide, MarkProvenance } from '../markets/types';
 
 export type ProducerPricingMode = 'FIXED_PRICE' | 'INDEX_LINKED';
 
@@ -38,6 +38,7 @@ export interface CertificateValueResult {
   statusNote?: string | null;       // Warning or status note (e.g., UNVERIFIED for UK dRTFC or FuelEU)
   markAgeDays?: number | null;      // Staleness age in days
   isModelled?: boolean;             // true if value is derived from regulatory model (e.g. FuelEU penalty avoidance) rather than market mark
+  provenance?: MarkProvenance | null;
 }
 
 export interface NetbackBranch {
@@ -80,21 +81,28 @@ export interface NetbackResult {
   statusNote?: string | null;       // Any cautionary status notice (e.g. UNVERIFIED)
   markSideUsed: PriceSide;          // 'bid' | 'mid' | 'offer'
   isModelled?: boolean;             // true if value is purely modelled (e.g. unquoted FuelEU)
+  provenance?: MarkProvenance | null;
+}
+
+export interface GasIndexMark {
+  bid: number | null;
+  offer: number | null;
+  mid: number | null;
+  updatedAt: string | null;
+  provenance?: MarkProvenance | null;
+}
+
+export interface FxMark {
+  gbpEur: number | null;
+  chfEur: number | null;
+  updatedAt: string | null;
+  provenance?: MarkProvenance | null;
 }
 
 export interface MarksState {
   marks: Record<string, MarkEntry>;
-  gasIndex: {
-    bid: number | null;
-    offer: number | null;
-    mid: number | null;
-    updatedAt: string | null;
-  };
-  fx: {
-    gbpEur: number | null;
-    chfEur: number | null;
-    updatedAt: string | null;
-  };
+  gasIndex: GasIndexMark;
+  fx: FxMark;
   pricingSide: PriceSide;           // Global default pricing side (default 'bid' for selling certificates)
   fuelEUOptions?: FuelEUOptions;
 }

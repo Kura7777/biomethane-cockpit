@@ -110,7 +110,8 @@ export function computeCertificateValue(
   const pricingSide = side ?? marks.pricingSide ?? 'bid';
   const markObj = marks.marks[market.id];
   const mark = selectMarkPrice(markObj, pricingSide);
-  const markAgeDays = markObj ? getMarkAgeDays(markObj.updatedAt) : null;
+  const markAgeDays = markObj ? getMarkAgeDays(markObj) : null;
+  const provenance = markObj?.provenance ?? null;
 
   const ci = consignment.carbonIntensity;
 
@@ -132,6 +133,7 @@ export function computeCertificateValue(
         statusNote: 'Market mark applied. Deficit-closure model validates value exceeding the €210 penalty equivalent.',
         markAgeDays,
         isModelled: false,
+        provenance,
       };
     } else {
       // Modelled value when no desk mark is entered
@@ -145,6 +147,7 @@ export function computeCertificateValue(
         statusNote: 'MODELLED — Theoretical fleet deficit closure value (Reg. EU 2023/1805 Annex IV). No broker mark entered.',
         markAgeDays: null,
         isModelled: true,
+        provenance: null,
       };
     }
   }
@@ -254,6 +257,7 @@ export function computeCertificateValue(
     statusNote,
     markAgeDays,
     isModelled,
+    provenance,
   };
 }
 
@@ -470,6 +474,7 @@ export function computeNetback(
     statusNote,
     markSideUsed: pricingSide,
     isModelled: certVal?.isModelled ?? false,
+    provenance: certVal?.provenance ?? null,
   };
 }
 

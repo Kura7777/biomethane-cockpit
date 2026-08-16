@@ -15,50 +15,27 @@ import {
   Info
 } from 'lucide-react';
 
-const DEFAULT_INDICATIVE_MARKS: Record<string, { bid: number; offer: number; mid: number; source: string }> = {
-  // 1. Primary Compliance Markets
-  DE_THG: { bid: 285, offer: 310, mid: 297.50, source: 'Argus Biomethane Weekly' },
-  NL_ERE: { bid: 0.28, offer: 0.32, mid: 0.30, source: 'NEa REV Broker Indication' },
-  FR_CPB: { bid: 88, offer: 95, mid: 91.50, source: 'EEX French Biomethane' },
-  FR_TIRUERT: { bid: 110, offer: 125, mid: 117.50, source: 'Broker Indication' },
-  IT_CIC: { bid: 360, offer: 390, mid: 375.00, source: 'GSE / Broker OTC' },
-  DK_GO: { bid: 22, offer: 26, mid: 24.00, source: 'Energinet GO Wholesale' },
-  AT_EGG: { bid: 75, offer: 85, mid: 80.00, source: 'AGCS Market Indication' },
-  SE_TAX: { bid: 65, offer: 72, mid: 68.50, source: 'Tax Exemption Benchmark' },
-  FI_TRANSPORT: { bid: 80, offer: 90, mid: 85.00, source: 'Gasgrid Indication' },
-  BE_TRANSPORT: { bid: 78, offer: 88, mid: 83.00, source: 'Regional Registry' },
-  ES_GDO: { bid: 55, offer: 65, mid: 60.00, source: 'Enagás GTS / Iberian OTC' },
-  PL_OZE: { bid: 62, offer: 70, mid: 66.00, source: 'TGE Polish Exchange / OTC' },
-  CZ_POZE: { bid: 68, offer: 76, mid: 72.00, source: 'OTE Market Indication' },
-  EE_TRANSPORT: { bid: 72, offer: 82, mid: 77.00, source: 'Elering Bio-CNG Benchmark' },
-  LT_ALT_FUELS: { bid: 74, offer: 84, mid: 79.00, source: 'Amber Grid Registry' },
-  LV_CONEXUS: { bid: 70, offer: 80, mid: 75.00, source: 'Conexus Baltic Grid' },
-  CH_VSG: { bid: 85, offer: 98, mid: 91.50, source: 'VSG Swiss Gas Industry' },
-  NO_STATNETT: { bid: 82, offer: 94, mid: 88.00, source: 'Miljødirektoratet Indication' },
-  UK_RTFO: { bid: 0.18, offer: 0.22, mid: 0.20, source: 'UK RTFC Broker' },
-  IE_RHO: { bid: 70, offer: 80, mid: 75.00, source: 'CRU Ireland Benchmark' },
-  PT_EEGO: { bid: 58, offer: 68, mid: 63.00, source: 'REN EEGO System' },
-  HU_MEKH: { bid: 60, offer: 70, mid: 65.00, source: 'MEKH Hungary Indication' },
-  SK_OKTE: { bid: 64, offer: 74, mid: 69.00, source: 'OKTE Slovakia Registry' },
-  RO_TRANSGAZ: { bid: 56, offer: 66, mid: 61.00, source: 'Transgaz OTC' },
-  BG_BULGARTRANSGAZ: { bid: 52, offer: 62, mid: 57.00, source: 'Bulgartransgaz Indication' },
-  HR_PLINACRO: { bid: 60, offer: 70, mid: 65.00, source: 'Plinacro Market' },
-  SI_PLINOVODI: { bid: 66, offer: 76, mid: 71.00, source: 'Plinovodi Indication' },
-  GR_DESFA: { bid: 58, offer: 68, mid: 63.00, source: 'DESFA Greece OTC' },
-  // 2. Sectoral & Supranational Compliance Pools
-  FUELEU: { bid: 220, offer: 260, mid: 240.00, source: 'Marine Fuel Deficit Broker' },
-  EU_ETS1: { bid: 68, offer: 74, mid: 71.00, source: 'EEX EUA Benchmark' },
-  EU_ETS2: { bid: 45, offer: 55, mid: 50.00, source: 'EU ETS2 Forward Indication' },
-  VOL_SCOPE1: { bid: 35, offer: 45, mid: 40.00, source: 'Corporate Buyer OTC' },
-};
-
 export function MarksScreen() {
   const { state, dispatch } = useAppState();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const handleMarkChange = (marketId: string, field: 'bid' | 'offer' | 'mid', valueStr: string) => {
     const val = valueStr === '' ? null : Number(valueStr);
-    const existing = state.marks.marks[marketId] || { marketId, bid: null, offer: null, mid: null, updatedAt: null, source: null };
+    const existing = state.marks.marks[marketId] || { 
+      marketId, 
+      bid: null, 
+      offer: null, 
+      mid: null, 
+      updatedAt: null, 
+      source: null,
+      provenance: {
+        sourceType: null,
+        sourceName: null,
+        sourceUrl: null,
+        observedAt: null,
+        note: null,
+      }
+    };
     const updated = { ...existing, [field]: val };
 
     // Auto-compute mid if bid and offer set
@@ -66,48 +43,23 @@ export function MarksScreen() {
       updated.mid = Number(((updated.bid + updated.offer) / 2).toFixed(2));
     }
 
+    const now = new Date().toISOString();
     dispatch({
       type: 'SET_MARK',
       marketId,
       bid: updated.bid,
       offer: updated.offer,
       mid: updated.mid,
-      updatedAt: new Date().toISOString(),
-      source: existing.source || 'Desk Manual Entry',
-    });
-  };
-
-  const handleLoadIndicativeMarks = () => {
-    const now = new Date().toISOString();
-    Object.entries(DEFAULT_INDICATIVE_MARKS).forEach(([marketId, m]) => {
-      dispatch({
-        type: 'SET_MARK',
-        marketId,
-        bid: m.bid,
-        offer: m.offer,
-        mid: m.mid,
-        source: m.source,
-        updatedAt: now,
-      });
-    });
-
-    dispatch({
-      type: 'SET_GAS_INDEX',
-      bid: 28.00,
-      offer: 29.00,
-      mid: 28.50,
       updatedAt: now,
+      source: existing.source ?? null,
+      provenance: existing.provenance ?? {
+        sourceType: null,
+        sourceName: null,
+        sourceUrl: null,
+        observedAt: now,
+        note: null,
+      },
     });
-
-    dispatch({
-      type: 'SET_FX',
-      currency: 'gbpEur',
-      value: 1.18,
-      updatedAt: now,
-    });
-
-    setSuccessMessage('Loaded current indicative marks with live timestamps (0d fresh)!');
-    setTimeout(() => setSuccessMessage(null), 3000);
   };
 
   const handleExportJSON = () => {
@@ -159,14 +111,6 @@ export function MarksScreen() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
-          <button
-            onClick={handleLoadIndicativeMarks}
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-teal-950/70 border border-teal-700 text-teal-300 hover:bg-teal-900/80 transition-colors"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            Load Live Broker Marks
-          </button>
-
           <button
             onClick={handleExportJSON}
             className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-stone-950 border border-stone-800 text-stone-300 hover:bg-stone-800 transition-colors"

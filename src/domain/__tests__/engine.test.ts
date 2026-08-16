@@ -9,10 +9,11 @@ import {
   RTFO_KG_PER_MWH
 } from '../netback/engine';
 import { getMarketById, MARKETS } from '../markets/registry';
+import { getMarkAgeDays, getMarkStaleness, getMarkReliability, MarkEntry } from '../markets/types';
 import { Consignment } from '../consignment/types';
 import { MarksState, CostInputs } from '../netback/types';
 import { rankNetbacks, getHighestBlockedOpportunity } from '../netback/ranking';
-import { migrateState, CURRENT_SCHEMA_VERSION } from '../../store/context';
+import { migrateState, createDefaultState, CURRENT_SCHEMA_VERSION } from '../../store/context';
 import { REFERENCE_CONSIGNMENTS } from '../consignment/feedstocks';
 import { scanEuropeanArbitrage } from '../arbitrage/engine';
 import { getRouteTransitTariff, calculateRealisticCommercialDeskMargin } from '../arbitrage/origins';
@@ -478,4 +479,142 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
 
   });
 
+  describe('PHASE 1 — Mark Provenance & Staleness Tests', () => {
+    it('mark age computed from observedAt when present, updatedAt when not', () => {
+      const now = Date.now();
+      const tenDaysAgo = new Date(now - 10 * 24 * 60 * 60 * 1000).toISOString();
+      const twoDaysAgo = new Date(now - 2 * 24 * 60 * 60 * 1000).toISOString();
+
+      // Case 1: only updatedAt present
+      const entryUpdatedOnly = {
+        updatedAt: tenDaysAgo,
+      };
+      expect(getMarkAgeDays(entryUpdatedOnly)).toBe(10);
+
+      // Case 2: observedAt in provenance takes priority over updatedAt
+      const entryWithObserved: MarkEntry = {
+        marketId: 'FR_CPB',
+        bid: 90.0,
+        offer: null,
+        mid: null,
+        updatedAt: twoDaysAgo, // Entered 2 days ago
+        source: 'EEX Auction',
+        provenance: {
+          sourceType: 'EXCHANGE_AUCTION',
+          sourceName: 'EEX',
+          sourceUrl: 'https://eex.com',
+          observedAt: tenDaysAgo, // Price was from auction 10 days ago
+          note: 'Monthly French GO/CPB auction',
+        },
+      };
+      // Age must reflect the observed date (10 days), not when trader typed it (2 days)
+      expect(getMarkAgeDays(entryWithObserved)).toBe(10);
+    });
+
+    it('provenance defaults to all-null; getMarkReliability(null) -> null', () => {
+      expect(getMarkReliability(null)).toBeNull();
+      expect(getMarkReliability(undefined)).toBeNull();
+
+      // Reliability ordering test (for display only)
+      expect(getMarkReliability('EXCHANGE_AUCTION')).toBeGreaterThan(getMarkReliability('PRICE_REPORTING')!);
+      expect(getMarkReliability('PRICE_REPORTING')).toBeGreaterThan(getMarkReliability('PLATFORM_HISTORY')!);
+      expect(getMarkReliability('PLATFORM_HISTORY')).toBeGreaterThan(getMarkReliability('COUNTERPARTY_QUOTE')!);
+      expect(getMarkReliability('COUNTERPARTY_QUOTE')).toBeGreaterThan(getMarkReliability('BROKER_INDICATION')!);
+      expect(getMarkReliability('BROKER_INDICATION')).toBeGreaterThan(getMarkReliability('PRESS_REPORT')!);
+      expect(getMarkReliability('PRESS_REPORT')).toBeGreaterThan(getMarkReliability('ESTIMATE')!);
+
+      const defaultState = createDefaultState();
+      const frMark = defaultState.marks.marks['FR_CPB'];
+      expect(frMark.provenance).toBeDefined();
+      expect(frMark.provenance?.sourceType).toBeNull();
+      expect(frMark.provenance?.sourceName).toBeNull();
+      expect(frMark.provenance?.sourceUrl).toBeNull();
+      expect(frMark.provenance?.observedAt).toBeNull();
+      expect(frMark.provenance?.note).toBeNull();
+      expect(defaultState.marks.gasIndex.provenance?.sourceType).toBeNull();
+      expect(defaultState.marks.fx.provenance?.sourceType).toBeNull();
+    });
+
+    it('v4 -> v5 migration: observedAt seeded from updatedAt, no marks lost', () => {
+      const v4State = {
+        schemaVersion: 4,
+        marks: {
+          marks: {
+            FR_CPB: {
+              marketId: 'FR_CPB',
+              bid: 92.5,
+              offer: 95.0,
+              mid: 93.75,
+              updatedAt: '2026-08-01T10:00:00Z',
+              source: 'EEX historical',
+            },
+            DE_THG: {
+              marketId: 'DE_THG',
+              bid: 120.0,
+              offer: 130.0,
+              mid: 125.0,
+              updatedAt: '2026-08-10T12:00:00Z',
+              source: 'Argus German Quota',
+            },
+          },
+          gasIndex: {
+            bid: 28.0,
+            offer: 29.0,
+            mid: 28.5,
+            updatedAt: '2026-08-12T08:00:00Z',
+          },
+          fx: {
+            gbpEur: 1.17,
+            chfEur: 1.05,
+            updatedAt: '2026-08-12T08:00:00Z',
+          },
+          pricingSide: 'bid',
+        },
+        costs: {
+          transferCosts: 0.8,
+          certificationCosts: 0.45,
+          logistics: 1.2,
+          deliveredCost: null,
+          otherCosts: 0,
+          producerPricing: null,
+        },
+        consignments: [],
+        activeConsignmentId: null,
+        savedAssessments: [],
+        selectedMarketId: 'FR_CPB',
+      };
+
+      const migrated = migrateState(v4State);
+      expect(migrated.schemaVersion).toBe(5);
+
+      // Marks preserved
+      expect(migrated.marks.marks['FR_CPB'].bid).toBe(92.5);
+      expect(migrated.marks.marks['DE_THG'].bid).toBe(120.0);
+
+      // Provenance created with observedAt seeded from updatedAt
+      expect(migrated.marks.marks['FR_CPB'].provenance).toBeDefined();
+      expect(migrated.marks.marks['FR_CPB'].provenance?.observedAt).toBe('2026-08-01T10:00:00Z');
+      expect(migrated.marks.marks['FR_CPB'].provenance?.sourceType).toBeNull();
+
+      expect(migrated.marks.marks['DE_THG'].provenance?.observedAt).toBe('2026-08-10T12:00:00Z');
+      expect(migrated.marks.gasIndex.provenance?.observedAt).toBe('2026-08-12T08:00:00Z');
+      expect(migrated.marks.fx.provenance?.observedAt).toBe('2026-08-12T08:00:00Z');
+    });
+
+    it('existing staleness thresholds (7d amber / 30d red) still apply', () => {
+      const now = Date.now();
+      const freshDate = new Date(now - 3 * 24 * 60 * 60 * 1000).toISOString(); // 3d
+      const warningDate = new Date(now - 12 * 24 * 60 * 60 * 1000).toISOString(); // 12d
+      const criticalDate = new Date(now - 45 * 24 * 60 * 60 * 1000).toISOString(); // 45d
+
+      expect(getMarkStaleness(freshDate)).toBe('FRESH');
+      expect(getMarkStaleness(warningDate)).toBe('STALE_WARNING');
+      expect(getMarkStaleness(criticalDate)).toBe('STALE_CRITICAL');
+      expect(getMarkStaleness(null)).toBe('UNFILLED');
+
+      // Tested via provenance object
+      expect(getMarkStaleness({ provenance: { sourceType: 'PRICE_REPORTING', sourceName: 'Argus', sourceUrl: null, observedAt: warningDate, note: null } })).toBe('STALE_WARNING');
+      expect(getMarkStaleness({ provenance: { sourceType: 'PRICE_REPORTING', sourceName: 'Argus', sourceUrl: null, observedAt: criticalDate, note: null } })).toBe('STALE_CRITICAL');
+    });
+  });
 });
