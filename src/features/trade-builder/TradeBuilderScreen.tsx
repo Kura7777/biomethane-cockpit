@@ -1119,7 +1119,13 @@ export function TradeBuilderScreen() {
                           producerPricing: {
                             mode: 'INDEX_LINKED',
                             fixedPriceEurPerMwh: state.costs.producerPricing?.fixedPriceEurPerMwh ?? null,
-                            indexLinkedShare: e.target.value === '' ? null : Number(e.target.value),
+                            // Clamped to the 0–1 contract. `max="1"` only fails HTML
+                            // validation, it does not stop a typed "90" — which stored
+                            // 90 and cascaded into "9000.0% Index Share" and a
+                            // -8900% margin on the bottom line.
+                            indexLinkedShare: e.target.value === ''
+                              ? null
+                              : Math.min(1, Math.max(0, Number(e.target.value))),
                             source: 'User entered',
                             lastVerified: new Date().toISOString(),
                             confidence: 'UNVERIFIED',
@@ -1129,6 +1135,12 @@ export function TradeBuilderScreen() {
                       className="w-full bg-stone-950 border border-stone-700 rounded px-2.5 py-1 font-mono text-stone-100 text-xs focus:border-teal-400 outline-none"
                       placeholder="e.g. 0.90"
                     />
+                    {/* Echo the percentage so a fraction field cannot be misread */}
+                    <div className="text-micro text-stone-400 tabular-nums">
+                      {state.costs.producerPricing?.indexLinkedShare != null
+                        ? `= ${(state.costs.producerPricing.indexLinkedShare * 100).toFixed(1)}% to producer, ${((1 - state.costs.producerPricing.indexLinkedShare) * 100).toFixed(1)}% desk share`
+                        : 'Enter a fraction between 0.00 and 1.00'}
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-1">
@@ -1328,8 +1340,8 @@ export function TradeBuilderScreen() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3 font-semibold text-stone-400">
-                    <span className="w-24 text-right">Per MWh</span>
-                    <span className="w-32 text-right">Contract Total</span>
+                    <span className="w-28 shrink-0 text-right whitespace-nowrap">Per MWh</span>
+                    <span className="w-40 shrink-0 text-right whitespace-nowrap">Contract Total</span>
                   </div>
                 </div>
               </div>
@@ -1364,10 +1376,10 @@ export function TradeBuilderScreen() {
                     )}
                   </div>
                   <div className="flex items-center gap-3 tabular-nums">
-                    <span className="w-24 text-right font-medium text-amber-500">
+                    <span className="w-28 shrink-0 text-right whitespace-nowrap font-medium text-amber-500">
                       {netback.producerPayable !== null ? signedEur(netback.producerPayable, 'outflow') : 'Not set'}
                     </span>
-                    <span className="w-32 text-right text-amber-500">
+                    <span className="w-40 shrink-0 text-right whitespace-nowrap text-amber-500">
                       {consignment.volumeMWh !== null && netback.producerPayable !== null
                         ? signedEur(netback.producerPayable * consignment.volumeMWh, 'outflow')
                         : '—'}
@@ -1406,10 +1418,10 @@ export function TradeBuilderScreen() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3 tabular-nums">
-                    <span className="w-24 text-right font-medium text-teal-400">
+                    <span className="w-28 shrink-0 text-right whitespace-nowrap font-medium text-teal-400">
                       {netback.certificateValue?.valueEurPerMWh != null ? signedEur(netback.certificateValue.valueEurPerMWh) : 'Not set'}
                     </span>
-                    <span className="w-32 text-right text-stone-100">
+                    <span className="w-40 shrink-0 text-right whitespace-nowrap text-stone-100">
                       {consignment.volumeMWh !== null && netback.certificateValue?.valueEurPerMWh != null
                         ? signedEur(netback.certificateValue.valueEurPerMWh * consignment.volumeMWh)
                         : '—'}
@@ -1440,10 +1452,10 @@ export function TradeBuilderScreen() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3 tabular-nums">
-                    <span className="w-24 text-right font-medium text-stone-100">
+                    <span className="w-28 shrink-0 text-right whitespace-nowrap font-medium text-stone-100">
                       {netback.moleculeValue !== null ? signedEur(netback.moleculeValue) : 'Not set'}
                     </span>
-                    <span className="w-32 text-right text-stone-100">
+                    <span className="w-40 shrink-0 text-right whitespace-nowrap text-stone-100">
                       {consignment.volumeMWh !== null && netback.moleculeValue !== null
                         ? signedEur(netback.moleculeValue * consignment.volumeMWh)
                         : '—'}
@@ -1458,10 +1470,10 @@ export function TradeBuilderScreen() {
                     <span>Logistics, Tariffs &amp; Certification</span>
                   </div>
                   <div className="flex items-center gap-3 tabular-nums">
-                    <span className="w-24 text-right text-stone-100">
+                    <span className="w-28 shrink-0 text-right whitespace-nowrap text-stone-100">
                       {netback.totalCosts !== null ? signedEur(netback.totalCosts, 'outflow') : 'Not set'}
                     </span>
-                    <span className="w-32 text-right text-stone-100">
+                    <span className="w-40 shrink-0 text-right whitespace-nowrap text-stone-100">
                       {consignment.volumeMWh !== null && netback.totalCosts !== null
                         ? signedEur(netback.totalCosts * consignment.volumeMWh, 'outflow')
                         : '—'}
@@ -1485,10 +1497,10 @@ export function TradeBuilderScreen() {
                     )}
                   </div>
                   <div className={`flex items-center gap-3 tabular-nums ${netback.netNetback !== null && netback.netNetback < 0 ? 'text-red-500' : 'text-teal-400'}`}>
-                    <span className="w-24 text-right text-sm">
+                    <span className="w-28 shrink-0 text-right whitespace-nowrap font-bold">
                       {netback.netNetback !== null ? signedEur(netback.netNetback) : 'N/A'}
                     </span>
-                    <span className="w-32 text-right text-sm">
+                    <span className="w-40 shrink-0 text-right whitespace-nowrap font-bold">
                       {consignment.volumeMWh !== null && netback.netNetback !== null
                         ? signedEur(netback.netNetback * consignment.volumeMWh)
                         : '—'}
@@ -1521,10 +1533,10 @@ export function TradeBuilderScreen() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3 tabular-nums">
-                  <span className="w-24 text-right text-lg font-bold">
+                  <span className="w-28 shrink-0 text-right whitespace-nowrap text-base font-bold">
                     {netback.deskMargin !== null ? signedEur(netback.deskMargin) : '—'}
                   </span>
-                  <span className="w-32 text-right text-lg font-bold">
+                  <span className="w-40 shrink-0 text-right whitespace-nowrap text-base font-bold">
                     {consignment.volumeMWh !== null && netback.deskPnL !== null
                       ? signedEur(netback.deskPnL)
                       : '—'}
@@ -1543,24 +1555,39 @@ export function TradeBuilderScreen() {
                     <span>Δ €{netback.valuationRange.deltaPerMwh.toFixed(2)}/MWh at risk</span>
                   </div>
 
+                  {/* Both branches render from one definition so their label and
+                      value columns line up across the pair. Values go through
+                      signedEur like the ledger above, so the sign always precedes
+                      the currency symbol rather than printing "€-1,869,000.00". */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {/* Branch 1: Single Counting (1×) */}
-                    <div className="p-2 bg-stone-950 rounded border border-stone-800 space-y-0.5">
-                      <div className="text-stone-400 text-micro uppercase font-semibold">1× Single Counting (Conservative)</div>
-                      <div className="flex justify-between text-stone-100 tabular-nums">
-                        <span>Netback: <strong>€{netback.uncertaintyBranches[0].netNetback?.toFixed(2)}/MWh</strong></span>
-                        <span className="text-teal-400">Profit: <strong>€{netback.uncertaintyBranches[0].deskPnL?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) ?? '—'}</strong></span>
-                      </div>
-                    </div>
-
-                    {/* Branch 2: Double Counting (2×) */}
-                    <div className="p-2 bg-stone-950 rounded border border-teal-400/40 space-y-0.5">
-                      <div className="text-teal-400 text-micro uppercase font-semibold">2× Double Counting (Upside)</div>
-                      <div className="flex justify-between text-stone-100 tabular-nums">
-                        <span>Netback: <strong>€{netback.uncertaintyBranches[1].netNetback?.toFixed(2)}/MWh</strong></span>
-                        <span className="text-teal-400">Profit: <strong>€{netback.uncertaintyBranches[1].deskPnL?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) ?? '—'}</strong></span>
-                      </div>
-                    </div>
+                    {[
+                      { branch: netback.uncertaintyBranches[0], title: '1× Single Counting (Conservative)', accent: false },
+                      { branch: netback.uncertaintyBranches[1], title: '2× Double Counting (Upside)', accent: true },
+                    ].map(({ branch, title, accent }) => {
+                      const pnl = branch.deskPnL ?? null;
+                      const isLoss = pnl !== null && pnl < 0;
+                      return (
+                        <div
+                          key={title}
+                          className={`p-2 bg-stone-950 rounded border space-y-1 ${accent ? 'border-teal-400/40' : 'border-stone-800'}`}
+                        >
+                          <div className={`text-micro uppercase font-semibold ${accent ? 'text-teal-400' : 'text-stone-400'}`}>
+                            {title}
+                          </div>
+                          <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 tabular-nums">
+                            <dt className="text-stone-400">Netback</dt>
+                            <dd className="m-0 text-right text-stone-100 whitespace-nowrap">
+                              {branch.netNetback != null ? `${signedEur(branch.netNetback)}/MWh` : '—'}
+                            </dd>
+                            {/* Labelled by sign: a negative figure is not a profit */}
+                            <dt className="text-stone-400">{isLoss ? 'Loss' : 'Profit'}</dt>
+                            <dd className={`m-0 text-right font-bold whitespace-nowrap ${isLoss ? 'text-red-500' : 'text-teal-400'}`}>
+                              {pnl !== null ? signedEur(pnl) : '—'}
+                            </dd>
+                          </dl>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
