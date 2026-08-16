@@ -2,10 +2,9 @@ import React, { useState, useMemo } from 'react';
 import { ComposableMap, Geographies, Geography, ZoomableGroup, Marker, Line } from 'react-simple-maps';
 import { useNavigate } from 'react-router-dom';
 import { MARKETS, getMarketById } from '../../domain/markets/registry';
-import { Market, MarketStatus } from '../../domain/markets/types';
+import { Market } from '../../domain/markets/types';
 import { useAppState } from '../../store/context';
 import { StatusChip } from '../../shared/components/StatusChip';
-import { StaleIndicator } from '../../shared/components/StaleIndicator';
 import { evaluateEligibility } from '../../domain/eligibility/engine';
 import { computeNetback } from '../../domain/netback/engine';
 import { FEEDSTOCK_REGISTRY, REFERENCE_CONSIGNMENTS } from '../../domain/consignment/feedstocks';
@@ -13,21 +12,15 @@ import { Consignment, CertificationScheme, ChainOfCustody } from '../../domain/c
 import { 
   Globe, 
   ArrowRight, 
-  ShieldCheck, 
-  AlertTriangle, 
   TrendingUp, 
-  Info, 
   Layers, 
-  Terminal,
   CheckCircle2,
   XCircle,
-  Sliders,
-  Sparkles,
-  RefreshCw,
-  ExternalLink,
-  ChevronRight,
+  Building2,
+  Scale,
+  Activity,
   Flame,
-  CornerDownRight
+  Info
 } from 'lucide-react';
 
 const EU_COUNTRY_CODES = ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE'];
@@ -64,6 +57,16 @@ const COUNTRY_COORDINATES: Record<string, [number, number]> = {
   CH: [8.2275, 46.8182],
   PT: [-8.2245, 39.3999],
   CZ: [15.4730, 49.8175],
+  EE: [25.0136, 58.5953],
+  LV: [24.6032, 56.8796],
+  LT: [23.8813, 55.1694],
+  HU: [19.5033, 47.1625],
+  SK: [19.6990, 48.6690],
+  RO: [24.9668, 45.9432],
+  BG: [25.4858, 42.7339],
+  HR: [15.2000, 45.1000],
+  SI: [14.9955, 46.1512],
+  GR: [21.8243, 39.0742],
 };
 
 const COUNTRY_NAMES: Record<string, string> = {
@@ -79,6 +82,21 @@ const COUNTRY_NAMES: Record<string, string> = {
   AT: 'Austria',
   SE: 'Sweden',
   FI: 'Finland',
+  CZ: 'Czech Republic',
+  IE: 'Ireland',
+  PT: 'Portugal',
+  EE: 'Estonia',
+  LT: 'Lithuania',
+  LV: 'Latvia',
+  HU: 'Hungary',
+  SK: 'Slovakia',
+  RO: 'Romania',
+  BG: 'Bulgaria',
+  HR: 'Croatia',
+  SI: 'Slovenia',
+  GR: 'Greece',
+  CH: 'Switzerland',
+  NO: 'Norway',
 };
 
 const geoUrl = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json';
@@ -136,16 +154,6 @@ export function MapScreen() {
     return map;
   }, []);
 
-  const marketByIso2 = useMemo(() => {
-    const map = new Map<string, Market>();
-    MARKETS.forEach(m => {
-      if (!m.isEUScope && m.country) {
-        map.set(m.country, m);
-      }
-    });
-    return map;
-  }, []);
-
   // Compute live eligibility and netbacks for all markets based on active consignment
   const marketAssessments = useMemo(() => {
     const map = new Map<string, { eligibility: ReturnType<typeof evaluateEligibility>; netback: ReturnType<typeof computeNetback> }>();
@@ -157,7 +165,7 @@ export function MapScreen() {
     return map;
   }, [activeConsignment, state.marks, state.costs]);
 
-  // Dynamic Country Color Fill based on Export Clearance from the Origin!
+  // Dynamic Country Color Fill based on Export Clearance from the Origin
   const getCountryFillColor = (iso3: string) => {
     const iso2 = COUNTRY_ISO3_TO_ISO2[iso3];
     
@@ -189,10 +197,10 @@ export function MapScreen() {
       return '#b45309'; // amber-700 (Capped or conditional)
     }
     if (verdict === 'HARD_BLOCK') {
-      return '#991b1b'; // red-800 (Blocked export!)
+      return '#991b1b'; // red-800 (Blocked export)
     }
     if (market.status === 'EMERGING') {
-      return '#451a03'; // dark amber
+      return '#854d0e'; // dark amber
     }
     if (market.status === 'FUTURE') {
       return '#172554'; // dark blue
@@ -222,7 +230,6 @@ export function MapScreen() {
     if (market) {
       setSelectedDestinationMarketId(market.id);
     } else if (iso2 && COUNTRY_COORDINATES[iso2]) {
-      // If clicking a non-market country with coordinates, make it the origin
       setOriginCountry(iso2);
       setInjectionCountry(iso2);
     }
@@ -240,6 +247,8 @@ export function MapScreen() {
 
   const targetAssessment = selectedDestinationMarketId ? marketAssessments.get(selectedDestinationMarketId) : null;
   const activeNationalMarkets = MARKETS.filter(m => m.status === 'ACTIVE' && !m.isEUScope);
+  const emergingMarkets = MARKETS.filter(m => m.status === 'EMERGING');
+  const euWideMarkets = MARKETS.filter(m => m.isEUScope || m.id === 'VOL_SCOPE1');
 
   return (
     <div className="space-y-4 font-sans text-stone-100 pb-16">
@@ -251,20 +260,20 @@ export function MapScreen() {
             <div className="flex items-center gap-2">
               <Globe className="w-4 h-4 text-teal-400" />
               <h1 className="text-base font-bold text-white font-mono uppercase tracking-tight">
-                European Biomethane Export & Arbitrage Map
+                Pan-European Biomethane Eligibility & Export Map
               </h1>
               <span className="text-[10px] font-mono bg-teal-950 text-teal-300 border border-teal-800 px-1.5 py-0.5 rounded">
-                Live Flow Clearance
+                27 Verified Markets
               </span>
             </div>
             <p className="text-stone-400 text-xs mt-0.5 font-mono">
-              Select an <strong className="text-sky-300">Origin Country</strong> and specifications below to immediately visualize which European markets this biomethane can legally be exported to.
+              Select an <strong className="text-sky-300">Origin Country</strong> to map real-time cross-border compliance clearance across all active European biomethane plants and national registries.
             </p>
           </div>
 
           {/* Quick Demo Presets */}
           <div className="flex flex-wrap items-center gap-1.5 font-mono text-xs">
-            <span className="text-[10px] text-stone-500 uppercase font-bold">Quick Presets:</span>
+            <span className="text-[10px] text-stone-500 uppercase font-bold">Presets:</span>
             <button
               onClick={() => handleLoadPreset('DANISH_MANURE', 'DE_THG')}
               className="px-2 py-0.5 rounded border border-teal-800 bg-teal-950/60 text-teal-300 hover:bg-teal-900 transition-colors"
@@ -308,18 +317,24 @@ export function MapScreen() {
               }}
               className="w-full bg-stone-950 border border-sky-800 rounded px-2 py-1 text-sky-200 font-bold outline-none"
             >
-              <option value="DK">🇩🇰 Denmark</option>
-              <option value="GB">🇬🇧 United Kingdom</option>
-              <option value="NL">🇳🇱 Netherlands</option>
-              <option value="DE">🇩🇪 Germany</option>
-              <option value="FR">🇫🇷 France</option>
-              <option value="IT">🇮🇹 Italy</option>
-              <option value="ES">🇪🇸 Spain</option>
-              <option value="PL">🇵🇱 Poland</option>
-              <option value="BE">🇧🇪 Belgium</option>
-              <option value="AT">🇦🇹 Austria</option>
-              <option value="SE">🇸🇪 Sweden</option>
-              <option value="FI">🇫🇮 Finland</option>
+              <option value="DK">🇩🇰 Denmark (64 plants)</option>
+              <option value="DE">🇩🇪 Germany (242 plants)</option>
+              <option value="FR">🇫🇷 France (652 plants)</option>
+              <option value="IT">🇮🇹 Italy (135 plants)</option>
+              <option value="NL">🇳🇱 Netherlands (82 plants)</option>
+              <option value="GB">🇬🇧 United Kingdom (124 plants)</option>
+              <option value="ES">🇪🇸 Spain (18 plants)</option>
+              <option value="SE">🇸🇪 Sweden (72 plants)</option>
+              <option value="FI">🇫🇮 Finland (26 plants)</option>
+              <option value="AT">🇦🇹 Austria (16 plants)</option>
+              <option value="BE">🇧🇪 Belgium (12 plants)</option>
+              <option value="CZ">🇨🇿 Czech Republic (11 plants)</option>
+              <option value="PL">🇵🇱 Poland (8 plants)</option>
+              <option value="EE">🇪🇪 Estonia (7 plants)</option>
+              <option value="LT">🇱🇹 Lithuania (6 plants)</option>
+              <option value="LV">🇱🇻 Latvia (4 plants)</option>
+              <option value="CH">🇨🇭 Switzerland (41 plants)</option>
+              <option value="NO">🇳🇴 Norway (10 plants)</option>
             </select>
           </div>
 
@@ -366,11 +381,11 @@ export function MapScreen() {
               onChange={e => setScheme(e.target.value as CertificationScheme)}
               className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1 text-stone-200 outline-none"
             >
-              <option value="ISCC_EU">ISCC EU (RED III)</option>
-              <option value="REDCERT_EU">REDcert EU (RED III)</option>
-              <option value="2BSVS">2BSvs (RED III)</option>
-              <option value="KZR_INIG">KZR INiG (RED III)</option>
-              <option value="ISCC_PLUS">ISCC PLUS (Voluntary)</option>
+              <option value="ISCC_EU">ISCC EU (RED III Compliance)</option>
+              <option value="REDCERT_EU">REDcert EU (RED III Compliance)</option>
+              <option value="2BSVS">2BSvs (RED III Compliance)</option>
+              <option value="KZR_INIG">KZR INiG (RED III Compliance)</option>
+              <option value="ISCC_PLUS">ISCC PLUS (Voluntary Only)</option>
             </select>
           </div>
 
@@ -384,11 +399,13 @@ export function MapScreen() {
               onChange={e => setInjectionCountry(e.target.value)}
               className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1 text-stone-200 outline-none"
             >
-              <option value="DK">🇩🇰 EU Grid (Denmark)</option>
-              <option value="DE">🇩🇪 EU Grid (Germany)</option>
-              <option value="NL">🇳🇱 EU Grid (Netherlands)</option>
-              <option value="FR">🇫🇷 EU Grid (France)</option>
-              <option value="GB">🇬🇧 Non-EU Grid (UK)</option>
+              <option value="DK">🇩🇰 EU Interconnected Grid (Denmark)</option>
+              <option value="DE">🇩🇪 EU Interconnected Grid (Germany)</option>
+              <option value="NL">🇳🇱 EU Interconnected Grid (Netherlands)</option>
+              <option value="FR">🇫🇷 EU Interconnected Grid (France)</option>
+              <option value="ES">🇪🇸 EU Interconnected Grid (Spain)</option>
+              <option value="GB">🇬🇧 Non-EU Gas Grid (UK)</option>
+              <option value="CH">🇨🇭 Non-EU Gas Grid (Switzerland)</option>
             </select>
           </div>
 
@@ -402,9 +419,9 @@ export function MapScreen() {
               onChange={e => setChainOfCustody(e.target.value as ChainOfCustody)}
               className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1 text-stone-200 outline-none"
             >
-              <option value="MASS_BALANCE">Mass Balance</option>
-              <option value="SEGREGATION">Segregation (LNG)</option>
-              <option value="BOOK_AND_CLAIM">Book-and-Claim</option>
+              <option value="MASS_BALANCE">Mass Balance (Transport)</option>
+              <option value="SEGREGATION">Segregation (Bio-LNG)</option>
+              <option value="BOOK_AND_CLAIM">Book-and-Claim (Voluntary)</option>
             </select>
           </div>
 
@@ -414,7 +431,7 @@ export function MapScreen() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         
         {/* SVG Interactive Map Canvas */}
-        <div className="lg:col-span-8 bg-stone-900 border border-stone-800 rounded-xl overflow-hidden relative flex flex-col min-h-[540px]">
+        <div className="lg:col-span-8 bg-stone-900 border border-stone-800 rounded-xl overflow-hidden relative flex flex-col min-h-[560px]">
           
           {/* Dynamic Export Clearance Legend */}
           <div className="p-3 bg-stone-950/95 border-b border-stone-800 flex flex-wrap items-center justify-between gap-3 text-[11px] font-mono z-10">
@@ -443,7 +460,7 @@ export function MapScreen() {
           </div>
 
           {/* Map Vector Component */}
-          <div className="flex-1 relative w-full h-full min-h-[460px] flex items-center justify-center bg-stone-950">
+          <div className="flex-1 relative w-full h-full min-h-[480px] flex items-center justify-center bg-stone-950">
             <ComposableMap
               projection="geoMercator"
               projectionConfig={{ scale: 720, center: [14, 54] }}
@@ -538,13 +555,14 @@ export function MapScreen() {
                 </div>
 
                 {hoveredCountry.market && (
-                  <div className="mt-1.5 space-y-0.5 text-[11px]">
-                    <div className="text-stone-300">{hoveredCountry.market.name}</div>
-                    <div className="text-teal-400 font-bold">
-                      Netback: {marketAssessments.get(hoveredCountry.market.id)?.netback.netNetback !== null
-                        ? `€${marketAssessments.get(hoveredCountry.market.id)?.netback.netNetback?.toFixed(2)}/MWh`
-                        : 'No mark set'}
-                    </div>
+                  <div className="mt-1.5 space-y-1 text-[11px]">
+                    <div className="text-stone-300 font-bold">{hoveredCountry.market.name}</div>
+                    {hoveredCountry.market.productionPlants && (
+                      <div className="text-stone-400 text-[10px] flex items-center gap-1">
+                        <Building2 className="w-3 h-3 text-teal-400" />
+                        {hoveredCountry.market.productionPlants} plants • {hoveredCountry.market.annualProductionTWh} TWh/yr
+                      </div>
+                    )}
                     <div className="text-stone-500 text-[10px]">{marketAssessments.get(hoveredCountry.market.id)?.eligibility.summary}</div>
                   </div>
                 )}
@@ -553,7 +571,7 @@ export function MapScreen() {
           </div>
         </div>
 
-        {/* Right Sidebar: Selected Route Clearance & Netback Inspector */}
+        {/* Right Sidebar: Selected Route Clearance & National Market Registry */}
         <div className="lg:col-span-4 space-y-3 font-mono text-xs">
           
           {/* Selected Export Route Inspector Panel */}
@@ -569,7 +587,7 @@ export function MapScreen() {
 
               {/* Route Heading */}
               <div className="p-2.5 bg-stone-950 border border-stone-800 rounded space-y-1">
-                <div className="text-[10px] text-stone-400 uppercase font-bold">Export Flow:</div>
+                <div className="text-[10px] text-stone-400 uppercase font-bold">Export Route:</div>
                 <div className="text-sm font-bold text-white flex items-center gap-2">
                   <span>{originCountry} ({COUNTRY_NAMES[originCountry] || originCountry})</span>
                   <ArrowRight className="w-3.5 h-3.5 text-teal-400" />
@@ -577,43 +595,38 @@ export function MapScreen() {
                 </div>
               </div>
 
+              {/* Market Plant & Infrastructure Details */}
+              {targetMarket.productionPlants && (
+                <div className="p-2.5 bg-stone-950/80 border border-stone-800/80 rounded space-y-1 text-[11px]">
+                  <div className="flex justify-between text-stone-400">
+                    <span className="flex items-center gap-1 text-stone-300">
+                      <Building2 className="w-3 h-3 text-teal-400" /> Operational Plants:
+                    </span>
+                    <strong className="text-stone-100">{targetMarket.productionPlants} plants (~{targetMarket.annualProductionTWh} TWh/yr)</strong>
+                  </div>
+                  <div className="flex justify-between text-stone-400">
+                    <span>Registry / TSO:</span>
+                    <strong className="text-stone-200">{targetMarket.registry || 'National Grid'}</strong>
+                  </div>
+                  <div className="text-[10px] text-stone-500 pt-0.5">
+                    <strong>Key Feedstocks:</strong> {targetMarket.keyFeedstocks}
+                  </div>
+                </div>
+              )}
+
               {/* Summary Reason */}
               <div className={`p-2.5 rounded border text-[11px] leading-relaxed ${
                 targetAssessment.eligibility.overallVerdict === 'ELIGIBLE' ? 'bg-emerald-950/40 border-emerald-800/80 text-emerald-300' :
                 targetAssessment.eligibility.overallVerdict === 'HARD_BLOCK' ? 'bg-red-950/40 border-red-800/80 text-red-300' :
                 'bg-sky-950/40 border-sky-800/80 text-sky-300'
               }`}>
-                <strong>Clearance Status:</strong> {targetAssessment.eligibility.summary}
+                <strong>Regulatory Verdict:</strong> {targetAssessment.eligibility.summary}
               </div>
 
-              {/* Netback Economics Preview */}
-              <div className="p-2.5 bg-stone-950 border border-stone-800 rounded space-y-1 text-xs">
-                <div className="flex justify-between text-stone-400">
-                  <span>Certificate Value:</span>
-                  <span className="font-bold text-stone-200">
-                    {targetAssessment.netback.certificateValue?.valueEurPerMWh !== null && targetAssessment.netback.certificateValue?.valueEurPerMWh !== undefined
-                      ? `€${targetAssessment.netback.certificateValue.valueEurPerMWh.toFixed(2)}/MWh`
-                      : 'No mark'}
-                  </span>
-                </div>
-
-                <div className="flex justify-between text-stone-400">
-                  <span>Net Netback (€/MWh):</span>
-                  <span className="font-bold text-teal-400">
-                    {targetAssessment.netback.netNetback !== null
-                      ? `€${targetAssessment.netback.netNetback.toFixed(2)}`
-                      : '—'}
-                  </span>
-                </div>
-
-                {targetAssessment.netback.impliedMargin !== null && (
-                  <div className="flex justify-between text-stone-400 border-t border-stone-900 pt-1">
-                    <span>Implied Margin:</span>
-                    <span className="font-bold text-emerald-400">
-                      €{targetAssessment.netback.impliedMargin.toFixed(2)}/MWh ({targetAssessment.netback.marginPercent?.toFixed(1)}%)
-                    </span>
-                  </div>
-                )}
+              {/* Legal Basis */}
+              <div className="text-[10px] text-stone-400 flex items-center gap-1 bg-stone-950 p-2 rounded border border-stone-800">
+                <Scale className="w-3 h-3 text-teal-400 shrink-0" />
+                <span className="truncate"><strong>Basis:</strong> {targetMarket.legalBasis}</span>
               </div>
 
               {/* Action Button */}
@@ -651,10 +664,8 @@ export function MapScreen() {
                     <div className="flex items-start justify-between">
                       <div>
                         <div className="font-bold text-stone-200">{m.country} {m.name}</div>
-                        <div className="text-teal-400 text-[10px]">
-                          {assessment?.netback.netNetback !== null && assessment?.netback.netNetback !== undefined
-                            ? `€${assessment.netback.netNetback.toFixed(2)}/MWh`
-                            : 'No mark'}
+                        <div className="text-stone-500 text-[10px]">
+                          {m.productionPlants ? `${m.productionPlants} plants • ` : ''}{m.registry || 'National Grid'}
                         </div>
                       </div>
                       <StatusChip variant={assessment?.eligibility.overallVerdict || 'UNKNOWN'} size="xs" />

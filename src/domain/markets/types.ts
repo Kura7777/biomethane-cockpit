@@ -3,7 +3,7 @@ export type MarketStatus = 'ACTIVE' | 'EMERGING' | 'NONE' | 'FUTURE';
 export type UnitOfAccount =
   | 'EUR_PER_TCO2E'        // Germany THG, EU ETS1
   | 'EUR_PER_KG_CO2E'      // Netherlands ERE
-  | 'EUR_PER_MWH'          // France CPB, Austria, Sweden, Finland, etc.
+  | 'EUR_PER_MWH'          // France CPB, Austria, Sweden, Finland, Spain, Poland, etc.
   | 'EUR_PER_CIC'          // Italy
   | 'GBP_PER_DRTFC'        // UK RTFO
   | 'EUR_PER_TCO2E_DEFICIT'; // FuelEU Maritime
@@ -36,13 +36,19 @@ export interface Market {
   unitLabel: string;             // Display string: '€/tCO₂e'
   notes: string;
   legalBasis: string;            // Primary legislation reference
-  registry: string | null;
+  registry: string | null;       // National or scheme registry (dena, VertiCer, EEX, GSE, Enagás, etc.)
   ceilingEurMwh: number | null;  // e.g., 100 for France CPB
   requiresMassBalance: boolean;
   requiresUDB: boolean;
   acceptsBookAndClaim: boolean;
   isEUScope: boolean;            // true for EU-wide markets (FuelEU, ETS)
   uncertainties: Uncertainty[];
+  
+  // Real-world plant and production infrastructure metadata
+  productionPlants?: number;     // Active operational biomethane plants
+  annualProductionTWh?: number;  // Estimated annual production in TWh
+  keyFeedstocks?: string;        // Dominant feedstock pathways
+  gridInterconnection?: string;  // Grid TSO and interconnection status
 }
 
 export interface MarkEntry {
