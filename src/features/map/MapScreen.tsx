@@ -9,7 +9,7 @@ import { evaluateEligibility } from '../../domain/eligibility/engine';
 import { computeNetback } from '../../domain/netback/engine';
 import { FEEDSTOCK_REGISTRY, REFERENCE_CONSIGNMENTS } from '../../domain/consignment/feedstocks';
 import { Consignment, CertificationScheme, ChainOfCustody } from '../../domain/consignment/types';
-import { BIOMETHANE_PLANTS } from '../../domain/plants/registry';
+import { BIOMETHANE_PLANTS, COUNTRY_MACRO_STATS } from '../../domain/plants/registry';
 import { BiomethanePlant } from '../../domain/plants/types';
 import { 
   Globe, 
@@ -24,7 +24,9 @@ import {
   Flame,
   Info,
   Factory,
-  MapPin
+  MapPin,
+  Search,
+  RotateCcw
 } from 'lucide-react';
 
 const EU_COUNTRY_CODES = ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE'];
@@ -35,7 +37,7 @@ const COUNTRY_ISO2_TO_ISO3: Record<string, string> = {
   HU: 'HUN', IE: 'IRL', IT: 'ITA', LV: 'LVA', LT: 'LTU', LU: 'LUX',
   MT: 'MLT', NL: 'NLD', PL: 'POL', PT: 'PRT', RO: 'ROU', SK: 'SVK',
   SI: 'SVN', ES: 'ESP', SE: 'SWE', GB: 'GBR', CH: 'CHE', NO: 'NOR',
-  UA: 'UKR',
+  UA: 'UKR', IS: 'ISL', LI: 'LIE',
 };
 
 const COUNTRY_ISO3_TO_ISO2: Record<string, string> = Object.entries(COUNTRY_ISO2_TO_ISO3).reduce(
@@ -71,27 +73,30 @@ const COUNTRY_COORDINATES: Record<string, [number, number]> = {
   HR: [15.2000, 45.1000],
   SI: [14.9955, 46.1512],
   GR: [21.8243, 39.0742],
+  UA: [31.1656, 48.3794],
 };
 
 const COUNTRY_NAMES: Record<string, string> = {
-  DK: 'Denmark',
+  FR: 'France',
+  DE: 'Germany',
+  IT: 'Italy',
   GB: 'United Kingdom',
   NL: 'Netherlands',
-  DE: 'Germany',
-  FR: 'France',
-  IT: 'Italy',
+  DK: 'Denmark',
   ES: 'Spain',
-  PL: 'Poland',
-  BE: 'Belgium',
-  AT: 'Austria',
   SE: 'Sweden',
+  CH: 'Switzerland',
   FI: 'Finland',
+  AT: 'Austria',
+  BE: 'Belgium',
+  PL: 'Poland',
   CZ: 'Czech Republic',
-  IE: 'Ireland',
+  NO: 'Norway',
   PT: 'Portugal',
   EE: 'Estonia',
   LT: 'Lithuania',
   LV: 'Latvia',
+  IE: 'Ireland',
   HU: 'Hungary',
   SK: 'Slovakia',
   RO: 'Romania',
@@ -99,8 +104,15 @@ const COUNTRY_NAMES: Record<string, string> = {
   HR: 'Croatia',
   SI: 'Slovenia',
   GR: 'Greece',
-  CH: 'Switzerland',
-  NO: 'Norway',
+  UA: 'Ukraine',
+};
+
+const COUNTRY_FLAGS: Record<string, string> = {
+  FR: '🇫🇷', DE: '🇩🇪', IT: '🇮🇹', GB: '🇬🇧', NL: '🇳🇱', DK: '🇩🇰',
+  ES: '🇪🇸', SE: '🇸🇪', CH: '🇨🇭', FI: '🇫🇮', AT: '🇦🇹', BE: '🇧🇪',
+  PL: '🇵🇱', CZ: '🇨🇿', NO: '🇳🇴', PT: '🇵🇹', EE: '🇪🇪', LT: '🇱🇹',
+  LV: '🇱🇻', IE: '🇮🇪', HU: '🇭🇺', SK: '🇸🇰', RO: '🇷🇴', BG: '🇧🇬',
+  HR: '🇭🇷', SI: '🇸🇮', GR: '🇬🇷', UA: '🇺🇦',
 };
 
 const geoUrl = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json';
@@ -116,6 +128,9 @@ export function MapScreen() {
   const [scheme, setScheme] = useState<CertificationScheme>('ISCC_EU');
   const [chainOfCustody, setChainOfCustody] = useState<ChainOfCustody>('MASS_BALANCE');
   const [injectionCountry, setInjectionCountry] = useState<string>('DK');
+
+  // Map Click Mode: 'SET_ORIGIN' or 'SET_TARGET'
+  const [mapClickMode, setMapClickMode] = useState<'SET_ORIGIN' | 'SET_TARGET'>('SET_TARGET');
 
   // Selected Target Destination for route visualization
   const [selectedDestinationIso3, setSelectedDestinationIso3] = useState<string>('DEU');
@@ -192,7 +207,12 @@ export function MapScreen() {
   const handleCountryClick = (iso3: string) => {
     const iso2 = COUNTRY_ISO3_TO_ISO2[iso3];
     if (iso2) {
-      setSelectedDestinationIso3(iso3);
+      if (mapClickMode === 'SET_ORIGIN') {
+        setOriginCountry(iso2);
+        setInjectionCountry(iso2);
+      } else {
+        setSelectedDestinationIso3(iso3);
+      }
     }
   };
 
@@ -212,6 +232,19 @@ export function MapScreen() {
     return map;
   }, []);
 
+  // Sorted producing nations for dropdown
+  const allProducingCountries = useMemo(() => {
+    return Object.entries(COUNTRY_NAMES).map(([code, name]) => {
+      const plantCount = BIOMETHANE_PLANTS.filter(p => p.countryCode === code).length;
+      return {
+        code,
+        name,
+        flag: COUNTRY_FLAGS[code] || '🇪🇺',
+        plantCount,
+      };
+    }).sort((a, b) => b.plantCount - a.plantCount);
+  }, []);
+
   return (
     <div className="space-y-4 font-sans text-stone-100 pb-12">
       
@@ -224,13 +257,42 @@ export function MapScreen() {
               <h1 className="text-base font-bold text-white uppercase tracking-tight">
                 Pan-European Biomethane Cross-Border Export Clearing Map
               </h1>
+              <span className="text-[10px] bg-teal-950 text-teal-300 border border-teal-800 px-1.5 py-0.5 rounded font-bold">
+                1,986 Facilities Live
+              </span>
             </div>
             <p className="text-stone-400 text-xs mt-0.5">
-              Select any origin producing country to dynamically illuminate approved, conditional, and blocked export destinations across Europe.
+              Select or click any origin country to dynamically illuminate approved, conditional, and blocked export destinations across Europe.
             </p>
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Map Click Mode Toggle */}
+            <div className="flex items-center bg-stone-950 border border-stone-800 rounded p-0.5 text-[11px]">
+              <button
+                onClick={() => setMapClickMode('SET_ORIGIN')}
+                className={`px-2.5 py-1 rounded font-bold transition-all ${
+                  mapClickMode === 'SET_ORIGIN'
+                    ? 'bg-sky-600 text-white shadow-xs'
+                    : 'text-stone-400 hover:text-stone-200'
+                }`}
+                title="Clicking any country on the map sets it as the ORIGIN producing country"
+              >
+                Click = Set Origin
+              </button>
+              <button
+                onClick={() => setMapClickMode('SET_TARGET')}
+                className={`px-2.5 py-1 rounded font-bold transition-all ${
+                  mapClickMode === 'SET_TARGET'
+                    ? 'bg-teal-600 text-white shadow-xs'
+                    : 'text-stone-400 hover:text-stone-200'
+                }`}
+                title="Clicking any country on the map sets it as the TARGET destination to inspect"
+              >
+                Click = Set Target
+              </button>
+            </div>
+
             {/* Plant Layer Toggle */}
             <button
               onClick={() => setShowPlants(!showPlants)}
@@ -241,14 +303,14 @@ export function MapScreen() {
               }`}
             >
               <Factory className="w-3.5 h-3.5" />
-              {showPlants ? `Plants Visible (${BIOMETHANE_PLANTS.length})` : 'Show Plant Pins'}
+              {showPlants ? `Plants Visible (1,986)` : 'Show Plant Pins'}
             </button>
 
             <button
               onClick={() => navigate('/plants')}
               className="bg-teal-600 hover:bg-teal-500 text-white font-bold px-3 py-1.5 rounded transition-all flex items-center gap-1"
             >
-              Directory ({BIOMETHANE_PLANTS.length}) →
+              Directory (1,986) →
             </button>
           </div>
         </div>
@@ -256,10 +318,11 @@ export function MapScreen() {
         {/* Consignment Customizer Controls */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 pt-1">
           
-          {/* 1. Origin Country */}
+          {/* 1. Origin Country (All 27 European Producing Nations) */}
           <div>
-            <label className="block text-[9px] font-bold text-teal-400 uppercase mb-0.5">
-              1. Origin Country
+            <label className="block text-[9px] font-bold text-sky-400 uppercase mb-0.5 flex items-center justify-between">
+              <span>1. Origin Country</span>
+              <span className="text-stone-400">({COUNTRY_FLAGS[originCountry]} {originCountry})</span>
             </label>
             <select
               value={originCountry}
@@ -267,24 +330,13 @@ export function MapScreen() {
                 setOriginCountry(e.target.value);
                 setInjectionCountry(e.target.value);
               }}
-              className="w-full bg-stone-950 border border-teal-600/60 rounded px-2 py-1 text-teal-300 font-bold outline-none"
+              className="w-full bg-stone-950 border border-sky-500/70 rounded px-2 py-1.5 text-sky-300 font-bold outline-none focus:ring-1 focus:ring-sky-400 text-xs"
             >
-              <option value="DK">🇩🇰 Denmark (Energinet)</option>
-              <option value="DE">🇩🇪 Germany (dena)</option>
-              <option value="NL">🇳🇱 Netherlands (VertiCer)</option>
-              <option value="FR">🇫🇷 France (EEX / GRDF)</option>
-              <option value="ES">🇪🇸 Spain (Enagás GdO)</option>
-              <option value="IT">🇮🇹 Italy (GSE)</option>
-              <option value="GB">🇬🇧 United Kingdom (RTFO)</option>
-              <option value="SE">🇸🇪 Sweden (Energigas)</option>
-              <option value="PL">🇵🇱 Poland (KZR INiG)</option>
-              <option value="AT">🇦🇹 Austria (AGCS)</option>
-              <option value="BE">🇧🇪 Belgium (SPW/VREG)</option>
-              <option value="CZ">🇨🇿 Czech Republic (OTE)</option>
-              <option value="EE">🇪🇪 Estonia (Elering)</option>
-              <option value="LT">🇱🇹 Lithuania (Amber Grid)</option>
-              <option value="LV">🇱🇻 Latvia (Conexus)</option>
-              <option value="CH">🇨🇭 Switzerland (VSG)</option>
+              {allProducingCountries.map(c => (
+                <option key={c.code} value={c.code}>
+                  {c.flag} {c.name} ({c.plantCount > 0 ? `${c.plantCount} plants` : c.code})
+                </option>
+              ))}
             </select>
           </div>
 
@@ -300,7 +352,7 @@ export function MapScreen() {
                 const info = FEEDSTOCK_REGISTRY[e.target.value];
                 if (info) setCarbonIntensity(info.defaultCI);
               }}
-              className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1 text-stone-200 outline-none"
+              className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1.5 text-stone-200 outline-none text-xs"
             >
               {Object.entries(FEEDSTOCK_REGISTRY).map(([k, v]) => (
                 <option key={k} value={k}>{v.name}</option>
@@ -317,7 +369,7 @@ export function MapScreen() {
               type="number"
               value={carbonIntensity}
               onChange={e => setCarbonIntensity(Number(e.target.value))}
-              className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1 text-teal-300 font-bold"
+              className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1.5 text-teal-300 font-bold text-xs"
             />
           </div>
 
@@ -329,7 +381,7 @@ export function MapScreen() {
             <select
               value={scheme}
               onChange={e => setScheme(e.target.value as CertificationScheme)}
-              className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1 text-stone-200 outline-none"
+              className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1.5 text-stone-200 outline-none text-xs"
             >
               <option value="ISCC_EU">ISCC EU (RED III Compliance)</option>
               <option value="REDCERT_EU">REDcert EU (RED III Compliance)</option>
@@ -347,15 +399,13 @@ export function MapScreen() {
             <select
               value={injectionCountry}
               onChange={e => setInjectionCountry(e.target.value)}
-              className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1 text-stone-200 outline-none"
+              className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1.5 text-stone-200 outline-none text-xs"
             >
-              <option value="DK">🇩🇰 EU Interconnected Grid (Denmark)</option>
-              <option value="DE">🇩🇪 EU Interconnected Grid (Germany)</option>
-              <option value="NL">🇳🇱 EU Interconnected Grid (Netherlands)</option>
-              <option value="FR">🇫🇷 EU Interconnected Grid (France)</option>
-              <option value="ES">🇪🇸 EU Interconnected Grid (Spain)</option>
-              <option value="GB">🇬🇧 Non-EU Gas Grid (UK)</option>
-              <option value="CH">🇨🇭 Non-EU Gas Grid (Switzerland)</option>
+              {allProducingCountries.map(c => (
+                <option key={c.code} value={c.code}>
+                  {c.flag} {c.name} {EU_COUNTRY_CODES.includes(c.code) ? '(EU Grid)' : '(Non-EU Grid)'}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -367,7 +417,7 @@ export function MapScreen() {
             <select
               value={chainOfCustody}
               onChange={e => setChainOfCustody(e.target.value as ChainOfCustody)}
-              className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1 text-stone-200 outline-none"
+              className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1.5 text-stone-200 outline-none text-xs"
             >
               <option value="MASS_BALANCE">Mass Balance (Transport)</option>
               <option value="SEGREGATION">Segregation (Bio-LNG)</option>
@@ -387,16 +437,16 @@ export function MapScreen() {
           <div className="p-3 bg-stone-950/95 border-b border-stone-800 flex flex-wrap items-center justify-between gap-3 text-[11px] font-mono z-10">
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1 text-sky-400 font-bold">
-                <span className="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
-                ORIGIN ({originCountry})
+                <span className="w-2.5 h-2.5 rounded-full bg-sky-500 animate-pulse"></span>
+                ORIGIN: {COUNTRY_FLAGS[originCountry]} {COUNTRY_NAMES[originCountry] || originCountry}
               </span>
               <span className="flex items-center gap-1 text-emerald-400 font-bold">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
-                EXPORT CLEAR (Pass)
+                CLEAR (Pass)
               </span>
               <span className="flex items-center gap-1 text-red-400 font-bold">
                 <span className="w-2.5 h-2.5 rounded-full bg-red-700"></span>
-                BLOCKED (Non-EU / Gate Block)
+                BLOCKED
               </span>
               <span className="flex items-center gap-1 text-amber-400">
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-700"></span>
@@ -405,7 +455,7 @@ export function MapScreen() {
             </div>
 
             <div className="text-stone-400 text-[10px]">
-              Click any country or plant marker to inspect ➔
+              {mapClickMode === 'SET_ORIGIN' ? '👉 Click any country to set as ORIGIN' : '👉 Click any country to set as TARGET'}
             </div>
           </div>
 
@@ -456,13 +506,13 @@ export function MapScreen() {
                 {/* Origin Marker */}
                 {originCoords && (
                   <Marker coordinates={originCoords}>
-                    <circle r={6} fill="#38bdf8" stroke="#ffffff" strokeWidth={2} className="animate-pulse" />
+                    <circle r={7} fill="#38bdf8" stroke="#ffffff" strokeWidth={2} className="animate-pulse" />
                     <text
                       textAnchor="middle"
-                      y={-10}
+                      y={-12}
                       style={{ fontFamily: 'JetBrains Mono, monospace', fill: '#38bdf8', fontSize: 10, fontWeight: 700 }}
                     >
-                      ORIGIN ({originCountry})
+                      ORIGIN ({COUNTRY_FLAGS[originCountry]} {originCountry})
                     </text>
                   </Marker>
                 )}
@@ -484,7 +534,7 @@ export function MapScreen() {
                         y={-10}
                         style={{ fontFamily: 'JetBrains Mono, monospace', fill: '#2dd4bf', fontSize: 9, fontWeight: 700 }}
                       >
-                        TARGET ({targetMarket?.country})
+                        TARGET ({COUNTRY_FLAGS[targetCountryCode] || ''} {targetMarket?.country || targetCountryCode})
                       </text>
                     </Marker>
                   </>
@@ -500,11 +550,11 @@ export function MapScreen() {
                       onClick={() => setSelectedPlant(plant)}
                     >
                       <circle
-                        r={4}
+                        r={3}
                         fill="#fbbf24"
                         stroke="#78350f"
-                        strokeWidth={1}
-                        className="cursor-pointer hover:r-6 transition-all"
+                        strokeWidth={0.8}
+                        className="cursor-pointer hover:r-5 transition-all opacity-85 hover:opacity-100"
                       />
                     </Marker>
                   );
@@ -545,13 +595,27 @@ export function MapScreen() {
               <div>
                 <span className="text-[10px] text-stone-500 uppercase tracking-wider block">Selected Export Route</span>
                 <span className="text-base font-bold text-white flex items-center gap-1.5 mt-0.5">
-                  <span>{COUNTRY_NAMES[originCountry] || originCountry}</span>
+                  <span className="text-sky-300">{COUNTRY_FLAGS[originCountry]} {COUNTRY_NAMES[originCountry] || originCountry}</span>
                   <ArrowRight className="w-3.5 h-3.5 text-teal-400" />
-                  <span className="text-teal-300">{COUNTRY_NAMES[targetCountryCode] || targetCountryCode}</span>
+                  <span className="text-teal-300">{COUNTRY_FLAGS[targetCountryCode] || ''} {COUNTRY_NAMES[targetCountryCode] || targetCountryCode}</span>
                 </span>
               </div>
               <StatusChip variant={targetMarketEntry?.eligibility?.overallVerdict || 'UNKNOWN'} size="xs" />
             </div>
+
+            {/* Quick Switch Origin Button */}
+            {originCountry !== targetCountryCode && (
+              <button
+                onClick={() => {
+                  setOriginCountry(targetCountryCode);
+                  setInjectionCountry(targetCountryCode);
+                }}
+                className="w-full py-1.5 px-2 bg-stone-950 hover:bg-stone-800 border border-sky-700/60 rounded text-sky-300 font-bold text-[11px] flex items-center justify-center gap-1.5 transition-all"
+              >
+                <RotateCcw className="w-3 h-3 text-sky-400" />
+                Make {COUNTRY_NAMES[targetCountryCode] || targetCountryCode} the Origin Country
+              </button>
+            )}
 
             {targetMarketEntry ? (
               <div className="space-y-3">
@@ -626,7 +690,7 @@ export function MapScreen() {
                   <span>{selectedPlant.countryFlag} {selectedPlant.name}</span>
                 </span>
                 <span className="text-[10px] text-stone-400">
-                  {selectedPlant.region} • Operator: {selectedPlant.operator}
+                  {selectedPlant.country} • Operator: {selectedPlant.operator}
                 </span>
               </div>
               <span className="px-2 py-0.5 bg-green-950 text-green-300 border border-green-800 rounded text-[10px] font-bold">
@@ -649,25 +713,38 @@ export function MapScreen() {
               </div>
               <div className="flex justify-between text-stone-400">
                 <span>Grid Injection:</span>
-                <strong className="text-stone-300">{selectedPlant.gridConnectionType}</strong>
+                <strong className="text-stone-300">{selectedPlant.gridConnectionType} ({selectedPlant.networkOperator})</strong>
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                onClick={() => setSelectedPlant(null)}
-                className="px-3 py-1.5 rounded border border-stone-800 text-stone-400 hover:bg-stone-800"
-              >
-                Close
-              </button>
+            <div className="flex justify-between items-center gap-2 pt-2">
               <button
                 onClick={() => {
-                  navigate(`/trade?originCountry=${selectedPlant.countryCode}&volume=${selectedPlant.annualEnergyGWh * 1000}`);
+                  setOriginCountry(selectedPlant.countryCode);
+                  setInjectionCountry(selectedPlant.countryCode);
+                  setSelectedPlant(null);
                 }}
-                className="bg-teal-600 hover:bg-teal-500 text-white font-bold px-4 py-1.5 rounded flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded border border-sky-700 bg-sky-950 text-sky-300 font-bold hover:bg-sky-900"
               >
-                Simulate Trade for this Plant <ArrowRight className="w-3.5 h-3.5" />
+                Set {selectedPlant.country} as Origin
               </button>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setSelectedPlant(null)}
+                  className="px-3 py-1.5 rounded border border-stone-800 text-stone-400 hover:bg-stone-800"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    navigate(`/trade?originCountry=${selectedPlant.countryCode}&volume=${selectedPlant.annualEnergyGWh * 1000}`);
+                  }}
+                  className="bg-teal-600 hover:bg-teal-500 text-white font-bold px-4 py-1.5 rounded flex items-center gap-1.5"
+                >
+                  Simulate Trade <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
           </div>
         </div>

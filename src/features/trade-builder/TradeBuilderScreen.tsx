@@ -293,18 +293,34 @@ export function TradeBuilderScreen() {
                     }}
                     className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1.5 text-stone-200 outline-none"
                   >
-                    <option value="DK">🇩🇰 Denmark</option>
-                    <option value="DE">🇩🇪 Germany</option>
-                    <option value="NL">🇳🇱 Netherlands</option>
-                    <option value="FR">🇫🇷 France</option>
-                    <option value="IT">🇮🇹 Italy</option>
-                    <option value="ES">🇪🇸 Spain</option>
-                    <option value="GB">🇬🇧 United Kingdom</option>
-                    <option value="PL">🇵🇱 Poland</option>
-                    <option value="BE">🇧🇪 Belgium</option>
-                    <option value="AT">🇦🇹 Austria</option>
-                    <option value="SE">🇸🇪 Sweden</option>
-                    <option value="FI">🇫🇮 Finland</option>
+                    <option value="FR">🇫🇷 France (829 plants)</option>
+                    <option value="DE">🇩🇪 Germany (282 plants)</option>
+                    <option value="IT">🇮🇹 Italy (273 plants)</option>
+                    <option value="GB">🇬🇧 United Kingdom (128 plants)</option>
+                    <option value="NL">🇳🇱 Netherlands (92 plants)</option>
+                    <option value="SE">🇸🇪 Sweden (67 plants)</option>
+                    <option value="DK">🇩🇰 Denmark (61 plants)</option>
+                    <option value="CH">🇨🇭 Switzerland (48 plants)</option>
+                    <option value="FI">🇫🇮 Finland (32 plants)</option>
+                    <option value="ES">🇪🇸 Spain (26 plants)</option>
+                    <option value="AT">🇦🇹 Austria (20 plants)</option>
+                    <option value="BE">🇧🇪 Belgium (18 plants)</option>
+                    <option value="NO">🇳🇴 Norway (15 plants)</option>
+                    <option value="CZ">🇨🇿 Czech Republic (13 plants)</option>
+                    <option value="PT">🇵🇹 Portugal (13 plants)</option>
+                    <option value="EE">🇪🇪 Estonia (12 plants)</option>
+                    <option value="LV">🇱🇻 Latvia (12 plants)</option>
+                    <option value="LT">🇱🇹 Lithuania (12 plants)</option>
+                    <option value="PL">🇵🇱 Poland (1 plant)</option>
+                    <option value="UA">🇺🇦 Ukraine (7 plants)</option>
+                    <option value="SK">🇸🇰 Slovakia (5 plants)</option>
+                    <option value="IE">🇮🇪 Ireland (2 plants)</option>
+                    <option value="HU">🇭🇺 Hungary (2 plants)</option>
+                    <option value="RO">🇷🇴 Romania</option>
+                    <option value="BG">🇧🇬 Bulgaria</option>
+                    <option value="HR">🇭🇷 Croatia</option>
+                    <option value="SI">🇸🇮 Slovenia</option>
+                    <option value="GR">🇬🇷 Greece</option>
                   </select>
                 </div>
 
@@ -317,14 +333,25 @@ export function TradeBuilderScreen() {
                     onChange={e => handleInjectionCountryChange(e.target.value)}
                     className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1.5 text-stone-200 outline-none"
                   >
-                    <option value="DK">🇩🇰 EU Grid (Denmark)</option>
-                    <option value="DE">🇩🇪 EU Grid (Germany)</option>
-                    <option value="NL">🇳🇱 EU Grid (Netherlands)</option>
-                    <option value="FR">🇫🇷 EU Grid (France)</option>
-                    <option value="IT">🇮🇹 EU Grid (Italy)</option>
-                    <option value="ES">🇪🇸 EU Grid (Spain)</option>
-                    <option value="GB">🇬🇧 Non-EU Grid (UK)</option>
+                    <option value="DK">🇩🇰 EU Interconnected Grid (Denmark)</option>
+                    <option value="DE">🇩🇪 EU Interconnected Grid (Germany)</option>
+                    <option value="NL">🇳🇱 EU Interconnected Grid (Netherlands)</option>
+                    <option value="FR">🇫🇷 EU Interconnected Grid (France)</option>
+                    <option value="IT">🇮🇹 EU Interconnected Grid (Italy)</option>
+                    <option value="ES">🇪🇸 EU Interconnected Grid (Spain)</option>
+                    <option value="BE">🇧🇪 EU Interconnected Grid (Belgium)</option>
+                    <option value="AT">🇦🇹 EU Interconnected Grid (Austria)</option>
+                    <option value="SE">🇸🇪 EU Interconnected Grid (Sweden)</option>
+                    <option value="FI">🇫🇮 EU Interconnected Grid (Finland)</option>
+                    <option value="PL">🇵🇱 EU Interconnected Grid (Poland)</option>
+                    <option value="CZ">🇨🇿 EU Interconnected Grid (Czechia)</option>
+                    <option value="PT">🇵🇹 EU Interconnected Grid (Portugal)</option>
+                    <option value="EE">🇪🇪 EU Interconnected Grid (Estonia)</option>
+                    <option value="LV">🇱🇻 EU Interconnected Grid (Latvia)</option>
+                    <option value="LT">🇱🇹 EU Interconnected Grid (Lithuania)</option>
+                    <option value="GB">🇬🇧 Non-EU Isolated Grid (United Kingdom)</option>
                     <option value="CH">🇨🇭 Non-EU Grid (Switzerland)</option>
+                    <option value="NO">🇳🇴 Non-EU Grid (Norway)</option>
                     <option value="UA">🇺🇦 Non-EU Grid (Ukraine)</option>
                   </select>
                 </div>
