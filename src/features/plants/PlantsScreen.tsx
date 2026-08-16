@@ -21,9 +21,12 @@ import {
   Layers, 
   ExternalLink,
   ChevronRight,
+  ChevronLeft,
   TrendingUp,
   MapPin
 } from 'lucide-react';
+
+const PAGE_SIZE = 50;
 
 export function PlantsScreen() {
   const navigate = useNavigate();
@@ -37,6 +40,7 @@ export function PlantsScreen() {
   const [selectedFeedstock, setSelectedFeedstock] = useState<string>('ALL');
   const [selectedTech, setSelectedTech] = useState<string>('ALL');
   const [selectedPlantDetail, setSelectedPlantDetail] = useState<BiomethanePlant | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   // Filtered Plants
   const filteredPlants = useMemo(() => {
@@ -55,14 +59,28 @@ export function PlantsScreen() {
     return list;
   }, [searchQuery, selectedCountry, selectedFeedstock, selectedTech]);
 
-  // Unique country and tech lists for filters
-  const countries = useMemo(() => Array.from(new Set(BIOMETHANE_PLANTS.map(p => ({ code: p.countryCode, name: p.country, flag: p.countryFlag })))), []);
-  const techTypes = useMemo(() => Array.from(new Set(BIOMETHANE_PLANTS.map(p => p.upgradingTechnology))), []);
+  // Reset pagination when filters change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedCountry, selectedFeedstock, selectedTech]);
 
-  // Total macro summary numbers
-  const totalPlantsCount = 1975;
-  const totalCapacityTWh = 86.5;
-  const totalCountries = 26;
+  // Paginated slice
+  const totalPages = Math.ceil(filteredPlants.length / PAGE_SIZE) || 1;
+  const paginatedPlants = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredPlants.slice(start, start + PAGE_SIZE);
+  }, [filteredPlants, currentPage]);
+
+  // Unique country and tech lists for filters
+  const countries = useMemo(() => {
+    const map = new Map<string, { code: string; name: string; flag: string }>();
+    BIOMETHANE_PLANTS.forEach(p => {
+      if (!map.has(p.countryCode)) {
+        map.set(p.countryCode, { code: p.countryCode, name: p.country, flag: p.countryFlag });
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, []);
 
   return (
     <div className="space-y-4 font-sans text-stone-100 pb-16">
@@ -75,12 +93,12 @@ export function PlantsScreen() {
             <h1 className="text-base font-bold text-white font-mono uppercase tracking-tight">
               Pan-European Biomethane Infrastructure & Plant Directory
             </h1>
-            <span className="text-[10px] font-mono bg-teal-950 text-teal-300 border border-teal-800 px-1.5 py-0.5 rounded">
-              1,975 Operating Plants
+            <span className="text-[10px] font-mono bg-teal-950 text-teal-300 border border-teal-800 px-2 py-0.5 rounded font-bold">
+              {BIOMETHANE_PLANTS.length} Operating Facilities Listed
             </span>
           </div>
           <p className="text-stone-400 text-xs mt-0.5 font-mono">
-            Master database of European biomethane production facilities, developer portfolios, and national macro capacities.
+            Comprehensive register of all European biomethane producing facilities, developer portfolios, and national macro capacities.
           </p>
         </div>
 
@@ -92,7 +110,7 @@ export function PlantsScreen() {
               activeTab === 'PLANTS' ? 'bg-teal-600 text-white shadow-xs' : 'text-stone-400 hover:text-stone-200'
             }`}
           >
-            <Factory className="w-3.5 h-3.5" /> Plants ({BIOMETHANE_PLANTS.length})
+            <Factory className="w-3.5 h-3.5" /> All Plants ({BIOMETHANE_PLANTS.length})
           </button>
           <button
             onClick={() => setActiveTab('DEVELOPERS')}
@@ -117,7 +135,7 @@ export function PlantsScreen() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-xs">
         <div className="bg-stone-900 border border-stone-800 rounded-xl p-3">
           <div className="text-[10px] text-stone-400 uppercase font-bold">Total European Plants</div>
-          <div className="text-lg font-bold text-white mt-0.5">1,975</div>
+          <div className="text-lg font-bold text-white mt-0.5">{BIOMETHANE_PLANTS.length}</div>
           <div className="text-[10px] text-teal-400 mt-0.5">26 Producing Nations</div>
         </div>
         <div className="bg-stone-900 border border-stone-800 rounded-xl p-3">
@@ -142,43 +160,73 @@ export function PlantsScreen() {
         <div className="space-y-3">
           
           {/* Search & Filter Bar */}
-          <div className="bg-stone-900 border border-stone-800 rounded-xl p-3 flex flex-wrap items-center gap-2 font-mono text-xs">
-            {/* Search Input */}
-            <div className="flex-1 min-w-[200px] relative">
-              <Search className="w-3.5 h-3.5 text-stone-500 absolute left-2.5 top-2.5" />
-              <input
-                type="text"
-                placeholder="Search plants by name, operator, feedstock, technology..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="w-full bg-stone-950 border border-stone-800 rounded pl-8 pr-3 py-1.5 text-xs text-stone-200 outline-none focus:border-teal-500"
-              />
+          <div className="bg-stone-900 border border-stone-800 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 font-mono text-xs">
+            <div className="flex flex-wrap items-center gap-2 flex-1">
+              {/* Search Input */}
+              <div className="min-w-[240px] flex-1 relative">
+                <Search className="w-3.5 h-3.5 text-stone-500 absolute left-2.5 top-2.5" />
+                <input
+                  type="text"
+                  placeholder="Search 1,986 facilities by code (e.g. FR-53, DE-10), location, operator, network..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="w-full bg-stone-950 border border-stone-800 rounded pl-8 pr-3 py-1.5 text-xs text-stone-200 outline-none focus:border-teal-500"
+                />
+              </div>
+
+              {/* Country Filter */}
+              <select
+                value={selectedCountry}
+                onChange={e => setSelectedCountry(e.target.value)}
+                className="bg-stone-950 border border-stone-800 rounded px-2.5 py-1.5 text-stone-300 outline-none focus:border-teal-500"
+              >
+                <option value="ALL">All Countries ({countries.length})</option>
+                {countries.map(c => (
+                  <option key={c.code} value={c.code}>{c.flag} {c.name}</option>
+                ))}
+              </select>
+
+              {/* Tech Filter */}
+              <select
+                value={selectedTech}
+                onChange={e => setSelectedTech(e.target.value)}
+                className="bg-stone-950 border border-stone-800 rounded px-2.5 py-1.5 text-stone-300 outline-none focus:border-teal-500"
+              >
+                <option value="ALL">All Technologies</option>
+                <option value="Membrane">Membrane Separation</option>
+                <option value="Amine">Amine Scrubbing</option>
+                <option value="Water">Water Scrubbing</option>
+                <option value="PWS">Pressurized Water Scrubbing</option>
+              </select>
             </div>
 
-            {/* Country Filter */}
-            <select
-              value={selectedCountry}
-              onChange={e => setSelectedCountry(e.target.value)}
-              className="bg-stone-950 border border-stone-800 rounded px-2.5 py-1.5 text-stone-300 outline-none focus:border-teal-500"
-            >
-              <option value="ALL">All Countries ({countries.length})</option>
-              {countries.map(c => (
-                <option key={c.code} value={c.code}>{c.flag} {c.name}</option>
-              ))}
-            </select>
-
-            {/* Tech Filter */}
-            <select
-              value={selectedTech}
-              onChange={e => setSelectedTech(e.target.value)}
-              className="bg-stone-950 border border-stone-800 rounded px-2.5 py-1.5 text-stone-300 outline-none focus:border-teal-500"
-            >
-              <option value="ALL">All Technologies</option>
-              <option value="Membrane">Membrane Separation</option>
-              <option value="WAGABOX">WAGABOX (Cryogenic)</option>
-              <option value="Amine">Amine Scrubbing</option>
-              <option value="Water">Water Scrubbing</option>
-            </select>
+            {/* Pagination Controls */}
+            <div className="flex items-center gap-2">
+              <span className="text-stone-400 text-[11px]">
+                Showing {filteredPlants.length > 0 ? (currentPage - 1) * PAGE_SIZE + 1 : 0}–{Math.min(currentPage * PAGE_SIZE, filteredPlants.length)} of <strong className="text-white">{filteredPlants.length}</strong>
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  disabled={currentPage <= 1}
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  className="p-1 rounded bg-stone-950 border border-stone-800 text-stone-300 disabled:opacity-30 hover:bg-stone-800"
+                  title="Previous Page"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </button>
+                <span className="px-2 py-0.5 bg-stone-950 border border-stone-800 rounded text-stone-300 text-[11px]">
+                  {currentPage} / {totalPages}
+                </span>
+                <button
+                  disabled={currentPage >= totalPages}
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  className="p-1 rounded bg-stone-950 border border-stone-800 text-stone-300 disabled:opacity-30 hover:bg-stone-800"
+                  title="Next Page"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Plants Table */}
@@ -187,18 +235,18 @@ export function PlantsScreen() {
               <table className="w-full text-left tabular-nums">
                 <thead className="bg-stone-950 text-stone-400 uppercase font-semibold text-[10px] tracking-wider border-b border-stone-800">
                   <tr>
-                    <th className="py-2.5 px-3">Plant Name / Location</th>
-                    <th className="py-2.5 px-3">Operator / Owner</th>
+                    <th className="py-2.5 px-3">Facility / Location</th>
+                    <th className="py-2.5 px-3">Operator / Developer</th>
                     <th className="py-2.5 px-3 text-right">Capacity (Nm³/h)</th>
                     <th className="py-2.5 px-3 text-right">Energy (GWh/yr)</th>
                     <th className="py-2.5 px-3">Primary Feedstock</th>
                     <th className="py-2.5 px-3">Upgrading Tech</th>
-                    <th className="py-2.5 px-3">Grid Connection</th>
+                    <th className="py-2.5 px-3">Grid Operator</th>
                     <th className="py-2.5 px-3 text-center">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-800/80">
-                  {filteredPlants.map((plant) => (
+                  {paginatedPlants.map((plant) => (
                     <tr
                       key={plant.id}
                       onClick={() => setSelectedPlantDetail(plant)}
@@ -208,10 +256,9 @@ export function PlantsScreen() {
                         <div className="flex items-center gap-1.5">
                           <span>{plant.countryFlag}</span>
                           <span>{plant.name}</span>
-                          <span className="text-[10px] text-stone-500 font-normal">({plant.region})</span>
                         </div>
                       </td>
-                      <td className="py-2 px-3 text-stone-300 font-semibold whitespace-nowrap">
+                      <td className="py-2 px-3 text-stone-300 font-semibold whitespace-nowrap max-w-[180px] truncate" title={plant.operator}>
                         {plant.operator}
                       </td>
                       <td className="py-2 px-3 text-right text-teal-300 font-bold">
@@ -223,18 +270,18 @@ export function PlantsScreen() {
                       <td className="py-2 px-3 text-stone-400 text-[11px] max-w-[200px] truncate" title={plant.feedstockDetails}>
                         {plant.primaryFeedstockCategory}
                       </td>
-                      <td className="py-2 px-3 text-stone-400 text-[11px]">
+                      <td className="py-2 px-3 text-stone-400 text-[11px] max-w-[160px] truncate" title={plant.upgradingTechnology}>
                         {plant.upgradingTechnology}
                       </td>
-                      <td className="py-2 px-3 text-stone-400 text-[11px]">
-                        {plant.gridConnectionType}
+                      <td className="py-2 px-3 text-stone-400 text-[11px] max-w-[160px] truncate" title={plant.networkOperator}>
+                        {plant.networkOperator}
                       </td>
                       <td className="py-2 px-3 text-center" onClick={e => e.stopPropagation()}>
                         <button
                           onClick={() => {
                             navigate(`/trade?originCountry=${plant.countryCode}&volume=${plant.annualEnergyGWh * 1000}`);
                           }}
-                          className="px-2 py-1 bg-teal-950 text-teal-300 hover:bg-teal-900 border border-teal-800 rounded text-[10px] font-bold transition-all"
+                          className="px-2 py-1 bg-teal-950 text-teal-300 hover:bg-teal-900 border border-teal-800 rounded text-[10px] font-bold transition-all whitespace-nowrap"
                           title="Simulate Export Trade from this Plant"
                         >
                           Simulate Trade →
@@ -244,6 +291,32 @@ export function PlantsScreen() {
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* Bottom Pagination Bar */}
+            <div className="p-3 bg-stone-950 border-t border-stone-800 flex items-center justify-between text-xs">
+              <span className="text-stone-400 text-[11px]">
+                Showing {filteredPlants.length > 0 ? (currentPage - 1) * PAGE_SIZE + 1 : 0}–{Math.min(currentPage * PAGE_SIZE, filteredPlants.length)} of <strong className="text-white">{filteredPlants.length}</strong> facilities
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  disabled={currentPage <= 1}
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  className="px-2.5 py-1 rounded bg-stone-900 border border-stone-800 text-stone-300 disabled:opacity-30 hover:bg-stone-800 text-xs font-semibold"
+                >
+                  Previous
+                </button>
+                <span className="px-3 py-1 bg-stone-900 border border-stone-800 rounded text-stone-300 text-xs">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  disabled={currentPage >= totalPages}
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  className="px-2.5 py-1 rounded bg-stone-900 border border-stone-800 text-stone-300 disabled:opacity-30 hover:bg-stone-800 text-xs font-semibold"
+                >
+                  Next
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -352,7 +425,7 @@ export function PlantsScreen() {
                   <span>{selectedPlantDetail.countryFlag} {selectedPlantDetail.name}</span>
                 </span>
                 <span className="text-[10px] text-stone-400">
-                  {selectedPlantDetail.region} • Commissioned: {selectedPlantDetail.commissioningYear}
+                  {selectedPlantDetail.country} • Commissioned: {selectedPlantDetail.commissioningYear}
                 </span>
               </div>
               <span className="px-2 py-0.5 bg-green-950 text-green-300 border border-green-800 rounded text-[10px] font-bold">
@@ -363,11 +436,11 @@ export function PlantsScreen() {
             {/* Grid of technical details */}
             <div className="grid grid-cols-2 gap-2 text-[11px]">
               <div className="p-2.5 bg-stone-950 rounded border border-stone-800">
-                <span className="text-[10px] text-stone-500 uppercase block">Operator / Owner</span>
+                <span className="text-[10px] text-stone-500 uppercase block">Operator / Developer</span>
                 <strong className="text-stone-200">{selectedPlantDetail.operator}</strong>
               </div>
               <div className="p-2.5 bg-stone-950 rounded border border-stone-800">
-                <span className="text-[10px] text-stone-500 uppercase block">Annual Energy Production</span>
+                <span className="text-[10px] text-stone-500 uppercase block">Estimated Energy Production</span>
                 <strong className="text-teal-300">{selectedPlantDetail.annualEnergyGWh} GWh/year ({selectedPlantDetail.capacityNm3h} Nm³/h)</strong>
               </div>
               <div className="p-2.5 bg-stone-950 rounded border border-stone-800">
@@ -388,7 +461,7 @@ export function PlantsScreen() {
                 <strong className="text-stone-300">Registry & Certification:</strong> {selectedPlantDetail.certificationAndRegistry}
               </div>
               <div className="text-stone-400">
-                <strong className="text-stone-300">Primary Offtake:</strong> {selectedPlantDetail.primaryOfftake}
+                <strong className="text-stone-300">Grid Offtake:</strong> {selectedPlantDetail.primaryOfftake}
               </div>
             </div>
 
