@@ -284,7 +284,10 @@ export function computeNetback(
   }
 
   const certVal = computeCertificateValue(market, consignment, marks, pricingSides.certificateSide, fuelEUOptions);
-  
+  if (certVal?.valueEurPerMWh != null) {
+    certVal.valueEurPerMWh = Number(certVal.valueEurPerMWh.toFixed(2));
+  }
+
   const missingInputs: string[] = [];
 
   // Molecule value (TTF index) at chosen molecule side
@@ -309,7 +312,13 @@ export function computeNetback(
   }
 
   // Crossing cost calculation (atMid vs atChosenSides)
+  // Must be rounded on the same basis as the chosen-side cert value above, otherwise the
+  // ±0.005 residue survives into crossingCost (±0.01 once DE_THG doubles it) and shows a
+  // phantom spread benefit when the chosen side already equals mid.
   const midCertVal = computeCertificateValue(market, consignment, marks, 'mid', fuelEUOptions);
+  if (midCertVal?.valueEurPerMWh != null) {
+    midCertVal.valueEurPerMWh = Number(midCertVal.valueEurPerMWh.toFixed(2));
+  }
   const midMolVal = selectMarkPrice(marks.gasIndex, 'mid');
   let atMid: number | null = null;
   if (midCertVal?.valueEurPerMWh != null) {
