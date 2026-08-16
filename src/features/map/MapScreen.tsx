@@ -638,27 +638,98 @@ export function MapScreen() {
               </ZoomableGroup>
             </ComposableMap>
 
-            {/* Hover Floating Card */}
-            {hoveredCountry && (
-              <div className="absolute bottom-3 left-3 z-20 bg-stone-900/95 border border-stone-700 rounded-lg p-3 text-stone-100 max-w-xs font-mono text-xs shadow-xl pointer-events-none">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-bold text-white text-sm">{hoveredCountry.name} ({hoveredCountry.iso2 || hoveredCountry.iso3})</span>
-                  {hoveredCountry.market ? (
-                    <StatusChip variant={marketClearanceMap.get(hoveredCountry.iso2)?.eligibility?.overallVerdict || 'UNKNOWN'} size="xs" />
-                  ) : (
-                    <span className="text-[10px] text-stone-500">Unmodeled</span>
-                  )}
-                </div>
-                {hoveredCountry.market && (
-                  <div className="mt-1 text-[11px] text-stone-300">
-                    <div>Scheme: {hoveredCountry.market.name}</div>
-                    <div className="text-teal-400 font-semibold">
-                      Netback: €{marketClearanceMap.get(hoveredCountry.iso2)?.netback?.netNetback?.toFixed(2) ?? '—'}/MWh
+            {/* Rich Hover Country Intelligence Dossier */}
+            {hoveredCountry && (() => {
+              const hIso2 = hoveredCountry.iso2;
+              const hName = COUNTRY_NAMES[hIso2] || hoveredCountry.name;
+              const hFlag = COUNTRY_FLAGS[hIso2] || '🇪🇺';
+              const hPlants = BIOMETHANE_PLANTS.filter(p => p.countryCode === hIso2);
+              const hMacro = COUNTRY_MACRO_STATS.find(m => m.iso === hIso2);
+              const hClearance = hIso2 ? marketClearanceMap.get(hIso2) : null;
+              const isOrigin = hIso2 === originCountry;
+
+              // Aggregate primary feedstocks
+              const primaryFeedstock = hMacro?.primaryFeedstockType || (hPlants.length > 0 ? hPlants[0].primaryFeedstockCategory : 'Agricultural residues & biowaste');
+              const primaryTech = hMacro?.primaryUpgradingTech || (hPlants.length > 0 ? hPlants[0].upgradingTechnology : 'Membrane Separation');
+              const registry = hMacro?.nationalRegistry || (hPlants.length > 0 ? hPlants[0].networkOperator : 'National Gas Grid');
+              const totalCap = hMacro?.installedCapacityTWh ? `${hMacro.installedCapacityTWh.toFixed(1)} TWh/yr` : hPlants.length > 0 ? `~${Math.round(hPlants.reduce((acc, p) => acc + p.annualEnergyGWh, 0))} GWh/yr` : '—';
+
+              return (
+                <div className="absolute bottom-3 left-3 z-30 bg-stone-900/95 backdrop-blur-md border border-stone-700/80 rounded-xl p-3.5 text-stone-100 w-80 font-mono text-xs shadow-2xl pointer-events-none space-y-2.5 animate-in fade-in zoom-in-95 duration-150">
+                  
+                  {/* Card Header */}
+                  <div className="flex items-center justify-between border-b border-stone-800 pb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">{hFlag}</span>
+                      <div>
+                        <span className="font-bold text-white text-sm block leading-tight">{hName}</span>
+                        <span className="text-[10px] text-stone-400">ISO: {hIso2 || hoveredCountry.iso3}</span>
+                      </div>
+                    </div>
+
+                    {isOrigin ? (
+                      <span className="px-2 py-0.5 bg-sky-950 text-sky-300 border border-sky-700 rounded text-[10px] font-bold animate-pulse">
+                        Active Origin
+                      </span>
+                    ) : hClearance ? (
+                      <StatusChip variant={hClearance.eligibility?.overallVerdict || 'UNKNOWN'} size="xs" />
+                    ) : (
+                      <span className="text-[10px] text-stone-500 bg-stone-950 px-1.5 py-0.5 rounded border border-stone-800">
+                        Producing Market
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Biomethane Production & Infrastructure Stats */}
+                  <div className="grid grid-cols-2 gap-1.5 text-[10px] bg-stone-950 p-2 rounded border border-stone-800/80">
+                    <div>
+                      <span className="text-stone-500 uppercase block font-bold text-[9px]">Operating Plants</span>
+                      <strong className="text-teal-300 text-xs">{hPlants.length > 0 ? `${hPlants.length} facilities` : 'No registered data'}</strong>
+                    </div>
+                    <div>
+                      <span className="text-stone-500 uppercase block font-bold text-[9px]">Annual Capacity</span>
+                      <strong className="text-stone-100 text-xs">{totalCap}</strong>
+                    </div>
+                    <div className="col-span-2 pt-1 border-t border-stone-900 flex justify-between text-stone-400">
+                      <span>Primary Feedstock:</span>
+                      <strong className="text-stone-200 truncate max-w-[170px]" title={primaryFeedstock}>{primaryFeedstock}</strong>
+                    </div>
+                    <div className="col-span-2 flex justify-between text-stone-400">
+                      <span>Upgrading Tech:</span>
+                      <strong className="text-stone-200 truncate max-w-[170px]" title={primaryTech}>{primaryTech}</strong>
+                    </div>
+                    <div className="col-span-2 flex justify-between text-stone-400">
+                      <span>Grid / Registry:</span>
+                      <strong className="text-stone-300 truncate max-w-[170px]" title={registry}>{registry}</strong>
                     </div>
                   </div>
-                )}
-              </div>
-            )}
+
+                  {/* Compliance & Netback Economics (if Target Market) */}
+                  {hClearance && !isOrigin && (
+                    <div className="p-2 bg-stone-950/80 rounded border border-stone-800 text-[10px] space-y-1">
+                      <div className="flex justify-between items-center">
+                        <span className="text-stone-400">Target Scheme:</span>
+                        <strong className="text-stone-200 truncate max-w-[170px]">{hClearance.market.name}</strong>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-stone-400">Implied Netback:</span>
+                        <strong className="text-teal-400 font-bold text-xs">
+                          {hClearance.netback?.netNetback != null
+                            ? `€${hClearance.netback.netNetback.toFixed(2)}/MWh`
+                            : 'No active mark'}
+                        </strong>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Prompt Action Hint */}
+                  <div className="text-[10px] text-teal-400 flex items-center justify-between pt-0.5">
+                    <span>Click to inspect plants & trade ➔</span>
+                  </div>
+
+                </div>
+              );
+            })()}
           </div>
         </div>
 
