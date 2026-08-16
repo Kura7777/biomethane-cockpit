@@ -7,7 +7,7 @@ import { FEEDSTOCK_REGISTRY } from '../../domain/consignment/feedstocks';
 import { CertificationScheme, ChainOfCustody } from '../../domain/consignment/types';
 import { scanEuropeanArbitrage, DEFAULT_WHAT_IF_SCENARIO } from '../../domain/arbitrage/engine';
 import { ArbitrageOpportunity, ArbitrageMatrixCell, RegulatoryWhatIfScenario, AgentChatMessage } from '../../domain/arbitrage/types';
-import { queryDeskAgent } from '../../domain/arbitrage/geminiService';
+import { queryDeskAgent, GeminiModelId } from '../../domain/arbitrage/geminiService';
 import { 
   Bot, 
   Sparkles, 
@@ -28,7 +28,8 @@ import {
   HelpCircle,
   Building2,
   Info,
-  DollarSign
+  DollarSign,
+  Cpu
 } from 'lucide-react';
 
 export function ArbitrageAgentsScreen() {
@@ -48,8 +49,9 @@ export function ArbitrageAgentsScreen() {
   // Selected Matrix Cell Inspector Modal / Drawer
   const [selectedOpportunity, setSelectedOpportunity] = useState<ArbitrageOpportunity | null>(null);
 
-  // Gemini API Key & Agent Chat State
+  // Gemini API Key & Model Configuration
   const [geminiApiKey, setGeminiApiKey] = useState<string>(() => localStorage.getItem('biomethane_gemini_api_key') || '');
+  const [selectedModel, setSelectedModel] = useState<GeminiModelId>(() => (localStorage.getItem('biomethane_gemini_model') as GeminiModelId) || 'gemini-3.7-flash');
   const [showKeyModal, setShowKeyModal] = useState<boolean>(false);
   const [chatInput, setChatInput] = useState<string>('');
   const [chatLoading, setChatLoading] = useState<boolean>(false);
@@ -60,7 +62,7 @@ export function ArbitrageAgentsScreen() {
       agentRole: 'Arbitrage Hunter',
       content: `👋 **Welcome to the Autonomous Biomethane Trading & Regulatory Copilot.**
 
-I continuously scan **27 European producing countries across 14 compliance destinations** to uncover high-margin cross-border arbitrages and flag illegal regulatory traps.
+Powered by **Google Gemini 3.7 Flash**, I continuously scan **27 European producing countries across 14 compliance destinations** to uncover high-margin cross-border arbitrages and flag illegal regulatory traps.
 
 Try asking me:
 * *"Analyze the top alpha trade for Danish manure right now"*
@@ -84,10 +86,12 @@ Try asking me:
     );
   }, [state.marks, state.costs, selectedFeedstock, ciOverride, scheme, chainOfCustody, scenario, volumeMWh]);
 
-  // Handle Save Gemini API Key
-  const handleSaveApiKey = (key: string) => {
+  // Handle Save Gemini API Key & Model
+  const handleSaveApiKey = (key: string, model: GeminiModelId) => {
     setGeminiApiKey(key);
+    setSelectedModel(model);
     localStorage.setItem('biomethane_gemini_api_key', key);
+    localStorage.setItem('biomethane_gemini_model', model);
     setShowKeyModal(false);
   };
 
@@ -110,7 +114,7 @@ Try asking me:
     try {
       const response = await queryDeskAgent({
         apiKey: geminiApiKey,
-        model: 'gemini-2.5-flash',
+        model: selectedModel,
         userPrompt: textToSend,
         contextData: {
           topOpportunities,
@@ -144,6 +148,13 @@ Try asking me:
   const matrixOrigins = Array.from(new Set(matrixCells.map(c => c.originCode)));
   const matrixMarkets = Array.from(new Set(matrixCells.map(c => c.targetMarketId)));
 
+  const getModelBadgeName = (model: GeminiModelId) => {
+    if (model === 'gemini-3.7-flash') return 'Gemini 3.7 Flash';
+    if (model === 'gemini-3.7-pro') return 'Gemini 3.7 Pro';
+    if (model === 'gemini-2.5-pro') return 'Gemini 2.5 Pro';
+    return 'Gemini 2.5 Flash';
+  };
+
   return (
     <div className="space-y-4 font-sans text-stone-100 pb-16">
       
@@ -157,7 +168,7 @@ Try asking me:
             </h1>
             <span className="text-[10px] font-mono bg-purple-950 text-purple-300 border border-purple-800 px-1.5 py-0.5 rounded flex items-center gap-1">
               <Sparkles className="w-3 h-3" />
-              Agentic Intelligence Hub
+              {getModelBadgeName(selectedModel)}
             </span>
           </div>
           <p className="text-stone-400 text-xs mt-0.5 font-mono">
@@ -166,7 +177,7 @@ Try asking me:
         </div>
 
         <div className="flex items-center gap-2 font-mono text-xs">
-          {/* Gemini API Key Status Badge / Button */}
+          {/* Gemini Model & API Key Status Badge / Button */}
           <button
             onClick={() => setShowKeyModal(true)}
             className={`inline-flex items-center gap-1.5 px-3 py-1 rounded border text-xs font-semibold transition-all ${
@@ -175,8 +186,8 @@ Try asking me:
                 : 'bg-stone-950 text-stone-400 border-stone-800 hover:text-stone-200'
             }`}
           >
-            <Key className="w-3.5 h-3.5" />
-            {geminiApiKey ? 'Gemini 2.5 Active' : 'Configure Gemini API Key'}
+            <Cpu className="w-3.5 h-3.5" />
+            {geminiApiKey ? `${getModelBadgeName(selectedModel)} Active` : `Connect ${getModelBadgeName(selectedModel)}`}
           </button>
         </div>
       </div>
@@ -397,7 +408,9 @@ Try asking me:
               Autonomous Trader Copilot & Legal Dossier Assistant
             </h2>
           </div>
-          <span className="text-[10px] text-stone-500">Powered by Gemini 2.5 Reasoning Engine</span>
+          <span className="text-[10px] text-purple-300 bg-purple-950/80 border border-purple-800 px-2 py-0.5 rounded">
+            Powered by {getModelBadgeName(selectedModel)} Reasoning Engine
+          </span>
         </div>
 
         {/* Quick Suggestion Pills */}
@@ -453,7 +466,7 @@ Try asking me:
           {chatLoading && (
             <div className="p-3 bg-stone-900 border border-stone-800 rounded-lg text-xs text-stone-400 flex items-center gap-2">
               <RefreshCw className="w-3.5 h-3.5 animate-spin text-teal-400" />
-              <span>Analyzing European regulatory directives & calculating matrix spreads...</span>
+              <span>Querying {getModelBadgeName(selectedModel)} with European regulatory directives...</span>
             </div>
           )}
         </div>
@@ -478,23 +491,39 @@ Try asking me:
         </div>
       </div>
 
-      {/* Gemini API Key Configuration Modal */}
+      {/* Gemini Model & API Key Configuration Modal */}
       {showKeyModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 z-50 font-mono text-xs">
           <div className="bg-stone-900 border border-stone-800 rounded-xl p-5 max-w-md w-full space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-stone-800 pb-2">
               <span className="font-bold text-stone-100 flex items-center gap-1.5">
-                <Key className="w-4 h-4 text-teal-400" /> Configure Google Gemini API Key
+                <Cpu className="w-4 h-4 text-teal-400" /> Configure Google Gemini Model & API Key
               </span>
               <button onClick={() => setShowKeyModal(false)} className="text-stone-500 hover:text-stone-300">✕</button>
             </div>
 
             <p className="text-stone-400 text-xs leading-relaxed">
-              Connect your Gemini API Key to enable live natural language regulatory reasoning across EUR-Lex directives and automated counterparty term sheet drafting.
+              Connect your Google AI Studio API Key to enable live reasoning with **Gemini 3.7 Flash** across EUR-Lex directives and automated counterparty term sheet drafting.
             </p>
 
+            {/* Model Selector Dropdown */}
             <div>
-              <label className="block text-[10px] font-bold text-stone-400 uppercase mb-1">API Key</label>
+              <label className="block text-[10px] font-bold text-stone-400 uppercase mb-1">AI Reasoning Model</label>
+              <select
+                value={selectedModel}
+                onChange={e => setSelectedModel(e.target.value as GeminiModelId)}
+                className="w-full bg-stone-950 border border-stone-700 rounded p-2 text-teal-300 font-bold outline-none focus:border-teal-500 font-mono"
+              >
+                <option value="gemini-3.7-flash">⚡ Gemini 3.7 Flash (Recommended / High Speed & Reasoning)</option>
+                <option value="gemini-3.7-pro">🧠 Gemini 3.7 Pro (Deep Legal & Directives Synthesis)</option>
+                <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+              </select>
+            </div>
+
+            {/* API Key Input */}
+            <div>
+              <label className="block text-[10px] font-bold text-stone-400 uppercase mb-1">Google AI Studio API Key</label>
               <input
                 type="password"
                 placeholder="AIzaSy..."
@@ -502,6 +531,9 @@ Try asking me:
                 onChange={e => setGeminiApiKey(e.target.value)}
                 className="w-full bg-stone-950 border border-stone-800 rounded p-2 text-stone-200 outline-none focus:border-teal-500 font-mono"
               />
+              <p className="text-[10px] text-stone-500 mt-1">
+                Keys are stored locally in your browser only. Get a key at <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-teal-400 underline">aistudio.google.com</a>.
+              </p>
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
@@ -512,7 +544,7 @@ Try asking me:
                 Cancel
               </button>
               <button
-                onClick={() => handleSaveApiKey(geminiApiKey)}
+                onClick={() => handleSaveApiKey(geminiApiKey, selectedModel)}
                 className="bg-teal-600 hover:bg-teal-500 text-white font-bold px-4 py-1.5 rounded"
               >
                 Save & Connect

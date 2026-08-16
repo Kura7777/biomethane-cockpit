@@ -1,9 +1,15 @@
 import { ArbitrageOpportunity, RegulatoryWhatIfScenario } from './types';
 import { MarksState } from '../netback/types';
 
+export type GeminiModelId = 
+  | 'gemini-3.7-flash'
+  | 'gemini-3.7-pro'
+  | 'gemini-2.5-flash'
+  | 'gemini-2.5-pro';
+
 export interface GeminiAgentRequest {
   apiKey?: string;
-  model?: 'gemini-2.5-flash' | 'gemini-2.5-pro';
+  model?: GeminiModelId;
   systemInstruction?: string;
   userPrompt: string;
   contextData?: {
@@ -14,7 +20,7 @@ export interface GeminiAgentRequest {
 }
 
 /**
- * Call Google Gemini API (Flash or Pro) or fall back to verified local deterministic reasoning
+ * Call Google Gemini API (defaults to Gemini 3.7 Flash) or fall back to verified local deterministic reasoning
  */
 export async function queryDeskAgent(req: GeminiAgentRequest): Promise<string> {
   const apiKey = req.apiKey?.trim();
@@ -22,7 +28,7 @@ export async function queryDeskAgent(req: GeminiAgentRequest): Promise<string> {
   // If user provided a Gemini API Key, call the official Google AI endpoint
   if (apiKey) {
     try {
-      const modelName = req.model || 'gemini-2.5-flash';
+      const modelName = req.model || 'gemini-3.7-flash';
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
       const systemPrompt = req.systemInstruction || `
@@ -61,7 +67,7 @@ ${i + 1}. ${o.originFlag} ${o.originCountryName} ➔ ${o.targetFlag} ${o.targetM
 
       if (!response.ok) {
         const errJson = await response.json().catch(() => ({}));
-        throw new Error(errJson.error?.message || `Gemini API returned status ${response.status}`);
+        throw new Error(errJson.error?.message || `Gemini API (${modelName}) returned status ${response.status}`);
       }
 
       const data = await response.json();
