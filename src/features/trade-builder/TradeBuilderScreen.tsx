@@ -24,8 +24,10 @@ import {
   CheckCircle2,
   ExternalLink,
   Layers,
-  Sparkles
+  Sparkles,
+  Truck
 } from 'lucide-react';
+import { LogisticsModal } from '../logistics/LogisticsModal';
 
 const EU_COUNTRY_CODES = ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE'];
 
@@ -33,6 +35,7 @@ export function TradeBuilderScreen() {
   const [searchParams, setSearchParams] = useSearchParams();
   const preSelectedMarketId = searchParams.get('marketId') || 'DE_THG';
   const { state, dispatch } = useAppState();
+  const [isLogisticsOpen, setIsLogisticsOpen] = useState(false);
 
   // Active consignment form state
   const [consignment, setConsignment] = useState<Consignment>(() => {
@@ -219,6 +222,14 @@ export function TradeBuilderScreen() {
             className="px-2.5 py-1 rounded border border-sky-800 bg-sky-950/60 text-sky-300 hover:bg-sky-900/80 transition-colors"
           >
             ⚓ FuelEU Bio-LNG
+          </button>
+
+          <button
+            onClick={() => setIsLogisticsOpen(true)}
+            className="px-2.5 py-1 rounded border border-teal-600 bg-teal-900/50 text-teal-200 hover:bg-teal-800/70 transition-colors flex items-center gap-1 font-bold shadow-xs"
+          >
+            <Truck className="w-3.5 h-3.5 text-teal-400" />
+            🚚 Route Flow & Logistics Guide
           </button>
         </div>
       </div>
@@ -528,7 +539,15 @@ export function TradeBuilderScreen() {
                 <span className="font-bold text-stone-200 text-xs uppercase block">Cost & Procurement Inputs</span>
                 <span className="text-[10px] text-stone-400">Transit tariffs, certification, logistics & producer offtake</span>
               </div>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <button
+                  onClick={() => setIsLogisticsOpen(true)}
+                  className="px-2 py-0.5 rounded bg-sky-950/80 border border-sky-700 text-sky-300 hover:bg-sky-900 text-[10px] font-bold transition-all flex items-center gap-1"
+                  title="Compare Virtual Inter-Hub Swaps vs Physical PRISMA Pipeline Wheel tariffs"
+                >
+                  <Truck className="w-3 h-3 text-sky-400" />
+                  Route Logistics & Tariffs
+                </button>
                 <button
                   onClick={() => dispatch({
                     type: 'SET_COSTS',
@@ -658,6 +677,14 @@ export function TradeBuilderScreen() {
               </div>
 
               <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsLogisticsOpen(true)}
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-mono font-semibold rounded border border-sky-700 bg-sky-950 text-sky-300 hover:bg-sky-900 transition-all shadow-xs"
+                  title="Open Cross-Border Gas Logistics & Delivery Wheel Guide"
+                >
+                  <Truck className="w-3.5 h-3.5" />
+                  Flow Guide
+                </button>
                 <CopyButton text={summaryText} label="Copy Dossier" />
                 <button
                   onClick={handleSaveToLibrary}
@@ -893,6 +920,14 @@ export function TradeBuilderScreen() {
         </div>
 
       </div>
+
+      {/* Cross-Border Gas Logistics & Delivery Wheel Guide Modal */}
+      <LogisticsModal
+        originCountry={consignment.originCountry}
+        targetCountry={selectedMarket.country || 'ES'}
+        isOpen={isLogisticsOpen}
+        onClose={() => setIsLogisticsOpen(false)}
+      />
     </div>
   );
 }
