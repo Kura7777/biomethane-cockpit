@@ -16,7 +16,7 @@ import { rankNetbacks, getHighestBlockedOpportunity } from '../netback/ranking';
 import { migrateState, CURRENT_SCHEMA_VERSION } from '../../store/context';
 import { REFERENCE_CONSIGNMENTS } from '../consignment/feedstocks';
 import { scanEuropeanArbitrage } from '../arbitrage/engine';
-import { getRouteTransitTariff, getOriginFeedstockProcurementCost, PRODUCING_ORIGINS } from '../arbitrage/origins';
+import { getRouteTransitTariff, PRODUCING_ORIGINS } from '../arbitrage/origins';
 
 const emptyCosts: CostInputs = {
   transferCosts: null,
@@ -100,22 +100,23 @@ describe('Biomethane Desk Cockpit — Review v2 & Matrix Arb Tests', () => {
 
   });
 
-  describe('2. Autonomous Matrix Arbitrage & What-If Simulations', () => {
+  describe('2. Autonomous Matrix Arbitrage & Realistic Desk Economics', () => {
 
-    it('scanEuropeanArbitrage evaluates multiple origins and surfaces top positive spreads', () => {
+    it('scanEuropeanArbitrage calculates realistic trading desk margins (€1.50–€6.00/MWh)', () => {
       const scanResult = scanEuropeanArbitrage(sampleMarks, completeCosts, 'manure', -100);
 
       expect(scanResult.topOpportunities.length).toBeGreaterThan(0);
       expect(scanResult.matrixCells.length).toBeGreaterThan(100);
 
-      // Best opportunity should have positive net margin
+      // Best opportunity should have realistic desk margin (e.g. €2 to €8/MWh)
       const best = scanResult.topOpportunities[0];
-      expect(best.netMarginEurPerMWh).not.toBeNull();
-      expect(best.netMarginEurPerMWh!).toBeGreaterThan(0);
+      expect(best.deskNetMarginEurPerMWh).not.toBeNull();
+      expect(best.deskNetMarginEurPerMWh!).toBeGreaterThanOrEqual(1.0);
+      expect(best.deskNetMarginEurPerMWh!).toBeLessThanOrEqual(10.0);
       expect(best.isTradeable).toBe(true);
     });
 
-    it('What-If: German double counting toggle increases THG netback', () => {
+    it('What-If: German double counting toggle increases total value stack', () => {
       const singleCountScan = scanEuropeanArbitrage(sampleMarks, completeCosts, 'manure', -100, 'ISCC_EU', 'MASS_BALANCE', {
         deDoubleCounting: 'DC_OFF',
         ukUdbRecognition: false,
@@ -135,7 +136,7 @@ describe('Biomethane Desk Cockpit — Review v2 & Matrix Arb Tests', () => {
 
       expect(dkToDeSingle).toBeDefined();
       expect(dkToDeDouble).toBeDefined();
-      expect(dkToDeDouble!.destinationNetbackEurPerMWh!).toBeGreaterThan(dkToDeSingle!.destinationNetbackEurPerMWh!);
+      expect(dkToDeDouble!.totalTerminalValueStackEurPerMWh!).toBeGreaterThan(dkToDeSingle!.totalTerminalValueStackEurPerMWh!);
     });
 
     it('What-If: UK UDB recognition unlocks UK export flows to EU compliance markets', () => {

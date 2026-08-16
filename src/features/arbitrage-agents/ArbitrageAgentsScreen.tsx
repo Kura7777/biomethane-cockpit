@@ -26,7 +26,9 @@ import {
   CornerDownRight,
   Flame,
   HelpCircle,
-  Building2
+  Building2,
+  Info,
+  DollarSign
 } from 'lucide-react';
 
 export function ArbitrageAgentsScreen() {
@@ -159,7 +161,7 @@ Try asking me:
             </span>
           </div>
           <p className="text-stone-400 text-xs mt-0.5 font-mono">
-            Autonomous combinatorial scanner calculating 27 European producing origins against all compliance destinations.
+            Autonomous combinatorial scanner calculating realistic desk margins (€1.50–€6.00/MWh) across 20 European producing origins.
           </p>
         </div>
 
@@ -176,6 +178,14 @@ Try asking me:
             <Key className="w-3.5 h-3.5" />
             {geminiApiKey ? 'Gemini 2.5 Active' : 'Configure Gemini API Key'}
           </button>
+        </div>
+      </div>
+
+      {/* Commercial Margin & Value Stack Explanation Banner */}
+      <div className="bg-stone-900/90 border border-stone-800 rounded-xl p-3 flex items-start gap-2.5 text-xs font-mono text-stone-300">
+        <Info className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" />
+        <div className="leading-relaxed">
+          <strong className="text-white">Desk Economics Note:</strong> In European compliance markets, upstream producers price index-linked to the compliance value stack (~88–92%). An intermediary trading desk captures a realistic gross margin of <strong>€2.50–€3.50/MWh</strong> on transport compliance, <strong>€5.00–€8.00/MWh</strong> on maritime bio-LNG insetting, and <strong>€1.00–€1.50/MWh</strong> on wholesale balancing.
         </div>
       </div>
 
@@ -202,7 +212,7 @@ Try asking me:
               className="w-full bg-stone-900 border border-stone-700 rounded px-2 py-1 text-teal-300 font-bold"
             >
               <option value="DC_OFF">1× Single Counting (Eliminated Baseline)</option>
-              <option value="DC_ON">2× Double Counting (Biomethane Retained)</option>
+              <option value="DC_ON">2× Double Counting (If Retained)</option>
             </select>
           </div>
 
@@ -246,10 +256,10 @@ Try asking me:
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 font-mono text-xs font-bold text-stone-200 uppercase">
             <TrendingUp className="w-4 h-4 text-emerald-400" />
-            <span>Top High-Alpha European Arbitrage Routes</span>
+            <span>Top High-Alpha European Cross-Border Routes</span>
           </div>
           <span className="text-[10px] font-mono text-stone-500">
-            {topOpportunities.length} profitable routes identified
+            {topOpportunities.length} tradeable routes identified
           </span>
         </div>
 
@@ -279,32 +289,32 @@ Try asking me:
               </div>
 
               {/* Economic Breakdown */}
-              <div className="bg-stone-950 p-2 rounded space-y-1 text-[11px]">
+              <div className="bg-stone-950 p-2.5 rounded space-y-1 text-[11px]">
                 <div className="flex justify-between text-stone-400">
-                  <span>Origin Procurement:</span>
-                  <span className="text-stone-300">~€{opp.originEstimatedProcurementEurPerMWh.toFixed(2)}/MWh</span>
+                  <span>Total Delivered Value:</span>
+                  <span className="text-stone-200 font-bold">€{opp.totalTerminalValueStackEurPerMWh?.toFixed(2) ?? '—'}/MWh</span>
                 </div>
                 <div className="flex justify-between text-stone-400">
-                  <span>Target Netback:</span>
-                  <span className="text-teal-300 font-bold">€{opp.destinationNetbackEurPerMWh?.toFixed(2) ?? '—'}/MWh</span>
+                  <span>Producer Pay (Index-Linked):</span>
+                  <span className="text-stone-400">−€{opp.producerPayableEurPerMWh.toFixed(2)}/MWh</span>
                 </div>
                 <div className="flex justify-between text-stone-400">
                   <span>Grid Transit Tariff:</span>
                   <span className="text-stone-400">−€{opp.transitCostEurPerMWh.toFixed(2)}/MWh</span>
                 </div>
                 <div className="flex justify-between text-stone-200 border-t border-stone-800 pt-1 font-bold text-xs">
-                  <span className="text-emerald-400">Net Desk Margin:</span>
+                  <span className="text-emerald-400">Real Desk Net Margin:</span>
                   <span className="text-emerald-400">
-                    +€{opp.netMarginEurPerMWh?.toFixed(2) ?? '—'}/MWh ({opp.marginPercent?.toFixed(1)}%)
+                    +€{opp.deskNetMarginEurPerMWh?.toFixed(2) ?? '—'}/MWh
                   </span>
                 </div>
               </div>
 
               {/* Volume P&L & Gating Chip */}
-              <div className="flex items-center justify-between text-[10px] pt-1">
+              <div className="flex items-center justify-between text-[10px] pt-0.5">
                 <StatusChip variant={opp.overallVerdict} size="xs" />
                 <span className="font-bold text-teal-400">
-                  10k MWh P&L: €{(opp.totalDealProfitEur ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                  10k MWh Profit: €{(opp.totalDealProfitEur ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                 </span>
               </div>
             </div>
@@ -318,7 +328,7 @@ Try asking me:
           <div className="flex items-center gap-2">
             <Layers className="w-4 h-4 text-teal-400" />
             <h2 className="text-xs font-bold text-stone-200 uppercase">
-              Pan-European Cross-Border Arbitrage Heatmap Matrix
+              Pan-European Cross-Border Real Desk Margin Heatmap (€/MWh)
             </h2>
           </div>
           <span className="text-[10px] text-stone-500">20 Origins × 14 Destinations</span>
@@ -346,16 +356,16 @@ Try asking me:
                     const cell = matrixCells.find(c => c.originCode === originCode && c.targetMarketId === mId);
                     if (!cell) return <td key={mId} className="border border-stone-800 p-1 text-stone-700">—</td>;
 
-                    const margin = cell.netMarginEurPerMWh;
+                    const margin = cell.deskNetMarginEurPerMWh;
                     let cellBg = 'bg-stone-950 text-stone-600';
 
                     if (cell.isBlocked) {
                       cellBg = 'bg-red-950/40 text-red-400 border-red-900/40';
-                    } else if (margin !== null && margin > 80) {
+                    } else if (margin !== null && margin >= 5.0) {
                       cellBg = 'bg-emerald-900 text-emerald-200 font-bold';
-                    } else if (margin !== null && margin > 40) {
+                    } else if (margin !== null && margin >= 3.0) {
                       cellBg = 'bg-teal-900/80 text-teal-200 font-semibold';
-                    } else if (margin !== null && margin > 10) {
+                    } else if (margin !== null && margin >= 2.0) {
                       cellBg = 'bg-teal-950 text-teal-300';
                     } else if (margin !== null && margin > 0) {
                       cellBg = 'bg-amber-950 text-amber-300';
@@ -365,9 +375,9 @@ Try asking me:
                       <td
                         key={mId}
                         className={`border border-stone-800 p-1 transition-colors cursor-pointer ${cellBg}`}
-                        title={`${originCode} ➔ ${mId}: ${cell.isBlocked ? cell.blockingReason : margin !== null ? `€${margin.toFixed(2)}/MWh margin` : 'No mark'}`}
+                        title={`${originCode} ➔ ${mId}: ${cell.isBlocked ? cell.blockingReason : margin !== null ? `€${margin.toFixed(2)}/MWh desk margin (Total value: €${cell.totalValueEurPerMWh?.toFixed(2)}/MWh)` : 'No mark'}`}
                       >
-                        {cell.isBlocked ? '✕' : margin !== null ? `+€${margin.toFixed(0)}` : '—'}
+                        {cell.isBlocked ? '✕' : margin !== null ? `+€${margin.toFixed(1)}` : '—'}
                       </td>
                     );
                   })}
@@ -530,23 +540,24 @@ Try asking me:
               <StatusChip variant={selectedOpportunity.overallVerdict} size="xs" />
             </div>
 
+            {/* Decomposed Value Stack */}
             <div className="p-3 bg-stone-950 rounded border border-stone-800 space-y-1.5 text-xs">
               <div className="flex justify-between text-stone-400">
-                <span>Estimated Origin Procurement:</span>
-                <strong className="text-stone-200">€{selectedOpportunity.originEstimatedProcurementEurPerMWh.toFixed(2)}/MWh</strong>
+                <span>Delivered Compliance Value Stack:</span>
+                <strong className="text-stone-200">€{selectedOpportunity.totalTerminalValueStackEurPerMWh?.toFixed(2) ?? '—'}/MWh</strong>
               </div>
               <div className="flex justify-between text-stone-400">
-                <span>Target Compliance Netback:</span>
-                <strong className="text-teal-300">€{selectedOpportunity.destinationNetbackEurPerMWh?.toFixed(2) ?? '—'}/MWh</strong>
+                <span>Producer Index-Linked Share (~90%):</span>
+                <strong className="text-stone-400">−€{selectedOpportunity.producerPayableEurPerMWh.toFixed(2)}/MWh</strong>
               </div>
               <div className="flex justify-between text-stone-400">
                 <span>Cross-Border Transit Tariff:</span>
                 <strong className="text-stone-400">−€{selectedOpportunity.transitCostEurPerMWh.toFixed(2)}/MWh</strong>
               </div>
               <div className="flex justify-between text-stone-200 border-t border-stone-800 pt-1.5 font-bold">
-                <span className="text-emerald-400">Net Implied Margin:</span>
+                <span className="text-emerald-400">Real Desk Net Margin:</span>
                 <span className="text-emerald-400">
-                  +€{selectedOpportunity.netMarginEurPerMWh?.toFixed(2) ?? '—'}/MWh ({selectedOpportunity.marginPercent?.toFixed(1)}%)
+                  +€{selectedOpportunity.deskNetMarginEurPerMWh?.toFixed(2) ?? '—'}/MWh
                 </span>
               </div>
             </div>

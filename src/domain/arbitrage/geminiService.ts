@@ -28,7 +28,7 @@ export async function queryDeskAgent(req: GeminiAgentRequest): Promise<string> {
       const systemPrompt = req.systemInstruction || `
 You are the Chief Regulatory & Commercial Biomethane Trading Strategist for a Tier-1 European energy desk.
 You provide precise, mathematically grounded, and legally verified advice citing EUR-Lex directives (RED III 2023/2413), German BImSchG (§37a/38. BImSchV), French Code de l'énergie (CPB/TIRUERT), Dutch ERE regulations, and FuelEU Maritime (2023/1805).
-Be concise, quantitative, and professional. Never invent fictional multipliers. Always highlight compliance risks and registry transfer mechanics (ERGaR, AIB, Ex-Domain cancellations, UDB).
+Be concise, quantitative, and professional. Always model realistic desk margins (€2.00-€6.00/MWh) with upstream producer index-linking (~88-92% of the compliance stack).
 `;
 
       const contextSummary = req.contextData?.topOpportunities ? `
@@ -36,10 +36,10 @@ CURRENT LIVE TOP EUROPEAN ARBITRAGE OPPORTUNITIES:
 ${req.contextData.topOpportunities.slice(0, 5).map((o, i) => `
 ${i + 1}. ${o.originFlag} ${o.originCountryName} ➔ ${o.targetFlag} ${o.targetMarketName}
    - Feedstock: ${o.feedstockName} (CI: ${o.carbonIntensity} gCO2e/MJ)
-   - Estimated Origin Procurement: €${o.originEstimatedProcurementEurPerMWh.toFixed(2)}/MWh (TTF + Feedstock)
-   - Target Compliance Netback: €${o.destinationNetbackEurPerMWh?.toFixed(2) ?? 'N/A'}/MWh
+   - Delivered Compliance Value: €${o.totalTerminalValueStackEurPerMWh?.toFixed(2) ?? 'N/A'}/MWh
+   - Producer Pay (Index-Linked): €${o.producerPayableEurPerMWh.toFixed(2)}/MWh
    - Transit Tariff: €${o.transitCostEurPerMWh.toFixed(2)}/MWh
-   - NET DESK MARGIN: €${o.netMarginEurPerMWh?.toFixed(2) ?? 'N/A'}/MWh (${o.marginPercent?.toFixed(1)}%)
+   - REAL DESK NET MARGIN: €${o.deskNetMarginEurPerMWh?.toFixed(2) ?? 'N/A'}/MWh
    - Legal Status: ${o.overallVerdict} (${o.regulatoryRationale})
 `).join('')}
 ` : '';
@@ -85,23 +85,21 @@ function generateLocalAgentResponse(req: GeminiAgentRequest): string {
   const topOpps = req.contextData?.topOpportunities || [];
 
   if (query.includes('spanish') || query.includes('spain') || query.includes('cma cgm') || query.includes('fueleu')) {
-    return `### ⚡ Autonomous Deal Pitch: Spanish Bio-LNG ➔ Maritime Compliance (FuelEU)
+    return `### ⚡ Commercial Deal Proposal: Spanish Bio-LNG ➔ FuelEU Maritime Compliance
 
-**Commercial Opportunity**:
+**Deal Economics**:
 * **Origin**: 🇪🇸 Spain (Enagás GTS Sistema GdO)
-* **Target Offtaker**: CMA CGM / MSC (Dual-fuel container fleet bunkering in Western Mediterranean / ARA)
+* **Offtaker**: CMA CGM / MSC (Container fleet bunkering in Western Mediterranean / ARA)
 * **Feedstock**: Manure / Pig slurry (CI: -100 gCO₂e/MJ)
-* **Estimated Procurement**: TTF + €36.00 = ~€64.00/MWh
-* **FuelEU Deficit Closure Value**: ~€220.00–€437.00/MWh (based on €2,400/t VLSFO-eq penalty avoidance)
-* **Desk Net Spread**: **+€140.00 to +€180.00/MWh**
+* **Total Delivered Value Stack**: **€220.00–€437.00/MWh** (avoided penalty equivalent)
+* **Producer Share (Index-Linked)**: ~€215.00–€430.00/MWh
+* **Trading Desk Intermediary Margin**: **€5.00–€6.00/MWh** (€50,000–€60,000 gross margin per 10,000 MWh)
 
-**Regulatory Compliance Dossier (RED III / FuelEU)**:
+**Regulatory Compliance Checklist (RED III / FuelEU)**:
 1. **Chain of Custody**: Physical segregation or certified mass balance through recognized bunker supplier.
 2. **Certification**: ISCC EU certified under RED III Annex IX-A.
 3. **UDB Status**: Spain is fully interconnected into the single EU Union Database perimeter.
-4. **Registry Movement**: Ex-domain cancellation issued by Enagás GTS to receiving bunker delivery note (BDN).
-
-**Trader Next Step**: Draft term sheet indexed to TTF Day-Ahead with a 15% discount to shipowner's avoided FuelEU penalty.`;
+4. **Registry Movement**: Ex-domain cancellation issued by Enagás GTS to receiving bunker delivery note (BDN).`;
   }
 
   if (query.includes('uk') || query.includes('food waste') || query.includes('trap') || query.includes('blocked')) {
@@ -124,29 +122,22 @@ function generateLocalAgentResponse(req: GeminiAgentRequest): string {
 **Current Status (Cabinet Draft 10 December 2025 / 38. BImSchV)**:
 * **The Policy Change**: Double counting of advanced biofuels is eliminated from the 2026 compliance year to prevent quota depression.
 * **The Legal Ambiguity**: Whether biomethane specifically retains double counting (2×) remains **unresolved** pending final parliamentary transposition.
-* **Crucial Physical Distinction**:
-  - **Double Counting** is a policy multiplier (subject to legislative change).
-  - **Manure's Negative Carbon Intensity (-100 gCO₂e/MJ)** is a physical avoided methane emissions property in RED III Annex V GHG methodology and is **100% unaffected** by double counting decisions!
-
-**Trading Desk Guidance**: Always model trades using the conservative **1× Single Counting branch (€118.50/MWh netback)** as your baseline, and treat the **2× branch (€209.50/MWh)** as optional upside in your option structures.`;
+* **Desk Strategy**:
+  - Model trades using the conservative **1× Single Counting baseline (€118.50/MWh netback)** where the desk captures **€3.50/MWh**.
+  - Capture upside through structured profit-sharing if 2× double counting is retained.`;
   }
 
   if (topOpps.length > 0) {
     const best = topOpps[0];
-    return `### ⚡ Top European Arbitrage Scan Result
+    return `### ⚡ Top European Arbitrage Route
 
 **#1 Alpha Route**: ${best.originFlag} **${best.originCountryName}** ➔ ${best.targetFlag} **${best.targetMarketName}**
 * **Feedstock**: ${best.feedstockName} (CI: ${best.carbonIntensity} gCO₂e/MJ)
-* **Estimated Procurement (Origin)**: €${best.originEstimatedProcurementEurPerMWh.toFixed(2)}/MWh
-* **Destination Netback**: €${best.destinationNetbackEurPerMWh?.toFixed(2) ?? 'N/A'}/MWh
+* **Total Delivered Value Stack**: €${best.totalTerminalValueStackEurPerMWh?.toFixed(2) ?? 'N/A'}/MWh
+* **Producer Pay (Index-Linked)**: €${best.producerPayableEurPerMWh.toFixed(2)}/MWh
 * **Grid Transit Tariff**: €${best.transitCostEurPerMWh.toFixed(2)}/MWh
-* **Implied Net Desk Margin**: **+€${best.netMarginEurPerMWh?.toFixed(2) ?? 'N/A'}/MWh** (${best.marginPercent?.toFixed(1)}%)
-* **Potential Gross Profit on 10,000 MWh**: **€${(best.totalDealProfitEur ?? 0).toLocaleString()}**
-
-**Execution Pathway**:
-1. Execute bilateral Biomethane Purchase Agreement (BPA) with origin producer via ${best.originCountryName} registry.
-2. Ensure Mass Balance transfer logged in the Union Database (UDB).
-3. Deliver into ${best.targetMarketName} via ${best.targetCountry} compliance registration.`;
+* **Real Trading Desk Margin**: **+€${best.deskNetMarginEurPerMWh?.toFixed(2) ?? 'N/A'}/MWh**
+* **Expected Desk Gross Profit on 10,000 MWh**: **€${(best.totalDealProfitEur ?? 0).toLocaleString()}**`;
   }
 
   return `### 🤖 European Biomethane Desk Intelligence Engine
@@ -154,7 +145,5 @@ function generateLocalAgentResponse(req: GeminiAgentRequest): string {
 **Active Market Parameters**:
 * **Baseline TTF**: €${req.contextData?.marks?.gasIndex.bid?.toFixed(2) ?? '28.00'}/MWh
 * **Monitored Markets**: 27 European producing countries across 14 compliance destinations.
-* **Active Directives**: RED III (Directive (EU) 2023/2413), FuelEU Maritime (Regulation (EU) 2023/1805), German BImSchG, French CPB (Code de l'énergie), Dutch ERE.
-
-*Tip: Connect your Gemini API Key in the top panel to enable real-time natural language regulatory synthesis and custom counterparty term sheet generation.*`;
+* **Active Directives**: RED III (Directive (EU) 2023/2413), FuelEU Maritime (Regulation (EU) 2023/1805), German BImSchG, French CPB (Code de l'énergie), Dutch ERE.`;
 }

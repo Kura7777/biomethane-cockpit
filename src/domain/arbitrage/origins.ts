@@ -233,32 +233,47 @@ export function getRouteTransitTariff(originCode: string, targetCountry: string)
 }
 
 /**
- * Estimated producer origination premium over TTF (€/MWh) based on feedstock and origin liquidity
+ * Realistic Commercial Trading Desk Margin allocation:
+ * In liquid European compliance markets, producers demand 88-92% of the compliance value stack.
+ * An intermediary trading desk captures a realistic gross margin:
+ * - Transport compliance (THG, ERE, CPB): €2.50 to €4.00/MWh
+ * - Maritime Bio-LNG insetting (FuelEU): €5.00 to €8.00/MWh
+ * - Wholesale / Utility GO balancing: €0.80 to €1.50/MWh
  */
-export function getOriginFeedstockProcurementCost(
-  originCode: string, 
-  feedstockKey: string, 
-  baseTTF: number = 28.00
-): number {
-  let feedstockPremium = 35.00; // default generic waste premium
+export function calculateRealisticCommercialDeskMargin(
+  marketId: string,
+  destinationNetback: number,
+  transitTariff: number
+): {
+  deskNetMarginEurPerMWh: number;
+  producerProcurementEurPerMWh: number;
+  marginAllocationType: 'TRANSPORT_COMPLIANCE' | 'MARITIME_INSETTING' | 'WHOLESALE_BASE';
+} {
+  let targetMargin = 3.00; // default transport compliance margin (€/MWh)
+  let allocationType: 'TRANSPORT_COMPLIANCE' | 'MARITIME_INSETTING' | 'WHOLESALE_BASE' = 'TRANSPORT_COMPLIANCE';
 
-  if (feedstockKey === 'manure') {
-    feedstockPremium = 40.00; // high value due to negative CI
-  } else if (feedstockKey === 'straw') {
-    feedstockPremium = 32.00;
-  } else if (feedstockKey === 'energy_crops') {
-    feedstockPremium = 24.00;
-  } else if (feedstockKey === 'sewage_sludge') {
-    feedstockPremium = 28.00;
+  if (marketId === 'FUELEU') {
+    targetMargin = 6.00; // Maritime Bio-LNG insetting spread
+    allocationType = 'MARITIME_INSETTING';
+  } else if (marketId === 'VOL_SCOPE1' || marketId === 'DK_GO' || marketId === 'EU_ETS1') {
+    targetMargin = 1.20; // Wholesale / Utility balancing
+    allocationType = 'WHOLESALE_BASE';
+  } else if (marketId === 'DE_THG') {
+    targetMargin = 3.50; // High-value German THG quota matching
+  } else if (marketId === 'NL_ERE') {
+    targetMargin = 2.80; // Dutch ERE mandate
+  } else if (marketId === 'FR_CPB') {
+    targetMargin = 2.50; // French CPB supplier obligation
   }
 
-  // Origin market liquidity adjustment (Spain/Poland have wider discount; Denmark/Germany tighter)
-  let originDiscount = 0;
-  if (originCode === 'ES' || originCode === 'PL') {
-    originDiscount = -4.00; // lower local off-take competition
-  } else if (originCode === 'DK') {
-    originDiscount = 2.00; // highly organized export desk
-  }
+  // Ensure desk margin does not exceed available headroom after transit
+  const maxFeasibleMargin = Math.max(0.50, destinationNetback - transitTariff - 28.00); // 28 is baseline molecule
+  const deskNetMargin = Math.min(targetMargin, maxFeasibleMargin);
+  const producerProcurement = Math.max(28.00, destinationNetback - transitTariff - deskNetMargin);
 
-  return baseTTF + feedstockPremium + originDiscount;
+  return {
+    deskNetMarginEurPerMWh: deskNetMargin,
+    producerProcurementEurPerMWh: producerProcurement,
+    marginAllocationType: allocationType,
+  };
 }

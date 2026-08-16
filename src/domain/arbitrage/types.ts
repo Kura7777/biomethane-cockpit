@@ -29,14 +29,13 @@ export interface ArbitrageOpportunity {
   certificationScheme: CertificationScheme;
   chainOfCustody: ChainOfCustody;
   
-  // Economics
-  originEstimatedProcurementEurPerMWh: number; // TTF + local feedstock premium
-  destinationNetbackEurPerMWh: number | null;
-  grossSpreadEurPerMWh: number | null;         // netback - procurement
-  transitCostEurPerMWh: number;                // grid transit / logistics tariffs
-  netMarginEurPerMWh: number | null;           // grossSpread - transitCost
-  marginPercent: number | null;
-  totalDealProfitEur: number | null;           // netMargin * volume
+  // Real Commercial Economics
+  totalTerminalValueStackEurPerMWh: number | null; // Total compliance + molecule revenue (€/MWh)
+  producerPayableEurPerMWh: number;                // Upstream producer index-linked payment (~88-92% of stack)
+  transitCostEurPerMWh: number;                    // Grid transit & logistics tariffs (€0.50-€3.20/MWh)
+  deskNetMarginEurPerMWh: number | null;           // Realistic trading desk margin (€1.50-€8.00/MWh)
+  marginPercent: number | null;                    // deskNetMargin / totalValue * 100
+  totalDealProfitEur: number | null;               // deskNetMargin * volume (e.g. €35,000 on 10,000 MWh)
   
   // Regulatory
   eligibility: EligibilityAssessment;
@@ -44,6 +43,7 @@ export interface ArbitrageOpportunity {
   isTradeable: boolean;
   regulatoryRationale: string;
   keyRiskOrTrap: string | null;
+  marginAllocationType: 'TRANSPORT_COMPLIANCE' | 'MARITIME_INSETTING' | 'WHOLESALE_BASE';
   
   // Modelled vs Marked
   isModelled: boolean;
@@ -55,7 +55,8 @@ export interface ArbitrageMatrixCell {
   targetMarketId: string;
   targetMarketName: string;
   verdict: OverallVerdict;
-  netMarginEurPerMWh: number | null;
+  deskNetMarginEurPerMWh: number | null;
+  totalValueEurPerMWh: number | null;
   isBlocked: boolean;
   blockingReason: string | null;
   isModelled: boolean;

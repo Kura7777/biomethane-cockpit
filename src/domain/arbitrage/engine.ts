@@ -1,11 +1,10 @@
-import { MARKETS, getMarketById } from '../markets/registry';
-import { Market } from '../markets/types';
+import { MARKETS } from '../markets/registry';
 import { Consignment, CertificationScheme, ChainOfCustody } from '../consignment/types';
 import { FEEDSTOCK_REGISTRY } from '../consignment/feedstocks';
 import { MarksState, CostInputs } from '../netback/types';
 import { computeNetback } from '../netback/engine';
 import { evaluateEligibility } from '../eligibility/engine';
-import { PRODUCING_ORIGINS, getRouteTransitTariff, getOriginFeedstockProcurementCost } from './origins';
+import { PRODUCING_ORIGINS, getRouteTransitTariff, calculateRealisticCommercialDeskMargin } from './origins';
 import { 
   ArbitrageOpportunity, 
   ArbitrageMatrixCell, 
@@ -21,6 +20,7 @@ export const DEFAULT_WHAT_IF_SCENARIO: RegulatoryWhatIfScenario = {
 
 /**
  * Scan and compute all cross-border arbitrage opportunities across Europe
+ * with realistic commercial trading desk margin allocation.
  */
 export function scanEuropeanArbitrage(
   marks: MarksState,
@@ -39,7 +39,6 @@ export function scanEuropeanArbitrage(
   const feedstockInfo = FEEDSTOCK_REGISTRY[selectedFeedstockKey] || FEEDSTOCK_REGISTRY.manure;
   const ci = ciOverride ?? feedstockInfo.defaultCI;
   const activeMarkets = MARKETS.filter(m => m.status === 'ACTIVE');
-  const baseTTF = marks.gasIndex.bid ?? 28.00;
 
   const opportunities: ArbitrageOpportunity[] = [];
   const matrixCells: ArbitrageMatrixCell[] = [];
@@ -48,7 +47,6 @@ export function scanEuropeanArbitrage(
   const originEntries = Object.values(PRODUCING_ORIGINS);
 
   for (const origin of originEntries) {
-    // Check if origin is EU interconnected or isolated
     let isEUGrid = origin.gridZone === 'EU_INTERCONNECTED';
     if (origin.countryCode === 'GB' && scenario.ukUdbRecognition) {
       isEUGrid = true; // What-If simulated agreement
@@ -73,11 +71,7 @@ export function scanEuropeanArbitrage(
       volumeMWh,
     };
 
-    // Upstream estimated procurement cost at origin
-    const procurementCost = getOriginFeedstockProcurementCost(origin.countryCode, selectedFeedstockKey, baseTTF);
-
     for (const market of activeMarkets) {
-      // Apply scenario adjustments
       const customMarks: MarksState = {
         ...marks,
         fuelEUOptions: {
@@ -100,22 +94,30 @@ export function scanEuropeanArbitrage(
         destinationNetback = netbackRes.uncertaintyBranches[1].netNetback;
       }
 
-      let grossSpread: number | null = null;
-      let netMargin: number | null = null;
+      let deskNetMargin: number | null = null;
+      let producerPayable: number = 0;
+      let marginAllocationType: 'TRANSPORT_COMPLIANCE' | 'MARITIME_INSETTING' | 'WHOLESALE_BASE' = 'TRANSPORT_COMPLIANCE';
       let marginPct: number | null = null;
       let totalDealProfit: number | null = null;
 
-      if (destinationNetback !== null) {
-        grossSpread = destinationNetback - procurementCost;
-        netMargin = grossSpread - transitCost;
-        marginPct = (netMargin / destinationNetback) * 100;
-        totalDealProfit = netMargin * volumeMWh;
+      if (destinationNetback !== null && destinationNetback > 0) {
+        const commercialAllocation = calculateRealisticCommercialDeskMargin(
+          market.id,
+          destinationNetback,
+          transitCost
+        );
+        deskNetMargin = commercialAllocation.deskNetMarginEurPerMWh;
+        producerPayable = commercialAllocation.producerProcurementEurPerMWh;
+        marginAllocationType = commercialAllocation.marginAllocationType;
+
+        marginPct = (deskNetMargin / destinationNetback) * 100;
+        totalDealProfit = deskNetMargin * volumeMWh;
       }
 
       // Generate human rationale
       let rationale = `${origin.flag} ${origin.countryName} ➔ ${market.country} ${market.name}: `;
       if (isTradeable) {
-        rationale += `Cleared via ${origin.primaryRegistry} to ${market.registry || 'destination registry'}. Net spread of €${netMargin?.toFixed(2) ?? 'N/A'}/MWh after €${transitCost.toFixed(2)}/MWh transit tariff.`;
+        rationale += `Delivered Value Stack: €${destinationNetback?.toFixed(2) ?? 'N/A'}/MWh. Producer index-linked share: €${producerPayable.toFixed(2)}/MWh. Grid transit: €${transitCost.toFixed(2)}/MWh. Desk margin: €${deskNetMargin?.toFixed(2) ?? 'N/A'}/MWh.`;
       } else {
         rationale += `Blocked at ${eligibility.blockingGate || 'gating'}: ${eligibility.summary}`;
       }
@@ -141,11 +143,10 @@ export function scanEuropeanArbitrage(
         carbonIntensity: ci,
         certificationScheme: scheme,
         chainOfCustody,
-        originEstimatedProcurementEurPerMWh: procurementCost,
-        destinationNetbackEurPerMWh: destinationNetback,
-        grossSpreadEurPerMWh: grossSpread,
+        totalTerminalValueStackEurPerMWh: destinationNetback,
+        producerPayableEurPerMWh: producerPayable,
         transitCostEurPerMWh: transitCost,
-        netMarginEurPerMWh: netMargin,
+        deskNetMarginEurPerMWh: deskNetMargin,
         marginPercent: marginPct,
         totalDealProfitEur: totalDealProfit,
         eligibility,
@@ -153,6 +154,7 @@ export function scanEuropeanArbitrage(
         isTradeable,
         regulatoryRationale: rationale,
         keyRiskOrTrap,
+        marginAllocationType,
         isModelled: Boolean(netbackRes.isModelled),
       };
 
@@ -165,31 +167,32 @@ export function scanEuropeanArbitrage(
         targetMarketId: market.id,
         targetMarketName: market.shortName,
         verdict: eligibility.overallVerdict,
-        netMarginEurPerMWh: netMargin,
+        deskNetMarginEurPerMWh: deskNetMargin,
+        totalValueEurPerMWh: destinationNetback,
         isBlocked,
         blockingReason: isBlocked ? eligibility.summary : null,
         isModelled: Boolean(netbackRes.isModelled),
       });
 
-      if (isBlocked && destinationNetback !== null && destinationNetback > procurementCost + transitCost) {
+      if (isBlocked && destinationNetback !== null && destinationNetback > 0) {
         blockedArbitrages.push(opp);
       }
     }
   }
 
-  // Sort tradeable opportunities by net margin descending
+  // Sort tradeable opportunities by desk net margin descending
   const topOpportunities = opportunities
-    .filter(o => o.isTradeable && o.netMarginEurPerMWh !== null && o.netMarginEurPerMWh > 0)
+    .filter(o => o.isTradeable && o.deskNetMarginEurPerMWh !== null && o.deskNetMarginEurPerMWh > 0)
     .sort((a, b) => {
       // Prioritize marked trades over unquoted modelled trades
       if (a.isModelled !== b.isModelled) {
         return a.isModelled ? 1 : -1;
       }
-      return (b.netMarginEurPerMWh ?? 0) - (a.netMarginEurPerMWh ?? 0);
+      return (b.deskNetMarginEurPerMWh ?? 0) - (a.deskNetMarginEurPerMWh ?? 0);
     });
 
-  // Sort blocked opportunities by highest unrealized theoretical margin
-  blockedArbitrages.sort((a, b) => (b.netMarginEurPerMWh ?? 0) - (a.netMarginEurPerMWh ?? 0));
+  // Sort blocked opportunities by highest total unrealized compliance value
+  blockedArbitrages.sort((a, b) => (b.totalTerminalValueStackEurPerMWh ?? 0) - (a.totalTerminalValueStackEurPerMWh ?? 0));
 
   return {
     topOpportunities,
