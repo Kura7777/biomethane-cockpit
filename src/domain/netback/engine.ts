@@ -319,8 +319,8 @@ export function computeNetback(
   const atChosenSides = netNetback;
   let crossingCost: number | null = null;
   if (atChosenSides !== null && atMid !== null) {
-    // crossingCost = atMid - atChosenSides, never negative
-    crossingCost = Number(Math.max(0, atMid - atChosenSides).toFixed(2));
+    // crossingCost = atMid - atChosenSides (positive when crossing spread to hit bids; negative when pricing at optimistic offer)
+    crossingCost = Number((atMid - atChosenSides).toFixed(2));
   }
 
   const sides: NetbackSides = {
@@ -443,7 +443,7 @@ export function computeNetback(
     // DC_ON crossing cost:
     const dcOnAtChosen = dcOnNetback;
     const dcOnAtMid = midCertVal?.valueEurPerMWh != null ? midCertVal.valueEurPerMWh * 2 + (midMolVal ?? 0) - (totalCosts ?? 0) : null;
-    const dcOnCrossingCost = (dcOnAtChosen !== null && dcOnAtMid !== null) ? Number(Math.max(0, dcOnAtMid - dcOnAtChosen).toFixed(2)) : null;
+    const dcOnCrossingCost = (dcOnAtChosen !== null && dcOnAtMid !== null) ? Number((dcOnAtMid - dcOnAtChosen).toFixed(2)) : null;
 
     uncertaintyBranches = [
       {

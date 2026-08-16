@@ -31,7 +31,7 @@ export interface ArbitrageOpportunity {
   
   // Real Commercial Economics
   totalTerminalValueStackEurPerMWh: number | null; // Total compliance + molecule revenue (€/MWh)
-  producerPayableEurPerMWh: number;                // Upstream producer index-linked payment (~88-92% of stack)
+  producerPayableEurPerMWh: number | null;         // Upstream producer index-linked payment (null if unset)
   transitCostEurPerMWh: number;                    // Grid transit & logistics tariffs (€0.50-€3.20/MWh)
   deskNetMarginEurPerMWh: number | null;           // Realistic trading desk margin (€1.50-€8.00/MWh)
   marginPercent: number | null;                    // deskNetMargin / totalValue * 100

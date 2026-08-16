@@ -37,7 +37,7 @@ export interface PricingSides {
 export interface NetbackSides {
   atChosenSides: number | null;   // what you can actually transact at
   atMid: number | null;           // theoretical mid value
-  crossingCost: number | null;    // atMid − atChosenSides, always ≥ 0
+  crossingCost: number | null;    // atMid − atChosenSides (positive: spread crossing cost; negative: spread benefit / optimistic pricing)
 }
 
 export interface CertificateValueResult {

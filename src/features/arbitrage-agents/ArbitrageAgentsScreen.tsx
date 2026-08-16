@@ -323,7 +323,7 @@ Try asking me:
                 </div>
                 <div className="flex justify-between text-stone-400">
                   <span>Producer Pay (Index-Linked):</span>
-                  <span className="text-stone-400">−€{opp.producerPayableEurPerMWh.toFixed(2)}/MWh</span>
+                  <span className="text-stone-400">{opp.producerPayableEurPerMWh !== null ? `−€${opp.producerPayableEurPerMWh.toFixed(2)}/MWh` : 'Unset'}</span>
                 </div>
                 <div className="flex justify-between text-stone-400">
                   <span>Grid Transit Tariff:</span>
@@ -643,8 +643,8 @@ Try asking me:
                 <strong className="text-stone-200">€{selectedOpportunity.totalTerminalValueStackEurPerMWh?.toFixed(2) ?? '—'}/MWh</strong>
               </div>
               <div className="flex justify-between text-stone-400">
-                <span>Producer Index-Linked Share (~90%):</span>
-                <strong className="text-stone-400">−€{selectedOpportunity.producerPayableEurPerMWh.toFixed(2)}/MWh</strong>
+                <span>Producer Index-Linked Share:</span>
+                <strong className="text-stone-400">{selectedOpportunity.producerPayableEurPerMWh !== null ? `−€${selectedOpportunity.producerPayableEurPerMWh.toFixed(2)}/MWh` : 'Unset'}</strong>
               </div>
               <div className="flex justify-between text-stone-400">
                 <span>Cross-Border Transit Tariff:</span>

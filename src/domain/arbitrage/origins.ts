@@ -232,16 +232,17 @@ export function getRouteTransitTariff(originCode: string, targetCountry: string)
 
 /**
  * Modelled Commercial Trading Desk Margin allocation:
- * Exposes modelled intermediary margin based on a configurable producer share percentage (default 90%).
+ * Exposes modelled intermediary margin based on an explicit producer share percentage.
+ * Does not clamp to 0 so negative netbacks and loss-making routes are truthfully represented.
  */
 export function calculateRealisticCommercialDeskMargin(
   marketId: string,
   destinationNetback: number,
   transitTariff: number,
-  producerSharePct: number = 0.90
+  producerSharePct: number | null = null
 ): {
-  deskNetMarginEurPerMWh: number;
-  producerProcurementEurPerMWh: number;
+  deskNetMarginEurPerMWh: number | null;
+  producerProcurementEurPerMWh: number | null;
   marginAllocationType: 'TRANSPORT_COMPLIANCE' | 'MARITIME_INSETTING' | 'WHOLESALE_BASE';
   sensitivityRange: { low: number; mid: number; high: number };
 } {
@@ -253,11 +254,16 @@ export function calculateRealisticCommercialDeskMargin(
     allocationType = 'WHOLESALE_BASE';
   }
 
-  const netStackAfterTransit = Math.max(0, destinationNetback - transitTariff);
+  // Net stack after transit tariff (unclamped so loss-making routes are visible)
+  const netStackAfterTransit = destinationNetback - transitTariff;
   
-  // Modelled desk margin based on producer share input (e.g. 90% -> desk captures 10%)
-  const deskNetMargin = Number((netStackAfterTransit * (1 - producerSharePct)).toFixed(2));
-  const producerProcurement = Number((netStackAfterTransit * producerSharePct).toFixed(2));
+  // Modelled desk margin based on explicit producer share input (null if unset)
+  const deskNetMargin = producerSharePct !== null
+    ? Number((netStackAfterTransit * (1 - producerSharePct)).toFixed(2))
+    : null;
+  const producerProcurement = producerSharePct !== null
+    ? Number((netStackAfterTransit * producerSharePct).toFixed(2))
+    : null;
 
   return {
     deskNetMarginEurPerMWh: deskNetMargin,

@@ -1406,9 +1406,19 @@ export function TradeBuilderScreen() {
                     <span className="tabular-nums">
                       {netback.sides?.atMid != null ? `€${netback.sides.atMid.toFixed(2)}/MWh` : '—'}
                       {netback.sides?.crossingCost != null && (
-                        <span className="text-amber-400/90 ml-1.5">
-                          (crossing cost €{netback.sides.crossingCost.toFixed(2)})
-                        </span>
+                        netback.sides.crossingCost > 0 ? (
+                          <span className="text-amber-400/90 ml-1.5">
+                            (crossing cost €{netback.sides.crossingCost.toFixed(2)})
+                          </span>
+                        ) : netback.sides.crossingCost < 0 ? (
+                          <span className="text-[#2DD4BF] ml-1.5">
+                            (spread benefit €{Math.abs(netback.sides.crossingCost).toFixed(2)} · optimistic side)
+                          </span>
+                        ) : (
+                          <span className="text-[#8B98A5] ml-1.5">
+                            (mid pricing)
+                          </span>
+                        )
                       )}
                     </span>
                   </div>

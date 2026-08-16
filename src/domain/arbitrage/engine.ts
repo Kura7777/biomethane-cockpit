@@ -95,29 +95,39 @@ export function scanEuropeanArbitrage(
       }
 
       let deskNetMargin: number | null = null;
-      let producerPayable: number = 0;
+      let producerPayable: number | null = null;
       let marginAllocationType: 'TRANSPORT_COMPLIANCE' | 'MARITIME_INSETTING' | 'WHOLESALE_BASE' = 'TRANSPORT_COMPLIANCE';
       let marginPct: number | null = null;
       let totalDealProfit: number | null = null;
 
-      if (destinationNetback !== null && destinationNetback > 0) {
+      if (destinationNetback !== null) {
+        const producerShare = costs.producerPricing?.mode === 'INDEX_LINKED'
+          ? (costs.producerPricing.indexLinkedShare ?? null)
+          : null;
+
         const commercialAllocation = calculateRealisticCommercialDeskMargin(
           market.id,
           destinationNetback,
-          transitCost
+          transitCost,
+          producerShare
         );
         deskNetMargin = commercialAllocation.deskNetMarginEurPerMWh;
         producerPayable = commercialAllocation.producerProcurementEurPerMWh;
         marginAllocationType = commercialAllocation.marginAllocationType;
 
-        marginPct = (deskNetMargin / destinationNetback) * 100;
-        totalDealProfit = deskNetMargin * volumeMWh;
+        if (deskNetMargin !== null && destinationNetback !== 0) {
+          marginPct = (deskNetMargin / Math.abs(destinationNetback)) * 100;
+        }
+        if (deskNetMargin !== null) {
+          totalDealProfit = deskNetMargin * volumeMWh;
+        }
       }
 
       // Generate human rationale
       let rationale = `${origin.flag} ${origin.countryName} ➔ ${market.country} ${market.name}: `;
       if (isTradeable) {
-        rationale += `Delivered Value Stack: €${destinationNetback?.toFixed(2) ?? 'N/A'}/MWh. Producer index-linked share: €${producerPayable.toFixed(2)}/MWh. Grid transit: €${transitCost.toFixed(2)}/MWh. Desk margin: €${deskNetMargin?.toFixed(2) ?? 'N/A'}/MWh.`;
+        const payableText = producerPayable !== null ? `Producer procurement: €${producerPayable.toFixed(2)}/MWh. ` : 'Producer pricing: Unset. ';
+        rationale += `Delivered Value Stack: €${destinationNetback?.toFixed(2) ?? 'N/A'}/MWh. ${payableText}Grid transit: €${transitCost.toFixed(2)}/MWh. Desk margin: ${deskNetMargin !== null ? `€${deskNetMargin.toFixed(2)}/MWh` : 'Unset'}.`;
       } else {
         rationale += `Blocked at ${eligibility.blockingGate || 'gating'}: ${eligibility.summary}`;
       }

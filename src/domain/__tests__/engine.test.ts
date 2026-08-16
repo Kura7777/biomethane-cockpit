@@ -257,12 +257,17 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
       expect(ranked[1].isComplete).toBe(false);
     });
 
-    it('A13: calculateRealisticCommercialDeskMargin calculates modelled margin with configurable producer share', () => {
+    it('A13: calculateRealisticCommercialDeskMargin calculates modelled margin with configurable producer share and unclamped losses', () => {
       const margin90 = calculateRealisticCommercialDeskMargin('DE_THG', 100, 2.0, 0.90);
       expect(margin90.deskNetMarginEurPerMWh).toBe(9.80); // (100 - 2) * 0.10
       expect(margin90.producerProcurementEurPerMWh).toBe(88.20); // (100 - 2) * 0.90
       expect(margin90.sensitivityRange.low).toBe(4.90); // 5% desk / 95% producer
       expect(margin90.sensitivityRange.high).toBe(14.70); // 15% desk / 85% producer
+
+      // Unclamped loss-making route
+      const lossMargin = calculateRealisticCommercialDeskMargin('DE_THG', -10, 2.0, 0.90);
+      expect(lossMargin.deskNetMarginEurPerMWh).toBe(-1.20); // (-10 - 2) * 0.10
+      expect(lossMargin.producerProcurementEurPerMWh).toBe(-10.80); // (-10 - 2) * 0.90
     });
 
     it('anchors: tCO2ePerMWh conversion accuracy', () => {
@@ -1149,7 +1154,10 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
           certificateSide: 'offer',
           moleculeSide: 'offer',
         });
-        expect(offerResult.sides?.crossingCost).toBe(0); // atMid < atChosenSides, bounded at 0 (never negative)
+        expect(offerResult.sides?.crossingCost).toBeLessThan(0); // atMid < atChosenSides: negative crossing cost reflects spread benefit / optimistic pricing
+        expect(offerResult.sides?.crossingCost).toBe(
+          Number((offerResult.sides!.atMid! - offerResult.sides!.atChosenSides!).toFixed(2))
+        );
       });
 
       it('crossingCost null when either side is unpriced', () => {
