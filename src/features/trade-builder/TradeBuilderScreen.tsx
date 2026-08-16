@@ -1547,15 +1547,22 @@ export function TradeBuilderScreen() {
                   <span>1. Buy Leg (Producer Procurement)</span>
                   <span className="text-[#8B98A5] font-normal">{consignment.originCountryName}</span>
                 </div>
-                <div className="h-6 flex justify-between items-center text-[#8B98A5]">
-                  <span className="text-[#E8EDF2]">
-                    {state.costs.producerPricing?.mode === 'INDEX_LINKED'
-                      ? `Producer payable (${((state.costs.producerPricing.indexLinkedShare ?? 0) * 100).toFixed(1)}% index share)`
-                      : state.costs.producerPricing?.mode === 'FIXED_PRICE'
-                      ? 'Producer payable (fixed price)'
-                      : 'Producer payable (procurement terms)'}
-                  </span>
-                  <span className="font-semibold text-[#D99A2B] tabular-nums">
+                <div className="flex justify-between items-center text-[#8B98A5]">
+                  <div>
+                    <span className="text-[#E8EDF2]">
+                      {state.costs.producerPricing?.mode === 'INDEX_LINKED'
+                        ? `Producer payable (${((state.costs.producerPricing.indexLinkedShare ?? 0) * 100).toFixed(1)}% index share)`
+                        : state.costs.producerPricing?.mode === 'FIXED_PRICE'
+                        ? 'Producer payable (fixed price)'
+                        : 'Producer payable (procurement terms)'}
+                    </span>
+                    {consignment.volumeMWh !== null && netback.producerPayable !== null && (
+                      <div className="text-[10px] text-[#8B98A5] font-normal tabular-nums">
+                        −€{(netback.producerPayable * consignment.volumeMWh).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} total on {consignment.volumeMWh.toLocaleString()} MWh
+                      </div>
+                    )}
+                  </div>
+                  <span className="font-semibold text-[#D99A2B] tabular-nums text-right">
                     {netback.producerPayable !== null ? `−€${netback.producerPayable.toFixed(2)}/MWh` : 'Not set'}
                   </span>
                 </div>
@@ -1637,8 +1644,15 @@ export function TradeBuilderScreen() {
                 {/* Delivered Netback (sell-side) Subtotal + at mid + crossing cost */}
                 <div className="pt-1 border-t border-[#1E262F]/40 flex flex-col gap-0.5">
                   <div className="flex justify-between items-center font-semibold text-[#E8EDF2]">
-                    <span>Delivered Netback (Sell Leg)</span>
-                    <span className="tabular-nums text-[#2DD4BF]">
+                    <div>
+                      <span>Delivered Netback (Sell Leg)</span>
+                      {consignment.volumeMWh !== null && netback.netNetback !== null && (
+                        <div className="text-[10px] text-[#8B98A5] font-normal tabular-nums">
+                          +€{(netback.netNetback * consignment.volumeMWh).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} total on {consignment.volumeMWh.toLocaleString()} MWh
+                        </div>
+                      )}
+                    </div>
+                    <span className="tabular-nums text-[#2DD4BF] text-right">
                       {netback.netNetback !== null ? `€${netback.netNetback.toFixed(2)}/MWh` : 'N/A'}
                     </span>
                   </div>
@@ -1663,14 +1677,32 @@ export function TradeBuilderScreen() {
                 </div>
               </div>
 
-              {/* 3. DESK SPREAD / MARGIN BOTTOM LINE */}
-              <div className="p-2 bg-[#18242A] rounded border border-[#2DD4BF]/30 flex justify-between items-center font-semibold text-[#2DD4BF]">
-                <span className="uppercase tracking-wider text-[11px]">
-                  DESK SPREAD {netback.marginPercent !== null ? `(${netback.marginPercent.toFixed(1)}% margin)` : ''}
-                </span>
-                <span className="text-[17px] tabular-nums">
-                  {netback.deskMargin !== null ? `€${netback.deskMargin.toFixed(2)}/MWh` : 'Not set'}
-                </span>
+              {/* 3. DESK SPREAD / PROFIT BOTTOM LINE */}
+              <div className="p-2.5 bg-[#18242A] rounded border border-[#2DD4BF]/30 flex justify-between items-center font-semibold text-[#2DD4BF]">
+                <div>
+                  <span className="uppercase tracking-wider text-[11px] block">
+                    DESK SPREAD &amp; TOTAL PROFIT {netback.marginPercent !== null ? `(${netback.marginPercent.toFixed(1)}% margin)` : ''}
+                  </span>
+                  {consignment.volumeMWh !== null && netback.deskMargin !== null ? (
+                    <span className="text-[10px] text-[#2DD4BF]/80 font-normal block font-mono tabular-nums mt-0.5">
+                      €{netback.deskMargin.toFixed(2)}/MWh spread × {consignment.volumeMWh.toLocaleString()} MWh
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-[#8B98A5] font-normal block font-mono mt-0.5">
+                      Volume: {consignment.volumeMWh ? `${consignment.volumeMWh.toLocaleString()} MWh` : 'Unset'}
+                    </span>
+                  )}
+                </div>
+                <div className="text-right">
+                  <div className="text-[18px] tabular-nums">
+                    {netback.deskMargin !== null ? `€${netback.deskMargin.toFixed(2)}/MWh` : 'Not set'}
+                  </div>
+                  {consignment.volumeMWh !== null && netback.deskPnL !== null && (
+                    <div className="text-[12px] font-bold text-[#2DD4BF] tabular-nums">
+                      €{netback.deskPnL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} total P&amp;L
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* 4.4 LOGISTICS ROUTE & EXECUTION SUMMARY */}
