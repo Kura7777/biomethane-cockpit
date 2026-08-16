@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { ComposableMap, Geographies, Geography, ZoomableGroup, Marker, Line } from 'react-simple-maps';
 import { useNavigate } from 'react-router-dom';
 import { MARKETS, getMarketById } from '../../domain/markets/registry';
@@ -170,15 +170,6 @@ export function MapScreen() {
   const [drawerTab, setDrawerTab] = useState<'PLANTS' | 'COMPLIANCE'>('PLANTS');
   const [plantFeedstockFilter, setPlantFeedstockFilter] = useState<string>('ALL');
 
-  // Close context menu on any outside click
-  useEffect(() => {
-    const handleGlobalClick = () => {
-      if (contextMenu) setContextMenu(null);
-    };
-    window.addEventListener('click', handleGlobalClick);
-    return () => window.removeEventListener('click', handleGlobalClick);
-  }, [contextMenu]);
-
   const feedstockInfo = FEEDSTOCK_REGISTRY[feedstockKey] || FEEDSTOCK_REGISTRY.manure;
 
   // Active Simulated Consignment
@@ -255,24 +246,29 @@ export function MapScreen() {
     }
   };
 
-  // Handle right-click on country
+  // Open right click context menu at cursor
+  const openContextMenuForCountry = (clientX: number, clientY: number, iso2: string, iso3: string) => {
+    const name = COUNTRY_NAMES[iso2] || iso2;
+    const flag = COUNTRY_FLAGS[iso2] || '🇪🇺';
+    const plantCount = BIOMETHANE_PLANTS.filter(p => p.countryCode === iso2).length;
+    
+    setContextMenu({
+      x: Math.min(clientX, window.innerWidth - 270),
+      y: Math.min(clientY, window.innerHeight - 250),
+      iso2,
+      iso3,
+      name,
+      flag,
+      plantCount,
+    });
+  };
+
   const handleCountryContextMenu = (e: React.MouseEvent, iso3: string) => {
     e.preventDefault();
+    e.stopPropagation();
     const iso2 = COUNTRY_ISO3_TO_ISO2[iso3];
     if (iso2) {
-      const name = COUNTRY_NAMES[iso2] || iso2;
-      const flag = COUNTRY_FLAGS[iso2] || '🇪🇺';
-      const plantCount = BIOMETHANE_PLANTS.filter(p => p.countryCode === iso2).length;
-      
-      setContextMenu({
-        x: Math.min(e.clientX, window.innerWidth - 240),
-        y: Math.min(e.clientY, window.innerHeight - 220),
-        iso2,
-        iso3,
-        name,
-        flag,
-        plantCount,
-      });
+      openContextMenuForCountry(e.clientX, e.clientY, iso2, iso3);
     }
   };
 
@@ -395,7 +391,7 @@ export function MapScreen() {
               </span>
             </div>
             <p className="text-stone-400 text-xs mt-0.5">
-              Right-click on any country to set as Origin or Target • High-contrast Google Maps cartography.
+              Right-click any country to set Origin or Target • High-contrast Google Maps cartography.
             </p>
           </div>
 
@@ -551,7 +547,10 @@ export function MapScreen() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         
         {/* SVG Google Maps Style Interactive Canvas */}
-        <div className="lg:col-span-7 bg-[#0b1329] border border-stone-800 rounded-xl overflow-hidden relative flex flex-col min-h-[600px] shadow-lg">
+        <div 
+          onContextMenu={(e) => e.preventDefault()}
+          className="lg:col-span-7 bg-[#0b1329] border border-stone-800 rounded-xl overflow-hidden relative flex flex-col min-h-[600px] shadow-lg"
+        >
           
           {/* Dynamic Map Legend & Instructions */}
           <div className="p-3 bg-[#0a1122]/95 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 text-[11px] font-mono z-10">
@@ -576,7 +575,7 @@ export function MapScreen() {
 
             <div className="text-slate-400 text-[10px] flex items-center gap-1.5">
               <Compass className="w-3.5 h-3.5 text-teal-400" />
-              <span>Right-click any country for quick menu</span>
+              <span>Right-click any country to set Origin / Target</span>
             </div>
           </div>
 
@@ -661,11 +660,15 @@ export function MapScreen() {
                 {Object.entries(COUNTRY_LABEL_POSITIONS).map(([code, item]) => {
                   const isOrigin = code === originCountry;
                   const isTarget = code === targetCountryCode;
+                  const iso3 = COUNTRY_ISO2_TO_ISO3[code] || '';
                   return (
                     <Marker key={code} coordinates={item.coords}>
                       <text
                         textAnchor="middle"
                         y={isOrigin || isTarget ? -10 : 3}
+                        onClick={() => handleCountryClick(iso3)}
+                        onContextMenu={(e) => handleCountryContextMenu(e, iso3)}
+                        className="cursor-pointer"
                         style={{
                           fontFamily: 'Inter, system-ui, sans-serif',
                           fontSize: isOrigin || isTarget ? 11 : 9,
@@ -673,7 +676,6 @@ export function MapScreen() {
                           letterSpacing: '0.05em',
                           fill: isOrigin ? '#38bdf8' : isTarget ? '#2dd4bf' : '#f8fafc',
                           textShadow: '0 1px 3px rgba(0,0,0,0.9), 0 0 4px rgba(0,0,0,0.95)',
-                          pointerEvents: 'none',
                         }}
                       >
                         {item.label}
@@ -750,7 +752,7 @@ export function MapScreen() {
               const totalCap = hMacro?.installedCapacityTWh ? `${hMacro.installedCapacityTWh.toFixed(1)} TWh/yr` : hPlants.length > 0 ? `~${Math.round(hPlants.reduce((acc, p) => acc + p.annualEnergyGWh, 0))} GWh/yr` : '—';
 
               return (
-                <div className="absolute bottom-3 left-3 z-30 bg-slate-900/95 backdrop-blur-md border border-slate-700/80 rounded-xl p-3.5 text-stone-100 w-80 font-mono text-xs shadow-2xl pointer-events-none space-y-2.5 animate-in fade-in zoom-in-95 duration-150">
+                <div className="absolute bottom-3 left-3 z-30 bg-slate-900/95 backdrop-blur-md border border-slate-700/80 rounded-xl p-3.5 text-stone-100 w-80 font-mono text-xs shadow-2xl space-y-2.5 animate-in fade-in zoom-in-95 duration-150">
                   
                   {/* Card Header */}
                   <div className="flex items-center justify-between border-b border-slate-800 pb-2">
@@ -817,10 +819,32 @@ export function MapScreen() {
                     </div>
                   )}
 
-                  {/* Prompt Action Hint */}
-                  <div className="text-[10px] text-teal-400 flex items-center justify-between pt-0.5">
-                    <span>Right-click or click to set origin / target ➔</span>
-                  </div>
+                  {/* 1-Click Quick Set Buttons on Hover Card */}
+                  {hIso2 && (
+                    <div className="grid grid-cols-2 gap-1.5 pt-1 border-t border-slate-800">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOriginCountry(hIso2);
+                          setInjectionCountry(hIso2);
+                        }}
+                        className="py-1 px-2 rounded bg-sky-950 hover:bg-sky-900 border border-sky-700 text-sky-300 font-bold text-[10px] transition-all flex items-center justify-center gap-1"
+                      >
+                        Set Origin 🔵
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const iso3 = COUNTRY_ISO2_TO_ISO3[hIso2];
+                          if (iso3) setSelectedDestinationIso3(iso3);
+                          setDrawerTab('COMPLIANCE');
+                        }}
+                        className="py-1 px-2 rounded bg-teal-950 hover:bg-teal-900 border border-teal-700 text-teal-300 font-bold text-[10px] transition-all flex items-center justify-center gap-1"
+                      >
+                        Set Target 🎯
+                      </button>
+                    </div>
+                  )}
 
                 </div>
               );
@@ -1020,11 +1044,23 @@ export function MapScreen() {
 
       </div>
 
+      {/* RIGHT-CLICK CONTEXT MENU BACKDROP (DISMISS ON OUTSIDE CLICK) */}
+      {contextMenu && (
+        <div
+          className="fixed inset-0 z-40 bg-transparent"
+          onClick={() => setContextMenu(null)}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            setContextMenu(null);
+          }}
+        />
+      )}
+
       {/* RIGHT-CLICK FLOATING CONTEXT MENU */}
       {contextMenu && (
         <div
           style={{ top: contextMenu.y, left: contextMenu.x }}
-          className="fixed z-50 bg-slate-900/95 backdrop-blur-md border border-slate-700/90 rounded-xl shadow-2xl p-2 w-64 font-mono text-xs text-stone-100 space-y-1 animate-in fade-in zoom-in-95 duration-100"
+          className="fixed z-50 bg-slate-900/98 backdrop-blur-lg border border-slate-700 rounded-xl shadow-2xl p-2 w-64 font-mono text-xs text-stone-100 space-y-1 animate-in fade-in zoom-in-95 duration-100"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
@@ -1045,9 +1081,9 @@ export function MapScreen() {
               setInjectionCountry(contextMenu.iso2);
               setContextMenu(null);
             }}
-            className="w-full px-2.5 py-1.5 rounded hover:bg-sky-950/80 hover:text-sky-300 text-left flex items-center gap-2 transition-colors font-bold text-sky-400"
+            className="w-full px-2.5 py-2 rounded hover:bg-sky-950/90 hover:text-sky-300 text-left flex items-center gap-2 transition-colors font-bold text-sky-400"
           >
-            <div className="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></div>
+            <div className="w-2.5 h-2.5 rounded-full bg-sky-500 animate-pulse"></div>
             <span>Set as Origin Country</span>
           </button>
 
@@ -1058,9 +1094,9 @@ export function MapScreen() {
               setDrawerTab('COMPLIANCE');
               setContextMenu(null);
             }}
-            className="w-full px-2.5 py-1.5 rounded hover:bg-teal-950/80 hover:text-teal-300 text-left flex items-center gap-2 transition-colors font-bold text-teal-400"
+            className="w-full px-2.5 py-2 rounded hover:bg-teal-950/90 hover:text-teal-300 text-left flex items-center gap-2 transition-colors font-bold text-teal-400"
           >
-            <div className="w-2 h-2 rounded-full bg-teal-500"></div>
+            <div className="w-2.5 h-2.5 rounded-full bg-teal-500"></div>
             <span>Set as Target Destination</span>
           </button>
 
@@ -1072,9 +1108,9 @@ export function MapScreen() {
               setDrawerTab('PLANTS');
               setContextMenu(null);
             }}
-            className="w-full px-2.5 py-1.5 rounded hover:bg-slate-800 text-left flex items-center gap-2 transition-colors text-stone-300"
+            className="w-full px-2.5 py-2 rounded hover:bg-slate-800 text-left flex items-center gap-2 transition-colors text-stone-200"
           >
-            <Factory className="w-3.5 h-3.5 text-amber-400" />
+            <Factory className="w-4 h-4 text-amber-400" />
             <span>View Plants & Feedstocks</span>
           </button>
 
@@ -1084,9 +1120,9 @@ export function MapScreen() {
               navigate(`/trade?originCountry=${contextMenu.iso2}`);
               setContextMenu(null);
             }}
-            className="w-full px-2.5 py-1.5 rounded hover:bg-slate-800 text-left flex items-center gap-2 transition-colors text-stone-300"
+            className="w-full px-2.5 py-2 rounded hover:bg-slate-800 text-left flex items-center gap-2 transition-colors text-stone-200 border-t border-slate-800/80 pt-2"
           >
-            <Navigation className="w-3.5 h-3.5 text-emerald-400" />
+            <Navigation className="w-4 h-4 text-emerald-400" />
             <span>Open in Trade Builder ➔</span>
           </button>
         </div>
