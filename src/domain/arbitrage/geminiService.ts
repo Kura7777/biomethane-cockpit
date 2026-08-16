@@ -5,7 +5,8 @@ export type GeminiModelId =
   | 'gemini-3.7-flash'
   | 'gemini-3.7-pro'
   | 'gemini-2.5-flash'
-  | 'gemini-2.5-pro';
+  | 'gemini-2.5-pro'
+  | 'gemini-2.0-flash';
 
 export interface GeminiAgentRequest {
   apiKey?: string;
@@ -20,24 +21,32 @@ export interface GeminiAgentRequest {
 }
 
 /**
- * Call Google Gemini API (defaults to Gemini 3.7 Flash) or fall back to verified local deterministic reasoning
+ * Call Google Gemini API with automatic high-demand fallback across models
  */
 export async function queryDeskAgent(req: GeminiAgentRequest): Promise<string> {
   const apiKey = req.apiKey?.trim();
 
   // If user provided a Gemini API Key, call the official Google AI endpoint
   if (apiKey) {
-    try {
-      const modelName = req.model || 'gemini-3.7-flash';
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+    const candidateModels: GeminiModelId[] = [
+      req.model || 'gemini-3.7-flash',
+      'gemini-2.5-flash',
+      'gemini-2.0-flash',
+      'gemini-2.5-pro'
+    ];
 
-      const systemPrompt = req.systemInstruction || `
+    // Remove duplicates while preserving user's top preference
+    const uniqueModels = Array.from(new Set(candidateModels));
+
+    let lastError: any = null;
+
+    const systemPrompt = req.systemInstruction || `
 You are the Chief Regulatory & Commercial Biomethane Trading Strategist for a Tier-1 European energy desk.
 You provide precise, mathematically grounded, and legally verified advice citing EUR-Lex directives (RED III 2023/2413), German BImSchG (§37a/38. BImSchV), French Code de l'énergie (CPB/TIRUERT), Dutch ERE regulations, and FuelEU Maritime (2023/1805).
 Be concise, quantitative, and professional. Always model realistic desk margins (€2.00-€6.00/MWh) with upstream producer index-linking (~88-92% of the compliance stack).
 `;
 
-      const contextSummary = req.contextData?.topOpportunities ? `
+    const contextSummary = req.contextData?.topOpportunities ? `
 CURRENT LIVE TOP EUROPEAN ARBITRAGE OPPORTUNITIES:
 ${req.contextData.topOpportunities.slice(0, 5).map((o, i) => `
 ${i + 1}. ${o.originFlag} ${o.originCountryName} ➔ ${o.targetFlag} ${o.targetMarketName}
@@ -50,33 +59,45 @@ ${i + 1}. ${o.originFlag} ${o.originCountryName} ➔ ${o.targetFlag} ${o.targetM
 `).join('')}
 ` : '';
 
-      const fullPrompt = `${contextSummary}\n\nTRADER INQUIRY:\n${req.userPrompt}`;
+    const fullPrompt = `${contextSummary}\n\nTRADER INQUIRY:\n${req.userPrompt}`;
 
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: fullPrompt }] }],
-          systemInstruction: { parts: [{ text: systemPrompt }] },
-          generationConfig: {
-            temperature: 0.2,
-            maxOutputTokens: 1500,
-          },
-        }),
-      });
+    for (const modelName of uniqueModels) {
+      try {
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
-      if (!response.ok) {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: fullPrompt }] }],
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            generationConfig: {
+              temperature: 0.2,
+              maxOutputTokens: 1500,
+            },
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text) {
+            return text;
+          }
+        }
+
         const errJson = await response.json().catch(() => ({}));
-        throw new Error(errJson.error?.message || `Gemini API (${modelName}) returned status ${response.status}`);
+        const errMsg = errJson.error?.message || `HTTP ${response.status}`;
+        lastError = new Error(`Model ${modelName}: ${errMsg}`);
+        console.warn(`[Gemini API] ${modelName} returned error: ${errMsg}. Trying fallback model...`);
+      } catch (err: any) {
+        lastError = err;
+        console.warn(`[Gemini API] Failed calling ${modelName}: ${err.message}. Trying fallback...`);
       }
-
-      const data = await response.json();
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (text) return text;
-    } catch (err: any) {
-      console.warn('Gemini API call failed, falling back to local deterministic desk agent:', err);
-      return `⚠️ [Gemini API Note: ${err.message || 'Connection error'} — Using Local Desk Heuristics]\n\n` + generateLocalAgentResponse(req);
     }
+
+    // If all cloud model attempts failed, inform the trader and provide verified local heuristics
+    return `⚠️ [Gemini API Note: ${lastError?.message || 'Google servers congested'} — Seamlessly using Local Desk Reasoning]\n\n` + generateLocalAgentResponse(req);
   }
 
   // Built-in Local Desk Intelligence (Zero API Key required)
