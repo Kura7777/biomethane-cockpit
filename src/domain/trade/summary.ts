@@ -48,6 +48,9 @@ export function generateTradeSummary(assessment: TradeAssessment): string {
     `UDB ${c.udbStatus.replace(/_/g, ' ').toLowerCase()}.`
   );
   lines.push(`Sell certificates into ${assessment.targetMarketName} (Pricing Side: ${nb.markSideUsed.toUpperCase()}).`);
+  if (c.counterparty) {
+    lines.push(`Counterparty: ${c.counterparty}`);
+  }
   lines.push('');
 
   // Status

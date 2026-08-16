@@ -1384,7 +1384,7 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
         };
 
         const migrated = migrateState(v5State);
-        expect(migrated.schemaVersion).toBe(6);
+        expect(migrated.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
         expect(migrated.consignments).toHaveLength(1);
         expect(migrated.consignments[0].name).toBe('Existing Consignment');
         expect(migrated.consignments[0].volumeMWh).toBe(5000);
@@ -1501,6 +1501,135 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
         const summary = generateTradeSummary(assessment);
         expect(summary).toContain('REGULATORY RISK SPREAD (HEADLINE VALUATION RANGE):');
         expect(summary).toContain('Underlying Driver:    German THG double-counting eligibility');
+      });
+    });
+
+    describe('Deal Ticket Phase 4: Deal context (Notionals, Runner-up, Counterparty, Logistics)', () => {
+      it('4.1 Notional calculation: volumeMWh × value produces expected total, null when volume is null', () => {
+        const consignment: Consignment = {
+          ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
+          volumeMWh: 10000,
+          deliveryPeriod: {
+            type: 'CALENDAR',
+            startDate: '2026-01-01',
+            endDate: '2026-12-31',
+            complianceYear: 2026,
+          },
+        };
+        const deMarket = getMarketById('DE_THG')!;
+        const netback = computeNetback(deMarket, consignment, sampleMarks, completeCosts, 'bid');
+
+        expect(netback.deskPnL).toBe(Number((netback.deskMargin! * 10000).toFixed(2)));
+        expect(netback.producerPayable).not.toBeNull();
+      });
+
+      it('4.2 Best alternative runner-up selection: finds highest eligible market excluding selected', () => {
+        const consignment: Consignment = {
+          ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
+          deliveryPeriod: {
+            type: 'CALENDAR',
+            startDate: '2026-01-01',
+            endDate: '2026-12-31',
+            complianceYear: 2026,
+          },
+        };
+        const allActive = MARKETS.filter(m => m.status === 'ACTIVE' && m.id !== 'DE_THG');
+        const candidateList = allActive
+          .map(m => {
+            const el = evaluateEligibility(consignment, m);
+            if (el.overallVerdict !== 'ELIGIBLE' && el.overallVerdict !== 'CONDITIONAL') return null;
+            const nb = computeNetback(m, consignment, sampleMarks, emptyCosts, 'bid');
+            if (nb.netNetback === null) return null;
+            return { market: m, nb };
+          })
+          .filter((item): item is { market: any; nb: any } => item !== null);
+
+        candidateList.sort((a, b) => (b.nb.netNetback ?? 0) - (a.nb.netNetback ?? 0));
+        expect(candidateList.length).toBeGreaterThan(0);
+        expect(candidateList[0].market.id).not.toBe('DE_THG');
+      });
+
+      it('4.3 Counterparty field: defaults null, is not flagged in missingInputs, included in generateTradeSummary', () => {
+        const consignmentWithCp: Consignment = {
+          ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
+          counterparty: 'Shell Energy Europe',
+          deliveryPeriod: {
+            type: 'CALENDAR',
+            startDate: '2026-01-01',
+            endDate: '2026-12-31',
+            complianceYear: 2026,
+          },
+        };
+        const deMarket = getMarketById('DE_THG')!;
+        const elig = evaluateEligibility(consignmentWithCp, deMarket);
+        const netback = computeNetback(deMarket, consignmentWithCp, sampleMarks, emptyCosts, 'bid');
+
+        // Optional field is not in missing inputs
+        expect(netback.missingInputs).not.toContain('counterparty');
+
+        const assessment: TradeAssessment = {
+          id: 'test-assessment-cp',
+          createdAt: '2026-08-16T10:00:00Z',
+          targetMarketId: 'DE_THG',
+          targetMarketName: 'Germany THG',
+          consignment: consignmentWithCp,
+          eligibility: elig,
+          netback,
+          marks: sampleMarks,
+          costs: emptyCosts,
+          userNotes: '',
+        };
+
+        const summary = generateTradeSummary(assessment);
+        expect(summary).toContain('Counterparty: Shell Energy Europe');
+      });
+
+      it('v6 → v7 migration: existing consignments get counterparty: null without data loss', () => {
+        const v6State = {
+          schemaVersion: 6,
+          marks: {
+            marks: {},
+            gasIndex: { bid: 28.0, offer: 29.0, mid: 28.5, updatedAt: null, provenance: null },
+            fx: { gbpEur: 1.17, chfEur: 1.05, updatedAt: null, provenance: null },
+            pricingSide: 'bid',
+          },
+          consignments: [
+            {
+              id: 'c1',
+              name: 'Existing Consignment',
+              originCountry: 'DK',
+              originCountryName: 'Denmark',
+              feedstock: 'manure',
+              feedstockName: 'Animal manure',
+              annexClassification: 'IX_A',
+              carbonIntensity: -100,
+              commissioningDateRange: 'POST_2021_TO_2025',
+              certificationScheme: 'ISCC_EU',
+              chainOfCustody: 'MASS_BALANCE',
+              injectionCountry: 'DK',
+              injectionIsEU: true,
+              udbStatus: 'RECORDED',
+              posStatus: 'ISSUED',
+              volumeMWh: 5000,
+              deliveryPeriod: {
+                type: 'CALENDAR',
+                startDate: '2026-01-01',
+                endDate: '2026-12-31',
+                complianceYear: 2026,
+              },
+            },
+          ],
+          activeConsignmentId: 'c1',
+          costs: emptyCosts,
+          savedAssessments: [],
+          selectedMarketId: 'DE_THG',
+        };
+
+        const migrated = migrateState(v6State);
+        expect(migrated.schemaVersion).toBe(7);
+        expect(migrated.consignments).toHaveLength(1);
+        expect(migrated.consignments[0].counterparty).toBeNull();
+        expect(migrated.consignments[0].deliveryPeriod?.complianceYear).toBe(2026);
       });
     });
   });

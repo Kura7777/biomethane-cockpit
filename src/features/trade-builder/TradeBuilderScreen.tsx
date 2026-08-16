@@ -218,6 +218,37 @@ export function TradeBuilderScreen() {
 
   const praCheck = useMemo(() => assessmentContainsPraData(currentAssessment), [currentAssessment]);
 
+  // 4.2 Runner-Up Best Alternative Market (dynamic highest netback among ELIGIBLE/CONDITIONAL)
+  const runnerUp = useMemo(() => {
+    const currentPricingSides = state.marks.pricingSides ?? state.marks.pricingSide ?? 'bid';
+    const otherMarkets = activeMarkets.filter(m => m.id !== selectedMarket.id);
+    const candidateList = otherMarkets
+      .map(m => {
+        const el = evaluateEligibility(consignment, m);
+        if (el.overallVerdict !== 'ELIGIBLE' && el.overallVerdict !== 'CONDITIONAL') return null;
+        const nb = computeNetback(m, consignment, state.marks, state.costs, currentPricingSides);
+        if (nb.netNetback === null) return null;
+        return { market: m, el, nb };
+      })
+      .filter((item): item is { market: Market; el: any; nb: any } => item !== null);
+
+    if (candidateList.length === 0) return null;
+    candidateList.sort((a, b) => (b.nb.netNetback ?? 0) - (a.nb.netNetback ?? 0));
+    const best = candidateList[0];
+    const currentVal = netback.netNetback ?? 0;
+    const spread = (best.nb.netNetback ?? 0) - currentVal;
+    return {
+      market: best.market,
+      netback: best.nb.netNetback,
+      spread,
+    };
+  }, [activeMarkets, selectedMarket.id, consignment, state.marks, state.costs, state.marks.pricingSides, state.marks.pricingSide, netback.netNetback]);
+
+  // 4.4 Logistics Execution Summary
+  const logisticsSummary = useMemo(() => {
+    return calculateLogisticsRoute(consignment.originCountry, selectedMarket.country || 'DE');
+  }, [consignment.originCountry, selectedMarket.country]);
+
   // Computed Market Rows for Dense Table (Phase 4)
   const marketRows = useMemo(() => {
     return activeMarkets.map(m => {
@@ -738,6 +769,18 @@ export function TradeBuilderScreen() {
                 </div>
               </div>
 
+              {/* 4.3 Optional Counterparty */}
+              <div>
+                <label className="block text-[9px] text-[#8B98A5] uppercase mb-1">Counterparty (Optional)</label>
+                <input
+                  type="text"
+                  value={consignment.counterparty ?? ''}
+                  onChange={e => setConsignment({ ...consignment, counterparty: e.target.value || null })}
+                  placeholder="e.g. Shell Energy Europe"
+                  className="w-full bg-[#0B0E11] border border-[#26313D] rounded px-2 py-1 text-xs text-[#E8EDF2] focus:border-[#2DD4BF] outline-none font-mono"
+                />
+              </div>
+
             </div>
           </div>
 
@@ -1178,9 +1221,28 @@ export function TradeBuilderScreen() {
                   <span className="text-[#2DD4BF] text-[11px] font-mono font-medium px-2 py-0.5 bg-[#12171C] rounded border border-[#1E262F]">
                     {deliveryPeriodLabel}
                   </span>
+
+                  {/* 4.2 Runner-up Best Alternative */}
+                  {runnerUp && (
+                    <button
+                      onClick={() => {
+                        setSelectedMarketId(runnerUp.market.id);
+                        setSearchParams({ marketId: runnerUp.market.id, originCountry: consignment.originCountry });
+                      }}
+                      className="inline-flex items-center gap-1.5 text-[11px] font-mono text-[#8B98A5] hover:text-[#2DD4BF] px-2 py-0.5 bg-[#12171C] rounded border border-[#1E262F] hover:border-[#2DD4BF]/50 transition-colors cursor-pointer"
+                      title="Click to switch target market to best alternative"
+                    >
+                      <span className="text-[#8B98A5]">Runner-up:</span>
+                      <span className="text-[#E8EDF2] font-semibold">{runnerUp.market.name}</span>
+                      <span className="text-[#2DD4BF]">€{runnerUp.netback.toFixed(2)}/MWh</span>
+                      <span className={runnerUp.spread >= 0 ? 'text-[#2DD4BF]' : 'text-[#8B98A5]'}>
+                        ({runnerUp.spread >= 0 ? '+' : ''}€{runnerUp.spread.toFixed(2)} spread)
+                      </span>
+                    </button>
+                  )}
                 </div>
                 <div className="text-[10px] text-[#8B98A5] mt-0.5 font-mono">
-                  Registry: <span className="text-[#E8EDF2]">{selectedMarket.registry || selectedMarket.countryName}</span> • Basis: <span className="text-[#E8EDF2]">{selectedMarket.legalBasis}</span>
+                  Registry: <span className="text-[#E8EDF2]">{selectedMarket.registry || selectedMarket.countryName}</span> • Basis: <span className="text-[#E8EDF2]">{selectedMarket.legalBasis}</span> • Counterparty: <span className="text-[#E8EDF2]">{consignment.counterparty || 'Open Desk / Unassigned'}</span>
                 </div>
               </div>
 
@@ -1238,7 +1300,12 @@ export function TradeBuilderScreen() {
                         €{netback.valuationRange.low.toFixed(2)} – €{netback.valuationRange.high.toFixed(2)}
                         <span className="text-xs font-normal text-[#8B98A5] ml-1">/MWh</span>
                       </div>
-                      <div className="text-[10px] text-[#D99A2B]/90 mt-1.5 font-mono">
+                      {consignment.volumeMWh !== null && (
+                        <div className="text-[11px] text-[#D99A2B]/90 mt-1 font-mono tabular-nums">
+                          €{(netback.valuationRange.low * consignment.volumeMWh).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} – €{(netback.valuationRange.high * consignment.volumeMWh).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} total on {consignment.volumeMWh.toLocaleString()} MWh
+                        </div>
+                      )}
+                      <div className="text-[10px] text-[#D99A2B]/80 mt-1 font-mono">
                         Δ €{netback.valuationRange.deltaPerMwh.toFixed(2)}/MWh regulatory uncertainty spread
                       </div>
                     </div>
@@ -1250,6 +1317,11 @@ export function TradeBuilderScreen() {
                         €{netback.netNetback.toFixed(2)}
                         <span className="text-xs font-normal text-[#8B98A5] ml-1">/MWh</span>
                       </div>
+                      {consignment.volumeMWh !== null && (
+                        <div className="text-[11px] text-[#8B98A5] mt-1 font-mono tabular-nums">
+                          €{(netback.netNetback * consignment.volumeMWh).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} total on {consignment.volumeMWh.toLocaleString()} MWh
+                        </div>
+                      )}
                       <div className="text-[10px] text-[#8B98A5] mt-1.5 font-mono">
                         Molecule (€{(netback.moleculeValue ?? 0).toFixed(2)}) + Compliance (€{(netback.certificateValue?.valueEurPerMWh ?? 0).toFixed(2)})
                       </div>
@@ -1311,6 +1383,11 @@ export function TradeBuilderScreen() {
                           €{netback.producerPayable.toFixed(2)}
                           <span className="text-[10px] font-normal text-[#8B98A5] ml-0.5">/MWh</span>
                         </div>
+                        {consignment.volumeMWh !== null && (
+                          <div className="text-[10px] text-[#8B98A5] mt-0.5 font-mono tabular-nums">
+                            €{(netback.producerPayable * consignment.volumeMWh).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} total
+                          </div>
+                        )}
                         <div className="text-[10px] text-[#8B98A5] mt-1 font-mono truncate">
                           {state.costs.producerPricing?.mode === 'INDEX_LINKED' 
                             ? `${((state.costs.producerPricing.indexLinkedShare ?? 0) * 100).toFixed(0)}% Share` 
@@ -1332,6 +1409,11 @@ export function TradeBuilderScreen() {
                             €{netback.deskMargin.toFixed(2)}
                             <span className="text-[10px] font-normal opacity-70 ml-0.5">/MWh</span>
                           </div>
+                          {consignment.volumeMWh !== null && (
+                            <div className="text-[10px] text-[#8B98A5] mt-0.5 font-mono tabular-nums">
+                              €{(netback.deskMargin * consignment.volumeMWh).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} total
+                            </div>
+                          )}
                           <div className={`text-[10px] mt-1 font-mono truncate ${
                             netback.deskMargin < 0 ? 'text-[#D64545] font-semibold' : 'text-[#8B98A5]'
                           }`}>
@@ -1396,6 +1478,11 @@ export function TradeBuilderScreen() {
                     <div className="text-xs font-semibold text-[#E8EDF2] mt-0.5 tabular-nums">
                       Netback: €{netback.uncertaintyBranches[0].netNetback?.toFixed(2)}/MWh
                     </div>
+                    {consignment.volumeMWh !== null && netback.uncertaintyBranches[0].netNetback !== null && (
+                      <div className="text-[10px] text-[#8B98A5] mt-0.5 tabular-nums">
+                        €{(netback.uncertaintyBranches[0].netNetback * consignment.volumeMWh).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} total
+                      </div>
+                    )}
                     <div className="text-[#2DD4BF] text-[11px] mt-0.5 tabular-nums">
                       Margin: €{netback.uncertaintyBranches[0].deskMargin?.toFixed(2)}/MWh ({netback.uncertaintyBranches[0].marginPercent?.toFixed(1)}%)
                     </div>
@@ -1406,6 +1493,11 @@ export function TradeBuilderScreen() {
                     <div className="text-xs font-semibold text-[#E8EDF2] mt-0.5 tabular-nums">
                       Netback: €{netback.uncertaintyBranches[1].netNetback?.toFixed(2)}/MWh
                     </div>
+                    {consignment.volumeMWh !== null && netback.uncertaintyBranches[1].netNetback !== null && (
+                      <div className="text-[10px] text-[#8B98A5] mt-0.5 tabular-nums">
+                        €{(netback.uncertaintyBranches[1].netNetback * consignment.volumeMWh).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} total
+                      </div>
+                    )}
                     <div className="text-[#2DD4BF] text-[11px] mt-0.5 tabular-nums">
                       Margin: €{netback.uncertaintyBranches[1].deskMargin?.toFixed(2)}/MWh ({netback.uncertaintyBranches[1].marginPercent?.toFixed(1)}%)
                     </div>
@@ -1418,35 +1510,41 @@ export function TradeBuilderScreen() {
             <div className="space-y-2 pt-0.5 font-mono text-xs">
               
               {/* Header & Global Side Toggle */}
-              <div className="flex justify-between items-center text-[10px] font-semibold uppercase tracking-wider text-[#8B98A5] pb-1 border-b border-[#1E262F]">
-                <span className="flex items-center gap-1.5">
-                  <TrendingUp className="w-3.5 h-3.5 text-[#8B98A5]" />
-                  Deal Ticket Breakdown & Valuation Legs
+              <div className="flex justify-between items-center pb-1 border-b border-[#1E262F]">
+                <span className="font-semibold text-[#8B98A5] text-[10px] uppercase tracking-wider">
+                  Two-Sided Deal Ticket Breakdown
                 </span>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[#8B98A5] text-[9px]">Global Side:</span>
-                  <div className="inline-flex bg-[#0B0E11] p-0.5 rounded text-[9px]">
-                    {(['bid', 'mid', 'offer'] as PriceSide[]).map(s => (
-                      <button
-                        key={s}
-                        onClick={() => dispatch({ type: 'SET_PRICING_SIDE', side: s })}
-                        className={`px-1.5 py-0.2 uppercase rounded font-semibold transition-colors ${
-                          state.marks.pricingSide === s
-                            ? 'bg-[#182830] text-[#2DD4BF]'
-                            : 'text-[#8B98A5] hover:text-[#E8EDF2]'
-                        }`}
-                      >
-                        {s}
-                      </button>
-                    ))}
+                
+                {/* Global Side Quick-Set */}
+                <div className="flex items-center gap-1.5 text-[10px]">
+                  <span className="text-[#8B98A5]">All legs:</span>
+                  <div className="inline-flex bg-[#0B0E11] p-0.5 rounded border border-[#1E262F]">
+                    {(['bid', 'mid', 'offer'] as PriceSide[]).map(s => {
+                      const isGlobalMatch = (state.marks.pricingSides?.certificateSide ?? state.marks.pricingSide ?? 'bid') === s &&
+                                            (state.marks.pricingSides?.moleculeSide ?? state.marks.pricingSide ?? 'bid') === s;
+                      return (
+                        <button
+                          key={s}
+                          onClick={() => {
+                            dispatch({ type: 'SET_PRICING_SIDE', side: s });
+                            dispatch({ type: 'SET_PRICING_SIDES', sides: { certificateSide: s, moleculeSide: s } });
+                          }}
+                          className={`px-1.5 py-0.2 uppercase rounded transition-colors ${
+                            isGlobalMatch ? 'bg-[#2DD4BF] text-[#0B0E11] font-bold' : 'text-[#8B98A5] hover:text-[#E8EDF2]'
+                          }`}
+                        >
+                          {s}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
 
-              {/* 1. SELL LEG */}
-              <div className="bg-[#0B0E11] rounded p-2.5 space-y-1 border border-[#1E262F]/60">
-                <div className="text-[9px] font-bold uppercase tracking-wider text-[#2DD4BF] pb-1 border-b border-[#1E262F]/40 flex justify-between items-center">
-                  <span>Sell Leg (Revenue Stack)</span>
+              {/* 1. SELL LEG (Certificate + Molecule - Transfer/Cert/Logistics) */}
+              <div className="p-2.5 bg-[#0B0E11] rounded border border-[#1E262F] space-y-1">
+                <div className="flex justify-between items-center text-[10px] font-semibold text-[#2DD4BF] uppercase tracking-wider pb-1 border-b border-[#1E262F]/60">
+                  <span>1. SELL LEG (Offtake Realisation)</span>
                   <span className="text-[#8B98A5] font-normal">Delivery to {selectedMarket.shortName || selectedMarket.name}</span>
                 </div>
 
@@ -1518,44 +1616,40 @@ export function TradeBuilderScreen() {
                 </div>
 
                 {/* Delivered Netback (sell-side) Subtotal + at mid + crossing cost */}
-                <div className="pt-1.5 border-t border-[#1E262F] space-y-1">
+                <div className="pt-1.5 border-t border-[#1E262F]/60 flex flex-col gap-1">
                   <div className="flex justify-between items-center font-semibold text-[#E8EDF2]">
-                    <span className="uppercase text-[10px] text-[#8B98A5]">Delivered netback (sell-side)</span>
-                    <span className="text-[14px] text-[#2DD4BF] tabular-nums">
-                      {netback.netNetback !== null ? `€${netback.netNetback.toFixed(2)}/MWh` : '—'}
+                    <span>Delivered Netback (Sell Leg)</span>
+                    <span className="tabular-nums text-[#2DD4BF]">
+                      {netback.netNetback !== null ? `€${netback.netNetback.toFixed(2)}/MWh` : 'N/A'}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center text-[10px] text-[#8B98A5]">
-                    <span>at mid</span>
-                    <span className="tabular-nums">
-                      {netback.sides?.atMid != null ? `€${netback.sides.atMid.toFixed(2)}/MWh` : '—'}
-                      {netback.sides?.crossingCost != null && (
-                        netback.sides.crossingCost > 0 ? (
-                          <span className="text-amber-400/90 ml-1.5">
-                            (crossing cost €{netback.sides.crossingCost.toFixed(2)})
-                          </span>
-                        ) : netback.sides.crossingCost < 0 ? (
-                          <span className="text-[#2DD4BF] ml-1.5">
-                            (spread benefit €{Math.abs(netback.sides.crossingCost).toFixed(2)} · optimistic side)
-                          </span>
-                        ) : (
-                          <span className="text-[#8B98A5] ml-1.5">
-                            (mid pricing)
-                          </span>
-                        )
-                      )}
-                    </span>
-                  </div>
+                  
+                  {/* Crossing cost analysis */}
+                  {netback.sides && (
+                    <div className="flex justify-between items-center text-[10px] text-[#8B98A5]">
+                      <span>
+                        at mid: <strong className="text-[#E8EDF2]">{netback.sides.atMid !== null ? `€${netback.sides.atMid.toFixed(2)}/MWh` : 'N/A'}</strong>
+                      </span>
+                      {netback.sides.crossingCost !== null && netback.sides.crossingCost >= 0 ? (
+                        <span className="text-[#D99A2B]">
+                          crossing cost €{netback.sides.crossingCost.toFixed(2)}/MWh
+                        </span>
+                      ) : netback.sides.crossingCost !== null ? (
+                        <span className="text-[#2DD4BF]">
+                          spread benefit €{Math.abs(netback.sides.crossingCost).toFixed(2)}/MWh (optimistic side)
+                        </span>
+                      ) : null}
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* 2. BUY LEG */}
-              <div className="bg-[#0B0E11] rounded p-2.5 space-y-1.5 border border-[#1E262F]/60">
-                <div className="text-[9px] font-bold uppercase tracking-wider text-[#D99A2B] pb-1 border-b border-[#1E262F]/40 flex justify-between items-center">
-                  <span>Buy Leg (Procurement)</span>
+              {/* 2. BUY LEG (Producer Payable) */}
+              <div className="p-2.5 bg-[#0B0E11] rounded border border-[#1E262F] space-y-1">
+                <div className="flex justify-between items-center text-[10px] font-semibold text-[#D99A2B] uppercase tracking-wider pb-1 border-b border-[#1E262F]/60">
+                  <span>2. BUY LEG (Producer Procurement)</span>
                   <span className="text-[#8B98A5] font-normal">Origin: {consignment.originCountryName}</span>
                 </div>
-
                 <div className="h-7 flex justify-between items-center text-[#8B98A5]">
                   <span className="text-[#E8EDF2]">
                     {state.costs.producerPricing?.mode === 'INDEX_LINKED'
@@ -1578,6 +1672,25 @@ export function TradeBuilderScreen() {
                 <span className="text-[18px] tabular-nums">
                   {netback.deskMargin !== null ? `€${netback.deskMargin.toFixed(2)}/MWh` : 'Not set'}
                 </span>
+              </div>
+
+              {/* 4.4 LOGISTICS ROUTE & EXECUTION SUMMARY */}
+              <div className="flex items-center justify-between p-2 bg-[#0B0E11] rounded border border-[#1E262F] text-xs font-mono">
+                <div className="flex items-center gap-1.5 text-[11px] text-[#8B98A5] flex-wrap">
+                  <Truck className="w-3.5 h-3.5 text-[#2DD4BF] shrink-0" />
+                  <span className="text-[#E8EDF2] font-semibold">{consignment.originCountry} ➔ {selectedMarket.country || 'EU'}</span>
+                  <span>via <strong className="text-[#E8EDF2]">{logisticsSummary.physicalRoute.transitingCountries.join(' ➔ ') || `${consignment.originCountry}_GRID`}</strong></span>
+                  <span>•</span>
+                  <span>{logisticsSummary.physicalRoute.transitingCountries.length > 1 ? `${logisticsSummary.physicalRoute.transitingCountries.length - 1} border${logisticsSummary.physicalRoute.transitingCountries.length > 2 ? 's' : ''}` : 'Domestic'}</span>
+                  <span>•</span>
+                  <span>~€{(logisticsSummary.modes.physicalPipeline.totalCostEurMwh ?? 1.50).toFixed(2)}/MWh estimated tariff</span>
+                </div>
+                <button
+                  onClick={() => setIsLogisticsOpen(true)}
+                  className="text-[10px] text-[#2DD4BF] hover:underline font-semibold shrink-0 ml-2 cursor-pointer"
+                >
+                  Corridor ➔
+                </button>
               </div>
 
             </div>

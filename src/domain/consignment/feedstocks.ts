@@ -117,6 +117,7 @@ export const REFERENCE_CONSIGNMENTS: Record<string, Consignment> = {
     posStatus: 'ISSUED',
     volumeMWh: 10000,
     deliveryPeriod: null,
+    counterparty: null,
   },
   UK_FOOD_WASTE: {
     id: 'ref_uk_food_waste',
@@ -136,6 +137,7 @@ export const REFERENCE_CONSIGNMENTS: Record<string, Consignment> = {
     posStatus: 'ISSUED',
     volumeMWh: 8000,
     deliveryPeriod: null,
+    counterparty: null,
   },
   ISCC_PLUS_VOLUNTARY: {
     id: 'ref_iscc_plus',
@@ -155,6 +157,7 @@ export const REFERENCE_CONSIGNMENTS: Record<string, Consignment> = {
     posStatus: 'ISSUED',
     volumeMWh: 5000,
     deliveryPeriod: null,
+    counterparty: null,
   },
   FUELEU_MARITIME_LNG: {
     id: 'ref_fueleu_lng',
@@ -174,5 +177,6 @@ export const REFERENCE_CONSIGNMENTS: Record<string, Consignment> = {
     posStatus: 'ISSUED',
     volumeMWh: 15000,
     deliveryPeriod: null,
+    counterparty: null,
   },
 };

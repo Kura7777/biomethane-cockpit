@@ -6,8 +6,9 @@ import { PriceSide, MarkEntry, MarkProvenance, getMarkStaleness } from '../domai
 import { MARKETS } from '../domain/markets/registry';
 import { REFERENCE_CONSIGNMENTS } from '../domain/consignment/feedstocks';
 
-export const CURRENT_SCHEMA_VERSION = 6;
-const STORAGE_KEY = 'biomethane-desk-state-v6';
+export const CURRENT_SCHEMA_VERSION = 7;
+const STORAGE_KEY = 'biomethane-desk-state-v7';
+const LEGACY_STORAGE_KEY_V6 = 'biomethane-desk-state-v6';
 const LEGACY_STORAGE_KEY_V5 = 'biomethane-desk-state-v5';
 const LEGACY_STORAGE_KEY = 'biomethane-desk-state';
 
@@ -198,6 +199,14 @@ export function migrateState(raw: any): AppState {
     }));
   }
 
+  if (stateVersion < 7) {
+    // Schema v7 migration: existing consignments get counterparty: null
+    migrated.consignments = (migrated.consignments || []).map((c: any) => ({
+      ...c,
+      counterparty: c.counterparty ?? null,
+    }));
+  }
+
   migrated.schemaVersion = CURRENT_SCHEMA_VERSION;
 
   // Ensure default reference consignments exist if list is empty
@@ -285,6 +294,7 @@ export function createDefaultState(): AppState {
 
 function getInitialState(): AppState {
   const KNOWN_STORAGE_KEYS = [
+    'biomethane-desk-state-v7',
     'biomethane-desk-state-v6',
     'biomethane-desk-state-v5',
     'biomethane-desk-state-v4',

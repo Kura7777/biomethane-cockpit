@@ -29,4 +29,5 @@ export interface Consignment {
   posStatus: PoSStatus;
   volumeMWh: number | null;  // optional, for P&L calc
   deliveryPeriod?: DeliveryPeriod | null;
+  counterparty?: string | null; // optional counterparty label, e.g. "Shell Energy Europe"
 }
