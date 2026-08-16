@@ -57,7 +57,7 @@ export function LogisticsModal({
     } else if (mode.mode === 'PHYSICAL_PIPELINE') {
       transferCosts = assessment.physicalRoute.totalPhysicalTariffEurMwh;
       certCosts = 0.45;
-      logisticsCosts = Number((assessment.physicalRoute.shrinkageEurMwh + 0.50).toFixed(2));
+      logisticsCosts = assessment.physicalRoute.shrinkageEurMwh !== null ? Number((assessment.physicalRoute.shrinkageEurMwh + 0.50).toFixed(2)) : null;
     } else {
       transferCosts = 2.00;
       certCosts = 0.45;
@@ -97,7 +97,7 @@ export function LogisticsModal({
                   Cross-Border Gas Logistics & Delivery Wheel Guide
                 </h2>
                 <span className="text-[10px] bg-teal-950 text-teal-300 border border-teal-800 px-2 py-0.5 rounded font-bold">
-                  {assessment.originCountry} ➔ {assessment.targetCountry} (~{assessment.distanceKm.toLocaleString()} km)
+                  {assessment.originCountry} ➔ {assessment.targetCountry} ({assessment.distanceKm !== null ? `~${assessment.distanceKm.toLocaleString()} km` : 'Distance unmapped'})
                 </span>
               </div>
               <p className="text-[11px] text-stone-400 mt-0.5">

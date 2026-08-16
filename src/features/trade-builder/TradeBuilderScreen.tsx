@@ -610,7 +610,7 @@ export function TradeBuilderScreen() {
                       <div className="flex justify-between items-center text-[11px]">
                         <label className="text-stone-400">Producer Value Share (0.00 – 1.00):</label>
                         <div className="flex gap-1.5 items-center">
-                          <span className="text-[10px] text-stone-500">Working Assumptions:</span>
+                          <span className="text-[10px] text-stone-500">Working Presets:</span>
                           <button
                             type="button"
                             onClick={() => dispatch({
@@ -620,16 +620,16 @@ export function TradeBuilderScreen() {
                                   mode: 'INDEX_LINKED',
                                   fixedPriceEurPerMwh: state.costs.producerPricing?.fixedPriceEurPerMwh ?? null,
                                   indexLinkedShare: 0.988,
-                                  source: 'Intermediary brokerage assumption (~€2.70/MWh desk capture on €232 netback — UNVERIFIED)',
+                                  source: 'Desk Target (~€2.70/MWh implied margin on €232 netback — UNVERIFIED)',
                                   lastVerified: null,
                                   confidence: 'UNVERIFIED',
                                 }
                               }
                             })}
                             className="px-1.5 py-0.2 bg-stone-900 hover:bg-stone-800 border border-teal-700/60 rounded text-[10px] font-mono text-teal-300 font-bold"
-                            title="98.8% Producer Share (~€2.70/MWh Desk Capture on €232/MWh Netback)"
+                            title="98.8% Producer Share (Desk Target: ~€2.70/MWh implied margin on €232/MWh Netback — UNVERIFIED)"
                           >
-                            98.8% (~€2.70)
+                            98.8% (Desk Target)
                           </button>
                           <button
                             type="button"

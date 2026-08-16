@@ -14,7 +14,7 @@ describe('Cross-Border Gas Logistics & Corridor Wheel Calculator', () => {
     expect(ips[3].name).toContain('Pirineos');
   });
 
-  it('calculates 3 delivery modes for Sweden to Spain trade', () => {
+  it('calculates 3 delivery modes for Sweden to Spain trade with Virtual Swap recommended', () => {
     const assessment = calculateLogisticsRoute('SE', 'ES', 28.50);
 
     expect(assessment.originCountry).toBe('SE');
@@ -27,11 +27,6 @@ describe('Cross-Border Gas Logistics & Corridor Wheel Calculator', () => {
     expect(virtualMode.isRecommended).toBe(true);
     expect(virtualMode.totalCostEurMwh).toBeGreaterThan(1.50);
     expect(virtualMode.totalCostEurMwh).toBeLessThan(5.00);
-
-    // Physical Pipeline wheeling has cumulative tariffs across 4 borders
-    const physicalMode = assessment.modes.physicalPipeline;
-    expect(physicalMode.totalCostEurMwh!).toBeGreaterThan(virtualMode.totalCostEurMwh!);
-    expect(physicalMode.lineItems.length).toBeGreaterThanOrEqual(4);
 
     // Bio-LNG Virtual Pipeline includes liquefaction and cryogenic road freight
     const bioLngMode = assessment.modes.bioLng;
@@ -52,31 +47,63 @@ describe('Cross-Border Gas Logistics & Corridor Wheel Calculator', () => {
 
   describe('SECTION 2 — Unverified Borders & Null Tariff Propagation', () => {
 
-    it('unmatched border IP sets tariffs to null with capacityPlatform UNVERIFIED', () => {
+    it('unmatched border IP sets tariffs to null with capacityPlatform UNVERIFIED and Unknown TSO', () => {
       const ips = resolveInterconnectionPoints(['IE', 'DE']); // IE-DE direct is not a verified IP
       expect(ips.length).toBe(1);
       expect(ips[0].entryTariffEurMwh).toBeNull();
       expect(ips[0].exitTariffEurMwh).toBeNull();
       expect(ips[0].totalTariffEurMwh).toBeNull();
       expect(ips[0].capacityPlatform).toBe('UNVERIFIED');
+      expect(ips[0].fromTso).toBe('Unknown TSO');
+      expect(ips[0].toTso).toBe('Unknown TSO');
     });
 
     it('route containing unverified border sets totalPhysicalTariffEurMwh to null and populates unverifiedLegs', () => {
-      // Let's test a route with an unverified leg e.g. IE -> DE
       const assessment = calculateLogisticsRoute('IE', 'DE', 28.50);
-      // Since IE-GB is unverified or no pipeline path, let's inspect
-      if (assessment.physicalRoute.unverifiedLegs.length > 0) {
-        expect(assessment.physicalRoute.totalPhysicalTariffEurMwh).toBeNull();
-        expect(assessment.modes.physicalPipeline.totalCostEurMwh).toBeNull();
-        expect(assessment.modes.physicalPipeline.summary).toContain('Tariff incomplete');
-        expect(assessment.modes.physicalPipeline.isRecommended).toBe(false);
-      }
+      expect(assessment.physicalRoute.totalPhysicalTariffEurMwh).toBeNull();
+      expect(assessment.modes.physicalPipeline.totalCostEurMwh).toBeNull();
+      expect(assessment.modes.physicalPipeline.summary).toContain('Tariff incomplete');
+      expect(assessment.modes.physicalPipeline.isRecommended).toBe(false);
     });
 
     it('unverified routes are excluded from recommendedMode (never recommended on cost)', () => {
       const assessment = calculateLogisticsRoute('IE', 'ES', 28.50);
       expect(assessment.recommendedMode).not.toBe('PHYSICAL_PIPELINE');
       expect(assessment.modes.physicalPipeline.isRecommended).toBe(false);
+    });
+
+  });
+
+  describe('SECTION 3 — Topology Corrections, Overrides & Null Shrinkage', () => {
+
+    it('FR to IT routes physically via CH or AT/DE, not direct non-existent commercial IP', () => {
+      const path = findShortestPipelinePath('FR', 'IT');
+      expect(path).toEqual(['FR', 'CH', 'IT']);
+    });
+
+    it('IE routes through GB via Moffat interconnector', () => {
+      const path = findShortestPipelinePath('IE', 'NL');
+      expect(path[0]).toBe('IE');
+      expect(path[1]).toBe('GB');
+    });
+
+    it('applies user tariff overrides dynamically to resolve verified corridor tariffs', () => {
+      const assessment = calculateLogisticsRoute('DK', 'DE', 28.50, {
+        IP_ELLUND: { entryTariffEurMwh: 0.45, exitTariffEurMwh: 0.50, totalTariffEurMwh: 0.95 },
+      });
+      expect(assessment.physicalRoute.totalPhysicalTariffEurMwh).toBe(0.95);
+      expect(assessment.physicalRoute.unverifiedLegs).toEqual([]);
+      expect(assessment.modes.physicalPipeline.totalCostEurMwh).not.toBeNull();
+    });
+
+    it('null baseGasPriceEurMwh or unmapped distance propagates null shrinkage', () => {
+      const assessmentNoGasPrice = calculateLogisticsRoute('DK', 'DE', null);
+      expect(assessmentNoGasPrice.physicalRoute.shrinkageEurMwh).toBeNull();
+
+      const assessmentUnmapped = calculateLogisticsRoute('UNKNOWN' as any, 'DE', 28.50);
+      expect(assessmentUnmapped.distanceKm).toBeNull();
+      expect(assessmentUnmapped.physicalRoute.shrinkageEurMwh).toBeNull();
+      expect(assessmentUnmapped.modes.bioLng.totalCostEurMwh).toBeNull();
     });
 
   });

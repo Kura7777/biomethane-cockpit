@@ -12,10 +12,10 @@ const PIPELINE_ADJACENCY: Record<string, string[]> = {
   DE: ['DK', 'NL', 'BE', 'FR', 'AT', 'PL', 'CZ', 'CH'],
   NL: ['DE', 'BE', 'GB'],
   BE: ['NL', 'DE', 'FR', 'GB'],
-  FR: ['BE', 'DE', 'CH', 'IT', 'ES', 'GB'],
+  FR: ['BE', 'DE', 'CH', 'ES', 'GB'],
   ES: ['FR', 'PT'],
   PT: ['ES'],
-  IT: ['FR', 'CH', 'AT', 'SI'],
+  IT: ['CH', 'AT', 'SI', 'GR'],
   AT: ['DE', 'IT', 'CZ', 'SK', 'HU', 'SI'],
   PL: ['DE', 'CZ', 'SK', 'LT', 'UA'],
   CZ: ['DE', 'PL', 'SK', 'AT'],
@@ -57,8 +57,8 @@ export function findShortestPipelinePath(fromCountry: string, toCountry: string)
       }
       if (!visited.has(neighbor)) {
         visited.add(neighbor);
-        queue.push([...path, neighbor]);
       }
+      queue.push([...path, neighbor]);
     }
   }
 
@@ -69,7 +69,10 @@ export function findShortestPipelinePath(fromCountry: string, toCountry: string)
 /**
  * Resolve the Interconnection Points along a pipeline path
  */
-export function resolveInterconnectionPoints(countryPath: string[]): InterconnectionPoint[] {
+export function resolveInterconnectionPoints(
+  countryPath: string[],
+  tariffOverrides?: Record<string, { entryTariffEurMwh?: number | null; exitTariffEurMwh?: number | null; totalTariffEurMwh?: number | null }>
+): InterconnectionPoint[] {
   if (!countryPath || countryPath.length < 2) return [];
   const ips: InterconnectionPoint[] = [];
 
@@ -78,22 +81,62 @@ export function resolveInterconnectionPoints(countryPath: string[]): Interconnec
     const to = countryPath[i + 1];
 
     const matchedIp = INTERCONNECTION_POINTS.find(ip => ip.fromCountry === from && ip.toCountry === to);
+    const override = tariffOverrides?.[matchedIp?.id ?? `IP_${from}_${to}`] || tariffOverrides?.[`${from}_${to}`];
+
     if (matchedIp) {
-      ips.push(matchedIp);
+      if (override) {
+        const total = override.totalTariffEurMwh !== undefined
+          ? override.totalTariffEurMwh
+          : (override.entryTariffEurMwh !== undefined && override.exitTariffEurMwh !== undefined && override.entryTariffEurMwh !== null && override.exitTariffEurMwh !== null)
+          ? Number((override.entryTariffEurMwh + override.exitTariffEurMwh).toFixed(2))
+          : matchedIp.totalTariffEurMwh;
+
+        ips.push({
+          ...matchedIp,
+          entryTariffEurMwh: override.entryTariffEurMwh ?? matchedIp.entryTariffEurMwh,
+          exitTariffEurMwh: override.exitTariffEurMwh ?? matchedIp.exitTariffEurMwh,
+          totalTariffEurMwh: total,
+          capacityPlatform: 'PRISMA',
+          confidence: 'VERIFIED',
+          source: 'Desk tariff override',
+        });
+      } else {
+        ips.push(matchedIp);
+      }
     } else {
       // Unverified border tariff — never fabricate non-existent numbers
-      ips.push({
-        id: `IP_${from}_${to}`,
-        name: `Interconnection Point ${from}-${to} (Unverified Tariff)`,
-        fromCountry: from,
-        toCountry: to,
-        fromTso: `${from} Transmission Operator`,
-        toTso: `${to} Transmission Operator`,
-        entryTariffEurMwh: null,
-        exitTariffEurMwh: null,
-        totalTariffEurMwh: null,
-        capacityPlatform: 'UNVERIFIED',
-      });
+      if (override && override.totalTariffEurMwh !== null && override.totalTariffEurMwh !== undefined) {
+        ips.push({
+          id: `IP_${from}_${to}`,
+          name: `Interconnection Point ${from}-${to}`,
+          fromCountry: from,
+          toCountry: to,
+          fromTso: 'Custom TSO',
+          toTso: 'Custom TSO',
+          entryTariffEurMwh: override.entryTariffEurMwh ?? null,
+          exitTariffEurMwh: override.exitTariffEurMwh ?? null,
+          totalTariffEurMwh: override.totalTariffEurMwh,
+          capacityPlatform: 'PRISMA',
+          confidence: 'VERIFIED',
+          source: 'Desk tariff override',
+        });
+      } else {
+        ips.push({
+          id: `IP_${from}_${to}`,
+          name: `Interconnection Point ${from}-${to} (Unverified Tariff)`,
+          fromCountry: from,
+          toCountry: to,
+          fromTso: 'Unknown TSO',
+          toTso: 'Unknown TSO',
+          entryTariffEurMwh: null,
+          exitTariffEurMwh: null,
+          totalTariffEurMwh: null,
+          capacityPlatform: 'UNVERIFIED',
+          confidence: 'UNVERIFIED',
+          source: 'Unverified border pair',
+          lastVerified: null,
+        });
+      }
     }
   }
 
@@ -106,7 +149,8 @@ export function resolveInterconnectionPoints(countryPath: string[]): Interconnec
 export function calculateLogisticsRoute(
   originCountry: string,
   targetCountry: string,
-  baseGasPriceEurMwh: number = 28.50
+  baseGasPriceEurMwh: number | null = null,
+  tariffOverrides?: Record<string, { entryTariffEurMwh?: number | null; exitTariffEurMwh?: number | null; totalTariffEurMwh?: number | null }>
 ): LogisticsAssessment {
   const origin = originCountry.toUpperCase();
   const target = targetCountry.toUpperCase();
@@ -117,13 +161,13 @@ export function calculateLogisticsRoute(
   const targetRegistry = targetMarket?.registry || `${targetName} National Registry`;
   const targetLaw = targetMarket?.legalBasis || `${targetName} Renewable Gas Mandate`;
 
-  // Distance lookup
-  const originDistances = HUB_DISTANCES_KM[origin] || HUB_DISTANCES_KM['DE'];
-  const distanceKm = originDistances ? (originDistances[target] || 1500) : 1500;
+  // Distance lookup (null if not mapped, no fallback fabrication)
+  const originDistances = HUB_DISTANCES_KM[origin];
+  const distanceKm: number | null = origin === target ? 0 : (originDistances?.[target] ?? null);
 
   // Shortest physical route
   const countryPath = findShortestPipelinePath(origin, target);
-  const physicalIps = resolveInterconnectionPoints(countryPath);
+  const physicalIps = resolveInterconnectionPoints(countryPath, tariffOverrides);
 
   // Physical Transmission Tariffs & Unverified Legs
   const unverifiedLegs: string[] = [];
@@ -139,9 +183,13 @@ export function calculateLogisticsRoute(
     ? null
     : physicalIps.reduce((sum, ip) => sum + (ip.totalTariffEurMwh ?? 0), 0);
   
-  // Pipeline Shrinkage & Fuel Gas (approx 0.35% per 500km)
-  const shrinkageLossPct = Number(Math.max(0.003, (distanceKm / 500) * 0.0035).toFixed(4));
-  const shrinkageEurMwh = Number((baseGasPriceEurMwh * shrinkageLossPct).toFixed(2));
+  // Pipeline Shrinkage & Fuel Gas (null if distance or gas price is not provided)
+  const shrinkageLossPct = distanceKm !== null
+    ? Number(Math.max(0.003, (distanceKm / 500) * 0.0035).toFixed(4))
+    : null;
+  const shrinkageEurMwh = (baseGasPriceEurMwh !== null && shrinkageLossPct !== null)
+    ? Number((baseGasPriceEurMwh * shrinkageLossPct).toFixed(2))
+    : null;
 
   // Hub Basis Spreads
   const originHub = HUB_BASIS_SPREADS[origin] || { hubName: `${origin} Local Hub`, operator: 'National Grid', basisSpreadToTtfEurMwh: +0.80 };
@@ -212,7 +260,7 @@ export function calculateLogisticsRoute(
   const physicalEntryExitTariffs = totalPhysicalTariffEurMwh;
   const physicalBalancingReserve = 0.50; // Daily balancing margin across multi-TSO zones
   const physicalPrismaAuctionFee = 0.15;
-  const physicalTotalEurMwh = (totalPhysicalTariffEurMwh !== null && countryPath.length > 0)
+  const physicalTotalEurMwh = (totalPhysicalTariffEurMwh !== null && shrinkageEurMwh !== null && countryPath.length > 0)
     ? Number((totalPhysicalTariffEurMwh + shrinkageEurMwh + physicalBalancingReserve + physicalPrismaAuctionFee + swapUdbCertificationFee).toFixed(2))
     : null;
 
@@ -241,10 +289,14 @@ export function calculateLogisticsRoute(
           : `Unverified border tariff between ${ip.fromCountry} and ${ip.toCountry}.`,
       })),
       {
-        label: `Pipeline Shrinkage & Fuel Gas (${(shrinkageLossPct * 100).toFixed(2)}%)`,
+        label: shrinkageLossPct !== null
+          ? `Pipeline Shrinkage & Fuel Gas (${(shrinkageLossPct * 100).toFixed(2)}%)`
+          : 'Pipeline Shrinkage & Fuel Gas (Gas Price / Distance Unset)',
         costEurMwh: shrinkageEurMwh,
         category: 'SHRINKAGE',
-        description: `Compression fuel gas consumed over ${distanceKm.toLocaleString()} km pipeline transit.`,
+        description: distanceKm !== null
+          ? `Compression fuel gas consumed over ${distanceKm.toLocaleString()} km pipeline transit.`
+          : 'Distance or gas index unverified.',
       },
       {
         label: 'Multi-TSO Balancing & Imbalance Margin (Indicative)',
@@ -280,9 +332,13 @@ export function calculateLogisticsRoute(
   // -------------------------------------------------------------
   const liquefactionCapexOpex = 8.50; // Cryogenic upgrading / small-scale liquefaction
   const roadTransportRatePerKm = 0.0065; // ~€1.70/km for 20t trailer = €0.0065/MWh/km
-  const roadFreightEurMwh = Number(Math.min(22.00, Math.max(4.00, distanceKm * roadTransportRatePerKm)).toFixed(2));
+  const roadFreightEurMwh = distanceKm !== null
+    ? Number(Math.min(22.00, Math.max(4.00, distanceKm * roadTransportRatePerKm)).toFixed(2))
+    : null;
   const regasificationTerminalFee = 2.00; // Destination regasification or bunkering terminal handling
-  const bioLngTotalEurMwh = Number((liquefactionCapexOpex + roadFreightEurMwh + regasificationTerminalFee + swapUdbCertificationFee).toFixed(2));
+  const bioLngTotalEurMwh = roadFreightEurMwh !== null
+    ? Number((liquefactionCapexOpex + roadFreightEurMwh + regasificationTerminalFee + swapUdbCertificationFee).toFixed(2))
+    : null;
 
   const bioLngBreakdown: ModeCostBreakdown = {
     mode: 'BIO_LNG',
@@ -297,7 +353,9 @@ export function calculateLogisticsRoute(
         description: 'Electricity, nitrogen pre-cooling, and liquefaction processing at origin facility.',
       },
       {
-        label: `Cryogenic Road Freight (~${distanceKm.toLocaleString()} km, Indicative)`,
+        label: distanceKm !== null
+          ? `Cryogenic Road Freight (~${distanceKm.toLocaleString()} km, Indicative)`
+          : 'Cryogenic Road Freight (Distance Unknown)',
         costEurMwh: roadFreightEurMwh,
         category: 'FREIGHT',
         description: 'ADR-certified cryogenic road trailer / ferry transit across Europe.',

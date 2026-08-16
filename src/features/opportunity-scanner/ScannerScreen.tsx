@@ -448,7 +448,7 @@ export function ScannerScreen() {
                                 <div className="flex items-center justify-between">
                                   <span className="font-bold text-sky-300 flex items-center gap-1.5 uppercase text-[11px]">
                                     <Truck className="w-3.5 h-3.5 text-sky-400" />
-                                    Cross-Border Gas Delivery & Flow Options: {consignment.originCountry} ➔ {targetC} (~{logRoute.distanceKm.toLocaleString()} km)
+                                    Cross-Border Gas Delivery & Flow Options: {consignment.originCountry} ➔ {targetC} ({logRoute.distanceKm !== null ? `~${logRoute.distanceKm.toLocaleString()} km` : 'Distance unmapped'})
                                   </span>
                                   <button
                                     onClick={() => setLogisticsModalRoute({ origin: consignment.originCountry, target: targetC })}

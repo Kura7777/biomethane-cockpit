@@ -11,6 +11,9 @@ export interface InterconnectionPoint {
   exitTariffEurMwh: number | null;
   totalTariffEurMwh: number | null;
   capacityPlatform: 'PRISMA' | 'RBP' | 'GSA' | 'NATIONAL' | 'UNVERIFIED';
+  confidence?: 'VERIFIED' | 'LIKELY' | 'UNVERIFIED';
+  source?: string | null;
+  lastVerified?: string | null;
   notes?: string;
 }
 
@@ -40,7 +43,7 @@ export interface ModeCostBreakdown {
 export interface LogisticsAssessment {
   originCountry: string;
   targetCountry: string;
-  distanceKm: number;
+  distanceKm: number | null;
   modes: {
     virtualSwap: ModeCostBreakdown;
     physicalPipeline: ModeCostBreakdown;
@@ -52,8 +55,8 @@ export interface LogisticsAssessment {
     transitingCountries: string[];
     totalPhysicalTariffEurMwh: number | null;
     unverifiedLegs: string[];
-    shrinkageLossPct: number;
-    shrinkageEurMwh: number;
+    shrinkageLossPct: number | null;
+    shrinkageEurMwh: number | null;
   };
   hubSpread: {
     originHub: string;
