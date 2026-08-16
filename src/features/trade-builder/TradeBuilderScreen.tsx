@@ -697,9 +697,9 @@ export function TradeBuilderScreen() {
                         if (marketSortField === 'netback') setMarketSortDir(d => d === 'asc' ? 'desc' : 'asc');
                         else { setMarketSortField('netback'); setMarketSortDir('desc'); }
                       }}
-                      className="py-1 px-1.5 font-semibold text-right cursor-pointer hover:text-[#E8EDF2]"
+                      className="py-1 pr-2 font-semibold text-right cursor-pointer hover:text-[#E8EDF2] whitespace-nowrap"
                     >
-                      Netback {marketSortField === 'netback' && (marketSortDir === 'asc' ? '▲' : '▼')}
+                      Netback (€) {marketSortField === 'netback' && (marketSortDir === 'asc' ? '▲' : '▼')}
                     </th>
                   </tr>
                 </thead>
@@ -770,17 +770,17 @@ export function TradeBuilderScreen() {
                           Bid
                         </td>
 
-                        {/* 4. Netback (€/MWh) */}
-                        <td className="py-1 px-1.5 text-right whitespace-nowrap">
+                        {/* 4. Netback (€/MWh) - Decimal Aligned, no repetitive currency symbol */}
+                        <td className="py-1 pr-2 text-right whitespace-nowrap">
                           {nb.netNetback !== null ? (
                             <span className={`font-semibold tabular-nums text-[11px] ${
                               isSelected ? 'text-[#2DD4BF]' : isBlocked ? 'text-[#8B98A5]' : 'text-[#E8EDF2]'
                             }`}>
-                              €{nb.netNetback.toFixed(1)}
+                              {nb.netNetback.toFixed(1)}
                             </span>
                           ) : (
                             <span className="text-[10px] text-[#8B98A5] italic">
-                              {isBlocked ? 'Blocked' : 'No mark'}
+                              {isBlocked ? 'Blocked' : '—'}
                             </span>
                           )}
                         </td>
@@ -1075,13 +1075,13 @@ export function TradeBuilderScreen() {
         </div>
 
         {/* COLUMN 2: DEAL VALUATION (Hero + Waterfall) */}
-        <div className="lg:col-span-7 2xl:flex-1 2xl:min-w-[480px] space-y-6 2xl:sticky 2xl:top-16 2xl:max-h-[calc(100vh-5.5rem)] 2xl:overflow-y-auto 2xl:pr-1">
+        <div className="lg:col-span-7 2xl:flex-1 2xl:min-w-[480px] space-y-4 2xl:sticky 2xl:top-16 2xl:max-h-[calc(100vh-5.5rem)] 2xl:overflow-y-auto 2xl:pr-1">
           
           {/* Main Deal Ticket Panel */}
-          <div className="bg-[#12171C] rounded p-4 space-y-4">
+          <div className="bg-[#12171C] rounded p-3.5 space-y-3">
             
             {/* Ticket Header */}
-            <div className="border-b border-[#1E262F] pb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div className="border-b border-[#1E262F] pb-2.5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2.5">
               <div>
                 <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-wide text-[#8B98A5]">
                   <span>Deal Valuation & Clearance</span>
@@ -1128,7 +1128,7 @@ export function TradeBuilderScreen() {
               <StaleIndicator target={markEntry} />
             </div>
 
-            {/* HERO VALUATION ROW (Phase 3) */}
+            {/* HERO VALUATION ROW (Phase 3 Polish: Single Merged Call To Action when unset) */}
             <div className={`p-3 rounded transition-colors ${
               netback.deskMargin !== null && netback.deskMargin < 0 
                 ? 'bg-[#1C0E10] border border-[#D64545]/50' 
@@ -1169,98 +1169,94 @@ export function TradeBuilderScreen() {
                   )}
                 </div>
 
-                {/* 2. Producer Payable (18px section size) */}
-                <div className="sm:col-span-3 flex flex-col justify-between p-2 border-t sm:border-t-0 sm:border-l border-[#1E262F]">
-                  <div className="text-[10px] font-normal text-[#8B98A5] uppercase tracking-wider font-mono">
-                    Producer Payable
-                  </div>
-
-                  {netback.producerPayable !== null ? (
-                    <div>
-                      <div className="text-[18px] font-semibold font-mono text-[#E8EDF2] tabular-nums mt-1">
-                        €{netback.producerPayable.toFixed(2)}
-                        <span className="text-[10px] font-normal text-[#8B98A5] ml-0.5">/MWh</span>
-                      </div>
-                      <div className="text-[10px] text-[#8B98A5] mt-1 font-mono truncate">
-                        {state.costs.producerPricing?.mode === 'INDEX_LINKED' 
-                          ? `${((state.costs.producerPricing.indexLinkedShare ?? 0) * 100).toFixed(0)}% Share` 
-                          : state.costs.producerPricing?.mode === 'FIXED_PRICE' ? 'Fixed Price' : 'Unset'}
-                      </div>
+                {/* 2 & 3: Single Merged Call To Action Card when Producer Cost is Unset */}
+                {netback.producerPayable === null ? (
+                  <div className="sm:col-span-6 flex flex-col justify-between p-2.5 border-t sm:border-t-0 sm:border-l border-[#1E262F]">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-normal text-[#8B98A5] uppercase tracking-wider font-mono">
+                        Producer Terms & Desk Margin
+                      </span>
+                      <span className="text-[9px] text-[#8B98A5] font-mono">Input Required</span>
                     </div>
-                  ) : netback.netNetback !== null ? (
-                    <div className="mt-1">
-                      <button
-                        onClick={() => {
-                          const el = document.getElementById('cost-procurement-section');
-                          el?.scrollIntoView({ behavior: 'smooth' });
-                        }}
-                        className="inline-flex items-center gap-1 text-[11px] text-[#D99A2B] hover:underline font-mono font-medium text-left"
-                      >
-                        Set producer pricing <ArrowRight className="w-3 h-3" />
-                      </button>
+
+                    <div className="my-1">
+                      {netback.netNetback !== null ? (
+                        <button
+                          onClick={() => {
+                            const el = document.getElementById('cost-procurement-section');
+                            el?.scrollIntoView({ behavior: 'smooth' });
+                          }}
+                          className="inline-flex items-center gap-1.5 text-xs text-[#2DD4BF] hover:underline font-mono font-medium text-left"
+                        >
+                          Set producer pricing to calculate desk margin <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      ) : (
+                        <div className="text-xs text-[#8B98A5] font-mono">
+                          Awaiting certificate & market mark
+                        </div>
+                      )}
                       <div className="text-[10px] text-[#8B98A5] mt-1 font-mono">
-                        Pricing mode unset
+                        Payable and realised capture margin will evaluate automatically
                       </div>
                     </div>
-                  ) : (
-                    <div>
-                      <div className="text-[18px] font-semibold font-mono text-[#8B98A5] tabular-nums mt-1">—</div>
-                      <div className="text-[10px] text-[#8B98A5] mt-1 font-mono">Unset</div>
-                    </div>
-                  )}
-                </div>
-
-                {/* 3. Desk Margin (18px section size, red on loss) */}
-                <div className="sm:col-span-3 flex flex-col justify-between p-2 border-t sm:border-t-0 sm:border-l border-[#1E262F]">
-                  <div className="text-[10px] font-normal text-[#8B98A5] uppercase tracking-wider font-mono">
-                    Desk Margin
                   </div>
+                ) : (
+                  <>
+                    {/* Producer Payable (3 cols) */}
+                    <div className="sm:col-span-3 flex flex-col justify-between p-2 border-t sm:border-t-0 sm:border-l border-[#1E262F]">
+                      <div className="text-[10px] font-normal text-[#8B98A5] uppercase tracking-wider font-mono">
+                        Producer Payable
+                      </div>
+                      <div>
+                        <div className="text-[18px] font-semibold font-mono text-[#E8EDF2] tabular-nums mt-1">
+                          €{netback.producerPayable.toFixed(2)}
+                          <span className="text-[10px] font-normal text-[#8B98A5] ml-0.5">/MWh</span>
+                        </div>
+                        <div className="text-[10px] text-[#8B98A5] mt-1 font-mono truncate">
+                          {state.costs.producerPricing?.mode === 'INDEX_LINKED' 
+                            ? `${((state.costs.producerPricing.indexLinkedShare ?? 0) * 100).toFixed(0)}% Share` 
+                            : state.costs.producerPricing?.mode === 'FIXED_PRICE' ? 'Fixed Price' : 'Unset'}
+                        </div>
+                      </div>
+                    </div>
 
-                  {netback.deskMargin !== null ? (
-                    <div>
-                      <div className={`text-[18px] font-semibold font-mono tabular-nums mt-1 ${
-                        netback.deskMargin < 0 ? 'text-[#D64545]' : 'text-[#2DD4BF]'
-                      }`}>
-                        €{netback.deskMargin.toFixed(2)}
-                        <span className="text-[10px] font-normal opacity-70 ml-0.5">/MWh</span>
+                    {/* Desk Margin (3 cols) */}
+                    <div className="sm:col-span-3 flex flex-col justify-between p-2 border-t sm:border-t-0 sm:border-l border-[#1E262F]">
+                      <div className="text-[10px] font-normal text-[#8B98A5] uppercase tracking-wider font-mono">
+                        Desk Margin
                       </div>
-                      <div className={`text-[10px] mt-1 font-mono truncate ${
-                        netback.deskMargin < 0 ? 'text-[#D64545] font-semibold' : 'text-[#8B98A5]'
-                      }`}>
-                        {netback.marginPercent !== null 
-                          ? `${netback.marginPercent.toFixed(1)}% ${netback.deskMargin < 0 ? 'Loss' : 'Capture'}` 
-                          : 'Calculated'}
-                      </div>
+                      {netback.deskMargin !== null ? (
+                        <div>
+                          <div className={`text-[18px] font-semibold font-mono tabular-nums mt-1 ${
+                            netback.deskMargin < 0 ? 'text-[#D64545]' : 'text-[#2DD4BF]'
+                          }`}>
+                            €{netback.deskMargin.toFixed(2)}
+                            <span className="text-[10px] font-normal opacity-70 ml-0.5">/MWh</span>
+                          </div>
+                          <div className={`text-[10px] mt-1 font-mono truncate ${
+                            netback.deskMargin < 0 ? 'text-[#D64545] font-semibold' : 'text-[#8B98A5]'
+                          }`}>
+                            {netback.marginPercent !== null 
+                              ? `${netback.marginPercent.toFixed(1)}% ${netback.deskMargin < 0 ? 'Loss' : 'Capture'}` 
+                              : 'Calculated'}
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <div className="text-[18px] font-semibold font-mono text-[#8B98A5] tabular-nums mt-1">—</div>
+                          <div className="text-[10px] text-[#8B98A5] mt-1 font-mono">Awaiting netback</div>
+                        </div>
+                      )}
                     </div>
-                  ) : netback.netNetback !== null ? (
-                    <div className="mt-1">
-                      <button
-                        onClick={() => {
-                          const el = document.getElementById('cost-procurement-section');
-                          el?.scrollIntoView({ behavior: 'smooth' });
-                        }}
-                        className="inline-flex items-center gap-1 text-[11px] text-[#8B98A5] hover:text-[#E8EDF2] hover:underline font-mono text-left"
-                      >
-                        Calculate margin <ArrowRight className="w-3 h-3" />
-                      </button>
-                      <div className="text-[10px] text-[#8B98A5] mt-1 font-mono">
-                        Awaiting producer cost
-                      </div>
-                    </div>
-                  ) : (
-                    <div>
-                      <div className="text-[18px] font-semibold font-mono text-[#8B98A5] tabular-nums mt-1">—</div>
-                      <div className="text-[10px] text-[#8B98A5] mt-1 font-mono">Awaiting netback</div>
-                    </div>
-                  )}
-                </div>
+                  </>
+                )}
 
               </div>
             </div>
 
             {/* German THG Double Counting Sensitivity */}
             {netback.uncertaintyBranches && netback.uncertaintyBranches.length > 0 && (
-              <div className="bg-[#0B0E11] p-3 rounded space-y-2 border border-[#1E262F]">
+              <div className="bg-[#0B0E11] p-2.5 rounded space-y-1.5 border border-[#1E262F]">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-semibold text-[#8B98A5] flex items-center gap-1.5 text-xs font-mono">
                     <AlertCircle className="w-3.5 h-3.5 text-[#D99A2B]" />
@@ -1271,7 +1267,7 @@ export function TradeBuilderScreen() {
                   </span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
-                  <div className="p-2.5 bg-[#12171C] rounded">
+                  <div className="p-2 bg-[#12171C] rounded">
                     <div className="text-[#8B98A5] text-[10px] uppercase">Branch 1: Single Counting (1×)</div>
                     <div className="text-xs font-semibold text-[#E8EDF2] mt-0.5 tabular-nums">
                       Netback: €{netback.uncertaintyBranches[0].netNetback?.toFixed(2)}/MWh
@@ -1281,7 +1277,7 @@ export function TradeBuilderScreen() {
                     </div>
                   </div>
 
-                  <div className="p-2.5 bg-[#12171C] rounded border-l-2 border-[#2DD4BF]">
+                  <div className="p-2 bg-[#12171C] rounded border-l-2 border-[#2DD4BF]">
                     <div className="text-[#8B98A5] text-[10px] uppercase">Branch 2: Double Counting (2×)</div>
                     <div className="text-xs font-semibold text-[#E8EDF2] mt-0.5 tabular-nums">
                       Netback: €{netback.uncertaintyBranches[1].netNetback?.toFixed(2)}/MWh
@@ -1294,8 +1290,8 @@ export function TradeBuilderScreen() {
               </div>
             )}
 
-            {/* Accounting Netback Waterfall Table */}
-            <div className="space-y-2 pt-1">
+            {/* Accounting Netback Waterfall Table (Tightened ~28px Rows) */}
+            <div className="space-y-1.5 pt-0.5">
               <div className="flex justify-between items-center text-[10px] font-semibold uppercase tracking-wider text-[#8B98A5] pb-1 border-b border-[#1E262F] font-mono">
                 <span className="flex items-center gap-1.5">
                   <TrendingUp className="w-3.5 h-3.5 text-[#8B98A5]" />
@@ -1305,7 +1301,9 @@ export function TradeBuilderScreen() {
               </div>
 
               <div className="bg-[#0B0E11] rounded divide-y divide-[#1E262F] text-xs font-mono">
-                <div className="p-2.5 flex justify-between items-center text-[#8B98A5]">
+                
+                {/* TTF Molecule */}
+                <div className="h-7 px-2.5 flex justify-between items-center text-[#8B98A5]">
                   <span className="flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#8B98A5]" />
                     Gas Molecule Benchmark (TTF Hub)
@@ -1315,44 +1313,47 @@ export function TradeBuilderScreen() {
                   </span>
                 </div>
 
-                <div className="p-2.5 flex justify-between items-center text-[#8B98A5]">
-                  <div className="flex flex-col">
+                {/* Certificate Premium */}
+                <div className="py-1 px-2.5 flex justify-between items-center text-[#8B98A5]">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="flex items-center gap-1.5 text-[#E8EDF2]">
                       <span className="w-1.5 h-1.5 rounded-full bg-[#2DD4BF]" />
                       Compliance Certificate Premium
                     </span>
                     {netback.certificateValue?.provenance?.sourceType && (
-                      <span className="text-[9px] text-[#8B98A5] pl-3 mt-0.5">
-                        Source: <strong className="text-[#E8EDF2]">{netback.certificateValue.provenance.sourceName || netback.certificateValue.provenance.sourceType}</strong> ({netback.certificateValue.provenance.sourceType})
-                        {netback.certificateValue.provenance.observedAt && ` • Observed ${netback.certificateValue.provenance.observedAt.slice(0, 10)}`}
+                      <span className="text-[9px] text-[#8B98A5] ml-1">
+                        (<strong className="text-[#E8EDF2]">{netback.certificateValue.provenance.sourceName || netback.certificateValue.provenance.sourceType}</strong>)
                       </span>
                     )}
                     {netback.certificateValue && !netback.certificateValue.provenance?.sourceType && !netback.certificateValue.isModelled && (
-                      <span className="text-[9px] text-[#D99A2B] pl-3 mt-0.5">
-                        ⚠ Source: Unrecorded (cannot be substantiated)
+                      <span className="text-[9px] text-[#D99A2B] ml-1">
+                        ⚠ Unrecorded source
                       </span>
                     )}
                   </div>
-                  <span className="font-semibold text-[#2DD4BF] tabular-nums">
+                  <span className="font-semibold text-[#2DD4BF] tabular-nums whitespace-nowrap">
                     {netback.certificateValue?.valueEurPerMWh != null ? `+€${netback.certificateValue.valueEurPerMWh.toFixed(2)}/MWh` : 'Not set'}
                   </span>
                 </div>
 
-                <div className="p-2.5 flex justify-between items-center text-[#8B98A5]">
+                {/* Transfer Tariffs */}
+                <div className="h-7 px-2.5 flex justify-between items-center text-[#8B98A5]">
                   <span>Transfer & Cross-Border Pipeline Tariffs</span>
                   <span className="text-[#E8EDF2] tabular-nums">
                     {state.costs.transferCosts !== null ? `−€${state.costs.transferCosts.toFixed(2)}/MWh` : '€0.00/MWh'}
                   </span>
                 </div>
 
-                <div className="p-2.5 flex justify-between items-center text-[#8B98A5]">
+                {/* Certification */}
+                <div className="h-7 px-2.5 flex justify-between items-center text-[#8B98A5]">
                   <span>Certification, Audit & UDB Recording</span>
                   <span className="text-[#E8EDF2] tabular-nums">
                     {state.costs.certificationCosts !== null ? `−€${state.costs.certificationCosts.toFixed(2)}/MWh` : '€0.00/MWh'}
                   </span>
                 </div>
 
-                <div className="p-2.5 flex justify-between items-center text-[#8B98A5]">
+                {/* Logistics */}
+                <div className="h-7 px-2.5 flex justify-between items-center text-[#8B98A5]">
                   <span>Logistics / Conditioning Fees</span>
                   <span className="text-[#E8EDF2] tabular-nums">
                     {state.costs.logistics !== null ? `−€${state.costs.logistics.toFixed(2)}/MWh` : '€0.00/MWh'}
@@ -1360,7 +1361,7 @@ export function TradeBuilderScreen() {
                 </div>
 
                 {state.costs.otherCosts !== null && state.costs.otherCosts > 0 && (
-                  <div className="p-2.5 flex justify-between items-center text-[#8B98A5]">
+                  <div className="h-7 px-2.5 flex justify-between items-center text-[#8B98A5]">
                     <span>Other Miscellaneous Fees</span>
                     <span className="text-[#E8EDF2] tabular-nums">
                       −€{state.costs.otherCosts.toFixed(2)}/MWh
@@ -1369,7 +1370,7 @@ export function TradeBuilderScreen() {
                 )}
 
                 {/* Delivered Netback Subtotal */}
-                <div className="p-2.5 bg-[#182026] flex justify-between items-center font-semibold text-[#E8EDF2]">
+                <div className="h-8 px-2.5 bg-[#182026] flex justify-between items-center font-semibold text-[#E8EDF2]">
                   <span className="uppercase text-[10px] tracking-wide text-[#8B98A5]">Delivered Value Stack (Gross Netback)</span>
                   <span className="text-[18px] tabular-nums text-[#2DD4BF]">
                     {netback.netNetback !== null ? `€${netback.netNetback.toFixed(2)}/MWh` : '—'}
@@ -1377,7 +1378,7 @@ export function TradeBuilderScreen() {
                 </div>
 
                 {/* Producer Payable Line */}
-                <div className="p-2.5 flex justify-between items-center text-[#8B98A5]">
+                <div className="h-7 px-2.5 flex justify-between items-center text-[#8B98A5]">
                   <span className="text-[#D99A2B]">
                     {state.costs.producerPricing?.mode === 'INDEX_LINKED'
                       ? `Producer Payable (${((state.costs.producerPricing.indexLinkedShare ?? 0) * 100).toFixed(0)}% Value Share)`
@@ -1389,7 +1390,7 @@ export function TradeBuilderScreen() {
                 </div>
 
                 {/* Realised Desk Margin Bottom Line */}
-                <div className="p-3 bg-[#18242A] border-t border-[#1E262F] flex justify-between items-center font-semibold text-[#2DD4BF]">
+                <div className="h-8 px-2.5 bg-[#18242A] border-t border-[#1E262F] flex justify-between items-center font-semibold text-[#2DD4BF]">
                   <span className="uppercase tracking-wider text-[10px]">
                     Realised Desk Capture Margin {netback.marginPercent !== null ? `(${netback.marginPercent.toFixed(1)}%)` : ''}
                   </span>
@@ -1408,8 +1409,8 @@ export function TradeBuilderScreen() {
           </div>
         </div>
 
-        {/* COLUMN 3: COMPLIANCE GATES (Visible on >= 1600px / 2xl screen) */}
-        <div className="hidden 2xl:block 2xl:w-[380px] 2xl:shrink-0 space-y-4 2xl:sticky 2xl:top-16 2xl:max-h-[calc(100vh-5.5rem)] 2xl:overflow-y-auto 2xl:pr-1">
+        {/* COLUMN 3: COMPLIANCE GATES (Visible on >= 1600px / 2xl screen - Hugs content cleanly) */}
+        <div className="hidden 2xl:block 2xl:w-[380px] 2xl:shrink-0 self-start sticky top-16">
           {renderComplianceChecklist()}
         </div>
 
