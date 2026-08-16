@@ -2,6 +2,10 @@
    A duplicate @import here would block CSS parsing for a second request. */
 @import "tailwindcss";
 
+/* Tailwind scans .md too, so the design-system docs would resurrect every class
+   they name as banned (rounded-xl, shadow-sm, slate-*) as real CSS. */
+@source not "../design-system/**/*.md";
+
 /* ============================================================
    DESIGN TOKENS — see design-system/MASTER.md
    Components must consume these, never raw hex values.
