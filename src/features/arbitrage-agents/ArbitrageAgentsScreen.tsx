@@ -150,6 +150,10 @@ Try asking me:
 
   const getModelBadgeName = (model: GeminiModelId) => {
     if (model === 'gemini-3.7-flash') return 'Gemini 3.7 Flash';
+    if (model === 'gemini-3.6-flash') return 'Gemini 3.6 Flash';
+    if (model === 'gemini-3.5-flash') return 'Gemini 3.5 Flash';
+    if (model === 'gemini-3.5-flash-lite') return 'Gemini 3.5 Flash-Lite';
+    if (model === 'gemini-3.1-flash-lite') return 'Gemini 3.1 Flash-Lite';
     if (model === 'gemini-3.7-pro') return 'Gemini 3.7 Pro';
     if (model === 'gemini-2.5-pro') return 'Gemini 2.5 Pro';
     return 'Gemini 2.5 Flash';
