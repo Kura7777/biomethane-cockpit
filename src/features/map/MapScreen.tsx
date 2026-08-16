@@ -190,8 +190,6 @@ export function MapScreen() {
     zoom: 1,
   });
 
-  const [hoveredCountry, setHoveredCountry] = useState<{ iso2: string; name: string } | null>(null);
-
   // Right-Click Context Menu State
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
 
@@ -209,8 +207,8 @@ export function MapScreen() {
     const plantCount = BIOMETHANE_PLANTS.filter(p => p.countryCode === iso2).length;
     
     setContextMenu({
-      x: Math.min(clientX, window.innerWidth - 290),
-      y: Math.min(clientY, window.innerHeight - 270),
+      x: Math.min(clientX, window.innerWidth - 340),
+      y: Math.min(clientY, window.innerHeight - 440),
       iso2,
       name,
       flag,
@@ -229,7 +227,7 @@ export function MapScreen() {
 
       // First check if direct element has country attribute
       const target = (e.target as HTMLElement)?.closest('[data-country-iso2]');
-      const iso2 = target?.getAttribute('data-country-iso2') || hoveredCountry?.iso2;
+      const iso2 = target?.getAttribute('data-country-iso2');
 
       if (iso2) {
         openContextMenuForIso2(e.clientX, e.clientY, iso2);
@@ -238,7 +236,7 @@ export function MapScreen() {
 
     el.addEventListener('contextmenu', onContextMenuCapture, { capture: true });
     return () => el.removeEventListener('contextmenu', onContextMenuCapture, { capture: true });
-  }, [hoveredCountry]);
+  }, []);
 
   // Dismiss context menu on outside click with small delay so right-click release doesn't close it
   useEffect(() => {
@@ -443,7 +441,7 @@ export function MapScreen() {
               </span>
             </div>
             <p className="text-stone-400 text-xs mt-0.5">
-              Right-click on ANY country to set Origin or Target • High-contrast Google Maps cartography.
+              Right-click on any country for instant intelligence & actions • High-contrast cartography.
             </p>
           </div>
 
@@ -604,7 +602,7 @@ export function MapScreen() {
           className="lg:col-span-7 bg-[#0b1329] border border-stone-800 rounded-xl overflow-hidden relative flex flex-col min-h-[600px] shadow-lg"
         >
           
-          {/* Dynamic Map Legend & Instructions */}
+          {/* Dynamic Map Legend */}
           <div className="p-3 bg-[#0a1122]/95 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 text-[11px] font-mono z-10">
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1.5 text-sky-400 font-bold">
@@ -627,7 +625,7 @@ export function MapScreen() {
 
             <div className="text-slate-400 text-[10px] flex items-center gap-1.5">
               <Compass className="w-3.5 h-3.5 text-teal-400" />
-              <span>Right-click any country to set Origin / Target</span>
+              <span>Right-click any country for intelligence dossier</span>
             </div>
           </div>
 
@@ -696,13 +694,6 @@ export function MapScreen() {
                             },
                             pressed: { outline: 'none' },
                           }}
-                          onMouseEnter={() => {
-                            if (iso2) {
-                              const name = COUNTRY_NAMES[iso2] || geoName || iso2;
-                              setHoveredCountry({ iso2, name });
-                            }
-                          }}
-                          onMouseLeave={() => setHoveredCountry(null)}
                           onClick={() => {
                             if (iso2) handleCountryClick(iso2);
                           }}
@@ -791,118 +782,6 @@ export function MapScreen() {
               </ZoomableGroup>
             </ComposableMap>
 
-            {/* Rich Hover Country Intelligence Dossier */}
-            {hoveredCountry && !contextMenu && (() => {
-              const hIso2 = hoveredCountry.iso2;
-              const hName = COUNTRY_NAMES[hIso2] || hoveredCountry.name;
-              const hFlag = COUNTRY_FLAGS[hIso2] || '🇪🇺';
-              const hPlants = BIOMETHANE_PLANTS.filter(p => p.countryCode === hIso2);
-              const hMacro = COUNTRY_MACRO_STATS.find(m => m.iso === hIso2);
-              const hClearance = hIso2 ? marketClearanceMap.get(hIso2) : null;
-              const isOrigin = hIso2 === originCountry;
-
-              const primaryFeedstock = hMacro?.primaryFeedstockType || (hPlants.length > 0 ? hPlants[0].primaryFeedstockCategory : 'Agricultural residues & biowaste');
-              const primaryTech = hMacro?.primaryUpgradingTech || (hPlants.length > 0 ? hPlants[0].upgradingTechnology : 'Membrane Separation');
-              const registry = hMacro?.nationalRegistry || (hPlants.length > 0 ? hPlants[0].networkOperator : 'National Gas Grid');
-              const totalCap = hMacro?.installedCapacityTWh ? `${hMacro.installedCapacityTWh.toFixed(1)} TWh/yr` : hPlants.length > 0 ? `~${Math.round(hPlants.reduce((acc, p) => acc + p.annualEnergyGWh, 0))} GWh/yr` : '—';
-
-              return (
-                <div className="absolute bottom-3 left-3 z-30 bg-slate-900/95 backdrop-blur-md border border-slate-700/80 rounded-xl p-3.5 text-stone-100 w-80 font-mono text-xs shadow-2xl space-y-2.5 animate-in fade-in zoom-in-95 duration-150">
-                  
-                  {/* Card Header */}
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-base">{hFlag}</span>
-                      <div>
-                        <span className="font-bold text-white text-sm block leading-tight">{hName}</span>
-                        <span className="text-[10px] text-slate-400">ISO: {hIso2}</span>
-                      </div>
-                    </div>
-
-                    {isOrigin ? (
-                      <span className="px-2 py-0.5 bg-sky-950 text-sky-300 border border-sky-700 rounded text-[10px] font-bold animate-pulse">
-                        Active Origin
-                      </span>
-                    ) : hClearance ? (
-                      <StatusChip variant={hClearance.eligibility?.overallVerdict || 'UNKNOWN'} size="xs" />
-                    ) : (
-                      <span className="text-[10px] text-slate-400 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">
-                        Producing Market
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Biomethane Production & Infrastructure Stats */}
-                  <div className="grid grid-cols-2 gap-1.5 text-[10px] bg-slate-950 p-2 rounded border border-slate-800/80">
-                    <div>
-                      <span className="text-slate-500 uppercase block font-bold text-[9px]">Operating Plants</span>
-                      <strong className="text-teal-300 text-xs">{hPlants.length > 0 ? `${hPlants.length} facilities` : 'No registered data'}</strong>
-                    </div>
-                    <div>
-                      <span className="text-slate-500 uppercase block font-bold text-[9px]">Annual Capacity</span>
-                      <strong className="text-slate-100 text-xs">{totalCap}</strong>
-                    </div>
-                    <div className="col-span-2 pt-1 border-t border-slate-900 flex justify-between text-slate-400">
-                      <span>Primary Feedstock:</span>
-                      <strong className="text-slate-200 truncate max-w-[170px]" title={primaryFeedstock}>{primaryFeedstock}</strong>
-                    </div>
-                    <div className="col-span-2 flex justify-between text-slate-400">
-                      <span>Upgrading Tech:</span>
-                      <strong className="text-slate-200 truncate max-w-[170px]" title={primaryTech}>{primaryTech}</strong>
-                    </div>
-                    <div className="col-span-2 flex justify-between text-slate-400">
-                      <span>Grid / Registry:</span>
-                      <strong className="text-slate-300 truncate max-w-[170px]" title={registry}>{registry}</strong>
-                    </div>
-                  </div>
-
-                  {/* Compliance & Netback Economics (if Target Market) */}
-                  {hClearance && !isOrigin && (
-                    <div className="p-2 bg-slate-950/80 rounded border border-slate-800 text-[10px] space-y-1">
-                      <div className="flex justify-between items-center">
-                        <span className="text-slate-400">Target Scheme:</span>
-                        <strong className="text-slate-200 truncate max-w-[170px]">{hClearance.market.name}</strong>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-slate-400">Implied Netback:</span>
-                        <strong className="text-teal-400 font-bold text-xs">
-                          {hClearance.netback?.netNetback != null
-                            ? `€${hClearance.netback.netNetback.toFixed(2)}/MWh`
-                            : 'No active mark'}
-                        </strong>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* 1-Click Quick Set Buttons on Hover Card */}
-                  {hIso2 && (
-                    <div className="grid grid-cols-2 gap-1.5 pt-1 border-t border-slate-800">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setOriginCountry(hIso2);
-                          setInjectionCountry(hIso2);
-                        }}
-                        className="py-1 px-2 rounded bg-sky-950 hover:bg-sky-900 border border-sky-700 text-sky-300 font-bold text-[10px] transition-all flex items-center justify-center gap-1"
-                      >
-                        Set Origin 🔵
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setTargetCountry(hIso2);
-                          setDrawerTab('COMPLIANCE');
-                        }}
-                        className="py-1 px-2 rounded bg-teal-950 hover:bg-teal-900 border border-teal-700 text-teal-300 font-bold text-[10px] transition-all flex items-center justify-center gap-1"
-                      >
-                        Set Target 🎯
-                      </button>
-                    </div>
-                  )}
-
-                </div>
-              );
-            })()}
           </div>
         </div>
 
@@ -1133,91 +1012,161 @@ export function MapScreen() {
 
       </div>
 
-      {/* FLOATING ACTION & CONTEXT MENU (OPENED VIA RIGHT-CLICK) */}
-      {contextMenu && (
-        <div
-          id="map-floating-context-menu"
-          style={{ 
-            position: 'fixed',
-            top: `${contextMenu.y}px`, 
-            left: `${contextMenu.x}px`,
-            zIndex: 99999,
-          }}
-          className="bg-slate-900/98 border-2 border-teal-500 rounded-xl shadow-2xl p-2.5 w-72 font-mono text-xs text-stone-100 space-y-1.5 animate-in fade-in zoom-in-95 duration-100 select-none"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Header */}
-          <div className="px-2 py-1 border-b border-slate-800 flex items-center justify-between">
-            <span className="font-bold text-white flex items-center gap-1.5 text-sm">
-              <span>{contextMenu.flag}</span>
-              <span>{contextMenu.name}</span>
-            </span>
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] text-teal-400 font-bold bg-teal-950 px-1.5 py-0.5 rounded border border-teal-800">
-                {contextMenu.plantCount} plants
-              </span>
-              <button 
-                onClick={() => setContextMenu(null)}
-                className="text-stone-400 hover:text-white p-0.5 rounded hover:bg-slate-800"
+      {/* INSTITUTIONAL RIGHT-CLICK INTELLIGENCE DOSSIER & ACTIONS MODAL */}
+      {contextMenu && (() => {
+        const cIso2 = contextMenu.iso2;
+        const cPlants = BIOMETHANE_PLANTS.filter(p => p.countryCode === cIso2);
+        const cMacro = COUNTRY_MACRO_STATS.find(m => m.iso === cIso2);
+        const cClearance = cIso2 ? marketClearanceMap.get(cIso2) : null;
+        const isOrigin = cIso2 === originCountry;
+        const isTarget = cIso2 === targetCountry;
+
+        const primaryFeedstock = cMacro?.primaryFeedstockType || (cPlants.length > 0 ? cPlants[0].primaryFeedstockCategory : 'Agricultural residues & biowaste');
+        const primaryTech = cMacro?.primaryUpgradingTech || (cPlants.length > 0 ? cPlants[0].upgradingTechnology : 'Membrane Separation');
+        const registry = cMacro?.nationalRegistry || (cPlants.length > 0 ? cPlants[0].networkOperator : 'National Gas Grid');
+        const totalCap = cMacro?.installedCapacityTWh ? `${cMacro.installedCapacityTWh.toFixed(1)} TWh/yr` : cPlants.length > 0 ? `~${Math.round(cPlants.reduce((acc, p) => acc + p.annualEnergyGWh, 0))} GWh/yr` : '—';
+
+        return (
+          <div
+            id="map-floating-context-menu"
+            style={{ 
+              position: 'fixed',
+              top: `${contextMenu.y}px`, 
+              left: `${contextMenu.x}px`,
+              zIndex: 99999,
+            }}
+            className="bg-slate-900/98 backdrop-blur-xl border border-teal-500/80 rounded-xl shadow-2xl p-3 w-80 font-mono text-xs text-stone-100 space-y-2.5 animate-in fade-in zoom-in-95 duration-100 select-none"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">{contextMenu.flag}</span>
+                <div>
+                  <span className="font-bold text-white text-sm block leading-tight">{contextMenu.name}</span>
+                  <span className="text-[10px] text-slate-400">ISO: {contextMenu.iso2}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                {isOrigin ? (
+                  <span className="px-1.5 py-0.5 bg-sky-950 text-sky-300 border border-sky-700 rounded text-[9px] font-bold animate-pulse">
+                    Active Origin
+                  </span>
+                ) : isTarget ? (
+                  <span className="px-1.5 py-0.5 bg-teal-950 text-teal-300 border border-teal-700 rounded text-[9px] font-bold">
+                    Target
+                  </span>
+                ) : cClearance ? (
+                  <StatusChip variant={cClearance.eligibility?.overallVerdict || 'UNKNOWN'} size="xs" />
+                ) : null}
+
+                <button 
+                  onClick={() => setContextMenu(null)}
+                  className="text-stone-400 hover:text-white p-1 rounded hover:bg-slate-800 transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Biomethane Production & Infrastructure Stats */}
+            <div className="grid grid-cols-2 gap-1.5 text-[10px] bg-slate-950 p-2 rounded border border-slate-800">
+              <div>
+                <span className="text-slate-500 uppercase block font-bold text-[9px]">Operating Plants</span>
+                <strong className="text-teal-300 text-xs">{cPlants.length > 0 ? `${cPlants.length} facilities` : 'No registered data'}</strong>
+              </div>
+              <div>
+                <span className="text-slate-500 uppercase block font-bold text-[9px]">Annual Capacity</span>
+                <strong className="text-slate-100 text-xs">{totalCap}</strong>
+              </div>
+              <div className="col-span-2 pt-1 border-t border-slate-900 flex justify-between text-slate-400">
+                <span>Feedstock:</span>
+                <strong className="text-slate-200 truncate max-w-[170px]" title={primaryFeedstock}>{primaryFeedstock}</strong>
+              </div>
+              <div className="col-span-2 flex justify-between text-slate-400">
+                <span>Upgrading:</span>
+                <strong className="text-slate-200 truncate max-w-[170px]" title={primaryTech}>{primaryTech}</strong>
+              </div>
+              <div className="col-span-2 flex justify-between text-slate-400">
+                <span>Registry / Grid:</span>
+                <strong className="text-slate-300 truncate max-w-[170px]" title={registry}>{registry}</strong>
+              </div>
+            </div>
+
+            {/* Compliance & Netback Economics (if Target Market) */}
+            {cClearance && !isOrigin && (
+              <div className="p-2 bg-slate-950/90 rounded border border-slate-800 text-[10px] space-y-1">
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400">Target Scheme:</span>
+                  <strong className="text-slate-200 truncate max-w-[170px]">{cClearance.market.name}</strong>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400">Implied Netback:</span>
+                  <strong className="text-teal-400 font-bold text-xs">
+                    {cClearance.netback?.netNetback != null
+                      ? `€${cClearance.netback.netNetback.toFixed(2)}/MWh`
+                      : 'No active mark'}
+                  </strong>
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="space-y-1 pt-1 border-t border-slate-800">
+              <div className="grid grid-cols-2 gap-1.5">
+                <button
+                  onClick={() => {
+                    setOriginCountry(cIso2);
+                    setInjectionCountry(cIso2);
+                    setContextMenu(null);
+                  }}
+                  className="py-1.5 px-2 rounded bg-sky-950/70 hover:bg-sky-900 hover:text-white text-left flex items-center justify-center gap-1.5 transition-colors font-bold text-sky-300 border border-sky-700/80 text-[11px]"
+                >
+                  <div className="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></div>
+                  <span>Set Origin 🔵</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setTargetCountry(cIso2);
+                    setDrawerTab('COMPLIANCE');
+                    setContextMenu(null);
+                  }}
+                  className="py-1.5 px-2 rounded bg-teal-950/70 hover:bg-teal-900 hover:text-white text-left flex items-center justify-center gap-1.5 transition-colors font-bold text-teal-300 border border-teal-700/80 text-[11px]"
+                >
+                  <div className="w-2 h-2 rounded-full bg-teal-400"></div>
+                  <span>Set Target 🎯</span>
+                </button>
+              </div>
+
+              <button
+                onClick={() => {
+                  setOriginCountry(cIso2);
+                  setInjectionCountry(cIso2);
+                  setDrawerTab('PLANTS');
+                  setContextMenu(null);
+                }}
+                className="w-full px-2.5 py-1.5 rounded hover:bg-slate-800 text-left flex items-center gap-2 transition-colors text-stone-200 text-[11px]"
               >
-                <X className="w-3.5 h-3.5" />
+                <Factory className="w-3.5 h-3.5 text-amber-400" />
+                <span>View {cPlants.length} Plants in Drawer</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  navigate(`/trade?originCountry=${cIso2}`);
+                  setContextMenu(null);
+                }}
+                className="w-full px-2.5 py-1.5 rounded hover:bg-slate-800 text-left flex items-center gap-2 transition-colors text-stone-200 text-[11px] border-t border-slate-800/80 pt-1.5"
+              >
+                <Navigation className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Simulate in Trade Builder ➔</span>
               </button>
             </div>
           </div>
-
-          {/* Option 1: Set Origin */}
-          <button
-            onClick={() => {
-              setOriginCountry(contextMenu.iso2);
-              setInjectionCountry(contextMenu.iso2);
-              setContextMenu(null);
-            }}
-            className="w-full px-2.5 py-2 rounded bg-sky-950/70 hover:bg-sky-900 hover:text-white text-left flex items-center gap-2 transition-colors font-bold text-sky-300 border border-sky-700/80"
-          >
-            <div className="w-2.5 h-2.5 rounded-full bg-sky-400 animate-pulse"></div>
-            <span>Set as Origin Country 🔵</span>
-          </button>
-
-          {/* Option 2: Set Target */}
-          <button
-            onClick={() => {
-              setTargetCountry(contextMenu.iso2);
-              setDrawerTab('COMPLIANCE');
-              setContextMenu(null);
-            }}
-            className="w-full px-2.5 py-2 rounded bg-teal-950/70 hover:bg-teal-900 hover:text-white text-left flex items-center gap-2 transition-colors font-bold text-teal-300 border border-teal-700/80"
-          >
-            <div className="w-2.5 h-2.5 rounded-full bg-teal-400"></div>
-            <span>Set as Target Destination 🎯</span>
-          </button>
-
-          {/* Option 3: View Plants & Feedstocks */}
-          <button
-            onClick={() => {
-              setOriginCountry(contextMenu.iso2);
-              setInjectionCountry(contextMenu.iso2);
-              setDrawerTab('PLANTS');
-              setContextMenu(null);
-            }}
-            className="w-full px-2.5 py-2 rounded hover:bg-slate-800 text-left flex items-center gap-2 transition-colors text-stone-200"
-          >
-            <Factory className="w-4 h-4 text-amber-400" />
-            <span>View Plants & Feedstocks</span>
-          </button>
-
-          {/* Option 4: Open in Trade Builder */}
-          <button
-            onClick={() => {
-              navigate(`/trade?originCountry=${contextMenu.iso2}`);
-              setContextMenu(null);
-            }}
-            className="w-full px-2.5 py-2 rounded hover:bg-slate-800 text-left flex items-center gap-2 transition-colors text-stone-200 border-t border-slate-800/80 pt-2"
-          >
-            <Navigation className="w-4 h-4 text-emerald-400" />
-            <span>Open in Trade Builder ➔</span>
-          </button>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Selected Plant Modal */}
       {selectedPlant && (
