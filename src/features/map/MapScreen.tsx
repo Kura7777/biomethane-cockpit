@@ -703,25 +703,122 @@ export function MapScreen() {
                   }
                 </Geographies>
 
-                {/* Country Name Labels rendered directly onto map centroids (Google Maps style) */}
+                {/* Trading Route Arc */}
+                {originCoords && destCoords && originCountry !== targetCountry && (
+                  <Line
+                    from={originCoords}
+                    to={destCoords}
+                    stroke="#38bdf8"
+                    strokeWidth={2.5}
+                    strokeDasharray="4 4"
+                  />
+                )}
+
+                {/* Unified Country Labels with Sleek Non-Overlapping Origin / Target Badges */}
                 {Object.entries(COUNTRY_LABEL_POSITIONS).map(([code, item]) => {
                   const isOrigin = code === originCountry;
                   const isTarget = code === targetCountry;
+
+                  if (isOrigin) {
+                    return (
+                      <Marker key={code} coordinates={item.coords}>
+                        {/* Glowing origin dot */}
+                        <circle r={6} fill="#0284c7" stroke="#ffffff" strokeWidth={2} className="animate-pulse" />
+                        
+                        {/* Clean Pill Label */}
+                        <g 
+                          transform="translate(0, -16)" 
+                          onClick={() => handleCountryClick(code)} 
+                          className="cursor-pointer select-none"
+                          data-country-iso2={code}
+                        >
+                          <rect
+                            x={-55}
+                            y={-9}
+                            width={110}
+                            height={18}
+                            rx={9}
+                            fill="#0c4a6e"
+                            stroke="#38bdf8"
+                            strokeWidth={1.5}
+                          />
+                          <text
+                            textAnchor="middle"
+                            y={3.5}
+                            data-country-iso2={code}
+                            style={{
+                              fontFamily: 'Inter, system-ui, sans-serif',
+                              fontSize: 9.5,
+                              fontWeight: 800,
+                              fill: '#ffffff',
+                              letterSpacing: '0.03em',
+                            }}
+                          >
+                            🔵 ORIGIN ({item.short})
+                          </text>
+                        </g>
+                      </Marker>
+                    );
+                  }
+
+                  if (isTarget) {
+                    return (
+                      <Marker key={code} coordinates={item.coords}>
+                        {/* Target dot */}
+                        <circle r={6} fill="#0d9488" stroke="#ffffff" strokeWidth={2} />
+                        
+                        {/* Clean Target Pill */}
+                        <g 
+                          transform="translate(0, -16)" 
+                          onClick={() => handleCountryClick(code)} 
+                          className="cursor-pointer select-none"
+                          data-country-iso2={code}
+                        >
+                          <rect
+                            x={-55}
+                            y={-9}
+                            width={110}
+                            height={18}
+                            rx={9}
+                            fill="#134e4a"
+                            stroke="#2dd4bf"
+                            strokeWidth={1.5}
+                          />
+                          <text
+                            textAnchor="middle"
+                            y={3.5}
+                            data-country-iso2={code}
+                            style={{
+                              fontFamily: 'Inter, system-ui, sans-serif',
+                              fontSize: 9.5,
+                              fontWeight: 800,
+                              fill: '#ffffff',
+                              letterSpacing: '0.03em',
+                            }}
+                          >
+                            🎯 TARGET ({item.short})
+                          </text>
+                        </g>
+                      </Marker>
+                    );
+                  }
+
+                  // Normal clean country label
                   return (
                     <Marker key={code} coordinates={item.coords}>
                       <text
                         textAnchor="middle"
-                        y={isOrigin || isTarget ? -10 : 3}
+                        y={3}
                         data-country-iso2={code}
                         onClick={() => handleCountryClick(code)}
                         className="cursor-pointer select-none"
                         style={{
                           fontFamily: 'Inter, system-ui, sans-serif',
-                          fontSize: isOrigin || isTarget ? 11 : 9,
-                          fontWeight: isOrigin || isTarget ? 800 : 700,
+                          fontSize: 9,
+                          fontWeight: 700,
                           letterSpacing: '0.05em',
-                          fill: isOrigin ? '#38bdf8' : isTarget ? '#2dd4bf' : '#f8fafc',
-                          textShadow: '0 1px 3px rgba(0,0,0,0.9), 0 0 4px rgba(0,0,0,0.95)',
+                          fill: '#f8fafc',
+                          textShadow: '0 1px 3px rgba(0,0,0,0.95), 0 0 4px rgba(0,0,0,0.95)',
                         }}
                       >
                         {item.label}
@@ -729,55 +826,6 @@ export function MapScreen() {
                     </Marker>
                   );
                 })}
-
-                {/* Origin Marker Badge */}
-                {originCoords && (
-                  <Marker coordinates={originCoords}>
-                    <circle r={8} fill="#38bdf8" stroke="#ffffff" strokeWidth={2.5} className="animate-pulse" />
-                    <text
-                      textAnchor="middle"
-                      y={-14}
-                      style={{
-                        fontFamily: 'JetBrains Mono, monospace',
-                        fill: '#38bdf8',
-                        fontSize: 10,
-                        fontWeight: 800,
-                        textShadow: '0 1px 3px rgba(0,0,0,0.9)',
-                      }}
-                    >
-                      ORIGIN ({COUNTRY_FLAGS[originCountry]} {originCountry})
-                    </text>
-                  </Marker>
-                )}
-
-                {/* Destination Arc */}
-                {destCoords && destCoords !== originCoords && (
-                  <>
-                    <Line
-                      from={originCoords}
-                      to={destCoords}
-                      stroke="#2dd4bf"
-                      strokeWidth={2.5}
-                      strokeDasharray="4 4"
-                    />
-                    <Marker coordinates={destCoords}>
-                      <circle r={6} fill="#2dd4bf" stroke="#ffffff" strokeWidth={2} />
-                      <text
-                        textAnchor="middle"
-                        y={-10}
-                        style={{
-                          fontFamily: 'JetBrains Mono, monospace',
-                          fill: '#2dd4bf',
-                          fontSize: 9,
-                          fontWeight: 700,
-                          textShadow: '0 1px 3px rgba(0,0,0,0.9)',
-                        }}
-                      >
-                        TARGET ({COUNTRY_FLAGS[targetCountry] || ''} {targetMarket?.country || targetCountry})
-                      </text>
-                    </Marker>
-                  </>
-                )}
 
               </ZoomableGroup>
             </ComposableMap>
