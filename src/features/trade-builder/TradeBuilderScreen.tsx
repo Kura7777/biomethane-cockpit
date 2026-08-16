@@ -1479,7 +1479,9 @@ export function TradeBuilderScreen() {
                       </div>
                     )}
                     <div className="text-[#2DD4BF] text-[11px] mt-0.5 tabular-nums">
-                      Margin: €{netback.uncertaintyBranches[0].deskMargin?.toFixed(2)}/MWh ({netback.uncertaintyBranches[0].marginPercent?.toFixed(1)}%)
+                      {netback.uncertaintyBranches[0].deskMargin !== null
+                        ? `Margin: €${netback.uncertaintyBranches[0].deskMargin.toFixed(2)}/MWh (${netback.uncertaintyBranches[0].marginPercent?.toFixed(1)}%)`
+                        : <span className="text-[#8B98A5]">Margin: Awaiting producer terms</span>}
                     </div>
                   </div>
 
@@ -1495,7 +1497,9 @@ export function TradeBuilderScreen() {
                       </div>
                     )}
                     <div className="text-[#2DD4BF] text-[11px] mt-0.5 tabular-nums">
-                      Margin: €{netback.uncertaintyBranches[1].deskMargin?.toFixed(2)}/MWh ({netback.uncertaintyBranches[1].marginPercent?.toFixed(1)}%)
+                      {netback.uncertaintyBranches[1].deskMargin !== null
+                        ? `Margin: €${netback.uncertaintyBranches[1].deskMargin.toFixed(2)}/MWh (${netback.uncertaintyBranches[1].marginPercent?.toFixed(1)}%)`
+                        : <span className="text-[#8B98A5]">Margin: Awaiting producer terms</span>}
                     </div>
                   </div>
                 </div>
