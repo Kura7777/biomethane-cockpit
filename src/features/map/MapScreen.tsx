@@ -7,7 +7,7 @@ import { useAppState } from '../../store/context';
 import { StatusChip } from '../../shared/components/StatusChip';
 import { evaluateEligibility } from '../../domain/eligibility/engine';
 import { computeNetback } from '../../domain/netback/engine';
-import { FEEDSTOCK_REGISTRY, REFERENCE_CONSIGNMENTS } from '../../domain/consignment/feedstocks';
+import { FEEDSTOCK_REGISTRY } from '../../domain/consignment/feedstocks';
 import { Consignment, CertificationScheme, ChainOfCustody } from '../../domain/consignment/types';
 import { BIOMETHANE_PLANTS, COUNTRY_MACRO_STATS } from '../../domain/plants/registry';
 import { BiomethanePlant } from '../../domain/plants/types';
@@ -29,7 +29,9 @@ import {
   RotateCcw,
   Sparkles,
   Filter,
-  ChevronRight
+  Plus,
+  Minus,
+  Maximize2
 } from 'lucide-react';
 
 const EU_COUNTRY_CODES = ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE'];
@@ -48,35 +50,36 @@ const COUNTRY_ISO3_TO_ISO2: Record<string, string> = Object.entries(COUNTRY_ISO2
   {}
 );
 
-const COUNTRY_COORDINATES: Record<string, [number, number]> = {
-  DE: [10.4515, 51.1657],
-  NL: [5.2913, 52.1326],
-  DK: [9.5018, 56.2639],
-  FR: [2.2137, 46.2276],
-  IT: [12.5674, 41.8719],
-  AT: [14.5501, 47.5162],
-  SE: [18.6435, 60.1282],
-  FI: [25.7482, 61.9241],
-  BE: [4.4699, 50.5039],
-  GB: [-3.4360, 55.3781],
-  ES: [-3.7492, 40.4637],
-  PL: [19.1451, 51.9194],
-  IE: [-8.2439, 53.4129],
-  NO: [8.4689, 60.4720],
-  CH: [8.2275, 46.8182],
-  PT: [-8.2245, 39.3999],
-  CZ: [15.4730, 49.8175],
-  EE: [25.0136, 58.5953],
-  LV: [24.6032, 56.8796],
-  LT: [23.8813, 55.1694],
-  HU: [19.5033, 47.1625],
-  SK: [19.6990, 48.6690],
-  RO: [24.9668, 45.9432],
-  BG: [25.4858, 42.7339],
-  HR: [15.2000, 45.1000],
-  SI: [14.9955, 46.1512],
-  GR: [21.8243, 39.0742],
-  UA: [31.1656, 48.3794],
+// Geographic centroids for accurate Google Maps style country labels
+const COUNTRY_LABEL_POSITIONS: Record<string, { coords: [number, number]; label: string; short: string }> = {
+  FR: { coords: [2.3, 46.6], label: 'FRANCE', short: 'FR' },
+  DE: { coords: [10.4, 51.1], label: 'GERMANY', short: 'DE' },
+  ES: { coords: [-3.7, 40.2], label: 'SPAIN', short: 'ES' },
+  IT: { coords: [12.6, 42.8], label: 'ITALY', short: 'IT' },
+  GB: { coords: [-2.5, 54.0], label: 'UNITED KINGDOM', short: 'UK' },
+  PL: { coords: [19.1, 52.0], label: 'POLAND', short: 'PL' },
+  SE: { coords: [16.5, 60.5], label: 'SWEDEN', short: 'SE' },
+  NO: { coords: [8.5, 61.0], label: 'NORWAY', short: 'NO' },
+  FI: { coords: [26.0, 63.5], label: 'FINLAND', short: 'FI' },
+  DK: { coords: [9.5, 56.0], label: 'DENMARK', short: 'DK' },
+  NL: { coords: [5.3, 52.2], label: 'NETHERLANDS', short: 'NL' },
+  BE: { coords: [4.5, 50.6], label: 'BELGIUM', short: 'BE' },
+  AT: { coords: [14.5, 47.6], label: 'AUSTRIA', short: 'AT' },
+  CH: { coords: [8.2, 46.8], label: 'SWITZERLAND', short: 'CH' },
+  LT: { coords: [23.9, 55.2], label: 'LITHUANIA', short: 'LT' },
+  LV: { coords: [24.6, 56.9], label: 'LATVIA', short: 'LV' },
+  EE: { coords: [25.5, 58.7], label: 'ESTONIA', short: 'EE' },
+  IE: { coords: [-7.8, 53.4], label: 'IRELAND', short: 'IE' },
+  PT: { coords: [-8.2, 39.5], label: 'PORTUGAL', short: 'PT' },
+  CZ: { coords: [15.5, 49.8], label: 'CZECHIA', short: 'CZ' },
+  SK: { coords: [19.7, 48.7], label: 'SLOVAKIA', short: 'SK' },
+  HU: { coords: [19.5, 47.2], label: 'HUNGARY', short: 'HU' },
+  RO: { coords: [25.0, 46.0], label: 'ROMANIA', short: 'RO' },
+  BG: { coords: [25.5, 42.7], label: 'BULGARIA', short: 'BG' },
+  GR: { coords: [22.0, 39.0], label: 'GREECE', short: 'GR' },
+  UA: { coords: [31.2, 49.0], label: 'UKRAINE', short: 'UA' },
+  HR: { coords: [15.5, 45.3], label: 'CROATIA', short: 'HR' },
+  SI: { coords: [14.8, 46.1], label: 'SLOVENIA', short: 'SI' },
 };
 
 const COUNTRY_NAMES: Record<string, string> = {
@@ -135,12 +138,17 @@ export function MapScreen() {
   // Map Click Mode: 'SET_ORIGIN' or 'SET_TARGET'
   const [mapClickMode, setMapClickMode] = useState<'SET_ORIGIN' | 'SET_TARGET'>('SET_TARGET');
 
+  // Map Zoom & Position
+  const [mapPosition, setMapPosition] = useState<{ coordinates: [number, number]; zoom: number }>({
+    coordinates: [13, 53],
+    zoom: 1,
+  });
+
   // Selected Target Destination for route visualization
   const [selectedDestinationIso3, setSelectedDestinationIso3] = useState<string>('DEU');
   const [hoveredCountry, setHoveredCountry] = useState<any | null>(null);
 
-  // Plant Pins Layer Options: 'COUNTRY_ONLY' | 'ALL' | 'HIDDEN'
-  const [pinDisplayMode, setPinDisplayMode] = useState<'COUNTRY_ONLY' | 'ALL' | 'HIDDEN'>('COUNTRY_ONLY');
+  // Selected Plant Modal
   const [selectedPlant, setSelectedPlant] = useState<BiomethanePlant | null>(null);
 
   // Right Drawer Tab State: 'PLANTS' | 'COMPLIANCE'
@@ -188,27 +196,27 @@ export function MapScreen() {
     return map;
   }, [simulatedConsignment, state.marks, state.costs]);
 
-  // Color mapper for European countries based on export clearance status
+  // Google Maps inspired clean color palette for European countries
   const getCountryFillColor = (iso3: string) => {
     const iso2 = COUNTRY_ISO3_TO_ISO2[iso3];
-    if (!iso2) return '#292524'; // Non-European
+    if (!iso2) return '#172033'; // Non-European / Distant countries (Clean Dark Slate)
 
     if (iso2 === originCountry) {
-      return '#38bdf8'; // Active Origin (Sky Blue)
+      return '#0284c7'; // Active Origin (Vibrant Google Sky Blue)
     }
 
     const clearance = marketClearanceMap.get(iso2);
     if (!clearance) {
-      if (EU_COUNTRY_CODES.includes(iso2)) return '#44403c'; // EU Country without national market model
-      return '#1c1917'; // Non-EU
+      if (EU_COUNTRY_CODES.includes(iso2)) return '#1e293b'; // EU Country (Neutral Google Maps Land Slate)
+      return '#172033'; // Non-EU
     }
 
     const verdict = clearance.eligibility.overallVerdict;
-    if (verdict === 'ELIGIBLE' || verdict === 'PASS') return '#059669'; // Emerald Green
-    if (verdict === 'CONDITIONAL' || verdict === 'UNRESOLVED') return '#b45309'; // Amber
-    if (verdict === 'HARD_BLOCK') return '#991b1b'; // Dark Red (Blocked)
+    if (verdict === 'ELIGIBLE' || verdict === 'PASS') return '#059669'; // Google Emerald Green
+    if (verdict === 'CONDITIONAL' || verdict === 'UNRESOLVED') return '#d97706'; // Google Warm Amber
+    if (verdict === 'HARD_BLOCK') return '#dc2626'; // Google Blocked Red
 
-    return '#44403c';
+    return '#1e293b';
   };
 
   const handleCountryClick = (iso3: string) => {
@@ -227,8 +235,8 @@ export function MapScreen() {
   const targetMarketEntry = marketClearanceMap.get(targetCountryCode);
   const targetMarket = targetMarketEntry?.market || MARKETS.find(m => m.country === targetCountryCode);
 
-  const originCoords = COUNTRY_COORDINATES[originCountry] || [10.45, 51.16];
-  const destCoords = COUNTRY_COORDINATES[targetCountryCode] || [10.45, 51.16];
+  const originCoords = COUNTRY_LABEL_POSITIONS[originCountry]?.coords || [10.45, 51.16];
+  const destCoords = COUNTRY_LABEL_POSITIONS[targetCountryCode]?.coords || [10.45, 51.16];
 
   const marketByIso3 = useMemo(() => {
     const map = new Map<string, Market>();
@@ -252,7 +260,7 @@ export function MapScreen() {
     }).sort((a, b) => b.plantCount - a.plantCount);
   }, []);
 
-  // Country plants currently inspected in drawer (Origin or Selected Target)
+  // Country plants currently inspected in drawer
   const inspectedCountryCode = originCountry;
   const inspectedCountryName = COUNTRY_NAMES[inspectedCountryCode] || inspectedCountryCode;
   const inspectedCountryFlag = COUNTRY_FLAGS[inspectedCountryCode] || '🇪🇺';
@@ -312,14 +320,18 @@ export function MapScreen() {
     });
   }, [countryPlants, plantFeedstockFilter]);
 
-  // Visible Map Pins based on mode
-  const visibleMapPins = useMemo(() => {
-    if (pinDisplayMode === 'HIDDEN') return [];
-    if (pinDisplayMode === 'COUNTRY_ONLY') {
-      return BIOMETHANE_PLANTS.filter(p => p.countryCode === originCountry || p.countryCode === targetCountryCode);
-    }
-    return BIOMETHANE_PLANTS;
-  }, [pinDisplayMode, originCountry, targetCountryCode]);
+  // Zoom helpers
+  const handleZoomIn = () => {
+    setMapPosition(prev => ({ ...prev, zoom: Math.min(prev.zoom * 1.3, 4) }));
+  };
+
+  const handleZoomOut = () => {
+    setMapPosition(prev => ({ ...prev, zoom: Math.max(prev.zoom / 1.3, 0.8) }));
+  };
+
+  const handleResetZoom = () => {
+    setMapPosition({ coordinates: [13, 53], zoom: 1 });
+  };
 
   return (
     <div className="space-y-4 font-sans text-stone-100 pb-12">
@@ -334,11 +346,11 @@ export function MapScreen() {
                 Pan-European Biomethane Cross-Border Export Clearing Map
               </h1>
               <span className="text-[10px] bg-teal-950 text-teal-300 border border-teal-800 px-1.5 py-0.5 rounded font-bold">
-                1,986 Facilities Live
+                1,986 Facilities Master Register
               </span>
             </div>
             <p className="text-stone-400 text-xs mt-0.5">
-              Click any country to inspect available plants per feedstock, regulatory clearance, and cross-border export spreads.
+              High-contrast geographical map showing national boundaries, available plants per feedstock, and compliance export netbacks.
             </p>
           </div>
 
@@ -352,7 +364,7 @@ export function MapScreen() {
                     ? 'bg-sky-600 text-white shadow-xs'
                     : 'text-stone-400 hover:text-stone-200'
                 }`}
-                title="Clicking any country on the map sets it as the ORIGIN producing country"
+                title="Clicking any country sets it as the ORIGIN producing country"
               >
                 Click = Set Origin
               </button>
@@ -363,22 +375,11 @@ export function MapScreen() {
                     ? 'bg-teal-600 text-white shadow-xs'
                     : 'text-stone-400 hover:text-stone-200'
                 }`}
-                title="Clicking any country on the map sets it as the TARGET destination to inspect"
+                title="Clicking any country sets it as the TARGET destination to inspect"
               >
                 Click = Set Target
               </button>
             </div>
-
-            {/* Plant Layer Filter */}
-            <select
-              value={pinDisplayMode}
-              onChange={e => setPinDisplayMode(e.target.value as any)}
-              className="bg-stone-950 border border-stone-800 rounded px-2.5 py-1.5 text-stone-300 font-bold outline-none"
-            >
-              <option value="COUNTRY_ONLY">Pins: Selected Countries ({visibleMapPins.length})</option>
-              <option value="ALL">Pins: All Europe (1,986)</option>
-              <option value="HIDDEN">Pins: Hide Markers</option>
-            </select>
 
             <button
               onClick={() => navigate('/plants')}
@@ -392,7 +393,7 @@ export function MapScreen() {
         {/* Consignment Customizer Controls */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 pt-1">
           
-          {/* 1. Origin Country (All 27 European Producing Nations) */}
+          {/* 1. Origin Country */}
           <div>
             <label className="block text-[9px] font-bold text-sky-400 uppercase mb-0.5 flex items-center justify-between">
               <span>1. Origin Country</span>
@@ -504,62 +505,94 @@ export function MapScreen() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         
-        {/* SVG Interactive Map Canvas */}
-        <div className="lg:col-span-7 bg-stone-900 border border-stone-800 rounded-xl overflow-hidden relative flex flex-col min-h-[580px]">
+        {/* SVG Google Maps Style Interactive Canvas */}
+        <div className="lg:col-span-7 bg-[#0b1329] border border-stone-800 rounded-xl overflow-hidden relative flex flex-col min-h-[600px] shadow-lg">
           
-          {/* Dynamic Export Clearance Legend */}
-          <div className="p-3 bg-stone-950/95 border-b border-stone-800 flex flex-wrap items-center justify-between gap-3 text-[11px] font-mono z-10">
+          {/* Dynamic Map Legend & Instructions */}
+          <div className="p-3 bg-[#0a1122]/95 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 text-[11px] font-mono z-10">
             <div className="flex items-center gap-3">
-              <span className="flex items-center gap-1 text-sky-400 font-bold">
+              <span className="flex items-center gap-1.5 text-sky-400 font-bold">
                 <span className="w-2.5 h-2.5 rounded-full bg-sky-500 animate-pulse"></span>
-                ORIGIN: {COUNTRY_FLAGS[originCountry]} {COUNTRY_NAMES[originCountry] || originCountry} ({countryPlants.length} plants)
+                ORIGIN: {COUNTRY_FLAGS[originCountry]} {COUNTRY_NAMES[originCountry] || originCountry}
               </span>
-              <span className="flex items-center gap-1 text-emerald-400 font-bold">
+              <span className="flex items-center gap-1.5 text-emerald-400 font-bold">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
-                CLEAR (Pass)
+                PASS (Eligible)
               </span>
-              <span className="flex items-center gap-1 text-red-400 font-bold">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-700"></span>
+              <span className="flex items-center gap-1.5 text-red-400 font-bold">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-600"></span>
                 BLOCKED
               </span>
-              <span className="flex items-center gap-1 text-amber-400">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-700"></span>
+              <span className="flex items-center gap-1.5 text-amber-400">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-600"></span>
                 CONDITIONAL
               </span>
             </div>
 
-            <div className="text-stone-400 text-[10px]">
-              {mapClickMode === 'SET_ORIGIN' ? '👉 Click any country to set as ORIGIN' : '👉 Click any country to inspect'}
+            <div className="text-slate-400 text-[10px]">
+              {mapClickMode === 'SET_ORIGIN' ? '👉 Click country to set ORIGIN' : '👉 Click country to inspect'}
             </div>
           </div>
 
-          {/* Map Vector Component */}
-          <div className="flex-1 relative w-full h-full min-h-[500px] flex items-center justify-center bg-stone-950">
+          {/* Map Vector Component with Google Maps Contrast Styling */}
+          <div className="flex-1 relative w-full h-full min-h-[520px] flex items-center justify-center bg-[#0c1427]">
+            
+            {/* Zoom / Pan Navigation Controls */}
+            <div className="absolute top-3 right-3 z-20 flex flex-col bg-slate-900/90 border border-slate-700 rounded-lg shadow-xl overflow-hidden">
+              <button
+                onClick={handleZoomIn}
+                className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors border-b border-slate-800"
+                title="Zoom In"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+              <button
+                onClick={handleZoomOut}
+                className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors border-b border-slate-800"
+                title="Zoom Out"
+              >
+                <Minus className="w-4 h-4" />
+              </button>
+              <button
+                onClick={handleResetZoom}
+                className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
+                title="Reset View"
+              >
+                <Maximize2 className="w-4 h-4" />
+              </button>
+            </div>
+
             <ComposableMap
               projection="geoMercator"
               projectionConfig={{ scale: 720, center: [14, 54] }}
               className="w-full h-full"
             >
-              <ZoomableGroup center={[14, 54]} zoom={1} minZoom={0.9} maxZoom={3}>
+              <ZoomableGroup
+                center={mapPosition.coordinates}
+                zoom={mapPosition.zoom}
+                minZoom={0.8}
+                maxZoom={4}
+                onMoveEnd={position => setMapPosition(position)}
+              >
                 <Geographies geography={geoUrl}>
                   {({ geographies }) =>
                     geographies.map((geo) => {
                       const iso3 = geo.id;
                       const iso2 = COUNTRY_ISO3_TO_ISO2[iso3];
                       const market = marketByIso3.get(iso3);
-                      const isClickable = Boolean(market || (iso2 && COUNTRY_COORDINATES[iso2]));
+                      const isClickable = Boolean(market || (iso2 && COUNTRY_LABEL_POSITIONS[iso2]));
 
                       return (
                         <Geography
                           key={geo.rsmKey}
                           geography={geo}
                           fill={getCountryFillColor(iso3)}
-                          stroke="#1c1917"
-                          strokeWidth={0.6}
+                          stroke="#334155"
+                          strokeWidth={0.7}
                           style={{
                             default: { outline: 'none', transition: 'all 200ms' },
                             hover: {
-                              fill: isClickable ? '#14b8a6' : '#44403c',
+                              fill: isClickable ? '#0284c7' : '#334155',
                               outline: 'none',
                               cursor: isClickable ? 'pointer' : 'default',
                             },
@@ -577,14 +610,45 @@ export function MapScreen() {
                   }
                 </Geographies>
 
-                {/* Origin Marker */}
+                {/* Country Name Labels rendered directly onto map centroids (Google Maps style) */}
+                {Object.entries(COUNTRY_LABEL_POSITIONS).map(([code, item]) => {
+                  const isOrigin = code === originCountry;
+                  const isTarget = code === targetCountryCode;
+                  return (
+                    <Marker key={code} coordinates={item.coords}>
+                      <text
+                        textAnchor="middle"
+                        y={isOrigin || isTarget ? -10 : 3}
+                        style={{
+                          fontFamily: 'Inter, system-ui, sans-serif',
+                          fontSize: isOrigin || isTarget ? 11 : 9,
+                          fontWeight: isOrigin || isTarget ? 800 : 700,
+                          letterSpacing: '0.05em',
+                          fill: isOrigin ? '#38bdf8' : isTarget ? '#2dd4bf' : '#f8fafc',
+                          textShadow: '0 1px 3px rgba(0,0,0,0.9), 0 0 4px rgba(0,0,0,0.95)',
+                          pointerEvents: 'none',
+                        }}
+                      >
+                        {item.label}
+                      </text>
+                    </Marker>
+                  );
+                })}
+
+                {/* Origin Marker Badge */}
                 {originCoords && (
                   <Marker coordinates={originCoords}>
                     <circle r={8} fill="#38bdf8" stroke="#ffffff" strokeWidth={2.5} className="animate-pulse" />
                     <text
                       textAnchor="middle"
                       y={-14}
-                      style={{ fontFamily: 'JetBrains Mono, monospace', fill: '#38bdf8', fontSize: 11, fontWeight: 800 }}
+                      style={{
+                        fontFamily: 'JetBrains Mono, monospace',
+                        fill: '#38bdf8',
+                        fontSize: 10,
+                        fontWeight: 800,
+                        textShadow: '0 1px 3px rgba(0,0,0,0.9)',
+                      }}
                     >
                       ORIGIN ({COUNTRY_FLAGS[originCountry]} {originCountry})
                     </text>
@@ -606,34 +670,19 @@ export function MapScreen() {
                       <text
                         textAnchor="middle"
                         y={-10}
-                        style={{ fontFamily: 'JetBrains Mono, monospace', fill: '#2dd4bf', fontSize: 9, fontWeight: 700 }}
+                        style={{
+                          fontFamily: 'JetBrains Mono, monospace',
+                          fill: '#2dd4bf',
+                          fontSize: 9,
+                          fontWeight: 700,
+                          textShadow: '0 1px 3px rgba(0,0,0,0.9)',
+                        }}
                       >
                         TARGET ({COUNTRY_FLAGS[targetCountryCode] || ''} {targetMarket?.country || targetCountryCode})
                       </text>
                     </Marker>
                   </>
                 )}
-
-                {/* Biomethane Plant Infrastructure Layer Pins */}
-                {visibleMapPins.map((plant) => {
-                  if (!plant.coordinates) return null;
-                  const isOriginPlant = plant.countryCode === originCountry;
-                  return (
-                    <Marker
-                      key={plant.id}
-                      coordinates={plant.coordinates}
-                      onClick={() => setSelectedPlant(plant)}
-                    >
-                      <circle
-                        r={isOriginPlant ? 4.5 : 3}
-                        fill={isOriginPlant ? '#38bdf8' : '#fbbf24'}
-                        stroke={isOriginPlant ? '#0369a1' : '#78350f'}
-                        strokeWidth={1}
-                        className="cursor-pointer hover:r-6 transition-all opacity-90 hover:opacity-100"
-                      />
-                    </Marker>
-                  );
-                })}
 
               </ZoomableGroup>
             </ComposableMap>
@@ -648,22 +697,21 @@ export function MapScreen() {
               const hClearance = hIso2 ? marketClearanceMap.get(hIso2) : null;
               const isOrigin = hIso2 === originCountry;
 
-              // Aggregate primary feedstocks
               const primaryFeedstock = hMacro?.primaryFeedstockType || (hPlants.length > 0 ? hPlants[0].primaryFeedstockCategory : 'Agricultural residues & biowaste');
               const primaryTech = hMacro?.primaryUpgradingTech || (hPlants.length > 0 ? hPlants[0].upgradingTechnology : 'Membrane Separation');
               const registry = hMacro?.nationalRegistry || (hPlants.length > 0 ? hPlants[0].networkOperator : 'National Gas Grid');
               const totalCap = hMacro?.installedCapacityTWh ? `${hMacro.installedCapacityTWh.toFixed(1)} TWh/yr` : hPlants.length > 0 ? `~${Math.round(hPlants.reduce((acc, p) => acc + p.annualEnergyGWh, 0))} GWh/yr` : '—';
 
               return (
-                <div className="absolute bottom-3 left-3 z-30 bg-stone-900/95 backdrop-blur-md border border-stone-700/80 rounded-xl p-3.5 text-stone-100 w-80 font-mono text-xs shadow-2xl pointer-events-none space-y-2.5 animate-in fade-in zoom-in-95 duration-150">
+                <div className="absolute bottom-3 left-3 z-30 bg-slate-900/95 backdrop-blur-md border border-slate-700/80 rounded-xl p-3.5 text-stone-100 w-80 font-mono text-xs shadow-2xl pointer-events-none space-y-2.5 animate-in fade-in zoom-in-95 duration-150">
                   
                   {/* Card Header */}
-                  <div className="flex items-center justify-between border-b border-stone-800 pb-2">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                     <div className="flex items-center gap-2">
                       <span className="text-base">{hFlag}</span>
                       <div>
                         <span className="font-bold text-white text-sm block leading-tight">{hName}</span>
-                        <span className="text-[10px] text-stone-400">ISO: {hIso2 || hoveredCountry.iso3}</span>
+                        <span className="text-[10px] text-slate-400">ISO: {hIso2 || hoveredCountry.iso3}</span>
                       </div>
                     </div>
 
@@ -674,45 +722,45 @@ export function MapScreen() {
                     ) : hClearance ? (
                       <StatusChip variant={hClearance.eligibility?.overallVerdict || 'UNKNOWN'} size="xs" />
                     ) : (
-                      <span className="text-[10px] text-stone-500 bg-stone-950 px-1.5 py-0.5 rounded border border-stone-800">
+                      <span className="text-[10px] text-slate-400 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">
                         Producing Market
                       </span>
                     )}
                   </div>
 
                   {/* Biomethane Production & Infrastructure Stats */}
-                  <div className="grid grid-cols-2 gap-1.5 text-[10px] bg-stone-950 p-2 rounded border border-stone-800/80">
+                  <div className="grid grid-cols-2 gap-1.5 text-[10px] bg-slate-950 p-2 rounded border border-slate-800/80">
                     <div>
-                      <span className="text-stone-500 uppercase block font-bold text-[9px]">Operating Plants</span>
+                      <span className="text-slate-500 uppercase block font-bold text-[9px]">Operating Plants</span>
                       <strong className="text-teal-300 text-xs">{hPlants.length > 0 ? `${hPlants.length} facilities` : 'No registered data'}</strong>
                     </div>
                     <div>
-                      <span className="text-stone-500 uppercase block font-bold text-[9px]">Annual Capacity</span>
-                      <strong className="text-stone-100 text-xs">{totalCap}</strong>
+                      <span className="text-slate-500 uppercase block font-bold text-[9px]">Annual Capacity</span>
+                      <strong className="text-slate-100 text-xs">{totalCap}</strong>
                     </div>
-                    <div className="col-span-2 pt-1 border-t border-stone-900 flex justify-between text-stone-400">
+                    <div className="col-span-2 pt-1 border-t border-slate-900 flex justify-between text-slate-400">
                       <span>Primary Feedstock:</span>
-                      <strong className="text-stone-200 truncate max-w-[170px]" title={primaryFeedstock}>{primaryFeedstock}</strong>
+                      <strong className="text-slate-200 truncate max-w-[170px]" title={primaryFeedstock}>{primaryFeedstock}</strong>
                     </div>
-                    <div className="col-span-2 flex justify-between text-stone-400">
+                    <div className="col-span-2 flex justify-between text-slate-400">
                       <span>Upgrading Tech:</span>
-                      <strong className="text-stone-200 truncate max-w-[170px]" title={primaryTech}>{primaryTech}</strong>
+                      <strong className="text-slate-200 truncate max-w-[170px]" title={primaryTech}>{primaryTech}</strong>
                     </div>
-                    <div className="col-span-2 flex justify-between text-stone-400">
+                    <div className="col-span-2 flex justify-between text-slate-400">
                       <span>Grid / Registry:</span>
-                      <strong className="text-stone-300 truncate max-w-[170px]" title={registry}>{registry}</strong>
+                      <strong className="text-slate-300 truncate max-w-[170px]" title={registry}>{registry}</strong>
                     </div>
                   </div>
 
                   {/* Compliance & Netback Economics (if Target Market) */}
                   {hClearance && !isOrigin && (
-                    <div className="p-2 bg-stone-950/80 rounded border border-stone-800 text-[10px] space-y-1">
+                    <div className="p-2 bg-slate-950/80 rounded border border-slate-800 text-[10px] space-y-1">
                       <div className="flex justify-between items-center">
-                        <span className="text-stone-400">Target Scheme:</span>
-                        <strong className="text-stone-200 truncate max-w-[170px]">{hClearance.market.name}</strong>
+                        <span className="text-slate-400">Target Scheme:</span>
+                        <strong className="text-slate-200 truncate max-w-[170px]">{hClearance.market.name}</strong>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-stone-400">Implied Netback:</span>
+                        <span className="text-slate-400">Implied Netback:</span>
                         <strong className="text-teal-400 font-bold text-xs">
                           {hClearance.netback?.netNetback != null
                             ? `€${hClearance.netback.netNetback.toFixed(2)}/MWh`
@@ -734,7 +782,7 @@ export function MapScreen() {
         </div>
 
         {/* RIGHT DRAWER: 1. PLANTS BY FEEDSTOCK & 2. COMPLIANCE CLEARANCE */}
-        <div className="lg:col-span-5 bg-stone-900 border border-stone-800 rounded-xl p-4 space-y-3.5 font-mono text-xs flex flex-col justify-between shadow-sm min-h-[580px]">
+        <div className="lg:col-span-5 bg-stone-900 border border-stone-800 rounded-xl p-4 space-y-3.5 font-mono text-xs flex flex-col justify-between shadow-sm min-h-[600px]">
           
           <div className="space-y-3">
             
@@ -744,7 +792,7 @@ export function MapScreen() {
                 <span className="text-[10px] text-stone-500 uppercase tracking-wider block">Selected Origin Facility Base</span>
                 <span className="text-base font-bold text-white flex items-center gap-1.5 mt-0.5">
                   <span className="text-sky-300">{inspectedCountryFlag} {inspectedCountryName}</span>
-                  <span className="text-xs text-teal-400 bg-teal-950 border border-teal-800 px-1.5 py-0.2 rounded">
+                  <span className="text-xs text-teal-400 bg-teal-950 border border-teal-800 px-1.5 py-0.2 rounded font-bold">
                     {countryPlants.length} Facilities
                   </span>
                 </span>
@@ -820,7 +868,7 @@ export function MapScreen() {
                     <span>Click row to trade</span>
                   </div>
 
-                  <div className="max-h-[260px] overflow-y-auto space-y-1.5 pr-1 divide-y divide-stone-800/40">
+                  <div className="max-h-[270px] overflow-y-auto space-y-1.5 pr-1 divide-y divide-stone-800/40">
                     {filteredCountryPlants.map((p) => (
                       <div
                         key={p.id}
