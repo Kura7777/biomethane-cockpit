@@ -1541,10 +1541,30 @@ export function TradeBuilderScreen() {
                 </div>
               </div>
 
-              {/* 1. SELL LEG (Certificate + Molecule - Transfer/Cert/Logistics) */}
+              {/* 1. BUY LEG (Producer Payable) */}
+              <div className="space-y-1 pb-2 border-b border-[#1E262F]/60">
+                <div className="flex justify-between items-center text-[10px] font-semibold text-[#D99A2B] uppercase tracking-wider pb-0.5">
+                  <span>1. Buy Leg (Producer Procurement)</span>
+                  <span className="text-[#8B98A5] font-normal">{consignment.originCountryName}</span>
+                </div>
+                <div className="h-6 flex justify-between items-center text-[#8B98A5]">
+                  <span className="text-[#E8EDF2]">
+                    {state.costs.producerPricing?.mode === 'INDEX_LINKED'
+                      ? `Producer payable (${((state.costs.producerPricing.indexLinkedShare ?? 0) * 100).toFixed(1)}% index share)`
+                      : state.costs.producerPricing?.mode === 'FIXED_PRICE'
+                      ? 'Producer payable (fixed price)'
+                      : 'Producer payable (procurement terms)'}
+                  </span>
+                  <span className="font-semibold text-[#D99A2B] tabular-nums">
+                    {netback.producerPayable !== null ? `−€${netback.producerPayable.toFixed(2)}/MWh` : 'Not set'}
+                  </span>
+                </div>
+              </div>
+
+              {/* 2. SELL LEG (Certificate + Molecule - Transfer/Cert/Logistics) */}
               <div className="space-y-1 pb-2 border-b border-[#1E262F]/60">
                 <div className="flex justify-between items-center text-[10px] font-semibold text-[#2DD4BF] uppercase tracking-wider pb-0.5">
-                  <span>1. Sell Leg (Offtake Realisation)</span>
+                  <span>2. Sell Leg (Offtake Realisation)</span>
                   <span className="text-[#8B98A5] font-normal">{selectedMarket.shortName || selectedMarket.name}</span>
                 </div>
 
@@ -1640,26 +1660,6 @@ export function TradeBuilderScreen() {
                       ) : null}
                     </div>
                   )}
-                </div>
-              </div>
-
-              {/* 2. BUY LEG (Producer Payable) */}
-              <div className="space-y-1 pb-2 border-b border-[#1E262F]/60">
-                <div className="flex justify-between items-center text-[10px] font-semibold text-[#D99A2B] uppercase tracking-wider pb-0.5">
-                  <span>2. Buy Leg (Producer Procurement)</span>
-                  <span className="text-[#8B98A5] font-normal">{consignment.originCountryName}</span>
-                </div>
-                <div className="h-6 flex justify-between items-center text-[#8B98A5]">
-                  <span className="text-[#E8EDF2]">
-                    {state.costs.producerPricing?.mode === 'INDEX_LINKED'
-                      ? `Producer payable (${((state.costs.producerPricing.indexLinkedShare ?? 0) * 100).toFixed(1)}% index share)`
-                      : state.costs.producerPricing?.mode === 'FIXED_PRICE'
-                      ? 'Producer payable (fixed price)'
-                      : 'Producer payable (procurement terms)'}
-                  </span>
-                  <span className="font-semibold text-[#D99A2B] tabular-nums">
-                    {netback.producerPayable !== null ? `−€${netback.producerPayable.toFixed(2)}/MWh` : 'Not set'}
-                  </span>
                 </div>
               </div>
 
