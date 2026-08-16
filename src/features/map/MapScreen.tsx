@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ComposableMap, Geographies, Geography, ZoomableGroup, Marker, Line } from 'react-simple-maps';
 import { useNavigate } from 'react-router-dom';
 import { MARKETS, getMarketById } from '../../domain/markets/registry';
@@ -31,7 +31,9 @@ import {
   Filter,
   Plus,
   Minus,
-  Maximize2
+  Maximize2,
+  Navigation,
+  Compass
 } from 'lucide-react';
 
 const EU_COUNTRY_CODES = ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE'];
@@ -123,6 +125,16 @@ const COUNTRY_FLAGS: Record<string, string> = {
 
 const geoUrl = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json';
 
+interface ContextMenuState {
+  x: number;
+  y: number;
+  iso2: string;
+  iso3: string;
+  name: string;
+  flag: string;
+  plantCount: number;
+}
+
 export function MapScreen() {
   const navigate = useNavigate();
   const { state } = useAppState();
@@ -148,12 +160,24 @@ export function MapScreen() {
   const [selectedDestinationIso3, setSelectedDestinationIso3] = useState<string>('DEU');
   const [hoveredCountry, setHoveredCountry] = useState<any | null>(null);
 
+  // Right-Click Context Menu State
+  const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
+
   // Selected Plant Modal
   const [selectedPlant, setSelectedPlant] = useState<BiomethanePlant | null>(null);
 
   // Right Drawer Tab State: 'PLANTS' | 'COMPLIANCE'
   const [drawerTab, setDrawerTab] = useState<'PLANTS' | 'COMPLIANCE'>('PLANTS');
   const [plantFeedstockFilter, setPlantFeedstockFilter] = useState<string>('ALL');
+
+  // Close context menu on any outside click
+  useEffect(() => {
+    const handleGlobalClick = () => {
+      if (contextMenu) setContextMenu(null);
+    };
+    window.addEventListener('click', handleGlobalClick);
+    return () => window.removeEventListener('click', handleGlobalClick);
+  }, [contextMenu]);
 
   const feedstockInfo = FEEDSTOCK_REGISTRY[feedstockKey] || FEEDSTOCK_REGISTRY.manure;
 
@@ -228,6 +252,27 @@ export function MapScreen() {
       } else {
         setSelectedDestinationIso3(iso3);
       }
+    }
+  };
+
+  // Handle right-click on country
+  const handleCountryContextMenu = (e: React.MouseEvent, iso3: string) => {
+    e.preventDefault();
+    const iso2 = COUNTRY_ISO3_TO_ISO2[iso3];
+    if (iso2) {
+      const name = COUNTRY_NAMES[iso2] || iso2;
+      const flag = COUNTRY_FLAGS[iso2] || '🇪🇺';
+      const plantCount = BIOMETHANE_PLANTS.filter(p => p.countryCode === iso2).length;
+      
+      setContextMenu({
+        x: Math.min(e.clientX, window.innerWidth - 240),
+        y: Math.min(e.clientY, window.innerHeight - 220),
+        iso2,
+        iso3,
+        name,
+        flag,
+        plantCount,
+      });
     }
   };
 
@@ -350,7 +395,7 @@ export function MapScreen() {
               </span>
             </div>
             <p className="text-stone-400 text-xs mt-0.5">
-              High-contrast geographical map showing national boundaries, available plants per feedstock, and compliance export netbacks.
+              Right-click on any country to set as Origin or Target • High-contrast Google Maps cartography.
             </p>
           </div>
 
@@ -364,9 +409,9 @@ export function MapScreen() {
                     ? 'bg-sky-600 text-white shadow-xs'
                     : 'text-stone-400 hover:text-stone-200'
                 }`}
-                title="Clicking any country sets it as the ORIGIN producing country"
+                title="Left click on map sets Origin"
               >
-                Click = Set Origin
+                Click = Origin
               </button>
               <button
                 onClick={() => setMapClickMode('SET_TARGET')}
@@ -375,9 +420,9 @@ export function MapScreen() {
                     ? 'bg-teal-600 text-white shadow-xs'
                     : 'text-stone-400 hover:text-stone-200'
                 }`}
-                title="Clicking any country sets it as the TARGET destination to inspect"
+                title="Left click on map sets Target"
               >
-                Click = Set Target
+                Click = Target
               </button>
             </div>
 
@@ -529,8 +574,9 @@ export function MapScreen() {
               </span>
             </div>
 
-            <div className="text-slate-400 text-[10px]">
-              {mapClickMode === 'SET_ORIGIN' ? '👉 Click country to set ORIGIN' : '👉 Click country to inspect'}
+            <div className="text-slate-400 text-[10px] flex items-center gap-1.5">
+              <Compass className="w-3.5 h-3.5 text-teal-400" />
+              <span>Right-click any country for quick menu</span>
             </div>
           </div>
 
@@ -604,6 +650,7 @@ export function MapScreen() {
                           }}
                           onMouseLeave={() => setHoveredCountry(null)}
                           onClick={() => handleCountryClick(iso3)}
+                          onContextMenu={(e) => handleCountryContextMenu(e, iso3)}
                         />
                       );
                     })
@@ -688,7 +735,7 @@ export function MapScreen() {
             </ComposableMap>
 
             {/* Rich Hover Country Intelligence Dossier */}
-            {hoveredCountry && (() => {
+            {hoveredCountry && !contextMenu && (() => {
               const hIso2 = hoveredCountry.iso2;
               const hName = COUNTRY_NAMES[hIso2] || hoveredCountry.name;
               const hFlag = COUNTRY_FLAGS[hIso2] || '🇪🇺';
@@ -772,7 +819,7 @@ export function MapScreen() {
 
                   {/* Prompt Action Hint */}
                   <div className="text-[10px] text-teal-400 flex items-center justify-between pt-0.5">
-                    <span>Click to inspect plants & trade ➔</span>
+                    <span>Right-click or click to set origin / target ➔</span>
                   </div>
 
                 </div>
@@ -972,6 +1019,78 @@ export function MapScreen() {
         </div>
 
       </div>
+
+      {/* RIGHT-CLICK FLOATING CONTEXT MENU */}
+      {contextMenu && (
+        <div
+          style={{ top: contextMenu.y, left: contextMenu.x }}
+          className="fixed z-50 bg-slate-900/95 backdrop-blur-md border border-slate-700/90 rounded-xl shadow-2xl p-2 w-64 font-mono text-xs text-stone-100 space-y-1 animate-in fade-in zoom-in-95 duration-100"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="px-2.5 py-1.5 border-b border-slate-800 flex items-center justify-between">
+            <span className="font-bold text-white flex items-center gap-1.5">
+              <span>{contextMenu.flag}</span>
+              <span>{contextMenu.name}</span>
+            </span>
+            <span className="text-[10px] text-teal-400 font-bold bg-teal-950 px-1.5 py-0.5 rounded border border-teal-800">
+              {contextMenu.plantCount} plants
+            </span>
+          </div>
+
+          {/* Option 1: Set Origin */}
+          <button
+            onClick={() => {
+              setOriginCountry(contextMenu.iso2);
+              setInjectionCountry(contextMenu.iso2);
+              setContextMenu(null);
+            }}
+            className="w-full px-2.5 py-1.5 rounded hover:bg-sky-950/80 hover:text-sky-300 text-left flex items-center gap-2 transition-colors font-bold text-sky-400"
+          >
+            <div className="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></div>
+            <span>Set as Origin Country</span>
+          </button>
+
+          {/* Option 2: Set Target */}
+          <button
+            onClick={() => {
+              setSelectedDestinationIso3(contextMenu.iso3);
+              setDrawerTab('COMPLIANCE');
+              setContextMenu(null);
+            }}
+            className="w-full px-2.5 py-1.5 rounded hover:bg-teal-950/80 hover:text-teal-300 text-left flex items-center gap-2 transition-colors font-bold text-teal-400"
+          >
+            <div className="w-2 h-2 rounded-full bg-teal-500"></div>
+            <span>Set as Target Destination</span>
+          </button>
+
+          {/* Option 3: View Plants & Feedstocks */}
+          <button
+            onClick={() => {
+              setOriginCountry(contextMenu.iso2);
+              setInjectionCountry(contextMenu.iso2);
+              setDrawerTab('PLANTS');
+              setContextMenu(null);
+            }}
+            className="w-full px-2.5 py-1.5 rounded hover:bg-slate-800 text-left flex items-center gap-2 transition-colors text-stone-300"
+          >
+            <Factory className="w-3.5 h-3.5 text-amber-400" />
+            <span>View Plants & Feedstocks</span>
+          </button>
+
+          {/* Option 4: Open in Trade Builder */}
+          <button
+            onClick={() => {
+              navigate(`/trade?originCountry=${contextMenu.iso2}`);
+              setContextMenu(null);
+            }}
+            className="w-full px-2.5 py-1.5 rounded hover:bg-slate-800 text-left flex items-center gap-2 transition-colors text-stone-300"
+          >
+            <Navigation className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Open in Trade Builder ➔</span>
+          </button>
+        </div>
+      )}
 
       {/* Selected Plant Modal */}
       {selectedPlant && (
