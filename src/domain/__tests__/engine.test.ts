@@ -33,6 +33,14 @@ const completeCosts: CostInputs = {
   logistics: 1.5,
   deliveredCost: 85.0,
   otherCosts: 0.0,
+  producerPricing: {
+    mode: 'FIXED_PRICE',
+    fixedPriceEurPerMwh: 85.0,
+    indexLinkedShare: null,
+    source: 'Fixture',
+    lastVerified: '2026-08-16',
+    confidence: 'VERIFIED',
+  },
 };
 
 const sampleMarks: MarksState = {
@@ -385,7 +393,7 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
       expect(nb.marginPercent).toBeCloseTo((nb.deskMargin! / nb.netNetback!) * 100, 1);
     });
 
-    it('deskPnL = deskMargin * volume; grossSpreadPnL kept separate and not surfaced as headline', () => {
+    it('deskPnL = deskMargin * volume; grossValueSpread is null under INDEX_LINKED', () => {
       const consignment: Consignment = {
         ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
         volumeMWh: 10000,
@@ -408,7 +416,36 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
       };
       const nb = computeNetback(deMarket, consignment, sampleMarks, costs, 'bid');
       expect(nb.deskPnL).toBe(nb.deskMargin! * 10000);
-      expect(nb.grossSpreadPnL).toBe(nb.grossValueSpread! * 10000);
+      expect(nb.grossValueSpread).toBeNull();
+      expect(nb.grossSpreadPnL).toBeNull();
+    });
+
+    it('FIXED_PRICE produces grossValueSpread = netNetback - fixedPrice', () => {
+      const consignment: Consignment = {
+        ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
+        volumeMWh: 10000,
+      };
+      const deMarket = getMarketById('DE_THG')!;
+      const costs: CostInputs = {
+        transferCosts: 0,
+        certificationCosts: 0,
+        logistics: 0,
+        deliveredCost: null,
+        otherCosts: 0,
+        producerPricing: {
+          mode: 'FIXED_PRICE',
+          fixedPriceEurPerMwh: 200.00,
+          indexLinkedShare: null,
+          source: null,
+          lastVerified: null,
+          confidence: 'UNVERIFIED',
+        },
+      };
+      const nb = computeNetback(deMarket, consignment, sampleMarks, costs, 'bid');
+      expect(nb.deskMargin).toBeCloseTo(nb.netNetback! - 200.00, 2);
+      expect(nb.grossValueSpread).toBe(nb.deskMargin);
+      expect(nb.deskPnL).toBeCloseTo(nb.deskMargin! * 10000, 2);
+      expect(nb.grossSpreadPnL).toBeCloseTo(nb.grossValueSpread! * 10000, 2);
     });
 
     it('Both German double-counting branches carry their own producerPayable and deskMargin', () => {

@@ -301,14 +301,19 @@ export function computeNetback(
   }
 
   // Producer Pricing & Desk Margin:
+  // Explicit choice required:
   // FIXED_PRICE:
   //   producerPayable = fixedPriceEurPerMwh
   //   deskMargin      = netNetback − producerPayable
+  //   grossValueSpread = netNetback − producerPayable
   // INDEX_LINKED:
   //   producerPayable = indexLinkedShare × netNetback
   //   deskMargin      = netNetback − producerPayable
-  //   (deliveredCost is NOT used in INDEX_LINKED mode)
-  const pricingMode = costs.producerPricing?.mode ?? 'FIXED_PRICE';
+  //   grossValueSpread = null (no fixed procurement baseline)
+  // UNSET / NULL:
+  //   producerPayable = null, deskMargin = null, grossValueSpread = null
+  //   missingInputs.push('producerPricing')
+  const pricingMode = costs.producerPricing?.mode ?? null;
   let producerPayable: number | null = null;
   let deskMargin: number | null = null;
   let grossValueSpread: number | null = null;
@@ -320,11 +325,10 @@ export function computeNetback(
     } else if (netNetback !== null) {
       producerPayable = Number((netNetback * share).toFixed(2));
       deskMargin = Number((netNetback - producerPayable).toFixed(2));
-      grossValueSpread = deskMargin;
+      grossValueSpread = null; // No fixed brown procurement baseline in index-linked mode
     }
-  } else {
-    // FIXED_PRICE mode
-    const fixedPrice = costs.producerPricing?.fixedPriceEurPerMwh ?? costs.deliveredCost;
+  } else if (pricingMode === 'FIXED_PRICE') {
+    const fixedPrice = costs.producerPricing?.fixedPriceEurPerMwh ?? null;
     if (fixedPrice === null) {
       missingInputs.push('producerPricing');
     } else if (netNetback !== null) {
@@ -332,6 +336,9 @@ export function computeNetback(
       deskMargin = Number((netNetback - producerPayable).toFixed(2));
       grossValueSpread = deskMargin;
     }
+  } else {
+    // Mode is unset / null
+    missingInputs.push('producerPricing');
   }
 
   const impliedMargin = grossValueSpread;
@@ -378,10 +385,10 @@ export function computeNetback(
       if (share !== null && dcOnNetback !== null) {
         dcOnProducerPayable = Number((dcOnNetback * share).toFixed(2));
         dcOnDeskMargin = Number((dcOnNetback - dcOnProducerPayable).toFixed(2));
-        dcOnSpread = dcOnDeskMargin;
+        dcOnSpread = null;
       }
-    } else {
-      const fixedPrice = costs.producerPricing?.fixedPriceEurPerMwh ?? costs.deliveredCost;
+    } else if (pricingMode === 'FIXED_PRICE') {
+      const fixedPrice = costs.producerPricing?.fixedPriceEurPerMwh ?? null;
       if (fixedPrice !== null && dcOnNetback !== null) {
         dcOnProducerPayable = fixedPrice;
         dcOnDeskMargin = Number((dcOnNetback - fixedPrice).toFixed(2));

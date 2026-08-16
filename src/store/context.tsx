@@ -6,8 +6,8 @@ import { PriceSide, MarkEntry, getMarkStaleness } from '../domain/markets/types'
 import { MARKETS } from '../domain/markets/registry';
 import { REFERENCE_CONSIGNMENTS } from '../domain/consignment/feedstocks';
 
-export const CURRENT_SCHEMA_VERSION = 2;
-const STORAGE_KEY = 'biomethane-desk-state-v2';
+export const CURRENT_SCHEMA_VERSION = 4;
+const STORAGE_KEY = 'biomethane-desk-state-v4';
 const LEGACY_STORAGE_KEY = 'biomethane-desk-state';
 
 // State shape
@@ -91,9 +91,28 @@ export function migrateState(raw: any): AppState {
       },
       pricingSide: raw.marks?.pricingSide ?? 'bid',
     };
-
-    migrated.schemaVersion = CURRENT_SCHEMA_VERSION;
   }
+
+  if (stateVersion < 4) {
+    // Schema v4 migration: existing state gets producerPricing = null, flagged incomplete
+    if (!migrated.costs) {
+      migrated.costs = {
+        transferCosts: null,
+        certificationCosts: null,
+        logistics: null,
+        deliveredCost: null,
+        otherCosts: null,
+        producerPricing: null,
+      };
+    } else {
+      migrated.costs = {
+        ...migrated.costs,
+        producerPricing: null,
+      };
+    }
+  }
+
+  migrated.schemaVersion = CURRENT_SCHEMA_VERSION;
 
   // Ensure default reference consignments exist if list is empty
   if (!Array.isArray(migrated.consignments) || migrated.consignments.length === 0) {
@@ -141,6 +160,7 @@ export function createDefaultState(): AppState {
       logistics: null,
       deliveredCost: null,
       otherCosts: null,
+      producerPricing: null,
     },
     savedAssessments: [],
     selectedMarketId: 'DE_THG',

@@ -19,7 +19,7 @@ export interface CostInputs {
   logistics: number | null;         // €/MWh
   deliveredCost: number | null;     // €/MWh (procurement cost / fallback fixedPrice)
   otherCosts: number | null;        // €/MWh
-  producerPricing?: ProducerPricing;
+  producerPricing?: ProducerPricing | null;
 }
 
 export interface FuelEUOptions {

@@ -239,7 +239,7 @@ export function ScannerScreen() {
                 <th className="py-2 px-3">Unit</th>
                 <th className="py-2 px-3 text-right">Cert Value (€/MWh)</th>
                 <th className="py-2 px-3 text-right">Net Netback</th>
-                <th className="py-2 px-3 text-right" title="Gross Value Spread / Realised 10% Desk Margin">Gross Spread / Desk Margin</th>
+                <th className="py-2 px-3 text-right" title="Realised Desk Margin (and Gross Spread if fixed price)">Desk Margin</th>
                 <th className="py-2 px-3 text-center w-24">Mark Age</th>
                 <th className="py-2 px-3 text-center w-12">Act</th>
               </tr>
@@ -351,16 +351,18 @@ export function ScannerScreen() {
                         )}
                       </td>
 
-                      {/* Gross Spread / Desk Margin */}
+                      {/* Realised Desk Margin */}
                       <td className="py-1.5 px-3 text-right font-semibold">
-                        {row.grossValueSpread != null ? (
+                        {row.deskMargin != null ? (
                           <div className="flex flex-col items-end">
-                            <span className={isBlocked ? 'line-through text-stone-500' : 'text-sky-300 font-bold'}>
-                              €{row.grossValueSpread.toFixed(2)}
+                            <span className={isBlocked ? 'line-through text-stone-500' : 'text-emerald-400 font-bold'}>
+                              €{row.deskMargin.toFixed(2)}
                             </span>
-                            <span className={isBlocked ? 'text-stone-600' : 'text-[10px] text-emerald-400 font-normal'}>
-                              Desk: €{row.deskMargin?.toFixed(2)}
-                            </span>
+                            {row.grossValueSpread !== null && (
+                              <span className={isBlocked ? 'text-stone-600' : 'text-[10px] text-sky-300 font-normal'}>
+                                Spread: €{row.grossValueSpread.toFixed(2)}
+                              </span>
+                            )}
                           </div>
                         ) : (
                           <span className="text-stone-600">—</span>
