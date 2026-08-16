@@ -176,6 +176,12 @@ export function TradeBuilderScreen() {
   const activeMarkets = MARKETS.filter(m => m.status === 'ACTIVE');
   const markEntry = state.marks.marks[selectedMarket.id];
 
+  const hasPRASource = netback.certificateValue?.provenance?.sourceType === 'PRICE_REPORTING' ||
+    state.marks.gasIndex.provenance?.sourceType === 'PRICE_REPORTING' ||
+    state.marks.fx.provenance?.sourceType === 'PRICE_REPORTING';
+  const praSourceName = netback.certificateValue?.provenance?.sourceName ||
+    (netback.certificateValue?.provenance?.sourceType === 'PRICE_REPORTING' ? 'PRA Assessment' : null);
+
   return (
     <div className="space-y-5 font-sans text-stone-200 pb-16">
       
@@ -806,7 +812,7 @@ export function TradeBuilderScreen() {
                   <Truck className="w-3.5 h-3.5" />
                   Corridor Flow
                 </button>
-                <CopyButton text={summaryText} label="Copy Deal Sheet" />
+                <CopyButton text={summaryText} label="Copy Deal Sheet" praWarning={hasPRASource} praSourceName={praSourceName} />
                 <button
                   onClick={handleSaveToLibrary}
                   className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all ${
@@ -827,7 +833,7 @@ export function TradeBuilderScreen() {
                 <StatusChip variant={eligibility.overallVerdict} size="sm" />
                 <span className="text-stone-300 font-medium">{eligibility.summary}</span>
               </div>
-              <StaleIndicator updatedAt={markEntry?.updatedAt ?? null} />
+              <StaleIndicator target={markEntry} />
             </div>
 
             <div className="p-4 space-y-5">
@@ -933,10 +939,23 @@ export function TradeBuilderScreen() {
                   </div>
 
                   <div className="p-2.5 flex justify-between items-center text-stone-300">
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                      Compliance Certificate Premium
-                    </span>
+                    <div className="flex flex-col">
+                      <span className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                        Compliance Certificate Premium
+                      </span>
+                      {netback.certificateValue?.provenance?.sourceType && (
+                        <span className="text-[10px] text-stone-400 pl-3.5 mt-0.5">
+                          Source: <strong className="text-teal-300">{netback.certificateValue.provenance.sourceName || netback.certificateValue.provenance.sourceType}</strong> ({netback.certificateValue.provenance.sourceType})
+                          {netback.certificateValue.provenance.observedAt && ` • Observed ${netback.certificateValue.provenance.observedAt.slice(0, 10)}`}
+                        </span>
+                      )}
+                      {netback.certificateValue && !netback.certificateValue.provenance?.sourceType && !netback.certificateValue.isModelled && (
+                        <span className="text-[10px] text-amber-400 pl-3.5 mt-0.5">
+                          ⚠ Source: Unrecorded (cannot be substantiated)
+                        </span>
+                      )}
+                    </div>
                     <span className="font-bold text-emerald-400">
                       {netback.certificateValue?.valueEurPerMWh != null ? `+€${netback.certificateValue.valueEurPerMWh.toFixed(2)}/MWh` : 'Not set'}
                     </span>

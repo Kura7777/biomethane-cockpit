@@ -101,6 +101,23 @@ export function generateTradeSummary(assessment: TradeAssessment): string {
     if (nb.certificateValue.statusNote) {
       lines.push(`  ℹ STATUS NOTE: ${nb.certificateValue.statusNote}`);
     }
+
+    // Provenance line
+    const prov = nb.certificateValue.provenance;
+    if (prov && prov.sourceType) {
+      const namePart = prov.sourceName ? `${prov.sourceName} ` : '';
+      const typePart = `(${prov.sourceType})`;
+      const obsDate = prov.observedAt ? prov.observedAt.slice(0, 10) : 'unspecified date';
+      const ageText = nb.certificateValue.markAgeDays !== null && nb.certificateValue.markAgeDays !== undefined
+        ? `, ${nb.certificateValue.markAgeDays} day${nb.certificateValue.markAgeDays === 1 ? '' : 's'} old`
+        : '';
+      lines.push(`  Mark source: ${namePart}${typePart}, observed ${obsDate}${ageText}`);
+    } else if (nb.certificateValue.isModelled) {
+      lines.push('  Mark source: MODELLED — Theoretical regulatory deficit closure model (no market mark recorded).');
+    } else {
+      lines.push('  Mark source: NOT RECORDED — this price cannot be substantiated.');
+    }
+
     lines.push(`  Certificate Value: €${nb.certificateValue.valueEurPerMWh?.toFixed(2) ?? 'N/A'}/MWh`);
   } else {
     lines.push('Certificate Value: No market mark set for this market.');

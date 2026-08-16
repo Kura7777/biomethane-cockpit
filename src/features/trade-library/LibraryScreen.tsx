@@ -197,7 +197,12 @@ export function LibraryScreen() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <CopyButton text={generateTradeSummary(selectedAssessment)} label="Copy Dossier" />
+                    <CopyButton
+                      text={generateTradeSummary(selectedAssessment)}
+                      label="Copy Dossier"
+                      praWarning={selectedAssessment.netback.certificateValue?.provenance?.sourceType === 'PRICE_REPORTING'}
+                      praSourceName={selectedAssessment.netback.certificateValue?.provenance?.sourceName}
+                    />
                     <button
                       onClick={() => handleRecalculateCurrentMarks(selectedAssessment)}
                       className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded border border-teal-700 bg-teal-950/70 text-teal-300 hover:bg-teal-900"

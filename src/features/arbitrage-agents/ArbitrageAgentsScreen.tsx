@@ -399,17 +399,20 @@ Try asking me:
                     if (!cell) return <td key={mId} className="border border-stone-800 p-1 text-stone-700">—</td>;
 
                     const margin = cell.deskNetMarginEurPerMWh;
-                    let cellBg = 'bg-stone-950 text-stone-600';
+                    let cellBg = 'bg-stone-900/60 text-stone-500 border-stone-800/80';
 
                     if (cell.isBlocked) {
-                      cellBg = 'bg-red-950/40 text-red-400 border-red-900/40';
-                    } else if (margin !== null && margin >= 5.0) {
+                      cellBg = 'bg-red-950/40 text-red-400 border-red-900/40 font-bold';
+                    } else if (margin === null) {
+                      // NO MARK state: distinct neutral style separate from blocked (red ✕) and low margin
+                      cellBg = 'bg-stone-900/60 text-stone-500 border-stone-800/80';
+                    } else if (margin >= 5.0) {
                       cellBg = 'bg-emerald-900 text-emerald-200 font-bold';
-                    } else if (margin !== null && margin >= 3.0) {
+                    } else if (margin >= 3.0) {
                       cellBg = 'bg-teal-900/80 text-teal-200 font-semibold';
-                    } else if (margin !== null && margin >= 2.0) {
+                    } else if (margin >= 2.0) {
                       cellBg = 'bg-teal-950 text-teal-300';
-                    } else if (margin !== null && margin > 0) {
+                    } else if (margin > 0) {
                       cellBg = 'bg-amber-950 text-amber-300';
                     }
 
@@ -417,9 +420,15 @@ Try asking me:
                       <td
                         key={mId}
                         className={`border border-stone-800 p-1 transition-colors cursor-pointer ${cellBg}`}
-                        title={`${originCode} ➔ ${mId}: ${cell.isBlocked ? cell.blockingReason : margin !== null ? `€${margin.toFixed(2)}/MWh desk margin (Total value: €${cell.totalValueEurPerMWh?.toFixed(2)}/MWh)` : 'No mark'}`}
+                        title={`${originCode} ➔ ${mId}: ${cell.isBlocked ? cell.blockingReason : margin !== null ? `€${margin.toFixed(2)}/MWh desk margin (Total value: €${cell.totalValueEurPerMWh?.toFixed(2)}/MWh)` : 'No mark entered for this compliance market'}`}
                       >
-                        {cell.isBlocked ? '✕' : margin !== null ? `+€${margin.toFixed(1)}` : '—'}
+                        {cell.isBlocked ? (
+                          <span className="font-bold text-red-400">✕</span>
+                        ) : margin !== null ? (
+                          `+€${margin.toFixed(1)}`
+                        ) : (
+                          <span className="text-[8px] text-stone-500 font-mono tracking-tighter">No mark</span>
+                        )}
                       </td>
                     );
                   })}
@@ -427,6 +436,30 @@ Try asking me:
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Heatmap 3-State Legend */}
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-stone-800 text-[11px] text-stone-400 font-mono">
+          <div className="flex items-center gap-3">
+            <span className="font-bold text-stone-300 uppercase text-[10px]">Matrix Legend:</span>
+            <span className="inline-flex items-center gap-1">
+              <span className="px-1.5 py-0.5 bg-emerald-900 text-emerald-200 border border-emerald-700 rounded text-[10px] font-bold">+€5.0+</span>
+              <span>High Margin (Priced)</span>
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <span className="px-1.5 py-0.5 bg-teal-950 text-teal-300 border border-teal-800 rounded text-[10px]">+€2.0–€4.9</span>
+              <span>Standard (Priced)</span>
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <span className="px-1.5 py-0.5 bg-stone-900 text-stone-500 border border-stone-800 rounded text-[10px]">No mark</span>
+              <span>Unpriceable (No Mark)</span>
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <span className="px-1.5 py-0.5 bg-red-950 text-red-400 border border-red-800 rounded text-[10px] font-bold">✕</span>
+              <span>Regulatory Blocked</span>
+            </span>
+          </div>
+          <span className="text-stone-500 text-[10px]">Click any cell for full corridor route & desk breakdown</span>
         </div>
       </div>
 

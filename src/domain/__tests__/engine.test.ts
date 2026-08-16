@@ -13,6 +13,8 @@ import { getMarkAgeDays, getMarkStaleness, getMarkReliability, MarkEntry } from 
 import { Consignment } from '../consignment/types';
 import { MarksState, CostInputs } from '../netback/types';
 import { rankNetbacks, getHighestBlockedOpportunity } from '../netback/ranking';
+import { generateTradeSummary } from '../trade/summary';
+import { TradeAssessment } from '../trade/types';
 import { migrateState, createDefaultState, CURRENT_SCHEMA_VERSION } from '../../store/context';
 import { REFERENCE_CONSIGNMENTS } from '../consignment/feedstocks';
 import { scanEuropeanArbitrage } from '../arbitrage/engine';
@@ -615,6 +617,229 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
       // Tested via provenance object
       expect(getMarkStaleness({ provenance: { sourceType: 'PRICE_REPORTING', sourceName: 'Argus', sourceUrl: null, observedAt: warningDate, note: null } })).toBe('STALE_WARNING');
       expect(getMarkStaleness({ provenance: { sourceType: 'PRICE_REPORTING', sourceName: 'Argus', sourceUrl: null, observedAt: criticalDate, note: null } })).toBe('STALE_CRITICAL');
+    });
+  });
+
+  describe('PHASE 3 — Surface Coverage, Dossier Provenance & Licensing Tests', () => {
+    it('dossier prints the provenance line when mark has provenance', () => {
+      const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
+      const frMarket = getMarketById('FR_CPB')!;
+      const eligibility = evaluateEligibility(consignment, frMarket);
+      
+      const marksWithProv: MarksState = {
+        marks: {
+          FR_CPB: {
+            marketId: 'FR_CPB',
+            bid: 91.5,
+            offer: 93.0,
+            mid: 92.25,
+            updatedAt: '2026-08-16T12:00:00Z',
+            source: 'EEX Monthly Auction',
+            provenance: {
+              sourceType: 'EXCHANGE_AUCTION',
+              sourceName: 'EEX auction',
+              sourceUrl: 'https://eex.com',
+              observedAt: '2026-08-01T10:00:00Z',
+              note: 'August monthly auction print',
+            },
+          },
+        },
+        gasIndex: { bid: 28.0, offer: 29.0, mid: 28.5, updatedAt: null },
+        fx: { gbpEur: null, chfEur: null, updatedAt: null },
+        pricingSide: 'bid',
+      };
+
+      const costs: CostInputs = {
+        transferCosts: 0.5,
+        certificationCosts: 0.2,
+        logistics: 1.0,
+        deliveredCost: null,
+        otherCosts: 0,
+        producerPricing: {
+          mode: 'INDEX_LINKED',
+          fixedPriceEurPerMwh: null,
+          indexLinkedShare: 0.90,
+          source: null,
+          lastVerified: null,
+          confidence: 'UNVERIFIED',
+        },
+      };
+
+      const netback = computeNetback(frMarket, consignment, marksWithProv, costs, 'bid');
+      
+      const assessment: TradeAssessment = {
+        id: 'test-assessment-1',
+        createdAt: '2026-08-16T12:00:00Z',
+        targetMarketId: 'FR_CPB',
+        targetMarketName: 'France CPB (Biomethane Production Certificate)',
+        consignment,
+        eligibility,
+        netback,
+        marks: marksWithProv,
+        costs,
+        userNotes: '',
+      };
+
+      const dossier = generateTradeSummary(assessment);
+      expect(dossier).toContain('Mark source: EEX auction (EXCHANGE_AUCTION), observed 2026-08-01');
+    });
+
+    it('dossier prints the explicit warning when source is null', () => {
+      const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
+      const frMarket = getMarketById('FR_CPB')!;
+      const eligibility = evaluateEligibility(consignment, frMarket);
+      
+      const marksWithoutProv: MarksState = {
+        marks: {
+          FR_CPB: {
+            marketId: 'FR_CPB',
+            bid: 91.5,
+            offer: 93.0,
+            mid: 92.25,
+            updatedAt: '2026-08-16T12:00:00Z',
+            source: null,
+            provenance: {
+              sourceType: null,
+              sourceName: null,
+              sourceUrl: null,
+              observedAt: null,
+              note: null,
+            },
+          },
+        },
+        gasIndex: { bid: 28.0, offer: 29.0, mid: 28.5, updatedAt: null },
+        fx: { gbpEur: null, chfEur: null, updatedAt: null },
+        pricingSide: 'bid',
+      };
+
+      const costs: CostInputs = {
+        transferCosts: 0.5,
+        certificationCosts: 0.2,
+        logistics: 1.0,
+        deliveredCost: null,
+        otherCosts: 0,
+        producerPricing: {
+          mode: 'INDEX_LINKED',
+          fixedPriceEurPerMwh: null,
+          indexLinkedShare: 0.90,
+          source: null,
+          lastVerified: null,
+          confidence: 'UNVERIFIED',
+        },
+      };
+
+      const netback = computeNetback(frMarket, consignment, marksWithoutProv, costs, 'bid');
+      
+      const assessment: TradeAssessment = {
+        id: 'test-assessment-2',
+        createdAt: '2026-08-16T12:00:00Z',
+        targetMarketId: 'FR_CPB',
+        targetMarketName: 'France CPB (Biomethane Production Certificate)',
+        consignment,
+        eligibility,
+        netback,
+        marks: marksWithoutProv,
+        costs,
+        userNotes: '',
+      };
+
+      const dossier = generateTradeSummary(assessment);
+      expect(dossier).toContain('Mark source: NOT RECORDED — this price cannot be substantiated.');
+    });
+
+    it('acceptance tests check: constants and calculations', () => {
+      // 1. Carbon intensity conversion precision anchors
+      expect(tCO2ePerMWh(-100)).toBeCloseTo(0.6984, 4);
+      expect(tCO2ePerMWh(20)).toBeCloseTo(0.2664, 4);
+
+      // 2. UK RTFO mass constant
+      expect(RTFO_KG_PER_MWH).toBeCloseTo(72.0, 1);
+
+      // 3. FuelEU manure CI -100, yr 1 ≈ €437.69/MWh
+      const fuelEuModel = computeFuelEUDeficitClosureValue(-100, 1);
+      expect(fuelEuModel.valueEurPerMWh).toBeCloseTo(437.69, 1);
+
+      // 4. FR_CPB capped at €100/MWh
+      const frMarket = getMarketById('FR_CPB')!;
+      const highMarks: MarksState = {
+        marks: {
+          FR_CPB: {
+            marketId: 'FR_CPB',
+            bid: 120.0, // Exceeds €100 cap
+            offer: 125.0,
+            mid: 122.5,
+            updatedAt: '2026-08-16T12:00:00Z',
+            source: null,
+          },
+        },
+        gasIndex: { bid: null, offer: null, mid: null, updatedAt: null },
+        fx: { gbpEur: null, chfEur: null, updatedAt: null },
+        pricingSide: 'bid',
+      };
+      const certVal = computeCertificateValue(frMarket, REFERENCE_CONSIGNMENTS.DANISH_MANURE, highMarks, 'bid');
+      expect(certVal?.valueEurPerMWh).toBe(100.0);
+      expect(certVal?.capped).toBe(true);
+
+      // 5. DE_THG returns both branches
+      const deMarket = getMarketById('DE_THG')!;
+      const deMarks: MarksState = {
+        marks: {
+          DE_THG: {
+            marketId: 'DE_THG',
+            bid: 250.0,
+            offer: 260.0,
+            mid: 255.0,
+            updatedAt: '2026-08-16T12:00:00Z',
+            source: null,
+          },
+        },
+        gasIndex: { bid: 28.0, offer: 29.0, mid: 28.5, updatedAt: null },
+        fx: { gbpEur: null, chfEur: null, updatedAt: null },
+        pricingSide: 'bid',
+      };
+      const deCosts: CostInputs = {
+        transferCosts: 0,
+        certificationCosts: 0,
+        logistics: 0,
+        deliveredCost: null,
+        otherCosts: 0,
+        producerPricing: {
+          mode: 'INDEX_LINKED',
+          fixedPriceEurPerMwh: null,
+          indexLinkedShare: 0.90,
+          source: null,
+          lastVerified: null,
+          confidence: 'UNVERIFIED',
+        },
+      };
+      const deNetback = computeNetback(deMarket, REFERENCE_CONSIGNMENTS.DANISH_MANURE, deMarks, deCosts, 'bid');
+      expect(deNetback.uncertaintyBranches).toHaveLength(2);
+
+      // 6. UK food waste + UK grid + ISCC EU -> DE_THG blocked at UDB gate
+      const ukConsignment = REFERENCE_CONSIGNMENTS.UK_FOOD_WASTE;
+      const ukEligibility = evaluateEligibility(ukConsignment, deMarket);
+      expect(ukEligibility.overallVerdict).toBe('HARD_BLOCK');
+      const udbGate = ukEligibility.gates.find(g => g.gate === 'UDB_RECORDING');
+      expect(udbGate?.verdict).toBe('HARD_BLOCK');
+
+      // 7. All plant records: operator === null, capacityNm3h === null
+      expect(BIOMETHANE_PLANTS.length).toBeGreaterThan(1900);
+      for (const plant of BIOMETHANE_PLANTS) {
+        expect(plant.operator).toBeNull();
+        expect(plant.capacityNm3h).toBeNull();
+      }
+
+      // 8. Producer pricing mode unset -> 'producerPricing' in missingInputs
+      const unsetCosts: CostInputs = {
+        transferCosts: 0,
+        certificationCosts: 0,
+        logistics: 0,
+        deliveredCost: null,
+        otherCosts: 0,
+        producerPricing: null,
+      };
+      const unsetNetback = computeNetback(deMarket, REFERENCE_CONSIGNMENTS.DANISH_MANURE, deMarks, unsetCosts, 'bid');
+      expect(unsetNetback.missingInputs).toContain('producerPricing');
     });
   });
 });

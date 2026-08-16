@@ -307,13 +307,32 @@ export function ScannerScreen() {
                         {marketObj?.unitLabel}
                       </td>
 
-                      {/* Certificate Value */}
+                      {/* Certificate Value + Source Provenance Chip */}
                       <td className={`py-1.5 px-3 text-right font-bold ${
                         isBlocked ? 'line-through text-stone-500' : 'text-stone-200'
                       }`}>
-                        {row.certificateValue?.valueEurPerMWh != null
-                          ? `€${row.certificateValue.valueEurPerMWh.toFixed(2)}`
-                          : <span className="text-stone-600 font-normal italic">No mark</span>}
+                        {row.certificateValue?.valueEurPerMWh != null ? (
+                          <div className="flex flex-col items-end">
+                            <span>€{row.certificateValue.valueEurPerMWh.toFixed(2)}</span>
+                            {row.certificateValue.provenance?.sourceType ? (
+                              <span
+                                className="text-[9px] px-1 py-0.2 bg-stone-800 text-teal-300 border border-stone-700 rounded font-normal mt-0.5 whitespace-nowrap"
+                                title={`Source: ${row.certificateValue.provenance.sourceName || ''} (${row.certificateValue.provenance.sourceType})`}
+                              >
+                                {row.certificateValue.provenance.sourceType.replace(/_/g, ' ')}
+                              </span>
+                            ) : !row.isModelled ? (
+                              <span
+                                className="text-[9px] px-1 py-0.2 bg-stone-900 text-stone-500 border border-stone-800 rounded font-normal mt-0.5 whitespace-nowrap"
+                                title="Source unrecorded — cannot be substantiated"
+                              >
+                                Unsourced
+                              </span>
+                            ) : null}
+                          </div>
+                        ) : (
+                          <span className="text-stone-600 font-normal italic">No mark</span>
+                        )}
                       </td>
 
                       {/* Net Netback + Prominent Incomplete Indicator */}
@@ -371,7 +390,7 @@ export function ScannerScreen() {
 
                       {/* Mark Age / Staleness */}
                       <td className="py-1.5 px-3 text-center">
-                        <StaleIndicator updatedAt={markEntry?.updatedAt ?? null} />
+                        <StaleIndicator target={markEntry} />
                       </td>
 
                       {/* Action Buttons */}
