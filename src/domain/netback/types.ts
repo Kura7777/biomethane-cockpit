@@ -8,6 +8,13 @@ export interface CostInputs {
   otherCosts: number | null;        // €/MWh
 }
 
+export interface FuelEUOptions {
+  shipActualCI?: number;            // Vessel's actual baseline intensity in gCO2e/MJ (default 91.16)
+  consecutiveYears?: number;        // Consecutive non-compliance years: 1 (0%), 2 (+10%), 3 (+20%), 4 (+30%)
+  targetYear?: 2025 | 2030;         // Target compliance year (default 2025 -> 89.34 gCO2e/MJ)
+  deficitMWhCap?: number | null;    // Maximum deficit MWh cap for vessel
+}
+
 export interface CertificateValueResult {
   valueEurPerMWh: number | null;
   calculation: string;              // Human-readable working
@@ -16,6 +23,7 @@ export interface CertificateValueResult {
   capReason: string | null;
   statusNote?: string | null;       // Warning or status note (e.g., UNVERIFIED for UK dRTFC or FuelEU)
   markAgeDays?: number | null;      // Staleness age in days
+  isModelled?: boolean;             // true if value is derived from regulatory model (e.g. FuelEU penalty avoidance) rather than market mark
 }
 
 export interface NetbackBranch {
@@ -47,6 +55,7 @@ export interface NetbackResult {
   uncertaintyBranches: NetbackBranch[] | null;  // For Germany: both DC branches
   statusNote?: string | null;       // Any cautionary status notice (e.g. UNVERIFIED)
   markSideUsed: PriceSide;          // 'bid' | 'mid' | 'offer'
+  isModelled?: boolean;             // true if value is purely modelled (e.g. unquoted FuelEU)
 }
 
 export interface MarksState {
@@ -63,6 +72,7 @@ export interface MarksState {
     updatedAt: string | null;
   };
   pricingSide: PriceSide;           // Global default pricing side (default 'bid' for selling certificates)
+  fuelEUOptions?: FuelEUOptions;
 }
 
 export interface RankedNetback extends NetbackResult {

@@ -9,7 +9,7 @@ import {
 } from '../markets/constants';
 import { Market, PriceSide, getMarkAgeDays } from '../markets/types';
 import { Consignment } from '../consignment/types';
-import { CostInputs, CertificateValueResult, NetbackResult, NetbackBranch, MarksState } from './types';
+import { CostInputs, CertificateValueResult, NetbackResult, NetbackBranch, MarksState, FuelEUOptions } from './types';
 import { EligibilityAssessment } from '../eligibility/types';
 
 /**
@@ -18,6 +18,15 @@ import { EligibilityAssessment } from '../eligibility/types';
 export const FUELEU_BASELINE_CI = 91.16;   // 2020 fleet baseline (gCO₂e/MJ)
 export const FUELEU_TARGET_CI_2025 = 89.34; // 2% reduction (2025-2029)
 export const FUELEU_TARGET_CI_2030 = 85.69; // 6% reduction (2030-2034)
+
+/**
+ * Biomethane Physical Constants for UK RTFO Energy-to-Mass Derivation
+ * LHV Biomethane ≈ 50 MJ/kg = 13.889 kWh/kg = 0.013889 MWh/kg
+ * 1 MWh = 1 / 0.013889 ≈ 72.0 kg biomethane
+ * RTFO gaseous fuels issue 1 dRTFC/kg (standard) or 2 dRTFC/kg (waste/advanced)
+ */
+export const BIOMETHANE_KWH_PER_KG = 13.88889;
+export const RTFO_KG_PER_MWH = 1000 / BIOMETHANE_KWH_PER_KG; // ≈ 72.00 kg/MWh
 
 /**
  * Convert carbon intensity to tonnes CO₂e avoided per MWh.
@@ -51,14 +60,19 @@ export function selectMarkPrice(
 
 /**
  * Compute FuelEU Maritime avoided penalty value per MWh delivered
- * Solves the deficit-closure model:
- * Deficit closed = Delivered MWh × 3600 × (Target_CI − BioLNG_CI)
- * Avoided Penalty = Deficit / (Target_CI × 41,000) × €2,400 × (1 + (year-1)/10)
+ * Solves the deficit-closure model per Regulation (EU) 2023/1805 Annex IV:
+ * Avoided Penalty per MJ = (ΔCI / (GHGIE_actual × 41,000 MJ/t)) × €2,400 × EscalationMultiplier
+ * 
+ * @param consignmentCI - Carbon intensity of the bio-LNG consignment (gCO2e/MJ)
+ * @param consecutiveYears - Consecutive non-compliance escalation year (1 = 0%, 2 = +10%, 3 = +20%, 4 = +30%)
+ * @param targetCI - FuelEU target intensity (89.34 for 2025-2029)
+ * @param shipActualCI - Ship's actual baseline intensity without biofuel (91.16 default)
  */
 export function computeFuelEUDeficitClosureValue(
   consignmentCI: number,
   consecutiveYears: number = 1,
-  targetCI: number = FUELEU_TARGET_CI_2025
+  targetCI: number = FUELEU_TARGET_CI_2025,
+  shipActualCI: number = FUELEU_BASELINE_CI
 ): { valueEurPerMWh: number; calculation: string; unitConversion: string } {
   const penaltyMultiplier = 1 + Math.max(0, (consecutiveYears - 1) / 10);
   const deltaCI = targetCI - consignmentCI; // gCO₂e saved per MJ of bio-fuel vs target
@@ -66,18 +80,18 @@ export function computeFuelEUDeficitClosureValue(
   if (deltaCI <= 0) {
     return {
       valueEurPerMWh: 0,
-      calculation: `Bio-fuel CI (${consignmentCI}) is higher than target CI (${targetCI}). Generates no compliance credit.`,
-      unitConversion: `Target CI: ${targetCI} gCO₂e/MJ, Consignment CI: ${consignmentCI} gCO₂e/MJ`,
+      calculation: `Bio-fuel CI (${consignmentCI} g/MJ) >= target CI (${targetCI} g/MJ). Generates no compliance credit.`,
+      unitConversion: `Target CI: ${targetCI} g/MJ, Actual ship CI: ${shipActualCI} g/MJ`,
     };
   }
 
-  // Energy avoided penalty per MJ delivered:
-  // Penalty avoided per MJ = (deltaCI / (targetCI * 41,000 MJ/t)) * €2,400 * penaltyMultiplier
-  const penaltyPerMJ = (deltaCI / (targetCI * VLSFO_MJ_PER_TONNE)) * FUELEU_PENALTY_EUR_PER_TONNE * penaltyMultiplier;
+  // Energy avoided penalty per MJ delivered using ship's actual achieved intensity:
+  // Penalty avoided per MJ = (deltaCI / (shipActualCI * 41,000 MJ/t)) * €2,400 * penaltyMultiplier
+  const penaltyPerMJ = (deltaCI / (shipActualCI * VLSFO_MJ_PER_TONNE)) * FUELEU_PENALTY_EUR_PER_TONNE * penaltyMultiplier;
   const valueEurPerMWh = penaltyPerMJ * MJ_PER_MWH;
 
-  const unitConversion = `FuelEU Target: ${targetCI} g/MJ | ΔCI: ${deltaCI.toFixed(1)} g/MJ | Penalty: €2,400/t VLSFO-eq (Year ${consecutiveYears}: ${((penaltyMultiplier - 1) * 100).toFixed(0)}% escalation)`;
-  const calculation = `(${deltaCI.toFixed(1)} ÷ (${targetCI} × 41,000)) × €2,400 × ${penaltyMultiplier.toFixed(1)} × 3600 = €${valueEurPerMWh.toFixed(2)}/MWh compliance value`;
+  const unitConversion = `FuelEU Target: ${targetCI} g/MJ | Ship CI: ${shipActualCI} g/MJ | ΔCI: ${deltaCI.toFixed(1)} g/MJ | Penalty: €2,400/t VLSFO-eq (Yr ${consecutiveYears}: ${((penaltyMultiplier - 1) * 100).toFixed(0)}% escalation)`;
+  const calculation = `(${deltaCI.toFixed(1)} ÷ (${shipActualCI} × 41,000)) × €2,400 × ${penaltyMultiplier.toFixed(1)} × 3600 = €${valueEurPerMWh.toFixed(2)}/MWh compliance value`;
 
   return { valueEurPerMWh, calculation, unitConversion };
 }
@@ -90,7 +104,8 @@ export function computeCertificateValue(
   market: Market, 
   consignment: Consignment, 
   marks: MarksState,
-  side?: PriceSide
+  side?: PriceSide,
+  fuelEUOptions?: FuelEUOptions
 ): CertificateValueResult | null {
   const pricingSide = side ?? marks.pricingSide ?? 'bid';
   const markObj = marks.marks[market.id];
@@ -99,10 +114,15 @@ export function computeCertificateValue(
 
   const ci = consignment.carbonIntensity;
 
-  // Handle FuelEU Maritime specially (deficit model or direct mark)
+  // Handle FuelEU Maritime specially (distinguish desk mark vs modelled deficit closure)
   if (market.unitOfAccount === 'EUR_PER_TCO2E_DEFICIT') {
+    const opts = fuelEUOptions ?? marks.fuelEUOptions ?? {};
+    const shipActualCI = opts.shipActualCI ?? FUELEU_BASELINE_CI;
+    const consecutiveYears = opts.consecutiveYears ?? 1;
+    const targetCI = opts.targetYear === 2030 ? FUELEU_TARGET_CI_2030 : FUELEU_TARGET_CI_2025;
+
     if (mark !== null) {
-      const deficitModel = computeFuelEUDeficitClosureValue(ci, 1);
+      const deficitModel = computeFuelEUDeficitClosureValue(ci, consecutiveYears, targetCI, shipActualCI);
       return {
         valueEurPerMWh: mark,
         calculation: `Desk Mark: €${mark.toFixed(2)}/MWh (Deficit-closure reference model yields €${deficitModel.valueEurPerMWh.toFixed(2)}/MWh at CI ${ci})`,
@@ -111,18 +131,20 @@ export function computeCertificateValue(
         capReason: null,
         statusNote: 'Market mark applied. Deficit-closure model validates value exceeding the €210 penalty equivalent.',
         markAgeDays,
+        isModelled: false,
       };
     } else {
-      // If no desk mark entered, provide theoretical deficit closure value
-      const deficitModel = computeFuelEUDeficitClosureValue(ci, 1);
+      // Modelled value when no desk mark is entered
+      const deficitModel = computeFuelEUDeficitClosureValue(ci, consecutiveYears, targetCI, shipActualCI);
       return {
         valueEurPerMWh: deficitModel.valueEurPerMWh,
         calculation: deficitModel.calculation,
         unitConversion: deficitModel.unitConversion,
         capped: false,
         capReason: null,
-        statusNote: 'Modelled via FuelEU Maritime deficit-closure formula (Reg. EU 2023/1805 Annex IV). No desk mark entered.',
+        statusNote: 'MODELLED — Theoretical fleet deficit closure value (Reg. EU 2023/1805 Annex IV). No broker mark entered.',
         markAgeDays: null,
+        isModelled: true,
       };
     }
   }
@@ -137,6 +159,7 @@ export function computeCertificateValue(
   let capped = false;
   let capReason: string | null = null;
   let statusNote: string | null = null;
+  let isModelled = false;
 
   switch (market.unitOfAccount) {
     case 'EUR_PER_TCO2E': {
@@ -157,7 +180,7 @@ export function computeCertificateValue(
       break;
     }
     case 'EUR_PER_MWH': {
-      // France CPB (with €100 cap), Austria EGG, Sweden Tax, Finland, Belgium, Denmark, Voluntary
+      // France CPB (with €100 cap), Austria EGG, Sweden Tax, Finland, Belgium, Denmark, Spain, Poland, Voluntary
       valueEurPerMWh = mark;
       calculation = `Direct market mark (${pricingSide}): €${mark.toFixed(2)}/MWh`;
       if (market.id === 'FR_CPB' && valueEurPerMWh > FR_CPB_CEILING_EUR_MWH) {
@@ -171,7 +194,8 @@ export function computeCertificateValue(
     case 'EUR_PER_CIC': {
       // Italy CIC:
       // Standard / Conventional baseline: 1 CIC = 10 Gcal = 11.63 MWh
-      // Advanced biomethane (Annex IX-A): DM 2 March 2018 / GSE PNRR framework awards 1 CIC / 5 Gcal (5.815 MWh)
+      // Advanced biomethane (Annex IX-A): DM 2 March 2018 benchmark withdrawal mechanism (1 CIC / 5 Gcal = 5.815 MWh)
+      // Note: Subject to GSE PNRR DM 15 Sept 2022 tariff regime rules for post-2022 commissioned plants.
       const isAdvanced = consignment.annexClassification === 'IX_A';
       const mwhPerCic = isAdvanced ? MWH_PER_CIC_ADVANCED : MWH_PER_CIC_CONVENTIONAL;
       valueEurPerMWh = mark / mwhPerCic;
@@ -179,7 +203,7 @@ export function computeCertificateValue(
       if (isAdvanced) {
         unitConversion = `1 CIC = 5 Gcal (Advanced Biofuel, DM 2 March 2018) = ${mwhPerCic.toFixed(3)} MWh/CIC`;
         calculation = `€${mark.toFixed(2)}/CIC ÷ ${mwhPerCic.toFixed(3)} MWh/CIC = €${valueEurPerMWh.toFixed(2)}/MWh`;
-        statusNote = 'Advanced biomethane rate applied per GSE DM 2 March 2018 (1 CIC / 5 Gcal). Conventional baseline is 10 Gcal (11.63 MWh).';
+        statusNote = 'Advanced rate: 1 CIC / 5 Gcal (DM 2 March 2018). Subject to GSE PNRR DM 15 Sept 2022 framework for new plants.';
       } else {
         unitConversion = `1 CIC = 10 Gcal (Conventional baseline) = ${mwhPerCic.toFixed(3)} MWh/CIC`;
         calculation = `€${mark.toFixed(2)}/CIC ÷ ${mwhPerCic.toFixed(3)} MWh/CIC = €${valueEurPerMWh.toFixed(2)}/MWh`;
@@ -188,8 +212,11 @@ export function computeCertificateValue(
     }
     case 'GBP_PER_DRTFC': {
       // UK RTFO:
-      // Under UK RTFO Order 2007: 1 dRTFC is issued per litre equivalent fossil fuel displaced (~410 dRTFC/MWh).
-      // Waste/advanced feedstocks receive 2x dRTFCs (~820 dRTFC/MWh).
+      // Physically derived from biomethane LHV: 50 MJ/kg ≈ 13.889 kWh/kg.
+      // 1 MWh = 1000 kWh ÷ 13.889 kWh/kg ≈ 72.0 kg biomethane.
+      // Under UK RTFO Order 2007 (SI 2007/3072):
+      // Standard yield = 1 dRTFC/kg ≈ 72.0 dRTFC/MWh.
+      // Waste / double-counted feedstocks = 2 dRTFC/kg ≈ 144.0 dRTFC/MWh.
       const fxRate = marks.fx.gbpEur;
       if (fxRate === null) {
         return {
@@ -200,17 +227,18 @@ export function computeCertificateValue(
           capReason: null,
           statusNote: 'UNVERIFIED — Missing FX rate.',
           markAgeDays,
+          isModelled: false,
         };
       }
 
       const isDoubleCounted = consignment.annexClassification === 'IX_A' || consignment.annexClassification === 'IX_B';
-      const drtfcPerMWh = isDoubleCounted ? 820 : 410; // UK RTFO standard yield
+      const drtfcPerMWh = isDoubleCounted ? RTFO_KG_PER_MWH * 2 : RTFO_KG_PER_MWH; // ≈ 144.0 vs 72.0
       const markEurPerDrtfc = mark * fxRate;
       valueEurPerMWh = markEurPerDrtfc * drtfcPerMWh;
 
-      unitConversion = `UK RTFO Order 2007: ${drtfcPerMWh} dRTFC/MWh (${isDoubleCounted ? '2× Waste multiplier' : '1× Standard'}) | £1 = €${fxRate.toFixed(4)}`;
-      calculation = `£${mark.toFixed(3)}/dRTFC × €${fxRate.toFixed(4)}/£ × ${drtfcPerMWh} dRTFC/MWh = €${valueEurPerMWh.toFixed(2)}/MWh`;
-      statusNote = 'ESTIMATED — Standard RTFO yield of 820 dRTFC/MWh for waste-derived biomethane. Verify counterparty allocation.';
+      unitConversion = `UK RTFO Order 2007 (Gaseous): 1 MWh ÷ 13.889 kWh/kg = ${RTFO_KG_PER_MWH.toFixed(1)} kg/MWh → ${drtfcPerMWh.toFixed(1)} dRTFC/MWh (${isDoubleCounted ? '2× Waste multiplier' : '1× Standard'}) | £1 = €${fxRate.toFixed(4)}`;
+      calculation = `£${mark.toFixed(3)}/dRTFC × €${fxRate.toFixed(4)}/£ × ${drtfcPerMWh.toFixed(1)} dRTFC/MWh = €${valueEurPerMWh.toFixed(2)}/MWh`;
+      statusNote = `Derived from biomethane energy content (${drtfcPerMWh.toFixed(1)} dRTFC/MWh). Non-EU grid injection boundary applies.`;
       break;
     }
     default:
@@ -225,6 +253,7 @@ export function computeCertificateValue(
     capReason,
     statusNote,
     markAgeDays,
+    isModelled,
   };
 }
 
@@ -237,10 +266,11 @@ export function computeNetback(
   consignment: Consignment, 
   marks: MarksState, 
   costs: CostInputs,
-  side?: PriceSide
+  side?: PriceSide,
+  fuelEUOptions?: FuelEUOptions
 ): NetbackResult {
   const pricingSide = side ?? marks.pricingSide ?? 'bid';
-  const certVal = computeCertificateValue(market, consignment, marks, pricingSide);
+  const certVal = computeCertificateValue(market, consignment, marks, pricingSide, fuelEUOptions);
   
   const missingInputs: string[] = [];
 
@@ -260,7 +290,7 @@ export function computeNetback(
 
   // Net Netback calculation:
   // If cert value is null, netback is null.
-  // If cert value is present, compute available sum while flagging incomplete inputs.
+  // If cert value is present, compute available arithmetic while flagging incomplete inputs.
   let netNetback: number | null = null;
   if (certVal?.valueEurPerMWh != null) {
     netNetback = certVal.valueEurPerMWh + (molVal ?? 0) - (totalCosts ?? 0);
@@ -313,7 +343,7 @@ export function computeNetback(
       },
       {
         branchId: 'DC_ON',
-        branchLabel: 'With double counting (2× retained for biomethane)',
+        branchLabel: 'If double counting is retained (2×)',
         certificateValue: {
           ...certVal,
           valueEurPerMWh: dcOnCertVal,
@@ -346,6 +376,7 @@ export function computeNetback(
     uncertaintyBranches,
     statusNote: certVal?.statusNote,
     markSideUsed: pricingSide,
+    isModelled: certVal?.isModelled ?? false,
   };
 }
 
@@ -358,10 +389,11 @@ export function computeAllNetbacks(
   marks: MarksState,
   costs: CostInputs,
   eligibilityResults?: Map<string, EligibilityAssessment>,
-  side?: PriceSide
+  side?: PriceSide,
+  fuelEUOptions?: FuelEUOptions
 ): NetbackResult[] {
   return markets.map(m => {
-    const nb = computeNetback(m, consignment, marks, costs, side);
+    const nb = computeNetback(m, consignment, marks, costs, side, fuelEUOptions);
     if (eligibilityResults) {
       const eligibility = eligibilityResults.get(m.id);
       if (eligibility && eligibility.overallVerdict !== 'ELIGIBLE' && eligibility.overallVerdict !== 'CONDITIONAL') {

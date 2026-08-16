@@ -23,7 +23,9 @@ import {
   ChevronRight,
   ShieldCheck,
   Zap,
-  Sparkles
+  Sparkles,
+  HelpCircle,
+  CheckCircle2
 } from 'lucide-react';
 
 export function ScannerScreen() {
@@ -33,6 +35,7 @@ export function ScannerScreen() {
   const [expandedMarketId, setExpandedMarketId] = useState<string | null>(null);
   const [ciOverride, setCiOverride] = useState<number>(-100);
   const [filterTradeableOnly, setFilterTradeableOnly] = useState(false);
+  const [excludeModelled, setExcludeModelled] = useState(false);
 
   // Active consignment or standard Danish manure benchmark
   const activeConsignment: Consignment = useMemo(() => {
@@ -69,8 +72,8 @@ export function ScannerScreen() {
   }, [consignment, activeMarkets, state.marks, state.costs, eligibilityMap]);
 
   const rankedList: RankedNetback[] = useMemo(() => {
-    return rankNetbacks(netbackResults, eligibilityMap);
-  }, [netbackResults, eligibilityMap]);
+    return rankNetbacks(netbackResults, eligibilityMap, { excludeModelled });
+  }, [netbackResults, eligibilityMap, excludeModelled]);
 
   const highestBlocked = useMemo(() => {
     return getHighestBlockedOpportunity(rankedList, eligibilityMap);
@@ -84,7 +87,7 @@ export function ScannerScreen() {
   const pricingSide = state.marks.pricingSide ?? 'bid';
 
   return (
-    <div className="space-y-4 font-sans text-stone-100">
+    <div className="space-y-4 font-sans text-stone-100 pb-16">
       
       {/* Top Header Controls */}
       <div className="bg-stone-900 border border-stone-800 rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
@@ -103,7 +106,22 @@ export function ScannerScreen() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Exclude Modelled / Marks Only Toggle */}
+          <button
+            onClick={() => setExcludeModelled(!excludeModelled)}
+            className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-mono font-semibold rounded border transition-all ${
+              excludeModelled
+                ? 'bg-purple-950 text-purple-300 border-purple-700'
+                : 'bg-stone-950 text-stone-400 border-stone-800 hover:text-stone-200'
+            }`}
+            title="Toggle theoretical model outputs (e.g. unquoted FuelEU deficit closure)"
+          >
+            <Sparkles className="w-3 h-3 text-purple-400" />
+            {excludeModelled ? 'Marks Only (Modelled Hidden)' : 'Include Modelled Outputs'}
+          </button>
+
+          {/* Tradeable Only Filter */}
           <button
             onClick={() => setFilterTradeableOnly(!filterTradeableOnly)}
             className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-mono font-semibold rounded border transition-all ${
@@ -235,13 +253,21 @@ export function ScannerScreen() {
                         )}
                       </td>
 
-                      {/* Market Name */}
+                      {/* Market Name + Modelled Chip */}
                       <td className="py-1.5 px-3 font-semibold text-xs whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
                           <span className="text-stone-400">{marketObj?.country || 'EU'}</span>
                           <span className={isBlocked ? 'line-through text-stone-500' : 'text-stone-100 font-bold'}>
                             {row.marketName}
                           </span>
+                          {row.isModelled && (
+                            <span 
+                              className="text-[9px] bg-purple-950 text-purple-300 border border-purple-800 px-1 rounded uppercase font-bold"
+                              title="Modelled deficit closure value — no broker mark entered"
+                            >
+                              MODELLED
+                            </span>
+                          )}
                         </div>
                       </td>
 
@@ -264,7 +290,7 @@ export function ScannerScreen() {
                           : <span className="text-stone-600 font-normal italic">No mark</span>}
                       </td>
 
-                      {/* Net Netback + Incomplete Indicator */}
+                      {/* Net Netback + Prominent Incomplete Indicator */}
                       <td className={`py-1.5 px-3 text-right font-bold text-xs ${
                         isBlocked
                           ? 'line-through text-stone-500'
@@ -273,10 +299,24 @@ export function ScannerScreen() {
                           : 'text-teal-400'
                       }`}>
                         {row.netNetback != null ? (
-                          <span title={!row.isComplete ? `Missing: ${row.missingInputs.join(', ')}` : 'Complete calculation'}>
-                            €{row.netNetback.toFixed(2)}
-                            {!row.isComplete && <span className="text-amber-400 text-[10px] ml-0.5 font-normal">*</span>}
-                          </span>
+                          <div className="flex flex-col items-end">
+                            <span className="flex items-center gap-0.5">
+                              €{row.netNetback.toFixed(2)}
+                              {!row.isComplete && (
+                                <span 
+                                  className="text-amber-400 text-[11px] font-bold cursor-help"
+                                  title={`Incomplete cost basis: Missing ${row.missingInputs.join(', ')}`}
+                                >
+                                  *
+                                </span>
+                              )}
+                            </span>
+                            {!row.isComplete && (
+                              <span className="text-[9px] text-amber-500/90 font-normal">
+                                incomplete
+                              </span>
+                            )}
+                          </div>
                         ) : (
                           <span className="text-stone-600">—</span>
                         )}
@@ -329,7 +369,7 @@ export function ScannerScreen() {
 
                             <div className="p-2.5 bg-stone-900/90 rounded border border-teal-900/80">
                               <div className="text-[10px] font-bold text-teal-400 uppercase">
-                                Branch 2: With Double Counting (2× Double count)
+                                Branch 2: If double counting is retained (2×)
                               </div>
                               <div className="text-sm font-bold text-teal-300 mt-0.5">
                                 Netback: €{row.uncertaintyBranches[1].netNetback?.toFixed(2)}/MWh

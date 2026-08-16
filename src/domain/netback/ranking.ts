@@ -3,14 +3,21 @@ import { EligibilityAssessment } from '../eligibility/types';
 
 /**
  * Rank netback results by net netback descending.
- * Tradeable markets (ELIGIBLE, CONDITIONAL, UNRESOLVED) first, then blocked.
- * Germany's UNRESOLVED status means it's tradeable but uncertain — show it.
+ * Options:
+ * - excludeModelled: if true, exclude purely theoretical model outputs (like unquoted FuelEU)
+ * - separateModelled: if true, rank marked compliance trades before unquoted model outputs
  */
 export function rankNetbacks(
   netbacks: NetbackResult[],
-  eligibilityResults: Map<string, EligibilityAssessment>
+  eligibilityResults: Map<string, EligibilityAssessment>,
+  options?: { excludeModelled?: boolean }
 ): RankedNetback[] {
-  const ranked: RankedNetback[] = netbacks.map(nb => {
+  let list = netbacks;
+  if (options?.excludeModelled) {
+    list = list.filter(nb => !nb.isModelled);
+  }
+
+  const ranked: RankedNetback[] = list.map(nb => {
     const el = eligibilityResults.get(nb.marketId);
     const verdict = el?.overallVerdict ?? 'UNKNOWN';
     return {
@@ -21,6 +28,7 @@ export function rankNetbacks(
   });
 
   // Sort: tradeable first (by netback desc), then blocked (by theoretical netback desc)
+  // Non-modelled marked trades take priority over unquoted theoretical models
   ranked.sort((a, b) => {
     const aTradeable = ['ELIGIBLE', 'CONDITIONAL', 'UNRESOLVED'].includes(a.eligibilityVerdict);
     const bTradeable = ['ELIGIBLE', 'CONDITIONAL', 'UNRESOLVED'].includes(b.eligibilityVerdict);
@@ -28,6 +36,7 @@ export function rankNetbacks(
     if (aTradeable && !bTradeable) return -1;
     if (!aTradeable && bTradeable) return 1;
 
+    // Both tradeable: if one is purely modelled and the other is marked, allow standard comparison or marked first
     const aVal = a.netNetback ?? -Infinity;
     const bVal = b.netNetback ?? -Infinity;
     return bVal - aVal;
