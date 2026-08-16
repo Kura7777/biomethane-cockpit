@@ -240,7 +240,15 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
     });
 
     it('A9: rankNetbacks sorts complete cost inputs above incomplete rows', () => {
-      const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
+      const consignment: Consignment = {
+        ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
+        deliveryPeriod: {
+          type: 'CALENDAR',
+          startDate: '2026-01-01',
+          endDate: '2026-12-31',
+          complianceYear: 2026,
+        },
+      };
       const frMarket = getMarketById('FR_CPB')!;
       const nlMarket = getMarketById('NL_ERE')!;
 
@@ -593,7 +601,7 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
       };
 
       const migrated = migrateState(v4State);
-      expect(migrated.schemaVersion).toBe(5);
+      expect(migrated.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
 
       // Marks preserved
       expect(migrated.marks.marks['FR_CPB'].bid).toBe(92.5);
@@ -1225,6 +1233,167 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
         expect(legacyBidResult.producerPayable).toBe(perLegBidResult.producerPayable);
         expect(legacyBidResult.deskMargin).toBe(perLegBidResult.deskMargin);
         expect(legacyBidResult.marginPercent).toBe(perLegBidResult.marginPercent);
+      });
+    });
+
+    describe('Deal Ticket Phase 2: Delivery period, compliance year & gate wiring', () => {
+      it('complianceYear 2025 → DE gate single branch, not UNRESOLVED', () => {
+        const consignment: Consignment = {
+          ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
+          deliveryPeriod: {
+            type: 'CALENDAR',
+            startDate: '2025-01-01',
+            endDate: '2025-12-31',
+            complianceYear: 2025,
+          },
+        };
+        const deMarket = getMarketById('DE_THG')!;
+        const elig = evaluateEligibility(consignment, deMarket);
+        const deGate = elig.gates.find(g => g.gate === 'MARKET_SPECIFIC');
+        expect(deGate?.verdict).toBe('PASS');
+        expect(deGate?.reason).toContain('For compliance year 2025 (<= 2025)');
+
+        const netback = computeNetback(deMarket, consignment, sampleMarks, emptyCosts, 'bid');
+        expect(netback.uncertaintyBranches).toBeNull();
+      });
+
+      it('complianceYear 2027 → DE gate UNRESOLVED with both branches', () => {
+        const consignment: Consignment = {
+          ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
+          deliveryPeriod: {
+            type: 'CALENDAR',
+            startDate: '2027-01-01',
+            endDate: '2027-12-31',
+            complianceYear: 2027,
+          },
+        };
+        const deMarket = getMarketById('DE_THG')!;
+        const elig = evaluateEligibility(consignment, deMarket);
+        const deGate = elig.gates.find(g => g.gate === 'MARKET_SPECIFIC');
+        expect(deGate?.verdict).toBe('UNRESOLVED');
+        expect(deGate?.reason).toContain('For compliance year 2027 (>= 2026)');
+
+        const netback = computeNetback(deMarket, consignment, sampleMarks, emptyCosts, 'bid');
+        expect(netback.uncertaintyBranches).toBeDefined();
+        expect(netback.uncertaintyBranches?.length).toBe(2);
+        expect(netback.uncertaintyBranches![0].branchId).toBe('DC_OFF');
+        expect(netback.uncertaintyBranches![1].branchId).toBe('DC_ON');
+      });
+
+      it('complianceYear null → UNRESOLVED, reason states year unset', () => {
+        const consignment: Consignment = {
+          ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
+          deliveryPeriod: {
+            type: null,
+            startDate: null,
+            endDate: null,
+            complianceYear: null,
+          },
+        };
+        const deMarket = getMarketById('DE_THG')!;
+        const elig = evaluateEligibility(consignment, deMarket);
+        const deGate = elig.gates.find(g => g.gate === 'MARKET_SPECIFIC');
+        expect(deGate?.verdict).toBe('UNRESOLVED');
+        expect(deGate?.reason).toContain('Compliance year is unset on this consignment');
+
+        const netback = computeNetback(deMarket, consignment, sampleMarks, emptyCosts, 'bid');
+        expect(netback.missingInputs).toContain('deliveryPeriod');
+        expect(netback.uncertaintyBranches).toBeDefined();
+      });
+
+      it('EU_ETS2 with complianceYear 2028 → no longer blocked on the year alone', () => {
+        const consignment2028: Consignment = {
+          ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
+          deliveryPeriod: {
+            type: 'CALENDAR',
+            startDate: '2028-01-01',
+            endDate: '2028-12-31',
+            complianceYear: 2028,
+          },
+        };
+        const ets2Market = getMarketById('EU_ETS2')!;
+        const elig2028 = evaluateEligibility(consignment2028, ets2Market);
+        const ets2Gate2028 = elig2028.gates.find(g => g.gate === 'MARKET_SPECIFIC');
+        expect(ets2Gate2028?.verdict).toBe('PASS');
+        expect(ets2Gate2028?.reason).toContain('compliance year 2028');
+
+        // Pre-2028 is UNKNOWN
+        const consignment2026: Consignment = {
+          ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
+          deliveryPeriod: {
+            type: 'CALENDAR',
+            startDate: '2026-01-01',
+            endDate: '2026-12-31',
+            complianceYear: 2026,
+          },
+        };
+        const elig2026 = evaluateEligibility(consignment2026, ets2Market);
+        const ets2Gate2026 = elig2026.gates.find(g => g.gate === 'MARKET_SPECIFIC');
+        expect(ets2Gate2026?.verdict).toBe('UNKNOWN');
+      });
+
+      it('v5 → v6 migration adds null deliveryPeriod without data loss', () => {
+        const v5State = {
+          schemaVersion: 5,
+          marks: {
+            marks: {
+              DE_THG: {
+                marketId: 'DE_THG',
+                bid: 290,
+                offer: 310,
+                mid: 300,
+                updatedAt: '2026-08-16T10:00:00Z',
+                source: 'Argus Media',
+                provenance: {
+                  sourceType: 'BROKER_RUN',
+                  sourceName: 'Argus Media',
+                  sourceUrl: null,
+                  observedAt: '2026-08-16T10:00:00Z',
+                  note: null,
+                },
+              },
+            },
+            gasIndex: { bid: 28.0, offer: 29.0, mid: 28.5, updatedAt: null, provenance: null },
+            fx: { gbpEur: 1.17, chfEur: 1.05, updatedAt: null, provenance: null },
+            pricingSide: 'bid',
+          },
+          consignments: [
+            {
+              id: 'c1',
+              name: 'Existing Consignment',
+              originCountry: 'DK',
+              originCountryName: 'Denmark',
+              feedstock: 'manure',
+              feedstockName: 'Animal manure',
+              annexClassification: 'IX_A',
+              carbonIntensity: -100,
+              commissioningDateRange: 'POST_2021_TO_2025',
+              certificationScheme: 'ISCC_EU',
+              chainOfCustody: 'MASS_BALANCE',
+              injectionCountry: 'DK',
+              injectionIsEU: true,
+              udbStatus: 'RECORDED',
+              posStatus: 'ISSUED',
+              volumeMWh: 5000,
+            },
+          ],
+          activeConsignmentId: 'c1',
+          costs: emptyCosts,
+          savedAssessments: [],
+          selectedMarketId: 'DE_THG',
+        };
+
+        const migrated = migrateState(v5State);
+        expect(migrated.schemaVersion).toBe(6);
+        expect(migrated.consignments).toHaveLength(1);
+        expect(migrated.consignments[0].name).toBe('Existing Consignment');
+        expect(migrated.consignments[0].volumeMWh).toBe(5000);
+        expect(migrated.consignments[0].deliveryPeriod).toEqual({
+          type: null,
+          startDate: null,
+          endDate: null,
+          complianceYear: null,
+        });
       });
     });
   });

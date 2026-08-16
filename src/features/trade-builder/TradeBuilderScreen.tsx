@@ -182,6 +182,22 @@ export function TradeBuilderScreen() {
     return tCO2ePerMWh(consignment.carbonIntensity).toFixed(4);
   }, [consignment.carbonIntensity]);
 
+  // Delivery Period & Compliance Year display label
+  const deliveryPeriodLabel = useMemo(() => {
+    const dp = consignment.deliveryPeriod;
+    if (!dp?.complianceYear) return 'compliance year unset';
+    const typeStr = dp.type === 'CALENDAR'
+      ? `CAL-${String(dp.complianceYear).slice(-2)}`
+      : dp.type === 'QUARTER'
+      ? `Q-${String(dp.complianceYear).slice(-2)}`
+      : dp.type === 'MONTH'
+      ? `M-${String(dp.complianceYear).slice(-2)}`
+      : dp.type === 'CUSTOM'
+      ? 'Custom delivery'
+      : `CAL-${String(dp.complianceYear).slice(-2)}`;
+    return `${typeStr} · compliance year ${dp.complianceYear}`;
+  }, [consignment.deliveryPeriod]);
+
   const handleSaveToLibrary = () => {
     dispatch({ type: 'SAVE_ASSESSMENT', assessment: currentAssessment });
     setSaveSuccess(true);
@@ -655,6 +671,73 @@ export function TradeBuilderScreen() {
                 </div>
               </div>
 
+              {/* Delivery Period & Compliance Year (Phase 2) */}
+              <div className="p-2 bg-[#0B0E11] rounded space-y-1.5 border border-[#1E262F]/60 font-mono">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-[#8B98A5] text-[9px] uppercase tracking-wide">Delivery Tenor & Compliance Year</span>
+                  <span className={`text-[10px] ${consignment.deliveryPeriod?.complianceYear ? 'text-[#2DD4BF]' : 'text-[#D99A2B]'}`}>
+                    {consignment.deliveryPeriod?.complianceYear ? `CY ${consignment.deliveryPeriod.complianceYear}` : 'Year Unset'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-1.5">
+                  <div>
+                    <label className="block text-[9px] text-[#8B98A5] uppercase mb-1">Tenor</label>
+                    <select
+                      value={consignment.deliveryPeriod?.type ?? ''}
+                      onChange={e => {
+                        const val = e.target.value as any;
+                        setConsignment({
+                          ...consignment,
+                          deliveryPeriod: {
+                            type: val || null,
+                            startDate: consignment.deliveryPeriod?.startDate ?? null,
+                            endDate: consignment.deliveryPeriod?.endDate ?? null,
+                            complianceYear: consignment.deliveryPeriod?.complianceYear ?? null,
+                          },
+                        });
+                      }}
+                      className="w-full bg-[#12171C] border border-[#26313D] rounded px-1.5 py-1 text-[11px] text-[#E8EDF2] focus:border-[#2DD4BF] outline-none"
+                    >
+                      <option value="">Select Tenor...</option>
+                      <option value="CALENDAR">Calendar Year (CAL)</option>
+                      <option value="QUARTER">Quarter (Q)</option>
+                      <option value="MONTH">Month (M)</option>
+                      <option value="CUSTOM">Custom Window</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[9px] text-[#8B98A5] uppercase mb-1">Compliance Year</label>
+                    <select
+                      value={consignment.deliveryPeriod?.complianceYear ?? ''}
+                      onChange={e => {
+                        const val = e.target.value ? Number(e.target.value) : null;
+                        setConsignment({
+                          ...consignment,
+                          deliveryPeriod: {
+                            type: consignment.deliveryPeriod?.type ?? (val ? 'CALENDAR' : null),
+                            startDate: consignment.deliveryPeriod?.startDate ?? (val ? `${val}-01-01` : null),
+                            endDate: consignment.deliveryPeriod?.endDate ?? (val ? `${val}-12-31` : null),
+                            complianceYear: val,
+                          },
+                        });
+                      }}
+                      className="w-full bg-[#12171C] border border-[#26313D] rounded px-1.5 py-1 text-[11px] text-[#E8EDF2] focus:border-[#2DD4BF] outline-none font-semibold"
+                    >
+                      <option value="">Unset (Missing)</option>
+                      <option value="2024">2024 (Pre-2026 2×)</option>
+                      <option value="2025">2025 (Pre-2026 2×)</option>
+                      <option value="2026">2026 (Post-2025 Dual)</option>
+                      <option value="2027">2027 (Post-2025 Dual)</option>
+                      <option value="2028">2028 (ETS2 Live / CPB P1)</option>
+                      <option value="2029">2029 (ETS2 Live)</option>
+                      <option value="2030">2030 (RED III Target)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
 
@@ -1088,9 +1171,14 @@ export function TradeBuilderScreen() {
                   <span>•</span>
                   <span className="text-[#E8EDF2]">{consignment.originCountryName} ➔ {selectedMarket.countryName || 'EU'}</span>
                 </div>
-                <h2 className="text-[18px] font-semibold text-[#E8EDF2] tracking-tight mt-0.5 font-mono">
-                  {selectedMarket.name}
-                </h2>
+                <div className="flex items-center gap-2 flex-wrap mt-0.5">
+                  <h2 className="text-[18px] font-semibold text-[#E8EDF2] tracking-tight font-mono">
+                    {selectedMarket.name}
+                  </h2>
+                  <span className="text-[#2DD4BF] text-[11px] font-mono font-medium px-2 py-0.5 bg-[#12171C] rounded border border-[#1E262F]">
+                    {deliveryPeriodLabel}
+                  </span>
+                </div>
                 <div className="text-[10px] text-[#8B98A5] mt-0.5 font-mono">
                   Registry: <span className="text-[#E8EDF2]">{selectedMarket.registry || selectedMarket.countryName}</span> • Basis: <span className="text-[#E8EDF2]">{selectedMarket.legalBasis}</span>
                 </div>

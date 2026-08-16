@@ -397,99 +397,143 @@ export function computeNetback(
   }
   const totalPnL = deskPnL;
 
+  // Track delivery period & compliance year completeness
+  if (!consignment.deliveryPeriod?.complianceYear) {
+    missingInputs.push('deliveryPeriod');
+  }
+
   const isComplete = missingInputs.length === 0 && certVal?.valueEurPerMWh != null;
 
-  // Germany THG uncertainty branches (DC_OFF vs DC_ON)
+  // Germany THG uncertainty branches:
+  // - If complianceYear <= 2025: double counting applies cleanly (single branch, no uncertainty branches)
+  // - If complianceYear >= 2026 or null: UNRESOLVED dual branches (DC_OFF 1x vs DC_ON 2x)
   let uncertaintyBranches: NetbackBranch[] | null = null;
+  const complianceYear = consignment.deliveryPeriod?.complianceYear ?? null;
+
   if (market.id === 'DE_THG' && certVal?.valueEurPerMWh != null) {
-    const dcOffNetback = netNetback;
-    const dcOffSpread = grossValueSpread;
-    const dcOffProducerPayable = producerPayable;
-    const dcOffDeskMargin = deskMargin;
+    if (complianceYear !== null && complianceYear <= 2025) {
+      // Single branch for <= 2025: double counting (2x) applies for Annex IX-A feedstocks under 38. BImSchV
+      if (consignment.annexClassification === 'IX_A') {
+        const dcOnCertVal = certVal.valueEurPerMWh * 2;
+        certVal.valueEurPerMWh = dcOnCertVal;
+        certVal.calculation = `${certVal.calculation} × 2 (double counting under 38. BImSchV for CY ${complianceYear}) = €${dcOnCertVal.toFixed(2)}/MWh`;
+        certVal.statusNote = `Double counting applies for compliance year ${complianceYear} (pre-2026 regime under §37a BImSchG).`;
 
-    // DC_ON: certificate value doubled (2x)
-    const dcOnCertVal = certVal.valueEurPerMWh * 2;
-    const dcOnNetback = dcOnCertVal + (molVal ?? 0) - (totalCosts ?? 0);
-    let dcOnProducerPayable: number | null = null;
-    let dcOnDeskMargin: number | null = null;
-    let dcOnSpread: number | null = null;
+        netNetback = dcOnCertVal + (molVal ?? 0) - (totalCosts ?? 0);
 
-    if (pricingMode === 'INDEX_LINKED') {
-      const share = costs.producerPricing?.indexLinkedShare ?? null;
-      if (share !== null && dcOnNetback !== null) {
-        dcOnProducerPayable = Number((dcOnNetback * share).toFixed(2));
-        dcOnDeskMargin = Number((dcOnNetback - dcOnProducerPayable).toFixed(2));
-        dcOnSpread = null;
+        if (pricingMode === 'INDEX_LINKED') {
+          const share = costs.producerPricing?.indexLinkedShare ?? null;
+          if (share !== null && netNetback !== null) {
+            producerPayable = Number((netNetback * share).toFixed(2));
+            deskMargin = Number((netNetback - producerPayable).toFixed(2));
+            grossValueSpread = null;
+          }
+        } else if (pricingMode === 'FIXED_PRICE') {
+          const fixedPrice = costs.producerPricing?.fixedPriceEurPerMwh ?? null;
+          if (fixedPrice !== null && netNetback !== null) {
+            producerPayable = fixedPrice;
+            deskMargin = Number((netNetback - fixedPrice).toFixed(2));
+            grossValueSpread = deskMargin;
+          }
+        }
+
+        if (deskMargin !== null && netNetback !== null && netNetback > 0) {
+          marginPercent = (deskMargin / netNetback) * 100;
+        } else if (deskMargin !== null && netNetback !== null && netNetback < 0) {
+          marginPercent = -(deskMargin / Math.abs(netNetback)) * 100;
+        }
       }
-    } else if (pricingMode === 'FIXED_PRICE') {
-      const fixedPrice = costs.producerPricing?.fixedPriceEurPerMwh ?? null;
-      if (fixedPrice !== null && dcOnNetback !== null) {
-        dcOnProducerPayable = fixedPrice;
-        dcOnDeskMargin = Number((dcOnNetback - fixedPrice).toFixed(2));
-        dcOnSpread = dcOnDeskMargin;
+      uncertaintyBranches = null;
+    } else {
+      const dcOffNetback = netNetback;
+      const dcOffSpread = grossValueSpread;
+      const dcOffProducerPayable = producerPayable;
+      const dcOffDeskMargin = deskMargin;
+
+      // DC_ON: certificate value doubled (2x)
+      const dcOnCertVal = certVal.valueEurPerMWh * 2;
+      const dcOnNetback = dcOnCertVal + (molVal ?? 0) - (totalCosts ?? 0);
+      let dcOnProducerPayable: number | null = null;
+      let dcOnDeskMargin: number | null = null;
+      let dcOnSpread: number | null = null;
+
+      if (pricingMode === 'INDEX_LINKED') {
+        const share = costs.producerPricing?.indexLinkedShare ?? null;
+        if (share !== null && dcOnNetback !== null) {
+          dcOnProducerPayable = Number((dcOnNetback * share).toFixed(2));
+          dcOnDeskMargin = Number((dcOnNetback - dcOnProducerPayable).toFixed(2));
+          dcOnSpread = null;
+        }
+      } else if (pricingMode === 'FIXED_PRICE') {
+        const fixedPrice = costs.producerPricing?.fixedPriceEurPerMwh ?? null;
+        if (fixedPrice !== null && dcOnNetback !== null) {
+          dcOnProducerPayable = fixedPrice;
+          dcOnDeskMargin = Number((dcOnNetback - fixedPrice).toFixed(2));
+          dcOnSpread = dcOnDeskMargin;
+        }
       }
-    }
 
-    let dcOnMarginPct: number | null = null;
-    if (dcOnDeskMargin !== null && dcOnNetback !== null && dcOnNetback > 0) {
-      dcOnMarginPct = (dcOnDeskMargin / dcOnNetback) * 100;
-    } else if (dcOnDeskMargin !== null && dcOnNetback !== null && dcOnNetback < 0) {
-      dcOnMarginPct = -(dcOnDeskMargin / Math.abs(dcOnNetback)) * 100;
-    }
+      let dcOnMarginPct: number | null = null;
+      if (dcOnDeskMargin !== null && dcOnNetback !== null && dcOnNetback > 0) {
+        dcOnMarginPct = (dcOnDeskMargin / dcOnNetback) * 100;
+      } else if (dcOnDeskMargin !== null && dcOnNetback !== null && dcOnNetback < 0) {
+        dcOnMarginPct = -(dcOnDeskMargin / Math.abs(dcOnNetback)) * 100;
+      }
 
-    const dcOnDeskPnL = dcOnDeskMargin !== null && consignment.volumeMWh !== null ? dcOnDeskMargin * consignment.volumeMWh : null;
-    const dcOnGrossSpreadPnL = dcOnSpread !== null && consignment.volumeMWh !== null ? dcOnSpread * consignment.volumeMWh : null;
+      const dcOnDeskPnL = dcOnDeskMargin !== null && consignment.volumeMWh !== null ? dcOnDeskMargin * consignment.volumeMWh : null;
+      const dcOnGrossSpreadPnL = dcOnSpread !== null && consignment.volumeMWh !== null ? dcOnSpread * consignment.volumeMWh : null;
 
-    // DC_ON crossing cost:
-    const dcOnAtChosen = dcOnNetback;
-    const dcOnAtMid = midCertVal?.valueEurPerMWh != null ? midCertVal.valueEurPerMWh * 2 + (midMolVal ?? 0) - (totalCosts ?? 0) : null;
-    const dcOnCrossingCost = (dcOnAtChosen !== null && dcOnAtMid !== null) ? Number((dcOnAtMid - dcOnAtChosen).toFixed(2)) : null;
+      // DC_ON crossing cost:
+      const dcOnAtChosen = dcOnNetback;
+      const dcOnAtMid = midCertVal?.valueEurPerMWh != null ? midCertVal.valueEurPerMWh * 2 + (midMolVal ?? 0) - (totalCosts ?? 0) : null;
+      const dcOnCrossingCost = (dcOnAtChosen !== null && dcOnAtMid !== null) ? Number((dcOnAtMid - dcOnAtChosen).toFixed(2)) : null;
 
-    uncertaintyBranches = [
-      {
-        branchId: 'DC_OFF',
-        branchLabel: 'Without double counting (1× single counting)',
-        certificateValue: certVal,
-        netNetback: dcOffNetback,
-        grossValueSpread: dcOffSpread,
-        impliedMargin: dcOffSpread,
-        producerPayable: dcOffProducerPayable,
-        deskMargin: dcOffDeskMargin,
-        marginPercent: marginPercent,
-        grossSpreadPnL,
-        totalPnL: deskPnL,
-        deskPnL,
-        isComplete,
-        missingInputs,
-        sides,
-      },
-      {
-        branchId: 'DC_ON',
-        branchLabel: 'If double counting is retained (2×)',
-        certificateValue: {
-          ...certVal,
-          valueEurPerMWh: dcOnCertVal,
-          calculation: `${certVal.calculation} × 2 (double counting) = €${dcOnCertVal.toFixed(2)}/MWh`,
-          statusNote: 'CAUTION: This branch doubles the certificate value (€/MWh) as a proxy for 2× quota volume credit. In practice, if double counting is retained, the market price per tCO₂e may be lower due to increased effective supply. This branch represents an upper-bound scenario.',
+      uncertaintyBranches = [
+        {
+          branchId: 'DC_OFF',
+          branchLabel: 'Without double counting (1× single counting)',
+          certificateValue: certVal,
+          netNetback: dcOffNetback,
+          grossValueSpread: dcOffSpread,
+          impliedMargin: dcOffSpread,
+          producerPayable: dcOffProducerPayable,
+          deskMargin: dcOffDeskMargin,
+          marginPercent: marginPercent,
+          grossSpreadPnL,
+          totalPnL: deskPnL,
+          deskPnL,
+          isComplete,
+          missingInputs,
+          sides,
         },
-        netNetback: dcOnNetback,
-        grossValueSpread: dcOnSpread,
-        impliedMargin: dcOnSpread,
-        producerPayable: dcOnProducerPayable,
-        deskMargin: dcOnDeskMargin,
-        marginPercent: dcOnMarginPct,
-        grossSpreadPnL: dcOnGrossSpreadPnL,
-        totalPnL: dcOnDeskPnL,
-        deskPnL: dcOnDeskPnL,
-        isComplete,
-        missingInputs,
-        sides: {
-          atChosenSides: dcOnAtChosen,
-          atMid: dcOnAtMid,
-          crossingCost: dcOnCrossingCost,
+        {
+          branchId: 'DC_ON',
+          branchLabel: 'If double counting is retained (2×)',
+          certificateValue: {
+            ...certVal,
+            valueEurPerMWh: dcOnCertVal,
+            calculation: `${certVal.calculation} × 2 (double counting) = €${dcOnCertVal.toFixed(2)}/MWh`,
+            statusNote: 'CAUTION: This branch doubles the certificate value (€/MWh) as a proxy for 2× quota volume credit. In practice, if double counting is retained, the market price per tCO₂e may be lower due to increased effective supply. This branch represents an upper-bound scenario.',
+          },
+          netNetback: dcOnNetback,
+          grossValueSpread: dcOnSpread,
+          impliedMargin: dcOnSpread,
+          producerPayable: dcOnProducerPayable,
+          deskMargin: dcOnDeskMargin,
+          marginPercent: dcOnMarginPct,
+          grossSpreadPnL: dcOnGrossSpreadPnL,
+          totalPnL: dcOnDeskPnL,
+          deskPnL: dcOnDeskPnL,
+          isComplete,
+          missingInputs,
+          sides: {
+            atChosenSides: dcOnAtChosen,
+            atMid: dcOnAtMid,
+            crossingCost: dcOnCrossingCost,
+          },
         },
-      },
-    ];
+      ];
+    }
   }
 
   return {

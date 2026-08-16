@@ -4,6 +4,13 @@ export type ChainOfCustody = 'MASS_BALANCE' | 'BOOK_AND_CLAIM' | 'SEGREGATION';
 export type UDBStatus = 'RECORDED' | 'PENDING' | 'NOT_RECORDED';
 export type PoSStatus = 'ISSUED' | 'PENDING' | 'NOT_AVAILABLE';
 
+export interface DeliveryPeriod {
+  type: 'MONTH' | 'QUARTER' | 'CALENDAR' | 'CUSTOM' | null;
+  startDate: string | null;      // ISO
+  endDate: string | null;        // ISO
+  complianceYear: number | null; // the year the certificate is surrendered against
+}
+
 export interface Consignment {
   id: string;
   name: string;  // user-given label
@@ -21,4 +28,5 @@ export interface Consignment {
   udbStatus: UDBStatus;
   posStatus: PoSStatus;
   volumeMWh: number | null;  // optional, for P&L calc
+  deliveryPeriod?: DeliveryPeriod | null;
 }

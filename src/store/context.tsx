@@ -6,8 +6,9 @@ import { PriceSide, MarkEntry, MarkProvenance, getMarkStaleness } from '../domai
 import { MARKETS } from '../domain/markets/registry';
 import { REFERENCE_CONSIGNMENTS } from '../domain/consignment/feedstocks';
 
-export const CURRENT_SCHEMA_VERSION = 5;
-const STORAGE_KEY = 'biomethane-desk-state-v5';
+export const CURRENT_SCHEMA_VERSION = 6;
+const STORAGE_KEY = 'biomethane-desk-state-v6';
+const LEGACY_STORAGE_KEY_V5 = 'biomethane-desk-state-v5';
 const LEGACY_STORAGE_KEY = 'biomethane-desk-state';
 
 // State shape
@@ -184,6 +185,19 @@ export function migrateState(raw: any): AppState {
     };
   }
 
+  if (stateVersion < 6) {
+    // Schema v6 migration: existing consignments get deliveryPeriod with all fields null
+    migrated.consignments = (migrated.consignments || []).map((c: any) => ({
+      ...c,
+      deliveryPeriod: c.deliveryPeriod ?? {
+        type: null,
+        startDate: null,
+        endDate: null,
+        complianceYear: null,
+      },
+    }));
+  }
+
   migrated.schemaVersion = CURRENT_SCHEMA_VERSION;
 
   // Ensure default reference consignments exist if list is empty
@@ -271,6 +285,7 @@ export function createDefaultState(): AppState {
 
 function getInitialState(): AppState {
   const KNOWN_STORAGE_KEYS = [
+    'biomethane-desk-state-v6',
     'biomethane-desk-state-v5',
     'biomethane-desk-state-v4',
     'biomethane-desk-state-v3',

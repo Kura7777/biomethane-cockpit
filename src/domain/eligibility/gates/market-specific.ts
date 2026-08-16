@@ -20,14 +20,30 @@ export function evaluateMarketSpecificGate(consignment: Consignment, market: Mar
     };
   }
 
+  const complianceYear = consignment.deliveryPeriod?.complianceYear ?? null;
+
   // FUTURE markets
   if (market.status === 'FUTURE') {
     if (market.id === 'EU_ETS2') {
+      if (complianceYear !== null && complianceYear >= 2028) {
+        return {
+          gate: GATE,
+          gateLabel: GATE_LABEL,
+          verdict: 'PASS',
+          reason: `EU ETS2 (buildings and road transport fuel suppliers) is operational for compliance year ${complianceYear} (start year: 2028). Biomethane surrendered against ETS2 obligations is tradeable under the revised EU ETS Directive.`,
+          remedy: null,
+          citations: [CITATIONS.EU_ETS_DIRECTIVE],
+          confidence: 'HIGH',
+        };
+      }
+
       return {
         gate: GATE,
         gateLabel: GATE_LABEL,
         verdict: 'UNKNOWN',
-        reason: 'EU ETS2 (buildings and road transport fuel suppliers) has been postponed to 2028 by the Council and Parliament (March 2026). Not tradeable until 2028. Many sources still reference the original 2027 start date; they are outdated.',
+        reason: complianceYear !== null
+          ? `EU ETS2 compliance year ${complianceYear} is not tradeable: start date was postponed to 2028 by the Council and Parliament (March 2026). Not tradeable until the 2028 compliance year.`
+          : 'EU ETS2 (buildings and road transport fuel suppliers) has been postponed to 2028 by the Council and Parliament (March 2026). Not tradeable until 2028. Many sources still reference the original 2027 start date; they are outdated.',
         remedy: 'No action required until 2028. Monitor implementing legislation for compliance obligations applicable to biomethane.',
         citations: [CITATIONS.EU_ETS_DIRECTIVE],
         confidence: 'HIGH',
@@ -46,27 +62,66 @@ export function evaluateMarketSpecificGate(consignment: Consignment, market: Mar
 
   // ACTIVE & EMERGING MARKET-SPECIFIC RULES
   switch (market.id) {
-    case 'DE_THG':
+    case 'DE_THG': {
+      if (complianceYear !== null && complianceYear <= 2025) {
+        return {
+          gate: GATE,
+          gateLabel: GATE_LABEL,
+          verdict: 'PASS',
+          reason: `For compliance year ${complianceYear} (<= 2025), advanced biofuels retain double counting under §37a BImSchG / 38. BImSchV. Single-scenario valuation applies with 2× multiplier.`,
+          remedy: null,
+          citations: [CITATIONS.DE_BIMSCHG, CITATIONS.DE_38_BIMSCHV],
+          confidence: 'HIGH',
+        };
+      }
+
+      if (complianceYear !== null && complianceYear >= 2026) {
+        return {
+          gate: GATE,
+          gateLabel: GATE_LABEL,
+          verdict: 'UNRESOLVED',
+          reason: `For compliance year ${complianceYear} (>= 2026), double counting of advanced biofuels is eliminated in the Cabinet draft (10 December 2025). Whether biomethane specifically retains double counting is unresolved. Both scenarios must be modelled.\n\n⚠ IMPORTANT DISTINCTION:\n• Double counting is a POLICY MULTIPLIER — it is being removed.\n• Manure's negative carbon intensity is a property of the GHG CALCULATION (avoided methane emissions from conventional manure management) — it is UNAFFECTED by changes to double counting.`,
+          remedy: 'Model both branches (with and without double counting). Monitor the legislative process for the final BImSchV amendment.',
+          citations: [CITATIONS.DE_BIMSCHG, CITATIONS.DE_38_BIMSCHV],
+          confidence: 'MEDIUM',
+        };
+      }
+
+      // complianceYear === null
       return {
         gate: GATE,
         gateLabel: GATE_LABEL,
         verdict: 'UNRESOLVED',
-        reason: 'Biomethane is eligible for the German THG quota under §37a BImSchG. HOWEVER: double counting of advanced biofuels is eliminated from the 2026 compliance year (Cabinet draft, 10 December 2025). Whether biomethane specifically retains double counting is unresolved. Both scenarios must be modelled.\n\n⚠ IMPORTANT DISTINCTION:\n• Double counting is a POLICY MULTIPLIER — it is being removed.\n• Manure\'s negative carbon intensity is a property of the GHG CALCULATION (avoided methane emissions from conventional manure management) — it is UNAFFECTED by changes to double counting.',
-        remedy: 'Model both branches (with and without double counting). Monitor the legislative process for the final BImSchV amendment.',
+        reason: 'Compliance year is unset on this consignment. Because German THG quota double-counting rules differ across compliance years (retained <= 2025, eliminated >= 2026 in draft legislation), the specific rule cannot be applied until a compliance year is selected. Both branches must be modelled under regulatory uncertainty.',
+        remedy: 'Set the delivery period / compliance year on the consignment to determine whether double counting applies.',
         citations: [CITATIONS.DE_BIMSCHG, CITATIONS.DE_38_BIMSCHV],
         confidence: 'MEDIUM',
       };
+    }
 
-    case 'FR_CPB':
+    case 'FR_CPB': {
+      if (complianceYear !== null && (complianceYear < 2026 || complianceYear > 2028)) {
+        return {
+          gate: GATE,
+          gateLabel: GATE_LABEL,
+          verdict: 'CONDITIONAL',
+          reason: `Delivery period / compliance year (${complianceYear}) falls outside the first France CPB restitution period (1 Jan 2026 – 31 Dec 2028). Declaration deadlines (first declaration due 1 Mar 2027) and quota liabilities may not align with this period.`,
+          remedy: 'Align delivery schedule with France CPB restitution periods (Period 1: 2026–2028).',
+          citations: [CITATIONS.FR_CPB],
+          confidence: 'HIGH',
+        };
+      }
+
       return {
         gate: GATE,
         gateLabel: GATE_LABEL,
         verdict: 'PASS',
-        reason: 'France CPB is live from 1 January 2026. The €100/MWh penalty per missing CPB acts as a hard price ceiling — no supplier rationally pays more. In 2026, the obligation binds only suppliers above 400 GWh/yr, with the threshold falling to zero by year five. Registry: EEX. First declaration due 1 March 2027.',
+        reason: 'France CPB is live from 1 January 2026. The €100/MWh penalty per missing CPB acts as a hard price ceiling — no supplier rationally pays more. First restitution period: 1 Jan 2026 – 31 Dec 2028; first declaration due 1 March 2027. In 2026, the obligation binds suppliers above 400 GWh/yr, falling to zero by year five. Registry: EEX.',
         remedy: null,
         citations: [CITATIONS.FR_CPB],
         confidence: 'HIGH',
       };
+    }
 
     case 'NL_ERE':
       return {
