@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { ComposableMap, Geographies, Geography, ZoomableGroup, Marker, Line } from 'react-simple-maps';
 import { useNavigate } from 'react-router-dom';
-import { MARKETS, getMarketById } from '../../domain/markets/registry';
+import { MARKETS } from '../../domain/markets/registry';
 import { Market } from '../../domain/markets/types';
 import { useAppState } from '../../store/context';
 import { StatusChip } from '../../shared/components/StatusChip';
@@ -49,10 +49,41 @@ const COUNTRY_ISO2_TO_ISO3: Record<string, string> = {
   UA: 'UKR', IS: 'ISL', LI: 'LIE',
 };
 
-const COUNTRY_ISO3_TO_ISO2: Record<string, string> = Object.entries(COUNTRY_ISO2_TO_ISO3).reduce(
-  (acc, [k, v]) => ({ ...acc, [v]: k }),
-  {}
-);
+// Comprehensive mapping supporting Numeric TopoJSON IDs, ISO-3, and English Names
+const NUMERIC_OR_NAME_TO_ISO2: Record<string, string> = {
+  // Numeric IDs from Natural Earth TopoJSON
+  '250': 'FR', '276': 'DE', '826': 'GB', '724': 'ES', '380': 'IT',
+  '616': 'PL', '752': 'SE', '578': 'NO', '246': 'FI', '208': 'DK',
+  '528': 'NL', '056': 'BE', '56': 'BE', '040': 'AT', '40': 'AT',
+  '756': 'CH', '440': 'LT', '428': 'LV', '233': 'EE', '372': 'IE',
+  '620': 'PT', '203': 'CZ', '703': 'SK', '348': 'HU', '642': 'RO',
+  '100': 'BG', '300': 'GR', '804': 'UA', '191': 'HR', '705': 'SI',
+  '442': 'LU', '352': 'IS', '196': 'CY', '470': 'MT',
+
+  // ISO3 Codes
+  FRA: 'FR', DEU: 'DE', GBR: 'GB', ESP: 'ES', ITA: 'IT',
+  POL: 'PL', SWE: 'SE', NOR: 'NO', FIN: 'FI', DNK: 'DK',
+  NLD: 'NL', BEL: 'BE', AUT: 'AT', CHE: 'CH', LTU: 'LT',
+  LVA: 'LV', EST: 'EE', IRL: 'IE', PRT: 'PT', CZE: 'CZ',
+  SVK: 'SK', HUN: 'HU', ROU: 'RO', BGR: 'BG', GRC: 'GR',
+  UKR: 'UA', HRV: 'HR', SVN: 'SI', LUX: 'LU', ISL: 'IS',
+  CYP: 'CY', MLT: 'MT',
+
+  // Names
+  France: 'FR', Germany: 'DE', 'United Kingdom': 'GB', Spain: 'ES', Italy: 'IT',
+  Poland: 'PL', Sweden: 'SE', Norway: 'NO', Finland: 'FI', Denmark: 'DK',
+  Netherlands: 'NL', Belgium: 'BE', Austria: 'AT', Switzerland: 'CH', Lithuania: 'LT',
+  Latvia: 'LV', Estonia: 'EE', Ireland: 'IE', Portugal: 'PT', Czechia: 'CZ', 'Czech Rep.': 'CZ',
+  Slovakia: 'SK', Hungary: 'HU', Romania: 'RO', Bulgaria: 'BG', Greece: 'GR',
+  Ukraine: 'UA', Croatia: 'HR', Slovenia: 'SI', Luxembourg: 'LU', Iceland: 'IS',
+  Cyprus: 'CY', Malta: 'MT',
+};
+
+function resolveCountryCode(geoId: string, geoName?: string): string | null {
+  if (NUMERIC_OR_NAME_TO_ISO2[geoId]) return NUMERIC_OR_NAME_TO_ISO2[geoId];
+  if (geoName && NUMERIC_OR_NAME_TO_ISO2[geoName]) return NUMERIC_OR_NAME_TO_ISO2[geoName];
+  return null;
+}
 
 // Geographic centroids for accurate Google Maps style country labels
 const COUNTRY_LABEL_POSITIONS: Record<string, { coords: [number, number]; label: string; short: string }> = {
@@ -131,7 +162,6 @@ interface ContextMenuState {
   x: number;
   y: number;
   iso2: string;
-  iso3: string;
   name: string;
   flag: string;
   plantCount: number;
@@ -144,6 +174,7 @@ export function MapScreen() {
 
   // Active Origin and Consignment Parameters
   const [originCountry, setOriginCountry] = useState<string>('LT');
+  const [targetCountry, setTargetCountry] = useState<string>('DE');
   const [feedstockKey, setFeedstockKey] = useState<string>('manure');
   const [carbonIntensity, setCarbonIntensity] = useState<number>(-100);
   const [scheme, setScheme] = useState<CertificationScheme>('ISCC_EU');
@@ -159,9 +190,7 @@ export function MapScreen() {
     zoom: 1,
   });
 
-  // Selected Target Destination for route visualization
-  const [selectedDestinationIso3, setSelectedDestinationIso3] = useState<string>('DEU');
-  const [hoveredCountry, setHoveredCountry] = useState<any | null>(null);
+  const [hoveredCountry, setHoveredCountry] = useState<{ iso2: string; name: string } | null>(null);
 
   // Right-Click Context Menu State
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
@@ -174,7 +203,7 @@ export function MapScreen() {
   const [plantFeedstockFilter, setPlantFeedstockFilter] = useState<string>('ALL');
 
   // Open right click context menu at cursor
-  const openContextMenuForCountry = (clientX: number, clientY: number, iso2: string, iso3: string) => {
+  const openContextMenuForIso2 = (clientX: number, clientY: number, iso2: string) => {
     const name = COUNTRY_NAMES[iso2] || iso2;
     const flag = COUNTRY_FLAGS[iso2] || '🇪🇺';
     const plantCount = BIOMETHANE_PLANTS.filter(p => p.countryCode === iso2).length;
@@ -183,7 +212,6 @@ export function MapScreen() {
       x: Math.min(clientX, window.innerWidth - 290),
       y: Math.min(clientY, window.innerHeight - 270),
       iso2,
-      iso3,
       name,
       flag,
       plantCount,
@@ -202,10 +230,9 @@ export function MapScreen() {
       // First check if direct element has country attribute
       const target = (e.target as HTMLElement)?.closest('[data-country-iso2]');
       const iso2 = target?.getAttribute('data-country-iso2') || hoveredCountry?.iso2;
-      const iso3 = target?.getAttribute('data-country-iso3') || hoveredCountry?.iso3 || (iso2 ? COUNTRY_ISO2_TO_ISO3[iso2] : null);
 
-      if (iso2 && iso3) {
-        openContextMenuForCountry(e.clientX, e.clientY, iso2, iso3);
+      if (iso2) {
+        openContextMenuForIso2(e.clientX, e.clientY, iso2);
       }
     };
 
@@ -276,8 +303,7 @@ export function MapScreen() {
   }, [simulatedConsignment, state.marks, state.costs]);
 
   // Google Maps inspired clean color palette for European countries
-  const getCountryFillColor = (iso3: string) => {
-    const iso2 = COUNTRY_ISO3_TO_ISO2[iso3];
+  const getCountryFillColor = (iso2: string | null) => {
     if (!iso2) return '#172033'; // Non-European / Distant countries (Clean Dark Slate)
 
     if (iso2 === originCountry) {
@@ -298,33 +324,21 @@ export function MapScreen() {
     return '#1e293b';
   };
 
-  const handleCountryClick = (iso3: string) => {
-    const iso2 = COUNTRY_ISO3_TO_ISO2[iso3];
-    if (iso2) {
-      if (mapClickMode === 'SET_ORIGIN') {
-        setOriginCountry(iso2);
-        setInjectionCountry(iso2);
-      } else {
-        setSelectedDestinationIso3(iso3);
-      }
+  const handleCountryClick = (iso2: string) => {
+    if (mapClickMode === 'SET_ORIGIN') {
+      setOriginCountry(iso2);
+      setInjectionCountry(iso2);
+    } else {
+      setTargetCountry(iso2);
+      setDrawerTab('COMPLIANCE');
     }
   };
 
-  const targetCountryCode = COUNTRY_ISO3_TO_ISO2[selectedDestinationIso3] || 'DE';
-  const targetMarketEntry = marketClearanceMap.get(targetCountryCode);
-  const targetMarket = targetMarketEntry?.market || MARKETS.find(m => m.country === targetCountryCode);
+  const targetMarketEntry = marketClearanceMap.get(targetCountry);
+  const targetMarket = targetMarketEntry?.market || MARKETS.find(m => m.country === targetCountry);
 
   const originCoords = COUNTRY_LABEL_POSITIONS[originCountry]?.coords || [10.45, 51.16];
-  const destCoords = COUNTRY_LABEL_POSITIONS[targetCountryCode]?.coords || [10.45, 51.16];
-
-  const marketByIso3 = useMemo(() => {
-    const map = new Map<string, Market>();
-    MARKETS.forEach(m => {
-      const iso3 = COUNTRY_ISO2_TO_ISO3[m.country];
-      if (iso3) map.set(iso3, m);
-    });
-    return map;
-  }, []);
+  const destCoords = COUNTRY_LABEL_POSITIONS[targetCountry]?.coords || [10.45, 51.16];
 
   // Sorted producing nations for dropdown
   const allProducingCountries = useMemo(() => {
@@ -429,7 +443,7 @@ export function MapScreen() {
               </span>
             </div>
             <p className="text-stone-400 text-xs mt-0.5">
-              Right-click on any country to set Origin or Target • High-contrast Google Maps cartography.
+              Right-click on ANY country to set Origin or Target • High-contrast Google Maps cartography.
             </p>
           </div>
 
@@ -660,18 +674,17 @@ export function MapScreen() {
                 <Geographies geography={geoUrl}>
                   {({ geographies }) =>
                     geographies.map((geo) => {
-                      const iso3 = geo.id;
-                      const iso2 = COUNTRY_ISO3_TO_ISO2[iso3];
-                      const market = marketByIso3.get(iso3);
-                      const isClickable = Boolean(market || (iso2 && COUNTRY_LABEL_POSITIONS[iso2]));
+                      const geoId = String(geo.id);
+                      const geoName = geo.properties?.name;
+                      const iso2 = resolveCountryCode(geoId, geoName);
+                      const isClickable = Boolean(iso2);
 
                       return (
                         <Geography
                           key={geo.rsmKey}
                           geography={geo}
-                          data-country-iso2={iso2}
-                          data-country-iso3={iso3}
-                          fill={getCountryFillColor(iso3)}
+                          data-country-iso2={iso2 || ''}
+                          fill={getCountryFillColor(iso2)}
                           stroke="#334155"
                           strokeWidth={0.7}
                           style={{
@@ -684,11 +697,15 @@ export function MapScreen() {
                             pressed: { outline: 'none' },
                           }}
                           onMouseEnter={() => {
-                            const name = geo.properties?.name || geo.id;
-                            setHoveredCountry({ iso2, iso3, name, market });
+                            if (iso2) {
+                              const name = COUNTRY_NAMES[iso2] || geoName || iso2;
+                              setHoveredCountry({ iso2, name });
+                            }
                           }}
                           onMouseLeave={() => setHoveredCountry(null)}
-                          onClick={() => handleCountryClick(iso3)}
+                          onClick={() => {
+                            if (iso2) handleCountryClick(iso2);
+                          }}
                         />
                       );
                     })
@@ -698,16 +715,14 @@ export function MapScreen() {
                 {/* Country Name Labels rendered directly onto map centroids (Google Maps style) */}
                 {Object.entries(COUNTRY_LABEL_POSITIONS).map(([code, item]) => {
                   const isOrigin = code === originCountry;
-                  const isTarget = code === targetCountryCode;
-                  const iso3 = COUNTRY_ISO2_TO_ISO3[code] || '';
+                  const isTarget = code === targetCountry;
                   return (
                     <Marker key={code} coordinates={item.coords}>
                       <text
                         textAnchor="middle"
                         y={isOrigin || isTarget ? -10 : 3}
                         data-country-iso2={code}
-                        data-country-iso3={iso3}
-                        onClick={() => handleCountryClick(iso3)}
+                        onClick={() => handleCountryClick(code)}
                         className="cursor-pointer select-none"
                         style={{
                           fontFamily: 'Inter, system-ui, sans-serif',
@@ -767,7 +782,7 @@ export function MapScreen() {
                           textShadow: '0 1px 3px rgba(0,0,0,0.9)',
                         }}
                       >
-                        TARGET ({COUNTRY_FLAGS[targetCountryCode] || ''} {targetMarket?.country || targetCountryCode})
+                        TARGET ({COUNTRY_FLAGS[targetCountry] || ''} {targetMarket?.country || targetCountry})
                       </text>
                     </Marker>
                   </>
@@ -800,7 +815,7 @@ export function MapScreen() {
                       <span className="text-base">{hFlag}</span>
                       <div>
                         <span className="font-bold text-white text-sm block leading-tight">{hName}</span>
-                        <span className="text-[10px] text-slate-400">ISO: {hIso2 || hoveredCountry.iso3}</span>
+                        <span className="text-[10px] text-slate-400">ISO: {hIso2}</span>
                       </div>
                     </div>
 
@@ -875,8 +890,7 @@ export function MapScreen() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          const iso3 = COUNTRY_ISO2_TO_ISO3[hIso2];
-                          if (iso3) setSelectedDestinationIso3(iso3);
+                          setTargetCountry(hIso2);
                           setDrawerTab('COMPLIANCE');
                         }}
                         className="py-1 px-2 rounded bg-teal-950 hover:bg-teal-900 border border-teal-700 text-teal-300 font-bold text-[10px] transition-all flex items-center justify-center gap-1"
@@ -950,17 +964,16 @@ export function MapScreen() {
 
                 <button
                   onClick={() => {
-                    const iso3 = COUNTRY_ISO2_TO_ISO3[inspectedCountryCode];
-                    if (iso3) setSelectedDestinationIso3(iso3);
+                    setTargetCountry(inspectedCountryCode);
                     setDrawerTab('COMPLIANCE');
                   }}
                   className={`py-1.5 px-2.5 rounded font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs ${
-                    targetCountryCode === inspectedCountryCode
+                    targetCountry === inspectedCountryCode
                       ? 'bg-teal-600 text-white'
                       : 'bg-slate-900 hover:bg-teal-950 border border-teal-700/60 text-teal-300'
                   }`}
                 >
-                  {targetCountryCode === inspectedCountryCode ? <Check className="w-3.5 h-3.5" /> : null}
+                  {targetCountry === inspectedCountryCode ? <Check className="w-3.5 h-3.5" /> : null}
                   Set as Target 🎯
                 </button>
               </div>
@@ -1050,7 +1063,7 @@ export function MapScreen() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between border-b border-stone-800 pb-1.5">
                   <span className="text-[10px] text-stone-400 uppercase">Export Route Spreads</span>
-                  <span className="text-stone-200 font-bold">{COUNTRY_FLAGS[originCountry]} {originCountry} ➔ {COUNTRY_FLAGS[targetCountryCode]} {targetCountryCode}</span>
+                  <span className="text-stone-200 font-bold">{COUNTRY_FLAGS[originCountry]} {originCountry} ➔ {COUNTRY_FLAGS[targetCountry]} {targetCountry}</span>
                 </div>
 
                 {targetMarketEntry ? (
@@ -1092,7 +1105,7 @@ export function MapScreen() {
                   </div>
                 ) : (
                   <div className="p-4 bg-stone-950 rounded border border-stone-800 text-center text-stone-500">
-                    No active compliance market model configured for {COUNTRY_NAMES[targetCountryCode] || targetCountryCode}.
+                    No active compliance market model configured for {COUNTRY_NAMES[targetCountry] || targetCountry}.
                   </div>
                 )}
               </div>
@@ -1168,7 +1181,7 @@ export function MapScreen() {
           {/* Option 2: Set Target */}
           <button
             onClick={() => {
-              setSelectedDestinationIso3(contextMenu.iso3);
+              setTargetCountry(contextMenu.iso2);
               setDrawerTab('COMPLIANCE');
               setContextMenu(null);
             }}
