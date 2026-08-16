@@ -180,123 +180,121 @@ export function TradeBuilderScreen() {
   const praCheck = useMemo(() => assessmentContainsPraData(currentAssessment), [currentAssessment]);
 
   const renderComplianceChecklist = () => (
-    <div className="bg-stone-900 border border-stone-800 rounded-xl overflow-hidden shadow-xs">
-      <div className="px-4 py-3 bg-stone-950/80 border-b border-stone-800 flex items-center justify-between">
-        <span className="text-xs font-bold uppercase tracking-wider text-stone-300 flex items-center gap-1.5 font-mono">
-          <ShieldCheck className="w-4 h-4 text-teal-400" />
-          Compliance Audit ({eligibility.gates.length} Gates)
+    <div className="bg-[#12171C] rounded p-4 space-y-3">
+      <div className="flex items-center justify-between border-b border-[#1E262F] pb-2">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-[#8B98A5] flex items-center gap-1.5 font-mono">
+          <ShieldCheck className="w-3.5 h-3.5 text-[#8B98A5]" />
+          Regulatory Compliance Checklist ({eligibility.gates.length} Gates)
         </span>
         <button
           onClick={() => setShowFullAudit(!showFullAudit)}
-          className="text-xs text-teal-400 hover:text-teal-300 font-medium flex items-center gap-1 font-mono"
+          className="text-[10px] text-[#2DD4BF] hover:underline font-medium flex items-center gap-1 font-mono"
         >
           {showFullAudit ? 'Compact' : 'Legal Citations'}
-          {showFullAudit ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          {showFullAudit ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
         </button>
       </div>
 
-      <div className="p-3.5 space-y-2.5">
-        <div className="flex items-center justify-between text-xs px-1 pb-1 border-b border-stone-800/80 font-mono">
-          <span className="text-stone-400">Verdict:</span>
-          <StatusChip variant={eligibility.overallVerdict} size="xs" />
-        </div>
+      <div className="flex items-center justify-between text-xs px-0.5 font-mono">
+        <span className="text-[10px] text-[#8B98A5] uppercase tracking-wide">Overall Verdict</span>
+        <StatusChip variant={eligibility.overallVerdict} size="xs" />
+      </div>
 
-        <div className="space-y-2">
-          {eligibility.gates.map((gate, idx) => (
-            <div 
-              key={idx} 
-              className={`p-2.5 rounded-lg border text-xs transition-all ${
-                gate.verdict === 'PASS' 
-                  ? 'bg-stone-950/80 border-stone-800/80' 
-                  : gate.verdict === 'CONDITIONAL' || gate.verdict === 'UNRESOLVED'
-                  ? 'bg-amber-950/20 border-amber-900/60'
-                  : 'bg-red-950/20 border-red-900/60'
-              }`}
-            >
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5 font-mono">
-                  {gate.verdict === 'PASS' && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />}
-                  {gate.verdict === 'CONDITIONAL' && <AlertTriangle className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />}
-                  {gate.verdict === 'UNRESOLVED' && <AlertCircle className="w-3.5 h-3.5 text-sky-400 flex-shrink-0" />}
-                  {gate.verdict === 'HARD_BLOCK' && <XCircle className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />}
-                  <span className="font-bold text-stone-200 text-[11px]">{gate.gateLabel}</span>
-                </div>
-                <StatusChip variant={gate.verdict} size="xs" />
+      <div className="space-y-2">
+        {eligibility.gates.map((gate, idx) => (
+          <div 
+            key={idx} 
+            className={`p-2.5 rounded text-xs transition-all ${
+              gate.verdict === 'PASS' 
+                ? 'bg-[#0B0E11]' 
+                : gate.verdict === 'CONDITIONAL' || gate.verdict === 'UNRESOLVED'
+                ? 'bg-[#1C160C] border border-[#D99A2B]/40'
+                : 'bg-[#1C0E10] border border-[#D64545]/40'
+            }`}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 font-mono">
+                {gate.verdict === 'PASS' && <CheckCircle2 className="w-3.5 h-3.5 text-[#2DD4BF] flex-shrink-0" />}
+                {gate.verdict === 'CONDITIONAL' && <AlertTriangle className="w-3.5 h-3.5 text-[#D99A2B] flex-shrink-0" />}
+                {gate.verdict === 'UNRESOLVED' && <AlertCircle className="w-3.5 h-3.5 text-sky-400 flex-shrink-0" />}
+                {gate.verdict === 'HARD_BLOCK' && <XCircle className="w-3.5 h-3.5 text-[#D64545] flex-shrink-0" />}
+                <span className="font-semibold text-[#E8EDF2] text-[11px]">{gate.gateLabel}</span>
               </div>
-
-              <p className="text-stone-400 text-[11px] mt-1 leading-relaxed pl-5">
-                {gate.reason}
-              </p>
-
-              {gate.remedy && (
-                <div className="mt-1.5 ml-5 p-1.5 bg-amber-950/40 border border-amber-800/80 rounded text-[10px] text-amber-300">
-                  <strong>Action Required:</strong> {gate.remedy}
-                </div>
-              )}
-
-              {showFullAudit && gate.citations.length > 0 && (
-                <div className="mt-2 ml-5 pt-1.5 border-t border-stone-800 space-y-1">
-                  {gate.citations.map((cit, cIdx) => (
-                    <CitationBlock key={cIdx} citation={cit} compact={false} />
-                  ))}
-                </div>
-              )}
+              <StatusChip variant={gate.verdict} size="xs" />
             </div>
-          ))}
-        </div>
+
+            <p className="text-[#8B98A5] text-[11px] mt-1 leading-relaxed pl-5">
+              {gate.reason}
+            </p>
+
+            {gate.remedy && (
+              <div className="mt-1.5 ml-5 p-1.5 bg-[#0B0E11] border border-[#D99A2B]/30 rounded text-[10px] text-[#D99A2B]">
+                <strong className="text-[#E8EDF2]">Action:</strong> {gate.remedy}
+              </div>
+            )}
+
+            {showFullAudit && gate.citations.length > 0 && (
+              <div className="mt-2 ml-5 pt-1.5 border-t border-[#1E262F] space-y-1">
+                {gate.citations.map((cit, cIdx) => (
+                  <CitationBlock key={cIdx} citation={cit} compact={false} />
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );
 
   return (
-    <div className="w-full space-y-3 font-sans text-stone-200 pb-16">
+    <div className="w-full space-y-4 font-sans text-[#E8EDF2] pb-16">
       
       {/* Top Header Strip */}
-      <div className="bg-stone-900/90 border border-stone-800 rounded-xl p-3 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 shadow-xs">
+      <div className="bg-[#12171C] rounded p-3 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-teal-950/80 border border-teal-800/80 flex items-center justify-center text-teal-400">
+          <div className="w-7 h-7 rounded bg-[#182026] flex items-center justify-center text-[#2DD4BF]">
             <Calculator className="w-4 h-4" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-sm font-bold text-white tracking-tight font-mono uppercase">
+              <h1 className="text-xs font-semibold text-[#E8EDF2] tracking-tight font-mono uppercase">
                 Trade Builder & Deal Ticket
               </h1>
-              <span className="px-2 py-0.2 rounded text-[10px] font-mono font-medium bg-stone-800 text-stone-300 border border-stone-700">
+              <span className="px-1.5 py-0.2 rounded text-[10px] font-mono font-medium bg-[#182026] text-[#8B98A5]">
                 {consignment.originCountryName} ➔ {selectedMarket.countryName || 'Pan-EU'}
               </span>
             </div>
-            <p className="text-stone-400 text-[11px] mt-0.5">
-              Live RED III regulatory clearance, logistics corridor tariffs, and commercial netback economics.
+            <p className="text-[#8B98A5] text-[11px] mt-0.5 font-mono">
+              RED III regulatory clearance & commercial netback economics
             </p>
           </div>
         </div>
 
         {/* Quick Scenarios Segmented Bar */}
         <div className="flex items-center gap-2 flex-wrap text-xs">
-          <span className="text-stone-500 font-medium text-[11px] uppercase tracking-wider font-mono">Presets:</span>
-          <div className="inline-flex bg-stone-950 p-0.5 rounded-lg border border-stone-800 gap-1 font-mono text-[11px]">
+          <span className="text-[#8B98A5] text-[10px] uppercase tracking-wider font-mono">Presets:</span>
+          <div className="inline-flex bg-[#0B0E11] p-0.5 rounded gap-1 font-mono text-[11px]">
             <button
               onClick={() => handlePreset('DANISH_MANURE', 'DE_THG')}
-              className="px-2 py-0.5 rounded text-[11px] font-medium hover:bg-stone-800 text-stone-300 hover:text-white transition-colors"
+              className="px-2 py-0.5 rounded text-[11px] font-medium text-[#8B98A5] hover:text-[#E8EDF2] hover:bg-[#182026] transition-colors"
             >
               🇩🇰 DK Manure (THG)
             </button>
             <button
               onClick={() => handlePreset('UK_FOOD_WASTE', 'DE_THG')}
-              className="px-2 py-0.5 rounded text-[11px] font-medium hover:bg-red-950/50 text-red-300 transition-colors"
+              className="px-2 py-0.5 rounded text-[11px] font-medium text-[#D64545] hover:bg-[#1C0E10] transition-colors"
             >
               🇬🇧 UK Grid (Blocked)
             </button>
             <button
               onClick={() => handlePreset('ISCC_PLUS_VOLUNTARY', 'VOL_SCOPE1')}
-              className="px-2 py-0.5 rounded text-[11px] font-medium hover:bg-stone-800 text-stone-300 hover:text-white transition-colors"
+              className="px-2 py-0.5 rounded text-[11px] font-medium text-[#8B98A5] hover:text-[#E8EDF2] hover:bg-[#182026] transition-colors"
             >
               🌱 ISCC PLUS (Voluntary)
             </button>
             <button
               onClick={() => handlePreset('FUELEU_MARITIME_LNG', 'FUELEU')}
-              className="px-2 py-0.5 rounded text-[11px] font-medium hover:bg-sky-950/50 text-sky-300 transition-colors"
+              className="px-2 py-0.5 rounded text-[11px] font-medium text-sky-400 hover:bg-sky-950/40 transition-colors"
             >
               ⚓ FuelEU Maritime
             </button>
@@ -305,33 +303,32 @@ export function TradeBuilderScreen() {
       </div>
 
       {/* Main 3-Column Institutional Trading Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 2xl:flex 2xl:flex-row gap-4 items-start w-full">
+      <div className="grid grid-cols-1 lg:grid-cols-12 2xl:flex 2xl:flex-row gap-6 items-start w-full">
         
-        {/* COLUMN 1: CONSIGNMENT & INPUTS (~340px fixed on 2xl, 5 cols on lg, full on mobile) */}
-        <div className="lg:col-span-5 2xl:w-[350px] 2xl:shrink-0 space-y-3.5 2xl:sticky 2xl:top-16 2xl:max-h-[calc(100vh-5.5rem)] 2xl:overflow-y-auto 2xl:pr-1">
+        {/* COLUMN 1: CONSIGNMENT & INPUTS (~340px fixed on 2xl) */}
+        <div className="lg:col-span-5 2xl:w-[340px] 2xl:shrink-0 space-y-6 2xl:sticky 2xl:top-16 2xl:max-h-[calc(100vh-5.5rem)] 2xl:overflow-y-auto 2xl:pr-1">
           
-          {/* SECTION 1: Consignment Specification */}
-          <div className="bg-stone-900 border border-stone-800 rounded-xl overflow-hidden shadow-xs">
-            <div className="px-3.5 py-2 bg-stone-950/70 border-b border-stone-800 flex items-center justify-between font-mono">
-              <span className="text-xs font-bold text-stone-300 uppercase tracking-wider flex items-center gap-1.5">
-                <FileText className="w-3.5 h-3.5 text-teal-400" />
-                1. Consignment
+          {/* GROUP 1: Consignment Specification */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between font-mono">
+              <span className="text-[10px] font-semibold text-[#8B98A5] uppercase tracking-wider">
+                1. Consignment Inputs
               </span>
-              <span className="text-[10px] text-teal-400 bg-teal-950 border border-teal-800 px-1.5 py-0.2 rounded font-bold">
+              <span className="text-[10px] text-[#8B98A5] font-mono">
                 {consignment.originCountry} • {consignment.feedstockName}
               </span>
             </div>
 
-            <div className="p-3 space-y-2.5 font-mono text-xs">
+            <div className="bg-[#12171C] rounded p-3 space-y-3 font-mono text-xs">
               
               {/* Consignment Name */}
               <div>
-                <label className="block text-[10px] text-stone-400 uppercase mb-0.5">Reference Label</label>
+                <label className="block text-[10px] text-[#8B98A5] uppercase mb-1">Reference Label</label>
                 <input
                   type="text"
                   value={consignment.name}
                   onChange={e => setConsignment({ ...consignment, name: e.target.value })}
-                  className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1 text-xs text-stone-200 focus:border-teal-500 outline-none"
+                  className="w-full bg-[#0B0E11] border border-[#26313D] rounded px-2.5 py-1.5 text-xs text-[#E8EDF2] focus:border-[#2DD4BF] outline-none"
                   placeholder="e.g., Baltic Manure Cargo"
                 />
               </div>
@@ -339,7 +336,7 @@ export function TradeBuilderScreen() {
               {/* Origin Country & Feedstock */}
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-[10px] text-stone-400 uppercase mb-0.5">Origin Country</label>
+                  <label className="block text-[10px] text-[#8B98A5] uppercase mb-1">Origin Country</label>
                   <select
                     value={consignment.originCountry}
                     onChange={e => {
@@ -350,7 +347,7 @@ export function TradeBuilderScreen() {
                         originCountryName: selected.countryName || e.target.value,
                       });
                     }}
-                    className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1 text-xs text-stone-200 focus:border-teal-500 outline-none"
+                    className="w-full bg-[#0B0E11] border border-[#26313D] rounded px-2 py-1.5 text-xs text-[#E8EDF2] focus:border-[#2DD4BF] outline-none"
                   >
                     {activeMarkets.map(m => (
                       <option key={m.id} value={m.country}>
@@ -361,11 +358,11 @@ export function TradeBuilderScreen() {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] text-stone-400 uppercase mb-0.5">Feedstock Type</label>
+                  <label className="block text-[10px] text-[#8B98A5] uppercase mb-1">Feedstock Type</label>
                   <select
                     value={consignment.feedstock}
                     onChange={e => handleFeedstockChange(e.target.value)}
-                    className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1 text-xs text-stone-200 focus:border-teal-500 outline-none font-bold text-teal-300"
+                    className="w-full bg-[#0B0E11] border border-[#26313D] rounded px-2 py-1.5 text-xs text-[#E8EDF2] focus:border-[#2DD4BF] outline-none font-semibold"
                   >
                     {Object.entries(FEEDSTOCK_REGISTRY).map(([key, item]) => (
                       <option key={key} value={key}>
@@ -377,11 +374,11 @@ export function TradeBuilderScreen() {
               </div>
 
               {/* Carbon Intensity Slider */}
-              <div className="p-2.5 bg-stone-950 rounded border border-stone-800 space-y-1.5">
+              <div className="p-2.5 bg-[#0B0E11] rounded space-y-1.5">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-stone-300 font-bold text-[11px]">Carbon Intensity:</span>
-                  <span className="font-bold text-teal-300 font-mono text-xs">
-                    {consignment.carbonIntensity} <span className="text-[10px] text-stone-400">gCO₂e/MJ</span>
+                  <span className="text-[#8B98A5] text-[10px] uppercase tracking-wide font-mono">Carbon Intensity</span>
+                  <span className="font-semibold text-[#E8EDF2] font-mono text-xs">
+                    {consignment.carbonIntensity} <span className="text-[10px] text-[#8B98A5]">gCO₂e/MJ</span>
                   </span>
                 </div>
 
@@ -392,23 +389,23 @@ export function TradeBuilderScreen() {
                   step="1"
                   value={consignment.carbonIntensity}
                   onChange={e => setConsignment({ ...consignment, carbonIntensity: Number(e.target.value) })}
-                  className="w-full accent-teal-500 cursor-pointer h-1 bg-stone-800 rounded appearance-none"
+                  className="w-full accent-[#2DD4BF] cursor-pointer h-1 bg-[#182026] rounded appearance-none"
                 />
 
-                <div className="flex justify-between text-[10px] text-stone-400 pt-0.5 border-t border-stone-800/80">
-                  <span>GHG: <strong className="text-teal-400">{ghgSavingPct}%</strong></span>
-                  <span>Avoided: <strong className="text-stone-200">{tco2eFactor} t/MWh</strong></span>
+                <div className="flex justify-between text-[10px] text-[#8B98A5] pt-1 border-t border-[#1E262F]">
+                  <span>GHG: <strong className="text-[#E8EDF2]">{ghgSavingPct}%</strong></span>
+                  <span>Avoided: <strong className="text-[#E8EDF2]">{tco2eFactor} t/MWh</strong></span>
                 </div>
               </div>
 
               {/* Commissioning Date & Scheme */}
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-[10px] text-stone-400 uppercase mb-0.5">Commissioning</label>
+                  <label className="block text-[10px] text-[#8B98A5] uppercase mb-1">Commissioning</label>
                   <select
                     value={consignment.commissioningDateRange}
                     onChange={e => setConsignment({ ...consignment, commissioningDateRange: e.target.value as any })}
-                    className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1 text-xs text-stone-200 focus:border-teal-500 outline-none"
+                    className="w-full bg-[#0B0E11] border border-[#26313D] rounded px-2 py-1.5 text-xs text-[#E8EDF2] focus:border-[#2DD4BF] outline-none"
                   >
                     <option value="PRE_OCT_2015">Pre-2015 (&gt;50%)</option>
                     <option value="OCT_2015_TO_2020">2015–2020 (&gt;60%)</option>
@@ -418,11 +415,11 @@ export function TradeBuilderScreen() {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] text-stone-400 uppercase mb-0.5">Scheme</label>
+                  <label className="block text-[10px] text-[#8B98A5] uppercase mb-1">Scheme</label>
                   <select
                     value={consignment.certificationScheme}
                     onChange={e => setConsignment({ ...consignment, certificationScheme: e.target.value as any })}
-                    className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1 text-xs text-stone-200 focus:border-teal-500 outline-none"
+                    className="w-full bg-[#0B0E11] border border-[#26313D] rounded px-2 py-1.5 text-xs text-[#E8EDF2] focus:border-[#2DD4BF] outline-none"
                   >
                     <option value="ISCC_EU">ISCC EU</option>
                     <option value="ISCC_PLUS">ISCC PLUS</option>
@@ -437,11 +434,11 @@ export function TradeBuilderScreen() {
               {/* Chain of Custody & Grid Injection */}
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-[10px] text-stone-400 uppercase mb-0.5">Chain of Custody</label>
+                  <label className="block text-[10px] text-[#8B98A5] uppercase mb-1">Chain of Custody</label>
                   <select
                     value={consignment.chainOfCustody}
                     onChange={e => setConsignment({ ...consignment, chainOfCustody: e.target.value as any })}
-                    className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1 text-xs text-stone-200 focus:border-teal-500 outline-none"
+                    className="w-full bg-[#0B0E11] border border-[#26313D] rounded px-2 py-1.5 text-xs text-[#E8EDF2] focus:border-[#2DD4BF] outline-none"
                   >
                     <option value="MASS_BALANCE">Mass Balance</option>
                     <option value="BOOK_AND_CLAIM">Book & Claim</option>
@@ -450,11 +447,11 @@ export function TradeBuilderScreen() {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] text-stone-400 uppercase mb-0.5">Grid Injection</label>
+                  <label className="block text-[10px] text-[#8B98A5] uppercase mb-1">Grid Injection</label>
                   <select
                     value={consignment.injectionCountry}
                     onChange={e => handleInjectionCountryChange(e.target.value)}
-                    className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1 text-xs text-stone-200 focus:border-teal-500 outline-none"
+                    className="w-full bg-[#0B0E11] border border-[#26313D] rounded px-2 py-1.5 text-xs text-[#E8EDF2] focus:border-[#2DD4BF] outline-none"
                   >
                     <option value="DK">🇩🇰 Denmark (EU)</option>
                     <option value="DE">🇩🇪 Germany (EU)</option>
@@ -469,11 +466,11 @@ export function TradeBuilderScreen() {
               {/* UDB & PoS Status */}
               <div className="grid grid-cols-3 gap-1.5">
                 <div>
-                  <label className="block text-[9px] text-stone-400 uppercase mb-0.5">UDB</label>
+                  <label className="block text-[9px] text-[#8B98A5] uppercase mb-1">UDB</label>
                   <select
                     value={consignment.udbStatus}
                     onChange={e => setConsignment({ ...consignment, udbStatus: e.target.value as any })}
-                    className="w-full bg-stone-950 border border-stone-800 rounded px-1 py-1 text-[11px] text-stone-200 focus:border-teal-500 outline-none"
+                    className="w-full bg-[#0B0E11] border border-[#26313D] rounded px-1.5 py-1 text-[11px] text-[#E8EDF2] focus:border-[#2DD4BF] outline-none"
                   >
                     <option value="RECORDED">RECORDED</option>
                     <option value="PENDING">PENDING</option>
@@ -482,11 +479,11 @@ export function TradeBuilderScreen() {
                 </div>
 
                 <div>
-                  <label className="block text-[9px] text-stone-400 uppercase mb-0.5">PoS</label>
+                  <label className="block text-[9px] text-[#8B98A5] uppercase mb-1">PoS</label>
                   <select
                     value={consignment.posStatus}
                     onChange={e => setConsignment({ ...consignment, posStatus: e.target.value as any })}
-                    className="w-full bg-stone-950 border border-stone-800 rounded px-1 py-1 text-[11px] text-stone-200 focus:border-teal-500 outline-none"
+                    className="w-full bg-[#0B0E11] border border-[#26313D] rounded px-1.5 py-1 text-[11px] text-[#E8EDF2] focus:border-[#2DD4BF] outline-none"
                   >
                     <option value="ISSUED">ISSUED</option>
                     <option value="PENDING">PENDING</option>
@@ -495,13 +492,13 @@ export function TradeBuilderScreen() {
                 </div>
 
                 <div>
-                  <label className="block text-[9px] text-stone-400 uppercase mb-0.5">MWh Vol</label>
+                  <label className="block text-[9px] text-[#8B98A5] uppercase mb-1">MWh Vol</label>
                   <input
                     type="number"
                     value={consignment.volumeMWh ?? ''}
                     onChange={e => setConsignment({ ...consignment, volumeMWh: e.target.value ? Number(e.target.value) : null })}
                     placeholder="10000"
-                    className="w-full bg-stone-950 border border-stone-800 rounded px-1 py-1 text-[11px] text-stone-200 focus:border-teal-500 outline-none font-bold"
+                    className="w-full bg-[#0B0E11] border border-[#26313D] rounded px-1.5 py-1 text-[11px] text-[#E8EDF2] focus:border-[#2DD4BF] outline-none font-semibold"
                   />
                 </div>
               </div>
@@ -509,19 +506,18 @@ export function TradeBuilderScreen() {
             </div>
           </div>
 
-          {/* SECTION 2: Target Offtake Market Selector */}
-          <div className="bg-stone-900 border border-stone-800 rounded-xl overflow-hidden shadow-xs">
-            <div className="px-3.5 py-2 bg-stone-950/70 border-b border-stone-800 flex items-center justify-between font-mono">
-              <span className="text-xs font-bold text-stone-300 uppercase tracking-wider flex items-center gap-1.5">
-                <span className="w-4 h-4 rounded bg-teal-950 text-teal-400 border border-teal-800 flex items-center justify-center text-[10px] font-bold">2</span>
-                Target Offtake Market
+          {/* GROUP 2: Target Offtake Market Selector */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between font-mono">
+              <span className="text-[10px] font-semibold text-[#8B98A5] uppercase tracking-wider">
+                2. Target Offtake Market
               </span>
-              <span className="text-[10px] text-stone-400">
+              <span className="text-[10px] text-[#8B98A5]">
                 {activeMarkets.length} Compliance Markets
               </span>
             </div>
 
-            <div className="p-2.5 grid grid-cols-2 gap-1.5 max-h-[220px] overflow-y-auto pr-1">
+            <div className="bg-[#12171C] rounded p-2.5 grid grid-cols-2 gap-1.5 max-h-[220px] overflow-y-auto pr-1">
               {activeMarkets.map(m => {
                 const isSelected = m.id === selectedMarket.id;
                 const quickElig = evaluateEligibility(consignment, m);
@@ -534,22 +530,22 @@ export function TradeBuilderScreen() {
                       setSelectedMarketId(m.id);
                       setSearchParams({ marketId: m.id, originCountry: consignment.originCountry });
                     }}
-                    className={`p-2 rounded border transition-all cursor-pointer font-mono ${
+                    className={`p-2 rounded transition-all cursor-pointer font-mono ${
                       isSelected
-                        ? 'border-teal-500 bg-teal-950/60 ring-1 ring-teal-500'
-                        : 'border-stone-800/80 bg-stone-950 hover:border-stone-700'
+                        ? 'bg-[#18242A] border-l-2 border-[#2DD4BF]'
+                        : 'bg-[#0B0E11] hover:bg-[#182026]'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-1">
-                      <div className="font-semibold text-[11px] text-stone-200 leading-tight truncate">
+                      <div className="font-semibold text-[11px] text-[#E8EDF2] leading-tight truncate">
                         {m.country ? `${m.country} ` : ''}{m.name}
                       </div>
                       <StatusChip variant={quickElig.overallVerdict} size="xs" />
                     </div>
 
-                    <div className="mt-1 flex items-center justify-between text-[10px] text-stone-400 font-mono">
+                    <div className="mt-1 flex items-center justify-between text-[10px] text-[#8B98A5] font-mono">
                       <span>{m.unitLabel}</span>
-                      <span className="font-bold text-stone-200">
+                      <span className="font-semibold text-[#E8EDF2] tabular-nums">
                         {quickNb.netNetback !== null ? `€${quickNb.netNetback.toFixed(1)}` : 'No mark'}
                       </span>
                     </div>
@@ -559,17 +555,16 @@ export function TradeBuilderScreen() {
             </div>
           </div>
 
-          {/* SECTION 3: Cost Structure & Producer Offtake */}
-          <div className="bg-stone-900 border border-stone-800 rounded-xl overflow-hidden shadow-xs">
-            <div className="px-3.5 py-2 bg-stone-950/70 border-b border-stone-800 flex items-center justify-between font-mono">
-              <span className="text-xs font-bold text-stone-300 uppercase tracking-wider flex items-center gap-1.5">
-                <Sliders className="w-3.5 h-3.5 text-teal-400" />
-                3. Cost & Procurement
+          {/* GROUP 3: Cost Structure & Producer Offtake (Zero Nested Borders) */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between font-mono">
+              <span className="text-[10px] font-semibold text-[#8B98A5] uppercase tracking-wider">
+                3. Cost & Procurement Terms
               </span>
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => setIsLogisticsOpen(true)}
-                  className="px-1.5 py-0.5 rounded bg-sky-950 border border-sky-800 text-sky-300 hover:bg-sky-900 text-[10px] font-medium transition-colors flex items-center gap-1"
+                  className="px-2 py-0.5 rounded bg-[#182026] text-[#8B98A5] hover:text-[#E8EDF2] text-[10px] font-medium transition-colors flex items-center gap-1 font-mono"
                 >
                   <Truck className="w-3 h-3" />
                   Corridor
@@ -595,288 +590,290 @@ export function TradeBuilderScreen() {
                       }
                     });
                   }}
-                  className="px-1.5 py-0.5 rounded bg-teal-950 border border-teal-800 text-teal-300 hover:bg-teal-900 text-[10px] font-medium transition-colors"
+                  className="px-2 py-0.5 rounded bg-[#182026] text-[#2DD4BF] hover:bg-[#1C2830] text-[10px] font-medium transition-colors font-mono"
                 >
                   Auto-Fill
                 </button>
               </div>
             </div>
 
-            <div className="p-3 space-y-2.5 text-xs font-mono">
+            {/* Flattened single container without nested card borders */}
+            <div className="bg-[#12171C] rounded p-3 space-y-3 text-xs font-mono">
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-[10px] text-stone-400 mb-0.5">Transfer (€/MWh)</label>
+                  <label className="block text-[10px] text-[#8B98A5] mb-1">Transfer (€/MWh)</label>
                   <input
                     type="number"
                     step="0.1"
                     value={state.costs.transferCosts ?? ''}
                     onChange={e => dispatch({ type: 'SET_COSTS', costs: { transferCosts: e.target.value === '' ? null : Number(e.target.value) } })}
-                    className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1 font-mono text-stone-200 text-xs"
+                    className="w-full bg-[#0B0E11] border border-[#26313D] rounded px-2 py-1 font-mono text-[#E8EDF2] text-xs focus:border-[#2DD4BF] outline-none"
                     placeholder="2.20"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] text-stone-400 mb-0.5">Certification (€/MWh)</label>
+                  <label className="block text-[10px] text-[#8B98A5] mb-1">Certification (€/MWh)</label>
                   <input
                     type="number"
                     step="0.1"
                     value={state.costs.certificationCosts ?? ''}
                     onChange={e => dispatch({ type: 'SET_COSTS', costs: { certificationCosts: e.target.value === '' ? null : Number(e.target.value) } })}
-                    className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1 font-mono text-stone-200 text-xs"
+                    className="w-full bg-[#0B0E11] border border-[#26313D] rounded px-2 py-1 font-mono text-[#E8EDF2] text-xs focus:border-[#2DD4BF] outline-none"
                     placeholder="0.45"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-[10px] text-stone-400 mb-0.5">Logistics (€/MWh)</label>
+                <div className="col-span-2">
+                  <label className="block text-[10px] text-[#8B98A5] mb-1">Logistics / Conditioning (€/MWh)</label>
                   <input
                     type="number"
                     step="0.1"
                     value={state.costs.logistics ?? ''}
                     onChange={e => dispatch({ type: 'SET_COSTS', costs: { logistics: e.target.value === '' ? null : Number(e.target.value) } })}
-                    className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1 font-mono text-stone-200 text-xs"
+                    className="w-full bg-[#0B0E11] border border-[#26313D] rounded px-2 py-1 font-mono text-[#E8EDF2] text-xs focus:border-[#2DD4BF] outline-none"
                     placeholder="1.35"
                   />
                 </div>
+              </div>
 
-                <div className="col-span-2 p-2.5 bg-stone-950/80 rounded border border-stone-800 space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-semibold text-stone-300">Producer Pricing Mode</span>
-                    <div className="inline-flex bg-stone-900 p-0.5 rounded border border-stone-800 text-[9px]">
-                      <button
-                        type="button"
-                        onClick={() => dispatch({
-                          type: 'SET_COSTS',
-                          costs: {
-                            producerPricing: {
-                              mode: 'INDEX_LINKED',
-                              fixedPriceEurPerMwh: state.costs.producerPricing?.fixedPriceEurPerMwh ?? state.costs.deliveredCost ?? null,
-                              indexLinkedShare: state.costs.producerPricing?.indexLinkedShare ?? null,
-                              source: null,
-                              lastVerified: null,
-                              confidence: 'UNVERIFIED',
-                            }
+              {/* Producer Pricing Section (Flattened) */}
+              <div className="pt-2 border-t border-[#1E262F] space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-semibold text-[#8B98A5] uppercase tracking-wide">Producer Pricing Mode</span>
+                  <div className="inline-flex bg-[#0B0E11] p-0.5 rounded text-[10px]">
+                    <button
+                      type="button"
+                      onClick={() => dispatch({
+                        type: 'SET_COSTS',
+                        costs: {
+                          producerPricing: {
+                            mode: 'INDEX_LINKED',
+                            fixedPriceEurPerMwh: state.costs.producerPricing?.fixedPriceEurPerMwh ?? state.costs.deliveredCost ?? null,
+                            indexLinkedShare: state.costs.producerPricing?.indexLinkedShare ?? null,
+                            source: null,
+                            lastVerified: null,
+                            confidence: 'UNVERIFIED',
                           }
-                        })}
-                        className={`px-1.5 py-0.5 rounded font-medium transition-colors ${
-                          (state.costs.producerPricing?.mode ?? 'INDEX_LINKED') === 'INDEX_LINKED'
-                            ? 'bg-teal-700 text-white'
-                            : 'text-stone-400 hover:text-stone-200'
-                        }`}
-                      >
-                        Index (% Share)
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => dispatch({
+                        }
+                      })}
+                      className={`px-2 py-0.5 rounded font-medium transition-colors ${
+                        (state.costs.producerPricing?.mode ?? 'INDEX_LINKED') === 'INDEX_LINKED'
+                          ? 'bg-[#182830] text-[#2DD4BF]'
+                          : 'text-[#8B98A5] hover:text-[#E8EDF2]'
+                      }`}
+                    >
+                      Index (% Share)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => dispatch({
+                        type: 'SET_COSTS',
+                        costs: {
+                          producerPricing: {
+                            mode: 'FIXED_PRICE',
+                            fixedPriceEurPerMwh: state.costs.producerPricing?.fixedPriceEurPerMwh ?? state.costs.deliveredCost ?? null,
+                            indexLinkedShare: state.costs.producerPricing?.indexLinkedShare ?? null,
+                            source: null,
+                            lastVerified: null,
+                            confidence: 'UNVERIFIED',
+                          }
+                        }
+                      })}
+                      className={`px-2 py-0.5 rounded font-medium transition-colors ${
+                        state.costs.producerPricing?.mode === 'FIXED_PRICE'
+                          ? 'bg-[#2A1E14] text-[#D99A2B]'
+                          : 'text-[#8B98A5] hover:text-[#E8EDF2]'
+                      }`}
+                    >
+                      Fixed Price
+                    </button>
+                  </div>
+                </div>
+
+                {(state.costs.producerPricing?.mode ?? 'INDEX_LINKED') === 'INDEX_LINKED' ? (
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-[10px]">
+                      <label className="text-[#8B98A5]">Producer Value Share (0.00 – 1.00):</label>
+                      <div className="flex gap-1 items-center">
+                        <button
+                          type="button"
+                          onClick={() => dispatch({
+                            type: 'SET_COSTS',
+                            costs: {
+                              producerPricing: {
+                                mode: 'INDEX_LINKED',
+                                fixedPriceEurPerMwh: state.costs.producerPricing?.fixedPriceEurPerMwh ?? null,
+                                indexLinkedShare: 0.90,
+                                source: 'Standard 90/10 split',
+                                lastVerified: null,
+                                confidence: 'UNVERIFIED',
+                              }
+                            }
+                          })}
+                          className="px-1.5 py-0.2 bg-[#0B0E11] text-[#8B98A5] hover:text-[#2DD4BF] rounded text-[10px] font-mono"
+                        >
+                          90%
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => dispatch({
+                            type: 'SET_COSTS',
+                            costs: {
+                              producerPricing: {
+                                mode: 'INDEX_LINKED',
+                                fixedPriceEurPerMwh: state.costs.producerPricing?.fixedPriceEurPerMwh ?? null,
+                                indexLinkedShare: 0.95,
+                                source: 'Competitive 95/5 split',
+                                lastVerified: null,
+                                confidence: 'UNVERIFIED',
+                              }
+                            }
+                          })}
+                          className="px-1.5 py-0.2 bg-[#0B0E11] text-[#8B98A5] hover:text-[#2DD4BF] rounded text-[10px] font-mono"
+                        >
+                          95%
+                        </button>
+                      </div>
+                    </div>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="1"
+                      value={state.costs.producerPricing?.indexLinkedShare ?? ''}
+                      onChange={e => dispatch({
+                        type: 'SET_COSTS',
+                        costs: {
+                          producerPricing: {
+                            mode: 'INDEX_LINKED',
+                            fixedPriceEurPerMwh: state.costs.producerPricing?.fixedPriceEurPerMwh ?? null,
+                            indexLinkedShare: e.target.value === '' ? null : Number(e.target.value),
+                            source: 'User entered',
+                            lastVerified: new Date().toISOString(),
+                            confidence: 'UNVERIFIED',
+                          }
+                        }
+                      })}
+                      className="w-full bg-[#0B0E11] border border-[#26313D] rounded px-2.5 py-1 font-mono text-[#E8EDF2] text-xs focus:border-[#2DD4BF] outline-none"
+                      placeholder="e.g. 0.90"
+                    />
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-[10px]">
+                      <label className="text-[#8B98A5]">All-in Fixed Price (€/MWh):</label>
+                      <div className="flex gap-1 items-center">
+                        <button
+                          type="button"
+                          onClick={() => dispatch({
+                            type: 'SET_COSTS',
+                            costs: {
+                              deliveredCost: 58.00,
+                              producerPricing: {
+                                mode: 'FIXED_PRICE',
+                                fixedPriceEurPerMwh: 58.00,
+                                indexLinkedShare: state.costs.producerPricing?.indexLinkedShare ?? null,
+                                source: 'Agri benchmark',
+                                lastVerified: null,
+                                confidence: 'UNVERIFIED',
+                              }
+                            }
+                          })}
+                          className="px-1.5 py-0.2 bg-[#0B0E11] text-[#8B98A5] hover:text-[#D99A2B] rounded text-[10px] font-mono"
+                        >
+                          €58
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => dispatch({
+                            type: 'SET_COSTS',
+                            costs: {
+                              deliveredCost: 65.00,
+                              producerPricing: {
+                                mode: 'FIXED_PRICE',
+                                fixedPriceEurPerMwh: 65.00,
+                                indexLinkedShare: state.costs.producerPricing?.indexLinkedShare ?? null,
+                                source: 'Manure benchmark',
+                                lastVerified: null,
+                                confidence: 'UNVERIFIED',
+                              }
+                            }
+                          })}
+                          className="px-1.5 py-0.2 bg-[#0B0E11] text-[#8B98A5] hover:text-[#D99A2B] rounded text-[10px] font-mono"
+                        >
+                          €65
+                        </button>
+                      </div>
+                    </div>
+                    <input
+                      type="number"
+                      step="0.5"
+                      value={state.costs.producerPricing?.fixedPriceEurPerMwh ?? state.costs.deliveredCost ?? ''}
+                      onChange={e => {
+                        const val = e.target.value === '' ? null : Number(e.target.value);
+                        dispatch({
                           type: 'SET_COSTS',
                           costs: {
+                            deliveredCost: val,
                             producerPricing: {
                               mode: 'FIXED_PRICE',
-                              fixedPriceEurPerMwh: state.costs.producerPricing?.fixedPriceEurPerMwh ?? state.costs.deliveredCost ?? null,
+                              fixedPriceEurPerMwh: val,
                               indexLinkedShare: state.costs.producerPricing?.indexLinkedShare ?? null,
-                              source: null,
-                              lastVerified: null,
-                              confidence: 'UNVERIFIED',
-                            }
-                          }
-                        })}
-                        className={`px-1.5 py-0.5 rounded font-medium transition-colors ${
-                          state.costs.producerPricing?.mode === 'FIXED_PRICE'
-                            ? 'bg-amber-700 text-white'
-                            : 'text-stone-400 hover:text-stone-200'
-                        }`}
-                      >
-                        Fixed Price
-                      </button>
-                    </div>
-                  </div>
-
-                  {(state.costs.producerPricing?.mode ?? 'INDEX_LINKED') === 'INDEX_LINKED' ? (
-                    <div className="space-y-1">
-                      <div className="flex justify-between items-center text-[10px]">
-                        <label className="text-teal-300 font-medium">Producer Share (e.g. 0.90 for 90%):</label>
-                        <div className="flex gap-1 items-center">
-                          <button
-                            type="button"
-                            onClick={() => dispatch({
-                              type: 'SET_COSTS',
-                              costs: {
-                                producerPricing: {
-                                  mode: 'INDEX_LINKED',
-                                  fixedPriceEurPerMwh: state.costs.producerPricing?.fixedPriceEurPerMwh ?? null,
-                                  indexLinkedShare: 0.90,
-                                  source: 'Standard 90/10 split',
-                                  lastVerified: null,
-                                  confidence: 'UNVERIFIED',
-                                }
-                              }
-                            })}
-                            className="px-1 py-0.2 bg-stone-900 hover:bg-stone-800 border border-stone-700 rounded text-[9px] font-mono text-teal-300"
-                          >
-                            90%
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => dispatch({
-                              type: 'SET_COSTS',
-                              costs: {
-                                producerPricing: {
-                                  mode: 'INDEX_LINKED',
-                                  fixedPriceEurPerMwh: state.costs.producerPricing?.fixedPriceEurPerMwh ?? null,
-                                  indexLinkedShare: 0.95,
-                                  source: 'Competitive 95/5 split',
-                                  lastVerified: null,
-                                  confidence: 'UNVERIFIED',
-                                }
-                              }
-                            })}
-                            className="px-1 py-0.2 bg-stone-900 hover:bg-stone-800 border border-stone-700 rounded text-[9px] font-mono text-teal-300"
-                          >
-                            95%
-                          </button>
-                        </div>
-                      </div>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        max="1"
-                        value={state.costs.producerPricing?.indexLinkedShare ?? ''}
-                        onChange={e => dispatch({
-                          type: 'SET_COSTS',
-                          costs: {
-                            producerPricing: {
-                              mode: 'INDEX_LINKED',
-                              fixedPriceEurPerMwh: state.costs.producerPricing?.fixedPriceEurPerMwh ?? null,
-                              indexLinkedShare: e.target.value === '' ? null : Number(e.target.value),
                               source: 'User entered',
                               lastVerified: new Date().toISOString(),
                               confidence: 'UNVERIFIED',
                             }
                           }
-                        })}
-                        className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1 font-mono text-stone-200 text-xs"
-                        placeholder="e.g. 0.90"
-                      />
-                    </div>
-                  ) : (
-                    <div className="space-y-1">
-                      <div className="flex justify-between items-center text-[10px]">
-                        <label className="text-amber-300 font-medium">Fixed Price (€/MWh):</label>
-                        <div className="flex gap-1 items-center">
-                          <button
-                            type="button"
-                            onClick={() => dispatch({
-                              type: 'SET_COSTS',
-                              costs: {
-                                deliveredCost: 58.00,
-                                producerPricing: {
-                                  mode: 'FIXED_PRICE',
-                                  fixedPriceEurPerMwh: 58.00,
-                                  indexLinkedShare: state.costs.producerPricing?.indexLinkedShare ?? null,
-                                  source: 'Agri benchmark',
-                                  lastVerified: null,
-                                  confidence: 'UNVERIFIED',
-                                }
-                              }
-                            })}
-                            className="px-1 py-0.2 bg-stone-900 hover:bg-stone-800 border border-stone-700 rounded text-[9px] font-mono text-amber-300"
-                          >
-                            €58
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => dispatch({
-                              type: 'SET_COSTS',
-                              costs: {
-                                deliveredCost: 65.00,
-                                producerPricing: {
-                                  mode: 'FIXED_PRICE',
-                                  fixedPriceEurPerMwh: 65.00,
-                                  indexLinkedShare: state.costs.producerPricing?.indexLinkedShare ?? null,
-                                  source: 'Manure benchmark',
-                                  lastVerified: null,
-                                  confidence: 'UNVERIFIED',
-                                }
-                              }
-                            })}
-                            className="px-1 py-0.2 bg-stone-900 hover:bg-stone-800 border border-stone-700 rounded text-[9px] font-mono text-amber-300"
-                          >
-                            €65
-                          </button>
-                        </div>
-                      </div>
-                      <input
-                        type="number"
-                        step="0.5"
-                        value={state.costs.producerPricing?.fixedPriceEurPerMwh ?? state.costs.deliveredCost ?? ''}
-                        onChange={e => {
-                          const val = e.target.value === '' ? null : Number(e.target.value);
-                          dispatch({
-                            type: 'SET_COSTS',
-                            costs: {
-                              deliveredCost: val,
-                              producerPricing: {
-                                mode: 'FIXED_PRICE',
-                                fixedPriceEurPerMwh: val,
-                                indexLinkedShare: state.costs.producerPricing?.indexLinkedShare ?? null,
-                                source: 'User entered',
-                                lastVerified: new Date().toISOString(),
-                                confidence: 'UNVERIFIED',
-                              }
-                            }
-                          });
-                        }}
-                        className="w-full bg-stone-950 border border-amber-900/60 rounded px-2 py-1 font-mono font-bold text-amber-300 text-xs"
-                        placeholder="e.g. 65.00"
-                      />
-                    </div>
-                  )}
-                </div>
+                        });
+                      }}
+                      className="w-full bg-[#0B0E11] border border-[#26313D] rounded px-2.5 py-1 font-mono font-semibold text-[#D99A2B] text-xs focus:border-[#D99A2B] outline-none"
+                      placeholder="e.g. 65.00"
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
 
         {/* COLUMN 2: DEAL VALUATION (Hero + Waterfall) */}
-        <div className="lg:col-span-7 2xl:flex-1 2xl:min-w-[480px] space-y-3.5 2xl:sticky 2xl:top-16 2xl:max-h-[calc(100vh-5.5rem)] 2xl:overflow-y-auto 2xl:pr-1">
+        <div className="lg:col-span-7 2xl:flex-1 2xl:min-w-[480px] space-y-6 2xl:sticky 2xl:top-16 2xl:max-h-[calc(100vh-5.5rem)] 2xl:overflow-y-auto 2xl:pr-1">
           
           {/* Main Deal Ticket Panel */}
-          <div className="bg-stone-900 border border-stone-800 rounded-xl overflow-hidden shadow-sm">
+          <div className="bg-[#12171C] rounded p-4 space-y-4">
             
             {/* Ticket Header */}
-            <div className="p-3.5 bg-stone-950 border-b border-stone-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div className="border-b border-[#1E262F] pb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
               <div>
-                <div className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-wide text-teal-400 font-bold">
+                <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-wide text-[#8B98A5]">
                   <span>Deal Valuation & Clearance</span>
                   <span>•</span>
-                  <span className="text-sky-400">{consignment.originCountryName} ➔ {selectedMarket.countryName || 'EU'}</span>
+                  <span className="text-[#E8EDF2]">{consignment.originCountryName} ➔ {selectedMarket.countryName || 'EU'}</span>
                 </div>
-                <h2 className="text-base font-bold text-white tracking-tight mt-0.5">
+                <h2 className="text-[18px] font-semibold text-[#E8EDF2] tracking-tight mt-0.5 font-mono">
                   {selectedMarket.name}
                 </h2>
-                <div className="text-[11px] text-stone-400 mt-0.5 font-mono">
-                  Registry: <strong className="text-stone-200">{selectedMarket.registry || selectedMarket.countryName}</strong> • Basis: <strong className="text-stone-200">{selectedMarket.legalBasis}</strong>
+                <div className="text-[10px] text-[#8B98A5] mt-0.5 font-mono">
+                  Registry: <span className="text-[#E8EDF2]">{selectedMarket.registry || selectedMarket.countryName}</span> • Basis: <span className="text-[#E8EDF2]">{selectedMarket.legalBasis}</span>
                 </div>
               </div>
 
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setIsLogisticsOpen(true)}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg border border-sky-800 bg-sky-950 text-sky-300 hover:bg-sky-900 transition-colors font-mono"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded bg-[#182026] text-[#8B98A5] hover:text-[#E8EDF2] transition-colors font-mono"
                 >
                   <Truck className="w-3.5 h-3.5" />
-                  Corridor Flow
+                  Corridor
                 </button>
                 <CopyButton text={summaryText} label="Copy Deal Sheet" praWarning={praCheck.hasPra} praSources={praCheck.sources} />
                 <button
                   onClick={handleSaveToLibrary}
-                  className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg border transition-all font-mono ${
+                  className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded transition-all font-mono ${
                     saveSuccess
-                      ? 'bg-teal-600 border-teal-500 text-white'
-                      : 'bg-stone-800 border-stone-700 text-stone-200 hover:bg-stone-700'
+                      ? 'bg-[#2DD4BF] text-[#0B0E11]'
+                      : 'bg-[#182026] text-[#8B98A5] hover:text-[#E8EDF2]'
                   }`}
                 >
                   <BookmarkPlus className="w-3.5 h-3.5" />
@@ -886,198 +883,202 @@ export function TradeBuilderScreen() {
             </div>
 
             {/* Verdict Highlight Strip */}
-            <div className="px-3.5 py-2 bg-stone-950/80 border-b border-stone-800 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs py-1 border-b border-[#1E262F]">
               <div className="flex items-center gap-2">
                 <StatusChip variant={eligibility.overallVerdict} size="xs" />
-                <span className="text-stone-300 font-medium text-xs">{eligibility.summary}</span>
+                <span className="text-[#8B98A5] text-xs">{eligibility.summary}</span>
               </div>
               <StaleIndicator target={markEntry} />
             </div>
 
-            <div className="p-3.5 space-y-4">
-              
-              {/* Top 3 Executive KPI Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                <div className="p-2.5 bg-stone-950 rounded-lg border border-stone-800">
-                  <div className="text-[10px] font-medium text-stone-400 uppercase tracking-wider font-mono">Delivered Netback</div>
-                  <div className="text-lg font-bold font-mono text-teal-300 mt-0.5">
-                    {netback.netNetback !== null ? `€${netback.netNetback.toFixed(2)}` : '—'}
-                    <span className="text-xs font-normal text-stone-400"> /MWh</span>
-                  </div>
-                  <div className="text-[10px] text-stone-500 mt-0.5">Molecule + Compliance</div>
+            {/* Top 3 Executive KPI Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="p-3 bg-[#0B0E11] rounded">
+                <div className="text-[10px] font-normal text-[#8B98A5] uppercase tracking-wider font-mono">Delivered Netback</div>
+                <div className="text-[36px] font-semibold font-mono text-[#2DD4BF] tabular-nums mt-1 leading-none">
+                  {netback.netNetback !== null ? `€${netback.netNetback.toFixed(2)}` : '—'}
                 </div>
+                <div className="text-[10px] text-[#8B98A5] mt-1 font-mono">Molecule + Compliance</div>
+              </div>
 
-                <div className="p-2.5 bg-stone-950 rounded-lg border border-stone-800">
-                  <div className="text-[10px] font-medium text-stone-400 uppercase tracking-wider font-mono">Producer Payable</div>
-                  <div className="text-lg font-bold font-mono text-sky-300 mt-0.5">
-                    {netback.producerPayable !== null ? `€${netback.producerPayable.toFixed(2)}` : '—'}
-                    <span className="text-xs font-normal text-stone-400"> /MWh</span>
-                  </div>
-                  <div className="text-[10px] text-stone-500 mt-0.5">
-                    {state.costs.producerPricing?.mode === 'INDEX_LINKED' 
-                      ? `${((state.costs.producerPricing.indexLinkedShare ?? 0) * 100).toFixed(1)}% Share` 
-                      : state.costs.producerPricing?.mode === 'FIXED_PRICE' ? 'Fixed Price Mode' : 'Mode Unset'}
-                  </div>
+              <div className="p-3 bg-[#0B0E11] rounded">
+                <div className="text-[10px] font-normal text-[#8B98A5] uppercase tracking-wider font-mono">Producer Payable</div>
+                <div className="text-[18px] font-semibold font-mono text-[#E8EDF2] tabular-nums mt-1">
+                  {netback.producerPayable !== null ? `€${netback.producerPayable.toFixed(2)}/MWh` : '—'}
                 </div>
-
-                <div className="p-2.5 bg-stone-950 rounded-lg border border-stone-800">
-                  <div className="text-[10px] font-medium text-stone-400 uppercase tracking-wider font-mono">Desk Margin</div>
-                  <div className="text-lg font-bold font-mono text-emerald-400 mt-0.5">
-                    {netback.deskMargin !== null ? `€${netback.deskMargin.toFixed(2)}` : '—'}
-                    <span className="text-xs font-normal text-stone-400"> /MWh</span>
-                  </div>
-                  <div className="text-[10px] text-stone-500 mt-0.5">
-                    {netback.marginPercent !== null ? `${netback.marginPercent.toFixed(1)}% Capture` : 'Awaiting cost inputs'}
-                  </div>
+                <div className="text-[10px] text-[#8B98A5] mt-1 font-mono">
+                  {state.costs.producerPricing?.mode === 'INDEX_LINKED' 
+                    ? `${((state.costs.producerPricing.indexLinkedShare ?? 0) * 100).toFixed(1)}% Share` 
+                    : state.costs.producerPricing?.mode === 'FIXED_PRICE' ? 'Fixed Price' : 'Unset'}
                 </div>
               </div>
 
-              {/* German THG Double Counting Sensitivity */}
-              {netback.uncertaintyBranches && netback.uncertaintyBranches.length > 0 && (
-                <div className="bg-stone-950 border border-sky-900/70 p-3 rounded-lg space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-sky-300 flex items-center gap-1.5 text-xs font-mono">
-                      <AlertCircle className="w-3.5 h-3.5 text-sky-400" />
-                      German THG Double Counting Sensitivity (§37a BImSchG):
-                    </span>
-                    <span className="text-[9px] text-sky-400 bg-sky-950 border border-sky-800 px-1.5 py-0.2 rounded font-mono font-semibold">
-                      Uncertainty
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
-                    <div className="p-2 bg-stone-900/90 rounded border border-stone-800">
-                      <div className="text-stone-400 text-[10px]">Branch 1: Single Counting (1×):</div>
-                      <div className="text-xs font-bold text-white mt-0.5">
-                        Netback: €{netback.uncertaintyBranches[0].netNetback?.toFixed(2)}/MWh
-                      </div>
-                      <div className="text-emerald-400 text-[11px] mt-0.5">
-                        Margin: €{netback.uncertaintyBranches[0].deskMargin?.toFixed(2)}/MWh ({netback.uncertaintyBranches[0].marginPercent?.toFixed(1)}%)
-                      </div>
-                    </div>
-
-                    <div className="p-2 bg-stone-900/90 rounded border border-teal-800/80 bg-teal-950/20">
-                      <div className="text-teal-400 text-[10px]">Branch 2: Double Counting (2×):</div>
-                      <div className="text-xs font-bold text-teal-300 mt-0.5">
-                        Netback: €{netback.uncertaintyBranches[1].netNetback?.toFixed(2)}/MWh
-                      </div>
-                      <div className="text-emerald-400 text-[11px] mt-0.5">
-                        Margin: €{netback.uncertaintyBranches[1].deskMargin?.toFixed(2)}/MWh ({netback.uncertaintyBranches[1].marginPercent?.toFixed(1)}%)
-                      </div>
-                    </div>
-                  </div>
+              <div className="p-3 bg-[#0B0E11] rounded">
+                <div className="text-[10px] font-normal text-[#8B98A5] uppercase tracking-wider font-mono">Desk Margin</div>
+                <div className="text-[18px] font-semibold font-mono text-[#2DD4BF] tabular-nums mt-1">
+                  {netback.deskMargin !== null ? `€${netback.deskMargin.toFixed(2)}/MWh` : '—'}
                 </div>
-              )}
-
-              {/* Accounting Netback Waterfall Table */}
-              <div className="space-y-1.5">
-                <div className="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-stone-300 pb-1 border-b border-stone-800 font-mono">
-                  <span className="flex items-center gap-1.5">
-                    <TrendingUp className="w-3.5 h-3.5 text-teal-400" />
-                    Netback Accounting Waterfall
-                  </span>
-                  <span className="text-[10px] text-stone-500 font-normal">Side: {netback.markSideUsed.toUpperCase()}</span>
-                </div>
-
-                <div className="bg-stone-950 rounded-lg border border-stone-800 divide-y divide-stone-800/80 text-xs font-mono">
-                  <div className="p-2 flex justify-between items-center text-stone-300">
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />
-                      Gas Molecule Benchmark (TTF Hub)
-                    </span>
-                    <span className="font-bold text-stone-100">
-                      {netback.moleculeValue !== null ? `+€${netback.moleculeValue.toFixed(2)}/MWh` : 'Not set'}
-                    </span>
-                  </div>
-
-                  <div className="p-2 flex justify-between items-center text-stone-300">
-                    <div className="flex flex-col">
-                      <span className="flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                        Compliance Certificate Premium
-                      </span>
-                      {netback.certificateValue?.provenance?.sourceType && (
-                        <span className="text-[9px] text-stone-400 pl-3 mt-0.5">
-                          Source: <strong className="text-teal-300">{netback.certificateValue.provenance.sourceName || netback.certificateValue.provenance.sourceType}</strong> ({netback.certificateValue.provenance.sourceType})
-                          {netback.certificateValue.provenance.observedAt && ` • Observed ${netback.certificateValue.provenance.observedAt.slice(0, 10)}`}
-                        </span>
-                      )}
-                      {netback.certificateValue && !netback.certificateValue.provenance?.sourceType && !netback.certificateValue.isModelled && (
-                        <span className="text-[9px] text-amber-400 pl-3 mt-0.5">
-                          ⚠ Source: Unrecorded (cannot be substantiated)
-                        </span>
-                      )}
-                    </div>
-                    <span className="font-bold text-emerald-400">
-                      {netback.certificateValue?.valueEurPerMWh != null ? `+€${netback.certificateValue.valueEurPerMWh.toFixed(2)}/MWh` : 'Not set'}
-                    </span>
-                  </div>
-
-                  <div className="p-2 flex justify-between items-center text-stone-400">
-                    <span>Transfer & Cross-Border Pipeline Tariffs</span>
-                    <span className="text-stone-300">
-                      {state.costs.transferCosts !== null ? `−€${state.costs.transferCosts.toFixed(2)}/MWh` : '€0.00/MWh'}
-                    </span>
-                  </div>
-
-                  <div className="p-2 flex justify-between items-center text-stone-400">
-                    <span>Certification, Audit & UDB Recording</span>
-                    <span className="text-stone-300">
-                      {state.costs.certificationCosts !== null ? `−€${state.costs.certificationCosts.toFixed(2)}/MWh` : '€0.00/MWh'}
-                    </span>
-                  </div>
-
-                  <div className="p-2 flex justify-between items-center text-stone-400">
-                    <span>Logistics / Conditioning Fees</span>
-                    <span className="text-stone-300">
-                      {state.costs.logistics !== null ? `−€${state.costs.logistics.toFixed(2)}/MWh` : '€0.00/MWh'}
-                    </span>
-                  </div>
-
-                  {state.costs.otherCosts !== null && state.costs.otherCosts > 0 && (
-                    <div className="p-2 flex justify-between items-center text-stone-400">
-                      <span>Other Miscellaneous Fees</span>
-                      <span className="text-stone-300">
-                        −€{state.costs.otherCosts.toFixed(2)}/MWh
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Delivered Netback Subtotal */}
-                  <div className="p-2 bg-stone-900/60 flex justify-between items-center font-bold text-teal-300">
-                    <span className="uppercase text-[10px]">Delivered Value Stack (Gross Netback)</span>
-                    <span className="text-xs">
-                      {netback.netNetback !== null ? `€${netback.netNetback.toFixed(2)}/MWh` : '—'}
-                    </span>
-                  </div>
-
-                  {/* Producer Payable Line */}
-                  <div className="p-2 flex justify-between items-center text-stone-300">
-                    <span className="text-amber-300 font-semibold text-[11px]">
-                      {state.costs.producerPricing?.mode === 'INDEX_LINKED'
-                        ? `Producer Payable (${((state.costs.producerPricing.indexLinkedShare ?? 0) * 100).toFixed(0)}% Value Share)`
-                        : 'Fixed Producer Procurement Cost'}
-                    </span>
-                    <span className="font-bold text-amber-300 text-xs">
-                      {netback.producerPayable !== null ? `−€${netback.producerPayable.toFixed(2)}/MWh` : 'Not set'}
-                    </span>
-                  </div>
-
-                  {/* Realised Desk Margin Bottom Line */}
-                  <div className="p-2.5 bg-emerald-950/30 border-t border-emerald-800/80 flex justify-between items-center font-bold text-emerald-400 text-xs">
-                    <span className="uppercase tracking-wider text-[11px]">
-                      Realised Desk Capture Margin {netback.marginPercent !== null ? `(${netback.marginPercent.toFixed(1)}%)` : ''}
-                    </span>
-                    <span className="text-sm">
-                      {netback.deskMargin !== null ? `€${netback.deskMargin.toFixed(2)}/MWh` : '—'}
-                    </span>
-                  </div>
+                <div className="text-[10px] text-[#8B98A5] mt-1 font-mono">
+                  {netback.marginPercent !== null ? `${netback.marginPercent.toFixed(1)}% Capture` : 'Awaiting cost'}
                 </div>
               </div>
-
-
             </div>
+
+            {/* German THG Double Counting Sensitivity */}
+            {netback.uncertaintyBranches && netback.uncertaintyBranches.length > 0 && (
+              <div className="bg-[#0B0E11] p-3 rounded space-y-2 border border-[#1E262F]">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-[#8B98A5] flex items-center gap-1.5 text-xs font-mono">
+                    <AlertCircle className="w-3.5 h-3.5 text-[#D99A2B]" />
+                    German THG Double Counting Sensitivity (§37a BImSchG)
+                  </span>
+                  <span className="text-[9px] text-[#D99A2B] bg-[#2A1E14] px-1.5 py-0.2 rounded font-mono">
+                    Uncertainty
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
+                  <div className="p-2.5 bg-[#12171C] rounded">
+                    <div className="text-[#8B98A5] text-[10px] uppercase">Branch 1: Single Counting (1×)</div>
+                    <div className="text-xs font-semibold text-[#E8EDF2] mt-0.5 tabular-nums">
+                      Netback: €{netback.uncertaintyBranches[0].netNetback?.toFixed(2)}/MWh
+                    </div>
+                    <div className="text-[#2DD4BF] text-[11px] mt-0.5 tabular-nums">
+                      Margin: €{netback.uncertaintyBranches[0].deskMargin?.toFixed(2)}/MWh ({netback.uncertaintyBranches[0].marginPercent?.toFixed(1)}%)
+                    </div>
+                  </div>
+
+                  <div className="p-2.5 bg-[#12171C] rounded border-l-2 border-[#2DD4BF]">
+                    <div className="text-[#8B98A5] text-[10px] uppercase">Branch 2: Double Counting (2×)</div>
+                    <div className="text-xs font-semibold text-[#E8EDF2] mt-0.5 tabular-nums">
+                      Netback: €{netback.uncertaintyBranches[1].netNetback?.toFixed(2)}/MWh
+                    </div>
+                    <div className="text-[#2DD4BF] text-[11px] mt-0.5 tabular-nums">
+                      Margin: €{netback.uncertaintyBranches[1].deskMargin?.toFixed(2)}/MWh ({netback.uncertaintyBranches[1].marginPercent?.toFixed(1)}%)
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Accounting Netback Waterfall Table */}
+            <div className="space-y-2 pt-1">
+              <div className="flex justify-between items-center text-[10px] font-semibold uppercase tracking-wider text-[#8B98A5] pb-1 border-b border-[#1E262F] font-mono">
+                <span className="flex items-center gap-1.5">
+                  <TrendingUp className="w-3.5 h-3.5 text-[#8B98A5]" />
+                  Netback Accounting Waterfall
+                </span>
+                <span className="text-[10px] text-[#8B98A5] font-normal">Side: {netback.markSideUsed.toUpperCase()}</span>
+              </div>
+
+              <div className="bg-[#0B0E11] rounded divide-y divide-[#1E262F] text-xs font-mono">
+                <div className="p-2.5 flex justify-between items-center text-[#8B98A5]">
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#8B98A5]" />
+                    Gas Molecule Benchmark (TTF Hub)
+                  </span>
+                  <span className="font-semibold text-[#E8EDF2] tabular-nums">
+                    {netback.moleculeValue !== null ? `+€${netback.moleculeValue.toFixed(2)}/MWh` : 'Not set'}
+                  </span>
+                </div>
+
+                <div className="p-2.5 flex justify-between items-center text-[#8B98A5]">
+                  <div className="flex flex-col">
+                    <span className="flex items-center gap-1.5 text-[#E8EDF2]">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#2DD4BF]" />
+                      Compliance Certificate Premium
+                    </span>
+                    {netback.certificateValue?.provenance?.sourceType && (
+                      <span className="text-[9px] text-[#8B98A5] pl-3 mt-0.5">
+                        Source: <strong className="text-[#E8EDF2]">{netback.certificateValue.provenance.sourceName || netback.certificateValue.provenance.sourceType}</strong> ({netback.certificateValue.provenance.sourceType})
+                        {netback.certificateValue.provenance.observedAt && ` • Observed ${netback.certificateValue.provenance.observedAt.slice(0, 10)}`}
+                      </span>
+                    )}
+                    {netback.certificateValue && !netback.certificateValue.provenance?.sourceType && !netback.certificateValue.isModelled && (
+                      <span className="text-[9px] text-[#D99A2B] pl-3 mt-0.5">
+                        ⚠ Source: Unrecorded (cannot be substantiated)
+                      </span>
+                    )}
+                  </div>
+                  <span className="font-semibold text-[#2DD4BF] tabular-nums">
+                    {netback.certificateValue?.valueEurPerMWh != null ? `+€${netback.certificateValue.valueEurPerMWh.toFixed(2)}/MWh` : 'Not set'}
+                  </span>
+                </div>
+
+                <div className="p-2.5 flex justify-between items-center text-[#8B98A5]">
+                  <span>Transfer & Cross-Border Pipeline Tariffs</span>
+                  <span className="text-[#E8EDF2] tabular-nums">
+                    {state.costs.transferCosts !== null ? `−€${state.costs.transferCosts.toFixed(2)}/MWh` : '€0.00/MWh'}
+                  </span>
+                </div>
+
+                <div className="p-2.5 flex justify-between items-center text-[#8B98A5]">
+                  <span>Certification, Audit & UDB Recording</span>
+                  <span className="text-[#E8EDF2] tabular-nums">
+                    {state.costs.certificationCosts !== null ? `−€${state.costs.certificationCosts.toFixed(2)}/MWh` : '€0.00/MWh'}
+                  </span>
+                </div>
+
+                <div className="p-2.5 flex justify-between items-center text-[#8B98A5]">
+                  <span>Logistics / Conditioning Fees</span>
+                  <span className="text-[#E8EDF2] tabular-nums">
+                    {state.costs.logistics !== null ? `−€${state.costs.logistics.toFixed(2)}/MWh` : '€0.00/MWh'}
+                  </span>
+                </div>
+
+                {state.costs.otherCosts !== null && state.costs.otherCosts > 0 && (
+                  <div className="p-2.5 flex justify-between items-center text-[#8B98A5]">
+                    <span>Other Miscellaneous Fees</span>
+                    <span className="text-[#E8EDF2] tabular-nums">
+                      −€{state.costs.otherCosts.toFixed(2)}/MWh
+                    </span>
+                  </div>
+                )}
+
+                {/* Delivered Netback Subtotal */}
+                <div className="p-2.5 bg-[#182026] flex justify-between items-center font-semibold text-[#E8EDF2]">
+                  <span className="uppercase text-[10px] tracking-wide text-[#8B98A5]">Delivered Value Stack (Gross Netback)</span>
+                  <span className="text-[18px] tabular-nums text-[#2DD4BF]">
+                    {netback.netNetback !== null ? `€${netback.netNetback.toFixed(2)}/MWh` : '—'}
+                  </span>
+                </div>
+
+                {/* Producer Payable Line */}
+                <div className="p-2.5 flex justify-between items-center text-[#8B98A5]">
+                  <span className="text-[#D99A2B]">
+                    {state.costs.producerPricing?.mode === 'INDEX_LINKED'
+                      ? `Producer Payable (${((state.costs.producerPricing.indexLinkedShare ?? 0) * 100).toFixed(0)}% Value Share)`
+                      : 'Fixed Producer Procurement Cost'}
+                  </span>
+                  <span className="font-semibold text-[#D99A2B] tabular-nums">
+                    {netback.producerPayable !== null ? `−€${netback.producerPayable.toFixed(2)}/MWh` : 'Not set'}
+                  </span>
+                </div>
+
+                {/* Realised Desk Margin Bottom Line */}
+                <div className="p-3 bg-[#18242A] border-t border-[#1E262F] flex justify-between items-center font-semibold text-[#2DD4BF]">
+                  <span className="uppercase tracking-wider text-[10px]">
+                    Realised Desk Capture Margin {netback.marginPercent !== null ? `(${netback.marginPercent.toFixed(1)}%)` : ''}
+                  </span>
+                  <span className="text-[18px] tabular-nums">
+                    {netback.deskMargin !== null ? `€${netback.deskMargin.toFixed(2)}/MWh` : '—'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Under 1600px breakpoint: render compliance gates here */}
+          <div className="2xl:hidden">
+            {renderComplianceChecklist()}
           </div>
         </div>
+
+        {/* COLUMN 3: COMPLIANCE GATES (Visible on >= 1600px / 2xl screen) */}
+        <div className="hidden 2xl:block 2xl:w-[380px] 2xl:shrink-0 space-y-4 2xl:sticky 2xl:top-16 2xl:max-h-[calc(100vh-5.5rem)] 2xl:overflow-y-auto 2xl:pr-1">
+          {renderComplianceChecklist()}
+        </div>
+
       </div>
 
       {/* Logistics & Corridor Modal */}
