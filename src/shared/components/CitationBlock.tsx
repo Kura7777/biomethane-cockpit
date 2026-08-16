@@ -10,7 +10,7 @@ interface CitationBlockProps {
 export function CitationBlock({ citation, compact = false }: CitationBlockProps) {
   if (compact) {
     return (
-      <span className="text-[11px] text-teal-400 font-mono">
+      <span className="text-meta text-teal-400 font-mono">
         {citation.shortName}
         {citation.nationalTransposition && ` / ${citation.nationalTransposition}`}
       </span>
@@ -18,26 +18,26 @@ export function CitationBlock({ citation, compact = false }: CitationBlockProps)
   }
 
   return (
-    <div className="bg-stone-900 border border-stone-800 rounded-lg p-3 text-xs mt-1.5 space-y-1">
+    <div className="bg-stone-900 border border-stone-800 rounded p-3 text-xs mt-1.5 space-y-1">
       <div className="flex items-center justify-between">
         <div className="font-bold text-stone-200 flex items-center gap-1.5">
           <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
           <span>{citation.shortName}</span>
         </div>
-        <span className="text-[10px] text-stone-500 font-mono">Verified: {citation.verifiedDate}</span>
+        <span className="text-micro text-stone-400 font-mono">Verified: {citation.verifiedDate}</span>
       </div>
 
       {citation.nationalTransposition && (
-        <div className="text-teal-400 text-[11px] font-mono">
+        <div className="text-teal-400 text-meta font-mono">
           National Transposition: {citation.nationalTransposition}
         </div>
       )}
 
-      <div className="text-stone-400 text-[11px] leading-relaxed">
+      <div className="text-stone-400 text-meta leading-relaxed">
         {citation.establishes}
       </div>
 
-      <div className="pt-1 flex items-center gap-2 text-[10px] text-stone-500 font-mono">
+      <div className="pt-1 flex items-center gap-2 text-micro text-stone-400 font-mono">
         <span>Full ref: {citation.fullReference}</span>
         {citation.sourceUrl && (
           <a

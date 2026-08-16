@@ -14,7 +14,7 @@ const LibraryScreen = React.lazy(() => import('../features/trade-library/Library
 function LoadingScreen() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-stone-950">
-      <div className="text-stone-500 text-sm font-mono animate-pulse">Loading module...</div>
+      <div className="text-stone-400 text-sm font-mono animate-pulse">Loading module...</div>
     </div>
   );
 }

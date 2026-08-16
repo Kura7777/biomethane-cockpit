@@ -1,3 +1,4 @@
+import { AlertTriangle } from 'lucide-react';
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 
 interface Props {
@@ -29,12 +30,12 @@ export class ErrorBoundary extends Component<Props, State> {
       if (this.props.fallback) return this.props.fallback;
       return (
         <div className="flex items-center justify-center min-h-[400px] p-8">
-          <div className="bg-stone-900 border border-red-900/60 rounded-xl p-6 max-w-lg text-center space-y-3">
-            <div className="text-red-400 text-2xl font-bold">⚠ Application Error</div>
+          <div className="bg-stone-900 border border-red-900/60 p-3 max-w-lg text-center space-y-3">
+            <div className="text-red-400 text-2xl font-bold flex items-center justify-center gap-2"><AlertTriangle className="w-6 h-6 shrink-0" aria-hidden="true" />Application Error</div>
             <p className="text-stone-400 text-sm">
               An unexpected error occurred in this module. Your data is safe — try refreshing the page.
             </p>
-            <pre className="text-[11px] text-red-300 bg-stone-950 p-3 rounded overflow-auto max-h-32 text-left">
+            <pre className="text-meta text-red-300 bg-stone-950 p-3 rounded overflow-auto max-h-32 text-left">
               {this.state.error?.message}
             </pre>
             <button

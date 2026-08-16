@@ -238,7 +238,7 @@ export function FloatingAgentDrawer() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-5 right-5 z-40 bg-slate-900/95 hover:bg-slate-850 text-white border border-teal-500/70 hover:border-teal-400 rounded-full px-3.5 py-2 shadow-2xl flex items-center gap-2.5 transition-all duration-150 group cursor-pointer backdrop-blur-md animate-in fade-in"
+          className="fixed bottom-5 right-5 z-40 bg-stone-900/95 hover:bg-stone-800 text-white border border-teal-500/70 hover:border-teal-400 rounded-full px-3.5 py-2 shadow-2xl flex items-center gap-2.5 transition-colors duration-150 group cursor-pointer backdrop-blur-md animate-in fade-in"
           title="Open AI Desk Copilot (Ctrl+K)"
         >
           <div className="relative flex items-center justify-center">
@@ -248,7 +248,7 @@ export function FloatingAgentDrawer() {
           <span className="text-xs font-mono font-bold text-stone-100 group-hover:text-teal-300 transition-colors">
             Ask Copilot
           </span>
-          <span className="hidden sm:inline-block text-[10px] text-teal-400/90 font-mono bg-teal-950/90 border border-teal-800/80 px-1.5 py-0.2 rounded">
+          <span className="hidden sm:inline-block text-micro text-teal-400/90 font-mono bg-teal-950/90 border border-teal-800/80 px-1.5 py-0.5 rounded">
             Ctrl+K
           </span>
         </button>
@@ -257,14 +257,14 @@ export function FloatingAgentDrawer() {
       {/* FLOATING AI TERMINAL DRAWER */}
       {isOpen && (
         <div
-          className={`fixed z-50 transition-all duration-200 flex flex-col font-mono text-xs shadow-2xl bg-slate-900/98 border border-teal-500/80 backdrop-blur-xl rounded-2xl overflow-hidden ${
+          className={`fixed z-50 transition-colors duration-200 flex flex-col font-mono text-xs shadow-2xl bg-stone-900/98 border border-teal-500/80 backdrop-blur-xl  overflow-hidden ${
             isExpanded
               ? 'inset-4 md:inset-8 w-auto h-auto'
               : 'bottom-5 right-5 w-[92vw] sm:w-[460px] h-[580px] max-h-[85vh]'
           }`}
         >
           {/* Header */}
-          <div className="p-3 bg-slate-950 border-b border-slate-800 flex items-center justify-between gap-2 shrink-0">
+          <div className="p-3 bg-stone-950 border-b border-stone-800 flex items-center justify-between gap-2 shrink-0">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded bg-teal-500/20 border border-teal-500/50 flex items-center justify-center text-teal-400">
                 <Bot className="w-3.5 h-3.5" />
@@ -272,11 +272,11 @@ export function FloatingAgentDrawer() {
               <div>
                 <div className="flex items-center gap-1.5">
                   <span className="font-bold text-white text-xs">AI Desk Copilot</span>
-                  <span className="text-[9px] bg-teal-950 text-teal-300 border border-teal-800 px-1 rounded font-bold">
+                  <span className="text-micro bg-teal-950 text-teal-300 border border-teal-800 px-1 rounded font-bold">
                     Context: {pageMeta.title.split(' ')[0]}
                   </span>
                 </div>
-                <div className="text-[10px] text-slate-400 flex items-center gap-1">
+                <div className="text-micro text-stone-400 flex items-center gap-1">
                   <PageIcon className="w-3 h-3 text-teal-400" />
                   <span className="truncate max-w-[200px]">{pageMeta.title}</span>
                 </div>
@@ -288,7 +288,7 @@ export function FloatingAgentDrawer() {
               <button
                 onClick={() => setShowKeyInput(prev => !prev)}
                 className={`p-1.5 rounded transition-colors ${
-                  apiKey ? 'text-teal-400 hover:bg-slate-800' : 'text-amber-400 hover:bg-slate-800'
+                  apiKey ? 'text-teal-400 hover:bg-stone-800' : 'text-amber-400 hover:bg-stone-800'
                 }`}
                 title={apiKey ? 'Gemini API Key active' : 'Add Gemini API Key (Optional)'}
               >
@@ -297,7 +297,8 @@ export function FloatingAgentDrawer() {
 
               <button
                 onClick={handleResetChat}
-                className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors"
+                aria-label="Clear conversation"
+                className="p-1.5 text-stone-400 hover:text-white hover:bg-stone-800 rounded transition-colors"
                 title="Clear Conversation"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
@@ -305,7 +306,7 @@ export function FloatingAgentDrawer() {
 
               <button
                 onClick={() => setIsExpanded(prev => !prev)}
-                className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors"
+                className="p-1.5 text-stone-400 hover:text-white hover:bg-stone-800 rounded transition-colors"
                 title={isExpanded ? 'Restore window size' : 'Expand window'}
               >
                 {isExpanded ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
@@ -313,7 +314,7 @@ export function FloatingAgentDrawer() {
 
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors"
+                className="p-1.5 text-stone-400 hover:text-white hover:bg-stone-800 rounded transition-colors"
                 title="Close (Ctrl+K)"
               >
                 <X className="w-4 h-4" />
@@ -323,9 +324,9 @@ export function FloatingAgentDrawer() {
 
           {/* API Key Drawer (Optional) */}
           {showKeyInput && (
-            <div className="p-2.5 bg-slate-950 border-b border-slate-800 space-y-2 animate-in slide-in-from-top-2 duration-150">
-              <div className="flex justify-between items-center text-[10px]">
-                <span className="text-slate-300 font-bold flex items-center gap-1">
+            <div className="p-2.5 bg-stone-950 border-b border-stone-800 space-y-2 animate-in slide-in-from-top-2 duration-150">
+              <div className="flex justify-between items-center text-micro">
+                <span className="text-stone-300 font-bold flex items-center gap-1">
                   <Key className="w-3 h-3 text-amber-400" />
                   <span>Google Gemini API Key (Optional):</span>
                 </span>
@@ -333,7 +334,7 @@ export function FloatingAgentDrawer() {
                   href="https://aistudio.google.com/app/apikey"
                   target="_blank"
                   rel="noreferrer"
-                  className="text-teal-400 hover:underline text-[9px]"
+                  className="text-teal-400 hover:underline text-micro"
                 >
                   Get free key ↗
                 </a>
@@ -344,7 +345,7 @@ export function FloatingAgentDrawer() {
                   value={apiKey}
                   onChange={e => setApiKey(e.target.value)}
                   placeholder="AIzaSy..."
-                  className="flex-1 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-100 text-xs outline-none focus:border-teal-400"
+                  className="flex-1 bg-stone-900 border border-stone-700 rounded px-2 py-1 text-stone-100 text-xs outline-none focus:border-teal-400"
                 />
                 <button
                   onClick={() => handleSaveApiKey(apiKey)}
@@ -365,21 +366,21 @@ export function FloatingAgentDrawer() {
                   msg.role === 'user' ? 'items-end' : 'items-start'
                 }`}
               >
-                <div className="flex items-center gap-1.5 text-[9px] text-slate-400 px-1">
+                <div className="flex items-center gap-1.5 text-micro text-stone-400 px-1">
                   <span>{msg.role === 'user' ? 'Trader' : 'AI Copilot'}</span>
                   <span>•</span>
                   <span>{msg.timestamp}</span>
                 </div>
 
                 <div
-                  className={`p-3 rounded-xl max-w-[90%] leading-relaxed break-words relative group ${
+                  className={`p-3  max-w-[90%] leading-relaxed break-words relative group ${
                     msg.role === 'user'
                       ? 'bg-teal-600 text-white rounded-br-xs'
-                      : 'bg-slate-950/90 text-stone-100 border border-slate-800 rounded-bl-xs'
+                      : 'bg-stone-950/90 text-stone-100 border border-stone-800 rounded-bl-xs'
                   }`}
                 >
                   {/* Markdown-style formatted body */}
-                  <div className="space-y-1.5 text-[11px] whitespace-pre-wrap">
+                  <div className="space-y-1.5 text-meta whitespace-pre-wrap">
                     {msg.content}
                   </div>
 
@@ -387,7 +388,7 @@ export function FloatingAgentDrawer() {
                   {msg.role === 'agent' && (
                     <button
                       onClick={() => handleCopyMessage(msg.id, msg.content)}
-                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 rounded bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition-all"
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 rounded bg-stone-800/80 hover:bg-stone-700 text-stone-300 transition-colors"
                       title="Copy response"
                     >
                       {copiedId === msg.id ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
@@ -399,15 +400,15 @@ export function FloatingAgentDrawer() {
 
             {isQuerying && (
               <div className="flex flex-col items-start space-y-1">
-                <div className="text-[9px] text-teal-400 px-1 flex items-center gap-1">
+                <div className="text-micro text-teal-400 px-1 flex items-center gap-1">
                   <Sparkles className="w-3 h-3 animate-spin" />
                   <span>Synthesizing desk intelligence...</span>
                 </div>
-                <div className="p-3 rounded-xl bg-slate-950/90 text-stone-300 border border-slate-800 rounded-bl-xs flex items-center gap-2">
+                <div className="p-3 bg-stone-950/90 text-stone-300 border border-stone-800 rounded-bl-xs flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></div>
                   <div className="w-2 h-2 rounded-full bg-teal-400 animate-pulse delay-75"></div>
                   <div className="w-2 h-2 rounded-full bg-teal-400 animate-pulse delay-150"></div>
-                  <span className="text-[10px] text-slate-400 ml-1">Analyzing 1,986 registry & marks...</span>
+                  <span className="text-micro text-stone-400 ml-1">Analyzing 1,986 registry & marks...</span>
                 </div>
               </div>
             )}
@@ -416,8 +417,8 @@ export function FloatingAgentDrawer() {
           </div>
 
           {/* Quick Context-Aware Suggested Questions */}
-          <div className="p-2 bg-slate-950/80 border-t border-slate-800 shrink-0">
-            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+          <div className="p-2 bg-stone-950/80 border-t border-stone-800 shrink-0">
+            <span className="text-micro font-bold text-stone-400 uppercase tracking-wider block mb-1">
               Suggested for {pageMeta.title.split(' ')[0]}:
             </span>
             <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
@@ -425,7 +426,7 @@ export function FloatingAgentDrawer() {
                 <button
                   key={idx}
                   onClick={() => handleSendMessage(s)}
-                  className="px-2 py-1 rounded bg-slate-900 hover:bg-teal-950 border border-slate-800 hover:border-teal-700 text-slate-300 hover:text-teal-200 text-[10px] whitespace-nowrap transition-colors shrink-0 flex items-center gap-1 text-left"
+                  className="px-2 py-1 rounded bg-stone-900 hover:bg-teal-950 border border-stone-800 hover:border-teal-700 text-stone-300 hover:text-teal-200 text-micro whitespace-nowrap transition-colors shrink-0 flex items-center gap-1 text-left"
                 >
                   <Sparkles className="w-2.5 h-2.5 text-teal-400 shrink-0" />
                   <span className="truncate max-w-[240px]">{s}</span>
@@ -435,7 +436,7 @@ export function FloatingAgentDrawer() {
           </div>
 
           {/* Input Area */}
-          <div className="p-2.5 bg-slate-950 border-t border-slate-800 flex items-center gap-2 shrink-0">
+          <div className="p-2.5 bg-stone-950 border-t border-stone-800 flex items-center gap-2 shrink-0">
             <input
               ref={inputRef}
               type="text"
@@ -445,12 +446,12 @@ export function FloatingAgentDrawer() {
                 if (e.key === 'Enter') handleSendMessage();
               }}
               placeholder={`Ask anything about ${pageMeta.title.toLowerCase()}, plants, or rules...`}
-              className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs outline-none focus:border-teal-400 transition-colors"
+              className="flex-1 bg-stone-900 border border-stone-700 rounded px-3 py-2 text-white text-xs outline-none focus:border-teal-400 transition-colors"
             />
             <button
               onClick={() => handleSendMessage()}
               disabled={!inputQuery.trim() || isQuerying}
-              className="bg-teal-600 hover:bg-teal-500 disabled:opacity-40 text-white font-bold px-3 py-2 rounded-lg flex items-center justify-center transition-all cursor-pointer"
+              className="bg-teal-600 hover:bg-teal-500 disabled:opacity-40 text-white font-bold px-3 py-2 rounded flex items-center justify-center transition-colors cursor-pointer"
               title="Send (Enter)"
             >
               <Send className="w-3.5 h-3.5" />
