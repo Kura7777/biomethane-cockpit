@@ -14,6 +14,7 @@ import { Consignment } from '../consignment/types';
 import { MarksState, CostInputs } from '../netback/types';
 import { rankNetbacks, getHighestBlockedOpportunity } from '../netback/ranking';
 import { generateTradeSummary } from '../trade/summary';
+import { assessmentContainsPraData } from '../trade/licensing';
 import { TradeAssessment } from '../trade/types';
 import { migrateState, createDefaultState, CURRENT_SCHEMA_VERSION } from '../../store/context';
 import { REFERENCE_CONSIGNMENTS } from '../consignment/feedstocks';
@@ -840,6 +841,244 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
       };
       const unsetNetback = computeNetback(deMarket, REFERENCE_CONSIGNMENTS.DANISH_MANURE, deMarks, unsetCosts, 'bid');
       expect(unsetNetback.missingInputs).toContain('producerPricing');
+    });
+
+    it('assessment with PRA gas index but non-PRA certificate -> hasPra true', () => {
+      const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
+      const frMarket = getMarketById('FR_CPB')!;
+      const eligibility = evaluateEligibility(consignment, frMarket);
+
+      const marks: MarksState = {
+        marks: {
+          FR_CPB: {
+            marketId: 'FR_CPB',
+            bid: 90.0,
+            offer: 92.0,
+            mid: 91.0,
+            updatedAt: '2026-08-16T10:00:00Z',
+            source: 'Broker OTC',
+            provenance: {
+              sourceType: 'BROKER_INDICATION',
+              sourceName: 'ICAP Broker',
+              sourceUrl: null,
+              observedAt: '2026-08-16T10:00:00Z',
+              note: null,
+            },
+          },
+        },
+        gasIndex: {
+          bid: 28.5,
+          offer: 29.0,
+          mid: 28.75,
+          updatedAt: '2026-08-16T10:00:00Z',
+          provenance: {
+            sourceType: 'PRICE_REPORTING',
+            sourceName: 'Platts European Gas Assessment',
+            sourceUrl: 'https://spglobal.com',
+            observedAt: '2026-08-16T10:00:00Z',
+            note: 'Platts TTF DA',
+          },
+        },
+        fx: { gbpEur: null, chfEur: null, updatedAt: null },
+        pricingSide: 'bid',
+      };
+
+      const costs: CostInputs = {
+        transferCosts: 0.5,
+        certificationCosts: 0.2,
+        logistics: 1.0,
+        deliveredCost: null,
+        otherCosts: 0,
+        producerPricing: {
+          mode: 'INDEX_LINKED',
+          fixedPriceEurPerMwh: null,
+          indexLinkedShare: 0.90,
+          source: null,
+          lastVerified: null,
+          confidence: 'UNVERIFIED',
+        },
+      };
+
+      const netback = computeNetback(frMarket, consignment, marks, costs, 'bid');
+      const assessment: TradeAssessment = {
+        id: 'test-pra-gas',
+        createdAt: '2026-08-16T10:00:00Z',
+        targetMarketId: 'FR_CPB',
+        targetMarketName: 'France CPB',
+        consignment,
+        eligibility,
+        netback,
+        marks,
+        costs,
+        userNotes: '',
+      };
+
+      const praResult = assessmentContainsPraData(assessment);
+      expect(praResult.hasPra).toBe(true);
+      expect(praResult.sources).toContain('Platts European Gas Assessment');
+    });
+
+    it('assessment with no PRA marks anywhere -> hasPra false', () => {
+      const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
+      const frMarket = getMarketById('FR_CPB')!;
+      const eligibility = evaluateEligibility(consignment, frMarket);
+
+      const marks: MarksState = {
+        marks: {
+          FR_CPB: {
+            marketId: 'FR_CPB',
+            bid: 90.0,
+            offer: 92.0,
+            mid: 91.0,
+            updatedAt: '2026-08-16T10:00:00Z',
+            source: 'EEX Auction',
+            provenance: {
+              sourceType: 'EXCHANGE_AUCTION',
+              sourceName: 'EEX French Auction',
+              sourceUrl: null,
+              observedAt: '2026-08-16T10:00:00Z',
+              note: null,
+            },
+          },
+        },
+        gasIndex: {
+          bid: 28.5,
+          offer: 29.0,
+          mid: 28.75,
+          updatedAt: '2026-08-16T10:00:00Z',
+          provenance: {
+            sourceType: 'PLATFORM_HISTORY',
+            sourceName: 'CEGH Settlement',
+            sourceUrl: null,
+            observedAt: '2026-08-16T10:00:00Z',
+            note: null,
+          },
+        },
+        fx: { gbpEur: null, chfEur: null, updatedAt: null },
+        pricingSide: 'bid',
+      };
+
+      const costs: CostInputs = {
+        transferCosts: 0.5,
+        certificationCosts: 0.2,
+        logistics: 1.0,
+        deliveredCost: null,
+        otherCosts: 0,
+        producerPricing: {
+          mode: 'INDEX_LINKED',
+          fixedPriceEurPerMwh: null,
+          indexLinkedShare: 0.90,
+          source: null,
+          lastVerified: null,
+          confidence: 'UNVERIFIED',
+        },
+      };
+
+      const netback = computeNetback(frMarket, consignment, marks, costs, 'bid');
+      const assessment: TradeAssessment = {
+        id: 'test-no-pra',
+        createdAt: '2026-08-16T10:00:00Z',
+        targetMarketId: 'FR_CPB',
+        targetMarketName: 'France CPB',
+        consignment,
+        eligibility,
+        netback,
+        marks,
+        costs,
+        userNotes: '',
+      };
+
+      const praResult = assessmentContainsPraData(assessment);
+      expect(praResult.hasPra).toBe(false);
+      expect(praResult.sources).toHaveLength(0);
+    });
+
+    it('sources lists each distinct sourceName once', () => {
+      const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
+      const frMarket = getMarketById('FR_CPB')!;
+      const eligibility = evaluateEligibility(consignment, frMarket);
+
+      const marks: MarksState = {
+        marks: {
+          FR_CPB: {
+            marketId: 'FR_CPB',
+            bid: 90.0,
+            offer: 92.0,
+            mid: 91.0,
+            updatedAt: '2026-08-16T10:00:00Z',
+            source: 'Argus Biomethane',
+            provenance: {
+              sourceType: 'PRICE_REPORTING',
+              sourceName: 'Argus Media',
+              sourceUrl: null,
+              observedAt: '2026-08-16T10:00:00Z',
+              note: null,
+            },
+          },
+        },
+        gasIndex: {
+          bid: 28.5,
+          offer: 29.0,
+          mid: 28.75,
+          updatedAt: '2026-08-16T10:00:00Z',
+          provenance: {
+            sourceType: 'PRICE_REPORTING',
+            sourceName: 'Argus Media', // duplicate name
+            sourceUrl: null,
+            observedAt: '2026-08-16T10:00:00Z',
+            note: null,
+          },
+        },
+        fx: {
+          gbpEur: 1.18,
+          chfEur: null,
+          updatedAt: '2026-08-16T10:00:00Z',
+          provenance: {
+            sourceType: 'PRICE_REPORTING',
+            sourceName: 'Platts FX Benchmark',
+            sourceUrl: null,
+            observedAt: '2026-08-16T10:00:00Z',
+            note: null,
+          },
+        },
+        pricingSide: 'bid',
+      };
+
+      const costs: CostInputs = {
+        transferCosts: 0.5,
+        certificationCosts: 0.2,
+        logistics: 1.0,
+        deliveredCost: null,
+        otherCosts: 0,
+        producerPricing: {
+          mode: 'INDEX_LINKED',
+          fixedPriceEurPerMwh: null,
+          indexLinkedShare: 0.90,
+          source: null,
+          lastVerified: null,
+          confidence: 'UNVERIFIED',
+        },
+      };
+
+      const netback = computeNetback(frMarket, consignment, marks, costs, 'bid');
+      const assessment: TradeAssessment = {
+        id: 'test-pra-multi',
+        createdAt: '2026-08-16T10:00:00Z',
+        targetMarketId: 'FR_CPB',
+        targetMarketName: 'France CPB',
+        consignment,
+        eligibility,
+        netback,
+        marks,
+        costs,
+        userNotes: '',
+      };
+
+      const praResult = assessmentContainsPraData(assessment);
+      expect(praResult.hasPra).toBe(true);
+      expect(praResult.sources).toHaveLength(2);
+      expect(praResult.sources).toContain('Argus Media');
+      expect(praResult.sources).toContain('Platts FX Benchmark');
     });
   });
 });

@@ -12,6 +12,7 @@ import { StaleIndicator } from '../../shared/components/StaleIndicator';
 import { evaluateEligibility } from '../../domain/eligibility/engine';
 import { computeNetback, tCO2ePerMWh } from '../../domain/netback/engine';
 import { generateTradeSummary } from '../../domain/trade/summary';
+import { assessmentContainsPraData } from '../../domain/trade/licensing';
 import { TradeAssessment } from '../../domain/trade/types';
 import { CI_COMPARATOR_ROAD_TRANSPORT, COUNTRY_NAMES } from '../../domain/markets/constants';
 import { 
@@ -176,11 +177,7 @@ export function TradeBuilderScreen() {
   const activeMarkets = MARKETS.filter(m => m.status === 'ACTIVE');
   const markEntry = state.marks.marks[selectedMarket.id];
 
-  const hasPRASource = netback.certificateValue?.provenance?.sourceType === 'PRICE_REPORTING' ||
-    state.marks.gasIndex.provenance?.sourceType === 'PRICE_REPORTING' ||
-    state.marks.fx.provenance?.sourceType === 'PRICE_REPORTING';
-  const praSourceName = netback.certificateValue?.provenance?.sourceName ||
-    (netback.certificateValue?.provenance?.sourceType === 'PRICE_REPORTING' ? 'PRA Assessment' : null);
+  const praCheck = useMemo(() => assessmentContainsPraData(currentAssessment), [currentAssessment]);
 
   return (
     <div className="space-y-5 font-sans text-stone-200 pb-16">
@@ -812,7 +809,7 @@ export function TradeBuilderScreen() {
                   <Truck className="w-3.5 h-3.5" />
                   Corridor Flow
                 </button>
-                <CopyButton text={summaryText} label="Copy Deal Sheet" praWarning={hasPRASource} praSourceName={praSourceName} />
+                <CopyButton text={summaryText} label="Copy Deal Sheet" praWarning={praCheck.hasPra} praSources={praCheck.sources} />
                 <button
                   onClick={handleSaveToLibrary}
                   className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all ${

@@ -5,12 +5,17 @@ interface CopyButtonProps {
   label?: string;
   className?: string;
   praWarning?: boolean;
-  praSourceName?: string | null;
+  praSources?: string[] | string | null;
+  praSourceName?: string | null; // legacy backwards-compat
 }
 
-export function CopyButton({ text, label = 'Copy', className = '', praWarning = false, praSourceName }: CopyButtonProps) {
+export function CopyButton({ text, label = 'Copy', className = '', praWarning = false, praSources, praSourceName }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
   const [showPraModal, setShowPraModal] = useState(false);
+
+  const formattedSources = Array.isArray(praSources) 
+    ? praSources.join(', ') 
+    : praSources || praSourceName || null;
 
   const performCopy = useCallback(async () => {
     try {
@@ -62,7 +67,7 @@ export function CopyButton({ text, label = 'Copy', className = '', praWarning = 
                   PRA Subscription Licence Notice
                 </h3>
                 <p className="text-xs text-stone-300 mt-1.5 leading-relaxed font-mono">
-                  This assessment includes <strong className="text-amber-300">Price Reporting Agency (PRA)</strong> data{praSourceName ? ` (${praSourceName})` : ''}.
+                  This assessment includes <strong className="text-amber-300">Price Reporting Agency (PRA)</strong> data{formattedSources ? ` (${formattedSources})` : ''}.
                 </p>
                 <p className="text-xs text-stone-400 mt-2 leading-relaxed">
                   PRA subscriptions (e.g. Platts, Argus, QC Intel) are typically licensed per <em>named user</em> and prohibit redistribution of assessed price marks to external counterparties or un-licensed third parties.

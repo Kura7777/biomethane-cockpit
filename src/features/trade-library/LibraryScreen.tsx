@@ -4,6 +4,7 @@ import { useAppState } from '../../store/context';
 import { StatusChip } from '../../shared/components/StatusChip';
 import { CopyButton } from '../../shared/components/CopyButton';
 import { generateTradeSummary } from '../../domain/trade/summary';
+import { assessmentContainsPraData } from '../../domain/trade/licensing';
 import { computeNetback } from '../../domain/netback/engine';
 import { evaluateEligibility } from '../../domain/eligibility/engine';
 import { getMarketById } from '../../domain/markets/registry';
@@ -196,20 +197,25 @@ export function LibraryScreen() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <CopyButton
-                      text={generateTradeSummary(selectedAssessment)}
-                      label="Copy Dossier"
-                      praWarning={selectedAssessment.netback.certificateValue?.provenance?.sourceType === 'PRICE_REPORTING'}
-                      praSourceName={selectedAssessment.netback.certificateValue?.provenance?.sourceName}
-                    />
-                    <button
-                      onClick={() => handleRecalculateCurrentMarks(selectedAssessment)}
-                      className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded border border-teal-700 bg-teal-950/70 text-teal-300 hover:bg-teal-900"
-                    >
-                      <RefreshCw className="w-3 h-3" /> Recalc
-                    </button>
-                  </div>
+                  {(() => {
+                    const praCheck = assessmentContainsPraData(selectedAssessment);
+                    return (
+                      <div className="flex items-center gap-2">
+                        <CopyButton
+                          text={generateTradeSummary(selectedAssessment)}
+                          label="Copy Dossier"
+                          praWarning={praCheck.hasPra}
+                          praSources={praCheck.sources}
+                        />
+                        <button
+                          onClick={() => handleRecalculateCurrentMarks(selectedAssessment)}
+                          className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded border border-teal-700 bg-teal-950/70 text-teal-300 hover:bg-teal-900"
+                        >
+                          <RefreshCw className="w-3 h-3" /> Recalc
+                        </button>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Preformatted text preview */}
