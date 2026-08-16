@@ -12,7 +12,8 @@ import {
   Check, 
   Sparkles,
   Clock,
-  Info
+  Info,
+  AlertTriangle
 } from 'lucide-react';
 
 export function MarksScreen() {
@@ -94,10 +95,10 @@ export function MarksScreen() {
   const activeMarkets = MARKETS.filter(m => m.status === 'ACTIVE');
 
   return (
-    <div className="space-y-4 font-sans text-stone-100 pb-16">
+    <div className="space-y-2 font-sans text-stone-100 pb-16">
       
       {/* Header Bar */}
-      <div className="bg-stone-900 border border-stone-800 rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+      <div className="bg-stone-900 border border-stone-800 p-2 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
         <div>
           <div className="flex items-center gap-2">
             <Coins className="w-4 h-4 text-teal-400" />
@@ -128,17 +129,17 @@ export function MarksScreen() {
       </div>
 
       {successMessage && (
-        <div className="bg-emerald-950/70 border border-emerald-800 text-emerald-300 text-xs p-2.5 rounded-lg flex items-center gap-2 font-mono">
+        <div className="bg-emerald-950/70 border border-emerald-800 text-emerald-300 text-xs p-2.5 rounded flex items-center gap-2 font-mono">
           <Check className="w-4 h-4 text-emerald-400" />
           <span>{successMessage}</span>
         </div>
       )}
 
       {/* Gas Molecule & FX Inputs */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         
         {/* TTF Gas Index */}
-        <div className="bg-stone-900 border border-stone-800 rounded-xl p-3.5 space-y-2 font-mono text-xs">
+        <div className="bg-stone-900 border border-stone-800 p-2 space-y-2 font-mono text-xs">
           <div className="flex items-center justify-between">
             <span className="font-bold text-stone-200 flex items-center gap-1.5">
               <Flame className="w-4 h-4 text-amber-500" />
@@ -149,7 +150,7 @@ export function MarksScreen() {
 
           <div className="grid grid-cols-3 gap-2 text-xs">
             <div>
-              <label className="block text-[9px] text-stone-400 uppercase mb-0.5">Bid (€/MWh)</label>
+              <label className="block text-micro text-stone-400 uppercase mb-0.5">Bid (€/MWh)</label>
               <input
                 type="number"
                 step="0.1"
@@ -166,7 +167,7 @@ export function MarksScreen() {
             </div>
 
             <div>
-              <label className="block text-[9px] text-stone-400 uppercase mb-0.5">Offer (€/MWh)</label>
+              <label className="block text-micro text-stone-400 uppercase mb-0.5">Offer (€/MWh)</label>
               <input
                 type="number"
                 step="0.1"
@@ -183,7 +184,7 @@ export function MarksScreen() {
             </div>
 
             <div>
-              <label className="block text-[9px] text-stone-400 uppercase mb-0.5">Mid (€/MWh)</label>
+              <label className="block text-micro text-stone-400 uppercase mb-0.5">Mid (€/MWh)</label>
               <input
                 type="number"
                 step="0.1"
@@ -202,7 +203,7 @@ export function MarksScreen() {
         </div>
 
         {/* Foreign Exchange Rates */}
-        <div className="bg-stone-900 border border-stone-800 rounded-xl p-3.5 space-y-2 font-mono text-xs">
+        <div className="bg-stone-900 border border-stone-800 p-2 space-y-2 font-mono text-xs">
           <div className="flex items-center justify-between">
             <span className="font-bold text-stone-200 flex items-center gap-1.5">
               <ArrowLeftRight className="w-4 h-4 text-teal-400" />
@@ -213,7 +214,7 @@ export function MarksScreen() {
 
           <div className="grid grid-cols-2 gap-3 text-xs">
             <div>
-              <label className="block text-[9px] text-stone-400 uppercase mb-0.5">GBP / EUR (UK RTFO)</label>
+              <label className="block text-micro text-stone-400 uppercase mb-0.5">GBP / EUR (UK RTFO)</label>
               <input
                 type="number"
                 step="0.001"
@@ -229,7 +230,7 @@ export function MarksScreen() {
             </div>
 
             <div>
-              <label className="block text-[9px] text-stone-400 uppercase mb-0.5">CHF / EUR</label>
+              <label className="block text-micro text-stone-400 uppercase mb-0.5">CHF / EUR</label>
               <input
                 type="number"
                 step="0.001"
@@ -249,10 +250,10 @@ export function MarksScreen() {
       </div>
 
       {/* Marks Table */}
-      <div className="bg-stone-900 border border-stone-800 rounded-xl overflow-hidden shadow-sm">
+      <div className="bg-stone-900 border border-stone-800 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs font-mono tabular-nums">
-            <thead className="bg-stone-950 text-stone-400 uppercase font-semibold text-[10px] tracking-wider border-b border-stone-800">
+            <thead className="bg-stone-950 text-stone-400 uppercase font-semibold text-micro tracking-wider border-b border-stone-800">
               <tr>
                 <th className="py-2 px-3">Market</th>
                 <th className="py-2 px-3">Unit</th>
@@ -268,7 +269,7 @@ export function MarksScreen() {
               {activeMarkets.map(m => {
                 const mark = state.marks.marks[m.id] || { bid: null, offer: null, mid: null, updatedAt: null, source: null };
                 return (
-                  <tr key={m.id} className="h-9 hover:bg-stone-850 transition-colors">
+                  <tr key={m.id} className="h-6 hover:bg-stone-800 transition-colors">
                     
                     {/* Market */}
                     <td className="py-1.5 px-3 font-semibold text-xs whitespace-nowrap">
@@ -279,7 +280,7 @@ export function MarksScreen() {
                     </td>
 
                     {/* Unit */}
-                    <td className="py-1.5 px-3 text-stone-400 text-[11px]">
+                    <td className="py-1.5 px-3 text-stone-400 text-meta">
                       {m.unitLabel}
                     </td>
 
@@ -318,8 +319,8 @@ export function MarksScreen() {
                         placeholder="Mid"
                       />
                       {mark.bid !== null && mark.offer !== null && mark.bid > mark.offer && (
-                        <div className="text-[10px] text-amber-400 font-bold mt-0.5 flex items-center gap-1">
-                          <span>⚠</span> Crossed market: bid exceeds offer
+                        <div className="text-micro text-amber-400 font-bold mt-0.5 flex items-center gap-1">
+                          <AlertTriangle className="w-3 h-3 shrink-0" aria-hidden="true" /> Crossed market: bid exceeds offer
                         </div>
                       )}
                     </td>
@@ -330,9 +331,9 @@ export function MarksScreen() {
                     </td>
 
                     {/* Source & Constraints */}
-                    <td className="py-1.5 px-3 text-stone-400 text-[10px]">
+                    <td className="py-1.5 px-3 text-stone-400 text-micro">
                       {m.ceilingEurMwh && (
-                        <span className="text-amber-400 bg-amber-950/80 border border-amber-800 px-1 py-0.2 rounded mr-1">
+                        <span className="text-amber-400 bg-amber-950/80 border border-amber-800 px-1 py-0.5 rounded mr-1">
                           Cap: €{m.ceilingEurMwh}
                         </span>
                       )}

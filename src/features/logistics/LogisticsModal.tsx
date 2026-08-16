@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { calculateLogisticsRoute } from '../../domain/logistics/engine';
 import { DeliveryMode, ModeCostBreakdown } from '../../domain/logistics/types';
 import { useAppState } from '../../store/context';
@@ -14,7 +14,8 @@ import {
   X,
   TrendingDown,
   Clock,
-  Zap
+  Zap,
+  Star
 } from 'lucide-react';
 
 interface LogisticsModalProps {
@@ -36,6 +37,22 @@ export function LogisticsModal({
   const [selectedMode, setSelectedMode] = useState<DeliveryMode>('VIRTUAL_SWAP');
   const [activeTab, setActiveTab] = useState<'MODES' | 'PLAYBOOK'>('MODES');
   const [appliedSuccess, setAppliedSuccess] = useState<string | null>(null);
+
+  // Escape must dismiss the dialog — every modal needs a keyboard escape route
+  // (MASTER §6). Body scroll is locked so the page behind cannot drift.
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [isOpen, onClose]);
 
   const baseGasPrice = state.marks.gasIndex.mid ?? 28.50;
 
@@ -82,25 +99,34 @@ export function LogisticsModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs font-mono text-xs">
-      <div className="bg-stone-900 border border-stone-800 rounded-2xl w-full max-w-5xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden text-stone-100 animate-in fade-in zoom-in-95 duration-150">
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs font-mono text-xs"
+      onClick={onClose}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="logistics-modal-title"
+        onClick={(e) => e.stopPropagation()}
+        className="bg-stone-900 border border-stone-800 w-full max-w-5xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden text-stone-100 animate-in fade-in zoom-in-95 duration-150"
+      >
         
         {/* Modal Header */}
-        <div className="p-4 bg-stone-950 border-b border-stone-800 flex items-center justify-between">
+        <div className="p-2 bg-stone-950 border-b border-stone-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-teal-950 border border-teal-800 flex items-center justify-center text-teal-400">
+            <div className="w-8 h-8 rounded bg-teal-950 border border-teal-800 flex items-center justify-center text-teal-400">
               <Truck className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-sm font-bold text-white uppercase tracking-tight">
+                <h2 id="logistics-modal-title" className="text-sm font-bold text-white uppercase tracking-tight">
                   Cross-Border Gas Logistics & Delivery Wheel Guide
                 </h2>
-                <span className="text-[10px] bg-teal-950 text-teal-300 border border-teal-800 px-2 py-0.5 rounded font-bold">
-                  {assessment.originCountry} ➔ {assessment.targetCountry} ({assessment.distanceKm !== null ? `~${assessment.distanceKm.toLocaleString()} km` : 'Distance unmapped'})
+                <span className="text-micro bg-teal-950 text-teal-300 border border-teal-800 px-2 py-0.5 rounded font-bold">
+                  {assessment.originCountry} → {assessment.targetCountry} ({assessment.distanceKm !== null ? `~${assessment.distanceKm.toLocaleString()} km` : 'Distance unmapped'})
                 </span>
               </div>
-              <p className="text-[11px] text-stone-400 mt-0.5">
+              <p className="text-meta text-stone-400 mt-0.5">
                 How European gas flows: Commercial mass balance under RED III Art. 31a vs. physical PRISMA pipeline transit.
               </p>
             </div>
@@ -111,7 +137,7 @@ export function LogisticsModal({
             <div className="flex bg-stone-900 border border-stone-800 rounded p-0.5">
               <button
                 onClick={() => setActiveTab('MODES')}
-                className={`px-3 py-1 rounded text-xs font-bold transition-all ${
+                className={`px-3 py-1 rounded text-xs font-bold transition-colors ${
                   activeTab === 'MODES' ? 'bg-teal-600 text-white' : 'text-stone-400 hover:text-stone-200'
                 }`}
               >
@@ -119,7 +145,7 @@ export function LogisticsModal({
               </button>
               <button
                 onClick={() => setActiveTab('PLAYBOOK')}
-                className={`px-3 py-1 rounded text-xs font-bold transition-all ${
+                className={`px-3 py-1 rounded text-xs font-bold transition-colors ${
                   activeTab === 'PLAYBOOK' ? 'bg-teal-600 text-white' : 'text-stone-400 hover:text-stone-200'
                 }`}
               >
@@ -129,18 +155,19 @@ export function LogisticsModal({
 
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg bg-stone-900 text-stone-400 hover:text-white hover:bg-stone-800 transition-colors"
+              aria-label="Close logistics guide"
+              className="p-1.5 rounded bg-stone-900 text-stone-400 hover:text-white hover:bg-stone-800 cursor-pointer transition-colors"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4" aria-hidden="true" />
             </button>
           </div>
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-5">
+        <div className="flex-1 overflow-y-auto p-5 space-y-3">
           
           {appliedSuccess && (
-            <div className="p-3 bg-emerald-950/80 border border-emerald-700 text-emerald-300 rounded-lg flex items-center gap-2 animate-in fade-in">
+            <div className="p-3 bg-emerald-950/80 border border-emerald-700 text-emerald-300 rounded flex items-center gap-2 animate-in fade-in">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
               <span>Successfully applied <strong>{appliedSuccess}</strong> tariffs into Trade Builder economics!</span>
             </div>
@@ -149,21 +176,21 @@ export function LogisticsModal({
           {activeTab === 'MODES' ? (
             <>
               {/* Delivery Modes 3-Card Comparison */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                 
                 {/* MODE 1: Virtual Inter-Hub Swap */}
                 <div 
                   onClick={() => setSelectedMode('VIRTUAL_SWAP')}
-                  className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
+                  className={`p-4  border transition-colors cursor-pointer flex flex-col justify-between ${
                     selectedMode === 'VIRTUAL_SWAP'
-                      ? 'bg-teal-950/40 border-teal-500 ring-1 ring-teal-500 shadow-md'
+                      ? 'bg-teal-950/40 border-teal-500 ring-1 ring-teal-500 '
                       : 'bg-stone-950 border-stone-800 hover:border-stone-700'
                   }`}
                 >
                   <div className="space-y-2.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold text-teal-400 uppercase bg-teal-950 border border-teal-800 px-2 py-0.5 rounded">
-                        ★ Industry Standard
+                      <span className="text-micro font-bold text-teal-400 uppercase bg-teal-950 border border-teal-800 px-2 py-0.5 rounded inline-flex items-center gap-1">
+                        <Star className="w-3 h-3 shrink-0" aria-hidden="true" />Industry Standard
                       </span>
                       <span className="text-xs text-stone-400 flex items-center gap-1">
                         <Clock className="w-3 h-3" /> T+1 Instant
@@ -172,13 +199,13 @@ export function LogisticsModal({
 
                     <div>
                       <h3 className="text-sm font-bold text-white">Virtual Inter-Hub Swap</h3>
-                      <p className="text-[11px] text-stone-400 mt-1 leading-relaxed">
+                      <p className="text-meta text-stone-400 mt-1 leading-relaxed">
                         Sell molecule at Swedish VTP / TTF & buy physical in Spain (MIBGAS PVB). Transfer environmental PoS via UDB.
                       </p>
                     </div>
 
                     <div className="pt-2 border-t border-stone-800/80">
-                      <div className="text-[10px] text-stone-500 uppercase">Estimated Total Friction</div>
+                      <div className="text-micro text-stone-400 uppercase">Estimated Total Friction</div>
                       <div className="text-xl font-bold text-teal-300 font-mono">
                         {assessment.modes.virtualSwap.totalCostEurMwh !== null ? (
                           <>
@@ -196,7 +223,7 @@ export function LogisticsModal({
                         e.stopPropagation();
                         handleApplyModeCosts(assessment.modes.virtualSwap);
                       }}
-                      className="w-full py-1.5 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded text-xs transition-all shadow-xs"
+                      className="w-full py-1.5 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded text-xs transition-colors"
                     >
                       Apply Virtual Swap Costs
                     </button>
@@ -206,15 +233,15 @@ export function LogisticsModal({
                 {/* MODE 2: Physical Pipeline Wheel */}
                 <div 
                   onClick={() => setSelectedMode('PHYSICAL_PIPELINE')}
-                  className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
+                  className={`p-4  border transition-colors cursor-pointer flex flex-col justify-between ${
                     selectedMode === 'PHYSICAL_PIPELINE'
-                      ? 'bg-sky-950/40 border-sky-500 ring-1 ring-sky-500 shadow-md'
+                      ? 'bg-sky-950/40 border-sky-500 ring-1 ring-sky-500 '
                       : 'bg-stone-950 border-stone-800 hover:border-stone-700'
                   }`}
                 >
                   <div className="space-y-2.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold text-sky-400 uppercase bg-sky-950 border border-sky-800 px-2 py-0.5 rounded">
+                      <span className="text-micro font-bold text-sky-400 uppercase bg-sky-950 border border-sky-800 px-2 py-0.5 rounded">
                         Multi-TSO Wheel
                       </span>
                       <span className="text-xs text-stone-400 flex items-center gap-1">
@@ -224,13 +251,13 @@ export function LogisticsModal({
 
                     <div>
                       <h3 className="text-sm font-bold text-white">Physical Pipeline Transit</h3>
-                      <p className="text-[11px] text-stone-400 mt-1 leading-relaxed">
+                      <p className="text-meta text-stone-400 mt-1 leading-relaxed">
                         {assessment.modes.physicalPipeline.summary}
                       </p>
                     </div>
 
                     <div className="pt-2 border-t border-stone-800/80">
-                      <div className="text-[10px] text-stone-500 uppercase">Estimated Total Friction</div>
+                      <div className="text-micro text-stone-400 uppercase">Estimated Total Friction</div>
                       <div className="text-xl font-bold font-mono">
                         {assessment.modes.physicalPipeline.totalCostEurMwh !== null ? (
                           <span className="text-sky-300">
@@ -253,10 +280,10 @@ export function LogisticsModal({
                         handleApplyModeCosts(assessment.modes.physicalPipeline);
                       }}
                       disabled={assessment.modes.physicalPipeline.totalCostEurMwh === null}
-                      className={`w-full py-1.5 font-bold rounded text-xs transition-all shadow-xs ${
+                      className={`w-full py-1.5 font-bold rounded text-xs transition-colors  ${
                         assessment.modes.physicalPipeline.totalCostEurMwh !== null
                           ? 'bg-sky-700 hover:bg-sky-600 text-white'
-                          : 'bg-stone-800 text-stone-500 cursor-not-allowed'
+                          : 'bg-stone-800 text-stone-400 cursor-not-allowed'
                       }`}
                     >
                       {assessment.modes.physicalPipeline.totalCostEurMwh !== null ? 'Apply Physical Wheel Costs' : 'Incomplete Tariffs'}
@@ -267,15 +294,15 @@ export function LogisticsModal({
                 {/* MODE 3: Bio-LNG Virtual Pipeline */}
                 <div 
                   onClick={() => setSelectedMode('BIO_LNG')}
-                  className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
+                  className={`p-4  border transition-colors cursor-pointer flex flex-col justify-between ${
                     selectedMode === 'BIO_LNG'
-                      ? 'bg-amber-950/40 border-amber-500 ring-1 ring-amber-500 shadow-md'
+                      ? 'bg-amber-950/40 border-amber-500 ring-1 ring-amber-500 '
                       : 'bg-stone-950 border-stone-800 hover:border-stone-700'
                   }`}
                 >
                   <div className="space-y-2.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold text-amber-400 uppercase bg-amber-950 border border-amber-800 px-2 py-0.5 rounded">
+                      <span className="text-micro font-bold text-amber-400 uppercase bg-amber-950 border border-amber-800 px-2 py-0.5 rounded">
                         Cryogenic Transport
                       </span>
                       <span className="text-xs text-stone-400 flex items-center gap-1">
@@ -285,13 +312,13 @@ export function LogisticsModal({
 
                     <div>
                       <h3 className="text-sm font-bold text-white">Bio-LNG Cryogenic Road</h3>
-                      <p className="text-[11px] text-stone-400 mt-1 leading-relaxed">
+                      <p className="text-meta text-stone-400 mt-1 leading-relaxed">
                         Liquefy at origin plant (-162°C) and transport in 20t ISO cryogenic road tankers to Spanish port/terminal.
                       </p>
                     </div>
 
                     <div className="pt-2 border-t border-stone-800/80">
-                      <div className="text-[10px] text-stone-500 uppercase">Estimated Total Friction</div>
+                      <div className="text-micro text-stone-400 uppercase">Estimated Total Friction</div>
                       <div className="text-xl font-bold text-amber-300 font-mono">
                         {assessment.modes.bioLng.totalCostEurMwh !== null ? (
                           <>
@@ -309,7 +336,7 @@ export function LogisticsModal({
                         e.stopPropagation();
                         handleApplyModeCosts(assessment.modes.bioLng);
                       }}
-                      className="w-full py-1.5 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded text-xs transition-all shadow-xs"
+                      className="w-full py-1.5 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded text-xs transition-colors"
                     >
                       Apply Bio-LNG Costs
                     </button>
@@ -319,7 +346,7 @@ export function LogisticsModal({
               </div>
 
               {/* Selected Mode Detail Breakdown */}
-              <div className="p-4 bg-stone-950 border border-stone-800 rounded-xl space-y-4">
+              <div className="p-2 bg-stone-950 border border-stone-800 space-y-2">
                 <div className="flex items-center justify-between border-b border-stone-800 pb-2">
                   <div className="flex items-center gap-2">
                     <Zap className="w-4 h-4 text-teal-400" />
@@ -341,8 +368,8 @@ export function LogisticsModal({
 
                 {/* Physical Interconnection Point Route Trail (If Physical Pipeline Selected) */}
                 {selectedMode === 'PHYSICAL_PIPELINE' && (
-                  <div className="p-3 bg-stone-900 rounded-lg border border-stone-800 space-y-2">
-                    <span className="text-[10px] uppercase font-bold text-stone-400 block">
+                  <div className="p-3 bg-stone-900 rounded border border-stone-800 space-y-2">
+                    <span className="text-micro uppercase font-bold text-stone-400 block">
                       Physical Gas Transmission Route Across Interconnection Points (IPs):
                     </span>
                     <div className="flex items-center gap-2 flex-wrap text-xs font-bold text-stone-200">
@@ -352,7 +379,7 @@ export function LogisticsModal({
                             {c}
                           </span>
                           {idx < assessment.physicalRoute.transitingCountries.length - 1 && (
-                            <ArrowRight className="w-3.5 h-3.5 text-stone-500" />
+                            <ArrowRight className="w-3.5 h-3.5 text-stone-400" />
                           )}
                         </React.Fragment>
                       ))}
@@ -365,10 +392,10 @@ export function LogisticsModal({
                   {(selectedMode === 'VIRTUAL_SWAP' ? assessment.modes.virtualSwap.lineItems :
                     selectedMode === 'PHYSICAL_PIPELINE' ? assessment.modes.physicalPipeline.lineItems :
                     assessment.modes.bioLng.lineItems).map((item, idx) => (
-                    <div key={idx} className="py-2.5 flex items-start justify-between gap-4">
+                    <div key={idx} className="py-2.5 flex items-start justify-between gap-2">
                       <div>
                         <div className="font-bold text-stone-200">{item.label}</div>
-                        <div className="text-[11px] text-stone-400 mt-0.5">{item.description}</div>
+                        <div className="text-meta text-stone-400 mt-0.5">{item.description}</div>
                       </div>
                       <div className="text-right whitespace-nowrap font-bold text-teal-300 text-sm">
                         {item.costEurMwh !== null ? `+€${item.costEurMwh.toFixed(2)}/MWh` : <span className="text-amber-400 font-normal text-xs">UNVERIFIED</span>}
@@ -378,8 +405,8 @@ export function LogisticsModal({
                 </div>
 
                 {/* Regulatory Legal Basis */}
-                <div className="p-3 bg-stone-900/80 border border-stone-800 rounded text-[11px] text-stone-400 space-y-1">
-                  <div className="text-stone-300 font-bold uppercase text-[10px]">Statutory & Regulatory Basis:</div>
+                <div className="p-3 bg-stone-900/80 border border-stone-800 rounded text-meta text-stone-400 space-y-1">
+                  <div className="text-stone-300 font-bold uppercase text-micro">Statutory & Regulatory Basis:</div>
                   <div>
                     {selectedMode === 'VIRTUAL_SWAP' && assessment.modes.virtualSwap.legalBasis}
                     {selectedMode === 'PHYSICAL_PIPELINE' && assessment.modes.physicalPipeline.legalBasis}
@@ -390,11 +417,11 @@ export function LogisticsModal({
             </>
           ) : (
             /* Tab 2: Execution Playbook */
-            <div className="space-y-4">
-              <div className="p-4 bg-stone-950 border border-stone-800 rounded-xl space-y-4">
+            <div className="space-y-2">
+              <div className="p-2 bg-stone-950 border border-stone-800 space-y-2">
                 <div className="border-b border-stone-800 pb-2">
                   <h3 className="text-sm font-bold text-white uppercase">
-                    Trader Operational Execution Playbook: {assessment.originCountry} ➔ {assessment.targetCountry}
+                    Trader Operational Execution Playbook: {assessment.originCountry} → {assessment.targetCountry}
                   </h3>
                   <p className="text-stone-400 text-xs mt-0.5">
                     Step-by-step checklist from upstream offtake contracting to final statutory quota surrender in Spain.
@@ -403,20 +430,20 @@ export function LogisticsModal({
 
                 <div className="space-y-3">
                   {assessment.executionSteps.map((step, idx) => (
-                    <div key={idx} className="p-3.5 bg-stone-900 border border-stone-800 rounded-xl space-y-2">
+                    <div key={idx} className="p-2 bg-stone-900 border border-stone-800 space-y-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="w-5 h-5 rounded-full bg-teal-950 border border-teal-800 text-teal-400 font-bold flex items-center justify-center text-[10px]">
+                          <span className="w-5 h-5 rounded-full bg-teal-950 border border-teal-800 text-teal-400 font-bold flex items-center justify-center text-micro">
                             {idx + 1}
                           </span>
                           <span className="font-bold text-white text-xs">{step.title}</span>
                         </div>
-                        <span className="text-[10px] text-stone-400 bg-stone-950 border border-stone-800 px-2 py-0.5 rounded">
+                        <span className="text-micro text-stone-400 bg-stone-950 border border-stone-800 px-2 py-0.5 rounded">
                           {step.actor}
                         </span>
                       </div>
 
-                      <div className="text-[10px] text-teal-400 font-bold uppercase">{step.phase}</div>
+                      <div className="text-micro text-teal-400 font-bold uppercase">{step.phase}</div>
 
                       <ul className="space-y-1.5 text-xs text-stone-300 list-disc list-inside">
                         {step.actions.map((act, aIdx) => (
@@ -433,13 +460,13 @@ export function LogisticsModal({
         </div>
 
         {/* Modal Footer */}
-        <div className="p-4 bg-stone-950 border-t border-stone-800 flex items-center justify-between">
-          <div className="text-[11px] text-stone-400">
-            Current Basis Spread: <strong className="text-teal-300">{assessment.hubSpread.originHub.split(' ')[0]} ➔ {assessment.hubSpread.targetHub.split(' ')[0]} (€{Math.abs(assessment.hubSpread.basisSpreadEurMwh).toFixed(2)}/MWh)</strong>
+        <div className="p-2 bg-stone-950 border-t border-stone-800 flex items-center justify-between">
+          <div className="text-meta text-stone-400">
+            Current Basis Spread: <strong className="text-teal-300">{assessment.hubSpread.originHub.split(' ')[0]} → {assessment.hubSpread.targetHub.split(' ')[0]} (€{Math.abs(assessment.hubSpread.basisSpreadEurMwh).toFixed(2)}/MWh)</strong>
           </div>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold rounded-lg text-xs transition-colors"
+            className="px-4 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold rounded text-xs transition-colors"
           >
             Close Guide
           </button>

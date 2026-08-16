@@ -151,12 +151,15 @@ const COUNTRY_NAMES: Record<string, string> = {
   UA: 'Ukraine',
 };
 
+// ISO country codes, not flag emoji. Windows ships no flag glyphs, so a
+// regional-indicator pair renders as its two letters anyway — and a mono ISO
+// code is the terminal idiom regardless (MASTER §4).
 const COUNTRY_FLAGS: Record<string, string> = {
-  FR: '🇫🇷', DE: '🇩🇪', IT: '🇮🇹', GB: '🇬🇧', NL: '🇳🇱', DK: '🇩🇰',
-  ES: '🇪🇸', SE: '🇸🇪', CH: '🇨🇭', FI: '🇫🇮', AT: '🇦🇹', BE: '🇧🇪',
-  PL: '🇵🇱', CZ: '🇨🇿', NO: '🇳🇴', PT: '🇵🇹', EE: '🇪🇪', LT: '🇱🇹',
-  LV: '🇱🇻', IE: '🇮🇪', HU: '🇭🇺', SK: '🇸🇰', RO: '🇷🇴', BG: '🇧🇬',
-  HR: '🇭🇷', SI: '🇸🇮', GR: '🇬🇷', UA: '🇺🇦',
+  FR: 'FR', DE: 'DE', IT: 'IT', GB: 'GB', NL: 'NL', DK: 'DK',
+  ES: 'ES', SE: 'SE', CH: 'CH', FI: 'FI', AT: 'AT', BE: 'BE',
+  PL: 'PL', CZ: 'CZ', NO: 'NO', PT: 'PT', EE: 'EE', LT: 'LT',
+  LV: 'LV', IE: 'IE', HU: 'HU', SK: 'SK', RO: 'RO', BG: 'BG',
+  HR: 'HR', SI: 'SI', GR: 'GR', UA: 'UA',
 };
 
 import countriesTopojson from '../../assets/countries-50m.json';
@@ -244,7 +247,7 @@ export function MapScreen() {
   // Open right click context menu at cursor
   const openContextMenuForIso2 = (clientX: number, clientY: number, iso2: string) => {
     const name = COUNTRY_NAMES[iso2] || iso2;
-    const flag = COUNTRY_FLAGS[iso2] || '🇪🇺';
+    const flag = COUNTRY_FLAGS[iso2] || 'EU';
     const plantCount = BIOMETHANE_PLANTS.filter(p => p.countryCode === iso2).length;
     
     setContextMenu({
@@ -386,7 +389,7 @@ export function MapScreen() {
       return {
         code,
         name,
-        flag: COUNTRY_FLAGS[code] || '🇪🇺',
+        flag: COUNTRY_FLAGS[code] || 'EU',
         plantCount,
       };
     }).sort((a, b) => b.plantCount - a.plantCount);
@@ -395,7 +398,7 @@ export function MapScreen() {
   // Country plants currently inspected in drawer
   const inspectedCountryCode = originCountry;
   const inspectedCountryName = COUNTRY_NAMES[inspectedCountryCode] || inspectedCountryCode;
-  const inspectedCountryFlag = COUNTRY_FLAGS[inspectedCountryCode] || '🇪🇺';
+  const inspectedCountryFlag = COUNTRY_FLAGS[inspectedCountryCode] || 'EU';
 
   const countryPlants = useMemo(() => {
     return BIOMETHANE_PLANTS.filter(p => p.countryCode === inspectedCountryCode);
@@ -408,24 +411,24 @@ export function MapScreen() {
     countryPlants.forEach(p => {
       const cat = (p.primaryFeedstockCategory || '').toLowerCase();
       let key = 'agricultural';
-      let label = '🌾 Agri-Residues & Crops';
+      let label = 'Agri-Residues & Crops';
       let defaultKey = 'energy_crops';
 
       if (cat.includes('manure') || cat.includes('slurry')) {
         key = 'manure';
-        label = '🐮 Manure & Slurry';
+        label = 'Manure & Slurry';
         defaultKey = 'manure';
       } else if (cat.includes('food') || cat.includes('forsu') || cat.includes('ofmsw') || cat.includes('biowaste')) {
         key = 'food_waste';
-        label = '🥗 Food Waste & OFMSW';
+        label = 'Food Waste & OFMSW';
         defaultKey = 'food_waste';
       } else if (cat.includes('sewage') || cat.includes('sludge')) {
         key = 'sewage';
-        label = '💧 Sewage Sludge';
+        label = 'Sewage Sludge';
         defaultKey = 'sewage_sludge';
       } else if (cat.includes('isdnd') || cat.includes('landfill')) {
         key = 'landfill';
-        label = '🗑️ Landfill Gas (LFG)';
+        label = 'Landfill Gas (LFG)';
         defaultKey = 'biowaste_unseparated';
       }
 
@@ -466,10 +469,10 @@ export function MapScreen() {
   };
 
   return (
-    <div className="space-y-4 font-sans text-stone-100 pb-12">
+    <div className="space-y-2 font-sans text-stone-100 pb-12">
       
       {/* Top Header & Simulation Controller */}
-      <div className="bg-stone-900 border border-stone-800 rounded-xl p-4 space-y-3 font-mono text-xs shadow-sm">
+      <div className="bg-stone-900 border border-stone-800 p-2 space-y-3 font-mono text-xs">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 border-b border-stone-800 pb-3">
           <div>
             <div className="flex items-center gap-2">
@@ -477,7 +480,7 @@ export function MapScreen() {
               <h1 className="text-base font-bold text-white uppercase tracking-tight">
                 Pan-European Biomethane Cross-Border Export Clearing Map
               </h1>
-              <span className="text-[10px] bg-teal-950 text-teal-300 border border-teal-800 px-1.5 py-0.5 rounded font-bold">
+              <span className="text-micro bg-teal-950 text-teal-300 border border-teal-800 px-1.5 py-0.5 rounded font-bold">
                 {BIOMETHANE_PLANTS.length} Facilities Master Register
               </span>
             </div>
@@ -488,12 +491,12 @@ export function MapScreen() {
 
           <div className="flex items-center gap-2">
             {/* Map Click Mode Toggle */}
-            <div className="flex items-center bg-stone-950 border border-stone-800 rounded p-0.5 text-[11px]">
+            <div className="flex items-center bg-stone-950 border border-stone-800 rounded p-0.5 text-meta">
               <button
                 onClick={() => setMapClickMode('SET_ORIGIN')}
-                className={`px-2.5 py-1 rounded font-bold transition-all ${
+                className={`px-2.5 py-1 rounded font-bold transition-colors ${
                   mapClickMode === 'SET_ORIGIN'
-                    ? 'bg-sky-600 text-white shadow-xs'
+                    ? 'bg-sky-600 text-white '
                     : 'text-stone-400 hover:text-stone-200'
                 }`}
                 title="Left click on map sets Origin"
@@ -502,9 +505,9 @@ export function MapScreen() {
               </button>
               <button
                 onClick={() => setMapClickMode('SET_TARGET')}
-                className={`px-2.5 py-1 rounded font-bold transition-all ${
+                className={`px-2.5 py-1 rounded font-bold transition-colors ${
                   mapClickMode === 'SET_TARGET'
-                    ? 'bg-teal-600 text-white shadow-xs'
+                    ? 'bg-teal-600 text-white '
                     : 'text-stone-400 hover:text-stone-200'
                 }`}
                 title="Left click on map sets Target"
@@ -515,7 +518,7 @@ export function MapScreen() {
 
             <button
               onClick={() => navigate('/plants')}
-              className="bg-teal-600 hover:bg-teal-500 text-white font-bold px-3 py-1.5 rounded transition-all flex items-center gap-1"
+              className="bg-teal-600 hover:bg-teal-500 text-white font-bold px-3 py-1.5 rounded transition-colors flex items-center gap-1"
             >
               Directory ({BIOMETHANE_PLANTS.length}) →
             </button>
@@ -527,7 +530,7 @@ export function MapScreen() {
           
           {/* 1. Origin Country */}
           <div>
-            <label className="block text-[9px] font-bold text-sky-400 uppercase mb-0.5 flex items-center justify-between">
+            <label className="block text-micro font-bold text-sky-400 uppercase mb-0.5 flex items-center justify-between">
               <span>1. Origin Country</span>
               <span className="text-sky-300 font-mono">[{originCountry}]</span>
             </label>
@@ -549,7 +552,7 @@ export function MapScreen() {
 
           {/* 2. Target Market / Destination Country */}
           <div>
-            <label className="block text-[9px] font-bold text-teal-400 uppercase mb-0.5 flex items-center justify-between">
+            <label className="block text-micro font-bold text-teal-400 uppercase mb-0.5 flex items-center justify-between">
               <span>2. Target Market</span>
               <span className="text-teal-300 font-mono">[{targetCountry}]</span>
             </label>
@@ -563,7 +566,7 @@ export function MapScreen() {
             >
               {MARKETS.filter(m => m.status === 'ACTIVE').map(m => (
                 <option key={m.id} value={m.country}>
-                  {COUNTRY_FLAGS[m.country] || '🎯'} {m.countryName}: {m.shortName}
+                  {COUNTRY_FLAGS[m.country] || 'EU'} {m.countryName}: {m.shortName}
                 </option>
               ))}
             </select>
@@ -571,7 +574,7 @@ export function MapScreen() {
 
           {/* 3. Feedstock */}
           <div>
-            <label className="block text-[9px] font-bold text-stone-400 uppercase mb-0.5">
+            <label className="block text-micro font-bold text-stone-400 uppercase mb-0.5">
               3. Feedstock
             </label>
             <select
@@ -591,7 +594,7 @@ export function MapScreen() {
 
           {/* 4. Carbon Intensity */}
           <div>
-            <label className="block text-[9px] font-bold text-stone-400 uppercase mb-0.5">
+            <label className="block text-micro font-bold text-stone-400 uppercase mb-0.5">
               4. CI (gCO₂e/MJ)
             </label>
             <input
@@ -604,7 +607,7 @@ export function MapScreen() {
 
           {/* 5. Certification Scheme */}
           <div>
-            <label className="block text-[9px] font-bold text-stone-400 uppercase mb-0.5">
+            <label className="block text-micro font-bold text-stone-400 uppercase mb-0.5">
               5. Scheme
             </label>
             <select
@@ -622,7 +625,7 @@ export function MapScreen() {
 
           {/* 6. Chain of Custody */}
           <div>
-            <label className="block text-[9px] font-bold text-stone-400 uppercase mb-0.5">
+            <label className="block text-micro font-bold text-stone-400 uppercase mb-0.5">
               6. Chain of Custody
             </label>
             <select
@@ -639,7 +642,7 @@ export function MapScreen() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-2">
         
         {/* SVG Google Maps Style Interactive Canvas with Fullscreen Support */}
         <div 
@@ -647,12 +650,12 @@ export function MapScreen() {
           className={`${
             isFullscreen
               ? 'fixed inset-0 z-50 rounded-none w-screen h-screen'
-              : 'lg:col-span-7 rounded-xl min-h-[600px]'
-          } bg-[#0b1329] border border-stone-800 overflow-hidden relative flex flex-col shadow-lg transition-all duration-150`}
+              : 'lg:col-span-7  min-h-[600px]'
+          } bg-stone-950 border border-stone-800 overflow-hidden relative flex flex-col  transition-colors duration-150`}
         >
           
           {/* Dynamic Map Legend */}
-          <div className="p-3 bg-[#0a1122]/95 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 text-[11px] font-mono z-10">
+          <div className="p-3 bg-stone-950/95 border-b border-stone-800 flex flex-wrap items-center justify-between gap-3 text-meta font-mono z-10">
             <div className="flex items-center gap-3 flex-wrap">
               <span className="flex items-center gap-1.5 text-sky-400 font-bold">
                 <span className="w-2.5 h-2.5 rounded-full bg-sky-500 animate-pulse"></span>
@@ -662,8 +665,8 @@ export function MapScreen() {
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
                 PASS (Eligible)
               </span>
-              <span className="flex items-center gap-1.5 text-orange-400 font-bold">
-                <span className="w-2.5 h-2.5 rounded-full bg-orange-600"></span>
+              <span className="flex items-center gap-1.5 text-amber-400 font-bold">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-600"></span>
                 UNRESOLVED (Dual Branch)
               </span>
               <span className="flex items-center gap-1.5 text-amber-400 font-bold">
@@ -676,41 +679,45 @@ export function MapScreen() {
               </span>
             </div>
 
-            <div className="text-slate-400 text-[10px] flex items-center gap-1.5">
+            <div className="text-stone-400 text-micro flex items-center gap-1.5">
               <Compass className="w-3.5 h-3.5 text-teal-400" />
               <span>Right-click any country for intelligence dossier</span>
             </div>
           </div>
 
           {/* Map Vector Component with Google Maps Contrast Styling */}
-          <div className="flex-1 relative w-full h-full min-h-[520px] flex items-center justify-center bg-[#0c1427] select-none">
+          <div className="flex-1 relative w-full h-full min-h-[520px] flex items-center justify-center bg-stone-950 select-none">
             
             {/* Zoom / Pan & Fullscreen Navigation Controls */}
-            <div className="absolute top-3 right-3 z-20 flex flex-col bg-slate-900/90 border border-slate-700 rounded-lg shadow-xl overflow-hidden">
+            <div className="absolute top-3 right-3 z-20 flex flex-col bg-stone-900/90 border border-stone-700 rounded shadow-xl overflow-hidden">
               <button
                 onClick={handleZoomIn}
-                className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors border-b border-slate-800"
+                aria-label="Zoom in"
+                className="p-2 text-stone-300 hover:text-white hover:bg-stone-800 transition-colors border-b border-stone-800"
                 title="Zoom In (+)"
               >
                 <Plus className="w-4 h-4" />
               </button>
               <button
                 onClick={handleZoomOut}
-                className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors border-b border-slate-800"
+                aria-label="Zoom out"
+                className="p-2 text-stone-300 hover:text-white hover:bg-stone-800 transition-colors border-b border-stone-800"
                 title="Zoom Out (-)"
               >
                 <Minus className="w-4 h-4" />
               </button>
               <button
                 onClick={handleResetZoom}
-                className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors border-b border-slate-800"
+                aria-label="Reset map view"
+                className="p-2 text-stone-300 hover:text-white hover:bg-stone-800 transition-colors border-b border-stone-800"
                 title="Reset View"
               >
                 <RotateCcw className="w-4 h-4" />
               </button>
               <button
                 onClick={toggleFullscreen}
-                className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
+                aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+                className="p-2 text-stone-300 hover:text-white hover:bg-stone-800 transition-colors"
                 title={isFullscreen ? "Exit Fullscreen (Esc)" : "Fullscreen Mode"}
               >
                 {isFullscreen ? <Minimize2 className="w-4 h-4 text-teal-400" /> : <Maximize2 className="w-4 h-4" />}
@@ -913,26 +920,26 @@ export function MapScreen() {
                     left: `${contextMenu.x}px`,
                     zIndex: 99999,
                   }}
-                  className="bg-slate-900/98 backdrop-blur-xl border border-teal-500/80 rounded-xl shadow-2xl p-3 w-80 font-mono text-xs text-stone-100 space-y-2.5 animate-in fade-in zoom-in-95 duration-100 select-none"
+                  className="bg-stone-900/98 backdrop-blur-xl border border-teal-500/80 shadow-2xl p-3 w-80 font-mono text-xs text-stone-100 space-y-2.5 animate-in fade-in zoom-in-95 duration-100 select-none"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {/* Header */}
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <div className="flex items-center justify-between border-b border-stone-800 pb-2">
                     <div className="flex items-center gap-2">
                       <span className="text-lg">{contextMenu.flag}</span>
                       <div>
                         <span className="font-bold text-white text-sm block leading-tight">{contextMenu.name}</span>
-                        <span className="text-[10px] text-slate-400">ISO: {contextMenu.iso2}</span>
+                        <span className="text-micro text-stone-400">ISO: {contextMenu.iso2}</span>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-1.5">
                       {isOrigin ? (
-                        <span className="px-1.5 py-0.5 bg-sky-950 text-sky-300 border border-sky-700 rounded text-[9px] font-bold animate-pulse">
+                        <span className="px-1.5 py-0.5 bg-sky-950 text-sky-300 border border-sky-700 rounded text-micro font-bold animate-pulse">
                           Active Origin
                         </span>
                       ) : isTarget ? (
-                        <span className="px-1.5 py-0.5 bg-teal-950 text-teal-300 border border-teal-700 rounded text-[9px] font-bold">
+                        <span className="px-1.5 py-0.5 bg-teal-950 text-teal-300 border border-teal-700 rounded text-micro font-bold">
                           Target
                         </span>
                       ) : cClearance ? (
@@ -941,7 +948,7 @@ export function MapScreen() {
 
                       <button 
                         onClick={() => setContextMenu(null)}
-                        className="text-stone-400 hover:text-white p-1 rounded hover:bg-slate-800 transition-colors"
+                        className="text-stone-400 hover:text-white p-1 rounded hover:bg-stone-800 transition-colors"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
@@ -949,30 +956,30 @@ export function MapScreen() {
                   </div>
 
                   {/* Biomethane Production & Infrastructure Stats */}
-                  <div className="grid grid-cols-2 gap-1.5 text-[10px] bg-slate-950 p-2 rounded border border-slate-800">
+                  <div className="grid grid-cols-2 gap-1.5 text-micro bg-stone-950 p-2 rounded border border-stone-800">
                     <div>
-                      <span className="text-slate-500 uppercase block font-bold text-[9px]">GIE/EBA Registered</span>
+                      <span className="text-stone-400 uppercase block font-bold text-micro">GIE/EBA Registered</span>
                       <strong className="text-teal-300 text-xs">{cPlants.length > 0 ? `${cPlants.length} facilities` : 'No registered data'}</strong>
                     </div>
                     <div>
-                      <span className="text-slate-500 uppercase block font-bold text-[9px]">Provenance</span>
-                      <strong className="text-slate-100 text-[10px]">GIE/EBA 2026 Map</strong>
+                      <span className="text-stone-400 uppercase block font-bold text-micro">Provenance</span>
+                      <strong className="text-stone-100 text-micro">GIE/EBA 2026 Map</strong>
                     </div>
-                    <div className="col-span-2 pt-1 border-t border-slate-900 flex justify-between text-slate-400">
+                    <div className="col-span-2 pt-1 border-t border-stone-900 flex justify-between text-stone-400">
                       <span>National Registry:</span>
-                      <strong className="text-slate-300 truncate max-w-[170px]" title={registry || 'National Gas Grid'}>{registry || 'National Gas Grid'}</strong>
+                      <strong className="text-stone-300 truncate max-w-[170px]" title={registry || 'National Gas Grid'}>{registry || 'National Gas Grid'}</strong>
                     </div>
                   </div>
 
                   {/* Compliance & Netback Economics (if Target Market) */}
                   {cClearance && !isOrigin && (
-                    <div className="p-2 bg-slate-950/90 rounded border border-slate-800 text-[10px] space-y-1">
+                    <div className="p-2 bg-stone-950/90 rounded border border-stone-800 text-micro space-y-1">
                       <div className="flex justify-between items-center">
-                        <span className="text-slate-400">Target Scheme:</span>
-                        <strong className="text-slate-200 truncate max-w-[170px]">{cClearance.market.name}</strong>
+                        <span className="text-stone-400">Target Scheme:</span>
+                        <strong className="text-stone-200 truncate max-w-[170px]">{cClearance.market.name}</strong>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-slate-400">Implied Netback:</span>
+                        <span className="text-stone-400">Implied Netback:</span>
                         <strong className="text-teal-400 font-bold text-xs">
                           {cClearance.netback?.netNetback != null
                             ? `€${cClearance.netback.netNetback.toFixed(2)}/MWh`
@@ -983,7 +990,7 @@ export function MapScreen() {
                   )}
 
                   {/* Action Buttons */}
-                  <div className="space-y-1 pt-1 border-t border-slate-800">
+                  <div className="space-y-1 pt-1 border-t border-stone-800">
                     <div className="grid grid-cols-2 gap-1.5">
                       <button
                         onClick={() => {
@@ -991,7 +998,7 @@ export function MapScreen() {
                           setInjectionCountry(cIso2);
                           setContextMenu(null);
                         }}
-                        className="py-1.5 px-2 rounded bg-sky-950/70 hover:bg-sky-900 hover:text-white text-left flex items-center justify-center gap-1.5 transition-colors font-bold text-sky-300 border border-sky-700/80 text-[11px]"
+                        className="py-1.5 px-2 rounded bg-sky-950/70 hover:bg-sky-900 hover:text-white text-left flex items-center justify-center gap-1.5 transition-colors font-bold text-sky-300 border border-sky-700/80 text-meta"
                       >
                         <div className="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></div>
                         <span>Set Origin 🔵</span>
@@ -1003,7 +1010,7 @@ export function MapScreen() {
                           setDrawerTab('COMPLIANCE');
                           setContextMenu(null);
                         }}
-                        className="py-1.5 px-2 rounded bg-teal-950/70 hover:bg-teal-900 hover:text-white text-left flex items-center justify-center gap-1.5 transition-colors font-bold text-teal-300 border border-teal-700/80 text-[11px]"
+                        className="py-1.5 px-2 rounded bg-teal-950/70 hover:bg-teal-900 hover:text-white text-left flex items-center justify-center gap-1.5 transition-colors font-bold text-teal-300 border border-teal-700/80 text-meta"
                       >
                         <div className="w-2 h-2 rounded-full bg-teal-400"></div>
                         <span>Set Target 🎯</span>
@@ -1017,7 +1024,7 @@ export function MapScreen() {
                         setDrawerTab('PLANTS');
                         setContextMenu(null);
                       }}
-                      className="w-full px-2.5 py-1.5 rounded hover:bg-slate-800 text-left flex items-center gap-2 transition-colors text-stone-200 text-[11px]"
+                      className="w-full px-2.5 py-1.5 rounded hover:bg-stone-800 text-left flex items-center gap-2 transition-colors text-stone-200 text-meta"
                     >
                       <Factory className="w-3.5 h-3.5 text-amber-400" />
                       <span>View {cPlants.length} Plants in Drawer</span>
@@ -1028,10 +1035,10 @@ export function MapScreen() {
                         navigate(`/trade?originCountry=${cIso2}`);
                         setContextMenu(null);
                       }}
-                      className="w-full px-2.5 py-1.5 rounded hover:bg-slate-800 text-left flex items-center gap-2 transition-colors text-stone-200 text-[11px] border-t border-slate-800/80 pt-1.5"
+                      className="w-full px-2.5 py-1.5 rounded hover:bg-stone-800 text-left flex items-center gap-2 transition-colors text-stone-200 text-meta border-t border-stone-800/80 pt-1.5"
                     >
                       <Navigation className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Simulate in Trade Builder ➔</span>
+                      <span>Simulate in Trade Builder →</span>
                     </button>
                   </div>
                 </div>
@@ -1041,18 +1048,18 @@ export function MapScreen() {
             {/* Selected Plant Modal */}
             {selectedPlant && (
               <div className="fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 z-50 font-mono text-xs">
-                <div className="bg-stone-900 border border-stone-800 rounded-xl p-5 max-w-lg w-full space-y-3.5 shadow-2xl">
+                <div className="bg-stone-900 border border-stone-800 p-3 max-w-lg w-full space-y-3.5 shadow-2xl">
                   <div className="flex items-center justify-between border-b border-stone-800 pb-2">
                     <div>
                       <span className="font-bold text-sm text-stone-100 flex items-center gap-2">
                         <Factory className="w-4 h-4 text-amber-400" />
-                        <span>{selectedPlant.countryFlag} {selectedPlant.name}</span>
+                        <span>{selectedPlant.name}</span>
                       </span>
-                      <span className="text-[10px] text-stone-400">
+                      <span className="text-micro text-stone-400">
                         {selectedPlant.country} • Sourced: {selectedPlant.provenance}
                       </span>
                     </div>
-                    <span className="px-2 py-0.5 bg-green-950 text-green-300 border border-green-800 rounded text-[10px] font-bold">
+                    <span className="px-2 py-0.5 bg-emerald-950 text-emerald-300 border border-emerald-800 rounded text-micro font-bold">
                       {selectedPlant.status || 'Active'}
                     </span>
                   </div>
@@ -1070,7 +1077,7 @@ export function MapScreen() {
                       <span>Country:</span>
                       <strong className="text-stone-200">{selectedPlant.country}</strong>
                     </div>
-                    <div className="text-[11px] text-stone-500 pt-1 border-t border-stone-800">
+                    <div className="text-meta text-stone-400 pt-1 border-t border-stone-800">
                       * Operator, capacity, and technology attributes are not supplied in GIE/EBA source map.
                     </div>
                   </div>
@@ -1112,55 +1119,55 @@ export function MapScreen() {
         </div>
 
         {/* RIGHT DRAWER: 1. PLANTS BY FEEDSTOCK & 2. COMPLIANCE CLEARANCE */}
-        <div className="lg:col-span-5 bg-stone-900 border border-stone-800 rounded-xl p-4 space-y-3.5 font-mono text-xs flex flex-col justify-between shadow-sm min-h-[600px]">
+        <div className="lg:col-span-5 bg-stone-900 border border-stone-800 p-2 space-y-3.5 font-mono text-xs flex flex-col justify-between min-h-[600px]">
           
           <div className="space-y-3">
             
             {/* Header with Quick Origin / Target Selector Bar */}
-            <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2.5 shadow-md">
+            <div className="bg-stone-950 border border-stone-800 p-3 space-y-2.5">
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] text-slate-500 uppercase tracking-wider block">Inspected Country Base</span>
+                  <span className="text-micro text-stone-400 uppercase tracking-wider block">Inspected Country Base</span>
                   <span className="text-base font-bold text-white flex items-center gap-1.5 mt-0.5">
                     <span className="text-sky-300">{inspectedCountryFlag} {inspectedCountryName}</span>
-                    <span className="text-xs text-teal-400 bg-teal-950 border border-teal-800 px-1.5 py-0.2 rounded font-bold">
+                    <span className="text-xs text-teal-400 bg-teal-950 border border-teal-800 px-1.5 py-0.5 rounded font-bold">
                       {countryPlants.length} Facilities
                     </span>
                   </span>
                 </div>
 
                 {/* Drawer Tab Switcher */}
-                <div className="flex items-center bg-stone-900 border border-stone-800 rounded p-0.5 text-[10px]">
+                <div className="flex items-center bg-stone-900 border border-stone-800 rounded p-0.5 text-micro">
                   <button
                     onClick={() => setDrawerTab('PLANTS')}
-                    className={`px-2 py-1 rounded font-bold transition-all ${
-                      drawerTab === 'PLANTS' ? 'bg-teal-600 text-white shadow-xs' : 'text-stone-400 hover:text-stone-200'
+                    className={`px-2 py-1 rounded font-bold transition-colors ${
+                      drawerTab === 'PLANTS' ? 'bg-teal-600 text-white ' : 'text-stone-400 hover:text-stone-200'
                     }`}
                   >
                     Plants ({countryPlants.length})
                   </button>
                   <button
                     onClick={() => setDrawerTab('COMPLIANCE')}
-                    className={`px-2 py-1 rounded font-bold transition-all ${
-                      drawerTab === 'COMPLIANCE' ? 'bg-teal-600 text-white shadow-xs' : 'text-stone-400 hover:text-stone-200'
+                    className={`px-2 py-1 rounded font-bold transition-colors ${
+                      drawerTab === 'COMPLIANCE' ? 'bg-teal-600 text-white ' : 'text-stone-400 hover:text-stone-200'
                     }`}
                   >
-                    Export Route ➔
+                    Export Route →
                   </button>
                 </div>
               </div>
 
               {/* Instant Origin / Target Action Buttons */}
-              <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-900">
+              <div className="grid grid-cols-2 gap-2 pt-1 border-t border-stone-900">
                 <button
                   onClick={() => {
                     setOriginCountry(inspectedCountryCode);
                     setInjectionCountry(inspectedCountryCode);
                   }}
-                  className={`py-1.5 px-2.5 rounded font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs ${
+                  className={`py-1.5 px-2.5 rounded font-bold text-xs flex items-center justify-center gap-1.5 transition-colors  ${
                     originCountry === inspectedCountryCode
                       ? 'bg-sky-600 text-white'
-                      : 'bg-slate-900 hover:bg-sky-950 border border-sky-700/60 text-sky-300'
+                      : 'bg-stone-900 hover:bg-sky-950 border border-sky-700/60 text-sky-300'
                   }`}
                 >
                   {originCountry === inspectedCountryCode ? <Check className="w-3.5 h-3.5" /> : null}
@@ -1172,10 +1179,10 @@ export function MapScreen() {
                     setTargetCountry(inspectedCountryCode);
                     setDrawerTab('COMPLIANCE');
                   }}
-                  className={`py-1.5 px-2.5 rounded font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs ${
+                  className={`py-1.5 px-2.5 rounded font-bold text-xs flex items-center justify-center gap-1.5 transition-colors  ${
                     targetCountry === inspectedCountryCode
                       ? 'bg-teal-600 text-white'
-                      : 'bg-slate-900 hover:bg-teal-950 border border-teal-700/60 text-teal-300'
+                      : 'bg-stone-900 hover:bg-teal-950 border border-teal-700/60 text-teal-300'
                   }`}
                 >
                   {targetCountry === inspectedCountryCode ? <Check className="w-3.5 h-3.5" /> : null}
@@ -1190,11 +1197,11 @@ export function MapScreen() {
                 
                 {/* Feedstock Breakdown Filter Cards */}
                 <div>
-                  <span className="text-[10px] font-bold text-stone-400 uppercase block mb-1.5 flex items-center justify-between">
+                  <span className="text-micro font-bold text-stone-400 uppercase block mb-1.5 flex items-center justify-between">
                     <span>Available Capacity per Feedstock:</span>
                     <button 
                       onClick={() => setPlantFeedstockFilter('ALL')}
-                      className={`text-[9px] ${plantFeedstockFilter === 'ALL' ? 'text-teal-400 underline font-bold' : 'text-stone-500'}`}
+                      className={`text-micro ${plantFeedstockFilter === 'ALL' ? 'text-teal-400 underline font-bold' : 'text-stone-400'}`}
                     >
                       Show All ({countryPlants.length})
                     </button>
@@ -1210,14 +1217,14 @@ export function MapScreen() {
                           const info = FEEDSTOCK_REGISTRY[item.defaultKey];
                           if (info) setCarbonIntensity(info.defaultCI);
                         }}
-                        className={`p-2 rounded border text-left transition-all ${
+                        className={`p-2 rounded border text-left transition-colors ${
                           plantFeedstockFilter === item.key
-                            ? 'bg-teal-950/80 border-teal-500 text-teal-200 shadow-xs'
-                            : 'bg-stone-950 border-stone-800 text-stone-300 hover:bg-stone-850'
+                            ? 'bg-teal-950/80 border-teal-500 text-teal-200 '
+                            : 'bg-stone-950 border-stone-800 text-stone-300 hover:bg-stone-800'
                         }`}
                       >
-                        <div className="font-bold text-[11px] truncate">{item.label}</div>
-                        <div className="flex justify-between items-baseline mt-0.5 text-[10px]">
+                        <div className="font-bold text-meta truncate">{item.label}</div>
+                        <div className="flex justify-between items-baseline mt-0.5 text-micro">
                           <span className="text-teal-300 font-bold">{item.count} plant{item.count !== 1 ? 's' : ''}</span>
                           <span className="text-stone-400">~{Math.round(item.totalEnergyGWh)} GWh/yr</span>
                         </div>
@@ -1228,7 +1235,7 @@ export function MapScreen() {
 
                 {/* Specific Plants List for this Country & Feedstock */}
                 <div className="space-y-1.5">
-                  <div className="flex justify-between items-center text-[10px] text-stone-400 font-bold uppercase">
+                  <div className="flex justify-between items-center text-micro text-stone-400 font-bold uppercase">
                     <span>{inspectedCountryName} Facilities ({filteredCountryPlants.length}):</span>
                     <span>Click row to trade</span>
                   </div>
@@ -1238,21 +1245,21 @@ export function MapScreen() {
                       <div
                         key={p.id}
                         onClick={() => setSelectedPlant(p)}
-                        className="p-2.5 bg-stone-950 hover:bg-stone-800/80 border border-stone-800 rounded cursor-pointer transition-all space-y-1 group"
+                        className="p-2.5 bg-stone-950 hover:bg-stone-800/80 border border-stone-800 rounded cursor-pointer transition-colors space-y-1 group"
                       >
                         <div className="flex items-start justify-between gap-1.5">
                           <span className="font-bold text-stone-100 group-hover:text-teal-300 transition-colors">
                             {p.name}
                           </span>
-                          <span className="text-teal-300 font-bold shrink-0 text-[11px]">
+                          <span className="text-teal-300 font-bold shrink-0 text-meta">
                             {p.annualEnergyGWh} GWh/yr
                           </span>
                         </div>
-                        <div className="text-[10px] text-stone-400 flex justify-between">
+                        <div className="text-micro text-stone-400 flex justify-between">
                           <span>Op: <strong className="text-stone-300">{p.operator}</strong></span>
                           <span>{p.capacityNm3h} Nm³/h</span>
                         </div>
-                        <div className="text-[10px] text-stone-400 truncate">
+                        <div className="text-micro text-stone-400 truncate">
                           Tech: <span className="text-stone-300">{p.upgradingTechnology}</span> • Net: <span className="text-stone-300">{p.networkOperator}</span>
                         </div>
                       </div>
@@ -1267,9 +1274,9 @@ export function MapScreen() {
             {drawerTab === 'COMPLIANCE' && (
               <div className="space-y-3">
                 <div className="flex items-center justify-between border-b border-stone-800 pb-1.5">
-                  <span className="text-[10px] text-stone-400 uppercase">Export Route Spreads</span>
+                  <span className="text-micro text-stone-400 uppercase">Export Route Spreads</span>
                   <span className="text-stone-200 font-bold font-mono">
-                    {COUNTRY_NAMES[originCountry] || originCountry} ➔ {COUNTRY_NAMES[targetCountry] || targetCountry}
+                    {COUNTRY_NAMES[originCountry] || originCountry} → {COUNTRY_NAMES[targetCountry] || targetCountry}
                   </span>
                 </div>
 
@@ -1296,13 +1303,13 @@ export function MapScreen() {
 
                     {/* Gating Status Trail */}
                     <div className="space-y-1.5">
-                      <span className="text-[10px] font-bold text-stone-400 uppercase block">Compliance Gate Analysis:</span>
-                      <div className="space-y-1 text-[11px]">
+                      <span className="text-micro font-bold text-stone-400 uppercase block">Compliance Gate Analysis:</span>
+                      <div className="space-y-1 text-meta">
                         {targetMarketEntry.eligibility.gates.map((g: any, gIdx: number) => (
                           <div key={gIdx} className="p-2 bg-stone-950/80 rounded border border-stone-800 flex items-start justify-between gap-2">
                             <div>
                               <span className="font-bold text-stone-300 block">{g.gateLabel}</span>
-                              <span className="text-[10px] text-stone-400">{g.reason}</span>
+                              <span className="text-micro text-stone-400">{g.reason}</span>
                             </div>
                             <StatusChip variant={g.verdict} size="xs" />
                           </div>
@@ -1311,7 +1318,7 @@ export function MapScreen() {
                     </div>
                   </div>
                 ) : (
-                  <div className="p-4 bg-stone-950 rounded border border-stone-800 text-center text-stone-500">
+                  <div className="p-2 bg-stone-950 rounded border border-stone-800 text-center text-stone-400">
                     No active compliance market model configured for {COUNTRY_NAMES[targetCountry] || targetCountry}.
                   </div>
                 )}
@@ -1324,10 +1331,10 @@ export function MapScreen() {
           <div className="space-y-2 pt-2 border-t border-stone-800">
             <button
               onClick={() => setIsLogisticsModalOpen(true)}
-              className="w-full bg-sky-950 hover:bg-sky-900 border border-sky-700 text-sky-300 font-bold py-1.5 px-3 rounded text-xs transition-all flex items-center justify-center gap-1.5 shadow-xs"
+              className="w-full bg-sky-950 hover:bg-sky-900 border border-sky-700 text-sky-300 font-bold py-1.5 px-3 rounded text-xs transition-colors flex items-center justify-center gap-1.5"
             >
               <Truck className="w-3.5 h-3.5 text-sky-400" />
-              <span>Route Flow & Logistics Guide: {originCountry} ➔ {targetCountry}</span>
+              <span>Route Flow & Logistics Guide: {originCountry} → {targetCountry}</span>
             </button>
 
             <button
@@ -1338,9 +1345,9 @@ export function MapScreen() {
                   navigate(`/trade?originCountry=${originCountry}`);
                 }
               }}
-              className="w-full bg-teal-600 hover:bg-teal-500 text-white font-bold py-2 px-3 rounded text-xs transition-all flex items-center justify-center gap-1.5 shadow-xs"
+              className="w-full bg-teal-600 hover:bg-teal-500 text-white font-bold py-2 px-3 rounded text-xs transition-colors flex items-center justify-center gap-1.5"
             >
-              <span>Open Trade Builder: {COUNTRY_NAMES[originCountry] || originCountry} ➔ {COUNTRY_NAMES[targetCountry] || targetCountry}</span>
+              <span>Open Trade Builder: {COUNTRY_NAMES[originCountry] || originCountry} → {COUNTRY_NAMES[targetCountry] || targetCountry}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>

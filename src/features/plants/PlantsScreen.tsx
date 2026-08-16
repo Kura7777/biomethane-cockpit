@@ -23,7 +23,8 @@ import {
   ChevronRight,
   ChevronLeft,
   TrendingUp,
-  MapPin
+  MapPin,
+  Check
 } from 'lucide-react';
 
 const PAGE_SIZE = 50;
@@ -75,17 +76,17 @@ export function PlantsScreen() {
   }, []);
 
   return (
-    <div className="space-y-4 font-sans text-stone-100 pb-16">
+    <div className="space-y-2 font-sans text-stone-100 pb-16">
       
       {/* Top Header */}
-      <div className="bg-stone-900 border border-stone-800 rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+      <div className="bg-stone-900 border border-stone-800 p-2 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
         <div>
           <div className="flex items-center gap-2">
             <Factory className="w-5 h-5 text-teal-400" />
             <h1 className="text-base font-bold text-white font-mono uppercase tracking-tight">
               Pan-European Biomethane Facility Register
             </h1>
-            <span className="text-[10px] font-mono bg-teal-950 text-teal-300 border border-teal-800 px-2 py-0.5 rounded font-bold">
+            <span className="text-micro font-mono bg-teal-950 text-teal-300 border border-teal-800 px-2 py-0.5 rounded font-bold">
               {BIOMETHANE_PLANTS.length} Operating Facilities Verified
             </span>
           </div>
@@ -98,24 +99,24 @@ export function PlantsScreen() {
         <div className="flex items-center bg-stone-950 border border-stone-800 rounded p-1 font-mono text-xs">
           <button
             onClick={() => setActiveTab('PLANTS')}
-            className={`px-3 py-1 rounded font-bold transition-all flex items-center gap-1.5 ${
-              activeTab === 'PLANTS' ? 'bg-teal-600 text-white shadow-xs' : 'text-stone-400 hover:text-stone-200'
+            className={`px-3 py-1 rounded font-bold transition-colors flex items-center gap-1.5 ${
+              activeTab === 'PLANTS' ? 'bg-teal-600 text-white ' : 'text-stone-400 hover:text-stone-200'
             }`}
           >
             <Factory className="w-3.5 h-3.5" /> All Facilities ({BIOMETHANE_PLANTS.length})
           </button>
           <button
             onClick={() => setActiveTab('DEVELOPERS')}
-            className={`px-3 py-1 rounded font-bold transition-all flex items-center gap-1.5 ${
-              activeTab === 'DEVELOPERS' ? 'bg-teal-600 text-white shadow-xs' : 'text-stone-400 hover:text-stone-200'
+            className={`px-3 py-1 rounded font-bold transition-colors flex items-center gap-1.5 ${
+              activeTab === 'DEVELOPERS' ? 'bg-teal-600 text-white ' : 'text-stone-400 hover:text-stone-200'
             }`}
           >
             <Building2 className="w-3.5 h-3.5" /> Developers ({DEVELOPER_PORTFOLIOS.length})
           </button>
           <button
             onClick={() => setActiveTab('MACRO')}
-            className={`px-3 py-1 rounded font-bold transition-all flex items-center gap-1.5 ${
-              activeTab === 'MACRO' ? 'bg-teal-600 text-white shadow-xs' : 'text-stone-400 hover:text-stone-200'
+            className={`px-3 py-1 rounded font-bold transition-colors flex items-center gap-1.5 ${
+              activeTab === 'MACRO' ? 'bg-teal-600 text-white ' : 'text-stone-400 hover:text-stone-200'
             }`}
           >
             <Globe2 className="w-3.5 h-3.5" /> Macro Country Stats ({COUNTRY_MACRO_STATS.length})
@@ -125,25 +126,25 @@ export function PlantsScreen() {
 
       {/* Macro Statistics KPI Ribbon */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-xs">
-        <div className="bg-stone-900 border border-stone-800 rounded-xl p-3">
-          <div className="text-[10px] text-stone-400 uppercase font-bold">Verified European Facilities</div>
+        <div className="bg-stone-900 border border-stone-800 p-3">
+          <div className="text-micro text-stone-400 uppercase font-bold">Verified European Facilities</div>
           <div className="text-lg font-bold text-white mt-0.5">{BIOMETHANE_PLANTS.length} Sites</div>
-          <div className="text-[10px] text-teal-400 mt-0.5">26 Producing Nations</div>
+          <div className="text-micro text-teal-400 mt-0.5">26 Producing Nations</div>
         </div>
-        <div className="bg-stone-900 border border-stone-800 rounded-xl p-3">
-          <div className="text-[10px] text-stone-400 uppercase font-bold">European Annual Production</div>
+        <div className="bg-stone-900 border border-stone-800 p-3">
+          <div className="text-micro text-stone-400 uppercase font-bold">European Annual Production</div>
           <div className="text-lg font-bold text-teal-300 mt-0.5">~34.5 TWh/yr</div>
-          <div className="text-[10px] text-stone-400 mt-0.5">EBA Statistical Report</div>
+          <div className="text-micro text-stone-400 mt-0.5">EBA Statistical Report</div>
         </div>
-        <div className="bg-stone-900 border border-stone-800 rounded-xl p-3">
-          <div className="text-[10px] text-stone-400 uppercase font-bold">Data Provenance</div>
+        <div className="bg-stone-900 border border-stone-800 p-3">
+          <div className="text-micro text-stone-400 uppercase font-bold">Data Provenance</div>
           <div className="text-lg font-bold text-stone-100 mt-0.5">GIE / EBA 2026</div>
-          <div className="text-[10px] text-stone-400 mt-0.5">European Biomethane Map</div>
+          <div className="text-micro text-stone-400 mt-0.5">European Biomethane Map</div>
         </div>
-        <div className="bg-stone-900 border border-stone-800 rounded-xl p-3">
-          <div className="text-[10px] text-stone-400 uppercase font-bold">Grid Interconnection</div>
+        <div className="bg-stone-900 border border-stone-800 p-3">
+          <div className="text-micro text-stone-400 uppercase font-bold">Grid Interconnection</div>
           <div className="text-lg font-bold text-stone-100 mt-0.5">Single EU MB Area</div>
-          <div className="text-[10px] text-stone-400 mt-0.5">RED III Art. 31a Network</div>
+          <div className="text-micro text-stone-400 mt-0.5">RED III Art. 31a Network</div>
         </div>
       </div>
 
@@ -152,11 +153,11 @@ export function PlantsScreen() {
         <div className="space-y-3">
           
           {/* Search & Filter Bar */}
-          <div className="bg-stone-900 border border-stone-800 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 font-mono text-xs">
+          <div className="bg-stone-900 border border-stone-800 p-3 flex flex-wrap items-center justify-between gap-3 font-mono text-xs">
             <div className="flex flex-wrap items-center gap-2 flex-1">
               {/* Search Input */}
               <div className="min-w-[280px] flex-1 relative">
-                <Search className="w-3.5 h-3.5 text-stone-500 absolute left-2.5 top-2.5" />
+                <Search className="w-3.5 h-3.5 text-stone-400 absolute left-2.5 top-2.5" />
                 <input
                   type="text"
                   placeholder="Search 1,975 facilities by name or national code (e.g. FR-1, AT-3, Wildon)..."
@@ -181,7 +182,7 @@ export function PlantsScreen() {
 
             {/* Pagination Controls */}
             <div className="flex items-center gap-2">
-              <span className="text-stone-400 text-[11px]">
+              <span className="text-stone-400 text-meta">
                 Showing {filteredPlants.length > 0 ? (currentPage - 1) * PAGE_SIZE + 1 : 0}–{Math.min(currentPage * PAGE_SIZE, filteredPlants.length)} of <strong className="text-white">{filteredPlants.length}</strong>
               </span>
               <div className="flex items-center gap-1">
@@ -193,7 +194,7 @@ export function PlantsScreen() {
                 >
                   <ChevronLeft className="w-3.5 h-3.5" />
                 </button>
-                <span className="px-2 py-0.5 bg-stone-950 border border-stone-800 rounded text-stone-300 text-[11px]">
+                <span className="px-2 py-0.5 bg-stone-950 border border-stone-800 rounded text-stone-300 text-meta">
                   {currentPage} / {totalPages}
                 </span>
                 <button
@@ -209,10 +210,10 @@ export function PlantsScreen() {
           </div>
 
           {/* Plants Table */}
-          <div className="bg-stone-900 border border-stone-800 rounded-xl overflow-hidden shadow-sm font-mono text-xs">
+          <div className="bg-stone-900 border border-stone-800 overflow-hidden font-mono text-xs">
             <div className="overflow-x-auto">
               <table className="w-full text-left tabular-nums">
-                <thead className="bg-stone-950 text-stone-400 uppercase font-semibold text-[10px] tracking-wider border-b border-stone-800">
+                <thead className="bg-stone-950 text-stone-400 uppercase font-semibold text-micro tracking-wider border-b border-stone-800">
                   <tr>
                     <th className="py-2.5 px-3">Facility Code</th>
                     <th className="py-2.5 px-3">Facility / Plant Name</th>
@@ -242,11 +243,11 @@ export function PlantsScreen() {
                         {plant.country} ({plant.countryCode})
                       </td>
                       <td className="py-2 px-3 text-center whitespace-nowrap">
-                        <span className="px-2 py-0.5 bg-emerald-950 text-emerald-300 border border-emerald-800 rounded text-[10px] font-bold">
+                        <span className="px-2 py-0.5 bg-emerald-950 text-emerald-300 border border-emerald-800 rounded text-micro font-bold">
                           {plant.status || 'Active'}
                         </span>
                       </td>
-                      <td className="py-2 px-3 text-stone-400 text-[11px] whitespace-nowrap">
+                      <td className="py-2 px-3 text-stone-400 text-meta whitespace-nowrap">
                         GIE/EBA 2026 Map
                       </td>
                       <td className="py-2 px-3 text-center" onClick={e => e.stopPropagation()}>
@@ -254,10 +255,10 @@ export function PlantsScreen() {
                           onClick={() => {
                             navigate(`/trade?originCountry=${plant.countryCode}`);
                           }}
-                          className="px-2.5 py-1 bg-teal-950 text-teal-300 hover:bg-teal-900 border border-teal-800 rounded text-[10px] font-bold transition-all whitespace-nowrap"
+                          className="px-2.5 py-1 bg-teal-950 text-teal-300 hover:bg-teal-900 border border-teal-800 rounded text-micro font-bold transition-colors whitespace-nowrap"
                           title="Simulate Export Trade for this Origin Country"
                         >
-                          Simulate Trade ➔
+                          Simulate Trade →
                         </button>
                       </td>
                     </tr>
@@ -268,7 +269,7 @@ export function PlantsScreen() {
 
             {/* Bottom Pagination Bar */}
             <div className="p-3 bg-stone-950 border-t border-stone-800 flex items-center justify-between text-xs">
-              <span className="text-stone-400 text-[11px]">
+              <span className="text-stone-400 text-meta">
                 Showing {filteredPlants.length > 0 ? (currentPage - 1) * PAGE_SIZE + 1 : 0}–{Math.min(currentPage * PAGE_SIZE, filteredPlants.length)} of <strong className="text-white">{filteredPlants.length}</strong> facilities
               </span>
               <div className="flex items-center gap-1">
@@ -299,14 +300,14 @@ export function PlantsScreen() {
       {activeTab === 'DEVELOPERS' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 font-mono text-xs">
           {DEVELOPER_PORTFOLIOS.map((dev) => (
-            <div key={dev.id} className="bg-stone-900 border border-stone-800 rounded-xl p-4 space-y-3 shadow-xs">
+            <div key={dev.id} className="bg-stone-900 border border-stone-800 p-2 space-y-3">
               <div className="flex items-start justify-between border-b border-stone-800 pb-2">
                 <div>
                   <div className="font-bold text-sm text-stone-100 flex items-center gap-1.5">
                     <Building2 className="w-4 h-4 text-teal-400" />
                     <span>{dev.name}</span>
                   </div>
-                  <div className="text-[10px] text-stone-400 mt-0.5">
+                  <div className="text-micro text-stone-400 mt-0.5">
                     HQ: {dev.countryFlag} {dev.countryHQ}
                   </div>
                 </div>
@@ -314,18 +315,18 @@ export function PlantsScreen() {
                   <div className="text-sm font-bold text-teal-300">
                     {dev.totalCapacityGWh != null ? `${dev.totalCapacityGWh.toLocaleString()} GWh/yr` : '—'}
                   </div>
-                  <div className="text-[9px] text-stone-500">Portfolio Capacity</div>
+                  <div className="text-micro text-stone-400">Portfolio Capacity</div>
                 </div>
               </div>
 
-              <div className="space-y-1.5 text-[11px]">
+              <div className="space-y-1.5 text-meta">
                 <div className="text-stone-400">
                   <strong className="text-stone-300">Core Geographies:</strong> {dev.coreGeographies.join(', ')}
                 </div>
                 <div className="text-stone-400">
                   <strong className="text-stone-300">Signature Assets:</strong> {dev.signatureAssets.join(', ')}
                 </div>
-                <div className="p-2 bg-stone-950 rounded text-stone-300 text-[10px] leading-relaxed border border-stone-800">
+                <div className="p-2 bg-stone-950 rounded text-stone-300 text-micro leading-relaxed border border-stone-800">
                   <strong>Strategy:</strong> {dev.strategicFocus}
                 </div>
               </div>
@@ -336,10 +337,10 @@ export function PlantsScreen() {
 
       {/* TAB 3: MACRO COUNTRY CAPACITIES */}
       {activeTab === 'MACRO' && (
-        <div className="bg-stone-900 border border-stone-800 rounded-xl overflow-hidden font-mono text-xs shadow-sm">
+        <div className="bg-stone-900 border border-stone-800 overflow-hidden font-mono text-xs">
           <div className="overflow-x-auto">
             <table className="w-full text-left tabular-nums">
-              <thead className="bg-stone-950 text-stone-400 uppercase font-semibold text-[10px] tracking-wider border-b border-stone-800">
+              <thead className="bg-stone-950 text-stone-400 uppercase font-semibold text-micro tracking-wider border-b border-stone-800">
                 <tr>
                   <th className="py-2.5 px-3">Country / Registry</th>
                   <th className="py-2.5 px-3 text-right">Active Plants</th>
@@ -358,7 +359,7 @@ export function PlantsScreen() {
                       <div className="flex items-center gap-1.5">
                         <span>{m.flag}</span>
                         <span>{m.country}</span>
-                        <span className="text-[10px] text-stone-500 font-normal">({m.nationalRegistry})</span>
+                        <span className="text-micro text-stone-400 font-normal">({m.nationalRegistry})</span>
                       </div>
                     </td>
                     <td className="py-2 px-3 text-right font-bold text-stone-200">
@@ -376,10 +377,10 @@ export function PlantsScreen() {
                     <td className="py-2 px-3 text-right text-stone-400">
                       {m.gridConnectionRate != null ? `${(m.gridConnectionRate * 100).toFixed(0)}%` : '—'}
                     </td>
-                    <td className="py-2 px-3 text-stone-400 text-[11px]">
+                    <td className="py-2 px-3 text-stone-400 text-meta">
                       {m.primaryFeedstockType || 'Agricultural residues / Biowaste'}
                     </td>
-                    <td className="py-2 px-3 text-stone-400 text-[11px]">
+                    <td className="py-2 px-3 text-stone-400 text-meta">
                       {m.primaryUpgradingTech || 'Membranes / Scrubbing'}
                     </td>
                   </tr>
@@ -393,39 +394,39 @@ export function PlantsScreen() {
       {/* Selected Plant Detail Modal */}
       {selectedPlantDetail && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 z-50 font-mono text-xs">
-          <div className="bg-stone-900 border border-stone-800 rounded-xl p-5 max-w-xl w-full space-y-4 shadow-2xl">
+          <div className="bg-stone-900 border border-stone-800 p-3 max-w-xl w-full space-y-2 shadow-2xl">
             <div className="flex items-center justify-between border-b border-stone-800 pb-2">
               <div>
                 <span className="font-bold text-sm text-stone-100 flex items-center gap-2">
                   <span>{selectedPlantDetail.countryFlag} {selectedPlantDetail.name}</span>
                 </span>
-                <span className="text-[10px] text-stone-400">
+                <span className="text-micro text-stone-400">
                   {selectedPlantDetail.country} • Sourced: {selectedPlantDetail.provenance}
                 </span>
               </div>
-              <span className="px-2 py-0.5 bg-green-950 text-green-300 border border-green-800 rounded text-[10px] font-bold">
+              <span className="px-2 py-0.5 bg-emerald-950 text-emerald-300 border border-emerald-800 rounded text-micro font-bold">
                 {selectedPlantDetail.status || 'Active'}
               </span>
             </div>
 
             {/* Grid of details with verified vs unverified indicators */}
-            <div className="grid grid-cols-2 gap-2 text-[11px]">
+            <div className="grid grid-cols-2 gap-2 text-meta">
               <div className="p-2.5 bg-stone-950 rounded border border-stone-800">
-                <span className="text-[10px] text-stone-500 uppercase block font-bold">Location & Country</span>
+                <span className="text-micro text-stone-400 uppercase block font-bold">Location & Country</span>
                 <strong className="text-stone-200">{selectedPlantDetail.name}, {selectedPlantDetail.country}</strong>
-                <span className="text-[9px] text-emerald-400 block mt-0.5">✓ Verified in GIE/EBA Map</span>
+                <span className="text-micro text-emerald-400 flex items-center gap-1 mt-0.5"><Check className="w-3 h-3 shrink-0" aria-hidden="true" />Verified in GIE/EBA Map</span>
               </div>
               <div className="p-2.5 bg-stone-950 rounded border border-stone-800">
-                <span className="text-[10px] text-stone-500 uppercase block font-bold">Facility Code</span>
+                <span className="text-micro text-stone-400 uppercase block font-bold">Facility Code</span>
                 <strong className="text-teal-300">{selectedPlantDetail.id.toUpperCase()}</strong>
-                <span className="text-[9px] text-emerald-400 block mt-0.5">✓ Sourced National ID</span>
+                <span className="text-micro text-emerald-400 flex items-center gap-1 mt-0.5"><Check className="w-3 h-3 shrink-0" aria-hidden="true" />Sourced National ID</span>
               </div>
               <div className="p-2.5 bg-stone-950 rounded border border-stone-800">
-                <span className="text-[10px] text-stone-500 uppercase block font-bold">Operator / Developer</span>
+                <span className="text-micro text-stone-400 uppercase block font-bold">Operator / Developer</span>
                 <span className="text-stone-400">{selectedPlantDetail.operator || <span className="italic text-stone-600">Unverified in GIE/EBA source map</span>}</span>
               </div>
               <div className="p-2.5 bg-stone-950 rounded border border-stone-800">
-                <span className="text-[10px] text-stone-500 uppercase block font-bold">Capacity / Upgrading</span>
+                <span className="text-micro text-stone-400 uppercase block font-bold">Capacity / Upgrading</span>
                 <span className="text-stone-400">{selectedPlantDetail.capacityNm3h != null ? `${selectedPlantDetail.capacityNm3h} Nm³/h` : <span className="italic text-stone-600">Unverified in GIE/EBA source map</span>}</span>
               </div>
             </div>
@@ -434,7 +435,7 @@ export function PlantsScreen() {
               <div>
                 <strong className="text-stone-300">Data Provenance:</strong> {selectedPlantDetail.provenance}
               </div>
-              <div className="text-[11px] text-stone-500">
+              <div className="text-meta text-stone-400">
                 * Note: The GIE/EBA European Biomethane Map 2026 provides facility location name, country, and national ID. Operator, capacity, and technology attributes are not supplied by the source map.
               </div>
             </div>

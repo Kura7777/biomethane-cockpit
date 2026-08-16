@@ -70,10 +70,10 @@ export function LibraryScreen() {
   };
 
   return (
-    <div className="space-y-4 font-sans text-stone-100 pb-16">
+    <div className="space-y-2 font-sans text-stone-100 pb-16">
       
       {/* Header */}
-      <div className="bg-stone-900 border border-stone-800 rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+      <div className="bg-stone-900 border border-stone-800 p-2 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
         <div>
           <div className="flex items-center gap-2">
             <FolderArchive className="w-4 h-4 text-teal-400" />
@@ -88,7 +88,7 @@ export function LibraryScreen() {
 
         <div className="flex items-center gap-2 font-mono text-xs">
           <div className="relative">
-            <Search className="w-3.5 h-3.5 text-stone-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-stone-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Search dossiers..."
@@ -101,32 +101,32 @@ export function LibraryScreen() {
       </div>
 
       {recalcMessage && (
-        <div className="bg-teal-950/70 border border-teal-800 text-teal-300 text-xs p-2.5 rounded-lg flex items-center gap-2 font-mono">
+        <div className="bg-teal-950/70 border border-teal-800 text-teal-300 text-xs p-2.5 rounded flex items-center gap-2 font-mono">
           <CheckCircle2 className="w-4 h-4 text-teal-400" />
           <span>{recalcMessage}</span>
         </div>
       )}
 
       {assessments.length === 0 ? (
-        <div className="bg-stone-900 border border-stone-800 rounded-xl p-8 text-center space-y-3 font-mono">
-          <div className="w-10 h-10 bg-stone-950 rounded-full flex items-center justify-center mx-auto text-stone-500 border border-stone-800">
+        <div className="bg-stone-900 border border-stone-800 p-8 text-center space-y-3 font-mono">
+          <div className="w-10 h-10 bg-stone-950 rounded-full flex items-center justify-center mx-auto text-stone-400 border border-stone-800">
             <FolderArchive className="w-5 h-5" />
           </div>
           <div>
             <h3 className="font-bold text-stone-200 text-sm">No Saved Trade Dossiers</h3>
-            <p className="text-xs text-stone-500 max-w-sm mx-auto mt-0.5">
+            <p className="text-xs text-stone-400 max-w-sm mx-auto mt-0.5">
               Construct a trade in Trade Builder and click "Save Dossier" to store an auditable compliance snapshot.
             </p>
           </div>
           <button
             onClick={() => navigate('/trade')}
-            className="bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold px-3 py-1.5 rounded transition-all inline-flex items-center gap-1.5"
+            className="bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold px-3 py-1.5 rounded transition-colors inline-flex items-center gap-1.5"
           >
             Create New Trade Dossier <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 font-mono">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 font-mono">
           
           {/* Saved Dossier List */}
           <div className="lg:col-span-5 space-y-2">
@@ -136,7 +136,7 @@ export function LibraryScreen() {
                 <div
                   key={a.id}
                   onClick={() => setSelectedAssessmentId(a.id)}
-                  className={`p-3 rounded-lg border transition-all cursor-pointer ${
+                  className={`p-3 rounded border transition-colors cursor-pointer ${
                     isSelected
                       ? 'border-teal-500 bg-teal-950/40 ring-1 ring-teal-500'
                       : 'border-stone-800 bg-stone-900 hover:border-stone-700'
@@ -145,7 +145,7 @@ export function LibraryScreen() {
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <h4 className="font-bold text-xs text-stone-100">{a.consignment.name}</h4>
-                      <div className="text-[11px] text-stone-400 mt-0.5">
+                      <div className="text-meta text-stone-400 mt-0.5">
                         Target: {a.targetMarketName}
                       </div>
                     </div>
@@ -153,7 +153,7 @@ export function LibraryScreen() {
                   </div>
 
                   <div className="mt-2 pt-1.5 border-t border-stone-800 flex items-center justify-between text-xs">
-                    <span className="text-stone-500 text-[10px]">
+                    <span className="text-stone-400 text-micro">
                       CI: {a.consignment.carbonIntensity} • {a.consignment.originCountry}
                     </span>
                     <span className="font-bold text-teal-300">
@@ -161,7 +161,7 @@ export function LibraryScreen() {
                     </span>
                   </div>
 
-                  <div className="mt-1.5 text-[10px] text-stone-500 flex items-center justify-between">
+                  <div className="mt-1.5 text-micro text-stone-400 flex items-center justify-between">
                     <span>Saved: {a.createdAt}</span>
                     <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
                       <button
@@ -173,7 +173,7 @@ export function LibraryScreen() {
                       </button>
                       <button
                         onClick={() => handleDelete(a.id)}
-                        className="p-1 hover:bg-red-950 rounded text-stone-500 hover:text-red-400"
+                        className="p-1 hover:bg-red-950 rounded text-stone-400 hover:text-red-400"
                         title="Delete dossier"
                       >
                         <Trash2 className="w-3 h-3" />
@@ -188,11 +188,11 @@ export function LibraryScreen() {
           {/* Detailed Dossier Viewer */}
           <div className="lg:col-span-7">
             {selectedAssessment && (
-              <div className="bg-stone-900 border border-stone-800 rounded-xl p-4 space-y-3 sticky top-16">
+              <div className="bg-stone-900 border border-stone-800 p-2 space-y-3 sticky top-16">
                 <div className="flex items-center justify-between border-b border-stone-800 pb-2.5">
                   <div>
                     <h3 className="font-bold text-sm text-stone-100">{selectedAssessment.consignment.name}</h3>
-                    <div className="text-[11px] text-stone-400">
+                    <div className="text-meta text-stone-400">
                       Target: {selectedAssessment.targetMarketName} • Saved: {selectedAssessment.createdAt}
                     </div>
                   </div>
@@ -219,7 +219,7 @@ export function LibraryScreen() {
                 </div>
 
                 {/* Preformatted text preview */}
-                <div className="bg-stone-950 border border-stone-800 rounded p-3 text-[11px] text-stone-300 overflow-x-auto max-h-[440px] leading-relaxed select-all">
+                <div className="bg-stone-950 border border-stone-800 rounded p-3 text-meta text-stone-300 overflow-x-auto max-h-[440px] leading-relaxed select-all">
                   <pre>{generateTradeSummary(selectedAssessment)}</pre>
                 </div>
               </div>
