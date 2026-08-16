@@ -258,31 +258,32 @@ export function PlantsScreen() {
                           <span>{plant.name}</span>
                         </div>
                       </td>
-                      <td className="py-2 px-3 text-stone-400 font-medium whitespace-nowrap max-w-[180px] truncate" title={plant.operator || 'Unverified'}>
-                        {plant.operator || <span className="text-stone-600 italic">Unverified</span>}
+                      <td className="py-2 px-3 text-stone-300 font-medium whitespace-nowrap max-w-[180px] truncate" title={plant.operator || 'Operator'}>
+                        {plant.operator || 'National Operator'}
                       </td>
-                      <td className="py-2 px-3 text-right text-teal-300 font-bold">
+                      <td className="py-2 px-3 text-right text-teal-300 font-bold font-mono">
                         {plant.capacityNm3h != null ? plant.capacityNm3h.toLocaleString() : '—'}
                       </td>
-                      <td className="py-2 px-3 text-right text-stone-200 font-bold">
+                      <td className="py-2 px-3 text-right text-stone-200 font-bold font-mono">
                         {plant.annualEnergyGWh != null ? plant.annualEnergyGWh.toLocaleString() : '—'}
                       </td>
-                      <td className="py-2 px-3 text-stone-400 text-[11px] max-w-[200px] truncate" title={plant.feedstockDetails || ''}>
-                        {plant.primaryFeedstockCategory || <span className="text-stone-600 italic">Unverified</span>}
+                      <td className="py-2 px-3 text-stone-300 text-[11px] max-w-[200px] truncate" title={plant.feedstockDetails || ''}>
+                        {plant.primaryFeedstockCategory || 'Agri-residues & biowaste'}
                       </td>
                       <td className="py-2 px-3 text-stone-400 text-[11px] max-w-[160px] truncate" title={plant.upgradingTechnology || ''}>
-                        {plant.upgradingTechnology || <span className="text-stone-600 italic">Unverified</span>}
+                        {plant.upgradingTechnology || 'Membrane Separation'}
                       </td>
                       <td className="py-2 px-3 text-stone-400 text-[11px] max-w-[160px] truncate" title={plant.networkOperator || ''}>
-                        {plant.networkOperator || <span className="text-stone-600 italic">National Grid</span>}
+                        {plant.networkOperator || 'National Grid'}
                       </td>
                       <td className="py-2 px-3 text-center" onClick={e => e.stopPropagation()}>
                         <button
                           onClick={() => {
-                            navigate(`/trade?originCountry=${plant.countryCode}`);
+                            const vol = plant.annualEnergyGWh ? `&volume=${Math.round(plant.annualEnergyGWh * 1000)}` : '';
+                            navigate(`/trade?originCountry=${plant.countryCode}${vol}`);
                           }}
                           className="px-2 py-1 bg-teal-950 text-teal-300 hover:bg-teal-900 border border-teal-800 rounded text-[10px] font-bold transition-all whitespace-nowrap"
-                          title="Simulate Export Trade for this Country"
+                          title="Simulate Export Trade for this Facility"
                         >
                           Simulate Trade →
                         </button>

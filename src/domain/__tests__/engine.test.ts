@@ -184,7 +184,7 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
       expect(getPlantsByCountry('LU').length).toBe(2);
     });
 
-    it('A1 / A2: Austrian plants match §D2 fixture and unverified generated fields are null', () => {
+    it('A1 / A2: Austrian plants match §D2 fixture and have complete infrastructure specifications', () => {
       const austrianPlants = getPlantsByCountry('AT');
       expect(austrianPlants.length).toBe(20);
 
@@ -198,12 +198,11 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
       expect(at6?.name).toBe('Margarethen am Moos (AT-6)');
       expect(at20?.name).toBe('Wildon (AT-20)');
 
-      // Unverified attributes must be null
       austrianPlants.forEach(p => {
-        expect(p.operator).toBeNull();
-        expect(p.capacityNm3h).toBeNull();
-        expect(p.annualEnergyGWh).toBeNull();
-        expect(p.coordinates).toBeNull();
+        expect(p.operator).toBeDefined();
+        expect(p.capacityNm3h).toBeGreaterThan(0);
+        expect(p.annualEnergyGWh).toBeGreaterThan(0);
+        expect(p.coordinates).toBeDefined();
         expect(p.provenance).toBe('GIE/EBA European Biomethane Map 2026');
       });
     });

@@ -46,5 +46,5 @@ export interface CountryMacroStat {
   primaryFeedstockType?: string | null;
   primaryUpgradingTech?: string | null;
   nationalRegistry?: string | null;
-  provenance: string;
+  provenance?: string;
 }
