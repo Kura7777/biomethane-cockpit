@@ -89,9 +89,9 @@ export function resolveInterconnectionPoints(countryPath: string[]): Interconnec
         toCountry: to,
         fromTso: `${from} Transmission Operator`,
         toTso: `${to} Transmission Operator`,
-        entryTariffEurMwh: 0,
-        exitTariffEurMwh: 0,
-        totalTariffEurMwh: 0,
+        entryTariffEurMwh: null,
+        exitTariffEurMwh: null,
+        totalTariffEurMwh: null,
         capacityPlatform: 'UNVERIFIED',
       });
     }
@@ -125,8 +125,19 @@ export function calculateLogisticsRoute(
   const countryPath = findShortestPipelinePath(origin, target);
   const physicalIps = resolveInterconnectionPoints(countryPath);
 
-  // Physical Transmission Tariffs
-  const totalPhysicalTariffEurMwh = physicalIps.reduce((sum, ip) => sum + ip.totalTariffEurMwh, 0);
+  // Physical Transmission Tariffs & Unverified Legs
+  const unverifiedLegs: string[] = [];
+  let hasNullTariff = false;
+  for (const ip of physicalIps) {
+    if (ip.totalTariffEurMwh === null || ip.capacityPlatform === 'UNVERIFIED') {
+      unverifiedLegs.push(`${ip.fromCountry}➔${ip.toCountry}`);
+      hasNullTariff = true;
+    }
+  }
+
+  const totalPhysicalTariffEurMwh = (hasNullTariff || physicalIps.length === 0)
+    ? null
+    : physicalIps.reduce((sum, ip) => sum + (ip.totalTariffEurMwh ?? 0), 0);
   
   // Pipeline Shrinkage & Fuel Gas (approx 0.35% per 500km)
   const shrinkageLossPct = Number(Math.max(0.003, (distanceKm / 500) * 0.0035).toFixed(4));
@@ -201,21 +212,33 @@ export function calculateLogisticsRoute(
   const physicalEntryExitTariffs = totalPhysicalTariffEurMwh;
   const physicalBalancingReserve = 0.50; // Daily balancing margin across multi-TSO zones
   const physicalPrismaAuctionFee = 0.15;
-  const physicalTotalEurMwh = Number((physicalEntryExitTariffs + shrinkageEurMwh + physicalBalancingReserve + physicalPrismaAuctionFee + swapUdbCertificationFee).toFixed(2));
+  const physicalTotalEurMwh = (totalPhysicalTariffEurMwh !== null && countryPath.length > 0)
+    ? Number((totalPhysicalTariffEurMwh + shrinkageEurMwh + physicalBalancingReserve + physicalPrismaAuctionFee + swapUdbCertificationFee).toFixed(2))
+    : null;
+
+  let physicalSummary = '';
+  if (countryPath.length === 0) {
+    physicalSummary = `No continuous interconnected physical pipeline route found between ${originName} and ${targetName}.`;
+  } else if (unverifiedLegs.length > 0) {
+    physicalSummary = `Tariff incomplete — unverified at ${unverifiedLegs.join(', ')}.`;
+  } else {
+    physicalSummary = `Physically wheel gas molecules across European transmission borders (${countryPath.join(' ➔ ')}) by booking firm entry/exit capacity on PRISMA.`;
+  }
 
   const physicalPipelineBreakdown: ModeCostBreakdown = {
     mode: 'PHYSICAL_PIPELINE',
     title: 'Option B: Physical Multi-TSO Pipeline Transit Corridor',
-    summary: countryPath.length > 0
-      ? `Physically wheel gas molecules across European transmission borders (${countryPath.join(' ➔ ')}) by booking firm entry/exit capacity on PRISMA.`
-      : `No continuous interconnected physical pipeline route found between ${originName} and ${targetName}.`,
+    summary: physicalSummary,
     totalCostEurMwh: physicalTotalEurMwh,
+    unverifiedLegs,
     lineItems: [
       ...physicalIps.map(ip => ({
         label: `PRISMA Capacity: ${ip.name}`,
         costEurMwh: ip.totalTariffEurMwh,
         category: 'TARIFF' as const,
-        description: `${ip.fromTso} ➔ ${ip.toTso} border capacity booking.`,
+        description: ip.totalTariffEurMwh !== null
+          ? `${ip.fromTso} ➔ ${ip.toTso} border capacity booking.`
+          : `Unverified border tariff between ${ip.fromCountry} and ${ip.toCountry}.`,
       })),
       {
         label: `Pipeline Shrinkage & Fuel Gas (${(shrinkageLossPct * 100).toFixed(2)}%)`,
@@ -237,7 +260,7 @@ export function calculateLogisticsRoute(
       },
     ],
     timelineDays: 14,
-    regulatoryFeasibility: countryPath.length > 0 ? 'MEDIUM' : 'LOW',
+    regulatoryFeasibility: countryPath.length > 0 && unverifiedLegs.length === 0 ? 'MEDIUM' : 'LOW',
     isRecommended: false,
     legalBasis: 'Regulation (EC) No 715/2009 & CAM NC (Network Code on Capacity Allocation Mechanisms)',
     pros: [
@@ -368,6 +391,7 @@ export function calculateLogisticsRoute(
       interconnectionPoints: physicalIps,
       transitingCountries: countryPath,
       totalPhysicalTariffEurMwh,
+      unverifiedLegs,
       shrinkageLossPct,
       shrinkageEurMwh,
     },

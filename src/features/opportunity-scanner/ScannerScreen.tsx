@@ -461,19 +461,25 @@ export function ScannerScreen() {
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px]">
                                   <div className="p-2.5 bg-stone-950 rounded border border-teal-900/80">
                                     <div className="text-teal-400 font-bold text-[10px] uppercase">Option A: Virtual Swap (UDB)</div>
-                                    <div className="text-sm font-bold text-teal-300 mt-0.5">€{logRoute.modes.virtualSwap.totalCostEurMwh.toFixed(2)}/MWh</div>
+                                    <div className="text-sm font-bold text-teal-300 mt-0.5">
+                                      {logRoute.modes.virtualSwap.totalCostEurMwh !== null ? `€${logRoute.modes.virtualSwap.totalCostEurMwh.toFixed(2)}/MWh` : '—'}
+                                    </div>
                                     <div className="text-[10px] text-stone-500 mt-0.5">Basis spread + electronic UDB PoS transfer</div>
                                   </div>
 
                                   <div className="p-2.5 bg-stone-950 rounded border border-sky-900/80">
                                     <div className="text-sky-400 font-bold text-[10px] uppercase">Option B: Physical Pipeline Wheel</div>
-                                    <div className="text-sm font-bold text-sky-300 mt-0.5">€{logRoute.modes.physicalPipeline.totalCostEurMwh.toFixed(2)}/MWh</div>
+                                    <div className="text-sm font-bold text-sky-300 mt-0.5">
+                                      {logRoute.modes.physicalPipeline.totalCostEurMwh !== null ? `€${logRoute.modes.physicalPipeline.totalCostEurMwh.toFixed(2)}/MWh` : <span className="text-amber-400 text-xs">Tariff Incomplete</span>}
+                                    </div>
                                     <div className="text-[10px] text-stone-500 mt-0.5">{logRoute.physicalRoute.transitingCountries.join(' ➔ ')} via PRISMA</div>
                                   </div>
 
                                   <div className="p-2.5 bg-stone-950 rounded border border-amber-900/80">
                                     <div className="text-amber-400 font-bold text-[10px] uppercase">Option C: Bio-LNG Road</div>
-                                    <div className="text-sm font-bold text-amber-300 mt-0.5">€{logRoute.modes.bioLng.totalCostEurMwh.toFixed(2)}/MWh</div>
+                                    <div className="text-sm font-bold text-amber-300 mt-0.5">
+                                      {logRoute.modes.bioLng.totalCostEurMwh !== null ? `€${logRoute.modes.bioLng.totalCostEurMwh.toFixed(2)}/MWh` : '—'}
+                                    </div>
                                     <div className="text-[10px] text-stone-500 mt-0.5">Cryogenic ISO road trailer freight</div>
                                   </div>
                                 </div>

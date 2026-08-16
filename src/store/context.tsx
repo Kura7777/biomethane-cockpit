@@ -168,16 +168,23 @@ export function createDefaultState(): AppState {
 }
 
 function getInitialState(): AppState {
+  const KNOWN_STORAGE_KEYS = [
+    'biomethane-desk-state-v4',
+    'biomethane-desk-state-v3',
+    'biomethane-desk-state-v2',
+    'biomethane-desk-state',
+  ];
+
   try {
-    const storedV2 = localStorage.getItem(STORAGE_KEY);
-    if (storedV2) {
-      return migrateState(JSON.parse(storedV2));
-    }
-    const legacyStored = localStorage.getItem(LEGACY_STORAGE_KEY);
-    if (legacyStored) {
-      const migrated = migrateState(JSON.parse(legacyStored));
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
-      return migrated;
+    for (const key of KNOWN_STORAGE_KEYS) {
+      const stored = localStorage.getItem(key);
+      if (stored) {
+        const migrated = migrateState(JSON.parse(stored));
+        if (key !== STORAGE_KEY) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+        }
+        return migrated;
+      }
     }
   } catch (e) {
     console.warn('Failed to load or migrate state from localStorage', e);

@@ -22,7 +22,7 @@ interface LogisticsModalProps {
   targetCountry: string;
   isOpen: boolean;
   onClose: () => void;
-  onApplyCosts?: (costs: { transferCosts: number; certificationCosts: number; logistics: number }) => void;
+  onApplyCosts?: (costs: { transferCosts: number | null; certificationCosts: number | null; logistics: number | null }) => void;
 }
 
 export function LogisticsModal({
@@ -46,9 +46,9 @@ export function LogisticsModal({
   if (!isOpen) return null;
 
   const handleApplyModeCosts = (mode: ModeCostBreakdown) => {
-    let transferCosts = 0;
-    let certCosts = 0;
-    let logisticsCosts = 0;
+    let transferCosts: number | null = 0;
+    let certCosts = 0.45;
+    let logisticsCosts: number | null = 0;
 
     if (mode.mode === 'VIRTUAL_SWAP') {
       transferCosts = 0.80 + Math.abs(assessment.hubSpread.basisSpreadEurMwh);
@@ -61,7 +61,7 @@ export function LogisticsModal({
     } else {
       transferCosts = 2.00;
       certCosts = 0.45;
-      logisticsCosts = Number((mode.totalCostEurMwh - 2.45).toFixed(2));
+      logisticsCosts = mode.totalCostEurMwh !== null ? Number((mode.totalCostEurMwh - 2.45).toFixed(2)) : null;
     }
 
     dispatch({
@@ -180,8 +180,12 @@ export function LogisticsModal({
                     <div className="pt-2 border-t border-stone-800/80">
                       <div className="text-[10px] text-stone-500 uppercase">Estimated Total Friction</div>
                       <div className="text-xl font-bold text-teal-300 font-mono">
-                        €{assessment.modes.virtualSwap.totalCostEurMwh.toFixed(2)}
-                        <span className="text-xs font-normal text-stone-400">/MWh</span>
+                        {assessment.modes.virtualSwap.totalCostEurMwh !== null ? (
+                          <>
+                            €{assessment.modes.virtualSwap.totalCostEurMwh.toFixed(2)}
+                            <span className="text-xs font-normal text-stone-400">/MWh</span>
+                          </>
+                        ) : '—'}
                       </div>
                     </div>
                   </div>
@@ -221,15 +225,23 @@ export function LogisticsModal({
                     <div>
                       <h3 className="text-sm font-bold text-white">Physical Pipeline Transit</h3>
                       <p className="text-[11px] text-stone-400 mt-1 leading-relaxed">
-                        Physically wheel gas molecules across 4 European borders via PRISMA capacity reservations.
+                        {assessment.modes.physicalPipeline.summary}
                       </p>
                     </div>
 
                     <div className="pt-2 border-t border-stone-800/80">
                       <div className="text-[10px] text-stone-500 uppercase">Estimated Total Friction</div>
-                      <div className="text-xl font-bold text-sky-300 font-mono">
-                        €{assessment.modes.physicalPipeline.totalCostEurMwh.toFixed(2)}
-                        <span className="text-xs font-normal text-stone-400">/MWh</span>
+                      <div className="text-xl font-bold font-mono">
+                        {assessment.modes.physicalPipeline.totalCostEurMwh !== null ? (
+                          <span className="text-sky-300">
+                            €{assessment.modes.physicalPipeline.totalCostEurMwh.toFixed(2)}
+                            <span className="text-xs font-normal text-stone-400">/MWh</span>
+                          </span>
+                        ) : (
+                          <span className="text-amber-400 text-sm">
+                            Tariff Incomplete
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -240,9 +252,14 @@ export function LogisticsModal({
                         e.stopPropagation();
                         handleApplyModeCosts(assessment.modes.physicalPipeline);
                       }}
-                      className="w-full py-1.5 bg-sky-700 hover:bg-sky-600 text-white font-bold rounded text-xs transition-all shadow-xs"
+                      disabled={assessment.modes.physicalPipeline.totalCostEurMwh === null}
+                      className={`w-full py-1.5 font-bold rounded text-xs transition-all shadow-xs ${
+                        assessment.modes.physicalPipeline.totalCostEurMwh !== null
+                          ? 'bg-sky-700 hover:bg-sky-600 text-white'
+                          : 'bg-stone-800 text-stone-500 cursor-not-allowed'
+                      }`}
                     >
-                      Apply Physical Wheel Costs
+                      {assessment.modes.physicalPipeline.totalCostEurMwh !== null ? 'Apply Physical Wheel Costs' : 'Incomplete Tariffs'}
                     </button>
                   </div>
                 </div>
@@ -276,8 +293,12 @@ export function LogisticsModal({
                     <div className="pt-2 border-t border-stone-800/80">
                       <div className="text-[10px] text-stone-500 uppercase">Estimated Total Friction</div>
                       <div className="text-xl font-bold text-amber-300 font-mono">
-                        €{assessment.modes.bioLng.totalCostEurMwh.toFixed(2)}
-                        <span className="text-xs font-normal text-stone-400">/MWh</span>
+                        {assessment.modes.bioLng.totalCostEurMwh !== null ? (
+                          <>
+                            €{assessment.modes.bioLng.totalCostEurMwh.toFixed(2)}
+                            <span className="text-xs font-normal text-stone-400">/MWh</span>
+                          </>
+                        ) : '—'}
                       </div>
                     </div>
                   </div>
@@ -309,11 +330,12 @@ export function LogisticsModal({
                     </span>
                   </div>
                   <span className="text-teal-400 font-bold text-sm">
-                    Total: €{
-                      selectedMode === 'VIRTUAL_SWAP' ? assessment.modes.virtualSwap.totalCostEurMwh.toFixed(2) :
-                      selectedMode === 'PHYSICAL_PIPELINE' ? assessment.modes.physicalPipeline.totalCostEurMwh.toFixed(2) :
-                      assessment.modes.bioLng.totalCostEurMwh.toFixed(2)
-                    }/MWh
+                    {(() => {
+                      const total = selectedMode === 'VIRTUAL_SWAP' ? assessment.modes.virtualSwap.totalCostEurMwh :
+                        selectedMode === 'PHYSICAL_PIPELINE' ? assessment.modes.physicalPipeline.totalCostEurMwh :
+                        assessment.modes.bioLng.totalCostEurMwh;
+                      return total !== null ? `Total: €${total.toFixed(2)}/MWh` : 'Total: Incomplete Tariffs';
+                    })()}
                   </span>
                 </div>
 
@@ -349,7 +371,7 @@ export function LogisticsModal({
                         <div className="text-[11px] text-stone-400 mt-0.5">{item.description}</div>
                       </div>
                       <div className="text-right whitespace-nowrap font-bold text-teal-300 text-sm">
-                        +€{item.costEurMwh.toFixed(2)}/MWh
+                        {item.costEurMwh !== null ? `+€${item.costEurMwh.toFixed(2)}/MWh` : <span className="text-amber-400 font-normal text-xs">UNVERIFIED</span>}
                       </div>
                     </div>
                   ))}

@@ -610,7 +610,7 @@ export function TradeBuilderScreen() {
                       <div className="flex justify-between items-center text-[11px]">
                         <label className="text-stone-400">Producer Value Share (0.00 – 1.00):</label>
                         <div className="flex gap-1.5 items-center">
-                          <span className="text-[10px] text-stone-500">Suggestions:</span>
+                          <span className="text-[10px] text-stone-500">Working Assumptions:</span>
                           <button
                             type="button"
                             onClick={() => dispatch({
@@ -619,16 +619,17 @@ export function TradeBuilderScreen() {
                                 producerPricing: {
                                   mode: 'INDEX_LINKED',
                                   fixedPriceEurPerMwh: state.costs.producerPricing?.fixedPriceEurPerMwh ?? null,
-                                  indexLinkedShare: 0.90,
-                                  source: 'Typical offtake share (UNVERIFIED)',
+                                  indexLinkedShare: 0.988,
+                                  source: 'Intermediary brokerage assumption (~€2.70/MWh desk capture on €232 netback — UNVERIFIED)',
                                   lastVerified: null,
                                   confidence: 'UNVERIFIED',
                                 }
                               }
                             })}
-                            className="px-1.5 py-0.2 bg-stone-900 hover:bg-stone-800 border border-stone-700 rounded text-[10px] font-mono text-teal-300"
+                            className="px-1.5 py-0.2 bg-stone-900 hover:bg-stone-800 border border-teal-700/60 rounded text-[10px] font-mono text-teal-300 font-bold"
+                            title="98.8% Producer Share (~€2.70/MWh Desk Capture on €232/MWh Netback)"
                           >
-                            90%
+                            98.8% (~€2.70)
                           </button>
                           <button
                             type="button"
@@ -638,16 +639,35 @@ export function TradeBuilderScreen() {
                                 producerPricing: {
                                   mode: 'INDEX_LINKED',
                                   fixedPriceEurPerMwh: state.costs.producerPricing?.fixedPriceEurPerMwh ?? null,
-                                  indexLinkedShare: 0.92,
-                                  source: 'High offtake share (UNVERIFIED)',
+                                  indexLinkedShare: 0.985,
+                                  source: '1.5% Desk Margin (UNVERIFIED)',
                                   lastVerified: null,
                                   confidence: 'UNVERIFIED',
                                 }
                               }
                             })}
-                            className="px-1.5 py-0.2 bg-stone-900 hover:bg-stone-800 border border-stone-700 rounded text-[10px] font-mono text-teal-300"
+                            className="px-1.5 py-0.2 bg-stone-900 hover:bg-stone-800 border border-stone-700 rounded text-[10px] font-mono text-stone-300"
                           >
-                            92%
+                            98.5%
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => dispatch({
+                              type: 'SET_COSTS',
+                              costs: {
+                                producerPricing: {
+                                  mode: 'INDEX_LINKED',
+                                  fixedPriceEurPerMwh: state.costs.producerPricing?.fixedPriceEurPerMwh ?? null,
+                                  indexLinkedShare: 0.99,
+                                  source: '1.0% Desk Margin (UNVERIFIED)',
+                                  lastVerified: null,
+                                  confidence: 'UNVERIFIED',
+                                }
+                              }
+                            })}
+                            className="px-1.5 py-0.2 bg-stone-900 hover:bg-stone-800 border border-stone-700 rounded text-[10px] font-mono text-stone-300"
+                          >
+                            99.0%
                           </button>
                         </div>
                       </div>

@@ -7,16 +7,16 @@ export interface InterconnectionPoint {
   toCountry: string;
   fromTso: string;
   toTso: string;
-  entryTariffEurMwh: number;
-  exitTariffEurMwh: number;
-  totalTariffEurMwh: number;
+  entryTariffEurMwh: number | null;
+  exitTariffEurMwh: number | null;
+  totalTariffEurMwh: number | null;
   capacityPlatform: 'PRISMA' | 'RBP' | 'GSA' | 'NATIONAL' | 'UNVERIFIED';
   notes?: string;
 }
 
 export interface CostLineItem {
   label: string;
-  costEurMwh: number;
+  costEurMwh: number | null;
   category: 'TARIFF' | 'COMMODITY_SPREAD' | 'REGULATORY_FEE' | 'SHRINKAGE' | 'PROCESSING' | 'FREIGHT';
   description: string;
   isOptional?: boolean;
@@ -26,11 +26,12 @@ export interface ModeCostBreakdown {
   mode: DeliveryMode;
   title: string;
   summary: string;
-  totalCostEurMwh: number;
+  totalCostEurMwh: number | null;
   lineItems: CostLineItem[];
   timelineDays: number;
   regulatoryFeasibility: 'HIGH' | 'MEDIUM' | 'COMPLEX' | 'CONTESTED' | 'LOW';
   isRecommended: boolean;
+  unverifiedLegs?: string[];
   legalBasis: string;
   pros: string[];
   cons: string[];
@@ -49,7 +50,8 @@ export interface LogisticsAssessment {
   physicalRoute: {
     interconnectionPoints: InterconnectionPoint[];
     transitingCountries: string[];
-    totalPhysicalTariffEurMwh: number;
+    totalPhysicalTariffEurMwh: number | null;
+    unverifiedLegs: string[];
     shrinkageLossPct: number;
     shrinkageEurMwh: number;
   };
