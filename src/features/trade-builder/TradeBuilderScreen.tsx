@@ -524,57 +524,117 @@ export function TradeBuilderScreen() {
           {/* Cost Inputs Breakdown */}
           <div className="bg-stone-900 border border-stone-800 rounded-xl p-4 space-y-3 font-mono text-xs">
             <div className="flex items-center justify-between border-b border-stone-800 pb-2">
-              <span className="font-bold text-stone-300 text-[11px] uppercase">Cost & Procurement Inputs</span>
-              <span className="text-[10px] text-stone-500">€/MWh</span>
+              <div>
+                <span className="font-bold text-stone-200 text-xs uppercase block">Cost & Procurement Inputs</span>
+                <span className="text-[10px] text-stone-400">Transit tariffs, certification, logistics & producer offtake</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => dispatch({
+                    type: 'SET_COSTS',
+                    costs: {
+                      transferCosts: 2.20,
+                      certificationCosts: 0.45,
+                      logistics: 1.35,
+                      deliveredCost: 65.00,
+                      otherCosts: null,
+                    }
+                  })}
+                  className="px-2 py-0.5 rounded bg-teal-950/80 border border-teal-700 text-teal-300 hover:bg-teal-900 text-[10px] font-bold transition-all"
+                  title="Auto-fill typical European cross-border freight, certification, and procurement benchmark costs"
+                >
+                  ✨ Auto-Fill Benchmarks
+                </button>
+                <button
+                  onClick={() => dispatch({
+                    type: 'SET_COSTS',
+                    costs: {
+                      transferCosts: null,
+                      certificationCosts: null,
+                      logistics: null,
+                      deliveredCost: null,
+                      otherCosts: null,
+                    }
+                  })}
+                  className="px-1.5 py-0.5 rounded bg-stone-950 border border-stone-800 text-stone-500 hover:text-stone-300 text-[10px] transition-all"
+                >
+                  Clear
+                </button>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-2 text-[11px]">
               <div>
-                <label className="block text-[9px] text-stone-400 uppercase mb-0.5">Transfer / Grid Tariffs</label>
+                <label className="block text-[9px] text-stone-400 uppercase mb-0.5">Transfer / Grid Tariffs (€/MWh)</label>
                 <input
                   type="number"
                   step="0.1"
                   value={state.costs.transferCosts ?? ''}
                   onChange={e => dispatch({ type: 'SET_COSTS', costs: { transferCosts: e.target.value === '' ? null : Number(e.target.value) } })}
-                  className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1"
-                  placeholder="e.g. 2.00"
+                  className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1 text-stone-200"
+                  placeholder="e.g. 2.20"
                 />
               </div>
 
               <div>
-                <label className="block text-[9px] text-stone-400 uppercase mb-0.5">Certification & Audit</label>
+                <label className="block text-[9px] text-stone-400 uppercase mb-0.5">Certification & UDB (€/MWh)</label>
                 <input
                   type="number"
                   step="0.1"
                   value={state.costs.certificationCosts ?? ''}
                   onChange={e => dispatch({ type: 'SET_COSTS', costs: { certificationCosts: e.target.value === '' ? null : Number(e.target.value) } })}
-                  className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1"
-                  placeholder="e.g. 0.50"
+                  className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1 text-stone-200"
+                  placeholder="e.g. 0.45"
                 />
               </div>
 
               <div>
-                <label className="block text-[9px] text-stone-400 uppercase mb-0.5">Logistics / Compression</label>
+                <label className="block text-[9px] text-stone-400 uppercase mb-0.5">Logistics / Compression (€/MWh)</label>
                 <input
                   type="number"
                   step="0.1"
                   value={state.costs.logistics ?? ''}
                   onChange={e => dispatch({ type: 'SET_COSTS', costs: { logistics: e.target.value === '' ? null : Number(e.target.value) } })}
-                  className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1"
-                  placeholder="e.g. 1.50"
+                  className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1 text-stone-200"
+                  placeholder="e.g. 1.35"
                 />
               </div>
 
               <div>
-                <label className="block text-[9px] text-stone-400 uppercase mb-0.5">Delivered Procurement Cost</label>
+                <label className="block text-[9px] text-stone-400 uppercase mb-0.5">Delivered Procurement Cost (€/MWh)</label>
                 <input
                   type="number"
                   step="0.1"
                   value={state.costs.deliveredCost ?? ''}
                   onChange={e => dispatch({ type: 'SET_COSTS', costs: { deliveredCost: e.target.value === '' ? null : Number(e.target.value) } })}
                   className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1 font-bold text-amber-300"
-                  placeholder="e.g. 85.00"
+                  placeholder="e.g. 65.00"
                 />
+              </div>
+            </div>
+
+            {/* Quick Procurement Presets */}
+            <div className="pt-1.5 border-t border-stone-800/80 flex items-center justify-between text-[10px]">
+              <span className="text-stone-500 uppercase font-bold">Procurement Presets:</span>
+              <div className="flex gap-1">
+                <button
+                  onClick={() => dispatch({ type: 'SET_COSTS', costs: { deliveredCost: 58.00 } })}
+                  className="px-1.5 py-0.5 bg-stone-950 hover:bg-stone-800 border border-stone-800 rounded text-stone-300"
+                >
+                  Agri €58
+                </button>
+                <button
+                  onClick={() => dispatch({ type: 'SET_COSTS', costs: { deliveredCost: 65.00 } })}
+                  className="px-1.5 py-0.5 bg-stone-950 hover:bg-stone-800 border border-stone-800 rounded text-stone-300"
+                >
+                  Manure €65
+                </button>
+                <button
+                  onClick={() => dispatch({ type: 'SET_COSTS', costs: { deliveredCost: 74.00 } })}
+                  className="px-1.5 py-0.5 bg-stone-950 hover:bg-stone-800 border border-stone-800 rounded text-stone-300"
+                >
+                  Spot €74
+                </button>
               </div>
             </div>
           </div>
@@ -667,6 +727,28 @@ export function TradeBuilderScreen() {
                       <div className="text-[9px] text-stone-500">Netback − Delivered Cost</div>
                     </div>
                   </div>
+
+                  {/* Unset Costs Helper Banner */}
+                  {(state.costs.deliveredCost === null || state.costs.transferCosts === null) && (
+                    <div className="bg-sky-950/40 border border-sky-800/80 rounded p-2.5 text-[11px] text-sky-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                      <span>💡 <strong>Incomplete Cost Inputs:</strong> Grid tariffs & delivered procurement costs are currently €0.00/MWh. Auto-fill market benchmarks to see complete net margins and trade P&L.</span>
+                      <button
+                        onClick={() => dispatch({
+                          type: 'SET_COSTS',
+                          costs: {
+                            transferCosts: 2.20,
+                            certificationCosts: 0.45,
+                            logistics: 1.35,
+                            deliveredCost: 65.00,
+                            otherCosts: null,
+                          }
+                        })}
+                        className="px-2.5 py-1 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded text-[10px] whitespace-nowrap transition-all shadow-xs"
+                      >
+                        Auto-Fill Benchmarks
+                      </button>
+                    </div>
+                  )}
 
                   {/* Carbon Intensity Factor */}
                   <div className="flex justify-between items-center bg-stone-900 border border-stone-800 p-2.5 rounded text-[11px]">
