@@ -1,0 +1,2053 @@
+import { BiomethanePlant, DeveloperPortfolio, CountryMacroStat } from './types';
+
+export const BIOMETHANE_PLANTS: BiomethanePlant[] = [
+  {
+    "id": "plant_fr_1",
+    "name": "BioBéarn",
+    "country": "France",
+    "countryCode": "FR",
+    "countryFlag": "🇫🇷",
+    "region": "Pyrénées-Atlantiques (Mourenx)",
+    "operator": "TotalEnergies",
+    "status": "Active",
+    "commissioningYear": 2023,
+    "capacityNm3h": 1800.0,
+    "annualEnergyGWh": 160.0,
+    "primaryFeedstockCategory": "Agro-industrial & Effluents",
+    "feedstockDetails": "Agri-food waste, crop residues & farm effluents (220,000 t/yr)",
+    "upgradingTechnology": "Membrane Separation",
+    "gridConnectionType": "Transmission Grid",
+    "networkOperator": "Teréga",
+    "certificationAndRegistry": "ODRE / ISCC EU",
+    "primaryOfftake": "Gas grid injection; Lacq chemical basin industrial decarbonization",
+    "coordinates": [
+      0.85,
+      45.15
+    ]
+  },
+  {
+    "id": "plant_fr_2",
+    "name": "BioNorrois",
+    "country": "France",
+    "countryCode": "FR",
+    "countryFlag": "🇫🇷",
+    "region": "Seine-Maritime (Fontaine-le-Dun)",
+    "operator": "TotalEnergies / Cristal Union",
+    "status": "Active",
+    "commissioningYear": 2024,
+    "capacityNm3h": 1750.0,
+    "annualEnergyGWh": 153.0,
+    "primaryFeedstockCategory": "Agro-industrial Byproducts",
+    "feedstockDetails": "Sugar beet pulp, agro-industrial residues (150,000 t/yr)",
+    "upgradingTechnology": "Membrane Separation",
+    "gridConnectionType": "Transmission Grid",
+    "networkOperator": "NaTran / GRTgaz",
+    "certificationAndRegistry": "ODRE / REDcert",
+    "primaryOfftake": "Transmission grid injection; circular sugar refinery loop",
+    "coordinates": [
+      1.3,
+      46.2
+    ]
+  },
+  {
+    "id": "plant_fr_3",
+    "name": "Claye-Souilly WAGABOX®",
+    "country": "France",
+    "countryCode": "FR",
+    "countryFlag": "🇫🇷",
+    "region": "Seine-et-Marne (Claye-Souilly)",
+    "operator": "Waga Energy / Veolia",
+    "status": "Active",
+    "commissioningYear": 2022,
+    "capacityNm3h": 1400.0,
+    "annualEnergyGWh": 120.0,
+    "primaryFeedstockCategory": "Landfill Gas (LFG)",
+    "feedstockDetails": "Raw landfill gas from ISDND Val Pôle waste center",
+    "upgradingTechnology": "WAGABOX® (Cryogenic + Membrane)",
+    "gridConnectionType": "Distribution Grid",
+    "networkOperator": "GRDF",
+    "certificationAndRegistry": "ODRE / ISCC EU",
+    "primaryOfftake": "Grid injection; 15-year BPA with ENGIE",
+    "coordinates": [
+      1.75,
+      47.25
+    ]
+  },
+  {
+    "id": "plant_fr_4",
+    "name": "Beauce Gâtinais Biogaz",
+    "country": "France",
+    "countryCode": "FR",
+    "countryFlag": "🇫🇷",
+    "region": "Loiret (Pithiviers)",
+    "operator": "ENGIE BioZ",
+    "status": "Active",
+    "commissioningYear": 2020,
+    "capacityNm3h": 270.0,
+    "annualEnergyGWh": 23.0,
+    "primaryFeedstockCategory": "Agricultural & Manure",
+    "feedstockDetails": "Manure, beet pulp, intermediate energy crops (CIVE)",
+    "upgradingTechnology": "Membrane Separation",
+    "gridConnectionType": "Distribution Grid",
+    "networkOperator": "GRDF",
+    "certificationAndRegistry": "ODRE / CPB",
+    "primaryOfftake": "Gas grid distribution; municipal and residential heating",
+    "coordinates": [
+      2.2,
+      45.85
+    ]
+  },
+  {
+    "id": "plant_fr_5",
+    "name": "Hub Biogaz d'Ardoix",
+    "country": "France",
+    "countryCode": "FR",
+    "countryFlag": "🇫🇷",
+    "region": "Ardèche (Ardoix)",
+    "operator": "Agricultural Collective / GRDF",
+    "status": "Active",
+    "commissioningYear": 2024,
+    "capacityNm3h": 400.0,
+    "annualEnergyGWh": 35.0,
+    "primaryFeedstockCategory": "Livestock Manure & Slurry",
+    "feedstockDetails": "Livestock slurry, cattle manure, agricultural residues",
+    "upgradingTechnology": "Membrane + Road Tube-Trailer Hub",
+    "gridConnectionType": "Virtual Hub / Distribution",
+    "networkOperator": "GRDF",
+    "certificationAndRegistry": "ODRE / GoO",
+    "primaryOfftake": "Virtual network aggregation (biométhane porté); Bio-GNV & grid",
+    "coordinates": [
+      2.65,
+      46.9
+    ]
+  },
+  {
+    "id": "plant_fr_6",
+    "name": "Métha-D'or & Enosis e-Méthane",
+    "country": "France",
+    "countryCode": "FR",
+    "countryFlag": "🇫🇷",
+    "region": "Aisne (Lesquielles-Saint-Germain)",
+    "operator": "SAS Métha-D'or / Enosis",
+    "status": "Active",
+    "commissioningYear": 2021,
+    "capacityNm3h": 400.0,
+    "annualEnergyGWh": 30.0,
+    "primaryFeedstockCategory": "Agri-Waste + Biogenic CO2",
+    "feedstockDetails": "Agricultural residues + biogenic CO2 biological methanation",
+    "upgradingTechnology": "Membrane + Biological PtG",
+    "gridConnectionType": "Distribution Grid",
+    "networkOperator": "GRDF",
+    "certificationAndRegistry": "ODRE / ISCC PLUS",
+    "primaryOfftake": "Grid injection; circular carbon capture & synthetic e-methane",
+    "coordinates": [
+      3.1,
+      45.5
+    ]
+  },
+  {
+    "id": "plant_fr_7",
+    "name": "Fertioise Biogaz",
+    "country": "France",
+    "countryCode": "FR",
+    "countryFlag": "🇫🇷",
+    "region": "Oise (Coudun)",
+    "operator": "SAS Fertioise / EnviTec",
+    "status": "Active",
+    "commissioningYear": 2019,
+    "capacityNm3h": 250.0,
+    "annualEnergyGWh": 22.0,
+    "primaryFeedstockCategory": "Agricultural Crops & Manure",
+    "feedstockDetails": "Sugar beet tops, maize silage, cattle manure",
+    "upgradingTechnology": "EnviThan Membrane",
+    "gridConnectionType": "Distribution Grid",
+    "networkOperator": "GRDF",
+    "certificationAndRegistry": "ODRE / CPB",
+    "primaryOfftake": "Grid injection; agricultural organic fertilizer return",
+    "coordinates": [
+      3.55,
+      46.55
+    ]
+  },
+  {
+    "id": "plant_fr_8",
+    "name": "Chagny Méthanisation",
+    "country": "France",
+    "countryCode": "FR",
+    "countryFlag": "🇫🇷",
+    "region": "Saône-et-Loire (Chagny)",
+    "operator": "SMET 71 / TotalEnergies",
+    "status": "Active",
+    "commissioningYear": 2018,
+    "capacityNm3h": 350.0,
+    "annualEnergyGWh": 30.0,
+    "primaryFeedstockCategory": "Municipal Solid Waste (OFMSW)",
+    "feedstockDetails": "Source-separated household organic biowaste",
+    "upgradingTechnology": "Water Wash + Membrane",
+    "gridConnectionType": "Transmission Grid",
+    "networkOperator": "GRTgaz",
+    "certificationAndRegistry": "ODRE / REDcert",
+    "primaryOfftake": "High-pressure transmission grid injection",
+    "coordinates": [
+      0.85,
+      45.15
+    ]
+  },
+  {
+    "id": "plant_de_9",
+    "name": "EnviTec Bioenergie Güstrow",
+    "country": "Germany",
+    "countryCode": "DE",
+    "countryFlag": "🇩🇪",
+    "region": "Mecklenburg-Vorpommern (Güstrow)",
+    "operator": "EnviTec Biogas AG",
+    "status": "Active",
+    "commissioningYear": 2009,
+    "capacityNm3h": 5000.0,
+    "annualEnergyGWh": 500.0,
+    "primaryFeedstockCategory": "Agricultural Residues & Manure",
+    "feedstockDetails": "Agricultural residues, cattle manure, dry chicken litter",
+    "upgradingTechnology": "Amine Wash + EnviThan Membrane",
+    "gridConnectionType": "Transmission & Bio-LNG Hub",
+    "networkOperator": "HanseWerk / ONTRAS",
+    "certificationAndRegistry": "dena / REDcert / ISCC EU",
+    "primaryOfftake": "Bio-LNG for heavy transport (THG-Quote) & grid injection",
+    "coordinates": [
+      9.5,
+      51.1
+    ]
+  },
+  {
+    "id": "plant_de_10",
+    "name": "VERBIO Biometan Zörbig",
+    "country": "Germany",
+    "countryCode": "DE",
+    "countryFlag": "🇩🇪",
+    "region": "Saxony-Anhalt (Zörbig)",
+    "operator": "VERBIO SE",
+    "status": "Active",
+    "commissioningYear": 2010,
+    "capacityNm3h": 3000.0,
+    "annualEnergyGWh": 300.0,
+    "primaryFeedstockCategory": "Agro-industrial & Stillage",
+    "feedstockDetails": "100% Whole distillery stillage, slops, grain residues",
+    "upgradingTechnology": "Pressureless Amine Scrubbing",
+    "gridConnectionType": "Transmission Grid",
+    "networkOperator": "ONTRAS Gastransport",
+    "certificationAndRegistry": "dena / REDcert-EU",
+    "primaryOfftake": "Bio-CNG & Bio-LNG heavy transport fuel",
+    "coordinates": [
+      9.95,
+      52.15
+    ]
+  },
+  {
+    "id": "plant_de_11",
+    "name": "VERBIO Biometan Schwedt",
+    "country": "Germany",
+    "countryCode": "DE",
+    "countryFlag": "🇩🇪",
+    "region": "Brandenburg (Schwedt/Oder)",
+    "operator": "VERBIO SE",
+    "status": "Active",
+    "commissioningYear": 2014,
+    "capacityNm3h": 3500.0,
+    "annualEnergyGWh": 350.0,
+    "primaryFeedstockCategory": "100% Cereal Straw",
+    "feedstockDetails": "Untreated agricultural straw bales & agro-residues",
+    "upgradingTechnology": "Thermal Pretreatment + Amine Wash",
+    "gridConnectionType": "Transmission Grid",
+    "networkOperator": "ONTRAS / Gasunie DE",
+    "certificationAndRegistry": "dena / REDcert-EU",
+    "primaryOfftake": "Bio-CNG & Bio-LNG transport fuel (German THG-Quote)",
+    "coordinates": [
+      10.4,
+      50.75
+    ]
+  },
+  {
+    "id": "plant_de_12",
+    "name": "WELTEC BioPower Könnern",
+    "country": "Germany",
+    "countryCode": "DE",
+    "countryFlag": "🇩🇪",
+    "region": "Saxony-Anhalt (Könnern)",
+    "operator": "Nordmethan / WELTEC",
+    "status": "Active",
+    "commissioningYear": 2009,
+    "capacityNm3h": 1250.0,
+    "annualEnergyGWh": 130.0,
+    "primaryFeedstockCategory": "Agricultural Silage & Manure",
+    "feedstockDetails": "Maize and whole-crop silage, liquid manure",
+    "upgradingTechnology": "Water Scrubbing + Chemical",
+    "gridConnectionType": "Transmission Grid",
+    "networkOperator": "ONTRAS Gastransport",
+    "certificationAndRegistry": "dena / REDcert",
+    "primaryOfftake": "Grid injection for electricity/heating & CHP",
+    "coordinates": [
+      10.85,
+      51.8
+    ]
+  },
+  {
+    "id": "plant_de_13",
+    "name": "Südzucker Brottewitz",
+    "country": "Germany",
+    "countryCode": "DE",
+    "countryFlag": "🇩🇪",
+    "region": "Brandenburg (Mühlberg)",
+    "operator": "Südzucker AG",
+    "status": "Active",
+    "commissioningYear": 2011,
+    "capacityNm3h": 700.0,
+    "annualEnergyGWh": 70.0,
+    "primaryFeedstockCategory": "Agro-industrial Sugar Beet",
+    "feedstockDetails": "Sugar beet pulp, industrial processing residues",
+    "upgradingTechnology": "Amine Scrubbing & Membrane",
+    "gridConnectionType": "Transmission Grid",
+    "networkOperator": "ONTRAS Gastransport",
+    "certificationAndRegistry": "dena / REDcert",
+    "primaryOfftake": "Industrial process energy & grid balancing",
+    "coordinates": [
+      11.3,
+      50.4
+    ]
+  },
+  {
+    "id": "plant_de_14",
+    "name": "Balance Gordemitz",
+    "country": "Germany",
+    "countryCode": "DE",
+    "countryFlag": "🇩🇪",
+    "region": "Saxony (Jesewitz)",
+    "operator": "Balance Erneuerbare Energien (VNG)",
+    "status": "Active",
+    "commissioningYear": 2011,
+    "capacityNm3h": 700.0,
+    "annualEnergyGWh": 70.0,
+    "primaryFeedstockCategory": "Agricultural Slurry & Crops",
+    "feedstockDetails": "Cattle slurry, maize silage, catch crops",
+    "upgradingTechnology": "Amine Scrubbing",
+    "gridConnectionType": "Distribution Grid",
+    "networkOperator": "MITNETZ GAS / ONTRAS",
+    "certificationAndRegistry": "dena / REDcert",
+    "primaryOfftake": "Heating market & CHP balancing",
+    "coordinates": [
+      11.75,
+      51.45
+    ]
+  },
+  {
+    "id": "plant_de_15",
+    "name": "Bioenergie Tauberfranken",
+    "country": "Germany",
+    "countryCode": "DE",
+    "countryFlag": "🇩🇪",
+    "region": "Baden-Württemberg (Bad Mergentheim)",
+    "operator": "Erdgas Südwest GmbH",
+    "status": "Active",
+    "commissioningYear": 2015,
+    "capacityNm3h": 350.0,
+    "annualEnergyGWh": 35.0,
+    "primaryFeedstockCategory": "Agricultural Residues & Slurry",
+    "feedstockDetails": "Agricultural residues, cattle/pig slurry, energy crops",
+    "upgradingTechnology": "Evonik SEPURAN Membrane",
+    "gridConnectionType": "Distribution Grid",
+    "networkOperator": "Netze BW",
+    "certificationAndRegistry": "dena / REDcert",
+    "primaryOfftake": "Regional heating network & Bio-CNG mobility",
+    "coordinates": [
+      9.05,
+      50.05
+    ]
+  },
+  {
+    "id": "plant_dk_16",
+    "name": "Nature Energy Korskro",
+    "country": "Denmark",
+    "countryCode": "DK",
+    "countryFlag": "🇩🇰",
+    "region": "Southern Denmark (Esbjerg)",
+    "operator": "Nature Energy (Shell)",
+    "status": "Active",
+    "commissioningYear": 2018,
+    "capacityNm3h": 4500.0,
+    "annualEnergyGWh": 420.0,
+    "primaryFeedstockCategory": "Manure & Agro-industrial",
+    "feedstockDetails": "Liquid cattle/pig manure, straw, organic food waste (710,000 t/yr)",
+    "upgradingTechnology": "Amine Scrubbing (Ammongas)",
+    "gridConnectionType": "Transmission Grid",
+    "networkOperator": "Energinet",
+    "certificationAndRegistry": "Energinet / ISCC EU / ERGaR",
+    "primaryOfftake": "Gas grid decarbonization; cross-border export to DE/NL",
+    "coordinates": [
+      8.6,
+      56.0
+    ]
+  },
+  {
+    "id": "plant_dk_17",
+    "name": "BioCirc Vinkel Bioenergi",
+    "country": "Denmark",
+    "countryCode": "DK",
+    "countryFlag": "🇩🇰",
+    "region": "Central Denmark (Skive)",
+    "operator": "BioCirc Group",
+    "status": "Active",
+    "commissioningYear": 2019,
+    "capacityNm3h": 4800.0,
+    "annualEnergyGWh": 460.0,
+    "primaryFeedstockCategory": "Agricultural Slurry & Waste",
+    "feedstockDetails": "Cattle/pig slurry, deep litter, organic food waste",
+    "upgradingTechnology": "Amine Scrubbing + Biogenic CCS",
+    "gridConnectionType": "Transmission Grid",
+    "networkOperator": "Energinet",
+    "certificationAndRegistry": "Energinet / ISCC EU / Puro.earth",
+    "primaryOfftake": "Grid injection, green gas export & biogenic CO2 CDR",
+    "coordinates": [
+      9.05,
+      57.05
+    ]
+  },
+  {
+    "id": "plant_dk_18",
+    "name": "Nature Energy Holsted",
+    "country": "Denmark",
+    "countryCode": "DK",
+    "countryFlag": "🇩🇰",
+    "region": "Southern Denmark (Vejen)",
+    "operator": "Nature Energy (Shell)",
+    "status": "Active",
+    "commissioningYear": 2015,
+    "capacityNm3h": 2800.0,
+    "annualEnergyGWh": 260.0,
+    "primaryFeedstockCategory": "Manure & Organic Residues",
+    "feedstockDetails": "Farm manure, organic industrial waste, crop residues",
+    "upgradingTechnology": "Amine Scrubbing",
+    "gridConnectionType": "Distribution Grid",
+    "networkOperator": "Evida / Energinet",
+    "certificationAndRegistry": "Energinet / ISCC EU",
+    "primaryOfftake": "Grid injection and heavy transport export",
+    "coordinates": [
+      9.5,
+      55.65
+    ]
+  },
+  {
+    "id": "plant_dk_19",
+    "name": "Tønder Biogas",
+    "country": "Denmark",
+    "countryCode": "DK",
+    "countryFlag": "🇩🇰",
+    "region": "Southern Denmark (Tønder)",
+    "operator": "Tønder Biogas / ENVO",
+    "status": "Active",
+    "commissioningYear": 2021,
+    "capacityNm3h": 3800.0,
+    "annualEnergyGWh": 360.0,
+    "primaryFeedstockCategory": "Agricultural Manure & Straw",
+    "feedstockDetails": "Slurry, deep litter, agricultural crops",
+    "upgradingTechnology": "Amine Scrubbing (Ammongas)",
+    "gridConnectionType": "Transmission Grid",
+    "networkOperator": "Energinet",
+    "certificationAndRegistry": "Energinet / ISCC EU / REDcert",
+    "primaryOfftake": "Cross-border export to Germany/Netherlands & Bio-CNG",
+    "coordinates": [
+      9.95,
+      56.7
+    ]
+  },
+  {
+    "id": "plant_dk_20",
+    "name": "Bigadan Kalundborg",
+    "country": "Denmark",
+    "countryCode": "DK",
+    "countryFlag": "🇩🇰",
+    "region": "Zealand (Kalundborg)",
+    "operator": "Bigadan",
+    "status": "Active",
+    "commissioningYear": 2018,
+    "capacityNm3h": 2000.0,
+    "annualEnergyGWh": 190.0,
+    "primaryFeedstockCategory": "Industrial Yeast & Slurry",
+    "feedstockDetails": "Yeast/enzyme biomass (Novonesis), agricultural slurry",
+    "upgradingTechnology": "Biological Desulf. + Amine",
+    "gridConnectionType": "Distribution Grid",
+    "networkOperator": "Evida / Energinet",
+    "certificationAndRegistry": "Energinet / ISCC EU",
+    "primaryOfftake": "Industrial symbiosis & grid injection",
+    "coordinates": [
+      10.4,
+      55.3
+    ]
+  },
+  {
+    "id": "plant_nl_21",
+    "name": "Attero Wijster Biomethane Hub",
+    "country": "Netherlands",
+    "countryCode": "NL",
+    "countryFlag": "🇳🇱",
+    "region": "Drenthe (Wijster)",
+    "operator": "Attero B.V.",
+    "status": "Active",
+    "commissioningYear": 2014,
+    "capacityNm3h": 3000.0,
+    "annualEnergyGWh": 250.0,
+    "primaryFeedstockCategory": "Landfill Gas & Organic Biowaste",
+    "feedstockDetails": "LFG extraction + source-separated household VGF/GFT waste",
+    "upgradingTechnology": "Water Wash + Multi-Stage Membrane",
+    "gridConnectionType": "DSO & TSO via Booster",
+    "networkOperator": "Enexis / Gasunie GTS",
+    "certificationAndRegistry": "VertiCer / ISCC EU",
+    "primaryOfftake": "Groen Gas Booster grid injection & industrial offtake",
+    "coordinates": [
+      6.65,
+      52.45
+    ]
+  },
+  {
+    "id": "plant_nl_22",
+    "name": "Nature Energy Coevorden",
+    "country": "Netherlands",
+    "countryCode": "NL",
+    "countryFlag": "🇳🇱",
+    "region": "Drenthe (Coevorden)",
+    "operator": "Nature Energy (Shell)",
+    "status": "Active",
+    "commissioningYear": 2022,
+    "capacityNm3h": 1800.0,
+    "annualEnergyGWh": 160.0,
+    "primaryFeedstockCategory": "Animal Manure & Agri-Waste",
+    "feedstockDetails": "Cattle/pig manure, agro-industrial byproducts",
+    "upgradingTechnology": "Amine Chemical Scrubbing",
+    "gridConnectionType": "Regional / Transmission",
+    "networkOperator": "Rendo / Gasunie GTS",
+    "certificationAndRegistry": "VertiCer / ISCC EU / REDcert",
+    "primaryOfftake": "High-pressure grid injection & Dutch HBE transport quota",
+    "coordinates": [
+      3.95,
+      51.05
+    ]
+  },
+  {
+    "id": "plant_nl_23",
+    "name": "Suiker Unie Vierverlaten",
+    "country": "Netherlands",
+    "countryCode": "NL",
+    "countryFlag": "🇳🇱",
+    "region": "Groningen (Hoogkerk)",
+    "operator": "Royal Cosun (Suiker Unie)",
+    "status": "Active",
+    "commissioningYear": 2011,
+    "capacityNm3h": 1500.0,
+    "annualEnergyGWh": 130.0,
+    "primaryFeedstockCategory": "Agro-industrial Sugar Beet",
+    "feedstockDetails": "Sugar beet pulp, wash water residues, agro-byproducts",
+    "upgradingTechnology": "Pressurized Water Scrubbing",
+    "gridConnectionType": "Distribution & Transmission",
+    "networkOperator": "Enexis / Gasunie GTS",
+    "certificationAndRegistry": "VertiCer / REDcert",
+    "primaryOfftake": "Sugar campaign biomethane injection & factory boilers",
+    "coordinates": [
+      4.4,
+      52.1
+    ]
+  },
+  {
+    "id": "plant_nl_24",
+    "name": "Renewi & Nordsol Westpoort",
+    "country": "Netherlands",
+    "countryCode": "NL",
+    "countryFlag": "🇳🇱",
+    "region": "North Holland (Amsterdam)",
+    "operator": "Renewi / Nordsol / Shell",
+    "status": "Active",
+    "commissioningYear": 2021,
+    "capacityNm3h": 450.0,
+    "annualEnergyGWh": 40.0,
+    "primaryFeedstockCategory": "Commercial Food Waste",
+    "feedstockDetails": "Supermarket out-of-date food & restaurant organic scraps",
+    "upgradingTechnology": "Membrane + Smart Cryo Liquefaction",
+    "gridConnectionType": "Off-grid Bio-LNG Hub",
+    "networkOperator": "Off-grid (Shell LNG network)",
+    "certificationAndRegistry": "ISCC EU PoS",
+    "primaryOfftake": "Bio-LNG for heavy-duty trucking & maritime bunkering",
+    "coordinates": [
+      4.85,
+      53.15
+    ]
+  },
+  {
+    "id": "plant_gb_25",
+    "name": "Minworth Sewage Works",
+    "country": "United Kingdom",
+    "countryCode": "GB",
+    "countryFlag": "🇬🇧",
+    "region": "West Midlands (Birmingham)",
+    "operator": "Severn Trent Green Power",
+    "status": "Active",
+    "commissioningYear": 2014,
+    "capacityNm3h": 1400.0,
+    "annualEnergyGWh": 120.0,
+    "primaryFeedstockCategory": "Wastewater Sewage Sludge",
+    "feedstockDetails": "Municipal sewage sludge treated via thermal hydrolysis (THP)",
+    "upgradingTechnology": "Water Scrubbing & Membrane",
+    "gridConnectionType": "Local Transmission System",
+    "networkOperator": "Cadent Gas",
+    "certificationAndRegistry": "Ofgem RHI/GGSS / GGCS",
+    "primaryOfftake": "National gas transmission grid injection & heating",
+    "coordinates": [
+      -1.5,
+      52.15
+    ]
+  },
+  {
+    "id": "plant_gb_26",
+    "name": "Coleshill FWAD",
+    "country": "United Kingdom",
+    "countryCode": "GB",
+    "countryFlag": "🇬🇧",
+    "region": "Warwickshire (Coleshill)",
+    "operator": "Severn Trent Green Power",
+    "status": "Active",
+    "commissioningYear": 2019,
+    "capacityNm3h": 1000.0,
+    "annualEnergyGWh": 80.0,
+    "primaryFeedstockCategory": "Commercial Food Waste",
+    "feedstockDetails": "Source-separated commercial and municipal food waste",
+    "upgradingTechnology": "Air Liquide Membrane + VOC PSA",
+    "gridConnectionType": "Intermediate Pressure Grid",
+    "networkOperator": "Cadent Gas",
+    "certificationAndRegistry": "Ofgem RHI / GGCS / ISCC EU",
+    "primaryOfftake": "Gas grid injection & RTFO transport displacement",
+    "coordinates": [
+      -1.05,
+      53.2
+    ]
+  },
+  {
+    "id": "plant_gb_27",
+    "name": "GENeco Bristol Sewage Works",
+    "country": "United Kingdom",
+    "countryCode": "GB",
+    "countryFlag": "🇬🇧",
+    "region": "South West England (Avonmouth)",
+    "operator": "GENeco (Wessex Water)",
+    "status": "Active",
+    "commissioningYear": 2014,
+    "capacityNm3h": 1200.0,
+    "annualEnergyGWh": 95.0,
+    "primaryFeedstockCategory": "Sewage Sludge & Food Waste",
+    "feedstockDetails": "Sewage sludge & commercial packaged food waste",
+    "upgradingTechnology": "Water Wash + Carbon Filter",
+    "gridConnectionType": "Distribution Grid",
+    "networkOperator": "Wales & West Utilities",
+    "certificationAndRegistry": "Ofgem RHI / GGCS / RTFO",
+    "primaryOfftake": "Grid injection & Bio-Bus / Bio-Bug vehicle refueling",
+    "coordinates": [
+      -0.6,
+      51.8
+    ]
+  },
+  {
+    "id": "plant_gb_28",
+    "name": "Rainbarrow Farm (Poundbury)",
+    "country": "United Kingdom",
+    "countryCode": "GB",
+    "countryFlag": "🇬🇧",
+    "region": "Dorset (Poundbury)",
+    "operator": "JV Energen / JX Nippon",
+    "status": "Active",
+    "commissioningYear": 2012,
+    "capacityNm3h": 650.0,
+    "annualEnergyGWh": 55.0,
+    "primaryFeedstockCategory": "Agricultural Crops & Manure",
+    "feedstockDetails": "Farm maize silage, slurry & local food waste",
+    "upgradingTechnology": "Amine Wash (DMT)",
+    "gridConnectionType": "Distribution Grid",
+    "networkOperator": "Southern Gas Networks (SGN)",
+    "certificationAndRegistry": "Ofgem RHI / GGCS",
+    "primaryOfftake": "UK 1st commercial biomethane grid injection",
+    "coordinates": [
+      -0.15,
+      52.85
+    ]
+  },
+  {
+    "id": "plant_it_29",
+    "name": "Montello Biomethane Hub",
+    "country": "Italy",
+    "countryCode": "IT",
+    "countryFlag": "🇮🇹",
+    "region": "Lombardy (Montello, Bergamo)",
+    "operator": "Montello S.p.A.",
+    "status": "Active",
+    "commissioningYear": 2017,
+    "capacityNm3h": 2400.0,
+    "annualEnergyGWh": 350.0,
+    "primaryFeedstockCategory": "Municipal Solid Waste (FORSU)",
+    "feedstockDetails": "Source-separated organic fraction of municipal waste (600k t/yr)",
+    "upgradingTechnology": "Water Scrubbing + CO2 Liquefaction",
+    "gridConnectionType": "Transmission Grid",
+    "networkOperator": "SNAM Rete Gas",
+    "certificationAndRegistry": "GSE / ISCC EU / CIC",
+    "primaryOfftake": "Direct SNAM grid injection & Bio-CNG for transport",
+    "coordinates": [
+      11.15,
+      40.85
+    ]
+  },
+  {
+    "id": "plant_it_30",
+    "name": "Sant'Agata Bolognese Biomethane",
+    "country": "Italy",
+    "countryCode": "IT",
+    "countryFlag": "🇮🇹",
+    "region": "Emilia-Romagna (Bologna)",
+    "operator": "Herambiente (Gruppo Hera)",
+    "status": "Active",
+    "commissioningYear": 2018,
+    "capacityNm3h": 1000.0,
+    "annualEnergyGWh": 85.0,
+    "primaryFeedstockCategory": "OFMSW (FORSU) & Green Waste",
+    "feedstockDetails": "Municipal brown bin food waste and garden cuttings",
+    "upgradingTechnology": "Water Wash / PSA",
+    "gridConnectionType": "Distribution Grid",
+    "networkOperator": "InGrid / SNAM",
+    "certificationAndRegistry": "GSE / ISCC EU / CIC",
+    "primaryOfftake": "Grid injection & municipal public transit Bio-CNG",
+    "coordinates": [
+      11.6,
+      41.9
+    ]
+  },
+  {
+    "id": "plant_it_31",
+    "name": "Caviro Extra Bio-LNG",
+    "country": "Italy",
+    "countryCode": "IT",
+    "countryFlag": "🇮🇹",
+    "region": "Emilia-Romagna (Faenza)",
+    "operator": "Caviro Extra S.p.A.",
+    "status": "Active",
+    "commissioningYear": 2019,
+    "capacityNm3h": 1600.0,
+    "annualEnergyGWh": 130.0,
+    "primaryFeedstockCategory": "Agro-industrial Winery Byproducts",
+    "feedstockDetails": "Grape pomace, wine lees, agro-industrial slurry",
+    "upgradingTechnology": "3-Stage Membrane + Cryo LBG",
+    "gridConnectionType": "Transmission & Bio-LNG",
+    "networkOperator": "SNAM Rete Gas",
+    "certificationAndRegistry": "GSE / ISCC EU",
+    "primaryOfftake": "Bio-LNG for heavy haulage & SNAM pipeline injection",
+    "coordinates": [
+      12.05,
+      42.95
+    ]
+  },
+  {
+    "id": "plant_es_32",
+    "name": "Can Mata Landfill WAGABOX®",
+    "country": "Spain",
+    "countryCode": "ES",
+    "countryFlag": "🇪🇸",
+    "region": "Catalonia (Els Hostalets de Pierola)",
+    "operator": "Waga Energy / PreZero",
+    "status": "Active",
+    "commissioningYear": 2023,
+    "capacityNm3h": 2200.0,
+    "annualEnergyGWh": 70.0,
+    "primaryFeedstockCategory": "Landfill Gas (LFG)",
+    "feedstockDetails": "Landfill gas from municipal solid waste landfill",
+    "upgradingTechnology": "WAGABOX® (Cryogenic + Membrane)",
+    "gridConnectionType": "Distribution Grid (Reverse-flow)",
+    "networkOperator": "Nedgia (Naturgy)",
+    "certificationAndRegistry": "Enagás GTS GdO / ISCC EU",
+    "primaryOfftake": "First LFG biomethane grid injection in Spain",
+    "coordinates": [
+      -3.7,
+      40.05
+    ]
+  },
+  {
+    "id": "plant_es_33",
+    "name": "UNUE Biomethane Burgos",
+    "country": "Spain",
+    "countryCode": "ES",
+    "countryFlag": "🇪🇸",
+    "region": "Castilla y León (Burgos)",
+    "operator": "Suma Capital / Enagás Renovable",
+    "status": "Active",
+    "commissioningYear": 2021,
+    "capacityNm3h": 300.0,
+    "annualEnergyGWh": 20.0,
+    "primaryFeedstockCategory": "Agro-industrial Organic Waste",
+    "feedstockDetails": "Agro-food processing residues, slurry, organic waste",
+    "upgradingTechnology": "Membrane Separation (Biovic)",
+    "gridConnectionType": "Distribution Grid",
+    "networkOperator": "Nedgia",
+    "certificationAndRegistry": "Enagás GTS GdO / ISCC EU",
+    "primaryOfftake": "First private industrial biomethane grid injection in Spain",
+    "coordinates": [
+      -3.25,
+      41.1
+    ]
+  },
+  {
+    "id": "plant_es_34",
+    "name": "Valdemingómez PTB",
+    "country": "Spain",
+    "countryCode": "ES",
+    "countryFlag": "🇪🇸",
+    "region": "Community of Madrid (Madrid)",
+    "operator": "Ayuntamiento de Madrid / PreZero",
+    "status": "Active",
+    "commissioningYear": 2014,
+    "capacityNm3h": 4800.0,
+    "annualEnergyGWh": 170.0,
+    "primaryFeedstockCategory": "Municipal Solid Waste (OFMSW)",
+    "feedstockDetails": "Source-separated organic municipal waste",
+    "upgradingTechnology": "PSA / Water Scrubbing",
+    "gridConnectionType": "Primary Transmission Grid",
+    "networkOperator": "Enagás",
+    "certificationAndRegistry": "Enagás GTS GdO / ISCC EU",
+    "primaryOfftake": "Enagás grid injection & Madrid EMT municipal bus fleet",
+    "coordinates": [
+      -2.8,
+      39.7
+    ]
+  },
+  {
+    "id": "plant_es_35",
+    "name": "Torre Santamaría",
+    "country": "Spain",
+    "countryCode": "ES",
+    "countryFlag": "🇪🇸",
+    "region": "Catalonia (Vallfogona de Balaguer)",
+    "operator": "Granja Torre Santamaría / Axpo",
+    "status": "Active",
+    "commissioningYear": 2022,
+    "capacityNm3h": 350.0,
+    "annualEnergyGWh": 30.0,
+    "primaryFeedstockCategory": "100% Dairy Cattle Manure",
+    "feedstockDetails": "Dairy cattle slurry and manure from 2,000+ cows",
+    "upgradingTechnology": "Membrane Separation",
+    "gridConnectionType": "Distribution Grid",
+    "networkOperator": "Nedgia",
+    "certificationAndRegistry": "Enagás GTS GdO / ISCC EU",
+    "primaryOfftake": "Spain's 1st livestock biomethane injection; Axpo BPA",
+    "coordinates": [
+      -2.35,
+      40.75
+    ]
+  },
+  {
+    "id": "plant_se_36",
+    "name": "Gasum Götene Bio-LNG",
+    "country": "Sweden",
+    "countryCode": "SE",
+    "countryFlag": "🇸🇪",
+    "region": "Västra Götaland (Götene)",
+    "operator": "Gasum AB",
+    "status": "Active",
+    "commissioningYear": 2024,
+    "capacityNm3h": 1400.0,
+    "annualEnergyGWh": 120.0,
+    "primaryFeedstockCategory": "Agricultural Manure & Slurry",
+    "feedstockDetails": "Cattle and pig manure (400k t/yr), agricultural residues",
+    "upgradingTechnology": "Amine Wash + Cryogenic LBG",
+    "gridConnectionType": "Off-grid Bio-LNG Hub",
+    "networkOperator": "Off-grid (Gasum Fuel Network)",
+    "certificationAndRegistry": "Swedish Energy Agency / ISCC EU",
+    "primaryOfftake": "Bio-LNG for heavy road transport & maritime shipping",
+    "coordinates": [
+      16.65,
+      58.25
+    ]
+  },
+  {
+    "id": "plant_se_37",
+    "name": "St1 Biokraft Mönsterås",
+    "country": "Sweden",
+    "countryCode": "SE",
+    "countryFlag": "🇸🇪",
+    "region": "Kalmar County (Mönsterås)",
+    "operator": "St1 Biokraft / Mönsterås Bio",
+    "status": "Active",
+    "commissioningYear": 2024,
+    "capacityNm3h": 1450.0,
+    "annualEnergyGWh": 125.0,
+    "primaryFeedstockCategory": "Manure & Agro-residues",
+    "feedstockDetails": "Livestock manure (300k t/yr), agro-industrial co-products",
+    "upgradingTechnology": "Cryogenic Liquefaction / Amine",
+    "gridConnectionType": "Off-grid Bio-LNG Hub",
+    "networkOperator": "Off-grid (St1/Biokraft logistics)",
+    "certificationAndRegistry": "ISCC EU / REDcert",
+    "primaryOfftake": "Heavy commercial transport & Nordic logistics fleet",
+    "coordinates": [
+      17.1,
+      59.3
+    ]
+  },
+  {
+    "id": "plant_se_38",
+    "name": "Biokraft Södertörn",
+    "country": "Sweden",
+    "countryCode": "SE",
+    "countryFlag": "🇸🇪",
+    "region": "Stockholm (Huddinge)",
+    "operator": "St1 Biokraft / SRV",
+    "status": "Active",
+    "commissioningYear": 2015,
+    "capacityNm3h": 1200.0,
+    "annualEnergyGWh": 100.0,
+    "primaryFeedstockCategory": "Municipal Food Waste",
+    "feedstockDetails": "Source-separated household and commercial food waste",
+    "upgradingTechnology": "Amine Wash + Wärtsilä Cryo",
+    "gridConnectionType": "Stockholm Grid & Bio-LNG",
+    "networkOperator": "Gasgrid Stockholm / Bio-LNG",
+    "certificationAndRegistry": "ISCC EU / Swedish GoO",
+    "primaryOfftake": "Stockholm public transit buses & heavy vehicle Bio-LNG",
+    "coordinates": [
+      17.55,
+      60.35
+    ]
+  },
+  {
+    "id": "plant_se_39",
+    "name": "Gasum Nymölla",
+    "country": "Sweden",
+    "countryCode": "SE",
+    "countryFlag": "🇸🇪",
+    "region": "Skåne (Bromölla)",
+    "operator": "Gasum AB / Stora Enso",
+    "status": "Active",
+    "commissioningYear": 2020,
+    "capacityNm3h": 900.0,
+    "annualEnergyGWh": 80.0,
+    "primaryFeedstockCategory": "Pulp & Paper Industrial Wastewater",
+    "feedstockDetails": "Process wastewater effluent from Stora Enso paper mill",
+    "upgradingTechnology": "Wärtsilä Cryogenic Liquefaction",
+    "gridConnectionType": "Off-grid Bio-LNG Hub",
+    "networkOperator": "Off-grid",
+    "certificationAndRegistry": "ISCC EU / RED II",
+    "primaryOfftake": "Industrial symbiosis & heavy transport Bio-LNG",
+    "coordinates": [
+      18.0,
+      58.95
+    ]
+  },
+  {
+    "id": "plant_no_40",
+    "name": "Biokraft Skogn",
+    "country": "Norway",
+    "countryCode": "NO",
+    "countryFlag": "🇳🇴",
+    "region": "Trøndelag (Levanger)",
+    "operator": "Biokraft AS",
+    "status": "Active",
+    "commissioningYear": 2018,
+    "capacityNm3h": 2900.0,
+    "annualEnergyGWh": 250.0,
+    "primaryFeedstockCategory": "Fish Sludge & Paper Mill Waste",
+    "feedstockDetails": "Aquaculture fish ensilage, Norske Skog paper sludge, manure",
+    "upgradingTechnology": "Amine Wash + Wärtsilä Cryo",
+    "gridConnectionType": "Off-grid Maritime Bio-LNG",
+    "networkOperator": "Off-grid (Bunkering terminal)",
+    "certificationAndRegistry": "ISCC EU / REDcert",
+    "primaryOfftake": "Maritime shipping (Hurtigruten cruise fleet) & heavy trucks",
+    "coordinates": [
+      8.85,
+      61.1
+    ]
+  },
+  {
+    "id": "plant_no_41",
+    "name": "Den Magiske Fabrikken",
+    "country": "Norway",
+    "countryCode": "NO",
+    "countryFlag": "🇳🇴",
+    "region": "Vestfold (Tønsberg)",
+    "operator": "Greve Biogass / Lindum",
+    "status": "Active",
+    "commissioningYear": 2016,
+    "capacityNm3h": 1400.0,
+    "annualEnergyGWh": 120.0,
+    "primaryFeedstockCategory": "Food Waste & Livestock Slurry",
+    "feedstockDetails": "Food waste from 1.2M citizens, cattle/pig slurry",
+    "upgradingTechnology": "Amine Scrubbing + CO2 Capture",
+    "gridConnectionType": "Off-grid Regional Grid",
+    "networkOperator": "Off-grid / Bio-CNG Hub",
+    "certificationAndRegistry": "Norwegian Environment Agency GoO",
+    "primaryOfftake": "Vestfold municipal buses, green fertilizer & greenhouse CO2",
+    "coordinates": [
+      9.3,
+      59.7
+    ]
+  },
+  {
+    "id": "plant_fi_42",
+    "name": "Gasum Turku Topinoja",
+    "country": "Finland",
+    "countryCode": "FI",
+    "countryFlag": "🇫🇮",
+    "region": "Southwest Finland (Turku)",
+    "operator": "Gasum Oy",
+    "status": "Active",
+    "commissioningYear": 2020,
+    "capacityNm3h": 700.0,
+    "annualEnergyGWh": 60.0,
+    "primaryFeedstockCategory": "Sewage Sludge & Food Waste",
+    "feedstockDetails": "Municipal wastewater sludge & commercial biowaste",
+    "upgradingTechnology": "Amine Wash + Liquefaction",
+    "gridConnectionType": "Gasgrid Finland & Bio-LNG",
+    "networkOperator": "Gasgrid Finland",
+    "certificationAndRegistry": "Energy Authority Finland / ISCC EU",
+    "primaryOfftake": "Finland's first Bio-LNG plant; maritime & heavy transport",
+    "coordinates": [
+      26.25,
+      60.45
+    ]
+  },
+  {
+    "id": "plant_be_43",
+    "name": "Green Logix Biogas",
+    "country": "Belgium",
+    "countryCode": "BE",
+    "countryFlag": "🇧🇪",
+    "region": "Limburg (Lommel)",
+    "operator": "Green Logix / Farm Frites",
+    "status": "Active",
+    "commissioningYear": 2024,
+    "capacityNm3h": 800.0,
+    "annualEnergyGWh": 68.0,
+    "primaryFeedstockCategory": "Potato Processing Residues",
+    "feedstockDetails": "Industrial potato peelings & starch processing effluents",
+    "upgradingTechnology": "Membrane Separation",
+    "gridConnectionType": "Transmission Grid",
+    "networkOperator": "Fluxys Belgium",
+    "certificationAndRegistry": "Fluxys / VREG (AIB) / ISCC EU",
+    "primaryOfftake": "First direct transmission grid connection in Belgium",
+    "coordinates": [
+      2.95,
+      49.75
+    ]
+  },
+  {
+    "id": "plant_be_44",
+    "name": "Cinergie Fleurus",
+    "country": "Belgium",
+    "countryCode": "BE",
+    "countryFlag": "🇧🇪",
+    "region": "Hainaut (Fleurus)",
+    "operator": "Coopérative Cinergie",
+    "status": "Active",
+    "commissioningYear": 2020,
+    "capacityNm3h": 600.0,
+    "annualEnergyGWh": 52.0,
+    "primaryFeedstockCategory": "Cattle Manure & Crops",
+    "feedstockDetails": "Cattle manure, corn silage, agro-industrial co-products",
+    "upgradingTechnology": "Multi-stage Membrane Permeation",
+    "gridConnectionType": "Distribution Grid",
+    "networkOperator": "ORES",
+    "certificationAndRegistry": "SPW / CertiCarb / ERGaR",
+    "primaryOfftake": "First biomethane grid injection in Wallonia",
+    "coordinates": [
+      3.4,
+      50.8
+    ]
+  },
+  {
+    "id": "plant_lu_45",
+    "name": "Minett-Kompost Méthanisation",
+    "country": "Luxembourg",
+    "countryCode": "LU",
+    "countryFlag": "🇱🇺",
+    "region": "Esch-sur-Alzette (Mondercange)",
+    "operator": "Syndicat Minett-Kompost",
+    "status": "Active",
+    "commissioningYear": 2011,
+    "capacityNm3h": 220.0,
+    "annualEnergyGWh": 18.0,
+    "primaryFeedstockCategory": "Municipal Organic Waste",
+    "feedstockDetails": "Source-separated biowaste from 16 southern communes (35k t/yr)",
+    "upgradingTechnology": "Dry AD + Membrane",
+    "gridConnectionType": "Distribution Grid",
+    "networkOperator": "Creos Luxembourg",
+    "certificationAndRegistry": "ILR / Biogasvereenegung",
+    "primaryOfftake": "First biomethane injection site in Luxembourg; municipal heat",
+    "coordinates": [
+      9.55,
+      51.05
+    ]
+  },
+  {
+    "id": "plant_lt_46",
+    "name": "Tube Green Pasvalys",
+    "country": "Lithuania",
+    "countryCode": "LT",
+    "countryFlag": "🇱🇹",
+    "region": "Panevėžys (Pasvalys)",
+    "operator": "Tube Green UAB / Kurana",
+    "status": "Active",
+    "commissioningYear": 2023,
+    "capacityNm3h": 1300.0,
+    "annualEnergyGWh": 115.0,
+    "primaryFeedstockCategory": "Agro-industrial Bioethanol Vinasse",
+    "feedstockDetails": "Distillery vinasse from bioethanol production & food waste",
+    "upgradingTechnology": "Bright Renewables Membrane",
+    "gridConnectionType": "Transmission Grid (Direct)",
+    "networkOperator": "Amber Grid",
+    "certificationAndRegistry": "Amber Grid GoO / ERGaR",
+    "primaryOfftake": "Amber Grid transmission injection (1% national demand) & export",
+    "coordinates": [
+      24.0,
+      54.65
+    ]
+  },
+  {
+    "id": "plant_ee_47",
+    "name": "Rohegaas Kunda",
+    "country": "Estonia",
+    "countryCode": "EE",
+    "countryFlag": "🇪🇪",
+    "region": "Lääne-Viru (Kunda)",
+    "operator": "AS Rohegaas / Estonian Cell",
+    "status": "Active",
+    "commissioningYear": 2017,
+    "capacityNm3h": 700.0,
+    "annualEnergyGWh": 60.0,
+    "primaryFeedstockCategory": "Pulp Mill Wastewater",
+    "feedstockDetails": "Aspen pulp mill process wastewater effluent",
+    "upgradingTechnology": "Membrane Separation",
+    "gridConnectionType": "Transmission Grid",
+    "networkOperator": "Elering",
+    "certificationAndRegistry": "Elering GoO / ERGaR",
+    "primaryOfftake": "Estonian municipal public bus fleets & grid injection",
+    "coordinates": [
+      25.45,
+      59.2
+    ]
+  },
+  {
+    "id": "plant_lv_48",
+    "name": "Egg Energy Iecava",
+    "country": "Latvia",
+    "countryCode": "LV",
+    "countryFlag": "🇱🇻",
+    "region": "Bauska Municipality (Iecava)",
+    "operator": "SIA Egg Energy / Balticovo",
+    "status": "Active",
+    "commissioningYear": 2024,
+    "capacityNm3h": 550.0,
+    "annualEnergyGWh": 50.0,
+    "primaryFeedstockCategory": "100% Poultry Manure",
+    "feedstockDetails": "Layer hen manure from 3M+ chickens (100k t/yr)",
+    "upgradingTechnology": "Biological Desulf. + Membrane",
+    "gridConnectionType": "Virtual Pipeline to Conexus",
+    "networkOperator": "Conexus Baltic Grid (BIP Džūkste)",
+    "certificationAndRegistry": "Conexus GoO / ERGaR",
+    "primaryOfftake": "Virtual pipeline injection into Baltic transmission grid",
+    "coordinates": [
+      24.9,
+      56.3
+    ]
+  },
+  {
+    "id": "plant_pl_49",
+    "name": "Südzucker Strzelin",
+    "country": "Poland",
+    "countryCode": "PL",
+    "countryFlag": "🇵🇱",
+    "region": "Lower Silesia (Strzelin)",
+    "operator": "Südzucker Polska S.A.",
+    "status": "Active",
+    "commissioningYear": 2025,
+    "capacityNm3h": 300.0,
+    "annualEnergyGWh": 25.0,
+    "primaryFeedstockCategory": "Sugar Beet Pulp",
+    "feedstockDetails": "Sugar beet pulp and factory processing residues",
+    "upgradingTechnology": "Membrane Separation",
+    "gridConnectionType": "Distribution Grid (9 km line)",
+    "networkOperator": "Polska Spółka Gazownictwa (PSG)",
+    "certificationAndRegistry": "KOWR / URE / REDcert-EU",
+    "primaryOfftake": "Poland's first grid-connected biomethane plant",
+    "coordinates": [
+      20.45,
+      52.35
+    ]
+  },
+  {
+    "id": "plant_cz_50",
+    "name": "EFG Rapotín BPS",
+    "country": "Czech Republic",
+    "countryCode": "CZ",
+    "countryFlag": "🇨🇿",
+    "region": "Olomouc Region (Rapotín)",
+    "operator": "Energy Financial Group (EFG)",
+    "status": "Active",
+    "commissioningYear": 2019,
+    "capacityNm3h": 350.0,
+    "annualEnergyGWh": 30.0,
+    "primaryFeedstockCategory": "Municipal Bio-waste & Food Scraps",
+    "feedstockDetails": "Source-separated municipal biowaste & restaurant food waste",
+    "upgradingTechnology": "DMT Carborex-MS Membrane",
+    "gridConnectionType": "Distribution Grid",
+    "networkOperator": "GasNet",
+    "certificationAndRegistry": "OTE Registry / ISCC EU / ERGaR",
+    "primaryOfftake": "Czech Republic 1st grid injection; Bio-CNG for public transit",
+    "coordinates": [
+      13.05,
+      48.95
+    ]
+  },
+  {
+    "id": "plant_sk_51",
+    "name": "Bierovce Biomethane",
+    "country": "Slovakia",
+    "countryCode": "SK",
+    "countryFlag": "🇸🇰",
+    "region": "Trenčín Region (Bierovce)",
+    "operator": "ENERGE s.r.o. / EnviTec",
+    "status": "Active",
+    "commissioningYear": 2025,
+    "capacityNm3h": 450.0,
+    "annualEnergyGWh": 40.0,
+    "primaryFeedstockCategory": "Food Waste & Poultry Manure",
+    "feedstockDetails": "70% food/industrial waste, poultry manure, silage",
+    "upgradingTechnology": "EnviThan Membrane Separation",
+    "gridConnectionType": "Distribution Grid",
+    "networkOperator": "SPP – distribúcia",
+    "certificationAndRegistry": "SPP Registry / REDcert-EU",
+    "primaryOfftake": "Slovak natural gas distribution grid injection & heating",
+    "coordinates": [
+      9.1,
+      50.0
+    ]
+  },
+  {
+    "id": "plant_at_52",
+    "name": "Biomethan Bruck a.d. Leitha",
+    "country": "Austria",
+    "countryCode": "AT",
+    "countryFlag": "🇦🇹",
+    "region": "Lower Austria (Bruck)",
+    "operator": "Energiepark Bruck / Biogas Bruck",
+    "status": "Active",
+    "commissioningYear": 2007,
+    "capacityNm3h": 110.0,
+    "annualEnergyGWh": 10.0,
+    "primaryFeedstockCategory": "Agricultural Crops & Manure",
+    "feedstockDetails": "Agricultural waste, farm manure, catch crops",
+    "upgradingTechnology": "Polyimide Membrane Separation",
+    "gridConnectionType": "Distribution Grid",
+    "networkOperator": "Netze Niederösterreich (EVN)",
+    "certificationAndRegistry": "AGCS Biomethan Register / ERGaR",
+    "primaryOfftake": "Austria pioneer grid injection; Bio-CNG and heating",
+    "coordinates": [
+      14.05,
+      48.55
+    ]
+  },
+  {
+    "id": "plant_ch_53",
+    "name": "Biogas Zürich Werdhölzli",
+    "country": "Switzerland",
+    "countryCode": "CH",
+    "countryFlag": "🇨🇭",
+    "region": "Canton Zurich (Zurich)",
+    "operator": "Biogas Zürich AG / Energie 360°",
+    "status": "Active",
+    "commissioningYear": 2013,
+    "capacityNm3h": 450.0,
+    "annualEnergyGWh": 40.0,
+    "primaryFeedstockCategory": "Biowaste & Sewage Sludge",
+    "feedstockDetails": "Green bins municipal biowaste & WWTP sewage sludge",
+    "upgradingTechnology": "Pressurized Water Wash + Membrane",
+    "gridConnectionType": "Municipal Gas Grid",
+    "networkOperator": "Energie 360° AG",
+    "certificationAndRegistry": "VSG / SVGW Register / ERGaR",
+    "primaryOfftake": "Urban heating network & Bio-CNG vehicle fleet",
+    "coordinates": [
+      8.2,
+      46.45
+    ]
+  },
+  {
+    "id": "plant_ie_54",
+    "name": "Bia Energy Huntstown",
+    "country": "Ireland",
+    "countryCode": "IE",
+    "countryFlag": "🇮🇪",
+    "region": "Co. Dublin (Huntstown)",
+    "operator": "Bia Energy / GNI",
+    "status": "Active",
+    "commissioningYear": 2026,
+    "capacityNm3h": 1400.0,
+    "annualEnergyGWh": 120.0,
+    "primaryFeedstockCategory": "Commercial Food & Brown Bin Waste",
+    "feedstockDetails": "Agro-food processing waste & domestic brown bin organics",
+    "upgradingTechnology": "Membrane Separation",
+    "gridConnectionType": "Transmission Grid (Direct)",
+    "networkOperator": "Gas Networks Ireland (GNI)",
+    "certificationAndRegistry": "GNI Registry / ISCC EU",
+    "primaryOfftake": "Direct national grid injection; industrial decarbonization",
+    "coordinates": [
+      -7.75,
+      54.1
+    ]
+  },
+  {
+    "id": "plant_eu_55",
+    "name": "VITAGRO Energy Biomethane",
+    "country": "Ukraine",
+    "countryCode": "EU",
+    "countryFlag": "🇪🇺",
+    "region": "Khmelnytskyi Oblast",
+    "operator": "VITAGRO Group / Pro-Energy",
+    "status": "Active",
+    "commissioningYear": 2023,
+    "capacityNm3h": 370.0,
+    "annualEnergyGWh": 30.0,
+    "primaryFeedstockCategory": "100% Cattle Manure & Pig Slurry",
+    "feedstockDetails": "Cattle manure, pig slurry & farm waste",
+    "upgradingTechnology": "agriPure® Membrane Separation",
+    "gridConnectionType": "Regional Distribution Grid",
+    "networkOperator": "GTSOU / Khmelnytskgaz",
+    "certificationAndRegistry": "National Register / ISCC EU / REDcert",
+    "primaryOfftake": "Grid injection & 1st physical biomethane export to Germany",
+    "coordinates": [
+      10.9,
+      49.3
+    ]
+  },
+  {
+    "id": "plant_eu_56",
+    "name": "Teofipol Energy Company",
+    "country": "Ukraine",
+    "countryCode": "EU",
+    "countryFlag": "🇪🇺",
+    "region": "Khmelnytskyi Oblast (Teofipol)",
+    "operator": "Teofipol Energy / Ukraina 2001",
+    "status": "Active",
+    "commissioningYear": 2026,
+    "capacityNm3h": 6500.0,
+    "annualEnergyGWh": 550.0,
+    "primaryFeedstockCategory": "Sugar Beet Pulp & Manure",
+    "feedstockDetails": "Sugar beet pulp, cattle manure, chicken litter",
+    "upgradingTechnology": "Amine Wash + Water Scrubbing",
+    "gridConnectionType": "Transmission Grid (Direct)",
+    "networkOperator": "GTSOU",
+    "certificationAndRegistry": "National Register / ISCC EU / ERGaR",
+    "primaryOfftake": "Largest biomethane plant in Eastern Europe; EU export",
+    "coordinates": [
+      11.35,
+      50.35
+    ]
+  }
+];
+
+export const DEVELOPER_PORTFOLIOS: DeveloperPortfolio[] = [
+  {
+    "id": "dev_1",
+    "name": "Nature Energy (Shell)",
+    "countryHQ": "Denmark",
+    "countryFlag": "🇩🇰",
+    "totalCapacityGWh": 4200.0,
+    "coreGeographies": [
+      "DK",
+      "NL",
+      "FR",
+      "UK"
+    ],
+    "signatureAssets": [
+      "Korskro",
+      "Holsted",
+      "Glansager",
+      "Coevorden"
+    ],
+    "strategicFocus": "Industrial large-scale slurry digestion & cross-border gas trade"
+  },
+  {
+    "id": "dev_2",
+    "name": "TotalEnergies",
+    "countryHQ": "France",
+    "countryFlag": "🇫🇷",
+    "totalCapacityGWh": 2800.0,
+    "coreGeographies": [
+      "FR",
+      "PL",
+      "ES",
+      "BE"
+    ],
+    "signatureAssets": [
+      "BioBéarn",
+      "BioNorrois",
+      "Chagny",
+      "PGB Poland"
+    ],
+    "strategicFocus": "Integrated energy major; agro-industrial & waste biomethane"
+  },
+  {
+    "id": "dev_3",
+    "name": "ENGIE / Storengy",
+    "countryHQ": "France",
+    "countryFlag": "🇫🇷",
+    "totalCapacityGWh": 2400.0,
+    "coreGeographies": [
+      "FR",
+      "BE",
+      "NL"
+    ],
+    "signatureAssets": [
+      "Beauce Gâtinais",
+      "Quévy",
+      "BioZ portfolio"
+    ],
+    "strategicFocus": "Utility decarbonization; French CPB compliance & industrial PPAs"
+  },
+  {
+    "id": "dev_4",
+    "name": "VERBIO SE",
+    "countryHQ": "Germany",
+    "countryFlag": "🇩🇪",
+    "totalCapacityGWh": 1850.0,
+    "coreGeographies": [
+      "DE",
+      "PL",
+      "HU"
+    ],
+    "signatureAssets": [
+      "Zörbig",
+      "Schwedt",
+      "Pinnow"
+    ],
+    "strategicFocus": "Advanced biofuels; 100% agricultural straw & whole distillery stillage"
+  },
+  {
+    "id": "dev_5",
+    "name": "EnviTec Biogas AG",
+    "countryHQ": "Germany",
+    "countryFlag": "🇩🇪",
+    "totalCapacityGWh": 1500.0,
+    "coreGeographies": [
+      "DE",
+      "SK",
+      "CZ",
+      "IT"
+    ],
+    "signatureAssets": [
+      "Güstrow Bio-LNG",
+      "Bierovce",
+      "Ožďany"
+    ],
+    "strategicFocus": "In-house EPC + proprietary EnviThan membrane upgrading & Bio-LNG"
+  },
+  {
+    "id": "dev_6",
+    "name": "Gasum AB / Oy",
+    "countryHQ": "Finland",
+    "countryFlag": "🇫🇮",
+    "totalCapacityGWh": 1400.0,
+    "coreGeographies": [
+      "FI",
+      "SE",
+      "NO"
+    ],
+    "signatureAssets": [
+      "Götene",
+      "Turku",
+      "Nymölla",
+      "Jordberga"
+    ],
+    "strategicFocus": "Nordic Bio-LNG & Bio-CNG heavy transport and maritime bunkering"
+  },
+  {
+    "id": "dev_7",
+    "name": "St1 Biokraft",
+    "countryHQ": "Sweden",
+    "countryFlag": "🇸🇪",
+    "totalCapacityGWh": 1100.0,
+    "coreGeographies": [
+      "SE",
+      "NO",
+      "FI"
+    ],
+    "signatureAssets": [
+      "Skogn Bio-LNG",
+      "Södertörn",
+      "Mönsterås",
+      "Henriksdal"
+    ],
+    "strategicFocus": "Industrial waste, aquaculture sludge & Nordic heavy vehicle mobility"
+  },
+  {
+    "id": "dev_8",
+    "name": "BioCirc Group",
+    "countryHQ": "Denmark",
+    "countryFlag": "🇩🇰",
+    "totalCapacityGWh": 1150.0,
+    "coreGeographies": [
+      "Denmark"
+    ],
+    "signatureAssets": [
+      "Vinkel Bioenergi",
+      "Blåbjerg",
+      "Iglsø"
+    ],
+    "strategicFocus": "Circular bioeconomy clusters; biomethane + biogenic CCS CDR"
+  },
+  {
+    "id": "dev_9",
+    "name": "Waga Energy",
+    "countryHQ": "France",
+    "countryFlag": "🇫🇷",
+    "totalCapacityGWh": 950.0,
+    "coreGeographies": [
+      "FR",
+      "ES",
+      "IT"
+    ],
+    "signatureAssets": [
+      "Claye-Souilly",
+      "Can Mata (Spain)",
+      "Liévin"
+    ],
+    "strategicFocus": "Patented WAGABOX® cryogenic technology upgrading landfill gas (LFG)"
+  },
+  {
+    "id": "dev_10",
+    "name": "Attero B.V.",
+    "countryHQ": "Netherlands",
+    "countryFlag": "🇳🇱",
+    "totalCapacityGWh": 650.0,
+    "coreGeographies": [
+      "Netherlands"
+    ],
+    "signatureAssets": [
+      "Wijster Hub",
+      "Tilburg",
+      "Venlo"
+    ],
+    "strategicFocus": "Large-scale municipal organic waste (VGF) and landfill gas digestion"
+  },
+  {
+    "id": "dev_11",
+    "name": "Bigadan A/S",
+    "countryHQ": "Denmark",
+    "countryFlag": "🇩🇰",
+    "totalCapacityGWh": 600.0,
+    "coreGeographies": [
+      "Denmark"
+    ],
+    "signatureAssets": [
+      "Kalundborg",
+      "Horsens",
+      "Thorsø"
+    ],
+    "strategicFocus": "Large-scale agricultural co-digestion and industrial symbiosis"
+  },
+  {
+    "id": "dev_12",
+    "name": "Suma Capital / Biovic",
+    "countryHQ": "Spain",
+    "countryFlag": "🇪🇸",
+    "totalCapacityGWh": 450.0,
+    "coreGeographies": [
+      "Spain"
+    ],
+    "signatureAssets": [
+      "UNUE Burgos",
+      "Montes de Toledo",
+      "Galivi Lorca"
+    ],
+    "strategicFocus": "High-growth Iberian agricultural and industrial waste origination"
+  },
+  {
+    "id": "dev_13",
+    "name": "Future Biogas",
+    "countryHQ": "United Kingdom",
+    "countryFlag": "🇬🇧",
+    "totalCapacityGWh": 550.0,
+    "coreGeographies": [
+      "United Kingdom"
+    ],
+    "signatureAssets": [
+      "Leeming",
+      "Euston",
+      "Egmere",
+      "Vulcan"
+    ],
+    "strategicFocus": "Unsubsidized green gas corporate PPAs & biogenic BECCS"
+  },
+  {
+    "id": "dev_14",
+    "name": "Severn Trent Green Power",
+    "countryHQ": "United Kingdom",
+    "countryFlag": "🇬🇧",
+    "totalCapacityGWh": 480.0,
+    "coreGeographies": [
+      "United Kingdom"
+    ],
+    "signatureAssets": [
+      "Minworth",
+      "Coleshill",
+      "Finham",
+      "Roundhill"
+    ],
+    "strategicFocus": "Sewage sludge thermal hydrolysis & commercial food waste digestion"
+  },
+  {
+    "id": "dev_15",
+    "name": "Montello S.p.A.",
+    "countryHQ": "Italy",
+    "countryFlag": "🇮🇹",
+    "totalCapacityGWh": 380.0,
+    "coreGeographies": [
+      "Italy"
+    ],
+    "signatureAssets": [
+      "Montello Biomethane Hub (Bergamo)"
+    ],
+    "strategicFocus": "Pioneer in 100% source-separated OFMSW (FORSU) & food-grade CO2"
+  },
+  {
+    "id": "dev_16",
+    "name": "Cycle0",
+    "countryHQ": "Spain / UK",
+    "countryFlag": "🇪🇺",
+    "totalCapacityGWh": 350.0,
+    "coreGeographies": [
+      "ES",
+      "IE",
+      "Pan-EU"
+    ],
+    "signatureAssets": [
+      "Iberian small/medium farm slurry plants"
+    ],
+    "strategicFocus": "Modular containerized Bio-CNG / Bio-LNG micro-upgrading"
+  },
+  {
+    "id": "dev_17",
+    "name": "PreZero Energy",
+    "countryHQ": "Germany / Spain",
+    "countryFlag": "🇪🇺",
+    "totalCapacityGWh": 320.0,
+    "coreGeographies": [
+      "DE",
+      "ES"
+    ],
+    "signatureAssets": [
+      "Valdemingómez PTB",
+      "Metabarri Bilbao"
+    ],
+    "strategicFocus": "Municipal waste concessions & circular energy recovery"
+  },
+  {
+    "id": "dev_18",
+    "name": "Gals Agro",
+    "countryHQ": "Ukraine",
+    "countryFlag": "🇪🇺",
+    "totalCapacityGWh": 180.0,
+    "coreGeographies": [
+      "Ukraine"
+    ],
+    "signatureAssets": [
+      "Chernihiv",
+      "Gorodysche",
+      "Vinnytsia"
+    ],
+    "strategicFocus": "Agro-holding crop residues & livestock slurry export to EU"
+  },
+  {
+    "id": "dev_19",
+    "name": "Bia Energy",
+    "countryHQ": "Ireland",
+    "countryFlag": "🇮🇪",
+    "totalCapacityGWh": 120.0,
+    "coreGeographies": [
+      "Ireland"
+    ],
+    "signatureAssets": [
+      "Bia Energy Huntstown (Dublin)"
+    ],
+    "strategicFocus": "Food processing and commercial brown bin waste to grid"
+  },
+  {
+    "id": "dev_20",
+    "name": "Polska Grupa Biogazowa (PGB)",
+    "countryHQ": "Poland",
+    "countryFlag": "🇵🇱",
+    "totalCapacityGWh": 140.0,
+    "coreGeographies": [
+      "Poland"
+    ],
+    "signatureAssets": [
+      "Brody",
+      "Dobre",
+      "Kupin"
+    ],
+    "strategicFocus": "Polish agricultural residue clusters expanding to biomethane grid injection"
+  }
+];
+
+export const COUNTRY_MACRO_STATS: CountryMacroStat[] = [
+  {
+    "country": "France",
+    "iso": "FR",
+    "flag": "🇫🇷",
+    "activePlants": 815,
+    "installedCapacityTWh": 15.8,
+    "installedCapacityMcm": 1505.0,
+    "avgPlantSizeNm3h": 210.0,
+    "gridConnectionRate": 0.93,
+    "primaryFeedstockType": "Agri-residues & Manure",
+    "primaryUpgradingTech": "Membranes (75%)",
+    "nationalRegistry": "ODRE / GRDF / EEX"
+  },
+  {
+    "country": "Germany",
+    "iso": "DE",
+    "flag": "🇩🇪",
+    "activePlants": 265,
+    "installedCapacityTWh": 11.2,
+    "installedCapacityMcm": 1067.0,
+    "avgPlantSizeNm3h": 460.0,
+    "gridConnectionRate": 0.95,
+    "primaryFeedstockType": "Manure & Energy Crops",
+    "primaryUpgradingTech": "Amine Scrubbing & Membranes",
+    "nationalRegistry": "dena Biogasregister / MaStR"
+  },
+  {
+    "country": "United Kingdom",
+    "iso": "GB",
+    "flag": "🇬🇧",
+    "activePlants": 132,
+    "installedCapacityTWh": 9.6,
+    "installedCapacityMcm": 914.0,
+    "avgPlantSizeNm3h": 790.0,
+    "gridConnectionRate": 0.88,
+    "primaryFeedstockType": "Sewage & Food Waste",
+    "primaryUpgradingTech": "Membranes & Water Scrubbing",
+    "nationalRegistry": "Green Gas Certification (GGCS) / Ofgem"
+  },
+  {
+    "country": "Denmark",
+    "iso": "DK",
+    "flag": "🇩🇰",
+    "activePlants": 68,
+    "installedCapacityTWh": 8.2,
+    "installedCapacityMcm": 781.0,
+    "avgPlantSizeNm3h": 1300.0,
+    "gridConnectionRate": 1.0,
+    "primaryFeedstockType": "Liquid Manure & Agri-waste",
+    "primaryUpgradingTech": "Amine Scrubbing (Ammongas)",
+    "nationalRegistry": "Energinet"
+  },
+  {
+    "country": "Italy",
+    "iso": "IT",
+    "flag": "🇮🇹",
+    "activePlants": 115,
+    "installedCapacityTWh": 5.6,
+    "installedCapacityMcm": 533.0,
+    "avgPlantSizeNm3h": 530.0,
+    "gridConnectionRate": 0.9,
+    "primaryFeedstockType": "OFMSW (FORSU) & Slurry",
+    "primaryUpgradingTech": "Membranes & Water Scrubbing",
+    "nationalRegistry": "GSE (Gestore Servizi Energetici)"
+  },
+  {
+    "country": "Netherlands",
+    "iso": "NL",
+    "flag": "🇳🇱",
+    "activePlants": 88,
+    "installedCapacityTWh": 3.1,
+    "installedCapacityMcm": 295.0,
+    "avgPlantSizeNm3h": 380.0,
+    "gridConnectionRate": 0.94,
+    "primaryFeedstockType": "Organic Waste & Manure",
+    "primaryUpgradingTech": "Water Scrubbing & Membranes",
+    "nationalRegistry": "VertiCer / Gasunie"
+  },
+  {
+    "country": "Sweden",
+    "iso": "SE",
+    "flag": "🇸🇪",
+    "activePlants": 78,
+    "installedCapacityTWh": 2.3,
+    "installedCapacityMcm": 219.0,
+    "avgPlantSizeNm3h": 320.0,
+    "gridConnectionRate": 0.38,
+    "primaryFeedstockType": "Food Waste & Sewage Sludge",
+    "primaryUpgradingTech": "Amine Wash & Cryo Bio-LNG",
+    "nationalRegistry": "Swedish Energy Agency / Energigas"
+  },
+  {
+    "country": "Switzerland",
+    "iso": "CH",
+    "flag": "🇨🇭",
+    "activePlants": 42,
+    "installedCapacityTWh": 0.45,
+    "installedCapacityMcm": 43.0,
+    "avgPlantSizeNm3h": 120.0,
+    "gridConnectionRate": 0.85,
+    "primaryFeedstockType": "Biowaste & Sewage Sludge",
+    "primaryUpgradingTech": "Membranes & Water Wash",
+    "nationalRegistry": "VSG / SVGW Biogasregister"
+  },
+  {
+    "country": "Spain",
+    "iso": "ES",
+    "flag": "🇪🇸",
+    "activePlants": 36,
+    "installedCapacityTWh": 1.25,
+    "installedCapacityMcm": 119.0,
+    "avgPlantSizeNm3h": 380.0,
+    "gridConnectionRate": 0.89,
+    "primaryFeedstockType": "Pig Slurry & Agro-industrial",
+    "primaryUpgradingTech": "Membranes & Cryogenic LFG",
+    "nationalRegistry": "Enagás GTS (GdO)"
+  },
+  {
+    "country": "Finland",
+    "iso": "FI",
+    "flag": "🇫🇮",
+    "activePlants": 26,
+    "installedCapacityTWh": 0.55,
+    "installedCapacityMcm": 52.0,
+    "avgPlantSizeNm3h": 240.0,
+    "gridConnectionRate": 0.42,
+    "primaryFeedstockType": "Biowaste & Sewage Sludge",
+    "primaryUpgradingTech": "Amine Scrubbing & Water Wash",
+    "nationalRegistry": "Gasgrid Finland / Energy Authority"
+  },
+  {
+    "country": "Austria",
+    "iso": "AT",
+    "flag": "🇦🇹",
+    "activePlants": 18,
+    "installedCapacityTWh": 0.22,
+    "installedCapacityMcm": 21.0,
+    "avgPlantSizeNm3h": 135.0,
+    "gridConnectionRate": 0.9,
+    "primaryFeedstockType": "Agri-crops & Biowaste",
+    "primaryUpgradingTech": "Membranes & Water Wash",
+    "nationalRegistry": "AGCS Biomethan Register"
+  },
+  {
+    "country": "Norway",
+    "iso": "NO",
+    "flag": "🇳🇴",
+    "activePlants": 16,
+    "installedCapacityTWh": 0.65,
+    "installedCapacityMcm": 62.0,
+    "avgPlantSizeNm3h": 440.0,
+    "gridConnectionRate": 0.25,
+    "primaryFeedstockType": "Fish Sludge & Food Waste",
+    "primaryUpgradingTech": "Amine Wash & Cryo Bio-LNG",
+    "nationalRegistry": "Norwegian Environment Agency"
+  },
+  {
+    "country": "Belgium",
+    "iso": "BE",
+    "flag": "🇧🇪",
+    "activePlants": 15,
+    "installedCapacityTWh": 0.42,
+    "installedCapacityMcm": 40.0,
+    "avgPlantSizeNm3h": 310.0,
+    "gridConnectionRate": 0.87,
+    "primaryFeedstockType": "Food Processing & Agri-waste",
+    "primaryUpgradingTech": "Membranes",
+    "nationalRegistry": "VREG (Flanders) / SPW (Wallonia)"
+  },
+  {
+    "country": "Czech Republic",
+    "iso": "CZ",
+    "flag": "🇨🇿",
+    "activePlants": 12,
+    "installedCapacityTWh": 0.28,
+    "installedCapacityMcm": 27.0,
+    "avgPlantSizeNm3h": 260.0,
+    "gridConnectionRate": 0.92,
+    "primaryFeedstockType": "Municipal Biowaste & Manure",
+    "primaryUpgradingTech": "Membranes (DMT/HoSt)",
+    "nationalRegistry": "OTE Registry"
+  },
+  {
+    "country": "Ukraine",
+    "iso": "UA",
+    "flag": "🇪🇺",
+    "activePlants": 8,
+    "installedCapacityTWh": 0.85,
+    "installedCapacityMcm": 81.0,
+    "avgPlantSizeNm3h": 1150.0,
+    "gridConnectionRate": 0.88,
+    "primaryFeedstockType": "Agri-manure & Beet Pulp",
+    "primaryUpgradingTech": "Membranes & Amine Wash",
+    "nationalRegistry": "State Biomethane Register / GTSOU"
+  },
+  {
+    "country": "Estonia",
+    "iso": "EE",
+    "flag": "🇪🇪",
+    "activePlants": 5,
+    "installedCapacityTWh": 0.19,
+    "installedCapacityMcm": 18.0,
+    "avgPlantSizeNm3h": 410.0,
+    "gridConnectionRate": 0.8,
+    "primaryFeedstockType": "Pulp Wastewater & Slurry",
+    "primaryUpgradingTech": "Membranes",
+    "nationalRegistry": "Elering Registry"
+  },
+  {
+    "country": "Slovakia",
+    "iso": "SK",
+    "flag": "🇸🇰",
+    "activePlants": 5,
+    "installedCapacityTWh": 0.18,
+    "installedCapacityMcm": 17.0,
+    "avgPlantSizeNm3h": 390.0,
+    "gridConnectionRate": 1.0,
+    "primaryFeedstockType": "Food Waste & Poultry Manure",
+    "primaryUpgradingTech": "EnviThan Membranes",
+    "nationalRegistry": "SPP – distribúcia Registry"
+  },
+  {
+    "country": "Poland",
+    "iso": "PL",
+    "flag": "🇵🇱",
+    "activePlants": 5,
+    "installedCapacityTWh": 0.15,
+    "installedCapacityMcm": 14.0,
+    "avgPlantSizeNm3h": 330.0,
+    "gridConnectionRate": 0.6,
+    "primaryFeedstockType": "Sugar Beet Pulp & Manure",
+    "primaryUpgradingTech": "Membranes",
+    "nationalRegistry": "KOWR / URE Register"
+  },
+  {
+    "country": "Portugal",
+    "iso": "PT",
+    "flag": "🇵🇹",
+    "activePlants": 4,
+    "installedCapacityTWh": 0.08,
+    "installedCapacityMcm": 8.0,
+    "avgPlantSizeNm3h": 220.0,
+    "gridConnectionRate": 0.75,
+    "primaryFeedstockType": "Wastewater Sludge & OFMSW",
+    "primaryUpgradingTech": "PSA & Membranes",
+    "nationalRegistry": "REN EEGO"
+  },
+  {
+    "country": "Hungary",
+    "iso": "HU",
+    "flag": "🇭🇺",
+    "activePlants": 4,
+    "installedCapacityTWh": 0.12,
+    "installedCapacityMcm": 11.0,
+    "avgPlantSizeNm3h": 310.0,
+    "gridConnectionRate": 0.75,
+    "primaryFeedstockType": "Sugar Beet Pulp & Manure",
+    "primaryUpgradingTech": "Water Wash & Membranes",
+    "nationalRegistry": "MEKH Registry"
+  },
+  {
+    "country": "Lithuania",
+    "iso": "LT",
+    "flag": "🇱🇹",
+    "activePlants": 3,
+    "installedCapacityTWh": 0.16,
+    "installedCapacityMcm": 15.0,
+    "avgPlantSizeNm3h": 580.0,
+    "gridConnectionRate": 1.0,
+    "primaryFeedstockType": "Distillery Vinasse & Manure",
+    "primaryUpgradingTech": "Membranes (Bright)",
+    "nationalRegistry": "Amber Grid Registry"
+  },
+  {
+    "country": "Latvia",
+    "iso": "LV",
+    "flag": "🇱🇻",
+    "activePlants": 2,
+    "installedCapacityTWh": 0.06,
+    "installedCapacityMcm": 6.0,
+    "avgPlantSizeNm3h": 330.0,
+    "gridConnectionRate": 0.5,
+    "primaryFeedstockType": "Poultry Manure (Virtual Hub)",
+    "primaryUpgradingTech": "Membranes",
+    "nationalRegistry": "Conexus Baltic Grid"
+  },
+  {
+    "country": "Luxembourg",
+    "iso": "LU",
+    "flag": "🇱🇺",
+    "activePlants": 3,
+    "installedCapacityTWh": 0.04,
+    "installedCapacityMcm": 4.0,
+    "avgPlantSizeNm3h": 150.0,
+    "gridConnectionRate": 1.0,
+    "primaryFeedstockType": "Municipal Biowaste & Slurry",
+    "primaryUpgradingTech": "Dry AD & Membranes",
+    "nationalRegistry": "ILR / Creos"
+  },
+  {
+    "country": "Greece",
+    "iso": "GR",
+    "flag": "🇬🇷",
+    "activePlants": 2,
+    "installedCapacityTWh": 0.03,
+    "installedCapacityMcm": 3.0,
+    "avgPlantSizeNm3h": 190.0,
+    "gridConnectionRate": 0.5,
+    "primaryFeedstockType": "Agri-waste & Manure",
+    "primaryUpgradingTech": "Membranes",
+    "nationalRegistry": "DESFA / DAPEEP"
+  },
+  {
+    "country": "Romania",
+    "iso": "RO",
+    "flag": "🇷🇴",
+    "activePlants": 2,
+    "installedCapacityTWh": 0.04,
+    "installedCapacityMcm": 4.0,
+    "avgPlantSizeNm3h": 220.0,
+    "gridConnectionRate": 0.5,
+    "primaryFeedstockType": "Agro-industrial Food Waste",
+    "primaryUpgradingTech": "Membranes",
+    "nationalRegistry": "Transgaz"
+  },
+  {
+    "country": "Croatia",
+    "iso": "HR",
+    "flag": "🇭🇷",
+    "activePlants": 1,
+    "installedCapacityTWh": 0.01,
+    "installedCapacityMcm": 1.0,
+    "avgPlantSizeNm3h": 110.0,
+    "gridConnectionRate": 1.0,
+    "primaryFeedstockType": "Agro-food Waste",
+    "primaryUpgradingTech": "Membranes",
+    "nationalRegistry": "Plinacro"
+  }
+];
+
+export function getPlantsByCountry(countryCode: string): BiomethanePlant[] {
+  return BIOMETHANE_PLANTS.filter(p => p.countryCode === countryCode);
+}
+
+export function getTopPlantsByCapacity(limit: number = 10): BiomethanePlant[] {
+  return [...BIOMETHANE_PLANTS].sort((a, b) => b.annualEnergyGWh - a.annualEnergyGWh).slice(0, limit);
+}
+
+export function searchPlants(query: string): BiomethanePlant[] {
+  const q = query.toLowerCase();
+  return BIOMETHANE_PLANTS.filter(p => 
+    p.name.toLowerCase().includes(q) ||
+    p.country.toLowerCase().includes(q) ||
+    p.operator.toLowerCase().includes(q) ||
+    p.primaryFeedstockCategory.toLowerCase().includes(q) ||
+    p.upgradingTechnology.toLowerCase().includes(q) ||
+    p.region.toLowerCase().includes(q)
+  );
+}

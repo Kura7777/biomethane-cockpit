@@ -7,6 +7,7 @@ import {
   Calculator, 
   TrendingUp, 
   Bot,
+  Factory,
   Coins, 
   FolderArchive, 
   Terminal
@@ -17,8 +18,9 @@ const NAV_ITEMS = [
   { to: '/trade', label: 'Trade Builder', keyHint: '2', icon: Calculator },
   { to: '/scanner', label: 'Arbitrage Scanner', keyHint: '3', icon: TrendingUp },
   { to: '/agents', label: 'AI Arb & Agents', keyHint: '4', icon: Bot },
-  { to: '/marks', label: 'Marks', keyHint: '5', icon: Coins },
-  { to: '/library', label: 'Dossiers', keyHint: '6', icon: FolderArchive },
+  { to: '/plants', label: 'Plants', keyHint: '5', icon: Factory },
+  { to: '/marks', label: 'Marks', keyHint: '6', icon: Coins },
+  { to: '/library', label: 'Dossiers', keyHint: '7', icon: FolderArchive },
 ];
 
 export function Layout() {
@@ -31,7 +33,7 @@ export function Layout() {
   const staleCriticalCount = markEntries.filter(m => getMarkStaleness(m.updatedAt) === 'STALE_CRITICAL').length;
   const unfilledCount = markEntries.filter(m => getMarkStaleness(m.updatedAt) === 'UNFILLED').length;
 
-  // Keyboard navigation shortcuts (1-6)
+  // Keyboard navigation shortcuts (1-7)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement)?.tagName)) {
@@ -42,8 +44,9 @@ export function Layout() {
       if (e.key === '2') navigate('/trade');
       if (e.key === '3') navigate('/scanner');
       if (e.key === '4') navigate('/agents');
-      if (e.key === '5') navigate('/marks');
-      if (e.key === '6') navigate('/library');
+      if (e.key === '5') navigate('/plants');
+      if (e.key === '6') navigate('/marks');
+      if (e.key === '7') navigate('/library');
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -181,10 +184,10 @@ export function Layout() {
       {/* Footer Info Strip */}
       <footer className="border-t border-stone-800 bg-stone-900/60 py-2.5 px-6 text-[11px] text-stone-500 font-mono flex flex-col sm:flex-row justify-between items-center gap-2">
         <div>
-          RED III Transport Baseline: <strong className="text-stone-300">94.0 gCO₂e/MJ</strong> • FuelEU Maritime: <strong className="text-stone-300">Reg. 2023/1805</strong> • German THG: <strong className="text-stone-300">§37a BImSchG</strong>
+          RED III Transport Baseline: <strong className="text-stone-300">94.0 gCO₂e/MJ</strong> • FuelEU Maritime: <strong className="text-stone-300">Reg. 2023/1805</strong> • European Plants: <strong className="text-stone-300">1,975 Active</strong>
         </div>
         <div className="flex items-center gap-3">
-          <span>Shortcuts: <kbd className="bg-stone-800 text-stone-300 px-1 rounded">1-6</kbd> Tabs</span>
+          <span>Shortcuts: <kbd className="bg-stone-800 text-stone-300 px-1 rounded">1-7</kbd> Tabs</span>
           <span>Matrix Engine: <strong className="text-teal-400">27 Origins Active</strong></span>
         </div>
       </footer>

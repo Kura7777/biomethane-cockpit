@@ -17,6 +17,7 @@ import { migrateState, CURRENT_SCHEMA_VERSION } from '../../store/context';
 import { REFERENCE_CONSIGNMENTS } from '../consignment/feedstocks';
 import { scanEuropeanArbitrage } from '../arbitrage/engine';
 import { getRouteTransitTariff, PRODUCING_ORIGINS } from '../arbitrage/origins';
+import { BIOMETHANE_PLANTS, DEVELOPER_PORTFOLIOS, COUNTRY_MACRO_STATS, getPlantsByCountry, searchPlants } from '../plants/registry';
 
 const emptyCosts: CostInputs = {
   transferCosts: null,
@@ -49,7 +50,7 @@ const sampleMarks: MarksState = {
   pricingSide: 'bid',
 };
 
-describe('Biomethane Desk Cockpit — Review v2 & Matrix Arb Tests', () => {
+describe('Biomethane Desk Cockpit — Comprehensive Regression & Plant Database Tests', () => {
 
   describe('1. Core Precision Anchors & Derivations', () => {
     
@@ -57,10 +58,7 @@ describe('Biomethane Desk Cockpit — Review v2 & Matrix Arb Tests', () => {
       const manureFactor = tCO2ePerMWh(-100);
       const wasteFactor = tCO2ePerMWh(20);
 
-      // (94 - -100) * 3600 / 1e6 = 194 * 3600 / 1e6 = 0.6984
       expect(manureFactor).toBeCloseTo(0.6984, 4);
-
-      // (94 - 20) * 3600 / 1e6 = 74 * 3600 / 1e6 = 0.2664
       expect(wasteFactor).toBeCloseTo(0.2664, 4);
     });
 
@@ -72,12 +70,10 @@ describe('Biomethane Desk Cockpit — Review v2 & Matrix Arb Tests', () => {
       const certVal = computeCertificateValue(ukMarket, consignment, sampleMarks);
 
       expect(certVal).not.toBeNull();
-      // At £0.25/dRTFC and fx 1.18: 0.25 * 1.18 * 144 = €42.48/MWh
       expect(certVal?.valueEurPerMWh).toBeCloseTo(42.48, 1);
     });
 
     it('FuelEU Maritime: manure at CI -100 deficit closure marginal value', () => {
-      // (189.34 / (91.16 * 41000)) * 2400 * 3600 = 437.69 €/MWh
       const year1 = computeFuelEUDeficitClosureValue(-100, 1, 89.34, 91.16);
       expect(year1.valueEurPerMWh).toBeCloseTo(437.69, 1);
 
@@ -108,7 +104,6 @@ describe('Biomethane Desk Cockpit — Review v2 & Matrix Arb Tests', () => {
       expect(scanResult.topOpportunities.length).toBeGreaterThan(0);
       expect(scanResult.matrixCells.length).toBeGreaterThan(100);
 
-      // Best opportunity should have realistic desk margin (e.g. €2 to €8/MWh)
       const best = scanResult.topOpportunities[0];
       expect(best.deskNetMarginEurPerMWh).not.toBeNull();
       expect(best.deskNetMarginEurPerMWh!).toBeGreaterThanOrEqual(1.0);
@@ -162,14 +157,50 @@ describe('Biomethane Desk Cockpit — Review v2 & Matrix Arb Tests', () => {
     });
 
     it('calculates adjacent vs cross-European route transit tariffs properly', () => {
-      expect(getRouteTransitTariff('DK', 'DK')).toBe(0.50); // Domestic
-      expect(getRouteTransitTariff('DK', 'DE')).toBe(1.80); // Border adjacent
-      expect(getRouteTransitTariff('ES', 'DE')).toBe(3.20); // Multi-zone transit
+      expect(getRouteTransitTariff('DK', 'DK')).toBe(0.50);
+      expect(getRouteTransitTariff('DK', 'DE')).toBe(1.80);
+      expect(getRouteTransitTariff('ES', 'DE')).toBe(3.20);
     });
 
   });
 
-  describe('3. Schema Migration & Staleness', () => {
+  describe('3. Pan-European Master Biomethane Plants & Developer Portfolios', () => {
+
+    it('loads 50+ flagship plants across Europe with complete specifications', () => {
+      expect(BIOMETHANE_PLANTS.length).toBeGreaterThanOrEqual(50);
+      const sample = BIOMETHANE_PLANTS[0];
+      expect(sample.name).toBeDefined();
+      expect(sample.operator).toBeDefined();
+      expect(sample.annualEnergyGWh).toBeGreaterThan(0);
+      expect(sample.coordinates).toBeDefined();
+    });
+
+    it('loads 20 developer portfolios and 26 country macro stats', () => {
+      expect(DEVELOPER_PORTFOLIOS.length).toBeGreaterThanOrEqual(20);
+      expect(COUNTRY_MACRO_STATS.length).toBeGreaterThanOrEqual(26);
+
+      const natureEnergy = DEVELOPER_PORTFOLIOS.find(d => d.name.includes('Nature Energy'));
+      expect(natureEnergy).toBeDefined();
+      expect(natureEnergy?.totalCapacityGWh).toBe(4200);
+
+      const franceMacro = COUNTRY_MACRO_STATS.find(c => c.iso === 'FR');
+      expect(franceMacro).toBeDefined();
+      expect(franceMacro?.activePlants).toBe(815);
+      expect(franceMacro?.installedCapacityTWh).toBe(15.8);
+    });
+
+    it('searchPlants finds assets by operator or technology', () => {
+      const totalPlants = searchPlants('TotalEnergies');
+      expect(totalPlants.length).toBeGreaterThan(0);
+
+      const wagaPlants = searchPlants('WAGABOX');
+      expect(wagaPlants.length).toBeGreaterThan(0);
+      expect(wagaPlants[0].upgradingTechnology).toContain('WAGABOX');
+    });
+
+  });
+
+  describe('4. Schema Migration & Staleness', () => {
 
     it('migrateState upgrades legacy v1 state to schemaVersion 2', () => {
       const legacyV1State = {

@@ -6,6 +6,7 @@ import { MapScreen } from '../features/map/MapScreen';
 import { TradeBuilderScreen } from '../features/trade-builder/TradeBuilderScreen';
 import { ScannerScreen } from '../features/opportunity-scanner/ScannerScreen';
 import { ArbitrageAgentsScreen } from '../features/arbitrage-agents/ArbitrageAgentsScreen';
+import { PlantsScreen } from '../features/plants/PlantsScreen';
 import { MarksScreen } from '../features/marks/MarksScreen';
 import { LibraryScreen } from '../features/trade-library/LibraryScreen';
 
@@ -18,6 +19,7 @@ function AppContent() {
           <Route path="/trade" element={<TradeBuilderScreen />} />
           <Route path="/scanner" element={<ScannerScreen />} />
           <Route path="/agents" element={<ArbitrageAgentsScreen />} />
+          <Route path="/plants" element={<PlantsScreen />} />
           <Route path="/marks" element={<MarksScreen />} />
           <Route path="/library" element={<LibraryScreen />} />
         </Route>
