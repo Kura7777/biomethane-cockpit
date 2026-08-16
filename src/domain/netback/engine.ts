@@ -282,7 +282,6 @@ export function computeNetback(
   if (costs.transferCosts === null) missingInputs.push('transferCosts');
   if (costs.certificationCosts === null) missingInputs.push('certificationCosts');
   if (costs.logistics === null) missingInputs.push('logistics');
-  if (costs.deliveredCost === null) missingInputs.push('deliveredCost');
 
   const costValues = [costs.transferCosts, costs.certificationCosts, costs.logistics, costs.otherCosts]
     .filter((c): c is number => c !== null);
@@ -301,38 +300,61 @@ export function computeNetback(
     statusNote = (statusNote ? `${statusNote} ` : '') + '⚠ Molecule value (TTF) not set — netback excludes gas index component (~€28/MWh).';
   }
 
-  // Gross Value Spread = Delivered Netback − Raw Producer Procurement Cost
-  let grossValueSpread: number | null = null;
-  let impliedMargin: number | null = null;
+  // Producer Pricing & Desk Margin:
+  // FIXED_PRICE:
+  //   producerPayable = fixedPriceEurPerMwh
+  //   deskMargin      = netNetback − producerPayable
+  // INDEX_LINKED:
+  //   producerPayable = indexLinkedShare × netNetback
+  //   deskMargin      = netNetback − producerPayable
+  //   (deliveredCost is NOT used in INDEX_LINKED mode)
+  const pricingMode = costs.producerPricing?.mode ?? 'FIXED_PRICE';
   let producerPayable: number | null = null;
   let deskMargin: number | null = null;
-  let totalPnL: number | null = null;
-  let deskPnL: number | null = null;
+  let grossValueSpread: number | null = null;
 
-  if (netNetback !== null && costs.deliveredCost !== null) {
-    grossValueSpread = netNetback - costs.deliveredCost;
-    impliedMargin = grossValueSpread;
-    // Commercial reality: Index-linked offtake agreements typically pay 90% of compliance value to producer
-    producerPayable = Number((grossValueSpread * 0.90).toFixed(2));
-    deskMargin = Number((grossValueSpread * 0.10).toFixed(2));
+  if (pricingMode === 'INDEX_LINKED') {
+    const share = costs.producerPricing?.indexLinkedShare ?? null;
+    if (share === null) {
+      missingInputs.push('producerPricing');
+    } else if (netNetback !== null) {
+      producerPayable = Number((netNetback * share).toFixed(2));
+      deskMargin = Number((netNetback - producerPayable).toFixed(2));
+      grossValueSpread = deskMargin;
+    }
+  } else {
+    // FIXED_PRICE mode
+    const fixedPrice = costs.producerPricing?.fixedPriceEurPerMwh ?? costs.deliveredCost;
+    if (fixedPrice === null) {
+      missingInputs.push('producerPricing');
+    } else if (netNetback !== null) {
+      producerPayable = fixedPrice;
+      deskMargin = Number((netNetback - producerPayable).toFixed(2));
+      grossValueSpread = deskMargin;
+    }
   }
 
-  // Margin % = grossValueSpread / netNetback * 100
+  const impliedMargin = grossValueSpread;
+
+  // Margin % = deskMargin / netNetback * 100
   let marginPercent: number | null = null;
-  if (grossValueSpread !== null && netNetback !== null && netNetback > 0) {
-    marginPercent = (grossValueSpread / netNetback) * 100;
-  } else if (grossValueSpread !== null && netNetback !== null && netNetback < 0) {
+  if (deskMargin !== null && netNetback !== null && netNetback > 0) {
+    marginPercent = (deskMargin / netNetback) * 100;
+  } else if (deskMargin !== null && netNetback !== null && netNetback < 0) {
     // Negative netback: margin percentage is inverted to show real loss
-    marginPercent = -(grossValueSpread / Math.abs(netNetback)) * 100;
+    marginPercent = -(deskMargin / Math.abs(netNetback)) * 100;
   }
 
-  // Gross Trade Value & Realised Desk P&L
+  // Desk P&L and Gross Spread P&L
+  let grossSpreadPnL: number | null = null;
+  let deskPnL: number | null = null;
   if (grossValueSpread !== null && consignment.volumeMWh !== null) {
-    totalPnL = grossValueSpread * consignment.volumeMWh;
+    grossSpreadPnL = grossValueSpread * consignment.volumeMWh;
   }
   if (deskMargin !== null && consignment.volumeMWh !== null) {
     deskPnL = deskMargin * consignment.volumeMWh;
   }
+  const totalPnL = deskPnL;
 
   const isComplete = missingInputs.length === 0 && certVal?.valueEurPerMWh != null;
 
@@ -347,12 +369,35 @@ export function computeNetback(
     // DC_ON: certificate value doubled (2x)
     const dcOnCertVal = certVal.valueEurPerMWh * 2;
     const dcOnNetback = dcOnCertVal + (molVal ?? 0) - (totalCosts ?? 0);
-    const dcOnSpread = costs.deliveredCost !== null ? dcOnNetback - costs.deliveredCost : null;
-    const dcOnProducerPayable = dcOnSpread !== null ? Number((dcOnSpread * 0.90).toFixed(2)) : null;
-    const dcOnDeskMargin = dcOnSpread !== null ? Number((dcOnSpread * 0.10).toFixed(2)) : null;
-    const dcOnMarginPct = dcOnSpread !== null && dcOnNetback !== 0 ? (dcOnSpread / dcOnNetback) * 100 : null;
-    const dcOnPnL = dcOnSpread !== null && consignment.volumeMWh !== null ? dcOnSpread * consignment.volumeMWh : null;
+    let dcOnProducerPayable: number | null = null;
+    let dcOnDeskMargin: number | null = null;
+    let dcOnSpread: number | null = null;
+
+    if (pricingMode === 'INDEX_LINKED') {
+      const share = costs.producerPricing?.indexLinkedShare ?? null;
+      if (share !== null && dcOnNetback !== null) {
+        dcOnProducerPayable = Number((dcOnNetback * share).toFixed(2));
+        dcOnDeskMargin = Number((dcOnNetback - dcOnProducerPayable).toFixed(2));
+        dcOnSpread = dcOnDeskMargin;
+      }
+    } else {
+      const fixedPrice = costs.producerPricing?.fixedPriceEurPerMwh ?? costs.deliveredCost;
+      if (fixedPrice !== null && dcOnNetback !== null) {
+        dcOnProducerPayable = fixedPrice;
+        dcOnDeskMargin = Number((dcOnNetback - fixedPrice).toFixed(2));
+        dcOnSpread = dcOnDeskMargin;
+      }
+    }
+
+    let dcOnMarginPct: number | null = null;
+    if (dcOnDeskMargin !== null && dcOnNetback !== null && dcOnNetback > 0) {
+      dcOnMarginPct = (dcOnDeskMargin / dcOnNetback) * 100;
+    } else if (dcOnDeskMargin !== null && dcOnNetback !== null && dcOnNetback < 0) {
+      dcOnMarginPct = -(dcOnDeskMargin / Math.abs(dcOnNetback)) * 100;
+    }
+
     const dcOnDeskPnL = dcOnDeskMargin !== null && consignment.volumeMWh !== null ? dcOnDeskMargin * consignment.volumeMWh : null;
+    const dcOnGrossSpreadPnL = dcOnSpread !== null && consignment.volumeMWh !== null ? dcOnSpread * consignment.volumeMWh : null;
 
     uncertaintyBranches = [
       {
@@ -365,7 +410,8 @@ export function computeNetback(
         producerPayable: dcOffProducerPayable,
         deskMargin: dcOffDeskMargin,
         marginPercent: marginPercent,
-        totalPnL,
+        grossSpreadPnL,
+        totalPnL: deskPnL,
         deskPnL,
         isComplete,
         missingInputs,
@@ -385,7 +431,8 @@ export function computeNetback(
         producerPayable: dcOnProducerPayable,
         deskMargin: dcOnDeskMargin,
         marginPercent: dcOnMarginPct,
-        totalPnL: dcOnPnL,
+        grossSpreadPnL: dcOnGrossSpreadPnL,
+        totalPnL: dcOnDeskPnL,
         deskPnL: dcOnDeskPnL,
         isComplete,
         missingInputs,
@@ -405,6 +452,7 @@ export function computeNetback(
     producerPayable,
     deskMargin,
     marginPercent,
+    grossSpreadPnL,
     totalPnL,
     deskPnL,
     isTheoretical: false,

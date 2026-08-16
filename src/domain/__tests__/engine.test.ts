@@ -264,4 +264,180 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
 
   });
 
+  describe('SECTION 1 — Producer Pricing Modes & Desk Margin Tests', () => {
+
+    it('FIXED_PRICE, netNetback 232.27, fixedPrice 209.04 -> deskMargin 23.23, producerPayable 209.04', () => {
+      const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
+      const deMarket = getMarketById('DE_THG')!;
+      const costs: CostInputs = {
+        transferCosts: 0,
+        certificationCosts: 0,
+        logistics: 0,
+        deliveredCost: 209.04,
+        otherCosts: 0,
+        producerPricing: {
+          mode: 'FIXED_PRICE',
+          fixedPriceEurPerMwh: 209.04,
+          indexLinkedShare: null,
+          source: 'Fixed contract',
+          lastVerified: '2026-08-16',
+          confidence: 'VERIFIED',
+        },
+      };
+      const nb = computeNetback(deMarket, consignment, sampleMarks, costs, 'bid');
+      expect(nb.producerPayable).toBe(209.04);
+      expect(nb.deskMargin).toBeCloseTo(nb.netNetback! - 209.04, 2);
+    });
+
+    it('INDEX_LINKED, netNetback 232.27, share 0.90 -> producerPayable 209.04, deskMargin 23.23', () => {
+      const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
+      const deMarket = getMarketById('DE_THG')!;
+      const costs: CostInputs = {
+        transferCosts: 0,
+        certificationCosts: 0,
+        logistics: 0,
+        deliveredCost: null,
+        otherCosts: 0,
+        producerPricing: {
+          mode: 'INDEX_LINKED',
+          fixedPriceEurPerMwh: null,
+          indexLinkedShare: 0.90,
+          source: 'User test',
+          lastVerified: '2026-08-16',
+          confidence: 'VERIFIED',
+        },
+      };
+      const nb = computeNetback(deMarket, consignment, sampleMarks, costs, 'bid');
+      expect(nb.netNetback).not.toBeNull();
+      const expectedProducer = Number((nb.netNetback! * 0.90).toFixed(2));
+      const expectedDesk = Number((nb.netNetback! - expectedProducer).toFixed(2));
+      expect(nb.producerPayable).toBe(expectedProducer);
+      expect(nb.deskMargin).toBe(expectedDesk);
+    });
+
+    it('INDEX_LINKED with share null -> both null, producerPricing in missingInputs', () => {
+      const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
+      const deMarket = getMarketById('DE_THG')!;
+      const costs: CostInputs = {
+        transferCosts: 0,
+        certificationCosts: 0,
+        logistics: 0,
+        deliveredCost: null,
+        otherCosts: 0,
+        producerPricing: {
+          mode: 'INDEX_LINKED',
+          fixedPriceEurPerMwh: null,
+          indexLinkedShare: null,
+          source: null,
+          lastVerified: null,
+          confidence: 'UNVERIFIED',
+        },
+      };
+      const nb = computeNetback(deMarket, consignment, sampleMarks, costs, 'bid');
+      expect(nb.producerPayable).toBeNull();
+      expect(nb.deskMargin).toBeNull();
+      expect(nb.missingInputs).toContain('producerPricing');
+    });
+
+    it('FIXED_PRICE with fixedPrice null -> both null, producerPricing in missingInputs', () => {
+      const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
+      const deMarket = getMarketById('DE_THG')!;
+      const costs: CostInputs = {
+        transferCosts: 0,
+        certificationCosts: 0,
+        logistics: 0,
+        deliveredCost: null,
+        otherCosts: 0,
+        producerPricing: {
+          mode: 'FIXED_PRICE',
+          fixedPriceEurPerMwh: null,
+          indexLinkedShare: null,
+          source: null,
+          lastVerified: null,
+          confidence: 'UNVERIFIED',
+        },
+      };
+      const nb = computeNetback(deMarket, consignment, sampleMarks, costs, 'bid');
+      expect(nb.producerPayable).toBeNull();
+      expect(nb.deskMargin).toBeNull();
+      expect(nb.missingInputs).toContain('producerPricing');
+    });
+
+    it('marginPercent uses deskMargin, never grossValueSpread', () => {
+      const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
+      const deMarket = getMarketById('DE_THG')!;
+      const costs: CostInputs = {
+        transferCosts: 0,
+        certificationCosts: 0,
+        logistics: 0,
+        deliveredCost: null,
+        otherCosts: 0,
+        producerPricing: {
+          mode: 'INDEX_LINKED',
+          fixedPriceEurPerMwh: null,
+          indexLinkedShare: 0.90,
+          source: null,
+          lastVerified: null,
+          confidence: 'UNVERIFIED',
+        },
+      };
+      const nb = computeNetback(deMarket, consignment, sampleMarks, costs, 'bid');
+      expect(nb.marginPercent).toBeCloseTo((nb.deskMargin! / nb.netNetback!) * 100, 1);
+    });
+
+    it('deskPnL = deskMargin * volume; grossSpreadPnL kept separate and not surfaced as headline', () => {
+      const consignment: Consignment = {
+        ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
+        volumeMWh: 10000,
+      };
+      const deMarket = getMarketById('DE_THG')!;
+      const costs: CostInputs = {
+        transferCosts: 0,
+        certificationCosts: 0,
+        logistics: 0,
+        deliveredCost: null,
+        otherCosts: 0,
+        producerPricing: {
+          mode: 'INDEX_LINKED',
+          fixedPriceEurPerMwh: null,
+          indexLinkedShare: 0.90,
+          source: null,
+          lastVerified: null,
+          confidence: 'UNVERIFIED',
+        },
+      };
+      const nb = computeNetback(deMarket, consignment, sampleMarks, costs, 'bid');
+      expect(nb.deskPnL).toBe(nb.deskMargin! * 10000);
+      expect(nb.grossSpreadPnL).toBe(nb.grossValueSpread! * 10000);
+    });
+
+    it('Both German double-counting branches carry their own producerPayable and deskMargin', () => {
+      const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
+      const deMarket = getMarketById('DE_THG')!;
+      const costs: CostInputs = {
+        transferCosts: 0,
+        certificationCosts: 0,
+        logistics: 0,
+        deliveredCost: null,
+        otherCosts: 0,
+        producerPricing: {
+          mode: 'INDEX_LINKED',
+          fixedPriceEurPerMwh: null,
+          indexLinkedShare: 0.90,
+          source: null,
+          lastVerified: null,
+          confidence: 'UNVERIFIED',
+        },
+      };
+      const nb = computeNetback(deMarket, consignment, sampleMarks, costs, 'bid');
+      expect(nb.uncertaintyBranches).toBeDefined();
+      expect(nb.uncertaintyBranches![0].producerPayable).not.toBeNull();
+      expect(nb.uncertaintyBranches![0].deskMargin).not.toBeNull();
+      expect(nb.uncertaintyBranches![1].producerPayable).not.toBeNull();
+      expect(nb.uncertaintyBranches![1].deskMargin).not.toBeNull();
+      expect(nb.uncertaintyBranches![1].deskMargin!).toBeGreaterThan(nb.uncertaintyBranches![0].deskMargin!);
+    });
+
+  });
+
 });

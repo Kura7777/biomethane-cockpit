@@ -143,10 +143,14 @@ export function generateTradeSummary(assessment: TradeAssessment): string {
   lines.push('');
   const incompleteSuffix = !nb.isComplete ? ` (INCOMPLETE — missing: ${nb.missingInputs.join(', ')})` : '';
   lines.push(`DELIVERED VALUE STACK:     ${nb.netNetback !== null ? `€${nb.netNetback.toFixed(2)}/MWh${incompleteSuffix}` : 'N/A'}`);
-  lines.push(`GROSS VALUE SPREAD:        ${nb.grossValueSpread !== null ? `€${nb.grossValueSpread.toFixed(2)}/MWh (${nb.marginPercent?.toFixed(1)}% of netback)` : 'N/A'}`);
-  lines.push(`PRODUCER PAYABLE (90%):   ${nb.producerPayable !== null ? `−€${nb.producerPayable.toFixed(2)}/MWh (Index-linked compliance value capture)` : 'N/A'}`);
+  if (assessment.costs.producerPricing?.mode === 'INDEX_LINKED') {
+    const sharePct = assessment.costs.producerPricing.indexLinkedShare !== null ? (assessment.costs.producerPricing.indexLinkedShare * 100).toFixed(1) : 'N/A';
+    lines.push(`PRODUCER PAYABLE (${sharePct}%):  ${nb.producerPayable !== null ? `−€${nb.producerPayable.toFixed(2)}/MWh (Index-linked value share)` : 'Not set'}`);
+  } else {
+    lines.push(`PRODUCER PAYABLE (Fixed):  ${nb.producerPayable !== null ? `−€${nb.producerPayable.toFixed(2)}/MWh (All-in fixed procurement price)` : 'Not set'}`);
+  }
   lines.push('─────────────────────────────────────────────────────────────');
-  lines.push(`REALISED DESK MARGIN:      ${nb.deskMargin !== null ? `€${nb.deskMargin.toFixed(2)}/MWh (10% desk capture)` : 'N/A'}`);
+  lines.push(`REALISED DESK MARGIN:      ${nb.deskMargin !== null ? `€${nb.deskMargin.toFixed(2)}/MWh (${nb.marginPercent?.toFixed(1)}% margin)` : 'N/A'}`);
   if (nb.deskPnL !== null) {
     lines.push(`TOTAL CONTRACT DESK P&L:   €${nb.deskPnL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (on ${c.volumeMWh?.toLocaleString() ?? 0} MWh)`);
   }

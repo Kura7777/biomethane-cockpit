@@ -552,41 +552,204 @@ export function TradeBuilderScreen() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-[11px] text-stone-400 mb-1 font-semibold text-amber-300">Base Producer Procurement (€/MWh)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={state.costs.deliveredCost ?? ''}
-                    onChange={e => dispatch({ type: 'SET_COSTS', costs: { deliveredCost: e.target.value === '' ? null : Number(e.target.value) } })}
-                    className="w-full bg-stone-950 border border-amber-900/60 rounded-lg px-2.5 py-1.5 font-mono font-bold text-amber-300"
-                    placeholder="65.00"
-                  />
-                </div>
-              </div>
+                <div className="col-span-2 p-3 bg-stone-950/80 rounded-lg border border-stone-800 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-semibold text-stone-300">Producer Pricing Mode</span>
+                    <div className="inline-flex bg-stone-900 p-0.5 rounded border border-stone-800 text-[10px]">
+                      <button
+                        type="button"
+                        onClick={() => dispatch({
+                          type: 'SET_COSTS',
+                          costs: {
+                            producerPricing: {
+                              mode: 'INDEX_LINKED',
+                              fixedPriceEurPerMwh: state.costs.producerPricing?.fixedPriceEurPerMwh ?? state.costs.deliveredCost ?? null,
+                              indexLinkedShare: state.costs.producerPricing?.indexLinkedShare ?? null,
+                              source: null,
+                              lastVerified: null,
+                              confidence: 'UNVERIFIED',
+                            }
+                          }
+                        })}
+                        className={`px-2 py-0.5 rounded font-medium transition-colors ${
+                          (state.costs.producerPricing?.mode ?? 'INDEX_LINKED') === 'INDEX_LINKED'
+                            ? 'bg-teal-700 text-white'
+                            : 'text-stone-400 hover:text-stone-200'
+                        }`}
+                      >
+                        Index-Linked (% Share)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => dispatch({
+                          type: 'SET_COSTS',
+                          costs: {
+                            producerPricing: {
+                              mode: 'FIXED_PRICE',
+                              fixedPriceEurPerMwh: state.costs.producerPricing?.fixedPriceEurPerMwh ?? state.costs.deliveredCost ?? null,
+                              indexLinkedShare: state.costs.producerPricing?.indexLinkedShare ?? null,
+                              source: null,
+                              lastVerified: null,
+                              confidence: 'UNVERIFIED',
+                            }
+                          }
+                        })}
+                        className={`px-2 py-0.5 rounded font-medium transition-colors ${
+                          state.costs.producerPricing?.mode === 'FIXED_PRICE'
+                            ? 'bg-teal-700 text-white'
+                            : 'text-stone-400 hover:text-stone-200'
+                        }`}
+                      >
+                        Fixed Price (€/MWh)
+                      </button>
+                    </div>
+                  </div>
 
-              {/* Quick Procurement Presets */}
-              <div className="pt-2 border-t border-stone-800 flex items-center justify-between text-[11px]">
-                <span className="text-stone-400 font-medium">Offtake Presets:</span>
-                <div className="flex gap-1.5">
-                  <button
-                    onClick={() => dispatch({ type: 'SET_COSTS', costs: { deliveredCost: 58.00 } })}
-                    className="px-2 py-0.5 bg-stone-950 hover:bg-stone-800 border border-stone-800 rounded text-stone-300 font-mono text-xs"
-                  >
-                    Agri €58
-                  </button>
-                  <button
-                    onClick={() => dispatch({ type: 'SET_COSTS', costs: { deliveredCost: 65.00 } })}
-                    className="px-2 py-0.5 bg-stone-950 hover:bg-stone-800 border border-stone-800 rounded text-stone-300 font-mono text-xs"
-                  >
-                    Manure €65
-                  </button>
-                  <button
-                    onClick={() => dispatch({ type: 'SET_COSTS', costs: { deliveredCost: 74.00 } })}
-                    className="px-2 py-0.5 bg-stone-950 hover:bg-stone-800 border border-stone-800 rounded text-stone-300 font-mono text-xs"
-                  >
-                    Spot €74
-                  </button>
+                  {(state.costs.producerPricing?.mode ?? 'INDEX_LINKED') === 'INDEX_LINKED' ? (
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center text-[11px]">
+                        <label className="text-stone-400">Producer Value Share (0.00 – 1.00):</label>
+                        <div className="flex gap-1.5 items-center">
+                          <span className="text-[10px] text-stone-500">Suggestions:</span>
+                          <button
+                            type="button"
+                            onClick={() => dispatch({
+                              type: 'SET_COSTS',
+                              costs: {
+                                producerPricing: {
+                                  mode: 'INDEX_LINKED',
+                                  fixedPriceEurPerMwh: state.costs.producerPricing?.fixedPriceEurPerMwh ?? null,
+                                  indexLinkedShare: 0.90,
+                                  source: 'Typical offtake share (UNVERIFIED)',
+                                  lastVerified: null,
+                                  confidence: 'UNVERIFIED',
+                                }
+                              }
+                            })}
+                            className="px-1.5 py-0.2 bg-stone-900 hover:bg-stone-800 border border-stone-700 rounded text-[10px] font-mono text-teal-300"
+                          >
+                            90%
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => dispatch({
+                              type: 'SET_COSTS',
+                              costs: {
+                                producerPricing: {
+                                  mode: 'INDEX_LINKED',
+                                  fixedPriceEurPerMwh: state.costs.producerPricing?.fixedPriceEurPerMwh ?? null,
+                                  indexLinkedShare: 0.92,
+                                  source: 'High offtake share (UNVERIFIED)',
+                                  lastVerified: null,
+                                  confidence: 'UNVERIFIED',
+                                }
+                              }
+                            })}
+                            className="px-1.5 py-0.2 bg-stone-900 hover:bg-stone-800 border border-stone-700 rounded text-[10px] font-mono text-teal-300"
+                          >
+                            92%
+                          </button>
+                        </div>
+                      </div>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="1"
+                        value={state.costs.producerPricing?.indexLinkedShare ?? ''}
+                        onChange={e => dispatch({
+                          type: 'SET_COSTS',
+                          costs: {
+                            producerPricing: {
+                              mode: 'INDEX_LINKED',
+                              fixedPriceEurPerMwh: state.costs.producerPricing?.fixedPriceEurPerMwh ?? null,
+                              indexLinkedShare: e.target.value === '' ? null : Number(e.target.value),
+                              source: 'User entered',
+                              lastVerified: new Date().toISOString(),
+                              confidence: 'UNVERIFIED',
+                            }
+                          }
+                        })}
+                        className="w-full bg-stone-950 border border-stone-800 rounded-lg px-2.5 py-1.5 font-mono text-stone-200"
+                        placeholder="e.g. 0.90 (unverified — set your own)"
+                      />
+                      <p className="text-[10px] text-stone-500 leading-tight">
+                        Applies percentage directly to delivered netback value stack. No procurement double deduction.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center text-[11px]">
+                        <label className="text-amber-300 font-medium">All-in Fixed Procurement Price (€/MWh):</label>
+                        <div className="flex gap-1.5 items-center">
+                          <button
+                            type="button"
+                            onClick={() => dispatch({
+                              type: 'SET_COSTS',
+                              costs: {
+                                deliveredCost: 58.00,
+                                producerPricing: {
+                                  mode: 'FIXED_PRICE',
+                                  fixedPriceEurPerMwh: 58.00,
+                                  indexLinkedShare: state.costs.producerPricing?.indexLinkedShare ?? null,
+                                  source: 'Agri benchmark',
+                                  lastVerified: null,
+                                  confidence: 'UNVERIFIED',
+                                }
+                              }
+                            })}
+                            className="px-1.5 py-0.2 bg-stone-900 hover:bg-stone-800 border border-stone-700 rounded text-[10px] font-mono text-amber-300"
+                          >
+                            €58
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => dispatch({
+                              type: 'SET_COSTS',
+                              costs: {
+                                deliveredCost: 65.00,
+                                producerPricing: {
+                                  mode: 'FIXED_PRICE',
+                                  fixedPriceEurPerMwh: 65.00,
+                                  indexLinkedShare: state.costs.producerPricing?.indexLinkedShare ?? null,
+                                  source: 'Manure benchmark',
+                                  lastVerified: null,
+                                  confidence: 'UNVERIFIED',
+                                }
+                              }
+                            })}
+                            className="px-1.5 py-0.2 bg-stone-900 hover:bg-stone-800 border border-stone-700 rounded text-[10px] font-mono text-amber-300"
+                          >
+                            €65
+                          </button>
+                        </div>
+                      </div>
+                      <input
+                        type="number"
+                        step="0.5"
+                        value={state.costs.producerPricing?.fixedPriceEurPerMwh ?? state.costs.deliveredCost ?? ''}
+                        onChange={e => {
+                          const val = e.target.value === '' ? null : Number(e.target.value);
+                          dispatch({
+                            type: 'SET_COSTS',
+                            costs: {
+                              deliveredCost: val,
+                              producerPricing: {
+                                mode: 'FIXED_PRICE',
+                                fixedPriceEurPerMwh: val,
+                                indexLinkedShare: state.costs.producerPricing?.indexLinkedShare ?? null,
+                                source: 'User entered',
+                                lastVerified: new Date().toISOString(),
+                                confidence: 'UNVERIFIED',
+                              }
+                            }
+                          });
+                        }}
+                        className="w-full bg-stone-950 border border-amber-900/60 rounded-lg px-2.5 py-1.5 font-mono font-bold text-amber-300"
+                        placeholder="e.g. 65.00"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -661,18 +824,24 @@ export function TradeBuilderScreen() {
                 </div>
 
                 <div className="p-3 bg-stone-950 rounded-lg border border-stone-800">
-                  <div className="text-[11px] font-medium text-stone-400 uppercase tracking-wider">Gross Value Spread</div>
+                  <div className="text-[11px] font-medium text-stone-400 uppercase tracking-wider">Producer Payable</div>
                   <div className="text-xl font-bold font-mono text-sky-300 mt-1">
-                    {netback.grossValueSpread !== null ? `€${netback.grossValueSpread.toFixed(2)}` : '—'}
+                    {netback.producerPayable !== null ? `€${netback.producerPayable.toFixed(2)}` : '—'}
                     <span className="text-xs font-normal text-stone-400"> /MWh</span>
                   </div>
-                  <div className="text-[11px] text-stone-500 mt-0.5">Netback − Raw Procurement</div>
+                  <div className="text-[11px] text-stone-500 mt-0.5">
+                    {state.costs.producerPricing?.mode === 'INDEX_LINKED'
+                      ? `${((state.costs.producerPricing.indexLinkedShare ?? 0) * 100).toFixed(0)}% Index-Linked Share`
+                      : 'Fixed Procurement Cost'}
+                  </div>
                 </div>
 
                 <div className="p-3 bg-stone-950 rounded-lg border border-emerald-900/60 bg-gradient-to-b from-emerald-950/20 to-transparent">
                   <div className="text-[11px] font-medium text-emerald-400 uppercase tracking-wider flex items-center justify-between">
                     <span>Realised Desk Margin</span>
-                    <span className="text-[10px] bg-emerald-950 text-emerald-300 px-1.5 py-0.2 rounded border border-emerald-800">10% Capture</span>
+                    <span className="text-[10px] bg-emerald-950 text-emerald-300 px-1.5 py-0.2 rounded border border-emerald-800">
+                      {netback.marginPercent !== null ? `${netback.marginPercent.toFixed(1)}% margin` : 'Desk Capture'}
+                    </span>
                   </div>
                   <div className="text-xl font-bold font-mono text-emerald-400 mt-1">
                     {netback.deskMargin !== null ? `€${netback.deskMargin.toFixed(2)}` : '—'}
@@ -705,7 +874,7 @@ export function TradeBuilderScreen() {
                         Netback: €{netback.uncertaintyBranches[0].netNetback?.toFixed(2)}/MWh
                       </div>
                       <div className="text-emerald-400 text-xs mt-0.5">
-                        Desk Margin: €{netback.uncertaintyBranches[0].deskMargin?.toFixed(2)}/MWh
+                        Desk Margin: €{netback.uncertaintyBranches[0].deskMargin?.toFixed(2)}/MWh ({netback.uncertaintyBranches[0].marginPercent?.toFixed(1)}%)
                       </div>
                     </div>
 
@@ -715,7 +884,7 @@ export function TradeBuilderScreen() {
                         Netback: €{netback.uncertaintyBranches[1].netNetback?.toFixed(2)}/MWh
                       </div>
                       <div className="text-emerald-400 text-xs mt-0.5">
-                        Desk Margin: €{netback.uncertaintyBranches[1].deskMargin?.toFixed(2)}/MWh
+                        Desk Margin: €{netback.uncertaintyBranches[1].deskMargin?.toFixed(2)}/MWh ({netback.uncertaintyBranches[1].marginPercent?.toFixed(1)}%)
                       </div>
                     </div>
                   </div>
@@ -782,30 +951,23 @@ export function TradeBuilderScreen() {
                     </span>
                   </div>
 
+                  {/* Producer Payable Line */}
                   <div className="p-2.5 flex justify-between items-center text-stone-300">
-                    <span className="text-amber-300 font-semibold">Base Producer Procurement Cost</span>
+                    <span className="text-amber-300 font-semibold">
+                      {state.costs.producerPricing?.mode === 'INDEX_LINKED'
+                        ? `Producer Payable (${((state.costs.producerPricing.indexLinkedShare ?? 0) * 100).toFixed(0)}% Value Share)`
+                        : 'Fixed Producer Procurement Cost'}
+                    </span>
                     <span className="font-bold text-amber-300">
-                      {state.costs.deliveredCost !== null ? `−€${state.costs.deliveredCost.toFixed(2)}/MWh` : 'Not set'}
-                    </span>
-                  </div>
-
-                  <div className="p-2.5 flex justify-between items-center text-stone-400">
-                    <span>Gross Value Spread (Netback − Procurement)</span>
-                    <span className="font-bold text-sky-300">
-                      {netback.grossValueSpread !== null ? `€${netback.grossValueSpread.toFixed(2)}/MWh` : '—'}
-                    </span>
-                  </div>
-
-                  <div className="p-2.5 flex justify-between items-center text-stone-400">
-                    <span>Index-Linked Producer Share (90%)</span>
-                    <span className="text-stone-300">
-                      {netback.producerPayable !== null ? `−€${netback.producerPayable.toFixed(2)}/MWh` : '—'}
+                      {netback.producerPayable !== null ? `−€${netback.producerPayable.toFixed(2)}/MWh` : 'Not set'}
                     </span>
                   </div>
 
                   {/* Realised Desk Margin Bottom Line */}
                   <div className="p-3 bg-emerald-950/30 border-t border-emerald-800/80 flex justify-between items-center font-bold text-emerald-400 text-sm">
-                    <span className="uppercase tracking-wider text-xs">Realised Desk Margin (10% Residual)</span>
+                    <span className="uppercase tracking-wider text-xs">
+                      Realised Desk Capture Margin {netback.marginPercent !== null ? `(${netback.marginPercent.toFixed(1)}%)` : ''}
+                    </span>
                     <span className="text-base">
                       {netback.deskMargin !== null ? `€${netback.deskMargin.toFixed(2)}/MWh` : '—'}
                     </span>

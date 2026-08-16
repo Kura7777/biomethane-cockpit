@@ -1,11 +1,25 @@
 import { MarkEntry, PriceSide } from '../markets/types';
 
+export type ProducerPricingMode = 'FIXED_PRICE' | 'INDEX_LINKED';
+
+export interface ProducerPricing {
+  mode: ProducerPricingMode;
+  /** FIXED_PRICE only: all-in €/MWh paid to the producer. */
+  fixedPriceEurPerMwh: number | null;
+  /** INDEX_LINKED only: producer's share of the delivered value stack, 0–1. */
+  indexLinkedShare: number | null;   // no default value — user must set it
+  source: string | null;
+  lastVerified: string | null;
+  confidence: 'VERIFIED' | 'LIKELY' | 'CONTESTED' | 'UNVERIFIED';
+}
+
 export interface CostInputs {
   transferCosts: number | null;     // €/MWh
   certificationCosts: number | null; // €/MWh
   logistics: number | null;         // €/MWh
-  deliveredCost: number | null;     // €/MWh (procurement cost)
+  deliveredCost: number | null;     // €/MWh (procurement cost / fallback fixedPrice)
   otherCosts: number | null;        // €/MWh
+  producerPricing?: ProducerPricing;
 }
 
 export interface FuelEUOptions {
@@ -31,13 +45,14 @@ export interface NetbackBranch {
   branchLabel: string;
   certificateValue: CertificateValueResult;
   netNetback: number | null;
-  grossValueSpread: number | null;   // Delivered Netback − Producer Procurement Cost
+  grossValueSpread: number | null;   // Delivered Netback − Producer Payable
   impliedMargin: number | null;      // Alias for grossValueSpread
-  producerPayable: number | null;   // Index-linked producer share (default ~90% of value stack)
-  deskMargin: number | null;        // Realized commercial desk margin after producer payout (€/MWh)
-  marginPercent: number | null;
-  totalPnL: number | null;           // Gross Value Spread * volume
-  deskPnL: number | null;            // Desk Margin * volume
+  producerPayable: number | null;   // Amount paid to producer (€/MWh)
+  deskMargin: number | null;        // Realized commercial desk margin (€/MWh)
+  marginPercent: number | null;     // deskMargin / netNetback * 100
+  grossSpreadPnL: number | null;    // grossValueSpread * volume
+  totalPnL: number | null;          // Alias for deskPnL
+  deskPnL: number | null;           // deskMargin * volume
   isComplete: boolean;
   missingInputs: string[];
 }
@@ -49,13 +64,14 @@ export interface NetbackResult {
   moleculeValue: number | null;     // Gas index (€/MWh)
   totalCosts: number | null;        // Sum of all entered cost inputs
   netNetback: number | null;        // cert + molecule - costs (null if cert is null)
-  grossValueSpread: number | null;   // Delivered Netback − Producer Procurement Cost (€/MWh)
+  grossValueSpread: number | null;   // Delivered Netback − Producer Payable (€/MWh)
   impliedMargin: number | null;      // Alias for grossValueSpread
-  producerPayable: number | null;   // Index-linked producer share (€/MWh)
+  producerPayable: number | null;   // Amount paid to producer (€/MWh)
   deskMargin: number | null;        // Realized commercial desk margin (€/MWh)
-  marginPercent: number | null;     // Gross Value Spread / netNetback * 100
-  totalPnL: number | null;          // Gross Value Spread * volume
-  deskPnL: number | null;            // Realized Desk Margin * volume
+  marginPercent: number | null;     // deskMargin / netNetback * 100
+  grossSpreadPnL: number | null;    // grossValueSpread * volume
+  totalPnL: number | null;          // Alias for deskPnL
+  deskPnL: number | null;           // deskMargin * volume
   isTheoretical: boolean;           // true if market is blocked
   blockingReason: string | null;
   isComplete: boolean;              // true ONLY if certificate, molecule, and all standard cost components are entered
