@@ -520,16 +520,28 @@ export function TradeBuilderScreen() {
 
             <div className="bg-[#12171C] rounded p-3 space-y-3 font-mono text-xs">
               
-              {/* Consignment Name */}
-              <div>
-                <label className="block text-[10px] text-[#8B98A5] uppercase mb-1">Reference Label</label>
-                <input
-                  type="text"
-                  value={consignment.name}
-                  onChange={e => setConsignment({ ...consignment, name: e.target.value })}
-                  className="w-full bg-[#0B0E11] border border-[#26313D] rounded px-2.5 py-1.5 text-xs text-[#E8EDF2] focus:border-[#2DD4BF] outline-none"
-                  placeholder="e.g., Baltic Manure Cargo"
-                />
+              {/* Reference Label & Counterparty */}
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[10px] text-[#8B98A5] uppercase mb-1">Reference Label</label>
+                  <input
+                    type="text"
+                    value={consignment.name}
+                    onChange={e => setConsignment({ ...consignment, name: e.target.value })}
+                    className="w-full bg-[#0B0E11] border border-[#26313D] rounded px-2.5 py-1.5 text-xs text-[#E8EDF2] focus:border-[#2DD4BF] outline-none font-mono"
+                    placeholder="e.g., Baltic Manure Cargo"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] text-[#8B98A5] uppercase mb-1">Counterparty (Opt)</label>
+                  <input
+                    type="text"
+                    value={consignment.counterparty ?? ''}
+                    onChange={e => setConsignment({ ...consignment, counterparty: e.target.value || null })}
+                    placeholder="e.g. Shell Energy"
+                    className="w-full bg-[#0B0E11] border border-[#26313D] rounded px-2.5 py-1.5 text-xs text-[#E8EDF2] focus:border-[#2DD4BF] outline-none font-mono"
+                  />
+                </div>
               </div>
 
               {/* Origin Country & Feedstock */}
@@ -767,18 +779,6 @@ export function TradeBuilderScreen() {
                     </select>
                   </div>
                 </div>
-              </div>
-
-              {/* 4.3 Optional Counterparty */}
-              <div>
-                <label className="block text-[9px] text-[#8B98A5] uppercase mb-1">Counterparty (Optional)</label>
-                <input
-                  type="text"
-                  value={consignment.counterparty ?? ''}
-                  onChange={e => setConsignment({ ...consignment, counterparty: e.target.value || null })}
-                  placeholder="e.g. Shell Energy Europe"
-                  className="w-full bg-[#0B0E11] border border-[#26313D] rounded px-2 py-1 text-xs text-[#E8EDF2] focus:border-[#2DD4BF] outline-none font-mono"
-                />
               </div>
 
             </div>
@@ -1207,65 +1207,74 @@ export function TradeBuilderScreen() {
           <div className="bg-[#12171C] rounded p-3.5 space-y-3">
             
             {/* Ticket Header */}
-            <div className="border-b border-[#1E262F] pb-2.5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2.5">
-              <div>
-                <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-wide text-[#8B98A5]">
+            <div className="border-b border-[#1E262F] pb-3 space-y-2">
+              {/* Top Row: Context & Action Toolbar */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-[#8B98A5]">
                   <span>Deal Valuation & Clearance</span>
                   <span>•</span>
-                  <span className="text-[#E8EDF2]">{consignment.originCountryName} ➔ {selectedMarket.countryName || 'EU'}</span>
+                  <span className="text-[#E8EDF2] font-medium">{consignment.originCountryName} ➔ {selectedMarket.countryName || 'EU Grid'}</span>
                 </div>
-                <div className="flex items-center gap-2 flex-wrap mt-0.5">
-                  <h2 className="text-[18px] font-semibold text-[#E8EDF2] tracking-tight font-mono">
-                    {selectedMarket.name}
-                  </h2>
-                  <span className="text-[#2DD4BF] text-[11px] font-mono font-medium px-2 py-0.5 bg-[#12171C] rounded border border-[#1E262F]">
-                    {deliveryPeriodLabel}
-                  </span>
 
-                  {/* 4.2 Runner-up Best Alternative */}
-                  {runnerUp && (
-                    <button
-                      onClick={() => {
-                        setSelectedMarketId(runnerUp.market.id);
-                        setSearchParams({ marketId: runnerUp.market.id, originCountry: consignment.originCountry });
-                      }}
-                      className="inline-flex items-center gap-1.5 text-[11px] font-mono text-[#8B98A5] hover:text-[#2DD4BF] px-2 py-0.5 bg-[#12171C] rounded border border-[#1E262F] hover:border-[#2DD4BF]/50 transition-colors cursor-pointer"
-                      title="Click to switch target market to best alternative"
-                    >
-                      <span className="text-[#8B98A5]">Runner-up:</span>
-                      <span className="text-[#E8EDF2] font-semibold">{runnerUp.market.name}</span>
-                      <span className="text-[#2DD4BF]">€{runnerUp.netback.toFixed(2)}/MWh</span>
-                      <span className={runnerUp.spread >= 0 ? 'text-[#2DD4BF]' : 'text-[#8B98A5]'}>
-                        ({runnerUp.spread >= 0 ? '+' : ''}€{runnerUp.spread.toFixed(2)} spread)
-                      </span>
-                    </button>
-                  )}
-                </div>
-                <div className="text-[10px] text-[#8B98A5] mt-0.5 font-mono">
-                  Registry: <span className="text-[#E8EDF2]">{selectedMarket.registry || selectedMarket.countryName}</span> • Basis: <span className="text-[#E8EDF2]">{selectedMarket.legalBasis}</span> • Counterparty: <span className="text-[#E8EDF2]">{consignment.counterparty || 'Open Desk / Unassigned'}</span>
+                <div className="flex items-center gap-1.5 self-end sm:self-auto">
+                  <button
+                    onClick={() => setIsLogisticsOpen(true)}
+                    className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded bg-[#182026] text-[#8B98A5] hover:text-[#E8EDF2] hover:bg-[#1E2830] transition-colors font-mono"
+                  >
+                    <Truck className="w-3 h-3 text-[#2DD4BF]" />
+                    Corridor
+                  </button>
+                  <CopyButton text={summaryText} label="Copy Deal Sheet" praWarning={praCheck.hasPra} praSources={praCheck.sources} />
+                  <button
+                    onClick={handleSaveToLibrary}
+                    className={`inline-flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded transition-all font-mono ${
+                      saveSuccess
+                        ? 'bg-[#2DD4BF] text-[#0B0E11]'
+                        : 'bg-[#182026] text-[#8B98A5] hover:text-[#E8EDF2] hover:bg-[#1E2830]'
+                    }`}
+                  >
+                    <BookmarkPlus className="w-3 h-3" />
+                    {saveSuccess ? 'Saved' : 'Save Dossier'}
+                  </button>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setIsLogisticsOpen(true)}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded bg-[#182026] text-[#8B98A5] hover:text-[#E8EDF2] transition-colors font-mono"
-                >
-                  <Truck className="w-3.5 h-3.5" />
-                  Corridor
-                </button>
-                <CopyButton text={summaryText} label="Copy Deal Sheet" praWarning={praCheck.hasPra} praSources={praCheck.sources} />
-                <button
-                  onClick={handleSaveToLibrary}
-                  className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded transition-all font-mono ${
-                    saveSuccess
-                      ? 'bg-[#2DD4BF] text-[#0B0E11]'
-                      : 'bg-[#182026] text-[#8B98A5] hover:text-[#E8EDF2]'
-                  }`}
-                >
-                  <BookmarkPlus className="w-3.5 h-3.5" />
-                  {saveSuccess ? 'Saved' : 'Save Dossier'}
-                </button>
+              {/* Middle Row: Market Title + Tenor Badge + Runner-up */}
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h2 className="text-[19px] font-bold text-[#E8EDF2] tracking-tight font-mono">
+                  {selectedMarket.name}
+                </h2>
+                <span className="text-[#2DD4BF] text-[10px] font-mono font-medium px-2 py-0.5 bg-[#0B0E11] rounded border border-[#1E262F]">
+                  {deliveryPeriodLabel}
+                </span>
+
+                {/* 4.2 Runner-up Best Alternative */}
+                {runnerUp && (
+                  <button
+                    onClick={() => {
+                      setSelectedMarketId(runnerUp.market.id);
+                      setSearchParams({ marketId: runnerUp.market.id, originCountry: consignment.originCountry });
+                    }}
+                    className="inline-flex items-center gap-1.5 text-[10px] font-mono text-[#8B98A5] hover:text-[#2DD4BF] px-2 py-0.5 bg-[#0B0E11] rounded border border-[#1E262F] hover:border-[#2DD4BF]/50 transition-colors cursor-pointer"
+                    title="Click to switch target market to best alternative"
+                  >
+                    <span>Runner-up:</span>
+                    <span className="text-[#E8EDF2] font-medium">{runnerUp.market.shortName || runnerUp.market.name}</span>
+                    <span className="text-[#2DD4BF]">€{runnerUp.netback.toFixed(2)}</span>
+                    <span className={runnerUp.spread >= 0 ? 'text-[#2DD4BF]' : 'text-[#8B98A5]'}>
+                      ({runnerUp.spread >= 0 ? '+' : ''}€{runnerUp.spread.toFixed(2)})
+                    </span>
+                  </button>
+                )}
+              </div>
+
+              {/* Bottom Row: Metadata info */}
+              <div className="text-[10px] text-[#8B98A5] font-mono flex items-center gap-2 flex-wrap pt-0.5">
+                <span>Registry: <strong className="text-[#E8EDF2] font-normal">{selectedMarket.registry || selectedMarket.countryName}</strong></span>
+                <span>•</span>
+                <span>Basis: <strong className="text-[#E8EDF2] font-normal">{selectedMarket.legalBasis}</strong></span>
+                <span>•</span>
+                <span>Counterparty: <strong className="text-[#E8EDF2] font-normal">{consignment.counterparty || 'Open Desk / Unassigned'}</strong></span>
               </div>
             </div>
 
@@ -1273,21 +1282,21 @@ export function TradeBuilderScreen() {
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs py-1 border-b border-[#1E262F]">
               <div className="flex items-center gap-2">
                 <StatusChip variant={eligibility.overallVerdict} size="xs" />
-                <span className="text-[#8B98A5] text-xs">{eligibility.summary}</span>
+                <span className="text-[#8B98A5] text-xs font-mono">{eligibility.summary}</span>
               </div>
               <StaleIndicator target={markEntry} />
             </div>
 
-            {/* HERO VALUATION ROW (Phase 3 Polish: Single Merged Call To Action when unset) */}
-            <div className={`p-3 rounded transition-colors ${
+            {/* HERO VALUATION ROW */}
+            <div className={`p-3 rounded border transition-colors ${
               netback.deskMargin !== null && netback.deskMargin < 0 
-                ? 'bg-[#1C0E10] border border-[#D64545]/50' 
-                : 'bg-[#0B0E11]'
+                ? 'bg-[#1C0E10] border-[#D64545]/50' 
+                : 'bg-[#0B0E11] border-[#1E262F]'
             }`}>
               <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-stretch">
                 
                 {/* 1. Hero Number: Delivered Netback (36px, 600 weight, monospace) */}
-                <div className="sm:col-span-6 flex flex-col justify-between p-2">
+                <div className="sm:col-span-6 flex flex-col justify-between p-1.5">
                   <div className={`text-[10px] font-normal uppercase tracking-wider font-mono ${
                     netback.valuationRange ? 'text-[#D99A2B]' : 'text-[#8B98A5]'
                   }`}>
@@ -1296,7 +1305,7 @@ export function TradeBuilderScreen() {
 
                   {netback.valuationRange ? (
                     <div>
-                      <div className="text-[28px] sm:text-[32px] font-semibold font-mono tabular-nums leading-none mt-1.5 text-[#D99A2B]">
+                      <div className="text-[26px] sm:text-[30px] font-bold font-mono tabular-nums leading-none mt-1.5 text-[#D99A2B]">
                         €{netback.valuationRange.low.toFixed(2)} – €{netback.valuationRange.high.toFixed(2)}
                         <span className="text-xs font-normal text-[#8B98A5] ml-1">/MWh</span>
                       </div>
@@ -1311,7 +1320,7 @@ export function TradeBuilderScreen() {
                     </div>
                   ) : netback.netNetback !== null ? (
                     <div>
-                      <div className={`text-[36px] font-semibold font-mono tabular-nums leading-none mt-1.5 ${
+                      <div className={`text-[34px] font-bold font-mono tabular-nums leading-none mt-1.5 ${
                         netback.netNetback < 0 ? 'text-[#D64545]' : 'text-[#2DD4BF]'
                       }`}>
                         €{netback.netNetback.toFixed(2)}
@@ -1348,7 +1357,7 @@ export function TradeBuilderScreen() {
                       <span className="text-[10px] font-normal text-[#8B98A5] uppercase tracking-wider font-mono">
                         Producer Terms & Desk Margin
                       </span>
-                      <span className="text-[9px] text-[#8B98A5] font-mono">Input Required</span>
+                      <span className="text-[9px] text-[#D99A2B] font-mono">Input Required</span>
                     </div>
 
                     <div className="my-1">
@@ -1363,7 +1372,7 @@ export function TradeBuilderScreen() {
                         <ArrowRight className="w-3.5 h-3.5 shrink-0" />
                       </button>
                       <div className="text-[10px] text-[#8B98A5] mt-0.5 font-mono">
-                        Desk margin and gross value spread require brown gas or index share
+                        Desk margin requires brown gas or index share
                       </div>
                     </div>
 
@@ -1433,53 +1442,39 @@ export function TradeBuilderScreen() {
                 )}
 
               </div>
-
-              {/* Regulatory Risk Spread Block (Phase 3) */}
-              {netback.valuationRange && (
-                <div className="mt-2.5 pt-2 border-t border-[#D99A2B]/30 bg-[#1C150A] rounded p-2.5 text-xs font-mono space-y-1.5">
-                  <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-[#D99A2B]">
-                    <span className="flex items-center gap-1.5">
-                      <AlertTriangle className="w-3.5 h-3.5 text-[#D99A2B]" />
-                      Regulatory Risk Spread
-                    </span>
-                    <span>€{netback.valuationRange.deltaPerMwh.toFixed(2)}/MWh at risk</span>
-                  </div>
-                  <div className="text-[13px] text-[#E8EDF2] font-semibold tabular-nums">
-                    {netback.valuationRange.deltaNotional !== null
-                      ? `€${netback.valuationRange.deltaNotional.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} notional on ${consignment.volumeMWh?.toLocaleString()} MWh`
-                      : 'Volume unset — enter volume to calculate notional delta'}
-                  </div>
-                  <div className="text-[10px] text-[#8B98A5]">
-                    Driver: <span className="text-[#E8EDF2]">{netback.valuationRange.driver}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-[10px] text-[#8B98A5] pt-1 border-t border-[#D99A2B]/20 tabular-nums">
-                    <span>Conservative (1×): <strong className="text-[#E8EDF2]">€{netback.valuationRange.low.toFixed(2)}/MWh</strong></span>
-                    <span>Upside (2×): <strong className="text-[#2DD4BF]">€{netback.valuationRange.high.toFixed(2)}/MWh</strong></span>
-                  </div>
-                </div>
-              )}
             </div>
 
-            {/* German THG Double Counting Sensitivity */}
-            {netback.uncertaintyBranches && netback.uncertaintyBranches.length > 0 && (
-              <div className="bg-[#0B0E11] p-2.5 rounded space-y-1.5 border border-[#1E262F]">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-[#8B98A5] flex items-center gap-1.5 text-xs font-mono">
-                    <AlertCircle className="w-3.5 h-3.5 text-[#D99A2B]" />
-                    German THG Double Counting Sensitivity (§37a BImSchG)
+            {/* Consolidated Regulatory Risk Spread & Sensitivity (Clean single component) */}
+            {netback.valuationRange && netback.uncertaintyBranches && netback.uncertaintyBranches.length >= 2 && (
+              <div className="bg-[#151008] border border-[#D99A2B]/35 rounded p-2.5 space-y-2 text-xs font-mono">
+                <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-[#D99A2B]">
+                  <span className="flex items-center gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5 text-[#D99A2B]" />
+                    Regulatory Risk Spread (§37a BImSchG Double Counting)
                   </span>
-                  <span className="text-[9px] text-[#D99A2B] bg-[#2A1E14] px-1.5 py-0.2 rounded font-mono">
-                    Uncertainty
+                  <span>€{netback.valuationRange.deltaPerMwh.toFixed(2)}/MWh at risk</span>
+                </div>
+
+                <div className="flex justify-between items-center text-[11px] text-[#E8EDF2] font-medium flex-wrap gap-1">
+                  <span>
+                    {netback.valuationRange.deltaNotional !== null
+                      ? `€${netback.valuationRange.deltaNotional.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} notional at risk on ${consignment.volumeMWh?.toLocaleString()} MWh`
+                      : 'Volume unset — enter volume to calculate notional delta'}
+                  </span>
+                  <span className="text-[10px] text-[#8B98A5]">
+                    Driver: <span className="text-[#E8EDF2]">{netback.valuationRange.driver}</span>
                   </span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
-                  <div className="p-2 bg-[#12171C] rounded">
-                    <div className="text-[#8B98A5] text-[10px] uppercase">Branch 1: Single Counting (1×)</div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-[#D99A2B]/20">
+                  {/* Branch 1: Single Counting (1×) */}
+                  <div className="p-2 bg-[#0B0E11] rounded border border-[#1E262F]">
+                    <div className="text-[#8B98A5] text-[10px] uppercase font-semibold">Conservative (1× Single Counting)</div>
                     <div className="text-xs font-semibold text-[#E8EDF2] mt-0.5 tabular-nums">
                       Netback: €{netback.uncertaintyBranches[0].netNetback?.toFixed(2)}/MWh
                     </div>
                     {consignment.volumeMWh !== null && netback.uncertaintyBranches[0].netNetback !== null && (
-                      <div className="text-[10px] text-[#8B98A5] mt-0.5 tabular-nums">
+                      <div className="text-[10px] text-[#8B98A5] tabular-nums">
                         €{(netback.uncertaintyBranches[0].netNetback * consignment.volumeMWh).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} total
                       </div>
                     )}
@@ -1488,13 +1483,14 @@ export function TradeBuilderScreen() {
                     </div>
                   </div>
 
-                  <div className="p-2 bg-[#12171C] rounded border-l-2 border-[#2DD4BF]">
-                    <div className="text-[#8B98A5] text-[10px] uppercase">Branch 2: Double Counting (2×)</div>
+                  {/* Branch 2: Double Counting (2×) */}
+                  <div className="p-2 bg-[#0B0E11] rounded border border-[#2DD4BF]/40">
+                    <div className="text-[#2DD4BF] text-[10px] uppercase font-semibold">Upside (2× Double Counting)</div>
                     <div className="text-xs font-semibold text-[#E8EDF2] mt-0.5 tabular-nums">
                       Netback: €{netback.uncertaintyBranches[1].netNetback?.toFixed(2)}/MWh
                     </div>
                     {consignment.volumeMWh !== null && netback.uncertaintyBranches[1].netNetback !== null && (
-                      <div className="text-[10px] text-[#8B98A5] mt-0.5 tabular-nums">
+                      <div className="text-[10px] text-[#8B98A5] tabular-nums">
                         €{(netback.uncertaintyBranches[1].netNetback * consignment.volumeMWh).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} total
                       </div>
                     )}
@@ -1506,11 +1502,11 @@ export function TradeBuilderScreen() {
               </div>
             )}
 
-            {/* DEAL TICKET: TWO-SIDED LEGS & CROSSING COST (Phase 1) */}
-            <div className="space-y-2 pt-0.5 font-mono text-xs">
+            {/* TWO-SIDED DEAL TICKET WATERFALL */}
+            <div className="bg-[#0B0E11] rounded border border-[#1E262F] p-3 space-y-2.5 font-mono text-xs">
               
               {/* Header & Global Side Toggle */}
-              <div className="flex justify-between items-center pb-1 border-b border-[#1E262F]">
+              <div className="flex justify-between items-center pb-2 border-b border-[#1E262F]">
                 <span className="font-semibold text-[#8B98A5] text-[10px] uppercase tracking-wider">
                   Two-Sided Deal Ticket Breakdown
                 </span>
@@ -1518,7 +1514,7 @@ export function TradeBuilderScreen() {
                 {/* Global Side Quick-Set */}
                 <div className="flex items-center gap-1.5 text-[10px]">
                   <span className="text-[#8B98A5]">All legs:</span>
-                  <div className="inline-flex bg-[#0B0E11] p-0.5 rounded border border-[#1E262F]">
+                  <div className="inline-flex bg-[#12171C] p-0.5 rounded border border-[#1E262F]">
                     {(['bid', 'mid', 'offer'] as PriceSide[]).map(s => {
                       const isGlobalMatch = (state.marks.pricingSides?.certificateSide ?? state.marks.pricingSide ?? 'bid') === s &&
                                             (state.marks.pricingSides?.moleculeSide ?? state.marks.pricingSide ?? 'bid') === s;
@@ -1542,20 +1538,19 @@ export function TradeBuilderScreen() {
               </div>
 
               {/* 1. SELL LEG (Certificate + Molecule - Transfer/Cert/Logistics) */}
-              <div className="p-2.5 bg-[#0B0E11] rounded border border-[#1E262F] space-y-1">
-                <div className="flex justify-between items-center text-[10px] font-semibold text-[#2DD4BF] uppercase tracking-wider pb-1 border-b border-[#1E262F]/60">
-                  <span>1. SELL LEG (Offtake Realisation)</span>
-                  <span className="text-[#8B98A5] font-normal">Delivery to {selectedMarket.shortName || selectedMarket.name}</span>
+              <div className="space-y-1 pb-2 border-b border-[#1E262F]/60">
+                <div className="flex justify-between items-center text-[10px] font-semibold text-[#2DD4BF] uppercase tracking-wider pb-0.5">
+                  <span>1. Sell Leg (Offtake Realisation)</span>
+                  <span className="text-[#8B98A5] font-normal">{selectedMarket.shortName || selectedMarket.name}</span>
                 </div>
 
                 {/* Certificate premium with side selector */}
-                <div className="h-7 flex justify-between items-center text-[#8B98A5]">
+                <div className="h-6 flex justify-between items-center text-[#8B98A5]">
                   <div className="flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#2DD4BF]" />
                     <span className="text-[#E8EDF2]">{selectedMarket.shortName || selectedMarket.id} certificate</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    {/* Per-leg side selector */}
                     <div className="inline-flex bg-[#12171C] p-0.5 rounded text-[9px]">
                       {(['bid', 'mid', 'offer'] as PriceSide[]).map(s => {
                         const currentCertSide = state.marks.pricingSides?.certificateSide ?? state.marks.pricingSide ?? 'bid';
@@ -1579,10 +1574,10 @@ export function TradeBuilderScreen() {
                 </div>
 
                 {/* Molecule value with side selector */}
-                <div className="h-7 flex justify-between items-center text-[#8B98A5]">
+                <div className="h-6 flex justify-between items-center text-[#8B98A5]">
                   <div className="flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#8B98A5]" />
-                    <span>TTF molecule</span>
+                    <span>TTF gas index</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="inline-flex bg-[#12171C] p-0.5 rounded text-[9px]">
@@ -1616,7 +1611,7 @@ export function TradeBuilderScreen() {
                 </div>
 
                 {/* Delivered Netback (sell-side) Subtotal + at mid + crossing cost */}
-                <div className="pt-1.5 border-t border-[#1E262F]/60 flex flex-col gap-1">
+                <div className="pt-1 border-t border-[#1E262F]/40 flex flex-col gap-0.5">
                   <div className="flex justify-between items-center font-semibold text-[#E8EDF2]">
                     <span>Delivered Netback (Sell Leg)</span>
                     <span className="tabular-nums text-[#2DD4BF]">
@@ -1628,7 +1623,7 @@ export function TradeBuilderScreen() {
                   {netback.sides && (
                     <div className="flex justify-between items-center text-[10px] text-[#8B98A5]">
                       <span>
-                        at mid: <strong className="text-[#E8EDF2]">{netback.sides.atMid !== null ? `€${netback.sides.atMid.toFixed(2)}/MWh` : 'N/A'}</strong>
+                        at mid: <strong className="text-[#E8EDF2] font-normal">{netback.sides.atMid !== null ? `€${netback.sides.atMid.toFixed(2)}/MWh` : 'N/A'}</strong>
                       </span>
                       {netback.sides.crossingCost !== null && netback.sides.crossingCost >= 0 ? (
                         <span className="text-[#D99A2B]">
@@ -1645,18 +1640,18 @@ export function TradeBuilderScreen() {
               </div>
 
               {/* 2. BUY LEG (Producer Payable) */}
-              <div className="p-2.5 bg-[#0B0E11] rounded border border-[#1E262F] space-y-1">
-                <div className="flex justify-between items-center text-[10px] font-semibold text-[#D99A2B] uppercase tracking-wider pb-1 border-b border-[#1E262F]/60">
-                  <span>2. BUY LEG (Producer Procurement)</span>
-                  <span className="text-[#8B98A5] font-normal">Origin: {consignment.originCountryName}</span>
+              <div className="space-y-1 pb-2 border-b border-[#1E262F]/60">
+                <div className="flex justify-between items-center text-[10px] font-semibold text-[#D99A2B] uppercase tracking-wider pb-0.5">
+                  <span>2. Buy Leg (Producer Procurement)</span>
+                  <span className="text-[#8B98A5] font-normal">{consignment.originCountryName}</span>
                 </div>
-                <div className="h-7 flex justify-between items-center text-[#8B98A5]">
+                <div className="h-6 flex justify-between items-center text-[#8B98A5]">
                   <span className="text-[#E8EDF2]">
                     {state.costs.producerPricing?.mode === 'INDEX_LINKED'
-                      ? `Producer — index-linked (${((state.costs.producerPricing.indexLinkedShare ?? 0) * 100).toFixed(1)}% of netback)`
+                      ? `Producer payable (${((state.costs.producerPricing.indexLinkedShare ?? 0) * 100).toFixed(1)}% index share)`
                       : state.costs.producerPricing?.mode === 'FIXED_PRICE'
-                      ? 'Producer — fixed price'
-                      : 'Producer — procurement terms'}
+                      ? 'Producer payable (fixed price)'
+                      : 'Producer payable (procurement terms)'}
                   </span>
                   <span className="font-semibold text-[#D99A2B] tabular-nums">
                     {netback.producerPayable !== null ? `−€${netback.producerPayable.toFixed(2)}/MWh` : 'Not set'}
@@ -1665,31 +1660,31 @@ export function TradeBuilderScreen() {
               </div>
 
               {/* 3. DESK SPREAD / MARGIN BOTTOM LINE */}
-              <div className="p-2.5 bg-[#18242A] rounded border border-[#2DD4BF]/30 flex justify-between items-center font-semibold text-[#2DD4BF]">
-                <span className="uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+              <div className="p-2 bg-[#18242A] rounded border border-[#2DD4BF]/30 flex justify-between items-center font-semibold text-[#2DD4BF]">
+                <span className="uppercase tracking-wider text-[11px]">
                   DESK SPREAD {netback.marginPercent !== null ? `(${netback.marginPercent.toFixed(1)}% margin)` : ''}
                 </span>
-                <span className="text-[18px] tabular-nums">
+                <span className="text-[17px] tabular-nums">
                   {netback.deskMargin !== null ? `€${netback.deskMargin.toFixed(2)}/MWh` : 'Not set'}
                 </span>
               </div>
 
               {/* 4.4 LOGISTICS ROUTE & EXECUTION SUMMARY */}
-              <div className="flex items-center justify-between p-2 bg-[#0B0E11] rounded border border-[#1E262F] text-xs font-mono">
+              <div className="flex items-center justify-between p-2 bg-[#12171C] rounded border border-[#1E262F] text-xs font-mono">
                 <div className="flex items-center gap-1.5 text-[11px] text-[#8B98A5] flex-wrap">
                   <Truck className="w-3.5 h-3.5 text-[#2DD4BF] shrink-0" />
                   <span className="text-[#E8EDF2] font-semibold">{consignment.originCountry} ➔ {selectedMarket.country || 'EU'}</span>
-                  <span>via <strong className="text-[#E8EDF2]">{logisticsSummary.physicalRoute.transitingCountries.join(' ➔ ') || `${consignment.originCountry}_GRID`}</strong></span>
+                  <span>via <strong className="text-[#E8EDF2] font-normal">{logisticsSummary.physicalRoute.transitingCountries.join(' ➔ ') || `${consignment.originCountry}_GRID`}</strong></span>
                   <span>•</span>
                   <span>{logisticsSummary.physicalRoute.transitingCountries.length > 1 ? `${logisticsSummary.physicalRoute.transitingCountries.length - 1} border${logisticsSummary.physicalRoute.transitingCountries.length > 2 ? 's' : ''}` : 'Domestic'}</span>
                   <span>•</span>
-                  <span>~€{(logisticsSummary.modes.physicalPipeline.totalCostEurMwh ?? 1.50).toFixed(2)}/MWh estimated tariff</span>
+                  <span>~€{(logisticsSummary.modes.physicalPipeline.totalCostEurMwh ?? 1.50).toFixed(2)}/MWh tariff</span>
                 </div>
                 <button
                   onClick={() => setIsLogisticsOpen(true)}
                   className="text-[10px] text-[#2DD4BF] hover:underline font-semibold shrink-0 ml-2 cursor-pointer"
                 >
-                  Corridor ➔
+                  Corridor Details ➔
                 </button>
               </div>
 
