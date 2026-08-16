@@ -542,10 +542,32 @@ export function MapScreen() {
             </select>
           </div>
 
-          {/* 2. Feedstock */}
+          {/* 2. Target Market / Destination Country */}
+          <div>
+            <label className="block text-[9px] font-bold text-teal-400 uppercase mb-0.5 flex items-center justify-between">
+              <span>2. Target Market</span>
+              <span className="text-teal-300 font-mono">[{targetCountry}]</span>
+            </label>
+            <select
+              value={targetCountry}
+              onChange={e => {
+                setTargetCountry(e.target.value);
+                setDrawerTab('COMPLIANCE');
+              }}
+              className="w-full bg-stone-950 border border-teal-500/70 rounded px-2 py-1.5 text-teal-300 font-bold outline-none focus:ring-1 focus:ring-teal-400 text-xs"
+            >
+              {MARKETS.filter(m => m.status === 'ACTIVE').map(m => (
+                <option key={m.id} value={m.country}>
+                  {COUNTRY_FLAGS[m.country] || '🎯'} {m.countryName}: {m.shortName}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* 3. Feedstock */}
           <div>
             <label className="block text-[9px] font-bold text-stone-400 uppercase mb-0.5">
-              2. Feedstock
+              3. Feedstock
             </label>
             <select
               value={feedstockKey}
@@ -562,10 +584,10 @@ export function MapScreen() {
             </select>
           </div>
 
-          {/* 3. Carbon Intensity */}
+          {/* 4. Carbon Intensity */}
           <div>
             <label className="block text-[9px] font-bold text-stone-400 uppercase mb-0.5">
-              3. CI (gCO₂e/MJ)
+              4. CI (gCO₂e/MJ)
             </label>
             <input
               type="number"
@@ -575,39 +597,21 @@ export function MapScreen() {
             />
           </div>
 
-          {/* 4. Certification Scheme */}
+          {/* 5. Certification Scheme */}
           <div>
             <label className="block text-[9px] font-bold text-stone-400 uppercase mb-0.5">
-              4. Certification Scheme
+              5. Scheme
             </label>
             <select
               value={scheme}
               onChange={e => setScheme(e.target.value as CertificationScheme)}
               className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1.5 text-stone-200 outline-none text-xs"
             >
-              <option value="ISCC_EU">ISCC EU (RED III Compliance)</option>
-              <option value="REDCERT_EU">REDcert EU (RED III Compliance)</option>
-              <option value="2BSVS">2BSvs (RED III Compliance)</option>
-              <option value="KZR_INIG">KZR INiG (RED III Compliance)</option>
-              <option value="ISCC_PLUS">ISCC PLUS (Voluntary Only)</option>
-            </select>
-          </div>
-
-          {/* 5. Injection Grid Point */}
-          <div>
-            <label className="block text-[9px] font-bold text-stone-400 uppercase mb-0.5">
-              5. Grid Injected
-            </label>
-            <select
-              value={injectionCountry}
-              onChange={e => setInjectionCountry(e.target.value)}
-              className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1.5 text-stone-200 outline-none text-xs"
-            >
-              {allProducingCountries.map(c => (
-                <option key={c.code} value={c.code}>
-                  {c.flag} {c.name} {EU_COUNTRY_CODES.includes(c.code) ? '(EU Grid)' : '(Non-EU Grid)'}
-                </option>
-              ))}
+              <option value="ISCC_EU">ISCC EU (RED III)</option>
+              <option value="REDCERT_EU">REDcert EU (RED III)</option>
+              <option value="2BSVS">2BSvs (RED III)</option>
+              <option value="KZR_INIG">KZR INiG (RED III)</option>
+              <option value="ISCC_PLUS">ISCC PLUS (Voluntary)</option>
             </select>
           </div>
 
@@ -621,7 +625,7 @@ export function MapScreen() {
               onChange={e => setChainOfCustody(e.target.value as ChainOfCustody)}
               className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1.5 text-stone-200 outline-none text-xs"
             >
-              <option value="MASS_BALANCE">Mass Balance (Transport)</option>
+              <option value="MASS_BALANCE">Mass Balance (Grid)</option>
               <option value="SEGREGATION">Segregation (Bio-LNG)</option>
               <option value="BOOK_AND_CLAIM">Book-and-Claim (Voluntary)</option>
             </select>
