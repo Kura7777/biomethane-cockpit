@@ -1396,5 +1396,112 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
         });
       });
     });
+
+    describe('Deal Ticket Phase 3: Promote regulatory uncertainty to headline valuation range', () => {
+      it('German consignment with complianceYear >= 2026 populates valuationRange with correct low, high, deltaPerMwh, deltaNotional', () => {
+        const consignment: Consignment = {
+          ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
+          volumeMWh: 10000,
+          deliveryPeriod: {
+            type: 'CALENDAR',
+            startDate: '2026-01-01',
+            endDate: '2026-12-31',
+            complianceYear: 2026,
+          },
+        };
+        const deMarket = getMarketById('DE_THG')!;
+        const netback = computeNetback(deMarket, consignment, sampleMarks, emptyCosts, 'bid');
+
+        expect(netback.valuationRange).toBeDefined();
+        expect(netback.valuationRange).not.toBeNull();
+        expect(netback.valuationRange?.low).toBe(netback.uncertaintyBranches![0].netNetback);
+        expect(netback.valuationRange?.high).toBe(netback.uncertaintyBranches![1].netNetback);
+        expect(netback.valuationRange?.deltaPerMwh).toBe(
+          Number((netback.valuationRange!.high - netback.valuationRange!.low).toFixed(2))
+        );
+        expect(netback.valuationRange?.deltaNotional).toBe(
+          Number((netback.valuationRange!.deltaPerMwh * 10000).toFixed(2))
+        );
+        expect(netback.valuationRange?.driver).toContain('German THG double-counting eligibility');
+      });
+
+      it('Non-German market or complianceYear <= 2025 has valuationRange === null', () => {
+        // 1. Compliance year 2025 (single branch)
+        const consignment2025: Consignment = {
+          ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
+          deliveryPeriod: {
+            type: 'CALENDAR',
+            startDate: '2025-01-01',
+            endDate: '2025-12-31',
+            complianceYear: 2025,
+          },
+        };
+        const deMarket = getMarketById('DE_THG')!;
+        const deNetback2025 = computeNetback(deMarket, consignment2025, sampleMarks, emptyCosts, 'bid');
+        expect(deNetback2025.valuationRange).toBeNull();
+
+        // 2. Non-German market (e.g. France CPB)
+        const frMarket = getMarketById('FR_CPB')!;
+        const frNetback = computeNetback(frMarket, consignment2025, sampleMarks, emptyCosts, 'bid');
+        expect(frNetback.valuationRange).toBeNull();
+      });
+
+      it('deltaNotional is null when volume is null, correct number when volume is set', () => {
+        const consignmentNoVol: Consignment = {
+          ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
+          volumeMWh: null,
+          deliveryPeriod: {
+            type: 'CALENDAR',
+            startDate: '2027-01-01',
+            endDate: '2027-12-31',
+            complianceYear: 2027,
+          },
+        };
+        const deMarket = getMarketById('DE_THG')!;
+        const resNoVol = computeNetback(deMarket, consignmentNoVol, sampleMarks, emptyCosts, 'bid');
+        expect(resNoVol.valuationRange?.deltaNotional).toBeNull();
+
+        const consignmentWithVol: Consignment = {
+          ...consignmentNoVol,
+          volumeMWh: 5000,
+        };
+        const resWithVol = computeNetback(deMarket, consignmentWithVol, sampleMarks, emptyCosts, 'bid');
+        expect(resWithVol.valuationRange?.deltaNotional).toBe(
+          Number((resWithVol.valuationRange!.deltaPerMwh * 5000).toFixed(2))
+        );
+      });
+
+      it('summary dossier includes REGULATORY RISK SPREAD when valuationRange is present', () => {
+        const consignment: Consignment = {
+          ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
+          volumeMWh: 10000,
+          deliveryPeriod: {
+            type: 'CALENDAR',
+            startDate: '2026-01-01',
+            endDate: '2026-12-31',
+            complianceYear: 2026,
+          },
+        };
+        const deMarket = getMarketById('DE_THG')!;
+        const elig = evaluateEligibility(consignment, deMarket);
+        const netback = computeNetback(deMarket, consignment, sampleMarks, emptyCosts, 'bid');
+        const assessment: TradeAssessment = {
+          id: 'test-assessment-range',
+          createdAt: '2026-08-16T10:00:00Z',
+          targetMarketId: 'DE_THG',
+          targetMarketName: 'Germany THG',
+          consignment,
+          eligibility: elig,
+          netback,
+          marks: sampleMarks,
+          costs: emptyCosts,
+          userNotes: '',
+        };
+
+        const summary = generateTradeSummary(assessment);
+        expect(summary).toContain('REGULATORY RISK SPREAD (HEADLINE VALUATION RANGE):');
+        expect(summary).toContain('Underlying Driver:    German THG double-counting eligibility');
+      });
+    });
   });
 });

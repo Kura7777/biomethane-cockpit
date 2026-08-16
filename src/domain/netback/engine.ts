@@ -9,7 +9,7 @@ import {
 } from '../markets/constants';
 import { Market, PriceSide, getMarkAgeDays } from '../markets/types';
 import { Consignment } from '../consignment/types';
-import { CostInputs, CertificateValueResult, NetbackResult, NetbackBranch, MarksState, FuelEUOptions, PricingSides, NetbackSides } from './types';
+import { CostInputs, CertificateValueResult, NetbackResult, NetbackBranch, MarksState, FuelEUOptions, PricingSides, NetbackSides, ValuationRange } from './types';
 import { EligibilityAssessment } from '../eligibility/types';
 
 /**
@@ -536,6 +536,31 @@ export function computeNetback(
     }
   }
 
+  let valuationRange: ValuationRange | null = null;
+  if (uncertaintyBranches && uncertaintyBranches.length >= 2) {
+    const branchNetbacks = uncertaintyBranches
+      .map(b => b.netNetback)
+      .filter((n): n is number => n !== null);
+
+    if (branchNetbacks.length >= 2) {
+      const low = Math.min(...branchNetbacks);
+      const high = Math.max(...branchNetbacks);
+      const deltaPerMwh = Number((high - low).toFixed(2));
+      const deltaNotional = consignment.volumeMWh !== null 
+        ? Number((deltaPerMwh * consignment.volumeMWh).toFixed(2)) 
+        : null;
+
+      valuationRange = {
+        low,
+        high,
+        deltaPerMwh,
+        deltaNotional,
+        driver: 'German THG double-counting eligibility (§37a BImSchG)',
+        gateId: 'MARKET_SPECIFIC',
+      };
+    }
+  }
+
   return {
     marketId: market.id,
     marketName: market.name,
@@ -556,6 +581,7 @@ export function computeNetback(
     isComplete,
     missingInputs,
     uncertaintyBranches,
+    valuationRange,
     statusNote,
     markSideUsed: pricingSides.certificateSide,
     pricingSides,

@@ -123,6 +123,24 @@ export function generateTradeSummary(assessment: TradeAssessment): string {
     lines.push('Certificate Value: No market mark set for this market.');
   }
 
+  // Valuation range & regulatory risk spread
+  if (nb.valuationRange) {
+    const vr = nb.valuationRange;
+    lines.push('');
+    lines.push('─────────────────────────────────────────────────────────────');
+    lines.push('REGULATORY RISK SPREAD (HEADLINE VALUATION RANGE):');
+    lines.push(`  Valuation Range:      €${vr.low.toFixed(2)} – €${vr.high.toFixed(2)} /MWh`);
+    lines.push(`  Risk Spread:          €${vr.deltaPerMwh.toFixed(2)}/MWh at risk`);
+    if (vr.deltaNotional !== null && c.volumeMWh !== null) {
+      lines.push(`  Notional Delta:       €${vr.deltaNotional.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} on ${c.volumeMWh.toLocaleString()} MWh`);
+    } else {
+      lines.push('  Notional Delta:       Volume not specified');
+    }
+    lines.push(`  Underlying Driver:    ${vr.driver}`);
+    lines.push(`  Breakdown:            Conservative (1×): €${vr.low.toFixed(2)}/MWh │ Upside (2×): €${vr.high.toFixed(2)}/MWh`);
+    lines.push('─────────────────────────────────────────────────────────────');
+  }
+
   // Germany double counting branches
   if (nb.uncertaintyBranches && nb.uncertaintyBranches.length > 0) {
     lines.push('');
@@ -132,7 +150,7 @@ export function generateTradeSummary(assessment: TradeAssessment): string {
       lines.push(`    Certificate Value:  €${b.certificateValue.valueEurPerMWh?.toFixed(2) ?? 'N/A'}/MWh`);
       lines.push(`    Net Netback:        €${b.netNetback?.toFixed(2) ?? 'N/A'}/MWh`);
       lines.push(`    Gross Value Spread: €${b.grossValueSpread?.toFixed(2) ?? b.impliedMargin?.toFixed(2) ?? 'N/A'}/MWh`);
-      lines.push(`    Producer Share(90%):−€${b.producerPayable?.toFixed(2) ?? 'N/A'}/MWh`);
+      lines.push(`    Producer Share:     −€${b.producerPayable?.toFixed(2) ?? 'N/A'}/MWh`);
       lines.push(`    Realised Desk Margin:€${b.deskMargin?.toFixed(2) ?? 'N/A'}/MWh`);
       if (b.deskPnL !== null) {
         lines.push(`    Total Desk P&L:     €${b.deskPnL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);

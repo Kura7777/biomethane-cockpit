@@ -70,6 +70,15 @@ export interface NetbackBranch {
   sides?: NetbackSides;
 }
 
+export interface ValuationRange {
+  low: number;                  // conservative branch (e.g. DC_OFF)
+  high: number;                 // upside branch (e.g. DC_ON)
+  deltaPerMwh: number;          // high − low
+  deltaNotional: number | null; // deltaPerMwh × volumeMWh (null if volume is null)
+  driver: string;               // human description, e.g. "German THG double-counting eligibility (§37a BImSchG)"
+  gateId: string;               // 'MARKET_SPECIFIC'
+}
+
 export interface NetbackResult {
   marketId: string;
   marketName: string;
@@ -90,6 +99,7 @@ export interface NetbackResult {
   isComplete: boolean;              // true ONLY if certificate, molecule, and all standard cost components are entered
   missingInputs: string[];          // List of missing cost/molecule components (e.g. ['moleculeValue', 'transferCosts', 'logistics'])
   uncertaintyBranches: NetbackBranch[] | null;  // For Germany: both DC branches
+  valuationRange?: ValuationRange | null;       // Headline valuation range under regulatory uncertainty
   statusNote?: string | null;       // Any cautionary status notice (e.g. UNVERIFIED)
   markSideUsed: PriceSide;          // 'bid' | 'mid' | 'offer' (primary/certificate side)
   pricingSides?: PricingSides;      // Explicit per-leg pricing sides used

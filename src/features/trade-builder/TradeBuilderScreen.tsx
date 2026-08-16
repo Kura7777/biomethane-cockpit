@@ -1226,11 +1226,23 @@ export function TradeBuilderScreen() {
                 
                 {/* 1. Hero Number: Delivered Netback (36px, 600 weight, monospace) */}
                 <div className="sm:col-span-6 flex flex-col justify-between p-2">
-                  <div className="text-[10px] font-normal text-[#8B98A5] uppercase tracking-wider font-mono">
-                    Delivered Netback
+                  <div className={`text-[10px] font-normal uppercase tracking-wider font-mono ${
+                    netback.valuationRange ? 'text-[#D99A2B]' : 'text-[#8B98A5]'
+                  }`}>
+                    {netback.valuationRange ? 'Delivered Netback (Valuation Range)' : 'Delivered Netback'}
                   </div>
 
-                  {netback.netNetback !== null ? (
+                  {netback.valuationRange ? (
+                    <div>
+                      <div className="text-[28px] sm:text-[32px] font-semibold font-mono tabular-nums leading-none mt-1.5 text-[#D99A2B]">
+                        €{netback.valuationRange.low.toFixed(2)} – €{netback.valuationRange.high.toFixed(2)}
+                        <span className="text-xs font-normal text-[#8B98A5] ml-1">/MWh</span>
+                      </div>
+                      <div className="text-[10px] text-[#D99A2B]/90 mt-1.5 font-mono">
+                        Δ €{netback.valuationRange.deltaPerMwh.toFixed(2)}/MWh regulatory uncertainty spread
+                      </div>
+                    </div>
+                  ) : netback.netNetback !== null ? (
                     <div>
                       <div className={`text-[36px] font-semibold font-mono tabular-nums leading-none mt-1.5 ${
                         netback.netNetback < 0 ? 'text-[#D64545]' : 'text-[#2DD4BF]'
@@ -1268,24 +1280,23 @@ export function TradeBuilderScreen() {
                     </div>
 
                     <div className="my-1">
-                      {netback.netNetback !== null ? (
-                        <button
-                          onClick={() => {
-                            const el = document.getElementById('cost-procurement-section');
-                            el?.scrollIntoView({ behavior: 'smooth' });
-                          }}
-                          className="inline-flex items-center gap-1.5 text-xs text-[#2DD4BF] hover:underline font-mono font-medium text-left"
-                        >
-                          Set producer pricing to calculate desk margin <ArrowRight className="w-3.5 h-3.5" />
-                        </button>
-                      ) : (
-                        <div className="text-xs text-[#8B98A5] font-mono">
-                          Awaiting certificate & market mark
-                        </div>
-                      )}
-                      <div className="text-[10px] text-[#8B98A5] mt-1 font-mono">
-                        Payable and realised capture margin will evaluate automatically
+                      <button
+                        onClick={() => {
+                          const el = document.getElementById('producer-terms-section');
+                          el?.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                        className="text-xs font-mono font-semibold text-[#D99A2B] hover:text-[#F5B544] flex items-center gap-1 text-left"
+                      >
+                        Configure producer pricing in Step 1
+                        <ArrowRight className="w-3.5 h-3.5 shrink-0" />
+                      </button>
+                      <div className="text-[10px] text-[#8B98A5] mt-0.5 font-mono">
+                        Desk margin and gross value spread require brown gas or index share
                       </div>
+                    </div>
+
+                    <div className="text-[9px] text-[#8B98A5] border-t border-[#1E262F] pt-1 font-mono">
+                      Status: <span className="text-[#D99A2B]">Awaiting Producer Cost</span>
                     </div>
                   </div>
                 ) : (
@@ -1296,7 +1307,7 @@ export function TradeBuilderScreen() {
                         Producer Payable
                       </div>
                       <div>
-                        <div className="text-[18px] font-semibold font-mono text-[#E8EDF2] tabular-nums mt-1">
+                        <div className="text-[18px] font-semibold font-mono text-[#D99A2B] tabular-nums mt-1">
                           €{netback.producerPayable.toFixed(2)}
                           <span className="text-[10px] font-normal text-[#8B98A5] ml-0.5">/MWh</span>
                         </div>
@@ -1340,6 +1351,31 @@ export function TradeBuilderScreen() {
                 )}
 
               </div>
+
+              {/* Regulatory Risk Spread Block (Phase 3) */}
+              {netback.valuationRange && (
+                <div className="mt-2.5 pt-2 border-t border-[#D99A2B]/30 bg-[#1C150A] rounded p-2.5 text-xs font-mono space-y-1.5">
+                  <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-[#D99A2B]">
+                    <span className="flex items-center gap-1.5">
+                      <AlertTriangle className="w-3.5 h-3.5 text-[#D99A2B]" />
+                      Regulatory Risk Spread
+                    </span>
+                    <span>€{netback.valuationRange.deltaPerMwh.toFixed(2)}/MWh at risk</span>
+                  </div>
+                  <div className="text-[13px] text-[#E8EDF2] font-semibold tabular-nums">
+                    {netback.valuationRange.deltaNotional !== null
+                      ? `€${netback.valuationRange.deltaNotional.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} notional on ${consignment.volumeMWh?.toLocaleString()} MWh`
+                      : 'Volume unset — enter volume to calculate notional delta'}
+                  </div>
+                  <div className="text-[10px] text-[#8B98A5]">
+                    Driver: <span className="text-[#E8EDF2]">{netback.valuationRange.driver}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[10px] text-[#8B98A5] pt-1 border-t border-[#D99A2B]/20 tabular-nums">
+                    <span>Conservative (1×): <strong className="text-[#E8EDF2]">€{netback.valuationRange.low.toFixed(2)}/MWh</strong></span>
+                    <span>Upside (2×): <strong className="text-[#2DD4BF]">€{netback.valuationRange.high.toFixed(2)}/MWh</strong></span>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* German THG Double Counting Sensitivity */}
