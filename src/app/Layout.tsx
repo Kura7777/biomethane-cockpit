@@ -6,21 +6,19 @@ import {
   Globe, 
   Calculator, 
   TrendingUp, 
+  Bot,
   Coins, 
   FolderArchive, 
-  AlertTriangle, 
-  Clock, 
-  Sliders,
-  Terminal,
-  Layers
+  Terminal
 } from 'lucide-react';
 
 const NAV_ITEMS = [
   { to: '/', label: 'Map', keyHint: '1', icon: Globe, end: true },
   { to: '/trade', label: 'Trade Builder', keyHint: '2', icon: Calculator },
   { to: '/scanner', label: 'Arbitrage Scanner', keyHint: '3', icon: TrendingUp },
-  { to: '/marks', label: 'Marks', keyHint: '4', icon: Coins },
-  { to: '/library', label: 'Dossiers', keyHint: '5', icon: FolderArchive },
+  { to: '/agents', label: 'AI Arb & Agents', keyHint: '4', icon: Bot },
+  { to: '/marks', label: 'Marks', keyHint: '5', icon: Coins },
+  { to: '/library', label: 'Dossiers', keyHint: '6', icon: FolderArchive },
 ];
 
 export function Layout() {
@@ -33,10 +31,9 @@ export function Layout() {
   const staleCriticalCount = markEntries.filter(m => getMarkStaleness(m.updatedAt) === 'STALE_CRITICAL').length;
   const unfilledCount = markEntries.filter(m => getMarkStaleness(m.updatedAt) === 'UNFILLED').length;
 
-  // Keyboard navigation shortcuts
+  // Keyboard navigation shortcuts (1-6)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't trigger if typing in an input or textarea
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement)?.tagName)) {
         return;
       }
@@ -44,8 +41,9 @@ export function Layout() {
       if (e.key === '1') navigate('/');
       if (e.key === '2') navigate('/trade');
       if (e.key === '3') navigate('/scanner');
-      if (e.key === '4') navigate('/marks');
-      if (e.key === '5') navigate('/library');
+      if (e.key === '4') navigate('/agents');
+      if (e.key === '5') navigate('/marks');
+      if (e.key === '6') navigate('/library');
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -186,8 +184,8 @@ export function Layout() {
           RED III Transport Baseline: <strong className="text-stone-300">94.0 gCO₂e/MJ</strong> • FuelEU Maritime: <strong className="text-stone-300">Reg. 2023/1805</strong> • German THG: <strong className="text-stone-300">§37a BImSchG</strong>
         </div>
         <div className="flex items-center gap-3">
-          <span>Shortcuts: <kbd className="bg-stone-800 text-stone-300 px-1 rounded">1-5</kbd> Tabs</span>
-          <span>Local Storage: <strong className="text-teal-400">Persisted</strong></span>
+          <span>Shortcuts: <kbd className="bg-stone-800 text-stone-300 px-1 rounded">1-6</kbd> Tabs</span>
+          <span>Matrix Engine: <strong className="text-teal-400">27 Origins Active</strong></span>
         </div>
       </footer>
 
