@@ -35,6 +35,23 @@ import {
 import { LogisticsModal } from '../logistics/LogisticsModal';
 import { calculateLogisticsRoute } from '../../domain/logistics/engine';
 
+const COUNTRY_FLAGS: Record<string, string> = {
+  DE: '🇩🇪',
+  NL: '🇳🇱',
+  FR: '🇫🇷',
+  DK: '🇩🇰',
+  UK: '🇬🇧',
+  GB: '🇬🇧',
+  IT: '🇮🇹',
+  ES: '🇪🇸',
+  SE: '🇸🇪',
+  FI: '🇫🇮',
+  AT: '🇦🇹',
+  BE: '🇧🇪',
+  PL: '🇵🇱',
+  EU: '🇪🇺',
+};
+
 const EU_COUNTRY_CODES = ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE'];
 
 export function TradeBuilderScreen() {
@@ -44,6 +61,10 @@ export function TradeBuilderScreen() {
   const { state, dispatch } = useAppState();
   const [isLogisticsOpen, setIsLogisticsOpen] = useState(false);
   const [showFullAudit, setShowFullAudit] = useState(false);
+
+  // Market Table Sorting (Phase 4)
+  const [marketSortField, setMarketSortField] = useState<'netback' | 'market' | 'status'>('netback');
+  const [marketSortDir, setMarketSortDir] = useState<'asc' | 'desc'>('desc');
 
   // Active consignment form state
   const [consignment, setConsignment] = useState<Consignment>(() => {
@@ -180,6 +201,52 @@ export function TradeBuilderScreen() {
   const markEntry = state.marks.marks[selectedMarket.id];
 
   const praCheck = useMemo(() => assessmentContainsPraData(currentAssessment), [currentAssessment]);
+
+  // Computed Market Rows for Dense Table (Phase 4)
+  const marketRows = useMemo(() => {
+    return activeMarkets.map(m => {
+      const elig = evaluateEligibility(consignment, m);
+      const nb = computeNetback(m, consignment, state.marks, state.costs, 'bid');
+      const isBlocked = elig.overallVerdict === 'HARD_BLOCK';
+      return {
+        m,
+        elig,
+        nb,
+        isBlocked,
+      };
+    });
+  }, [activeMarkets, consignment, state.marks, state.costs]);
+
+  const sortedMarkets = useMemo(() => {
+    return [...marketRows].sort((a, b) => {
+      if (marketSortField === 'netback') {
+        if (a.isBlocked && !b.isBlocked) return 1;
+        if (!a.isBlocked && b.isBlocked) return -1;
+
+        if (a.nb.netNetback !== null && b.nb.netNetback !== null) {
+          return marketSortDir === 'desc'
+            ? b.nb.netNetback - a.nb.netNetback
+            : a.nb.netNetback - b.nb.netNetback;
+        }
+        if (a.nb.netNetback !== null && b.nb.netNetback === null) return -1;
+        if (a.nb.netNetback === null && b.nb.netNetback !== null) return 1;
+        return a.m.name.localeCompare(b.m.name);
+      }
+
+      if (marketSortField === 'market') {
+        const res = (a.m.country || 'EU').localeCompare(b.m.country || 'EU');
+        return marketSortDir === 'asc' ? res : -res;
+      }
+
+      if (marketSortField === 'status') {
+        const score = (v: string) => (v === 'ELIGIBLE' ? 3 : v === 'CONDITIONAL' || v === 'UNRESOLVED' ? 2 : 1);
+        const diff = score(b.elig.overallVerdict) - score(a.elig.overallVerdict);
+        return marketSortDir === 'desc' ? diff : -diff;
+      }
+
+      return 0;
+    });
+  }, [marketRows, marketSortField, marketSortDir]);
 
   const renderComplianceChecklist = () => (
     <div className="bg-[#12171C] rounded p-4 space-y-3">
@@ -508,52 +575,137 @@ export function TradeBuilderScreen() {
             </div>
           </div>
 
-          {/* GROUP 2: Target Offtake Market Selector */}
+          {/* GROUP 2: Target Offtake Market Dense Table (Phase 4) */}
           <div className="space-y-2">
             <div className="flex items-center justify-between font-mono">
               <span className="text-[10px] font-semibold text-[#8B98A5] uppercase tracking-wider">
-                2. Target Offtake Market
+                2. Target Offtake Market ({activeMarkets.length})
               </span>
               <span className="text-[10px] text-[#8B98A5]">
-                {activeMarkets.length} Compliance Markets
+                {sortedMarkets.filter(r => !r.isBlocked && r.nb.netNetback !== null).length} priced • {sortedMarkets.filter(r => r.isBlocked).length} blocked
               </span>
             </div>
 
-            <div className="bg-[#12171C] rounded p-2.5 grid grid-cols-2 gap-1.5 max-h-[220px] overflow-y-auto pr-1">
-              {activeMarkets.map(m => {
-                const isSelected = m.id === selectedMarket.id;
-                const quickElig = evaluateEligibility(consignment, m);
-                const quickNb = computeNetback(m, consignment, state.marks, state.costs, 'bid');
+            <div className="bg-[#12171C] rounded p-1.5 font-mono text-xs">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="text-[9px] text-[#8B98A5] uppercase border-b border-[#1E262F] select-none">
+                    <th 
+                      onClick={() => {
+                        if (marketSortField === 'market') setMarketSortDir(d => d === 'asc' ? 'desc' : 'asc');
+                        else { setMarketSortField('market'); setMarketSortDir('asc'); }
+                      }}
+                      className="py-1 px-1.5 font-semibold cursor-pointer hover:text-[#E8EDF2]"
+                    >
+                      Market {marketSortField === 'market' && (marketSortDir === 'asc' ? '▲' : '▼')}
+                    </th>
+                    <th 
+                      onClick={() => {
+                        if (marketSortField === 'status') setMarketSortDir(d => d === 'asc' ? 'desc' : 'asc');
+                        else { setMarketSortField('status'); setMarketSortDir('desc'); }
+                      }}
+                      className="py-1 px-1 font-semibold cursor-pointer hover:text-[#E8EDF2]"
+                    >
+                      Status {marketSortField === 'status' && (marketSortDir === 'asc' ? '▲' : '▼')}
+                    </th>
+                    <th className="py-1 px-1 font-semibold text-center">Side</th>
+                    <th 
+                      onClick={() => {
+                        if (marketSortField === 'netback') setMarketSortDir(d => d === 'asc' ? 'desc' : 'asc');
+                        else { setMarketSortField('netback'); setMarketSortDir('desc'); }
+                      }}
+                      className="py-1 px-1.5 font-semibold text-right cursor-pointer hover:text-[#E8EDF2]"
+                    >
+                      Netback {marketSortField === 'netback' && (marketSortDir === 'asc' ? '▲' : '▼')}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedMarkets.map(({ m, elig, nb, isBlocked }) => {
+                    const isSelected = m.id === selectedMarket.id;
+                    const flag = COUNTRY_FLAGS[m.country || 'EU'] || '🇪🇺';
+                    const code = m.country || 'EU';
 
-                return (
-                  <div
-                    key={m.id}
-                    onClick={() => {
-                      setSelectedMarketId(m.id);
-                      setSearchParams({ marketId: m.id, originCountry: consignment.originCountry });
-                    }}
-                    className={`p-2 rounded transition-all cursor-pointer font-mono ${
-                      isSelected
-                        ? 'bg-[#18242A] border-l-2 border-[#2DD4BF]'
-                        : 'bg-[#0B0E11] hover:bg-[#182026]'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-1">
-                      <div className="font-semibold text-[11px] text-[#E8EDF2] leading-tight truncate">
-                        {m.country ? `${m.country} ` : ''}{m.name}
-                      </div>
-                      <StatusChip variant={quickElig.overallVerdict} size="xs" />
-                    </div>
+                    return (
+                      <tr
+                        key={m.id}
+                        onClick={() => {
+                          setSelectedMarketId(m.id);
+                          setSearchParams({ marketId: m.id, originCountry: consignment.originCountry });
+                        }}
+                        className={`h-7 cursor-pointer transition-colors border-b border-[#1E262F]/40 ${
+                          isSelected
+                            ? 'bg-[#182026] border-l-2 border-[#2DD4BF] text-[#E8EDF2]'
+                            : 'hover:bg-[#182026]/70 text-[#8B98A5] hover:text-[#E8EDF2]'
+                        } ${isBlocked ? 'opacity-50' : ''}`}
+                      >
+                        {/* 1. Market column (flag + code + name) */}
+                        <td className="py-1 px-1.5 whitespace-nowrap">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs">{flag}</span>
+                            <span className={`font-semibold text-[11px] ${isSelected ? 'text-[#E8EDF2]' : 'text-stone-300'} ${isBlocked ? 'line-through' : ''}`}>
+                              {code}
+                            </span>
+                            <span className={`text-[10px] truncate max-w-[90px] ${isBlocked ? 'line-through text-[#8B98A5]' : isSelected ? 'text-[#E8EDF2]' : 'text-[#8B98A5]'}`}>
+                              {m.shortName || m.name}
+                            </span>
+                          </div>
+                        </td>
 
-                    <div className="mt-1 flex items-center justify-between text-[10px] text-[#8B98A5] font-mono">
-                      <span>{m.unitLabel}</span>
-                      <span className="font-semibold text-[#E8EDF2] tabular-nums">
-                        {quickNb.netNetback !== null ? `€${quickNb.netNetback.toFixed(1)}` : 'No mark'}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
+                        {/* 2. Status column (dot + text) */}
+                        <td className="py-1 px-1 whitespace-nowrap">
+                          <div className="flex items-center gap-1 text-[10px]">
+                            {elig.overallVerdict === 'ELIGIBLE' && (
+                              <>
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#2DD4BF]" />
+                                <span className="text-[#2DD4BF]">Clear</span>
+                              </>
+                            )}
+                            {elig.overallVerdict === 'CONDITIONAL' && (
+                              <>
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#D99A2B]" />
+                                <span className="text-[#D99A2B]">Cond</span>
+                              </>
+                            )}
+                            {elig.overallVerdict === 'UNRESOLVED' && (
+                              <>
+                                <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
+                                <span className="text-sky-400">Unres</span>
+                              </>
+                            )}
+                            {elig.overallVerdict === 'HARD_BLOCK' && (
+                              <>
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#D64545]" />
+                                <span className="text-[#D64545]">Block</span>
+                              </>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* 3. Mark Side */}
+                        <td className="py-1 px-1 text-center text-[10px] text-[#8B98A5]">
+                          Bid
+                        </td>
+
+                        {/* 4. Netback (€/MWh) */}
+                        <td className="py-1 px-1.5 text-right whitespace-nowrap">
+                          {nb.netNetback !== null ? (
+                            <span className={`font-semibold tabular-nums text-[11px] ${
+                              isSelected ? 'text-[#2DD4BF]' : isBlocked ? 'text-[#8B98A5]' : 'text-[#E8EDF2]'
+                            }`}>
+                              €{nb.netNetback.toFixed(1)}
+                            </span>
+                          ) : (
+                            <span className="text-[10px] text-[#8B98A5] italic">
+                              {isBlocked ? 'Blocked' : 'No mark'}
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
 
