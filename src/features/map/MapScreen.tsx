@@ -16,17 +16,20 @@ import {
   ArrowRight, 
   TrendingUp, 
   Layers, 
-  CheckCircle2,
-  XCircle,
-  Building2,
-  Scale,
-  Activity,
-  Flame,
-  Info,
-  Factory,
-  MapPin,
-  Search,
-  RotateCcw
+  CheckCircle2, 
+  XCircle, 
+  Building2, 
+  Scale, 
+  Activity, 
+  Flame, 
+  Info, 
+  Factory, 
+  MapPin, 
+  Search, 
+  RotateCcw,
+  Sparkles,
+  Filter,
+  ChevronRight
 } from 'lucide-react';
 
 const EU_COUNTRY_CODES = ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE'];
@@ -122,12 +125,12 @@ export function MapScreen() {
   const { state } = useAppState();
 
   // Active Origin and Consignment Parameters
-  const [originCountry, setOriginCountry] = useState<string>('DK');
+  const [originCountry, setOriginCountry] = useState<string>('LT');
   const [feedstockKey, setFeedstockKey] = useState<string>('manure');
   const [carbonIntensity, setCarbonIntensity] = useState<number>(-100);
   const [scheme, setScheme] = useState<CertificationScheme>('ISCC_EU');
   const [chainOfCustody, setChainOfCustody] = useState<ChainOfCustody>('MASS_BALANCE');
-  const [injectionCountry, setInjectionCountry] = useState<string>('DK');
+  const [injectionCountry, setInjectionCountry] = useState<string>('LT');
 
   // Map Click Mode: 'SET_ORIGIN' or 'SET_TARGET'
   const [mapClickMode, setMapClickMode] = useState<'SET_ORIGIN' | 'SET_TARGET'>('SET_TARGET');
@@ -136,9 +139,13 @@ export function MapScreen() {
   const [selectedDestinationIso3, setSelectedDestinationIso3] = useState<string>('DEU');
   const [hoveredCountry, setHoveredCountry] = useState<any | null>(null);
 
-  // Plant Pins Layer Toggle & Selected Plant Modal
-  const [showPlants, setShowPlants] = useState<boolean>(true);
+  // Plant Pins Layer Options: 'COUNTRY_ONLY' | 'ALL' | 'HIDDEN'
+  const [pinDisplayMode, setPinDisplayMode] = useState<'COUNTRY_ONLY' | 'ALL' | 'HIDDEN'>('COUNTRY_ONLY');
   const [selectedPlant, setSelectedPlant] = useState<BiomethanePlant | null>(null);
+
+  // Right Drawer Tab State: 'PLANTS' | 'COMPLIANCE'
+  const [drawerTab, setDrawerTab] = useState<'PLANTS' | 'COMPLIANCE'>('PLANTS');
+  const [plantFeedstockFilter, setPlantFeedstockFilter] = useState<string>('ALL');
 
   const feedstockInfo = FEEDSTOCK_REGISTRY[feedstockKey] || FEEDSTOCK_REGISTRY.manure;
 
@@ -245,6 +252,75 @@ export function MapScreen() {
     }).sort((a, b) => b.plantCount - a.plantCount);
   }, []);
 
+  // Country plants currently inspected in drawer (Origin or Selected Target)
+  const inspectedCountryCode = originCountry;
+  const inspectedCountryName = COUNTRY_NAMES[inspectedCountryCode] || inspectedCountryCode;
+  const inspectedCountryFlag = COUNTRY_FLAGS[inspectedCountryCode] || '🇪🇺';
+
+  const countryPlants = useMemo(() => {
+    return BIOMETHANE_PLANTS.filter(p => p.countryCode === inspectedCountryCode);
+  }, [inspectedCountryCode]);
+
+  // Feedstock breakdown statistics for this country
+  const countryFeedstockBreakdown = useMemo(() => {
+    const map = new Map<string, { label: string; count: number; totalCapacityNm3: number; totalEnergyGWh: number; defaultKey: string }>();
+    
+    countryPlants.forEach(p => {
+      const cat = p.primaryFeedstockCategory.toLowerCase();
+      let key = 'agricultural';
+      let label = '🌾 Agri-Residues & Crops';
+      let defaultKey = 'energy_crops';
+
+      if (cat.includes('manure') || cat.includes('slurry')) {
+        key = 'manure';
+        label = '🐮 Manure & Slurry';
+        defaultKey = 'manure';
+      } else if (cat.includes('food') || cat.includes('forsu') || cat.includes('ofmsw') || cat.includes('biowaste')) {
+        key = 'food_waste';
+        label = '🥗 Food Waste & OFMSW';
+        defaultKey = 'food_waste';
+      } else if (cat.includes('sewage') || cat.includes('sludge')) {
+        key = 'sewage';
+        label = '💧 Sewage Sludge';
+        defaultKey = 'sewage_sludge';
+      } else if (cat.includes('isdnd') || cat.includes('landfill')) {
+        key = 'landfill';
+        label = '🗑️ Landfill Gas (LFG)';
+        defaultKey = 'biowaste_unseparated';
+      }
+
+      const existing = map.get(key) || { label, count: 0, totalCapacityNm3: 0, totalEnergyGWh: 0, defaultKey };
+      existing.count += 1;
+      existing.totalCapacityNm3 += p.capacityNm3h;
+      existing.totalEnergyGWh += p.annualEnergyGWh;
+      map.set(key, existing);
+    });
+
+    return Array.from(map.entries()).map(([key, data]) => ({ key, ...data }));
+  }, [countryPlants]);
+
+  // Filtered plants for the country list
+  const filteredCountryPlants = useMemo(() => {
+    if (plantFeedstockFilter === 'ALL') return countryPlants;
+    return countryPlants.filter(p => {
+      const cat = p.primaryFeedstockCategory.toLowerCase();
+      if (plantFeedstockFilter === 'manure') return cat.includes('manure') || cat.includes('slurry');
+      if (plantFeedstockFilter === 'food_waste') return cat.includes('food') || cat.includes('forsu') || cat.includes('ofmsw') || cat.includes('biowaste');
+      if (plantFeedstockFilter === 'sewage') return cat.includes('sewage') || cat.includes('sludge');
+      if (plantFeedstockFilter === 'landfill') return cat.includes('isdnd') || cat.includes('landfill');
+      return cat.includes('agri') || cat.includes('crop') || cat.includes('straw');
+    });
+  }, [countryPlants, plantFeedstockFilter]);
+
+  // Visible Map Pins based on mode
+  const visibleMapPins = useMemo(() => {
+    if (pinDisplayMode === 'HIDDEN') return [];
+    if (pinDisplayMode === 'COUNTRY_ONLY') {
+      return BIOMETHANE_PLANTS.filter(p => p.countryCode === originCountry || p.countryCode === targetCountryCode);
+    }
+    return BIOMETHANE_PLANTS;
+  }, [pinDisplayMode, originCountry, targetCountryCode]);
+
   return (
     <div className="space-y-4 font-sans text-stone-100 pb-12">
       
@@ -262,7 +338,7 @@ export function MapScreen() {
               </span>
             </div>
             <p className="text-stone-400 text-xs mt-0.5">
-              Select or click any origin country to dynamically illuminate approved, conditional, and blocked export destinations across Europe.
+              Click any country to inspect available plants per feedstock, regulatory clearance, and cross-border export spreads.
             </p>
           </div>
 
@@ -293,18 +369,16 @@ export function MapScreen() {
               </button>
             </div>
 
-            {/* Plant Layer Toggle */}
-            <button
-              onClick={() => setShowPlants(!showPlants)}
-              className={`px-3 py-1.5 rounded border text-xs font-bold transition-all flex items-center gap-1.5 ${
-                showPlants
-                  ? 'bg-amber-950 text-amber-300 border-amber-700'
-                  : 'bg-stone-950 text-stone-400 border-stone-800 hover:text-stone-200'
-              }`}
+            {/* Plant Layer Filter */}
+            <select
+              value={pinDisplayMode}
+              onChange={e => setPinDisplayMode(e.target.value as any)}
+              className="bg-stone-950 border border-stone-800 rounded px-2.5 py-1.5 text-stone-300 font-bold outline-none"
             >
-              <Factory className="w-3.5 h-3.5" />
-              {showPlants ? `Plants Visible (1,986)` : 'Show Plant Pins'}
-            </button>
+              <option value="COUNTRY_ONLY">Pins: Selected Countries ({visibleMapPins.length})</option>
+              <option value="ALL">Pins: All Europe (1,986)</option>
+              <option value="HIDDEN">Pins: Hide Markers</option>
+            </select>
 
             <button
               onClick={() => navigate('/plants')}
@@ -431,14 +505,14 @@ export function MapScreen() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         
         {/* SVG Interactive Map Canvas */}
-        <div className="lg:col-span-8 bg-stone-900 border border-stone-800 rounded-xl overflow-hidden relative flex flex-col min-h-[560px]">
+        <div className="lg:col-span-7 bg-stone-900 border border-stone-800 rounded-xl overflow-hidden relative flex flex-col min-h-[580px]">
           
           {/* Dynamic Export Clearance Legend */}
           <div className="p-3 bg-stone-950/95 border-b border-stone-800 flex flex-wrap items-center justify-between gap-3 text-[11px] font-mono z-10">
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1 text-sky-400 font-bold">
                 <span className="w-2.5 h-2.5 rounded-full bg-sky-500 animate-pulse"></span>
-                ORIGIN: {COUNTRY_FLAGS[originCountry]} {COUNTRY_NAMES[originCountry] || originCountry}
+                ORIGIN: {COUNTRY_FLAGS[originCountry]} {COUNTRY_NAMES[originCountry] || originCountry} ({countryPlants.length} plants)
               </span>
               <span className="flex items-center gap-1 text-emerald-400 font-bold">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
@@ -455,12 +529,12 @@ export function MapScreen() {
             </div>
 
             <div className="text-stone-400 text-[10px]">
-              {mapClickMode === 'SET_ORIGIN' ? '👉 Click any country to set as ORIGIN' : '👉 Click any country to set as TARGET'}
+              {mapClickMode === 'SET_ORIGIN' ? '👉 Click any country to set as ORIGIN' : '👉 Click any country to inspect'}
             </div>
           </div>
 
           {/* Map Vector Component */}
-          <div className="flex-1 relative w-full h-full min-h-[480px] flex items-center justify-center bg-stone-950">
+          <div className="flex-1 relative w-full h-full min-h-[500px] flex items-center justify-center bg-stone-950">
             <ComposableMap
               projection="geoMercator"
               projectionConfig={{ scale: 720, center: [14, 54] }}
@@ -506,11 +580,11 @@ export function MapScreen() {
                 {/* Origin Marker */}
                 {originCoords && (
                   <Marker coordinates={originCoords}>
-                    <circle r={7} fill="#38bdf8" stroke="#ffffff" strokeWidth={2} className="animate-pulse" />
+                    <circle r={8} fill="#38bdf8" stroke="#ffffff" strokeWidth={2.5} className="animate-pulse" />
                     <text
                       textAnchor="middle"
-                      y={-12}
-                      style={{ fontFamily: 'JetBrains Mono, monospace', fill: '#38bdf8', fontSize: 10, fontWeight: 700 }}
+                      y={-14}
+                      style={{ fontFamily: 'JetBrains Mono, monospace', fill: '#38bdf8', fontSize: 11, fontWeight: 800 }}
                     >
                       ORIGIN ({COUNTRY_FLAGS[originCountry]} {originCountry})
                     </text>
@@ -541,8 +615,9 @@ export function MapScreen() {
                 )}
 
                 {/* Biomethane Plant Infrastructure Layer Pins */}
-                {showPlants && BIOMETHANE_PLANTS.map((plant) => {
+                {visibleMapPins.map((plant) => {
                   if (!plant.coordinates) return null;
+                  const isOriginPlant = plant.countryCode === originCountry;
                   return (
                     <Marker
                       key={plant.id}
@@ -550,11 +625,11 @@ export function MapScreen() {
                       onClick={() => setSelectedPlant(plant)}
                     >
                       <circle
-                        r={3}
-                        fill="#fbbf24"
-                        stroke="#78350f"
-                        strokeWidth={0.8}
-                        className="cursor-pointer hover:r-5 transition-all opacity-85 hover:opacity-100"
+                        r={isOriginPlant ? 4.5 : 3}
+                        fill={isOriginPlant ? '#38bdf8' : '#fbbf24'}
+                        stroke={isOriginPlant ? '#0369a1' : '#78350f'}
+                        strokeWidth={1}
+                        className="cursor-pointer hover:r-6 transition-all opacity-90 hover:opacity-100"
                       />
                     </Marker>
                   );
@@ -587,93 +662,193 @@ export function MapScreen() {
           </div>
         </div>
 
-        {/* Selected Destination Export Clearance Drawer */}
-        <div className="lg:col-span-4 bg-stone-900 border border-stone-800 rounded-xl p-4 space-y-4 font-mono text-xs flex flex-col justify-between shadow-sm">
+        {/* RIGHT DRAWER: 1. PLANTS BY FEEDSTOCK & 2. COMPLIANCE CLEARANCE */}
+        <div className="lg:col-span-5 bg-stone-900 border border-stone-800 rounded-xl p-4 space-y-3.5 font-mono text-xs flex flex-col justify-between shadow-sm min-h-[580px]">
           
           <div className="space-y-3">
-            <div className="flex items-start justify-between border-b border-stone-800 pb-2">
+            
+            {/* Header with Country Switch & Tab Selector */}
+            <div className="flex items-start justify-between border-b border-stone-800 pb-2.5">
               <div>
-                <span className="text-[10px] text-stone-500 uppercase tracking-wider block">Selected Export Route</span>
+                <span className="text-[10px] text-stone-500 uppercase tracking-wider block">Selected Origin Facility Base</span>
                 <span className="text-base font-bold text-white flex items-center gap-1.5 mt-0.5">
-                  <span className="text-sky-300">{COUNTRY_FLAGS[originCountry]} {COUNTRY_NAMES[originCountry] || originCountry}</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-teal-400" />
-                  <span className="text-teal-300">{COUNTRY_FLAGS[targetCountryCode] || ''} {COUNTRY_NAMES[targetCountryCode] || targetCountryCode}</span>
+                  <span className="text-sky-300">{inspectedCountryFlag} {inspectedCountryName}</span>
+                  <span className="text-xs text-teal-400 bg-teal-950 border border-teal-800 px-1.5 py-0.2 rounded">
+                    {countryPlants.length} Facilities
+                  </span>
                 </span>
               </div>
-              <StatusChip variant={targetMarketEntry?.eligibility?.overallVerdict || 'UNKNOWN'} size="xs" />
+
+              {/* Drawer Tab Switcher */}
+              <div className="flex items-center bg-stone-950 border border-stone-800 rounded p-0.5 text-[10px]">
+                <button
+                  onClick={() => setDrawerTab('PLANTS')}
+                  className={`px-2 py-1 rounded font-bold transition-all ${
+                    drawerTab === 'PLANTS' ? 'bg-teal-600 text-white shadow-xs' : 'text-stone-400 hover:text-stone-200'
+                  }`}
+                >
+                  Plants ({countryPlants.length})
+                </button>
+                <button
+                  onClick={() => setDrawerTab('COMPLIANCE')}
+                  className={`px-2 py-1 rounded font-bold transition-all ${
+                    drawerTab === 'COMPLIANCE' ? 'bg-teal-600 text-white shadow-xs' : 'text-stone-400 hover:text-stone-200'
+                  }`}
+                >
+                  Export Route ➔
+                </button>
+              </div>
             </div>
 
-            {/* Quick Switch Origin Button */}
-            {originCountry !== targetCountryCode && (
-              <button
-                onClick={() => {
-                  setOriginCountry(targetCountryCode);
-                  setInjectionCountry(targetCountryCode);
-                }}
-                className="w-full py-1.5 px-2 bg-stone-950 hover:bg-stone-800 border border-sky-700/60 rounded text-sky-300 font-bold text-[11px] flex items-center justify-center gap-1.5 transition-all"
-              >
-                <RotateCcw className="w-3 h-3 text-sky-400" />
-                Make {COUNTRY_NAMES[targetCountryCode] || targetCountryCode} the Origin Country
-              </button>
-            )}
-
-            {targetMarketEntry ? (
+            {/* TAB 1: PLANTS AVAILABLE PER FEEDSTOCK */}
+            {drawerTab === 'PLANTS' && (
               <div className="space-y-3">
-                <div className="p-3 bg-stone-950 rounded border border-stone-800 space-y-2">
-                  <div className="flex justify-between items-center text-stone-400">
-                    <span>Target Compliance Scheme:</span>
-                    <strong className="text-stone-200">{targetMarketEntry.market.name}</strong>
-                  </div>
-                  <div className="flex justify-between items-center text-stone-400">
-                    <span>Statutory Authority / Registry:</span>
-                    <strong className="text-stone-300">{targetMarketEntry.market.registry || targetMarketEntry.market.shortName}</strong>
-                  </div>
-                  <div className="flex justify-between items-center text-stone-400">
-                    <span>Implied Netback:</span>
-                    <strong className="text-teal-400 font-bold text-sm">
-                      {targetMarketEntry.netback?.netNetback != null
-                        ? `€${targetMarketEntry.netback.netNetback.toFixed(2)}/MWh`
-                        : 'No active mark'}
-                    </strong>
+                
+                {/* Feedstock Breakdown Filter Cards */}
+                <div>
+                  <span className="text-[10px] font-bold text-stone-400 uppercase block mb-1.5 flex items-center justify-between">
+                    <span>Available Capacity per Feedstock:</span>
+                    <button 
+                      onClick={() => setPlantFeedstockFilter('ALL')}
+                      className={`text-[9px] ${plantFeedstockFilter === 'ALL' ? 'text-teal-400 underline font-bold' : 'text-stone-500'}`}
+                    >
+                      Show All ({countryPlants.length})
+                    </button>
+                  </span>
+
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {countryFeedstockBreakdown.map((item) => (
+                      <button
+                        key={item.key}
+                        onClick={() => {
+                          setPlantFeedstockFilter(item.key);
+                          setFeedstockKey(item.defaultKey);
+                          const info = FEEDSTOCK_REGISTRY[item.defaultKey];
+                          if (info) setCarbonIntensity(info.defaultCI);
+                        }}
+                        className={`p-2 rounded border text-left transition-all ${
+                          plantFeedstockFilter === item.key
+                            ? 'bg-teal-950/80 border-teal-500 text-teal-200 shadow-xs'
+                            : 'bg-stone-950 border-stone-800 text-stone-300 hover:bg-stone-850'
+                        }`}
+                      >
+                        <div className="font-bold text-[11px] truncate">{item.label}</div>
+                        <div className="flex justify-between items-baseline mt-0.5 text-[10px]">
+                          <span className="text-teal-300 font-bold">{item.count} plant{item.count !== 1 ? 's' : ''}</span>
+                          <span className="text-stone-400">~{Math.round(item.totalEnergyGWh)} GWh/yr</span>
+                        </div>
+                      </button>
+                    ))}
                   </div>
                 </div>
 
-                {/* Gating Status Trail */}
+                {/* Specific Plants List for this Country & Feedstock */}
                 <div className="space-y-1.5">
-                  <span className="text-[10px] font-bold text-stone-400 uppercase block">Compliance Gate Analysis:</span>
-                  <div className="space-y-1 text-[11px]">
-                    {targetMarketEntry.eligibility.gates.map((g: any, gIdx: number) => (
-                      <div key={gIdx} className="p-2 bg-stone-950/80 rounded border border-stone-800 flex items-start justify-between gap-2">
-                        <div>
-                          <span className="font-bold text-stone-300 block">{g.gateLabel}</span>
-                          <span className="text-[10px] text-stone-400">{g.reason}</span>
+                  <div className="flex justify-between items-center text-[10px] text-stone-400 font-bold uppercase">
+                    <span>{inspectedCountryName} Facilities ({filteredCountryPlants.length}):</span>
+                    <span>Click row to trade</span>
+                  </div>
+
+                  <div className="max-h-[260px] overflow-y-auto space-y-1.5 pr-1 divide-y divide-stone-800/40">
+                    {filteredCountryPlants.map((p) => (
+                      <div
+                        key={p.id}
+                        onClick={() => setSelectedPlant(p)}
+                        className="p-2.5 bg-stone-950 hover:bg-stone-800/80 border border-stone-800 rounded cursor-pointer transition-all space-y-1 group"
+                      >
+                        <div className="flex items-start justify-between gap-1.5">
+                          <span className="font-bold text-stone-100 group-hover:text-teal-300 transition-colors">
+                            {p.name}
+                          </span>
+                          <span className="text-teal-300 font-bold shrink-0 text-[11px]">
+                            {p.annualEnergyGWh} GWh/yr
+                          </span>
                         </div>
-                        <StatusChip variant={g.verdict} size="xs" />
+                        <div className="text-[10px] text-stone-400 flex justify-between">
+                          <span>Op: <strong className="text-stone-300">{p.operator}</strong></span>
+                          <span>{p.capacityNm3h} Nm³/h</span>
+                        </div>
+                        <div className="text-[10px] text-stone-400 truncate">
+                          Tech: <span className="text-stone-300">{p.upgradingTechnology}</span> • Net: <span className="text-stone-300">{p.networkOperator}</span>
+                        </div>
                       </div>
                     ))}
                   </div>
                 </div>
-              </div>
-            ) : (
-              <div className="p-4 bg-stone-950 rounded border border-stone-800 text-center text-stone-500">
-                No active compliance market model configured for {COUNTRY_NAMES[targetCountryCode] || targetCountryCode}.
+
               </div>
             )}
+
+            {/* TAB 2: COMPLIANCE ROUTE & EXPORT CLEARANCE */}
+            {drawerTab === 'COMPLIANCE' && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between border-b border-stone-800 pb-1.5">
+                  <span className="text-[10px] text-stone-400 uppercase">Export Route Spreads</span>
+                  <span className="text-stone-200 font-bold">{COUNTRY_FLAGS[originCountry]} {originCountry} ➔ {COUNTRY_FLAGS[targetCountryCode]} {targetCountryCode}</span>
+                </div>
+
+                {targetMarketEntry ? (
+                  <div className="space-y-3">
+                    <div className="p-3 bg-stone-950 rounded border border-stone-800 space-y-2">
+                      <div className="flex justify-between items-center text-stone-400">
+                        <span>Target Compliance Scheme:</span>
+                        <strong className="text-stone-200">{targetMarketEntry.market.name}</strong>
+                      </div>
+                      <div className="flex justify-between items-center text-stone-400">
+                        <span>Statutory Registry:</span>
+                        <strong className="text-stone-300">{targetMarketEntry.market.registry || targetMarketEntry.market.shortName}</strong>
+                      </div>
+                      <div className="flex justify-between items-center text-stone-400">
+                        <span>Implied Netback:</span>
+                        <strong className="text-teal-400 font-bold text-sm">
+                          {targetMarketEntry.netback?.netNetback != null
+                            ? `€${targetMarketEntry.netback.netNetback.toFixed(2)}/MWh`
+                            : 'No active mark'}
+                        </strong>
+                      </div>
+                    </div>
+
+                    {/* Gating Status Trail */}
+                    <div className="space-y-1.5">
+                      <span className="text-[10px] font-bold text-stone-400 uppercase block">Compliance Gate Analysis:</span>
+                      <div className="space-y-1 text-[11px]">
+                        {targetMarketEntry.eligibility.gates.map((g: any, gIdx: number) => (
+                          <div key={gIdx} className="p-2 bg-stone-950/80 rounded border border-stone-800 flex items-start justify-between gap-2">
+                            <div>
+                              <span className="font-bold text-stone-300 block">{g.gateLabel}</span>
+                              <span className="text-[10px] text-stone-400">{g.reason}</span>
+                            </div>
+                            <StatusChip variant={g.verdict} size="xs" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-4 bg-stone-950 rounded border border-stone-800 text-center text-stone-500">
+                    No active compliance market model configured for {COUNTRY_NAMES[targetCountryCode] || targetCountryCode}.
+                  </div>
+                )}
+              </div>
+            )}
+
           </div>
 
-          {/* Action button */}
-          <button
-            onClick={() => {
-              if (targetMarketEntry?.market?.id) {
-                navigate(`/trade?marketId=${targetMarketEntry.market.id}&originCountry=${originCountry}`);
-              } else {
-                navigate('/trade');
-              }
-            }}
-            className="w-full bg-teal-600 hover:bg-teal-500 text-white font-bold py-2 px-3 rounded text-xs transition-all flex items-center justify-center gap-1.5"
-          >
-            Open Trade Builder with this Route <ArrowRight className="w-3.5 h-3.5" />
-          </button>
+          {/* Action buttons */}
+          <div className="space-y-2 pt-2 border-t border-stone-800">
+            <button
+              onClick={() => {
+                if (targetMarketEntry?.market?.id) {
+                  navigate(`/trade?marketId=${targetMarketEntry.market.id}&originCountry=${originCountry}`);
+                } else {
+                  navigate('/trade');
+                }
+              }}
+              className="w-full bg-teal-600 hover:bg-teal-500 text-white font-bold py-2 px-3 rounded text-xs transition-all flex items-center justify-center gap-1.5"
+            >
+              Open Trade Builder for {inspectedCountryName} <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
 
         </div>
 
