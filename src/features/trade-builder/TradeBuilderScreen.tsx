@@ -45,11 +45,41 @@ export function TradeBuilderScreen() {
   const [userNotes, setUserNotes] = useState('');
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  // Sync market selection with URL query param if present
+  // Sync market and origin selection with URL query param if present
   useEffect(() => {
     const queryMarket = searchParams.get('marketId');
+    const queryOrigin = searchParams.get('originCountry');
+    const queryVolume = searchParams.get('volume');
+
     if (queryMarket && MARKETS.some(m => m.id === queryMarket)) {
       setSelectedMarketId(queryMarket);
+    }
+
+    if (queryOrigin) {
+      const code = queryOrigin.toUpperCase();
+      const isEU = EU_COUNTRY_CODES.includes(code);
+      setConsignment(prev => {
+        const countryName = code === 'SE' ? 'Sweden' :
+          code === 'DK' ? 'Denmark' :
+          code === 'DE' ? 'Germany' :
+          code === 'FR' ? 'France' :
+          code === 'IT' ? 'Italy' :
+          code === 'NL' ? 'Netherlands' :
+          code === 'ES' ? 'Spain' :
+          code === 'AT' ? 'Austria' :
+          code === 'GB' ? 'United Kingdom' : code;
+
+        return {
+          ...prev,
+          originCountry: code,
+          originCountryName: countryName,
+          injectionCountry: code,
+          injectionIsEU: isEU,
+          udbStatus: isEU ? 'RECORDED' : 'NOT_RECORDED',
+          name: `${countryName} ${prev.feedstockName || 'Biomethane'}`,
+          volumeMWh: queryVolume ? Number(queryVolume) : prev.volumeMWh,
+        };
+      });
     }
   }, [searchParams]);
 
@@ -74,6 +104,7 @@ export function TradeBuilderScreen() {
       ...prev,
       injectionCountry: countryCode,
       injectionIsEU: isEU,
+      udbStatus: isEU ? 'RECORDED' : 'NOT_RECORDED',
     }));
   };
 
@@ -118,10 +149,11 @@ export function TradeBuilderScreen() {
 
   // Calculated GHG saving percentage
   const ghgSavingPct = useMemo(() => {
-    const saving = (CI_COMPARATOR_ROAD_TRANSPORT - consignment.carbonIntensity) / CI_COMPARATOR_ROAD_TRANSPORT;
-    return (saving * 100).toFixed(1);
+    const saving = ((CI_COMPARATOR_ROAD_TRANSPORT - consignment.carbonIntensity) / CI_COMPARATOR_ROAD_TRANSPORT) * 100;
+    return saving.toFixed(1);
   }, [consignment.carbonIntensity]);
 
+  // Calculated carbon factor
   const tco2eFactor = useMemo(() => {
     return tCO2ePerMWh(consignment.carbonIntensity).toFixed(4);
   }, [consignment.carbonIntensity]);
@@ -137,7 +169,7 @@ export function TradeBuilderScreen() {
     if (preset) {
       setConsignment(preset);
       setSelectedMarketId(targetMarket);
-      setSearchParams({ marketId: targetMarket });
+      setSearchParams({ marketId: targetMarket, originCountry: preset.originCountry });
     }
   };
 
@@ -288,39 +320,49 @@ export function TradeBuilderScreen() {
                   <select
                     value={consignment.originCountry}
                     onChange={e => {
-                      const name = e.target.options[e.target.selectedIndex].text.split(' ')[1] || e.target.value;
-                      setConsignment({ ...consignment, originCountry: e.target.value, originCountryName: name });
+                      const val = e.target.value;
+                      const isEU = EU_COUNTRY_CODES.includes(val);
+                      const name = e.target.options[e.target.selectedIndex].text.split(' ')[1] || val;
+                      setConsignment(prev => ({
+                        ...prev,
+                        originCountry: val,
+                        originCountryName: name,
+                        injectionCountry: val,
+                        injectionIsEU: isEU,
+                        udbStatus: isEU ? 'RECORDED' : 'NOT_RECORDED',
+                        name: `${name} ${prev.feedstockName || 'Biomethane'}`,
+                      }));
                     }}
                     className="w-full bg-stone-950 border border-stone-800 rounded px-2 py-1.5 text-stone-200 outline-none"
                   >
                     <option value="FR">🇫🇷 France (829 plants)</option>
-                    <option value="DE">🇩🇪 Germany (282 plants)</option>
+                    <option value="DE">🇩🇪 Germany (285 plants)</option>
                     <option value="IT">🇮🇹 Italy (273 plants)</option>
-                    <option value="GB">🇬🇧 United Kingdom (128 plants)</option>
+                    <option value="GB">🇬🇧 United Kingdom (108 plants)</option>
                     <option value="NL">🇳🇱 Netherlands (92 plants)</option>
                     <option value="SE">🇸🇪 Sweden (67 plants)</option>
-                    <option value="DK">🇩🇰 Denmark (61 plants)</option>
-                    <option value="CH">🇨🇭 Switzerland (48 plants)</option>
+                    <option value="DK">🇩🇰 Denmark (60 plants)</option>
                     <option value="FI">🇫🇮 Finland (32 plants)</option>
                     <option value="ES">🇪🇸 Spain (26 plants)</option>
+                    <option value="PL">🇵🇱 Poland (22 plants)</option>
                     <option value="AT">🇦🇹 Austria (20 plants)</option>
-                    <option value="BE">🇧🇪 Belgium (18 plants)</option>
+                    <option value="CH">🇨🇭 Switzerland (18 plants)</option>
+                    <option value="UA">🇺🇦 Ukraine (18 plants)</option>
                     <option value="NO">🇳🇴 Norway (15 plants)</option>
-                    <option value="CZ">🇨🇿 Czech Republic (13 plants)</option>
                     <option value="PT">🇵🇹 Portugal (13 plants)</option>
-                    <option value="EE">🇪🇪 Estonia (12 plants)</option>
-                    <option value="LV">🇱🇻 Latvia (12 plants)</option>
+                    <option value="BE">🇧🇪 Belgium (12 plants)</option>
                     <option value="LT">🇱🇹 Lithuania (12 plants)</option>
-                    <option value="PL">🇵🇱 Poland (1 plant)</option>
-                    <option value="UA">🇺🇦 Ukraine (7 plants)</option>
-                    <option value="SK">🇸🇰 Slovakia (5 plants)</option>
-                    <option value="IE">🇮🇪 Ireland (2 plants)</option>
-                    <option value="HU">🇭🇺 Hungary (2 plants)</option>
-                    <option value="RO">🇷🇴 Romania</option>
-                    <option value="BG">🇧🇬 Bulgaria</option>
-                    <option value="HR">🇭🇷 Croatia</option>
-                    <option value="SI">🇸🇮 Slovenia</option>
-                    <option value="GR">🇬🇷 Greece</option>
+                    <option value="HU">🇭🇺 Hungary (12 plants)</option>
+                    <option value="CZ">🇨🇿 Czech Republic (10 plants)</option>
+                    <option value="LV">🇱🇻 Latvia (10 plants)</option>
+                    <option value="IE">🇮🇪 Ireland (10 plants)</option>
+                    <option value="GR">🇬🇷 Greece (8 plants)</option>
+                    <option value="RO">🇷🇴 Romania (6 plants)</option>
+                    <option value="EE">🇪🇪 Estonia (4 plants)</option>
+                    <option value="SK">🇸🇰 Slovakia (3 plants)</option>
+                    <option value="LU">🇱🇺 Luxembourg (2 plants)</option>
+                    <option value="HR">🇭🇷 Croatia (2 plants)</option>
+                    <option value="BG">🇧🇬 Bulgaria (1 plant)</option>
                   </select>
                 </div>
 
@@ -454,7 +496,7 @@ export function TradeBuilderScreen() {
                     key={m.id}
                     onClick={() => {
                       setSelectedMarketId(m.id);
-                      setSearchParams({ marketId: m.id });
+                      setSearchParams({ marketId: m.id, originCountry: consignment.originCountry });
                     }}
                     className={`p-2.5 rounded border transition-all cursor-pointer font-mono ${
                       isSelected
@@ -545,11 +587,13 @@ export function TradeBuilderScreen() {
             {/* Dossier Top Bar */}
             <div className="p-4 bg-stone-950 border-b border-stone-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
               <div>
-                <div className="text-[10px] font-mono uppercase tracking-widest text-teal-400 font-bold">
-                  Trade Dossier & Regulatory Validation
+                <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-teal-400 font-bold">
+                  <span>Trade Dossier & Route Clearance</span>
+                  <span>•</span>
+                  <span className="text-sky-400">{consignment.originCountryName || consignment.originCountry} ➔ {selectedMarket.country || 'EU-wide'}</span>
                 </div>
                 <h3 className="text-base font-bold text-white font-mono mt-0.5">
-                  {selectedMarket.name} ({selectedMarket.country || 'EU-wide'})
+                  {selectedMarket.name} ({selectedMarket.registry || selectedMarket.countryName})
                 </h3>
               </div>
 
@@ -570,7 +614,7 @@ export function TradeBuilderScreen() {
             </div>
 
             {/* Verdict Highlight Strip */}
-            <div className="px-4 py-2.5 bg-stone-950/80 border-b border-stone-800 flex items-center justify-between text-xs font-mono">
+            <div className="px-4 py-2.5 bg-stone-950/80 border-b border-stone-800 flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
               <div className="flex items-center gap-2">
                 <StatusChip variant={eligibility.overallVerdict} />
                 <span className="text-stone-300 font-semibold">{eligibility.summary}</span>
@@ -580,14 +624,144 @@ export function TradeBuilderScreen() {
 
             <div className="p-4 space-y-6">
               
-              {/* SECTION A: Regulatory Compliance Checklist & Directives */}
+              {/* SECTION 1: Commercial Netback & Margin Economics (Prominently at top) */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-bold text-stone-300 font-mono uppercase tracking-wider flex items-center justify-between border-b border-stone-800 pb-1.5">
+                  <span className="flex items-center gap-1.5">
+                    <TrendingUp className="w-4 h-4 text-teal-400" />
+                    Commercial Netback Economics
+                  </span>
+                  <span className="text-[10px] text-stone-500 font-normal">Pricing Side: {netback.markSideUsed.toUpperCase()}</span>
+                </h4>
+
+                <div className="bg-stone-950 border border-stone-800 rounded-lg p-4 font-mono text-xs space-y-4">
+                  
+                  {/* Top Key Metrics Banner */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-stone-900/90 rounded border border-stone-800">
+                    <div>
+                      <div className="text-[9px] uppercase font-bold text-stone-400">Net Netback</div>
+                      <div className="text-lg font-bold text-teal-300 mt-0.5">
+                        {netback.netNetback !== null ? `€${netback.netNetback.toFixed(2)}/MWh` : 'No active mark'}
+                      </div>
+                      <div className="text-[9px] text-stone-500">Molecule + Certificate − Tariffs</div>
+                    </div>
+
+                    <div>
+                      <div className="text-[9px] uppercase font-bold text-stone-400">Certificate Value</div>
+                      <div className="text-lg font-bold text-emerald-400 mt-0.5">
+                        {netback.certificateValue?.valueEurPerMWh !== null && netback.certificateValue?.valueEurPerMWh !== undefined
+                          ? `€${netback.certificateValue.valueEurPerMWh.toFixed(2)}/MWh`
+                          : '—'}
+                      </div>
+                      <div className="text-[9px] text-stone-500">{netback.certificateValue?.unitConversion || 'Compliance Premium'}</div>
+                    </div>
+
+                    <div>
+                      <div className="text-[9px] uppercase font-bold text-stone-400">Implied Desk Margin</div>
+                      <div className={`text-lg font-bold mt-0.5 ${
+                        netback.impliedMargin !== null && netback.impliedMargin > 0 ? 'text-emerald-400' :
+                        netback.impliedMargin !== null && netback.impliedMargin < 0 ? 'text-red-400' : 'text-stone-400'
+                      }`}>
+                        {netback.impliedMargin !== null ? `€${netback.impliedMargin.toFixed(2)}/MWh` : 'Set procurement cost'}
+                      </div>
+                      <div className="text-[9px] text-stone-500">Netback − Delivered Cost</div>
+                    </div>
+                  </div>
+
+                  {/* Carbon Intensity Factor */}
+                  <div className="flex justify-between items-center bg-stone-900 border border-stone-800 p-2.5 rounded text-[11px]">
+                    <span className="text-stone-400">GHG Saving & Carbon Factor:</span>
+                    <span className="text-teal-300 font-bold">
+                      {ghgSavingPct}% saving ({consignment.carbonIntensity} gCO₂e/MJ) = {tco2eFactor} tCO₂e/MWh
+                    </span>
+                  </div>
+
+                  {/* German Double Counting Sensitivity Branches */}
+                  {netback.uncertaintyBranches && (
+                    <div className="bg-stone-900/90 border border-sky-900/70 p-3 rounded space-y-2">
+                      <div className="text-[11px] font-bold text-sky-300 flex justify-between">
+                        <span>German THG Double Counting Dual Branches (§37a BImSchG):</span>
+                        <span className="text-[9px] text-sky-400 bg-sky-950 border border-sky-800 px-1.5 py-0.5 rounded font-bold">Unresolved</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-[11px]">
+                        <div className="p-2.5 bg-stone-950 rounded border border-stone-800">
+                          <div className="text-stone-400 text-[10px]">Without Double Counting (1×):</div>
+                          <div className="text-sm font-bold text-white mt-0.5">
+                            €{netback.uncertaintyBranches[0].certificateValue.valueEurPerMWh?.toFixed(2)}/MWh
+                          </div>
+                          <div className="text-emerald-400 text-[10px] mt-0.5">
+                            Netback: €{netback.uncertaintyBranches[0].netNetback?.toFixed(2)}/MWh
+                          </div>
+                        </div>
+
+                        <div className="p-2.5 bg-stone-950 rounded border border-teal-900">
+                          <div className="text-teal-400 text-[10px]">With Double Counting (2×):</div>
+                          <div className="text-sm font-bold text-teal-300 mt-0.5">
+                            €{netback.uncertaintyBranches[1].certificateValue.valueEurPerMWh?.toFixed(2)}/MWh
+                          </div>
+                          <div className="text-emerald-400 text-[10px] mt-0.5">
+                            Netback: €{netback.uncertaintyBranches[1].netNetback?.toFixed(2)}/MWh
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Detailed Line Items */}
+                  <div className="space-y-1.5 text-xs pt-1 border-t border-stone-800/80">
+                    <div className="flex justify-between text-stone-400">
+                      <span>Gas Molecule Benchmark (TTF):</span>
+                      <span className="text-stone-200 font-bold">
+                        {netback.moleculeValue !== null ? `+€${netback.moleculeValue.toFixed(2)}/MWh` : 'Not set'}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between text-stone-400">
+                      <span>Transfer Tariffs / Cross-Border Grid:</span>
+                      <span className="text-stone-200">
+                        {state.costs.transferCosts !== null ? `−€${state.costs.transferCosts.toFixed(2)}/MWh` : '€0.00/MWh'}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between text-stone-400">
+                      <span>Certification, Audit & UDB Recording:</span>
+                      <span className="text-stone-200">
+                        {state.costs.certificationCosts !== null ? `−€${state.costs.certificationCosts.toFixed(2)}/MWh` : '€0.00/MWh'}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between text-stone-400">
+                      <span>Logistics / Conditioning:</span>
+                      <span className="text-stone-200">
+                        {state.costs.logistics !== null ? `−€${state.costs.logistics.toFixed(2)}/MWh` : '€0.00/MWh'}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between border-t border-stone-800 pt-2 text-sm font-bold">
+                      <span className="text-white">NET NETBACK VALUE:</span>
+                      <span className="text-teal-400">
+                        {netback.netNetback !== null ? `€${netback.netNetback.toFixed(2)}/MWh` : 'No active mark'}
+                      </span>
+                    </div>
+
+                    {consignment.volumeMWh && netback.totalPnL !== null && (
+                      <div className="flex justify-between border-t border-stone-800 pt-1.5 text-xs font-bold text-emerald-400">
+                        <span>Total Trade Gross P&L ({consignment.volumeMWh.toLocaleString()} MWh):</span>
+                        <span>€{netback.totalPnL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 2: Regulatory Compliance Gate Audit */}
               <div className="space-y-3">
                 <h4 className="text-xs font-bold text-stone-300 font-mono uppercase tracking-wider flex items-center gap-1.5 border-b border-stone-800 pb-1.5">
                   <ShieldCheck className="w-4 h-4 text-teal-400" />
                   Regulatory Validation Checklist (RED III & National Transpositions)
                 </h4>
 
-                <div className="space-y-2.5">
+                <div className="space-y-2">
                   {eligibility.gates.map((gate, idx) => (
                     <div key={idx} className="border border-stone-800 rounded-lg p-3 bg-stone-950/60 space-y-1.5 font-mono text-xs">
                       <div className="flex items-center justify-between">
@@ -618,159 +792,8 @@ export function TradeBuilderScreen() {
                 </div>
               </div>
 
-              {/* SECTION B: Commercial Netback & Margin Economics */}
-              <div className="space-y-3">
-                <h4 className="text-xs font-bold text-stone-300 font-mono uppercase tracking-wider flex items-center gap-1.5 border-b border-stone-800 pb-1.5">
-                  <TrendingUp className="w-4 h-4 text-teal-400" />
-                  Commercial Netback Economics (Pricing Side: {netback.markSideUsed.toUpperCase()})
-                </h4>
-
-                <div className="bg-stone-950 border border-stone-800 rounded-lg p-4 font-mono text-xs space-y-3">
-                  
-                  {/* CI Conversion Formula Display */}
-                  <div className="bg-stone-900 border border-stone-800 p-2.5 rounded text-[11px] space-y-0.5">
-                    <div className="text-stone-400 font-bold uppercase text-[10px]">
-                      1. Carbon Intensity Conversion:
-                    </div>
-                    <div className="text-teal-300 font-bold">
-                      (94.0 − ({consignment.carbonIntensity})) × 3600 / 1,000,000 = {tco2eFactor} tCO₂e/MWh
-                    </div>
-                  </div>
-
-                  {/* Certificate Calculation */}
-                  {netback.certificateValue ? (
-                    <div className="space-y-1.5 border-b border-stone-800 pb-2.5 text-[11px]">
-                      <div className="flex justify-between">
-                        <span className="text-stone-400">Unit Conversion:</span>
-                        <span className="text-stone-300">{netback.certificateValue.unitConversion}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-stone-400">Certificate Value:</span>
-                        <span className="text-teal-300 font-bold">{netback.certificateValue.calculation}</span>
-                      </div>
-                      {netback.certificateValue.capped && (
-                        <div className="text-amber-400 text-[10px]">
-                          ⚠ {netback.certificateValue.capReason}
-                        </div>
-                      )}
-                      {netback.statusNote && (
-                        <div className="text-sky-400 text-[10px]">
-                          ℹ {netback.statusNote}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="text-amber-400 text-xs italic">
-                      No market mark set for {selectedMarket.name}. Set mark in Marks screen.
-                    </div>
-                  )}
-
-                  {/* German Double Counting Sensitivity Branches */}
-                  {netback.uncertaintyBranches && (
-                    <div className="bg-stone-900/90 border border-sky-900/70 p-2.5 rounded space-y-2">
-                      <div className="text-[11px] font-bold text-sky-300 flex justify-between">
-                        <span>German THG Double Counting Branches (§37a BImSchG):</span>
-                        <span className="text-[9px] text-sky-400 bg-sky-950 border border-sky-800 px-1 rounded">Unresolved</span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 text-[11px]">
-                        <div className="p-2 bg-stone-950 rounded border border-stone-800">
-                          <div className="text-stone-400 text-[10px]">Without Double Counting (1×):</div>
-                          <div className="text-sm font-bold text-white mt-0.5">
-                            €{netback.uncertaintyBranches[0].certificateValue.valueEurPerMWh?.toFixed(2)}/MWh
-                          </div>
-                          <div className="text-emerald-400 text-[10px] mt-0.5">
-                            Margin: €{netback.uncertaintyBranches[0].impliedMargin?.toFixed(2) ?? 'N/A'}/MWh
-                          </div>
-                        </div>
-
-                        <div className="p-2 bg-stone-950 rounded border border-teal-900">
-                          <div className="text-teal-400 text-[10px]">With Double Counting (2×):</div>
-                          <div className="text-sm font-bold text-teal-300 mt-0.5">
-                            €{netback.uncertaintyBranches[1].certificateValue.valueEurPerMWh?.toFixed(2)}/MWh
-                          </div>
-                          <div className="text-emerald-400 text-[10px] mt-0.5">
-                            Margin: €{netback.uncertaintyBranches[1].impliedMargin?.toFixed(2) ?? 'N/A'}/MWh
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Completeness Warning If Inputs Missing */}
-                  {!netback.isComplete && (
-                    <div className="bg-amber-950/40 border border-amber-800/80 rounded p-2 text-[10px] text-amber-300 flex items-center gap-1.5">
-                      <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-                      <span>Incomplete Cost Basis: Missing {netback.missingInputs.join(', ')}. Netback uses entered inputs.</span>
-                    </div>
-                  )}
-
-                  {/* Breakdown Numbers Table */}
-                  <div className="space-y-1 text-xs">
-                    <div className="flex justify-between text-stone-400">
-                      <span>Gas Molecule (TTF):</span>
-                      <span className="text-stone-200">
-                        {netback.moleculeValue !== null ? `+€${netback.moleculeValue.toFixed(2)}/MWh` : 'Not set'}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between text-stone-400">
-                      <span>Transfer Tariffs:</span>
-                      <span className="text-stone-200">
-                        {state.costs.transferCosts !== null ? `−€${state.costs.transferCosts.toFixed(2)}/MWh` : 'Not set'}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between text-stone-400">
-                      <span>Certification & Audit:</span>
-                      <span className="text-stone-200">
-                        {state.costs.certificationCosts !== null ? `−€${state.costs.certificationCosts.toFixed(2)}/MWh` : 'Not set'}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between text-stone-400">
-                      <span>Logistics:</span>
-                      <span className="text-stone-200">
-                        {state.costs.logistics !== null ? `−€${state.costs.logistics.toFixed(2)}/MWh` : 'Not set'}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between border-t border-stone-800 pt-1.5 text-sm font-bold">
-                      <span className="text-white">NET NETBACK:</span>
-                      <span className="text-teal-400">
-                        {netback.netNetback !== null ? `€${netback.netNetback.toFixed(2)}/MWh` : '—'}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between text-stone-400 pt-0.5">
-                      <span>Delivered Cost (Procurement):</span>
-                      <span className="text-stone-200">
-                        {state.costs.deliveredCost !== null ? `−€${state.costs.deliveredCost.toFixed(2)}/MWh` : 'Not set'}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between border-t border-stone-800 pt-1.5 text-sm font-bold">
-                      <span className="text-emerald-400">IMPLIED PROFIT MARGIN:</span>
-                      <span className="text-emerald-400">
-                        {netback.impliedMargin !== null
-                          ? `€${netback.impliedMargin.toFixed(2)}/MWh (${netback.marginPercent?.toFixed(1)}%)`
-                          : '—'}
-                      </span>
-                    </div>
-
-                    {consignment.volumeMWh && netback.totalPnL !== null && (
-                      <div className="flex justify-between bg-emerald-950/50 border border-emerald-800/80 p-2 rounded mt-1 text-sm font-bold">
-                        <span className="text-white">TOTAL P&L ({consignment.volumeMWh.toLocaleString()} MWh):</span>
-                        <span className="text-emerald-400">
-                          €{netback.totalPnL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Trader Boss Commentary Notes */}
-              <div>
+              {/* Trader Commentary Notes */}
+              <div className="pt-2 border-t border-stone-800">
                 <label className="block text-[10px] font-bold text-stone-400 uppercase font-mono mb-1">
                   Trader Commentary & Dossier Notes
                 </label>
@@ -778,7 +801,7 @@ export function TradeBuilderScreen() {
                   rows={2}
                   value={userNotes}
                   onChange={e => setUserNotes(e.target.value)}
-                  placeholder="e.g. Counterparty confirms physical injection at Energinet entry point. PoS audit certificate expected by 15th."
+                  placeholder="e.g. Counterparty confirms physical injection at entry point. PoS audit certificate expected on 15th."
                   className="w-full bg-stone-950 border border-stone-800 rounded p-2.5 text-xs font-mono text-stone-200 outline-none focus:border-teal-500"
                 />
               </div>
