@@ -37,8 +37,6 @@ export function PlantsScreen() {
   // Search and Filter States for Plants
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCountry, setSelectedCountry] = useState<string>('ALL');
-  const [selectedFeedstock, setSelectedFeedstock] = useState<string>('ALL');
-  const [selectedTech, setSelectedTech] = useState<string>('ALL');
   const [selectedPlantDetail, setSelectedPlantDetail] = useState<BiomethanePlant | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
@@ -49,20 +47,14 @@ export function PlantsScreen() {
     if (selectedCountry !== 'ALL') {
       list = list.filter(p => p.countryCode === selectedCountry);
     }
-    if (selectedFeedstock !== 'ALL') {
-      list = list.filter(p => (p.primaryFeedstockCategory || '').toLowerCase().includes(selectedFeedstock.toLowerCase()));
-    }
-    if (selectedTech !== 'ALL') {
-      list = list.filter(p => (p.upgradingTechnology || '').toLowerCase().includes(selectedTech.toLowerCase()));
-    }
 
     return list;
-  }, [searchQuery, selectedCountry, selectedFeedstock, selectedTech]);
+  }, [searchQuery, selectedCountry]);
 
   // Reset pagination when filters change
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, selectedCountry, selectedFeedstock, selectedTech]);
+  }, [searchQuery, selectedCountry]);
 
   // Paginated slice
   const totalPages = Math.ceil(filteredPlants.length / PAGE_SIZE) || 1;
@@ -71,7 +63,7 @@ export function PlantsScreen() {
     return filteredPlants.slice(start, start + PAGE_SIZE);
   }, [filteredPlants, currentPage]);
 
-  // Unique country and tech lists for filters
+  // Unique country lists for filters
   const countries = useMemo(() => {
     const map = new Map<string, { code: string; name: string; flag: string }>();
     BIOMETHANE_PLANTS.forEach(p => {
@@ -91,14 +83,14 @@ export function PlantsScreen() {
           <div className="flex items-center gap-2">
             <Factory className="w-5 h-5 text-teal-400" />
             <h1 className="text-base font-bold text-white font-mono uppercase tracking-tight">
-              Pan-European Biomethane Infrastructure & Plant Directory
+              Pan-European Biomethane Facility Register
             </h1>
             <span className="text-[10px] font-mono bg-teal-950 text-teal-300 border border-teal-800 px-2 py-0.5 rounded font-bold">
-              {BIOMETHANE_PLANTS.length} Operating Facilities Listed
+              {BIOMETHANE_PLANTS.length} Operating Facilities Verified
             </span>
           </div>
           <p className="text-stone-400 text-xs mt-0.5 font-mono">
-            Comprehensive register of all European biomethane producing facilities, developer portfolios, and national macro capacities.
+            Verified master register of European biomethane producing facilities, developer portfolios, and national macro statistics.
           </p>
         </div>
 
@@ -110,7 +102,7 @@ export function PlantsScreen() {
               activeTab === 'PLANTS' ? 'bg-teal-600 text-white shadow-xs' : 'text-stone-400 hover:text-stone-200'
             }`}
           >
-            <Factory className="w-3.5 h-3.5" /> All Plants ({BIOMETHANE_PLANTS.length})
+            <Factory className="w-3.5 h-3.5" /> All Facilities ({BIOMETHANE_PLANTS.length})
           </button>
           <button
             onClick={() => setActiveTab('DEVELOPERS')}
@@ -134,24 +126,24 @@ export function PlantsScreen() {
       {/* Macro Statistics KPI Ribbon */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-xs">
         <div className="bg-stone-900 border border-stone-800 rounded-xl p-3">
-          <div className="text-[10px] text-stone-400 uppercase font-bold">Total European Plants</div>
-          <div className="text-lg font-bold text-white mt-0.5">{BIOMETHANE_PLANTS.length}</div>
+          <div className="text-[10px] text-stone-400 uppercase font-bold">Verified European Facilities</div>
+          <div className="text-lg font-bold text-white mt-0.5">{BIOMETHANE_PLANTS.length} Sites</div>
           <div className="text-[10px] text-teal-400 mt-0.5">26 Producing Nations</div>
         </div>
         <div className="bg-stone-900 border border-stone-800 rounded-xl p-3">
-          <div className="text-[10px] text-stone-400 uppercase font-bold">Annual Production Capacity</div>
-          <div className="text-lg font-bold text-teal-300 mt-0.5">86.5 TWh/yr</div>
-          <div className="text-[10px] text-stone-400 mt-0.5">~8.2 billion m³ (bcm)</div>
+          <div className="text-[10px] text-stone-400 uppercase font-bold">European Annual Production</div>
+          <div className="text-lg font-bold text-teal-300 mt-0.5">~34.5 TWh/yr</div>
+          <div className="text-[10px] text-stone-400 mt-0.5">EBA Statistical Report</div>
         </div>
         <div className="bg-stone-900 border border-stone-800 rounded-xl p-3">
-          <div className="text-[10px] text-stone-400 uppercase font-bold">Grid Connection Share</div>
-          <div className="text-lg font-bold text-stone-100 mt-0.5">86% Connected</div>
-          <div className="text-[10px] text-stone-400 mt-0.5">51% Dist / 35% Trans</div>
+          <div className="text-[10px] text-stone-400 uppercase font-bold">Data Provenance</div>
+          <div className="text-lg font-bold text-stone-100 mt-0.5">GIE / EBA 2026</div>
+          <div className="text-[10px] text-stone-400 mt-0.5">European Biomethane Map</div>
         </div>
         <div className="bg-stone-900 border border-stone-800 rounded-xl p-3">
-          <div className="text-[10px] text-stone-400 uppercase font-bold">Average Plant Size</div>
-          <div className="text-lg font-bold text-stone-100 mt-0.5">483 Nm³/h</div>
-          <div className="text-[10px] text-stone-400 mt-0.5">~43.8 GWh/year</div>
+          <div className="text-[10px] text-stone-400 uppercase font-bold">Grid Interconnection</div>
+          <div className="text-lg font-bold text-stone-100 mt-0.5">Single EU MB Area</div>
+          <div className="text-[10px] text-stone-400 mt-0.5">RED III Art. 31a Network</div>
         </div>
       </div>
 
@@ -163,11 +155,11 @@ export function PlantsScreen() {
           <div className="bg-stone-900 border border-stone-800 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 font-mono text-xs">
             <div className="flex flex-wrap items-center gap-2 flex-1">
               {/* Search Input */}
-              <div className="min-w-[240px] flex-1 relative">
+              <div className="min-w-[280px] flex-1 relative">
                 <Search className="w-3.5 h-3.5 text-stone-500 absolute left-2.5 top-2.5" />
                 <input
                   type="text"
-                  placeholder="Search 1,986 facilities by code (e.g. FR-53, DE-10), location, operator, network..."
+                  placeholder="Search 1,975 facilities by name or national code (e.g. FR-1, AT-3, Wildon)..."
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                   className="w-full bg-stone-950 border border-stone-800 rounded pl-8 pr-3 py-1.5 text-xs text-stone-200 outline-none focus:border-teal-500"
@@ -180,23 +172,10 @@ export function PlantsScreen() {
                 onChange={e => setSelectedCountry(e.target.value)}
                 className="bg-stone-950 border border-stone-800 rounded px-2.5 py-1.5 text-stone-300 outline-none focus:border-teal-500"
               >
-                <option value="ALL">All Countries ({countries.length})</option>
+                <option value="ALL">All European Countries ({countries.length})</option>
                 {countries.map(c => (
                   <option key={c.code} value={c.code}>{c.flag} {c.name}</option>
                 ))}
-              </select>
-
-              {/* Tech Filter */}
-              <select
-                value={selectedTech}
-                onChange={e => setSelectedTech(e.target.value)}
-                className="bg-stone-950 border border-stone-800 rounded px-2.5 py-1.5 text-stone-300 outline-none focus:border-teal-500"
-              >
-                <option value="ALL">All Technologies</option>
-                <option value="Membrane">Membrane Separation</option>
-                <option value="Amine">Amine Scrubbing</option>
-                <option value="Water">Water Scrubbing</option>
-                <option value="PWS">Pressurized Water Scrubbing</option>
               </select>
             </div>
 
@@ -235,14 +214,12 @@ export function PlantsScreen() {
               <table className="w-full text-left tabular-nums">
                 <thead className="bg-stone-950 text-stone-400 uppercase font-semibold text-[10px] tracking-wider border-b border-stone-800">
                   <tr>
-                    <th className="py-2.5 px-3">Facility / Location</th>
-                    <th className="py-2.5 px-3">Operator / Developer</th>
-                    <th className="py-2.5 px-3 text-right">Capacity (Nm³/h)</th>
-                    <th className="py-2.5 px-3 text-right">Energy (GWh/yr)</th>
-                    <th className="py-2.5 px-3">Primary Feedstock</th>
-                    <th className="py-2.5 px-3">Upgrading Tech</th>
-                    <th className="py-2.5 px-3">Grid Operator</th>
-                    <th className="py-2.5 px-3 text-center">Action</th>
+                    <th className="py-2.5 px-3">Facility Code</th>
+                    <th className="py-2.5 px-3">Facility / Plant Name</th>
+                    <th className="py-2.5 px-3">Country / Jurisdiction</th>
+                    <th className="py-2.5 px-3 text-center">Status</th>
+                    <th className="py-2.5 px-3">Sourced Authority</th>
+                    <th className="py-2.5 px-3 text-center">Desk Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-800/80">
@@ -252,40 +229,35 @@ export function PlantsScreen() {
                       onClick={() => setSelectedPlantDetail(plant)}
                       className="h-10 hover:bg-stone-800/60 cursor-pointer transition-colors"
                     >
+                      <td className="py-2 px-3 text-teal-400 font-bold whitespace-nowrap">
+                        {plant.id.toUpperCase().replace('PLANT_', '')}
+                      </td>
                       <td className="py-2 px-3 font-bold text-stone-100 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
                           <span>{plant.countryFlag}</span>
                           <span>{plant.name}</span>
                         </div>
                       </td>
-                      <td className="py-2 px-3 text-stone-400 whitespace-nowrap max-w-[180px] truncate" title={plant.operator || 'Unverified'}>
-                        {plant.operator || <span className="text-stone-600 italic">Unverified</span>}
+                      <td className="py-2 px-3 text-stone-300 whitespace-nowrap">
+                        {plant.country} ({plant.countryCode})
                       </td>
-                      <td className="py-2 px-3 text-right text-teal-300 font-bold font-mono">
-                        {plant.capacityNm3h != null ? plant.capacityNm3h.toLocaleString() : <span className="text-stone-600">—</span>}
+                      <td className="py-2 px-3 text-center whitespace-nowrap">
+                        <span className="px-2 py-0.5 bg-emerald-950 text-emerald-300 border border-emerald-800 rounded text-[10px] font-bold">
+                          {plant.status || 'Active'}
+                        </span>
                       </td>
-                      <td className="py-2 px-3 text-right text-stone-200 font-bold font-mono">
-                        {plant.annualEnergyGWh != null ? plant.annualEnergyGWh.toLocaleString() : <span className="text-stone-600">—</span>}
-                      </td>
-                      <td className="py-2 px-3 text-stone-400 text-[11px] max-w-[200px] truncate" title={plant.primaryFeedstockCategory || 'Unverified'}>
-                        {plant.primaryFeedstockCategory || <span className="text-stone-600 italic">Unverified</span>}
-                      </td>
-                      <td className="py-2 px-3 text-stone-400 text-[11px] max-w-[160px] truncate" title={plant.upgradingTechnology || 'Unverified'}>
-                        {plant.upgradingTechnology || <span className="text-stone-600 italic">Unverified</span>}
-                      </td>
-                      <td className="py-2 px-3 text-stone-400 text-[11px] max-w-[160px] truncate" title={plant.networkOperator || 'Unverified'}>
-                        {plant.networkOperator || <span className="text-stone-600 italic">Unverified</span>}
+                      <td className="py-2 px-3 text-stone-400 text-[11px] whitespace-nowrap">
+                        GIE/EBA 2026 Map
                       </td>
                       <td className="py-2 px-3 text-center" onClick={e => e.stopPropagation()}>
                         <button
                           onClick={() => {
-                            const vol = plant.annualEnergyGWh ? `&volume=${Math.round(plant.annualEnergyGWh * 1000)}` : '';
-                            navigate(`/trade?originCountry=${plant.countryCode}${vol}`);
+                            navigate(`/trade?originCountry=${plant.countryCode}`);
                           }}
-                          className="px-2 py-1 bg-teal-950 text-teal-300 hover:bg-teal-900 border border-teal-800 rounded text-[10px] font-bold transition-all whitespace-nowrap"
-                          title="Simulate Export Trade for this Facility"
+                          className="px-2.5 py-1 bg-teal-950 text-teal-300 hover:bg-teal-900 border border-teal-800 rounded text-[10px] font-bold transition-all whitespace-nowrap"
+                          title="Simulate Export Trade for this Origin Country"
                         >
-                          Simulate Trade →
+                          Simulate Trade ➔
                         </button>
                       </td>
                     </tr>
