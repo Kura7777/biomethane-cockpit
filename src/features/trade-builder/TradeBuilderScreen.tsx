@@ -147,7 +147,7 @@ export function TradeBuilderScreen() {
       consignment, 
       state.marks, 
       state.costs, 
-      state.marks.pricingSide
+      state.marks.pricingSides ?? state.marks.pricingSide
     );
   }, [selectedMarket, consignment, state.marks, state.costs]);
 
@@ -1290,115 +1290,162 @@ export function TradeBuilderScreen() {
               </div>
             )}
 
-            {/* Accounting Netback Waterfall Table (Tightened ~28px Rows) */}
-            <div className="space-y-1.5 pt-0.5">
-              <div className="flex justify-between items-center text-[10px] font-semibold uppercase tracking-wider text-[#8B98A5] pb-1 border-b border-[#1E262F] font-mono">
+            {/* DEAL TICKET: TWO-SIDED LEGS & CROSSING COST (Phase 1) */}
+            <div className="space-y-2 pt-0.5 font-mono text-xs">
+              
+              {/* Header & Global Side Toggle */}
+              <div className="flex justify-between items-center text-[10px] font-semibold uppercase tracking-wider text-[#8B98A5] pb-1 border-b border-[#1E262F]">
                 <span className="flex items-center gap-1.5">
                   <TrendingUp className="w-3.5 h-3.5 text-[#8B98A5]" />
-                  Netback Accounting Waterfall
+                  Deal Ticket Breakdown & Valuation Legs
                 </span>
-                <span className="text-[10px] text-[#8B98A5] font-normal">Side: {netback.markSideUsed.toUpperCase()}</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[#8B98A5] text-[9px]">Global Side:</span>
+                  <div className="inline-flex bg-[#0B0E11] p-0.5 rounded text-[9px]">
+                    {(['bid', 'mid', 'offer'] as PriceSide[]).map(s => (
+                      <button
+                        key={s}
+                        onClick={() => dispatch({ type: 'SET_PRICING_SIDE', side: s })}
+                        className={`px-1.5 py-0.2 uppercase rounded font-semibold transition-colors ${
+                          state.marks.pricingSide === s
+                            ? 'bg-[#182830] text-[#2DD4BF]'
+                            : 'text-[#8B98A5] hover:text-[#E8EDF2]'
+                        }`}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
 
-              <div className="bg-[#0B0E11] rounded divide-y divide-[#1E262F] text-xs font-mono">
-                
-                {/* TTF Molecule */}
-                <div className="h-7 px-2.5 flex justify-between items-center text-[#8B98A5]">
-                  <span className="flex items-center gap-1.5">
+              {/* 1. SELL LEG */}
+              <div className="bg-[#0B0E11] rounded p-2.5 space-y-1 border border-[#1E262F]/60">
+                <div className="text-[9px] font-bold uppercase tracking-wider text-[#2DD4BF] pb-1 border-b border-[#1E262F]/40 flex justify-between items-center">
+                  <span>Sell Leg (Revenue Stack)</span>
+                  <span className="text-[#8B98A5] font-normal">Delivery to {selectedMarket.shortName || selectedMarket.name}</span>
+                </div>
+
+                {/* Certificate premium with side selector */}
+                <div className="h-7 flex justify-between items-center text-[#8B98A5]">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#2DD4BF]" />
+                    <span className="text-[#E8EDF2]">{selectedMarket.shortName || selectedMarket.id} certificate</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {/* Per-leg side selector */}
+                    <div className="inline-flex bg-[#12171C] p-0.5 rounded text-[9px]">
+                      {(['bid', 'mid', 'offer'] as PriceSide[]).map(s => {
+                        const currentCertSide = state.marks.pricingSides?.certificateSide ?? state.marks.pricingSide ?? 'bid';
+                        return (
+                          <button
+                            key={s}
+                            onClick={() => dispatch({ type: 'SET_PRICING_SIDES', sides: { certificateSide: s } })}
+                            className={`px-1 py-0.2 uppercase rounded transition-colors ${
+                              currentCertSide === s ? 'bg-[#182830] text-[#2DD4BF] font-bold' : 'text-[#8B98A5] hover:text-[#E8EDF2]'
+                            }`}
+                          >
+                            {s}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <span className="font-semibold text-[#2DD4BF] tabular-nums min-w-[75px] text-right">
+                      {netback.certificateValue?.valueEurPerMWh != null ? `+€${netback.certificateValue.valueEurPerMWh.toFixed(2)}/MWh` : 'Not set'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Molecule value with side selector */}
+                <div className="h-7 flex justify-between items-center text-[#8B98A5]">
+                  <div className="flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#8B98A5]" />
-                    Gas Molecule Benchmark (TTF Hub)
-                  </span>
-                  <span className="font-semibold text-[#E8EDF2] tabular-nums">
-                    {netback.moleculeValue !== null ? `+€${netback.moleculeValue.toFixed(2)}/MWh` : 'Not set'}
-                  </span>
-                </div>
-
-                {/* Certificate Premium */}
-                <div className="py-1 px-2.5 flex justify-between items-center text-[#8B98A5]">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="flex items-center gap-1.5 text-[#E8EDF2]">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#2DD4BF]" />
-                      Compliance Certificate Premium
-                    </span>
-                    {netback.certificateValue?.provenance?.sourceType && (
-                      <span className="text-[9px] text-[#8B98A5] ml-1">
-                        (<strong className="text-[#E8EDF2]">{netback.certificateValue.provenance.sourceName || netback.certificateValue.provenance.sourceType}</strong>)
-                      </span>
-                    )}
-                    {netback.certificateValue && !netback.certificateValue.provenance?.sourceType && !netback.certificateValue.isModelled && (
-                      <span className="text-[9px] text-[#D99A2B] ml-1">
-                        ⚠ Unrecorded source
-                      </span>
-                    )}
+                    <span>TTF molecule</span>
                   </div>
-                  <span className="font-semibold text-[#2DD4BF] tabular-nums whitespace-nowrap">
-                    {netback.certificateValue?.valueEurPerMWh != null ? `+€${netback.certificateValue.valueEurPerMWh.toFixed(2)}/MWh` : 'Not set'}
-                  </span>
-                </div>
-
-                {/* Transfer Tariffs */}
-                <div className="h-7 px-2.5 flex justify-between items-center text-[#8B98A5]">
-                  <span>Transfer & Cross-Border Pipeline Tariffs</span>
-                  <span className="text-[#E8EDF2] tabular-nums">
-                    {state.costs.transferCosts !== null ? `−€${state.costs.transferCosts.toFixed(2)}/MWh` : '€0.00/MWh'}
-                  </span>
-                </div>
-
-                {/* Certification */}
-                <div className="h-7 px-2.5 flex justify-between items-center text-[#8B98A5]">
-                  <span>Certification, Audit & UDB Recording</span>
-                  <span className="text-[#E8EDF2] tabular-nums">
-                    {state.costs.certificationCosts !== null ? `−€${state.costs.certificationCosts.toFixed(2)}/MWh` : '€0.00/MWh'}
-                  </span>
-                </div>
-
-                {/* Logistics */}
-                <div className="h-7 px-2.5 flex justify-between items-center text-[#8B98A5]">
-                  <span>Logistics / Conditioning Fees</span>
-                  <span className="text-[#E8EDF2] tabular-nums">
-                    {state.costs.logistics !== null ? `−€${state.costs.logistics.toFixed(2)}/MWh` : '€0.00/MWh'}
-                  </span>
-                </div>
-
-                {state.costs.otherCosts !== null && state.costs.otherCosts > 0 && (
-                  <div className="h-7 px-2.5 flex justify-between items-center text-[#8B98A5]">
-                    <span>Other Miscellaneous Fees</span>
-                    <span className="text-[#E8EDF2] tabular-nums">
-                      −€{state.costs.otherCosts.toFixed(2)}/MWh
+                  <div className="flex items-center gap-2">
+                    <div className="inline-flex bg-[#12171C] p-0.5 rounded text-[9px]">
+                      {(['bid', 'mid', 'offer'] as PriceSide[]).map(s => {
+                        const currentMolSide = state.marks.pricingSides?.moleculeSide ?? state.marks.pricingSide ?? 'bid';
+                        return (
+                          <button
+                            key={s}
+                            onClick={() => dispatch({ type: 'SET_PRICING_SIDES', sides: { moleculeSide: s } })}
+                            className={`px-1 py-0.2 uppercase rounded transition-colors ${
+                              currentMolSide === s ? 'bg-[#182830] text-[#2DD4BF] font-bold' : 'text-[#8B98A5] hover:text-[#E8EDF2]'
+                            }`}
+                          >
+                            {s}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <span className="font-semibold text-[#E8EDF2] tabular-nums min-w-[75px] text-right">
+                      {netback.moleculeValue !== null ? `+€${netback.moleculeValue.toFixed(2)}/MWh` : 'Not set'}
                     </span>
                   </div>
-                )}
+                </div>
 
-                {/* Delivered Netback Subtotal */}
-                <div className="h-8 px-2.5 bg-[#182026] flex justify-between items-center font-semibold text-[#E8EDF2]">
-                  <span className="uppercase text-[10px] tracking-wide text-[#8B98A5]">Delivered Value Stack (Gross Netback)</span>
-                  <span className="text-[18px] tabular-nums text-[#2DD4BF]">
-                    {netback.netNetback !== null ? `€${netback.netNetback.toFixed(2)}/MWh` : '—'}
+                {/* Transfer / Certification / Logistics Costs */}
+                <div className="h-6 flex justify-between items-center text-[#8B98A5] text-[11px]">
+                  <span>Transfer / certification / logistics</span>
+                  <span className="text-[#E8EDF2] tabular-nums">
+                    {netback.totalCosts !== null ? `−€${netback.totalCosts.toFixed(2)}/MWh` : '€0.00/MWh'}
                   </span>
                 </div>
 
-                {/* Producer Payable Line */}
-                <div className="h-7 px-2.5 flex justify-between items-center text-[#8B98A5]">
-                  <span className="text-[#D99A2B]">
+                {/* Delivered Netback (sell-side) Subtotal + at mid + crossing cost */}
+                <div className="pt-1.5 border-t border-[#1E262F] space-y-1">
+                  <div className="flex justify-between items-center font-semibold text-[#E8EDF2]">
+                    <span className="uppercase text-[10px] text-[#8B98A5]">Delivered netback (sell-side)</span>
+                    <span className="text-[14px] text-[#2DD4BF] tabular-nums">
+                      {netback.netNetback !== null ? `€${netback.netNetback.toFixed(2)}/MWh` : '—'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-[10px] text-[#8B98A5]">
+                    <span>at mid</span>
+                    <span className="tabular-nums">
+                      {netback.sides?.atMid != null ? `€${netback.sides.atMid.toFixed(2)}/MWh` : '—'}
+                      {netback.sides?.crossingCost != null && (
+                        <span className="text-amber-400/90 ml-1.5">
+                          (crossing cost €{netback.sides.crossingCost.toFixed(2)})
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. BUY LEG */}
+              <div className="bg-[#0B0E11] rounded p-2.5 space-y-1.5 border border-[#1E262F]/60">
+                <div className="text-[9px] font-bold uppercase tracking-wider text-[#D99A2B] pb-1 border-b border-[#1E262F]/40 flex justify-between items-center">
+                  <span>Buy Leg (Procurement)</span>
+                  <span className="text-[#8B98A5] font-normal">Origin: {consignment.originCountryName}</span>
+                </div>
+
+                <div className="h-7 flex justify-between items-center text-[#8B98A5]">
+                  <span className="text-[#E8EDF2]">
                     {state.costs.producerPricing?.mode === 'INDEX_LINKED'
-                      ? `Producer Payable (${((state.costs.producerPricing.indexLinkedShare ?? 0) * 100).toFixed(0)}% Value Share)`
-                      : 'Fixed Producer Procurement Cost'}
+                      ? `Producer — index-linked (${((state.costs.producerPricing.indexLinkedShare ?? 0) * 100).toFixed(1)}% of netback)`
+                      : state.costs.producerPricing?.mode === 'FIXED_PRICE'
+                      ? 'Producer — fixed price'
+                      : 'Producer — procurement terms'}
                   </span>
                   <span className="font-semibold text-[#D99A2B] tabular-nums">
                     {netback.producerPayable !== null ? `−€${netback.producerPayable.toFixed(2)}/MWh` : 'Not set'}
                   </span>
                 </div>
-
-                {/* Realised Desk Margin Bottom Line */}
-                <div className="h-8 px-2.5 bg-[#18242A] border-t border-[#1E262F] flex justify-between items-center font-semibold text-[#2DD4BF]">
-                  <span className="uppercase tracking-wider text-[10px]">
-                    Realised Desk Capture Margin {netback.marginPercent !== null ? `(${netback.marginPercent.toFixed(1)}%)` : ''}
-                  </span>
-                  <span className="text-[18px] tabular-nums">
-                    {netback.deskMargin !== null ? `€${netback.deskMargin.toFixed(2)}/MWh` : '—'}
-                  </span>
-                </div>
               </div>
+
+              {/* 3. DESK SPREAD / MARGIN BOTTOM LINE */}
+              <div className="p-2.5 bg-[#18242A] rounded border border-[#2DD4BF]/30 flex justify-between items-center font-semibold text-[#2DD4BF]">
+                <span className="uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                  DESK SPREAD {netback.marginPercent !== null ? `(${netback.marginPercent.toFixed(1)}% margin)` : ''}
+                </span>
+                <span className="text-[18px] tabular-nums">
+                  {netback.deskMargin !== null ? `€${netback.deskMargin.toFixed(2)}/MWh` : 'Not set'}
+                </span>
+              </div>
+
             </div>
 
           </div>

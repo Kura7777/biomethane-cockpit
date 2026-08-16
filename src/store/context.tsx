@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
 import { Consignment } from '../domain/consignment/types';
-import { MarksState, CostInputs } from '../domain/netback/types';
+import { MarksState, CostInputs, PricingSides } from '../domain/netback/types';
 import { TradeAssessment } from '../domain/trade/types';
 import { PriceSide, MarkEntry, MarkProvenance, getMarkStaleness } from '../domain/markets/types';
 import { MARKETS } from '../domain/markets/registry';
@@ -27,6 +27,7 @@ export type AppAction =
   | { type: 'SET_GAS_INDEX'; bid: number | null; offer: number | null; mid: number | null; updatedAt?: string | null; provenance?: MarkProvenance | null }
   | { type: 'SET_FX'; currency: 'gbpEur' | 'chfEur'; value: number | null; updatedAt?: string | null; provenance?: MarkProvenance | null }
   | { type: 'SET_PRICING_SIDE'; side: PriceSide }
+  | { type: 'SET_PRICING_SIDES'; sides: Partial<PricingSides> }
   | { type: 'ADD_CONSIGNMENT'; consignment: Consignment }
   | { type: 'UPDATE_CONSIGNMENT'; consignment: Consignment }
   | { type: 'SET_ACTIVE_CONSIGNMENT'; id: string | null }
@@ -374,7 +375,30 @@ function appReducer(state: AppState, action: AppAction): AppState {
       };
     }
     case 'SET_PRICING_SIDE':
-      return { ...state, marks: { ...state.marks, pricingSide: action.side } };
+      return {
+        ...state,
+        marks: {
+          ...state.marks,
+          pricingSide: action.side,
+          pricingSides: { certificateSide: action.side, moleculeSide: action.side },
+        },
+      };
+    case 'SET_PRICING_SIDES': {
+      const currentSides = state.marks.pricingSides ?? {
+        certificateSide: state.marks.pricingSide ?? 'bid',
+        moleculeSide: state.marks.pricingSide ?? 'bid',
+      };
+      return {
+        ...state,
+        marks: {
+          ...state.marks,
+          pricingSides: {
+            ...currentSides,
+            ...action.sides,
+          },
+        },
+      };
+    }
     case 'ADD_CONSIGNMENT':
       return { ...state, consignments: [...state.consignments, action.consignment], activeConsignmentId: action.consignment.id };
     case 'UPDATE_CONSIGNMENT':

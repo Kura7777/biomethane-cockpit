@@ -9,7 +9,7 @@ import {
 } from '../markets/constants';
 import { Market, PriceSide, getMarkAgeDays } from '../markets/types';
 import { Consignment } from '../consignment/types';
-import { CostInputs, CertificateValueResult, NetbackResult, NetbackBranch, MarksState, FuelEUOptions } from './types';
+import { CostInputs, CertificateValueResult, NetbackResult, NetbackBranch, MarksState, FuelEUOptions, PricingSides, NetbackSides } from './types';
 import { EligibilityAssessment } from '../eligibility/types';
 
 /**
@@ -270,16 +270,25 @@ export function computeNetback(
   consignment: Consignment, 
   marks: MarksState, 
   costs: CostInputs,
-  side?: PriceSide,
+  side?: PriceSide | PricingSides,
   fuelEUOptions?: FuelEUOptions
 ): NetbackResult {
-  const pricingSide = side ?? marks.pricingSide ?? 'bid';
-  const certVal = computeCertificateValue(market, consignment, marks, pricingSide, fuelEUOptions);
+  const defaultSide = marks.pricingSide ?? 'bid';
+  let pricingSides: PricingSides;
+  if (!side) {
+    pricingSides = marks.pricingSides ?? { certificateSide: defaultSide, moleculeSide: defaultSide };
+  } else if (typeof side === 'string') {
+    pricingSides = { certificateSide: side, moleculeSide: side };
+  } else {
+    pricingSides = { certificateSide: side.certificateSide, moleculeSide: side.moleculeSide };
+  }
+
+  const certVal = computeCertificateValue(market, consignment, marks, pricingSides.certificateSide, fuelEUOptions);
   
   const missingInputs: string[] = [];
 
-  // Molecule value (TTF index)
-  const molVal = selectMarkPrice(marks.gasIndex, pricingSide);
+  // Molecule value (TTF index) at chosen molecule side
+  const molVal = selectMarkPrice(marks.gasIndex, pricingSides.moleculeSide);
   if (molVal === null) missingInputs.push('gasIndex (TTF)');
 
   // Track cost completeness
@@ -291,13 +300,34 @@ export function computeNetback(
     .filter((c): c is number => c !== null);
   const totalCosts = costValues.length > 0 ? costValues.reduce((a, b) => a + b, 0) : null;
 
-  // Net Netback calculation:
+  // Net Netback calculation (at chosen sides):
   // If cert value is null, netback is null.
   // If cert value is present, compute available arithmetic while flagging incomplete inputs.
   let netNetback: number | null = null;
   if (certVal?.valueEurPerMWh != null) {
     netNetback = certVal.valueEurPerMWh + (molVal ?? 0) - (totalCosts ?? 0);
   }
+
+  // Crossing cost calculation (atMid vs atChosenSides)
+  const midCertVal = computeCertificateValue(market, consignment, marks, 'mid', fuelEUOptions);
+  const midMolVal = selectMarkPrice(marks.gasIndex, 'mid');
+  let atMid: number | null = null;
+  if (midCertVal?.valueEurPerMWh != null) {
+    atMid = midCertVal.valueEurPerMWh + (midMolVal ?? 0) - (totalCosts ?? 0);
+  }
+
+  const atChosenSides = netNetback;
+  let crossingCost: number | null = null;
+  if (atChosenSides !== null && atMid !== null) {
+    // crossingCost = atMid - atChosenSides, never negative
+    crossingCost = Number(Math.max(0, atMid - atChosenSides).toFixed(2));
+  }
+
+  const sides: NetbackSides = {
+    atChosenSides,
+    atMid,
+    crossingCost,
+  };
 
   let statusNote: string | null = certVal?.statusNote ?? null;
   if (molVal === null) {
@@ -410,6 +440,11 @@ export function computeNetback(
     const dcOnDeskPnL = dcOnDeskMargin !== null && consignment.volumeMWh !== null ? dcOnDeskMargin * consignment.volumeMWh : null;
     const dcOnGrossSpreadPnL = dcOnSpread !== null && consignment.volumeMWh !== null ? dcOnSpread * consignment.volumeMWh : null;
 
+    // DC_ON crossing cost:
+    const dcOnAtChosen = dcOnNetback;
+    const dcOnAtMid = midCertVal?.valueEurPerMWh != null ? midCertVal.valueEurPerMWh * 2 + (midMolVal ?? 0) - (totalCosts ?? 0) : null;
+    const dcOnCrossingCost = (dcOnAtChosen !== null && dcOnAtMid !== null) ? Number(Math.max(0, dcOnAtMid - dcOnAtChosen).toFixed(2)) : null;
+
     uncertaintyBranches = [
       {
         branchId: 'DC_OFF',
@@ -426,6 +461,7 @@ export function computeNetback(
         deskPnL,
         isComplete,
         missingInputs,
+        sides,
       },
       {
         branchId: 'DC_ON',
@@ -447,6 +483,11 @@ export function computeNetback(
         deskPnL: dcOnDeskPnL,
         isComplete,
         missingInputs,
+        sides: {
+          atChosenSides: dcOnAtChosen,
+          atMid: dcOnAtMid,
+          crossingCost: dcOnCrossingCost,
+        },
       },
     ];
   }
@@ -472,7 +513,9 @@ export function computeNetback(
     missingInputs,
     uncertaintyBranches,
     statusNote,
-    markSideUsed: pricingSide,
+    markSideUsed: pricingSides.certificateSide,
+    pricingSides,
+    sides,
     isModelled: certVal?.isModelled ?? false,
     provenance: certVal?.provenance ?? null,
   };
@@ -487,7 +530,7 @@ export function computeAllNetbacks(
   marks: MarksState,
   costs: CostInputs,
   eligibilityResults?: Map<string, EligibilityAssessment>,
-  side?: PriceSide,
+  side?: PriceSide | PricingSides,
   fuelEUOptions?: FuelEUOptions
 ): NetbackResult[] {
   return markets.map(m => {

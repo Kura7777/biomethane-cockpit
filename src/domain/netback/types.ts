@@ -29,6 +29,17 @@ export interface FuelEUOptions {
   deficitMWhCap?: number | null;    // Maximum deficit MWh cap for vessel
 }
 
+export interface PricingSides {
+  certificateSide: PriceSide;   // default 'bid' — you are selling certificates
+  moleculeSide: PriceSide;      // default 'bid' — you are selling the molecule
+}
+
+export interface NetbackSides {
+  atChosenSides: number | null;   // what you can actually transact at
+  atMid: number | null;           // theoretical mid value
+  crossingCost: number | null;    // atMid − atChosenSides, always ≥ 0
+}
+
 export interface CertificateValueResult {
   valueEurPerMWh: number | null;
   calculation: string;              // Human-readable working
@@ -56,6 +67,7 @@ export interface NetbackBranch {
   deskPnL: number | null;           // deskMargin * volume
   isComplete: boolean;
   missingInputs: string[];
+  sides?: NetbackSides;
 }
 
 export interface NetbackResult {
@@ -79,7 +91,9 @@ export interface NetbackResult {
   missingInputs: string[];          // List of missing cost/molecule components (e.g. ['moleculeValue', 'transferCosts', 'logistics'])
   uncertaintyBranches: NetbackBranch[] | null;  // For Germany: both DC branches
   statusNote?: string | null;       // Any cautionary status notice (e.g. UNVERIFIED)
-  markSideUsed: PriceSide;          // 'bid' | 'mid' | 'offer'
+  markSideUsed: PriceSide;          // 'bid' | 'mid' | 'offer' (primary/certificate side)
+  pricingSides?: PricingSides;      // Explicit per-leg pricing sides used
+  sides?: NetbackSides;             // atChosenSides, atMid, and crossingCost
   isModelled?: boolean;             // true if value is purely modelled (e.g. unquoted FuelEU)
   provenance?: MarkProvenance | null;
 }
@@ -104,6 +118,7 @@ export interface MarksState {
   gasIndex: GasIndexMark;
   fx: FxMark;
   pricingSide: PriceSide;           // Global default pricing side (default 'bid' for selling certificates)
+  pricingSides?: PricingSides;      // Optional per-leg sides state
   fuelEUOptions?: FuelEUOptions;
 }
 

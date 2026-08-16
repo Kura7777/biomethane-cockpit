@@ -1080,5 +1080,144 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
       expect(praResult.sources).toContain('Argus Media');
       expect(praResult.sources).toContain('Platts FX Benchmark');
     });
+
+    describe('Deal Ticket Phase 1: Per-leg pricing sides & crossing cost', () => {
+      it('certificateSide "bid" and moleculeSide "offer" resolve independently', () => {
+        const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
+        const deMarket = getMarketById('DE_THG')!;
+        const costs: CostInputs = {
+          transferCosts: 1.0,
+          certificationCosts: 0.5,
+          logistics: 1.5,
+          deliveredCost: null,
+          otherCosts: 0,
+          producerPricing: {
+            mode: 'INDEX_LINKED',
+            fixedPriceEurPerMwh: null,
+            indexLinkedShare: 0.90,
+            source: null,
+            lastVerified: null,
+            confidence: 'UNVERIFIED',
+          },
+        };
+
+        const result = computeNetback(deMarket, consignment, sampleMarks, costs, {
+          certificateSide: 'bid',
+          moleculeSide: 'offer',
+        });
+
+        expect(result.pricingSides).toEqual({ certificateSide: 'bid', moleculeSide: 'offer' });
+        expect(result.moleculeValue).toBe(29.00); // sampleMarks gasIndex.offer is 29.00
+        expect(result.certificateValue?.calculation).toContain('€290.00/tCO₂e (bid)');
+      });
+
+      it('crossingCost = atMid − atChosenSides, never negative', () => {
+        const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
+        const deMarket = getMarketById('DE_THG')!;
+        const costs: CostInputs = {
+          transferCosts: 1.0,
+          certificationCosts: 0.5,
+          logistics: 1.5,
+          deliveredCost: null,
+          otherCosts: 0,
+          producerPricing: {
+            mode: 'FIXED_PRICE',
+            fixedPriceEurPerMwh: 65.0,
+            indexLinkedShare: null,
+            source: null,
+            lastVerified: null,
+            confidence: 'UNVERIFIED',
+          },
+        };
+
+        // When transacting at bid / bid (sell-side):
+        const bidResult = computeNetback(deMarket, consignment, sampleMarks, costs, {
+          certificateSide: 'bid',
+          moleculeSide: 'bid',
+        });
+
+        expect(bidResult.sides).toBeDefined();
+        expect(bidResult.sides?.atChosenSides).toBe(bidResult.netNetback);
+        expect(bidResult.sides?.atMid).toBeGreaterThan(bidResult.sides!.atChosenSides!);
+        expect(bidResult.sides?.crossingCost).toBeGreaterThan(0);
+        expect(bidResult.sides?.crossingCost).toBe(
+          Number((bidResult.sides!.atMid! - bidResult.sides!.atChosenSides!).toFixed(2))
+        );
+
+        // When transacting at offer / offer:
+        const offerResult = computeNetback(deMarket, consignment, sampleMarks, costs, {
+          certificateSide: 'offer',
+          moleculeSide: 'offer',
+        });
+        expect(offerResult.sides?.crossingCost).toBe(0); // atMid < atChosenSides, bounded at 0 (never negative)
+      });
+
+      it('crossingCost null when either side is unpriced', () => {
+        const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
+        const deMarket = getMarketById('DE_THG')!;
+        const unpricedMarks: MarksState = {
+          ...sampleMarks,
+          marks: {
+            ...sampleMarks.marks,
+            DE_THG: { marketId: 'DE_THG', bid: null, offer: null, mid: null, updatedAt: null, source: null },
+          },
+        };
+
+        const result = computeNetback(deMarket, consignment, unpricedMarks, emptyCosts, 'bid');
+        expect(result.sides?.atChosenSides).toBeNull();
+        expect(result.sides?.atMid).toBeNull();
+        expect(result.sides?.crossingCost).toBeNull();
+      });
+
+      it('global toggle sets both sides; per-component override survives it', () => {
+        const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
+        const deMarket = getMarketById('DE_THG')!;
+
+        // 1. Global toggle 'mid' with no explicit sides
+        const globalMidMarks: MarksState = { ...sampleMarks, pricingSide: 'mid' };
+        const midRes = computeNetback(deMarket, consignment, globalMidMarks, emptyCosts);
+        expect(midRes.pricingSides).toEqual({ certificateSide: 'mid', moleculeSide: 'mid' });
+        expect(midRes.moleculeValue).toBe(28.50);
+
+        // 2. Per-component override passed in side parameter overrides global toggle
+        const overrideRes = computeNetback(deMarket, consignment, globalMidMarks, emptyCosts, {
+          certificateSide: 'bid',
+          moleculeSide: 'offer',
+        });
+        expect(overrideRes.pricingSides).toEqual({ certificateSide: 'bid', moleculeSide: 'offer' });
+        expect(overrideRes.moleculeValue).toBe(29.00);
+      });
+
+      it('existing single-side behaviour unchanged when both sides equal', () => {
+        const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
+        const deMarket = getMarketById('DE_THG')!;
+        const costs: CostInputs = {
+          transferCosts: 1.0,
+          certificationCosts: 0.5,
+          logistics: 1.5,
+          deliveredCost: null,
+          otherCosts: 0,
+          producerPricing: {
+            mode: 'INDEX_LINKED',
+            fixedPriceEurPerMwh: null,
+            indexLinkedShare: 0.90,
+            source: null,
+            lastVerified: null,
+            confidence: 'UNVERIFIED',
+          },
+        };
+
+        const legacyBidResult = computeNetback(deMarket, consignment, sampleMarks, costs, 'bid');
+        const perLegBidResult = computeNetback(deMarket, consignment, sampleMarks, costs, {
+          certificateSide: 'bid',
+          moleculeSide: 'bid',
+        });
+
+        expect(legacyBidResult.netNetback).toBe(perLegBidResult.netNetback);
+        expect(legacyBidResult.producerPayable).toBe(perLegBidResult.producerPayable);
+        expect(legacyBidResult.deskMargin).toBe(perLegBidResult.deskMargin);
+        expect(legacyBidResult.marginPercent).toBe(perLegBidResult.marginPercent);
+      });
+    });
   });
 });
