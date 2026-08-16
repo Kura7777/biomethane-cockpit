@@ -62,3 +62,36 @@ export const GHG_THRESHOLDS_HEAT_POWER = {
 
 export const STALE_MARK_DAYS = 7;
 export const VERY_STALE_MARK_DAYS = 14;
+
+export const COUNTRY_NAMES: Record<string, string> = {
+  FR: 'France',
+  DE: 'Germany',
+  IT: 'Italy',
+  NL: 'Netherlands',
+  DK: 'Denmark',
+  ES: 'Spain',
+  SE: 'Sweden',
+  AT: 'Austria',
+  BE: 'Belgium',
+  PL: 'Poland',
+  CZ: 'Czech Republic',
+  FI: 'Finland',
+  EE: 'Estonia',
+  LT: 'Lithuania',
+  LV: 'Latvia',
+  CH: 'Switzerland',
+  NO: 'Norway',
+  GB: 'United Kingdom',
+  UK: 'United Kingdom',
+  IE: 'Ireland',
+  PT: 'Portugal',
+  HU: 'Hungary',
+  SK: 'Slovakia',
+  RO: 'Romania',
+  BG: 'Bulgaria',
+  HR: 'Croatia',
+  SI: 'Slovenia',
+  GR: 'Greece',
+  UA: 'Ukraine',
+};
+

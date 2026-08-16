@@ -1,5 +1,7 @@
 import { DeliveryMode, LogisticsAssessment, ModeCostBreakdown, InterconnectionPoint } from './types';
 import { INTERCONNECTION_POINTS, HUB_BASIS_SPREADS, HUB_DISTANCES_KM } from './corridors';
+import { MARKETS } from '../markets/registry';
+import { COUNTRY_NAMES } from '../markets/constants';
 
 /**
  * Standard Gas Transmission Network Graph for Europe
@@ -60,14 +62,15 @@ export function findShortestPipelinePath(fromCountry: string, toCountry: string)
     }
   }
 
-  // Fallback direct or empty if isolated
-  return [fromCountry, toCountry];
+  // If no interconnected physical pipeline route exists across the European grid
+  return [];
 }
 
 /**
  * Resolve the Interconnection Points along a pipeline path
  */
 export function resolveInterconnectionPoints(countryPath: string[]): InterconnectionPoint[] {
+  if (!countryPath || countryPath.length < 2) return [];
   const ips: InterconnectionPoint[] = [];
 
   for (let i = 0; i < countryPath.length - 1; i++) {
@@ -78,18 +81,18 @@ export function resolveInterconnectionPoints(countryPath: string[]): Interconnec
     if (matchedIp) {
       ips.push(matchedIp);
     } else {
-      // Synthesize representative IP
+      // Unverified border tariff — never fabricate non-existent numbers
       ips.push({
         id: `IP_${from}_${to}`,
-        name: `Interconnection Point ${from}-${to}`,
+        name: `Interconnection Point ${from}-${to} (Unverified Tariff)`,
         fromCountry: from,
         toCountry: to,
-        fromTso: `${from} Transmission TSO`,
-        toTso: `${to} Transmission TSO`,
-        entryTariffEurMwh: 0.50,
-        exitTariffEurMwh: 0.50,
-        totalTariffEurMwh: 1.00,
-        capacityPlatform: 'PRISMA',
+        fromTso: `${from} Transmission Operator`,
+        toTso: `${to} Transmission Operator`,
+        entryTariffEurMwh: 0,
+        exitTariffEurMwh: 0,
+        totalTariffEurMwh: 0,
+        capacityPlatform: 'UNVERIFIED',
       });
     }
   }
@@ -107,6 +110,12 @@ export function calculateLogisticsRoute(
 ): LogisticsAssessment {
   const origin = originCountry.toUpperCase();
   const target = targetCountry.toUpperCase();
+
+  const originName = COUNTRY_NAMES[origin] || origin;
+  const targetName = COUNTRY_NAMES[target] || target;
+  const targetMarket = MARKETS.find(m => m.country === target && m.status === 'ACTIVE') || MARKETS.find(m => m.country === target);
+  const targetRegistry = targetMarket?.registry || `${targetName} National Registry`;
+  const targetLaw = targetMarket?.legalBasis || `${targetName} Renewable Gas Mandate`;
 
   // Distance lookup
   const originDistances = HUB_DISTANCES_KM[origin] || HUB_DISTANCES_KM['DE'];
@@ -131,23 +140,23 @@ export function calculateLogisticsRoute(
   // -------------------------------------------------------------
   // MODE 1: Commercial Inter-Hub Swap + UDB PoS Title Transfer
   // -------------------------------------------------------------
-  const swapOriginInjectionFee = 0.80; // Local Swedish/origin grid entry fee
+  const swapOriginInjectionFee = 0.80; // Indicative local origin entry tariff
   const swapBasisHedgingFee = Math.abs(hubBasisSpreadEurMwh) > 0 ? Math.abs(hubBasisSpreadEurMwh) : 0.65;
-  const swapUdbCertificationFee = 0.45; // ISCC EU / UDB title transfer fee
-  const swapExecutionBrokerage = 0.25; // OTC / MIBGAS broker clearing
+  const swapUdbCertificationFee = 0.45; // Indicative RED III electronic PoS audit & registry fee
+  const swapExecutionBrokerage = 0.25; // Indicative OTC / broker clearing fee
   const swapTotalEurMwh = Number((swapOriginInjectionFee + swapBasisHedgingFee + swapUdbCertificationFee + swapExecutionBrokerage).toFixed(2));
 
   const virtualSwapBreakdown: ModeCostBreakdown = {
     mode: 'VIRTUAL_SWAP',
     title: 'Option A: Commercial Inter-Hub Swap & UDB Title Transfer',
-    summary: 'Sell molecule at local origin hub (or TTF) and buy physical at destination hub (e.g. PVB Spain on MIBGAS), transferring environmental PoS via Union Database (UDB).',
+    summary: `Sell molecule at ${originHub.hubName} (or TTF) and buy natural gas at ${targetHub.hubName}, transferring environmental PoS via Union Database (UDB).`,
     totalCostEurMwh: swapTotalEurMwh,
     lineItems: [
       {
-        label: 'Origin Grid Injection Tariff',
+        label: 'Origin Grid Injection Tariff (Indicative)',
         costEurMwh: swapOriginInjectionFee,
         category: 'TARIFF',
-        description: `Local entry tariff into ${originHub.hubName} transmission network.`,
+        description: `Local entry tariff into ${originHub.hubName} network.`,
       },
       {
         label: `Hub Basis Spread Hedging (${originHub.hubName.split(' ')[0]} ➔ ${targetHub.hubName.split(' ')[0]})`,
@@ -156,32 +165,33 @@ export function calculateLogisticsRoute(
         description: `Market price basis differential between origin gas hub and destination virtual point.`,
       },
       {
-        label: 'Union Database (UDB) & Registry Transfer',
+        label: 'Union Database (UDB) & Registry Transfer (Indicative)',
         costEurMwh: swapUdbCertificationFee,
         category: 'REGULATORY_FEE',
         description: 'RED III Article 31a single mass balance area electronic title transfer and scheme verification.',
       },
       {
-        label: 'Brokerage & Hub Clearing Friction',
+        label: 'Brokerage & Hub Clearing Friction (Indicative)',
         costEurMwh: swapExecutionBrokerage,
         category: 'COMMODITY_SPREAD',
-        description: 'OTC trade execution or exchange clearing fees on EEX / MIBGAS.',
+        description: 'OTC trade execution or exchange clearing fees.',
       },
     ],
     timelineDays: 1,
-    regulatoryFeasibility: 'HIGH',
+    regulatoryFeasibility: 'CONTESTED',
     isRecommended: true,
     legalBasis: 'RED III Directive (EU) 2023/2413 Art. 31a (Single EU Mass Balance Area)',
     pros: [
-      'Lowest commercial friction (~65% cheaper than physical wheeling)',
+      'Lowest commercial friction compared to physical transmission wheeling',
       'Zero volume shrinkage / fuel gas losses over transit',
       'Execution time: Instant electronic settlement upon UDB PoS issuance',
       'No exposure to cross-border pipeline congestion or maintenance outages',
     ],
     cons: [
-      'Requires active trading accounts at both origin and target hub (e.g. Swedegas + MIBGAS)',
+      `Requires active trading accounts at both origin and target hub (${originHub.hubName.split(' ')[0]} + ${targetHub.hubName.split(' ')[0]})`,
       'Basis spread exposure between hubs must be monitored or hedged',
       'Hub basis spreads are indicative annual averages — actual spreads vary seasonally and by market liquidity',
+      'Cross-border mass balance vs national registry book-and-claim interpretation is contested in certain member states',
     ],
   };
 
@@ -196,7 +206,9 @@ export function calculateLogisticsRoute(
   const physicalPipelineBreakdown: ModeCostBreakdown = {
     mode: 'PHYSICAL_PIPELINE',
     title: 'Option B: Physical Multi-TSO Pipeline Transit Corridor',
-    summary: 'Physically wheel the gas molecules across European transmission borders by booking firm entry/exit transmission capacity via the PRISMA platform.',
+    summary: countryPath.length > 0
+      ? `Physically wheel gas molecules across European transmission borders (${countryPath.join(' ➔ ')}) by booking firm entry/exit capacity on PRISMA.`
+      : `No continuous interconnected physical pipeline route found between ${originName} and ${targetName}.`,
     totalCostEurMwh: physicalTotalEurMwh,
     lineItems: [
       ...physicalIps.map(ip => ({
@@ -212,29 +224,29 @@ export function calculateLogisticsRoute(
         description: `Compression fuel gas consumed over ${distanceKm.toLocaleString()} km pipeline transit.`,
       },
       {
-        label: 'Multi-TSO Balancing & Imbalance Margin',
+        label: 'Multi-TSO Balancing & Imbalance Margin (Indicative)',
         costEurMwh: physicalBalancingReserve,
         category: 'TARIFF',
         description: 'Reserve buffer for hourly injection/withdrawal profile matching across TSOs.',
       },
       {
-        label: 'PRISMA Auction Platform & UDB Handling',
+        label: 'PRISMA Auction Platform & Registry Handling (Indicative)',
         costEurMwh: Number((physicalPrismaAuctionFee + swapUdbCertificationFee).toFixed(2)),
         category: 'REGULATORY_FEE',
         description: 'PRISMA auction transaction costs and statutory mass-balance registry tracking.',
       },
     ],
     timelineDays: 14,
-    regulatoryFeasibility: 'MEDIUM',
+    regulatoryFeasibility: countryPath.length > 0 ? 'MEDIUM' : 'LOW',
     isRecommended: false,
     legalBasis: 'Regulation (EC) No 715/2009 & CAM NC (Network Code on Capacity Allocation Mechanisms)',
     pros: [
       'Guarantees physical molecule delivery to a dedicated off-grid or private industrial asset',
-      'Transparent regulated tariffs set by National Regulatory Authorities (NRAs)',
+      'Regulated tariffs set by National Regulatory Authorities (NRAs)',
     ],
     cons: [
-      'High cumulative tariff stacking across intermediate transit countries (€5.00–€8.50/MWh)',
-      'Shrinkage loss over long distances',
+      'High cumulative tariff stacking across intermediate transit countries',
+      'Shrinkage fuel gas loss over long distances',
       'Complex shipper licensing required in every transiting jurisdiction',
       'PRISMA IP tariffs shown are published annual regulated rates — actual auction cleared prices vary by season (winter premiums can be 3-5× summer)',
     ],
@@ -246,7 +258,7 @@ export function calculateLogisticsRoute(
   const liquefactionCapexOpex = 8.50; // Cryogenic upgrading / small-scale liquefaction
   const roadTransportRatePerKm = 0.0065; // ~€1.70/km for 20t trailer = €0.0065/MWh/km
   const roadFreightEurMwh = Number(Math.min(22.00, Math.max(4.00, distanceKm * roadTransportRatePerKm)).toFixed(2));
-  const regasificationTerminalFee = 2.00; // Spanish regasification or bunkering terminal handling
+  const regasificationTerminalFee = 2.00; // Destination regasification or bunkering terminal handling
   const bioLngTotalEurMwh = Number((liquefactionCapexOpex + roadFreightEurMwh + regasificationTerminalFee + swapUdbCertificationFee).toFixed(2));
 
   const bioLngBreakdown: ModeCostBreakdown = {
@@ -256,22 +268,22 @@ export function calculateLogisticsRoute(
     totalCostEurMwh: bioLngTotalEurMwh,
     lineItems: [
       {
-        label: 'Small-Scale Cryogenic Liquefaction',
+        label: 'Small-Scale Cryogenic Liquefaction (Indicative)',
         costEurMwh: liquefactionCapexOpex,
         category: 'PROCESSING',
         description: 'Electricity, nitrogen pre-cooling, and liquefaction processing at origin facility.',
       },
       {
-        label: `Cryogenic Road Freight (~${distanceKm.toLocaleString()} km)`,
+        label: `Cryogenic Road Freight (~${distanceKm.toLocaleString()} km, Indicative)`,
         costEurMwh: roadFreightEurMwh,
         category: 'FREIGHT',
         description: 'ADR-certified cryogenic road trailer / ferry transit across Europe.',
       },
       {
-        label: 'Destination Terminal Offloading / Regasification',
+        label: 'Destination Terminal Offloading / Regasification (Indicative)',
         costEurMwh: regasificationTerminalFee,
         category: 'PROCESSING',
-        description: 'Enagás LNG terminal offloading, satellite station storage, or maritime bunker fueling.',
+        description: `${targetName} LNG terminal offloading, satellite station storage, or maritime bunker fueling.`,
       },
       {
         label: 'Physical Segregation Certification (ISCC EU)',
@@ -290,17 +302,17 @@ export function calculateLogisticsRoute(
       'Full physical molecular segregation',
     ],
     cons: [
-      'Expensive processing and freight (€22.00–€30.00/MWh)',
+      'Expensive processing and freight costs',
       'Boil-off gas management during long haul transits',
       'Road freight rates are indicative per-km averages — actual rates depend on carrier availability, diesel price, and ADR hazmat surcharges',
     ],
   };
 
-  // Execution Step-by-Step Playbook for Trader
+  // Execution Step-by-Step Playbook for Trader (Dynamically derived from actual trade)
   const executionSteps = [
     {
       phase: 'Step 1: Upstream Origination & Plant Offtake',
-      title: 'Sign EFET Biomethane Annex with Swedish Producer',
+      title: `Sign EFET Biomethane Annex with ${originName} Producer`,
       actor: 'Trading Desk & Upstream Producer',
       actions: [
         `Execute EFET Master Agreement with Biomethane Annex specifying ${originHub.hubName} delivery.`,
@@ -311,33 +323,33 @@ export function calculateLogisticsRoute(
     {
       phase: 'Step 2: Commercial Delivery & Hub Execution',
       title: virtualSwapBreakdown.isRecommended
-        ? 'Execute Inter-Hub Swaps at VTP & Destination Point'
+        ? `Execute Inter-Hub Swaps at ${originHub.hubName.split(' ')[0]} & ${targetHub.hubName.split(' ')[0]}`
         : 'Book PRISMA Interconnection Point Capacity Auctions',
       actor: 'Gas Dispatcher & Commercial Trader',
       actions: [
         `Sell physical molecule at ${originHub.hubName} (or TTF) to close origin physical position.`,
-        `Buy matching physical natural gas volume at ${targetHub.hubName} (e.g. MIBGAS PVB in Spain).`,
-        `Hedge any inter-hub basis spread (current basis: €${Math.abs(hubBasisSpreadEurMwh).toFixed(2)}/MWh).`,
+        `Buy matching physical natural gas volume at ${targetHub.hubName} (e.g. ${targetHub.hubName.split(' ')[0]} virtual trading point).`,
+        `Hedge any inter-hub basis spread (current indicative basis: €${Math.abs(hubBasisSpreadEurMwh).toFixed(2)}/MWh).`,
       ],
     },
     {
       phase: 'Step 3: Union Database (UDB) Consignment Transfer',
-      title: 'Transfer Proof of Sustainability (PoS) in UDB',
+      title: `Transfer Proof of Sustainability (PoS) in UDB: ${originName} ➔ ${targetName}`,
       actor: 'Compliance Operations',
       actions: [
         `Log into the European Commission Union Database (UDB) for Gaseous Fuels.`,
-        `Accept consignment from Swedish Producer (matching mass balance injection in single EU interconnected grid).`,
-        `Execute Title Transfer in UDB to the Spanish Buyer / Offtaker (${targetHub.operator}).`,
+        `Accept consignment from ${originName} Producer (matching mass balance injection in single EU interconnected grid).`,
+        `Execute Title Transfer in UDB to the ${targetName} Buyer / Offtaker (${targetHub.operator}).`,
       ],
     },
     {
       phase: 'Step 4: Downstream Settlement & Statutory Cancellation',
-      title: 'Target Registry Certificate Issuance & Settlement',
+      title: `Target Registry Certificate Issuance & Settlement: ${targetRegistry}`,
       actor: 'Settlement & Regulatory Reporting Desk',
       actions: [
-        `Spanish buyer receives PoS in UDB and claims Guarantees of Origin (GdO) in Enagás GTS registry.`,
-        'Surrender certificates against PNIEC renewable gas transport quota / compliance obligations.',
-        'Invoice client for delivered Netback + Commercial Desk Margin.',
+        `${targetName} buyer receives PoS in UDB and registers compliance claim in ${targetRegistry}.`,
+        `Surrender certificates against ${targetLaw} statutory quota obligations.`,
+        'Invoice counterparty for delivered Netback + Commercial Desk Margin.',
       ],
     },
   ];
@@ -367,3 +379,4 @@ export function calculateLogisticsRoute(
     executionSteps,
   };
 }
+

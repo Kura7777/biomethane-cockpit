@@ -78,7 +78,8 @@ export function generateTradeSummary(assessment: TradeAssessment): string {
         lines.push(`   Source URL: ${cit.sourceUrl}`);
       });
     }
-    lines.push(`   Verified: ${gate.citations[0]?.verifiedDate ?? '2026-08-16'} │ Confidence: ${gate.confidence}`);
+    const verDate = gate.citations[0]?.verifiedDate ? gate.citations[0].verifiedDate : '—';
+    lines.push(`   Verified: ${verDate} │ Confidence: ${gate.confidence}`);
     lines.push('');
   });
 
@@ -111,14 +112,20 @@ export function generateTradeSummary(assessment: TradeAssessment): string {
     lines.push('UNCERTAINTY SENSITIVITY (German THG §37a BImSchG Double Counting):');
     for (const b of nb.uncertaintyBranches) {
       lines.push(`  ${b.branchLabel.toUpperCase()}:`);
-      lines.push(`    Certificate: €${b.certificateValue.valueEurPerMWh?.toFixed(2) ?? 'N/A'}/MWh`);
-      lines.push(`    Net Netback: €${b.netNetback?.toFixed(2) ?? 'N/A'}/MWh`);
-      lines.push(`    Margin:      €${b.impliedMargin?.toFixed(2) ?? 'N/A'}/MWh (${b.marginPercent?.toFixed(1) ?? 'N/A'}%)`);
-      if (b.totalPnL !== null) {
-        lines.push(`    Total P&L:   €${b.totalPnL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+      lines.push(`    Certificate Value:  €${b.certificateValue.valueEurPerMWh?.toFixed(2) ?? 'N/A'}/MWh`);
+      lines.push(`    Net Netback:        €${b.netNetback?.toFixed(2) ?? 'N/A'}/MWh`);
+      lines.push(`    Gross Value Spread: €${b.grossValueSpread?.toFixed(2) ?? b.impliedMargin?.toFixed(2) ?? 'N/A'}/MWh`);
+      lines.push(`    Producer Share(90%):−€${b.producerPayable?.toFixed(2) ?? 'N/A'}/MWh`);
+      lines.push(`    Realised Desk Margin:€${b.deskMargin?.toFixed(2) ?? 'N/A'}/MWh`);
+      if (b.deskPnL !== null) {
+        lines.push(`    Total Desk P&L:     €${b.deskPnL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
       }
     }
-    lines.push('  Note: Manure negative CI (-100 gCO2e/MJ) is a physical avoided emissions property and remains unchanged.');
+    if (c.carbonIntensity < 0 || c.feedstock.includes('manure')) {
+      lines.push(`  Note: Feedstock negative CI (${c.carbonIntensity} gCO₂e/MJ) reflects avoided methane emissions under RED III Annex V and is unaffected by double counting policy changes.`);
+    } else {
+      lines.push(`  Note: Feedstock carbon intensity (${c.carbonIntensity} gCO₂e/MJ) is calculated under RED III Annex V.`);
+    }
   }
 
   lines.push('');
@@ -127,17 +134,21 @@ export function generateTradeSummary(assessment: TradeAssessment): string {
   lines.push(`Certification Costs:           ${assessment.costs.certificationCosts !== null ? `−€${assessment.costs.certificationCosts.toFixed(2)}/MWh` : 'Not set'}`);
   lines.push(`Logistics:                     ${assessment.costs.logistics !== null ? `−€${assessment.costs.logistics.toFixed(2)}/MWh` : 'Not set'}`);
   lines.push(`Other Costs:                   ${assessment.costs.otherCosts !== null ? `−€${assessment.costs.otherCosts.toFixed(2)}/MWh` : 'Not set'}`);
-  lines.push(`Delivered Cost (Procurement):  ${assessment.costs.deliveredCost !== null ? `−€${assessment.costs.deliveredCost.toFixed(2)}/MWh` : 'Not set'}`);
+  lines.push(`Base Producer Procurement Cost:${assessment.costs.deliveredCost !== null ? `−€${assessment.costs.deliveredCost.toFixed(2)}/MWh` : 'Not set'}`);
   
   if (!nb.isComplete) {
     lines.push(`⚠ INCOMPLETE COST BASIS: Missing ${nb.missingInputs.join(', ')}`);
   }
 
   lines.push('');
-  lines.push(`NET NETBACK:     ${nb.netNetback !== null ? `€${nb.netNetback.toFixed(2)}/MWh` : 'N/A'}`);
-  lines.push(`IMPLIED MARGIN:  ${nb.impliedMargin !== null ? `€${nb.impliedMargin.toFixed(2)}/MWh (${nb.marginPercent?.toFixed(1)}%)` : 'N/A'}`);
-  if (nb.totalPnL !== null) {
-    lines.push(`TOTAL P&L:       €${nb.totalPnL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+  const incompleteSuffix = !nb.isComplete ? ` (INCOMPLETE — missing: ${nb.missingInputs.join(', ')})` : '';
+  lines.push(`DELIVERED VALUE STACK:     ${nb.netNetback !== null ? `€${nb.netNetback.toFixed(2)}/MWh${incompleteSuffix}` : 'N/A'}`);
+  lines.push(`GROSS VALUE SPREAD:        ${nb.grossValueSpread !== null ? `€${nb.grossValueSpread.toFixed(2)}/MWh (${nb.marginPercent?.toFixed(1)}% of netback)` : 'N/A'}`);
+  lines.push(`PRODUCER PAYABLE (90%):   ${nb.producerPayable !== null ? `−€${nb.producerPayable.toFixed(2)}/MWh (Index-linked compliance value capture)` : 'N/A'}`);
+  lines.push('─────────────────────────────────────────────────────────────');
+  lines.push(`REALISED DESK MARGIN:      ${nb.deskMargin !== null ? `€${nb.deskMargin.toFixed(2)}/MWh (10% desk capture)` : 'N/A'}`);
+  if (nb.deskPnL !== null) {
+    lines.push(`TOTAL CONTRACT DESK P&L:   €${nb.deskPnL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (on ${c.volumeMWh?.toLocaleString() ?? 0} MWh)`);
   }
 
   // Key risks
@@ -148,13 +159,13 @@ export function generateTradeSummary(assessment: TradeAssessment): string {
   const nonPassGates = el.gates.filter(g => g.verdict !== 'PASS');
   if (nonPassGates.length > 0) {
     for (const g of nonPassGates) {
-      lines.push(`• ${g.gateLabel} (${g.verdict}): ${g.reason.split('.')[0]}.`);
+      lines.push(`• ${g.gateLabel} (${g.verdict}): ${g.reason}`);
     }
   } else {
-    lines.push('• All regulatory compliance gates cleared under RED III.');
+    lines.push('• All regulatory compliance gates cleared under applicable legal framework.');
   }
   lines.push('• Market Risk: Counterparty marks subject to index volatility and bilateral liquidity.');
-  lines.push('• FX Risk: GBP and non-EUR transactions exposed to currency movements.');
+  lines.push('• FX Risk: Non-EUR transactions exposed to currency movements.');
   if (assessment.userNotes) {
     lines.push('');
     lines.push(`TRADER NOTES:\n${assessment.userNotes}`);

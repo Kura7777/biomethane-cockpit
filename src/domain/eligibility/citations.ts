@@ -235,9 +235,9 @@ export const CITATIONS: Record<string, LegalCitation> = {
   UK_RTFO: {
     shortName: 'UK RTFO Order 2007',
     fullReference: 'Renewable Transport Fuel Obligations Order 2007 (SI 2007/3072)',
-    establishes: 'UK RTFO domestic fuel supplier mandate (410 dRTFC/MWh standard, 820 dRTFC/MWh waste)',
+    establishes: 'UK RTFO domestic fuel supplier mandate (~72 dRTFC/MWh standard, ~144 dRTFC/MWh waste derived from LHV 50 MJ/kg)',
     sourceUrl: 'https://www.legislation.gov.uk/uksi/2007/3072/contents',
-    verifiedDate: '2026-08-16',
+    verifiedDate: null,
   },
   ISCC_PLUS_SCOPE: {
     shortName: 'ISCC PLUS System Document v3.4',

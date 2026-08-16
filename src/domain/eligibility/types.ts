@@ -13,7 +13,7 @@ export interface LegalCitation {
   fullReference: string;       // Full legal reference
   establishes: string;         // What this citation establishes
   sourceUrl: string;           // EUR-Lex or national legislation URL
-  verifiedDate: string;        // ISO date
+  verifiedDate: string | null; // ISO date or null if unverified
   nationalTransposition?: string; // e.g., "§37a BImSchG"
 }
 

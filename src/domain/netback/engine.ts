@@ -301,25 +301,37 @@ export function computeNetback(
     statusNote = (statusNote ? `${statusNote} ` : '') + '⚠ Molecule value (TTF) not set — netback excludes gas index component (~€28/MWh).';
   }
 
-  // Implied margin = netNetback - deliveredCost
+  // Gross Value Spread = Delivered Netback − Raw Producer Procurement Cost
+  let grossValueSpread: number | null = null;
   let impliedMargin: number | null = null;
-  if (netNetback !== null && costs.deliveredCost !== null) {
-    impliedMargin = netNetback - costs.deliveredCost;
-  }
-
-  // Margin % = impliedMargin / netNetback * 100
-  let marginPercent: number | null = null;
-  if (impliedMargin !== null && netNetback !== null && netNetback > 0) {
-    marginPercent = (impliedMargin / netNetback) * 100;
-  } else if (impliedMargin !== null && netNetback !== null && netNetback < 0) {
-    // Negative netback: margin percentage is inverted to show real loss
-    marginPercent = -(impliedMargin / Math.abs(netNetback)) * 100;
-  }
-
-  // Total P&L = margin * volume
+  let producerPayable: number | null = null;
+  let deskMargin: number | null = null;
   let totalPnL: number | null = null;
-  if (impliedMargin !== null && consignment.volumeMWh !== null) {
-    totalPnL = impliedMargin * consignment.volumeMWh;
+  let deskPnL: number | null = null;
+
+  if (netNetback !== null && costs.deliveredCost !== null) {
+    grossValueSpread = netNetback - costs.deliveredCost;
+    impliedMargin = grossValueSpread;
+    // Commercial reality: Index-linked offtake agreements typically pay 90% of compliance value to producer
+    producerPayable = Number((grossValueSpread * 0.90).toFixed(2));
+    deskMargin = Number((grossValueSpread * 0.10).toFixed(2));
+  }
+
+  // Margin % = grossValueSpread / netNetback * 100
+  let marginPercent: number | null = null;
+  if (grossValueSpread !== null && netNetback !== null && netNetback > 0) {
+    marginPercent = (grossValueSpread / netNetback) * 100;
+  } else if (grossValueSpread !== null && netNetback !== null && netNetback < 0) {
+    // Negative netback: margin percentage is inverted to show real loss
+    marginPercent = -(grossValueSpread / Math.abs(netNetback)) * 100;
+  }
+
+  // Gross Trade Value & Realised Desk P&L
+  if (grossValueSpread !== null && consignment.volumeMWh !== null) {
+    totalPnL = grossValueSpread * consignment.volumeMWh;
+  }
+  if (deskMargin !== null && consignment.volumeMWh !== null) {
+    deskPnL = deskMargin * consignment.volumeMWh;
   }
 
   const isComplete = missingInputs.length === 0 && certVal?.valueEurPerMWh != null;
@@ -328,14 +340,19 @@ export function computeNetback(
   let uncertaintyBranches: NetbackBranch[] | null = null;
   if (market.id === 'DE_THG' && certVal?.valueEurPerMWh != null) {
     const dcOffNetback = netNetback;
-    const dcOffMargin = impliedMargin;
+    const dcOffSpread = grossValueSpread;
+    const dcOffProducerPayable = producerPayable;
+    const dcOffDeskMargin = deskMargin;
 
     // DC_ON: certificate value doubled (2x)
     const dcOnCertVal = certVal.valueEurPerMWh * 2;
     const dcOnNetback = dcOnCertVal + (molVal ?? 0) - (totalCosts ?? 0);
-    const dcOnMargin = costs.deliveredCost !== null ? dcOnNetback - costs.deliveredCost : null;
-    const dcOnMarginPct = dcOnMargin !== null && dcOnNetback !== 0 ? (dcOnMargin / dcOnNetback) * 100 : null;
-    const dcOnPnL = dcOnMargin !== null && consignment.volumeMWh !== null ? dcOnMargin * consignment.volumeMWh : null;
+    const dcOnSpread = costs.deliveredCost !== null ? dcOnNetback - costs.deliveredCost : null;
+    const dcOnProducerPayable = dcOnSpread !== null ? Number((dcOnSpread * 0.90).toFixed(2)) : null;
+    const dcOnDeskMargin = dcOnSpread !== null ? Number((dcOnSpread * 0.10).toFixed(2)) : null;
+    const dcOnMarginPct = dcOnSpread !== null && dcOnNetback !== 0 ? (dcOnSpread / dcOnNetback) * 100 : null;
+    const dcOnPnL = dcOnSpread !== null && consignment.volumeMWh !== null ? dcOnSpread * consignment.volumeMWh : null;
+    const dcOnDeskPnL = dcOnDeskMargin !== null && consignment.volumeMWh !== null ? dcOnDeskMargin * consignment.volumeMWh : null;
 
     uncertaintyBranches = [
       {
@@ -343,9 +360,13 @@ export function computeNetback(
         branchLabel: 'Without double counting (1× single counting)',
         certificateValue: certVal,
         netNetback: dcOffNetback,
-        impliedMargin: dcOffMargin,
+        grossValueSpread: dcOffSpread,
+        impliedMargin: dcOffSpread,
+        producerPayable: dcOffProducerPayable,
+        deskMargin: dcOffDeskMargin,
         marginPercent: marginPercent,
         totalPnL,
+        deskPnL,
         isComplete,
         missingInputs,
       },
@@ -359,9 +380,13 @@ export function computeNetback(
           statusNote: 'CAUTION: This branch doubles the certificate value (€/MWh) as a proxy for 2× quota volume credit. In practice, if double counting is retained, the market price per tCO₂e may be lower due to increased effective supply. This branch represents an upper-bound scenario.',
         },
         netNetback: dcOnNetback,
-        impliedMargin: dcOnMargin,
+        grossValueSpread: dcOnSpread,
+        impliedMargin: dcOnSpread,
+        producerPayable: dcOnProducerPayable,
+        deskMargin: dcOnDeskMargin,
         marginPercent: dcOnMarginPct,
         totalPnL: dcOnPnL,
+        deskPnL: dcOnDeskPnL,
         isComplete,
         missingInputs,
       },
@@ -375,9 +400,13 @@ export function computeNetback(
     moleculeValue: molVal,
     totalCosts,
     netNetback,
+    grossValueSpread,
     impliedMargin,
+    producerPayable,
+    deskMargin,
     marginPercent,
     totalPnL,
+    deskPnL,
     isTheoretical: false,
     blockingReason: null,
     isComplete,

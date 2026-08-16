@@ -13,7 +13,7 @@ import { evaluateEligibility } from '../../domain/eligibility/engine';
 import { computeNetback, tCO2ePerMWh } from '../../domain/netback/engine';
 import { generateTradeSummary } from '../../domain/trade/summary';
 import { TradeAssessment } from '../../domain/trade/types';
-import { CI_COMPARATOR_ROAD_TRANSPORT } from '../../domain/markets/constants';
+import { CI_COMPARATOR_ROAD_TRANSPORT, COUNTRY_NAMES } from '../../domain/markets/constants';
 import { 
   Calculator, 
   ShieldCheck, 
@@ -63,15 +63,7 @@ export function TradeBuilderScreen() {
       const code = queryOrigin.toUpperCase();
       const isEU = EU_COUNTRY_CODES.includes(code);
       setConsignment(prev => {
-        const countryName = code === 'SE' ? 'Sweden' :
-          code === 'DK' ? 'Denmark' :
-          code === 'DE' ? 'Germany' :
-          code === 'FR' ? 'France' :
-          code === 'IT' ? 'Italy' :
-          code === 'NL' ? 'Netherlands' :
-          code === 'ES' ? 'Spain' :
-          code === 'AT' ? 'Austria' :
-          code === 'GB' ? 'United Kingdom' : code;
+        const countryName = COUNTRY_NAMES[code] || code;
 
         return {
           ...prev,
@@ -79,7 +71,7 @@ export function TradeBuilderScreen() {
           originCountryName: countryName,
           injectionCountry: code,
           injectionIsEU: isEU,
-          udbStatus: isEU ? 'RECORDED' : 'NOT_RECORDED',
+          udbStatus: !isEU ? 'NOT_RECORDED' : prev.udbStatus,
           name: `${countryName} ${prev.feedstockName || 'Biomethane'}`,
           volumeMWh: queryVolume ? Number(queryVolume) : prev.volumeMWh,
         };
@@ -101,14 +93,14 @@ export function TradeBuilderScreen() {
     }
   };
 
-  // Handle injection country change
+  // Handle injection country change (Never auto-promote to RECORDED)
   const handleInjectionCountryChange = (countryCode: string) => {
     const isEU = EU_COUNTRY_CODES.includes(countryCode);
     setConsignment(prev => ({
       ...prev,
       injectionCountry: countryCode,
       injectionIsEU: isEU,
-      udbStatus: isEU ? 'RECORDED' : 'NOT_RECORDED',
+      udbStatus: !isEU ? 'NOT_RECORDED' : prev.udbStatus,
     }));
   };
 
@@ -737,7 +729,7 @@ export function TradeBuilderScreen() {
                   {/* Top Key Metrics Banner */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-stone-900/90 rounded border border-stone-800">
                     <div>
-                      <div className="text-[9px] uppercase font-bold text-stone-400">Net Netback</div>
+                      <div className="text-[9px] uppercase font-bold text-stone-400">Delivered Netback</div>
                       <div className="text-lg font-bold text-teal-300 mt-0.5">
                         {netback.netNetback !== null ? `€${netback.netNetback.toFixed(2)}/MWh` : 'No active mark'}
                       </div>
@@ -745,24 +737,22 @@ export function TradeBuilderScreen() {
                     </div>
 
                     <div>
-                      <div className="text-[9px] uppercase font-bold text-stone-400">Certificate Value</div>
-                      <div className="text-lg font-bold text-emerald-400 mt-0.5">
-                        {netback.certificateValue?.valueEurPerMWh !== null && netback.certificateValue?.valueEurPerMWh !== undefined
-                          ? `€${netback.certificateValue.valueEurPerMWh.toFixed(2)}/MWh`
-                          : '—'}
+                      <div className="text-[9px] uppercase font-bold text-stone-400">Gross Value Spread</div>
+                      <div className="text-lg font-bold text-sky-400 mt-0.5">
+                        {netback.grossValueSpread !== null ? `€${netback.grossValueSpread.toFixed(2)}/MWh` : 'Set procurement'}
                       </div>
-                      <div className="text-[9px] text-stone-500">{netback.certificateValue?.unitConversion || 'Compliance Premium'}</div>
+                      <div className="text-[9px] text-stone-500">Netback − Base Procurement</div>
                     </div>
 
                     <div>
-                      <div className="text-[9px] uppercase font-bold text-stone-400">Implied Desk Margin</div>
+                      <div className="text-[9px] uppercase font-bold text-stone-400">Realised Desk Margin</div>
                       <div className={`text-lg font-bold mt-0.5 ${
-                        netback.impliedMargin !== null && netback.impliedMargin > 0 ? 'text-emerald-400' :
-                        netback.impliedMargin !== null && netback.impliedMargin < 0 ? 'text-red-400' : 'text-stone-400'
+                        netback.deskMargin !== null && netback.deskMargin > 0 ? 'text-emerald-400' :
+                        netback.deskMargin !== null && netback.deskMargin < 0 ? 'text-red-400' : 'text-stone-400'
                       }`}>
-                        {netback.impliedMargin !== null ? `€${netback.impliedMargin.toFixed(2)}/MWh` : 'Set procurement cost'}
+                        {netback.deskMargin !== null ? `€${netback.deskMargin.toFixed(2)}/MWh` : 'Set procurement'}
                       </div>
-                      <div className="text-[9px] text-stone-500">Netback − Delivered Cost</div>
+                      <div className="text-[9px] text-stone-500">10% Desk Capture Spread</div>
                     </div>
                   </div>
 
@@ -790,7 +780,7 @@ export function TradeBuilderScreen() {
 
                   {/* Carbon Intensity Factor */}
                   <div className="flex justify-between items-center bg-stone-900 border border-stone-800 p-2.5 rounded text-[11px]">
-                    <span className="text-stone-400">GHG Saving & Carbon Factor:</span>
+                    <span className="text-stone-400">GHG Saving vs 94.0 gCO₂e/MJ Baseline:</span>
                     <span className="text-teal-300 font-bold">
                       {ghgSavingPct}% saving ({consignment.carbonIntensity} gCO₂e/MJ) = {tco2eFactor} tCO₂e/MWh
                     </span>
@@ -810,7 +800,7 @@ export function TradeBuilderScreen() {
                             €{netback.uncertaintyBranches[0].certificateValue.valueEurPerMWh?.toFixed(2)}/MWh
                           </div>
                           <div className="text-emerald-400 text-[10px] mt-0.5">
-                            Netback: €{netback.uncertaintyBranches[0].netNetback?.toFixed(2)}/MWh
+                            Desk Margin: €{netback.uncertaintyBranches[0].deskMargin?.toFixed(2) ?? 'N/A'}/MWh
                           </div>
                         </div>
 
@@ -820,7 +810,7 @@ export function TradeBuilderScreen() {
                             €{netback.uncertaintyBranches[1].certificateValue.valueEurPerMWh?.toFixed(2)}/MWh
                           </div>
                           <div className="text-emerald-400 text-[10px] mt-0.5">
-                            Netback: €{netback.uncertaintyBranches[1].netNetback?.toFixed(2)}/MWh
+                            Desk Margin: €{netback.uncertaintyBranches[1].deskMargin?.toFixed(2) ?? 'N/A'}/MWh
                           </div>
                         </div>
                       </div>
@@ -833,6 +823,13 @@ export function TradeBuilderScreen() {
                       <span>Gas Molecule Benchmark (TTF):</span>
                       <span className="text-stone-200 font-bold">
                         {netback.moleculeValue !== null ? `+€${netback.moleculeValue.toFixed(2)}/MWh` : 'Not set'}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between text-stone-400">
+                      <span>Certificate Compliance Value:</span>
+                      <span className="text-emerald-400 font-bold">
+                        {netback.certificateValue?.valueEurPerMWh !== null && netback.certificateValue?.valueEurPerMWh !== undefined ? `+€${netback.certificateValue.valueEurPerMWh.toFixed(2)}/MWh` : 'Not set'}
                       </span>
                     </div>
 
@@ -857,17 +854,45 @@ export function TradeBuilderScreen() {
                       </span>
                     </div>
 
-                    <div className="flex justify-between border-t border-stone-800 pt-2 text-sm font-bold">
-                      <span className="text-white">NET NETBACK VALUE:</span>
-                      <span className="text-teal-400">
+                    <div className="flex justify-between border-t border-stone-800 pt-1.5 text-xs font-bold">
+                      <span className="text-stone-300">DELIVERED VALUE STACK:</span>
+                      <span className="text-teal-300">
                         {netback.netNetback !== null ? `€${netback.netNetback.toFixed(2)}/MWh` : 'No active mark'}
                       </span>
                     </div>
 
-                    {consignment.volumeMWh && netback.totalPnL !== null && (
+                    <div className="flex justify-between text-stone-400">
+                      <span>Base Producer Procurement Cost:</span>
+                      <span className="text-amber-300 font-bold">
+                        {state.costs.deliveredCost !== null ? `−€${state.costs.deliveredCost.toFixed(2)}/MWh` : 'Not set'}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between text-stone-400">
+                      <span>Gross Value Spread (Netback − Procurement):</span>
+                      <span className="text-sky-300 font-bold">
+                        {netback.grossValueSpread !== null ? `€${netback.grossValueSpread.toFixed(2)}/MWh` : '—'}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between text-stone-400">
+                      <span>Index-Linked Producer Share (90%):</span>
+                      <span className="text-stone-300">
+                        {netback.producerPayable !== null ? `−€${netback.producerPayable.toFixed(2)}/MWh` : '—'}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between border-t border-stone-700 pt-2 text-sm font-bold">
+                      <span className="text-white">REALISED DESK CAPTURE MARGIN (10%):</span>
+                      <span className="text-emerald-400">
+                        {netback.deskMargin !== null ? `€${netback.deskMargin.toFixed(2)}/MWh` : '—'}
+                      </span>
+                    </div>
+
+                    {consignment.volumeMWh && netback.deskPnL !== null && (
                       <div className="flex justify-between border-t border-stone-800 pt-1.5 text-xs font-bold text-emerald-400">
-                        <span>Total Trade Gross P&L ({consignment.volumeMWh.toLocaleString()} MWh):</span>
-                        <span>€{netback.totalPnL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        <span>Total Contract Desk P&L ({consignment.volumeMWh.toLocaleString()} MWh):</span>
+                        <span>€{netback.deskPnL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                       </div>
                     )}
                   </div>

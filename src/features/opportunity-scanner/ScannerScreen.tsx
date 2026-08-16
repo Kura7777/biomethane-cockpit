@@ -239,7 +239,7 @@ export function ScannerScreen() {
                 <th className="py-2 px-3">Unit</th>
                 <th className="py-2 px-3 text-right">Cert Value (€/MWh)</th>
                 <th className="py-2 px-3 text-right">Net Netback</th>
-                <th className="py-2 px-3 text-right">Implied Margin</th>
+                <th className="py-2 px-3 text-right" title="Gross Value Spread / Realised 10% Desk Margin">Gross Spread / Desk Margin</th>
                 <th className="py-2 px-3 text-center w-24">Mark Age</th>
                 <th className="py-2 px-3 text-center w-12">Act</th>
               </tr>
@@ -351,12 +351,17 @@ export function ScannerScreen() {
                         )}
                       </td>
 
-                      {/* Implied Margin */}
+                      {/* Gross Spread / Desk Margin */}
                       <td className="py-1.5 px-3 text-right font-semibold">
-                        {row.impliedMargin != null ? (
-                          <span className={isBlocked ? 'line-through text-stone-500' : 'text-emerald-400'}>
-                            €{row.impliedMargin.toFixed(2)} ({row.marginPercent?.toFixed(1)}%)
-                          </span>
+                        {row.grossValueSpread != null ? (
+                          <div className="flex flex-col items-end">
+                            <span className={isBlocked ? 'line-through text-stone-500' : 'text-sky-300 font-bold'}>
+                              €{row.grossValueSpread.toFixed(2)}
+                            </span>
+                            <span className={isBlocked ? 'text-stone-600' : 'text-[10px] text-emerald-400 font-normal'}>
+                              Desk: €{row.deskMargin?.toFixed(2)}
+                            </span>
+                          </div>
                         ) : (
                           <span className="text-stone-600">—</span>
                         )}
@@ -400,8 +405,11 @@ export function ScannerScreen() {
                               <div className="text-sm font-bold text-stone-100 mt-0.5">
                                 Netback: €{row.uncertaintyBranches[0].netNetback?.toFixed(2)}/MWh
                               </div>
+                              <div className="text-sky-300 text-[11px] mt-0.5">
+                                Gross Spread: €{row.uncertaintyBranches[0].grossValueSpread?.toFixed(2) ?? 'N/A'}/MWh
+                              </div>
                               <div className="text-emerald-400 text-[11px]">
-                                Margin: €{row.uncertaintyBranches[0].impliedMargin?.toFixed(2) ?? 'N/A'}/MWh ({row.uncertaintyBranches[0].marginPercent?.toFixed(1)}%)
+                                Realised Desk Margin (10%): €{row.uncertaintyBranches[0].deskMargin?.toFixed(2) ?? 'N/A'}/MWh
                               </div>
                             </div>
 
@@ -412,8 +420,11 @@ export function ScannerScreen() {
                               <div className="text-sm font-bold text-teal-300 mt-0.5">
                                 Netback: €{row.uncertaintyBranches[1].netNetback?.toFixed(2)}/MWh
                               </div>
+                              <div className="text-sky-300 text-[11px] mt-0.5">
+                                Gross Spread: €{row.uncertaintyBranches[1].grossValueSpread?.toFixed(2) ?? 'N/A'}/MWh
+                              </div>
                               <div className="text-emerald-400 text-[11px]">
-                                Margin: €{row.uncertaintyBranches[1].impliedMargin?.toFixed(2) ?? 'N/A'}/MWh ({row.uncertaintyBranches[1].marginPercent?.toFixed(1)}%)
+                                Realised Desk Margin (10%): €{row.uncertaintyBranches[1].deskMargin?.toFixed(2) ?? 'N/A'}/MWh
                               </div>
                             </div>
                           </div>

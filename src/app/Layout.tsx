@@ -20,7 +20,7 @@ const NAV_ITEMS = [
   { to: '/trade', label: 'Trade Builder', keyHint: '2', icon: Calculator },
   { to: '/scanner', label: 'Arb Scanner', keyHint: '3', icon: TrendingUp },
   { to: '/agents', label: 'AI Copilot', keyHint: '4', icon: Bot },
-  { to: '/plants', label: 'Plants (1,986)', keyHint: '5', icon: Factory },
+  { to: '/plants', label: 'Plants (1,975)', keyHint: '5', icon: Factory },
   { to: '/marks', label: 'Marks', keyHint: '6', icon: Coins },
   { to: '/library', label: 'Dossiers', keyHint: '7', icon: FolderArchive },
 ];

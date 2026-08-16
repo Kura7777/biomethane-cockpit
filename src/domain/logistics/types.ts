@@ -10,7 +10,7 @@ export interface InterconnectionPoint {
   entryTariffEurMwh: number;
   exitTariffEurMwh: number;
   totalTariffEurMwh: number;
-  capacityPlatform: 'PRISMA' | 'RBP' | 'GSA' | 'NATIONAL';
+  capacityPlatform: 'PRISMA' | 'RBP' | 'GSA' | 'NATIONAL' | 'UNVERIFIED';
   notes?: string;
 }
 
@@ -29,7 +29,7 @@ export interface ModeCostBreakdown {
   totalCostEurMwh: number;
   lineItems: CostLineItem[];
   timelineDays: number;
-  regulatoryFeasibility: 'HIGH' | 'MEDIUM' | 'COMPLEX';
+  regulatoryFeasibility: 'HIGH' | 'MEDIUM' | 'COMPLEX' | 'CONTESTED' | 'LOW';
   isRecommended: boolean;
   legalBasis: string;
   pros: string[];
