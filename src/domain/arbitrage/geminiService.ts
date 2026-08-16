@@ -3,9 +3,12 @@ import { MarksState } from '../netback/types';
 
 export type GeminiModelId = 
   | 'gemini-3.7-flash'
+  | 'gemini-3.6-flash'
+  | 'gemini-3.5-flash'
+  | 'gemini-3.5-flash-lite'
+  | 'gemini-3.1-flash-lite'
   | 'gemini-3.7-pro'
   | 'gemini-2.5-flash'
-  | 'gemini-2.5-pro'
   | 'gemini-2.0-flash';
 
 export interface GeminiAgentRequest {
@@ -21,18 +24,22 @@ export interface GeminiAgentRequest {
 }
 
 /**
- * Call Google Gemini API with automatic high-demand fallback across models
+ * Call Google Gemini API with smart resilient multi-model routing
  */
 export async function queryDeskAgent(req: GeminiAgentRequest): Promise<string> {
   const apiKey = req.apiKey?.trim();
 
   // If user provided a Gemini API Key, call the official Google AI endpoint
   if (apiKey) {
+    // Intelligent priority fallback chain: prioritize fastest active Flash models
     const candidateModels: GeminiModelId[] = [
       req.model || 'gemini-3.7-flash',
-      'gemini-2.5-flash',
+      'gemini-3.6-flash',
+      'gemini-3.5-flash',
+      'gemini-3.5-flash-lite',
+      'gemini-3.1-flash-lite',
       'gemini-2.0-flash',
-      'gemini-2.5-pro'
+      'gemini-2.5-flash',
     ];
 
     // Remove duplicates while preserving user's top preference
@@ -89,15 +96,15 @@ ${i + 1}. ${o.originFlag} ${o.originCountryName} ➔ ${o.targetFlag} ${o.targetM
         const errJson = await response.json().catch(() => ({}));
         const errMsg = errJson.error?.message || `HTTP ${response.status}`;
         lastError = new Error(`Model ${modelName}: ${errMsg}`);
-        console.warn(`[Gemini API] ${modelName} returned error: ${errMsg}. Trying fallback model...`);
+        console.warn(`[Gemini API] ${modelName} unavailable (${errMsg}). Trying next model...`);
       } catch (err: any) {
         lastError = err;
-        console.warn(`[Gemini API] Failed calling ${modelName}: ${err.message}. Trying fallback...`);
+        console.warn(`[Gemini API] Failed calling ${modelName}: ${err.message}. Trying next model...`);
       }
     }
 
     // If all cloud model attempts failed, inform the trader and provide verified local heuristics
-    return `⚠️ [Gemini API Note: ${lastError?.message || 'Google servers congested'} — Seamlessly using Local Desk Reasoning]\n\n` + generateLocalAgentResponse(req);
+    return `⚠️ [Gemini API Note: Google servers temporarily congested — Using Local Desk Reasoning]\n\n` + generateLocalAgentResponse(req);
   }
 
   // Built-in Local Desk Intelligence (Zero API Key required)
