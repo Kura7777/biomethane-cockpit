@@ -877,6 +877,233 @@ export function MapScreen() {
               </ZoomableGroup>
             </ComposableMap>
 
+            {/* INSTITUTIONAL RIGHT-CLICK INTELLIGENCE DOSSIER & ACTIONS MODAL */}
+            {contextMenu && (() => {
+              const cIso2 = contextMenu.iso2;
+              const cPlants = BIOMETHANE_PLANTS.filter(p => p.countryCode === cIso2);
+              const cMacro = COUNTRY_MACRO_STATS.find(m => m.iso === cIso2);
+              const cClearance = cIso2 ? marketClearanceMap.get(cIso2) : null;
+              const isOrigin = cIso2 === originCountry;
+              const isTarget = cIso2 === targetCountry;
+
+              const primaryFeedstock = cMacro?.primaryFeedstockType || (cPlants.length > 0 ? cPlants[0].primaryFeedstockCategory : 'Agricultural residues & biowaste');
+              const primaryTech = cMacro?.primaryUpgradingTech || (cPlants.length > 0 ? cPlants[0].upgradingTechnology : 'Membrane Separation');
+              const registry = cMacro?.nationalRegistry || (cPlants.length > 0 ? cPlants[0].networkOperator : 'National Gas Grid');
+              const totalCap = cMacro?.installedCapacityTWh ? `${cMacro.installedCapacityTWh.toFixed(1)} TWh/yr` : cPlants.length > 0 ? `~${Math.round(cPlants.reduce((acc, p) => acc + p.annualEnergyGWh, 0))} GWh/yr` : '—';
+
+              return (
+                <div
+                  id="map-floating-context-menu"
+                  style={{ 
+                    position: 'fixed',
+                    top: `${contextMenu.y}px`, 
+                    left: `${contextMenu.x}px`,
+                    zIndex: 99999,
+                  }}
+                  className="bg-slate-900/98 backdrop-blur-xl border border-teal-500/80 rounded-xl shadow-2xl p-3 w-80 font-mono text-xs text-stone-100 space-y-2.5 animate-in fade-in zoom-in-95 duration-100 select-none"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Header */}
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{contextMenu.flag}</span>
+                      <div>
+                        <span className="font-bold text-white text-sm block leading-tight">{contextMenu.name}</span>
+                        <span className="text-[10px] text-slate-400">ISO: {contextMenu.iso2}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      {isOrigin ? (
+                        <span className="px-1.5 py-0.5 bg-sky-950 text-sky-300 border border-sky-700 rounded text-[9px] font-bold animate-pulse">
+                          Active Origin
+                        </span>
+                      ) : isTarget ? (
+                        <span className="px-1.5 py-0.5 bg-teal-950 text-teal-300 border border-teal-700 rounded text-[9px] font-bold">
+                          Target
+                        </span>
+                      ) : cClearance ? (
+                        <StatusChip variant={cClearance.eligibility?.overallVerdict || 'UNKNOWN'} size="xs" />
+                      ) : null}
+
+                      <button 
+                        onClick={() => setContextMenu(null)}
+                        className="text-stone-400 hover:text-white p-1 rounded hover:bg-slate-800 transition-colors"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Biomethane Production & Infrastructure Stats */}
+                  <div className="grid grid-cols-2 gap-1.5 text-[10px] bg-slate-950 p-2 rounded border border-slate-800">
+                    <div>
+                      <span className="text-slate-500 uppercase block font-bold text-[9px]">Operating Plants</span>
+                      <strong className="text-teal-300 text-xs">{cPlants.length > 0 ? `${cPlants.length} facilities` : 'No registered data'}</strong>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 uppercase block font-bold text-[9px]">Annual Capacity</span>
+                      <strong className="text-slate-100 text-xs">{totalCap}</strong>
+                    </div>
+                    <div className="col-span-2 pt-1 border-t border-slate-900 flex justify-between text-slate-400">
+                      <span>Feedstock:</span>
+                      <strong className="text-slate-200 truncate max-w-[170px]" title={primaryFeedstock}>{primaryFeedstock}</strong>
+                    </div>
+                    <div className="col-span-2 flex justify-between text-slate-400">
+                      <span>Upgrading:</span>
+                      <strong className="text-slate-200 truncate max-w-[170px]" title={primaryTech}>{primaryTech}</strong>
+                    </div>
+                    <div className="col-span-2 flex justify-between text-slate-400">
+                      <span>Registry / Grid:</span>
+                      <strong className="text-slate-300 truncate max-w-[170px]" title={registry}>{registry}</strong>
+                    </div>
+                  </div>
+
+                  {/* Compliance & Netback Economics (if Target Market) */}
+                  {cClearance && !isOrigin && (
+                    <div className="p-2 bg-slate-950/90 rounded border border-slate-800 text-[10px] space-y-1">
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-400">Target Scheme:</span>
+                        <strong className="text-slate-200 truncate max-w-[170px]">{cClearance.market.name}</strong>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-400">Implied Netback:</span>
+                        <strong className="text-teal-400 font-bold text-xs">
+                          {cClearance.netback?.netNetback != null
+                            ? `€${cClearance.netback.netNetback.toFixed(2)}/MWh`
+                            : 'No active mark'}
+                        </strong>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="space-y-1 pt-1 border-t border-slate-800">
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        onClick={() => {
+                          setOriginCountry(cIso2);
+                          setInjectionCountry(cIso2);
+                          setContextMenu(null);
+                        }}
+                        className="py-1.5 px-2 rounded bg-sky-950/70 hover:bg-sky-900 hover:text-white text-left flex items-center justify-center gap-1.5 transition-colors font-bold text-sky-300 border border-sky-700/80 text-[11px]"
+                      >
+                        <div className="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></div>
+                        <span>Set Origin 🔵</span>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setTargetCountry(cIso2);
+                          setDrawerTab('COMPLIANCE');
+                          setContextMenu(null);
+                        }}
+                        className="py-1.5 px-2 rounded bg-teal-950/70 hover:bg-teal-900 hover:text-white text-left flex items-center justify-center gap-1.5 transition-colors font-bold text-teal-300 border border-teal-700/80 text-[11px]"
+                      >
+                        <div className="w-2 h-2 rounded-full bg-teal-400"></div>
+                        <span>Set Target 🎯</span>
+                      </button>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setOriginCountry(cIso2);
+                        setInjectionCountry(cIso2);
+                        setDrawerTab('PLANTS');
+                        setContextMenu(null);
+                      }}
+                      className="w-full px-2.5 py-1.5 rounded hover:bg-slate-800 text-left flex items-center gap-2 transition-colors text-stone-200 text-[11px]"
+                    >
+                      <Factory className="w-3.5 h-3.5 text-amber-400" />
+                      <span>View {cPlants.length} Plants in Drawer</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        navigate(`/trade?originCountry=${cIso2}`);
+                        setContextMenu(null);
+                      }}
+                      className="w-full px-2.5 py-1.5 rounded hover:bg-slate-800 text-left flex items-center gap-2 transition-colors text-stone-200 text-[11px] border-t border-slate-800/80 pt-1.5"
+                    >
+                      <Navigation className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Simulate in Trade Builder ➔</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Selected Plant Modal */}
+            {selectedPlant && (
+              <div className="fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 z-50 font-mono text-xs">
+                <div className="bg-stone-900 border border-stone-800 rounded-xl p-5 max-w-lg w-full space-y-3.5 shadow-2xl">
+                  <div className="flex items-center justify-between border-b border-stone-800 pb-2">
+                    <div>
+                      <span className="font-bold text-sm text-stone-100 flex items-center gap-2">
+                        <Factory className="w-4 h-4 text-amber-400" />
+                        <span>{selectedPlant.countryFlag} {selectedPlant.name}</span>
+                      </span>
+                      <span className="text-[10px] text-stone-400">
+                        {selectedPlant.country} • Operator: {selectedPlant.operator}
+                      </span>
+                    </div>
+                    <span className="px-2 py-0.5 bg-green-950 text-green-300 border border-green-800 rounded text-[10px] font-bold">
+                      {selectedPlant.status}
+                    </span>
+                  </div>
+
+                  <div className="p-3 bg-stone-950 rounded border border-stone-800 space-y-1.5 text-xs">
+                    <div className="flex justify-between text-stone-400">
+                      <span>Annual Energy Production:</span>
+                      <strong className="text-teal-300">{selectedPlant.annualEnergyGWh} GWh/year ({selectedPlant.capacityNm3h} Nm³/h)</strong>
+                    </div>
+                    <div className="flex justify-between text-stone-400">
+                      <span>Primary Feedstock:</span>
+                      <strong className="text-stone-200">{selectedPlant.primaryFeedstockCategory}</strong>
+                    </div>
+                    <div className="flex justify-between text-stone-400">
+                      <span>Upgrading Tech:</span>
+                      <strong className="text-stone-300">{selectedPlant.upgradingTechnology}</strong>
+                    </div>
+                    <div className="flex justify-between text-stone-400">
+                      <span>Grid Injection:</span>
+                      <strong className="text-stone-300">{selectedPlant.gridConnectionType} ({selectedPlant.networkOperator})</strong>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center gap-2 pt-2">
+                    <button
+                      onClick={() => {
+                        setOriginCountry(selectedPlant.countryCode);
+                        setInjectionCountry(selectedPlant.countryCode);
+                        setSelectedPlant(null);
+                      }}
+                      className="px-3 py-1.5 rounded border border-sky-700 bg-sky-950 text-sky-300 font-bold hover:bg-sky-900"
+                    >
+                      Set {selectedPlant.country} as Origin
+                    </button>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setSelectedPlant(null)}
+                        className="px-3 py-1.5 rounded border border-stone-800 text-stone-400 hover:bg-stone-800"
+                      >
+                        Close
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigate(`/trade?originCountry=${selectedPlant.countryCode}&volume=${selectedPlant.annualEnergyGWh * 1000}`);
+                        }}
+                        className="bg-teal-600 hover:bg-teal-500 text-white font-bold px-4 py-1.5 rounded flex items-center gap-1.5"
+                      >
+                        Simulate Trade <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
           </div>
         </div>
 
@@ -1106,233 +1333,6 @@ export function MapScreen() {
         </div>
 
       </div>
-
-      {/* INSTITUTIONAL RIGHT-CLICK INTELLIGENCE DOSSIER & ACTIONS MODAL */}
-      {contextMenu && (() => {
-        const cIso2 = contextMenu.iso2;
-        const cPlants = BIOMETHANE_PLANTS.filter(p => p.countryCode === cIso2);
-        const cMacro = COUNTRY_MACRO_STATS.find(m => m.iso === cIso2);
-        const cClearance = cIso2 ? marketClearanceMap.get(cIso2) : null;
-        const isOrigin = cIso2 === originCountry;
-        const isTarget = cIso2 === targetCountry;
-
-        const primaryFeedstock = cMacro?.primaryFeedstockType || (cPlants.length > 0 ? cPlants[0].primaryFeedstockCategory : 'Agricultural residues & biowaste');
-        const primaryTech = cMacro?.primaryUpgradingTech || (cPlants.length > 0 ? cPlants[0].upgradingTechnology : 'Membrane Separation');
-        const registry = cMacro?.nationalRegistry || (cPlants.length > 0 ? cPlants[0].networkOperator : 'National Gas Grid');
-        const totalCap = cMacro?.installedCapacityTWh ? `${cMacro.installedCapacityTWh.toFixed(1)} TWh/yr` : cPlants.length > 0 ? `~${Math.round(cPlants.reduce((acc, p) => acc + p.annualEnergyGWh, 0))} GWh/yr` : '—';
-
-        return (
-          <div
-            id="map-floating-context-menu"
-            style={{ 
-              position: 'fixed',
-              top: `${contextMenu.y}px`, 
-              left: `${contextMenu.x}px`,
-              zIndex: 99999,
-            }}
-            className="bg-slate-900/98 backdrop-blur-xl border border-teal-500/80 rounded-xl shadow-2xl p-3 w-80 font-mono text-xs text-stone-100 space-y-2.5 animate-in fade-in zoom-in-95 duration-100 select-none"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">{contextMenu.flag}</span>
-                <div>
-                  <span className="font-bold text-white text-sm block leading-tight">{contextMenu.name}</span>
-                  <span className="text-[10px] text-slate-400">ISO: {contextMenu.iso2}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-1.5">
-                {isOrigin ? (
-                  <span className="px-1.5 py-0.5 bg-sky-950 text-sky-300 border border-sky-700 rounded text-[9px] font-bold animate-pulse">
-                    Active Origin
-                  </span>
-                ) : isTarget ? (
-                  <span className="px-1.5 py-0.5 bg-teal-950 text-teal-300 border border-teal-700 rounded text-[9px] font-bold">
-                    Target
-                  </span>
-                ) : cClearance ? (
-                  <StatusChip variant={cClearance.eligibility?.overallVerdict || 'UNKNOWN'} size="xs" />
-                ) : null}
-
-                <button 
-                  onClick={() => setContextMenu(null)}
-                  className="text-stone-400 hover:text-white p-1 rounded hover:bg-slate-800 transition-colors"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Biomethane Production & Infrastructure Stats */}
-            <div className="grid grid-cols-2 gap-1.5 text-[10px] bg-slate-950 p-2 rounded border border-slate-800">
-              <div>
-                <span className="text-slate-500 uppercase block font-bold text-[9px]">Operating Plants</span>
-                <strong className="text-teal-300 text-xs">{cPlants.length > 0 ? `${cPlants.length} facilities` : 'No registered data'}</strong>
-              </div>
-              <div>
-                <span className="text-slate-500 uppercase block font-bold text-[9px]">Annual Capacity</span>
-                <strong className="text-slate-100 text-xs">{totalCap}</strong>
-              </div>
-              <div className="col-span-2 pt-1 border-t border-slate-900 flex justify-between text-slate-400">
-                <span>Feedstock:</span>
-                <strong className="text-slate-200 truncate max-w-[170px]" title={primaryFeedstock}>{primaryFeedstock}</strong>
-              </div>
-              <div className="col-span-2 flex justify-between text-slate-400">
-                <span>Upgrading:</span>
-                <strong className="text-slate-200 truncate max-w-[170px]" title={primaryTech}>{primaryTech}</strong>
-              </div>
-              <div className="col-span-2 flex justify-between text-slate-400">
-                <span>Registry / Grid:</span>
-                <strong className="text-slate-300 truncate max-w-[170px]" title={registry}>{registry}</strong>
-              </div>
-            </div>
-
-            {/* Compliance & Netback Economics (if Target Market) */}
-            {cClearance && !isOrigin && (
-              <div className="p-2 bg-slate-950/90 rounded border border-slate-800 text-[10px] space-y-1">
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-400">Target Scheme:</span>
-                  <strong className="text-slate-200 truncate max-w-[170px]">{cClearance.market.name}</strong>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-400">Implied Netback:</span>
-                  <strong className="text-teal-400 font-bold text-xs">
-                    {cClearance.netback?.netNetback != null
-                      ? `€${cClearance.netback.netNetback.toFixed(2)}/MWh`
-                      : 'No active mark'}
-                  </strong>
-                </div>
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <div className="space-y-1 pt-1 border-t border-slate-800">
-              <div className="grid grid-cols-2 gap-1.5">
-                <button
-                  onClick={() => {
-                    setOriginCountry(cIso2);
-                    setInjectionCountry(cIso2);
-                    setContextMenu(null);
-                  }}
-                  className="py-1.5 px-2 rounded bg-sky-950/70 hover:bg-sky-900 hover:text-white text-left flex items-center justify-center gap-1.5 transition-colors font-bold text-sky-300 border border-sky-700/80 text-[11px]"
-                >
-                  <div className="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></div>
-                  <span>Set Origin 🔵</span>
-                </button>
-
-                <button
-                  onClick={() => {
-                    setTargetCountry(cIso2);
-                    setDrawerTab('COMPLIANCE');
-                    setContextMenu(null);
-                  }}
-                  className="py-1.5 px-2 rounded bg-teal-950/70 hover:bg-teal-900 hover:text-white text-left flex items-center justify-center gap-1.5 transition-colors font-bold text-teal-300 border border-teal-700/80 text-[11px]"
-                >
-                  <div className="w-2 h-2 rounded-full bg-teal-400"></div>
-                  <span>Set Target 🎯</span>
-                </button>
-              </div>
-
-              <button
-                onClick={() => {
-                  setOriginCountry(cIso2);
-                  setInjectionCountry(cIso2);
-                  setDrawerTab('PLANTS');
-                  setContextMenu(null);
-                }}
-                className="w-full px-2.5 py-1.5 rounded hover:bg-slate-800 text-left flex items-center gap-2 transition-colors text-stone-200 text-[11px]"
-              >
-                <Factory className="w-3.5 h-3.5 text-amber-400" />
-                <span>View {cPlants.length} Plants in Drawer</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  navigate(`/trade?originCountry=${cIso2}`);
-                  setContextMenu(null);
-                }}
-                className="w-full px-2.5 py-1.5 rounded hover:bg-slate-800 text-left flex items-center gap-2 transition-colors text-stone-200 text-[11px] border-t border-slate-800/80 pt-1.5"
-              >
-                <Navigation className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Simulate in Trade Builder ➔</span>
-              </button>
-            </div>
-          </div>
-        );
-      })()}
-
-      {/* Selected Plant Modal */}
-      {selectedPlant && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 z-50 font-mono text-xs">
-          <div className="bg-stone-900 border border-stone-800 rounded-xl p-5 max-w-lg w-full space-y-3.5 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-stone-800 pb-2">
-              <div>
-                <span className="font-bold text-sm text-stone-100 flex items-center gap-2">
-                  <Factory className="w-4 h-4 text-amber-400" />
-                  <span>{selectedPlant.countryFlag} {selectedPlant.name}</span>
-                </span>
-                <span className="text-[10px] text-stone-400">
-                  {selectedPlant.country} • Operator: {selectedPlant.operator}
-                </span>
-              </div>
-              <span className="px-2 py-0.5 bg-green-950 text-green-300 border border-green-800 rounded text-[10px] font-bold">
-                {selectedPlant.status}
-              </span>
-            </div>
-
-            <div className="p-3 bg-stone-950 rounded border border-stone-800 space-y-1.5 text-xs">
-              <div className="flex justify-between text-stone-400">
-                <span>Annual Energy Production:</span>
-                <strong className="text-teal-300">{selectedPlant.annualEnergyGWh} GWh/year ({selectedPlant.capacityNm3h} Nm³/h)</strong>
-              </div>
-              <div className="flex justify-between text-stone-400">
-                <span>Primary Feedstock:</span>
-                <strong className="text-stone-200">{selectedPlant.primaryFeedstockCategory}</strong>
-              </div>
-              <div className="flex justify-between text-stone-400">
-                <span>Upgrading Tech:</span>
-                <strong className="text-stone-300">{selectedPlant.upgradingTechnology}</strong>
-              </div>
-              <div className="flex justify-between text-stone-400">
-                <span>Grid Injection:</span>
-                <strong className="text-stone-300">{selectedPlant.gridConnectionType} ({selectedPlant.networkOperator})</strong>
-              </div>
-            </div>
-
-            <div className="flex justify-between items-center gap-2 pt-2">
-              <button
-                onClick={() => {
-                  setOriginCountry(selectedPlant.countryCode);
-                  setInjectionCountry(selectedPlant.countryCode);
-                  setSelectedPlant(null);
-                }}
-                className="px-3 py-1.5 rounded border border-sky-700 bg-sky-950 text-sky-300 font-bold hover:bg-sky-900"
-              >
-                Set {selectedPlant.country} as Origin
-              </button>
-
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setSelectedPlant(null)}
-                  className="px-3 py-1.5 rounded border border-stone-800 text-stone-400 hover:bg-stone-800"
-                >
-                  Close
-                </button>
-                <button
-                  onClick={() => {
-                    navigate(`/trade?originCountry=${selectedPlant.countryCode}&volume=${selectedPlant.annualEnergyGWh * 1000}`);
-                  }}
-                  className="bg-teal-600 hover:bg-teal-500 text-white font-bold px-4 py-1.5 rounded flex items-center gap-1.5"
-                >
-                  Simulate Trade <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
     </div>
   );
