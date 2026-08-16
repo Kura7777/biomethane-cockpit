@@ -561,8 +561,8 @@ export function MapScreen() {
                     <strong className="text-stone-200">{targetMarketEntry.market.name}</strong>
                   </div>
                   <div className="flex justify-between items-center text-stone-400">
-                    <span>Statutory Authority:</span>
-                    <strong className="text-stone-300">{targetMarketEntry.market.authority}</strong>
+                    <span>Statutory Authority / Registry:</span>
+                    <strong className="text-stone-300">{targetMarketEntry.market.registry || targetMarketEntry.market.shortName}</strong>
                   </div>
                   <div className="flex justify-between items-center text-stone-400">
                     <span>Implied Netback:</span>
