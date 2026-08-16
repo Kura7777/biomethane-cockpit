@@ -5,12 +5,25 @@ import { TradeAssessment } from '../domain/trade/types';
 import { PriceSide, MarkEntry, MarkProvenance, getMarkStaleness } from '../domain/markets/types';
 import { MARKETS } from '../domain/markets/registry';
 import { REFERENCE_CONSIGNMENTS } from '../domain/consignment/feedstocks';
+import { simulateDesk } from '../domain/marks/simulate';
 
 export const CURRENT_SCHEMA_VERSION = 7;
 const STORAGE_KEY = 'biomethane-desk-state-v7';
-const LEGACY_STORAGE_KEY_V6 = 'biomethane-desk-state-v6';
-const LEGACY_STORAGE_KEY_V5 = 'biomethane-desk-state-v5';
-const LEGACY_STORAGE_KEY = 'biomethane-desk-state';
+
+// Newest first — the first key that yields a readable payload wins.
+const KNOWN_STORAGE_KEYS = [
+  STORAGE_KEY,
+  'biomethane-desk-state-v6',
+  'biomethane-desk-state-v5',
+  'biomethane-desk-state-v4',
+  'biomethane-desk-state-v3',
+  'biomethane-desk-state-v2',
+  'biomethane-desk-state',
+];
+
+// Unreadable payloads are copied here before defaults are written over them. Desk marks are
+// hand-keyed and exist nowhere else, so a failed migration must never be the end of the data.
+const QUARANTINE_KEY_PREFIX = 'biomethane-desk-state-unreadable:';
 
 // State shape
 export interface AppState {
@@ -38,6 +51,7 @@ export type AppAction =
   | { type: 'DELETE_ASSESSMENT'; id: string }
   | { type: 'SELECT_MARKET'; id: string | null }
   | { type: 'IMPORT_STATE'; state: AppState }
+  | { type: 'SIMULATE_DESK' }
   | { type: 'RESET' };
 
 /**
@@ -292,31 +306,47 @@ export function createDefaultState(): AppState {
   };
 }
 
-function getInitialState(): AppState {
-  const KNOWN_STORAGE_KEYS = [
-    'biomethane-desk-state-v7',
-    'biomethane-desk-state-v6',
-    'biomethane-desk-state-v5',
-    'biomethane-desk-state-v4',
-    'biomethane-desk-state-v3',
-    'biomethane-desk-state-v2',
-    'biomethane-desk-state',
-  ];
-
+// Copies a payload we are about to overwrite somewhere recoverable. Best-effort: if even this
+// write fails (quota, blocked storage) there is nothing further to be done but warn loudly.
+function quarantineUnreadableState(key: string, raw: string): void {
   try {
-    for (const key of KNOWN_STORAGE_KEYS) {
-      const stored = localStorage.getItem(key);
-      if (stored) {
-        const migrated = migrateState(JSON.parse(stored));
-        if (key !== STORAGE_KEY) {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
-        }
-        return migrated;
-      }
-    }
+    localStorage.setItem(`${QUARANTINE_KEY_PREFIX}${key}`, raw);
+    console.warn(
+      `Saved state under "${key}" could not be read. The raw payload has been preserved at ` +
+      `"${QUARANTINE_KEY_PREFIX}${key}" — recover marks from there rather than re-keying them.`
+    );
   } catch (e) {
-    console.warn('Failed to load or migrate state from localStorage', e);
+    console.error(`Saved state under "${key}" could not be read AND could not be backed up. It will be overwritten.`, e);
   }
+}
+
+function getInitialState(): AppState {
+  for (const key of KNOWN_STORAGE_KEYS) {
+    let stored: string | null = null;
+    try {
+      stored = localStorage.getItem(key);
+    } catch (e) {
+      // Storage itself is unavailable (private mode, blocked cookies). Nothing is at risk.
+      console.warn('localStorage is unavailable; starting from defaults', e);
+      return createDefaultState();
+    }
+
+    if (!stored) continue;
+
+    try {
+      const migrated = migrateState(JSON.parse(stored));
+      if (key !== STORAGE_KEY) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+      }
+      return migrated;
+    } catch (e) {
+      // Defaults are auto-saved over STORAGE_KEY ~300ms from now, so preserve this payload
+      // first, then fall through to older keys — an earlier version may still be readable.
+      quarantineUnreadableState(key, stored);
+      console.warn(`Failed to migrate state from "${key}"; trying older keys`, e);
+    }
+  }
+
   return createDefaultState();
 }
 
@@ -446,6 +476,10 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, selectedMarketId: action.id };
     case 'IMPORT_STATE':
       return migrateState(action.state);
+    case 'SIMULATE_DESK': {
+      const { marks, costs } = simulateDesk();
+      return { ...state, marks: { ...marks, pricingSides: state.marks.pricingSides }, costs };
+    }
     case 'RESET':
       return createDefaultState();
     default:
