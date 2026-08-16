@@ -159,7 +159,9 @@ const COUNTRY_FLAGS: Record<string, string> = {
   HR: '🇭🇷', SI: '🇸🇮', GR: '🇬🇷', UA: '🇺🇦',
 };
 
-const geoUrl = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json';
+import countriesTopojson from '../../assets/countries-50m.json';
+
+const geoUrl = countriesTopojson as any;
 
 interface ContextMenuState {
   x: number;

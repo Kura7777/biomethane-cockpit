@@ -1,29 +1,40 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import { AppProvider } from '../store/context';
 import { Layout } from './Layout';
-import { MapScreen } from '../features/map/MapScreen';
-import { TradeBuilderScreen } from '../features/trade-builder/TradeBuilderScreen';
-import { ScannerScreen } from '../features/opportunity-scanner/ScannerScreen';
-import { ArbitrageAgentsScreen } from '../features/arbitrage-agents/ArbitrageAgentsScreen';
-import { PlantsScreen } from '../features/plants/PlantsScreen';
-import { MarksScreen } from '../features/marks/MarksScreen';
-import { LibraryScreen } from '../features/trade-library/LibraryScreen';
+
+const MapScreen = React.lazy(() => import('../features/map/MapScreen').then(m => ({ default: m.MapScreen })));
+const TradeBuilderScreen = React.lazy(() => import('../features/trade-builder/TradeBuilderScreen').then(m => ({ default: m.TradeBuilderScreen })));
+const ScannerScreen = React.lazy(() => import('../features/opportunity-scanner/ScannerScreen').then(m => ({ default: m.ScannerScreen })));
+const ArbitrageAgentsScreen = React.lazy(() => import('../features/arbitrage-agents/ArbitrageAgentsScreen').then(m => ({ default: m.ArbitrageAgentsScreen })));
+const PlantsScreen = React.lazy(() => import('../features/plants/PlantsScreen').then(m => ({ default: m.PlantsScreen })));
+const MarksScreen = React.lazy(() => import('../features/marks/MarksScreen').then(m => ({ default: m.MarksScreen })));
+const LibraryScreen = React.lazy(() => import('../features/trade-library/LibraryScreen').then(m => ({ default: m.LibraryScreen })));
+
+function LoadingScreen() {
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-stone-950">
+      <div className="text-stone-500 text-sm font-mono animate-pulse">Loading module...</div>
+    </div>
+  );
+}
 
 function AppContent() {
   return (
     <HashRouter>
-      <Routes>
-        <Route element={<Layout />}>
-          <Route path="/" element={<MapScreen />} />
-          <Route path="/trade" element={<TradeBuilderScreen />} />
-          <Route path="/scanner" element={<ScannerScreen />} />
-          <Route path="/agents" element={<ArbitrageAgentsScreen />} />
-          <Route path="/plants" element={<PlantsScreen />} />
-          <Route path="/marks" element={<MarksScreen />} />
-          <Route path="/library" element={<LibraryScreen />} />
-        </Route>
-      </Routes>
+      <Suspense fallback={<LoadingScreen />}>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route path="/" element={<MapScreen />} />
+            <Route path="/trade" element={<TradeBuilderScreen />} />
+            <Route path="/scanner" element={<ScannerScreen />} />
+            <Route path="/agents" element={<ArbitrageAgentsScreen />} />
+            <Route path="/plants" element={<PlantsScreen />} />
+            <Route path="/marks" element={<MarksScreen />} />
+            <Route path="/library" element={<LibraryScreen />} />
+          </Route>
+        </Routes>
+      </Suspense>
     </HashRouter>
   );
 }

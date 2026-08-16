@@ -13,6 +13,7 @@ import {
   Terminal
 } from 'lucide-react';
 import { FloatingAgentDrawer } from '../shared/components/FloatingAgentDrawer';
+import { ErrorBoundary } from '../shared/components/ErrorBoundary';
 
 const NAV_ITEMS = [
   { to: '/', label: 'Map', keyHint: '1', icon: Globe, end: true },
@@ -182,7 +183,9 @@ export function Layout() {
 
       {/* Main Container */}
       <main className="flex-1 max-w-[1600px] w-full mx-auto px-3 sm:px-6 py-5">
-        <Outlet />
+        <ErrorBoundary>
+          <Outlet />
+        </ErrorBoundary>
       </main>
 
       {/* Omnipresent Floating AI Copilot for Every Page */}

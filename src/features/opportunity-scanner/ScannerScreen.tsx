@@ -328,6 +328,9 @@ export function ScannerScreen() {
                           <div className="flex flex-col items-end">
                             <span className="flex items-center gap-0.5">
                               €{row.netNetback.toFixed(2)}
+                              {row.missingInputs.includes('gasIndex (TTF)') && (
+                                <span className="text-amber-400 text-[10px] ml-1 font-normal">(excl. TTF)</span>
+                              )}
                               {!row.isComplete && (
                                 <span 
                                   className="text-amber-400 text-[11px] font-bold cursor-help"

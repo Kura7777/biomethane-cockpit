@@ -18,7 +18,7 @@ const PIPELINE_ADJACENCY: Record<string, string[]> = {
   PL: ['DE', 'CZ', 'SK', 'LT', 'UA'],
   CZ: ['DE', 'PL', 'SK', 'AT'],
   SK: ['CZ', 'PL', 'UA', 'HU', 'AT'],
-  HU: ['AT', 'SK', 'UA', 'RO', 'HR', 'RS'],
+  HU: ['AT', 'SK', 'UA', 'RO', 'HR', 'RS', 'SI'],
   FI: ['EE'],
   EE: ['FI', 'LV'],
   LV: ['EE', 'LT'],
@@ -26,6 +26,13 @@ const PIPELINE_ADJACENCY: Record<string, string[]> = {
   GB: ['NL', 'BE', 'FR', 'IE'],
   CH: ['DE', 'FR', 'IT', 'AT'],
   NO: ['GB', 'DE', 'BE', 'FR', 'NL'],
+  SI: ['IT', 'AT', 'HU', 'HR'],
+  HR: ['SI', 'HU', 'RS'],
+  RO: ['HU', 'BG', 'UA'],
+  BG: ['RO', 'GR', 'RS'],
+  RS: ['HU', 'HR', 'BG'],
+  GR: ['BG', 'IT'],
+  IE: ['GB'],
 };
 
 /**
@@ -174,6 +181,7 @@ export function calculateLogisticsRoute(
     cons: [
       'Requires active trading accounts at both origin and target hub (e.g. Swedegas + MIBGAS)',
       'Basis spread exposure between hubs must be monitored or hedged',
+      'Hub basis spreads are indicative annual averages — actual spreads vary seasonally and by market liquidity',
     ],
   };
 
@@ -228,6 +236,7 @@ export function calculateLogisticsRoute(
       'High cumulative tariff stacking across intermediate transit countries (€5.00–€8.50/MWh)',
       'Shrinkage loss over long distances',
       'Complex shipper licensing required in every transiting jurisdiction',
+      'PRISMA IP tariffs shown are published annual regulated rates — actual auction cleared prices vary by season (winter premiums can be 3-5× summer)',
     ],
   };
 
@@ -283,6 +292,7 @@ export function calculateLogisticsRoute(
     cons: [
       'Expensive processing and freight (€22.00–€30.00/MWh)',
       'Boil-off gas management during long haul transits',
+      'Road freight rates are indicative per-km averages — actual rates depend on carrier availability, diesel price, and ADR hazmat surcharges',
     ],
   };
 

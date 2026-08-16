@@ -296,6 +296,11 @@ export function computeNetback(
     netNetback = certVal.valueEurPerMWh + (molVal ?? 0) - (totalCosts ?? 0);
   }
 
+  let statusNote: string | null = certVal?.statusNote ?? null;
+  if (molVal === null) {
+    statusNote = (statusNote ? `${statusNote} ` : '') + '⚠ Molecule value (TTF) not set — netback excludes gas index component (~€28/MWh).';
+  }
+
   // Implied margin = netNetback - deliveredCost
   let impliedMargin: number | null = null;
   if (netNetback !== null && costs.deliveredCost !== null) {
@@ -304,8 +309,11 @@ export function computeNetback(
 
   // Margin % = impliedMargin / netNetback * 100
   let marginPercent: number | null = null;
-  if (impliedMargin !== null && netNetback !== null && netNetback !== 0) {
+  if (impliedMargin !== null && netNetback !== null && netNetback > 0) {
     marginPercent = (impliedMargin / netNetback) * 100;
+  } else if (impliedMargin !== null && netNetback !== null && netNetback < 0) {
+    // Negative netback: margin percentage is inverted to show real loss
+    marginPercent = -(impliedMargin / Math.abs(netNetback)) * 100;
   }
 
   // Total P&L = margin * volume
@@ -348,6 +356,7 @@ export function computeNetback(
           ...certVal,
           valueEurPerMWh: dcOnCertVal,
           calculation: `${certVal.calculation} × 2 (double counting) = €${dcOnCertVal.toFixed(2)}/MWh`,
+          statusNote: 'CAUTION: This branch doubles the certificate value (€/MWh) as a proxy for 2× quota volume credit. In practice, if double counting is retained, the market price per tCO₂e may be lower due to increased effective supply. This branch represents an upper-bound scenario.',
         },
         netNetback: dcOnNetback,
         impliedMargin: dcOnMargin,
@@ -374,7 +383,7 @@ export function computeNetback(
     isComplete,
     missingInputs,
     uncertaintyBranches,
-    statusNote: certVal?.statusNote,
+    statusNote,
     markSideUsed: pricingSide,
     isModelled: certVal?.isModelled ?? false,
   };

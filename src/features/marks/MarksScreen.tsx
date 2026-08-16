@@ -373,6 +373,11 @@ export function MarksScreen() {
                         className="w-full bg-stone-950 border border-teal-800/80 rounded px-1.5 py-0.5 text-xs text-teal-300 font-bold focus:border-teal-500 outline-none"
                         placeholder="Mid"
                       />
+                      {mark.bid !== null && mark.offer !== null && mark.bid > mark.offer && (
+                        <div className="text-[10px] text-amber-400 font-bold mt-0.5 flex items-center gap-1">
+                          <span>⚠</span> Crossed market: bid exceeds offer
+                        </div>
+                      )}
                     </td>
 
                     {/* Age / Staleness Status */}

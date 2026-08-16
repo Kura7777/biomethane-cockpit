@@ -23,11 +23,11 @@ export function CopyButton({ text, label = 'Copy', className = '' }: CopyButtonP
     <button
       onClick={handleCopy}
       className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg
-        border border-stone-300 bg-white text-stone-700 
-        hover:bg-stone-50 hover:border-stone-400
-        active:bg-stone-100
+        border border-stone-700 bg-stone-800 text-stone-200 
+        hover:bg-stone-700 hover:border-stone-600
+        active:bg-stone-600
         transition-all duration-150
-        ${copied ? 'bg-green-50 border-green-300 text-green-700' : ''}
+        ${copied ? 'bg-emerald-950 border-emerald-700 text-emerald-300' : ''}
         ${className}`}
     >
       {copied ? (
