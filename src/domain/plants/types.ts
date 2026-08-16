@@ -4,21 +4,22 @@ export interface BiomethanePlant {
   country: string;
   countryCode: string;
   countryFlag: string;
-  region: string;
-  operator: string;
-  status: 'Active' | 'Under Construction' | 'Planned';
-  commissioningYear: number;
-  capacityNm3h: number;
-  annualEnergyGWh: number;
-  primaryFeedstockCategory: string;
-  feedstockDetails: string;
-  upgradingTechnology: string;
-  gridConnectionType: string;
-  networkOperator: string;
-  certificationAndRegistry: string;
-  primaryOfftake: string;
-  // Geographical coordinates for map pins [lon, lat]
-  coordinates?: [number, number];
+  provenance: string; // Sourced authority (e.g. 'GIE/EBA European Biomethane Map 2026')
+  fieldsUnverified?: string[]; // List of fields that are unverified in source map
+  region?: string | null;
+  operator?: string | null;
+  status?: 'Active' | 'Under Construction' | 'Planned' | string | null;
+  commissioningYear?: number | null;
+  capacityNm3h?: number | null;
+  annualEnergyGWh?: number | null;
+  primaryFeedstockCategory?: string | null;
+  feedstockDetails?: string | null;
+  upgradingTechnology?: string | null;
+  gridConnectionType?: string | null;
+  networkOperator?: string | null;
+  certificationAndRegistry?: string | null;
+  primaryOfftake?: string | null;
+  coordinates?: [number, number] | null;
 }
 
 export interface DeveloperPortfolio {
@@ -26,10 +27,11 @@ export interface DeveloperPortfolio {
   name: string;
   countryHQ: string;
   countryFlag: string;
-  totalCapacityGWh: number;
+  totalCapacityGWh?: number | null;
   coreGeographies: string[];
   signatureAssets: string[];
   strategicFocus: string;
+  provenance?: string;
 }
 
 export interface CountryMacroStat {
@@ -37,11 +39,12 @@ export interface CountryMacroStat {
   iso: string;
   flag: string;
   activePlants: number;
-  installedCapacityTWh: number;
-  installedCapacityMcm: number;
-  avgPlantSizeNm3h: number;
-  gridConnectionRate: number;
-  primaryFeedstockType: string;
-  primaryUpgradingTech: string;
-  nationalRegistry: string;
+  installedCapacityTWh?: number | null;
+  installedCapacityMcm?: number | null;
+  avgPlantSizeNm3h?: number | null;
+  gridConnectionRate?: number | null;
+  primaryFeedstockType?: string | null;
+  primaryUpgradingTech?: string | null;
+  nationalRegistry?: string | null;
+  provenance: string;
 }

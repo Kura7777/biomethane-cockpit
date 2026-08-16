@@ -112,7 +112,7 @@ export function FloatingAgentDrawer() {
   const [isQuerying, setIsQuerying] = useState(false);
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('biomethane_gemini_key') || '');
   const [showKeyInput, setShowKeyInput] = useState(false);
-  const [selectedModel, setSelectedModel] = useState<GeminiModelId>('gemini-3.7-flash');
+  const [selectedModel, setSelectedModel] = useState<GeminiModelId>('gemini-3.6-flash');
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -126,7 +126,7 @@ export function FloatingAgentDrawer() {
     {
       id: 'init-1',
       role: 'agent',
-      content: `👋 **Trader Assistant Online.** I have complete 360° visibility across all **1,986 registered biomethane facilities**, live marks, RED III regulatory gates, and cross-border netback curves. \n\nYou are currently on the **${pageMeta.title}** page. How can I assist your trading desk?`,
+      content: `👋 **Trader Assistant Online.** I have complete 360° visibility across all **1,975 registered biomethane facilities**, live marks, RED III regulatory gates, and cross-border netback curves. \n\nYou are currently on the **${pageMeta.title}** page. How can I assist your trading desk?`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
   ]);

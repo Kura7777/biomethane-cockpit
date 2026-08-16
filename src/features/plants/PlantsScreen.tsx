@@ -50,10 +50,10 @@ export function PlantsScreen() {
       list = list.filter(p => p.countryCode === selectedCountry);
     }
     if (selectedFeedstock !== 'ALL') {
-      list = list.filter(p => p.primaryFeedstockCategory.toLowerCase().includes(selectedFeedstock.toLowerCase()));
+      list = list.filter(p => (p.primaryFeedstockCategory || '').toLowerCase().includes(selectedFeedstock.toLowerCase()));
     }
     if (selectedTech !== 'ALL') {
-      list = list.filter(p => p.upgradingTechnology.toLowerCase().includes(selectedTech.toLowerCase()));
+      list = list.filter(p => (p.upgradingTechnology || '').toLowerCase().includes(selectedTech.toLowerCase()));
     }
 
     return list;
@@ -258,31 +258,31 @@ export function PlantsScreen() {
                           <span>{plant.name}</span>
                         </div>
                       </td>
-                      <td className="py-2 px-3 text-stone-300 font-semibold whitespace-nowrap max-w-[180px] truncate" title={plant.operator}>
-                        {plant.operator}
+                      <td className="py-2 px-3 text-stone-400 font-medium whitespace-nowrap max-w-[180px] truncate" title={plant.operator || 'Unverified'}>
+                        {plant.operator || <span className="text-stone-600 italic">Unverified</span>}
                       </td>
                       <td className="py-2 px-3 text-right text-teal-300 font-bold">
-                        {plant.capacityNm3h.toLocaleString()}
+                        {plant.capacityNm3h != null ? plant.capacityNm3h.toLocaleString() : '—'}
                       </td>
                       <td className="py-2 px-3 text-right text-stone-200 font-bold">
-                        {plant.annualEnergyGWh.toLocaleString()}
+                        {plant.annualEnergyGWh != null ? plant.annualEnergyGWh.toLocaleString() : '—'}
                       </td>
-                      <td className="py-2 px-3 text-stone-400 text-[11px] max-w-[200px] truncate" title={plant.feedstockDetails}>
-                        {plant.primaryFeedstockCategory}
+                      <td className="py-2 px-3 text-stone-400 text-[11px] max-w-[200px] truncate" title={plant.feedstockDetails || ''}>
+                        {plant.primaryFeedstockCategory || <span className="text-stone-600 italic">Unverified</span>}
                       </td>
-                      <td className="py-2 px-3 text-stone-400 text-[11px] max-w-[160px] truncate" title={plant.upgradingTechnology}>
-                        {plant.upgradingTechnology}
+                      <td className="py-2 px-3 text-stone-400 text-[11px] max-w-[160px] truncate" title={plant.upgradingTechnology || ''}>
+                        {plant.upgradingTechnology || <span className="text-stone-600 italic">Unverified</span>}
                       </td>
-                      <td className="py-2 px-3 text-stone-400 text-[11px] max-w-[160px] truncate" title={plant.networkOperator}>
-                        {plant.networkOperator}
+                      <td className="py-2 px-3 text-stone-400 text-[11px] max-w-[160px] truncate" title={plant.networkOperator || ''}>
+                        {plant.networkOperator || <span className="text-stone-600 italic">National Grid</span>}
                       </td>
                       <td className="py-2 px-3 text-center" onClick={e => e.stopPropagation()}>
                         <button
                           onClick={() => {
-                            navigate(`/trade?originCountry=${plant.countryCode}&volume=${plant.annualEnergyGWh * 1000}`);
+                            navigate(`/trade?originCountry=${plant.countryCode}`);
                           }}
                           className="px-2 py-1 bg-teal-950 text-teal-300 hover:bg-teal-900 border border-teal-800 rounded text-[10px] font-bold transition-all whitespace-nowrap"
-                          title="Simulate Export Trade from this Plant"
+                          title="Simulate Export Trade for this Country"
                         >
                           Simulate Trade →
                         </button>
@@ -338,7 +338,9 @@ export function PlantsScreen() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm font-bold text-teal-300">{dev.totalCapacityGWh.toLocaleString()} GWh/yr</div>
+                  <div className="text-sm font-bold text-teal-300">
+                    {dev.totalCapacityGWh != null ? `${dev.totalCapacityGWh.toLocaleString()} GWh/yr` : '—'}
+                  </div>
                   <div className="text-[9px] text-stone-500">Portfolio Capacity</div>
                 </div>
               </div>
@@ -389,23 +391,23 @@ export function PlantsScreen() {
                     <td className="py-2 px-3 text-right font-bold text-stone-200">
                       {m.activePlants}
                     </td>
-                    <td className="py-2 px-3 text-right font-bold text-teal-300">
-                      {m.installedCapacityTWh.toFixed(1)}
+                    <td className="py-2 px-3 text-right text-teal-300 font-bold">
+                      {m.installedCapacityTWh != null ? `${m.installedCapacityTWh.toFixed(2)} TWh` : '—'}
                     </td>
                     <td className="py-2 px-3 text-right text-stone-300">
-                      {m.installedCapacityMcm.toLocaleString()}
+                      {m.installedCapacityMcm != null ? m.installedCapacityMcm.toLocaleString() : '—'}
+                    </td>
+                    <td className="py-2 px-3 text-right text-stone-200">
+                      {m.avgPlantSizeNm3h != null ? m.avgPlantSizeNm3h.toFixed(0) : '—'}
                     </td>
                     <td className="py-2 px-3 text-right text-stone-400">
-                      {m.avgPlantSizeNm3h.toLocaleString()}
-                    </td>
-                    <td className="py-2 px-3 text-right text-stone-400">
-                      {(m.gridConnectionRate * 100).toFixed(0)}%
+                      {m.gridConnectionRate != null ? `${(m.gridConnectionRate * 100).toFixed(0)}%` : '—'}
                     </td>
                     <td className="py-2 px-3 text-stone-400 text-[11px]">
-                      {m.primaryFeedstockType}
+                      {m.primaryFeedstockType || 'Agricultural residues / Biowaste'}
                     </td>
                     <td className="py-2 px-3 text-stone-400 text-[11px]">
-                      {m.primaryUpgradingTech}
+                      {m.primaryUpgradingTech || 'Membranes / Scrubbing'}
                     </td>
                   </tr>
                 ))}
@@ -425,43 +427,42 @@ export function PlantsScreen() {
                   <span>{selectedPlantDetail.countryFlag} {selectedPlantDetail.name}</span>
                 </span>
                 <span className="text-[10px] text-stone-400">
-                  {selectedPlantDetail.country} • Commissioned: {selectedPlantDetail.commissioningYear}
+                  {selectedPlantDetail.country} • Sourced: {selectedPlantDetail.provenance}
                 </span>
               </div>
               <span className="px-2 py-0.5 bg-green-950 text-green-300 border border-green-800 rounded text-[10px] font-bold">
-                {selectedPlantDetail.status}
+                {selectedPlantDetail.status || 'Active'}
               </span>
             </div>
 
-            {/* Grid of technical details */}
+            {/* Grid of details with verified vs unverified indicators */}
             <div className="grid grid-cols-2 gap-2 text-[11px]">
               <div className="p-2.5 bg-stone-950 rounded border border-stone-800">
-                <span className="text-[10px] text-stone-500 uppercase block">Operator / Developer</span>
-                <strong className="text-stone-200">{selectedPlantDetail.operator}</strong>
+                <span className="text-[10px] text-stone-500 uppercase block font-bold">Location & Country</span>
+                <strong className="text-stone-200">{selectedPlantDetail.name}, {selectedPlantDetail.country}</strong>
+                <span className="text-[9px] text-emerald-400 block mt-0.5">✓ Verified in GIE/EBA Map</span>
               </div>
               <div className="p-2.5 bg-stone-950 rounded border border-stone-800">
-                <span className="text-[10px] text-stone-500 uppercase block">Estimated Energy Production</span>
-                <strong className="text-teal-300">{selectedPlantDetail.annualEnergyGWh} GWh/year ({selectedPlantDetail.capacityNm3h} Nm³/h)</strong>
+                <span className="text-[10px] text-stone-500 uppercase block font-bold">Facility Code</span>
+                <strong className="text-teal-300">{selectedPlantDetail.id.toUpperCase()}</strong>
+                <span className="text-[9px] text-emerald-400 block mt-0.5">✓ Sourced National ID</span>
               </div>
               <div className="p-2.5 bg-stone-950 rounded border border-stone-800">
-                <span className="text-[10px] text-stone-500 uppercase block">Upgrading Technology</span>
-                <strong className="text-stone-300">{selectedPlantDetail.upgradingTechnology}</strong>
+                <span className="text-[10px] text-stone-500 uppercase block font-bold">Operator / Developer</span>
+                <span className="text-stone-400">{selectedPlantDetail.operator || <span className="italic text-stone-600">Unverified in GIE/EBA source map</span>}</span>
               </div>
               <div className="p-2.5 bg-stone-950 rounded border border-stone-800">
-                <span className="text-[10px] text-stone-500 uppercase block">Grid Connection & Operator</span>
-                <strong className="text-stone-300">{selectedPlantDetail.gridConnectionType} ({selectedPlantDetail.networkOperator})</strong>
+                <span className="text-[10px] text-stone-500 uppercase block font-bold">Capacity / Upgrading</span>
+                <span className="text-stone-400">{selectedPlantDetail.capacityNm3h != null ? `${selectedPlantDetail.capacityNm3h} Nm³/h` : <span className="italic text-stone-600">Unverified in GIE/EBA source map</span>}</span>
               </div>
             </div>
 
-            <div className="p-3 bg-stone-950 rounded border border-stone-800 space-y-1 text-xs">
-              <div className="text-stone-400">
-                <strong className="text-stone-300">Feedstock Recipe:</strong> {selectedPlantDetail.feedstockDetails}
+            <div className="p-3 bg-stone-950 rounded border border-stone-800 space-y-1 text-xs text-stone-400">
+              <div>
+                <strong className="text-stone-300">Data Provenance:</strong> {selectedPlantDetail.provenance}
               </div>
-              <div className="text-stone-400">
-                <strong className="text-stone-300">Registry & Certification:</strong> {selectedPlantDetail.certificationAndRegistry}
-              </div>
-              <div className="text-stone-400">
-                <strong className="text-stone-300">Grid Offtake:</strong> {selectedPlantDetail.primaryOfftake}
+              <div className="text-[11px] text-stone-500">
+                * Note: The GIE/EBA European Biomethane Map 2026 provides facility location name, country, and national ID. Operator, capacity, and technology attributes are not supplied by the source map.
               </div>
             </div>
 
@@ -474,11 +475,11 @@ export function PlantsScreen() {
               </button>
               <button
                 onClick={() => {
-                  navigate(`/trade?originCountry=${selectedPlantDetail.countryCode}&volume=${selectedPlantDetail.annualEnergyGWh * 1000}`);
+                  navigate(`/trade?originCountry=${selectedPlantDetail.countryCode}`);
                 }}
                 className="bg-teal-600 hover:bg-teal-500 text-white font-bold px-4 py-1.5 rounded flex items-center gap-1.5"
               >
-                Simulate Cross-Border Trade <ArrowRight className="w-3.5 h-3.5" />
+                Simulate Trade for {selectedPlantDetail.country} <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>

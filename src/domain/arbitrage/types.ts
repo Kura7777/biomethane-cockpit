@@ -8,7 +8,7 @@ export interface OriginProfile {
   countryName: string;
   flag: string;
   activePlants: number;
-  annualProductionTWh: number;
+  annualProductionTWh: number | null;
   primaryRegistry: string;
   gridZone: 'EU_INTERCONNECTED' | 'NON_EU_ISOLATED';
   typicalFeedstocks: string[];

@@ -401,7 +401,7 @@ export function MapScreen() {
     const map = new Map<string, { label: string; count: number; totalCapacityNm3: number; totalEnergyGWh: number; defaultKey: string }>();
     
     countryPlants.forEach(p => {
-      const cat = p.primaryFeedstockCategory.toLowerCase();
+      const cat = (p.primaryFeedstockCategory || '').toLowerCase();
       let key = 'agricultural';
       let label = '🌾 Agri-Residues & Crops';
       let defaultKey = 'energy_crops';
@@ -426,8 +426,8 @@ export function MapScreen() {
 
       const existing = map.get(key) || { label, count: 0, totalCapacityNm3: 0, totalEnergyGWh: 0, defaultKey };
       existing.count += 1;
-      existing.totalCapacityNm3 += p.capacityNm3h;
-      existing.totalEnergyGWh += p.annualEnergyGWh;
+      existing.totalCapacityNm3 += p.capacityNm3h || 0;
+      existing.totalEnergyGWh += p.annualEnergyGWh || 0;
       map.set(key, existing);
     });
 
@@ -438,7 +438,7 @@ export function MapScreen() {
   const filteredCountryPlants = useMemo(() => {
     if (plantFeedstockFilter === 'ALL') return countryPlants;
     return countryPlants.filter(p => {
-      const cat = p.primaryFeedstockCategory.toLowerCase();
+      const cat = (p.primaryFeedstockCategory || '').toLowerCase();
       if (plantFeedstockFilter === 'manure') return cat.includes('manure') || cat.includes('slurry');
       if (plantFeedstockFilter === 'food_waste') return cat.includes('food') || cat.includes('forsu') || cat.includes('ofmsw') || cat.includes('biowaste');
       if (plantFeedstockFilter === 'sewage') return cat.includes('sewage') || cat.includes('sludge');
@@ -473,7 +473,7 @@ export function MapScreen() {
                 Pan-European Biomethane Cross-Border Export Clearing Map
               </h1>
               <span className="text-[10px] bg-teal-950 text-teal-300 border border-teal-800 px-1.5 py-0.5 rounded font-bold">
-                1,986 Facilities Master Register
+                {BIOMETHANE_PLANTS.length} Facilities Master Register
               </span>
             </div>
             <p className="text-stone-400 text-xs mt-0.5">
@@ -512,7 +512,7 @@ export function MapScreen() {
               onClick={() => navigate('/plants')}
               className="bg-teal-600 hover:bg-teal-500 text-white font-bold px-3 py-1.5 rounded transition-all flex items-center gap-1"
             >
-              Directory (1,986) →
+              Directory ({BIOMETHANE_PLANTS.length}) →
             </button>
           </div>
         </div>
@@ -889,7 +889,7 @@ export function MapScreen() {
               const primaryFeedstock = cMacro?.primaryFeedstockType || (cPlants.length > 0 ? cPlants[0].primaryFeedstockCategory : 'Agricultural residues & biowaste');
               const primaryTech = cMacro?.primaryUpgradingTech || (cPlants.length > 0 ? cPlants[0].upgradingTechnology : 'Membrane Separation');
               const registry = cMacro?.nationalRegistry || (cPlants.length > 0 ? cPlants[0].networkOperator : 'National Gas Grid');
-              const totalCap = cMacro?.installedCapacityTWh ? `${cMacro.installedCapacityTWh.toFixed(1)} TWh/yr` : cPlants.length > 0 ? `~${Math.round(cPlants.reduce((acc, p) => acc + p.annualEnergyGWh, 0))} GWh/yr` : '—';
+              const totalCap = cMacro?.installedCapacityTWh ? `${cMacro.installedCapacityTWh.toFixed(1)} TWh/yr` : cPlants.length > 0 ? `~${Math.round(cPlants.reduce((acc, p) => acc + (p.annualEnergyGWh || 0), 0))} GWh/yr` : '—';
 
               return (
                 <div
@@ -938,24 +938,16 @@ export function MapScreen() {
                   {/* Biomethane Production & Infrastructure Stats */}
                   <div className="grid grid-cols-2 gap-1.5 text-[10px] bg-slate-950 p-2 rounded border border-slate-800">
                     <div>
-                      <span className="text-slate-500 uppercase block font-bold text-[9px]">Operating Plants</span>
+                      <span className="text-slate-500 uppercase block font-bold text-[9px]">GIE/EBA Registered</span>
                       <strong className="text-teal-300 text-xs">{cPlants.length > 0 ? `${cPlants.length} facilities` : 'No registered data'}</strong>
                     </div>
                     <div>
-                      <span className="text-slate-500 uppercase block font-bold text-[9px]">Annual Capacity</span>
-                      <strong className="text-slate-100 text-xs">{totalCap}</strong>
+                      <span className="text-slate-500 uppercase block font-bold text-[9px]">Provenance</span>
+                      <strong className="text-slate-100 text-[10px]">GIE/EBA 2026 Map</strong>
                     </div>
                     <div className="col-span-2 pt-1 border-t border-slate-900 flex justify-between text-slate-400">
-                      <span>Feedstock:</span>
-                      <strong className="text-slate-200 truncate max-w-[170px]" title={primaryFeedstock}>{primaryFeedstock}</strong>
-                    </div>
-                    <div className="col-span-2 flex justify-between text-slate-400">
-                      <span>Upgrading:</span>
-                      <strong className="text-slate-200 truncate max-w-[170px]" title={primaryTech}>{primaryTech}</strong>
-                    </div>
-                    <div className="col-span-2 flex justify-between text-slate-400">
-                      <span>Registry / Grid:</span>
-                      <strong className="text-slate-300 truncate max-w-[170px]" title={registry}>{registry}</strong>
+                      <span>National Registry:</span>
+                      <strong className="text-slate-300 truncate max-w-[170px]" title={registry || 'National Gas Grid'}>{registry || 'National Gas Grid'}</strong>
                     </div>
                   </div>
 
@@ -1044,30 +1036,29 @@ export function MapScreen() {
                         <span>{selectedPlant.countryFlag} {selectedPlant.name}</span>
                       </span>
                       <span className="text-[10px] text-stone-400">
-                        {selectedPlant.country} • Operator: {selectedPlant.operator}
+                        {selectedPlant.country} • Sourced: {selectedPlant.provenance}
                       </span>
                     </div>
                     <span className="px-2 py-0.5 bg-green-950 text-green-300 border border-green-800 rounded text-[10px] font-bold">
-                      {selectedPlant.status}
+                      {selectedPlant.status || 'Active'}
                     </span>
                   </div>
 
-                  <div className="p-3 bg-stone-950 rounded border border-stone-800 space-y-1.5 text-xs">
-                    <div className="flex justify-between text-stone-400">
-                      <span>Annual Energy Production:</span>
-                      <strong className="text-teal-300">{selectedPlant.annualEnergyGWh} GWh/year ({selectedPlant.capacityNm3h} Nm³/h)</strong>
+                  <div className="p-3 bg-stone-950 rounded border border-stone-800 space-y-1.5 text-xs text-stone-400">
+                    <div className="flex justify-between">
+                      <span>Facility Code:</span>
+                      <strong className="text-teal-300">{selectedPlant.id.toUpperCase()}</strong>
                     </div>
-                    <div className="flex justify-between text-stone-400">
-                      <span>Primary Feedstock:</span>
-                      <strong className="text-stone-200">{selectedPlant.primaryFeedstockCategory}</strong>
+                    <div className="flex justify-between">
+                      <span>Location Name:</span>
+                      <strong className="text-stone-200">{selectedPlant.name}</strong>
                     </div>
-                    <div className="flex justify-between text-stone-400">
-                      <span>Upgrading Tech:</span>
-                      <strong className="text-stone-300">{selectedPlant.upgradingTechnology}</strong>
+                    <div className="flex justify-between">
+                      <span>Country:</span>
+                      <strong className="text-stone-200">{selectedPlant.country}</strong>
                     </div>
-                    <div className="flex justify-between text-stone-400">
-                      <span>Grid Injection:</span>
-                      <strong className="text-stone-300">{selectedPlant.gridConnectionType} ({selectedPlant.networkOperator})</strong>
+                    <div className="text-[11px] text-stone-500 pt-1 border-t border-stone-800">
+                      * Operator, capacity, and technology attributes are not supplied in GIE/EBA source map.
                     </div>
                   </div>
 
@@ -1092,7 +1083,7 @@ export function MapScreen() {
                       </button>
                       <button
                         onClick={() => {
-                          navigate(`/trade?originCountry=${selectedPlant.countryCode}&volume=${selectedPlant.annualEnergyGWh * 1000}`);
+                          navigate(`/trade?originCountry=${selectedPlant.countryCode}`);
                         }}
                         className="bg-teal-600 hover:bg-teal-500 text-white font-bold px-4 py-1.5 rounded flex items-center gap-1.5"
                       >

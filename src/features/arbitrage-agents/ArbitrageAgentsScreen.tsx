@@ -8,6 +8,7 @@ import { CertificationScheme, ChainOfCustody } from '../../domain/consignment/ty
 import { scanEuropeanArbitrage, DEFAULT_WHAT_IF_SCENARIO } from '../../domain/arbitrage/engine';
 import { ArbitrageOpportunity, ArbitrageMatrixCell, RegulatoryWhatIfScenario, AgentChatMessage } from '../../domain/arbitrage/types';
 import { queryDeskAgent, GeminiModelId } from '../../domain/arbitrage/geminiService';
+import { MARKETS } from '../../domain/markets/registry';
 import { 
   Bot, 
   Sparkles, 
@@ -51,7 +52,7 @@ export function ArbitrageAgentsScreen() {
 
   // Gemini API Key & Model Configuration
   const [geminiApiKey, setGeminiApiKey] = useState<string>(() => localStorage.getItem('biomethane_gemini_api_key') || '');
-  const [selectedModel, setSelectedModel] = useState<GeminiModelId>(() => (localStorage.getItem('biomethane_gemini_model') as GeminiModelId) || 'gemini-3.7-flash');
+  const [selectedModel, setSelectedModel] = useState<GeminiModelId>(() => (localStorage.getItem('biomethane_gemini_model') as GeminiModelId) || 'gemini-3.6-flash');
   const [showKeyModal, setShowKeyModal] = useState<boolean>(false);
   const [chatInput, setChatInput] = useState<string>('');
   const [chatLoading, setChatLoading] = useState<boolean>(false);
@@ -60,17 +61,25 @@ export function ArbitrageAgentsScreen() {
       id: 'welcome',
       sender: 'agent',
       agentRole: 'Arbitrage Hunter',
-      content: `👋 **Welcome to the Autonomous Biomethane Trading & Regulatory Copilot.**
+      content: `👋 **Welcome to the European Biomethane Trading & Regulatory Copilot.**
 
-Powered by **Google Gemini 3.7 Flash**, I continuously scan **27 European producing countries across 14 compliance destinations** to uncover high-margin cross-border arbitrages and flag illegal regulatory traps.
+Connected to **1,975 registered European biomethane facilities** across 26 countries, live market marks, and statutory RED III compliance gates.
 
 Try asking me:
-* *"Analyze the top alpha trade for Danish manure right now"*
-* *"Why is UK grid biomethane blocked from German THG quotas?"*
-* *"Draft a FuelEU Bio-LNG term sheet for CMA CGM"*`,
+* *"What is the cross-border clearance status for Danish manure into Germany?"*
+* *"Why is UK grid biomethane blocked from EU UDB recording?"*
+* *"Explain the legal status of German §37a BImSchG double counting"*`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
   ]);
+
+  const handleFeedstockChange = (feedstock: string) => {
+    setSelectedFeedstock(feedstock);
+    const info = FEEDSTOCK_REGISTRY[feedstock];
+    if (info) {
+      setCiOverride(info.defaultCI);
+    }
+  };
 
   // Run Matrix Arbitrage Scan Engine
   const { topOpportunities, matrixCells, blockedArbitrages } = useMemo(() => {
@@ -153,12 +162,11 @@ Try asking me:
   const matrixMarkets = Array.from(new Set(matrixCells.map(c => c.targetMarketId)));
 
   const getModelBadgeName = (model: GeminiModelId) => {
-    if (model === 'gemini-3.7-flash') return 'Gemini 3.7 Flash';
     if (model === 'gemini-3.6-flash') return 'Gemini 3.6 Flash';
     if (model === 'gemini-3.5-flash') return 'Gemini 3.5 Flash';
     if (model === 'gemini-3.5-flash-lite') return 'Gemini 3.5 Flash-Lite';
     if (model === 'gemini-3.1-flash-lite') return 'Gemini 3.1 Flash-Lite';
-    if (model === 'gemini-3.7-pro') return 'Gemini 3.7 Pro';
+    if (model === 'gemini-3.1-pro') return 'Gemini 3.1 Pro';
     if (model === 'gemini-2.5-pro') return 'Gemini 2.5 Pro';
     return 'Gemini 2.5 Flash';
   };
@@ -343,14 +351,29 @@ Try asking me:
 
       {/* Interactive 20×14 European Arbitrage Heatmap Matrix */}
       <div className="bg-stone-900 border border-stone-800 rounded-xl p-4 space-y-3 font-mono text-xs">
-        <div className="flex items-center justify-between border-b border-stone-800 pb-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-stone-800 pb-2 gap-2">
           <div className="flex items-center gap-2">
             <Layers className="w-4 h-4 text-teal-400" />
             <h2 className="text-xs font-bold text-stone-200 uppercase">
-              Pan-European Cross-Border Real Desk Margin Heatmap (€/MWh)
+              Pan-European Cross-Border Modelled Desk Margin Heatmap (€/MWh)
             </h2>
           </div>
-          <span className="text-[10px] text-stone-500">20 Origins × 14 Destinations</span>
+
+          <div className="flex items-center gap-2">
+            <label className="text-[10px] text-stone-400 uppercase font-bold">Feedstock:</label>
+            <select
+              value={selectedFeedstock}
+              onChange={e => handleFeedstockChange(e.target.value)}
+              className="bg-stone-950 border border-stone-700 rounded px-2 py-1 text-teal-300 font-bold text-xs"
+            >
+              {Object.entries(FEEDSTOCK_REGISTRY).map(([k, v]) => (
+                <option key={k} value={k}>{v.name} (CI: {v.defaultCI})</option>
+              ))}
+            </select>
+            <span className="text-[10px] text-stone-500 font-mono">
+              (Effective CI: {ciOverride} g/MJ)
+            </span>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -360,7 +383,7 @@ Try asking me:
                 <th className="p-1.5 text-left border border-stone-800">Origin</th>
                 {matrixMarkets.map(mId => (
                   <th key={mId} className="p-1.5 border border-stone-800 whitespace-nowrap">
-                    {mId.replace('_', ' ')}
+                    {MARKETS.find(m => m.id === mId)?.shortName || mId.replace(/_/g, ' ')}
                   </th>
                 ))}
               </tr>

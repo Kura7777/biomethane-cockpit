@@ -33,7 +33,7 @@ export function ScannerScreen() {
   const { state, dispatch } = useAppState();
 
   const [expandedMarketId, setExpandedMarketId] = useState<string | null>(null);
-  const [ciOverride, setCiOverride] = useState<number>(-100);
+  const [ciOverride, setCiOverride] = useState<number | null>(null);
   const [filterTradeableOnly, setFilterTradeableOnly] = useState(false);
   const [excludeModelled, setExcludeModelled] = useState(false);
 
@@ -44,10 +44,17 @@ export function ScannerScreen() {
     return REFERENCE_CONSIGNMENTS.DANISH_MANURE;
   }, [state.consignments, state.activeConsignmentId]);
 
+  // Reset override when active consignment changes
+  React.useEffect(() => {
+    setCiOverride(null);
+  }, [state.activeConsignmentId]);
+
+  const effectiveCI = ciOverride ?? activeConsignment.carbonIntensity;
+
   const consignment: Consignment = useMemo(() => ({
     ...activeConsignment,
-    carbonIntensity: ciOverride,
-  }), [activeConsignment, ciOverride]);
+    carbonIntensity: effectiveCI,
+  }), [activeConsignment, effectiveCI]);
 
   // Evaluate all active compliance markets
   const activeMarkets = useMemo(() => MARKETS.filter(m => m.status === 'ACTIVE'), []);
@@ -176,10 +183,25 @@ export function ScannerScreen() {
             <span>Carbon Intensity Sensitivity Simulation</span>
           </div>
           <div className="flex items-center gap-2 font-mono">
-            <span className="text-stone-400 text-[11px]">Current Simulation:</span>
-            <span className="font-bold text-teal-300 bg-stone-950 border border-stone-800 px-2 py-0.5 rounded">
-              {ciOverride} gCO₂e/MJ
+            <span className="text-stone-400 text-[11px]">
+              {ciOverride !== null ? 'Simulated CI:' : 'Consignment CI:'}
             </span>
+            <span className={`font-bold px-2 py-0.5 rounded ${
+              ciOverride !== null 
+                ? 'text-amber-300 bg-amber-950/80 border border-amber-800' 
+                : 'text-teal-300 bg-stone-950 border border-stone-800'
+            }`}>
+              {effectiveCI} gCO₂e/MJ
+            </span>
+            {ciOverride !== null && (
+              <button
+                onClick={() => setCiOverride(null)}
+                className="text-[10px] text-teal-400 hover:text-teal-300 underline"
+                title="Reset to consignment CI"
+              >
+                Reset
+              </button>
+            )}
           </div>
         </div>
 
@@ -188,7 +210,7 @@ export function ScannerScreen() {
           min="-150"
           max="50"
           step="5"
-          value={ciOverride}
+          value={effectiveCI}
           onChange={e => setCiOverride(Number(e.target.value))}
           className="w-full accent-teal-500 cursor-pointer h-1.5 bg-stone-800 rounded-lg appearance-none"
         />

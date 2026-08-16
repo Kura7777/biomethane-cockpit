@@ -27,8 +27,10 @@ export function rankNetbacks(
     };
   });
 
-  // Sort: tradeable first (by netback desc), then blocked (by theoretical netback desc)
-  // Non-modelled marked trades take priority over unquoted theoretical models
+  // Sort:
+  // 1. Tradeable vs blocked
+  // 2. Complete cost inputs before incomplete cost inputs (prevents 0-cost ranking inflation)
+  // 3. Net netback descending
   ranked.sort((a, b) => {
     const aTradeable = ['ELIGIBLE', 'CONDITIONAL', 'UNRESOLVED'].includes(a.eligibilityVerdict);
     const bTradeable = ['ELIGIBLE', 'CONDITIONAL', 'UNRESOLVED'].includes(b.eligibilityVerdict);
@@ -36,7 +38,10 @@ export function rankNetbacks(
     if (aTradeable && !bTradeable) return -1;
     if (!aTradeable && bTradeable) return 1;
 
-    // Both tradeable: if one is purely modelled and the other is marked, allow standard comparison or marked first
+    // Prioritize complete cost accounting over incomplete/missing cost entries
+    if (a.isComplete && !b.isComplete) return -1;
+    if (!a.isComplete && b.isComplete) return 1;
+
     const aVal = a.netNetback ?? -Infinity;
     const bVal = b.netNetback ?? -Infinity;
     return bVal - aVal;

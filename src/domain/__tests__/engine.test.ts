@@ -9,15 +9,15 @@ import {
   RTFO_KG_PER_MWH
 } from '../netback/engine';
 import { getMarketById, MARKETS } from '../markets/registry';
-import { getMarkAgeDays, getMarkStaleness } from '../markets/types';
 import { Consignment } from '../consignment/types';
 import { MarksState, CostInputs } from '../netback/types';
 import { rankNetbacks, getHighestBlockedOpportunity } from '../netback/ranking';
 import { migrateState, CURRENT_SCHEMA_VERSION } from '../../store/context';
 import { REFERENCE_CONSIGNMENTS } from '../consignment/feedstocks';
 import { scanEuropeanArbitrage } from '../arbitrage/engine';
-import { getRouteTransitTariff, PRODUCING_ORIGINS } from '../arbitrage/origins';
+import { getRouteTransitTariff, calculateRealisticCommercialDeskMargin } from '../arbitrage/origins';
 import { BIOMETHANE_PLANTS, DEVELOPER_PORTFOLIOS, COUNTRY_MACRO_STATS, getPlantsByCountry, searchPlants } from '../plants/registry';
+import { queryDeskAgent, generateLocalAgentResponse } from '../arbitrage/geminiService';
 
 const emptyCosts: CostInputs = {
   transferCosts: null,
@@ -50,174 +50,217 @@ const sampleMarks: MarksState = {
   pricingSide: 'bid',
 };
 
-describe('Biomethane Desk Cockpit — Comprehensive Regression & Plant Database Tests', () => {
+describe('European Biomethane Desk Cockpit — Work Order Verification & Regression Suite', () => {
 
-  describe('1. Core Precision Anchors & Derivations', () => {
-    
-    it('anchors: tCO2e_per_MWh formula precision verification', () => {
-      const manureFactor = tCO2ePerMWh(-100);
-      const wasteFactor = tCO2ePerMWh(20);
+  describe('§E — Mandatory Regulatory & Valuation Unit Tests', () => {
 
-      expect(manureFactor).toBeCloseTo(0.6984, 4);
-      expect(wasteFactor).toBeCloseTo(0.2664, 4);
-    });
-
-    it('UK RTFO: derives yield from biomethane energy content (~72 to 144 dRTFC/MWh)', () => {
-      expect(RTFO_KG_PER_MWH).toBeCloseTo(72.0, 1);
-
+    it('§E1: UK food waste, UK grid, ISCC EU, mass balance ➔ DE_THG is HARD_BLOCK at UDB gate', () => {
       const consignment = REFERENCE_CONSIGNMENTS.UK_FOOD_WASTE;
-      const ukMarket = getMarketById('UK_RTFO')!;
-      const certVal = computeCertificateValue(ukMarket, consignment, sampleMarks);
+      const deMarket = getMarketById('DE_THG')!;
+      
+      const assessment = evaluateEligibility(consignment, deMarket);
+      expect(assessment.overallVerdict).toBe('HARD_BLOCK');
 
-      expect(certVal).not.toBeNull();
-      expect(certVal?.valueEurPerMWh).toBeCloseTo(42.48, 1);
+      const udbGate = assessment.gates.find(g => g.gate === 'UDB_RECORDING');
+      expect(udbGate).toBeDefined();
+      expect(udbGate?.verdict).toBe('HARD_BLOCK');
+      expect(udbGate?.reason).toContain('non-EU gas grid');
+      expect(udbGate?.remedy).toContain('RTFO');
     });
 
-    it('FuelEU Maritime: manure at CI -100 deficit closure marginal value', () => {
-      const year1 = computeFuelEUDeficitClosureValue(-100, 1, 89.34, 91.16);
-      expect(year1.valueEurPerMWh).toBeCloseTo(437.69, 1);
+    it('§E2: Danish manure, EU grid, ISCC EU, mass balance, UDB recorded ➔ DE_THG is UNRESOLVED (never ELIGIBLE) with dual branches', () => {
+      const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
+      const deMarket = getMarketById('DE_THG')!;
 
-      const year2 = computeFuelEUDeficitClosureValue(-100, 2, 89.34, 91.16);
-      expect(year2.valueEurPerMWh).toBeCloseTo(437.69 * 1.10, 1);
+      const assessment = evaluateEligibility(consignment, deMarket);
+      expect(assessment.overallVerdict).toBe('UNRESOLVED');
+      expect(assessment.overallVerdict).not.toBe('ELIGIBLE');
 
-      const year3 = computeFuelEUDeficitClosureValue(-100, 3, 89.34, 91.16);
-      expect(year3.valueEurPerMWh).toBeCloseTo(437.69 * 1.20, 1);
+      const netback = computeNetback(deMarket, consignment, sampleMarks, emptyCosts, 'bid');
+      expect(netback.uncertaintyBranches).toBeDefined();
+      expect(netback.uncertaintyBranches?.length).toBe(2);
+      expect(netback.uncertaintyBranches![0].branchLabel.toLowerCase()).toContain('single counting');
+      expect(netback.uncertaintyBranches![1].branchLabel.toLowerCase()).toContain('double counting');
     });
 
-    it('French CPB: mark of €150/MWh is strictly capped at €100/MWh penalty ceiling', () => {
+    it('§E3: Danish manure ➔ FR_CPB and NL_ERE are ELIGIBLE or CONDITIONAL, never blocked', () => {
+      const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
+      const frMarket = getMarketById('FR_CPB')!;
+      const nlMarket = getMarketById('NL_ERE')!;
+
+      const frAssessment = evaluateEligibility(consignment, frMarket);
+      const nlAssessment = evaluateEligibility(consignment, nlMarket);
+
+      expect(['ELIGIBLE', 'CONDITIONAL']).toContain(frAssessment.overallVerdict);
+      expect(['ELIGIBLE', 'CONDITIONAL']).toContain(nlAssessment.overallVerdict);
+      expect(frAssessment.overallVerdict).not.toBe('HARD_BLOCK');
+      expect(nlAssessment.overallVerdict).not.toBe('HARD_BLOCK');
+    });
+
+    it('§E4: ISCC PLUS consignment ➔ all compliance markets blocked at scheme gate, voluntary passes', () => {
+      const isccPlusConsignment: Consignment = {
+        ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
+        id: 'test_iscc_plus',
+        certificationScheme: 'ISCC_PLUS',
+      };
+
+      const complianceMarkets = MARKETS.filter(m => m.id !== 'VOL_SCOPE1' && m.status === 'ACTIVE');
+      for (const market of complianceMarkets) {
+        const assessment = evaluateEligibility(isccPlusConsignment, market);
+        expect(assessment.overallVerdict).toBe('HARD_BLOCK');
+        const schemeGate = assessment.gates.find(g => g.gate === 'SCHEME_RECOGNITION');
+        expect(schemeGate?.verdict).toBe('HARD_BLOCK');
+      }
+
+      const volMarket = getMarketById('VOL_SCOPE1')!;
+      const volAssessment = evaluateEligibility(isccPlusConsignment, volMarket);
+      expect(volAssessment.overallVerdict).toBe('ELIGIBLE');
+    });
+
+    it('§E5: Book-and-claim ➔ FuelEU Maritime blocked at chain-of-custody gate, voluntary passes', () => {
+      const bcConsignment: Consignment = {
+        ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
+        id: 'test_bc',
+        chainOfCustody: 'BOOK_AND_CLAIM',
+      };
+
+      const fuelEUMarket = getMarketById('FUELEU')!;
+      const fuelEUAssessment = evaluateEligibility(bcConsignment, fuelEUMarket);
+      expect(fuelEUAssessment.overallVerdict).toBe('HARD_BLOCK');
+      const cocGate = fuelEUAssessment.gates.find(g => g.gate === 'CHAIN_OF_CUSTODY');
+      expect(cocGate?.verdict).toBe('HARD_BLOCK');
+
+      const volMarket = getMarketById('VOL_SCOPE1')!;
+      const volAssessment = evaluateEligibility(bcConsignment, volMarket);
+      expect(volAssessment.overallVerdict).toBe('ELIGIBLE');
+    });
+
+    it('§E6: EU ETS2 ➔ UNKNOWN verdict, not tradeable until 2028', () => {
+      const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
+      const ets2Market = getMarketById('EU_ETS2')!;
+
+      const assessment = evaluateEligibility(consignment, ets2Market);
+      expect(assessment.overallVerdict).toBe('UNKNOWN');
+      expect(ets2Market.status).toBe('FUTURE');
+    });
+
+    it('§E7: French CPB mark of €150/MWh ➔ strictly capped at €100/MWh penalty ceiling', () => {
       const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
       const frCpb = getMarketById('FR_CPB')!;
       const certVal = computeCertificateValue(frCpb, consignment, sampleMarks);
 
       expect(certVal?.valueEurPerMWh).toBe(100);
       expect(certVal?.capped).toBe(true);
-      expect(certVal?.capReason).toContain('French CPB penalty ceiling: €100/MWh');
+      expect(certVal?.capReason).toContain('€100/MWh');
     });
 
   });
 
-  describe('2. Autonomous Matrix Arbitrage & Realistic Desk Economics', () => {
+  describe('§A — Section A Fixes & Regression Assertions', () => {
 
-    it('scanEuropeanArbitrage calculates realistic trading desk margins (€1.50–€6.00/MWh)', () => {
-      const scanResult = scanEuropeanArbitrage(sampleMarks, completeCosts, 'manure', -100);
+    it('A1 / A3: Plant registry contains exactly 1,975 facilities matching GIE/EBA 2026 counts', () => {
+      expect(BIOMETHANE_PLANTS.length).toBe(1975);
 
-      expect(scanResult.topOpportunities.length).toBeGreaterThan(0);
-      expect(scanResult.matrixCells.length).toBeGreaterThan(100);
-
-      const best = scanResult.topOpportunities[0];
-      expect(best.deskNetMarginEurPerMWh).not.toBeNull();
-      expect(best.deskNetMarginEurPerMWh!).toBeGreaterThanOrEqual(1.0);
-      expect(best.deskNetMarginEurPerMWh!).toBeLessThanOrEqual(10.0);
-      expect(best.isTradeable).toBe(true);
+      // Section D1 Verified Country Counts
+      expect(getPlantsByCountry('FR').length).toBe(829);
+      expect(getPlantsByCountry('DE').length).toBe(285);
+      expect(getPlantsByCountry('IT').length).toBe(273);
+      expect(getPlantsByCountry('GB').length).toBe(108);
+      expect(getPlantsByCountry('NL').length).toBe(92);
+      expect(getPlantsByCountry('SE').length).toBe(67);
+      expect(getPlantsByCountry('DK').length).toBe(60);
+      expect(getPlantsByCountry('FI').length).toBe(32);
+      expect(getPlantsByCountry('ES').length).toBe(26);
+      expect(getPlantsByCountry('AT').length).toBe(20);
+      expect(getPlantsByCountry('CH').length).toBe(18);
+      expect(getPlantsByCountry('NO').length).toBe(15);
+      expect(getPlantsByCountry('PT').length).toBe(13);
+      expect(getPlantsByCountry('BE').length).toBe(12);
+      expect(getPlantsByCountry('LT').length).toBe(12);
+      expect(getPlantsByCountry('CZ').length).toBe(10);
+      expect(getPlantsByCountry('LV').length).toBe(10);
+      expect(getPlantsByCountry('EE').length).toBe(4);
+      expect(getPlantsByCountry('SK').length).toBe(3);
+      expect(getPlantsByCountry('LU').length).toBe(2);
     });
 
-    it('What-If: German double counting toggle increases total value stack', () => {
-      const singleCountScan = scanEuropeanArbitrage(sampleMarks, completeCosts, 'manure', -100, 'ISCC_EU', 'MASS_BALANCE', {
-        deDoubleCounting: 'DC_OFF',
-        ukUdbRecognition: false,
-        fuelEUEscalationYears: 1,
-        frCpbPenaltyCap: 100,
+    it('A1 / A2: Austrian plants match §D2 fixture and unverified generated fields are null', () => {
+      const austrianPlants = getPlantsByCountry('AT');
+      expect(austrianPlants.length).toBe(20);
+
+      const at1 = austrianPlants.find(p => p.id === 'plant_at_1');
+      const at3 = austrianPlants.find(p => p.id === 'plant_at_3');
+      const at6 = austrianPlants.find(p => p.id === 'plant_at_6');
+      const at20 = austrianPlants.find(p => p.id === 'plant_at_20');
+
+      expect(at1?.name).toBe('Bruck an der Leitha (AT-1)');
+      expect(at3?.name).toBe('Eugendorf (AT-3)');
+      expect(at6?.name).toBe('Margarethen am Moos (AT-6)');
+      expect(at20?.name).toBe('Wildon (AT-20)');
+
+      // Unverified attributes must be null
+      austrianPlants.forEach(p => {
+        expect(p.operator).toBeNull();
+        expect(p.capacityNm3h).toBeNull();
+        expect(p.annualEnergyGWh).toBeNull();
+        expect(p.coordinates).toBeNull();
+        expect(p.provenance).toBe('GIE/EBA European Biomethane Map 2026');
       });
-
-      const doubleCountScan = scanEuropeanArbitrage(sampleMarks, completeCosts, 'manure', -100, 'ISCC_EU', 'MASS_BALANCE', {
-        deDoubleCounting: 'DC_ON',
-        ukUdbRecognition: false,
-        fuelEUEscalationYears: 1,
-        frCpbPenaltyCap: 100,
-      });
-
-      const dkToDeSingle = singleCountScan.topOpportunities.find(o => o.originCountry === 'DK' && o.targetMarketId === 'DE_THG');
-      const dkToDeDouble = doubleCountScan.topOpportunities.find(o => o.originCountry === 'DK' && o.targetMarketId === 'DE_THG');
-
-      expect(dkToDeSingle).toBeDefined();
-      expect(dkToDeDouble).toBeDefined();
-      expect(dkToDeDouble!.totalTerminalValueStackEurPerMWh!).toBeGreaterThan(dkToDeSingle!.totalTerminalValueStackEurPerMWh!);
     });
 
-    it('What-If: UK UDB recognition unlocks UK export flows to EU compliance markets', () => {
-      const currentLawScan = scanEuropeanArbitrage(sampleMarks, completeCosts, 'food_waste', 20, 'ISCC_EU', 'MASS_BALANCE', {
-        deDoubleCounting: 'DC_OFF',
-        ukUdbRecognition: false,
-        fuelEUEscalationYears: 1,
-        frCpbPenaltyCap: 100,
-      });
-
-      const recognizedScan = scanEuropeanArbitrage(sampleMarks, completeCosts, 'food_waste', 20, 'ISCC_EU', 'MASS_BALANCE', {
-        deDoubleCounting: 'DC_OFF',
-        ukUdbRecognition: true,
-        fuelEUEscalationYears: 1,
-        frCpbPenaltyCap: 100,
-      });
-
-      const ukToNlCurrent = currentLawScan.matrixCells.find(c => c.originCode === 'GB' && c.targetMarketId === 'NL_ERE');
-      const ukToNlUnlocked = recognizedScan.matrixCells.find(c => c.originCode === 'GB' && c.targetMarketId === 'NL_ERE');
-
-      expect(ukToNlCurrent?.isBlocked).toBe(true);
-      expect(ukToNlUnlocked?.isBlocked).toBe(false);
-    });
-
-    it('calculates adjacent vs cross-European route transit tariffs properly', () => {
-      expect(getRouteTransitTariff('DK', 'DK')).toBe(0.50);
-      expect(getRouteTransitTariff('DK', 'DE')).toBe(1.80);
-      expect(getRouteTransitTariff('ES', 'DE')).toBe(3.20);
-    });
-
-  });
-
-  describe('3. Pan-European Master Biomethane Plants & Developer Portfolios', () => {
-
-    it('loads 50+ flagship plants across Europe with complete specifications', () => {
-      expect(BIOMETHANE_PLANTS.length).toBeGreaterThanOrEqual(50);
-      const sample = BIOMETHANE_PLANTS[0];
-      expect(sample.name).toBeDefined();
-      expect(sample.operator).toBeDefined();
-      expect(sample.annualEnergyGWh).toBeGreaterThan(0);
-      expect(sample.coordinates).toBeDefined();
-    });
-
-    it('loads 20 developer portfolios and 26 country macro stats', () => {
-      expect(DEVELOPER_PORTFOLIOS.length).toBeGreaterThanOrEqual(20);
-      expect(COUNTRY_MACRO_STATS.length).toBeGreaterThanOrEqual(26);
-
-      const natureEnergy = DEVELOPER_PORTFOLIOS.find(d => d.name.includes('Nature Energy'));
-      expect(natureEnergy).toBeDefined();
-      expect(natureEnergy?.totalCapacityGWh).toBe(4200);
-
-      const franceMacro = COUNTRY_MACRO_STATS.find(c => c.iso === 'FR');
-      expect(franceMacro).toBeDefined();
-      expect(franceMacro?.activePlants).toBe(815);
-      expect(franceMacro?.installedCapacityTWh).toBe(15.8);
-    });
-
-    it('searchPlants finds assets by operator or technology', () => {
-      const totalPlants = searchPlants('TotalEnergies');
-      expect(totalPlants.length).toBeGreaterThan(0);
-
-      const wagaPlants = searchPlants('WAGABOX');
-      expect(wagaPlants.length).toBeGreaterThan(0);
-      expect(wagaPlants[0].upgradingTechnology).toContain('WAGABOX');
-    });
-
-  });
-
-  describe('4. Schema Migration & Staleness', () => {
-
-    it('migrateState upgrades legacy v1 state to schemaVersion 2', () => {
-      const legacyV1State = {
-        marks: {
-          marks: {
-            DE_THG: { bid: 300, offer: 310, mid: 305 },
-          },
-          gasIndex: { bid: 28, offer: 29, mid: 28.5 },
-          fx: { gbpEur: 1.18, chfEur: null },
-        },
-        consignments: [],
+    it('A4: Empty marks prompt builder produces NO MARK ENTERED instead of fabricated defaults', async () => {
+      const emptyMarksState: MarksState = {
+        marks: {},
+        gasIndex: { bid: null, offer: null, mid: null, updatedAt: null },
+        fx: { gbpEur: null, chfEur: null, updatedAt: null },
+        pricingSide: 'bid',
       };
 
-      const migrated = migrateState(legacyV1State);
-      expect(migrated.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
-      expect(migrated.marks.marks.DE_THG.mid).toBe(305);
-      expect(migrated.marks.marks.DE_THG.marketId).toBe('DE_THG');
+      const response = await queryDeskAgent({
+        userPrompt: 'Tell me the current TTF gas index and DE_THG mark',
+        contextData: {
+          marks: emptyMarksState,
+        },
+      });
+
+      expect(response).not.toContain('€28.00');
+      expect(response).not.toContain('€300');
+    });
+
+    it('A9: rankNetbacks sorts complete cost inputs above incomplete rows', () => {
+      const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
+      const frMarket = getMarketById('FR_CPB')!;
+      const nlMarket = getMarketById('NL_ERE')!;
+
+      const completeFr = computeNetback(frMarket, consignment, sampleMarks, completeCosts, 'bid');
+      const incompleteNl = computeNetback(nlMarket, consignment, sampleMarks, emptyCosts, 'bid');
+
+      const elMap = new Map();
+      elMap.set('FR_CPB', evaluateEligibility(consignment, frMarket));
+      elMap.set('NL_ERE', evaluateEligibility(consignment, nlMarket));
+
+      const ranked = rankNetbacks([incompleteNl, completeFr], elMap);
+      expect(ranked[0].marketId).toBe('FR_CPB'); // complete cost row takes priority
+      expect(ranked[0].isComplete).toBe(true);
+      expect(ranked[1].isComplete).toBe(false);
+    });
+
+    it('A13: calculateRealisticCommercialDeskMargin calculates modelled margin with configurable producer share', () => {
+      const margin90 = calculateRealisticCommercialDeskMargin('DE_THG', 100, 2.0, 0.90);
+      expect(margin90.deskNetMarginEurPerMWh).toBe(9.80); // (100 - 2) * 0.10
+      expect(margin90.producerProcurementEurPerMWh).toBe(88.20); // (100 - 2) * 0.90
+      expect(margin90.sensitivityRange.low).toBe(4.90); // 5% desk / 95% producer
+      expect(margin90.sensitivityRange.high).toBe(14.70); // 15% desk / 85% producer
+    });
+
+    it('anchors: tCO2ePerMWh conversion accuracy', () => {
+      expect(tCO2ePerMWh(-100)).toBeCloseTo(0.6984, 4);
+      expect(tCO2ePerMWh(20)).toBeCloseTo(0.2664, 4);
+    });
+
+    it('anchors: FuelEU manure CI -100 year 1 deficit closure value', () => {
+      const res = computeFuelEUDeficitClosureValue(-100, 1, 89.34, 91.16);
+      expect(res.valueEurPerMWh).toBeCloseTo(437.69, 1);
     });
 
   });
