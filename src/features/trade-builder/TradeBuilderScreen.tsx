@@ -248,72 +248,155 @@ export function TradeBuilderScreen() {
     });
   }, [marketRows, marketSortField, marketSortDir]);
 
-  const renderComplianceChecklist = () => (
-    <div className="bg-[#12171C] rounded p-4 space-y-3">
-      <div className="flex items-center justify-between border-b border-[#1E262F] pb-2">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-[#8B98A5] flex items-center gap-1.5 font-mono">
-          <ShieldCheck className="w-3.5 h-3.5 text-[#8B98A5]" />
-          Regulatory Compliance Checklist ({eligibility.gates.length} Gates)
-        </span>
-        <button
-          onClick={() => setShowFullAudit(!showFullAudit)}
-          className="text-[10px] text-[#2DD4BF] hover:underline font-medium flex items-center gap-1 font-mono"
-        >
-          {showFullAudit ? 'Compact' : 'Legal Citations'}
-          {showFullAudit ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-        </button>
-      </div>
+  // Gate expansion state (Phase 5)
+  const [manuallyToggledGates, setManuallyToggledGates] = useState<Record<string, boolean>>({});
+  const [allExpanded, setAllExpanded] = useState<boolean | null>(null);
 
-      <div className="flex items-center justify-between text-xs px-0.5 font-mono">
-        <span className="text-[10px] text-[#8B98A5] uppercase tracking-wide">Overall Verdict</span>
-        <StatusChip variant={eligibility.overallVerdict} size="xs" />
-      </div>
+  // Summary counts
+  const totalGatesCount = eligibility.gates.length;
+  const passGatesCount = eligibility.gates.filter(g => g.verdict === 'PASS').length;
+  const blockedGatesCount = eligibility.gates.filter(g => g.verdict === 'HARD_BLOCK').length;
+  const unresolvedGatesCount = eligibility.gates.filter(g => g.verdict === 'UNRESOLVED').length;
+  const conditionalGatesCount = eligibility.gates.filter(g => g.verdict === 'CONDITIONAL').length;
 
-      <div className="space-y-2">
-        {eligibility.gates.map((gate, idx) => (
-          <div 
-            key={idx} 
-            className={`p-2.5 rounded text-xs transition-all ${
-              gate.verdict === 'PASS' 
-                ? 'bg-[#0B0E11]' 
-                : gate.verdict === 'CONDITIONAL' || gate.verdict === 'UNRESOLVED'
-                ? 'bg-[#1C160C] border border-[#D99A2B]/40'
-                : 'bg-[#1C0E10] border border-[#D64545]/40'
-            }`}
+  const isGateExpanded = (gate: typeof eligibility.gates[0], idx: number) => {
+    const key = `${gate.gate}_${idx}`;
+    if (manuallyToggledGates[key] !== undefined) {
+      return manuallyToggledGates[key];
+    }
+    if (allExpanded !== null) {
+      return allExpanded;
+    }
+    return gate.verdict !== 'PASS';
+  };
+
+  const toggleGate = (gate: typeof eligibility.gates[0], idx: number) => {
+    const key = `${gate.gate}_${idx}`;
+    const current = isGateExpanded(gate, idx);
+    setManuallyToggledGates(prev => ({ ...prev, [key]: !current }));
+  };
+
+  const toggleExpandAll = () => {
+    if (allExpanded === true) {
+      setAllExpanded(false);
+      setManuallyToggledGates({});
+    } else {
+      setAllExpanded(true);
+      setManuallyToggledGates({});
+    }
+  };
+
+  const renderComplianceChecklist = () => {
+    const areAllClear = passGatesCount === totalGatesCount;
+
+    return (
+      <div className="bg-[#12171C] rounded p-3 space-y-2.5 font-mono text-xs">
+        
+        {/* Header & Global Toggle */}
+        <div className="flex items-center justify-between border-b border-[#1E262F] pb-2">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[#8B98A5] flex items-center gap-1.5">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#8B98A5]" />
+            Regulatory Checklist ({totalGatesCount})
+          </span>
+          <button
+            onClick={toggleExpandAll}
+            className="text-[10px] text-[#2DD4BF] hover:underline font-medium flex items-center gap-1"
           >
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 font-mono">
-                {gate.verdict === 'PASS' && <CheckCircle2 className="w-3.5 h-3.5 text-[#2DD4BF] flex-shrink-0" />}
-                {gate.verdict === 'CONDITIONAL' && <AlertTriangle className="w-3.5 h-3.5 text-[#D99A2B] flex-shrink-0" />}
-                {gate.verdict === 'UNRESOLVED' && <AlertCircle className="w-3.5 h-3.5 text-sky-400 flex-shrink-0" />}
-                {gate.verdict === 'HARD_BLOCK' && <XCircle className="w-3.5 h-3.5 text-[#D64545] flex-shrink-0" />}
-                <span className="font-semibold text-[#E8EDF2] text-[11px]">{gate.gateLabel}</span>
-              </div>
-              <StatusChip variant={gate.verdict} size="xs" />
-            </div>
+            {allExpanded === true ? 'Collapse All' : 'Expand All'}
+          </button>
+        </div>
 
-            <p className="text-[#8B98A5] text-[11px] mt-1 leading-relaxed pl-5">
-              {gate.reason}
-            </p>
-
-            {gate.remedy && (
-              <div className="mt-1.5 ml-5 p-1.5 bg-[#0B0E11] border border-[#D99A2B]/30 rounded text-[10px] text-[#D99A2B]">
-                <strong className="text-[#E8EDF2]">Action:</strong> {gate.remedy}
-              </div>
-            )}
-
-            {showFullAudit && gate.citations.length > 0 && (
-              <div className="mt-2 ml-5 pt-1.5 border-t border-[#1E262F] space-y-1">
-                {gate.citations.map((cit, cIdx) => (
-                  <CitationBlock key={cIdx} citation={cit} compact={false} />
-                ))}
-              </div>
+        {/* Header Summary Line */}
+        <div className="flex items-center justify-between text-xs px-1 py-0.5 bg-[#0B0E11] rounded">
+          <div className="text-[11px]">
+            {areAllClear ? (
+              <span className="text-[#2DD4BF] font-semibold flex items-center gap-1">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                All {totalGatesCount} gates clear
+              </span>
+            ) : (
+              <span className="text-[#E8EDF2]">
+                <strong className="text-[#2DD4BF]">{passGatesCount}</strong> / {totalGatesCount} gates clear
+                {blockedGatesCount > 0 && <span className="text-[#D64545] ml-1">· {blockedGatesCount} blocked</span>}
+                {unresolvedGatesCount > 0 && <span className="text-sky-400 ml-1">· {unresolvedGatesCount} unresolved</span>}
+                {conditionalGatesCount > 0 && <span className="text-[#D99A2B] ml-1">· {conditionalGatesCount} conditional</span>}
+              </span>
             )}
           </div>
-        ))}
+          <StatusChip variant={eligibility.overallVerdict} size="xs" />
+        </div>
+
+        {/* Gates List */}
+        <div className="space-y-1">
+          {eligibility.gates.map((gate, idx) => {
+            const expanded = isGateExpanded(gate, idx);
+
+            return (
+              <div 
+                key={idx} 
+                className={`rounded transition-all ${
+                  gate.verdict === 'PASS' 
+                    ? 'bg-[#0B0E11]' 
+                    : gate.verdict === 'CONDITIONAL' || gate.verdict === 'UNRESOLVED'
+                    ? 'bg-[#1C160C] border border-[#D99A2B]/40'
+                    : 'bg-[#1C0E10] border border-[#D64545]/40'
+                }`}
+              >
+                {/* Single dense line header per gate */}
+                <div 
+                  onClick={() => toggleGate(gate, idx)}
+                  className="h-8 px-2 flex items-center justify-between gap-2 cursor-pointer hover:bg-[#182026]/40 transition-colors select-none"
+                >
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    {gate.verdict === 'PASS' && <CheckCircle2 className="w-3.5 h-3.5 text-[#2DD4BF] shrink-0" />}
+                    {gate.verdict === 'CONDITIONAL' && <AlertTriangle className="w-3.5 h-3.5 text-[#D99A2B] shrink-0" />}
+                    {gate.verdict === 'UNRESOLVED' && <AlertCircle className="w-3.5 h-3.5 text-sky-400 shrink-0" />}
+                    {gate.verdict === 'HARD_BLOCK' && <XCircle className="w-3.5 h-3.5 text-[#D64545] shrink-0" />}
+                    
+                    <span className="font-semibold text-[#E8EDF2] text-[11px] truncate">
+                      {gate.gateLabel}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <StatusChip variant={gate.verdict} size="xs" />
+                    {expanded ? (
+                      <ChevronUp className="w-3 h-3 text-[#8B98A5]" />
+                    ) : (
+                      <ChevronDown className="w-3 h-3 text-[#8B98A5]" />
+                    )}
+                  </div>
+                </div>
+
+                {/* Expanded Details (Auto-expanded for non-PASS or user click) */}
+                {expanded && (
+                  <div className="px-2.5 pb-2.5 pt-1 space-y-1.5 border-t border-[#1E262F]/40">
+                    <p className="text-[#8B98A5] text-[11px] leading-relaxed pl-5 font-sans">
+                      {gate.reason}
+                    </p>
+
+                    {gate.remedy && (
+                      <div className="ml-5 p-1.5 bg-[#0B0E11] border border-[#D99A2B]/30 rounded text-[10px] text-[#D99A2B]">
+                        <strong className="text-[#E8EDF2]">Action:</strong> {gate.remedy}
+                      </div>
+                    )}
+
+                    {gate.citations.length > 0 && (
+                      <div className="ml-5 pt-1 space-y-1">
+                        {gate.citations.map((cit, cIdx) => (
+                          <CitationBlock key={cIdx} citation={cit} compact={true} />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="w-full space-y-4 font-sans text-[#E8EDF2] pb-16">
