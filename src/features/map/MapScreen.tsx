@@ -580,7 +580,34 @@ export function MapScreen() {
           </div>
 
           {/* Map Vector Component with Google Maps Contrast Styling */}
-          <div className="flex-1 relative w-full h-full min-h-[520px] flex items-center justify-center bg-[#0c1427]">
+          <div 
+            onContextMenu={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (hoveredCountry?.iso2) {
+                openContextMenuForCountry(e.clientX, e.clientY, hoveredCountry.iso2, hoveredCountry.iso3);
+              }
+            }}
+            onMouseDown={(e) => {
+              if (e.button === 2) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (hoveredCountry?.iso2) {
+                  openContextMenuForCountry(e.clientX, e.clientY, hoveredCountry.iso2, hoveredCountry.iso3);
+                }
+              }
+            }}
+            onMouseUp={(e) => {
+              if (e.button === 2) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (hoveredCountry?.iso2) {
+                  openContextMenuForCountry(e.clientX, e.clientY, hoveredCountry.iso2, hoveredCountry.iso3);
+                }
+              }
+            }}
+            className="flex-1 relative w-full h-full min-h-[520px] flex items-center justify-center bg-[#0c1427] select-none"
+          >
             
             {/* Zoom / Pan Navigation Controls */}
             <div className="absolute top-3 right-3 z-20 flex flex-col bg-slate-900/90 border border-slate-700 rounded-lg shadow-xl overflow-hidden">
@@ -649,7 +676,25 @@ export function MapScreen() {
                           }}
                           onMouseLeave={() => setHoveredCountry(null)}
                           onClick={() => handleCountryClick(iso3)}
-                          onContextMenu={(e) => handleCountryContextMenu(e, iso3)}
+                          onContextMenu={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleCountryContextMenu(e, iso3);
+                          }}
+                          onMouseDown={(e) => {
+                            if (e.button === 2) {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleCountryContextMenu(e, iso3);
+                            }
+                          }}
+                          onMouseUp={(e) => {
+                            if (e.button === 2) {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleCountryContextMenu(e, iso3);
+                            }
+                          }}
                         />
                       );
                     })
@@ -667,8 +712,19 @@ export function MapScreen() {
                         textAnchor="middle"
                         y={isOrigin || isTarget ? -10 : 3}
                         onClick={() => handleCountryClick(iso3)}
-                        onContextMenu={(e) => handleCountryContextMenu(e, iso3)}
-                        className="cursor-pointer"
+                        onContextMenu={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleCountryContextMenu(e, iso3);
+                        }}
+                        onMouseDown={(e) => {
+                          if (e.button === 2) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleCountryContextMenu(e, iso3);
+                          }
+                        }}
+                        className="cursor-pointer select-none"
                         style={{
                           fontFamily: 'Inter, system-ui, sans-serif',
                           fontSize: isOrigin || isTarget ? 11 : 9,
