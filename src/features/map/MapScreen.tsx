@@ -36,8 +36,10 @@ import {
   Navigation,
   Compass,
   Check,
-  X
+  X,
+  Truck
 } from 'lucide-react';
+import { LogisticsModal } from '../logistics/LogisticsModal';
 
 const EU_COUNTRY_CODES = ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE'];
 
@@ -203,6 +205,7 @@ export function MapScreen() {
   // Right Drawer Tab State: 'PLANTS' | 'COMPLIANCE'
   const [drawerTab, setDrawerTab] = useState<'PLANTS' | 'COMPLIANCE'>('PLANTS');
   const [plantFeedstockFilter, setPlantFeedstockFilter] = useState<string>('ALL');
+  const [isLogisticsModalOpen, setIsLogisticsModalOpen] = useState(false);
 
   // Toggle Fullscreen using HTML5 Fullscreen API with fallback
   const toggleFullscreen = () => {
@@ -1318,6 +1321,14 @@ export function MapScreen() {
           {/* Action buttons */}
           <div className="space-y-2 pt-2 border-t border-stone-800">
             <button
+              onClick={() => setIsLogisticsModalOpen(true)}
+              className="w-full bg-sky-950 hover:bg-sky-900 border border-sky-700 text-sky-300 font-bold py-1.5 px-3 rounded text-xs transition-all flex items-center justify-center gap-1.5 shadow-xs"
+            >
+              <Truck className="w-3.5 h-3.5 text-sky-400" />
+              <span>Route Flow & Logistics Guide: {originCountry} ➔ {targetCountry}</span>
+            </button>
+
+            <button
               onClick={() => {
                 if (targetMarketEntry?.market?.id) {
                   navigate(`/trade?marketId=${targetMarketEntry.market.id}&originCountry=${originCountry}`);
@@ -1325,9 +1336,10 @@ export function MapScreen() {
                   navigate(`/trade?originCountry=${originCountry}`);
                 }
               }}
-              className="w-full bg-teal-600 hover:bg-teal-500 text-white font-bold py-2 px-3 rounded text-xs transition-all flex items-center justify-center gap-1.5"
+              className="w-full bg-teal-600 hover:bg-teal-500 text-white font-bold py-2 px-3 rounded text-xs transition-all flex items-center justify-center gap-1.5 shadow-xs"
             >
-              Open Trade Builder: {COUNTRY_NAMES[originCountry] || originCountry} ➔ {COUNTRY_NAMES[targetCountry] || targetCountry} <ArrowRight className="w-3.5 h-3.5" />
+              <span>Open Trade Builder: {COUNTRY_NAMES[originCountry] || originCountry} ➔ {COUNTRY_NAMES[targetCountry] || targetCountry}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
@@ -1335,6 +1347,13 @@ export function MapScreen() {
 
       </div>
 
+      {/* Cross-Border Gas Flow & Logistics Guide Modal */}
+      <LogisticsModal
+        originCountry={originCountry}
+        targetCountry={targetCountry}
+        isOpen={isLogisticsModalOpen}
+        onClose={() => setIsLogisticsModalOpen(false)}
+      />
     </div>
   );
 }

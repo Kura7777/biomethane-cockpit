@@ -28,6 +28,7 @@ import {
   Truck
 } from 'lucide-react';
 import { LogisticsModal } from '../logistics/LogisticsModal';
+import { calculateLogisticsRoute } from '../../domain/logistics/engine';
 
 const EU_COUNTRY_CODES = ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE'];
 
@@ -549,20 +550,30 @@ export function TradeBuilderScreen() {
                   Route Logistics & Tariffs
                 </button>
                 <button
-                  onClick={() => dispatch({
-                    type: 'SET_COSTS',
-                    costs: {
-                      transferCosts: 2.20,
-                      certificationCosts: 0.45,
-                      logistics: 1.35,
-                      deliveredCost: 65.00,
-                      otherCosts: null,
-                    }
-                  })}
+                  onClick={() => {
+                    const targetC = selectedMarket.country || 'ES';
+                    const logRoute = calculateLogisticsRoute(consignment.originCountry, targetC, state.marks.gasIndex.mid ?? 28.50);
+                    const isDomestic = consignment.originCountry === targetC;
+                    const transfer = isDomestic ? 0.80 : Number((0.80 + Math.abs(logRoute.hubSpread.basisSpreadEurMwh)).toFixed(2));
+                    const cert = 0.45;
+                    const logist = isDomestic ? 0.25 : 0.40;
+                    const procurement = consignment.feedstock.includes('MANURE') ? 65.00 : 58.00;
+
+                    dispatch({
+                      type: 'SET_COSTS',
+                      costs: {
+                        transferCosts: transfer,
+                        certificationCosts: cert,
+                        logistics: logist,
+                        deliveredCost: procurement,
+                        otherCosts: null,
+                      }
+                    });
+                  }}
                   className="px-2 py-0.5 rounded bg-teal-950/80 border border-teal-700 text-teal-300 hover:bg-teal-900 text-[10px] font-bold transition-all"
-                  title="Auto-fill typical European cross-border freight, certification, and procurement benchmark costs"
+                  title="Auto-fill dynamic route-specific grid tariffs, certification, and procurement benchmark costs"
                 >
-                  ✨ Auto-Fill Benchmarks
+                  ✨ Auto-Fill Route Costs
                 </button>
                 <button
                   onClick={() => dispatch({

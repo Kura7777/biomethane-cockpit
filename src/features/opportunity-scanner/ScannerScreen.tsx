@@ -25,8 +25,11 @@ import {
   Zap,
   Sparkles,
   HelpCircle,
-  CheckCircle2
+  CheckCircle2,
+  Truck
 } from 'lucide-react';
+import { LogisticsModal } from '../logistics/LogisticsModal';
+import { calculateLogisticsRoute } from '../../domain/logistics/engine';
 
 export function ScannerScreen() {
   const navigate = useNavigate();
@@ -36,6 +39,7 @@ export function ScannerScreen() {
   const [ciOverride, setCiOverride] = useState<number | null>(null);
   const [filterTradeableOnly, setFilterTradeableOnly] = useState(false);
   const [excludeModelled, setExcludeModelled] = useState(false);
+  const [logisticsModalRoute, setLogisticsModalRoute] = useState<{ origin: string; target: string } | null>(null);
 
   // Active consignment or standard Danish manure benchmark
   const activeConsignment: Consignment = useMemo(() => {
@@ -360,15 +364,24 @@ export function ScannerScreen() {
                         <StaleIndicator updatedAt={markEntry?.updatedAt ?? null} />
                       </td>
 
-                      {/* Open Action */}
+                      {/* Action Buttons */}
                       <td className="py-1.5 px-3 text-center" onClick={e => e.stopPropagation()}>
-                        <button
-                          onClick={() => navigate(`/trade?marketId=${row.marketId}`)}
-                          className="p-1 hover:bg-stone-700 rounded text-stone-400 hover:text-teal-300 transition-colors"
-                          title="Open Trade Dossier"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        </button>
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            onClick={() => setLogisticsModalRoute({ origin: consignment.originCountry, target: marketObj?.country || 'DE' })}
+                            className="p-1 hover:bg-stone-700 rounded text-stone-400 hover:text-sky-300 transition-colors"
+                            title={`View Cross-Border Gas Flow Guide: ${consignment.originCountry} ➔ ${marketObj?.country || 'EU'}`}
+                          >
+                            <Truck className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => navigate(`/trade?marketId=${row.marketId}&originCountry=${consignment.originCountry}`)}
+                            className="p-1 hover:bg-stone-700 rounded text-stone-400 hover:text-teal-300 transition-colors"
+                            title="Open Trade Dossier"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
 
@@ -405,11 +418,55 @@ export function ScannerScreen() {
                       </tr>
                     )}
 
-                    {/* Expandable Gate Checklist Trail */}
+                    {/* Expandable Gate Checklist Trail & Route Logistics */}
                     {isExpanded && el && (
                       <tr className="bg-stone-950/90">
-                        <td colSpan={9} className="p-4 border-t border-stone-800">
-                          <div className="space-y-2.5 max-w-4xl">
+                        <td colSpan={9} className="p-4 border-t border-stone-800 space-y-3">
+                          
+                          {/* Cross-Border Gas Delivery & Pipeline Wheel Section */}
+                          {(() => {
+                            const targetC = marketObj?.country || 'DE';
+                            const logRoute = calculateLogisticsRoute(consignment.originCountry, targetC, state.marks.gasIndex.mid ?? 28.50);
+                            return (
+                              <div className="p-3 bg-stone-900 border border-sky-900/60 rounded-xl space-y-2 text-xs">
+                                <div className="flex items-center justify-between">
+                                  <span className="font-bold text-sky-300 flex items-center gap-1.5 uppercase text-[11px]">
+                                    <Truck className="w-3.5 h-3.5 text-sky-400" />
+                                    Cross-Border Gas Delivery & Flow Options: {consignment.originCountry} ➔ {targetC} (~{logRoute.distanceKm.toLocaleString()} km)
+                                  </span>
+                                  <button
+                                    onClick={() => setLogisticsModalRoute({ origin: consignment.originCountry, target: targetC })}
+                                    className="px-2 py-0.5 rounded bg-sky-950 border border-sky-700 text-sky-300 hover:bg-sky-900 font-bold text-[10px]"
+                                  >
+                                    Open Detailed Guide & Playbook ➔
+                                  </button>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px]">
+                                  <div className="p-2.5 bg-stone-950 rounded border border-teal-900/80">
+                                    <div className="text-teal-400 font-bold text-[10px] uppercase">Option A: Virtual Swap (UDB)</div>
+                                    <div className="text-sm font-bold text-teal-300 mt-0.5">€{logRoute.modes.virtualSwap.totalCostEurMwh.toFixed(2)}/MWh</div>
+                                    <div className="text-[10px] text-stone-500 mt-0.5">Basis spread + electronic UDB PoS transfer</div>
+                                  </div>
+
+                                  <div className="p-2.5 bg-stone-950 rounded border border-sky-900/80">
+                                    <div className="text-sky-400 font-bold text-[10px] uppercase">Option B: Physical Pipeline Wheel</div>
+                                    <div className="text-sm font-bold text-sky-300 mt-0.5">€{logRoute.modes.physicalPipeline.totalCostEurMwh.toFixed(2)}/MWh</div>
+                                    <div className="text-[10px] text-stone-500 mt-0.5">{logRoute.physicalRoute.transitingCountries.join(' ➔ ')} via PRISMA</div>
+                                  </div>
+
+                                  <div className="p-2.5 bg-stone-950 rounded border border-amber-900/80">
+                                    <div className="text-amber-400 font-bold text-[10px] uppercase">Option C: Bio-LNG Road</div>
+                                    <div className="text-sm font-bold text-amber-300 mt-0.5">€{logRoute.modes.bioLng.totalCostEurMwh.toFixed(2)}/MWh</div>
+                                    <div className="text-[10px] text-stone-500 mt-0.5">Cryogenic ISO road trailer freight</div>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })()}
+
+                          {/* Regulatory Gate Audit */}
+                          <div className="space-y-2 max-w-4xl pt-1">
                             <div className="font-bold text-xs uppercase tracking-wider text-stone-300 flex items-center justify-between">
                               <span>Regulatory Compliance Gates: {row.marketName}</span>
                               <span className="text-[10px] text-stone-500 font-mono">
@@ -443,6 +500,16 @@ export function ScannerScreen() {
           </table>
         </div>
       </div>
+
+      {/* Logistics Modal */}
+      {logisticsModalRoute && (
+        <LogisticsModal
+          originCountry={logisticsModalRoute.origin}
+          targetCountry={logisticsModalRoute.target}
+          isOpen={true}
+          onClose={() => setLogisticsModalRoute(null)}
+        />
+      )}
     </div>
   );
 }
