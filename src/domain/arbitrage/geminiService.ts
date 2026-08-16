@@ -1,5 +1,9 @@
 import { ArbitrageOpportunity, RegulatoryWhatIfScenario } from './types';
-import { MarksState } from '../netback/types';
+import { MarksState, CostInputs } from '../netback/types';
+import { Consignment } from '../consignment/types';
+import { BiomethanePlant, DeveloperPortfolio, CountryMacroStat } from '../plants/types';
+import { BIOMETHANE_PLANTS, DEVELOPER_PORTFOLIOS, COUNTRY_MACRO_STATS, searchPlants } from '../plants/registry';
+import { MARKETS } from '../markets/registry';
 
 export type GeminiModelId = 
   | 'gemini-3.7-flash'
@@ -21,11 +25,14 @@ export interface GeminiAgentRequest {
     topOpportunities?: ArbitrageOpportunity[];
     scenario?: RegulatoryWhatIfScenario;
     marks?: MarksState;
+    costs?: CostInputs;
+    activeConsignment?: Consignment | null;
+    savedAssessmentsCount?: number;
   };
 }
 
 /**
- * Call Google Gemini API with smart resilient multi-model routing
+ * Call Google Gemini API with comprehensive context access across the entire biomethane desk application
  */
 export async function queryDeskAgent(req: GeminiAgentRequest): Promise<string> {
   const apiKey = req.apiKey?.trim();
@@ -43,32 +50,91 @@ export async function queryDeskAgent(req: GeminiAgentRequest): Promise<string> {
       'gemini-2.5-flash',
     ];
 
-    // Remove duplicates while preserving user's top preference
     const uniqueModels = Array.from(new Set(candidateModels));
 
-    let lastError: any = null;
-
-    const systemPrompt = req.systemInstruction || `
-You are the Chief Regulatory & Commercial Biomethane Trading Strategist for a Tier-1 European energy desk.
-You provide precise, mathematically grounded, and legally verified advice citing EUR-Lex directives (RED III 2023/2413), German BImSchG (§37a/38. BImSchV), French Code de l'énergie (CPB/TIRUERT), Dutch ERE regulations, and FuelEU Maritime (2023/1805).
-You have access to the Pan-European Master Biomethane Database: 1,975 active plants, 86.5 TWh/yr capacity, 26 nations. Major developers include Nature Energy (Shell, 4,200 GWh/yr), TotalEnergies (2,800 GWh/yr), ENGIE (2,400 GWh/yr), VERBIO (1,850 GWh/yr), EnviTec (1,250 GWh/yr), and Waga Energy (850 GWh/yr).
-Be concise, quantitative, and professional. Always model realistic desk margins (€2.00-€6.00/MWh) with upstream producer index-linking (~88-92% of the compliance stack).
-`;
-
-    const contextSummary = req.contextData?.topOpportunities ? `
-CURRENT LIVE TOP EUROPEAN ARBITRAGE OPPORTUNITIES:
-${req.contextData.topOpportunities.slice(0, 5).map((o, i) => `
-${i + 1}. ${o.originFlag} ${o.originCountryName} ➔ ${o.targetFlag} ${o.targetMarketName}
-   - Feedstock: ${o.feedstockName} (CI: ${o.carbonIntensity} gCO2e/MJ)
-   - Delivered Compliance Value: €${o.totalTerminalValueStackEurPerMWh?.toFixed(2) ?? 'N/A'}/MWh
-   - Producer Pay (Index-Linked): €${o.producerPayableEurPerMWh.toFixed(2)}/MWh
-   - Transit Tariff: €${o.transitCostEurPerMWh.toFixed(2)}/MWh
-   - REAL DESK NET MARGIN: €${o.deskNetMarginEurPerMWh?.toFixed(2) ?? 'N/A'}/MWh
-   - Legal Status: ${o.overallVerdict} (${o.regulatoryRationale})
+    // Dynamic search for specific plant or country queries in trader prompt
+    const promptLower = req.userPrompt.toLowerCase();
+    const matchedPlants = searchPlants(req.userPrompt).slice(0, 8);
+    const plantSearchResults = matchedPlants.length > 0 ? `
+MATCHED BIOMETHANE FACILITIES FROM 1,986 REGISTER:
+${matchedPlants.map(p => `
+* [${p.id.toUpperCase()}] ${p.name} — ${p.countryFlag} ${p.country} (${p.region})
+  - Operator: ${p.operator} | Status: ${p.status}
+  - Capacity: ${p.capacityNm3h} Nm³/h (${p.annualEnergyGWh} GWh/yr)
+  - Feedstock: ${p.primaryFeedstockCategory} (${p.feedstockDetails})
+  - Upgrading: ${p.upgradingTechnology} | Grid: ${p.gridConnectionType} (${p.networkOperator})
+  - Certification: ${p.certificationAndRegistry}
 `).join('')}
 ` : '';
 
-    const fullPrompt = `${contextSummary}\n\nTRADER INQUIRY:\n${req.userPrompt}`;
+    // Active Market Marks summary
+    const marksSummary = req.contextData?.marks ? `
+LIVE DESK MARKS & ENERGY INDICES:
+* TTF Natural Gas Index: €${req.contextData.marks.gasIndex.bid?.toFixed(2) ?? '28.00'}/MWh (Bid) / €${req.contextData.marks.gasIndex.offer?.toFixed(2) ?? '29.00'}/MWh (Offer)
+* FX: GBP/EUR = ${req.contextData.marks.fx.gbpEur?.toFixed(4) ?? '1.1800'} | CHF/EUR = ${req.contextData.marks.fx.chfEur?.toFixed(4) ?? '1.0600'}
+* DE_THG (Germany): €${req.contextData.marks.marks.DE_THG?.bid ?? '300'}/tCO2e (${req.contextData.marks.marks.DE_THG?.source ?? 'Mark'})
+* FR_CPB (France): €${req.contextData.marks.marks.FR_CPB?.bid ?? '150'}/MWh (Capped at €100 statutory ceiling)
+* NL_ERE (Netherlands): €${req.contextData.marks.marks.NL_ERE?.bid ?? '0.30'}/HBE (approx. €83.40/MWh)
+* UK_RTFO (United Kingdom): £${req.contextData.marks.marks.UK_RTFO?.bid ?? '0.25'}/dRTFC (approx. €42.48/MWh at 144 dRTFC/MWh)
+* FUELEU (Maritime): €${req.contextData.marks.marks.FUELEU?.bid ?? '240'}/MWh (Avoided penalty stack up to €437.69/MWh)
+* IT_CIC (Italy): €${req.contextData.marks.marks.IT_CIC?.bid ?? '375'}/CIC
+` : '';
+
+    // Active Regulatory Policy & Scenario Switches
+    const scenarioSummary = req.contextData?.scenario ? `
+REGULATORY WHAT-IF POLICY SIMULATOR STATE:
+* German THG Double Counting (§37a BImSchG): ${req.contextData.scenario.deDoubleCounting === 'DC_ON' ? '2× Double Counting Active' : '1× Single Counting Baseline (Eliminated)'}
+* UK UDB Mutual Recognition: ${req.contextData.scenario.ukUdbRecognition ? 'Mutual recognition enabled (UK exports clear EU)' : 'Current Law: UK Grid Injected BLOCKED at EU UDB'}
+* FuelEU Non-Compliance Escalation: Year ${req.contextData.scenario.fuelEUEscalationYears} (+${((req.contextData.scenario.fuelEUEscalationYears - 1) * 10)}% penalty multiplier)
+` : '';
+
+    // Active Consignment from Trade Builder (if set)
+    const consignmentSummary = req.contextData?.activeConsignment ? `
+ACTIVE TRADER CONSIGNMENT IN TRADE BUILDER:
+* Name: ${req.contextData.activeConsignment.name}
+* Origin: ${req.contextData.activeConsignment.originCountryName} (${req.contextData.activeConsignment.originCountry})
+* Feedstock: ${req.contextData.activeConsignment.feedstockName} (CI: ${req.contextData.activeConsignment.carbonIntensity} gCO2e/MJ)
+* Certification: ${req.contextData.activeConsignment.certificationScheme} | Custody: ${req.contextData.activeConsignment.chainOfCustody}
+* Injection: ${req.contextData.activeConsignment.injectionCountry} (EU: ${req.contextData.activeConsignment.injectionIsEU ? 'Yes' : 'No'})
+* Volume: ${req.contextData.activeConsignment.volumeMWh ? `${req.contextData.activeConsignment.volumeMWh.toLocaleString()} MWh` : 'Unspecified'}
+` : '';
+
+    // Live Top Arbitrage Deals
+    const arbitrageSummary = req.contextData?.topOpportunities ? `
+LIVE TOP EUROPEAN ARBITRAGE ROUTES (20 Origins x 14 Compliance Destinations):
+${req.contextData.topOpportunities.slice(0, 6).map((o, i) => `
+#${i + 1}. ${o.originFlag} ${o.originCountryName} ➔ ${o.targetFlag} ${o.targetMarketName}
+   - Feedstock: ${o.feedstockName} (CI: ${o.carbonIntensity} gCO2e/MJ)
+   - Total Delivered Value Stack: €${o.totalTerminalValueStackEurPerMWh?.toFixed(2) ?? 'N/A'}/MWh
+   - Upstream Producer Pay (Index-Linked ~90%): €${o.producerPayableEurPerMWh.toFixed(2)}/MWh
+   - Grid Transit Tariff: €${o.transitCostEurPerMWh.toFixed(2)}/MWh
+   - REAL DESK NET MARGIN: €${o.deskNetMarginEurPerMWh?.toFixed(2) ?? 'N/A'}/MWh
+   - Trade P&L (10,000 MWh): €${(o.totalDealProfitEur ?? 0).toLocaleString()}
+   - Regulatory Clearance: ${o.overallVerdict} (${o.regulatoryRationale})
+`).join('')}
+` : '';
+
+    const systemPrompt = req.systemInstruction || `
+You are the Chief Regulatory & Commercial Biomethane Trading Strategist for a Tier-1 European energy trading desk.
+You have FULL, UNRESTRICTED ACCESS to all data layers across the Biomethane Desk Cockpit:
+1. PAN-EUROPEAN PLANT DIRECTORY: Complete register of 1,986 operating facilities (FR: 829, DE: 282, IT: 273, UK: 128, NL: 92, SE: 67, DK: 61, CH: 48, FI: 32, ES: 26, AT: 20, BE: 18, NO: 15, CZ: 13, PT: 13, EE: 12, LV: 12, LT: 12, etc.).
+2. DEVELOPER PORTFOLIOS: Major operators (Nature Energy/Shell: 4,200 GWh/yr, TotalEnergies: 2,800 GWh/yr, ENGIE: 2,400 GWh/yr, VERBIO: 1,850 GWh/yr, EnviTec: 1,250 GWh/yr, Waga Energy: 850 GWh/yr).
+3. STATUTORY FRAMEWORKS & DIRECTIVES: RED III (Directive EU 2023/2413 Article 31a UDB), FuelEU Maritime (Reg. EU 2023/1805), German BImSchG (§37a/38. BImSchV), French Code de l'énergie (CPB/TIRUERT), Dutch ERE, UK RTFO (Ofgem/GGCS), Italian CIC/PNRR.
+4. COMMERCIAL DESK ECONOMICS: Real intermediary desk margins (€2.00–€6.00/MWh) with upstream producer index-linking (~88–92% of delivered compliance value stack).
+Provide quantitative, legally referenced, and commercial trading desk intelligence. Format with markdown tables, clear bullet points, and actionable next steps.
+`;
+
+    const fullPrompt = `
+=== CURRENT LIVE DESK COCKPIT CONTEXT ===
+${marksSummary}
+${scenarioSummary}
+${consignmentSummary}
+${arbitrageSummary}
+${plantSearchResults}
+
+=== TRADER INQUIRY ===
+${req.userPrompt}
+`;
 
     for (const modelName of uniqueModels) {
       try {
@@ -82,7 +148,7 @@ ${i + 1}. ${o.originFlag} ${o.originCountryName} ➔ ${o.targetFlag} ${o.targetM
             systemInstruction: { parts: [{ text: systemPrompt }] },
             generationConfig: {
               temperature: 0.2,
-              maxOutputTokens: 1500,
+              maxOutputTokens: 2000,
             },
           }),
         });
@@ -97,16 +163,13 @@ ${i + 1}. ${o.originFlag} ${o.originCountryName} ➔ ${o.targetFlag} ${o.targetM
 
         const errJson = await response.json().catch(() => ({}));
         const errMsg = errJson.error?.message || `HTTP ${response.status}`;
-        lastError = new Error(`Model ${modelName}: ${errMsg}`);
         console.warn(`[Gemini API] ${modelName} unavailable (${errMsg}). Trying next model...`);
       } catch (err: any) {
-        lastError = err;
         console.warn(`[Gemini API] Failed calling ${modelName}: ${err.message}. Trying next model...`);
       }
     }
 
-    // If all cloud model attempts failed, inform the trader and provide verified local heuristics
-    return `⚠️ [Gemini API Note: Google servers temporarily congested — Using Local Desk Reasoning]\n\n` + generateLocalAgentResponse(req);
+    return `⚠️ [Gemini API Note: Google servers temporarily congested — Using Local Desk Intelligence]\n\n` + generateLocalAgentResponse(req);
   }
 
   // Built-in Local Desk Intelligence (Zero API Key required)
@@ -119,6 +182,25 @@ ${i + 1}. ${o.originFlag} ${o.originCountryName} ➔ ${o.targetFlag} ${o.targetM
 function generateLocalAgentResponse(req: GeminiAgentRequest): string {
   const query = req.userPrompt.toLowerCase();
   const topOpps = req.contextData?.topOpportunities || [];
+
+  const matched = searchPlants(req.userPrompt);
+  if (matched.length > 0) {
+    const p = matched[0];
+    return `### 🏭 Biomethane Facility Dossier: ${p.name}
+
+* **Country / Location**: ${p.countryFlag} ${p.country} (${p.region})
+* **Operator / Developer**: ${p.operator}
+* **Operational Status**: ${p.status} (Commissioned: ${p.commissioningYear})
+* **Capacity**: **${p.capacityNm3h.toLocaleString()} Nm³/h** (~${p.annualEnergyGWh.toLocaleString()} GWh/year)
+* **Primary Feedstock**: ${p.primaryFeedstockCategory} (${p.feedstockDetails})
+* **Upgrading Technology**: ${p.upgradingTechnology}
+* **Grid Connection**: ${p.gridConnectionType} (Network: ${p.networkOperator})
+* **Registry & Certification**: ${p.certificationAndRegistry}
+
+**Compliance Clearance Assessment**:
+* Injected into the **${p.country} gas grid**.
+* Eligible for domestic compliance and cross-border mass balance transfer to RED III compliant member states.`;
+  }
 
   if (query.includes('spanish') || query.includes('spain') || query.includes('cma cgm') || query.includes('fueleu')) {
     return `### ⚡ Commercial Deal Proposal: Spanish Bio-LNG ➔ FuelEU Maritime Compliance
@@ -152,17 +234,6 @@ function generateLocalAgentResponse(req: GeminiAgentRequest): string {
 2. Or liquefy on-site as **physically segregated Bio-LNG** in cryogenic ISO containers for direct transport across the Channel without grid injection.`;
   }
 
-  if (query.includes('germany') || query.includes('double counting') || query.includes('bimschg')) {
-    return `### 📜 Policy Briefing: German THG Quota & Double Counting (§37a BImSchG)
-
-**Current Status (Cabinet Draft 10 December 2025 / 38. BImSchV)**:
-* **The Policy Change**: Double counting of advanced biofuels is eliminated from the 2026 compliance year to prevent quota depression.
-* **The Legal Ambiguity**: Whether biomethane specifically retains double counting (2×) remains **unresolved** pending final parliamentary transposition.
-* **Desk Strategy**:
-  - Model trades using the conservative **1× Single Counting baseline (€118.50/MWh netback)** where the desk captures **€3.50/MWh**.
-  - Capture upside through structured profit-sharing if 2× double counting is retained.`;
-  }
-
   if (topOpps.length > 0) {
     const best = topOpps[0];
     return `### ⚡ Top European Arbitrage Route
@@ -180,6 +251,6 @@ function generateLocalAgentResponse(req: GeminiAgentRequest): string {
 
 **Active Market Parameters**:
 * **Baseline TTF**: €${req.contextData?.marks?.gasIndex.bid?.toFixed(2) ?? '28.00'}/MWh
-* **Monitored Markets**: 27 European producing countries across 14 compliance destinations.
-* **Active Directives**: RED III (Directive (EU) 2023/2413), FuelEU Maritime (Regulation (EU) 2023/1805), German BImSchG, French CPB (Code de l'énergie), Dutch ERE.`;
+* **Master Plant Database**: 1,986 European producing facilities across 26 countries.
+* **Active Directives**: RED III (Directive (EU) 2023/2413), FuelEU Maritime (Regulation (EU) 2023/1805), German BImSchG, French CPB (Code de l'énergie), Dutch ERE, UK RTFO.`;
 }

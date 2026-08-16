@@ -112,6 +112,7 @@ Try asking me:
     setChatLoading(true);
 
     try {
+      const activeCons = state.consignments.find(c => c.id === state.activeConsignmentId) || null;
       const response = await queryDeskAgent({
         apiKey: geminiApiKey,
         model: selectedModel,
@@ -120,6 +121,9 @@ Try asking me:
           topOpportunities,
           scenario,
           marks: state.marks,
+          costs: state.costs,
+          activeConsignment: activeCons,
+          savedAssessmentsCount: state.savedAssessments.length,
         },
       });
 
