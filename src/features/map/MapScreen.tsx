@@ -524,7 +524,7 @@ export function MapScreen() {
           <div>
             <label className="block text-[9px] font-bold text-sky-400 uppercase mb-0.5 flex items-center justify-between">
               <span>1. Origin Country</span>
-              <span className="text-stone-400">({COUNTRY_FLAGS[originCountry]} {originCountry})</span>
+              <span className="text-sky-300 font-mono">[{originCountry}]</span>
             </label>
             <select
               value={originCountry}
@@ -644,22 +644,26 @@ export function MapScreen() {
           
           {/* Dynamic Map Legend */}
           <div className="p-3 bg-[#0a1122]/95 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 text-[11px] font-mono z-10">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <span className="flex items-center gap-1.5 text-sky-400 font-bold">
                 <span className="w-2.5 h-2.5 rounded-full bg-sky-500 animate-pulse"></span>
-                ORIGIN: {COUNTRY_FLAGS[originCountry]} {COUNTRY_NAMES[originCountry] || originCountry}
+                ORIGIN: {COUNTRY_NAMES[originCountry] || originCountry}
               </span>
               <span className="flex items-center gap-1.5 text-emerald-400 font-bold">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
                 PASS (Eligible)
               </span>
+              <span className="flex items-center gap-1.5 text-orange-400 font-bold">
+                <span className="w-2.5 h-2.5 rounded-full bg-orange-600"></span>
+                UNRESOLVED (Dual Branch)
+              </span>
+              <span className="flex items-center gap-1.5 text-amber-400 font-bold">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-600"></span>
+                CONDITIONAL
+              </span>
               <span className="flex items-center gap-1.5 text-red-400 font-bold">
                 <span className="w-2.5 h-2.5 rounded-full bg-red-600"></span>
                 BLOCKED
-              </span>
-              <span className="flex items-center gap-1.5 text-amber-400">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-600"></span>
-                CONDITIONAL
               </span>
             </div>
 
@@ -1255,7 +1259,9 @@ export function MapScreen() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between border-b border-stone-800 pb-1.5">
                   <span className="text-[10px] text-stone-400 uppercase">Export Route Spreads</span>
-                  <span className="text-stone-200 font-bold">{COUNTRY_FLAGS[originCountry]} {originCountry} ➔ {COUNTRY_FLAGS[targetCountry]} {targetCountry}</span>
+                  <span className="text-stone-200 font-bold font-mono">
+                    {COUNTRY_NAMES[originCountry] || originCountry} ➔ {COUNTRY_NAMES[targetCountry] || targetCountry}
+                  </span>
                 </div>
 
                 {targetMarketEntry ? (
@@ -1312,12 +1318,12 @@ export function MapScreen() {
                 if (targetMarketEntry?.market?.id) {
                   navigate(`/trade?marketId=${targetMarketEntry.market.id}&originCountry=${originCountry}`);
                 } else {
-                  navigate('/trade');
+                  navigate(`/trade?originCountry=${originCountry}`);
                 }
               }}
               className="w-full bg-teal-600 hover:bg-teal-500 text-white font-bold py-2 px-3 rounded text-xs transition-all flex items-center justify-center gap-1.5"
             >
-              Open Trade Builder for {inspectedCountryName} <ArrowRight className="w-3.5 h-3.5" />
+              Open Trade Builder: {COUNTRY_NAMES[originCountry] || originCountry} ➔ {COUNTRY_NAMES[targetCountry] || targetCountry} <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
 

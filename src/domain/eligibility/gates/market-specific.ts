@@ -95,7 +95,7 @@ export function evaluateMarketSpecificGate(consignment: Consignment, market: Mar
         gate: GATE,
         gateLabel: GATE_LABEL,
         verdict: 'PASS',
-        reason: 'Spain Enagás GdO system operational under Real Decreto 376/2022. Widest origination spread in Europe (~18 operational plants, 200+ in pipeline). Direct export to Germany and France via Ex-Domain cancellations.',
+        reason: 'Spain Enagás GdO system operational under Real Decreto 376/2022. Widest origination spread in Europe (26 operational plants on GIE/EBA 2026 Map, 200+ in pipeline). Direct export to Germany and France via Ex-Domain cancellations.',
         remedy: null,
         citations: [CITATIONS.ES_RD_376],
         confidence: 'HIGH',
