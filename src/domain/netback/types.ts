@@ -17,7 +17,6 @@ export interface CostInputs {
   transferCosts: number | null;     // €/MWh
   certificationCosts: number | null; // €/MWh
   logistics: number | null;         // €/MWh
-  deliveredCost: number | null;     // €/MWh (procurement cost / fallback fixedPrice)
   otherCosts: number | null;        // €/MWh
   producerPricing?: ProducerPricing | null;
 }
@@ -58,12 +57,10 @@ export interface NetbackBranch {
   certificateValue: CertificateValueResult;
   netNetback: number | null;
   grossValueSpread: number | null;   // Delivered Netback − Producer Payable
-  impliedMargin: number | null;      // Alias for grossValueSpread
   producerPayable: number | null;   // Amount paid to producer (€/MWh)
   deskMargin: number | null;        // Realized commercial desk margin (€/MWh)
   marginPercent: number | null;     // deskMargin / netNetback * 100
   grossSpreadPnL: number | null;    // grossValueSpread * volume
-  totalPnL: number | null;          // Alias for deskPnL
   deskPnL: number | null;           // deskMargin * volume
   isComplete: boolean;
   missingInputs: string[];
@@ -87,12 +84,10 @@ export interface NetbackResult {
   totalCosts: number | null;        // Sum of all entered cost inputs
   netNetback: number | null;        // cert + molecule - costs (null if cert is null)
   grossValueSpread: number | null;   // Delivered Netback − Producer Payable (€/MWh)
-  impliedMargin: number | null;      // Alias for grossValueSpread
   producerPayable: number | null;   // Amount paid to producer (€/MWh)
   deskMargin: number | null;        // Realized commercial desk margin (€/MWh)
   marginPercent: number | null;     // deskMargin / netNetback * 100
   grossSpreadPnL: number | null;    // grossValueSpread * volume
-  totalPnL: number | null;          // Alias for deskPnL
   deskPnL: number | null;           // deskMargin * volume
   isTheoretical: boolean;           // true if market is blocked
   blockingReason: string | null;
@@ -127,8 +122,16 @@ export interface MarksState {
   marks: Record<string, MarkEntry>;
   gasIndex: GasIndexMark;
   fx: FxMark;
-  pricingSide: PriceSide;           // Global default pricing side (default 'bid' for selling certificates)
-  pricingSides?: PricingSides;      // Optional per-leg sides state
+  /**
+   * The desk's pricing sides, per leg. This is the single stored source of truth.
+   *
+   * There was previously also a scalar `pricingSide` here. Every screen read the
+   * scalar and passed it down, which broadcast one side to both legs and silently
+   * discarded whatever was in this object — so per-leg pricing was unreachable in
+   * the running app. Callers now pass this object, or a scalar explicitly when they
+   * really do mean "both legs at the same side".
+   */
+  pricingSides: PricingSides;
   fuelEUOptions?: FuelEUOptions;
 }
 

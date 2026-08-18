@@ -21,7 +21,8 @@ import {
   Check,
   Zap,
   HelpCircle,
-  CornerDownLeft
+  CornerDownLeft,
+  LucideIcon
 } from 'lucide-react';
 
 interface ChatMessage {
@@ -31,7 +32,7 @@ interface ChatMessage {
   timestamp: string;
 }
 
-const PAGE_CONTEXT_TITLES: Record<string, { title: string; icon: any; suggestions: string[] }> = {
+const PAGE_CONTEXT_TITLES: Record<string, { title: string; icon: LucideIcon; suggestions: string[] }> = {
   '/': {
     title: 'Map & Export Clearing',
     icon: Globe,
@@ -63,7 +64,7 @@ const PAGE_CONTEXT_TITLES: Record<string, { title: string; icon: any; suggestion
     ],
   },
   '/plants': {
-    title: '1,986 Facilities Directory',
+    title: '1,975 Facilities Directory',
     icon: Building2,
     suggestions: [
       'Find the largest biomethane plants in Denmark and their operators',
@@ -196,11 +197,12 @@ export function FloatingAgentDrawer() {
       };
 
       setMessages(prev => [...prev, agentMsg]);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : 'Failed to reach AI agent.';
       const errorMsg: ChatMessage = {
         id: `agent-${Date.now()}`,
         role: 'agent',
-        content: `⚠️ Error executing query: ${err?.message || 'Failed to reach AI agent.'}`,
+        content: `⚠️ Error executing query: ${errMsg}`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages(prev => [...prev, errorMsg]);
@@ -408,7 +410,7 @@ export function FloatingAgentDrawer() {
                   <div className="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></div>
                   <div className="w-2 h-2 rounded-full bg-teal-400 animate-pulse delay-75"></div>
                   <div className="w-2 h-2 rounded-full bg-teal-400 animate-pulse delay-150"></div>
-                  <span className="text-micro text-stone-400 ml-1">Analyzing 1,986 registry & marks...</span>
+                  <span className="text-micro text-stone-400 ml-1">Analyzing 1,975 registry & marks...</span>
                 </div>
               </div>
             )}

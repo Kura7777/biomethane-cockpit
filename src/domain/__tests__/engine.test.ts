@@ -27,7 +27,6 @@ const emptyCosts: CostInputs = {
   transferCosts: null,
   certificationCosts: null,
   logistics: null,
-  deliveredCost: null,
   otherCosts: null,
 };
 
@@ -35,7 +34,6 @@ const completeCosts: CostInputs = {
   transferCosts: 2.0,
   certificationCosts: 0.5,
   logistics: 1.5,
-  deliveredCost: 85.0,
   otherCosts: 0.0,
   producerPricing: {
     mode: 'FIXED_PRICE',
@@ -59,7 +57,7 @@ const sampleMarks: MarksState = {
   },
   gasIndex: { bid: 28.00, offer: 29.00, mid: 28.50, updatedAt: new Date().toISOString() },
   fx: { gbpEur: 1.18, chfEur: 1.06, updatedAt: new Date().toISOString() },
-  pricingSide: 'bid',
+  pricingSides: { certificateSide: 'bid', moleculeSide: 'bid' },
 };
 
 describe('European Biomethane Desk Cockpit — Work Order Verification & Regression Suite', () => {
@@ -225,7 +223,7 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
         marks: {},
         gasIndex: { bid: null, offer: null, mid: null, updatedAt: null },
         fx: { gbpEur: null, chfEur: null, updatedAt: null },
-        pricingSide: 'bid',
+        pricingSides: { certificateSide: 'bid', moleculeSide: 'bid' },
       };
 
       const response = await queryDeskAgent({
@@ -269,8 +267,6 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
       const margin90 = calculateRealisticCommercialDeskMargin('DE_THG', 100, 2.0, 0.90);
       expect(margin90.deskNetMarginEurPerMWh).toBe(9.80); // (100 - 2) * 0.10
       expect(margin90.producerProcurementEurPerMWh).toBe(88.20); // (100 - 2) * 0.90
-      expect(margin90.sensitivityRange.low).toBe(4.90); // 5% desk / 95% producer
-      expect(margin90.sensitivityRange.high).toBe(14.70); // 15% desk / 85% producer
 
       // Unclamped loss-making route
       const lossMargin = calculateRealisticCommercialDeskMargin('DE_THG', -10, 2.0, 0.90);
@@ -288,6 +284,16 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
       expect(res.valueEurPerMWh).toBeCloseTo(437.69, 1);
     });
 
+    it('guards against division by zero when shipActualCI <= 0 in FuelEU calculation', () => {
+      const resZero = computeFuelEUDeficitClosureValue(-100, 1, 89.34, 0);
+      expect(resZero.valueEurPerMWh).toBe(0);
+      expect(resZero.calculation).toContain('must be positive');
+
+      const resNeg = computeFuelEUDeficitClosureValue(-100, 1, 89.34, -50);
+      expect(resNeg.valueEurPerMWh).toBe(0);
+      expect(resNeg.calculation).toContain('must be positive');
+    });
+
   });
 
   describe('SECTION 1 — Producer Pricing Modes & Desk Margin Tests', () => {
@@ -299,7 +305,6 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
         transferCosts: 0,
         certificationCosts: 0,
         logistics: 0,
-        deliveredCost: 209.04,
         otherCosts: 0,
         producerPricing: {
           mode: 'FIXED_PRICE',
@@ -322,7 +327,6 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
         transferCosts: 0,
         certificationCosts: 0,
         logistics: 0,
-        deliveredCost: null,
         otherCosts: 0,
         producerPricing: {
           mode: 'INDEX_LINKED',
@@ -348,7 +352,6 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
         transferCosts: 0,
         certificationCosts: 0,
         logistics: 0,
-        deliveredCost: null,
         otherCosts: 0,
         producerPricing: {
           mode: 'INDEX_LINKED',
@@ -372,7 +375,6 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
         transferCosts: 0,
         certificationCosts: 0,
         logistics: 0,
-        deliveredCost: null,
         otherCosts: 0,
         producerPricing: {
           mode: 'FIXED_PRICE',
@@ -396,7 +398,6 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
         transferCosts: 0,
         certificationCosts: 0,
         logistics: 0,
-        deliveredCost: null,
         otherCosts: 0,
         producerPricing: {
           mode: 'INDEX_LINKED',
@@ -421,7 +422,6 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
         transferCosts: 0,
         certificationCosts: 0,
         logistics: 0,
-        deliveredCost: null,
         otherCosts: 0,
         producerPricing: {
           mode: 'INDEX_LINKED',
@@ -448,7 +448,6 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
         transferCosts: 0,
         certificationCosts: 0,
         logistics: 0,
-        deliveredCost: null,
         otherCosts: 0,
         producerPricing: {
           mode: 'FIXED_PRICE',
@@ -473,7 +472,6 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
         transferCosts: 0,
         certificationCosts: 0,
         logistics: 0,
-        deliveredCost: null,
         otherCosts: 0,
         producerPricing: {
           mode: 'INDEX_LINKED',
@@ -584,13 +582,12 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
             chfEur: 1.05,
             updatedAt: '2026-08-12T08:00:00Z',
           },
-          pricingSide: 'bid',
+          pricingSides: { certificateSide: 'bid', moleculeSide: 'bid' },
         },
         costs: {
           transferCosts: 0.8,
           certificationCosts: 0.45,
           logistics: 1.2,
-          deliveredCost: null,
           otherCosts: 0,
           producerPricing: null,
         },
@@ -660,14 +657,13 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
         },
         gasIndex: { bid: 28.0, offer: 29.0, mid: 28.5, updatedAt: null },
         fx: { gbpEur: null, chfEur: null, updatedAt: null },
-        pricingSide: 'bid',
+        pricingSides: { certificateSide: 'bid', moleculeSide: 'bid' },
       };
 
       const costs: CostInputs = {
         transferCosts: 0.5,
         certificationCosts: 0.2,
         logistics: 1.0,
-        deliveredCost: null,
         otherCosts: 0,
         producerPricing: {
           mode: 'INDEX_LINKED',
@@ -723,14 +719,13 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
         },
         gasIndex: { bid: 28.0, offer: 29.0, mid: 28.5, updatedAt: null },
         fx: { gbpEur: null, chfEur: null, updatedAt: null },
-        pricingSide: 'bid',
+        pricingSides: { certificateSide: 'bid', moleculeSide: 'bid' },
       };
 
       const costs: CostInputs = {
         transferCosts: 0.5,
         certificationCosts: 0.2,
         logistics: 1.0,
-        deliveredCost: null,
         otherCosts: 0,
         producerPricing: {
           mode: 'INDEX_LINKED',
@@ -788,7 +783,7 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
         },
         gasIndex: { bid: null, offer: null, mid: null, updatedAt: null },
         fx: { gbpEur: null, chfEur: null, updatedAt: null },
-        pricingSide: 'bid',
+        pricingSides: { certificateSide: 'bid', moleculeSide: 'bid' },
       };
       const certVal = computeCertificateValue(frMarket, REFERENCE_CONSIGNMENTS.DANISH_MANURE, highMarks, 'bid');
       expect(certVal?.valueEurPerMWh).toBe(100.0);
@@ -809,13 +804,12 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
         },
         gasIndex: { bid: 28.0, offer: 29.0, mid: 28.5, updatedAt: null },
         fx: { gbpEur: null, chfEur: null, updatedAt: null },
-        pricingSide: 'bid',
+        pricingSides: { certificateSide: 'bid', moleculeSide: 'bid' },
       };
       const deCosts: CostInputs = {
         transferCosts: 0,
         certificationCosts: 0,
         logistics: 0,
-        deliveredCost: null,
         otherCosts: 0,
         producerPricing: {
           mode: 'INDEX_LINKED',
@@ -848,7 +842,6 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
         transferCosts: 0,
         certificationCosts: 0,
         logistics: 0,
-        deliveredCost: null,
         otherCosts: 0,
         producerPricing: null,
       };
@@ -893,14 +886,13 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
           },
         },
         fx: { gbpEur: null, chfEur: null, updatedAt: null },
-        pricingSide: 'bid',
+        pricingSides: { certificateSide: 'bid', moleculeSide: 'bid' },
       };
 
       const costs: CostInputs = {
         transferCosts: 0.5,
         certificationCosts: 0.2,
         logistics: 1.0,
-        deliveredCost: null,
         otherCosts: 0,
         producerPricing: {
           mode: 'INDEX_LINKED',
@@ -968,14 +960,13 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
           },
         },
         fx: { gbpEur: null, chfEur: null, updatedAt: null },
-        pricingSide: 'bid',
+        pricingSides: { certificateSide: 'bid', moleculeSide: 'bid' },
       };
 
       const costs: CostInputs = {
         transferCosts: 0.5,
         certificationCosts: 0.2,
         logistics: 1.0,
-        deliveredCost: null,
         otherCosts: 0,
         producerPricing: {
           mode: 'INDEX_LINKED',
@@ -1054,14 +1045,13 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
             note: null,
           },
         },
-        pricingSide: 'bid',
+        pricingSides: { certificateSide: 'bid', moleculeSide: 'bid' },
       };
 
       const costs: CostInputs = {
         transferCosts: 0.5,
         certificationCosts: 0.2,
         logistics: 1.0,
-        deliveredCost: null,
         otherCosts: 0,
         producerPricing: {
           mode: 'INDEX_LINKED',
@@ -1102,7 +1092,6 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
           transferCosts: 1.0,
           certificationCosts: 0.5,
           logistics: 1.5,
-          deliveredCost: null,
           otherCosts: 0,
           producerPricing: {
             mode: 'INDEX_LINKED',
@@ -1131,7 +1120,6 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
           transferCosts: 1.0,
           certificationCosts: 0.5,
           logistics: 1.5,
-          deliveredCost: null,
           otherCosts: 0,
           producerPricing: {
             mode: 'FIXED_PRICE',
@@ -1190,7 +1178,7 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
         const deMarket = getMarketById('DE_THG')!;
 
         // 1. Global toggle 'mid' with no explicit sides
-        const globalMidMarks: MarksState = { ...sampleMarks, pricingSide: 'mid' };
+        const globalMidMarks: MarksState = { ...sampleMarks, pricingSides: { certificateSide: 'mid', moleculeSide: 'mid' } };
         const midRes = computeNetback(deMarket, consignment, globalMidMarks, emptyCosts);
         expect(midRes.pricingSides).toEqual({ certificateSide: 'mid', moleculeSide: 'mid' });
         expect(midRes.moleculeValue).toBe(28.50);
@@ -1211,7 +1199,6 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
           transferCosts: 1.0,
           certificationCosts: 0.5,
           logistics: 1.5,
-          deliveredCost: null,
           otherCosts: 0,
           producerPricing: {
             mode: 'INDEX_LINKED',
@@ -1355,7 +1342,7 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
             },
             gasIndex: { bid: 28.0, offer: 29.0, mid: 28.5, updatedAt: null, provenance: null },
             fx: { gbpEur: 1.17, chfEur: 1.05, updatedAt: null, provenance: null },
-            pricingSide: 'bid',
+            pricingSides: { certificateSide: 'bid', moleculeSide: 'bid' },
           },
           consignments: [
             {
@@ -1591,7 +1578,7 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
             marks: {},
             gasIndex: { bid: 28.0, offer: 29.0, mid: 28.5, updatedAt: null, provenance: null },
             fx: { gbpEur: 1.17, chfEur: 1.05, updatedAt: null, provenance: null },
-            pricingSide: 'bid',
+            pricingSides: { certificateSide: 'bid', moleculeSide: 'bid' },
           },
           consignments: [
             {
@@ -1626,10 +1613,141 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
         };
 
         const migrated = migrateState(v6State);
-        expect(migrated.schemaVersion).toBe(7);
+        expect(migrated.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
         expect(migrated.consignments).toHaveLength(1);
         expect(migrated.consignments[0].counterparty).toBeNull();
         expect(migrated.consignments[0].deliveryPeriod?.complianceYear).toBe(2026);
+      });
+
+      it('v7 → v8 migration: the scalar pricingSide becomes the per-leg pair on both legs', () => {
+        // A genuine scalar-only v7 payload: the per-leg pair was optional in v7, so it
+        // may be absent entirely. Strip it rather than inheriting one from the fixture.
+        const { pricingSides: _omitted, ...scalarOnlyMarks } = sampleMarks;
+        const v7State = {
+          schemaVersion: 7,
+          marks: { ...scalarOnlyMarks, pricingSide: 'offer' },
+          consignments: [REFERENCE_CONSIGNMENTS.DANISH_MANURE],
+          activeConsignmentId: REFERENCE_CONSIGNMENTS.DANISH_MANURE.id,
+          costs: emptyCosts,
+          savedAssessments: [],
+          selectedMarketId: 'DE_THG',
+        };
+
+        const migrated = migrateState(v7State);
+        expect(migrated.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+        expect(migrated.marks.pricingSides).toEqual({
+          certificateSide: 'offer',
+          moleculeSide: 'offer',
+        });
+        // The retired scalar must not survive as a second source of truth.
+        expect('pricingSide' in migrated.marks).toBe(false);
+      });
+
+      it('v7 → v8 migration: deliveredCost becomes the fixed producer price when that slot is empty', () => {
+        const v7State = {
+          schemaVersion: 7,
+          marks: sampleMarks,
+          consignments: [REFERENCE_CONSIGNMENTS.DANISH_MANURE],
+          activeConsignmentId: REFERENCE_CONSIGNMENTS.DANISH_MANURE.id,
+          costs: {
+            ...emptyCosts,
+            deliveredCost: 62.4,
+            producerPricing: {
+              mode: 'FIXED_PRICE' as const,
+              fixedPriceEurPerMwh: null,
+              indexLinkedShare: null,
+              source: null,
+              lastVerified: null,
+              confidence: 'UNVERIFIED' as const,
+            },
+          },
+          savedAssessments: [],
+          selectedMarketId: 'DE_THG',
+        };
+
+        const migrated = migrateState(v7State);
+        expect(migrated.costs.producerPricing?.fixedPriceEurPerMwh).toBe(62.4);
+        expect('deliveredCost' in migrated.costs).toBe(false);
+      });
+
+      it('v7 → v8 migration: deliveredCost is dropped rather than overwriting a set fixed price', () => {
+        const v7State = {
+          schemaVersion: 7,
+          marks: sampleMarks,
+          consignments: [REFERENCE_CONSIGNMENTS.DANISH_MANURE],
+          activeConsignmentId: REFERENCE_CONSIGNMENTS.DANISH_MANURE.id,
+          costs: {
+            ...emptyCosts,
+            deliveredCost: 62.4,
+            producerPricing: {
+              mode: 'FIXED_PRICE' as const,
+              fixedPriceEurPerMwh: 209.04,
+              indexLinkedShare: null,
+              source: 'Signed contract',
+              lastVerified: '2026-08-16',
+              confidence: 'VERIFIED' as const,
+            },
+          },
+          savedAssessments: [],
+          selectedMarketId: 'DE_THG',
+        };
+
+        const migrated = migrateState(v7State);
+        // The contracted price stands. Overwriting it with a legacy field the engine
+        // never read would be inventing a term of the deal.
+        expect(migrated.costs.producerPricing?.fixedPriceEurPerMwh).toBe(209.04);
+        expect('deliveredCost' in migrated.costs).toBe(false);
+      });
+
+      it('v7 → v8 migration: deliveredCost is dropped under INDEX_LINKED, never coerced into a share', () => {
+        const v7State = {
+          schemaVersion: 7,
+          marks: sampleMarks,
+          consignments: [REFERENCE_CONSIGNMENTS.DANISH_MANURE],
+          activeConsignmentId: REFERENCE_CONSIGNMENTS.DANISH_MANURE.id,
+          costs: {
+            ...emptyCosts,
+            deliveredCost: 62.4,
+            producerPricing: {
+              mode: 'INDEX_LINKED' as const,
+              fixedPriceEurPerMwh: null,
+              indexLinkedShare: 0.9,
+              source: null,
+              lastVerified: null,
+              confidence: 'UNVERIFIED' as const,
+            },
+          },
+          savedAssessments: [],
+          selectedMarketId: 'DE_THG',
+        };
+
+        const migrated = migrateState(v7State);
+        expect(migrated.costs.producerPricing?.indexLinkedShare).toBe(0.9);
+        expect(migrated.costs.producerPricing?.fixedPriceEurPerMwh).toBeNull();
+        expect('deliveredCost' in migrated.costs).toBe(false);
+      });
+
+      it('v7 → v8 migration: an already-set per-leg pair is preserved over the scalar', () => {
+        const v7State = {
+          schemaVersion: 7,
+          marks: {
+            ...sampleMarks,
+            pricingSide: 'bid',
+            pricingSides: { certificateSide: 'offer', moleculeSide: 'mid' },
+          },
+          consignments: [REFERENCE_CONSIGNMENTS.DANISH_MANURE],
+          activeConsignmentId: REFERENCE_CONSIGNMENTS.DANISH_MANURE.id,
+          costs: emptyCosts,
+          savedAssessments: [],
+          selectedMarketId: 'DE_THG',
+        };
+
+        const migrated = migrateState(v7State);
+        // The scalar could never express a split pair, so the pair wins.
+        expect(migrated.marks.pricingSides).toEqual({
+          certificateSide: 'offer',
+          moleculeSide: 'mid',
+        });
       });
     });
   });

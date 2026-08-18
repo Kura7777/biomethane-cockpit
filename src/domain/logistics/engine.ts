@@ -57,8 +57,8 @@ export function findShortestPipelinePath(fromCountry: string, toCountry: string)
       }
       if (!visited.has(neighbor)) {
         visited.add(neighbor);
+        queue.push([...path, neighbor]);
       }
-      queue.push([...path, neighbor]);
     }
   }
 
@@ -179,8 +179,8 @@ export function calculateLogisticsRoute(
     }
   }
 
-  const totalPhysicalTariffEurMwh = (hasNullTariff || physicalIps.length === 0)
-    ? null
+  const totalPhysicalTariffEurMwh = (hasNullTariff || (physicalIps.length === 0 && origin !== target))
+    ? (origin === target ? 0 : null)
     : physicalIps.reduce((sum, ip) => sum + (ip.totalTariffEurMwh ?? 0), 0);
   
   // Pipeline Shrinkage & Fuel Gas (null if distance or gas price is not provided)
@@ -392,7 +392,7 @@ export function calculateLogisticsRoute(
   // Execution Step-by-Step Playbook for Trader (Dynamically derived from actual trade)
   const executionSteps = [
     {
-      phase: 'Step 1: Upstream Origination & Plant Offtake',
+      phase: '01',
       title: `Sign EFET Biomethane Annex with ${originName} Producer`,
       actor: 'Trading Desk & Upstream Producer',
       actions: [
@@ -402,7 +402,7 @@ export function calculateLogisticsRoute(
       ],
     },
     {
-      phase: 'Step 2: Commercial Delivery & Hub Execution',
+      phase: '02',
       title: virtualSwapBreakdown.isRecommended
         ? `Execute Inter-Hub Swaps at ${originHub.hubName.split(' ')[0]} & ${targetHub.hubName.split(' ')[0]}`
         : 'Book PRISMA Interconnection Point Capacity Auctions',
@@ -414,7 +414,7 @@ export function calculateLogisticsRoute(
       ],
     },
     {
-      phase: 'Step 3: Union Database (UDB) Consignment Transfer',
+      phase: '03',
       title: `Transfer Proof of Sustainability (PoS) in UDB: ${originName} ➔ ${targetName}`,
       actor: 'Compliance Operations',
       actions: [
@@ -424,7 +424,7 @@ export function calculateLogisticsRoute(
       ],
     },
     {
-      phase: 'Step 4: Downstream Settlement & Statutory Cancellation',
+      phase: '04',
       title: `Target Registry Certificate Issuance & Settlement: ${targetRegistry}`,
       actor: 'Settlement & Regulatory Reporting Desk',
       actions: [

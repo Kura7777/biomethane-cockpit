@@ -152,7 +152,7 @@ export function generateTradeSummary(assessment: TradeAssessment): string {
       lines.push(`  ${b.branchLabel.toUpperCase()}:`);
       lines.push(`    Certificate Value:  €${b.certificateValue.valueEurPerMWh?.toFixed(2) ?? 'N/A'}/MWh`);
       lines.push(`    Net Netback:        €${b.netNetback?.toFixed(2) ?? 'N/A'}/MWh`);
-      lines.push(`    Gross Value Spread: €${b.grossValueSpread?.toFixed(2) ?? b.impliedMargin?.toFixed(2) ?? 'N/A'}/MWh`);
+      lines.push(`    Gross Value Spread: €${b.grossValueSpread?.toFixed(2) ?? 'N/A'}/MWh`);
       lines.push(`    Producer Share:     −€${b.producerPayable?.toFixed(2) ?? 'N/A'}/MWh`);
       lines.push(`    Realised Desk Margin:€${b.deskMargin?.toFixed(2) ?? 'N/A'}/MWh`);
       if (b.deskPnL !== null) {
@@ -172,7 +172,10 @@ export function generateTradeSummary(assessment: TradeAssessment): string {
   lines.push(`Certification Costs:           ${assessment.costs.certificationCosts !== null ? `−€${assessment.costs.certificationCosts.toFixed(2)}/MWh` : 'Not set'}`);
   lines.push(`Logistics:                     ${assessment.costs.logistics !== null ? `−€${assessment.costs.logistics.toFixed(2)}/MWh` : 'Not set'}`);
   lines.push(`Other Costs:                   ${assessment.costs.otherCosts !== null ? `−€${assessment.costs.otherCosts.toFixed(2)}/MWh` : 'Not set'}`);
-  lines.push(`Base Producer Procurement Cost:${assessment.costs.deliveredCost !== null ? `−€${assessment.costs.deliveredCost.toFixed(2)}/MWh` : 'Not set'}`);
+  const fixedProcurement = assessment.costs.producerPricing?.mode === 'FIXED_PRICE'
+    ? assessment.costs.producerPricing.fixedPriceEurPerMwh
+    : null;
+  lines.push(`Base Producer Procurement Cost:${fixedProcurement !== null ? `−€${fixedProcurement.toFixed(2)}/MWh` : 'Not set'}`);
   
   if (!nb.isComplete) {
     lines.push(`⚠ INCOMPLETE COST BASIS: Missing ${nb.missingInputs.join(', ')}`);

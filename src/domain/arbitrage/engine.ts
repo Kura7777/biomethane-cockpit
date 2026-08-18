@@ -1,4 +1,5 @@
 import { MARKETS } from '../markets/registry';
+import { getMarkAgeDays } from '../markets/types';
 import { Consignment, CertificationScheme, ChainOfCustody } from '../consignment/types';
 import { FEEDSTOCK_REGISTRY } from '../consignment/feedstocks';
 import { MarksState, CostInputs } from '../netback/types';
@@ -35,6 +36,7 @@ export function scanEuropeanArbitrage(
   topOpportunities: ArbitrageOpportunity[];
   matrixCells: ArbitrageMatrixCell[];
   blockedArbitrages: ArbitrageOpportunity[];
+  allOpportunities: ArbitrageOpportunity[];
 } {
   const feedstockInfo = FEEDSTOCK_REGISTRY[selectedFeedstockKey] || FEEDSTOCK_REGISTRY.manure;
   const ci = ciOverride ?? feedstockInfo.defaultCI;
@@ -81,7 +83,7 @@ export function scanEuropeanArbitrage(
       };
 
       const eligibility = evaluateEligibility(consignment, market);
-      const netbackRes = computeNetback(market, consignment, customMarks, costs, marks.pricingSide);
+      const netbackRes = computeNetback(market, consignment, customMarks, costs, marks.pricingSides);
       
       const transitCost = getRouteTransitTariff(origin.countryCode, market.country);
       const isTradeable = eligibility.overallVerdict === 'ELIGIBLE' || eligibility.overallVerdict === 'CONDITIONAL' || eligibility.overallVerdict === 'UNRESOLVED';
@@ -139,6 +141,48 @@ export function scanEuropeanArbitrage(
         keyRiskOrTrap = 'Voluntary Scheme Trap: ISCC PLUS is not recognized under RED III compliance quotas.';
       }
 
+      // Determine toConfirm checklist
+      const toConfirm: string[] = ['Producer availability and volume — not held in this tool'];
+      
+      const markEntry = customMarks.marks[market.id];
+      const markAge = getMarkAgeDays(markEntry);
+      const prov = markEntry?.provenance;
+      const isEstimateOrSimulated = prov?.sourceType === 'ESTIMATE' || 
+        markEntry?.source === 'SIMULATED' || 
+        !prov?.sourceType || 
+        Boolean(netbackRes.isModelled);
+
+      if (isEstimateOrSimulated) {
+        toConfirm.push('Price is an estimate — obtain a firm indication');
+      }
+      if (markAge !== null && markAge > 30) {
+        toConfirm.push(`Mark is ${markAge} days old`);
+      }
+      if (consignment.udbStatus !== 'RECORDED') {
+        toConfirm.push('UDB registration unconfirmed');
+      }
+      const isProducerPricingSet = Boolean(
+        costs.producerPricing && (
+          (costs.producerPricing.mode === 'FIXED_PRICE' && costs.producerPricing.fixedPriceEurPerMwh !== null) ||
+          (costs.producerPricing.mode === 'INDEX_LINKED' && costs.producerPricing.indexLinkedShare !== null)
+        )
+      );
+      if (!isProducerPricingSet) {
+        toConfirm.push('Producer pricing basis not agreed');
+      }
+      if (costs.transferCosts === null) {
+        toConfirm.push('Missing transfer cost');
+      }
+      if (costs.certificationCosts === null) {
+        toConfirm.push('Missing certification cost');
+      }
+      if (costs.logistics === null) {
+        toConfirm.push('Missing logistics cost');
+      }
+      if (costs.otherCosts === null) {
+        toConfirm.push('Missing other costs');
+      }
+
       const opp: ArbitrageOpportunity = {
         id: `${origin.countryCode}_to_${market.id}_${selectedFeedstockKey}`,
         originCountry: origin.countryCode,
@@ -166,6 +210,7 @@ export function scanEuropeanArbitrage(
         keyRiskOrTrap,
         marginAllocationType,
         isModelled: Boolean(netbackRes.isModelled),
+        toConfirm,
       };
 
       opportunities.push(opp);
@@ -208,5 +253,6 @@ export function scanEuropeanArbitrage(
     topOpportunities,
     matrixCells,
     blockedArbitrages,
+    allOpportunities: opportunities,
   };
 }

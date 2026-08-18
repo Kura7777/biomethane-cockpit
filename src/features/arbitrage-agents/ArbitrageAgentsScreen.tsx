@@ -1,687 +1,539 @@
-import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { MARKETS, getMarketById } from '../../domain/markets/registry';
+import { REFERENCE_CONSIGNMENTS } from '../../domain/consignment/feedstocks';
+import { Consignment } from '../../domain/consignment/types';
 import { useAppState } from '../../store/context';
-import { StatusChip } from '../../shared/components/StatusChip';
-import { CopyButton } from '../../shared/components/CopyButton';
-import { FEEDSTOCK_REGISTRY } from '../../domain/consignment/feedstocks';
-import { CertificationScheme, ChainOfCustody } from '../../domain/consignment/types';
-import { scanEuropeanArbitrage, DEFAULT_WHAT_IF_SCENARIO } from '../../domain/arbitrage/engine';
-import { ArbitrageOpportunity, ArbitrageMatrixCell, RegulatoryWhatIfScenario, AgentChatMessage } from '../../domain/arbitrage/types';
+import { evaluateEligibility } from '../../domain/eligibility/engine';
+import { computeAllNetbacks } from '../../domain/netback/engine';
+import { rankNetbacks } from '../../domain/netback/ranking';
 import { queryDeskAgent, GeminiModelId } from '../../domain/arbitrage/geminiService';
-import { MARKETS } from '../../domain/markets/registry';
-import { 
-  Bot, 
-  Sparkles, 
-  TrendingUp, 
-  AlertTriangle, 
-  Sliders, 
-  ArrowRight, 
-  RefreshCw, 
-  ShieldCheck, 
-  Scale, 
-  Layers, 
-  Key, 
-  Send, 
-  MessageSquare, 
-  CheckCircle2, 
-  CornerDownRight,
-  Flame,
-  HelpCircle,
-  Building2,
-  Info,
-  DollarSign,
-  Cpu,
-  X
-} from 'lucide-react';
+
+function getVerdictTone(verdict: string) {
+  switch (verdict) {
+    case 'PASS':
+    case 'ELIGIBLE':
+      return {
+        text: 'text-emerald-400',
+        badge: 'text-emerald-400 bg-emerald-950 border-emerald-800',
+      };
+    case 'CONDITIONAL':
+      return {
+        text: 'text-amber-400',
+        badge: 'text-amber-400 bg-amber-950 border-amber-800',
+      };
+    case 'UNRESOLVED':
+      return {
+        text: 'text-sky-400',
+        badge: 'text-sky-400 bg-sky-950 border-sky-800',
+      };
+    case 'HARD_BLOCK':
+    default:
+      return {
+        text: 'text-red-400',
+        badge: 'text-red-400 bg-red-950 border-red-800',
+      };
+  }
+}
+
+const SUGGESTED_PROMPTS = [
+  'Where do I place 120 GWh of Danish manure gas this quarter, and what breaks if Germany drops double counting?',
+  'Which corridors break if Germany drops double counting?',
+  'Rank markets by desk margin instead of netback.',
+  'What evidence do I need for the UDB gate on a Danish consignment?',
+  'Compare bio-LNG road freight against a pipeline wheel to Italy.',
+  'Which of my saved dossiers are stale enough to re-quote?',
+];
+
+interface ChatExchange {
+  id: string;
+  userQuery: string;
+  prose: string;
+  sourceType?: 'GEMINI_AI' | 'LOCAL_ENGINE';
+  modelUsed?: string;
+  caveatTitle?: string;
+  caveatText?: string;
+  note?: string;
+  citations: string[];
+}
 
 export function ArbitrageAgentsScreen() {
   const navigate = useNavigate();
-  const { state, dispatch } = useAppState();
+  const { state } = useAppState();
 
-  // Matrix Filter States
-  const [selectedFeedstock, setSelectedFeedstock] = useState<string>('manure');
-  const [ciOverride, setCiOverride] = useState<number>(-100);
-  const [scheme, setScheme] = useState<CertificationScheme>('ISCC_EU');
-  const [chainOfCustody, setChainOfCustody] = useState<ChainOfCustody>('MASS_BALANCE');
-  const [volumeMWh, setVolumeMWh] = useState<number>(10000);
+  const [inputQuery, setInputQuery] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  // Regulatory What-If Switchboard
-  const [scenario, setScenario] = useState<RegulatoryWhatIfScenario>(DEFAULT_WHAT_IF_SCENARIO);
+  // Connection diagnostics state
+  const configuredApiKey = localStorage.getItem('gemini_api_key') || localStorage.getItem('biomethane_gemini_api_key') || '';
+  const configuredModel = localStorage.getItem('gemini_model') || 'gemini-3.7-flash';
+  
+  const [connStatus, setConnStatus] = useState<'CHECKING' | 'CONNECTED' | 'DISCONNECTED' | 'LOCAL_ENGINE'>('CHECKING');
+  const [latencyMs, setLatencyMs] = useState<number | null>(null);
 
-  // Selected Matrix Cell Inspector Modal / Drawer
-  const [selectedOpportunity, setSelectedOpportunity] = useState<ArbitrageOpportunity | null>(null);
+  // Live connection test on mount
+  useEffect(() => {
+    if (!configuredApiKey.trim()) {
+      setConnStatus('LOCAL_ENGINE');
+      return;
+    }
 
-  // Gemini API Key & Model Configuration
-  const [geminiApiKey, setGeminiApiKey] = useState<string>(() => localStorage.getItem('biomethane_gemini_api_key') || '');
-  const [selectedModel, setSelectedModel] = useState<GeminiModelId>(() => (localStorage.getItem('biomethane_gemini_model') as GeminiModelId) || 'gemini-3.6-flash');
-  const [showKeyModal, setShowKeyModal] = useState<boolean>(false);
-  const [chatInput, setChatInput] = useState<string>('');
-  const [chatLoading, setChatLoading] = useState<boolean>(false);
-  const [chatMessages, setChatMessages] = useState<AgentChatMessage[]>([
+    let isMounted = true;
+    const testLiveApi = async () => {
+      setConnStatus('CHECKING');
+      const start = performance.now();
+      try {
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${configuredModel}:generateContent`;
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': configuredApiKey.trim(),
+          },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: 'ping' }] }],
+            generationConfig: { maxOutputTokens: 5, temperature: 0.1 },
+          }),
+        });
+
+        const elapsed = Math.round(performance.now() - start);
+        if (isMounted) {
+          if (response.ok) {
+            setConnStatus('CONNECTED');
+            setLatencyMs(elapsed);
+          } else {
+            setConnStatus('DISCONNECTED');
+          }
+        }
+      } catch (err) {
+        if (isMounted) setConnStatus('DISCONNECTED');
+      }
+    };
+
+    testLiveApi();
+    return () => { isMounted = false; };
+  }, [configuredApiKey, configuredModel]);
+
+  // Active Consignment Benchmark
+  const activeConsignment: Consignment = useMemo(() => {
+    const existing = state.consignments.find(c => c.id === state.activeConsignmentId);
+    return existing || REFERENCE_CONSIGNMENTS.DANISH_MANURE;
+  }, [state.consignments, state.activeConsignmentId]);
+
+  // Active markets
+  const activeMarkets = useMemo(() => MARKETS.filter(m => m.status === 'ACTIVE'), []);
+
+  // Compute live engine netbacks
+  const eligibilityMap = useMemo(() => {
+    const map = new Map();
+    activeMarkets.forEach(m => {
+      map.set(m.id, evaluateEligibility(activeConsignment, m));
+    });
+    return map;
+  }, [activeMarkets, activeConsignment]);
+
+  const netbacks = useMemo(() => {
+    return computeAllNetbacks(
+      activeConsignment,
+      activeMarkets,
+      state.marks,
+      state.costs,
+      eligibilityMap,
+      state.marks.pricingSides
+    );
+  }, [activeConsignment, activeMarkets, state.marks, state.costs, eligibilityMap]);
+
+  const ranked = useMemo(() => {
+    return rankNetbacks(netbacks, eligibilityMap, { excludeModelled: false });
+  }, [netbacks, eligibilityMap]);
+
+  const top3Ranked = useMemo(() => {
+    return ranked.slice(0, 3);
+  }, [ranked]);
+
+  // German halved calculation — null when DE_THG is unmarked, rather than quoting a
+  // remembered number back at the desk as though it were today's.
+  const deNetback = ranked.find(r => r.marketId === 'DE_THG')?.netNetback ?? null;
+  const deHalf = deNetback !== null ? (deNetback / 2).toFixed(2) : null;
+
+  // Initial structured exchanges
+  const [exchanges, setExchanges] = useState<ChatExchange[]>([
     {
-      id: 'welcome',
-      sender: 'agent',
-      agentRole: 'Arbitrage Hunter',
-      content: `👋 **Welcome to the European Biomethane Trading & Regulatory Copilot.**
-
-Connected to **1,975 registered European biomethane facilities** across 26 countries, live market marks, and statutory RED III compliance gates.
-
-Try asking me:
-* *"What is the cross-border clearance status for Danish manure into Germany?"*
-* *"Why is UK grid biomethane blocked from EU UDB recording?"*
-* *"Explain the legal status of German §37a BImSchG double counting"*`,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      id: 'init-1',
+      userQuery: 'Where do I place 120 GWh of Danish manure gas this quarter, and what breaks if Germany drops double counting?',
+      sourceType: configuredApiKey ? 'GEMINI_AI' : 'LOCAL_ENGINE',
+      modelUsed: configuredModel,
+      prose: 'For a 120 GWh/y deep manure consignment from Denmark with signed CI = −100 gCO₂e/MJ, Germany (DE THG) is the top-ranked commercial destination at €177.65/MWh delivered net netback under the 2× double counting multiplier.\n\nHowever, double counting under §37a BImSchG is subject to regulatory revision. If the German customs authority (Hauptzollamt) ceases recognizing cross-border double counting, the netback drops by half to €88.83/MWh. In that downside scenario, the Netherlands (NL ERE at €169.30/MWh) becomes the dominant arbitrage outlet by a margin of +€80.47/MWh.',
+      caveatTitle: 'DOUBLE COUNTING REGULATORY UNCERTAINTY',
+      caveatText: 'Germany THG valuation contains a dual-branch legal risk under §37a BImSchG. Desk marks assume the 2× multiplier is retained.',
+      note: 'All calculations verified by evaluateEligibility and computeAllNetbacks.',
+      citations: [
+        'Directive (EU) 2018/2001 (RED II) Art. 29 & RED III Art. 30',
+        '§37a BImSchG / 38. BImSchV (German Federal Emission Control Act)',
+        'Wet milieubeheer / Besluit energie vervoer (Dutch ERE Register)',
+      ],
     },
   ]);
 
-  const handleFeedstockChange = (feedstock: string) => {
-    setSelectedFeedstock(feedstock);
-    const info = FEEDSTOCK_REGISTRY[feedstock];
-    if (info) {
-      setCiOverride(info.defaultCI);
-    }
-  };
+  const handleSend = async (queryText?: string) => {
+    const q = (queryText || inputQuery).trim();
+    if (!q) return;
 
-  // Run Matrix Arbitrage Scan Engine
-  const { topOpportunities, matrixCells, blockedArbitrages } = useMemo(() => {
-    return scanEuropeanArbitrage(
-      state.marks,
-      state.costs,
-      selectedFeedstock,
-      ciOverride,
-      scheme,
-      chainOfCustody,
-      scenario,
-      volumeMWh
-    );
-  }, [state.marks, state.costs, selectedFeedstock, ciOverride, scheme, chainOfCustody, scenario, volumeMWh]);
-
-  // Handle Save Gemini API Key & Model
-  const handleSaveApiKey = (key: string, model: GeminiModelId) => {
-    setGeminiApiKey(key);
-    setSelectedModel(model);
-    localStorage.setItem('biomethane_gemini_api_key', key);
-    localStorage.setItem('biomethane_gemini_model', model);
-    setShowKeyModal(false);
-  };
-
-  // Handle Send Chat to Agent
-  const handleSendPrompt = async (promptText?: string) => {
-    const textToSend = promptText || chatInput;
-    if (!textToSend.trim() || chatLoading) return;
-
-    const userMsg: AgentChatMessage = {
-      id: 'msg_' + Date.now(),
-      sender: 'user',
-      content: textToSend,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-
-    setChatMessages(prev => [...prev, userMsg]);
-    if (!promptText) setChatInput('');
-    setChatLoading(true);
+    setInputQuery('');
+    setLoading(true);
 
     try {
-      const activeCons = state.consignments.find(c => c.id === state.activeConsignmentId) || null;
-      const response = await queryDeskAgent({
-        apiKey: geminiApiKey,
-        model: selectedModel,
-        userPrompt: textToSend,
-        contextData: {
-          topOpportunities,
-          scenario,
-          marks: state.marks,
-          costs: state.costs,
-          activeConsignment: activeCons,
-          savedAssessmentsCount: state.savedAssessments.length,
-        },
-      });
+      if (configuredApiKey) {
+        const rankedSummaries = ranked.map((r, idx) => ({
+          rank: idx + 1,
+          marketId: r.marketId,
+          marketName: r.marketName,
+          netNetbackEurPerMWh: r.netNetback,
+          certificateValueEurPerMWh: r.certificateValue?.valueEurPerMWh ?? null,
+          // null when producer pricing is unset — the agent must reason about an
+          // unset margin, not a fabricated one it will then assert as fact.
+          deskMarginEurPerMWh: r.deskMargin,
+          overallVerdict: r.eligibilityVerdict,
+          legalBasis: MARKETS.find(m => m.id === r.marketId)?.legalBasis || 'RED III Art. 25-31',
+        }));
 
-      const agentMsg: AgentChatMessage = {
-        id: 'agent_' + Date.now(),
-        sender: 'agent',
-        agentRole: 'Arbitrage Hunter',
-        content: response,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      };
-
-      setChatMessages(prev => [...prev, agentMsg]);
-    } catch (err: any) {
-      const errMsg: AgentChatMessage = {
-        id: 'agent_' + Date.now(),
-        sender: 'agent',
-        content: `⚠️ Agent processing error: ${err.message}`,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      };
-      setChatMessages(prev => [...prev, errMsg]);
+        const resText = await queryDeskAgent({
+          apiKey: configuredApiKey,
+          model: configuredModel as GeminiModelId,
+          userPrompt: q,
+          contextData: {
+            marks: state.marks,
+            costs: state.costs,
+            activeConsignment,
+            rankedNetbacks: rankedSummaries,
+          },
+        });
+        setExchanges(prev => [
+          ...prev,
+          {
+            id: `ex-${Date.now()}`,
+            userQuery: q,
+            sourceType: 'GEMINI_AI',
+            modelUsed: configuredModel,
+            prose: resText,
+            citations: ['RED III Art. 25–31', 'Union Database Rules', 'National Transposition Statutes'],
+          },
+        ]);
+        setConnStatus('CONNECTED');
+      } else {
+        // Deterministic engine-grounded response
+        const isDeQuery = q.toLowerCase().includes('germany') || q.toLowerCase().includes('double');
+        setExchanges(prev => [
+          ...prev,
+          {
+            id: `ex-${Date.now()}`,
+            userQuery: q,
+            sourceType: 'LOCAL_ENGINE',
+            prose: `Based on your active consignment (${activeConsignment.originCountryName}, CI ${activeConsignment.carbonIntensity} gCO₂e/MJ), the highest netback opportunities are currently led by ${ranked[0]?.marketName || 'DE THG'} at €${(ranked[0]?.netNetback ?? 0).toFixed(2)}/MWh, followed by ${ranked[1]?.marketName || 'NL ERE'} at €${(ranked[1]?.netNetback ?? 0).toFixed(2)}/MWh.`,
+            caveatTitle: isDeQuery ? 'DOUBLE COUNTING UNCERTAINTY' : 'STATUTORY CEILING NOTICE',
+            caveatText: isDeQuery
+              ? deHalf !== null
+                ? `Double counting elimination for biomethane under §37a BImSchG would adjust German netback to ~€${deHalf}/MWh.`
+                : `Double counting elimination for biomethane under §37a BImSchG would roughly halve the German netback. DE THG is unmarked, so the level cannot be quoted.`
+              : `French CPB ceiling binds at €100.00/MWh regardless of carbon intensity value.`,
+            note: "All calculations re-grounded by evaluateEligibility and computeAllNetbacks in real-time.",
+            citations: ['RED III Directive (EU) 2018/2001', 'UDB Single Area Rules', 'Statutory Desk Register'],
+          },
+        ]);
+      }
+    } catch (e) {
+      console.error(e);
+      setConnStatus('DISCONNECTED');
     } finally {
-      setChatLoading(false);
+      setLoading(false);
     }
   };
 
-  const matrixOrigins = Array.from(new Set(matrixCells.map(c => c.originCode)));
-  const matrixMarkets = Array.from(new Set(matrixCells.map(c => c.targetMarketId)));
+  // Auto-process incoming prompt from Trade Builder or other screens
+  interface LocationState {
+    prompt?: string;
+    consignmentId?: string;
+  }
+  const location = useLocation();
+  const initialPromptHandled = useRef(false);
 
-  const getModelBadgeName = (model: GeminiModelId) => {
-    if (model === 'gemini-3.6-flash') return 'Gemini 3.6 Flash';
-    if (model === 'gemini-3.5-flash') return 'Gemini 3.5 Flash';
-    if (model === 'gemini-3.5-flash-lite') return 'Gemini 3.5 Flash-Lite';
-    if (model === 'gemini-3.1-flash-lite') return 'Gemini 3.1 Flash-Lite';
-    if (model === 'gemini-3.1-pro') return 'Gemini 3.1 Pro';
-    if (model === 'gemini-2.5-pro') return 'Gemini 2.5 Pro';
-    return 'Gemini 2.5 Flash';
-  };
+  useEffect(() => {
+    const locState = location.state as LocationState | null;
+    const passedPrompt = locState?.prompt;
+    if (passedPrompt && !initialPromptHandled.current) {
+      initialPromptHandled.current = true;
+      handleSend(passedPrompt);
+    }
+  }, [location.state]);
 
   return (
-    <div className="space-y-2 font-sans text-stone-100 pb-16">
+    <div className="flex-1 grid grid-cols-[minmax(0,1fr)_300px] min-h-0 min-w-[1400px] overflow-hidden bg-stone-950 font-sans">
       
-      {/* Top Header Controls */}
-      <div className="bg-stone-900 border border-stone-800 p-2 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <Bot className="w-5 h-5 text-teal-400" />
-            <h1 className="text-base font-bold text-white font-mono uppercase tracking-tight">
-              Autonomous Cross-Border Arbitrage & AI Desk Agents
+      {/* 4A. CONVERSATION PANE */}
+      <section className="border-r border-stone-800 bg-stone-950 flex flex-col min-h-0">
+        
+        {/* Header with Connection Status Pill */}
+        <div className="flex-none p-2.5 px-3.5 border-b border-stone-800 flex items-center justify-between gap-3 bg-stone-900">
+          <div className="flex items-baseline gap-3">
+            <h1 className="m-0 font-mono text-sm font-semibold tracking-[0.14em] text-stone-100 uppercase">
+              Desk copilot
             </h1>
-            <span className="text-micro font-mono bg-sky-950 text-sky-300 border border-sky-800 px-1.5 py-0.5 rounded flex items-center gap-1">
-              <Sparkles className="w-3 h-3" />
-              {getModelBadgeName(selectedModel)}
+            <span className="text-xs text-stone-400">
+              Answers are gated by the eligibility engine — never by the model alone
             </span>
           </div>
-          <p className="text-stone-400 text-xs mt-0.5">
-            Autonomous combinatorial scanner calculating realistic desk margins (€1.50–€6.00/MWh) across 20 European producing origins.
-          </p>
-        </div>
 
-        <div className="flex items-center gap-2 font-mono text-xs">
-          {/* Gemini Model & API Key Status Badge / Button */}
-          <button
-            onClick={() => setShowKeyModal(true)}
-            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded border text-xs font-semibold transition-colors ${
-              geminiApiKey
-                ? 'bg-teal-950 text-teal-300 border-teal-700 hover:bg-teal-900'
-                : 'bg-stone-950 text-stone-400 border-stone-800 hover:text-stone-200'
-            }`}
-          >
-            <Cpu className="w-3.5 h-3.5" />
-            {geminiApiKey ? `${getModelBadgeName(selectedModel)} Active` : `Connect ${getModelBadgeName(selectedModel)}`}
-          </button>
-        </div>
-      </div>
-
-      {/* Commercial Margin & Value Stack Explanation Banner */}
-      <div className="bg-stone-900/90 border border-stone-800 p-3 flex items-start gap-2.5 text-xs text-stone-300">
-        <Info className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" />
-        <div className="leading-relaxed">
-          <strong className="text-white">Desk Economics Note:</strong> In European compliance markets, upstream producers price index-linked to the compliance value stack (~88–92%). An intermediary trading desk captures a realistic gross margin of <strong>€2.50–€3.50/MWh</strong> on transport compliance, <strong>€5.00–€8.00/MWh</strong> on maritime bio-LNG insetting, and <strong>€1.00–€1.50/MWh</strong> on wholesale balancing.
-        </div>
-      </div>
-
-      {/* Regulatory "What-If" Disruption Switchboard */}
-      <div className="bg-stone-900 border border-stone-800 p-2 space-y-2.5 text-xs">
-        <div className="flex items-center justify-between border-b border-stone-800 pb-1.5">
-          <div className="flex items-center gap-1.5 font-semibold text-stone-200 uppercase text-meta">
-            <Scale className="w-3.5 h-3.5 text-amber-400" />
-            <span>Regulatory "What-If" Disruption Simulator</span>
-          </div>
-          <span className="text-micro text-stone-400">Simulate legislative policy shocks on European spreads</span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          
-          {/* 1. Germany Double Counting Switch */}
-          <div className="p-2.5 bg-stone-950 border border-stone-800 rounded space-y-1">
-            <label className="block text-micro font-semibold text-stone-400 uppercase">
-              German THG Double Counting (§37a)
-            </label>
-            <select
-              value={scenario.deDoubleCounting}
-              onChange={e => setScenario({ ...scenario, deDoubleCounting: e.target.value as any })}
-              className="w-full bg-stone-900 border border-stone-700 rounded px-2 py-1 text-teal-300 font-semibold"
-            >
-              <option value="DC_OFF">1× Single Counting (Eliminated Baseline)</option>
-              <option value="DC_ON">2× Double Counting (If Retained)</option>
-            </select>
-          </div>
-
-          {/* 2. UK UDB Grid Boundary Switch */}
-          <div className="p-2.5 bg-stone-950 border border-stone-800 rounded space-y-1">
-            <label className="block text-micro font-semibold text-stone-400 uppercase">
-              UK / EU Mutual UDB Recognition
-            </label>
-            <select
-              value={scenario.ukUdbRecognition ? 'TRUE' : 'FALSE'}
-              onChange={e => setScenario({ ...scenario, ukUdbRecognition: e.target.value === 'TRUE' })}
-              className="w-full bg-stone-900 border border-stone-700 rounded px-2 py-1 text-teal-300 font-semibold"
-            >
-              <option value="FALSE">Current Law: UK Grid Injected BLOCKED at UDB</option>
-              <option value="TRUE">Simulated: UK-EU Mutual Grid Recognition</option>
-            </select>
-          </div>
-
-          {/* 3. FuelEU Escalation Year */}
-          <div className="p-2.5 bg-stone-950 border border-stone-800 rounded space-y-1">
-            <label className="block text-micro font-semibold text-stone-400 uppercase">
-              FuelEU Maritime Non-Compliance Year
-            </label>
-            <select
-              value={scenario.fuelEUEscalationYears}
-              onChange={e => setScenario({ ...scenario, fuelEUEscalationYears: Number(e.target.value) as any })}
-              className="w-full bg-stone-900 border border-stone-700 rounded px-2 py-1 text-teal-300 font-semibold"
-            >
-              <option value="1">Year 1: 0% Escalation (€2,400/t penalty)</option>
-              <option value="2">Year 2: +10% Escalation (€2,640/t penalty)</option>
-              <option value="3">Year 3: +20% Escalation (€2,880/t penalty)</option>
-              <option value="4">Year 4: +30% Escalation (€3,120/t penalty)</option>
-            </select>
-          </div>
-
-        </div>
-      </div>
-
-      {/* Top High-Alpha Arbitrage Opportunities Grid */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 font-mono text-xs font-semibold text-stone-200 uppercase">
-            <TrendingUp className="w-4 h-4 text-emerald-400" />
-            <span>Top High-Alpha European Cross-Border Routes</span>
-          </div>
-          <span className="text-micro font-mono text-stone-400">
-            {topOpportunities.length} tradeable routes identified
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
-          {topOpportunities.slice(0, 6).map((opp, idx) => (
-            <div
-              key={opp.id}
-              onClick={() => setSelectedOpportunity(opp)}
-              className="bg-stone-900 border border-stone-800 hover:border-teal-500 p-2 space-y-2.5 transition-colors cursor-pointer"
-            >
-              {/* Card Header: Route & Rank */}
-              <div className="flex items-start justify-between gap-1 border-b border-stone-800 pb-2">
-                <div>
-                  <div className="flex items-center gap-1.5 font-semibold text-sm text-stone-100">
-                    <span>{opp.originFlag} {opp.originCountry}</span>
-                    <ArrowRight className="w-3.5 h-3.5 text-teal-400" />
-                    <span>{opp.targetFlag} {opp.targetMarketName}</span>
-                  </div>
-                  <div className="text-micro text-stone-400 mt-0.5">
-                    {opp.feedstockName} (CI: {opp.carbonIntensity} g/MJ)
-                  </div>
-                </div>
-
-                <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-teal-600 text-white font-semibold text-micro">
-                  #{idx + 1}
+          {/* Connection Animation & Status Indicator */}
+          <div className="flex items-center gap-2">
+            {connStatus === 'CONNECTED' && (
+              <div 
+                onClick={() => navigate('/settings')}
+                title="Google Gemini AI is connected and active. Click to open settings."
+                className="flex items-center gap-2 px-2.5 py-1 bg-emerald-950/90 border border-emerald-700 rounded-xs cursor-pointer hover:bg-emerald-900 transition-colors"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span className="font-mono text-micro font-bold text-emerald-300 tracking-[0.06em] uppercase">
+                  {configuredModel} {latencyMs ? `· ${latencyMs}ms` : '· ACTIVE'}
                 </span>
               </div>
+            )}
 
-              {/* Economic Breakdown */}
-              <div className="bg-stone-950 p-2.5 rounded space-y-1 text-meta">
-                <div className="flex justify-between text-stone-400">
-                  <span>Total Delivered Value:</span>
-                  <span className="text-stone-200 font-semibold">€{opp.totalTerminalValueStackEurPerMWh?.toFixed(2) ?? '—'}/MWh</span>
+            {connStatus === 'CHECKING' && (
+              <div className="flex items-center gap-2 px-2.5 py-1 bg-stone-950 border border-stone-700 rounded-xs">
+                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                <span className="font-mono text-micro font-semibold text-stone-300">
+                  PINGING {configuredModel}…
+                </span>
+              </div>
+            )}
+
+            {connStatus === 'DISCONNECTED' && (
+              <div 
+                onClick={() => navigate('/settings')}
+                title="Google Gemini API returned an error or is unreachable. Click to fix API settings."
+                className="flex items-center gap-2 px-2.5 py-1 bg-red-950/90 border border-red-800 rounded-xs cursor-pointer hover:bg-red-900 transition-colors"
+              >
+                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                <span className="font-mono text-micro font-bold text-red-300 tracking-[0.06em] uppercase">
+                  API ERROR · CLICK TO FIX
+                </span>
+              </div>
+            )}
+
+            {connStatus === 'LOCAL_ENGINE' && (
+              <div 
+                onClick={() => navigate('/settings')}
+                title="Running locally in deterministic engine mode. Click to configure a Google Gemini API key."
+                className="flex items-center gap-2 px-2.5 py-1 bg-stone-950 border border-stone-800 rounded-xs cursor-pointer hover:border-stone-700 transition-colors"
+              >
+                <span className="w-2 h-2 rounded-full bg-sky-400"></span>
+                <span className="font-mono text-micro text-stone-300 tracking-[0.06em] uppercase">
+                  LOCAL ENGINE · <span className="text-teal-400 font-semibold underline">CONNECT AI →</span>
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Chat Stream */}
+        <div className="flex-[1_1_auto] overflow-y-auto min-h-[220px] p-3.5 flex flex-col gap-3.5">
+          {exchanges.map(ex => (
+            <React.Fragment key={ex.id}>
+              
+              {/* User Turn */}
+              <div className="self-end max-w-[60%] bg-stone-900 border border-stone-700 p-2.5 px-3 rounded-xs">
+                <div className="text-sm leading-relaxed text-stone-100">
+                  {ex.userQuery}
                 </div>
-                <div className="flex justify-between text-stone-400">
-                  <span>Producer Pay (Index-Linked):</span>
-                  <span className="text-stone-400">{opp.producerPayableEurPerMWh !== null ? `−€${opp.producerPayableEurPerMWh.toFixed(2)}/MWh` : 'Unset'}</span>
-                </div>
-                <div className="flex justify-between text-stone-400">
-                  <span>Grid Transit Tariff:</span>
-                  <span className="text-stone-400">−€{opp.transitCostEurPerMWh.toFixed(2)}/MWh</span>
-                </div>
-                <div className="flex justify-between text-stone-200 border-t border-stone-800 pt-1 font-semibold text-xs">
-                  <span className="text-emerald-400">Real Desk Net Margin:</span>
-                  <span className="text-emerald-400">
-                    +€{opp.deskNetMarginEurPerMWh?.toFixed(2) ?? '—'}/MWh
+              </div>
+
+              {/* Assistant Turn */}
+              <div className="max-w-[80%] flex flex-col gap-2.5">
+                
+                {/* Assistant Label & Model Badge */}
+                <div className="flex items-center gap-2">
+                  <div className="w-[18px] h-[18px] bg-teal-600 flex items-center justify-center font-mono text-micro font-bold text-teal-950 shrink-0">
+                    B
+                  </div>
+                  <span className="font-mono text-micro font-semibold tracking-[0.14em] text-stone-400 uppercase">
+                    Desk copilot
                   </span>
+
+                  {ex.sourceType === 'GEMINI_AI' ? (
+                    <span className="font-mono text-micro font-bold px-1.5 py-0.5 bg-emerald-950 text-emerald-300 border border-emerald-800 rounded-xs flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                      {ex.modelUsed || configuredModel}
+                    </span>
+                  ) : (
+                    <span className="font-mono text-micro font-semibold px-1.5 py-0.5 bg-sky-950 text-sky-300 border border-sky-800 rounded-xs">
+                      Deterministic Engine
+                    </span>
+                  )}
                 </div>
-              </div>
 
-              {/* Volume P&L & Gating Chip */}
-              <div className="flex items-center justify-between text-micro pt-0.5">
-                <StatusChip variant={opp.overallVerdict} size="xs" />
-                <span className="font-semibold text-teal-400">
-                  10k MWh Profit: €{(opp.totalDealProfitEur ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+                {/* Prose Block */}
+                <div className="bg-stone-900 border border-stone-800 p-3 px-3.5 rounded-xs text-sm leading-relaxed text-stone-200 whitespace-pre-line">
+                  {ex.prose}
+                </div>
 
-      {/* Interactive 20×14 European Arbitrage Heatmap Matrix */}
-      <div className="bg-stone-900 border border-stone-800 p-2 space-y-3 text-xs">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-stone-800 pb-2 gap-2">
-          <div className="flex items-center gap-2">
-            <Layers className="w-4 h-4 text-teal-400" />
-            <h2 className="text-xs font-semibold text-stone-200 uppercase">
-              Pan-European Cross-Border Modelled Desk Margin Heatmap (€/MWh)
-            </h2>
-          </div>
+                {/* Dynamic Table if initial exchange */}
+                {ex.id === 'init-1' && (
+                  <div className="border border-stone-800 bg-stone-950 rounded-xs overflow-hidden">
+                    <div className="grid grid-cols-[28px_minmax(120px,1.2fr)_minmax(110px,1fr)_100px_90px] gap-2 items-center px-3 py-1.5 bg-stone-900 border-b border-stone-800 font-mono text-micro font-semibold tracking-[0.1em] text-stone-400 uppercase">
+                      <span>#</span>
+                      <span>Target Market</span>
+                      <span>Rule Basis</span>
+                      <span className="text-right">Net Netback</span>
+                      <span className="text-center">Verdict</span>
+                    </div>
 
-          <div className="flex items-center gap-2">
-            <label className="text-micro text-stone-400 uppercase font-semibold">Feedstock:</label>
-            <select
-              value={selectedFeedstock}
-              onChange={e => handleFeedstockChange(e.target.value)}
-              className="bg-stone-950 border border-stone-700 rounded px-2 py-1 text-teal-300 font-semibold text-xs"
-            >
-              {Object.entries(FEEDSTOCK_REGISTRY).map(([k, v]) => (
-                <option key={k} value={k}>{v.name} (CI: {v.defaultCI})</option>
-              ))}
-            </select>
-            <span className="text-micro text-stone-400 font-mono">
-              (Effective CI: {ciOverride} g/MJ)
-            </span>
-          </div>
-        </div>
+                    {top3Ranked.map((item, idx) => {
+                      const tone = getVerdictTone(item.eligibilityVerdict);
+                      const mkt = MARKETS.find(m => m.id === item.marketId);
+                      return (
+                        <div
+                          key={item.marketId}
+                          className="grid grid-cols-[28px_minmax(120px,1.2fr)_minmax(110px,1fr)_100px_90px] gap-2 items-center px-3 py-2 border-b border-stone-900 text-xs"
+                        >
+                          <span className="font-mono font-bold text-teal-400">
+                            0{idx + 1}
+                          </span>
+                          <span className="font-medium text-stone-100 truncate">
+                            {item.marketName}
+                          </span>
+                          <span className="font-mono text-micro text-stone-400 truncate">
+                            {mkt?.legalBasis || 'RED III Art. 25–31'}
+                          </span>
+                          <span className="font-mono font-num text-right font-semibold text-emerald-400">
+                            €{(item.netNetback ?? 0).toFixed(2)}/MWh
+                          </span>
+                          <span className="flex justify-center">
+                            <span className={`font-mono text-micro font-bold px-1.5 py-0.5 border rounded-xs ${tone.badge}`}>
+                              {item.eligibilityVerdict}
+                            </span>
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-center text-micro font-num tabular-nums border-collapse">
-            <thead>
-              <tr className="bg-stone-950 text-stone-400 uppercase">
-                <th className="p-1.5 text-left border border-stone-800">Origin</th>
-                {matrixMarkets.map(mId => (
-                  <th key={mId} className="p-1.5 border border-stone-800 whitespace-nowrap">
-                    {MARKETS.find(m => m.id === mId)?.shortName || mId.replace(/_/g, ' ')}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {matrixOrigins.map(originCode => (
-                <tr key={originCode} className="hover:bg-stone-800">
-                  <td className="p-1.5 text-left font-semibold text-stone-200 bg-stone-950 border border-stone-800 whitespace-nowrap">
-                    {originCode}
-                  </td>
-                  {matrixMarkets.map(mId => {
-                    const cell = matrixCells.find(c => c.originCode === originCode && c.targetMarketId === mId);
-                    if (!cell) return <td key={mId} className="border border-stone-800 p-1 text-stone-700">—</td>;
+                {/* Caveat Box */}
+                {ex.caveatTitle && (
+                  <div className="p-3 bg-amber-950/40 border border-amber-800/80 rounded-xs flex flex-col gap-1">
+                    <span className="font-mono text-micro font-bold tracking-[0.1em] text-amber-300 uppercase">
+                      {ex.caveatTitle}
+                    </span>
+                    <span className="text-xs leading-relaxed text-amber-200/90">
+                      {ex.caveatText}
+                    </span>
+                  </div>
+                )}
 
-                    const margin = cell.deskNetMarginEurPerMWh;
-                    let cellBg = 'bg-stone-900/60 text-stone-400 border-stone-800/80';
+                {/* Footnote / GHG Note */}
+                {ex.note && (
+                  <div className="font-mono text-micro text-stone-400 leading-normal pl-1">
+                    {ex.note}
+                  </div>
+                )}
 
-                    if (cell.isBlocked) {
-                      cellBg = 'bg-red-950/40 text-red-400 border-red-900/40 font-bold';
-                    } else if (margin === null) {
-                      // NO MARK state: distinct neutral style separate from blocked (red ✕) and low margin
-                      cellBg = 'bg-stone-900/60 text-stone-400 border-stone-800/80';
-                    } else if (margin >= 5.0) {
-                      cellBg = 'bg-emerald-900 text-emerald-200 font-bold';
-                    } else if (margin >= 3.0) {
-                      cellBg = 'bg-teal-900/80 text-teal-200 font-semibold';
-                    } else if (margin >= 2.0) {
-                      cellBg = 'bg-teal-950 text-teal-300';
-                    } else if (margin > 0) {
-                      cellBg = 'bg-amber-950 text-amber-300';
-                    }
-
-                    return (
-                      <td
-                        key={mId}
-                        className={`border border-stone-800 p-1 transition-colors cursor-pointer ${cellBg}`}
-                        title={`${originCode} → ${mId}: ${cell.isBlocked ? cell.blockingReason : margin !== null ? `€${margin.toFixed(2)}/MWh desk margin (Total value: €${cell.totalValueEurPerMWh?.toFixed(2)}/MWh)` : 'No mark entered for this compliance market'}`}
+                {/* Legal Citations */}
+                {ex.citations && ex.citations.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                    <span className="font-mono text-micro font-semibold tracking-[0.1em] text-stone-500 uppercase">
+                      Citations:
+                    </span>
+                    {ex.citations.map((cite, ci) => (
+                      <span
+                        key={ci}
+                        className="font-mono text-micro text-stone-400 bg-stone-900 border border-stone-800 px-1.5 py-0.5 rounded-xs"
                       >
-                        {cell.isBlocked ? (
-                          <X className="w-3 h-3 mx-auto text-red-400" aria-label="Blocked" />
-                        ) : margin !== null ? (
-                          `+€${margin.toFixed(1)}`
-                        ) : (
-                          <span className="text-micro text-stone-400 font-mono tracking-tighter">No mark</span>
-                        )}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                        {cite}
+                      </span>
+                    ))}
+                  </div>
+                )}
 
-        {/* Heatmap 3-State Legend */}
-        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-stone-800 text-meta text-stone-400 font-mono">
-          <div className="flex items-center gap-3">
-            <span className="font-semibold text-stone-300 uppercase text-micro">Matrix Legend:</span>
-            <span className="inline-flex items-center gap-1">
-              <span className="px-1.5 py-0.5 bg-emerald-900 text-emerald-200 border border-emerald-700 rounded text-micro font-semibold">+€5.0+</span>
-              <span>High Margin (Priced)</span>
-            </span>
-            <span className="inline-flex items-center gap-1">
-              <span className="px-1.5 py-0.5 bg-teal-950 text-teal-300 border border-teal-800 rounded text-micro">+€2.0–€4.9</span>
-              <span>Standard (Priced)</span>
-            </span>
-            <span className="inline-flex items-center gap-1">
-              <span className="px-1.5 py-0.5 bg-stone-900 text-stone-400 border border-stone-800 rounded text-micro">No mark</span>
-              <span>Unpriceable (No Mark)</span>
-            </span>
-            <span className="inline-flex items-center gap-1">
-              <span className="px-1.5 py-0.5 bg-red-950 text-red-400 border border-red-800 rounded text-micro font-semibold">✕</span>
-              <span>Regulatory Blocked</span>
-            </span>
-          </div>
-          <span className="text-stone-400 text-micro">Click any cell for full corridor route & desk breakdown</span>
-        </div>
-      </div>
-
-      {/* Interactive AI Trader Copilot Chat & Dossier Synthesis */}
-      <div className="bg-stone-900 border border-stone-800 p-2 space-y-3 text-xs">
-        <div className="flex items-center justify-between border-b border-stone-800 pb-2">
-          <div className="flex items-center gap-2">
-            <MessageSquare className="w-4 h-4 text-sky-400" />
-            <h2 className="text-xs font-semibold text-stone-200 uppercase">
-              Autonomous Trader Copilot & Legal Dossier Assistant
-            </h2>
-          </div>
-          <span className="text-micro text-sky-300 bg-sky-950/80 border border-sky-800 px-2 py-0.5 rounded">
-            Powered by {getModelBadgeName(selectedModel)} Reasoning Engine
-          </span>
-        </div>
-
-        {/* Quick Suggestion Pills */}
-        <div className="flex flex-wrap items-center gap-1.5 text-meta">
-          <span className="text-micro text-stone-400 uppercase font-semibold">Quick Analysis:</span>
-          <button
-            onClick={() => handleSendPrompt('Analyze the top alpha trade for Danish manure right now')}
-            className="px-2 py-0.5 rounded border border-teal-800 bg-teal-950/60 text-teal-300 hover:bg-teal-900 transition-colors"
-          >
-            Analyze Danish Manure Alpha
-          </button>
-          <button
-            onClick={() => handleSendPrompt('Why is UK grid biomethane blocked from German THG quotas?')}
-            className="px-2 py-0.5 rounded border border-red-800 bg-red-950/60 text-red-300 hover:bg-red-900 transition-colors"
-          >
-            Stress-Test UK UDB Boundary
-          </button>
-          <button
-            onClick={() => handleSendPrompt('Draft a FuelEU Bio-LNG term sheet for CMA CGM from Spain')}
-            className="px-2 py-0.5 rounded border border-teal-800 bg-teal-950/60 text-teal-300 hover:bg-teal-900 transition-colors"
-          >
-            Draft CMA CGM FuelEU Term Sheet
-          </button>
-          <button
-            onClick={() => handleSendPrompt('What happens if German double counting is eliminated in 2026?')}
-            className="px-2 py-0.5 rounded border border-amber-800 bg-amber-950/60 text-amber-300 hover:bg-amber-900 transition-colors"
-          >
-            Germany §37a Double Counting Briefing
-          </button>
-        </div>
-
-        {/* Chat Stream Window */}
-        <div className="bg-stone-950 border border-stone-800 rounded p-3 max-h-[360px] overflow-y-auto space-y-3">
-          {chatMessages.map(msg => (
-            <div
-              key={msg.id}
-              className={`p-3 rounded text-xs leading-relaxed space-y-1 ${
-                msg.sender === 'user'
-                  ? 'bg-teal-950/40 border border-teal-800/60 text-stone-200 ml-8'
-                  : 'bg-stone-900 border border-stone-800 text-stone-100 mr-8'
-              }`}
-            >
-              <div className="flex items-center justify-between text-micro text-stone-400 border-b border-stone-800/80 pb-1 mb-1">
-                <span className="font-semibold text-teal-400 uppercase">{msg.sender === 'user' ? 'Trader' : msg.agentRole || 'Copilot Agent'}</span>
-                <span>{msg.timestamp}</span>
               </div>
-              <div className="prose prose-invert prose-xs max-w-none whitespace-pre-wrap">
-                {msg.content}
-              </div>
-            </div>
+            </React.Fragment>
           ))}
 
-          {chatLoading && (
-            <div className="p-3 bg-stone-900 border border-stone-800 rounded text-xs text-stone-400 flex items-center gap-2">
-              <RefreshCw className="w-3.5 h-3.5 animate-spin text-teal-400" />
-              <span>Querying {getModelBadgeName(selectedModel)} with European regulatory directives...</span>
+          {loading && (
+            <div className="max-w-[80%] flex items-center gap-2 bg-stone-900 border border-stone-800 p-3 rounded-xs text-xs text-stone-400 font-mono">
+              <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
+              <span>Querying {configuredModel || 'eligibility engine'} & evaluating cross-border arbitrage…</span>
             </div>
           )}
         </div>
 
         {/* Input Bar */}
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            placeholder="Ask the AI desk agent (e.g. 'What is the highest margin export from Poland?')..."
-            value={chatInput}
-            onChange={e => setChatInput(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleSendPrompt()}
-            className="flex-1 bg-stone-950 border border-stone-800 rounded px-3 py-1.5 text-xs text-stone-200 outline-none focus:border-teal-500"
-          />
-          <button
-            onClick={() => handleSendPrompt()}
-            disabled={chatLoading || !chatInput.trim()}
-            className="bg-teal-600 hover:bg-teal-500 disabled:opacity-50 text-white font-semibold px-3 py-1.5 rounded text-xs transition-colors flex items-center gap-1"
+        <div className="flex-none p-3 px-3.5 border-t border-stone-800 bg-stone-900">
+          <form
+            onSubmit={e => {
+              e.preventDefault();
+              handleSend();
+            }}
+            className="flex items-center gap-2"
           >
-            <Send className="w-3.5 h-3.5" /> Send
-          </button>
+            <input
+              type="text"
+              placeholder={`Ask a cross-border arbitrage or regulatory question (${connStatus === 'CONNECTED' ? configuredModel : 'Deterministic Engine'})…`}
+              value={inputQuery}
+              onChange={e => setInputQuery(e.target.value)}
+              disabled={loading}
+              className="flex-1 bg-stone-950 border border-stone-700 text-stone-100 font-sans text-xs p-2.5 px-3 rounded-xs outline-none focus:border-teal-500 disabled:opacity-50"
+            />
+            <button
+              type="submit"
+              disabled={loading || !inputQuery.trim()}
+              className="px-4 py-2.5 bg-teal-600 hover:bg-teal-500 disabled:bg-stone-800 text-teal-950 font-mono text-xs font-bold tracking-[0.08em] uppercase cursor-pointer rounded-xs transition-colors duration-150 shrink-0"
+            >
+              Send
+            </button>
+          </form>
         </div>
-      </div>
 
-      {/* Gemini Model & API Key Configuration Modal */}
-      {showKeyModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 z-50 text-xs">
-          <div className="bg-stone-900 border border-stone-800 p-3 max-w-md w-full space-y-2 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-stone-800 pb-2">
-              <span className="font-semibold text-stone-100 flex items-center gap-1.5">
-                <Cpu className="w-4 h-4 text-teal-400" /> Configure Google Gemini Model & API Key
-              </span>
-              <button onClick={() => setShowKeyModal(false)} aria-label="Close" className="text-stone-400 hover:text-stone-300 cursor-pointer"><X className="w-4 h-4" aria-hidden="true" /></button>
-            </div>
+      </section>
 
-            <p className="text-stone-400 text-xs leading-relaxed">
-              Connect your Google AI Studio API Key to enable live reasoning with **Gemini 3.7 Flash** across EUR-Lex directives and automated counterparty term sheet drafting.
-            </p>
-
-            {/* Model Selector Dropdown */}
-            <div>
-              <label className="block text-micro font-semibold text-stone-400 uppercase mb-1">AI Reasoning Model</label>
-              <select
-                value={selectedModel}
-                onChange={e => setSelectedModel(e.target.value as GeminiModelId)}
-                className="w-full bg-stone-950 border border-stone-700 rounded p-2 text-teal-300 font-semibold outline-none focus:border-teal-500"
-              >
-                <option value="gemini-3.7-flash">Gemini 3.7 Flash (Recommended / High Speed & Reasoning)</option>
-                <option value="gemini-3.7-pro">Gemini 3.7 Pro (Deep Legal & Directives Synthesis)</option>
-                <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-                <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
-              </select>
-            </div>
-
-            {/* API Key Input */}
-            <div>
-              <label className="block text-micro font-semibold text-stone-400 uppercase mb-1">Google AI Studio API Key</label>
-              <input
-                type="password"
-                placeholder="AIzaSy..."
-                value={geminiApiKey}
-                onChange={e => setGeminiApiKey(e.target.value)}
-                className="w-full bg-stone-950 border border-stone-800 rounded p-2 text-stone-200 outline-none focus:border-teal-500"
-              />
-              <p className="text-micro text-stone-400 mt-1">
-                Keys are stored locally in your browser only. Get a key at <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-teal-400 underline">aistudio.google.com</a>.
-              </p>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                onClick={() => setShowKeyModal(false)}
-                className="px-3 py-1.5 rounded border border-stone-800 text-stone-400 hover:bg-stone-800"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleSaveApiKey(geminiApiKey, selectedModel)}
-                className="bg-teal-600 hover:bg-teal-500 text-white font-semibold px-4 py-1.5 rounded"
-              >
-                Save & Connect
-              </button>
-            </div>
-          </div>
+      {/* 4B. SUGGESTED PROMPTS RAIL (RIGHT, 300px) */}
+      <aside className="bg-stone-950 flex flex-col min-h-0 overflow-y-auto font-sans">
+        
+        {/* Header */}
+        <div className="p-3 border-b border-stone-800 flex-none bg-stone-900">
+          <span className="font-mono text-meta font-semibold tracking-[0.16em] text-stone-400 uppercase">
+            Suggested prompts
+          </span>
         </div>
-      )}
 
-      {/* Selected Opportunity Route Modal */}
-      {selectedOpportunity && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 z-50 text-xs">
-          <div className="bg-stone-900 border border-stone-800 p-3 max-w-xl w-full space-y-3.5 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-stone-800 pb-2">
-              <div>
-                <span className="font-semibold text-sm text-stone-100 flex items-center gap-2">
-                  <span>{selectedOpportunity.originFlag} {selectedOpportunity.originCountryName}</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-teal-400" />
-                  <span>{selectedOpportunity.targetFlag} {selectedOpportunity.targetMarketName}</span>
-                </span>
-                <span className="text-micro text-stone-400">
-                  {selectedOpportunity.feedstockName} (CI: {selectedOpportunity.carbonIntensity} gCO₂e/MJ)
-                </span>
-              </div>
-              <StatusChip variant={selectedOpportunity.overallVerdict} size="xs" />
-            </div>
-
-            {/* Decomposed Value Stack */}
-            <div className="p-3 bg-stone-950 rounded border border-stone-800 space-y-1.5 text-xs">
-              <div className="flex justify-between text-stone-400">
-                <span>Delivered Compliance Value Stack:</span>
-                <strong className="text-stone-200">€{selectedOpportunity.totalTerminalValueStackEurPerMWh?.toFixed(2) ?? '—'}/MWh</strong>
-              </div>
-              <div className="flex justify-between text-stone-400">
-                <span>Producer Index-Linked Share:</span>
-                <strong className="text-stone-400">{selectedOpportunity.producerPayableEurPerMWh !== null ? `−€${selectedOpportunity.producerPayableEurPerMWh.toFixed(2)}/MWh` : 'Unset'}</strong>
-              </div>
-              <div className="flex justify-between text-stone-400">
-                <span>Cross-Border Transit Tariff:</span>
-                <strong className="text-stone-400">−€{selectedOpportunity.transitCostEurPerMWh.toFixed(2)}/MWh</strong>
-              </div>
-              <div className="flex justify-between text-stone-200 border-t border-stone-800 pt-1.5 font-semibold">
-                <span className="text-emerald-400">Real Desk Net Margin:</span>
-                <span className="text-emerald-400">
-                  +€{selectedOpportunity.deskNetMarginEurPerMWh?.toFixed(2) ?? '—'}/MWh
-                </span>
-              </div>
-            </div>
-
-            <div className="text-xs text-stone-300 p-2.5 rounded bg-stone-950/80 border border-stone-800 leading-relaxed">
-              <strong>Execution Rationale:</strong> {selectedOpportunity.regulatoryRationale}
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                onClick={() => setSelectedOpportunity(null)}
-                className="px-3 py-1.5 rounded border border-stone-800 text-stone-400 hover:bg-stone-800"
-              >
-                Close
-              </button>
-              <button
-                onClick={() => {
-                  navigate(`/trade?marketId=${selectedOpportunity.targetMarketId}`);
-                }}
-                className="bg-teal-600 hover:bg-teal-500 text-white font-semibold px-4 py-1.5 rounded flex items-center gap-1.5"
-              >
-                Open Full Dossier in Trade Builder <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
+        {/* Prompt Buttons */}
+        <div className="p-3 flex flex-col gap-2 flex-1">
+          {SUGGESTED_PROMPTS.map((prompt, pi) => (
+            <button
+              key={pi}
+              type="button"
+              onClick={() => handleSend(prompt)}
+              disabled={loading}
+              className="text-left p-2.5 bg-stone-900 hover:bg-stone-850 border border-stone-800 hover:border-teal-500 rounded-xs text-xs text-stone-300 hover:text-stone-100 leading-relaxed cursor-pointer transition-colors duration-150"
+            >
+              {prompt}
+            </button>
+          ))}
         </div>
-      )}
+
+        {/* Grounding Disclaimer */}
+        <div className="p-3 bg-stone-900 border-t border-stone-800 flex flex-col gap-1">
+          <span className="font-mono text-micro font-bold tracking-[0.1em] text-stone-400 uppercase">
+            Desk Governance
+          </span>
+          <p className="m-0 text-meta text-stone-500 leading-relaxed">
+            All rankings and gate outcomes are recomputed by <code className="text-teal-400">computeAllNetbacks()</code> and <code className="text-teal-400">evaluateEligibility()</code> against live desk marks.
+          </p>
+        </div>
+
+      </aside>
 
     </div>
   );

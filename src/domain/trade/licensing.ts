@@ -57,3 +57,30 @@ export function assessmentContainsPraData(a: TradeAssessment): PraLicenceCheckRe
     sources,
   };
 }
+
+/**
+ * Scans all price inputs feeding a SourcingSearchResult to detect whether any component
+ * originates from a Price Reporting Agency (PRA).
+ */
+export function searchResultContainsPraData(
+  markets: string[],
+  marks: { marks?: Record<string, { provenance?: MarkProvenance | null }>; gasIndex?: { provenance?: MarkProvenance | null }; fx?: { provenance?: MarkProvenance | null } }
+): PraLicenceCheckResult {
+  const sourcesSet = new Set<string>();
+
+  checkProvenance(marks.gasIndex?.provenance, sourcesSet);
+  checkProvenance(marks.fx?.provenance, sourcesSet);
+
+  if (marks.marks) {
+    for (const mId of markets) {
+      checkProvenance(marks.marks[mId]?.provenance, sourcesSet);
+    }
+  }
+
+  const sources = Array.from(sourcesSet);
+  return {
+    hasPra: sources.length > 0,
+    sources,
+  };
+}
+

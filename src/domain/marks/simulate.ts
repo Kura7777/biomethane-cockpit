@@ -96,13 +96,12 @@ export function simulateDesk(now: Date = new Date()): { marks: MarksState; costs
           note: 'Synthetic test data — not a real mark.',
         },
       },
-      pricingSide: 'bid',
+      pricingSides: { certificateSide: 'bid', moleculeSide: 'bid' },
     },
     costs: {
       transferCosts: round(between(0.6, 1.8), 2),
       certificationCosts: round(between(0.3, 0.7), 2),
       logistics: round(between(0.2, 0.9), 2),
-      deliveredCost: round(between(55, 70), 2),
       otherCosts: null,
       producerPricing: {
         mode: 'INDEX_LINKED',

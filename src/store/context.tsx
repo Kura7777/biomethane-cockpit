@@ -7,12 +7,13 @@ import { MARKETS } from '../domain/markets/registry';
 import { REFERENCE_CONSIGNMENTS } from '../domain/consignment/feedstocks';
 import { simulateDesk } from '../domain/marks/simulate';
 
-export const CURRENT_SCHEMA_VERSION = 7;
-const STORAGE_KEY = 'biomethane-desk-state-v7';
+export const CURRENT_SCHEMA_VERSION = 8;
+const STORAGE_KEY = 'biomethane-desk-state-v8';
 
 // Newest first — the first key that yields a readable payload wins.
 const KNOWN_STORAGE_KEYS = [
   STORAGE_KEY,
+  'biomethane-desk-state-v7',
   'biomethane-desk-state-v6',
   'biomethane-desk-state-v5',
   'biomethane-desk-state-v4',
@@ -54,20 +55,55 @@ export type AppAction =
   | { type: 'SIMULATE_DESK' }
   | { type: 'RESET' };
 
+interface RawLegacyMarks {
+  marks?: Record<string, {
+    bid?: number | null;
+    offer?: number | null;
+    mid?: number | null;
+    updatedAt?: string | null;
+    timestamp?: string | null;
+    source?: string | null;
+    sourceNote?: string | null;
+  }>;
+  gasIndex?: {
+    bid?: number | null;
+    offer?: number | null;
+    mid?: number | null;
+    updatedAt?: string | null;
+  };
+  fx?: {
+    gbpEur?: number | null;
+    chfEur?: number | null;
+    updatedAt?: string | null;
+  };
+  pricingSide?: PriceSide;
+}
+
+interface RawStateShape {
+  schemaVersion?: number;
+  marks?: RawLegacyMarks;
+  costs?: Partial<AppState['costs']>;
+  consignments?: Consignment[];
+  activeConsignmentId?: string;
+  savedAssessments?: AppState['savedAssessments'];
+  selectedMarketId?: string | null;
+}
+
 /**
  * Migration function to upgrade legacy state shapes safely without data loss
  */
-export function migrateState(raw: any): AppState {
+export function migrateState(raw: unknown): AppState {
   if (!raw || typeof raw !== 'object') {
     return createDefaultState();
   }
 
-  const stateVersion = raw.schemaVersion || 1;
-  let migrated = { ...raw };
+  const rawRecord = raw as RawStateShape;
+  const stateVersion = rawRecord.schemaVersion || 1;
+  let migrated: AppState = { ...(raw as AppState) };
 
   if (stateVersion < 2) {
     // Migrate marks shape to include updatedAt and source
-    const rawMarks = raw.marks?.marks || {};
+    const rawMarks = rawRecord.marks?.marks || {};
     const updatedMarks: Record<string, MarkEntry> = {};
 
     MARKETS.filter(m => m.status === 'ACTIVE').forEach(m => {
@@ -96,17 +132,20 @@ export function migrateState(raw: any): AppState {
     migrated.marks = {
       marks: updatedMarks,
       gasIndex: {
-        bid: raw.marks?.gasIndex?.bid ?? null,
-        offer: raw.marks?.gasIndex?.offer ?? null,
-        mid: raw.marks?.gasIndex?.mid ?? null,
-        updatedAt: raw.marks?.gasIndex?.updatedAt ?? null,
+        bid: rawRecord.marks?.gasIndex?.bid ?? null,
+        offer: rawRecord.marks?.gasIndex?.offer ?? null,
+        mid: rawRecord.marks?.gasIndex?.mid ?? null,
+        updatedAt: rawRecord.marks?.gasIndex?.updatedAt ?? null,
       },
       fx: {
-        gbpEur: raw.marks?.fx?.gbpEur ?? null,
-        chfEur: raw.marks?.fx?.chfEur ?? null,
-        updatedAt: raw.marks?.fx?.updatedAt ?? null,
+        gbpEur: rawRecord.marks?.fx?.gbpEur ?? null,
+        chfEur: rawRecord.marks?.fx?.chfEur ?? null,
+        updatedAt: rawRecord.marks?.fx?.updatedAt ?? null,
       },
-      pricingSide: raw.marks?.pricingSide ?? 'bid',
+      pricingSides: {
+        certificateSide: rawRecord.marks?.pricingSide ?? 'bid',
+        moleculeSide: rawRecord.marks?.pricingSide ?? 'bid',
+      },
     };
   }
 
@@ -117,7 +156,6 @@ export function migrateState(raw: any): AppState {
         transferCosts: null,
         certificationCosts: null,
         logistics: null,
-        deliveredCost: null,
         otherCosts: null,
         producerPricing: null,
       };
@@ -202,7 +240,7 @@ export function migrateState(raw: any): AppState {
 
   if (stateVersion < 6) {
     // Schema v6 migration: existing consignments get deliveryPeriod with all fields null
-    migrated.consignments = (migrated.consignments || []).map((c: any) => ({
+    migrated.consignments = (migrated.consignments || []).map(c => ({
       ...c,
       deliveryPeriod: c.deliveryPeriod ?? {
         type: null,
@@ -215,13 +253,78 @@ export function migrateState(raw: any): AppState {
 
   if (stateVersion < 7) {
     // Schema v7 migration: existing consignments get counterparty: null
-    migrated.consignments = (migrated.consignments || []).map((c: any) => ({
+    migrated.consignments = (migrated.consignments || []).map(c => ({
       ...c,
       counterparty: c.counterparty ?? null,
     }));
   }
 
+  if (stateVersion < 8 && migrated.marks) {
+    // Schema v8 migration: the scalar marks.pricingSide is retired in favour of the
+    // per-leg pair, which is now the only stored source of truth. An existing scalar
+    // meant "both legs at this side", so it maps across without loss. Any pair the
+    // user had already set wins, since the scalar could never express it.
+    const legacyScalar = (migrated.marks as { pricingSide?: PriceSide }).pricingSide ?? 'bid';
+    migrated.marks = {
+      ...migrated.marks,
+      pricingSides: migrated.marks.pricingSides ?? {
+        certificateSide: legacyScalar,
+        moleculeSide: legacyScalar,
+      },
+    };
+    delete (migrated.marks as { pricingSide?: PriceSide }).pricingSide;
+  }
+
+  if (stateVersion < 8 && migrated.costs) {
+    // Schema v8 migration: costs.deliveredCost is retired. computeNetback never read
+    // it — producer payment flows through producerPricing — yet two screens subtracted
+    // it a second time on top of a netback that already nets the producer off.
+    //
+    // A stored value is only meaningful as a fixed producer price, and only when the
+    // desk is actually on FIXED_PRICE with that price still unset. Overwriting a price
+    // the user has already entered would be inventing a term of their contract, so in
+    // every other case the value is dropped rather than guessed at.
+    const legacyDelivered = (migrated.costs as { deliveredCost?: number | null }).deliveredCost ?? null;
+    const pricing = migrated.costs.producerPricing ?? null;
+
+    if (
+      legacyDelivered !== null &&
+      pricing?.mode === 'FIXED_PRICE' &&
+      pricing.fixedPriceEurPerMwh === null
+    ) {
+      migrated.costs = {
+        ...migrated.costs,
+        producerPricing: { ...pricing, fixedPriceEurPerMwh: legacyDelivered },
+      };
+    }
+
+    delete (migrated.costs as { deliveredCost?: number | null }).deliveredCost;
+  }
+
   migrated.schemaVersion = CURRENT_SCHEMA_VERSION;
+
+  // Ensure all active markets exist in marks dictionary
+  if (migrated.marks && migrated.marks.marks) {
+    MARKETS.filter(m => m.status === 'ACTIVE').forEach(m => {
+      if (!migrated.marks.marks[m.id]) {
+        migrated.marks.marks[m.id] = {
+          marketId: m.id,
+          bid: null,
+          offer: null,
+          mid: null,
+          updatedAt: null,
+          source: null,
+          provenance: {
+            sourceType: null,
+            sourceName: null,
+            sourceUrl: null,
+            observedAt: null,
+            note: null,
+          },
+        };
+      }
+    });
+  }
 
   // Ensure default reference consignments exist if list is empty
   if (!Array.isArray(migrated.consignments) || migrated.consignments.length === 0) {
@@ -285,7 +388,7 @@ export function createDefaultState(): AppState {
           note: null,
         },
       },
-      pricingSide: 'bid',
+      pricingSides: { certificateSide: 'bid', moleculeSide: 'bid' },
     },
     consignments: [
       REFERENCE_CONSIGNMENTS.DANISH_MANURE,
@@ -297,7 +400,6 @@ export function createDefaultState(): AppState {
       transferCosts: null,
       certificationCosts: null,
       logistics: null,
-      deliveredCost: null,
       otherCosts: null,
       producerPricing: null,
     },
@@ -434,15 +536,11 @@ function appReducer(state: AppState, action: AppAction): AppState {
         ...state,
         marks: {
           ...state.marks,
-          pricingSide: action.side,
           pricingSides: { certificateSide: action.side, moleculeSide: action.side },
         },
       };
     case 'SET_PRICING_SIDES': {
-      const currentSides = state.marks.pricingSides ?? {
-        certificateSide: state.marks.pricingSide ?? 'bid',
-        moleculeSide: state.marks.pricingSide ?? 'bid',
-      };
+      const currentSides = state.marks.pricingSides;
       return {
         ...state,
         marks: {

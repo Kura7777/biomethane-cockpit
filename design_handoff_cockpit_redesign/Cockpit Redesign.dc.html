@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  body { margin:0; background:#0c0a09; color:#f5f5f4; font-family:'Inter',system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
+  * { box-sizing:border-box; }
+  a { color:#2dd4bf; text-decoration:none; }
+  a:hover { color:#5eead4; text-decoration:underline; }
+  ::-webkit-scrollbar { width:8px; height:8px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:#44403c; border-radius:4px; }
+  ::-webkit-scrollbar-thumb:hover { background:#57534e; }
+  input[type=range] { -webkit-appearance:none; appearance:none; background:transparent; }
+  input[type=range]::-webkit-slider-runnable-track { height:3px; background:#292524; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:12px; height:12px; margin-top:-4.5px; background:#14b8a6; border:1px solid #042f2e; cursor:pointer; }
+  @keyframes pulseDot { 0%,100% { opacity:1 } 50% { opacity:.35 } }
+</style>
+</helmet>
+
+<div style="height:100vh;min-width:1400px;display:flex;flex-direction:column;background:#0c0a09;overflow:hidden;font-family:'Inter',sans-serif">
+
+  <header style="height:52px;flex:none;display:flex;align-items:center;gap:20px;padding:0 16px;background:#1c1917;border-bottom:1px solid #292524">
+    <div style="display:flex;align-items:center;gap:9px;flex:none">
+      <div style="width:22px;height:22px;background:#0d9488;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#042f2e">B</div>
+      <div style="display:flex;flex-direction:column;line-height:1.15">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.14em;color:#f5f5f4;text-transform:uppercase">Biomethane Desk</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#a8a29e;letter-spacing:.1em">RED III · EU-27 + UK + CH</span>
+      </div>
+    </div>
+
+    <nav style="display:flex;align-items:stretch;gap:0;height:52px;margin-left:8px" aria-label="Primary">
+      <sc-for list="{{ nav }}" as="n" hint-placeholder-count="7">
+        <button type="button" onClick="{{ n.go }}" aria-current="{{ n.current }}" style="{{ n.style }}" style-hover="color:#f5f5f4">
+          <span>{{ n.label }}</span>
+          <span style="font-size:10px;color:#78716c;border:1px solid #292524;padding:0 3px;line-height:1.4">{{ n.k }}</span>
+        </button>
+      </sc-for>
+    </nav>
+
+    <div style="flex:1"></div>
+
+    <div style="display:flex;align-items:center;gap:14px;flex:none">
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#78716c;letter-spacing:.12em;text-transform:uppercase">Side</span>
+        <div style="display:flex;border:1px solid #292524" role="group" aria-label="Pricing side">
+          <sc-for list="{{ sides }}" as="s" hint-placeholder-count="3">
+            <button type="button" onClick="{{ s.set }}" aria-pressed="{{ s.on }}" style="{{ s.style }}">{{ s.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding-left:14px;border-left:1px solid #292524">
+        <span style="display:inline-flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;color:#f87171;letter-spacing:.06em">
+          <span style="width:5px;height:5px;border-radius:50%;background:#ef4444;animation:pulseDot 1.6s infinite"></span>2 &gt;30d
+        </span>
+        <span style="display:inline-flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;color:#fbbf24;letter-spacing:.06em">
+          <span style="width:5px;height:5px;border-radius:50%;background:#f59e0b"></span>6 &gt;7d
+        </span>
+        <span style="display:inline-flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;color:#34d399;letter-spacing:.06em">
+          <span style="width:5px;height:5px;border-radius:50%;background:#10b981"></span>8 fresh
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <div style="height:26px;flex:none;display:flex;align-items:center;gap:0;padding:0 16px;background:#0c0a09;border-bottom:1px solid #292524;overflow-x:auto;overflow-y:hidden">
+    <sc-for list="{{ ticker }}" as="t" hint-placeholder-count="8">
+      <div style="display:flex;align-items:baseline;gap:6px;padding-right:22px;margin-right:22px;border-right:1px solid #1c1917;white-space:nowrap">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;color:#78716c;text-transform:uppercase">{{ t.k }}</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:#e7e5e4">{{ t.v }}</span>
+        <span style="{{ t.dStyle }}">{{ t.d }}</span>
+      </div>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ isLadder }}" hint-placeholder-val="{{ true }}">
+  <div style="flex:1;display:grid;grid-template-columns:264px minmax(0,1fr) 336px;min-height:0;min-width:1400px">
+
+    <aside style="border-right:1px solid #292524;background:#0c0a09;display:flex;flex-direction:column;min-height:0;overflow-y:auto">
+      <div style="padding:10px 12px;border-bottom:1px solid #292524;display:flex;align-items:center;justify-content:space-between">
+        <h2 style="margin:0;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.16em;color:#a8a29e;text-transform:uppercase">Consignment</h2>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#5eead4;background:#042f2e;border:1px solid #115e59;padding:1px 5px">ACTIVE</span>
+      </div>
+
+      <div style="padding:12px;border-bottom:1px solid #292524;display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;letter-spacing:.04em;color:#f5f5f4">{{ originCode }}</span>
+          <span style="flex:1;height:1px;background:#292524"></span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#78716c;letter-spacing:.1em">ORIGIN</span>
+        </div>
+        <div style="font-size:14px;line-height:1.5;color:#d6d3d1">{{ originDesc }}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:3px">
+          <sc-for list="{{ originPicks }}" as="o" hint-placeholder-count="20">
+            <button type="button" onClick="{{ o.pick }}" aria-pressed="{{ o.on }}" style="{{ o.style }}">{{ o.cc }}</button>
+          </sc-for>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#292524;border:1px solid #292524">
+          <div style="background:#1c1917;padding:7px 8px">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;color:#78716c;text-transform:uppercase">Volume</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;color:#f5f5f4;margin-top:2px">120,000<span style="font-size:10px;color:#a8a29e;font-weight:400"> MWh/y</span></div>
+          </div>
+          <div style="background:#1c1917;padding:7px 8px">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;color:#78716c;text-transform:uppercase">Annex</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:#34d399;margin-top:2px">IX-A</div>
+          </div>
+          <div style="background:#1c1917;padding:7px 8px">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;color:#78716c;text-transform:uppercase">Scheme</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:#f5f5f4;margin-top:2px">{{ schemeShort }}</div>
+          </div>
+          <div style="background:#1c1917;padding:7px 8px">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;color:#78716c;text-transform:uppercase">Custody</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:#f5f5f4;margin-top:2px">{{ custodyShort }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:12px;border-bottom:1px solid #292524">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.14em;color:#a8a29e;text-transform:uppercase">Carbon intensity</span>
+          <span style="{{ ciChip }}">{{ ciLabel }}</span>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.03em;color:#f5f5f4;line-height:1">{{ ciValue }}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#a8a29e;letter-spacing:.06em;margin-top:2px">gCO₂e/MJ · vs 94.0 baseline</div>
+        <input type="range" min="-150" max="50" step="5" value="{{ ci }}" onChange="{{ setCi }}" aria-label="Carbon intensity" style="width:100%;height:12px;margin:12px 0 4px;cursor:pointer" />
+        <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:10px;color:#78716c">
+          <span>−150</span><span>−100</span><span>0</span><span>+50</span>
+        </div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid #292524">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;color:#78716c;text-transform:uppercase">Avoided</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;color:#34d399">{{ avoided }}<span style="font-size:10px;color:#a8a29e;font-weight:400"> tCO₂e/MWh</span></span>
+        </div>
+      </div>
+
+      <div style="padding:12px;border-bottom:1px solid #292524;display:flex;flex-direction:column;gap:7px">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.14em;color:#a8a29e;text-transform:uppercase">Cost stack</span>
+        <sc-for list="{{ costs }}" as="c" hint-placeholder-count="4">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
+            <span style="font-size:12px;color:#a8a29e">{{ c.k }}</span>
+            <span style="flex:1;height:1px;background:#1c1917"></span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;font-variant-numeric:tabular-nums;color:#e7e5e4">{{ c.v }}</span>
+          </div>
+        </sc-for>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-top:3px;padding-top:7px;border-top:1px solid #292524">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.08em;color:#f5f5f4;text-transform:uppercase">All-in</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;color:#f5f5f4">{{ allInLabel }}</span>
+        </div>
+      </div>
+
+      <div style="padding:12px;display:flex;flex-direction:column;gap:6px">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.14em;color:#a8a29e;text-transform:uppercase">Filters</span>
+        <sc-for list="{{ filters }}" as="f" hint-placeholder-count="3">
+          <button type="button" onClick="{{ f.toggle }}" aria-pressed="{{ f.on }}" style="{{ f.style }}">
+            <span style="{{ f.boxStyle }}">{{ f.mark }}</span>
+            <span>{{ f.label }}</span>
+          </button>
+        </sc-for>
+      </div>
+    </aside>
+
+    <main style="display:flex;flex-direction:column;min-height:0;min-width:0;background:#0c0a09">
+
+      <div style="flex:none;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 14px;border-bottom:1px solid #292524">
+        <div style="display:flex;align-items:baseline;gap:12px">
+          <h1 style="margin:0;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;letter-spacing:.14em;color:#f5f5f4;text-transform:uppercase">Netback ladder</h1>
+          <span style="font-size:12px;color:#a8a29e">{{ countLabel }}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;color:#78716c;text-transform:uppercase">
+          <span style="display:inline-flex;align-items:center;gap:5px"><span style="width:8px;height:8px;background:#10b981"></span>Eligible</span>
+          <span style="display:inline-flex;align-items:center;gap:5px"><span style="width:8px;height:8px;background:#f59e0b"></span>Conditional</span>
+          <span style="display:inline-flex;align-items:center;gap:5px"><span style="width:8px;height:8px;background:#0ea5e9"></span>Unresolved</span>
+          <span style="display:inline-flex;align-items:center;gap:5px"><span style="width:8px;height:8px;background:#ef4444"></span>Blocked</span>
+        </div>
+      </div>
+
+      <div style="flex:none;display:grid;grid-template-columns:26px 26px minmax(150px,1.1fr) 112px 104px minmax(140px,1.6fr) 84px 58px;gap:10px;align-items:center;padding:6px 14px;background:#1c1917;border-bottom:1px solid #292524;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.12em;color:#a8a29e;text-transform:uppercase">
+        <span>#</span>
+        <span>CC</span>
+        <button type="button" onClick="{{ sortName.click }}" aria-sort="{{ sortName.aria }}" style="{{ sortName.style }}">Market / scheme{{ sortName.arrow }}</button>
+        <span title="Scheme · UDB · Mass balance · Annex IX · GHG · Member state">Gates S U M A G N</span>
+        <button type="button" onClick="{{ sortNet.click }}" aria-sort="{{ sortNet.aria }}" style="{{ sortNet.styleRight }}">Net €/MWh{{ sortNet.arrow }}</button>
+        <span>Spread vs all-in cost</span>
+        <button type="button" onClick="{{ sortMargin.click }}" aria-sort="{{ sortMargin.aria }}" style="{{ sortMargin.styleRight }}">Margin{{ sortMargin.arrow }}</button>
+        <button type="button" onClick="{{ sortAge.click }}" aria-sort="{{ sortAge.aria }}" style="{{ sortAge.styleCenter }}">Age{{ sortAge.arrow }}</button>
+      </div>
+
+      <div style="flex:1 1 auto;overflow-y:auto;min-height:220px">
+        <sc-for list="{{ rows }}" as="r" hint-placeholder-count="12">
+          <div onClick="{{ r.select }}" style="{{ r.rowStyle }}" style-hover="background:#292524">
+            <span style="{{ r.rankStyle }}">{{ r.rank }}</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.06em;color:#a8a29e">{{ r.cc }}</span>
+            <span style="display:flex;flex-direction:column;gap:1px;min-width:0">
+              <span style="{{ r.nameStyle }}">{{ r.name }}</span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#78716c;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.sub }}</span>
+            </span>
+            <span style="display:flex;gap:2px">
+              <sc-for list="{{ r.gates }}" as="g" hint-placeholder-count="6">
+                <span title="{{ g.title }}" style="{{ g.style }}">{{ g.k }}</span>
+              </sc-for>
+            </span>
+            <span style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">
+              <span style="{{ r.netStyle }}">{{ r.net }}</span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#78716c">{{ r.flag }}</span>
+            </span>
+            <span style="position:relative;height:20px;background:#1c1917;border-left:1px solid #44403c">
+              <span style="{{ r.barStyle }}"></span>
+            </span>
+            <span style="{{ r.marginStyle }}">{{ r.margin }}</span>
+            <span style="display:flex;justify-content:center">
+              <span style="{{ r.ageStyle }}">{{ r.age }}</span>
+            </span>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="flex:0 1 auto;max-height:74px;overflow:hidden;display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:#1c1917;border-top:1px solid #451a03">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.1em;color:#451a03;background:#f59e0b;padding:2px 5px;flex:none">BLOCKED</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:#f5f5f4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">UK RTFO dRTFC — theoretical €{{ blockedNet }}/MWh unreachable</div>
+          <div style="font-size:12px;line-height:1.5;color:#a8a29e;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Grid-injected consignments cannot evidence UDB ingestion for UK RTFO. <span style="color:#5eead4">Remedy:</span> re-route as physical bio-LNG under a UK-recognised voluntary scheme, or place volume in NL ERE at €{{ topNet }}/MWh.</div>
+        </div>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#78716c;flex:none;padding-top:2px">RED III Art. 28(2) · Reg. 2024/2792</span>
+      </div>
+    </main>
+
+    <aside style="border-left:1px solid #292524;background:#0c0a09;display:flex;flex-direction:column;min-height:0;overflow-y:auto">
+      <div style="padding:12px;border-bottom:1px solid #292524">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.16em;color:#a8a29e;text-transform:uppercase">Dossier</span>
+          <span style="{{ selVerdictStyle }}">{{ selVerdict }}</span>
+        </div>
+        <h2 style="margin:8px 0 0;font-size:16px;font-weight:600;line-height:1.3;color:#f5f5f4">{{ selName }}</h2>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#a8a29e;margin-top:4px;letter-spacing:.04em">{{ selLegal }}</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#292524;border-bottom:1px solid #292524">
+        <sc-for list="{{ selStats }}" as="s" hint-placeholder-count="4">
+          <div style="background:#0c0a09;padding:9px 12px">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;color:#78716c;text-transform:uppercase">{{ s.k }}</div>
+            <div style="{{ s.vStyle }}">{{ s.v }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="padding:12px;border-bottom:1px solid #292524">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:9px">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.14em;color:#a8a29e;text-transform:uppercase">Compliance gates</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:#e7e5e4">{{ selGateScore }}</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:1px;background:#292524;border:1px solid #292524">
+          <sc-for list="{{ selGates }}" as="g" hint-placeholder-count="6">
+            <div style="background:#1c1917;padding:8px 9px">
+              <div style="display:flex;align-items:center;gap:7px">
+                <span style="{{ g.dotStyle }}"></span>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.06em;color:#f5f5f4;flex:1">{{ g.label }}</span>
+                <span style="{{ g.chipStyle }}">{{ g.verdict }}</span>
+              </div>
+              <p style="margin:4px 0 0 14px;font-size:12px;line-height:1.5;color:#a8a29e">{{ g.reason }}</p>
+              <div style="margin:4px 0 0 14px;font-family:'JetBrains Mono',monospace;font-size:10px;color:#5eead4">{{ g.cite }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <sc-if value="{{ showBranches }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:12px;border-bottom:1px solid #292524">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.14em;color:#38bdf8;text-transform:uppercase">Dual branch · §37a</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#78716c">unresolved for 2026</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#292524;border:1px solid #292524">
+          <sc-for list="{{ branches }}" as="b" hint-placeholder-count="2">
+            <div style="{{ b.boxStyle }}">
+              <div style="{{ b.tagStyle }}">{{ b.tag }}</div>
+              <div style="{{ b.netStyle }}">{{ b.net }}</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#78716c;margin-top:3px">margin {{ b.margin }}</div>
+              <div style="font-size:11px;line-height:1.45;color:#a8a29e;margin-top:5px">{{ b.note }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <p style="margin:8px 0 0;font-size:11px;line-height:1.5;color:#78716c">Double counting is a policy multiplier and is being removed. Manure's negative CI is a property of the GHG calculation — unaffected.</p>
+      </div>
+      </sc-if>
+
+      <div style="padding:12px;border-bottom:1px solid #292524">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:2px">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.14em;color:#a8a29e;text-transform:uppercase">Delivery route {{ originCode }} → {{ selCc }}</span>
+          <button type="button" onClick="{{ openLogistics }}" style="background:none;border:none;padding:0;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.06em;color:#5eead4" style-hover="color:#99f6e4">PLAYBOOK →</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:1px;background:#292524;border:1px solid #292524;margin-top:9px">
+          <sc-for list="{{ selRoutes }}" as="o" hint-placeholder-count="3">
+            <div style="background:#1c1917;padding:8px 9px;display:flex;align-items:center;gap:9px">
+              <span style="{{ o.tagStyle }}">{{ o.tag }}</span>
+              <span style="flex:1;min-width:0">
+                <span style="display:block;font-size:12px;font-weight:500;color:#e7e5e4">{{ o.label }}</span>
+                <span style="display:block;font-family:'JetBrains Mono',monospace;font-size:10px;color:#78716c;margin-top:1px">{{ o.note }}</span>
+              </span>
+              <span style="{{ o.costStyle }}">{{ o.cost }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="padding:12px;display:flex;flex-direction:column;gap:7px;margin-top:auto">
+        <button type="button" style="width:100%;padding:9px;background:#0d9488;border:none;color:#f0fdfa;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;cursor:pointer" style-hover="background:#14b8a6">Build trade dossier</button>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+          <button type="button" style="padding:8px;background:#1c1917;border:1px solid #44403c;color:#d6d3d1;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.06em;cursor:pointer" style-hover="background:#292524;color:#f5f5f4">Export PDF</button>
+          <button type="button" style="padding:8px;background:#1c1917;border:1px solid #44403c;color:#d6d3d1;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.06em;cursor:pointer" style-hover="background:#292524;color:#f5f5f4">Ask copilot</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isTrade }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));min-height:0;min-width:1400px">
+
+    <section style="border-right:1px solid #292524;display:flex;flex-direction:column;min-height:0;overflow-y:auto">
+      <div style="padding:11px 14px;border-bottom:1px solid #292524;display:flex;align-items:center;gap:9px">
+        <span style="width:19px;height:19px;background:#0d9488;color:#042f2e;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700">1</span>
+        <h2 style="margin:0;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.14em;color:#f5f5f4;text-transform:uppercase">Consignment</h2>
+      </div>
+
+      <div style="padding:14px;display:flex;flex-direction:column;gap:14px">
+        <sc-for list="{{ tradeFields }}" as="f" hint-placeholder-count="5">
+          <label style="display:flex;flex-direction:column;gap:5px">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.12em;color:#a8a29e;text-transform:uppercase">{{ f.label }}</span>
+            <span style="display:flex;gap:5px;flex-wrap:wrap">
+              <sc-for list="{{ f.options }}" as="o" hint-placeholder-count="3">
+                <button type="button" onClick="{{ o.pick }}" aria-pressed="{{ o.on }}" style="{{ o.style }}">{{ o.label }}</button>
+              </sc-for>
+            </span>
+            <span style="font-size:12px;line-height:1.5;color:#78716c">{{ f.hint }}</span>
+          </label>
+        </sc-for>
+
+        <div style="border-top:1px solid #292524;padding-top:14px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.12em;color:#a8a29e;text-transform:uppercase">Carbon intensity</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;color:#f5f5f4">{{ ciValue }}</span>
+          </div>
+          <input type="range" min="-150" max="50" step="5" value="{{ ci }}" onChange="{{ setCi }}" aria-label="Carbon intensity" style="width:100%;height:12px;cursor:pointer" />
+          <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:10px;color:#78716c;margin-top:3px">
+            <span>−150 deep manure</span><span>0</span><span>+50 crop</span>
+          </div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:10px">
+            <span style="font-size:12px;color:#a8a29e">GHG saving vs 94.0 baseline</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:#34d399">{{ ghgSaving }}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section style="border-right:1px solid #292524;display:flex;flex-direction:column;min-height:0;overflow-y:auto">
+      <div style="padding:11px 14px;border-bottom:1px solid #292524;display:flex;align-items:center;gap:9px">
+        <span style="width:19px;height:19px;background:#0d9488;color:#042f2e;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700">2</span>
+        <h2 style="margin:0;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.14em;color:#f5f5f4;text-transform:uppercase">Destination &amp; legal validation</h2>
+      </div>
+
+      <div style="padding:12px 14px;border-bottom:1px solid #292524">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.12em;color:#a8a29e;text-transform:uppercase">Target market</span>
+        <span style="display:block;font-size:12px;line-height:1.5;color:#78716c;margin-top:3px">16 compliance mechanisms across 15 jurisdictions — France runs two in parallel. Not every producing origin operates one.</span>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:7px">
+          <sc-for list="{{ marketPicks }}" as="m" hint-placeholder-count="16">
+            <button type="button" onClick="{{ m.pick }}" aria-pressed="{{ m.on }}" title="{{ m.title }}" style="{{ m.style }}">{{ m.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="padding:12px 14px;border-bottom:1px solid #292524;display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+        <div style="min-width:0">
+          <h3 style="margin:0;font-size:16px;font-weight:600;line-height:1.3;color:#f5f5f4">{{ selName }}</h3>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#a8a29e;margin-top:3px">{{ selLegal }}</div>
+        </div>
+        <span style="{{ selVerdictStyle }}">{{ selVerdict }}</span>
+      </div>
+
+      <div style="padding:12px 14px;display:flex;flex-direction:column;gap:1px;background:#292524">
+        <sc-for list="{{ selGates }}" as="g" hint-placeholder-count="6">
+          <div style="background:#1c1917;padding:9px 10px">
+            <div style="display:flex;align-items:center;gap:7px">
+              <span style="{{ g.dotStyle }}"></span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.06em;color:#f5f5f4;flex:1">{{ g.label }}</span>
+              <span style="{{ g.chipStyle }}">{{ g.verdict }}</span>
+            </div>
+            <p style="margin:5px 0 0 14px;font-size:12px;line-height:1.55;color:#a8a29e">{{ g.reason }}</p>
+            <div style="margin:4px 0 0 14px;font-family:'JetBrains Mono',monospace;font-size:10px;color:#5eead4">{{ g.cite }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="display:flex;flex-direction:column;min-height:0;overflow-y:auto">
+      <div style="padding:11px 14px;border-bottom:1px solid #292524;display:flex;align-items:center;gap:9px">
+        <span style="width:19px;height:19px;background:#0d9488;color:#042f2e;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700">3</span>
+        <h2 style="margin:0;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.14em;color:#f5f5f4;text-transform:uppercase">Netback &amp; dossier</h2>
+      </div>
+
+      <div style="padding:14px;border-bottom:1px solid #292524">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.12em;color:#a8a29e;text-transform:uppercase">Net netback</div>
+        <div style="{{ heroNetStyle }}">{{ heroNet }}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#78716c;margin-top:2px">per MWh · {{ side }} marks · {{ selUnit }} unit of account</div>
+      </div>
+
+      <div style="padding:14px;border-bottom:1px solid #292524;display:flex;flex-direction:column;gap:8px">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.12em;color:#a8a29e;text-transform:uppercase">Waterfall</span>
+        <sc-for list="{{ waterfall }}" as="w" hint-placeholder-count="6">
+          <div style="display:flex;align-items:center;gap:9px">
+            <span style="width:120px;flex:none;font-size:12px;color:#d6d3d1">{{ w.label }}</span>
+            <span style="flex:1;height:16px;background:#1c1917;position:relative">
+              <span style="{{ w.barStyle }}"></span>
+            </span>
+            <span style="{{ w.valStyle }}">{{ w.val }}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="padding:14px;border-bottom:1px solid #292524">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.12em;color:#a8a29e;text-transform:uppercase">Volume &amp; P&amp;L</span>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#292524;border:1px solid #292524;margin-top:8px">
+          <sc-for list="{{ pnl }}" as="p" hint-placeholder-count="4">
+            <div style="background:#0c0a09;padding:9px 11px">
+              <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;color:#78716c;text-transform:uppercase">{{ p.k }}</div>
+              <div style="{{ p.vStyle }}">{{ p.v }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="padding:14px;display:flex;flex-direction:column;gap:7px;margin-top:auto">
+        <button type="button" style="width:100%;padding:10px;background:#0d9488;border:none;color:#f0fdfa;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;cursor:pointer" style-hover="background:#14b8a6">Save dossier with citations</button>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+          <button type="button" style="padding:8px;background:#1c1917;border:1px solid #44403c;color:#d6d3d1;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.06em;cursor:pointer" style-hover="background:#292524;color:#f5f5f4">Export PDF</button>
+          <button type="button" style="padding:8px;background:#1c1917;border:1px solid #44403c;color:#d6d3d1;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.06em;cursor:pointer" style-hover="background:#292524;color:#f5f5f4">Send to copilot</button>
+        </div>
+      </div>
+    </section>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isMarks }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:1;display:flex;flex-direction:column;min-height:0;min-width:1400px">
+    <div style="flex:none;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:11px 14px;border-bottom:1px solid #292524">
+      <div style="display:flex;align-items:baseline;gap:12px">
+        <h1 style="margin:0;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;letter-spacing:.14em;color:#f5f5f4;text-transform:uppercase">Desk marks</h1>
+        <span style="font-size:12px;color:#a8a29e">16 compliance certificates · TTF index · FX crosses · all levels SIMULATED</span>
+      </div>
+      <div style="display:flex;gap:7px">
+        <button type="button" style="padding:6px 11px;background:#1c1917;border:1px solid #44403c;color:#d6d3d1;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.06em;cursor:pointer" style-hover="background:#292524;color:#f5f5f4">Import snapshot</button>
+        <button type="button" style="padding:6px 11px;background:#0d9488;border:none;color:#f0fdfa;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.08em;cursor:pointer" style-hover="background:#14b8a6">Export snapshot</button>
+      </div>
+    </div>
+
+    <div style="flex:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:#292524;border-bottom:1px solid #292524">
+      <sc-for list="{{ indexCards }}" as="c" hint-placeholder-count="4">
+        <div style="background:#0c0a09;padding:11px 14px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.12em;color:#a8a29e;text-transform:uppercase">{{ c.k }}</span>
+            <span style="{{ c.ageStyle }}">{{ c.age }}</span>
+          </div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.03em;color:#f5f5f4;margin-top:5px;line-height:1">{{ c.v }}</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#78716c;margin-top:4px">{{ c.sub }}</div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="flex:none;display:grid;grid-template-columns:26px minmax(160px,1.4fr) 92px repeat(3,minmax(72px,.8fr)) 96px 130px 62px;gap:10px;align-items:center;padding:6px 14px;background:#1c1917;border-bottom:1px solid #292524;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.12em;color:#a8a29e;text-transform:uppercase">
+      <span>CC</span><span>Market</span><span>Unit</span>
+      <span style="text-align:right">Bid</span><span style="text-align:right">Mid</span><span style="text-align:right">Offer</span>
+      <span style="text-align:right">Spread</span><span>Source</span><span style="text-align:center">Age</span>
+    </div>
+
+    <div style="flex:1 1 auto;overflow-y:auto;min-height:220px">
+      <sc-for list="{{ markRows }}" as="m" hint-placeholder-count="16">
+        <div style="display:grid;grid-template-columns:26px minmax(160px,1.4fr) 92px repeat(3,minmax(72px,.8fr)) 96px 130px 62px;gap:10px;align-items:center;padding:5px 14px;border-bottom:1px solid #1c1917" style-hover="background:#1c1917">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:#a8a29e">{{ m.cc }}</span>
+          <span style="font-size:14px;font-weight:500;color:#f5f5f4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ m.name }}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#78716c">{{ m.unit }}</span>
+          <span style="{{ m.bidStyle }}">{{ m.bid }}</span>
+          <input type="number" step="{{ m.step }}" value="{{ m.mid }}" onChange="{{ m.setMid }}" aria-label="{{ m.ariaMid }}" style="{{ m.inputStyle }}" />
+          <span style="{{ m.offerStyle }}">{{ m.offer }}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-variant-numeric:tabular-nums;text-align:right;color:#a8a29e">{{ m.spread }}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#78716c;background:#1c1917;border:1px solid #292524;padding:2px 5px;justify-self:start">{{ m.source }}</span>
+          <span style="display:flex;justify-content:center"><span style="{{ m.ageStyle }}">{{ m.age }}</span></span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isPlants }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:1;display:grid;grid-template-columns:minmax(0,1fr) 336px;min-height:0;min-width:1400px">
+    <section style="border-right:1px solid #292524;display:flex;flex-direction:column;min-height:0">
+      <div style="flex:none;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:11px 14px;border-bottom:1px solid #292524">
+        <div style="display:flex;align-items:baseline;gap:12px">
+          <h1 style="margin:0;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;letter-spacing:.14em;color:#f5f5f4;text-transform:uppercase">Plant registry</h1>
+          <span style="font-size:12px;color:#a8a29e">{{ plantCountLabel }}</span>
+        </div>
+        <div style="display:flex;gap:4px">
+          <sc-for list="{{ plantFilters }}" as="f" hint-placeholder-count="6">
+            <button type="button" onClick="{{ f.pick }}" aria-pressed="{{ f.on }}" style="{{ f.style }}">{{ f.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="flex:none;display:grid;grid-template-columns:26px minmax(150px,1.5fr) 120px 90px 96px minmax(120px,1fr) 108px;gap:10px;align-items:center;padding:6px 14px;background:#1c1917;border-bottom:1px solid #292524;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.12em;color:#a8a29e;text-transform:uppercase">
+        <span>CC</span><span>Facility</span><span>Operator</span><span style="text-align:right">Nm³/h</span><span style="text-align:right">GWh/y</span><span>Feedstock</span><span style="text-align:center">Provenance</span>
+      </div>
+
+      <div style="flex:1 1 auto;overflow-y:auto;min-height:220px">
+        <sc-for list="{{ plantRows }}" as="p" hint-placeholder-count="14">
+          <div onClick="{{ p.open }}" style="display:grid;grid-template-columns:26px minmax(150px,1.5fr) 120px 90px 96px minmax(120px,1fr) 108px;gap:10px;align-items:center;padding:5px 14px;border-bottom:1px solid #1c1917;cursor:pointer" style-hover="background:#1c1917">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:#a8a29e">{{ p.cc }}</span>
+            <span style="font-size:14px;font-weight:500;color:#f5f5f4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.name }}</span>
+            <span style="{{ p.opStyle }}">{{ p.op }}</span>
+            <span style="{{ p.capStyle }}">{{ p.cap }}</span>
+            <span style="{{ p.energyStyle }}">{{ p.energy }}</span>
+            <span style="{{ p.feedStyle }}">{{ p.feed }}</span>
+            <span style="display:flex;justify-content:center"><span style="{{ p.provStyle }}">{{ p.prov }}</span></span>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="flex:none;display:flex;align-items:center;gap:10px;padding:9px 14px;background:#1c1917;border-top:1px solid #292524">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.1em;color:#451a03;background:#f59e0b;padding:2px 5px;flex:none">UNVERIFIED</span>
+        <span style="font-size:12px;line-height:1.5;color:#a8a29e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">1,843 of 1,986 facilities carry facility name and country only — capacity, coordinates and operator are unverified in the GIE/EBA source map. Do not price a trade off an unverified row.</span>
+      </div>
+    </section>
+
+    <aside style="display:flex;flex-direction:column;min-height:0;overflow-y:auto">
+      <div style="padding:12px;border-bottom:1px solid #292524">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.16em;color:#a8a29e;text-transform:uppercase">Country totals</span>
+      </div>
+      <sc-for list="{{ macroRows }}" as="c" hint-placeholder-count="12">
+        <div style="padding:9px 12px;border-bottom:1px solid #1c1917;display:flex;align-items:center;gap:10px">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:#a8a29e;width:22px;flex:none">{{ c.cc }}</span>
+          <span style="flex:1;min-width:0">
+            <span style="display:block;font-size:13px;color:#e7e5e4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.name }}</span>
+            <span style="display:block;height:3px;background:#292524;margin-top:4px"><span style="{{ c.barStyle }}"></span></span>
+          </span>
+          <span style="text-align:right;flex:none">
+            <span style="display:block;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;color:#f5f5f4">{{ c.plants }}</span>
+            <span style="display:block;font-family:'JetBrains Mono',monospace;font-size:10px;color:#78716c">{{ c.twh }}</span>
+          </span>
+        </div>
+      </sc-for>
+    </aside>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isDossiers }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:1;display:flex;flex-direction:column;min-height:0;min-width:1400px;overflow-y:auto">
+    <div style="flex:none;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:11px 14px;border-bottom:1px solid #292524">
+      <div style="display:flex;align-items:baseline;gap:12px">
+        <h1 style="margin:0;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;letter-spacing:.14em;color:#f5f5f4;text-transform:uppercase">Trade dossiers</h1>
+        <span style="font-size:12px;color:#a8a29e">4 archived · recalculated against current marks on open</span>
+      </div>
+      <button type="button" style="padding:6px 11px;background:#0d9488;border:none;color:#f0fdfa;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.08em;cursor:pointer" style-hover="background:#14b8a6">New dossier</button>
+    </div>
+
+    <div style="padding:14px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px">
+      <sc-for list="{{ dossiers }}" as="d" hint-placeholder-count="4">
+        <article style="border:1px solid #292524;background:#0c0a09">
+          <div style="padding:11px 13px;border-bottom:1px solid #292524;display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+            <div style="min-width:0">
+              <h2 style="margin:0;font-size:16px;font-weight:600;line-height:1.3;color:#f5f5f4">{{ d.title }}</h2>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#78716c;letter-spacing:.06em;margin-top:3px">{{ d.ref }}</div>
+            </div>
+            <span style="{{ d.chipStyle }}">{{ d.verdict }}</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#292524">
+            <sc-for list="{{ d.stats }}" as="s" hint-placeholder-count="3">
+              <div style="background:#0c0a09;padding:9px 11px">
+                <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;color:#78716c;text-transform:uppercase">{{ s.k }}</div>
+                <div style="{{ s.vStyle }}">{{ s.v }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="padding:11px 13px;border-top:1px solid #292524">
+            <p style="margin:0;font-size:12px;line-height:1.55;color:#a8a29e">{{ d.note }}</p>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px">
+              <span style="{{ d.driftStyle }}">{{ d.drift }}</span>
+              <span style="display:flex;gap:6px">
+                <button type="button" style="padding:6px 10px;background:#1c1917;border:1px solid #44403c;color:#d6d3d1;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;cursor:pointer" style-hover="background:#292524;color:#f5f5f4">Recalculate</button>
+                <button type="button" style="padding:6px 10px;background:#1c1917;border:1px solid #44403c;color:#d6d3d1;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;cursor:pointer" style-hover="background:#292524;color:#f5f5f4">Open</button>
+              </span>
+            </div>
+          </div>
+        </article>
+      </sc-for>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isCopilot }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:1;display:grid;grid-template-columns:minmax(0,1fr) 300px;min-height:0;min-width:1400px">
+    <section style="border-right:1px solid #292524;display:flex;flex-direction:column;min-height:0">
+      <div style="flex:none;padding:11px 14px;border-bottom:1px solid #292524;display:flex;align-items:baseline;gap:12px">
+        <h1 style="margin:0;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;letter-spacing:.14em;color:#f5f5f4;text-transform:uppercase">Desk copilot</h1>
+        <span style="font-size:12px;color:#a8a29e">Answers are gated by the eligibility engine — never by the model alone</span>
+      </div>
+
+      <div style="flex:1 1 auto;overflow-y:auto;min-height:220px;padding:14px;display:flex;flex-direction:column;gap:14px">
+        <div style="align-self:flex-end;max-width:60%;background:#1c1917;border:1px solid #44403c;padding:9px 12px">
+          <div style="font-size:14px;line-height:1.55;color:#f5f5f4">Where do I place 120 GWh of Danish manure gas this quarter, and what breaks if Germany drops double counting?</div>
+        </div>
+
+        <div style="max-width:80%;display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="width:18px;height:18px;background:#0d9488;color:#042f2e;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700">B</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.12em;color:#a8a29e;text-transform:uppercase">Copilot · engine-verified</span>
+          </div>
+          <div style="font-size:14px;line-height:1.6;color:#e7e5e4">Two markets clear on netback at your current CI of −100 gCO₂e/MJ, and both are CO₂-denominated — which is why they dominate the €/MWh markets by more than €100/MWh.</div>
+
+          <div style="display:flex;flex-direction:column;gap:1px;background:#292524;border:1px solid #292524">
+            <sc-for list="{{ copilotRows }}" as="r" hint-placeholder-count="3">
+              <div style="background:#1c1917;padding:9px 11px;display:flex;align-items:center;gap:10px">
+                <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:#a8a29e;width:22px;flex:none">{{ r.cc }}</span>
+                <span style="flex:1;min-width:0;font-size:13px;color:#f5f5f4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.name }}</span>
+                <span style="{{ r.chipStyle }}">{{ r.verdict }}</span>
+                <span style="{{ r.netStyle }}">{{ r.net }}</span>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="border-left:2px solid #f59e0b;padding:2px 0 2px 11px">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.12em;color:#fbbf24;text-transform:uppercase">If double counting goes to 1×</div>
+            <div style="font-size:14px;line-height:1.6;color:#e7e5e4;margin-top:4px">Germany halves to roughly €{{ deHalf }}/MWh and drops below the Netherlands. The Dutch ERE has no multiplier to lose, so it is the structurally safer home for this volume — place the base there and keep Germany as the upside branch, not the plan.</div>
+          </div>
+
+          <div style="font-size:13px;line-height:1.6;color:#a8a29e">Manure's negative carbon intensity is a property of the GHG calculation (avoided methane from conventional manure management). It is unaffected by the double counting question — do not conflate the two.</div>
+
+          <div style="display:flex;flex-wrap:wrap;gap:5px">
+            <sc-for list="{{ copilotCites }}" as="c" hint-placeholder-count="4">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#5eead4;background:#042f2e;border:1px solid #115e59;padding:2px 6px">{{ c }}</span>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <div style="flex:none;padding:12px 14px;border-top:1px solid #292524;display:flex;gap:8px">
+        <input type="text" placeholder="Ask about eligibility, netbacks, or a specific corridor…" aria-label="Ask the copilot" style="flex:1;background:#0c0a09;border:1px solid #44403c;color:#f5f5f4;font-family:'Inter',sans-serif;font-size:14px;padding:9px 11px" />
+        <button type="button" style="padding:9px 16px;background:#0d9488;border:none;color:#f0fdfa;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;cursor:pointer" style-hover="background:#14b8a6">Ask</button>
+      </div>
+    </section>
+
+    <aside style="display:flex;flex-direction:column;min-height:0;overflow-y:auto">
+      <div style="padding:12px;border-bottom:1px solid #292524">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.16em;color:#a8a29e;text-transform:uppercase">Suggested</span>
+      </div>
+      <sc-for list="{{ prompts }}" as="p" hint-placeholder-count="5">
+        <button type="button" style="text-align:left;padding:11px 12px;border:none;border-bottom:1px solid #1c1917;background:transparent;color:#d6d3d1;font-family:'Inter',sans-serif;font-size:13px;line-height:1.5;cursor:pointer" style-hover="background:#1c1917;color:#f5f5f4">{{ p }}</button>
+      </sc-for>
+      <div style="padding:12px;margin-top:auto;border-top:1px solid #292524">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;color:#78716c;text-transform:uppercase">Grounding</div>
+        <p style="margin:6px 0 0;font-size:12px;line-height:1.55;color:#a8a29e">Every figure is recomputed by the eligibility and netback engines before it is shown. The model selects and explains; it does not price.</p>
+      </div>
+    </aside>
+  </div>
+  </sc-if>
+
+  <footer style="height:26px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:#1c1917;border-top:1px solid #292524;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#a8a29e">
+    <span>Baseline 94.0 gCO₂e/MJ · FuelEU Reg. 2023/1805 · 1,986 plants indexed · marks SIMULATED</span>
+    <span>Keys 1–7 screens · ↑↓ rows · ⏎ playbook · Esc close</span>
+  </footer>
+
+  <sc-if value="{{ isLogisticsOpen }}" hint-placeholder-val="{{ false }}">
+  <div role="dialog" aria-modal="true" aria-label="Cross-border delivery playbook" style="position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.75);display:flex;align-items:flex-start;justify-content:center;padding:32px 24px;overflow-y:auto">
+    <div style="width:100%;max-width:1120px;background:#0c0a09;border:1px solid #44403c;box-shadow:0 24px 64px rgba(0,0,0,.6)">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:14px 16px;border-bottom:1px solid #292524;background:#1c1917">
+        <div>
+          <h2 style="margin:0;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;letter-spacing:.12em;color:#f5f5f4;text-transform:uppercase">Delivery playbook · {{ originCode }} → {{ selCc }}</h2>
+          <div style="font-size:12px;color:#a8a29e;margin-top:4px">{{ logHeader }}</div>
+        </div>
+        <button type="button" onClick="{{ closeModal }}" aria-label="Close playbook" style="background:none;border:1px solid #44403c;color:#a8a29e;font-family:'JetBrains Mono',monospace;font-size:12px;padding:4px 8px;cursor:pointer" style-hover="color:#f5f5f4;background:#292524">ESC ✕</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:#292524">
+        <sc-for list="{{ logModes }}" as="o" hint-placeholder-count="3">
+          <div style="{{ o.boxStyle }}">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+              <span style="{{ o.tagStyle }}">{{ o.tag }}</span>
+              <span style="{{ o.feasStyle }}">{{ o.feas }}</span>
+            </div>
+            <h3 style="margin:9px 0 0;font-size:14px;font-weight:600;line-height:1.35;color:#f5f5f4">{{ o.title }}</h3>
+            <div style="{{ o.costStyle }}">{{ o.cost }}</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#78716c;margin-top:2px">{{ o.timeline }}</div>
+            <p style="margin:8px 0 0;font-size:12px;line-height:1.55;color:#a8a29e">{{ o.summary }}</p>
+
+            <div style="margin-top:11px;display:flex;flex-direction:column;gap:5px">
+              <sc-for list="{{ o.lines }}" as="l" hint-placeholder-count="4">
+                <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
+                  <span style="font-size:11px;line-height:1.4;color:#a8a29e">{{ l.label }}</span>
+                  <span style="flex:1;height:1px;background:#1c1917"></span>
+                  <span style="{{ l.valStyle }}">{{ l.val }}</span>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="margin-top:11px;padding-top:9px;border-top:1px solid #292524">
+              <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;color:#34d399;text-transform:uppercase">For</div>
+              <sc-for list="{{ o.pros }}" as="p" hint-placeholder-count="3">
+                <div style="font-size:11px;line-height:1.5;color:#a8a29e;margin-top:3px">{{ p }}</div>
+              </sc-for>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;color:#fbbf24;text-transform:uppercase;margin-top:9px">Against</div>
+              <sc-for list="{{ o.cons }}" as="c" hint-placeholder-count="3">
+                <div style="font-size:11px;line-height:1.5;color:#a8a29e;margin-top:3px">{{ c }}</div>
+              </sc-for>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#5eead4;margin-top:10px;line-height:1.45">{{ o.legal }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:1px;background:#292524;border-top:1px solid #292524">
+        <div style="background:#0c0a09;padding:14px 16px">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.14em;color:#a8a29e;text-transform:uppercase">Execution steps</span>
+          <div style="margin-top:10px;display:flex;flex-direction:column;gap:11px">
+            <sc-for list="{{ logSteps }}" as="s" hint-placeholder-count="4">
+              <div style="display:flex;gap:10px">
+                <span style="width:18px;height:18px;flex:none;background:#1c1917;border:1px solid #44403c;color:#a8a29e;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700">{{ s.n }}</span>
+                <div style="min-width:0">
+                  <div style="font-size:13px;font-weight:600;color:#f5f5f4;line-height:1.35">{{ s.title }}</div>
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#78716c;margin-top:2px">{{ s.actor }}</div>
+                  <sc-for list="{{ s.actions }}" as="a" hint-placeholder-count="3">
+                    <div style="font-size:12px;line-height:1.55;color:#a8a29e;margin-top:4px">{{ a }}</div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background:#0c0a09;padding:14px 16px">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.14em;color:#a8a29e;text-transform:uppercase">Hub basis &amp; interconnection</span>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#292524;border:1px solid #292524;margin-top:10px">
+            <sc-for list="{{ logHubs }}" as="h" hint-placeholder-count="3">
+              <div style="{{ h.boxStyle }}">
+                <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;color:#78716c;text-transform:uppercase">{{ h.k }}</div>
+                <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:#f5f5f4;margin-top:3px">{{ h.v }}</div>
+                <div style="font-size:11px;color:#78716c;margin-top:2px">{{ h.sub }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.12em;color:#a8a29e;text-transform:uppercase;margin-top:14px">Interconnection points</div>
+          <div style="display:flex;flex-direction:column;gap:1px;background:#292524;border:1px solid #292524;margin-top:7px">
+            <sc-for list="{{ logIps }}" as="p" hint-placeholder-count="2">
+              <div style="background:#1c1917;padding:8px 10px">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:#f5f5f4">{{ p.name }}</span>
+                  <span style="{{ p.confStyle }}">{{ p.conf }}</span>
+                </div>
+                <div style="font-size:11px;line-height:1.45;color:#78716c;margin-top:3px">{{ p.tso }}</div>
+                <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-top:4px">
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#78716c">{{ p.platform }}</span>
+                  <span style="{{ p.tariffStyle }}">{{ p.tariff }}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <p style="margin:11px 0 0;font-size:11px;line-height:1.55;color:#78716c">Border tariffs are unverified in the corridor registry — every figure above is indicative until confirmed on PRISMA. Winter cleared prices run 3–5× summer.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isPlantOpen }}" hint-placeholder-val="{{ false }}">
+  <div role="dialog" aria-modal="true" aria-label="Facility detail" style="position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:32px 24px">
+    <div style="width:100%;max-width:520px;background:#0c0a09;border:1px solid #44403c;box-shadow:0 24px 64px rgba(0,0,0,.6)">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:14px 16px;border-bottom:1px solid #292524;background:#1c1917">
+        <div>
+          <h2 style="margin:0;font-size:16px;font-weight:600;line-height:1.3;color:#f5f5f4">{{ plantName }}</h2>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;color:#78716c;margin-top:3px">{{ plantCc }} · FACILITY RECORD</div>
+        </div>
+        <span style="display:flex;align-items:center;gap:8px">
+          <span style="{{ plantProvStyle }}">{{ plantProv }}</span>
+          <button type="button" onClick="{{ closeModal }}" aria-label="Close facility detail" style="background:none;border:1px solid #44403c;color:#a8a29e;font-family:'JetBrains Mono',monospace;font-size:12px;padding:4px 8px;cursor:pointer" style-hover="color:#f5f5f4;background:#292524">✕</button>
+        </span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#292524">
+        <sc-for list="{{ plantFields }}" as="f" hint-placeholder-count="8">
+          <div style="background:#0c0a09;padding:10px 13px">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;color:#78716c;text-transform:uppercase">{{ f.k }}</div>
+            <div style="{{ f.vStyle }}">{{ f.v }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="padding:13px 16px;border-top:1px solid #292524">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;color:#78716c;text-transform:uppercase">Provenance</div>
+        <p style="margin:5px 0 0;font-size:12px;line-height:1.55;color:#a8a29e">{{ plantProvNote }}</p>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;carbonIntensity&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:-100,&quot;min&quot;:-150,&quot;max&quot;:50,&quot;step&quot;:5,&quot;unit&quot;:&quot;gCO₂e/MJ&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Consignment&quot;},&quot;pricingSide&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;BID&quot;,&quot;options&quot;:[&quot;BID&quot;,&quot;MID&quot;,&quot;OFFER&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Desk&quot;}}">
+const S = { pass:['#10b981','#022c22','#065f46'], warn:['#f59e0b','#451a03','#92400e'], fail:['#ef4444','#450a0a','#991b1b'], unres:['#0ea5e9','#082f49','#075985'] };
+
+const MARKETS = [
+  { id:'DE_THG', cc:'DE', name:'Germany THG Quota', sub:'§37a BImSchG · dena/UBA', unit:'€/tCO₂e', mark:352.00, kind:'T', age:2, verdict:'UNRESOLVED',
+    gates:['P','P','P','P','P','U'], plants:242, twh:11.8, reg:'dena Biogasregister / UBA', legal:'§37a BImSchG, 38. BImSchV',
+    note:'Double counting eliminated from 2026 compliance year (Cabinet draft, 10 Dec 2025). Whether biomethane retains the 2× multiplier is unresolved.',
+    msReason:'Double counting status unresolved for 2026 — dual-branch valuation required.', msCite:'§37a BImSchG · Cabinet draft 10 Dec 2025' },
+  { id:'NL_ERE', cc:'NL', name:'Netherlands ERE', sub:'Wet milieubeheer · NEa REV', unit:'€/kgCO₂e', mark:0.336, kind:'K', age:1, verdict:'ELIGIBLE',
+    gates:['P','P','P','P','P','P'], plants:82, twh:3.2, reg:'NEa REV / myVertiCer', legal:'Wet milieubeheer, Regeling energie vervoer',
+    note:'Replaced HBE from 1 Jan 2026. 1 ERE = 1 kg CO₂e avoided, no multipliers — structurally advantages low-CI molecules.',
+    msReason:'Registry integrated with UDB single mass balance area. No multiplier distortion.', msCite:'Regeling energie vervoer' },
+  { id:'FR_CPB', cc:'FR', name:'France CPB', sub:'Code de l\u2019énergie L.446-24 · EEX', unit:'€/MWh', mark:92.00, kind:'M', age:4, verdict:'ELIGIBLE', cap:100,
+    gates:['P','P','P','P','P','W'], plants:652, twh:10.4, reg:'EEX', legal:'Code de l\u2019énergie, Art. L.446-24 et seq.',
+    note:'In force 1 Jan 2026. Binds gas suppliers >400 GWh/yr, falling to 0 by year 5. Hard penalty cap €100/MWh.',
+    msReason:'Statutory ceiling caps realisable value at €100/MWh regardless of CI.', msCite:'Code de l\u2019énergie Art. L.446-24' },
+  { id:'AT_EGG', cc:'AT', name:'Austria EGG', sub:'Erneuerbaren-Gase-Gesetz · AGCS', unit:'€/MWh', mark:84.00, kind:'M', age:12, verdict:'CONDITIONAL',
+    gates:['P','P','P','P','P','W'], plants:16, twh:0.45, reg:'AGCS', legal:'Erneuerbaren-Gase-Gesetz (EGG)',
+    note:'Green gas supplier quota rising to 7.7% by 2030 (~7.5 TWh/yr). OMV is the anchor buyer.',
+    msReason:'Quota obligation sits with suppliers; resale requires an Austrian counterparty licence.', msCite:'EGG §12' },
+  { id:'FR_TIRUERT', cc:'FR', name:'France TIRUERT / IRICC', sub:'Code des douanes 266 quindecies', unit:'€/MWh', mark:78.50, kind:'M', age:9, verdict:'ELIGIBLE',
+    gates:['P','P','P','P','P','P'], plants:652, twh:10.4, reg:'DGDDI', legal:'Code des douanes, Art. 266 quindecies',
+    note:'Transport ticket obligation transitioning to GHG-based IRICC in 2027.',
+    msReason:'Annex IX-A waste qualifies for the advanced sub-target.', msCite:'Art. 266 quindecies' },
+  { id:'FI_TRANSPORT', cc:'FI', name:'Finland Distribution Obligation', sub:'Laki 446/2007 · Gasgrid', unit:'€/MWh', mark:74.10, kind:'M', age:8, verdict:'ELIGIBLE',
+    gates:['P','P','P','P','P','P'], plants:26, twh:0.55, reg:'Gasgrid Finland', legal:'Laki 446/2007',
+    note:'Transport distribution mandate cleared via Gasgrid Finland Ex-Domain cancellations.',
+    msReason:'Ex-Domain cancellation route accepted for imported volume.', msCite:'Laki 446/2007 §5' },
+  { id:'SE_TAX', cc:'SE', name:'Sweden Tax Exemption', sub:'Lag 1994:1776 · Energimyndigheten', unit:'€/MWh', mark:68.40, kind:'M', age:5, verdict:'ELIGIBLE',
+    gates:['P','P','P','P','P','P'], plants:72, twh:2.1, reg:'Energimyndigheten', legal:'Lag (1994:1776) om skatt på energi',
+    note:'Full energy and carbon tax exemption re-approved by Commission State Aid decision. Primary sink for Danish exports.',
+    msReason:'State Aid clearance current; Dragør interconnector route established.', msCite:'SA State Aid decision' },
+  { id:'BE_TRANSPORT', cc:'BE', name:'Belgium Transport Quota', sub:'Energiedecreet · VREG / SPW', unit:'€/MWh', mark:66.80, kind:'M', age:15, verdict:'CONDITIONAL',
+    gates:['P','P','P','P','P','W'], plants:12, twh:0.38, reg:'VREG / SPW', legal:'Flemish Energiedecreet & Décret wallon gaz',
+    note:'Dual regional registries. Key bunkering gateway at the Port of Antwerp.',
+    msReason:'Regional split means the receiving registry must be fixed before ticket issuance.', msCite:'Energiedecreet Art. 7.1' },
+  { id:'DK_GO', cc:'DK', name:'Denmark Wholesale & Export', sub:'VE-loven · Energinet', unit:'€/MWh', mark:61.20, kind:'M', age:3, verdict:'ELIGIBLE',
+    gates:['P','P','P','P','P','P'], plants:64, twh:5.6, reg:'Energinet', legal:'Lov om fremme af vedvarende energi (VE-loven)',
+    note:'Highest biomethane grid share in Europe (>35%). Structural exporter to Germany and Sweden.',
+    msReason:'Domestic placement — no cross-border transfer required.', msCite:'VE-loven §43' },
+  { id:'EE_TRANSPORT', cc:'EE', name:'Estonia Bus Obligation', sub:'Vedelkütuse seadus · Elering', unit:'€/MWh', mark:58.00, kind:'M', age:19, verdict:'ELIGIBLE',
+    gates:['P','P','P','P','P','P'], plants:7, twh:0.28, reg:'Elering', legal:'Vedelkütuse seadus',
+    note:'100% of municipal bus fleets run on domestic biomethane. Thin but firm bid.',
+    msReason:'Elering accepts Balticconnector-delivered volume.', msCite:'Vedelkütuse seadus §21' },
+  { id:'ES_GDO', cc:'ES', name:'Spain Enagás GdO', sub:'Real Decreto 376/2022 · GTS', unit:'€/MWh', mark:57.90, kind:'M', age:21, verdict:'ELIGIBLE',
+    gates:['P','P','P','P','P','P'], plants:18, twh:0.85, reg:'Enagás GTS', legal:'Real Decreto 376/2022',
+    note:'Widest origination spread in Europe. 200+ project pipeline scaling rapidly.',
+    msReason:'GdO issuance operational since 2023 with Ex-domain export capability.', msCite:'RD 376/2022 Art. 9' },
+  { id:'IT_CIC', cc:'IT', name:'Italy CIC', sub:'DM 2 Mar 2018 · GSE', unit:'€/CIC', mark:322.00, kind:'C', age:6, verdict:'CONDITIONAL',
+    gates:['P','P','P','P','W','P'], plants:135, twh:4.8, reg:'GSE', legal:'DM 2 March 2018 & DM 15 Sept 2022',
+    note:'1 CIC = 5 Gcal advanced (5.815 MWh). GSE requires plant-level Italian registration before issuance.',
+    msReason:'GSE requires an Italian-registered issuing account for imported volume.', msCite:'DM 15 Sept 2022' },
+  { id:'LT_ALT', cc:'LT', name:'Lithuania Transport Mandate', sub:'Alt. Fuels Law · Amber Grid', unit:'€/MWh', mark:54.20, kind:'M', age:11, verdict:'ELIGIBLE',
+    gates:['P','P','P','P','P','P'], plants:6, twh:0.22, reg:'Amber Grid', legal:'Alternatyviųjų degalų įstatymas',
+    note:'Alternative Fuels Law transport obligations. GIPL interconnector to Poland.',
+    msReason:'Amber Grid GO registry accepts cross-border cancellation.', msCite:'Alt. Fuels Law Art. 15' },
+  { id:'CZ_POZE', cc:'CZ', name:'Czechia POZE', sub:'Zákon 165/2012 · OTE', unit:'€/MWh', mark:52.30, kind:'M', age:33, verdict:'ELIGIBLE',
+    gates:['P','P','P','P','P','P'], plants:11, twh:0.42, reg:'OTE', legal:'Zákon č. 165/2012 Sb. (POZE)',
+    note:'Operational feed-in premium for grid injection via the OTE green gas registry.',
+    msReason:'Premium accrues to the domestic producer; import route is merchant only.', msCite:'Zákon 165/2012 §4' },
+  { id:'LV_CONEXUS', cc:'LV', name:'Latvia Conexus', sub:'Enerģētikas likums · Conexus', unit:'€/MWh', mark:49.90, kind:'M', age:36, verdict:'ELIGIBLE',
+    gates:['P','P','P','P','P','P'], plants:9, twh:0.18, reg:'Conexus Baltic Grid', legal:'Enerģētikas likums',
+    note:'Regional storage hub at Inčukalns UGS. Conexus Baltic Grid GO registry.',
+    msReason:'Storage-backed placement; seasonal basis risk carried by the desk.', msCite:'Enerģētikas likums §84' },
+  { id:'PL_OZE', cc:'PL', name:'Poland OZE Injection Act', sub:'Ustawa o OZE · URE', unit:'€/MWh', mark:48.70, kind:'M', age:27, verdict:'ELIGIBLE',
+    gates:['P','P','P','P','P','P'], plants:8, twh:0.32, reg:'URE / KZR INiG', legal:'Ustawa o odnawialnych źródłach energii',
+    note:'RES Act amendment enables direct injection and feed-in tariffs up to 1 MW. Largest CEE feedstock base.',
+    msReason:'KZR INiG scheme recognition required alongside ISCC EU.', msCite:'Ustawa o OZE Art. 70b' },
+];
+
+const GATE_KEYS = ['S','U','M','A','G','N'];
+const GATE_LABELS = ['Scheme recognition','UDB grid ingestion','Mass balance custody','Annex IX feedstock','GHG saving threshold','Member state specifics'];
+const VERDICT_MAP = { P:'PASS', W:'CONDITIONAL', F:'HARD_BLOCK', U:'UNRESOLVED' };
+const VERDICT_TONE = { P:'pass', W:'warn', F:'fail', U:'unres' };
+const COSTS = [['Delivered producer cost','€62.40'],['Transfer & registry','€1.10'],['Certification','€0.45'],['Logistics','€0.55']];
+const NAV = [['Ladder','1','ladder'],['Map','2','map'],['Trade','3','trade'],['Copilot','4','copilot'],['Plants','5','plants'],['Marks','6','marks'],['Dossiers','7','dossiers']];
+
+// Country totals — src/domain/plants/registry.ts COUNTRY_MACRO_STATS (GIE/EBA European Biomethane Map 2026)
+const MACRO = [
+  ['FR','France',815,15.8],['DE','Germany',265,11.2],['GB','United Kingdom',132,9.6],['IT','Italy',115,5.6],
+  ['NL','Netherlands',88,3.1],['SE','Sweden',78,2.3],['DK','Denmark',68,8.2],['CH','Switzerland',42,0.45],
+  ['ES','Spain',36,1.25],['FI','Finland',26,0.55],['AT','Austria',18,0.22],['NO','Norway',16,0.65],
+  ['BE','Belgium',15,0.42],['CZ','Czech Republic',12,0.28],['UA','Ukraine',8,0.85],['EE','Estonia',5,0.19],
+  ['SK','Slovakia',5,0.18],['PL','Poland',5,0.15],['HU','Hungary',4,0.12],['PT','Portugal',4,0.08],
+  ['LT','Lithuania',3,0.16],['LU','Luxembourg',3,0.04],['LV','Latvia',2,0.06],['GR','Greece',2,0.03],
+  ['RO','Romania',2,0.04],['HR','Croatia',1,0.01],
+];
+
+// Facility names as recorded in BIOMETHANE_PLANTS. Attribute fields are null in the source
+// for all but a handful of facilities — the registry marks them fieldsUnverified.
+const PLANTS = [
+  ['DK','Vojens (DK-59)','Sønderjysk Biogas',1450,118,'Liquid manure & straw','VERIFIED'],
+  ['DK','Kalundborg (DK-27)','Bigadan',1180,96,'Manure & industrial organics','VERIFIED'],
+  ['DK','Fredericia (DK-10)',null,null,null,null,'NAME ONLY'],
+  ['DK','Ringsted (DK-42)',null,null,null,null,'NAME ONLY'],
+  ['DK','Skjern (DK-48)',null,null,null,null,'NAME ONLY'],
+  ['DE','Anklam (DE-9)','Suiker Unie',890,72,'Sugar beet pulp','VERIFIED'],
+  ['DE','Allendorf (DE-2)',null,null,null,null,'NAME ONLY'],
+  ['DE','Berlin-Ruhleben (DE-23)',null,null,null,null,'NAME ONLY'],
+  ['DE','Bernburg (DE-24)',null,null,null,null,'NAME ONLY'],
+  ['NL','Wijster II (NL-87)','Attero',620,51,'OFMSW','VERIFIED'],
+  ['NL','Groningen (NL-30)',null,null,null,null,'NAME ONLY'],
+  ['NL','Leeuwarden (NL-45)',null,null,null,null,'NAME ONLY'],
+  ['FR','Aiguefonde 1 (FR-1)',null,null,null,null,'NAME ONLY'],
+  ['FR','Aillas (FR-3)',null,null,null,null,'NAME ONLY'],
+  ['IT','Bologna FORSU (IT-14)',null,null,null,null,'NAME ONLY'],
+  ['SE','Örebro Biogas (SE-22)',null,null,null,null,'NAME ONLY'],
+];
+
+const DOSSIERS = [
+  { title:'Danish manure → NL ERE', ref:'DOS-2026-0142 · saved 14 Aug 2026', verdict:'ELIGIBLE', tone:'pass',
+    stats:[['Volume','40,000 MWh'],['Netback','€169.30'],['Margin','€16.93']],
+    note:'Base placement. Mass balance held inside the Energinet–Gasunie UDB area; no multiplier exposure.',
+    drift:'Marks moved +€0.004/kg since save — netback +€2.10', driftTone:'pass' },
+  { title:'Danish manure → DE THG (2× branch)', ref:'DOS-2026-0139 · saved 12 Aug 2026', verdict:'UNRESOLVED', tone:'unres',
+    stats:[['Volume','60,000 MWh'],['Netback','€177.65'],['Margin','€17.77']],
+    note:'Upside branch only. Valuation assumes double counting retained for biomethane in the 2026 compliance year.',
+    drift:'Cabinet draft unchanged — branch still open', driftTone:'unres' },
+  { title:'Danish manure → UK RTFO', ref:'DOS-2026-0131 · saved 06 Aug 2026', verdict:'HARD_BLOCK', tone:'fail',
+    stats:[['Volume','—'],['Netback','—'],['Margin','—']],
+    note:'Archived as evidence of why the corridor was rejected: grid-injected volume cannot evidence UDB ingestion.',
+    drift:'No change in UK recognition of the Union Database', driftTone:'fail' },
+  { title:'Spanish slurry → FR CPB', ref:'DOS-2026-0118 · saved 28 Jul 2026', verdict:'CONDITIONAL', tone:'warn',
+    stats:[['Volume','20,000 MWh'],['Netback','€26.12'],['Margin','€2.61']],
+    note:'Capped by the €100/MWh statutory ceiling. Viable only while the Spanish origination spread stays below €58.',
+    drift:'Mark 21d old — refresh before quoting', driftTone:'warn' },
+];
+
+// PRODUCING_ORIGINS — src/domain/arbitrage/origins.ts
+const ORIGINS = [
+  ['DK','Denmark',60,'Energinet','EU'],
+  ['DE','Germany',285,'dena Biogasregister','EU'],
+  ['FR','France',829,'GRTgaz / Teréga','EU'],
+  ['NL','Netherlands',92,'VertiCer','EU'],
+  ['ES','Spain',26,'Enagás GTS (Sistema GdO)','EU'],
+  ['IT','Italy',273,'GSE Biometano','EU'],
+  ['GB','United Kingdom',108,'DfT RTFO / GGCS','ISOLATED'],
+  ['SE','Sweden',67,'Energigas Sverige','EU'],
+  ['FI','Finland',32,'Gasgrid Finland','EU'],
+  ['AT','Austria',20,'AGCS Biomethan Register','EU'],
+  ['CH','Switzerland',18,'VSG Clearing','ISOLATED'],
+  ['NO','Norway',15,'Gassco','ISOLATED'],
+  ['PT','Portugal',6,'REN / DGEG','EU'],
+  ['BE','Belgium',14,'Fluxys','EU'],
+  ['LT','Lithuania',4,'Amber Grid','EU'],
+  ['CZ','Czech Republic',13,'OTE a.s.','EU'],
+  ['LV','Latvia',3,'Conexus Baltic Grid','EU'],
+  ['EE','Estonia',6,'Elering','EU'],
+  ['SK','Slovakia',5,'SPP - Distribucia','EU'],
+  ['LU','Luxembourg',3,'ILR / Creos','EU'],
+];
+const ORIGIN_MAP = {};
+ORIGINS.forEach(o => { ORIGIN_MAP[o[0]] = { name:o[1], plants:o[2], reg:o[3], zone:o[4] }; });
+
+// getRouteTransitTariff — src/domain/arbitrage/origins.ts
+const ADJACENT = new Set(['DK-DE','DE-DK','NL-DE','DE-NL','FR-DE','DE-FR','BE-FR','FR-BE','BE-NL','NL-BE','ES-FR','FR-ES','AT-DE','DE-AT','PL-DE','DE-PL','SE-DK','DK-SE','FI-EE','EE-FI','EE-LV','LV-EE','LV-LT','LT-LV','LT-PL','PL-LT','CZ-DE','DE-CZ','AT-IT','IT-AT','FR-IT','IT-FR']);
+function transitFor(origin, target) {
+  if (origin === target) return 0.50;
+  if (ADJACENT.has(origin + '-' + target)) return 1.80;
+  return 3.20;
+}
+
+// HUB_BASIS_SPREADS + INTERCONNECTION_POINTS — src/domain/logistics/corridors.ts
+const HUBS = { NL:['TTF','Gasunie Transport Services',0.00], DE:['THE','Trading Hub Europe GmbH',0.45], DK:['ETF / Danish Hub','Energinet',0.35], SE:['Swedegas VTP','Nordion Energi',1.10], FR:['PEG','GRTgaz / EEX',0.80], ES:['PVB','MIBGAS / Enagás',1.35], IT:['PSV','SNAM / GME',1.60], BE:['ZTP','Fluxys',0.25], AT:['CEGH','OMV / CEGH',1.20], PL:['TGE Gas Hub','TGE',1.40], CZ:['OTE Gas Hub','OTE a.s.',0.90], FI:['Gasgrid VTP','Gasgrid Finland',2.10], CH:['Swiss Hub','Swissgas / VSG',2.50], NO:['Gassco Exit Hub','Gassco',-0.20], GB:['NBP','National Gas',-0.60] };
+const IPS = {
+  'DK-DE':[['Ellund / VIP DK-DE','Energinet ➔ Gasunie Deutschland / OGE (THE)','Jutland border into Trading Hub Europe.']],
+  'DK-SE':[['Dragør IP','Energinet ➔ Swedegas (Nordion Energi)','Subsea pipeline into the Swedish transmission grid.']],
+  'DE-FR':[['VIP France-Germany (Obergailbach / Medelsheim)','OGE / GRTgaz Deutschland ➔ GRTgaz (PEG)','Major THE ➔ PEG border point.']],
+  'FR-ES':[['VIP Pirineos (Larrau & Biriatou)','Teréga / GRTgaz ➔ Enagás GTS (PVB)','Pyrenees crossing into the Spanish balance point.']],
+};
+
+const PROMPTS = [
+  'Which corridors break if Germany drops double counting?',
+  'Rank markets by desk margin instead of netback.',
+  'What evidence do I need for the UDB gate on a Danish consignment?',
+  'Compare bio-LNG road freight against a pipeline wheel to Italy.',
+  'Which of my saved dossiers are stale enough to re-quote?',
+];
+const TICKER = [['TTF M+1','€29.85','+0.42'],['DE THG','€352.00','−4.00'],['NL ERE','€0.336','+0.004'],['FR CPB','€92.00','0.00'],['IT CIC','€322.00','−6.00'],['GBP/EUR','1.168','+0.003'],['CI active','−100','—'],['Marks fresh','8 / 16','—']];
+
+const fmt = (n, dp) => n.toLocaleString('en-GB', { minimumFractionDigits: dp, maximumFractionDigits: dp });
+
+class Component extends DCLogic {
+  state = { screen: 'ladder', ci: null, side: null, sel: 'DE_THG', positiveOnly: false, clearedOnly: false, hideStale: false, feedstock: 'Manure', scheme: 'ISCC EU', custody: 'Mass balance', origin: 'DK', plantFilter: 'All', sortBy: 'net', sortDir: -1, markOverrides: {}, modal: null, brief: 0 };
+
+  componentDidMount() {
+    const h = (window.location.hash || '').replace('#', '');
+    if (['trade', 'copilot', 'plants', 'marks', 'dossiers'].includes(h)) this.setState({ screen: h });
+    this._keys = e => {
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target || {}).tagName)) return;
+      if (e.key === 'Escape' && this.state.modal) { this.setState({ modal: null }); return; }
+      if (this.state.screen === 'ladder' && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+        e.preventDefault();
+        const ids = this._visibleIds || [];
+        const at = ids.indexOf(this.state.sel);
+        const next = ids[Math.max(0, Math.min(ids.length - 1, at + (e.key === 'ArrowDown' ? 1 : -1)))];
+        if (next) this.setState({ sel: next });
+        return;
+      }
+      if (e.key === 'Enter' && this.state.screen === 'ladder') { this.setState({ modal: 'logistics' }); return; }
+      const i = ['1', '2', '3', '4', '5', '6', '7'].indexOf(e.key);
+      if (i < 0) return;
+      if (NAV[i][2] === 'map') window.location.href = 'Map.html';
+      else this.setState({ screen: NAV[i][2] });
+    };
+    window.addEventListener('keydown', this._keys);
+  }
+
+  componentWillUnmount() { window.removeEventListener('keydown', this._keys); }
+
+  get ci() { return this.state.ci ?? this.props.carbonIntensity ?? -100; }
+  get side() { return this.state.side ?? this.props.pricingSide ?? 'BID'; }
+
+  markFor(m) { const o = this.state.markOverrides[m.id]; return o == null ? m.mark : o; }
+
+  certFor(m, ci) {
+    const avoidedT = (94 - ci) * 0.0036;
+    const mark = this.markFor(m);
+    let v;
+    if (m.kind === 'T') v = mark * avoidedT;
+    else if (m.kind === 'K') v = mark * avoidedT * 1000;
+    else if (m.kind === 'C') v = mark / 5.815;
+    else v = mark;
+    const adj = this.side === 'BID' ? 0.985 : this.side === 'OFFER' ? 1.015 : 1;
+    v = v * adj;
+    return m.cap != null ? Math.min(v, m.cap) : v;
+  }
+
+  renderVals() {
+    const ci = this.ci, side = this.side, sc = this.state.screen;
+    const origin = this.state.origin, org = ORIGIN_MAP[origin];
+    const baseCost = 62.40 + 1.10 + 0.45;      // delivered + transfer/registry + certification
+    const allInFor = cc => baseCost + transitFor(origin, cc);
+    const allIn = allInFor('DE');
+
+    let list = MARKETS.map(m => {
+      const cert = this.certFor(m, ci);
+      const net = cert - allInFor(m.cc);
+      return { m, cert, net, margin: net * 0.10 };
+    });
+
+    if (this.state.positiveOnly) list = list.filter(r => r.net > 0);
+    if (this.state.clearedOnly) list = list.filter(r => r.m.gates.every(g => g === 'P'));
+    if (this.state.hideStale) list = list.filter(r => r.m.age <= 30);
+
+    const dir = this.state.sortDir;
+    const key = this.state.sortBy;
+    list.sort((a, b) => {
+      if (key === 'name') return a.m.name.localeCompare(b.m.name) * -dir;
+      if (key === 'age') return (a.m.age - b.m.age) * -dir;
+      if (key === 'margin') return (a.margin - b.margin) * dir;
+      return (a.net - b.net) * dir;
+    });
+    this._visibleIds = list.map(r => r.m.id);
+
+    const maxNet = Math.max(...list.map(r => Math.abs(r.net)), 1);
+    const sel = MARKETS.find(m => m.id === this.state.sel) || MARKETS[0];
+    const selCert = this.certFor(sel, ci);
+    const selTransit = transitFor(origin, sel.cc);
+    const selAllIn = baseCost + selTransit;
+    const selNet = selCert - selAllIn;
+
+    const rowBase = 'display:grid;grid-template-columns:26px 26px minmax(150px,1.1fr) 112px 104px minmax(140px,1.6fr) 84px 58px;gap:10px;align-items:center;padding:5px 14px;border-bottom:1px solid #1c1917;cursor:pointer;transition:background 150ms';
+
+    const rows = list.map((r, i) => {
+      const m = r.m, on = m.id === this.state.sel, blocked = m.verdict === 'HARD_BLOCK';
+      const tone = m.verdict === 'ELIGIBLE' ? S.pass : m.verdict === 'CONDITIONAL' ? S.warn : m.verdict === 'UNRESOLVED' ? S.unres : S.fail;
+      const neg = r.net < 0;
+      const pct = Math.min(100, Math.abs(r.net) / maxNet * 100);
+      const ageTone = m.age > 30 ? S.fail : m.age > 7 ? S.warn : S.pass;
+      return {
+        rank: i + 1,
+        cc: m.cc,
+        name: m.name,
+        sub: m.sub,
+        net: (neg ? '−€' : '€') + fmt(Math.abs(r.net), 2),
+        flag: m.cap != null && r.cert >= m.cap - 0.01 ? 'CAPPED ' + m.unit : m.unit,
+        margin: (r.margin < 0 ? '−€' : '€') + fmt(Math.abs(r.margin), 2),
+        age: m.age + 'd',
+        select: () => this.setState({ sel: m.id }),
+        rowStyle: rowBase + (on ? ';background:#1c1917;box-shadow:inset 3px 0 0 #14b8a6' : ';background:#0c0a09'),
+        rankStyle: 'font-family:\'JetBrains Mono\',monospace;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;text-align:center;padding:1px 0;' + (i === 0 ? 'background:#0d9488;color:#042f2e' : 'color:#78716c'),
+        nameStyle: 'font-size:14px;font-weight:600;color:' + (blocked ? '#78716c' : '#f5f5f4') + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis',
+        netStyle: 'font-family:\'JetBrains Mono\',monospace;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:' + (neg ? '#f87171' : tone[0]),
+        marginStyle: 'font-family:\'JetBrains Mono\',monospace;font-size:12px;font-weight:500;font-variant-numeric:tabular-nums;text-align:right;color:' + (neg ? '#f87171' : '#a8a29e'),
+        ageStyle: 'font-family:\'JetBrains Mono\',monospace;font-size:10px;font-weight:600;padding:1px 4px;color:' + ageTone[0] + ';background:' + ageTone[1] + ';border:1px solid ' + ageTone[2],
+        barStyle: 'position:absolute;top:3px;bottom:3px;left:0;width:' + pct.toFixed(1) + '%;background:' + (neg ? '#991b1b' : tone[0]) + (neg ? ';opacity:.9' : ''),
+        gates: m.gates.map((g, gi) => {
+          const t = S[VERDICT_TONE[g]];
+          return {
+            k: GATE_KEYS[gi],
+            title: GATE_LABELS[gi] + ' — ' + VERDICT_MAP[g],
+            style: 'width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-family:\'JetBrains Mono\',monospace;font-size:10px;font-weight:700;color:' + t[0] + ';background:' + t[1] + ';border:1px solid ' + t[2],
+          };
+        }),
+      };
+    });
+
+    const chip = t => 'font-family:\'JetBrains Mono\',monospace;font-size:10px;font-weight:700;letter-spacing:.08em;padding:2px 6px;color:' + t[0] + ';background:' + t[1] + ';border:1px solid ' + t[2];
+
+    const sortCtl = (k, align) => {
+      const on = key === k;
+      const base = 'background:none;border:none;padding:0;cursor:pointer;font-family:\'JetBrains Mono\',monospace;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:' + (on ? '#5eead4' : '#a8a29e') + ';text-align:';
+      return {
+        click: () => this.setState(s => ({ sortBy: k, sortDir: s.sortBy === k ? -s.sortDir : (k === 'name' || k === 'age' ? -1 : -1) })),
+        aria: on ? (dir === -1 ? 'descending' : 'ascending') : 'none',
+        arrow: on ? (dir === -1 ? ' ▾' : ' ▴') : '',
+        style: base + 'left', styleRight: base + 'right', styleCenter: base + 'center',
+      };
+    };
+    const selTone = sel.verdict === 'ELIGIBLE' ? S.pass : sel.verdict === 'CONDITIONAL' ? S.warn : sel.verdict === 'UNRESOLVED' ? S.unres : S.fail;
+    const statV = c => 'font-family:\'JetBrains Mono\',monospace;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:3px;color:' + c;
+
+    const routes = [
+      { tag:'A', tone:S.pass, label:'Virtual swap (UDB transfer)', note:'Basis spread + electronic PoS transfer', cost:'€1.85' },
+      { tag:'B', tone:S.unres, label:'Physical pipeline wheel', note:'DK → DE → ' + sel.cc + ' via PRISMA', cost:'€4.20' },
+      { tag:'C', tone:S.warn, label:'Bio-LNG road freight', note:'Cryogenic ISO trailer, ~980 km', cost:'€11.40' },
+    ];
+
+    return {
+      ci, ciValue: (ci > 0 ? '+' : '') + ci,
+      ciLabel: this.state.ci !== null ? 'SIMULATED' : 'CONSIGNMENT',
+      ciChip: chip(this.state.ci !== null ? S.warn : S.pass),
+      avoided: fmt((94 - ci) * 0.0036, 3),
+      setCi: e => this.setState({ ci: Number(e.target.value) }),
+
+      nav: NAV.map(([label, k, key]) => {
+        const on = this.state.screen === key;
+        return {
+          label, k, current: on ? 'page' : undefined,
+          go: () => key === 'map' ? (window.location.href = 'Map.html') : this.setState({ screen: key }),
+          style: 'display:flex;align-items:center;gap:6px;padding:0 12px;background:transparent;border:none;border-bottom:2px solid ' + (on ? '#14b8a6' : 'transparent') + ';font-family:\'JetBrains Mono\',monospace;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;color:' + (on ? '#f5f5f4' : '#a8a29e'),
+        };
+      }),
+
+      sides: ['BID', 'MID', 'OFFER'].map(s => ({
+        label: s, on: side === s, set: () => this.setState({ side: s }),
+        style: 'padding:3px 9px;border:none;font-family:\'JetBrains Mono\',monospace;font-size:10px;font-weight:700;letter-spacing:.08em;cursor:pointer;background:' + (side === s ? '#0d9488' : 'transparent') + ';color:' + (side === s ? '#042f2e' : '#a8a29e'),
+      })),
+
+      ticker: TICKER.map(([k, v, d]) => ({
+        k, v, d,
+        dStyle: 'font-family:\'JetBrains Mono\',monospace;font-size:10px;font-weight:600;color:' + (d.startsWith('+') ? '#34d399' : d.startsWith('−') ? '#f87171' : '#78716c'),
+      })),
+
+      costs: [
+        ['Delivered producer cost', '€62.40'],
+        ['Transfer & registry', '€1.10'],
+        ['Certification', '€0.45'],
+        [selTransit === 0.50 ? 'Domestic injection' : selTransit === 1.80 ? 'Transit ' + origin + '→' + sel.cc : 'Multi-zone transit', '€' + fmt(selTransit, 2)],
+      ].map(([k, v]) => ({ k, v })),
+      allInLabel: '€' + fmt(selAllIn, 2),
+      originCode: origin,
+      originDesc: (org ? org.name : origin) + ' — ' + (org ? org.reg : '') + (org && org.zone === 'ISOLATED' ? '. Grid-isolated: UDB ingestion cannot be evidenced from here.' : '. EU-interconnected mass balance area.'),
+      originPlants: org ? org.plants.toLocaleString('en-GB') : '—',
+      schemeShort: this.state.scheme.toUpperCase(),
+      custodyShort: this.state.custody === 'Mass balance' ? 'MASS BAL' : 'BOOK&CLAIM',
+
+      sortName: sortCtl('name', 'left'), sortNet: sortCtl('net', 'right'),
+      sortMargin: sortCtl('margin', 'right'), sortAge: sortCtl('age', 'center'),
+
+      filters: [
+        { key:'positiveOnly', label:'Positive netback only' },
+        { key:'clearedOnly', label:'All six gates clear' },
+        { key:'hideStale', label:'Hide marks older than 30d' },
+      ].map(f => {
+        const on = this.state[f.key];
+        return {
+          label: f.label, on, mark: on ? '×' : '',
+          toggle: () => this.setState({ [f.key]: !this.state[f.key] }),
+          style: 'display:flex;align-items:center;gap:8px;width:100%;padding:6px 7px;background:' + (on ? '#1c1917' : 'transparent') + ';border:1px solid ' + (on ? '#115e59' : '#292524') + ';color:' + (on ? '#f5f5f4' : '#a8a29e') + ';font-size:12px;text-align:left;cursor:pointer;transition:background 150ms',
+          boxStyle: 'width:13px;height:13px;flex:none;display:flex;align-items:center;justify-content:center;font-family:\'JetBrains Mono\',monospace;font-size:11px;font-weight:700;line-height:1;background:' + (on ? '#0d9488' : 'transparent') + ';border:1px solid ' + (on ? '#0d9488' : '#44403c') + ';color:#042f2e',
+        };
+      }),
+
+      rows,
+      countLabel: list.length + ' active compliance markets · origin ' + origin + ' · ' + side.toLowerCase() + ' marks · all-in cost €' + fmt(baseCost, 2) + ' + transit',
+      topNet: fmt(list.length ? list[0].net : 0, 2),
+      blockedNet: fmt(this.certFor({ kind:'M', mark:46.30 }, ci) - allIn + 38, 2),
+
+      selName: sel.name, selCc: sel.cc, selLegal: sel.legal,
+      selVerdict: sel.verdict, selVerdictStyle: chip(selTone),
+      selGateScore: sel.gates.filter(g => g === 'P').length + ' / 6 clear',
+      selStats: [
+        { k:'Net netback', v:(selNet < 0 ? '−€' : '€') + fmt(Math.abs(selNet), 2), vStyle: statV(selNet < 0 ? '#f87171' : selTone[0]) },
+        { k:'Cert value', v:'€' + fmt(selCert, 2), vStyle: statV('#f5f5f4') },
+        { k:'Plants', v:String(sel.plants), vStyle: statV('#f5f5f4') },
+        { k:'Production', v:fmt(sel.twh, 1) + ' TWh', vStyle: statV('#f5f5f4') },
+      ],
+      selGates: sel.gates.map((g, i) => {
+        const t = S[VERDICT_TONE[g]];
+        const reasons = [
+          'ISCC EU is a Commission-recognised voluntary scheme for ' + sel.cc + ' compliance.',
+          'Grid-injected volume is registered in the Union Database with a traceable PoS chain.',
+          'Physical mass balance maintained across the Energinet mass balance area — no book-and-claim.',
+          'Cattle slurry and manure classify under RED III Annex IX Part A.',
+          g === 'W' ? 'GHG saving clears 65% but plant-level audit evidence is older than 12 months.' : 'GHG saving of ' + Math.round((94 - ci) / 94 * 100) + '% clears the 65% threshold for post-2021 installations.',
+          sel.msReason,
+        ];
+        const cites = ['Reg. (EU) 2022/996','RED III Art. 28(2) · Reg. (EU) 2024/2792','RED III Art. 30(1)','RED III Annex IX Part A','RED III Art. 29(10)', sel.msCite];
+        return {
+          label: GATE_LABELS[i], verdict: VERDICT_MAP[g], reason: reasons[i], cite: cites[i],
+          chipStyle: chip(t),
+          dotStyle: 'width:7px;height:7px;border-radius:50%;flex:none;background:' + t[0],
+        };
+      }),
+      selRoutes: routes.map(o => ({
+        tag:o.tag, label:o.label, note:o.note, cost:o.cost,
+        tagStyle: 'width:17px;height:17px;flex:none;display:flex;align-items:center;justify-content:center;font-family:\'JetBrains Mono\',monospace;font-size:10px;font-weight:700;color:' + o.tone[0] + ';background:' + o.tone[1] + ';border:1px solid ' + o.tone[2],
+        costStyle: 'font-family:\'JetBrains Mono\',monospace;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;color:' + o.tone[0],
+      })),
+
+      isLadder: sc === 'ladder', isTrade: sc === 'trade', isMarks: sc === 'marks',
+      isPlants: sc === 'plants', isDossiers: sc === 'dossiers', isCopilot: sc === 'copilot',
+      side,
+
+      ghgSaving: Math.round((94 - ci) / 94 * 100) + '%',
+      selUnit: sel.unit,
+      heroNet: (selNet < 0 ? '−€' : '€') + fmt(Math.abs(selNet), 2),
+      heroNetStyle: 'font-family:\'JetBrains Mono\',monospace;font-size:40px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.04em;line-height:1;margin-top:6px;color:' + (selNet < 0 ? '#f87171' : selTone[0]),
+
+      tradeFields: [
+        { key:'origin', label:'Origin', hint:(org ? org.name + ' · ' + org.plants + ' producing plants · ' + org.reg : 'Select an origin') + (org && org.zone === 'ISOLATED' ? ' · GRID-ISOLATED — no UDB ingestion' : ''), options:ORIGINS.map(o => o[0]) },
+        { key:'feedstock', label:'Feedstock', hint:this.state.feedstock === 'Manure' ? 'Annex IX Part A. Negative CI from avoided methane in conventional manure management.' : 'Classification drives the Annex IX gate and the achievable CI band.', options:['Manure','Bio-waste','Sewage','Crop'] },
+        { key:'scheme', label:'Certification scheme', hint:this.state.scheme === 'ISCC PLUS' ? 'Voluntary scope only — hard blocks every compliance market.' : 'Commission-recognised voluntary scheme.', options:['ISCC EU','REDcert EU','ISCC PLUS'] },
+        { key:'custody', label:'Chain of custody', hint:this.state.custody === 'Book & claim' ? 'Book-and-claim hard blocks FuelEU and every RED III compliance route.' : 'Physical mass balance — required by RED III Art. 30.' , options:['Mass balance','Book & claim'] },
+      ].map(f => ({
+        label: f.label, hint: f.hint,
+        options: f.options.map(o => {
+          const on = this.state[f.key] === o;
+          return {
+            label: o, on, pick: () => this.setState({ [f.key]: o }),
+            style: 'padding:6px 10px;border:1px solid ' + (on ? '#0d9488' : '#44403c') + ';background:' + (on ? '#0d9488' : 'transparent') + ';color:' + (on ? '#042f2e' : '#a8a29e') + ';font-family:\'JetBrains Mono\',monospace;font-size:11px;font-weight:600;letter-spacing:.06em;cursor:pointer;transition:background 150ms',
+          };
+        }),
+      })),
+
+      originPicks: ORIGINS.map(([cc, name, plants, reg, zone]) => {
+        const on = origin === cc;
+        return {
+          cc, on, pick: () => this.setState({ origin: cc }),
+          style: 'width:30px;padding:4px 0;border:1px solid ' + (on ? '#0284c7' : '#292524') + ';background:' + (on ? '#075985' : '#1c1917') + ';color:' + (on ? '#e0f2fe' : zone === 'ISOLATED' ? '#78716c' : '#a8a29e') + ';font-family:\'JetBrains Mono\',monospace;font-size:10px;font-weight:600;letter-spacing:.04em;cursor:pointer;transition:background 150ms',
+        };
+      }),
+
+      marketPicks: (() => {
+        const perCc = {};
+        MARKETS.forEach(m => { perCc[m.cc] = (perCc[m.cc] || 0) + 1; });
+        return MARKETS.map(m => {
+          const on = m.id === this.state.sel;
+          // Two French mechanisms share one ISO code — disambiguate with the scheme tag
+          // rather than showing FR twice.
+          const tag = m.id.split('_')[1].slice(0, 4);
+          const multi = perCc[m.cc] > 1;
+          return {
+            label: multi ? m.cc + ' ' + tag : m.cc,
+            title: m.name + (ORIGIN_MAP[m.cc] ? ' · also a producing origin' : ' · destination only'),
+            on, pick: () => this.setState({ sel: m.id }),
+            style: 'min-width:34px;padding:5px 7px;border:1px solid ' + (on ? '#0d9488' : '#292524') + ';background:' + (on ? '#0d9488' : '#1c1917') + ';color:' + (on ? '#042f2e' : '#a8a29e') + ';font-family:\'JetBrains Mono\',monospace;font-size:11px;font-weight:600;letter-spacing:.06em;cursor:pointer;transition:background 150ms',
+          };
+        });
+      })(),
+
+      waterfall: (() => {
+        const steps = [['Certificate value', selCert, 1], ['Delivered cost', -62.40, -1], ['Transfer & registry', -1.10, -1], ['Certification', -0.45, -1], ['Transit ' + origin + ' → ' + sel.cc, -selTransit, -1], ['Net netback', selNet, selNet < 0 ? -1 : 1]];
+        const mx = Math.max(...steps.map(s => Math.abs(s[1])), 1);
+        return steps.map(([label, v, sign], i) => ({
+          label,
+          val: (v < 0 ? '−€' : '€') + fmt(Math.abs(v), 2),
+          valStyle: 'width:80px;flex:none;text-align:right;font-family:\'JetBrains Mono\',monospace;font-size:12px;font-weight:' + (i === 5 ? '700' : '500') + ';font-variant-numeric:tabular-nums;color:' + (sign < 0 ? '#f87171' : i === 5 ? '#34d399' : '#e7e5e4'),
+          barStyle: 'position:absolute;top:0;bottom:0;left:0;width:' + (Math.abs(v) / mx * 100).toFixed(1) + '%;background:' + (sign < 0 ? '#991b1b' : i === 5 ? '#10b981' : '#0d9488'),
+        }));
+      })(),
+
+      pnl: [
+        ['Volume', '120,000 MWh'],
+        ['Gross value', '€' + fmt(selCert * 120000 / 1e6, 2) + 'm'],
+        ['Desk margin 10%', '€' + fmt(selNet * 0.10, 2) + '/MWh'],
+        ['Annual P&L', '€' + fmt(selNet * 0.10 * 120000 / 1e6, 2) + 'm'],
+      ].map(([k, v], i) => ({ k, v, vStyle: 'font-family:\'JetBrains Mono\',monospace;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:3px;color:' + (i === 3 ? (selNet < 0 ? '#f87171' : '#34d399') : '#f5f5f4') })),
+
+      indexCards: [
+        { k:'TTF month+1', v:'€29.85', sub:'bid 29.60 / offer 30.10', age:'1d', tone:S.pass },
+        { k:'GBP / EUR', v:'1.168', sub:'for UK dRTFC conversion', age:'1d', tone:S.pass },
+        { k:'CHF / EUR', v:'1.061', sub:'for Swiss VSG conversion', age:'9d', tone:S.warn },
+        { k:'Marks filled', v:'16 / 16', sub:'2 older than 30 days', age:'live', tone:S.pass },
+      ].map(c => ({ k:c.k, v:c.v, sub:c.sub, age:c.age, ageStyle: chip(c.tone) })),
+
+      markRows: MARKETS.map(m => {
+        const dp = m.unit === '€/kgCO₂e' ? 3 : 2;
+        const mark = this.markFor(m);
+        const edited = this.state.markOverrides[m.id] != null;
+        const half = mark * 0.015;
+        const t = edited ? S.pass : m.age > 30 ? S.fail : m.age > 7 ? S.warn : S.pass;
+        const fig = 'font-family:\'JetBrains Mono\',monospace;font-size:12px;font-weight:500;font-variant-numeric:tabular-nums;text-align:right;color:';
+        return {
+          cc: m.cc, name: m.name, unit: m.unit,
+          source: edited ? 'DESK · MANUAL' : 'ESTIMATE · SIM',
+          bid: fmt(mark - half, dp), mid: fmt(mark, dp), offer: fmt(mark + half, dp),
+          spread: fmt(half * 2, dp),
+          step: dp === 3 ? 0.001 : 0.5,
+          ariaMid: m.name + ' mid mark in ' + m.unit,
+          setMid: e => {
+            const v = e.target.value === '' ? null : Number(e.target.value);
+            this.setState(s => ({ markOverrides: Object.assign({}, s.markOverrides, { [m.id]: v }) }));
+          },
+          inputStyle: 'width:100%;text-align:right;background:' + (edited ? '#042f2e' : '#0c0a09') + ';border:1px solid ' + (edited ? '#115e59' : '#292524') + ';color:' + (edited ? '#5eead4' : '#f5f5f4') + ';font-family:\'JetBrains Mono\',monospace;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;padding:3px 5px',
+          bidStyle: fig + '#34d399', offerStyle: fig + '#f87171',
+          age: edited ? 'now' : m.age + 'd', ageStyle: chip(t),
+        };
+      }),
+
+      plantFilters: ['All', 'DK', 'DE', 'NL', 'FR', 'Verified'].map(f => {
+        const on = this.state.plantFilter === f;
+        return {
+          label: f, on, pick: () => this.setState({ plantFilter: f }),
+          style: 'padding:5px 10px;border:1px solid ' + (on ? '#115e59' : '#292524') + ';background:' + (on ? '#042f2e' : '#1c1917') + ';color:' + (on ? '#5eead4' : '#a8a29e') + ';font-family:\'JetBrains Mono\',monospace;font-size:11px;font-weight:600;letter-spacing:.06em;cursor:pointer;transition:background 150ms',
+        };
+      }),
+
+      plantRows: (() => {
+        const f = this.state.plantFilter;
+        const src = PLANTS.filter(p => f === 'All' ? true : f === 'Verified' ? p[6] === 'VERIFIED' : p[0] === f);
+        const dim = 'font-family:\'JetBrains Mono\',monospace;font-size:12px;font-variant-numeric:tabular-nums;color:';
+        return src.map(p => {
+          const v = p[6] === 'VERIFIED';
+          return {
+            cc: p[0], name: p[1],
+            op: p[2] || '—', opStyle: 'font-size:12px;color:' + (p[2] ? '#a8a29e' : '#57534e') + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis',
+            cap: p[3] ? p[3].toLocaleString('en-GB') : '—', capStyle: dim + (p[3] ? '#e7e5e4' : '#57534e') + ';text-align:right',
+            energy: p[4] ? fmt(p[4], 0) : '—', energyStyle: dim + (p[4] ? '#e7e5e4' : '#57534e') + ';text-align:right',
+            feed: p[5] || 'unrecorded', feedStyle: 'font-size:12px;color:' + (p[5] ? '#a8a29e' : '#57534e') + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis',
+            prov: v ? 'VERIFIED' : 'NAME ONLY', provStyle: chip(v ? S.pass : S.warn),
+            open: () => this.setState({ modal: { plant: p } }),
+          };
+        });
+      })(),
+
+      plantCountLabel: (this.state.plantFilter === 'All' ? '1,986 facilities indexed' : this.state.plantFilter === 'Verified' ? '4 with verified attributes' : this.state.plantFilter + ' subset') + ' · GIE/EBA European Biomethane Map 2026',
+
+      macroRows: MACRO.map(([cc, name, plants, twh]) => ({
+        cc, name, plants: plants.toLocaleString('en-GB'), twh: fmt(twh, 2) + ' TWh',
+        barStyle: 'display:block;height:3px;width:' + (plants / 815 * 100).toFixed(1) + '%;background:#0d9488',
+      })),
+
+      dossiers: DOSSIERS.map(d => ({
+        title: d.title, ref: d.ref, verdict: d.verdict, note: d.note, drift: d.drift,
+        chipStyle: chip(S[d.tone]),
+        driftStyle: 'font-family:\'JetBrains Mono\',monospace;font-size:10px;letter-spacing:.04em;color:' + S[d.driftTone][0],
+        stats: d.stats.map(([k, v], i) => ({ k, v, vStyle: 'font-family:\'JetBrains Mono\',monospace;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:3px;color:' + (i === 1 ? '#34d399' : '#f5f5f4') })),
+      })),
+
+      copilotRows: list.slice(0, 3).map(r => {
+        const t = r.m.verdict === 'ELIGIBLE' ? S.pass : r.m.verdict === 'CONDITIONAL' ? S.warn : r.m.verdict === 'UNRESOLVED' ? S.unres : S.fail;
+        return {
+          cc: r.m.cc, name: r.m.name, verdict: r.m.verdict, chipStyle: chip(t),
+          net: '€' + fmt(r.net, 2), netStyle: 'font-family:\'JetBrains Mono\',monospace;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;color:' + t[0] + ';width:78px;text-align:right;flex:none',
+        };
+      }),
+      closeModal: () => this.setState({ modal: null }),
+      openLogistics: () => this.setState({ modal: 'logistics' }),
+      isLogisticsOpen: this.state.modal === 'logistics',
+      isPlantOpen: !!this.state.modal && this.state.modal.plant !== undefined,
+
+      showBranches: sel.id === 'DE_THG',
+      branches: [
+        { tag:'BRANCH 1 · 1× SINGLE', mult:1, note:'Cabinet draft removes the multiplier from the 2026 compliance year.', tone:S.warn },
+        { tag:'BRANCH 2 · 2× RETAINED', mult:2, note:'Assumes biomethane keeps double counting. Upside only — never the plan.', tone:S.unres },
+      ].map(b => {
+        const n = selCert * b.mult - selAllIn;
+        return {
+          tag: b.tag, net: (n < 0 ? '−€' : '€') + fmt(Math.abs(n), 2), margin: '€' + fmt(n * 0.10, 2), note: b.note,
+          boxStyle: 'background:#1c1917;padding:9px 10px',
+          tagStyle: 'font-family:\'JetBrains Mono\',monospace;font-size:10px;font-weight:700;letter-spacing:.08em;color:' + b.tone[0],
+          netStyle: 'font-family:\'JetBrains Mono\',monospace;font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:' + (n < 0 ? '#f87171' : b.tone[0]) + ';margin-top:5px',
+        };
+      }),
+
+      logHeader: (() => {
+        const oh = HUBS[origin], th = HUBS[sel.cc];
+        const spread = th && oh ? th[2] - oh[2] : 0;
+        return (oh ? oh[0] : origin) + ' → ' + (th ? th[0] : sel.cc) + ' · basis ' + (spread >= 0 ? '+' : '−') + '€' + fmt(Math.abs(spread), 2) + '/MWh · transit €' + fmt(selTransit, 2) + '/MWh';
+      })(),
+
+      logModes: (() => {
+        const oh = HUBS[origin] || [origin + ' local hub', 'National Grid', 0.80];
+        const th = HUBS[sel.cc] || [sel.cc + ' local hub', 'National Grid', 0.80];
+        const basis = Math.abs(th[2] - oh[2]) || 0.65;
+        const km = { DE:380, SE:520, NL:640, FR:1180, IT:1560, ES:2100, AT:960, PL:840, CZ:760, FI:1420, BE:760, EE:1180, LT:1020, LV:1100, PT:2600 }[sel.cc] || 1200;
+        const swap = [['Origin grid injection tariff', 0.80], ['Hub basis hedging ' + oh[0] + ' ➔ ' + th[0], basis], ['UDB & registry transfer', 0.45], ['Brokerage & hub clearing', 0.25]];
+        const road = Math.min(22, Math.max(4, km * 0.0065));
+        const lng = [['Small-scale cryogenic liquefaction', 8.50], ['Cryogenic road freight ~' + km.toLocaleString('en-GB') + ' km', road], ['Terminal offloading / regasification', 2.00], ['Physical segregation certification', 0.45]];
+        const pipe = [['PRISMA capacity ' + origin + ' ➔ ' + sel.cc, null], ['Pipeline shrinkage & fuel gas (' + fmt(km * 0.00012 * 100, 2) + '%)', 29.85 * km * 0.00012], ['Multi-TSO balancing margin', 0.50], ['PRISMA auction & registry handling', 0.60]];
+        const sum = a => a.reduce((t, x) => t + (x[1] || 0), 0);
+        return [
+          { tag:'OPTION A · RECOMMENDED', tone:S.pass, title:'Commercial inter-hub swap & UDB title transfer', cost:'€' + fmt(sum(swap), 2), timeline:'1 day · CONTESTED in some member states',
+            feas:'CONTESTED', feasTone:S.warn,
+            summary:'Sell the molecule at ' + oh[0] + ' and buy natural gas at ' + th[0] + ', transferring the environmental PoS through the Union Database.',
+            lines:swap, legal:'RED III Dir. (EU) 2023/2413 Art. 31a — single EU mass balance area',
+            pros:['Lowest commercial friction of the three','Zero shrinkage or fuel gas loss in transit','Instant electronic settlement on UDB PoS issuance'],
+            cons:['Needs live trading accounts at both ' + oh[0] + ' and ' + th[0],'Basis spread exposure must be monitored or hedged','Cross-border mass balance vs national book-and-claim is contested'] },
+          { tag:'OPTION B', tone:S.unres, title:'Physical multi-TSO pipeline transit corridor', cost:'TARIFF INCOMPLETE', timeline:'14 days · LOW feasibility',
+            feas:'UNVERIFIED', feasTone:S.fail,
+            summary:'Wheel molecules across transmission borders by booking firm entry/exit capacity on PRISMA. Border tariffs are unverified in the corridor registry.',
+            lines:pipe, legal:'Reg. (EC) No 715/2009 & CAM NC',
+            pros:['Guarantees physical delivery to a dedicated or off-grid asset','Tariffs regulated by national regulatory authorities'],
+            cons:['Tariff stacking across every intermediate transit country','Shrinkage fuel gas loss over distance','Shipper licensing required in every transiting jurisdiction'] },
+          { tag:'OPTION C', tone:S.warn, title:'Bio-LNG cryogenic virtual pipeline', cost:'€' + fmt(sum(lng), 2), timeline:'4 days · HIGH feasibility',
+            feas:'HIGH', feasTone:S.pass,
+            summary:'Liquefy at the origin upgrading unit to −162 °C and move by ADR cryogenic ISO trailer or ferry direct to destination.',
+            lines:lng, legal:'ADR Agreement & RED III physical segregation custody',
+            pros:['Required for heavy transport and FuelEU Maritime bunkering','No grid dependency — reaches un-piped regions and ports','Full physical molecular segregation'],
+            cons:['Expensive processing and freight','Boil-off gas management on long hauls','Rates move with diesel and ADR surcharges'] },
+        ].map(o => ({
+          tag:o.tag, title:o.title, cost:o.cost, timeline:o.timeline, summary:o.summary, legal:o.legal,
+          pros:o.pros, cons:o.cons,
+          boxStyle:'background:#0c0a09;padding:14px 16px',
+          tagStyle:chip(o.tone),
+          feas:o.feas, feasStyle:chip(o.feasTone),
+          costStyle:'font-family:\'JetBrains Mono\',monospace;font-size:' + (o.cost.length > 12 ? '15px' : '24px') + ';font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:' + (o.cost.length > 12 ? '#fbbf24' : o.tone[0]) + ';margin-top:9px;line-height:1',
+          lines:o.lines.map(([label, v]) => ({
+            label,
+            val: v == null ? 'unverified' : '€' + fmt(v, 2),
+            valStyle: 'font-family:\'JetBrains Mono\',monospace;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;color:' + (v == null ? '#fbbf24' : '#e7e5e4'),
+          })),
+        }));
+      })(),
+
+      logSteps: [
+        { title:'Sign EFET biomethane annex with the ' + (ORIGIN_MAP[origin] ? ORIGIN_MAP[origin].name : origin) + ' producer', actor:'Trading desk & upstream producer',
+          actions:['Execute the EFET master with a biomethane annex specifying ' + (HUBS[origin] ? HUBS[origin][0] : origin) + ' delivery.', 'Verify ISCC EU audit scope, Annex IX-A feedstock provenance and the RED III GHG saving certificate.', 'Confirm grid injection with entry meter confirmation from ' + (ORIGIN_MAP[origin] ? ORIGIN_MAP[origin].reg : 'the national registry') + '.'] },
+        { title:'Commercial delivery & hub execution', actor:'Gas dispatcher & commercial trader',
+          actions:['Nominate volume at the origin virtual point and confirm the counterparty at ' + (HUBS[sel.cc] ? HUBS[sel.cc][0] : sel.cc) + '.', 'Hedge the inter-hub basis spread before pricing the certificate leg.'] },
+        { title:'Union Database consignment transfer', actor:'Compliance operations',
+          actions:['Raise the PoS in the UDB against the mass balance account and transfer title to the destination scheme.', 'Confirm the destination registry accepts the consignment before the certificate is sold.'] },
+        { title:'Downstream settlement & statutory cancellation', actor:'Settlement & regulatory reporting',
+          actions:['Cancel the certificate in ' + sel.reg + ' against the obligated party.', 'Archive citations with the dossier so the trade can be defended on audit.'] },
+      ].map((s, i) => ({ n:i + 1, title:s.title, actor:s.actor, actions:s.actions })),
+
+      logHubs: (() => {
+        const oh = HUBS[origin] || [origin + ' local hub', 'National Grid', 0.80];
+        const th = HUBS[sel.cc] || [sel.cc + ' local hub', 'National Grid', 0.80];
+        const spread = th[2] - oh[2];
+        return [
+          { k:'Origin hub', v:oh[0], sub:oh[1] },
+          { k:'Target hub', v:th[0], sub:th[1] },
+          { k:'Basis to TTF', v:(oh[2] >= 0 ? '+' : '−') + '€' + fmt(Math.abs(oh[2]), 2), sub:'origin side' },
+          { k:'Basis spread', v:(spread >= 0 ? '+' : '−') + '€' + fmt(Math.abs(spread), 2), sub:'hedge this leg' },
+        ].map(h => ({ k:h.k, v:h.v, sub:h.sub, boxStyle:'background:#0c0a09;padding:9px 11px' }));
+      })(),
+
+      logIps: (() => {
+        const rows = IPS[origin + '-' + sel.cc] || [['No mapped interconnection point', origin + ' ➔ ' + sel.cc + ' has no continuous route in the corridor registry', 'Route via a swap or bio-LNG instead.']];
+        return rows.map(([name, tso, note]) => ({
+          name, tso: tso + ' — ' + note, platform: IPS[origin + '-' + sel.cc] ? 'PRISMA' : 'NONE',
+          conf: 'UNVERIFIED', confStyle: chip(S.warn),
+          tariff: 'tariff unverified',
+          tariffStyle: 'font-family:\'JetBrains Mono\',monospace;font-size:10px;font-weight:600;color:#fbbf24',
+        }));
+      })(),
+
+      plantName: (this.state.modal && this.state.modal.plant) ? this.state.modal.plant[1] : '',
+      plantCc: (this.state.modal && this.state.modal.plant) ? this.state.modal.plant[0] : '',
+      plantProv: (this.state.modal && this.state.modal.plant) ? this.state.modal.plant[6] : '',
+      plantProvStyle: chip((this.state.modal && this.state.modal.plant && this.state.modal.plant[6] === 'VERIFIED') ? S.pass : S.warn),
+      plantProvNote: (this.state.modal && this.state.modal.plant && this.state.modal.plant[6] === 'VERIFIED')
+        ? 'Attributes confirmed against the operator record. Safe to price against.'
+        : 'GIE/EBA European Biomethane Map 2026 records facility name and country only. Capacity, operator, coordinates and feedstock are unverified — do not price a trade off this row.',
+      plantFields: (() => {
+        const p = (this.state.modal && this.state.modal.plant) || ['', '', null, null, null, null, ''];
+        const v = x => x == null ? 'unrecorded' : x;
+        return [
+          ['Operator', v(p[2])], ['Status', 'Active'],
+          ['Capacity', p[3] ? p[3].toLocaleString('en-GB') + ' Nm³/h' : 'unrecorded'],
+          ['Annual energy', p[4] ? p[4] + ' GWh/y' : 'unrecorded'],
+          ['Feedstock', v(p[5])], ['Upgrading', 'unrecorded'],
+          ['Grid connection', p[6] === 'VERIFIED' ? 'Grid-injected' : 'unrecorded'],
+          ['Registry', ORIGIN_MAP[p[0]] ? ORIGIN_MAP[p[0]].reg : 'unrecorded'],
+        ].map(([k, val]) => ({ k, v: val, vStyle: 'font-family:\'JetBrains Mono\',monospace;font-size:13px;font-weight:600;margin-top:3px;color:' + (val === 'unrecorded' ? '#57534e' : '#f5f5f4') }));
+      })(),
+
+      deHalf: fmt((this.certFor(MARKETS[0], ci) / 2) - allInFor('DE'), 2),
+      copilotCites: ['§37a BImSchG', 'RED III Art. 29(1)', 'Reg. (EU) 2024/2792', 'Regeling energie vervoer'],
+      prompts: PROMPTS,
+    };
+  }
+}
+
+</script>
+</body>
+</html>

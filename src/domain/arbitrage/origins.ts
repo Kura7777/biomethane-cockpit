@@ -244,7 +244,6 @@ export function calculateRealisticCommercialDeskMargin(
   deskNetMarginEurPerMWh: number | null;
   producerProcurementEurPerMWh: number | null;
   marginAllocationType: 'TRANSPORT_COMPLIANCE' | 'MARITIME_INSETTING' | 'WHOLESALE_BASE';
-  sensitivityRange: { low: number; mid: number; high: number };
 } {
   let allocationType: 'TRANSPORT_COMPLIANCE' | 'MARITIME_INSETTING' | 'WHOLESALE_BASE' = 'TRANSPORT_COMPLIANCE';
 
@@ -265,14 +264,12 @@ export function calculateRealisticCommercialDeskMargin(
     ? Number((netStackAfterTransit * producerSharePct).toFixed(2))
     : null;
 
+  // No sensitivity ladder is offered here. A 5/10/15% spread of producer shares would be
+  // three invented numbers presented as a range; if the desk wants a sensitivity it must
+  // enter the shares it actually wants to test.
   return {
     deskNetMarginEurPerMWh: deskNetMargin,
     producerProcurementEurPerMWh: producerProcurement,
     marginAllocationType: allocationType,
-    sensitivityRange: {
-      low: Number((netStackAfterTransit * 0.05).toFixed(2)),  // 95% producer share
-      mid: Number((netStackAfterTransit * 0.10).toFixed(2)),  // 90% producer share
-      high: Number((netStackAfterTransit * 0.15).toFixed(2)), // 85% producer share
-    },
   };
 }

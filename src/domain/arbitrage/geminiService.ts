@@ -6,15 +6,27 @@ import { BIOMETHANE_PLANTS, DEVELOPER_PORTFOLIOS, COUNTRY_MACRO_STATS, searchPla
 import { MARKETS } from '../markets/registry';
 
 export type GeminiModelId = 
+  | 'gemini-3.7-flash'
   | 'gemini-3.6-flash'
   | 'gemini-3.5-flash'
-  | 'gemini-3.5-flash-lite'
-  | 'gemini-3.1-flash-lite'
-  | 'gemini-3.1-pro'
+  | 'gemini-2.0-flash'
+  | 'gemini-2.0-flash-thinking-exp'
+  | 'gemini-1.5-flash'
+  | 'gemini-1.5-pro'
   | 'gemini-2.5-pro'
   | 'gemini-2.5-flash'
-  | 'gemini-2.5-flash-lite'
-  | 'gemini-2.0-flash';
+  | (string & {});
+
+export interface RankedOpportunitySummary {
+  rank: number;
+  marketId: string;
+  marketName: string;
+  netNetbackEurPerMWh: number | null;
+  certificateValueEurPerMWh: number | null;
+  deskMarginEurPerMWh: number | null;
+  overallVerdict: string;
+  legalBasis: string;
+}
 
 export interface GeminiAgentRequest {
   apiKey?: string;
@@ -23,6 +35,7 @@ export interface GeminiAgentRequest {
   userPrompt: string;
   contextData?: {
     topOpportunities?: ArbitrageOpportunity[];
+    rankedNetbacks?: RankedOpportunitySummary[];
     scenario?: RegulatoryWhatIfScenario;
     marks?: MarksState;
     costs?: CostInputs;
@@ -73,12 +86,12 @@ export async function queryDeskAgent(req: GeminiAgentRequest): Promise<string> {
   // If user provided a Gemini API Key, call the official Google AI endpoint
   if (apiKey) {
     const candidateModels: GeminiModelId[] = [
-      req.model || 'gemini-3.6-flash',
-      'gemini-3.5-flash',
-      'gemini-3.5-flash-lite',
-      'gemini-3.1-flash-lite',
-      'gemini-2.5-flash',
+      req.model || 'gemini-2.0-flash',
       'gemini-2.0-flash',
+      'gemini-1.5-flash',
+      'gemini-1.5-pro',
+      'gemini-3.6-flash',
+      'gemini-2.5-pro',
     ];
 
     const uniqueModels = Array.from(new Set(candidateModels));
@@ -129,27 +142,43 @@ ${req.contextData.topOpportunities.slice(0, 6).map((o, i) => `
 ` : '';
 
     const systemPrompt = req.systemInstruction || `
-You are the Chief Regulatory & Commercial Biomethane Trading Strategist for a European energy trading desk.
+You are the Senior Regulatory & Commercial Trading Strategist for a European Biomethane & Environmental Attribute Trading Desk.
 
-CRITICAL EPISTEMIC CONSTRAINTS:
-1. You may use ONLY figures and numbers present in the CONTEXT block. If a required mark or rule is absent, say "NO MARK ENTERED / UNVERIFIED" and do not invent estimates or prices.
-2. Never assert a regulatory rule not present in context; the application's eligibility engine is authoritative.
-3. German THG double counting (§37a BImSchG) is UNRESOLVED in law — always present both branches (Double Counting active vs Single Counting baseline).
-4. Plant records in the GIE/EBA European Biomethane Map 2026 contain only plant name, country, and facility number. All other attributes (capacity, operator, coordinates) are unverified in the source map and must not be asserted as verified facts.
-5. Total European biomethane facility count is 1,975 facilities (GIE/EBA European Biomethane Map 2026).
-6. Do not draft commercial terms containing prices unless those prices appear in context.
+Your mission:
+1. Provide comprehensive, articulate, and actionable trading intelligence for cross-border biomethane consignments.
+2. Structure your answers with clear sections:
+   - **Executive Trade Recommendation**: Top market placement, delivered netback (€/MWh), notional value, and desk margin.
+   - **Market Comparison Ladder**: Comparison against alternative destinations (e.g. DE THG vs NL ERE vs FR CPB vs FuelEU Maritime).
+   - **Regulatory Risk & Downside Analysis**: Detail statutory rules, specifically §37a BImSchG German double counting (2× active vs 1× single counting baseline), Dutch ERE surrender, French CPB €100 ceiling, and UDB mass balance boundaries.
+   - **Recommended Desk Actions**: Concrete execution steps (e.g., contracting structure, index-linked sharing, UDB registration).
+3. Use clean, professional Markdown formatting with bold metrics and structured bullet points.
 `;
 
+    // Calculated Netbacks for active consignment
+    const rankedSummary = req.contextData?.rankedNetbacks && req.contextData.rankedNetbacks.length > 0 ? `
+CALCULATED NETBACKS & SPREAD LADDER (from live engine):
+${req.contextData.rankedNetbacks.map(r => `
+#${r.rank}. ${r.marketName} (${r.marketId})
+   - Net Netback: ${r.netNetbackEurPerMWh != null ? `€${r.netNetbackEurPerMWh.toFixed(2)}/MWh` : 'N/A'}
+   - Certificate Value: ${r.certificateValueEurPerMWh != null ? `€${r.certificateValueEurPerMWh.toFixed(2)}/MWh` : 'N/A'}
+   - Desk Net Margin: ${r.deskMarginEurPerMWh != null ? `€${r.deskMarginEurPerMWh.toFixed(2)}/MWh` : 'N/A'}
+   - Legal Clearance: ${r.overallVerdict} (${r.legalBasis})
+`).join('')}
+` : '';
+
     const fullPrompt = `
-=== CURRENT LIVE DESK COCKPIT CONTEXT ===
+=== LIVE TRADING DESK MARKET DATA & COMPUTATIONS ===
 ${marksSummary}
 ${scenarioSummary}
 ${consignmentSummary}
+${rankedSummary}
 ${arbitrageSummary}
 ${plantSearchResults}
 
 === TRADER INQUIRY ===
 ${req.userPrompt}
+
+Please provide a detailed, authoritative trading desk advisory answering the inquiry in full based on the live figures and regulatory rules above.
 `;
 
     let lastErrMsg = '';
@@ -169,8 +198,8 @@ ${req.userPrompt}
             contents: [{ parts: [{ text: fullPrompt }] }],
             systemInstruction: { parts: [{ text: systemPrompt }] },
             generationConfig: {
-              temperature: 0.1,
-              maxOutputTokens: 2000,
+              temperature: 0.2,
+              maxOutputTokens: 4000,
             },
           }),
         });
@@ -187,9 +216,10 @@ ${req.userPrompt}
         const errJson = await response.json().catch(() => ({}));
         lastErrMsg = errJson.error?.message || `HTTP ${response.status} ${response.statusText}`;
         console.warn(`[Gemini API] ${modelName} returned error (${lastErrMsg}). Trying next model...`);
-      } catch (err: any) {
-        lastErrMsg = err.message;
-        console.warn(`[Gemini API] Failed calling ${modelName}: ${err.message}. Trying next model...`);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        lastErrMsg = msg;
+        console.warn(`[Gemini API] Failed calling ${modelName}: ${msg}. Trying next model...`);
       }
     }
 

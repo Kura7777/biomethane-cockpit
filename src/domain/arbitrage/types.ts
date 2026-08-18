@@ -1,4 +1,4 @@
-import { Consignment, CertificationScheme, ChainOfCustody } from '../consignment/types';
+import { Consignment, CertificationScheme, ChainOfCustody, DeliveryPeriod } from '../consignment/types';
 import { Market } from '../markets/types';
 import { NetbackResult } from '../netback/types';
 import { EligibilityAssessment, OverallVerdict } from '../eligibility/types';
@@ -47,6 +47,34 @@ export interface ArbitrageOpportunity {
   
   // Modelled vs Marked
   isModelled: boolean;
+
+  // Commercial verification checklist (Regulatory Feasibility != Commercial Availability)
+  toConfirm: string[];
+}
+
+export interface ClientRequest {
+  targetMarketId: string | 'ANY';
+  volumeMwh: number | null;              // null is valid — notional simply won't compute
+  delivery: DeliveryPeriod;              // reuse the EXISTING type in consignment/types.ts
+  feedstockKey: string | 'ANY';
+  scheme: CertificationScheme | 'ANY';
+  chainOfCustody: ChainOfCustody;
+  constraints: {
+    maxDeliveredCostEurMwh: number | null;
+    maxCarbonIntensity: number | null;
+    physicalDeliveryRequired: boolean;   // forces SEGREGATION / bio-LNG paths
+  };
+  counterparty: string | null;
+  notes: string | null;
+}
+
+export interface SourcingSearchResult {
+  tradeable: ArbitrageOpportunity[];
+  blocked: ArbitrageOpportunity[];
+  evaluated: number;                     // how many combinations were tried
+  unpriced: number;                      // how many had no usable mark
+  request: ClientRequest;
+  generatedAt: string;
 }
 
 export interface ArbitrageMatrixCell {
@@ -69,6 +97,16 @@ export interface RegulatoryWhatIfScenario {
   frCpbPenaltyCap: number; // default 100
 }
 
+export interface TradeActionPayload {
+  marketId?: string;
+  originCountry?: string;
+  feedstock?: string;
+  ci?: number;
+  volume?: number;
+  counterparty?: string;
+  [key: string]: unknown;
+}
+
 export interface AgentChatMessage {
   id: string;
   sender: 'user' | 'agent';
@@ -77,6 +115,6 @@ export interface AgentChatMessage {
   timestamp: string;
   suggestedAction?: {
     type: 'NAVIGATE_TRADE' | 'APPLY_PRESET';
-    payload: any;
+    payload: TradeActionPayload;
   };
 }

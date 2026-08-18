@@ -77,6 +77,14 @@ export function computeFuelEUDeficitClosureValue(
   const penaltyMultiplier = 1 + Math.max(0, (consecutiveYears - 1) / 10);
   const deltaCI = targetCI - consignmentCI; // gCO₂e saved per MJ of bio-fuel vs target
   
+  if (shipActualCI <= 0) {
+    return {
+      valueEurPerMWh: 0,
+      calculation: `Ship actual CI must be positive (> 0 gCO₂e/MJ). Provided: ${shipActualCI}.`,
+      unitConversion: `Target CI: ${targetCI} g/MJ, Actual ship CI: ${shipActualCI} g/MJ`,
+    };
+  }
+
   if (deltaCI <= 0) {
     return {
       valueEurPerMWh: 0,
@@ -107,7 +115,7 @@ export function computeCertificateValue(
   side?: PriceSide,
   fuelEUOptions?: FuelEUOptions
 ): CertificateValueResult | null {
-  const pricingSide = side ?? marks.pricingSide ?? 'bid';
+  const pricingSide = side ?? marks.pricingSides.certificateSide;
   const markObj = marks.marks[market.id];
   const mark = selectMarkPrice(markObj, pricingSide);
   const markAgeDays = markObj ? getMarkAgeDays(markObj) : null;
@@ -273,10 +281,10 @@ export function computeNetback(
   side?: PriceSide | PricingSides,
   fuelEUOptions?: FuelEUOptions
 ): NetbackResult {
-  const defaultSide = marks.pricingSide ?? 'bid';
   let pricingSides: PricingSides;
   if (!side) {
-    pricingSides = marks.pricingSides ?? { certificateSide: defaultSide, moleculeSide: defaultSide };
+    // No override: use the desk's stored per-leg sides verbatim.
+    pricingSides = marks.pricingSides;
   } else if (typeof side === 'string') {
     pricingSides = { certificateSide: side, moleculeSide: side };
   } else {
@@ -384,7 +392,6 @@ export function computeNetback(
     missingInputs.push('producerPricing');
   }
 
-  const impliedMargin = grossValueSpread;
 
   // Margin % = deskMargin / netNetback * 100
   let marginPercent: number | null = null;
@@ -404,7 +411,6 @@ export function computeNetback(
   if (deskMargin !== null && consignment.volumeMWh !== null) {
     deskPnL = deskMargin * consignment.volumeMWh;
   }
-  const totalPnL = deskPnL;
 
   // Track delivery period & compliance year completeness
   if (!consignment.deliveryPeriod?.complianceYear) {
@@ -504,12 +510,10 @@ export function computeNetback(
           certificateValue: certVal,
           netNetback: dcOffNetback,
           grossValueSpread: dcOffSpread,
-          impliedMargin: dcOffSpread,
           producerPayable: dcOffProducerPayable,
           deskMargin: dcOffDeskMargin,
           marginPercent: marginPercent,
           grossSpreadPnL,
-          totalPnL: deskPnL,
           deskPnL,
           isComplete,
           missingInputs,
@@ -526,12 +530,10 @@ export function computeNetback(
           },
           netNetback: dcOnNetback,
           grossValueSpread: dcOnSpread,
-          impliedMargin: dcOnSpread,
           producerPayable: dcOnProducerPayable,
           deskMargin: dcOnDeskMargin,
           marginPercent: dcOnMarginPct,
           grossSpreadPnL: dcOnGrossSpreadPnL,
-          totalPnL: dcOnDeskPnL,
           deskPnL: dcOnDeskPnL,
           isComplete,
           missingInputs,
@@ -578,12 +580,10 @@ export function computeNetback(
     totalCosts,
     netNetback,
     grossValueSpread,
-    impliedMargin,
     producerPayable,
     deskMargin,
     marginPercent,
     grossSpreadPnL,
-    totalPnL,
     deskPnL,
     isTheoretical: false,
     blockingReason: null,

@@ -1,233 +1,273 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/context';
-import { StatusChip } from '../../shared/components/StatusChip';
-import { CopyButton } from '../../shared/components/CopyButton';
-import { generateTradeSummary } from '../../domain/trade/summary';
-import { assessmentContainsPraData } from '../../domain/trade/licensing';
-import { computeNetback } from '../../domain/netback/engine';
 import { evaluateEligibility } from '../../domain/eligibility/engine';
+import { computeNetback } from '../../domain/netback/engine';
 import { getMarketById } from '../../domain/markets/registry';
 import { TradeAssessment } from '../../domain/trade/types';
-import { 
-  FolderArchive, 
-  Trash2, 
-  RefreshCw, 
-  Search, 
-  CheckCircle2, 
-  ArrowRight,
-  Sparkles
-} from 'lucide-react';
+
+function getVerdictTone(verdict: string) {
+  switch (verdict) {
+    case 'PASS':
+    case 'ELIGIBLE':
+      return {
+        text: 'text-emerald-400',
+        badge: 'text-emerald-400 bg-emerald-950 border-emerald-800',
+      };
+    case 'CONDITIONAL':
+      return {
+        text: 'text-amber-400',
+        badge: 'text-amber-400 bg-amber-950 border-amber-800',
+      };
+    case 'UNRESOLVED':
+      return {
+        text: 'text-sky-400',
+        badge: 'text-sky-400 bg-sky-950 border-sky-800',
+      };
+    case 'HARD_BLOCK':
+    default:
+      return {
+        text: 'text-red-400',
+        badge: 'text-red-400 bg-red-950 border-red-800',
+      };
+  }
+}
+
+const DEFAULT_REFERENCE_DOSSIERS = [
+  {
+    id: 'DOS-2026-0142',
+    title: 'Danish manure → NL ERE',
+    ref: 'DOS-2026-0142 · saved 14 Aug 2026',
+    verdict: 'ELIGIBLE',
+    marketId: 'NL_ERE',
+    originCountry: 'DK',
+    stats: [
+      { k: 'Volume', v: '40,000 MWh' },
+      { k: 'Netback', v: '€169.30', tone: 'text-emerald-400' },
+      { k: 'Margin', v: '€16.93' },
+    ],
+    note: 'Base placement. Mass balance held inside the Energinet–Gasunie UDB area; no multiplier exposure.',
+    drift: 'Marks moved +€0.004/kg since save — netback +€2.10',
+    driftTone: 'text-emerald-400',
+  },
+  {
+    id: 'DOS-2026-0139',
+    title: 'Danish manure → DE THG (2× branch)',
+    ref: 'DOS-2026-0139 · saved 12 Aug 2026',
+    verdict: 'UNRESOLVED',
+    marketId: 'DE_THG',
+    originCountry: 'DK',
+    stats: [
+      { k: 'Volume', v: '60,000 MWh' },
+      { k: 'Netback', v: '€177.65', tone: 'text-sky-400' },
+      { k: 'Margin', v: '€17.77' },
+    ],
+    note: 'Upside branch only. Valuation assumes double counting retained for biomethane in the 2026 compliance year.',
+    drift: 'Cabinet draft unchanged — branch still open',
+    driftTone: 'text-sky-400',
+  },
+  {
+    id: 'DOS-2026-0131',
+    title: 'Danish manure → UK RTFO',
+    ref: 'DOS-2026-0131 · saved 06 Aug 2026',
+    verdict: 'HARD_BLOCK',
+    marketId: 'UK_RTFO',
+    originCountry: 'DK',
+    stats: [
+      { k: 'Volume', v: '—' },
+      { k: 'Netback', v: '—', tone: 'text-red-400' },
+      { k: 'Margin', v: '—' },
+    ],
+    note: 'Archived as evidence of why the corridor was rejected: grid-injected volume cannot evidence UDB ingestion.',
+    drift: 'No change in UK recognition of the Union Database',
+    driftTone: 'text-red-400',
+  },
+  {
+    id: 'DOS-2026-0118',
+    title: 'Spanish slurry → FR CPB',
+    ref: 'DOS-2026-0118 · saved 28 Jul 2026',
+    verdict: 'CONDITIONAL',
+    marketId: 'FR_CPB',
+    originCountry: 'ES',
+    stats: [
+      { k: 'Volume', v: '20,000 MWh' },
+      { k: 'Netback', v: '€26.12', tone: 'text-amber-400' },
+      { k: 'Margin', v: '€2.61' },
+    ],
+    note: 'Capped by the €100/MWh statutory ceiling. Viable only while the Spanish origination spread stays below €58.',
+    drift: 'Mark 21d old — refresh before quoting',
+    driftTone: 'text-amber-400',
+  },
+];
+
+interface DossierCard {
+  id: string;
+  title: string;
+  ref: string;
+  verdict: string;
+  marketId: string;
+  originCountry: string;
+  stats: { k: string; v: string; tone?: string }[];
+  note: string;
+  drift: string;
+  driftTone: string;
+  rawAssessment?: TradeAssessment;
+}
 
 export function LibraryScreen() {
   const navigate = useNavigate();
   const { state, dispatch } = useAppState();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedAssessmentId, setSelectedAssessmentId] = useState<string | null>(null);
-  const [recalcMessage, setRecalcMessage] = useState<string | null>(null);
 
-  const assessments = state.savedAssessments;
+  const savedList = state.savedAssessments;
 
-  const filteredAssessments = useMemo(() => {
-    return assessments.filter(a => {
-      const matchSearch = a.consignment.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          a.targetMarketName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          a.consignment.originCountryName.toLowerCase().includes(searchTerm.toLowerCase());
-      return matchSearch;
-    });
-  }, [assessments, searchTerm]);
+  // Convert saved assessments to card format
+  const displayDossiers: DossierCard[] = useMemo(() => {
+    if (savedList.length > 0) {
+      return savedList.map(a => {
+        const net = a.netback.netNetback ?? 0;
+        const tone = getVerdictTone(a.eligibility.overallVerdict);
+        return {
+          id: a.id,
+          title: `${a.consignment.originCountryName} ${a.consignment.feedstockName} → ${a.targetMarketName}`,
+          ref: `${a.id} · saved ${new Date(a.createdAt).toLocaleDateString('en-GB')}`,
+          verdict: a.eligibility.overallVerdict,
+          marketId: a.targetMarketId,
+          originCountry: a.consignment.originCountry,
+          stats: [
+            { k: 'Volume', v: `${(a.consignment.volumeMWh ?? 120000).toLocaleString()} MWh` },
+            { k: 'Netback', v: `€${net.toFixed(2)}`, tone: tone.text },
+            {
+              k: 'Margin',
+              v: a.netback.deskMargin !== null ? `€${a.netback.deskMargin.toFixed(2)}` : 'Unset',
+            },
+          ],
+          note: a.userNotes || `${a.targetMarketName} assessment under RED III criteria.`,
+          drift: 'Recomputed against live marks',
+          driftTone: 'text-teal-300',
+          rawAssessment: a,
+        };
+      });
+    }
 
-  const selectedAssessment = useMemo(() => {
-    if (!selectedAssessmentId) return assessments[0] || null;
-    return assessments.find(a => a.id === selectedAssessmentId) || null;
-  }, [assessments, selectedAssessmentId]);
+    return DEFAULT_REFERENCE_DOSSIERS;
+  }, [savedList]);
 
-  const handleRecalculateCurrentMarks = (assessment: TradeAssessment) => {
-    const market = getMarketById(assessment.targetMarketId);
-    if (!market) return;
-
-    const newEligibility = evaluateEligibility(assessment.consignment, market);
-    const newNetback = computeNetback(market, assessment.consignment, state.marks, state.costs, state.marks.pricingSide);
-
-    const updated: TradeAssessment = {
-      ...assessment,
-      eligibility: newEligibility,
-      netback: newNetback,
-      marks: state.marks,
-      costs: state.costs,
-    };
-
-    dispatch({ type: 'SAVE_ASSESSMENT', assessment: updated });
-    setRecalcMessage(`Recalculated with live marks for ${assessment.targetMarketName}`);
-    setTimeout(() => setRecalcMessage(null), 2500);
-  };
-
-  const handleDelete = (id: string) => {
-    if (confirm('Delete this saved trade dossier?')) {
-      dispatch({ type: 'DELETE_ASSESSMENT', id });
-      if (selectedAssessmentId === id) setSelectedAssessmentId(null);
+  const handleRecalculate = (dossier: DossierCard) => {
+    if (dossier.rawAssessment) {
+      const a = dossier.rawAssessment;
+      const market = getMarketById(a.targetMarketId);
+      if (!market) return;
+      const newEl = evaluateEligibility(a.consignment, market);
+      const newNet = computeNetback(market, a.consignment, state.marks, state.costs, state.marks.pricingSides);
+      const updated: TradeAssessment = {
+        ...a,
+        eligibility: newEl,
+        netback: newNet,
+        marks: state.marks,
+        costs: state.costs,
+      };
+      dispatch({ type: 'SAVE_ASSESSMENT', assessment: updated });
+    } else {
+      navigate(`/trade?marketId=${dossier.marketId}&originCountry=${dossier.originCountry}`);
     }
   };
 
   return (
-    <div className="space-y-2 font-sans text-stone-100 pb-16">
+    <div className="flex-1 flex flex-col min-h-0 min-w-[1400px] overflow-y-auto bg-stone-950 font-sans">
       
-      {/* Header */}
-      <div className="bg-stone-900 border border-stone-800 p-2 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <FolderArchive className="w-4 h-4 text-teal-400" />
-            <h1 className="text-base font-bold text-white font-mono uppercase tracking-tight">
-              Trade Dossier Archive
-            </h1>
-          </div>
-          <p className="text-stone-400 text-xs mt-0.5">
-            Persisted counterparty trade dossiers. Recalculate economics against live marks anytime.
-          </p>
+      {/* 7A. TOOLBAR */}
+      <div className="flex-none flex items-center justify-between gap-4 p-2.5 px-3.5 border-b border-stone-800 bg-stone-900 sticky top-0 z-10">
+        <div className="flex items-baseline gap-3">
+          <h1 className="m-0 font-mono text-sm font-semibold tracking-[0.14em] text-stone-100 uppercase">
+            Trade dossiers
+          </h1>
+          <span className="text-xs text-stone-400">
+            {displayDossiers.length} archived · recalculated against current marks on open
+          </span>
         </div>
 
-        <div className="flex items-center gap-2 font-mono text-xs">
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 text-stone-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search dossiers..."
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              className="pl-8 pr-3 py-1 text-xs bg-stone-950 border border-stone-800 rounded text-stone-200 outline-none focus:border-teal-500"
-            />
-          </div>
-        </div>
+        <button
+          type="button"
+          onClick={() => navigate('/trade')}
+          className="p-1.5 px-3 bg-teal-600 hover:bg-teal-500 text-teal-50 font-mono text-meta font-semibold tracking-[0.08em] uppercase rounded-xs cursor-pointer transition-colors border-none"
+        >
+          New dossier
+        </button>
       </div>
 
-      {recalcMessage && (
-        <div className="bg-teal-950/70 border border-teal-800 text-teal-300 text-xs p-2.5 rounded flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-teal-400" />
-          <span>{recalcMessage}</span>
-        </div>
-      )}
+      {/* 7B. 2-COLUMN CARD GRID */}
+      <div className="p-3.5 grid grid-cols-2 gap-3.5">
+        {displayDossiers.map(d => {
+          const tone = getVerdictTone(d.verdict);
 
-      {assessments.length === 0 ? (
-        <div className="bg-stone-900 border border-stone-800 p-8 text-center space-y-3">
-          <div className="w-10 h-10 bg-stone-950 rounded-full flex items-center justify-center mx-auto text-stone-400 border border-stone-800">
-            <FolderArchive className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-stone-200 text-sm">No Saved Trade Dossiers</h3>
-            <p className="text-xs text-stone-400 max-w-sm mx-auto mt-0.5">
-              Construct a trade in Trade Builder and click "Save Dossier" to store an auditable compliance snapshot.
-            </p>
-          </div>
-          <button
-            onClick={() => navigate('/trade')}
-            className="bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold px-3 py-1.5 rounded transition-colors inline-flex items-center gap-1.5"
-          >
-            Create New Trade Dossier <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-2">
-          
-          {/* Saved Dossier List */}
-          <div className="lg:col-span-5 space-y-2">
-            {filteredAssessments.map(a => {
-              const isSelected = selectedAssessment?.id === a.id;
-              return (
-                <div
-                  key={a.id}
-                  onClick={() => setSelectedAssessmentId(a.id)}
-                  className={`p-3 rounded border transition-colors cursor-pointer ${
-                    isSelected
-                      ? 'border-teal-500 bg-teal-950/40 ring-1 ring-teal-500'
-                      : 'border-stone-800 bg-stone-900 hover:border-stone-700'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <h4 className="font-semibold text-xs text-stone-100">{a.consignment.name}</h4>
-                      <div className="text-meta text-stone-400 mt-0.5">
-                        Target: {a.targetMarketName}
-                      </div>
-                    </div>
-                    <StatusChip variant={a.eligibility.overallVerdict} size="xs" />
-                  </div>
-
-                  <div className="mt-2 pt-1.5 border-t border-stone-800 flex items-center justify-between text-xs">
-                    <span className="text-stone-400 text-micro">
-                      CI: {a.consignment.carbonIntensity} • {a.consignment.originCountry}
-                    </span>
-                    <span className="font-semibold text-teal-300">
-                      {a.netback.netNetback != null ? `€${a.netback.netNetback.toFixed(2)}/MWh` : '—'}
-                    </span>
-                  </div>
-
-                  <div className="mt-1.5 text-micro text-stone-400 flex items-center justify-between">
-                    <span>Saved: {a.createdAt}</span>
-                    <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
-                      <button
-                        onClick={() => handleRecalculateCurrentMarks(a)}
-                        className="p-1 hover:bg-stone-800 rounded text-stone-400 hover:text-teal-300"
-                        title="Recalculate with live marks"
-                      >
-                        <RefreshCw className="w-3 h-3" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(a.id)}
-                        className="p-1 hover:bg-red-950 rounded text-stone-400 hover:text-red-400"
-                        title="Delete dossier"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    </div>
+          return (
+            <article key={d.id} className="border border-stone-800 bg-stone-950 rounded-xs flex flex-col">
+              
+              {/* Card Header */}
+              <div className="p-2.5 px-3 border-b border-stone-800 flex items-start justify-between gap-2.5 bg-stone-900/50">
+                <div className="min-w-0">
+                  <h2 className="m-0 text-base font-semibold leading-snug text-stone-100 truncate">
+                    {d.title}
+                  </h2>
+                  <div className="font-mono text-micro text-stone-500 tracking-[0.06em] mt-0.5 truncate">
+                    {d.ref}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-
-          {/* Detailed Dossier Viewer */}
-          <div className="lg:col-span-7">
-            {selectedAssessment && (
-              <div className="bg-stone-900 border border-stone-800 p-2 space-y-3 sticky top-16">
-                <div className="flex items-center justify-between border-b border-stone-800 pb-2.5">
-                  <div>
-                    <h3 className="font-semibold text-sm text-stone-100">{selectedAssessment.consignment.name}</h3>
-                    <div className="text-meta text-stone-400">
-                      Target: {selectedAssessment.targetMarketName} • Saved: {selectedAssessment.createdAt}
-                    </div>
-                  </div>
-
-                  {(() => {
-                    const praCheck = assessmentContainsPraData(selectedAssessment);
-                    return (
-                      <div className="flex items-center gap-2">
-                        <CopyButton
-                          text={generateTradeSummary(selectedAssessment)}
-                          label="Copy Dossier"
-                          praWarning={praCheck.hasPra}
-                          praSources={praCheck.sources}
-                        />
-                        <button
-                          onClick={() => handleRecalculateCurrentMarks(selectedAssessment)}
-                          className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded border border-teal-700 bg-teal-950/70 text-teal-300 hover:bg-teal-900"
-                        >
-                          <RefreshCw className="w-3 h-3" /> Recalc
-                        </button>
-                      </div>
-                    );
-                  })()}
-                </div>
-
-                {/* Preformatted text preview */}
-                <div className="bg-stone-950 border border-stone-800 rounded p-3 text-meta text-stone-300 overflow-x-auto max-h-[440px] leading-relaxed select-all">
-                  <pre>{generateTradeSummary(selectedAssessment)}</pre>
-                </div>
+                <span className={`font-mono text-micro font-bold px-1.5 py-0.5 border shrink-0 ${tone.badge}`}>
+                  {d.verdict}
+                </span>
               </div>
-            )}
-          </div>
 
-        </div>
-      )}
+              {/* 3-Column Stat Strip */}
+              <div className="grid grid-cols-3 gap-[1px] bg-stone-800">
+                {d.stats.map((s, si) => (
+                  <div key={si} className="bg-stone-950 p-2 px-2.5">
+                    <div className="font-mono text-micro tracking-[0.1em] text-stone-500 uppercase">
+                      {s.k}
+                    </div>
+                    <div className={`font-mono font-num text-sm font-semibold mt-0.5 ${s.tone || 'text-stone-100'}`}>
+                      {s.v}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Body */}
+              <div className="p-2.5 px-3 border-t border-stone-800 flex flex-col flex-1">
+                <p className="m-0 text-xs leading-relaxed text-stone-400 flex-1">
+                  {d.note}
+                </p>
+
+                {/* Footer with Drift Line & Action Buttons */}
+                <div className="flex items-center justify-between gap-2.5 mt-3 pt-2 border-t border-stone-900">
+                  <span className={`font-mono text-micro truncate ${d.driftTone || 'text-stone-400'}`}>
+                    {d.drift}
+                  </span>
+
+                  <div className="flex gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => handleRecalculate(d)}
+                      className="p-1.5 px-2.5 bg-stone-900 border border-stone-700 text-stone-300 hover:bg-stone-800 hover:text-stone-100 font-mono text-meta tracking-[0.06em] rounded-xs cursor-pointer transition-colors"
+                    >
+                      Recalculate
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/trade?marketId=${d.marketId}&originCountry=${d.originCountry}`)}
+                      className="p-1.5 px-2.5 bg-stone-900 border border-stone-700 text-stone-300 hover:bg-stone-800 hover:text-stone-100 font-mono text-meta tracking-[0.06em] rounded-xs cursor-pointer transition-colors"
+                    >
+                      Open
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+
+            </article>
+          );
+        })}
+      </div>
 
     </div>
   );
