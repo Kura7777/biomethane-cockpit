@@ -12,7 +12,7 @@ import { TradeAssessment } from '../../domain/trade/types';
 import { LogisticsModal } from '../logistics/LogisticsModal';
 import { calculateLogisticsRoute } from '../../domain/logistics/engine';
 import { DeliveryMode } from '../../domain/logistics/types';
-import { SlidersHorizontal } from 'lucide-react';
+import { parseDealParams } from '../../domain/trade/dealParams';
 
 function getVerdictTone(verdict: string) {
   switch (verdict) {
@@ -112,32 +112,25 @@ export function TradeBuilderScreen() {
   const [searchParams] = useSearchParams();
   const { state, dispatch } = useAppState();
 
-  const queryMarketId = searchParams.get('marketId') || state.selectedMarketId || 'DE_THG';
-  const queryOrigin = searchParams.get('originCountry');
-  const queryFeedstock = searchParams.get('feedstock');
-  const queryCI = searchParams.get('ci');
-  const queryVol = searchParams.get('volume');
-  const queryScheme = searchParams.get('scheme');
-  const queryCoc = searchParams.get('coc');
-  const queryCounterparty = searchParams.get('counterparty');
-  const queryDeliveryPeriod = searchParams.get('deliveryPeriod');
+  // Everything the calling screen told us about this deal, read through the one
+  // shared contract (domain/trade/dealParams). Absent keys are absent rather than
+  // empty strings, so the fallbacks below fire only when nothing was passed.
+  const deal = useMemo(() => parseDealParams(searchParams), [searchParams]);
 
-  const initialFeedstock = queryFeedstock && FEEDSTOCK_REGISTRY[queryFeedstock] ? queryFeedstock : 'manure';
-  const initialCI = queryCI !== null && queryCI !== '' && !isNaN(Number(queryCI))
-    ? Number(queryCI)
-    : (FEEDSTOCK_REGISTRY[initialFeedstock]?.defaultCI ?? -100);
+  const initialFeedstock = deal.feedstock && FEEDSTOCK_REGISTRY[deal.feedstock] ? deal.feedstock : 'manure';
+  const initialCI = deal.ci ?? FEEDSTOCK_REGISTRY[initialFeedstock]?.defaultCI ?? -100;
 
   // Step 1: Consignment & Deal Parameters
-  const [originCountry, setOriginCountry] = useState<string>(queryOrigin || 'DK');
-  const [selectedMarketId, setSelectedMarketId] = useState<string>(queryMarketId);
+  const [originCountry, setOriginCountry] = useState<string>(deal.originCountry || 'DK');
+  const [selectedMarketId, setSelectedMarketId] = useState<string>(deal.marketId || state.selectedMarketId || 'DE_THG');
   const [feedstockKey, setFeedstockKey] = useState<string>(initialFeedstock);
   const [ciOverride, setCiOverride] = useState<number>(initialCI);
-  const [scheme, setScheme] = useState<CertificationScheme>((queryScheme as CertificationScheme) || 'ISCC_EU');
-  const [chainOfCustody, setChainOfCustody] = useState<ChainOfCustody>((queryCoc as ChainOfCustody) || 'MASS_BALANCE');
-  const [annualVolumeMWh, setAnnualVolumeMWh] = useState<number>(queryVol && !isNaN(Number(queryVol)) ? Number(queryVol) : 120000);
-  const [deliveryPeriodLabel, setDeliveryPeriodLabel] = useState<string>(queryDeliveryPeriod || 'Cal-2026');
+  const [scheme, setScheme] = useState<CertificationScheme>(deal.scheme || 'ISCC_EU');
+  const [chainOfCustody, setChainOfCustody] = useState<ChainOfCustody>(deal.coc || 'MASS_BALANCE');
+  const [annualVolumeMWh, setAnnualVolumeMWh] = useState<number>(deal.volume ?? 120000);
+  const [deliveryPeriodLabel, setDeliveryPeriodLabel] = useState<string>(deal.deliveryPeriod || 'Cal-2026');
   const [complianceYear, setComplianceYear] = useState<number>(2026);
-  const [counterparty, setCounterparty] = useState<string>(queryCounterparty || 'Shell Energy Europe');
+  const [counterparty, setCounterparty] = useState<string>(deal.counterparty || 'Shell Energy Europe');
   const [udbRecorded, setUdbRecorded] = useState<UDBStatus>('RECORDED');
 
   // Step 2: What-If Regulatory Policy Switches
@@ -158,31 +151,29 @@ export function TradeBuilderScreen() {
   const [isDealTicketOpen, setIsDealTicketOpen] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  // Sync with URL params
+  // Re-apply when the link changes while the builder is already mounted — arriving
+  // from the scanner and then from the library must not leave stale fields behind.
+  //
+  // marketId, originCountry and feedstock are validated against their registries
+  // here rather than in the parser: an unknown value means the caller referenced
+  // something this build does not have, and the right response is to keep the
+  // current selection visible, not to blank the deal out.
   useEffect(() => {
-    const market = searchParams.get('marketId');
-    const origin = searchParams.get('originCountry');
-    const fs = searchParams.get('feedstock');
-    const ci = searchParams.get('ci');
-    const vol = searchParams.get('volume');
-    const sc = searchParams.get('scheme');
-    const coc = searchParams.get('coc');
-    const cp = searchParams.get('counterparty');
-    const dp = searchParams.get('deliveryPeriod');
-
-    if (market && MARKETS.some(m => m.id === market)) setSelectedMarketId(market);
-    if (origin && PRODUCING_ORIGINS[origin]) setOriginCountry(origin);
-    if (fs && FEEDSTOCK_REGISTRY[fs]) {
-      setFeedstockKey(fs);
-      if (ci === null || ci === '') setCiOverride(FEEDSTOCK_REGISTRY[fs].defaultCI);
+    if (deal.marketId && MARKETS.some(m => m.id === deal.marketId)) setSelectedMarketId(deal.marketId);
+    if (deal.originCountry && PRODUCING_ORIGINS[deal.originCountry]) setOriginCountry(deal.originCountry);
+    if (deal.feedstock && FEEDSTOCK_REGISTRY[deal.feedstock]) {
+      setFeedstockKey(deal.feedstock);
+      // A feedstock with no explicit CI falls back to that feedstock's default,
+      // otherwise the previous consignment's CI would silently price this one.
+      if (deal.ci === undefined) setCiOverride(FEEDSTOCK_REGISTRY[deal.feedstock].defaultCI);
     }
-    if (ci !== null && ci !== '' && !isNaN(Number(ci))) setCiOverride(Number(ci));
-    if (vol !== null && vol !== '' && !isNaN(Number(vol))) setAnnualVolumeMWh(Number(vol));
-    if (sc) setScheme(sc as CertificationScheme);
-    if (coc) setChainOfCustody(coc as ChainOfCustody);
-    if (cp) setCounterparty(cp);
-    if (dp) setDeliveryPeriodLabel(dp);
-  }, [searchParams]);
+    if (deal.ci !== undefined) setCiOverride(deal.ci);
+    if (deal.volume !== undefined) setAnnualVolumeMWh(deal.volume);
+    if (deal.scheme) setScheme(deal.scheme);
+    if (deal.coc) setChainOfCustody(deal.coc);
+    if (deal.counterparty) setCounterparty(deal.counterparty);
+    if (deal.deliveryPeriod) setDeliveryPeriodLabel(deal.deliveryPeriod);
+  }, [deal]);
 
   const activeMarkets = useMemo(() => MARKETS.filter(m => m.status === 'ACTIVE'), []);
 

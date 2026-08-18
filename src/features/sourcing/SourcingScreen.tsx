@@ -47,6 +47,7 @@ import { generateSourcingNoteText } from '../../domain/trade/sourcingNote';
 import { searchResultContainsPraData } from '../../domain/trade/licensing';
 import { MARK_SOURCE_RELIABILITY, MarkSourceType } from '../../domain/markets/types';
 import { CopyButton } from '../../shared/components/CopyButton';
+import { buildDealUrl } from '../../domain/trade/dealParams';
 
 type SortMode = 'VALUE' | 'CONFIDENCE';
 
@@ -572,20 +573,16 @@ export function SourcingScreen() {
 
   // Open in Trade Builder handler
   const handleOpenInTradeBuilder = (route: ArbitrageOpportunity) => {
-    const params = new URLSearchParams();
-    params.set('marketId', route.targetMarketId);
-    params.set('originCountry', route.originCountry);
-    params.set('feedstock', route.feedstockKey);
-    params.set('ci', route.carbonIntensity.toString());
-    if (clientRequest.volumeMwh !== null) {
-      params.set('volume', clientRequest.volumeMwh.toString());
-    }
-    params.set('scheme', route.certificationScheme);
-    params.set('coc', route.chainOfCustody);
-    if (clientRequest.counterparty) {
-      params.set('counterparty', clientRequest.counterparty);
-    }
-    navigate(`/trade?${params.toString()}`);
+    navigate(buildDealUrl({
+      marketId: route.targetMarketId,
+      originCountry: route.originCountry,
+      feedstock: route.feedstockKey,
+      ci: route.carbonIntensity,
+      volume: clientRequest.volumeMwh ?? undefined,
+      scheme: route.certificationScheme,
+      coc: route.chainOfCustody,
+      counterparty: clientRequest.counterparty ?? undefined,
+    }));
   };
 
   // Quick Preset Handlers

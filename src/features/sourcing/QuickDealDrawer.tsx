@@ -15,7 +15,6 @@ import {
   CheckCircle2, 
   AlertTriangle, 
   Scale, 
-  Zap, 
   Copy, 
   Check, 
   ExternalLink,
@@ -26,6 +25,7 @@ import {
   Bookmark
 } from 'lucide-react';
 import { MathFormulaModal } from '../../shared/components/MathFormulaModal';
+import { buildDealUrl } from '../../domain/trade/dealParams';
 
 interface QuickDealDrawerProps {
   route: ArbitrageOpportunity | null;
@@ -59,16 +59,16 @@ export function QuickDealDrawer({
     : null;
 
   const handleOpenFullTrade = () => {
-    const params = new URLSearchParams();
-    params.set('marketId', route.targetMarketId);
-    params.set('originCountry', route.originCountry);
-    params.set('feedstock', route.feedstockKey);
-    params.set('ci', route.carbonIntensity.toString());
-    if (volumeOverride !== null) params.set('volume', volumeOverride.toString());
-    params.set('scheme', route.certificationScheme);
-    params.set('coc', route.chainOfCustody);
-    if (request.counterparty) params.set('counterparty', request.counterparty);
-    navigate(`/trade?${params.toString()}`);
+    navigate(buildDealUrl({
+      marketId: route.targetMarketId,
+      originCountry: route.originCountry,
+      feedstock: route.feedstockKey,
+      ci: route.carbonIntensity,
+      volume: volumeOverride ?? undefined,
+      scheme: route.certificationScheme,
+      coc: route.chainOfCustody,
+      counterparty: request.counterparty ?? undefined,
+    }));
   };
 
   const { dispatch } = useAppState();

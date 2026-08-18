@@ -13,6 +13,7 @@ import { EligibilityAssessment, GateResult, OverallVerdict } from '../../domain/
 import { RankedNetback } from '../../domain/netback/types';
 import { calculateLogisticsRoute } from '../../domain/logistics/engine';
 import { LogisticsModal } from '../logistics/LogisticsModal';
+import { buildDealUrl } from '../../domain/trade/dealParams';
 
 const GATE_LETTER_MAP = ['S', 'U', 'M', 'A', 'G', 'N'];
 const GATE_TOOLTIP_TITLES = [
@@ -1041,7 +1042,7 @@ export function ScannerScreen() {
         <div className="p-3 flex flex-col gap-2 mt-auto flex-none">
           <button
             type="button"
-            onClick={() => navigate(`/trade?marketId=${selectedMarket.id}&originCountry=${originCode}`)}
+            onClick={() => navigate(buildDealUrl({ marketId: selectedMarket.id, originCountry: originCode }))}
             className="w-full p-2.5 bg-teal-600 hover:bg-teal-500 text-teal-50 border-none font-mono text-xs font-semibold tracking-[0.1em] uppercase cursor-pointer transition-colors duration-150"
           >
             Build trade dossier

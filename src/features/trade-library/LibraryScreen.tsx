@@ -5,6 +5,7 @@ import { evaluateEligibility } from '../../domain/eligibility/engine';
 import { computeNetback } from '../../domain/netback/engine';
 import { getMarketById } from '../../domain/markets/registry';
 import { TradeAssessment } from '../../domain/trade/types';
+import { buildDealUrl } from '../../domain/trade/dealParams';
 
 function getVerdictTone(verdict: string) {
   switch (verdict) {
@@ -168,7 +169,7 @@ export function LibraryScreen() {
       };
       dispatch({ type: 'SAVE_ASSESSMENT', assessment: updated });
     } else {
-      navigate(`/trade?marketId=${dossier.marketId}&originCountry=${dossier.originCountry}`);
+      navigate(buildDealUrl({ marketId: dossier.marketId, originCountry: dossier.originCountry }));
     }
   };
 
@@ -254,7 +255,7 @@ export function LibraryScreen() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => navigate(`/trade?marketId=${d.marketId}&originCountry=${d.originCountry}`)}
+                      onClick={() => navigate(buildDealUrl({ marketId: d.marketId, originCountry: d.originCountry }))}
                       className="p-1.5 px-2.5 bg-stone-900 border border-stone-700 text-stone-300 hover:bg-stone-800 hover:text-stone-100 font-mono text-meta tracking-[0.06em] rounded-xs cursor-pointer transition-colors"
                     >
                       Open

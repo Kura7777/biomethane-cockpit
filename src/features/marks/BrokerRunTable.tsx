@@ -16,8 +16,9 @@ import { searchSourcingRoutes } from '../../domain/arbitrage/sourcingAdapter';
 import { DEFAULT_WHAT_IF_SCENARIO } from '../../domain/arbitrage/engine';
 import { QuickDealDrawer } from '../sourcing/QuickDealDrawer';
 import { MathFormulaModal } from '../../shared/components/MathFormulaModal';
-import { 
-  Search, 
+import { buildDealUrl } from '../../domain/trade/dealParams';
+import {
+  Search,
   Zap, 
   Calculator, 
   Sparkles, 
@@ -147,26 +148,19 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
     const volumeMwh = orderVolGWh * 1000;
     const quotePrice = order.offerPrice ?? order.bidPrice;
 
-    const params = new URLSearchParams();
-    params.set('marketId', targetMarketId);
-    params.set('originCountry', order.country === 'AIB' ? 'EU' : order.country);
-    params.set('feedstock', feedstockKey);
-    params.set('volume', volumeMwh.toString());
-    params.set('scheme', scheme);
-    params.set('year', compYear.toString());
-    params.set('vintage', order.vintage);
-    params.set('subsidized', order.subsidized);
-    if (order.ciNumeric !== null) {
-      params.set('ci', order.ciNumeric.toString());
-    }
-    if (quotePrice !== null) {
-      params.set('brokerPrice', quotePrice.toString());
-      params.set('currency', order.currency);
-    }
-    params.set('counterparty', `OTC Broker (${order.country} ${order.class})`);
-    params.set('autoOpen', 'true');
-
-    navigate(`/trade?${params.toString()}`);
+    // Only contract fields travel. The order's vintage, subsidy flag and quoted
+    // price have no counterpart in the builder, and passing params nobody reads is
+    // the exact failure this contract exists to prevent.
+    navigate(buildDealUrl({
+      marketId: targetMarketId,
+      originCountry: order.country === 'AIB' ? 'EU' : order.country,
+      feedstock: feedstockKey,
+      volume: volumeMwh,
+      scheme,
+      ci: order.ciNumeric ?? undefined,
+      deliveryPeriod: `Cal-${compYear}`,
+      counterparty: `OTC Broker (${order.country} ${order.class})`,
+    }));
   };
 
   // Filtered orders

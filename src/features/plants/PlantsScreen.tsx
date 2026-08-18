@@ -9,6 +9,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { BiomethanePlant, DeveloperPortfolio } from '../../domain/plants/types';
 import { RegistryHub } from './RegistryHub';
 import { Zap } from 'lucide-react';
+import { buildDealUrl } from '../../domain/trade/dealParams';
 
 type PlantViewTab = 'FACILITIES' | 'REGISTRIES' | 'DEVELOPERS' | 'BENCHMARKS';
 
@@ -543,12 +544,11 @@ export function PlantsScreen() {
               <button
                 type="button"
                 onClick={() => {
-                  const params = new URLSearchParams();
-                  params.set('origin', selectedPlant.countryCode);
-                  params.set('originCountry', selectedPlant.countryCode);
-                  params.set('counterparty', `Asset Source (${selectedPlant.name})`);
-                  params.set('feedstock', 'manure');
-                  navigate(`/trade?${params.toString()}`);
+                  navigate(buildDealUrl({
+                    originCountry: selectedPlant.countryCode,
+                    counterparty: `Asset Source (${selectedPlant.name})`,
+                    feedstock: 'manure',
+                  }));
                 }}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-teal-950 font-mono text-xs font-bold rounded-xs cursor-pointer transition-colors shadow-xs"
               >

@@ -121,6 +121,74 @@ describe('ARCHITECTURE — domain purity', () => {
   });
 });
 
+describe('ARCHITECTURE — every navigation target is routed', () => {
+  /**
+   * The Trade Builder was imported by App.tsx and rendered by no Route for the whole
+   * of its existence, while nine screens linked to /trade. Clicking any of them
+   * loaded a different screen, and every deal parameter was dropped on arrival.
+   *
+   * Nothing caught it: it type-checks, it builds, and a domain suite never opens a
+   * page. This is the guard that does.
+   */
+  const APP = ALL_FILES.find(f => f.path === 'app/App.tsx');
+
+  /** Paths declared in the router, e.g. <Route path="/trade" ... />. */
+  function declaredRoutes(): Set<string> {
+    const routes = new Set<string>();
+    for (const m of APP!.text.matchAll(/<Route\s+[^>]*path="([^"]+)"/g)) {
+      routes.add(m[1]);
+    }
+    return routes;
+  }
+
+  it('declares the router in app/App.tsx', () => {
+    expect(APP, 'app/App.tsx must exist for the route guard to mean anything').toBeDefined();
+    expect(declaredRoutes().size).toBeGreaterThan(3);
+  });
+
+  it('routes every path reached by a navigate() or <NavLink to=…> literal', () => {
+    const routes = declaredRoutes();
+    const hasCatchAll = routes.has('*');
+
+    // Only literals can be checked. navigate(buildDealUrl({...})) is covered by the
+    // dealParams tests, which pin its output to DEAL_ROUTE.
+    const LITERAL_NAV = /(?:navigate\(|\bto=)['"](\/[a-zA-Z0-9\-_/]*)/g;
+
+    const missing: Hit[] = [];
+    for (const { path, text } of OUTSIDE_TESTS) {
+      text.split('\n').forEach((line, i) => {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('//') || trimmed.startsWith('*')) return;
+        for (const m of line.matchAll(LITERAL_NAV)) {
+          const target = m[1];
+          // A nested path is served by its parent segment's route.
+          const base = '/' + (target.split('/')[1] ?? '');
+          if (routes.has(target) || routes.has(base)) continue;
+          missing.push({ file: path, line: i + 1, text: trimmed });
+        }
+      });
+    }
+
+    expect(
+      missing,
+      `These navigate to a path with no <Route> in App.tsx. They render nothing.` +
+        (hasCatchAll ? ' The catch-all redirect hides this from the user, which makes it worse, not better.' : '') +
+        report(missing)
+    ).toEqual([]);
+  });
+
+  it('builds every deal link through buildDealUrl', () => {
+    // A hand-rolled '/trade?...' is how the vocabularies diverged in the first
+    // place: each caller invented its own key names and the builder read others.
+    const files = OUTSIDE_TESTS.filter(f => f.path !== 'domain/trade/dealParams.ts');
+    const hits = findLines(files, /['"`]\/trade\?/);
+    expect(
+      hits,
+      `Deal links are built by buildDealUrl() so producer and consumer cannot drift.${report(hits)}`
+    ).toEqual([]);
+  });
+});
+
 describe('ARCHITECTURE — no fabricated values', () => {
   /**
    * Coefficients that are genuine physical or documented modelling constants.
@@ -174,6 +242,22 @@ describe('ARCHITECTURE — no fabricated values', () => {
     expect(
       hits,
       `A null mark or unset input must render as unset, never as a derived number.${report(hits)}`
+    ).toEqual([]);
+  });
+
+  it('renders no price movement that was never observed', () => {
+    // The guards above all look for arithmetic, so the shell's ticker walked
+    // straight past them: its deltas were string literals — '+0.42', '−4.00',
+    // '+0.004' — printed beside a mark that was frequently unset, showing movement
+    // on a price that did not exist. The desk stores one observation per mark and
+    // no previous close, so a signed decimal in quotes cannot have been derived
+    // from anything. Both the ASCII hyphen and the U+2212 minus sign count.
+    const files = OUTSIDE_TESTS.filter(f => f.path !== 'domain/marks/simulate.ts');
+    const hits = findLines(files, /['"][+\-−]\d+\.\d+['"]/);
+    expect(
+      hits,
+      `A price change must be computed from two observations the desk actually holds, ` +
+        `or not shown at all.${report(hits)}`
     ).toEqual([]);
   });
 
