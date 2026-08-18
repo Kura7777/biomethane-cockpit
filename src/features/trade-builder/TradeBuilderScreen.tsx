@@ -12,7 +12,6 @@ import { TradeAssessment } from '../../domain/trade/types';
 import { LogisticsModal } from '../logistics/LogisticsModal';
 import { calculateLogisticsRoute } from '../../domain/logistics/engine';
 import { DeliveryMode } from '../../domain/logistics/types';
-import { WhatIfSensitivityPanel } from './WhatIfSensitivityPanel';
 import { SlidersHorizontal } from 'lucide-react';
 
 function getVerdictTone(verdict: string) {
@@ -154,12 +153,6 @@ export function TradeBuilderScreen() {
   const [certCostOverride, setCertCostOverride] = useState<number | null>(state.costs.certificationCosts);
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>('VIRTUAL_SWAP');
 
-  // View Mode: 3-Column Deal Builder vs What-If Sensitivity Simulator
-  const queryTab = searchParams.get('tab');
-  const [viewMode, setViewMode] = useState<'BUILDER' | 'SENSITIVITY'>(
-    queryTab === 'sensitivity' ? 'SENSITIVITY' : 'BUILDER'
-  );
-
   // UI Modals
   const [isLogisticsOpen, setIsLogisticsOpen] = useState(false);
   const [isDealTicketOpen, setIsDealTicketOpen] = useState(false);
@@ -167,9 +160,6 @@ export function TradeBuilderScreen() {
 
   // Sync with URL params
   useEffect(() => {
-    const tab = searchParams.get('tab');
-    if (tab === 'sensitivity') setViewMode('SENSITIVITY');
-    else if (tab === 'builder') setViewMode('BUILDER');
     const market = searchParams.get('marketId');
     const origin = searchParams.get('originCountry');
     const fs = searchParams.get('feedstock');
@@ -420,66 +410,15 @@ export function TradeBuilderScreen() {
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-stone-950 font-sans">
       
-      {/* Top Mode Navigation Switcher */}
-      <div className="p-2 px-3.5 bg-stone-900 border-b border-stone-800 flex items-center justify-between gap-3 flex-none">
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() => setViewMode('BUILDER')}
-            aria-pressed={viewMode === 'BUILDER'}
-            className={`px-3 py-1 font-mono text-xs font-semibold rounded-xs border cursor-pointer transition-colors ${
-              viewMode === 'BUILDER'
-                ? 'bg-teal-600 text-teal-950 border-teal-600'
-                : 'bg-stone-950 border-stone-800 text-stone-400 hover:text-stone-200'
-            }`}
-          >
-            3-Column Deal Builder
-          </button>
-          <button
-            type="button"
-            onClick={() => setViewMode('SENSITIVITY')}
-            aria-pressed={viewMode === 'SENSITIVITY'}
-            className={`px-3 py-1 font-mono text-xs font-semibold rounded-xs border cursor-pointer transition-colors flex items-center gap-1.5 ${
-              viewMode === 'SENSITIVITY'
-                ? 'bg-teal-600 text-teal-950 border-teal-600'
-                : 'bg-stone-950 border-stone-800 text-stone-400 hover:text-stone-200'
-            }`}
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
-            <span>What-If Sensitivity Simulator</span>
-            <span className={`text-[9px] px-1 py-0.2 rounded-xs border ${
-              viewMode === 'SENSITIVITY'
-                ? 'bg-teal-950 text-teal-300 border-teal-800'
-                : 'bg-stone-900 text-stone-400 border-stone-800'
-            }`}>
-              R4
-            </span>
-          </button>
-        </div>
-
+      {/* Active deal context */}
+      <div className="p-2 px-3.5 bg-stone-900 border-b border-stone-800 flex items-center justify-end gap-3 flex-none">
         <div className="font-mono text-micro text-stone-400 hidden sm:flex items-center gap-2">
           <span>Active Consignment: <strong className="text-stone-200">{consignment.name}</strong></span>
-          <span>➔</span>
+          <span>&#10143;</span>
           <span>Market: <strong className="text-teal-300">{selectedMarket.name}</strong></span>
         </div>
       </div>
 
-      {viewMode === 'SENSITIVITY' ? (
-        <div className="flex-1 min-h-0 overflow-y-auto p-3.5 bg-stone-950">
-          <WhatIfSensitivityPanel
-            consignment={consignment}
-            selectedMarket={selectedMarket}
-            marks={state.marks}
-            costs={effectiveCostInputs}
-            pricingSide={pricingSides}
-            fuelEUOptions={state.marks.fuelEUOptions}
-            onSelectMarket={(mId) => {
-              setSelectedMarketId(mId);
-              setViewMode('BUILDER');
-            }}
-          />
-        </div>
-      ) : (
         <div className="flex-1 grid grid-cols-[repeat(3,minmax(0,1fr))] min-h-0 min-w-[1400px] overflow-hidden bg-stone-950">
           
           {/* ========================================================================= */}
@@ -806,18 +745,6 @@ export function TradeBuilderScreen() {
               )}
             </div>
 
-            {/* Link to What-If Sensitivity Panel */}
-            <button
-              type="button"
-              onClick={() => setViewMode('SENSITIVITY')}
-              className="w-full mt-0.5 p-1.5 px-2 bg-stone-900 hover:bg-stone-800 border border-teal-800 text-teal-300 font-mono text-micro font-semibold rounded-xs flex items-center justify-between cursor-pointer transition-colors"
-            >
-              <span className="flex items-center gap-1">
-                <SlidersHorizontal className="w-3 h-3 text-teal-400" />
-                <span>Launch Full Multi-Branch Sensitivity Simulator</span>
-              </span>
-              <span>→</span>
-            </button>
           </div>
 
           {/* Runner-Up Opportunity Strip */}
@@ -1092,37 +1019,12 @@ export function TradeBuilderScreen() {
             >
               Deal Ticket Preview
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                const marginText = deskMarginVal !== null
-                  ? `€${deskMarginVal.toFixed(2)}/MWh`
-                  : 'not set (producer pricing has not been entered)';
-                const pnlText = annualPnLVal !== null
-                  ? `€${annualPnLVal.toLocaleString('en-GB', { maximumFractionDigits: 0 })}`
-                  : 'not set';
-                const promptText = `Please evaluate our live trade structure:\n- Consignment: ${(consignment.volumeMWh ?? 120000).toLocaleString()} MWh of ${consignment.feedstockName} from ${originCountry} (CI: ${consignment.carbonIntensity} gCO₂e/MJ, ${consignment.certificationScheme}, ${consignment.chainOfCustody})\n- Target Market: ${selectedMarket.name} (${selectedMarket.country}, Legal Basis: ${selectedMarket.legalBasis})\n- Delivery Mode: ${deliveryMode}\n- Delivered Net Netback: €${netNetbackVal.toFixed(2)}/MWh\n- Modelled Desk Net Margin: ${marginText} (Annual Desk P&L: ${pnlText})\n\nWhat are the primary statutory risks, UDB title transfer requirements, and recommended contract clauses for this trade?`;
-
-                dispatch({ type: 'SET_ACTIVE_CONSIGNMENT', id: consignment.id });
-
-                navigate('/agents', {
-                  state: {
-                    prompt: promptText,
-                    consignmentId: consignment.id,
-                  }
-                });
-              }}
-              className="p-2 bg-stone-900 border border-stone-700 text-teal-300 hover:bg-stone-800 hover:text-stone-100 font-mono text-meta font-bold tracking-[0.06em] cursor-pointer transition-colors duration-150"
-            >
-              Send to copilot →
-            </button>
           </div>
         </div>
 
       </section>
 
         </div>
-      )}
 
       {/* Logistics Playbook Modal */}
       <LogisticsModal

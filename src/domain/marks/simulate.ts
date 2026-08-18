@@ -22,6 +22,13 @@ const BANDS: Record<UnitOfAccount, [min: number, max: number]> = {
   EUR_PER_TCO2E_DEFICIT: [240, 340],
 };
 
+/**
+ * Stamped on every generated mark. The desk seeds itself with these on first run so
+ * the screens have something to compute against; the shell reads this name to raise
+ * the 'running on simulated marks' banner. Exported so neither side hardcodes it.
+ */
+export const SIMULATED_SOURCE_NAME = 'SIMULATED';
+
 const between = (min: number, max: number) => min + Math.random() * (max - min);
 
 /** Decimals needed so sub-€1 units don't all round to the same number. */
@@ -55,10 +62,10 @@ export function simulateDesk(now: Date = new Date()): { marks: MarksState; costs
       offer: round(mid + halfSpread, dp),
       mid: round(mid, dp),
       updatedAt: now.toISOString(),
-      source: 'SIMULATED',
+      source: SIMULATED_SOURCE_NAME,
       provenance: {
         sourceType: 'ESTIMATE',
-        sourceName: 'SIMULATED',
+        sourceName: SIMULATED_SOURCE_NAME,
         sourceUrl: null,
         observedAt,
         note: 'Synthetic test data — not a real mark.',
@@ -78,7 +85,7 @@ export function simulateDesk(now: Date = new Date()): { marks: MarksState; costs
         updatedAt: now.toISOString(),
         provenance: {
           sourceType: 'ESTIMATE',
-          sourceName: 'SIMULATED',
+          sourceName: SIMULATED_SOURCE_NAME,
           sourceUrl: null,
           observedAt: now.toISOString(),
           note: 'Synthetic test data — not a real mark.',
@@ -90,7 +97,7 @@ export function simulateDesk(now: Date = new Date()): { marks: MarksState; costs
         updatedAt: now.toISOString(),
         provenance: {
           sourceType: 'ESTIMATE',
-          sourceName: 'SIMULATED',
+          sourceName: SIMULATED_SOURCE_NAME,
           sourceUrl: null,
           observedAt: now.toISOString(),
           note: 'Synthetic test data — not a real mark.',
@@ -107,7 +114,7 @@ export function simulateDesk(now: Date = new Date()): { marks: MarksState; costs
         mode: 'INDEX_LINKED',
         fixedPriceEurPerMwh: null,
         indexLinkedShare: round(between(0.55, 0.75), 2),
-        source: 'SIMULATED',
+        source: SIMULATED_SOURCE_NAME,
         lastVerified: now.toISOString(),
         confidence: 'UNVERIFIED',
       },

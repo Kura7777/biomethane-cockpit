@@ -157,14 +157,6 @@ export function CitationsScreen() {
           >
             {copiedSuccess ? '✓ Copied' : 'Cite Article'}
           </button>
-
-          <button
-            type="button"
-            onClick={() => navigate('/agents')}
-            className="px-3 py-1.5 bg-teal-950/80 hover:bg-teal-900 border border-teal-700/80 text-teal-300 font-mono text-xs font-semibold rounded-xs cursor-pointer transition-colors"
-          >
-            Ask Copilot →
-          </button>
         </div>
       </header>
 

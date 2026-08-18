@@ -1046,22 +1046,6 @@ export function ScannerScreen() {
           >
             Build trade dossier
           </button>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => alert(`Exporting dossier summary for ${selectedMarket.name}...`)}
-              className="p-2 bg-stone-900 border border-stone-700 text-stone-300 hover:bg-stone-800 hover:text-stone-100 font-mono text-meta font-medium tracking-[0.06em] cursor-pointer transition-colors duration-150"
-            >
-              Export PDF
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/agents')}
-              className="p-2 bg-stone-900 border border-stone-700 text-stone-300 hover:bg-stone-800 hover:text-stone-100 font-mono text-meta font-medium tracking-[0.06em] cursor-pointer transition-colors duration-150"
-            >
-              Ask copilot
-            </button>
-          </div>
         </div>
 
       </aside>

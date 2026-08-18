@@ -4,22 +4,23 @@ import { useAppState } from '../store/context';
 import { getMarkStaleness, PriceSide } from '../domain/markets/types';
 import { MARKETS } from '../domain/markets/registry';
 import { REFERENCE_CONSIGNMENTS } from '../domain/consignment/feedstocks';
+import { SIMULATED_SOURCE_NAME } from '../domain/marks/simulate';
 import { ErrorBoundary } from '../shared/components/ErrorBoundary';
-import { FloatingAgentDrawer } from '../shared/components/FloatingAgentDrawer';
 import { CommandPalette } from '../shared/components/CommandPalette';
-import { 
-  Search, 
-  Sparkles, 
-  TrendingUp, 
-  Scale, 
-  ChevronDown, 
-  Layers, 
-  Globe, 
-  Building2, 
-  BookOpen, 
-  FileText, 
-  Settings, 
-  SlidersHorizontal 
+import {
+  Search,
+  TrendingUp,
+  Scale,
+  ChevronDown,
+  Layers,
+  Globe,
+  Building2,
+  BookOpen,
+  FileText,
+  Settings,
+  SlidersHorizontal,
+  Compass,
+  AlertTriangle
 } from 'lucide-react';
 
 const PRICING_SIDES: { side: PriceSide; label: string; hint: string }[] = [
@@ -28,20 +29,48 @@ const PRICING_SIDES: { side: PriceSide; label: string; hint: string }[] = [
   { side: 'offer', label: 'OFFER', hint: 'Use OFFER marks (buying certificates)' },
 ];
 
+// The two stages of the desk, in the order you work them: find a route, then build
+// the deal. Both are top-level so the flow is visible rather than implied.
 const CORE_WORKSPACES = [
-  { to: '/briefing', label: 'Morning Briefing', keyHint: '1', icon: Sparkles },
-  { to: '/trade', label: 'Trade Desk Cockpit', keyHint: '2', icon: Scale },
-  { to: '/plants', label: 'Plants & Registries', keyHint: '3', icon: Building2 },
+  { to: '/sourcing', label: 'Sourcing Desk', keyHint: '1', icon: Compass },
+  { to: '/trade', label: 'Trade Builder', keyHint: '2', icon: Scale },
+  { to: '/marks', label: 'Marks & Broker Run', keyHint: '3', icon: TrendingUp },
 ];
 
 const SECONDARY_TOOLS = [
-  { to: '/marks', label: 'Marks, Broker Run & Curves', keyHint: '4', icon: TrendingUp },
+  { to: '/plants', label: 'Plants & Registries', keyHint: '4', icon: Building2 },
   { to: '/map', label: 'Pan-European Grid Map', keyHint: '5', icon: Globe },
   { to: '/scanner', label: 'Arbitrage Matrix Ladder', keyHint: '6', icon: SlidersHorizontal },
   { to: '/library', label: 'Deal Dossier Library', keyHint: '7', icon: FileText },
   { to: '/citations', label: 'Statutory Citations (RED III)', keyHint: '8', icon: BookOpen },
-  { to: '/settings', label: 'Desk Settings & Risk Simulator', keyHint: '9', icon: Settings },
+  { to: '/settings', label: 'Desk Settings', keyHint: '9', icon: Settings },
 ];
+
+/** Hotkey -> route, derived so the bindings can never drift from the nav labels. */
+const HOTKEY_ROUTES: Record<string, string> = Object.fromEntries(
+  [...CORE_WORKSPACES, ...SECONDARY_TOOLS].map(item => [item.keyHint, item.to])
+);
+
+/** How long ago a mark was observed, as a desk-readable age. */
+function formatMarkAge(updatedAt: string | null | undefined): string {
+  if (!updatedAt) return 'undated';
+  const ms = Date.now() - new Date(updatedAt).getTime();
+  if (!Number.isFinite(ms) || ms < 0) return 'undated';
+  const days = Math.floor(ms / 86_400_000);
+  if (days > 0) return `${days}d`;
+  const hours = Math.floor(ms / 3_600_000);
+  return hours > 0 ? `${hours}h` : 'now';
+}
+
+/** Colour the age by the same thresholds the staleness counters use. */
+function staleTone(updatedAt: string | null | undefined): string {
+  switch (getMarkStaleness(updatedAt ?? null)) {
+    case 'STALE_CRITICAL': return 'critical';
+    case 'STALE_WARNING': return 'warning';
+    case 'FRESH': return 'fresh';
+    default: return 'muted';
+  }
+}
 
 export function Layout() {
   const navigate = useNavigate();
@@ -66,6 +95,11 @@ export function Layout() {
   const staleCriticalCount = markEntries.filter(m => getMarkStaleness(m.updatedAt) === 'STALE_CRITICAL').length;
   const freshCount = markEntries.filter(m => getMarkStaleness(m.updatedAt) === 'FRESH').length;
 
+  const hasSimulatedMarks = useMemo(
+    () => Object.values(state.marks.marks).some(m => m?.provenance?.sourceName === SIMULATED_SOURCE_NAME),
+    [state.marks.marks]
+  );
+
   // Keyboard navigation shortcuts (1-3 primary, 4-9 secondary, Ctrl+K palette)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -80,15 +114,8 @@ export function Layout() {
         return;
       }
 
-      if (e.key === '1') navigate('/briefing');
-      if (e.key === '2') navigate('/trade');
-      if (e.key === '3') navigate('/plants');
-      if (e.key === '4') navigate('/marks');
-      if (e.key === '5') navigate('/map');
-      if (e.key === '6') navigate('/scanner');
-      if (e.key === '7') navigate('/library');
-      if (e.key === '8') navigate('/citations');
-      if (e.key === '9') navigate('/settings');
+      const target = HOTKEY_ROUTES[e.key];
+      if (target) navigate(target);
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -98,23 +125,48 @@ export function Layout() {
   const currentSide: PriceSide = state.marks.pricingSides.certificateSide;
   const isSecondaryActive = SECONDARY_TOOLS.some(tool => location.pathname.startsWith(tool.to));
 
-  // Ticker items
+  // Ticker items.
+  //
+  // The secondary label is the mark's AGE, not a price change. The desk stores one
+  // observation per mark and keeps no previous close, so there is no delta here that
+  // could be computed — the five that used to sit here ('+0.42', '−4.00', …) were
+  // literals, and they rendered next to an em-dash whenever the mark was unset,
+  // showing movement on a price that did not exist. Age is data we actually hold.
+  const priceRow = (label: string, value: number | null | undefined, dp: number, updatedAt: string | null) => ({
+    key: label,
+    val: value != null ? `€${value.toFixed(dp)}` : '—',
+    note: value != null ? formatMarkAge(updatedAt) : 'no mark',
+    noteType: value != null ? staleTone(updatedAt) : 'muted',
+  });
+
   const gasIndexPrice = state.marks.gasIndex[currentSide] ?? state.marks.gasIndex.mid;
-  const deThgPrice = state.marks.marks['DE_THG']?.[currentSide] ?? state.marks.marks['DE_THG']?.mid;
-  const nlErePrice = state.marks.marks['NL_ERE']?.[currentSide] ?? state.marks.marks['NL_ERE']?.mid;
-  const frCpbPrice = state.marks.marks['FR_CPB']?.[currentSide] ?? state.marks.marks['FR_CPB']?.mid;
-  const itCicPrice = state.marks.marks['IT_CIC']?.[currentSide] ?? state.marks.marks['IT_CIC']?.mid;
   const gbpFx = state.marks.fx.gbpEur;
+  const markOf = (id: string) => state.marks.marks[id];
 
   const tickerItems = [
-    { key: 'TTF M+1', val: gasIndexPrice != null ? `€${gasIndexPrice.toFixed(2)}` : '—', delta: '+0.42', deltaType: 'pos' },
-    { key: 'DE THG', val: deThgPrice != null ? `€${deThgPrice.toFixed(2)}` : '—', delta: '−4.00', deltaType: 'neg' },
-    { key: 'NL ERE', val: nlErePrice != null ? `€${nlErePrice.toFixed(3)}` : '—', delta: '+0.004', deltaType: 'pos' },
-    { key: 'FR CPB', val: frCpbPrice != null ? `€${frCpbPrice.toFixed(2)}` : '—', delta: '0.00', deltaType: 'flat' },
-    { key: 'IT CIC', val: itCicPrice != null ? `€${itCicPrice.toFixed(2)}` : '—', delta: '−6.00', deltaType: 'neg' },
-    { key: 'GBP/EUR', val: gbpFx != null ? gbpFx.toFixed(3) : '—', delta: '+0.003', deltaType: 'pos' },
-    { key: 'CI ACTIVE', val: `${activeConsignment.carbonIntensity > 0 ? '+' : ''}${activeConsignment.carbonIntensity}`, delta: 'gCO₂e/MJ', deltaType: 'flat' },
-    { key: 'MARKS FRESH', val: `${freshCount} / ${activeMarkets.length}`, delta: 'ACTIVE', deltaType: 'flat' },
+    priceRow('TTF M+1', gasIndexPrice, 2, state.marks.gasIndex.updatedAt),
+    priceRow('DE THG', markOf('DE_THG')?.[currentSide] ?? markOf('DE_THG')?.mid, 2, markOf('DE_THG')?.updatedAt ?? null),
+    priceRow('NL ERE', markOf('NL_ERE')?.[currentSide] ?? markOf('NL_ERE')?.mid, 3, markOf('NL_ERE')?.updatedAt ?? null),
+    priceRow('FR CPB', markOf('FR_CPB')?.[currentSide] ?? markOf('FR_CPB')?.mid, 2, markOf('FR_CPB')?.updatedAt ?? null),
+    priceRow('IT CIC', markOf('IT_CIC')?.[currentSide] ?? markOf('IT_CIC')?.mid, 2, markOf('IT_CIC')?.updatedAt ?? null),
+    {
+      key: 'GBP/EUR',
+      val: gbpFx != null ? gbpFx.toFixed(3) : '—',
+      note: gbpFx != null ? formatMarkAge(state.marks.fx.updatedAt) : 'no rate',
+      noteType: gbpFx != null ? staleTone(state.marks.fx.updatedAt) : 'muted',
+    },
+    {
+      key: 'CI ACTIVE',
+      val: `${activeConsignment.carbonIntensity > 0 ? '+' : ''}${activeConsignment.carbonIntensity}`,
+      note: 'gCO₂e/MJ',
+      noteType: 'muted',
+    },
+    {
+      key: 'MARKS FRESH',
+      val: `${freshCount} / ${activeMarkets.length}`,
+      note: 'ACTIVE',
+      noteType: 'muted',
+    },
   ];
 
   return (
@@ -319,18 +371,39 @@ export function Layout() {
             </span>
             <span
               className={`font-mono text-micro font-semibold ${
-                t.deltaType === 'pos'
-                  ? 'text-emerald-400'
-                  : t.deltaType === 'neg'
+                t.noteType === 'critical'
                   ? 'text-red-400'
+                  : t.noteType === 'warning'
+                  ? 'text-amber-400'
+                  : t.noteType === 'fresh'
+                  ? 'text-emerald-400'
                   : 'text-stone-500'
               }`}
             >
-              {t.delta}
+              {t.note}
             </span>
           </div>
         ))}
       </div>
+
+      {/* Simulated-marks banner. The desk seeds itself so every screen has something
+          to compute against on first run; this is what stops that convenience from
+          being mistaken for observed market data. */}
+      {hasSimulatedMarks && (
+        <div className="flex-none flex items-center gap-2 px-4 py-1.5 bg-amber-950/60 border-b border-amber-800/70">
+          <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" aria-hidden="true" />
+          <span className="font-mono text-micro tracking-[0.06em] text-amber-200">
+            Desk is running on <strong className="font-semibold">simulated marks</strong> — illustrative levels, not observed prices.
+          </span>
+          <button
+            type="button"
+            onClick={() => navigate('/marks')}
+            className="font-mono text-micro font-semibold tracking-[0.06em] text-amber-100 underline underline-offset-2 hover:text-white cursor-pointer"
+          >
+            Enter real marks →
+          </button>
+        </div>
+      )}
 
       {/* Main Screen Body — Viewport pane */}
       <main id="main-content" className="flex-1 min-h-0 min-w-0 overflow-hidden flex flex-col">
@@ -339,13 +412,10 @@ export function Layout() {
         </ErrorBoundary>
       </main>
 
-      {/* Floating Agent Copilot Drawer */}
-      <FloatingAgentDrawer />
-
       {/* Footer — 26px */}
       <footer className="h-[26px] flex-none flex items-center justify-between px-4 bg-stone-900 border-t border-stone-800 font-mono text-micro tracking-[0.06em] text-stone-400">
         <div>
-          Keys 1–3 Workspaces · Ctrl+K Command Bar · Esc close
+          Keys 1–9 Workspaces · Ctrl+K Command Bar · Esc close
         </div>
       </footer>
 

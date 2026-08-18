@@ -6,8 +6,6 @@ import { MarksState, CostInputs } from '../../domain/netback/types';
 import { computeNetback } from '../../domain/netback/engine';
 import { Consignment } from '../../domain/consignment/types';
 import { TradeAssessment } from '../../domain/trade/types';
-import { evaluateSensitivityScenario } from '../../domain/sensitivity/engine';
-import { SensitivityShockConfig } from '../../domain/sensitivity/types';
 import { getMarketById } from '../../domain/markets/registry';
 import { FEEDSTOCK_REGISTRY } from '../../domain/consignment/feedstocks';
 import { PRODUCING_ORIGINS } from '../../domain/arbitrage/origins';
@@ -37,7 +35,6 @@ interface QuickDealDrawerProps {
   onClose: () => void;
 }
 
-type StressScenario = 'NONE' | 'TTF_PLUS_10' | 'TTF_MINUS_10' | 'THG_SINGLE_COUNTING' | 'LOGISTICS_PLUS_2';
 
 export function QuickDealDrawer({
   route,
@@ -47,77 +44,19 @@ export function QuickDealDrawer({
   onClose,
 }: QuickDealDrawerProps) {
   const navigate = useNavigate();
-  const [activeStress, setActiveStress] = useState<StressScenario>('NONE');
   const [volumeOverride, setVolumeOverride] = useState<number | null>(request.volumeMwh ?? 20000);
   const [copied, setCopied] = useState(false);
   const [isMathOpen, setIsMathOpen] = useState(false);
 
   // Compute stressed netback & margin dynamically via computeNetback
-  const stressedValuation = useMemo(() => {
-    if (!route) return null;
-    const market = getMarketById(route.targetMarketId);
-    if (!market) return null;
-
-    const feedstockInfo = FEEDSTOCK_REGISTRY[route.feedstockKey];
-    const baseConsignment = {
-      id: `consignment-${route.originCountry}-${route.feedstockKey}`,
-      name: `${route.originCountryName} ${route.feedstockKey}`,
-      originCountry: route.originCountry,
-      originCountryName: route.originCountryName,
-      feedstock: route.feedstockKey,
-      feedstockName: route.feedstockName,
-      annexClassification: feedstockInfo?.annexClassification ?? 'IX_A',
-      carbonIntensity: route.carbonIntensity,
-      commissioningDateRange: 'POST_2026' as const,
-      certificationScheme: route.certificationScheme,
-      chainOfCustody: route.chainOfCustody,
-      injectionCountry: route.originCountry,
-      injectionIsEU: true,
-      udbStatus: 'RECORDED' as const,
-      posStatus: 'ISSUED' as const,
-      volumeMWh: volumeOverride ?? 20000,
-      deliveryPeriod: request.delivery,
-      counterparty: request.counterparty ?? null,
-    };
-
-    const shockConfig: SensitivityShockConfig = {
-      ttfPriceShockPercent: activeStress === 'TTF_PLUS_10' ? 10 : activeStress === 'TTF_MINUS_10' ? -10 : 0,
-      deDoubleCounting: activeStress === 'THG_SINGLE_COUNTING' ? 'DC_OFF' : 'AUTO',
-      ukUdbRecognition: false,
-      frCpbCeilingEurMwh: 100,
-      fuelEUEscalationYears: 1,
-      fxShockPercent: 0,
-    };
-
-    const effectiveCosts: CostInputs = activeStress === 'LOGISTICS_PLUS_2' && costs.logistics !== null
-      ? { ...costs, logistics: costs.logistics + 2 }
-      : costs;
-
-    const result = evaluateSensitivityScenario(
-      {
-        consignment: baseConsignment,
-        baseMarks: marks,
-        baseCosts: effectiveCosts,
-        pricingSide: marks.pricingSides,
-        shockConfig,
-      },
-      market
-    );
-
-    return {
-      netback: result.shockedNetback,
-      deskMarginVal: result.shockedDeskMargin,
-      pnl: result.shockedNotionalPnl,
-    };
-  }, [route, request, marks, costs, activeStress, volumeOverride]);
 
   if (!route) return null;
 
-  const currentNetback = stressedValuation?.netback ?? route.totalTerminalValueStackEurPerMWh;
-  const currentDeskMargin = stressedValuation?.deskMarginVal ?? route.deskNetMarginEurPerMWh;
-  const currentPnl = stressedValuation?.pnl ?? (currentDeskMargin !== null && volumeOverride !== null
+  const currentNetback = route.totalTerminalValueStackEurPerMWh;
+  const currentDeskMargin = route.deskNetMarginEurPerMWh;
+  const currentPnl = currentDeskMargin !== null && volumeOverride !== null
     ? currentDeskMargin * volumeOverride
-    : null);
+    : null;
 
   const handleOpenFullTrade = () => {
     const params = new URLSearchParams();
@@ -129,7 +68,6 @@ export function QuickDealDrawer({
     params.set('scheme', route.certificationScheme);
     params.set('coc', route.chainOfCustody);
     if (request.counterparty) params.set('counterparty', request.counterparty);
-    if (activeStress === 'THG_SINGLE_COUNTING') params.set('tab', 'sensitivity');
     navigate(`/trade?${params.toString()}`);
   };
 
@@ -195,7 +133,6 @@ export function QuickDealDrawer({
       `Delivered Netback: ${currentNetback !== null ? `€${currentNetback.toFixed(2)}/MWh` : 'Unpriced'}`,
       `Desk Margin: ${currentDeskMargin !== null ? `€${currentDeskMargin.toFixed(2)}/MWh` : 'Unpriced'}`,
       `Indicative P&L: ${currentPnl !== null ? `€${Math.round(currentPnl).toLocaleString()}` : '—'}`,
-      `Stress Scenario: ${activeStress}`,
       `Regulatory Verdict: ${route.overallVerdict} (6-Gate RED III Verified)`,
     ];
     navigator.clipboard.writeText(lines.join('\n'));
@@ -294,79 +231,6 @@ export function QuickDealDrawer({
             </div>
           </div>
         </div>
-
-          {/* Quick Scenario Stress Pills */}
-          <div className="bg-stone-950 border border-stone-800 p-3.5 rounded-xs space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-micro uppercase tracking-wider text-stone-400 font-semibold flex items-center gap-1.5">
-                <Zap className="w-3.5 h-3.5 text-teal-400" />
-                <span>1-Click Scenario Stress Test</span>
-              </span>
-              {activeStress !== 'NONE' && (
-                <button
-                  type="button"
-                  onClick={() => setActiveStress('NONE')}
-                  className="font-mono text-[10px] text-teal-300 hover:underline cursor-pointer"
-                >
-                  Reset Base
-                </button>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 gap-1.5 font-mono text-micro">
-              <button
-                type="button"
-                onClick={() => setActiveStress(prev => prev === 'TTF_PLUS_10' ? 'NONE' : 'TTF_PLUS_10')}
-                className={`p-2 rounded-xs border text-left transition-colors cursor-pointer ${
-                  activeStress === 'TTF_PLUS_10'
-                    ? 'bg-teal-950 border-teal-600 text-teal-200 font-bold'
-                    : 'bg-stone-900 border-stone-800 text-stone-300 hover:bg-stone-850'
-                }`}
-              >
-                <div className="font-semibold">TTF Gas +10%</div>
-                <div className="text-[10px] text-stone-500 mt-0.5">Molecule price surge</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveStress(prev => prev === 'TTF_MINUS_10' ? 'NONE' : 'TTF_MINUS_10')}
-                className={`p-2 rounded-xs border text-left transition-colors cursor-pointer ${
-                  activeStress === 'TTF_MINUS_10'
-                    ? 'bg-teal-950 border-teal-600 text-teal-200 font-bold'
-                    : 'bg-stone-900 border-stone-800 text-stone-300 hover:bg-stone-850'
-                }`}
-              >
-                <div className="font-semibold">TTF Gas -10%</div>
-                <div className="text-[10px] text-stone-500 mt-0.5">Molecule price drop</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveStress(prev => prev === 'THG_SINGLE_COUNTING' ? 'NONE' : 'THG_SINGLE_COUNTING')}
-                className={`p-2 rounded-xs border text-left transition-colors cursor-pointer ${
-                  activeStress === 'THG_SINGLE_COUNTING'
-                    ? 'bg-amber-950 border-amber-600 text-amber-200 font-bold'
-                    : 'bg-stone-900 border-stone-800 text-stone-300 hover:bg-stone-850'
-                }`}
-              >
-                <div className="font-semibold">THG Single Count (1x)</div>
-                <div className="text-[10px] text-stone-500 mt-0.5">Repeal §37a 2x bonus</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveStress(prev => prev === 'LOGISTICS_PLUS_2' ? 'NONE' : 'LOGISTICS_PLUS_2')}
-                className={`p-2 rounded-xs border text-left transition-colors cursor-pointer ${
-                  activeStress === 'LOGISTICS_PLUS_2'
-                    ? 'bg-teal-950 border-teal-600 text-teal-200 font-bold'
-                    : 'bg-stone-900 border-stone-800 text-stone-300 hover:bg-stone-850'
-                }`}
-              >
-                <div className="font-semibold">Tariffs +€2.00</div>
-                <div className="text-[10px] text-stone-500 mt-0.5">Cross-border tariff spike</div>
-              </button>
-            </div>
-          </div>
 
           {/* Quick Volume & Deal Parameters */}
           <div className="bg-stone-950 border border-stone-800 p-3.5 rounded-xs space-y-3">

@@ -339,70 +339,34 @@ export function migrateState(raw: unknown): AppState {
   return migrated as AppState;
 }
 
+/**
+ * The state a brand-new desk starts from.
+ *
+ * Marks and costs are seeded from simulateDesk() rather than left null. An empty
+ * desk is philosophically pure — nothing is priced that nobody quoted — but it
+ * renders every screen in the app as em-dashes and 'Unset', which reads as broken
+ * rather than as principled, and the only way out was a low-contrast button most
+ * people never found.
+ *
+ * The honesty requirement is met a different way: every seeded entry is stamped
+ * sourceType 'ESTIMATE' / sourceName SIMULATED_SOURCE_NAME, sorts to the bottom of
+ * MARK_SOURCE_RELIABILITY, and raises a persistent banner in the shell. Nothing here
+ * claims to be an observed price. Real marks entered on the Marks screen overwrite
+ * these and clear the banner for that mark.
+ */
 export function createDefaultState(): AppState {
-  const initialMarks: Record<string, MarkEntry> = {};
-  MARKETS.filter(m => m.status === 'ACTIVE').forEach(m => {
-    initialMarks[m.id] = {
-      marketId: m.id,
-      bid: null,
-      offer: null,
-      mid: null,
-      updatedAt: null,
-      source: null,
-      provenance: {
-        sourceType: null,
-        sourceName: null,
-        sourceUrl: null,
-        observedAt: null,
-        note: null,
-      },
-    };
-  });
+  const { marks, costs } = simulateDesk();
 
   return {
     schemaVersion: CURRENT_SCHEMA_VERSION,
-    marks: {
-      marks: initialMarks,
-      gasIndex: {
-        bid: null,
-        offer: null,
-        mid: null,
-        updatedAt: null,
-        provenance: {
-          sourceType: null,
-          sourceName: null,
-          sourceUrl: null,
-          observedAt: null,
-          note: null,
-        },
-      },
-      fx: {
-        gbpEur: null,
-        chfEur: null,
-        updatedAt: null,
-        provenance: {
-          sourceType: null,
-          sourceName: null,
-          sourceUrl: null,
-          observedAt: null,
-          note: null,
-        },
-      },
-      pricingSides: { certificateSide: 'bid', moleculeSide: 'bid' },
-    },
+    marks,
     consignments: [
       REFERENCE_CONSIGNMENTS.DANISH_MANURE,
       REFERENCE_CONSIGNMENTS.UK_FOOD_WASTE,
       REFERENCE_CONSIGNMENTS.ISCC_PLUS_VOLUNTARY,
     ],
     activeConsignmentId: REFERENCE_CONSIGNMENTS.DANISH_MANURE.id,
-    costs: {
-      transferCosts: null,
-      certificationCosts: null,
-      logistics: null,
-      otherCosts: null,
-      producerPricing: null,
-    },
+    costs,
     savedAssessments: [],
     selectedMarketId: 'DE_THG',
   };

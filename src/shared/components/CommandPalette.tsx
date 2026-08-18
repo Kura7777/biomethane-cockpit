@@ -2,11 +2,10 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/context';
 import { MARKETS } from '../../domain/markets/registry';
+import { buildDealUrl } from '../../domain/trade/dealParams';
 import { 
   Search, 
-  Sparkles, 
   ArrowRight, 
-  SlidersHorizontal, 
   TrendingUp, 
   Globe, 
   Building2, 
@@ -50,20 +49,11 @@ export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: 
     const items: PaletteItem[] = [
       // Primary Workspaces
       {
-        id: 'ws-desk',
-        title: 'Morning Desk & Briefing',
-        category: 'WORKSPACES',
-        subtitle: 'Overnight movers, mark staleness, top 3 arbitrage corridors',
-        shortcut: '1',
-        icon: Sparkles,
-        action: () => { navigate('/briefing'); onClose(); },
-      },
-      {
         id: 'ws-sourcing',
         title: 'Commercial Sourcing',
         category: 'WORKSPACES',
         subtitle: 'Client intake, 20 origin fan-out, 6-Gate regulatory audit',
-        shortcut: '2',
+        shortcut: '1',
         icon: TrendingUp,
         action: () => { navigate('/sourcing'); onClose(); },
       },
@@ -72,19 +62,10 @@ export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: 
         title: 'Trade Builder',
         category: 'WORKSPACES',
         subtitle: '3-column consignment pricing, deal ticket structuring, logistics',
-        shortcut: '3',
+        shortcut: '2',
         icon: Scale,
         action: () => { navigate('/trade'); onClose(); },
       },
-      {
-        id: 'ws-sensitivity',
-        title: 'What-If Sensitivity Simulator',
-        category: 'WORKSPACES',
-        subtitle: 'TTF shocks (±10%, ±20%), German THG 1x/2x, UK UDB accords',
-        icon: SlidersHorizontal,
-        action: () => { navigate('/trade?tab=sensitivity'); onClose(); },
-      },
-
       // Quick Actions
       {
         id: 'act-seed-marks',
@@ -155,16 +136,16 @@ export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: 
         title: 'Pan-European Grid Map',
         category: 'REFERENCE',
         subtitle: 'Interconnected mass balance zones, physical pipelines, border points',
-        shortcut: 'M',
+        shortcut: '5',
         icon: Globe,
-        action: () => { navigate('/'); onClose(); },
+        action: () => { navigate('/map'); onClose(); },
       },
       {
         id: 'ref-citations',
         title: 'Statutory Citations Registry',
         category: 'REFERENCE',
         subtitle: 'RED III Art. 30/31, BImSchG §37a, Dutch Environmental Act',
-        shortcut: '9',
+        shortcut: '8',
         icon: BookOpen,
         action: () => { navigate('/citations'); onClose(); },
       },
@@ -173,16 +154,16 @@ export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: 
         title: 'Saved Deal Dossiers',
         category: 'REFERENCE',
         subtitle: 'Audit-ready compliance packages, term sheet history',
-        shortcut: '8',
+        shortcut: '7',
         icon: FileText,
         action: () => { navigate('/library'); onClose(); },
       },
       {
         id: 'ref-settings',
-        title: 'Desk Settings & API Config',
+        title: 'Desk Settings',
         category: 'REFERENCE',
-        subtitle: 'Google Gemini API key, intelligence engine models, snapshots',
-        shortcut: '0',
+        subtitle: 'Desk trading defaults, pricing side, state import / export',
+        shortcut: '9',
         icon: Settings,
         action: () => { navigate('/settings'); onClose(); },
       },
@@ -197,7 +178,7 @@ export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: 
         subtitle: `${m.unitLabel} · ${m.notes || m.legalBasis}`,
         icon: Globe,
         action: () => {
-          navigate(`/trade?marketId=${m.id}`);
+          navigate(buildDealUrl({ marketId: m.id }));
           onClose();
         },
       });

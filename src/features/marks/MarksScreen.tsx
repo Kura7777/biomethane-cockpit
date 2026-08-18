@@ -3,7 +3,6 @@ import { MARKETS } from '../../domain/markets/registry';
 import { useAppState, exportState, importState } from '../../store/context';
 import { getMarkAgeDays, getMarkStaleness, PriceSide } from '../../domain/markets/types';
 
-import { ForwardCurveAnalytics } from './ForwardCurveAnalytics';
 import { BrokerRunTable } from './BrokerRunTable';
 
 function getAgeChipStyle(staleness: string) {
@@ -21,7 +20,7 @@ function getAgeChipStyle(staleness: string) {
 
 export function MarksScreen() {
   const { state, dispatch } = useAppState();
-  const [activeView, setActiveView] = useState<'BROKER_RUNS' | 'CURVES' | 'MATRIX'>('BROKER_RUNS');
+  const [activeView, setActiveView] = useState<'BROKER_RUNS' | 'MATRIX'>('BROKER_RUNS');
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const activeMarkets = useMemo(() => MARKETS.filter(m => m.status === 'ACTIVE'), []);
@@ -168,7 +167,7 @@ export function MarksScreen() {
           )}
         </div>
 
-        {/* 3-Way Mode Switch */}
+        {/* Mode Switch */}
         <div className="flex items-center gap-1 bg-stone-950 p-0.5 border border-stone-800 rounded-xs">
           <button
             type="button"
@@ -180,17 +179,6 @@ export function MarksScreen() {
             }`}
           >
             📋 BROKER RUN &amp; ORDER BOOK
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveView('CURVES')}
-            className={`font-mono text-meta font-semibold px-3 py-1 rounded-xs transition-colors cursor-pointer border-none ${
-              activeView === 'CURVES'
-                ? 'bg-teal-600 text-teal-50 font-bold shadow-xs'
-                : 'bg-transparent text-stone-400 hover:text-stone-200'
-            }`}
-          >
-            📈 FORWARD CURVES &amp; SPREADS
           </button>
           <button
             type="button"
@@ -228,8 +216,6 @@ export function MarksScreen() {
 
       {activeView === 'BROKER_RUNS' ? (
         <BrokerRunTable marks={state.marks} costs={state.costs} />
-      ) : activeView === 'CURVES' ? (
-        <ForwardCurveAnalytics />
       ) : (
         <>
           {/* 6B. INDEX CARDS (4 COLUMNS) */}

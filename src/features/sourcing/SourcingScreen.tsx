@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useDeferredValue, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { MorningBriefingDesk } from './MorningBriefingDesk';
 import { QuickDealDrawer } from './QuickDealDrawer';
 import { CorridorMatrix } from './CorridorMatrix';
 import { MathFormulaModal } from '../../shared/components/MathFormulaModal';
@@ -116,11 +115,6 @@ export function SourcingScreen() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { state, dispatch } = useAppState();
-
-  const modeParam = searchParams.get('mode') || searchParams.get('tab');
-  const [activeDeskTab, setActiveDeskTab] = useState<'SOURCING' | 'BRIEFING'>(
-    modeParam === 'briefing' ? 'BRIEFING' : 'SOURCING'
-  );
 
   // Form State
   const [marketArchetype, setMarketArchetype] = useState<'COMPLIANCE' | 'CORPORATE_GO'>('COMPLIANCE');
@@ -752,14 +746,6 @@ export function SourcingScreen() {
     setMaxCIInput('');
     setPhysicalDeliveryRequired(false);
   };
-
-  if (activeDeskTab === 'BRIEFING') {
-    return (
-      <div className="flex-1 flex flex-col min-h-0 bg-stone-950">
-        <MorningBriefingDesk onSwitchToSourcing={() => setActiveDeskTab('SOURCING')} />
-      </div>
-    );
-  }
 
   return (
     <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-stone-950 text-stone-100 font-sans">
