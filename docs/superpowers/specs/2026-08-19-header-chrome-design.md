@@ -42,9 +42,10 @@ Three zones, single row, no wrapping:
    existing sidebar brand-icon behavior.
 2. **Center-left — page title.** Derived from the same `SIDEBAR_ITEMS` array
    `Layout.tsx` already uses for the sidebar's `isActive` match, so the
-   header title cannot drift out of sync with the nav. Falls back to a
-   generic label if the route matches nothing in `SIDEBAR_ITEMS` (e.g.
-   `/settings`, `/citations`).
+   header title cannot drift out of sync with the nav. For a route that
+   matches nothing in `SIDEBAR_ITEMS` (e.g. `/settings`, `/citations`), falls
+   back to a capitalized first path segment rather than a second hardcoded
+   label list; an empty/unrecognised path falls back to `Biomethane Desk`.
 3. **Right — live clock.** `HH:MM:SS`, local time, ticking every second. No
    other "status" content: the app has no persistent live-data connection to
    honestly report on (Energinet data is fetched per-screen, not streamed),
@@ -61,9 +62,12 @@ no raw hex:
   row — total layout becomes a column: header row, then the current row).
 - `bg-surface-raised` (stone-900), `border-b border-border-subtle` (matches
   the sidebar's existing `border-r border-stone-800`).
-- `sticky top-0 z-50` — the top of MASTER §8's existing z-index scale
-  (`50` sticky header), so it sits above sticky sub-headers (`10`) and
-  drawers (`40`) but below modals (`100`).
+- `z-50` — the top of MASTER §8's existing z-index scale (`50` sticky
+  header), so it sits above sticky sub-headers (`10`) and drawers (`40`) but
+  below modals (`100`). No `sticky`/`top-0`: the outer shell is a
+  fixed-height, non-scrolling `h-screen overflow-hidden` column (see Layout
+  impact, below), so there's no scroll context for `sticky` to do anything
+  in — it would be a no-op class, not a functional requirement.
 - Wordmark and page title: `font-mono text-xs font-semibold tracking-[0.12em]
   uppercase text-content-primary` / `text-content-secondary` respectively —
   consistent with the sidebar's current wordmark styling.
@@ -110,6 +114,11 @@ same tight footer space.
   route in `SIDEBAR_ITEMS` (no silent fallback for a real nav route).
 - Manual verification at 1440px and 1024px per MASTER §10's pre-merge
   checklist.
-- `aria-label` / landmark: header wraps in `<header role="banner">`; ensure
-  the existing skip-link (`#main-content`, referenced in MASTER §5) still
-  lands past the new header, not inside it.
+- `aria-label` / landmark: a top-level `<header>` (not nested in
+  `<article>`/`<section>`) already exposes the banner landmark implicitly,
+  so no explicit `role="banner"` is needed. `<main id="main-content">`
+  keeps its existing id, unaffected by the header's addition — note MASTER
+  §5's mention of a skip link turned out to be aspirational: no
+  `<a href="#main-content">` actually exists anywhere in `src/` today, so
+  there's nothing to re-verify here; adding one would be separate,
+  unrelated scope.
