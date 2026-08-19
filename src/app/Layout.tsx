@@ -3,26 +3,7 @@ import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { ErrorBoundary } from '../shared/components/ErrorBoundary';
 import { CommandPalette } from '../shared/components/CommandPalette';
 import { MarketPricesModal } from '../features/marks/MarketPricesModal';
-import {
-  Globe,
-  Compass,
-  FileSpreadsheet,
-  Building2,
-  Database,
-  FileText,
-  Zap,
-  BookOpen
-} from 'lucide-react';
-
-const SIDEBAR_ITEMS = [
-  { to: '/sourcing', label: 'Origination', keyHint: '1', icon: Compass },
-  { to: '/plants', label: 'Plants (1,975)', keyHint: '2', icon: Building2 },
-  { to: '/map', label: 'Logistics Map', keyHint: '3', icon: Globe },
-  { to: '/trade', label: 'Trade Builder', keyHint: '4', icon: Zap },
-  { to: '/pricing', label: 'Pricing Desk', keyHint: '5', icon: FileSpreadsheet },
-  { to: '/library', label: 'Dossier Library', keyHint: '6', icon: BookOpen },
-  { to: '/data-sources', label: 'Data Sources', keyHint: '7', icon: Database },
-];
+import { SIDEBAR_ITEMS } from './navConfig';
 
 export function Layout() {
   const navigate = useNavigate();
@@ -115,8 +96,8 @@ export function Layout() {
         </div>
 
         {/* Bottom Sidebar Note */}
-        <div className="px-2 font-mono text-[10px] text-stone-500 text-center opacity-0 group-hover:opacity-100 transition-opacity">
-          Hotkeys 1 · 2 · 3
+        <div className="px-2 font-mono text-micro text-content-secondary text-center opacity-0 group-hover:opacity-100 transition-opacity">
+          Hotkeys 1–7
         </div>
       </aside>
 
