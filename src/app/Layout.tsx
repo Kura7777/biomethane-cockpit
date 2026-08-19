@@ -63,7 +63,7 @@ export function Layout() {
               <span className="font-mono text-xs font-bold tracking-[0.12em] text-stone-100 uppercase">
                 Biomethane
               </span>
-              <span className="font-mono text-[9px] tracking-[0.08em] text-stone-400">
+              <span className="font-mono text-micro tracking-[0.08em] text-stone-400">
                 Desk Cockpit
               </span>
             </div>
@@ -90,7 +90,7 @@ export function Layout() {
                   <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150">
                     {item.label}
                   </span>
-                  <span className="ml-auto opacity-0 group-hover:opacity-100 font-mono text-[9px] bg-stone-950/40 px-1.5 py-0.5 rounded text-stone-300">
+                  <span className="ml-auto opacity-0 group-hover:opacity-100 font-mono text-micro bg-stone-950/40 px-1.5 py-0.5 rounded text-stone-300">
                     {item.keyHint}
                   </span>
                 </NavLink>
