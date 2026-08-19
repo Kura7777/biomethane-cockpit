@@ -300,6 +300,30 @@ export function evaluateMarketSpecificGate(consignment: Consignment, market: Mar
         confidence: 'HIGH',
       };
 
+    case 'UK_RGGO': {
+      const isUkOrigin = consignment.injectionCountry === 'GB' || consignment.injectionCountry === 'UK';
+      if (!isUkOrigin) {
+        return {
+          gate: GATE,
+          gateLabel: GATE_LABEL,
+          verdict: 'HARD_BLOCK',
+          reason: `UK RGGOs (Green Gas Certification Scheme) are exclusively issued for biomethane physically injected into the UK (Great Britain) gas grid. Facilities in non-UK jurisdictions (${consignment.injectionCountry}) cannot generate UK RGGO certificates.`,
+          remedy: 'Source biomethane from certified UK anaerobic digestion plants connected to the British gas grid, or trade EU Guarantees of Origin (EEX, VertiCer, dena) for EU destinations.',
+          citations: [CITATIONS.UK_RTFO],
+          confidence: 'HIGH',
+        };
+      }
+      return {
+        gate: GATE,
+        gateLabel: GATE_LABEL,
+        verdict: 'PASS',
+        reason: 'UK RGGO: Great Britain grid injection registered under the Green Gas Certification Scheme (GGCS) for corporate Scope 1 voluntary reporting. Over 110 active UK biomethane injection facilities.',
+        remedy: null,
+        citations: [CITATIONS.UK_RTFO],
+        confidence: 'HIGH',
+      };
+    }
+
     case 'UK_RTFO':
       return {
         gate: GATE,
@@ -374,6 +398,39 @@ export function evaluateMarketSpecificGate(consignment: Consignment, market: Mar
         reason: 'EU ETS1: installation-level zero rating (steel, chemicals, paper). Requires RED III sustainability compliance AND actual combustion of the biomethane at the installation.',
         remedy: null,
         citations: [CITATIONS.EU_ETS_DIRECTIVE],
+        confidence: 'HIGH',
+      };
+
+    case 'DE_GO':
+      return {
+        gate: GATE,
+        gateLabel: GATE_LABEL,
+        verdict: 'PASS',
+        reason: 'dena Biogasregister: German national registry for biomethane Guarantees of Origin (EEG / EWärmeG / corporate Scope 1). Transfers verified via dena account or recognized EECS-Gas bilateral hubs.',
+        remedy: null,
+        citations: [CITATIONS.RED_III_VOLUNTARY_SCHEMES],
+        confidence: 'HIGH',
+      };
+
+    case 'NL_GO':
+      return {
+        gate: GATE,
+        gateLabel: GATE_LABEL,
+        verdict: 'PASS',
+        reason: 'VertiCer: Statutory Dutch Guarantee of Origin registry (Gaswet Art. 52a). Guarantees of origin for grid injections and green gas supply for heating and industrial voluntary decarbonization.',
+        remedy: null,
+        citations: [CITATIONS.RED_III_VOLUNTARY_SCHEMES],
+        confidence: 'HIGH',
+      };
+
+    case 'FR_GO':
+      return {
+        gate: GATE,
+        gateLabel: GATE_LABEL,
+        verdict: 'PASS',
+        reason: 'EEX France GO: National French biomethane registry operated by EEX under Ministry mandate (Code de l\'énergie, Art. L.446-18). Auction and OTC bilateral transfers.',
+        remedy: null,
+        citations: [CITATIONS.RED_III_VOLUNTARY_SCHEMES],
         confidence: 'HIGH',
       };
 

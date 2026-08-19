@@ -13,13 +13,19 @@ const GATE: GateName = 'GHG_THRESHOLD';
 const GATE_LABEL = 'GHG Saving Threshold';
 
 export function evaluateGHGThresholdGate(consignment: Consignment, market: Market): GateResult {
-  // Voluntary markets have no minimum threshold
-  if (market.id === 'VOL_SCOPE1') {
+  // Voluntary corporate claims and Guarantees of Origin (RGGO, GOs) have no mandatory transport fuel GHG saving threshold
+  const isVoluntaryOrGO = 
+    market.id === 'VOL_SCOPE1' || 
+    market.id === 'UK_RGGO' || 
+    market.id.endsWith('_GO') || 
+    (market.unitOfAccount === 'EUR_PER_MWH' && market.acceptsBookAndClaim);
+
+  if (isVoluntaryOrGO) {
     return {
       gate: GATE,
       gateLabel: GATE_LABEL,
       verdict: 'PASS',
-      reason: 'Voluntary corporate claims do not have a mandatory minimum GHG saving threshold.',
+      reason: `${market.name} tracks renewable gas origins for corporate voluntary / heat / Scope 1 claims and does not impose a mandatory transport fuel GHG threshold.`,
       remedy: null,
       citations: [],
       confidence: 'HIGH',

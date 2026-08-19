@@ -1,18 +1,19 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import L from 'leaflet';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MARKETS, getMarketById } from '../../domain/markets/registry';
 import { useAppState } from '../../store/context';
 import { computeNetback } from '../../domain/netback/engine';
 import { REFERENCE_CONSIGNMENTS } from '../../domain/consignment/feedstocks';
 import { Consignment } from '../../domain/consignment/types';
-import { COUNTRY_MACRO_STATS } from '../../domain/plants/registry';
+import { COUNTRY_MACRO_STATS, BIOMETHANE_PLANTS } from '../../domain/plants/registry';
 import { calculateLogisticsRoute } from '../../domain/logistics/engine';
 import { LogisticsModal } from '../logistics/LogisticsModal';
 import { QuickDealDrawer } from '../sourcing/QuickDealDrawer';
 import { searchSourcingRoutes } from '../../domain/arbitrage/sourcingAdapter';
 import { DEFAULT_WHAT_IF_SCENARIO } from '../../domain/arbitrage/engine';
 import { ArbitrageOpportunity, ClientRequest } from '../../domain/arbitrage/types';
+import { buildDealUrl } from '../../domain/trade/dealParams';
 import { 
   Globe, 
   Layers, 
@@ -22,87 +23,77 @@ import {
   ShieldCheck, 
   Info,
   Maximize2,
-  Minimize2
+  Minimize2,
+  Building2,
+  Zap,
+  MapPin,
+  Navigation
 } from 'lucide-react';
 
-interface CountryHub {
-  iso: string;
-  name: string;
-  coords: [number, number]; // [lat, lng]
-  status: 'ACTIVE' | 'EMERGING' | 'FUTURE_2028' | 'RESTRICTED';
-  plants: number;
-  capacityTWh: number;
-  primaryFeedstock: string;
-  registry: string;
-}
-
-const EUROPEAN_HUBS: CountryHub[] = [
-  { iso: 'DK', name: 'Denmark', coords: [56.2639, 9.5018], status: 'ACTIVE', plants: 83, capacityTWh: 4.8, primaryFeedstock: 'Manure & Slurry', registry: 'Energinet' },
-  { iso: 'DE', name: 'Germany', coords: [51.1657, 10.4515], status: 'ACTIVE', plants: 265, capacityTWh: 11.2, primaryFeedstock: 'Manure & Energy Crops', registry: 'dena Biogasregister' },
-  { iso: 'NL', name: 'Netherlands', coords: [52.1326, 5.2913], status: 'ACTIVE', plants: 88, capacityTWh: 3.4, primaryFeedstock: 'Bio-waste & Manure', registry: 'VertiCer' },
-  { iso: 'FR', name: 'France', coords: [46.6034, 1.8883], status: 'ACTIVE', plants: 815, capacityTWh: 8.9, primaryFeedstock: 'Agri-waste & Cover crops', registry: 'GRTgaz / 2BSvs' },
-  { iso: 'IT', name: 'Italy', coords: [42.8719, 12.5674], status: 'ACTIVE', plants: 115, capacityTWh: 4.1, primaryFeedstock: 'Agri-byproducts & Manure', registry: 'GSE / SNAM' },
-  { iso: 'ES', name: 'Spain', coords: [40.4637, -3.7492], status: 'ACTIVE', plants: 36, capacityTWh: 1.8, primaryFeedstock: 'Agro-industrial & Sewage', registry: 'Enagás GTS' },
-  { iso: 'SE', name: 'Sweden', coords: [60.1282, 18.6435], status: 'ACTIVE', plants: 78, capacityTWh: 2.1, primaryFeedstock: 'Sewage sludge & Waste', registry: 'Energigas Sverige' },
-  { iso: 'FI', name: 'Finland', coords: [63.2468, 25.9209], status: 'ACTIVE', plants: 26, capacityTWh: 0.9, primaryFeedstock: 'Forest residue & Manure', registry: 'Gasum / Fingrid' },
-  { iso: 'AT', name: 'Austria', coords: [47.5162, 14.5501], status: 'ACTIVE', plants: 18, capacityTWh: 0.8, primaryFeedstock: 'Agri-silage & Slurry', registry: 'AGCS Biomethane' },
-  { iso: 'BE', name: 'Belgium', coords: [50.5039, 4.4699], status: 'ACTIVE', plants: 15, capacityTWh: 0.6, primaryFeedstock: 'Food processing waste', registry: 'Fluxys' },
-  { iso: 'PL', name: 'Poland', coords: [51.9194, 19.1451], status: 'ACTIVE', plants: 5, capacityTWh: 0.4, primaryFeedstock: 'Distillery waste & Manure', registry: 'KZR INiG' },
-  { iso: 'CZ', name: 'Czech Republic', coords: [49.8175, 15.4730], status: 'ACTIVE', plants: 12, capacityTWh: 0.5, primaryFeedstock: 'Agricultural residues', registry: 'OTE' },
-  { iso: 'LT', name: 'Lithuania', coords: [55.1694, 23.8813], status: 'ACTIVE', plants: 3, capacityTWh: 0.2, primaryFeedstock: 'Manure & Agri-waste', registry: 'Amber Grid' },
-  { iso: 'LV', name: 'Latvia', coords: [56.8796, 24.6032], status: 'ACTIVE', plants: 2, capacityTWh: 0.1, primaryFeedstock: 'Biowaste', registry: 'Conexus Baltic Grid' },
-  { iso: 'EE', name: 'Estonia', coords: [58.5953, 25.0136], status: 'ACTIVE', plants: 5, capacityTWh: 0.3, primaryFeedstock: 'Sewage & Biowaste', registry: 'Elering' },
-  { iso: 'GB', name: 'United Kingdom', coords: [54.5, -2.5], status: 'RESTRICTED', plants: 132, capacityTWh: 4.6, primaryFeedstock: 'Food waste & Agri-feed', registry: 'Green Gas / GGCS' },
-  { iso: 'CH', name: 'Switzerland', coords: [46.8182, 8.2275], status: 'EMERGING', plants: 42, capacityTWh: 0.9, primaryFeedstock: 'Organic waste', registry: 'VSG' },
-  { iso: 'NO', name: 'Norway', coords: [60.4720, 8.4689], status: 'EMERGING', plants: 16, capacityTWh: 0.5, primaryFeedstock: 'Fish waste & Sewage', registry: 'Gassco' },
-  { iso: 'IE', name: 'Ireland', coords: [53.4129, -8.2439], status: 'EMERGING', plants: 3, capacityTWh: 0.2, primaryFeedstock: 'Grass silage & Slurry', registry: 'Gas Networks Ireland' },
-  { iso: 'PT', name: 'Portugal', coords: [39.3999, -8.2245], status: 'EMERGING', plants: 4, capacityTWh: 0.2, primaryFeedstock: 'Municipal solid waste', registry: 'REN' },
-  { iso: 'SK', name: 'Slovakia', coords: [48.6690, 19.6990], status: 'EMERGING', plants: 5, capacityTWh: 0.2, primaryFeedstock: 'Agri-waste', registry: 'SPP-distribúcia' },
-  { iso: 'HU', name: 'Hungary', coords: [47.1625, 19.5033], status: 'EMERGING', plants: 4, capacityTWh: 0.15, primaryFeedstock: 'Manure & Straw', registry: 'FGSZ' },
-  { iso: 'RO', name: 'Romania', coords: [45.9432, 24.9668], status: 'EMERGING', plants: 2, capacityTWh: 0.1, primaryFeedstock: 'Agri-silage', registry: 'Transgaz' },
-  { iso: 'GR', name: 'Greece', coords: [39.0742, 21.8243], status: 'FUTURE_2028', plants: 2, capacityTWh: 0.1, primaryFeedstock: 'Olive mill & Manure', registry: 'DESFA' },
-  { iso: 'BG', name: 'Bulgaria', coords: [42.7339, 25.4858], status: 'FUTURE_2028', plants: 1, capacityTWh: 0.05, primaryFeedstock: 'Crop residues', registry: 'Bulgartransgaz' },
-];
-
-const TILE_PROVIDERS = {
-  hybrid: {
-    name: 'Satellite Hybrid',
-    url: 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
-    attribution: '&copy; Google Maps',
-    subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-  },
-  satellite: {
-    name: 'Satellite Clean',
-    url: 'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
-    attribution: '&copy; Google Maps',
-    subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-  },
-  streets: {
-    name: 'Roadmap',
-    url: 'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
-    attribution: '&copy; Google Maps',
-    subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-  },
-  dark: {
-    name: 'Dark Carto',
-    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-    attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/">OSM</a>',
-    subdomains: 'abcd',
-  },
-};
+import { EUROPEAN_HUBS, TILE_PROVIDERS, CountryHub } from './mapData';
 
 export function MapScreen() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { state, dispatch } = useAppState();
 
-  const [originCountry, setOriginCountry] = useState<string>('DK');
-  const [targetCountry, setTargetCountry] = useState<string>('DE');
-  const [selectedCountry, setSelectedCountry] = useState<string>('DE');
+  const plantIdParam = searchParams.get('plantId');
+  const originParam = searchParams.get('origin');
+  const targetParam = searchParams.get('target');
+
+  const sourcedPlant = useMemo(() => {
+    if (!plantIdParam) return null;
+    return BIOMETHANE_PLANTS.find(p => p.id === plantIdParam) || null;
+  }, [plantIdParam]);
+
+  const [originCountry, setOriginCountry] = useState<string>(originParam || sourcedPlant?.countryCode || 'DK');
+  const [targetCountry, setTargetCountry] = useState<string>(targetParam || 'DE');
+  const [selectedCountry, setSelectedCountry] = useState<string>(targetParam || 'DE');
   const [mapClickMode, setMapClickMode] = useState<'SET_ORIGIN' | 'SET_TARGET'>('SET_TARGET');
   const [mapTheme, setMapTheme] = useState<'hybrid' | 'satellite' | 'streets' | 'dark'>('hybrid');
   const [isLogisticsOpen, setIsLogisticsOpen] = useState(false);
   const [selectedDealRoute, setSelectedDealRoute] = useState<ArbitrageOpportunity | null>(null);
   const [dealRequest, setDealRequest] = useState<ClientRequest | null>(null);
+
+  // Resizable Panel State
+  const [panelWidth, setPanelWidth] = useState<number>(480);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return;
+      const newWidth = window.innerWidth - e.clientX;
+      if (newWidth >= 320 && newWidth <= 850) {
+        setPanelWidth(newWidth);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    } else {
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isDragging]);
 
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -326,16 +317,16 @@ export function MapScreen() {
   };
 
   return (
-    <div className="flex-1 grid grid-cols-[minmax(0,1fr)_340px] min-h-0 min-w-[1400px] overflow-hidden bg-stone-950 text-stone-100 font-sans">
+    <div className="flex-1 flex min-h-0 min-w-0 overflow-hidden bg-stone-950 text-stone-100 font-sans select-none">
       
-      {/* 2A. INTERACTIVE LEAFLET MAP CANVAS */}
-      <div className="relative min-w-0 border-r border-stone-800 bg-stone-950 flex flex-col min-h-0 overflow-hidden">
+      {/* 2A. INTERACTIVE LEAFLET MAP CANVAS (FLEX-1) */}
+      <div className="relative flex-1 min-w-0 bg-stone-950 flex flex-col min-h-0 overflow-hidden">
         
         {/* Map Container */}
         <div ref={mapContainerRef} className="w-full h-full bg-[#0d0f12] z-0" />
 
         {/* OVERLAY: Top-Left Market Status Legend */}
-        <div className="absolute top-3 left-3 p-3 bg-stone-900/95 border border-stone-800 rounded-xs shadow-xl flex flex-col gap-1.5 z-10 select-none backdrop-blur-xs font-mono text-xs">
+        <div className="absolute top-3 left-3 p-3 bg-stone-900/95 border border-stone-800 rounded-lg shadow-xl flex flex-col gap-1.5 z-10 select-none backdrop-blur-xs font-mono text-xs">
           <div className="text-[10px] font-bold tracking-wider text-stone-400 uppercase mb-0.5 flex items-center gap-1.5">
             <Globe className="w-3.5 h-3.5 text-teal-400" />
             European Biomethane Grid
@@ -359,11 +350,11 @@ export function MapScreen() {
 
         {/* OVERLAY: Top-Right Tile Mode Switcher & Zoom */}
         <div className="absolute top-3 right-3 flex items-center gap-2 z-10">
-          <div className="flex bg-stone-900/95 border border-stone-800 rounded-xs p-0.5 shadow-xl font-mono text-xs select-none backdrop-blur-xs">
+          <div className="flex bg-stone-900/95 border border-stone-800 rounded-lg p-0.5 shadow-xl font-mono text-xs select-none backdrop-blur-xs">
             <button
               type="button"
               onClick={() => setMapTheme('hybrid')}
-              className={`px-2.5 py-1 rounded-xs cursor-pointer transition-colors ${
+              className={`px-2.5 py-1 rounded cursor-pointer transition-colors ${
                 mapTheme === 'hybrid' ? 'bg-teal-600 text-teal-950 font-bold' : 'text-stone-400 hover:text-stone-200'
               }`}
             >
@@ -372,7 +363,7 @@ export function MapScreen() {
             <button
               type="button"
               onClick={() => setMapTheme('streets')}
-              className={`px-2.5 py-1 rounded-xs cursor-pointer transition-colors ${
+              className={`px-2.5 py-1 rounded cursor-pointer transition-colors ${
                 mapTheme === 'streets' ? 'bg-teal-600 text-teal-950 font-bold' : 'text-stone-400 hover:text-stone-200'
               }`}
             >
@@ -381,7 +372,7 @@ export function MapScreen() {
             <button
               type="button"
               onClick={() => setMapTheme('dark')}
-              className={`px-2.5 py-1 rounded-xs cursor-pointer transition-colors ${
+              className={`px-2.5 py-1 rounded cursor-pointer transition-colors ${
                 mapTheme === 'dark' ? 'bg-teal-600 text-teal-950 font-bold' : 'text-stone-400 hover:text-stone-200'
               }`}
             >
@@ -389,7 +380,7 @@ export function MapScreen() {
             </button>
           </div>
 
-          <div className="flex flex-col bg-stone-900 border border-stone-800 rounded-xs shadow-xl">
+          <div className="flex flex-col bg-stone-900 border border-stone-800 rounded-lg shadow-xl">
             <button
               type="button"
               onClick={() => mapInstanceRef.current?.zoomIn()}
@@ -408,7 +399,7 @@ export function MapScreen() {
         </div>
 
         {/* OVERLAY: Bottom-Left Active Flow Control */}
-        <div className="absolute bottom-3 left-3 w-[290px] p-3 bg-stone-900/95 border border-stone-800 rounded-xs shadow-2xl flex flex-col gap-2 z-10 select-none backdrop-blur-xs font-mono text-xs">
+        <div className="absolute bottom-3 left-3 w-[290px] p-3 bg-stone-900/95 border border-stone-800 rounded-lg shadow-2xl flex flex-col gap-2 z-10 select-none backdrop-blur-xs font-mono text-xs">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold tracking-wider text-stone-400 uppercase">
               Active Cross-Border Flow
@@ -416,7 +407,7 @@ export function MapScreen() {
             <span className="text-[10px] text-teal-400 font-bold">RED III Mass Balance</span>
           </div>
 
-          <div className="flex items-center justify-between bg-stone-950 p-2 rounded-xs border border-stone-800 text-sm font-bold">
+          <div className="flex items-center justify-between bg-stone-950 p-2 rounded border border-stone-800 text-sm font-bold">
             <div className="flex items-center gap-1.5 text-sky-400">
               <span>{originCountry}</span>
               <span className="text-[10px] font-normal text-stone-400">(Origin)</span>
@@ -428,7 +419,7 @@ export function MapScreen() {
             </div>
           </div>
 
-          <div className="flex border border-stone-700 rounded-xs overflow-hidden text-[11px] font-bold mt-0.5">
+          <div className="flex border border-stone-700 rounded overflow-hidden text-[11px] font-bold mt-0.5">
             <button
               type="button"
               onClick={() => setMapClickMode('SET_ORIGIN')}
@@ -452,77 +443,195 @@ export function MapScreen() {
 
       </div>
 
-      {/* 2B. JURISDICTION DOSSIER RAIL (RIGHT, 340px) */}
-      <aside className="border-l border-stone-800 bg-stone-950 flex flex-col min-h-0 overflow-y-auto font-sans select-none">
+      {/* DRAGGABLE RESIZE HANDLE */}
+      <div
+        onMouseDown={handleMouseDown}
+        className={`w-2 flex-none bg-stone-900 hover:bg-teal-500 border-l border-r border-stone-800 hover:border-teal-400 cursor-col-resize transition-colors flex items-center justify-center z-30 group ${
+          isDragging ? 'bg-teal-500 border-teal-400' : ''
+        }`}
+        title="Click and drag to adjust panel width"
+      >
+        <div className="w-0.5 h-8 bg-stone-600 group-hover:bg-stone-950 rounded-full" />
+      </div>
+
+      {/* 2B. JURISDICTION DOSSIER RAIL (ADJUSTABLE WIDTH) */}
+      <aside 
+        style={{ width: `${panelWidth}px` }} 
+        className="flex-none bg-stone-950 flex flex-col min-h-0 overflow-y-auto font-sans shadow-2xl transition-[width] duration-75 ease-out"
+      >
         
-        {/* Header */}
-        <div className="p-3.5 border-b border-stone-800 bg-stone-900/60 flex items-center justify-between">
-          <div>
-            <div className="font-mono text-[10px] font-bold tracking-wider text-stone-400 uppercase">
+        {/* Header with Width Presets */}
+        <div className="p-4 border-b border-stone-800 bg-stone-900/80 flex items-center justify-between gap-3 sticky top-0 z-20 backdrop-blur-md">
+          <div className="min-w-0">
+            <div className="font-mono text-[10px] font-bold tracking-wider text-teal-400 uppercase">
               Jurisdiction Dossier
             </div>
-            <h2 className="text-base font-bold text-stone-100 mt-0.5">
+            <h2 className="text-lg font-bold text-stone-100 mt-0.5 truncate">
               {selectedMacro.name} ({selectedMacro.iso})
             </h2>
           </div>
-          <span className={`px-2 py-0.5 font-mono text-[10px] font-bold rounded-xs border ${
-            selectedMacro.status === 'ACTIVE'
-              ? 'bg-emerald-950 text-emerald-300 border-emerald-800'
-              : 'bg-amber-950 text-amber-300 border-amber-800'
-          }`}>
-            {selectedMacro.status}
-          </span>
+
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Quick Width Presets */}
+            <div className="flex bg-stone-950 border border-stone-800 rounded p-0.5 text-micro font-mono">
+              <button
+                type="button"
+                onClick={() => setPanelWidth(380)}
+                className={`px-1.5 py-0.5 rounded transition-colors cursor-pointer ${
+                  panelWidth <= 400 ? 'bg-teal-600 text-stone-950 font-bold' : 'text-stone-400 hover:text-stone-200'
+                }`}
+                title="Compact Width (380px)"
+              >
+                380
+              </button>
+              <button
+                type="button"
+                onClick={() => setPanelWidth(520)}
+                className={`px-1.5 py-0.5 rounded transition-colors cursor-pointer ${
+                  panelWidth > 400 && panelWidth <= 600 ? 'bg-teal-600 text-stone-950 font-bold' : 'text-stone-400 hover:text-stone-200'
+                }`}
+                title="Default Width (520px)"
+              >
+                520
+              </button>
+              <button
+                type="button"
+                onClick={() => setPanelWidth(720)}
+                className={`px-1.5 py-0.5 rounded transition-colors cursor-pointer ${
+                  panelWidth > 600 ? 'bg-teal-600 text-stone-950 font-bold' : 'text-stone-400 hover:text-stone-200'
+                }`}
+                title="Wide Width (720px)"
+              >
+                720
+              </button>
+            </div>
+
+            <span className={`px-2 py-0.5 font-mono text-[10px] font-bold rounded border ${
+              selectedMacro.status === 'ACTIVE'
+                ? 'bg-emerald-950 text-emerald-300 border-emerald-800'
+                : 'bg-amber-950 text-amber-300 border-amber-800'
+            }`}>
+              {selectedMacro.status}
+            </span>
+          </div>
         </div>
 
+        {/* Sourced Plant Physical Context Bar (if deep-linked) */}
+        {sourcedPlant && (
+          <div className="p-3 px-4 bg-teal-950/60 border-b border-teal-800/80 flex flex-col gap-2 font-sans shadow-inner">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[10px] font-bold text-teal-400 bg-teal-900/80 border border-teal-700 px-1.5 py-0.5 rounded flex items-center gap-1">
+                <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                Sourced Facility GPS Route
+              </span>
+              <span className="font-mono text-micro text-stone-400">
+                {sourcedPlant.countryCode} · {sourcedPlant.country}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h4 className="font-bold text-sm text-stone-100 m-0">{sourcedPlant.name}</h4>
+                <div className="text-[11px] text-stone-400 font-mono mt-0.5">
+                  {sourcedPlant.capacityNm3h?.toLocaleString()} Nm³/h · {sourcedPlant.annualEnergyGWh} GWh/a · {sourcedPlant.primaryFeedstockCategory}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const cat = (sourcedPlant.primaryFeedstockCategory || '').toLowerCase();
+                  let feedstock = 'manure';
+                  let ci = -100;
+                  if (cat.includes('food') || cat.includes('bio-waste')) { feedstock = 'food_waste'; ci = -15; }
+                  else if (cat.includes('sewage') || cat.includes('sludge')) { feedstock = 'sewage_sludge'; ci = 24; }
+                  else if (cat.includes('straw') || cat.includes('agricultural residue')) { feedstock = 'straw'; ci = 16; }
+                  else if (cat.includes('crop') || cat.includes('silage')) { feedstock = 'energy_crops'; ci = 40; }
+                  else if (cat.includes('industrial') || cat.includes('whey')) { feedstock = 'industrial_biowaste'; ci = 10; }
+
+                  const cIso = (sourcedPlant.countryCode || '').toUpperCase();
+                  let marketId = 'DE_THG';
+                  if (cIso === 'GB' || cIso === 'UK') marketId = 'UK_RTFO';
+                  else if (cIso === 'NL') marketId = 'NL_ERE';
+                  else if (cIso === 'FR') marketId = 'FR_CPB';
+                  else if (cIso === 'IT') marketId = 'IT_CIC';
+                  else if (cIso === 'SE') marketId = 'FUELEU';
+                  else if (cIso === 'CH') marketId = 'VOL_SCOPE1';
+
+                  navigate(buildDealUrl({
+                    originCountry: sourcedPlant.countryCode,
+                    marketId,
+                    feedstock,
+                    ci,
+                    volume: sourcedPlant.annualEnergyGWh ? Math.round(sourcedPlant.annualEnergyGWh * 1000) : undefined,
+                    counterparty: sourcedPlant.legalEntityName || sourcedPlant.operator || `Asset Source (${sourcedPlant.name})`,
+                    plantId: sourcedPlant.id,
+                    plantName: sourcedPlant.name,
+                    plantCapacityNm3h: sourcedPlant.capacityNm3h || undefined,
+                    plantAnnualGWh: sourcedPlant.annualEnergyGWh || undefined,
+                    legalEntityName: sourcedPlant.legalEntityName || undefined,
+                    networkOperator: sourcedPlant.networkOperator || undefined,
+                    contactEmail: sourcedPlant.contactEmail || undefined,
+                    contactPhone: sourcedPlant.contactPhone || undefined,
+                  }));
+                }}
+                className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-teal-950 font-mono text-xs font-bold rounded cursor-pointer transition-colors shadow-sm"
+              >
+                <Zap className="w-3.5 h-3.5" />
+                <span>Structure Trade →</span>
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Macro Metrics Grid */}
-        <div className="p-3.5 border-b border-stone-800 grid grid-cols-2 gap-2.5 font-mono">
-          <div className="bg-stone-900 p-2.5 rounded-xs border border-stone-800">
-            <span className="text-[9px] text-stone-500 uppercase block">Active Plants</span>
-            <span className="text-sm font-bold text-stone-100 font-num">{selectedMacro.plants}</span>
+        <div className="p-4 border-b border-stone-800 grid grid-cols-2 gap-3 font-mono">
+          <div className="bg-stone-900 p-3 rounded-lg border border-stone-800">
+            <span className="text-[10px] text-stone-400 uppercase font-semibold block">Active Plants</span>
+            <span className="text-base font-bold text-stone-100 font-num">{selectedMacro.plants} facilities</span>
           </div>
-          <div className="bg-stone-900 p-2.5 rounded-xs border border-stone-800">
-            <span className="text-[9px] text-stone-500 uppercase block">Total Output</span>
-            <span className="text-sm font-bold text-teal-400 font-num">{selectedMacro.twh}</span>
+          <div className="bg-stone-900 p-3 rounded-lg border border-stone-800">
+            <span className="text-[10px] text-stone-400 uppercase font-semibold block">Total Output</span>
+            <span className="text-base font-bold text-teal-400 font-num">{selectedMacro.twh}</span>
           </div>
-          <div className="bg-stone-900 p-2.5 rounded-xs border border-stone-800">
-            <span className="text-[9px] text-stone-500 uppercase block">Primary Tech</span>
-            <span className="text-xs text-stone-300 truncate block mt-0.5">{selectedMacro.tech}</span>
+          <div className="bg-stone-900 p-3 rounded-lg border border-stone-800">
+            <span className="text-[10px] text-stone-400 uppercase font-semibold block">Primary Technology</span>
+            <span className="text-xs font-semibold text-stone-200 block mt-1 leading-snug">{selectedMacro.tech}</span>
           </div>
-          <div className="bg-stone-900 p-2.5 rounded-xs border border-stone-800">
-            <span className="text-[9px] text-stone-500 uppercase block">National Registry</span>
-            <span className="text-xs text-stone-300 truncate block mt-0.5">{selectedMacro.registry}</span>
+          <div className="bg-stone-900 p-3 rounded-lg border border-stone-800">
+            <span className="text-[10px] text-stone-400 uppercase font-semibold block">National Registry</span>
+            <span className="text-xs font-semibold text-stone-200 block mt-1 leading-snug">{selectedMacro.registry}</span>
           </div>
         </div>
 
         {/* Route Assessment (Origin -> Selected) */}
-        <div className="p-3.5 border-b border-stone-800 space-y-2.5">
+        <div className="p-4 border-b border-stone-800 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-stone-400">
+            <span className="font-mono text-xs font-bold uppercase tracking-wider text-stone-300">
               Transit &amp; Route Logistics
             </span>
-            <span className="font-mono text-xs font-bold text-teal-400">
+            <span className="font-mono text-xs font-bold text-teal-400 bg-teal-950/80 px-2 py-0.5 rounded border border-teal-800">
               {originCountry} ➔ {selectedCountry}
             </span>
           </div>
 
-          <div className="bg-stone-900 p-3 rounded-xs border border-stone-800 space-y-2 font-mono text-xs">
+          <div className="bg-stone-900 p-3.5 rounded-lg border border-stone-800 space-y-2.5 font-mono text-xs">
             <div className="flex justify-between items-center">
               <span className="text-stone-400">Transit Tariff:</span>
               <span className="font-bold text-stone-100">
                 {logistics.physicalRoute.totalPhysicalTariffEurMwh !== null
-                  ? `€${logistics.physicalRoute.totalPhysicalTariffEurMwh.toFixed(2)}/MWh`
-                  : `€${(logistics.modes.virtualSwap.totalCostEurMwh ?? 0).toFixed(2)}/MWh`}
+                  ? `€${logistics.physicalRoute.totalPhysicalTariffEurMwh.toFixed(2)} / MWh`
+                  : `€${(logistics.modes.virtualSwap.totalCostEurMwh ?? 0).toFixed(2)} / MWh`}
               </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-stone-400">Pipeline Route:</span>
-              <span className="text-stone-200">{logistics.physicalRoute.transitingCountries.join(' ➔ ') || 'Domestic'}</span>
+              <span className="text-stone-200 font-semibold">{logistics.physicalRoute.transitingCountries.join(' ➔ ') || 'Domestic'}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-stone-400">Delivered Netback:</span>
-              <span className="font-bold text-emerald-400">
+              <span className="font-bold text-emerald-400 text-sm">
                 {selectedNetback?.netNetback !== null && selectedNetback?.netNetback !== undefined
-                  ? `€${selectedNetback.netNetback.toFixed(2)}/MWh`
+                  ? `€${selectedNetback.netNetback.toFixed(2)} / MWh`
                   : 'Unpriced'}
               </span>
             </div>
@@ -530,7 +639,7 @@ export function MapScreen() {
         </div>
 
         {/* Action Buttons */}
-        <div className="p-3.5 space-y-2 mt-auto">
+        <div className="p-4 space-y-2.5 mt-auto bg-stone-950 sticky bottom-0 border-t border-stone-800/80">
           <button
             type="button"
             onClick={() => {
@@ -566,16 +675,16 @@ export function MapScreen() {
               setDealRequest(req);
               setSelectedDealRoute(match);
             }}
-            className="w-full py-2 bg-teal-600 hover:bg-teal-500 text-teal-950 font-mono text-xs font-bold rounded-xs cursor-pointer transition-colors flex items-center justify-center gap-1.5 shadow-md"
+            className="w-full py-2.5 bg-teal-600 hover:bg-teal-500 text-teal-950 font-mono text-xs font-bold rounded-lg cursor-pointer transition-colors flex items-center justify-center gap-1.5 shadow-md"
           >
             <span>Structure Trade ({originCountry} ➔ {selectedCountry})</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <ArrowRight className="w-4 h-4" />
           </button>
           
           <button
             type="button"
             onClick={() => setIsLogisticsOpen(true)}
-            className="w-full py-1.5 bg-stone-900 hover:bg-stone-800 border border-stone-700 text-stone-300 font-mono text-xs rounded-xs cursor-pointer transition-colors"
+            className="w-full py-2 bg-stone-900 hover:bg-stone-850 border border-stone-700 text-stone-200 font-mono text-xs font-semibold rounded-lg cursor-pointer transition-colors"
           >
             Detailed Tariff Breakdown
           </button>

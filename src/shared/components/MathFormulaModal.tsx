@@ -105,7 +105,7 @@ export function MathFormulaModal({
   const deskPnLVal = netbackResult?.deskPnL ?? null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in font-sans">
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in font-sans">
       <div className="bg-stone-950 border border-stone-800 rounded-xs shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden text-stone-100">
         
         {/* Header */}

@@ -77,7 +77,7 @@ export function LogisticsModal({
       aria-modal="true"
       aria-label="Cross-border delivery playbook"
       onClick={onClose}
-      className="fixed inset-0 z-100 bg-black/75 flex items-start justify-center p-8 px-6 overflow-y-auto font-sans"
+      className="fixed inset-0 z-[1000] bg-black/75 flex items-start justify-center p-8 px-6 overflow-y-auto font-sans"
     >
       <div
         onClick={e => e.stopPropagation()}

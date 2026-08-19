@@ -211,6 +211,26 @@ describe('ARCHITECTURE — no fabricated values', () => {
       coefficient: '0.0036',
       because: 'Exact unit conversion gCO2e/MJ -> tCO2e/MWh (3600 MJ/MWh / 1e6 g/t).',
     },
+    {
+      file: 'domain/offtake/engine.ts',
+      coefficient: '0.901',
+      because: 'Standard European biomethane conversion factor (Gross HHV to Net LHV calorific ratio).',
+    },
+    {
+      file: 'domain/offtake/engine.ts',
+      coefficient: '0.65',
+      because: 'Contract-specified CI sensitivity multiplier alpha from RWE/Puzzle Term Sheet Clause 25.5.',
+    },
+    {
+      file: 'domain/offtake/engine.ts',
+      coefficient: '0.99',
+      because: 'Contract-specified physical gas index discount factor from RWE/Puzzle Term Sheet.',
+    },
+    {
+      file: 'domain/offtake/commercialGates.ts',
+      coefficient: '0.901',
+      because: 'Standard European biomethane conversion factor (Gross HHV to Net LHV calorific ratio).',
+    },
   ];
 
   function isAllowed(hit: Hit): boolean {

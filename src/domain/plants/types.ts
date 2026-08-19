@@ -5,6 +5,7 @@ export interface BiomethanePlant {
   countryCode: string;
   countryFlag: string;
   provenance: string; // Sourced authority (e.g. 'GIE/EBA European Biomethane Map 2026')
+  isVerified?: boolean; // Whether plant attributes (capacity, coordinates, feedstock) are individually verified
   fieldsUnverified?: string[]; // List of fields that are unverified in source map
   region?: string | null;
   operator?: string | null;
@@ -20,6 +21,12 @@ export interface BiomethanePlant {
   certificationAndRegistry?: string | null;
   primaryOfftake?: string | null;
   coordinates?: [number, number] | null;
+  legalEntityName?: string | null;
+  companyRegistrationId?: string | null;
+  corporateWebsite?: string | null;
+  contactEmail?: string | null;
+  contactPhone?: string | null;
+  headquartersAddress?: string | null;
 }
 
 export interface DeveloperPortfolio {

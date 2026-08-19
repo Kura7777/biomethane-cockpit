@@ -845,3 +845,21 @@ export const MARKETS: Market[] = [
 export function getMarketById(id: string): Market | undefined {
   return MARKETS.find(m => m.id === id);
 }
+
+export function isVoluntaryMarket(marketId: string): boolean {
+  const voluntaryIds = new Set([
+    'UK_RGGO', 'DE_GO', 'NL_GO', 'FR_GO', 'DK_GO', 'ES_GDO', 'VOL_SCOPE1',
+    'IE_RHO', 'PT_EEGO', 'HU_MEKH', 'SK_OKTE'
+  ]);
+  if (voluntaryIds.has(marketId)) return true;
+  const market = getMarketById(marketId);
+  return Boolean(market?.deskCategory === 'VOLUNTARY' || (market?.acceptsBookAndClaim && !market?.requiresUDB));
+}
+
+export function getMarketsByDeskCategory(category: 'COMPLIANCE' | 'VOLUNTARY'): Market[] {
+  if (category === 'VOLUNTARY') {
+    return MARKETS.filter(m => isVoluntaryMarket(m.id));
+  }
+  return MARKETS.filter(m => !isVoluntaryMarket(m.id));
+}
+

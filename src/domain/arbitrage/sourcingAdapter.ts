@@ -37,12 +37,12 @@ export function searchSourcingRoutes(
     ? ALL_SCHEMES
     : [req.scheme];
 
-  const effectiveChainOfCustody: ChainOfCustody = req.constraints.physicalDeliveryRequired
+  const effectiveChainOfCustody: ChainOfCustody = req.constraints?.physicalDeliveryRequired
     ? 'SEGREGATION'
     : (req.chainOfCustody || 'MASS_BALANCE');
 
   const volumeForScan = req.volumeMwh ?? 10000;
-  const ciForScan = req.constraints.maxCarbonIntensity !== null 
+  const ciForScan = req.constraints?.maxCarbonIntensity !== undefined && req.constraints?.maxCarbonIntensity !== null
     ? req.constraints.maxCarbonIntensity 
     : undefined;
 
@@ -71,12 +71,12 @@ export function searchSourcingRoutes(
         }
 
         // Apply constraints
-        if (req.constraints.maxCarbonIntensity !== null && opp.carbonIntensity > req.constraints.maxCarbonIntensity) {
+        if (req.constraints?.maxCarbonIntensity != null && opp.carbonIntensity > req.constraints.maxCarbonIntensity) {
           continue;
         }
 
         if (
-          req.constraints.maxDeliveredCostEurMwh !== null &&
+          req.constraints?.maxDeliveredCostEurMwh != null &&
           opp.producerPayableEurPerMWh !== null &&
           opp.producerPayableEurPerMWh > req.constraints.maxDeliveredCostEurMwh
         ) {

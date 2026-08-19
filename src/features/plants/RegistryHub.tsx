@@ -892,16 +892,31 @@ export function RegistryHub() {
       {(activeHubView === 'OVERVIEW' || activeHubView === 'LEDGER') && (
       <div className="flex-1 flex flex-col p-3.5 min-h-[300px]">
         {/* Ledger Header & Filter Toolbar */}
-        <div className="flex items-center justify-between gap-4 pb-2.5 mb-2.5 border-b border-stone-800">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-2.5 mb-2.5 border-b border-stone-800">
+          <div className="flex items-center gap-2.5">
             <Building2 className="w-4 h-4 text-teal-400" aria-hidden="true" />
-            <h3 className="m-0 font-mono text-xs font-semibold uppercase tracking-[0.1em] text-stone-100">
-              European Registry Injection Flow Ledger ({filteredBatches.length} Batches)
+            <h3 className="m-0 font-mono text-xs font-bold uppercase tracking-[0.1em] text-stone-100 flex items-center gap-2">
+              <span>European Registry Injection Flow Ledger</span>
+              <span className="text-[10px] bg-teal-950 text-teal-300 border border-teal-800 px-2 py-0.5 rounded-full font-bold">
+                {filteredBatches.length} Batches
+              </span>
             </h3>
           </div>
 
-          {/* Filters */}
-          <div className="flex items-center gap-2">
+          {/* Quick Live Feed Sync Button & Filters */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Live Energinet Sync Button */}
+            <button
+              type="button"
+              onClick={handleSyncEnerginet}
+              disabled={isSyncingEnerginet}
+              className="px-2.5 py-1 bg-teal-600 hover:bg-teal-500 disabled:bg-teal-800 text-stone-950 font-mono text-xs font-bold rounded-md transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm disabled:cursor-wait"
+              title="Fetch live hourly injection telemetry from Energinet DataHub API"
+            >
+              <Zap className={`w-3.5 h-3.5 ${isSyncingEnerginet ? 'animate-bounce' : ''}`} />
+              <span>{isSyncingEnerginet ? 'Syncing...' : '⚡ Sync Live Energinet Feed (Hourly)'}</span>
+            </button>
+
             {/* Search */}
             <input
               type="text"
@@ -909,7 +924,7 @@ export function RegistryHub() {
               aria-label="Filter injection batches"
               value={searchBatchQuery}
               onChange={e => setSearchBatchQuery(e.target.value)}
-              className="bg-stone-900 border border-stone-800 text-stone-200 text-xs px-2.5 py-1 rounded-xs outline-none focus:border-teal-500 w-[180px]"
+              className="bg-stone-900 border border-stone-800 text-stone-200 text-xs px-2.5 py-1 rounded-md outline-none focus:border-teal-500 w-[170px]"
             />
 
             {/* Registry Filter */}
@@ -917,7 +932,7 @@ export function RegistryHub() {
               aria-label="Filter by registry"
               value={selectedRegistryFilter}
               onChange={e => setSelectedRegistryFilter(e.target.value)}
-              className="bg-stone-900 border border-stone-800 text-stone-300 text-xs px-2 py-1 rounded-xs outline-none focus:border-teal-500"
+              className="bg-stone-900 border border-stone-800 text-stone-300 text-xs px-2 py-1 rounded-md outline-none focus:border-teal-500 cursor-pointer"
             >
               <option value="ALL">All Registries</option>
               <option value="ENERGINET">Energinet (DK)</option>
@@ -934,63 +949,40 @@ export function RegistryHub() {
               aria-label="Filter by feedstock"
               value={selectedFeedstockFilter}
               onChange={e => setSelectedFeedstockFilter(e.target.value)}
-              className="bg-stone-900 border border-stone-800 text-stone-300 text-xs px-2 py-1 rounded-xs outline-none focus:border-teal-500"
+              className="bg-stone-900 border border-stone-800 text-stone-300 text-xs px-2 py-1 rounded-md outline-none focus:border-teal-500 cursor-pointer"
             >
               <option value="ALL">All Feedstocks</option>
-              <option value="MANURE">Manure & Slurry (IX-A)</option>
+              <option value="MANURE">Manure &amp; Slurry (IX-A)</option>
               <option value="BIOWASTE">Municipal Organic (IX-A)</option>
-              <option value="AGRO">Agro Residues & Pulp (IX-A)</option>
+              <option value="AGRO">Agro Residues &amp; Pulp (IX-A)</option>
               <option value="CROP">Energy Crops (Crop)</option>
-            </select>
-
-            {/* Grid Interconnection Filter */}
-            <select
-              aria-label="Filter by grid status"
-              value={selectedGridFilter}
-              onChange={e => setSelectedGridFilter(e.target.value)}
-              className="bg-stone-900 border border-stone-800 text-stone-300 text-xs px-2 py-1 rounded-xs outline-none focus:border-teal-500"
-            >
-              <option value="ALL">All Grid Types</option>
-              <option value="TSO_HIGH_PRESSURE">TSO High Pressure</option>
-              <option value="DSO_DISTRIBUTION">DSO Distribution</option>
-              <option value="OFF_GRID_SEGREGATED">Off-Grid Segregated</option>
-            </select>
-
-            {/* UDB Status Filter */}
-            <select
-              aria-label="Filter by UDB recording"
-              value={selectedUdbFilter}
-              onChange={e => setSelectedUdbFilter(e.target.value)}
-              className="bg-stone-900 border border-stone-800 text-stone-300 text-xs px-2 py-1 rounded-xs outline-none focus:border-teal-500"
-            >
-              <option value="ALL">All UDB Statuses</option>
-              <option value="RECORDED">UDB Recorded</option>
-              <option value="NOT_RECORDED">Unrecorded / Non-EU</option>
             </select>
           </div>
         </div>
 
-        {/* Ledger Table */}
-        <div className="flex-1 overflow-y-auto border border-stone-800 bg-stone-900">
+        {/* Ledger Table with Exact Timestamp / Metering Period Column */}
+        <div className="flex-1 overflow-y-auto border border-stone-800 bg-stone-900/90 rounded-lg">
           <table className="w-full text-left border-collapse" aria-label="Registry Injection Flow Ledger">
-            <thead className="sticky top-0 bg-stone-900/95 backdrop-blur-xs border-b border-stone-800 font-mono text-micro uppercase tracking-[0.08em] text-stone-400 z-10">
+            <thead className="sticky top-0 bg-stone-950 border-b border-stone-800 font-mono text-[10px] uppercase tracking-[0.08em] text-stone-400 z-10">
               <tr>
-                <th className="py-2 px-2.5 font-semibold">Batch ID</th>
-                <th className="py-2 px-2.5 font-semibold">Origin & Facility</th>
-                <th className="py-2 px-2.5 font-semibold">Registry & Grid Point</th>
-                <th className="py-2 px-2.5 text-right font-semibold">Volume (MWh)</th>
-                <th className="py-2 px-2.5 text-right font-semibold">Volume (Nm³)</th>
-                <th className="py-2 px-2.5 font-semibold">Feedstock & Annex</th>
-                <th className="py-2 px-2.5 text-right font-semibold">Verified CI</th>
-                <th className="py-2 px-2.5 font-semibold">Sustainability Proof</th>
-                <th className="py-2 px-2.5 font-semibold">UDB Registration</th>
-                <th className="py-2 px-2.5 text-center font-semibold">Action</th>
+                <th className="py-2.5 px-3 font-bold">Batch ID</th>
+                <th className="py-2.5 px-2.5 font-bold text-teal-400">Metering Date / UTC</th>
+                <th className="py-2.5 px-3 font-bold">Origin &amp; Facility</th>
+                <th className="py-2.5 px-3 font-bold">Registry &amp; Grid Point</th>
+                <th className="py-2.5 px-3 text-right font-bold">Volume (MWh)</th>
+                <th className="py-2.5 px-3 text-right font-bold">Volume (Nm³)</th>
+                <th className="py-2.5 px-3 font-bold">Feedstock &amp; Annex</th>
+                <th className="py-2.5 px-3 text-right font-bold">Verified CI</th>
+                <th className="py-2.5 px-3 font-bold">Sustainability Proof</th>
+                <th className="py-2.5 px-3 font-bold">UDB Registration</th>
+                <th className="py-2.5 px-3 text-center font-bold">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-800/60 font-sans text-xs">
               {filteredBatches.map(batch => {
                 const isSelected = selectedBatchIds.includes(batch.id);
                 const isNegativeCI = batch.verifiedCI < 0;
+                const isLive = batch.id.startsWith('ENERGINET-LIVE');
 
                 return (
                   <tr
@@ -999,17 +991,25 @@ export function RegistryHub() {
                     className="hover:bg-stone-800/50 cursor-pointer transition-colors"
                   >
                     {/* Batch ID */}
-                    <td className="py-2 px-2.5 font-mono text-meta font-semibold text-stone-200">
-                      {batch.id}
+                    <td className="py-2.5 px-3 font-mono text-[11px] font-bold text-stone-200">
+                      <div className="flex items-center gap-1.5">
+                        {isLive && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" title="Live Hourly Data" />}
+                        <span>{batch.id}</span>
+                      </div>
+                    </td>
+
+                    {/* Metering Date / Timestamp */}
+                    <td className="py-2.5 px-2.5 font-mono text-[11px] text-teal-300 font-semibold whitespace-nowrap">
+                      {batch.meteringPeriod?.startDate || '2026-08-18'}
                     </td>
 
                     {/* Origin & Facility */}
-                    <td className="py-2 px-2.5">
+                    <td className="py-2.5 px-3">
                       <div className="flex items-center gap-1.5">
-                        <span className="font-mono text-meta font-bold text-stone-400 w-5">
+                        <span className="font-mono text-xs font-bold text-stone-400 w-5">
                           {batch.originCountry}
                         </span>
-                        <div className="font-medium text-stone-100 truncate max-w-[160px]">
+                        <div className="font-medium text-stone-100 truncate max-w-[150px]">
                           {batch.plantName}
                         </div>
                       </div>
@@ -1106,8 +1106,8 @@ export function RegistryHub() {
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="Batch Detail Modal"
-          className="fixed inset-0 z-100 bg-black/75 flex items-center justify-center p-6"
+          aria-label="Registry facility detail"
+          className="fixed inset-0 z-[1000] bg-black/75 flex items-center justify-center p-6"
         >
           <div className="w-full max-w-[620px] bg-stone-950 border border-stone-700 shadow-2xl rounded-none flex flex-col">
             {/* Modal Header */}

@@ -9,10 +9,13 @@ import { useAppState } from '../../store/context';
 import { evaluateEligibility } from '../../domain/eligibility/engine';
 import { computeNetback, computeAllNetbacks } from '../../domain/netback/engine';
 import { TradeAssessment } from '../../domain/trade/types';
+import { generateTradeSummary } from '../../domain/trade/summary';
 import { LogisticsModal } from '../logistics/LogisticsModal';
 import { calculateLogisticsRoute } from '../../domain/logistics/engine';
 import { DeliveryMode } from '../../domain/logistics/types';
 import { parseDealParams } from '../../domain/trade/dealParams';
+import { InstitutionalOfftakePanel } from './InstitutionalOfftakePanel';
+import { Building2, Mail, ExternalLink, ShieldCheck } from 'lucide-react';
 
 function getVerdictTone(verdict: string) {
   switch (verdict) {
@@ -76,7 +79,7 @@ const DEAL_PRESETS: DealPreset[] = [
     ci: -100,
     marketId: 'DE_THG',
     volume: 120000,
-    counterparty: 'Shell Energy Europe',
+    counterparty: '',
   },
   {
     label: 'DK Manure ➔ NL ERE (80 GWh)',
@@ -85,7 +88,7 @@ const DEAL_PRESETS: DealPreset[] = [
     ci: -100,
     marketId: 'NL_ERE',
     volume: 80000,
-    counterparty: 'TotalEnergies Gas & Power',
+    counterparty: '',
   },
   {
     label: 'ES Slurry ➔ FR CPB (40 GWh)',
@@ -94,7 +97,7 @@ const DEAL_PRESETS: DealPreset[] = [
     ci: -80,
     marketId: 'FR_CPB',
     volume: 40000,
-    counterparty: 'ENGIE Global Markets',
+    counterparty: '',
   },
   {
     label: 'SE Waste ➔ FuelEU (60 GWh)',
@@ -103,7 +106,7 @@ const DEAL_PRESETS: DealPreset[] = [
     ci: -25,
     marketId: 'FUELEU',
     volume: 60000,
-    counterparty: 'Vitol Biogas Bunkering',
+    counterparty: '',
   },
 ];
 
@@ -130,7 +133,7 @@ export function TradeBuilderScreen() {
   const [annualVolumeMWh, setAnnualVolumeMWh] = useState<number>(deal.volume ?? 120000);
   const [deliveryPeriodLabel, setDeliveryPeriodLabel] = useState<string>(deal.deliveryPeriod || 'Cal-2026');
   const [complianceYear, setComplianceYear] = useState<number>(2026);
-  const [counterparty, setCounterparty] = useState<string>(deal.counterparty || 'Shell Energy Europe');
+  const [counterparty, setCounterparty] = useState<string>(deal.counterparty || '');
   const [udbRecorded, setUdbRecorded] = useState<UDBStatus>('RECORDED');
 
   // Step 2: What-If Regulatory Policy Switches
@@ -172,7 +175,14 @@ export function TradeBuilderScreen() {
     if (deal.scheme) setScheme(deal.scheme);
     if (deal.coc) setChainOfCustody(deal.coc);
     if (deal.counterparty) setCounterparty(deal.counterparty);
-    if (deal.deliveryPeriod) setDeliveryPeriodLabel(deal.deliveryPeriod);
+    if (deal.deliveryPeriod) {
+      setDeliveryPeriodLabel(deal.deliveryPeriod);
+      // Compliance year drives real regulatory branching — the German 2x multiplier
+      // applies pre-2026 and is an open question after it. Taking the label without
+      // the year would show "Cal-2025" while still pricing the deal as 2026.
+      const year = Number(/^Cal-(\d{4})$/.exec(deal.deliveryPeriod)?.[1]);
+      if (Number.isFinite(year)) setComplianceYear(year);
+    }
   }, [deal]);
 
   const activeMarkets = useMemo(() => MARKETS.filter(m => m.status === 'ACTIVE'), []);
@@ -216,7 +226,7 @@ export function TradeBuilderScreen() {
     carbonIntensity: ciOverride,
     commissioningDateRange: 'POST_2021_TO_2025',
     injectionCountry: originCountry,
-    injectionIsEU: true,
+    injectionIsEU: PRODUCING_ORIGINS[originCountry]?.gridZone === 'EU_INTERCONNECTED',
     udbStatus: udbRecorded,
     posStatus: 'ISSUED',
     volumeMWh: annualVolumeMWh,
@@ -372,22 +382,60 @@ export function TradeBuilderScreen() {
     1
   );
 
+  /** The dossier for the deal as currently configured. */
+  const buildAssessment = (): TradeAssessment => ({
+    id: `DOS-${complianceYear}-${Math.floor(1000 + Math.random() * 9000)}`,
+    createdAt: new Date().toISOString(),
+    consignment,
+    targetMarketId: selectedMarket.id,
+    targetMarketName: selectedMarket.name,
+    eligibility,
+    netback,
+    marks: state.marks,
+    costs: effectiveCostInputs,
+    userNotes: `Trade Assessment for ${counterparty}: ${consignment.name} ➔ ${selectedMarket.name} (${deliveryPeriodLabel}). Mode: ${deliveryMode}. Net: €${(netback.netNetback ?? 0).toFixed(2)}/MWh.`,
+  });
+
   // Handle Save Dossier
   const handleSaveDossier = () => {
-    const assessment: TradeAssessment = {
-      id: `DOS-${complianceYear}-${Math.floor(1000 + Math.random() * 9000)}`,
-      createdAt: new Date().toISOString(),
-      consignment,
-      targetMarketId: selectedMarket.id,
-      targetMarketName: selectedMarket.name,
-      eligibility,
-      netback,
-      marks: state.marks,
-      costs: effectiveCostInputs,
-      userNotes: `Trade Assessment for ${counterparty}: ${consignment.name} ➔ ${selectedMarket.name} (${deliveryPeriodLabel}). Mode: ${deliveryMode}. Net: €${(netback.netNetback ?? 0).toFixed(2)}/MWh.`,
-    };
+    dispatch({ type: 'SAVE_ASSESSMENT', assessment: buildAssessment() });
+    setSaveSuccess(true);
+    setTimeout(() => setSaveSuccess(false), 2500);
+  };
 
+  /**
+   * Export the term sheet as a file the desk can actually send.
+   *
+   * This button used to be an alert() saying the sheet had been exported, which is
+   * the last step of the entire trade workflow — the one thing a trader needs to
+   * leave the app with. generateTradeSummary already renders the full dossier
+   * (trade summary, six gates with citations, netback waterfall, marks used), so
+   * the export is that text, saved.
+   *
+   * The dossier is also written to the library on the way out, so an exported deal
+   * is always recoverable in the app rather than existing only as a downloaded file.
+   */
+  const handleExportTermSheet = () => {
+    const assessment = buildAssessment();
     dispatch({ type: 'SAVE_ASSESSMENT', assessment });
+
+    const filename =
+      `term-sheet-${assessment.id}-${selectedMarket.id}-${counterparty}`
+        .replace(/[^a-zA-Z0-9\-_]+/g, '-')
+        .replace(/-+/g, '-')
+        .toLowerCase() + '.txt';
+
+    const blob = new Blob([generateTradeSummary(assessment)], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    setIsDealTicketOpen(false);
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 2500);
   };
@@ -396,13 +444,48 @@ export function TradeBuilderScreen() {
   const isNetNegative = netNetbackVal < 0;
   // Annual desk P&L is only meaningful once a margin exists — null, not a guess.
   const annualPnLVal =
-    deskMarginVal !== null ? deskMarginVal * (consignment.volumeMWh ?? 120000) : null;
+    deskMarginVal !== null && consignment.volumeMWh ? deskMarginVal * consignment.volumeMWh : null;
+  const grossNotionalVal =
+    netback.netNetback !== null && consignment.volumeMWh ? netback.netNetback * consignment.volumeMWh : null;
+
+  const [builderMode, setBuilderMode] = useState<'SPOT_FORWARD' | 'INSTITUTIONAL_OFFTAKE'>('SPOT_FORWARD');
 
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-stone-950 font-sans">
       
-      {/* Active deal context */}
-      <div className="p-2 px-3.5 bg-stone-900 border-b border-stone-800 flex items-center justify-end gap-3 flex-none">
+      {/* Top Toolbar: Active deal context & Mode Switcher */}
+      <div className="p-2 px-3.5 bg-stone-900 border-b border-stone-800 flex flex-wrap items-center justify-between gap-3 flex-none">
+        
+        {/* Mode Switcher */}
+        <div className="flex items-center gap-1.5 bg-stone-950 p-1 rounded-lg border border-stone-800">
+          <button
+            type="button"
+            onClick={() => setBuilderMode('SPOT_FORWARD')}
+            className={`px-3 py-1 font-mono text-xs font-bold rounded transition-all cursor-pointer ${
+              builderMode === 'SPOT_FORWARD'
+                ? 'bg-teal-600 text-stone-950 shadow-md'
+                : 'text-stone-400 hover:text-stone-200'
+            }`}
+          >
+            📊 Spot & Forward Deal Builder
+          </button>
+          <button
+            type="button"
+            onClick={() => setBuilderMode('INSTITUTIONAL_OFFTAKE')}
+            className={`px-3 py-1 font-mono text-xs font-bold rounded transition-all cursor-pointer flex items-center gap-1.5 ${
+              builderMode === 'INSTITUTIONAL_OFFTAKE'
+                ? 'bg-teal-600 text-stone-950 shadow-md'
+                : 'text-stone-400 hover:text-stone-200'
+            }`}
+          >
+            <span>📑 Long-Term Offtake Structurer</span>
+            <span className="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.2 rounded font-bold">
+              RWE / EFET
+            </span>
+          </button>
+        </div>
+
+        {/* Active deal context */}
         <div className="font-mono text-micro text-stone-400 hidden sm:flex items-center gap-2">
           <span>Active Consignment: <strong className="text-stone-200">{consignment.name}</strong></span>
           <span>&#10143;</span>
@@ -410,6 +493,64 @@ export function TradeBuilderScreen() {
         </div>
       </div>
 
+      {/* Physical Asset Consignment Banner */}
+      {deal.plantName && (
+        <div className="flex-none bg-gradient-to-r from-teal-950/90 via-stone-900 to-stone-950 border-b border-teal-800/70 p-2.5 px-4 flex flex-wrap items-center justify-between gap-3 shadow-md">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xs bg-teal-900/60 border border-teal-500/60 flex items-center justify-center text-teal-300 shrink-0">
+              <Building2 className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-teal-400 bg-teal-950 border border-teal-700/80 px-1.5 py-0.5 rounded-xs flex items-center gap-1">
+                  <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                  <span>Physical Asset Consignment</span>
+                </span>
+                <h3 className="font-sans text-xs font-bold text-stone-100 m-0 flex items-center gap-1.5">
+                  <span>{deal.plantName}</span>
+                  <span className="text-stone-400 font-mono text-[11px] font-normal">
+                    ({deal.plantCapacityNm3h ? `${deal.plantCapacityNm3h.toLocaleString()} Nm³/h · ` : ''}{deal.plantAnnualGWh ? `${deal.plantAnnualGWh} GWh/a` : `${Math.round(annualVolumeMWh / 1000)} GWh/a`})
+                  </span>
+                </h3>
+              </div>
+              <div className="text-[11px] text-stone-300 flex items-center gap-2 mt-0.5 font-sans">
+                <span>Operating Entity: <strong className="text-teal-200">{deal.legalEntityName || deal.counterparty || 'Audited Facility'}</strong></span>
+                {deal.networkOperator && (
+                  <>
+                    <span className="text-stone-600">•</span>
+                    <span>Grid / TSO: <strong className="text-stone-300">{deal.networkOperator}</strong></span>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {deal.contactEmail && (
+              <a
+                href={`mailto:${deal.contactEmail}?subject=Biomethane Offtake Consignment - ${deal.plantName}`}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-xs bg-stone-900 border border-teal-800/80 text-teal-300 hover:text-teal-200 hover:border-teal-400 font-mono text-[11px] transition-colors"
+              >
+                <Mail className="w-3 h-3 text-teal-400" />
+                <span>Email Producer</span>
+              </a>
+            )}
+            <button
+              type="button"
+              onClick={() => navigate('/plants')}
+              className="flex items-center gap-1 px-2 py-1 rounded-xs bg-stone-900 border border-stone-800 hover:border-stone-700 text-stone-400 hover:text-stone-200 font-mono text-[11px] transition-colors cursor-pointer"
+            >
+              <span>Back to Plants</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {builderMode === 'INSTITUTIONAL_OFFTAKE' ? (
+        <div className="flex-1 p-4 overflow-y-auto min-h-0 bg-stone-950">
+          <InstitutionalOfftakePanel />
+        </div>
+      ) : (
         <div className="flex-1 grid grid-cols-[repeat(3,minmax(0,1fr))] min-h-0 min-w-[1400px] overflow-hidden bg-stone-950">
           
           {/* ========================================================================= */}
@@ -463,7 +604,7 @@ export function TradeBuilderScreen() {
                 type="text"
                 value={counterparty}
                 onChange={e => setCounterparty(e.target.value)}
-                placeholder="e.g. Shell Energy Europe"
+                placeholder="e.g. Offtake Counterparty"
                 className="bg-stone-900 border border-stone-700 text-stone-100 font-sans text-xs p-1.5 px-2 rounded-xs outline-none focus:border-teal-500"
               />
             </div>
@@ -961,14 +1102,16 @@ export function TradeBuilderScreen() {
             <div className="bg-stone-950 p-2.5">
               <div className="font-mono text-micro tracking-[0.1em] text-stone-500 uppercase">Volume (MWh/y)</div>
               <div className="font-mono font-num text-base font-semibold text-stone-100 mt-0.5">
-                {(consignment.volumeMWh ?? 120000).toLocaleString('en-GB')}
+                {consignment.volumeMWh !== null ? consignment.volumeMWh.toLocaleString('en-GB') : 'Unentered'}
               </div>
             </div>
 
             <div className="bg-stone-950 p-2.5">
               <div className="font-mono text-micro tracking-[0.1em] text-stone-500 uppercase">Gross Notional</div>
               <div className="font-mono font-num text-base font-semibold text-stone-100 mt-0.5">
-                €{((netback.certificateValue?.valueEurPerMWh ?? 0) * (consignment.volumeMWh ?? 120000)).toLocaleString('en-GB', { maximumFractionDigits: 0 })}
+                {grossNotionalVal !== null
+                  ? `€${grossNotionalVal.toLocaleString('en-GB', { maximumFractionDigits: 0 })}`
+                  : 'Unset'}
               </div>
             </div>
 
@@ -1013,9 +1156,10 @@ export function TradeBuilderScreen() {
           </div>
         </div>
 
-      </section>
+          </section>
 
         </div>
+      )}
 
       {/* Logistics Playbook Modal */}
       <LogisticsModal
@@ -1101,10 +1245,7 @@ export function TradeBuilderScreen() {
               <div className="flex gap-2 mt-2">
                 <button
                   type="button"
-                  onClick={() => {
-                    alert(`Deal Ticket exported for ${counterparty} (${selectedMarket.name}).`);
-                    setIsDealTicketOpen(false);
-                  }}
+                  onClick={handleExportTermSheet}
                   className="flex-1 p-2.5 bg-teal-600 hover:bg-teal-500 text-teal-50 font-mono text-xs font-semibold uppercase cursor-pointer"
                 >
                   Confirm & Export Term Sheet

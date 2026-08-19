@@ -42,6 +42,7 @@ export interface Market {
   requiresUDB: boolean;
   acceptsBookAndClaim: boolean;
   isEUScope: boolean;            // true for EU-wide markets (FuelEU, ETS)
+  deskCategory?: 'COMPLIANCE' | 'VOLUNTARY'; // Top-level commercial desk categorization
   uncertainties: Uncertainty[];
   
   // Real-world plant and production infrastructure metadata

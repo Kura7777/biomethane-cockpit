@@ -307,16 +307,18 @@ export function computeNetback(
   if (costs.certificationCosts === null) missingInputs.push('certificationCosts');
   if (costs.logistics === null) missingInputs.push('logistics');
 
-  const costValues = [costs.transferCosts, costs.certificationCosts, costs.logistics, costs.otherCosts]
-    .filter((c): c is number => c !== null);
+  const costValues = [costs?.transferCosts, costs?.certificationCosts, costs?.logistics, costs?.otherCosts]
+    .filter((c): c is number => typeof c === 'number' && !isNaN(c));
   const totalCosts = costValues.length > 0 ? costValues.reduce((a, b) => a + b, 0) : null;
 
   // Net Netback calculation (at chosen sides):
-  // If cert value is null, netback is null.
+  // If cert value is null or NaN, netback is null.
   // If cert value is present, compute available arithmetic while flagging incomplete inputs.
   let netNetback: number | null = null;
-  if (certVal?.valueEurPerMWh != null) {
-    netNetback = certVal.valueEurPerMWh + (molVal ?? 0) - (totalCosts ?? 0);
+  if (certVal?.valueEurPerMWh != null && !isNaN(certVal.valueEurPerMWh)) {
+    const safeMol = (molVal !== null && !isNaN(molVal)) ? molVal : 0;
+    const safeCosts = (totalCosts !== null && !isNaN(totalCosts)) ? totalCosts : 0;
+    netNetback = Number((certVal.valueEurPerMWh + safeMol - safeCosts).toFixed(2));
   }
 
   // Crossing cost calculation (atMid vs atChosenSides)

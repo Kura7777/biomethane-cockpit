@@ -28,6 +28,14 @@ export interface DealParams {
   coc?: ChainOfCustody;
   counterparty?: string;
   deliveryPeriod?: string;
+  plantId?: string;
+  plantName?: string;
+  plantCapacityNm3h?: number;
+  plantAnnualGWh?: number;
+  legalEntityName?: string;
+  networkOperator?: string;
+  contactEmail?: string;
+  contactPhone?: string;
 }
 
 /** Canonical key -> spellings accepted on the way in, newest first. */
@@ -41,9 +49,17 @@ const ALIASES: Record<keyof DealParams, string[]> = {
   coc: ['coc'],
   counterparty: ['counterparty'],
   deliveryPeriod: ['deliveryPeriod'],
+  plantId: ['plantId'],
+  plantName: ['plantName'],
+  plantCapacityNm3h: ['plantCapacityNm3h', 'capacityNm3h'],
+  plantAnnualGWh: ['plantAnnualGWh', 'annualGWh'],
+  legalEntityName: ['legalEntityName'],
+  networkOperator: ['networkOperator'],
+  contactEmail: ['contactEmail'],
+  contactPhone: ['contactPhone'],
 };
 
-const NUMERIC_KEYS = ['ci', 'volume'] as const;
+const NUMERIC_KEYS = ['ci', 'volume', 'plantCapacityNm3h', 'plantAnnualGWh'] as const;
 type NumericKey = (typeof NUMERIC_KEYS)[number];
 
 function isNumericKey(key: keyof DealParams): key is NumericKey {
