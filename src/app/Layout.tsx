@@ -4,6 +4,7 @@ import { ErrorBoundary } from '../shared/components/ErrorBoundary';
 import { CommandPalette } from '../shared/components/CommandPalette';
 import { MarketPricesModal } from '../features/marks/MarketPricesModal';
 import { SIDEBAR_ITEMS } from './navConfig';
+import { Header } from './Header';
 
 export function Layout() {
   const navigate = useNavigate();
@@ -38,8 +39,11 @@ export function Layout() {
   }, [navigate]);
 
   return (
-    <div className="h-screen flex overflow-hidden min-w-[1200px] bg-stone-950 text-stone-100 font-sans selection:bg-teal-500 selection:text-stone-950">
-      
+    <div className="h-screen flex flex-col overflow-hidden min-w-[1200px] bg-stone-950 text-stone-100 font-sans selection:bg-teal-500 selection:text-stone-950">
+      <Header />
+
+      <div className="flex-1 min-h-0 flex overflow-hidden">
+
       {/* Left-Docked Minimal Sidebar — 68px (expands to 220px on hover) */}
       <aside className="w-[68px] hover:w-56 transition-all duration-200 ease-in-out flex-none bg-stone-900 border-r border-stone-800 flex flex-col justify-between py-3 z-40 group shadow-xl">
         
@@ -107,6 +111,8 @@ export function Layout() {
           <Outlet />
         </ErrorBoundary>
       </main>
+
+      </div>
 
       {/* Global Command Palette Modal */}
       <CommandPalette 
