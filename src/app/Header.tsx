@@ -46,6 +46,7 @@ export function Header({ onOpenSearch }: HeaderProps) {
           padding: '0 18px',
           borderRight: '2px solid var(--color-header-divider)',
           cursor: 'pointer',
+          flexShrink: 0,
         }}
         onClick={() => navigate('/sourcing')}
       >
@@ -64,12 +65,56 @@ export function Header({ onOpenSearch }: HeaderProps) {
         </span>
       </div>
 
+      {/* Market Reference Ticker: TTF M+1 & Side */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          padding: '0 16px',
+          borderRight: '2px solid var(--color-header-divider)',
+          backgroundColor: 'rgba(255, 255, 255, 0.02)',
+          flexShrink: 0,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+          <span className="eyebrow" style={{ color: 'var(--color-header-muted)', fontSize: '11px', letterSpacing: '0.04em' }}>
+            TTF M+1
+          </span>
+          <span className="num" style={{ fontSize: '14px', fontWeight: 700, color: '#ffffff' }}>
+            {gasIndexPrice !== null && gasIndexPrice !== undefined ? `€${gasIndexPrice.toFixed(2)}` : '—'}
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <span className="eyebrow" style={{ color: 'var(--color-header-muted)', fontSize: '11px', letterSpacing: '0.04em' }}>
+            Side
+          </span>
+          <span
+            style={{
+              fontSize: '11px',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+              padding: '1px 6px',
+              borderRadius: '2px',
+              backgroundColor: 'rgba(255, 255, 255, 0.08)',
+              color: 'var(--color-accent)',
+            }}
+          >
+            {pricingSide}
+          </span>
+        </div>
+      </div>
+
       {/* Nav tabs */}
       <nav
         style={{
           display: 'flex',
           alignItems: 'stretch',
           overflowX: 'auto',
+          flexShrink: 1,
+          minWidth: 0,
         }}
         className="noscroll"
         aria-label="Workspaces"
@@ -94,8 +139,9 @@ export function Header({ onOpenSearch }: HeaderProps) {
                     height: '18px',
                     alignSelf: 'center',
                     backgroundColor: 'var(--color-header-divider, rgba(255,255,255,0.12))',
-                    margin: '0 4px',
+                    margin: '0 2px',
                     opacity: 0.6,
+                    flexShrink: 0,
                   }}
                   aria-hidden="true"
                 />
@@ -119,24 +165,36 @@ export function Header({ onOpenSearch }: HeaderProps) {
           marginLeft: 'auto',
           display: 'flex',
           alignItems: 'center',
-          gap: '16px',
+          gap: '12px',
           padding: '0 16px',
           borderLeft: '2px solid var(--color-header-divider)',
+          flexShrink: 0,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '7px' }}>
-          <span className="eyebrow" style={{ color: 'var(--color-header-muted)' }}>TTF M+1</span>
-          <span className="num" style={{ fontSize: '14px', fontWeight: 600, color: '#ffffff' }}>
-            {gasIndexPrice !== null && gasIndexPrice !== undefined ? `€${gasIndexPrice.toFixed(2)}` : '—'}
-          </span>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-          <span className="eyebrow" style={{ color: 'var(--color-header-muted)' }}>Side</span>
-          <span className="num" style={{ fontSize: '13px', fontWeight: 600, textTransform: 'capitalize', color: '#ffffff' }}>
-            {pricingSide}
-          </span>
-        </div>
+        <NavLink
+          to="/connectors"
+          className="btn"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '4px 10px',
+            fontSize: '12px',
+            fontWeight: 500,
+            textDecoration: 'none',
+            backgroundColor: location.pathname.startsWith('/connectors')
+              ? 'var(--color-accent)'
+              : 'var(--color-header-surface)',
+            borderColor: location.pathname.startsWith('/connectors')
+              ? 'var(--color-accent)'
+              : 'var(--color-header-divider)',
+            color: '#ffffff',
+          }}
+          title="TSO & API Data Connectors"
+        >
+          <span style={{ fontSize: '12px' }}>🔌</span>
+          <span>Connectors</span>
+        </NavLink>
 
         <button
           type="button"
@@ -173,7 +231,7 @@ export function Header({ onOpenSearch }: HeaderProps) {
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            paddingLeft: '16px',
+            paddingLeft: '12px',
             borderLeft: '1px solid var(--color-header-divider)',
           }}
         >

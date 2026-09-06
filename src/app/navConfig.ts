@@ -58,11 +58,10 @@ export const WORKSPACE_TABS: NavItem[] = [
   { to: '/trade', label: 'Trade builder', keyHint: '5', icon: Zap },
   { to: '/library', label: 'Library', keyHint: '6', icon: BookOpen },
 
-  // --- Group 4: Compliance, Audit & Settings ---
+  // --- Group 4: Compliance, Audit & Governance ---
   { to: '/registries', label: 'Registries', keyHint: 'G', icon: ShieldCheck },
   { to: '/citations', label: 'Citations', keyHint: 'C', icon: Scale },
   { to: '/data-sources', label: 'Sources', keyHint: '7', icon: Database },
-  { to: '/connectors', label: 'Connectors', keyHint: 'K', icon: Zap },
 ];
 
 export function getPageTitle(pathname: string): string {
