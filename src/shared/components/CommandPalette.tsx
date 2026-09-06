@@ -43,7 +43,6 @@ export function CommandPalette({ isOpen, onClose, onOpenPlaybook, onOpenImporter
     { kind: 'Screen', label: 'Plant registry (1,975)', hint: '2', id: 's-plants', run: () => { navigate('/plants'); onClose(); } },
     { kind: 'Screen', label: 'Registries & flow telemetry', hint: 'G', id: 's-registries', run: () => { navigate('/registries'); onClose(); } },
     { kind: 'Screen', label: 'Compliance & logistics map', hint: '3', id: 's-map', run: () => { navigate('/map'); onClose(); } },
-    { kind: 'Screen', label: 'Dossier library', hint: '6', id: 's-library', run: () => { navigate('/library'); onClose(); } },
     { kind: 'Screen', label: 'Statutory citations', hint: 'C', id: 's-citations', run: () => { navigate('/citations'); onClose(); } },
     { kind: 'Screen', label: 'Data sources & provenance', hint: '7', id: 's-sources', run: () => { navigate('/data-sources'); onClose(); } },
     {

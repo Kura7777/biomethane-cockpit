@@ -20,7 +20,6 @@ const TradeBuilderScreen = React.lazy(() => import('../features/trade-builder/Tr
 const PlantsScreen = React.lazy(() => import('../features/plants/PlantsScreen').then(m => ({ default: m.PlantsScreen })));
 const RegistriesScreen = React.lazy(() => import('../features/registries/RegistriesScreen').then(m => ({ default: m.RegistriesScreen })));
 const ScannerScreen = React.lazy(() => import('../features/opportunity-scanner/ScannerScreen').then(m => ({ default: m.ScannerScreen })));
-const LibraryScreen = React.lazy(() => import('../features/trade-library/LibraryScreen').then(m => ({ default: m.LibraryScreen })));
 const CitationsScreen = React.lazy(() => import('../features/citations/CitationsScreen').then(m => ({ default: m.CitationsScreen })));
 const DataSourcesScreen = React.lazy(() => import('../features/provenance/DataSourcesScreen').then(m => ({ default: m.DataSourcesScreen })));
 const DataConnectorsScreen = React.lazy(() => import('../features/settings/DataConnectorsScreen').then(m => ({ default: m.DataConnectorsScreen })));
@@ -60,7 +59,7 @@ function AppContent() {
             <Route path="/trade" element={<TradeBuilderScreen />} />
             <Route path="/risk" element={<Navigate to="/" replace />} />
             <Route path="/scanner" element={<ScannerScreen />} />
-            <Route path="/library" element={<LibraryScreen />} />
+            <Route path="/library" element={<Navigate to="/trade" replace />} />
             <Route path="/citations" element={<CitationsScreen />} />
             <Route path="/connectors" element={<DataConnectorsScreen />} />
             <Route path="/settings" element={<SettingsScreen />} />

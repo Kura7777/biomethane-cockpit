@@ -18,7 +18,6 @@ export const ROUTES: { path: string; name: string }[] = [
   { path: '/map', name: 'Compliance & logistics map' },
   { path: '/scanner', name: 'Opportunity scanner' },
   { path: '/risk', name: 'Portfolio risk' },
-  { path: '/library', name: 'Dossier library' },
   { path: '/citations', name: 'Statutory citations' },
   { path: '/settings', name: 'Desk settings' },
 ];

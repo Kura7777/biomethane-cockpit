@@ -53,7 +53,7 @@ test.describe('Trade Builder Screen & Pricing Engine', () => {
     expect(appErrors(errors)).toEqual([]);
   });
 
-  test('saves dossier and navigates to dossier library', async ({ page }) => {
+  test('saves dossier and confirms with desk notification toast', async ({ page }) => {
     const errors = collectPageErrors(page);
     await gotoScreen(page, '/trade?marketId=NL_ERE&originCountry=DK&feedstock=manure&ci=-80');
 
@@ -61,9 +61,8 @@ test.describe('Trade Builder Screen & Pricing Engine', () => {
     await expect(saveBtn).toBeVisible();
     await saveBtn.click();
 
-    await expect(page).toHaveURL(/#\/library/);
+    await expect(page.getByText(/dossier saved/i)).toBeVisible();
     await expectNoErrorBoundary(page);
-    await expect(page.locator('#main-content')).toContainText(/Dossier library/i);
 
     expect(appErrors(errors)).toEqual([]);
   });

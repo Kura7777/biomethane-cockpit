@@ -37,7 +37,6 @@ export const SIDEBAR_ITEMS: NavItem[] = [
   { to: '/trade', label: 'Trade Builder', keyHint: '4', icon: Zap },
   { to: '/pricing', label: 'Pricing Desk', keyHint: '5', icon: FileSpreadsheet },
   { to: '/connectors', label: 'Data Connectors', keyHint: 'K', icon: Zap },
-  { to: '/library', label: 'Dossier Library', keyHint: '6', icon: BookOpen },
   { to: '/data-sources', label: 'Data Sources', keyHint: '7', icon: Database },
 ];
 
@@ -54,9 +53,8 @@ export const WORKSPACE_TABS: NavItem[] = [
   { to: '/plants', label: 'Plants', keyHint: '3', icon: Building2 },
   { to: '/map', label: 'Map', keyHint: '4', icon: Globe },
 
-  // --- Group 3: Deal Execution & Dossier ---
+  // --- Group 3: Deal Execution ---
   { to: '/trade', label: 'Trade builder', keyHint: '5', icon: Zap },
-  { to: '/library', label: 'Library', keyHint: '6', icon: BookOpen },
 
   // --- Group 4: Compliance, Audit & Governance ---
   { to: '/registries', label: 'Registries', keyHint: 'G', icon: ShieldCheck },

@@ -51,7 +51,6 @@ test.describe('Screen Rendering & Route Health', () => {
       'Plants',
       'Registries',
       'Map',
-      'Library',
       'Citations',
       'Sources',
     ];

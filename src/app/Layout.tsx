@@ -45,7 +45,6 @@ export function Layout() {
       if (e.key === '3') navigate('/map');
       if (e.key === '4') navigate('/trade');
       if (e.key === '5') navigate('/pricing');
-      if (e.key === '6') navigate('/library');
       if (e.key === '7') navigate('/data-sources');
       if (k === 'r') navigate('/risk');
       if (k === 'c') navigate('/citations');

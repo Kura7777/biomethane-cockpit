@@ -208,7 +208,6 @@ export function TradeBuilderScreen() {
       assessment: currentTradeAssessment,
     });
     showToast(`Dossier saved with six-gate citations · REF ${currentTradeAssessment.id}`);
-    navigate('/library');
   };
 
   const handleExportPdf = () => {
