@@ -1,0 +1,1787 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-a0ab60f5-69ba-4a48-9996-4354bc646f72/styles.css">
+<script src="_ds/modernist-a0ab60f5-69ba-4a48-9996-4354bc646f72/_ds_bundle.js"></script>
+<style>
+  html, body { height: 100%; }
+  body { margin: 0; overflow: hidden; }
+  .num { font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+  .mut { color: color-mix(in srgb, var(--color-text) 70%, transparent); }
+  .dim { color: color-mix(in srgb, var(--color-text) 55%, transparent); }
+  .eyebrow { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: color-mix(in srgb, var(--color-text) 70%, transparent); }
+  .noscroll { scrollbar-width: none; }
+  .noscroll::-webkit-scrollbar { width: 0; height: 0; display: none; }
+  .dark {
+    --color-bg: #1a1918;
+    --color-surface: #232120;
+    --color-text: #f5f2f1;
+    --color-accent: #ff563c;
+    --color-divider: color-mix(in srgb, #f5f2f1 32%, transparent);
+    --color-accent-100: #3a1a14;
+    --color-accent-200: #4d2019;
+    --color-accent-300: #6b2a1e;
+    --color-accent-700: #ffb0a1;
+    --color-accent-800: #ffd0c6;
+    --color-accent-900: #ffe4de;
+    --color-neutral-100: #2a2827;
+    --color-neutral-200: #322f2e;
+    --color-neutral-300: #3d3a39;
+    --color-neutral-400: #4d4a48;
+    --color-neutral-500: #6b6765;
+    --color-neutral-700: #b8b3b0;
+    --color-neutral-800: #d9d5d3;
+    --color-neutral-900: #f0edec;
+  }
+  .navtab { display:flex; align-items:center; padding:0 14px; font-size:13px; text-decoration:none; white-space:nowrap; color: color-mix(in srgb, var(--color-text) 70%, transparent); }
+  .navtab:hover { color: var(--color-text); background: var(--color-surface); }
+  .navtab[data-on="1"] { color: var(--color-text); font-weight: 600; box-shadow: inset 0 -3px 0 var(--color-accent); }
+  .cellrow { display:grid; border-bottom:2px solid var(--color-divider); }
+  .cellrow > div { padding:13px 18px; border-right:1px solid var(--color-divider); }
+  .cellrow > div:last-child { border-right:0; }
+  .big { font-family: var(--font-heading); font-weight: 800; font-size: 28px; line-height: 1.08; letter-spacing: -0.02em; margin-top: 4px; }
+  .subttl { font-size: 12px; color: color-mix(in srgb, var(--color-text) 70%, transparent); }
+  .ptitle { font-size: 20px; margin: 0; }
+  .kv { display:flex; align-items:baseline; gap:8px; font-size:12px; }
+  .kv > span:nth-child(2) { flex:1; height:1px; background: var(--color-divider); }
+  .lbl { color: color-mix(in srgb, var(--color-text) 70%, transparent); }
+  .chip { display:inline-flex; align-items:center; font-size:10px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; padding:2px 7px; border:1px solid var(--color-divider); white-space:nowrap; }
+  .chip-a { border-color: var(--color-accent-300); background: var(--color-accent-100); color: var(--color-accent-800); }
+  .stripe { background-image: repeating-linear-gradient(45deg, transparent 0 7px, color-mix(in srgb, var(--color-text) 8%, transparent) 7px 14px); }
+  .table tbody tr.selrow { background: var(--color-surface); box-shadow: inset 3px 0 0 var(--color-accent); }
+  .table tbody tr[data-click="1"] { cursor: pointer; }
+  .scrim { position: fixed; inset: 0; z-index: 100; display: flex; background: color-mix(in srgb, #0c0a09 72%, transparent); }
+  .panel { background: var(--color-bg); border: 1px solid var(--color-divider); box-shadow: var(--shadow-lg); display: flex; flex-direction: column; min-height: 0; }
+  .skel { height: 11px; background: color-mix(in srgb, var(--color-text) 12%, transparent); animation: pulse 1.1s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 0.9; } }
+  @media (prefers-reduced-motion: reduce) { .skel { animation: none; } }
+  .plist { display:flex; align-items:center; gap:12px; padding:9px 16px; border-bottom:1px solid var(--color-divider); cursor:pointer; text-decoration:none; color:var(--color-text); }
+  .plist:hover { background: var(--color-surface); }
+</style>
+</helmet>
+
+<div class="{{ themeClass }}" style="height:100vh; display:flex; flex-direction:column; background:var(--color-bg); color:var(--color-text); font-family:var(--font-body); overflow:hidden; min-width:1180px">
+
+  <!-- ═══════════ HEADER ═══════════ -->
+  <div style="height:52px; flex:none; display:flex; align-items:stretch; border-bottom:2px solid var(--color-divider)">
+    <div style="display:flex; align-items:center; gap:10px; padding:0 18px; border-right:2px solid var(--color-divider)">
+      <div style="width:10px; height:10px; background:var(--color-accent)"></div>
+      <span style="font-family:var(--font-heading); font-weight:800; font-size:15px; white-space:nowrap">Biomethane Desk</span>
+    </div>
+    <nav style="display:flex; align-items:stretch; overflow-x:auto" class="noscroll">
+      <a class="navtab" href="#" data-on="{{ onOrigination }}" onClick="{{ goOrigination }}">Origination</a>
+      <a class="navtab" href="#" data-on="{{ onScanner }}" onClick="{{ goScanner }}">Scanner</a>
+      <a class="navtab" href="#" data-on="{{ onTrade }}" onClick="{{ goTrade }}">Trade builder</a>
+      <a class="navtab" href="#" data-on="{{ onPricing }}" onClick="{{ goPricing }}">Pricing desk</a>
+      <a class="navtab" href="#" data-on="{{ onRisk }}" onClick="{{ goRisk }}">Risk &amp; VaR</a>
+      <a class="navtab" href="#" data-on="{{ onPlants }}" onClick="{{ goPlants }}">Plants</a>
+      <a class="navtab" href="#" data-on="{{ onMap }}" onClick="{{ goMap }}">Map</a>
+      <a class="navtab" href="#" data-on="{{ onLibrary }}" onClick="{{ goLibrary }}">Library</a>
+      <a class="navtab" href="#" data-on="{{ onCitations }}" onClick="{{ goCitations }}">Citations</a>
+      <a class="navtab" href="#" data-on="{{ onSources }}" onClick="{{ goSources }}">Sources</a>
+    </nav>
+    <div style="margin-left:auto; display:flex; align-items:center; gap:16px; padding:0 16px; border-left:2px solid var(--color-divider)">
+      <div style="display:flex; align-items:baseline; gap:7px">
+        <span class="eyebrow">TTF M+1</span>
+        <span class="num" style="font-size:14px; font-weight:600">€31.92</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:7px">
+        <span class="eyebrow">Side</span>
+        <span class="num" style="font-size:13px; font-weight:600; text-transform:capitalize">{{ side }}</span>
+      </div>
+      <button type="button" class="btn btn-secondary" style="padding:4px 10px; font-size:12px" onClick="{{ openPalette }}">Command <span class="num" style="font-weight:400; opacity:0.7; margin-left:4px">⌘K</span></button>
+      <button type="button" class="btn btn-secondary" style="padding:4px 10px; font-size:12px" onClick="{{ toggleTheme }}">{{ themeLabel }}</button>
+      <span style="font-size:13px; font-weight:600; white-space:nowrap; padding-left:16px; border-left:1px solid var(--color-divider)">Trader · A. Vos</span>
+    </div>
+  </div>
+
+  <!-- ═══════════ BODY ═══════════ -->
+  <div class="noscroll" style="flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column">
+
+    <!-- ─── 1. ORIGINATION ─── -->
+    <sc-if value="{{ isOrigination }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex; flex-direction:column; min-height:0">
+        <div class="cellrow" style="grid-template-columns:repeat(4, minmax(0,1fr))">
+          <div>
+            <div class="eyebrow">Audited facilities</div>
+            <div class="big num">1,975</div>
+            <div class="subttl">24 hubs · GIE / EBA European Biomethane Map 2026</div>
+          </div>
+          <div>
+            <div class="eyebrow">Peak arbitrage margin</div>
+            <div class="big num" style="color:var(--color-accent-700)">+€18.40</div>
+            <div class="subttl">DK manure → DE THG · Cal-2026</div>
+          </div>
+          <div>
+            <div class="eyebrow">Prompt TTF gas</div>
+            <div class="big num">€34.20</div>
+            <div class="subttl">Day spread €0.60 · forward contango</div>
+          </div>
+          <div>
+            <div class="eyebrow">RED III mass balance</div>
+            <div class="big num">6 gates</div>
+            <div class="subttl">UDB grid boundaries &amp; ≥65% GHG saving</div>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:flex-end; gap:22px; padding:14px 18px; border-bottom:2px solid var(--color-divider); flex-wrap:wrap">
+          <div style="display:flex; flex-direction:column; gap:5px">
+            <label class="eyebrow" for="om">Compliance target market</label>
+            <select id="om" class="input" style="min-width:250px; font-weight:600">
+              <option>Germany THG Quota (DE)</option>
+              <option>Netherlands ERE (NL)</option>
+              <option>Italy CIC (IT)</option>
+              <option>France CPB (FR)</option>
+              <option>FuelEU Maritime (EU)</option>
+            </select>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:5px">
+            <label class="eyebrow" for="oq">Contract quantity · MWh</label>
+            <input id="oq" class="input num" style="min-width:140px; font-weight:600" value="10,000">
+          </div>
+          <div style="display:flex; flex-direction:column; gap:5px">
+            <label class="eyebrow" for="of">Feedstock substrate</label>
+            <select id="of" class="input" style="min-width:240px; font-weight:600">
+              <option>Animal manure and slurry · IX-A</option>
+              <option>Agricultural residues · IX-A</option>
+              <option>Food waste · IX-A</option>
+              <option>Energy crops · non-Annex</option>
+            </select>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:5px">
+            <label class="eyebrow" for="oc">Carbon intensity · gCO₂e/MJ</label>
+            <input id="oc" class="input num" style="min-width:110px; font-weight:600" value="−100">
+          </div>
+          <button type="button" class="btn btn-primary" style="height:36px" onClick="{{ rescan }}">Scan European plants</button>
+          <div style="margin-left:auto; text-align:right; font-size:12px" class="mut">
+            <div>Live sourcing engine · 1,975 facilities · Dijkstra corridor network</div>
+            <div>Last synchronised <strong style="font-weight:600; color:var(--color-text)">just now</strong> · 2 of 16 marks simulated</div>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:baseline; gap:14px; padding:14px 18px 8px">
+          <h3 class="ptitle">Live opportunity matrix</h3>
+          <span class="subttl num">90 routes · 16 mechanisms · all-in delivered basis, {{ side }}</span>
+          <div style="margin-left:auto; display:flex; gap:14px" class="eyebrow">
+            <span style="display:flex; align-items:center; gap:6px"><span style="width:8px;height:8px;background:var(--color-text)"></span>Eligible</span>
+            <span style="display:flex; align-items:center; gap:6px"><span style="width:8px;height:8px;background:var(--color-neutral-500)"></span>Conditional</span>
+            <span style="display:flex; align-items:center; gap:6px"><span style="width:8px;height:8px;background:var(--color-accent)"></span>Blocked</span>
+          </div>
+        </div>
+        <div style="padding:0 18px 18px">
+          <table class="table" style="font-size:13px">
+            <thead>
+              <tr>
+                <th style="width:34px">#</th>
+                <th>Market / registry</th>
+                <th style="width:118px">Gates</th>
+                <th style="width:104px; text-align:right">Net €/MWh</th>
+                <th style="width:200px">Spread vs all-in</th>
+                <th style="width:88px; text-align:right">Margin</th>
+                <th style="width:118px">Provenance</th>
+                <th style="width:52px; text-align:center">Age</th>
+              </tr>
+            </thead>
+            <tbody>
+              <sc-if value="{{ isReady }}" hint-placeholder-val="{{ true }}">
+                <sc-for list="{{ rows }}" as="r" hint-placeholder-count="9">
+                  <tr data-click="1" class="{{ r.rowClass }}" onClick="{{ r.select }}" onDoubleClick="{{ structure }}">
+                    <td class="num dim">{{ r.rank }}</td>
+                    <td>
+                      <div style="font-weight:600">{{ r.market }}</div>
+                      <div style="font-size:11px" class="mut">{{ r.registry }}</div>
+                    </td>
+                    <td>{{ r.gateStrip }}</td>
+                    <td class="num" style="text-align:right; font-size:15px; font-weight:600">{{ r.netLabel }}</td>
+                    <td>{{ r.bar }}</td>
+                    <td class="num mut" style="text-align:right">{{ r.marginLabel }}</td>
+                    <td>{{ r.provenanceChip }}</td>
+                    <td class="num mut" style="text-align:center; font-size:11px">{{ r.age }}</td>
+                  </tr>
+                </sc-for>
+              </sc-if>
+              <sc-if value="{{ isLoading }}">
+                <sc-for list="{{ skeleton }}" as="k" hint-placeholder-count="8">
+                  <tr>
+                    <td><div class="skel" style="width:16px"></div></td>
+                    <td><div class="skel" style="width:62%"></div><div class="skel" style="width:38%; margin-top:5px; height:8px"></div></td>
+                    <td><div class="skel" style="width:104px"></div></td>
+                    <td><div class="skel" style="width:70px; margin-left:auto"></div></td>
+                    <td><div class="skel" style="width:100%; height:16px"></div></td>
+                    <td><div class="skel" style="width:40px; margin-left:auto"></div></td>
+                    <td><div class="skel" style="width:88px"></div></td>
+                    <td><div class="skel" style="width:26px; margin:0 auto"></div></td>
+                  </tr>
+                </sc-for>
+              </sc-if>
+            </tbody>
+          </table>
+        </div>
+
+        <div style="margin-top:auto; display:flex; align-items:center; gap:16px; padding:12px 18px; border-top:2px solid var(--color-accent); background:var(--color-accent-100)">
+          <span style="font-size:10px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; background:var(--color-accent); color:var(--color-bg); padding:3px 8px">Blocked</span>
+          <div style="min-width:0">
+            <div style="font-size:13px; font-weight:600">UK RTFO would net €88.10/MWh — unreachable on grid-injected volume.</div>
+            <div style="font-size:12px; color:var(--color-accent-900)">Grid injection cannot evidence UDB ingestion for the RTFO. Remedy: physical bio-LNG delivery under mass balance.</div>
+          </div>
+          <span style="margin-left:auto; font-size:11px; white-space:nowrap" class="mut">RED III Art. 28(2) · Reg. (EU) 2024/2792</span>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ─── 2. SCANNER ─── -->
+    <sc-if value="{{ isScanner }}">
+      <div style="display:flex; flex-direction:column">
+        <div style="display:flex; align-items:flex-end; gap:24px; padding:16px 18px; border-bottom:2px solid var(--color-divider); flex-wrap:wrap">
+          <div>
+            <div class="eyebrow">Consignment 04-DK-MAN</div>
+            <h3 class="ptitle" style="margin-top:5px">Netback ladder</h3>
+            <div class="subttl">Danish manure &amp; slurry at −100 gCO₂e/MJ · ISCC EU · mass balance · 10,000 MWh</div>
+          </div>
+          <div style="display:flex; gap:1px; background:var(--color-divider); margin-left:auto">
+            <div style="background:var(--color-bg); padding:8px 16px">
+              <div class="eyebrow">All-in delivered</div>
+              <div class="num" style="font-size:19px; font-weight:800">€156.40</div>
+            </div>
+            <div style="background:var(--color-bg); padding:8px 16px">
+              <div class="eyebrow">Avoided tCO₂e/MWh</div>
+              <div class="num" style="font-size:19px; font-weight:800">0.698</div>
+            </div>
+            <div style="background:var(--color-bg); padding:8px 16px">
+              <div class="eyebrow">Selected · {{ selMarket }}</div>
+              <div class="num" style="font-size:19px; font-weight:800; color:var(--color-accent-700)">{{ selNet }}</div>
+            </div>
+            <div style="background:var(--color-bg); padding:8px 16px; display:flex; align-items:center">
+              <button type="button" class="btn btn-primary" style="font-size:12px; padding:5px 12px" onClick="{{ openPlaybook }}">Delivery playbook ⏎</button>
+            </div>
+          </div>
+        </div>
+
+        <sc-if value="{{ isError }}">
+          <div style="display:flex; align-items:center; gap:14px; padding:12px 18px; border-bottom:2px solid var(--color-accent); background:var(--color-accent-100)">
+            <span style="font-size:10px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; background:var(--color-accent); color:var(--color-bg); padding:3px 8px">Error</span>
+            <div>
+              <div style="font-size:13px; font-weight:600">Broker run could not be parsed — the ladder is showing the last good marks.</div>
+              <div style="font-size:12px; color:var(--color-accent-900)">Row 14 of the pasted run has no unit of account, so nothing was written to the marks store. Nothing has re-priced.</div>
+            </div>
+            <button type="button" class="btn btn-secondary" style="margin-left:auto; font-size:12px; padding:5px 12px; white-space:nowrap" onClick="{{ retry }}">Retry parse</button>
+          </div>
+        </sc-if>
+
+        <div style="display:flex; align-items:center; gap:20px; padding:10px 18px; border-bottom:1px solid var(--color-divider); background:var(--color-surface); flex-wrap:wrap">
+          <span class="eyebrow">Filters</span>
+          <label style="display:flex; align-items:center; gap:8px; font-size:12px; cursor:pointer"><span style="width:13px;height:13px;background:var(--color-accent);flex:none"></span>Positive netback only</label>
+          <label style="display:flex; align-items:center; gap:8px; font-size:12px; cursor:pointer" class="mut"><span style="width:13px;height:13px;border:1px solid var(--color-divider);flex:none"></span>All six gates clear</label>
+          <label style="display:flex; align-items:center; gap:8px; font-size:12px; cursor:pointer" class="mut"><span style="width:13px;height:13px;border:1px solid var(--color-divider);flex:none"></span>Hide marks older than 30d</label>
+          <div style="margin-left:auto; display:flex; align-items:center; gap:10px">
+            <span class="eyebrow">Pricing side</span>
+            <div class="seg" style="height:28px">
+              <label class="seg-opt" style="padding:4px 12px; font-size:12px"><input type="radio" name="sc-side" checked="{{ sideBid }}" onChange="{{ setBid }}">Bid</label>
+              <label class="seg-opt" style="padding:4px 12px; font-size:12px"><input type="radio" name="sc-side" checked="{{ sideMid }}" onChange="{{ setMid }}">Mid</label>
+              <label class="seg-opt" style="padding:4px 12px; font-size:12px"><input type="radio" name="sc-side" checked="{{ sideOffer }}" onChange="{{ setOffer }}">Offer</label>
+            </div>
+          </div>
+        </div>
+
+        <div style="padding:0 18px 18px">
+          <table class="table" style="font-size:13px">
+            <thead>
+              <tr>
+                <th style="width:34px">#</th>
+                <th style="width:34px">CC</th>
+                <th>Market / scheme</th>
+                <th style="width:118px">Gates <abbr title="Scheme, UDB, Mass balance, Annex IX, GHG, Member state" style="text-decoration:none">S U M A G N</abbr></th>
+                <th style="width:112px; text-align:right">Net €/MWh</th>
+                <th style="width:210px">Spread vs all-in</th>
+                <th style="width:88px; text-align:right">Margin</th>
+                <th style="width:120px">Unit of account</th>
+                <th style="width:52px; text-align:center">Age</th>
+              </tr>
+            </thead>
+            <tbody>
+              <sc-for list="{{ rows }}" as="r" hint-placeholder-count="9">
+                <tr data-click="1" class="{{ r.rowClass }}" onClick="{{ r.select }}" onDoubleClick="{{ r.openPlaybook }}">
+                  <td class="num dim">{{ r.rank }}</td>
+                  <td class="num mut" style="font-weight:600">{{ r.cc }}</td>
+                  <td>
+                    <div style="font-weight:600">{{ r.market }}</div>
+                    <div style="font-size:11px" class="mut">{{ r.legal }}</div>
+                  </td>
+                  <td>{{ r.gateStrip }}</td>
+                  <td class="num" style="text-align:right; font-size:16px; font-weight:800">{{ r.netLabel }}</td>
+                  <td>{{ r.bar }}</td>
+                  <td class="num mut" style="text-align:right">{{ r.marginLabel }}</td>
+                  <td style="font-size:11px" class="mut">{{ r.unit }}</td>
+                  <td class="num mut" style="text-align:center; font-size:11px">{{ r.age }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); border-top:2px solid var(--color-divider)">
+          <div style="padding:14px 18px; border-right:1px solid var(--color-divider)">
+            <div class="eyebrow">Germany · dual branch</div>
+            <div style="display:flex; gap:24px; margin-top:8px">
+              <div><div style="font-size:11px" class="mut">1× single</div><div class="num" style="font-size:22px; font-weight:800">+€72.07</div></div>
+              <div><div style="font-size:11px" class="mut">2× retained</div><div class="num" style="font-size:22px; font-weight:800">+€225.22</div></div>
+            </div>
+            <p style="font-size:12px; line-height:1.5; margin:9px 0 0" class="mut">Double counting is a policy multiplier being removed for the 2026 compliance year. Manure's negative CI belongs to the GHG calculation and is unaffected.</p>
+          </div>
+          <div style="padding:14px 18px; border-right:1px solid var(--color-divider)">
+            <div class="eyebrow">Cost stack · €/MWh</div>
+            <div style="display:flex; flex-direction:column; gap:6px; margin-top:9px">
+              <div class="kv"><span class="lbl">Plant gate</span><span></span><span class="num" style="font-weight:600">153.15</span></div>
+              <div class="kv"><span class="lbl">Transfer &amp; registry</span><span></span><span class="num" style="font-weight:600">0.90</span></div>
+              <div class="kv"><span class="lbl">Certification</span><span></span><span class="num" style="font-weight:600">0.55</span></div>
+              <div class="kv"><span class="lbl">Transit DK → DE</span><span></span><span class="num" style="font-weight:600">1.80</span></div>
+              <div class="kv" style="padding-top:8px; border-top:2px solid var(--color-divider)"><span style="font-weight:600">All-in delivered</span><span></span><span class="num" style="font-size:15px; font-weight:800">156.40</span></div>
+            </div>
+            <button type="button" class="btn btn-primary btn-block" onClick="{{ structure }}">Structure in trade builder</button>
+          </div>
+          <div style="padding:14px 18px">
+            <div class="eyebrow">Blocked opportunity</div>
+            <div style="font-size:13px; font-weight:600; margin-top:8px">UK RTFO · €88.10/MWh theoretical</div>
+            <p style="font-size:12px; line-height:1.5; margin:6px 0 0" class="mut">Grid-injected volume cannot evidence UDB ingestion, so the dRTFC route hard-blocks at gate 2. Remedy is physical bio-LNG delivery under mass balance.</p>
+            <div style="font-size:11px; margin-top:8px; color:var(--color-accent-700)">RED III Art. 28(2) · Reg. (EU) 2024/2792</div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ─── 3. TRADE BUILDER ─── -->
+    <sc-if value="{{ isTrade }}">
+      <div style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); min-height:0; flex:1">
+        <div style="border-right:2px solid var(--color-divider); display:flex; flex-direction:column">
+          <div style="display:flex; align-items:center; gap:10px; padding:13px 18px; border-bottom:2px solid var(--color-divider)">
+            <span class="num" style="width:20px; height:20px; display:flex; align-items:center; justify-content:center; background:var(--color-accent); color:var(--color-bg); font-size:11px; font-weight:800">1</span>
+            <h4 style="margin:0; font-size:15px; letter-spacing:0.1em; text-transform:uppercase">Consignment</h4>
+          </div>
+          <div style="padding:16px 18px; display:flex; flex-direction:column; gap:18px">
+            <div>
+              <div class="eyebrow">Origin</div>
+              <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:7px">
+                <span class="chip chip-a">DK</span><span class="chip">DE</span><span class="chip">NL</span><span class="chip">FR</span><span class="chip">IT</span><span class="chip">SE</span><span class="chip">ES</span><span class="chip">AT</span><span class="chip">BE</span><span class="chip">FI</span><span class="chip">PL</span><span class="chip">CZ</span><span class="chip dim">GB</span><span class="chip dim">CH</span><span class="chip dim">NO</span>
+              </div>
+              <p style="font-size:12px; line-height:1.5; margin:8px 0 0" class="mut">Denmark · 64 producing facilities · Energinet registry. EU-interconnected via Ellund, so UDB grid ingestion is evidenceable. Greyed origins are grid-isolated and cannot evidence ingestion.</p>
+            </div>
+            <div>
+              <div class="eyebrow">Feedstock</div>
+              <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:7px">
+                <span class="chip chip-a">Manure &amp; slurry</span><span class="chip">Agricultural residues</span><span class="chip">Food waste</span><span class="chip">Sewage sludge</span><span class="chip">Energy crops</span>
+              </div>
+              <p style="font-size:12px; line-height:1.5; margin:8px 0 0" class="mut">Annex IX Part A. The negative carbon intensity comes from avoided methane in conventional manure management, not from the upgrading process.</p>
+            </div>
+            <div>
+              <div class="eyebrow">Certification scheme</div>
+              <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:7px">
+                <span class="chip chip-a">ISCC EU</span><span class="chip">REDcert EU</span><span class="chip">ISCC PLUS</span>
+              </div>
+              <p style="font-size:12px; line-height:1.5; margin:8px 0 0" class="mut">ISCC EU is recognised for RED III transport compliance. ISCC PLUS is voluntary scope only and hard-blocks every compliance market.</p>
+            </div>
+            <div>
+              <div class="eyebrow">Chain of custody</div>
+              <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:7px">
+                <span class="chip chip-a">Mass balance</span><span class="chip">Book &amp; claim</span>
+              </div>
+              <p style="font-size:12px; line-height:1.5; margin:8px 0 0" class="mut">Book &amp; claim hard-blocks FuelEU Maritime and every RED III compliance route — mass balance is required by Art. 30(1).</p>
+            </div>
+            <div style="padding-top:16px; border-top:2px solid var(--color-divider)">
+              <div style="display:flex; align-items:baseline; justify-content:space-between">
+                <span class="eyebrow">Carbon intensity</span>
+                <span class="num" style="font-family:var(--font-heading); font-weight:800; font-size:24px">−100</span>
+              </div>
+              <div style="height:3px; background:var(--color-neutral-300); margin:12px 0 0; position:relative">
+                <div style="position:absolute; inset:0 auto 0 0; width:25%; background:var(--color-text)"></div>
+                <div style="position:absolute; top:-4px; left:25%; width:11px; height:11px; background:var(--color-accent); margin-left:-5px"></div>
+              </div>
+              <div style="display:flex; justify-content:space-between; font-size:10px; margin-top:6px" class="dim"><span>−150</span><span>0</span><span>+50</span></div>
+              <div class="kv" style="margin-top:12px"><span class="lbl">GHG saving vs 94.0 baseline</span><span></span><span class="num" style="font-size:15px; font-weight:800">206%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="border-right:2px solid var(--color-divider); display:flex; flex-direction:column">
+          <div style="display:flex; align-items:center; gap:10px; padding:13px 18px; border-bottom:2px solid var(--color-divider)">
+            <span class="num" style="width:20px; height:20px; display:flex; align-items:center; justify-content:center; background:var(--color-accent); color:var(--color-bg); font-size:11px; font-weight:800">2</span>
+            <h4 style="margin:0; font-size:15px; letter-spacing:0.1em; text-transform:uppercase">Destination &amp; legal validation</h4>
+          </div>
+          <div style="padding:16px 18px 12px; border-bottom:1px solid var(--color-divider)">
+            <div class="eyebrow">Target market</div>
+            <p style="font-size:12px; line-height:1.5; margin:6px 0 8px" class="mut">16 compliance mechanisms across 15 jurisdictions — France runs two in parallel. Not every producing origin operates one.</p>
+            <div style="display:flex; flex-wrap:wrap; gap:4px">
+              <span class="chip chip-a">DE THG</span><span class="chip">NL ERE</span><span class="chip">FR CPB</span><span class="chip">FR TIRU</span><span class="chip">IT CIC</span><span class="chip">DK Export</span><span class="chip">SE Tax</span><span class="chip">AT EGG</span><span class="chip">ES GdO</span><span class="chip">FI Transport</span><span class="chip">BE Transport</span><span class="chip">EU FuelEU</span><span class="chip">GB RTFO</span>
+            </div>
+          </div>
+          <div style="padding:14px 18px 10px; border-bottom:1px solid var(--color-divider)">
+            <div style="display:flex; align-items:baseline; justify-content:space-between">
+              <h5 style="margin:0; font-size:17px">Germany THG Quota</h5>
+              <span class="chip chip-a">Unresolved</span>
+            </div>
+            <div style="font-size:11px; margin-top:3px" class="mut">§37a BImSchG · 38. BImSchV · dena Biogasregister / UBA</div>
+          </div>
+          <div style="padding:6px 18px 18px">
+            <div class="eyebrow" style="margin:10px 0 4px">Six-gate audit · 5 of 6 clear</div>
+            <sc-for list="{{ gates }}" as="g" hint-placeholder-count="6">
+              <div style="padding:9px 0; border-bottom:1px solid var(--color-divider)">
+                <div style="display:flex; align-items:baseline; justify-content:space-between; gap:10px">
+                  <span style="font-size:13px; font-weight:600">{{ g.label }}</span>
+                  {{ g.chip }}
+                </div>
+                <div style="font-size:12px; line-height:1.5; margin-top:3px; padding-left:0" class="mut">{{ g.reason }}</div>
+                <div style="font-size:11px; margin-top:3px; color:var(--color-accent-700)">{{ g.citation }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column">
+          <div style="display:flex; align-items:center; gap:10px; padding:13px 18px; border-bottom:2px solid var(--color-divider)">
+            <span class="num" style="width:20px; height:20px; display:flex; align-items:center; justify-content:center; background:var(--color-accent); color:var(--color-bg); font-size:11px; font-weight:800">3</span>
+            <h4 style="margin:0; font-size:15px; letter-spacing:0.1em; text-transform:uppercase">Netback &amp; dossier</h4>
+          </div>
+          <div style="padding:18px; border-bottom:1px solid var(--color-divider)">
+            <div class="eyebrow">Net netback</div>
+            <div class="num" style="font-family:var(--font-heading); font-weight:800; font-size:52px; line-height:1; letter-spacing:-0.035em; margin:6px 0 4px">+€72.07</div>
+            <div style="font-size:12px" class="mut">per MWh · {{ side }} · €/tCO₂e unit of account · all-in €156.40</div>
+          </div>
+          <div style="padding:16px 18px; border-bottom:1px solid var(--color-divider)">
+            <div class="eyebrow" style="margin-bottom:10px">Waterfall</div>
+            <sc-for list="{{ waterfall }}" as="w" hint-placeholder-count="6">
+              <div style="display:grid; grid-template-columns:132px minmax(0,1fr) 78px; gap:10px; align-items:center; padding:5px 0">
+                <span style="font-size:12px" class="mut">{{ w.label }}</span>
+                {{ w.bar }}
+                <span class="num" style="text-align:right; font-size:12px; font-weight:600">{{ w.value }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--color-divider); border-bottom:1px solid var(--color-divider)">
+            <div style="background:var(--color-bg); padding:12px 18px"><div class="eyebrow">Volume</div><div class="num" style="font-size:19px; font-weight:800">10,000 MWh</div></div>
+            <div style="background:var(--color-bg); padding:12px 18px"><div class="eyebrow">Gross value</div><div class="num" style="font-size:19px; font-weight:800">€2,285,000</div></div>
+            <div style="background:var(--color-bg); padding:12px 18px"><div class="eyebrow">Desk margin</div><div class="num" style="font-size:19px; font-weight:800">€7.21 / MWh</div></div>
+            <div style="background:var(--color-bg); padding:12px 18px"><div class="eyebrow">Annual P&amp;L</div><div class="num" style="font-size:19px; font-weight:800; color:var(--color-accent-700)">€720,700</div></div>
+          </div>
+          <div style="margin-top:auto; padding:16px 18px; display:flex; flex-direction:column; gap:8px">
+            <button type="button" class="btn btn-primary btn-block" style="margin-top:0" onClick="{{ saveDossier }}">Save dossier with citations</button>
+            <div style="display:flex; gap:8px">
+              <button type="button" class="btn btn-secondary" style="flex:1; justify-content:flex-start">Export PDF</button>
+              <button type="button" class="btn btn-secondary" style="flex:1; justify-content:flex-start" onClick="{{ openPlaybook }}">Delivery playbook</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ─── 4. PRICING DESK ─── -->
+    <sc-if value="{{ isPricing }}">
+      <div>
+        <div style="display:flex; align-items:flex-end; gap:20px; padding:16px 18px; border-bottom:2px solid var(--color-divider)">
+          <div>
+            <h3 class="ptitle">Pricing desk &amp; broker runs</h3>
+            <div class="subttl">16 certificate marks · 14 desk-entered, 2 simulated · levels are illustrative until a broker run is imported</div>
+          </div>
+          <div style="margin-left:auto; display:flex; gap:8px">
+            <button type="button" class="btn btn-secondary" onClick="{{ openImporter }}">Import broker run</button>
+            <button type="button" class="btn btn-primary">Export snapshot</button>
+          </div>
+        </div>
+        <div class="cellrow" style="grid-template-columns:repeat(4, minmax(0,1fr))">
+          <div>
+            <div style="display:flex; align-items:baseline; justify-content:space-between"><span class="eyebrow">TTF M+1</span><span class="chip">2h</span></div>
+            <div class="big num">€31.92</div>
+            <div class="subttl num">bid 31.86 · offer 31.98</div>
+          </div>
+          <div>
+            <div style="display:flex; align-items:baseline; justify-content:space-between"><span class="eyebrow">GBP / EUR</span><span class="chip">1d</span></div>
+            <div class="big num">1.1840</div>
+            <div class="subttl">ECB reference fixing</div>
+          </div>
+          <div>
+            <div style="display:flex; align-items:baseline; justify-content:space-between"><span class="eyebrow">CHF / EUR</span><span class="chip">1d</span></div>
+            <div class="big num">1.0685</div>
+            <div class="subttl">ECB reference fixing</div>
+          </div>
+          <div>
+            <div style="display:flex; align-items:baseline; justify-content:space-between"><span class="eyebrow">Marks filled</span><span class="chip chip-a">2 simulated</span></div>
+            <div class="big num">14 / 16</div>
+            <div class="subttl">Netbacks re-price on every edit</div>
+          </div>
+        </div>
+        <div style="padding:14px 18px 18px">
+          <table class="table" style="font-size:13px">
+            <thead>
+              <tr>
+                <th style="width:34px">CC</th>
+                <th>Market</th>
+                <th style="width:110px">Unit</th>
+                <th style="width:92px; text-align:right">Bid</th>
+                <th style="width:112px; text-align:right">Mid</th>
+                <th style="width:92px; text-align:right">Offer</th>
+                <th style="width:88px; text-align:right">Spread</th>
+                <th style="width:126px">Source</th>
+                <th style="width:52px; text-align:center">Age</th>
+              </tr>
+            </thead>
+            <tbody>
+              <sc-for list="{{ marks }}" as="m" hint-placeholder-count="8">
+                <tr>
+                  <td class="num mut" style="font-weight:600">{{ m.cc }}</td>
+                  <td style="font-weight:600">{{ m.market }}</td>
+                  <td style="font-size:11px" class="mut">{{ m.unit }}</td>
+                  <td class="num" style="text-align:right">{{ m.bid }}</td>
+                  <td>{{ m.midInput }}</td>
+                  <td class="num" style="text-align:right">{{ m.offer }}</td>
+                  <td class="num mut" style="text-align:right">{{ m.spread }}</td>
+                  <td>{{ m.sourceChip }}</td>
+                  <td class="num mut" style="text-align:center; font-size:11px">{{ m.age }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ─── 5. RISK & VAR ─── -->
+    <sc-if value="{{ isRisk }}">
+      <div>
+        <div style="display:flex; align-items:flex-end; gap:20px; padding:16px 18px; border-bottom:2px solid var(--color-divider); flex-wrap:wrap">
+          <div>
+            <h3 class="ptitle">Portfolio risk &amp; value-at-risk</h3>
+            <div class="subttl">Basel III 10-day VaR · mark-to-market ledger across active deals and multi-year open exposure</div>
+          </div>
+          <nav style="margin-left:auto; display:flex; gap:0; border:1px solid var(--color-divider)">
+            <a class="navtab" href="#" data-on="{{ onMtm }}" onClick="{{ goMtm }}" style="padding:6px 14px; font-size:12px">Portfolio MtM</a>
+            <a class="navtab" href="#" data-on="{{ onTenors }}" onClick="{{ goTenors }}" style="padding:6px 14px; font-size:12px; border-left:1px solid var(--color-divider)">Delivery tenors</a>
+            <a class="navtab" href="#" data-on="{{ onVar }}" onClick="{{ goVar }}" style="padding:6px 14px; font-size:12px; border-left:1px solid var(--color-divider)">VaR distribution</a>
+            <a class="navtab" href="#" data-on="{{ onCurves }}" onClick="{{ goCurves }}" style="padding:6px 14px; font-size:12px; border-left:1px solid var(--color-divider)">Forward curves</a>
+          </nav>
+        </div>
+        <div class="cellrow" style="grid-template-columns:repeat(5, minmax(0,1fr))">
+          <div>
+            <div class="eyebrow">Portfolio MtM</div>
+            <div class="big num">€1.84m</div>
+            <div class="subttl">7 active deals · 148,000 MWh open</div>
+          </div>
+          <div>
+            <div class="eyebrow">10-day VaR · 99%</div>
+            <div class="big num">€412,600</div>
+            <div class="subttl">Historical simulation · 500 paths</div>
+          </div>
+          <div>
+            <div class="eyebrow">CVaR · expected shortfall</div>
+            <div class="big num">€561,300</div>
+            <div class="subttl">Mean of the worst 1% of paths</div>
+          </div>
+          <div>
+            <div class="eyebrow">Desk limit utilisation</div>
+            <div class="big num" style="color:var(--color-accent-700)">82.5%</div>
+            <div class="subttl">€412,600 of €500,000 · amber</div>
+          </div>
+          <div>
+            <div class="eyebrow">Daily sign-off</div>
+            <div class="big num" style="font-size:20px">Pending</div>
+            <div class="subttl">Requires risk manager authorisation</div>
+          </div>
+        </div>
+        <sc-if value="{{ riskVar }}">
+          <div style="padding:18px">
+            <div style="display:flex; align-items:baseline; gap:12px">
+              <h4 style="margin:0; font-size:17px">VaR distribution &amp; expected shortfall</h4>
+              <span class="subttl">500-path historical simulation · 10-day horizon · P&amp;L buckets</span>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(12, minmax(0,1fr)); gap:6px; align-items:end; height:200px; margin-top:18px; padding-bottom:0">
+              <sc-for list="{{ varBuckets }}" as="b" hint-placeholder-count="12">
+                <div style="display:flex; flex-direction:column; justify-content:flex-end; height:100%">{{ b.bar }}</div>
+              </sc-for>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(12, minmax(0,1fr)); gap:6px; border-top:2px solid var(--color-divider); padding-top:6px">
+              <sc-for list="{{ varBuckets }}" as="b" hint-placeholder-count="12">
+                <span class="num mut" style="font-size:10px; text-align:center">{{ b.band }}</span>
+              </sc-for>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:1px; background:var(--color-divider); margin-top:20px">
+              <div style="background:var(--color-bg); padding:12px 16px"><div class="eyebrow">VaR · 99%</div><div class="num" style="font-size:20px; font-weight:800">€412,600</div></div>
+              <div style="background:var(--color-bg); padding:12px 16px"><div class="eyebrow">CVaR</div><div class="num" style="font-size:20px; font-weight:800">€561,300</div></div>
+              <div style="background:var(--color-bg); padding:12px 16px"><div class="eyebrow">Worst path</div><div class="num" style="font-size:20px; font-weight:800; color:var(--color-accent-700)">−€648,900</div></div>
+              <div style="background:var(--color-bg); padding:12px 16px"><div class="eyebrow">Paths breaching limit</div><div class="num" style="font-size:20px; font-weight:800">31 of 500</div></div>
+            </div>
+            <p style="font-size:12px; line-height:1.55; margin:16px 0 0; max-width:760px" class="mut">Red buckets are loss paths. Expected shortfall is the mean of the worst 1% — €561,300 — which is the number that matters when the desk limit is set at €500,000, because VaR alone understates the tail by €148,700.</p>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ riskCurves }}">
+          <div style="padding:18px">
+            <div style="display:flex; align-items:baseline; gap:12px">
+              <h4 style="margin:0; font-size:17px">Forward curves</h4>
+              <span class="subttl">TTF gas against the DE THG certificate curve · netback per tenor at the current CI</span>
+            </div>
+            <table class="table" style="font-size:13px; margin-top:12px">
+              <thead>
+                <tr>
+                  <th style="width:88px">Tenor</th>
+                  <th style="width:110px; text-align:right">TTF €/MWh</th>
+                  <th style="width:130px; text-align:right">Cert €/tCO₂e</th>
+                  <th>Netback strength</th>
+                  <th style="width:120px; text-align:right">Net €/MWh</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ curves }}" as="c" hint-placeholder-count="6">
+                  <tr>
+                    <td class="num" style="font-weight:600">{{ c.tenor }}</td>
+                    <td class="num" style="text-align:right">{{ c.ttf }}</td>
+                    <td class="num" style="text-align:right">{{ c.cert }}</td>
+                    <td>{{ c.bar }}</td>
+                    <td class="num" style="text-align:right; font-size:15px; font-weight:800">{{ c.net }}</td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+            <p style="font-size:12px; line-height:1.55; margin:14px 0 0; max-width:760px" class="mut">The certificate curve decays faster than gas from Cal-28 as the double-counting multiplier is withdrawn, so the netback narrows even where the TTF basis improves. Curves beyond Cal-27 are modelled, not quoted.</p>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ riskTenors }}">
+          <div style="padding:18px">
+            <div style="display:flex; align-items:baseline; gap:12px">
+              <h4 style="margin:0; font-size:17px">Delivery tenors · 2026 – 2030</h4>
+              <span class="subttl">Open volume, mark-to-market and share of portfolio by delivery year</span>
+            </div>
+            <table class="table" style="font-size:13px; margin-top:12px">
+              <thead>
+                <tr>
+                  <th style="width:80px">Year</th>
+                  <th style="width:130px; text-align:right">Open volume</th>
+                  <th>Exposure</th>
+                  <th style="width:120px; text-align:right">MtM</th>
+                  <th style="width:80px; text-align:right">Share</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ tenors }}" as="t" hint-placeholder-count="5">
+                  <tr>
+                    <td class="num" style="font-weight:600">{{ t.year }}</td>
+                    <td class="num" style="text-align:right">{{ t.volume }}</td>
+                    <td>{{ t.bar }}</td>
+                    <td class="num" style="text-align:right; font-size:15px; font-weight:800">{{ t.mtm }}</td>
+                    <td class="num mut" style="text-align:right">{{ t.share }}</td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+            <p style="font-size:12px; line-height:1.55; margin:14px 0 0; max-width:760px" class="mut">47% of the book delivers in 2026, so the unresolved German double-counting branch dominates near-term risk. Tenors from 2028 are valued against modelled certificate curves.</p>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ riskMtm }}" hint-placeholder-val="{{ true }}">
+        <div style="display:grid; grid-template-columns:minmax(0,1.4fr) minmax(0,1fr)">
+          <div style="border-right:2px solid var(--color-divider); padding:16px 18px">
+            <div style="display:flex; align-items:baseline; gap:12px">
+              <h4 style="margin:0; font-size:17px">Exposure by delivery tenor</h4>
+              <span class="subttl">2026 – 2030 · MWh open and MtM by year</span>
+            </div>
+            <div style="margin-top:14px">
+              <sc-for list="{{ tenors }}" as="t" hint-placeholder-count="5">
+                <div style="display:grid; grid-template-columns:58px 108px minmax(0,1fr) 104px 88px; gap:14px; align-items:center; padding:10px 0; border-bottom:1px solid var(--color-divider)">
+                  <span class="num" style="font-size:14px; font-weight:600">{{ t.year }}</span>
+                  <span class="num mut" style="font-size:12px; text-align:right">{{ t.volume }}</span>
+                  {{ t.bar }}
+                  <span class="num" style="text-align:right; font-size:14px; font-weight:600">{{ t.mtm }}</span>
+                  <span class="num mut" style="text-align:right; font-size:12px">{{ t.share }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="padding:16px 18px">
+            <h4 style="margin:0; font-size:17px">Risk limits</h4>
+            <div style="margin-top:14px; display:flex; flex-direction:column; gap:12px">
+              <div>
+                <div class="kv"><span class="lbl">VaR against desk limit</span><span></span><span class="num" style="font-weight:600">82.5%</span></div>
+                <div style="height:12px; background:var(--color-neutral-200); margin-top:6px; position:relative">
+                  <div style="position:absolute; inset:0 auto 0 0; width:82.5%; background:var(--color-accent)"></div>
+                  <div style="position:absolute; top:-3px; bottom:-3px; left:90%; width:2px; background:var(--color-text)"></div>
+                </div>
+                <div style="font-size:11px; margin-top:5px" class="mut">Hard stop marked at 90% · breach forces position reduction before close</div>
+              </div>
+              <div class="kv"><span class="lbl">Largest single-market exposure</span><span></span><span class="num" style="font-weight:600">DE THG · 46%</span></div>
+              <div class="kv"><span class="lbl">Unhedged TTF basis</span><span></span><span class="num" style="font-weight:600">38,000 MWh</span></div>
+              <div class="kv"><span class="lbl">Marks older than 30 days</span><span></span><span class="num" style="font-weight:600">0</span></div>
+              <div class="kv"><span class="lbl">Deals priced off simulated marks</span><span></span><span class="num" style="font-weight:600; color:var(--color-accent-700)">2</span></div>
+              <div style="padding-top:12px; border-top:2px solid var(--color-divider)">
+                <p style="font-size:12px; line-height:1.55; margin:0" class="mut">Two booked deals are still valued against simulated levels. Their MtM contribution is €188,400 and should be treated as unverified until a broker run is imported on the pricing desk.</p>
+                <button type="button" class="btn btn-primary btn-block">Sign off daily MtM &amp; VaR</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <!-- ─── 6. PLANTS ─── -->
+    <sc-if value="{{ isPlants }}">
+      <div style="display:grid; grid-template-columns:minmax(0,1fr) 320px; flex:1; min-height:0">
+        <div style="border-right:2px solid var(--color-divider); display:flex; flex-direction:column; min-width:0">
+          <div style="display:flex; align-items:flex-end; gap:20px; padding:16px 18px; border-bottom:2px solid var(--color-divider); flex-wrap:wrap">
+            <div>
+              <h3 class="ptitle">Plant registry</h3>
+              <div class="subttl">1,975 facilities across 28 jurisdictions · GIE / EBA European Biomethane Map 2026, annual census</div>
+            </div>
+            <div style="margin-left:auto; display:flex; align-items:center; gap:8px">
+              <input class="input" style="width:190px" placeholder="Filter facility name" aria-label="Filter facility name" value="{{ plantQuery }}" onChange="{{ onPlantQuery }}">
+              <div style="display:flex; gap:4px">
+                <span class="chip chip-a">All</span><span class="chip">DE</span><span class="chip">FR</span><span class="chip">DK</span><span class="chip">Verified</span>
+              </div>
+            </div>
+          </div>
+          <sc-if value="{{ plantsEmpty }}">
+            <div style="padding:56px 18px; display:flex; flex-direction:column; align-items:flex-start; gap:10px; max-width:520px">
+              <div class="eyebrow">No matching facility</div>
+              <h4 style="margin:0; font-size:22px">Nothing in the register matches “{{ plantQuery }}”</h4>
+              <p style="font-size:13px; line-height:1.6; margin:0" class="mut">The GIE/EBA census indexes facilities by the name the national TSO publishes, which is often the commune rather than the operator's trading name. Try the commune, or clear the filter and use the country chips.</p>
+              <button type="button" class="btn btn-secondary" onClick="{{ clearPlantQuery }}">Clear filter</button>
+            </div>
+          </sc-if>
+          <div style="padding:0 18px 18px">
+            <table class="table" style="font-size:13px">
+              <thead>
+                <tr>
+                  <th style="width:34px">CC</th>
+                  <th>Facility</th>
+                  <th style="width:150px">Operator</th>
+                  <th style="width:90px; text-align:right">Nm³/h</th>
+                  <th style="width:88px; text-align:right">GWh/y</th>
+                  <th style="width:150px">Feedstock</th>
+                  <th style="width:118px">Provenance</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ plants }}" as="p" hint-placeholder-count="9">
+                  <tr data-click="1" onClick="{{ p.open }}">
+                    <td class="num mut" style="font-weight:600">{{ p.cc }}</td>
+                    <td style="font-weight:600">{{ p.name }}</td>
+                    <td>{{ p.operator }}</td>
+                    <td class="num" style="text-align:right">{{ p.capacity }}</td>
+                    <td class="num" style="text-align:right">{{ p.energy }}</td>
+                    <td>{{ p.feedstock }}</td>
+                    <td>{{ p.provChip }}</td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+          <div style="margin-top:auto; display:flex; align-items:center; gap:14px; padding:12px 18px; border-top:2px solid var(--color-accent); background:var(--color-accent-100)">
+            <span style="font-size:10px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; background:var(--color-accent); color:var(--color-bg); padding:3px 8px">Unverified</span>
+            <span style="font-size:12px; color:var(--color-accent-900)">1,843 of 1,975 facilities carry facility name and country only — capacity, coordinates and operator are unverified in the GIE/EBA source map. Do not price a trade off an unverified row.</span>
+          </div>
+        </div>
+        <div style="display:flex; flex-direction:column; background:var(--color-surface); min-width:0">
+          <div style="padding:16px 18px; border-bottom:2px solid var(--color-divider)">
+            <div class="eyebrow">Country totals</div>
+            <div style="font-size:12px; margin-top:4px" class="mut">Facilities and installed production by jurisdiction</div>
+          </div>
+          <div style="padding:12px 18px">
+            <sc-for list="{{ countries }}" as="c" hint-placeholder-count="10">
+              <div style="padding:9px 0; border-bottom:1px solid var(--color-divider)">
+                <div style="display:flex; align-items:baseline; gap:10px">
+                  <span class="num" style="width:24px; font-size:12px; font-weight:600">{{ c.cc }}</span>
+                  <span style="flex:1; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ c.name }}</span>
+                  <span class="num" style="font-size:13px; font-weight:600">{{ c.plants }}</span>
+                  <span class="num mut" style="font-size:11px; width:56px; text-align:right">{{ c.twh }}</span>
+                </div>
+                {{ c.bar }}
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ─── 7. MAP ─── -->
+    <sc-if value="{{ isMap }}">
+      <div style="display:grid; grid-template-columns:minmax(0,1fr) 336px; flex:1; min-height:0">
+        <div style="border-right:2px solid var(--color-divider); display:flex; flex-direction:column; min-width:0">
+          <div style="display:flex; align-items:flex-end; gap:20px; padding:16px 18px; border-bottom:2px solid var(--color-divider)">
+            <div>
+              <h3 class="ptitle">Compliance &amp; logistics map</h3>
+              <div class="subttl">30 European jurisdictions by regulatory status · active corridor DK → DE via Ellund</div>
+            </div>
+            <div style="margin-left:auto; display:flex; gap:16px" class="eyebrow">
+              <span style="display:flex; align-items:center; gap:6px"><span style="width:9px;height:9px;background:var(--color-text)"></span>Active · 14</span>
+              <span style="display:flex; align-items:center; gap:6px"><span style="width:9px;height:9px;background:var(--color-neutral-500)"></span>Emerging · 8</span>
+              <span style="display:flex; align-items:center; gap:6px"><span style="width:9px;height:9px;background:var(--color-neutral-300)"></span>Future 2028 · 5</span>
+              <span style="display:flex; align-items:center; gap:6px"><span style="width:9px;height:9px;background:var(--color-accent)"></span>Restricted · 3</span>
+            </div>
+          </div>
+          <iframe src="Map.html" title="European compliance and logistics map" style="flex:1; min-height:440px; width:100%; border:0; border-bottom:1px solid var(--color-divider); display:block"></iframe>
+          <div style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr))">
+            <div style="padding:13px 18px; border-right:1px solid var(--color-divider)">
+              <div class="eyebrow">Active corridor</div>
+              <div style="font-size:17px; font-weight:600; margin-top:4px">DK → DE</div>
+              <div style="font-size:12px" class="mut">Ellund interconnection · Energinet to THE</div>
+            </div>
+            <div style="padding:13px 18px; border-right:1px solid var(--color-divider)">
+              <div class="eyebrow">Transit tariff</div>
+              <div class="num" style="font-size:17px; font-weight:600; margin-top:4px">€1.80 / MWh</div>
+              <div style="font-size:12px" class="mut">Single-zone transit · unverified until PRISMA</div>
+            </div>
+            <div style="padding:13px 18px">
+              <div class="eyebrow">Basis to TTF</div>
+              <div class="num" style="font-size:17px; font-weight:600; margin-top:4px">+€0.65 / MWh</div>
+              <div style="font-size:12px" class="mut">THE hub premium, M+1</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex; flex-direction:column; background:var(--color-surface)">
+          <div style="padding:16px 18px; border-bottom:2px solid var(--color-divider)">
+            <div style="display:flex; align-items:baseline; justify-content:space-between">
+              <span class="eyebrow">Jurisdiction</span>
+              <span class="chip chip-a">Active market</span>
+            </div>
+            <h5 style="margin:7px 0 2px; font-size:18px">Germany</h5>
+            <div style="font-size:11px" class="mut">§37a BImSchG · 38. BImSchV · dena Biogasregister / UBA</div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--color-divider)">
+            <div style="background:var(--color-surface); padding:12px 16px"><div class="eyebrow">Active plants</div><div class="num" style="font-size:19px; font-weight:800">242</div></div>
+            <div style="background:var(--color-surface); padding:12px 16px"><div class="eyebrow">Installed</div><div class="num" style="font-size:19px; font-weight:800">11.8 TWh</div></div>
+            <div style="background:var(--color-surface); padding:12px 16px"><div class="eyebrow">Avg plant size</div><div class="num" style="font-size:19px; font-weight:800">48.8 GWh</div></div>
+            <div style="background:var(--color-surface); padding:12px 16px"><div class="eyebrow">Grid connected</div><div class="num" style="font-size:19px; font-weight:800">96%</div></div>
+          </div>
+          <div style="padding:14px 18px; border-top:1px solid var(--color-divider); border-bottom:1px solid var(--color-divider)">
+            <div class="eyebrow" style="margin-bottom:8px">Delivery options · DK → DE</div>
+            <div style="display:flex; flex-direction:column; gap:9px">
+              <div><div style="display:flex; justify-content:space-between; font-size:13px; font-weight:600"><span>A · Virtual UDB swap</span><span class="num">€1.80</span></div><div style="font-size:11px" class="mut">Recommended · contested in some member states</div></div>
+              <div><div style="display:flex; justify-content:space-between; font-size:13px; font-weight:600"><span>B · Continuous grid path</span><span class="num">€3.20</span></div><div style="font-size:11px" class="mut">Multi-zone transit · PRISMA capacity required</div></div>
+              <div><div style="display:flex; justify-content:space-between; font-size:13px; font-weight:600"><span>C · Physical bio-LNG</span><span style="font-size:12px; color:var(--color-accent-700)">Tariff incomplete</span></div><div style="font-size:11px" class="mut">Liquefaction leg unverified — never summed around a null tariff</div></div>
+            </div>
+          </div>
+          <div style="padding:14px 18px">
+            <p style="font-size:12px; line-height:1.55; margin:0" class="mut">Largest compliance market in Europe. Double counting is unresolved for the 2026 compliance year, so every German netback is carried as a dual branch until the cabinet draft settles.</p>
+          </div>
+          <div style="margin-top:auto; padding:16px 18px; border-top:2px solid var(--color-divider); display:flex; flex-direction:column; gap:8px">
+            <button type="button" class="btn btn-primary btn-block" style="margin-top:0">Simulate in trade builder</button>
+            <button type="button" class="btn btn-secondary btn-block" style="margin-top:0" onClick="{{ openPlaybook }}">Open delivery playbook</button>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ─── 8. LIBRARY ─── -->
+    <sc-if value="{{ isLibrary }}">
+      <div>
+        <div style="display:flex; align-items:flex-end; gap:20px; padding:16px 18px; border-bottom:2px solid var(--color-divider)">
+          <div>
+            <h3 class="ptitle">Dossier library</h3>
+            <div class="subttl">Booked and declined trade dossiers with their citations · a declined corridor is the evidence of why it was declined</div>
+          </div>
+          <div style="margin-left:auto; display:flex; gap:4px">
+            <span class="chip chip-a">All</span><span class="chip">Booked</span><span class="chip">Declined</span><span class="chip">Drifted</span>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:1px; background:var(--color-divider)">
+          <sc-for list="{{ dossiers }}" as="d" hint-placeholder-count="4">
+            <div style="background:var(--color-bg); display:flex; flex-direction:column">
+              <div style="display:flex; align-items:flex-start; gap:12px; padding:14px 18px 12px; border-bottom:1px solid var(--color-divider)">
+                <div style="min-width:0">
+                  <h5 style="margin:0; font-size:17px">{{ d.title }}</h5>
+                  <div class="num" style="font-size:11px; margin-top:3px" class="mut">{{ d.meta }}</div>
+                </div>
+                <div style="margin-left:auto">{{ d.chip }}</div>
+              </div>
+              <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:1px; background:var(--color-divider)">
+                <div style="background:var(--color-bg); padding:10px 18px"><div class="eyebrow">Volume</div><div class="num" style="font-size:15px; font-weight:600">{{ d.volume }}</div></div>
+                <div style="background:var(--color-bg); padding:10px 18px"><div class="eyebrow">Netback</div><div class="num" style="font-size:15px; font-weight:600">{{ d.netback }}</div></div>
+                <div style="background:var(--color-bg); padding:10px 18px"><div class="eyebrow">Margin</div><div class="num" style="font-size:15px; font-weight:600">{{ d.margin }}</div></div>
+              </div>
+              <div style="padding:12px 18px 14px; border-top:1px solid var(--color-divider)">
+                <p style="font-size:12px; line-height:1.55; margin:0 0 10px" class="mut">{{ d.note }}</p>
+                <div style="display:flex; align-items:center; gap:12px">
+                  <span style="font-size:11px; font-weight:600">{{ d.drift }}</span>
+                  <div style="margin-left:auto; display:flex; gap:8px">
+                    <button type="button" class="btn btn-secondary" style="padding:5px 10px; font-size:12px" onClick="{{ rescan }}">Recalculate</button>
+                    <button type="button" class="btn btn-secondary" style="padding:5px 10px; font-size:12px" onClick="{{ structure }}">Open</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ─── 9. CITATIONS ─── -->
+    <sc-if value="{{ isCitations }}">
+      <div style="display:grid; grid-template-columns:280px minmax(0,1fr) 236px; flex:1; min-height:0">
+        <div style="border-right:2px solid var(--color-divider); display:flex; flex-direction:column; min-width:0">
+          <div style="padding:14px 16px; border-bottom:2px solid var(--color-divider)">
+            <div class="eyebrow">Statutory register</div>
+            <input class="input" style="margin-top:8px" placeholder="Search 31 instruments" aria-label="Search citations">
+          </div>
+          <div style="padding:10px 0">
+            <sc-for list="{{ citations }}" as="c" hint-placeholder-count="12">
+              <div style="display:flex; align-items:baseline; gap:10px; padding:8px 16px; border-bottom:1px solid var(--color-divider)">
+                <span class="num" style="width:24px; font-size:11px; font-weight:600" class="mut">{{ c.cc }}</span>
+                <span style="flex:1; font-size:13px; line-height:1.35">{{ c.title }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="border-right:2px solid var(--color-divider); min-width:0">
+          <div style="padding:20px 24px; border-bottom:2px solid var(--color-divider)">
+            <div class="eyebrow">EU directive · consolidated to August 2026</div>
+            <h3 style="font-size:30px; margin:8px 0 6px">RED III Directive (EU) 2023/2413</h3>
+            <div style="font-size:13px" class="mut">Directive of the European Parliament and of the Council amending Directive (EU) 2018/2001 as regards the promotion of energy from renewable sources · Articles 25, 29, 30, 31, 31a &amp; Annex IX</div>
+            <div style="display:flex; gap:8px; margin-top:12px">
+              <button type="button" class="btn btn-secondary" style="padding:5px 10px; font-size:12px">Copy citation</button>
+              <button type="button" class="btn btn-secondary" style="padding:5px 10px; font-size:12px">Open EUR-Lex</button>
+            </div>
+          </div>
+          <div style="padding:20px 24px; max-width:760px">
+            <h4 style="font-size:19px; margin:0 0 8px">Golden trading desk rule</h4>
+            <p style="font-size:14px; line-height:1.6; margin:0 0 18px">A consignment is only tradeable into a compliance mechanism if the certification scheme is recognised for that mechanism, the volume can evidence Union Database ingestion, and the chain of custody is mass balance. Book &amp; claim satisfies none of the three, whatever the physical molecule did.</p>
+            <div style="height:2px; background:var(--color-divider); margin:0 0 18px"></div>
+            <h4 style="font-size:19px; margin:0 0 8px">Statutory framework</h4>
+            <p style="font-size:14px; line-height:1.6; margin:0 0 12px">Article 29 sets the sustainability and greenhouse-gas saving criteria; Article 30 fixes the chain-of-custody rules under which mass balance is mandatory for compliance claims; Article 31a establishes the Union Database and the obligation to register every transaction in it.</p>
+            <div style="display:flex; flex-direction:column; gap:0; border-top:1px solid var(--color-divider)">
+              <div style="display:grid; grid-template-columns:190px minmax(0,1fr); gap:16px; padding:10px 0; border-bottom:1px solid var(--color-divider)">
+                <span style="font-size:12px; font-weight:600">Art. 29(10)</span>
+                <span style="font-size:13px; line-height:1.5" class="mut">Minimum GHG saving of 65% for transport biofuels from installations commissioned after 2021.</span>
+              </div>
+              <div style="display:grid; grid-template-columns:190px minmax(0,1fr); gap:16px; padding:10px 0; border-bottom:1px solid var(--color-divider)">
+                <span style="font-size:12px; font-weight:600">Art. 30(1)</span>
+                <span style="font-size:13px; line-height:1.5" class="mut">Mass balance system required for verification of sustainability and GHG criteria.</span>
+              </div>
+              <div style="display:grid; grid-template-columns:190px minmax(0,1fr); gap:16px; padding:10px 0; border-bottom:1px solid var(--color-divider)">
+                <span style="font-size:12px; font-weight:600">Art. 31a</span>
+                <span style="font-size:13px; line-height:1.5" class="mut">Union Database registration of all renewable fuel transactions, with grid-injected gas treated per Reg. (EU) 2024/2792.</span>
+              </div>
+              <div style="display:grid; grid-template-columns:190px minmax(0,1fr); gap:16px; padding:10px 0; border-bottom:1px solid var(--color-divider)">
+                <span style="font-size:12px; font-weight:600">Annex IX Part A</span>
+                <span style="font-size:13px; line-height:1.5" class="mut">Advanced feedstock list, including manure and slurry, eligible for the advanced sub-target.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:16px; background:var(--color-surface)">
+          <div class="eyebrow" style="margin-bottom:10px">On this page</div>
+          <div style="display:flex; flex-direction:column; gap:8px; font-size:12px">
+            <span style="font-weight:600">1 · Overview &amp; scope</span>
+            <span class="mut">2 · Golden trading desk rule</span>
+            <span class="mut">3 · Statutory framework</span>
+            <span class="mut">4 · Compliance gates &amp; audit scope</span>
+            <span class="mut">5 · Penalties &amp; buyout caps</span>
+            <span class="mut">6 · Verbatim provisions</span>
+            <span class="mut">7 · Official portals</span>
+            <span class="mut">8 · Interconnected markets</span>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ─── 10. DATA SOURCES ─── -->
+    <sc-if value="{{ isSources }}">
+      <div>
+        <div style="display:flex; align-items:flex-end; gap:20px; padding:16px 18px; border-bottom:2px solid var(--color-divider)">
+          <div>
+            <h3 class="ptitle">Data sources &amp; provenance</h3>
+            <div class="subttl">Every figure on the desk resolves to one of these sources, with its authority, cadence and the fields it does not cover</div>
+          </div>
+          <div style="margin-left:auto; display:flex; gap:4px">
+            <span class="chip chip-a">All</span><span class="chip">Plants</span><span class="chip">Pricing</span><span class="chip">Registries</span><span class="chip">Logistics</span>
+          </div>
+        </div>
+        <div style="padding:0 18px 18px">
+          <table class="table" style="font-size:13px">
+            <thead>
+              <tr>
+                <th>Source</th>
+                <th style="width:200px">Authority</th>
+                <th style="width:120px">Category</th>
+                <th style="width:150px">Coverage</th>
+                <th style="width:110px">Cadence</th>
+                <th style="width:150px">Provenance tier</th>
+              </tr>
+            </thead>
+            <tbody>
+              <sc-for list="{{ sources }}" as="s" hint-placeholder-count="8">
+                <tr>
+                  <td>
+                    <div style="font-weight:600">{{ s.name }}</div>
+                    <div style="font-size:11px" class="mut">{{ s.legal }}</div>
+                  </td>
+                  <td style="font-size:12px">{{ s.authority }}</td>
+                  <td style="font-size:12px">{{ s.category }}</td>
+                  <td class="num" style="font-size:12px">{{ s.coverage }}</td>
+                  <td style="font-size:12px">{{ s.cadence }}</td>
+                  <td>{{ s.tierChip }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </sc-if>
+
+  </div>
+
+  <!-- ═══════════ DELIVERY PLAYBOOK MODAL ═══════════ -->
+  <sc-if value="{{ isPlaybook }}">
+    <div class="scrim" style="align-items:flex-start; justify-content:center; padding:36px 24px; overflow-y:auto" role="dialog" aria-modal="true" aria-label="Delivery playbook">
+      <div class="panel" style="width:min(1120px, 100%)">
+        <div style="display:flex; align-items:flex-start; gap:16px; padding:14px 20px; background:var(--color-surface); border-bottom:2px solid var(--color-divider)">
+          <div>
+            <h4 style="margin:0; font-size:16px; letter-spacing:0.1em; text-transform:uppercase">Delivery playbook · DK → DE</h4>
+            <div style="font-size:12px; margin-top:3px" class="mut">Nature Energy Korskro → THE hub · basis to TTF +€0.65/MWh · transit €1.80/MWh · {{ selMarket }}</div>
+          </div>
+          <button type="button" class="btn btn-secondary" style="margin-left:auto; padding:4px 10px; font-size:12px; white-space:nowrap" onClick="{{ closeModal }}">Esc ✕</button>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:1px; background:var(--color-divider)">
+          <sc-for list="{{ playbook }}" as="o" hint-placeholder-count="3">
+            <div style="background:var(--color-bg); padding:16px 18px; display:flex; flex-direction:column; gap:10px">
+              <div style="display:flex; align-items:center; gap:8px">
+                <span class="chip">{{ o.tag }}</span>
+                {{ o.feasChip }}
+              </div>
+              <h5 style="margin:0; font-size:17px">{{ o.title }}</h5>
+              {{ o.total }}
+              <div style="font-size:11px" class="mut">{{ o.timeline }}</div>
+              <p style="font-size:12px; line-height:1.55; margin:0" class="mut">{{ o.summary }}</p>
+              <div style="display:flex; flex-direction:column; gap:6px; padding-top:8px; border-top:1px solid var(--color-divider)">
+                <sc-for list="{{ o.items }}" as="i" hint-placeholder-count="4">
+                  <div class="kv"><span class="lbl">{{ i.label }}</span><span></span><span class="num" style="font-weight:600">{{ i.value }}</span></div>
+                </sc-for>
+              </div>
+              <div style="padding-top:8px; border-top:1px solid var(--color-divider)">
+                <div class="eyebrow">For</div>
+                <sc-for list="{{ o.forList }}" as="f" hint-placeholder-count="2">
+                  <div style="font-size:12px; line-height:1.5; margin-top:3px">{{ f.text }}</div>
+                </sc-for>
+                <div class="eyebrow" style="margin-top:9px; color:var(--color-accent-700)">Against</div>
+                <sc-for list="{{ o.againstList }}" as="a" hint-placeholder-count="2">
+                  <div style="font-size:12px; line-height:1.5; margin-top:3px">{{ a.text }}</div>
+                </sc-for>
+              </div>
+              <div style="font-size:11px; margin-top:auto; padding-top:8px; color:var(--color-accent-700)">{{ o.legal }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); border-top:2px solid var(--color-divider)">
+          <div style="padding:16px 20px; border-right:1px solid var(--color-divider)">
+            <div class="eyebrow">Execution steps</div>
+            <div style="margin-top:12px">
+              <sc-for list="{{ execution }}" as="e" hint-placeholder-count="4">
+                <div style="display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--color-divider)">
+                  <span class="num" style="width:18px; height:18px; flex:none; display:flex; align-items:center; justify-content:center; background:var(--color-text); color:var(--color-bg); font-size:11px; font-weight:800">{{ e.n }}</span>
+                  <div style="min-width:0">
+                    <div style="font-size:13px; font-weight:600">{{ e.title }}</div>
+                    <div style="font-size:11px" class="mut">{{ e.actor }}</div>
+                    <sc-for list="{{ e.actions }}" as="a" hint-placeholder-count="2">
+                      <div style="font-size:12px; line-height:1.55; margin-top:4px">{{ a.text }}</div>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="padding:16px 20px">
+            <div class="eyebrow">Hub basis &amp; interconnection</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--color-divider); margin-top:12px">
+              <div style="background:var(--color-bg); padding:10px 14px"><div class="eyebrow">Origin hub</div><div style="font-size:15px; font-weight:600">Energinet DK</div></div>
+              <div style="background:var(--color-bg); padding:10px 14px"><div class="eyebrow">Target hub</div><div style="font-size:15px; font-weight:600">THE</div></div>
+              <div style="background:var(--color-bg); padding:10px 14px"><div class="eyebrow">Basis to TTF</div><div class="num" style="font-size:15px; font-weight:600">+€0.65</div></div>
+              <div style="background:var(--color-bg); padding:10px 14px"><div class="eyebrow">Basis spread</div><div class="num" style="font-size:15px; font-weight:600">€0.28</div></div>
+            </div>
+            <div style="margin-top:14px">
+              <div style="padding:9px 0; border-bottom:1px solid var(--color-divider)">
+                <div style="display:flex; align-items:baseline; gap:8px"><span style="font-size:13px; font-weight:600">Ellund</span><span class="chip" style="margin-left:auto">High confidence</span></div>
+                <div style="font-size:11px; margin-top:2px" class="mut">Energinet ↔ Gasunie Deutschland · firm capacity, PRISMA auction</div>
+              </div>
+              <div style="padding:9px 0; border-bottom:1px solid var(--color-divider)">
+                <div style="display:flex; align-items:baseline; gap:8px"><span style="font-size:13px; font-weight:600">Dragør</span><span class="chip chip-a" style="margin-left:auto">Tariff unverified</span></div>
+                <div style="font-size:11px; margin-top:2px" class="mut">Energinet ↔ Nordion Energi · Swedish leg only, no German path</div>
+              </div>
+            </div>
+            <p style="font-size:11px; line-height:1.55; margin:12px 0 0" class="mut">Tariffs are unverified until confirmed on PRISMA, and winter cleared prices run 3–5× summer. Where no continuous route exists, the virtual swap or the bio-LNG alternative is the only compliant path.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ═══════════ FACILITY DETAIL MODAL ═══════════ -->
+  <sc-if value="{{ isFacility }}">
+    <div class="scrim" style="align-items:center; justify-content:center; padding:24px" role="dialog" aria-modal="true" aria-label="Facility record">
+      <div class="panel" style="width:min(520px, 100%)">
+        <div style="display:flex; align-items:flex-start; gap:14px; padding:14px 18px; background:var(--color-surface); border-bottom:2px solid var(--color-divider)">
+          <div>
+            <h5 style="margin:0; font-size:17px">{{ plantName }}</h5>
+            <div class="eyebrow" style="margin-top:3px">{{ plantCc }} · facility record</div>
+          </div>
+          <div style="margin-left:auto; display:flex; align-items:center; gap:8px">
+            {{ plantProvChip }}
+            <button type="button" class="btn btn-secondary" style="padding:4px 10px; font-size:12px" onClick="{{ closeModal }}">Esc ✕</button>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--color-divider)">
+          <sc-for list="{{ plantFields }}" as="f" hint-placeholder-count="8">
+            <div style="background:var(--color-bg); padding:11px 16px">
+              <div class="eyebrow">{{ f.k }}</div>
+              <div style="font-size:14px; font-weight:600; margin-top:2px">{{ f.v }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="padding:14px 18px; border-top:2px solid var(--color-divider)">
+          <p style="font-size:12px; line-height:1.6; margin:0" class="mut">Source: GIE / EBA European Biomethane Map 2026, an annual industry census. 1,843 of 1,975 facilities carry facility name and country only — where a field reads <span style="color:var(--color-neutral-600)">unrecorded</span> the national TSO does not publish an individual meter declaration. Do not price a trade against an unverified row.</p>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ═══════════ BROKER RUN IMPORTER ═══════════ -->
+  <sc-if value="{{ isImporter }}">
+    <div class="scrim" style="align-items:center; justify-content:center; padding:24px" role="dialog" aria-modal="true" aria-label="Import broker run">
+      <div class="panel" style="width:min(720px, 100%)">
+        <div style="display:flex; align-items:flex-start; gap:14px; padding:14px 18px; background:var(--color-surface); border-bottom:2px solid var(--color-divider)">
+          <div>
+            <h5 style="margin:0; font-size:17px">Import broker run</h5>
+            <div style="font-size:12px; margin-top:2px" class="mut">Paste a broker run as it arrives. Every parsed line writes bid / mid / offer with BROKER provenance and an observed timestamp.</div>
+          </div>
+          <button type="button" class="btn btn-secondary" style="margin-left:auto; padding:4px 10px; font-size:12px" onClick="{{ closeModal }}">Esc ✕</button>
+        </div>
+        <div style="padding:16px 18px; display:flex; flex-direction:column; gap:14px">
+          <div class="field">
+            <label for="brokerRun">Broker run text</label>
+            <textarea id="brokerRun" class="input num" style="min-height:150px; font-size:12px; line-height:1.6">DE THG 2026  225.40 / 231.60
+NL ERE 2026  0.211 / 0.217
+IT CIC 2026  370.00 / 380.00
+FR CPB 2026  96.50 / 99.50
+FR TIRUERT   112.00 / 117.00
+SE TAX 2026  68.00 / 72.40
+AT EGG 2026  58.00 / 64.00
+GB dRTFC     0.182 / 0.190
+TTF M+1      31.86 / 31.98</textarea>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:1px; background:var(--color-divider)">
+            <div style="background:var(--color-bg); padding:10px 14px"><div class="eyebrow">Lines detected</div><div class="num" style="font-size:18px; font-weight:800">9</div></div>
+            <div style="background:var(--color-bg); padding:10px 14px"><div class="eyebrow">Markets matched</div><div class="num" style="font-size:18px; font-weight:800">8 of 16</div></div>
+            <div style="background:var(--color-bg); padding:10px 14px"><div class="eyebrow">Provenance written</div><div style="font-size:14px; font-weight:600; margin-top:2px">Broker · observed now</div></div>
+          </div>
+          <p style="font-size:12px; line-height:1.55; margin:0" class="mut">Unmatched market codes are never guessed — they are reported and skipped, so a mistyped line cannot silently overwrite a desk mark.</p>
+          <div style="display:flex; gap:8px; justify-content:flex-end">
+            <button type="button" class="btn btn-secondary" onClick="{{ failImport }}">Simulate a bad run</button>
+            <button type="button" class="btn btn-primary" onClick="{{ confirmImport }}">Parse and write 9 marks</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ═══════════ COMMAND PALETTE ═══════════ -->
+  <sc-if value="{{ isPalette }}">
+    <div class="scrim" style="align-items:flex-start; justify-content:center; padding:88px 24px" role="dialog" aria-modal="true" aria-label="Command palette">
+      <div class="panel" style="width:min(620px, 100%); max-height:60vh">
+        <div style="padding:12px 16px; border-bottom:2px solid var(--color-divider); display:flex; align-items:center; gap:10px">
+          <span class="eyebrow">Command</span>
+          <input class="input" style="border:0; background:transparent; font-size:15px; padding:0" placeholder="Jump to a screen or run an action" aria-label="Command palette search" value="{{ paletteQuery }}" onChange="{{ onPaletteQuery }}">
+          <span class="num mut" style="font-size:11px; white-space:nowrap">Esc to close</span>
+        </div>
+        <div class="noscroll" style="overflow-y:auto">
+          <sc-for list="{{ paletteItems }}" as="p" hint-placeholder-count="8">
+            <a class="plist" href="#" onClick="{{ p.run }}">
+              <span class="eyebrow" style="width:52px; flex:none">{{ p.kind }}</span>
+              <span style="flex:1; font-size:14px">{{ p.label }}</span>
+              <span class="num mut" style="font-size:11px">{{ p.hint }}</span>
+            </a>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ═══════════ TOAST ═══════════ -->
+  <sc-if value="{{ hasToast }}">
+    <div style="position:fixed; bottom:44px; left:50%; transform:translateX(-50%); z-index:110; display:flex; align-items:center; gap:12px; padding:10px 16px; background:var(--color-text); color:var(--color-bg); box-shadow:var(--shadow-lg)">
+      <span style="width:8px; height:8px; background:var(--color-accent); flex:none"></span>
+      <span style="font-size:13px; font-weight:600">{{ toastText }}</span>
+    </div>
+  </sc-if>
+
+  <!-- ═══════════ FOOTER ═══════════ -->
+  <div style="height:28px; flex:none; display:flex; align-items:center; justify-content:space-between; padding:0 18px; border-top:2px solid var(--color-divider); font-size:11px" class="mut">
+    <span>GIE / EBA European Biomethane Map 2026 · 1,975 facilities · RED III consolidated to August 2026 · 2 of 16 marks simulated</span>
+    <span>Keys 1–7 screens · ↑↓ rows · ⏎ playbook · Esc close · ⌘K command</span>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:&quot;100%&quot;},&quot;defaultTheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light' | 'dark'&quot;,&quot;section&quot;:&quot;Desk&quot;},&quot;pricingSide&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;bid&quot;,&quot;mid&quot;,&quot;offer&quot;],&quot;default&quot;:&quot;mid&quot;,&quot;tsType&quot;:&quot;'bid' | 'mid' | 'offer'&quot;,&quot;section&quot;:&quot;Desk&quot;},&quot;showProvenanceChips&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Desk&quot;}}">
+const MARKET_ROWS = [
+  { rank: 1, cc: 'DE', market: 'Germany THG Quota', registry: 'dena Biogasregister / UBA', legal: '§37a BImSchG · 38. BImSchV', unit: '€/tCO₂e', base: 72.07, margin: 46, age: '2d', verdict: 'Unresolved', gates: 'PPPPPU', src: 'DESK' },
+  { rank: 2, cc: 'NL', market: 'Netherlands ERE', registry: 'NEa REV / myVertiCer', legal: 'Wet milieubeheer', unit: '€/kgCO₂e', base: 58.40, margin: 37, age: '1d', verdict: 'Eligible', gates: 'PPPPPP', src: 'DESK' },
+  { rank: 3, cc: 'IT', market: 'Italy CIC', registry: 'GSE', legal: 'DM 2 March 2018', unit: '€/CIC', base: 41.95, margin: 27, age: '4d', verdict: 'Eligible', gates: 'PPPPPP', src: 'DESK' },
+  { rank: 4, cc: 'FR', market: 'France TIRUERT / IRICC', registry: 'DGDDI', legal: 'Code des douanes 266 quindecies', unit: '€/MWh', base: 33.10, margin: 21, age: '3d', verdict: 'Eligible', gates: 'PPPPPC', src: 'DESK' },
+  { rank: 5, cc: 'EU', market: 'FuelEU Maritime', registry: 'Union Database', legal: 'Reg. (EU) 2023/1805', unit: '€/tCO₂e', base: 26.44, margin: 17, age: '6d', verdict: 'Conditional', gates: 'PPPPCP', src: 'SIM' },
+  { rank: 6, cc: 'FR', market: 'France CPB', registry: 'EEX', legal: 'Code de l\u2019énergie L.446-24', unit: 'Capped €100/MWh', base: 18.62, margin: 12, age: '3d', verdict: 'Capped', gates: 'PPPPPC', src: 'DESK' },
+  { rank: 7, cc: 'SE', market: 'Sweden tax exemption', registry: 'Energimyndigheten', legal: 'Lag (1994:1776)', unit: '€/MWh', base: 14.20, margin: 9, age: '9d', verdict: 'Eligible', gates: 'PPPPPP', src: 'DESK' },
+  { rank: 8, cc: 'AT', market: 'Austria EGG', registry: 'AGCS', legal: 'Erneuerbaren-Gase-Gesetz', unit: '€/MWh', base: 6.40, margin: 4, age: '12d', verdict: 'Conditional', gates: 'PPPPPC', src: 'SIM' },
+  { rank: 9, cc: 'GB', market: 'UK RTFO / dRTFC', registry: 'DfT RTFO', legal: 'RED III Art. 28(2)', unit: '£/dRTFC', base: -21.35, margin: -14, age: '5d', verdict: 'Blocked', gates: 'PBPPPP', src: 'DESK' },
+];
+
+const GATE_LETTERS = ['S', 'U', 'M', 'A', 'G', 'N'];
+
+const GATES = [
+  { label: 'Scheme recognition', verdict: 'Pass', reason: 'ISCC EU is recognised by the Commission for RED III transport compliance in Germany.', citation: 'Implementing Decision (EU) 2022/2461' },
+  { label: 'UDB grid ingestion', verdict: 'Pass', reason: 'Danish injection reaches THE through Ellund inside a single mass balance area, so ingestion is evidenceable.', citation: 'Reg. (EU) 2024/2792 Art. 14' },
+  { label: 'Mass balance custody', verdict: 'Pass', reason: 'Consignment is held under mass balance from plant gate to statutory cancellation.', citation: 'RED III Art. 30(1)' },
+  { label: 'Annex IX feedstock', verdict: 'Pass · IX-A', reason: 'Animal manure and slurry are listed in Annex IX Part A and qualify for the advanced sub-target.', citation: 'RED III Annex IX Part A' },
+  { label: 'GHG saving threshold', verdict: 'Pass · 206%', reason: 'CI of −100 gCO₂e/MJ against the 94.0 fossil baseline clears the 65% floor by a wide margin.', citation: 'RED III Art. 29(10)' },
+  { label: 'Member state specifics', verdict: 'Unresolved', reason: 'Whether biomethane retains the double-counting multiplier for the 2026 compliance year is not settled.', citation: '§37a BImSchG · Cabinet draft 10 Dec 2025' },
+];
+
+const WATERFALL = [
+  { label: 'Certificate value', value: '228.50', kind: 'add' },
+  { label: 'Delivered cost', value: '−153.15', kind: 'sub' },
+  { label: 'Transfer & registry', value: '−0.90', kind: 'sub' },
+  { label: 'Certification', value: '−0.55', kind: 'sub' },
+  { label: 'Transit DK → DE', value: '−1.80', kind: 'sub' },
+  { label: 'Net netback', value: '+72.07', kind: 'net' },
+];
+
+const MARKS = [
+  { cc: 'DE', market: 'Germany THG Quota', unit: '€/tCO₂e', bid: '225.40', mid: '228.50', offer: '231.60', spread: '6.20', src: 'DESK', age: '2d' },
+  { cc: 'NL', market: 'Netherlands ERE', unit: '€/kgCO₂e', bid: '0.211', mid: '0.214', offer: '0.217', spread: '0.006', src: 'DESK', age: '1d' },
+  { cc: 'IT', market: 'Italy CIC', unit: '€/CIC', bid: '370.00', mid: '375.00', offer: '380.00', spread: '10.00', src: 'DESK', age: '4d' },
+  { cc: 'FR', market: 'France CPB', unit: '€/MWh', bid: '96.50', mid: '98.00', offer: '99.50', spread: '3.00', src: 'DESK', age: '3d' },
+  { cc: 'FR', market: 'France TIRUERT', unit: '€/MWh', bid: '112.00', mid: '114.50', offer: '117.00', spread: '5.00', src: 'DESK', age: '3d' },
+  { cc: 'EU', market: 'FuelEU Maritime', unit: '€/tCO₂e', bid: '242.00', mid: '248.00', offer: '254.00', spread: '12.00', src: 'SIM', age: '6d' },
+  { cc: 'SE', market: 'Sweden tax exemption', unit: '€/MWh', bid: '68.00', mid: '70.20', offer: '72.40', spread: '4.40', src: 'DESK', age: '9d' },
+  { cc: 'AT', market: 'Austria EGG', unit: '€/MWh', bid: '58.00', mid: '61.00', offer: '64.00', spread: '6.00', src: 'SIM', age: '12d' },
+  { cc: 'GB', market: 'UK RTFO / dRTFC', unit: '£/dRTFC', bid: '0.182', mid: '0.186', offer: '0.190', spread: '0.008', src: 'DESK', age: '5d' },
+];
+
+const TENORS = [
+  { year: '2026', volume: '68,000 MWh', mtm: '€862,400', share: '47%', w: 100 },
+  { year: '2027', volume: '42,000 MWh', mtm: '€514,900', share: '28%', w: 62 },
+  { year: '2028', volume: '24,000 MWh', mtm: '€288,200', share: '16%', w: 35 },
+  { year: '2029', volume: '10,000 MWh', mtm: '€118,600', share: '6%', w: 15 },
+  { year: '2030', volume: '4,000 MWh', mtm: '€52,900', share: '3%', w: 6 },
+];
+
+const PLANTS = [
+  { cc: 'DE', name: 'Friedland', operator: 'EnviTec Biogas AG', capacity: '1,400', energy: '112.0', feedstock: 'Manure & slurry', verified: true },
+  { cc: 'DE', name: 'Forst', operator: 'Verbio SE', capacity: '1,150', energy: '92.0', feedstock: 'Agricultural residues', verified: true },
+  { cc: 'DK', name: 'Korskro', operator: 'Nature Energy', capacity: '2,200', energy: '176.0', feedstock: 'Manure & slurry', verified: true },
+  { cc: 'DK', name: 'Kvaers', operator: null, capacity: null, energy: null, feedstock: null, verified: false },
+  { cc: 'FR', name: 'Méthasillon', operator: null, capacity: null, energy: null, feedstock: null, verified: false },
+  { cc: 'FR', name: 'Bioval Beauce', operator: null, capacity: null, energy: null, feedstock: null, verified: false },
+  { cc: 'NL', name: 'Attero Wijster', operator: 'Attero', capacity: '1,800', energy: '144.0', feedstock: 'Municipal bio-waste', verified: true },
+  { cc: 'IT', name: 'Cortemaggiore', operator: null, capacity: null, energy: null, feedstock: null, verified: false },
+  { cc: 'SE', name: 'Jordberga', operator: null, capacity: null, energy: null, feedstock: null, verified: false },
+  { cc: 'ES', name: 'Vila-sana', operator: null, capacity: null, energy: null, feedstock: null, verified: false },
+];
+
+const COUNTRIES = [
+  { cc: 'FR', name: 'France', plants: 652, twh: '10.4' },
+  { cc: 'DE', name: 'Germany', plants: 242, twh: '11.8' },
+  { cc: 'IT', name: 'Italy', plants: 135, twh: '4.8' },
+  { cc: 'GB', name: 'United Kingdom', plants: 108, twh: '6.1' },
+  { cc: 'NL', name: 'Netherlands', plants: 82, twh: '3.2' },
+  { cc: 'SE', name: 'Sweden', plants: 72, twh: '2.1' },
+  { cc: 'DK', name: 'Denmark', plants: 64, twh: '5.6' },
+  { cc: 'FI', name: 'Finland', plants: 26, twh: '0.55' },
+  { cc: 'AT', name: 'Austria', plants: 16, twh: '0.45' },
+  { cc: 'BE', name: 'Belgium', plants: 12, twh: '0.38' },
+];
+
+const DOSSIERS = [
+  { title: 'DK manure → Germany THG', meta: 'REF DSK-2026-0114 · saved 14 Aug 2026', chip: 'Booked', volume: '10,000 MWh', netback: '+€72.07', margin: '46%', note: 'Dual-branch dossier carried at 1× single counting. Both branches, the persistent distinction and all six gate citations are attached to the ticket.', drift: 'DE THG mark +€3.10 since save · netback +€0.98', tone: 'ok' },
+  { title: 'UK RTFO grid-injected food waste', meta: 'REF DSK-2026-0109 · saved 11 Aug 2026', chip: 'Declined', volume: '15,000 MWh', netback: '—', margin: '—', note: 'Retained as the evidence of why the corridor was declined: grid injection cannot evidence UDB ingestion for the RTFO, so the trade hard-blocks at gate 2.', drift: 'No marks affect a blocked route', tone: 'blocked' },
+  { title: 'DK manure → Netherlands ERE', meta: 'REF DSK-2026-0112 · saved 12 Aug 2026', chip: 'Booked', volume: '12,000 MWh', netback: '+€58.40', margin: '37%', note: 'ERE structurally advantages the low-CI molecule — 1 ERE is 1 kg CO₂e avoided with no multipliers, so the negative CI carries the whole margin.', drift: 'NL ERE mark unchanged · netback flat', tone: 'ok' },
+  { title: 'AT EGG green gas quota', meta: 'REF DSK-2026-0104 · saved 4 Aug 2026', chip: 'Drifted', volume: '6,000 MWh', netback: '+€6.40', margin: '4%', note: 'Priced against a simulated level. Thin margin means a 5% move in the EGG mark flips the route loss-making, so it needs a broker quote before booking.', drift: 'Priced off simulated marks · 12d old', tone: 'warn' },
+];
+
+const CITATIONS = [
+  { cc: 'EU', title: 'RED III Directive (EU) 2023/2413' },
+  { cc: 'EU', title: 'FuelEU Maritime Regulation (EU) 2023/1805' },
+  { cc: 'EU', title: 'Union Database Regulation (EU) 2024/2792' },
+  { cc: 'EU', title: 'Gas & Hydrogen Decarbonisation Package (2024)' },
+  { cc: 'EU', title: 'EU ETS 2 Directive (EU) 2023/959' },
+  { cc: 'DE', title: 'BImSchG §37a–§37f & 38. BImSchV' },
+  { cc: 'NL', title: 'Wet milieubeheer & Besluit energie vervoer' },
+  { cc: 'FR', title: 'Code de l\u2019énergie (CPB / Arrêté Tarifaire)' },
+  { cc: 'FR', title: 'TIRUERT Transport Quota' },
+  { cc: 'IT', title: 'D.M. 2 Marzo 2018 & PNRR Decree 2022' },
+  { cc: 'DK', title: 'Lov om fremme af vedvarende energi' },
+  { cc: 'GB', title: 'Renewable Transport Fuel Obligation' },
+  { cc: 'SE', title: 'Lag om skatt på energi' },
+  { cc: 'ES', title: 'Real Decreto 376/2022' },
+  { cc: 'AT', title: 'Erneuerbare-Gase-Gesetz' },
+  { cc: 'EU', title: 'ISCC EU certification scheme' },
+  { cc: 'EU', title: 'ISCC PLUS — voluntary market boundary' },
+  { cc: 'EU', title: 'Annex IX Part A vs Part B vs crop feedstocks' },
+];
+
+const SOURCES = [
+  { name: 'GIE / EBA European Biomethane Map 2026', legal: 'European Biomethane Industrial Partnership / RePowerEU', authority: 'Gas Infrastructure Europe & European Biogas Association', category: 'Plants & assets', coverage: '1,975+ facilities · 28 countries', cadence: 'Annual', tier: 'Industry census' },
+  { name: 'ODRE French Biomethane Injection Registry', legal: 'Code de l\u2019énergie Art. L.446-24', authority: 'GRTgaz, Teréga, Enedis, GRDF', category: 'Plants & assets', coverage: '829 active facilities · FR', cadence: 'Monthly', tier: 'TSO official' },
+  { name: 'Energinet biomethane production data', legal: 'VE-loven §§ 43a–43f', authority: 'Energinet', category: 'Registries', coverage: '64 facilities · DK', cadence: 'Real-time API', tier: 'TSO official' },
+  { name: 'Union Database (UDB)', legal: 'Reg. (EU) 2024/2792 Art. 14–16', authority: 'European Commission · DG ENER', category: 'Registries', coverage: 'All EU-27 transactions', cadence: 'Real-time API', tier: 'Statutory' },
+  { name: 'dena Biogasregister', legal: '§37a BImSchG · 38. BImSchV', authority: 'Deutsche Energie-Agentur / UBA', category: 'Registries', coverage: '242 facilities · DE', cadence: 'Monthly', tier: 'National regulator' },
+  { name: 'Broker desk certificate runs', legal: 'Bilateral broker indications', authority: 'Desk broker panel', category: 'Pricing', coverage: '16 compliance marks', cadence: 'Daily', tier: 'Broker reported' },
+  { name: 'TTF & THE gas benchmarks', legal: 'Exchange settlement data', authority: 'ICE Endex / EEX', category: 'Pricing', coverage: 'M+1 to Cal-2030', cadence: 'Daily', tier: 'Broker reported' },
+  { name: 'PRISMA interconnection tariffs', legal: 'Reg. (EU) 2017/459 network codes', authority: 'PRISMA European Capacity Platform', category: 'Logistics', coverage: '24 interconnection points', cadence: 'Daily', tier: 'Modelled engineering' },
+];
+
+const SIDE_FACTOR = { bid: 0.965, mid: 1, offer: 1.035 };
+
+const PALETTE = [
+  { kind: 'Screen', label: 'Origination desk', hint: '1', screen: 'origination' },
+  { kind: 'Screen', label: 'Netback ladder / scanner', hint: 'S', screen: 'scanner' },
+  { kind: 'Screen', label: 'Trade builder', hint: '4', screen: 'trade' },
+  { kind: 'Screen', label: 'Pricing desk & broker runs', hint: '5', screen: 'pricing' },
+  { kind: 'Screen', label: 'Portfolio risk & VaR', hint: 'R', screen: 'risk' },
+  { kind: 'Screen', label: 'Plant registry', hint: '2', screen: 'plants' },
+  { kind: 'Screen', label: 'Compliance & logistics map', hint: '3', screen: 'map' },
+  { kind: 'Screen', label: 'Dossier library', hint: '6', screen: 'library' },
+  { kind: 'Screen', label: 'Statutory citations', hint: 'C', screen: 'citations' },
+  { kind: 'Screen', label: 'Data sources & provenance', hint: '7', screen: 'sources' },
+  { kind: 'Action', label: 'Open delivery playbook · DK → DE', hint: '⏎', modal: 'playbook' },
+  { kind: 'Action', label: 'Import broker run', hint: '', modal: 'importer' },
+  { kind: 'Action', label: 'Price on bid', hint: '', side: 'bid' },
+  { kind: 'Action', label: 'Price on mid', hint: '', side: 'mid' },
+  { kind: 'Action', label: 'Price on offer', hint: '', side: 'offer' },
+];
+
+const PLAYBOOK = [
+  {
+    tag: 'Option A', title: 'Virtual UDB swap', feasibility: 'Contested', total: '€1.80',
+    timeline: 'Same-day registry transfer', summary: 'Danish volume is cancelled in Energinet and re-issued against the German mass balance area through the Union Database. No physical molecule crosses Ellund.',
+    items: [['Registry transfer', '0.90'], ['Certification surcharge', '0.55'], ['Transit DK → DE', '0.35'], ['Liquefaction', null]],
+    forList: ['Cheapest all-in route', 'No capacity booking on PRISMA', 'Settles inside one compliance day'],
+    againstList: ['Contested in some member states', 'Requires both registries live on UDB'],
+    legal: 'Reg. (EU) 2024/2792 Art. 14 · RED III Art. 30(1)',
+  },
+  {
+    tag: 'Option B', title: 'Continuous grid path', feasibility: 'High', total: '€3.20',
+    timeline: '3–5 days including capacity booking',
+    summary: 'Firm capacity is booked Ellund to THE and the molecule is delivered continuously, so ingestion is evidenced by the physical flow rather than a registry entry.',
+    items: [['Entry / exit capacity', '1.80'], ['Registry transfer', '0.90'], ['Certification surcharge', '0.55'], ['Imbalance risk', null]],
+    forList: ['Unambiguous UDB evidence', 'Accepted by every member state'],
+    againstList: ['Winter cleared prices run 3–5× summer', 'Capacity must be won on PRISMA'],
+    legal: 'Reg. (EU) 2017/459 network codes',
+  },
+  {
+    tag: 'Option C', title: 'Physical bio-LNG', feasibility: 'Low', total: null,
+    timeline: '10–14 days road and terminal',
+    summary: 'Liquefied at the plant and trucked to a German terminal. The only route that also serves the UK RTFO, but the liquefaction leg is unpriced in the tariff set.',
+    items: [['Liquefaction', null], ['Road haulage', '2.40'], ['Terminal regasification', null], ['Registry transfer', '0.90']],
+    forList: ['Reaches grid-isolated and non-EU buyers', 'Unlocks the blocked UK RTFO corridor'],
+    againstList: ['Tariff incomplete — never summed around a null', 'Highest carbon cost on the delivery leg'],
+    legal: 'RED III Art. 28(2) · national terminal codes',
+  },
+];
+
+const EXECUTION = [
+  { n: 1, title: 'Origination', actor: 'Desk trader', actions: ['Confirm plant gate price and volume with the Danish operator', 'Lock the consignment CI from the proof of sustainability'] },
+  { n: 2, title: 'Hub execution', actor: 'Desk trader · middle office', actions: ['Book the transit or agree the swap with the counterparty', 'Hedge the TTF basis leg to the delivery month'] },
+  { n: 3, title: 'UDB transfer', actor: 'Compliance officer', actions: ['Raise the transaction in the Union Database against the German mass balance area', 'Attach the scheme certificate and Annex IX classification'] },
+  { n: 4, title: 'Settlement & cancellation', actor: 'Back office', actions: ['Cancel the certificate statutorily in dena Biogasregister', 'File the quota evidence with the obligated party'] },
+];
+
+const CURVES = [
+  { tenor: 'M+1', ttf: '31.92', cert: '228.50', net: '+72.07', w: 100 },
+  { tenor: 'Q+1', ttf: '33.15', cert: '231.20', net: '+73.44', w: 96 },
+  { tenor: 'Cal-27', ttf: '30.40', cert: '224.80', net: '+70.11', w: 88 },
+  { tenor: 'Cal-28', ttf: '28.85', cert: '212.60', net: '+64.02', w: 72 },
+  { tenor: 'Cal-29', ttf: '27.60', cert: '198.40', net: '+56.85', w: 58 },
+  { tenor: 'Cal-30', ttf: '26.90', cert: '186.20', net: '+50.10', w: 44 },
+];
+
+const VAR_BUCKETS = [
+  { band: '−€620k', h: 4 }, { band: '−€500k', h: 9 }, { band: '−€380k', h: 18 },
+  { band: '−€260k', h: 34 }, { band: '−€140k', h: 58 }, { band: '−€20k', h: 82 },
+  { band: '+€100k', h: 100 }, { band: '+€220k', h: 74 }, { band: '+€340k', h: 46 },
+  { band: '+€460k', h: 24 }, { band: '+€580k', h: 11 }, { band: '+€700k', h: 5 },
+];
+
+class Component extends DCLogic {
+  state = {
+    screen: 'origination', theme: null, side: null,
+    selected: 'DE', modal: null, modalPlant: null, palette: false, paletteQuery: '',
+    riskTab: 'mtm', plantQuery: '', dataState: 'ready', toast: null,
+  };
+
+  componentDidMount() {
+    this._onKey = e => {
+      const k = e.key.toLowerCase();
+      if ((e.metaKey || e.ctrlKey) && k === 'k') {
+        e.preventDefault();
+        this.setState(p => ({ palette: !p.palette, paletteQuery: '' }));
+        return;
+      }
+      if (e.key === 'Escape') {
+        this.setState({ palette: false, modal: null });
+        return;
+      }
+      const t = e.target && e.target.tagName;
+      if (t === 'INPUT' || t === 'TEXTAREA' || t === 'SELECT') return;
+      if (e.key === 'Enter' && this.state.screen === 'scanner') {
+        e.preventDefault();
+        this.setState({ modal: 'playbook' });
+        return;
+      }
+      if (this.state.screen === 'scanner' && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+        e.preventDefault();
+        const list = MARKET_ROWS.map(r => r.cc + r.rank);
+        const i = list.indexOf(this.state.selected);
+        const at = i < 0 ? 0 : i;
+        const next = e.key === 'ArrowDown' ? Math.min(at + 1, list.length - 1) : Math.max(at - 1, 0);
+        this.setState({ selected: list[next] });
+        return;
+      }
+      const map = { '1': 'origination', '2': 'plants', '3': 'map', '4': 'trade', '5': 'pricing', '6': 'library', '7': 'sources', 's': 'scanner', 'r': 'risk', 'c': 'citations' };
+      const next = map[k];
+      if (next) this.setState({ screen: next });
+    };
+    window.addEventListener('keydown', this._onKey);
+    this.syncMapTheme();
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.theme !== this.state.theme || prevState.screen !== this.state.screen) this.syncMapTheme();
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('keydown', this._onKey);
+    if (this._toastTimer) clearTimeout(this._toastTimer);
+    if (this._loadTimer) clearTimeout(this._loadTimer);
+  }
+
+  syncMapTheme() {
+    const frame = document.querySelector('iframe[src="Map.html"]');
+    if (frame && frame.contentWindow) {
+      try { frame.contentWindow.postMessage({ type: 'theme', value: this.state.theme }, '*'); } catch (err) { /* cross-origin */ }
+    }
+  }
+
+  toast(text) {
+    if (this._toastTimer) clearTimeout(this._toastTimer);
+    this.setState({ toast: text });
+    this._toastTimer = setTimeout(() => this.setState({ toast: null }), 3600);
+  }
+
+  go(screen) {
+    return e => { if (e) e.preventDefault(); this.setState({ screen, palette: false }); };
+  }
+
+  rescan() {
+    if (this._loadTimer) clearTimeout(this._loadTimer);
+    this.setState({ dataState: 'loading' });
+    this._loadTimer = setTimeout(() => this.setState({ dataState: 'ready' }), 900);
+  }
+
+  runPalette(item) {
+    return e => {
+      if (e) e.preventDefault();
+      const patch = { palette: false };
+      if (item.screen) patch.screen = item.screen;
+      if (item.modal) patch.modal = item.modal;
+      if (item.side) patch.side = item.side;
+      this.setState(patch);
+    };
+  }
+
+  tone(verdict) {
+    if (verdict === 'Blocked') return 'var(--color-accent)';
+    if (verdict === 'Eligible') return 'var(--color-text)';
+    return 'var(--color-neutral-500)';
+  }
+
+  chip(text, accent) {
+    return React.createElement('span', {
+      className: accent ? 'chip chip-a' : 'chip',
+      style: { flex: 'none' },
+    }, text);
+  }
+
+  renderVals() {
+    const h = React.createElement;
+    const s = Object.assign({}, this.state, {
+      theme: this.state.theme || this.props.defaultTheme || 'light',
+      side: this.state.side || this.props.pricingSide || 'mid',
+    });
+    const f = SIDE_FACTOR[s.side] || 1;
+    const showProv = this.props.showProvenanceChips !== false;
+    const scaled = MARKET_ROWS.map(r => ({ r, net: r.base * (r.base > 0 ? f : 2 - f) }));
+    const maxAbs = Math.max.apply(null, scaled.map(x => Math.abs(x.net)));
+
+    const rows = scaled.map(({ r, net }) => {
+      const gateStrip = h('div', { style: { display: 'flex', gap: '2px' } },
+        r.gates.split('').map((code, i) => {
+          const blocked = code === 'B';
+          const soft = code === 'C' || code === 'U';
+          return h('span', {
+            key: i,
+            title: GATE_LETTERS[i] + ' — ' + (blocked ? 'Hard block' : soft ? 'Conditional / unresolved' : 'Pass'),
+            style: {
+              width: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '10px', fontWeight: 600,
+              background: blocked ? 'var(--color-accent)' : soft ? 'var(--color-neutral-300)' : 'transparent',
+              color: blocked ? 'var(--color-bg)' : soft ? 'var(--color-neutral-900)' : 'var(--color-text)',
+              border: '1px solid ' + (blocked ? 'var(--color-accent)' : 'var(--color-divider)'),
+            },
+          }, GATE_LETTERS[i]);
+        })
+      );
+
+      const bar = h('div', { style: { position: 'relative', height: '16px', background: 'color-mix(in srgb, var(--color-text) 8%, transparent)' } },
+        h('div', {
+          style: {
+            position: 'absolute', top: '3px', bottom: '3px', left: 0,
+            width: (Math.abs(net) / maxAbs * 100) + '%',
+            background: net < 0 ? 'var(--color-accent)' : this.tone(r.verdict),
+          },
+        })
+      );
+
+      const id = r.cc + r.rank;
+      return {
+        id,
+        rowClass: id === s.selected ? 'selrow' : '',
+        select: () => this.setState({ selected: id }),
+        openPlaybook: () => this.setState({ selected: id, modal: 'playbook' }),
+        rank: String(r.rank).padStart(2, '0'),
+        cc: r.cc, market: r.market, registry: r.registry, legal: r.legal, unit: r.unit, age: r.age,
+        netLabel: (net < 0 ? '−€' : '+€') + Math.abs(net).toFixed(2),
+        marginLabel: (r.margin < 0 ? '−' : '+') + Math.abs(r.margin) + '%',
+        gateStrip, bar,
+        provenanceChip: showProv ? this.chip(r.src === 'SIM' ? 'Estimate · sim' : 'Desk · manual', r.src === 'SIM') : null,
+      };
+    });
+
+    const gates = GATES.map(g => ({
+      label: g.label, reason: g.reason, citation: g.citation,
+      chip: this.chip(g.verdict, g.verdict === 'Unresolved'),
+    }));
+
+    const maxW = 228.50;
+    const waterfall = WATERFALL.map(w => ({
+      label: w.label, value: w.value,
+      bar: h('div', { style: { position: 'relative', height: '14px', background: 'color-mix(in srgb, var(--color-text) 8%, transparent)' } },
+        h('div', {
+          style: {
+            position: 'absolute', top: '2px', bottom: '2px', left: 0,
+            width: (Math.abs(parseFloat(w.value.replace(/[^0-9.]/g, ''))) / maxW * 100) + '%',
+            background: w.kind === 'sub' ? 'var(--color-neutral-400)' : w.kind === 'net' ? 'var(--color-accent)' : 'var(--color-text)',
+          },
+        })
+      ),
+    }));
+
+    const marks = MARKS.map(m => ({
+      cc: m.cc, market: m.market, unit: m.unit, bid: m.bid, offer: m.offer, spread: m.spread, age: m.age,
+      midInput: h('input', {
+        className: 'input num',
+        defaultValue: m.mid,
+        'aria-label': 'Mid mark for ' + m.market,
+        style: {
+          textAlign: 'right', fontWeight: 600, minHeight: '28px', padding: '3px 8px', fontSize: '13px',
+          background: 'var(--color-bg)',
+        },
+      }),
+      sourceChip: this.chip(m.src === 'SIM' ? 'Estimate · sim' : 'Desk · manual', m.src === 'SIM'),
+    }));
+
+    const tenors = TENORS.map(t => ({
+      year: t.year, volume: t.volume, mtm: t.mtm, share: t.share,
+      bar: h('div', { style: { position: 'relative', height: '14px', background: 'color-mix(in srgb, var(--color-text) 8%, transparent)' } },
+        h('div', { style: { position: 'absolute', top: '2px', bottom: '2px', left: 0, width: t.w + '%', background: 'var(--color-text)' } })
+      ),
+    }));
+
+    const q = s.plantQuery.trim().toLowerCase();
+    const plantSource = q ? PLANTS.filter(p => (p.name + ' ' + p.cc).toLowerCase().indexOf(q) >= 0) : PLANTS;
+    const plants = plantSource.map(p => {
+      const un = v => v == null
+        ? h('span', { style: { color: 'var(--color-neutral-600)' } }, 'unrecorded')
+        : v;
+      return {
+        cc: p.cc, name: p.name,
+        operator: un(p.operator), capacity: un(p.capacity), energy: un(p.energy), feedstock: un(p.feedstock),
+        provChip: this.chip(p.verified ? 'Verified' : 'Name only', !p.verified),
+        open: () => this.setState({ modal: 'facility', modalPlant: p }),
+      };
+    });
+
+    const maxPlants = Math.max.apply(null, COUNTRIES.map(c => c.plants));
+    const countries = COUNTRIES.map(c => ({
+      cc: c.cc, name: c.name, plants: String(c.plants), twh: c.twh + ' TWh',
+      bar: h('div', { style: { height: '3px', marginTop: '6px', background: 'color-mix(in srgb, var(--color-text) 10%, transparent)' } },
+        h('div', { style: { height: '3px', width: (c.plants / maxPlants * 100) + '%', background: 'var(--color-text)' } })
+      ),
+    }));
+
+    const dossiers = DOSSIERS.map(d => ({
+      title: d.title, meta: d.meta, volume: d.volume, netback: d.netback, margin: d.margin, note: d.note,
+      drift: d.drift,
+      chip: this.chip(d.chip, d.chip !== 'Booked'),
+    }));
+
+    const sources = SOURCES.map(x => ({
+      name: x.name, legal: x.legal, authority: x.authority, category: x.category,
+      coverage: x.coverage, cadence: x.cadence,
+      tierChip: this.chip(x.tier, x.tier === 'Modelled engineering' || x.tier === 'Broker reported'),
+    }));
+
+    return {
+      themeClass: s.theme === 'dark' ? 'dark' : '',
+      themeLabel: s.theme === 'dark' ? 'Light' : 'Dark',
+      toggleTheme: () => this.setState(p => ({ theme: p.theme === 'dark' ? 'light' : 'dark' })),
+      side: s.side,
+      sideBid: s.side === 'bid', sideMid: s.side === 'mid', sideOffer: s.side === 'offer',
+      setBid: () => this.setState({ side: 'bid' }),
+      setMid: () => this.setState({ side: 'mid' }),
+      setOffer: () => this.setState({ side: 'offer' }),
+
+      isOrigination: s.screen === 'origination', isScanner: s.screen === 'scanner',
+      isTrade: s.screen === 'trade', isPricing: s.screen === 'pricing', isRisk: s.screen === 'risk',
+      isPlants: s.screen === 'plants', isMap: s.screen === 'map', isLibrary: s.screen === 'library',
+      isCitations: s.screen === 'citations', isSources: s.screen === 'sources',
+
+      onOrigination: s.screen === 'origination' ? '1' : '0',
+      onScanner: s.screen === 'scanner' ? '1' : '0',
+      onTrade: s.screen === 'trade' ? '1' : '0',
+      onPricing: s.screen === 'pricing' ? '1' : '0',
+      onRisk: s.screen === 'risk' ? '1' : '0',
+      onPlants: s.screen === 'plants' ? '1' : '0',
+      onMap: s.screen === 'map' ? '1' : '0',
+      onLibrary: s.screen === 'library' ? '1' : '0',
+      onCitations: s.screen === 'citations' ? '1' : '0',
+      onSources: s.screen === 'sources' ? '1' : '0',
+
+      goOrigination: this.go('origination'), goScanner: this.go('scanner'), goTrade: this.go('trade'),
+      goPricing: this.go('pricing'), goRisk: this.go('risk'), goPlants: this.go('plants'),
+      goMap: this.go('map'), goLibrary: this.go('library'), goCitations: this.go('citations'),
+      goSources: this.go('sources'),
+
+      rows, gates, waterfall, marks, tenors, plants, countries, dossiers, citations: CITATIONS, sources,
+
+      // — selection & flow —
+      selRow: (rows.find(r => r.id === s.selected) || rows[0]),
+      selMarket: (MARKET_ROWS.find(r => r.cc + r.rank === s.selected) || MARKET_ROWS[0]).market,
+      selLegal: (MARKET_ROWS.find(r => r.cc + r.rank === s.selected) || MARKET_ROWS[0]).legal,
+      selNet: (rows.find(r => r.id === s.selected) || rows[0]).netLabel,
+      structure: () => { this.setState({ screen: 'trade' }); this.toast('Consignment carried into the trade builder'); },
+      saveDossier: () => { this.setState({ screen: 'library' }); this.toast('Dossier saved with six-gate citations · REF DSK-2026-0117'); },
+      openPlaybook: () => this.setState({ modal: 'playbook' }),
+      openImporter: () => this.setState({ modal: 'importer' }),
+      closeModal: () => this.setState({ modal: null }),
+      confirmImport: () => { this.setState({ modal: null, dataState: 'ready' }); this.toast('Broker run parsed · 9 marks updated, provenance set to BROKER'); },
+      failImport: () => { this.setState({ modal: null, dataState: 'error' }); },
+      retry: () => this.rescan(),
+      rescan: () => this.rescan(),
+
+      // — modals —
+      isPlaybook: s.modal === 'playbook',
+      isFacility: s.modal === 'facility' && !!s.modalPlant,
+      isImporter: s.modal === 'importer',
+      playbook: PLAYBOOK.map(o => ({
+        tag: o.tag, title: o.title, timeline: o.timeline, summary: o.summary, legal: o.legal,
+        total: h('div', {
+          className: 'num',
+          style: {
+            fontFamily: 'var(--font-heading)', fontWeight: 800, letterSpacing: '-0.02em',
+            fontSize: o.total ? '24px' : '15px',
+            color: o.total ? 'var(--color-text)' : 'var(--color-accent-700)',
+          },
+        }, o.total || 'Tariff incomplete'),
+        feasChip: this.chip(o.feasibility, o.feasibility !== 'High'),
+        items: o.items.map(([label, value]) => ({
+          label,
+          value: value == null ? h('span', { style: { color: 'var(--color-accent-700)' } }, 'unverified') : value,
+        })),
+        forList: o.forList.map(t => ({ text: t })),
+        againstList: o.againstList.map(t => ({ text: t })),
+      })),
+      execution: EXECUTION.map(e => ({
+        n: String(e.n), title: e.title, actor: e.actor, actions: e.actions.map(a => ({ text: a })),
+      })),
+      plantName: s.modalPlant ? s.modalPlant.name : '',
+      plantCc: s.modalPlant ? s.modalPlant.cc : '',
+      plantFields: s.modalPlant ? [
+        { k: 'Operator', v: s.modalPlant.operator },
+        { k: 'Status', v: 'Active · injecting' },
+        { k: 'Capacity Nm³/h', v: s.modalPlant.capacity },
+        { k: 'Annual energy GWh', v: s.modalPlant.energy },
+        { k: 'Feedstock', v: s.modalPlant.feedstock },
+        { k: 'Upgrading technology', v: null },
+        { k: 'Grid connection', v: null },
+        { k: 'Registry', v: s.modalPlant.cc === 'DE' ? 'dena Biogasregister' : s.modalPlant.cc === 'DK' ? 'Energinet' : s.modalPlant.cc === 'FR' ? 'EEX / ODRE' : 'National registry' },
+      ].map(f => ({
+        k: f.k,
+        v: f.v == null ? h('span', { style: { color: 'var(--color-neutral-600)' } }, 'unrecorded') : f.v,
+      })) : [],
+      plantProvChip: s.modalPlant ? this.chip(s.modalPlant.verified ? 'Verified' : 'Name only', !s.modalPlant.verified) : null,
+
+      // — command palette —
+      isPalette: s.palette,
+      paletteQuery: s.paletteQuery,
+      onPaletteQuery: e => this.setState({ paletteQuery: e.target.value }),
+      closePalette: () => this.setState({ palette: false }),
+      openPalette: () => this.setState({ palette: true, paletteQuery: '' }),
+      paletteItems: PALETTE
+        .filter(i => !s.paletteQuery.trim() || i.label.toLowerCase().indexOf(s.paletteQuery.trim().toLowerCase()) >= 0)
+        .map(i => ({ kind: i.kind, label: i.label, hint: i.hint, run: this.runPalette(i) })),
+
+      // — risk sub-tabs —
+      riskMtm: s.riskTab === 'mtm', riskTenors: s.riskTab === 'tenors',
+      riskVar: s.riskTab === 'var', riskCurves: s.riskTab === 'curves',
+      onMtm: s.riskTab === 'mtm' ? '1' : '0', onTenors: s.riskTab === 'tenors' ? '1' : '0',
+      onVar: s.riskTab === 'var' ? '1' : '0', onCurves: s.riskTab === 'curves' ? '1' : '0',
+      goMtm: e => { if (e) e.preventDefault(); this.setState({ riskTab: 'mtm' }); },
+      goTenors: e => { if (e) e.preventDefault(); this.setState({ riskTab: 'tenors' }); },
+      goVar: e => { if (e) e.preventDefault(); this.setState({ riskTab: 'var' }); },
+      goCurves: e => { if (e) e.preventDefault(); this.setState({ riskTab: 'curves' }); },
+      varBuckets: VAR_BUCKETS.map(b => ({
+        band: b.band,
+        bar: h('div', {
+          style: {
+            width: '100%', height: (b.h * 1.5) + 'px',
+            background: b.band.indexOf('−') === 0 ? 'var(--color-accent)' : 'var(--color-text)',
+          },
+        }),
+      })),
+      curves: CURVES.map(c => ({
+        tenor: c.tenor, ttf: c.ttf, cert: c.cert, net: c.net,
+        bar: h('div', { style: { position: 'relative', height: '14px', background: 'color-mix(in srgb, var(--color-text) 8%, transparent)' } },
+          h('div', { style: { position: 'absolute', top: '2px', bottom: '2px', left: 0, width: c.w + '%', background: 'var(--color-text)' } })
+        ),
+      })),
+
+      // — states —
+      plantQuery: s.plantQuery,
+      onPlantQuery: e => this.setState({ plantQuery: e.target.value }),
+      clearPlantQuery: () => this.setState({ plantQuery: '' }),
+      plantsEmpty: plants.length === 0,
+      plantsFound: plants.length > 0,
+      isLoading: s.dataState === 'loading',
+      isError: s.dataState === 'error',
+      isReady: s.dataState === 'ready',
+      skeleton: [{}, {}, {}, {}, {}, {}, {}, {}],
+      hasToast: !!s.toast,
+      toastText: s.toast || '',
+    };
+  }
+}
+
+</script>
+</body>
+</html>

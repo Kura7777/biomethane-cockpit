@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Compliance &amp; logistics map</title>
+<link rel="stylesheet" href="_ds/modernist-a0ab60f5-69ba-4a48-9996-4354bc646f72/styles.css">
+<script src="https://unpkg.com/d3@7.9.0/dist/d3.min.js" integrity="sha384-CjloA8y00+1SDAUkjs099PVfnY2KmDC2BZnws9kh8D/lX1s46w6EPhpXdqMfjK6i" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/topojson-client@3.1.0/dist/topojson-client.min.js" integrity="sha384-Ukv1p/xTma6P4/2bY5KzWBw+ydSpXmhCMtyciIQVDJ1RmOxtCYNMF1uXT9T63H67" crossorigin="anonymous"></script>
+<style>
+  html, body { height: 100%; margin: 0; overflow: hidden; }
+  body { background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); }
+  .num { font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+  .mut { color: color-mix(in srgb, var(--color-text) 70%, transparent); }
+  .eyebrow { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: color-mix(in srgb, var(--color-text) 70%, transparent); }
+  .overlay { position: absolute; background: color-mix(in srgb, var(--color-bg) 94%, transparent); border: 1px solid var(--color-divider); padding: 10px 12px; }
+  .zoombtn { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; background: var(--color-bg); border: 1px solid var(--color-divider); cursor: pointer; font-family: var(--font-heading); font-weight: 800; font-size: 14px; color: var(--color-text); }
+  .zoombtn:hover { background: var(--color-surface); }
+  .zoombtn + .zoombtn { border-top: 0; }
+  .land { cursor: pointer; }
+  .flow { animation: dash 1.1s linear infinite; }
+  @keyframes dash { to { stroke-dashoffset: -24; } }
+  @media (prefers-reduced-motion: reduce) { .flow { animation: none; } }
+  .dark {
+    --color-bg: #1a1918; --color-surface: #232120; --color-text: #f5f2f1; --color-accent: #ff563c;
+    --color-divider: color-mix(in srgb, #f5f2f1 32%, transparent);
+    --color-neutral-200: #322f2e; --color-neutral-300: #3d3a39; --color-neutral-400: #4d4a48; --color-neutral-500: #6b6765;
+  }
+</style>
+</head>
+<body>
+<div id="wrap" style="position:relative; height:100vh; width:100%">
+  <svg id="map" style="display:block; width:100%; height:100%"></svg>
+
+  <div class="overlay" style="top:12px; left:12px; min-width:196px">
+    <div class="eyebrow">Compliance status</div>
+    <div id="legend" style="display:flex; flex-direction:column; gap:5px; margin-top:8px"></div>
+  </div>
+
+  <div class="overlay" style="bottom:12px; left:12px; width:236px">
+    <div class="eyebrow">Active corridor</div>
+    <div class="num" id="corridorLabel" style="font-family:var(--font-heading); font-weight:800; font-size:19px; margin-top:5px">DK ▶ DE</div>
+    <div style="font-size:12px; margin-top:2px" class="mut">10,000 MWh manure &amp; slurry · −100 gCO₂e/MJ · Ellund interconnection · transit €1.80/MWh</div>
+    <div style="display:flex; gap:6px; margin-top:9px">
+      <button class="btn btn-secondary" id="mOrigin" style="padding:3px 9px; font-size:11px; white-space:nowrap">Set origin</button>
+      <button class="btn btn-primary" id="mTarget" style="padding:3px 9px; font-size:11px; white-space:nowrap">Set target</button>
+    </div>
+    <div style="font-size:11px; margin-top:7px" class="mut">Click a country to assign it to the active mode.</div>
+  </div>
+
+  <div style="position:absolute; top:12px; right:12px; display:flex; flex-direction:column">
+    <button class="zoombtn" id="zin" aria-label="Zoom in">+</button>
+    <button class="zoombtn" id="zout" aria-label="Zoom out">−</button>
+    <button class="zoombtn" id="zreset" aria-label="Reset view" style="font-size:10px; letter-spacing:0.06em">RST</button>
+  </div>
+
+  <div class="overlay" id="hoverCard" style="bottom:12px; right:12px; width:236px; display:none">
+    <div class="eyebrow" id="hStatus">Status</div>
+    <div style="font-family:var(--font-heading); font-weight:800; font-size:17px; margin-top:4px" id="hName">—</div>
+    <div style="font-size:11px; margin-top:2px" class="mut" id="hLegal">—</div>
+    <div style="display:flex; gap:18px; margin-top:9px">
+      <div><div class="eyebrow">Plants</div><div class="num" style="font-size:16px; font-weight:800" id="hPlants">—</div></div>
+      <div><div class="eyebrow">Installed</div><div class="num" style="font-size:16px; font-weight:800" id="hTwh">—</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const STATUS = {
+  ACTIVE:      { label: 'Active market',        fill: 'color-mix(in srgb, var(--color-text) 72%, var(--color-bg))', swatch: 'var(--color-text)' },
+  EMERGING:    { label: 'Emerging',             fill: 'color-mix(in srgb, var(--color-text) 38%, var(--color-bg))', swatch: 'var(--color-neutral-500)' },
+  FUTURE_2028: { label: 'Future 2028 · ETS2',   fill: 'color-mix(in srgb, var(--color-text) 16%, var(--color-bg))', swatch: 'var(--color-neutral-300)' },
+  RESTRICTED:  { label: 'Restricted · UDB gap', fill: 'var(--color-accent)',                                        swatch: 'var(--color-accent)' },
+  NONE:        { label: 'No mechanism',         fill: 'color-mix(in srgb, var(--color-text) 7%, var(--color-bg))',  swatch: 'color-mix(in srgb, var(--color-text) 12%, var(--color-bg))' },
+};
+
+// Status, registry basis and GIE/EBA counts as carried in src/domain/markets/registry.ts.
+const COUNTRIES = {
+  'Germany':        { iso: 'DE', status: 'ACTIVE', legal: '§37a BImSchG · 38. BImSchV', plants: 242, twh: 11.8 },
+  'Netherlands':    { iso: 'NL', status: 'ACTIVE', legal: 'Wet milieubeheer · Regeling energie vervoer', plants: 82, twh: 3.2 },
+  'France':         { iso: 'FR', status: 'ACTIVE', legal: 'Code de l\u2019énergie L.446-24 · Art. 266 quindecies', plants: 652, twh: 10.4 },
+  'Italy':          { iso: 'IT', status: 'ACTIVE', legal: 'DM 2 March 2018 · DM 15 Sept 2022', plants: 135, twh: 4.8 },
+  'Denmark':        { iso: 'DK', status: 'ACTIVE', legal: 'VE-loven §§ 43a–43f', plants: 64, twh: 5.6 },
+  'Austria':        { iso: 'AT', status: 'ACTIVE', legal: 'Erneuerbaren-Gase-Gesetz', plants: 16, twh: 0.45 },
+  'Sweden':         { iso: 'SE', status: 'ACTIVE', legal: 'Lag (1994:1776) om skatt på energi', plants: 72, twh: 2.1 },
+  'Finland':        { iso: 'FI', status: 'ACTIVE', legal: 'Jakeluvelvoitelaki (446/2007)', plants: 26, twh: 0.55 },
+  'Belgium':        { iso: 'BE', status: 'ACTIVE', legal: 'Energiedecreet · Décret wallon gaz', plants: 12, twh: 0.38 },
+  'Spain':          { iso: 'ES', status: 'ACTIVE', legal: 'Real Decreto 376/2022', plants: 38, twh: 0.9 },
+  'Poland':         { iso: 'PL', status: 'EMERGING', legal: 'Ustawa o OZE Art. 70a–70z', plants: 14, twh: 0.3 },
+  'Czechia':        { iso: 'CZ', status: 'EMERGING', legal: 'Zákon o POZE 165/2012 §§ 24–27', plants: 11, twh: 0.2 },
+  'Portugal':       { iso: 'PT', status: 'EMERGING', legal: 'Decreto-Lei 84/2022', plants: 4, twh: 0.05 },
+  'Ireland':        { iso: 'IE', status: 'EMERGING', legal: 'NORA Act Part 5A', plants: 6, twh: 0.1 },
+  'Greece':         { iso: 'GR', status: 'EMERGING', legal: 'Law 4951/2022 Art. 80–92', plants: 3, twh: 0.04 },
+  'Romania':        { iso: 'RO', status: 'EMERGING', legal: 'Legea 220/2008 · ANRE norms', plants: 2, twh: 0.03 },
+  'Hungary':        { iso: 'HU', status: 'EMERGING', legal: 'Földgáztörvény 82–85. §', plants: 5, twh: 0.08 },
+  'Estonia':        { iso: 'EE', status: 'EMERGING', legal: 'Vedelkütuse seadus § 2¹', plants: 8, twh: 0.15 },
+  'Lithuania':      { iso: 'LT', status: 'EMERGING', legal: 'Renewable Energy Law Art. 38–41', plants: 4, twh: 0.06 },
+  'Latvia':         { iso: 'LV', status: 'EMERGING', legal: 'Enerģētikas likums 42. pants', plants: 3, twh: 0.04 },
+  'Switzerland':    { iso: 'CH', status: 'EMERGING', legal: 'MinStG Art. 2a · 12b — grid-isolated', plants: 35, twh: 0.4 },
+  'Norway':         { iso: 'NO', status: 'EMERGING', legal: 'Produktforskriften kap. 3 — grid-isolated', plants: 12, twh: 0.2 },
+  'United Kingdom': { iso: 'GB', status: 'RESTRICTED', legal: 'RTFO — grid injection cannot evidence UDB ingestion', plants: 108, twh: 6.1 },
+  'Slovakia':       { iso: 'SK', status: 'FUTURE_2028', legal: 'ETS2 · Directive (EU) 2023/959', plants: 2, twh: 0.03 },
+  'Slovenia':       { iso: 'SI', status: 'FUTURE_2028', legal: 'ETS2 · Directive (EU) 2023/959', plants: 1, twh: 0.01 },
+  'Croatia':        { iso: 'HR', status: 'FUTURE_2028', legal: 'ETS2 · Directive (EU) 2023/959', plants: 1, twh: 0.01 },
+  'Bulgaria':       { iso: 'BG', status: 'FUTURE_2028', legal: 'ETS2 · Directive (EU) 2023/959', plants: 1, twh: 0.01 },
+  'Luxembourg':     { iso: 'LU', status: 'FUTURE_2028', legal: 'ETS2 · Directive (EU) 2023/959', plants: 2, twh: 0.02 },
+};
+
+const ORIGIN = 'Denmark', TARGET = 'Germany';
+let mode = 'TARGET';
+let origin = ORIGIN, target = TARGET;
+
+const svg = d3.select('#map');
+const gRoot = svg.append('g');
+const gLand = gRoot.append('g');
+const gFlow = gRoot.append('g').attr('pointer-events', 'none');
+const gLabels = gRoot.append('g').attr('pointer-events', 'none');
+
+const projection = d3.geoMercator();
+const path = d3.geoPath(projection);
+let features = [];
+let k = 1;
+
+const zoom = d3.zoom().scaleExtent([1, 8]).on('zoom', ev => {
+  k = ev.transform.k;
+  gRoot.attr('transform', ev.transform);
+  gLand.selectAll('path').attr('stroke-width', 0.6 / k);
+  gLabels.selectAll('g.lbl').attr('transform', d => {
+    const c = projection(d3.geoCentroid(d));
+    return 'translate(' + c[0] + ',' + c[1] + ') scale(' + (1 / k) + ')';
+  });
+  gFlow.selectAll('path').attr('stroke-width', d => d.w / k);
+  gFlow.selectAll('circle').attr('r', d => d.r / k);
+});
+svg.call(zoom);
+
+d3.select('#zin').on('click', () => svg.transition().duration(220).call(zoom.scaleBy, 1.5));
+d3.select('#zout').on('click', () => svg.transition().duration(220).call(zoom.scaleBy, 1 / 1.5));
+d3.select('#zreset').on('click', () => svg.transition().duration(260).call(zoom.transform, d3.zoomIdentity));
+
+function statusOf(name) {
+  const c = COUNTRIES[name];
+  return c ? c.status : 'NONE';
+}
+
+function buildLegend() {
+  const counts = {};
+  Object.keys(STATUS).forEach(s => counts[s] = 0);
+  Object.keys(COUNTRIES).forEach(n => counts[COUNTRIES[n].status]++);
+  const rows = Object.keys(STATUS).filter(s => s !== 'NONE');
+  d3.select('#legend').selectAll('div').data(rows).join('div')
+    .attr('style', 'display:flex; align-items:center; gap:8px; font-size:12px')
+    .html(s => '<span style="width:10px;height:10px;flex:none;background:' + STATUS[s].swatch + '"></span>' +
+               '<span style="flex:1">' + STATUS[s].label + '</span>' +
+               '<span class="num mut" style="font-size:11px">' + counts[s] + '</span>');
+}
+
+function showCard(name) {
+  const c = COUNTRIES[name];
+  const card = document.getElementById('hoverCard');
+  if (!c) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  document.getElementById('hStatus').textContent = STATUS[c.status].label;
+  document.getElementById('hName').textContent = name;
+  document.getElementById('hLegal').textContent = c.legal;
+  document.getElementById('hPlants').textContent = c.plants;
+  document.getElementById('hTwh').textContent = c.twh + ' TWh';
+}
+
+function strokeFor(name) {
+  if (name === origin) return { s: 'var(--color-text)', w: 2.2 };
+  if (name === target) return { s: 'var(--color-accent)', w: 2.2 };
+  return { s: 'var(--color-bg)', w: 0.6 };
+}
+
+function paint() {
+  gLand.selectAll('path')
+    .attr('fill', d => STATUS[statusOf(d.properties.name)].fill)
+    .attr('stroke', d => strokeFor(d.properties.name).s)
+    .attr('stroke-width', d => strokeFor(d.properties.name).w / k);
+  drawFlow();
+  d3.select('#mOrigin').attr('class', mode === 'ORIGIN' ? 'btn btn-primary' : 'btn btn-secondary');
+  d3.select('#mTarget').attr('class', mode === 'TARGET' ? 'btn btn-primary' : 'btn btn-secondary');
+  document.getElementById('corridorLabel').textContent =
+    (COUNTRIES[origin] ? COUNTRIES[origin].iso : '··') + ' ▶ ' + (COUNTRIES[target] ? COUNTRIES[target].iso : '··');
+}
+
+function drawFlow() {
+  gFlow.selectAll('*').remove();
+  const fo = features.find(f => f.properties.name === origin);
+  const ft = features.find(f => f.properties.name === target);
+  if (!fo || !ft) return;
+  const a = projection(d3.geoCentroid(fo));
+  const b = projection(d3.geoCentroid(ft));
+  const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2;
+  const dx = b[0] - a[0], dy = b[1] - a[1];
+  const cx = mx - dy * 0.22, cy = my + dx * 0.22;
+  const dAttr = 'M' + a[0] + ',' + a[1] + ' Q' + cx + ',' + cy + ' ' + b[0] + ',' + b[1];
+
+  gFlow.append('path').datum({ w: 5.5 }).attr('d', dAttr).attr('fill', 'none')
+    .attr('stroke', 'var(--color-bg)').attr('stroke-opacity', 0.85).attr('stroke-width', 5.5 / k);
+  gFlow.append('path').datum({ w: 2.2 }).attr('class', 'flow').attr('d', dAttr).attr('fill', 'none')
+    .attr('stroke', 'var(--color-accent)').attr('stroke-width', 2.2 / k).attr('stroke-dasharray', '6 5');
+  gFlow.append('circle').datum({ r: 4 }).attr('cx', a[0]).attr('cy', a[1]).attr('r', 4 / k).attr('fill', 'var(--color-text)');
+  gFlow.append('circle').datum({ r: 4.6 }).attr('cx', b[0]).attr('cy', b[1]).attr('r', 4.6 / k).attr('fill', 'var(--color-accent)');
+}
+
+function resize() {
+  const wrap = document.getElementById('wrap');
+  const w = wrap.clientWidth, hh = wrap.clientHeight;
+  svg.attr('viewBox', '0 0 ' + w + ' ' + hh);
+  // Fit an explicit European window — never the member-state features, whose
+  // overseas territories would drag the frame across three continents.
+  projection.fitExtent([[10, 10], [w - 10, hh - 10]], { type: 'Polygon', coordinates: [[[-11, 34], [-11, 70.5], [32, 70.5], [32, 34], [-11, 34]]] });
+  gLand.selectAll('path').attr('d', path);
+  gLabels.selectAll('g.lbl').attr('transform', d => {
+    const c = projection(d3.geoCentroid(d));
+    return 'translate(' + c[0] + ',' + c[1] + ') scale(' + (1 / k) + ')';
+  });
+  paint();
+}
+
+d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json').then(topo => {
+  features = topojson.feature(topo, topo.objects.countries).features;
+
+  gLand.selectAll('path').data(features).join('path')
+    .attr('class', 'land')
+    .on('mousemove', (ev, d) => showCard(d.properties.name))
+    .on('mouseleave', () => { document.getElementById('hoverCard').style.display = 'none'; })
+    .on('click', (ev, d) => {
+      if (!COUNTRIES[d.properties.name]) return;
+      if (mode === 'ORIGIN') {
+        if (d.properties.name === target) return;
+        origin = d.properties.name;
+      } else {
+        if (d.properties.name === origin) return;
+        target = d.properties.name;
+      }
+      paint();
+    });
+
+  // Label only where the projected shape can hold the text.
+  const labelled = features.filter(f => {
+    if (!COUNTRIES[f.properties.name]) return false;
+    const b = path.bounds(f);
+    return (b[1][0] - b[0][0]) > 24 && (b[1][1] - b[0][1]) > 18;
+  });
+
+  const lbl = gLabels.selectAll('g.lbl').data(labelled).join('g').attr('class', 'lbl');
+  lbl.append('text')
+    .attr('text-anchor', 'middle')
+    .attr('style', 'font-family:var(--font-heading); font-weight:800; font-size:10px; paint-order:stroke; stroke:var(--color-bg); stroke-width:2.5px; fill:var(--color-text)')
+    .text(d => COUNTRIES[d.properties.name].iso);
+  lbl.append('text')
+    .attr('text-anchor', 'middle').attr('y', 11)
+    .attr('style', 'font-variant-numeric:tabular-nums; font-size:9px; paint-order:stroke; stroke:var(--color-bg); stroke-width:2.5px; fill:color-mix(in srgb, var(--color-text) 70%, transparent)')
+    .text(d => COUNTRIES[d.properties.name].plants);
+
+  buildLegend();
+  resize();
+});
+
+window.addEventListener('resize', resize);
+d3.select('#mOrigin').on('click', () => { mode = 'ORIGIN'; paint(); });
+d3.select('#mTarget').on('click', () => { mode = 'TARGET'; paint(); });
+
+// The desk shell tells the map which ground it is on.
+window.addEventListener('message', ev => {
+  if (ev.data && ev.data.type === 'theme') {
+    document.documentElement.classList.toggle('dark', ev.data.value === 'dark');
+    document.body.classList.toggle('dark', ev.data.value === 'dark');
+    paint();
+  }
+});
+</script>
+</body>
+</html>
