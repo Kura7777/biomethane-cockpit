@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useState, ReactNode } from 'react';
 import { Consignment } from '../domain/consignment/types';
 import { MarksState, CostInputs, PricingSides } from '../domain/netback/types';
 import { TradeAssessment } from '../domain/trade/types';
@@ -550,27 +550,44 @@ function appReducer(state: AppState, action: AppAction): AppState {
 }
 
 // Context
-const AppContext = createContext<{ state: AppState; dispatch: React.Dispatch<AppAction> } | null>(null);
+export interface AppContextValue {
+  state: AppState;
+  dispatch: React.Dispatch<AppAction>;
+  isSaving: boolean;
+  lastSavedAt: Date | null;
+}
+
+const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, null, getInitialState);
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(() => new Date());
 
-  // Auto-save to localStorage on change
+  // Auto-save to localStorage on change with visual status tracking
   useEffect(() => {
+    setIsSaving(true);
     const timeout = setTimeout(() => {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        setLastSavedAt(new Date());
       } catch (e) {
         console.warn('Failed to save state to localStorage', e);
+      } finally {
+        setIsSaving(false);
       }
-    }, 300);
+    }, 350);
     return () => clearTimeout(timeout);
   }, [state]);
 
-  return <AppContext.Provider value={{ state, dispatch }}>{children}</AppContext.Provider>;
+  return (
+    <AppContext.Provider value={{ state, dispatch, isSaving, lastSavedAt }}>
+      {children}
+    </AppContext.Provider>
+  );
 }
 
-export function useAppState() {
+export function useAppState(): AppContextValue {
   const ctx = useContext(AppContext);
   if (!ctx) throw new Error('useAppState must be used within AppProvider');
   return ctx;
@@ -583,4 +600,44 @@ export function exportState(state: AppState): string {
 export function importState(json: string): AppState {
   const parsed = JSON.parse(json);
   return migrateState(parsed);
+}
+
+/**
+ * Downloads a complete, timestamped desk backup (.json) directly to the user's hard drive / OneDrive.
+ */
+export function downloadDeskBackup(state: AppState): string {
+  const now = new Date();
+  const dateStr = now.toISOString().slice(0, 10);
+  const timeStr = `${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+  const fileName = `Biomethane_Desk_Backup_${dateStr}_${timeStr}.json`;
+  const blob = new Blob([exportState(state)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  return fileName;
+}
+
+/**
+ * Reads and parses an uploaded .json desk backup file.
+ */
+export function readBackupFile(file: File): Promise<AppState> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const text = reader.result as string;
+        const imported = importState(text);
+        resolve(imported);
+      } catch (err) {
+        reject(new Error('Invalid backup file format. Must be a valid Biomethane Desk JSON backup.'));
+      }
+    };
+    reader.onerror = () => reject(new Error('Failed to read backup file from disk.'));
+    reader.readAsText(file);
+  });
 }
