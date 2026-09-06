@@ -45,17 +45,24 @@ export const SIDEBAR_ITEMS: NavItem[] = [
  * 12 Ledger Navigation Tabs
  */
 export const WORKSPACE_TABS: NavItem[] = [
-  { to: '/sourcing', label: 'Origination', keyHint: '1', icon: Compass },
+  // --- Group 1: Market Intelligence & Pricing ---
+  { to: '/pricing', label: 'Pricing desk', keyHint: '1', icon: FileSpreadsheet },
   { to: '/scanner', label: 'Scanner', keyHint: 'S', icon: Radar },
-  { to: '/trade', label: 'Trade builder', keyHint: '4', icon: Zap },
-  { to: '/pricing', label: 'Pricing desk', keyHint: '5', icon: FileSpreadsheet },
-  { to: '/connectors', label: 'Connectors', keyHint: 'K', icon: Zap },
-  { to: '/plants', label: 'Plants', keyHint: '2', icon: Building2 },
-  { to: '/registries', label: 'Registries', keyHint: 'G', icon: ShieldCheck },
-  { to: '/map', label: 'Map', keyHint: '3', icon: Globe },
+
+  // --- Group 2: Physical Supply & Infrastructure ---
+  { to: '/sourcing', label: 'Origination', keyHint: '2', icon: Compass },
+  { to: '/plants', label: 'Plants', keyHint: '3', icon: Building2 },
+  { to: '/map', label: 'Map', keyHint: '4', icon: Globe },
+
+  // --- Group 3: Deal Execution & Dossier ---
+  { to: '/trade', label: 'Trade builder', keyHint: '5', icon: Zap },
   { to: '/library', label: 'Library', keyHint: '6', icon: BookOpen },
+
+  // --- Group 4: Compliance, Audit & Settings ---
+  { to: '/registries', label: 'Registries', keyHint: 'G', icon: ShieldCheck },
   { to: '/citations', label: 'Citations', keyHint: 'C', icon: Scale },
   { to: '/data-sources', label: 'Sources', keyHint: '7', icon: Database },
+  { to: '/connectors', label: 'Connectors', keyHint: 'K', icon: Zap },
 ];
 
 export function getPageTitle(pathname: string): string {

@@ -74,7 +74,7 @@ export function Header({ onOpenSearch }: HeaderProps) {
         className="noscroll"
         aria-label="Workspaces"
       >
-        {WORKSPACE_TABS.map(tab => {
+        {WORKSPACE_TABS.map((tab, idx) => {
           const isActive =
             (tab.to === '/sourcing' && (location.pathname === '/' || location.pathname.startsWith('/sourcing'))) ||
             (tab.to === '/pricing' && (location.pathname.startsWith('/pricing') || location.pathname.startsWith('/marks'))) ||
@@ -83,16 +83,32 @@ export function Header({ onOpenSearch }: HeaderProps) {
             location.pathname === tab.to ||
             location.pathname.startsWith(tab.to + '/');
 
+          const hasDividerBefore = idx === 2 || idx === 5 || idx === 7;
+
           return (
-            <NavLink
-              key={tab.to}
-              to={tab.to}
-              className={`navtab ${isActive ? 'active' : ''}`}
-              data-on={isActive ? '1' : '0'}
-              aria-current={isActive ? 'page' : undefined}
-            >
-              {tab.label}
-            </NavLink>
+            <React.Fragment key={tab.to}>
+              {hasDividerBefore && (
+                <div
+                  style={{
+                    width: '1px',
+                    height: '18px',
+                    alignSelf: 'center',
+                    backgroundColor: 'var(--color-header-divider, rgba(255,255,255,0.12))',
+                    margin: '0 4px',
+                    opacity: 0.6,
+                  }}
+                  aria-hidden="true"
+                />
+              )}
+              <NavLink
+                to={tab.to}
+                className={`navtab ${isActive ? 'active' : ''}`}
+                data-on={isActive ? '1' : '0'}
+                aria-current={isActive ? 'page' : undefined}
+              >
+                {tab.label}
+              </NavLink>
+            </React.Fragment>
           );
         })}
       </nav>
