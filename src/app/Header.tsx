@@ -1,9 +1,8 @@
 import React from 'react';
 import { useLocation, useNavigate, NavLink } from 'react-router-dom';
 import { WORKSPACE_TABS } from './navConfig';
-import { useAppState, downloadDeskBackup, readBackupFile } from '../store/context';
+import { useAppState } from '../store/context';
 import { useTheme } from '../store/theme';
-import { showToast } from './DeskToastContainer';
 
 /** HH:MM:SS in the viewer's local time. Exported so it can be unit tested without rendering. */
 export function formatClock(date: Date): string {
@@ -19,36 +18,8 @@ interface HeaderProps {
 export function Header({ onOpenSearch }: HeaderProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { state, dispatch, isSaving } = useAppState();
+  const { state } = useAppState();
   const { theme, toggleTheme } = useTheme();
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
-
-  const handleBackup = () => {
-    try {
-      const filename = downloadDeskBackup(state);
-      showToast(`✓ Desk backup saved to drive · ${filename}`);
-    } catch (err) {
-      showToast('Failed to create desk backup');
-    }
-  };
-
-  const handleRestoreClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      const imported = await readBackupFile(file);
-      dispatch({ type: 'IMPORT_STATE', state: imported });
-      showToast('✓ Desk state successfully restored from backup!');
-    } catch (err: any) {
-      showToast(`Restore failed: ${err?.message || 'Invalid backup file'}`);
-    } finally {
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
-  };
 
   const gasIndexPrice = state.marks.gasIndex.mid ?? state.marks.gasIndex.offer ?? state.marks.gasIndex.bid;
   const pricingSide = state.marks.pricingSides?.certificateSide || 'mid';
@@ -200,118 +171,6 @@ export function Header({ onOpenSearch }: HeaderProps) {
           flexShrink: 0,
         }}
       >
-        {/* Auto-Save & Hard Drive Backup Tool */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '3px 9px',
-            borderRadius: '4px',
-            backgroundColor: 'var(--color-header-surface)',
-            border: '1px solid var(--color-header-divider)',
-            fontSize: '12px',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-            title="Auto-saved continuously to local browser storage like a spreadsheet"
-          >
-            <span
-              style={{
-                width: '6px',
-                height: '6px',
-                borderRadius: '50%',
-                backgroundColor: isSaving ? '#f59e0b' : '#10b981',
-                boxShadow: isSaving ? '0 0 6px #f59e0b' : '0 0 6px #10b981',
-                transition: 'all 200ms ease',
-              }}
-            />
-            <span style={{ color: 'var(--color-header-muted)', fontWeight: 500, fontSize: '11px' }}>
-              {isSaving ? 'Saving...' : 'Auto-saved'}
-            </span>
-          </div>
-
-          <div style={{ width: '1px', height: '12px', backgroundColor: 'var(--color-header-divider)' }} />
-
-          <button
-            type="button"
-            onClick={handleBackup}
-            style={{
-              background: 'none',
-              border: 'none',
-              padding: 0,
-              cursor: 'pointer',
-              color: '#ffffff',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '3px',
-              fontSize: '11px',
-              fontWeight: 600,
-            }}
-            title="Download full desk state backup (.json) to your hard drive / OneDrive"
-          >
-            <span>💾</span>
-            <span>Backup</span>
-          </button>
-
-          <span style={{ color: 'var(--color-header-muted)', fontSize: '10px' }}>·</span>
-
-          <button
-            type="button"
-            onClick={handleRestoreClick}
-            style={{
-              background: 'none',
-              border: 'none',
-              padding: 0,
-              cursor: 'pointer',
-              color: 'var(--color-header-muted)',
-              fontSize: '11px',
-              fontWeight: 500,
-            }}
-            title="Restore desk state from a previously saved .json backup file"
-          >
-            Restore
-          </button>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".json"
-            style={{ display: 'none' }}
-            onChange={handleFileChange}
-          />
-        </div>
-
-        <NavLink
-          to="/connectors"
-          className="btn"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '4px 10px',
-            fontSize: '12px',
-            fontWeight: 500,
-            textDecoration: 'none',
-            backgroundColor: location.pathname.startsWith('/connectors')
-              ? 'var(--color-accent)'
-              : 'var(--color-header-surface)',
-            borderColor: location.pathname.startsWith('/connectors')
-              ? 'var(--color-accent)'
-              : 'var(--color-header-divider)',
-            color: '#ffffff',
-          }}
-          title="TSO & API Data Connectors"
-        >
-          <span style={{ fontSize: '12px' }}>🔌</span>
-          <span>Connectors</span>
-        </NavLink>
-
         <button
           type="button"
           className="btn"
