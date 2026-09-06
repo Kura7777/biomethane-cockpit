@@ -35,6 +35,25 @@ scratch/
 
 # AntiGravity / Gemini generated artifacts
 .gemini
+.agents
+
+# Confidential deal & counterparty documents
+Contracts/
+contracts_text/
+
+# Large temporary archives, media, and test artifacts
+*.zip
+*.mp4
+*.crdownload
+*.docx
+/*.png
+/*.jpg
+/*.csv
+/*.xlsx
+/*.json
+!package*.json
+!tsconfig*.json
+!src/**
 
 # Playwright
 /test-results/

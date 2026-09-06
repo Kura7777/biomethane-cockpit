@@ -18,7 +18,7 @@ export function StaleIndicator({ updatedAt, provenance, target, showText = true,
   // announced some other way — colour alone is not a signal (MASTER §1.4/§6).
   if (status === 'UNFILLED') {
     return (
-      <span className="inline-flex items-center gap-1 text-micro text-stone-400 font-mono" aria-label="No mark entered">
+      <span className="inline-flex items-center gap-1 text-micro text-zinc-400 font-mono" aria-label="No mark entered">
         <span className="w-1.5 h-1.5 rounded-full bg-stone-600" aria-hidden="true" />
         {showText && 'No mark'}
       </span>

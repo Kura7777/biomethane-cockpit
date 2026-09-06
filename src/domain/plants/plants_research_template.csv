@@ -1,0 +1,10 @@
+id,name,country_iso,capacity_nm3h,annual_energy_gwh,feedstock_category,feedstock_details,network_operator,operator_company,latitude,longitude,source_citation
+plant_dk_1,Nature Energy Korskro,DK,3800,240.0,Manure & Agricultural residues,"75% cattle & pig slurry, 25% straw",Energinet,Nature Energy Biogas A/S (Shell),55.518,8.591,Energinet Biometangasregister 2025
+plant_dk_2,Nature Energy Holsted,DK,2900,185.0,Manure & Agricultural residues,"80% dairy manure, 20% agro-waste",Energinet,Nature Energy Biogas A/S (Shell),55.510,8.915,Energinet Biometangasregister 2025
+plant_fr_1,Aiguefonde 1 (FR-1),FR,,,,,,,GIE/EBA 2026 Map
+plant_fr_2,Aiguefonde 2 (FR-2),FR,,,,,,,GIE/EBA 2026 Map
+plant_de_1,Biomethananlage Jameln,DE,,,,,,,GIE/EBA 2026 Map
+plant_de_2,Biomethananlage Könnern,DE,,,,,,,GIE/EBA 2026 Map
+plant_it_1,Biometano Sant'Agata,IT,,,,,,,GIE/EBA 2026 Map
+plant_uk_1,Rainbarrow Farm Poundbury,GB,,,,,,,GIE/EBA 2026 Map
+plant_nl_1,BioPartner Wijster,NL,,,,,,,GIE/EBA 2026 Map

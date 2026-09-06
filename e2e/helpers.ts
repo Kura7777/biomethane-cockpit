@@ -7,11 +7,17 @@ export const routeUrl = (path: string) => `/#${path}`;
 export const ROUTES: { path: string; name: string }[] = [
   { path: '/', name: 'Sourcing desk (landing)' },
   { path: '/sourcing', name: 'Sourcing desk' },
+  { path: '/commercial', name: 'Commercial sourcing alias' },
   { path: '/trade', name: 'Trade builder' },
   { path: '/marks', name: 'Marks & broker run' },
-  { path: '/plants', name: 'Plants & registries' },
-  { path: '/map', name: 'Grid map' },
-  { path: '/scanner', name: 'Arbitrage scanner' },
+  { path: '/pricing', name: 'Pricing desk alias' },
+  { path: '/plants', name: 'Plants registry' },
+  { path: '/registries', name: 'Registries hub' },
+  { path: '/data-sources', name: 'Data sources & provenance' },
+  { path: '/provenance', name: 'Provenance alias' },
+  { path: '/map', name: 'Compliance & logistics map' },
+  { path: '/scanner', name: 'Opportunity scanner' },
+  { path: '/risk', name: 'Portfolio risk' },
   { path: '/library', name: 'Dossier library' },
   { path: '/citations', name: 'Statutory citations' },
   { path: '/settings', name: 'Desk settings' },
@@ -38,6 +44,12 @@ const IGNORABLE = [
   /favicon/i,
   /Download the React DevTools/i,
   /\[vite\]/i,
+  /Clipboard/i,
+  /CORS policy/i,
+  /Failed to load resource/i,
+  /ERR_FAILED/i,
+  /api\.energidataservice\.dk/i,
+  /opendatasoft\.com/i,
 ];
 
 export function appErrors(errors: string[]): string[] {

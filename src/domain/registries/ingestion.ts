@@ -47,6 +47,40 @@ export function parseRegistryFile(
     detectedRegistry = 'ENAGAS';
   } else if (lowerName.includes('gse') || lowerName.includes('italy')) {
     detectedRegistry = 'GSE';
+  } else if (lowerName.includes('eex') || lowerName.includes('france') || lowerName.includes('odre')) {
+    detectedRegistry = 'EEX';
+  } else if (lowerName.includes('agcs') || lowerName.includes('austria') || lowerName.includes('e-control')) {
+    detectedRegistry = 'AGCS';
+  } else if (lowerName.includes('ggcs') || lowerName.includes('uk') || lowerName.includes('rtfo') || lowerName.includes('britain')) {
+    detectedRegistry = 'GGCS_UK';
+  } else if (lowerName.includes('brugel') || lowerName.includes('vreg') || lowerName.includes('belgium') || lowerName.includes('fluxys')) {
+    detectedRegistry = 'BRUGEL_BE';
+  } else if (lowerName.includes('energigas') || lowerName.includes('swedegas') || lowerName.includes('sweden')) {
+    detectedRegistry = 'ENERGISVERIGE_SE';
+  } else if (lowerName.includes('pronovo') || lowerName.includes('vsg') || lowerName.includes('switzerland') || lowerName.includes('swiss')) {
+    detectedRegistry = 'PRONOVO_CH';
+  } else if (lowerName.includes('gasgrid') || lowerName.includes('finland')) {
+    detectedRegistry = 'GASGRID_FI';
+  } else if (lowerName.includes('gassco') || lowerName.includes('statnett') || lowerName.includes('norway')) {
+    detectedRegistry = 'GASSCO_NO';
+  } else if (lowerName.includes('ure') || lowerName.includes('gaz-system') || lowerName.includes('poland') || lowerName.includes('tge')) {
+    detectedRegistry = 'URE_PL';
+  } else if (lowerName.includes('ote') || lowerName.includes('net4gas') || lowerName.includes('czech')) {
+    detectedRegistry = 'OTE_CZ';
+  } else if (lowerName.includes('ren') || lowerName.includes('portugal') || lowerName.includes('mibgas')) {
+    detectedRegistry = 'REN_PT';
+  } else if (lowerName.includes('gni') || lowerName.includes('ireland')) {
+    detectedRegistry = 'GNI_IE';
+  } else if (lowerName.includes('mekh') || lowerName.includes('ceegex') || lowerName.includes('hungary')) {
+    detectedRegistry = 'MEKH_HU';
+  } else if (lowerName.includes('elering') || lowerName.includes('estonia')) {
+    detectedRegistry = 'ELERING_EE';
+  } else if (lowerName.includes('conexus') || lowerName.includes('latvia')) {
+    detectedRegistry = 'CONEXUS_LV';
+  } else if (lowerName.includes('amber') || lowerName.includes('lithuania')) {
+    detectedRegistry = 'AMBERGRID_LT';
+  } else if (lowerName.includes('okte') || lowerName.includes('slovakia') || lowerName.includes('spp')) {
+    detectedRegistry = 'OKTE_SK';
   } else if (lowerName.includes('dena') || lowerName.includes('biogasregister') || lowerName.includes('germany')) {
     detectedRegistry = 'DENA';
   }

@@ -11,6 +11,7 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
+  workers: process.env.CI ? 2 : 4,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? 'list' : [['list'], ['html', { open: 'never' }]],
@@ -21,6 +22,7 @@ export default defineConfig({
     // an empty desk.
     baseURL: 'http://localhost:4200',
     trace: 'retain-on-failure',
+    video: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
 
@@ -40,7 +42,7 @@ export default defineConfig({
     // screens at once leaves them all sitting on the Suspense fallback for tens of
     // seconds — failures that say nothing about the app. Building first also means
     // `npm run test:e2e` gates on `tsc -b`, and exercises the bundle that ships.
-    command: 'npm run build && npm run preview',
+    command: process.platform === 'win32' ? 'cmd.exe /c "npm run build && npm run preview"' : 'npm run build && npm run preview',
     url: 'http://localhost:4200',
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,

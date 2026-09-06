@@ -20,7 +20,21 @@ export type RegistryId =
   | 'GSE'
   | 'EEX'
   | 'AGCS'
-  | 'GGCS_UK';
+  | 'GGCS_UK'
+  | 'BRUGEL_BE'
+  | 'ENERGISVERIGE_SE'
+  | 'PRONOVO_CH'
+  | 'GASGRID_FI'
+  | 'GASSCO_NO'
+  | 'URE_PL'
+  | 'OTE_CZ'
+  | 'REN_PT'
+  | 'GNI_IE'
+  | 'MEKH_HU'
+  | 'ELERING_EE'
+  | 'CONEXUS_LV'
+  | 'AMBERGRID_LT'
+  | 'OKTE_SK';
 
 export type CertificateTransferProtocol =
   | 'ERGAR_COO'           // European Renewable Gas Registry Scheme (Certificate of Origin)
@@ -167,3 +181,48 @@ export interface ProtocolInteroperability {
   isDirectUdbEligible: boolean;
   notes: string;
 }
+
+export type TsoDataSource = 'ENERGINET_API' | 'ODRE_API' | 'ENTSOG_API' | 'TSO_SCADA_FEED' | 'MODELLED_REALTIME';
+
+export interface TsoTelemetryPoint {
+  id: string;
+  tsoCode: string;
+  tsoName: string;
+  countryCode: string;
+  nodeName: string;
+  gridType: 'TSO_TRANSMISSION' | 'DSO_DISTRIBUTION' | 'CROSS_BORDER_IP';
+  flowRateMWhPerHour: number;
+  flowRateNm3PerHour: number;
+  grossCalorificValueKwhNm3: number;
+  feedstockCategory: string;
+  verifiedCI: number;
+  annexClassification: BatchAnnexClassification;
+  timestamp: string;
+  source: TsoDataSource;
+  isLive: boolean;
+  interconnectorPartner?: string;
+  coordinates?: [number, number]; // [lon, lat]
+}
+
+export interface TsoNetworkMetrics {
+  timestamp: string;
+  totalDailyFlowMWh: number;
+  currentFlowVelocityMWhHour: number;
+  currentFlowVelocityNm3Hour: number;
+  activeInjectionPoints: number;
+  connectedTsoCount: number;
+  averageLatencyMs: number;
+  isLiveAggregate: boolean;
+  feeds: {
+    tsoCode: string;
+    countryCode: string;
+    tsoName: string;
+    source: TsoDataSource;
+    status: 'ONLINE' | 'FALLBACK_SYNCHRONISED' | 'CONNECTING';
+    latencyMs: number;
+    activeNodes: number;
+    hourlyFlowMWh: number;
+  }[];
+  points: TsoTelemetryPoint[];
+}
+

@@ -1,716 +1,725 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import L from 'leaflet';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { MARKETS, getMarketById } from '../../domain/markets/registry';
-import { useAppState } from '../../store/context';
-import { computeNetback } from '../../domain/netback/engine';
-import { REFERENCE_CONSIGNMENTS } from '../../domain/consignment/feedstocks';
-import { Consignment } from '../../domain/consignment/types';
-import { COUNTRY_MACRO_STATS, BIOMETHANE_PLANTS } from '../../domain/plants/registry';
-import { calculateLogisticsRoute } from '../../domain/logistics/engine';
+import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  ComposableMap,
+  Geographies,
+  Geography,
+  ZoomableGroup,
+  Line,
+  Marker,
+} from 'react-simple-maps';
+import { ArrowLeftRight } from 'lucide-react';
+import geoData from '../../assets/countries-50m.json';
 import { LogisticsModal } from '../logistics/LogisticsModal';
-import { QuickDealDrawer } from '../sourcing/QuickDealDrawer';
-import { searchSourcingRoutes } from '../../domain/arbitrage/sourcingAdapter';
-import { DEFAULT_WHAT_IF_SCENARIO } from '../../domain/arbitrage/engine';
-import { ArbitrageOpportunity, ClientRequest } from '../../domain/arbitrage/types';
 import { buildDealUrl } from '../../domain/trade/dealParams';
-import { 
-  Globe, 
-  Layers, 
-  Sparkles, 
-  ArrowRight, 
-  ExternalLink, 
-  ShieldCheck, 
-  Info,
-  Maximize2,
-  Minimize2,
-  Building2,
-  Zap,
-  MapPin,
-  Navigation
-} from 'lucide-react';
+import { calculateLogisticsRoute, calculateDijkstraCorridor } from '../../domain/logistics/engine';
 
-import { EUROPEAN_HUBS, TILE_PROVIDERS, CountryHub } from './mapData';
+interface CountryMeta {
+  iso: string;
+  name: string;
+  status: 'ACTIVE' | 'EMERGING' | 'FUTURE_2028' | 'RESTRICTED' | 'NONE';
+  legal: string;
+  plants: number;
+  twh: number;
+  center: [number, number]; // [lon, lat]
+}
+
+const COUNTRIES: Record<string, CountryMeta> = {
+  'Germany': { iso: 'DE', name: 'Germany', status: 'ACTIVE', legal: '§37a BImSchG · 38. BImSchV', plants: 242, twh: 11.8, center: [10.45, 51.16] },
+  'Netherlands': { iso: 'NL', name: 'Netherlands', status: 'ACTIVE', legal: 'Wet milieubeheer · Regeling energie vervoer', plants: 82, twh: 3.2, center: [5.29, 52.13] },
+  'France': { iso: 'FR', name: 'France', status: 'ACTIVE', legal: 'Code de l’énergie L.446-24 · Art. 266 quindecies', plants: 652, twh: 10.4, center: [2.21, 46.22] },
+  'Italy': { iso: 'IT', name: 'Italy', status: 'ACTIVE', legal: 'DM 2 March 2018 · DM 15 Sept 2022', plants: 135, twh: 4.8, center: [12.56, 41.87] },
+  'Denmark': { iso: 'DK', name: 'Denmark', status: 'ACTIVE', legal: 'VE-loven §§ 43a–43f', plants: 64, twh: 5.6, center: [9.50, 56.26] },
+  'Austria': { iso: 'AT', name: 'Austria', status: 'ACTIVE', legal: 'Erneuerbaren-Gase-Gesetz', plants: 16, twh: 0.45, center: [14.55, 47.51] },
+  'Sweden': { iso: 'SE', name: 'Sweden', status: 'ACTIVE', legal: 'Lag (1994:1776) om skatt på energi', plants: 72, twh: 2.1, center: [18.64, 60.12] },
+  'Finland': { iso: 'FI', name: 'Finland', status: 'ACTIVE', legal: 'Jakeluvelvoitelaki (446/2007)', plants: 26, twh: 0.55, center: [25.74, 61.92] },
+  'Belgium': { iso: 'BE', name: 'Belgium', status: 'ACTIVE', legal: 'Energiedecreet · Décret wallon gaz', plants: 12, twh: 0.38, center: [4.46, 50.50] },
+  'Spain': { iso: 'ES', name: 'Spain', status: 'ACTIVE', legal: 'Real Decreto 376/2022', plants: 38, twh: 0.9, center: [-3.74, 40.46] },
+  'Poland': { iso: 'PL', name: 'Poland', status: 'EMERGING', legal: 'Ustawa o OZE Art. 70a–70z', plants: 14, twh: 0.3, center: [19.14, 51.91] },
+  'Czechia': { iso: 'CZ', name: 'Czechia', status: 'EMERGING', legal: 'Zákon o POZE 165/2012 §§ 24–27', plants: 11, twh: 0.2, center: [15.47, 49.81] },
+  'Portugal': { iso: 'PT', name: 'Portugal', status: 'EMERGING', legal: 'Decreto-Lei 84/2022', plants: 4, twh: 0.05, center: [-8.22, 39.39] },
+  'Ireland': { iso: 'IE', name: 'Ireland', status: 'EMERGING', legal: 'NORA Act Part 5A', plants: 6, twh: 0.1, center: [-8.24, 53.41] },
+  'Greece': { iso: 'GR', name: 'Greece', status: 'EMERGING', legal: 'Law 4951/2022 Art. 80–92', plants: 3, twh: 0.04, center: [21.82, 39.07] },
+  'Romania': { iso: 'RO', name: 'Romania', status: 'EMERGING', legal: 'Legea 220/2008 · ANRE norms', plants: 2, twh: 0.03, center: [24.96, 45.94] },
+  'Hungary': { iso: 'HU', name: 'Hungary', status: 'EMERGING', legal: 'Földgáztörvény 82–85. §', plants: 5, twh: 0.08, center: [19.50, 47.16] },
+  'Estonia': { iso: 'EE', name: 'Estonia', status: 'EMERGING', legal: 'Vedelkütuse seadus § 2¹', plants: 8, twh: 0.15, center: [25.01, 58.59] },
+  'Lithuania': { iso: 'LT', name: 'Lithuania', status: 'EMERGING', legal: 'Renewable Energy Law Art. 38–41', plants: 4, twh: 0.06, center: [23.88, 55.16] },
+  'Latvia': { iso: 'LV', name: 'Latvia', status: 'EMERGING', legal: 'Enerģētikas likums 42. pants', plants: 3, twh: 0.04, center: [24.60, 56.87] },
+  'Switzerland': { iso: 'CH', name: 'Switzerland', status: 'EMERGING', legal: 'MinStG Art. 2a · 12b — grid-isolated', plants: 35, twh: 0.4, center: [8.22, 46.81] },
+  'Norway': { iso: 'NO', name: 'Norway', status: 'EMERGING', legal: 'Produktforskriften kap. 3 — grid-isolated', plants: 12, twh: 0.2, center: [8.46, 60.47] },
+  'United Kingdom': { iso: 'GB', name: 'United Kingdom', status: 'RESTRICTED', legal: 'RTFO — grid injection cannot evidence UDB ingestion', plants: 108, twh: 6.1, center: [-3.43, 55.37] },
+  'Slovakia': { iso: 'SK', name: 'Slovakia', status: 'FUTURE_2028', legal: 'ETS2 · Directive (EU) 2023/959', plants: 2, twh: 0.03, center: [19.69, 48.66] },
+  'Slovenia': { iso: 'SI', name: 'Slovenia', status: 'FUTURE_2028', legal: 'ETS2 · Directive (EU) 2023/959', plants: 1, twh: 0.01, center: [14.99, 46.15] },
+  'Croatia': { iso: 'HR', name: 'Croatia', status: 'FUTURE_2028', legal: 'ETS2 · Directive (EU) 2023/959', plants: 1, twh: 0.01, center: [15.20, 45.10] },
+  'Bulgaria': { iso: 'BG', name: 'Bulgaria', status: 'FUTURE_2028', legal: 'ETS2 · Directive (EU) 2023/959', plants: 1, twh: 0.01, center: [25.48, 42.73] },
+  'Luxembourg': { iso: 'LU', name: 'Luxembourg', status: 'FUTURE_2028', legal: 'ETS2 · Directive (EU) 2023/959', plants: 2, twh: 0.02, center: [6.12, 49.81] },
+};
+
+const STATUS_CONFIG = {
+  ACTIVE: { label: 'Active market', fill: 'color-mix(in srgb, var(--color-text) 72%, var(--color-bg))', swatch: 'var(--color-text)' },
+  EMERGING: { label: 'Emerging', fill: 'color-mix(in srgb, var(--color-text) 38%, var(--color-bg))', swatch: 'var(--color-neutral-500)' },
+  FUTURE_2028: { label: 'Future 2028 · ETS2', fill: 'color-mix(in srgb, var(--color-text) 16%, var(--color-bg))', swatch: 'var(--color-neutral-300)' },
+  RESTRICTED: { label: 'Restricted · UDB gap', fill: 'var(--color-accent)', swatch: 'var(--color-accent)' },
+  NONE: { label: 'No mechanism', fill: 'color-mix(in srgb, var(--color-text) 7%, var(--color-bg))', swatch: 'color-mix(in srgb, var(--color-text) 12%, var(--color-bg))' },
+};
 
 export function MapScreen() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const { state, dispatch } = useAppState();
-
-  const plantIdParam = searchParams.get('plantId');
-  const originParam = searchParams.get('origin');
-  const targetParam = searchParams.get('target');
-
-  const sourcedPlant = useMemo(() => {
-    if (!plantIdParam) return null;
-    return BIOMETHANE_PLANTS.find(p => p.id === plantIdParam) || null;
-  }, [plantIdParam]);
-
-  const [originCountry, setOriginCountry] = useState<string>(originParam || sourcedPlant?.countryCode || 'DK');
-  const [targetCountry, setTargetCountry] = useState<string>(targetParam || 'DE');
-  const [selectedCountry, setSelectedCountry] = useState<string>(targetParam || 'DE');
-  const [mapClickMode, setMapClickMode] = useState<'SET_ORIGIN' | 'SET_TARGET'>('SET_TARGET');
-  const [mapTheme, setMapTheme] = useState<'hybrid' | 'satellite' | 'streets' | 'dark'>('hybrid');
+  const [origin, setOrigin] = useState<string>('Denmark');
+  const [target, setTarget] = useState<string>('Germany');
+  const [selectedCountryName, setSelectedCountryName] = useState<string>('Germany');
+  const [mode, setMode] = useState<'ORIGIN' | 'TARGET'>('TARGET');
+  const [hoveredCountry, setHoveredCountry] = useState<CountryMeta | null>(null);
   const [isLogisticsOpen, setIsLogisticsOpen] = useState(false);
-  const [selectedDealRoute, setSelectedDealRoute] = useState<ArbitrageOpportunity | null>(null);
-  const [dealRequest, setDealRequest] = useState<ClientRequest | null>(null);
+  const [zoomLevel, setZoomLevel] = useState<number>(3.6);
+  const [mapCenter, setMapCenter] = useState<[number, number]>([12, 53]);
 
-  // Resizable Panel State
-  const [panelWidth, setPanelWidth] = useState<number>(480);
-  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const originMeta = COUNTRIES[origin] || COUNTRIES['Denmark'];
+  const targetMeta = COUNTRIES[target] || COUNTRIES['Germany'];
+  const selectedMeta = COUNTRIES[selectedCountryName] || COUNTRIES['Germany'];
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isDragging) return;
-      const newWidth = window.innerWidth - e.clientX;
-      if (newWidth >= 320 && newWidth <= 850) {
-        setPanelWidth(newWidth);
-      }
-    };
-
-    const handleMouseUp = () => {
-      setIsDragging(false);
-    };
-
-    if (isDragging) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-      document.body.style.cursor = 'col-resize';
-      document.body.style.userSelect = 'none';
-    } else {
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-    }
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-    };
-  }, [isDragging]);
-
-  const mapContainerRef = useRef<HTMLDivElement | null>(null);
-  const mapInstanceRef = useRef<L.Map | null>(null);
-  const tileLayerRef = useRef<L.TileLayer | null>(null);
-  const flowLineRef = useRef<L.Polyline | null>(null);
-  const markersGroupRef = useRef<L.LayerGroup | null>(null);
-
-  // Active consignment for calculation
-  const activeConsignment = useMemo(() => {
-    const existing = state.consignments.find(c => c.id === state.activeConsignmentId);
-    return existing || REFERENCE_CONSIGNMENTS.DANISH_MANURE;
-  }, [state.consignments, state.activeConsignmentId]);
-
-  const consignment: Consignment = useMemo(() => ({
-    ...activeConsignment,
-    originCountry,
-  }), [activeConsignment, originCountry]);
-
-  // Selected Country Market
-  const selectedMarket = useMemo(() => {
-    return MARKETS.find(m => m.country === selectedCountry && m.status === 'ACTIVE') ||
-      MARKETS.find(m => m.country === selectedCountry) || null;
-  }, [selectedCountry]);
-
-  const selectedMacro = useMemo(() => {
-    const hub = EUROPEAN_HUBS.find(h => h.iso === selectedCountry);
-    const stat = COUNTRY_MACRO_STATS.find(s => s.iso === selectedCountry);
-    return {
-      iso: selectedCountry,
-      name: hub?.name || selectedCountry,
-      plants: hub?.plants ?? stat?.activePlants ?? 0,
-      twh: hub?.capacityTWh ? `${hub.capacityTWh} TWh` : '—',
-      size: `${Math.round(450)} Nm³/h`,
-      grid: '94%',
-      feedstock: hub?.primaryFeedstock || stat?.primaryFeedstockType || 'Agricultural residues & manure',
-      tech: stat?.primaryUpgradingTech || 'Membrane separation',
-      registry: hub?.registry || stat?.nationalRegistry || 'National Biomethane Register',
-      status: hub?.status || 'ACTIVE',
-    };
-  }, [selectedCountry]);
-
-  // Logistics Assessment for Origin -> Selected
-  const logistics = useMemo(() => {
-    return calculateLogisticsRoute(originCountry, selectedCountry, state.marks.gasIndex.mid);
-  }, [originCountry, selectedCountry, state.marks.gasIndex.mid]);
-
-  // Netback for Selected Country Market
-  const selectedNetback = useMemo(() => {
-    if (!selectedMarket) return null;
-    return computeNetback(selectedMarket, consignment, state.marks, state.costs, state.marks.pricingSides);
-  }, [selectedMarket, consignment, state.marks, state.costs]);
-
-  // 1. Initialize Leaflet Map
-  useEffect(() => {
-    if (!mapContainerRef.current || mapInstanceRef.current) return;
-
-    const map = L.map(mapContainerRef.current, {
-      center: [52.0, 11.5],
-      zoom: 4.8,
-      minZoom: 3,
-      maxZoom: 14,
-      zoomControl: false,
+  const statusCounts = useMemo(() => {
+    const counts = { ACTIVE: 0, EMERGING: 0, FUTURE_2028: 0, RESTRICTED: 0, NONE: 0 };
+    Object.values(COUNTRIES).forEach(c => {
+      counts[c.status]++;
     });
-
-    const tileCfg = TILE_PROVIDERS[mapTheme];
-    const tileLayer = L.tileLayer(tileCfg.url, {
-      attribution: tileCfg.attribution,
-      maxZoom: 20,
-    }).addTo(map);
-
-    tileLayerRef.current = tileLayer;
-    markersGroupRef.current = L.layerGroup().addTo(map);
-    mapInstanceRef.current = map;
-
-    return () => {
-      map.remove();
-      mapInstanceRef.current = null;
-    };
+    return counts;
   }, []);
 
-  // 2. Switch Tile Theme
-  useEffect(() => {
-    if (!mapInstanceRef.current || !tileLayerRef.current) return;
-    const tileCfg = TILE_PROVIDERS[mapTheme];
-    tileLayerRef.current.setUrl(tileCfg.url);
-  }, [mapTheme]);
+  const corridorCalculation = useMemo(() => {
+    return calculateLogisticsRoute(originMeta.iso, targetMeta.iso);
+  }, [originMeta.iso, targetMeta.iso]);
 
-  // 3. Render Hub Markers & Flow Polyline
-  useEffect(() => {
-    const map = mapInstanceRef.current;
-    const markersGroup = markersGroupRef.current;
-    if (!map || !markersGroup) return;
+  const dijkstraPath = useMemo(() => {
+    return calculateDijkstraCorridor(originMeta.iso, targetMeta.iso);
+  }, [originMeta.iso, targetMeta.iso]);
 
-    markersGroup.clearLayers();
+  const handleCountryClick = (cName: string) => {
+    const cMeta = COUNTRIES[cName];
+    if (!cMeta) return;
 
-    // Add Clean Google-Style Hub Pins (Minimal, Non-Cluttering)
-    EUROPEAN_HUBS.forEach(hub => {
-      const isOrigin = hub.iso === originCountry;
-      const isTarget = hub.iso === targetCountry;
-      const isSelected = hub.iso === selectedCountry;
-
-      let pinColor = '#10b981'; // emerald (Active)
-      if (hub.status === 'EMERGING') pinColor = '#f59e0b'; // amber
-      if (hub.status === 'RESTRICTED') pinColor = '#f43f5e'; // rose
-
-      let html = '';
-      let iconSize: [number, number] = [28, 28];
-      let iconAnchor: [number, number] = [14, 14];
-
-      if (isOrigin) {
-        iconSize = [130, 36];
-        iconAnchor = [65, 36];
-        html = `
-          <div class="cursor-pointer select-none flex flex-col items-center hover:scale-105 transition-transform">
-            <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-950/95 text-sky-200 border-2 border-sky-400 ring-4 ring-sky-500/30 shadow-2xl font-mono text-[11px] font-bold backdrop-blur-xs">
-              <span class="w-2 h-2 rounded-full bg-sky-400 animate-ping"></span>
-              <span class="font-sans">${hub.name}</span>
-              <span class="text-[9px] bg-sky-900/80 px-1.5 py-0.5 rounded-full font-normal">Origin (${hub.plants}p)</span>
-            </div>
-            <div class="w-2 h-2 rotate-45 -mt-1 bg-sky-950/95 border-r-2 border-b-2 border-sky-400"></div>
-          </div>
-        `;
-      } else if (isTarget) {
-        iconSize = [130, 36];
-        iconAnchor = [65, 36];
-        html = `
-          <div class="cursor-pointer select-none flex flex-col items-center hover:scale-105 transition-transform">
-            <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-teal-950/95 text-teal-200 border-2 border-teal-400 ring-4 ring-teal-500/30 shadow-2xl font-mono text-[11px] font-bold backdrop-blur-xs">
-              <span class="w-2 h-2 rounded-full bg-teal-400 animate-ping"></span>
-              <span class="font-sans">${hub.name}</span>
-              <span class="text-[9px] bg-teal-900/80 px-1.5 py-0.5 rounded-full font-normal">Target (${hub.plants}p)</span>
-            </div>
-            <div class="w-2 h-2 rotate-45 -mt-1 bg-teal-950/95 border-r-2 border-b-2 border-teal-400"></div>
-          </div>
-        `;
-      } else {
-        // Minimal Google Maps pin dot
-        iconSize = [24, 24];
-        iconAnchor = [12, 12];
-        html = `
-          <div class="group cursor-pointer select-none relative flex items-center justify-center hover:scale-130 transition-transform">
-            <div class="w-5 h-5 rounded-full bg-stone-950/90 border border-white/60 shadow-lg flex items-center justify-center backdrop-blur-xs">
-              <div class="w-2 h-2 rounded-full" style="background-color: ${pinColor}; box-shadow: 0 0 6px ${pinColor};"></div>
-            </div>
-            <!-- Clean Hover Tooltip -->
-            <div class="absolute bottom-full mb-1.5 hidden group-hover:flex flex-col items-center pointer-events-none z-50">
-              <div class="px-2 py-0.5 rounded-xs bg-stone-950/95 border border-stone-700 text-stone-200 font-mono text-[10px] whitespace-nowrap shadow-xl">
-                <strong>${hub.name}</strong> · ${hub.plants} plants (${hub.capacityTWh} TWh)
-              </div>
-            </div>
-          </div>
-        `;
-      }
-
-      const customIcon = L.divIcon({
-        html,
-        className: 'custom-hub-marker',
-        iconSize,
-        iconAnchor,
-      });
-
-      const marker = L.marker(hub.coords, { icon: customIcon });
-      marker.on('click', () => {
-        handleCountryClick(hub.iso);
-      });
-      markersGroup.addLayer(marker);
-    });
-
-    // Draw Animated Flow Polyline from Origin -> Target
-    if (flowLineRef.current) {
-      map.removeLayer(flowLineRef.current);
-      flowLineRef.current = null;
-    }
-
-    if (originCountry !== targetCountry) {
-      const originHub = EUROPEAN_HUBS.find(h => h.iso === originCountry);
-      const targetHub = EUROPEAN_HUBS.find(h => h.iso === targetCountry);
-
-      if (originHub && targetHub) {
-        // Curve the midpoint slightly for a sleek flight/pipeline arc
-        const midLat = (originHub.coords[0] + targetHub.coords[0]) / 2 + 1.2;
-        const midLng = (originHub.coords[1] + targetHub.coords[1]) / 2 - 1.0;
-
-        const curvePoints: [number, number][] = [
-          originHub.coords,
-          [midLat, midLng],
-          targetHub.coords,
-        ];
-
-        const polyline = L.polyline(curvePoints, {
-          color: '#2dd4bf',
-          weight: 3.5,
-          opacity: 0.9,
-          dashArray: '8, 8',
-          className: 'animated-grid-flow',
-        }).addTo(map);
-
-        flowLineRef.current = polyline;
-      }
-    }
-  }, [originCountry, targetCountry, selectedCountry, mapTheme]);
-
-  const handleCountryClick = (iso: string) => {
-    setSelectedCountry(iso);
-    if (mapClickMode === 'SET_ORIGIN') {
-      setOriginCountry(iso);
-      if (targetCountry === iso) {
-        setTargetCountry(iso === 'DE' ? 'NL' : 'DE');
-      }
+    setSelectedCountryName(cName);
+    if (mode === 'ORIGIN') {
+      if (cName !== target) setOrigin(cName);
     } else {
-      setTargetCountry(iso);
-      const mkt = MARKETS.find(m => m.country === iso && m.status === 'ACTIVE') ||
-                  MARKETS.find(m => m.country === iso);
-      if (mkt) {
-        dispatch({ type: 'SELECT_MARKET', id: mkt.id });
-      }
-      if (originCountry === iso) {
-        setOriginCountry(iso === 'DK' ? 'ES' : 'DK');
-      }
+      if (cName !== origin) setTarget(cName);
     }
   };
 
-  return (
-    <div className="flex-1 flex min-h-0 min-w-0 overflow-hidden bg-stone-950 text-stone-100 font-sans select-none">
-      
-      {/* 2A. INTERACTIVE LEAFLET MAP CANVAS (FLEX-1) */}
-      <div className="relative flex-1 min-w-0 bg-stone-950 flex flex-col min-h-0 overflow-hidden">
-        
-        {/* Map Container */}
-        <div ref={mapContainerRef} className="w-full h-full bg-[#0d0f12] z-0" />
+  const handleSwapCorridor = () => {
+    const prevOrigin = origin;
+    const prevTarget = target;
+    setOrigin(prevTarget);
+    setTarget(prevOrigin);
+    setSelectedCountryName(prevTarget);
+  };
 
-        {/* OVERLAY: Top-Left Market Status Legend */}
-        <div className="absolute top-3 left-3 p-3 bg-stone-900/95 border border-stone-800 rounded-lg shadow-xl flex flex-col gap-1.5 z-10 select-none backdrop-blur-xs font-mono text-xs">
-          <div className="text-[10px] font-bold tracking-wider text-stone-400 uppercase mb-0.5 flex items-center gap-1.5">
-            <Globe className="w-3.5 h-3.5 text-teal-400" />
-            European Biomethane Grid
+  const handleSimulateTrade = () => {
+    navigate(buildDealUrl({
+      originCountry: originMeta.iso,
+      marketId: `${targetMeta.iso}_THG`,
+    }));
+  };
+
+  const sortedCountries = useMemo(() => {
+    return Object.entries(COUNTRIES).sort((a, b) => a[0].localeCompare(b[0]));
+  }, []);
+
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'minmax(0, 1fr) 350px',
+        flex: 1,
+        minHeight: 0,
+      }}
+    >
+      {/* ─── Left: Map Canvas & Overlays ─── */}
+      <div
+        style={{
+          borderRight: '2px solid var(--color-divider)',
+          display: 'flex',
+          flexDirection: 'column',
+          minWidth: 0,
+          position: 'relative',
+        }}
+      >
+        {/* Top Header & Fast Corridor Selectors Bar */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '16px',
+            padding: '12px 18px',
+            borderBottom: '2px solid var(--color-divider)',
+            backgroundColor: 'var(--color-surface)',
+            flexWrap: 'wrap',
+          }}
+        >
+          <div>
+            <h3 className="ptitle" style={{ fontSize: '18px' }}>Compliance &amp; logistics map</h3>
+            <div className="subttl">
+              30 European jurisdictions · Interactive cross-border routing &amp; transmission tariffs
+            </div>
           </div>
-          <div className="flex items-center gap-2 text-stone-300 text-[11px]">
-            <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full shrink-0 shadow-xs" />
-            <span>Active RED III Grid Area</span>
-            <span className="text-stone-500 ml-auto pl-2">15 Hubs</span>
+
+          {/* Quick Origin / Target Selector Bar */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              backgroundColor: 'var(--color-bg)',
+              padding: '6px 10px',
+              border: '1px solid var(--color-divider)',
+            }}
+          >
+            {/* Origin Selector */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span className="eyebrow" style={{ color: 'var(--color-text)', fontWeight: 800 }}>Origin</span>
+              <select
+                value={origin}
+                onChange={e => setOrigin(e.target.value)}
+                className="input"
+                style={{
+                  height: '28px',
+                  minHeight: '28px',
+                  padding: '2px 8px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  width: '140px',
+                  cursor: 'pointer',
+                }}
+              >
+                {sortedCountries.map(([name, c]) => (
+                  <option key={c.iso} value={name}>
+                    {c.iso} · {c.name} ({c.plants}p)
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Swap Button */}
+            <button
+              type="button"
+              className="btn btn-secondary"
+              style={{ width: '28px', height: '28px', padding: 0, minHeight: '28px' }}
+              title="Swap Origin and Target"
+              aria-label="Swap corridor direction"
+              onClick={handleSwapCorridor}
+            >
+              <ArrowLeftRight style={{ width: '13px', height: '13px' }} />
+            </button>
+
+            {/* Target Selector */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span className="eyebrow" style={{ color: 'var(--color-accent)', fontWeight: 800 }}>Target</span>
+              <select
+                value={target}
+                onChange={e => setTarget(e.target.value)}
+                className="input"
+                style={{
+                  height: '28px',
+                  minHeight: '28px',
+                  padding: '2px 8px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  width: '140px',
+                  borderColor: 'var(--color-accent)',
+                  cursor: 'pointer',
+                }}
+              >
+                {sortedCountries.map(([name, c]) => (
+                  <option key={c.iso} value={name}>
+                    {c.iso} · {c.name} ({c.status})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Simulate CTA */}
+            <button
+              type="button"
+              className="btn btn-primary"
+              style={{ height: '28px', minHeight: '28px', fontSize: '11px', padding: '0 10px', marginLeft: '4px' }}
+              onClick={handleSimulateTrade}
+            >
+              Trade →
+            </button>
           </div>
-          <div className="flex items-center gap-2 text-stone-300 text-[11px]">
-            <span className="w-2.5 h-2.5 bg-amber-500 rounded-full shrink-0 shadow-xs" />
-            <span>Emerging Framework</span>
-            <span className="text-stone-500 ml-auto pl-2">8 Hubs</span>
-          </div>
-          <div className="flex items-center gap-2 text-stone-300 text-[11px]">
-            <span className="w-2.5 h-2.5 bg-rose-500 rounded-full shrink-0 shadow-xs" />
-            <span>Restricted (UK Non-EU)</span>
-            <span className="text-stone-500 ml-auto pl-2">1 Hub</span>
+
+          <div style={{ display: 'flex', gap: '14px' }} className="eyebrow">
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '9px', height: '9px', backgroundColor: 'var(--color-text)' }} />
+              Active · {statusCounts.ACTIVE}
+            </span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '9px', height: '9px', backgroundColor: 'var(--color-neutral-500)' }} />
+              Emerging · {statusCounts.EMERGING}
+            </span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '9px', height: '9px', backgroundColor: 'var(--color-accent)' }} />
+              Restricted · {statusCounts.RESTRICTED}
+            </span>
           </div>
         </div>
 
-        {/* OVERLAY: Top-Right Tile Mode Switcher & Zoom */}
-        <div className="absolute top-3 right-3 flex items-center gap-2 z-10">
-          <div className="flex bg-stone-900/95 border border-stone-800 rounded-lg p-0.5 shadow-xl font-mono text-xs select-none backdrop-blur-xs">
-            <button
-              type="button"
-              onClick={() => setMapTheme('hybrid')}
-              className={`px-2.5 py-1 rounded cursor-pointer transition-colors ${
-                mapTheme === 'hybrid' ? 'bg-teal-600 text-teal-950 font-bold' : 'text-stone-400 hover:text-stone-200'
-              }`}
-            >
-              🛰️ Google Earth
-            </button>
-            <button
-              type="button"
-              onClick={() => setMapTheme('streets')}
-              className={`px-2.5 py-1 rounded cursor-pointer transition-colors ${
-                mapTheme === 'streets' ? 'bg-teal-600 text-teal-950 font-bold' : 'text-stone-400 hover:text-stone-200'
-              }`}
-            >
-              🗺️ Roadmap
-            </button>
-            <button
-              type="button"
-              onClick={() => setMapTheme('dark')}
-              className={`px-2.5 py-1 rounded cursor-pointer transition-colors ${
-                mapTheme === 'dark' ? 'bg-teal-600 text-teal-950 font-bold' : 'text-stone-400 hover:text-stone-200'
-              }`}
-            >
-              🌙 Dark
-            </button>
+        {/* Map Container */}
+        <div style={{ flex: 1, position: 'relative', minHeight: '440px', overflow: 'hidden', backgroundColor: 'var(--color-bg)' }}>
+          <ComposableMap
+            projection="geoMercator"
+            projectionConfig={{
+              scale: 680,
+              center: [12, 54],
+            }}
+            style={{ width: '100%', height: '100%' }}
+          >
+            <ZoomableGroup zoom={zoomLevel / 3.6} center={mapCenter}>
+              <Geographies geography={geoData}>
+                {({ geographies }) =>
+                  geographies.map(geo => {
+                    const name = geo.properties.name;
+                    const cMeta = COUNTRIES[name];
+                    const status = cMeta ? cMeta.status : 'NONE';
+                    const fill = STATUS_CONFIG[status].fill;
+                    const isOrigin = name === origin;
+                    const isTarget = name === target;
+                    const isHovered = hoveredCountry?.name === name;
+
+                    let stroke = 'var(--color-bg)';
+                    let strokeWidth = 0.6;
+                    if (isOrigin) {
+                      stroke = 'var(--color-text)';
+                      strokeWidth = 2.2;
+                    } else if (isTarget) {
+                      stroke = 'var(--color-accent)';
+                      strokeWidth = 2.2;
+                    } else if (isHovered) {
+                      stroke = 'var(--color-text)';
+                      strokeWidth = 1.2;
+                    }
+
+                    return (
+                      <Geography
+                        key={geo.rsmKey}
+                        geography={geo}
+                        onClick={() => handleCountryClick(name)}
+                        onMouseEnter={() => {
+                          if (cMeta) setHoveredCountry(cMeta);
+                        }}
+                        onMouseLeave={() => setHoveredCountry(null)}
+                        style={{
+                          default: { fill, stroke, strokeWidth, outline: 'none', cursor: cMeta ? 'pointer' : 'default' },
+                          hover: { fill, stroke, strokeWidth: 1.5, outline: 'none', cursor: cMeta ? 'pointer' : 'default' },
+                          pressed: { fill, stroke, strokeWidth, outline: 'none' },
+                        }}
+                      />
+                    );
+                  })
+                }
+              </Geographies>
+
+              {/* Active Logistics Corridor Line */}
+              {originMeta && targetMeta && originMeta.iso !== targetMeta.iso && (
+                <>
+                  <Line
+                    from={originMeta.center}
+                    to={targetMeta.center}
+                    stroke="var(--color-bg)"
+                    strokeWidth={5.5}
+                    strokeOpacity={0.85}
+                  />
+                  <Line
+                    from={originMeta.center}
+                    to={targetMeta.center}
+                    stroke="var(--color-accent)"
+                    strokeWidth={2.2}
+                    strokeDasharray="6 5"
+                    className="flow"
+                  />
+                  <Marker coordinates={originMeta.center}>
+                    <circle r={4} fill="var(--color-text)" />
+                  </Marker>
+                  <Marker coordinates={targetMeta.center}>
+                    <circle r={4.6} fill="var(--color-accent)" />
+                  </Marker>
+                </>
+              )}
+
+              {/* Country ISO and Plant Labels */}
+              {Object.entries(COUNTRIES).map(([name, cMeta]) => (
+                <Marker key={cMeta.iso} coordinates={cMeta.center}>
+                  <text
+                    textAnchor="middle"
+                    y={-2}
+                    style={{
+                      fontFamily: 'var(--font-heading)',
+                      fontWeight: 800,
+                      fontSize: '10px',
+                      fill: 'var(--color-text)',
+                      paintOrder: 'stroke',
+                      stroke: 'var(--color-bg)',
+                      strokeWidth: '2.5px',
+                      strokeLinejoin: 'round',
+                      pointerEvents: 'none',
+                      userSelect: 'none',
+                    }}
+                  >
+                    {cMeta.iso}
+                  </text>
+                  <text
+                    textAnchor="middle"
+                    y={9}
+                    className="num"
+                    style={{
+                      fontFamily: 'var(--font-body)',
+                      fontWeight: 600,
+                      fontSize: '9px',
+                      fill: 'color-mix(in srgb, var(--color-text) 70%, transparent)',
+                      paintOrder: 'stroke',
+                      stroke: 'var(--color-bg)',
+                      strokeWidth: '2px',
+                      pointerEvents: 'none',
+                      userSelect: 'none',
+                    }}
+                  >
+                    {cMeta.plants}
+                  </text>
+                </Marker>
+              ))}
+            </ZoomableGroup>
+          </ComposableMap>
+
+          {/* Overlay: Top-Left Legend & Click-Mode Switcher */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '12px',
+              left: '12px',
+              minWidth: '210px',
+              backgroundColor: 'color-mix(in srgb, var(--color-surface) 96%, transparent)',
+              border: '1px solid var(--color-divider)',
+              padding: '10px 12px',
+            }}
+          >
+            <div className="eyebrow">Map Click Mode</div>
+            <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
+              <button
+                type="button"
+                className={`btn ${mode === 'ORIGIN' ? 'btn-primary' : 'btn-secondary'}`}
+                style={{ padding: '3px 8px', fontSize: '11px', flex: 1 }}
+                onClick={() => setMode('ORIGIN')}
+              >
+                Set Origin
+              </button>
+              <button
+                type="button"
+                className={`btn ${mode === 'TARGET' ? 'btn-primary' : 'btn-secondary'}`}
+                style={{ padding: '3px 8px', fontSize: '11px', flex: 1 }}
+                onClick={() => setMode('TARGET')}
+              >
+                Set Target
+              </button>
+            </div>
+            <div style={{ fontSize: '11px', marginTop: '6px' }} className="mut">
+              Clicking a country sets it as <strong>{mode === 'ORIGIN' ? 'Origin' : 'Target'}</strong>.
+            </div>
+
+            <div style={{ borderTop: '1px solid var(--color-divider)', marginTop: '8px', paddingTop: '8px' }}>
+              <div className="eyebrow" style={{ marginBottom: '5px' }}>Compliance status</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                {(['ACTIVE', 'EMERGING', 'FUTURE_2028', 'RESTRICTED'] as const).map(s => (
+                  <div key={s} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px' }}>
+                    <span style={{ width: '9px', height: '9px', flex: 'none', backgroundColor: STATUS_CONFIG[s].swatch }} />
+                    <span style={{ flex: 1 }}>{STATUS_CONFIG[s].label}</span>
+                    <span className="num mut" style={{ fontSize: '10px' }}>{statusCounts[s]}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
-          <div className="flex flex-col bg-stone-900 border border-stone-800 rounded-lg shadow-xl">
+          {/* Overlay: Top-Right Zoom Buttons */}
+          <div style={{ position: 'absolute', top: '12px', right: '12px', display: 'flex', flexDirection: 'column' }}>
             <button
               type="button"
-              onClick={() => mapInstanceRef.current?.zoomIn()}
-              className="w-7 h-7 hover:bg-stone-800 text-stone-200 font-mono text-sm flex items-center justify-center border-b border-stone-800 cursor-pointer"
+              className="btn btn-secondary"
+              style={{ width: '28px', height: '28px', padding: 0, fontSize: '14px', fontWeight: 800 }}
+              aria-label="Zoom in"
+              onClick={() => setZoomLevel(z => Math.min(z + 1, 8))}
             >
               +
             </button>
             <button
               type="button"
-              onClick={() => mapInstanceRef.current?.zoomOut()}
-              className="w-7 h-7 hover:bg-stone-800 text-stone-200 font-mono text-sm flex items-center justify-center cursor-pointer"
+              className="btn btn-secondary"
+              style={{ width: '28px', height: '28px', padding: 0, fontSize: '14px', fontWeight: 800, borderTop: 0 }}
+              aria-label="Zoom out"
+              onClick={() => setZoomLevel(z => Math.max(z - 1, 1))}
             >
               −
             </button>
-          </div>
-        </div>
-
-        {/* OVERLAY: Bottom-Left Active Flow Control */}
-        <div className="absolute bottom-3 left-3 w-[290px] p-3 bg-stone-900/95 border border-stone-800 rounded-lg shadow-2xl flex flex-col gap-2 z-10 select-none backdrop-blur-xs font-mono text-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold tracking-wider text-stone-400 uppercase">
-              Active Cross-Border Flow
-            </span>
-            <span className="text-[10px] text-teal-400 font-bold">RED III Mass Balance</span>
-          </div>
-
-          <div className="flex items-center justify-between bg-stone-950 p-2 rounded border border-stone-800 text-sm font-bold">
-            <div className="flex items-center gap-1.5 text-sky-400">
-              <span>{originCountry}</span>
-              <span className="text-[10px] font-normal text-stone-400">(Origin)</span>
-            </div>
-            <ArrowRight className="w-4 h-4 text-teal-400 animate-pulse" />
-            <div className="flex items-center gap-1.5 text-teal-300">
-              <span>{targetCountry}</span>
-              <span className="text-[10px] font-normal text-stone-400">(Target)</span>
-            </div>
-          </div>
-
-          <div className="flex border border-stone-700 rounded overflow-hidden text-[11px] font-bold mt-0.5">
             <button
               type="button"
-              onClick={() => setMapClickMode('SET_ORIGIN')}
-              className={`flex-1 py-1.5 text-center cursor-pointer transition-colors ${
-                mapClickMode === 'SET_ORIGIN' ? 'bg-sky-600 text-sky-950 font-bold' : 'bg-stone-800 text-stone-300 hover:bg-stone-700'
-              }`}
+              className="btn btn-secondary"
+              style={{ width: '28px', height: '28px', padding: 0, fontSize: '10px', letterSpacing: '0.06em', borderTop: 0 }}
+              aria-label="Reset view"
+              onClick={() => {
+                setZoomLevel(3.6);
+                setMapCenter([12, 53]);
+              }}
             >
-              Set Origin (Click Hub)
-            </button>
-            <button
-              type="button"
-              onClick={() => setMapClickMode('SET_TARGET')}
-              className={`flex-1 py-1.5 text-center cursor-pointer transition-colors ${
-                mapClickMode === 'SET_TARGET' ? 'bg-teal-600 text-teal-950 font-bold' : 'bg-stone-800 text-stone-300 hover:bg-stone-700'
-              }`}
-            >
-              Set Target (Click Hub)
+              RST
             </button>
           </div>
-        </div>
 
-      </div>
-
-      {/* DRAGGABLE RESIZE HANDLE */}
-      <div
-        onMouseDown={handleMouseDown}
-        className={`w-2 flex-none bg-stone-900 hover:bg-teal-500 border-l border-r border-stone-800 hover:border-teal-400 cursor-col-resize transition-colors flex items-center justify-center z-30 group ${
-          isDragging ? 'bg-teal-500 border-teal-400' : ''
-        }`}
-        title="Click and drag to adjust panel width"
-      >
-        <div className="w-0.5 h-8 bg-stone-600 group-hover:bg-stone-950 rounded-full" />
-      </div>
-
-      {/* 2B. JURISDICTION DOSSIER RAIL (ADJUSTABLE WIDTH) */}
-      <aside 
-        style={{ width: `${panelWidth}px` }} 
-        className="flex-none bg-stone-950 flex flex-col min-h-0 overflow-y-auto font-sans shadow-2xl transition-[width] duration-75 ease-out"
-      >
-        
-        {/* Header with Width Presets */}
-        <div className="p-4 border-b border-stone-800 bg-stone-900/80 flex items-center justify-between gap-3 sticky top-0 z-20 backdrop-blur-md">
-          <div className="min-w-0">
-            <div className="font-mono text-[10px] font-bold tracking-wider text-teal-400 uppercase">
-              Jurisdiction Dossier
-            </div>
-            <h2 className="text-lg font-bold text-stone-100 mt-0.5 truncate">
-              {selectedMacro.name} ({selectedMacro.iso})
-            </h2>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            {/* Quick Width Presets */}
-            <div className="flex bg-stone-950 border border-stone-800 rounded p-0.5 text-micro font-mono">
-              <button
-                type="button"
-                onClick={() => setPanelWidth(380)}
-                className={`px-1.5 py-0.5 rounded transition-colors cursor-pointer ${
-                  panelWidth <= 400 ? 'bg-teal-600 text-stone-950 font-bold' : 'text-stone-400 hover:text-stone-200'
-                }`}
-                title="Compact Width (380px)"
-              >
-                380
-              </button>
-              <button
-                type="button"
-                onClick={() => setPanelWidth(520)}
-                className={`px-1.5 py-0.5 rounded transition-colors cursor-pointer ${
-                  panelWidth > 400 && panelWidth <= 600 ? 'bg-teal-600 text-stone-950 font-bold' : 'text-stone-400 hover:text-stone-200'
-                }`}
-                title="Default Width (520px)"
-              >
-                520
-              </button>
-              <button
-                type="button"
-                onClick={() => setPanelWidth(720)}
-                className={`px-1.5 py-0.5 rounded transition-colors cursor-pointer ${
-                  panelWidth > 600 ? 'bg-teal-600 text-stone-950 font-bold' : 'text-stone-400 hover:text-stone-200'
-                }`}
-                title="Wide Width (720px)"
-              >
-                720
-              </button>
-            </div>
-
-            <span className={`px-2 py-0.5 font-mono text-[10px] font-bold rounded border ${
-              selectedMacro.status === 'ACTIVE'
-                ? 'bg-emerald-950 text-emerald-300 border-emerald-800'
-                : 'bg-amber-950 text-amber-300 border-amber-800'
-            }`}>
-              {selectedMacro.status}
-            </span>
-          </div>
-        </div>
-
-        {/* Sourced Plant Physical Context Bar (if deep-linked) */}
-        {sourcedPlant && (
-          <div className="p-3 px-4 bg-teal-950/60 border-b border-teal-800/80 flex flex-col gap-2 font-sans shadow-inner">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[10px] font-bold text-teal-400 bg-teal-900/80 border border-teal-700 px-1.5 py-0.5 rounded flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3 text-emerald-400" />
-                Sourced Facility GPS Route
-              </span>
-              <span className="font-mono text-micro text-stone-400">
-                {sourcedPlant.countryCode} · {sourcedPlant.country}
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <h4 className="font-bold text-sm text-stone-100 m-0">{sourcedPlant.name}</h4>
-                <div className="text-[11px] text-stone-400 font-mono mt-0.5">
-                  {sourcedPlant.capacityNm3h?.toLocaleString()} Nm³/h · {sourcedPlant.annualEnergyGWh} GWh/a · {sourcedPlant.primaryFeedstockCategory}
+          {/* Overlay: Bottom-Right Hover Card */}
+          {hoveredCountry && (
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '12px',
+                right: '12px',
+                width: '236px',
+                backgroundColor: 'color-mix(in srgb, var(--color-surface) 96%, transparent)',
+                border: '1px solid var(--color-divider)',
+                padding: '10px 12px',
+              }}
+            >
+              <div className="eyebrow">{STATUS_CONFIG[hoveredCountry.status].label}</div>
+              <div style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '17px', marginTop: '4px' }}>
+                {hoveredCountry.name}
+              </div>
+              <div style={{ fontSize: '11px', marginTop: '2px' }} className="mut">
+                {hoveredCountry.legal}
+              </div>
+              <div style={{ display: 'flex', gap: '18px', marginTop: '8px' }}>
+                <div>
+                  <div className="eyebrow">Plants</div>
+                  <div className="num" style={{ fontSize: '16px', fontWeight: 800 }}>{hoveredCountry.plants}</div>
+                </div>
+                <div>
+                  <div className="eyebrow">Installed</div>
+                  <div className="num" style={{ fontSize: '16px', fontWeight: 800 }}>{hoveredCountry.twh} TWh</div>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  const cat = (sourcedPlant.primaryFeedstockCategory || '').toLowerCase();
-                  let feedstock = 'manure';
-                  let ci = -100;
-                  if (cat.includes('food') || cat.includes('bio-waste')) { feedstock = 'food_waste'; ci = -15; }
-                  else if (cat.includes('sewage') || cat.includes('sludge')) { feedstock = 'sewage_sludge'; ci = 24; }
-                  else if (cat.includes('straw') || cat.includes('agricultural residue')) { feedstock = 'straw'; ci = 16; }
-                  else if (cat.includes('crop') || cat.includes('silage')) { feedstock = 'energy_crops'; ci = 40; }
-                  else if (cat.includes('industrial') || cat.includes('whey')) { feedstock = 'industrial_biowaste'; ci = 10; }
-
-                  const cIso = (sourcedPlant.countryCode || '').toUpperCase();
-                  let marketId = 'DE_THG';
-                  if (cIso === 'GB' || cIso === 'UK') marketId = 'UK_RTFO';
-                  else if (cIso === 'NL') marketId = 'NL_ERE';
-                  else if (cIso === 'FR') marketId = 'FR_CPB';
-                  else if (cIso === 'IT') marketId = 'IT_CIC';
-                  else if (cIso === 'SE') marketId = 'FUELEU';
-                  else if (cIso === 'CH') marketId = 'VOL_SCOPE1';
-
-                  navigate(buildDealUrl({
-                    originCountry: sourcedPlant.countryCode,
-                    marketId,
-                    feedstock,
-                    ci,
-                    volume: sourcedPlant.annualEnergyGWh ? Math.round(sourcedPlant.annualEnergyGWh * 1000) : undefined,
-                    counterparty: sourcedPlant.legalEntityName || sourcedPlant.operator || `Asset Source (${sourcedPlant.name})`,
-                    plantId: sourcedPlant.id,
-                    plantName: sourcedPlant.name,
-                    plantCapacityNm3h: sourcedPlant.capacityNm3h || undefined,
-                    plantAnnualGWh: sourcedPlant.annualEnergyGWh || undefined,
-                    legalEntityName: sourcedPlant.legalEntityName || undefined,
-                    networkOperator: sourcedPlant.networkOperator || undefined,
-                    contactEmail: sourcedPlant.contactEmail || undefined,
-                    contactPhone: sourcedPlant.contactPhone || undefined,
-                  }));
-                }}
-                className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-teal-950 font-mono text-xs font-bold rounded cursor-pointer transition-colors shadow-sm"
-              >
-                <Zap className="w-3.5 h-3.5" />
-                <span>Structure Trade →</span>
-              </button>
             </div>
-          </div>
-        )}
-
-        {/* Macro Metrics Grid */}
-        <div className="p-4 border-b border-stone-800 grid grid-cols-2 gap-3 font-mono">
-          <div className="bg-stone-900 p-3 rounded-lg border border-stone-800">
-            <span className="text-[10px] text-stone-400 uppercase font-semibold block">Active Plants</span>
-            <span className="text-base font-bold text-stone-100 font-num">{selectedMacro.plants} facilities</span>
-          </div>
-          <div className="bg-stone-900 p-3 rounded-lg border border-stone-800">
-            <span className="text-[10px] text-stone-400 uppercase font-semibold block">Total Output</span>
-            <span className="text-base font-bold text-teal-400 font-num">{selectedMacro.twh}</span>
-          </div>
-          <div className="bg-stone-900 p-3 rounded-lg border border-stone-800">
-            <span className="text-[10px] text-stone-400 uppercase font-semibold block">Primary Technology</span>
-            <span className="text-xs font-semibold text-stone-200 block mt-1 leading-snug">{selectedMacro.tech}</span>
-          </div>
-          <div className="bg-stone-900 p-3 rounded-lg border border-stone-800">
-            <span className="text-[10px] text-stone-400 uppercase font-semibold block">National Registry</span>
-            <span className="text-xs font-semibold text-stone-200 block mt-1 leading-snug">{selectedMacro.registry}</span>
-          </div>
+          )}
         </div>
 
-        {/* Route Assessment (Origin -> Selected) */}
-        <div className="p-4 border-b border-stone-800 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="font-mono text-xs font-bold uppercase tracking-wider text-stone-300">
-              Transit &amp; Route Logistics
-            </span>
-            <span className="font-mono text-xs font-bold text-teal-400 bg-teal-950/80 px-2 py-0.5 rounded border border-teal-800">
-              {originCountry} ➔ {selectedCountry}
-            </span>
+        {/* Bottom 3-Cell Corridor Strip */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', borderTop: '2px solid var(--color-divider)', backgroundColor: 'var(--color-surface)' }}>
+          <div style={{ padding: '12px 18px', borderRight: '1px solid var(--color-divider)' }}>
+            <div className="eyebrow">Active corridor</div>
+            <div style={{ fontSize: '17px', fontWeight: 800, marginTop: '2px' }}>
+              {originMeta.iso} ({originMeta.name}) ➔ {targetMeta.iso} ({targetMeta.name})
+            </div>
+            <div style={{ fontSize: '12px' }} className="mut">
+              {dijkstraPath.segments.length > 0
+                ? `${dijkstraPath.path.join(' → ')} (${dijkstraPath.distanceKm} km · ${dijkstraPath.segments.length} hops)`
+                : 'Direct / Single-area corridor'}
+            </div>
           </div>
-
-          <div className="bg-stone-900 p-3.5 rounded-lg border border-stone-800 space-y-2.5 font-mono text-xs">
-            <div className="flex justify-between items-center">
-              <span className="text-stone-400">Transit Tariff:</span>
-              <span className="font-bold text-stone-100">
-                {logistics.physicalRoute.totalPhysicalTariffEurMwh !== null
-                  ? `€${logistics.physicalRoute.totalPhysicalTariffEurMwh.toFixed(2)} / MWh`
-                  : `€${(logistics.modes.virtualSwap.totalCostEurMwh ?? 0).toFixed(2)} / MWh`}
-              </span>
+          <div style={{ padding: '12px 18px', borderRight: '1px solid var(--color-divider)' }}>
+            <div className="eyebrow">Transit tariff</div>
+            <div className="num" style={{ fontSize: '17px', fontWeight: 800, marginTop: '2px' }}>
+              {corridorCalculation.physicalRoute.totalPhysicalTariffEurMwh !== null
+                ? `€${corridorCalculation.physicalRoute.totalPhysicalTariffEurMwh.toFixed(2)} / MWh`
+                : '€1.80 / MWh'}
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-stone-400">Pipeline Route:</span>
-              <span className="text-stone-200 font-semibold">{logistics.physicalRoute.transitingCountries.join(' ➔ ') || 'Domestic'}</span>
+            <div style={{ fontSize: '12px' }} className="mut">
+              {corridorCalculation.modes.physicalPipeline.regulatoryFeasibility === 'HIGH'
+                ? 'Single-zone / interconnected transit'
+                : 'Multi-zone transit · PRISMA booking required'}
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-stone-400">Delivered Netback:</span>
-              <span className="font-bold text-emerald-400 text-sm">
-                {selectedNetback?.netNetback !== null && selectedNetback?.netNetback !== undefined
-                  ? `€${selectedNetback.netNetback.toFixed(2)} / MWh`
-                  : 'Unpriced'}
-              </span>
+          </div>
+          <div style={{ padding: '12px 18px' }}>
+            <div className="eyebrow">Basis to TTF</div>
+            <div className="num" style={{ fontSize: '17px', fontWeight: 800, marginTop: '2px' }}>
+              +€0.65 / MWh
+            </div>
+            <div style={{ fontSize: '12px' }} className="mut">
+              Target hub premium, M+1
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Action Buttons */}
-        <div className="p-4 space-y-2.5 mt-auto bg-stone-950 sticky bottom-0 border-t border-stone-800/80">
+      {/* ─── Right Rail: Selected Jurisdiction ─── */}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          backgroundColor: 'var(--color-surface)',
+          borderLeft: '1px solid var(--color-divider)',
+        }}
+      >
+        <div style={{ padding: '16px 18px', borderBottom: '2px solid var(--color-divider)' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+            <span className="eyebrow">Jurisdiction</span>
+            <span className={`chip ${selectedMeta.status === 'ACTIVE' ? 'chip-a' : ''}`}>
+              {STATUS_CONFIG[selectedMeta.status].label}
+            </span>
+          </div>
+          <h4 style={{ margin: '6px 0 2px', fontSize: '20px', fontWeight: 800 }}>{selectedMeta.name}</h4>
+          <div style={{ fontSize: '11px' }} className="mut">
+            {selectedMeta.legal}
+          </div>
+
+          {/* Prominent One-Click Assignment Buttons */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '14px' }}>
+            <button
+              type="button"
+              className={`btn ${origin === selectedMeta.name ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ fontSize: '12px', padding: '6px 8px' }}
+              onClick={() => setOrigin(selectedMeta.name)}
+            >
+              {origin === selectedMeta.name ? '✓ Origin (Active)' : 'Set as Origin'}
+            </button>
+            <button
+              type="button"
+              className={`btn ${target === selectedMeta.name ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ fontSize: '12px', padding: '6px 8px' }}
+              onClick={() => setTarget(selectedMeta.name)}
+            >
+              {target === selectedMeta.name ? '✓ Target (Active)' : 'Set as Target'}
+            </button>
+          </div>
+        </div>
+
+        {/* 2x2 Stat Grid */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '1px',
+            backgroundColor: 'var(--color-divider)',
+          }}
+        >
+          <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 16px' }}>
+            <div className="eyebrow">Active plants</div>
+            <div className="num" style={{ fontSize: '19px', fontWeight: 800 }}>{selectedMeta.plants}</div>
+          </div>
+          <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 16px' }}>
+            <div className="eyebrow">Installed</div>
+            <div className="num" style={{ fontSize: '19px', fontWeight: 800 }}>{selectedMeta.twh} TWh</div>
+          </div>
+          <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 16px' }}>
+            <div className="eyebrow">Avg plant size</div>
+            <div className="num" style={{ fontSize: '19px', fontWeight: 800 }}>
+              {((selectedMeta.twh * 1000) / Math.max(1, selectedMeta.plants)).toFixed(1)} GWh
+            </div>
+          </div>
+          <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 16px' }}>
+            <div className="eyebrow">Grid connected</div>
+            <div className="num" style={{ fontSize: '19px', fontWeight: 800 }}>96%</div>
+          </div>
+        </div>
+
+        {/* Delivery Options */}
+        <div
+          style={{
+            padding: '14px 18px',
+            borderTop: '1px solid var(--color-divider)',
+            borderBottom: '1px solid var(--color-divider)',
+          }}
+        >
+          <div className="eyebrow" style={{ marginBottom: '8px' }}>
+            Delivery options · {originMeta.iso} → {selectedMeta.iso}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 600 }}>
+                <span>A · Virtual UDB swap</span>
+                <span className="num">
+                  €{corridorCalculation.modes.virtualSwap.totalCostEurMwh !== null
+                    ? corridorCalculation.modes.virtualSwap.totalCostEurMwh.toFixed(2)
+                    : '1.80'}
+                </span>
+              </div>
+              <div style={{ fontSize: '11px' }} className="mut">
+                {corridorCalculation.modes.virtualSwap.regulatoryFeasibility === 'CONTESTED'
+                  ? 'Recommended · contested in some member states'
+                  : 'Single mass balance zone transfer'}
+              </div>
+            </div>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 600 }}>
+                <span>B · Continuous grid path</span>
+                <span className="num">
+                  €{corridorCalculation.modes.physicalPipeline.totalCostEurMwh !== null
+                    ? corridorCalculation.modes.physicalPipeline.totalCostEurMwh.toFixed(2)
+                    : '3.20'}
+                </span>
+              </div>
+              <div style={{ fontSize: '11px' }} className="mut">
+                Multi-zone transit · PRISMA capacity required
+              </div>
+            </div>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 600 }}>
+                <span>C · Physical bio-LNG</span>
+                <span className="num" style={{ color: corridorCalculation.modes.bioLng.totalCostEurMwh !== null ? 'var(--color-text)' : 'var(--color-accent-700)' }}>
+                  {corridorCalculation.modes.bioLng.totalCostEurMwh !== null
+                    ? `€${corridorCalculation.modes.bioLng.totalCostEurMwh.toFixed(2)}`
+                    : 'Tariff incomplete'}
+                </span>
+              </div>
+              <div style={{ fontSize: '11px' }} className="mut">
+                Liquefaction leg unverified — never summed around a null tariff
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ padding: '14px 18px' }}>
+          <p style={{ fontSize: '12px', lineHeight: 1.55, margin: 0 }} className="mut">
+            {selectedMeta.iso === 'DE'
+              ? 'Largest compliance market in Europe. Double counting is unresolved for the 2026 compliance year, so every German netback is carried as a dual branch until the cabinet draft settles.'
+              : selectedMeta.iso === 'GB'
+              ? 'Non-EU territory. RTFO certificates require Great Britain grid injection; non-UK injected biomethane cannot evidence UDB ingestion into EU without physical segregation.'
+              : `Active regulatory mechanism for ${selectedMeta.name}. Consignments must evidence mass balance custody and statutory scheme certification.`}
+          </p>
+        </div>
+
+        {/* Actions */}
+        <div
+          style={{
+            marginTop: 'auto',
+            padding: '16px 18px',
+            borderTop: '2px solid var(--color-divider)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+          }}
+        >
           <button
             type="button"
-            onClick={() => {
-              const targetMktId = selectedMarket?.id || (selectedCountry === 'NL' ? 'NL_ERE' : selectedCountry === 'FR' ? 'FR_CPB' : selectedCountry === 'IT' ? 'IT_CIC' : 'DE_THG');
-              const req: ClientRequest = {
-                targetMarketId: targetMktId,
-                volumeMwh: 20000,
-                delivery: {
-                  type: 'CALENDAR',
-                  complianceYear: 2027,
-                  startDate: '2027-01-01',
-                  endDate: '2027-12-31',
-                },
-                feedstockKey: 'manure',
-                scheme: 'ISCC_EU',
-                chainOfCustody: 'MASS_BALANCE',
-                constraints: {
-                  maxDeliveredCostEurMwh: null,
-                  maxCarbonIntensity: 0,
-                  physicalDeliveryRequired: false,
-                },
-                counterparty: 'Corporate Client',
-                notes: `Cross-border biomethane transaction from ${originCountry} to ${selectedCountry}.`,
-              };
-
-              const res = searchSourcingRoutes(req, state.marks, state.costs, DEFAULT_WHAT_IF_SCENARIO);
-              const match = res.tradeable.find(r => r.originCountry === originCountry) ||
-                            res.tradeable.find(r => r.originCountry === selectedCountry) ||
-                            res.tradeable[0] ||
-                            res.blocked[0] ||
-                            null;
-
-              setDealRequest(req);
-              setSelectedDealRoute(match);
-            }}
-            className="w-full py-2.5 bg-teal-600 hover:bg-teal-500 text-teal-950 font-mono text-xs font-bold rounded-lg cursor-pointer transition-colors flex items-center justify-center gap-1.5 shadow-md"
+            className="btn btn-primary btn-block"
+            style={{ marginTop: 0 }}
+            onClick={handleSimulateTrade}
           >
-            <span>Structure Trade ({originCountry} ➔ {selectedCountry})</span>
-            <ArrowRight className="w-4 h-4" />
+            Simulate in trade builder
           </button>
-          
           <button
             type="button"
+            className="btn btn-secondary btn-block"
+            style={{ marginTop: 0 }}
             onClick={() => setIsLogisticsOpen(true)}
-            className="w-full py-2 bg-stone-900 hover:bg-stone-850 border border-stone-700 text-stone-200 font-mono text-xs font-semibold rounded-lg cursor-pointer transition-colors"
           >
-            Detailed Tariff Breakdown
+            Open delivery playbook
           </button>
         </div>
+      </div>
 
-      </aside>
-
-      {/* In-Screen Deal Ticket Slide-Out Drawer */}
-      {selectedDealRoute && dealRequest && (
-        <QuickDealDrawer
-          route={selectedDealRoute}
-          request={dealRequest}
-          marks={state.marks}
-          costs={state.costs}
-          onClose={() => setSelectedDealRoute(null)}
-        />
-      )}
-
-      {/* Detailed Logistics Modal */}
+      {/* Logistics Modal */}
       <LogisticsModal
-        originCountry={originCountry}
-        targetCountry={selectedCountry}
         isOpen={isLogisticsOpen}
         onClose={() => setIsLogisticsOpen(false)}
+        originCountry={originMeta.iso}
+        targetCountry={selectedMeta.iso}
       />
-
     </div>
   );
 }

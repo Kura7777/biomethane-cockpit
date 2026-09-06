@@ -66,8 +66,8 @@ export function CopyButton({ text, label = 'Copy', className = '', praWarning = 
         onClick={handleCopyClick}
         aria-label={copied ? 'Copied to clipboard' : label}
         className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded cursor-pointer
-          border border-stone-700 bg-stone-800 text-stone-200
-          hover:bg-stone-700 hover:border-stone-600
+          border border-[#2b3347] bg-[#141824] text-zinc-200
+          hover:bg-[#1e2433] hover:border-[#3b4560]
           active:bg-stone-600
           focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950
           transition-colors duration-150
@@ -93,7 +93,7 @@ export function CopyButton({ text, label = 'Copy', className = '', praWarning = 
             aria-modal="true"
             aria-labelledby="pra-modal-title"
             onClick={(e) => e.stopPropagation()}
-            className="bg-stone-900 border border-amber-800/80 max-w-md w-full p-3 space-y-2 shadow-2xl"
+            className="bg-[#0e1118] border border-amber-800/80 max-w-md w-full p-3 space-y-2 shadow-2xl"
           >
             <div className="flex items-start gap-3">
               <div className="p-2 bg-amber-950/80 border border-amber-700/80 rounded text-amber-400 shrink-0">
@@ -103,23 +103,23 @@ export function CopyButton({ text, label = 'Copy', className = '', praWarning = 
                 <h3 id="pra-modal-title" className="text-sm font-semibold text-white font-mono uppercase tracking-wide">
                   PRA Subscription Licence Notice
                 </h3>
-                <p className="text-xs text-stone-300 mt-1.5 leading-relaxed">
+                <p className="text-xs text-zinc-300 mt-1.5 leading-relaxed">
                   This assessment includes <strong className="text-amber-300">Price Reporting Agency (PRA)</strong> data{formattedSources ? ` (${formattedSources})` : ''}.
                 </p>
-                <p className="text-xs text-stone-400 mt-2 leading-relaxed">
+                <p className="text-xs text-zinc-400 mt-2 leading-relaxed">
                   PRA subscriptions (e.g. Platts, Argus, QC Intel) are typically licensed per <em>named user</em> and prohibit redistribution of assessed price marks to external counterparties or un-licensed third parties.
                 </p>
               </div>
             </div>
 
-            <div className="bg-stone-950 border border-stone-800 rounded p-3 text-meta text-stone-400">
+            <div className="bg-[#08090d] border border-[#1e2433] rounded p-3 text-meta text-zinc-400">
               Ensure you have commercial rights or internal clearance before sending this dossier externally.
             </div>
 
             <div className="flex justify-end items-center gap-2 pt-1 font-mono text-xs">
               <button
                 onClick={closeModal}
-                className="px-3 py-1.5 rounded bg-stone-800 text-stone-300 hover:bg-stone-700 cursor-pointer transition-colors focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-900"
+                className="px-3 py-1.5 rounded bg-[#141824] text-zinc-300 hover:bg-[#1e2433] cursor-pointer transition-colors focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-900"
               >
                 Cancel
               </button>

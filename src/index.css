@@ -1,171 +1,591 @@
-/* Fonts are loaded by the <link> in index.html (a superset of these weights).
-   A duplicate @import here would block CSS parsing for a second request. */
 @import "tailwindcss";
-@import "leaflet/dist/leaflet.css";
 
-/* Tailwind scans .md too, so the design-system docs would resurrect every class
-   they name as banned (rounded-xl, shadow-sm, slate-*) as real CSS. */
-@source not "../design-system/**/*.md";
-
-/* ============================================================
-   DESIGN TOKENS — see design-system/MASTER.md
-   Components must consume these, never raw hex values.
-   ============================================================ */
 @theme {
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  --color-bg: #f0f2f5;
+  --color-surface: #ffffff;
+  --color-panel: #ffffff;
+  --color-panel-header: #f8fafc;
+  --color-subtier: #f1f5f9;
+  --color-text: #0f172a;
+  --color-muted: #475569;
+  --color-dim: #64748b;
+  --color-accent: #ec3013;
+  --color-accent-2: #e15b47;
+  --color-divider: #d1d5db;
+  --color-border: #e2e8f0;
 
-  /* --- Type scale (MASTER §2.2) — nothing below 10px --- */
-  --text-micro: 0.625rem;      /* 10px — chips, badges, key hints (floor) */
-  --text-micro--line-height: 1.2;
-  --text-meta: 0.6875rem;      /* 11px — metadata, footnotes, timestamps */
-  --text-meta--line-height: 1.3;
+  --color-neutral-100: #f8fafc;
+  --color-neutral-200: #f1f5f9;
+  --color-neutral-300: #e2e8f0;
+  --color-neutral-400: #cbd5e1;
+  --color-neutral-500: #94a3b8;
+  --color-neutral-600: #64748b;
+  --color-neutral-700: #475569;
+  --color-neutral-800: #1e293b;
+  --color-neutral-900: #0f172a;
 
-  /* --- Surfaces (MASTER §1.2) --- */
-  --color-surface-base: var(--color-stone-950);
-  --color-surface-raised: var(--color-stone-900);
-  --color-surface-overlay: var(--color-stone-800);
+  --color-accent-100: #fff2ef;
+  --color-accent-200: #ffe0d9;
+  --color-accent-300: #ffc4b8;
+  --color-accent-400: #ff9783;
+  --color-accent-500: #ff563c;
+  --color-accent-600: #dd2b0f;
+  --color-accent-700: #ae1800;
+  --color-accent-800: #7c1405;
+  --color-accent-900: #4d170e;
 
-  /* --- Borders --- */
-  --color-border-subtle: var(--color-stone-800);
-  --color-border-default: var(--color-stone-700);
-
-  /* --- Content. content-muted is decorative/disabled ONLY:
-         stone-500 on stone-950 is 4.06:1 and fails WCAG AA. --- */
-  --color-content-primary: var(--color-stone-100);
-  --color-content-secondary: var(--color-stone-400);
-  --color-content-muted: var(--color-stone-500);
-
-  /* --- Semantic accents (MASTER §1.3) — one family per meaning.
-         accent = interactive. positive = favourable outcome. --- */
-  --color-accent: var(--color-teal-500);
-  --color-accent-bright: var(--color-teal-400);
-  --color-accent-deep: var(--color-teal-600);
-  --color-positive: var(--color-emerald-500);
-  --color-warning: var(--color-amber-500);
-  --color-danger: var(--color-red-500);
-  --color-info: var(--color-sky-500);
+  --font-heading: "Archivo", system-ui, sans-serif;
+  --font-body: "Archivo", system-ui, sans-serif;
 }
 
-/* Base styles */
-* {
+:root {
+  --color-bg: #f0f2f5;
+  --color-surface: #ffffff;
+  --color-panel: #ffffff;
+  --color-panel-header: #f8fafc;
+  --color-subtier: #f1f5f9;
+  --color-text: #0f172a;
+  --color-muted: #475569;
+  --color-dim: #64748b;
+  --color-accent: #ec3013;
+  --color-accent-2: #e15b47;
+  --color-divider: #d1d5db;
+  --color-border: #e2e8f0;
+
+  /* Header Inverted Dark Slate Anchor */
+  --color-header-bg: #0f172a;
+  --color-header-surface: #1e293b;
+  --color-header-text: #f8fafc;
+  --color-header-muted: #94a3b8;
+  --color-header-divider: #334155;
+  --color-header-hover: #1e293b;
+
+  /* Functional Status Tokens */
+  --color-status-pos-bg: #ecfdf5;
+  --color-status-pos-border: #a7f3d0;
+  --color-status-pos-text: #047857;
+
+  --color-status-neg-bg: #fef2f2;
+  --color-status-neg-border: #fecaca;
+  --color-status-neg-text: #b91c1c;
+
+  --color-status-warn-bg: #fffbeb;
+  --color-status-warn-border: #fde68a;
+  --color-status-warn-text: #b45309;
+
+  --color-status-info-bg: #eff6ff;
+  --color-status-info-border: #bfdbfe;
+  --color-status-info-text: #1d4ed8;
+
+  --color-status-neutral-bg: #f1f5f9;
+  --color-status-neutral-border: #cbd5e1;
+  --color-status-neutral-text: #334155;
+
+  --color-neutral-100: #f8fafc;
+  --color-neutral-200: #f1f5f9;
+  --color-neutral-300: #e2e8f0;
+  --color-neutral-400: #cbd5e1;
+  --color-neutral-500: #94a3b8;
+  --color-neutral-600: #64748b;
+  --color-neutral-700: #475569;
+  --color-neutral-800: #1e293b;
+  --color-neutral-900: #0f172a;
+
+  --color-accent-100: #fff2ef;
+  --color-accent-200: #ffe0d9;
+  --color-accent-300: #ffc4b8;
+  --color-accent-400: #ff9783;
+  --color-accent-500: #ff563c;
+  --color-accent-600: #dd2b0f;
+  --color-accent-700: #ae1800;
+  --color-accent-800: #7c1405;
+  --color-accent-900: #4d170e;
+
+  --font-heading: "Archivo", system-ui, sans-serif;
+  --font-heading-weight: 800;
+  --font-body: "Archivo", system-ui, sans-serif;
+
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 3px 10px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.16);
+}
+
+.dark {
+  --color-bg: #0f172a;
+  --color-surface: #1e293b;
+  --color-panel: #1e293b;
+  --color-panel-header: #141f33;
+  --color-subtier: #182235;
+  --color-text: #f8fafc;
+  --color-muted: #94a3b8;
+  --color-dim: #64748b;
+  --color-accent: #ff563c;
+  --color-accent-2: #e15b47;
+  --color-divider: #334155;
+  --color-border: #475569;
+
+  /* Header in dark mode */
+  --color-header-bg: #090e17;
+  --color-header-surface: #141f33;
+  --color-header-text: #f8fafc;
+  --color-header-muted: #94a3b8;
+  --color-header-divider: #1e293b;
+  --color-header-hover: #1e293b;
+
+  /* Functional Status Tokens (Dark Mode) */
+  --color-status-pos-bg: rgba(6, 78, 59, 0.5);
+  --color-status-pos-border: #047857;
+  --color-status-pos-text: #6ee7b7;
+
+  --color-status-neg-bg: rgba(127, 29, 29, 0.5);
+  --color-status-neg-border: #b91c1c;
+  --color-status-neg-text: #fca5a5;
+
+  --color-status-warn-bg: rgba(120, 53, 15, 0.5);
+  --color-status-warn-border: #b45309;
+  --color-status-warn-text: #fde68a;
+
+  --color-status-info-bg: rgba(30, 58, 138, 0.5);
+  --color-status-info-border: #1d4ed8;
+  --color-status-info-text: #93c5fd;
+
+  --color-status-neutral-bg: #334155;
+  --color-status-neutral-border: #475569;
+  --color-status-neutral-text: #e2e8f0;
+
+  --color-accent-100: #3a1a14;
+  --color-accent-200: #4d2019;
+  --color-accent-300: #6b2a1e;
+  --color-accent-700: #ffb0a1;
+  --color-accent-800: #ffd0c6;
+  --color-accent-900: #ffe4de;
+
+  --color-neutral-100: #1e293b;
+  --color-neutral-200: #334155;
+  --color-neutral-300: #475569;
+  --color-neutral-400: #64748b;
+  --color-neutral-500: #94a3b8;
+  --color-neutral-600: #cbd5e1;
+  --color-neutral-700: #e2e8f0;
+  --color-neutral-800: #f1f5f9;
+  --color-neutral-900: #f8fafc;
+}
+
+*, *::before, *::after {
   box-sizing: border-box;
+  border-radius: 0 !important;
 }
 
-html {
-  font-family: var(--font-sans);
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: var(--font-body);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-size: 14px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Must match the app shell (stone-950). Previously #fafaf9, which flashed
-   light on overscroll and behind the fixed header. */
-body {
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  line-height: 1.12;
+  letter-spacing: -0.015em;
   margin: 0;
-  background-color: var(--color-stone-950);
-  color: var(--color-stone-100);
 }
 
-/* Monospace numbers — tabular figures stop columns jittering as values update */
-.font-num {
-  font-family: var(--font-mono);
+:focus { outline: none; }
+:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+::selection { background: color-mix(in srgb, var(--color-accent) 30%, transparent); }
+
+/* Typography & Numerics */
+.num, .font-num, .tabular-nums {
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
-/* Keyboard focus ring (MASTER §5.1). Applied globally so no control can ship
-   without one; :focus-visible keeps it off mouse clicks. */
-:focus-visible {
-  outline: 2px solid var(--color-teal-500);
-  outline-offset: 2px;
-  border-radius: 2px;
+.mut {
+  color: var(--color-muted);
 }
 
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--color-stone-700);
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-stone-600);
+.dim {
+  color: var(--color-dim);
 }
 
-.no-scrollbar {
+.eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.noscroll, .no-scrollbar {
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
-.no-scrollbar::-webkit-scrollbar {
+.noscroll::-webkit-scrollbar, .no-scrollbar::-webkit-scrollbar {
   display: none;
-  height: 0;
   width: 0;
+  height: 0;
 }
 
-/* Range input styling for terminal controls */
-input[type=range] {
-  -webkit-appearance: none;
-  appearance: none;
-  background: transparent;
+/* Nav & Layout */
+.navtab {
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  font-size: 13px;
+  text-decoration: none;
+  white-space: nowrap;
+  color: var(--color-header-muted);
+  transition: color 150ms ease, background-color 150ms ease;
 }
-input[type=range]::-webkit-slider-runnable-track {
-  height: 3px;
-  background: var(--color-stone-800);
+.navtab:hover {
+  color: var(--color-header-text);
+  background-color: var(--color-header-hover);
 }
-input[type=range]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 12px;
-  height: 12px;
-  margin-top: -4.5px;
-  background: var(--color-teal-500);
-  border: 1px solid var(--color-teal-950);
+.navtab[data-on="1"],
+.navtab[aria-current="page"],
+.navtab.active {
+  color: var(--color-header-text);
+  font-weight: 600;
+  box-shadow: inset 0 -3px 0 var(--color-accent);
+}
+
+.cellrow {
+  display: grid;
+  border-bottom: 2px solid var(--color-divider);
+  background-color: var(--color-surface);
+}
+.cellrow > div {
+  padding: 13px 18px;
+  border-right: 1px solid var(--color-divider);
+  background-color: var(--color-surface);
+}
+.cellrow > div:last-child {
+  border-right: 0;
+}
+
+.big {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 28px;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  margin-top: 4px;
+}
+
+.subttl {
+  font-size: 12px;
+  color: var(--color-muted);
+}
+
+.ptitle {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 20px;
+  margin: 0;
+}
+
+.kv {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12px;
+}
+.kv > span:nth-child(2) {
+  flex: 1;
+  height: 1px;
+  background: var(--color-divider);
+}
+
+.lbl {
+  color: var(--color-muted);
+}
+
+/* Chips & Tags */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border: 1px solid var(--color-divider);
+  white-space: nowrap;
+  background-color: var(--color-surface);
+  color: var(--color-text);
+}
+.chip-a {
+  border-color: var(--color-accent-300);
+  background-color: var(--color-accent-100);
+  color: var(--color-accent-800);
+}
+
+/* Functional Soft-Tinted Badges */
+.chip-pos {
+  background-color: var(--color-status-pos-bg);
+  border-color: var(--color-status-pos-border);
+  color: var(--color-status-pos-text);
+}
+
+.chip-neg {
+  background-color: var(--color-status-neg-bg);
+  border-color: var(--color-status-neg-border);
+  color: var(--color-status-neg-text);
+}
+
+.chip-warn {
+  background-color: var(--color-status-warn-bg);
+  border-color: var(--color-status-warn-border);
+  color: var(--color-status-warn-text);
+}
+
+.chip-info {
+  background-color: var(--color-status-info-bg);
+  border-color: var(--color-status-info-border);
+  color: var(--color-status-info-text);
+}
+
+.chip-neutral {
+  background-color: var(--color-status-neutral-bg);
+  border-color: var(--color-status-neutral-border);
+  color: var(--color-status-neutral-text);
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  padding: 3px 10px;
+}
+.tag-accent {
+  background-color: var(--color-accent-100);
+  color: var(--color-accent-800);
+}
+.tag-neutral {
+  background-color: var(--color-neutral-100);
+  color: var(--color-neutral-800);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 14px;
+  line-height: 1.2;
+  color: var(--color-text);
+  background-color: transparent;
+  border: 1px solid transparent;
+  padding: 8px 14px;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.btn-primary {
+  background-color: var(--color-accent);
+  color: #ffffff;
+}
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--color-accent-600);
+}
+.btn-primary:active:not(:disabled) {
+  background-color: var(--color-accent-700);
+}
+.btn-secondary {
+  border-color: var(--color-divider);
+  color: var(--color-text);
+  background-color: var(--color-surface);
+}
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--color-subtier);
+}
+.btn-secondary:active:not(:disabled) {
+  background-color: var(--color-neutral-300);
+}
+.btn-ghost {
+  color: var(--color-accent);
+  padding-inline: 4px;
+}
+.btn-ghost:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--color-accent) 10%, transparent);
+}
+.btn-block {
+  width: 100%;
+  margin-top: 8px;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+/* Form inputs & Segmented Controls */
+.field > label {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 5px;
+  color: var(--color-muted);
+}
+
+.input {
+  width: 100%;
+  min-height: 36px;
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--color-text);
+  caret-color: var(--color-accent);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-divider);
+  transition: border-color 150ms ease;
+}
+.input:hover {
+  border-color: var(--color-neutral-400);
+}
+.input:focus-visible {
+  border-color: var(--color-accent);
+  outline-offset: 0;
+}
+textarea.input {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.seg {
+  display: inline-flex;
+  overflow: hidden;
+  border: 1px solid var(--color-divider);
+  background-color: var(--color-surface);
+}
+.seg-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  background-color: transparent;
+  color: var(--color-text);
+  border-left: 1px solid var(--color-divider);
+}
+.seg-opt:first-child {
+  border-left: none;
+}
+.seg-opt input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.seg-opt:has(input:checked), .seg-opt.active {
+  background-color: var(--color-accent);
+  color: #ffffff;
+}
+.seg-opt:not(:has(input:checked)):not(.active):hover {
+  background-color: var(--color-subtier);
+}
+
+/* Tables */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  background-color: var(--color-surface);
+}
+.table th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  padding: 8px;
+  border-bottom: 2px solid var(--color-divider);
+  background-color: var(--color-panel-header);
+}
+.table td {
+  padding: 8px;
+  border-bottom: 1px solid var(--color-divider);
+  background-color: inherit;
+}
+.table tbody tr {
+  background-color: var(--color-surface);
+}
+.table tbody tr:hover {
+  background-color: var(--color-subtier);
+}
+.table tbody tr.selrow {
+  background-color: var(--color-subtier);
+  box-shadow: inset 3px 0 0 var(--color-accent);
+}
+.table tbody tr[data-click="1"] {
   cursor: pointer;
 }
 
-/* Accessibility: honour the OS reduced-motion setting (MASTER §5.2).
-   Keeps state changes instant rather than removing them. */
+/* Modals & Dialogs */
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  background-color: rgba(15, 23, 42, 0.72);
+}
+.panel {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-divider);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Pulse Animation for Skeletons */
+.skel {
+  height: 11px;
+  background-color: color-mix(in srgb, var(--color-text) 12%, transparent);
+  animation: pulse 1.1s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 0.9; }
+}
+
+@keyframes dash {
+  to { stroke-dashoffset: -24; }
+}
+.flow {
+  animation: dash 1.1s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+  .skel, .flow {
+    animation: none;
   }
 }
 
-/* Gas Flow Animation for Compliance Map */
-@keyframes flowDash {
-  to {
-    stroke-dashoffset: -22;
-  }
+.plist {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 16px;
+  border-bottom: 1px solid var(--color-divider);
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--color-text);
+  background-color: var(--color-surface);
 }
-.flow-line, .animated-grid-flow {
-  animation: flowDash 1.1s linear infinite;
-}
-
-.custom-hub-marker {
-  background: transparent !important;
-  border: none !important;
-}
-
-/* Fix Leaflet tile background */
-.leaflet-container {
-  background-color: #0c0e12 !important;
-  font-family: inherit;
-}
-.leaflet-bar {
-  border: none !important;
-}
-
-/* Print styles */
-@media print {
-  header, nav { display: none; }
-  main { padding: 0; max-width: 100%; }
+.plist:hover {
+  background-color: var(--color-subtier);
 }

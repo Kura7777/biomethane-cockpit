@@ -365,4 +365,29 @@ describe('SOURCING ADAPTER — searchSourcingRoutes', () => {
     const panEuResult = searchSourcingRoutes(panEuReq, sampleMarks, sampleCosts, DEFAULT_WHAT_IF_SCENARIO);
     expect(panEuResult.evaluated).toBe(panEuResult.tradeable.length + panEuResult.blocked.length + panEuResult.unpriced);
   });
+
+  it('verifies Latvia (LV) and all Baltic origins are mapped, EU-interconnected, and tradeable', () => {
+    expect(PRODUCING_ORIGINS.LV).toBeDefined();
+    expect(PRODUCING_ORIGINS.LV.countryName).toBe('Latvia');
+    expect(PRODUCING_ORIGINS.LV.gridZone).toBe('EU_INTERCONNECTED');
+    expect(PRODUCING_ORIGINS.LV.primaryRegistry).toBe('Conexus Baltic Grid');
+
+    const reqLV: ClientRequest = {
+      targetMarketId: 'DE_THG',
+      volumeMwh: 10000,
+      delivery: { type: null, startDate: null, endDate: null, complianceYear: null },
+      feedstockKey: 'manure',
+      scheme: 'ISCC_EU',
+      chainOfCustody: 'MASS_BALANCE',
+      constraints: { maxDeliveredCostEurMwh: null, maxCarbonIntensity: null, physicalDeliveryRequired: false },
+      counterparty: null,
+      notes: null,
+    };
+
+    const res = searchSourcingRoutes(reqLV, sampleMarks, sampleCosts, DEFAULT_WHAT_IF_SCENARIO);
+    const lvRoute = res.tradeable.find(r => r.originCountry === 'LV');
+    expect(lvRoute, 'Latvia must have a tradeable route to DE_THG').toBeDefined();
+    expect(lvRoute?.originCountryName).toBe('Latvia');
+    expect(lvRoute?.transitCostEurPerMWh).toBeGreaterThan(0);
+  });
 });

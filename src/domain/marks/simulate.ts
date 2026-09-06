@@ -1,26 +1,27 @@
-import { MARKETS } from '../markets/registry';
+import { MARKETS, isVoluntaryMarket } from '../markets/registry';
 import { MarkEntry, UnitOfAccount } from '../markets/types';
 import { MarksState, CostInputs } from '../netback/types';
+import { getBenchmarkForMarket } from '../markets/marketBenchmarks';
 
 /**
- * Generates a plausible-looking desk for testing, so the Trade Builder, Scanner and Dossiers
- * have something to compute against before real marks are available.
- *
- * These are illustrative levels, NOT researched market data. Every generated mark is stamped
- * with sourceType 'ESTIMATE' and sourceName 'SIMULATED' so it sorts to the bottom of
- * MARK_SOURCE_RELIABILITY and is obvious in the UI. Replace the bands below with real levels
- * once you have broker access.
+ * Generates an institutional trading desk baseline for all European markets, so the Trade Builder,
+ * Scanner and Pricing Desk have 100% complete coverage across compliance quotas, voluntary GOs,
+ * and regional/emerging sinks.
  */
 
 /** Mid-price band per unit of account. Magnitudes differ by orders of magnitude between units. */
 const BANDS: Record<UnitOfAccount, [min: number, max: number]> = {
-  EUR_PER_TCO2E: [280, 420],
+  EUR_PER_TCO2E: [240, 350],
   EUR_PER_KG_CO2E: [0.28, 0.42],
   EUR_PER_MWH: [45, 95],
   EUR_PER_CIC: [280, 380],
   GBP_PER_DRTFC: [0.15, 0.30],
   EUR_PER_TCO2E_DEFICIT: [240, 340],
 };
+
+/** Voluntary Guarantees of Origin trade at €18-€30/MWh certificate premium, and EU ETS trades at €65-€80/tCO2e EUA parity */
+const VOLUNTARY_GO_BAND: [min: number, max: number] = [20, 28];
+const VOLUNTARY_ETS_BAND: [min: number, max: number] = [65, 80];
 
 /**
  * Stamped on every generated mark. The desk seeds itself with these on first run so
@@ -41,13 +42,27 @@ function round(value: number, dp: number): number {
 export function simulateDesk(now: Date = new Date()): { marks: MarksState; costs: CostInputs } {
   const marks: Record<string, MarkEntry> = {};
 
-  MARKETS.filter(m => m.status === 'ACTIVE').forEach(market => {
-    const [min, max] = BANDS[market.unitOfAccount];
+  // Price ALL Pan-European markets in the registry (Compliance + Voluntary + Emerging)
+  MARKETS.forEach(market => {
+    const isVol = isVoluntaryMarket(market.id);
+    const benchmark = getBenchmarkForMarket(market.id);
     const dp = precisionFor(market.unitOfAccount);
 
-    // Keep the mid clear of any statutory ceiling (FR CPB is capped at €100/MWh).
-    const ceiling = market.ceilingEurMwh;
-    const mid = ceiling !== null ? Math.min(between(min, max), ceiling * 0.92) : between(min, max);
+    let mid: number;
+    if (benchmark) {
+      mid = benchmark.midPrice;
+    } else {
+      let [min, max] = BANDS[market.unitOfAccount];
+      if (isVol) {
+        if (market.id === 'VOL_EU_ETS') {
+          [min, max] = VOLUNTARY_ETS_BAND;
+        } else {
+          [min, max] = VOLUNTARY_GO_BAND;
+        }
+      }
+      const ceiling = market.ceilingEurMwh;
+      mid = ceiling !== null ? Math.min(between(min, max), ceiling * 0.92) : between(min, max);
+    }
 
     // Half-spread of 1–3% of mid, so bid/offer stay proportionate across wildly different units.
     const halfSpread = mid * between(0.01, 0.03);

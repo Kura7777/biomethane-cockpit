@@ -1,33 +1,24 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/context';
-import { MARKETS } from '../../domain/markets/registry';
-import { buildDealUrl } from '../../domain/trade/dealParams';
-import { 
-  Search, 
-  ArrowRight, 
-  TrendingUp, 
-  Globe, 
-  Building2, 
-  Scale, 
-  Settings, 
-  FileText, 
-  Zap, 
-  BookOpen, 
-  Check 
-} from 'lucide-react';
+import { showToast } from '../../app/DeskToastContainer';
 
 interface PaletteItem {
   id: string;
-  title: string;
-  category: 'WORKSPACES' | 'ACTIONS' | 'MARKETS' | 'REGISTRIES' | 'REFERENCE';
-  subtitle?: string;
-  shortcut?: string;
-  icon: React.ComponentType<{ className?: string }>;
-  action: () => void;
+  kind: 'Screen' | 'Action';
+  label: string;
+  hint: string;
+  run: () => void;
 }
 
-export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+interface CommandPaletteProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onOpenPlaybook?: () => void;
+  onOpenImporter?: () => void;
+}
+
+export function CommandPalette({ isOpen, onClose, onOpenPlaybook, onOpenImporter }: CommandPaletteProps) {
   const navigate = useNavigate();
   const { dispatch } = useAppState();
   const [query, setQuery] = useState('');
@@ -35,170 +26,87 @@ export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: 
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
-  // Focus input on open
   useEffect(() => {
     if (isOpen) {
       setQuery('');
       setSelectedIndex(0);
-      setTimeout(() => inputRef.current?.focus(), 50);
+      setTimeout(() => inputRef.current?.focus(), 30);
     }
   }, [isOpen]);
 
-  // Build searchable items catalogue
-  const allItems: PaletteItem[] = useMemo(() => {
-    const items: PaletteItem[] = [
-      // Primary Workspaces
-      {
-        id: 'ws-sourcing',
-        title: 'Commercial Sourcing',
-        category: 'WORKSPACES',
-        subtitle: 'Client intake, 20 origin fan-out, 6-Gate regulatory audit',
-        shortcut: '1',
-        icon: TrendingUp,
-        action: () => { navigate('/sourcing'); onClose(); },
+  const allItems: PaletteItem[] = useMemo(() => [
+    { kind: 'Screen', label: 'Origination desk', hint: '1', id: 's-origination', run: () => { navigate('/sourcing'); onClose(); } },
+    { kind: 'Screen', label: 'Netback ladder / scanner', hint: 'S', id: 's-scanner', run: () => { navigate('/scanner'); onClose(); } },
+    { kind: 'Screen', label: 'Trade builder', hint: '4', id: 's-trade', run: () => { navigate('/trade'); onClose(); } },
+    { kind: 'Screen', label: 'Pricing desk & broker runs', hint: '5', id: 's-pricing', run: () => { navigate('/pricing'); onClose(); } },
+    { kind: 'Screen', label: 'Portfolio risk & VaR', hint: 'R', id: 's-risk', run: () => { navigate('/risk'); onClose(); } },
+    { kind: 'Screen', label: 'Plant registry (1,975)', hint: '2', id: 's-plants', run: () => { navigate('/plants'); onClose(); } },
+    { kind: 'Screen', label: 'Registries & flow telemetry', hint: 'G', id: 's-registries', run: () => { navigate('/registries'); onClose(); } },
+    { kind: 'Screen', label: 'Compliance & logistics map', hint: '3', id: 's-map', run: () => { navigate('/map'); onClose(); } },
+    { kind: 'Screen', label: 'Dossier library', hint: '6', id: 's-library', run: () => { navigate('/library'); onClose(); } },
+    { kind: 'Screen', label: 'Statutory citations', hint: 'C', id: 's-citations', run: () => { navigate('/citations'); onClose(); } },
+    { kind: 'Screen', label: 'Data sources & provenance', hint: '7', id: 's-sources', run: () => { navigate('/data-sources'); onClose(); } },
+    {
+      kind: 'Action',
+      label: 'Open delivery playbook · DK → DE',
+      hint: '⏎',
+      id: 'a-playbook',
+      run: () => {
+        onClose();
+        if (onOpenPlaybook) onOpenPlaybook();
       },
-      {
-        id: 'ws-trade',
-        title: 'Trade Builder',
-        category: 'WORKSPACES',
-        subtitle: '3-column consignment pricing, deal ticket structuring, logistics',
-        shortcut: '2',
-        icon: Scale,
-        action: () => { navigate('/trade'); onClose(); },
+    },
+    {
+      kind: 'Action',
+      label: 'Import broker run',
+      hint: '',
+      id: 'a-importer',
+      run: () => {
+        onClose();
+        if (onOpenImporter) onOpenImporter();
       },
-      // Quick Actions
-      {
-        id: 'act-seed-marks',
-        title: 'Seed Simulated Desk Marks',
-        category: 'ACTIONS',
-        subtitle: 'Populates realistic broker mid/bid/offers across all 22 active markets',
-        icon: Zap,
-        action: () => {
-          dispatch({ type: 'SIMULATE_DESK' });
-          onClose();
-        },
+    },
+    {
+      kind: 'Action',
+      label: 'Price on bid',
+      hint: '',
+      id: 'a-bid',
+      run: () => {
+        dispatch({ type: 'SET_PRICING_SIDE', side: 'bid' });
+        showToast('Pricing side switched to Bid');
+        onClose();
       },
-      {
-        id: 'act-side-bid',
-        title: 'Set Pricing Side to BID',
-        category: 'ACTIONS',
-        subtitle: 'Evaluate desk netbacks off certificate Bid marks (selling certificates)',
-        icon: Check,
-        action: () => {
-          dispatch({ type: 'SET_PRICING_SIDE', side: 'bid' });
-          onClose();
-        },
+    },
+    {
+      kind: 'Action',
+      label: 'Price on mid',
+      hint: '',
+      id: 'a-mid',
+      run: () => {
+        dispatch({ type: 'SET_PRICING_SIDE', side: 'mid' });
+        showToast('Pricing side switched to Mid');
+        onClose();
       },
-      {
-        id: 'act-side-mid',
-        title: 'Set Pricing Side to MID',
-        category: 'ACTIONS',
-        subtitle: 'Evaluate desk netbacks off Mid market reference marks',
-        icon: Check,
-        action: () => {
-          dispatch({ type: 'SET_PRICING_SIDE', side: 'mid' });
-          onClose();
-        },
+    },
+    {
+      kind: 'Action',
+      label: 'Price on offer',
+      hint: '',
+      id: 'a-offer',
+      run: () => {
+        dispatch({ type: 'SET_PRICING_SIDE', side: 'offer' });
+        showToast('Pricing side switched to Offer');
+        onClose();
       },
-      {
-        id: 'act-side-offer',
-        title: 'Set Pricing Side to OFFER',
-        category: 'ACTIONS',
-        subtitle: 'Evaluate desk netbacks off certificate Offer marks (buying certificates)',
-        icon: Check,
-        action: () => {
-          dispatch({ type: 'SET_PRICING_SIDE', side: 'offer' });
-          onClose();
-        },
-      },
+    },
+  ], [navigate, onClose, onOpenPlaybook, onOpenImporter, dispatch]);
 
-      // Reference & Supporting Screens
-      {
-        id: 'ref-marks',
-        title: 'Desk Marks & Forward Curves',
-        category: 'REFERENCE',
-        subtitle: '16 compliance certificates, TTF forward curves, FX crosses',
-        shortcut: '7',
-        icon: TrendingUp,
-        action: () => { navigate('/marks'); onClose(); },
-      },
-      {
-        id: 'ref-plants',
-        title: 'European Plants & Registry Hub',
-        category: 'REGISTRIES',
-        subtitle: '1,975 verified biomethane plants, dena, VertiCer, Energinet flows',
-        shortcut: '6',
-        icon: Building2,
-        action: () => { navigate('/plants'); onClose(); },
-      },
-      {
-        id: 'ref-map',
-        title: 'Pan-European Grid Map',
-        category: 'REFERENCE',
-        subtitle: 'Interconnected mass balance zones, physical pipelines, border points',
-        shortcut: '5',
-        icon: Globe,
-        action: () => { navigate('/map'); onClose(); },
-      },
-      {
-        id: 'ref-citations',
-        title: 'Statutory Citations Registry',
-        category: 'REFERENCE',
-        subtitle: 'RED III Art. 30/31, BImSchG §37a, Dutch Environmental Act',
-        shortcut: '8',
-        icon: BookOpen,
-        action: () => { navigate('/citations'); onClose(); },
-      },
-      {
-        id: 'ref-dossiers',
-        title: 'Saved Deal Dossiers',
-        category: 'REFERENCE',
-        subtitle: 'Audit-ready compliance packages, term sheet history',
-        shortcut: '7',
-        icon: FileText,
-        action: () => { navigate('/library'); onClose(); },
-      },
-      {
-        id: 'ref-settings',
-        title: 'Desk Settings',
-        category: 'REFERENCE',
-        subtitle: 'Desk trading defaults, pricing side, state import / export',
-        shortcut: '9',
-        icon: Settings,
-        action: () => { navigate('/settings'); onClose(); },
-      },
-    ];
-
-    // Add Compliance Markets
-    MARKETS.filter(m => m.status === 'ACTIVE').forEach(m => {
-      items.push({
-        id: `mkt-${m.id}`,
-        title: `${m.countryName} — ${m.name}`,
-        category: 'MARKETS',
-        subtitle: `${m.unitLabel} · ${m.notes || m.legalBasis}`,
-        icon: Globe,
-        action: () => {
-          navigate(buildDealUrl({ marketId: m.id }));
-          onClose();
-        },
-      });
-    });
-
-    return items;
-  }, [navigate, onClose, dispatch]);
-
-  // Filter items based on user query
   const filteredItems = useMemo(() => {
-    if (!query.trim()) return allItems;
-    const q = query.toLowerCase().trim();
-    return allItems.filter(item => 
-      item.title.toLowerCase().includes(q) ||
-      item.subtitle?.toLowerCase().includes(q) ||
-      item.category.toLowerCase().includes(q)
-    );
+    const q = query.trim().toLowerCase();
+    if (!q) return allItems;
+    return allItems.filter(i => i.label.toLowerCase().includes(q) || i.kind.toLowerCase().includes(q));
   }, [allItems, query]);
 
-  // Keyboard navigation inside palette
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isOpen) return;
@@ -215,7 +123,7 @@ export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: 
       } else if (e.key === 'Enter') {
         e.preventDefault();
         if (filteredItems[selectedIndex]) {
-          filteredItems[selectedIndex].action();
+          filteredItems[selectedIndex].run();
         }
       }
     };
@@ -224,115 +132,97 @@ export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: 
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, filteredItems, selectedIndex, onClose]);
 
-  // Ensure selected item is scrolled into view
-  useEffect(() => {
-    const selectedEl = listRef.current?.children[selectedIndex] as HTMLElement | undefined;
-    if (selectedEl) {
-      selectedEl.scrollIntoView({ block: 'nearest' });
-    }
-  }, [selectedIndex]);
-
   if (!isOpen) return null;
 
   return (
-    <div 
-      className="fixed inset-0 z-[100] flex items-start justify-center pt-24 p-4 bg-black/70 backdrop-blur-xs font-sans animate-in fade-in duration-100"
+    <div
+      className="scrim"
+      style={{
+        alignItems: 'flex-start',
+        justifyContent: 'center',
+        padding: '88px 24px',
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Command palette"
       onClick={onClose}
     >
-      <div 
-        className="w-full max-w-[620px] bg-stone-900 border border-stone-700 shadow-2xl rounded-xs overflow-hidden flex flex-col max-h-[75vh]"
+      <div
+        className="panel"
+        style={{
+          width: 'min(620px, 100%)',
+          maxHeight: '60vh',
+        }}
         onClick={e => e.stopPropagation()}
-        role="dialog"
-        aria-label="Command Palette"
       >
-        {/* Search Input Bar */}
-        <div className="p-3 px-4 border-b border-stone-800 flex items-center gap-3 bg-stone-950">
-          <Search className="w-4 h-4 text-teal-400 shrink-0" />
+        <div
+          style={{
+            padding: '12px 16px',
+            borderBottom: '2px solid var(--color-divider)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            backgroundColor: 'var(--color-bg)',
+          }}
+        >
+          <span className="eyebrow">Command</span>
           <input
             ref={inputRef}
-            type="text"
+            className="input"
+            style={{
+              border: 0,
+              background: 'transparent',
+              fontSize: '15px',
+              padding: 0,
+              minHeight: 'auto',
+            }}
+            placeholder="Jump to a screen or run an action"
+            aria-label="Command palette search"
             value={query}
             onChange={e => {
               setQuery(e.target.value);
               setSelectedIndex(0);
             }}
-            placeholder="Type a command, market, country, or action... (e.g. 'THG', 'Denmark', 'Simulate')"
-            className="flex-1 bg-transparent border-none outline-none font-mono text-sm text-stone-100 placeholder-stone-500"
           />
-          <kbd className="font-mono text-micro text-stone-400 bg-stone-800 border border-stone-700 px-1.5 py-0.5 rounded-xs">
-            ESC
-          </kbd>
+          <span className="num mut" style={{ fontSize: '11px', whiteSpace: 'nowrap' }}>
+            Esc to close
+          </span>
         </div>
-
-        {/* Results List */}
-        <div 
-          ref={listRef}
-          className="flex-1 min-h-0 overflow-y-auto p-1 divide-y divide-stone-800/40 divide-dashed"
-        >
+        <div ref={listRef} className="noscroll" style={{ overflowY: 'auto' }}>
           {filteredItems.length === 0 ? (
-            <div className="p-8 text-center text-stone-500 font-mono text-xs">
-              No matching commands or markets found for &quot;{query}&quot;
+            <div style={{ padding: '24px 16px', textAlign: 'center', fontSize: '13px' }} className="mut">
+              No matching commands or screens for &quot;{query}&quot;
             </div>
           ) : (
             filteredItems.map((item, idx) => {
               const isSelected = idx === selectedIndex;
-              const Icon = item.icon;
               return (
-                <div
+                <a
                   key={item.id}
-                  onClick={item.action}
+                  className="plist"
+                  href="#"
+                  style={{
+                    backgroundColor: isSelected ? 'var(--color-surface)' : undefined,
+                  }}
                   onMouseEnter={() => setSelectedIndex(idx)}
-                  className={`p-2.5 px-3 rounded-xs flex items-center justify-between gap-3 cursor-pointer transition-colors ${
-                    isSelected ? 'bg-teal-950/70 border border-teal-800/80 text-stone-100' : 'text-stone-300 hover:bg-stone-850'
-                  }`}
+                  onClick={e => {
+                    e.preventDefault();
+                    item.run();
+                  }}
                 >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className={`w-6 h-6 rounded-xs flex items-center justify-center shrink-0 ${
-                      isSelected ? 'bg-teal-800 text-teal-200' : 'bg-stone-800 text-stone-400'
-                    }`}>
-                      <Icon className="w-3.5 h-3.5" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="font-mono text-xs font-semibold flex items-center gap-2">
-                        <span className={isSelected ? 'text-teal-200' : 'text-stone-200'}>
-                          {item.title}
-                        </span>
-                        <span className="text-[9px] px-1 py-0.2 font-mono uppercase bg-stone-800 border border-stone-700 text-stone-400 rounded-xs">
-                          {item.category}
-                        </span>
-                      </div>
-                      {item.subtitle && (
-                        <div className="font-sans text-micro text-stone-400 truncate mt-0.5">
-                          {item.subtitle}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 shrink-0">
-                    {item.shortcut && (
-                      <kbd className="font-mono text-micro text-stone-400 bg-stone-800 border border-stone-700 px-1.5 py-0.5 rounded-xs">
-                        {item.shortcut}
-                      </kbd>
-                    )}
-                    {isSelected && (
-                      <ArrowRight className="w-3.5 h-3.5 text-teal-400" />
-                    )}
-                  </div>
-                </div>
+                  <span className="eyebrow" style={{ width: '52px', flex: 'none' }}>
+                    {item.kind}
+                  </span>
+                  <span style={{ flex: 1, fontSize: '14px', color: 'var(--color-text)' }}>
+                    {item.label}
+                  </span>
+                  <span className="num mut" style={{ fontSize: '11px' }}>
+                    {item.hint}
+                  </span>
+                </a>
               );
             })
           )}
-        </div>
-
-        {/* Footer Helper */}
-        <div className="p-2 px-3 border-t border-stone-800 bg-stone-950 flex items-center justify-between font-mono text-[10px] text-stone-500">
-          <div className="flex items-center gap-3">
-            <span>↑↓ Navigate</span>
-            <span>↵ Select</span>
-            <span>Esc Close</span>
-          </div>
-          <span>Biomethane Desk Command Bar</span>
         </div>
       </div>
     </div>

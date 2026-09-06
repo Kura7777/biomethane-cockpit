@@ -424,6 +424,91 @@ export const DATA_SOURCES_DIRECTORY: DataSourceRecord[] = [
     ],
     fieldsUnverified: [],
     docUrl: 'https://www.eex.com/en/markets/environmental-markets'
+  },
+  {
+    id: 'gse_biometano_italy',
+    name: 'GSE Piattaforma Biometano & SNAM Grid Entry',
+    category: 'REGISTRIES_MASS_BALANCE',
+    categoryLabel: 'Registries',
+    authority: 'Gestore dei Servizi Energetici (GSE S.p.A.) & SNAM Rete Gas',
+    authorityType: 'NATIONAL_REGULATOR',
+    sourceDocumentOrUrl: 'GSE Procedura Applicativa Biometano DM 2018 / 2022',
+    legalBasis: 'D.M. 2 Marzo 2018 & D.M. 15 Settembre 2022 (PNRR Biometano)',
+    updateFrequency: 'DAILY',
+    coverageCount: 'Italian Biomethane CIC & GO Issuance',
+    provenanceTier: 'TSO_OFFICIAL_DATA',
+    description: 'Statutory Italian platform for biomethane qualification, Certificate of Release to Consumption (CIC), and voluntary Guarantees of Origin.',
+    fieldsProvided: [
+      'CIC Certificate Issuance for Transport Quotas',
+      'SNAM Grid Entry Point Quality Telemetry',
+      'Biomethane Plant Audited Feedstock Declaration'
+    ],
+    fieldsUnverified: [],
+    docUrl: 'https://www.gse.it/'
+  },
+  {
+    id: 'enagas_gts_spain',
+    name: 'Enagás GTS Sistema de Garantías de Origen del Gas Renovable',
+    category: 'REGISTRIES_MASS_BALANCE',
+    categoryLabel: 'Registries',
+    authority: 'Enagás GTS S.A. under mandate from Ministry for Ecological Transition (MITECO)',
+    authorityType: 'TSO_DSO',
+    sourceDocumentOrUrl: 'Enagás GTS Procedimiento de Gestión de GdO de Gases Renovables',
+    legalBasis: 'Real Decreto 376/2022 & Orden TED/1026/2022',
+    updateFrequency: 'DAILY',
+    coverageCount: 'Spanish Renewable Gas Guarantees of Origin (PVB Hub)',
+    provenanceTier: 'TSO_OFFICIAL_DATA',
+    description: 'Official Spanish national system for issuing, transferring, and redeeming renewable gas Guarantees of Origin.',
+    fieldsProvided: [
+      'Spanish Biomethane GO Issuance (1 GO = 1 MWh)',
+      'Ex-ante and Ex-post Audited Mass Balance Records',
+      'ERGaR Scheme CoO Interconnection'
+    ],
+    fieldsUnverified: [],
+    docUrl: 'https://www.gasesrenovables.enagas.es/'
+  },
+  {
+    id: 'agcs_austria',
+    name: 'AGCS Biomethane Registry Austria & E-Control',
+    category: 'REGISTRIES_MASS_BALANCE',
+    categoryLabel: 'Registries',
+    authority: 'AGCS Gas Clearing and Settlement AG & E-Control',
+    authorityType: 'NATIONAL_REGULATOR',
+    sourceDocumentOrUrl: 'AGCS Biomethan Register Austria System Documentation',
+    legalBasis: 'Gaswirtschaftsgesetz 2011 (GWG 2011) & Erneuerbaren-Gase-Gesetz (EGG)',
+    updateFrequency: 'DAILY',
+    coverageCount: 'Austrian Biomethane Injections (CEGH Hub)',
+    provenanceTier: 'TSO_OFFICIAL_DATA',
+    description: 'Central Austrian clearing and verification database for grid-injected biomethane and green gas certificates.',
+    fieldsProvided: [
+      'Austrian Green Gas Certificate Issuance',
+      'CEGH Hub Grid Mass Balance Tracking',
+      'AIB EECS-Gas Scheme Integration'
+    ],
+    fieldsUnverified: [],
+    docUrl: 'https://www.agcs.at/'
+  },
+  {
+    id: 'pan_eu_tso_telemetry_hub',
+    name: 'Pan-European Multi-TSO Live Biomethane Flow Telemetry Hub',
+    category: 'LOGISTICS_INTERCONNECTORS',
+    categoryLabel: 'Logistics & Tariffs',
+    authority: 'Energinet (DK), ODRE / GRTgaz (FR), ENTSOG (EU), THE / OGE (DE), GTS (NL), SNAM (IT), Enagás (ES), NGT (GB)',
+    authorityType: 'TSO_DSO',
+    sourceDocumentOrUrl: 'Open Data REST APIs & SCADA Telemetry Stream Interfaces',
+    legalBasis: 'Regulation (EC) No 715/2009 Art. 18 & Directive (EU) 2024/1788 (Hydrogen & Decarbonised Gas Package)',
+    updateFrequency: 'REAL_TIME_API',
+    coverageCount: '22 European Jurisdictions & 560+ Cross-Border Interconnection Nodes',
+    provenanceTier: 'TSO_OFFICIAL_DATA',
+    description: 'Real-time multi-TSO telemetry engine collecting metered injection flow rates (Nm³/h, MWh/h), gross calorific values, and cross-border pipeline transmission velocity.',
+    fieldsProvided: [
+      'Real-time Hourly Injection Volume (MWh/h & Nm³/h)',
+      'Gross Calorific Value (GCV kWh/Nm³)',
+      'Verified Feedstock Classification & Annex IX Assignment',
+      'Cross-Border Physical Interconnection Flow Directions'
+    ],
+    fieldsUnverified: [],
+    docUrl: 'https://transparency.entsog.eu/'
   }
 ];
 

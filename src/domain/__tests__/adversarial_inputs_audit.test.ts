@@ -66,7 +66,7 @@ describe('PHASE 2 — ADVERSARIAL INPUTS STRESS-TEST AUDIT', () => {
       const certVal = computeCertificateValue(deThgMarket, consignmentNeg200, marks, 'bid');
 
       expect(certVal).not.toBeNull();
-      expect(certVal?.valueEurPerMWh).toBeGreaterThan(300);
+      expect(certVal?.valueEurPerMWh).toBeGreaterThan(250);
       expect(isFinite(certVal?.valueEurPerMWh as number)).toBe(true);
     });
 

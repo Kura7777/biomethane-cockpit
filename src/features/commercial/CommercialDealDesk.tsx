@@ -9,6 +9,7 @@ import { SourcedOpportunity, PlantScannerTable } from './PlantScannerTable';
 import { CostWaterfallCard } from './CostWaterfallCard';
 import { CorridorMiniMap } from '../map/CorridorMiniMap';
 import { DealSummaryModal } from './DealSummaryModal';
+import { calculateLogisticsRoute } from '../../domain/logistics/engine';
 
 const DEFAULT_CLIENT_REQUEST: ClientRequest = {
   feedstockKey: 'manure',
@@ -293,12 +294,15 @@ export function CommercialDealDesk() {
 
       const matchedPlant = countryPlants[idx % (countryPlants.length || 1)] || null;
 
+      const route = calculateLogisticsRoute(opp.originCountry, opp.targetCountry);
+      const distanceKm = route.distanceKm ?? 0;
+
       return {
         ...opp,
         originPlantName: matchedPlant?.name || `${opp.originCountry} Biomethane Facility #${idx + 1}`,
         originPlantCoords: matchedPlant?.coordinates || null,
         isDirectPlantSource: Boolean(matchedPlant),
-        logisticsDistanceKm: opp.transitCostEurPerMWh > 2 ? 650 : 280,
+        logisticsDistanceKm: distanceKm,
         deliveryMode: 'PIPELINE_GRID',
       };
     });
@@ -347,7 +351,7 @@ Compliance: RED III / Mass Balance Validated`.trim();
   }, [selectedOpp]);
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-stone-950 text-stone-100">
+    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#08090d] text-zinc-100">
       {/* 1. Master Order Intake Panel */}
       <OrderIntakePanel
         request={request}

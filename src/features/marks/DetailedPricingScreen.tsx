@@ -19,6 +19,7 @@ import { PriceSide } from '../../domain/markets/types';
 export function DetailedPricingScreen() {
   const { state, dispatch } = useAppState();
   const [quotes, setQuotes] = useState<BrokerMarketQuote[]>(INITIAL_BROKER_QUOTES);
+  const [selectedBook, setSelectedBook] = useState<'ALL' | 'COMPLIANCE' | 'VOLUNTARY'>('ALL');
   const [selectedCountry, setSelectedCountry] = useState<string>('ALL');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [gasIndexInput, setGasIndexInput] = useState<string>(
@@ -129,25 +130,28 @@ export function DetailedPricingScreen() {
   };
 
   const filteredQuotes = quotes.filter(q => {
+    const matchBook = selectedBook === 'ALL'
+      || (selectedBook === 'COMPLIANCE' && q.productClass === 'BUNDLED_COMPLIANCE')
+      || (selectedBook === 'VOLUNTARY' && q.productClass === 'GO_VOLUNTARY');
     const matchCountry = selectedCountry === 'ALL' || q.country === selectedCountry;
     const matchSearch = !searchTerm || 
       q.country.toLowerCase().includes(searchTerm.toLowerCase()) ||
       q.feedstock.toLowerCase().includes(searchTerm.toLowerCase()) ||
       q.vintage.toLowerCase().includes(searchTerm.toLowerCase()) ||
       q.certified.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchCountry && matchSearch;
+    return matchBook && matchCountry && matchSearch;
   });
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-stone-950 text-stone-100 font-sans">
+    <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#08090d] text-zinc-100 font-sans">
       {/* Top Banner: Gas Index & FX controls */}
-      <div className="bg-stone-900/90 border-b border-stone-800/80 px-6 py-3 flex flex-wrap items-center justify-between gap-4 shrink-0 shadow-lg backdrop-blur-md">
+      <div className="bg-[#0e1118] border-b border-[#1e2433] px-6 py-3 flex flex-wrap items-center justify-between gap-4 shrink-0 shadow-lg backdrop-blur-md">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-teal-950 border border-teal-700/80 flex items-center justify-center text-teal-400 shadow-sm">
+          <div className="w-8 h-8 rounded-lg bg-cyan-950/40 border border-cyan-500/40/80 flex items-center justify-center text-cyan-400 shadow-sm">
             <FileSpreadsheet className="w-4 h-4" />
           </div>
           <div>
-            <h1 className="font-mono text-sm font-bold uppercase tracking-wider text-stone-100 flex items-center gap-2">
+            <h1 className="font-mono text-sm font-bold uppercase tracking-wider text-zinc-100 flex items-center gap-2">
               <span>Biomethane Markets — Broker Pricing Sheet</span>
               {savedNote && (
                 <span className="text-[10px] text-emerald-400 bg-emerald-950 border border-emerald-800 px-2 py-0.5 rounded-full font-mono animate-pulse font-bold">
@@ -155,8 +159,8 @@ export function DetailedPricingScreen() {
                 </span>
               )}
             </h1>
-            <p className="font-mono text-[11px] text-stone-400">
-              Indicative market marks · Bids and offers with live inline cell editing
+            <p className="font-mono text-[11px] text-zinc-400">
+              50% Compliance Quotas &amp; 50% Voluntary GOs · Bids and offers with live inline cell editing
             </p>
           </div>
         </div>
@@ -164,9 +168,9 @@ export function DetailedPricingScreen() {
         {/* TTF Gas Index & FX Inputs */}
         <div className="flex items-center gap-3 flex-wrap font-mono">
           {/* TTF Gas Index */}
-          <div className="flex items-center gap-2 bg-stone-950/90 border border-stone-700/80 rounded-lg px-3 py-1.5 shadow-sm">
+          <div className="flex items-center gap-2 bg-[#08090d]/90 border border-[#2b3347]/80 rounded-lg px-3 py-1.5 shadow-sm">
             <Flame className="w-4 h-4 text-amber-400 shrink-0" />
-            <span className="text-[10px] text-stone-400 uppercase font-bold">
+            <span className="text-[10px] text-zinc-400 uppercase font-bold">
               TTF M+1:
             </span>
             <input
@@ -175,15 +179,15 @@ export function DetailedPricingScreen() {
               value={gasIndexInput}
               onChange={e => setGasIndexInput(e.target.value)}
               onBlur={handleSaveGasIndex}
-              className="w-16 bg-stone-900 border border-stone-700 rounded px-1.5 py-0.5 text-right text-xs font-bold text-stone-100 focus:outline-hidden focus:border-teal-500"
+              className="w-16 bg-[#0e1118] border border-[#2b3347] rounded px-1.5 py-0.5 text-right text-xs font-bold text-zinc-100 focus:outline-hidden focus:border-cyan-500/60"
             />
-            <span className="text-[10px] text-stone-500">€/MWh</span>
+            <span className="text-[10px] text-zinc-500">€/MWh</span>
           </div>
 
           {/* GBP / EUR FX */}
-          <div className="flex items-center gap-2 bg-stone-950/90 border border-stone-700/80 rounded-lg px-3 py-1.5 shadow-sm">
-            <DollarSign className="w-4 h-4 text-teal-400 shrink-0" />
-            <span className="text-[10px] text-stone-400 uppercase font-bold">
+          <div className="flex items-center gap-2 bg-[#08090d]/90 border border-[#2b3347]/80 rounded-lg px-3 py-1.5 shadow-sm">
+            <DollarSign className="w-4 h-4 text-cyan-400 shrink-0" />
+            <span className="text-[10px] text-zinc-400 uppercase font-bold">
               GBP/EUR:
             </span>
             <input
@@ -192,7 +196,7 @@ export function DetailedPricingScreen() {
               value={fxInput}
               onChange={e => setFxInput(e.target.value)}
               onBlur={handleSaveFx}
-              className="w-16 bg-stone-900 border border-stone-700 rounded px-1.5 py-0.5 text-right text-xs font-bold text-stone-100 focus:outline-hidden focus:border-teal-500"
+              className="w-16 bg-[#0e1118] border border-[#2b3347] rounded px-1.5 py-0.5 text-right text-xs font-bold text-zinc-100 focus:outline-hidden focus:border-cyan-500/60"
             />
           </div>
 
@@ -200,7 +204,7 @@ export function DetailedPricingScreen() {
           <button
             type="button"
             onClick={handleExportCSV}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 border border-stone-700 text-stone-200 text-xs font-bold transition-all cursor-pointer shadow-xs"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#141824] hover:bg-[#1e2433] border border-[#2b3347] text-zinc-200 text-xs font-bold transition-all cursor-pointer shadow-xs"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Export CSV</span>
@@ -209,57 +213,100 @@ export function DetailedPricingScreen() {
       </div>
 
       {/* Filter & Country Tabs Strip */}
-      <div className="bg-stone-950 border-b border-stone-800/80 px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 shrink-0">
-        {/* Country Filter Buttons */}
-        <div className="flex items-center gap-1.5">
-          <span className="font-mono text-[10px] text-stone-500 uppercase font-bold mr-1">
-            Country:
-          </span>
-          {countries.map(c => (
+      <div className="bg-[#08090d] border-b border-[#1e2433] px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 shrink-0">
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Trading Book Filter Buttons */}
+          <div className="flex items-center gap-1">
+            <span className="font-mono text-[10px] text-zinc-500 uppercase font-bold mr-1">
+              Book:
+            </span>
             <button
-              key={c}
               type="button"
-              onClick={() => setSelectedCountry(c)}
-              className={`px-3 py-1 rounded-lg font-mono text-[11px] font-bold tracking-wider transition-all cursor-pointer ${
-                selectedCountry === c
-                  ? 'bg-teal-600 text-stone-950 shadow-md ring-1 ring-teal-400'
-                  : 'bg-stone-900/90 hover:bg-stone-850 text-stone-400 hover:text-stone-200 border border-stone-800'
+              onClick={() => setSelectedBook('ALL')}
+              className={`px-2.5 py-1 rounded-lg font-mono text-[11px] font-bold tracking-wider transition-all cursor-pointer ${
+                selectedBook === 'ALL'
+                  ? 'bg-cyan-500 text-black font-bold shadow-md ring-1 ring-cyan-400'
+                  : 'bg-[#0e1118] hover:bg-stone-850 text-zinc-400 hover:text-zinc-200 border border-[#1e2433]'
               }`}
             >
-              {c}
+              All (50/50)
             </button>
-          ))}
+            <button
+              type="button"
+              onClick={() => setSelectedBook('COMPLIANCE')}
+              className={`px-2.5 py-1 rounded-lg font-mono text-[11px] font-bold tracking-wider transition-all cursor-pointer ${
+                selectedBook === 'COMPLIANCE'
+                  ? 'bg-cyan-600 text-white font-bold shadow-md ring-1 ring-cyan-400'
+                  : 'bg-[#0e1118] hover:bg-stone-850 text-zinc-400 hover:text-zinc-200 border border-[#1e2433]'
+              }`}
+            >
+              🏛️ Compliance (50%)
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedBook('VOLUNTARY')}
+              className={`px-2.5 py-1 rounded-lg font-mono text-[11px] font-bold tracking-wider transition-all cursor-pointer ${
+                selectedBook === 'VOLUNTARY'
+                  ? 'bg-emerald-600 text-white font-bold shadow-md ring-1 ring-emerald-400'
+                  : 'bg-[#0e1118] hover:bg-stone-850 text-zinc-400 hover:text-zinc-200 border border-[#1e2433]'
+              }`}
+            >
+              🌱 Voluntary (50%)
+            </button>
+          </div>
+
+          {/* Country Filter Buttons */}
+          <div className="flex items-center gap-1">
+            <span className="font-mono text-[10px] text-zinc-500 uppercase font-bold mr-1">
+              Country:
+            </span>
+            {countries.map(c => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setSelectedCountry(c)}
+                className={`px-2.5 py-1 rounded-lg font-mono text-[11px] font-bold tracking-wider transition-all cursor-pointer ${
+                  selectedCountry === c
+                    ? 'bg-zinc-200 text-black font-bold shadow-md'
+                    : 'bg-[#0e1118] hover:bg-stone-850 text-zinc-400 hover:text-zinc-200 border border-[#1e2433]'
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Table Search */}
         <div className="relative">
-          <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-stone-400" />
+          <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-zinc-400" />
           <input
             type="text"
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             placeholder="Filter feedstock, vintage, certificate..."
-            className="bg-stone-900 border border-stone-700/80 rounded-lg pl-8 pr-3 py-1.5 font-mono text-xs text-stone-200 placeholder-stone-500 focus:outline-hidden focus:border-teal-500 w-72 transition-colors"
+            className="bg-[#0e1118] border border-[#2b3347]/80 rounded-lg pl-8 pr-3 py-1.5 font-mono text-xs text-zinc-200 placeholder-stone-500 focus:outline-hidden focus:border-cyan-500/60 w-64 transition-colors"
           />
         </div>
       </div>
 
       {/* Main Detailed Pricing Spreadsheet Table */}
       <div className="flex-1 overflow-auto p-4">
-        <div className="border border-stone-800/90 rounded-xl overflow-hidden shadow-2xl bg-stone-900/90">
+        <div className="border border-[#1e2433] rounded-xl overflow-hidden shadow-2xl bg-[#0e1118]">
           <table className="w-full text-left border-collapse font-sans text-xs">
-            <thead className="bg-[#0f172a] text-stone-300 font-mono text-[11px] uppercase tracking-wider sticky top-0 z-10 border-b border-stone-700 shadow-md">
+            <thead className="bg-[#0f172a] text-zinc-300 font-mono text-[11px] uppercase tracking-wider sticky top-0 z-10 border-b border-[#2b3347] shadow-md">
               <tr>
-                <th className="py-3 px-3.5 border-r border-stone-700/60 font-bold">Country</th>
-                <th className="py-3 px-3.5 border-r border-stone-700/60 font-bold">Class</th>
-                <th className="py-3 px-3.5 border-r border-stone-700/60 font-bold">Feedstock</th>
-                <th className="py-3 px-3.5 border-r border-stone-700/60 font-bold">Vintage</th>
-                <th className="py-3 px-3.5 border-r border-stone-700/60 font-bold">Certified</th>
-                <th className="py-3 px-3.5 border-r border-stone-700/60 font-bold">Subsidized</th>
-                <th className="py-3 px-3.5 border-r border-stone-700/60 font-bold">CI Score</th>
-                <th className="py-3 px-3.5 border-r border-stone-700/60 font-bold text-right w-32 bg-[#164e63] text-teal-200">BID Price</th>
-                <th className="py-3 px-3.5 border-r border-stone-700/60 font-bold text-right w-32 bg-[#78350f] text-amber-200">OFFER Price</th>
-                <th className="py-3 px-3.5 border-r border-stone-700/60 font-bold text-right w-28">BID Vol</th>
+                <th className="py-3 px-3.5 border-r border-[#2b3347]/60 font-bold">Country</th>
+                <th className="py-3 px-3.5 border-r border-[#2b3347]/60 font-bold">Trading Book</th>
+                <th className="py-3 px-3.5 border-r border-[#2b3347]/60 font-bold">Class</th>
+                <th className="py-3 px-3.5 border-r border-[#2b3347]/60 font-bold">Feedstock</th>
+                <th className="py-3 px-3.5 border-r border-[#2b3347]/60 font-bold">Vintage</th>
+                <th className="py-3 px-3.5 border-r border-[#2b3347]/60 font-bold">Certified</th>
+                <th className="py-3 px-3.5 border-r border-[#2b3347]/60 font-bold">Subsidized</th>
+                <th className="py-3 px-3.5 border-r border-[#2b3347]/60 font-bold">CI Score</th>
+                <th className="py-3 px-3.5 border-r border-[#2b3347]/60 font-bold text-right w-32 bg-[#164e63] text-cyan-200">BID Price</th>
+                <th className="py-3 px-3.5 border-r border-[#2b3347]/60 font-bold text-right w-32 bg-[#78350f] text-amber-200">OFFER Price</th>
+                <th className="py-3 px-3.5 border-r border-[#2b3347]/60 font-bold text-right w-28">BID Vol</th>
                 <th className="py-3 px-3.5 font-bold text-right w-28">OFFER Vol</th>
               </tr>
             </thead>
@@ -272,79 +319,90 @@ export function DetailedPricingScreen() {
                     key={q.id}
                     className={`transition-colors hover:bg-stone-850/90 ${
                       isHighlighted
-                        ? 'bg-amber-950/20 text-stone-100 font-medium'
+                        ? 'bg-amber-950/20 text-zinc-100 font-medium'
                         : idx % 2 === 0
-                        ? 'bg-stone-950/60 text-stone-200'
-                        : 'bg-stone-900/40 text-stone-200'
+                        ? 'bg-[#08090d]/60 text-zinc-200'
+                        : 'bg-[#0e1118]/40 text-zinc-200'
                     }`}
                   >
                     {/* Country */}
-                    <td className="py-2.5 px-3.5 border-r border-stone-800/60 font-bold text-stone-100">
-                      <span className="px-1.5 py-0.5 rounded bg-stone-900 border border-stone-800">
+                    <td className="py-2.5 px-3.5 border-r border-[#1e2433] font-bold text-zinc-100">
+                      <span className="px-1.5 py-0.5 rounded bg-[#0e1118] border border-[#1e2433]">
                         {q.country}
                       </span>
                     </td>
 
+                    {/* Book */}
+                    <td className="py-2.5 px-3.5 border-r border-[#1e2433]">
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                        q.productClass === 'GO_VOLUNTARY'
+                          ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-800'
+                          : 'bg-cyan-950/80 text-cyan-300 border border-cyan-800'
+                      }`}>
+                        {q.productClass === 'GO_VOLUNTARY' ? '🌱 VOLUNTARY' : '🏛️ COMPLIANCE'}
+                      </span>
+                    </td>
+
                     {/* Class */}
-                    <td className="py-2.5 px-3.5 border-r border-stone-800/60 text-stone-300">
+                    <td className="py-2.5 px-3.5 border-r border-[#1e2433] text-zinc-300">
                       {q.class}
                     </td>
 
                     {/* Feedstock */}
-                    <td className="py-2.5 px-3.5 border-r border-stone-800/60 text-stone-200 font-sans font-medium">
+                    <td className="py-2.5 px-3.5 border-r border-[#1e2433] text-zinc-200 font-sans font-medium">
                       {q.feedstock}
                     </td>
 
                     {/* Vintage */}
-                    <td className="py-2.5 px-3.5 border-r border-stone-800/60 text-stone-300">
+                    <td className="py-2.5 px-3.5 border-r border-[#1e2433] text-zinc-300">
                       {q.vintage}
                     </td>
 
                     {/* Certified */}
-                    <td className="py-2.5 px-3.5 border-r border-stone-800/60 text-stone-300 font-sans">
+                    <td className="py-2.5 px-3.5 border-r border-[#1e2433] text-zinc-300 font-sans">
                       {q.certified}
                     </td>
 
                     {/* Subsidized */}
-                    <td className="py-2.5 px-3.5 border-r border-stone-800/60 text-stone-400">
+                    <td className="py-2.5 px-3.5 border-r border-[#1e2433] text-zinc-400">
                       {q.subsidized}
                     </td>
 
                     {/* CI Score */}
-                    <td className="py-2.5 px-3.5 border-r border-stone-800/60 text-teal-400 font-bold">
+                    <td className="py-2.5 px-3.5 border-r border-[#1e2433] text-cyan-400 font-bold">
                       {q.ciScore || '—'}
                     </td>
 
                     {/* BID Price (Editable) */}
-                    <td className="py-1 px-2 border-r border-stone-800/60 text-right bg-teal-950/15">
+                    <td className="py-1 px-2 border-r border-[#1e2433] text-right bg-cyan-950/40/15">
                       <input
                         type="text"
                         value={q.bidPrice}
                         onChange={e => handleCellEdit(q.id, 'bidPrice', e.target.value)}
                         placeholder="—"
-                        className="w-full bg-transparent text-right font-bold text-emerald-400 focus:bg-stone-950 focus:outline-hidden px-2 py-1 rounded border border-transparent focus:border-teal-500 transition-colors"
+                        className="w-full bg-transparent text-right font-bold text-emerald-400 focus:bg-[#08090d] focus:outline-hidden px-2 py-1 rounded border border-transparent focus:border-cyan-500/60 transition-colors"
                       />
                     </td>
 
                     {/* OFFER Price (Editable) */}
-                    <td className="py-1 px-2 border-r border-stone-800/60 text-right bg-amber-950/15">
+                    <td className="py-1 px-2 border-r border-[#1e2433] text-right bg-amber-950/15">
                       <input
                         type="text"
                         value={q.offerPrice}
                         onChange={e => handleCellEdit(q.id, 'offerPrice', e.target.value)}
                         placeholder="—"
-                        className="w-full bg-transparent text-right font-bold text-amber-300 focus:bg-stone-950 focus:outline-hidden px-2 py-1 rounded border border-transparent focus:border-amber-500 transition-colors"
+                        className="w-full bg-transparent text-right font-bold text-amber-300 focus:bg-[#08090d] focus:outline-hidden px-2 py-1 rounded border border-transparent focus:border-amber-500 transition-colors"
                       />
                     </td>
 
                     {/* BID Volume (Editable) */}
-                    <td className="py-1 px-2 border-r border-stone-800/60 text-right">
+                    <td className="py-1 px-2 border-r border-[#1e2433] text-right">
                       <input
                         type="text"
                         value={q.bidVolume}
                         onChange={e => handleCellEdit(q.id, 'bidVolume', e.target.value)}
                         placeholder="—"
-                        className="w-full bg-transparent text-right font-semibold text-stone-300 focus:bg-stone-950 focus:outline-hidden px-2 py-1 rounded border border-transparent focus:border-stone-600 transition-colors"
+                        className="w-full bg-transparent text-right font-semibold text-zinc-300 focus:bg-[#08090d] focus:outline-hidden px-2 py-1 rounded border border-transparent focus:border-[#3b4560] transition-colors"
                       />
                     </td>
 
@@ -355,7 +413,7 @@ export function DetailedPricingScreen() {
                         value={q.offerVolume}
                         onChange={e => handleCellEdit(q.id, 'offerVolume', e.target.value)}
                         placeholder="—"
-                        className="w-full bg-transparent text-right font-semibold text-stone-300 focus:bg-stone-950 focus:outline-hidden px-2 py-1 rounded border border-transparent focus:border-stone-600 transition-colors"
+                        className="w-full bg-transparent text-right font-semibold text-zinc-300 focus:bg-[#08090d] focus:outline-hidden px-2 py-1 rounded border border-transparent focus:border-[#3b4560] transition-colors"
                       />
                     </td>
                   </tr>
@@ -366,9 +424,9 @@ export function DetailedPricingScreen() {
         </div>
 
         {/* Footnote */}
-        <div className="mt-3.5 p-3 rounded-xl bg-stone-900/70 border border-stone-800 text-stone-400 font-mono text-[11px] flex items-center justify-between shadow-sm">
-          <span>* The bids and offers are for certificates only. Index gas price / swap to be added on top.</span>
-          <span className="text-teal-400 font-bold">{filteredQuotes.length} active quotes displayed</span>
+        <div className="mt-3.5 p-3 rounded-xl bg-[#0e1118] border border-[#1e2433] text-zinc-400 font-mono text-[11px] flex flex-wrap items-center justify-between gap-2 shadow-sm">
+          <span>* Bids and offers for green certificates only (index gas added on top). Calibrated across 50% Compliance Quotas (THG/ERE/RTFO) and 50% Voluntary Guarantees of Origin (AIB/dena/VertiCer/GGCS). EU ETS Scope 1 parity floor €14.54/MWh.</span>
+          <span className="text-cyan-400 font-bold">{filteredQuotes.length} active quotes displayed</span>
         </div>
       </div>
     </div>

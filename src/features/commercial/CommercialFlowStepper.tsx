@@ -9,6 +9,7 @@ import { Step1OrderIntake } from './Step1OrderIntake';
 import { Step2PlantScan } from './Step2PlantScan';
 import { Step3RouteAndCosts } from './Step3RouteAndCosts';
 import { Step4DealSummary } from './Step4DealSummary';
+import { calculateLogisticsRoute } from '../../domain/logistics/engine';
 import { Check, ArrowRight, Sparkles, Building2, TrendingUp, Navigation } from 'lucide-react';
 
 const INITIAL_REQUEST: ClientRequest = {
@@ -60,13 +61,15 @@ export function CommercialFlowStepper() {
         p => p.countryCode === opp.originCountry || p.country.toLowerCase() === opp.originCountry.toLowerCase()
       );
       const matchedPlant = countryPlants[idx % (countryPlants.length || 1)] || null;
+      const route = calculateLogisticsRoute(opp.originCountry, opp.targetCountry);
+      const distanceKm = route.distanceKm ?? 0;
 
       return {
         ...opp,
         originPlantName: matchedPlant?.name || `${opp.originCountry} Biomethane Facility #${idx + 1}`,
         originPlantCoords: matchedPlant?.coordinates || null,
         isDirectPlantSource: Boolean(matchedPlant),
-        logisticsDistanceKm: opp.transitCostEurPerMWh > 2 ? 650 : 280,
+        logisticsDistanceKm: distanceKm,
         deliveryMode: 'PIPELINE_GRID',
       };
     });
@@ -87,9 +90,9 @@ export function CommercialFlowStepper() {
   };
 
   return (
-    <div className="flex-1 flex flex-col overflow-y-auto bg-stone-950 text-stone-100 min-h-screen">
+    <div className="flex-1 flex flex-col overflow-y-auto bg-[#08090d] text-zinc-100 min-h-screen">
       {/* Sleek Step Progress Indicator Bar */}
-      <div className="bg-stone-900 border-b border-stone-800 px-4 py-3 sticky top-0 z-30 shadow-md">
+      <div className="bg-[#0e1118] border-b border-[#1e2433] px-4 py-3 sticky top-0 z-30 shadow-md">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           {STEPS.map((s, idx) => {
             const isDone = currentStep > s.step;
@@ -111,10 +114,10 @@ export function CommercialFlowStepper() {
                   <div
                     className={`w-7 h-7 rounded-full flex items-center justify-center font-mono text-xs font-bold transition-all shrink-0 ${
                       isDone
-                        ? 'bg-teal-500 text-stone-950'
+                        ? 'bg-cyan-500 text-stone-950'
                         : isCurrent
-                        ? 'bg-teal-950 text-teal-300 border-2 border-teal-400 ring-2 ring-teal-500/20'
-                        : 'bg-stone-950 text-stone-600 border border-stone-800'
+                        ? 'bg-cyan-950/40 text-cyan-300 border-2 border-teal-400 ring-2 ring-teal-500/20'
+                        : 'bg-[#08090d] text-zinc-600 border border-[#1e2433]'
                     }`}
                   >
                     {isDone ? <Check className="w-4 h-4 stroke-[3]" /> : s.step}
@@ -125,15 +128,15 @@ export function CommercialFlowStepper() {
                     <span
                       className={`font-mono text-xs font-bold tracking-wider block ${
                         isCurrent
-                          ? 'text-teal-300'
+                          ? 'text-cyan-300'
                           : isDone
-                          ? 'text-stone-300'
-                          : 'text-stone-600'
+                          ? 'text-zinc-300'
+                          : 'text-zinc-600'
                       }`}
                     >
                       {s.title}
                     </span>
-                    <span className="font-mono text-[10px] text-stone-500 block">
+                    <span className="font-mono text-[10px] text-zinc-500 block">
                       {s.desc}
                     </span>
                   </div>
@@ -141,9 +144,9 @@ export function CommercialFlowStepper() {
 
                 {/* Arrow Divider between steps */}
                 {idx < STEPS.length - 1 && (
-                  <div className="w-8 md:w-16 h-[2px] bg-stone-800 shrink-0 mx-1">
+                  <div className="w-8 md:w-16 h-[2px] bg-[#141824] shrink-0 mx-1">
                     <div
-                      className={`h-full bg-teal-500 transition-all duration-300 ${
+                      className={`h-full bg-cyan-500 transition-all duration-300 ${
                         currentStep > s.step ? 'w-full' : 'w-0'
                       }`}
                     />

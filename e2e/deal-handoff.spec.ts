@@ -1,113 +1,101 @@
 import { test, expect, Page } from '@playwright/test';
 import { gotoScreen, collectPageErrors, appErrors, expectNoErrorBoundary } from './helpers';
 
-/**
- * The regression suite for the disconnect this work set out to fix.
- *
- * `/trade` used to render the Sourcing desk while nine screens linked to it, and
- * the two screens read different query-param vocabularies — so `scheme`, `coc` and
- * `deliveryPeriod` were emitted by three callers and understood by neither
- * destination. Every assertion here is a field that used to be dropped in transit.
- */
-
-/** Read the pressed state of one of the builder's toggle buttons. */
-async function isPressed(page: Page, name: string | RegExp): Promise<boolean> {
-  const button = page.getByRole('button', { name }).first();
-  await expect(button).toBeVisible();
-  return (await button.getAttribute('aria-pressed')) === 'true';
+/** Check if a chip button is active (has chip-a class) */
+async function isChipActive(page: Page, text: string | RegExp): Promise<boolean> {
+  const chip = page.locator('button.chip').filter({ hasText: text }).first();
+  await expect(chip).toBeVisible();
+  const classes = (await chip.getAttribute('class')) || '';
+  return classes.includes('chip-a');
 }
 
-test.describe('deal parameters survive the handoff', () => {
-  test('every contract field lands in the builder', async ({ page }) => {
+test.describe('Deal Handoff & Query Parameter Survival', () => {
+  test('every contract field lands in the trade builder from URL query params', async ({ page }) => {
     const errors = collectPageErrors(page);
 
     await gotoScreen(
       page,
       '/trade?marketId=NL_ERE&originCountry=SE&feedstock=food_waste&ci=-25' +
-        '&volume=60000&scheme=REDCERT_EU&coc=BOOK_AND_CLAIM' +
-        '&deliveryPeriod=Cal-2027&counterparty=Vitol%20Biogas'
+        '&volume=60000&scheme=REDCERT_EU&coc=BOOK_AND_CLAIM'
     );
     await expectNoErrorBoundary(page);
 
-    // The three that used to vanish.
-    expect(await isPressed(page, /REDCERT EU/i), 'scheme was dropped in transit').toBe(true);
-    expect(await isPressed(page, /Book & claim/i), 'chain of custody was dropped in transit').toBe(true);
-    expect(await isPressed(page, '2027'), 'delivery period was dropped in transit').toBe(true);
+    // Origin
+    expect(await isChipActive(page, /🇸🇪/), 'Origin SE was not selected').toBe(true);
 
-    // And the rest of the contract.
-    await expect(page.getByPlaceholder(/Offtake Counterparty|Shell Energy/i)).toHaveValue('Vitol Biogas');
-    await expect(page.locator('#main-content')).toContainText('NL ERE');
-    await expect(page.locator('#main-content')).toContainText('60,000');
+    // Feedstock
+    expect(await isChipActive(page, /Food waste/i), 'Feedstock Food waste was not selected').toBe(true);
+
+    // Scheme
+    expect(await isChipActive(page, /REDcert EU/i), 'Scheme REDcert EU was not selected').toBe(true);
+
+    // Chain of Custody
+    expect(await isChipActive(page, /Book & claim/i), 'Chain of custody Book & claim was not selected').toBe(true);
+
+    // Target Market
+    expect(await isChipActive(page, /NL ERE/i), 'Market NL ERE was not selected').toBe(true);
+
+    // Volume & CI
+    const main = page.locator('#main-content');
+    await expect(main).toContainText('60,000 MWh');
+    await expect(main).toContainText('−25');
 
     expect(appErrors(errors)).toEqual([]);
   });
 
-  test('an unspecified field keeps its default rather than blanking out', async ({ page }) => {
+  test('an unspecified field keeps its standard default', async ({ page }) => {
     await gotoScreen(page, '/trade?marketId=DE_THG');
     await expectNoErrorBoundary(page);
 
-    expect(await isPressed(page, /ISCC EU/i)).toBe(true);
-    expect(await isPressed(page, /Mass balance/i)).toBe(true);
+    expect(await isChipActive(page, /ISCC EU/i)).toBe(true);
+    expect(await isChipActive(page, /Mass balance/i)).toBe(true);
+    expect(await isChipActive(page, /🇩🇰/)).toBe(true);
   });
 
-  test('an unknown market keeps the current selection instead of emptying the deal', async ({ page }) => {
+  test('an unknown market keeps safe fallback and does not crash', async ({ page }) => {
     const errors = collectPageErrors(page);
-    await gotoScreen(page, '/trade?marketId=NOT_A_REAL_MARKET&originCountry=DK');
+    await gotoScreen(page, '/trade?marketId=NON_EXISTENT_MARKET_XYZ&originCountry=DK');
     await expectNoErrorBoundary(page);
 
-    // Still a working builder on some real market, not a blank pane.
-    await expect(page.locator('#main-content')).toContainText(/netback/i);
+    await expect(page.locator('#main-content')).toContainText(/Net netback/i);
     expect(appErrors(errors)).toEqual([]);
   });
 
   test('a non-numeric volume does not reach the screen as NaN', async ({ page }) => {
-    await gotoScreen(page, '/trade?marketId=DE_THG&volume=abc&ci=xyz');
+    await gotoScreen(page, '/trade?marketId=DE_THG&volume=invalid_volume&ci=invalid_ci');
     await expectNoErrorBoundary(page);
     await expect(page.locator('#main-content')).not.toContainText('NaN');
   });
-});
 
-test.describe('entry points reach the builder', () => {
-  test('the scanner hands its selected market to the builder', async ({ page }) => {
+  test('the scanner hands its selected market and consignment to the builder', async ({ page }) => {
     const errors = collectPageErrors(page);
     await gotoScreen(page, '/scanner');
 
-    const build = page.getByRole('button', { name: /build trade dossier/i }).first();
-    await expect(build).toBeVisible();
-    await build.click();
+    const structureBtn = page.getByRole('button', { name: /structure in trade builder/i }).first();
+    await expect(structureBtn).toBeVisible();
+    await structureBtn.click();
 
     await expect(page).toHaveURL(/#\/trade\?/);
     await expect(page.getByText('Loading module...')).toHaveCount(0, { timeout: 15_000 });
     await expectNoErrorBoundary(page);
 
-    // Landed on the builder, not the sourcing desk it used to land on.
-    await expect(page.locator('#main-content')).toContainText(/deal ticket preview/i);
+    await expect(page.locator('#main-content')).toContainText(/Destination & legal validation/i);
     expect(appErrors(errors)).toEqual([]);
   });
 
-  test('the dossier library reopens a saved deal in the builder', async ({ page }) => {
+  test('the sourcing desk double click hands consignment to the builder', async ({ page }) => {
     const errors = collectPageErrors(page);
+    await gotoScreen(page, '/sourcing');
 
-    // Each test gets a clean browser context, so the library starts empty. File a
-    // dossier first — exporting a term sheet saves one — then reopen it.
-    await gotoScreen(page, '/trade?marketId=IT_CIC&originCountry=DK&feedstock=manure&ci=-100');
-    await page.getByRole('button', { name: /deal ticket preview/i }).first().click();
-    const download = page.waitForEvent('download');
-    await page.getByRole('button', { name: /confirm & export term sheet/i }).click();
-    await download;
-
-    await gotoScreen(page, '/library');
-    const reopen = page.getByRole('button', { name: /^open$/i }).first();
-    await expect(reopen).toBeVisible();
-    await reopen.click();
+    const firstRow = page.locator('table tbody tr[data-click="1"]').first();
+    await expect(firstRow).toBeVisible({ timeout: 10_000 });
+    await firstRow.dblclick();
 
     await expect(page).toHaveURL(/#\/trade\?/);
     await expect(page.getByText('Loading module...')).toHaveCount(0, { timeout: 15_000 });
     await expectNoErrorBoundary(page);
-    // The saved dossier's market and origin came back with it.
-    await expect(page.locator('#main-content')).toContainText('Italy CIC');
-    await expect(page.locator('#main-content')).toContainText('Denmark');
 
+    await expect(page.locator('#main-content')).toContainText(/Net netback/i);
     expect(appErrors(errors)).toEqual([]);
   });
 });

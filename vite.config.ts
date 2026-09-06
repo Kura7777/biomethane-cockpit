@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+import { apiServerPlugin } from './src/server/vitePlugin';
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -19,6 +20,7 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    apiServerPlugin(),
   ],
   test: {
     exclude: ['**/node_modules/**', '**/e2e/**', '**/dist/**'],

@@ -19,6 +19,17 @@ export interface CostInputs {
   logistics: number | null;         // €/MWh
   otherCosts: number | null;        // €/MWh
   producerPricing?: ProducerPricing | null;
+  greenAlpha?: number | null;       // Dynamic alpha multiplier for Leg B green attribute (default 1.0)
+  sdeCorrectionBaselineEurMwh?: number | null; // Dutch SDE++ correction amount baseline
+}
+
+export interface PrincipalRiskMetrics {
+  basisDifferentialEurMwh: number;            // Origin hub vs delivery hub basis spread (€/MWh)
+  basisRiskNotionalEur: number;               // Volume * basis differential (€)
+  replacementCostExposureEur: number;         // Volume * max(0, statutoryCeiling - contractPrice)
+  statutoryCeilingEurMwh: number | null;      // Legal penalty cap (e.g. €100 CPB, ~€314 THG)
+  germanCliffImpactEurMwh?: number | null;    // Impact if German 2026 double counting is removed
+  germanCliffNotionalEur?: number | null;     // Total portfolio value at risk under German 2026 cliff
 }
 
 export interface FuelEUOptions {
@@ -101,6 +112,7 @@ export interface NetbackResult {
   sides?: NetbackSides;             // atChosenSides, atMid, and crossingCost
   isModelled?: boolean;             // true if value is purely modelled (e.g. unquoted FuelEU)
   provenance?: MarkProvenance | null;
+  principalRisk?: PrincipalRiskMetrics | null;
 }
 
 export interface GasIndexMark {

@@ -106,25 +106,25 @@ export function MathFormulaModal({
 
   return (
     <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in font-sans">
-      <div className="bg-stone-950 border border-stone-800 rounded-xs shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden text-stone-100">
+      <div className="bg-[#08090d] border border-[#1e2433] rounded-xs shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden text-zinc-100">
         
         {/* Header */}
-        <div className="p-4 border-b border-stone-800 bg-stone-900/80 flex items-center justify-between">
+        <div className="p-4 border-b border-[#1e2433] bg-[#0e1118] flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xs bg-teal-950 border border-teal-800 text-teal-400 flex items-center justify-center font-bold">
+            <div className="w-8 h-8 rounded-xs bg-cyan-950/40 border border-cyan-500/40 text-cyan-400 flex items-center justify-center font-bold">
               <Calculator className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-stone-100">
+                <h2 className="text-base font-bold text-zinc-100">
                   Step-by-Step Mathematical Proof &amp; Regulatory Audit
                 </h2>
                 <span className="px-2 py-0.5 font-mono text-[10px] font-bold rounded-xs bg-emerald-950 border border-emerald-800 text-emerald-300">
                   DETERMINISTIC
                 </span>
               </div>
-              <p className="text-xs text-stone-400 font-mono mt-0.5">
-                Target: <strong className="text-stone-200">{market?.name || marketId}</strong> · Feedstock: <strong className="text-stone-200">{feedstock.name}</strong> ({ci} gCO₂e/MJ)
+              <p className="text-xs text-zinc-400 font-mono mt-0.5">
+                Target: <strong className="text-zinc-200">{market?.name || marketId}</strong> · Feedstock: <strong className="text-zinc-200">{feedstock.name}</strong> ({ci} gCO₂e/MJ)
               </p>
             </div>
           </div>
@@ -132,7 +132,7 @@ export function MathFormulaModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-1 text-stone-400 hover:text-stone-100 hover:bg-stone-800 rounded-xs transition-colors cursor-pointer"
+            className="p-1 text-zinc-400 hover:text-zinc-100 hover:bg-[#141824] rounded-xs transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -142,51 +142,51 @@ export function MathFormulaModal({
         <div className="p-5 overflow-y-auto space-y-4 font-mono text-xs">
           
           {/* STEP 1 */}
-          <div className="p-3.5 bg-stone-900/90 border border-stone-800 rounded-xs space-y-2">
-            <div className="flex items-center justify-between text-teal-400 font-bold">
+          <div className="p-3.5 bg-[#0e1118] border border-[#1e2433] rounded-xs space-y-2">
+            <div className="flex items-center justify-between text-cyan-400 font-bold">
               <span className="text-[11px] uppercase tracking-wider flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-teal-400" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" />
                 Step 1: Physical Carbon Intensity Savings (RED III Annex V, Part C)
               </span>
-              <span className="text-[10px] text-stone-400 font-normal">SI Standard: 3,600 MJ = 1 MWh</span>
+              <span className="text-[10px] text-zinc-400 font-normal">SI Standard: 3,600 MJ = 1 MWh</span>
             </div>
-            <div className="bg-stone-950 p-3 rounded-xs border border-stone-850 space-y-1.5 text-stone-300">
+            <div className="bg-[#08090d] p-3 rounded-xs border border-stone-850 space-y-1.5 text-zinc-300">
               <div className="flex justify-between">
-                <span className="text-stone-400">Fossil Fuel Comparator ($EF_{'{'}fossil{'}'}$):</span>
-                <span className="text-stone-100 font-bold">{comparator.toFixed(2)} gCO₂e/MJ</span>
+                <span className="text-zinc-400">Fossil Fuel Comparator ($EF_{'{'}fossil{'}'}$):</span>
+                <span className="text-zinc-100 font-bold">{comparator.toFixed(2)} gCO₂e/MJ</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-stone-400">Actual Certified Consignment CI ($EF_{'{'}actual{'}'}$):</span>
+                <span className="text-zinc-400">Actual Certified Consignment CI ($EF_{'{'}actual{'}'}$):</span>
                 <span className="text-emerald-400 font-bold">{ci.toFixed(2)} gCO₂e/MJ</span>
               </div>
-              <div className="flex justify-between border-t border-stone-800 pt-1">
-                <span className="text-stone-400">Avoided GHG Emissions ($\Delta CI$):</span>
-                <span className="text-stone-100 font-bold">{deltaCI.toFixed(2)} gCO₂e/MJ avoided</span>
+              <div className="flex justify-between border-t border-[#1e2433] pt-1">
+                <span className="text-zinc-400">Avoided GHG Emissions ($\Delta CI$):</span>
+                <span className="text-zinc-100 font-bold">{deltaCI.toFixed(2)} gCO₂e/MJ avoided</span>
               </div>
-              <div className="p-2 bg-stone-900 rounded-xs border border-stone-800 text-teal-300 font-mono text-[11px]">
+              <div className="p-2 bg-[#0e1118] rounded-xs border border-[#1e2433] text-cyan-300 font-mono text-[11px]">
                 tCO₂e/MWh = ({comparator.toFixed(1)} − ({ci})) × 3600 ÷ 1,000,000 = <strong className="text-emerald-300">{tCO2ePerMWh.toFixed(5)} tCO₂e/MWh</strong>
               </div>
             </div>
           </div>
 
           {/* STEP 2 */}
-          <div className="p-3.5 bg-stone-900/90 border border-stone-800 rounded-xs space-y-2">
-            <div className="flex items-center justify-between text-teal-400 font-bold">
+          <div className="p-3.5 bg-[#0e1118] border border-[#1e2433] rounded-xs space-y-2">
+            <div className="flex items-center justify-between text-cyan-400 font-bold">
               <span className="text-[11px] uppercase tracking-wider flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-teal-400" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" />
                 Step 2: Statutory Policy Multiplier (§37a BImSchG &amp; Annex IX-A)
               </span>
-              <span className="text-[10px] text-stone-400 font-normal">Classification: {feedstock.annexClassification.replace('_', ' ')}</span>
+              <span className="text-[10px] text-zinc-400 font-normal">Classification: {feedstock.annexClassification.replace('_', ' ')}</span>
             </div>
-            <div className="bg-stone-950 p-3 rounded-xs border border-stone-850 space-y-1.5 text-stone-300">
+            <div className="bg-[#08090d] p-3 rounded-xs border border-stone-850 space-y-1.5 text-zinc-300">
               <div className="flex justify-between">
-                <span className="text-stone-400">Double-Counting Statutory Eligibility:</span>
-                <span className={isDoubleCounting ? 'text-emerald-400 font-bold' : 'text-stone-400'}>
+                <span className="text-zinc-400">Double-Counting Statutory Eligibility:</span>
+                <span className={isDoubleCounting ? 'text-emerald-400 font-bold' : 'text-zinc-400'}>
                   {isDoubleCounting ? 'QUALIFIED (2.0× Multiplier)' : 'STANDARD (1.0× Single Count)'}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-stone-400">Effective Statutory Credits Generated:</span>
+                <span className="text-zinc-400">Effective Statutory Credits Generated:</span>
                 <span className="text-emerald-400 font-bold font-num">
                   {tCO2ePerMWh.toFixed(5)} × {multiplier.toFixed(1)} = {creditsPerMWh.toFixed(5)} credits/MWh
                 </span>
@@ -195,29 +195,29 @@ export function MathFormulaModal({
           </div>
 
           {/* STEP 3 */}
-          <div className="p-3.5 bg-stone-900/90 border border-stone-800 rounded-xs space-y-2">
-            <div className="flex items-center justify-between text-teal-400 font-bold">
+          <div className="p-3.5 bg-[#0e1118] border border-[#1e2433] rounded-xs space-y-2">
+            <div className="flex items-center justify-between text-cyan-400 font-bold">
               <span className="text-[11px] uppercase tracking-wider flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-teal-400" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" />
                 Step 3: Green Compliance Certificate Monetization
               </span>
-              <span className="text-[10px] text-stone-400 font-normal">Single Pricing Authority</span>
+              <span className="text-[10px] text-zinc-400 font-normal">Single Pricing Authority</span>
             </div>
-            <div className="bg-stone-950 p-3 rounded-xs border border-stone-850 space-y-1.5 text-stone-300">
+            <div className="bg-[#08090d] p-3 rounded-xs border border-stone-850 space-y-1.5 text-zinc-300">
               <div className="flex justify-between">
-                <span className="text-stone-400">{market?.name || marketId} Quoted Mark:</span>
-                <span className="text-stone-100 font-bold font-num">
+                <span className="text-zinc-400">{market?.name || marketId} Quoted Mark:</span>
+                <span className="text-zinc-100 font-bold font-num">
                   {certPrice !== null ? `€${certPrice.toFixed(2)} / ${market?.unitOfAccount || 'tCO₂e'}` : 'Unquoted'}
                 </span>
               </div>
-              <div className="flex justify-between border-t border-stone-800 pt-1">
-                <span className="text-stone-400">Certificate Green Value Stack:</span>
+              <div className="flex justify-between border-t border-[#1e2433] pt-1">
+                <span className="text-zinc-400">Certificate Green Value Stack:</span>
                 <span className="text-emerald-400 font-bold font-num text-sm">
                   {certVal !== null ? `€${certVal.toFixed(2)} / MWh` : 'Unpriced'}
                 </span>
               </div>
               {netbackResult?.certificateValue?.calculation && (
-                <div className="p-2 bg-stone-900 rounded-xs border border-stone-800 text-teal-300 text-[11px]">
+                <div className="p-2 bg-[#0e1118] rounded-xs border border-[#1e2433] text-cyan-300 text-[11px]">
                   {netbackResult.certificateValue.calculation}
                 </div>
               )}
@@ -225,35 +225,35 @@ export function MathFormulaModal({
           </div>
 
           {/* STEP 4 */}
-          <div className="p-3.5 bg-stone-900/90 border border-stone-800 rounded-xs space-y-2">
-            <div className="flex items-center justify-between text-teal-400 font-bold">
+          <div className="p-3.5 bg-[#0e1118] border border-[#1e2433] rounded-xs space-y-2">
+            <div className="flex items-center justify-between text-cyan-400 font-bold">
               <span className="text-[11px] uppercase tracking-wider flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-teal-400" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" />
                 Step 4: All-In Delivered Commercial Netback
               </span>
-              <span className="text-[10px] text-stone-400 font-normal">Physical Gas + Green Premium − Costs</span>
+              <span className="text-[10px] text-zinc-400 font-normal">Physical Gas + Green Premium − Costs</span>
             </div>
-            <div className="bg-stone-950 p-3 rounded-xs border border-stone-850 space-y-1.5 text-stone-300">
+            <div className="bg-[#08090d] p-3 rounded-xs border border-stone-850 space-y-1.5 text-zinc-300">
               <div className="flex justify-between">
-                <span className="text-stone-400">+ TTF Natural Gas Commodity Index:</span>
-                <span className="text-stone-100 font-bold font-num">
+                <span className="text-zinc-400">+ TTF Natural Gas Commodity Index:</span>
+                <span className="text-zinc-100 font-bold font-num">
                   {moleculeVal !== null ? `+ €${moleculeVal.toFixed(2)}/MWh` : '—'}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-stone-400">+ Green Certificate Value Stack:</span>
+                <span className="text-zinc-400">+ Green Certificate Value Stack:</span>
                 <span className="text-emerald-400 font-bold font-num">
                   {certVal !== null ? `+ €${certVal.toFixed(2)}/MWh` : '—'}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-stone-400">− Total Cost Deductions (Transit + Certification):</span>
+                <span className="text-zinc-400">− Total Cost Deductions (Transit + Certification):</span>
                 <span className="text-rose-400 font-bold font-num">
                   {netbackResult?.totalCosts !== null && netbackResult?.totalCosts !== undefined ? `− €${netbackResult.totalCosts.toFixed(2)}/MWh` : '—'}
                 </span>
               </div>
-              <div className="flex justify-between border-t border-stone-800 pt-1.5 text-sm">
-                <span className="text-stone-100 font-bold">Total Delivered Netback:</span>
+              <div className="flex justify-between border-t border-[#1e2433] pt-1.5 text-sm">
+                <span className="text-zinc-100 font-bold">Total Delivered Netback:</span>
                 <span className="text-emerald-400 font-bold font-num">
                   {netNetbackVal !== null ? `€${netNetbackVal.toFixed(2)} / MWh` : 'Unpriced'}
                 </span>
@@ -262,30 +262,30 @@ export function MathFormulaModal({
           </div>
 
           {/* STEP 5 */}
-          <div className="p-3.5 bg-teal-950/40 border border-teal-800/80 rounded-xs space-y-2">
-            <div className="flex items-center justify-between text-teal-300 font-bold">
+          <div className="p-3.5 bg-cyan-950/40 border border-cyan-500/40 rounded-xs space-y-2">
+            <div className="flex items-center justify-between text-cyan-300 font-bold">
               <span className="text-[11px] uppercase tracking-wider flex items-center gap-1.5">
-                <Scale className="w-3.5 h-3.5 text-teal-400" />
+                <Scale className="w-3.5 h-3.5 text-cyan-400" />
                 Step 5: Producer Settlement &amp; Commercial Desk Profit
               </span>
-              <span className="text-[10px] text-teal-400 font-bold">Order Volume: {volume.toLocaleString()} MWh</span>
+              <span className="text-[10px] text-cyan-400 font-bold">Order Volume: {volume.toLocaleString()} MWh</span>
             </div>
-            <div className="bg-stone-950 p-3 rounded-xs border border-stone-850 space-y-1.5 text-stone-300">
+            <div className="bg-[#08090d] p-3 rounded-xs border border-stone-850 space-y-1.5 text-zinc-300">
               <div className="flex justify-between">
-                <span className="text-stone-400">− Producer Settlement (Remuneration):</span>
-                <span className="text-stone-200 font-bold font-num">
+                <span className="text-zinc-400">− Producer Settlement (Remuneration):</span>
+                <span className="text-zinc-200 font-bold font-num">
                   {producerPayableVal !== null ? `− €${producerPayableVal.toFixed(2)}/MWh` : '—'}
                 </span>
               </div>
-              <div className="flex justify-between border-t border-stone-800 pt-1.5">
-                <span className="text-stone-100 font-bold">3Degrees Realized Desk Margin:</span>
-                <span className="text-teal-400 font-bold font-num text-sm">
+              <div className="flex justify-between border-t border-[#1e2433] pt-1.5">
+                <span className="text-zinc-100 font-bold">3Degrees Realized Desk Margin:</span>
+                <span className="text-cyan-400 font-bold font-num text-sm">
                   {deskMarginVal !== null ? `€${deskMarginVal.toFixed(2)} / MWh` : 'Unpriced'}
                 </span>
               </div>
-              <div className="flex justify-between bg-teal-950/60 p-2 rounded-xs border border-teal-800/60 text-sm font-bold mt-2">
-                <span className="text-teal-200">Total Commercial Desk Profit (PnL):</span>
-                <span className="text-teal-400 font-num">
+              <div className="flex justify-between bg-cyan-950/40/60 p-2 rounded-xs border border-cyan-500/40/60 text-sm font-bold mt-2">
+                <span className="text-cyan-200">Total Commercial Desk Profit (PnL):</span>
+                <span className="text-cyan-400 font-num">
                   {deskPnLVal !== null ? `€${deskPnLVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—'}
                 </span>
               </div>
@@ -295,14 +295,14 @@ export function MathFormulaModal({
         </div>
 
         {/* Footer */}
-        <div className="p-3.5 border-t border-stone-800 bg-stone-900/80 flex items-center justify-between font-mono text-xs">
-          <span className="text-stone-400">
-            Statutory Authority: <strong className="text-stone-200">RED III (EU) 2023/2413 · 38. BImSchV</strong>
+        <div className="p-3.5 border-t border-[#1e2433] bg-[#0e1118] flex items-center justify-between font-mono text-xs">
+          <span className="text-zinc-400">
+            Statutory Authority: <strong className="text-zinc-200">RED III (EU) 2023/2413 · 38. BImSchV</strong>
           </span>
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-1.5 bg-teal-600 hover:bg-teal-500 text-teal-950 font-bold rounded-xs cursor-pointer transition-colors"
+            className="px-4 py-1.5 bg-cyan-500 text-black font-bold hover:bg-cyan-500 text-teal-950 font-bold rounded-xs cursor-pointer transition-colors"
           >
             Done (Audit Verified)
           </button>

@@ -141,7 +141,7 @@ export const MARKETS: Market[] = [
     status: 'ACTIVE',
     unitOfAccount: 'EUR_PER_MWH',
     unitLabel: '€/MWh',
-    notes: 'Highest biomethane grid share in Europe (>35%). Heavy structural exporter to Germany and Sweden.',
+    notes: 'Highest biomethane grid share in Europe (>35%). Heavy structural exporter to Germany and Sweden. Book-and-claim accepted for voluntary corporate GOs only — NOT valid for transport quota compliance in destination markets (mass balance via UDB required for DE_THG, NL_ERE, etc.).',
     legalBasis: 'Lov om fremme af vedvarende energi (VE-loven)',
     registry: 'Energinet',
     ceilingEurMwh: null,
@@ -265,7 +265,7 @@ export const MARKETS: Market[] = [
     acceptsBookAndClaim: false,
     isEUScope: false,
     uncertainties: [],
-    productionPlants: 18,
+    productionPlants: 24,
     annualProductionTWh: 0.85,
     keyFeedstocks: 'Pig and cattle slurry, agro-food residues, sewage',
     gridInterconnection: 'Enagás / Nedgia gas transmission grid + Ex-domain export capability.',
@@ -450,7 +450,7 @@ export const MARKETS: Market[] = [
     isEUScope: false,
     uncertainties: [],
     productionPlants: 124,
-    annualProductionTWh: 6.8,
+    annualProductionTWh: 6.2,
     keyFeedstocks: 'Food waste, manure, energy crops, sewage',
     gridInterconnection: 'National Grid Gas (Non-EU regulatory boundary).',
   },
@@ -743,6 +743,7 @@ export const MARKETS: Market[] = [
     requiresUDB: false,
     acceptsBookAndClaim: true,
     isEUScope: false,
+    deskCategory: 'VOLUNTARY',
     uncertainties: [],
   },
   {
@@ -762,6 +763,7 @@ export const MARKETS: Market[] = [
     requiresUDB: false,
     acceptsBookAndClaim: true,
     isEUScope: true,
+    deskCategory: 'VOLUNTARY',
     uncertainties: [],
   },
   {
@@ -781,6 +783,7 @@ export const MARKETS: Market[] = [
     requiresUDB: false,
     acceptsBookAndClaim: true,
     isEUScope: false,
+    deskCategory: 'VOLUNTARY',
     uncertainties: [],
   },
   {
@@ -800,6 +803,7 @@ export const MARKETS: Market[] = [
     requiresUDB: false,
     acceptsBookAndClaim: true,
     isEUScope: false,
+    deskCategory: 'VOLUNTARY',
     uncertainties: [],
   },
   {
@@ -819,6 +823,7 @@ export const MARKETS: Market[] = [
     requiresUDB: false,
     acceptsBookAndClaim: true,
     isEUScope: false,
+    deskCategory: 'VOLUNTARY',
     uncertainties: [],
   },
   {
@@ -838,6 +843,27 @@ export const MARKETS: Market[] = [
     requiresUDB: false,
     acceptsBookAndClaim: true,
     isEUScope: false,
+    deskCategory: 'VOLUNTARY',
+    uncertainties: [],
+  },
+  {
+    id: 'VOL_EU_ETS',
+    name: 'EU ETS Industrial Scope 1 Zero-Rating (Avoided EUAs)',
+    shortName: 'EU ETS Scope 1',
+    country: 'EU',
+    countryName: 'Pan-European (EU ETS)',
+    status: 'ACTIVE',
+    unitOfAccount: 'EUR_PER_TCO2E',
+    unitLabel: '€/tCO₂e',
+    notes: 'Zero-rating under EU ETS Monitoring and Reporting Regulation (MRR) for industrial installations switching natural gas to compliant biomethane. 1 MWh natural gas combustion avoids 0.202 tCO2e of EUA surrender obligations.',
+    legalBasis: 'Commission Implementing Regulation (EU) 2018/2066 (MRR)',
+    registry: 'Union Registry / National ETS Authority',
+    ceilingEurMwh: null,
+    requiresMassBalance: true,
+    requiresUDB: false,
+    acceptsBookAndClaim: true,
+    isEUScope: true,
+    deskCategory: 'VOLUNTARY',
     uncertainties: [],
   },
 ];
@@ -848,7 +874,7 @@ export function getMarketById(id: string): Market | undefined {
 
 export function isVoluntaryMarket(marketId: string): boolean {
   const voluntaryIds = new Set([
-    'UK_RGGO', 'DE_GO', 'NL_GO', 'FR_GO', 'DK_GO', 'ES_GDO', 'VOL_SCOPE1',
+    'UK_RGGO', 'DE_GO', 'NL_GO', 'FR_GO', 'DK_GO', 'ES_GDO', 'VOL_SCOPE1', 'AIB_GO', 'VOL_EU_ETS',
     'IE_RHO', 'PT_EEGO', 'HU_MEKH', 'SK_OKTE'
   ]);
   if (voluntaryIds.has(marketId)) return true;

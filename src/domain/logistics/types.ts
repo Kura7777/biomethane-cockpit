@@ -1,5 +1,7 @@
 export type DeliveryMode = 'VIRTUAL_SWAP' | 'PHYSICAL_PIPELINE' | 'BIO_LNG';
 
+export type CapacityDuration = 'YEARLY' | 'QUARTERLY' | 'MONTHLY' | 'DAILY' | 'WITHIN_DAY';
+
 export interface InterconnectionPoint {
   id: string;
   name: string;
@@ -15,6 +17,21 @@ export interface InterconnectionPoint {
   source?: string | null;
   lastVerified?: string | null;
   notes?: string;
+}
+
+export interface TsoTariffComponent {
+  legIndex: number;
+  fromCountry: string;
+  toCountry: string;
+  fromTso: string;
+  toTso: string;
+  vipName: string;
+  platform: 'PRISMA' | 'RBP' | 'GSA' | 'NATIONAL' | 'UNVERIFIED';
+  exitTariffEurMwh: number | null;
+  entryTariffEurMwh: number | null;
+  baseTotalTariffEurMwh: number | null;
+  durationMultiplier: number;
+  bookedTariffEurMwh: number | null;
 }
 
 export interface CostLineItem {
@@ -38,12 +55,18 @@ export interface ModeCostBreakdown {
   legalBasis: string;
   pros: string[];
   cons: string[];
+  capacityDuration?: CapacityDuration;
+  durationMultiplier?: number;
 }
 
 export interface LogisticsAssessment {
   originCountry: string;
   targetCountry: string;
   distanceKm: number | null;
+  capacityDuration: CapacityDuration;
+  durationMultiplier: number;
+  dsoInjectionCreditEurMwh: number;
+  tsoBreakdown: TsoTariffComponent[];
   modes: {
     virtualSwap: ModeCostBreakdown;
     physicalPipeline: ModeCostBreakdown;

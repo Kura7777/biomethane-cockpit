@@ -107,4 +107,72 @@ describe('Cross-Border Gas Logistics & Corridor Wheel Calculator', () => {
     });
 
   });
+
+  describe('SECTION 4 — ENTSOG CAM NC Capacity Durations & TSO Tariff Booking Engine', () => {
+
+    it('calculates standard yearly base capacity tariff (1.00x multiplier) for DK -> DE', () => {
+      const assessment = calculateLogisticsRoute('DK', 'DE', 30.00, undefined, 'YEARLY');
+      expect(assessment.capacityDuration).toBe('YEARLY');
+      expect(assessment.durationMultiplier).toBe(1.00);
+      expect(assessment.physicalRoute.totalPhysicalTariffEurMwh).toBe(0.55); // Ellund base total = 0.55
+      expect(assessment.tsoBreakdown.length).toBe(1);
+
+      const leg = assessment.tsoBreakdown[0];
+      expect(leg.vipName).toContain('Ellund');
+      expect(leg.fromTso).toBe('Energinet');
+      expect(leg.toTso).toContain('Gasunie Deutschland');
+      expect(leg.platform).toBe('PRISMA');
+      expect(leg.entryTariffEurMwh).toBe(0.25);
+      expect(leg.exitTariffEurMwh).toBe(0.30);
+      expect(leg.baseTotalTariffEurMwh).toBe(0.55);
+      expect(leg.bookedTariffEurMwh).toBe(0.55);
+    });
+
+    it('applies CAM NC 1.25x multiplier for monthly capacity bookings', () => {
+      const yearly = calculateLogisticsRoute('DK', 'DE', 30.00, undefined, 'YEARLY');
+      const monthly = calculateLogisticsRoute('DK', 'DE', 30.00, undefined, 'MONTHLY');
+
+      expect(monthly.capacityDuration).toBe('MONTHLY');
+      expect(monthly.durationMultiplier).toBe(1.25);
+      // 0.55 * 1.25 = 0.6875 -> 0.69
+      expect(monthly.physicalRoute.totalPhysicalTariffEurMwh).toBe(0.69);
+      expect(monthly.tsoBreakdown[0].bookedTariffEurMwh).toBe(0.688);
+      expect(monthly.modes.physicalPipeline.totalCostEurMwh!).toBeGreaterThan(yearly.modes.physicalPipeline.totalCostEurMwh!);
+    });
+
+    it('applies CAM NC 1.50x multiplier for Day-Ahead spot capacity bookings', () => {
+      const spot = calculateLogisticsRoute('DK', 'DE', 30.00, undefined, 'DAILY');
+      expect(spot.capacityDuration).toBe('DAILY');
+      expect(spot.durationMultiplier).toBe(1.50);
+      // 0.55 * 1.50 = 0.825 -> 0.83 (rounded to 2 decimal places)
+      expect(spot.physicalRoute.totalPhysicalTariffEurMwh).toBe(0.83);
+    });
+
+    it('applies CAM NC 1.75x multiplier for Within-Day capacity balancing bookings', () => {
+      const withinDay = calculateLogisticsRoute('DK', 'DE', 30.00, undefined, 'WITHIN_DAY');
+      expect(withinDay.capacityDuration).toBe('WITHIN_DAY');
+      expect(withinDay.durationMultiplier).toBe(1.75);
+      // 0.55 * 1.75 = 0.9625 -> 0.96
+      expect(withinDay.physicalRoute.totalPhysicalTariffEurMwh).toBe(0.96);
+    });
+
+    it('identifies statutory German § 33 GasNZV avoided grid cost credit for DE origin', () => {
+      const assessmentDE = calculateLogisticsRoute('DE', 'NL', 30.00);
+      expect(assessmentDE.dsoInjectionCreditEurMwh).toBe(0.70);
+      const deCreditItem = assessmentDE.modes.physicalPipeline.lineItems.find(item => item.label.includes('§ 33 GasNZV'));
+      expect(deCreditItem).toBeDefined();
+      expect(deCreditItem?.costEurMwh).toBe(-0.70);
+      expect(deCreditItem?.isOptional).toBe(true);
+    });
+
+    it('identifies statutory French Code de l’énergie Art. L. 453-9 injection credit for FR origin', () => {
+      const assessmentFR = calculateLogisticsRoute('FR', 'DE', 30.00);
+      expect(assessmentFR.dsoInjectionCreditEurMwh).toBe(0.40);
+      const frCreditItem = assessmentFR.modes.physicalPipeline.lineItems.find(item => item.label.includes('L. 453-9'));
+      expect(frCreditItem).toBeDefined();
+      expect(frCreditItem?.costEurMwh).toBe(-0.40);
+    });
+
+  });
 });
+

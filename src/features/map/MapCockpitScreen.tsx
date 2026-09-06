@@ -12,6 +12,7 @@ import { Step2PlantScan } from '../commercial/Step2PlantScan';
 import { Step3RouteAndCosts } from '../commercial/Step3RouteAndCosts';
 import { Step4DealSummary } from '../commercial/Step4DealSummary';
 import { MarketPricesModal } from '../marks/MarketPricesModal';
+import { calculateLogisticsRoute } from '../../domain/logistics/engine';
 import { 
   Globe, 
   Layers, 
@@ -78,13 +79,15 @@ export function MapCockpitScreen() {
         p => p.countryCode === opp.originCountry || p.country.toLowerCase() === opp.originCountry.toLowerCase()
       );
       const matchedPlant = countryPlants[idx % (countryPlants.length || 1)] || null;
+      const route = calculateLogisticsRoute(opp.originCountry, opp.targetCountry);
+      const distanceKm = route.distanceKm ?? 0;
 
       return {
         ...opp,
         originPlantName: matchedPlant?.name || `${opp.originCountry} Biomethane Facility #${idx + 1}`,
         originPlantCoords: matchedPlant?.coordinates || null,
         isDirectPlantSource: Boolean(matchedPlant),
-        logisticsDistanceKm: opp.transitCostEurPerMWh > 2 ? 650 : 280,
+        logisticsDistanceKm: distanceKm,
         deliveryMode: 'PIPELINE_GRID',
       };
     });
@@ -165,7 +168,7 @@ export function MapCockpitScreen() {
         className: 'hub-dot',
         html: `
           <div class="group cursor-pointer select-none flex items-center justify-center hover:scale-125 transition-transform">
-            <div class="w-3.5 h-3.5 rounded-full bg-stone-950/90 border border-teal-500/50 shadow flex items-center justify-center">
+            <div class="w-3.5 h-3.5 rounded-full bg-[#08090d]/90 border border-cyan-500/50 shadow flex items-center justify-center">
               <div class="w-1.5 h-1.5 rounded-full bg-teal-400"></div>
             </div>
           </div>
@@ -177,7 +180,7 @@ export function MapCockpitScreen() {
       const m = L.marker(hub.coords, { icon: pinIcon });
       m.bindTooltip(`<b>${hub.name}</b> (${hub.plants} plants · ${hub.capacityTWh} TWh)`, {
         direction: 'top',
-        className: 'bg-stone-900 text-stone-200 border-stone-700 font-mono text-[10px]',
+        className: 'bg-[#0e1118] text-zinc-200 border-[#2b3347] font-mono text-[10px]',
       });
       group.addLayer(m);
     });
@@ -255,19 +258,19 @@ export function MapCockpitScreen() {
   };
 
   return (
-    <div className="relative w-full h-full flex-1 flex overflow-hidden bg-stone-950 text-stone-100">
+    <div className="relative w-full h-full flex-1 flex overflow-hidden bg-[#08090d] text-zinc-100">
       {/* 1. Full Screen Interactive Map Canvas */}
       <div ref={mapContainerRef} className="absolute inset-0 z-0" />
 
       {/* Map Control Badges (Top Left) */}
       <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
         {/* Map Theme Toggle */}
-        <div className="flex bg-stone-950/90 backdrop-blur-md border border-stone-800 rounded-lg p-0.5 shadow-xl">
+        <div className="flex bg-[#08090d]/90 backdrop-blur-md border border-[#1e2433] rounded-lg p-0.5 shadow-xl">
           <button
             type="button"
             onClick={() => setMapTheme('dark')}
             className={`px-2.5 py-1 font-mono text-[10px] rounded font-semibold transition-colors cursor-pointer ${
-              mapTheme === 'dark' ? 'bg-teal-600 text-stone-950' : 'text-stone-400 hover:text-stone-200'
+              mapTheme === 'dark' ? 'bg-cyan-500 text-black font-bold text-stone-950' : 'text-zinc-400 hover:text-zinc-200'
             }`}
           >
             Dark Grid
@@ -276,7 +279,7 @@ export function MapCockpitScreen() {
             type="button"
             onClick={() => setMapTheme('hybrid')}
             className={`px-2.5 py-1 font-mono text-[10px] rounded font-semibold transition-colors cursor-pointer ${
-              mapTheme === 'hybrid' ? 'bg-teal-600 text-stone-950' : 'text-stone-400 hover:text-stone-200'
+              mapTheme === 'hybrid' ? 'bg-cyan-500 text-black font-bold text-stone-950' : 'text-zinc-400 hover:text-zinc-200'
             }`}
           >
             Satellite
@@ -285,7 +288,7 @@ export function MapCockpitScreen() {
             type="button"
             onClick={() => setMapTheme('streets')}
             className={`px-2.5 py-1 font-mono text-[10px] rounded font-semibold transition-colors cursor-pointer ${
-              mapTheme === 'streets' ? 'bg-teal-600 text-stone-950' : 'text-stone-400 hover:text-stone-200'
+              mapTheme === 'streets' ? 'bg-cyan-500 text-black font-bold text-stone-950' : 'text-zinc-400 hover:text-zinc-200'
             }`}
           >
             Roadmap
@@ -296,7 +299,7 @@ export function MapCockpitScreen() {
         <button
           type="button"
           onClick={() => setIsPricesModalOpen(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-950/90 hover:bg-teal-900/90 border border-teal-700/80 text-teal-300 font-mono text-xs font-bold transition-all shadow-xl backdrop-blur-md cursor-pointer"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-950/40/90 hover:bg-cyan-900/60/90 border border-cyan-500/40/80 text-cyan-300 font-mono text-xs font-bold transition-all shadow-xl backdrop-blur-md cursor-pointer"
         >
           <TrendingUp className="w-3.5 h-3.5" />
           <span>Adjust Market Prices</span>
@@ -307,7 +310,7 @@ export function MapCockpitScreen() {
       <button
         type="button"
         onClick={() => setIsPanelCollapsed(prev => !prev)}
-        className="absolute top-4 right-4 md:right-[600px] z-30 p-2 rounded-lg bg-stone-950/90 hover:bg-stone-900 border border-stone-800 text-stone-300 hover:text-white transition-all shadow-xl backdrop-blur-md cursor-pointer"
+        className="absolute top-4 right-4 md:right-[600px] z-30 p-2 rounded-lg bg-[#08090d]/90 hover:bg-[#0e1118] border border-[#1e2433] text-zinc-300 hover:text-white transition-all shadow-xl backdrop-blur-md cursor-pointer"
         title={isPanelCollapsed ? 'Open Commercial Deal Flow' : 'Collapse Panel (Full Map)'}
       >
         {isPanelCollapsed ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
@@ -315,11 +318,11 @@ export function MapCockpitScreen() {
 
       {/* 2. Integrated Commercial Deal Flow Slide-Over Panel (Right Side) */}
       {!isPanelCollapsed && (
-        <div className="absolute top-0 right-0 bottom-0 w-full md:w-[580px] lg:w-[620px] z-20 bg-stone-950/95 border-l border-stone-800 shadow-2xl backdrop-blur-md flex flex-col overflow-hidden animate-in slide-in-from-right duration-200">
+        <div className="absolute top-0 right-0 bottom-0 w-full md:w-[580px] lg:w-[620px] z-20 bg-[#08090d]/95 border-l border-[#1e2433] shadow-2xl backdrop-blur-md flex flex-col overflow-hidden animate-in slide-in-from-right duration-200">
           {/* Stepper Header Strip */}
-          <div className="p-3 border-b border-stone-800 bg-stone-900/80 flex items-center justify-between">
+          <div className="p-3 border-b border-[#1e2433] bg-[#0e1118] flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="font-mono text-xs font-bold uppercase tracking-wider text-teal-400">
+              <span className="font-mono text-xs font-bold uppercase tracking-wider text-cyan-400">
                 Commercial Deal Workflow
               </span>
             </div>
@@ -335,10 +338,10 @@ export function MapCockpitScreen() {
                   }}
                   className={`w-6 h-6 rounded-full flex items-center justify-center font-bold transition-all ${
                     currentStep === stepNum
-                      ? 'bg-teal-500 text-stone-950'
+                      ? 'bg-cyan-500 text-stone-950'
                       : currentStep > stepNum
-                      ? 'bg-teal-950 text-teal-300 border border-teal-800 cursor-pointer'
-                      : 'bg-stone-900 text-stone-600 border border-stone-800 cursor-default'
+                      ? 'bg-cyan-950/40 text-cyan-300 border border-cyan-500/40 cursor-pointer'
+                      : 'bg-[#0e1118] text-zinc-600 border border-[#1e2433] cursor-default'
                   }`}
                 >
                   {currentStep > stepNum ? '✓' : stepNum}

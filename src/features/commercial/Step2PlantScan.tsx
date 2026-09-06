@@ -44,34 +44,34 @@ export function Step2PlantScan({
     <div className="max-w-5xl mx-auto py-6 px-4">
       {/* Step Header */}
       <div className="text-center mb-6">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-950/80 border border-teal-800 text-teal-300 font-mono text-xs font-semibold mb-3">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/40 border border-cyan-500/40 text-cyan-300 font-mono text-xs font-semibold mb-3">
           Step 2 of 4: Plant Sourcing Scan
         </div>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-stone-100 mb-2 font-sans">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-zinc-100 mb-2 font-sans">
           Select Source Biomethane Facility
         </h1>
-        <p className="text-sm text-stone-400 font-mono max-w-xl mx-auto">
+        <p className="text-sm text-zinc-400 font-mono max-w-xl mx-auto">
           We scanned 1,975+ European plants. Select the facility you want to source the biomethane from:
         </p>
       </div>
 
       {/* Filter and Count Bar */}
-      <div className="bg-stone-900 border border-stone-800 rounded-xl p-4 mb-4 flex flex-wrap items-center justify-between gap-3 shadow-md">
+      <div className="bg-[#0e1118] border border-[#1e2433] rounded-xl p-4 mb-4 flex flex-wrap items-center justify-between gap-3 shadow-md">
         <div className="flex items-center gap-2">
-          <Building2 className="w-4 h-4 text-teal-400" />
-          <span className="font-mono text-xs font-bold uppercase tracking-wider text-stone-200">
+          <Building2 className="w-4 h-4 text-cyan-400" />
+          <span className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-200">
             {filteredOpps.length} Matching Facilities Found
           </span>
         </div>
 
         <div className="relative">
-          <Search className="w-4 h-4 absolute left-3 top-2.5 text-stone-400" />
+          <Search className="w-4 h-4 absolute left-3 top-2.5 text-zinc-400" />
           <input
             type="text"
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             placeholder="Filter by facility name, country, feedstock..."
-            className="bg-stone-950 border border-stone-700 rounded-lg pl-9 pr-3 py-1.5 font-mono text-xs text-stone-200 placeholder-stone-500 focus:outline-hidden focus:border-teal-500 w-72"
+            className="bg-[#08090d] border border-[#2b3347] rounded-lg pl-9 pr-3 py-1.5 font-mono text-xs text-zinc-200 placeholder-stone-500 focus:outline-hidden focus:border-cyan-500/50 w-72"
           />
         </div>
       </div>
@@ -79,7 +79,7 @@ export function Step2PlantScan({
       {/* Plant Grid / List */}
       <div className="space-y-3 mb-6">
         {filteredOpps.length === 0 ? (
-          <div className="bg-stone-900 border border-stone-800 rounded-xl p-8 text-center text-stone-500 font-mono text-xs">
+          <div className="bg-[#0e1118] border border-[#1e2433] rounded-xl p-8 text-center text-zinc-500 font-mono text-xs">
             No plants matched the current filter. Try searching for a different country or term.
           </div>
         ) : (
@@ -94,18 +94,18 @@ export function Step2PlantScan({
                 onClick={() => onSelectOpp(opp)}
                 className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4 ${
                   isSelected
-                    ? 'bg-teal-950/40 border-teal-500 ring-1 ring-teal-500/50 shadow-lg'
-                    : 'bg-stone-900/90 border-stone-800 hover:border-stone-700 hover:bg-stone-850'
+                    ? 'bg-cyan-950/40 border-cyan-500/50 ring-1 ring-teal-500/50 shadow-lg'
+                    : 'bg-[#0e1118] border-[#1e2433] hover:border-[#2b3347] hover:bg-stone-850'
                 }`}
               >
                 {/* Left: Plant Info */}
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-stone-950 border border-stone-800 flex items-center justify-center text-xl shrink-0">
+                  <div className="w-10 h-10 rounded-lg bg-[#08090d] border border-[#1e2433] flex items-center justify-center text-xl shrink-0">
                     {opp.originFlag || '🏭'}
                   </div>
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-bold text-stone-100 text-sm">
+                      <h3 className="font-bold text-zinc-100 text-sm">
                         {opp.originPlantName || `${opp.originCountry} Biomethane Plant`}
                       </h3>
                       {opp.isDirectPlantSource && (
@@ -119,45 +119,45 @@ export function Step2PlantScan({
                       </span>
                     </div>
 
-                    <div className="font-mono text-xs text-stone-400 flex items-center gap-2 mt-1">
+                    <div className="font-mono text-xs text-zinc-400 flex items-center gap-2 mt-1">
                       <span>{opp.originCountryName} ({opp.originCountry})</span>
-                      <span className="text-stone-600">•</span>
-                      <span className="text-stone-300">{opp.feedstockName}</span>
-                      <span className="text-stone-600">•</span>
-                      <span className="text-teal-400 font-semibold">{opp.carbonIntensity} gCO₂e/MJ</span>
+                      <span className="text-zinc-600">•</span>
+                      <span className="text-zinc-300">{opp.feedstockName}</span>
+                      <span className="text-zinc-600">•</span>
+                      <span className="text-cyan-400 font-semibold">{opp.carbonIntensity} gCO₂e/MJ</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Right: Pricing & Select */}
-                <div className="flex items-center gap-5 justify-between md:justify-end border-t md:border-t-0 pt-3 md:pt-0 border-stone-800">
+                <div className="flex items-center gap-5 justify-between md:justify-end border-t md:border-t-0 pt-3 md:pt-0 border-[#1e2433]">
                   {/* Gate Price */}
                   <div className="text-left md:text-right font-mono">
-                    <span className="text-[10px] uppercase text-stone-500 tracking-wider block">
+                    <span className="text-[10px] uppercase text-zinc-500 tracking-wider block">
                       Plant Gate Price
                     </span>
-                    <span className="text-base font-bold text-stone-100">
+                    <span className="text-base font-bold text-zinc-100">
                       €{plantGatePrice.toFixed(2)}
                     </span>
-                    <span className="text-[10px] text-stone-400 ml-0.5">/MWh</span>
+                    <span className="text-[10px] text-zinc-400 ml-0.5">/MWh</span>
                   </div>
 
                   {/* Estimated Margin */}
                   <div className="text-left md:text-right font-mono">
-                    <span className="text-[10px] uppercase text-stone-500 tracking-wider block">
+                    <span className="text-[10px] uppercase text-zinc-500 tracking-wider block">
                       Est. Spread
                     </span>
                     <span className={`text-base font-bold ${netMargin > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                       {netMargin > 0 ? '+' : ''}€{netMargin.toFixed(2)}
                     </span>
-                    <span className="text-[10px] text-stone-400 ml-0.5">/MWh</span>
+                    <span className="text-[10px] text-zinc-400 ml-0.5">/MWh</span>
                   </div>
 
                   {/* Radio / Selection Indicator */}
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center border transition-all ${
                     isSelected
-                      ? 'bg-teal-500 border-teal-400 text-stone-950'
-                      : 'border-stone-700 bg-stone-950'
+                      ? 'bg-cyan-500 border-teal-400 text-stone-950'
+                      : 'border-[#2b3347] bg-[#08090d]'
                   }`}>
                     {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                   </div>
@@ -169,11 +169,11 @@ export function Step2PlantScan({
       </div>
 
       {/* Navigation Buttons */}
-      <div className="flex items-center justify-between pt-4 border-t border-stone-800">
+      <div className="flex items-center justify-between pt-4 border-t border-[#1e2433]">
         <button
           type="button"
           onClick={onBack}
-          className="px-5 py-2.5 rounded-lg bg-stone-900 hover:bg-stone-800 border border-stone-700 text-stone-300 font-mono text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
+          className="px-5 py-2.5 rounded-lg bg-[#0e1118] hover:bg-[#141824] border border-[#2b3347] text-zinc-300 font-mono text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Edit Order</span>
@@ -185,8 +185,8 @@ export function Step2PlantScan({
           onClick={onNext}
           className={`px-7 py-3 rounded-lg font-mono text-sm font-bold tracking-wide transition-all shadow-lg flex items-center gap-2 ${
             selectedOpp
-              ? 'bg-teal-600 hover:bg-teal-500 text-stone-950 cursor-pointer shadow-teal-950/40'
-              : 'bg-stone-800 text-stone-500 cursor-not-allowed'
+              ? 'bg-cyan-500 text-black font-bold hover:bg-cyan-500 text-stone-950 cursor-pointer shadow-teal-950/40'
+              : 'bg-[#141824] text-zinc-500 cursor-not-allowed'
           }`}
         >
           <span>Plan Route &amp; Calculate Costs</span>

@@ -1,82 +1,87 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAppState } from '../../store/context';
 import { PRODUCING_ORIGINS } from '../../domain/arbitrage/origins';
+import { showToast } from '../../app/DeskToastContainer';
 
 export function SettingsScreen() {
-  const { state, dispatch } = useAppState();
-
+  const { state } = useAppState();
   const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
 
   const handleSaveSettings = () => {
     setSaveSuccess(true);
+    showToast('Desk settings updated successfully');
     setTimeout(() => setSaveSuccess(false), 2000);
   };
 
+  const originCode = state.consignments.find(c => c.id === state.activeConsignmentId)?.originCountry || 'DK';
+  const originName = PRODUCING_ORIGINS[originCode]?.countryName || 'Denmark';
+
   return (
-    <div className="flex-1 min-h-0 min-w-[1400px] overflow-y-auto bg-stone-950 font-sans p-6 text-stone-100">
-      <div className="max-w-[880px] mx-auto flex flex-col gap-6">
+    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', backgroundColor: 'var(--color-bg)', padding: '24px' }}>
+      <div style={{ maxWidth: '880px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
         
         {/* Page Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-stone-800">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '16px', borderBottom: '2px solid var(--color-divider)' }}>
           <div>
-            <h1 className="m-0 font-mono text-lg font-semibold tracking-[0.12em] uppercase text-stone-100">
+            <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }} className="font-heading">
               Desk Settings
             </h1>
-            <p className="m-0 text-xs text-stone-400 mt-1">
-              Desk trading defaults, pricing side, and state import / export.
+            <p style={{ margin: '4px 0 0', fontSize: '12px' }} className="mut">
+              Desk trading defaults, pricing side mode, and state import / export.
             </p>
           </div>
           <button
             type="button"
             onClick={handleSaveSettings}
-            className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-teal-950 font-mono text-xs font-bold tracking-[0.08em] uppercase cursor-pointer rounded-xs transition-colors"
+            className="btn btn-primary"
+            style={{ fontSize: '12px', padding: '6px 14px' }}
           >
             {saveSuccess ? '✓ Settings Saved' : 'Save Changes'}
           </button>
         </div>
 
         {/* SECTION 2: DESK TRADING DEFAULTS */}
-        <div className="bg-stone-900 border border-stone-800 rounded-xs p-5 flex flex-col gap-4">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-            <h2 className="m-0 font-mono text-sm font-semibold tracking-[0.1em] text-stone-100 uppercase">
-              Trading Desk Parameters & Defaults
+        <div style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-divider)', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ width: '8px', height: '8px', backgroundColor: '#10b981', flex: 'none' }} />
+            <h2 style={{ margin: 0, fontSize: '14px', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase' }} className="font-heading">
+              Trading Desk Parameters &amp; Defaults
             </h2>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
-            <div className="bg-stone-950 border border-stone-800 p-3 rounded-xs flex flex-col gap-1">
-              <span className="font-mono text-micro font-semibold text-stone-400 uppercase">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+            <div style={{ backgroundColor: 'var(--color-bg)', border: '1px solid var(--color-divider)', padding: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <span className="eyebrow">
                 Pricing Side Mode
               </span>
-              <span className="font-mono font-num text-sm font-bold text-teal-300 uppercase mt-1">
+              <span className="num" style={{ fontSize: '14px', fontWeight: 800, textTransform: 'uppercase', color: 'var(--color-accent-700)', marginTop: '4px' }}>
                 {state.marks.pricingSides.certificateSide.toUpperCase()} SIDE
               </span>
-              <span className="text-micro text-stone-500">
+              <span style={{ fontSize: '11px' }} className="mut">
                 Controls whether netbacks evaluate off Bid, Mid, or Offer marks across all screens.
               </span>
             </div>
 
-            <div className="bg-stone-950 border border-stone-800 p-3 rounded-xs flex flex-col gap-1">
-              <span className="font-mono text-micro font-semibold text-stone-400 uppercase">
+            <div style={{ backgroundColor: 'var(--color-bg)', border: '1px solid var(--color-divider)', padding: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <span className="eyebrow">
                 Active Benchmark Origin
               </span>
-              <span className="font-mono font-num text-sm font-bold text-stone-100 mt-1">
-                {state.consignments.find(c => c.id === state.activeConsignmentId)?.originCountry || 'DK'} ({PRODUCING_ORIGINS[state.consignments.find(c => c.id === state.activeConsignmentId)?.originCountry || 'DK']?.countryName || 'Denmark'})
+              <span className="num" style={{ fontSize: '14px', fontWeight: 800, marginTop: '4px' }}>
+                {originCode} ({originName})
               </span>
-              <span className="text-micro text-stone-500">
+              <span style={{ fontSize: '11px' }} className="mut">
                 Default production origin loaded on opportunity scanner and trade tickets.
               </span>
             </div>
 
-            <div className="bg-stone-950 border border-stone-800 p-3 rounded-xs flex flex-col gap-1">
-              <span className="font-mono text-micro font-semibold text-stone-400 uppercase">
+            <div style={{ backgroundColor: 'var(--color-bg)', border: '1px solid var(--color-divider)', padding: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <span className="eyebrow">
                 Regulatory Framework
               </span>
-              <span className="font-mono font-num text-sm font-bold text-stone-100 mt-1">
+              <span className="num" style={{ fontSize: '14px', fontWeight: 800, marginTop: '4px' }}>
                 RED III / UDB 2026
               </span>
-              <span className="text-micro text-stone-500">
+              <span style={{ fontSize: '11px' }} className="mut">
                 Directive (EU) 2023/2413 statutory rules and Union Database mass balance gates.
               </span>
             </div>
@@ -84,15 +89,15 @@ export function SettingsScreen() {
         </div>
 
         {/* SECTION 3: SYSTEM DIAGNOSTICS & EXPORTS */}
-        <div className="bg-stone-900 border border-stone-800 rounded-xs p-5 flex flex-col gap-3">
-          <h2 className="m-0 font-mono text-sm font-semibold tracking-[0.1em] text-stone-100 uppercase">
-            Data Snapshots & Maintenance
+        <div style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-divider)', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <h2 style={{ margin: 0, fontSize: '14px', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase' }} className="font-heading">
+            Data Snapshots &amp; Maintenance
           </h2>
           
-          <div className="flex items-center justify-between pt-2">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '8px' }}>
             <div>
-              <div className="text-xs font-semibold text-stone-200">Export Desk Snapshot</div>
-              <div className="text-micro text-stone-500">Download current marks and custom costs as JSON</div>
+              <div style={{ fontSize: '13px', fontWeight: 600 }}>Export Desk Snapshot</div>
+              <div style={{ fontSize: '11px' }} className="mut">Download current marks and custom costs as JSON</div>
             </div>
             <button
               type="button"
@@ -109,8 +114,10 @@ export function SettingsScreen() {
                 a.download = `biomethane-desk-settings-${new Date().toISOString().slice(0, 10)}.json`;
                 a.click();
                 URL.revokeObjectURL(url);
+                showToast('Settings snapshot exported to JSON');
               }}
-              className="px-3 py-1.5 bg-stone-800 hover:bg-stone-700 border border-stone-700 text-stone-300 font-mono text-micro font-semibold uppercase rounded-xs cursor-pointer"
+              className="btn btn-secondary"
+              style={{ fontSize: '12px', padding: '6px 12px' }}
             >
               Export JSON
             </button>
@@ -121,3 +128,4 @@ export function SettingsScreen() {
     </div>
   );
 }
+

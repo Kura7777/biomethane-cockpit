@@ -236,6 +236,90 @@ export class GgcsUkConnectorAdapter extends BaseRegistryConnectorAdapter {
   }
 }
 
+export class BrugelBeConnectorAdapter extends BaseRegistryConnectorAdapter {
+  constructor() {
+    super('BRUGEL_BE');
+  }
+}
+
+export class EnergiSverigeSeConnectorAdapter extends BaseRegistryConnectorAdapter {
+  constructor() {
+    super('ENERGISVERIGE_SE');
+  }
+}
+
+export class PronovoChConnectorAdapter extends BaseRegistryConnectorAdapter {
+  constructor() {
+    super('PRONOVO_CH');
+  }
+}
+
+export class GasgridFiConnectorAdapter extends BaseRegistryConnectorAdapter {
+  constructor() {
+    super('GASGRID_FI');
+  }
+}
+
+export class GasscoNoConnectorAdapter extends BaseRegistryConnectorAdapter {
+  constructor() {
+    super('GASSCO_NO');
+  }
+}
+
+export class UrePlConnectorAdapter extends BaseRegistryConnectorAdapter {
+  constructor() {
+    super('URE_PL');
+  }
+}
+
+export class OteCzConnectorAdapter extends BaseRegistryConnectorAdapter {
+  constructor() {
+    super('OTE_CZ');
+  }
+}
+
+export class RenPtConnectorAdapter extends BaseRegistryConnectorAdapter {
+  constructor() {
+    super('REN_PT');
+  }
+}
+
+export class GniIeConnectorAdapter extends BaseRegistryConnectorAdapter {
+  constructor() {
+    super('GNI_IE');
+  }
+}
+
+export class MekhHuConnectorAdapter extends BaseRegistryConnectorAdapter {
+  constructor() {
+    super('MEKH_HU');
+  }
+}
+
+export class EleringEeConnectorAdapter extends BaseRegistryConnectorAdapter {
+  constructor() {
+    super('ELERING_EE');
+  }
+}
+
+export class ConexusLvConnectorAdapter extends BaseRegistryConnectorAdapter {
+  constructor() {
+    super('CONEXUS_LV');
+  }
+}
+
+export class AmberGridLtConnectorAdapter extends BaseRegistryConnectorAdapter {
+  constructor() {
+    super('AMBERGRID_LT');
+  }
+}
+
+export class OkteSkConnectorAdapter extends BaseRegistryConnectorAdapter {
+  constructor() {
+    super('OKTE_SK');
+  }
+}
+
 export const REGISTRY_CONNECTORS: Record<RegistryId, IRegistryConnector> = {
   DENA: new DenaConnectorAdapter(),
   VERTICER: new VertiCerConnectorAdapter(),
@@ -245,6 +329,20 @@ export const REGISTRY_CONNECTORS: Record<RegistryId, IRegistryConnector> = {
   EEX: new EexConnectorAdapter(),
   AGCS: new AgcsConnectorAdapter(),
   GGCS_UK: new GgcsUkConnectorAdapter(),
+  BRUGEL_BE: new BrugelBeConnectorAdapter(),
+  ENERGISVERIGE_SE: new EnergiSverigeSeConnectorAdapter(),
+  PRONOVO_CH: new PronovoChConnectorAdapter(),
+  GASGRID_FI: new GasgridFiConnectorAdapter(),
+  GASSCO_NO: new GasscoNoConnectorAdapter(),
+  URE_PL: new UrePlConnectorAdapter(),
+  OTE_CZ: new OteCzConnectorAdapter(),
+  REN_PT: new RenPtConnectorAdapter(),
+  GNI_IE: new GniIeConnectorAdapter(),
+  MEKH_HU: new MekhHuConnectorAdapter(),
+  ELERING_EE: new EleringEeConnectorAdapter(),
+  CONEXUS_LV: new ConexusLvConnectorAdapter(),
+  AMBERGRID_LT: new AmberGridLtConnectorAdapter(),
+  OKTE_SK: new OkteSkConnectorAdapter(),
 };
 
 export function getRegistryConnector(id: RegistryId): IRegistryConnector {

@@ -15,7 +15,7 @@ import { Layout } from './Layout';
  */
 const SourcingOriginationDesk = React.lazy(() => import('../features/sourcing/SourcingOriginationDesk').then(m => ({ default: m.SourcingOriginationDesk })));
 const MapScreen = React.lazy(() => import('../features/map/MapScreen').then(m => ({ default: m.MapScreen })));
-const DetailedPricingScreen = React.lazy(() => import('../features/marks/DetailedPricingScreen').then(m => ({ default: m.DetailedPricingScreen })));
+const MarksScreen = React.lazy(() => import('../features/marks/MarksScreen').then(m => ({ default: m.MarksScreen })));
 const TradeBuilderScreen = React.lazy(() => import('../features/trade-builder/TradeBuilderScreen').then(m => ({ default: m.TradeBuilderScreen })));
 const PlantsScreen = React.lazy(() => import('../features/plants/PlantsScreen').then(m => ({ default: m.PlantsScreen })));
 const RegistriesScreen = React.lazy(() => import('../features/registries/RegistriesScreen').then(m => ({ default: m.RegistriesScreen })));
@@ -23,12 +23,15 @@ const ScannerScreen = React.lazy(() => import('../features/opportunity-scanner/S
 const LibraryScreen = React.lazy(() => import('../features/trade-library/LibraryScreen').then(m => ({ default: m.LibraryScreen })));
 const CitationsScreen = React.lazy(() => import('../features/citations/CitationsScreen').then(m => ({ default: m.CitationsScreen })));
 const DataSourcesScreen = React.lazy(() => import('../features/provenance/DataSourcesScreen').then(m => ({ default: m.DataSourcesScreen })));
+const DataConnectorsScreen = React.lazy(() => import('../features/settings/DataConnectorsScreen').then(m => ({ default: m.DataConnectorsScreen })));
 const SettingsScreen = React.lazy(() => import('../features/settings/SettingsScreen').then(m => ({ default: m.SettingsScreen })));
+
+import { ThemeProvider } from '../store/theme';
 
 function LoadingScreen() {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-stone-950">
-      <div className="text-stone-400 text-sm font-mono animate-pulse">Loading Biomethane Desk...</div>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', backgroundColor: 'var(--color-bg)' }}>
+      <div className="skel" style={{ width: '120px', height: '14px' }} />
     </div>
   );
 }
@@ -44,8 +47,8 @@ function AppContent() {
             <Route path="/sourcing" element={<SourcingOriginationDesk />} />
             <Route path="/commercial" element={<SourcingOriginationDesk />} />
             <Route path="/map" element={<MapScreen />} />
-            <Route path="/pricing" element={<DetailedPricingScreen />} />
-            <Route path="/marks" element={<DetailedPricingScreen />} />
+            <Route path="/pricing" element={<MarksScreen />} />
+            <Route path="/marks" element={<MarksScreen />} />
 
             {/* Plants & Registries Pages */}
             <Route path="/plants" element={<PlantsScreen />} />
@@ -55,9 +58,11 @@ function AppContent() {
 
             {/* Supporting Tools & Desks */}
             <Route path="/trade" element={<TradeBuilderScreen />} />
+            <Route path="/risk" element={<Navigate to="/" replace />} />
             <Route path="/scanner" element={<ScannerScreen />} />
             <Route path="/library" element={<LibraryScreen />} />
             <Route path="/citations" element={<CitationsScreen />} />
+            <Route path="/connectors" element={<DataConnectorsScreen />} />
             <Route path="/settings" element={<SettingsScreen />} />
 
             {/* Fallback */}
@@ -71,8 +76,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AppProvider>
-      <AppContent />
-    </AppProvider>
+    <ThemeProvider>
+      <AppProvider>
+        <AppContent />
+      </AppProvider>
+    </ThemeProvider>
   );
 }

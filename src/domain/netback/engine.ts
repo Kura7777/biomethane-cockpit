@@ -9,8 +9,9 @@ import {
 } from '../markets/constants';
 import { Market, PriceSide, getMarkAgeDays } from '../markets/types';
 import { Consignment } from '../consignment/types';
-import { CostInputs, CertificateValueResult, NetbackResult, NetbackBranch, MarksState, FuelEUOptions, PricingSides, NetbackSides, ValuationRange } from './types';
+import { CostInputs, CertificateValueResult, NetbackResult, NetbackBranch, MarksState, FuelEUOptions, PricingSides, NetbackSides, ValuationRange, PrincipalRiskMetrics } from './types';
 import { EligibilityAssessment } from '../eligibility/types';
+import { HUB_BASIS_SPREADS } from '../logistics/corridors';
 
 /**
  * FuelEU Maritime Reference Constants (Regulation (EU) 2023/1805)
@@ -242,14 +243,31 @@ export function computeCertificateValue(
         };
       }
 
-      const isDoubleCounted = consignment.annexClassification === 'IX_A' || consignment.annexClassification === 'IX_B';
-      const drtfcPerMWh = isDoubleCounted ? RTFO_KG_PER_MWH * 2 : RTFO_KG_PER_MWH; // ≈ 144.0 vs 72.0
+      // UK RTFO Development Fuel eligibility per the RTFO Renewable Fuel Feedstock List
+      // (Annex to SI 2007/3072), which does NOT map 1:1 to RED Annex IX:
+      // - Manure, food waste, sewage sludge, UCO, animal fats → Development Fuel (2× dRTFC)
+      // - Some agricultural residues classified as IX-A under RED may NOT qualify as
+      //   development fuel under the RTFO (e.g. certain crop residues).
+      // We use feedstock key + annex classification to approximate the RTFO list.
+      const feedstockKey = consignment.feedstock?.toLowerCase() ?? '';
+      const isRtfoDevelopmentFuel = (
+        // Waste-derived feedstocks on the RTFO development fuel list
+        feedstockKey === 'manure' ||
+        feedstockKey === 'food_waste' ||
+        feedstockKey === 'sewage_sludge' ||
+        feedstockKey === 'used_cooking_oil' ||
+        feedstockKey === 'landfill_gas' ||
+        feedstockKey === 'industrial_bio_waste' ||
+        // Annex IX-B (UCO, animal fats Cat 1&2) always qualifies
+        consignment.annexClassification === 'IX_B'
+      );
+      const drtfcPerMWh = isRtfoDevelopmentFuel ? RTFO_KG_PER_MWH * 2 : RTFO_KG_PER_MWH; // ≈ 144.0 vs 72.0
       const markEurPerDrtfc = mark * fxRate;
       valueEurPerMWh = markEurPerDrtfc * drtfcPerMWh;
 
-      unitConversion = `UK RTFO Order 2007 (Gaseous): 1 MWh ÷ 13.889 kWh/kg = ${RTFO_KG_PER_MWH.toFixed(1)} kg/MWh → ${drtfcPerMWh.toFixed(1)} dRTFC/MWh (${isDoubleCounted ? '2× Waste multiplier' : '1× Standard'}) | £1 = €${fxRate.toFixed(4)}`;
+      unitConversion = `UK RTFO Order 2007 (Gaseous): 1 MWh ÷ 13.889 kWh/kg = ${RTFO_KG_PER_MWH.toFixed(1)} kg/MWh → ${drtfcPerMWh.toFixed(1)} dRTFC/MWh (${isRtfoDevelopmentFuel ? '2× Development Fuel (RTFO Feedstock List)' : '1× Standard'}) | £1 = €${fxRate.toFixed(4)}`;
       calculation = `£${mark.toFixed(3)}/dRTFC × €${fxRate.toFixed(4)}/£ × ${drtfcPerMWh.toFixed(1)} dRTFC/MWh = €${valueEurPerMWh.toFixed(2)}/MWh`;
-      statusNote = `Derived from biomethane energy content (${drtfcPerMWh.toFixed(1)} dRTFC/MWh). Non-EU grid injection boundary applies.`;
+      statusNote = `Derived from biomethane energy content (${drtfcPerMWh.toFixed(1)} dRTFC/MWh). ${isRtfoDevelopmentFuel ? 'Development fuel status per RTFO Feedstock List.' : 'Standard fuel — feedstock not on RTFO development fuel list.'} Non-EU grid injection boundary applies.`;
       break;
     }
     default:
@@ -296,6 +314,13 @@ export function computeNetback(
     certVal.valueEurPerMWh = Number(certVal.valueEurPerMWh.toFixed(2));
   }
 
+  // Dynamic Alpha (α) sensitivity indexation for Leg B green attribute
+  const alpha = costs.greenAlpha ?? 1.0;
+  if (alpha !== 1.0 && certVal?.valueEurPerMWh != null) {
+    certVal.valueEurPerMWh = Number((certVal.valueEurPerMWh * alpha).toFixed(2));
+    certVal.calculation = `${certVal.calculation} × α(${alpha.toFixed(2)}) = €${certVal.valueEurPerMWh.toFixed(2)}/MWh`;
+  }
+
   const missingInputs: string[] = [];
 
   // Molecule value (TTF index) at chosen molecule side
@@ -327,7 +352,8 @@ export function computeNetback(
   // phantom spread benefit when the chosen side already equals mid.
   const midCertVal = computeCertificateValue(market, consignment, marks, 'mid', fuelEUOptions);
   if (midCertVal?.valueEurPerMWh != null) {
-    midCertVal.valueEurPerMWh = Number(midCertVal.valueEurPerMWh.toFixed(2));
+    const rawMid = Number(midCertVal.valueEurPerMWh.toFixed(2));
+    midCertVal.valueEurPerMWh = alpha !== 1.0 ? Number((rawMid * alpha).toFixed(2)) : rawMid;
   }
   const midMolVal = selectMarkPrice(marks.gasIndex, 'mid');
   let atMid: number | null = null;
@@ -429,8 +455,9 @@ export function computeNetback(
 
   if (market.id === 'DE_THG' && certVal?.valueEurPerMWh != null) {
     if (complianceYear !== null && complianceYear <= 2025) {
-      // Single branch for <= 2025: double counting (2x) applies for Annex IX-A feedstocks under 38. BImSchV
-      if (consignment.annexClassification === 'IX_A') {
+      // Single branch for <= 2025: double counting (2x) applies for all advanced biofuels
+      // (Annex IX-A AND IX-B) under 38. BImSchV — not limited to IX-A alone
+      if (consignment.annexClassification === 'IX_A' || consignment.annexClassification === 'IX_B') {
         const dcOnCertVal = certVal.valueEurPerMWh * 2;
         certVal.valueEurPerMWh = dcOnCertVal;
         certVal.calculation = `${certVal.calculation} × 2 (double counting under 38. BImSchV for CY ${complianceYear}) = €${dcOnCertVal.toFixed(2)}/MWh`;
@@ -574,6 +601,40 @@ export function computeNetback(
     }
   }
 
+  // Principal Risk Suite: Basis Risk, Statutory Replacement Exposure, and 2026 Cliff
+  const originHub = HUB_BASIS_SPREADS[consignment.originCountry] || { basisSpreadToTtfEurMwh: 0.0 };
+  const targetHub = HUB_BASIS_SPREADS[market.country] || { basisSpreadToTtfEurMwh: 0.0 };
+  const basisDifferentialEurMwh = Number((targetHub.basisSpreadToTtfEurMwh - originHub.basisSpreadToTtfEurMwh).toFixed(2));
+  const dealVolume = consignment.volumeMWh ?? 10000;
+  const basisRiskNotionalEur = Math.round(Math.abs(basisDifferentialEurMwh) * dealVolume);
+
+  let statutoryCeilingEurMwh: number | null = null;
+  if (market.id === 'FR_CPB') {
+    statutoryCeilingEurMwh = FR_CPB_CEILING_EUR_MWH;
+  } else if (market.id === 'DE_THG') {
+    statutoryCeilingEurMwh = Number((450 * tCO2ePerMWh(consignment.carbonIntensity)).toFixed(2));
+  }
+
+  const effectiveCeiling = statutoryCeilingEurMwh ?? (netNetback ? Math.max(120, netNetback * 1.5) : 120);
+  const effectiveProcurement = producerPayable ?? (molVal ? molVal + 25 : 58);
+  const replacementCostExposureEur = Math.round(Math.max(0, effectiveCeiling - effectiveProcurement) * dealVolume);
+
+  let germanCliffImpactEurMwh: number | null = null;
+  let germanCliffNotionalEur: number | null = null;
+  if (market.id === 'DE_THG' && (consignment.annexClassification === 'IX_A' || consignment.annexClassification === 'IX_B')) {
+    germanCliffImpactEurMwh = certVal?.valueEurPerMWh != null ? Number(certVal.valueEurPerMWh.toFixed(2)) : null;
+    germanCliffNotionalEur = germanCliffImpactEurMwh ? Math.round(germanCliffImpactEurMwh * dealVolume) : null;
+  }
+
+  const principalRisk: PrincipalRiskMetrics = {
+    basisDifferentialEurMwh,
+    basisRiskNotionalEur,
+    replacementCostExposureEur,
+    statutoryCeilingEurMwh,
+    germanCliffImpactEurMwh,
+    germanCliffNotionalEur,
+  };
+
   return {
     marketId: market.id,
     marketName: market.name,
@@ -599,6 +660,7 @@ export function computeNetback(
     sides,
     isModelled: certVal?.isModelled ?? false,
     provenance: certVal?.provenance ?? null,
+    principalRisk,
   };
 }
 

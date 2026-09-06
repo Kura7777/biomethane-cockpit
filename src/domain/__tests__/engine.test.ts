@@ -838,6 +838,23 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
       };
       const unsetNetback = computeNetback(deMarket, REFERENCE_CONSIGNMENTS.DANISH_MANURE, deMarks, unsetCosts, 'bid');
       expect(unsetNetback.missingInputs).toContain('producerPricing');
+
+      // 9. Dynamic Leg B greenAlpha indexation scales certificate value
+      const baseCosts: CostInputs = {
+        transferCosts: 0.5,
+        certificationCosts: 0.2,
+        logistics: 1.0,
+        otherCosts: 0,
+        greenAlpha: 1.0,
+      };
+      const alphaScaledCosts: CostInputs = {
+        ...baseCosts,
+        greenAlpha: 1.20,
+      };
+      const baseNet = computeNetback(frMarket, REFERENCE_CONSIGNMENTS.DANISH_MANURE, highMarks, baseCosts, 'bid');
+      const scaledNet = computeNetback(frMarket, REFERENCE_CONSIGNMENTS.DANISH_MANURE, highMarks, alphaScaledCosts, 'bid');
+      expect(scaledNet.certificateValue?.valueEurPerMWh).toBe(120.0);
+      expect((scaledNet.netNetback ?? 0) - (baseNet.netNetback ?? 0)).toBeCloseTo(20.0, 1);
     });
 
     it('assessment with PRA gas index but non-PRA certificate -> hasPra true', () => {

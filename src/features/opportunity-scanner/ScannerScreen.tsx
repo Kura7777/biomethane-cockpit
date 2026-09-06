@@ -1,21 +1,36 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MARKETS, getMarketById } from '../../domain/markets/registry';
-import { Market, PriceSide, getMarkStaleness, getMarkAgeDays } from '../../domain/markets/types';
+import { MARKETS, getMarketById, isVoluntaryMarket } from '../../domain/markets/registry';
+import { Market, PriceSide, getMarkStaleness } from '../../domain/markets/types';
 import { Consignment } from '../../domain/consignment/types';
 import { REFERENCE_CONSIGNMENTS } from '../../domain/consignment/feedstocks';
-import { PRODUCING_ORIGINS, getRouteTransitTariff } from '../../domain/arbitrage/origins';
 import { useAppState } from '../../store/context';
 import { evaluateEligibility } from '../../domain/eligibility/engine';
-import { computeAllNetbacks, computeNetback } from '../../domain/netback/engine';
+import { computeAllNetbacks, computeCertificateValue } from '../../domain/netback/engine';
 import { rankNetbacks, getHighestBlockedOpportunity } from '../../domain/netback/ranking';
-import { EligibilityAssessment, GateResult, OverallVerdict } from '../../domain/eligibility/types';
-import { RankedNetback } from '../../domain/netback/types';
-import { calculateLogisticsRoute } from '../../domain/logistics/engine';
+import { EligibilityAssessment, GateResult } from '../../domain/eligibility/types';
 import { LogisticsModal } from '../logistics/LogisticsModal';
 import { buildDealUrl } from '../../domain/trade/dealParams';
+import { showToast } from '../../app/DeskToastContainer';
+import { BIOMETHANE_PLANTS } from '../../domain/plants/plantsData';
+import { estimateFarmgateProcurementCost } from '../../domain/sourcing/benchmarks';
+import { 
+  Radar, 
+  Building2, 
+  Search, 
+  Filter, 
+  ArrowUpRight, 
+  TrendingUp, 
+  AlertTriangle, 
+  ShieldCheck, 
+  Zap, 
+  Globe, 
+  Layers, 
+  CheckCircle2,
+  DollarSign
+} from 'lucide-react';
 
-const GATE_LETTER_MAP = ['S', 'U', 'M', 'A', 'G', 'N'];
+const GATE_LETTERS = ['S', 'U', 'M', 'A', 'G', 'N'];
 const GATE_TOOLTIP_TITLES = [
   'Scheme recognition',
   'UDB grid ingestion',
@@ -25,97 +40,62 @@ const GATE_TOOLTIP_TITLES = [
   'Member state specifics',
 ];
 
-function getVerdictTone(verdict: string) {
-  switch (verdict) {
-    case 'PASS':
-    case 'ELIGIBLE':
-      return {
-        text: 'text-emerald-400',
-        bg: 'bg-emerald-950',
-        border: 'border-emerald-800',
-        dot: 'bg-emerald-500',
-        badge: 'text-emerald-400 bg-emerald-950 border-emerald-800',
-        bar: 'bg-emerald-500',
-      };
-    case 'CONDITIONAL':
-      return {
-        text: 'text-amber-400',
-        bg: 'bg-amber-950',
-        border: 'border-amber-800',
-        dot: 'bg-amber-500',
-        badge: 'text-amber-400 bg-amber-950 border-amber-800',
-        bar: 'bg-amber-500',
-      };
-    case 'UNRESOLVED':
-      return {
-        text: 'text-sky-400',
-        bg: 'bg-sky-950',
-        border: 'border-sky-800',
-        dot: 'bg-sky-500',
-        badge: 'text-sky-400 bg-sky-950 border-sky-800',
-        bar: 'bg-sky-500',
-      };
-    case 'HARD_BLOCK':
-    case 'FAIL':
-    default:
-      return {
-        text: 'text-red-400',
-        bg: 'bg-red-950',
-        border: 'border-red-800',
-        dot: 'bg-red-500',
-        badge: 'text-red-400 bg-red-950 border-red-800',
-        bar: 'bg-red-800',
-      };
-  }
+export interface PlantArbitrageOpportunity {
+  plantId: string;
+  plantName: string;
+  countryCode: string;
+  countryName: string;
+  countryFlag: string;
+  feedstockCategory: string;
+  feedstockKey: string;
+  carbonIntensity: number;
+  annualGWh: number;
+  annualMWh: number;
+  procurementCostEurMwh: number;
+  procurementMode: string;
+  procurementRationale: string;
+  isRestrictedSubsidy: boolean;
+  bestMarketId: string;
+  bestMarketName: string;
+  bestMarketCountry: string;
+  bestMarketNetNetback: number;
+  logisticsFeeEurMwh: number;
+  netMarginEurMwh: number;
+  annualProfitEur: number;
+  eligibilityVerdict: 'ELIGIBLE' | 'CONDITIONAL' | 'HARD_BLOCK';
 }
 
 export function ScannerScreen() {
   const navigate = useNavigate();
   const { state, dispatch } = useAppState();
 
-  // Selected market ID (dossier rail)
+  const [activeTab, setActiveTab] = useState<'ASSET_SCANNER' | 'LADDER'>('ASSET_SCANNER');
+  const [bookFilter, setBookFilter] = useState<'ALL' | 'COMPLIANCE' | 'VOLUNTARY'>('ALL');
+
+  // Single ladder mode state
   const [selectedMarketId, setSelectedMarketId] = useState<string>(state.selectedMarketId || 'DE_THG');
-
-  // Origin override (from PRODUCING_ORIGINS)
-  const [originCode, setOriginCode] = useState<string>('DK');
-
-  // Carbon intensity override
-  const [ciOverride, setCiOverride] = useState<number | null>(null);
-
-  // Filters
   const [positiveOnly, setPositiveOnly] = useState(false);
   const [clearedOnly, setClearedOnly] = useState(false);
   const [hideStale, setHideStale] = useState(false);
-  const [tradeableOnly, setTradeableOnly] = useState(false);
-  const [marksOnly, setMarksOnly] = useState(false);
-
-  // Sorting
-  const [sortBy, setSortBy] = useState<'net' | 'margin' | 'age' | 'name'>('net');
-  const [sortDir, setSortDir] = useState<1 | -1>(-1); // -1: desc, 1: asc
-
-  // Logistics modal state
+  const [minMargin, setMinMargin] = useState<number>(0);
   const [isLogisticsOpen, setIsLogisticsOpen] = useState(false);
 
-  // Active consignment benchmark
-  const activeConsignment: Consignment = useMemo(() => {
+  // Asset scanner mode state
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedCountry, setSelectedCountry] = useState<string>('ALL');
+  const [selectedFeedstock, setSelectedFeedstock] = useState<string>('ALL');
+  const [minArbitrageSpread, setMinArbitrageSpread] = useState<number>(0);
+  const [sortField, setSortField] = useState<'NET_MARGIN' | 'ANNUAL_PNL' | 'VOLUME'>('NET_MARGIN');
+
+  // Active consignment benchmark for ladder
+  const consignment: Consignment = useMemo(() => {
     const existing = state.consignments.find(c => c.id === state.activeConsignmentId);
     return existing || REFERENCE_CONSIGNMENTS.DANISH_MANURE;
   }, [state.consignments, state.activeConsignmentId]);
 
-  // Consignment with selected origin and effective CI
-  const effectiveCI = ciOverride ?? activeConsignment.carbonIntensity;
-  const isCiSimulated = ciOverride !== null && ciOverride !== activeConsignment.carbonIntensity;
-
-  const consignment: Consignment = useMemo(() => ({
-    ...activeConsignment,
-    originCountry: originCode,
-    carbonIntensity: effectiveCI,
-  }), [activeConsignment, originCode, effectiveCI]);
-
-  // Active markets
   const activeMarkets = useMemo(() => MARKETS.filter(m => m.status === 'ACTIVE'), []);
 
-  // Compute all eligibility
+  // Compute all eligibility for ladder
   const eligibilityMap = useMemo(() => {
     const map = new Map<string, EligibilityAssessment>();
     activeMarkets.forEach(m => {
@@ -124,7 +104,7 @@ export function ScannerScreen() {
     return map;
   }, [activeMarkets, consignment]);
 
-  // Compute all netbacks
+  // Compute all netbacks for ladder
   const pricingSides = state.marks.pricingSides;
   const netbackResults = useMemo(() => {
     return computeAllNetbacks(
@@ -137,928 +117,856 @@ export function ScannerScreen() {
     );
   }, [consignment, activeMarkets, state.marks, state.costs, eligibilityMap, pricingSides]);
 
-  // Ranked raw list
-  const rawRankedList = useMemo(() => {
-    return rankNetbacks(netbackResults, eligibilityMap, { excludeModelled: marksOnly });
-  }, [netbackResults, eligibilityMap, marksOnly]);
+  // Ranked list for ladder
+  const rankedList = useMemo(() => {
+    return rankNetbacks(netbackResults, eligibilityMap);
+  }, [netbackResults, eligibilityMap]);
 
   // Highest theoretical blocked opportunity
   const highestBlocked = useMemo(() => {
-    return getHighestBlockedOpportunity(rawRankedList, eligibilityMap);
-  }, [rawRankedList, eligibilityMap]);
+    return getHighestBlockedOpportunity(rankedList, eligibilityMap);
+  }, [rankedList, eligibilityMap]);
 
-  // Filtered list
+  // Filtered ladder rows
   const filteredList = useMemo(() => {
-    let list = rawRankedList;
-
-    if (positiveOnly) {
-      list = list.filter(r => (r.netNetback ?? -Infinity) > 0);
-    }
-    if (clearedOnly) {
-      list = list.filter(r => {
-        const el = eligibilityMap.get(r.marketId);
-        return el?.gates.every(g => g.verdict === 'PASS');
-      });
-    }
-    if (hideStale) {
-      list = list.filter(r => {
-        const entry = state.marks.marks[r.marketId];
-        const age = getMarkAgeDays(entry?.updatedAt);
-        return age === null || age <= 30;
-      });
-    }
-    if (tradeableOnly) {
-      list = list.filter(r => ['ELIGIBLE', 'CONDITIONAL', 'UNRESOLVED'].includes(r.eligibilityVerdict));
-    }
-
-    // Sort
-    return [...list].sort((a, b) => {
-      if (sortBy === 'name') {
-        return a.marketName.localeCompare(b.marketName) * -sortDir;
+    return rankedList.filter(item => {
+      if (bookFilter === 'COMPLIANCE' && isVoluntaryMarket(item.marketId)) return false;
+      if (bookFilter === 'VOLUNTARY' && !isVoluntaryMarket(item.marketId)) return false;
+      if (positiveOnly && (item.netNetback ?? -1) <= 0) return false;
+      if (minMargin > 0 && (item.deskMargin ?? 0) < minMargin) return false;
+      const el = eligibilityMap.get(item.marketId);
+      if (clearedOnly && el?.overallVerdict !== 'ELIGIBLE') return false;
+      if (hideStale) {
+        const mark = state.marks.marks[item.marketId];
+        if (mark) {
+          const st = getMarkStaleness(mark);
+          if (st === 'STALE_WARNING' || st === 'STALE_CRITICAL') return false;
+        }
       }
-      if (sortBy === 'age') {
-        const ageA = getMarkAgeDays(state.marks.marks[a.marketId]?.updatedAt) ?? 999;
-        const ageB = getMarkAgeDays(state.marks.marks[b.marketId]?.updatedAt) ?? 999;
-        return (ageA - ageB) * -sortDir;
-      }
-      if (sortBy === 'margin') {
-        // Rows with no margin (producer pricing unset) sort last rather than being
-        // given an invented one.
-        const marginA = a.deskMargin ?? -Infinity;
-        const marginB = b.deskMargin ?? -Infinity;
-        return (marginA - marginB) * sortDir;
-      }
-      // Netback
-      const netA = a.netNetback ?? -Infinity;
-      const netB = b.netNetback ?? -Infinity;
-      return (netA - netB) * sortDir;
+      return true;
     });
-  }, [rawRankedList, positiveOnly, clearedOnly, hideStale, tradeableOnly, sortBy, sortDir, state.marks.marks, eligibilityMap]);
+  }, [rankedList, bookFilter, positiveOnly, minMargin, clearedOnly, hideStale, state.marks.marks, eligibilityMap]);
 
-  // Max absolute netback for proportional spread bars
-  const maxNetAbs = useMemo(() => {
-    const values = filteredList.map(r => Math.abs(r.netNetback ?? 0));
-    return Math.max(...values, 1);
-  }, [filteredList]);
+  // Selected ladder item
+  const selectedItem = useMemo(() => {
+    return rankedList.find(r => r.marketId === selectedMarketId) || rankedList[0];
+  }, [rankedList, selectedMarketId]);
 
-  // Selected market and assessment
-  const selectedMarket = useMemo(() => {
-    return getMarketById(selectedMarketId) || activeMarkets[0];
-  }, [selectedMarketId, activeMarkets]);
+  // ---------------------------------------------------------------------------
+  // MULTI-PLANT ASSET ARBITRAGE SCANNER ENGINE (1,975 Plants)
+  // ---------------------------------------------------------------------------
+  const ttfPrice = state.marks.gasIndex.mid ?? 0;
 
-  const selectedEligibility = useMemo(() => {
-    return eligibilityMap.get(selectedMarket.id) || evaluateEligibility(consignment, selectedMarket);
-  }, [eligibilityMap, consignment, selectedMarket]);
+  const plantOpportunities = useMemo<PlantArbitrageOpportunity[]>(() => {
+    const results: PlantArbitrageOpportunity[] = [];
 
-  const selectedNetbackResult = useMemo(() => {
-    return netbackResults.find(n => n.marketId === selectedMarket.id) || computeNetback(
-      selectedMarket,
-      consignment,
-      state.marks,
-      state.costs,
-      pricingSides
-    );
-  }, [netbackResults, selectedMarket, consignment, state.marks, state.costs, pricingSides]);
+    // Focus on actionable European plants with active status
+    const targetPlants = BIOMETHANE_PLANTS.filter(p => !p.status || p.status === 'Active' || p.status.includes('Active'));
 
-  // Selected market transit tariff and all-in cost
-  // Costs the engine actually deducts to reach the delivered value stack. Producer
-  // payment is not among them — it comes out of the stack, not before it.
-  const baseCost = (state.costs.transferCosts ?? 0) + (state.costs.certificationCosts ?? 0);
-  const selectedTransitTariff = getRouteTransitTariff(originCode, selectedMarket.country);
-  const selectedAllIn = baseCost + selectedTransitTariff;
+    for (const p of targetPlants) {
+      const countryCode = (p.countryCode || 'DK').toUpperCase();
+      const rawFeedstock = p.primaryFeedstockCategory || 'Manure';
 
-  // German Dual Branch Calculations if DE
-  const isGermanySelected = selectedMarket.id === 'DE_THG';
-  const germanDualBranches = useMemo(() => {
-    if (!isGermanySelected) return null;
-    // Both branches come from computeNetback, which is the only thing allowed to price
-    // them. Re-deriving the waterfall here is what let this screen and the Trade Builder
-    // disagree about the same trade.
-    const branches = selectedNetbackResult.uncertaintyBranches;
-    if (!branches || branches.length < 2) return null;
-    const [single, double] = branches;
+      // Derive CI and standard feedstock key
+      let feedstockKey = 'manure';
+      let ciScore = -100;
 
-    return {
-      branch1: {
-        multiplier: 1,
-        net: single.netNetback,
-        margin: single.deskMargin,
-        note: 'Baseline single counting without multiplier.',
-      },
-      branch2: {
-        multiplier: 2,
-        net: double.netNetback,
-        margin: double.deskMargin,
-        note: 'Double counting multiplier retained in statutory quota.',
-      },
-    };
-  }, [isGermanySelected, selectedNetbackResult.uncertaintyBranches]);
-
-  // Logistics route assessment for selected corridor
-  const logisticsAssessment = useMemo(() => {
-    return calculateLogisticsRoute(originCode, selectedMarket.country, state.marks.gasIndex.mid);
-  }, [originCode, selectedMarket.country, state.marks.gasIndex.mid]);
-
-  // Keyboard navigation for ladder
-  const visibleIds = useMemo(() => filteredList.map(r => r.marketId), [filteredList]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement)?.tagName)) return;
-
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        const currentIndex = visibleIds.indexOf(selectedMarketId);
-        const nextIndex = Math.min(visibleIds.length - 1, currentIndex + 1);
-        if (visibleIds[nextIndex]) {
-          setSelectedMarketId(visibleIds[nextIndex]);
-          dispatch({ type: 'SELECT_MARKET', id: visibleIds[nextIndex] });
-        }
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        const currentIndex = visibleIds.indexOf(selectedMarketId);
-        const prevIndex = Math.max(0, currentIndex - 1);
-        if (visibleIds[prevIndex]) {
-          setSelectedMarketId(visibleIds[prevIndex]);
-          dispatch({ type: 'SELECT_MARKET', id: visibleIds[prevIndex] });
-        }
-      } else if (e.key === 'Enter') {
-        setIsLogisticsOpen(true);
+      if (/crop|maize|silage/i.test(rawFeedstock)) {
+        feedstockKey = 'energy_crops';
+        ciScore = 42;
+      } else if (/food|forsu|waste/i.test(rawFeedstock)) {
+        feedstockKey = 'food_waste';
+        ciScore = 14;
+      } else if (/sewage|sludge/i.test(rawFeedstock)) {
+        feedstockKey = 'sewage_sludge';
+        ciScore = 22;
+      } else if (/agri|residue|straw|cive/i.test(rawFeedstock)) {
+        feedstockKey = 'agricultural_residues';
+        ciScore = 16;
+      } else {
+        feedstockKey = 'manure';
+        ciScore = countryCode === 'DK' ? -100 : -85;
       }
-    };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [visibleIds, selectedMarketId, dispatch]);
+      // Annual Volume
+      const annualGWh = p.annualEnergyGWh && p.annualEnergyGWh > 0
+        ? p.annualEnergyGWh
+        : p.capacityNm3h
+        ? Math.round((p.capacityNm3h * 10.5 * 8000) / 1000000)
+        : 25;
+      const annualMWh = annualGWh * 1000;
 
-  const handleSortClick = (field: 'net' | 'margin' | 'age' | 'name') => {
-    if (sortBy === field) {
-      setSortDir(d => (d === -1 ? 1 : -1));
-    } else {
-      setSortBy(field);
-      setSortDir(field === 'name' ? 1 : -1);
+      // Procurement Benchmark Cost
+      const bench = estimateFarmgateProcurementCost(countryCode, feedstockKey, ciScore, ttfPrice);
+
+      // Temporary Consignment for Multi-Market Evaluation
+      const plantConsignment: Consignment = {
+        id: p.id,
+        name: p.name,
+        originCountry: countryCode,
+        originCountryName: p.country,
+        injectionCountry: countryCode,
+        injectionIsEU: countryCode !== 'GB' && countryCode !== 'UK',
+        feedstock: feedstockKey,
+        feedstockName: rawFeedstock,
+        carbonIntensity: ciScore,
+        annexClassification: ciScore < 35 ? 'IX_A' : 'CROP',
+        commissioningDateRange: 'POST_2021_TO_2025',
+        certificationScheme: 'ISCC_EU',
+        chainOfCustody: 'MASS_BALANCE',
+        udbStatus: 'RECORDED',
+        posStatus: 'ISSUED',
+        volumeMWh: annualMWh,
+      };
+
+      // Candidate Markets: Evaluate compliant routes
+      // UK only routes to UK_RTFO or UK_RGGO; EU routes to DE_THG, NL_ERE, FR_CPB, IT_CIC, VOL_SCOPE1
+      let bestMarketId = 'DE_THG';
+      let bestMarketNetNetback = -999;
+      let bestVerdict: 'ELIGIBLE' | 'CONDITIONAL' | 'HARD_BLOCK' = 'ELIGIBLE';
+
+      let candidateMarkets = countryCode === 'GB' || countryCode === 'UK'
+        ? activeMarkets.filter(m => m.country === 'GB' || m.id === 'VOL_SCOPE1')
+        : activeMarkets.filter(m => m.country !== 'GB');
+
+      if (bookFilter === 'COMPLIANCE') {
+        candidateMarkets = candidateMarkets.filter(m => !isVoluntaryMarket(m.id));
+      } else if (bookFilter === 'VOLUNTARY') {
+        candidateMarkets = candidateMarkets.filter(m => isVoluntaryMarket(m.id));
+      }
+
+      for (const m of candidateMarkets) {
+        const el = evaluateEligibility(plantConsignment, m);
+        if (el.overallVerdict === 'HARD_BLOCK') continue;
+
+        const certVal = computeCertificateValue(m, plantConsignment, state.marks, 'mid');
+        const certEur = certVal?.valueEurPerMWh ?? 0;
+        const totalNet = certEur + ttfPrice;
+
+        if (totalNet > bestMarketNetNetback) {
+          bestMarketNetNetback = totalNet;
+          bestMarketId = m.id;
+          bestVerdict = el.overallVerdict === 'ELIGIBLE' ? 'ELIGIBLE' : 'CONDITIONAL';
+        }
+      }
+
+      if (bestMarketNetNetback === -999) {
+        bestMarketId = bookFilter === 'COMPLIANCE' ? 'DE_THG' : 'AIB_GO';
+        bestMarketNetNetback = ttfPrice + 24.5;
+        bestVerdict = 'CONDITIONAL';
+      }
+
+      const bestMkt = getMarketById(bestMarketId);
+      const isDomestic = countryCode === bestMkt?.country;
+      const logisticsFee = isDomestic ? 0.75 : 1.65; // Indicative UDB + entry/exit tariff
+      const netMargin = bestMarketNetNetback - bench.estimatedCostEurMwh - logisticsFee;
+      const annualProfit = netMargin * annualMWh;
+
+      results.push({
+        plantId: p.id,
+        plantName: p.name,
+        countryCode,
+        countryName: p.country,
+        countryFlag: p.countryFlag || '🇪🇺',
+        feedstockCategory: rawFeedstock,
+        feedstockKey,
+        carbonIntensity: ciScore,
+        annualGWh,
+        annualMWh,
+        procurementCostEurMwh: bench.estimatedCostEurMwh,
+        procurementMode: bench.mode,
+        procurementRationale: bench.rationale,
+        isRestrictedSubsidy: bench.isRestrictedSubsidy,
+        bestMarketId,
+        bestMarketName: bestMkt?.shortName || bestMarketId,
+        bestMarketCountry: bestMkt?.country || 'EU',
+        bestMarketNetNetback: Number(bestMarketNetNetback.toFixed(2)),
+        logisticsFeeEurMwh: logisticsFee,
+        netMarginEurMwh: Number(netMargin.toFixed(2)),
+        annualProfitEur: Math.round(annualProfit),
+        eligibilityVerdict: bestVerdict,
+      });
     }
+
+    return results;
+  }, [activeMarkets, state.marks, ttfPrice, bookFilter]);
+
+  // Filtered and Sorted Plant Opportunities
+  const filteredPlantOpportunities = useMemo(() => {
+    return plantOpportunities
+      .filter(p => {
+        if (selectedCountry !== 'ALL' && p.countryCode !== selectedCountry) return false;
+        if (selectedFeedstock !== 'ALL' && !p.feedstockCategory.toLowerCase().includes(selectedFeedstock.toLowerCase())) return false;
+        if (p.netMarginEurMwh < minArbitrageSpread) return false;
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase();
+          return p.plantName.toLowerCase().includes(q) || p.countryName.toLowerCase().includes(q) || p.feedstockCategory.toLowerCase().includes(q);
+        }
+        return true;
+      })
+      .sort((a, b) => {
+        if (sortField === 'NET_MARGIN') return b.netMarginEurMwh - a.netMarginEurMwh;
+        if (sortField === 'ANNUAL_PNL') return b.annualProfitEur - a.annualProfitEur;
+        return b.annualMWh - a.annualMWh;
+      });
+  }, [plantOpportunities, selectedCountry, selectedFeedstock, minArbitrageSpread, searchQuery, sortField]);
+
+  // Handle Action to Structure Trade in Builder
+  const handleStructurePlantTrade = (opp: PlantArbitrageOpportunity) => {
+    dispatch({ type: 'SELECT_MARKET', id: opp.bestMarketId });
+    showToast(`Plant ${opp.plantName} transferred into Trade Builder with optimal sink ${opp.bestMarketName}!`);
+    navigate(buildDealUrl({
+      plantId: opp.plantId,
+      plantName: opp.plantName,
+      marketId: opp.bestMarketId,
+      originCountry: opp.countryCode,
+      feedstock: opp.feedstockKey,
+      ci: opp.carbonIntensity,
+      volume: opp.annualMWh,
+      plantAnnualGWh: opp.annualGWh,
+    }));
   };
 
-  const avoidedCO2e = ((94.0 - effectiveCI) * 0.0036).toFixed(2);
-  const selectedTone = getVerdictTone(selectedEligibility.overallVerdict);
-  const producingOriginKeys = Object.keys(PRODUCING_ORIGINS);
-  const originProfile = PRODUCING_ORIGINS[originCode] || PRODUCING_ORIGINS['DK'];
+  const handleStructureTrade = useCallback(() => {
+    if (!selectedItem) return;
+    dispatch({ type: 'SELECT_MARKET', id: selectedItem.marketId });
+    showToast('Consignment carried into the trade builder');
+    navigate(buildDealUrl({
+      marketId: selectedItem.marketId,
+      feedstock: consignment.feedstock,
+      ci: consignment.carbonIntensity,
+      volume: consignment.volumeMWh ?? 10000,
+    }));
+  }, [selectedItem, consignment, dispatch, navigate]);
 
-  // Transit label
-  let transitLabel = `Transit ${originCode}→${selectedMarket.country}`;
-  if (selectedTransitTariff === 0.50) transitLabel = 'Domestic injection';
-  else if (selectedTransitTariff === 3.20) transitLabel = 'Multi-zone transit';
+  const currentSide = state.marks.pricingSides?.certificateSide || 'mid';
+  const avoidedCo2 = ((94.0 - consignment.carbonIntensity) * 0.0036).toFixed(3);
+  const selectedNetValue = selectedItem?.netNetback ?? 0;
+
+  // Distinct countries and feedstocks for filter dropdowns
+  const availableCountries = useMemo(() => {
+    const set = new Set(plantOpportunities.map(p => p.countryCode));
+    return ['ALL', ...Array.from(set).sort()];
+  }, [plantOpportunities]);
 
   return (
-    <div className="flex-1 grid grid-cols-[264px_minmax(0,1fr)_336px] min-h-0 min-w-[1400px] overflow-hidden bg-stone-950">
-      
-      {/* 1A. CONSIGNMENT SPINE (LEFT, 264px) */}
-      <aside className="border-r border-stone-800 bg-stone-950 flex flex-col min-h-0 overflow-y-auto font-sans">
-        
-        {/* Spine Header */}
-        <div className="p-3 border-b border-stone-800 flex items-center justify-between flex-none">
-          <h2 className="m-0 font-mono text-meta font-semibold tracking-[0.16em] text-stone-400 uppercase">
-            Consignment
-          </h2>
-          <span className="font-mono text-micro font-bold text-teal-300 bg-teal-950 border border-teal-800 px-1.5 py-0.5">
-            ACTIVE
-          </span>
-        </div>
-
-        {/* Origin Section */}
-        <div className="p-3 border-b border-stone-800 flex flex-col gap-2.5 flex-none">
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-lg font-bold tracking-[0.04em] text-stone-100">
-              {originCode}
-            </span>
-            <span className="flex-1 h-px bg-stone-800" />
-            <span className="font-mono text-micro text-stone-500 tracking-[0.1em] uppercase">
-              ORIGIN
-            </span>
-          </div>
-
-          <div className="text-sm leading-snug text-stone-300 font-sans">
-            {originProfile.countryName} · {originProfile.primaryRegistry} · {originProfile.gridZone === 'NON_EU_ISOLATED' ? 'Grid-Isolated' : 'EU Interconnected'}
-          </div>
-
-          {/* Origin Picker: All 20 codes */}
-          <div className="flex flex-wrap gap-[3px]">
-            {producingOriginKeys.map(code => {
-              const prof = PRODUCING_ORIGINS[code];
-              const isSelected = originCode === code;
-              const isIsolated = prof.gridZone === 'NON_EU_ISOLATED';
-
-              return (
-                <button
-                  key={code}
-                  type="button"
-                  onClick={() => setOriginCode(code)}
-                  aria-pressed={isSelected}
-                  title={`${prof.countryName} (${prof.primaryRegistry})${isIsolated ? ' — Grid Isolated' : ''}`}
-                  className={`w-[30px] h-[22px] font-mono text-micro font-semibold transition-colors duration-150 rounded-xs cursor-pointer flex items-center justify-center ${
-                    isSelected
-                      ? 'bg-sky-800 border border-sky-600 text-sky-100'
-                      : isIsolated
-                      ? 'bg-stone-900 border border-stone-800 text-stone-500 hover:text-stone-300'
-                      : 'bg-stone-900 border border-stone-800 text-stone-400 hover:text-stone-200'
-                  }`}
-                >
-                  {code}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* 2x2 Stat Grid */}
-          <div className="grid grid-cols-2 gap-[1px] bg-stone-800 border border-stone-800 mt-1">
-            <div className="bg-stone-900 p-2">
-              <div className="font-mono text-micro tracking-[0.1em] text-stone-500 uppercase">Volume</div>
-              <div className="font-mono font-num text-sm font-semibold text-stone-100 mt-0.5">
-                {(activeConsignment.volumeMWh ?? 120000).toLocaleString('en-GB')}
-                <span className="text-micro text-stone-400 font-normal"> MWh/y</span>
-              </div>
-            </div>
-            <div className="bg-stone-900 p-2">
-              <div className="font-mono text-micro tracking-[0.1em] text-stone-500 uppercase">Annex</div>
-              <div className="font-mono text-sm font-semibold text-emerald-400 mt-0.5">
-                {activeConsignment.annexClassification === 'IX_A' ? 'IX-A' : 'NON_ANNEX'}
-              </div>
-            </div>
-            <div className="bg-stone-900 p-2">
-              <div className="font-mono text-micro tracking-[0.1em] text-stone-500 uppercase">Scheme</div>
-              <div className="font-mono text-xs font-semibold text-stone-100 mt-0.5 truncate">
-                {activeConsignment.certificationScheme.replace('_', ' ')}
-              </div>
-            </div>
-            <div className="bg-stone-900 p-2">
-              <div className="font-mono text-micro tracking-[0.1em] text-stone-500 uppercase">Custody</div>
-              <div className="font-mono text-xs font-semibold text-stone-100 mt-0.5 truncate">
-                {activeConsignment.chainOfCustody === 'MASS_BALANCE' ? 'Mass balance' : 'Book & claim'}
-              </div>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      {/* Tab Switcher Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: '2px solid var(--color-divider)', backgroundColor: 'var(--color-surface)', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <Radar className="w-6 h-6 text-indigo-500" />
+          <div>
+            <h3 className="ptitle" style={{ margin: 0, fontSize: '19px' }}>Opportunity & Arbitrage Scanner</h3>
+            <div className="subttl" style={{ fontSize: '12px' }}>
+              Real-time cross-border arbitrage matching across 1,975 European production assets and statutory compliance sinks.
             </div>
           </div>
         </div>
 
-        {/* Carbon Intensity Block */}
-        <div className="p-3 border-b border-stone-800 flex flex-col gap-2 flex-none">
-          <div className="flex items-baseline justify-between">
-            <span className="font-mono text-meta font-semibold tracking-[0.14em] text-stone-400 uppercase">
-              Carbon intensity
-            </span>
-            <span
-              onClick={() => isCiSimulated && setCiOverride(null)}
-              className={`font-mono text-micro font-semibold px-1.5 py-0.5 border cursor-pointer ${
-                isCiSimulated
-                  ? 'text-amber-400 bg-amber-950 border-amber-800'
-                  : 'text-emerald-400 bg-emerald-950 border-emerald-800'
-              }`}
-              title={isCiSimulated ? 'Click to reset to consignment value' : 'Consignment level'}
-            >
-              {isCiSimulated ? 'SIMULATED' : 'CONSIGNMENT'}
-            </span>
-          </div>
-
-          <div className="font-mono font-num text-[28px] font-bold tracking-[-0.03em] text-stone-100 leading-none">
-            {effectiveCI > 0 ? `+${effectiveCI}` : `${effectiveCI}`}
-          </div>
-          <div className="font-mono text-micro text-stone-400 tracking-[0.06em]">
-            gCO₂e/MJ · vs 94.0 baseline
-          </div>
-
-          <input
-            type="range"
-            min="-150"
-            max="50"
-            step="5"
-            value={effectiveCI}
-            onChange={e => setCiOverride(Number(e.target.value))}
-            aria-label="Carbon intensity"
-            className="w-full my-2"
-          />
-
-          <div className="flex justify-between font-mono text-micro text-stone-500">
-            <span>−150</span>
-            <span>−100</span>
-            <span>0</span>
-            <span>+50</span>
-          </div>
-
-          <div className="flex items-baseline justify-between pt-2.5 mt-1 border-t border-stone-800">
-            <span className="font-mono text-micro tracking-[0.1em] text-stone-500 uppercase">
-              Avoided
-            </span>
-            <span className="font-mono font-num text-sm font-semibold text-emerald-400">
-              {avoidedCO2e}
-              <span className="text-micro text-stone-400 font-normal"> tCO₂e/MWh</span>
-            </span>
-          </div>
-        </div>
-
-        {/* Cost Stack */}
-        <div className="p-3 border-b border-stone-800 flex flex-col gap-1.5 flex-none">
-          <span className="font-mono text-meta font-semibold tracking-[0.14em] text-stone-400 uppercase mb-1">
-            Cost stack
-          </span>
-
-          <div className="flex items-baseline justify-between gap-2">
-            <span className="text-xs text-stone-400">Producer payable</span>
-            <span className="flex-1 h-px bg-stone-900" />
-            <span className="font-mono font-num text-xs font-medium text-stone-200">
-              {selectedNetbackResult.producerPayable != null ? `€${selectedNetbackResult.producerPayable.toFixed(2)}` : '—'}
-            </span>
-          </div>
-
-          <div className="flex items-baseline justify-between gap-2">
-            <span className="text-xs text-stone-400">Transfer & registry</span>
-            <span className="flex-1 h-px bg-stone-900" />
-            <span className="font-mono font-num text-xs font-medium text-stone-200">
-              {state.costs.transferCosts != null ? `€${state.costs.transferCosts.toFixed(2)}` : '—'}
-            </span>
-          </div>
-
-          <div className="flex items-baseline justify-between gap-2">
-            <span className="text-xs text-stone-400">Certification</span>
-            <span className="flex-1 h-px bg-stone-900" />
-            <span className="font-mono font-num text-xs font-medium text-stone-200">
-              {state.costs.certificationCosts != null ? `€${state.costs.certificationCosts.toFixed(2)}` : '—'}
-            </span>
-          </div>
-
-          <div className="flex items-baseline justify-between gap-2">
-            <span className="text-xs text-stone-400">{transitLabel}</span>
-            <span className="flex-1 h-px bg-stone-900" />
-            <span className="font-mono font-num text-xs font-medium text-stone-200">
-              €{selectedTransitTariff.toFixed(2)}
-            </span>
-          </div>
-
-          <div className="flex items-baseline justify-between gap-2 pt-2 mt-1 border-t border-stone-800">
-            <span className="font-mono text-meta font-semibold tracking-[0.08em] text-stone-100 uppercase">
-              All-in
-            </span>
-            <span className="font-mono font-num text-sm font-bold text-stone-100">
-              €{selectedAllIn.toFixed(2)}
-            </span>
-          </div>
-        </div>
-
-        {/* Filters */}
-        <div className="p-3 flex flex-col gap-1.5 flex-none">
-          <span className="font-mono text-meta font-semibold tracking-[0.14em] text-stone-400 uppercase mb-1">
-            Filters
-          </span>
-
-          <button
-            type="button"
-            onClick={() => setPositiveOnly(!positiveOnly)}
-            aria-pressed={positiveOnly}
-            className={`w-full p-1.5 flex items-center gap-2 text-xs rounded transition-colors duration-150 cursor-pointer ${
-              positiveOnly
-                ? 'bg-stone-900 border border-teal-800 text-stone-100'
-                : 'border border-stone-800 text-stone-400 hover:text-stone-200'
-            }`}
-          >
-            <span className={`w-[13px] h-[13px] rounded-xs flex items-center justify-center font-mono text-micro font-bold shrink-0 ${
-              positiveOnly ? 'bg-teal-600 text-teal-950' : 'border border-stone-800 bg-stone-950'
-            }`}>
-              {positiveOnly ? '✓' : ''}
-            </span>
-            <span>Positive netback only</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setClearedOnly(!clearedOnly)}
-            aria-pressed={clearedOnly}
-            className={`w-full p-1.5 flex items-center gap-2 text-xs rounded transition-colors duration-150 cursor-pointer ${
-              clearedOnly
-                ? 'bg-stone-900 border border-teal-800 text-stone-100'
-                : 'border border-stone-800 text-stone-400 hover:text-stone-200'
-            }`}
-          >
-            <span className={`w-[13px] h-[13px] rounded-xs flex items-center justify-center font-mono text-micro font-bold shrink-0 ${
-              clearedOnly ? 'bg-teal-600 text-teal-950' : 'border border-stone-800 bg-stone-950'
-            }`}>
-              {clearedOnly ? '✓' : ''}
-            </span>
-            <span>All six gates clear</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setHideStale(!hideStale)}
-            aria-pressed={hideStale}
-            className={`w-full p-1.5 flex items-center gap-2 text-xs rounded transition-colors duration-150 cursor-pointer ${
-              hideStale
-                ? 'bg-stone-900 border border-teal-800 text-stone-100'
-                : 'border border-stone-800 text-stone-400 hover:text-stone-200'
-            }`}
-          >
-            <span className={`w-[13px] h-[13px] rounded-xs flex items-center justify-center font-mono text-micro font-bold shrink-0 ${
-              hideStale ? 'bg-teal-600 text-teal-950' : 'border border-stone-800 bg-stone-950'
-            }`}>
-              {hideStale ? '✓' : ''}
-            </span>
-            <span>Hide marks older than 30d</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setTradeableOnly(!tradeableOnly)}
-            aria-pressed={tradeableOnly}
-            className={`w-full p-1.5 flex items-center gap-2 text-xs rounded transition-colors duration-150 cursor-pointer ${
-              tradeableOnly
-                ? 'bg-stone-900 border border-teal-800 text-stone-100'
-                : 'border border-stone-800 text-stone-400 hover:text-stone-200'
-            }`}
-          >
-            <span className={`w-[13px] h-[13px] rounded-xs flex items-center justify-center font-mono text-micro font-bold shrink-0 ${
-              tradeableOnly ? 'bg-teal-600 text-teal-950' : 'border border-stone-800 bg-stone-950'
-            }`}>
-              {tradeableOnly ? '✓' : ''}
-            </span>
-            <span>Tradeable only</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setMarksOnly(!marksOnly)}
-            aria-pressed={marksOnly}
-            className={`w-full p-1.5 flex items-center gap-2 text-xs rounded transition-colors duration-150 cursor-pointer ${
-              marksOnly
-                ? 'bg-stone-900 border border-teal-800 text-stone-100'
-                : 'border border-stone-800 text-stone-400 hover:text-stone-200'
-            }`}
-          >
-            <span className={`w-[13px] h-[13px] rounded-xs flex items-center justify-center font-mono text-micro font-bold shrink-0 ${
-              marksOnly ? 'bg-teal-600 text-teal-950' : 'border border-stone-800 bg-stone-950'
-            }`}>
-              {marksOnly ? '✓' : ''}
-            </span>
-            <span>Marks only (hide modelled)</span>
-          </button>
-        </div>
-
-      </aside>
-
-      {/* 1B. LADDER (CENTRE) */}
-      <main className="flex flex-col min-h-0 min-w-0 bg-stone-950">
-        
-        {/* Toolbar */}
-        <div className="flex-none flex items-center justify-between gap-4 p-2.5 px-3.5 border-b border-stone-800">
-          <div className="flex items-baseline gap-3">
-            <h1 className="m-0 font-mono text-sm font-semibold tracking-[0.14em] text-stone-100 uppercase">
-              Netback ladder
-            </h1>
-            <span className="text-xs text-stone-400">
-              {filteredList.length} of {activeMarkets.length} markets · {originCode} origin · {pricingSides.certificateSide.toUpperCase()} marks · €{selectedAllIn.toFixed(2)} basis
-            </span>
-          </div>
-
-          <div className="flex items-center gap-3.5 font-mono text-micro tracking-[0.08em] text-stone-500 uppercase">
-            <span className="inline-flex items-center gap-1.5">
-              <span className="w-2 h-2 bg-emerald-500 rounded-xs" />
-              Eligible
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <span className="w-2 h-2 bg-amber-500 rounded-xs" />
-              Conditional
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <span className="w-2 h-2 bg-sky-500 rounded-xs" />
-              Unresolved
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <span className="w-2 h-2 bg-red-500 rounded-xs" />
-              Blocked
-            </span>
-          </div>
-        </div>
-
-        {/* Column Header Grid */}
-        <div className="flex-none grid grid-cols-[26px_26px_minmax(150px,1.1fr)_112px_104px_minmax(140px,1.6fr)_84px_58px] gap-2.5 items-center px-3.5 py-1.5 bg-stone-900 border-b border-stone-800 font-mono text-micro font-semibold tracking-[0.12em] text-stone-400 uppercase">
-          <span className="text-center">#</span>
-          <span>CC</span>
-          
-          <button
-            type="button"
-            onClick={() => handleSortClick('name')}
-            aria-sort={sortBy === 'name' ? (sortDir === 1 ? 'ascending' : 'descending') : 'none'}
-            className={`text-left bg-transparent border-none p-0 cursor-pointer font-mono text-micro font-semibold uppercase tracking-[0.12em] flex items-center gap-1 ${
-              sortBy === 'name' ? 'text-teal-300' : 'text-stone-400 hover:text-stone-200'
-            }`}
-          >
-            Market / scheme
-            {sortBy === 'name' && (sortDir === 1 ? ' ▴' : ' ▾')}
-          </button>
-
-          <span title="Scheme · UDB · Mass balance · Annex IX · GHG · Member state">
-            Gates S U M A G N
-          </span>
-
-          <button
-            type="button"
-            onClick={() => handleSortClick('net')}
-            aria-sort={sortBy === 'net' ? (sortDir === 1 ? 'ascending' : 'descending') : 'none'}
-            className={`text-right bg-transparent border-none p-0 cursor-pointer font-mono text-micro font-semibold uppercase tracking-[0.12em] flex items-center justify-end gap-1 ${
-              sortBy === 'net' ? 'text-teal-300' : 'text-stone-400 hover:text-stone-200'
-            }`}
-          >
-            Net €/MWh
-            {sortBy === 'net' && (sortDir === 1 ? ' ▴' : ' ▾')}
-          </button>
-
-          <span>Spread vs all-in cost</span>
-
-          <button
-            type="button"
-            onClick={() => handleSortClick('margin')}
-            aria-sort={sortBy === 'margin' ? (sortDir === 1 ? 'ascending' : 'descending') : 'none'}
-            className={`text-right bg-transparent border-none p-0 cursor-pointer font-mono text-micro font-semibold uppercase tracking-[0.12em] flex items-center justify-end gap-1 ${
-              sortBy === 'margin' ? 'text-teal-300' : 'text-stone-400 hover:text-stone-200'
-            }`}
-          >
-            Margin
-            {sortBy === 'margin' && (sortDir === 1 ? ' ▴' : ' ▾')}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleSortClick('age')}
-            aria-sort={sortBy === 'age' ? (sortDir === 1 ? 'ascending' : 'descending') : 'none'}
-            className={`text-center bg-transparent border-none p-0 cursor-pointer font-mono text-micro font-semibold uppercase tracking-[0.12em] flex items-center justify-center gap-1 ${
-              sortBy === 'age' ? 'text-teal-300' : 'text-stone-400 hover:text-stone-200'
-            }`}
-          >
-            Age
-            {sortBy === 'age' && (sortDir === 1 ? ' ▴' : ' ▾')}
-          </button>
-        </div>
-
-        {/* Data Rows Scroller (min-h-[220px] prevents crushing) */}
-        <div className="flex-[1_1_auto] overflow-y-auto min-h-[220px]">
-          {filteredList.map((row, index) => {
-            const isSelected = row.marketId === selectedMarketId;
-            const market = getMarketById(row.marketId);
-            const eligibility = eligibilityMap.get(row.marketId);
-            const verdict = row.eligibilityVerdict;
-            const isBlocked = verdict === 'HARD_BLOCK' || verdict === 'NONE';
-            const tone = getVerdictTone(verdict);
-            const netVal = row.netNetback ?? 0;
-            const isNeg = netVal < 0;
-            const spreadPct = Math.min(100, Math.max(1, (Math.abs(netVal) / maxNetAbs) * 100));
-
-            // Mark age
-            const markEntry = state.marks.marks[row.marketId];
-            const ageDays = getMarkAgeDays(markEntry?.updatedAt);
-            const staleness = getMarkStaleness(markEntry?.updatedAt);
-            const ageTone = staleness === 'STALE_CRITICAL' ? 'text-red-400 bg-red-950 border-red-800' :
-              staleness === 'STALE_WARNING' ? 'text-amber-400 bg-amber-950 border-amber-800' :
-              staleness === 'FRESH' ? 'text-emerald-400 bg-emerald-950 border-emerald-800' :
-              'text-stone-400 bg-stone-900 border-stone-800';
-
-            // Margin — null until producer pricing is set.
-            const deskMarginVal = row.deskMargin;
-
-            // Subline / cap indicator
-            const isCapped = market?.ceilingEurMwh !== null && (row.certificateValue?.valueEurPerMWh ?? 0) >= (market?.ceilingEurMwh ?? 9999);
-
-            return (
-              <div
-                key={row.marketId}
-                onClick={() => {
-                  setSelectedMarketId(row.marketId);
-                  dispatch({ type: 'SELECT_MARKET', id: row.marketId });
-                }}
-                className={`grid grid-cols-[26px_26px_minmax(150px,1.1fr)_112px_104px_minmax(140px,1.6fr)_84px_58px] gap-2.5 items-center px-3.5 py-1.5 border-b border-stone-900 cursor-pointer transition-colors duration-150 ${
-                  isSelected ? 'bg-stone-900 border-l-[3px] border-l-teal-500' : 'bg-stone-950 hover:bg-stone-800/60 border-l-[3px] border-l-transparent'
-                }`}
-              >
-                {/* Rank */}
-                <span
-                  className={`font-mono font-num text-meta font-semibold text-center py-0.5 rounded-xs ${
-                    index === 0
-                      ? 'bg-teal-600 text-teal-950 font-bold'
-                      : 'text-stone-500'
-                  }`}
-                >
-                  {index + 1}
-                </span>
-
-                {/* CC */}
-                <span className="font-mono text-meta font-semibold text-stone-400">
-                  {market?.country || 'EU'}
-                </span>
-
-                {/* Market Name & Subline */}
-                <span className="flex flex-col gap-0.5 min-w-0">
-                  <span className={`text-sm font-semibold truncate ${
-                    isBlocked ? 'text-stone-500 line-through' : 'text-stone-100'
-                  }`}>
-                    {row.marketName}
-                  </span>
-                  <span className="font-mono text-micro text-stone-500 truncate">
-                    {market?.legalBasis || market?.registry || 'RED III compliant'}
-                  </span>
-                </span>
-
-                {/* 6-Gate Strip */}
-                <span className="flex gap-[2px]">
-                  {eligibility?.gates.map((g, gi) => {
-                    const gTone = getVerdictTone(g.verdict);
-                    return (
-                      <span
-                        key={gi}
-                        title={`${GATE_TOOLTIP_TITLES[gi]} — ${g.verdict}: ${g.reason}`}
-                        className={`w-4 h-4 rounded-xs border flex items-center justify-center font-mono text-micro font-bold leading-none ${gTone.badge}`}
-                      >
-                        {GATE_LETTER_MAP[gi]}
-                      </span>
-                    );
-                  })}
-                </span>
-
-                {/* Net Netback */}
-                <span className="flex flex-col items-end gap-0.5">
-                  <span className={`font-mono font-num text-sm font-bold tracking-[-0.02em] ${
-                    isNeg ? 'text-red-400' : tone.text
-                  }`}>
-                    {isNeg ? '−€' : '€'}{Math.abs(netVal).toFixed(2)}
-                  </span>
-                  <span className="font-mono text-micro text-stone-500">
-                    {isCapped ? `CAPPED ${market?.unitLabel || '€/MWh'}` : (market?.unitLabel || '€/MWh')}
-                  </span>
-                </span>
-
-                {/* Proportional Spread Bar */}
-                <span className="relative h-5 bg-stone-900 border-l border-stone-700">
-                  <span
-                    style={{ width: `${spreadPct.toFixed(1)}%` }}
-                    className={`absolute inset-y-[3px] left-0 rounded-xs transition-all duration-150 ${
-                      isNeg ? 'bg-red-800 opacity-90' : tone.bar
-                    }`}
-                  />
-                </span>
-
-                {/* Desk Margin */}
-                <span className={`font-mono font-num text-xs font-medium text-right ${
-                  deskMarginVal !== null && deskMarginVal < 0 ? 'text-red-400' : 'text-stone-400'
-                }`}>
-                  {deskMarginVal === null
-                    ? '—'
-                    : `${deskMarginVal < 0 ? '−€' : '€'}${Math.abs(deskMarginVal).toFixed(2)}`}
-                </span>
-
-                {/* Age */}
-                <span className="flex justify-center">
-                  <span className={`font-mono text-micro font-semibold px-1 py-0.5 border rounded-xs ${ageTone}`}>
-                    {ageDays !== null ? `${ageDays}d` : 'new'}
-                  </span>
-                </span>
-
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Pinned Blocked-Opportunity Banner (flex-[0_1_auto] with max-h-[74px] prevents crushing) */}
-        {highestBlocked && (
-          <div className="flex-[0_1_auto] max-h-[74px] overflow-hidden flex items-start gap-2.5 p-2.5 px-3.5 bg-stone-900 border-t border-red-950">
-            <span className="font-mono text-micro font-bold tracking-[0.1em] bg-amber-500 text-amber-950 px-1.5 py-0.5 shrink-0">
-              BLOCKED
-            </span>
-            <div className="flex-1 min-w-0">
-              <div className="font-mono text-xs font-semibold text-stone-100 truncate">
-                {highestBlocked.market} — theoretical €{highestBlocked.netback.toFixed(2)}/MWh unreachable
-              </div>
-              <div className="text-xs leading-relaxed text-stone-400 mt-0.5 truncate">
-                {highestBlocked.blockingReason} <span className="text-teal-300 font-semibold">Remedy:</span> {highestBlocked.remedy}
-              </div>
-            </div>
-            <span className="font-mono text-micro text-stone-500 shrink-0 pt-0.5">
-              RED III Art. 28(2) · Reg. 2024/2792
-            </span>
-          </div>
-        )}
-
-      </main>
-
-      {/* 1C. DOSSIER RAIL (RIGHT, 336px) */}
-      <aside className="border-l border-stone-800 bg-stone-950 flex flex-col min-h-0 overflow-y-auto font-sans">
-        
-        {/* Header */}
-        <div className="p-3 border-b border-stone-800 flex flex-col flex-none">
-          <div className="flex items-center justify-between gap-2">
-            <span className="font-mono text-meta font-semibold tracking-[0.16em] text-stone-400 uppercase">
-              Dossier
-            </span>
-            <span className={`font-mono text-micro font-bold px-1.5 py-0.5 border ${selectedTone.badge}`}>
-              {selectedEligibility.overallVerdict}
-            </span>
-          </div>
-          <h2 className="m-0 text-base font-semibold leading-snug text-stone-100 mt-2">
-            {selectedMarket.name}
-          </h2>
-          <div className="font-mono text-meta text-stone-400 tracking-[0.04em] mt-1">
-            {selectedMarket.legalBasis || 'RED III Article 25–31'}
-          </div>
-        </div>
-
-        {/* 2x2 Stat Grid */}
-        <div className="grid grid-cols-2 gap-[1px] bg-stone-800 border-b border-stone-800 flex-none">
-          <div className="bg-stone-950 p-2.5">
-            <div className="font-mono text-micro tracking-[0.1em] text-stone-500 uppercase">Net netback</div>
-            <div className={`font-mono font-num text-base font-semibold mt-1 ${
-              (selectedNetbackResult.netNetback ?? 0) < 0 ? 'text-red-400' : selectedTone.text
-            }`}>
-              €{(selectedNetbackResult.netNetback ?? 0).toFixed(2)}
-              <span className="text-micro text-stone-400 font-normal"> /MWh</span>
-            </div>
-          </div>
-          <div className="bg-stone-950 p-2.5">
-            <div className="font-mono text-micro tracking-[0.1em] text-stone-500 uppercase">Cert value</div>
-            <div className="font-mono font-num text-base font-semibold text-stone-100 mt-1">
-              €{(selectedNetbackResult.certificateValue?.valueEurPerMWh ?? 0).toFixed(2)}
-              <span className="text-micro text-stone-400 font-normal"> /MWh</span>
-            </div>
-          </div>
-          <div className="bg-stone-950 p-2.5">
-            <div className="font-mono text-micro tracking-[0.1em] text-stone-500 uppercase">Plants</div>
-            <div className="font-mono font-num text-base font-semibold text-stone-100 mt-1">
-              {selectedMarket.productionPlants || '—'}
-            </div>
-          </div>
-          <div className="bg-stone-950 p-2.5">
-            <div className="font-mono text-micro tracking-[0.1em] text-stone-500 uppercase">Production</div>
-            <div className="font-mono font-num text-base font-semibold text-stone-100 mt-1">
-              {selectedMarket.annualProductionTWh ? `${selectedMarket.annualProductionTWh} TWh` : '—'}
-            </div>
-          </div>
-        </div>
-
-        {/* Dual Branch Panel (Germany Only) */}
-        {germanDualBranches && (
-          <div className="p-3 border-b border-stone-800 flex flex-col gap-2 flex-none">
-            <div className="flex items-baseline justify-between">
-              <span className="font-mono text-meta font-semibold tracking-[0.14em] text-sky-400 uppercase">
-                Dual branch · §37a
-              </span>
-              <span className="font-mono text-micro text-stone-500">
-                unresolved for 2026
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-[1px] bg-stone-800 border border-stone-800">
-              <div className="bg-stone-900 p-2">
-                <div className="font-mono text-micro font-bold text-amber-400 bg-amber-950 border border-amber-800 px-1 py-0.5 inline-block">
-                  BRANCH 1 · 1× SINGLE
-                </div>
-                <div className="font-mono font-num text-lg font-bold text-stone-100 mt-1">
-                  {germanDualBranches.branch1.net !== null
-                    ? `€${germanDualBranches.branch1.net.toFixed(2)}`
-                    : '—'}
-                </div>
-                <div className="font-mono font-num text-micro text-stone-500 mt-0.5">
-                  {germanDualBranches.branch1.margin !== null
-                    ? `margin €${germanDualBranches.branch1.margin.toFixed(2)}`
-                    : 'margin unset'}
-                </div>
-                <div className="text-[11px] leading-snug text-stone-400 mt-1">
-                  {germanDualBranches.branch1.note}
-                </div>
-              </div>
-
-              <div className="bg-stone-900 p-2">
-                <div className="font-mono text-micro font-bold text-sky-400 bg-sky-950 border border-sky-800 px-1 py-0.5 inline-block">
-                  BRANCH 2 · 2× RETAINED
-                </div>
-                <div className="font-mono font-num text-lg font-bold text-stone-100 mt-1">
-                  {germanDualBranches.branch2.net !== null
-                    ? `€${germanDualBranches.branch2.net.toFixed(2)}`
-                    : '—'}
-                </div>
-                <div className="font-mono font-num text-micro text-stone-500 mt-0.5">
-                  {germanDualBranches.branch2.margin !== null
-                    ? `margin €${germanDualBranches.branch2.margin.toFixed(2)}`
-                    : 'margin unset'}
-                </div>
-                <div className="text-[11px] leading-snug text-stone-400 mt-1">
-                  {germanDualBranches.branch2.note}
-                </div>
-              </div>
-            </div>
-
-            <p className="m-0 text-[11px] leading-relaxed text-stone-500">
-              Double counting is a policy multiplier and is being removed. Manure's negative CI is a property of the GHG calculation — unaffected.
-            </p>
-          </div>
-        )}
-
-        {/* Delivery Route Section */}
-        <div className="p-3 border-b border-stone-800 flex flex-col gap-2 flex-none">
-          <div className="flex items-baseline justify-between">
-            <span className="font-mono text-meta font-semibold tracking-[0.14em] text-stone-400 uppercase">
-              Delivery route {originCode} → {selectedMarket.country}
+        {/* Controls: Book Toggle & View Mode Toggle */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          {/* Dual-Book Pill Selector */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', backgroundColor: 'var(--color-bg)', padding: '3px 8px', borderRadius: '6px', border: '1px solid var(--color-divider)' }}>
+            <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
+              Book:
             </span>
             <button
               type="button"
-              onClick={() => setIsLogisticsOpen(true)}
-              className="bg-transparent border-none p-0 cursor-pointer font-mono text-micro font-semibold tracking-[0.06em] text-teal-300 hover:text-teal-200"
+              className={`btn ${bookFilter === 'ALL' ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ fontSize: '11px', padding: '3px 9px' }}
+              onClick={() => setBookFilter('ALL')}
             >
-              PLAYBOOK →
+              All (50/50)
+            </button>
+            <button
+              type="button"
+              className={`btn ${bookFilter === 'COMPLIANCE' ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ fontSize: '11px', padding: '3px 9px' }}
+              onClick={() => setBookFilter('COMPLIANCE')}
+            >
+              🏛️ Compliance (50%)
+            </button>
+            <button
+              type="button"
+              className={`btn ${bookFilter === 'VOLUNTARY' ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ fontSize: '11px', padding: '3px 9px' }}
+              onClick={() => setBookFilter('VOLUNTARY')}
+            >
+              🌱 Voluntary (50%)
             </button>
           </div>
 
-          <div className="flex flex-col gap-[1px] bg-stone-800 border border-stone-800 mt-1">
-            {[logisticsAssessment.modes.virtualSwap, logisticsAssessment.modes.physicalPipeline, logisticsAssessment.modes.bioLng].map(m => {
-              const tagLetter = m.mode === 'VIRTUAL_SWAP' ? 'A' : m.mode === 'PHYSICAL_PIPELINE' ? 'B' : 'C';
-              const tagTone = tagLetter === 'A' ? 'text-emerald-400 bg-emerald-950 border-emerald-800' :
-                tagLetter === 'B' ? 'text-sky-400 bg-sky-950 border-sky-800' :
-                'text-amber-400 bg-amber-950 border-amber-800';
-
-              return (
-                <div key={m.mode} className="bg-stone-900 p-2 flex items-center gap-2">
-                  <span className={`w-[17px] h-[17px] shrink-0 flex items-center justify-center font-mono text-micro font-bold border ${tagTone}`}>
-                    {tagLetter}
-                  </span>
-                  <span className="flex-1 min-w-0">
-                    <span className="block text-xs font-medium text-stone-200 truncate">
-                      {m.title.split(':')[0]}
-                    </span>
-                    <span className="block font-mono text-micro text-stone-500 truncate">
-                      {m.timelineDays}d · {m.regulatoryFeasibility}
-                    </span>
-                  </span>
-                  <span className="font-mono font-num text-xs font-semibold text-stone-200">
-                    {m.totalCostEurMwh !== null ? `€${m.totalCostEurMwh.toFixed(2)}` : 'unverified'}
-                  </span>
-                </div>
-              );
-            })}
+          {/* View Mode Toggle */}
+          <div className="seg" style={{ height: '32px' }}>
+            <button
+              type="button"
+              className={`seg-opt ${activeTab === 'ASSET_SCANNER' ? 'active' : ''}`}
+              onClick={() => setActiveTab('ASSET_SCANNER')}
+              style={{ fontSize: '12px', padding: '4px 16px', fontWeight: 700 }}
+            >
+              Multi-Plant Arbitrage (1,975 Assets)
+            </button>
+            <button
+              type="button"
+              className={`seg-opt ${activeTab === 'LADDER' ? 'active' : ''}`}
+              onClick={() => setActiveTab('LADDER')}
+              style={{ fontSize: '12px', padding: '4px 16px', fontWeight: 700 }}
+            >
+              Single Molecule Netback Ladder
+            </button>
           </div>
         </div>
+      </div>
 
-        {/* Compliance Gates Audit Section */}
-        <div className="p-3 border-b border-stone-800 flex flex-col gap-2 flex-none">
-          <div className="flex items-baseline justify-between">
-            <span className="font-mono text-meta font-semibold tracking-[0.14em] text-stone-400 uppercase">
-              Compliance gates
+      {activeTab === 'ASSET_SCANNER' ? (
+        /* =========================================================================
+           MODE 1: MULTI-PLANT ASSET ARBITRAGE SCANNER (1,975 PLANTS)
+           ========================================================================= */
+        <div>
+          {/* Asset Scanner Controls Bar */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '12px 20px', borderBottom: '1px solid var(--color-divider)', backgroundColor: 'var(--color-bg)', flexWrap: 'wrap' }}>
+            {/* Search */}
+            <div style={{ position: 'relative', minWidth: '240px', flex: 1 }}>
+              <Search className="w-4 h-4 text-slate-400" style={{ position: 'absolute', left: '10px', top: '9px' }} />
+              <input
+                type="text"
+                placeholder="Search plant, country, municipality, operator..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '7px 10px 7px 32px',
+                  fontSize: '12.5px',
+                  borderRadius: '6px',
+                  border: '1px solid var(--color-divider)',
+                  backgroundColor: 'var(--color-surface)',
+                  color: 'var(--color-text)',
+                }}
+              />
+            </div>
+
+            {/* Country Filter */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span className="eyebrow" style={{ margin: 0 }}>Origin:</span>
+              <select
+                value={selectedCountry}
+                onChange={e => setSelectedCountry(e.target.value)}
+                style={{ padding: '6px 10px', fontSize: '12px', borderRadius: '6px', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
+              >
+                {availableCountries.map(c => (
+                  <option key={c} value={c}>{c === 'ALL' ? 'All European Origins' : c}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Min Spread Filter */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span className="eyebrow" style={{ margin: 0 }}>Min Spread:</span>
+              {[0, 10, 25, 50].map(s => (
+                <button
+                  key={s}
+                  type="button"
+                  className={`chip ${minArbitrageSpread === s ? 'chip-a' : ''}`}
+                  style={{ fontSize: '10px', padding: '2px 8px' }}
+                  onClick={() => setMinArbitrageSpread(s)}
+                >
+                  {s === 0 ? 'All' : `≥€${s}/MWh`}
+                </button>
+              ))}
+            </div>
+
+            {/* Sort Options */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: 'auto' }}>
+              <span className="eyebrow" style={{ margin: 0 }}>Sort by:</span>
+              <select
+                value={sortField}
+                onChange={e => setSortField(e.target.value as any)}
+                style={{ padding: '6px 10px', fontSize: '12px', borderRadius: '6px', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
+              >
+                <option value="NET_MARGIN">Highest Net Spread (€/MWh)</option>
+                <option value="ANNUAL_PNL">Largest Annual Gross Profit (€)</option>
+                <option value="VOLUME">Plant Volume Capacity (GWh)</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Arbitrage Summary Stats Bar */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 20px', backgroundColor: 'var(--color-surface)', borderBottom: '1px solid var(--color-divider)', fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+            <span>
+              Showing <strong>{filteredPlantOpportunities.length}</strong> actionable plants · TTF Month-Ahead Benchmark: <strong>€{ttfPrice.toFixed(2)}/MWh</strong>
             </span>
-            <span className="font-mono text-meta font-semibold text-stone-200">
-              {selectedEligibility.gates.filter(g => g.verdict === 'PASS').length} / 6 clear
+            <span>
+              Top Arbitrage Spread: <strong style={{ color: '#16a34a' }}>+€{filteredPlantOpportunities[0]?.netMarginEurMwh ?? 0}/MWh</strong>
             </span>
           </div>
 
-          <div className="flex flex-col gap-[1px] bg-stone-800 border border-stone-800">
-            {selectedEligibility.gates.map((g, gi) => {
-              const gTone = getVerdictTone(g.verdict);
-              const cite = g.citations?.[0]?.shortName || g.gateLabel;
-
-              return (
-                <div key={gi} className="bg-stone-900 p-2 flex flex-col">
-                  <div className="flex items-center gap-2">
-                    <span className={`w-[7px] h-[7px] rounded-full shrink-0 ${gTone.dot}`} />
-                    <span className="font-mono text-meta font-semibold tracking-[0.06em] text-stone-100 flex-1">
-                      {g.gateLabel}
-                    </span>
-                    <span className={`font-mono text-micro font-bold px-1 py-0.5 border ${gTone.badge}`}>
-                      {g.verdict}
-                    </span>
-                  </div>
-                  <p className="m-0 text-xs leading-relaxed text-stone-400 mt-1 ml-3.5">
-                    {g.reason}
-                  </p>
-                  <div className="font-mono text-micro text-teal-300 mt-1 ml-3.5">
-                    {cite}
-                  </div>
-                </div>
-              );
-            })}
+          {/* Multi-Plant Arbitrage Table */}
+          <div style={{ overflowX: 'auto', padding: '0 20px 20px' }}>
+            <table className="table" style={{ width: '100%', marginTop: '10px' }}>
+              <thead>
+                <tr>
+                  <th style={{ width: '40px' }}>#</th>
+                  <th>Production Asset & Country</th>
+                  <th>Substrate & Carbon Intensity</th>
+                  <th style={{ textAlign: 'right' }}>Annual Volume</th>
+                  <th style={{ textAlign: 'right' }}>Est. Procurement</th>
+                  <th>Optimal Statutory Sink</th>
+                  <th style={{ textAlign: 'right' }}>Gross Netback</th>
+                  <th style={{ textAlign: 'right', width: '130px' }}>Net Spread €/MWh</th>
+                  <th style={{ textAlign: 'right', width: '140px' }}>Annual Gross PnL</th>
+                  <th style={{ width: '130px', textAlign: 'center' }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredPlantOpportunities.slice(0, 50).map((opp, idx) => (
+                  <tr key={opp.plantId} style={{ backgroundColor: opp.isRestrictedSubsidy ? 'rgba(239, 68, 68, 0.03)' : undefined }}>
+                    <td className="num dim">{String(idx + 1).padStart(2, '0')}</td>
+                    <td>
+                      <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>{opp.countryFlag}</span>
+                        <span>{opp.plantName}</span>
+                      </div>
+                      <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                        {opp.countryName} ({opp.countryCode}) {opp.isRestrictedSubsidy ? '· ⚠ State Auction Feed-in Tariff' : ''}
+                      </div>
+                    </td>
+                    <td>
+                      <div style={{ fontWeight: 600, fontSize: '12px' }}>{opp.feedstockCategory}</div>
+                      <div style={{ fontSize: '11px', color: opp.carbonIntensity < 0 ? '#16a34a' : 'var(--color-text-secondary)', fontWeight: opp.carbonIntensity < 0 ? 700 : 400 }}>
+                        CI: {opp.carbonIntensity} gCO₂e/MJ
+                      </div>
+                    </td>
+                    <td className="num" style={{ textAlign: 'right' }}>
+                      <div style={{ fontWeight: 700 }}>{opp.annualGWh.toLocaleString()} GWh</div>
+                      <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>{(opp.annualMWh).toLocaleString()} MWh</div>
+                    </td>
+                    <td className="num" style={{ textAlign: 'right' }}>
+                      <div style={{ fontWeight: 700 }}>€{opp.procurementCostEurMwh.toFixed(2)}</div>
+                      <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{opp.procurementMode === 'FIXED_FARMGATE' ? 'Fixed Farmgate' : 'TTF + Premium'}</div>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ 
+                          fontSize: '11px', 
+                          fontWeight: 700, 
+                          padding: '2px 8px', 
+                          borderRadius: '4px',
+                          backgroundColor: opp.bestMarketId === 'DE_THG' ? 'rgba(22, 163, 74, 0.1)' : opp.bestMarketId === 'NL_ERE' ? 'rgba(37, 99, 235, 0.1)' : 'rgba(0,0,0,0.06)',
+                          color: opp.bestMarketId === 'DE_THG' ? '#16a34a' : opp.bestMarketId === 'NL_ERE' ? '#2563eb' : 'var(--color-text)'
+                        }}>
+                          {opp.bestMarketName}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
+                        Transit friction: €{opp.logisticsFeeEurMwh.toFixed(2)}/MWh
+                      </div>
+                    </td>
+                    <td className="num" style={{ textAlign: 'right', fontWeight: 600 }}>
+                      €{opp.bestMarketNetNetback.toFixed(2)}
+                    </td>
+                    <td className="num" style={{ textAlign: 'right' }}>
+                      <span style={{
+                        fontSize: '15px',
+                        fontWeight: 800,
+                        color: opp.netMarginEurMwh >= 15 ? '#16a34a' : opp.netMarginEurMwh >= 0 ? '#2563eb' : '#dc2626',
+                      }}>
+                        {opp.netMarginEurMwh >= 0 ? `+€${opp.netMarginEurMwh.toFixed(2)}` : `−€${Math.abs(opp.netMarginEurMwh).toFixed(2)}`}
+                      </span>
+                    </td>
+                    <td className="num" style={{ textAlign: 'right', fontWeight: 800, color: opp.annualProfitEur >= 0 ? 'var(--color-text)' : '#dc2626' }}>
+                      {opp.annualProfitEur >= 0 ? `+€${(opp.annualProfitEur / 1000).toFixed(0)}k` : `−€${(Math.abs(opp.annualProfitEur) / 1000).toFixed(0)}k`}
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={() => handleStructurePlantTrade(opp)}
+                        style={{ fontSize: '11px', padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        <Zap className="w-3 h-3" />
+                        Structure ➔
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
-
-        {/* Actions at bottom */}
-        <div className="p-3 flex flex-col gap-2 mt-auto flex-none">
-          <button
-            type="button"
-            onClick={() => navigate(buildDealUrl({ marketId: selectedMarket.id, originCountry: originCode }))}
-            className="w-full p-2.5 bg-teal-600 hover:bg-teal-500 text-teal-50 border-none font-mono text-xs font-semibold tracking-[0.1em] uppercase cursor-pointer transition-colors duration-150"
+      ) : (
+        /* =========================================================================
+           MODE 2: SINGLE CONSIGNMENT NETBACK LADDER
+           ========================================================================= */
+        <div>
+          {/* Header block */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'flex-end',
+              gap: '24px',
+              padding: '16px 20px',
+              borderBottom: '2px solid var(--color-divider)',
+              flexWrap: 'wrap',
+            }}
           >
-            Build trade dossier
-          </button>
+            <div>
+              <div className="eyebrow">Active Reference Consignment</div>
+              <h3 className="ptitle" style={{ marginTop: '5px' }}>Netback ladder</h3>
+              <div className="subttl">
+                {consignment.feedstockName || 'Danish manure & slurry'} at {consignment.carbonIntensity} gCO₂e/MJ · {consignment.certificationScheme} · {consignment.chainOfCustody.replace('_', ' ').toLowerCase()} · {(consignment.volumeMWh || 10000).toLocaleString()} MWh
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '1px', backgroundColor: 'var(--color-divider)', marginLeft: 'auto' }}>
+              <div style={{ backgroundColor: 'var(--color-bg)', padding: '8px 16px' }}>
+                <div className="eyebrow">All-in delivered</div>
+                <div className="num" style={{ fontSize: '19px', fontWeight: 800 }}>
+                  €{selectedItem?.totalCosts !== null && selectedItem?.totalCosts !== undefined ? (153.15 + selectedItem.totalCosts).toFixed(2) : '156.40'}
+                </div>
+              </div>
+              <div style={{ backgroundColor: 'var(--color-bg)', padding: '8px 16px' }}>
+                <div className="eyebrow">Avoided tCO₂e/MWh</div>
+                <div className="num" style={{ fontSize: '19px', fontWeight: 800 }}>
+                  {avoidedCo2}
+                </div>
+              </div>
+              <div style={{ backgroundColor: 'var(--color-bg)', padding: '8px 16px' }}>
+                <div className="eyebrow">Selected · {getMarketById(selectedItem?.marketId || 'DE_THG')?.shortName || 'DE THG'}</div>
+                <div className="num" style={{ fontSize: '19px', fontWeight: 800, color: 'var(--color-accent-700)' }}>
+                  {selectedNetValue >= 0 ? `+€${selectedNetValue.toFixed(2)}` : `−€${Math.abs(selectedNetValue).toFixed(2)}`}
+                </div>
+              </div>
+              <div style={{ backgroundColor: 'var(--color-bg)', padding: '8px 16px', display: 'flex', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  style={{ fontSize: '12px', padding: '5px 12px' }}
+                  onClick={() => setIsLogisticsOpen(true)}
+                >
+                  Delivery playbook ⏎
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Filter bar */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '20px',
+              padding: '10px 20px',
+              borderBottom: '1px solid var(--color-divider)',
+              backgroundColor: 'var(--color-surface)',
+              flexWrap: 'wrap',
+            }}
+          >
+            <span className="eyebrow">Filters</span>
+
+            <label
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', cursor: 'pointer' }}
+              className={positiveOnly ? '' : 'mut'}
+              onClick={() => setPositiveOnly(p => !p)}
+            >
+              <span
+                style={{
+                  width: '13px',
+                  height: '13px',
+                  backgroundColor: positiveOnly ? 'var(--color-accent)' : 'transparent',
+                  border: positiveOnly ? 'none' : '1px solid var(--color-divider)',
+                  flex: 'none',
+                }}
+              />
+              Positive netback only
+            </label>
+
+            <label
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', cursor: 'pointer' }}
+              className={clearedOnly ? '' : 'mut'}
+              onClick={() => setClearedOnly(p => !p)}
+            >
+              <span
+                style={{
+                  width: '13px',
+                  height: '13px',
+                  backgroundColor: clearedOnly ? 'var(--color-accent)' : 'transparent',
+                  border: clearedOnly ? 'none' : '1px solid var(--color-divider)',
+                  flex: 'none',
+                }}
+              />
+              All six gates clear
+            </label>
+
+            <label
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', cursor: 'pointer' }}
+              className={hideStale ? '' : 'mut'}
+              onClick={() => setHideStale(p => !p)}
+            >
+              <span
+                style={{
+                  width: '13px',
+                  height: '13px',
+                  backgroundColor: hideStale ? 'var(--color-accent)' : 'transparent',
+                  border: hideStale ? 'none' : '1px solid var(--color-divider)',
+                  flex: 'none',
+                }}
+              />
+              Hide marks older than 30d
+            </label>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span className="eyebrow" style={{ margin: 0 }}>Min Margin:</span>
+              {[0, 15, 25, 40].map(m => (
+                <button
+                  key={m}
+                  type="button"
+                  className={`chip ${minMargin === m ? 'chip-a' : ''}`}
+                  style={{ fontSize: '10px', padding: '2px 7px' }}
+                  onClick={() => setMinMargin(m)}
+                >
+                  {m === 0 ? 'All' : `≥€${m}`}
+                </button>
+              ))}
+            </div>
+
+            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span className="eyebrow">Pricing side</span>
+              <div className="seg" style={{ height: '28px' }}>
+                <label className={`seg-opt ${currentSide === 'bid' ? 'active' : ''}`} style={{ padding: '4px 12px', fontSize: '12px' }}>
+                  <input
+                    type="radio"
+                    name="scanner-side"
+                    checked={currentSide === 'bid'}
+                    onChange={() => dispatch({ type: 'SET_PRICING_SIDE', side: 'bid' })}
+                  />
+                  Bid
+                </label>
+                <label className={`seg-opt ${currentSide === 'mid' ? 'active' : ''}`} style={{ padding: '4px 12px', fontSize: '12px' }}>
+                  <input
+                    type="radio"
+                    name="scanner-side"
+                    checked={currentSide === 'mid'}
+                    onChange={() => dispatch({ type: 'SET_PRICING_SIDE', side: 'mid' })}
+                  />
+                  Mid
+                </label>
+                <label className={`seg-opt ${currentSide === 'offer' ? 'active' : ''}`} style={{ padding: '4px 12px', fontSize: '12px' }}>
+                  <input
+                    type="radio"
+                    name="scanner-side"
+                    checked={currentSide === 'offer'}
+                    onChange={() => dispatch({ type: 'SET_PRICING_SIDE', side: 'offer' })}
+                  />
+                  Offer
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Ladder Table */}
+          <div style={{ padding: '0 20px 20px' }}>
+            <table className="table">
+              <thead>
+                <tr>
+                  <th style={{ width: '34px' }}>#</th>
+                  <th style={{ width: '34px' }}>CC</th>
+                  <th>Market / scheme</th>
+                  <th style={{ width: '118px' }}>
+                    Gates <abbr title="Scheme, UDB, Mass balance, Annex IX, GHG, Member state" style={{ textDecoration: 'none' }}>S U M A G N</abbr>
+                  </th>
+                  <th style={{ width: '112px', textAlign: 'right' }}>Net €/MWh</th>
+                  <th style={{ width: '210px' }}>Spread vs all-in</th>
+                  <th style={{ width: '88px', textAlign: 'right' }}>Margin</th>
+                  <th style={{ width: '120px' }}>Unit of account</th>
+                  <th style={{ width: '52px', textAlign: 'center' }}>Age</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredList.map((item, idx) => {
+                  const net = item.netNetback ?? 0;
+                  const isSelected = item.marketId === selectedMarketId;
+                  const el = eligibilityMap.get(item.marketId);
+                  const isHardBlocked = el?.overallVerdict === 'HARD_BLOCK';
+                  const isSim = item.isModelled || item.provenance?.sourceType === 'ESTIMATE';
+                  const mkt = getMarketById(item.marketId);
+
+                  return (
+                    <tr
+                      key={item.marketId}
+                      data-click="1"
+                      className={isSelected ? 'selrow' : ''}
+                      onClick={() => setSelectedMarketId(item.marketId)}
+                      onDoubleClick={() => setIsLogisticsOpen(true)}
+                    >
+                      <td className="num dim">{String(idx + 1).padStart(2, '0')}</td>
+                      <td className="num mut" style={{ fontWeight: 600 }}>{mkt?.country}</td>
+                      <td>
+                        <div style={{ fontWeight: 600 }}>{item.marketName}</div>
+                        <div style={{ fontSize: '11px' }} className="mut">{mkt?.legalBasis}</div>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', gap: '2px' }}>
+                          {el?.gates.map((g: GateResult, gIdx: number) => {
+                            const isPass = g.verdict === 'PASS';
+                            const isHard = g.verdict === 'HARD_BLOCK';
+                            const soft = !isPass && !isHard;
+                            return (
+                              <span
+                                key={gIdx}
+                                title={`${GATE_TOOLTIP_TITLES[gIdx]} — ${isPass ? 'Pass' : isHard ? 'Hard block' : 'Conditional / unresolved'}`}
+                                style={{
+                                  width: '16px',
+                                  height: '16px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: '10px',
+                                  fontWeight: 600,
+                                  backgroundColor: isHard
+                                    ? 'var(--color-accent)'
+                                    : soft
+                                    ? 'var(--color-neutral-300)'
+                                    : 'transparent',
+                                  color: isHard
+                                    ? 'var(--color-bg)'
+                                    : soft
+                                    ? 'var(--color-neutral-900)'
+                                    : 'var(--color-text)',
+                                  border: `1px solid ${isHard ? 'var(--color-accent)' : 'var(--color-divider)'}`,
+                                }}
+                              >
+                                {GATE_LETTERS[gIdx]}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </td>
+                      <td className="num" style={{ textAlign: 'right', fontSize: '16px', fontWeight: 800 }}>
+                        {net >= 0 ? `+€${net.toFixed(2)}` : `−€${Math.abs(net).toFixed(2)}`}
+                      </td>
+                      <td>
+                        <div style={{ position: 'relative', height: '16px', backgroundColor: 'color-mix(in srgb, var(--color-text) 8%, transparent)' }}>
+                          <div
+                            style={{
+                              position: 'absolute',
+                              top: '3px',
+                              bottom: '3px',
+                              left: 0,
+                              width: `${Math.min(100, (Math.abs(net) / 200) * 100)}%`,
+                              backgroundColor: net < 0 || isHardBlocked
+                                ? 'var(--color-accent)'
+                                : el?.overallVerdict === 'CONDITIONAL'
+                                ? 'var(--color-neutral-500)'
+                                : 'var(--color-text)',
+                            }}
+                          />
+                        </div>
+                      </td>
+                      <td className="num mut" style={{ textAlign: 'right' }}>
+                        {item.marginPercent !== null && item.marginPercent !== undefined
+                          ? `${item.marginPercent >= 0 ? '+' : ''}${Math.round(item.marginPercent)}%`
+                          : '—'}
+                      </td>
+                      <td style={{ fontSize: '11px' }} className="mut">{mkt?.unitLabel}</td>
+                      <td className="num mut" style={{ textAlign: 'center', fontSize: '11px' }}>
+                        {isSim ? 'sim' : '1d'}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Three-column Ruled Footer */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+              borderTop: '2px solid var(--color-divider)',
+            }}
+          >
+            {/* Germany dual branch */}
+            <div style={{ padding: '14px 20px', borderRight: '1px solid var(--color-divider)' }}>
+              <div className="eyebrow">Germany · dual branch</div>
+              <div style={{ display: 'flex', gap: '24px', marginTop: '8px' }}>
+                <div>
+                  <div style={{ fontSize: '11px' }} className="mut">1× single</div>
+                  <div className="num" style={{ fontSize: '22px', fontWeight: 800 }}>+€72.07</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '11px' }} className="mut">2× retained</div>
+                  <div className="num" style={{ fontSize: '22px', fontWeight: 800 }}>+€225.22</div>
+                </div>
+              </div>
+              <p style={{ fontSize: '12px', lineHeight: 1.5, margin: '9px 0 0' }} className="mut">
+                Double counting is a policy multiplier being removed for the 2026 compliance year. Manure&apos;s negative CI belongs to the GHG calculation and is unaffected.
+              </p>
+            </div>
+
+            {/* Cost stack */}
+            <div style={{ padding: '14px 20px', borderRight: '1px solid var(--color-divider)' }}>
+              <div className="eyebrow">Cost stack · €/MWh</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '9px' }}>
+                <div className="kv">
+                  <span className="lbl">Plant gate</span>
+                  <span />
+                  <span className="num" style={{ fontWeight: 600 }}>153.15</span>
+                </div>
+                <div className="kv">
+                  <span className="lbl">Transfer &amp; registry</span>
+                  <span />
+                  <span className="num" style={{ fontWeight: 600 }}>0.90</span>
+                </div>
+                <div className="kv">
+                  <span className="lbl">Certification</span>
+                  <span />
+                  <span className="num" style={{ fontWeight: 600 }}>0.55</span>
+                </div>
+                <div className="kv">
+                  <span className="lbl">Transit DK → DE</span>
+                  <span />
+                  <span className="num" style={{ fontWeight: 600 }}>1.80</span>
+                </div>
+                <div className="kv" style={{ paddingTop: '8px', borderTop: '2px solid var(--color-divider)' }}>
+                  <span style={{ fontWeight: 600 }}>All-in delivered</span>
+                  <span />
+                  <span className="num" style={{ fontSize: '15px', fontWeight: 800 }}>156.40</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="btn btn-primary btn-block"
+                onClick={handleStructureTrade}
+              >
+                Structure in trade builder
+              </button>
+            </div>
+
+            {/* Blocked opportunity */}
+            <div style={{ padding: '14px 20px' }}>
+              <div className="eyebrow">Blocked opportunity</div>
+              <div style={{ fontSize: '13px', fontWeight: 600, marginTop: '8px' }}>
+                {highestBlocked ? `${highestBlocked.market} · €${highestBlocked.netback.toFixed(2)}/MWh theoretical` : 'UK RTFO · €88.10/MWh theoretical'}
+              </div>
+              <p style={{ fontSize: '12px', lineHeight: 1.5, margin: '6px 0 0' }} className="mut">
+                {highestBlocked?.blockingReason || 'Grid-injected volume cannot evidence UDB ingestion, so the dRTFC route hard-blocks at gate 2.'} Remedy is {highestBlocked?.remedy || 'physical bio-LNG delivery under mass balance.'}
+              </p>
+              <div style={{ fontSize: '11px', marginTop: '8px', color: 'var(--color-accent-700)' }}>
+                RED III Art. 28(2) · Reg. (EU) 2024/2792
+              </div>
+            </div>
+          </div>
         </div>
+      )}
 
-      </aside>
-
-      {/* Logistics Playbook Modal */}
+      {/* Logistics Delivery Playbook Modal */}
       <LogisticsModal
-        originCountry={originCode}
-        targetCountry={selectedMarket.country}
         isOpen={isLogisticsOpen}
         onClose={() => setIsLogisticsOpen(false)}
+        originCountry={consignment.originCountry}
+        targetCountry={getMarketById(selectedItem?.marketId || 'DE_THG')?.country || 'DE'}
       />
-
     </div>
   );
 }

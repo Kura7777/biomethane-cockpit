@@ -187,15 +187,15 @@ export function InstitutionalOfftakePanel() {
   return (
     <div className="space-y-4">
       {/* 1. Top Banner & Presets */}
-      <div className="bg-stone-900 border border-stone-800 rounded-xl p-4 shadow-xl">
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-3 pb-3 border-b border-stone-800">
+      <div className="bg-[#0e1118] border border-[#1e2433] rounded-xl p-4 shadow-xl">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-3 pb-3 border-b border-[#1e2433]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-teal-950 border border-teal-700 flex items-center justify-center text-teal-400">
+            <div className="w-8 h-8 rounded-lg bg-cyan-950/40 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
               <FileText className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="font-mono text-sm font-bold text-stone-100">
+                <h2 className="font-mono text-sm font-bold text-zinc-100">
                   Institutional Long-Term Offtake Structurer
                 </h2>
                 {offtakeConfig.isIllustrative ? (
@@ -204,28 +204,28 @@ export function InstitutionalOfftakePanel() {
                     <span>ILLUSTRATIVE ARCHETYPE</span>
                   </span>
                 ) : (
-                  <span className="text-[10px] text-teal-400 bg-teal-950 border border-teal-800 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                  <span className="text-[10px] text-cyan-400 bg-cyan-950/40 border border-cyan-500/40 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
                     <ShieldCheck className="w-3 h-3" />
                     <span>VERIFIED CONTRACT: {offtakeConfig.sourceDocument}</span>
                   </span>
                 )}
               </div>
-              <p className="text-xs text-stone-400 mt-0.5">
+              <p className="text-xs text-zinc-400 mt-0.5">
                 Decoupled Physical Gas (0.99 × Spot Index) &amp; Environmental Attribute (PoS + GoO) with Dynamic CI True-Up &amp; SDE++ Arbitrage
               </p>
             </div>
           </div>
 
           {/* Heating Value Basis Selector */}
-          <div className="flex items-center gap-2 bg-stone-950 p-1 rounded-lg border border-stone-800">
-            <span className="text-[10px] font-mono text-stone-400 px-2 uppercase font-bold">Energy Basis:</span>
+          <div className="flex items-center gap-2 bg-[#08090d] p-1 rounded-lg border border-[#1e2433]">
+            <span className="text-[10px] font-mono text-zinc-400 px-2 uppercase font-bold">Energy Basis:</span>
             <button
               type="button"
               onClick={() => setHeatingValueBasis('HHV')}
               className={`px-2.5 py-1 rounded text-xs font-mono font-bold transition-all cursor-pointer ${
                 heatingValueBasis === 'HHV'
-                  ? 'bg-teal-600 text-stone-950 shadow'
-                  : 'text-stone-400 hover:text-stone-200'
+                  ? 'bg-cyan-600 text-stone-950 shadow'
+                  : 'text-zinc-400 hover:text-zinc-200'
               }`}
             >
               HHV (Gross - VertiCer/UK)
@@ -235,8 +235,8 @@ export function InstitutionalOfftakePanel() {
               onClick={() => setHeatingValueBasis('LHV')}
               className={`px-2.5 py-1 rounded text-xs font-mono font-bold transition-all cursor-pointer ${
                 heatingValueBasis === 'LHV'
-                  ? 'bg-teal-600 text-stone-950 shadow'
-                  : 'text-stone-400 hover:text-stone-200'
+                  ? 'bg-cyan-600 text-stone-950 shadow'
+                  : 'text-zinc-400 hover:text-zinc-200'
               }`}
             >
               LHV (Net - Nabisy/RED III)
@@ -246,15 +246,15 @@ export function InstitutionalOfftakePanel() {
 
         {/* Contract Templates */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[11px] font-mono text-stone-400 uppercase font-semibold">Contract Archetypes:</span>
+          <span className="text-[11px] font-mono text-zinc-400 uppercase font-semibold">Contract Archetypes:</span>
           {OFFTAKE_PRESETS.map((preset, idx) => (
             <button
               key={idx}
               type="button"
               onClick={() => handleApplyPreset(preset)}
-              className="px-2.5 py-1 bg-stone-950 hover:bg-stone-800 border border-stone-800 hover:border-teal-700/60 rounded-md text-[11px] font-mono text-stone-300 transition-all cursor-pointer flex items-center gap-1.5"
+              className="px-2.5 py-1 bg-[#08090d] hover:bg-[#141824] border border-[#1e2433] hover:border-cyan-500/40/60 rounded-md text-[11px] font-mono text-zinc-300 transition-all cursor-pointer flex items-center gap-1.5"
             >
-              <Building2 className="w-3 h-3 text-teal-400" />
+              <Building2 className="w-3 h-3 text-cyan-400" />
               <span>{preset.name}</span>
               {preset.isIllustrative && (
                 <span className="text-[9px] text-amber-400 bg-amber-950 px-1 py-0.2 rounded">SIM</span>
@@ -270,11 +270,11 @@ export function InstitutionalOfftakePanel() {
         {/* ========================================================================= */}
         {/* COLUMN 1: LEG A - PHYSICAL GAS SUPPLY (THE MOLECULE) */}
         {/* ========================================================================= */}
-        <div className="bg-stone-900/90 border border-stone-800 rounded-xl p-4 flex flex-col space-y-3.5 shadow-lg">
-          <div className="flex items-center justify-between pb-2 border-b border-stone-800">
+        <div className="bg-[#0e1118] border border-[#1e2433] rounded-xl p-4 flex flex-col space-y-3.5 shadow-lg">
+          <div className="flex items-center justify-between pb-2 border-b border-[#1e2433]">
             <div className="flex items-center gap-2">
               <Flame className="w-4 h-4 text-amber-400" />
-              <h3 className="font-mono text-xs font-bold uppercase text-stone-200 tracking-wider">
+              <h3 className="font-mono text-xs font-bold uppercase text-zinc-200 tracking-wider">
                 Leg A: Physical Gas (Molecule)
               </h3>
             </div>
@@ -286,7 +286,7 @@ export function InstitutionalOfftakePanel() {
           <div className="space-y-3 font-mono text-xs">
             {/* Spot Benchmark Hub */}
             <div>
-              <label className="block text-[11px] text-stone-400 mb-1 font-semibold">Wholesale Gas Hub &amp; Index</label>
+              <label className="block text-[11px] text-zinc-400 mb-1 font-semibold">Wholesale Gas Hub &amp; Index</label>
               <div className="grid grid-cols-3 gap-1.5">
                 {(['TTF', 'THE', 'PEG', 'NBP', 'PSV', 'PVB'] as const).map(hub => (
                   <button
@@ -299,7 +299,7 @@ export function InstitutionalOfftakePanel() {
                     className={`py-1 px-2 rounded border text-center transition-all cursor-pointer ${
                       offtakeConfig.physicalGasLeg.benchmarkHub === hub
                         ? 'bg-amber-950 border-amber-600 text-amber-300 font-bold'
-                        : 'bg-stone-950 border-stone-800 text-stone-400 hover:text-stone-200'
+                        : 'bg-[#08090d] border-[#1e2433] text-zinc-400 hover:text-zinc-200'
                     }`}
                   >
                     {hub} Spot
@@ -311,7 +311,7 @@ export function InstitutionalOfftakePanel() {
             {/* Benchmark Price Input & Contract Factor */}
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-[10px] text-stone-400 mb-1">
+                <label className="block text-[10px] text-zinc-400 mb-1">
                   Desk Spot Gas (€/MWh) <span className="text-amber-400">{liveGasIndex != null ? `(Mid: €${liveGasIndex.toFixed(2)})` : '*Live'}</span>
                 </label>
                 <input
@@ -326,12 +326,12 @@ export function InstitutionalOfftakePanel() {
                       physicalGasLeg: { ...prev.physicalGasLeg, marketBenchmarkPriceEurPerMWh: val }
                     }));
                   }}
-                  className="w-full bg-stone-950 border border-stone-800 rounded px-2.5 py-1.5 text-stone-100 font-bold focus:border-amber-500 outline-none"
+                  className="w-full bg-[#08090d] border border-[#1e2433] rounded px-2.5 py-1.5 text-zinc-100 font-bold focus:border-amber-500 outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] text-stone-400 mb-1">Contract Factor</label>
+                <label className="block text-[10px] text-zinc-400 mb-1">Contract Factor</label>
                 <input
                   type="number"
                   step="0.01"
@@ -343,24 +343,24 @@ export function InstitutionalOfftakePanel() {
                       physicalGasLeg: { ...prev.physicalGasLeg, indexDiscountFactor: val }
                     }));
                   }}
-                  className="w-full bg-stone-950 border border-stone-800 rounded px-2.5 py-1.5 text-stone-100 font-bold focus:border-amber-500 outline-none"
+                  className="w-full bg-[#08090d] border border-[#1e2433] rounded px-2.5 py-1.5 text-zinc-100 font-bold focus:border-amber-500 outline-none"
                 />
               </div>
             </div>
 
             {/* TSO Entry & Shipper Fees */}
-            <div className="p-2.5 bg-stone-950 rounded-lg border border-stone-800/80 space-y-2">
+            <div className="p-2.5 bg-[#08090d] rounded-lg border border-[#1e2433] space-y-2">
               <div className="flex justify-between items-center text-[11px]">
-                <span className="text-stone-400">TSO Entry Capacity Booking:</span>
-                <span className="text-stone-200 font-semibold">
+                <span className="text-zinc-400">TSO Entry Capacity Booking:</span>
+                <span className="text-zinc-200 font-semibold">
                   {offtakeConfig.physicalGasLeg.entryCapacityBookingCostEurPerMWh != null
                     ? `-€${offtakeConfig.physicalGasLeg.entryCapacityBookingCostEurPerMWh.toFixed(2)}/MWh`
                     : 'Unset (€0.00)'}
                 </span>
               </div>
               <div className="flex justify-between items-center text-[11px]">
-                <span className="text-stone-400">Shipper Nomination Fee:</span>
-                <span className="text-stone-200 font-semibold">
+                <span className="text-zinc-400">Shipper Nomination Fee:</span>
+                <span className="text-zinc-200 font-semibold">
                   {offtakeConfig.physicalGasLeg.shipperNominationFeeEurPerMWh != null
                     ? `-€${offtakeConfig.physicalGasLeg.shipperNominationFeeEurPerMWh.toFixed(2)}/MWh`
                     : 'Unset (€0.00)'}
@@ -371,16 +371,16 @@ export function InstitutionalOfftakePanel() {
             {/* Net Physical Leg Output */}
             <div className="p-3 bg-amber-950/40 border border-amber-800/70 rounded-lg">
               <div className="flex justify-between items-center">
-                <span className="text-stone-300 font-semibold">Net Physical Gas Value:</span>
+                <span className="text-zinc-300 font-semibold">Net Physical Gas Value:</span>
                 <span className="text-base font-bold text-amber-300">
                   {pricingResult.physicalDeliveredNetCostEurPerMWh != null ? (
-                    <>€{pricingResult.physicalDeliveredNetCostEurPerMWh.toFixed(2)} <span className="text-xs text-stone-400">/ MWh</span></>
+                    <>€{pricingResult.physicalDeliveredNetCostEurPerMWh.toFixed(2)} <span className="text-xs text-zinc-400">/ MWh</span></>
                   ) : (
-                    <span className="text-xs text-stone-400 font-normal">Pending gas mark</span>
+                    <span className="text-xs text-zinc-400 font-normal">Pending gas mark</span>
                   )}
                 </span>
               </div>
-              <div className="flex items-center gap-1.5 text-[10px] text-stone-400 mt-2">
+              <div className="flex items-center gap-1.5 text-[10px] text-zinc-400 mt-2">
                 <Receipt className="w-3 h-3 text-amber-400" />
                 <span>Settlement: Invoiced monthly on the 20th day following delivery</span>
               </div>
@@ -391,11 +391,11 @@ export function InstitutionalOfftakePanel() {
         {/* ========================================================================= */}
         {/* COLUMN 2: LEG B - ENVIRONMENTAL ATTRIBUTES & DYNAMIC CI SLIDER */}
         {/* ========================================================================= */}
-        <div className="bg-stone-900/90 border border-stone-800 rounded-xl p-4 flex flex-col space-y-3.5 shadow-lg">
-          <div className="flex items-center justify-between pb-2 border-b border-stone-800">
+        <div className="bg-[#0e1118] border border-[#1e2433] rounded-xl p-4 flex flex-col space-y-3.5 shadow-lg">
+          <div className="flex items-center justify-between pb-2 border-b border-[#1e2433]">
             <div className="flex items-center gap-2">
               <Zap className="w-4 h-4 text-emerald-400" />
-              <h3 className="font-mono text-xs font-bold uppercase text-stone-200 tracking-wider">
+              <h3 className="font-mono text-xs font-bold uppercase text-zinc-200 tracking-wider">
                 Leg B: Environmental Certificate (PoS + GoO)
               </h3>
             </div>
@@ -408,7 +408,7 @@ export function InstitutionalOfftakePanel() {
             {/* Base Certificate Price & Base CI */}
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-[10px] text-stone-400 mb-1">Contract Base Price (€/MWh)</label>
+                <label className="block text-[10px] text-zinc-400 mb-1">Contract Base Price (€/MWh)</label>
                 <input
                   type="number"
                   step="0.5"
@@ -423,12 +423,12 @@ export function InstitutionalOfftakePanel() {
                       }
                     }));
                   }}
-                  className="w-full bg-stone-950 border border-stone-800 rounded px-2.5 py-1.5 text-stone-100 font-bold focus:border-emerald-500 outline-none"
+                  className="w-full bg-[#08090d] border border-[#1e2433] rounded px-2.5 py-1.5 text-zinc-100 font-bold focus:border-emerald-500 outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] text-stone-400 mb-1">Base CI (gCO₂e/MJ)</label>
+                <label className="block text-[10px] text-zinc-400 mb-1">Base CI (gCO₂e/MJ)</label>
                 <input
                   type="number"
                   step="1"
@@ -443,7 +443,7 @@ export function InstitutionalOfftakePanel() {
                       }
                     }));
                   }}
-                  className="w-full bg-stone-950 border border-stone-800 rounded px-2.5 py-1.5 text-stone-100 font-bold focus:border-emerald-500 outline-none"
+                  className="w-full bg-[#08090d] border border-[#1e2433] rounded px-2.5 py-1.5 text-zinc-100 font-bold focus:border-emerald-500 outline-none"
                 />
               </div>
             </div>
@@ -451,9 +451,9 @@ export function InstitutionalOfftakePanel() {
             {/* Delivered CI Slider */}
             <div>
               <div className="flex justify-between items-center mb-1">
-                <label className="text-[11px] text-stone-300 font-semibold">Actual Delivered Batch CI:</label>
+                <label className="text-[11px] text-zinc-300 font-semibold">Actual Delivered Batch CI:</label>
                 <span className="font-bold text-emerald-400 text-sm">
-                  {effectiveDeliveredCi.toFixed(1)} <span className="text-[10px] text-stone-400">gCO₂e/MJ</span>
+                  {effectiveDeliveredCi.toFixed(1)} <span className="text-[10px] text-zinc-400">gCO₂e/MJ</span>
                 </span>
               </div>
               <input
@@ -474,20 +474,20 @@ export function InstitutionalOfftakePanel() {
             </div>
 
             {/* Compression Toggle (+4.6 gCO2e/MJ) */}
-            <div className="flex items-center justify-between p-2 bg-stone-950 rounded border border-stone-800">
+            <div className="flex items-center justify-between p-2 bg-[#08090d] rounded border border-[#1e2433]">
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
                   id="compression-check"
                   checked={includeCompression}
                   onChange={e => setIncludeCompression(e.target.checked)}
-                  className="rounded border-stone-700 accent-teal-500 cursor-pointer"
+                  className="rounded border-[#2b3347] accent-cyan-400 cursor-pointer"
                 />
-                <label htmlFor="compression-check" className="text-[11px] text-stone-300 cursor-pointer">
+                <label htmlFor="compression-check" className="text-[11px] text-zinc-300 cursor-pointer">
                   Add +4.6 g Grid Compression Emissions
                 </label>
               </div>
-              <span className="text-[10px] text-stone-500">Excl. at plant gate</span>
+              <span className="text-[10px] text-zinc-500">Excl. at plant gate</span>
             </div>
 
             {/* Buyer Rejection Warning Banner */}
@@ -504,18 +504,18 @@ export function InstitutionalOfftakePanel() {
             {/* CI Slider Formula Breakdown */}
             <div className="p-3 bg-emerald-950/40 border border-emerald-800/70 rounded-lg space-y-1.5">
               <div className="flex justify-between items-center text-[11px]">
-                <span className="text-stone-400">CI Slider True-Up (0.65 × ΔCI):</span>
+                <span className="text-zinc-400">CI Slider True-Up (0.65 × ΔCI):</span>
                 <span className={`font-bold ${pricingResult.ciSliderAdjustmentEurPerMWh >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                   {pricingResult.ciSliderAdjustmentEurPerMWh >= 0 ? '+' : ''}€{pricingResult.ciSliderAdjustmentEurPerMWh.toFixed(2)}/MWh
                 </span>
               </div>
               <div className="flex justify-between items-center text-xs">
-                <span className="text-stone-300 font-semibold">Final Certificate Contract Price:</span>
+                <span className="text-zinc-300 font-semibold">Final Certificate Contract Price:</span>
                 <span className="text-base font-bold text-emerald-300">
-                  €{pricingResult.finalCertificatePriceEurPerMWh.toFixed(2)} <span className="text-xs text-stone-400">/ MWh</span>
+                  €{pricingResult.finalCertificatePriceEurPerMWh.toFixed(2)} <span className="text-xs text-zinc-400">/ MWh</span>
                 </span>
               </div>
-              <div className="flex items-center gap-1.5 text-[10px] text-stone-400 pt-1 border-t border-emerald-900/50">
+              <div className="flex items-center gap-1.5 text-[10px] text-zinc-400 pt-1 border-t border-emerald-900/50">
                 <Receipt className="w-3 h-3 text-emerald-400" />
                 <span>Settlement: Invoiced 10 business days after electronic transfer</span>
               </div>
@@ -526,41 +526,41 @@ export function InstitutionalOfftakePanel() {
         {/* ========================================================================= */}
         {/* COLUMN 3: COMBINED VALUE STACK & STATE SUBSIDY (SDE++) ARBITRAGE */}
         {/* ========================================================================= */}
-        <div className="bg-stone-900/90 border border-stone-800 rounded-xl p-4 flex flex-col space-y-3.5 shadow-lg">
-          <div className="flex items-center justify-between pb-2 border-b border-stone-800">
+        <div className="bg-[#0e1118] border border-[#1e2433] rounded-xl p-4 flex flex-col space-y-3.5 shadow-lg">
+          <div className="flex items-center justify-between pb-2 border-b border-[#1e2433]">
             <div className="flex items-center gap-2">
-              <Scale className="w-4 h-4 text-teal-400" />
-              <h3 className="font-mono text-xs font-bold uppercase text-stone-200 tracking-wider">
+              <Scale className="w-4 h-4 text-cyan-400" />
+              <h3 className="font-mono text-xs font-bold uppercase text-zinc-200 tracking-wider">
                 SDE++ Arbitrage &amp; Ledger
               </h3>
             </div>
-            <span className="font-mono text-[10px] bg-teal-950/80 border border-teal-800 text-teal-400 px-2 py-0.5 rounded font-semibold">
+            <span className="font-mono text-[10px] bg-cyan-950/40 border border-cyan-500/40 text-cyan-400 px-2 py-0.5 rounded font-semibold">
               Clause 25.6 Fidelity
             </span>
           </div>
 
           <div className="space-y-3 font-mono text-xs">
             {/* Total Combined Delivered Price (Unsupported) */}
-            <div className="p-3 bg-stone-950 rounded-xl border border-stone-800">
-              <div className="text-[10px] uppercase font-bold text-stone-400">Total Combined Offtake Price (Unsupported)</div>
-              <div className="text-2xl font-black text-teal-300 mt-0.5">
+            <div className="p-3 bg-[#08090d] rounded-xl border border-[#1e2433]">
+              <div className="text-[10px] uppercase font-bold text-zinc-400">Total Combined Offtake Price (Unsupported)</div>
+              <div className="text-2xl font-black text-cyan-300 mt-0.5">
                 {pricingResult.totalDeliveredOfftakePriceEurPerMWh != null ? (
                   <>€{pricingResult.totalDeliveredOfftakePriceEurPerMWh.toFixed(2)}{' '}
-                  <span className="text-xs font-normal text-stone-400">/ MWh ({heatingValueBasis})</span></>
+                  <span className="text-xs font-normal text-zinc-400">/ MWh ({heatingValueBasis})</span></>
                 ) : (
-                  <span className="text-sm font-semibold text-stone-400">Pending physical gas mark</span>
+                  <span className="text-sm font-semibold text-zinc-400">Pending physical gas mark</span>
                 )}
               </div>
-              <div className="text-[11px] text-stone-400 mt-1 flex justify-between">
+              <div className="text-[11px] text-zinc-400 mt-1 flex justify-between">
                 <span>Annual Output Range:</span>
-                <strong className="text-stone-200">
+                <strong className="text-zinc-200">
                   {offtakeConfig.flowProfile.estimatedAnnualVolumeMinMWh.toLocaleString()} – {offtakeConfig.flowProfile.estimatedAnnualVolumeMaxMWh.toLocaleString()} MWh
                 </strong>
               </div>
               {pricingResult.totalAnnualRevenueMinEur != null && pricingResult.totalAnnualRevenueMaxEur != null && (
-                <div className="text-[11px] text-stone-400 mt-0.5 flex justify-between">
+                <div className="text-[11px] text-zinc-400 mt-0.5 flex justify-between">
                   <span>Est. Annual Turnover:</span>
-                  <strong className="text-teal-400">
+                  <strong className="text-cyan-400">
                     €{pricingResult.totalAnnualRevenueMinEur.toLocaleString()} – €{pricingResult.totalAnnualRevenueMaxEur.toLocaleString()}/y
                   </strong>
                 </div>
@@ -568,10 +568,10 @@ export function InstitutionalOfftakePanel() {
             </div>
 
             {/* SDE++ Support Switching Widget */}
-            <div className="p-3 bg-stone-950 rounded-xl border border-stone-800 space-y-2.5">
+            <div className="p-3 bg-[#08090d] rounded-xl border border-[#1e2433] space-y-2.5">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-stone-300 flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
+                <span className="text-[11px] font-bold text-zinc-300 flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
                   <span>Buyer Support Switching Option (Clause 25.6)</span>
                 </span>
                 <button
@@ -589,7 +589,7 @@ export function InstitutionalOfftakePanel() {
                   className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-all cursor-pointer ${
                     offtakeConfig.subsidySwitching.activeSupport === 'NETHERLANDS_SDE_PLUS_PLUS'
                       ? 'bg-emerald-950 border-emerald-600 text-emerald-300'
-                      : 'bg-stone-900 border-stone-700 text-stone-400 hover:text-stone-200'
+                      : 'bg-[#0e1118] border-[#2b3347] text-zinc-400 hover:text-zinc-200'
                   }`}
                 >
                   {offtakeConfig.subsidySwitching.activeSupport === 'NETHERLANDS_SDE_PLUS_PLUS' ? 'SDE+ ACTIVE' : 'UNSUPPORTED'}
@@ -597,22 +597,22 @@ export function InstitutionalOfftakePanel() {
               </div>
 
               {/* Exact Statutory 4-Term Formula Breakdown */}
-              <div className="space-y-1.5 text-[11px] p-2 bg-stone-900/90 rounded border border-stone-800">
+              <div className="space-y-1.5 text-[11px] p-2 bg-[#0e1118] rounded border border-[#1e2433]">
                 <div className="flex justify-between">
-                  <span className="text-stone-400">SDE Payout from RVO:</span>
+                  <span className="text-zinc-400">SDE Payout from RVO:</span>
                   <span className="text-emerald-400 font-semibold">
                     {pricingResult.sdePaymentFromRvoEurPerMWh != null ? `€${pricingResult.sdePaymentFromRvoEurPerMWh.toFixed(2)}/MWh` : 'Unset'}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-stone-400">Supported Cert Price from Buyer (54 + 1 - SDE):</span>
+                  <span className="text-zinc-400">Supported Cert Price from Buyer (54 + 1 - SDE):</span>
                   <span className="text-amber-300 font-semibold">
                     {pricingResult.supportedCertificatePriceEurPerMWh != null ? `€${pricingResult.supportedCertificatePriceEurPerMWh.toFixed(2)}/MWh` : 'Unset'}
                   </span>
                 </div>
-                <div className="flex justify-between pt-1 border-t border-stone-800 font-bold">
-                  <span className="text-stone-300">Total Seller Supported Cert Revenue:</span>
-                  <span className="text-teal-300">€{pricingResult.totalSellerCertificateRevenueEurPerMWh.toFixed(2)}/MWh</span>
+                <div className="flex justify-between pt-1 border-t border-[#1e2433] font-bold">
+                  <span className="text-zinc-300">Total Seller Supported Cert Revenue:</span>
+                  <span className="text-cyan-300">€{pricingResult.totalSellerCertificateRevenueEurPerMWh.toFixed(2)}/MWh</span>
                 </div>
               </div>
 
@@ -622,7 +622,7 @@ export function InstitutionalOfftakePanel() {
                   ? 'bg-emerald-950/70 border-emerald-700 text-emerald-300'
                   : pricingResult.optimalSupportState === 'SWITCH_ON_SUBSIDY'
                     ? 'bg-sky-950/70 border-sky-700 text-sky-300'
-                    : 'bg-stone-900 border-stone-700 text-stone-400'
+                    : 'bg-[#0e1118] border-[#2b3347] text-zinc-400'
               }`}>
                 <Sparkles className="w-3.5 h-3.5 shrink-0" />
                 <span>
@@ -636,20 +636,20 @@ export function InstitutionalOfftakePanel() {
             </div>
 
             {/* Flow Capacity & Prolongation Info */}
-            <div className="p-2.5 bg-stone-950 rounded-lg border border-stone-800 text-[11px] text-stone-400 space-y-1">
+            <div className="p-2.5 bg-[#08090d] rounded-lg border border-[#1e2433] text-[11px] text-zinc-400 space-y-1">
               <div className="flex justify-between">
                 <span>Hourly Flow Ceiling:</span>
-                <strong className="text-stone-200">{offtakeConfig.flowProfile.maximumHourlyFlowMWhPerHour} MWh/h (1,000 Nm³/h)</strong>
+                <strong className="text-zinc-200">{offtakeConfig.flowProfile.maximumHourlyFlowMWhPerHour} MWh/h (1,000 Nm³/h)</strong>
               </div>
               <div className="flex justify-between">
                 <span>Annual Range:</span>
-                <strong className="text-stone-200">
+                <strong className="text-zinc-200">
                   {offtakeConfig.flowProfile.estimatedAnnualVolumeMinMWh.toLocaleString()} – {offtakeConfig.flowProfile.estimatedAnnualVolumeMaxMWh.toLocaleString()} MWh/y
                 </strong>
               </div>
               <div className="flex justify-between">
                 <span>Contract Duration:</span>
-                <strong className="text-stone-200">{offtakeConfig.deliveryPeriod.startYear} – {offtakeConfig.deliveryPeriod.endYear} (+1y Option)</strong>
+                <strong className="text-zinc-200">{offtakeConfig.deliveryPeriod.startYear} – {offtakeConfig.deliveryPeriod.endYear} (+1y Option)</strong>
               </div>
             </div>
           </div>
@@ -658,16 +658,16 @@ export function InstitutionalOfftakePanel() {
       </div>
 
       {/* 3. Institutional Commercial Terms Gates (12-Gate Financial Consequence Audit) */}
-      <div className="bg-stone-900 border border-stone-800 rounded-xl p-4 shadow-xl space-y-3">
-        <div className="flex flex-wrap items-center justify-between pb-3 border-b border-stone-800 gap-2">
+      <div className="bg-[#0e1118] border border-[#1e2433] rounded-xl p-4 shadow-xl space-y-3">
+        <div className="flex flex-wrap items-center justify-between pb-3 border-b border-[#1e2433] gap-2">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-teal-400" />
-            <h3 className="font-mono text-xs font-bold uppercase text-stone-100 tracking-wider">
+            <ShieldCheck className="w-4 h-4 text-cyan-400" />
+            <h3 className="font-mono text-xs font-bold uppercase text-zinc-100 tracking-wider">
               Commercial Terms Gates — Financial Consequence &amp; Counterparty Question Audit
             </h3>
           </div>
           <div className="flex items-center gap-3">
-            <span className="font-mono text-[11px] text-stone-400">
+            <span className="font-mono text-[11px] text-zinc-400">
               Unpriced Counterparty Options: <strong className="text-amber-400">{commercialAssessment.unpricedOptionCount}</strong>
             </span>
             <span className={`font-mono text-[11px] font-bold px-2 py-0.5 rounded border ${
@@ -694,7 +694,7 @@ export function InstitutionalOfftakePanel() {
                 key={idx} 
                 className={`p-2.5 rounded-lg border flex flex-col justify-between space-y-2 ${
                   isPass
-                    ? 'bg-stone-950 border-stone-800/80'
+                    ? 'bg-[#08090d] border-[#1e2433]'
                     : isCond
                       ? 'bg-amber-950/20 border-amber-800/50'
                       : 'bg-red-950/20 border-red-800/50'
@@ -702,7 +702,7 @@ export function InstitutionalOfftakePanel() {
               >
                 <div>
                   <div className="flex items-center justify-between gap-1.5 mb-1">
-                    <span className="font-bold text-stone-200 text-[11px] truncate">{g.gateLabel}</span>
+                    <span className="font-bold text-zinc-200 text-[11px] truncate">{g.gateLabel}</span>
                     <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded border shrink-0 ${
                       isPass
                         ? 'bg-emerald-950 text-emerald-400 border-emerald-800'
@@ -713,17 +713,17 @@ export function InstitutionalOfftakePanel() {
                       {g.verdict}
                     </span>
                   </div>
-                  <p className="text-[10px] text-stone-400 leading-relaxed font-sans">{g.reason}</p>
+                  <p className="text-[10px] text-zinc-400 leading-relaxed font-sans">{g.reason}</p>
                 </div>
 
-                <div className="pt-2 border-t border-stone-800/60 space-y-1 text-[10px]">
+                <div className="pt-2 border-t border-[#1e2433] space-y-1 text-[10px]">
                   <div className="flex justify-between items-center">
-                    <span className="text-stone-500">Economic Consequence:</span>
-                    <span className="font-bold text-stone-300">
+                    <span className="text-zinc-500">Economic Consequence:</span>
+                    <span className="font-bold text-zinc-300">
                       {g.impactEurPerMWh !== null ? `€${g.impactEurPerMWh.toFixed(2)}/MWh` : 'Unpriced'}
                     </span>
                   </div>
-                  <div className="text-[9px] text-stone-500 font-sans italic">{g.impactBasis}</div>
+                  <div className="text-[9px] text-zinc-500 font-sans italic">{g.impactBasis}</div>
                   
                   {/* Actionable Counterparty Question when not PASS */}
                   {g.question && (

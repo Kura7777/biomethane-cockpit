@@ -337,24 +337,24 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-stone-950 font-sans">
+    <div className="flex-1 flex flex-col min-h-0 bg-[#08090d] font-sans">
       
       {/* Top Banner / Metrics */}
-      <div className="p-3 px-4 border-b border-stone-800 bg-stone-900/60 flex items-center justify-between flex-none gap-4">
+      <div className="p-3 px-4 border-b border-[#1e2433] bg-[#0e1118] flex items-center justify-between flex-none gap-4">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-xs bg-amber-950 border border-amber-800/80 text-amber-400 flex items-center justify-center font-bold">
             <FileSpreadsheet className="w-4 h-4" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-xs font-bold font-mono tracking-wider text-stone-100 uppercase">
+              <h2 className="text-xs font-bold font-mono tracking-wider text-zinc-100 uppercase">
                 European Biomethane OTC Broker Run &amp; Order Book
               </h2>
               <span className="px-2 py-0.5 font-mono text-[10px] font-bold rounded-xs bg-amber-950 border border-amber-800 text-amber-300">
                 EDITABLE ORDER BOOK
               </span>
             </div>
-            <p className="text-[11px] text-stone-400 font-mono mt-0.5">
+            <p className="text-[11px] text-zinc-400 font-mono mt-0.5">
               Live Interactive Bids, Offers &amp; Volumes across UK RGGOs and European GOs
             </p>
           </div>
@@ -362,20 +362,20 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
 
         {/* Quick Metrics & Actions */}
         <div className="flex items-center gap-3 font-mono text-xs">
-          <div className="bg-stone-950 border border-stone-800 px-3 py-1.5 rounded-xs flex flex-col">
-            <span className="text-[10px] text-stone-500 uppercase">Quotes</span>
-            <span className="font-bold text-stone-200 font-num">{orders.length} Rows</span>
+          <div className="bg-[#08090d] border border-[#1e2433] px-3 py-1.5 rounded-xs flex flex-col">
+            <span className="text-[10px] text-zinc-500 uppercase">Quotes</span>
+            <span className="font-bold text-zinc-200 font-num">{orders.length} Rows</span>
           </div>
 
-          <div className="bg-stone-950 border border-stone-800 px-3 py-1.5 rounded-xs flex flex-col">
-            <span className="text-[10px] text-stone-500 uppercase">Order Depth</span>
-            <span className="font-bold text-teal-300 font-num">
+          <div className="bg-[#08090d] border border-[#1e2433] px-3 py-1.5 rounded-xs flex flex-col">
+            <span className="text-[10px] text-zinc-500 uppercase">Order Depth</span>
+            <span className="font-bold text-cyan-300 font-num">
               {totalBidGWh} GWh Bid · {totalOfferGWh} GWh Offer
             </span>
           </div>
 
-          <div className="bg-stone-950 border border-stone-800 px-3 py-1.5 rounded-xs flex flex-col">
-            <span className="text-[10px] text-stone-500 uppercase">TTF Gas Index</span>
+          <div className="bg-[#08090d] border border-[#1e2433] px-3 py-1.5 rounded-xs flex flex-col">
+            <span className="text-[10px] text-zinc-500 uppercase">TTF Gas Index</span>
             <span className="font-bold text-emerald-300 font-num">
               {ttfGasMid !== null ? `€${ttfGasMid.toFixed(2)} / MWh` : '—'}
             </span>
@@ -384,7 +384,7 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
           <button
             type="button"
             onClick={handleAddNewRow}
-            className="px-3 py-2 bg-teal-600 hover:bg-teal-500 text-teal-950 font-bold rounded-xs cursor-pointer transition-colors flex items-center gap-1.5 shadow-sm"
+            className="px-3 py-2 bg-cyan-500 text-black font-bold hover:bg-cyan-500 text-teal-950 font-bold rounded-xs cursor-pointer transition-colors flex items-center gap-1.5 shadow-sm"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add Quote</span>
@@ -393,7 +393,7 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
           <button
             type="button"
             onClick={handleResetBaseline}
-            className="p-2 bg-stone-900 hover:bg-stone-800 border border-stone-700 text-stone-300 hover:text-stone-100 rounded-xs cursor-pointer transition-colors"
+            className="p-2 bg-[#0e1118] hover:bg-[#141824] border border-[#2b3347] text-zinc-300 hover:text-zinc-100 rounded-xs cursor-pointer transition-colors"
             title="Reset to default baseline broker sheet"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -402,24 +402,24 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
       </div>
 
       {/* Toolbar & Filters */}
-      <div className="p-2.5 px-4 border-b border-stone-800 bg-stone-900 flex flex-wrap items-center justify-between gap-3 flex-none">
+      <div className="p-2.5 px-4 border-b border-[#1e2433] bg-[#0e1118] flex flex-wrap items-center justify-between gap-3 flex-none">
         
         {/* Left: Search & Filter Pills */}
         <div className="flex items-center gap-2 flex-wrap">
           {/* Search */}
           <div className="relative">
-            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-400" />
+            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
             <input
               type="text"
               placeholder="Filter country, feedstock, CI…"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="bg-stone-950 border border-stone-800 text-stone-200 font-mono text-xs pl-8 pr-2.5 py-1 rounded-xs outline-none focus:border-teal-500 w-[220px]"
+              className="bg-[#08090d] border border-[#1e2433] text-zinc-200 font-mono text-xs pl-8 pr-2.5 py-1 rounded-xs outline-none focus:border-cyan-500/60 w-[220px]"
             />
           </div>
 
           {/* Country Filter Pills */}
-          <div className="flex items-center gap-1 font-mono text-[11px] border-l border-stone-800 pl-2">
+          <div className="flex items-center gap-1 font-mono text-[11px] border-l border-[#1e2433] pl-2">
             {(['ALL', 'UK', 'FR', 'NL', 'DE', 'DK', 'AIB'] as const).map(c => (
               <button
                 key={c}
@@ -427,8 +427,8 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
                 onClick={() => setSelectedCountry(c)}
                 className={`px-2 py-1 rounded-xs font-semibold cursor-pointer transition-colors ${
                   selectedCountry === c
-                    ? 'bg-teal-600 text-teal-950 font-bold'
-                    : 'bg-stone-950 border border-stone-800 text-stone-400 hover:text-stone-200'
+                    ? 'bg-cyan-500 text-black font-bold text-teal-950 font-bold'
+                    : 'bg-[#08090d] border border-[#1e2433] text-zinc-400 hover:text-zinc-200'
                 }`}
               >
                 {c === 'ALL' ? 'ALL' : `${getCountryFlag(c)} ${c}`}
@@ -437,7 +437,7 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
           </div>
 
           {/* Subsidy Filter */}
-          <div className="flex items-center gap-1 font-mono text-[11px] border-l border-stone-800 pl-2">
+          <div className="flex items-center gap-1 font-mono text-[11px] border-l border-[#1e2433] pl-2">
             {(['ALL', 'Unsubsidised', 'Subsidised'] as const).map(s => (
               <button
                 key={s}
@@ -446,7 +446,7 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
                 className={`px-2 py-1 rounded-xs font-semibold cursor-pointer transition-colors ${
                   selectedSubsidy === s
                     ? 'bg-stone-100 text-stone-950 font-bold'
-                    : 'bg-stone-950 border border-stone-800 text-stone-400 hover:text-stone-200'
+                    : 'bg-[#08090d] border border-[#1e2433] text-zinc-400 hover:text-zinc-200'
                 }`}
               >
                 {s}
@@ -461,7 +461,7 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
             className={`px-2.5 py-1 font-mono text-[11px] font-semibold rounded-xs cursor-pointer transition-colors flex items-center gap-1.5 ${
               highlightHighInterestOnly
                 ? 'bg-amber-950 border border-amber-500 text-amber-300 font-bold'
-                : 'bg-stone-950 border border-stone-800 text-stone-400 hover:text-stone-200'
+                : 'bg-[#08090d] border border-[#1e2433] text-zinc-400 hover:text-zinc-200'
             }`}
           >
             <Sparkles className="w-3 h-3 text-amber-400" />
@@ -471,14 +471,14 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
 
         {/* Right: Pricing Mode Toggle */}
         <div className="flex items-center gap-2">
-          <div className="flex items-center bg-stone-950 p-0.5 border border-stone-800 rounded-xs font-mono text-[11px]">
+          <div className="flex items-center bg-[#08090d] p-0.5 border border-[#1e2433] rounded-xs font-mono text-[11px]">
             <button
               type="button"
               onClick={() => setPriceDisplayMode('CERT_ONLY')}
               className={`px-2.5 py-1 rounded-xs font-semibold cursor-pointer transition-colors ${
                 priceDisplayMode === 'CERT_ONLY'
-                  ? 'bg-teal-600 text-teal-950 font-bold'
-                  : 'text-stone-400 hover:text-stone-200'
+                  ? 'bg-cyan-500 text-black font-bold text-teal-950 font-bold'
+                  : 'text-zinc-400 hover:text-zinc-200'
               }`}
             >
               🏷️ Green Cert Only
@@ -488,8 +488,8 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
               onClick={() => setPriceDisplayMode('ALL_IN_DELIVERED')}
               className={`px-2.5 py-1 rounded-xs font-semibold cursor-pointer transition-colors ${
                 priceDisplayMode === 'ALL_IN_DELIVERED'
-                  ? 'bg-teal-600 text-teal-950 font-bold'
-                  : 'text-stone-400 hover:text-stone-200'
+                  ? 'bg-cyan-500 text-black font-bold text-teal-950 font-bold'
+                  : 'text-zinc-400 hover:text-zinc-200'
               }`}
             >
               ⛽ Delivered (TTF + Cert)
@@ -502,7 +502,7 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
       {/* Main Order Book Table */}
       <div className="flex-1 min-h-0 overflow-auto">
         <table className="w-full text-left border-collapse font-sans text-xs">
-          <thead className="sticky top-0 z-10 bg-stone-900 border-b border-stone-800 font-mono text-[11px] uppercase tracking-wider text-stone-400">
+          <thead className="sticky top-0 z-10 bg-[#0e1118] border-b border-[#1e2433] font-mono text-[11px] uppercase tracking-wider text-zinc-400">
             <tr>
               <th className="py-2.5 px-2.5 w-[75px]">Country</th>
               <th className="py-2.5 px-2 w-[65px]">Class</th>
@@ -521,7 +521,7 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
           <tbody className="divide-y divide-stone-850">
             {filteredOrders.length === 0 ? (
               <tr>
-                <td colSpan={12} className="py-12 text-center text-stone-500 font-mono">
+                <td colSpan={12} className="py-12 text-center text-zinc-500 font-mono">
                   No broker quotes match the selected filters.
                 </td>
               </tr>
@@ -543,7 +543,7 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
                   <tr 
                     key={order.id}
                     className={`transition-colors hover:bg-stone-850/80 group ${
-                      isHighlight ? 'bg-amber-950/20 border-l-2 border-l-amber-400' : 'bg-stone-950'
+                      isHighlight ? 'bg-amber-950/20 border-l-2 border-l-amber-400' : 'bg-[#08090d]'
                     }`}
                   >
                     {/* Country Selector */}
@@ -551,7 +551,7 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
                       <select
                         value={order.country}
                         onChange={e => handleUpdateField(order.id, 'country', e.target.value as BrokerCountry)}
-                        className="bg-stone-900 border border-stone-800 text-stone-100 font-mono text-[11px] font-bold py-0.5 px-1 rounded-xs outline-none focus:border-teal-500 cursor-pointer"
+                        className="bg-[#0e1118] border border-[#1e2433] text-zinc-100 font-mono text-[11px] font-bold py-0.5 px-1 rounded-xs outline-none focus:border-cyan-500/60 cursor-pointer"
                       >
                         <option value="UK">🇬🇧 UK</option>
                         <option value="FR">🇫🇷 FR</option>
@@ -567,7 +567,7 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
                       <span className={`px-1.5 py-0.5 font-mono text-[10px] font-bold rounded-xs ${
                         order.class === 'RGGO'
                           ? 'bg-indigo-950 border border-indigo-800 text-indigo-300'
-                          : 'bg-teal-950 border border-teal-800 text-teal-300'
+                          : 'bg-cyan-950/40 border border-cyan-500/40 text-cyan-300'
                       }`}>
                         {order.class}
                       </span>
@@ -578,7 +578,7 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
                       <select
                         value={order.feedstock}
                         onChange={e => handleUpdateField(order.id, 'feedstock', e.target.value as FeedstockLabel)}
-                        className="bg-stone-900 border border-stone-800 text-stone-200 font-sans text-xs py-0.5 px-1.5 rounded-xs outline-none focus:border-teal-500 w-full cursor-pointer truncate"
+                        className="bg-[#0e1118] border border-[#1e2433] text-zinc-200 font-sans text-xs py-0.5 px-1.5 rounded-xs outline-none focus:border-cyan-500/60 w-full cursor-pointer truncate"
                       >
                         {FEEDSTOCK_OPTIONS.map(f => (
                           <option key={f} value={f}>{f}</option>
@@ -591,7 +591,7 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
                       <select
                         value={order.vintage}
                         onChange={e => handleUpdateField(order.id, 'vintage', e.target.value)}
-                        className="bg-stone-900 border border-stone-800 text-stone-200 font-mono text-[11px] font-semibold py-0.5 px-1 rounded-xs outline-none focus:border-teal-500 cursor-pointer"
+                        className="bg-[#0e1118] border border-[#1e2433] text-zinc-200 font-mono text-[11px] font-semibold py-0.5 px-1 rounded-xs outline-none focus:border-cyan-500/60 cursor-pointer"
                       >
                         {VINTAGE_OPTIONS.map(v => (
                           <option key={v} value={v}>{v}</option>
@@ -604,9 +604,9 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
                       <select
                         value={order.certified}
                         onChange={e => handleUpdateField(order.id, 'certified', e.target.value as CertificationLabel)}
-                        className={`font-mono text-[10px] py-0.5 px-1 rounded-xs outline-none focus:border-teal-500 cursor-pointer w-full truncate border ${
+                        className={`font-mono text-[10px] py-0.5 px-1 rounded-xs outline-none focus:border-cyan-500/60 cursor-pointer w-full truncate border ${
                           order.certified.includes('Uncertified')
-                            ? 'bg-stone-900 border-stone-800 text-stone-500'
+                            ? 'bg-[#0e1118] border-[#1e2433] text-zinc-500'
                             : 'bg-emerald-950/70 border-emerald-800 text-emerald-300 font-semibold'
                         }`}
                       >
@@ -621,10 +621,10 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
                       <select
                         value={order.subsidized}
                         onChange={e => handleUpdateField(order.id, 'subsidized', e.target.value as SubsidyStatus)}
-                        className={`font-mono text-[10px] py-0.5 px-1 rounded-xs outline-none focus:border-teal-500 cursor-pointer border ${
+                        className={`font-mono text-[10px] py-0.5 px-1 rounded-xs outline-none focus:border-cyan-500/60 cursor-pointer border ${
                           order.subsidized === 'Unsubsidised'
                             ? 'bg-amber-950/80 border-amber-700 text-amber-300 font-bold'
-                            : 'bg-stone-900 border-stone-800 text-stone-400'
+                            : 'bg-[#0e1118] border-[#1e2433] text-zinc-400'
                         }`}
                       >
                         <option value="Unsubsidised">Unsubsidised</option>
@@ -639,10 +639,10 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
                         value={order.ciScore}
                         onChange={e => handleUpdateField(order.id, 'ciScore', e.target.value)}
                         placeholder="CI Score"
-                        className={`font-mono text-[11px] py-0.5 px-1.5 rounded-xs outline-none focus:border-teal-500 w-[85px] border ${
+                        className={`font-mono text-[11px] py-0.5 px-1.5 rounded-xs outline-none focus:border-cyan-500/60 w-[85px] border ${
                           order.ciNumeric !== null && order.ciNumeric < 0
                             ? 'bg-emerald-950/80 border-emerald-700 text-emerald-300 font-bold'
-                            : 'bg-stone-900 border-stone-800 text-stone-200'
+                            : 'bg-[#0e1118] border-[#1e2433] text-zinc-200'
                         }`}
                       />
                     </td>
@@ -660,7 +660,7 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
                               handleUpdateField(order.id, 'bidText', null);
                               handleUpdateField(order.id, 'bidPrice', 25.00);
                             }}
-                            className="text-[10px] text-stone-500 hover:text-stone-300 underline cursor-pointer"
+                            className="text-[10px] text-zinc-500 hover:text-zinc-300 underline cursor-pointer"
                             title="Switch to numeric price"
                           >
                             €
@@ -668,14 +668,14 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
                         </div>
                       ) : (
                         <div className="flex items-center justify-end gap-1">
-                          <span className="text-stone-500 text-[10px]">{currencySymbol}</span>
+                          <span className="text-zinc-500 text-[10px]">{currencySymbol}</span>
                           <input
                             type="number"
                             step="0.1"
                             value={order.bidPrice ?? ''}
                             onChange={e => handleUpdateField(order.id, 'bidPrice', e.target.value === '' ? null : Number(e.target.value))}
                             placeholder="Bid"
-                            className="bg-stone-900 border border-stone-800 text-emerald-300 font-bold text-xs py-0.5 px-1.5 rounded-xs outline-none focus:border-emerald-500 w-[68px] text-right"
+                            className="bg-[#0e1118] border border-[#1e2433] text-emerald-300 font-bold text-xs py-0.5 px-1.5 rounded-xs outline-none focus:border-emerald-500 w-[68px] text-right"
                           />
                           <button
                             type="button"
@@ -683,7 +683,7 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
                               handleUpdateField(order.id, 'bidPrice', null);
                               handleUpdateField(order.id, 'bidText', 'Buyer');
                             }}
-                            className="text-[10px] text-stone-600 hover:text-stone-400 cursor-pointer"
+                            className="text-[10px] text-zinc-600 hover:text-zinc-400 cursor-pointer"
                             title="Tag as Buyer interest"
                           >
                             B
@@ -705,7 +705,7 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
                               handleUpdateField(order.id, 'offerText', null);
                               handleUpdateField(order.id, 'offerPrice', 30.00);
                             }}
-                            className="text-[10px] text-stone-500 hover:text-stone-300 underline cursor-pointer"
+                            className="text-[10px] text-zinc-500 hover:text-zinc-300 underline cursor-pointer"
                             title="Switch to numeric price"
                           >
                             €
@@ -713,14 +713,14 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
                         </div>
                       ) : (
                         <div className="flex items-center justify-end gap-1">
-                          <span className="text-stone-500 text-[10px]">{currencySymbol}</span>
+                          <span className="text-zinc-500 text-[10px]">{currencySymbol}</span>
                           <input
                             type="number"
                             step="0.1"
                             value={order.offerPrice ?? ''}
                             onChange={e => handleUpdateField(order.id, 'offerPrice', e.target.value === '' ? null : Number(e.target.value))}
                             placeholder="Offer"
-                            className="bg-stone-900 border border-stone-800 text-rose-300 font-bold text-xs py-0.5 px-1.5 rounded-xs outline-none focus:border-rose-500 w-[68px] text-right"
+                            className="bg-[#0e1118] border border-[#1e2433] text-rose-300 font-bold text-xs py-0.5 px-1.5 rounded-xs outline-none focus:border-rose-500 w-[68px] text-right"
                           />
                           <button
                             type="button"
@@ -728,7 +728,7 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
                               handleUpdateField(order.id, 'offerPrice', null);
                               handleUpdateField(order.id, 'offerText', 'Seller');
                             }}
-                            className="text-[10px] text-stone-600 hover:text-stone-400 cursor-pointer"
+                            className="text-[10px] text-zinc-600 hover:text-zinc-400 cursor-pointer"
                             title="Tag as Seller interest"
                           >
                             S
@@ -746,9 +746,9 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
                           value={order.bidVolumeGWh ?? ''}
                           onChange={e => handleUpdateField(order.id, 'bidVolumeGWh', e.target.value === '' ? null : Number(e.target.value))}
                           placeholder="—"
-                          className="bg-stone-900 border border-stone-800 text-emerald-400 font-semibold text-xs py-0.5 px-1 rounded-xs outline-none focus:border-teal-500 w-[45px] text-right"
+                          className="bg-[#0e1118] border border-[#1e2433] text-emerald-400 font-semibold text-xs py-0.5 px-1 rounded-xs outline-none focus:border-cyan-500/60 w-[45px] text-right"
                         />
-                        <span className="text-[10px] text-stone-500">GWh</span>
+                        <span className="text-[10px] text-zinc-500">GWh</span>
                       </div>
                     </td>
 
@@ -761,9 +761,9 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
                           value={order.offerVolumeGWh ?? ''}
                           onChange={e => handleUpdateField(order.id, 'offerVolumeGWh', e.target.value === '' ? null : Number(e.target.value))}
                           placeholder="—"
-                          className="bg-stone-900 border border-stone-800 text-rose-400 font-semibold text-xs py-0.5 px-1 rounded-xs outline-none focus:border-rose-500 w-[45px] text-right"
+                          className="bg-[#0e1118] border border-[#1e2433] text-rose-400 font-semibold text-xs py-0.5 px-1 rounded-xs outline-none focus:border-rose-500 w-[45px] text-right"
                         />
-                        <span className="text-[10px] text-stone-500">GWh</span>
+                        <span className="text-[10px] text-zinc-500">GWh</span>
                       </div>
                     </td>
 
@@ -773,7 +773,7 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
                         <button
                           type="button"
                           onClick={() => handleQuoteDeal(order)}
-                          className="px-2 py-1 bg-teal-600 hover:bg-teal-500 text-teal-950 font-mono text-[10px] font-bold rounded-xs cursor-pointer transition-colors flex items-center gap-1 shadow-xs"
+                          className="px-2 py-1 bg-cyan-500 text-black font-bold hover:bg-cyan-500 text-teal-950 font-mono text-[10px] font-bold rounded-xs cursor-pointer transition-colors flex items-center gap-1 shadow-xs"
                           title="Quick Deal Ticket Drawer"
                         >
                           <Zap className="w-3 h-3" />
@@ -782,7 +782,7 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
                         <button
                           type="button"
                           onClick={() => handleOpenInTradeDesk(order)}
-                          className="p-1 bg-stone-900 hover:bg-stone-800 border border-stone-700 text-teal-300 hover:text-teal-100 rounded-xs cursor-pointer transition-colors"
+                          className="p-1 bg-[#0e1118] hover:bg-[#141824] border border-[#2b3347] text-cyan-300 hover:text-teal-100 rounded-xs cursor-pointer transition-colors"
                           title="Open and structure directly on Trade Desk"
                         >
                           <ExternalLink className="w-3 h-3" />
@@ -790,7 +790,7 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
                         <button
                           type="button"
                           onClick={() => setSelectedMathOrder(order)}
-                          className="p-1 bg-stone-900 hover:bg-stone-800 border border-stone-700 text-stone-300 hover:text-stone-100 rounded-xs cursor-pointer transition-colors"
+                          className="p-1 bg-[#0e1118] hover:bg-[#141824] border border-[#2b3347] text-zinc-300 hover:text-zinc-100 rounded-xs cursor-pointer transition-colors"
                           title="Inspect mathematical proof formula"
                         >
                           <Calculator className="w-3 h-3" />
@@ -798,7 +798,7 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
                         <button
                           type="button"
                           onClick={() => handleDeleteRow(order.id)}
-                          className="p-1 text-stone-600 hover:text-rose-400 hover:bg-stone-900 rounded-xs cursor-pointer transition-colors opacity-0 group-hover:opacity-100"
+                          className="p-1 text-zinc-600 hover:text-rose-400 hover:bg-[#0e1118] rounded-xs cursor-pointer transition-colors opacity-0 group-hover:opacity-100"
                           title="Delete row"
                         >
                           <Trash2 className="w-3 h-3" />
@@ -814,9 +814,9 @@ export function BrokerRunTable({ marks, costs }: BrokerRunTableProps) {
       </div>
 
       {/* Footnote Rule from Trader Sheet */}
-      <div className="p-2.5 px-4 border-t border-stone-800 bg-stone-900/80 flex items-center justify-between text-micro font-mono text-stone-400 flex-none">
+      <div className="p-2.5 px-4 border-t border-[#1e2433] bg-[#0e1118] flex items-center justify-between text-micro font-mono text-zinc-400 flex-none">
         <span className="flex items-center gap-1.5">
-          <Info className="w-3.5 h-3.5 text-teal-400" />
+          <Info className="w-3.5 h-3.5 text-cyan-400" />
           <span>* The bids and offers are for certificates only. Index gas price/swap {ttfGasMid !== null ? `(TTF M+1 €${ttfGasMid.toFixed(2)}/MWh)` : ''} to be added on top for delivered physical gas.</span>
         </span>
         <span className="flex items-center gap-3">

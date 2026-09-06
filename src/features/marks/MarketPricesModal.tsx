@@ -99,15 +99,15 @@ export function MarketPricesModal({ isOpen, onClose }: MarketPricesModalProps) {
 
   return (
     <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="bg-stone-900 border border-stone-700 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+      <div className="bg-[#0e1118] border border-[#2b3347] rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
         {/* Modal Header */}
-        <div className="p-4 border-b border-stone-800 flex items-center justify-between bg-stone-950">
+        <div className="p-4 border-b border-[#1e2433] flex items-center justify-between bg-[#08090d]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-teal-950 border border-teal-700 flex items-center justify-center text-teal-400">
+            <div className="w-8 h-8 rounded-lg bg-cyan-950/40 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
               <TrendingUp className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="font-mono text-sm font-bold uppercase tracking-wider text-stone-100 flex items-center gap-2">
+              <h2 className="font-mono text-sm font-bold uppercase tracking-wider text-zinc-100 flex items-center gap-2">
                 <span>Live Market Marks &amp; News Pricing</span>
                 {savedMessage && (
                   <span className="font-mono text-[10px] text-emerald-400 bg-emerald-950 border border-emerald-800 px-2 py-0.5 rounded animate-pulse">
@@ -115,7 +115,7 @@ export function MarketPricesModal({ isOpen, onClose }: MarketPricesModalProps) {
                   </span>
                 )}
               </h2>
-              <p className="font-mono text-micro text-stone-400">
+              <p className="font-mono text-micro text-zinc-400">
                 Adjust wholesale gas, national certificate quotas, and FX rates to immediately re-price all deals
               </p>
             </div>
@@ -123,8 +123,8 @@ export function MarketPricesModal({ isOpen, onClose }: MarketPricesModalProps) {
 
           <div className="flex items-center gap-3">
             {/* Pricing Side Selector */}
-            <div className="flex items-center gap-1.5 bg-stone-900 border border-stone-800 rounded p-0.5">
-              <span className="font-mono text-micro text-stone-400 uppercase font-semibold px-1.5">
+            <div className="flex items-center gap-1.5 bg-[#0e1118] border border-[#1e2433] rounded p-0.5">
+              <span className="font-mono text-micro text-zinc-400 uppercase font-semibold px-1.5">
                 Side:
               </span>
               {(['bid', 'mid', 'offer'] as PriceSide[]).map(side => (
@@ -134,8 +134,8 @@ export function MarketPricesModal({ isOpen, onClose }: MarketPricesModalProps) {
                   onClick={() => dispatch({ type: 'SET_PRICING_SIDE', side })}
                   className={`px-2 py-0.5 font-mono text-micro uppercase font-bold rounded transition-colors cursor-pointer ${
                     currentSide === side
-                      ? 'bg-teal-600 text-stone-950'
-                      : 'text-stone-400 hover:text-stone-200'
+                      ? 'bg-cyan-500 text-black font-bold text-stone-950'
+                      : 'text-zinc-400 hover:text-zinc-200'
                   }`}
                 >
                   {side}
@@ -146,7 +146,7 @@ export function MarketPricesModal({ isOpen, onClose }: MarketPricesModalProps) {
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 rounded-lg text-stone-400 hover:text-white hover:bg-stone-800 transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-[#141824] transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -154,17 +154,17 @@ export function MarketPricesModal({ isOpen, onClose }: MarketPricesModalProps) {
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 overflow-y-auto space-y-6 font-mono text-xs text-stone-300 bg-stone-900">
+        <div className="p-6 overflow-y-auto space-y-6 font-mono text-xs text-zinc-300 bg-[#0e1118]">
           {/* Top Indices: TTF Natural Gas & FX */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* TTF Natural Gas */}
-            <div className="p-4 rounded-xl bg-stone-950 border border-stone-800 shadow-md">
+            <div className="p-4 rounded-xl bg-[#08090d] border border-[#1e2433] shadow-md">
               <div className="flex items-center justify-between mb-2">
-                <span className="font-bold text-stone-200 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                <span className="font-bold text-zinc-200 text-xs uppercase tracking-wider flex items-center gap-1.5">
                   <Flame className="w-4 h-4 text-amber-400" />
                   Wholesale Gas Index (TTF M+1)
                 </span>
-                <span className="text-micro text-stone-500">Benchmark Molecule</span>
+                <span className="text-micro text-zinc-500">Benchmark Molecule</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
@@ -173,31 +173,31 @@ export function MarketPricesModal({ isOpen, onClose }: MarketPricesModalProps) {
                     step="0.10"
                     value={gasIndexInput}
                     onChange={e => setGasIndexInput(e.target.value)}
-                    className="w-full bg-stone-900 border border-stone-700 rounded-lg px-3 py-2 text-stone-100 font-bold text-sm focus:outline-hidden focus:border-teal-500"
+                    className="w-full bg-[#0e1118] border border-[#2b3347] rounded-lg px-3 py-2 text-zinc-100 font-bold text-sm focus:outline-hidden focus:border-cyan-500/60"
                   />
-                  <span className="absolute right-3 top-2.5 text-stone-400 text-xs">€/MWh</span>
+                  <span className="absolute right-3 top-2.5 text-zinc-400 text-xs">€/MWh</span>
                 </div>
                 <button
                   type="button"
                   onClick={handleSaveGasIndex}
-                  className="px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-500 text-stone-950 font-bold text-xs transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-lg bg-cyan-500 text-black font-bold hover:bg-cyan-500 text-stone-950 font-bold text-xs transition-colors cursor-pointer"
                 >
                   Save
                 </button>
               </div>
-              <span className="text-[10px] text-stone-500 block mt-1.5">
+              <span className="text-[10px] text-zinc-500 block mt-1.5">
                 Current Mid: €{state.marks.gasIndex.mid?.toFixed(2)}/MWh · Bid: €{state.marks.gasIndex.bid?.toFixed(2)} · Offer: €{state.marks.gasIndex.offer?.toFixed(2)}
               </span>
             </div>
 
             {/* GBP / EUR FX Rate */}
-            <div className="p-4 rounded-xl bg-stone-950 border border-stone-800 shadow-md">
+            <div className="p-4 rounded-xl bg-[#08090d] border border-[#1e2433] shadow-md">
               <div className="flex items-center justify-between mb-2">
-                <span className="font-bold text-stone-200 text-xs uppercase tracking-wider flex items-center gap-1.5">
-                  <DollarSign className="w-4 h-4 text-teal-400" />
+                <span className="font-bold text-zinc-200 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                  <DollarSign className="w-4 h-4 text-cyan-400" />
                   GBP / EUR Foreign Exchange
                 </span>
-                <span className="text-micro text-stone-500">UK RTFO Conversion</span>
+                <span className="text-micro text-zinc-500">UK RTFO Conversion</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
@@ -206,32 +206,32 @@ export function MarketPricesModal({ isOpen, onClose }: MarketPricesModalProps) {
                     step="0.005"
                     value={fxInput}
                     onChange={e => setFxInput(e.target.value)}
-                    className="w-full bg-stone-900 border border-stone-700 rounded-lg px-3 py-2 text-stone-100 font-bold text-sm focus:outline-hidden focus:border-teal-500"
+                    className="w-full bg-[#0e1118] border border-[#2b3347] rounded-lg px-3 py-2 text-zinc-100 font-bold text-sm focus:outline-hidden focus:border-cyan-500/60"
                   />
-                  <span className="absolute right-3 top-2.5 text-stone-400 text-xs">Rate</span>
+                  <span className="absolute right-3 top-2.5 text-zinc-400 text-xs">Rate</span>
                 </div>
                 <button
                   type="button"
                   onClick={handleSaveFx}
-                  className="px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-500 text-stone-950 font-bold text-xs transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-lg bg-cyan-500 text-black font-bold hover:bg-cyan-500 text-stone-950 font-bold text-xs transition-colors cursor-pointer"
                 >
                   Save
                 </button>
               </div>
-              <span className="text-[10px] text-stone-500 block mt-1.5">
+              <span className="text-[10px] text-zinc-500 block mt-1.5">
                 Current Exchange Rate: £1.00 = €{state.marks.fx.gbpEur?.toFixed(3)}
               </span>
             </div>
           </div>
 
           {/* National Green Compliance Certificate Quotas */}
-          <div className="p-4 rounded-xl bg-stone-950 border border-stone-800 shadow-md space-y-3">
+          <div className="p-4 rounded-xl bg-[#08090d] border border-[#1e2433] shadow-md space-y-3">
             <div className="flex items-center justify-between">
-              <span className="font-bold text-stone-200 text-xs uppercase tracking-wider flex items-center gap-1.5">
+              <span className="font-bold text-zinc-200 text-xs uppercase tracking-wider flex items-center gap-1.5">
                 <Globe className="w-4 h-4 text-emerald-400" />
                 National Compliance Certificate Marks (RED III Quotas)
               </span>
-              <span className="text-micro text-stone-500">
+              <span className="text-micro text-zinc-500">
                 Adjust levels directly below based on broker runs or news
               </span>
             </div>
@@ -239,7 +239,7 @@ export function MarketPricesModal({ isOpen, onClose }: MarketPricesModalProps) {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-stone-800 text-[10px] text-stone-500 uppercase">
+                  <tr className="border-b border-[#1e2433] text-[10px] text-zinc-500 uppercase">
                     <th className="py-2">Market &amp; Territory</th>
                     <th className="py-2">Quota Unit</th>
                     <th className="py-2 text-right w-44">Adjust Mid Level</th>
@@ -253,17 +253,17 @@ export function MarketPricesModal({ isOpen, onClose }: MarketPricesModalProps) {
                     const effectiveVal = mark ? mark[currentSide] ?? mark.mid : null;
 
                     return (
-                      <tr key={m.id} className="hover:bg-stone-900/50">
+                      <tr key={m.id} className="hover:bg-[#0e1118]">
                         <td className="py-2.5 pr-2">
-                          <div className="font-semibold text-stone-100 flex items-center gap-1.5">
+                          <div className="font-semibold text-zinc-100 flex items-center gap-1.5">
                             <span>{m.name}</span>
                           </div>
-                          <span className="text-[10px] text-stone-500">{m.countryName} ({m.id})</span>
+                          <span className="text-[10px] text-zinc-500">{m.countryName} ({m.id})</span>
                         </td>
 
-                        <td className="py-2.5 text-stone-300">
+                        <td className="py-2.5 text-zinc-300">
                           <span>{m.unitLabel}</span>
-                          <span className="text-[10px] text-teal-400 block">{m.registry || 'National Register'}</span>
+                          <span className="text-[10px] text-cyan-400 block">{m.registry || 'National Register'}</span>
                         </td>
 
                         <td className="py-2.5 text-right pr-2">
@@ -274,12 +274,12 @@ export function MarketPricesModal({ isOpen, onClose }: MarketPricesModalProps) {
                               value={midVal !== null ? midVal : ''}
                               onChange={e => handleMarkChange(m.id, e.target.value)}
                               placeholder="Unset"
-                              className="w-28 bg-stone-900 border border-stone-700 rounded px-2 py-1 text-right text-stone-100 font-bold text-xs focus:outline-hidden focus:border-teal-500"
+                              className="w-28 bg-[#0e1118] border border-[#2b3347] rounded px-2 py-1 text-right text-zinc-100 font-bold text-xs focus:outline-hidden focus:border-cyan-500/60"
                             />
                           </div>
                         </td>
 
-                        <td className="py-2.5 text-right font-bold text-teal-300">
+                        <td className="py-2.5 text-right font-bold text-cyan-300">
                           {effectiveVal != null ? `€${effectiveVal.toFixed(2)}` : '—'}
                         </td>
                       </tr>
@@ -292,12 +292,12 @@ export function MarketPricesModal({ isOpen, onClose }: MarketPricesModalProps) {
         </div>
 
         {/* Modal Footer */}
-        <div className="p-3 border-t border-stone-800 flex items-center justify-between bg-stone-950 text-stone-500 font-mono text-micro">
+        <div className="p-3 border-t border-[#1e2433] flex items-center justify-between bg-[#08090d] text-zinc-500 font-mono text-micro">
           <span>All modified prices immediately update all sourcing calculations &amp; margin waterfalls.</span>
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-stone-950 font-bold transition-colors cursor-pointer"
+            className="px-5 py-1.5 rounded-lg bg-cyan-500 text-black font-bold hover:bg-cyan-500 text-stone-950 font-bold transition-colors cursor-pointer"
           >
             Apply &amp; Return to Map
           </button>
