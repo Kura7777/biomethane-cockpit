@@ -41,20 +41,25 @@ export function DataConnectorsScreen() {
   }, []);
 
   const handleToggleLive = (id: string) => {
+    // Flipping "live mode" is a configuration change, not a verified connection —
+    // status must only ever be set by an actual ping result (see handleTestPing).
+    // Claiming CONNECTED here because a key string happens to be present was the
+    // same fabricated-success bug as the old testConnectorPing default.
     const updated = connectors.map(c => {
       if (c.id === id) {
-        const nextLive = !c.isLiveMode;
         return {
           ...c,
-          isLiveMode: nextLive,
-          status: nextLive ? (c.apiKey || !c.requiresAuth ? 'CONNECTED' : 'DISCONNECTED') : 'DISCONNECTED',
+          isLiveMode: !c.isLiveMode,
+          status: 'DISCONNECTED',
+          lastPingTimestamp: null,
+          latencyMs: null,
         } as ApiConnectorEntry;
       }
       return c;
     });
     setConnectors(updated);
     saveConnectors(updated);
-    showToast('Connector mode updated');
+    showToast('Connector mode updated — run Test to verify the connection');
   };
 
   const handleFieldChange = (id: string, field: 'apiKey' | 'clientId' | 'endpointUrl', value: string) => {

@@ -21,6 +21,8 @@ export interface ApiConnectorEntry {
   latencyMs?: number | null;
   errorMessage?: string | null;
   requiresAuth: boolean;
+  /** True when this endpoint is expected to reject direct browser calls (CORS) and needs a server-side proxy to actually reach. */
+  requiresServerProxy?: boolean;
 }
 
 const STORAGE_KEY = 'biomethane_desk_api_connectors_v1';
@@ -38,6 +40,7 @@ export const DEFAULT_CONNECTORS: ApiConnectorEntry[] = [
     apiKey: '',
     status: 'DISCONNECTED',
     requiresAuth: true,
+    requiresServerProxy: true,
   },
   {
     id: 'icis_esgm',
@@ -50,6 +53,7 @@ export const DEFAULT_CONNECTORS: ApiConnectorEntry[] = [
     apiKey: '',
     status: 'DISCONNECTED',
     requiresAuth: true,
+    requiresServerProxy: true,
   },
   {
     id: 'eex_auctions',
@@ -62,6 +66,7 @@ export const DEFAULT_CONNECTORS: ApiConnectorEntry[] = [
     apiKey: '',
     status: 'DISCONNECTED',
     requiresAuth: true,
+    requiresServerProxy: true,
   },
 
   // 2. Transmission & Grid Flow Feeds
@@ -74,24 +79,24 @@ export const DEFAULT_CONNECTORS: ApiConnectorEntry[] = [
     isLiveMode: true,
     endpointUrl: 'https://api.energidataservice.dk/dataset/Gasflow?limit=50',
     apiKey: '',
-    status: 'CONNECTED',
+    status: 'DISCONNECTED',
     requiresAuth: false,
-    lastPingTimestamp: new Date().toISOString(),
-    latencyMs: 120,
+    lastPingTimestamp: null,
+    latencyMs: null,
   },
   {
     id: 'odre_france_live',
-    name: 'ODRE France Biomethane Injections',
+    name: 'ODRE France Biomethane Production',
     category: 'GRID_FLOW',
-    provider: 'GRDF / GRTgaz / Teréga',
-    description: 'Open Data Réseaux Énergies live injection point capacities and telemetry.',
+    provider: 'GRDF / GRTgaz / Teréga (ODRE)',
+    description: 'Open Data Réseaux Énergies — annual biomethane production per injection site.',
     isLiveMode: true,
-    endpointUrl: 'https://odre.opendatasoft.com/api/explore/v2.1/catalog/datasets/points-dinjection-de-biomethane/records?limit=50',
+    endpointUrl: 'https://odre.opendatasoft.com/api/explore/v2.1/catalog/datasets/production-annuelle-de-biomethane-par-site-raccorde-au-reseau-de-transport-et-de/records?limit=50',
     apiKey: '',
-    status: 'CONNECTED',
+    status: 'DISCONNECTED',
     requiresAuth: false,
-    lastPingTimestamp: new Date().toISOString(),
-    latencyMs: 185,
+    lastPingTimestamp: null,
+    latencyMs: null,
   },
   {
     id: 'entsog_transparency',
@@ -104,6 +109,7 @@ export const DEFAULT_CONNECTORS: ApiConnectorEntry[] = [
     apiKey: '',
     status: 'DISCONNECTED',
     requiresAuth: true,
+    requiresServerProxy: true,
   },
 
   // 3. Registries & Sustainability
@@ -119,6 +125,7 @@ export const DEFAULT_CONNECTORS: ApiConnectorEntry[] = [
     clientId: '',
     status: 'DISCONNECTED',
     requiresAuth: true,
+    requiresServerProxy: true,
   },
   {
     id: 'dena_biogasregister',
@@ -132,6 +139,7 @@ export const DEFAULT_CONNECTORS: ApiConnectorEntry[] = [
     clientId: '',
     status: 'DISCONNECTED',
     requiresAuth: true,
+    requiresServerProxy: true,
   },
   {
     id: 'verticer_netherlands',
@@ -145,6 +153,7 @@ export const DEFAULT_CONNECTORS: ApiConnectorEntry[] = [
     clientId: '',
     status: 'DISCONNECTED',
     requiresAuth: true,
+    requiresServerProxy: true,
   },
 ];
 
@@ -213,15 +222,52 @@ export async function testConnectorPing(connector: ApiConnectorEntry): Promise<{
       };
     }
 
-    // Simulate ping for authenticated enterprise endpoints with dummy check
-    const latency = 140 + Math.floor(Math.random() * 80);
+    // Attempt a real authenticated request. Most enterprise feeds (Argus, ICIS, EEX,
+    // the UDB gateway, dena, VertiCer) are not CORS-enabled for direct browser calls,
+    // so a network-level failure here is an expected, truthful result for those
+    // connectors — not a reason to fall back to a simulated success.
+    const headers: Record<string, string> = {};
+    if (connector.apiKey) headers['Authorization'] = `Bearer ${connector.apiKey}`;
+    if (connector.clientId) headers['X-Client-Id'] = connector.clientId;
+
+    const res = await fetch(connector.endpointUrl, {
+      method: 'GET',
+      headers,
+      signal: AbortSignal.timeout(4000),
+    });
+    const latency = Date.now() - start;
+    if (res.ok) {
+      return {
+        success: true,
+        latencyMs: latency,
+        message: `HTTP ${res.status} OK (${latency}ms) — Feed active and streaming`,
+      };
+    }
+    if (res.status === 401 || res.status === 403) {
+      return {
+        success: false,
+        latencyMs: latency,
+        message: `HTTP ${res.status} ${res.statusText} — credentials rejected by ${connector.provider}`,
+      };
+    }
     return {
-      success: true,
+      success: false,
       latencyMs: latency,
-      message: `Credentials configured. Gateway handshake validated (${latency}ms)`,
+      message: `HTTP ${res.status} ${res.statusText}`,
     };
   } catch (err: any) {
     const latency = Date.now() - start;
+    // A browser fetch to a cross-origin API that doesn't send CORS headers surfaces
+    // as a generic "Failed to fetch" / TypeError, indistinguishable at the JS layer
+    // from a real network outage. Where we already know a connector needs a
+    // server-side proxy, say so rather than reporting an ambiguous failure.
+    if (connector.requiresServerProxy) {
+      return {
+        success: false,
+        latencyMs: latency,
+        message: `Blocked by CORS — ${connector.provider} does not permit direct browser calls. This endpoint requires a server-side proxy.`,
+      };
+    }
     return {
       success: false,
       latencyMs: latency,
