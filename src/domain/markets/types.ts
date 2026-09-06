@@ -69,6 +69,42 @@ export interface MarkProvenance {
   note: string | null;
 }
 
+export interface SourceBadge {
+  label: string;
+  /** Maps directly onto the shared chip variants (chip-pos / chip-info / chip-warn / chip-neutral). */
+  variant: 'POSITIVE' | 'INFO' | 'WARNING' | 'NEUTRAL';
+}
+
+/**
+ * Derives the badge a price tile should show from its actual provenance, rather than
+ * a hardcoded exchange/PRA label. A tile whose value came from `simulateDesk()` must
+ * never be badged as if it came from ICE, EEX or the ECB — see Task 0.3.
+ */
+export function deriveSourceBadge(
+  provenance: MarkProvenance | null | undefined,
+  simulatedSourceName: string
+): SourceBadge {
+  if (!provenance || !provenance.sourceType) {
+    return { label: 'Unset', variant: 'NEUTRAL' };
+  }
+  if (provenance.sourceType === 'ESTIMATE' || provenance.sourceName === simulatedSourceName) {
+    return { label: 'Simulated', variant: 'WARNING' };
+  }
+  const labelBySourceType: Record<MarkSourceType, string> = {
+    EXCHANGE_AUCTION: 'Exchange',
+    PRICE_REPORTING: 'PRA',
+    PLATFORM_HISTORY: 'Platform',
+    COUNTERPARTY_QUOTE: 'Counterparty',
+    BROKER_INDICATION: 'Broker',
+    PRESS_REPORT: 'Press',
+    ESTIMATE: 'Simulated',
+  };
+  const label = provenance.sourceName
+    ? `${labelBySourceType[provenance.sourceType]} · ${provenance.sourceName}`
+    : labelBySourceType[provenance.sourceType];
+  return { label, variant: 'INFO' };
+}
+
 export interface MarkEntry {
   marketId: string;
   bid: number | null;

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { MARKETS, isVoluntaryMarket } from '../../domain/markets/registry';
-import { Market } from '../../domain/markets/types';
+import { Market, deriveSourceBadge } from '../../domain/markets/types';
 import { useAppState } from '../../store/context';
 import { SIMULATED_SOURCE_NAME } from '../../domain/marks/simulate';
 import { BrokerRunImporterModal } from './BrokerRunImporterModal';
@@ -190,6 +190,10 @@ export function MarksScreen() {
 
   const gasIndexPrice = state.marks.gasIndex.mid ?? state.marks.gasIndex.offer ?? state.marks.gasIndex.bid;
   const gbpRate = state.marks.fx.gbpEur;
+  const gasIndexBadge = deriveSourceBadge(state.marks.gasIndex.provenance, SIMULATED_SOURCE_NAME);
+  const fxBadge = deriveSourceBadge(state.marks.fx.provenance, SIMULATED_SOURCE_NAME);
+  const chipClassForVariant = (v: ReturnType<typeof deriveSourceBadge>['variant']) =>
+    v === 'POSITIVE' ? 'chip chip-pos' : v === 'WARNING' ? 'chip chip-warn' : v === 'INFO' ? 'chip chip-info' : 'chip chip-neutral';
 
   return (
     <div>
@@ -245,9 +249,11 @@ export function MarksScreen() {
         <div>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
             <span className="eyebrow">TTF M+1 Base Natural Gas</span>
-            <span className="chip chip-info">ICE / EEX Spot</span>
+            <span className={chipClassForVariant(gasIndexBadge.variant)}>{gasIndexBadge.label}</span>
           </div>
-          <div className="big num">{gasIndexPrice !== null && gasIndexPrice !== undefined ? `€${gasIndexPrice.toFixed(2)}` : 'unrecorded'}</div>
+          <div className="big num" style={gasIndexBadge.variant === 'WARNING' ? { color: 'var(--color-warn, #b45309)' } : undefined}>
+            {gasIndexPrice !== null && gasIndexPrice !== undefined ? `€${gasIndexPrice.toFixed(2)}` : 'unrecorded'}
+          </div>
           <div className="subttl num">
             {gasIndexPrice !== null && gasIndexPrice !== undefined
               ? `bid ${(state.marks.gasIndex.bid ?? gasIndexPrice).toFixed(2)} · offer ${(state.marks.gasIndex.offer ?? gasIndexPrice).toFixed(2)} / MWh`
@@ -258,9 +264,11 @@ export function MarksScreen() {
         <div>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
             <span className="eyebrow">GBP / EUR Fix</span>
-            <span className="chip">ECB Spot</span>
+            <span className={chipClassForVariant(fxBadge.variant)}>{fxBadge.label}</span>
           </div>
-          <div className="big num">{gbpRate !== null && gbpRate !== undefined ? gbpRate.toFixed(4) : 'unrecorded'}</div>
+          <div className="big num" style={fxBadge.variant === 'WARNING' ? { color: 'var(--color-warn, #b45309)' } : undefined}>
+            {gbpRate !== null && gbpRate !== undefined ? gbpRate.toFixed(4) : 'unrecorded'}
+          </div>
           <div className="subttl">UK RTFO &amp; RGGO currency conversion parity</div>
         </div>
 

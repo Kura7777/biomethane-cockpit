@@ -3,6 +3,8 @@ import { useLocation, useNavigate, NavLink } from 'react-router-dom';
 import { WORKSPACE_TABS } from './navConfig';
 import { useAppState } from '../store/context';
 import { useTheme } from '../store/theme';
+import { deriveSourceBadge } from '../domain/markets/types';
+import { SIMULATED_SOURCE_NAME } from '../domain/marks/simulate';
 
 /** HH:MM:SS in the viewer's local time. Exported so it can be unit tested without rendering. */
 export function formatClock(date: Date): string {
@@ -23,6 +25,8 @@ export function Header({ onOpenSearch }: HeaderProps) {
 
   const gasIndexPrice = state.marks.gasIndex.mid ?? state.marks.gasIndex.offer ?? state.marks.gasIndex.bid;
   const pricingSide = state.marks.pricingSides?.certificateSide || 'mid';
+  const gasIndexBadge = deriveSourceBadge(state.marks.gasIndex.provenance, SIMULATED_SOURCE_NAME);
+  const isSimulatedGasIndex = gasIndexBadge.variant === 'WARNING';
 
   return (
     <header
@@ -81,9 +85,29 @@ export function Header({ onOpenSearch }: HeaderProps) {
           <span className="eyebrow" style={{ color: 'var(--color-header-muted)', fontSize: '11px', letterSpacing: '0.04em' }}>
             TTF M+1
           </span>
-          <span className="num" style={{ fontSize: '14px', fontWeight: 700, color: '#ffffff' }}>
+          <span
+            className="num"
+            style={{ fontSize: '14px', fontWeight: 700, color: isSimulatedGasIndex ? '#fbbf24' : '#ffffff' }}
+            title={isSimulatedGasIndex ? 'Simulated — not a live market feed. See Marks screen.' : undefined}
+          >
             {gasIndexPrice !== null && gasIndexPrice !== undefined ? `€${gasIndexPrice.toFixed(2)}` : '—'}
           </span>
+          {isSimulatedGasIndex && (
+            <span
+              style={{
+                fontSize: '9px',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                padding: '1px 5px',
+                borderRadius: '2px',
+                backgroundColor: 'rgba(251, 191, 36, 0.18)',
+                color: '#fbbf24',
+              }}
+            >
+              Simulated
+            </span>
+          )}
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
