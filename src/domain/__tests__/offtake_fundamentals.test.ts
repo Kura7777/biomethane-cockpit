@@ -11,13 +11,13 @@ import {
 } from '../offtake/engine';
 import { CiSliderConfig, SdePlusPlusTerms } from '../offtake/types';
 
-describe('INSTITUTIONAL BIOMETHANE OFFTAKE FUNDAMENTALS (RWE CONTRACT BENCHMARK)', () => {
+describe('INSTITUTIONAL BIOMETHANE OFFTAKE FUNDAMENTALS (BILATERAL CONTRACT BENCHMARK)', () => {
 
   // --------------------------------------------------------------------------
   // 1. DYNAMIC CI SLIDER & TRUE-UP ARITHMETIC
   // --------------------------------------------------------------------------
   describe('1. Dynamic Carbon Intensity (CI) Slider Engine', () => {
-    const rweCiConfig: CiSliderConfig = {
+    const institutionalCiConfig: CiSliderConfig = {
       basePriceEurPerMWh: 53.00,
       baseCarbonIntensity: -20.0,
       ciMultiplierAlpha: 0.65,
@@ -26,8 +26,8 @@ describe('INSTITUTIONAL BIOMETHANE OFFTAKE FUNDAMENTALS (RWE CONTRACT BENCHMARK)
       buyerRejectionAboveMaxCi: true,
     };
 
-    it('reproduces exact RWE/Puzzle contract illustrative example (CI = -50 -> +€19.50/MWh -> €72.50/MWh)', () => {
-      const result = calculateCiSliderAdjustment(rweCiConfig, -50.0);
+    it('reproduces exact bilateral contract illustrative example (CI = -50 -> +€19.50/MWh -> €72.50/MWh)', () => {
+      const result = calculateCiSliderAdjustment(institutionalCiConfig, -50.0);
       
       // Delta CI = -20 - (-50) = +30
       // Adjustment = 0.65 * 30 = +19.50
@@ -38,7 +38,7 @@ describe('INSTITUTIONAL BIOMETHANE OFFTAKE FUNDAMENTALS (RWE CONTRACT BENCHMARK)
     });
 
     it('calculates baseline delivery with zero adjustment when Actual CI equals Base CI (-20)', () => {
-      const result = calculateCiSliderAdjustment(rweCiConfig, -20.0);
+      const result = calculateCiSliderAdjustment(institutionalCiConfig, -20.0);
       expect(result.adjustmentEurPerMWh).toBe(0.00);
       expect(result.finalCertificatePriceEurPerMWh).toBe(53.00);
       expect(result.isWithinCorridor).toBe(true);
@@ -46,7 +46,7 @@ describe('INSTITUTIONAL BIOMETHANE OFFTAKE FUNDAMENTALS (RWE CONTRACT BENCHMARK)
     });
 
     it('applies negative discount when Delivered CI is worse than Base CI (e.g. CI = -10 -> -€6.50/MWh)', () => {
-      const result = calculateCiSliderAdjustment(rweCiConfig, -10.0);
+      const result = calculateCiSliderAdjustment(institutionalCiConfig, -10.0);
       // Delta CI = -20 - (-10) = -10
       // Adjustment = 0.65 * (-10) = -6.50
       expect(result.adjustmentEurPerMWh).toBe(-6.50);
@@ -56,7 +56,7 @@ describe('INSTITUTIONAL BIOMETHANE OFFTAKE FUNDAMENTALS (RWE CONTRACT BENCHMARK)
     });
 
     it('triggers buyer rejection rights when Actual CI exceeds the Maximum Ceiling (CI > 0)', () => {
-      const result = calculateCiSliderAdjustment(rweCiConfig, +15.0);
+      const result = calculateCiSliderAdjustment(institutionalCiConfig, +15.0);
       expect(result.buyerRejectionTriggered).toBe(true);
       expect(result.isWithinCorridor).toBe(false);
       // Clamped to ceiling (0.0) for formula calculation: 0.65 * (-20 - 0) = -13.00
@@ -65,7 +65,7 @@ describe('INSTITUTIONAL BIOMETHANE OFFTAKE FUNDAMENTALS (RWE CONTRACT BENCHMARK)
     });
 
     it('clamps positive bonus at the minimum CI floor (-100.0)', () => {
-      const result = calculateCiSliderAdjustment(rweCiConfig, -120.0);
+      const result = calculateCiSliderAdjustment(institutionalCiConfig, -120.0);
       expect(result.isWithinCorridor).toBe(false);
       // Clamped to floor (-100.0): 0.65 * (-20 - (-100)) = 0.65 * 80 = +52.00
       expect(result.adjustmentEurPerMWh).toBe(52.00);
@@ -86,7 +86,7 @@ describe('INSTITUTIONAL BIOMETHANE OFFTAKE FUNDAMENTALS (RWE CONTRACT BENCHMARK)
       supportedBasePriceEurPerMWh: 54.00,
     };
 
-    it('reproduces exact RWE/Puzzle contract worked example for SDE++ (Clause 25.6: €20 RVO, €35 Buyer, €55 total)', () => {
+    it('reproduces exact bilateral contract worked example for SDE++ (Clause 25.6: €20 RVO, €35 Buyer, €55 total)', () => {
       const result = calculateSdePlusPlusPrice(contractSdeParams);
 
       // SDE Payment = 55 - max(20, 15) - 15 = 55 - 20 - 15 = 20 €/MWh from RVO

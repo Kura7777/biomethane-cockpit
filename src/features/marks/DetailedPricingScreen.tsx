@@ -21,6 +21,7 @@ export function DetailedPricingScreen() {
   const [quotes, setQuotes] = useState<BrokerMarketQuote[]>(INITIAL_BROKER_QUOTES);
   const [selectedBook, setSelectedBook] = useState<'ALL' | 'COMPLIANCE' | 'VOLUNTARY'>('ALL');
   const [selectedCountry, setSelectedCountry] = useState<string>('ALL');
+  const [vintageFilter, setVintageFilter] = useState<'CURRENT_FORWARD' | 'ALL'>('CURRENT_FORWARD');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [gasIndexInput, setGasIndexInput] = useState<string>(
     state.marks.gasIndex.mid?.toString() || '32.50'
@@ -134,12 +135,14 @@ export function DetailedPricingScreen() {
       || (selectedBook === 'COMPLIANCE' && q.productClass === 'BUNDLED_COMPLIANCE')
       || (selectedBook === 'VOLUNTARY' && q.productClass === 'GO_VOLUNTARY');
     const matchCountry = selectedCountry === 'ALL' || q.country === selectedCountry;
+    const isHistorical = q.vintage === '2024' || q.vintage === 'H224' || q.vintage === '2025' || q.vintage === 'H225';
+    const matchVintage = vintageFilter === 'ALL' || !isHistorical;
     const matchSearch = !searchTerm || 
       q.country.toLowerCase().includes(searchTerm.toLowerCase()) ||
       q.feedstock.toLowerCase().includes(searchTerm.toLowerCase()) ||
       q.vintage.toLowerCase().includes(searchTerm.toLowerCase()) ||
       q.certified.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchBook && matchCountry && matchSearch;
+    return matchBook && matchCountry && matchVintage && matchSearch;
   });
 
   return (
@@ -275,6 +278,35 @@ export function DetailedPricingScreen() {
               </button>
             ))}
           </div>
+
+          {/* Vintage Filter Buttons */}
+          <div className="flex items-center gap-1">
+            <span className="font-mono text-[10px] text-zinc-500 uppercase font-bold mr-1">
+              Vintage:
+            </span>
+            <button
+              type="button"
+              onClick={() => setVintageFilter('CURRENT_FORWARD')}
+              className={`px-2.5 py-1 rounded-lg font-mono text-[11px] font-bold tracking-wider transition-all cursor-pointer ${
+                vintageFilter === 'CURRENT_FORWARD'
+                  ? 'bg-zinc-200 text-black font-bold shadow-md'
+                  : 'bg-[#0e1118] hover:bg-stone-850 text-zinc-400 hover:text-zinc-200 border border-[#1e2433]'
+              }`}
+            >
+              2026+ Forward
+            </button>
+            <button
+              type="button"
+              onClick={() => setVintageFilter('ALL')}
+              className={`px-2.5 py-1 rounded-lg font-mono text-[11px] font-bold tracking-wider transition-all cursor-pointer ${
+                vintageFilter === 'ALL'
+                  ? 'bg-zinc-200 text-black font-bold shadow-md'
+                  : 'bg-[#0e1118] hover:bg-stone-850 text-zinc-400 hover:text-zinc-200 border border-[#1e2433]'
+              }`}
+            >
+              All Vintages
+            </button>
+          </div>
         </div>
 
         {/* Table Search */}
@@ -304,6 +336,7 @@ export function DetailedPricingScreen() {
                 <th className="py-3 px-3.5 border-r border-[#2b3347]/60 font-bold">Certified</th>
                 <th className="py-3 px-3.5 border-r border-[#2b3347]/60 font-bold">Subsidized</th>
                 <th className="py-3 px-3.5 border-r border-[#2b3347]/60 font-bold">CI Score</th>
+                <th className="py-3 px-3.5 border-r border-[#2b3347]/60 font-bold text-center w-24">AS OF</th>
                 <th className="py-3 px-3.5 border-r border-[#2b3347]/60 font-bold text-right w-32 bg-[#164e63] text-cyan-200">BID Price</th>
                 <th className="py-3 px-3.5 border-r border-[#2b3347]/60 font-bold text-right w-32 bg-[#78350f] text-amber-200">OFFER Price</th>
                 <th className="py-3 px-3.5 border-r border-[#2b3347]/60 font-bold text-right w-28">BID Vol</th>
@@ -371,6 +404,13 @@ export function DetailedPricingScreen() {
                     {/* CI Score */}
                     <td className="py-2.5 px-3.5 border-r border-[#1e2433] text-cyan-400 font-bold">
                       {q.ciScore || '—'}
+                    </td>
+
+                    {/* AS OF Date */}
+                    <td className="py-2.5 px-3 border-r border-[#1e2433] text-center font-mono text-[10px] text-zinc-400">
+                      <span className="px-1.5 py-0.5 rounded bg-[#08090d] border border-[#1e2433]">
+                        {q.observedAt || '2026-08-20'}
+                      </span>
                     </td>
 
                     {/* BID Price (Editable) */}

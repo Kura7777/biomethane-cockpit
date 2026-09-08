@@ -40,14 +40,20 @@ export function CitationBlock({ citation, compact = false }: CitationBlockProps)
       <div className="pt-1 flex items-center gap-2 text-micro text-zinc-400 font-mono">
         <span>Full ref: {citation.fullReference}</span>
         {citation.sourceUrl && (
-          <a
-            href={citation.sourceUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-cyan-400 hover:text-cyan-300 underline inline-flex items-center gap-0.5 ml-auto"
-          >
-            EUR-Lex <ExternalLink className="w-2.5 h-2.5" />
-          </a>
+          citation.sourceUrl.startsWith('http') ? (
+            <a
+              href={citation.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-cyan-400 hover:text-cyan-300 underline inline-flex items-center gap-0.5 ml-auto"
+            >
+              {citation.sourceUrl.includes('eur-lex') ? 'EUR-Lex' : 'Official Source'} <ExternalLink className="w-2.5 h-2.5" />
+            </a>
+          ) : (
+            <span className="text-zinc-400 ml-auto font-mono text-micro">
+              {citation.sourceUrl}
+            </span>
+          )
         )}
       </div>
     </div>

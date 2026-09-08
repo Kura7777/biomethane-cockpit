@@ -72,7 +72,7 @@ export function Layout() {
       if (e.key === '7') navigate('/data-sources');
       if (k === 'r') navigate('/risk');
       if (k === 'c') navigate('/citations');
-      if (k === 's') navigate('/scanner');
+      if (k === 's') navigate('/sourcing');
     };
 
     window.addEventListener('keydown', handleKeyDown);

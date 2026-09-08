@@ -120,7 +120,7 @@ regional_clusters = [
     ('DE', 'Germany', '🇩🇪', 'Niedersachsen Slurry Hub', 'Niedersachsen (Oldenburg)', 'EWE AG', 'Amine Scrubbing', 'Liquid Cattle & Pig Manure', 1200, 110, 'Distribution (EWE Netz)'),
     ('DE', 'Germany', '🇩🇪', 'Bayern Biomethan Nord', 'Bayern (Straubing)', 'BayWa r.e.', 'Membrane Separation', 'Agricultural Waste & Manure', 650, 58, 'Distribution (Bayernwerk)'),
     ('DE', 'Germany', '🇩🇪', 'Schleswig-Holstein AgroGas', 'Schleswig-Holstein (Kiel)', 'Danpower GmbH', 'Water Scrubbing', 'Cattle Slurry & Grass', 580, 50, 'Distribution (SH Netz)'),
-    ('DE', 'Germany', '🇩🇪', 'Nordrhein-Westfalen Waste AD', 'NRW (Münster)', 'RWE Generation', 'Membrane Separation', 'Food Waste & OFMSW', 950, 85, 'Distribution (Westnetz)'),
+    ('DE', 'Germany', '🇩🇪', 'Nordrhein-Westfalen Waste AD', 'NRW (Münster)', 'Westenergie Biomethan', 'Membrane Separation', 'Food Waste & OFMSW', 950, 85, 'Distribution (Westnetz)'),
     ('DE', 'Germany', '🇩🇪', 'Sachsen-Anhalt Biomethane', 'Sachsen-Anhalt (Magdeburg)', 'VERBIO SE', 'Amine Scrubbing', 'Straw & Agricultural Residues', 1400, 125, 'Transmission (ONTRAS)'),
     ('DE', 'Germany', '🇩🇪', 'Hessen Bio-Energie Zentrum', 'Hessen (Kassel)', 'Mainova AG', 'Membrane Separation', 'Biowaste & Manure', 480, 42, 'Distribution (Syna)'),
 

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { 
   calculateTradeIntegritySeal, 
   generateEfetBiomethaneAnnexPdf, 
+  generateCommercialTermSheetPdf,
   generateFpMLDealPayload, 
   generateEtrmJsonPayload 
 } from '../trade/legalPackage';
@@ -187,14 +188,14 @@ describe('Hybrid Legal Package & ETRM Export Engine', () => {
         ...mockAssessment,
         consignment: {
           ...mockAssessment.consignment,
-          counterparty: 'RWE Supply & Trading GmbH & Co. <KG>',
+          counterparty: 'Tier-1 Energy Trading GmbH & Co. <KG>',
         },
       };
 
       const xml = generateFpMLDealPayload(specialAssessment);
-      expect(xml).toContain('RWE Supply &amp; Trading GmbH &amp; Co. &lt;KG&gt;');
-      expect(xml).not.toContain('RWE Supply & Trading');
-      expect(xml).toContain('<fpml:partyName>RWE Supply &amp; Trading GmbH &amp; Co. &lt;KG&gt;</fpml:partyName>');
+      expect(xml).toContain('Tier-1 Energy Trading GmbH &amp; Co. &lt;KG&gt;');
+      expect(xml).not.toContain('Tier-1 Energy Trading GmbH & Co. <KG>');
+      expect(xml).toContain('<fpml:partyName>Tier-1 Energy Trading GmbH &amp; Co. &lt;KG&gt;</fpml:partyName>');
     });
   });
 
@@ -215,6 +216,23 @@ describe('Hybrid Legal Package & ETRM Export Engine', () => {
 
       expect(ticket.cryptographicIntegritySeal.algorithm).toBe('SHA-256');
       expect(ticket.cryptographicIntegritySeal.hash).toHaveLength(64);
+    });
+  });
+
+  describe('Voluntary Unbundled Book & Claim Legal Package', () => {
+    it('generates EFET Annex and Term Sheet PDF specifically tailored for unbundled voluntary GoO deals', () => {
+      const voluntaryAssessment: TradeAssessment = {
+        ...mockAssessment,
+        id: 'DOS-2026-VOL-01',
+        targetMarketId: 'VOL_SCOPE1',
+        targetMarketName: 'Corporate Voluntary Scope 1 Green Gas',
+      };
+
+      const efetPdf = generateEfetBiomethaneAnnexPdf(voluntaryAssessment);
+      expect(efetPdf.getNumberOfPages()).toBeGreaterThan(0);
+
+      const termSheetPdf = generateCommercialTermSheetPdf(voluntaryAssessment);
+      expect(termSheetPdf.getNumberOfPages()).toBeGreaterThan(0);
     });
   });
 });

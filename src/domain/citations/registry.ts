@@ -962,7 +962,7 @@ export const LEGAL_CITATIONS: LegalCitation[] = [
       'REDcert System Principles Section 2: Biomass and biomethane certified under REDcert EU complies with the criteria of Directive (EU) 2018/2001.'
     ],
     crossReferences: ['dena Biogasregister', 'BLE Nabisy System'],
-    officialUrl: 'https://www.redcert.org/',
+    officialUrl: 'https://www.redcert.org/en/redcert-systems/redcert-eu.html',
     officialUrlLabel: 'REDcert Official Certification Portal',
     additionalLinks: [
       { label: 'Federal Agency for Agriculture and Food (BLE) Nabisy', url: 'https://www.ble.de/DE/Themen/Klima-Energie/Biokraftstoffe-Nachhaltigkeit/Nabisy/nabisy_node.html' }

@@ -226,16 +226,27 @@ export function MarksScreen() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <button
             type="button"
-            className="btn btn-secondary"
-            style={{ fontSize: '12px', padding: '5px 12px' }}
+            className="btn btn-primary"
+            style={{
+              fontSize: '12px',
+              padding: '6px 14px',
+              backgroundColor: 'var(--color-accent)',
+              color: 'var(--color-bg)',
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
             onClick={() => setIsImporterOpen(true)}
+            title="Paste unstructured broker runs from STX, ACT, Marex, or Vertis to import live market marks"
           >
-            Import Broker Run
+            <Sparkles className="w-3.5 h-3.5" />
+            Paste Broker Run (1-Click)
           </button>
           <button
             type="button"
-            className="btn btn-primary"
-            style={{ fontSize: '12px', padding: '5px 14px' }}
+            className="btn btn-secondary"
+            style={{ fontSize: '12px', padding: '6px 14px' }}
             onClick={handleExportCsv}
           >
             <Download className="w-3.5 h-3.5 mr-1" />
@@ -275,7 +286,7 @@ export function MarksScreen() {
         <div>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
             <span className="eyebrow">Pan-European Quotes</span>
-            <span className="chip chip-pos">100% Active</span>
+            <span className="chip chip-info">{provenanceCounts.BROKER_RUN > 0 ? `${provenanceCounts.BROKER_RUN} Broker Runs` : 'Active'}</span>
           </div>
           <div className="big num">{filteredQuotes.length} / {quotes.length}</div>
           <div className="subttl">All 38 European hubs &amp; registries priced</div>

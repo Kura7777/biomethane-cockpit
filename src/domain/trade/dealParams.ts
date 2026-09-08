@@ -23,15 +23,24 @@ export interface DealParams {
   originCountry: string;
   feedstock: string;
   ci: number;
+  ciIsEstimated?: boolean;
   volume: number;
   scheme?: CertificationScheme;
   coc?: ChainOfCustody;
   counterparty?: string;
   deliveryPeriod?: string;
+  complianceYear?: number;
+  deliveryPeriodType?: 'CALENDAR' | 'QUARTER' | 'MONTH' | 'CUSTOM';
+  deliveryStartDate?: string;
+  deliveryEndDate?: string;
+  productionStartDate?: string;
+  productionEndDate?: string;
+  deliveryProfile?: 'FLAT_MONTHLY' | 'FLAT_DAILY' | 'BULLET';
   plantId?: string;
   plantName?: string;
   plantCapacityNm3h?: number;
   plantAnnualGWh?: number;
+  plantCommittedVolume?: number;
   legalEntityName?: string;
   networkOperator?: string;
   contactEmail?: string;
@@ -44,26 +53,42 @@ const ALIASES: Record<keyof DealParams, string[]> = {
   originCountry: ['originCountry', 'origin'],
   feedstock: ['feedstock'],
   ci: ['ci'],
+  ciIsEstimated: ['ciIsEstimated', 'estimatedCi'],
   volume: ['volume'],
   scheme: ['scheme'],
   coc: ['coc'],
   counterparty: ['counterparty'],
   deliveryPeriod: ['deliveryPeriod'],
+  complianceYear: ['complianceYear', 'year'],
+  deliveryPeriodType: ['deliveryPeriodType', 'periodType'],
+  deliveryStartDate: ['deliveryStartDate', 'deliveryStart'],
+  deliveryEndDate: ['deliveryEndDate', 'deliveryEnd'],
+  productionStartDate: ['productionStartDate', 'prodStart'],
+  productionEndDate: ['productionEndDate', 'prodEnd'],
+  deliveryProfile: ['deliveryProfile', 'profile'],
   plantId: ['plantId'],
   plantName: ['plantName'],
   plantCapacityNm3h: ['plantCapacityNm3h', 'capacityNm3h'],
   plantAnnualGWh: ['plantAnnualGWh', 'annualGWh'],
+  plantCommittedVolume: ['plantCommittedVolume', 'committedVolume'],
   legalEntityName: ['legalEntityName'],
   networkOperator: ['networkOperator'],
   contactEmail: ['contactEmail'],
   contactPhone: ['contactPhone'],
 };
 
-const NUMERIC_KEYS = ['ci', 'volume', 'plantCapacityNm3h', 'plantAnnualGWh'] as const;
+const NUMERIC_KEYS = ['ci', 'volume', 'plantCapacityNm3h', 'plantAnnualGWh', 'plantCommittedVolume', 'complianceYear'] as const;
 type NumericKey = (typeof NUMERIC_KEYS)[number];
 
 function isNumericKey(key: keyof DealParams): key is NumericKey {
   return (NUMERIC_KEYS as readonly string[]).includes(key);
+}
+
+const BOOLEAN_KEYS = ['ciIsEstimated'] as const;
+type BooleanKey = (typeof BOOLEAN_KEYS)[number];
+
+function isBooleanKey(key: keyof DealParams): key is BooleanKey {
+  return (BOOLEAN_KEYS as readonly string[]).includes(key);
 }
 
 /**
@@ -114,6 +139,8 @@ export function parseDealParams(searchParams: URLSearchParams): Partial<DealPara
       const numeric = Number(raw);
       if (!Number.isFinite(numeric)) continue;
       parsed[key] = numeric;
+    } else if (isBooleanKey(key)) {
+      parsed[key] = raw === 'true' || raw === '1';
     } else {
       // The string fields are unions (scheme, coc) or free text. Validating the
       // unions is the consuming screen's job — it owns the registries that say

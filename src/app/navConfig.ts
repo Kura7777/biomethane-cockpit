@@ -46,7 +46,6 @@ export const SIDEBAR_ITEMS: NavItem[] = [
 export const WORKSPACE_TABS: NavItem[] = [
   // --- Group 1: Market Intelligence & Pricing ---
   { to: '/pricing', label: 'Pricing desk', keyHint: '1', icon: FileSpreadsheet },
-  { to: '/scanner', label: 'Scanner', keyHint: 'S', icon: Radar },
 
   // --- Group 2: Physical Supply & Infrastructure ---
   { to: '/sourcing', label: 'Origination', keyHint: '2', icon: Compass },

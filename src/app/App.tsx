@@ -18,8 +18,8 @@ const MapScreen = React.lazy(() => import('../features/map/MapScreen').then(m =>
 const MarksScreen = React.lazy(() => import('../features/marks/MarksScreen').then(m => ({ default: m.MarksScreen })));
 const TradeBuilderScreen = React.lazy(() => import('../features/trade-builder/TradeBuilderScreen').then(m => ({ default: m.TradeBuilderScreen })));
 const PlantsScreen = React.lazy(() => import('../features/plants/PlantsScreen').then(m => ({ default: m.PlantsScreen })));
+const OriginationPipelineScreen = React.lazy(() => import('../features/plants/OriginationPipelineScreen').then(m => ({ default: m.OriginationPipelineScreen })));
 const RegistriesScreen = React.lazy(() => import('../features/registries/RegistriesScreen').then(m => ({ default: m.RegistriesScreen })));
-const ScannerScreen = React.lazy(() => import('../features/opportunity-scanner/ScannerScreen').then(m => ({ default: m.ScannerScreen })));
 const CitationsScreen = React.lazy(() => import('../features/citations/CitationsScreen').then(m => ({ default: m.CitationsScreen })));
 const DataSourcesScreen = React.lazy(() => import('../features/provenance/DataSourcesScreen').then(m => ({ default: m.DataSourcesScreen })));
 const DataConnectorsScreen = React.lazy(() => import('../features/settings/DataConnectorsScreen').then(m => ({ default: m.DataConnectorsScreen })));
@@ -51,6 +51,8 @@ function AppContent() {
 
             {/* Plants & Registries Pages */}
             <Route path="/plants" element={<PlantsScreen />} />
+            <Route path="/plants/pipeline" element={<OriginationPipelineScreen />} />
+            <Route path="/origination" element={<OriginationPipelineScreen />} />
             <Route path="/registries" element={<RegistriesScreen />} />
             <Route path="/data-sources" element={<DataSourcesScreen />} />
             <Route path="/provenance" element={<DataSourcesScreen />} />
@@ -58,7 +60,7 @@ function AppContent() {
             {/* Supporting Tools & Desks */}
             <Route path="/trade" element={<TradeBuilderScreen />} />
             <Route path="/risk" element={<Navigate to="/" replace />} />
-            <Route path="/scanner" element={<ScannerScreen />} />
+            <Route path="/scanner" element={<Navigate to="/sourcing" replace />} />
             <Route path="/library" element={<Navigate to="/trade" replace />} />
             <Route path="/citations" element={<CitationsScreen />} />
             <Route path="/connectors" element={<DataConnectorsScreen />} />

@@ -863,9 +863,10 @@ describe('E2E Trading Workflows & Multi-Tier Regulatory Stress Suite (Milestone 
       expect(ukAssessment.overallVerdict).toBe('ELIGIBLE');
 
       const ukNetback = computeNetback(ukMarket, consignment, testBaseMarks, standardFixedCosts, 'bid');
-      // £0.25 * €1.18/£ * 144.0 dRTFC/MWh = €42.48/MWh
+      // £0.25 * €1.18/£ * 144.0 RTFC/MWh = €42.48/MWh
       expect(ukNetback.certificateValue?.valueEurPerMWh).toBeCloseTo(42.48, 1);
-      expect(ukNetback.certificateValue?.statusNote).toContain('144.0 dRTFC/MWh');
+      // Remediated Task 2.2: Manure AD biomethane earns double-counted standard RTFCs (144.0 RTFC/MWh), not development fuel (dRTFC)
+      expect(ukNetback.certificateValue?.statusNote).toContain('144.0 RTFC/MWh');
     });
 
     it('Scenario F: Full compliance dossier generation and PRA licensing guard check', () => {

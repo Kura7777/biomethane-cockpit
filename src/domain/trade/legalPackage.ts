@@ -246,11 +246,19 @@ export function generateEfetBiomethaneAnnexPdf(
 
   y += 3;
 
-  // Section 2: Leg A - Physical Molecule Terms
+  const isVoluntary = isVoluntaryMarket(assessment.targetMarketId);
+
+  // Section 2: Leg A - Physical Molecule Terms or Unbundled Disposition
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8.5);
   doc.setTextColor(15, 23, 42);
-  doc.text('2. LEG A: PHYSICAL GAS MOLECULE DELIVERY TERMS', margin, y);
+  doc.text(
+    isVoluntary
+      ? '2. COMMODITY DISPOSITION (UNBUNDLED BOOK-AND-CLAIM)'
+      : '2. LEG A: PHYSICAL GAS MOLECULE DELIVERY TERMS',
+    margin,
+    y
+  );
   y += 4;
 
   doc.setFillColor(241, 245, 249);
@@ -258,26 +266,55 @@ export function generateEfetBiomethaneAnnexPdf(
   doc.setFontSize(7.5);
   doc.setTextColor(30, 41, 59);
 
-  doc.setFont('helvetica', 'bold');
-  doc.text('Commodity Specification:', margin + 3, y + 4.5);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Raw pipeline-quality Biomethane complying with EN 16723-1 & national injection specs.', margin + 45, y + 4.5);
+  if (isVoluntary) {
+    doc.setFont('helvetica', 'bold');
+    doc.text('Transaction Structure:', margin + 3, y + 4.5);
+    doc.setFont('helvetica', 'normal');
+    doc.text('UNBUNDLED CERTIFICATE ONLY. No physical gas molecule delivery to Buyer.', margin + 45, y + 4.5);
 
-  doc.setFont('helvetica', 'bold');
-  doc.text('Delivery Point (VTP):', margin + 3, y + 9);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`Virtual Trading Point (${c.injectionCountry} Transmission Grid / TTF Equivalent)`, margin + 45, y + 9);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Grid Injection & Gas:', margin + 3, y + 9);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Biomethane injected locally into ${c.injectionCountry} transmission grid; gas retained/sold by Producer.`, margin + 45, y + 9);
 
-  doc.setFont('helvetica', 'bold');
-  doc.text('Contract Volume:', margin + 3, y + 13.5);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`${volume.toLocaleString()} MWh (approx. ${(volume / 365).toFixed(1)} MWh/day flat delivery profile)`, margin + 45, y + 13.5);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Certificate Volume & Units:', margin + 3, y + 13.5);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${volume.toLocaleString()} MWh Guarantees of Origin (GO) · Electronic cancellation on national registry.`, margin + 45, y + 13.5);
 
-  doc.setFont('helvetica', 'bold');
-  doc.text('Tolerance Collars & Pricing:', margin + 3, y + 18);
-  doc.setFont('helvetica', 'normal');
-  const gasPriceStr = gasIndexPrice !== null ? `TTF Month+1 (€${gasIndexPrice.toFixed(2)}/MWh)` : 'TTF Month+1 Floating Index';
-  doc.text(`±5.0% Operational Volume Collar. Settlement: ${gasPriceStr} or Fixed Base.`, margin + 45, y + 18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Transit & Balancing:', margin + 3, y + 18);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Zero pipeline transit tariffs. Zero VTP balancing liability. Zero commodity delta risk.', margin + 45, y + 18);
+  } else {
+    doc.setFont('helvetica', 'bold');
+    doc.text('Commodity Specification:', margin + 3, y + 4.5);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Raw pipeline-quality Biomethane complying with EN 16723-1 & national injection specs.', margin + 45, y + 4.5);
+
+    doc.setFont('helvetica', 'bold');
+    doc.text('Delivery Point (VTP):', margin + 3, y + 9);
+    doc.setFont('helvetica', 'normal');
+    const vtpPoint = c.deliveryPeriod?.deliveryPointVtp || `Virtual Trading Point (${c.injectionCountry} Transmission Grid / TTF Equivalent)`;
+    doc.text(vtpPoint, margin + 45, y + 9);
+
+    doc.setFont('helvetica', 'bold');
+    doc.text('Contract Volume & Profile:', margin + 3, y + 13.5);
+    doc.setFont('helvetica', 'normal');
+    const delProfile = c.deliveryPeriod?.deliveryProfile || 'FLAT_MONTHLY';
+    const profileDesc = delProfile === 'FLAT_MONTHLY'
+      ? `Flat Monthly (~${Math.round(volume / 12).toLocaleString()} MWh/mo)`
+      : delProfile === 'FLAT_DAILY'
+      ? `Flat Daily (~${(volume / 365).toFixed(1)} MWh/day)`
+      : '100% Bullet Transfer';
+    doc.text(`${volume.toLocaleString()} MWh · Delivery Window: ${c.deliveryPeriod?.startDate || '2026-01-01'} to ${c.deliveryPeriod?.endDate || '2026-12-31'} (${profileDesc})`, margin + 45, y + 13.5);
+
+    doc.setFont('helvetica', 'bold');
+    doc.text('Tolerance Collars & Pricing:', margin + 3, y + 18);
+    doc.setFont('helvetica', 'normal');
+    const gasPriceStr = gasIndexPrice !== null ? `TTF Month+1 (€${gasIndexPrice.toFixed(2)}/MWh)` : 'TTF Month+1 Floating Index';
+    doc.text(`±5.0% Operational Volume Collar. Settlement: ${gasPriceStr} or Fixed Base.`, margin + 45, y + 18);
+  }
 
   y += 26;
 
@@ -285,11 +322,17 @@ export function generateEfetBiomethaneAnnexPdf(
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8.5);
   doc.setTextColor(15, 23, 42);
-  doc.text('3. LEG B: GREEN ATTRIBUTE & CERTIFICATE TRANSFER TERMS', margin, y);
+  doc.text(
+    isVoluntary
+      ? '3. GREEN ATTRIBUTE & REGISTRY CANCELLATION TERMS'
+      : '3. LEG B: GREEN ATTRIBUTE & CERTIFICATE TRANSFER TERMS',
+    margin,
+    y
+  );
   y += 4;
 
   doc.setFillColor(241, 245, 249);
-  doc.rect(margin, y, 174, 30, 'F');
+  doc.rect(margin, y, 174, 36, 'F');
   doc.setFontSize(7.5);
   doc.setTextColor(30, 41, 59);
 
@@ -309,21 +352,29 @@ export function generateEfetBiomethaneAnnexPdf(
   doc.text('P_adj = P_base + α × (CI_contract − CI_delivered). Price floor: €0/MWh; Cap: Statutory ceiling.', margin + 45, y + 13.5);
 
   doc.setFont('helvetica', 'bold');
-  doc.text('Registry Transfer Mechanics:', margin + 3, y + 18);
+  doc.text('Production Vintage Window:', margin + 3, y + 18);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Title transferred via ${market?.registry || 'Union Database (UDB)'} within 30 days of production month end.`, margin + 45, y + 18);
+  const prodWindow = `${c.deliveryPeriod?.productionStartDate || '2026-01-01'} to ${c.deliveryPeriod?.productionEndDate || '2026-12-31'} · Compliance Year: ${c.deliveryPeriod?.complianceYear || 2026}`;
+  doc.text(prodWindow, margin + 45, y + 18);
 
   doc.setFont('helvetica', 'bold');
-  doc.text('Green Premium Valuation:', margin + 3, y + 22.5);
+  doc.text('Registry Surrender Deadline:', margin + 3, y + 22.5);
+  doc.setFont('helvetica', 'normal');
+  const regDeadline = c.deliveryPeriod?.statutorySurrenderDeadline || '28 February 2027';
+  doc.text(`Title transferred via ${market?.registry || 'Union Database (UDB)'} by ${regDeadline} (within 30 days of production month end).`, margin + 45, y + 22.5);
+
+  doc.setFont('helvetica', 'bold');
+  doc.text('Green Premium Valuation:', margin + 3, y + 27);
+  doc.setFont('helvetica', 'normal');
   const certPriceStr = certPrice !== null ? `€${certPrice.toFixed(2)}/MWh` : 'Unsettled';
-  doc.text(`Attribute Unit Value: ${certPriceStr}. Netback Payable: €${(nb.netNetback ?? 0).toFixed(2)}/MWh.`, margin + 45, y + 22.5);
+  doc.text(`Attribute Unit Value: ${certPriceStr}. Netback Payable: €${(nb.netNetback ?? 0).toFixed(2)}/MWh.`, margin + 45, y + 27);
 
   doc.setFont('helvetica', 'bold');
-  doc.text('Chain of Custody:', margin + 3, y + 27);
+  doc.text('Chain of Custody:', margin + 3, y + 31.5);
   doc.setFont('helvetica', 'normal');
-  doc.text(`${c.chainOfCustody.replace(/_/g, ' ')} under RED III Article 31a single interconnected area.`, margin + 45, y + 27);
+  doc.text(`${c.chainOfCustody.replace(/_/g, ' ')} under RED III Article 31a single interconnected area.`, margin + 45, y + 31.5);
 
-  y += 34;
+  y += 38;
 
   // Section 4: Subsidy Clawback & Double Beneficiary Clause (SDE++ if NL)
   doc.setFont('helvetica', 'bold');
@@ -724,6 +775,7 @@ export function generateCommercialTermSheetPdf(
   const buyer = options.buyerName || c.counterparty || 'OFFTAKE COUNTERPARTY CORP';
   const volume = c.volumeMWh ?? 10000;
   const seal = calculateTradeIntegritySeal(assessment);
+  const isVoluntary = isVoluntaryMarket(assessment.targetMarketId);
 
   const margin = 18;
   let y = 20;
@@ -776,14 +828,28 @@ export function generateCommercialTermSheetPdf(
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9);
   doc.setTextColor(15, 23, 42);
-  doc.text('1. COMMODITY & VOLUME SPECIFICATIONS', margin, y);
+  doc.text(
+    isVoluntary
+      ? '1. CERTIFICATE & UNBUNDLED ATTRIBUTE SPECIFICATIONS'
+      : '1. COMMODITY & VOLUME SPECIFICATIONS',
+    margin,
+    y
+  );
   y += 4;
 
   const gasPrice = assessment.marks.gasIndex.mid ?? 0;
   const certVal = nb.certificateValue?.valueEurPerMWh ?? 0;
-  const allInDelivered = gasPrice + certVal;
+  const allInDelivered = isVoluntary ? certVal : gasPrice + certVal;
 
-  const commData = [
+  const commData = isVoluntary ? [
+    ['Transaction Nature', 'Guarantees of Origin (GO) · Unbundled Book & Claim (No physical gas delivery)'],
+    ['Annual Contract Volume', `${volume.toLocaleString()} MWh Guarantees of Origin certificates (Electronic cancellation)`],
+    ['Origin Facility', `${c.name || 'Certified European Biomethane Facility'} (${c.originCountry})`],
+    ['Physical Gas Disposition', `Injected into ${c.injectionCountry} domestic grid; retained/sold locally by Producer`],
+    ['Feedstock Substrate', `${c.feedstockName || 'Biomethane Residue'} (Exempt from RED III 65% transport GHG gate)`],
+    ['Contract Carbon Intensity', `${c.carbonIntensity} gCO₂e/MJ`],
+    ['Registry Transfer Platform', `${market?.registry || 'National Biomethane Registry'} (EECS / ERGaR Book & Claim)`],
+  ] : [
     ['Commodity Definition', 'Pipeline-quality Biomethane complying with EN 16723-1 standards'],
     ['Annual Contract Volume', `${volume.toLocaleString()} MWh/annum (~${(volume / 365).toFixed(1)} MWh/day flat profile)`],
     ['Origin Facility', `${c.name || 'Certified European Biomethane Facility'} (${c.originCountry})`],
@@ -810,10 +876,23 @@ export function generateCommercialTermSheetPdf(
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9);
   doc.setTextColor(15, 23, 42);
-  doc.text('2. COMMERCIAL PRICING & INDEXATION FORMULA', margin, y);
+  doc.text(
+    isVoluntary
+      ? '2. UNBUNDLED ATTRIBUTE PRICING & COMMERCIAL TERMS'
+      : '2. COMMERCIAL PRICING & INDEXATION FORMULA',
+    margin,
+    y
+  );
   y += 4;
 
-  const priceData = [
+  const priceData = isVoluntary ? [
+    ['Transaction Type', 'Single-Leg Unbundled Guarantee of Origin (GoO) Transfer'],
+    ['Target Scope / Beneficiary', `${assessment.targetMarketName} (Corporate Scope 1 GHG Protocol)`],
+    ['GoO Attribute Fixed Premium', `€${certVal.toFixed(2)}/MWh fixed delivered attribute price`],
+    ['Transit & Logistics Tariffs', '€0.00/MWh (Zero cross-border pipeline transit, zero VTP balancing liability)'],
+    ['Total Contract Notional', `€${Math.round(certVal * volume).toLocaleString()} EUR (${volume.toLocaleString()} MWh @ €${certVal.toFixed(2)}/MWh)`],
+    ['Commodity Hedging', 'None (Zero natural gas delta exposure; no EEX short hedge required)'],
+  ] : [
     ['Leg A: Physical Molecule', `TTF Month-Ahead Floating Index (Settlement reference: €${gasPrice.toFixed(2)}/MWh)`],
     ['Leg B: Environmental Attribute', `Statutory Sink: ${assessment.targetMarketName} (${market?.unitLabel})`],
     ['Green Premium Unit Value', `€${certVal.toFixed(2)}/MWh delivered environmental attribute`],
@@ -920,12 +999,20 @@ export function generateEtrmCsvPayload(assessment: TradeAssessment): string {
     'TotalDeliveredEurMwh',
     'DeskMarginEurMwh',
     'TotalDealValueEur',
+    'ComplianceYear',
+    'ProductionStartDate',
+    'ProductionEndDate',
+    'DeliveryStartDate',
+    'DeliveryEndDate',
+    'DeliveryProfile',
+    'StatutorySurrenderDeadline',
     'TargetMarket',
     'RegistrySystem',
     'IntegritySeal',
   ];
 
   const isVol = isVoluntaryMarket(assessment.targetMarketId);
+  const dp = c.deliveryPeriod;
 
   const values = [
     assessment.id,
@@ -939,13 +1026,20 @@ export function generateEtrmCsvPayload(assessment: TradeAssessment): string {
     c.carbonIntensity,
     volume,
     (volume / 365).toFixed(2),
-    `${c.injectionCountry}_VTP`,
+    dp?.deliveryPointVtp || `${c.injectionCountry}_VTP`,
     'TTF_INDEX',
     gasPrice.toFixed(2),
     certVal.toFixed(2),
     totalDelivered.toFixed(2),
     deskMargin.toFixed(2),
     totalDealValue.toFixed(2),
+    dp?.complianceYear || 2026,
+    dp?.productionStartDate || '2026-01-01',
+    dp?.productionEndDate || '2026-12-31',
+    dp?.startDate || '2026-01-01',
+    dp?.endDate || '2026-12-31',
+    dp?.deliveryProfile || 'FLAT_MONTHLY',
+    dp?.statutorySurrenderDeadline || '2027-02-28',
     assessment.targetMarketId,
     isVol ? 'NATIONAL_GO_AIB_EECS' : 'UNION_DATABASE_UDB',
     seal,

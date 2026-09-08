@@ -219,12 +219,12 @@ describe('ARCHITECTURE — no fabricated values', () => {
     {
       file: 'domain/offtake/engine.ts',
       coefficient: '0.65',
-      because: 'Contract-specified CI sensitivity multiplier alpha from RWE/Puzzle Term Sheet Clause 25.5.',
+      because: 'Contract-specified CI sensitivity multiplier alpha from Institutional/Puzzle Term Sheet Clause 25.5.',
     },
     {
       file: 'domain/offtake/engine.ts',
       coefficient: '0.99',
-      because: 'Contract-specified physical gas index discount factor from RWE/Puzzle Term Sheet.',
+      because: 'Contract-specified physical gas index discount factor from Institutional/Puzzle Term Sheet.',
     },
     {
       file: 'domain/offtake/commercialGates.ts',

@@ -8,6 +8,8 @@ import { computeNetback } from '../../domain/netback/engine';
 import { Consignment } from '../../domain/consignment/types';
 import { TradeAssessment } from '../../domain/trade/types';
 import { getMarketById } from '../../domain/markets/registry';
+import { FEEDSTOCK_REGISTRY } from '../../domain/consignment/feedstocks';
+import { PRODUCING_ORIGINS } from '../../domain/arbitrage/origins';
 import { CorridorMiniMap } from '../map/CorridorMiniMap';
 import { 
   X, 
@@ -56,6 +58,9 @@ export function QuickDealDrawer({
   const [isMathOpen, setIsMathOpen] = useState(false);
   const { dispatch } = useAppState();
   const [savedToLib, setSavedToLib] = useState(false);
+  const [counterparty, setCounterparty] = useState<string>(
+    request.counterparty ?? sourcedRoute?.legalEntityName ?? 'Shell Energy Europe'
+  );
 
   // Close on Escape key
   useEffect(() => {
@@ -93,13 +98,21 @@ export function QuickDealDrawer({
       networkOperator: sourcedRoute?.networkOperator ?? undefined,
       contactEmail: sourcedRoute?.contactEmail ?? undefined,
       contactPhone: sourcedRoute?.contactPhone ?? undefined,
-      counterparty: request.counterparty ?? sourcedRoute?.legalEntityName ?? sourcedRoute?.originPlantName ?? 'European Biomethane Producer',
+      counterparty: counterparty || 'European Biomethane Producer',
     }));
   };
 
   const handleSaveToLibrary = () => {
     const market = getMarketById(route.targetMarketId);
     if (!market) return;
+
+    // Derive annexClassification from FEEDSTOCK_REGISTRY (not hardcoded IX_A)
+    const feedstockInfo = FEEDSTOCK_REGISTRY[route.feedstockKey];
+    const annexClass = feedstockInfo?.annexClassification ?? 'IX_A';
+
+    // Derive injectionIsEU from PRODUCING_ORIGINS grid zone (not hardcoded true)
+    const originInfo = PRODUCING_ORIGINS[route.originCountry];
+    const isEuGrid = originInfo?.gridZone === 'EU_INTERCONNECTED';
 
     const consignment: Consignment = {
       id: `consignment-${route.originCountry}-${route.feedstockKey}`,
@@ -108,14 +121,14 @@ export function QuickDealDrawer({
       originCountryName: route.originCountryName,
       feedstock: route.feedstockKey,
       feedstockName: route.feedstockName,
-      annexClassification: 'IX_A',
+      annexClassification: annexClass,
       carbonIntensity: route.carbonIntensity,
-      commissioningDateRange: 'POST_2026',
+      commissioningDateRange: 'POST_2021_TO_2025',
       certificationScheme: route.certificationScheme,
       chainOfCustody: route.chainOfCustody,
       injectionCountry: route.originCountry,
-      injectionIsEU: true,
-      udbStatus: 'RECORDED',
+      injectionIsEU: isEuGrid,
+      udbStatus: isEuGrid ? 'RECORDED' : 'NOT_RECORDED',
       posStatus: 'ISSUED',
       volumeMWh: volumeOverride ?? 10000,
       deliveryPeriod: request.delivery,
@@ -453,7 +466,8 @@ export function QuickDealDrawer({
                 </label>
                 <input
                   type="text"
-                  defaultValue={request.counterparty ?? sourcedRoute?.legalEntityName ?? 'Shell Energy Europe'}
+                  value={counterparty}
+                  onChange={e => setCounterparty(e.target.value)}
                   className="w-full bg-[#08090d] border border-[#1e2433] rounded p-1 px-2 font-mono text-xs text-zinc-100 focus:border-cyan-500 focus:outline-none"
                 />
               </div>

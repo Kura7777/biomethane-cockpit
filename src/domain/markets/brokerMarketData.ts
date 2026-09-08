@@ -22,6 +22,7 @@ export interface BrokerMarketQuote {
   highlight?: boolean;
   derivedFrom?: string; // Exact institutional / market source where price is derived from
   provenanceTier?: ProvenanceTier;
+  observedAt?: string; // ISO date or observation date
 }
 
 /**

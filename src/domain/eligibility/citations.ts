@@ -57,6 +57,13 @@ export const CITATIONS: Record<string, LegalCitation> = {
     sourceUrl: 'https://eur-lex.europa.eu/eli/dir/2023/2413/oj',
     verifiedDate: '2026-08-16',
   },
+  RED_III_GHG_HEAT_POWER: {
+    shortName: 'RED III Art. 29(10)(a)',
+    fullReference: 'Directive (EU) 2023/2413 Article 29(10)(a)',
+    establishes: 'Mandatory GHG saving thresholds (70% for installations starting from 2021, 80% from 2026) for biomass/biomethane heating and electricity',
+    sourceUrl: 'https://eur-lex.europa.eu/eli/dir/2023/2413/oj',
+    verifiedDate: '2026-09-06',
+  },
   RED_III_COMPARATOR: {
     shortName: 'RED III Annex V Part C(19)',
     fullReference: 'Directive (EU) 2023/2413 Annex V Part C point 19',

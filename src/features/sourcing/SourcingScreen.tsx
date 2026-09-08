@@ -48,6 +48,7 @@ import { searchResultContainsPraData } from '../../domain/trade/licensing';
 import { MARK_SOURCE_RELIABILITY, MarkSourceType } from '../../domain/markets/types';
 import { CopyButton } from '../../shared/components/CopyButton';
 import { buildDealUrl } from '../../domain/trade/dealParams';
+import { BIOMETHANE_PLANTS } from '../../domain/plants/plantsData';
 
 type SortMode = 'VALUE' | 'CONFIDENCE';
 
@@ -222,7 +223,7 @@ export function SourcingScreen() {
         targetMarketId.startsWith(order.country) ||
         order.country === 'AIB';
 
-      return feedstockMatch || countryMatch;
+      return feedstockMatch && countryMatch;
     }).slice(0, 4);
   }, [feedstockKey, targetMarketId]);
 
@@ -574,15 +575,33 @@ export function SourcingScreen() {
 
   // Open in Trade Builder handler
   const handleOpenInTradeBuilder = (route: ArbitrageOpportunity) => {
+    const matchingPlant = BIOMETHANE_PLANTS.find(p => 
+      p.countryCode === route.originCountry && 
+      p.primaryFeedstockCategory?.toLowerCase().includes(route.feedstockKey.replace('_', ' '))
+    ) || BIOMETHANE_PLANTS.find(p => p.countryCode === route.originCountry);
+
+    const dealVolume = clientRequest.volumeMwh || (matchingPlant?.annualEnergyGWh ? Math.round(matchingPlant.annualEnergyGWh * 1000) : 10000);
+
     navigate(buildDealUrl({
       marketId: route.targetMarketId,
       originCountry: route.originCountry,
       feedstock: route.feedstockKey,
       ci: route.carbonIntensity,
-      volume: clientRequest.volumeMwh ?? undefined,
+      volume: dealVolume,
+      plantId: matchingPlant?.id,
+      plantName: matchingPlant?.name,
+      plantCapacityNm3h: matchingPlant?.capacityNm3h ?? undefined,
+      plantAnnualGWh: matchingPlant?.annualEnergyGWh ?? undefined,
+      legalEntityName: matchingPlant?.legalEntityName ?? matchingPlant?.operator ?? undefined,
+      networkOperator: matchingPlant?.networkOperator ?? undefined,
+      contactEmail: matchingPlant?.contactEmail ?? undefined,
+      contactPhone: matchingPlant?.contactPhone ?? undefined,
       scheme: route.certificationScheme,
       coc: route.chainOfCustody,
-      counterparty: clientRequest.counterparty ?? undefined,
+      counterparty: clientRequest.counterparty ?? matchingPlant?.legalEntityName ?? matchingPlant?.operator ?? undefined,
+      complianceYear: clientRequest.delivery.complianceYear ?? undefined,
+      deliveryStartDate: clientRequest.delivery.startDate ?? undefined,
+      deliveryEndDate: clientRequest.delivery.endDate ?? undefined,
     }));
   };
 
@@ -606,7 +625,7 @@ export function SourcingScreen() {
         break;
       case 'NL_ERE':
         setTargetMarketId('NL_ERE');
-        setFeedstockKey('waste');
+        setFeedstockKey('food_waste');
         setScheme('ISCC_EU');
         setChainOfCustody('MASS_BALANCE');
         setVolumeMwh(15000);
@@ -621,7 +640,7 @@ export function SourcingScreen() {
         break;
       case 'FI_FR':
         setTargetMarketId('FR_CPB');
-        setFeedstockKey('forest_residue');
+        setFeedstockKey('agricultural_residues');
         setScheme('REDCERT_EU');
         setChainOfCustody('MASS_BALANCE');
         setVolumeMwh(10000);
@@ -636,9 +655,9 @@ export function SourcingScreen() {
         break;
       case 'IT_CIC':
         setTargetMarketId('IT_CIC');
-        setFeedstockKey('agri_waste');
-        setScheme('2BSVS');
-        setChainOfCustody('SEGREGATION');
+        setFeedstockKey('food_waste');
+        setScheme('ISCC_EU');
+        setChainOfCustody('MASS_BALANCE');
         setVolumeMwh(25000);
         setVolumeInput('25000');
         setMaxCI(null);
@@ -690,7 +709,7 @@ export function SourcingScreen() {
         setTargetMarketId('NL_ERE');
         setVolumeMwh(15000);
         setVolumeInput('15000');
-        setFeedstockKey('waste');
+        setFeedstockKey('food_waste');
         setMaxCI(20);
         setMaxCIInput('20');
         setComplianceYear(2026);

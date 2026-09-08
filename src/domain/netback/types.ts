@@ -113,6 +113,7 @@ export interface NetbackResult {
   isModelled?: boolean;             // true if value is purely modelled (e.g. unquoted FuelEU)
   provenance?: MarkProvenance | null;
   principalRisk?: PrincipalRiskMetrics | null;
+  clearingPriceWarning?: string | null;
 }
 
 export interface GasIndexMark {

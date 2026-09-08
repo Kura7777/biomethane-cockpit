@@ -53,8 +53,13 @@ src/
 | 15 | R4: Single Pricing Authority Invariant | Strict routing of all scenario calculations through `computeNetback` with zero client-side math shortcuts | M4 | Survey (Domain/Arch) | VERIFIED |
 | 16 | R4: What-If Sensitivity Simulator UI | Interactive scenario control bar, preset chips, live parameter sliders, and comparison matrix in Trade Builder & Sourcing | M4 | Survey (UI) | VERIFIED |
 | 17 | UX: High-Density Terminal Aesthetics | Dark stone palette, Inter/JetBrains Mono typography, `.font-num` tabular figures, <100ms load time, hotkeys 1-0 | M1..M4 | Survey (UI) | VERIFIED |
-| 18 | Dual-Track 5-Tier Test Suite | 5-tier requirement-driven and adversarial stress test suite covering R1-R4 features + 160 baseline tests (248/248 passing) | M5 | Survey (All) | VERIFIED |
+| 18 | Dual-Track 5-Tier Test Suite | 5-tier requirement-driven and adversarial stress test suite covering R1-R4 features + baseline tests (430+ passing) | M5 | Survey (All) | VERIFIED |
 | 19 | Forensic Integrity Audit & Certification | Forensic integrity audit certifying zero cheating, 100% domain purity, and production readiness | M6 | Survey (All) | VERIFIED |
+| 20 | French ODRE Fleet Integration | 829 authentic French injection plants enriched with official open data (metered annual GWh, commissioning dates 2018-2025, network operators GRDF/GRTgaz/Teréga, verified SIREN/legal entities) | M7 | ODRE / TSO | VERIFIED |
+| 21 | Post-EEG Subsidy Origination Screen | Post-EEG expiration countdown tracking for 282 German plants, negative-CI manure filters, CSV call sheet export, and 1-click deal structuring | M7 | EEG Register | VERIFIED |
+| 22 | EFET Biomethane Term Sheet Generator | Institutional term sheet and EFET Biomethane Schedule export with 1-click instant PDF download and legal citation backing | M8 | EFET / Trading | VERIFIED |
+| 23 | Regulatory Reality Checks Suite | Automated statutory verification (`reality_checks.test.ts`) enforcing RED III Annex IX, GHG calculation, Dutch ERE-A/ERE-C differentiation, and national registry barriers | M8 | Statutory Test | VERIFIED |
+| 24 | Origin Plant-Gate Supply & Basis Spread Scanner | Pan-European corridor scanner with origin-specific supply costs (62.00 to 110.00 €/MWh) and TTF hub basis spreads across 28 European origins | M8 | Market Data | VERIFIED |
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
@@ -63,8 +68,10 @@ src/
 | M2 | R2: Biomethane vs. TTF Spread & Curve Analytics | Forward curve tenors (M+1/M+2, Q1..Q4, Cal+1..Cal+3), forward marks, pure basis spread engine (`src/domain/curves/`), forward curve visualizer & delivered value stack in `MarksScreen` | M1 | DONE |
 | M3 | R3: Morning Market Briefing & Origination Desk | Morning briefing synthesis engine (`src/domain/briefing/`), overnight movers, staleness warnings, regulatory tracker, top 3 corridors, 1-click deal structuring action to Trade Builder | M2 | DONE |
 | M4 | R4: Multi-Branch What-If Sensitivity Simulator | Stand-alone pure sensitivity engine (`src/domain/sensitivity/`), TTF price shocks (±10%, ±20%), regulatory toggles, What-If scenario control bar & comparison matrix in Trade Builder | M2, M3 | DONE |
-| M5 | E2E Testing Track & 5-Tier Stress Hardening | 5-Tier comprehensive E2E test suite (Feature coverage, Boundary cases, Combinatorial, Real-world scenarios, Adversarial fuzzing) verifying R1-R4 + 160 baseline tests (248/248 passing) | M1, M2, M3, M4 | DONE |
+| M5 | E2E Testing Track & 5-Tier Stress Hardening | 5-Tier comprehensive E2E test suite (Feature coverage, Boundary cases, Combinatorial, Real-world scenarios, Adversarial fuzzing) verifying R1-R4 + 160 baseline tests | M1..M4 | DONE |
 | M6 | Forensic Integrity Audit & Production Readiness | Forensic integrity verification (`teamwork_preview_auditor`), zero-cheating attestation, React-free domain purity check, build & latency verification | M5 | DONE |
+| M7 | Pan-European Asset Origination & Fleet Enrichment | Authentic ODRE French fleet (829 metered injection facilities), German EEG 20-year subsidy expiration pipeline, CSV origination export, negative-CI manure queue | M1..M6 | DONE |
+| M8 | Institutional Execution, EFET Term Sheets & Reality Guard | EFET Biomethane Schedule PDF term sheets, Dutch ERE-A/C differentiation, origin-differentiated supply costs, statutory quota trajectories, automated reality check test suite | M7 | DONE |
 
 ## Interface Contracts
 ### Registry Engine (`src/domain/registries/`) ↔ UI & Trade Systems

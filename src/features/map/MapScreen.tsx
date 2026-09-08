@@ -13,6 +13,7 @@ import geoData from '../../assets/countries-50m.json';
 import { LogisticsModal } from '../logistics/LogisticsModal';
 import { buildDealUrl } from '../../domain/trade/dealParams';
 import { calculateLogisticsRoute, calculateDijkstraCorridor } from '../../domain/logistics/engine';
+import { getDefaultMarketForOrigin } from '../trade-builder/TradeBuilderScreen';
 
 interface CountryMeta {
   iso: string;
@@ -117,7 +118,7 @@ export function MapScreen() {
   const handleSimulateTrade = () => {
     navigate(buildDealUrl({
       originCountry: originMeta.iso,
-      marketId: `${targetMeta.iso}_THG`,
+      marketId: getDefaultMarketForOrigin(targetMeta.iso),
     }));
   };
 

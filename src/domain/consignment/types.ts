@@ -4,11 +4,20 @@ export type ChainOfCustody = 'MASS_BALANCE' | 'BOOK_AND_CLAIM' | 'SEGREGATION';
 export type UDBStatus = 'RECORDED' | 'PENDING' | 'NOT_RECORDED';
 export type PoSStatus = 'ISSUED' | 'PENDING' | 'NOT_AVAILABLE';
 
+export type DeliveryProfile = 'FLAT_MONTHLY' | 'FLAT_DAILY' | 'BULLET';
+
 export interface DeliveryPeriod {
   type: 'MONTH' | 'QUARTER' | 'CALENDAR' | 'CUSTOM' | null;
-  startDate: string | null;      // ISO
-  endDate: string | null;        // ISO
+  startDate: string | null;      // ISO delivery start
+  endDate: string | null;        // ISO delivery end
   complianceYear: number | null; // the year the certificate is surrendered against
+  productionStartDate?: string | null; // ISO vintage injection start
+  productionEndDate?: string | null;   // ISO vintage injection end
+  deliveryProfile?: DeliveryProfile | null;
+  deliveryPointVtp?: string | null;    // e.g. "THE (Trading Hub Europe)", "TTF"
+  statutorySurrenderDeadline?: string | null; // e.g. "2027-02-28"
+  plantTotalCapacityMWh?: number | null; // Nameplate facility capacity
+  plantCommittedVolumeMWh?: number | null; // Pre-committed volume sold to other offtakers
 }
 
 export interface Consignment {
@@ -30,4 +39,5 @@ export interface Consignment {
   volumeMWh: number | null;  // optional, for P&L calc
   deliveryPeriod?: DeliveryPeriod | null;
   counterparty?: string | null; // optional counterparty label, e.g. "Shell Energy Europe"
+  observedBundlePriceEurPerMwh?: number | null; // observed all-in clearing bundle price (€/MWh) for reality check
 }

@@ -86,30 +86,30 @@ describe('PHASE 5 — NUMERICAL INTEGRITY & HAND RECOMPUTATION AUDIT', () => {
 
   // 4. CI Slider Formula Assertions
   it('4. CI slider formula matches exact hand calculations across all corridor points', () => {
-    const rweCiConfig = DEFAULT_INSTITUTIONAL_OFFTAKE.certificateLeg.ciSlider;
+    const institutionalCiConfig = DEFAULT_INSTITUTIONAL_OFFTAKE.certificateLeg.ciSlider;
 
     // CI = -100 -> +€52.00 adjustment -> €105.00/MWh
-    const resNeg100 = calculateCiSliderAdjustment(rweCiConfig, -100);
+    const resNeg100 = calculateCiSliderAdjustment(institutionalCiConfig, -100);
     expect(resNeg100.adjustmentEurPerMWh).toBe(52.00);
     expect(resNeg100.finalCertificatePriceEurPerMWh).toBe(105.00);
 
-    // CI = -50 -> +€19.50 adjustment -> €72.50/MWh (RWE contract worked figure)
-    const resNeg50 = calculateCiSliderAdjustment(rweCiConfig, -50);
+    // CI = -50 -> +€19.50 adjustment -> €72.50/MWh (Bilateral contract worked figure)
+    const resNeg50 = calculateCiSliderAdjustment(institutionalCiConfig, -50);
     expect(resNeg50.adjustmentEurPerMWh).toBe(19.50);
     expect(resNeg50.finalCertificatePriceEurPerMWh).toBe(72.50);
 
     // CI = -20 (Base CI) -> €0.00 adjustment -> €53.00/MWh
-    const resNeg20 = calculateCiSliderAdjustment(rweCiConfig, -20);
+    const resNeg20 = calculateCiSliderAdjustment(institutionalCiConfig, -20);
     expect(resNeg20.adjustmentEurPerMWh).toBe(0.00);
     expect(resNeg20.finalCertificatePriceEurPerMWh).toBe(53.00);
 
     // CI = -10 -> -€6.50 adjustment -> €46.50/MWh
-    const resNeg10 = calculateCiSliderAdjustment(rweCiConfig, -10);
+    const resNeg10 = calculateCiSliderAdjustment(institutionalCiConfig, -10);
     expect(resNeg10.adjustmentEurPerMWh).toBe(-6.50);
     expect(resNeg10.finalCertificatePriceEurPerMWh).toBe(46.50);
 
     // CI = 0 -> -€13.00 adjustment -> €40.00/MWh
-    const resZero = calculateCiSliderAdjustment(rweCiConfig, 0);
+    const resZero = calculateCiSliderAdjustment(institutionalCiConfig, 0);
     expect(resZero.adjustmentEurPerMWh).toBe(-13.00);
     expect(resZero.finalCertificatePriceEurPerMWh).toBe(40.00);
   });

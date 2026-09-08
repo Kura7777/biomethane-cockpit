@@ -87,7 +87,7 @@ export function scanEuropeanArbitrage(
       
       const transitCost = getRouteTransitTariff(origin.countryCode, market.country);
       const isTradeable = eligibility.overallVerdict === 'ELIGIBLE' || eligibility.overallVerdict === 'CONDITIONAL' || eligibility.overallVerdict === 'UNRESOLVED';
-      const isBlocked = eligibility.overallVerdict === 'HARD_BLOCK';
+      const isBlocked = eligibility.overallVerdict === 'HARD_BLOCK' || eligibility.overallVerdict === 'UNKNOWN';
 
       let destinationNetback = netbackRes.netNetback;
 
@@ -111,7 +111,8 @@ export function scanEuropeanArbitrage(
           market.id,
           destinationNetback,
           transitCost,
-          producerShare
+          producerShare,
+          origin.plantGateCostBenchmarkEurMwh ?? null
         );
         deskNetMargin = commercialAllocation.deskNetMarginEurPerMWh;
         producerPayable = commercialAllocation.producerProcurementEurPerMWh;
@@ -191,7 +192,16 @@ export function scanEuropeanArbitrage(
         targetMarketId: market.id,
         targetMarketName: market.name,
         targetCountry: market.country,
-        targetFlag: market.country === 'DE' ? '🇩🇪' : market.country === 'NL' ? '🇳🇱' : market.country === 'FR' ? '🇫🇷' : market.country === 'IT' ? '🇮🇹' : market.country === 'SE' ? '🇸🇪' : market.country === 'AT' ? '🇦🇹' : '🇪🇺',
+        targetFlag: (() => {
+          const FLAGS: Record<string, string> = {
+            DE: '🇩🇪', NL: '🇳🇱', FR: '🇫🇷', IT: '🇮🇹', SE: '🇸🇪', AT: '🇦🇹',
+            DK: '🇩🇰', GB: '🇬🇧', FI: '🇫🇮', ES: '🇪🇸', BE: '🇧🇪', PL: '🇵🇱',
+            CZ: '🇨🇿', PT: '🇵🇹', IE: '🇮🇪', GR: '🇬🇷', RO: '🇷🇴', HU: '🇭🇺',
+            EE: '🇪🇪', LT: '🇱🇹', LV: '🇱🇻', CH: '🇨🇭', NO: '🇳🇴', SK: '🇸🇰',
+            SI: '🇸🇮', HR: '🇭🇷', BG: '🇧🇬', LU: '🇱🇺',
+          };
+          return FLAGS[market.country] ?? '🇪🇺';
+        })(),
         feedstockKey: selectedFeedstockKey,
         feedstockName: feedstockInfo.name,
         carbonIntensity: ci,

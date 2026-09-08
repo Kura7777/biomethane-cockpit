@@ -12,6 +12,8 @@ export interface OriginProfile {
   primaryRegistry: string;
   gridZone: 'EU_INTERCONNECTED' | 'NON_EU_ISOLATED';
   typicalFeedstocks: string[];
+  plantGateCostBenchmarkEurMwh?: number; // Origin-specific levelized plant-gate supply cost (€/MWh)
+  hubBasisSpreadToTtfEurMwh?: number;    // Local gas hub basis spread to TTF (€/MWh)
 }
 
 export interface ArbitrageOpportunity {

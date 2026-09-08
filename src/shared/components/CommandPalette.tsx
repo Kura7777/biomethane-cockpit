@@ -35,8 +35,7 @@ export function CommandPalette({ isOpen, onClose, onOpenPlaybook, onOpenImporter
   }, [isOpen]);
 
   const allItems: PaletteItem[] = useMemo(() => [
-    { kind: 'Screen', label: 'Origination desk', hint: '1', id: 's-origination', run: () => { navigate('/sourcing'); onClose(); } },
-    { kind: 'Screen', label: 'Netback ladder / scanner', hint: 'S', id: 's-scanner', run: () => { navigate('/scanner'); onClose(); } },
+    { kind: 'Screen', label: 'Origination & Sourcing desk', hint: '1', id: 's-origination', run: () => { navigate('/sourcing'); onClose(); } },
     { kind: 'Screen', label: 'Trade builder', hint: '4', id: 's-trade', run: () => { navigate('/trade'); onClose(); } },
     { kind: 'Screen', label: 'Pricing desk & broker runs', hint: '5', id: 's-pricing', run: () => { navigate('/pricing'); onClose(); } },
     { kind: 'Screen', label: 'Portfolio risk & VaR', hint: 'R', id: 's-risk', run: () => { navigate('/risk'); onClose(); } },

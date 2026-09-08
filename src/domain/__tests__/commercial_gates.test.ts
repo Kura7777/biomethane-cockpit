@@ -3,9 +3,9 @@ import { evaluateCommercialGates } from '../offtake/commercialGates';
 import { DEFAULT_INSTITUTIONAL_OFFTAKE } from '../offtake/engine';
 import { DualLegOfftakeStructure } from '../offtake/types';
 
-describe('INSTITUTIONAL COMMERCIAL TERMS GATES (RWE OFFTAKE BENCHMARK)', () => {
+describe('INSTITUTIONAL COMMERCIAL TERMS GATES (BILATERAL OFFTAKE BENCHMARK)', () => {
 
-  it('evaluates all 12 commercial terms gates for the default verified RWE offtake agreement', () => {
+  it('evaluates all 12 commercial terms gates for the default verified bilateral offtake agreement', () => {
     const assessment = evaluateCommercialGates(DEFAULT_INSTITUTIONAL_OFFTAKE, {
       liveGasIndexMid: 33.50,
       marketCarbonIntensityValue: 0.71, // e.g. German THG paying 0.71 €/MWh per g

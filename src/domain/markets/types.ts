@@ -5,7 +5,8 @@ export type UnitOfAccount =
   | 'EUR_PER_KG_CO2E'      // Netherlands ERE
   | 'EUR_PER_MWH'          // France CPB, Austria, Sweden, Finland, Spain, Poland, etc.
   | 'EUR_PER_CIC'          // Italy
-  | 'GBP_PER_DRTFC'        // UK RTFO
+  | 'GBP_PER_RTFC'         // UK RTFO Standard RTFC
+  | 'GBP_PER_DRTFC'        // UK RTFO Development Fuel RTFC
   | 'EUR_PER_TCO2E_DEFICIT'; // FuelEU Maritime
 
 export type PriceSide = 'bid' | 'mid' | 'offer';
@@ -19,10 +20,17 @@ export interface Uncertainty {
     label: string;
     description: string;
     multiplier?: number;  // e.g., 2 for double counting
+    historical?: boolean; // if true, branch is historical backtest only
   }[];
   persistentNote: string;  // Important distinction to always show
   source: string;
   lastUpdated: string;
+}
+
+export interface QuotaTrajectoryStep {
+  year: number;
+  obligationPct: number;
+  basis: string; // e.g. '% of transport energy' or '% of gas sales' or '% GHG reduction'
 }
 
 export interface Market {
@@ -32,6 +40,8 @@ export interface Market {
   country: string;               // ISO 3166-1 alpha-2
   countryName: string;           // Full country name
   status: MarketStatus;
+  sector: 'TRANSPORT' | 'HEAT_POWER' | 'VOLUNTARY' | 'MARITIME';
+  liquidityTier?: 'TIER_1_CORE' | 'TIER_2_DEVELOPING' | 'TIER_3_EMERGING';
   unitOfAccount: UnitOfAccount;
   unitLabel: string;             // Display string: '€/tCO₂e'
   notes: string;
@@ -44,6 +54,7 @@ export interface Market {
   isEUScope: boolean;            // true for EU-wide markets (FuelEU, ETS)
   deskCategory?: 'COMPLIANCE' | 'VOLUNTARY'; // Top-level commercial desk categorization
   uncertainties: Uncertainty[];
+  quotaTrajectory?: QuotaTrajectoryStep[];
   
   // Real-world plant and production infrastructure metadata
   productionPlants?: number;     // Active operational biomethane plants

@@ -27,6 +27,14 @@ export interface BiomethanePlant {
   contactEmail?: string | null;
   contactPhone?: string | null;
   headquartersAddress?: string | null;
+  // Origination & Compliance Attributes (EEG 2027 Cliff & RED III UDB Trackers)
+  supportScheme?: string | null; // e.g. 'EEG' | 'FR_TARIF_ACHAT' | 'SDE++' | 'UK_RHI' | 'NONE'
+  supportExpiryDate?: string | null; // ISO string / Year e.g. '2026-12-31'
+  verifiedCarbonIntensity?: number | null; // gCO2e/MJ audited CI
+  certificationScheme?: 'ISCC_EU' | 'REDCERT_EU' | 'ISCC_PLUS' | string | null;
+  certificateNumber?: string | null;
+  currentOfftakeStatus?: 'CONTRACTED' | 'UNCONTRACTED' | 'PARTIAL' | 'EXPIRING_SOON' | 'UNKNOWN' | null;
+  offtakeContractEnd?: string | null;
 }
 
 export interface DeveloperPortfolio {

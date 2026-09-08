@@ -183,12 +183,20 @@ export function computeCertificateValue(
       break;
     }
     case 'EUR_PER_KG_CO2E': {
-      // Netherlands ERE: 1 ERE = 1 kg CO₂e avoided
+      // Netherlands ERE (Wet milieubeheer / REV): 1 ERE = 1 kg CO₂e avoided
+      const isAdvanced = consignment.annexClassification === 'IX_A' ||
+        (consignment.feedstock || '').toLowerCase().includes('manure') ||
+        (consignment.feedstock || '').toLowerCase().includes('slurry') ||
+        (consignment.feedstock || '').toLowerCase().includes('waste');
+      const ticketCategory = isAdvanced ? 'ERE-A (Advanced Annex IX-A)' : 'ERE-C (Conventional)';
       const co2eTonnes = tCO2ePerMWh(ci);
       const co2eKg = co2eTonnes * 1000;
       valueEurPerMWh = mark * co2eKg;
-      unitConversion = `${co2eTonnes.toFixed(4)} tCO₂e/MWh × 1000 = ${co2eKg.toFixed(1)} kg CO₂e/MWh`;
-      calculation = `${co2eKg.toFixed(1)} kg CO₂e/MWh × €${mark.toFixed(4)}/kg CO₂e (${pricingSide}) = €${valueEurPerMWh.toFixed(2)}/MWh`;
+      unitConversion = `${ticketCategory}: ${co2eTonnes.toFixed(4)} tCO₂e/MWh × 1000 = ${co2eKg.toFixed(1)} kg CO₂e/MWh (${ticketCategory})`;
+      calculation = `${co2eKg.toFixed(1)} ERE/MWh (${ticketCategory}) × €${mark.toFixed(4)}/ERE (${pricingSide}) = €${valueEurPerMWh.toFixed(2)}/MWh`;
+      statusNote = isAdvanced
+        ? 'Classified as ERE-A (Advanced) under Dutch REV. Eligible for Dutch transport advanced mandate.'
+        : 'Classified as ERE-C (Conventional). Standard transport compliance.';
       break;
     }
     case 'EUR_PER_MWH': {
@@ -222,52 +230,73 @@ export function computeCertificateValue(
       }
       break;
     }
-    case 'GBP_PER_DRTFC': {
-      // UK RTFO:
-      // Physically derived from biomethane LHV: 50 MJ/kg ≈ 13.889 kWh/kg.
-      // 1 MWh = 1000 kWh ÷ 13.889 kWh/kg ≈ 72.0 kg biomethane.
-      // Under UK RTFO Order 2007 (SI 2007/3072):
-      // Standard yield = 1 dRTFC/kg ≈ 72.0 dRTFC/MWh.
-      // Waste / double-counted feedstocks = 2 dRTFC/kg ≈ 144.0 dRTFC/MWh.
+    case 'GBP_PER_RTFC': {
       const fxRate = marks.fx.gbpEur;
       if (fxRate === null) {
         return {
           valueEurPerMWh: null,
-          calculation: 'FX rate GBP/EUR is missing. Set GBP/EUR in Marks screen.',
-          unitConversion: 'Requires GBP/EUR FX rate',
+          unitConversion: '£/RTFC → €/MWh requires GBP/EUR FX rate',
           capped: false,
           capReason: null,
+          calculation: 'No FX rate available',
           statusNote: 'UNVERIFIED — Missing FX rate.',
           markAgeDays,
           isModelled: false,
         };
       }
 
-      // UK RTFO Development Fuel eligibility per the RTFO Renewable Fuel Feedstock List
-      // (Annex to SI 2007/3072), which does NOT map 1:1 to RED Annex IX:
-      // - Manure, food waste, sewage sludge, UCO, animal fats → Development Fuel (2× dRTFC)
-      // - Some agricultural residues classified as IX-A under RED may NOT qualify as
-      //   development fuel under the RTFO (e.g. certain crop residues).
-      // We use feedstock key + annex classification to approximate the RTFO list.
+      // UK RTFO standard RTFC eligibility per RTFO Order 2007 (SI 2007/3072):
+      // - Waste-derived biomethane (manure, food waste, sewage sludge, industrial bio-waste, Annex IX)
+      //   qualifies for 2× double counting (144.0 RTFC/MWh).
+      // - Crop-derived biomethane earns 1× standard RTFCs (72.0 RTFC/MWh).
       const feedstockKey = consignment.feedstock?.toLowerCase() ?? '';
-      const isRtfoDevelopmentFuel = (
-        // Waste-derived feedstocks on the RTFO development fuel list
+      const isDoubleCounting = (
         feedstockKey === 'manure' ||
         feedstockKey === 'food_waste' ||
         feedstockKey === 'sewage_sludge' ||
         feedstockKey === 'used_cooking_oil' ||
         feedstockKey === 'landfill_gas' ||
         feedstockKey === 'industrial_bio_waste' ||
-        // Annex IX-B (UCO, animal fats Cat 1&2) always qualifies
+        consignment.annexClassification === 'IX_A' ||
         consignment.annexClassification === 'IX_B'
       );
-      const drtfcPerMWh = isRtfoDevelopmentFuel ? RTFO_KG_PER_MWH * 2 : RTFO_KG_PER_MWH; // ≈ 144.0 vs 72.0
+      const rtfcPerMWh = isDoubleCounting ? RTFO_KG_PER_MWH * 2 : RTFO_KG_PER_MWH; // ≈ 144.0 vs 72.0
+      const markEurPerRtfc = mark * fxRate;
+      valueEurPerMWh = markEurPerRtfc * rtfcPerMWh;
+
+      unitConversion = `UK RTFO Order 2007: 1 MWh ÷ 13.889 kWh/kg = ${RTFO_KG_PER_MWH.toFixed(1)} kg/MWh → ${rtfcPerMWh.toFixed(1)} RTFC/MWh (${isDoubleCounting ? '2× Double Counting (Waste/Residue)' : '1× Standard'}) | £1 = €${fxRate.toFixed(4)}`;
+      calculation = `£${mark.toFixed(3)}/RTFC × €${fxRate.toFixed(4)}/£ × ${rtfcPerMWh.toFixed(1)} RTFC/MWh = €${valueEurPerMWh.toFixed(2)}/MWh`;
+      statusNote = `Derived from biomethane energy content (${rtfcPerMWh.toFixed(1)} RTFC/MWh). ${isDoubleCounting ? '2× double-counted standard RTFC (waste/residue).' : '1× standard RTFC.'} Non-EU grid injection boundary applies.`;
+      break;
+    }
+    case 'GBP_PER_DRTFC': {
+      const fxRate = marks.fx.gbpEur;
+      if (fxRate === null) {
+        return {
+          valueEurPerMWh: null,
+          unitConversion: '£/dRTFC → €/MWh requires GBP/EUR FX rate',
+          capped: false,
+          capReason: null,
+          calculation: 'No FX rate available',
+          statusNote: 'UNVERIFIED — Missing FX rate.',
+          markAgeDays,
+          isModelled: false,
+        };
+      }
+
+      // UK RTFO Development Fuel (dRTFC) — strictly for novel technologies (RFNBO, syngas, aviation).
+      // Standard AD biomethane defaults out of dRTFC eligibility.
+      const feedstockKey = consignment.feedstock?.toLowerCase() ?? '';
+      const isDevelopmentFuel = feedstockKey === 'development_fuel' || feedstockKey === 'rfnbo' || feedstockKey === 'syngas_biomethane';
+      const drtfcPerMWh = isDevelopmentFuel ? RTFO_KG_PER_MWH * 2 : 0;
       const markEurPerDrtfc = mark * fxRate;
       valueEurPerMWh = markEurPerDrtfc * drtfcPerMWh;
 
-      unitConversion = `UK RTFO Order 2007 (Gaseous): 1 MWh ÷ 13.889 kWh/kg = ${RTFO_KG_PER_MWH.toFixed(1)} kg/MWh → ${drtfcPerMWh.toFixed(1)} dRTFC/MWh (${isRtfoDevelopmentFuel ? '2× Development Fuel (RTFO Feedstock List)' : '1× Standard'}) | £1 = €${fxRate.toFixed(4)}`;
+      unitConversion = `UK RTFO Development Fuel: ${drtfcPerMWh.toFixed(1)} dRTFC/MWh | £1 = €${fxRate.toFixed(4)}`;
       calculation = `£${mark.toFixed(3)}/dRTFC × €${fxRate.toFixed(4)}/£ × ${drtfcPerMWh.toFixed(1)} dRTFC/MWh = €${valueEurPerMWh.toFixed(2)}/MWh`;
-      statusNote = `Derived from biomethane energy content (${drtfcPerMWh.toFixed(1)} dRTFC/MWh). ${isRtfoDevelopmentFuel ? 'Development fuel status per RTFO Feedstock List.' : 'Standard fuel — feedstock not on RTFO development fuel list.'} Non-EU grid injection boundary applies.`;
+      statusNote = isDevelopmentFuel 
+        ? `Development Fuel eligible pathway (${drtfcPerMWh.toFixed(1)} dRTFC/MWh).` 
+        : 'Standard AD biomethane does not qualify for UK dRTFC (requires novel / RFNBO pathway).';
       break;
     }
     default:
@@ -635,6 +664,16 @@ export function computeNetback(
     germanCliffNotionalEur,
   };
 
+  let clearingPriceWarning: string | null = null;
+  const bundleBenchmark = consignment.observedBundlePriceEurPerMwh ?? (
+    market.id === 'DE_THG' && consignment.carbonIntensity <= -80 ? 147.0 :
+    market.id === 'DE_THG' && consignment.carbonIntensity <= 0 ? 120.0 :
+    null
+  );
+  if (bundleBenchmark !== null && netNetback !== null && netNetback > bundleBenchmark) {
+    clearingPriceWarning = `Modelled netback (€${netNetback.toFixed(2)}/MWh) exceeds observed traded bundle price benchmark (€${bundleBenchmark.toFixed(2)}/MWh) — theoretical quota avoidance ceiling is not fully captured by desk (obligated blenders retain 30–45% of statutory spread).`;
+  }
+
   return {
     marketId: market.id,
     marketName: market.name,
@@ -661,6 +700,7 @@ export function computeNetback(
     isModelled: certVal?.isModelled ?? false,
     provenance: certVal?.provenance ?? null,
     principalRisk,
+    clearingPriceWarning,
   };
 }
 
@@ -680,7 +720,7 @@ export function computeAllNetbacks(
     const nb = computeNetback(m, consignment, marks, costs, side, fuelEUOptions);
     if (eligibilityResults) {
       const eligibility = eligibilityResults.get(m.id);
-      if (eligibility && eligibility.overallVerdict !== 'ELIGIBLE' && eligibility.overallVerdict !== 'CONDITIONAL') {
+      if (eligibility && (eligibility.overallVerdict === 'HARD_BLOCK' || eligibility.overallVerdict === 'UNKNOWN')) {
         nb.isTheoretical = true;
         nb.blockingReason = eligibility.summary;
       }

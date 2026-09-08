@@ -14,7 +14,7 @@ export const HHV_TO_LHV_FACTOR = 0.901; // Standard European biomethane conversi
  *
  *   CI Slider Adjustment [€/MWh] = alpha * (Base Carbon Intensity - Actual Carbon Intensity)
  *
- * Example (RWE/Puzzle Contract):
+ * Example (Institutional Two-Leg Contract):
  *   Base Price = €53.00/MWh
  *   Base CI = -20 gCO2e/MJ
  *   Alpha = €0.65 / gCO2e/MJ
@@ -58,7 +58,7 @@ export interface SdePlusPlusCalculationResult {
 
 /**
  * Calculates the Dutch SDE++ statutory subsidy payout and supported certificate contract price
- * per Appendix 1, Clause 25.6 of the RWE/Puzzle contract:
+ * per Appendix 1, Clause 25.6 of the bilateral offtake agreement:
  *
  *   SDE Payment [from RVO] = basisbedrag - max(correctiebedrag, basisenergieprijs) - ETS correctie
  *   Supported Price [from Buyer] = supportedBasePrice (54) + switchPremium (1) - SDE Payment
@@ -287,15 +287,15 @@ export function calculateDualLegOfftake(
 }
 
 /**
- * Standard contract parameters taken strictly from the verified RWE / PUZZLE offtake agreement
+ * Standard contract parameters taken strictly from the verified institutional bilateral offtake agreement
  * Market parameters default to null (must come from marks or user inputs).
  */
 export const DEFAULT_INSTITUTIONAL_OFFTAKE: DualLegOfftakeStructure = {
-  id: 'offtake_rwest_puzzle_donderen',
-  contractName: 'RWE Supply & Trading Biomethane Long-Term Offtake (Donderen Asset)',
+  id: 'offtake_institutional_puzzle_donderen',
+  contractName: 'Institutional Biomethane Long-Term Offtake (Donderen Asset)',
   sellerName: 'Puzzle Carbon Bio Energy B.V.',
-  buyerName: 'RWE Supply & Trading GmbH',
-  sourceDocument: 'RWE 2025 Indicative Term Sheet — Puzzle Donderen',
+  buyerName: 'Tier-1 European Trading Utility',
+  sourceDocument: 'Institutional 2025 Indicative Term Sheet — Puzzle Donderen',
   isIllustrative: false,
   productionAsset: {
     assetName: 'PUZZLE Donderen Biomethane Installation',

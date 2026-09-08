@@ -7,12 +7,13 @@ import { MARKETS } from '../domain/markets/registry';
 import { REFERENCE_CONSIGNMENTS } from '../domain/consignment/feedstocks';
 import { simulateDesk } from '../domain/marks/simulate';
 
-export const CURRENT_SCHEMA_VERSION = 8;
-const STORAGE_KEY = 'biomethane-desk-state-v8';
+export const CURRENT_SCHEMA_VERSION = 9;
+const STORAGE_KEY = 'biomethane-desk-state-v9';
 
 // Newest first — the first key that yields a readable payload wins.
 const KNOWN_STORAGE_KEYS = [
   STORAGE_KEY,
+  'biomethane-desk-state-v8',
   'biomethane-desk-state-v7',
   'biomethane-desk-state-v6',
   'biomethane-desk-state-v5',
@@ -299,6 +300,24 @@ export function migrateState(raw: unknown): AppState {
     }
 
     delete (migrated.costs as { deliveredCost?: number | null }).deliveredCost;
+  }
+
+  if (stateVersion < 9) {
+    // Schema v9 migration: uncalibrated legacy indexLinkedShare (< 0.85) upgraded to institutional standard (0.970)
+    if (
+      migrated.costs?.producerPricing?.mode === 'INDEX_LINKED' &&
+      (migrated.costs.producerPricing.indexLinkedShare === null ||
+        (typeof migrated.costs.producerPricing.indexLinkedShare === 'number' &&
+          migrated.costs.producerPricing.indexLinkedShare < 0.85))
+    ) {
+      migrated.costs = {
+        ...migrated.costs,
+        producerPricing: {
+          ...migrated.costs.producerPricing,
+          indexLinkedShare: 0.970,
+        },
+      };
+    }
   }
 
   migrated.schemaVersion = CURRENT_SCHEMA_VERSION;

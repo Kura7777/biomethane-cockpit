@@ -38,7 +38,7 @@ export interface OdreLiveFlowData {
  * Dataset: Points d'injection de biométhane sur les réseaux de transport et distribution (GRDF, GRTgaz, Teréga, R-GDS).
  */
 export async function fetchOdreBiomethaneInjections(): Promise<OdreLiveFlowData> {
-  const endpoint = 'https://odre.opendatasoft.com/api/explore/v2.1/catalog/datasets/points-dinjection-de-biomethane/records?limit=50';
+  const endpoint = 'https://odre.opendatasoft.com/api/explore/v2.1/catalog/datasets/production-annuelle-de-biomethane-par-site-raccorde-au-reseau-de-transport-et-de/records?limit=50';
   const startTime = Date.now();
 
   try {
@@ -65,11 +65,13 @@ export async function fetchOdreBiomethaneInjections(): Promise<OdreLiveFlowData>
     const points: TsoTelemetryPoint[] = [];
 
     results.forEach((rec: any, idx: number) => {
-      const capNm3h = Number(rec.capacite_dinjection_nominale_de_biomethane_en_m3_h || rec.capacite_de_production_m3_h || 180);
+      // Annual GWh to hourly Nm3/h: (GWh * 1,000,000 kWh / 10.5 kWh/Nm3) / 8,760 hours
+      const capGwh = Number(rec.capacite_de_production_gwh_an || 15.0);
+      const capNm3h = Number(rec.capacite_dinjection_nominale_de_biomethane_en_m3_h) || Math.round((capGwh * 1_000_000) / (10.5 * 8760)) || 180;
       totalCapacityNm3h += capNm3h;
       const gcv = 10.5;
       const flowMWhH = (capNm3h * gcv) / 1000;
-      const tsoName = rec.gestionnaire_de_reseau || 'GRTgaz / GRDF';
+      const tsoName = rec.grx_demandeur || rec.gestionnaire_de_reseau || 'GRDF';
       const nodeName = rec.nom_du_site || rec.nom_du_point_dinjection || `Site Biométhane #${idx + 1} (${rec.commune || 'France'})`;
       
       let coords: [number, number] | undefined = undefined;

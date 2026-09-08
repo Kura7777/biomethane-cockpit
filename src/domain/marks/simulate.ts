@@ -15,6 +15,7 @@ const BANDS: Record<UnitOfAccount, [min: number, max: number]> = {
   EUR_PER_KG_CO2E: [0.28, 0.42],
   EUR_PER_MWH: [45, 95],
   EUR_PER_CIC: [280, 380],
+  GBP_PER_RTFC: [0.18, 0.32],
   GBP_PER_DRTFC: [0.15, 0.30],
   EUR_PER_TCO2E_DEFICIT: [240, 340],
 };
@@ -128,7 +129,7 @@ export function simulateDesk(now: Date = new Date()): { marks: MarksState; costs
       producerPricing: {
         mode: 'INDEX_LINKED',
         fixedPriceEurPerMwh: null,
-        indexLinkedShare: round(between(0.55, 0.75), 2),
+        indexLinkedShare: round(between(0.965, 0.980), 3),
         source: SIMULATED_SOURCE_NAME,
         lastVerified: now.toISOString(),
         confidence: 'UNVERIFIED',

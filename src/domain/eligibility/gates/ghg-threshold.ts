@@ -15,6 +15,7 @@ const GATE_LABEL = 'GHG Saving Threshold';
 export function evaluateGHGThresholdGate(consignment: Consignment, market: Market): GateResult {
   // Voluntary corporate claims and Guarantees of Origin (RGGO, GOs) have no mandatory transport fuel GHG saving threshold
   const isVoluntaryOrGO = 
+    market.sector === 'VOLUNTARY' ||
     market.id === 'VOL_SCOPE1' || 
     market.id === 'UK_RGGO' || 
     market.id.endsWith('_GO') || 
@@ -33,9 +34,10 @@ export function evaluateGHGThresholdGate(consignment: Consignment, market: Marke
   }
 
   // Determine market sector to select the right comparator and thresholds
-  const isHeatPowerMarket = market.id === 'AT_EGG' || market.id === 'VOL_SCOPE1' || market.id === 'EU_ETS1';
+  const isHeatPowerMarket = market.sector === 'HEAT_POWER';
   const comparator = isHeatPowerMarket ? CI_COMPARATOR_HEAT : CI_COMPARATOR_ROAD_TRANSPORT;
   const thresholds = isHeatPowerMarket ? GHG_THRESHOLDS_HEAT_POWER : GHG_THRESHOLDS_TRANSPORT;
+  const citationPrimary = isHeatPowerMarket ? (CITATIONS.RED_III_GHG_HEAT_POWER ?? CITATIONS.RED_III_GHG_TRANSPORT) : CITATIONS.RED_III_GHG_TRANSPORT;
 
   const ci = consignment.carbonIntensity;
   const saving = (comparator - ci) / comparator;
@@ -49,7 +51,7 @@ export function evaluateGHGThresholdGate(consignment: Consignment, market: Marke
       verdict: 'UNKNOWN',
       reason: `Cannot determine GHG threshold for commissioning date range: ${consignment.commissioningDateRange}.`,
       remedy: null,
-      citations: [CITATIONS.RED_III_GHG_TRANSPORT],
+      citations: [citationPrimary],
       confidence: 'LOW',
     };
   }
@@ -63,7 +65,7 @@ export function evaluateGHGThresholdGate(consignment: Consignment, market: Marke
       verdict: 'PASS',
       reason: `GHG saving of ${savingPct}% (CI: ${ci} gCO₂e/MJ vs. comparator ${comparator} gCO₂e/MJ) meets the required minimum of ${minSavingPct}% for ${consignment.commissioningDateRange.replace(/_/g, ' ').toLowerCase()} installations.`,
       remedy: null,
-      citations: [CITATIONS.RED_III_GHG_TRANSPORT, CITATIONS.RED_III_COMPARATOR],
+      citations: [citationPrimary, CITATIONS.RED_III_COMPARATOR],
       confidence: 'HIGH',
     };
   }
@@ -74,7 +76,7 @@ export function evaluateGHGThresholdGate(consignment: Consignment, market: Marke
     verdict: 'HARD_BLOCK',
     reason: `GHG saving of ${savingPct}% (CI: ${ci} gCO₂e/MJ vs. comparator ${comparator} gCO₂e/MJ) is BELOW the required minimum of ${minSavingPct}% for ${consignment.commissioningDateRange.replace(/_/g, ' ').toLowerCase()} installations.`,
     remedy: `Reduce the carbon intensity of the production process, or source biomethane from a plant with a lower CI. The target CI for ${minSavingPct}% saving is ≤${(comparator * (1 - minSaving)).toFixed(1)} gCO₂e/MJ.`,
-    citations: [CITATIONS.RED_III_GHG_TRANSPORT, CITATIONS.RED_III_COMPARATOR],
+    citations: [citationPrimary, CITATIONS.RED_III_COMPARATOR],
     confidence: 'HIGH',
   };
 }

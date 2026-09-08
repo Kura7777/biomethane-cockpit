@@ -55,9 +55,9 @@ interface OfftakePreset {
 
 const OFFTAKE_PRESETS: OfftakePreset[] = [
   {
-    name: 'RWEST / PUZZLE Donderen 45 GWh',
+    name: 'Tier-1 Utility / PUZZLE Donderen 45 GWh',
     seller: 'Puzzle Carbon Bio Energy B.V.',
-    buyer: 'RWE Supply & Trading GmbH',
+    buyer: 'Tier-1 European Trading Utility',
     asset: 'PUZZLE Donderen Installation',
     ean: '871694831000490657',
     country: 'NL',
@@ -68,9 +68,9 @@ const OFFTAKE_PRESETS: OfftakePreset[] = [
     baseCi: -20.0,
     deliveredCi: -50.0,
     support: 'NETHERLANDS_SDE_PLUS_PLUS',
-    sourceDocument: 'RWE 2025 Indicative Term Sheet — Puzzle Donderen',
+    sourceDocument: 'Institutional Indicative Term Sheet — Puzzle Donderen',
     isIllustrative: false,
-    provenanceNote: 'Verified authentic contract terms from RWE 2025/2026 Term Sheet & Appendix 1',
+    provenanceNote: 'Verified authentic contract terms from Institutional 2025/2026 Term Sheet & Appendix 1',
   },
   {
     name: 'French CIVE — transmission-connected, index-linked',
