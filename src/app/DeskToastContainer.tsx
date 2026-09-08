@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 
-type ToastListener = (message: string) => void;
+type ToastListener = (message: string, variant?: string) => void;
 const listeners = new Set<ToastListener>();
 
-export function showToast(message: string) {
-  listeners.forEach(fn => fn(message));
+export function showToast(message: string, _variant?: string) {
+  listeners.forEach(fn => fn(message, _variant));
 }
 
 export function DeskToastContainer() {

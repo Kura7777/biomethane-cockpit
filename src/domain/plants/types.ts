@@ -27,10 +27,27 @@ export interface BiomethanePlant {
   contactEmail?: string | null;
   contactPhone?: string | null;
   headquartersAddress?: string | null;
+  operatingCompany?: string | null;
+  benchmarkCarbonIntensity?: number | null;
+  ciIsEstimated?: boolean;
+  contractVolumeMWh?: number | null;
+  defaultStatutoryRouting?: string | null;
+  domesticSubsidyScheme?: string | null;
+  gridConnectionLevel?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  primaryOfftakeMarket?: string | null;
+  redIIISubcategory?: string | null;
+  regionGridZone?: string | null;
+  registryGuaranteesOfOrigin?: string | null;
   // Origination & Compliance Attributes (EEG 2027 Cliff & RED III UDB Trackers)
   supportScheme?: string | null; // e.g. 'EEG' | 'FR_TARIF_ACHAT' | 'SDE++' | 'UK_RHI' | 'NONE'
   supportExpiryDate?: string | null; // ISO string / Year e.g. '2026-12-31'
   verifiedCarbonIntensity?: number | null; // gCO2e/MJ audited CI
+  auditedCarbonIntensity?: number | null;
+  canonicalFeedstockKey?: string | null;
+  primaryUpgradingTech?: string | null;
+  dataProvenanceTier?: string | null;
   certificationScheme?: 'ISCC_EU' | 'REDCERT_EU' | 'ISCC_PLUS' | string | null;
   certificateNumber?: string | null;
   currentOfftakeStatus?: 'CONTRACTED' | 'UNCONTRACTED' | 'PARTIAL' | 'EXPIRING_SOON' | 'UNKNOWN' | null;
