@@ -116,6 +116,19 @@ function matchesFeedstock(plant: BiomethanePlant, feedstockKey: string): boolean
   }
 }
 
+
+const FLAGSHIP_PRESETS = [
+  { id: 'plant_dk_1', name: 'Holsted', country: 'DK', flag: '🇩🇰', gwh: 71.9, feed: 'Manure', ci: -78.0 },
+  { id: 'plant_dk_2', name: 'Korskro', country: 'DK', flag: '🇩🇰', gwh: 120.0, feed: 'Manure', ci: -78.0 },
+  { id: 'plant_dk_3', name: 'Vinkel Bioenergi', country: 'DK', flag: '🇩🇰', gwh: 115.0, feed: 'Manure', ci: -78.0 },
+  { id: 'plant_fr_1', name: 'BioBéarn', country: 'FR', flag: '🇫🇷', gwh: 160.0, feed: 'Waste', ci: 16.0 },
+  { id: 'plant_fr_2', name: 'Claye-Souilly', country: 'FR', flag: '🇫🇷', gwh: 230.0, feed: 'LFG', ci: 14.0 },
+  { id: 'plant_de_1', name: 'Güstrow', country: 'DE', flag: '🇩🇪', gwh: 500.0, feed: 'Crops/Waste', ci: 24.0 },
+  { id: 'plant_at_1', name: 'Bruck an der Leitha', country: 'AT', flag: '🇦🇹', gwh: 54.9, feed: 'Crops/Manure', ci: 39.0 },
+  { id: 'plant_nl_1', name: 'Wijster Hub', country: 'NL', flag: '🇳🇱', gwh: 180.0, feed: 'VGF Waste', ci: 16.0 },
+  { id: 'plant_it_1', name: 'Montello', country: 'IT', flag: '🇮🇹', gwh: 300.0, feed: 'FORSU', ci: 12.0 },
+];
+
 export function SourcingOriginationDesk() {
   const navigate = useNavigate();
   const { state, dispatch } = useAppState();
@@ -126,7 +139,7 @@ export function SourcingOriginationDesk() {
   const [feedstockSelect, setFeedstockSelect] = useState<string>('manure');
   const [ciInput, setCiInput] = useState<string>('−100');
   const [ciTier, setCiTier] = useState<'optimistic' | 'base' | 'conservative'>('base');
-  const [activeTab, setActiveTab] = useState<SourcingTab>('STRATEGIES');
+  const [activeTab, setActiveTab] = useState<SourcingTab>('CORRIDORS');
   const [selectedRowId, setSelectedRowId] = useState<string>('DK');
   const [expandedOrigin, setExpandedOrigin] = useState<string | null>(null);
   const [plantSearchQuery, setPlantSearchQuery] = useState<string>('');
@@ -146,6 +159,13 @@ export function SourcingOriginationDesk() {
   const [plantFilterQuery, setPlantFilterQuery] = useState<string>('');
   const [selectedStrategyId, setSelectedStrategyId] = useState<string | null>(null);
   const [isPlantDrawerOpen, setIsPlantDrawerOpen] = useState(false);
+  const [isPlantPickerOpen, setIsPlantPickerOpen] = useState(false);
+  const [pickerFeedstockFilter, setPickerFeedstockFilter] = useState<string>('ALL');
+  const [pickerScaleFilter, setPickerScaleFilter] = useState<'ALL' | 'FLAGSHIP' | 'MID' | 'SMALL'>('ALL');
+  const [pickerGridFilter, setPickerGridFilter] = useState<'ALL' | 'TSO' | 'DSO'>('ALL');
+  const [pickerSortBy, setPickerSortBy] = useState<'CAPACITY_DESC' | 'CI_ASC' | 'NAME_ASC' | 'COUNTRY_ASC'>('CAPACITY_DESC');
+  const [inlineSearchQuery, setInlineSearchQuery] = useState<string>('');
+  const [isInlineDropdownOpen, setIsInlineDropdownOpen] = useState<boolean>(false);
 
   // Sync CI when feedstock or tier changes
   const updateCIForFeedstock = (feedstock: string, tier: 'optimistic' | 'base' | 'conservative', origin: string) => {
@@ -231,36 +251,79 @@ export function SourcingOriginationDesk() {
       }));
   }, []);
 
-  // Filtered plant list containing all matching plants (all 1,974 plants when unfiltered)
+  // Filtered plant list containing all matching plants with multi-facet filters & sorting
   const availablePlants = useMemo(() => {
     let list = BIOMETHANE_PLANTS;
     if (selectedCountryFilter !== 'ALL') {
       list = list.filter(p => p.countryCode === selectedCountryFilter);
+    }
+    if (pickerFeedstockFilter !== 'ALL') {
+      list = list.filter(p => matchesFeedstock(p, pickerFeedstockFilter));
+    }
+    if (pickerScaleFilter !== 'ALL') {
+      if (pickerScaleFilter === 'FLAGSHIP') {
+        list = list.filter(p => (p.annualEnergyGWh ?? 0) >= 100);
+      } else if (pickerScaleFilter === 'MID') {
+        list = list.filter(p => (p.annualEnergyGWh ?? 0) >= 30 && (p.annualEnergyGWh ?? 0) < 100);
+      } else if (pickerScaleFilter === 'SMALL') {
+        list = list.filter(p => (p.annualEnergyGWh ?? 0) < 30);
+      }
+    }
+    if (pickerGridFilter !== 'ALL') {
+      if (pickerGridFilter === 'TSO') {
+        list = list.filter(p => p.gridConnectionType?.toLowerCase().includes('transmission') || p.networkOperator?.toLowerCase().includes('tso'));
+      } else if (pickerGridFilter === 'DSO') {
+        list = list.filter(p => !p.gridConnectionType?.toLowerCase().includes('transmission'));
+      }
     }
     if (plantFilterQuery.trim()) {
       const q = plantFilterQuery.toLowerCase().trim();
       list = list.filter(p =>
         p.name.toLowerCase().includes(q) ||
         (p.operator && p.operator.toLowerCase().includes(q)) ||
+        (p.legalEntityName && p.legalEntityName.toLowerCase().includes(q)) ||
         (p.region && p.region.toLowerCase().includes(q)) ||
         (p.primaryFeedstockCategory && p.primaryFeedstockCategory.toLowerCase().includes(q)) ||
+        (p.feedstockDetails && p.feedstockDetails.toLowerCase().includes(q)) ||
+        (p.networkOperator && p.networkOperator.toLowerCase().includes(q)) ||
+        (p.companyRegistrationId && p.companyRegistrationId.toLowerCase().includes(q)) ||
         p.country.toLowerCase().includes(q) ||
         p.countryCode.toLowerCase().includes(q)
       );
     }
     return [...list].sort((a, b) => {
-      if (a.countryCode !== b.countryCode) return a.countryCode.localeCompare(b.countryCode);
-      return a.name.localeCompare(b.name);
+      if (pickerSortBy === 'CAPACITY_DESC') {
+        return (b.annualEnergyGWh ?? 0) - (a.annualEnergyGWh ?? 0);
+      }
+      if (pickerSortBy === 'CI_ASC') {
+        return (a.verifiedCarbonIntensity ?? 39) - (b.verifiedCarbonIntensity ?? 39);
+      }
+      if (pickerSortBy === 'NAME_ASC') {
+        return a.name.localeCompare(b.name);
+      }
+      if (pickerSortBy === 'COUNTRY_ASC') {
+        if (a.countryCode !== b.countryCode) return a.countryCode.localeCompare(b.countryCode);
+        return a.name.localeCompare(b.name);
+      }
+      return (b.annualEnergyGWh ?? 0) - (a.annualEnergyGWh ?? 0);
     });
-  }, [selectedCountryFilter, plantFilterQuery]);
+  }, [selectedCountryFilter, pickerFeedstockFilter, pickerScaleFilter, pickerGridFilter, plantFilterQuery, pickerSortBy]);
 
-  // Keep selectedPlant in sync with filter if current selection is excluded
-  useEffect(() => {
-    if (availablePlants.length > 0 && !availablePlants.some(p => p.id === selectedPlant.id)) {
-      setSelectedPlant(availablePlants[0]);
-      setSelectedStrategyId(null);
-    }
-  }, [availablePlants, selectedPlant.id]);
+  // Inline search quick results for top bar autocomplete
+  const inlineSearchResults = useMemo(() => {
+    if (!inlineSearchQuery.trim()) return [];
+    const q = inlineSearchQuery.toLowerCase().trim();
+    return BIOMETHANE_PLANTS.filter(p =>
+      p.name.toLowerCase().includes(q) ||
+      (p.operator && p.operator.toLowerCase().includes(q)) ||
+      (p.legalEntityName && p.legalEntityName.toLowerCase().includes(q)) ||
+      (p.region && p.region.toLowerCase().includes(q)) ||
+      (p.primaryFeedstockCategory && p.primaryFeedstockCategory.toLowerCase().includes(q)) ||
+      (p.networkOperator && p.networkOperator.toLowerCase().includes(q)) ||
+      p.country.toLowerCase().includes(q) ||
+      p.countryCode.toLowerCase().includes(q)
+    ).slice(0, 8);
+  }, [inlineSearchQuery]);
 
   // Multi-strategy valuation evaluation for the selected plant
   const plantValuation: PlantStrategyMatrix = useMemo(() => {
@@ -777,126 +840,575 @@ export function SourcingOriginationDesk() {
         {/* TAB 0: Asset Deal Evaluator & Multi-Strategy Opportunity Engine */}
         {activeTab === 'STRATEGIES' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', paddingTop: '12px' }}>
-            {/* 1. Simple Plant Selector with Fast Filters */}
+            {/* 1. Institutional Asset Selector & 360 Discovery Header */}
             <div
               className="card"
               style={{
-                padding: '12px 16px',
+                padding: '16px 20px',
                 backgroundColor: 'var(--color-surface)',
                 border: '1px solid var(--color-divider)',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '10px',
+                gap: '14px',
+                borderRadius: '8px',
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <label htmlFor="plant-selector" style={{ fontWeight: 800, fontSize: '13px', color: 'var(--color-text)' }}>
-                    Select Plant
-                  </label>
-                  <span className="dim" style={{ fontSize: '12px' }}>
-                    ({availablePlants.length.toLocaleString()} of {BIOMETHANE_PLANTS.length.toLocaleString()} European facilities available)
+              {/* Top Controls Row */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', color: 'var(--color-text)', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>🏢</span> FACILITY UNDER VALUATION:
+                  </span>
+                  <span className="chip chip-a" style={{ fontSize: '11px', padding: '2px 8px', fontWeight: 700 }}>
+                    {BIOMETHANE_PLANTS.length.toLocaleString()} European Assets Indexed
                   </span>
                 </div>
 
+                {/* Quick Switcher Controls & Action Buttons */}
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                  {/* Filter by Country */}
-                  <select
-                    className="select"
-                    style={{ height: '32px', fontSize: '12px', padding: '0 8px', minWidth: '180px' }}
-                    value={selectedCountryFilter}
-                    onChange={e => setSelectedCountryFilter(e.target.value)}
-                    aria-label="Filter plants by country"
-                  >
-                    <option value="ALL">🌍 All Countries ({BIOMETHANE_PLANTS.length.toLocaleString()})</option>
-                    {plantCountryOptions.map(c => (
-                      <option key={c.code} value={c.code}>
-                        {c.label}
-                      </option>
-                    ))}
-                  </select>
-
-                  {/* Filter by Search Query */}
-                  <div style={{ position: 'relative' }}>
+                  {/* Inline Fast Search Input with Autocomplete */}
+                  <div style={{ position: 'relative', minWidth: '260px' }}>
                     <input
                       type="text"
                       className="input"
-                      style={{ height: '32px', fontSize: '12px', padding: '0 24px 0 10px', width: '220px' }}
-                      placeholder="Filter by name, operator..."
-                      value={plantFilterQuery}
-                      onChange={e => setPlantFilterQuery(e.target.value)}
-                      aria-label="Filter plants by text"
+                      style={{ width: '100%', height: '34px', fontSize: '12px', paddingLeft: '28px', fontWeight: 500 }}
+                      placeholder="Type facility name, operator, or city..."
+                      value={inlineSearchQuery}
+                      onChange={e => {
+                        setInlineSearchQuery(e.target.value);
+                        setIsInlineDropdownOpen(true);
+                      }}
+                      onFocus={() => {
+                        if (inlineSearchQuery.trim()) setIsInlineDropdownOpen(true);
+                      }}
                     />
-                    {plantFilterQuery && (
+                    <span style={{ position: 'absolute', left: '9px', top: '50%', transform: 'translateY(-50%)', fontSize: '12px', color: 'var(--color-dim)', pointerEvents: 'none' }}>
+                      🔍
+                    </span>
+                    {inlineSearchQuery && (
                       <button
                         type="button"
-                        className="cursor-pointer"
-                        style={{
-                          position: 'absolute',
-                          right: '6px',
-                          top: '50%',
-                          transform: 'translateY(-50%)',
-                          background: 'none',
-                          border: 'none',
-                          fontSize: '12px',
-                          color: 'var(--color-muted)',
-                          padding: 0,
-                          lineHeight: 1,
+                        onClick={() => {
+                          setInlineSearchQuery('');
+                          setIsInlineDropdownOpen(false);
                         }}
-                        onClick={() => setPlantFilterQuery('')}
-                        title="Clear search"
+                        style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--color-dim)', cursor: 'pointer', fontSize: '12px' }}
                       >
                         ✕
                       </button>
                     )}
+
+                    {/* Autocomplete Dropdown List */}
+                    {isInlineDropdownOpen && inlineSearchResults.length > 0 && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '100%',
+                          left: 0,
+                          right: 0,
+                          zIndex: 9999,
+                          marginTop: '4px',
+                          backgroundColor: 'var(--color-surface)',
+                          border: '2px solid var(--color-divider)',
+                          borderRadius: '6px',
+                          boxShadow: '0 12px 28px rgba(0, 0, 0, 0.6)',
+                          maxHeight: '340px',
+                          overflowY: 'auto',
+                        }}
+                      >
+                        <div style={{ padding: '6px 10px', fontSize: '10px', fontWeight: 700, color: 'var(--color-dim)', borderBottom: '1px solid var(--color-divider)', backgroundColor: 'var(--color-panel-header)', textTransform: 'uppercase' }}>
+                          Matching Facilities ({inlineSearchResults.length})
+                        </div>
+                        {inlineSearchResults.map(p => (
+                          <div
+                            key={p.id}
+                            style={{
+                              padding: '8px 12px',
+                              borderBottom: '1px solid var(--color-divider)',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              gap: '8px',
+                              transition: 'background-color 0.1s ease',
+                              backgroundColor: p.id === selectedPlant.id ? 'var(--color-accent-100, rgba(16, 185, 129, 0.1))' : 'transparent',
+                            }}
+                            onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--color-surface-sunken)')}
+                            onMouseLeave={e => (e.currentTarget.style.backgroundColor = p.id === selectedPlant.id ? 'var(--color-accent-100, rgba(16, 185, 129, 0.1))' : 'transparent')}
+                            onClick={() => {
+                              setSelectedPlant(p);
+                              setSelectedStrategyId(null);
+                              setIsInlineDropdownOpen(false);
+                              setInlineSearchQuery('');
+                              showToast(`Loaded ${p.name} (${p.country})`);
+                            }}
+                          >
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <span style={{ fontSize: '14px' }}>{p.countryFlag || '🌍'}</span>
+                                <strong style={{ fontSize: '12px', color: 'var(--color-text)' }}>{p.name}</strong>
+                                <span style={{ fontSize: '10px', color: 'var(--color-dim)' }}>• {p.countryCode}</span>
+                              </div>
+                              <div style={{ fontSize: '10px', color: 'var(--color-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {p.operator || p.legalEntityName || 'Operating Entity'} • {p.primaryFeedstockCategory || 'Agri'}
+                              </div>
+                            </div>
+                            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                              <span style={{ fontSize: '11px', fontWeight: 700, color: '#10b981' }}>
+                                {p.annualEnergyGWh ? `${p.annualEnergyGWh.toFixed(1)} GWh` : '—'}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                        <div
+                          style={{
+                            padding: '8px 12px',
+                            textAlign: 'center',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            color: 'var(--color-accent-700)',
+                            backgroundColor: 'var(--color-panel-header)',
+                            cursor: 'pointer',
+                          }}
+                          onClick={() => {
+                            setPlantFilterQuery(inlineSearchQuery);
+                            setIsInlineDropdownOpen(false);
+                            setIsPlantPickerOpen(true);
+                          }}
+                        >
+                          View all in Full Census Explorer →
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  {(selectedCountryFilter !== 'ALL' || plantFilterQuery) && (
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      style={{ height: '32px', fontSize: '11px', padding: '0 10px' }}
-                      onClick={() => {
-                        setSelectedCountryFilter('ALL');
-                        setPlantFilterQuery('');
-                      }}
-                    >
-                      Reset Filters
-                    </button>
-                  )}
+                  {/* Primary Explorer Modal Trigger */}
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    style={{ height: '34px', fontSize: '12px', padding: '0 14px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}
+                    onClick={() => setIsPlantPickerOpen(true)}
+                  >
+                    <span>🔍 Facility Census Explorer</span>
+                    <span style={{ fontSize: '10px', opacity: 0.85, backgroundColor: 'rgba(255,255,255,0.2)', padding: '1px 6px', borderRadius: '4px' }}>
+                      {availablePlants.length}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    style={{ height: '34px', fontSize: '12px', padding: '0 12px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}
+                    onClick={() => setIsPlantDrawerOpen(true)}
+                    title="View verified operating company, contacts, and corporate registry"
+                  >
+                    <span>👤 360° Producer Dossier</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    style={{ height: '34px', fontSize: '12px', padding: '0 12px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                    onClick={() => navigate('/plants')}
+                    title="Open the full multi-facet European Biomethane Census table"
+                  >
+                    <span>Full Census Table →</span>
+                  </button>
                 </div>
               </div>
 
-              {/* Main Plant Dropdown containing all 1,974 plants (or filtered) */}
-              <select
-                id="plant-selector"
-                className="select"
+              {/* Plant Detail Hero Display Banner */}
+              <div
                 style={{
-                  width: '100%',
-                  height: '38px',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  padding: '0 12px',
-                  backgroundColor: 'var(--color-input-bg, #fff)',
-                  borderColor: 'var(--color-divider)',
-                }}
-                value={selectedPlant.id}
-                onChange={e => {
-                  const p = BIOMETHANE_PLANTS.find(item => item.id === e.target.value);
-                  if (p) {
-                    setSelectedPlant(p);
-                    setSelectedStrategyId(null);
-                    showToast(`Loaded ${p.name} (${p.country})`);
-                  }
+                  display: 'grid',
+                  gridTemplateColumns: 'minmax(240px, 1.4fr) repeat(4, minmax(130px, 1fr))',
+                  gap: '14px',
+                  backgroundColor: 'var(--color-surface-sunken)',
+                  padding: '14px 18px',
+                  borderRadius: '6px',
+                  border: '1px solid var(--color-divider)',
+                  alignItems: 'center',
                 }}
               >
-                {availablePlants.map(p => (
-                  <option key={p.id} value={p.id}>
-                    [{p.countryCode}] {p.name} — {p.annualEnergyGWh ? `${p.annualEnergyGWh.toFixed(1)} GWh` : ''} · {p.primaryFeedstockCategory || 'Agri'}{p.operator ? ` (${p.operator})` : ''}
-                  </option>
-                ))}
-              </select>
+                {/* Facility Name & Location */}
+                <div 
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => setIsPlantPickerOpen(true)}
+                  title="Click to search and change facility"
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '20px' }}>{selectedPlant.countryFlag || '🌍'}</span>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-dim)', textTransform: 'uppercase' }}>
+                      {selectedPlant.countryCode} · {selectedPlant.country}
+                    </span>
+                    <span style={{ fontSize: '10px', fontFamily: 'monospace', color: 'var(--color-dim)', marginLeft: 'auto' }}>
+                      {selectedPlant.id}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '17px', fontWeight: 800, color: 'var(--color-text)', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>{selectedPlant.name}</span>
+                    <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-accent-700)', backgroundColor: 'var(--color-panel-header)', padding: '1px 6px', borderRadius: '4px', border: '1px solid var(--color-divider)' }}>
+                      Switch 🔍
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--color-dim)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={selectedPlant.operator || selectedPlant.legalEntityName || ''}>
+                    {selectedPlant.operator || selectedPlant.legalEntityName || 'Independent Operating Entity'}
+                  </div>
+                </div>
+
+                {/* Production Capacity */}
+                <div>
+                  <div className="eyebrow" style={{ fontSize: '10px' }}>Annual Energy Capacity</div>
+                  <div className="num" style={{ fontSize: '16px', fontWeight: 800, color: '#10b981', marginTop: '2px' }}>
+                    {selectedPlant.annualEnergyGWh ? `${selectedPlant.annualEnergyGWh.toFixed(1)} GWh/y` : '—'}
+                  </div>
+                  <div className="dim" style={{ fontSize: '11px', marginTop: '1px' }}>
+                    {selectedPlant.capacityNm3h ? `${selectedPlant.capacityNm3h.toLocaleString()} Nm³/h` : ''} · {selectedPlant.annualEnergyGWh ? `${(selectedPlant.annualEnergyGWh * 1000).toLocaleString()} MWh` : ''}
+                  </div>
+                </div>
+
+                {/* Feedstock & Carbon Score */}
+                <div>
+                  <div className="eyebrow" style={{ fontSize: '10px' }}>Feedstock &amp; Carbon Score</div>
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {selectedPlant.primaryFeedstockCategory || 'Agricultural Biomass'}
+                  </div>
+                  <div style={{ marginTop: '2px' }}>
+                    <span
+                      style={{
+                        backgroundColor: (selectedPlant.verifiedCarbonIntensity ?? 0) < 0 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.15)',
+                        color: (selectedPlant.verifiedCarbonIntensity ?? 0) < 0 ? '#10b981' : '#f59e0b',
+                        padding: '1px 6px',
+                        borderRadius: '4px',
+                        fontWeight: 700,
+                        fontSize: '10px',
+                        fontFamily: 'monospace'
+                      }}
+                    >
+                      CI: {selectedPlant.verifiedCarbonIntensity ?? 39} gCO₂e/MJ
+                    </span>
+                  </div>
+                </div>
+
+                {/* Grid Injection Node */}
+                <div>
+                  <div className="eyebrow" style={{ fontSize: '10px' }}>Network Grid Operator</div>
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={selectedPlant.networkOperator || ''}>
+                    {selectedPlant.networkOperator || 'National Gas Grid'}
+                  </div>
+                  <div className="dim" style={{ fontSize: '11px', marginTop: '1px' }}>
+                    {selectedPlant.gridConnectionType?.includes('Transmission') ? '⚡ TSO Injection' : '🏘️ DSO Injection'}
+                  </div>
+                </div>
+
+                {/* Tech & Commissioning */}
+                <div>
+                  <div className="eyebrow" style={{ fontSize: '10px' }}>Upgrading &amp; Era</div>
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text)', marginTop: '2px' }}>
+                    {selectedPlant.upgradingTechnology || 'Membrane separation'}
+                  </div>
+                  <div className="dim" style={{ fontSize: '11px', marginTop: '1px' }}>
+                    {selectedPlant.commissioningYear ? `Comm. ${selectedPlant.commissioningYear}` : 'Verified Meter'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Flagship Assets Switching Bar */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflowX: 'auto', paddingTop: '2px' }} className="noscroll">
+                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-dim)', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                  Quick Flagships:
+                </span>
+                {FLAGSHIP_PRESETS.map(flag => {
+                  const isCurrent = selectedPlant.id === flag.id || selectedPlant.name.toLowerCase().includes(flag.name.toLowerCase());
+                  return (
+                    <button
+                      key={flag.id}
+                      type="button"
+                      className={`chip ${isCurrent ? 'chip-a' : ''}`}
+                      style={{ fontSize: '11px', padding: '3px 8px', whiteSpace: 'nowrap', fontWeight: isCurrent ? 700 : 500 }}
+                      onClick={() => {
+                        const p = BIOMETHANE_PLANTS.find(item => item.id === flag.id || item.name.toLowerCase().includes(flag.name.toLowerCase()));
+                        if (p) {
+                          setSelectedPlant(p);
+                          setSelectedStrategyId(null);
+                          showToast(`Loaded ${p.name} (${p.country})`);
+                        }
+                      }}
+                    >
+                      {flag.flag} {flag.name} ({flag.gwh} GWh)
+                    </button>
+                  );
+                })}
+              </div>
             </div>
+
+            {/* ─── Searchable Plant Picker Overlay Modal ─── */}
+            {isPlantPickerOpen && (
+              <div
+                style={{
+                  position: 'fixed',
+                  inset: 0,
+                  zIndex: 9999,
+                  backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                  backdropFilter: 'blur(4px)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '20px',
+                  animation: 'fadeIn 0.15s ease-out',
+                }}
+                onClick={() => setIsPlantPickerOpen(false)}
+              >
+                <div
+                  style={{
+                    backgroundColor: 'var(--color-surface)',
+                    width: '100%',
+                    maxWidth: '920px',
+                    maxHeight: '88vh',
+                    borderRadius: '10px',
+                    border: '2px solid var(--color-divider)',
+                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    overflow: 'hidden',
+                  }}
+                  onClick={e => e.stopPropagation()}
+                >
+                  {/* Modal Header */}
+                  <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-divider)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--color-panel-header)' }}>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span>🏢</span> European Biomethane Facility Census Directory
+                      </h3>
+                      <div style={{ fontSize: '12px', color: 'var(--color-dim)', marginTop: '3px' }}>
+                        Explore 1,975 Tier-1 audited biomethane injection facilities across 20 European jurisdictions
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      style={{ padding: '4px 12px', fontSize: '12px', fontWeight: 600 }}
+                      onClick={() => setIsPlantPickerOpen(false)}
+                    >
+                      ✕ Close
+                    </button>
+                  </div>
+
+                  {/* Search Bar & Multi-Facet Filters */}
+                  <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface-sunken)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {/* Search Input & Sort Controls */}
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                      <div style={{ position: 'relative', flex: 1 }}>
+                        <input
+                          type="text"
+                          className="input"
+                          autoFocus
+                          style={{ width: '100%', height: '38px', fontSize: '13px', paddingLeft: '12px' }}
+                          placeholder="Search facility name, legal entity, municipality, SIREN, TSO/DSO operator..."
+                          value={plantFilterQuery}
+                          onChange={e => setPlantFilterQuery(e.target.value)}
+                        />
+                        {plantFilterQuery && (
+                          <button
+                            type="button"
+                            onClick={() => setPlantFilterQuery('')}
+                            style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--color-dim)', cursor: 'pointer', fontSize: '13px' }}
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Sort Dropdown */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-dim)' }}>Sort:</span>
+                        <select
+                          className="input"
+                          style={{ height: '38px', fontSize: '12px', fontWeight: 600 }}
+                          value={pickerSortBy}
+                          onChange={e => setPickerSortBy(e.target.value as any)}
+                        >
+                          <option value="CAPACITY_DESC">Capacity (High → Low)</option>
+                          <option value="CI_ASC">Carbon Intensity (Lowest CI First)</option>
+                          <option value="NAME_ASC">Facility Name (A → Z)</option>
+                          <option value="COUNTRY_ASC">Country ISO</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Country Filter Chips */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }} className="noscroll">
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-dim)', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                        Country:
+                      </span>
+                      <button
+                        type="button"
+                        className={`chip ${selectedCountryFilter === 'ALL' ? 'chip-a' : ''}`}
+                        style={{ fontSize: '11px', padding: '2px 8px' }}
+                        onClick={() => setSelectedCountryFilter('ALL')}
+                      >
+                        All ({BIOMETHANE_PLANTS.length})
+                      </button>
+                      {plantCountryOptions.slice(0, 11).map(c => (
+                        <button
+                          key={c.code}
+                          type="button"
+                          className={`chip ${selectedCountryFilter === c.code ? 'chip-a' : ''}`}
+                          style={{ fontSize: '11px', padding: '2px 8px', whiteSpace: 'nowrap' }}
+                          onClick={() => setSelectedCountryFilter(c.code)}
+                        >
+                          {c.flag} {c.code} ({c.count})
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Feedstock & Scale Filter Chips */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                      {/* Feedstock Substrate Filter */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', overflowX: 'auto' }} className="noscroll">
+                        <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--color-dim)', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                          Substrate:
+                        </span>
+                        {[
+                          { key: 'ALL', label: 'All' },
+                          { key: 'manure', label: '🐄 Manure' },
+                          { key: 'agricultural_residues', label: '🌾 Agri' },
+                          { key: 'food_waste', label: '🍎 Food/Waste' },
+                          { key: 'sewage_sludge', label: '💧 Sewage' },
+                          { key: 'energy_crops', label: '🌽 Crops' },
+                        ].map(f => (
+                          <button
+                            key={f.key}
+                            type="button"
+                            className={`chip ${pickerFeedstockFilter === f.key ? 'chip-a' : ''}`}
+                            style={{ fontSize: '10px', padding: '2px 6px', whiteSpace: 'nowrap' }}
+                            onClick={() => setPickerFeedstockFilter(f.key)}
+                          >
+                            {f.label}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Scale / Capacity Filter */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--color-dim)', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                          Scale:
+                        </span>
+                        {[
+                          { key: 'ALL', label: 'All' },
+                          { key: 'FLAGSHIP', label: '🏆 >100 GWh' },
+                          { key: 'MID', label: '⚡ 30–100 GWh' },
+                          { key: 'SMALL', label: '🌱 <30 GWh' },
+                        ].map(s => (
+                          <button
+                            key={s.key}
+                            type="button"
+                            className={`chip ${pickerScaleFilter === s.key ? 'chip-a' : ''}`}
+                            style={{ fontSize: '10px', padding: '2px 6px' }}
+                            onClick={() => setPickerScaleFilter(s.key as any)}
+                          >
+                            {s.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Results List */}
+                  <div style={{ flex: 1, overflowY: 'auto', padding: '12px 20px', display: 'flex', flexDirection: 'column', gap: '6px' }} className="noscroll">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', fontWeight: 700, color: 'var(--color-dim)', marginBottom: '4px' }}>
+                      <span>SHOWING {availablePlants.length} MATCHING FACILITIES</span>
+                      <span>(Total Indexed: {BIOMETHANE_PLANTS.length.toLocaleString()})</span>
+                    </div>
+
+                    {availablePlants.length === 0 ? (
+                      <div style={{ padding: '36px', textAlign: 'center', color: 'var(--color-dim)' }}>
+                        No biomethane facilities match the current search or filters. Try adjusting your query or resetting filters.
+                      </div>
+                    ) : (
+                      availablePlants.slice(0, 100).map(p => {
+                        const isSelected = p.id === selectedPlant.id;
+                        return (
+                          <div
+                            key={p.id}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              padding: '10px 14px',
+                              borderRadius: '6px',
+                              backgroundColor: isSelected ? 'var(--color-accent-100, rgba(16, 185, 129, 0.1))' : 'var(--color-surface)',
+                              border: isSelected ? '2px solid #10b981' : '1px solid var(--color-divider)',
+                              cursor: 'pointer',
+                              transition: 'all 0.1s ease',
+                              gap: '12px'
+                            }}
+                            onClick={() => {
+                              setSelectedPlant(p);
+                              setSelectedStrategyId(null);
+                              setIsPlantPickerOpen(false);
+                              showToast(`Loaded ${p.name} (${p.country})`);
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                              <span style={{ fontSize: '20px' }}>{p.countryFlag || '🌍'}</span>
+                              <div style={{ minWidth: 0 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <span style={{ fontWeight: 700, fontSize: '13px', color: 'var(--color-text)' }}>{p.name}</span>
+                                  <span style={{ fontSize: '11px', color: 'var(--color-dim)' }}>• {p.countryCode}</span>
+                                  {p.region && <span style={{ fontSize: '11px', color: 'var(--color-dim)' }}>({p.region})</span>}
+                                  {isSelected && (
+                                    <span style={{ fontSize: '9px', fontWeight: 800, backgroundColor: '#10b981', color: '#fff', padding: '1px 5px', borderRadius: '3px' }}>
+                                      CURRENTLY SELECTED
+                                    </span>
+                                  )}
+                                </div>
+                                <div style={{ fontSize: '11px', color: 'var(--color-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {p.operator || p.legalEntityName || 'Independent Operating Entity'} • {p.networkOperator || 'National Gas Grid'}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+                              <div style={{ textAlign: 'right' }}>
+                                <div className="num" style={{ fontWeight: 700, fontSize: '13px', color: '#10b981' }}>
+                                  {p.annualEnergyGWh ? `${p.annualEnergyGWh.toFixed(1)} GWh/y` : '—'}
+                                </div>
+                                <div style={{ fontSize: '10px', color: 'var(--color-dim)' }}>
+                                  {p.capacityNm3h ? `${p.capacityNm3h.toLocaleString()} Nm³/h` : (p.primaryFeedstockCategory || 'Agri')}
+                                </div>
+                              </div>
+
+                              <span
+                                style={{
+                                  backgroundColor: (p.verifiedCarbonIntensity ?? 0) < 0 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.15)',
+                                  color: (p.verifiedCarbonIntensity ?? 0) < 0 ? '#10b981' : '#f59e0b',
+                                  padding: '2px 6px',
+                                  borderRadius: '4px',
+                                  fontWeight: 700,
+                                  fontSize: '10px',
+                                  fontFamily: 'monospace'
+                                }}
+                              >
+                                {p.verifiedCarbonIntensity !== null && p.verifiedCarbonIntensity !== undefined ? `${p.verifiedCarbonIntensity.toFixed(0)} g/MJ` : '39 g/MJ'}
+                              </span>
+
+                              <button
+                                type="button"
+                                className={`btn ${isSelected ? 'btn-primary' : 'btn-secondary'}`}
+                                style={{ fontSize: '11px', padding: '3px 10px', height: '28px', fontWeight: 700 }}
+                              >
+                                {isSelected ? '✓ Active' : 'Select'}
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* 2. Plant Identity & Grid Connection Ribbon */}
             <div

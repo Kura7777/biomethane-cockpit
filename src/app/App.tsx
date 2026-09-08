@@ -13,7 +13,9 @@ import { Layout } from './Layout';
  * Builder came to be imported but unrouted while nine screens linked to it.
  * architecture.test.ts now fails if a navigate() target is missing from this file.
  */
+const CommercialFlowStepper = React.lazy(() => import('../features/commercial/CommercialFlowStepper').then(m => ({ default: m.CommercialFlowStepper })));
 const SourcingOriginationDesk = React.lazy(() => import('../features/sourcing/SourcingOriginationDesk').then(m => ({ default: m.SourcingOriginationDesk })));
+const ScannerScreen = React.lazy(() => import('../features/opportunity-scanner/ScannerScreen').then(m => ({ default: m.ScannerScreen })));
 const MapScreen = React.lazy(() => import('../features/map/MapScreen').then(m => ({ default: m.MapScreen })));
 const MarksScreen = React.lazy(() => import('../features/marks/MarksScreen').then(m => ({ default: m.MarksScreen })));
 const TradeBuilderScreen = React.lazy(() => import('../features/trade-builder/TradeBuilderScreen').then(m => ({ default: m.TradeBuilderScreen })));
@@ -42,9 +44,11 @@ function AppContent() {
         <Routes>
           <Route element={<Layout />}>
             {/* Primary Workspaces */}
-            <Route path="/" element={<SourcingOriginationDesk />} />
-            <Route path="/sourcing" element={<SourcingOriginationDesk />} />
-            <Route path="/commercial" element={<SourcingOriginationDesk />} />
+            <Route path="/" element={<CommercialFlowStepper />} />
+            <Route path="/sourcing" element={<CommercialFlowStepper />} />
+            <Route path="/commercial" element={<CommercialFlowStepper />} />
+            <Route path="/desk" element={<SourcingOriginationDesk />} />
+            <Route path="/scanner" element={<ScannerScreen />} />
             <Route path="/map" element={<MapScreen />} />
             <Route path="/pricing" element={<MarksScreen />} />
             <Route path="/marks" element={<MarksScreen />} />
@@ -60,7 +64,6 @@ function AppContent() {
             {/* Supporting Tools & Desks */}
             <Route path="/trade" element={<TradeBuilderScreen />} />
             <Route path="/risk" element={<Navigate to="/" replace />} />
-            <Route path="/scanner" element={<Navigate to="/sourcing" replace />} />
             <Route path="/library" element={<Navigate to="/trade" replace />} />
             <Route path="/citations" element={<CitationsScreen />} />
             <Route path="/connectors" element={<DataConnectorsScreen />} />

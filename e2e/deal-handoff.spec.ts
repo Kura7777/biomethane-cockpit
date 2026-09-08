@@ -71,8 +71,8 @@ test.describe('Deal Handoff & Query Parameter Survival', () => {
     const errors = collectPageErrors(page);
     await gotoScreen(page, '/scanner');
 
-    const structureBtn = page.getByRole('button', { name: /structure in trade builder/i }).first();
-    await expect(structureBtn).toBeVisible();
+    const structureBtn = page.locator('[data-testid="structure-trade-btn"]').or(page.getByRole('button', { name: /structure in trade builder/i })).first();
+    await expect(structureBtn).toBeVisible({ timeout: 10_000 });
     await structureBtn.click();
 
     await expect(page).toHaveURL(/#\/trade\?/);

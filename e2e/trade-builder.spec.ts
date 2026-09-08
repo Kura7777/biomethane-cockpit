@@ -57,7 +57,7 @@ test.describe('Trade Builder Screen & Pricing Engine', () => {
     const errors = collectPageErrors(page);
     await gotoScreen(page, '/trade?marketId=NL_ERE&originCountry=DK&feedstock=manure&ci=-80');
 
-    const saveBtn = page.getByRole('button', { name: /save dossier/i });
+    const saveBtn = page.locator('[data-testid="save-dossier-btn"]').or(page.getByRole('button', { name: /save dossier/i })).first();
     await expect(saveBtn).toBeVisible();
     await saveBtn.click();
 
@@ -71,7 +71,7 @@ test.describe('Trade Builder Screen & Pricing Engine', () => {
     const errors = collectPageErrors(page);
     await gotoScreen(page, '/trade?marketId=DE_THG&originCountry=DK&feedstock=manure&ci=-100');
 
-    const previewBtn = page.getByRole('button', { name: /term sheet/i });
+    const previewBtn = page.locator('[data-testid="term-sheet-btn"]').or(page.getByRole('button', { name: /term sheet/i })).first();
     await expect(previewBtn).toBeVisible();
     await previewBtn.click();
 
@@ -101,7 +101,7 @@ test.describe('Trade Builder Screen & Pricing Engine', () => {
     const errors = collectPageErrors(page);
     await gotoScreen(page, '/trade?marketId=DE_THG&originCountry=DK');
 
-    const playbookBtn = page.getByRole('button', { name: /delivery|logistics/i });
+    const playbookBtn = page.locator('[data-testid="delivery-playbook-btn"]').or(page.getByRole('button', { name: /delivery|logistics/i })).first();
     await expect(playbookBtn).toBeVisible();
     await playbookBtn.click();
 
@@ -114,6 +114,34 @@ test.describe('Trade Builder Screen & Pricing Engine', () => {
     await closeBtn.click();
     await expect(modal).not.toBeVisible();
 
+    expect(appErrors(errors)).toEqual([]);
+  });
+
+  test('opens PoS certificate ingestion modal and auto-populates consignment', async ({ page }) => {
+    const errors = collectPageErrors(page);
+    await gotoScreen(page, '/trade');
+
+    const uploaderBtn = page.locator('[data-testid="pos-uploader-btn"]');
+    await expect(uploaderBtn).toBeVisible();
+    await uploaderBtn.click();
+
+    const modal = page.getByRole('dialog', { name: /Proof of Sustainability/i });
+    await expect(modal).toBeVisible();
+
+    // Click Danish sample preset
+    const dkSampleBtn = modal.getByText(/Danish Manure/i);
+    await dkSampleBtn.click();
+
+    // Verify extraction preview
+    await expect(modal).toContainText('ISCC EU');
+    await expect(modal).toContainText('-92.5 gCO₂e/MJ');
+
+    // Apply to trade builder
+    const applyBtn = modal.locator('[data-testid="pos-apply-btn"]');
+    await applyBtn.click();
+
+    await expect(modal).not.toBeVisible();
+    await expectNoErrorBoundary(page);
     expect(appErrors(errors)).toEqual([]);
   });
 });

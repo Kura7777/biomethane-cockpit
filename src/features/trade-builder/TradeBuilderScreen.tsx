@@ -12,6 +12,8 @@ import { LogisticsModal } from '../logistics/LogisticsModal';
 import { LegalPackageModal, DocumentTab } from './LegalPackageModal';
 import { showToast } from '../../app/DeskToastContainer';
 import { generateEfetBiomethaneAnnexPdf, generateCommercialTermSheetPdf, downloadDealFile } from '../../domain/trade/legalPackage';
+import { PoSUploaderModal } from './PoSUploaderModal';
+import { ParsedPoSCertificate } from '../../domain/consignment/posParser';
 
 import { PRODUCING_ORIGINS } from '../../domain/arbitrage/origins';
 import { BIOMETHANE_PLANTS } from '../../domain/plants/registry';
@@ -144,11 +146,21 @@ export function TradeBuilderScreen() {
 
   const [isLogisticsOpen, setIsLogisticsOpen] = useState(false);
   const [isLegalPackageOpen, setIsLegalPackageOpen] = useState(false);
+  const [isPoSUploaderOpen, setIsPoSUploaderOpen] = useState(false);
   const [legalPackageTab, setLegalPackageTab] = useState<DocumentTab>('TERM_SHEET');
 
   const handleOpenDocReview = (tab: DocumentTab) => {
     setLegalPackageTab(tab);
     setIsLegalPackageOpen(true);
+  };
+
+  const handleApplyPoS = (parsed: ParsedPoSCertificate) => {
+    if (parsed.countryCode) setOrigin(parsed.countryCode);
+    if (parsed.scheme && parsed.scheme !== 'UNKNOWN') setScheme(parsed.scheme);
+    if (parsed.chainOfCustody) setChainOfCustody(parsed.chainOfCustody);
+    if (parsed.canonicalFeedstock) setFeedstockKey(parsed.canonicalFeedstock);
+    if (parsed.carbonIntensityGCo2Mj !== undefined) setCi(parsed.carbonIntensityGCo2Mj);
+    if (parsed.volumeMWh) setVolumeMwh(parsed.volumeMWh);
   };
 
   // Sync with searchParams if they change
@@ -451,6 +463,30 @@ export function TradeBuilderScreen() {
         </div>
 
         <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: '18px' }} className="noscroll">
+          {/* 1-Click Automated PoS Document Ingestion */}
+          <button
+            type="button"
+            className="btn btn-secondary btn-block"
+            style={{ 
+              padding: '9px 12px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              gap: '8px', 
+              fontSize: '12px', 
+              fontWeight: 700,
+              backgroundColor: 'var(--color-surface)',
+              border: '1px solid var(--color-accent)',
+              color: 'var(--color-accent-700)',
+            }}
+            onClick={() => setIsPoSUploaderOpen(true)}
+            data-testid="pos-uploader-btn"
+            title="Auto-extract audited substrate mix, certified CI, and certificate number from ISCC EU, REDcert-EU, or 2BSvs documents"
+          >
+            <span>📄</span>
+            <span>Ingest Proof of Sustainability (PoS)</span>
+          </button>
+
           {/* Physical Asset Sourcing Banner if passed from Sourcing */}
           {(deal.plantName || linkedPlant) && (
             <div
@@ -1233,6 +1269,7 @@ export function TradeBuilderScreen() {
             className="btn btn-primary btn-block"
             style={{ marginTop: 0, padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '13px' }}
             onClick={handleSaveDossier}
+            data-testid="save-dossier-btn"
             title="Saves this trade assessment with full RED III six-gate statutory citations to your persistent Dossier Library"
           >
             <span>📁</span>
@@ -1257,6 +1294,7 @@ export function TradeBuilderScreen() {
               fontWeight: 800,
             }}
             onClick={() => handleOpenDocReview('TERM_SHEET')}
+            data-testid="review-deal-package-btn"
             title="Review and inspect all 4 deal documents (Term Sheet, EFET Annex, ETRM CSV, UDB XML) in-browser before downloading"
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -1275,6 +1313,7 @@ export function TradeBuilderScreen() {
                 className="btn btn-secondary"
                 style={{ flex: 1, padding: '8px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', fontSize: '11px', fontWeight: 600 }}
                 onClick={() => handleOpenDocReview('TERM_SHEET')}
+                data-testid="term-sheet-btn"
                 title="Review the Commercial Counterparty Term Sheet PDF"
               >
                 <span>📄</span>
@@ -1285,6 +1324,7 @@ export function TradeBuilderScreen() {
                 className="btn btn-secondary"
                 style={{ padding: '8px 8px', fontSize: '11px' }}
                 onClick={handleExportTermSheetPdf}
+                data-testid="download-termsheet-pdf-btn"
                 title="1-Click Instant Download Commercial Term Sheet PDF"
               >
                 📥
@@ -1297,6 +1337,7 @@ export function TradeBuilderScreen() {
                 className="btn btn-secondary"
                 style={{ flex: 1, padding: '8px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', fontSize: '11px', fontWeight: 600 }}
                 onClick={() => handleOpenDocReview('EFET_ANNEX')}
+                data-testid="efet-annex-btn"
                 title="Review the EFET Biomethane Annex PDF"
               >
                 <span>⚖️</span>
@@ -1307,6 +1348,7 @@ export function TradeBuilderScreen() {
                 className="btn btn-secondary"
                 style={{ padding: '8px 8px', fontSize: '11px' }}
                 onClick={handleExportPdf}
+                data-testid="download-efet-pdf-btn"
                 title="1-Click Instant Download EFET Biomethane Annex PDF"
               >
                 📥
@@ -1320,6 +1362,7 @@ export function TradeBuilderScreen() {
               className="btn btn-secondary"
               style={{ padding: '8px 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '11px', fontWeight: 600 }}
               onClick={() => handleOpenDocReview('ETRM_TICKET')}
+              data-testid="etrm-ticket-btn"
               title="Review ETRM CSV Deal Ticket & JSON fields"
             >
               <span>💾</span>
@@ -1330,6 +1373,7 @@ export function TradeBuilderScreen() {
               className="btn btn-secondary"
               style={{ padding: '8px 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '11px', fontWeight: 600 }}
               onClick={() => handleOpenDocReview('UDB_XML')}
+              data-testid="udb-xml-btn"
               title="Review Union Database (UDB) Mass Balance Nomination XML"
             >
               <span>🌐</span>
@@ -1342,6 +1386,7 @@ export function TradeBuilderScreen() {
             className="btn btn-secondary btn-block"
             style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '11px' }}
             onClick={() => setIsLogisticsOpen(true)}
+            data-testid="delivery-playbook-btn"
             title="Opens interactive TSO pipeline routing, transit tariff breakdown, and UDB mass-balance transfer protocol"
           >
             <span>🗺️</span>
@@ -1368,6 +1413,13 @@ export function TradeBuilderScreen() {
         onClose={() => setIsLogisticsOpen(false)}
         originCountry={origin}
         targetCountry={selectedMarket.country}
+      />
+
+      {/* Automated PoS Ingestion Modal */}
+      <PoSUploaderModal
+        isOpen={isPoSUploaderOpen}
+        onClose={() => setIsPoSUploaderOpen(false)}
+        onApply={handleApplyPoS}
       />
     </div>
   );

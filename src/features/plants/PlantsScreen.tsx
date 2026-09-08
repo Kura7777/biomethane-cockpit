@@ -804,8 +804,9 @@ export function PlantsScreen() {
                   <input
                     className="input"
                     style={{ width: '100%', paddingLeft: '32px', height: '34px', fontSize: '12px' }}
-                    placeholder="Search plant, operator, SIREN, city, TSO..."
-                    aria-label="Search plant registry"
+                    placeholder="Filter facility name, operator, SIREN, city, TSO..."
+                    aria-label="Filter facility name"
+                    data-testid="plant-search-input"
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                   />
@@ -1044,7 +1045,7 @@ export function PlantsScreen() {
                 >
                   <Filter size={36} style={{ color: 'var(--color-dim)', opacity: 0.5 }} />
                   <h4 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>
-                    No biomethane facility matches your active filter criteria
+                    No matching facility found for your active filter criteria
                   </h4>
                   <p style={{ fontSize: '13px', lineHeight: 1.6, margin: 0, maxWidth: '440px' }} className="mut">
                     Try broadening your search query or reset one or more discovery filters (feedstock, capacity, CI range, or grid operator).
@@ -1054,8 +1055,9 @@ export function PlantsScreen() {
                     className="btn btn-primary"
                     style={{ marginTop: '8px' }}
                     onClick={resetAllFilters}
+                    data-testid="clear-filter-btn"
                   >
-                    Reset All Filters
+                    Clear filter / Reset All Filters
                   </button>
                 </div>
               ) : (

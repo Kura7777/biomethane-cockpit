@@ -69,7 +69,7 @@ export function ScannerScreen() {
   const navigate = useNavigate();
   const { state, dispatch } = useAppState();
 
-  const [activeTab, setActiveTab] = useState<'ASSET_SCANNER' | 'LADDER'>('ASSET_SCANNER');
+  const [activeTab, setActiveTab] = useState<'ASSET_SCANNER' | 'LADDER'>('LADDER');
   const [bookFilter, setBookFilter] = useState<'ALL' | 'COMPLIANCE' | 'VOLUNTARY'>('ALL');
 
   // Single ladder mode state
@@ -402,6 +402,7 @@ export function ScannerScreen() {
               type="button"
               className={`seg-opt ${activeTab === 'ASSET_SCANNER' ? 'active' : ''}`}
               onClick={() => setActiveTab('ASSET_SCANNER')}
+              data-testid="tab-asset-scanner"
               style={{ fontSize: '12px', padding: '4px 16px', fontWeight: 700 }}
             >
               Multi-Plant Arbitrage (1,975 Assets)
@@ -410,6 +411,7 @@ export function ScannerScreen() {
               type="button"
               className={`seg-opt ${activeTab === 'LADDER' ? 'active' : ''}`}
               onClick={() => setActiveTab('LADDER')}
+              data-testid="tab-ladder"
               style={{ fontSize: '12px', padding: '4px 16px', fontWeight: 700 }}
             >
               Single Molecule Netback Ladder
@@ -938,6 +940,7 @@ export function ScannerScreen() {
                 type="button"
                 className="btn btn-primary btn-block"
                 onClick={handleStructureTrade}
+                data-testid="structure-trade-btn"
               >
                 Structure in trade builder
               </button>
