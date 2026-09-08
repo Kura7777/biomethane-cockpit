@@ -122,8 +122,8 @@ export function CommercialFlowStepper() {
   return (
     <div className="flex-1 flex flex-col overflow-y-auto bg-slate-100 dark:bg-[#08090d] text-slate-900 dark:text-zinc-100 min-h-screen">
       {/* Sleek Step Progress Indicator Bar */}
-      <div className="bg-white dark:bg-[#0e1118] border-b border-slate-200 dark:border-[#1e2433] px-4 py-3 sticky top-0 z-30 shadow-xs">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
+      <div className="bg-white dark:bg-[#0e1118] border-b border-slate-200 dark:border-[#1e2433] px-4 py-3.5 sticky top-0 z-30 shadow-xs">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
           {STEPS.map((s, idx) => {
             const isDone = currentStep > s.step;
             const isCurrent = currentStep === s.step;
@@ -142,7 +142,7 @@ export function CommercialFlowStepper() {
                 >
                   {/* Step Number Circle */}
                   <div
-                    className={`w-7 h-7 rounded-full flex items-center justify-center font-mono text-xs font-bold transition-all shrink-0 ${
+                    className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all shrink-0 ${
                       isDone
                         ? 'bg-cyan-600 text-white dark:bg-cyan-500 dark:text-stone-950'
                         : isCurrent
@@ -156,7 +156,7 @@ export function CommercialFlowStepper() {
                   {/* Step Text */}
                   <div className="hidden sm:block">
                     <span
-                      className={`font-mono text-xs font-bold tracking-wider block ${
+                      className={`text-xs font-semibold tracking-wide block ${
                         isCurrent
                           ? 'text-cyan-700 dark:text-cyan-300'
                           : isDone
@@ -166,7 +166,7 @@ export function CommercialFlowStepper() {
                     >
                       {s.title}
                     </span>
-                    <span className="font-mono text-[10px] text-slate-500 dark:text-zinc-500 block">
+                    <span className="text-[11px] text-slate-500 dark:text-zinc-500 block">
                       {s.desc}
                     </span>
                   </div>

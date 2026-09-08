@@ -51,16 +51,16 @@ export function Step3RouteAndCosts({
     : [opportunity.originCountry, opportunity.targetCountry];
 
   return (
-    <div className="max-w-6xl mx-auto py-6 px-4">
+    <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
       {/* Step Header */}
       <div className="text-center mb-6">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-50 dark:bg-cyan-950/40 border border-cyan-300 dark:border-cyan-500/40 text-cyan-700 dark:text-cyan-300 font-mono text-xs font-semibold mb-3">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-50 dark:bg-cyan-950/40 border border-cyan-300 dark:border-cyan-500/40 text-cyan-700 dark:text-cyan-300 text-xs font-semibold mb-3">
           Step 3 of 4: Route Planning &amp; Cost Breakdown
         </div>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-zinc-100 mb-2 font-sans">
+        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-zinc-100 mb-2.5">
           Route Map &amp; Commercial Pricing Engine
         </h1>
-        <p className="text-sm text-slate-600 dark:text-zinc-400 font-mono max-w-2xl mx-auto">
+        <p className="text-base text-slate-600 dark:text-zinc-400 max-w-2xl mx-auto font-normal">
           We mapped the transit corridor and priced every component: sourcing, grid tariffs, transit, certification, and certificate monetization.
         </p>
       </div>
@@ -69,21 +69,21 @@ export function Step3RouteAndCosts({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6 items-stretch">
         {/* Left Column: Visual Map (5 cols) */}
         <div className="lg:col-span-5 flex flex-col gap-3">
-          <div className="bg-white dark:bg-[#0e1118] border border-slate-200 dark:border-[#1e2433] rounded-xl p-4 flex-1 flex flex-col shadow-xs dark:shadow-xl">
-            <div className="flex items-center justify-between mb-3">
+          <div className="bg-white dark:bg-[#0e1118] border border-slate-200 dark:border-[#1e2433] rounded-2xl p-5 flex-1 flex flex-col shadow-xs dark:shadow-xl">
+            <div className="flex items-center justify-between mb-3.5">
               <div className="flex items-center gap-2">
                 <Navigation className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
-                <span className="font-mono text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-zinc-200">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-zinc-200">
                   Visual Transit Corridor
                 </span>
               </div>
-              <span className="font-mono text-[10px] text-cyan-800 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-300 dark:border-cyan-500/40 font-semibold">
+              <span className="text-xs text-cyan-800 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-950/40 px-2.5 py-0.5 rounded-md border border-cyan-300 dark:border-cyan-500/40 font-semibold">
                 {opportunity.originCountry} → {opportunity.targetCountry}
               </span>
             </div>
 
             {/* Map Component Container */}
-            <div className="w-full h-[320px] rounded-lg overflow-hidden border border-slate-200 dark:border-[#1e2433]">
+            <div className="w-full h-[320px] rounded-xl overflow-hidden border border-slate-200 dark:border-[#1e2433]">
               <CorridorMiniMap
                 originCountry={opportunity.originCountry}
                 targetCountry={opportunity.targetCountry}
@@ -97,16 +97,16 @@ export function Step3RouteAndCosts({
             </div>
 
             {/* Route Stats */}
-            <div className="mt-3 grid grid-cols-2 gap-2 text-slate-600 dark:text-zinc-400 font-mono text-xs">
-              <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-[#08090d] border border-slate-200 dark:border-[#1e2433]">
-                <span className="text-[10px] uppercase text-slate-500 dark:text-zinc-500 block">Origin Plant</span>
-                <span className="font-semibold text-slate-800 dark:text-zinc-200 truncate block">
+            <div className="mt-3.5 grid grid-cols-2 gap-2.5 text-slate-600 dark:text-zinc-400 text-xs">
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#08090d] border border-slate-200 dark:border-[#1e2433]">
+                <span className="text-[10px] uppercase text-slate-500 dark:text-zinc-500 font-semibold block">Origin Plant</span>
+                <span className="font-semibold text-slate-800 dark:text-zinc-200 truncate block mt-0.5">
                   {opportunity.originPlantName || opportunity.originCountry}
                 </span>
               </div>
-              <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-[#08090d] border border-slate-200 dark:border-[#1e2433]">
-                <span className="text-[10px] uppercase text-slate-500 dark:text-zinc-500 block">Buyer Hub</span>
-                <span className="font-semibold text-slate-800 dark:text-zinc-200 truncate block">
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#08090d] border border-slate-200 dark:border-[#1e2433]">
+                <span className="text-[10px] uppercase text-slate-500 dark:text-zinc-500 font-semibold block">Buyer Hub</span>
+                <span className="font-semibold text-slate-800 dark:text-zinc-200 truncate block mt-0.5">
                   {opportunity.targetMarketName}
                 </span>
               </div>
@@ -116,17 +116,17 @@ export function Step3RouteAndCosts({
 
         {/* Right Column: Financial Waterfall (7 cols) */}
         <div className="lg:col-span-7 flex flex-col">
-          <div className="bg-white dark:bg-[#0e1118] border border-slate-200 dark:border-[#1e2433] rounded-xl p-5 shadow-xs dark:shadow-xl flex-1 flex flex-col">
+          <div className="bg-white dark:bg-[#0e1118] border border-slate-200 dark:border-[#1e2433] rounded-2xl p-6 shadow-xs dark:shadow-xl flex-1 flex flex-col">
             {/* Waterfall Header */}
-            <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-200 dark:border-[#1e2433]">
+            <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-200 dark:border-[#1e2433]">
               <div className="flex items-center gap-2">
                 <Calculator className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
-                <span className="font-mono text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-zinc-200">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-zinc-200">
                   Full Cost Breakdown &amp; Revenue Waterfall
                 </span>
               </div>
 
-              <div className={`px-3 py-1 rounded-lg border flex items-center gap-1.5 font-mono ${
+              <div className={`px-3 py-1.5 rounded-xl border flex items-center gap-1.5 ${
                 isProfitable
                   ? 'bg-emerald-50 dark:bg-emerald-950/80 border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300'
                   : 'bg-red-50 dark:bg-red-950/80 border-red-300 dark:border-red-700 text-red-800 dark:text-red-300'
@@ -136,108 +136,108 @@ export function Step3RouteAndCosts({
                 ) : (
                   <ArrowDownRight className="w-4 h-4 text-red-600 dark:text-red-400" />
                 )}
-                <span className="text-xs font-bold">
+                <span className="text-xs font-bold font-mono">
                   {isProfitable ? '+' : ''}€{netMarginEurPerMwh.toFixed(2)} / MWh
                 </span>
               </div>
             </div>
 
             {/* Line Items */}
-            <div className="space-y-2.5 font-mono text-xs flex-1">
+            <div className="space-y-3 text-xs flex-1">
               {/* Cost Section */}
-              <div className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-zinc-500">
+              <div className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-zinc-400">
                 1. Delivered Costs (What you pay)
               </div>
 
               {/* Plant Cost */}
-              <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 dark:bg-[#08090d] border border-slate-200 dark:border-[#1e2433]">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-[#08090d] border border-slate-200 dark:border-[#1e2433]">
                 <div>
-                  <span className="text-slate-800 dark:text-zinc-200 font-semibold">Plant Gate Sourcing Cost</span>
-                  <span className="text-[10px] text-slate-500 dark:text-zinc-400 block">{opportunity.feedstockName} substrate</span>
+                  <span className="text-slate-800 dark:text-zinc-200 font-semibold block">Plant Gate Sourcing Cost</span>
+                  <span className="text-xs text-slate-500 dark:text-zinc-400 block">{opportunity.feedstockName} substrate</span>
                 </div>
                 <div className="text-right">
-                  <span className="font-bold text-slate-900 dark:text-zinc-100">€{plantGateEur.toFixed(2)}/MWh</span>
-                  <span className="text-[10px] text-slate-500 dark:text-zinc-500 block">Total: €{Math.round(plantGateEur * vol).toLocaleString()}</span>
+                  <span className="font-bold font-mono text-slate-900 dark:text-zinc-100">€{plantGateEur.toFixed(2)}/MWh</span>
+                  <span className="text-xs text-slate-500 dark:text-zinc-400 block font-mono">Total: €{Math.round(plantGateEur * vol).toLocaleString()}</span>
                 </div>
               </div>
 
               {/* Grid Logistics */}
-              <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 dark:bg-[#08090d] border border-slate-200 dark:border-[#1e2433]">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-[#08090d] border border-slate-200 dark:border-[#1e2433]">
                 <div>
-                  <span className="text-slate-800 dark:text-zinc-200 font-semibold">Grid Entry/Exit &amp; Corridor Tariffs</span>
-                  <span className="text-[10px] text-slate-500 dark:text-zinc-400 block">{opportunity.logisticsDistanceKm ? `${opportunity.logisticsDistanceKm} km corridor` : 'Direct grid'}</span>
+                  <span className="text-slate-800 dark:text-zinc-200 font-semibold block">Grid Entry/Exit &amp; Corridor Tariffs</span>
+                  <span className="text-xs text-slate-500 dark:text-zinc-400 block">{opportunity.logisticsDistanceKm ? `${Math.round(opportunity.logisticsDistanceKm)} km corridor` : 'Direct grid'}</span>
                 </div>
                 <div className="text-right">
-                  <span className="font-bold text-amber-600 dark:text-amber-300">€{gridLogisticsEur.toFixed(2)}/MWh</span>
-                  <span className="text-[10px] text-slate-500 dark:text-zinc-500 block">Total: €{Math.round(gridLogisticsEur * vol).toLocaleString()}</span>
+                  <span className="font-bold font-mono text-amber-600 dark:text-amber-300">€{gridLogisticsEur.toFixed(2)}/MWh</span>
+                  <span className="text-xs text-slate-500 dark:text-zinc-400 block font-mono">Total: €{Math.round(gridLogisticsEur * vol).toLocaleString()}</span>
                 </div>
               </div>
 
               {/* Certification */}
-              <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 dark:bg-[#08090d] border border-slate-200 dark:border-[#1e2433]">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-[#08090d] border border-slate-200 dark:border-[#1e2433]">
                 <div>
-                  <span className="text-slate-800 dark:text-zinc-200 font-semibold">Mass Balance &amp; Proof of Sustainability</span>
-                  <span className="text-[10px] text-slate-500 dark:text-zinc-400 block">RED III compliance verification</span>
+                  <span className="text-slate-800 dark:text-zinc-200 font-semibold block">Mass Balance &amp; Proof of Sustainability</span>
+                  <span className="text-xs text-slate-500 dark:text-zinc-400 block">RED III compliance verification</span>
                 </div>
                 <div className="text-right">
-                  <span className="font-bold text-slate-700 dark:text-zinc-300">€{certificationEur.toFixed(2)}/MWh</span>
-                  <span className="text-[10px] text-slate-500 dark:text-zinc-500 block">Total: €{Math.round(certificationEur * vol).toLocaleString()}</span>
+                  <span className="font-bold font-mono text-slate-700 dark:text-zinc-300">€{certificationEur.toFixed(2)}/MWh</span>
+                  <span className="text-xs text-slate-500 dark:text-zinc-400 block font-mono">Total: €{Math.round(certificationEur * vol).toLocaleString()}</span>
                 </div>
               </div>
 
               {/* Cost Subtotal */}
-              <div className="flex justify-between items-center py-1.5 px-2.5 border-t border-slate-200 dark:border-[#1e2433] font-semibold">
+              <div className="flex justify-between items-center py-2 px-3 border-t border-slate-200 dark:border-[#1e2433] font-semibold">
                 <span className="text-slate-700 dark:text-zinc-300">Total Delivered Cost:</span>
-                <span className="text-red-600 dark:text-red-300">€{totalDeliveredCostEur.toFixed(2)}/MWh (€{Math.round(totalDealCostEur).toLocaleString()})</span>
+                <span className="text-red-600 dark:text-red-300 font-mono">€{totalDeliveredCostEur.toFixed(2)}/MWh (€{Math.round(totalDealCostEur).toLocaleString()})</span>
               </div>
 
               {/* Revenue Section */}
-              <div className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-zinc-500 pt-1">
+              <div className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-zinc-400 pt-1">
                 2. Offtake Revenue (What you receive)
               </div>
 
               {/* Gas Commodity */}
-              <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 dark:bg-[#08090d] border border-slate-200 dark:border-[#1e2433]">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-[#08090d] border border-slate-200 dark:border-[#1e2433]">
                 <div>
-                  <span className="text-slate-800 dark:text-zinc-200 font-semibold">Wholesale Gas Offtake (TTF Index)</span>
-                  <span className="text-[10px] text-slate-500 dark:text-zinc-400 block">Natural gas commodity molecule</span>
+                  <span className="text-slate-800 dark:text-zinc-200 font-semibold block">Wholesale Gas Offtake (TTF Index)</span>
+                  <span className="text-xs text-slate-500 dark:text-zinc-400 block">Natural gas commodity molecule</span>
                 </div>
                 <div className="text-right">
-                  <span className="font-bold text-slate-900 dark:text-zinc-100">€{gasIndexEur.toFixed(2)}/MWh</span>
-                  <span className="text-[10px] text-slate-500 dark:text-zinc-500 block">Total: €{Math.round(gasIndexEur * vol).toLocaleString()}</span>
+                  <span className="font-bold font-mono text-slate-900 dark:text-zinc-100">€{gasIndexEur.toFixed(2)}/MWh</span>
+                  <span className="text-xs text-slate-500 dark:text-zinc-400 block font-mono">Total: €{Math.round(gasIndexEur * vol).toLocaleString()}</span>
                 </div>
               </div>
 
               {/* Certificate Monetization */}
-              <div className="flex items-center justify-between p-2.5 rounded-lg bg-cyan-50/70 dark:bg-cyan-950/40 border border-cyan-200 dark:border-cyan-500/40">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-cyan-50/70 dark:bg-cyan-950/40 border border-cyan-200 dark:border-cyan-500/40">
                 <div>
-                  <span className="text-cyan-900 dark:text-cyan-200 font-semibold">{opportunity.targetMarketName} Certificate Monetization</span>
-                  <span className="text-[10px] text-cyan-700 dark:text-cyan-400 block">GHG quota abatement value</span>
+                  <span className="text-cyan-900 dark:text-cyan-200 font-semibold block">{opportunity.targetMarketName} Certificate Monetization</span>
+                  <span className="text-xs text-cyan-700 dark:text-cyan-400 block">GHG quota abatement value</span>
                 </div>
                 <div className="text-right">
-                  <span className="font-bold text-cyan-800 dark:text-cyan-300">€{certificateValueEur.toFixed(2)}/MWh</span>
-                  <span className="text-[10px] text-cyan-700 dark:text-cyan-400 block">Total: €{Math.round(certificateValueEur * vol).toLocaleString()}</span>
+                  <span className="font-bold font-mono text-cyan-800 dark:text-cyan-300">€{certificateValueEur.toFixed(2)}/MWh</span>
+                  <span className="text-xs text-cyan-700 dark:text-cyan-400 block font-mono">Total: €{Math.round(certificateValueEur * vol).toLocaleString()}</span>
                 </div>
               </div>
 
               {/* Total Revenue Subtotal */}
-              <div className="flex justify-between items-center py-1.5 px-2.5 border-t border-slate-200 dark:border-[#1e2433] font-semibold">
+              <div className="flex justify-between items-center py-2 px-3 border-t border-slate-200 dark:border-[#1e2433] font-semibold">
                 <span className="text-slate-700 dark:text-zinc-300">Total Realizable Revenue:</span>
-                <span className="text-cyan-700 dark:text-cyan-300">€{totalGrossRevenueEur.toFixed(2)}/MWh (€{Math.round(totalDealRevenueEur).toLocaleString()})</span>
+                <span className="text-cyan-700 dark:text-cyan-300 font-mono">€{totalGrossRevenueEur.toFixed(2)}/MWh (€{Math.round(totalDealRevenueEur).toLocaleString()})</span>
               </div>
             </div>
 
             {/* Total Deal Profit Box */}
             <div className="mt-4 p-4 rounded-xl bg-slate-50 dark:bg-[#08090d] border border-slate-200 dark:border-[#1e2433] flex items-center justify-between">
               <div>
-                <span className="text-[10px] uppercase text-slate-500 dark:text-zinc-400 font-mono block">
+                <span className="text-xs uppercase text-slate-500 dark:text-zinc-400 font-bold block">
                   Total Order Net Profit ({vol.toLocaleString()} MWh):
                 </span>
-                <span className="text-xs text-slate-600 dark:text-zinc-500 font-mono">
-                  Volume: {vol.toLocaleString()} MWh · Margin: €{netMarginEurPerMwh.toFixed(2)}/MWh
+                <span className="text-xs text-slate-600 dark:text-zinc-400">
+                  Volume: {vol.toLocaleString()} MWh · Margin: <strong className="font-mono">€{netMarginEurPerMwh.toFixed(2)}/MWh</strong>
                 </span>
               </div>
-              <div className={`text-xl md:text-2xl font-bold font-mono ${
+              <div className={`text-2xl md:text-3xl font-bold font-mono ${
                 isProfitable ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
               }`}>
                 {isProfitable ? '+' : ''}€{Math.round(totalDealProfitEur).toLocaleString()}
@@ -248,11 +248,11 @@ export function Step3RouteAndCosts({
       </div>
 
       {/* Navigation Buttons */}
-      <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-[#1e2433]">
+      <div className="flex items-center justify-between pt-5 border-t border-slate-200 dark:border-[#1e2433]">
         <button
           type="button"
           onClick={onBack}
-          className="px-5 py-2.5 rounded-lg bg-white dark:bg-[#0e1118] hover:bg-slate-50 dark:hover:bg-[#141824] border border-slate-200 dark:border-[#2b3347] text-slate-700 dark:text-zinc-300 font-mono text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
+          className="px-5 py-3 rounded-xl bg-white dark:bg-[#0e1118] hover:bg-slate-50 dark:hover:bg-[#141824] border border-slate-200 dark:border-[#2b3347] text-slate-700 dark:text-zinc-300 text-xs font-semibold transition-colors flex items-center gap-2 cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Sourced Plants</span>
@@ -261,7 +261,7 @@ export function Step3RouteAndCosts({
         <button
           type="button"
           onClick={onNext}
-          className="px-8 py-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white dark:bg-cyan-500 dark:hover:bg-cyan-400 dark:text-stone-950 font-mono text-sm font-bold tracking-wide transition-all shadow-md flex items-center gap-2 cursor-pointer"
+          className="px-8 py-3.5 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white dark:bg-cyan-500 dark:hover:bg-cyan-400 dark:text-stone-950 text-sm font-bold tracking-wide transition-all shadow-md hover:shadow-lg flex items-center gap-2 cursor-pointer"
         >
           <span>Review Final Deal Summary</span>
           <ArrowRight className="w-4 h-4" />
