@@ -18,7 +18,8 @@ dist-ssr
 .env
 .env.*
 !.env.example
-data/
+data/*
+!data/fueleu_shipping_crm_targets.*
 scratch/
 *.secret.json
 

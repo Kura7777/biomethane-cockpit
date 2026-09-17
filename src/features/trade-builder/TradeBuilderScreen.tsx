@@ -285,7 +285,7 @@ export function TradeBuilderScreen() {
         plantTotalCapacityMWh: plantTotalMWh,
         plantCommittedVolumeMWh: plantCommittedMwh,
       },
-      counterparty: deal.legalEntityName || linkedPlant?.legalEntityName || linkedPlant?.operator || 'European Offtake Buyer',
+      counterparty: deal.counterparty || deal.legalEntityName || linkedPlant?.legalEntityName || linkedPlant?.operator || 'European Offtake Buyer',
     };
   }, [
     origin,

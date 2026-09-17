@@ -509,6 +509,32 @@ export const DATA_SOURCES_DIRECTORY: DataSourceRecord[] = [
     ],
     fieldsUnverified: [],
     docUrl: 'https://transparency.entsog.eu/'
+  },
+  {
+    id: 'fueleu_maritime_shipping_registry',
+    name: 'EU MRV & FuelEU Maritime Shipping Intelligence Register',
+    category: 'REGISTRIES_MASS_BALANCE',
+    categoryLabel: 'Registries',
+    authority: 'European Commission (DG MOVE), EMSA (Thetis-MRV), & National Administering Authorities',
+    authorityType: 'EU_INSTITUTION',
+    sourceDocumentOrUrl: 'Regulation (EU) 2023/1805 (FuelEU Maritime) & Thetis-MRV Annual Fleet Ingestion',
+    legalBasis: 'Regulation (EU) 2023/1805 Art. 4, 10, 20, 21 & Annex I, II, IV; Regulation (EU) 2015/757',
+    updateFrequency: 'ANNUAL',
+    coverageCount: '1,850 Shipping Companies (12,356 Vessels · 633.2 TWh EU Scope)',
+    provenanceTier: 'STATUTORY_DIRECTIVE',
+    description: 'Audited fleet fuel consumption (VLSFO, MGO, LNG), actual greenhouse gas intensity (GHGIE), statutory compliance deficits, financial penalty trajectories, and dual commercial abatement structures (Physical Bio-LNG bunkering vs Article 21 pooling).',
+    fieldsProvided: [
+      'Shipping Group Parent & Segment',
+      'Vessels in EU Scope (EU MRV Certified)',
+      'Total EU Scope Energy Consumption (MWh)',
+      'Actual Achieved GHGIE (gCO2e/MJ)',
+      '2025 & 2030 Statutory Compliance Balances (tCO2e)',
+      'Statutory Financial Penalties (Year 1 & Year 2 Escalation Multipliers)',
+      'Requisite Bio-LNG Deficit Neutralisation Volume (tonnes & MWh)',
+      'Dual Commercial Abatement Economics & Desk Margins'
+    ],
+    fieldsUnverified: [],
+    docUrl: 'https://climate.ec.europa.eu/eu-action/transport/reducing-emissions-shipping-sector/fueleu-maritime-initiative_en'
   }
 ];
 

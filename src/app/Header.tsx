@@ -152,7 +152,7 @@ export function Header({ onOpenSearch }: HeaderProps) {
             location.pathname === tab.to ||
             location.pathname.startsWith(tab.to + '/');
 
-          const hasDividerBefore = idx === 2 || idx === 5 || idx === 6;
+          const hasDividerBefore = idx === 2 || idx === 4 || idx === 6;
 
           return (
             <React.Fragment key={tab.to}>

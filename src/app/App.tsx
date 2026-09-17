@@ -26,6 +26,7 @@ const CitationsScreen = React.lazy(() => import('../features/citations/Citations
 const DataSourcesScreen = React.lazy(() => import('../features/provenance/DataSourcesScreen').then(m => ({ default: m.DataSourcesScreen })));
 const DataConnectorsScreen = React.lazy(() => import('../features/settings/DataConnectorsScreen').then(m => ({ default: m.DataConnectorsScreen })));
 const SettingsScreen = React.lazy(() => import('../features/settings/SettingsScreen').then(m => ({ default: m.SettingsScreen })));
+const FuelEUShippingScreen = React.lazy(() => import('../features/fueleu/FuelEUShippingScreen').then(m => ({ default: m.FuelEUShippingScreen })));
 
 import { ThemeProvider } from '../store/theme';
 
@@ -60,6 +61,11 @@ function AppContent() {
             <Route path="/registries" element={<RegistriesScreen />} />
             <Route path="/data-sources" element={<DataSourcesScreen />} />
             <Route path="/provenance" element={<DataSourcesScreen />} />
+
+            {/* FuelEU Maritime Desk */}
+            <Route path="/fueleu-shipping" element={<FuelEUShippingScreen />} />
+            <Route path="/fueleu" element={<Navigate to="/fueleu-shipping" replace />} />
+            <Route path="/shipping" element={<Navigate to="/fueleu-shipping" replace />} />
 
             {/* Supporting Tools & Desks */}
             <Route path="/trade" element={<TradeBuilderScreen />} />

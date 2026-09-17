@@ -11,6 +11,7 @@ import {
   Radar,
   Scale,
   ShieldCheck,
+  Anchor,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -35,6 +36,7 @@ export const SIDEBAR_ITEMS: NavItem[] = [
   { to: '/registries', label: 'Registries & Flows', keyHint: 'G', icon: ShieldCheck },
   { to: '/map', label: 'Logistics Map', keyHint: '3', icon: Globe },
   { to: '/trade', label: 'Trade Builder', keyHint: '4', icon: Zap },
+  { to: '/fueleu-shipping', label: 'FuelEU Maritime', keyHint: 'M', icon: Anchor },
   { to: '/pricing', label: 'Pricing Desk', keyHint: '5', icon: FileSpreadsheet },
   { to: '/connectors', label: 'Data Connectors', keyHint: 'K', icon: Zap },
   { to: '/data-sources', label: 'Data Sources', keyHint: '7', icon: Database },
@@ -52,8 +54,9 @@ export const WORKSPACE_TABS: NavItem[] = [
   { to: '/plants', label: 'Plants', keyHint: '3', icon: Building2 },
   { to: '/map', label: 'Map', keyHint: '4', icon: Globe },
 
-  // --- Group 3: Deal Execution ---
+  // --- Group 3: Deal Execution & Maritime ---
   { to: '/trade', label: 'Trade builder', keyHint: '5', icon: Zap },
+  { to: '/fueleu-shipping', label: 'FuelEU Maritime', keyHint: 'M', icon: Anchor },
 
   // --- Group 4: Compliance, Audit & Governance ---
   { to: '/registries', label: 'Registries', keyHint: 'G', icon: ShieldCheck },
