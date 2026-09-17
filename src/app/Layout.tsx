@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Outlet, useNavigate, NavLink } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation, NavLink } from 'react-router-dom';
 import { ErrorBoundary } from '../shared/components/ErrorBoundary';
 import { CommandPalette } from '../shared/components/CommandPalette';
 import { Header } from './Header';
@@ -9,6 +9,7 @@ import { SIMULATED_SOURCE_NAME } from '../domain/marks/simulate';
 
 export function Layout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { state, dispatch, isSaving } = useAppState();
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -64,6 +65,11 @@ export function Layout() {
         return;
       }
 
+      // Never hijack keystrokes inside FuelEU Maritime multi-step desk flows
+      if (location.pathname.startsWith('/fueleu')) {
+        return;
+      }
+
       if (e.key === '1') navigate('/sourcing');
       if (e.key === '2') navigate('/plants');
       if (e.key === '3') navigate('/map');
@@ -77,7 +83,7 @@ export function Layout() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [navigate]);
+  }, [navigate, location.pathname]);
 
   return (
     <div

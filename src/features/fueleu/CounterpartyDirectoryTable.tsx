@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   ShippingCounterparty,
   CallingRegion,
@@ -9,7 +8,6 @@ import {
   getStrategyTierBadgeClass,
 } from '../../domain/fueleu/types';
 import { FUEL_EU_SHIPPING_COUNTERPARTIES } from '../../domain/fueleu/shippingTargetsData';
-import { buildDealUrl } from '../../domain/trade/dealParams';
 import {
   Search,
   Filter,
@@ -62,8 +60,6 @@ export function CounterpartyDirectoryTable({
   onSelectCounterparty,
   selectedCounterparty,
 }: CounterpartyDirectoryTableProps = {}) {
-  const navigate = useNavigate();
-
   const handleSelectCounterparty = (c: ShippingCounterparty) => {
     if (onSelectCounterparty) {
       onSelectCounterparty(c);
@@ -336,22 +332,6 @@ export function CounterpartyDirectoryTable({
     if (pageSize === 'ALL') return sortedCounterparties;
     return sortedCounterparties.slice(startIndex, startIndex + pageSize);
   }, [sortedCounterparties, pageSize, startIndex]);
-
-  const handleTradeBuilder = (counterparty: ShippingCounterparty, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const volumeMwh = Math.max(1000, Math.round(counterparty.bio_lng_required_neg100_mwh || 10000));
-    const url = buildDealUrl({
-      marketId: 'FUELEU',
-      originCountry: 'NL',
-      feedstock: 'manure',
-      ci: -100,
-      volume: volumeMwh,
-      counterparty: counterparty.parent_name,
-      legalEntityName: counterparty.parent_name,
-      complianceYear: 2025,
-    });
-    navigate(url);
-  };
 
   const handleExportCrmCsv = () => {
     const headers = [

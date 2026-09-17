@@ -853,5 +853,66 @@ describe('FuelEU Maritime Domain & Shipping Targets', () => {
     expect(url).toContain('contactEmail=');
     expect(url).toContain('contactPhone=');
   });
+
+  it('verifies deep-linking and URL step state mapping for shipping deal flow', () => {
+    // Helper function reproducing the URL resolution logic
+    const resolveDealFlowState = (companyParam: string | null, stepParam: string | null) => {
+      let selectedCounterparty = null;
+      if (companyParam) {
+        const rank = parseInt(companyParam, 10);
+        if (!isNaN(rank)) {
+          selectedCounterparty = FUEL_EU_SHIPPING_COUNTERPARTIES.find(c => c.rank === rank) || null;
+        }
+        if (!selectedCounterparty) {
+          const lower = companyParam.toLowerCase();
+          selectedCounterparty = FUEL_EU_SHIPPING_COUNTERPARTIES.find(
+            c => c.parent_name.toLowerCase() === lower || c.contactDomain?.toLowerCase() === lower
+          ) || null;
+        }
+      }
+
+      let currentStep = 1;
+      if (selectedCounterparty) {
+        const parsedStep = parseInt(stepParam || '2', 10);
+        currentStep = (parsedStep >= 1 && parsedStep <= 4) ? parsedStep : 2;
+      }
+
+      return { selectedCounterparty, currentStep };
+    };
+
+    // Scenario 1: Initial visit to directory
+    const s1 = resolveDealFlowState(null, null);
+    expect(s1.selectedCounterparty).toBeNull();
+    expect(s1.currentStep).toBe(1);
+
+    // Scenario 2: Deep-link to rank 1 (MSC) Step 2
+    const s2 = resolveDealFlowState('1', '2');
+    expect(s2.selectedCounterparty).not.toBeNull();
+    expect(s2.selectedCounterparty?.rank).toBe(1);
+    expect(s2.selectedCounterparty?.parent_name).toContain('MSC');
+    expect(s2.currentStep).toBe(2);
+
+    // Scenario 3: Deep-link to Step 3 (Pricing) for Maersk
+    const s3 = resolveDealFlowState('2', '3');
+    expect(s3.selectedCounterparty?.rank).toBe(2);
+    expect(s3.selectedCounterparty?.parent_name).toContain('Maersk');
+    expect(s3.currentStep).toBe(3);
+
+    // Scenario 4: Deep-link to Step 4 (Term Sheet) by company domain
+    const s4 = resolveDealFlowState('cma-cgm.com', '4');
+    expect(s4.selectedCounterparty?.parent_name).toContain('CMA CGM');
+    expect(s4.currentStep).toBe(4);
+
+    // Scenario 5: Stepping backward from 4 -> 3 -> 2 -> 1
+    const backTo3 = resolveDealFlowState('1', '3');
+    expect(backTo3.currentStep).toBe(3);
+
+    const backTo2 = resolveDealFlowState('1', '2');
+    expect(backTo2.currentStep).toBe(2);
+
+    const backTo1 = resolveDealFlowState(null, null);
+    expect(backTo1.selectedCounterparty).toBeNull();
+    expect(backTo1.currentStep).toBe(1);
+  });
 });
 

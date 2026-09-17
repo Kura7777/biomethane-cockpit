@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { CounterpartyDirectoryTable } from './CounterpartyDirectoryTable';
 import { VesselArchetypeCalculator } from './VesselArchetypeCalculator';
 import { DualCommercialPathwaySimulator } from './DualCommercialPathwaySimulator';
@@ -42,13 +42,37 @@ export function FuelEUShippingScreen() {
   const totalGroups = FUEL_EU_SHIPPING_COUNTERPARTIES.length;
   const totalVessels = FUEL_EU_SHIPPING_COUNTERPARTIES.reduce((acc, c) => acc + c.vessels_in_scope, 0);
 
+  // Tab State derived directly from searchParams
   const tabParam = searchParams.get('tab')?.toUpperCase();
-  const initialTab: ActiveTab = (tabParam === 'CALCULATOR' || tabParam === 'PATHWAYS') ? tabParam : 'DIRECTORY';
-  const [activeTab, setActiveTabState] = useState<ActiveTab>(initialTab);
+  const activeTab: ActiveTab = (tabParam === 'CALCULATOR' || tabParam === 'PATHWAYS') ? tabParam : 'DIRECTORY';
 
-  // 4-Screen Deal Flow Stepper State
-  const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
-  const [selectedCounterparty, setSelectedCounterparty] = useState<ShippingCounterparty | null>(null);
+  // 4-Screen Deal Flow State derived from searchParams for seamless browser back/forward and deep linking
+  const companyParam = searchParams.get('company');
+  const stepParam = searchParams.get('step');
+
+  const selectedCounterparty = useMemo<ShippingCounterparty | null>(() => {
+    if (!companyParam) return null;
+    const rank = parseInt(companyParam, 10);
+    if (!isNaN(rank)) {
+      const byRank = FUEL_EU_SHIPPING_COUNTERPARTIES.find(c => c.rank === rank);
+      if (byRank) return byRank;
+    }
+    const lower = companyParam.toLowerCase();
+    return (
+      FUEL_EU_SHIPPING_COUNTERPARTIES.find(
+        c => c.parent_name.toLowerCase() === lower || c.contactDomain?.toLowerCase() === lower
+      ) || null
+    );
+  }, [companyParam]);
+
+  const currentStep: 1 | 2 | 3 | 4 = useMemo(() => {
+    if (!selectedCounterparty) return 1;
+    const parsedStep = parseInt(stepParam || '2', 10);
+    if (parsedStep >= 1 && parsedStep <= 4) {
+      return parsedStep as 1 | 2 | 3 | 4;
+    }
+    return 2;
+  }, [selectedCounterparty, stepParam]);
 
   // Pricing Engine State
   const [pathway, setPathway] = useState<'PHYSICAL' | 'POOLING'>('PHYSICAL');
@@ -58,34 +82,74 @@ export function FuelEUShippingScreen() {
   const [euaPrice, setEuaPrice] = useState<number>(EUA_BENCHMARK_EUR_PER_TONNE);
   const [vlsfoPrice, setVlsfoPrice] = useState<number>(DEFAULT_VLSFO_PRICE_USD_PER_TONNE);
 
+  // Calibrate pathway when selected counterparty changes
+  useEffect(() => {
+    if (selectedCounterparty) {
+      setPathway(selectedCounterparty.fleetCapability === 'DUAL_FUEL_LNG' ? 'PHYSICAL' : 'POOLING');
+    }
+  }, [selectedCounterparty?.rank]);
+
   const handleSelectTab = (tab: ActiveTab) => {
-    setActiveTabState(tab);
     setSearchParams(prev => {
       const next = new URLSearchParams(prev);
       if (tab === 'DIRECTORY') {
         next.delete('tab');
       } else {
         next.set('tab', tab.toLowerCase());
+        // If moving to calculator or pathways, clear dealflow step params
+        next.delete('company');
+        next.delete('step');
       }
       return next;
-    }, { replace: true });
+    });
   };
 
   const handleSelectCounterparty = (c: ShippingCounterparty) => {
-    setSelectedCounterparty(c);
     setPathway(c.fleetCapability === 'DUAL_FUEL_LNG' ? 'PHYSICAL' : 'POOLING');
-    setCurrentStep(2);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.delete('tab');
+      next.set('company', String(c.rank));
+      next.set('step', '2');
+      return next;
+    });
+  };
+
+  const handleNavigateStep = (step: 1 | 2 | 3 | 4) => {
+    if (step === 1) {
+      // Returning to directory clears company and step to prevent sticky header conflict
+      setSearchParams(prev => {
+        const next = new URLSearchParams(prev);
+        next.delete('company');
+        next.delete('step');
+        return next;
+      });
+      return;
+    }
+    if (selectedCounterparty) {
+      setSearchParams(prev => {
+        const next = new URLSearchParams(prev);
+        next.delete('tab');
+        next.set('company', String(selectedCounterparty.rank));
+        next.set('step', String(step));
+        return next;
+      });
+    }
   };
 
   const handleResetDeal = () => {
-    setSelectedCounterparty(null);
-    setCurrentStep(1);
     setPathway('PHYSICAL');
     setTtfGasIndex(DEFAULT_TTF_GAS_INDEX_EUR_MWH);
     setLiquefactionFee(DEFAULT_LIQUEFACTION_FEE_EUR_MWH);
     setGreenPremium(DEFAULT_GREEN_PREMIUM_EUR_MWH);
     setEuaPrice(EUA_BENCHMARK_EUR_PER_TONNE);
     setVlsfoPrice(DEFAULT_VLSFO_PRICE_USD_PER_TONNE);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.delete('company');
+      next.delete('step');
+      return next;
+    });
   };
 
   return (
@@ -217,24 +281,18 @@ export function FuelEUShippingScreen() {
       <div style={{ flex: 1, minHeight: 0 }}>
         {activeTab === 'DIRECTORY' && (
           <div className="flex flex-col min-h-full">
-            {/* Stepper Navigation Header (Visible when a counterparty is active) */}
-            {selectedCounterparty && (
+            {/* Stepper Navigation Header (Visible when a counterparty is active in dealflow steps 2..4) */}
+            {selectedCounterparty && currentStep > 1 && (
               <div className="bg-white dark:bg-[#0e1118] border-b border-slate-200 dark:border-[#1e2433] px-4 py-3 sticky top-0 z-20 shadow-xs">
                 <div className="max-w-6xl mx-auto flex items-center justify-between gap-4 flex-wrap">
                   {/* Breadcrumb back to directory */}
                   <button
                     type="button"
-                    onClick={() => {
-                      if (currentStep === 1) {
-                        handleResetDeal();
-                      } else {
-                        setCurrentStep(1);
-                      }
-                    }}
+                    onClick={() => handleNavigateStep(1)}
                     className="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-zinc-300 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors shrink-0 cursor-pointer"
                   >
                     <ArrowLeft size={14} className="text-cyan-600 dark:text-cyan-400" />
-                    <span>{currentStep === 1 ? 'Clear Active Selection' : 'Back to Directory'}</span>
+                    <span>Back to Directory</span>
                   </button>
 
                   {/* Stepper Navigation Flow */}
@@ -247,7 +305,7 @@ export function FuelEUShippingScreen() {
                         <React.Fragment key={s.step}>
                           <button
                             type="button"
-                            onClick={() => setCurrentStep(s.step as any)}
+                            onClick={() => handleNavigateStep(s.step as any)}
                             className="flex items-center gap-2 text-left cursor-pointer transition-all shrink-0"
                           >
                             <div
@@ -318,8 +376,8 @@ export function FuelEUShippingScreen() {
               {currentStep === 2 && selectedCounterparty && (
                 <ShippingExposureStep
                   counterparty={selectedCounterparty}
-                  onBack={() => setCurrentStep(1)}
-                  onNext={() => setCurrentStep(3)}
+                  onBack={() => handleNavigateStep(1)}
+                  onNext={() => handleNavigateStep(3)}
                 />
               )}
 
@@ -338,8 +396,8 @@ export function FuelEUShippingScreen() {
                   setEuaPrice={setEuaPrice}
                   vlsfoPrice={vlsfoPrice}
                   setVlsfoPrice={setVlsfoPrice}
-                  onBack={() => setCurrentStep(2)}
-                  onNext={() => setCurrentStep(4)}
+                  onBack={() => handleNavigateStep(2)}
+                  onNext={() => handleNavigateStep(4)}
                 />
               )}
 
@@ -352,7 +410,7 @@ export function FuelEUShippingScreen() {
                   greenPremium={greenPremium}
                   euaPrice={euaPrice}
                   vlsfoPrice={vlsfoPrice}
-                  onBack={() => setCurrentStep(3)}
+                  onBack={() => handleNavigateStep(3)}
                   onReset={handleResetDeal}
                 />
               )}
