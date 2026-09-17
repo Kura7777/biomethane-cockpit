@@ -17,6 +17,13 @@ import { ParsedPoSCertificate } from '../../domain/consignment/posParser';
 
 import { PRODUCING_ORIGINS } from '../../domain/arbitrage/origins';
 import { BIOMETHANE_PLANTS } from '../../domain/plants/registry';
+import { TradeConsignmentStep } from './steps/TradeConsignmentStep';
+import { TradeMarketAuditStep } from './steps/TradeMarketAuditStep';
+import { TradeEconomicsStep, WaterfallRow } from './steps/TradeEconomicsStep';
+import { TradeExecutionStep } from './steps/TradeExecutionStep';
+import { ListOrdered, LayoutGrid, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
+
+const MONO_FONT = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
 
 export function getVtpForMarket(marketCountry?: string): string {
   switch (marketCountry) {
@@ -65,7 +72,7 @@ const ORIGIN_DESCRIPTIONS: Record<string, string> = {
   BG: 'Bulgaria · 1 producing facility · Bulgartransgaz registry.',
 };
 
-const ORIGINS = Object.values(PRODUCING_ORIGINS).map(p => ({
+export const ORIGINS = Object.values(PRODUCING_ORIGINS).map(p => ({
   code: p.countryCode,
   name: p.countryName,
   flag: p.flag,
@@ -73,7 +80,7 @@ const ORIGINS = Object.values(PRODUCING_ORIGINS).map(p => ({
   desc: ORIGIN_DESCRIPTIONS[p.countryCode] || `${p.countryName} · ${p.activePlants} producing facilities · ${p.primaryRegistry} registry.${p.gridZone === 'NON_EU_ISOLATED' ? ' Grid-isolated; cannot evidence UDB ingestion into EU compliance destinations.' : ' EU-interconnected gas grid, UDB ingestion is evidenceable.'}`,
 }));
 
-const FEEDSTOCKS: { key: string; label: string; defaultCI: number; hint: string }[] = [
+export const FEEDSTOCKS: { key: string; label: string; defaultCI: number; hint: string }[] = [
   { key: 'manure', label: 'Manure & slurry', defaultCI: -100, hint: 'Annex IX Part A. The negative carbon intensity comes from avoided methane in conventional manure management, not from the upgrading process.' },
   { key: 'agricultural_residues', label: 'Agricultural residues', defaultCI: 18, hint: 'Annex IX Part A. High-margin non-food residue with RED III compliance across all EU transport routes.' },
   { key: 'food_waste', label: 'Food waste', defaultCI: 20, hint: 'Annex IX Part A. Municipal or commercial source-separated organic waste.' },
@@ -81,13 +88,13 @@ const FEEDSTOCKS: { key: string; label: string; defaultCI: number; hint: string 
   { key: 'energy_crops', label: 'Energy crops', defaultCI: 40, hint: 'Non-Annex IX. Excluded from RED III transport quota but eligible for voluntary GO and UK RGGO transfers.' },
 ];
 
-const SCHEMES: { scheme: CertificationScheme; label: string; hint: string }[] = [
+export const SCHEMES: { scheme: CertificationScheme; label: string; hint: string }[] = [
   { scheme: 'ISCC_EU', label: 'ISCC EU', hint: 'ISCC EU is recognised for RED III transport compliance in every member state.' },
   { scheme: 'REDCERT_EU', label: 'REDcert EU', hint: 'REDcert EU is fully recognised for statutory transport compliance across the EU.' },
   { scheme: 'ISCC_PLUS', label: 'ISCC PLUS', hint: 'ISCC PLUS is voluntary scope only and hard-blocks every compliance market.' },
 ];
 
-const CUSTODIES: { custody: ChainOfCustody; label: string; hint: string }[] = [
+export const CUSTODIES: { custody: ChainOfCustody; label: string; hint: string }[] = [
   { custody: 'MASS_BALANCE', label: 'Mass balance', hint: 'Mass balance is mandatory under RED III Art. 30(1) for all transport compliance claims.' },
   { custody: 'BOOK_AND_CLAIM', label: 'Book & claim', hint: 'Book & claim hard-blocks FuelEU Maritime and every RED III compliance route — mass balance is required by Art. 30(1).' },
 ];
@@ -112,8 +119,59 @@ export function getDefaultMarketForOrigin(originIso?: string): string {
 
 export function TradeBuilderScreen() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { state, dispatch } = useAppState();
+
+  const stepParam = Number(searchParams.get('step')) || 1;
+  const currentStep = (stepParam >= 1 && stepParam <= 4 ? stepParam : 1) as 1 | 2 | 3 | 4;
+
+  const modeParam = searchParams.get('mode') === 'grid' ? 'GRID' : 'STEPPER';
+  const [flowMode, setFlowMode] = useState<'STEPPER' | 'GRID'>(modeParam);
+
+  const handleStepChange = (step: 1 | 2 | 3 | 4) => {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.set('step', String(step));
+      return next;
+    });
+  };
+
+  const handleToggleMode = (mode: 'STEPPER' | 'GRID') => {
+    setFlowMode(mode);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (mode === 'GRID') {
+        next.set('mode', 'grid');
+      } else {
+        next.delete('mode');
+      }
+      return next;
+    });
+  };
+
+  const handleResetDeal = () => {
+    setOrigin('DK');
+    setFeedstockKey('manure');
+    setScheme('ISCC_EU');
+    setChainOfCustody('MASS_BALANCE');
+    setCi(-100);
+    setCiTier('base');
+    setVolumeMwh(10000);
+    setMarketId('DE_THG');
+    setComplianceYear(2026);
+    setVintagePreset('CAL_YEAR');
+    setProdStartDate('2026-01-01');
+    setProdEndDate('2026-12-31');
+    setDeliveryStartDate('2026-01-01');
+    setDeliveryEndDate('2026-12-31');
+    setDeliveryProfile('FLAT_MONTHLY');
+    setSearchParams(prev => {
+      const next = new URLSearchParams();
+      next.set('step', '1');
+      return next;
+    });
+    showToast('Trade parameters reset to default benchmarks', 'SUCCESS');
+  };
 
   const deal = useMemo(() => parseDealParams(searchParams), [searchParams]);
   const linkedPlant = useMemo(() => deal.plantId ? BIOMETHANE_PLANTS.find(p => p.id === deal.plantId) : null, [deal.plantId]);
@@ -361,17 +419,17 @@ export function TradeBuilderScreen() {
     Math.abs(deskMarginVal ?? 0), 
     1
   );
-  const waterfallRows = [
+  const waterfallRows: WaterfallRow[] = [
     { label: 'Certificate value', val: `+${certVal.toFixed(2)}`, num: certVal, kind: 'add' },
     { label: `Molecule value (${vtpLabel})`, val: `+${molVal.toFixed(2)}`, num: molVal, kind: 'add' },
     { label: 'Transfer & registry', val: `−${transferCost.toFixed(2)}`, num: transferCost, kind: 'sub' },
     { label: 'Certification', val: `−${certCost.toFixed(2)}`, num: certCost, kind: 'sub' },
     { label: `Transit ${origin} → ${selectedMarket.country}`, val: `−${transitCost.toFixed(2)}`, num: transitCost, kind: 'sub' },
-    ...(otherCost > 0 ? [{ label: 'Other costs', val: `−${otherCost.toFixed(2)}`, num: otherCost, kind: 'sub' }] : []),
+    ...(otherCost > 0 ? [{ label: 'Other costs', val: `−${otherCost.toFixed(2)}`, num: otherCost, kind: 'sub' as const }] : []),
     { label: 'Net netback', val: `${netNetbackVal >= 0 ? '+' : '−'}${Math.abs(netNetbackVal).toFixed(2)}`, num: Math.abs(netNetbackVal), kind: 'net' },
     ...(producerPayable !== null ? [
-      { label: 'Producer payable', val: `−${producerPayable.toFixed(2)}`, num: producerPayable, kind: 'sub' },
-      { label: 'Desk margin', val: `${(deskMarginVal ?? 0) >= 0 ? '+' : '−'}${Math.abs(deskMarginVal ?? 0).toFixed(2)}`, num: Math.abs(deskMarginVal ?? 0), kind: 'margin' },
+      { label: 'Producer payable', val: `−${producerPayable.toFixed(2)}`, num: producerPayable, kind: 'sub' as const },
+      { label: 'Desk margin', val: `${(deskMarginVal ?? 0) >= 0 ? '+' : '−'}${Math.abs(deskMarginVal ?? 0).toFixed(2)}`, num: Math.abs(deskMarginVal ?? 0), kind: 'margin' as const },
     ] : []),
   ];
 
@@ -422,16 +480,345 @@ export function TradeBuilderScreen() {
   };
 
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-        minHeight: 0,
-        flex: 1,
-      }}
-    >
-      {/* ─── Column 1: Consignment ─── */}
-      <div style={{ borderRight: '2px solid var(--color-divider)', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' }}>
+      {/* Top Deal Command Header & Stepper Bar */}
+      <div
+        style={{
+          borderBottom: '1px solid var(--color-divider)',
+          backgroundColor: 'var(--color-surface)',
+          padding: '10px 16px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+          flexShrink: 0,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+          {/* Deal ID & Locked Asset */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <span
+              style={{
+                fontFamily: MONO_FONT,
+                fontSize: '11px',
+                fontWeight: 700,
+                color: 'var(--color-accent)',
+                padding: '2px 6px',
+                border: '1px solid var(--color-divider)',
+                backgroundColor: 'var(--color-subtier)',
+              }}
+            >
+              {currentTradeAssessment.id}
+            </span>
+
+            {deal.plantName || linkedPlant ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontSize: '15px' }}>{currentOriginObj.flag}</span>
+                <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--color-text)' }}>
+                  {deal.plantName || linkedPlant?.name}
+                </span>
+                <span
+                  style={{
+                    fontSize: '9.5px',
+                    fontWeight: 700,
+                    padding: '1px 6px',
+                    border: '1px solid rgba(16, 185, 129, 0.4)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                    color: 'var(--color-status-pos-text)',
+                  }}
+                >
+                  AUDITED ASSET LOCKED
+                </span>
+              </div>
+            ) : (
+              <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--color-text)' }}>
+                {currentOriginObj.flag} {currentOriginObj.name} · {currentFeedstockObj.label}
+              </span>
+            )}
+          </div>
+
+          {/* Quick Metrics & Mode Toggle */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'baseline',
+                gap: '4px',
+                padding: '2px 8px',
+                border: '1px solid var(--color-divider)',
+                backgroundColor: 'var(--color-subtier)',
+                fontFamily: MONO_FONT,
+                fontSize: '11px',
+              }}
+            >
+              <span style={{ color: 'var(--color-muted)' }}>Netback:</span>
+              <strong style={{ color: netNetbackVal >= 0 ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)' }}>
+                {netNetbackVal >= 0 ? `+€${netNetbackVal.toFixed(2)}` : `−€${Math.abs(netNetbackVal).toFixed(2)}`}/MWh
+              </strong>
+            </div>
+
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'baseline',
+                gap: '4px',
+                padding: '2px 8px',
+                border: '1px solid var(--color-divider)',
+                backgroundColor: 'var(--color-subtier)',
+                fontFamily: MONO_FONT,
+                fontSize: '11px',
+              }}
+            >
+              <span style={{ color: 'var(--color-muted)' }}>P&amp;L:</span>
+              <strong style={{ color: (netback.deskMargin ?? 0) >= 0 ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)' }}>
+                {netback.deskMargin !== null ? `€${annualPnl.toLocaleString()}` : '—'}
+              </strong>
+            </div>
+
+            <span
+              style={{
+                fontSize: '10.5px',
+                fontWeight: 700,
+                padding: '2px 8px',
+                border: assessment.overallVerdict === 'ELIGIBLE'
+                  ? '1px solid rgba(16, 185, 129, 0.4)'
+                  : '1px solid rgba(239, 68, 68, 0.4)',
+                backgroundColor: assessment.overallVerdict === 'ELIGIBLE'
+                  ? 'rgba(16, 185, 129, 0.12)'
+                  : 'rgba(239, 68, 68, 0.12)',
+                color: assessment.overallVerdict === 'ELIGIBLE'
+                  ? 'var(--color-status-pos-text)'
+                  : 'var(--color-status-neg-text)',
+              }}
+            >
+              {assessment.overallVerdict === 'ELIGIBLE' ? '● 6/6 GATES PASS' : '● BLOCKED'}
+            </span>
+
+            {/* View Mode Toggle */}
+            <div style={{ display: 'flex', border: '1px solid var(--color-divider)', borderRadius: 0, overflow: 'hidden' }}>
+              <button
+                type="button"
+                onClick={() => handleToggleMode('STEPPER')}
+                style={{
+                  padding: '4px 8px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  backgroundColor: flowMode === 'STEPPER' ? 'var(--color-accent)' : 'var(--color-surface)',
+                  color: flowMode === 'STEPPER' ? 'var(--color-bg)' : 'var(--color-text)',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+                title="Fluid 4-Step Deal Flow"
+              >
+                <ListOrdered size={12} />
+                <span>Deal Flow</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleToggleMode('GRID')}
+                style={{
+                  padding: '4px 8px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  backgroundColor: flowMode === 'GRID' ? 'var(--color-accent)' : 'var(--color-surface)',
+                  color: flowMode === 'GRID' ? 'var(--color-bg)' : 'var(--color-text)',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+                title="All-In-One 3-Column Desk Grid"
+              >
+                <LayoutGrid size={12} />
+                <span>Desk Grid</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Inline Stepper Bar (visible in STEPPER mode) */}
+        {flowMode === 'STEPPER' && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              paddingTop: '6px',
+              borderTop: '1px solid var(--color-divider)',
+              overflowX: 'auto',
+            }}
+          >
+            {[
+              { num: 1, label: 'Consignment & Asset' },
+              { num: 2, label: 'Destination & 6-Gate Audit' },
+              { num: 3, label: 'Economics & Waterfall' },
+              { num: 4, label: 'Deal Package & Execution' },
+            ].map(s => {
+              const isActive = currentStep === s.num;
+              const isDone = currentStep > s.num;
+              return (
+                <button
+                  key={s.num}
+                  type="button"
+                  onClick={() => handleStepChange(s.num as 1 | 2 | 3 | 4)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '4px 12px',
+                    border: '1px solid',
+                    borderColor: isActive ? 'var(--color-accent)' : isDone ? 'rgba(16, 185, 129, 0.4)' : 'var(--color-divider)',
+                    backgroundColor: isActive ? 'var(--color-subtier)' : 'transparent',
+                    color: isActive ? 'var(--color-text)' : 'var(--color-muted)',
+                    cursor: 'pointer',
+                    fontSize: '11.5px',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  <span
+                    style={{
+                      fontFamily: MONO_FONT,
+                      fontWeight: 800,
+                      fontSize: '11px',
+                      padding: '1px 5px',
+                      backgroundColor: isActive ? 'var(--color-accent)' : isDone ? 'var(--color-status-pos-text)' : 'var(--color-divider)',
+                      color: isActive ? 'var(--color-bg)' : isDone ? '#fff' : 'var(--color-text)',
+                    }}
+                  >
+                    {isDone ? '✓' : s.num}
+                  </span>
+                  <div style={{ textAlign: 'left' }}>
+                    <div style={{ fontWeight: isActive ? 700 : 600 }}>{s.label}</div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {flowMode === 'STEPPER' ? (
+        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+          {currentStep === 1 && (
+            <TradeConsignmentStep
+              origin={origin}
+              setOrigin={setOrigin}
+              origins={ORIGINS}
+              currentOriginObj={currentOriginObj}
+              feedstockKey={feedstockKey}
+              setFeedstockKey={setFeedstockKey}
+              feedstocks={FEEDSTOCKS}
+              currentFeedstockObj={currentFeedstockObj}
+              scheme={scheme}
+              setScheme={setScheme}
+              schemes={SCHEMES}
+              currentSchemeObj={currentSchemeObj}
+              chainOfCustody={chainOfCustody}
+              setChainOfCustody={setChainOfCustody}
+              custodies={CUSTODIES}
+              currentCustodyObj={currentCustodyObj}
+              ci={ci}
+              setCi={setCi}
+              ciTier={ciTier}
+              setCiTier={setCiTier}
+              ghgSavingPct={ghgSavingPct}
+              volumeMwh={volumeMwh}
+              setVolumeMwh={setVolumeMwh}
+              plantTotalMWh={plantTotalMWh}
+              plantCommittedMwh={plantCommittedMwh}
+              availablePlantCapacity={availablePlantCapacity}
+              isOversubscribed={isOversubscribed}
+              plantCommittedPct={plantCommittedPct}
+              complianceYear={complianceYear}
+              handleComplianceYearChange={handleComplianceYearChange}
+              vintagePreset={vintagePreset}
+              handleVintagePreset={handleVintagePreset}
+              prodStartDate={prodStartDate}
+              setProdStartDate={setProdStartDate}
+              prodEndDate={prodEndDate}
+              setProdEndDate={setProdEndDate}
+              deliveryStartDate={deliveryStartDate}
+              setDeliveryStartDate={setDeliveryStartDate}
+              deliveryEndDate={deliveryEndDate}
+              setDeliveryEndDate={setDeliveryEndDate}
+              deliveryProfile={deliveryProfile}
+              setDeliveryProfile={setDeliveryProfile}
+              selectedMarket={selectedMarket}
+              statutorySurrenderDeadline={statutorySurrenderDeadline}
+              deal={deal}
+              linkedPlant={linkedPlant}
+              onOpenPoS={() => setIsPoSUploaderOpen(true)}
+              onNext={() => handleStepChange(2)}
+            />
+          )}
+
+          {currentStep === 2 && (
+            <TradeMarketAuditStep
+              marketId={marketId}
+              setMarketId={setMarketId}
+              selectedMarket={selectedMarket}
+              assessment={assessment}
+              ghgSavingPct={ghgSavingPct}
+              origin={origin}
+              onBack={() => handleStepChange(1)}
+              onNext={() => handleStepChange(3)}
+            />
+          )}
+
+          {currentStep === 3 && (
+            <TradeEconomicsStep
+              netback={netback}
+              costs={state.costs}
+              selectedMarket={selectedMarket}
+              currentSide={currentSide}
+              netNetbackVal={netNetbackVal}
+              waterfallRows={waterfallRows}
+              waterfallMax={waterfallMax}
+              volumeMwh={volumeMwh}
+              grossTotal={grossTotal}
+              deskMarginEurMwh={deskMarginEurMwh}
+              annualPnl={annualPnl}
+              origin={origin}
+              onBack={() => handleStepChange(2)}
+              onNext={() => handleStepChange(4)}
+            />
+          )}
+
+          {currentStep === 4 && (
+            <TradeExecutionStep
+              currentTradeAssessment={currentTradeAssessment}
+              selectedMarket={selectedMarket}
+              origin={origin}
+              volumeMwh={volumeMwh}
+              netNetbackVal={netNetbackVal}
+              deskMarginEurMwh={deskMarginEurMwh}
+              annualPnl={annualPnl}
+              onOpenDocReview={handleOpenDocReview}
+              onOpenLogistics={() => setIsLogisticsOpen(true)}
+              onSaveDossier={handleSaveDossier}
+              onExportPdf={handleExportPdf}
+              onExportTermSheetPdf={handleExportTermSheetPdf}
+              onBack={() => handleStepChange(3)}
+              onReset={handleResetDeal}
+            />
+          )}
+        </div>
+      ) : (
+        /* Legacy 3-Column Desk Grid */
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+            minHeight: 0,
+            flex: 1,
+            overflowY: 'auto',
+          }}
+        >
+          {/* ─── Column 1: Consignment ─── */}
+          <div style={{ borderRight: '2px solid var(--color-divider)', display: 'flex', flexDirection: 'column' }}>
         <div
           style={{
             display: 'flex',
@@ -1398,29 +1785,31 @@ export function TradeBuilderScreen() {
           </div>
         </div>
       </div>
-
-      {/* EFET Term Sheet & Legal Package Preview Modal */}
-      <LegalPackageModal
-        isOpen={isLegalPackageOpen}
-        onClose={() => setIsLegalPackageOpen(false)}
-        assessment={currentTradeAssessment}
-        initialTab={legalPackageTab}
-      />
-
-      {/* Delivery Playbook Modal */}
-      <LogisticsModal
-        isOpen={isLogisticsOpen}
-        onClose={() => setIsLogisticsOpen(false)}
-        originCountry={origin}
-        targetCountry={selectedMarket.country}
-      />
-
-      {/* Automated PoS Ingestion Modal */}
-      <PoSUploaderModal
-        isOpen={isPoSUploaderOpen}
-        onClose={() => setIsPoSUploaderOpen(false)}
-        onApply={handleApplyPoS}
-      />
     </div>
+  )}
+
+  {/* EFET Term Sheet & Legal Package Preview Modal */}
+  <LegalPackageModal
+    isOpen={isLegalPackageOpen}
+    onClose={() => setIsLegalPackageOpen(false)}
+    assessment={currentTradeAssessment}
+    initialTab={legalPackageTab}
+  />
+
+  {/* Delivery Playbook Modal */}
+  <LogisticsModal
+    isOpen={isLogisticsOpen}
+    onClose={() => setIsLogisticsOpen(false)}
+    originCountry={origin}
+    targetCountry={selectedMarket.country}
+  />
+
+  {/* Automated PoS Ingestion Modal */}
+  <PoSUploaderModal
+    isOpen={isPoSUploaderOpen}
+    onClose={() => setIsPoSUploaderOpen(false)}
+    onApply={handleApplyPoS}
+  />
+</div>
   );
 }
