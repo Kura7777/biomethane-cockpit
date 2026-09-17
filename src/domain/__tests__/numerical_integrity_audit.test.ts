@@ -71,7 +71,7 @@ describe('PHASE 5 — NUMERICAL INTEGRITY & HAND RECOMPUTATION AUDIT', () => {
 
     // 6. EUR_PER_TCO2E_DEFICIT (FUELEU): Modelled deficit closure value
     const fuelEUCert = computeCertificateValue(getMarketById('FUELEU')!, consignmentNeg50, testMarks, 'bid');
-    expect(fuelEUCert?.valueEurPerMWh).toBeCloseTo(322.11, 2);
+    expect(fuelEUCert?.valueEurPerMWh).toBeCloseTo(322.10, 2);
   });
 
   // 3. HHV <-> LHV Round-Trip Exactness
@@ -121,10 +121,10 @@ describe('PHASE 5 — NUMERICAL INTEGRITY & HAND RECOMPUTATION AUDIT', () => {
     const yr3 = computeFuelEUDeficitClosureValue(-50, 3);
     const yr4 = computeFuelEUDeficitClosureValue(-50, 4);
 
-    expect(yr1.valueEurPerMWh).toBeCloseTo(322.11, 2);
-    expect(yr2.valueEurPerMWh).toBeCloseTo(322.11 * 1.1, 2); // +10%
-    expect(yr3.valueEurPerMWh).toBeCloseTo(322.11 * 1.2, 2); // +20%
-    expect(yr4.valueEurPerMWh).toBeCloseTo(322.11 * 1.3, 2); // +30%
+    expect(yr1.valueEurPerMWh).toBeCloseTo(322.10, 2);
+    expect(yr2.valueEurPerMWh).toBeCloseTo(322.10 * 1.1, 2); // +10%
+    expect(yr3.valueEurPerMWh).toBeCloseTo(322.10 * 1.2, 2); // +20%
+    expect(yr4.valueEurPerMWh).toBeCloseTo(322.10 * 1.3, 2); // +30%
   });
 
   // 6. French CPB Cap Binding & Non-Binding

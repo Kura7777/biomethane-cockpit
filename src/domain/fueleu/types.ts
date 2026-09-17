@@ -220,6 +220,8 @@ export interface VesselCalculationResult {
   statutoryPenaltyY2Eur: number;
   bioLngRequiredNeg100Tonnes: number;
   bioLngRequiredNeg100Mwh: number;
+  bioLngRequiredZeroCiTonnes: number;
+  bioLngRequiredZeroCiMwh: number;
   physicalSavingsEur: number;
   physicalTradingMarginEur: number;
   poolingSavingsEur: number;

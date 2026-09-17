@@ -185,6 +185,8 @@ export function calculateVesselExposure(input: VesselCalculationInput): VesselCa
       statutoryPenaltyY2Eur: 0,
       bioLngRequiredNeg100Tonnes: 0,
       bioLngRequiredNeg100Mwh: 0,
+      bioLngRequiredZeroCiTonnes: 0,
+      bioLngRequiredZeroCiMwh: 0,
       physicalSavingsEur: 0,
       physicalTradingMarginEur: 0,
       poolingSavingsEur: 0,
@@ -213,6 +215,8 @@ export function calculateVesselExposure(input: VesselCalculationInput): VesselCa
   let statutoryPenaltyY2Eur = 0;
   let bioLngRequiredNeg100Tonnes = 0;
   let bioLngRequiredNeg100Mwh = 0;
+  let bioLngRequiredZeroCiTonnes = 0;
+  let bioLngRequiredZeroCiMwh = 0;
   let physicalSavingsEur = 0;
   let physicalTradingMarginEur = 0;
   let poolingSavingsEur = 0;
@@ -230,6 +234,12 @@ export function calculateVesselExposure(input: VesselCalculationInput): VesselCa
     const requiredBioEnergyMj = absDeficitGrams / deltaCiNeg100;
     bioLngRequiredNeg100Tonnes = requiredBioEnergyMj / LHV_BIO_LNG_MJ_PER_TONNE;
     bioLngRequiredNeg100Mwh = requiredBioEnergyMj / MJ_PER_MWH;
+
+    // Bio-LNG at CI 0 required to bring compliance balance to exactly 0 (food waste / energy crops with CCS)
+    const deltaCiZero = targetGhgie - 0;
+    const requiredBioEnergyMjZero = absDeficitGrams / deltaCiZero;
+    bioLngRequiredZeroCiTonnes = requiredBioEnergyMjZero / LHV_BIO_LNG_MJ_PER_TONNE;
+    bioLngRequiredZeroCiMwh = requiredBioEnergyMjZero / MJ_PER_MWH;
 
     // Pathway 1: Physical Bio-LNG bunkering economics
     // Premium of Dutch/Danish manure bio-LNG over VLSFO/fossil fuel ≈ €65/MWh
@@ -262,6 +272,8 @@ export function calculateVesselExposure(input: VesselCalculationInput): VesselCa
     statutoryPenaltyY2Eur,
     bioLngRequiredNeg100Tonnes,
     bioLngRequiredNeg100Mwh,
+    bioLngRequiredZeroCiTonnes,
+    bioLngRequiredZeroCiMwh,
     physicalSavingsEur,
     physicalTradingMarginEur,
     poolingSavingsEur,

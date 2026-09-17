@@ -523,7 +523,7 @@ describe('Empirical Challenger 2 — Regulatory Boundary Conditions & Mathematic
 
     it('Returns zero credit when bio-fuel CI equals or exceeds target CI', () => {
       // Exactly equal to target CI
-      const resEqual = computeFuelEUDeficitClosureValue(89.34, 1, FUELEU_TARGET_CI_2025, 91.16);
+      const resEqual = computeFuelEUDeficitClosureValue(FUELEU_TARGET_CI_2025, 1, FUELEU_TARGET_CI_2025, 91.16);
       expect(resEqual.valueEurPerMWh).toBe(0);
       expect(resEqual.calculation).toContain('Generates no compliance credit');
 

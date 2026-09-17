@@ -13,12 +13,18 @@ import { CostInputs, CertificateValueResult, NetbackResult, NetbackBranch, Marks
 import { EligibilityAssessment } from '../eligibility/types';
 import { HUB_BASIS_SPREADS } from '../logistics/corridors';
 
+import {
+  FUELEU_BASELINE_VLSFO_CI,
+  FUELEU_TARGET_2025,
+  FUELEU_TARGET_2030,
+} from '../fueleu/calculator';
+
 /**
  * FuelEU Maritime Reference Constants (Regulation (EU) 2023/1805)
  */
-export const FUELEU_BASELINE_CI = 91.16;   // 2020 fleet baseline (gCO₂e/MJ)
-export const FUELEU_TARGET_CI_2025 = 89.34; // 2% reduction (2025-2029)
-export const FUELEU_TARGET_CI_2030 = 85.69; // 6% reduction (2030-2034)
+export const FUELEU_BASELINE_CI = FUELEU_BASELINE_VLSFO_CI;   // 2020 fleet baseline (gCO₂e/MJ)
+export const FUELEU_TARGET_CI_2025 = FUELEU_TARGET_2025;      // 2% reduction statutory (89.3368 gCO₂e/MJ)
+export const FUELEU_TARGET_CI_2030 = FUELEU_TARGET_2030;      // 6% reduction statutory (85.6904 gCO₂e/MJ)
 
 /**
  * Biomethane Physical Constants for UK RTFO Energy-to-Mass Derivation
