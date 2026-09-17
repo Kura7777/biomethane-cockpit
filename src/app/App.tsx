@@ -13,20 +13,45 @@ import { Layout } from './Layout';
  * Builder came to be imported but unrouted while nine screens linked to it.
  * architecture.test.ts now fails if a navigate() target is missing from this file.
  */
-const CommercialFlowStepper = React.lazy(() => import('../features/commercial/CommercialFlowStepper').then(m => ({ default: m.CommercialFlowStepper })));
-const SourcingOriginationDesk = React.lazy(() => import('../features/sourcing/SourcingOriginationDesk').then(m => ({ default: m.SourcingOriginationDesk })));
-const ScannerScreen = React.lazy(() => import('../features/opportunity-scanner/ScannerScreen').then(m => ({ default: m.ScannerScreen })));
-const MapScreen = React.lazy(() => import('../features/map/MapScreen').then(m => ({ default: m.MapScreen })));
-const MarksScreen = React.lazy(() => import('../features/marks/MarksScreen').then(m => ({ default: m.MarksScreen })));
-const TradeBuilderScreen = React.lazy(() => import('../features/trade-builder/TradeBuilderScreen').then(m => ({ default: m.TradeBuilderScreen })));
-const PlantsScreen = React.lazy(() => import('../features/plants/PlantsScreen').then(m => ({ default: m.PlantsScreen })));
-const OriginationPipelineScreen = React.lazy(() => import('../features/plants/OriginationPipelineScreen').then(m => ({ default: m.OriginationPipelineScreen })));
-const RegistriesScreen = React.lazy(() => import('../features/registries/RegistriesScreen').then(m => ({ default: m.RegistriesScreen })));
-const CitationsScreen = React.lazy(() => import('../features/citations/CitationsScreen').then(m => ({ default: m.CitationsScreen })));
-const DataSourcesScreen = React.lazy(() => import('../features/provenance/DataSourcesScreen').then(m => ({ default: m.DataSourcesScreen })));
-const DataConnectorsScreen = React.lazy(() => import('../features/settings/DataConnectorsScreen').then(m => ({ default: m.DataConnectorsScreen })));
-const SettingsScreen = React.lazy(() => import('../features/settings/SettingsScreen').then(m => ({ default: m.SettingsScreen })));
-const FuelEUShippingScreen = React.lazy(() => import('../features/fueleu/FuelEUShippingScreen').then(m => ({ default: m.FuelEUShippingScreen })));
+function lazyWithRetry<T extends React.ComponentType<any>>(
+  factory: () => Promise<{ default: T }>
+) {
+  return React.lazy(async () => {
+    try {
+      return await factory();
+    } catch (error: any) {
+      const isChunkError =
+        error?.message?.includes('Failed to fetch dynamically imported module') ||
+        error?.message?.includes('Importing a module script failed') ||
+        error?.name === 'ChunkLoadError';
+
+      if (isChunkError) {
+        const reloadKey = 'chunk_reload_' + window.location.hash;
+        if (!sessionStorage.getItem(reloadKey)) {
+          sessionStorage.setItem(reloadKey, 'true');
+          window.location.reload();
+          return new Promise<{ default: T }>(() => {});
+        }
+      }
+      throw error;
+    }
+  });
+}
+
+const CommercialFlowStepper = lazyWithRetry(() => import('../features/commercial/CommercialFlowStepper').then(m => ({ default: m.CommercialFlowStepper })));
+const SourcingOriginationDesk = lazyWithRetry(() => import('../features/sourcing/SourcingOriginationDesk').then(m => ({ default: m.SourcingOriginationDesk })));
+const ScannerScreen = lazyWithRetry(() => import('../features/opportunity-scanner/ScannerScreen').then(m => ({ default: m.ScannerScreen })));
+const MapScreen = lazyWithRetry(() => import('../features/map/MapScreen').then(m => ({ default: m.MapScreen })));
+const MarksScreen = lazyWithRetry(() => import('../features/marks/MarksScreen').then(m => ({ default: m.MarksScreen })));
+const TradeBuilderScreen = lazyWithRetry(() => import('../features/trade-builder/TradeBuilderScreen').then(m => ({ default: m.TradeBuilderScreen })));
+const PlantsScreen = lazyWithRetry(() => import('../features/plants/PlantsScreen').then(m => ({ default: m.PlantsScreen })));
+const OriginationPipelineScreen = lazyWithRetry(() => import('../features/plants/OriginationPipelineScreen').then(m => ({ default: m.OriginationPipelineScreen })));
+const RegistriesScreen = lazyWithRetry(() => import('../features/registries/RegistriesScreen').then(m => ({ default: m.RegistriesScreen })));
+const CitationsScreen = lazyWithRetry(() => import('../features/citations/CitationsScreen').then(m => ({ default: m.CitationsScreen })));
+const DataSourcesScreen = lazyWithRetry(() => import('../features/provenance/DataSourcesScreen').then(m => ({ default: m.DataSourcesScreen })));
+const DataConnectorsScreen = lazyWithRetry(() => import('../features/settings/DataConnectorsScreen').then(m => ({ default: m.DataConnectorsScreen })));
+const SettingsScreen = lazyWithRetry(() => import('../features/settings/SettingsScreen').then(m => ({ default: m.SettingsScreen })));
+const FuelEUShippingScreen = lazyWithRetry(() => import('../features/fueleu/FuelEUShippingScreen').then(m => ({ default: m.FuelEUShippingScreen })));
 
 import { ThemeProvider } from '../store/theme';
 
