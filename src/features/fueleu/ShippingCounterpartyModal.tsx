@@ -36,7 +36,7 @@ import {
 import { showToast } from '../../app/DeskToastContainer';
 
 interface ShippingCounterpartyModalProps {
-  counterparty: ShippingCounterparty | null;
+  counterparty: ShippingCounterparty;
   onClose: () => void;
 }
 
@@ -51,8 +51,6 @@ export function ShippingCounterpartyModal({ counterparty, onClose }: ShippingCou
   const [greenPremium, setGreenPremium] = useState<number>(22.00);
   const [euaPrice, setEuaPrice] = useState<number>(70.00);
   const [vlsfoPrice, setVlsfoPrice] = useState<number>(600.00);
-
-  if (!counterparty) return null;
 
   const isSurplus = counterparty.compliance_balance_2025_tco2e > 0;
   const absDeficit = Math.abs(counterparty.compliance_balance_2025_tco2e);

@@ -1284,10 +1284,12 @@ export function CounterpartyDirectoryTable() {
       </div>
 
       {/* Modal Profile / Term Sheet */}
-      <ShippingCounterpartyModal
-        counterparty={activeCounterparty}
-        onClose={() => setActiveCounterparty(null)}
-      />
+      {activeCounterparty && (
+        <ShippingCounterpartyModal
+          counterparty={activeCounterparty}
+          onClose={() => setActiveCounterparty(null)}
+        />
+      )}
     </div>
   );
 }
