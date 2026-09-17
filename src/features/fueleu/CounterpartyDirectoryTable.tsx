@@ -10,7 +10,6 @@ import {
 } from '../../domain/fueleu/types';
 import { FUEL_EU_SHIPPING_COUNTERPARTIES } from '../../domain/fueleu/shippingTargetsData';
 import { buildDealUrl } from '../../domain/trade/dealParams';
-import { ShippingCounterpartyModal } from './ShippingCounterpartyModal';
 import {
   Search,
   Filter,
@@ -54,8 +53,22 @@ type SortField =
 
 type SortDirection = 'asc' | 'desc';
 
-export function CounterpartyDirectoryTable() {
+export interface CounterpartyDirectoryTableProps {
+  onSelectCounterparty?: (counterparty: ShippingCounterparty) => void;
+  selectedCounterparty?: ShippingCounterparty | null;
+}
+
+export function CounterpartyDirectoryTable({
+  onSelectCounterparty,
+  selectedCounterparty,
+}: CounterpartyDirectoryTableProps = {}) {
   const navigate = useNavigate();
+
+  const handleSelectCounterparty = (c: ShippingCounterparty) => {
+    if (onSelectCounterparty) {
+      onSelectCounterparty(c);
+    }
+  };
 
   // Filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -92,9 +105,6 @@ export function CounterpartyDirectoryTable() {
   // Sorting state - ranked by default by Statutory Penalty Exposure / Rank
   const [sortField, setSortField] = useState<SortField>('rank');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
-
-  // Modal counterparty state
-  const [activeCounterparty, setActiveCounterparty] = useState<ShippingCounterparty | null>(null);
 
   // Pagination & View density state (25, 50, 100, All)
   const [pageSize, setPageSize] = useState<'ALL' | 100 | 50 | 25>(25);
@@ -1064,7 +1074,11 @@ export function CounterpartyDirectoryTable() {
                   <tr
                     key={c.parent_name}
                     data-click="1"
-                    onClick={() => setActiveCounterparty(c)}
+                    onClick={() => handleSelectCounterparty(c)}
+                    style={{
+                      cursor: 'pointer',
+                      backgroundColor: selectedCounterparty?.parent_name === c.parent_name ? 'rgba(6, 182, 212, 0.08)' : undefined,
+                    }}
                   >
                     {/* Rank */}
                     <td className="num" style={{ textAlign: 'center', padding: '6px 6px' }}>
@@ -1157,24 +1171,14 @@ export function CounterpartyDirectoryTable() {
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
                         <button
                           type="button"
-                          onClick={() => setActiveCounterparty(c)}
+                          onClick={() => handleSelectCounterparty(c)}
                           className="btn btn-secondary"
-                          style={{ fontSize: '11px', padding: '0 8px', height: '24px' }}
-                          title="View Counterparty Dossier & Term Sheet"
+                          style={{ fontSize: '11px', padding: '0 10px', height: '26px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}
+                          title="Select Counterparty for Deal Flow"
                         >
-                          Dossier
+                          <span>Select</span>
+                          <ChevronRight size={12} />
                         </button>
-                        {!isSurplus && (
-                          <button
-                            type="button"
-                            onClick={(e) => handleTradeBuilder(c, e)}
-                            className="btn btn-primary"
-                            style={{ fontSize: '11px', padding: '0 8px', height: '24px', display: 'flex', alignItems: 'center', gap: '3px' }}
-                            title="Structure Bio-LNG in Trade Builder"
-                          >
-                            <Zap size={10} /> Trade
-                          </button>
-                        )}
                       </div>
                     </td>
                   </tr>
@@ -1282,14 +1286,6 @@ export function CounterpartyDirectoryTable() {
           )}
         </div>
       </div>
-
-      {/* Modal Profile / Term Sheet */}
-      {activeCounterparty && (
-        <ShippingCounterpartyModal
-          counterparty={activeCounterparty}
-          onClose={() => setActiveCounterparty(null)}
-        />
-      )}
     </div>
   );
 }

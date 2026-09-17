@@ -26,6 +26,7 @@ import {
   FleetCapability,
   getStrategyTierBadgeClass,
 } from '../fueleu';
+import { buildDealUrl } from '../trade/dealParams';
 
 describe('FuelEU Maritime Domain & Shipping Targets', () => {
   it('loads all 1,850 shipping companies with non-null metrics and zero NaNs', () => {
@@ -780,4 +781,77 @@ describe('FuelEU Maritime Domain & Shipping Targets', () => {
     expect(quote.totalClientSavingsEur).toBeGreaterThan(0);
     expect(quote.totalEtsAvoidedTco2).toBeGreaterThan(0);
   });
+
+  it('verifies 4-screen deal flow data invariants for top counterparties across Dual-Fuel and Conventional fleets', () => {
+    // Select top dual-fuel and top conventional counterparties
+    const dualFuelTarget = FUEL_EU_SHIPPING_COUNTERPARTIES.find(c => c.fleetCapability === 'DUAL_FUEL_LNG');
+    const conventionalTarget = FUEL_EU_SHIPPING_COUNTERPARTIES.find(c => c.fleetCapability === 'CONVENTIONAL_ONLY');
+
+    expect(dualFuelTarget).toBeDefined();
+    expect(conventionalTarget).toBeDefined();
+
+    for (const cp of [dualFuelTarget!, conventionalTarget!]) {
+      // Screen 2 data invariants: Exposure & Contacts
+      const isDualFuel = cp.fleetCapability === 'DUAL_FUEL_LNG';
+      const combinedRisk = cp.penalty_2025_y1_eur + cp.ets_exposure_2025_eur;
+      expect(cp.combined_regulatory_exposure_2025_eur).toBe(combinedRisk);
+      expect(cp.key_executive).toBeTruthy();
+      expect(cp.switchboardPhone).toBeTruthy();
+      expect(cp.contactDomain).toBeTruthy();
+
+      // Screen 3 data invariants: Marine Bunker Quotation
+      const quote = calculateMarineBunkerQuotation({
+        ttfGasIndexEurMwh: 36.0,
+        liquefactionFeeEurMwh: 14.0,
+        greenPremiumEurMwh: 22.0,
+        bioLngVolumeTonnes: cp.bio_lng_required_neg100_t,
+      });
+
+      expect(quote.allInBioLngPriceEurPerTonne).toBe(1000.80);
+      expect(quote.netSavingsPerTonneBioLngEur).toBeGreaterThan(0);
+      if (cp.bio_lng_required_neg100_t > 0) {
+        expect(quote.totalClientSavingsEur).toBeGreaterThan(0);
+      }
+
+      // Desk margin invariants
+      if (isDualFuel) {
+        expect(cp.desk_margin_physical_eur).toBeGreaterThan(0);
+      } else {
+        expect(cp.desk_margin_pooling_eur).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it('verifies deal flow pooling invariants for surplus holder (CMA CGM) and Trade Builder URL parameter mapping', () => {
+    const surplusTarget = FUEL_EU_SHIPPING_COUNTERPARTIES.find(c => c.compliance_balance_2025_tco2e > 0);
+    expect(surplusTarget).toBeDefined();
+    expect(surplusTarget!.compliance_balance_2025_tco2e).toBeGreaterThan(0);
+    expect(surplusTarget!.penalty_2025_y1_eur).toBe(0);
+    expect(surplusTarget!.client_savings_pooling_eur).toBeGreaterThan(0);
+    expect(surplusTarget!.desk_margin_pooling_eur).toBeGreaterThan(0);
+
+    // Verify Trade Builder URL generation
+    const url = buildDealUrl({
+      marketId: 'FUELEU',
+      originCountry: 'NL',
+      feedstock: 'manure',
+      ci: -100,
+      volume: 15000,
+      counterparty: surplusTarget!.parent_name,
+      legalEntityName: surplusTarget!.parent_name,
+      complianceYear: 2025,
+      contactEmail: 'sustainability@cmacgm-group.com',
+      contactPhone: surplusTarget!.switchboardPhone,
+    });
+
+    expect(url).toContain('/trade?');
+    expect(url).toContain('marketId=FUELEU');
+    expect(url).toContain('originCountry=NL');
+    expect(url).toContain('feedstock=manure');
+    expect(url).toContain('ci=-100');
+    expect(url).toContain('volume=15000');
+    expect(url).toContain('contactEmail=');
+    expect(url).toContain('contactPhone=');
+  });
 });
+
