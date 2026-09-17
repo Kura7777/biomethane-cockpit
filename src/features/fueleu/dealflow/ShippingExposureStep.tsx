@@ -145,332 +145,556 @@ export function ShippingExposureStep({
   };
 
   return (
-    <div className="max-w-6xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
-      {/* Top Header Card */}
-      <div className="bg-white dark:bg-[#0e1118] border border-slate-200 dark:border-[#1e2433] rounded-2xl p-6 shadow-xs dark:shadow-md">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-[#141a29] text-cyan-600 dark:text-cyan-400 border border-slate-200 dark:border-[#1e2433]">
-                #{counterparty.rank}
-              </span>
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-zinc-100">
-                {counterparty.parent_name}
-              </h1>
-              <span
-                className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${getStrategyTierBadgeClass(
-                  counterparty.strategy_tier
-                )}`}
-              >
-                {counterparty.strategy_tier}
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-400 flex items-center gap-2 flex-wrap">
-              <span className="flex items-center gap-1">
-                <MapPin size={13} className="text-slate-400" />
-                {counterparty.headquarters}
-              </span>
-              <span>·</span>
-              <span className="font-medium text-slate-700 dark:text-zinc-300">
-                {counterparty.segment}
-              </span>
-              <span>·</span>
-              <span>
-                Calling: {CALLING_REGIONS[counterparty.callingRegion]?.label || counterparty.callingRegion}
-              </span>
-              <span>·</span>
-              <span>Hubs: {counterparty.primary_bunkering_hubs}</span>
-            </p>
+    <div className="w-full max-w-[1600px] mx-auto p-4 sm:p-5 space-y-4">
+      {/* Top Asset Headline Strip */}
+      <div
+        style={{
+          border: '1px solid var(--color-divider)',
+          backgroundColor: 'var(--color-surface)',
+          padding: '14px 18px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '14px',
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <span
+              style={{
+                fontFamily: MONO_FONT,
+                fontSize: '11px',
+                fontWeight: 700,
+                color: 'var(--color-accent)',
+                padding: '1px 6px',
+                border: '1px solid var(--color-divider)',
+                backgroundColor: 'var(--color-subtier)',
+              }}
+            >
+              #{counterparty.rank}
+            </span>
+            <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.01em' }}>
+              {counterparty.parent_name}
+            </h2>
+            <span
+              className={`chip ${getStrategyTierBadgeClass(counterparty.strategy_tier)}`}
+              style={{ fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: '0.04em' }}
+            >
+              {counterparty.strategy_tier}
+            </span>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            {isDualFuel ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
-                <Flame size={14} className="text-emerald-600 dark:text-emerald-400" />
-                DUAL-FUEL LNG READY ({counterparty.lng_vessels_in_scope} vessels)
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 dark:bg-[#141a29] text-slate-700 dark:text-zinc-300 border border-slate-300 dark:border-[#1e2433]">
-                <Ship size={14} className="text-slate-500" />
-                CONVENTIONAL ({counterparty.vessels_in_scope} vessels)
-              </span>
-            )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--color-muted)', flexWrap: 'wrap' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <MapPin size={12} style={{ color: 'var(--color-muted)' }} />
+              {counterparty.headquarters}
+            </span>
+            <span>·</span>
+            <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>{counterparty.segment}</span>
+            <span>·</span>
+            <span>Calling: {CALLING_REGIONS[counterparty.callingRegion]?.label || counterparty.callingRegion}</span>
+            <span>·</span>
+            <span>Hubs: {counterparty.primary_bunkering_hubs}</span>
+          </div>
+        </div>
+
+        {/* Right Quick Metric Chips */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          {isDualFuel ? (
             <span
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ${
-                isSurplus
-                  ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
-                  : 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800'
-              }`}
+              className="chip chip-success"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '11px', padding: '3px 9px' }}
             >
-              {isSurplus ? (
-                <>
-                  <ShieldCheck size={14} />
-                  +{(counterparty.compliance_balance_2025_tco2e / 1000).toFixed(1)} kt Surplus
-                </>
-              ) : (
-                <>
-                  <AlertTriangle size={14} />
-                  -{(absDeficit / 1000).toFixed(1)} kt Deficit
-                </>
-              )}
+              <Flame size={12} />
+              Dual-Fuel LNG ({counterparty.lng_vessels_in_scope}v)
+            </span>
+          ) : (
+            <span
+              className="chip"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '11px', padding: '3px 9px' }}
+            >
+              <Ship size={12} />
+              Conventional ({counterparty.vessels_in_scope}v)
+            </span>
+          )}
+
+          <span
+            className={`chip ${isSurplus ? 'chip-success' : 'chip-danger'}`}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '11px', padding: '3px 9px' }}
+          >
+            {isSurplus ? (
+              <>
+                <ShieldCheck size={12} />
+                +{(counterparty.compliance_balance_2025_tco2e / 1000).toFixed(1)} kt Surplus
+              </>
+            ) : (
+              <>
+                <AlertTriangle size={12} />
+                -{(absDeficit / 1000).toFixed(1)} kt Deficit
+              </>
+            )}
+          </span>
+
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'baseline',
+              gap: '6px',
+              padding: '3px 10px',
+              border: '1px solid var(--color-divider)',
+              backgroundColor: 'var(--color-subtier)',
+              fontFamily: MONO_FONT,
+            }}
+          >
+            <span style={{ fontSize: '10.5px', color: 'var(--color-muted)' }}>Combined 2025:</span>
+            <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--color-status-neg-text)' }}>
+              €{(counterparty.combined_regulatory_exposure_2025_eur / 1e6).toFixed(2)}M
             </span>
           </div>
         </div>
       </div>
 
-      {/* Grid: 3 Focused Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
-        {/* Card 1: Statutory Exposure Card */}
-        <div className="bg-white dark:bg-[#0e1118] border border-slate-200 dark:border-[#1e2433] rounded-2xl p-5 shadow-xs dark:shadow-md flex flex-col justify-between">
+      {/* Grid: 3 Aligned Institutional Panels */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
+        {/* Panel 1: Statutory Regulatory Exposure */}
+        <div
+          style={{
+            border: '1px solid var(--color-divider)',
+            backgroundColor: 'var(--color-surface)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
           <div>
-            <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-200 dark:border-[#1e2433]">
-              <div className="flex items-center gap-2">
-                <Scale className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-zinc-200">
-                  Statutory Exposure
-                </h3>
+            <div
+              style={{
+                padding: '9px 14px',
+                borderBottom: '1px solid var(--color-divider)',
+                backgroundColor: 'var(--color-panel-header)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Scale size={13} style={{ color: 'var(--color-accent)' }} />
+                <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Statutory Regulatory Exposure
+                </span>
               </div>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-[#141a29] text-slate-500 dark:text-zinc-400 border border-slate-200 dark:border-[#1e2433]">
-                2025 STATUTORY RISK
-              </span>
-            </div>
-
-            {/* Prominent Hero: Combined 2025 Exposure */}
-            <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#141926] border border-slate-200 dark:border-[#1e2433] mb-4">
-              <span className="text-[11px] font-semibold text-slate-500 dark:text-zinc-400 block mb-1">
-                COMBINED 2025 REGULATORY LIABILITY
-              </span>
-              <div
-                className="text-3xl font-extrabold text-slate-900 dark:text-zinc-100 font-mono tracking-tight"
-                style={{ fontFamily: MONO_FONT }}
+              <span
+                style={{
+                  fontSize: '9.5px',
+                  fontFamily: MONO_FONT,
+                  fontWeight: 600,
+                  padding: '1px 5px',
+                  border: '1px solid var(--color-divider)',
+                  backgroundColor: 'var(--color-subtier)',
+                  color: 'var(--color-muted)',
+                }}
               >
-                €{(counterparty.combined_regulatory_exposure_2025_eur / 1e6).toFixed(2)}M
-              </div>
-              <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-1">
-                FuelEU Maritime Penalty + EU ETS gross allowance liability
-              </p>
+                REG (EU) 2023/1805
+              </span>
             </div>
 
-            {/* Breakdown Items */}
-            <div className="space-y-3 text-xs">
-              <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50/50 dark:bg-[#10141f]">
-                <div>
-                  <div className="font-semibold text-slate-800 dark:text-zinc-200">
-                    FuelEU Maritime Penalty
-                  </div>
-                  <div className="text-[11px] text-slate-500 dark:text-zinc-400">
-                    Target: 89.34 vs Actual: {counterparty.actual_ghgie.toFixed(2)} gCO₂e/MJ
-                  </div>
+            <div style={{ padding: '14px' }}>
+              {/* Hero Metric Box */}
+              <div
+                style={{
+                  padding: '12px 14px',
+                  border: '1px solid var(--color-divider)',
+                  backgroundColor: 'var(--color-panel-header)',
+                  marginBottom: '12px',
+                }}
+              >
+                <div style={{ fontSize: '10.5px', fontWeight: 600, color: 'var(--color-muted)', letterSpacing: '0.03em', marginBottom: '2px' }}>
+                  COMBINED 2025 REGULATORY LIABILITY
                 </div>
                 <div
-                  className="font-bold text-sm font-mono text-rose-600 dark:text-rose-400"
-                  style={{ fontFamily: MONO_FONT }}
+                  style={{
+                    fontSize: '26px',
+                    fontWeight: 800,
+                    fontFamily: MONO_FONT,
+                    color: 'var(--color-status-neg-text)',
+                    letterSpacing: '-0.02em',
+                  }}
                 >
-                  {isSurplus ? '€0 (Surplus)' : `€${(counterparty.penalty_2025_y1_eur / 1e6).toFixed(2)}M`}
+                  €{(counterparty.combined_regulatory_exposure_2025_eur / 1e6).toFixed(2)}M
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '2px' }}>
+                  FuelEU Maritime statutory penalty + EU ETS 70% phase-in liability
                 </div>
               </div>
 
-              <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50/50 dark:bg-[#10141f]">
-                <div>
-                  <div className="font-semibold text-slate-800 dark:text-zinc-200">
-                    EU ETS Maritime Liability
-                  </div>
-                  <div className="text-[11px] text-slate-500 dark:text-zinc-400">
-                    {counterparty.ets_exposure_2025_tco2.toLocaleString()} tCO₂ (70% phase-in @ €70/t)
-                  </div>
-                </div>
+              {/* Granular Breakdown Rows */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '11.5px' }}>
                 <div
-                  className="font-bold text-sm font-mono text-amber-600 dark:text-amber-400"
-                  style={{ fontFamily: MONO_FONT }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '8px 10px',
+                    border: '1px solid var(--color-divider)',
+                    backgroundColor: 'var(--color-subtier)',
+                  }}
                 >
-                  €{(counterparty.ets_exposure_2025_eur / 1e6).toFixed(2)}M
+                  <div>
+                    <div style={{ fontWeight: 600, color: 'var(--color-text)' }}>FuelEU Maritime Penalty</div>
+                    <div style={{ fontSize: '10.5px', color: 'var(--color-muted)' }}>
+                      Target: 89.34 vs Actual: {counterparty.actual_ghgie.toFixed(2)} gCO₂e/MJ
+                    </div>
+                  </div>
+                  <div style={{ fontFamily: MONO_FONT, fontWeight: 700, fontSize: '12.5px', color: isSurplus ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)' }}>
+                    {isSurplus ? '€0 (Surplus)' : `€${(counterparty.penalty_2025_y1_eur / 1e6).toFixed(2)}M`}
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50/50 dark:bg-[#10141f]">
-                <div>
-                  <div className="font-semibold text-slate-800 dark:text-zinc-200">
-                    2026 Full ETS Enforcement
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '8px 10px',
+                    border: '1px solid var(--color-divider)',
+                    backgroundColor: 'var(--color-subtier)',
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: 600, color: 'var(--color-text)' }}>EU ETS Maritime Liability</div>
+                    <div style={{ fontSize: '10.5px', color: 'var(--color-muted)' }}>
+                      {counterparty.ets_exposure_2025_tco2.toLocaleString()} tCO₂ (70% phase-in @ €70/t)
+                    </div>
                   </div>
-                  <div className="text-[11px] text-slate-500 dark:text-zinc-400">
-                    100% phase-in rate liability
+                  <div style={{ fontFamily: MONO_FONT, fontWeight: 700, fontSize: '12.5px', color: 'var(--color-status-warn-text, #d97706)' }}>
+                    €{(counterparty.ets_exposure_2025_eur / 1e6).toFixed(2)}M
                   </div>
                 </div>
+
                 <div
-                  className="font-medium text-xs font-mono text-slate-600 dark:text-zinc-400"
-                  style={{ fontFamily: MONO_FONT }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '8px 10px',
+                    border: '1px solid var(--color-divider)',
+                    backgroundColor: 'var(--color-subtier)',
+                  }}
                 >
-                  €{((counterparty.ets_exposure_2025_eur / 0.70) / 1e6).toFixed(2)}M
+                  <div>
+                    <div style={{ fontWeight: 600, color: 'var(--color-text)' }}>2026 Full ETS Enforcement</div>
+                    <div style={{ fontSize: '10.5px', color: 'var(--color-muted)' }}>100% phase-in rate liability</div>
+                  </div>
+                  <div style={{ fontFamily: MONO_FONT, fontWeight: 600, fontSize: '12px', color: 'var(--color-muted)' }}>
+                    €{((counterparty.ets_exposure_2025_eur / 0.70) / 1e6).toFixed(2)}M
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-slate-200 dark:border-[#1e2433] text-[11px] text-slate-500 dark:text-zinc-500 flex items-center gap-1.5">
-            <ShieldCheck size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+          <div
+            style={{
+              padding: '8px 14px',
+              borderTop: '1px solid var(--color-divider)',
+              backgroundColor: 'var(--color-panel-header)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '10.5px',
+              color: 'var(--color-muted)',
+            }}
+          >
+            <ShieldCheck size={12} style={{ color: 'var(--color-status-pos-text)' }} />
             <span>Audited under EU Regulation 2023/1805 &amp; Thetis MRV</span>
           </div>
         </div>
 
-        {/* Card 2: Decision-Maker Contact Card */}
-        <div className="bg-white dark:bg-[#0e1118] border border-slate-200 dark:border-[#1e2433] rounded-2xl p-5 shadow-xs dark:shadow-md flex flex-col justify-between">
+        {/* Panel 2: Decision-Maker CRM Dossier */}
+        <div
+          style={{
+            border: '1px solid var(--color-divider)',
+            backgroundColor: 'var(--color-surface)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
           <div>
-            <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-200 dark:border-[#1e2433]">
-              <div className="flex items-center gap-2">
-                <UserCheck className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-zinc-200">
-                  Decision-Maker Dossier
-                </h3>
+            <div
+              style={{
+                padding: '9px 14px',
+                borderBottom: '1px solid var(--color-divider)',
+                backgroundColor: 'var(--color-panel-header)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <UserCheck size={13} style={{ color: 'var(--color-accent)' }} />
+                <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Commercial Decision-Maker Dossier
+                </span>
               </div>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800 font-semibold">
+              <span
+                style={{
+                  fontSize: '9.5px',
+                  fontFamily: MONO_FONT,
+                  fontWeight: 600,
+                  padding: '1px 5px',
+                  border: '1px solid var(--color-divider)',
+                  backgroundColor: 'var(--color-subtier)',
+                  color: 'var(--color-accent)',
+                }}
+              >
                 VERIFIED CRM
               </span>
             </div>
 
-            {/* Executive Profile */}
-            <div className="mb-4">
-              <div className="text-lg font-bold text-slate-900 dark:text-zinc-100 flex items-center gap-2">
-                {counterparty.key_executive}
-              </div>
-              <div className="text-xs font-medium text-cyan-700 dark:text-cyan-300">
-                {counterparty.keyContactRole}
-              </div>
-              <div className="text-[11px] text-slate-500 dark:text-zinc-400">
-                Dept: {counterparty.targetDepartment}
-              </div>
-            </div>
-
-            {/* Contact Rows with Copy */}
-            <div className="space-y-2.5 text-xs">
-              {/* Email */}
-              <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 dark:bg-[#141926] border border-slate-200 dark:border-[#1e2433]">
-                <div className="flex items-center gap-2 min-w-0 pr-2">
-                  <Mail size={14} className="text-cyan-600 dark:text-cyan-400 shrink-0" />
-                  <a
-                    href={`mailto:${contactEmail}`}
-                    className="font-mono text-[11.5px] text-cyan-700 dark:text-cyan-400 hover:underline truncate"
-                    title="Send email"
-                  >
-                    {contactEmail}
-                  </a>
+            <div style={{ padding: '14px' }}>
+              {/* Executive Profile Card */}
+              <div
+                style={{
+                  padding: '12px 14px',
+                  border: '1px solid var(--color-divider)',
+                  backgroundColor: 'var(--color-panel-header)',
+                  marginBottom: '12px',
+                }}
+              >
+                <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--color-text)', marginBottom: '2px' }}>
+                  {counterparty.key_executive}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => handleCopyField(contactEmail, 'Email')}
-                  className="p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-zinc-200 transition-colors shrink-0"
-                  title="Copy email address"
-                >
-                  {copiedField === 'Email' ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
-                </button>
-              </div>
-
-              {/* Phone */}
-              <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 dark:bg-[#141926] border border-slate-200 dark:border-[#1e2433]">
-                <div className="flex items-center gap-2 min-w-0 pr-2">
-                  <Phone size={14} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
-                  <a
-                    href={`tel:${counterparty.switchboardPhone}`}
-                    className="font-mono text-[11.5px] text-slate-800 dark:text-zinc-200 hover:underline truncate"
-                    title="Call switchboard"
-                  >
-                    {counterparty.switchboardPhone}
-                  </a>
+                <div style={{ fontSize: '11.5px', fontWeight: 600, color: 'var(--color-accent)' }}>
+                  {counterparty.keyContactRole}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => handleCopyField(counterparty.switchboardPhone, 'Phone')}
-                  className="p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-zinc-200 transition-colors shrink-0"
-                  title="Copy phone number"
-                >
-                  {copiedField === 'Phone' ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
-                </button>
+                <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '2px' }}>
+                  {counterparty.targetDepartment}
+                </div>
               </div>
 
-              {/* Address */}
-              <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-[#141926] border border-slate-200 dark:border-[#1e2433]">
-                <div className="flex items-start gap-2">
-                  <MapPin size={14} className="text-slate-400 shrink-0 mt-0.5" />
-                  <div className="text-[11px] text-slate-600 dark:text-zinc-300">
-                    <div className="font-semibold text-slate-800 dark:text-zinc-200">
-                      Commercial Headquarters
-                    </div>
-                    <div>{counterparty.hqAddress}</div>
-                    <div className="text-slate-500 dark:text-zinc-400">{counterparty.headquarters}</div>
+              {/* Actionable Contact Rows */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '11.5px' }}>
+                {/* Email */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '7px 10px',
+                    border: '1px solid var(--color-divider)',
+                    backgroundColor: 'var(--color-subtier)',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '7px', minWidth: 0 }}>
+                    <Mail size={13} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
+                    <a
+                      href={`mailto:${contactEmail}`}
+                      style={{
+                        fontFamily: MONO_FONT,
+                        fontSize: '11px',
+                        color: 'var(--color-accent)',
+                        textDecoration: 'none',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                      title="Send email to desk"
+                    >
+                      {contactEmail}
+                    </a>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleCopyField(contactEmail, 'Email')}
+                    className="btn btn-secondary"
+                    style={{ height: '22px', padding: '0 6px', fontSize: '10px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                    title="Copy email address"
+                  >
+                    {copiedField === 'Email' ? <Check size={11} style={{ color: 'var(--color-status-pos-text)' }} /> : <Copy size={11} />}
+                    <span>{copiedField === 'Email' ? 'Copied' : 'Copy'}</span>
+                  </button>
+                </div>
+
+                {/* Phone */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '7px 10px',
+                    border: '1px solid var(--color-divider)',
+                    backgroundColor: 'var(--color-subtier)',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '7px', minWidth: 0 }}>
+                    <Phone size={13} style={{ color: 'var(--color-status-pos-text)', flexShrink: 0 }} />
+                    <a
+                      href={`tel:${counterparty.switchboardPhone}`}
+                      style={{
+                        fontFamily: MONO_FONT,
+                        fontSize: '11px',
+                        color: 'var(--color-text)',
+                        textDecoration: 'none',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                      title="Call commercial office"
+                    >
+                      {counterparty.switchboardPhone}
+                    </a>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleCopyField(counterparty.switchboardPhone, 'Phone')}
+                    className="btn btn-secondary"
+                    style={{ height: '22px', padding: '0 6px', fontSize: '10px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                    title="Copy phone number"
+                  >
+                    {copiedField === 'Phone' ? <Check size={11} style={{ color: 'var(--color-status-pos-text)' }} /> : <Copy size={11} />}
+                    <span>{copiedField === 'Phone' ? 'Copied' : 'Copy'}</span>
+                  </button>
+                </div>
+
+                {/* HQ Address */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '7px',
+                    padding: '7px 10px',
+                    border: '1px solid var(--color-divider)',
+                    backgroundColor: 'var(--color-subtier)',
+                  }}
+                >
+                  <MapPin size={13} style={{ color: 'var(--color-muted)', flexShrink: 0, marginTop: '2px' }} />
+                  <div style={{ fontSize: '11px', color: 'var(--color-muted)' }}>
+                    <div style={{ fontWeight: 600, color: 'var(--color-text)' }}>{counterparty.hqAddress}</div>
+                    <div>{counterparty.headquarters}</div>
                   </div>
                 </div>
-              </div>
 
-              {/* Domain */}
-              <div className="flex items-center justify-between px-2.5 py-2 rounded-lg bg-slate-50 dark:bg-[#141926] border border-slate-200 dark:border-[#1e2433]">
-                <div className="flex items-center gap-2 min-w-0">
-                  <Globe size={13} className="text-slate-400 shrink-0" />
-                  <span className="text-[11px] font-mono text-slate-600 dark:text-zinc-400 truncate">
-                    {counterparty.contactDomain}
-                  </span>
-                </div>
-                <a
-                  href={`https://${counterparty.contactDomain}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-[10px] text-cyan-600 dark:text-cyan-400 hover:underline"
+                {/* Corporate Website */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '6px 10px',
+                    border: '1px solid var(--color-divider)',
+                    backgroundColor: 'var(--color-subtier)',
+                  }}
                 >
-                  Visit ↗
-                </a>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                    <Globe size={13} style={{ color: 'var(--color-muted)' }} />
+                    <span style={{ fontSize: '11px', fontFamily: MONO_FONT, color: 'var(--color-muted)' }}>
+                      {counterparty.contactDomain}
+                    </span>
+                  </div>
+                  <a
+                    href={`https://${counterparty.contactDomain}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ fontSize: '10.5px', color: 'var(--color-accent)', textDecoration: 'none', fontWeight: 600 }}
+                  >
+                    Visit ↗
+                  </a>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-slate-200 dark:border-[#1e2433] text-[11px] text-slate-500 dark:text-zinc-500">
+          <div
+            style={{
+              padding: '8px 14px',
+              borderTop: '1px solid var(--color-divider)',
+              backgroundColor: 'var(--color-panel-header)',
+              fontSize: '10.5px',
+              color: 'var(--color-muted)',
+            }}
+          >
             Pre-qualified corporate identity &amp; commercial registry data
           </div>
         </div>
 
-        {/* Card 3: Tailored Trader Pitch Card */}
-        <div className="bg-white dark:bg-[#0e1118] border border-slate-200 dark:border-[#1e2433] rounded-2xl p-5 shadow-xs dark:shadow-md flex flex-col justify-between">
+        {/* Panel 3: Tailored Commercial Pitch */}
+        <div
+          style={{
+            border: '1px solid var(--color-divider)',
+            backgroundColor: 'var(--color-surface)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
           <div>
-            <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-200 dark:border-[#1e2433]">
-              <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-amber-500" />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-zinc-200">
-                  Tailored Trader Pitch
-                </h3>
+            <div
+              style={{
+                padding: '9px 14px',
+                borderBottom: '1px solid var(--color-divider)',
+                backgroundColor: 'var(--color-panel-header)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Zap size={13} style={{ color: '#fbbf24' }} />
+                <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Tailored Commercial Outreach Pitch
+                </span>
               </div>
               <button
                 type="button"
                 onClick={handleCopyPitch}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-semibold bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300 border border-cyan-300 dark:border-cyan-800 hover:bg-cyan-100 dark:hover:bg-cyan-900/50 transition-colors cursor-pointer"
+                className="btn btn-primary"
+                style={{ height: '24px', padding: '0 8px', fontSize: '10.5px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                 title="Copy entire pitch script to clipboard"
               >
-                {pitchCopied ? (
-                  <>
-                    <Check size={12} className="text-emerald-500" />
-                    <span>Copied!</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy size={12} />
-                    <span>Copy Pitch</span>
-                  </>
-                )}
+                {pitchCopied ? <Check size={11} /> : <Copy size={11} />}
+                <span>{pitchCopied ? 'Copied' : 'Copy Pitch'}</span>
               </button>
             </div>
 
-            {/* Bulleted Talking Points */}
-            <div className="space-y-3">
+            <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {pitchBulletPoints.map((bp, idx) => (
                 <div
                   key={idx}
-                  className="p-3 rounded-xl bg-slate-50 dark:bg-[#141926] border border-slate-200/80 dark:border-[#1e2433] space-y-1"
+                  style={{
+                    padding: '9px 11px',
+                    border: '1px solid var(--color-divider)',
+                    backgroundColor: 'var(--color-panel-header)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '3px',
+                  }}
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="w-4 h-4 rounded-full bg-cyan-600/15 text-cyan-700 dark:text-cyan-300 font-mono text-[10px] font-bold flex items-center justify-center shrink-0">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span
+                      style={{
+                        width: '16px',
+                        height: '16px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '9.5px',
+                        fontWeight: 700,
+                        fontFamily: MONO_FONT,
+                        backgroundColor: 'var(--color-accent)',
+                        color: '#000000',
+                        borderRadius: '2px',
+                        flexShrink: 0,
+                      }}
+                    >
                       {idx + 1}
                     </span>
-                    <span className="text-xs font-bold text-slate-900 dark:text-zinc-100">
+                    <span style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--color-text)' }}>
                       {bp.title}
                     </span>
                   </div>
-                  <p className="text-[11.5px] leading-relaxed text-slate-600 dark:text-zinc-300 pl-6">
+                  <p style={{ margin: 0, paddingLeft: '22px', fontSize: '11px', lineHeight: 1.45, color: 'var(--color-muted)' }}>
                     {bp.detail}
                   </p>
                 </div>
@@ -478,33 +702,54 @@ export function ShippingExposureStep({
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-slate-200 dark:border-[#1e2433] text-[11px] text-slate-500 dark:text-zinc-500 flex items-center justify-between">
-            <span>Ready for outreach via email / phone</span>
-            <span className="font-semibold text-cyan-600 dark:text-cyan-400">
-              High-Conviction Conversion
-            </span>
+          <div
+            style={{
+              padding: '8px 14px',
+              borderTop: '1px solid var(--color-divider)',
+              backgroundColor: 'var(--color-panel-header)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              fontSize: '10.5px',
+              color: 'var(--color-muted)',
+            }}
+          >
+            <span>Ready for bilateral outreach</span>
+            <span style={{ fontWeight: 600, color: 'var(--color-accent)' }}>High-Conviction Conversion</span>
           </div>
         </div>
       </div>
 
-      {/* Bottom Navigation Bar */}
-      <div className="bg-white dark:bg-[#0e1118] border border-slate-200 dark:border-[#1e2433] rounded-2xl p-4 flex items-center justify-between gap-4 shadow-xs">
+      {/* Bottom Dock Navigation Bar */}
+      <div
+        style={{
+          border: '1px solid var(--color-divider)',
+          backgroundColor: 'var(--color-surface)',
+          padding: '10px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '12px',
+        }}
+      >
         <button
           type="button"
           onClick={onBack}
-          className="btn btn-secondary flex items-center gap-2 text-xs font-semibold px-4 py-2"
+          className="btn btn-secondary"
+          style={{ height: '32px', padding: '0 14px', fontSize: '11.5px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}
         >
-          <ArrowLeft size={14} />
+          <ArrowLeft size={13} />
           <span>Back to Directory</span>
         </button>
 
         <button
           type="button"
           onClick={onNext}
-          className="btn btn-primary flex items-center gap-2 text-xs font-bold px-6 py-2 shadow-xs"
+          className="btn btn-primary"
+          style={{ height: '32px', padding: '0 18px', fontSize: '11.5px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}
         >
           <span>Next: Price Bio-LNG Solution</span>
-          <ArrowRight size={14} />
+          <ArrowRight size={13} />
         </button>
       </div>
     </div>

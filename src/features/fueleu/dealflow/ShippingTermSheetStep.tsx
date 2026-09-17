@@ -253,71 +253,122 @@ Contact: ${counterparty.key_executive} (${contactEmail})`.trim();
   };
 
   return (
-    <div className="max-w-6xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
-      {/* Top Header Card */}
-      <div className="bg-white dark:bg-[#0e1118] border border-slate-200 dark:border-[#1e2433] rounded-2xl p-6 shadow-xs dark:shadow-md">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-[#141a29] text-cyan-600 dark:text-cyan-400 border border-slate-200 dark:border-[#1e2433]">
-                {dealRef}
-              </span>
-              <span className="text-xl font-bold text-slate-900 dark:text-zinc-100">
-                {counterparty.parent_name}
-              </span>
-              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
-                TERM SHEET READY
-              </span>
-            </div>
-            <p className="text-xs text-slate-600 dark:text-zinc-400">
-              Institutional OTC Term Sheet &amp; Deal Note · Compliant under Regulation (EU) 2023/1805 &amp; Directive (EU) 2023/959
-            </p>
+    <div className="w-full max-w-[1600px] mx-auto p-4 sm:p-5 space-y-4">
+      {/* Top Header Strip */}
+      <div
+        style={{
+          border: '1px solid var(--color-divider)',
+          backgroundColor: 'var(--color-surface)',
+          padding: '14px 18px',
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '14px',
+        }}
+      >
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+            <span
+              style={{
+                fontFamily: MONO_FONT,
+                fontSize: '11px',
+                fontWeight: 700,
+                color: 'var(--color-accent)',
+                padding: '1px 6px',
+                border: '1px solid var(--color-divider)',
+                backgroundColor: 'var(--color-subtier)',
+              }}
+            >
+              {dealRef}
+            </span>
+            <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.01em' }}>
+              {counterparty.parent_name}
+            </h2>
+            <span
+              style={{
+                fontSize: '10.5px',
+                fontWeight: 700,
+                padding: '2px 8px',
+                border: '1px solid rgba(16, 185, 129, 0.4)',
+                backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                color: 'var(--color-status-pos-text)',
+              }}
+            >
+              TERM SHEET READY
+            </span>
           </div>
-
-          {/* Action Buttons */}
-          <div className="flex items-center gap-2 flex-wrap shrink-0">
-            <button
-              type="button"
-              onClick={handleExportTermSheetFile}
-              className="btn btn-secondary flex items-center gap-1.5 text-xs font-semibold px-3 py-2"
-              title="Download institutional text file"
-            >
-              <Download size={13} />
-              <span>Export Term Sheet (.TXT)</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleCopyDealSummary}
-              className="btn btn-secondary flex items-center gap-1.5 text-xs font-semibold px-3 py-2"
-              title="Copy concise deal summary"
-            >
-              {dealCopied ? <Check size={13} className="text-emerald-500" /> : <Copy size={13} />}
-              <span>{dealCopied ? 'Copied!' : 'Copy Deal Summary'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleExecuteTrade}
-              className="btn btn-primary flex items-center gap-1.5 text-xs font-bold px-4 py-2 shadow-xs"
-              title="Pre-populate and open in Trade Builder"
-            >
-              <Zap size={13} />
-              <span>Execute in Trade Builder →</span>
-            </button>
+          <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
+            Institutional OTC Term Sheet &amp; Deal Note · Compliant under Regulation (EU) 2023/1805 &amp; Directive (EU) 2023/959
           </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={handleExportTermSheetFile}
+            className="btn btn-secondary"
+            style={{ height: '32px', padding: '0 12px', fontSize: '11.5px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}
+            title="Download institutional text file"
+          >
+            <Download size={13} />
+            <span>Export Term Sheet (.TXT)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleCopyDealSummary}
+            className="btn btn-secondary"
+            style={{ height: '32px', padding: '0 12px', fontSize: '11.5px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}
+            title="Copy concise deal summary"
+          >
+            {dealCopied ? <Check size={13} style={{ color: 'var(--color-status-pos-text)' }} /> : <Copy size={13} />}
+            <span>{dealCopied ? 'Copied!' : 'Copy Deal Summary'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleExecuteTrade}
+            className="btn btn-primary"
+            style={{ height: '32px', padding: '0 16px', fontSize: '11.5px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}
+            title="Pre-populate and open in Trade Builder"
+          >
+            <Zap size={13} />
+            <span>Execute in Trade Builder →</span>
+          </button>
         </div>
       </div>
 
       {/* Institutional Term Sheet Preview Box */}
-      <div className="bg-white dark:bg-[#0e1118] border border-slate-200 dark:border-[#1e2433] rounded-2xl overflow-hidden shadow-xs dark:shadow-md">
+      <div
+        style={{
+          border: '1px solid var(--color-divider)',
+          backgroundColor: 'var(--color-surface)',
+          overflow: 'hidden',
+        }}
+      >
         {/* Term Sheet Header Bar */}
-        <div className="bg-slate-50 dark:bg-[#141926] border-b border-slate-200 dark:border-[#1e2433] px-6 py-3.5 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wider">
-            <FileText size={15} className="text-cyan-600 dark:text-cyan-400" />
-            <span>Institutional Deal Note Preview</span>
+        <div
+          style={{
+            padding: '10px 16px',
+            borderBottom: '1px solid var(--color-divider)',
+            backgroundColor: 'var(--color-panel-header)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '8px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <FileText size={14} style={{ color: 'var(--color-accent)' }} />
+            <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Institutional Deal Note Preview
+            </span>
           </div>
-          <div className="flex items-center gap-2 text-[11px] font-mono text-slate-500 dark:text-zinc-400">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10.5px', fontFamily: MONO_FONT, color: 'var(--color-muted)' }}>
             <span>BIMCO BUNKER TERMS 2020</span>
             <span>·</span>
             <span>EFET DECARB ANNEX</span>
@@ -325,100 +376,185 @@ Contact: ${counterparty.key_executive} (${contactEmail})`.trim();
         </div>
 
         {/* Formatted Term Sheet Content */}
-        <div className="p-6 space-y-6 text-xs text-slate-700 dark:text-zinc-300 font-mono leading-relaxed overflow-x-auto">
+        <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px', fontFamily: MONO_FONT, fontSize: '12px' }}>
           {/* Section 1 */}
-          <div className="border border-slate-200 dark:border-[#1e2433] rounded-xl p-4 bg-slate-50/50 dark:bg-[#10141f]">
-            <div className="font-bold text-slate-900 dark:text-zinc-100 text-sm mb-2 pb-1 border-b border-slate-200 dark:border-[#1e2433] flex items-center justify-between">
+          <div
+            style={{
+              border: '1px solid var(--color-divider)',
+              backgroundColor: 'var(--color-subtier)',
+              padding: '14px',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingBottom: '8px',
+                marginBottom: '10px',
+                borderBottom: '1px solid var(--color-divider)',
+                fontWeight: 700,
+                fontSize: '12.5px',
+                color: 'var(--color-text)',
+              }}
+            >
               <span>1. AUDITED BASELINE FLEET EXPOSURE (EMSA THETIS-MRV)</span>
-              <span className="text-[10px] text-cyan-600 dark:text-cyan-400 font-normal">AUDITED DIRECTIVE</span>
+              <span style={{ fontSize: '10px', color: 'var(--color-accent)', fontWeight: 600 }}>AUDITED DIRECTIVE</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-              <div>• Fleet Energy in Scope: <strong>{(counterparty.total_energy_mwh / 1000).toFixed(1)} GWh</strong></div>
-              <div>• FuelEU Target: <strong>89.34 gCO2e/MJ</strong> (Actual: {counterparty.actual_ghgie.toFixed(2)})</div>
-              <div>• Vessels in Scope: <strong>{counterparty.vessels_in_scope}</strong> ({isDualFuel ? `${counterparty.lng_vessels_in_scope} LNG-ready` : 'Conventional'})</div>
-              <div>• 2025 FuelEU Penalty: <strong className="text-rose-600 dark:text-rose-400">€{(counterparty.penalty_2025_y1_eur / 1e6).toFixed(2)}M</strong></div>
-              <div>• 2025 EU ETS Liability (70%): <strong className="text-amber-600 dark:text-amber-400">€{(counterparty.ets_exposure_2025_eur / 1e6).toFixed(2)}M</strong></div>
-              <div>• Combined 2025 Exposure: <strong className="text-slate-900 dark:text-zinc-100">€{(counterparty.combined_regulatory_exposure_2025_eur / 1e6).toFixed(2)}M</strong></div>
+              <div>• Fleet Energy in Scope: <strong style={{ color: 'var(--color-text)' }}>{(counterparty.total_energy_mwh / 1000).toFixed(1)} GWh</strong></div>
+              <div>• FuelEU Target: <strong style={{ color: 'var(--color-text)' }}>89.34 gCO2e/MJ</strong> (Actual: {counterparty.actual_ghgie.toFixed(2)})</div>
+              <div>• Vessels in Scope: <strong style={{ color: 'var(--color-text)' }}>{counterparty.vessels_in_scope}</strong> ({isDualFuel ? `${counterparty.lng_vessels_in_scope} LNG-ready` : 'Conventional'})</div>
+              <div>• 2025 FuelEU Penalty: <strong style={{ color: 'var(--color-status-neg-text)' }}>€{(counterparty.penalty_2025_y1_eur / 1e6).toFixed(2)}M</strong></div>
+              <div>• 2025 EU ETS Liability (70%): <strong style={{ color: 'var(--color-warning)' }}>€{(counterparty.ets_exposure_2025_eur / 1e6).toFixed(2)}M</strong></div>
+              <div>• Combined 2025 Exposure: <strong style={{ color: 'var(--color-status-neg-text)' }}>€{(counterparty.combined_regulatory_exposure_2025_eur / 1e6).toFixed(2)}M</strong></div>
             </div>
           </div>
 
           {/* Section 2 */}
-          <div className="border border-slate-200 dark:border-[#1e2433] rounded-xl p-4 bg-slate-50/50 dark:bg-[#10141f]">
-            <div className="font-bold text-slate-900 dark:text-zinc-100 text-sm mb-2 pb-1 border-b border-slate-200 dark:border-[#1e2433] flex items-center justify-between">
+          <div
+            style={{
+              border: '1px solid var(--color-divider)',
+              backgroundColor: 'var(--color-subtier)',
+              padding: '14px',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingBottom: '8px',
+                marginBottom: '10px',
+                borderBottom: '1px solid var(--color-divider)',
+                fontWeight: 700,
+                fontSize: '12.5px',
+                color: 'var(--color-text)',
+              }}
+            >
               <span>2. INSTITUTIONAL MARINE BUNKER PRICING ENGINE</span>
-              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-normal">DELIVERED QUOTE</span>
+              <span style={{ fontSize: '10px', color: 'var(--color-status-pos-text)', fontWeight: 600 }}>DELIVERED QUOTE</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-              <div>• TTF Natural Gas Front-Month: <strong>€{ttfGasIndex.toFixed(2)} / MWh</strong></div>
-              <div>• Liquefaction &amp; Terminal Fee: <strong>€{liquefactionFee.toFixed(2)} / MWh</strong></div>
-              <div>• RED III Green Bio-LNG Premium: <strong>€{greenPremium.toFixed(2)} / MWh</strong></div>
-              <div>• All-In Bio-LNG Energy Price: <strong className="text-cyan-700 dark:text-cyan-300">€{marineQuote.allInBioLngPriceEurMwh.toFixed(2)} / MWh</strong></div>
-              <div>• Delivered Bio-LNG Quote (EUR): <strong className="text-slate-900 dark:text-zinc-100 text-sm">€{marineQuote.allInBioLngPriceEurPerTonne.toLocaleString()} / tonne</strong></div>
-              <div>• Delivered Bio-LNG Quote (USD): <strong className="text-slate-900 dark:text-zinc-100 text-sm">${marineQuote.allInBioLngPriceUsdPerTonne.toLocaleString()} / tonne</strong></div>
-              <div>• Benchmark Conventional Alternative: <strong>€{marineQuote.totalConventionalAlternativeCostEur.toFixed(2)} / t Bio-LNG eq</strong></div>
-              <div>• Net Client Arbitrage Advantage: <strong className="text-emerald-600 dark:text-emerald-400">+€{marineQuote.netSavingsPerTonneBioLngEur.toFixed(2)} / tonne</strong></div>
+              <div>• TTF Natural Gas Front-Month: <strong style={{ color: 'var(--color-text)' }}>€{ttfGasIndex.toFixed(2)} / MWh</strong></div>
+              <div>• Liquefaction &amp; Terminal Fee: <strong style={{ color: 'var(--color-text)' }}>€{liquefactionFee.toFixed(2)} / MWh</strong></div>
+              <div>• RED III Green Bio-LNG Premium: <strong style={{ color: 'var(--color-text)' }}>€{greenPremium.toFixed(2)} / MWh</strong></div>
+              <div>• All-In Bio-LNG Energy Price: <strong style={{ color: 'var(--color-accent)' }}>€{marineQuote.allInBioLngPriceEurMwh.toFixed(2)} / MWh</strong></div>
+              <div>• Delivered Bio-LNG Quote (EUR): <strong style={{ color: 'var(--color-text)', fontSize: '13px' }}>€{marineQuote.allInBioLngPriceEurPerTonne.toLocaleString()} / tonne</strong></div>
+              <div>• Delivered Bio-LNG Quote (USD): <strong style={{ color: 'var(--color-text)', fontSize: '13px' }}>${marineQuote.allInBioLngPriceUsdPerTonne.toLocaleString()} / tonne</strong></div>
+              <div>• Benchmark Conventional Alternative: <strong style={{ color: 'var(--color-text)' }}>€{marineQuote.totalConventionalAlternativeCostEur.toFixed(2)} / t Bio-LNG eq</strong></div>
+              <div>• Net Client Arbitrage Advantage: <strong style={{ color: 'var(--color-status-pos-text)' }}>+€{marineQuote.netSavingsPerTonneBioLngEur.toFixed(2)} / tonne</strong></div>
             </div>
           </div>
 
           {/* Section 3 */}
-          <div className="border border-slate-200 dark:border-[#1e2433] rounded-xl p-4 bg-slate-50/50 dark:bg-[#10141f]">
-            <div className="font-bold text-slate-900 dark:text-zinc-100 text-sm mb-2 pb-1 border-b border-slate-200 dark:border-[#1e2433] flex items-center justify-between">
+          <div
+            style={{
+              border: '1px solid var(--color-divider)',
+              backgroundColor: 'var(--color-subtier)',
+              padding: '14px',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingBottom: '8px',
+                marginBottom: '10px',
+                borderBottom: '1px solid var(--color-divider)',
+                fontWeight: 700,
+                fontSize: '12.5px',
+                color: 'var(--color-text)',
+              }}
+            >
               <span>3. STRUCTURED TRANSACTION SCHEDULE &amp; EXECUTION</span>
-              <span className="text-[10px] text-cyan-600 dark:text-cyan-400 font-normal">OTC COMMODITY</span>
+              <span style={{ fontSize: '10px', color: 'var(--color-accent)', fontWeight: 600 }}>OTC COMMODITY</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-              <div>• Product Volume: <strong>{pathway === 'PHYSICAL' ? `${counterparty.bio_lng_required_neg100_t.toLocaleString()} tonnes (${counterparty.bio_lng_required_neg100_mwh.toLocaleString()} MWh)` : `${Math.abs(counterparty.compliance_balance_2025_tco2e).toLocaleString()} tCO₂e (Article 21)`}</strong></div>
-              <div>• Substrate / Solution: <strong>{pathway === 'PHYSICAL' ? 'Manure (-100 gCO₂e/MJ)' : 'Drop-in Biofuel Compliance Pool'}</strong></div>
-              <div>• Delivery Hubs / Registry: <strong>{counterparty.primary_bunkering_hubs}</strong> ({pathway === 'PHYSICAL' ? 'DES / TTS' : 'Thetis-MRV'})</div>
-              <div>• Total Transaction Value: <strong>{pathway === 'PHYSICAL' ? `€${(marineQuote.totalBioLngInvoiceEur || 0).toLocaleString()}` : `€${Math.round(Math.abs(counterparty.compliance_balance_2025_tco2e) * 435).toLocaleString()}`}</strong></div>
-              <div>• Total Net Client Savings: <strong className="text-emerald-600 dark:text-emerald-400">€{effectiveClientSavingsEur.toLocaleString()}</strong></div>
-              <div>• Desk Structuring Margin: <strong className="text-cyan-700 dark:text-cyan-300">€{effectiveDeskMarginEur.toLocaleString()}</strong></div>
+              <div>• Product Volume: <strong style={{ color: 'var(--color-text)' }}>{pathway === 'PHYSICAL' ? `${counterparty.bio_lng_required_neg100_t.toLocaleString()} tonnes (${counterparty.bio_lng_required_neg100_mwh.toLocaleString()} MWh)` : `${Math.abs(counterparty.compliance_balance_2025_tco2e).toLocaleString()} tCO₂e (Article 21)`}</strong></div>
+              <div>• Substrate / Solution: <strong style={{ color: 'var(--color-text)' }}>{pathway === 'PHYSICAL' ? 'Manure (-100 gCO₂e/MJ)' : 'Drop-in Biofuel Compliance Pool'}</strong></div>
+              <div>• Delivery Hubs / Registry: <strong style={{ color: 'var(--color-accent)' }}>{counterparty.primary_bunkering_hubs}</strong> ({pathway === 'PHYSICAL' ? 'DES / TTS' : 'Thetis-MRV'})</div>
+              <div>• Total Transaction Value: <strong style={{ color: 'var(--color-text)' }}>{pathway === 'PHYSICAL' ? `€${(marineQuote.totalBioLngInvoiceEur || 0).toLocaleString()}` : `€${Math.round(Math.abs(counterparty.compliance_balance_2025_tco2e) * 435).toLocaleString()}`}</strong></div>
+              <div>• Total Net Client Savings: <strong style={{ color: 'var(--color-status-pos-text)' }}>€{effectiveClientSavingsEur.toLocaleString()}</strong></div>
+              <div>• Desk Structuring Margin: <strong style={{ color: 'var(--color-accent)' }}>€{effectiveDeskMarginEur.toLocaleString()}</strong></div>
             </div>
           </div>
 
           {/* Section 4 */}
-          <div className="border border-slate-200 dark:border-[#1e2433] rounded-xl p-4 bg-slate-50/50 dark:bg-[#10141f]">
-            <div className="font-bold text-slate-900 dark:text-zinc-100 text-sm mb-2 pb-1 border-b border-slate-200 dark:border-[#1e2433] flex items-center justify-between">
+          <div
+            style={{
+              border: '1px solid var(--color-divider)',
+              backgroundColor: 'var(--color-subtier)',
+              padding: '14px',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingBottom: '8px',
+                marginBottom: '10px',
+                borderBottom: '1px solid var(--color-divider)',
+                fontWeight: 700,
+                fontSize: '12.5px',
+                color: 'var(--color-text)',
+              }}
+            >
               <span>4. STATUTORY VERIFICATION &amp; GOVERNING JURISDICTION</span>
-              <span className="text-[10px] text-slate-500 font-normal">LEGAL VALIDATION</span>
+              <span style={{ fontSize: '10px', color: 'var(--color-muted)', fontWeight: 600 }}>LEGAL VALIDATION</span>
             </div>
-            <div className="text-xs space-y-1 text-slate-600 dark:text-zinc-300">
-              <div>• Certification: ISCC EU / REDcert-EU Mass Balance under RED III (Directive (EU) 2018/2001)</div>
-              <div>• EU ETS Zero-Rating: Verified under Regulation (EU) 2015/757 &amp; Directive (EU) 2023/959</div>
-              <div>• Governing Contract: Standard BIMCO Bunker Terms 2020 / EFET Marine Decarbonisation Annex</div>
-              <div>• Jurisdiction: Rotterdam, The Netherlands (POB / Rotterdam District Court Arbitration)</div>
+            <div className="text-xs space-y-1.5" style={{ color: 'var(--color-muted)' }}>
+              <div>• Certification: <span style={{ color: 'var(--color-text)' }}>ISCC EU / REDcert-EU Mass Balance under RED III (Directive (EU) 2018/2001)</span></div>
+              <div>• EU ETS Zero-Rating: <span style={{ color: 'var(--color-text)' }}>Verified under Regulation (EU) 2015/757 &amp; Directive (EU) 2023/959</span></div>
+              <div>• Governing Contract: <span style={{ color: 'var(--color-text)' }}>Standard BIMCO Bunker Terms 2020 / EFET Marine Decarbonisation Annex</span></div>
+              <div>• Jurisdiction: <span style={{ color: 'var(--color-text)' }}>Rotterdam, The Netherlands (POB / Rotterdam District Court Arbitration)</span></div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Bottom Navigation Bar */}
-      <div className="bg-white dark:bg-[#0e1118] border border-slate-200 dark:border-[#1e2433] rounded-2xl p-4 flex items-center justify-between gap-4 shadow-xs">
+      {/* Bottom Dock Navigation Bar */}
+      <div
+        style={{
+          border: '1px solid var(--color-divider)',
+          backgroundColor: 'var(--color-surface)',
+          padding: '10px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '12px',
+        }}
+      >
         <button
           type="button"
           onClick={onBack}
-          className="btn btn-secondary flex items-center gap-2 text-xs font-semibold px-4 py-2"
+          className="btn btn-secondary"
+          style={{ height: '32px', padding: '0 14px', fontSize: '11.5px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}
         >
-          <ArrowLeft size={14} />
+          <ArrowLeft size={13} />
           <span>Back: Pricing</span>
         </button>
 
-        <div className="flex items-center gap-3">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <button
             type="button"
             onClick={onReset}
-            className="btn btn-secondary flex items-center gap-1.5 text-xs font-semibold px-4 py-2"
+            className="btn btn-secondary"
+            style={{ height: '32px', padding: '0 12px', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            <RotateCcw size={13} />
-            <span>Start New Deal (Return to Directory)</span>
+            <RotateCcw size={12} />
+            <span>Return to Directory</span>
           </button>
 
           <button
             type="button"
             onClick={handleExecuteTrade}
-            className="btn btn-primary flex items-center gap-2 text-xs font-bold px-5 py-2 shadow-xs"
+            className="btn btn-primary"
+            style={{ height: '32px', padding: '0 18px', fontSize: '11.5px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}
           >
-            <Zap size={14} />
+            <Zap size={13} />
             <span>Execute in Trade Builder →</span>
           </button>
         </div>

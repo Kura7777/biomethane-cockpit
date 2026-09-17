@@ -152,218 +152,326 @@ export function FuelEUShippingScreen() {
     });
   };
 
+  const isInDealFlow = Boolean(selectedCounterparty && currentStep > 1);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' }}>
-      {/* Screen Title & Statutory Gating Bar */}
-      <div
-        style={{
-          padding: '12px 18px',
-          borderBottom: '1px solid var(--color-divider)',
-          backgroundColor: 'var(--color-surface)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '12px',
-        }}
-      >
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
-            <h3 className="ptitle" style={{ margin: 0, fontSize: '18px', letterSpacing: '-0.01em' }}>
-              FuelEU Maritime Compliance Desk
-            </h3>
-            <span
+      {/* 1. When NOT in deal flow: Show standard Screen Title & Desk Tabs */}
+      {!isInDealFlow && (
+        <>
+          {/* Screen Title & Statutory Gating Bar */}
+          <div
+            style={{
+              padding: '12px 18px',
+              borderBottom: '1px solid var(--color-divider)',
+              backgroundColor: 'var(--color-surface)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '12px',
+            }}
+          >
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                <h3 className="ptitle" style={{ margin: 0, fontSize: '18px', letterSpacing: '-0.01em' }}>
+                  FuelEU Maritime Compliance Desk
+                </h3>
+                <span
+                  style={{
+                    fontSize: '10px',
+                    fontFamily: 'monospace',
+                    fontWeight: 600,
+                    letterSpacing: '0.04em',
+                    padding: '2px 7px',
+                    border: '1px solid var(--color-divider)',
+                    backgroundColor: 'var(--color-subtier)',
+                    color: 'var(--color-muted)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                  }}
+                >
+                  <span style={{ width: '6px', height: '6px', backgroundColor: '#10b981', display: 'inline-block' }} />
+                  REGULATION (EU) 2023/1805
+                </span>
+                <span
+                  style={{
+                    fontSize: '10px',
+                    fontFamily: 'monospace',
+                    fontWeight: 600,
+                    letterSpacing: '0.04em',
+                    padding: '2px 7px',
+                    border: '1px solid var(--color-divider)',
+                    backgroundColor: 'var(--color-subtier)',
+                    color: 'var(--color-muted)',
+                  }}
+                >
+                  EMSA THETIS-MRV AUDITED
+                </span>
+              </div>
+              <div className="subttl" style={{ fontSize: '12px' }}>
+                Pan-European compliance ledger · {totalGroups.toLocaleString()} shipping groups · {totalVessels.toLocaleString()} commercial vessels · Article 20 physical Bio-LNG &amp; Article 21 pooling
+              </div>
+            </div>
+
+            {/* Action / Reference Links */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => navigate('/citations')}
+                className="btn btn-secondary"
+                style={{ fontSize: '11px', padding: '0 10px', height: '28px', display: 'flex', alignItems: 'center', gap: '5px' }}
+              >
+                <BookOpen size={12} style={{ color: 'var(--color-accent)' }} /> Citations &amp; Legal Basis
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/data-sources')}
+                className="btn btn-secondary"
+                style={{ fontSize: '11px', padding: '0 10px', height: '28px', display: 'flex', alignItems: 'center', gap: '5px' }}
+              >
+                <ShieldCheck size={12} style={{ color: 'var(--color-status-pos-text)' }} /> EU MRV Provenance
+              </button>
+            </div>
+          </div>
+
+          {/* Institutional Desk Navigation Tabs */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'stretch',
+              borderBottom: '1px solid var(--color-divider)',
+              backgroundColor: 'var(--color-panel-header)',
+              padding: '0 18px',
+              gap: '2px',
+            }}
+          >
+            {[
+              { id: 'DIRECTORY' as const, label: `Deal Flow & Directory (${totalGroups.toLocaleString()})`, icon: Ship },
+              { id: 'CALCULATOR' as const, label: 'Vessel Archetypes', icon: Sliders },
+              { id: 'PATHWAYS' as const, label: 'Commercial Pathways (Art. 21)', icon: Scale },
+            ].map((tab) => {
+              const isActive = activeTab === tab.id;
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => handleSelectTab(tab.id)}
+                  style={{
+                    height: '36px',
+                    padding: '0 16px',
+                    border: 'none',
+                    borderBottom: isActive ? '2px solid var(--color-accent)' : '2px solid transparent',
+                    backgroundColor: isActive ? 'var(--color-surface)' : 'transparent',
+                    color: isActive ? 'var(--color-text)' : 'var(--color-muted)',
+                    fontWeight: isActive ? 700 : 500,
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '7px',
+                    transition: 'all 150ms ease',
+                  }}
+                >
+                  <Icon size={13} style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-muted)' }} />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {/* 2. When IN deal flow (Steps 2..4): Show a single, sleek, unified Bloomberg Deal Flow Command Bar */}
+      {isInDealFlow && selectedCounterparty && (
+        <div
+          style={{
+            padding: '8px 18px',
+            borderBottom: '1px solid var(--color-divider)',
+            backgroundColor: 'var(--color-surface)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '16px',
+            flexWrap: 'nowrap',
+          }}
+        >
+          {/* Left: Quick Back to Directory & Active Target ID */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+            <button
+              type="button"
+              onClick={() => handleNavigateStep(1)}
+              className="btn btn-secondary"
               style={{
-                fontSize: '10px',
-                fontFamily: 'monospace',
+                fontSize: '11px',
+                height: '28px',
+                padding: '0 10px',
                 fontWeight: 600,
-                letterSpacing: '0.04em',
-                padding: '2px 7px',
-                border: '1px solid var(--color-divider)',
-                backgroundColor: 'var(--color-subtier)',
-                color: 'var(--color-muted)',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '5px',
+                cursor: 'pointer',
               }}
+              title="Return to 1,850 Counterparties Directory"
             >
-              <span style={{ width: '6px', height: '6px', backgroundColor: '#10b981', display: 'inline-block' }} />
-              REGULATION (EU) 2023/1805
-            </span>
-            <span
+              <ArrowLeft size={13} style={{ color: 'var(--color-accent)' }} />
+              <span>Directory (1,850)</span>
+            </button>
+
+            <div style={{ width: '1px', height: '18px', backgroundColor: 'var(--color-divider)' }} />
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontFamily: 'monospace',
+                  fontWeight: 700,
+                  color: 'var(--color-accent)',
+                  padding: '1px 5px',
+                  border: '1px solid var(--color-divider)',
+                  backgroundColor: 'var(--color-subtier)',
+                }}
+              >
+                #{selectedCounterparty.rank}
+              </span>
+              <span style={{ fontWeight: 700, fontSize: '13px', color: 'var(--color-text)', letterSpacing: '-0.01em' }}>
+                {selectedCounterparty.parent_name}
+              </span>
+              <span
+                style={{
+                  fontSize: '10px',
+                  padding: '1px 6px',
+                  border: '1px solid var(--color-divider)',
+                  color: 'var(--color-muted)',
+                  backgroundColor: 'var(--color-subtier)',
+                }}
+              >
+                {selectedCounterparty.fleetCapability === 'DUAL_FUEL_LNG'
+                  ? `Dual-Fuel LNG (${selectedCounterparty.lng_vessels_in_scope}v)`
+                  : `Conventional (${selectedCounterparty.vessels_in_scope}v)`}
+              </span>
+            </div>
+          </div>
+
+          {/* Center: Sleek 4-Step Stepper Flow */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+            {DEAL_STEPS.map((s, idx) => {
+              const isDone = currentStep > s.step;
+              const isCurrent = currentStep === s.step;
+
+              return (
+                <React.Fragment key={s.step}>
+                  <button
+                    type="button"
+                    onClick={() => handleNavigateStep(s.step as any)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: '2px 4px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '7px',
+                      opacity: isCurrent || isDone ? 1 : 0.45,
+                      transition: 'opacity 150ms ease',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '22px',
+                        height: '22px',
+                        borderRadius: '2px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '10.5px',
+                        fontWeight: 700,
+                        fontFamily: 'monospace',
+                        backgroundColor: isCurrent
+                          ? 'var(--color-accent)'
+                          : isDone
+                          ? 'var(--color-status-pos-bg, rgba(16, 185, 129, 0.15))'
+                          : 'var(--color-subtier)',
+                        color: isCurrent
+                          ? '#000000'
+                          : isDone
+                          ? 'var(--color-status-pos-text)'
+                          : 'var(--color-muted)',
+                        border: isCurrent
+                          ? '1px solid var(--color-accent)'
+                          : isDone
+                          ? '1px solid var(--color-status-pos-border, #10b981)'
+                          : '1px solid var(--color-divider)',
+                      }}
+                    >
+                      {isDone ? <Check size={12} strokeWidth={3} /> : s.step}
+                    </div>
+                    <span
+                      style={{
+                        fontSize: '11.5px',
+                        fontWeight: isCurrent ? 700 : 500,
+                        color: isCurrent ? 'var(--color-text)' : 'var(--color-muted)',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {s.title}
+                    </span>
+                  </button>
+
+                  {idx < DEAL_STEPS.length - 1 && (
+                    <div
+                      style={{
+                        width: '24px',
+                        height: '1px',
+                        backgroundColor: currentStep > s.step ? 'var(--color-accent)' : 'var(--color-divider)',
+                        flexShrink: 0,
+                      }}
+                    />
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
+
+          {/* Right: Key Liability Badge & Legal Reference */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+            <div
               style={{
-                fontSize: '10px',
-                fontFamily: 'monospace',
-                fontWeight: 600,
-                letterSpacing: '0.04em',
-                padding: '2px 7px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '2px 8px',
                 border: '1px solid var(--color-divider)',
                 backgroundColor: 'var(--color-subtier)',
-                color: 'var(--color-muted)',
+                fontSize: '11px',
+                fontFamily: 'monospace',
               }}
             >
-              EMSA THETIS-MRV AUDITED
-            </span>
-          </div>
-          <div className="subttl" style={{ fontSize: '12px' }}>
-            Pan-European compliance ledger · {totalGroups.toLocaleString()} shipping groups · {totalVessels.toLocaleString()} commercial vessels · Article 20 physical Bio-LNG &amp; Article 21 pooling
-          </div>
-        </div>
+              <span style={{ color: 'var(--color-muted)' }}>2025 Risk:</span>
+              <span style={{ fontWeight: 700, color: 'var(--color-status-neg-text)' }}>
+                €{(selectedCounterparty.combined_regulatory_exposure_2025_eur / 1e6).toFixed(2)}M
+              </span>
+            </div>
 
-        {/* Action / Reference Links */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <button
-            type="button"
-            onClick={() => navigate('/citations')}
-            className="btn btn-secondary"
-            style={{ fontSize: '11px', padding: '0 10px', height: '28px', display: 'flex', alignItems: 'center', gap: '5px' }}
-          >
-            <BookOpen size={12} style={{ color: 'var(--color-accent)' }} /> Citations &amp; Legal Basis
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate('/data-sources')}
-            className="btn btn-secondary"
-            style={{ fontSize: '11px', padding: '0 10px', height: '28px', display: 'flex', alignItems: 'center', gap: '5px' }}
-          >
-            <ShieldCheck size={12} style={{ color: 'var(--color-status-pos-text)' }} /> EU MRV Provenance
-          </button>
-        </div>
-      </div>
-
-      {/* Institutional Desk Navigation Tabs */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'stretch',
-          borderBottom: '1px solid var(--color-divider)',
-          backgroundColor: 'var(--color-panel-header)',
-          padding: '0 18px',
-          gap: '2px',
-        }}
-      >
-        {[
-          { id: 'DIRECTORY' as const, label: `Deal Flow & Directory (${totalGroups.toLocaleString()})`, icon: Ship },
-          { id: 'CALCULATOR' as const, label: 'Vessel Archetypes', icon: Sliders },
-          { id: 'PATHWAYS' as const, label: 'Commercial Pathways (Art. 21)', icon: Scale },
-        ].map((tab) => {
-          const isActive = activeTab === tab.id;
-          const Icon = tab.icon;
-          return (
             <button
-              key={tab.id}
               type="button"
-              onClick={() => handleSelectTab(tab.id)}
-              style={{
-                height: '36px',
-                padding: '0 16px',
-                border: 'none',
-                borderBottom: isActive ? '2px solid var(--color-accent)' : '2px solid transparent',
-                backgroundColor: isActive ? 'var(--color-surface)' : 'transparent',
-                color: isActive ? 'var(--color-text)' : 'var(--color-muted)',
-                fontWeight: isActive ? 700 : 500,
-                fontSize: '12px',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '7px',
-                transition: 'all 150ms ease',
-              }}
+              onClick={() => navigate('/citations')}
+              className="btn btn-secondary"
+              style={{ fontSize: '10.5px', padding: '0 8px', height: '26px', display: 'flex', alignItems: 'center', gap: '4px' }}
+              title="View statutory legislation & formulas"
             >
-              <Icon size={13} style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-muted)' }} />
-              <span>{tab.label}</span>
+              <BookOpen size={11} style={{ color: 'var(--color-accent)' }} /> Citations
             </button>
-          );
-        })}
-      </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Tab Body */}
       <div style={{ flex: 1, minHeight: 0 }}>
         {activeTab === 'DIRECTORY' && (
           <div className="flex flex-col min-h-full">
-            {/* Stepper Navigation Header (Visible when a counterparty is active in dealflow steps 2..4) */}
-            {selectedCounterparty && currentStep > 1 && (
-              <div className="bg-white dark:bg-[#0e1118] border-b border-slate-200 dark:border-[#1e2433] px-4 py-3 sticky top-0 z-20 shadow-xs">
-                <div className="max-w-6xl mx-auto flex items-center justify-between gap-4 flex-wrap">
-                  {/* Breadcrumb back to directory */}
-                  <button
-                    type="button"
-                    onClick={() => handleNavigateStep(1)}
-                    className="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-zinc-300 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors shrink-0 cursor-pointer"
-                  >
-                    <ArrowLeft size={14} className="text-cyan-600 dark:text-cyan-400" />
-                    <span>Back to Directory</span>
-                  </button>
-
-                  {/* Stepper Navigation Flow */}
-                  <div className="flex items-center gap-2 sm:gap-4 overflow-x-auto py-1">
-                    {DEAL_STEPS.map((s, idx) => {
-                      const isDone = currentStep > s.step;
-                      const isCurrent = currentStep === s.step;
-
-                      return (
-                        <React.Fragment key={s.step}>
-                          <button
-                            type="button"
-                            onClick={() => handleNavigateStep(s.step as any)}
-                            className="flex items-center gap-2 text-left cursor-pointer transition-all shrink-0"
-                          >
-                            <div
-                              className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all shrink-0 ${
-                                isDone
-                                  ? 'bg-cyan-600 text-white dark:bg-cyan-500 dark:text-stone-950'
-                                  : isCurrent
-                                  ? 'bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300 border-2 border-cyan-500 ring-2 ring-cyan-500/20'
-                                  : 'bg-slate-100 dark:bg-[#08090d] text-slate-400 dark:text-zinc-600 border border-slate-200 dark:border-[#1e2433]'
-                              }`}
-                            >
-                              {isDone ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : s.step}
-                            </div>
-                            <div className="hidden md:block">
-                              <div
-                                className={`text-xs font-semibold leading-tight ${
-                                  isCurrent
-                                    ? 'text-cyan-700 dark:text-cyan-300'
-                                    : isDone
-                                    ? 'text-slate-800 dark:text-zinc-200'
-                                    : 'text-slate-400 dark:text-zinc-500'
-                                }`}
-                              >
-                                {s.title}
-                              </div>
-                              <div className="text-[10px] text-slate-500 dark:text-zinc-500 leading-tight">
-                                {s.desc}
-                              </div>
-                            </div>
-                          </button>
-                          {idx < DEAL_STEPS.length - 1 && (
-                            <div className="w-6 sm:w-10 h-[2px] bg-slate-200 dark:bg-[#1e2433] shrink-0">
-                              <div
-                                className={`h-full bg-cyan-600 dark:bg-cyan-500 transition-all duration-300 ${
-                                  currentStep > s.step ? 'w-full' : 'w-0'
-                                }`}
-                              />
-                            </div>
-                          )}
-                        </React.Fragment>
-                      );
-                    })}
-                  </div>
-
-                  {/* Active Counterparty Info Pill */}
-                  <div className="hidden lg:flex items-center gap-2 bg-slate-100 dark:bg-[#141a29] border border-slate-200 dark:border-[#1e2433] px-3 py-1.5 rounded-lg shrink-0">
-                    <Ship size={13} className="text-cyan-600 dark:text-cyan-400" />
-                    <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 max-w-[180px] truncate">
-                      #{selectedCounterparty.rank} {selectedCounterparty.parent_name}
-                    </span>
-                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200 dark:bg-[#1e2738] text-slate-600 dark:text-zinc-400">
-                      {selectedCounterparty.fleetCapability === 'DUAL_FUEL_LNG' ? 'LNG Ready' : 'Conv'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* Active Step Content */}
             <div className="flex-1">
               {currentStep === 1 && (

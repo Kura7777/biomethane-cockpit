@@ -166,60 +166,75 @@ export function ShippingBunkerPricingStep({
       : counterparty.desk_margin_pooling_eur;
 
   return (
-    <div className="max-w-6xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
-      {/* Top Banner */}
-      <div className="bg-white dark:bg-[#0e1118] border border-slate-200 dark:border-[#1e2433] rounded-2xl p-6 shadow-xs dark:shadow-md">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-[#141a29] text-cyan-600 dark:text-cyan-400 border border-slate-200 dark:border-[#1e2433]">
-                #{counterparty.rank}
-              </span>
-              <span className="text-xl font-bold text-slate-900 dark:text-zinc-100">
-                {counterparty.parent_name}
-              </span>
-            </div>
-            <p className="text-xs text-slate-600 dark:text-zinc-400">
-              {isSurplus ? (
-                <>
-                  Monetising{' '}
-                  <strong className="text-emerald-700 dark:text-emerald-400">
-                    +{(counterparty.compliance_balance_2025_tco2e / 1000).toFixed(1)} kt FuelEU surplus
-                  </strong>{' '}
-                  via Article 21 pooling · Direct Thetis-MRV registry transfer across{' '}
-                  <strong className="text-cyan-700 dark:text-cyan-300">
-                    {counterparty.primary_bunkering_hubs}
-                  </strong>
-                </>
-              ) : (
-                <>
-                  Structuring commercial compliance for{' '}
-                  <strong className="text-slate-800 dark:text-zinc-200">
-                    {counterparty.bio_lng_required_neg100_t.toLocaleString()} tonnes
-                  </strong>{' '}
-                  Bio-LNG ({counterparty.bio_lng_required_neg100_mwh.toLocaleString()} MWh) · Delivery at{' '}
-                  <strong className="text-cyan-700 dark:text-cyan-300">
-                    {counterparty.primary_bunkering_hubs}
-                  </strong>
-                </>
-              )}
-            </p>
+    <div className="w-full max-w-[1600px] mx-auto p-4 sm:p-5 space-y-4">
+      {/* Top Asset Headline Strip */}
+      <div
+        style={{
+          border: '1px solid var(--color-divider)',
+          backgroundColor: 'var(--color-surface)',
+          padding: '14px 18px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '14px',
+        }}
+      >
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+            <span
+              style={{
+                fontFamily: MONO_FONT,
+                fontSize: '11px',
+                fontWeight: 700,
+                color: 'var(--color-accent)',
+                padding: '1px 6px',
+                border: '1px solid var(--color-divider)',
+                backgroundColor: 'var(--color-subtier)',
+              }}
+            >
+              #{counterparty.rank}
+            </span>
+            <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.01em' }}>
+              {counterparty.parent_name}
+            </h2>
+            <span className="chip" style={{ fontSize: '10.5px' }}>
+              {counterparty.segment}
+            </span>
           </div>
-
-          <button
-            type="button"
-            onClick={handleResetDefaults}
-            className="btn btn-secondary flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 self-start sm:self-auto"
-            title="Reset parameters to benchmark defaults"
-          >
-            <RotateCcw size={12} />
-            <span>Reset Benchmarks</span>
-          </button>
+          <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
+            {isSurplus ? (
+              <>
+                Monetising <strong style={{ color: 'var(--color-status-pos-text)' }}>+{(counterparty.compliance_balance_2025_tco2e / 1000).toFixed(1)} kt FuelEU surplus</strong> via Article 21 pooling · Thetis-MRV registry transfer across <strong style={{ color: 'var(--color-accent)' }}>{counterparty.primary_bunkering_hubs}</strong>
+              </>
+            ) : (
+              <>
+                Structuring compliance for <strong style={{ color: 'var(--color-text)' }}>{counterparty.bio_lng_required_neg100_t.toLocaleString()} tonnes Bio-LNG</strong> ({counterparty.bio_lng_required_neg100_mwh.toLocaleString()} MWh) · Delivery at <strong style={{ color: 'var(--color-accent)' }}>{counterparty.primary_bunkering_hubs}</strong>
+              </>
+            )}
+          </div>
         </div>
+
+        <button
+          type="button"
+          onClick={handleResetDefaults}
+          className="btn btn-secondary"
+          style={{ height: '28px', padding: '0 10px', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+          title="Reset parameters to benchmark defaults"
+        >
+          <RotateCcw size={12} />
+          <span>Reset Benchmarks</span>
+        </button>
       </div>
 
       {/* Pathway Selector */}
-      <div className="bg-white dark:bg-[#0e1118] border border-slate-200 dark:border-[#1e2433] rounded-2xl p-6 shadow-xs dark:shadow-md space-y-4">
+      <div
+        style={{
+          border: '1px solid var(--color-divider)',
+          backgroundColor: 'var(--color-surface)',
+          padding: '14px 18px',
+        }}
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
@@ -326,146 +341,233 @@ export function ShippingBunkerPricingStep({
       </div>
 
       {/* Pricing Engine & Results Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
         {/* Left: Pricing Parameters (6 cols) */}
-        <div className="lg:col-span-6 bg-white dark:bg-[#0e1118] border border-slate-200 dark:border-[#1e2433] rounded-2xl p-6 shadow-xs dark:shadow-md space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-[#1e2433]">
-            <div className="flex items-center gap-2">
-              <Sliders className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-zinc-200">
-                Commercial Pricing Parameters
-              </h3>
+        <div
+          style={{
+            border: '1px solid var(--color-divider)',
+            backgroundColor: 'var(--color-surface)',
+            padding: '16px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+          className="lg:col-span-6 space-y-4"
+        >
+          <div>
+            <div
+              style={{
+                paddingBottom: '10px',
+                marginBottom: '12px',
+                borderBottom: '1px solid var(--color-divider)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Sliders size={13} style={{ color: 'var(--color-accent)' }} />
+                <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Commercial Pricing Parameters
+                </span>
+              </div>
+              <span style={{ fontSize: '10.5px', fontFamily: MONO_FONT, color: 'var(--color-muted)' }}>
+                3-Component Formula Stack
+              </span>
             </div>
-            <span className="text-[11px] font-mono text-slate-500 dark:text-zinc-400">
-              3-Component Stack
-            </span>
-          </div>
 
-          <div className="space-y-3">
-            {renderParamSlider(
-              'TTF Natural Gas Front-Month Index',
-              'Dutch Title Transfer Facility wholesale benchmark',
-              ttfGasIndex,
-              setTtfGasIndex,
-              20,
-              70,
-              0.5,
-              '€/MWh'
-            )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {renderParamSlider(
+                'TTF Natural Gas Front-Month Index',
+                'Dutch Title Transfer Facility wholesale benchmark',
+                ttfGasIndex,
+                setTtfGasIndex,
+                20,
+                70,
+                0.5,
+                '€/MWh'
+              )}
 
-            {renderParamSlider(
-              'Liquefaction & Logistics Fee',
-              'Small-scale liquefaction, bunkering barge & terminal fee',
-              liquefactionFee,
-              setLiquefactionFee,
-              5,
-              30,
-              0.5,
-              '€/MWh'
-            )}
+              {renderParamSlider(
+                'Liquefaction & Logistics Fee',
+                'Small-scale liquefaction, bunkering barge & terminal fee',
+                liquefactionFee,
+                setLiquefactionFee,
+                5,
+                30,
+                0.5,
+                '€/MWh'
+              )}
 
-            {renderParamSlider(
-              'Green Bio-LNG Environmental Premium',
-              'RED III manure -100 CI mass balance certification spread',
-              greenPremium,
-              setGreenPremium,
-              10,
-              45,
-              0.5,
-              '€/MWh'
-            )}
+              {renderParamSlider(
+                'Green Bio-LNG Environmental Premium',
+                'RED III manure -100 CI mass balance certification spread',
+                greenPremium,
+                setGreenPremium,
+                10,
+                45,
+                0.5,
+                '€/MWh'
+              )}
+            </div>
           </div>
 
           {/* Pricing Stack Formula Footer */}
-          <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#141926] border border-slate-200 dark:border-[#1e2433] flex items-center justify-between text-xs">
-            <span className="text-slate-600 dark:text-zinc-400">
-              Delivered All-In Energy Price:
-            </span>
-            <span
-              className="font-mono font-bold text-sm text-cyan-700 dark:text-cyan-300"
-              style={{ fontFamily: MONO_FONT }}
-            >
+          <div
+            style={{
+              padding: '10px 12px',
+              border: '1px solid var(--color-divider)',
+              backgroundColor: 'var(--color-panel-header)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              fontSize: '11.5px',
+            }}
+          >
+            <span style={{ color: 'var(--color-muted)' }}>Delivered All-In Energy Price:</span>
+            <span style={{ fontFamily: MONO_FONT, fontWeight: 700, fontSize: '13px', color: 'var(--color-accent)' }}>
               €{marineQuote.allInBioLngPriceEurMwh.toFixed(2)} / MWh
             </span>
           </div>
         </div>
 
         {/* Right: Results Card (6 cols) */}
-        <div className="lg:col-span-6 bg-white dark:bg-[#0e1118] border border-slate-200 dark:border-[#1e2433] rounded-2xl p-6 shadow-xs dark:shadow-md flex flex-col justify-between">
+        <div
+          style={{
+            border: '1px solid var(--color-divider)',
+            backgroundColor: 'var(--color-surface)',
+            padding: '16px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+          className="lg:col-span-6"
+        >
           <div>
-            <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-200 dark:border-[#1e2433]">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-emerald-500" />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-zinc-200">
+            <div
+              style={{
+                paddingBottom: '10px',
+                marginBottom: '14px',
+                borderBottom: '1px solid var(--color-divider)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <TrendingUp size={13} style={{ color: 'var(--color-status-pos-text)' }} />
+                <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   Delivered Marine Quotation &amp; Arbitrage
-                </h3>
+                </span>
               </div>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 font-semibold">
+              <span
+                style={{
+                  fontSize: '9.5px',
+                  fontFamily: MONO_FONT,
+                  fontWeight: 600,
+                  padding: '1px 5px',
+                  border: '1px solid var(--color-divider)',
+                  backgroundColor: 'var(--color-subtier)',
+                  color: 'var(--color-status-pos-text)',
+                }}
+              >
                 LIVE ARBITRAGE
               </span>
             </div>
 
             {/* 3 Metric Cards */}
-            <div className="space-y-3.5">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {/* Metric 1: Delivered Bio-LNG Quote */}
-              <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#141926] border border-slate-200 dark:border-[#1e2433]">
-                <div className="text-[11px] font-semibold text-slate-500 dark:text-zinc-400 mb-1">
+              <div
+                style={{
+                  padding: '12px 14px',
+                  border: '1px solid var(--color-divider)',
+                  backgroundColor: 'var(--color-panel-header)',
+                }}
+              >
+                <div style={{ fontSize: '10.5px', fontWeight: 600, color: 'var(--color-muted)', marginBottom: '2px' }}>
                   DELIVERED BIO-LNG BUNKER QUOTE
                 </div>
-                <div className="flex items-baseline gap-3 flex-wrap">
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' }}>
                   <span
-                    className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-zinc-100 font-mono"
-                    style={{ fontFamily: MONO_FONT }}
+                    style={{
+                      fontSize: '24px',
+                      fontWeight: 800,
+                      fontFamily: MONO_FONT,
+                      color: 'var(--color-text)',
+                    }}
                   >
                     €{marineQuote.allInBioLngPriceEurPerTonne.toLocaleString()}
-                    <span className="text-sm font-semibold text-slate-500 dark:text-zinc-400 ml-1">
+                    <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--color-muted)', marginLeft: '4px' }}>
                       / tonne
                     </span>
                   </span>
-                  <span
-                    className="text-lg font-bold text-slate-600 dark:text-zinc-400 font-mono"
-                    style={{ fontFamily: MONO_FONT }}
-                  >
+                  <span style={{ fontSize: '14px', fontWeight: 600, fontFamily: MONO_FONT, color: 'var(--color-muted)' }}>
                     (${marineQuote.allInBioLngPriceUsdPerTonne.toLocaleString()} / tonne)
                   </span>
                 </div>
-                <div className="text-[11px] text-slate-500 dark:text-zinc-400 mt-1">
+                <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '2px' }}>
                   Equivalent to €{marineQuote.allInBioLngPriceEurMwh.toFixed(2)}/MWh · 13.9 MWh/t standard density
                 </div>
               </div>
 
               {/* Metric 2: Net Client Savings vs Statutory Penalty */}
-              <div className="p-4 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800">
-                <div className="text-[11px] font-semibold text-emerald-800 dark:text-emerald-300 mb-1 flex items-center justify-between">
+              <div
+                style={{
+                  padding: '12px 14px',
+                  border: '1px solid var(--color-divider)',
+                  backgroundColor: 'var(--color-panel-header)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '10.5px', fontWeight: 600, color: 'var(--color-status-pos-text)', marginBottom: '2px' }}>
                   <span>NET CLIENT SAVINGS VS STATUTORY PARITY</span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-200/50 dark:bg-emerald-900/60 text-emerald-900 dark:text-emerald-200">
+                  <span
+                    style={{
+                      fontFamily: MONO_FONT,
+                      fontSize: '10px',
+                      padding: '1px 5px',
+                      border: '1px solid var(--color-divider)',
+                      backgroundColor: 'var(--color-subtier)',
+                    }}
+                  >
                     +€{marineQuote.netSavingsPerTonneBioLngEur.toFixed(2)}/t
                   </span>
                 </div>
                 <div
-                  className="text-2xl sm:text-3xl font-extrabold text-emerald-700 dark:text-emerald-300 font-mono"
-                  style={{ fontFamily: MONO_FONT }}
+                  style={{
+                    fontSize: '24px',
+                    fontWeight: 800,
+                    fontFamily: MONO_FONT,
+                    color: 'var(--color-status-pos-text)',
+                  }}
                 >
                   €{(clientSavingsEur / 1e6).toFixed(2)}M
                 </div>
-                <div className="text-[11px] text-emerald-700/80 dark:text-emerald-400 mt-1">
-                  Guaranteed financial arbitrage compared against conventional VLSFO + FuelEU penalty + EU ETS
+                <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '2px' }}>
+                  {pathway === 'PHYSICAL'
+                    ? `Saves client €${Math.round(clientSavingsEur).toLocaleString()} vs paying €2,400/t VLSFO-eq penalty`
+                    : `Monetises paper compliance spread at institutional clearing price`}
                 </div>
               </div>
 
-              {/* Metric 3: Trader Trading Margin */}
-              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#141926] border border-slate-200 dark:border-[#1e2433] flex items-center justify-between">
-                <div>
-                  <div className="text-xs font-bold text-slate-800 dark:text-zinc-200">
-                    Desk Structuring Margin
-                  </div>
-                  <div className="text-[11px] text-slate-500 dark:text-zinc-400">
-                    Institutional trading spread (+€3.50/MWh)
-                  </div>
+              {/* Metric 3: Desk Margin */}
+              <div
+                style={{
+                  padding: '10px 14px',
+                  border: '1px solid var(--color-divider)',
+                  backgroundColor: 'var(--color-panel-header)',
+                }}
+              >
+                <div style={{ fontSize: '10.5px', fontWeight: 600, color: 'var(--color-accent)', marginBottom: '2px' }}>
+                  TRADER DESK MARGIN
                 </div>
                 <div
-                  className="text-lg font-extrabold text-cyan-700 dark:text-cyan-300 font-mono text-right"
-                  style={{ fontFamily: MONO_FONT }}
+                  style={{
+                    fontSize: '20px',
+                    fontWeight: 800,
+                    fontFamily: MONO_FONT,
+                    color: 'var(--color-accent)',
+                  }}
                 >
                   €{tradingMarginEur.toLocaleString()}
                 </div>
@@ -473,7 +575,18 @@ export function ShippingBunkerPricingStep({
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-slate-200 dark:border-[#1e2433] text-[11px] text-slate-500 dark:text-zinc-500 flex items-center justify-between">
+          <div
+            style={{
+              marginTop: '12px',
+              paddingTop: '10px',
+              borderTop: '1px solid var(--color-divider)',
+              fontSize: '11px',
+              color: 'var(--color-muted)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
             <span>
               {pathway === 'PHYSICAL'
                 ? `Total Delivered Invoice: €${(marineQuote.totalBioLngInvoiceEur || 0).toLocaleString()}`
@@ -484,24 +597,36 @@ export function ShippingBunkerPricingStep({
         </div>
       </div>
 
-      {/* Bottom Navigation Bar */}
-      <div className="bg-white dark:bg-[#0e1118] border border-slate-200 dark:border-[#1e2433] rounded-2xl p-4 flex items-center justify-between gap-4 shadow-xs">
+      {/* Bottom Dock Navigation Bar */}
+      <div
+        style={{
+          border: '1px solid var(--color-divider)',
+          backgroundColor: 'var(--color-surface)',
+          padding: '10px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '12px',
+        }}
+      >
         <button
           type="button"
           onClick={onBack}
-          className="btn btn-secondary flex items-center gap-2 text-xs font-semibold px-4 py-2"
+          className="btn btn-secondary"
+          style={{ height: '32px', padding: '0 14px', fontSize: '11.5px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}
         >
-          <ArrowLeft size={14} />
+          <ArrowLeft size={13} />
           <span>Back: Exposure &amp; CRM</span>
         </button>
 
         <button
           type="button"
           onClick={onNext}
-          className="btn btn-primary flex items-center gap-2 text-xs font-bold px-6 py-2 shadow-xs"
+          className="btn btn-primary"
+          style={{ height: '32px', padding: '0 18px', fontSize: '11.5px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}
         >
           <span>Next: Generate Term Sheet &amp; Trade</span>
-          <ArrowRight size={14} />
+          <ArrowRight size={13} />
         </button>
       </div>
     </div>
