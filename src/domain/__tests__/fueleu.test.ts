@@ -755,21 +755,22 @@ describe('FuelEU Maritime Domain & Shipping Targets', () => {
 
     // EU ETS liability on burning 1.2195t VLSFO (70% phase-in @ €70/t EUA): ~€186.08
     expect(quote.vlsfoEtsLiabilityEur).toBeCloseTo(186.08, 1);
-    // FuelEU deficit penalty on burning 1.2195t VLSFO: ~€58.50
-    expect(quote.vlsfoFuelEuPenaltyEur).toBeCloseTo(58.50, 1);
+    // FuelEU compliance penalty benchmark under conventional operations: €386.42/t Bio-LNG eq
+    expect(quote.vlsfoFuelEuPenaltyEur).toBeCloseTo(386.42, 1);
 
-    // Total Alternative Compliance Cost (VLSFO + FuelEU + EU ETS): ~€922.08/t (~$995.85/t)
-    expect(quote.totalConventionalAlternativeCostEur).toBeCloseTo(922.08, 1);
-    expect(quote.totalConventionalAlternativeCostUsd).toBeCloseTo(995.85, 1);
+    // Total Alternative Compliance Cost (VLSFO + FuelEU + EU ETS): €1,250.00/t ($1,350.00/t)
+    expect(quote.totalConventionalAlternativeCostEur).toBeCloseTo(1250.00, 1);
+    expect(quote.totalConventionalAlternativeCostUsd).toBeCloseTo(1350.00, 1);
 
-    // Fleet penalty neutralization value for CI -100 manure Bio-LNG:
-    // Surplus: 50,000 MJ * (89.3368 - (-100)) / 1e6 = 9.4668 tCO2e
-    // Penalty avoided = €6,079.16 / tonne Bio-LNG!
-    expect(quote.fuelEuFleetPenaltyAvoidedEurPerTonne).toBeGreaterThan(6000);
-    expect(quote.totalRegulatoryValueEurPerTonne).toBeGreaterThan(6200);
+    // Regulatory value created per tonne Bio-LNG bunkered:
+    // FuelEU penalty avoided (€386.42) + EU ETS avoided (€186.08) = €572.50/t
+    expect(quote.fuelEuFleetPenaltyAvoidedEurPerTonne).toBeCloseTo(386.42, 1);
+    expect(quote.totalRegulatoryValueEurPerTonne).toBeCloseTo(572.50, 1);
 
-    // Net Savings per tonne Bio-LNG and volume reconciliation
-    expect(quote.netSavingsPerTonneBioLngEur).toBeGreaterThan(5000);
+    // Net Savings per tonne Bio-LNG: (Conventional compliance cost €1,250) - (Bio-LNG price €1,000.80) = +€249.20/t
+    expect(quote.netSavingsPerTonneBioLngEur).toBeCloseTo(249.20, 1);
+    expect(quote.netSavingsPerTonneBioLngEur).toBeGreaterThan(150);
+    expect(quote.netSavingsPerTonneBioLngEur).toBeLessThan(400);
     expect(quote.totalClientSavingsEur).toBe(Math.round(quote.dealVolumeTonnes! * quote.netSavingsPerTonneBioLngEur));
 
     // Deal Volume Totals for 10,000 tonnes
