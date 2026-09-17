@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ShippingCounterparty,
@@ -34,6 +34,8 @@ import {
 } from 'lucide-react';
 import { showToast } from '../../app/DeskToastContainer';
 
+const MONO_FONT = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
+
 type SortField =
   | 'rank'
   | 'parent_name'
@@ -64,6 +66,28 @@ export function CounterpartyDirectoryTable() {
   const [selectedHub, setSelectedHub] = useState<string>('ALL');
   const [selectedTier, setSelectedTier] = useState<string>('ALL');
   const [selectedBalanceType, setSelectedBalanceType] = useState<'ALL' | 'DEFICIT' | 'SURPLUS'>('ALL');
+
+  // Secondary filters popover state
+  const [moreFiltersOpen, setMoreFiltersOpen] = useState<boolean>(false);
+  const moreFiltersRef = useRef<HTMLDivElement>(null);
+
+  // Close secondary filters popover on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (moreFiltersRef.current && !moreFiltersRef.current.contains(event.target as Node)) {
+        setMoreFiltersOpen(false);
+      }
+    }
+    if (moreFiltersOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [moreFiltersOpen]);
+
+  const secondaryActiveCount =
+    (selectedTradeLane !== 'ALL' ? 1 : 0) +
+    (selectedHub !== 'ALL' ? 1 : 0) +
+    (selectedBalanceType !== 'ALL' ? 1 : 0);
 
   // Sorting state - ranked by default by Statutory Penalty Exposure / Rank
   const [sortField, setSortField] = useState<SortField>('rank');
@@ -491,63 +515,136 @@ export function CounterpartyDirectoryTable() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-      {/* 4 Core Institutional Metric Ledger Strip */}
-      <div className="cellrow" style={{ gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-            <span className="eyebrow">Fleet Energy &amp; Engine Scope</span>
-            <span className="chip chip-info">100% Verified</span>
+      {/* Refined Institutional Metric Ledger Strip */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+          borderBottom: '1px solid var(--color-divider)',
+          backgroundColor: 'var(--color-surface)',
+        }}
+      >
+        {/* Metric 1: Fleet Energy & Scope */}
+        <div style={{ padding: '12px 18px', borderRight: '1px solid var(--color-divider)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+            <span className="eyebrow" style={{ fontSize: '10px', letterSpacing: '0.08em', color: 'var(--color-muted)' }}>
+              FLEET SCOPE &amp; ENERGY
+            </span>
+            <span
+              style={{
+                fontSize: '9.5px',
+                fontFamily: MONO_FONT,
+                fontWeight: 600,
+                letterSpacing: '0.04em',
+                padding: '1px 5px',
+                backgroundColor: 'var(--color-subtier)',
+                color: 'var(--color-muted)',
+                border: '1px solid var(--color-divider)',
+              }}
+            >
+              EU MRV AUDITED
+            </span>
           </div>
-          <div className="big num">{aggregateMetrics.fleetEnergyTWh} TWh</div>
-          <div className="subttl num">
-            {aggregateMetrics.vesselCount.toLocaleString()} vessels ({aggregateMetrics.dualFuelCount} Dual-Fuel LNG · {aggregateMetrics.conventionalCount} Conventional)
+          <div className="num font-mono" style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-status-info-text, #0284c7)', lineHeight: 1.15, fontFamily: MONO_FONT }}>
+            {aggregateMetrics.fleetEnergyTWh} <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-muted)' }}>TWh</span>
+          </div>
+          <div className="subttl num" style={{ fontSize: '11px', marginTop: '4px', color: 'var(--color-muted)' }}>
+            {aggregateMetrics.vesselCount.toLocaleString()} vessels across {filteredCounterparties.length} groups · {aggregateMetrics.dualFuelCount} LNG-ready
           </div>
         </div>
 
-        <div>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-            <span className="eyebrow">2025 FuelEU Deficit &amp; Penalty</span>
-            <span className="chip chip-neg">-2.0% Target</span>
+        {/* Metric 2: FuelEU Penalty Exposure */}
+        <div style={{ padding: '12px 18px', borderRight: '1px solid var(--color-divider)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+            <span className="eyebrow" style={{ fontSize: '10px', letterSpacing: '0.08em', color: 'var(--color-muted)' }}>
+              2025 FUELEU DEFICIT PENALTY
+            </span>
+            <span
+              style={{
+                fontSize: '9.5px',
+                fontFamily: MONO_FONT,
+                fontWeight: 600,
+                letterSpacing: '0.04em',
+                padding: '1px 5px',
+                backgroundColor: 'var(--color-status-neg-bg)',
+                color: 'var(--color-status-neg-text)',
+                border: '1px solid var(--color-status-neg-border)',
+              }}
+            >
+              -2.00% TARGET
+            </span>
           </div>
-          <div className="big num" style={{ color: 'var(--color-status-neg-text, #b91c1c)' }}>
-            €{aggregateMetrics.netPenaltyM}M
+          <div className="num font-mono" style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-status-neg-text)', lineHeight: 1.15, fontFamily: MONO_FONT }}>
+            €{aggregateMetrics.netPenaltyM} <span style={{ fontSize: '14px', fontWeight: 600 }}>M</span>
           </div>
-          <div className="subttl num">
-            Net Deficit: -{aggregateMetrics.grossDeficitKt} kt · Surplus: +{aggregateMetrics.lngSurplusKt} kt
+          <div className="subttl num" style={{ fontSize: '11px', marginTop: '4px', color: 'var(--color-muted)' }}>
+            Deficit: -{aggregateMetrics.grossDeficitKt} kt · Surplus: +{aggregateMetrics.lngSurplusKt} kt
           </div>
         </div>
 
-        <div>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-            <span className="eyebrow">2025 EU ETS Carbon Liability</span>
-            <span className="chip chip-warn">70% Phase-In (€70/t)</span>
+        {/* Metric 3: EU ETS Carbon Liability */}
+        <div style={{ padding: '12px 18px', borderRight: '1px solid var(--color-divider)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+            <span className="eyebrow" style={{ fontSize: '10px', letterSpacing: '0.08em', color: 'var(--color-muted)' }}>
+              2025 EU ETS MARITIME
+            </span>
+            <span
+              style={{
+                fontSize: '9.5px',
+                fontFamily: MONO_FONT,
+                fontWeight: 600,
+                letterSpacing: '0.04em',
+                padding: '1px 5px',
+                backgroundColor: 'var(--color-status-warn-bg)',
+                color: 'var(--color-status-warn-text)',
+                border: '1px solid var(--color-status-warn-border)',
+              }}
+            >
+              70% PHASE-IN (€70/t)
+            </span>
           </div>
-          <div className="big num" style={{ color: 'var(--color-status-warn-text, #d97706)' }}>
-            €{aggregateMetrics.etsExposureM}M
+          <div className="num font-mono" style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-status-warn-text, #d97706)', lineHeight: 1.15, fontFamily: MONO_FONT }}>
+            €{aggregateMetrics.etsExposureM} <span style={{ fontSize: '14px', fontWeight: 600 }}>M</span>
           </div>
-          <div className="subttl num">
-            Directive (EU) 2023/959 Maritime MRV burn liability
+          <div className="subttl num" style={{ fontSize: '11px', marginTop: '4px', color: 'var(--color-muted)' }}>
+            Directive (EU) 2023/959 liability · 2026 (100%): €{(Number(aggregateMetrics.etsExposureM) / 0.7).toFixed(1)}M
           </div>
         </div>
 
-        <div>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-            <span className="eyebrow">Combined 2025 Regulatory Exposure</span>
-            <span className="chip chip-neg" style={{ fontWeight: 700 }}>FuelEU + EU ETS</span>
+        {/* Metric 4: Combined Exposure & Client Arbitrage */}
+        <div style={{ padding: '12px 18px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+            <span className="eyebrow" style={{ fontSize: '10px', letterSpacing: '0.08em', color: 'var(--color-muted)' }}>
+              COMBINED 2025 EXPOSURE
+            </span>
+            <span
+              style={{
+                fontSize: '9.5px',
+                fontFamily: MONO_FONT,
+                fontWeight: 600,
+                letterSpacing: '0.04em',
+                padding: '1px 5px',
+                backgroundColor: 'var(--color-subtier)',
+                color: 'var(--color-text)',
+                border: '1px solid var(--color-divider)',
+              }}
+            >
+              FUELEU + ETS
+            </span>
           </div>
-          <div className="big num" style={{ color: 'var(--color-accent)' }}>
-            €{aggregateMetrics.combinedExposureM}M
+          <div className="num font-mono" style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.15, fontFamily: MONO_FONT }}>
+            €{aggregateMetrics.combinedExposureM} <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-muted)' }}>M</span>
           </div>
-          <div className="subttl num">
-            Client Potential Savings: <strong style={{ color: 'var(--color-status-pos-text)' }}>€{aggregateMetrics.clientSavingsM}M</strong> with Bio-LNG
+          <div className="subttl num" style={{ fontSize: '11px', marginTop: '4px', color: 'var(--color-muted)' }}>
+            Client Net Savings: <strong style={{ color: 'var(--color-status-pos-text)' }}>€{aggregateMetrics.clientSavingsM}M</strong> with Bio-LNG
           </div>
         </div>
       </div>
 
-      {/* Filter & Control Bar */}
+      {/* Unified Single-Row Institutional Filter Bar */}
       <div
         style={{
-          padding: '10px 18px',
+          padding: '8px 18px',
           borderBottom: '1px solid var(--color-divider)',
           backgroundColor: 'var(--color-surface)',
           display: 'flex',
@@ -555,27 +652,80 @@ export function CounterpartyDirectoryTable() {
           justifyContent: 'space-between',
           flexWrap: 'wrap',
           gap: '8px',
+          position: 'relative',
         }}
       >
-        {/* Search input and Dropdowns */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', flex: 1 }}>
-          <div style={{ position: 'relative', minWidth: '220px', maxWidth: '300px', flex: 1 }}>
-            <Search size={13} style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-muted)' }} />
+        {/* Left Side: Search, Engine Readiness, Primary Dropdowns, Secondary Popover, Reset */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', flex: 1, minWidth: 0 }}>
+          {/* Quick Search */}
+          <div style={{ position: 'relative', width: '210px', flexShrink: 0 }}>
+            <Search size={13} style={{ position: 'absolute', left: '9px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-muted)' }} />
             <input
               type="text"
-              placeholder="Search company, executive, hub..."
+              placeholder="Search counterparties, ports..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="input"
-              style={{ paddingLeft: '26px', height: '30px', fontSize: '12px' }}
+              style={{ paddingLeft: '28px', paddingRight: searchQuery ? '22px' : '8px', height: '30px', fontSize: '12px', minHeight: '30px' }}
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                style={{
+                  position: 'absolute',
+                  right: '6px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--color-muted)',
+                  fontSize: '11px',
+                  padding: 0,
+                  lineHeight: 1,
+                }}
+                title="Clear search"
+              >
+                ✕
+              </button>
+            )}
           </div>
 
+          {/* Engine Readiness Segmented Control */}
+          <div className="seg" role="group" aria-label="Engine readiness" style={{ flexShrink: 0 }}>
+            <button
+              type="button"
+              className={`seg-opt ${selectedCapability === 'ALL' ? 'active' : ''}`}
+              onClick={() => { setSelectedCapability('ALL'); setCurrentPage(1); }}
+              style={{ height: '30px', fontSize: '11px', padding: '0 9px', fontWeight: 600 }}
+            >
+              All Fleets ({FUEL_EU_SHIPPING_COUNTERPARTIES.length})
+            </button>
+            <button
+              type="button"
+              className={`seg-opt ${selectedCapability === 'DUAL_FUEL_LNG' ? 'active' : ''}`}
+              onClick={() => { setSelectedCapability('DUAL_FUEL_LNG'); setCurrentPage(1); }}
+              style={{ height: '30px', fontSize: '11px', padding: '0 9px', fontWeight: 600 }}
+            >
+              Dual-Fuel LNG ({FUEL_EU_SHIPPING_COUNTERPARTIES.filter(c => c.fleetCapability === 'DUAL_FUEL_LNG').length})
+            </button>
+            <button
+              type="button"
+              className={`seg-opt ${selectedCapability === 'CONVENTIONAL_ONLY' ? 'active' : ''}`}
+              onClick={() => { setSelectedCapability('CONVENTIONAL_ONLY'); setCurrentPage(1); }}
+              style={{ height: '30px', fontSize: '11px', padding: '0 9px', fontWeight: 600 }}
+            >
+              Conventional ({FUEL_EU_SHIPPING_COUNTERPARTIES.filter(c => c.fleetCapability === 'CONVENTIONAL_ONLY').length})
+            </button>
+          </div>
+
+          {/* Segment dropdown */}
           <select
             value={selectedSegment}
             onChange={(e) => setSelectedSegment(e.target.value)}
             className="input"
-            style={{ width: 'auto', height: '30px', fontSize: '12px', padding: '0 8px' }}
+            style={{ width: 'auto', minWidth: '125px', height: '30px', minHeight: '30px', fontSize: '11.5px', padding: '0 8px' }}
             aria-label="Filter by shipping segment"
           >
             <option value="ALL">All Segments ({segments.length})</option>
@@ -584,334 +734,191 @@ export function CounterpartyDirectoryTable() {
             ))}
           </select>
 
-          <select
-            value={selectedCapability}
-            onChange={(e) => { setSelectedCapability(e.target.value as any); setCurrentPage(1); }}
-            className="input"
-            style={{ width: 'auto', height: '30px', fontSize: '12px', padding: '0 8px' }}
-            aria-label="Filter by engine readiness capability"
-          >
-            <option value="ALL">All Engine Types ({FUEL_EU_SHIPPING_COUNTERPARTIES.length})</option>
-            <option value="DUAL_FUEL_LNG">⚡ Dual-Fuel LNG Ready ({FUEL_EU_SHIPPING_COUNTERPARTIES.filter(c => c.fleetCapability === 'DUAL_FUEL_LNG').length})</option>
-            <option value="CONVENTIONAL_ONLY">⚓ Conventional Only ({FUEL_EU_SHIPPING_COUNTERPARTIES.filter(c => c.fleetCapability === 'CONVENTIONAL_ONLY').length})</option>
-          </select>
-
+          {/* Region dropdown */}
           <select
             value={selectedRegion}
             onChange={(e) => setSelectedRegion(e.target.value)}
             className="input"
-            style={{ width: 'auto', height: '30px', fontSize: '12px', padding: '0 8px' }}
+            style={{ width: 'auto', minWidth: '125px', height: '30px', minHeight: '30px', fontSize: '11.5px', padding: '0 8px' }}
             aria-label="Filter by calling region"
           >
-            <option value="ALL">All Calling Regions ({Object.keys(CALLING_REGIONS).length})</option>
+            <option value="ALL">All Regions ({Object.keys(CALLING_REGIONS).length})</option>
             {Object.values(CALLING_REGIONS).map(r => (
               <option key={r.id} value={r.id}>{r.label}</option>
             ))}
           </select>
 
-          <select
-            value={selectedTradeLane}
-            onChange={(e) => setSelectedTradeLane(e.target.value)}
-            className="input"
-            style={{ width: 'auto', height: '30px', fontSize: '12px', padding: '0 8px' }}
-            aria-label="Filter by trade lane"
-          >
-            <option value="ALL">All Trade Lanes ({Object.keys(TRADE_LANES).length})</option>
-            {Object.values(TRADE_LANES).map(l => (
-              <option key={l.id} value={l.id}>{l.label}</option>
-            ))}
-          </select>
-
-          <select
-            value={selectedHub}
-            onChange={(e) => setSelectedHub(e.target.value)}
-            className="input"
-            style={{ width: 'auto', height: '30px', fontSize: '12px', padding: '0 8px' }}
-            aria-label="Filter by bunkering hub"
-          >
-            <option value="ALL">All Bunker Hubs ({bunkerHubs.length})</option>
-            {bunkerHubs.map(hub => (
-              <option key={hub} value={hub}>{hub}</option>
-            ))}
-          </select>
-
+          {/* Strategy Tier dropdown */}
           <select
             value={selectedTier}
             onChange={(e) => { setSelectedTier(e.target.value); setCurrentPage(1); }}
             className="input"
-            style={{ width: 'auto', height: '30px', fontSize: '12px', padding: '0 8px' }}
+            style={{ width: 'auto', minWidth: '110px', height: '30px', minHeight: '30px', fontSize: '11.5px', padding: '0 8px' }}
             aria-label="Filter by strategy tier"
           >
-            <option value="ALL">All Strategy Tiers</option>
-            <option value="TIER_1">Tier 1: Mega-Deficit (&gt;€10M / year)</option>
-            <option value="TIER_2">Tier 2: Mid-Tier Compliance Buyers (€2M – €10M / year)</option>
-            <option value="TIER_3">Tier 3: Regional &amp; Feeder Deficit (&lt;€2M / year)</option>
-            <option value="TIER_4">Tier 4: Over-Compliant Surplus Sellers</option>
+            <option value="ALL">All Tiers</option>
+            <option value="TIER_1">Tier 1 (&gt;€10M)</option>
+            <option value="TIER_2">Tier 2 (€2M–€10M)</option>
+            <option value="TIER_3">Tier 3 (&lt;€2M)</option>
+            <option value="TIER_4">Tier 4 (Surplus)</option>
           </select>
 
-          <select
-            value={selectedBalanceType}
-            onChange={(e) => { setSelectedBalanceType(e.target.value as 'ALL' | 'DEFICIT' | 'SURPLUS'); setCurrentPage(1); }}
-            className="input"
-            style={{ width: 'auto', height: '30px', fontSize: '12px', padding: '0 8px' }}
-            aria-label="Filter by compliance balance status"
-          >
-            <option value="ALL">All Balances</option>
-            <option value="DEFICIT">Deficit Carriers Only ({FUEL_EU_SHIPPING_COUNTERPARTIES.filter(c => c.compliance_balance_2025_tco2e < 0).length})</option>
-            <option value="SURPLUS">Surplus Providers Only ({FUEL_EU_SHIPPING_COUNTERPARTIES.filter(c => c.compliance_balance_2025_tco2e > 0).length})</option>
-          </select>
+          {/* Secondary Filters Popover Menu */}
+          <div ref={moreFiltersRef} style={{ position: 'relative' }}>
+            <button
+              type="button"
+              onClick={() => setMoreFiltersOpen(prev => !prev)}
+              className="btn btn-secondary"
+              style={{
+                fontSize: '11px',
+                padding: '0 9px',
+                height: '30px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                fontWeight: secondaryActiveCount > 0 ? 700 : 500,
+                borderColor: secondaryActiveCount > 0 ? 'var(--color-accent)' : undefined,
+                backgroundColor: secondaryActiveCount > 0 ? 'var(--color-subtier)' : undefined,
+              }}
+              title="Filter by Trade Lane, Bunker Hub, and Compliance Balance"
+            >
+              <Filter size={11} style={{ color: secondaryActiveCount > 0 ? 'var(--color-accent)' : undefined }} />
+              <span>{secondaryActiveCount > 0 ? `Filters (${secondaryActiveCount})` : 'More Filters'}</span>
+            </button>
 
+            {moreFiltersOpen && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 4px)',
+                  left: 0,
+                  zIndex: 50,
+                  backgroundColor: 'var(--color-surface)',
+                  border: '1px solid var(--color-divider)',
+                  boxShadow: 'var(--shadow-md, 0 4px 14px rgba(0,0,0,0.12))',
+                  padding: '12px 14px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '10px',
+                  width: '260px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--color-divider)', paddingBottom: '6px' }}>
+                  <span className="eyebrow" style={{ fontSize: '10px', color: 'var(--color-muted)' }}>Secondary Filters</span>
+                  {secondaryActiveCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedTradeLane('ALL');
+                        setSelectedHub('ALL');
+                        setSelectedBalanceType('ALL');
+                      }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '10.5px', color: 'var(--color-accent)', padding: 0 }}
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, color: 'var(--color-muted)', marginBottom: '3px' }}>Trade Lane</label>
+                  <select
+                    value={selectedTradeLane}
+                    onChange={(e) => setSelectedTradeLane(e.target.value)}
+                    className="input"
+                    style={{ height: '28px', minHeight: '28px', fontSize: '11px', padding: '0 8px' }}
+                  >
+                    <option value="ALL">All Trade Lanes ({Object.keys(TRADE_LANES).length})</option>
+                    {Object.values(TRADE_LANES).map(l => (
+                      <option key={l.id} value={l.id}>{l.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, color: 'var(--color-muted)', marginBottom: '3px' }}>Bunkering Hub</label>
+                  <select
+                    value={selectedHub}
+                    onChange={(e) => setSelectedHub(e.target.value)}
+                    className="input"
+                    style={{ height: '28px', minHeight: '28px', fontSize: '11px', padding: '0 8px' }}
+                  >
+                    <option value="ALL">All Bunker Hubs ({bunkerHubs.length})</option>
+                    {bunkerHubs.map(hub => (
+                      <option key={hub} value={hub}>{hub}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, color: 'var(--color-muted)', marginBottom: '3px' }}>Compliance Balance</label>
+                  <select
+                    value={selectedBalanceType}
+                    onChange={(e) => setSelectedBalanceType(e.target.value as 'ALL' | 'DEFICIT' | 'SURPLUS')}
+                    className="input"
+                    style={{ height: '28px', minHeight: '28px', fontSize: '11px', padding: '0 8px' }}
+                  >
+                    <option value="ALL">All Balances</option>
+                    <option value="DEFICIT">Deficit Only ({FUEL_EU_SHIPPING_COUNTERPARTIES.filter(c => c.compliance_balance_2025_tco2e < 0).length})</option>
+                    <option value="SURPLUS">Surplus Only ({FUEL_EU_SHIPPING_COUNTERPARTIES.filter(c => c.compliance_balance_2025_tco2e > 0).length})</option>
+                  </select>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Reset Filters */}
           {isFiltered && (
             <button
               type="button"
               onClick={resetFilters}
               className="btn btn-secondary"
-              style={{ fontSize: '11px', padding: '3px 8px', height: '30px', display: 'flex', alignItems: 'center', gap: '4px' }}
-              title="Reset Filters"
+              style={{ fontSize: '11px', padding: '0 8px', height: '30px', display: 'flex', alignItems: 'center', gap: '4px' }}
+              title="Reset all filters"
             >
-              <RotateCcw size={12} /> Reset
+              <RotateCcw size={11} /> Reset
             </button>
           )}
         </div>
 
-        {/* Export Buttons: CRM Outreach & Table */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {/* Right Side: Active count summary & Institutional Export Buttons */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+          <span style={{ fontSize: '11px', color: 'var(--color-muted)', marginRight: '4px' }}>
+            Showing <strong>{pageSize === 'ALL' ? filteredCounterparties.length : `${startIndex + 1}–${Math.min(startIndex + pageSize, totalItems)}`}</strong> of <strong>{totalItems}</strong> groups
+          </span>
           <button
             type="button"
             onClick={handleExportCrmCsv}
-            className="btn btn-primary"
-            style={{ fontSize: '11px', padding: '4px 12px', height: '30px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}
+            className="btn btn-secondary"
+            style={{
+              fontSize: '11px',
+              padding: '0 10px',
+              height: '30px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              fontWeight: 600,
+            }}
             title="Export CRM-ready dossier for Salesforce / HubSpot outreach"
           >
-            <FileSpreadsheet size={13} /> Export CRM Outreach (.CSV)
+            <FileSpreadsheet size={12} style={{ color: 'var(--color-accent)' }} /> Export CRM (.CSV)
           </button>
           <button
             type="button"
             onClick={handleExportCsv}
             className="btn btn-secondary"
-            style={{ fontSize: '11px', padding: '4px 10px', height: '30px', display: 'flex', alignItems: 'center', gap: '5px' }}
+            style={{
+              fontSize: '11px',
+              padding: '0 10px',
+              height: '30px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+            }}
             title="Export raw data table"
           >
             <Download size={12} /> Export Table ({filteredCounterparties.length})
           </button>
-        </div>
-      </div>
-
-      {/* Quick Preset Filter Strip */}
-      <div
-        style={{
-          padding: '8px 18px',
-          borderBottom: '1px solid var(--color-divider)',
-          backgroundColor: 'var(--color-panel-header)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px',
-          overflowX: 'auto',
-        }}
-        className="noscroll"
-      >
-        <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
-          Engine:
-        </span>
-        <button
-          type="button"
-          className={`chip ${selectedCapability === 'ALL' && !isFiltered ? 'chip-a' : selectedCapability === 'ALL' ? 'chip-a' : ''}`}
-          style={{ cursor: 'pointer', fontSize: '11px', padding: '3px 8px' }}
-          onClick={() => { setSelectedCapability('ALL'); setCurrentPage(1); }}
-        >
-          All ({FUEL_EU_SHIPPING_COUNTERPARTIES.length})
-        </button>
-        <button
-          type="button"
-          className={`chip ${selectedCapability === 'DUAL_FUEL_LNG' ? 'chip-pos chip-a' : ''}`}
-          style={{ cursor: 'pointer', fontSize: '11px', padding: '3px 8px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
-          onClick={() => { setSelectedCapability(prev => prev === 'DUAL_FUEL_LNG' ? 'ALL' : 'DUAL_FUEL_LNG'); setCurrentPage(1); }}
-        >
-          ⚡ Dual-Fuel LNG ({FUEL_EU_SHIPPING_COUNTERPARTIES.filter(c => c.fleetCapability === 'DUAL_FUEL_LNG').length})
-        </button>
-        <button
-          type="button"
-          className={`chip ${selectedCapability === 'CONVENTIONAL_ONLY' ? 'chip-a' : ''}`}
-          style={{ cursor: 'pointer', fontSize: '11px', padding: '3px 8px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
-          onClick={() => { setSelectedCapability(prev => prev === 'CONVENTIONAL_ONLY' ? 'ALL' : 'CONVENTIONAL_ONLY'); setCurrentPage(1); }}
-        >
-          ⚓ Conventional ({FUEL_EU_SHIPPING_COUNTERPARTIES.filter(c => c.fleetCapability === 'CONVENTIONAL_ONLY').length})
-        </button>
-
-        <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', whiteSpace: 'nowrap', marginLeft: '6px' }}>
-          Segment:
-        </span>
-        <button
-          type="button"
-          className={`chip ${selectedSegment === 'Container Liner' ? 'chip-a' : ''}`}
-          style={{ cursor: 'pointer', fontSize: '11px', padding: '3px 8px' }}
-          onClick={() => { resetFilters(); setSelectedSegment('Container Liner'); }}
-        >
-          🚢 Containers
-        </button>
-        <button
-          type="button"
-          className={`chip ${selectedSegment.includes('Tanker') ? 'chip-a' : ''}`}
-          style={{ cursor: 'pointer', fontSize: '11px', padding: '3px 8px' }}
-          onClick={() => { resetFilters(); setSelectedSegment('Crude & Product Tanker'); }}
-        >
-          🛢️ Tankers
-        </button>
-        <button
-          type="button"
-          className={`chip ${selectedSegment === 'Dry Bulk Carrier' ? 'chip-a' : ''}`}
-          style={{ cursor: 'pointer', fontSize: '11px', padding: '3px 8px' }}
-          onClick={() => { resetFilters(); setSelectedSegment('Dry Bulk Carrier'); }}
-        >
-          ⛰️ Dry Bulk
-        </button>
-        <button
-          type="button"
-          className={`chip ${selectedSegment === 'European Ferry & Ro-Ro' ? 'chip-a' : ''}`}
-          style={{ cursor: 'pointer', fontSize: '11px', padding: '3px 8px' }}
-          onClick={() => { resetFilters(); setSelectedSegment('European Ferry & Ro-Ro'); }}
-        >
-          🚗 Ferries &amp; Ro-Ro
-        </button>
-        <button
-          type="button"
-          className={`chip ${selectedSegment.includes('Cargo') || selectedSegment.includes('Coaster') ? 'chip-a' : ''}`}
-          style={{ cursor: 'pointer', fontSize: '11px', padding: '3px 8px' }}
-          onClick={() => { resetFilters(); setSelectedSegment('General Cargo / Coaster'); }}
-        >
-          📦 Coasters &amp; Cargo
-        </button>
-        <button
-          type="button"
-          className={`chip ${selectedBalanceType === 'DEFICIT' ? 'chip-neg' : ''}`}
-          style={{ cursor: 'pointer', fontSize: '11px', padding: '3px 8px' }}
-          onClick={() => { resetFilters(); setSelectedBalanceType('DEFICIT'); }}
-        >
-          🚨 Deficit Only
-        </button>
-        <button
-          type="button"
-          className={`chip ${selectedBalanceType === 'SURPLUS' ? 'chip-pos' : ''}`}
-          style={{ cursor: 'pointer', fontSize: '11px', padding: '3px 8px' }}
-          onClick={() => { resetFilters(); setSelectedBalanceType('SURPLUS'); }}
-        >
-          🟢 LNG Surplus
-        </button>
-
-        <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', whiteSpace: 'nowrap', marginLeft: '6px' }}>
-          Region:
-        </span>
-        {Object.values(CALLING_REGIONS).map(r => (
-          <button
-            key={r.id}
-            type="button"
-            className={`chip ${selectedRegion === r.id ? 'chip-a' : ''}`}
-            style={{ cursor: 'pointer', fontSize: '11px', padding: '3px 8px' }}
-            onClick={() => setSelectedRegion(prev => prev === r.id ? 'ALL' : r.id)}
-            title={r.portsDescription}
-          >
-            {r.label}
-          </button>
-        ))}
-
-        <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', whiteSpace: 'nowrap', marginLeft: '6px' }}>
-          Lane:
-        </span>
-        {Object.values(TRADE_LANES).map(l => (
-          <button
-            key={l.id}
-            type="button"
-            className={`chip ${selectedTradeLane === l.id ? 'chip-a' : ''}`}
-            style={{ cursor: 'pointer', fontSize: '11px', padding: '3px 8px' }}
-            onClick={() => setSelectedTradeLane(prev => prev === l.id ? 'ALL' : l.id)}
-            title={l.corridorDescription}
-          >
-            {l.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Directory Status & Pagination Controls */}
-      <div
-        style={{
-          padding: '8px 18px',
-          borderBottom: '1px solid var(--color-divider)',
-          backgroundColor: 'var(--color-surface)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '8px',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text)' }}>
-            Showing {pageSize === 'ALL' ? (
-              <span>all <strong style={{ color: 'var(--color-accent)' }}>{filteredCounterparties.length}</strong></span>
-            ) : (
-              <span><strong style={{ color: 'var(--color-accent)' }}>{startIndex + 1}–{Math.min(startIndex + pageSize, totalItems)}</strong> of <strong>{totalItems}</strong></span>
-            )} Shipping Groups
-          </span>
-          <span className="subttl" style={{ fontSize: '11px' }}>
-            ({aggregateMetrics.vesselCount.toLocaleString()} vessels across Europe)
-          </span>
-          {isFiltered && (
-            <span className="chip chip-warn" style={{ fontSize: '10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-              Filter active ({filteredCounterparties.length} of {FUEL_EU_SHIPPING_COUNTERPARTIES.length})
-              <button
-                type="button"
-                onClick={resetFilters}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'inherit', fontWeight: 700, marginLeft: '3px' }}
-                title="Clear all filters"
-              >
-                ✕
-              </button>
-            </span>
-          )}
-        </div>
-
-        {/* View Density / Pagination Controls (25, 50, 100, All) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>Page Size:</span>
-            {([25, 50, 100, 'ALL'] as const).map(size => (
-              <button
-                key={size}
-                type="button"
-                className={`chip ${pageSize === size ? 'chip-a' : ''}`}
-                style={{ cursor: 'pointer', fontSize: '10.5px', padding: '2px 7px' }}
-                onClick={() => { setPageSize(size); setCurrentPage(1); }}
-              >
-                {size === 'ALL' ? `All (${filteredCounterparties.length})` : `${size}/page`}
-              </button>
-            ))}
-          </div>
-
-          {pageSize !== 'ALL' && totalPages > 1 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                style={{ height: '24px', padding: '0 6px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '2px' }}
-                disabled={validCurrentPage <= 1}
-                onClick={() => setCurrentPage(Math.max(1, validCurrentPage - 1))}
-              >
-                <ChevronLeft size={12} /> Prev
-              </button>
-              <span className="num" style={{ fontSize: '11px', padding: '0 4px' }}>
-                Page {validCurrentPage} of {totalPages}
-              </span>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                style={{ height: '24px', padding: '0 6px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '2px' }}
-                disabled={validCurrentPage >= totalPages}
-                onClick={() => setCurrentPage(Math.min(totalPages, validCurrentPage + 1))}
-              >
-                Next <ChevronRight size={12} />
-              </button>
-            </div>
-          )}
         </div>
       </div>
 
@@ -921,60 +928,126 @@ export function CounterpartyDirectoryTable() {
           <thead>
             <tr>
               <th
-                style={{ width: '56px', textAlign: 'center', paddingLeft: '14px', cursor: 'pointer', fontSize: '11px' }}
+                style={{ width: '56px', textAlign: 'center', padding: '8px 6px', cursor: 'pointer', whiteSpace: 'nowrap' }}
                 onClick={() => handleSort('rank')}
                 title="Sort by FuelEU Statutory Penalty Exposure Rank"
               >
-                Rank {sortField === 'rank' && (sortDirection === 'asc' ? '↑' : '↓')}
+                <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '4px', width: '100%' }}>
+                  <span>RANK</span>
+                  {sortField === 'rank' ? (
+                    sortDirection === 'asc' ? <ArrowUp size={11} style={{ color: 'var(--color-accent)' }} /> : <ArrowDown size={11} style={{ color: 'var(--color-accent)' }} />
+                  ) : (
+                    <ArrowUpDown size={11} style={{ opacity: 0.25 }} />
+                  )}
+                </div>
               </th>
+
               <th
-                style={{ cursor: 'pointer', paddingLeft: '14px' }}
+                style={{ minWidth: '220px', padding: '8px 12px', cursor: 'pointer', whiteSpace: 'nowrap' }}
                 onClick={() => handleSort('parent_name')}
               >
-                Shipping Group {sortField === 'parent_name' && (sortDirection === 'asc' ? '↑' : '↓')}
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <span>SHIPPING GROUP</span>
+                  {sortField === 'parent_name' ? (
+                    sortDirection === 'asc' ? <ArrowUp size={11} style={{ color: 'var(--color-accent)' }} /> : <ArrowDown size={11} style={{ color: 'var(--color-accent)' }} />
+                  ) : (
+                    <ArrowUpDown size={11} style={{ opacity: 0.25 }} />
+                  )}
+                </div>
               </th>
+
               <th
-                style={{ textAlign: 'center', minWidth: '130px', cursor: 'pointer' }}
+                style={{ width: '145px', textAlign: 'center', padding: '8px 8px', cursor: 'pointer', whiteSpace: 'nowrap' }}
                 onClick={() => handleSort('lng_vessels_in_scope')}
                 title="Sort by Fleet Engine Capability & Dual-Fuel LNG Readiness"
               >
-                Engine Readiness {sortField === 'lng_vessels_in_scope' && (sortDirection === 'asc' ? '↑' : '↓')}
+                <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '4px', width: '100%' }}>
+                  <span>PROPULSION</span>
+                  {sortField === 'lng_vessels_in_scope' ? (
+                    sortDirection === 'asc' ? <ArrowUp size={11} style={{ color: 'var(--color-accent)' }} /> : <ArrowDown size={11} style={{ color: 'var(--color-accent)' }} />
+                  ) : (
+                    <ArrowUpDown size={11} style={{ opacity: 0.25 }} />
+                  )}
+                </div>
               </th>
+
               <th
-                style={{ cursor: 'pointer', textAlign: 'center' }}
+                style={{ width: '75px', textAlign: 'right', padding: '8px 8px', cursor: 'pointer', whiteSpace: 'nowrap' }}
                 onClick={() => handleSort('vessels_in_scope')}
               >
-                Vessels {sortField === 'vessels_in_scope' && (sortDirection === 'asc' ? '↑' : '↓')}
+                <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', width: '100%' }}>
+                  <span>VESSELS</span>
+                  {sortField === 'vessels_in_scope' ? (
+                    sortDirection === 'asc' ? <ArrowUp size={11} style={{ color: 'var(--color-accent)' }} /> : <ArrowDown size={11} style={{ color: 'var(--color-accent)' }} />
+                  ) : (
+                    <ArrowUpDown size={11} style={{ opacity: 0.25 }} />
+                  )}
+                </div>
               </th>
+
               <th
-                style={{ cursor: 'pointer', textAlign: 'right' }}
+                style={{ width: '125px', textAlign: 'right', padding: '8px 8px', cursor: 'pointer', whiteSpace: 'nowrap' }}
                 onClick={() => handleSort('penalty_2025_y1_eur')}
                 title="FuelEU Maritime Statutory Penalty Exposure (Year 1)"
               >
-                FuelEU Penalty {sortField === 'penalty_2025_y1_eur' && (sortDirection === 'asc' ? '↑' : '↓')}
+                <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', width: '100%' }}>
+                  <span>FUELEU PENALTY</span>
+                  {sortField === 'penalty_2025_y1_eur' ? (
+                    sortDirection === 'asc' ? <ArrowUp size={11} style={{ color: 'var(--color-accent)' }} /> : <ArrowDown size={11} style={{ color: 'var(--color-accent)' }} />
+                  ) : (
+                    <ArrowUpDown size={11} style={{ opacity: 0.25 }} />
+                  )}
+                </div>
               </th>
+
               <th
-                style={{ cursor: 'pointer', textAlign: 'right' }}
+                style={{ width: '110px', textAlign: 'right', padding: '8px 8px', cursor: 'pointer', whiteSpace: 'nowrap' }}
                 onClick={() => handleSort('ets_exposure_2025_eur')}
                 title="EU ETS Maritime 2025 Liability (Directive (EU) 2023/959 70% Phase-In @ €70/t EUA)"
               >
-                EU ETS 2025 {sortField === 'ets_exposure_2025_eur' && (sortDirection === 'asc' ? '↑' : '↓')}
+                <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', width: '100%' }}>
+                  <span>EU ETS 2025</span>
+                  {sortField === 'ets_exposure_2025_eur' ? (
+                    sortDirection === 'asc' ? <ArrowUp size={11} style={{ color: 'var(--color-accent)' }} /> : <ArrowDown size={11} style={{ color: 'var(--color-accent)' }} />
+                  ) : (
+                    <ArrowUpDown size={11} style={{ opacity: 0.25 }} />
+                  )}
+                </div>
               </th>
+
               <th
-                style={{ cursor: 'pointer', textAlign: 'right' }}
+                style={{ width: '125px', textAlign: 'right', padding: '8px 8px', cursor: 'pointer', whiteSpace: 'nowrap' }}
                 onClick={() => handleSort('combined_regulatory_exposure_2025_eur')}
                 title="Combined 2025 Statutory Exposure (FuelEU Penalty + EU ETS 70% Liability)"
               >
-                Combined 2025 {sortField === 'combined_regulatory_exposure_2025_eur' && (sortDirection === 'asc' ? '↑' : '↓')}
+                <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', width: '100%' }}>
+                  <span>COMBINED 2025</span>
+                  {sortField === 'combined_regulatory_exposure_2025_eur' ? (
+                    sortDirection === 'asc' ? <ArrowUp size={11} style={{ color: 'var(--color-accent)' }} /> : <ArrowDown size={11} style={{ color: 'var(--color-accent)' }} />
+                  ) : (
+                    <ArrowUpDown size={11} style={{ opacity: 0.25 }} />
+                  )}
+                </div>
               </th>
+
               <th
-                style={{ cursor: 'pointer', textAlign: 'right' }}
+                style={{ width: '115px', textAlign: 'right', padding: '8px 8px', cursor: 'pointer', whiteSpace: 'nowrap' }}
                 onClick={() => handleSort('client_savings_physical_eur')}
                 title="Client Net Statutory Compliance Savings with RED III Bio-LNG"
               >
-                Net Savings {sortField === 'client_savings_physical_eur' && (sortDirection === 'asc' ? '↑' : '↓')}
+                <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', width: '100%' }}>
+                  <span>NET SAVINGS</span>
+                  {sortField === 'client_savings_physical_eur' ? (
+                    sortDirection === 'asc' ? <ArrowUp size={11} style={{ color: 'var(--color-accent)' }} /> : <ArrowDown size={11} style={{ color: 'var(--color-accent)' }} />
+                  ) : (
+                    <ArrowUpDown size={11} style={{ opacity: 0.25 }} />
+                  )}
+                </div>
               </th>
-              <th style={{ textAlign: 'right', paddingRight: '18px' }}>Actions</th>
+
+              <th style={{ width: '130px', textAlign: 'right', padding: '8px 16px', whiteSpace: 'nowrap' }}>
+                ACTIONS
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -985,7 +1058,7 @@ export function CounterpartyDirectoryTable() {
                 </td>
               </tr>
             ) : (
-              paginatedCounterparties.map((c, idx) => {
+              paginatedCounterparties.map((c) => {
                 const isSurplus = c.compliance_balance_2025_tco2e > 0;
                 return (
                   <tr
@@ -993,115 +1066,100 @@ export function CounterpartyDirectoryTable() {
                     data-click="1"
                     onClick={() => setActiveCounterparty(c)}
                   >
-                    {/* Statutory Exposure Rank */}
-                    <td className="num" style={{ textAlign: 'center', paddingLeft: '14px' }}>
+                    {/* Rank */}
+                    <td className="num" style={{ textAlign: 'center', padding: '6px 6px' }}>
                       <span
-                        className={`chip ${getStrategyTierBadgeClass(c.strategy_tier)}`}
-                        style={{ fontWeight: 700, fontSize: '11px', minWidth: '34px', display: 'inline-flex', justifyContent: 'center' }}
-                        title={`${c.strategy_tier} (Statutory Exposure Rank #${c.rank})`}
+                        style={{
+                          fontFamily: MONO_FONT,
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          color: c.rank <= 10 ? 'var(--color-accent)' : 'var(--color-text)',
+                        }}
                       >
                         #{c.rank}
                       </span>
                     </td>
 
-                    {/* Company Name & Segment */}
-                    <td style={{ paddingLeft: '14px' }}>
-                      <div style={{ fontWeight: 600, color: 'var(--color-text)' }}>
+                    {/* Shipping Group Name & Compact Route Info */}
+                    <td style={{ padding: '6px 12px' }}>
+                      <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {c.parent_name}
                       </div>
-                      <div className="subttl" style={{ fontSize: '11px', marginTop: '1px' }}>
-                        {c.headquarters} · <span style={{ color: 'var(--color-muted)' }}>{c.segment}</span>
-                      </div>
-                      <div style={{ display: 'flex', gap: '4px', marginTop: '3px', flexWrap: 'wrap' }}>
-                        <span className="chip" style={{ fontSize: '9.5px', padding: '1px 5px', display: 'inline-flex', alignItems: 'center', gap: '2px' }} title={CALLING_REGIONS[c.callingRegion]?.portsDescription}>
-                          <MapPin size={9} style={{ color: 'var(--color-accent)' }} /> {CALLING_REGIONS[c.callingRegion]?.label || c.callingRegion}
-                        </span>
-                        <span className="chip" style={{ fontSize: '9.5px', padding: '1px 5px', display: 'inline-flex', alignItems: 'center', gap: '2px' }} title={TRADE_LANES[c.tradeLane]?.corridorDescription}>
-                          <Compass size={9} style={{ color: 'var(--color-muted)' }} /> {TRADE_LANES[c.tradeLane]?.label || c.tradeLane}
-                        </span>
+                      <div className="subttl" style={{ fontSize: '10.5px', marginTop: '1px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '360px' }}>
+                        {c.headquarters} · <span style={{ color: 'var(--color-muted)' }}>{c.segment}</span> · {CALLING_REGIONS[c.callingRegion]?.label || c.callingRegion}
                       </div>
                     </td>
 
-                    {/* Engine Readiness Badge */}
-                    <td style={{ textAlign: 'center' }}>
+                    {/* Propulsion & Engine Readiness: Clean single-line badge */}
+                    <td style={{ textAlign: 'center', padding: '6px 8px' }}>
                       {c.fleetCapability === 'DUAL_FUEL_LNG' ? (
-                        <div>
-                          <span
-                            className="chip chip-pos"
-                            style={{
-                              fontSize: '10px',
-                              fontWeight: 700,
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '3px',
-                              letterSpacing: '0.02em',
-                            }}
-                            title={`Dual-Fuel Cryogenic LNG Ready (${c.lng_vessels_in_scope} LNG vessels in scope)`}
-                          >
-                            <Flame size={10} style={{ color: '#047857' }} /> DUAL-FUEL LNG
-                          </span>
-                          <div className="subttl num" style={{ fontSize: '10px', marginTop: '2px' }}>
-                            {c.lng_vessels_in_scope} LNG / {c.vessels_in_scope} total
-                          </div>
-                        </div>
+                        <span
+                          className="chip chip-pos"
+                          style={{
+                            fontSize: '9.5px',
+                            fontWeight: 700,
+                            padding: '2px 6px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '3px',
+                            letterSpacing: '0.02em',
+                          }}
+                          title={`Dual-Fuel LNG Ready (${c.lng_vessels_in_scope} LNG vessels of ${c.vessels_in_scope} total)`}
+                        >
+                          <Flame size={10} style={{ color: '#047857' }} /> DUAL-FUEL LNG ({c.lng_vessels_in_scope})
+                        </span>
                       ) : (
-                        <div>
-                          <span
-                            className="chip"
-                            style={{
-                              fontSize: '10px',
-                              fontWeight: 600,
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '3px',
-                              color: 'var(--color-muted)',
-                            }}
-                            title="Standard 2-stroke diesel engine (Article 21 compliance pooling / drop-in certified biofuels)"
-                          >
-                            <Anchor size={10} /> CONVENTIONAL
-                          </span>
-                          <div className="subttl num" style={{ fontSize: '10px', marginTop: '2px' }}>
-                            {c.vessels_in_scope} diesel/HFO
-                          </div>
-                        </div>
+                        <span
+                          className="chip"
+                          style={{
+                            fontSize: '9.5px',
+                            fontWeight: 500,
+                            padding: '2px 6px',
+                            letterSpacing: '0.02em',
+                            color: 'var(--color-muted)',
+                          }}
+                          title={`Conventional Propulsion (${c.vessels_in_scope} vessels)`}
+                        >
+                          CONVENTIONAL
+                        </span>
                       )}
                     </td>
 
                     {/* Vessels in Scope */}
-                    <td className="num" style={{ textAlign: 'center' }}>
+                    <td className="num font-mono" style={{ textAlign: 'right', padding: '6px 8px', fontSize: '12px', fontFamily: MONO_FONT }}>
                       {c.vessels_in_scope}
                     </td>
 
-                    {/* FuelEU Statutory Penalty */}
-                    <td className="num" style={{ textAlign: 'right', fontWeight: 600 }}>
+                    {/* FuelEU Penalty */}
+                    <td className="num font-mono" style={{ textAlign: 'right', padding: '6px 8px', fontSize: '12px', fontWeight: 600, fontFamily: MONO_FONT }}>
                       <span style={{ color: isSurplus ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)' }}>
-                        {isSurplus ? '€0' : `€${(c.penalty_2025_y1_eur / 1000000).toFixed(2)}M`}
+                        {isSurplus ? '€0 (Surplus)' : `€${(c.penalty_2025_y1_eur / 1e6).toFixed(2)}M`}
                       </span>
                     </td>
 
-                    {/* EU ETS 2025 Exposure */}
-                    <td className="num" style={{ textAlign: 'right', fontWeight: 500, color: 'var(--color-status-warn-text, #d97706)' }}>
-                      €{(c.ets_exposure_2025_eur / 1000000).toFixed(2)}M
+                    {/* EU ETS 2025 */}
+                    <td className="num font-mono" style={{ textAlign: 'right', padding: '6px 8px', fontSize: '12px', fontWeight: 500, color: 'var(--color-status-warn-text, #d97706)', fontFamily: MONO_FONT }}>
+                      €{(c.ets_exposure_2025_eur / 1e6).toFixed(2)}M
                     </td>
 
-                    {/* Combined 2025 Regulatory Exposure */}
-                    <td className="num" style={{ textAlign: 'right', fontWeight: 700, color: 'var(--color-accent)' }}>
-                      €{(c.combined_regulatory_exposure_2025_eur / 1000000).toFixed(2)}M
+                    {/* Combined 2025 */}
+                    <td className="num font-mono" style={{ textAlign: 'right', padding: '6px 8px', fontSize: '12px', fontWeight: 700, color: 'var(--color-text)', fontFamily: MONO_FONT }}>
+                      €{(c.combined_regulatory_exposure_2025_eur / 1e6).toFixed(2)}M
                     </td>
 
-                    {/* Client Savings Potential */}
-                    <td className="num" style={{ textAlign: 'right', fontWeight: 600, color: 'var(--color-status-pos-text)' }}>
-                      €{(c.client_savings_physical_eur / 1000000).toFixed(2)}M
+                    {/* Net Savings */}
+                    <td className="num font-mono" style={{ textAlign: 'right', padding: '6px 8px', fontSize: '12px', fontWeight: 600, color: 'var(--color-status-pos-text)', fontFamily: MONO_FONT }}>
+                      €{(c.client_savings_physical_eur / 1e6).toFixed(2)}M
                     </td>
 
-                    {/* Action buttons */}
-                    <td style={{ textAlign: 'right', paddingRight: '18px' }} onClick={(e) => e.stopPropagation()}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '5px' }}>
+                    {/* Actions */}
+                    <td style={{ textAlign: 'right', padding: '6px 16px' }} onClick={(e) => e.stopPropagation()}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
                         <button
                           type="button"
                           onClick={() => setActiveCounterparty(c)}
                           className="btn btn-secondary"
-                          style={{ fontSize: '11px', padding: '2px 8px', height: '26px' }}
+                          style={{ fontSize: '11px', padding: '0 8px', height: '24px' }}
                           title="View Counterparty Dossier & Term Sheet"
                         >
                           Dossier
@@ -1111,10 +1169,10 @@ export function CounterpartyDirectoryTable() {
                             type="button"
                             onClick={(e) => handleTradeBuilder(c, e)}
                             className="btn btn-primary"
-                            style={{ fontSize: '11px', padding: '2px 8px', height: '26px', display: 'flex', alignItems: 'center', gap: '4px' }}
-                            title="Structure Bio-LNG Deficit in Trade Builder"
+                            style={{ fontSize: '11px', padding: '0 8px', height: '24px', display: 'flex', alignItems: 'center', gap: '3px' }}
+                            title="Structure Bio-LNG in Trade Builder"
                           >
-                            <Zap size={11} /> Trade
+                            <Zap size={10} /> Trade
                           </button>
                         )}
                       </div>
@@ -1126,82 +1184,104 @@ export function CounterpartyDirectoryTable() {
           </tbody>
           <tfoot style={{ borderTop: '2px solid var(--color-divider)', backgroundColor: 'var(--color-panel-header)' }}>
             <tr>
-              <td style={{ textAlign: 'center', paddingLeft: '14px', fontSize: '11px', color: 'var(--color-muted)', fontWeight: 700 }}>
+              <td style={{ textAlign: 'center', padding: '7px 6px', fontSize: '11px', color: 'var(--color-muted)', fontWeight: 700 }}>
                 Σ
               </td>
-              <td style={{ paddingLeft: '14px', fontWeight: 700, fontSize: '12px' }}>
+              <td style={{ padding: '7px 12px', fontWeight: 700, fontSize: '12px' }}>
                 Total Active ({filteredCounterparties.length} of {FUEL_EU_SHIPPING_COUNTERPARTIES.length} Groups)
               </td>
-              <td className="num" style={{ textAlign: 'center', fontWeight: 700 }}>
+              <td className="num font-mono" style={{ textAlign: 'center', padding: '7px 8px', fontSize: '11px', color: 'var(--color-muted)', fontFamily: MONO_FONT }}>
+                {aggregateMetrics.dualFuelCount} LNG · {aggregateMetrics.conventionalCount} Conv
+              </td>
+              <td className="num font-mono" style={{ textAlign: 'right', padding: '7px 8px', fontWeight: 700, fontSize: '12px', fontFamily: MONO_FONT }}>
                 {aggregateMetrics.vesselCount.toLocaleString()}
               </td>
-              <td className="num" style={{ textAlign: 'right', fontWeight: 700 }}>
-                {aggregateMetrics.fleetEnergyTWh} TWh
-              </td>
-              <td style={{ textAlign: 'center', fontSize: '11px', color: 'var(--color-muted)' }}>
-                89.34 req
-              </td>
-              <td className="num" style={{ textAlign: 'right', fontWeight: 700, color: 'var(--color-status-neg-text)' }}>
-                -{aggregateMetrics.grossDeficitKt} kt
-              </td>
-              <td className="num" style={{ textAlign: 'right', fontWeight: 700 }}>
+              <td className="num font-mono" style={{ textAlign: 'right', padding: '7px 8px', fontWeight: 700, fontSize: '12px', color: 'var(--color-status-neg-text)', fontFamily: MONO_FONT }}>
                 €{aggregateMetrics.netPenaltyM}M
               </td>
-              <td className="num" style={{ textAlign: 'right', fontWeight: 700 }}>
-                {aggregateMetrics.bioLngGWh} GWh
+              <td className="num font-mono" style={{ textAlign: 'right', padding: '7px 8px', fontWeight: 700, fontSize: '12px', color: 'var(--color-status-warn-text, #d97706)', fontFamily: MONO_FONT }}>
+                €{aggregateMetrics.etsExposureM}M
               </td>
-              <td className="num" style={{ textAlign: 'right', fontWeight: 700, color: 'var(--color-status-pos-text)' }}>
+              <td className="num font-mono" style={{ textAlign: 'right', padding: '7px 8px', fontWeight: 800, fontSize: '12px', fontFamily: MONO_FONT }}>
+                €{aggregateMetrics.combinedExposureM}M
+              </td>
+              <td className="num font-mono" style={{ textAlign: 'right', padding: '7px 8px', fontWeight: 700, fontSize: '12px', color: 'var(--color-status-pos-text)', fontFamily: MONO_FONT }}>
                 €{aggregateMetrics.clientSavingsM}M
               </td>
-              <td style={{ textAlign: 'right', paddingRight: '18px', fontSize: '10.5px', color: 'var(--color-muted)' }}>
-                100% Verified
+              <td style={{ textAlign: 'right', padding: '7px 16px', fontSize: '10.5px', color: 'var(--color-muted)' }}>
+                Audited MRV
               </td>
             </tr>
           </tfoot>
         </table>
       </div>
 
-      {/* Bottom Pagination Bar (when viewing paginated pages) */}
-      {pageSize !== 'ALL' && totalPages > 1 && (
-        <div
-          style={{
-            padding: '10px 18px',
-            borderTop: '1px solid var(--color-divider)',
-            backgroundColor: 'var(--color-surface)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            fontSize: '12px',
-          }}
-        >
-          <span style={{ color: 'var(--color-muted)' }}>
-            Showing rows {startIndex + 1}–{Math.min(startIndex + pageSize, totalItems)} of {totalItems} shipping groups
-          </span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              style={{ height: '28px', padding: '0 10px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px' }}
-              disabled={validCurrentPage <= 1}
-              onClick={() => setCurrentPage(Math.max(1, validCurrentPage - 1))}
-            >
-              <ChevronLeft size={13} /> Previous Page
-            </button>
-            <span className="num" style={{ fontWeight: 600, padding: '0 8px' }}>
-              Page {validCurrentPage} of {totalPages}
-            </span>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              style={{ height: '28px', padding: '0 10px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px' }}
-              disabled={validCurrentPage >= totalPages}
-              onClick={() => setCurrentPage(Math.min(totalPages, validCurrentPage + 1))}
-            >
-              Next Page <ChevronRight size={13} />
-            </button>
+      {/* Bottom Pagination & Density Controls */}
+      <div
+        style={{
+          padding: '8px 18px',
+          borderTop: '1px solid var(--color-divider)',
+          backgroundColor: 'var(--color-surface)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '8px',
+          fontSize: '11.5px',
+        }}
+      >
+        <span style={{ color: 'var(--color-muted)' }}>
+          Showing rows {pageSize === 'ALL' ? (
+            <span>all <strong>{filteredCounterparties.length}</strong></span>
+          ) : (
+            <span><strong>{startIndex + 1}–{Math.min(startIndex + pageSize, totalItems)}</strong> of <strong>{totalItems}</strong></span>
+          )} shipping groups
+        </span>
+
+        {/* Page Size & Navigation */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>Rows:</span>
+            {([25, 50, 100, 'ALL'] as const).map(size => (
+              <button
+                key={size}
+                type="button"
+                className={`chip ${pageSize === size ? 'chip-a' : ''}`}
+                style={{ cursor: 'pointer', fontSize: '10.5px', padding: '2px 7px' }}
+                onClick={() => { setPageSize(size); setCurrentPage(1); }}
+              >
+                {size === 'ALL' ? 'All' : size}
+              </button>
+            ))}
           </div>
+
+          {pageSize !== 'ALL' && totalPages > 1 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                style={{ height: '26px', padding: '0 8px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px' }}
+                disabled={validCurrentPage <= 1}
+                onClick={() => setCurrentPage(Math.max(1, validCurrentPage - 1))}
+              >
+                <ChevronLeft size={12} /> Prev
+              </button>
+              <span className="num" style={{ fontSize: '11px', padding: '0 6px', fontWeight: 600 }}>
+                {validCurrentPage} / {totalPages}
+              </span>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                style={{ height: '26px', padding: '0 8px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px' }}
+                disabled={validCurrentPage >= totalPages}
+                onClick={() => setCurrentPage(Math.min(totalPages, validCurrentPage + 1))}
+              >
+                Next <ChevronRight size={12} />
+              </button>
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Modal Profile / Term Sheet */}
       <ShippingCounterpartyModal

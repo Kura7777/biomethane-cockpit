@@ -47,24 +47,56 @@ export function FuelEUShippingScreen() {
       {/* Screen Title & Statutory Gating Bar */}
       <div
         style={{
-          padding: '14px 18px 10px',
+          padding: '12px 18px',
           borderBottom: '1px solid var(--color-divider)',
           backgroundColor: 'var(--color-surface)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
-          gap: '10px'
+          gap: '12px'
         }}
       >
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
-            <h3 className="ptitle" style={{ margin: 0 }}>FuelEU Maritime Compliance Desk</h3>
-            <span className="chip chip-pos">Regulation (EU) 2023/1805 Active</span>
-            <span className="chip chip-info">EMSA THETIS-MRV</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+            <h3 className="ptitle" style={{ margin: 0, fontSize: '18px', letterSpacing: '-0.01em' }}>
+              FuelEU Maritime Compliance Desk
+            </h3>
+            <span
+              style={{
+                fontSize: '10px',
+                fontFamily: 'monospace',
+                fontWeight: 600,
+                letterSpacing: '0.04em',
+                padding: '2px 7px',
+                border: '1px solid var(--color-divider)',
+                backgroundColor: 'var(--color-subtier)',
+                color: 'var(--color-muted)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+              }}
+            >
+              <span style={{ width: '6px', height: '6px', backgroundColor: '#10b981', display: 'inline-block' }} />
+              REGULATION (EU) 2023/1805
+            </span>
+            <span
+              style={{
+                fontSize: '10px',
+                fontFamily: 'monospace',
+                fontWeight: 600,
+                letterSpacing: '0.04em',
+                padding: '2px 7px',
+                border: '1px solid var(--color-divider)',
+                backgroundColor: 'var(--color-subtier)',
+                color: 'var(--color-muted)',
+              }}
+            >
+              EMSA THETIS-MRV AUDITED
+            </span>
           </div>
-          <div className="subttl">
-            Pan-European exposure monitoring, verified EU MRV shipping counterparties ({totalGroups} groups · {totalVessels.toLocaleString()} vessels), ship archetype calculators, and dual commercial abatement pathways.
+          <div className="subttl" style={{ fontSize: '12px' }}>
+            Pan-European compliance ledger · {totalGroups.toLocaleString()} shipping groups · {totalVessels.toLocaleString()} commercial vessels · Article 20 physical Bio-LNG &amp; Article 21 pooling
           </div>
         </div>
 
@@ -74,57 +106,65 @@ export function FuelEUShippingScreen() {
             type="button"
             onClick={() => navigate('/citations')}
             className="btn btn-secondary"
-            style={{ fontSize: '11px', padding: '4px 10px', height: '30px', display: 'flex', alignItems: 'center', gap: '5px' }}
+            style={{ fontSize: '11px', padding: '0 10px', height: '28px', display: 'flex', alignItems: 'center', gap: '5px' }}
           >
-            <BookOpen size={13} style={{ color: 'var(--color-accent)' }} /> Citations &amp; Legal Basis
+            <BookOpen size={12} style={{ color: 'var(--color-accent)' }} /> Citations &amp; Legal Basis
           </button>
           <button
             type="button"
             onClick={() => navigate('/data-sources')}
             className="btn btn-secondary"
-            style={{ fontSize: '11px', padding: '4px 10px', height: '30px', display: 'flex', alignItems: 'center', gap: '5px' }}
+            style={{ fontSize: '11px', padding: '0 10px', height: '28px', display: 'flex', alignItems: 'center', gap: '5px' }}
           >
-            <ShieldCheck size={13} style={{ color: 'var(--color-status-pos-text)' }} /> EU MRV Provenance
+            <ShieldCheck size={12} style={{ color: 'var(--color-status-pos-text)' }} /> EU MRV Provenance
           </button>
         </div>
       </div>
 
-      {/* Navigation Sub-Tabs matching App header navtab style */}
+      {/* Institutional Desk Navigation Tabs */}
       <div
         style={{
           display: 'flex',
-          alignItems: 'center',
+          alignItems: 'stretch',
           borderBottom: '1px solid var(--color-divider)',
           backgroundColor: 'var(--color-panel-header)',
-          padding: '0 18px'
+          padding: '0 18px',
+          gap: '2px',
         }}
       >
-        <button
-          type="button"
-          onClick={() => handleSelectTab('DIRECTORY')}
-          className={`navtab ${activeTab === 'DIRECTORY' ? 'active' : ''}`}
-          style={{ height: '38px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '12px' }}
-        >
-          <Ship size={13} style={{ marginRight: '6px' }} /> Counterparty Directory ({totalGroups} Groups · {totalVessels.toLocaleString()} Vessels)
-        </button>
-
-        <button
-          type="button"
-          onClick={() => handleSelectTab('CALCULATOR')}
-          className={`navtab ${activeTab === 'CALCULATOR' ? 'active' : ''}`}
-          style={{ height: '38px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '12px' }}
-        >
-          <Sliders size={13} style={{ marginRight: '6px' }} /> Vessel Archetype Exposure Calculator
-        </button>
-
-        <button
-          type="button"
-          onClick={() => handleSelectTab('PATHWAYS')}
-          className={`navtab ${activeTab === 'PATHWAYS' ? 'active' : ''}`}
-          style={{ height: '38px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '12px' }}
-        >
-          <Scale size={13} style={{ marginRight: '6px' }} /> Dual Commercial Pathways (Art. 20 &amp; 21)
-        </button>
+        {[
+          { id: 'DIRECTORY' as const, label: `Counterparty Directory (${totalGroups.toLocaleString()})`, icon: Ship },
+          { id: 'CALCULATOR' as const, label: 'Vessel Archetypes', icon: Sliders },
+          { id: 'PATHWAYS' as const, label: 'Commercial Pathways (Art. 21)', icon: Scale },
+        ].map((tab) => {
+          const isActive = activeTab === tab.id;
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => handleSelectTab(tab.id)}
+              style={{
+                height: '36px',
+                padding: '0 16px',
+                border: 'none',
+                borderBottom: isActive ? '2px solid var(--color-accent)' : '2px solid transparent',
+                backgroundColor: isActive ? 'var(--color-surface)' : 'transparent',
+                color: isActive ? 'var(--color-text)' : 'var(--color-muted)',
+                fontWeight: isActive ? 700 : 500,
+                fontSize: '12px',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '7px',
+                transition: 'all 150ms ease',
+              }}
+            >
+              <Icon size={13} style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-muted)' }} />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Main Tab Body */}
