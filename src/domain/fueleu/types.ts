@@ -87,6 +87,58 @@ export function getStrategyTierBadgeClass(strategyTier: string): string {
   return 'chip-pos';
 }
 
+export type FleetCapability = 'DUAL_FUEL_LNG' | 'CONVENTIONAL_ONLY';
+
+export interface JointRegulatoryExposure {
+  totalGrossCo2Tonnes: number;
+  etsExposure2025Tco2: number;
+  etsExposure2025Eur: number;
+  etsExposure2026Tco2: number;
+  etsExposure2026Eur: number;
+  combinedRegulatoryExposure2025Eur: number;
+  etsSavingsFromBioLngEur: number;
+}
+
+export interface MarineBunkerQuotationInput {
+  ttfGasIndexEurMwh?: number;
+  liquefactionFeeEurMwh?: number;
+  greenPremiumEurMwh?: number;
+  vlsfoPriceUsdPerTonne?: number;
+  euaPriceEurPerTonne?: number;
+  eurUsdRate?: number;
+  bioLngVolumeTonnes?: number;
+  bioLngCi?: number;
+  targetYear?: 2025 | 2026 | 2030;
+}
+
+export interface MarineBunkerQuotationResult {
+  allInBioLngPriceEurMwh: number;
+  allInBioLngPriceEurPerTonne: number;
+  allInBioLngPriceUsdPerTonne: number;
+  mwhPerTonneBioLng: number;
+  equivalentVlsfoTonnes: number;
+  vlsfoCostUsd: number;
+  vlsfoCostEur: number;
+  vlsfoEtsLiabilityEur: number;
+  vlsfoEtsLiabilityUsd: number;
+  vlsfoFuelEuPenaltyEur: number;
+  vlsfoFuelEuPenaltyUsd: number;
+  totalConventionalAlternativeCostEur: number;
+  totalConventionalAlternativeCostUsd: number;
+  fuelEuFleetPenaltyAvoidedEurPerTonne: number;
+  etsAvoidedEurPerTonne: number;
+  totalRegulatoryValueEurPerTonne: number;
+  netSavingsPerTonneBioLngEur: number;
+  netSavingsPerTonneBioLngUsd: number;
+  dealVolumeTonnes?: number;
+  dealVolumeMwh?: number;
+  totalBioLngInvoiceEur?: number;
+  totalBioLngInvoiceUsd?: number;
+  totalClientSavingsEur?: number;
+  totalClientSavingsUsd?: number;
+  totalEtsAvoidedTco2?: number;
+}
+
 export interface ShippingCounterparty {
   rank: number;
   parent_name: string;
@@ -122,6 +174,14 @@ export interface ShippingCounterparty {
   switchboardPhone: string;
   contactDomain: string;
   outreachPitch: string;
+  // Fleet Capability & Joint Regulatory Exposure (FuelEU + EU ETS Directive 2023/959)
+  fleetCapability: FleetCapability;
+  lng_vessels_in_scope: number;
+  conventional_vessels_in_scope: number;
+  ets_exposure_2025_tco2: number;
+  ets_exposure_2025_eur: number;
+  ets_exposure_2026_eur: number;
+  combined_regulatory_exposure_2025_eur: number;
 }
 
 export interface VesselArchetype {

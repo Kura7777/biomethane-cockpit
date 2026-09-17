@@ -1,4 +1,12 @@
-import { VesselArchetype, VesselCalculationInput, VesselCalculationResult } from './types';
+import {
+  VesselArchetype,
+  VesselCalculationInput,
+  VesselCalculationResult,
+  FleetCapability,
+  JointRegulatoryExposure,
+  MarineBunkerQuotationInput,
+  MarineBunkerQuotationResult,
+} from './types';
 
 /**
  * FuelEU Maritime Physical & Regulatory Constants
@@ -16,6 +24,29 @@ export const LHV_MGO_MJ_PER_TONNE = 42700;
 export const LHV_LNG_MJ_PER_TONNE = 49100;
 export const LHV_BIO_LNG_MJ_PER_TONNE = 49100;
 export const MJ_PER_MWH = 3600;
+
+/**
+ * EU ETS Maritime Physical & Regulatory Constants
+ * Source: Directive (EU) 2023/959, MRV Maritime Regulation (EU) 2015/757
+ */
+export const EU_ETS_EMISSION_FACTOR_VLSFO = 3.114; // tCO2 / tonne fuel
+export const EU_ETS_EMISSION_FACTOR_MGO = 3.206;   // tCO2 / tonne fuel
+export const EU_ETS_EMISSION_FACTOR_LNG = 2.750;   // tCO2 / tonne fuel
+export const EU_ETS_EMISSION_FACTOR_BIO_LNG = 0.000; // Zero-rated under RED III & EU ETS MRV
+export const EU_ETS_PHASE_IN_2025 = 0.70;         // 70% phase-in in 2025
+export const EU_ETS_PHASE_IN_2026 = 1.00;         // 100% full enforcement in 2026
+export const EUA_BENCHMARK_EUR_PER_TONNE = 70.00; // €70.00 / tCO2
+
+/**
+ * Institutional Marine Bunker Quotation Constants
+ */
+export const LHV_BIO_LNG_GJ_PER_TONNE = 50.0;     // 50.0 GJ/t Bio-LNG
+export const MWH_PER_TONNE_BIO_LNG = 13.9;        // 13.9 MWh/t (50 GJ / 3.6 MJ/kWh)
+export const EUR_USD_DEFAULT_FX = 1.08;           // Institutional standard FX benchmark
+export const DEFAULT_TTF_GAS_INDEX_EUR_MWH = 36.0;
+export const DEFAULT_LIQUEFACTION_FEE_EUR_MWH = 14.0;
+export const DEFAULT_GREEN_PREMIUM_EUR_MWH = 22.0;
+export const DEFAULT_VLSFO_PRICE_USD_PER_TONNE = 600.0;
 
 export const VESSEL_ARCHETYPES: VesselArchetype[] = [
   {
@@ -236,4 +267,197 @@ export function calculateVesselExposure(input: VesselCalculationInput): VesselCa
     poolingSavingsEur,
     poolingArrangementMarginEur,
   };
+}
+
+/**
+ * Calculates EU ETS Maritime Carbon Liability under Directive (EU) 2023/959.
+ */
+export function calculateEuEtsExposure(
+  vlsfoTonnes: number,
+  mgoTonnes: number,
+  lngTonnes: number,
+  euaPriceEur: number = EUA_BENCHMARK_EUR_PER_TONNE,
+  fueleuPenaltyEur: number = 0
+): JointRegulatoryExposure {
+  const totalGrossCo2Tonnes = Number(
+    (
+      Math.max(0, vlsfoTonnes) * EU_ETS_EMISSION_FACTOR_VLSFO +
+      Math.max(0, mgoTonnes) * EU_ETS_EMISSION_FACTOR_MGO +
+      Math.max(0, lngTonnes) * EU_ETS_EMISSION_FACTOR_LNG
+    ).toFixed(1)
+  );
+
+  const etsExposure2025Tco2 = Number((totalGrossCo2Tonnes * EU_ETS_PHASE_IN_2025).toFixed(1));
+  const etsExposure2025Eur = Math.round(etsExposure2025Tco2 * euaPriceEur);
+
+  const etsExposure2026Tco2 = Number((totalGrossCo2Tonnes * EU_ETS_PHASE_IN_2026).toFixed(1));
+  const etsExposure2026Eur = Math.round(etsExposure2026Tco2 * euaPriceEur);
+
+  const etsSavingsFromBioLngEur = Number(
+    ((LHV_BIO_LNG_MJ_PER_TONNE / LHV_VLSFO_MJ_PER_TONNE) * EU_ETS_EMISSION_FACTOR_VLSFO * EU_ETS_PHASE_IN_2025 * euaPriceEur).toFixed(2)
+  );
+
+  return {
+    totalGrossCo2Tonnes,
+    etsExposure2025Tco2,
+    etsExposure2025Eur,
+    etsExposure2026Tco2,
+    etsExposure2026Eur,
+    combinedRegulatoryExposure2025Eur: etsExposure2025Eur + fueleuPenaltyEur,
+    etsSavingsFromBioLngEur,
+  };
+}
+
+/**
+ * Classifies fleet into DUAL_FUEL_LNG vs CONVENTIONAL_ONLY and determines vessel split.
+ */
+export function calculateFleetCapability(
+  vesselsInScope: number,
+  vlsfoTonnes: number,
+  mgoTonnes: number,
+  lngTonnes: number
+): {
+  fleetCapability: FleetCapability;
+  lngVesselsInScope: number;
+  conventionalVesselsInScope: number;
+} {
+  const safeVessels = Math.max(1, vesselsInScope);
+  if (lngTonnes <= 0) {
+    return {
+      fleetCapability: 'CONVENTIONAL_ONLY',
+      lngVesselsInScope: 0,
+      conventionalVesselsInScope: safeVessels,
+    };
+  }
+
+  const vlsfoMj = Math.max(0, vlsfoTonnes) * LHV_VLSFO_MJ_PER_TONNE;
+  const mgoMj = Math.max(0, mgoTonnes) * LHV_MGO_MJ_PER_TONNE;
+  const lngMj = Math.max(0, lngTonnes) * LHV_LNG_MJ_PER_TONNE;
+  const totalEnergy = vlsfoMj + mgoMj + lngMj;
+
+  const lngShare = totalEnergy > 0 ? lngMj / totalEnergy : 0;
+  let lngVessels = Math.round(safeVessels * lngShare);
+
+  if (lngShare >= 0.90) {
+    lngVessels = safeVessels;
+  } else {
+    lngVessels = Math.max(1, Math.min(safeVessels - 1, lngVessels));
+  }
+
+  const conventionalVessels = safeVessels - lngVessels;
+
+  return {
+    fleetCapability: 'DUAL_FUEL_LNG',
+    lngVesselsInScope: lngVessels,
+    conventionalVesselsInScope: conventionalVessels,
+  };
+}
+
+/**
+ * Institutional Marine Bunker Quotation Engine (€/t and $/t)
+ * Models:
+ * TTF Gas Index + Liquefaction & Terminalization Fee + Green Bio-LNG Premium
+ * vs Alternative Conventional Compliance (VLSFO + FuelEU Deficit Penalty + EU ETS Allowance Cost)
+ */
+export function calculateMarineBunkerQuotation(
+  input: MarineBunkerQuotationInput = {}
+): MarineBunkerQuotationResult {
+  const ttfGasIndex = input.ttfGasIndexEurMwh !== undefined ? input.ttfGasIndexEurMwh : DEFAULT_TTF_GAS_INDEX_EUR_MWH;
+  const liquefactionFee = input.liquefactionFeeEurMwh !== undefined ? input.liquefactionFeeEurMwh : DEFAULT_LIQUEFACTION_FEE_EUR_MWH;
+  const greenPremium = input.greenPremiumEurMwh !== undefined ? input.greenPremiumEurMwh : DEFAULT_GREEN_PREMIUM_EUR_MWH;
+  const vlsfoPriceUsd = input.vlsfoPriceUsdPerTonne !== undefined ? input.vlsfoPriceUsdPerTonne : DEFAULT_VLSFO_PRICE_USD_PER_TONNE;
+  const euaPriceEur = input.euaPriceEurPerTonne !== undefined ? input.euaPriceEurPerTonne : EUA_BENCHMARK_EUR_PER_TONNE;
+  const eurUsdRate = input.eurUsdRate !== undefined ? input.eurUsdRate : EUR_USD_DEFAULT_FX;
+  const bioLngCi = input.bioLngCi !== undefined ? input.bioLngCi : -100;
+  const targetYear = input.targetYear !== undefined ? input.targetYear : 2025;
+
+  const targetGhgie = targetYear === 2030 ? FUELEU_TARGET_2030 : FUELEU_TARGET_2025;
+
+  // Bio-LNG Delivered Quote: €72/MWh benchmark
+  const allInBioLngPriceEurMwh = Number((ttfGasIndex + liquefactionFee + greenPremium).toFixed(2));
+  const allInBioLngPriceEurPerTonne = Number((allInBioLngPriceEurMwh * MWH_PER_TONNE_BIO_LNG).toFixed(2));
+  const allInBioLngPriceUsdPerTonne = Number((allInBioLngPriceEurPerTonne * eurUsdRate).toFixed(2));
+
+  // Conventional Comparison (VLSFO baseline)
+  // 1 metric tonne Bio-LNG (50.0 GJ = 50,000 MJ) delivers propulsion energy equivalent to ~1.2195 tonnes VLSFO
+  const equivalentVlsfoTonnes = Number(((LHV_BIO_LNG_GJ_PER_TONNE * 1000) / LHV_VLSFO_MJ_PER_TONNE).toFixed(4));
+  const vlsfoCostUsd = Number((equivalentVlsfoTonnes * vlsfoPriceUsd).toFixed(2));
+  const vlsfoCostEur = Number((vlsfoCostUsd / eurUsdRate).toFixed(2));
+
+  // EU ETS Liability incurred by burning 1.2195t VLSFO (2025 at 70% phase-in)
+  const vlsfoCo2Tonnes = equivalentVlsfoTonnes * EU_ETS_EMISSION_FACTOR_VLSFO;
+  const phaseInRate = targetYear === 2026 || targetYear === 2030 ? EU_ETS_PHASE_IN_2026 : EU_ETS_PHASE_IN_2025;
+  const vlsfoEtsLiabilityEur = Number((vlsfoCo2Tonnes * phaseInRate * euaPriceEur).toFixed(2));
+  const vlsfoEtsLiabilityUsd = Number((vlsfoEtsLiabilityEur * eurUsdRate).toFixed(2));
+
+  // FuelEU Penalty incurred by burning 1.2195t VLSFO
+  const vlsfoEnergyMj = equivalentVlsfoTonnes * LHV_VLSFO_MJ_PER_TONNE; // 50,000 MJ
+  const vlsfoDeficitGrams = Math.max(0, vlsfoEnergyMj * (FUELEU_BASELINE_VLSFO_CI - targetGhgie));
+  const vlsfoEqTonnes = vlsfoDeficitGrams / (FUELEU_BASELINE_VLSFO_CI * LHV_VLSFO_MJ_PER_TONNE);
+  const vlsfoFuelEuPenaltyEur = Number((vlsfoEqTonnes * FUELEU_STATUTORY_PENALTY_PER_TONNE).toFixed(2));
+  const vlsfoFuelEuPenaltyUsd = Number((vlsfoFuelEuPenaltyEur * eurUsdRate).toFixed(2));
+
+  // Total Conventional Alternative Cost (VLSFO fuel + ETS liability + FuelEU penalty)
+  const totalConventionalAlternativeCostEur = Number(
+    (vlsfoCostEur + vlsfoEtsLiabilityEur + vlsfoFuelEuPenaltyEur).toFixed(2)
+  );
+  const totalConventionalAlternativeCostUsd = Number(
+    (vlsfoCostUsd + vlsfoEtsLiabilityUsd + vlsfoFuelEuPenaltyUsd).toFixed(2)
+  );
+
+  // Fleet Penalty Neutralization Value:
+  // When bunkering Bio-LNG at CI (e.g. -100), it generates compliance surplus:
+  const surplusGrams = 50000 * (targetGhgie - bioLngCi);
+  const fleetPenaltyAvoidedVlsfoEq = surplusGrams / (FUELEU_BASELINE_VLSFO_CI * LHV_VLSFO_MJ_PER_TONNE);
+  const fuelEuFleetPenaltyAvoidedEurPerTonne = Number(
+    (fleetPenaltyAvoidedVlsfoEq * FUELEU_STATUTORY_PENALTY_PER_TONNE).toFixed(2)
+  );
+
+  const etsAvoidedEurPerTonne = vlsfoEtsLiabilityEur;
+  const totalRegulatoryValueEurPerTonne = Number(
+    (fuelEuFleetPenaltyAvoidedEurPerTonne + etsAvoidedEurPerTonne).toFixed(2)
+  );
+
+  // Net Client Advantage / Savings per tonne Bio-LNG:
+  // Evaluated against conventional alternative: avoided VLSFO bunker expenditure plus total statutory regulatory value created (avoided FuelEU fleet deficit penalties and avoided EU ETS carbon liabilities)
+  const netSavingsPerTonneBioLngEur = Number(
+    (totalRegulatoryValueEurPerTonne + vlsfoCostEur - allInBioLngPriceEurPerTonne).toFixed(2)
+  );
+  const netSavingsPerTonneBioLngUsd = Number(
+    (netSavingsPerTonneBioLngEur * eurUsdRate).toFixed(2)
+  );
+
+  const result: MarineBunkerQuotationResult = {
+    allInBioLngPriceEurMwh,
+    allInBioLngPriceEurPerTonne,
+    allInBioLngPriceUsdPerTonne,
+    mwhPerTonneBioLng: MWH_PER_TONNE_BIO_LNG,
+    equivalentVlsfoTonnes,
+    vlsfoCostUsd,
+    vlsfoCostEur,
+    vlsfoEtsLiabilityEur,
+    vlsfoEtsLiabilityUsd,
+    vlsfoFuelEuPenaltyEur,
+    vlsfoFuelEuPenaltyUsd,
+    totalConventionalAlternativeCostEur,
+    totalConventionalAlternativeCostUsd,
+    fuelEuFleetPenaltyAvoidedEurPerTonne,
+    etsAvoidedEurPerTonne,
+    totalRegulatoryValueEurPerTonne,
+    netSavingsPerTonneBioLngEur,
+    netSavingsPerTonneBioLngUsd,
+  };
+
+  if (input.bioLngVolumeTonnes && input.bioLngVolumeTonnes > 0) {
+    const vol = input.bioLngVolumeTonnes;
+    result.dealVolumeTonnes = vol;
+    result.dealVolumeMwh = Math.round(vol * MWH_PER_TONNE_BIO_LNG);
+    result.totalBioLngInvoiceEur = Math.round(vol * allInBioLngPriceEurPerTonne);
+    result.totalBioLngInvoiceUsd = Math.round(vol * allInBioLngPriceUsdPerTonne);
+    result.totalClientSavingsEur = Math.round(vol * netSavingsPerTonneBioLngEur);
+    result.totalClientSavingsUsd = Math.round(result.totalClientSavingsEur * eurUsdRate);
+    result.totalEtsAvoidedTco2 = Math.round(vol * vlsfoCo2Tonnes * phaseInRate);
+  }
+
+  return result;
 }
