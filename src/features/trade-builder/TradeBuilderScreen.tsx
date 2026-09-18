@@ -534,6 +534,27 @@ export function TradeBuilderScreen() {
                 {currentOriginObj.flag} {currentOriginObj.name} · {currentFeedstockObj.label}
               </span>
             )}
+
+            {deal.counterparty && (
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontFamily: MONO_FONT,
+                  fontWeight: 700,
+                  padding: '2px 7px',
+                  border: '1px solid rgba(14, 165, 233, 0.4)',
+                  backgroundColor: 'rgba(14, 165, 233, 0.12)',
+                  color: '#38bdf8',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+                title={`Upstream gas hedge for marine counterparty ${deal.counterparty}`}
+              >
+                <span>HEDGE:</span>
+                <span style={{ color: 'var(--color-text)' }}>{deal.counterparty.toUpperCase()}</span>
+              </span>
+            )}
           </div>
 
           {/* Quick Metrics & Mode Toggle */}

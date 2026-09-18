@@ -142,6 +142,83 @@ export function TradeConsignmentStep({
 
   return (
     <div className="w-full max-w-[1600px] mx-auto p-4 sm:p-5 space-y-4">
+      {/* Upstream FuelEU Maritime Physical Gas Hedge Context Banner */}
+      {(deal.marketId === 'FUELEU' || (deal.counterparty && deal.feedstock === 'manure')) && (
+        <div
+          style={{
+            border: '1px solid rgba(14, 165, 233, 0.4)',
+            backgroundColor: 'rgba(14, 165, 233, 0.08)',
+            padding: '12px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+            flexWrap: 'wrap',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div
+              style={{
+                width: '34px',
+                height: '34px',
+                backgroundColor: 'rgba(14, 165, 233, 0.2)',
+                border: '1px solid rgba(14, 165, 233, 0.5)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#38bdf8',
+                fontSize: '15px',
+                flexShrink: 0,
+              }}
+            >
+              ⚓
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <span
+                  style={{
+                    fontSize: '10px',
+                    fontFamily: MONO_FONT,
+                    fontWeight: 800,
+                    letterSpacing: '0.06em',
+                    padding: '2px 7px',
+                    backgroundColor: 'rgba(14, 165, 233, 0.25)',
+                    color: '#38bdf8',
+                    border: '1px solid rgba(14, 165, 233, 0.4)',
+                  }}
+                >
+                  FUELEU MARITIME UPSTREAM SOURCING HEDGE
+                </span>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text)' }}>
+                  Marine Counterparty: {deal.counterparty || 'Maritime Fleet Buyer'}
+                </span>
+                <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
+                  ({volumeMwh.toLocaleString()} MWh physical biomethane requirement)
+                </span>
+              </div>
+              <div style={{ fontSize: '11.5px', color: 'var(--color-muted)', marginTop: '3px' }}>
+                Sourcing pipeline biomethane on the European gas grid via RED III Mass Balance to feed cryogenic Bio-LNG liquefaction at European bunkering terminals.
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <span
+              style={{
+                fontSize: '11px',
+                fontFamily: MONO_FONT,
+                fontWeight: 600,
+                color: 'var(--color-status-pos-text)',
+                backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                border: '1px solid rgba(16, 185, 129, 0.3)',
+                padding: '4px 10px',
+              }}
+            >
+              -100 gCO₂e/MJ Manure · 100% RED III Compliant
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* 2-Column Workstation Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
         

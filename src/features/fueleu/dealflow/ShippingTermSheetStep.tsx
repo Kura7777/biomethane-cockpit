@@ -22,6 +22,7 @@ import {
   Scale,
   ShieldCheck,
   ExternalLink,
+  Mail,
 } from 'lucide-react';
 import { showToast } from '../../../app/DeskToastContainer';
 
@@ -53,6 +54,7 @@ export function ShippingTermSheetStep({
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const [dealCopied, setDealCopied] = useState(false);
+  const [isBooked, setIsBooked] = useState(false);
 
   const isSurplus = counterparty.compliance_balance_2025_tco2e > 0;
   const isDualFuel = counterparty.fleetCapability === 'DUAL_FUEL_LNG';
@@ -232,6 +234,51 @@ Contact: ${counterparty.key_executive} (${contactEmail})`.trim();
     setTimeout(() => setDealCopied(false), 2500);
   };
 
+  const handleBookDeal = () => {
+    setIsBooked(true);
+    showToast(`Bunker Deal ${dealRef} booked to Maritime Desk Blotter!`, 'SUCCESS');
+  };
+
+  const handleOpenEmail = () => {
+    const subject = encodeURIComponent(
+      `FuelEU Maritime 2025 Compliance & Bio-LNG Bunker Proposal — ${counterparty.parent_name} [Ref: ${dealRef}]`
+    );
+    const volumeSummary =
+      pathway === 'PHYSICAL'
+        ? `${counterparty.bio_lng_required_neg100_t.toLocaleString()} metric tonnes (-100 gCO2e/MJ Manure Bio-LNG)`
+        : `${Math.abs(counterparty.compliance_balance_2025_tco2e).toLocaleString()} tCO2e Compliance Pool`;
+
+    const body = encodeURIComponent(
+`Dear ${counterparty.key_executive},
+
+Please find below our institutional OTC marine fuel quotation to neutralise ${counterparty.parent_name}'s 2025 FuelEU Maritime statutory exposure:
+
+1. COUNTERPARTY & EXPOSURE PROFILE
+- Counterparty: ${counterparty.parent_name} (#${counterparty.rank})
+- Fleet in EU MRV Scope: ${counterparty.vessels_in_scope} vessels (${counterparty.segment})
+- 2025 Statutory Exposure: €${(counterparty.combined_regulatory_exposure_2025_eur / 1e6).toFixed(2)}M (FuelEU Penalty + EU ETS 70% Liability)
+- Primary Bunkering Corridor: ${counterparty.primary_bunkering_hubs}
+
+2. COMMERCIAL PROPOSAL (${pathway === 'PHYSICAL' ? 'Article 20 Physical Bio-LNG' : 'Article 21 Compliance Pooling'})
+- Product Volume: ${volumeSummary}
+- Delivered Bunker Price: €${marineQuote.allInBioLngPriceEurPerTonne.toLocaleString()} / tonne ($${marineQuote.allInBioLngPriceUsdPerTonne.toLocaleString()} / tonne)
+- Delivery Terms: ${pathway === 'PHYSICAL' ? `DES / TTS at ${counterparty.primary_bunkering_hubs}` : 'EMSA Thetis-MRV Compliance Surplus Transfer'}
+- Client Net Financial Savings vs Penalty: €${(effectiveClientSavingsEur / 1e6).toFixed(2)}M
+
+3. GOVERNING TERMS & CERTIFICATION
+- Certification: ISCC EU / REDcert-EU under RED III (Directive (EU) 2018/2001)
+- Standard Terms: BIMCO Bunker Terms 2020 / EFET Marine Decarbonisation Annex
+- Deal Reference: ${dealRef}
+
+Please let us know if you would like to schedule an execution call or receive the executed term sheet package.
+
+Best regards,
+European Biomethane & Marine Fuels Trading Desk`
+    );
+    window.open(`mailto:${contactEmail}?subject=${subject}&body=${body}`, '_blank');
+    showToast(`Opening commercial proposal to ${contactEmail}`, 'INFO');
+  };
+
   const handleExecuteTrade = () => {
     const volumeMwh = Math.max(
       1000,
@@ -286,26 +333,76 @@ Contact: ${counterparty.key_executive} (${contactEmail})`.trim();
             <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.01em' }}>
               {counterparty.parent_name}
             </h2>
-            <span
-              style={{
-                fontSize: '10.5px',
-                fontWeight: 700,
-                padding: '2px 8px',
-                border: '1px solid rgba(16, 185, 129, 0.4)',
-                backgroundColor: 'rgba(16, 185, 129, 0.12)',
-                color: 'var(--color-status-pos-text)',
-              }}
-            >
-              TERM SHEET READY
-            </span>
+            {isBooked ? (
+              <span
+                style={{
+                  fontSize: '10.5px',
+                  fontWeight: 800,
+                  padding: '2px 8px',
+                  border: '1px solid rgba(16, 185, 129, 0.6)',
+                  backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                  color: 'var(--color-status-pos-text)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
+                <CheckCircle2 size={11} />
+                <span>CONFIRMED &amp; BOOKED TO BLOTTER</span>
+              </span>
+            ) : (
+              <span
+                style={{
+                  fontSize: '10.5px',
+                  fontWeight: 700,
+                  padding: '2px 8px',
+                  border: '1px solid rgba(16, 185, 129, 0.4)',
+                  backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                  color: 'var(--color-status-pos-text)',
+                }}
+              >
+                TERM SHEET READY
+              </span>
+            )}
           </div>
           <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
-            Institutional OTC Term Sheet &amp; Deal Note · Compliant under Regulation (EU) 2023/1805 &amp; Directive (EU) 2023/959
+            Institutional OTC Marine Bunker Deal Note · Governed by BIMCO Bunker Terms 2020 &amp; Regulation (EU) 2023/1805
           </div>
         </div>
 
         {/* Action Buttons */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={handleBookDeal}
+            className="btn btn-primary"
+            style={{
+              height: '32px',
+              padding: '0 14px',
+              fontSize: '11.5px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontWeight: 700,
+              backgroundColor: isBooked ? 'rgba(16, 185, 129, 0.9)' : undefined,
+            }}
+            title="Book and confirm this bunker transaction to the desk blotter"
+          >
+            <CheckCircle2 size={13} />
+            <span>{isBooked ? 'Deal Confirmed & Booked ✓' : 'Book & Confirm Bunker Deal'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleOpenEmail}
+            className="btn btn-secondary"
+            style={{ height: '32px', padding: '0 12px', fontSize: '11.5px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}
+            title="Open pre-filled proposal in your email client (Outlook / Gmail)"
+          >
+            <Mail size={13} style={{ color: 'var(--color-accent)' }} />
+            <span>Email Proposal to Buyer</span>
+          </button>
+
           <button
             type="button"
             onClick={handleExportTermSheetFile}
@@ -314,7 +411,7 @@ Contact: ${counterparty.key_executive} (${contactEmail})`.trim();
             title="Download institutional text file"
           >
             <Download size={13} />
-            <span>Export Term Sheet (.TXT)</span>
+            <span>Export (.TXT)</span>
           </button>
 
           <button
@@ -325,18 +422,18 @@ Contact: ${counterparty.key_executive} (${contactEmail})`.trim();
             title="Copy concise deal summary"
           >
             {dealCopied ? <Check size={13} style={{ color: 'var(--color-status-pos-text)' }} /> : <Copy size={13} />}
-            <span>{dealCopied ? 'Copied!' : 'Copy Deal Summary'}</span>
+            <span>{dealCopied ? 'Copied!' : 'Copy Summary'}</span>
           </button>
 
           <button
             type="button"
             onClick={handleExecuteTrade}
-            className="btn btn-primary"
-            style={{ height: '32px', padding: '0 16px', fontSize: '11.5px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}
-            title="Pre-populate and open in Trade Builder"
+            className="btn btn-secondary"
+            style={{ height: '32px', padding: '0 12px', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '5px', opacity: 0.9 }}
+            title="Source physical biomethane on the European gas grid to feed liquefaction"
           >
-            <Zap size={13} />
-            <span>Execute in Trade Builder →</span>
+            <ExternalLink size={12} />
+            <span>Hedge Upstream Gas ↗</span>
           </button>
         </div>
       </div>
@@ -524,6 +621,7 @@ Contact: ${counterparty.key_executive} (${contactEmail})`.trim();
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          flexWrap: 'wrap',
           gap: '12px',
         }}
       >
@@ -537,7 +635,7 @@ Contact: ${counterparty.key_executive} (${contactEmail})`.trim();
           <span>Back: Pricing</span>
         </button>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           <button
             type="button"
             onClick={onReset}
@@ -551,11 +649,41 @@ Contact: ${counterparty.key_executive} (${contactEmail})`.trim();
           <button
             type="button"
             onClick={handleExecuteTrade}
-            className="btn btn-primary"
-            style={{ height: '32px', padding: '0 18px', fontSize: '11.5px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}
+            className="btn btn-secondary"
+            style={{ height: '32px', padding: '0 12px', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+            title="Source physical biomethane on the European gas grid via Trade Builder"
           >
-            <Zap size={13} />
-            <span>Execute in Trade Builder →</span>
+            <ExternalLink size={12} />
+            <span>Hedge Upstream Gas ↗</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleOpenEmail}
+            className="btn btn-secondary"
+            style={{ height: '32px', padding: '0 12px', fontSize: '11.5px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}
+          >
+            <Mail size={13} style={{ color: 'var(--color-accent)' }} />
+            <span>Email Proposal</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleBookDeal}
+            className="btn btn-primary"
+            style={{
+              height: '32px',
+              padding: '0 18px',
+              fontSize: '11.5px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontWeight: 700,
+              backgroundColor: isBooked ? 'rgba(16, 185, 129, 0.9)' : undefined,
+            }}
+          >
+            <CheckCircle2 size={13} />
+            <span>{isBooked ? 'Deal Confirmed & Booked ✓' : 'Book & Confirm Bunker Deal'}</span>
           </button>
         </div>
       </div>
