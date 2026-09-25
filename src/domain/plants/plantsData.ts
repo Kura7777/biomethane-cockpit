@@ -1,6 +1,7 @@
 import { BiomethanePlant } from './types';
+import { normalizePlantRegistry } from './dataQuality';
 
-export const BIOMETHANE_PLANTS: BiomethanePlant[] = [
+const RAW_BIOMETHANE_PLANTS: BiomethanePlant[] = [
   {
     "id": "plant_at_1",
     "name": "Bruck an der Leitha",
@@ -1147,43 +1148,6 @@ export const BIOMETHANE_PLANTS: BiomethanePlant[] = [
     "auditedCarbonIntensity": 39.0,
     "verifiedCarbonIntensity": 39.0,
     "canonicalFeedstockKey": "ENERGY_CROPS"
-  },
-  {
-    "id": "plant_be_0",
-    "name": "Location (GIE/EBA Map Legend Entry)",
-    "country": "Belgium",
-    "countryCode": "BE",
-    "countryFlag": "🇧🇪",
-    "status": "Active",
-    "isVerified": true,
-    "fieldsUnverified": [],
-    "provenance": "Institutional Provenance: GIE/EBA 2026 Map Legend Entry (BE-00 at bbox [234.9, 825.4]). Retained with full disclosure to preserve 1,975 plant count invariant and mapped to Fluxys transmission balancing system.",
-    "region": "Belgium Grid Injection Zone",
-    "operator": "Fluxys Belgium SA",
-    "legalEntityName": "Fluxys Belgium SA",
-    "companyRegistrationId": "BE 0402.954.628",
-    "corporateWebsite": "https://www.fluxys.com",
-    "contactEmail": "info@fluxys.com",
-    "contactPhone": "+32 2 282 72 11",
-    "headquartersAddress": "Avenue des Arts 31, 1040 Bruxelles, Belgium",
-    "commissioningYear": 2020,
-    "capacityNm3h": 480,
-    "annualEnergyGWh": 37.5,
-    "primaryFeedstockCategory": "Manure & Slurry",
-    "feedstockDetails": "GIE/EBA Map Legend OCR artifact (BE-00); calibrated to Belgian ZTP virtual balancing grid pool",
-    "upgradingTechnology": "Membrane separation",
-    "gridConnectionType": "Transmission & Distribution Grid Injection",
-    "networkOperator": "Fluxys Belgium / Fluvius",
-    "certificationAndRegistry": "National Biomethane Registry & Guarantees of Origin (BE)",
-    "primaryOfftake": "Grid injection & Virtual balancing pool (ZTP Hub)",
-    "coordinates": [
-      50.503,
-      4.469
-    ],
-    "primaryUpgradingTech": "Membrane separation",
-    "auditedCarbonIntensity": -82.0,
-    "verifiedCarbonIntensity": -82.0,
-    "canonicalFeedstockKey": "MANURE"
   },
   {
     "id": "plant_be_10",
@@ -95777,3 +95741,6 @@ export const BIOMETHANE_PLANTS: BiomethanePlant[] = [
     "verifiedCarbonIntensity": 10.5
   }
 ];
+
+/** Registry as consumed by the app: non-plant rows removed, unverified fields derived. */
+export const BIOMETHANE_PLANTS: BiomethanePlant[] = normalizePlantRegistry(RAW_BIOMETHANE_PLANTS);

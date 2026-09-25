@@ -13,9 +13,10 @@ describe('Spatial Dijkstra Corridor Routing & Distance Integration', () => {
 
     it('finds authentic multi-hop corridor from Sweden (SE) to Spain (ES)', () => {
       const result = calculateDijkstraCorridor('SE', 'ES');
-      expect(result.path).toEqual(['SE', 'DK', 'DE', 'LU', 'FR', 'ES']);
-      expect(result.distanceKm).toBe(2280);
-      expect(result.segments.length).toBe(5);
+      // Direct VIP France-Germany (Obergailbach) — not a detour through Luxembourg
+      expect(result.path).toEqual(['SE', 'DK', 'DE', 'FR', 'ES']);
+      expect(result.distanceKm).toBe(2585); // 280 + 550 + 805 + 950
+      expect(result.segments.length).toBe(4);
     });
 
     it('finds shortest pipeline route from France (FR) to Italy (IT) via Switzerland (CH)', () => {

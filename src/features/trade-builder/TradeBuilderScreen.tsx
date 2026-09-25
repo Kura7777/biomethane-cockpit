@@ -85,6 +85,7 @@ export const FEEDSTOCKS: { key: string; label: string; defaultCI: number; hint: 
   { key: 'agricultural_residues', label: 'Agricultural residues', defaultCI: 18, hint: 'Annex IX Part A. High-margin non-food residue with RED III compliance across all EU transport routes.' },
   { key: 'food_waste', label: 'Food waste', defaultCI: 20, hint: 'Annex IX Part A. Municipal or commercial source-separated organic waste.' },
   { key: 'sewage_sludge', label: 'Sewage sludge', defaultCI: 25, hint: 'Annex IX Part A. Wastewater treatment substrate.' },
+  { key: 'landfill_gas', label: 'Landfill gas', defaultCI: 12, hint: 'Captured landfill methane. Verify Annex IX treatment with the target Member State before booking.' },
   { key: 'energy_crops', label: 'Energy crops', defaultCI: 40, hint: 'Non-Annex IX. Excluded from RED III transport quota but eligible for voluntary GO and UK RGGO transfers.' },
 ];
 
@@ -307,8 +308,10 @@ export function TradeBuilderScreen() {
 
   const consignment: Consignment = useMemo(() => {
     const originObj = ORIGINS.find(o => o.code === origin) || ORIGINS[0];
-    const feedObj = FEEDSTOCKS.find(f => f.key === feedstockKey) || FEEDSTOCKS[0];
     const regFeedstock = FEEDSTOCK_REGISTRY[feedstockKey];
+    // Never relabel an unlisted feedstock as the first list entry (manure) — fall back to the registry name.
+    const feedObj = FEEDSTOCKS.find(f => f.key === feedstockKey)
+      ?? { key: feedstockKey, label: regFeedstock?.name ?? feedstockKey, defaultCI: regFeedstock?.defaultCI ?? 0, hint: '' };
     const annexClass = (regFeedstock?.annexClassification || (feedstockKey === 'energy_crops' ? 'CROP' : 'IX_A')) as AnnexClassification;
 
     return {
@@ -450,6 +453,23 @@ export function TradeBuilderScreen() {
     costs: state.costs,
     userNotes: deal.plantName ? `Physical asset sourcing from ${deal.plantName}` : 'Trade Builder Assessment',
   }), [origin, deal, selectedMarket, consignment, assessment, netback, state.marks, state.costs]);
+
+  // Continuously sync active trade builder deal state to global window for the Auditor
+  useEffect(() => {
+    const currentDealPayload = {
+      originCountry: origin,
+      originPlantId: linkedPlant?.id || deal.plantId || `${origin}-CUSTOM`,
+      plantName: linkedPlant?.name || deal.plantName || `${origin} Biomethane Production Asset`,
+      annualVolumeMWh: volumeMwh,
+      targetMarketId: marketId,
+      targetMarketName: selectedMarket?.name || marketId,
+      feedstockCategory: FEEDSTOCKS.find(f => f.key === feedstockKey)?.label || feedstockKey,
+      carbonIntensity: ci,
+      deliveredValueEurMwh: netback.netNetback ?? (molVal + certVal),
+    };
+    (window as any).__ACTIVE_TRADE_BUILDER_DEAL__ = currentDealPayload;
+    window.dispatchEvent(new CustomEvent('trade-builder-deal-updated', { detail: currentDealPayload }));
+  }, [origin, marketId, feedstockKey, ci, volumeMwh, linkedPlant, deal, selectedMarket, netback, molVal, certVal]);
 
   const handleSaveDossier = () => {
     dispatch({
@@ -1241,6 +1261,43 @@ export function TradeBuilderScreen() {
                 {ghgSavingPct}%
               </span>
             </div>
+
+            {/* Step 1 Instant Compliance Audit Button */}
+            <button
+              type="button"
+              className="btn"
+              style={{
+                width: '100%',
+                marginTop: '16px',
+                padding: '9px 12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '7px',
+                fontSize: '11px',
+                fontWeight: 700,
+                backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                borderColor: '#059669',
+                color: '#34d399',
+              }}
+              onClick={() => {
+                const tradeAuditPayload = {
+                  originCountry: origin,
+                  originPlantId: linkedPlant?.id || deal.plantId || `${origin}-CUSTOM`,
+                  plantName: linkedPlant?.name || deal.plantName || `${origin} Biomethane Production Asset`,
+                  annualVolumeMWh: volumeMwh,
+                  targetMarketId: marketId,
+                  targetMarketName: selectedMarket?.name || marketId,
+                  feedstockCategory: FEEDSTOCKS.find(f => f.key === feedstockKey)?.label || feedstockKey,
+                  carbonIntensity: ci,
+                  deliveredValueEurMwh: netback.netNetback ?? (molVal + certVal),
+                };
+                window.dispatchEvent(new CustomEvent('open-compliance-auditor', { detail: tradeAuditPayload }));
+              }}
+              title="Audit this active trade against the 11 statutory dossiers and RED III regulations"
+            >
+              <span>⚖ Audit Active Deal with Statutory Vault</span>
+            </button>
           </div>
 
           {/* Production Period (Vintage) & Delivery Schedule */}
@@ -1712,6 +1769,42 @@ export function TradeBuilderScreen() {
             <span style={{ fontSize: '10px', opacity: 0.9, fontWeight: 500 }}>
               Term Sheet · EFET Annex · ETRM CSV · UDB XML
             </span>
+          </button>
+          
+          <button
+            type="button"
+            className="btn"
+            style={{
+              width: '100%',
+              padding: '8px 10px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              fontSize: '11px',
+              fontWeight: 700,
+              backgroundColor: 'rgba(16, 185, 129, 0.15)',
+              borderColor: '#059669',
+              color: '#34d399',
+              marginBottom: '8px'
+            }}
+            onClick={() => {
+              const tradeAuditPayload = {
+                originCountry: origin,
+                originPlantId: linkedPlant?.id || deal.plantId || `${origin}-CUSTOM`,
+                plantName: linkedPlant?.name || deal.plantName || `${origin} Biomethane Production Asset`,
+                annualVolumeMWh: volumeMwh,
+                targetMarketId: marketId,
+                targetMarketName: selectedMarket?.name || marketId,
+                feedstockCategory: FEEDSTOCKS.find(f => f.key === feedstockKey)?.label || feedstockKey,
+                carbonIntensity: ci,
+                deliveredValueEurMwh: netback.netNetback ?? (molVal + certVal),
+              };
+              window.dispatchEvent(new CustomEvent('open-compliance-auditor', { detail: tradeAuditPayload }));
+            }}
+            title="Audit this active trade against the 11 statutory dossiers and RED III regulations"
+          >
+            <span>⚖ Audit Deal with Statutory Vault</span>
           </button>
           
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>

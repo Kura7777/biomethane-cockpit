@@ -5,6 +5,11 @@ import {
   calculateVesselExposure,
   FUELEU_TARGET_2025,
   FUELEU_TARGET_2030,
+  FUELEU_VLSFO_WTW,
+  FUELEU_MGO_WTW,
+  fossilLngWtw,
+  LHV_VLSFO_MJ_PER_TONNE,
+  LHV_MGO_MJ_PER_TONNE,
 } from '../../domain/fueleu/calculator';
 import { VesselArchetype, VesselCalculationInput } from '../../domain/fueleu/types';
 import { buildDealUrl } from '../../domain/trade/dealParams';
@@ -100,9 +105,9 @@ COMPLIANCE TARGET YEAR: ${targetYear} (Target GHGIE: ${calculationResult.targetG
 CONSECUTIVE NON-COMPLIANT YEARS: ${consecutiveYears}
 
 FUEL INTAKE (EU SCOPE):
-- VLSFO: ${vlsfoTonnes.toLocaleString()} tonnes (41,000 MJ/t, 91.16 g/MJ)
-- MGO: ${mgoTonnes.toLocaleString()} tonnes (42,700 MJ/t, 91.16 g/MJ)
-- Fossil LNG: ${lngTonnes.toLocaleString()} tonnes (49,100 MJ/t, 74.50 g/MJ)
+- VLSFO: ${vlsfoTonnes.toLocaleString()} tonnes (${LHV_VLSFO_MJ_PER_TONNE.toLocaleString()} MJ/t, ${FUELEU_VLSFO_WTW.toFixed(2)} g/MJ WtW, Annex II HFO class)
+- MGO: ${mgoTonnes.toLocaleString()} tonnes (${LHV_MGO_MJ_PER_TONNE.toLocaleString()} MJ/t, ${FUELEU_MGO_WTW.toFixed(2)} g/MJ WtW)
+- Fossil LNG: ${lngTonnes.toLocaleString()} tonnes (49,100 MJ/t, ${fossilLngWtw().toFixed(2)} g/MJ WtW incl. 1.7% slip, dual-fuel slow-speed Otto)
 - Bio-LNG: ${bioLngTonnes.toLocaleString()} tonnes (49,100 MJ/t, CI = ${bioLngCi} g/MJ)
 
 CALCULATED COMPLIANCE METRICS:
@@ -249,7 +254,7 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
               onChange={(e) => setVlsfoTonnes(Number(e.target.value))}
               style={{ width: '100%', cursor: 'pointer' }}
             />
-            <span className="subttl num" style={{ fontSize: '10px' }}>41,000 MJ/t · 91.16 gCO₂e/MJ baseline</span>
+            <span className="subttl num" style={{ fontSize: '10px' }}>{LHV_VLSFO_MJ_PER_TONNE.toLocaleString()} MJ/t · {FUELEU_VLSFO_WTW.toFixed(2)} gCO₂e/MJ WtW</span>
           </div>
 
           {/* MGO Tonnes Slider & Input */}
@@ -273,7 +278,7 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
               onChange={(e) => setMgoTonnes(Number(e.target.value))}
               style={{ width: '100%', cursor: 'pointer' }}
             />
-            <span className="subttl num" style={{ fontSize: '10px' }}>42,700 MJ/t · 91.16 gCO₂e/MJ baseline</span>
+            <span className="subttl num" style={{ fontSize: '10px' }}>{LHV_MGO_MJ_PER_TONNE.toLocaleString()} MJ/t · {FUELEU_MGO_WTW.toFixed(2)} gCO₂e/MJ WtW</span>
           </div>
 
           {/* Fossil LNG Tonnes Slider & Input */}
@@ -297,7 +302,7 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
               onChange={(e) => setLngTonnes(Number(e.target.value))}
               style={{ width: '100%', cursor: 'pointer' }}
             />
-            <span className="subttl num" style={{ fontSize: '10px' }}>49,100 MJ/t · 74.50 gCO₂e/MJ baseline (with slip)</span>
+            <span className="subttl num" style={{ fontSize: '10px' }}>49,100 MJ/t · {fossilLngWtw().toFixed(2)} gCO₂e/MJ WtW (incl. 1.7% slip)</span>
           </div>
 
           {/* Bio-LNG Blend Tonnes Slider & Input */}

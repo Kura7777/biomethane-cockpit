@@ -221,7 +221,8 @@ describe('E2E Trading Workflows & Multi-Tier Regulatory Stress Suite (Milestone 
             annexClassification: info.annexClassification,
           };
           const gate = evaluateEligibility(c, market).gates.find(g => g.gate === 'FEEDSTOCK_CATEGORY')!;
-          expect(gate.verdict).toBe('PASS');
+          // Landfill gas: Annex IX Part A(b) claim, but Member State treatment varies → CONDITIONAL
+          expect(gate.verdict).toBe(fs === 'landfill_gas' ? 'CONDITIONAL' : 'PASS');
           expect(gate.reason).toContain('Annex IX Part A');
         }
       });
@@ -378,14 +379,15 @@ describe('E2E Trading Workflows & Multi-Tier Regulatory Stress Suite (Milestone 
       it('computes shortest pipeline paths, border interconnection tariffs, and multi-modal cost models', () => {
         // Route from Denmark (DK) to Italy (IT)
         const path = findShortestPipelinePath('DK', 'IT');
-        expect(path).toEqual(['DK', 'DE', 'AT', 'IT']);
+        // Transitgas corridor DE -> CH -> IT (900 km) is shorter than DE -> AT -> IT (1,300 km)
+        expect(path).toEqual(['DK', 'DE', 'CH', 'IT']);
 
         const ips = resolveInterconnectionPoints(path, {
           'DK_DE': { totalTariffEurMwh: 1.20 },
-          'DE_AT': { totalTariffEurMwh: 1.10 },
-          'AT_IT': { totalTariffEurMwh: 1.40 },
+          'DE_CH': { totalTariffEurMwh: 1.10 },
+          'CH_IT': { totalTariffEurMwh: 1.40 },
         });
-        expect(ips.length).toBe(3); // DK->DE, DE->AT, AT->IT
+        expect(ips.length).toBe(3); // DK->DE, DE->CH, CH->IT
         expect(ips.every(ip => ip.totalTariffEurMwh !== null)).toBe(true);
 
         const route = calculateLogisticsRoute('DK', 'IT', 28.50);
@@ -668,8 +670,9 @@ describe('E2E Trading Workflows & Multi-Tier Regulatory Stress Suite (Milestone 
 
       // FuelEU deficit-closure netback
       const netback = computeNetback(market, consignment, testBaseMarks, standardFixedCosts, 'bid');
-      expect(netback.certificateValue?.valueEurPerMWh).toBeGreaterThan(200.00);
-      expect(netback.netNetback).toBeGreaterThan(200.00);
+      // €220/tCO₂e bid × (89.3368 − (−100 + 9.3121 slip)) × 3600 / 10⁶ tCO₂e/MWh = €142.58/MWh
+      expect(netback.certificateValue?.valueEurPerMWh).toBeCloseTo(142.58, 2);
+      expect(netback.netNetback).toBeGreaterThan(100.00);
 
       // Logistics: Option C Bio-LNG cryogenic road tanker to Hamburg
       const logistics = calculateLogisticsRoute('DK', 'DE', 28.50);
@@ -787,8 +790,9 @@ describe('E2E Trading Workflows & Multi-Tier Regulatory Stress Suite (Milestone 
       expect(netback.certificateValue?.capped).toBe(true);
 
       // Logistics: NL -> DE -> FR corridor
+      // NL -> BE (VIP BENE) -> FR (VIP BelFrance) is the physical L/H-gas corridor
       const path = findShortestPipelinePath('NL', 'FR');
-      expect(path).toEqual(['NL', 'DE', 'FR']);
+      expect(path).toEqual(['NL', 'BE', 'FR']);
     });
 
     it('Scenario D: Italian agro-industrial biomethane advanced CIC monetization with GSE floor pricing', () => {

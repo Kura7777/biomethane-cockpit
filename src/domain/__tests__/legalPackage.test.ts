@@ -3,7 +3,13 @@ import {
   calculateTradeIntegritySeal, 
   generateEfetBiomethaneAnnexPdf, 
   generateCommercialTermSheetPdf,
-  generateFpMLDealPayload, 
+  generateStatutoryAuditMemoPdf,
+  generateEtrmCsvPayload,
+  generateUdbNominationXmlPayload,
+  inferDeskRole,
+  resolveParties,
+  describePricing,
+  generateFpMLDealPayload,
   generateEtrmJsonPayload 
 } from '../trade/legalPackage';
 import { TradeAssessment } from '../trade/types';
@@ -167,20 +173,21 @@ describe('Hybrid Legal Package & ETRM Export Engine', () => {
     });
   });
 
-  describe('ETRM Machine-Readable FpML 5.x XML Payload', () => {
-    it('generates well-formed FpML 5.x XML containing physical and environmental legs', () => {
+  describe('Internal deal record XML (FpML-inspired, not schema-validated)', () => {
+    it('generates a well-formed internal deal record with physical and environmental legs', () => {
       const xml = generateFpMLDealPayload(mockAssessment);
 
       expect(xml).toContain('<?xml version="1.0" encoding="UTF-8"?>');
-      expect(xml).toContain('<fpml:dataDocument');
-      expect(xml).toContain('<fpml:tradeId');
+      expect(xml).toContain('NOT validated against the FpML schema');
+      expect(xml).toContain('<dealRecord');
       expect(xml).toContain(mockAssessment.id);
-      expect(xml).toContain('<fpml:gasPhysicalLeg>');
-      expect(xml).toContain('<fpml:environmentalLeg>');
-      expect(xml).toContain('<fpml:commodityId>NATURAL_GAS_BIOMETHANE_EN16723</fpml:commodityId>');
-      expect(xml).toContain('<fpml:attributeType>BIOMETHANE_GUARANTEE_OF_ORIGIN</fpml:attributeType>');
-      expect(xml).toContain('<fpml:digitalSignature>');
+      expect(xml).toContain('<physicalLeg>');
+      expect(xml).toContain('<environmentalLeg>');
+      expect(xml).toContain('Proof of Sustainability (PoS) recorded in the Union Database');
       expect(xml).toContain(calculateTradeIntegritySeal(mockAssessment));
+      // No fabricated identifiers
+      expect(xml).not.toContain('969500XXXX');
+      expect(xml).not.toContain('digitalSignature');
     });
 
     it('escapes XML special characters in counterparty names to ensure valid XML', () => {
@@ -195,27 +202,41 @@ describe('Hybrid Legal Package & ETRM Export Engine', () => {
       const xml = generateFpMLDealPayload(specialAssessment);
       expect(xml).toContain('Tier-1 Energy Trading GmbH &amp; Co. &lt;KG&gt;');
       expect(xml).not.toContain('Tier-1 Energy Trading GmbH & Co. <KG>');
-      expect(xml).toContain('<fpml:partyName>Tier-1 Energy Trading GmbH &amp; Co. &lt;KG&gt;</fpml:partyName>');
+      expect(xml).toContain('<name>Tier-1 Energy Trading GmbH &amp; Co. &lt;KG&gt;</name>');
+    });
+
+    it('sets payer/receiver from the desk role: on an offtake the desk pays', () => {
+      const buy = generateFpMLDealPayload(mockAssessment, { deskRole: 'BUYER' });
+      expect(buy).toContain('<deskRole>BUYER</deskRole>');
+      expect(buy).toMatch(/<physicalLeg>\s*<payerPartyReference href="DESK"\/>/);
+      const sell = generateFpMLDealPayload(mockAssessment, { deskRole: 'SELLER' });
+      expect(sell).toMatch(/<physicalLeg>\s*<payerPartyReference href="COUNTERPARTY"\/>/);
     });
   });
 
-  describe('ETRM Standardized JSON Deal Ticket', () => {
-    it('generates compliant JSON ticket matching OpenLink, TriplePoint & SAP specs', () => {
+  describe('Internal JSON deal ticket', () => {
+    it('generates an internal ticket without unverified system-compatibility claims', () => {
       const ticket = generateEtrmJsonPayload(mockAssessment);
 
       expect(ticket.dealHeader.dealId).toBe(mockAssessment.id);
-      expect(ticket.dealHeader.systemCompatibility).toContain('OpenLink_Endur_v22');
-      expect(ticket.dealHeader.systemCompatibility).toContain('TriplePoint_Commodity_XL_v15');
-      expect(ticket.dealHeader.systemCompatibility).toContain('SAP_S4HANA_Commodity_Management');
+      expect(ticket.dealHeader.format).toBe('GENERIC_JSON_V2');
+      expect(ticket.dealHeader.status).toBe('INDICATIVE');
 
       expect(ticket.counterparty.name).toBe('Shell Energy Europe B.V.');
-      expect(ticket.legA_physicalMolecule.commodity).toBe('NATURAL_GAS_BIOMETHANE_EN16723');
+      expect(ticket.counterparty.lei).toBeNull();
+      expect(ticket.legA_physicalMolecule.commodity).toBe('BIOMETHANE_EN16723');
       expect(ticket.legA_physicalMolecule.volumeMWh).toBe(50000);
       expect(ticket.legB_environmentalAttribute.targetMarketId).toBe('DE_THG');
       expect(ticket.legB_environmentalAttribute.contractCiGco2ePerMj).toBe(-100);
+      expect(ticket.internalValuation.deskNetbackEurMwh).toBe(163.5);
 
-      expect(ticket.cryptographicIntegritySeal.algorithm).toBe('SHA-256');
-      expect(ticket.cryptographicIntegritySeal.hash).toHaveLength(64);
+      expect(ticket.documentFingerprint.algorithm).toBe('SHA-256');
+      expect(ticket.documentFingerprint.hash).toHaveLength(64);
+    });
+
+    it('never fills a missing volume with a placeholder number', () => {
+      const noVol: TradeAssessment = { ...mockAssessment, consignment: { ...mockAssessment.consignment, volumeMWh: null } };
+      expect(generateEtrmJsonPayload(noVol).legA_physicalMolecule.volumeMWh).toBeNull();
     });
   });
 
@@ -233,6 +254,158 @@ describe('Hybrid Legal Package & ETRM Export Engine', () => {
 
       const termSheetPdf = generateCommercialTermSheetPdf(voluntaryAssessment);
       expect(termSheetPdf.getNumberOfPages()).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Institutional Statutory Compliance Memorandum PDF', () => {
+    it('generates a 2-page desk pre-screen memorandum', () => {
+      const pdf = generateStatutoryAuditMemoPdf(mockAssessment);
+      expect(pdf.getNumberOfPages()).toBe(2);
+    });
+
+    it('renders a pre-screen for a Great Britain origin', () => {
+      const gbAssessment: TradeAssessment = {
+        ...mockAssessment,
+        consignment: {
+          ...mockAssessment.consignment,
+          originCountry: 'GB',
+        },
+        targetMarketId: 'DE_THG',
+      };
+      const pdf = generateStatutoryAuditMemoPdf(gbAssessment);
+      expect(pdf.getNumberOfPages()).toBe(2);
+    });
+
+    it('includes AI commentary from ComplianceAuditModal without letting it change the engine verdict', () => {
+      const auditOverride = {
+        verdict: 'CONDITIONAL_PASS',
+        checks: [
+          { gateName: 'Gate 1', status: 'PASS', details: 'ISCC EU certified', citation: 'Reg 2022/996' },
+          { gateName: 'Gate 2', status: 'PASS', details: 'Grid connected', citation: 'RED III Art 31a' },
+          { gateName: 'Gate 3', status: 'PASS', details: 'Mass balance', citation: 'RED III Art 30' },
+          { gateName: 'Gate 4', status: 'PASS', details: 'Annex IX-A', citation: 'Annex IX' },
+          { gateName: 'Gate 5', status: 'PASS', details: 'GHG savings >= 65%', citation: 'Art 29(10)' },
+          { gateName: 'Gate 6', status: 'FLAG', details: 'Price clamped to 100 EUR/MWh', citation: 'French Décret' },
+        ],
+      };
+      const pdf = generateStatutoryAuditMemoPdf(mockAssessment, {}, auditOverride);
+      expect(pdf.getNumberOfPages()).toBe(2);
+      const out = pdf.output();
+      expect(out).toContain('AI-ASSISTED COMMENTARY');
+      expect(out).toContain('PRE-SCREEN RESULT: ELIGIBLE'); // engine verdict, not the AI's CONDITIONAL_PASS
+    });
+  });
+
+  describe('Counterparty-facing document content (audit remediation)', () => {
+    const noFacts: TradeAssessment = {
+      ...mockAssessment,
+      consignment: { ...mockAssessment.consignment, volumeMWh: null, deliveryPeriod: null, counterparty: null },
+    };
+
+    it('term sheet is indicative, non-binding and subject to contract', () => {
+      const out = generateCommercialTermSheetPdf(mockAssessment).output();
+      expect(out).toContain('INDICATIVE TERM SHEET');
+      expect(out).toContain('NON-BINDING');
+      expect(out).toContain('SUBJECT TO CONTRACT');
+      expect(out).not.toContain('BINDING OTC');
+    });
+
+    it('never invents contract facts: missing entity, volume, dates and master agreement date are placeholders', () => {
+      const ts = generateCommercialTermSheetPdf(noFacts).output();
+      const conf = generateEfetBiomethaneAnnexPdf(noFacts).output();
+      for (const out of [ts, conf]) {
+        expect(out).toContain('[TO BE AGREED]');
+        expect(out).toContain('[DESK LEGAL ENTITY]');
+        expect(out).toContain('[COUNTERPARTY LEGAL ENTITY]');
+        expect(out).not.toContain('10,000 MWh');
+        expect(out).not.toContain('BIOMETHANE TRADING DESK EUROPE');
+        expect(out).not.toContain('15 January 2024');
+        expect(out).not.toContain('2026-01-01');
+      }
+    });
+
+    it('does not impersonate EFET or claim an ISDA confirmation', () => {
+      const out = generateEfetBiomethaneAnnexPdf(mockAssessment).output();
+      expect(out).toContain('DRAFT INDIVIDUAL TRANSACTION CONFIRMATION');
+      expect(out).not.toContain('EUROPEAN FEDERATION OF ENERGY TRADERS');
+      expect(out).not.toContain('ISDA');
+    });
+
+    it('never discloses the desk netback or margin on counterparty documents', () => {
+      for (const out of [generateCommercialTermSheetPdf(mockAssessment).output(), generateEfetBiomethaneAnnexPdf(mockAssessment).output()]) {
+        expect(out).not.toContain('Netback');
+        expect(out).not.toContain('163.50');
+      }
+    });
+
+    it('on an offtake from a plant the desk is the buyer and the producer price is quoted', () => {
+      const offtake: TradeAssessment = {
+        ...mockAssessment,
+        consignment: { ...mockAssessment.consignment, originPlantId: 'plant_dk_1', counterparty: 'Nature Energy Holsted A/S' },
+        costs: { ...mockAssessment.costs, producerPricing: { mode: 'FIXED_PRICE', fixedPriceEurPerMwh: 92.5, indexLinkedShare: null, source: null, lastVerified: null, confidence: 'VERIFIED' } },
+      };
+      expect(inferDeskRole(offtake)).toBe('BUYER');
+      const parties = resolveParties(offtake, { tradingDeskEntity: 'Desk Trading Ltd' });
+      expect(parties.seller).toBe('Nature Energy Holsted A/S');
+      expect(parties.buyer).toBe('Desk Trading Ltd');
+      expect(describePricing(offtake, 'BUYER')[0]).toContain('92.50');
+      const out = generateCommercialTermSheetPdf(offtake, { tradingDeskEntity: 'Desk Trading Ltd' }).output();
+      expect(out).toContain('92.50');
+    });
+
+    it('labels feedstock classification from the data, not a blanket "Annex IX-A"', () => {
+      const crop: TradeAssessment = {
+        ...mockAssessment,
+        consignment: { ...mockAssessment.consignment, feedstock: 'energy_crops', feedstockName: 'Maize silage', annexClassification: 'CROP' },
+      };
+      const out = generateCommercialTermSheetPdf(crop).output();
+      expect(out).toContain('Food/feed crop');
+      expect(out).not.toContain('Annex IX Part A');
+    });
+
+    it('stamps a regulatory block on documents for a structure that cannot clear', () => {
+      const blocked: TradeAssessment = {
+        ...mockAssessment,
+        eligibility: { ...mockAssessment.eligibility, overallVerdict: 'HARD_BLOCK', summary: 'BLOCKED at Market-Specific Requirements: UK RTFO requires GB injection.' },
+      };
+      expect(generateCommercialTermSheetPdf(blocked).output()).toContain('NOT TRADEABLE AS STRUCTURED');
+      expect(generateEtrmJsonPayload(blocked).dealHeader.status).toBe('NOT_TRADEABLE_REGULATORY_BLOCK');
+    });
+
+    it('pre-screen memo quotes no fabricated "verbatim" statute and does not claim compliance approval', () => {
+      const out = generateStatutoryAuditMemoPdf(mockAssessment).output();
+      expect(out).toContain('DESK REGULATORY PRE-SCREEN');
+      expect(out).toContain('not legal advice');
+      expect(out).not.toContain('VERBATIM');
+      expect(out).not.toContain('APPROVED FOR OTC TRADING');
+      expect(out).not.toContain('Chief Compliance Officer');
+    });
+
+    it('UDB worksheet never fabricates a PoS number, operator ID or EIC code', () => {
+      const xml = generateUdbNominationXmlPayload(mockAssessment);
+      expect(xml).toContain('[ISSUED BY CERTIFICATION SCHEME]');
+      expect(xml).toContain('Not a UDB message format');
+      expect(xml).not.toMatch(/POS-DOS/);
+      expect(xml).not.toContain('udb.ec.europa.eu');
+    });
+
+    it('CSV quotes fields safely and leaves unknown values blank', () => {
+      const tricky: TradeAssessment = {
+        ...mockAssessment,
+        consignment: { ...mockAssessment.consignment, counterparty: 'Acme "Gas", Ltd', volumeMWh: null },
+      };
+      const [header, row] = generateEtrmCsvPayload(tricky).trim().split('\r\n');
+      expect(header.split(',')).toContain('VolumeMWh');
+      expect(row).toContain('"Acme ""Gas"", Ltd"');
+      expect(row).not.toContain('10000');
+    });
+
+    it('fingerprint is UTF-8 safe and changes with price terms', () => {
+      const a = { ...mockAssessment, consignment: { ...mockAssessment.consignment, counterparty: 'Énergie SA' } };
+      const b = { ...mockAssessment, consignment: { ...mockAssessment.consignment, counterparty: 'Ãnergie SA' } };
+      expect(calculateTradeIntegritySeal(a)).not.toBe(calculateTradeIntegritySeal(b));
+      const priced = { ...mockAssessment, costs: { ...mockAssessment.costs, producerPricing: { mode: 'FIXED_PRICE' as const, fixedPriceEurPerMwh: 90, indexLinkedShare: null, source: null, lastVerified: null, confidence: 'VERIFIED' as const } } };
+      expect(calculateTradeIntegritySeal(priced)).not.toBe(calculateTradeIntegritySeal(mockAssessment));
     });
   });
 });

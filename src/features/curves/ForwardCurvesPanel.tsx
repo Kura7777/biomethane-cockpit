@@ -105,12 +105,12 @@ export function ForwardCurvesPanel({ initialCommodity = 'TTF_GAS' }: ForwardCurv
         <div className="p-3 bg-[#0e1118] border border-[#1e2433] rounded-lg font-mono">
           <div className="text-micro text-zinc-400 uppercase tracking-wider">Prompt (Cal-2026 Mid)</div>
           <div className="text-lg font-bold text-zinc-100 mt-0.5">
-            {currentCurve.tenors.CAL_2026.mid.toFixed(currentCurve.unit === 'EUR/kg' ? 3 : 2)}{' '}
+            {currentCurve.tenors.CAL_2026.mid.toFixed(MARKET_METADATA[currentCurve.marketId].decimals)}{' '}
             <span className="text-xs font-normal text-zinc-400">{currentCurve.unit}</span>
           </div>
           <div className="text-micro text-zinc-500 mt-1">
-            Bid: {currentCurve.tenors.CAL_2026.bid.toFixed(currentCurve.unit === 'EUR/kg' ? 3 : 2)} · Ask:{' '}
-            {currentCurve.tenors.CAL_2026.offer.toFixed(currentCurve.unit === 'EUR/kg' ? 3 : 2)}
+            Bid: {currentCurve.tenors.CAL_2026.bid.toFixed(MARKET_METADATA[currentCurve.marketId].decimals)} · Ask:{' '}
+            {currentCurve.tenors.CAL_2026.offer.toFixed(MARKET_METADATA[currentCurve.marketId].decimals)}
           </div>
         </div>
 
@@ -118,7 +118,7 @@ export function ForwardCurvesPanel({ initialCommodity = 'TTF_GAS' }: ForwardCurv
         <div className="p-3 bg-[#0e1118] border border-[#1e2433] rounded-lg font-mono">
           <div className="text-micro text-zinc-400 uppercase tracking-wider">Long-Term (Cal-2030 Mid)</div>
           <div className="text-lg font-bold text-cyan-400 mt-0.5">
-            {currentCurve.tenors.CAL_2030.mid.toFixed(currentCurve.unit === 'EUR/kg' ? 3 : 2)}{' '}
+            {currentCurve.tenors.CAL_2030.mid.toFixed(MARKET_METADATA[currentCurve.marketId].decimals)}{' '}
             <span className="text-xs font-normal text-zinc-400">{currentCurve.unit}</span>
           </div>
           <div className="text-micro text-zinc-500 mt-1">
@@ -208,7 +208,7 @@ export function ForwardCurvesPanel({ initialCommodity = 'TTF_GAS' }: ForwardCurv
               <div key={t.tenor} className="flex flex-col items-center bg-[#08090d] p-2.5 rounded border border-[#1e2433]">
                 <div className="text-micro font-bold text-zinc-300 mb-1">{t.tenor.replace('_', '-')}</div>
                 <div className="text-xs font-bold text-cyan-400 mb-2">
-                  €{t.mid.toFixed(currentCurve.unit === 'EUR/kg' ? 3 : 2)}
+                  {t.mid.toFixed(MARKET_METADATA[currentCurve.marketId].decimals)}
                 </div>
 
                 {/* Vertical Bar Container */}
@@ -219,8 +219,8 @@ export function ForwardCurvesPanel({ initialCommodity = 'TTF_GAS' }: ForwardCurv
                   >
                     {/* Tooltip on hover */}
                     <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block bg-[#0e1118] text-zinc-100 text-[10px] p-1.5 rounded shadow-lg border border-[#2b3347] whitespace-nowrap z-20">
-                      <div>Summer: €{t.summerPrice.toFixed(2)}</div>
-                      <div>Winter: €{t.winterPrice.toFixed(2)}</div>
+                      <div>Summer: {t.summerPrice.toFixed(MARKET_METADATA[currentCurve.marketId].decimals)}</div>
+                      <div>Winter: {t.winterPrice.toFixed(MARKET_METADATA[currentCurve.marketId].decimals)}</div>
                       <div>Obligation: {t.statutoryObligationPct}%</div>
                     </div>
                   </div>
@@ -230,11 +230,11 @@ export function ForwardCurvesPanel({ initialCommodity = 'TTF_GAS' }: ForwardCurv
                 <div className="w-full grid grid-cols-2 gap-1 mt-2 text-[10px] text-center border-t border-[#1e2433] pt-1.5">
                   <div className="text-amber-400/90 font-mono">
                     <Sun className="w-2.5 h-2.5 inline mr-0.5" />
-                    {t.summerPrice.toFixed(currentCurve.unit === 'EUR/kg' ? 2 : 1)}
+                    {t.summerPrice.toFixed(Math.max(1, MARKET_METADATA[currentCurve.marketId].decimals - 1))}
                   </div>
                   <div className="text-cyan-400/90 font-mono">
                     <Snowflake className="w-2.5 h-2.5 inline mr-0.5" />
-                    {t.winterPrice.toFixed(currentCurve.unit === 'EUR/kg' ? 2 : 1)}
+                    {t.winterPrice.toFixed(Math.max(1, MARKET_METADATA[currentCurve.marketId].decimals - 1))}
                   </div>
                 </div>
 
@@ -277,17 +277,17 @@ export function ForwardCurvesPanel({ initialCommodity = 'TTF_GAS' }: ForwardCurv
                   <td className="p-2 font-bold text-zinc-100">{quote.tenor.replace('_', '-')}</td>
                   <td className="p-2 text-zinc-300">{quote.year}</td>
                   <td className="p-2 font-bold text-cyan-400">
-                    {quote.mid.toFixed(currentCurve.unit === 'EUR/kg' ? 3 : 2)} {currentCurve.unit}
+                    {quote.mid.toFixed(MARKET_METADATA[currentCurve.marketId].decimals)} {currentCurve.unit}
                   </td>
                   <td className="p-2 text-zinc-400">
-                    {quote.bid.toFixed(currentCurve.unit === 'EUR/kg' ? 3 : 2)} /{' '}
-                    {quote.offer.toFixed(currentCurve.unit === 'EUR/kg' ? 3 : 2)}
+                    {quote.bid.toFixed(MARKET_METADATA[currentCurve.marketId].decimals)} /{' '}
+                    {quote.offer.toFixed(MARKET_METADATA[currentCurve.marketId].decimals)}
                   </td>
                   <td className="p-2 text-amber-300">
-                    {quote.summerPrice.toFixed(currentCurve.unit === 'EUR/kg' ? 3 : 2)}
+                    {quote.summerPrice.toFixed(MARKET_METADATA[currentCurve.marketId].decimals)}
                   </td>
                   <td className="p-2 text-cyan-300">
-                    {quote.winterPrice.toFixed(currentCurve.unit === 'EUR/kg' ? 3 : 2)}
+                    {quote.winterPrice.toFixed(MARKET_METADATA[currentCurve.marketId].decimals)}
                   </td>
                   <td className="p-2 font-semibold text-zinc-200">
                     {quote.statutoryObligationPct > 0 ? `${quote.statutoryObligationPct}%` : '—'}

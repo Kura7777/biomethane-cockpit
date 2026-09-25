@@ -278,9 +278,10 @@ TRADE LANE: ${TRADE_LANES[counterparty.tradeLane]?.label || counterparty.tradeLa
 - All-In Delivered Bio-LNG Price: €${marineQuote.allInBioLngPriceEurMwh.toFixed(2)} / MWh
     * Equivalent Metric Tonne Price (EUR): €${marineQuote.allInBioLngPriceEurPerTonne.toLocaleString()} / tonne Bio-LNG
     * Equivalent Metric Tonne Price (USD): $${marineQuote.allInBioLngPriceUsdPerTonne.toLocaleString()} / tonne Bio-LNG
-- Benchmark Conventional Alternative (1.2195t VLSFO @ $${vlsfoPrice.toFixed(2)}/t + FuelEU Deficit + EU ETS):
+- Benchmark Conventional Alternative (${marineQuote.equivalentVlsfoTonnes.toFixed(4)}t VLSFO @ $${vlsfoPrice.toFixed(2)}/t + FuelEU Deficit + EU ETS):
     * Alternative Compliance Cost (EUR): €${marineQuote.totalConventionalAlternativeCostEur.toFixed(2)} / t Bio-LNG eq
     * Alternative Compliance Cost (USD): $${marineQuote.totalConventionalAlternativeCostUsd.toFixed(2)} / t Bio-LNG eq
+- FuelEU Compliance Surplus (Pooling, Art. 21): ${marineQuote.fuelEuSurplusTco2ePerTonne.toFixed(4)} tCO2e/t x €${marineQuote.fuelEuSurplusPriceEurPerTco2e.toFixed(2)}/tCO2e = €${marineQuote.fuelEuSurplusValueEurPerTonne.toFixed(2)} / tonne Bio-LNG
 - Net Client Arbitrage Advantage: ${marineQuote.netSavingsPerTonneBioLngEur >= 0 ? '+' : ''}€${marineQuote.netSavingsPerTonneBioLngEur.toFixed(2)} / tonne (${marineQuote.netSavingsPerTonneBioLngUsd >= 0 ? '+' : ''}$${marineQuote.netSavingsPerTonneBioLngUsd.toFixed(2)} / tonne)
 
 3. STRUCTURED TRANSACTION SCHEDULE (DEFICIT NEUTRALISATION)
@@ -903,7 +904,7 @@ ${fullPitchText}
               Institutional Marine Bunker Pricing Engine (€/t &amp; $/t)
             </span>
             <span className="chip" style={{ fontSize: '9px' }}>
-              1 t Bio-LNG = 13.9 MWh · FX €/$: 1.08
+              1 t Bio-LNG = {marineQuote.mwhPerTonneBioLng.toFixed(2)} MWh · FX €/$: 1.08
             </span>
           </div>
 

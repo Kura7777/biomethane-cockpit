@@ -41,6 +41,7 @@ scratch/
 # Confidential deal & counterparty documents
 Contracts/
 contracts_text/
+NotebookLM_Sources/
 
 # Large temporary archives, media, and test artifacts
 *.zip

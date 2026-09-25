@@ -39,5 +39,7 @@ export interface Consignment {
   volumeMWh: number | null;  // optional, for P&L calc
   deliveryPeriod?: DeliveryPeriod | null;
   counterparty?: string | null; // optional counterparty label, e.g. "Shell Energy Europe"
+  originPlantId?: string | null;   // registry plant the deal was sourced from (offtake origination)
+  originPlantName?: string | null;
   observedBundlePriceEurPerMwh?: number | null; // observed all-in clearing bundle price (€/MWh) for reality check
 }

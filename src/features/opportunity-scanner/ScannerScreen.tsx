@@ -27,7 +27,8 @@ import {
   Globe, 
   Layers, 
   CheckCircle2,
-  DollarSign
+  DollarSign,
+  Scale
 } from 'lucide-react';
 
 const GATE_LETTERS = ['S', 'U', 'M', 'A', 'G', 'N'];
@@ -63,6 +64,8 @@ export interface PlantArbitrageOpportunity {
   netMarginEurMwh: number;
   annualProfitEur: number;
   eligibilityVerdict: 'ELIGIBLE' | 'CONDITIONAL' | 'HARD_BLOCK';
+  operator?: string;
+  gridOperator?: string;
 }
 
 export function ScannerScreen() {
@@ -285,6 +288,8 @@ export function ScannerScreen() {
         netMarginEurMwh: Number(netMargin.toFixed(2)),
         annualProfitEur: Math.round(annualProfit),
         eligibilityVerdict: bestVerdict,
+        operator: p.operator || undefined,
+        gridOperator: p.networkOperator || undefined,
       });
     }
 
@@ -579,15 +584,63 @@ export function ScannerScreen() {
                       {opp.annualProfitEur >= 0 ? `+€${(opp.annualProfitEur / 1000).toFixed(0)}k` : `−€${(Math.abs(opp.annualProfitEur) / 1000).toFixed(0)}k`}
                     </td>
                     <td style={{ textAlign: 'center' }}>
-                      <button
-                        type="button"
-                        className="btn btn-primary"
-                        onClick={() => handleStructurePlantTrade(opp)}
-                        style={{ fontSize: '11px', padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                      >
-                        <Zap className="w-3 h-3" />
-                        Structure ➔
-                      </button>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+                        <button
+                          type="button"
+                          className="btn btn-primary"
+                          onClick={() => handleStructurePlantTrade(opp)}
+                          style={{ fontSize: '11px', padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px', width: '100%', justifyContent: 'center' }}
+                        >
+                          <Zap className="w-3 h-3" />
+                          Structure ➔
+                        </button>
+                        {opp.isRestrictedSubsidy && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              window.dispatchEvent(
+                                new CustomEvent('open-compliance-auditor', {
+                                  detail: {
+                                    originCountry: opp.countryCode,
+                                    targetMarketId: opp.bestMarketId,
+                                    destinationMarket: opp.bestMarketId,
+                                    feedstockCategory: opp.feedstockKey,
+                                    feedstock: opp.feedstockKey,
+                                    carbonIntensity: opp.carbonIntensity,
+                                    ghgIntensity: opp.carbonIntensity,
+                                    annualVolumeMWh: opp.annualMWh,
+                                    volumeMWh: opp.annualMWh,
+                                    counterparty: `${opp.plantName} Producer Entity`,
+                                    plantName: opp.plantName,
+                                    operatorName: opp.operator,
+                                    gridOperator: opp.gridOperator,
+                                    initialTab: 'GATE_BREAKDOWN',
+                                    focusedGateIndex: 4, // Gate 5: Double Claim & Subsidy Clawback
+                                  }
+                                })
+                              );
+                            }}
+                            className="btn btn-outline"
+                            style={{
+                              fontSize: '10px',
+                              padding: '2px 6px',
+                              color: '#dc2626',
+                              borderColor: 'rgba(239, 68, 68, 0.4)',
+                              backgroundColor: 'rgba(239, 68, 68, 0.05)',
+                              whiteSpace: 'nowrap',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px',
+                              width: '100%',
+                              justifyContent: 'center'
+                            }}
+                            title="Audit State Aid, EEG feed-in tariff clawback, and cross-border export legality"
+                          >
+                            <Scale className="w-3 h-3" />
+                            Audit State Aid / Export Legality
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -803,7 +856,52 @@ export function ScannerScreen() {
                       <td className="num dim">{String(idx + 1).padStart(2, '0')}</td>
                       <td className="num mut" style={{ fontWeight: 600 }}>{mkt?.country}</td>
                       <td>
-                        <div style={{ fontWeight: 600 }}>{item.marketName}</div>
+                        <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                          <span>{item.marketName}</span>
+                          {isHardBlocked && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const firstFailingGateIdx = el?.gates.findIndex(g => g.verdict === 'HARD_BLOCK' || g.verdict === 'CONDITIONAL');
+                                window.dispatchEvent(
+                                  new CustomEvent('open-compliance-auditor', {
+                                    detail: {
+                                      originCountry: consignment.originCountry,
+                                      targetMarketId: item.marketId,
+                                      destinationMarket: item.marketId,
+                                      feedstockCategory: consignment.feedstock,
+                                      feedstock: consignment.feedstock,
+                                      carbonIntensity: consignment.carbonIntensity,
+                                      ghgIntensity: consignment.carbonIntensity,
+                                      annualVolumeMWh: consignment.volumeMWh || 10000,
+                                      volumeMWh: consignment.volumeMWh || 10000,
+                                      initialTab: 'GATE_BREAKDOWN',
+                                      focusedGateIndex: firstFailingGateIdx !== -1 ? firstFailingGateIdx : 0,
+                                    }
+                                  })
+                                );
+                              }}
+                              className="btn btn-outline"
+                              style={{
+                                fontSize: '10px',
+                                padding: '1px 6px',
+                                color: '#dc2626',
+                                borderColor: 'rgba(239, 68, 68, 0.4)',
+                                backgroundColor: 'rgba(239, 68, 68, 0.05)',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '3px',
+                                lineHeight: '14px',
+                                height: '20px'
+                              }}
+                              title="Why is this market blocked? Open 6-Gate Statutory Audit"
+                            >
+                              <Scale className="w-3 h-3" />
+                              Why Blocked? Statutory Gate Audit
+                            </button>
+                          )}
+                        </div>
                         <div style={{ fontSize: '11px' }} className="mut">{mkt?.legalBasis}</div>
                       </td>
                       <td>
@@ -813,9 +911,30 @@ export function ScannerScreen() {
                             const isHard = g.verdict === 'HARD_BLOCK';
                             const soft = !isPass && !isHard;
                             return (
-                              <span
+                              <button
                                 key={gIdx}
-                                title={`${GATE_TOOLTIP_TITLES[gIdx]} — ${isPass ? 'Pass' : isHard ? 'Hard block' : 'Conditional / unresolved'}`}
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  window.dispatchEvent(
+                                    new CustomEvent('open-compliance-auditor', {
+                                      detail: {
+                                        originCountry: consignment.originCountry,
+                                        targetMarketId: item.marketId,
+                                      destinationMarket: item.marketId,
+                                        feedstockCategory: consignment.feedstock,
+                                      feedstock: consignment.feedstock,
+                                        carbonIntensity: consignment.carbonIntensity,
+                                      ghgIntensity: consignment.carbonIntensity,
+                                        annualVolumeMWh: consignment.volumeMWh || 10000,
+                                      volumeMWh: consignment.volumeMWh || 10000,
+                                        initialTab: 'GATE_BREAKDOWN',
+                                        focusedGateIndex: gIdx,
+                                      }
+                                    })
+                                  );
+                                }}
+                                title={`${GATE_TOOLTIP_TITLES[gIdx]} — ${isPass ? 'Pass' : isHard ? 'Hard block' : 'Conditional / unresolved'} (Click to audit)`}
                                 style={{
                                   width: '16px',
                                   height: '16px',
@@ -824,6 +943,7 @@ export function ScannerScreen() {
                                   justifyContent: 'center',
                                   fontSize: '10px',
                                   fontWeight: 600,
+                                  cursor: 'pointer',
                                   backgroundColor: isHard
                                     ? 'var(--color-accent)'
                                     : soft
@@ -835,10 +955,11 @@ export function ScannerScreen() {
                                     ? 'var(--color-neutral-900)'
                                     : 'var(--color-text)',
                                   border: `1px solid ${isHard ? 'var(--color-accent)' : 'var(--color-divider)'}`,
+                                  padding: 0,
                                 }}
                               >
                                 {GATE_LETTERS[gIdx]}
-                              </span>
+                              </button>
                             );
                           })}
                         </div>
@@ -947,7 +1068,7 @@ export function ScannerScreen() {
             </div>
 
             {/* Blocked opportunity */}
-            <div style={{ padding: '14px 20px' }}>
+            <div style={{ padding: '14px 20px', display: 'flex', flexDirection: 'column' }}>
               <div className="eyebrow">Blocked opportunity</div>
               <div style={{ fontSize: '13px', fontWeight: 600, marginTop: '8px' }}>
                 {highestBlocked ? `${highestBlocked.market} · €${highestBlocked.netback.toFixed(2)}/MWh theoretical` : 'UK RTFO · €88.10/MWh theoretical'}
@@ -957,6 +1078,50 @@ export function ScannerScreen() {
               </p>
               <div style={{ fontSize: '11px', marginTop: '8px', color: 'var(--color-accent-700)' }}>
                 RED III Art. 28(2) · Reg. (EU) 2024/2792
+              </div>
+              <div style={{ marginTop: 'auto', paddingTop: '10px' }}>
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  style={{
+                    fontSize: '11px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    width: '100%',
+                    justifyContent: 'center',
+                    borderColor: 'rgba(239, 68, 68, 0.4)',
+                    color: '#dc2626',
+                    backgroundColor: 'rgba(239, 68, 68, 0.05)',
+                    padding: '5px 10px',
+                    fontWeight: 600,
+                  }}
+                  onClick={() => {
+                    const targetMkt = highestBlocked ? highestBlocked.marketId : 'UK_RTFO';
+                    const elAssessment = eligibilityMap.get(targetMkt);
+                    const firstFailingGateIdx = elAssessment?.gates.findIndex(g => g.verdict === 'HARD_BLOCK' || g.verdict === 'CONDITIONAL');
+                    window.dispatchEvent(
+                      new CustomEvent('open-compliance-auditor', {
+                        detail: {
+                          originCountry: consignment.originCountry,
+                          targetMarketId: targetMkt,
+                                      destinationMarket: targetMkt,
+                          feedstockCategory: consignment.feedstock,
+                                      feedstock: consignment.feedstock,
+                          carbonIntensity: consignment.carbonIntensity,
+                                      ghgIntensity: consignment.carbonIntensity,
+                          annualVolumeMWh: consignment.volumeMWh || 10000,
+                                      volumeMWh: consignment.volumeMWh || 10000,
+                          initialTab: 'GATE_BREAKDOWN',
+                          focusedGateIndex: firstFailingGateIdx !== -1 && firstFailingGateIdx !== undefined ? firstFailingGateIdx : 1,
+                        }
+                      })
+                    );
+                  }}
+                >
+                  <Scale className="w-3.5 h-3.5" />
+                  Why Blocked? Statutory Gate Audit
+                </button>
               </div>
             </div>
           </div>

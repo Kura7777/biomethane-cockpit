@@ -1,3 +1,44 @@
+export type ContactConfidence = 'UNDELIVERABLE' | 'INDIRECT' | 'UNVERIFIED_LEAD' | 'NO_CONTACT';
+
+export interface OfficialRegisterLookup {
+  countryCode: string;
+  countryName: string;
+  registerName: string;
+  authority: string;
+  url: string;
+  searchUrl?: string;
+  instructions: string;
+  mandatoryForOrigination: boolean;
+}
+
+export interface PlantContactQuality {
+  confidence: ContactConfidence;
+  confidenceLabel: string;
+  confidenceBadgeColor: 'red' | 'amber' | 'blue' | 'slate';
+  reasons: string[];
+  isPersonalEmail: boolean;
+  isSharedEmail: boolean;
+  sharedEmailCount: number;
+  isSharedPhone: boolean;
+  sharedPhoneCount: number;
+  isDeadDomain: boolean;
+  isInventedMailbox: boolean;
+  isOperatorMismatch: boolean;
+  isGridOperatorSwitchboard: boolean;
+  gdprWarning?: string;
+  officialRegister: OfficialRegisterLookup;
+}
+
+
+/** Detected data-quality defects on a registry record (see plants/dataQuality.ts). */
+export interface PlantDataQuality {
+  approximateCoordinates: boolean; // centroid placeholder shared by 5+ records
+  syntheticAddress: boolean;       // template street address, not a published site address
+  placeholderRegion: boolean;      // "<Country> Grid Injection Zone"
+  duplicateOf: string | null;      // id of an identical earlier record (name, capacity, energy, coordinates)
+  contactConfidence?: ContactConfidence;
+}
+
 export interface BiomethanePlant {
   id: string;
   name: string;
@@ -7,6 +48,9 @@ export interface BiomethanePlant {
   provenance: string; // Sourced authority (e.g. 'GIE/EBA European Biomethane Map 2026')
   isVerified?: boolean; // Whether plant attributes (capacity, coordinates, feedstock) are individually verified
   fieldsUnverified?: string[]; // List of fields that are unverified in source map
+  dataQuality?: PlantDataQuality;
+  contactQuality?: PlantContactQuality;
+
   region?: string | null;
   operator?: string | null;
   status?: 'Active' | 'Under Construction' | 'Planned' | string | null;
@@ -52,6 +96,47 @@ export interface BiomethanePlant {
   certificateNumber?: string | null;
   currentOfftakeStatus?: 'CONTRACTED' | 'UNCONTRACTED' | 'PARTIAL' | 'EXPIRING_SOON' | 'UNKNOWN' | null;
   offtakeContractEnd?: string | null;
+
+  // --- NON-DESTRUCTIVE ENRICHMENT LAYER ---
+  verifiedDossier?: VerifiedPlantDossier | null;
+  deskOverride?: TraderDeskOverride | null;
+}
+
+export interface CommercialContactLead {
+  fullName: string;
+  title: string;
+  roleCategory: 'ORIGINATION' | 'COMMERCIAL_DIRECTOR' | 'PLANT_DIRECTOR' | 'MANAGING_DIRECTOR' | 'SUSTAINABILITY';
+  workEmail?: string | null;
+  directPhone?: string | null;
+  linkedinUrl?: string | null;
+  confidenceScore: number; // 0 - 100
+  source: 'STATUTORY_FILING' | 'B2B_ENRICHMENT' | 'DESK_VERIFIED' | 'INDUSTRY_DIRECTORY';
+  lastVerifiedDate: string;
+}
+
+export interface VerifiedPlantDossier {
+  statutoryRegister: 'DE_MASTR' | 'FR_SIRENE' | 'GB_COMPANIES_HOUSE' | 'DK_EVIDA_CVR' | 'NL_KVK' | 'IT_GSE' | 'OTHER';
+  statutoryRegistrationId: string;
+  officialLegalEntity: string;
+  legalForm?: string;
+  registeredOfficeAddress: string;
+  parentGroup?: string;
+  groupTradingDeskLocation?: string;
+  verifiedWebsiteUrl?: string | null;
+  verificationSource: string;
+  verifiedAt: string;
+  commercialContacts: CommercialContactLead[];
+}
+
+export interface TraderDeskOverride {
+  plantId: string;
+  traderName: string;
+  verifiedAt: string;
+  counterpartySignatory: string;
+  directEmail?: string | null;
+  directPhone?: string | null;
+  notes?: string | null;
+  isConfirmed: boolean;
 }
 
 export interface DeveloperPortfolio {

@@ -108,7 +108,7 @@ describe('Dual-Book Architecture (50% Compliance / 50% Voluntary GO Book)', () =
 
     const volCsv = generateEtrmCsvPayload(volAssessment);
     expect(volCsv).toContain('BIOMETHANE_VOLUNTARY_GO');
-    expect(volCsv).toContain('NATIONAL_GO_AIB_EECS');
+    expect(volCsv).toContain('AIB EECS Gas Scheme');
 
     // 2. Compliance Deal
     const compAssessment: any = {
@@ -132,7 +132,7 @@ describe('Dual-Book Architecture (50% Compliance / 50% Voluntary GO Book)', () =
     };
 
     const compCsv = generateEtrmCsvPayload(compAssessment);
-    expect(compCsv).toContain('BIOMETHANE_COMPLIANCE_QUOTA');
-    expect(compCsv).toContain('UNION_DATABASE_UDB');
+    expect(compCsv).toContain('BIOMETHANE_COMPLIANCE');
+    expect(compCsv).toContain('dena Biogasregister / UBA');
   });
 });

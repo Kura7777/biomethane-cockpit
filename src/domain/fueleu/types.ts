@@ -109,6 +109,10 @@ export interface MarineBunkerQuotationInput {
   bioLngVolumeTonnes?: number;
   bioLngCi?: number;
   targetYear?: 2025 | 2026 | 2030;
+  /** Pool / surplus transfer price for FuelEU compliance balance (€/tCO₂e). Defaults to the FuelEU benchmark mid. */
+  fuelEuSurplusPriceEurPerTco2e?: number;
+  /** Engine class burning the Bio-LNG (Annex II methane slip). Defaults to DEFAULT_LNG_ENGINE. */
+  lngEngineType?: LngEngineType;
 }
 
 export interface MarineBunkerQuotationResult {
@@ -126,6 +130,11 @@ export interface MarineBunkerQuotationResult {
   totalConventionalAlternativeCostEur: number;
   totalConventionalAlternativeCostUsd: number;
   fuelEuFleetPenaltyAvoidedEurPerTonne: number;
+  /** Compliance surplus one tonne of Bio-LNG generates vs the FuelEU target intensity (tCO₂e). */
+  fuelEuSurplusTco2ePerTonne: number;
+  fuelEuSurplusPriceEurPerTco2e: number;
+  /** Surplus monetised at the pool price (€/t Bio-LNG). */
+  fuelEuSurplusValueEurPerTonne: number;
   etsAvoidedEurPerTonne: number;
   totalRegulatoryValueEurPerTonne: number;
   netSavingsPerTonneBioLngEur: number;
@@ -199,6 +208,9 @@ export interface VesselArchetype {
   keyPorts: string[];
 }
 
+/** FuelEU Annex II LNG engine classes (default methane slip differs by class). */
+export type LngEngineType = 'LNG_OTTO_MS' | 'LNG_OTTO_SS' | 'LNG_DIESEL_SS' | 'LBSI';
+
 export interface VesselCalculationInput {
   vlsfoTonnes: number;
   mgoTonnes: number;
@@ -207,6 +219,7 @@ export interface VesselCalculationInput {
   bioLngCi: number;
   targetYear: 2025 | 2030;
   consecutiveYearsNonCompliant: number; // 1, 2, 3, 4+
+  lngEngineType?: LngEngineType;        // defaults to DEFAULT_LNG_ENGINE
 }
 
 export interface VesselCalculationResult {

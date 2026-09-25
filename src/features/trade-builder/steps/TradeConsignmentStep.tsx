@@ -539,6 +539,47 @@ export function TradeConsignmentStep({
               <p style={{ fontSize: '11.5px', lineHeight: 1.5, margin: '6px 0 0', color: 'var(--color-muted)' }}>
                 {currentOriginObj.desc}
               </p>
+
+              {(origin === 'GB' || currentOriginObj.isolated) && (
+                <div
+                  style={{
+                    marginTop: '10px',
+                    padding: '8px 12px',
+                    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                    border: '1px solid rgba(239, 68, 68, 0.4)',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '8px',
+                    flexWrap: 'wrap'
+                  }}
+                >
+                  <div style={{ fontSize: '11px', color: '#f87171', fontWeight: 600 }}>
+                    🛑 Non-EU Gas Grid — Physical grid disconnected from EU UDB single mass balance area.
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      window.dispatchEvent(new CustomEvent('open-compliance-auditor', {
+                        detail: {
+                          originCountry: origin,
+                          targetMarketId: selectedMarket?.id || 'DE_THG',
+                          feedstockCategory: currentFeedstockObj.label,
+                          carbonIntensity: ci,
+                          annualVolumeMWh: volumeMwh,
+                          initialTab: 'GATE_BREAKDOWN',
+                          focusedGateIndex: 1
+                        }
+                      }));
+                    }}
+                    className="btn btn-secondary"
+                    style={{ fontSize: '10.5px', padding: '2px 8px', color: '#f87171', borderColor: 'rgba(239, 68, 68, 0.4)', fontWeight: 700 }}
+                  >
+                    ⚖ Audit UDB Cross-Border Ingestion
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -648,6 +689,47 @@ export function TradeConsignmentStep({
               <p style={{ fontSize: '11.5px', lineHeight: 1.5, margin: '6px 0 0', color: 'var(--color-muted)' }}>
                 {currentFeedstockObj.hint}
               </p>
+
+              {feedstockKey === 'energy_crops' && (
+                <div
+                  style={{
+                    marginTop: '10px',
+                    padding: '8px 12px',
+                    backgroundColor: 'rgba(245, 158, 11, 0.12)',
+                    border: '1px solid rgba(245, 158, 11, 0.4)',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '8px',
+                    flexWrap: 'wrap'
+                  }}
+                >
+                  <div style={{ fontSize: '11px', color: '#fbbf24', fontWeight: 600 }}>
+                    ⚠ Food/Crop Cap — Energy crops are subject to statutory transport caps under RED III Art. 26.
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      window.dispatchEvent(new CustomEvent('open-compliance-auditor', {
+                        detail: {
+                          originCountry: origin,
+                          targetMarketId: selectedMarket?.id || 'DE_THG',
+                          feedstockCategory: 'ENERGY_CROPS',
+                          carbonIntensity: ci,
+                          annualVolumeMWh: volumeMwh,
+                          initialTab: 'GATE_BREAKDOWN',
+                          focusedGateIndex: 3
+                        }
+                      }));
+                    }}
+                    className="btn btn-secondary"
+                    style={{ fontSize: '10.5px', padding: '2px 8px', color: '#fbbf24', borderColor: 'rgba(245, 158, 11, 0.4)', fontWeight: 700 }}
+                  >
+                    ⚖ Audit Quota Eligibility
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Scheme & Custody row */}
@@ -761,6 +843,47 @@ export function TradeConsignmentStep({
                 {ghgSavingPct}% {ghgSavingPct >= 65 ? '(>= 65% Compliant)' : '(< 65% Non-compliant)'}
               </span>
             </div>
+
+            {ghgSavingPct < 65 && (
+              <div
+                style={{
+                  marginTop: '10px',
+                  padding: '8px 12px',
+                  backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                  border: '1px solid rgba(239, 68, 68, 0.4)',
+                  borderRadius: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '8px',
+                  flexWrap: 'wrap'
+                }}
+              >
+                <div style={{ fontSize: '11px', color: '#f87171', fontWeight: 600 }}>
+                  ⚠ RED III 65% Violation — Achieved {ghgSavingPct}% vs 65% minimum required (CI must be ≤ 32.9 gCO₂e/MJ).
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.dispatchEvent(new CustomEvent('open-compliance-auditor', {
+                      detail: {
+                        originCountry: origin,
+                        targetMarketId: selectedMarket?.id || 'DE_THG',
+                        feedstockCategory: currentFeedstockObj.label,
+                        carbonIntensity: ci,
+                        annualVolumeMWh: volumeMwh,
+                        initialTab: 'GATE_BREAKDOWN',
+                        focusedGateIndex: 4
+                      }
+                    }));
+                  }}
+                  className="btn btn-secondary"
+                  style={{ fontSize: '10.5px', padding: '2px 8px', color: '#f87171', borderColor: 'rgba(239, 68, 68, 0.4)', fontWeight: 700 }}
+                >
+                  ⚖ Audit Statutory Impact &amp; Remediation
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

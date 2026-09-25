@@ -3,6 +3,7 @@ import { Market } from '../../../domain/markets/types';
 import { TradeAssessment } from '../../../domain/trade/types';
 import { DocumentTab } from '../LegalPackageModal';
 import { getVtpForMarket } from '../TradeBuilderScreen';
+import { generateStatutoryAuditMemoPdf } from '../../../domain/trade/legalPackage';
 import {
   ArrowLeft,
   RotateCcw,
@@ -16,6 +17,7 @@ import {
   MapPin,
   CheckCircle2,
   FolderDown,
+  ShieldCheck,
 } from 'lucide-react';
 import { showToast } from '../../../app/DeskToastContainer';
 
@@ -86,6 +88,17 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
     setCopiedSummary(true);
     showToast('Deal summary note copied to clipboard!', 'SUCCESS');
     setTimeout(() => setCopiedSummary(false), 2500);
+  };
+
+  const handleDownloadAuditMemo = () => {
+    try {
+      const doc = generateStatutoryAuditMemoPdf(currentTradeAssessment);
+      const filename = `AUDIT-TR-${currentTradeAssessment.id}-${selectedMarket.id}.pdf`;
+      doc.save(filename);
+      showToast(`Statutory Audit Memo PDF downloaded: ${filename}`);
+    } catch {
+      showToast('Failed to generate Statutory Audit Memo PDF');
+    }
   };
 
   return (
@@ -217,9 +230,93 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
           </div>
         </div>
 
-        {/* Right Column: Complete 4-Piece Deal Package & Review */}
+        {/* Right Column: Complete 5-Piece Deal Package & Review */}
         <div className="space-y-4">
           
+          {/* Chief Compliance Officer Pre-Trade Clearance Card */}
+          <div
+            style={{
+              border: isEligible ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(239, 68, 68, 0.4)',
+              backgroundColor: isEligible ? 'rgba(16, 185, 129, 0.04)' : 'rgba(239, 68, 68, 0.04)',
+              padding: '16px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <ShieldCheck size={18} style={{ color: isEligible ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)' }} />
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: 'var(--color-text)' }}>
+                    Chief Compliance Officer Pre-Trade Clearance
+                  </h4>
+                  <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '2px' }}>
+                    Institutional 6-gate statutory audit trail under RED III Directive &amp; national registry rules.
+                  </div>
+                </div>
+              </div>
+
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  fontFamily: MONO_FONT,
+                  padding: '3px 8px',
+                  borderRadius: '4px',
+                  backgroundColor: isEligible ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                  color: isEligible ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)',
+                  border: `1px solid ${isEligible ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}`,
+                }}
+              >
+                {currentTradeAssessment.eligibility.overallVerdict} ({currentTradeAssessment.eligibility.gates.filter(g => g.verdict === 'PASS').length}/6 GATES CLEAR)
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 text-xs" style={{ color: 'var(--color-muted)' }}>
+              <div>• Origin Facility: <strong style={{ color: 'var(--color-text)' }}>{consignment.name || 'Biomethane Asset'} ({consignment.originCountry})</strong></div>
+              <div>• Compliance Sink: <strong style={{ color: 'var(--color-text)' }}>{selectedMarket.name}</strong></div>
+              <div>• Certified CI: <strong style={{ color: 'var(--color-text)' }}>{consignment.carbonIntensity} gCO₂e/MJ</strong></div>
+              <div>• Mass Balance: <strong style={{ color: 'var(--color-status-pos-text)' }}>UDB Single Interconnected Area</strong></div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('open-compliance-auditor', {
+                    detail: {
+                      originCountry: consignment.originCountry,
+                      targetMarketId: selectedMarket.id,
+                      targetMarketName: selectedMarket.name,
+                      annualVolumeMWh: volumeMwh,
+                      carbonIntensity: consignment.carbonIntensity,
+                      feedstockCategory: consignment.feedstock,
+                      deliveredValueEurMwh: netNetbackVal,
+                      initialTab: 'GATE_BREAKDOWN'
+                    }
+                  }));
+                }}
+                className="btn btn-secondary"
+                style={{ flex: 1, padding: '7px 12px', fontSize: '11.5px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontWeight: 600 }}
+              >
+                <Scale size={13} style={{ color: 'var(--color-accent)' }} />
+                <span>⚖ Run Full Statutory Audit</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleDownloadAuditMemo}
+                className="btn btn-secondary"
+                style={{ flex: 1, padding: '7px 12px', fontSize: '11.5px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontWeight: 600 }}
+                title="Download 2-page institutional statutory compliance memorandum PDF"
+              >
+                <Download size={13} style={{ color: 'var(--color-accent)' }} />
+                <span>📥 Download Audit Memo (PDF)</span>
+              </button>
+            </div>
+          </div>
+
           {/* Main Deal Package Trigger Card */}
           <div
             style={{
@@ -235,7 +332,7 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
               <Package size={18} style={{ color: 'var(--color-accent)' }} />
               <div>
                 <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: 'var(--color-text)' }}>
-                  Institutional 4-Document Deal Package
+                  Institutional 5-Document Deal Package
                 </h4>
                 <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '2px' }}>
                   Full ETRM-compliant documentation suite for counterparty execution and audit trails.
@@ -263,7 +360,7 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
               <span>Review Complete Deal Package (In-Browser Preview)</span>
             </button>
 
-            {/* 4 Document Tiles */}
+            {/* 5 Document Tiles */}
             <div className="grid grid-cols-2 gap-2 pt-2">
               <button
                 type="button"
@@ -307,6 +404,17 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
               >
                 <Database size={14} style={{ color: 'var(--color-accent)' }} />
                 <span>4. UDB XML Nomination</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onOpenDocReview('AUDIT_MEMO')}
+                className="btn btn-secondary"
+                style={{ padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11.5px', justifyContent: 'flex-start', gridColumn: 'span 2' }}
+                data-testid="audit-memo-deal-btn"
+              >
+                <ShieldCheck size={14} style={{ color: 'var(--color-accent)' }} />
+                <span>5. Statutory Compliance Audit Memo (CCO Clearance)</span>
               </button>
             </div>
           </div>

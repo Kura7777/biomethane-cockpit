@@ -24,9 +24,14 @@ import {
   ChevronRight,
   ShieldCheck,
   Zap,
-  ExternalLink
+  ExternalLink,
+  AlertOctagon,
+  AlertTriangle,
+  ShieldAlert,
+  Info
 } from 'lucide-react';
 import { showToast } from '../../app/DeskToastContainer';
+
 
 type SortField = 'country' | 'name' | 'operator' | 'capacityNm3h' | 'annualEnergyGWh' | 'ci' | 'year';
 type SortDirection = 'asc' | 'desc';
@@ -290,10 +295,15 @@ export function PlantsScreen() {
       }
 
       // 8. Contact & Outreach filter
+      if (selectedContact === 'UNVERIFIED_LEAD' && p.contactQuality?.confidence !== 'UNVERIFIED_LEAD') return false;
+      if (selectedContact === 'INDIRECT' && p.contactQuality?.confidence !== 'INDIRECT') return false;
+      if (selectedContact === 'UNDELIVERABLE' && p.contactQuality?.confidence !== 'UNDELIVERABLE') return false;
+      if (selectedContact === 'GDPR_RISK' && !p.contactQuality?.isPersonalEmail) return false;
       if (selectedContact === 'WITH_EMAIL' && (!p.contactEmail || !p.contactEmail.includes('@'))) return false;
       if (selectedContact === 'WITH_PHONE' && (!p.contactPhone || p.contactPhone.length < 5)) return false;
       if (selectedContact === 'WITH_WEBSITE' && (!p.corporateWebsite || !p.corporateWebsite.startsWith('http'))) return false;
-      if (selectedContact === 'VERIFIED' && !p.isVerified) return false;
+      if (selectedContact === 'NO_CONTACT' && (p.contactEmail || p.contactPhone)) return false;
+
 
       // 9. Statutory Market filter
       if (selectedMarket !== 'ALL') {
@@ -697,15 +707,27 @@ export function PlantsScreen() {
                   </button>
                   <button
                     type="button"
-                    className={`chip ${selectedContact === 'WITH_EMAIL' ? 'chip-a' : ''}`}
+                    className={`chip ${selectedContact === 'UNVERIFIED_LEAD' ? 'chip-a' : ''}`}
                     style={{ fontSize: '11px', padding: '3px 8px' }}
                     onClick={() => {
                       resetAllFilters();
-                      setSelectedContact('WITH_EMAIL');
+                      setSelectedContact('UNVERIFIED_LEAD');
                     }}
                   >
-                    ✉️ Direct Email Available
+                    🎯 Unverified Leads
                   </button>
+                  <button
+                    type="button"
+                    className={`chip ${selectedContact === 'UNDELIVERABLE' ? 'chip-a' : ''}`}
+                    style={{ fontSize: '11px', padding: '3px 8px' }}
+                    onClick={() => {
+                      resetAllFilters();
+                      setSelectedContact('UNDELIVERABLE');
+                    }}
+                  >
+                    🚫 Dead Domains
+                  </button>
+
                   <button
                     type="button"
                     className={`chip ${selectedCountry === 'FR' ? 'chip-a' : ''}`}
@@ -918,7 +940,7 @@ export function PlantsScreen() {
                   </select>
                 </div>
 
-                {/* 8. Direct Contact & Outreach */}
+                {/* 8. Contact & Outreach Confidence */}
                 <div>
                   <select
                     className="input"
@@ -926,13 +948,18 @@ export function PlantsScreen() {
                     value={selectedContact}
                     onChange={e => setSelectedContact(e.target.value)}
                   >
-                    <option value="ALL">👤 All Facilities</option>
-                    <option value="WITH_EMAIL">✉️ Direct Verified Email</option>
-                    <option value="WITH_PHONE">📞 Direct Verified Phone</option>
+                    <option value="ALL">👤 All Contact Tiers</option>
+                    <option value="UNVERIFIED_LEAD">🎯 Unverified Lead (Passes checks)</option>
+                    <option value="INDIRECT">🏢 Indirect / Shared Switchboard</option>
+                    <option value="UNDELIVERABLE">🚫 Undeliverable (Dead domain)</option>
+                    <option value="GDPR_RISK">⚠️ GDPR Risk (Personal mailbox)</option>
+                    <option value="WITH_EMAIL">✉️ Has Email Address</option>
+                    <option value="WITH_PHONE">📞 Has Telephone</option>
                     <option value="WITH_WEBSITE">🌐 Corporate Website</option>
-                    <option value="VERIFIED">🛡️ Tier-1 Audited Facility</option>
+                    <option value="NO_CONTACT">⚪ No Contact Published</option>
                   </select>
                 </div>
+
               </div>
 
               {/* ─── Active Filter Badge & Status Row ─── */}
@@ -1063,6 +1090,27 @@ export function PlantsScreen() {
               ) : (
                 /* ─── Interactive Data Table ─── */
                 <div style={{ padding: '0 18px 18px', flex: 1, overflowY: 'auto' }} className="noscroll">
+                  {/* Institutional Origination Due Diligence Protocol Banner */}
+                  <div
+                    style={{
+                      marginBottom: '10px',
+                      padding: '8px 12px',
+                      backgroundColor: 'rgba(59, 130, 246, 0.08)',
+                      border: '1px solid rgba(59, 130, 246, 0.25)',
+                      borderRadius: '6px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      fontSize: '11px',
+                      color: 'var(--color-text)',
+                      gap: '8px',
+                    }}
+                  >
+                    <Info size={14} style={{ color: '#3b82f6', flexShrink: 0 }} />
+                    <span>
+                      <strong>Origination Protocol:</strong> Census email/phone records are unverified leads, indirect switchboards, or synthetic placeholders. Filter targets here, then verify operating entity and authorized signatories in the official national register (MaStR, Evida, AGCS, Infogreffe, Companies House) prior to commercial outreach.
+                    </span>
+                  </div>
+
                   <table className="table" style={{ fontSize: '12px' }}>
                     <thead>
                       <tr>
@@ -1116,10 +1164,11 @@ export function PlantsScreen() {
                           </div>
                         </th>
                         <th style={{ width: '110px' }}>Grid & Operator</th>
-                        <th style={{ width: '90px', textAlign: 'center' }}>Outreach</th>
+                        <th style={{ width: '140px', textAlign: 'center' }}>Contact Confidence</th>
                         <th style={{ width: '140px', textAlign: 'right' }}>Actions</th>
                       </tr>
                     </thead>
+
                     <tbody>
                       {paginatedPlants.map(p => {
                         const hasEmail = Boolean(p.contactEmail && p.contactEmail.includes('@'));
@@ -1202,54 +1251,132 @@ export function PlantsScreen() {
                               </div>
                             </td>
 
-                            {/* Direct Outreach Badges (Clickable Links) */}
+                            {/* Contact Confidence & Outreach Guard */}
                             <td style={{ textAlign: 'center' }} onClick={e => e.stopPropagation()}>
-                              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                                {hasEmail && (
-                                  <a
-                                    href={`mailto:${p.contactEmail}`}
-                                    title={`Email: ${p.contactEmail}`}
-                                    style={{ color: '#10b981', display: 'flex', alignItems: 'center', textDecoration: 'none' }}
-                                    onClick={e => {
-                                      e.stopPropagation();
-                                      navigator.clipboard.writeText(p.contactEmail || '');
-                                      showToast(`Copied email: ${p.contactEmail}`, 'info');
+                              <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                                {p.contactQuality?.confidence === 'UNDELIVERABLE' ? (
+                                  <span
+                                    className="chip"
+                                    style={{
+                                      backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                                      color: '#ef4444',
+                                      border: '1px solid rgba(239, 68, 68, 0.4)',
+                                      fontSize: '10px',
+                                      padding: '2px 5px',
+                                      fontWeight: 700,
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '3px',
+                                      cursor: 'pointer',
                                     }}
-                                  >
-                                    <Mail size={14} />
-                                  </a>
-                                )}
-                                {hasPhone && (
-                                  <a
-                                    href={`tel:${p.contactPhone}`}
-                                    title={`Phone: ${p.contactPhone}`}
-                                    style={{ color: '#06b6d4', display: 'flex', alignItems: 'center', textDecoration: 'none' }}
-                                    onClick={e => {
-                                      e.stopPropagation();
-                                      navigator.clipboard.writeText(p.contactPhone || '');
-                                      showToast(`Copied phone: ${p.contactPhone}`, 'info');
+                                    onClick={() => {
+                                      setModalPlant(p);
+                                      showToast('Dead domain / synthetic bounce — inspect official register in drawer', 'warn');
                                     }}
+                                    title="Dead domain: made up from plant name, will bounce. Click to inspect official registry."
                                   >
-                                    <Phone size={14} />
-                                  </a>
+                                    <AlertOctagon size={11} /> Bounce
+                                  </span>
+                                ) : p.contactQuality?.confidence === 'INDIRECT' ? (
+                                  <span
+                                    className="chip"
+                                    style={{
+                                      backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                                      color: '#f59e0b',
+                                      border: '1px solid rgba(245, 158, 11, 0.4)',
+                                      fontSize: '10px',
+                                      padding: '2px 5px',
+                                      fontWeight: 600,
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '3px',
+                                      cursor: 'pointer',
+                                    }}
+                                    onClick={() => setModalPlant(p)}
+                                    title={`Shared switchboard (${p.contactQuality.sharedEmailCount || p.contactQuality.sharedPhoneCount} facilities) — click to inspect`}
+                                  >
+                                    <AlertTriangle size={11} /> Indirect
+                                  </span>
+                                ) : p.contactQuality?.confidence === 'UNVERIFIED_LEAD' ? (
+                                  <span
+                                    className="chip"
+                                    style={{
+                                      backgroundColor: 'rgba(14, 165, 233, 0.15)',
+                                      color: '#0ea5e9',
+                                      border: '1px solid rgba(14, 165, 233, 0.4)',
+                                      fontSize: '10px',
+                                      padding: '2px 5px',
+                                      fontWeight: 600,
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '3px',
+                                      cursor: 'pointer',
+                                    }}
+                                    onClick={() => setModalPlant(p)}
+                                    title="Unverified lead: corporate domain, desk verification required"
+                                  >
+                                    <Mail size={11} /> Lead
+                                  </span>
+                                ) : (
+                                  <span style={{ color: 'var(--color-dim)', fontSize: '11px' }}>—</span>
                                 )}
+
+                                {p.contactQuality?.isPersonalEmail && (
+                                  <span
+                                    style={{
+                                      backgroundColor: 'rgba(234, 88, 12, 0.2)',
+                                      color: '#ea580c',
+                                      border: '1px solid rgba(234, 88, 12, 0.4)',
+                                      fontSize: '9px',
+                                      fontWeight: 800,
+                                      padding: '1px 4px',
+                                      borderRadius: '3px',
+                                      cursor: 'pointer',
+                                    }}
+                                    onClick={() => setModalPlant(p)}
+                                    title="Personal/farmer mailbox — GDPR cold outreach restrictions apply"
+                                  >
+                                    GDPR
+                                  </span>
+                                )}
+
+                                {p.verifiedDossier && (
+                                  <span
+                                    className="chip"
+                                    style={{
+                                      backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                                      color: '#10b981',
+                                      border: '1px solid rgba(16, 185, 129, 0.4)',
+                                      fontSize: '9px',
+                                      padding: '1px 4px',
+                                      fontWeight: 700,
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '2px',
+                                      cursor: 'pointer',
+                                    }}
+                                    onClick={() => setModalPlant(p)}
+                                    title={`Verified Statutory Dossier: ${p.verifiedDossier.officialLegalEntity} (${p.verifiedDossier.statutoryRegistrationId})`}
+                                  >
+                                    <ShieldCheck size={10} /> Dossier
+                                  </span>
+                                )}
+
                                 {hasWeb && (
                                   <a
                                     href={formatExternalUrl(p.corporateWebsite)}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     title={`Website: ${p.corporateWebsite}`}
-                                    style={{ color: '#3b82f6', display: 'flex', alignItems: 'center', textDecoration: 'none' }}
+                                    style={{ color: '#3b82f6', display: 'flex', alignItems: 'center', marginLeft: '2px' }}
                                     onClick={e => e.stopPropagation()}
                                   >
-                                    <Globe2 size={14} />
+                                    <Globe2 size={13} />
                                   </a>
-                                )}
-                                {!hasEmail && !hasPhone && !hasWeb && (
-                                  <span style={{ color: 'var(--color-neutral-600)', fontSize: '10px' }}>—</span>
                                 )}
                               </div>
                             </td>
+
 
                             {/* Sourcing Drawer & Trade Launch Actions */}
                             <td style={{ textAlign: 'right' }} onClick={e => e.stopPropagation()}>
@@ -1316,11 +1443,22 @@ export function PlantsScreen() {
                     </strong>
                   </span>
                   <span>
-                    Direct Contacts: <strong style={{ color: 'var(--color-text)' }}>
-                      {sortedPlants.filter(p => Boolean(p.contactEmail || p.contactPhone)).length}
+                    Unverified Leads: <strong style={{ color: '#0ea5e9' }}>
+                      {sortedPlants.filter(p => p.contactQuality?.confidence === 'UNVERIFIED_LEAD').length}
+                    </strong>
+                  </span>
+                  <span>
+                    Shared Switchboards: <strong style={{ color: '#f59e0b' }}>
+                      {sortedPlants.filter(p => p.contactQuality?.confidence === 'INDIRECT').length}
+                    </strong>
+                  </span>
+                  <span>
+                    Dead Domains: <strong style={{ color: '#ef4444' }}>
+                      {sortedPlants.filter(p => p.contactQuality?.confidence === 'UNDELIVERABLE').length}
                     </strong>
                   </span>
                 </div>
+
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <span>Source: GIE/EBA European Biomethane Map 2026 & National TSO Registers</span>

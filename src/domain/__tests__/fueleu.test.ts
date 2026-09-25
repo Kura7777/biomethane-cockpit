@@ -11,6 +11,9 @@ import {
   FUELEU_TARGET_2025,
   FUELEU_TARGET_2030,
   FUELEU_BASELINE_VLSFO_CI,
+  FUELEU_VLSFO_WTW,
+  LHV_BIO_LNG_MJ_PER_TONNE,
+  LHV_VLSFO_MJ_PER_TONNE,
   FUELEU_STATUTORY_PENALTY_PER_TONNE,
   EU_ETS_EMISSION_FACTOR_VLSFO,
   EU_ETS_EMISSION_FACTOR_MGO,
@@ -69,16 +72,33 @@ describe('FuelEU Maritime Domain & Shipping Targets', () => {
     // >600 TWh fleet energy
     expect(totalEnergyMwh).toBeGreaterThan(600000000);
 
-    // 36 over-compliant surplus holders, 1814 deficit carriers
-    expect(surplusCounterparties.length).toBe(36);
-    expect(deficitCounterparties.length).toBe(1814);
+    // 29 over-compliant surplus holders, 1821 deficit carriers (Annex II LNG slip counted)
+    expect(surplusCounterparties.length).toBe(29);
+    expect(deficitCounterparties.length).toBe(1821);
+  });
+
+  it('dataset compliance fields match the calculator for every counterparty (anti-drift)', () => {
+    for (const c of FUEL_EU_SHIPPING_COUNTERPARTIES) {
+      const base = { vlsfoTonnes: c.vlsfo_tonnes, mgoTonnes: c.mgo_tonnes, lngTonnes: c.lng_tonnes, bioLngTonnes: 0, bioLngCi: -100, consecutiveYearsNonCompliant: 1 };
+      const r25 = calculateVesselExposure({ ...base, targetYear: 2025 });
+      const r30 = calculateVesselExposure({ ...base, targetYear: 2030 });
+      expect(c.actual_ghgie, c.parent_name).toBe(Number(r25.weightedGhgie.toFixed(2)));
+      expect(c.compliance_balance_2025_tco2e, c.parent_name).toBe(Number(r25.complianceBalanceTco2e.toFixed(1)));
+      expect(c.penalty_2025_y1_eur, c.parent_name).toBe(Math.round(r25.statutoryPenaltyY1Eur));
+      expect(c.compliance_balance_2030_tco2e, c.parent_name).toBe(Number(r30.complianceBalanceTco2e.toFixed(1)));
+      expect(c.penalty_2030_y1_eur, c.parent_name).toBe(Math.round(r30.statutoryPenaltyY1Eur));
+      expect(c.bio_lng_required_neg100_mwh, c.parent_name).toBe(Math.round(r25.bioLngRequiredNeg100Mwh));
+      expect(c.client_savings_physical_eur, c.parent_name).toBe(Math.round(r25.physicalSavingsEur));
+      expect(c.client_savings_pooling_eur, c.parent_name).toBe(Math.round(r25.poolingSavingsEur));
+    }
   });
 
   it('contains expected market leaders with verified numbers', () => {
     const msc = FUEL_EU_SHIPPING_COUNTERPARTIES.find(c => c.parent_name.includes('MSC'));
     expect(msc).toBeDefined();
     expect(msc!.vessels_in_scope).toBe(420);
-    expect(msc!.penalty_2025_y1_eur).toBeCloseTo(120842392, 0);
+    // Recomputed from the calculator (see 'dataset matches calculator' invariant below)
+    expect(msc!.penalty_2025_y1_eur).toBe(175026769);
 
     const maersk = FUEL_EU_SHIPPING_COUNTERPARTIES.find(c => c.parent_name.includes('Maersk'));
     expect(maersk).toBeDefined();
@@ -87,8 +107,10 @@ describe('FuelEU Maritime Domain & Shipping Targets', () => {
 
     const cma = FUEL_EU_SHIPPING_COUNTERPARTIES.find(c => c.parent_name.includes('CMA CGM'));
     expect(cma).toBeDefined();
-    // CMA CGM is a surplus holder due to extensive LNG fleet
-    expect(cma!.compliance_balance_2025_tco2e).toBeGreaterThan(0);
+    // With Annex II methane slip counted (Otto SS LNG ≈ 82.87 g/MJ, not 74.5), CMA CGM's large
+    // VLSFO share leaves the group in deficit despite its LNG fleet.
+    expect(cma!.fleetCapability).toBe('DUAL_FUEL_LNG');
+    expect(cma!.compliance_balance_2025_tco2e).toBeLessThan(0);
   });
 
   it('defines 7 standard vessel archetypes', () => {
@@ -116,7 +138,9 @@ describe('FuelEU Maritime Domain & Shipping Targets', () => {
 
     expect(result.isOverCompliant).toBe(false);
     expect(result.complianceBalanceTco2e).toBeLessThan(0);
-    expect(result.weightedGhgie).toBeCloseTo(FUELEU_BASELINE_VLSFO_CI, 2);
+    // Annex II HFO-class WtW: 13.5 + (3.114 + 0.00005×25 + 0.00018×298) / 0.0405 = 91.7442 gCO2e/MJ
+    expect(result.weightedGhgie).toBeCloseTo(FUELEU_VLSFO_WTW, 6);
+    expect(result.weightedGhgie).toBeCloseTo(91.7442, 4);
     expect(result.statutoryPenaltyY1Eur).toBeGreaterThan(0);
     expect(result.bioLngRequiredNeg100Tonnes).toBeGreaterThan(0);
     expect(result.physicalSavingsEur).toBeGreaterThan(0);
@@ -191,8 +215,10 @@ describe('FuelEU Maritime Domain & Shipping Targets', () => {
 
     const requiredBioLng = initial.bioLngRequiredNeg100Tonnes;
 
+    // Bio-LNG displaces VLSFO on the same voyages: remove the equivalent VLSFO energy
+    const displacedVlsfoTonnes = (requiredBioLng * LHV_BIO_LNG_MJ_PER_TONNE) / LHV_VLSFO_MJ_PER_TONNE;
     const neutralized = calculateVesselExposure({
-      vlsfoTonnes: 10000,
+      vlsfoTonnes: 10000 - displacedVlsfoTonnes,
       mgoTonnes: 0,
       lngTonnes: 0,
       bioLngTonnes: requiredBioLng,
@@ -201,9 +227,9 @@ describe('FuelEU Maritime Domain & Shipping Targets', () => {
       consecutiveYearsNonCompliant: 1,
     });
 
-    expect(neutralized.complianceBalanceTco2e).toBeCloseTo(0, 0);
-    expect(neutralized.statutoryPenaltyY1Eur).toBeCloseTo(0, 0);
-    expect(neutralized.isOverCompliant).toBe(true);
+    expect(neutralized.totalEnergyMj).toBeCloseTo(initial.totalEnergyMj, 3);
+    expect(Math.abs(neutralized.complianceBalanceTco2e)).toBeLessThan(1e-6);
+    expect(neutralized.statutoryPenaltyY1Eur).toBeCloseTo(0, 2);
   });
 
   it('strictly registers the FuelEU Maritime dataset in DATA_SOURCES_DIRECTORY', async () => {
@@ -497,9 +523,9 @@ describe('FuelEU Maritime Domain & Shipping Targets', () => {
       expect(FUEL_EU_SHIPPING_COUNTERPARTIES[i].rank).toBe(i + 1);
     }
 
-    // Verify all 1814 deficit carriers are sorted descending by penalty
+    // Verify all 1821 deficit carriers are sorted descending by penalty
     const deficits = FUEL_EU_SHIPPING_COUNTERPARTIES.filter(c => c.compliance_balance_2025_tco2e < 0);
-    expect(deficits.length).toBe(1814);
+    expect(deficits.length).toBe(1821);
     for (let i = 0; i < deficits.length - 1; i++) {
       expect(deficits[i].penalty_2025_y1_eur).toBeGreaterThanOrEqual(deficits[i + 1].penalty_2025_y1_eur);
     }
@@ -513,7 +539,7 @@ describe('FuelEU Maritime Domain & Shipping Targets', () => {
     expect(tier1.length).toBeGreaterThan(0);
     expect(tier2.length).toBeGreaterThan(0);
     expect(tier3.length).toBeGreaterThan(0);
-    expect(tier4.length).toBe(36);
+    expect(tier4.length).toBe(29);
 
     // Tier 1: Mega-Deficit (>€10M / year)
     for (const c of tier1) {
@@ -743,41 +769,44 @@ describe('FuelEU Maritime Domain & Shipping Targets', () => {
 
     // Delivered Bio-LNG price: €36 + €14 + €22 = €72.00/MWh
     expect(quote.allInBioLngPriceEurMwh).toBe(72.00);
-    // Conversion: 72 * 13.9 = €1,000.80/t Bio-LNG
-    expect(quote.allInBioLngPriceEurPerTonne).toBe(1000.80);
-    // USD Price: 1000.80 * 1.08 = $1,080.86/t
-    expect(quote.allInBioLngPriceUsdPerTonne).toBeCloseTo(1080.86, 1);
-    expect(quote.mwhPerTonneBioLng).toBe(13.9);
+    // Conversion: 72 × (49,100 MJ/t ÷ 3,600) = 72 × 13.6389 = €982.00/t Bio-LNG
+    expect(quote.allInBioLngPriceEurPerTonne).toBe(982.00);
+    // USD Price: 982.00 × 1.08 = $1,060.56/t
+    expect(quote.allInBioLngPriceUsdPerTonne).toBeCloseTo(1060.56, 2);
+    expect(quote.mwhPerTonneBioLng).toBeCloseTo(13.6389, 4);
 
-    // Equivalent VLSFO energy: 50.0 GJ / 41.0 GJ = ~1.2195 tonnes
-    expect(quote.equivalentVlsfoTonnes).toBeCloseTo(1.2195, 3);
-    expect(quote.vlsfoCostUsd).toBeCloseTo(731.70, 1);
-    expect(quote.vlsfoCostEur).toBeCloseTo(677.50, 1);
+    // Equivalent VLSFO energy: 49,100 MJ / 40,500 MJ (Annex II HFO-class LCV) = 1.2123 tonnes
+    expect(quote.equivalentVlsfoTonnes).toBeCloseTo(1.2123, 4);
+    expect(quote.vlsfoCostUsd).toBeCloseTo(727.38, 2);
+    expect(quote.vlsfoCostEur).toBeCloseTo(673.50, 2);
 
-    // EU ETS liability on burning 1.2195t VLSFO (70% phase-in @ €70/t EUA): ~€186.08
-    expect(quote.vlsfoEtsLiabilityEur).toBeCloseTo(186.08, 1);
-    // FuelEU compliance penalty benchmark under conventional operations: €386.42/t Bio-LNG eq
-    expect(quote.vlsfoFuelEuPenaltyEur).toBeCloseTo(386.42, 1);
+    // EU ETS liability on burning 1.2123t VLSFO (1.2123 × 3.114 × 70% × €70): €184.98
+    expect(quote.vlsfoEtsLiabilityEur).toBeCloseTo(184.98, 2);
+    // FuelEU statutory penalty (Annex IV), VLSFO WtW 91.7442:
+    // (91.7442 − 89.3368) × 49,100 g ÷ (91.7442 × 41,000) × €2,400 = €75.42
+    expect(quote.vlsfoFuelEuPenaltyEur).toBeCloseTo(75.42, 2);
 
-    // Total Alternative Compliance Cost (VLSFO + FuelEU + EU ETS): €1,250.00/t ($1,350.00/t)
-    expect(quote.totalConventionalAlternativeCostEur).toBeCloseTo(1250.00, 1);
-    expect(quote.totalConventionalAlternativeCostUsd).toBeCloseTo(1350.00, 1);
+    // Total Alternative Compliance Cost (VLSFO + EU ETS + FuelEU penalty): €933.90/t
+    expect(quote.totalConventionalAlternativeCostEur).toBeCloseTo(933.90, 2);
 
-    // Regulatory value created per tonne Bio-LNG bunkered:
-    // FuelEU penalty avoided (€386.42) + EU ETS avoided (€186.08) = €572.50/t
-    expect(quote.fuelEuFleetPenaltyAvoidedEurPerTonne).toBeCloseTo(386.42, 1);
-    expect(quote.totalRegulatoryValueEurPerTonne).toBeCloseTo(572.50, 1);
+    // Bio-LNG FuelEU surplus: WtW = −100 + 9.3121 slip/N2O (Otto SS) = −90.6879
+    // (89.3368 + 90.6879) × 49,100 / 10⁶ = 8.8392 tCO₂e/t × €285 = €2,519.17/t
+    expect(quote.fuelEuSurplusTco2ePerTonne).toBeCloseTo(8.8392, 4);
+    expect(quote.fuelEuSurplusPriceEurPerTco2e).toBe(285);
+    expect(quote.fuelEuSurplusValueEurPerTonne).toBeCloseTo(2519.17, 2);
 
-    // Net Savings per tonne Bio-LNG: (Conventional compliance cost €1,250) - (Bio-LNG price €1,000.80) = +€249.20/t
-    expect(quote.netSavingsPerTonneBioLngEur).toBeCloseTo(249.20, 1);
-    expect(quote.netSavingsPerTonneBioLngEur).toBeGreaterThan(150);
-    expect(quote.netSavingsPerTonneBioLngEur).toBeLessThan(400);
+    // Regulatory value: penalty €75.42 + surplus €2,519.17 + ETS €184.98 = €2,779.57/t
+    expect(quote.fuelEuFleetPenaltyAvoidedEurPerTonne).toBeCloseTo(75.42, 2);
+    expect(quote.totalRegulatoryValueEurPerTonne).toBeCloseTo(2779.57, 2);
+
+    // Net Savings: €933.90 − (€982.00 − €2,519.17) = +€2,471.07/t
+    expect(quote.netSavingsPerTonneBioLngEur).toBeCloseTo(2471.07, 2);
     expect(quote.totalClientSavingsEur).toBe(Math.round(quote.dealVolumeTonnes! * quote.netSavingsPerTonneBioLngEur));
 
     // Deal Volume Totals for 10,000 tonnes
     expect(quote.dealVolumeTonnes).toBe(10000);
-    expect(quote.dealVolumeMwh).toBe(139000);
-    expect(quote.totalBioLngInvoiceEur).toBe(10008000);
+    expect(quote.dealVolumeMwh).toBe(136389);
+    expect(quote.totalBioLngInvoiceEur).toBe(9820000);
     expect(quote.totalClientSavingsEur).toBeGreaterThan(0);
     expect(quote.totalEtsAvoidedTco2).toBeGreaterThan(0);
   });
@@ -807,7 +836,7 @@ describe('FuelEU Maritime Domain & Shipping Targets', () => {
         bioLngVolumeTonnes: cp.bio_lng_required_neg100_t,
       });
 
-      expect(quote.allInBioLngPriceEurPerTonne).toBe(1000.80);
+      expect(quote.allInBioLngPriceEurPerTonne).toBe(982.00);
       expect(quote.netSavingsPerTonneBioLngEur).toBeGreaterThan(0);
       if (cp.bio_lng_required_neg100_t > 0) {
         expect(quote.totalClientSavingsEur).toBeGreaterThan(0);

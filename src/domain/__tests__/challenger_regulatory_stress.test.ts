@@ -489,8 +489,9 @@ describe('Empirical Challenger 2 — Regulatory Boundary Conditions & Mathematic
       const year3 = computeFuelEUDeficitClosureValue(ci, 3, targetCI, shipActualCI);
       const year4 = computeFuelEUDeficitClosureValue(ci, 4, targetCI, shipActualCI);
 
-      // Base year 1: ~437.69 EUR/MWh
-      expect(year1.valueEurPerMWh).toBeCloseTo(437.69, 1);
+      // Base year 1 at ship 91.16: ≈ 411.96 EUR/MWh
+      // Annex IV marginal: (2400/41000) × (ship − WtW_bio) × target / ship² × 3600, WtW_bio = CI + 9.3121 slip (Otto SS)
+      expect(year1.valueEurPerMWh).toBeCloseTo(411.96, 1);
       
       // Consecutive years scale exactly with multiplier
       expect(year2.valueEurPerMWh).toBeCloseTo(year1.valueEurPerMWh * 1.1, 2);
@@ -505,10 +506,11 @@ describe('Empirical Challenger 2 — Regulatory Boundary Conditions & Mathematic
       const val2025 = computeFuelEUDeficitClosureValue(ci, 1, FUELEU_TARGET_CI_2025, shipActualCI);
       const val2030 = computeFuelEUDeficitClosureValue(ci, 1, FUELEU_TARGET_CI_2030, shipActualCI);
 
-      // ΔCI is smaller under 2030 target (85.69 - (-25) = 110.69 vs 89.34 - (-25) = 114.34)
+      // The marginal avoided penalty scales with target / ship², so a tighter target lowers it
+      // Annex IV marginal: (2400/41000) × (ship − WtW_bio) × target / ship² × 3600, WtW_bio = CI + 9.3121 slip (Otto SS)
       expect(val2030.valueEurPerMWh).toBeLessThan(val2025.valueEurPerMWh);
-      expect(val2025.valueEurPerMWh).toBeCloseTo(264.33, 1);
-      expect(val2030.valueEurPerMWh).toBeCloseTo(255.89, 1);
+      expect(val2025.valueEurPerMWh).toBeCloseTo(242.06, 1);
+      expect(val2030.valueEurPerMWh).toBeCloseTo(232.18, 1);
     });
 
     it('Guards against zero, negative, and invalid ship actual CI values', () => {

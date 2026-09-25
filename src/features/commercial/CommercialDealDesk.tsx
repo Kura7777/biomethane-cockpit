@@ -3,7 +3,7 @@ import { useAppState } from '../../store/context';
 import { ClientRequest } from '../../domain/arbitrage/types';
 import { searchSourcingRoutes } from '../../domain/arbitrage/sourcingAdapter';
 import { DEFAULT_WHAT_IF_SCENARIO } from '../../domain/arbitrage/engine';
-import { BIOMETHANE_PLANTS } from '../../domain/plants/registry';
+import { BIOMETHANE_PLANTS, findPlantsForOrigination, getVerifiedPlantCoordinates } from '../../domain/plants/registry';
 import { OrderIntakePanel, CommercialDeskMode, RfqPresetKey } from './OrderIntakePanel';
 import { SourcedOpportunity, PlantScannerTable } from './PlantScannerTable';
 import { CostWaterfallCard } from './CostWaterfallCard';
@@ -286,21 +286,18 @@ export function CommercialDealDesk() {
     const rawOpps = searchResult.tradeable;
     if (rawOpps.length === 0) return [];
 
-    return rawOpps.map((opp, idx) => {
-      // Find matching plants in the origin country
-      const countryPlants = BIOMETHANE_PLANTS.filter(
-        p => p.countryCode === opp.originCountry || p.country.toLowerCase() === opp.originCountry.toLowerCase()
-      );
-
-      const matchedPlant = countryPlants[idx % (countryPlants.length || 1)] || null;
+    return rawOpps.map(opp => {
+      // Largest registry plant in the origin country certified for this feedstock — never an
+      // arbitrary same-country plant whose feedstock and CI have nothing to do with the deal.
+      const matchedPlant = findPlantsForOrigination(opp.originCountry, opp.feedstockKey)[0] ?? null;
 
       const route = calculateLogisticsRoute(opp.originCountry, opp.targetCountry);
       const distanceKm = route.distanceKm ?? 0;
 
       return {
         ...opp,
-        originPlantName: matchedPlant?.name || `${opp.originCountry} Biomethane Facility #${idx + 1}`,
-        originPlantCoords: matchedPlant?.coordinates || null,
+        originPlantName: matchedPlant?.name || `${opp.originCountry} origin — no registry plant matched for ${opp.feedstockName}`,
+        originPlantCoords: matchedPlant ? getVerifiedPlantCoordinates(matchedPlant) : null,
         isDirectPlantSource: Boolean(matchedPlant),
         logisticsDistanceKm: distanceKm,
         deliveryMode: 'PIPELINE_GRID',

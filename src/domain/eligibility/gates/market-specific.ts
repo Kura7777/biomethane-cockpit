@@ -324,16 +324,43 @@ export function evaluateMarketSpecificGate(consignment: Consignment, market: Mar
       };
     }
 
-    case 'UK_RTFO':
+    case 'UK_RTFO': {
+      // RTFCs are issued only for renewable fuel supplied in the UK. Grid biomethane must be
+      // physically injected into the GB grid — continental gas cannot be mass-balanced across
+      // the GB boundary. Physically segregated bio-LNG imports are the one legitimate route in.
+      const isGbInjected = consignment.injectionCountry === 'GB' || consignment.injectionCountry === 'UK';
+      if (!isGbInjected && consignment.chainOfCustody !== 'SEGREGATION') {
+        return {
+          gate: GATE,
+          gateLabel: GATE_LABEL,
+          verdict: 'HARD_BLOCK',
+          reason: `UK RTFO certificates (RTFCs) are issued only for renewable fuel supplied in the UK. Grid biomethane must be physically injected into the Great Britain gas grid; gas injected in ${consignment.injectionCountry} cannot be claimed via mass balance across the GB boundary.`,
+          remedy: 'Source from a GB-injected anaerobic digestion plant, or deliver physically segregated bio-LNG into the UK.',
+          citations: [CITATIONS.UK_RTFO],
+          confidence: 'HIGH',
+        };
+      }
+      if (!isGbInjected) {
+        return {
+          gate: GATE,
+          gateLabel: GATE_LABEL,
+          verdict: 'CONDITIONAL',
+          reason: `Physically segregated bio-LNG imported into the UK from ${consignment.injectionCountry} may earn RTFCs, subject to RTFO Administrator verification of the segregated chain of custody.`,
+          remedy: 'Obtain RTFO Administrator approval for the segregated import chain before booking.',
+          citations: [CITATIONS.UK_RTFO],
+          confidence: 'MEDIUM',
+        };
+      }
       return {
         gate: GATE,
         gateLabel: GATE_LABEL,
         verdict: 'PASS',
-        reason: 'UK RTFO: Non-EU market. Biomethane injected in the UK grid can be surrendered domestically for dRTFC compliance without EU UDB requirements. ~120 operational plants.',
+        reason: 'UK RTFO: Non-EU market. Biomethane injected into the GB grid can be surrendered domestically for RTFC compliance without EU UDB requirements. ~120 operational plants.',
         remedy: null,
         citations: [CITATIONS.UK_RTFO],
         confidence: 'HIGH',
       };
+    }
 
     case 'IE_RHO':
       return {

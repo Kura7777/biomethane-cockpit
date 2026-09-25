@@ -3,7 +3,7 @@ import { useAppState } from '../../store/context';
 import { ClientRequest } from '../../domain/arbitrage/types';
 import { searchSourcingRoutes } from '../../domain/arbitrage/sourcingAdapter';
 import { DEFAULT_WHAT_IF_SCENARIO } from '../../domain/arbitrage/engine';
-import { BIOMETHANE_PLANTS } from '../../domain/plants/registry';
+import { findPlantsForOrigination, getVerifiedPlantCoordinates } from '../../domain/plants/registry';
 import { SourcedOpportunity } from './PlantScannerTable';
 import { Step1OrderIntake } from './Step1OrderIntake';
 import { Step2PlantScan } from './Step2PlantScan';
@@ -59,9 +59,7 @@ export function CommercialFlowStepper() {
     const plantOpps: SourcedOpportunity[] = [];
 
     for (const opp of rawOpps) {
-      const countryPlants = BIOMETHANE_PLANTS.filter(
-        p => p.countryCode === opp.originCountry || p.country.toLowerCase() === opp.originCountry.toLowerCase()
-      );
+      const countryPlants = findPlantsForOrigination(opp.originCountry, opp.feedstockKey);
 
       if (countryPlants.length > 0) {
         // Provide top matching plants for each tradeable origin corridor
@@ -76,7 +74,7 @@ export function CommercialFlowStepper() {
             id: `${opp.id}_${p.id || idx}`,
             originPlantId: p.id,
             originPlantName: p.name,
-            originPlantCoords: p.coordinates || null,
+            originPlantCoords: getVerifiedPlantCoordinates(p),
             isDirectPlantSource: true,
             isPlantVerified: Boolean(p.isVerified),
             logisticsDistanceKm: distanceKm,
@@ -93,7 +91,7 @@ export function CommercialFlowStepper() {
         const route = calculateLogisticsRoute(opp.originCountry, opp.targetCountry);
         plantOpps.push({
           ...opp,
-          originPlantName: `${opp.originCountry} Biomethane Facility`,
+          originPlantName: `${opp.originCountry} origin — no registry plant matched for ${opp.feedstockName}`,
           originPlantCoords: null,
           isDirectPlantSource: false,
           logisticsDistanceKm: route.distanceKm ?? 0,

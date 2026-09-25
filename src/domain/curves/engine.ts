@@ -103,20 +103,22 @@ export const STATUTORY_OBLIGATION_TRAJECTORIES: Record<
 };
 
 /**
- * Seasonal shape adjustments (EUR/unit).
- * TTF gas experiences Winter heating premiums and Summer injection discounts.
+ * Seasonal shape adjustments.
+ * TTF gas uses absolute €/MWh spreads (Winter heating premium, Summer injection discount).
+ * Certificate markets are quoted in heterogeneous units (€/tCO₂e, €/kgCO₂e, £/RTFC, €/MWh),
+ * so their seasonal shape is expressed as a ratio of the tenor mid and scales with any unit.
  */
-export const SEASONAL_FACTORS: Record<CurveMarketType, { summerSpread: number; winterSpread: number }> = {
-  TTF_GAS: { summerSpread: -1.8, winterSpread: 2.5 },
-  DE_THG: { summerSpread: -0.015, winterSpread: 0.02 },
-  NL_ERE: { summerSpread: -0.3, winterSpread: 0.4 },
-  FR_CPB: { summerSpread: -1.2, winterSpread: 1.5 },
-  UK_RTFO: { summerSpread: -0.5, winterSpread: 0.6 },
-  FUELEU: { summerSpread: -0.2, winterSpread: 0.2 },
-  GO_DE: { summerSpread: -0.15, winterSpread: 0.25 },
-  GO_NL: { summerSpread: -0.15, winterSpread: 0.25 },
-  GO_FR: { summerSpread: -0.15, winterSpread: 0.25 },
-  VOL_SCOPE1: { summerSpread: -0.2, winterSpread: 0.3 },
+export const SEASONAL_FACTORS: Record<CurveMarketType, { summerSpread: number; winterSpread: number; mode: 'ABSOLUTE' | 'RATIO' }> = {
+  TTF_GAS: { summerSpread: -1.8, winterSpread: 2.5, mode: 'ABSOLUTE' },
+  DE_THG: { summerSpread: -0.0176, winterSpread: 0.0235, mode: 'RATIO' },
+  NL_ERE: { summerSpread: -0.016, winterSpread: 0.0213, mode: 'RATIO' },
+  FR_CPB: { summerSpread: -0.0453, winterSpread: 0.0566, mode: 'RATIO' },
+  UK_RTFO: { summerSpread: -0.0139, winterSpread: 0.0167, mode: 'RATIO' },
+  FUELEU: { summerSpread: -0.0141, winterSpread: 0.0141, mode: 'RATIO' },
+  GO_DE: { summerSpread: -0.0231, winterSpread: 0.0385, mode: 'RATIO' },
+  GO_NL: { summerSpread: -0.025, winterSpread: 0.0417, mode: 'RATIO' },
+  GO_FR: { summerSpread: -0.0273, winterSpread: 0.0455, mode: 'RATIO' },
+  VOL_SCOPE1: { summerSpread: -0.025, winterSpread: 0.0375, mode: 'RATIO' },
 };
 
 /**
@@ -135,17 +137,22 @@ const HALF_SPREAD_RATIO: Record<CurveMarketType, number> = {
   VOL_SCOPE1: 30 / 1000,
 };
 
-export const MARKET_METADATA: Record<CurveMarketType, { name: string; unit: string; defaultBaseMid: number }> = {
-  TTF_GAS: { name: 'TTF Natural Gas (ICIS Heren / ICE Endex)', unit: 'EUR/MWh', defaultBaseMid: 38.5 },
-  DE_THG: { name: 'German THG-Quote (Double-Counted)', unit: 'EUR/kg', defaultBaseMid: 0.85 },
-  NL_ERE: { name: 'Netherlands ERE / HBE Units', unit: 'EUR/GJ', defaultBaseMid: 18.75 },
-  FR_CPB: { name: 'France CPB / TIRUERT Biomethane', unit: 'EUR/MWh', defaultBaseMid: 26.5 },
-  UK_RTFO: { name: 'UK RTFO (Renewable Transport Fuel Obligation)', unit: 'p/dgh', defaultBaseMid: 36.0 },
-  FUELEU: { name: 'FuelEU Maritime Compliance Deficit', unit: 'EUR/GJ', defaultBaseMid: 14.2 },
-  GO_DE: { name: 'Germany GO (DENA Biogasregister)', unit: 'EUR/MWh', defaultBaseMid: 6.5 },
-  GO_NL: { name: 'Netherlands GO (VertiCer Biometheaan)', unit: 'EUR/MWh', defaultBaseMid: 6.0 },
-  GO_FR: { name: 'France GO (EEX Biomethane Auction)', unit: 'EUR/MWh', defaultBaseMid: 5.5 },
-  VOL_SCOPE1: { name: 'Corporate Scope 1 Voluntary Biomethane', unit: 'EUR/MWh', defaultBaseMid: 8.0 },
+/**
+ * Curve units MUST match the desk mark units in the markets registry (`unitLabel`), because
+ * generateForwardCurves seeds each curve from the desk mark mid verbatim. Defaults are the
+ * EUROPEAN_MARKET_BENCHMARKS mids for the same units.
+ */
+export const MARKET_METADATA: Record<CurveMarketType, { name: string; unit: string; decimals: number; defaultBaseMid: number }> = {
+  TTF_GAS: { name: 'TTF Natural Gas (ICIS Heren / ICE Endex)', unit: '€/MWh', decimals: 2, defaultBaseMid: 38.5 },
+  DE_THG: { name: 'German THG-Quote', unit: '€/tCO₂e', decimals: 2, defaultBaseMid: 285.0 },
+  NL_ERE: { name: 'Netherlands ERE (Emission Reduction Units)', unit: '€/kgCO₂e', decimals: 3, defaultBaseMid: 0.34 },
+  FR_CPB: { name: 'France CPB Biomethane Certificates', unit: '€/MWh', decimals: 2, defaultBaseMid: 78.5 },
+  UK_RTFO: { name: 'UK RTFO (Renewable Transport Fuel Obligation)', unit: '£/RTFC', decimals: 3, defaultBaseMid: 0.215 },
+  FUELEU: { name: 'FuelEU Maritime Compliance Balance', unit: '€/tCO₂e', decimals: 2, defaultBaseMid: 285.0 },
+  GO_DE: { name: 'Germany GO (DENA Biogasregister)', unit: '€/MWh', decimals: 2, defaultBaseMid: 6.5 },
+  GO_NL: { name: 'Netherlands GO (VertiCer Biometheaan)', unit: '€/MWh', decimals: 2, defaultBaseMid: 6.0 },
+  GO_FR: { name: 'France GO (EEX Biomethane Auction)', unit: '€/MWh', decimals: 2, defaultBaseMid: 5.5 },
+  VOL_SCOPE1: { name: 'Corporate Scope 1 Voluntary Biomethane', unit: '€/MWh', decimals: 2, defaultBaseMid: 8.0 },
 };
 
 /**
@@ -204,8 +211,10 @@ export function buildForwardCurve(
     const bid = Number((midRounded - halfSpread).toFixed(4));
     const offer = Number((midRounded + halfSpread).toFixed(4));
 
-    const summerPrice = Number((midRounded + seasonal.summerSpread).toFixed(4));
-    const winterPrice = Number((midRounded + seasonal.winterSpread).toFixed(4));
+    const summerSpread = seasonal.mode === 'RATIO' ? Number((midRounded * seasonal.summerSpread).toFixed(4)) : seasonal.summerSpread;
+    const winterSpread = seasonal.mode === 'RATIO' ? Number((midRounded * seasonal.winterSpread).toFixed(4)) : seasonal.winterSpread;
+    const summerPrice = Number((midRounded + summerSpread).toFixed(4));
+    const winterPrice = Number((midRounded + winterSpread).toFixed(4));
     const quotaEscalatorPct = Number(((config.stepUpMultiplier - 1) * 100).toFixed(1));
 
     const quote: TenorQuote = {
@@ -214,8 +223,8 @@ export function buildForwardCurve(
       mid: midRounded,
       bid,
       offer,
-      summerSpread: seasonal.summerSpread,
-      winterSpread: seasonal.winterSpread,
+      summerSpread,
+      winterSpread,
       summerPrice,
       winterPrice,
       quotaEscalatorPct,

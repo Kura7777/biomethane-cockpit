@@ -6,12 +6,18 @@ import { Header } from './Header';
 import { DeskToastContainer, showToast } from './DeskToastContainer';
 import { useAppState, downloadDeskBackup, readBackupFile } from '../store/context';
 import { SIMULATED_SOURCE_NAME } from '../domain/marks/simulate';
+import { ComplianceAuditModal } from '../features/auditor/ComplianceAuditModal';
+import { AuditorModalTab, normalizeAuditorTab, normalizeTradeAuditContext, TradeAuditContext } from '../domain/auditor/types';
 
 export function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { state, dispatch, isSaving } = useAppState();
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
+  const [isAuditorOpen, setIsAuditorOpen] = useState(false);
+  const [activeAuditDeal, setActiveAuditDeal] = useState<TradeAuditContext | undefined>(undefined);
+  const [auditorInitialTab, setAuditorInitialTab] = useState<AuditorModalTab>('GATE_BREAKDOWN');
+  const [auditorFocusedGate, setAuditorFocusedGate] = useState<number | undefined>(undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleBackup = () => {
@@ -56,8 +62,21 @@ export function Layout() {
         return;
       }
 
+      if ((e.altKey && k === 'a') || ((e.ctrlKey || e.metaKey) && k === 'j')) {
+        e.preventDefault();
+        const globalDeal = (window as any).__ACTIVE_TRADE_BUILDER_DEAL__;
+        if (globalDeal) {
+          setActiveAuditDeal(normalizeTradeAuditContext(globalDeal));
+        }
+        setAuditorInitialTab('GATE_BREAKDOWN');
+        setAuditorFocusedGate(undefined);
+        setIsAuditorOpen(prev => !prev);
+        return;
+      }
+
       if (e.key === 'Escape') {
         setIsPaletteOpen(false);
+        setIsAuditorOpen(false);
         return;
       }
 
@@ -85,6 +104,28 @@ export function Layout() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [navigate, location.pathname]);
 
+  // Global event listener to open auditor from any screen
+  useEffect(() => {
+    const handleOpenAuditor = (e: any) => {
+      if (e?.detail) {
+        const { initialTab, focusedGateIndex, ...dealContext } = e.detail;
+        if (Object.keys(dealContext).length > 0) {
+          const globalDeal = (typeof window !== 'undefined' && (window as any).__ACTIVE_TRADE_BUILDER_DEAL__) || {};
+          const normalized = normalizeTradeAuditContext({ ...globalDeal, ...dealContext });
+          setActiveAuditDeal(normalized);
+        }
+        setAuditorInitialTab(normalizeAuditorTab(initialTab));
+        setAuditorFocusedGate(focusedGateIndex !== undefined ? focusedGateIndex : undefined);
+      } else {
+        setAuditorInitialTab('GATE_BREAKDOWN');
+        setAuditorFocusedGate(undefined);
+      }
+      setIsAuditorOpen(true);
+    };
+    window.addEventListener('open-compliance-auditor', handleOpenAuditor);
+    return () => window.removeEventListener('open-compliance-auditor', handleOpenAuditor);
+  }, []);
+
   return (
     <div
       style={{
@@ -99,7 +140,18 @@ export function Layout() {
       }}
     >
       {/* 52px Header */}
-      <Header onOpenSearch={() => setIsPaletteOpen(true)} />
+      <Header 
+        onOpenSearch={() => setIsPaletteOpen(true)} 
+        onOpenAuditor={() => {
+          const globalDeal = (window as any).__ACTIVE_TRADE_BUILDER_DEAL__;
+          if (globalDeal) {
+            setActiveAuditDeal(normalizeTradeAuditContext(globalDeal));
+          }
+          setAuditorInitialTab('GATE_BREAKDOWN');
+          setAuditorFocusedGate(undefined);
+          setIsAuditorOpen(true);
+        }} 
+      />
 
       {/* Main Viewport */}
       <main
@@ -232,6 +284,18 @@ export function Layout() {
 
       {/* Global Command Palette Modal */}
       <CommandPalette isOpen={isPaletteOpen} onClose={() => setIsPaletteOpen(false)} />
+
+      {/* Global Statutory Compliance Auditor Modal */}
+      <ComplianceAuditModal 
+        isOpen={isAuditorOpen} 
+        onClose={() => {
+          setIsAuditorOpen(false);
+          setAuditorFocusedGate(undefined);
+        }} 
+        dealContextOverride={activeAuditDeal}
+        initialTab={auditorInitialTab}
+        focusedGateIndex={auditorFocusedGate}
+      />
 
       {/* Global Toast Container */}
       <DeskToastContainer />

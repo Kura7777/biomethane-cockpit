@@ -183,18 +183,18 @@ FR GO Mix 2026 Non-subsidised: €20.50 Offer (10 GWh)
 
     it('generates an ETRM CSV deal ticket with matching headers and values', () => {
       const csv = generateEtrmCsvPayload(mockAssessment);
-      expect(csv).toContain('DealID,TradeDate,TradingBook,TraderID,Counterparty');
+      expect(csv).toContain('DealID,TradeDate,Status,DeskRole,Book,Counterparty');
       expect(csv).toContain('TEST-DEAL-2026-DK-DE_THG');
-      expect(csv).toContain('BIOMETHANE_COMPLIANCE_QUOTA');
+      expect(csv).toContain('BIOMETHANE_COMPLIANCE');
     });
 
     it('generates an RFC-compliant Union Database (UDB) Mass Balance Nomination XML', () => {
       const xml = generateUdbNominationXmlPayload(mockAssessment);
       expect(xml).toContain('<?xml version="1.0" encoding="UTF-8"?>');
-      expect(xml).toContain('<udb:consignmentTransfer');
-      expect(xml).toContain('<udb:proofOfSustainability>');
-      expect(xml).toContain('<udb:greenhouseGasIntensity metric="gCO2e/MJ">-100</udb:greenhouseGasIntensity>');
-      expect(xml).toContain('<udb:auditSeal algorithm="SHA-256">');
+      expect(xml).toContain('<udbTransferWorksheet');
+      expect(xml).toContain('<proofOfSustainability>');
+      expect(xml).toContain('<ghgIntensity unit="gCO2e/MJ">-100</ghgIntensity>');
+      expect(xml).toContain('<documentFingerprint algorithm="SHA-256">');
     });
 
     it('generates deterministic SHA-256 seal across all package artifacts', () => {

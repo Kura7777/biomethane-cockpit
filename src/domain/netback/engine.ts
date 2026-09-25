@@ -2,6 +2,8 @@ import {
   CI_COMPARATOR_ROAD_TRANSPORT, 
   MJ_PER_MWH, 
   FR_CPB_CEILING_EUR_MWH,
+  DE_THG_PENALTY_EUR_PER_TCO2E,
+  UK_RTFC_BUYOUT_GBP,
   FUELEU_PENALTY_EUR_PER_TONNE,
   VLSFO_MJ_PER_TONNE,
   MWH_PER_CIC_ADVANCED,
@@ -14,15 +16,17 @@ import { EligibilityAssessment } from '../eligibility/types';
 import { HUB_BASIS_SPREADS } from '../logistics/corridors';
 
 import {
-  FUELEU_BASELINE_VLSFO_CI,
+  FUELEU_VLSFO_WTW,
   FUELEU_TARGET_2025,
   FUELEU_TARGET_2030,
+  bioLngFuelEUIntensity,
 } from '../fueleu/calculator';
 
 /**
  * FuelEU Maritime Reference Constants (Regulation (EU) 2023/1805)
  */
-export const FUELEU_BASELINE_CI = FUELEU_BASELINE_VLSFO_CI;   // 2020 fleet baseline (gCO₂e/MJ)
+/** Default ship actual intensity: a VLSFO-burning vessel, Annex II well-to-wake (≈ 91.74 gCO₂e/MJ). */
+export const FUELEU_BASELINE_CI = FUELEU_VLSFO_WTW;
 export const FUELEU_TARGET_CI_2025 = FUELEU_TARGET_2025;      // 2% reduction statutory (89.3368 gCO₂e/MJ)
 export const FUELEU_TARGET_CI_2030 = FUELEU_TARGET_2030;      // 6% reduction statutory (85.6904 gCO₂e/MJ)
 
@@ -53,6 +57,15 @@ export function tCO2ePerMWh(ciActual: number): number {
 }
 
 /**
+ * Desk margin as a percentage of the absolute delivered netback.
+ * The sign always follows deskMargin, so a loss-making deal can never show a positive margin.
+ */
+function computeMarginPercent(deskMargin: number | null, netNetback: number | null): number | null {
+  if (deskMargin === null || netNetback === null || netNetback === 0) return null;
+  return (deskMargin / Math.abs(netNetback)) * 100;
+}
+
+/**
  * Select price mark based on specified pricing side
  */
 export function selectMarkPrice(
@@ -67,13 +80,17 @@ export function selectMarkPrice(
 
 /**
  * Compute FuelEU Maritime avoided penalty value per MWh delivered
- * Solves the deficit-closure model per Regulation (EU) 2023/1805 Annex IV:
- * Avoided Penalty per MJ = (ΔCI / (GHGIE_actual × 41,000 MJ/t)) × €2,400 × EscalationMultiplier
- * 
- * @param consignmentCI - Carbon intensity of the bio-LNG consignment (gCO2e/MJ)
+ * Marginal avoided penalty per Regulation (EU) 2023/1805 Annex IV for a ship in deficit that
+ * burns the Bio-LNG in place of its own fuel (voyage energy E unchanged):
+ *   Penalty P = €2,400 × |CB| / (GHGIE × 41,000) = k·E·(1 − target / GHGIE),  k = 2,400 / 41,000
+ *   Displacing dE of ship fuel lowers GHGIE by (GHGIE_ship − WtW_bio)·dE / E, so
+ *   dP/dE = k · (GHGIE_ship − WtW_bio) · target / GHGIE_ship²   (× escalation multiplier)
+ * WtW_bio is the Annex I well-to-wake intensity (RED CI + engine CH4 slip / N2O).
+ *
+ * @param consignmentCI - RED lifecycle carbon intensity of the bio-LNG consignment (gCO2e/MJ)
  * @param consecutiveYears - Consecutive non-compliance escalation year (1 = 0%, 2 = +10%, 3 = +20%, 4 = +30%)
- * @param targetCI - FuelEU target intensity (89.34 for 2025-2029)
- * @param shipActualCI - Ship's actual baseline intensity without biofuel (91.16 default)
+ * @param targetCI - FuelEU target intensity (89.34 for 2025-2029), shown for context
+ * @param shipActualCI - Ship's actual intensity without biofuel (default VLSFO ≈ 91.74)
  */
 export function computeFuelEUDeficitClosureValue(
   consignmentCI: number,
@@ -82,7 +99,8 @@ export function computeFuelEUDeficitClosureValue(
   shipActualCI: number = FUELEU_BASELINE_CI
 ): { valueEurPerMWh: number; calculation: string; unitConversion: string } {
   const penaltyMultiplier = 1 + Math.max(0, (consecutiveYears - 1) / 10);
-  const deltaCI = targetCI - consignmentCI; // gCO₂e saved per MJ of bio-fuel vs target
+  const bioWtw = bioLngFuelEUIntensity(consignmentCI);
+  const deltaCI = shipActualCI - bioWtw; // gCO₂e removed per MJ of ship fuel displaced
   
   if (shipActualCI <= 0) {
     return {
@@ -95,18 +113,18 @@ export function computeFuelEUDeficitClosureValue(
   if (deltaCI <= 0) {
     return {
       valueEurPerMWh: 0,
-      calculation: `Bio-fuel CI (${consignmentCI} g/MJ) >= target CI (${targetCI} g/MJ). Generates no compliance credit.`,
+      calculation: `Bio-LNG FuelEU intensity (${bioWtw.toFixed(2)} g/MJ incl. slip) >= ship intensity (${shipActualCI.toFixed(2)} g/MJ). Generates no compliance credit.`,
       unitConversion: `Target CI: ${targetCI} g/MJ, Actual ship CI: ${shipActualCI} g/MJ`,
     };
   }
 
-  // Energy avoided penalty per MJ delivered using ship's actual achieved intensity:
-  // Penalty avoided per MJ = (deltaCI / (shipActualCI * 41,000 MJ/t)) * €2,400 * penaltyMultiplier
-  const penaltyPerMJ = (deltaCI / (shipActualCI * VLSFO_MJ_PER_TONNE)) * FUELEU_PENALTY_EUR_PER_TONNE * penaltyMultiplier;
+  // Exact marginal of the Annex IV penalty with respect to displaced ship-fuel energy
+  const penaltyPerMJ = (FUELEU_PENALTY_EUR_PER_TONNE / VLSFO_MJ_PER_TONNE)
+    * deltaCI * Math.max(0, targetCI) / (shipActualCI * shipActualCI) * penaltyMultiplier;
   const valueEurPerMWh = penaltyPerMJ * MJ_PER_MWH;
 
-  const unitConversion = `FuelEU Target: ${targetCI} g/MJ | Ship CI: ${shipActualCI} g/MJ | ΔCI: ${deltaCI.toFixed(1)} g/MJ | Penalty: €2,400/t VLSFO-eq (Yr ${consecutiveYears}: ${((penaltyMultiplier - 1) * 100).toFixed(0)}% escalation)`;
-  const calculation = `(${deltaCI.toFixed(1)} ÷ (${shipActualCI} × 41,000)) × €2,400 × ${penaltyMultiplier.toFixed(1)} × 3600 = €${valueEurPerMWh.toFixed(2)}/MWh compliance value`;
+  const unitConversion = `FuelEU Target: ${targetCI} g/MJ | Ship CI: ${shipActualCI.toFixed(2)} g/MJ | Bio-LNG WtW: ${bioWtw.toFixed(2)} g/MJ (RED CI ${consignmentCI} + slip) | ΔCI: ${deltaCI.toFixed(1)} g/MJ | Penalty: €2,400/t VLSFO-eq (Yr ${consecutiveYears}: ${((penaltyMultiplier - 1) * 100).toFixed(0)}% escalation)`;
+  const calculation = `(€2,400 ÷ 41,000) × ${deltaCI.toFixed(1)} × ${targetCI} ÷ ${shipActualCI.toFixed(2)}² × ${penaltyMultiplier.toFixed(1)} × 3600 = €${valueEurPerMWh.toFixed(2)}/MWh compliance value`;
 
   return { valueEurPerMWh, calculation, unitConversion };
 }
@@ -138,14 +156,20 @@ export function computeCertificateValue(
     const targetCI = opts.targetYear === 2030 ? FUELEU_TARGET_CI_2030 : FUELEU_TARGET_CI_2025;
 
     if (mark !== null) {
+      // The FuelEU desk mark is quoted in €/tCO₂e of compliance balance (registry unitLabel),
+      // so it must be converted through the consignment's surplus vs the FuelEU target intensity.
       const deficitModel = computeFuelEUDeficitClosureValue(ci, consecutiveYears, targetCI, shipActualCI);
+      // Surplus vs target uses the Bio-LNG's FuelEU well-to-wake intensity (RED CI + engine slip).
+      const bioWtw = bioLngFuelEUIntensity(ci);
+      const surplusTco2ePerMWh = Math.max(0, ((targetCI - bioWtw) * MJ_PER_MWH) / 1_000_000);
+      const markValueEurPerMWh = mark * surplusTco2ePerMWh;
       return {
-        valueEurPerMWh: mark,
-        calculation: `Desk Mark: €${mark.toFixed(2)}/MWh (Deficit-closure reference model yields €${deficitModel.valueEurPerMWh.toFixed(2)}/MWh at CI ${ci})`,
+        valueEurPerMWh: markValueEurPerMWh,
+        calculation: `(${targetCI} − (${bioWtw.toFixed(2)} [RED ${ci} + slip])) × ${MJ_PER_MWH} / 1,000,000 = ${surplusTco2ePerMWh.toFixed(4)} tCO₂e/MWh × €${mark.toFixed(2)}/tCO₂e (${pricingSide}) = €${markValueEurPerMWh.toFixed(2)}/MWh (deficit-closure reference: €${deficitModel.valueEurPerMWh.toFixed(2)}/MWh)`,
         unitConversion: deficitModel.unitConversion,
         capped: false,
         capReason: null,
-        statusNote: 'Market mark applied. Deficit-closure model validates value exceeding the €210 penalty equivalent.',
+        statusNote: 'Desk mark (€/tCO₂e compliance balance) converted to €/MWh against the FuelEU target intensity.',
         markAgeDays,
         isModelled: false,
         provenance,
@@ -267,11 +291,17 @@ export function computeCertificateValue(
         consignment.annexClassification === 'IX_B'
       );
       const rtfcPerMWh = isDoubleCounting ? RTFO_KG_PER_MWH * 2 : RTFO_KG_PER_MWH; // ≈ 144.0 vs 72.0
-      const markEurPerRtfc = mark * fxRate;
+      // The RTFO buy-out price is a hard ceiling on RTFC value, exactly like the CPB penalty.
+      const effectiveMarkGbp = Math.min(mark, UK_RTFC_BUYOUT_GBP);
+      if (mark > UK_RTFC_BUYOUT_GBP) {
+        capped = true;
+        capReason = `UK RTFO buy-out price: £${UK_RTFC_BUYOUT_GBP.toFixed(2)}/RTFC (RTFO Order 2007, Art. 17).`;
+      }
+      const markEurPerRtfc = effectiveMarkGbp * fxRate;
       valueEurPerMWh = markEurPerRtfc * rtfcPerMWh;
 
       unitConversion = `UK RTFO Order 2007: 1 MWh ÷ 13.889 kWh/kg = ${RTFO_KG_PER_MWH.toFixed(1)} kg/MWh → ${rtfcPerMWh.toFixed(1)} RTFC/MWh (${isDoubleCounting ? '2× Double Counting (Waste/Residue)' : '1× Standard'}) | £1 = €${fxRate.toFixed(4)}`;
-      calculation = `£${mark.toFixed(3)}/RTFC × €${fxRate.toFixed(4)}/£ × ${rtfcPerMWh.toFixed(1)} RTFC/MWh = €${valueEurPerMWh.toFixed(2)}/MWh`;
+      calculation = `£${effectiveMarkGbp.toFixed(3)}/RTFC${capped ? ` (mark £${mark.toFixed(3)} capped at buy-out)` : ''} × €${fxRate.toFixed(4)}/£ × ${rtfcPerMWh.toFixed(1)} RTFC/MWh = €${valueEurPerMWh.toFixed(2)}/MWh`;
       statusNote = `Derived from biomethane energy content (${rtfcPerMWh.toFixed(1)} RTFC/MWh). ${isDoubleCounting ? '2× double-counted standard RTFC (waste/residue).' : '1× standard RTFC.'} Non-EU grid injection boundary applies.`;
       break;
     }
@@ -354,6 +384,13 @@ export function computeNetback(
   if (alpha !== 1.0 && certVal?.valueEurPerMWh != null) {
     certVal.valueEurPerMWh = Number((certVal.valueEurPerMWh * alpha).toFixed(2));
     certVal.calculation = `${certVal.calculation} × α(${alpha.toFixed(2)}) = €${certVal.valueEurPerMWh.toFixed(2)}/MWh`;
+    // The CPB penalty ceiling is statutory — no sensitivity multiplier may lift the value above it.
+    if (market.id === 'FR_CPB' && certVal.valueEurPerMWh > FR_CPB_CEILING_EUR_MWH) {
+      certVal.valueEurPerMWh = FR_CPB_CEILING_EUR_MWH;
+      certVal.capped = true;
+      certVal.capReason = `French CPB penalty ceiling: €${FR_CPB_CEILING_EUR_MWH}/MWh (applied after α indexation).`;
+      certVal.calculation = `${certVal.calculation} → CAPPED at €${FR_CPB_CEILING_EUR_MWH}/MWh legal ceiling`;
+    }
   }
 
   const missingInputs: string[] = [];
@@ -388,7 +425,8 @@ export function computeNetback(
   const midCertVal = computeCertificateValue(market, consignment, marks, 'mid', fuelEUOptions);
   if (midCertVal?.valueEurPerMWh != null) {
     const rawMid = Number(midCertVal.valueEurPerMWh.toFixed(2));
-    midCertVal.valueEurPerMWh = alpha !== 1.0 ? Number((rawMid * alpha).toFixed(2)) : rawMid;
+    const alphaMid = alpha !== 1.0 ? Number((rawMid * alpha).toFixed(2)) : rawMid;
+    midCertVal.valueEurPerMWh = market.id === 'FR_CPB' ? Math.min(alphaMid, FR_CPB_CEILING_EUR_MWH) : alphaMid;
   }
   const midMolVal = selectMarkPrice(marks.gasIndex, 'mid');
   let atMid: number | null = null;
@@ -456,14 +494,8 @@ export function computeNetback(
   }
 
 
-  // Margin % = deskMargin / netNetback * 100
-  let marginPercent: number | null = null;
-  if (deskMargin !== null && netNetback !== null && netNetback > 0) {
-    marginPercent = (deskMargin / netNetback) * 100;
-  } else if (deskMargin !== null && netNetback !== null && netNetback < 0) {
-    // Negative netback: margin percentage is inverted to show real loss
-    marginPercent = -(deskMargin / Math.abs(netNetback)) * 100;
-  }
+  // Margin % = deskMargin / |netNetback| * 100
+  let marginPercent = computeMarginPercent(deskMargin, netNetback);
 
   // Desk P&L and Gross Spread P&L
   let grossSpreadPnL: number | null = null;
@@ -498,7 +530,7 @@ export function computeNetback(
         certVal.calculation = `${certVal.calculation} × 2 (double counting under 38. BImSchV for CY ${complianceYear}) = €${dcOnCertVal.toFixed(2)}/MWh`;
         certVal.statusNote = `Double counting applies for compliance year ${complianceYear} (pre-2026 regime under §37a BImSchG).`;
 
-        netNetback = dcOnCertVal + (molVal ?? 0) - (totalCosts ?? 0);
+        netNetback = Number((dcOnCertVal + (molVal ?? 0) - (totalCosts ?? 0)).toFixed(2));
 
         if (pricingMode === 'INDEX_LINKED') {
           const share = costs.producerPricing?.indexLinkedShare ?? null;
@@ -516,11 +548,18 @@ export function computeNetback(
           }
         }
 
-        if (deskMargin !== null && netNetback !== null && netNetback > 0) {
-          marginPercent = (deskMargin / netNetback) * 100;
-        } else if (deskMargin !== null && netNetback !== null && netNetback < 0) {
-          marginPercent = -(deskMargin / Math.abs(netNetback)) * 100;
-        }
+        marginPercent = computeMarginPercent(deskMargin, netNetback);
+
+        // P&L and pricing sides were computed on the single-counted value above — restate them
+        // on the doubled value, otherwise the blotter books half the real desk P&L.
+        grossSpreadPnL = grossValueSpread !== null && consignment.volumeMWh !== null ? grossValueSpread * consignment.volumeMWh : null;
+        deskPnL = deskMargin !== null && consignment.volumeMWh !== null ? deskMargin * consignment.volumeMWh : null;
+        const dcAtMid = midCertVal?.valueEurPerMWh != null
+          ? Number((midCertVal.valueEurPerMWh * 2 + (midMolVal ?? 0) - (totalCosts ?? 0)).toFixed(2))
+          : null;
+        sides.atChosenSides = netNetback;
+        sides.atMid = dcAtMid;
+        sides.crossingCost = dcAtMid !== null ? Number((dcAtMid - netNetback).toFixed(2)) : null;
       }
       uncertaintyBranches = null;
     } else {
@@ -552,12 +591,7 @@ export function computeNetback(
         }
       }
 
-      let dcOnMarginPct: number | null = null;
-      if (dcOnDeskMargin !== null && dcOnNetback !== null && dcOnNetback > 0) {
-        dcOnMarginPct = (dcOnDeskMargin / dcOnNetback) * 100;
-      } else if (dcOnDeskMargin !== null && dcOnNetback !== null && dcOnNetback < 0) {
-        dcOnMarginPct = -(dcOnDeskMargin / Math.abs(dcOnNetback)) * 100;
-      }
+      const dcOnMarginPct = computeMarginPercent(dcOnDeskMargin, dcOnNetback);
 
       const dcOnDeskPnL = dcOnDeskMargin !== null && consignment.volumeMWh !== null ? dcOnDeskMargin * consignment.volumeMWh : null;
       const dcOnGrossSpreadPnL = dcOnSpread !== null && consignment.volumeMWh !== null ? dcOnSpread * consignment.volumeMWh : null;
@@ -647,10 +681,10 @@ export function computeNetback(
   if (market.id === 'FR_CPB') {
     statutoryCeilingEurMwh = FR_CPB_CEILING_EUR_MWH;
   } else if (market.id === 'DE_THG') {
-    statutoryCeilingEurMwh = Number((450 * tCO2ePerMWh(consignment.carbonIntensity)).toFixed(2));
+    statutoryCeilingEurMwh = Number((DE_THG_PENALTY_EUR_PER_TCO2E * tCO2ePerMWh(consignment.carbonIntensity)).toFixed(2));
   }
 
-  const effectiveCeiling = statutoryCeilingEurMwh ?? (netNetback ? Math.max(120, netNetback * 1.5) : 120);
+  const effectiveCeiling = statutoryCeilingEurMwh ?? (netNetback !== null ? Math.max(120, netNetback * 1.5) : 120);
   const effectiveProcurement = producerPayable ?? (molVal ? molVal + 25 : 58);
   const replacementCostExposureEur = Math.round(Math.max(0, effectiveCeiling - effectiveProcurement) * dealVolume);
 

@@ -507,7 +507,7 @@ export function ShippingBunkerPricingStep({
                   </span>
                 </div>
                 <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '2px' }}>
-                  Equivalent to €{marineQuote.allInBioLngPriceEurMwh.toFixed(2)}/MWh · 13.9 MWh/t standard density
+                  Equivalent to €{marineQuote.allInBioLngPriceEurMwh.toFixed(2)}/MWh · {marineQuote.mwhPerTonneBioLng.toFixed(2)} MWh/t (49.1 GJ/t LHV)
                 </div>
               </div>
 
@@ -530,7 +530,7 @@ export function ShippingBunkerPricingStep({
                       backgroundColor: 'var(--color-subtier)',
                     }}
                   >
-                    +€{marineQuote.netSavingsPerTonneBioLngEur.toFixed(2)}/t
+                    {marineQuote.netSavingsPerTonneBioLngEur >= 0 ? '+' : ''}€{marineQuote.netSavingsPerTonneBioLngEur.toFixed(2)}/t
                   </span>
                 </div>
                 <div

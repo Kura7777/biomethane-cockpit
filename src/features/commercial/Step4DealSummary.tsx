@@ -16,7 +16,8 @@ import {
   ShieldCheck,
   Flame,
   ArrowRight,
-  Zap
+  Zap,
+  Scale
 } from 'lucide-react';
 
 interface Step4DealSummaryProps {
@@ -102,6 +103,31 @@ Date: ${dateStr}
       networkOperator: opportunity.networkOperator ?? undefined,
       counterparty: opportunity.legalEntityName || opportunity.originPlantName || 'European Biomethane Producer',
     }));
+  };
+
+  const handleVerifyStatutoryCompliance = () => {
+    const plantVolume = opportunity.plantAnnualGWh ? Math.round(opportunity.plantAnnualGWh * 1000) : vol;
+    window.dispatchEvent(
+      new CustomEvent('open-compliance-auditor', {
+        detail: {
+          originCountry: opportunity.originCountry,
+          targetMarketId: opportunity.targetMarketId,
+                                      destinationMarket: opportunity.targetMarketId,
+          feedstockCategory: opportunity.feedstockKey,
+                                      feedstock: opportunity.feedstockKey,
+          carbonIntensity: opportunity.carbonIntensity,
+                                      ghgIntensity: opportunity.carbonIntensity,
+          annualVolumeMWh: plantVolume,
+                                      volumeMWh: plantVolume,
+          counterparty: opportunity.legalEntityName || opportunity.originPlantName || 'European Biomethane Producer',
+          plantName: opportunity.originPlantName,
+          operatorName: opportunity.legalEntityName,
+          gridOperator: opportunity.networkOperator,
+          initialTab: 'GATE_BREAKDOWN',
+          focusedGateIndex: 0,
+        }
+      })
+    );
   };
 
   return (
@@ -285,6 +311,16 @@ Date: ${dateStr}
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>New Order</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleVerifyStatutoryCompliance}
+            className="px-4 py-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 dark:hover:bg-amber-900/40 border border-amber-300 dark:border-amber-700/50 text-amber-800 dark:text-amber-300 text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-2xs"
+            title="Verify statutory compliance and 6-gate clearance before offtake finalization"
+          >
+            <Scale className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+            <span>Verify Statutory Compliance</span>
           </button>
 
           <button

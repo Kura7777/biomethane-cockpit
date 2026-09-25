@@ -150,7 +150,8 @@ TRADE LANE: ${TRADE_LANES[counterparty.tradeLane]?.label || counterparty.tradeLa
 - Benchmark Conventional Alternative Compliance Cost:
     * Alternative Compliance Cost (EUR): €${marineQuote.totalConventionalAlternativeCostEur.toFixed(2)} / tonne Bio-LNG eq
     * Alternative Compliance Cost (USD): $${marineQuote.totalConventionalAlternativeCostUsd.toFixed(2)} / tonne Bio-LNG eq
-- Net Client Arbitrage Advantage: +€${marineQuote.netSavingsPerTonneBioLngEur.toFixed(2)} / tonne (+$${marineQuote.netSavingsPerTonneBioLngUsd.toFixed(2)} / tonne)
+- FuelEU Compliance Surplus (Pooling, Art. 21): ${marineQuote.fuelEuSurplusTco2ePerTonne.toFixed(4)} tCO2e/t x €${marineQuote.fuelEuSurplusPriceEurPerTco2e.toFixed(2)}/tCO2e = €${marineQuote.fuelEuSurplusValueEurPerTonne.toFixed(2)} / tonne Bio-LNG
+- Net Client Arbitrage Advantage: ${marineQuote.netSavingsPerTonneBioLngEur >= 0 ? '+' : ''}€${marineQuote.netSavingsPerTonneBioLngEur.toFixed(2)} / tonne (${marineQuote.netSavingsPerTonneBioLngUsd >= 0 ? '+' : ''}$${marineQuote.netSavingsPerTonneBioLngUsd.toFixed(2)} / tonne)
 
 3. STRUCTURED TRANSACTION SCHEDULE
 --------------------------------------------------------------------------------
@@ -297,6 +298,29 @@ European Biomethane & Marine Fuels Trading Desk`
       contactPhone: counterparty.switchboardPhone,
     });
     navigate(url);
+  };
+
+  const handleAuditFuelEuCompliance = () => {
+    const volumeMwh = Math.max(
+      1000,
+      Math.round(counterparty.bio_lng_required_neg100_mwh || 10000)
+    );
+    window.dispatchEvent(
+      new CustomEvent('open-compliance-auditor', {
+        detail: {
+          originCountry: 'NL',
+          destinationMarket: 'MARITIME_FUELEU',
+          feedstock: 'manure',
+          carbonIntensity: -100,
+                                      ghgIntensity: -100,
+          annualVolumeMWh: volumeMwh,
+                                      volumeMWh: volumeMwh,
+          counterparty: counterparty.parent_name,
+          initialTab: 'GATE_BREAKDOWN',
+          focusedGateIndex: 0,
+        }
+      })
+    );
   };
 
   return (
@@ -540,7 +564,8 @@ European Biomethane & Marine Fuels Trading Desk`
               <div>• Delivered Bio-LNG Quote (EUR): <strong style={{ color: 'var(--color-text)', fontSize: '13px' }}>€{marineQuote.allInBioLngPriceEurPerTonne.toLocaleString()} / tonne</strong></div>
               <div>• Delivered Bio-LNG Quote (USD): <strong style={{ color: 'var(--color-text)', fontSize: '13px' }}>${marineQuote.allInBioLngPriceUsdPerTonne.toLocaleString()} / tonne</strong></div>
               <div>• Benchmark Conventional Alternative: <strong style={{ color: 'var(--color-text)' }}>€{marineQuote.totalConventionalAlternativeCostEur.toFixed(2)} / t Bio-LNG eq</strong></div>
-              <div>• Net Client Arbitrage Advantage: <strong style={{ color: 'var(--color-status-pos-text)' }}>+€{marineQuote.netSavingsPerTonneBioLngEur.toFixed(2)} / tonne</strong></div>
+              <div>• FuelEU Compliance Surplus: <strong>{marineQuote.fuelEuSurplusTco2ePerTonne.toFixed(4)} tCO₂e/t × €{marineQuote.fuelEuSurplusPriceEurPerTco2e.toFixed(2)} = €{marineQuote.fuelEuSurplusValueEurPerTonne.toFixed(2)} / tonne</strong></div>
+              <div>• Net Client Arbitrage Advantage: <strong style={{ color: marineQuote.netSavingsPerTonneBioLngEur >= 0 ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)' }}>{marineQuote.netSavingsPerTonneBioLngEur >= 0 ? '+' : ''}€{marineQuote.netSavingsPerTonneBioLngEur.toFixed(2)} / tonne</strong></div>
             </div>
           </div>
 
@@ -608,6 +633,27 @@ European Biomethane & Marine Fuels Trading Desk`
               <div>• Governing Contract: <span style={{ color: 'var(--color-text)' }}>Standard BIMCO Bunker Terms 2020 / EFET Marine Decarbonisation Annex</span></div>
               <div>• Jurisdiction: <span style={{ color: 'var(--color-text)' }}>Rotterdam, The Netherlands (POB / Rotterdam District Court Arbitration)</span></div>
             </div>
+            <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--color-divider)', display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={handleAuditFuelEuCompliance}
+                className="btn btn-outline"
+                style={{
+                  fontSize: '11px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  borderColor: 'var(--color-accent)',
+                  color: 'var(--color-accent)',
+                  fontWeight: 600,
+                  padding: '5px 12px',
+                }}
+                title="Audit FuelEU Maritime statutory compliance, zero-rating legality, and penalty mitigation"
+              >
+                <Scale size={13} />
+                <span>Audit FuelEU Statutory Compliance &amp; Penalty Mitigation</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -644,6 +690,17 @@ European Biomethane & Marine Fuels Trading Desk`
           >
             <RotateCcw size={12} />
             <span>Return to Directory</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleAuditFuelEuCompliance}
+            className="btn btn-secondary"
+            style={{ height: '32px', padding: '0 12px', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '5px', borderColor: 'rgba(217, 119, 6, 0.4)', color: '#d97706' }}
+            title="Open Statutory Compliance Auditor for FuelEU Maritime"
+          >
+            <Scale size={12} />
+            <span>Audit FuelEU Compliance</span>
           </button>
 
           <button

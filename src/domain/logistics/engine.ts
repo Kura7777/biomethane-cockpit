@@ -4,21 +4,24 @@ import { MARKETS } from '../markets/registry';
 import { COUNTRY_NAMES } from '../markets/constants';
 
 /**
- * Standard Gas Transmission Network Graph for Europe
+ * Standard Gas Transmission Network Graph for Europe.
+ * Every edge is a physical transmission interconnection. There is no GB–FR gas
+ * interconnector (IUK lands at Zeebrugge, BBL at Balgzand); DK–PL is Baltic Pipe (2022).
+ * NO is modelled export-only (Gassco offshore system has no reverse flow).
  */
 export const PIPELINE_ADJACENCY: Record<string, string[]> = {
   SE: ['DK'],
-  DK: ['SE', 'DE'],
+  DK: ['SE', 'DE', 'PL'],
   DE: ['DK', 'NL', 'BE', 'FR', 'AT', 'PL', 'CZ', 'CH', 'LU'],
   NL: ['DE', 'BE', 'GB'],
   BE: ['NL', 'DE', 'FR', 'GB', 'LU'],
-  FR: ['BE', 'DE', 'CH', 'ES', 'GB', 'LU'],
+  FR: ['BE', 'DE', 'CH', 'ES', 'LU'],
   LU: ['DE', 'FR', 'BE'],
   ES: ['FR', 'PT'],
   PT: ['ES'],
   IT: ['CH', 'AT', 'SI', 'GR'],
   AT: ['DE', 'IT', 'CZ', 'SK', 'HU', 'SI'],
-  PL: ['DE', 'CZ', 'SK', 'LT', 'UA'],
+  PL: ['DE', 'DK', 'CZ', 'SK', 'LT', 'UA'],
   CZ: ['DE', 'PL', 'SK', 'AT'],
   SK: ['CZ', 'PL', 'UA', 'HU', 'AT'],
   HU: ['AT', 'SK', 'UA', 'RO', 'HR', 'RS', 'SI'],
@@ -26,8 +29,8 @@ export const PIPELINE_ADJACENCY: Record<string, string[]> = {
   EE: ['FI', 'LV'],
   LV: ['EE', 'LT'],
   LT: ['LV', 'PL'],
-  GB: ['NL', 'BE', 'FR', 'IE'],
-  CH: ['DE', 'FR', 'IT', 'AT'],
+  GB: ['NL', 'BE', 'IE'],
+  CH: ['DE', 'FR', 'IT'],
   NO: ['GB', 'DE', 'BE', 'FR', 'NL'],
   SI: ['IT', 'AT', 'HU', 'HR'],
   HR: ['SI', 'HU', 'RS'],
@@ -157,32 +160,16 @@ export function calculateDijkstraCorridor(fromCountry: string, toCountry: string
 }
 
 /**
- * BFS algorithm to find shortest physical gas transmission path between any two European countries
+ * Physical transmission path between two countries.
+ *
+ * Delegates to the Dijkstra corridor so that tariffs, shrinkage and distance are all
+ * priced on the same route. (This was previously a fewest-hops BFS, which disagreed
+ * with the Dijkstra distance for 391 country pairs — tariffs were stacked on a
+ * different corridor from the one whose distance and shrinkage were shown.)
  */
 export function findShortestPipelinePath(fromCountry: string, toCountry: string): string[] {
   if (fromCountry === toCountry) return [fromCountry];
-
-  const queue: string[][] = [[fromCountry]];
-  const visited = new Set<string>([fromCountry]);
-
-  while (queue.length > 0) {
-    const path = queue.shift()!;
-    const current = path[path.length - 1];
-
-    const neighbors = PIPELINE_ADJACENCY[current] || [];
-    for (const neighbor of neighbors) {
-      if (neighbor === toCountry) {
-        return [...path, neighbor];
-      }
-      if (!visited.has(neighbor)) {
-        visited.add(neighbor);
-        queue.push([...path, neighbor]);
-      }
-    }
-  }
-
-  // If no interconnected physical pipeline route exists across the European grid
-  return [];
+  return calculateDijkstraCorridor(fromCountry, toCountry).path;
 }
 
 /**
@@ -344,9 +331,12 @@ export function calculateLogisticsRoute(
   });
   
   // Pipeline Shrinkage & Fuel Gas (null if distance or gas price is not provided)
-  const shrinkageLossPct = distanceKm !== null
-    ? Number(Math.max(0.003, (distanceKm / 500) * 0.0035).toFixed(4))
-    : null;
+  // No transmission transit (domestic delivery) means no cross-border compressor fuel gas.
+  const shrinkageLossPct = distanceKm === null
+    ? null
+    : distanceKm === 0
+    ? 0
+    : Number(Math.max(0.003, (distanceKm / 500) * 0.0035).toFixed(4));
   const shrinkageEurMwh = (baseGasPriceEurMwh !== null && shrinkageLossPct !== null)
     ? Number((baseGasPriceEurMwh * shrinkageLossPct).toFixed(2))
     : null;

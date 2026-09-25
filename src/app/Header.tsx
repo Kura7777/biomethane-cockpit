@@ -15,9 +15,10 @@ export function formatClock(date: Date): string {
 interface HeaderProps {
   onOpenSearch?: () => void;
   onOpenPrices?: () => void;
+  onOpenAuditor?: () => void;
 }
 
-export function Header({ onOpenSearch }: HeaderProps) {
+export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { state } = useAppState();
@@ -195,6 +196,26 @@ export function Header({ onOpenSearch }: HeaderProps) {
           flexShrink: 0,
         }}
       >
+        <button
+          type="button"
+          className="btn"
+          style={{
+            padding: '4px 10px',
+            fontSize: '12px',
+            backgroundColor: 'rgba(16, 185, 129, 0.15)',
+            borderColor: '#059669',
+            color: '#34d399',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '5px'
+          }}
+          onClick={onOpenAuditor}
+          title="Open Statutory Compliance Auditor & Knowledge Vault (Alt+A)"
+        >
+          <span>⚖ Auditor</span>
+          <span className="num" style={{ fontWeight: 400, opacity: 0.75, fontSize: '10px' }}>Alt+A</span>
+        </button>
+
         <button
           type="button"
           className="btn"

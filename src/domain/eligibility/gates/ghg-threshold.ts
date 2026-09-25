@@ -14,12 +14,11 @@ const GATE_LABEL = 'GHG Saving Threshold';
 
 export function evaluateGHGThresholdGate(consignment: Consignment, market: Market): GateResult {
   // Voluntary corporate claims and Guarantees of Origin (RGGO, GOs) have no mandatory transport fuel GHG saving threshold
-  const isVoluntaryOrGO = 
+  // Explicit flag, not an id-suffix heuristic: ES_GDO and PT_EEGO are GO registries too.
+  const isVoluntaryOrGO =
     market.sector === 'VOLUNTARY' ||
-    market.id === 'VOL_SCOPE1' || 
-    market.id === 'UK_RGGO' || 
-    market.id.endsWith('_GO') || 
-    (market.unitOfAccount === 'EUR_PER_MWH' && market.acceptsBookAndClaim);
+    market.isGuaranteeOfOrigin === true ||
+    market.id === 'VOL_SCOPE1';
 
   if (isVoluntaryOrGO) {
     return {

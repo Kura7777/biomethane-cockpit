@@ -13,11 +13,11 @@ import { MarksState } from '../netback/types';
 function createMockMarks(): MarksState {
   return {
     marks: {
-      DE_THG: { marketId: 'DE_THG', mid: 0.85, bid: 0.83, offer: 0.87, updatedAt: null, source: null },
-      NL_ERE: { marketId: 'NL_ERE', mid: 18.50, bid: 18.20, offer: 18.80, updatedAt: null, source: null },
+      DE_THG: { marketId: 'DE_THG', mid: 285.0, bid: 280.0, offer: 290.0, updatedAt: null, source: null },
+      NL_ERE: { marketId: 'NL_ERE', mid: 0.34, bid: 0.33, offer: 0.35, updatedAt: null, source: null },
       FR_CPB: { marketId: 'FR_CPB', mid: 26.00, bid: 25.00, offer: 27.00, updatedAt: null, source: null },
-      UK_RTFO: { marketId: 'UK_RTFO', mid: 36.00, bid: 35.00, offer: 37.00, updatedAt: null, source: null },
-      FUELEU: { marketId: 'FUELEU', mid: 14.00, bid: 13.50, offer: 14.50, updatedAt: null, source: null },
+      UK_RTFO: { marketId: 'UK_RTFO', mid: 0.215, bid: 0.205, offer: 0.225, updatedAt: null, source: null },
+      FUELEU: { marketId: 'FUELEU', mid: 285.0, bid: 270.0, offer: 300.0, updatedAt: null, source: null },
       DE_GO: { marketId: 'DE_GO', mid: 6.50, bid: 6.20, offer: 6.80, updatedAt: null, source: null },
     },
     gasIndex: { mid: 38.50, bid: 38.20, offer: 38.80, updatedAt: null },
@@ -112,7 +112,7 @@ describe('Forward Curves Engine (Cal-2026 to Cal-2030)', () => {
 
     const quote = getForwardQuote(book, 'NL_ERE', 'CAL_2028');
     expect(quote.year).toBe(2028);
-    expect(quote.mid).toBeGreaterThan(18.5);
+    expect(quote.mid).toBeGreaterThan(0.34);
     expect(quote.statutoryObligationPct).toBe(33.0);
   });
 });

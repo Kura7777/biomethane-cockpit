@@ -79,8 +79,8 @@ export const FEEDSTOCK_REGISTRY: Record<string, FeedstockInfo> = {
     annexClassification: 'IX_A',
     typicalCIRange: [5, 25],
     defaultCI: 12,
-    notes: 'Captured landfill methane.',
-    citation: 'RED III Annex IX Part A',
+    notes: 'Captured landfill methane. Claimed as Annex IX Part A(b) (biomass fraction of mixed municipal waste); Member State treatment varies — confirm per obligation.',
+    citation: 'RED III Annex IX Part A(b) — Member State treatment varies',
   },
   industrial_bio_waste: {
     id: 'industrial_bio_waste',

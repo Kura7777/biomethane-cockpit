@@ -4,6 +4,8 @@ import { COMBINED_BIOMETHANE_PLANTS } from '../../domain/plants/registry';
 import { BiomethanePlant } from '../../domain/plants/types';
 import { buildDealUrl } from '../../domain/trade/dealParams';
 import { PlantSourcingDrawer } from './PlantSourcingDrawer';
+import { AlertOctagon, AlertTriangle, Mail } from 'lucide-react';
+
 
 export function OriginationPipelineScreen() {
   const navigate = useNavigate();
@@ -96,7 +98,7 @@ export function OriginationPipelineScreen() {
     };
   }, [selectedCountry]);
 
-  // CSV Export
+  // CSV Export with Institutional Contact Confidence & Statutory Registry
   const exportCsv = () => {
     const headers = [
       'Plant ID',
@@ -108,6 +110,10 @@ export function OriginationPipelineScreen() {
       'Annual GWh',
       'Feedstock',
       'Audited CI (gCO2e/MJ)',
+      'Contact Confidence',
+      'Contact Risk Flags',
+      'Statutory Register',
+      'Register Search URL',
       'Corporate Website',
       'Contact Email',
       'Contact Phone',
@@ -116,23 +122,34 @@ export function OriginationPipelineScreen() {
       'Headquarters Address'
     ];
 
-    const rows = filteredPipeline.map(p => [
-      `"${p.id}"`,
-      `"${p.name.replace(/"/g, '""')}"`,
-      `"${p.countryCode}"`,
-      p.commissioningYear ?? '',
-      `"${(p.companyRegistrationId || '').replace(/"/g, '""')}"`,
-      `"${p.supportScheme || 'National Feed-in Tariff / Guarantees of Origin'}"`,
-      p.annualEnergyGWh ?? '',
-      `"${(p.primaryFeedstockCategory || '').replace(/"/g, '""')}"`,
-      p.verifiedCarbonIntensity ?? '',
-      `"${p.corporateWebsite || ''}"`,
-      `"${p.contactEmail || ''}"`,
-      `"${p.contactPhone || ''}"`,
-      `"${(p.networkOperator || '').replace(/"/g, '""')}"`,
-      `"${(p.operator || p.legalEntityName || '').replace(/"/g, '""')}"`,
-      `"${(p.headquartersAddress || '').replace(/"/g, '""')}"`
-    ]);
+    const rows = filteredPipeline.map(p => {
+      const q = p.contactQuality;
+      const flags = (q?.reasons || []).join('; ');
+      const reg = q?.officialRegister;
+      const searchUrl = reg?.searchUrl || reg?.url || '';
+
+      return [
+        `"${p.id}"`,
+        `"${p.name.replace(/"/g, '""')}"`,
+        `"${p.countryCode}"`,
+        p.commissioningYear ?? '',
+        `"${(p.companyRegistrationId || '').replace(/"/g, '""')}"`,
+        `"${p.supportScheme || 'National Feed-in Tariff / Guarantees of Origin'}"`,
+        p.annualEnergyGWh ?? '',
+        `"${(p.primaryFeedstockCategory || '').replace(/"/g, '""')}"`,
+        p.verifiedCarbonIntensity ?? '',
+        `"${q?.confidenceLabel || 'Unverified Lead'}"`,
+        `"${flags.replace(/"/g, '""')}"`,
+        `"${(reg?.registerName || '').replace(/"/g, '""')}"`,
+        `"${searchUrl.replace(/"/g, '""')}"`,
+        `"${p.corporateWebsite || ''}"`,
+        `"${p.contactEmail || ''}"`,
+        `"${p.contactPhone || ''}"`,
+        `"${(p.networkOperator || '').replace(/"/g, '""')}"`,
+        `"${(p.operator || p.legalEntityName || '').replace(/"/g, '""')}"`,
+        `"${(p.headquartersAddress || '').replace(/"/g, '""')}"`
+      ];
+    });
 
     const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -183,12 +200,13 @@ export function OriginationPipelineScreen() {
   };
 
   const handleCopyLead = (plant: BiomethanePlant) => {
-    const text = `Origination Lead: ${plant.name} (${plant.id} • ${plant.countryCode}) | Operating Entity: ${plant.operator || plant.legalEntityName || 'N/A'} | Annual Capacity: ${plant.annualEnergyGWh} GWh/yr (${plant.capacityNm3h} Nm³/h) | Feedstock: ${plant.primaryFeedstockCategory} | Contact Email: ${plant.contactEmail || 'N/A'} | Phone: ${plant.contactPhone || 'N/A'} | SIREN/Reg: ${plant.companyRegistrationId || 'N/A'}`;
+    const text = `Origination Lead: ${plant.name} (${plant.id} • ${plant.countryCode}) | Operating Entity: ${plant.operator || plant.legalEntityName || 'N/A'} | Annual Capacity: ${plant.annualEnergyGWh} GWh/yr (${plant.capacityNm3h} Nm³/h) | Feedstock: ${plant.primaryFeedstockCategory} | Contact Quality: ${plant.contactQuality?.confidenceLabel || 'Unverified'} | Contact Email: ${plant.contactEmail || 'N/A'} | Phone: ${plant.contactPhone || 'N/A'} | Statutory Due Diligence: Verify operator in ${plant.contactQuality?.officialRegister.registerName || 'National Register'}`;
     navigator.clipboard.writeText(text).then(() => {
       setCopyFeedback(plant.id);
       setTimeout(() => setCopyFeedback(null), 2000);
     });
   };
+
 
   return (
     <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px', minHeight: '100%', backgroundColor: 'var(--color-bg-base)' }}>
@@ -433,7 +451,7 @@ export function OriginationPipelineScreen() {
               <th style={{ padding: '10px 14px' }}>Feedstock & CI</th>
               <th style={{ padding: '10px 14px' }}>Capacity (GWh / Nm³/h)</th>
               <th style={{ padding: '10px 14px' }}>TSO / DSO Grid</th>
-              <th style={{ padding: '10px 14px' }}>Direct Trader Contact</th>
+              <th style={{ padding: '10px 14px' }}>Contact Confidence & Due Diligence</th>
               <th style={{ padding: '10px 14px', textAlign: 'right' }}>Actions</th>
             </tr>
           </thead>
@@ -516,27 +534,111 @@ export function OriginationPipelineScreen() {
                     </div>
                   </td>
 
-                  {/* Direct Contact */}
+                  {/* Contact Confidence & Outreach Status */}
                   <td style={{ padding: '10px 14px' }} onClick={e => e.stopPropagation()}>
-                    {p.contactEmail ? (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                        <a
-                          href={`mailto:${p.contactEmail}`}
-                          style={{ color: '#38bdf8', textDecoration: 'none', fontSize: '11px' }}
-                          className="hover:underline truncate max-w-[180px] block"
-                        >
-                          {p.contactEmail}
-                        </a>
-                        {p.contactPhone && (
-                          <span style={{ fontSize: '10px', color: 'var(--color-text-tertiary)', fontFamily: 'monospace' }}>
-                            {p.contactPhone}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        {p.contactQuality?.confidence === 'UNDELIVERABLE' ? (
+                          <span
+                            style={{
+                              backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                              color: '#ef4444',
+                              border: '1px solid rgba(239, 68, 68, 0.3)',
+                              fontSize: '10px',
+                              padding: '1px 6px',
+                              borderRadius: '4px',
+                              fontWeight: 700,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px',
+                              cursor: 'pointer',
+                            }}
+                            onClick={() => setSelectedPlantForDrawer(p)}
+                            title="Dead domain: synthetic bounce. Click to inspect official register."
+                          >
+                            <AlertOctagon size={10} /> Bounce
+                          </span>
+                        ) : p.contactQuality?.confidence === 'INDIRECT' ? (
+                          <span
+                            style={{
+                              backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                              color: '#f59e0b',
+                              border: '1px solid rgba(245, 158, 11, 0.3)',
+                              fontSize: '10px',
+                              padding: '1px 6px',
+                              borderRadius: '4px',
+                              fontWeight: 600,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px',
+                              cursor: 'pointer',
+                            }}
+                            onClick={() => setSelectedPlantForDrawer(p)}
+                            title="Shared switchboard. Click to inspect."
+                          >
+                            <AlertTriangle size={10} /> Indirect
+                          </span>
+                        ) : p.contactQuality?.confidence === 'UNVERIFIED_LEAD' ? (
+                          <span
+                            style={{
+                              backgroundColor: 'rgba(14, 165, 233, 0.15)',
+                              color: '#0ea5e9',
+                              border: '1px solid rgba(14, 165, 233, 0.3)',
+                              fontSize: '10px',
+                              padding: '1px 6px',
+                              borderRadius: '4px',
+                              fontWeight: 600,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px',
+                              cursor: 'pointer',
+                            }}
+                            onClick={() => setSelectedPlantForDrawer(p)}
+                            title="Unverified lead. Desk verification required."
+                          >
+                            <Mail size={10} /> Lead
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>No Contact</span>
+                        )}
+
+                        {p.contactQuality?.isPersonalEmail && (
+                          <span
+                            style={{
+                              backgroundColor: 'rgba(234, 88, 12, 0.2)',
+                              color: '#ea580c',
+                              fontSize: '9px',
+                              fontWeight: 800,
+                              padding: '1px 4px',
+                              borderRadius: '3px',
+                            }}
+                            title="GDPR Risk: Personal/farmer mailbox"
+                          >
+                            GDPR
                           </span>
                         )}
                       </div>
-                    ) : (
-                      <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>Confidential Grid Meter</span>
-                    )}
+
+                      {p.contactEmail && (
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            color: p.contactQuality?.confidence === 'UNDELIVERABLE' ? '#64748b' : '#94a3b8',
+                            textDecoration: p.contactQuality?.confidence === 'UNDELIVERABLE' ? 'line-through' : 'none',
+                            maxWidth: '180px',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            display: 'block',
+                          }}
+                          title={p.contactEmail}
+                        >
+                          {p.contactEmail}
+                        </span>
+                      )}
+                    </div>
                   </td>
+
 
                   {/* Actions */}
                   <td style={{ padding: '10px 14px', textAlign: 'right' }} onClick={e => e.stopPropagation()}>

@@ -51,6 +51,11 @@ export interface Market {
   requiresMassBalance: boolean;
   requiresUDB: boolean;
   acceptsBookAndClaim: boolean;
+  /**
+   * Guarantee of Origin registry (RED III Art. 19 / EN 16325). GOs are disclosure instruments:
+   * no RED III GHG saving threshold, no transport crop cap, book-and-claim by nature.
+   */
+  isGuaranteeOfOrigin?: boolean;
   isEUScope: boolean;            // true for EU-wide markets (FuelEU, ETS)
   deskCategory?: 'COMPLIANCE' | 'VOLUNTARY'; // Top-level commercial desk categorization
   uncertainties: Uncertainty[];

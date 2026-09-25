@@ -41,6 +41,18 @@ export const VLSFO_MJ_PER_TONNE = 41000;
 export const FR_CPB_CEILING_EUR_MWH = 100;
 
 /**
+ * German THG-Quote non-compliance penalty (€/tCO2e shortfall)
+ * Source: §37c(2) BImSchG — €600/tCO2e since compliance year 2022
+ */
+export const DE_THG_PENALTY_EUR_PER_TCO2E = 600;
+
+/**
+ * UK RTFO buy-out price per RTFC (£) — no obligated supplier rationally pays more
+ * Source: Renewable Transport Fuel Obligations Order 2007 (SI 2007/3072), Art. 17
+ */
+export const UK_RTFC_BUYOUT_GBP = 0.50;
+
+/**
  * GHG Saving Thresholds for Transport (by commissioning date)
  * Source: RED III Art. 29(10)
  */

@@ -253,6 +253,8 @@ export function TradeMarketAuditStep({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '8px',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -261,16 +263,49 @@ export function TradeMarketAuditStep({
                   RED III Six-Gate Regulatory Audit
                 </span>
               </div>
-              <span
-                style={{
-                  fontSize: '10.5px',
-                  fontFamily: MONO_FONT,
-                  fontWeight: 700,
-                  color: isPass ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)',
-                }}
-              >
-                {assessment.gates.filter(g => g.verdict === 'PASS').length} OF 6 GATES CLEAR
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const activeDeal = (typeof window !== 'undefined' && (window as any).__ACTIVE_TRADE_BUILDER_DEAL__) || {};
+                    const activeCi = typeof activeDeal.carbonIntensity === 'number' ? activeDeal.carbonIntensity : Math.round(94.0 * (1 - ghgSavingPct / 100));
+                    window.dispatchEvent(new CustomEvent('open-compliance-auditor', {
+                      detail: {
+                        ...activeDeal,
+                        originCountry: origin,
+                        targetMarketId: marketId,
+                        targetMarketName: selectedMarket.name,
+                        carbonIntensity: activeCi,
+                        initialTab: 'GATE_BREAKDOWN'
+                      }
+                    }));
+                  }}
+                  className="btn btn-secondary"
+                  style={{
+                    padding: '2px 8px',
+                    fontSize: '10.5px',
+                    fontWeight: 700,
+                    color: 'var(--color-accent)',
+                    borderColor: 'var(--color-accent)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                  title="Run deep statutory audit with closed-domain AI & legal vault"
+                >
+                  <span>⚖ Run Forensic Statutory Audit</span>
+                </button>
+                <span
+                  style={{
+                    fontSize: '10.5px',
+                    fontFamily: MONO_FONT,
+                    fontWeight: 700,
+                    color: isPass ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)',
+                  }}
+                >
+                  {assessment.gates.filter(g => g.verdict === 'PASS').length} OF 6 GATES CLEAR
+                </span>
+              </div>
             </div>
 
             <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -282,11 +317,29 @@ export function TradeMarketAuditStep({
                 return (
                   <div
                     key={gIdx}
+                    onClick={() => {
+                      const activeDeal = (typeof window !== 'undefined' && (window as any).__ACTIVE_TRADE_BUILDER_DEAL__) || {};
+                      const activeCi = typeof activeDeal.carbonIntensity === 'number' ? activeDeal.carbonIntensity : Math.round(94.0 * (1 - ghgSavingPct / 100));
+                      window.dispatchEvent(new CustomEvent('open-compliance-auditor', {
+                        detail: {
+                          ...activeDeal,
+                          originCountry: origin,
+                          targetMarketId: marketId,
+                          targetMarketName: selectedMarket.name,
+                          carbonIntensity: activeCi,
+                          initialTab: 'GATE_BREAKDOWN',
+                          focusedGateIndex: gIdx
+                        }
+                      }));
+                    }}
                     style={{
-                      border: '1px solid var(--color-divider)',
+                      border: isBlock && gateBlock ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--color-divider)',
                       backgroundColor: 'var(--color-subtier)',
                       padding: '10px 12px',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
                     }}
+                    title={`Click to audit Gate ${gIdx + 1} with Chief Regulatory Officer`}
                   >
                     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px', marginBottom: '3px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -302,35 +355,42 @@ export function TradeMarketAuditStep({
                         </span>
                       </div>
 
-                      <span
-                        style={{
-                          fontSize: '9.5px',
-                          fontFamily: MONO_FONT,
-                          fontWeight: 700,
-                          padding: '1px 6px',
-                          border: gatePass
-                            ? '1px solid rgba(16, 185, 129, 0.4)'
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {(!gatePass) && (
+                          <span style={{ fontSize: '10px', color: 'var(--color-accent)', textDecoration: 'underline' }}>
+                            ⚖ Audit Gate →
+                          </span>
+                        )}
+                        <span
+                          style={{
+                            fontSize: '9.5px',
+                            fontFamily: MONO_FONT,
+                            fontWeight: 700,
+                            padding: '1px 6px',
+                            border: gatePass
+                              ? '1px solid rgba(16, 185, 129, 0.4)'
+                              : gateBlock
+                              ? '1px solid rgba(239, 68, 68, 0.4)'
+                              : '1px solid rgba(234, 179, 8, 0.4)',
+                            backgroundColor: gatePass
+                              ? 'rgba(16, 185, 129, 0.12)'
+                              : gateBlock
+                              ? 'rgba(239, 68, 68, 0.12)'
+                              : 'rgba(234, 179, 8, 0.12)',
+                            color: gatePass
+                              ? 'var(--color-status-pos-text)'
+                              : gateBlock
+                              ? 'var(--color-status-neg-text)'
+                              : 'var(--color-warning)',
+                          }}
+                        >
+                          {gatePass
+                            ? (gIdx === 3 ? 'Pass · Annex IX-A' : gIdx === 4 ? `Pass · ${ghgSavingPct}% GHG` : 'Pass')
                             : gateBlock
-                            ? '1px solid rgba(239, 68, 68, 0.4)'
-                            : '1px solid rgba(234, 179, 8, 0.4)',
-                          backgroundColor: gatePass
-                            ? 'rgba(16, 185, 129, 0.12)'
-                            : gateBlock
-                            ? 'rgba(239, 68, 68, 0.12)'
-                            : 'rgba(234, 179, 8, 0.12)',
-                          color: gatePass
-                            ? 'var(--color-status-pos-text)'
-                            : gateBlock
-                            ? 'var(--color-status-neg-text)'
-                            : 'var(--color-warning)',
-                        }}
-                      >
-                        {gatePass
-                          ? (gIdx === 3 ? 'Pass · Annex IX-A' : gIdx === 4 ? `Pass · ${ghgSavingPct}% GHG` : 'Pass')
-                          : gateBlock
-                          ? 'Blocked'
-                          : 'Conditional'}
-                      </span>
+                            ? 'Blocked'
+                            : 'Conditional'}
+                        </span>
+                      </div>
                     </div>
 
                     <div style={{ fontSize: '11.5px', color: 'var(--color-muted)', lineHeight: 1.45, marginTop: '3px' }}>

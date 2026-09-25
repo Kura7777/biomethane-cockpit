@@ -1,12 +1,33 @@
 import { jsPDF } from 'jspdf';
 import { TradeAssessment } from './types';
 import { MARKETS, isVoluntaryMarket } from '../markets/registry';
+import { Market } from '../markets/types';
+import { LegalCitation, OverallVerdict } from '../eligibility/types';
+import { AnnexClassification, ChainOfCustody } from '../consignment/types';
+
+/**
+ * Deal documentation generators.
+ *
+ * Ground rules (these documents can leave the building):
+ *  1. Never invent a contract fact. Anything the desk has not captured — entity names, master
+ *     agreement date, volume, dates, tolerances, LEIs — renders as an explicit placeholder.
+ *  2. Trade direction is explicit. On an offtake from a producer the desk is the BUYER.
+ *  3. Counterparty-facing documents never carry internal valuation (netback, desk margin).
+ *  4. Every document says what it is: indicative term sheet, draft confirmation, desk
+ *     pre-screen, or internal worksheet. None of them is legal advice or a compliance approval.
+ */
+
+export const TBA = '[TO BE AGREED]';
 
 // ---------------------------------------------------------------------------
-// 1. Pure Synchronous SHA-256 Implementation (Zero Dependencies)
+// 1. SHA-256 document fingerprint (zero dependencies, UTF-8 safe)
 // ---------------------------------------------------------------------------
 
-function sha256(ascii: string): string {
+function sha256(input: string): string {
+  // Encode to UTF-8 bytes first: hashing raw UTF-16 code units & 0xff made names such as
+  // "Énergie" and "Ãnergie" collide.
+  const ascii = unescape(encodeURIComponent(input));
+
   function rightRotate(value: number, amount: number): number {
     return (value >>> amount) | (value << (32 - amount));
   }
@@ -101,374 +122,341 @@ function sha256(ascii: string): string {
 }
 
 /**
- * Compute a deterministic SHA-256 cryptographic seal for any trade assessment.
+ * Deterministic SHA-256 fingerprint over every material term of the assessment.
+ * It identifies a version of the terms; it is not a digital signature and proves nothing about
+ * who produced the document.
  */
 export function calculateTradeIntegritySeal(assessment: TradeAssessment): string {
   const c = assessment.consignment;
+  const dp = c.deliveryPeriod;
+  const pp = assessment.costs?.producerPricing;
   const canonical = [
     assessment.id,
-    c.counterparty || 'ANONYMOUS_COUNTERPARTY',
-    c.feedstock || 'FEEDSTOCK',
-    typeof c.carbonIntensity === 'number' ? c.carbonIntensity.toFixed(2) : '0.00',
-    c.volumeMWh ?? 0,
-    assessment.targetMarketId,
-    assessment.netback.netNetback ?? 0,
-    c.certificationScheme || 'ISCC_EU',
-    c.chainOfCustody || 'MASS_BALANCE',
     assessment.createdAt,
+    assessment.targetMarketId,
+    c.counterparty ?? '',
+    c.originCountry,
+    c.injectionCountry,
+    c.feedstock,
+    c.annexClassification,
+    typeof c.carbonIntensity === 'number' ? c.carbonIntensity.toFixed(2) : '',
+    c.volumeMWh ?? '',
+    c.certificationScheme,
+    c.chainOfCustody,
+    dp?.startDate ?? '',
+    dp?.endDate ?? '',
+    dp?.complianceYear ?? '',
+    dp?.deliveryProfile ?? '',
+    pp?.mode ?? '',
+    pp?.fixedPriceEurPerMwh ?? '',
+    pp?.indexLinkedShare ?? '',
+    assessment.netback.certificateValue?.valueEurPerMWh ?? '',
+    assessment.marks.gasIndex.mid ?? '',
   ].join('|');
 
   return sha256(canonical);
 }
 
 // ---------------------------------------------------------------------------
-// 2. EFET Biomethane Annex & ISDA Confirmation PDF Generator
+// 2. Shared term resolution
 // ---------------------------------------------------------------------------
+
+export type DeskRole = 'BUYER' | 'SELLER';
 
 export interface LegalAnnexOptions {
   buyerName?: string;
   sellerName?: string;
   governingLaw?: 'ENGLISH_LAW' | 'GERMAN_LAW';
   masterAgreementDate?: string;
+  /** The desk's own legal entity. */
   tradingDeskEntity?: string;
+  /** Desk side of the trade. Defaults to BUYER when the deal was originated from a plant. */
+  deskRole?: DeskRole;
 }
 
+/** Offtake origination (deal sourced from a registry plant) means the desk is buying. */
+export function inferDeskRole(assessment: TradeAssessment): DeskRole {
+  return assessment.consignment.originPlantId ? 'BUYER' : 'SELLER';
+}
+
+export interface ResolvedParties {
+  deskRole: DeskRole;
+  deskEntity: string;
+  counterparty: string;
+  seller: string;
+  buyer: string;
+}
+
+export function resolveParties(assessment: TradeAssessment, options: LegalAnnexOptions = {}): ResolvedParties {
+  const deskRole = options.deskRole ?? inferDeskRole(assessment);
+  const deskEntity = options.tradingDeskEntity?.trim() || '[DESK LEGAL ENTITY]';
+  const counterparty = assessment.consignment.counterparty?.trim() || '[COUNTERPARTY LEGAL ENTITY]';
+  const defaultSeller = deskRole === 'SELLER' ? deskEntity : counterparty;
+  const defaultBuyer = deskRole === 'BUYER' ? deskEntity : counterparty;
+  return {
+    deskRole,
+    deskEntity,
+    counterparty,
+    seller: options.sellerName?.trim() || defaultSeller,
+    buyer: options.buyerName?.trim() || defaultBuyer,
+  };
+}
+
+export function annexClassificationLabel(classification: AnnexClassification): string {
+  switch (classification) {
+    case 'IX_A': return 'RED III Annex IX Part A';
+    case 'IX_B': return 'RED III Annex IX Part B';
+    case 'CROP': return 'Food/feed crop (not Annex IX; RED III Art. 26 cap applies in transport)';
+    default: return 'Unclassified — verify feedstock classification';
+  }
+}
+
+export function chainOfCustodyLabel(coc: ChainOfCustody): string {
+  switch (coc) {
+    case 'MASS_BALANCE': return 'Mass balance (RED III Art. 30)';
+    case 'SEGREGATION': return 'Physical segregation';
+    case 'BOOK_AND_CLAIM': return 'Book and claim (voluntary / Guarantee of Origin markets only)';
+    default: return String(coc);
+  }
+}
+
+function environmentalAttributeLabel(market: Market | undefined, marketId: string): string {
+  if (market?.isGuaranteeOfOrigin || isVoluntaryMarket(marketId)) return 'Guarantees of Origin (GO)';
+  if (marketId === 'UK_RTFO') return 'Renewable Transport Fuel Certificates (RTFCs) under the UK RTFO';
+  if (marketId === 'FUELEU') return 'Proof of Sustainability supporting FuelEU Maritime compliance';
+  return 'Proof of Sustainability (PoS) recorded in the Union Database';
+}
+
+const fmtMwh = (v: number | null | undefined) => (v != null ? `${v.toLocaleString()} MWh` : TBA);
+const orTba = (v: string | number | null | undefined) => (v != null && String(v).trim() !== '' ? String(v) : TBA);
+
 /**
- * Generate an institutional EFET Biomethane Annex & ISDA Trade Confirmation PDF using jsPDF.
+ * Counterparty-facing price wording. Uses the agreed producer pricing on an offtake and
+ * market-level indications on a sale — never the desk's internal netback or margin.
  */
+export function describePricing(assessment: TradeAssessment, deskRole: DeskRole): string[] {
+  const pp = assessment.costs?.producerPricing;
+  const markDate = assessment.createdAt.slice(0, 10);
+  if (deskRole === 'BUYER') {
+    if (pp?.mode === 'FIXED_PRICE' && pp.fixedPriceEurPerMwh != null) {
+      return [`Fixed price: €${pp.fixedPriceEurPerMwh.toFixed(2)}/MWh, all-in (molecule and environmental attribute).`];
+    }
+    if (pp?.mode === 'INDEX_LINKED' && pp.indexLinkedShare != null) {
+      return [`Index-linked: ${(pp.indexLinkedShare * 100).toFixed(1)}% of the realised delivered value (molecule index plus attribute value), settled monthly.`];
+    }
+    return ['[PRICE TO BE AGREED] — producer pricing (fixed or index-linked) not yet set on this deal.'];
+  }
+  const cert = assessment.netback.certificateValue?.valueEurPerMWh ?? null;
+  const gas = assessment.marks.gasIndex.mid;
+  const lines: string[] = [];
+  lines.push(gas != null
+    ? `Molecule: TTF month-ahead index (reference €${gas.toFixed(2)}/MWh on ${markDate}).`
+    : 'Molecule: TTF month-ahead index.');
+  lines.push(cert != null
+    ? `Environmental attribute: €${cert.toFixed(2)}/MWh indicative premium (desk marks as of ${markDate}).`
+    : 'Environmental attribute: [PREMIUM TO BE AGREED].');
+  return lines;
+}
+
+const isBlocked = (a: TradeAssessment) => a.eligibility?.overallVerdict === 'HARD_BLOCK';
+
+function drawBlockedBanner(doc: jsPDF, assessment: TradeAssessment, margin: number, y: number): number {
+  doc.setFillColor(254, 226, 226);
+  doc.setDrawColor(220, 38, 38);
+  doc.rect(margin, y, 174, 10, 'FD');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(185, 28, 28);
+  const text = `NOT TRADEABLE AS STRUCTURED — ${assessment.eligibility.summary}`;
+  doc.text(doc.splitTextToSize(text, 168), margin + 3, y + 4);
+  return y + 13;
+}
+
+function drawRows(doc: jsPDF, rows: string[][], margin: number, y: number, labelWidth: number): number {
+  rows.forEach(([lbl, val]) => {
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(71, 85, 105);
+    doc.text(lbl, margin + 2, y + 3);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(15, 23, 42);
+    const lines = doc.splitTextToSize(val, 172 - labelWidth);
+    doc.text(lines, margin + labelWidth, y + 3);
+    y += Math.max(1, lines.length) * 3.6 + 1.4;
+  });
+  return y;
+}
+
+function drawFingerprint(doc: jsPDF, seal: string, margin: number, y: number): void {
+  doc.setFillColor(241, 245, 249);
+  doc.setDrawColor(148, 163, 184);
+  doc.rect(margin, y, 174, 10, 'FD');
+  doc.setFont('courier', 'bold');
+  doc.setFontSize(6.5);
+  doc.setTextColor(15, 23, 42);
+  doc.text('DOCUMENT FINGERPRINT (SHA-256 of the terms above — identifies this version; not a signature):', margin + 3, y + 4);
+  doc.setFont('courier', 'normal');
+  doc.setTextColor(71, 85, 105);
+  doc.text(seal, margin + 3, y + 8);
+}
+
+// ---------------------------------------------------------------------------
+// 3. Draft transaction confirmation (to be read with the parties' EFET General Agreement)
+// ---------------------------------------------------------------------------
+
 export function generateEfetBiomethaneAnnexPdf(
   assessment: TradeAssessment,
   options: LegalAnnexOptions = {}
 ): jsPDF {
-  const doc = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4',
-  });
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
   const c = assessment.consignment;
-  const nb = assessment.netback;
   const el = assessment.eligibility;
   const market = MARKETS.find(m => m.id === assessment.targetMarketId);
-
-  const seller = options.sellerName || 'BIOMETHANE TRADING DESK EUROPE B.V.';
-  const buyer = options.buyerName || c.counterparty || 'OFFTAKE COUNTERPARTY CORP';
+  const parties = resolveParties(assessment, options);
   const governingLaw = options.governingLaw || 'ENGLISH_LAW';
-  const maDate = options.masterAgreementDate || '15 January 2024';
+  const maDate = options.masterAgreementDate?.trim() || TBA;
   const seal = calculateTradeIntegritySeal(assessment);
-
-  const volume = c.volumeMWh ?? 10000;
-  const gasIndexPrice = assessment.marks.gasIndex.mid;
-  const certPrice = nb.certificateValue?.valueEurPerMWh ?? null;
-
+  const dp = c.deliveryPeriod;
+  const isVoluntary = isVoluntaryMarket(assessment.targetMarketId);
   const isNlDeal = assessment.targetMarketId === 'NL_ERE' || c.originCountry === 'NL' || c.injectionCountry === 'NL';
 
-  // Margins and styling colors
   const margin = 18;
   let y = 20;
 
-  // Header Banner
-  doc.setFillColor(15, 23, 42); // slate-900
+  doc.setFillColor(15, 23, 42);
   doc.rect(margin, y, 174, 18, 'F');
-
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
   doc.setTextColor(255, 255, 255);
-  doc.text('EUROPEAN FEDERATION OF ENERGY TRADERS (EFET)', margin + 4, y + 6);
+  doc.text('DRAFT INDIVIDUAL TRANSACTION CONFIRMATION — BIOMETHANE', margin + 4, y + 6);
   doc.setFontSize(7.5);
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(203, 213, 225); // slate-300
-  doc.text('ANNEX RELATING TO BIOMETHANE TRANSACTIONS & INDIVIDUAL TRANSACTION CONFIRMATION', margin + 4, y + 11);
-  doc.text(`Subject to EFET General Agreement (Gas Version 2.0(a)) · Dated ${maDate}`, margin + 4, y + 15);
+  doc.setTextColor(203, 213, 225);
+  doc.text('DRAFT FOR LEGAL REVIEW · NOT FOR EXECUTION IN THIS FORM', margin + 4, y + 11);
+  doc.text(`To be read with the EFET General Agreement (Natural Gas) between the parties dated ${maDate}`, margin + 4, y + 15);
+  y += 22;
 
-  y += 24;
+  if (isBlocked(assessment)) y = drawBlockedBanner(doc, assessment, margin, y);
 
-  // Trade Identification Strip
-  doc.setDrawColor(203, 213, 225);
-  doc.setFillColor(248, 250, 252);
-  doc.rect(margin, y, 174, 14, 'FD');
+  doc.setFontSize(7.5);
+  y = drawRows(doc, [
+    ['Transaction Reference:', assessment.id],
+    ['Draft Date:', assessment.createdAt.slice(0, 10)],
+    ['Governing Law:', governingLaw === 'ENGLISH_LAW' ? 'English law (per the General Agreement)' : 'German law (per the General Agreement)'],
+    ['Regulatory Basis (target market):', market?.legalBasis || TBA],
+  ], margin, y, 48);
+  y += 2;
 
-  doc.setFontSize(8);
-  doc.setTextColor(51, 65, 85);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Transaction Reference:', margin + 3, y + 5);
-  doc.setFont('helvetica', 'normal');
-  doc.text(assessment.id, margin + 42, y + 5);
-
-  doc.setFont('helvetica', 'bold');
-  doc.text('Confirmation Date:', margin + 95, y + 5);
-  doc.setFont('helvetica', 'normal');
-  doc.text(assessment.createdAt.slice(0, 10), margin + 128, y + 5);
-
-  doc.setFont('helvetica', 'bold');
-  doc.text('Governing Law:', margin + 3, y + 10);
-  doc.setFont('helvetica', 'normal');
-  doc.text(governingLaw === 'ENGLISH_LAW' ? 'English Law (High Court of Justice, London)' : 'German Law (Frankfurt am Main)', margin + 42, y + 10);
-
-  doc.setFont('helvetica', 'bold');
-  doc.text('Statutory Basis:', margin + 95, y + 10);
-  doc.setFont('helvetica', 'normal');
-  doc.text('RED III Directive (EU) 2023/2413', margin + 128, y + 10);
-
-  y += 18;
-
-  // Section 1: Bilateral Counterparties
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8.5);
   doc.setTextColor(15, 23, 42);
-  doc.text('1. CONTRACTING PARTIES & FACILITY ATTRIBUTION', margin, y);
+  doc.text('1. PARTIES & ORIGIN', margin, y);
   y += 3;
-
   doc.setFontSize(7.5);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(71, 85, 105);
+  y = drawRows(doc, [
+    ['Seller:', parties.seller],
+    ['Buyer:', parties.buyer],
+    ['Origin Facility:', c.originPlantName || c.name || TBA],
+    ['Origin / Injection:', `${c.originCountryName} (${c.originCountry}) · injected into the ${c.injectionCountry} grid`],
+    ['Feedstock:', `${c.feedstockName} — ${annexClassificationLabel(c.annexClassification)}`],
+    ['Sustainability Scheme:', c.certificationScheme.replace(/_/g, ' ')],
+    ['Registry:', market?.registry || TBA],
+  ], margin, y, 48);
+  y += 2;
 
-  const partiesData = [
-    ['Party A (Seller):', seller, 'Origin Facility:', c.name || `${c.originCountryName} Biomethane Facility`],
-    ['Party B (Buyer):', buyer, 'Origin Country:', `${c.originCountryName} (${c.originCountry})`],
-    ['Interconnection Grid:', `${c.injectionCountry} Gas Transmission Grid`, 'Feedstock Substrate:', `${c.feedstockName} (Annex IX-A)`],
-    ['Registry System:', market?.registry || 'Union Database (UDB)', 'Sustainability Scheme:', c.certificationScheme.replace(/_/g, ' ')],
-  ];
-
-  // Draw table manually for strict layout control
-  partiesData.forEach(row => {
-    doc.setFont('helvetica', 'bold');
-    doc.text(row[0], margin + 2, y + 3.5);
-    doc.setFont('helvetica', 'normal');
-    doc.text(row[1], margin + 34, y + 3.5, { maxWidth: 58 });
-
-    doc.setFont('helvetica', 'bold');
-    doc.text(row[2], margin + 95, y + 3.5);
-    doc.setFont('helvetica', 'normal');
-    doc.text(row[3], margin + 128, y + 3.5, { maxWidth: 46 });
-    y += 5;
-  });
-
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(15, 23, 42);
+  doc.text(isVoluntary ? '2. UNBUNDLED CERTIFICATE TRANSFER' : '2. PHYSICAL DELIVERY TERMS', margin, y);
   y += 3;
-
-  const isVoluntary = isVoluntaryMarket(assessment.targetMarketId);
-
-  // Section 2: Leg A - Physical Molecule Terms or Unbundled Disposition
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8.5);
-  doc.setTextColor(15, 23, 42);
-  doc.text(
-    isVoluntary
-      ? '2. COMMODITY DISPOSITION (UNBUNDLED BOOK-AND-CLAIM)'
-      : '2. LEG A: PHYSICAL GAS MOLECULE DELIVERY TERMS',
-    margin,
-    y
-  );
-  y += 4;
-
-  doc.setFillColor(241, 245, 249);
-  doc.rect(margin, y, 174, 22, 'F');
   doc.setFontSize(7.5);
-  doc.setTextColor(30, 41, 59);
+  const profile = dp?.deliveryProfile;
+  const profileDesc = profile === 'FLAT_MONTHLY' ? 'Flat monthly' : profile === 'FLAT_DAILY' ? 'Flat daily' : profile === 'BULLET' ? 'Bullet' : TBA;
+  y = drawRows(doc, isVoluntary ? [
+    ['Structure:', 'Certificate only — no physical gas delivered to Buyer.'],
+    ['Quantity:', `${fmtMwh(c.volumeMWh)} of ${environmentalAttributeLabel(market, assessment.targetMarketId)}`],
+    ['Transfer Mechanism:', `Transfer and cancellation on ${market?.registry || TBA}`],
+  ] : [
+    ['Commodity:', 'Biomethane meeting EN 16723-1 and the injection specification of the delivery grid.'],
+    ['Delivery Point:', dp?.deliveryPointVtp || `${c.injectionCountry} virtual trading point ${TBA}`],
+    ['Contract Quantity:', fmtMwh(c.volumeMWh)],
+    ['Delivery Period:', `${orTba(dp?.startDate)} to ${orTba(dp?.endDate)} · Profile: ${profileDesc}`],
+    ['Volume Tolerance:', `${TBA} (e.g. ±5% annual operational tolerance)`],
+  ], margin, y, 48);
+  y += 2;
 
-  if (isVoluntary) {
-    doc.setFont('helvetica', 'bold');
-    doc.text('Transaction Structure:', margin + 3, y + 4.5);
-    doc.setFont('helvetica', 'normal');
-    doc.text('UNBUNDLED CERTIFICATE ONLY. No physical gas molecule delivery to Buyer.', margin + 45, y + 4.5);
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Grid Injection & Gas:', margin + 3, y + 9);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Biomethane injected locally into ${c.injectionCountry} transmission grid; gas retained/sold by Producer.`, margin + 45, y + 9);
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Certificate Volume & Units:', margin + 3, y + 13.5);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`${volume.toLocaleString()} MWh Guarantees of Origin (GO) · Electronic cancellation on national registry.`, margin + 45, y + 13.5);
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Transit & Balancing:', margin + 3, y + 18);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Zero pipeline transit tariffs. Zero VTP balancing liability. Zero commodity delta risk.', margin + 45, y + 18);
-  } else {
-    doc.setFont('helvetica', 'bold');
-    doc.text('Commodity Specification:', margin + 3, y + 4.5);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Raw pipeline-quality Biomethane complying with EN 16723-1 & national injection specs.', margin + 45, y + 4.5);
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Delivery Point (VTP):', margin + 3, y + 9);
-    doc.setFont('helvetica', 'normal');
-    const vtpPoint = c.deliveryPeriod?.deliveryPointVtp || `Virtual Trading Point (${c.injectionCountry} Transmission Grid / TTF Equivalent)`;
-    doc.text(vtpPoint, margin + 45, y + 9);
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Contract Volume & Profile:', margin + 3, y + 13.5);
-    doc.setFont('helvetica', 'normal');
-    const delProfile = c.deliveryPeriod?.deliveryProfile || 'FLAT_MONTHLY';
-    const profileDesc = delProfile === 'FLAT_MONTHLY'
-      ? `Flat Monthly (~${Math.round(volume / 12).toLocaleString()} MWh/mo)`
-      : delProfile === 'FLAT_DAILY'
-      ? `Flat Daily (~${(volume / 365).toFixed(1)} MWh/day)`
-      : '100% Bullet Transfer';
-    doc.text(`${volume.toLocaleString()} MWh · Delivery Window: ${c.deliveryPeriod?.startDate || '2026-01-01'} to ${c.deliveryPeriod?.endDate || '2026-12-31'} (${profileDesc})`, margin + 45, y + 13.5);
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Tolerance Collars & Pricing:', margin + 3, y + 18);
-    doc.setFont('helvetica', 'normal');
-    const gasPriceStr = gasIndexPrice !== null ? `TTF Month+1 (€${gasIndexPrice.toFixed(2)}/MWh)` : 'TTF Month+1 Floating Index';
-    doc.text(`±5.0% Operational Volume Collar. Settlement: ${gasPriceStr} or Fixed Base.`, margin + 45, y + 18);
-  }
-
-  y += 26;
-
-  // Section 3: Leg B - Green Environmental Attribute & Certificate Terms
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8.5);
   doc.setTextColor(15, 23, 42);
-  doc.text(
-    isVoluntary
-      ? '3. GREEN ATTRIBUTE & REGISTRY CANCELLATION TERMS'
-      : '3. LEG B: GREEN ATTRIBUTE & CERTIFICATE TRANSFER TERMS',
-    margin,
-    y
-  );
-  y += 4;
-
-  doc.setFillColor(241, 245, 249);
-  doc.rect(margin, y, 174, 36, 'F');
+  doc.text('3. PRICE & ENVIRONMENTAL ATTRIBUTE', margin, y);
+  y += 3;
   doc.setFontSize(7.5);
-  doc.setTextColor(30, 41, 59);
+  y = drawRows(doc, [
+    ['Price:', describePricing(assessment, parties.deskRole).join(' ')],
+    ['Environmental Attribute:', environmentalAttributeLabel(market, assessment.targetMarketId)],
+    ['Contract Carbon Intensity:', `${c.carbonIntensity} gCO₂e/MJ, to be evidenced by PoS issued under ${c.certificationScheme.replace(/_/g, ' ')}`],
+    ['Carbon Intensity Adjustment:', `P_adj = P_base + α × (CI_contract − CI_delivered); α = ${TBA}; floor/cap ${TBA}`],
+    ['Production Vintage:', `${orTba(dp?.productionStartDate)} to ${orTba(dp?.productionEndDate)} · Compliance year ${orTba(dp?.complianceYear)}`],
+    ['Attribute Transfer Deadline:', orTba(dp?.statutorySurrenderDeadline)],
+    ['Chain of Custody:', chainOfCustodyLabel(c.chainOfCustody)],
+  ], margin, y, 48);
+  y += 2;
 
-  doc.setFont('helvetica', 'bold');
-  doc.text('Environmental Attribute:', margin + 3, y + 4.5);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`Guarantees of Origin (GO) / Proof of Sustainability (PoS) for ${assessment.targetMarketName}.`, margin + 45, y + 4.5);
-
-  doc.setFont('helvetica', 'bold');
-  doc.text('Contract Carbon Intensity:', margin + 3, y + 9);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`${c.carbonIntensity} gCO₂e/MJ (Audited under ISCC EU / RED III standard methodology).`, margin + 45, y + 9);
-
-  doc.setFont('helvetica', 'bold');
-  doc.text('Dynamic CI Slider Clause:', margin + 3, y + 13.5);
-  doc.setFont('helvetica', 'normal');
-  doc.text('P_adj = P_base + α × (CI_contract − CI_delivered). Price floor: €0/MWh; Cap: Statutory ceiling.', margin + 45, y + 13.5);
-
-  doc.setFont('helvetica', 'bold');
-  doc.text('Production Vintage Window:', margin + 3, y + 18);
-  doc.setFont('helvetica', 'normal');
-  const prodWindow = `${c.deliveryPeriod?.productionStartDate || '2026-01-01'} to ${c.deliveryPeriod?.productionEndDate || '2026-12-31'} · Compliance Year: ${c.deliveryPeriod?.complianceYear || 2026}`;
-  doc.text(prodWindow, margin + 45, y + 18);
-
-  doc.setFont('helvetica', 'bold');
-  doc.text('Registry Surrender Deadline:', margin + 3, y + 22.5);
-  doc.setFont('helvetica', 'normal');
-  const regDeadline = c.deliveryPeriod?.statutorySurrenderDeadline || '28 February 2027';
-  doc.text(`Title transferred via ${market?.registry || 'Union Database (UDB)'} by ${regDeadline} (within 30 days of production month end).`, margin + 45, y + 22.5);
-
-  doc.setFont('helvetica', 'bold');
-  doc.text('Green Premium Valuation:', margin + 3, y + 27);
-  doc.setFont('helvetica', 'normal');
-  const certPriceStr = certPrice !== null ? `€${certPrice.toFixed(2)}/MWh` : 'Unsettled';
-  doc.text(`Attribute Unit Value: ${certPriceStr}. Netback Payable: €${(nb.netNetback ?? 0).toFixed(2)}/MWh.`, margin + 45, y + 27);
-
-  doc.setFont('helvetica', 'bold');
-  doc.text('Chain of Custody:', margin + 3, y + 31.5);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`${c.chainOfCustody.replace(/_/g, ' ')} under RED III Article 31a single interconnected area.`, margin + 45, y + 31.5);
-
-  y += 38;
-
-  // Section 4: Subsidy Clawback & Double Beneficiary Clause (SDE++ if NL)
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8.5);
   doc.setTextColor(15, 23, 42);
-  doc.text('4. STATUTORY COMPLIANCE & SUBSIDY CLAWBACK COVENANT', margin, y);
+  doc.text('4. SUBSIDY & DOUBLE-CLAIMING WARRANTY (DRAFTING POINT)', margin, y);
   y += 4;
-
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7);
   doc.setTextColor(71, 85, 105);
-
   const subsidyText = isNlDeal
-    ? 'SPECIAL DUTCH SDE++ COVENANT: The Seller explicitly covenants that for any volume delivered under this Annex into or out of the Netherlands, no double financial compensation under the Dutch SDE/SDE++ subsidy regime has been retained without statutory correction. Seller warrants full compliance with VertiCer export cancellation and UDB single-accounting rules.'
-    : 'GENERAL SUBSIDY & DOUBLE-COUNTING COVENANT: Seller warrants that biomethane volumes delivered have not been simultaneously claimed against national feed-in subsidies (EEG, GSE, or similar) where prohibited by national transposition of RED III Directive (EU) 2023/2413.';
-
+    ? 'Seller to warrant that no double compensation under the Dutch SDE/SDE++ regime is retained for volumes delivered into or out of the Netherlands without the applicable correction, and that VertiCer export cancellation and Union Database single-accounting rules are complied with.'
+    : 'Seller to warrant that the delivered volumes and their environmental attributes have not been claimed under any other support scheme or sold to any other party where doing so would amount to double claiming under applicable national rules.';
   const splitSubsidy = doc.splitTextToSize(subsidyText, 172);
-  doc.text(splitSubsidy, margin + 2, y + 1);
-  y += splitSubsidy.length * 3.5 + 4;
+  doc.text(splitSubsidy, margin + 2, y);
+  y += splitSubsidy.length * 3.4 + 3;
 
-  // Section 5: 6-Gate Statutory Audit Evaluation
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8.5);
   doc.setTextColor(15, 23, 42);
-  doc.text('5. REGULATORY VERIFICATION CHECKLIST (6-GATE AUDIT SUMMARY)', margin, y);
+  doc.text('5. DESK REGULATORY PRE-SCREEN (INFORMATIONAL — NOT A REPRESENTATION)', margin, y);
   y += 4;
-
-  el.gates.slice(0, 6).forEach((gate, idx) => {
+  el.gates.slice(0, 6).forEach(gate => {
     const isPass = gate.verdict === 'PASS';
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(7);
     doc.setTextColor(isPass ? 22 : 180, isPass ? 101 : 83, isPass ? 52 : 9);
     doc.text(`[${gate.verdict}]`, margin + 2, y);
-
-    doc.setFont('helvetica', 'bold');
     doc.setTextColor(30, 41, 59);
-    doc.text(`Gate ${idx + 1}: ${gate.gateLabel}`, margin + 18, y);
-
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100, 116, 139);
-    const shortReason = gate.reason.length > 80 ? gate.reason.slice(0, 77) + '...' : gate.reason;
-    doc.text(shortReason, margin + 78, y);
-
-    y += 3.8;
+    doc.text(gate.gateLabel, margin + 26, y);
+    y += 3.6;
   });
+  y += 4;
 
-  y += 5;
-
-  // Section 6: Execution & Signature Blocks
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8.5);
   doc.setTextColor(15, 23, 42);
-  doc.text('6. EXECUTION & AUTHORIZATION', margin, y);
+  doc.text('6. EXECUTION (FINAL VERSION ONLY)', margin, y);
   y += 5;
-
   doc.setDrawColor(203, 213, 225);
   doc.line(margin, y, margin + 75, y);
   doc.line(margin + 99, y, margin + 174, y);
-
   doc.setFontSize(7.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(51, 65, 85);
-  doc.text(`For: ${seller}`, margin, y + 4);
-  doc.text(`For: ${buyer}`, margin + 99, y + 4);
+  doc.text(`For: ${parties.seller} (Seller)`, margin, y + 4, { maxWidth: 75 });
+  doc.text(`For: ${parties.buyer} (Buyer)`, margin + 99, y + 4, { maxWidth: 75 });
+  y += 14;
 
-  doc.setFont('helvetica', 'normal');
-  doc.text('Authorized Commercial Signatory', margin, y + 8);
-  doc.text('Authorized Commercial Signatory', margin + 99, y + 8);
-
-  y += 18;
-
-  // Footer: Cryptographic SHA-256 Integrity Seal
-  doc.setFillColor(241, 245, 249);
-  doc.setDrawColor(148, 163, 184);
-  doc.rect(margin, y, 174, 11, 'FD');
-
-  doc.setFont('courier', 'bold');
-  doc.setFontSize(6.5);
-  doc.setTextColor(15, 23, 42);
-  doc.text('CRYPTOGRAPHIC SHA-256 INTEGRITY AUDIT SEAL:', margin + 3, y + 4.5);
-  doc.setFont('courier', 'normal');
-  doc.setTextColor(71, 85, 105);
-  doc.text(seal, margin + 3, y + 8.5);
-
+  drawFingerprint(doc, seal, margin, Math.min(y, 275));
   return doc;
 }
 
 // ---------------------------------------------------------------------------
-// 3. ETRM FpML 5.x XML Generator
+// 4. Internal deal record XML (FpML-inspired; not schema-validated FpML)
 // ---------------------------------------------------------------------------
 
-/**
- * Escapes characters with special meaning in XML (e.g. & < > " ')
- */
 export function escapeXml(str: string | undefined | null): string {
   if (!str) return '';
   return str
@@ -480,139 +468,95 @@ export function escapeXml(str: string | undefined | null): string {
 }
 
 /**
- * Generate standard FpML 5.x XML machine-readable deal confirmation.
+ * Internal machine-readable deal record. Element names follow FpML conventions loosely but the
+ * document is NOT valid against the FpML schema — map it explicitly before any system import.
  */
-export function generateFpMLDealPayload(assessment: TradeAssessment): string {
+export function generateFpMLDealPayload(assessment: TradeAssessment, options: LegalAnnexOptions = {}): string {
   const c = assessment.consignment;
   const nb = assessment.netback;
+  const market = MARKETS.find(m => m.id === assessment.targetMarketId);
+  const parties = resolveParties(assessment, options);
   const seal = calculateTradeIntegritySeal(assessment);
   const now = new Date().toISOString();
-  const volume = c.volumeMWh ?? 10000;
   const gasPrice = assessment.marks.gasIndex.mid;
   const certValue = nb.certificateValue?.valueEurPerMWh ?? null;
-  const counterpartyRaw = c.counterparty || 'OFFTAKE COUNTERPARTY CORP';
-  const sendToCode = counterpartyRaw.replace(/[^a-zA-Z0-9_-]/g, '_').toUpperCase();
+  const dp = c.deliveryPeriod;
+  // The buyer pays, the seller receives.
+  const desk = 'DESK';
+  const cpty = 'COUNTERPARTY';
+  const payer = parties.deskRole === 'BUYER' ? desk : cpty;
+  const receiver = parties.deskRole === 'BUYER' ? cpty : desk;
+  const num = (v: number | null | undefined, dp2 = 2) => (v != null ? v.toFixed(dp2) : '');
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<fpml:dataDocument xmlns:fpml="http://www.fpml.org/FpML-5/recordkeeping"
-                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                   fpmlVersion="5-12">
-  <fpml:header>
-    <fpml:messageId messageIdScheme="urn:biomethane:desk:msg">${escapeXml(assessment.id)}</fpml:messageId>
-    <fpml:sentBy>BIOMETHANE_DESK_EUROPE</fpml:sentBy>
-    <fpml:sendTo>${escapeXml(sendToCode)}</fpml:sendTo>
-    <fpml:creationTimestamp>${now}</fpml:creationTimestamp>
-  </fpml:header>
+<!-- Internal deal record. FpML-inspired naming; NOT validated against the FpML schema. -->
+<dealRecord xmlns="urn:biomethane-desk:deal-record:v2" generated="${now}">
+  <header>
+    <dealId>${escapeXml(assessment.id)}</dealId>
+    <tradeDate>${escapeXml(assessment.createdAt.slice(0, 10))}</tradeDate>
+    <deskRole>${parties.deskRole}</deskRole>
+    <status>${isBlocked(assessment) ? 'NOT_TRADEABLE_REGULATORY_BLOCK' : 'INDICATIVE'}</status>
+  </header>
 
-  <fpml:trade>
-    <fpml:tradeHeader>
-      <fpml:partyTradeIdentifier>
-        <fpml:partyReference href="Party1"/>
-        <fpml:tradeId tradeIdScheme="urn:efet:biomethane">${escapeXml(assessment.id)}</fpml:tradeId>
-      </fpml:partyTradeIdentifier>
-      <fpml:tradeDate>${escapeXml(assessment.createdAt.slice(0, 10))}</fpml:tradeDate>
-    </fpml:tradeHeader>
+  <party id="${desk}">
+    <name>${escapeXml(parties.deskEntity)}</name>
+    <lei></lei>
+  </party>
+  <party id="${cpty}">
+    <name>${escapeXml(parties.counterparty)}</name>
+    <lei></lei>
+  </party>
 
-    <fpml:commoditySwap>
-      <!-- LEG A: Physical Gas Molecule -->
-      <fpml:gasPhysicalLeg>
-        <fpml:payerPartyReference href="Party2"/>
-        <fpml:receiverPartyReference href="Party1"/>
-        <fpml:deliveryPoint>${c.injectionCountry}_VTP_TRANSMISSION</fpml:deliveryPoint>
-        <fpml:commoditySpecification>
-          <fpml:commodityId>NATURAL_GAS_BIOMETHANE_EN16723</fpml:commodityId>
-        </fpml:commoditySpecification>
-        <fpml:quantity>
-          <fpml:amount>${volume}</fpml:amount>
-          <fpml:unitOfMeasure>MWh</fpml:unitOfMeasure>
-        </fpml:quantity>
-        <fpml:settlementPrice>
-          <fpml:currency>EUR</fpml:currency>
-          <fpml:amount>${gasPrice !== null ? gasPrice.toFixed(2) : '0.00'}</fpml:amount>
-          <fpml:priceType>TTF_MONTH_PLUS_ONE_INDEX</fpml:priceType>
-        </fpml:settlementPrice>
-        <fpml:toleranceCollar>
-          <fpml:percentage>0.05</fpml:percentage>
-          <fpml:penaltyMechanism>TAKE_OR_PAY</fpml:penaltyMechanism>
-        </fpml:toleranceCollar>
-      </fpml:gasPhysicalLeg>
+  <physicalLeg>
+    <payerPartyReference href="${payer}"/>
+    <receiverPartyReference href="${receiver}"/>
+    <deliveryPoint>${escapeXml(dp?.deliveryPointVtp || `${c.injectionCountry}_VTP`)}</deliveryPoint>
+    <commodity>BIOMETHANE_EN16723</commodity>
+    <quantityMWh>${c.volumeMWh ?? ''}</quantityMWh>
+    <deliveryStart>${escapeXml(dp?.startDate ?? '')}</deliveryStart>
+    <deliveryEnd>${escapeXml(dp?.endDate ?? '')}</deliveryEnd>
+    <gasIndexMarkEurMwh priceType="TTF_MONTH_AHEAD">${num(gasPrice)}</gasIndexMarkEurMwh>
+  </physicalLeg>
 
-      <!-- LEG B: Environmental Attribute / Certificate -->
-      <fpml:environmentalLeg>
-        <fpml:payerPartyReference href="Party2"/>
-        <fpml:receiverPartyReference href="Party1"/>
-        <fpml:attributeType>BIOMETHANE_GUARANTEE_OF_ORIGIN</fpml:attributeType>
-        <fpml:complianceScheme>RED_III_DIRECTIVE_2023_2413</fpml:complianceScheme>
-        <fpml:targetMarket>${assessment.targetMarketId}</fpml:targetMarket>
-        <fpml:carbonIntensity>
-          <fpml:metric>gCO2e/MJ</fpml:metric>
-          <fpml:contractValue>${c.carbonIntensity}</fpml:contractValue>
-          <fpml:alphaAdjuster>0.0125</fpml:alphaAdjuster>
-        </fpml:carbonIntensity>
-        <fpml:certificateQuantity>
-          <fpml:amount>${volume}</fpml:amount>
-          <fpml:unitOfMeasure>MWh</fpml:unitOfMeasure>
-        </fpml:certificateQuantity>
-        <fpml:attributePrice>
-          <fpml:currency>EUR</fpml:currency>
-          <fpml:amount>${certValue !== null ? certValue.toFixed(2) : '0.00'}</fpml:amount>
-        </fpml:attributePrice>
-        <fpml:registryTransfer>
-          <fpml:registry>UNION_DATABASE_UDB</fpml:registry>
-          <fpml:settlementWindowDays>30</fpml:settlementWindowDays>
-        </fpml:registryTransfer>
-      </fpml:environmentalLeg>
-    </fpml:commoditySwap>
+  <environmentalLeg>
+    <payerPartyReference href="${payer}"/>
+    <receiverPartyReference href="${receiver}"/>
+    <attributeType>${escapeXml(environmentalAttributeLabel(market, assessment.targetMarketId))}</attributeType>
+    <targetMarket>${escapeXml(assessment.targetMarketId)}</targetMarket>
+    <legalBasis>${escapeXml(market?.legalBasis ?? '')}</legalBasis>
+    <registry>${escapeXml(market?.registry ?? '')}</registry>
+    <feedstock classification="${escapeXml(c.annexClassification)}">${escapeXml(c.feedstockName)}</feedstock>
+    <carbonIntensityGco2ePerMj>${c.carbonIntensity}</carbonIntensityGco2ePerMj>
+    <certificationScheme>${escapeXml(c.certificationScheme)}</certificationScheme>
+    <chainOfCustody>${escapeXml(c.chainOfCustody)}</chainOfCustody>
+    <attributeMarkEurMwh>${num(certValue)}</attributeMarkEurMwh>
+  </environmentalLeg>
 
-    <fpml:documentation>
-      <fpml:masterAgreement>
-        <fpml:masterAgreementType>EFET_GAS_2_0_A</fpml:masterAgreementType>
-        <fpml:masterAgreementVersion>2024_BIOMETHANE_ANNEX</fpml:masterAgreementVersion>
-      </fpml:masterAgreement>
-    </fpml:documentation>
-  </fpml:trade>
-
-  <fpml:party id="Party1">
-    <fpml:partyId partyIdScheme="urn:lei">969500XXXXXXXXXX01</fpml:partyId>
-    <fpml:partyName>BIOMETHANE TRADING DESK EUROPE B.V.</fpml:partyName>
-  </fpml:party>
-
-  <fpml:party id="Party2">
-    <fpml:partyId partyIdScheme="urn:lei">969500XXXXXXXXXX02</fpml:partyId>
-    <fpml:partyName>${escapeXml(counterpartyRaw)}</fpml:partyName>
-  </fpml:party>
-
-  <!-- Cryptographic SHA-256 Audit Seal -->
-  <fpml:digitalSignature>
-    <fpml:digestMethod algorithm="SHA-256"/>
-    <fpml:digestValue>${seal}</fpml:digestValue>
-  </fpml:digitalSignature>
-</fpml:dataDocument>`;
+  <documentFingerprint algorithm="SHA-256">${seal}</documentFingerprint>
+</dealRecord>`;
 }
 
 // ---------------------------------------------------------------------------
-// 4. Standardized ETRM JSON Deal Ticket (OpenLink / TriplePoint / SAP)
+// 5. Internal ETRM-style JSON deal ticket
 // ---------------------------------------------------------------------------
 
 export interface EtrmJsonDealTicket {
   dealHeader: {
     dealId: string;
     tradeDate: string;
-    effectiveDate: string;
     createdTimestamp: string;
-    traderId: string;
-    tradingBook: string;
-    systemCompatibility: string[];
-    legalAgreement: string;
+    deskRole: DeskRole;
+    status: 'INDICATIVE' | 'NOT_TRADEABLE_REGULATORY_BLOCK';
+    format: 'GENERIC_JSON_V2';
   };
   counterparty: {
     name: string;
-    lei: string;
-    role: 'BUYER' | 'SELLER';
-    registryAccount: string;
+    lei: string | null;
+    role: DeskRole;
   };
   sourcingFacility: {
     name: string;
+    plantId: string | null;
     country: string;
     feedstock: string;
     annexClassification: string;
@@ -621,87 +565,69 @@ export interface EtrmJsonDealTicket {
   };
   legA_physicalMolecule: {
     commodity: string;
-    deliveryPointVtp: string;
-    volumeMWh: number;
-    dailyVolumeMWh: number;
-    priceMode: 'TTF_INDEX' | 'FIXED';
-    basePriceEurMwh: number;
-    volumeTolerancePct: number;
-    takeOrPayPenaltyEurMwh: number;
+    deliveryPointVtp: string | null;
+    volumeMWh: number | null;
+    deliveryStart: string | null;
+    deliveryEnd: string | null;
+    gasIndexMarkEurMwh: number | null;
   };
   legB_environmentalAttribute: {
     targetMarketId: string;
     targetMarketName: string;
+    attributeType: string;
     contractCiGco2ePerMj: number;
-    benchmarkCiGco2ePerMj: number;
-    attributeValueEurMwh: number;
-    netbackPayableEurMwh: number;
-    alphaPriceAdjuster: number;
-    priceFloorEurMwh: number;
+    fossilComparatorGco2ePerMj: number;
+    attributeValueEurMwh: number | null;
     priceCeilingEurMwh: number | null;
-    registrySystem: string;
-    titleTransferDays: number;
-    subsidyClause: {
-      sdePlusPlusApplicable: boolean;
-      doubleCountingWarranted: boolean;
-    };
+    registrySystem: string | null;
+  };
+  producerPricing: {
+    mode: 'FIXED_PRICE' | 'INDEX_LINKED' | null;
+    fixedPriceEurPerMwh: number | null;
+    indexLinkedShare: number | null;
   };
   regulatoryChecklist: Array<{
     gate: string;
     verdict: string;
     statutoryCitation: string;
   }>;
-  financialSummary: {
-    totalDealValueEur: number;
-    annualDeskMarginEur: number;
-    settlementTerms: string;
-    vatTreatment: string;
+  /** Internal valuation — never include in counterparty documents. */
+  internalValuation: {
+    deskNetbackEurMwh: number | null;
+    deskMarginEurMwh: number | null;
+    deskPnLEur: number | null;
   };
-  cryptographicIntegritySeal: {
+  documentFingerprint: {
     algorithm: 'SHA-256';
     hash: string;
-    verificationStatus: 'SEALED_VALID';
   };
 }
 
-/**
- * Generate standardized ETRM deal payload compatible with OpenLink Endur, TriplePoint, and SAP Commodity Management.
- */
-export function generateEtrmJsonPayload(assessment: TradeAssessment): EtrmJsonDealTicket {
+export function generateEtrmJsonPayload(assessment: TradeAssessment, options: LegalAnnexOptions = {}): EtrmJsonDealTicket {
   const c = assessment.consignment;
   const nb = assessment.netback;
-  const seal = calculateTradeIntegritySeal(assessment);
-  const volume = c.volumeMWh ?? 10000;
-  const gasPrice = assessment.marks.gasIndex.mid;
-  const certValue = nb.certificateValue?.valueEurPerMWh ?? null;
-  const netNetback = nb.netNetback ?? 0;
-  const marginPerMwh = nb.deskMargin ?? 0;
-
-  const isNlDeal = assessment.targetMarketId === 'NL_ERE' || c.originCountry === 'NL' || c.injectionCountry === 'NL';
+  const market = MARKETS.find(m => m.id === assessment.targetMarketId);
+  const parties = resolveParties(assessment, options);
+  const pp = assessment.costs?.producerPricing ?? null;
+  const dp = c.deliveryPeriod;
 
   return {
     dealHeader: {
       dealId: assessment.id,
       tradeDate: assessment.createdAt.slice(0, 10),
-      effectiveDate: assessment.createdAt.slice(0, 10),
       createdTimestamp: assessment.createdAt,
-      traderId: 'DESK_TRADER_EU',
-      tradingBook: 'BIOMETHANE_DESK_EUR',
-      systemCompatibility: [
-        'OpenLink_Endur_v22',
-        'TriplePoint_Commodity_XL_v15',
-        'SAP_S4HANA_Commodity_Management',
-      ],
-      legalAgreement: 'EFET_GAS_2_0_A_BIOMETHANE_ANNEX',
+      deskRole: parties.deskRole,
+      status: isBlocked(assessment) ? 'NOT_TRADEABLE_REGULATORY_BLOCK' : 'INDICATIVE',
+      format: 'GENERIC_JSON_V2',
     },
     counterparty: {
-      name: c.counterparty || 'OFFTAKE COUNTERPARTY CORP',
-      lei: '969500XXXXXXXXXX02',
-      role: 'BUYER',
-      registryAccount: `${assessment.targetMarketId}_REG_ACC_001`,
+      name: parties.counterparty,
+      lei: null,
+      role: parties.deskRole === 'BUYER' ? 'SELLER' : 'BUYER',
     },
     sourcingFacility: {
-      name: c.name || `${c.originCountryName} Biomethane Facility`,
+      name: c.originPlantName || c.name,
+      plantId: c.originPlantId ?? null,
       country: c.originCountry,
       feedstock: c.feedstockName,
       annexClassification: c.annexClassification,
@@ -709,394 +635,491 @@ export function generateEtrmJsonPayload(assessment: TradeAssessment): EtrmJsonDe
       chainOfCustody: c.chainOfCustody,
     },
     legA_physicalMolecule: {
-      commodity: 'NATURAL_GAS_BIOMETHANE_EN16723',
-      deliveryPointVtp: `${c.injectionCountry}_VTP_TRANSMISSION`,
-      volumeMWh: volume,
-      dailyVolumeMWh: Number((volume / 365).toFixed(2)),
-      priceMode: 'TTF_INDEX',
-      basePriceEurMwh: gasPrice ?? 0,
-      volumeTolerancePct: 0.05,
-      takeOrPayPenaltyEurMwh: 0,
+      commodity: 'BIOMETHANE_EN16723',
+      deliveryPointVtp: dp?.deliveryPointVtp ?? null,
+      volumeMWh: c.volumeMWh,
+      deliveryStart: dp?.startDate ?? null,
+      deliveryEnd: dp?.endDate ?? null,
+      gasIndexMarkEurMwh: assessment.marks.gasIndex.mid,
     },
     legB_environmentalAttribute: {
       targetMarketId: assessment.targetMarketId,
       targetMarketName: assessment.targetMarketName,
+      attributeType: environmentalAttributeLabel(market, assessment.targetMarketId),
       contractCiGco2ePerMj: c.carbonIntensity,
-      benchmarkCiGco2ePerMj: 94.0, // RED III fossil comparator
-      attributeValueEurMwh: certValue ?? 0,
-      netbackPayableEurMwh: netNetback,
-      alphaPriceAdjuster: 0.0125,
-      priceFloorEurMwh: 0.0,
-      priceCeilingEurMwh: assessment.targetMarketId === 'FR_CPB' ? 100.0 : null,
-      registrySystem: 'UNION_DATABASE_UDB',
-      titleTransferDays: 30,
-      subsidyClause: {
-        sdePlusPlusApplicable: isNlDeal,
-        doubleCountingWarranted: true,
-      },
+      fossilComparatorGco2ePerMj: 94.0, // RED III transport comparator
+      attributeValueEurMwh: nb.certificateValue?.valueEurPerMWh ?? null,
+      priceCeilingEurMwh: market?.ceilingEurMwh ?? (assessment.targetMarketId === 'FR_CPB' ? 100.0 : null),
+      registrySystem: market?.registry ?? null,
+    },
+    producerPricing: {
+      mode: pp?.mode ?? null,
+      fixedPriceEurPerMwh: pp?.fixedPriceEurPerMwh ?? null,
+      indexLinkedShare: pp?.indexLinkedShare ?? null,
     },
     regulatoryChecklist: assessment.eligibility.gates.map(g => ({
       gate: g.gateLabel,
       verdict: g.verdict,
-      statutoryCitation: g.citations[0]?.fullReference || 'Directive (EU) 2023/2413',
+      statutoryCitation: g.citations[0]?.fullReference || '',
     })),
-    financialSummary: {
-      totalDealValueEur: gasPrice !== null && certValue !== null ? Number(((gasPrice + certValue) * volume).toFixed(2)) : 0,
-      annualDeskMarginEur: Number((marginPerMwh * volume).toFixed(2)),
-      settlementTerms: 'NET_30_DAYS_EOM',
-      vatTreatment: 'REVERSE_CHARGE_ARTICLE_199A_EU_VAT_DIRECTIVE',
+    internalValuation: {
+      deskNetbackEurMwh: nb.netNetback,
+      deskMarginEurMwh: nb.deskMargin,
+      deskPnLEur: nb.deskPnL,
     },
-    cryptographicIntegritySeal: {
+    documentFingerprint: {
       algorithm: 'SHA-256',
-      hash: seal,
-      verificationStatus: 'SEALED_VALID',
+      hash: calculateTradeIntegritySeal(assessment),
     },
   };
 }
 
 // ---------------------------------------------------------------------------
-// 5. Commercial Counterparty Term Sheet PDF Generator
+// 6. Indicative term sheet (non-binding, subject to contract)
 // ---------------------------------------------------------------------------
 
 export function generateCommercialTermSheetPdf(
   assessment: TradeAssessment,
   options: LegalAnnexOptions = {}
 ): jsPDF {
-  const doc = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4',
-  });
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
   const c = assessment.consignment;
-  const nb = assessment.netback;
   const market = MARKETS.find(m => m.id === assessment.targetMarketId);
-  const seller = options.sellerName || 'BIOMETHANE TRADING DESK EUROPE B.V.';
-  const buyer = options.buyerName || c.counterparty || 'OFFTAKE COUNTERPARTY CORP';
-  const volume = c.volumeMWh ?? 10000;
+  const parties = resolveParties(assessment, options);
   const seal = calculateTradeIntegritySeal(assessment);
   const isVoluntary = isVoluntaryMarket(assessment.targetMarketId);
+  const dp = c.deliveryPeriod;
 
   const margin = 18;
   let y = 20;
 
-  // Header Banner
-  doc.setFillColor(30, 41, 59); // slate-800
+  doc.setFillColor(30, 41, 59);
   doc.rect(margin, y, 174, 18, 'F');
-
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
   doc.setTextColor(255, 255, 255);
-  doc.text('COMMERCIAL TRANSACTION TERM SHEET', margin + 5, y + 7);
+  doc.text('INDICATIVE TERM SHEET', margin + 5, y + 7);
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(203, 213, 225);
-  doc.text('CONFIDENTIAL & BINDING OTC BIOMETHANE & ENVIRONMENTAL ATTRIBUTE SPECIFICATION', margin + 5, y + 13);
+  doc.text('NON-BINDING · SUBJECT TO CONTRACT · FOR DISCUSSION PURPOSES ONLY · CONFIDENTIAL', margin + 5, y + 13);
+  y += 22;
 
-  y += 24;
-
-  // Deal Overview Bar
-  doc.setDrawColor(203, 213, 225);
-  doc.setFillColor(248, 250, 252);
-  doc.rect(margin, y, 174, 15, 'FD');
+  if (isBlocked(assessment)) y = drawBlockedBanner(doc, assessment, margin, y);
 
   doc.setFontSize(8);
-  doc.setTextColor(30, 41, 59);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Deal Reference:', margin + 4, y + 5);
-  doc.setFont('helvetica', 'normal');
-  doc.text(assessment.id, margin + 35, y + 5);
+  y = drawRows(doc, [
+    ['Reference:', assessment.id],
+    ['Date:', assessment.createdAt.slice(0, 10)],
+    ['Seller:', parties.seller],
+    ['Buyer:', parties.buyer],
+  ], margin, y, 45);
+  y += 3;
 
-  doc.setFont('helvetica', 'bold');
-  doc.text('Date of Terms:', margin + 95, y + 5);
-  doc.setFont('helvetica', 'normal');
-  doc.text(assessment.createdAt.slice(0, 10), margin + 125, y + 5);
-
-  doc.setFont('helvetica', 'bold');
-  doc.text('Counterparty (Buyer):', margin + 4, y + 10);
-  doc.setFont('helvetica', 'normal');
-  doc.text(buyer, margin + 35, y + 10);
-
-  doc.setFont('helvetica', 'bold');
-  doc.text('Trading Principal:', margin + 95, y + 10);
-  doc.setFont('helvetica', 'normal');
-  doc.text(seller, margin + 125, y + 10);
-
-  y += 20;
-
-  // Section 1: Commodity Specifications
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9);
   doc.setTextColor(15, 23, 42);
-  doc.text(
-    isVoluntary
-      ? '1. CERTIFICATE & UNBUNDLED ATTRIBUTE SPECIFICATIONS'
-      : '1. COMMODITY & VOLUME SPECIFICATIONS',
-    margin,
-    y
-  );
-  y += 4;
-
-  const gasPrice = assessment.marks.gasIndex.mid ?? 0;
-  const certVal = nb.certificateValue?.valueEurPerMWh ?? 0;
-  const allInDelivered = isVoluntary ? certVal : gasPrice + certVal;
-
-  const commData = isVoluntary ? [
-    ['Transaction Nature', 'Guarantees of Origin (GO) · Unbundled Book & Claim (No physical gas delivery)'],
-    ['Annual Contract Volume', `${volume.toLocaleString()} MWh Guarantees of Origin certificates (Electronic cancellation)`],
-    ['Origin Facility', `${c.name || 'Certified European Biomethane Facility'} (${c.originCountry})`],
-    ['Physical Gas Disposition', `Injected into ${c.injectionCountry} domestic grid; retained/sold locally by Producer`],
-    ['Feedstock Substrate', `${c.feedstockName || 'Biomethane Residue'} (Exempt from RED III 65% transport GHG gate)`],
-    ['Contract Carbon Intensity', `${c.carbonIntensity} gCO₂e/MJ`],
-    ['Registry Transfer Platform', `${market?.registry || 'National Biomethane Registry'} (EECS / ERGaR Book & Claim)`],
-  ] : [
-    ['Commodity Definition', 'Pipeline-quality Biomethane complying with EN 16723-1 standards'],
-    ['Annual Contract Volume', `${volume.toLocaleString()} MWh/annum (~${(volume / 365).toFixed(1)} MWh/day flat profile)`],
-    ['Origin Facility', `${c.name || 'Certified European Biomethane Facility'} (${c.originCountry})`],
-    ['Delivery Hub (VTP)', `${c.injectionCountry} Virtual Trading Point (TSO High Pressure Interconnected)`],
-    ['Feedstock & RED III Substrate', `${c.feedstockName || 'Manure / Organic Residue'} (Annex IX Part A Compliant)`],
-    ['Contract Carbon Intensity', `${c.carbonIntensity} gCO₂e/MJ (Verified audited GHG performance)`],
-    ['Sustainability Certification', `${c.certificationScheme.replace(/_/g, ' ')} under Mass Balance Chain of Custody`],
-  ];
-
+  doc.text(isVoluntary ? '1. CERTIFICATE SPECIFICATION' : '1. COMMODITY & VOLUME', margin, y);
+  y += 3;
   doc.setFontSize(8);
-  commData.forEach(([lbl, val]) => {
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(71, 85, 105);
-    doc.text(lbl, margin + 2, y + 3);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(15, 23, 42);
-    doc.text(val, margin + 55, y + 3, { maxWidth: 115 });
-    y += 5;
-  });
-
-  y += 4;
-
-  // Section 2: Pricing Structure & Commercial Terms
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.setTextColor(15, 23, 42);
-  doc.text(
-    isVoluntary
-      ? '2. UNBUNDLED ATTRIBUTE PRICING & COMMERCIAL TERMS'
-      : '2. COMMERCIAL PRICING & INDEXATION FORMULA',
-    margin,
-    y
-  );
-  y += 4;
-
-  const priceData = isVoluntary ? [
-    ['Transaction Type', 'Single-Leg Unbundled Guarantee of Origin (GoO) Transfer'],
-    ['Target Scope / Beneficiary', `${assessment.targetMarketName} (Corporate Scope 1 GHG Protocol)`],
-    ['GoO Attribute Fixed Premium', `€${certVal.toFixed(2)}/MWh fixed delivered attribute price`],
-    ['Transit & Logistics Tariffs', '€0.00/MWh (Zero cross-border pipeline transit, zero VTP balancing liability)'],
-    ['Total Contract Notional', `€${Math.round(certVal * volume).toLocaleString()} EUR (${volume.toLocaleString()} MWh @ €${certVal.toFixed(2)}/MWh)`],
-    ['Commodity Hedging', 'None (Zero natural gas delta exposure; no EEX short hedge required)'],
+  const profile = dp?.deliveryProfile;
+  const profileDesc = profile === 'FLAT_MONTHLY' ? 'flat monthly' : profile === 'FLAT_DAILY' ? 'flat daily' : profile === 'BULLET' ? 'bullet' : TBA;
+  y = drawRows(doc, isVoluntary ? [
+    ['Product:', `${environmentalAttributeLabel(market, assessment.targetMarketId)} — unbundled, no physical gas delivery`],
+    ['Quantity:', fmtMwh(c.volumeMWh)],
+    ['Origin Facility:', `${c.originPlantName || c.name || TBA} (${c.originCountry})`],
+    ['Feedstock:', `${c.feedstockName} — ${annexClassificationLabel(c.annexClassification)}`],
+    ['Carbon Intensity:', `${c.carbonIntensity} gCO₂e/MJ (declared)`],
+    ['Registry:', market?.registry || TBA],
   ] : [
-    ['Leg A: Physical Molecule', `TTF Month-Ahead Floating Index (Settlement reference: €${gasPrice.toFixed(2)}/MWh)`],
-    ['Leg B: Environmental Attribute', `Statutory Sink: ${assessment.targetMarketName} (${market?.unitLabel})`],
-    ['Green Premium Unit Value', `€${certVal.toFixed(2)}/MWh delivered environmental attribute`],
-    ['All-In Total Transaction Value', `€${allInDelivered.toFixed(2)}/MWh (Notional Deal Value: €${Math.round(allInDelivered * volume).toLocaleString()})`],
-    ['Dynamic Carbon Slider', 'P_delivered = P_contract + α × (CI_contract − CI_actual) with statutory cap'],
-    ['Operational Volume Collar', '±5.0% annual operational tolerance. Take-or-pay settlement on shortfall.'],
-  ];
+    ['Product:', 'Biomethane meeting EN 16723-1, with environmental attributes'],
+    ['Quantity:', fmtMwh(c.volumeMWh)],
+    ['Delivery Period:', `${orTba(dp?.startDate)} to ${orTba(dp?.endDate)}, ${profileDesc}`],
+    ['Delivery Point:', dp?.deliveryPointVtp || `${c.injectionCountry} virtual trading point`],
+    ['Origin Facility:', `${c.originPlantName || c.name || TBA} (${c.originCountry})`],
+    ['Feedstock:', `${c.feedstockName} — ${annexClassificationLabel(c.annexClassification)}`],
+    ['Carbon Intensity:', `${c.carbonIntensity} gCO₂e/MJ (declared; to be evidenced by PoS)`],
+    ['Certification:', `${c.certificationScheme.replace(/_/g, ' ')} · ${chainOfCustodyLabel(c.chainOfCustody)}`],
+  ], margin, y, 45);
+  y += 3;
 
-  priceData.forEach(([lbl, val]) => {
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(71, 85, 105);
-    doc.text(lbl, margin + 2, y + 3);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(15, 23, 42);
-    doc.text(val, margin + 55, y + 3, { maxWidth: 115 });
-    y += 5;
-  });
-
-  y += 4;
-
-  // Section 3: Registry Transfer & Settlement Schedule
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9);
   doc.setTextColor(15, 23, 42);
-  doc.text('3. REGISTRY TRANSFER & COMPLIANCE UNDERTAKING', margin, y);
-  y += 4;
+  doc.text('2. INDICATIVE PRICING', margin, y);
+  y += 3;
+  doc.setFontSize(8);
+  const priceRows: string[][] = describePricing(assessment, parties.deskRole).map((line, i) => [i === 0 ? 'Price Basis:' : '', line]);
+  priceRows.push(['Target Market:', `${assessment.targetMarketName}${market?.unitLabel ? ` (quoted in ${market.unitLabel})` : ''}`]);
+  if (!isVoluntary) {
+    priceRows.push(['Carbon Intensity Adjustment:', `Price adjusts for delivered vs contract CI; α and cap ${TBA}`]);
+    priceRows.push(['Volume Tolerance:', TBA]);
+  }
+  y = drawRows(doc, priceRows, margin, y, 45);
+  y += 3;
 
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(15, 23, 42);
+  doc.text('3. ATTRIBUTE TRANSFER', margin, y);
+  y += 4;
   doc.setFontSize(7.5);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(71, 85, 105);
-  const legalText = `Title to the environmental attributes shall be transferred via the European Commission Union Database (UDB) under RED III Article 31a single mass balance rules, or designated national registry (${market?.registry || 'dena / VertiCer'}), within thirty (30) calendar days of production month end. Seller covenants that the biomethane has not been double-claimed against conflicting national feed-in subsidies (EEG, GSE, or French Obligation d'Achat).`;
-  const splitText = doc.splitTextToSize(legalText, 172);
-  doc.text(splitText, margin + 2, y + 2);
-  y += splitText.length * 3.5 + 8;
+  const transferText = isVoluntary
+    ? `Guarantees of Origin to be transferred on ${market?.registry || 'the relevant national registry'} and cancelled on behalf of the beneficiary. Transfer timing ${TBA}.`
+    : `Sustainability evidence (PoS) to be transferred via the Union Database (RED III Art. 31a) and, where relevant, ${market?.registry || 'the national registry'}. Transfer timing ${TBA}. Seller to warrant no double claiming of the attributes under any other support scheme.`;
+  const splitTransfer = doc.splitTextToSize(transferText, 172);
+  doc.text(splitTransfer, margin + 2, y);
+  y += splitTransfer.length * 3.4 + 5;
 
-  // Signatures
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(7);
+  doc.setTextColor(100, 116, 139);
+  const disclaimer = 'This term sheet is indicative only and does not constitute an offer capable of acceptance or a commitment to transact. Any transaction is subject to contract, credit approval, satisfactory due diligence and execution under the parties\' master agreement. Prices are indications as of the date shown and may change.';
+  const splitDisc = doc.splitTextToSize(disclaimer, 172);
+  doc.text(splitDisc, margin + 2, y);
+  y += splitDisc.length * 3.3 + 5;
+
+  drawFingerprint(doc, seal, margin, Math.min(y, 275));
+  return doc;
+}
+
+// ---------------------------------------------------------------------------
+// 7. Desk regulatory pre-screen memorandum (2 pages)
+// ---------------------------------------------------------------------------
+
+/** Minimal shape of an AI auditor result (see domain/auditor/types AuditorResponse). */
+export interface AuditCommentary {
+  verdict?: string;
+  checks?: Array<{ gateName?: string; gate?: string; status?: string; details?: string; citation?: string }>;
+}
+
+const PRESCREEN_VERDICT: Record<OverallVerdict, { title: string; subtitle: string; tone: 'pos' | 'neg' | 'warn' }> = {
+  ELIGIBLE: { title: 'PRE-SCREEN RESULT: ELIGIBLE', subtitle: 'All six rule-set gates pass for this structure.', tone: 'pos' },
+  CONDITIONAL: { title: 'PRE-SCREEN RESULT: CONDITIONALLY ELIGIBLE', subtitle: 'One or more gates require conditions to be met — see the gate notes.', tone: 'warn' },
+  UNRESOLVED: { title: 'PRE-SCREEN RESULT: UNRESOLVED REGULATORY UNCERTAINTY', subtitle: 'Outcome depends on pending legislation — value both scenarios.', tone: 'warn' },
+  UNKNOWN: { title: 'PRE-SCREEN RESULT: INSUFFICIENT INFORMATION', subtitle: 'The market or inputs cannot be fully assessed.', tone: 'warn' },
+  HARD_BLOCK: { title: 'PRE-SCREEN RESULT: BLOCKED AS STRUCTURED', subtitle: 'A gate blocks this structure — see the remedy notes.', tone: 'neg' },
+};
+
+export function generateStatutoryAuditMemoPdf(
+  assessment: TradeAssessment,
+  options: LegalAnnexOptions = {},
+  auditCommentary?: AuditCommentary
+): jsPDF {
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+  const c = assessment.consignment;
+  const nb = assessment.netback;
+  const el = assessment.eligibility;
+  const market = MARKETS.find(m => m.id === assessment.targetMarketId);
+  const parties = resolveParties(assessment, options);
+  const seal = calculateTradeIntegritySeal(assessment);
+  const margin = 18;
+  // The verdict always comes from the deterministic gate engine; AI output is commentary only.
+  const verdict = PRESCREEN_VERDICT[el.overallVerdict] ?? PRESCREEN_VERDICT.UNKNOWN;
+
+  // PAGE 1
+  let y = 18;
+  doc.setFillColor(15, 23, 42);
+  doc.rect(margin, y, 174, 18, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10.5);
+  doc.setTextColor(255, 255, 255);
+  doc.text('DESK REGULATORY PRE-SCREEN MEMORANDUM', margin + 4, y + 6);
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(203, 213, 225);
+  doc.text('Automated screening against the desk rule set · INTERNAL · not legal advice or a compliance approval', margin + 4, y + 11);
+  doc.text(`Target market legal basis: ${market?.legalBasis ?? 'n/a'}`, margin + 4, y + 15, { maxWidth: 166 });
+  y += 22;
+
+  doc.setFontSize(7.5);
+  y = drawRows(doc, [
+    ['Reference:', `PRESCREEN-${assessment.id}`],
+    ['Date:', assessment.createdAt.slice(0, 10)],
+    ['Structure:', `${c.originCountry} ${c.feedstockName} → ${assessment.targetMarketName} · desk ${parties.deskRole === 'BUYER' ? 'buys from' : 'sells to'} ${parties.counterparty}`],
+  ], margin, y, 30);
+  y += 2;
+
+  const toneFill = verdict.tone === 'pos' ? [240, 253, 244] : verdict.tone === 'neg' ? [254, 242, 242] : [254, 243, 199];
+  const toneText = verdict.tone === 'pos' ? [5, 150, 105] : verdict.tone === 'neg' ? [220, 38, 38] : [180, 83, 9];
+  doc.setFillColor(toneFill[0], toneFill[1], toneFill[2]);
+  doc.setDrawColor(toneText[0], toneText[1], toneText[2]);
+  doc.rect(margin, y, 174, 14, 'FD');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9.5);
+  doc.setTextColor(toneText[0], toneText[1], toneText[2]);
+  doc.text(verdict.title, margin + 4, y + 5.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(51, 65, 85);
+  doc.text(verdict.subtitle, margin + 4, y + 10.5);
+  y += 18;
+
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8.5);
   doc.setTextColor(15, 23, 42);
-  doc.text('4. ACCEPTANCE & EXECUTION', margin, y);
-  y += 5;
+  doc.text('1. CONSIGNMENT PARAMETERS', margin, y);
+  y += 3;
+  doc.setFontSize(7.5);
+  const netbackStr = nb.netNetback != null ? `€${nb.netNetback.toFixed(2)}/MWh` : 'n/a';
+  const marginStr = nb.deskMargin != null ? ` · desk margin €${nb.deskMargin.toFixed(2)}/MWh` : '';
+  y = drawRows(doc, [
+    ['Volume:', fmtMwh(c.volumeMWh)],
+    ['Feedstock:', `${c.feedstockName} — ${annexClassificationLabel(c.annexClassification)}`],
+    ['Carbon Intensity:', `${c.carbonIntensity} gCO₂e/MJ · commissioning ${c.commissioningDateRange.replace(/_/g, ' ').toLowerCase()}`],
+    ['Scheme / Custody:', `${c.certificationScheme.replace(/_/g, ' ')} · ${chainOfCustodyLabel(c.chainOfCustody)}`],
+    ['Injection:', `${c.injectionCountry} grid (${c.injectionIsEU ? 'EU' : 'non-EU'})`],
+    ['Internal Valuation:', `Desk netback ${netbackStr}${marginStr} (internal only)`],
+  ], margin, y, 36);
+  y += 2;
 
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(15, 23, 42);
+  doc.text('2. GATE-BY-GATE RESULT', margin, y);
+  y += 3;
+
+  el.gates.slice(0, 6).forEach(gate => {
+    const isGPass = gate.verdict === 'PASS';
+    const isGFail = gate.verdict === 'HARD_BLOCK';
+    const note = gate.verdict !== 'PASS' && gate.remedy ? `${gate.reason} Remedy: ${gate.remedy}` : gate.reason;
+    const lines = doc.splitTextToSize(note, 150).slice(0, 3);
+    const h = 6 + lines.length * 3;
+    doc.setFillColor(isGPass ? 240 : isGFail ? 254 : 254, isGPass ? 253 : isGFail ? 242 : 243, isGPass ? 244 : isGFail ? 242 : 199);
+    doc.setDrawColor(203, 213, 225);
+    doc.rect(margin, y, 174, h, 'FD');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.5);
+    doc.setTextColor(isGPass ? 5 : isGFail ? 220 : 180, isGPass ? 150 : isGFail ? 38 : 83, isGPass ? 105 : isGFail ? 38 : 9);
+    doc.text(gate.verdict, margin + 2, y + 4);
+    doc.setFontSize(7.5);
+    doc.setTextColor(15, 23, 42);
+    doc.text(gate.gateLabel, margin + 22, y + 4);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text(gate.citations[0]?.shortName ?? '', margin + 120, y + 4);
+    doc.setFontSize(6.5);
+    doc.setTextColor(51, 65, 85);
+    doc.text(lines, margin + 22, y + 7.5);
+    y += h + 1;
+  });
+
+  doc.setFontSize(6.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(148, 163, 184);
+  doc.text(`INTERNAL · DESK PRE-SCREEN · PRESCREEN-${assessment.id} · PAGE 1 OF 2`, margin, 287);
+
+  // PAGE 2
+  doc.addPage();
+  y = 18;
+  doc.setFillColor(15, 23, 42);
+  doc.rect(margin, y, 174, 12, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9.5);
+  doc.setTextColor(255, 255, 255);
+  doc.text('DESK REGULATORY PRE-SCREEN · PAGE 2', margin + 4, y + 7.5);
+  y += 17;
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(15, 23, 42);
+  doc.text('3. LEGAL BASIS RELIED ON (VERIFY AGAINST THE SOURCE TEXT)', margin, y);
+  y += 4;
+  const seen = new Set<string>();
+  const cites: LegalCitation[] = [];
+  for (const g of el.gates) for (const ct of g.citations) {
+    if (!seen.has(ct.fullReference)) { seen.add(ct.fullReference); cites.push(ct); }
+  }
+  cites.slice(0, 8).forEach(ct => {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7);
+    doc.setTextColor(30, 41, 59);
+    doc.text(ct.fullReference, margin + 2, y, { maxWidth: 170 });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.5);
+    doc.setTextColor(71, 85, 105);
+    doc.text(`${ct.establishes} · ${ct.sourceUrl}`, margin + 4, y + 3.5, { maxWidth: 168 });
+    y += 8.5;
+  });
+  y += 2;
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(15, 23, 42);
+  doc.text('4. SUGGESTED PROTECTIVE CLAUSES (DRAFTING POINTS FOR LEGAL REVIEW)', margin, y);
+  y += 4;
+  const clauses = [
+    ['Sustainability evidence', 'Seller to transfer valid PoS issued under a Commission-recognised voluntary scheme, via the Union Database, within an agreed number of business days after each delivery month.'],
+    ['Failure of evidence / CI breach', 'If PoS is not delivered or delivered CI exceeds the contract ceiling, a cure period applies; failing cure, the affected volume reprices to the molecule index without the environmental premium.'],
+    ['No double claiming', 'Seller to warrant the attributes have not been claimed under any other support scheme or sold to another party (e.g. SDE++, EEG, GSE, obligation d\'achat).'],
+    ['Change in law', 'Allocation of the economic effect of regulatory change (e.g. removal of German double counting) to be agreed, with a price re-opener or termination right.'],
+  ];
+  clauses.forEach(([title, body]) => {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(15, 23, 42);
+    doc.text(`• ${title}:`, margin + 2, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(71, 85, 105);
+    const split = doc.splitTextToSize(body, 168);
+    doc.text(split, margin + 4, y + 3.5);
+    y += split.length * 3.3 + 5;
+  });
+
+  if (auditCommentary?.checks?.length || auditCommentary?.verdict) {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(15, 23, 42);
+    doc.text('5. AI-ASSISTED COMMENTARY (UNVERIFIED — DOES NOT CHANGE THE RESULT ABOVE)', margin, y);
+    y += 4;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.5);
+    doc.setTextColor(71, 85, 105);
+    if (auditCommentary.verdict) {
+      doc.text(`AI reviewer verdict: ${auditCommentary.verdict}`, margin + 2, y);
+      y += 3.5;
+    }
+    (auditCommentary.checks ?? []).slice(0, 6).forEach(ch => {
+      const line = `${ch.status ?? ''} ${ch.gateName ?? ch.gate ?? ''}: ${ch.details ?? ''}`.trim();
+      const split = doc.splitTextToSize(line, 168).slice(0, 2);
+      doc.text(split, margin + 2, y);
+      y += split.length * 3 + 1;
+    });
+    y += 2;
+  }
+
+  y = Math.min(y + 2, 250);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(15, 23, 42);
+  doc.text('REVIEW', margin, y);
+  y += 5;
   doc.setDrawColor(203, 213, 225);
   doc.line(margin, y, margin + 75, y);
   doc.line(margin + 99, y, margin + 174, y);
-
   doc.setFontSize(7.5);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(51, 65, 85);
-  doc.text(`For: ${seller}`, margin, y + 4);
-  doc.text(`For: ${buyer}`, margin + 99, y + 4);
-
   doc.setFont('helvetica', 'normal');
-  doc.text('Authorized Commercial Representative', margin, y + 8);
-  doc.text('Authorized Commercial Representative', margin + 99, y + 8);
+  doc.setTextColor(51, 65, 85);
+  doc.text('Prepared by (Trading / Structuring)', margin, y + 4);
+  doc.text('Reviewed by (Compliance / Legal)', margin + 99, y + 4);
+  y += 10;
 
-  y += 18;
+  drawFingerprint(doc, seal, margin, Math.min(y, 272));
 
-  // Integrity Footer
-  doc.setFillColor(241, 245, 249);
-  doc.rect(margin, y, 174, 9, 'FD');
-  doc.setFont('courier', 'bold');
   doc.setFontSize(6.5);
-  doc.setTextColor(15, 23, 42);
-  doc.text('CRYPTOGRAPHIC AUDIT SEAL:', margin + 3, y + 4);
-  doc.setFont('courier', 'normal');
-  doc.setTextColor(71, 85, 105);
-  doc.text(seal, margin + 3, y + 7.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(148, 163, 184);
+  doc.text(`INTERNAL · DESK PRE-SCREEN · PRESCREEN-${assessment.id} · PAGE 2 OF 2`, margin, 287);
 
   return doc;
 }
 
 // ---------------------------------------------------------------------------
-// 6. ETRM Deal Ticket CSV Generator
+// 8. Internal deal ticket CSV
 // ---------------------------------------------------------------------------
 
-export function generateEtrmCsvPayload(assessment: TradeAssessment): string {
+/** RFC 4180 field quoting, with a guard against spreadsheet formula injection. */
+function csvField(v: string | number | null | undefined): string {
+  if (v == null) return '';
+  let s = String(v);
+  if (/^[=+\-@]/.test(s) && typeof v === 'string') s = `'${s}`;
+  return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+export function generateEtrmCsvPayload(assessment: TradeAssessment, options: LegalAnnexOptions = {}): string {
   const c = assessment.consignment;
   const nb = assessment.netback;
-  const gasPrice = assessment.marks.gasIndex.mid ?? 0;
-  const certVal = nb.certificateValue?.valueEurPerMWh ?? 0;
-  const totalDelivered = gasPrice + certVal;
-  const deskMargin = nb.deskMargin ?? 0;
-  const volume = c.volumeMWh ?? 10000;
-  const totalDealValue = totalDelivered * volume;
-  const seal = calculateTradeIntegritySeal(assessment);
-
-  const headers = [
-    'DealID',
-    'TradeDate',
-    'TradingBook',
-    'TraderID',
-    'Counterparty',
-    'OriginCountry',
-    'OriginPlant',
-    'Feedstock',
-    'CarbonIntensity',
-    'VolumeMWh',
-    'DailyVolumeMWh',
-    'DeliveryPointVTP',
-    'PriceMode',
-    'GasIndexBaseEurMwh',
-    'AttributeValueEurMwh',
-    'TotalDeliveredEurMwh',
-    'DeskMarginEurMwh',
-    'TotalDealValueEur',
-    'ComplianceYear',
-    'ProductionStartDate',
-    'ProductionEndDate',
-    'DeliveryStartDate',
-    'DeliveryEndDate',
-    'DeliveryProfile',
-    'StatutorySurrenderDeadline',
-    'TargetMarket',
-    'RegistrySystem',
-    'IntegritySeal',
-  ];
-
-  const isVol = isVoluntaryMarket(assessment.targetMarketId);
+  const parties = resolveParties(assessment, options);
+  const pp = assessment.costs?.producerPricing;
   const dp = c.deliveryPeriod;
+  const isVol = isVoluntaryMarket(assessment.targetMarketId);
+  const market = MARKETS.find(m => m.id === assessment.targetMarketId);
 
-  const values = [
-    assessment.id,
-    assessment.createdAt.slice(0, 10),
-    isVol ? 'BIOMETHANE_VOLUNTARY_GO' : 'BIOMETHANE_COMPLIANCE_QUOTA',
-    'DESK_TRADER_EU',
-    `"${c.counterparty || 'OFFTAKE COUNTERPARTY CORP'}"`,
-    c.originCountry,
-    `"${c.name || 'Certified Biomethane Plant'}"`,
-    `"${c.feedstockName}"`,
-    c.carbonIntensity,
-    volume,
-    (volume / 365).toFixed(2),
-    dp?.deliveryPointVtp || `${c.injectionCountry}_VTP`,
-    'TTF_INDEX',
-    gasPrice.toFixed(2),
-    certVal.toFixed(2),
-    totalDelivered.toFixed(2),
-    deskMargin.toFixed(2),
-    totalDealValue.toFixed(2),
-    dp?.complianceYear || 2026,
-    dp?.productionStartDate || '2026-01-01',
-    dp?.productionEndDate || '2026-12-31',
-    dp?.startDate || '2026-01-01',
-    dp?.endDate || '2026-12-31',
-    dp?.deliveryProfile || 'FLAT_MONTHLY',
-    dp?.statutorySurrenderDeadline || '2027-02-28',
-    assessment.targetMarketId,
-    isVol ? 'NATIONAL_GO_AIB_EECS' : 'UNION_DATABASE_UDB',
-    seal,
+  const columns: Array<[string, string | number | null | undefined]> = [
+    ['DealID', assessment.id],
+    ['TradeDate', assessment.createdAt.slice(0, 10)],
+    ['Status', isBlocked(assessment) ? 'NOT_TRADEABLE_REGULATORY_BLOCK' : 'INDICATIVE'],
+    ['DeskRole', parties.deskRole],
+    ['Book', isVol ? 'BIOMETHANE_VOLUNTARY_GO' : 'BIOMETHANE_COMPLIANCE'],
+    ['Counterparty', c.counterparty ?? ''],
+    ['OriginCountry', c.originCountry],
+    ['OriginPlant', c.originPlantName || c.name],
+    ['Feedstock', c.feedstockName],
+    ['AnnexClassification', c.annexClassification],
+    ['CarbonIntensity', c.carbonIntensity],
+    ['VolumeMWh', c.volumeMWh],
+    ['DeliveryPointVTP', dp?.deliveryPointVtp],
+    ['ProducerPricingMode', pp?.mode],
+    ['ProducerFixedPriceEurMwh', pp?.fixedPriceEurPerMwh],
+    ['ProducerIndexShare', pp?.indexLinkedShare],
+    ['GasIndexMarkEurMwh', assessment.marks.gasIndex.mid],
+    ['AttributeValueEurMwh', nb.certificateValue?.valueEurPerMWh],
+    ['DeskNetbackEurMwh', nb.netNetback],
+    ['DeskMarginEurMwh', nb.deskMargin],
+    ['DeskPnLEur', nb.deskPnL],
+    ['ComplianceYear', dp?.complianceYear],
+    ['ProductionStartDate', dp?.productionStartDate],
+    ['ProductionEndDate', dp?.productionEndDate],
+    ['DeliveryStartDate', dp?.startDate],
+    ['DeliveryEndDate', dp?.endDate],
+    ['DeliveryProfile', dp?.deliveryProfile],
+    ['AttributeTransferDeadline', dp?.statutorySurrenderDeadline],
+    ['TargetMarket', assessment.targetMarketId],
+    ['RegistrySystem', market?.registry],
+    ['DocumentFingerprint', calculateTradeIntegritySeal(assessment)],
   ];
 
-  return `${headers.join(',')}\r\n${values.join(',')}\r\n`;
+  return `${columns.map(([h]) => h).join(',')}\r\n${columns.map(([, v]) => csvField(v)).join(',')}\r\n`;
 }
 
 // ---------------------------------------------------------------------------
-// 7. UDB Mass Balance Nomination XML Payload Generator
+// 9. UDB transfer preparation worksheet (internal)
 // ---------------------------------------------------------------------------
 
-export function generateUdbNominationXmlPayload(assessment: TradeAssessment): string {
+/**
+ * Preparation worksheet for a Union Database transfer. UDB entries are made by economic
+ * operators in the UDB itself; this file is not a UDB message format, and it never invents a
+ * PoS number, operator ID or EIC code — those come from the certification scheme and TSO.
+ */
+export function generateUdbNominationXmlPayload(assessment: TradeAssessment, options: LegalAnnexOptions = {}): string {
   const c = assessment.consignment;
-  const seal = calculateTradeIntegritySeal(assessment);
+  const parties = resolveParties(assessment, options);
   const now = new Date().toISOString();
-  const volume = c.volumeMWh ?? 10000;
+  const seal = calculateTradeIntegritySeal(assessment);
+  const sender = parties.deskRole === 'BUYER' ? parties.counterparty : parties.deskEntity;
+  const recipient = parties.deskRole === 'BUYER' ? parties.deskEntity : parties.counterparty;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<udb:consignmentTransfer xmlns:udb="https://udb.ec.europa.eu/schema/v1/mass-balance"
-                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                         version="1.4">
-  <udb:header>
-    <udb:messageIdentifier>UDB-TX-${escapeXml(assessment.id)}</udb:messageIdentifier>
-    <udb:senderEconomicOperatorId>EO-969500XXXXXXXXXX01</udb:senderEconomicOperatorId>
-    <udb:recipientEconomicOperatorId>EO-969500XXXXXXXXXX02</udb:recipientEconomicOperatorId>
-    <udb:timestamp>${now}</udb:timestamp>
-    <udb:legalDirective>Directive (EU) 2023/2413 (RED III)</udb:legalDirective>
-  </udb:header>
-
-  <udb:consignment>
-    <udb:originFacility>
-      <udb:facilityId>${escapeXml(c.id || 'DK-BIO-001')}</udb:facilityId>
-      <udb:facilityName>${escapeXml(c.name || 'European Biomethane Facility')}</udb:facilityName>
-      <udb:country>${c.originCountry}</udb:country>
-      <udb:gridInjectionPointEIC>${c.injectionCountry}-TSO-VTP-001</udb:gridInjectionPointEIC>
-    </udb:originFacility>
-
-    <udb:proofOfSustainability>
-      <udb:posCertificateNumber>POS-${escapeXml(assessment.id)}-01</udb:posCertificateNumber>
-      <udb:certificationScheme>${escapeXml(c.certificationScheme)}</udb:certificationScheme>
-      <udb:feedstockCategory>${escapeXml(c.feedstockName)}</udb:feedstockCategory>
-      <udb:annexClassification>${escapeXml(c.annexClassification)}</udb:annexClassification>
-      <udb:greenhouseGasIntensity metric="gCO2e/MJ">${c.carbonIntensity}</udb:greenhouseGasIntensity>
-      <udb:chainOfCustody>MASS_BALANCE_SINGLE_INTERCONNECTED_SYSTEM</udb:chainOfCustody>
-    </udb:proofOfSustainability>
-
-    <udb:transferBatch>
-      <udb:energyQuantity unit="MWh">${volume}</udb:energyQuantity>
-      <udb:targetComplianceMarket>${escapeXml(assessment.targetMarketId)}</udb:targetComplianceMarket>
-      <udb:titleTransferEffectiveDate>${assessment.createdAt.slice(0, 10)}</udb:titleTransferEffectiveDate>
-      <udb:escrowStatus>RELEASED_UPON_CONFIRMATION</udb:escrowStatus>
-    </udb:transferBatch>
-  </udb:consignment>
-
-  <udb:auditSeal algorithm="SHA-256">${seal}</udb:auditSeal>
-</udb:consignmentTransfer>`;
+<!-- UDB transfer preparation worksheet (internal). Not a UDB message format:
+     enter the transfer in the Union Database. Bracketed fields must be completed from source documents. -->
+<udbTransferWorksheet xmlns="urn:biomethane-desk:udb-worksheet:v2" generated="${now}">
+  <reference>${escapeXml(assessment.id)}</reference>
+  <legalBasis>Directive (EU) 2023/2413 Art. 31a; Implementing Regulation (EU) 2024/2792</legalBasis>
+  <transferringOperator name="${escapeXml(sender)}" udbOperatorId="[FROM UDB ACCOUNT]"/>
+  <receivingOperator name="${escapeXml(recipient)}" udbOperatorId="[FROM UDB ACCOUNT]"/>
+  <originFacility>
+    <name>${escapeXml(c.originPlantName || c.name)}</name>
+    <country>${escapeXml(c.originCountry)}</country>
+    <injectionGrid>${escapeXml(c.injectionCountry)}</injectionGrid>
+    <injectionPointEic>[FROM TSO / DSO]</injectionPointEic>
+  </originFacility>
+  <proofOfSustainability>
+    <posNumber>[ISSUED BY CERTIFICATION SCHEME]</posNumber>
+    <certificationScheme>${escapeXml(c.certificationScheme)}</certificationScheme>
+    <feedstock classification="${escapeXml(c.annexClassification)}">${escapeXml(c.feedstockName)}</feedstock>
+    <ghgIntensity unit="gCO2e/MJ">${c.carbonIntensity}</ghgIntensity>
+    <chainOfCustody>${escapeXml(c.chainOfCustody)}</chainOfCustody>
+  </proofOfSustainability>
+  <quantity unit="MWh">${c.volumeMWh ?? '[TO BE AGREED]'}</quantity>
+  <targetMarket>${escapeXml(assessment.targetMarketId)}</targetMarket>
+  <documentFingerprint algorithm="SHA-256">${seal}</documentFingerprint>
+</udbTransferWorksheet>`;
 }
 
 /**
@@ -1113,4 +1136,3 @@ export function downloadDealFile(filename: string, content: string | Blob, mimeT
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
-

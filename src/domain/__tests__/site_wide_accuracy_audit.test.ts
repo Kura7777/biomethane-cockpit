@@ -421,8 +421,9 @@ describe('SITE-WIDE ACCURACY & MATHEMATICAL GROUND-TRUTH AUDIT', () => {
   // --------------------------------------------------------------------------
   describe('5. Plants Database & Multi-Country Coverage', () => {
     
-    it('verifies 1,975+ European facilities in the operational registry', () => {
-      expect(BIOMETHANE_PLANTS.length).toBeGreaterThanOrEqual(1975);
+    it('verifies 1,974 European facilities in the operational registry (map legend artefact excluded)', () => {
+      expect(BIOMETHANE_PLANTS.length).toBe(1974);
+      expect(BIOMETHANE_PLANTS.some(p => /Map Legend Entry/i.test(p.name))).toBe(false);
     });
 
     it('verifies complete Pan-European country macro coverage across 23+ countries', () => {
@@ -856,10 +857,10 @@ describe('SITE-WIDE ACCURACY & MATHEMATICAL GROUND-TRUTH AUDIT', () => {
   // --------------------------------------------------------------------------
   describe('12. Pan-European Plant Technical & Feedstock Reality Invariants', () => {
     
-    it('verifies 100% of all 1,975 facilities have non-null feedstock and technical stack attributions', async () => {
+    it('verifies 100% of all 1,974 facilities have non-null feedstock and technical stack attributions', async () => {
       const { BIOMETHANE_PLANTS, COUNTRY_MACRO_STATS } = await import('../plants/registry');
 
-      expect(BIOMETHANE_PLANTS.length).toBe(1975);
+      expect(BIOMETHANE_PLANTS.length).toBe(1974);
 
       let cropAgriCount = 0;
       let manureCount = 0;

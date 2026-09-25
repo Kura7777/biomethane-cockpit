@@ -168,8 +168,8 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
 
   describe('§A — Section A Fixes & Regression Assertions', () => {
 
-    it('A1 / A3: Plant registry contains exactly 1,975 facilities matching GIE/EBA 2026 counts', () => {
-      expect(BIOMETHANE_PLANTS.length).toBe(1975);
+    it('A1 / A3: Plant registry contains exactly 1,974 facilities (1,975 GIE/EBA map entries minus one legend OCR artefact)', () => {
+      expect(BIOMETHANE_PLANTS.length).toBe(1974);
 
       // Section D1 Verified Country Counts from Master Registry
       expect(getPlantsByCountry('FR').length).toBe(829);
@@ -183,7 +183,7 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
       expect(getPlantsByCountry('FI').length).toBe(32);
       expect(getPlantsByCountry('ES').length).toBe(26);
       expect(getPlantsByCountry('AT').length).toBe(20);
-      expect(getPlantsByCountry('BE').length).toBe(18);
+      expect(getPlantsByCountry('BE').length).toBe(17);
       expect(getPlantsByCountry('NO').length).toBe(15);
       expect(getPlantsByCountry('PT').length).toBe(13);
       expect(getPlantsByCountry('CZ').length).toBe(13);
@@ -263,7 +263,8 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
 
     it('anchors: FuelEU manure CI -100 year 1 deficit closure value', () => {
       const res = computeFuelEUDeficitClosureValue(-100, 1, 89.34, 91.16);
-      expect(res.valueEurPerMWh).toBeCloseTo(437.69, 1);
+      // Annex IV marginal: (2400/41000) × (ship − WtW_bio) × target / ship² × 3600, WtW_bio = CI + 9.3121 slip (Otto SS)
+      expect(res.valueEurPerMWh).toBeCloseTo(411.98, 1);
     });
 
     it('guards against division by zero when shipActualCI <= 0 in FuelEU calculation', () => {
@@ -753,9 +754,9 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
       // 2. UK RTFO mass constant
       expect(RTFO_KG_PER_MWH).toBeCloseTo(72.0, 1);
 
-      // 3. FuelEU manure CI -100, yr 1 ≈ €437.69/MWh
+      // 3. FuelEU manure CI -100, yr 1, default VLSFO ship (Annex II WtW 91.7442) ≈ €408.04/MWh
       const fuelEuModel = computeFuelEUDeficitClosureValue(-100, 1);
-      expect(fuelEuModel.valueEurPerMWh).toBeCloseTo(437.69, 1);
+      expect(fuelEuModel.valueEurPerMWh).toBeCloseTo(408.04, 1);
 
       // 4. FR_CPB capped at €100/MWh
       const frMarket = getMarketById('FR_CPB')!;
@@ -851,10 +852,20 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
         ...baseCosts,
         greenAlpha: 1.20,
       };
-      const baseNet = computeNetback(frMarket, REFERENCE_CONSIGNMENTS.DANISH_MANURE, highMarks, baseCosts, 'bid');
-      const scaledNet = computeNetback(frMarket, REFERENCE_CONSIGNMENTS.DANISH_MANURE, highMarks, alphaScaledCosts, 'bid');
-      expect(scaledNet.certificateValue?.valueEurPerMWh).toBe(120.0);
-      expect((scaledNet.netNetback ?? 0) - (baseNet.netNetback ?? 0)).toBeCloseTo(20.0, 1);
+      // Alpha may never lift FR_CPB above its €100/MWh statutory ceiling
+      const cappedNet = computeNetback(frMarket, REFERENCE_CONSIGNMENTS.DANISH_MANURE, highMarks, alphaScaledCosts, 'bid');
+      expect(cappedNet.certificateValue?.valueEurPerMWh).toBe(100.0);
+      expect(cappedNet.certificateValue?.capped).toBe(true);
+
+      // Below the ceiling, alpha scales the certificate value linearly
+      const lowMarks: MarksState = {
+        ...highMarks,
+        marks: { FR_CPB: { ...highMarks.marks.FR_CPB, bid: 50.0, offer: 55.0, mid: 52.5 } },
+      };
+      const baseNet = computeNetback(frMarket, REFERENCE_CONSIGNMENTS.DANISH_MANURE, lowMarks, baseCosts, 'bid');
+      const scaledNet = computeNetback(frMarket, REFERENCE_CONSIGNMENTS.DANISH_MANURE, lowMarks, alphaScaledCosts, 'bid');
+      expect(scaledNet.certificateValue?.valueEurPerMWh).toBe(60.0);
+      expect((scaledNet.netNetback ?? 0) - (baseNet.netNetback ?? 0)).toBeCloseTo(10.0, 1);
     });
 
     it('assessment with PRA gas index but non-PRA certificate -> hasPra true', () => {

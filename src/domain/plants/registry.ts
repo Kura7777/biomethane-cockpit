@@ -703,6 +703,47 @@ export function getPlantsByCountry(countryCode: string, includeVerified: boolean
   return source.filter(p => p.countryCode === countryCode);
 }
 
+/**
+ * Plant registry feedstock keys that satisfy each FEEDSTOCK_REGISTRY key. The plant dataset
+ * records mixed municipal/commercial organics as `organic_waste`.
+ */
+const PLANT_FEEDSTOCK_ALIASES: Record<string, string[]> = {
+  food_waste: ['food_waste', 'organic_waste'],
+  industrial_bio_waste: ['industrial_bio_waste', 'organic_waste'],
+};
+
+/**
+ * Registry plants that can originate a given origin-country × feedstock opportunity.
+ *
+ * Country isolation is strict ISO-to-ISO (GB/UK treated as one jurisdiction) — never a
+ * name match — and a plant qualifies only if its certified canonical feedstock matches.
+ * Sorted by audited annual energy, largest first; duplicate rows excluded. Returns [] rather than an unrelated plant.
+ */
+export function findPlantsForOrigination(countryIso: string, feedstockKey: string): BiomethanePlant[] {
+  const iso = countryIso.toUpperCase();
+  const isoSet = iso === 'GB' || iso === 'UK' ? ['GB', 'UK'] : [iso];
+  const acceptedKeys = PLANT_FEEDSTOCK_ALIASES[feedstockKey] ?? [feedstockKey];
+  return BIOMETHANE_PLANTS
+    .filter(p => isoSet.includes((p.countryCode || '').toUpperCase()))
+    .filter(p => p.canonicalFeedstockKey != null && acceptedKeys.includes(p.canonicalFeedstockKey))
+    .filter(p => !p.dataQuality?.duplicateOf) // repeated rows would double-count the same asset
+    .sort((a, b) => (b.annualEnergyGWh || 0) - (a.annualEnergyGWh || 0));
+}
+
+/**
+ * Coordinates shared by 5+ plants are country-centroid placeholders, not audited site
+ * locations (e.g. 151 Italian plants at 42.504, 12.646). They must not be presented or
+ * used as a plant's physical location. Flag derived in plants/dataQuality.ts.
+ */
+export function hasApproximateCoordinates(plant: Pick<BiomethanePlant, 'coordinates' | 'dataQuality'>): boolean {
+  return !plant.coordinates || Boolean(plant.dataQuality?.approximateCoordinates);
+}
+
+/** The plant's audited site coordinates, or null when only a centroid placeholder exists. */
+export function getVerifiedPlantCoordinates(plant: Pick<BiomethanePlant, 'coordinates' | 'dataQuality'>): [number, number] | null {
+  return hasApproximateCoordinates(plant) ? null : (plant.coordinates as [number, number]);
+}
+
 export function getTopPlantsByCapacity(limit: number = 10): BiomethanePlant[] {
   return [...COMBINED_BIOMETHANE_PLANTS]
     .filter(p => p.annualEnergyGWh !== null && p.annualEnergyGWh !== undefined)

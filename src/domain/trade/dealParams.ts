@@ -136,9 +136,15 @@ export function parseDealParams(searchParams: URLSearchParams): Partial<DealPara
     if (raw === null) continue;
 
     if (isNumericKey(key)) {
-      const numeric = Number(raw);
+      // Plain decimal only: Number() would accept whitespace (→ 0) and hex/binary literals.
+      const trimmed = raw.trim();
+      if (!/^-?\d+(\.\d+)?([eE][-+]?\d+)?$/.test(trimmed)) continue;
+      const numeric = Number(trimmed);
       if (!Number.isFinite(numeric)) continue;
-      parsed[key] = numeric;
+      // Only carbon intensity may legitimately be negative; volumes, capacities and years cannot.
+      if (key !== 'ci' && numeric < 0) continue;
+      if (key === 'complianceYear' && !Number.isInteger(numeric)) continue;
+      parsed[key] = Object.is(numeric, -0) ? 0 : numeric;
     } else if (isBooleanKey(key)) {
       parsed[key] = raw === 'true' || raw === '1';
     } else {

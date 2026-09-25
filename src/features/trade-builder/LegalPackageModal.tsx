@@ -3,6 +3,7 @@ import { TradeAssessment } from '../../domain/trade/types';
 import { 
   generateEfetBiomethaneAnnexPdf, 
   generateCommercialTermSheetPdf,
+  generateStatutoryAuditMemoPdf,
   generateFpMLDealPayload, 
   generateEtrmJsonPayload, 
   generateEtrmCsvPayload,
@@ -17,7 +18,7 @@ import { apiClient } from '../../domain/api/client';
 import { deskSync } from '../../domain/sync/deskSync';
 import { showToast } from '../../app/DeskToastContainer';
 
-export type DocumentTab = 'TERM_SHEET' | 'EFET_ANNEX' | 'ETRM_TICKET' | 'UDB_XML';
+export type DocumentTab = 'TERM_SHEET' | 'EFET_ANNEX' | 'ETRM_TICKET' | 'UDB_XML' | 'AUDIT_MEMO';
 
 interface LegalPackageModalProps {
   isOpen: boolean;
@@ -37,6 +38,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
 
   const [termSheetSubView, setTermSheetSubView] = useState<'STRUCTURED' | 'PDF'>('STRUCTURED');
   const [efetSubView, setEfetSubView] = useState<'STRUCTURED' | 'PDF'>('STRUCTURED');
+  const [auditMemoSubView, setAuditMemoSubView] = useState<'STRUCTURED' | 'PDF'>('STRUCTURED');
   const [etrmSubView, setEtrmSubView] = useState<'TABLE' | 'RAW_CSV' | 'JSON'>('TABLE');
   const [udbSubView, setUdbSubView] = useState<'SUMMARY' | 'RAW_XML'>('SUMMARY');
 
@@ -86,10 +88,14 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
   // Document 2: EFET Biomethane Annex PDF blob
   const [efetPdfBlobUrl, setEfetPdfBlobUrl] = useState<string>('');
 
+  // Document 5: Statutory Audit Memo PDF blob
+  const [auditMemoPdfBlobUrl, setAuditMemoPdfBlobUrl] = useState<string>('');
+
   useEffect(() => {
     if (!isOpen || !assessment) {
       setTermSheetPdfBlobUrl('');
       setEfetPdfBlobUrl('');
+      setAuditMemoPdfBlobUrl('');
       return;
     }
     try {
@@ -103,9 +109,15 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
       const efetUrl = URL.createObjectURL(efetBlob);
       setEfetPdfBlobUrl(efetUrl);
 
+      const auditDoc = generateStatutoryAuditMemoPdf(assessment, legalOptions);
+      const auditBlob = auditDoc.output('blob');
+      const auditUrl = URL.createObjectURL(auditBlob);
+      setAuditMemoPdfBlobUrl(auditUrl);
+
       return () => {
         URL.revokeObjectURL(tsUrl);
         URL.revokeObjectURL(efetUrl);
+        URL.revokeObjectURL(auditUrl);
       };
     } catch (e) {
       console.error('Failed to generate PDF preview blobs:', e);
@@ -236,12 +248,24 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
     }
   };
 
+  const handleDownloadAuditMemoPdf = () => {
+    try {
+      const doc = generateStatutoryAuditMemoPdf(assessment, legalOptions);
+      const filename = `AUDIT-TR-${assessment.id}-${assessment.targetMarketId}.pdf`;
+      doc.save(filename);
+      showToast(`Statutory Audit Memo PDF downloaded: ${filename}`);
+    } catch {
+      showToast('Failed to generate Statutory Audit Memo PDF');
+    }
+  };
+
   const handleDownloadCompletePackage = () => {
     handleDownloadTermSheetPdf();
     handleDownloadEfetPdf();
     handleDownloadEtrmCsv();
     handleDownloadUdbXml();
-    showToast('All 4 deal handoff artifacts downloaded!');
+    handleDownloadAuditMemoPdf();
+    showToast('All 5 deal handoff artifacts downloaded!');
   };
 
   const handleComplianceSignoff = () => {
@@ -347,10 +371,10 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
               className="btn btn-primary"
               style={{ padding: '7px 14px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}
               onClick={handleDownloadCompletePackage}
-              title="Download all 4 documents at once"
+              title="Download all 5 documents at once"
             >
               <span>📦</span>
-              <span>Download All (4 Files)</span>
+              <span>Download All (5 Files)</span>
             </button>
             <button
               type="button"
@@ -374,7 +398,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
           </div>
         </div>
 
-        {/* ═════════ 4-DOCUMENT REVIEW TABS STRIP ═════════ */}
+        {/* ═════════ 5-DOCUMENT REVIEW TABS STRIP ═════════ */}
         <div
           style={{
             display: 'flex',
@@ -387,8 +411,8 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
             flexWrap: 'wrap',
           }}
         >
-          {/* Main 4-Document Selector */}
-          <div style={{ display: 'flex', gap: '6px' }}>
+          {/* Main 5-Document Selector */}
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
             <button
               type="button"
               className={`chip ${activeTab === 'TERM_SHEET' ? 'chip-a' : ''}`}
@@ -444,6 +468,20 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
               onClick={() => setActiveTab('UDB_XML')}
             >
               🌐 4. UDB Mass Balance Nomination (XML)
+            </button>
+            <button
+              type="button"
+              className={`chip ${activeTab === 'AUDIT_MEMO' ? 'chip-a' : ''}`}
+              style={{
+                fontSize: '11px',
+                padding: '6px 14px',
+                cursor: 'pointer',
+                fontWeight: activeTab === 'AUDIT_MEMO' ? 800 : 600,
+                border: activeTab === 'AUDIT_MEMO' ? '1px solid var(--color-accent)' : '1px solid var(--color-divider)',
+              }}
+              onClick={() => setActiveTab('AUDIT_MEMO')}
+            >
+              🛡️ 5. Statutory Audit Memo (PDF)
             </button>
           </div>
 
@@ -1342,6 +1380,217 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
             </div>
           )}
 
+          {/* ══════════════════════════════════════════════════════════════════
+             DOCUMENT 5: STATUTORY AUDIT MEMORANDUM (PDF & STRUCTURED)
+             ══════════════════════════════════════════════════════════════════ */}
+          {activeTab === 'AUDIT_MEMO' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              
+              {/* Document Sub-view Selector & Download Actions */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '10px 14px',
+                  backgroundColor: 'var(--color-surface)',
+                  border: '1px solid var(--color-divider)',
+                  flexWrap: 'wrap',
+                  gap: '10px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span className="eyebrow" style={{ margin: 0 }}>View Format:</span>
+                  <div className="seg" style={{ height: '28px' }}>
+                    <button
+                      type="button"
+                      className={`seg-opt ${auditMemoSubView === 'STRUCTURED' ? 'active' : ''}`}
+                      style={{ fontSize: '11px', padding: '2px 12px' }}
+                      onClick={() => setAuditMemoSubView('STRUCTURED')}
+                    >
+                      📋 Structured Review
+                    </button>
+                    <button
+                      type="button"
+                      className={`seg-opt ${auditMemoSubView === 'PDF' ? 'active' : ''}`}
+                      style={{ fontSize: '11px', padding: '2px 12px' }}
+                      onClick={() => setAuditMemoSubView('PDF')}
+                    >
+                      📄 Official PDF Preview
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    style={{ padding: '4px 10px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '5px' }}
+                    onClick={() => {
+                      const memoText = `[STATUTORY COMPLIANCE AUDIT MEMORANDUM]
+Dossier Ref: AUDIT-TR-${assessment.id}
+Date: ${assessment.createdAt.slice(0, 10)}
+Origin Facility: ${c.name || 'Biomethane Facility'} (${c.originCountry})
+Target Market: ${assessment.targetMarketName} (${assessment.targetMarketId})
+Feedstock: ${c.feedstockName || c.feedstock} · CI: ${c.carbonIntensity} gCO2e/MJ
+Volume: ${(c.volumeMWh || 10000).toLocaleString()} MWh
+Verdict: ${assessment.eligibility.overallVerdict}
+
+6-GATE STATUTORY BREAKDOWN:
+${assessment.eligibility.gates.map((g, idx) => `• Gate ${idx + 1}: ${g.gateLabel} [${g.verdict}] - ${g.reason}`).join('\n')}
+
+SHA-256 Seal: ${seal}`.trim();
+                      navigator.clipboard.writeText(memoText);
+                      setCopiedType('AUDIT_MEMO');
+                      showToast('Statutory audit summary copied to clipboard');
+                      setTimeout(() => setCopiedType(null), 2000);
+                    }}
+                  >
+                    <span>{copiedType === 'AUDIT_MEMO' ? '✓' : '📋'}</span>
+                    <span>{copiedType === 'AUDIT_MEMO' ? 'Copied' : 'Copy Summary'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    style={{ padding: '4px 12px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 700 }}
+                    onClick={handleDownloadAuditMemoPdf}
+                  >
+                    <span>📥</span>
+                    <span>Download PDF</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Sub-view A: Structured Audit Review */}
+              {auditMemoSubView === 'STRUCTURED' && (
+                <div
+                  style={{
+                    backgroundColor: 'var(--color-surface)',
+                    border: '1px solid var(--color-divider)',
+                    padding: '16px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '16px',
+                  }}
+                >
+                  <div style={{ borderBottom: '1px solid var(--color-divider)', paddingBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                      <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, textTransform: 'uppercase' }}>
+                        Chief Regulatory Officer Statutory Compliance Audit Memo
+                      </h4>
+                      <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '2px' }}>
+                        Dossier Ref: <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700 }}>AUDIT-TR-{assessment.id}</span> · Directive (EU) 2023/2413 (RED III)
+                      </div>
+                    </div>
+                    <span
+                      style={{
+                        padding: '4px 10px',
+                        borderRadius: '4px',
+                        fontSize: '11px',
+                        fontWeight: 800,
+                        backgroundColor: assessment.eligibility.overallVerdict === 'ELIGIBLE' ? 'rgba(5, 150, 105, 0.15)' : 'rgba(220, 38, 38, 0.15)',
+                        color: assessment.eligibility.overallVerdict === 'ELIGIBLE' ? '#10b981' : '#f87171',
+                        border: `1px solid ${assessment.eligibility.overallVerdict === 'ELIGIBLE' ? '#059669' : '#dc2626'}`,
+                      }}
+                    >
+                      VERDICT: {assessment.eligibility.overallVerdict}
+                    </span>
+                  </div>
+
+                  {/* 6 Gates Matrix */}
+                  <div>
+                    <div className="eyebrow" style={{ marginBottom: '8px' }}>6-Gate Statutory Breakdown</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {assessment.eligibility.gates.map((g, idx) => (
+                        <div
+                          key={idx}
+                          style={{
+                            padding: '10px 14px',
+                            backgroundColor: 'var(--color-subtier)',
+                            border: '1px solid var(--color-divider)',
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            gap: '10px',
+                          }}
+                        >
+                          <span
+                            style={{
+                              padding: '2px 6px',
+                              borderRadius: '3px',
+                              fontSize: '10px',
+                              fontWeight: 800,
+                              backgroundColor: g.verdict === 'PASS' ? '#065f46' : g.verdict === 'HARD_BLOCK' ? '#991b1b' : '#92400e',
+                              color: '#ffffff',
+                            }}
+                          >
+                            {g.verdict}
+                          </span>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: 700, fontSize: '12px', color: 'var(--color-text)' }}>
+                              Gate {idx + 1}: {g.gateLabel}
+                            </div>
+                            <div style={{ fontSize: '11.5px', color: 'var(--color-muted)', marginTop: '2px' }}>
+                              {g.reason}
+                            </div>
+                            {g.citations && g.citations[0] && (
+                              <div style={{ fontSize: '10.5px', color: 'var(--color-accent)', marginTop: '3px', fontFamily: 'var(--font-mono)' }}>
+                                📌 {g.citations[0].fullReference || g.citations[0].shortName}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* EFET Protective Clauses Box */}
+                  <div style={{ padding: '14px', backgroundColor: 'var(--color-subtier)', border: '1px solid var(--color-divider)' }}>
+                    <div className="eyebrow" style={{ marginBottom: '6px' }}>EFET Contractual Protective Covenants</div>
+                    <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '11.5px', color: 'var(--color-text)', lineHeight: 1.6 }}>
+                      <li><strong>Proof of Sustainability Delivery:</strong> Electronic title transfer via Union Database within 10 business days following injection month.</li>
+                      <li><strong>Three-Business-Day Cure Notice:</strong> Delayed or invalid PoS triggers 3-day notice, after which Buyer may re-price gas to TTF Day-Ahead spot.</li>
+                      <li><strong>Subsidy Clawback Warranty:</strong> Strict covenant against double-recovery of Dutch SDE++, German EEG, or Italian GSE support.</li>
+                    </ul>
+                  </div>
+
+                  <div style={{ padding: '10px 14px', backgroundColor: 'var(--color-subtier)', border: '1px solid var(--color-divider)', fontSize: '11px', fontFamily: 'var(--font-mono)' }}>
+                    SHA-256 AUDIT SEAL: {seal}
+                  </div>
+                </div>
+              )}
+
+              {/* Sub-view B: PDF Preview */}
+              {auditMemoSubView === 'PDF' && (
+                <div
+                  style={{
+                    backgroundColor: 'var(--color-surface)',
+                    border: '1px solid var(--color-divider)',
+                    padding: '8px',
+                  }}
+                >
+                  {auditMemoPdfBlobUrl ? (
+                    <iframe
+                      src={auditMemoPdfBlobUrl}
+                      style={{
+                        width: '100%',
+                        height: '750px',
+                        border: 'none',
+                        backgroundColor: '#ffffff',
+                      }}
+                      title="Statutory Audit Memo PDF Preview"
+                    />
+                  ) : (
+                    <div style={{ padding: '40px', textAlign: 'center', color: 'var(--color-muted)' }}>
+                      Rendering PDF document preview...
+                    </div>
+                  )}
+                </div>
+              )}
+
+            </div>
+          )}
+
         </div>
 
         {/* ═════════ MODAL FOOTER BAR ═════════ */}
@@ -1430,12 +1679,22 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
 
             <button
               type="button"
+              className="btn btn-secondary"
+              style={{ padding: '6px 10px', fontSize: '11px' }}
+              onClick={handleDownloadAuditMemoPdf}
+              title="Download Statutory Compliance Audit Memo PDF"
+            >
+              🛡️ Audit Memo PDF
+            </button>
+
+            <button
+              type="button"
               className="btn btn-primary"
               style={{ padding: '6px 14px', fontSize: '11px', fontWeight: 800 }}
               onClick={handleDownloadCompletePackage}
-              title="Download all 4 deal documents at once"
+              title="Download all 5 deal documents at once"
             >
-              📦 Download All 4 Files
+              📦 Download All 5 Files
             </button>
           </div>
         </div>
