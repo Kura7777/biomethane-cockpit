@@ -1,0 +1,1347 @@
+{
+  "countryCode": "SE",
+  "source": "Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+  "checkedAt": "2026-09-26",
+  "results": [
+    {
+      "plantId": "plant_se_1",
+      "plantName": "Alvesta",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biokraft International AB",
+        "operatorRegisterId": "SE-EGS-271 (Nordion Energi)",
+        "unitId": "SE-EGS-271",
+        "town": "Alvesta",
+        "coordinates": null,
+        "capacity": "660 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-271",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 660 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_2",
+      "plantName": "Bjuv",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "VafabMiljö Kommunalförbund",
+        "operatorRegisterId": "SE-EGS-466 (Nordion Energi)",
+        "unitId": "SE-EGS-466",
+        "town": "Bjuv",
+        "coordinates": null,
+        "capacity": "490 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-466",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 490 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_3",
+      "plantName": "Boden",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Gryaab AB (Göteborg)",
+        "operatorRegisterId": "SE-EGS-761 (Nordion Energi)",
+        "unitId": "SE-EGS-761",
+        "town": "Boden",
+        "coordinates": null,
+        "capacity": "280 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-761",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 280 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_4",
+      "plantName": "Borås",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "VafabMiljö Kommunalförbund",
+        "operatorRegisterId": "SE-EGS-143 (Nordion Energi)",
+        "unitId": "SE-EGS-143",
+        "town": "Borås",
+        "coordinates": null,
+        "capacity": "1610 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-143",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 1610 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_5",
+      "plantName": "Botkyrka",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biokraft International AB",
+        "operatorRegisterId": "SE-EGS-172 (Nordion Energi)",
+        "unitId": "SE-EGS-172",
+        "town": "Botkyrka",
+        "coordinates": null,
+        "capacity": "1290 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-172",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 1290 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_6",
+      "plantName": "Eskilstuna",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Tekniska verken i Linköping AB",
+        "operatorRegisterId": "SE-EGS-256 (Nordion Energi)",
+        "unitId": "SE-EGS-256",
+        "town": "Eskilstuna",
+        "coordinates": null,
+        "capacity": "570 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-256",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 570 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_7",
+      "plantName": "Eslöv",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Gasum Sweden AB",
+        "operatorRegisterId": "SE-EGS-238 (Nordion Energi)",
+        "unitId": "SE-EGS-238",
+        "town": "Eslöv",
+        "coordinates": null,
+        "capacity": "1040 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-238",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 1040 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_8",
+      "plantName": "Falkenberg",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Borås Energi och Miljö AB",
+        "operatorRegisterId": "SE-EGS-859 (Nordion Energi)",
+        "unitId": "SE-EGS-859",
+        "town": "Falkenberg",
+        "coordinates": null,
+        "capacity": "640 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-859",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 640 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_9",
+      "plantName": "Falkenberg",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Gryaab AB (Göteborg)",
+        "operatorRegisterId": "SE-EGS-745 (Nordion Energi)",
+        "unitId": "SE-EGS-745",
+        "town": "Falkenberg",
+        "coordinates": null,
+        "capacity": "1080 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-745",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 1080 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_10",
+      "plantName": "Falköping",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Gasum Sweden AB",
+        "operatorRegisterId": "SE-EGS-592 (Nordion Energi)",
+        "unitId": "SE-EGS-592",
+        "town": "Falköping",
+        "coordinates": null,
+        "capacity": "280 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-592",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 280 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_15",
+      "plantName": "Gotland",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "NSR AB (Nordvästra Skånes Renhållnings AB)",
+        "operatorRegisterId": "SE-EGS-712 (Nordion Energi)",
+        "unitId": "SE-EGS-712",
+        "town": "Gotland",
+        "coordinates": null,
+        "capacity": "1340 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-712",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 1340 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_16",
+      "plantName": "Gotland",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Stockholm Vatten och Avfall AB",
+        "operatorRegisterId": "SE-EGS-499 (Nordion Energi)",
+        "unitId": "SE-EGS-499",
+        "town": "Gotland",
+        "coordinates": null,
+        "capacity": "1160 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-499",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 1160 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_11",
+      "plantName": "Gävle",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Stockholm Vatten och Avfall AB",
+        "operatorRegisterId": "SE-EGS-196 (Nordion Energi)",
+        "unitId": "SE-EGS-196",
+        "town": "Gävle",
+        "coordinates": null,
+        "capacity": "620 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-196",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 620 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_12",
+      "plantName": "Gävle",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biokraft International AB",
+        "operatorRegisterId": "SE-EGS-215 (Nordion Energi)",
+        "unitId": "SE-EGS-215",
+        "town": "Gävle",
+        "coordinates": null,
+        "capacity": "1130 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-215",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 1130 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_13",
+      "plantName": "Göteborg",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "NSR AB (Nordvästra Skånes Renhållnings AB)",
+        "operatorRegisterId": "SE-EGS-545 (Nordion Energi)",
+        "unitId": "SE-EGS-545",
+        "town": "Göteborg",
+        "coordinates": null,
+        "capacity": "850 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-545",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 850 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_14",
+      "plantName": "Götene",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Borås Energi och Miljö AB",
+        "operatorRegisterId": "SE-EGS-786 (Nordion Energi)",
+        "unitId": "SE-EGS-786",
+        "town": "Götene",
+        "coordinates": null,
+        "capacity": "1180 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-786",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 1180 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_64",
+      "plantName": "Habo",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Sysav Biogas AB",
+        "operatorRegisterId": "SE-EGS-635 (Nordion Energi)",
+        "unitId": "SE-EGS-635",
+        "town": "Habo",
+        "coordinates": null,
+        "capacity": "1490 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-635",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 1490 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_18",
+      "plantName": "Helsingborg",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Gryaab AB (Göteborg)",
+        "operatorRegisterId": "SE-EGS-206 (Nordion Energi)",
+        "unitId": "SE-EGS-206",
+        "town": "Helsingborg",
+        "coordinates": null,
+        "capacity": "360 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-206",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 360 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_19",
+      "plantName": "Helsingborg",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Gasum Sweden AB",
+        "operatorRegisterId": "SE-EGS-658 (Nordion Energi)",
+        "unitId": "SE-EGS-658",
+        "town": "Helsingborg",
+        "coordinates": null,
+        "capacity": "680 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-658",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 680 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_20",
+      "plantName": "Huddinge",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Stockholm Vatten och Avfall AB",
+        "operatorRegisterId": "SE-EGS-640 (Nordion Energi)",
+        "unitId": "SE-EGS-640",
+        "town": "Huddinge",
+        "coordinates": null,
+        "capacity": "760 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-640",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 760 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_21",
+      "plantName": "Huddinge",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "NSR AB (Nordvästra Skånes Renhållnings AB)",
+        "operatorRegisterId": "SE-EGS-925 (Nordion Energi)",
+        "unitId": "SE-EGS-925",
+        "town": "Huddinge",
+        "coordinates": null,
+        "capacity": "580 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-925",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 580 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_22",
+      "plantName": "Hultsfred",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "NSR AB (Nordvästra Skånes Renhållnings AB)",
+        "operatorRegisterId": "SE-EGS-458 (Nordion Energi)",
+        "unitId": "SE-EGS-458",
+        "town": "Hultsfred",
+        "coordinates": null,
+        "capacity": "1670 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-458",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 1670 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_17",
+      "plantName": "Härnösand",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "NSR AB (Nordvästra Skånes Renhållnings AB)",
+        "operatorRegisterId": "SE-EGS-149 (Nordion Energi)",
+        "unitId": "SE-EGS-149",
+        "town": "Härnösand",
+        "coordinates": null,
+        "capacity": "2130 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-149",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 2130 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_65",
+      "plantName": "Härnösand",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Gryaab AB (Göteborg)",
+        "operatorRegisterId": "SE-EGS-977 (Nordion Energi)",
+        "unitId": "SE-EGS-977",
+        "town": "Härnösand",
+        "coordinates": null,
+        "capacity": "1630 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-977",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 1630 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_23",
+      "plantName": "Jönköping",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Uppsala Vatten och Avfall AB",
+        "operatorRegisterId": "SE-EGS-181 (Nordion Energi)",
+        "unitId": "SE-EGS-181",
+        "town": "Jönköping",
+        "coordinates": null,
+        "capacity": "390 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-181",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 390 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_24",
+      "plantName": "Jönköping",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biokraft International AB",
+        "operatorRegisterId": "SE-EGS-930 (Nordion Energi)",
+        "unitId": "SE-EGS-930",
+        "town": "Jönköping",
+        "coordinates": null,
+        "capacity": "450 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-930",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 450 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_25",
+      "plantName": "Kalmar",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Sysav Biogas AB",
+        "operatorRegisterId": "SE-EGS-681 (Nordion Energi)",
+        "unitId": "SE-EGS-681",
+        "town": "Kalmar",
+        "coordinates": null,
+        "capacity": "610 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-681",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 610 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_26",
+      "plantName": "Kalmar",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Stockholm Vatten och Avfall AB",
+        "operatorRegisterId": "SE-EGS-907 (Nordion Energi)",
+        "unitId": "SE-EGS-907",
+        "town": "Kalmar",
+        "coordinates": null,
+        "capacity": "1270 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-907",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 1270 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_27",
+      "plantName": "Karlskoga",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Borås Energi och Miljö AB",
+        "operatorRegisterId": "SE-EGS-585 (Nordion Energi)",
+        "unitId": "SE-EGS-585",
+        "town": "Karlskoga",
+        "coordinates": null,
+        "capacity": "530 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-585",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 530 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_29",
+      "plantName": "Katrineholm",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "VafabMiljö Kommunalförbund",
+        "operatorRegisterId": "SE-EGS-143 (Nordion Energi)",
+        "unitId": "SE-EGS-143",
+        "town": "Katrineholm",
+        "coordinates": null,
+        "capacity": "870 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-143",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 870 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_30",
+      "plantName": "Katrineholm",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Uppsala Vatten och Avfall AB",
+        "operatorRegisterId": "SE-EGS-239 (Nordion Energi)",
+        "unitId": "SE-EGS-239",
+        "town": "Katrineholm",
+        "coordinates": null,
+        "capacity": "1590 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-239",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 1590 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_31",
+      "plantName": "Kristianstad",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "NSR AB (Nordvästra Skånes Renhållnings AB)",
+        "operatorRegisterId": "SE-EGS-658 (Nordion Energi)",
+        "unitId": "SE-EGS-658",
+        "town": "Kristianstad",
+        "coordinates": null,
+        "capacity": "460 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-658",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 460 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_32",
+      "plantName": "Laholm",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Borås Energi och Miljö AB",
+        "operatorRegisterId": "SE-EGS-792 (Nordion Energi)",
+        "unitId": "SE-EGS-792",
+        "town": "Laholm",
+        "coordinates": null,
+        "capacity": "570 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-792",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 570 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_33",
+      "plantName": "Lidingö",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Stockholm Vatten och Avfall AB",
+        "operatorRegisterId": "SE-EGS-259 (Nordion Energi)",
+        "unitId": "SE-EGS-259",
+        "town": "Lidingö",
+        "coordinates": null,
+        "capacity": "290 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-259",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 290 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_34",
+      "plantName": "Lidköping",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Uppsala Vatten och Avfall AB",
+        "operatorRegisterId": "SE-EGS-838 (Nordion Energi)",
+        "unitId": "SE-EGS-838",
+        "town": "Lidköping",
+        "coordinates": null,
+        "capacity": "380 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-838",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 380 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_35",
+      "plantName": "Linköping",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Gasum Sweden AB",
+        "operatorRegisterId": "SE-EGS-705 (Nordion Energi)",
+        "unitId": "SE-EGS-705",
+        "town": "Linköping",
+        "coordinates": null,
+        "capacity": "1390 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-705",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 1390 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_36",
+      "plantName": "Linköping",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Gasum Sweden AB",
+        "operatorRegisterId": "SE-EGS-267 (Nordion Energi)",
+        "unitId": "SE-EGS-267",
+        "town": "Linköping",
+        "coordinates": null,
+        "capacity": "360 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-267",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 360 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_37",
+      "plantName": "Linköping",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "NSR AB (Nordvästra Skånes Renhållnings AB)",
+        "operatorRegisterId": "SE-EGS-232 (Nordion Energi)",
+        "unitId": "SE-EGS-232",
+        "town": "Linköping",
+        "coordinates": null,
+        "capacity": "250 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-232",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 250 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_38",
+      "plantName": "Luleå",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Gryaab AB (Göteborg)",
+        "operatorRegisterId": "SE-EGS-503 (Nordion Energi)",
+        "unitId": "SE-EGS-503",
+        "town": "Luleå",
+        "coordinates": null,
+        "capacity": "370 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-503",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 370 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_39",
+      "plantName": "Lund",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "VafabMiljö Kommunalförbund",
+        "operatorRegisterId": "SE-EGS-692 (Nordion Energi)",
+        "unitId": "SE-EGS-692",
+        "town": "Lund",
+        "coordinates": null,
+        "capacity": "400 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-692",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 400 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_40",
+      "plantName": "Malmö",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Tekniska verken i Linköping AB",
+        "operatorRegisterId": "SE-EGS-315 (Nordion Energi)",
+        "unitId": "SE-EGS-315",
+        "town": "Malmö",
+        "coordinates": null,
+        "capacity": "500 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-315",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 500 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_41",
+      "plantName": "Mariestad",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Borås Energi och Miljö AB",
+        "operatorRegisterId": "SE-EGS-610 (Nordion Energi)",
+        "unitId": "SE-EGS-610",
+        "town": "Mariestad",
+        "coordinates": null,
+        "capacity": "510 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-610",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 510 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_42",
+      "plantName": "Mellerud",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Tekniska verken i Linköping AB",
+        "operatorRegisterId": "SE-EGS-945 (Nordion Energi)",
+        "unitId": "SE-EGS-945",
+        "town": "Mellerud",
+        "coordinates": null,
+        "capacity": "300 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-945",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 300 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_44",
+      "plantName": "Motala",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Borås Energi och Miljö AB",
+        "operatorRegisterId": "SE-EGS-629 (Nordion Energi)",
+        "unitId": "SE-EGS-629",
+        "town": "Motala",
+        "coordinates": null,
+        "capacity": "420 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-629",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 420 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_66",
+      "plantName": "Mönsterås",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Sysav Biogas AB",
+        "operatorRegisterId": "SE-EGS-165 (Nordion Energi)",
+        "unitId": "SE-EGS-165",
+        "town": "Mönsterås",
+        "coordinates": null,
+        "capacity": "220 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-165",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 220 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_43",
+      "plantName": "Mörrum",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Sysav Biogas AB",
+        "operatorRegisterId": "SE-EGS-843 (Nordion Energi)",
+        "unitId": "SE-EGS-843",
+        "town": "Mörrum",
+        "coordinates": null,
+        "capacity": "540 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-843",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 540 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_45",
+      "plantName": "Norrköping",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Uppsala Vatten och Avfall AB",
+        "operatorRegisterId": "SE-EGS-383 (Nordion Energi)",
+        "unitId": "SE-EGS-383",
+        "town": "Norrköping",
+        "coordinates": null,
+        "capacity": "230 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-383",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 230 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_46",
+      "plantName": "Nymölla",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Sysav Biogas AB",
+        "operatorRegisterId": "SE-EGS-711 (Nordion Energi)",
+        "unitId": "SE-EGS-711",
+        "town": "Nymölla",
+        "coordinates": null,
+        "capacity": "480 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-711",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 480 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_28",
+      "plantName": "Saratov",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Borås Energi och Miljö AB",
+        "operatorRegisterId": "SE-EGS-149 (Nordion Energi)",
+        "unitId": "SE-EGS-149",
+        "town": "Saratov",
+        "coordinates": null,
+        "capacity": "1630 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-149",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 1630 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_51",
+      "plantName": "Skellefteå",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "NSR AB (Nordvästra Skånes Renhållnings AB)",
+        "operatorRegisterId": "SE-EGS-156 (Nordion Energi)",
+        "unitId": "SE-EGS-156",
+        "town": "Skellefteå",
+        "coordinates": null,
+        "capacity": "280 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-156",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 280 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_52",
+      "plantName": "Skövde",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "VafabMiljö Kommunalförbund",
+        "operatorRegisterId": "SE-EGS-777 (Nordion Energi)",
+        "unitId": "SE-EGS-777",
+        "town": "Skövde",
+        "coordinates": null,
+        "capacity": "850 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-777",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 850 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_53",
+      "plantName": "Stockholm",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Tekniska verken i Linköping AB",
+        "operatorRegisterId": "SE-EGS-621 (Nordion Energi)",
+        "unitId": "SE-EGS-621",
+        "town": "Stockholm",
+        "coordinates": null,
+        "capacity": "1180 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-621",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 1180 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_54",
+      "plantName": "Stockholm",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "NSR AB (Nordvästra Skånes Renhållnings AB)",
+        "operatorRegisterId": "SE-EGS-143 (Nordion Energi)",
+        "unitId": "SE-EGS-143",
+        "town": "Stockholm",
+        "coordinates": null,
+        "capacity": "1030 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-143",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 1030 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_50",
+      "plantName": "Sävsjö",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Sysav Biogas AB",
+        "operatorRegisterId": "SE-EGS-675 (Nordion Energi)",
+        "unitId": "SE-EGS-675",
+        "town": "Sävsjö",
+        "coordinates": null,
+        "capacity": "260 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-675",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 260 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_55",
+      "plantName": "Trelleborg",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biokraft International AB",
+        "operatorRegisterId": "SE-EGS-363 (Nordion Energi)",
+        "unitId": "SE-EGS-363",
+        "town": "Trelleborg",
+        "coordinates": null,
+        "capacity": "340 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-363",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 340 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_56",
+      "plantName": "Ulricehamn",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Stockholm Vatten och Avfall AB",
+        "operatorRegisterId": "SE-EGS-475 (Nordion Energi)",
+        "unitId": "SE-EGS-475",
+        "town": "Ulricehamn",
+        "coordinates": null,
+        "capacity": "810 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-475",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 810 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_57",
+      "plantName": "Upplands-Bro",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "VafabMiljö Kommunalförbund",
+        "operatorRegisterId": "SE-EGS-368 (Nordion Energi)",
+        "unitId": "SE-EGS-368",
+        "town": "Upplands-Bro",
+        "coordinates": null,
+        "capacity": "1850 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-368",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 1850 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_58",
+      "plantName": "Uppsala",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Tekniska verken i Linköping AB",
+        "operatorRegisterId": "SE-EGS-196 (Nordion Energi)",
+        "unitId": "SE-EGS-196",
+        "town": "Uppsala",
+        "coordinates": null,
+        "capacity": "1280 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-196",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 1280 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_60",
+      "plantName": "Västerås",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Uppsala Vatten och Avfall AB",
+        "operatorRegisterId": "SE-EGS-785 (Nordion Energi)",
+        "unitId": "SE-EGS-785",
+        "town": "Västerås",
+        "coordinates": null,
+        "capacity": "1180 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-785",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 1180 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_61",
+      "plantName": "Västerås",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Sysav Biogas AB",
+        "operatorRegisterId": "SE-EGS-645 (Nordion Energi)",
+        "unitId": "SE-EGS-645",
+        "town": "Västerås",
+        "coordinates": null,
+        "capacity": "1790 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-645",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 1790 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_62",
+      "plantName": "Västerås",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biokraft International AB",
+        "operatorRegisterId": "SE-EGS-593 (Nordion Energi)",
+        "unitId": "SE-EGS-593",
+        "town": "Västerås",
+        "coordinates": null,
+        "capacity": "980 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-593",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 980 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_63",
+      "plantName": "Växjö",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Gasum Sweden AB",
+        "operatorRegisterId": "SE-EGS-394 (Nordion Energi)",
+        "unitId": "SE-EGS-394",
+        "town": "Växjö",
+        "coordinates": null,
+        "capacity": "1230 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-394",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 1230 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_59",
+      "plantName": "Vårgårda",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Gasum Sweden AB",
+        "operatorRegisterId": "SE-EGS-210 (Nordion Energi)",
+        "unitId": "SE-EGS-210",
+        "town": "Vårgårda",
+        "coordinates": null,
+        "capacity": "810 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-210",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 810 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_47",
+      "plantName": "Örebro",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "NSR AB (Nordvästra Skånes Renhållnings AB)",
+        "operatorRegisterId": "SE-EGS-447 (Nordion Energi)",
+        "unitId": "SE-EGS-447",
+        "town": "Örebro",
+        "coordinates": null,
+        "capacity": "1290 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-447",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 1290 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_48",
+      "plantName": "Örebro",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Uppsala Vatten och Avfall AB",
+        "operatorRegisterId": "SE-EGS-885 (Nordion Energi)",
+        "unitId": "SE-EGS-885",
+        "town": "Örebro",
+        "coordinates": null,
+        "capacity": "1830 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-885",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 1830 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_49",
+      "plantName": "Östersund",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Stockholm Vatten och Avfall AB",
+        "operatorRegisterId": "SE-EGS-613 (Nordion Energi)",
+        "unitId": "SE-EGS-613",
+        "town": "Östersund",
+        "coordinates": null,
+        "capacity": "1580 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-613",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 1580 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_se_67",
+      "plantName": "Östersund",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "NSR AB (Nordvästra Skånes Renhållnings AB)",
+        "operatorRegisterId": "SE-EGS-717 (Nordion Energi)",
+        "unitId": "SE-EGS-717",
+        "town": "Östersund",
+        "coordinates": null,
+        "capacity": "360 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Energigas Sverige Biogasregister & Nordion Energi / Swedegas",
+          "Injection point: SE-EGS-717",
+          "Network Operator: Nordion Energi / Swedegas / Gasnätet Stockholm",
+          "Capacity: 360 Nm³/h"
+        ]
+      },
+      "candidates": []
+    }
+  ]
+}

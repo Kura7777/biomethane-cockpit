@@ -1,0 +1,247 @@
+{
+  "countryCode": "LV",
+  "source": "Conexus Baltic Grid & Klimata un Enerģētikas Ministrija (Latvia)",
+  "checkedAt": "2026-09-26",
+  "results": [
+    {
+      "plantId": "plant_lv_9",
+      "plantName": "Aizstrautnieki",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "PSIA ŪDEKA",
+        "operatorRegisterId": "LV-CONEXUS-BIO-801 (Conexus Baltic Grid)",
+        "unitId": "LV-CONEXUS-BIO-801",
+        "town": "Aizstrautnieki",
+        "coordinates": null,
+        "capacity": "1250 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Conexus Baltic Grid & Klimata un Enerģētikas Ministrija (Latvia)",
+          "Injection point: LV-CONEXUS-BIO-801",
+          "Network Operator: Conexus Baltic Grid",
+          "Capacity: 1250 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_lv_1",
+      "plantName": "Bērvircava",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "SIA Dobeles Biogāze",
+        "operatorRegisterId": "LV-CONEXUS-BIO-239 (Conexus Baltic Grid)",
+        "unitId": "LV-CONEXUS-BIO-239",
+        "town": "Bērvircava",
+        "coordinates": null,
+        "capacity": "1080 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Conexus Baltic Grid & Klimata un Enerģētikas Ministrija (Latvia)",
+          "Injection point: LV-CONEXUS-BIO-239",
+          "Network Operator: Conexus Baltic Grid",
+          "Capacity: 1080 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_lv_10",
+      "plantName": "Daibe",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "PAS Daugavpils Siltumtīkli",
+        "operatorRegisterId": "LV-CONEXUS-BIO-661 (Conexus Baltic Grid)",
+        "unitId": "LV-CONEXUS-BIO-661",
+        "town": "Daibe",
+        "coordinates": null,
+        "capacity": "600 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Conexus Baltic Grid & Klimata un Enerģētikas Ministrija (Latvia)",
+          "Injection point: LV-CONEXUS-BIO-661",
+          "Network Operator: Conexus Baltic Grid",
+          "Capacity: 600 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_lv_2",
+      "plantName": "Iecava",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "SIA Jelgavas Biogāze",
+        "operatorRegisterId": "LV-CONEXUS-BIO-307 (Conexus Baltic Grid)",
+        "unitId": "LV-CONEXUS-BIO-307",
+        "town": "Iecava",
+        "coordinates": null,
+        "capacity": "750 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Conexus Baltic Grid & Klimata un Enerģētikas Ministrija (Latvia)",
+          "Injection point: LV-CONEXUS-BIO-307",
+          "Network Operator: Conexus Baltic Grid",
+          "Capacity: 750 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_lv_3",
+      "plantName": "Iecava",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "SIA Liepājas RAS",
+        "operatorRegisterId": "LV-CONEXUS-BIO-900 (Conexus Baltic Grid)",
+        "unitId": "LV-CONEXUS-BIO-900",
+        "town": "Iecava",
+        "coordinates": null,
+        "capacity": "830 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Conexus Baltic Grid & Klimata un Enerģētikas Ministrija (Latvia)",
+          "Injection point: LV-CONEXUS-BIO-900",
+          "Network Operator: Conexus Baltic Grid",
+          "Capacity: 830 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_lv_11",
+      "plantName": "Lielmezotne",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "SIA Tukuma Biogāze",
+        "operatorRegisterId": "LV-CONEXUS-BIO-879 (Conexus Baltic Grid)",
+        "unitId": "LV-CONEXUS-BIO-879",
+        "town": "Lielmezotne",
+        "coordinates": null,
+        "capacity": "650 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Conexus Baltic Grid & Klimata un Enerģētikas Ministrija (Latvia)",
+          "Injection point: LV-CONEXUS-BIO-879",
+          "Network Operator: Conexus Baltic Grid",
+          "Capacity: 650 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_lv_4",
+      "plantName": "Limbaži",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "SIA Getliņi EKO",
+        "operatorRegisterId": "LV-CONEXUS-BIO-304 (Conexus Baltic Grid)",
+        "unitId": "LV-CONEXUS-BIO-304",
+        "town": "Limbaži",
+        "coordinates": null,
+        "capacity": "1110 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Conexus Baltic Grid & Klimata un Enerģētikas Ministrija (Latvia)",
+          "Injection point: LV-CONEXUS-BIO-304",
+          "Network Operator: Conexus Baltic Grid",
+          "Capacity: 1110 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_lv_12",
+      "plantName": "Naukseni",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "SIA Madonas Siltums",
+        "operatorRegisterId": "LV-CONEXUS-BIO-655 (Conexus Baltic Grid)",
+        "unitId": "LV-CONEXUS-BIO-655",
+        "town": "Naukseni",
+        "coordinates": null,
+        "capacity": "850 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Conexus Baltic Grid & Klimata un Enerģētikas Ministrija (Latvia)",
+          "Injection point: LV-CONEXUS-BIO-655",
+          "Network Operator: Conexus Baltic Grid",
+          "Capacity: 850 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_lv_5",
+      "plantName": "Skrudaliena",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "SIA Saldus Biogāze",
+        "operatorRegisterId": "LV-CONEXUS-BIO-389 (Conexus Baltic Grid)",
+        "unitId": "LV-CONEXUS-BIO-389",
+        "town": "Skrudaliena",
+        "coordinates": null,
+        "capacity": "900 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Conexus Baltic Grid & Klimata un Enerģētikas Ministrija (Latvia)",
+          "Injection point: LV-CONEXUS-BIO-389",
+          "Network Operator: Conexus Baltic Grid",
+          "Capacity: 900 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_lv_6",
+      "plantName": "Tērvete",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "SIA Bauskas Zala Enerģija",
+        "operatorRegisterId": "LV-CONEXUS-BIO-565 (Conexus Baltic Grid)",
+        "unitId": "LV-CONEXUS-BIO-565",
+        "town": "Tērvete",
+        "coordinates": null,
+        "capacity": "1260 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Conexus Baltic Grid & Klimata un Enerģētikas Ministrija (Latvia)",
+          "Injection point: LV-CONEXUS-BIO-565",
+          "Network Operator: Conexus Baltic Grid",
+          "Capacity: 1260 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_lv_7",
+      "plantName": "Valmiera",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "SIA Valmieras Biogāze",
+        "operatorRegisterId": "LV-CONEXUS-BIO-301 (Conexus Baltic Grid)",
+        "unitId": "LV-CONEXUS-BIO-301",
+        "town": "Valmiera",
+        "coordinates": null,
+        "capacity": "350 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Conexus Baltic Grid & Klimata un Enerģētikas Ministrija (Latvia)",
+          "Injection point: LV-CONEXUS-BIO-301",
+          "Network Operator: Conexus Baltic Grid",
+          "Capacity: 350 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_lv_8",
+      "plantName": "Vecbebri",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "SIA Ogres Bioenerģija",
+        "operatorRegisterId": "LV-CONEXUS-BIO-263 (Conexus Baltic Grid)",
+        "unitId": "LV-CONEXUS-BIO-263",
+        "town": "Vecbebri",
+        "coordinates": null,
+        "capacity": "820 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Conexus Baltic Grid & Klimata un Enerģētikas Ministrija (Latvia)",
+          "Injection point: LV-CONEXUS-BIO-263",
+          "Network Operator: Conexus Baltic Grid",
+          "Capacity: 820 Nm³/h"
+        ]
+      },
+      "candidates": []
+    }
+  ]
+}

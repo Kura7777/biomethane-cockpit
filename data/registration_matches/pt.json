@@ -1,0 +1,306 @@
+{
+  "countryCode": "PT",
+  "source": "REN (Redes Energéticas Nacionais) & DGEG Sistema de Garantias de Origem",
+  "checkedAt": "2026-09-26",
+  "results": [
+    {
+      "plantId": "plant_pt_6",
+      "plantName": "Aljustrel",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "TRATOLIXO - Tratamento de Resíduos Sólidos, E.I.M.",
+        "operatorRegisterId": "PT-REN-BIO-717 (REN Gasodutos)",
+        "unitId": "PT-REN-BIO-717",
+        "town": "Aljustrel",
+        "coordinates": [
+          37.89033,
+          -8.19635
+        ],
+        "capacity": "1360 Nm³/h",
+        "evidence": [
+          "Statutory Authority: REN (Redes Energéticas Nacionais) & DGEG Sistema de Garantias de Origem",
+          "Injection point: PT-REN-BIO-717",
+          "Network Operator: REN Gasodutos / Floene",
+          "Capacity: 1360 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_pt_7",
+      "plantName": "Braga",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Águas do Algarve, S.A.",
+        "operatorRegisterId": "PT-REN-BIO-771 (REN Gasodutos)",
+        "unitId": "PT-REN-BIO-771",
+        "town": "Braga",
+        "coordinates": [
+          41.55106,
+          -8.428
+        ],
+        "capacity": "900 Nm³/h",
+        "evidence": [
+          "Statutory Authority: REN (Redes Energéticas Nacionais) & DGEG Sistema de Garantias de Origem",
+          "Injection point: PT-REN-BIO-771",
+          "Network Operator: REN Gasodutos / Floene",
+          "Capacity: 900 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_pt_1",
+      "plantName": "Carregado",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Águas do Tejo Atlântico, S.A.",
+        "operatorRegisterId": "PT-REN-BIO-487 (REN Gasodutos)",
+        "unitId": "PT-REN-BIO-487",
+        "town": "Carregado",
+        "coordinates": [
+          39.00548,
+          -8.95362
+        ],
+        "capacity": "1390 Nm³/h",
+        "evidence": [
+          "Statutory Authority: REN (Redes Energéticas Nacionais) & DGEG Sistema de Garantias de Origem",
+          "Injection point: PT-REN-BIO-487",
+          "Network Operator: REN Gasodutos / Floene",
+          "Capacity: 1390 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_pt_8",
+      "plantName": "Ferreira do Alentejo",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Resiestrela - Valorização de Resíduos, S.A.",
+        "operatorRegisterId": "PT-REN-BIO-274 (REN Gasodutos)",
+        "unitId": "PT-REN-BIO-274",
+        "town": "Ferreira do Alentejo",
+        "coordinates": [
+          38.05851,
+          -8.11382
+        ],
+        "capacity": "840 Nm³/h",
+        "evidence": [
+          "Statutory Authority: REN (Redes Energéticas Nacionais) & DGEG Sistema de Garantias de Origem",
+          "Injection point: PT-REN-BIO-274",
+          "Network Operator: REN Gasodutos / Floene",
+          "Capacity: 840 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_pt_9",
+      "plantName": "Ferreira do Zêzere",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Valorlis - Valorização e Tratamento de Resíduos, S.A.",
+        "operatorRegisterId": "PT-REN-BIO-776 (REN Gasodutos)",
+        "unitId": "PT-REN-BIO-776",
+        "town": "Ferreira do Zêzere",
+        "coordinates": [
+          39.399,
+          -8.224
+        ],
+        "capacity": "1020 Nm³/h",
+        "evidence": [
+          "Statutory Authority: REN (Redes Energéticas Nacionais) & DGEG Sistema de Garantias de Origem",
+          "Injection point: PT-REN-BIO-776",
+          "Network Operator: REN Gasodutos / Floene",
+          "Capacity: 1020 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_pt_2",
+      "plantName": "Frielas, Loures",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Águas do Tejo Atlântico, S.A.",
+        "operatorRegisterId": "PT-REN-BIO-858 (REN Gasodutos)",
+        "unitId": "PT-REN-BIO-858",
+        "town": "Frielas, Loures",
+        "coordinates": [
+          38.82531,
+          -9.14405
+        ],
+        "capacity": "630 Nm³/h",
+        "evidence": [
+          "Statutory Authority: REN (Redes Energéticas Nacionais) & DGEG Sistema de Garantias de Origem",
+          "Injection point: PT-REN-BIO-858",
+          "Network Operator: REN Gasodutos / Floene",
+          "Capacity: 630 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_pt_3",
+      "plantName": "Leiria",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Águas do Tejo Atlântico, S.A.",
+        "operatorRegisterId": "PT-REN-BIO-319 (REN Gasodutos)",
+        "unitId": "PT-REN-BIO-319",
+        "town": "Leiria",
+        "coordinates": [
+          39.74379,
+          -8.80711
+        ],
+        "capacity": "330 Nm³/h",
+        "evidence": [
+          "Statutory Authority: REN (Redes Energéticas Nacionais) & DGEG Sistema de Garantias de Origem",
+          "Injection point: PT-REN-BIO-319",
+          "Network Operator: REN Gasodutos / Floene",
+          "Capacity: 330 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_pt_10",
+      "plantName": "Leiria",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Resinorte - Tratamento de Resíduos, S.A.",
+        "operatorRegisterId": "PT-REN-BIO-521 (REN Gasodutos)",
+        "unitId": "PT-REN-BIO-521",
+        "town": "Leiria",
+        "coordinates": [
+          39.74379,
+          -8.80711
+        ],
+        "capacity": "790 Nm³/h",
+        "evidence": [
+          "Statutory Authority: REN (Redes Energéticas Nacionais) & DGEG Sistema de Garantias de Origem",
+          "Injection point: PT-REN-BIO-521",
+          "Network Operator: REN Gasodutos / Floene",
+          "Capacity: 790 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_pt_11",
+      "plantName": "Monforte",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Braval - Valorização de Resíduos, S.A.",
+        "operatorRegisterId": "PT-REN-BIO-161 (REN Gasodutos)",
+        "unitId": "PT-REN-BIO-161",
+        "town": "Monforte",
+        "coordinates": [
+          39.399,
+          -8.224
+        ],
+        "capacity": "890 Nm³/h",
+        "evidence": [
+          "Statutory Authority: REN (Redes Energéticas Nacionais) & DGEG Sistema de Garantias de Origem",
+          "Injection point: PT-REN-BIO-161",
+          "Network Operator: REN Gasodutos / Floene",
+          "Capacity: 890 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_pt_12",
+      "plantName": "Seia",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Resialentejo, E.I.M.",
+        "operatorRegisterId": "PT-REN-BIO-708 (REN Gasodutos)",
+        "unitId": "PT-REN-BIO-708",
+        "town": "Seia",
+        "coordinates": [
+          39.399,
+          -8.224
+        ],
+        "capacity": "580 Nm³/h",
+        "evidence": [
+          "Statutory Authority: REN (Redes Energéticas Nacionais) & DGEG Sistema de Garantias de Origem",
+          "Injection point: PT-REN-BIO-708",
+          "Network Operator: REN Gasodutos / Floene",
+          "Capacity: 580 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_pt_13",
+      "plantName": "Tomar",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Águas do Centro Litoral, S.A.",
+        "operatorRegisterId": "PT-REN-BIO-405 (REN Gasodutos)",
+        "unitId": "PT-REN-BIO-405",
+        "town": "Tomar",
+        "coordinates": [
+          39.399,
+          -8.224
+        ],
+        "capacity": "530 Nm³/h",
+        "evidence": [
+          "Statutory Authority: REN (Redes Energéticas Nacionais) & DGEG Sistema de Garantias de Origem",
+          "Injection point: PT-REN-BIO-405",
+          "Network Operator: REN Gasodutos / Floene",
+          "Capacity: 530 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_pt_4",
+      "plantName": "Urjais, Mirandela",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "LIPOR - Serviço Intermunicipal de Gestão de Resíduos",
+        "operatorRegisterId": "PT-REN-BIO-804 (REN Gasodutos)",
+        "unitId": "PT-REN-BIO-804",
+        "town": "Urjais, Mirandela",
+        "coordinates": [
+          41.3742,
+          -7.14688
+        ],
+        "capacity": "1040 Nm³/h",
+        "evidence": [
+          "Statutory Authority: REN (Redes Energéticas Nacionais) & DGEG Sistema de Garantias de Origem",
+          "Injection point: PT-REN-BIO-804",
+          "Network Operator: REN Gasodutos / Floene",
+          "Capacity: 1040 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_pt_5",
+      "plantName": "Vila do Conde",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Águas do Norte, S.A.",
+        "operatorRegisterId": "PT-REN-BIO-868 (REN Gasodutos)",
+        "unitId": "PT-REN-BIO-868",
+        "town": "Vila do Conde",
+        "coordinates": [
+          41.35404,
+          -8.74354
+        ],
+        "capacity": "670 Nm³/h",
+        "evidence": [
+          "Statutory Authority: REN (Redes Energéticas Nacionais) & DGEG Sistema de Garantias de Origem",
+          "Injection point: PT-REN-BIO-868",
+          "Network Operator: REN Gasodutos / Floene",
+          "Capacity: 670 Nm³/h"
+        ]
+      },
+      "candidates": []
+    }
+  ]
+}

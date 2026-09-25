@@ -348,15 +348,37 @@ describe('Statutory Dossier & Trader Verification Engine', () => {
       expect(plant?.verifiedDossier?.verificationStatus).toBe('UNVERIFIED');
     });
 
-    it('over 1,600 European biomethane plants carry authoritative national register matches', () => {
+    it('Swiss plants carry audited Zefix UIDs and Pronovo HKN register matches', () => {
+      const plant = BIOMETHANE_PLANTS.find(p => p.id === 'plant_ch_14');
+      expect(plant).toBeDefined();
+      expect(plant?.registerMatch?.status).toBe('MATCHED');
+      expect(plant?.registerMatch?.best?.operatorName).toBe('SwissFarmerPower Inwil AG');
+      expect(plant?.registerMatch?.best?.operatorRegisterId).toContain('CHE-112.871.933');
+      expect(plant?.verifiedDossier?.suggestedEntity?.name).toBe('SwissFarmerPower Inwil AG');
+      expect(plant?.verifiedDossier?.suggestedEntity?.source).toContain('Pronovo');
+      expect(plant?.verifiedDossier?.verificationStatus).toBe('UNVERIFIED');
+    });
+
+    it('Austrian plants carry authentic AGCS Biomethan Register Austria matches', () => {
+      const plant = BIOMETHANE_PLANTS.find(p => p.id === 'plant_at_1');
+      expect(plant).toBeDefined();
+      expect(plant?.registerMatch?.status).toBe('MATCHED');
+      expect(plant?.registerMatch?.best?.operatorRegisterId).toContain('AT-AGCS');
+      expect(plant?.verifiedDossier?.suggestedEntity?.name).toContain('Bruck/Leitha');
+      expect(plant?.verifiedDossier?.suggestedEntity?.source).toContain('AGCS');
+      expect(plant?.verifiedDossier?.verificationStatus).toBe('UNVERIFIED');
+    });
+
+    it('100% of all 1,974 European biomethane plants carry authoritative national register matches', () => {
       const withMatches = BIOMETHANE_PLANTS.filter(p => p.registerMatch != null);
-      expect(withMatches.length).toBeGreaterThanOrEqual(1600);
+      expect(withMatches.length).toBe(1974);
 
       const matchedCount = BIOMETHANE_PLANTS.filter(p => p.registerMatch?.status === 'MATCHED').length;
-      expect(matchedCount).toBeGreaterThanOrEqual(1350);
+      expect(matchedCount).toBeGreaterThanOrEqual(1700);
     });
   });
 });
+
 
 
 

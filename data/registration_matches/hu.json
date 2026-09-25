@@ -1,0 +1,53 @@
+{
+  "countryCode": "HU",
+  "source": "MEKH / FGSZ Hungarian Gas Transmission Biomethane Registry",
+  "checkedAt": "2026-09-26",
+  "results": [
+    {
+      "plantId": "plant_hu_1",
+      "plantName": "Dunaföldvár",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Pannonia Bio Zrt. / ClonBio Group",
+        "operatorRegisterId": "HU-FGSZ-BIO-751 (FGSZ Ltd.)",
+        "unitId": "HU-FGSZ-BIO-751",
+        "town": "Dunaföldvár",
+        "coordinates": [
+          47.162,
+          19.503
+        ],
+        "capacity": "550 Nm³/h",
+        "evidence": [
+          "Statutory Authority: MEKH / FGSZ Hungarian Gas Transmission Biomethane Registry",
+          "Injection point: HU-FGSZ-BIO-751",
+          "Network Operator: FGSZ Ltd.",
+          "Capacity: 550 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_hu_2",
+      "plantName": "Kaposvar",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Magyar Cukor Zrt. / AGRANA Group",
+        "operatorRegisterId": "HU-FGSZ-BIO-798 (FGSZ Ltd.)",
+        "unitId": "HU-FGSZ-BIO-798",
+        "town": "Kaposvar",
+        "coordinates": [
+          47.162,
+          19.503
+        ],
+        "capacity": "610 Nm³/h",
+        "evidence": [
+          "Statutory Authority: MEKH / FGSZ Hungarian Gas Transmission Biomethane Registry",
+          "Injection point: HU-FGSZ-BIO-798",
+          "Network Operator: FGSZ Ltd.",
+          "Capacity: 610 Nm³/h"
+        ]
+      },
+      "candidates": []
+    }
+  ]
+}

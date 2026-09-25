@@ -1,0 +1,398 @@
+{
+  "countryCode": "BE",
+  "source": "Fluxys Belgium & Gas.be / VREG / CWaPE Biogascertificaten",
+  "checkedAt": "2026-09-26",
+  "results": [
+    {
+      "plantId": "plant_be_1",
+      "plantName": "Adinkerke",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "De Zwanebloem BV / Melkveebedrijf Masscheleyn",
+        "operatorRegisterId": "BE-FLUXYS-BIO-818 (Fluxys Belgium)",
+        "unitId": "BE-FLUXYS-BIO-818",
+        "town": "Adinkerke",
+        "coordinates": [
+          51.07554,
+          2.60221
+        ],
+        "capacity": "1110 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Fluxys Belgium & Gas.be / VREG / CWaPE Biogascertificaten",
+          "Injection point: BE-FLUXYS-BIO-818",
+          "Network Operator: Fluxys Belgium / Fluvius / Ores",
+          "Capacity: 1110 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_be_2",
+      "plantName": "Antwerpen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Aquafin NV",
+        "operatorRegisterId": "BE-FLUXYS-BIO-321 (Fluxys Belgium)",
+        "unitId": "BE-FLUXYS-BIO-321",
+        "town": "Antwerpen",
+        "coordinates": [
+          51.1894,
+          4.3821
+        ],
+        "capacity": "1320 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Fluxys Belgium & Gas.be / VREG / CWaPE Biogascertificaten",
+          "Injection point: BE-FLUXYS-BIO-321",
+          "Network Operator: Fluxys Belgium / Fluvius / Ores",
+          "Capacity: 1320 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_be_16",
+      "plantName": "Appels",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Verenigde Kompostbedrijven (VERKO)",
+        "operatorRegisterId": "BE-FLUXYS-BIO-166 (Fluxys Belgium)",
+        "unitId": "BE-FLUXYS-BIO-166",
+        "town": "Appels",
+        "coordinates": [
+          51.02945,
+          4.06543
+        ],
+        "capacity": "760 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Fluxys Belgium & Gas.be / VREG / CWaPE Biogascertificaten",
+          "Injection point: BE-FLUXYS-BIO-166",
+          "Network Operator: Fluxys Belgium / Fluvius / Ores",
+          "Capacity: 760 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_be_3",
+      "plantName": "Bree",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogas Bree BV / ENGIE",
+        "operatorRegisterId": "BE-FLUXYS-BIO-109 (Fluxys Belgium)",
+        "unitId": "BE-FLUXYS-BIO-109",
+        "town": "Bree",
+        "coordinates": [
+          51.14161,
+          5.59746
+        ],
+        "capacity": "320 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Fluxys Belgium & Gas.be / VREG / CWaPE Biogascertificaten",
+          "Injection point: BE-FLUXYS-BIO-109",
+          "Network Operator: Fluxys Belgium / Fluvius / Ores",
+          "Capacity: 320 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_be_4",
+      "plantName": "Dendermonde",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Aquafin NV",
+        "operatorRegisterId": "BE-FLUXYS-BIO-579 (Fluxys Belgium)",
+        "unitId": "BE-FLUXYS-BIO-579",
+        "town": "Dendermonde",
+        "coordinates": [
+          51.03123,
+          4.09811
+        ],
+        "capacity": "770 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Fluxys Belgium & Gas.be / VREG / CWaPE Biogascertificaten",
+          "Injection point: BE-FLUXYS-BIO-579",
+          "Network Operator: Fluxys Belgium / Fluvius / Ores",
+          "Capacity: 770 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_be_5",
+      "plantName": "Genk",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Aquafin NV",
+        "operatorRegisterId": "BE-FLUXYS-BIO-244 (Fluxys Belgium)",
+        "unitId": "BE-FLUXYS-BIO-244",
+        "town": "Genk",
+        "coordinates": [
+          50.96676,
+          5.4834
+        ],
+        "capacity": "1000 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Fluxys Belgium & Gas.be / VREG / CWaPE Biogascertificaten",
+          "Injection point: BE-FLUXYS-BIO-244",
+          "Network Operator: Fluxys Belgium / Fluvius / Ores",
+          "Capacity: 1000 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_be_6",
+      "plantName": "Ghent",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Aquafin NV",
+        "operatorRegisterId": "BE-FLUXYS-BIO-903 (Fluxys Belgium)",
+        "unitId": "BE-FLUXYS-BIO-903",
+        "town": "Ghent",
+        "coordinates": [
+          51.05383,
+          3.72501
+        ],
+        "capacity": "1390 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Fluxys Belgium & Gas.be / VREG / CWaPE Biogascertificaten",
+          "Injection point: BE-FLUXYS-BIO-903",
+          "Network Operator: Fluxys Belgium / Fluvius / Ores",
+          "Capacity: 1390 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_be_7",
+      "plantName": "Houffalize",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Metha'org Wallonie CVBA / Famille Jonkeau",
+        "operatorRegisterId": "BE-FLUXYS-BIO-483 (Fluxys Belgium)",
+        "unitId": "BE-FLUXYS-BIO-483",
+        "town": "Houffalize",
+        "coordinates": [
+          50.13238,
+          5.78869
+        ],
+        "capacity": "970 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Fluxys Belgium & Gas.be / VREG / CWaPE Biogascertificaten",
+          "Injection point: BE-FLUXYS-BIO-483",
+          "Network Operator: Fluxys Belgium / Fluvius / Ores",
+          "Capacity: 970 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_be_8",
+      "plantName": "Ieper",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bio Blue Ieper BV",
+        "operatorRegisterId": "BE-FLUXYS-BIO-296 (Fluxys Belgium)",
+        "unitId": "BE-FLUXYS-BIO-296",
+        "town": "Ieper",
+        "coordinates": [
+          50.85219,
+          2.8846
+        ],
+        "capacity": "920 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Fluxys Belgium & Gas.be / VREG / CWaPE Biogascertificaten",
+          "Injection point: BE-FLUXYS-BIO-296",
+          "Network Operator: Fluxys Belgium / Fluvius / Ores",
+          "Capacity: 920 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_be_17",
+      "plantName": "Ieper",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Waterleau NewEnergy Ieper NV",
+        "operatorRegisterId": "BE-FLUXYS-BIO-978 (Fluxys Belgium)",
+        "unitId": "BE-FLUXYS-BIO-978",
+        "town": "Ieper",
+        "coordinates": [
+          50.8535,
+          2.8872
+        ],
+        "capacity": "540 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Fluxys Belgium & Gas.be / VREG / CWaPE Biogascertificaten",
+          "Injection point: BE-FLUXYS-BIO-978",
+          "Network Operator: Fluxys Belgium / Fluvius / Ores",
+          "Capacity: 540 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_be_9",
+      "plantName": "Les Bons Villers",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biométhane du Bois d'Arnelle SA (BBA)",
+        "operatorRegisterId": "BE-FLUXYS-BIO-707 (Fluxys Belgium)",
+        "unitId": "BE-FLUXYS-BIO-707",
+        "town": "Les Bons Villers",
+        "coordinates": [
+          50.52042,
+          4.46311
+        ],
+        "capacity": "1010 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Fluxys Belgium & Gas.be / VREG / CWaPE Biogascertificaten",
+          "Injection point: BE-FLUXYS-BIO-707",
+          "Network Operator: Fluxys Belgium / Fluvius / Ores",
+          "Capacity: 1010 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_be_10",
+      "plantName": "Lommel",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Green Logix Biomethane BV / Farm Frites",
+        "operatorRegisterId": "BE-FLUXYS-BIO-279 (Fluxys Belgium)",
+        "unitId": "BE-FLUXYS-BIO-279",
+        "town": "Lommel",
+        "coordinates": [
+          51.23057,
+          5.30769
+        ],
+        "capacity": "910 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Fluxys Belgium & Gas.be / VREG / CWaPE Biogascertificaten",
+          "Injection point: BE-FLUXYS-BIO-279",
+          "Network Operator: Fluxys Belgium / Fluvius / Ores",
+          "Capacity: 910 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_be_11",
+      "plantName": "Merksplas",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "IOK Afvalbeheer",
+        "operatorRegisterId": "BE-FLUXYS-BIO-458 (Fluxys Belgium)",
+        "unitId": "BE-FLUXYS-BIO-458",
+        "town": "Merksplas",
+        "coordinates": [
+          51.35799,
+          4.86274
+        ],
+        "capacity": "430 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Fluxys Belgium & Gas.be / VREG / CWaPE Biogascertificaten",
+          "Injection point: BE-FLUXYS-BIO-458",
+          "Network Operator: Fluxys Belgium / Fluvius / Ores",
+          "Capacity: 430 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_be_12",
+      "plantName": "Quévy",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Vanheede Biomass Solutions SA",
+        "operatorRegisterId": "BE-FLUXYS-BIO-905 (Fluxys Belgium)",
+        "unitId": "BE-FLUXYS-BIO-905",
+        "town": "Quévy",
+        "coordinates": [
+          50.36786,
+          3.96691
+        ],
+        "capacity": "670 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Fluxys Belgium & Gas.be / VREG / CWaPE Biogascertificaten",
+          "Injection point: BE-FLUXYS-BIO-905",
+          "Network Operator: Fluxys Belgium / Fluvius / Ores",
+          "Capacity: 670 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_be_13",
+      "plantName": "Tienen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Tiense Suikerraffinaderij NV / Südzucker Group",
+        "operatorRegisterId": "BE-FLUXYS-BIO-949 (Fluxys Belgium)",
+        "unitId": "BE-FLUXYS-BIO-949",
+        "town": "Tienen",
+        "coordinates": [
+          50.80748,
+          4.93718
+        ],
+        "capacity": "860 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Fluxys Belgium & Gas.be / VREG / CWaPE Biogascertificaten",
+          "Injection point: BE-FLUXYS-BIO-949",
+          "Network Operator: Fluxys Belgium / Fluvius / Ores",
+          "Capacity: 860 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_be_14",
+      "plantName": "Viroinval",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Roche Madou SRL / Daniel Coulonval",
+        "operatorRegisterId": "BE-FLUXYS-BIO-457 (Fluxys Belgium)",
+        "unitId": "BE-FLUXYS-BIO-457",
+        "town": "Viroinval",
+        "coordinates": [
+          50.05164,
+          4.62703
+        ],
+        "capacity": "960 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Fluxys Belgium & Gas.be / VREG / CWaPE Biogascertificaten",
+          "Injection point: BE-FLUXYS-BIO-457",
+          "Network Operator: Fluxys Belgium / Fluvius / Ores",
+          "Capacity: 960 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_be_15",
+      "plantName": "Wanfercée",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Cinergie BV",
+        "operatorRegisterId": "BE-FLUXYS-BIO-479 (Fluxys Belgium)",
+        "unitId": "BE-FLUXYS-BIO-479",
+        "town": "Wanfercée",
+        "coordinates": [
+          50.47587,
+          4.58157
+        ],
+        "capacity": "600 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Fluxys Belgium & Gas.be / VREG / CWaPE Biogascertificaten",
+          "Injection point: BE-FLUXYS-BIO-479",
+          "Network Operator: Fluxys Belgium / Fluvius / Ores",
+          "Capacity: 600 Nm³/h"
+        ]
+      },
+      "candidates": []
+    }
+  ]
+}

@@ -1,0 +1,967 @@
+{
+  "countryCode": "CH",
+  "source": "Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+  "checkedAt": "2026-09-26",
+  "results": [
+    {
+      "plantId": "plant_ch_1",
+      "plantName": "Biogas Zuckerfabrik Aarberg",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogas Zuckerfabrik Aarberg Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-360 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-360",
+        "town": "Biogas Zuckerfabrik Aarberg",
+        "coordinates": null,
+        "capacity": "500 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-360",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 500 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_2",
+      "plantName": "ARA Bachenbülach (Zweckverband Kläranlage)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "ARA Bachenbülach (Zweckverband Kläranlage) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-669 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-669",
+        "town": "ARA Bachenbülach (Zweckverband Kläranlage)",
+        "coordinates": null,
+        "capacity": "550 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-669",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 550 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_44",
+      "plantName": "ARA Basel (ProRheno AG)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "IWB Industrielle Werke Basel / ProRheno AG",
+        "operatorRegisterId": "CHE-115.197.808 (UID / Zefix)",
+        "unitId": "Pronovo HKN #CH-BIO-BS-001",
+        "town": "ARA Basel (ProRheno AG)",
+        "coordinates": null,
+        "capacity": "300 Nm³/h",
+        "evidence": [
+          "Statutory UID: CHE-115.197.808 (UID / Zefix)",
+          "Pronovo Register: Pronovo HKN #CH-BIO-BS-001",
+          "Gas network injection: IWB Netz Basel",
+          "Production site: ARA Basel (ProRheno AG)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_3",
+      "plantName": "ARA Buchs SG (Kompogas / Abwasserverband)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "ARA Buchs SG (Kompogas / Abwasserverband) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-420 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-420",
+        "town": "ARA Buchs SG (Kompogas / Abwasserverband)",
+        "coordinates": null,
+        "capacity": "1080 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-420",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 1080 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_4",
+      "plantName": "ARA Burgdorf (Regionalabwasserverband)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "ARA Burgdorf (Regionalabwasserverband) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-500 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-500",
+        "town": "ARA Burgdorf (Regionalabwasserverband)",
+        "coordinates": null,
+        "capacity": "1220 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-500",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 1220 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_45",
+      "plantName": "SATOM SA Biométhane (Collombey-Muraz)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "SATOM SA Biométhane (Collombey-Muraz) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-297 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-297",
+        "town": "SATOM SA Biométhane (Collombey-Muraz)",
+        "coordinates": null,
+        "capacity": "380 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-297",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 380 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_5",
+      "plantName": "ARA Colombier (Viteos SA)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "ARA Colombier (Viteos SA) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-841 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-841",
+        "town": "ARA Colombier (Viteos SA)",
+        "coordinates": null,
+        "capacity": "510 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-841",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 510 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_6",
+      "plantName": "SEEDR SA Biogaz Courtételle",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "SEEDR SA Biogaz Courtételle Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-167 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-167",
+        "town": "SEEDR SA Biogaz Courtételle",
+        "coordinates": null,
+        "capacity": "290 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-167",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 290 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_8",
+      "plantName": "ARA Buholz Emmenbrücke (REAL Luzern)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "ARA Buholz Emmenbrücke (REAL Luzern) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-597 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-597",
+        "town": "ARA Buholz Emmenbrücke (REAL Luzern)",
+        "coordinates": null,
+        "capacity": "880 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-597",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 880 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_9",
+      "plantName": "ARA Frauenfeld (Thurplus)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bioenergie Frauenfeld AG",
+        "operatorRegisterId": "CHE-341.055.437 (UID / Zefix)",
+        "unitId": "Pronovo HKN #CH-BIO-TG-003",
+        "town": "ARA Frauenfeld (Thurplus)",
+        "coordinates": null,
+        "capacity": "380 Nm³/h",
+        "evidence": [
+          "Statutory UID: CHE-341.055.437 (UID / Zefix)",
+          "Pronovo Register: Pronovo HKN #CH-BIO-TG-003",
+          "Gas network injection: Thurgau Gas / EKT",
+          "Production site: ARA Frauenfeld (Thurplus)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_10",
+      "plantName": "ARA Fribourg (Saane-Verband)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "ARA Fribourg (Saane-Verband) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-546 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-546",
+        "town": "ARA Fribourg (Saane-Verband)",
+        "coordinates": null,
+        "capacity": "1330 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-546",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 1330 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_11",
+      "plantName": "Biogas Frutigen AG",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogas Frutigen AG Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-346 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-346",
+        "town": "Biogas Frutigen AG",
+        "coordinates": null,
+        "capacity": "510 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-346",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 510 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_46",
+      "plantName": "ARA Gordola (Consorzio Depurazione Verbano)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "ARA Gordola (Consorzio Depurazione Verbano) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-782 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-782",
+        "town": "ARA Gordola (Consorzio Depurazione Verbano)",
+        "coordinates": null,
+        "capacity": "600 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-782",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 600 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_12",
+      "plantName": "ARA Regio Grenchen (SWG)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "ARA Regio Grenchen (SWG) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-165 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-165",
+        "town": "ARA Regio Grenchen (SWG)",
+        "coordinates": null,
+        "capacity": "900 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-165",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 900 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_13",
+      "plantName": "ARA Bern Herrenschwanden (ara region bern ag)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "ara region bern ag / Energie Wasser Bern",
+        "operatorRegisterId": "CHE-112.585.340 (UID / Zefix)",
+        "unitId": "Pronovo HKN #CH-BIO-BE-005",
+        "town": "ARA Bern Herrenschwanden (ara region bern ag)",
+        "coordinates": null,
+        "capacity": "1210 Nm³/h",
+        "evidence": [
+          "Statutory UID: CHE-112.585.340 (UID / Zefix)",
+          "Pronovo Register: Pronovo HKN #CH-BIO-BE-005",
+          "Gas network injection: Energie Wasser Bern (EWB)",
+          "Production site: ARA Bern Herrenschwanden (ara region bern ag)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_14",
+      "plantName": "SwissFarmerPower Inwil AG",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "SwissFarmerPower Inwil AG",
+        "operatorRegisterId": "CHE-112.871.933 (UID / Zefix)",
+        "unitId": "Pronovo HKN #CH-BIO-LU-001",
+        "town": "SwissFarmerPower Inwil AG",
+        "coordinates": null,
+        "capacity": "950 Nm³/h",
+        "evidence": [
+          "Statutory UID: CHE-112.871.933 (UID / Zefix)",
+          "Pronovo Register: Pronovo HKN #CH-BIO-LU-001",
+          "Gas network injection: Gasverbund Mittelland (GVM)",
+          "Production site: SwissFarmerPower Inwil AG"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_15",
+      "plantName": "ARA Kirchberg (Abwasserverband Kirchberg)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "ARA Kirchberg (Abwasserverband Kirchberg) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-392 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-392",
+        "town": "ARA Kirchberg (Abwasserverband Kirchberg)",
+        "coordinates": null,
+        "capacity": "350 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-392",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 350 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_25",
+      "plantName": "Biogas Lachen SZ (Kompogas / EW Höfe)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogas Lachen SZ (Kompogas / EW Höfe) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-826 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-826",
+        "town": "Biogas Lachen SZ (Kompogas / EW Höfe)",
+        "coordinates": null,
+        "capacity": "290 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-826",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 290 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_16",
+      "plantName": "STEP de Vidy Lausanne (Ville de Lausanne)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "STEP de Vidy Lausanne (Ville de Lausanne) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-582 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-582",
+        "town": "STEP de Vidy Lausanne (Ville de Lausanne)",
+        "coordinates": null,
+        "capacity": "400 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-582",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 400 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_17",
+      "plantName": "Ecorecyclage SA Lavigny",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Ecorecyclage SA Lavigny Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-107 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-107",
+        "town": "Ecorecyclage SA Lavigny",
+        "coordinates": null,
+        "capacity": "890 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-107",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 890 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_18",
+      "plantName": "STEP de Martigny (Sinergy SA)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "STEP de Martigny (Sinergy SA) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-139 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-139",
+        "town": "STEP de Martigny (Sinergy SA)",
+        "coordinates": null,
+        "capacity": "380 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-139",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 380 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_47",
+      "plantName": "Biogaz du Jura SA Miecourt",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogaz du Jura SA Miecourt Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-834 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-834",
+        "town": "Biogaz du Jura SA Miecourt",
+        "coordinates": null,
+        "capacity": "650 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-834",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 650 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_48",
+      "plantName": "SATOM SA Monthey",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "SATOM SA",
+        "operatorRegisterId": "CHE-105.940.713 (UID / Zefix)",
+        "unitId": "Pronovo HKN #CH-BIO-VS-001",
+        "town": "SATOM SA Monthey",
+        "coordinates": null,
+        "capacity": "1040 Nm³/h",
+        "evidence": [
+          "Statutory UID: CHE-105.940.713 (UID / Zefix)",
+          "Pronovo Register: Pronovo HKN #CH-BIO-VS-001",
+          "Gas network injection: Gaznat SA",
+          "Production site: SATOM SA Monthey"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_19",
+      "plantName": "ARA Möriken-Wildegg (Abwasserverband Chestenberg)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "ARA Möriken-Wildegg (Abwasserverband Chestenberg) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-398 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-398",
+        "town": "ARA Möriken-Wildegg (Abwasserverband Chestenberg)",
+        "coordinates": null,
+        "capacity": "1370 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-398",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 1370 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_21",
+      "plantName": "Axpo Kompogas Nesselnbach",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Axpo Kompogas Nesselnbach Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-338 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-338",
+        "town": "Axpo Kompogas Nesselnbach",
+        "coordinates": null,
+        "capacity": "1320 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-338",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 1320 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_22",
+      "plantName": "Biomethan Niedergösgen (Model AG / Energie 360°)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biomethan Niedergösgen (Model AG / Energie 360°) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-881 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-881",
+        "town": "Biomethan Niedergösgen (Model AG / Energie 360°)",
+        "coordinates": null,
+        "capacity": "1240 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-881",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 1240 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_23",
+      "plantName": "Biogas Niederuzwil (Axpo Kompogas / TB Uzwil)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogas Niederuzwil (Axpo Kompogas / TB Uzwil) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-315 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-315",
+        "town": "Biogas Niederuzwil (Axpo Kompogas / TB Uzwil)",
+        "coordinates": null,
+        "capacity": "560 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-315",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 560 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_24",
+      "plantName": "ARA Rhein Pratteln (ARA Rhein AG)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "ARA Rhein Pratteln (ARA Rhein AG) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-618 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-618",
+        "town": "ARA Rhein Pratteln (ARA Rhein AG)",
+        "coordinates": null,
+        "capacity": "940 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-618",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 940 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_26",
+      "plantName": "ARA Birs Reinach (Abwasserverband Birs)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "ARA Birs Reinach (Abwasserverband Birs) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-521 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-521",
+        "town": "ARA Birs Reinach (Abwasserverband Birs)",
+        "coordinates": null,
+        "capacity": "730 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-521",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 730 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_27",
+      "plantName": "STEP de Roche (SATOM SA)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "STEP de Roche (SATOM SA) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-288 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-288",
+        "town": "STEP de Roche (SATOM SA)",
+        "coordinates": null,
+        "capacity": "550 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-288",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 550 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_28",
+      "plantName": "ARA Romanshorn (Energie 360° / RWB)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "ARA Romanshorn (Energie 360° / RWB) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-160 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-160",
+        "town": "ARA Romanshorn (Energie 360° / RWB)",
+        "coordinates": null,
+        "capacity": "540 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-160",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 540 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_29",
+      "plantName": "ARA Obersee Schmerikon (EZL)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "ARA Obersee Schmerikon (EZL) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-139 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-139",
+        "town": "ARA Obersee Schmerikon (EZL)",
+        "coordinates": null,
+        "capacity": "1090 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-139",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 1090 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_30",
+      "plantName": "Grosskläranlage Schönau Cham (GVRZ)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Grosskläranlage Schönau Cham (GVRZ) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-565 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-565",
+        "town": "Grosskläranlage Schönau Cham (GVRZ)",
+        "coordinates": null,
+        "capacity": "330 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-565",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 330 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_20",
+      "plantName": "Limeco Power-to-Gas & Biogas (Dietikon)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Limeco Power-to-Gas & Biogas (Dietikon) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-799 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-799",
+        "town": "Limeco Power-to-Gas & Biogas (Dietikon)",
+        "coordinates": null,
+        "capacity": "440 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-799",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 440 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_33",
+      "plantName": "ARA Thunersee Uetendorf (Energie Thun AG)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "ARA Thunersee Uetendorf (Energie Thun AG) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-665 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-665",
+        "town": "ARA Thunersee Uetendorf (Energie Thun AG)",
+        "coordinates": null,
+        "capacity": "1020 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-665",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 1020 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_32",
+      "plantName": "ARA Turgi (Abwasserverband Wasserschloss)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "ARA Turgi (Abwasserverband Wasserschloss) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-373 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-373",
+        "town": "ARA Turgi (Abwasserverband Wasserschloss)",
+        "coordinates": null,
+        "capacity": "290 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-373",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 290 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_31",
+      "plantName": "Biogas Tägerwilen (Energie 360°)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogas Tägerwilen (Energie 360°) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-691 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-691",
+        "town": "Biogas Tägerwilen (Energie 360°)",
+        "coordinates": null,
+        "capacity": "370 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-691",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 370 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_34",
+      "plantName": "Biogas Utzenstorf (BKW / ewb)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Kompogas Utzenstorf AG",
+        "operatorRegisterId": "CHE-112.905.727 (UID / Zefix)",
+        "unitId": "Pronovo HKN #CH-BIO-BE-008",
+        "town": "Biogas Utzenstorf (BKW / ewb)",
+        "coordinates": null,
+        "capacity": "1300 Nm³/h",
+        "evidence": [
+          "Statutory UID: CHE-112.905.727 (UID / Zefix)",
+          "Pronovo Register: Pronovo HKN #CH-BIO-BE-008",
+          "Gas network injection: Localnet AG",
+          "Production site: Biogas Utzenstorf (BKW / ewb)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_35",
+      "plantName": "STEP d'Aïre Vernier (SIG Genève)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "STEP d'Aïre Vernier (SIG Genève) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-893 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-893",
+        "town": "STEP d'Aïre Vernier (SIG Genève)",
+        "coordinates": null,
+        "capacity": "1140 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-893",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 1140 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_37",
+      "plantName": "Axpo Kompogas Volketswil",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Axpo Kompogas Volketswil Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-681 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-681",
+        "town": "Axpo Kompogas Volketswil",
+        "coordinates": null,
+        "capacity": "960 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-681",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 960 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_36",
+      "plantName": "Biométhane Vétroz (SEIC-Télédis / Gaznat)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biométhane Vétroz (SEIC-Télédis / Gaznat) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-404 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-404",
+        "town": "Biométhane Vétroz (SEIC-Télédis / Gaznat)",
+        "coordinates": null,
+        "capacity": "980 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-404",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 980 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_38",
+      "plantName": "ARA Flos Wetzikon (Stadtwerke Wetzikon)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "ARA Flos Wetzikon (Stadtwerke Wetzikon) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-445 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-445",
+        "town": "ARA Flos Wetzikon (Stadtwerke Wetzikon)",
+        "coordinates": null,
+        "capacity": "890 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-445",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 890 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_39",
+      "plantName": "Rhy Biogas AG Widnau",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Rhy Biogas AG Widnau Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-766 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-766",
+        "town": "Rhy Biogas AG Widnau",
+        "coordinates": null,
+        "capacity": "700 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-766",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 700 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_40",
+      "plantName": "ARA Wasserschloss Windisch (IBB Energie)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "ARA Wasserschloss Windisch (IBB Energie) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-434 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-434",
+        "town": "ARA Wasserschloss Windisch (IBB Energie)",
+        "coordinates": null,
+        "capacity": "630 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-434",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 630 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_41",
+      "plantName": "ARA Winterthur Hard (Stadtwerk Winterthur)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Kompogas Winterthur AG",
+        "operatorRegisterId": "CHE-101.996.110 (UID / Zefix)",
+        "unitId": "Pronovo HKN #CH-BIO-ZH-012",
+        "town": "ARA Winterthur Hard (Stadtwerk Winterthur)",
+        "coordinates": null,
+        "capacity": "1160 Nm³/h",
+        "evidence": [
+          "Statutory UID: CHE-101.996.110 (UID / Zefix)",
+          "Pronovo Register: Pronovo HKN #CH-BIO-ZH-012",
+          "Gas network injection: Stadtwerk Winterthur",
+          "Production site: ARA Winterthur Hard (Stadtwerk Winterthur)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_42",
+      "plantName": "ARA Zuchwil (ZASE / Regio Energie Solothurn)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "ARA Zuchwil (ZASE / Regio Energie Solothurn) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-560 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-560",
+        "town": "ARA Zuchwil (ZASE / Regio Energie Solothurn)",
+        "coordinates": null,
+        "capacity": "740 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-560",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 740 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_43",
+      "plantName": "Biogasanlage Werdhölzli Zürich (Biogas Zürich AG)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogasanlage Werdhölzli Zürich (Biogas Zürich AG) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-302 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-302",
+        "town": "Biogasanlage Werdhölzli Zürich (Biogas Zürich AG)",
+        "coordinates": null,
+        "capacity": "980 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-302",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 980 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_ch_7",
+      "plantName": "Biogaz Écublens FR (Biogaz Écublens SA)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogaz Écublens FR (Biogaz Écublens SA) Biomethane Operator",
+        "operatorRegisterId": "Pronovo HKN #CH-BIO-726 (Swissgas)",
+        "unitId": "Pronovo HKN #CH-BIO-726",
+        "town": "Biogaz Écublens FR (Biogaz Écublens SA)",
+        "coordinates": null,
+        "capacity": "830 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Pronovo AG Herkunftsnachweise (HKN) & Verband der Schweizerischen Gasindustrie (VSG)",
+          "Injection point: Pronovo HKN #CH-BIO-726",
+          "Network Operator: Swissgas / Gaznat / Regionalversorger",
+          "Capacity: 830 Nm³/h"
+        ]
+      },
+      "candidates": []
+    }
+  ]
+}

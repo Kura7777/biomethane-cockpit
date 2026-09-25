@@ -1,0 +1,247 @@
+{
+  "countryCode": "LT",
+  "source": "Amber Grid National Guarantees of Origin Register (Lithuania)",
+  "checkedAt": "2026-09-26",
+  "results": [
+    {
+      "plantId": "plant_lt_1",
+      "plantName": "Alksnupiai",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "UAB Alksnupių Biodujos",
+        "operatorRegisterId": "LT-AMBER-BIO-519 (Amber Grid AB)",
+        "unitId": "LT-AMBER-BIO-519",
+        "town": "Alksnupiai",
+        "coordinates": null,
+        "capacity": "1240 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Amber Grid National Guarantees of Origin Register (Lithuania)",
+          "Injection point: LT-AMBER-BIO-519",
+          "Network Operator: Amber Grid AB",
+          "Capacity: 1240 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_lt_7",
+      "plantName": "Daičiūnų k.",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "UAB Aukštaitijos Vandenys",
+        "operatorRegisterId": "LT-AMBER-BIO-476 (Amber Grid AB)",
+        "unitId": "LT-AMBER-BIO-476",
+        "town": "Daičiūnų k.",
+        "coordinates": null,
+        "capacity": "1340 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Amber Grid National Guarantees of Origin Register (Lithuania)",
+          "Injection point: LT-AMBER-BIO-476",
+          "Network Operator: Amber Grid AB",
+          "Capacity: 1340 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_lt_2",
+      "plantName": "Gotlybiškiu k.",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "UAB Kurana",
+        "operatorRegisterId": "LT-AMBER-BIO-294 (Amber Grid AB)",
+        "unitId": "LT-AMBER-BIO-294",
+        "town": "Gotlybiškiu k.",
+        "coordinates": null,
+        "capacity": "740 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Amber Grid National Guarantees of Origin Register (Lithuania)",
+          "Injection point: LT-AMBER-BIO-294",
+          "Network Operator: Amber Grid AB",
+          "Capacity: 740 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_lt_8",
+      "plantName": "Kiškonių k.",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "UAB Šiaulių Vandenys",
+        "operatorRegisterId": "LT-AMBER-BIO-764 (Amber Grid AB)",
+        "unitId": "LT-AMBER-BIO-764",
+        "town": "Kiškonių k.",
+        "coordinates": null,
+        "capacity": "530 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Amber Grid National Guarantees of Origin Register (Lithuania)",
+          "Injection point: LT-AMBER-BIO-764",
+          "Network Operator: Amber Grid AB",
+          "Capacity: 530 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_lt_9",
+      "plantName": "Paluobių k.",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "UAB Agrokoncerno Grupė",
+        "operatorRegisterId": "LT-AMBER-BIO-437 (Amber Grid AB)",
+        "unitId": "LT-AMBER-BIO-437",
+        "town": "Paluobių k.",
+        "coordinates": null,
+        "capacity": "680 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Amber Grid National Guarantees of Origin Register (Lithuania)",
+          "Injection point: LT-AMBER-BIO-437",
+          "Network Operator: Amber Grid AB",
+          "Capacity: 680 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_lt_10",
+      "plantName": "Pasodėlės k.",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "UAB Dzūkijos Vandenys",
+        "operatorRegisterId": "LT-AMBER-BIO-330 (Amber Grid AB)",
+        "unitId": "LT-AMBER-BIO-330",
+        "town": "Pasodėlės k.",
+        "coordinates": null,
+        "capacity": "410 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Amber Grid National Guarantees of Origin Register (Lithuania)",
+          "Injection point: LT-AMBER-BIO-330",
+          "Network Operator: Amber Grid AB",
+          "Capacity: 410 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_lt_3",
+      "plantName": "Pasvalys",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "UAB Tube Green",
+        "operatorRegisterId": "LT-AMBER-BIO-653 (Amber Grid AB)",
+        "unitId": "LT-AMBER-BIO-653",
+        "town": "Pasvalys",
+        "coordinates": null,
+        "capacity": "1000 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Amber Grid National Guarantees of Origin Register (Lithuania)",
+          "Injection point: LT-AMBER-BIO-653",
+          "Network Operator: Amber Grid AB",
+          "Capacity: 1000 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_lt_12",
+      "plantName": "Sirvydų k.",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "UAB Sūduvos Vandenys",
+        "operatorRegisterId": "LT-AMBER-BIO-615 (Amber Grid AB)",
+        "unitId": "LT-AMBER-BIO-615",
+        "town": "Sirvydų k.",
+        "coordinates": null,
+        "capacity": "910 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Amber Grid National Guarantees of Origin Register (Lithuania)",
+          "Injection point: LT-AMBER-BIO-615",
+          "Network Operator: Amber Grid AB",
+          "Capacity: 910 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_lt_5",
+      "plantName": "Smilgiai",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "UAB Idavang (Lekečiai)",
+        "operatorRegisterId": "LT-AMBER-BIO-309 (Amber Grid AB)",
+        "unitId": "LT-AMBER-BIO-309",
+        "town": "Smilgiai",
+        "coordinates": null,
+        "capacity": "860 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Amber Grid National Guarantees of Origin Register (Lithuania)",
+          "Injection point: LT-AMBER-BIO-309",
+          "Network Operator: Amber Grid AB",
+          "Capacity: 860 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_lt_6",
+      "plantName": "Ąžuolinės k.",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "UAB Vyturio Agrofirma",
+        "operatorRegisterId": "LT-AMBER-BIO-618 (Amber Grid AB)",
+        "unitId": "LT-AMBER-BIO-618",
+        "town": "Ąžuolinės k.",
+        "coordinates": null,
+        "capacity": "410 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Amber Grid National Guarantees of Origin Register (Lithuania)",
+          "Injection point: LT-AMBER-BIO-618",
+          "Network Operator: Amber Grid AB",
+          "Capacity: 410 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_lt_11",
+      "plantName": "Šalnaičių k.",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "AB Klaipėdos Vanduo",
+        "operatorRegisterId": "LT-AMBER-BIO-945 (Amber Grid AB)",
+        "unitId": "LT-AMBER-BIO-945",
+        "town": "Šalnaičių k.",
+        "coordinates": null,
+        "capacity": "660 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Amber Grid National Guarantees of Origin Register (Lithuania)",
+          "Injection point: LT-AMBER-BIO-945",
+          "Network Operator: Amber Grid AB",
+          "Capacity: 660 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_lt_4",
+      "plantName": "Šilagalio k.",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "UAB Idavang",
+        "operatorRegisterId": "LT-AMBER-BIO-553 (Amber Grid AB)",
+        "unitId": "LT-AMBER-BIO-553",
+        "town": "Šilagalio k.",
+        "coordinates": null,
+        "capacity": "370 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Amber Grid National Guarantees of Origin Register (Lithuania)",
+          "Injection point: LT-AMBER-BIO-553",
+          "Network Operator: Amber Grid AB",
+          "Capacity: 370 Nm³/h"
+        ]
+      },
+      "candidates": []
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "countryCode": "PL",
+  "source": "Gaz-System S.A. & Urząd Regulacji Energetyki (URE)",
+  "checkedAt": "2026-09-26",
+  "results": [
+    {
+      "plantId": "plant_pl_1",
+      "plantName": "Strzelin",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogazownia Strzelin Sp. z o.o.",
+        "operatorRegisterId": "PL-GAZ-SYSTEM-BIO-227 (Gaz-System S.A.)",
+        "unitId": "PL-GAZ-SYSTEM-BIO-227",
+        "town": "Strzelin",
+        "coordinates": [
+          50.78092,
+          17.06839
+        ],
+        "capacity": "1130 Nm³/h",
+        "evidence": [
+          "Statutory Authority: Gaz-System S.A. & Urząd Regulacji Energetyki (URE)",
+          "Injection point: PL-GAZ-SYSTEM-BIO-227",
+          "Network Operator: Gaz-System S.A. / PSG",
+          "Capacity: 1130 Nm³/h"
+        ]
+      },
+      "candidates": []
+    }
+  ]
+}
