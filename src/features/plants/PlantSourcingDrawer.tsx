@@ -52,6 +52,8 @@ const LEAD_SOURCE_LABEL: Record<CommercialContactLead['source'], string> = {
   DESK_VERIFIED: 'Desk verified',
 };
 
+type DrawerTab = 'ALL' | 'COMMERCIAL' | 'TECHNICAL' | 'COMPLIANCE';
+
 interface PlantSourcingDrawerProps {
   plant: BiomethanePlant | null;
   onClose: () => void;
@@ -61,6 +63,8 @@ export function PlantSourcingDrawer({ plant, onClose }: PlantSourcingDrawerProps
   const navigate = useNavigate();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const [activeTab, setActiveTab] = useState<DrawerTab>('ALL');
+  const [showMatchEvidence, setShowMatchEvidence] = useState(false);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [deskOverride, setDeskOverride] = useState<TraderDeskOverride | null>(() => plant ? getTraderDeskOverride(plant.id) : null);
   const [isEditingOverride, setIsEditingOverride] = useState(false);
@@ -486,173 +490,250 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
           }} 
           className="noscroll"
         >
-          {/* Action Toolbar: Row 1 Primary Trades (2 buttons) + Row 2 Utilities (3 buttons) */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-              <button
-                type="button"
-                onClick={handleLaunchTrade}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                  padding: '9px 14px',
-                  backgroundColor: '#059669',
-                  color: '#ffffff',
-                  fontWeight: 600,
-                  fontSize: '12px',
-                  borderRadius: '6px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(5, 150, 105, 0.25)',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                <Zap size={14} />
-                <span>Launch in Trade Builder</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleAuditPlantDiligence}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                  padding: '9px 14px',
-                  backgroundColor: 'rgba(217, 119, 6, 0.12)',
-                  color: '#f59e0b',
-                  fontWeight: 600,
-                  fontSize: '12px',
-                  borderRadius: '6px',
-                  border: '1px solid rgba(245, 158, 11, 0.35)',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease'
-                }}
-                title="Run 6-Gate Statutory Audit & State Aid diligence for this facility"
-              >
-                <Scale size={14} />
-                <span>Facility Statutory Diligence</span>
-              </button>
+          {/* Quick Metrics Strip */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '12px',
+            padding: '10px 16px',
+            backgroundColor: t.bgSunken,
+            borderRadius: '8px',
+            border: `1px solid ${t.border}`,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Activity size={14} style={{ color: isDark ? '#38bdf8' : '#0284c7' }} />
+              <span style={{ fontSize: '11px', color: t.textMuted }}>Capacity:</span>
+              <strong style={{ fontSize: '13px', color: t.textMain }}>
+                {plant.annualEnergyGWh ? `${plant.annualEnergyGWh.toLocaleString()} GWh/y` : '—'}
+              </strong>
+              {plant.annualEnergyGWh && (
+                <span style={{ fontSize: '11px', color: t.textMuted }}>
+                  ({(plant.annualEnergyGWh * 1000).toLocaleString()} MWh)
+                </span>
+              )}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: linkedinCompanyUrl ? '1fr 1.3fr 1.2fr 0.8fr' : '1.3fr 1.2fr 0.8fr', gap: '8px' }}>
-              {linkedinCompanyUrl && (
-                <a
-                  href={linkedinCompanyUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+            <div style={{ height: '14px', width: '1px', backgroundColor: t.border }} />
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Flame size={14} style={{ color: isDark ? '#f59e0b' : '#d97706' }} />
+              <span style={{ fontSize: '11px', color: t.textMuted }}>Flow:</span>
+              <strong style={{ fontSize: '13px', color: t.textMain }}>
+                {plant.capacityNm3h ? `${plant.capacityNm3h.toLocaleString()} Nm³/h` : '—'}
+              </strong>
+            </div>
+
+            <div style={{ height: '14px', width: '1px', backgroundColor: t.border }} />
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '11px', color: t.textMuted }}>Audited CI:</span>
+              <strong style={{ fontSize: '13px', color: ciValue < 0 ? (isDark ? '#34d399' : '#059669') : (isDark ? '#fbbf24' : '#d97706') }}>
+                {ciValue} gCO₂e/MJ
+              </strong>
+            </div>
+
+            <div style={{ height: '14px', width: '1px', backgroundColor: t.border }} />
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '11px', color: t.textMuted }}>Feedstock:</span>
+              <strong style={{ fontSize: '12px', color: t.textMain }}>
+                {plant.primaryFeedstockCategory || 'Agricultural'}
+              </strong>
+            </div>
+
+            {plant.networkOperator && (
+              <>
+                <div style={{ height: '14px', width: '1px', backgroundColor: t.border }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontSize: '11px', color: t.textMuted }}>Grid:</span>
+                  <strong style={{ fontSize: '12px', color: t.textSecondary }}>
+                    {plant.networkOperator}
+                  </strong>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Unified Action Toolbar */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={handleLaunchTrade}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 14px',
+                backgroundColor: '#059669',
+                color: '#ffffff',
+                fontWeight: 600,
+                fontSize: '12px',
+                borderRadius: '6px',
+                border: 'none',
+                cursor: 'pointer',
+                boxShadow: '0 2px 6px rgba(5, 150, 105, 0.25)',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <Zap size={14} />
+              <span>Launch Trade Builder</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleAuditPlantDiligence}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 13px',
+                backgroundColor: isDark ? 'rgba(217, 119, 6, 0.12)' : 'rgba(245, 158, 11, 0.08)',
+                color: isDark ? '#fbbf24' : '#d97706',
+                fontWeight: 600,
+                fontSize: '12px',
+                borderRadius: '6px',
+                border: `1px solid ${isDark ? 'rgba(245, 158, 11, 0.35)' : 'rgba(217, 119, 6, 0.3)'}`,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+              title="Run 6-Gate Statutory Audit & State Aid diligence for this facility"
+            >
+              <Scale size={14} />
+              <span>Statutory Diligence</span>
+            </button>
+
+            <a
+              href={linkedinSearchUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 13px',
+                backgroundColor: isDark ? 'rgba(14, 165, 233, 0.12)' : 'rgba(2, 132, 199, 0.08)',
+                color: isDark ? '#38bdf8' : '#0284c7',
+                fontWeight: 600,
+                fontSize: '12px',
+                borderRadius: '6px',
+                border: `1px solid ${isDark ? 'rgba(56, 189, 248, 0.3)' : 'rgba(2, 132, 199, 0.25)'}`,
+                textDecoration: 'none',
+                transition: 'all 0.15s ease',
+              }}
+              title="Search verified commercial, origination, and executive decision-makers on LinkedIn"
+            >
+              <Linkedin size={13} />
+              <span>Find Decision-Makers</span>
+            </a>
+
+            <button
+              type="button"
+              onClick={handleStartEditOverride}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 12px',
+                backgroundColor: deskOverride ? (isDark ? 'rgba(16, 185, 129, 0.12)' : 'rgba(16, 185, 129, 0.1)') : t.btnBg,
+                color: deskOverride ? (isDark ? '#34d399' : '#059669') : t.textSecondary,
+                fontWeight: 500,
+                fontSize: '12px',
+                borderRadius: '6px',
+                border: `1px solid ${deskOverride ? (isDark ? 'rgba(16, 185, 129, 0.3)' : 'rgba(16, 185, 129, 0.4)') : t.btnBorder}`,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <PlusCircle size={13} />
+              <span>{deskOverride ? 'Edit Desk Override' : 'Log Verified Contact'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleCopyTermSheet}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '8px 11px',
+                backgroundColor: t.btnBg,
+                color: t.btnText,
+                fontWeight: 500,
+                fontSize: '12px',
+                borderRadius: '6px',
+                border: `1px solid ${t.btnBorder}`,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+              title="Copy term sheet summary to clipboard"
+            >
+              <Copy size={12} />
+              <span>Copy Brief</span>
+            </button>
+          </div>
+
+          {/* Segmented Tabs Navigation */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderBottom: `1px solid ${t.border}`,
+            paddingBottom: '4px',
+            flexWrap: 'wrap',
+            gap: '8px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              {[
+                { id: 'ALL', label: 'All Details' },
+                { id: 'COMMERCIAL', label: 'Commercial & Leads', count: plant.verifiedDossier?.commercialContacts.length || 0 },
+                { id: 'TECHNICAL', label: 'Technical Specs' },
+                { id: 'COMPLIANCE', label: 'Compliance & Audit' },
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id as DrawerTab)}
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '5px',
-                    padding: '7px 8px',
-                    backgroundColor: 'rgba(10, 102, 194, 0.16)',
-                    color: '#38bdf8',
-                    fontWeight: 600,
-                    fontSize: '11px',
+                    padding: '6px 12px',
+                    backgroundColor: activeTab === tab.id ? (isDark ? 'rgba(56, 189, 248, 0.15)' : 'rgba(2, 132, 199, 0.1)') : 'transparent',
+                    color: activeTab === tab.id ? (isDark ? '#38bdf8' : '#0284c7') : t.textMuted,
+                    fontWeight: activeTab === tab.id ? 700 : 500,
+                    fontSize: '12px',
                     borderRadius: '6px',
-                    border: '1px solid rgba(56, 189, 248, 0.35)',
-                    textDecoration: 'none',
-                    transition: 'all 0.15s ease',
+                    border: activeTab === tab.id ? `1px solid ${isDark ? 'rgba(56, 189, 248, 0.3)' : 'rgba(2, 132, 199, 0.25)'}` : '1px solid transparent',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    transition: 'all 0.15s ease'
                   }}
-                  title="Open official verified corporate LinkedIn page"
                 >
-                  <Building2 size={12} style={{ color: '#0ea5e9' }} />
-                  <span>Company</span>
-                </a>
-              )}
+                  <span>{tab.label}</span>
+                  {tab.count !== undefined && tab.count > 0 && (
+                    <span style={{
+                      fontSize: '10px',
+                      padding: '1px 5px',
+                      borderRadius: '8px',
+                      backgroundColor: activeTab === tab.id ? (isDark ? 'rgba(56, 189, 248, 0.25)' : 'rgba(2, 132, 199, 0.2)') : t.bgSunken,
+                      color: activeTab === tab.id ? (isDark ? '#38bdf8' : '#0284c7') : t.textMuted
+                    }}>
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
 
-              <a
-                href={linkedinSearchUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                  padding: '7px 10px',
-                  backgroundColor: 'rgba(10, 102, 194, 0.12)',
-                  color: '#38bdf8',
-                  fontWeight: 500,
-                  fontSize: '11px',
-                  borderRadius: '6px',
-                  border: '1px solid rgba(56, 189, 248, 0.25)',
-                  textDecoration: 'none',
-                  transition: 'all 0.15s ease',
-                }}
-                title="Search verified commercial, origination, and executive decision-makers on LinkedIn"
-              >
-                <Linkedin size={13} style={{ color: '#0ea5e9' }} />
-                <span>Find Decision-Makers</span>
-              </a>
-
-              <button
-                type="button"
-                onClick={handleStartEditOverride}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                  padding: '7px 10px',
-                  backgroundColor: deskOverride ? (isDark ? 'rgba(16, 185, 129, 0.12)' : 'rgba(16, 185, 129, 0.1)') : t.btnBg,
-                  color: deskOverride ? (isDark ? '#34d399' : '#059669') : t.textSecondary,
-                  fontWeight: 500,
-                  fontSize: '11px',
-                  borderRadius: '6px',
-                  border: `1px solid ${deskOverride ? (isDark ? 'rgba(16, 185, 129, 0.3)' : 'rgba(16, 185, 129, 0.4)') : t.btnBorder}`,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                <PlusCircle size={13} />
-                <span>{deskOverride ? 'Edit Desk Override' : 'Log Verified Contact'}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleCopyTermSheet}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '5px',
-                  padding: '7px 10px',
-                  backgroundColor: t.btnBg,
-                  color: t.btnText,
-                  fontWeight: 500,
-                  fontSize: '11px',
-                  borderRadius: '6px',
-                  border: `1px solid ${t.btnBorder}`,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease'
-                }}
-                title="Copy term sheet summary to clipboard"
-              >
-                <Copy size={12} />
-                <span>Copy Brief</span>
-              </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: t.textMuted }}>
+              <span>Press <kbd style={{ padding: '2px 5px', borderRadius: '4px', backgroundColor: t.bgSunken, border: `1px solid ${t.border}`, fontFamily: 'monospace' }}>F</kbd> for {isExpanded ? 'side panel' : 'full screen'}</span>
             </div>
           </div>
 
-          {/* Main Content Layout: Single Column in Side Panel, Two Balanced Columns in Full Screen */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: isExpanded ? 'minmax(0, 1.12fr) minmax(0, 0.88fr)' : '1fr',
-            gap: isExpanded ? '20px' : '14px',
-            alignItems: 'start',
-            width: '100%'
-          }}>
-            {/* Column 1: Counterparty Identity, Verified Signatory & Leads */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', minWidth: 0 }}>
-              {/* Inline Trader Desk Override Edit Form */}
-              {isEditingOverride && (
-            <div style={{ backgroundColor: t.bgHeader, border: `1px solid ${isDark ? '#10b981' : '#059669'}`, borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {/* Inline Trader Desk Override Edit Form */}
+          {isEditingOverride && (
+            <div style={{ backgroundColor: t.bgHeader, border: `1px solid ${isDark ? '#10b981' : '#059669'}`, borderRadius: '10px', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <h4 style={{ margin: 0, fontSize: '12px', fontWeight: 800, color: isDark ? '#34d399' : '#059669', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <UserCheck size={14} /> Log Confirmed Counterparty Signatory
@@ -677,7 +758,7 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                       value={overrideSignatory}
                       onChange={e => setOverrideSignatory(e.target.value)}
                       placeholder="e.g. Dr. H. Schmidt / Managing Director"
-                      style={{ width: '100%', backgroundColor: t.bg, border: `1px solid ${t.border}`, borderRadius: '6px', padding: '6px 10px', color: t.textMain, fontSize: '12px' }}
+                      style={{ width: '100%', backgroundColor: t.bg, border: `1px solid ${t.border}`, borderRadius: '6px', padding: '6px 10px', color: t.textMain, fontSize: '12px', boxSizing: 'border-box' }}
                       required
                     />
                   </div>
@@ -690,7 +771,7 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                       value={overrideTrader}
                       onChange={e => setOverrideTrader(e.target.value)}
                       placeholder="Your name or desk"
-                      style={{ width: '100%', backgroundColor: t.bg, border: `1px solid ${t.border}`, borderRadius: '6px', padding: '6px 10px', color: t.textMain, fontSize: '12px' }}
+                      style={{ width: '100%', backgroundColor: t.bg, border: `1px solid ${t.border}`, borderRadius: '6px', padding: '6px 10px', color: t.textMain, fontSize: '12px', boxSizing: 'border-box' }}
                     />
                   </div>
                 </div>
@@ -705,7 +786,7 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                       value={overrideEmail}
                       onChange={e => setOverrideEmail(e.target.value)}
                       placeholder="e.g. h.schmidt@operator.com"
-                      style={{ width: '100%', backgroundColor: t.bg, border: `1px solid ${t.border}`, borderRadius: '6px', padding: '6px 10px', color: t.textMain, fontSize: '12px' }}
+                      style={{ width: '100%', backgroundColor: t.bg, border: `1px solid ${t.border}`, borderRadius: '6px', padding: '6px 10px', color: t.textMain, fontSize: '12px', boxSizing: 'border-box' }}
                     />
                   </div>
                   <div>
@@ -717,7 +798,7 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                       value={overridePhone}
                       onChange={e => setOverridePhone(e.target.value)}
                       placeholder="e.g. +49 171 1234567"
-                      style={{ width: '100%', backgroundColor: t.bg, border: `1px solid ${t.border}`, borderRadius: '6px', padding: '6px 10px', color: t.textMain, fontSize: '12px' }}
+                      style={{ width: '100%', backgroundColor: t.bg, border: `1px solid ${t.border}`, borderRadius: '6px', padding: '6px 10px', color: t.textMain, fontSize: '12px', boxSizing: 'border-box' }}
                     />
                   </div>
                 </div>
@@ -729,9 +810,9 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                   <textarea
                     value={overrideNotes}
                     onChange={e => setOverrideNotes(e.target.value)}
-                    placeholder="e.g. Spoke to commercial director. Plant commissioned 2021. Open to 3-year fixed PPA from Q1 2027."
+                    placeholder="e.g. Spoke to commercial director. Open to 3-year fixed PPA from Q1 2027."
                     rows={2}
-                    style={{ width: '100%', backgroundColor: t.bg, border: `1px solid ${t.border}`, borderRadius: '6px', padding: '6px 10px', color: t.textMain, fontSize: '12px', resize: 'vertical' }}
+                    style={{ width: '100%', backgroundColor: t.bg, border: `1px solid ${t.border}`, borderRadius: '6px', padding: '6px 10px', color: t.textMain, fontSize: '12px', resize: 'vertical', boxSizing: 'border-box' }}
                   />
                 </div>
 
@@ -775,280 +856,207 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
             </div>
           )}
 
-          {/* Card: Trader Confirmed Contact (Desk Verified) */}
-          {deskOverride && !isEditingOverride && (
-            <div style={{ backgroundColor: isDark ? 'rgba(6, 78, 59, 0.25)' : 'rgba(16, 185, 129, 0.08)', border: `1px solid ${isDark ? '#10b981' : '#059669'}`, borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 800, color: isDark ? '#34d399' : '#059669', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <CheckCircle2 size={14} style={{ color: '#10b981' }} /> Confirmed by Trading Desk
-                </span>
-                <span style={{ fontSize: '10px', color: isDark ? '#a7f3d0' : '#065f46' }}>
-                  Verified by {deskOverride.traderName} on {new Date(deskOverride.verifiedAt).toLocaleDateString()}
-                </span>
-              </div>
+          {/* Main Content Layout: Single Column or Two Columns based on activeTab & isExpanded */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: (activeTab === 'ALL' && isExpanded) ? 'minmax(0, 1.15fr) minmax(0, 0.85fr)' : '1fr',
+            gap: isExpanded ? '20px' : '16px',
+            alignItems: 'start',
+            width: '100%'
+          }}>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '12px' }}>
-                <div>
-                  <span style={{ fontSize: '10px', color: isDark ? '#6ee7b7' : '#059669', display: 'block' }}>Signatory / Contact</span>
-                  <strong style={{ color: t.textMain }}>{deskOverride.counterpartySignatory}</strong>
-                </div>
-                <div>
-                  <span style={{ fontSize: '10px', color: isDark ? '#6ee7b7' : '#059669', display: 'block' }}>Direct Email</span>
-                  {deskOverride.directEmail ? (
-                    <a href={`mailto:${deskOverride.directEmail}`} style={{ color: isDark ? '#38bdf8' : '#0284c7', textDecoration: 'none' }}>
-                      {deskOverride.directEmail}
-                    </a>
-                  ) : (
-                    <span style={{ color: t.textMuted }}>None logged</span>
-                  )}
-                </div>
-                <div>
-                  <span style={{ fontSize: '10px', color: isDark ? '#6ee7b7' : '#059669', display: 'block' }}>Direct Phone</span>
-                  {deskOverride.directPhone ? (
-                    <a href={`tel:${deskOverride.directPhone}`} style={{ color: isDark ? '#38bdf8' : '#0284c7', textDecoration: 'none' }}>
-                      {deskOverride.directPhone}
-                    </a>
-                  ) : (
-                    <span style={{ color: t.textMuted }}>None logged</span>
-                  )}
-                </div>
-                <div>
-                  <span style={{ fontSize: '10px', color: isDark ? '#6ee7b7' : '#059669', display: 'block' }}>Origination Status</span>
-                  <span style={{ color: isDark ? '#34d399' : '#059669', fontWeight: 600 }}>Active Counterparty Target</span>
-                </div>
-              </div>
-
-              {deskOverride.notes && (
-                <div style={{ fontSize: '11px', color: t.textSecondary, backgroundColor: isDark ? 'rgba(0, 0, 0, 0.3)' : 'rgba(16, 185, 129, 0.1)', padding: '8px 10px', borderRadius: '6px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
-                  <strong style={{ color: isDark ? '#a7f3d0' : '#065f46' }}>Trader Notes: </strong> {deskOverride.notes}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Authoritative Statutory Dossier & Commercial Desk Card */}
-          <div style={{ backgroundColor: t.bgCardSubtle, border: `1px solid ${t.border}`, borderRadius: '10px', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-              <span style={{ fontSize: '11px', fontWeight: 700, color: t.textMain, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <ShieldCheck size={14} style={{ color: isDark ? '#38bdf8' : '#0284c7' }} /> Counterparty Identity & Leads
-              </span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                {plant.verifiedDossier && (
-                  plant.verifiedDossier.verificationStatus === 'REGISTER_CONFIRMED' ? (
-                    <span title={plant.verifiedDossier.verificationSource} style={{ fontSize: '10px', padding: '2px 6px', backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#34d399', borderRadius: '4px', fontWeight: 700 }}>
-                      Register-confirmed{plant.verifiedDossier.verifiedAt ? ` ${plant.verifiedDossier.verifiedAt}` : ''}
-                    </span>
-                  ) : (
-                    <span title={plant.verifiedDossier.verificationSource} style={{ fontSize: '10px', padding: '2px 6px', backgroundColor: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24', borderRadius: '4px', fontWeight: 700 }}>
-                      Unverified — check register
-                    </span>
-                  )
-                )}
-                {deskOverride && (
-                  <span style={{ fontSize: '10px', padding: '2px 6px', backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#34d399', borderRadius: '4px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                    <CheckCircle2 size={10} /> Confirmed by Desk
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Quality & Outreach Risk Warning Banners */}
-            {contactQuality.confidence === 'UNDELIVERABLE' && (
-              <div
-                style={{
-                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                  border: '1px solid rgba(239, 68, 68, 0.3)',
-                  borderRadius: '6px',
-                  padding: '8px 10px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  fontSize: '11px',
-                  color: '#fca5a5',
-                  lineHeight: 1.4,
-                }}
-              >
-                <AlertOctagon size={14} style={{ color: '#ef4444', flexShrink: 0 }} />
-                <span>
-                  <strong>Synthetic address — do not use:</strong> {plant.contactEmail} was constructed from the place name; it will bounce or reach an unrelated party. Find the operator via the official register or LinkedIn below.
-                </span>
-              </div>
-            )}
-
-            {contactQuality.confidence === 'INDIRECT' && (
-              <div
-                style={{
-                  backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                  border: '1px solid rgba(245, 158, 11, 0.3)',
-                  borderRadius: '6px',
-                  padding: '8px 10px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  fontSize: '11px',
-                  color: '#fcd34d',
-                  lineHeight: 1.4,
-                }}
-              >
-                <AlertTriangle size={14} style={{ color: '#f59e0b', flexShrink: 0 }} />
-                <span>
-                  <strong>Shared Switchboard:</strong> Contact connects to central EPC/hotline. Direct origination pathway provided below.
-                </span>
-              </div>
-            )}
-
-            {contactQuality.isPersonalEmail && (
-              <div
-                style={{
-                  backgroundColor: 'rgba(234, 88, 12, 0.12)',
-                  border: '1px solid rgba(234, 88, 12, 0.3)',
-                  borderRadius: '6px',
-                  padding: '8px 10px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  fontSize: '11px',
-                  color: '#fdba74',
-                  lineHeight: 1.4,
-                }}
-              >
-                <ShieldAlert size={14} style={{ color: '#f97316', flexShrink: 0 }} />
-                <span>
-                  <strong>Personal mailbox:</strong> likely a farmer or sole trader. Unsolicited marketing email generally needs prior consent (ePrivacy / PECR) — phone first, or find a registered business contact.
-                </span>
-              </div>
-            )}
-
-            {/* Blue Register Match — Suggestion for Trader Confirmation */}
-            {plant.verifiedDossier?.suggestedEntity && (
-              <div
-                style={{
-                  backgroundColor: isDark ? 'rgba(14, 165, 233, 0.08)' : 'rgba(14, 165, 233, 0.06)',
-                  border: isDark ? '1px solid rgba(14, 165, 233, 0.35)' : '1px solid rgba(2, 132, 199, 0.3)',
-                  borderRadius: '8px',
-                  padding: '10px 12px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                    <span
-                      style={{
-                        fontSize: '10px',
-                        fontWeight: 700,
-                        padding: '2px 7px',
-                        backgroundColor: isDark ? 'rgba(14, 165, 233, 0.25)' : 'rgba(14, 165, 233, 0.15)',
-                        color: isDark ? '#38bdf8' : '#0284c7',
-                        borderRadius: '4px',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.04em',
-                      }}
-                    >
-                      Register match — confirm
-                    </span>
-                    <span style={{ color: t.textMuted, fontSize: '10px' }}>
-                      {plant.verifiedDossier.suggestedEntity.source}
-                    </span>
+            {/* SECTION 1: Commercial & Counterparty Intelligence */}
+            {(activeTab === 'ALL' || activeTab === 'COMMERCIAL') && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', minWidth: 0 }}>
+                
+                {/* Header Strip with Status Badges */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', paddingBottom: '6px', borderBottom: `1px solid ${t.border}` }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <ShieldCheck size={16} style={{ color: isDark ? '#38bdf8' : '#0284c7' }} />
+                    <h3 style={{ margin: 0, fontSize: '12px', fontWeight: 800, color: t.textMain, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Counterparty Identity & Leads
+                    </h3>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setOverrideSignatory(plant.verifiedDossier?.suggestedEntity?.name || '');
-                      setIsEditingOverride(true);
-                    }}
-                    style={{
-                      padding: '4px 9px',
-                      backgroundColor: '#0284c7',
-                      color: '#ffffff',
-                      border: 'none',
-                      borderRadius: '5px',
-                      fontSize: '11px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                    }}
-                    title="Pre-fill Log Verified Contact form with this operator name for trader confirmation"
-                  >
-                    <UserCheck size={12} /> Use as signatory
-                  </button>
-                </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                  <div style={{ color: t.textMain, fontWeight: 700, fontSize: '12px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
-                    <span>{plant.verifiedDossier.suggestedEntity.name}</span>
-                    {plant.verifiedDossier.suggestedEntity.registerId && (
-                      <span style={{ color: isDark ? '#38bdf8' : '#0284c7', fontFamily: 'monospace', fontSize: '11px', fontWeight: 600 }}>
-                        ({plant.verifiedDossier.suggestedEntity.registerId})
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    {plant.verifiedDossier && (
+                      plant.verifiedDossier.verificationStatus === 'REGISTER_CONFIRMED' ? (
+                        <span style={{ fontSize: '10px', padding: '2px 7px', backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#34d399', borderRadius: '4px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <CheckCircle2 size={11} /> Register-confirmed{plant.verifiedDossier.verifiedAt ? ` ${plant.verifiedDossier.verifiedAt}` : ''}
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: '10px', padding: '2px 7px', backgroundColor: 'rgba(245, 158, 11, 0.15)', color: isDark ? '#fbbf24' : '#d97706', borderRadius: '4px', fontWeight: 700 }}>
+                          Unverified — check register
+                        </span>
+                      )
+                    )}
+                    {deskOverride && (
+                      <span style={{ fontSize: '10px', padding: '2px 7px', backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#34d399', borderRadius: '4px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <CheckCircle2 size={11} /> Confirmed by Desk
                       </span>
                     )}
                   </div>
-                  {plant.verifiedDossier.suggestedEntity.evidence && plant.verifiedDossier.suggestedEntity.evidence.length > 0 && (
-                    <div style={{ color: t.textMuted, fontSize: '11px', marginTop: '2px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                      {plant.verifiedDossier.suggestedEntity.evidence.map((ev, i) => (
-                        <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                          <span style={{ color: isDark ? '#38bdf8' : '#0284c7' }}>•</span> {ev}
-                        </span>
-                      ))}
-                    </div>
-                  )}
                 </div>
-              </div>
-            )}
 
-            {/* Ambiguous Register Candidates (Top 3) */}
-            {plant.registerMatch?.status === 'AMBIGUOUS' && plant.registerMatch.candidates && plant.registerMatch.candidates.length > 0 && (
-              <div
-                style={{
-                  backgroundColor: isDark ? 'rgba(148, 163, 184, 0.08)' : 'rgba(100, 116, 139, 0.06)',
-                  border: `1px solid ${t.border}`,
-                  borderRadius: '8px',
-                  padding: '10px 12px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
-                  <span
-                    style={{
-                      fontSize: '10px',
-                      fontWeight: 700,
-                      padding: '2px 7px',
-                      backgroundColor: isDark ? 'rgba(148, 163, 184, 0.2)' : 'rgba(100, 116, 139, 0.12)',
-                      color: t.textSecondary,
-                      borderRadius: '4px',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.04em',
-                    }}
-                  >
-                    Several register candidates ({plant.registerMatch.candidates.length})
-                  </span>
-                  <span style={{ color: t.textMuted, fontSize: '10px' }}>
-                    {plant.registerMatch.source}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  {plant.registerMatch.candidates.slice(0, 3).map((cand, idx) => (
-                    <div
-                      key={idx}
-                      style={{
-                        padding: '6px 8px',
-                        backgroundColor: t.bgSunken,
-                        borderRadius: '5px',
-                        border: `1px solid ${t.border}`,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '2px',
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
-                        <div style={{ color: t.textMain, fontWeight: 600, fontSize: '11px' }}>
-                          {cand.operatorName}
-                          {cand.operatorRegisterId ? ` (${cand.operatorRegisterId})` : ''}
+                {/* Desk Confirmed Contact Card (if logged) */}
+                {deskOverride && !isEditingOverride && (
+                  <div style={{ backgroundColor: isDark ? 'rgba(6, 78, 59, 0.25)' : 'rgba(16, 185, 129, 0.08)', border: `1px solid ${isDark ? '#10b981' : '#059669'}`, borderRadius: '8px', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 800, color: isDark ? '#34d399' : '#059669', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <CheckCircle2 size={13} style={{ color: '#10b981' }} /> Confirmed by Desk Signatory
+                      </span>
+                      <span style={{ fontSize: '11px', color: isDark ? '#a7f3d0' : '#065f46' }}>
+                        Verified by {deskOverride.traderName} on {new Date(deskOverride.verifiedAt).toLocaleDateString()}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '8px', fontSize: '12px' }}>
+                      <div>
+                        <span style={{ fontSize: '10px', color: isDark ? '#6ee7b7' : '#059669', display: 'block' }}>Signatory</span>
+                        <strong style={{ color: t.textMain }}>{deskOverride.counterpartySignatory}</strong>
+                      </div>
+                      {deskOverride.directEmail && (
+                        <div>
+                          <span style={{ fontSize: '10px', color: isDark ? '#6ee7b7' : '#059669', display: 'block' }}>Direct Email</span>
+                          <a href={`mailto:${deskOverride.directEmail}`} style={{ color: isDark ? '#38bdf8' : '#0284c7', textDecoration: 'none' }}>
+                            {deskOverride.directEmail}
+                          </a>
+                        </div>
+                      )}
+                      {deskOverride.directPhone && (
+                        <div>
+                          <span style={{ fontSize: '10px', color: isDark ? '#6ee7b7' : '#059669', display: 'block' }}>Direct Phone</span>
+                          <a href={`tel:${deskOverride.directPhone}`} style={{ color: t.textSecondary, textDecoration: 'none' }}>
+                            {deskOverride.directPhone}
+                          </a>
+                        </div>
+                      )}
+                    </div>
+
+                    {deskOverride.notes && (
+                      <div style={{ fontSize: '11px', color: t.textSecondary, paddingTop: '6px', borderTop: '1px dashed rgba(16, 185, 129, 0.25)' }}>
+                        <strong style={{ color: isDark ? '#a7f3d0' : '#065f46' }}>Trader Notes: </strong> {deskOverride.notes}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Quality & Outreach Risk Alerts (Clean compact lines) */}
+                {contactQuality.confidence === 'UNDELIVERABLE' && (
+                  <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: '6px', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: isDark ? '#fca5a5' : '#dc2626' }}>
+                    <AlertOctagon size={14} style={{ flexShrink: 0 }} />
+                    <span><strong>Synthetic address:</strong> {plant.contactEmail} was auto-generated from place name; it will bounce. Approach operator via official register or LinkedIn below.</span>
+                  </div>
+                )}
+                {contactQuality.confidence === 'INDIRECT' && (
+                  <div style={{ backgroundColor: 'rgba(245, 158, 11, 0.08)', border: '1px solid rgba(245, 158, 11, 0.25)', borderRadius: '6px', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: isDark ? '#fcd34d' : '#d97706' }}>
+                    <AlertTriangle size={14} style={{ flexShrink: 0 }} />
+                    <span><strong>Shared Switchboard:</strong> Contact connects to central EPC/hotline. Direct origination pathways are provided in the table below.</span>
+                  </div>
+                )}
+                {contactQuality.isPersonalEmail && (
+                  <div style={{ backgroundColor: 'rgba(234, 88, 12, 0.08)', border: '1px solid rgba(234, 88, 12, 0.25)', borderRadius: '6px', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: isDark ? '#fdba74' : '#c2410c' }}>
+                    <ShieldAlert size={14} style={{ flexShrink: 0 }} />
+                    <span><strong>Personal Mailbox:</strong> Likely private farmer or sole trader. Cold email falls under GDPR/PECR; telephone first or use verified corporate lead.</span>
+                  </div>
+                )}
+
+                {/* Sleek Register Match Banner (No Giant Cyan Box) */}
+                {plant.verifiedDossier?.suggestedEntity && (
+                  <div style={{
+                    backgroundColor: isDark ? 'rgba(14, 165, 233, 0.08)' : 'rgba(2, 132, 199, 0.05)',
+                    border: `1px solid ${isDark ? 'rgba(14, 165, 233, 0.3)' : 'rgba(2, 132, 199, 0.25)'}`,
+                    borderRadius: '6px',
+                    padding: '8px 12px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '6px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
+                        <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 6px', backgroundColor: isDark ? 'rgba(14, 165, 233, 0.2)' : 'rgba(2, 132, 199, 0.12)', color: isDark ? '#38bdf8' : '#0284c7', borderRadius: '4px', textTransform: 'uppercase' }}>
+                          Register Match
+                        </span>
+                        <strong style={{ color: t.textMain }}>{plant.verifiedDossier.suggestedEntity.name}</strong>
+                        {plant.verifiedDossier.suggestedEntity.registerId && (
+                          <span style={{ color: isDark ? '#38bdf8' : '#0284c7', fontFamily: 'monospace', fontSize: '11px' }}>
+                            ({plant.verifiedDossier.suggestedEntity.registerId})
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {plant.verifiedDossier.suggestedEntity.evidence && plant.verifiedDossier.suggestedEntity.evidence.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => setShowMatchEvidence(!showMatchEvidence)}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: isDark ? '#38bdf8' : '#0284c7',
+                              fontSize: '11px',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px',
+                              padding: '2px 6px'
+                            }}
+                          >
+                            <span>{showMatchEvidence ? 'Hide Signals' : `Match Evidence (${plant.verifiedDossier.suggestedEntity.evidence.length})`}</span>
+                            {showMatchEvidence ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOverrideSignatory(plant.verifiedDossier?.suggestedEntity?.name || '');
+                            setIsEditingOverride(true);
+                          }}
+                          style={{
+                            padding: '4px 10px',
+                            backgroundColor: '#0284c7',
+                            color: '#ffffff',
+                            border: 'none',
+                            borderRadius: '5px',
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          <UserCheck size={12} />
+                          <span>Use as Signatory</span>
+                        </button>
+                      </div>
+                    </div>
+                    {showMatchEvidence && plant.verifiedDossier.suggestedEntity.evidence && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', paddingTop: '4px', borderTop: `1px dashed ${isDark ? 'rgba(14, 165, 233, 0.25)' : 'rgba(2, 132, 199, 0.2)'}` }}>
+                        {plant.verifiedDossier.suggestedEntity.evidence.map((ev, i) => (
+                          <span key={i} style={{ fontSize: '10px', padding: '2px 7px', backgroundColor: t.bgSunken, borderRadius: '4px', color: t.textSecondary, border: `1px solid ${t.border}` }}>
+                            • {ev}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Ambiguous Register Candidates (Top 3) */}
+                {plant.registerMatch?.status === 'AMBIGUOUS' && plant.registerMatch.candidates && plant.registerMatch.candidates.length > 0 && (
+                  <div style={{ backgroundColor: t.bgSunken, border: `1px solid ${t.border}`, borderRadius: '6px', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px' }}>
+                      <span style={{ fontWeight: 700, color: t.textSecondary, textTransform: 'uppercase' }}>
+                        Multiple Register Candidates ({plant.registerMatch.candidates.length})
+                      </span>
+                      <span style={{ color: t.textMuted }}>{plant.registerMatch.source}</span>
+                    </div>
+                    {plant.registerMatch.candidates.slice(0, 3).map((cand, idx) => (
+                      <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '4px 0', borderTop: idx > 0 ? `1px solid ${t.border}` : 'none', fontSize: '11px' }}>
+                        <div>
+                          <strong style={{ color: t.textMain }}>{cand.operatorName}</strong>
+                          {cand.operatorRegisterId && <span style={{ fontFamily: 'monospace', color: t.textMuted }}> ({cand.operatorRegisterId})</span>}
+                          {cand.town && <span style={{ color: t.textMuted }}> • {cand.town}</span>}
                         </div>
                         <button
                           type="button"
@@ -1056,431 +1064,428 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                             setOverrideSignatory(cand.operatorName);
                             setIsEditingOverride(true);
                           }}
-                          style={{
-                            padding: '2px 6px',
-                            backgroundColor: t.btnBg,
-                            color: t.btnText,
-                            border: `1px solid ${t.btnBorder}`,
-                            borderRadius: '4px',
-                            fontSize: '10px',
-                            cursor: 'pointer',
-                          }}
+                          style={{ padding: '2px 8px', backgroundColor: t.btnBg, color: t.btnText, border: `1px solid ${t.btnBorder}`, borderRadius: '4px', fontSize: '10px', cursor: 'pointer' }}
                         >
                           Use
                         </button>
                       </div>
-                      <div style={{ color: t.textMuted, fontSize: '10px' }}>
-                        {cand.town ? `${cand.town} • ` : ''}
-                        {cand.evidence.join('; ')}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+                    ))}
+                  </div>
+                )}
 
-            {/* Core Entity Grid (2x2 Aligned) */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 14px', fontSize: '12px' }}>
-              <div>
-                <span style={{ fontSize: '10px', color: t.textMuted, display: 'block', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '2px' }}>
-                  Legal Operating Entity{plant.verifiedDossier?.verificationStatus !== 'REGISTER_CONFIRMED' ? ' (unverified)' : ''}
-                </span>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontWeight: 600, color: t.textMain, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={plant.verifiedDossier?.officialLegalEntity || 'Not identified'}>
-                    {plant.verifiedDossier?.officialLegalEntity || 'Not identified — search register'}
-                  </span>
-                  {plant.verifiedDossier?.officialLegalEntity && (
-                    <button
-                      type="button"
-                      onClick={() => copyToClipboard(plant.verifiedDossier?.officialLegalEntity || '', 'Legal Entity')}
-                      style={{ background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer', padding: '2px', marginLeft: '4px' }}
-                      title="Copy"
-                    >
-                      <Copy size={11} />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <span style={{ fontSize: '10px', color: t.textMuted, display: 'block', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '2px' }}>
-                  Statutory Registration ID
-                </span>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span
-                    style={{ fontFamily: 'monospace', color: plant.verifiedDossier?.statutoryRegistrationId ? (isDark ? '#34d399' : '#059669') : t.textMuted, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                    title={
-                      plant.registrationCheck
-                        ? `${plant.verifiedDossier?.verificationSource || ''}\n[Source: ${plant.registrationCheck.source} | Checked: ${plant.registrationCheck.checkedAt}]`
-                        : plant.verifiedDossier?.verificationSource
-                    }
-                  >
-                    {plant.verifiedDossier?.statutoryRegistrationId || (plant.registrationCheck && plant.registrationCheck.status !== 'CONFIRMED' ? 'Source ID rejected by register' : 'Not verified — search register')}
-                  </span>
-                  {plant.verifiedDossier?.statutoryRegistrationId && (
-                    <button
-                      type="button"
-                      onClick={() => copyToClipboard(plant.verifiedDossier?.statutoryRegistrationId || '', 'Registration ID')}
-                      style={{ background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer', padding: '2px', marginLeft: '4px' }}
-                      title="Copy"
-                    >
-                      <Copy size={11} />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <span style={{ fontSize: '10px', color: t.textMuted, display: 'block', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '2px' }}>
-                  Parent Portfolio / Group
-                </span>
-                <span style={{ fontWeight: 500, color: t.textSecondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
-                  {plant.verifiedDossier?.parentGroup || 'Not identified'}
-                </span>
-              </div>
-
-              <div>
-                <span style={{ fontSize: '10px', color: t.textMuted, display: 'block', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '2px' }}>
-                  Group Desk (research note)
-                </span>
-                <span style={{ fontWeight: 500, color: isDark ? '#38bdf8' : '#0284c7', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
-                  {plant.verifiedDossier?.groupTradingDeskLocation || '—'}
-                </span>
-              </div>
-            </div>
-
-            {/* Commercial Origination Contacts */}
-            {deskOverride && (
-              <div style={{ borderTop: `1px solid ${t.border}`, paddingTop: '10px' }}>
-                <span style={{ fontSize: '10px', fontWeight: 700, color: isDark ? '#34d399' : '#059669', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '6px' }}>
-                  Confirmed Trader Contact (Override)
-                </span>
-                <div style={{ backgroundColor: t.bgSunken, padding: '8px 12px', borderRadius: '6px', border: '1px solid rgba(16, 185, 129, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+                {/* Core Entity Identity Grid (Clean borderless metadata) */}
+                <div style={{ display: 'grid', gridTemplateColumns: isExpanded ? 'repeat(4, 1fr)' : 'repeat(2, 1fr)', gap: '12px', padding: '12px 14px', backgroundColor: t.bgSunken, borderRadius: '8px', border: `1px solid ${t.border}` }}>
                   <div>
-                    <div style={{ fontWeight: 600, color: t.textMain, fontSize: '12px' }}>{deskOverride.counterpartySignatory}</div>
-                    <div style={{ fontSize: '11px', color: t.textMuted }}>Verified by {deskOverride.traderName}</div>
-                    <div style={{ display: 'flex', gap: '12px', marginTop: '3px', fontSize: '11px' }}>
-                      {deskOverride.directEmail && (
-                        <a href={`mailto:${deskOverride.directEmail}`} style={{ color: isDark ? '#38bdf8' : '#0284c7', textDecoration: 'none' }}>
-                          {deskOverride.directEmail}
-                        </a>
-                      )}
-                      {deskOverride.directPhone && (
-                        <a href={`tel:${deskOverride.directPhone}`} style={{ color: t.textSecondary, textDecoration: 'none' }}>
-                          {deskOverride.directPhone}
-                        </a>
+                    <span style={{ fontSize: '10px', color: t.textMuted, display: 'block', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '2px' }}>
+                      Legal Operating Entity
+                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+                      <strong style={{ fontSize: '12px', color: t.textMain, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={plant.verifiedDossier?.officialLegalEntity || plant.legalEntityName || plant.operator || 'Not identified'}>
+                        {plant.verifiedDossier?.officialLegalEntity || plant.legalEntityName || plant.operator || 'Not identified — search register'}
+                      </strong>
+                      {(plant.verifiedDossier?.officialLegalEntity || plant.legalEntityName || plant.operator) && (
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard(plant.verifiedDossier?.officialLegalEntity || plant.legalEntityName || plant.operator || '', 'Legal Entity')}
+                          style={{ background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer', padding: '2px' }}
+                          title="Copy"
+                        >
+                          <Copy size={11} />
+                        </button>
                       )}
                     </div>
                   </div>
-                  <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', backgroundColor: isDark ? 'rgba(16, 185, 129, 0.2)' : 'rgba(16, 185, 129, 0.15)', color: isDark ? '#34d399' : '#059669' }}>
-                    Confirmed
-                  </span>
-                </div>
-              </div>
-            )}
 
-            {!deskOverride && plant.verifiedDossier && plant.verifiedDossier.commercialContacts.length > 0 && (
-              <div style={{ borderTop: `1px solid ${t.border}`, paddingTop: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <span style={{ fontSize: '10px', fontWeight: 700, color: t.textMuted, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Leads to follow up — not verified ({plant.verifiedDossier.commercialContacts.length})
-                </span>
-                {plant.verifiedDossier.commercialContacts.map((contact, idx) => (
-                  <div
-                    key={idx}
-                    style={{
-                      backgroundColor: t.bgSunken,
-                      padding: '8px 12px',
-                      borderRadius: '6px',
-                      border: `1px solid ${t.border}`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: '10px',
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontWeight: 600, color: t.textMain, fontSize: '12px' }}>{contact.fullName}</div>
-                      <div style={{ fontSize: '11px', color: t.textMuted }}>{contact.title}</div>
-                      <div style={{ display: 'flex', gap: '12px', marginTop: '3px', fontSize: '11px' }}>
-                        {contact.workEmail && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                            <a href={`mailto:${contact.workEmail}`} style={{ color: isDark ? '#38bdf8' : '#0284c7', textDecoration: 'none' }}>
-                              {contact.workEmail}
-                            </a>
-                            <button
-                              type="button"
-                              onClick={() => copyToClipboard(contact.workEmail || '', 'Email')}
-                              style={{ background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer', padding: '1px' }}
-                              title="Copy Email"
-                            >
-                              <Copy size={10} />
-                            </button>
-                          </div>
-                        )}
-                        {contact.directPhone && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                            <a href={`tel:${contact.directPhone}`} style={{ color: t.textSecondary, textDecoration: 'none' }}>
-                              {contact.directPhone}
-                            </a>
-                            <button
-                              type="button"
-                              onClick={() => copyToClipboard(contact.directPhone || '', 'Phone')}
-                              style={{ background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer', padding: '1px' }}
-                              title="Copy Phone"
-                            >
-                              <Copy size={10} />
-                            </button>
-                          </div>
-                        )}
-                        <a
-                          href={`https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(`"${targetOperator.replace(/\b(SAS|SARL|GmbH(\s*&\s*Co\.?\s*KG)?|Ltd|Limited|SpA|Srl|ApS|A\/S|B\.V\.|BV|AG|SE|e\.V\.)\b/gi, '').replace(/[()[\]"']/g, '').trim()}" "${contact.title.replace(/\s*—\s*/g, ' ')}"`)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '3px',
-                            color: isDark ? '#38bdf8' : '#0284c7',
-                            fontSize: '10px',
-                            textDecoration: 'none',
-                            padding: '1px 5px',
-                            borderRadius: '3px',
-                            backgroundColor: isDark ? 'rgba(56, 189, 248, 0.1)' : 'rgba(2, 132, 199, 0.08)',
-                            border: isDark ? '1px solid rgba(56, 189, 248, 0.2)' : '1px solid rgba(2, 132, 199, 0.25)',
-                          }}
-                          title={`Search for "${contact.title}" at ${targetOperator} on LinkedIn`}
+                  <div>
+                    <span style={{ fontSize: '10px', color: t.textMuted, display: 'block', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '2px' }}>
+                      Statutory Registration ID
+                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+                      <span style={{ fontSize: '12px', fontFamily: 'monospace', color: plant.verifiedDossier?.statutoryRegistrationId ? (isDark ? '#34d399' : '#059669') : t.textMuted, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {plant.verifiedDossier?.statutoryRegistrationId || (plant.registrationCheck && plant.registrationCheck.status !== 'CONFIRMED' ? 'Source ID rejected by register' : 'Not verified — search register')}
+                      </span>
+                      {plant.verifiedDossier?.statutoryRegistrationId && (
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard(plant.verifiedDossier?.statutoryRegistrationId || '', 'Registration ID')}
+                          style={{ background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer', padding: '2px' }}
+                          title="Copy"
                         >
-                          <Linkedin size={9} />
-                          <span>Search role</span>
-                        </a>
-                      </div>
+                          <Copy size={11} />
+                        </button>
+                      )}
                     </div>
-                    <span
+                  </div>
+
+                  <div>
+                    <span style={{ fontSize: '10px', color: t.textMuted, display: 'block', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '2px' }}>
+                      Parent Portfolio / Group
+                    </span>
+                    <span style={{ fontSize: '12px', fontWeight: 500, color: t.textSecondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
+                      {plant.verifiedDossier?.parentGroup || 'Not identified'}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span style={{ fontSize: '10px', color: t.textMuted, display: 'block', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '2px' }}>
+                      Trading Desk Location
+                    </span>
+                    <span style={{ fontSize: '12px', fontWeight: 500, color: isDark ? '#38bdf8' : '#0284c7', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
+                      {plant.verifiedDossier?.groupTradingDeskLocation || '—'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Commercial Origination Leads Table (Clean unified list, NO 3 GRAY BOXES!) */}
+                {plant.verifiedDossier && plant.verifiedDossier.commercialContacts.length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '2px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: t.textMuted, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        Origination Pathways & Direct Leads ({plant.verifiedDossier.commercialContacts.length})
+                      </span>
+                      <span style={{ fontSize: '11px', color: t.textMuted }}>
+                        Target: <strong style={{ color: t.textSecondary }}>{targetOperator}</strong>
+                      </span>
+                    </div>
+
+                    <div style={{ border: `1px solid ${t.border}`, borderRadius: '8px', overflow: 'hidden', backgroundColor: t.bgCard }}>
+                      {plant.verifiedDossier.commercialContacts.map((contact, idx) => (
+                        <div
+                          key={idx}
+                          style={{
+                            padding: '10px 14px',
+                            borderBottom: idx < plant.verifiedDossier!.commercialContacts.length - 1 ? `1px solid ${t.border}` : 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '12px',
+                            transition: 'background-color 0.15s ease'
+                          }}
+                        >
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                              <strong style={{ fontSize: '12px', color: t.textMain }}>{contact.fullName}</strong>
+                              <span style={{
+                                fontSize: '9px',
+                                fontWeight: 600,
+                                padding: '1px 6px',
+                                borderRadius: '3px',
+                                backgroundColor: isDark ? 'rgba(148, 163, 184, 0.15)' : 'rgba(100, 116, 139, 0.1)',
+                                color: t.textSecondary,
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.03em'
+                              }}>
+                                {LEAD_SOURCE_LABEL[contact.source]}
+                              </span>
+                            </div>
+                            <div style={{ fontSize: '11px', color: t.textMuted, marginTop: '2px' }}>
+                              {contact.title}
+                            </div>
+
+                            {/* Contact Channels if available */}
+                            {(contact.workEmail || contact.directPhone) && (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginTop: '4px', fontSize: '11px', flexWrap: 'wrap' }}>
+                                {contact.workEmail && (
+                                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                    <Mail size={11} style={{ color: isDark ? '#38bdf8' : '#0284c7' }} />
+                                    <a href={`mailto:${contact.workEmail}`} style={{ color: isDark ? '#38bdf8' : '#0284c7', textDecoration: 'none' }}>
+                                      {contact.workEmail}
+                                    </a>
+                                    <button
+                                      type="button"
+                                      onClick={() => copyToClipboard(contact.workEmail || '', 'Email')}
+                                      style={{ background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer', padding: '1px' }}
+                                      title="Copy Email"
+                                    >
+                                      <Copy size={10} />
+                                    </button>
+                                  </div>
+                                )}
+                                {contact.directPhone && (
+                                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                    <Phone size={11} style={{ color: t.textMuted }} />
+                                    <a href={`tel:${contact.directPhone}`} style={{ color: t.textSecondary, textDecoration: 'none' }}>
+                                      {contact.directPhone}
+                                    </a>
+                                    <button
+                                      type="button"
+                                      onClick={() => copyToClipboard(contact.directPhone || '', 'Phone')}
+                                      style={{ background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer', padding: '1px' }}
+                                      title="Copy Phone"
+                                    >
+                                      <Copy size={10} />
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Direct Action: LinkedIn Role Search */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                            <a
+                              href={`https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(`"${targetOperator.replace(/\b(SAS|SARL|GmbH(\s*&\s*Co\.?\s*KG)?|Ltd|Limited|SpA|Srl|ApS|A\/S|B\.V\.|BV|AG|SE|e\.V\.)\b/gi, '').replace(/[()[\]"']/g, '').trim()}" "${contact.title.replace(/\s*—\s*/g, ' ')}"`)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                padding: '5px 10px',
+                                borderRadius: '5px',
+                                backgroundColor: isDark ? 'rgba(56, 189, 248, 0.1)' : 'rgba(2, 132, 199, 0.08)',
+                                color: isDark ? '#38bdf8' : '#0284c7',
+                                border: isDark ? '1px solid rgba(56, 189, 248, 0.25)' : '1px solid rgba(2, 132, 199, 0.25)',
+                                fontSize: '11px',
+                                fontWeight: 600,
+                                textDecoration: 'none',
+                                transition: 'all 0.15s ease'
+                              }}
+                              title={`Search LinkedIn for ${contact.title} at ${targetOperator}`}
+                            >
+                              <Linkedin size={11} />
+                              <span>Search Role</span>
+                              <ExternalLink size={9} />
+                            </a>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Unified Verification & Institutional Portals Bar */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', padding: '8px 12px', backgroundColor: t.bgSunken, borderRadius: '6px', border: `1px solid ${t.border}`, fontSize: '11px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: t.textMuted }}>
+                    <Scale size={13} style={{ color: isDark ? '#38bdf8' : '#0284c7' }} />
+                    <span>Official Register: <strong style={{ color: t.textSecondary }}>{officialRegister.registerName}</strong></span>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <a
+                      href={officialRegister.searchUrl || officialRegister.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       style={{
-                        fontSize: '10px',
-                        fontWeight: 700,
-                        padding: '2px 6px',
-                        borderRadius: '4px',
-                        backgroundColor: isDark ? 'rgba(148, 163, 184, 0.15)' : 'rgba(100, 116, 139, 0.12)',
-                        color: t.textSecondary,
-                        flexShrink: 0,
+                        color: isDark ? '#38bdf8' : '#0284c7',
+                        fontWeight: 600,
+                        textDecoration: 'none',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '3px'
                       }}
                     >
-                      {LEAD_SOURCE_LABEL[contact.source]}
-                    </span>
+                      <span>Verify in {officialRegister.registerName.split(' ')[0]}</span>
+                      <ExternalLink size={10} />
+                    </a>
+
+                    {websiteUrl && (
+                      <>
+                        <span style={{ color: t.border }}>•</span>
+                        <a
+                          href={websiteUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ color: isDark ? '#60a5fa' : '#2563eb', fontWeight: 500, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                        >
+                          <Globe size={11} />
+                          <span>Website</span>
+                          <ExternalLink size={10} />
+                        </a>
+                      </>
+                    )}
+
+                    {linkedinCompanyUrl && (
+                      <>
+                        <span style={{ color: t.border }}>•</span>
+                        <a
+                          href={linkedinCompanyUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ color: isDark ? '#38bdf8' : '#0284c7', fontWeight: 500, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                        >
+                          <Linkedin size={11} />
+                          <span>Company Page</span>
+                          <ExternalLink size={10} />
+                        </a>
+                      </>
+                    )}
                   </div>
-                ))}
+                </div>
+
               </div>
             )}
 
-            {/* Official Statutory Registry Verification Strip */}
-            <div
-              style={{
-                borderTop: `1px solid ${t.border}`,
-                paddingTop: '10px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '8px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: t.textMuted }}>
-                <Scale size={13} style={{ color: isDark ? '#38bdf8' : '#0284c7' }} />
-                <span>Register: <strong style={{ color: t.textSecondary }}>{officialRegister.registerName}</strong></span>
-              </div>
-              <a
-                href={officialRegister.searchUrl || officialRegister.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  fontSize: '11px',
-                  padding: '3px 8px',
-                  backgroundColor: isDark ? 'rgba(56, 189, 248, 0.12)' : 'rgba(2, 132, 199, 0.08)',
-                  color: isDark ? '#38bdf8' : '#0284c7',
-                  border: isDark ? '1px solid rgba(56, 189, 248, 0.3)' : '1px solid rgba(2, 132, 199, 0.3)',
-                  borderRadius: '4px',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  textDecoration: 'none',
-                  fontWeight: 600,
-                }}
-                title={`Open official register search for ${officialRegister.countryName}`}
-              >
-                <span>Verify in {officialRegister.registerName.split(' ')[0]}</span>
-                <ExternalLink size={10} />
-              </a>
-            </div>
-
-            {/* Corporate Portal Link & Corporate LinkedIn Profile (if available) */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingTop: '6px', borderTop: `1px dashed ${t.border}` }}>
-              {websiteUrl && (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px' }}>
-                  <span style={{ color: t.textMuted }}>Corporate Website:</span>
-                  <a
-                    href={websiteUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ color: isDark ? '#60a5fa' : '#2563eb', fontWeight: 500, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                  >
-                    <Globe size={11} />
-                    <span>{websiteUrl.replace(/^https?:\/\//, '')}</span>
-                    <ExternalLink size={10} />
-                  </a>
-                </div>
-              )}
-              {linkedinCompanyUrl && (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px' }}>
-                  <span style={{ color: t.textMuted }}>Corporate LinkedIn:</span>
-                  <a
-                    href={linkedinCompanyUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ color: isDark ? '#38bdf8' : '#0284c7', fontWeight: 500, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                  >
-                    <Linkedin size={11} style={{ color: '#0ea5e9' }} />
-                    <span>Company Page</span>
-                    <ExternalLink size={10} />
-                  </a>
-                </div>
-              )}
-            </div>
-
-            {/* Collapsible Raw Census Audit Details */}
-            <div style={{ borderTop: `1px solid ${t.border}`, paddingTop: '8px' }}>
-              <button
-                type="button"
-                onClick={() => setShowRawCensus(!showRawCensus)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: t.textMuted,
-                  fontSize: '10px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  padding: 0,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
-                }}
-              >
-                {showRawCensus ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
-                <span>{showRawCensus ? 'Hide Raw Census Baseline' : 'Audit Raw Census Baseline (GIE/EBA 2026)'}</span>
-              </button>
-
-              {showRawCensus && (
-                <div style={{ marginTop: '8px', padding: '10px', backgroundColor: t.bgSunken, borderRadius: '6px', border: `1px solid ${t.border}`, fontSize: '11px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: t.textMuted }}>Raw Email:</span>
-                    <span style={{ color: contactQuality.confidence === 'UNDELIVERABLE' ? '#ef4444' : t.textSecondary, fontFamily: 'monospace' }}>
-                      {plant.contactEmail || 'Unpublished'} {contactQuality.confidence === 'UNDELIVERABLE' ? '(Bounce)' : ''}
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: t.textMuted }}>Raw Phone:</span>
-                    <span style={{ color: t.textSecondary, fontFamily: 'monospace' }}>{plant.contactPhone || 'Unpublished'}</span>
-                  </div>
-                  {plant.headquartersAddress && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
-                      <span style={{ color: t.textMuted, flexShrink: 0 }}>Raw Address:</span>
-                      <span style={{ color: t.textSecondary, textAlign: 'right' }}>{plant.headquartersAddress}</span>
+            {/* SECTION 2: Physical & Technical Parameters, Data Provenance */}
+            {(activeTab === 'ALL' || activeTab === 'TECHNICAL' || activeTab === 'COMPLIANCE') && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', minWidth: 0 }}>
+                
+                {/* Physical & Technical Parameters Card */}
+                {(activeTab === 'ALL' || activeTab === 'TECHNICAL') && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '6px', borderBottom: `1px solid ${t.border}` }}>
+                      <Activity size={16} style={{ color: isDark ? '#38bdf8' : '#0284c7' }} />
+                      <h3 style={{ margin: 0, fontSize: '12px', fontWeight: 800, color: t.textMain, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        Physical Capacity & Technical Specs
+                      </h3>
                     </div>
-                  )}
-                </div>
-              )}
-            </div>
-            </div>
-          </div>
 
-          {/* Column 2: Physical & Technical Parameters, Data Provenance */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', minWidth: 0 }}>
-            {/* Section 2: Physical & Technical Parameters */}
-            <div style={{ backgroundColor: t.bgCard, borderRadius: '12px', border: `1px solid ${t.border}`, padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <h3 style={{ fontSize: '11px', fontWeight: 800, color: t.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Activity size={14} style={{ color: isDark ? '#38bdf8' : '#0284c7' }} /> Physical Capacity & Technical Parameters
-              </h3>
+                    {/* Technical Parameter Specification Rows */}
+                    <div style={{ border: `1px solid ${t.border}`, borderRadius: '8px', overflow: 'hidden', backgroundColor: t.bgCard, fontSize: '12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 14px', borderBottom: `1px solid ${t.border}`, backgroundColor: t.bgSunken }}>
+                        <span style={{ color: t.textMuted }}>Annual Injected Energy:</span>
+                        <strong style={{ color: t.textMain }}>
+                          {plant.annualEnergyGWh ? `${plant.annualEnergyGWh.toLocaleString()} GWh/y (${(plant.annualEnergyGWh * 1000).toLocaleString()} MWh/y)` : '—'}
+                        </strong>
+                      </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
-                <div style={{ backgroundColor: t.bgSunken, padding: '10px', borderRadius: '8px', border: `1px solid ${t.border}` }}>
-                  <span style={{ fontSize: '10px', color: t.textMuted, display: 'block' }}>Annual Volume</span>
-                  <span style={{ fontSize: '15px', fontWeight: 700, color: t.textMain, display: 'block', marginTop: '2px' }}>
-                    {plant.annualEnergyGWh ? `${plant.annualEnergyGWh} GWh` : '—'}
-                  </span>
-                  <span style={{ fontSize: '9px', color: t.textMuted, display: 'block' }}>
-                    {plant.annualEnergyGWh ? `${(plant.annualEnergyGWh * 1000).toLocaleString()} MWh/y` : ''}
-                  </span>
-                </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 14px', borderBottom: `1px solid ${t.border}` }}>
+                        <span style={{ color: t.textMuted }}>Hourly Flow Rate:</span>
+                        <strong style={{ color: t.textMain }}>
+                          {plant.capacityNm3h ? `${plant.capacityNm3h.toLocaleString()} Nm³/h biomethane` : '—'}
+                        </strong>
+                      </div>
 
-                <div style={{ backgroundColor: t.bgSunken, padding: '10px', borderRadius: '8px', border: `1px solid ${t.border}` }}>
-                  <span style={{ fontSize: '10px', color: t.textMuted, display: 'block' }}>Flow Capacity</span>
-                  <span style={{ fontSize: '15px', fontWeight: 700, color: t.textMain, display: 'block', marginTop: '2px' }}>
-                    {plant.capacityNm3h ? `${plant.capacityNm3h.toLocaleString()}` : '—'}
-                  </span>
-                  <span style={{ fontSize: '9px', color: t.textMuted, display: 'block' }}>Nm³/h injection</span>
-                </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 14px', borderBottom: `1px solid ${t.border}`, backgroundColor: t.bgSunken }}>
+                        <span style={{ color: t.textMuted }}>Audited Carbon Intensity:</span>
+                        <strong style={{ color: ciValue < 0 ? (isDark ? '#34d399' : '#059669') : (isDark ? '#fbbf24' : '#d97706') }}>
+                          {ciValue} gCO₂e/MJ {plant.verifiedCarbonIntensity ? '(Audited)' : '(RED III Annex IX Default)'}
+                        </strong>
+                      </div>
 
-                <div style={{ backgroundColor: t.bgSunken, padding: '10px', borderRadius: '8px', border: `1px solid ${t.border}` }}>
-                  <span style={{ fontSize: '10px', color: t.textMuted, display: 'block' }}>Audited CI</span>
-                  <span style={{ fontSize: '15px', fontWeight: 700, color: ciValue < 0 ? (isDark ? '#10b981' : '#059669') : (isDark ? '#f59e0b' : '#d97706'), display: 'block', marginTop: '2px' }}>
-                    {ciValue}
-                  </span>
-                  <span style={{ fontSize: '9px', color: t.textMuted, display: 'block' }}>gCO₂e/MJ</span>
-                </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 14px', borderBottom: `1px solid ${t.border}` }}>
+                        <span style={{ color: t.textMuted }}>Primary Feedstock Category:</span>
+                        <strong style={{ color: isDark ? '#10b981' : '#059669' }}>
+                          {plant.primaryFeedstockCategory || 'Agricultural Biomass'}
+                        </strong>
+                      </div>
 
-                <div style={{ backgroundColor: t.bgSunken, padding: '10px', borderRadius: '8px', border: `1px solid ${t.border}` }}>
-                  <span style={{ fontSize: '10px', color: t.textMuted, display: 'block' }}>Upgrading Tech</span>
-                  <span style={{ fontSize: '11px', fontWeight: 600, color: t.textMain, display: 'block', marginTop: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={plant.upgradingTechnology || 'Membrane'}>
-                    {plant.upgradingTechnology || 'Membrane'}
-                  </span>
-                  <span style={{ fontSize: '9px', color: t.textMuted, display: 'block' }}>Separation</span>
-                </div>
-              </div>
+                      {plant.feedstockDetails && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 14px', borderBottom: `1px solid ${t.border}`, backgroundColor: t.bgSunken }}>
+                          <span style={{ color: t.textMuted, flexShrink: 0 }}>Substrate Mix / Recipe:</span>
+                          <span style={{ color: t.textSecondary, textAlign: 'right' }}>{plant.feedstockDetails}</span>
+                        </div>
+                      )}
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '10px', borderTop: `1px solid ${t.border}`, fontSize: '12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: t.textMuted }}>Primary Feedstock:</span>
-                  <span style={{ fontWeight: 600, color: isDark ? '#10b981' : '#059669' }}>{plant.primaryFeedstockCategory || 'Agricultural Biomass'}</span>
-                </div>
-                {plant.feedstockDetails && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
-                    <span style={{ color: t.textMuted, flexShrink: 0 }}>Substrate Mix:</span>
-                    <span style={{ color: t.textSecondary, textAlign: 'right' }}>{plant.feedstockDetails}</span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 14px', borderBottom: `1px solid ${t.border}` }}>
+                        <span style={{ color: t.textMuted }}>Upgrading Separation Technology:</span>
+                        <strong style={{ color: t.textMain }}>{plant.upgradingTechnology || 'Membrane separation'}</strong>
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 14px', borderBottom: `1px solid ${t.border}`, backgroundColor: t.bgSunken }}>
+                        <span style={{ color: t.textMuted }}>Grid Operator (TSO/DSO):</span>
+                        <span style={{ fontFamily: 'monospace', color: t.textSecondary }}>{plant.networkOperator || 'National Gas Grid'}</span>
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 14px', borderBottom: `1px solid ${t.border}` }}>
+                        <span style={{ color: t.textMuted }}>Grid Interconnection Level:</span>
+                        <span style={{ color: t.textSecondary }}>{plant.gridConnectionType || 'Distribution Grid Injection (DSO)'}</span>
+                      </div>
+
+                      {plant.supportScheme && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 14px', backgroundColor: t.bgSunken }}>
+                          <span style={{ color: t.textMuted }}>Statutory Subsidy Regime:</span>
+                          <strong style={{ color: isDark ? '#fbbf24' : '#d97706' }}>
+                            {plant.supportScheme} {plant.supportExpiryDate ? `(Expiry: ${plant.supportExpiryDate})` : ''}
+                          </strong>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: t.textMuted }}>Grid Operator (TSO/DSO):</span>
-                  <span style={{ fontFamily: 'monospace', color: t.textSecondary }}>{plant.networkOperator || 'National Gas Grid'}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: t.textMuted }}>Grid Connection Level:</span>
-                  <span style={{ color: t.textSecondary }}>{plant.gridConnectionType || 'Distribution Grid Injection (DSO)'}</span>
-                </div>
-                {plant.supportScheme && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: t.textMuted }}>Statutory Subsidy Regime:</span>
-                    <span style={{ fontWeight: 600, color: isDark ? '#fbbf24' : '#d97706' }}>
-                      {plant.supportScheme} {plant.supportExpiryDate ? `(Expiry: ${plant.supportExpiryDate})` : ''}
-                    </span>
+
+                {/* Compliance, Raw Census Baseline & Provenance */}
+                {(activeTab === 'ALL' || activeTab === 'COMPLIANCE') && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '6px', borderBottom: `1px solid ${t.border}` }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Scale size={16} style={{ color: isDark ? '#10b981' : '#059669' }} />
+                        <h3 style={{ margin: 0, fontSize: '12px', fontWeight: 800, color: t.textMain, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          Statutory Diligence & Provenance
+                        </h3>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleAuditPlantDiligence}
+                        style={{
+                          padding: '4px 10px',
+                          backgroundColor: isDark ? 'rgba(217, 119, 6, 0.12)' : 'rgba(245, 158, 11, 0.08)',
+                          color: isDark ? '#fbbf24' : '#d97706',
+                          border: `1px solid ${isDark ? 'rgba(245, 158, 11, 0.35)' : 'rgba(217, 119, 6, 0.3)'}`,
+                          borderRadius: '5px',
+                          fontSize: '11px',
+                          fontWeight: 600,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Run 6-Gate Audit ↗
+                      </button>
+                    </div>
+
+                    {/* Raw Census Baseline Collapsible */}
+                    <div style={{ border: `1px solid ${t.border}`, borderRadius: '6px', overflow: 'hidden' }}>
+                      <button
+                        type="button"
+                        onClick={() => setShowRawCensus(!showRawCensus)}
+                        style={{
+                          width: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '8px 12px',
+                          backgroundColor: t.bgSunken,
+                          border: 'none',
+                          color: t.textMuted,
+                          fontSize: '11px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.04em'
+                        }}
+                      >
+                        <span>Raw Census Baseline (GIE / EBA 2026)</span>
+                        {showRawCensus ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                      </button>
+
+                      {showRawCensus && (
+                        <div style={{ padding: '10px 12px', backgroundColor: t.bgCard, fontSize: '11px', display: 'flex', flexDirection: 'column', gap: '6px', borderTop: `1px solid ${t.border}` }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: t.textMuted }}>Raw Email:</span>
+                            <span style={{ color: contactQuality.confidence === 'UNDELIVERABLE' ? '#ef4444' : t.textSecondary, fontFamily: 'monospace' }}>
+                              {plant.contactEmail || 'Unpublished'} {contactQuality.confidence === 'UNDELIVERABLE' ? '(Bounce)' : ''}
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: t.textMuted }}>Raw Phone:</span>
+                            <span style={{ color: t.textSecondary, fontFamily: 'monospace' }}>{plant.contactPhone || 'Unpublished'}</span>
+                          </div>
+                          {plant.headquartersAddress && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
+                              <span style={{ color: t.textMuted, flexShrink: 0 }}>Raw Address:</span>
+                              <span style={{ color: t.textSecondary, textAlign: 'right' }}>{plant.headquartersAddress}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Institutional Provenance Declaration */}
+                    <div style={{ padding: '10px 12px', backgroundColor: t.bgSunken, borderRadius: '6px', border: `1px solid ${t.border}`, fontSize: '11px', color: t.textMuted, lineHeight: 1.5 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: t.textMain, fontWeight: 600, marginBottom: '3px' }}>
+                        <ShieldCheck size={13} style={{ color: isDark ? '#10b981' : '#059669' }} />
+                        <span>Data Provenance Tier</span>
+                      </div>
+                      <span style={{ color: t.textSecondary }}>
+                        {plant.provenance || 'Source attribution recorded under statutory census guidelines.'}
+                      </span>
+                    </div>
                   </div>
                 )}
-              </div>
-            </div>
 
-            {/* Section 3: Statutory Provenance */}
-            <div style={{ backgroundColor: t.bgCard, borderRadius: '10px', padding: '14px', border: `1px solid ${t.border}`, fontSize: '11px', color: t.textMuted, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: t.textMain, fontWeight: 600 }}>
-                <ShieldCheck size={14} style={{ color: isDark ? '#10b981' : '#059669' }} />
-                <span>Data Provenance</span>
               </div>
-              <p style={{ margin: 0, lineHeight: 1.5, color: t.textSecondary }}>
-                {plant.provenance || 'Source not recorded.'}
-              </p>
-            </div>
+            )}
+
           </div>
-        </div>
       </div>
 
       {/* Drawer Footer */}
