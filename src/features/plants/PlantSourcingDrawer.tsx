@@ -33,7 +33,9 @@ import {
   Bookmark,
   CheckCircle2,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import { generateLinkedInOriginationUrl } from '../../domain/plants/statutoryDossiers';
 import { 
@@ -68,6 +70,23 @@ export function PlantSourcingDrawer({ plant, onClose }: PlantSourcingDrawerProps
   const [overrideEmail, setOverrideEmail] = useState('');
   const [overridePhone, setOverridePhone] = useState('');
   const [overrideNotes, setOverrideNotes] = useState('');
+  const [isExpanded, setIsExpanded] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('plant_drawer_expanded') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleExpanded = () => {
+    setIsExpanded(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem('plant_drawer_expanded', String(next));
+      } catch {}
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (plant) {
@@ -86,10 +105,20 @@ export function PlantSourcingDrawer({ plant, onClose }: PlantSourcingDrawerProps
     return () => window.removeEventListener('plant-override-updated', handleOverrideUpdate);
   }, [plant?.id]);
 
-  // Close on Escape key
+  // Close on Escape key or toggle expand on 'F' key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      const target = e.target as HTMLElement;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+        return;
+      }
+      if (e.key === 'f' || e.key === 'F') {
+        toggleExpanded();
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
@@ -319,22 +348,23 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
       <div 
         style={{
           width: '100%',
-          maxWidth: '640px',
+          maxWidth: isExpanded ? '100vw' : '640px',
           height: '100%',
           backgroundColor: t.bg,
           color: t.textMain,
-          borderLeft: `1px solid ${t.border}`,
+          borderLeft: isExpanded ? 'none' : `1px solid ${t.border}`,
           display: 'flex',
           flexDirection: 'column',
           boxShadow: isDark ? '-8px 0 32px rgba(0, 0, 0, 0.8)' : '-8px 0 32px rgba(0, 0, 0, 0.15)',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          transition: 'max-width 0.25s cubic-bezier(0.16, 1, 0.3, 1), width 0.25s ease'
         }}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div 
           style={{
-            padding: '18px 22px',
+            padding: isExpanded ? '16px 28px' : '18px 22px',
             backgroundColor: t.bgHeader,
             borderBottom: `1px solid ${t.border}`,
             display: 'flex',
@@ -385,7 +415,7 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                 </span>
               )}
             </div>
-            <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0, color: t.textMain, letterSpacing: '-0.01em' }}>
+            <h2 style={{ fontSize: isExpanded ? '20px' : '18px', fontWeight: 700, margin: 0, color: t.textMain, letterSpacing: '-0.01em' }}>
               {plant.name}
             </h2>
             <p style={{ fontSize: '12px', color: t.textMuted, margin: '4px 0 0 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -394,29 +424,68 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            style={{
-              background: t.btnBg,
-              border: `1px solid ${t.btnBorder}`,
-              color: t.btnText,
-              cursor: 'pointer',
-              padding: '6px',
-              borderRadius: '6px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.15s ease'
-            }}
-            title="Close (Esc)"
-          >
-            <X size={16} />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              type="button"
+              onClick={toggleExpanded}
+              style={{
+                background: t.btnBg,
+                border: `1px solid ${t.btnBorder}`,
+                color: t.btnText,
+                cursor: 'pointer',
+                padding: '6px 11px',
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '11px',
+                fontWeight: 600,
+                transition: 'all 0.15s ease'
+              }}
+              title={isExpanded ? 'Collapse to side panel (or press F)' : 'Expand to full screen (or press F)'}
+            >
+              {isExpanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+              <span>{isExpanded ? 'Side Panel' : 'Full Screen'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={onClose}
+              style={{
+                background: t.btnBg,
+                border: `1px solid ${t.btnBorder}`,
+                color: t.btnText,
+                cursor: 'pointer',
+                padding: '6px',
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.15s ease'
+              }}
+              title="Close (Esc)"
+            >
+              <X size={16} />
+            </button>
+          </div>
         </div>
 
         {/* Drawer Body */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '14px' }} className="noscroll">
+        <div 
+          style={{ 
+            flex: 1, 
+            overflowY: 'auto', 
+            padding: isExpanded ? '20px 28px' : '16px 20px', 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '16px',
+            maxWidth: isExpanded ? '1560px' : '100%',
+            width: '100%',
+            margin: '0 auto',
+            boxSizing: 'border-box'
+          }} 
+          className="noscroll"
+        >
           {/* Action Toolbar: Row 1 Primary Trades (2 buttons) + Row 2 Utilities (3 buttons) */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
@@ -571,8 +640,18 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
             </div>
           </div>
 
-          {/* Inline Trader Desk Override Edit Form */}
-          {isEditingOverride && (
+          {/* Main Content Layout: Single Column in Side Panel, Two Balanced Columns in Full Screen */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: isExpanded ? 'minmax(0, 1.12fr) minmax(0, 0.88fr)' : '1fr',
+            gap: isExpanded ? '20px' : '14px',
+            alignItems: 'start',
+            width: '100%'
+          }}>
+            {/* Column 1: Counterparty Identity, Verified Signatory & Leads */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', minWidth: 0 }}>
+              {/* Inline Trader Desk Override Edit Form */}
+              {isEditingOverride && (
             <div style={{ backgroundColor: t.bgHeader, border: `1px solid ${isDark ? '#10b981' : '#059669'}`, borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <h4 style={{ margin: 0, fontSize: '12px', fontWeight: 800, color: isDark ? '#34d399' : '#059669', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -1313,99 +1392,126 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                 </div>
               )}
             </div>
+            </div>
           </div>
 
-          {/* Section 2: Physical & Technical Parameters */}
-          <div style={{ backgroundColor: t.bgCard, borderRadius: '12px', border: `1px solid ${t.border}`, padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <h3 style={{ fontSize: '11px', fontWeight: 800, color: t.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Activity size={14} style={{ color: isDark ? '#38bdf8' : '#0284c7' }} /> Physical Capacity & Technical Parameters
-            </h3>
+          {/* Column 2: Physical & Technical Parameters, Data Provenance */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', minWidth: 0 }}>
+            {/* Section 2: Physical & Technical Parameters */}
+            <div style={{ backgroundColor: t.bgCard, borderRadius: '12px', border: `1px solid ${t.border}`, padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <h3 style={{ fontSize: '11px', fontWeight: 800, color: t.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Activity size={14} style={{ color: isDark ? '#38bdf8' : '#0284c7' }} /> Physical Capacity & Technical Parameters
+              </h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
-              <div style={{ backgroundColor: t.bgSunken, padding: '10px', borderRadius: '8px', border: `1px solid ${t.border}` }}>
-                <span style={{ fontSize: '10px', color: t.textMuted, display: 'block' }}>Annual Volume</span>
-                <span style={{ fontSize: '15px', fontWeight: 700, color: t.textMain, display: 'block', marginTop: '2px' }}>
-                  {plant.annualEnergyGWh ? `${plant.annualEnergyGWh} GWh` : '—'}
-                </span>
-                <span style={{ fontSize: '9px', color: t.textMuted, display: 'block' }}>
-                  {plant.annualEnergyGWh ? `${(plant.annualEnergyGWh * 1000).toLocaleString()} MWh/y` : ''}
-                </span>
-              </div>
-
-              <div style={{ backgroundColor: t.bgSunken, padding: '10px', borderRadius: '8px', border: `1px solid ${t.border}` }}>
-                <span style={{ fontSize: '10px', color: t.textMuted, display: 'block' }}>Flow Capacity</span>
-                <span style={{ fontSize: '15px', fontWeight: 700, color: t.textMain, display: 'block', marginTop: '2px' }}>
-                  {plant.capacityNm3h ? `${plant.capacityNm3h.toLocaleString()}` : '—'}
-                </span>
-                <span style={{ fontSize: '9px', color: t.textMuted, display: 'block' }}>Nm³/h injection</span>
-              </div>
-
-              <div style={{ backgroundColor: t.bgSunken, padding: '10px', borderRadius: '8px', border: `1px solid ${t.border}` }}>
-                <span style={{ fontSize: '10px', color: t.textMuted, display: 'block' }}>Audited CI</span>
-                <span style={{ fontSize: '15px', fontWeight: 700, color: ciValue < 0 ? (isDark ? '#10b981' : '#059669') : (isDark ? '#f59e0b' : '#d97706'), display: 'block', marginTop: '2px' }}>
-                  {ciValue}
-                </span>
-                <span style={{ fontSize: '9px', color: t.textMuted, display: 'block' }}>gCO₂e/MJ</span>
-              </div>
-
-              <div style={{ backgroundColor: t.bgSunken, padding: '10px', borderRadius: '8px', border: `1px solid ${t.border}` }}>
-                <span style={{ fontSize: '10px', color: t.textMuted, display: 'block' }}>Upgrading Tech</span>
-                <span style={{ fontSize: '11px', fontWeight: 600, color: t.textMain, display: 'block', marginTop: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={plant.upgradingTechnology || 'Membrane'}>
-                  {plant.upgradingTechnology || 'Membrane'}
-                </span>
-                <span style={{ fontSize: '9px', color: t.textMuted, display: 'block' }}>Separation</span>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '10px', borderTop: `1px solid ${t.border}`, fontSize: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: t.textMuted }}>Primary Feedstock:</span>
-                <span style={{ fontWeight: 600, color: isDark ? '#10b981' : '#059669' }}>{plant.primaryFeedstockCategory || 'Agricultural Biomass'}</span>
-              </div>
-              {plant.feedstockDetails && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
-                  <span style={{ color: t.textMuted, flexShrink: 0 }}>Substrate Mix:</span>
-                  <span style={{ color: t.textSecondary, textAlign: 'right' }}>{plant.feedstockDetails}</span>
-                </div>
-              )}
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: t.textMuted }}>Grid Operator (TSO/DSO):</span>
-                <span style={{ fontFamily: 'monospace', color: t.textSecondary }}>{plant.networkOperator || 'National Gas Grid'}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: t.textMuted }}>Grid Connection Level:</span>
-                <span style={{ color: t.textSecondary }}>{plant.gridConnectionType || 'Distribution Grid Injection (DSO)'}</span>
-              </div>
-              {plant.supportScheme && (
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: t.textMuted }}>Statutory Subsidy Regime:</span>
-                  <span style={{ fontWeight: 600, color: isDark ? '#fbbf24' : '#d97706' }}>
-                    {plant.supportScheme} {plant.supportExpiryDate ? `(Expiry: ${plant.supportExpiryDate})` : ''}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                <div style={{ backgroundColor: t.bgSunken, padding: '10px', borderRadius: '8px', border: `1px solid ${t.border}` }}>
+                  <span style={{ fontSize: '10px', color: t.textMuted, display: 'block' }}>Annual Volume</span>
+                  <span style={{ fontSize: '15px', fontWeight: 700, color: t.textMain, display: 'block', marginTop: '2px' }}>
+                    {plant.annualEnergyGWh ? `${plant.annualEnergyGWh} GWh` : '—'}
+                  </span>
+                  <span style={{ fontSize: '9px', color: t.textMuted, display: 'block' }}>
+                    {plant.annualEnergyGWh ? `${(plant.annualEnergyGWh * 1000).toLocaleString()} MWh/y` : ''}
                   </span>
                 </div>
-              )}
-            </div>
-          </div>
 
-          {/* Section 3: Statutory Provenance */}
-          <div style={{ backgroundColor: t.bgCard, borderRadius: '10px', padding: '14px', border: `1px solid ${t.border}`, fontSize: '11px', color: t.textMuted, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: t.textMain, fontWeight: 600 }}>
-              <ShieldCheck size={14} style={{ color: isDark ? '#10b981' : '#059669' }} />
-              <span>Data Provenance</span>
+                <div style={{ backgroundColor: t.bgSunken, padding: '10px', borderRadius: '8px', border: `1px solid ${t.border}` }}>
+                  <span style={{ fontSize: '10px', color: t.textMuted, display: 'block' }}>Flow Capacity</span>
+                  <span style={{ fontSize: '15px', fontWeight: 700, color: t.textMain, display: 'block', marginTop: '2px' }}>
+                    {plant.capacityNm3h ? `${plant.capacityNm3h.toLocaleString()}` : '—'}
+                  </span>
+                  <span style={{ fontSize: '9px', color: t.textMuted, display: 'block' }}>Nm³/h injection</span>
+                </div>
+
+                <div style={{ backgroundColor: t.bgSunken, padding: '10px', borderRadius: '8px', border: `1px solid ${t.border}` }}>
+                  <span style={{ fontSize: '10px', color: t.textMuted, display: 'block' }}>Audited CI</span>
+                  <span style={{ fontSize: '15px', fontWeight: 700, color: ciValue < 0 ? (isDark ? '#10b981' : '#059669') : (isDark ? '#f59e0b' : '#d97706'), display: 'block', marginTop: '2px' }}>
+                    {ciValue}
+                  </span>
+                  <span style={{ fontSize: '9px', color: t.textMuted, display: 'block' }}>gCO₂e/MJ</span>
+                </div>
+
+                <div style={{ backgroundColor: t.bgSunken, padding: '10px', borderRadius: '8px', border: `1px solid ${t.border}` }}>
+                  <span style={{ fontSize: '10px', color: t.textMuted, display: 'block' }}>Upgrading Tech</span>
+                  <span style={{ fontSize: '11px', fontWeight: 600, color: t.textMain, display: 'block', marginTop: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={plant.upgradingTechnology || 'Membrane'}>
+                    {plant.upgradingTechnology || 'Membrane'}
+                  </span>
+                  <span style={{ fontSize: '9px', color: t.textMuted, display: 'block' }}>Separation</span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '10px', borderTop: `1px solid ${t.border}`, fontSize: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: t.textMuted }}>Primary Feedstock:</span>
+                  <span style={{ fontWeight: 600, color: isDark ? '#10b981' : '#059669' }}>{plant.primaryFeedstockCategory || 'Agricultural Biomass'}</span>
+                </div>
+                {plant.feedstockDetails && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
+                    <span style={{ color: t.textMuted, flexShrink: 0 }}>Substrate Mix:</span>
+                    <span style={{ color: t.textSecondary, textAlign: 'right' }}>{plant.feedstockDetails}</span>
+                  </div>
+                )}
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: t.textMuted }}>Grid Operator (TSO/DSO):</span>
+                  <span style={{ fontFamily: 'monospace', color: t.textSecondary }}>{plant.networkOperator || 'National Gas Grid'}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: t.textMuted }}>Grid Connection Level:</span>
+                  <span style={{ color: t.textSecondary }}>{plant.gridConnectionType || 'Distribution Grid Injection (DSO)'}</span>
+                </div>
+                {plant.supportScheme && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: t.textMuted }}>Statutory Subsidy Regime:</span>
+                    <span style={{ fontWeight: 600, color: isDark ? '#fbbf24' : '#d97706' }}>
+                      {plant.supportScheme} {plant.supportExpiryDate ? `(Expiry: ${plant.supportExpiryDate})` : ''}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
-            <p style={{ margin: 0, lineHeight: 1.5, color: t.textSecondary }}>
-              {plant.provenance || 'Source not recorded.'}
-            </p>
+
+            {/* Section 3: Statutory Provenance */}
+            <div style={{ backgroundColor: t.bgCard, borderRadius: '10px', padding: '14px', border: `1px solid ${t.border}`, fontSize: '11px', color: t.textMuted, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: t.textMain, fontWeight: 600 }}>
+                <ShieldCheck size={14} style={{ color: isDark ? '#10b981' : '#059669' }} />
+                <span>Data Provenance</span>
+              </div>
+              <p style={{ margin: 0, lineHeight: 1.5, color: t.textSecondary }}>
+                {plant.provenance || 'Source not recorded.'}
+              </p>
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Drawer Footer */}
-        <div style={{ padding: '14px 22px', backgroundColor: t.bgHeader, borderTop: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px', color: t.textMuted }}>
-          <span>
-            Coordinates: {plant.coordinates && !hasApproximateCoordinates(plant)
-              ? `${plant.coordinates[0].toFixed(4)}, ${plant.coordinates[1].toFixed(4)}`
-              : 'Unverified (country centroid placeholder)'}
-          </span>
+      {/* Drawer Footer */}
+      <div style={{ padding: isExpanded ? '14px 28px' : '14px 22px', backgroundColor: t.bgHeader, borderTop: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px', color: t.textMuted }}>
+        <span>
+          Coordinates: {plant.coordinates && !hasApproximateCoordinates(plant)
+            ? `${plant.coordinates[0].toFixed(4)}, ${plant.coordinates[1].toFixed(4)}`
+            : 'Unverified (country centroid placeholder)'}
+        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            type="button"
+            onClick={toggleExpanded}
+            style={{
+              padding: '6px 12px',
+              backgroundColor: t.btnBg,
+              color: t.btnText,
+              border: `1px solid ${t.btnBorder}`,
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontWeight: 600,
+              fontSize: '12px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px'
+            }}
+            title={isExpanded ? 'Collapse to side panel (F)' : 'Expand to full screen (F)'}
+          >
+            {isExpanded ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+            <span>{isExpanded ? 'Side Panel' : 'Full Screen'}</span>
+          </button>
           <button
             type="button"
             onClick={onClose}
@@ -1423,6 +1529,7 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
             Close Drawer
           </button>
         </div>
+      </div>
       </div>
     </div>
   );
