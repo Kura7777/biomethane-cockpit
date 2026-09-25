@@ -63,7 +63,7 @@ export function PlantSourcingDrawer({ plant, onClose }: PlantSourcingDrawerProps
   const navigate = useNavigate();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const [activeTab, setActiveTab] = useState<DrawerTab>('ALL');
+  const [activeTab, setActiveTab] = useState<DrawerTab>('COMMERCIAL');
   const [showMatchEvidence, setShowMatchEvidence] = useState(false);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [deskOverride, setDeskOverride] = useState<TraderDeskOverride | null>(() => plant ? getTraderDeskOverride(plant.id) : null);
@@ -365,116 +365,338 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
         }}
         onClick={e => e.stopPropagation()}
       >
-        {/* Header */}
+        {/* Header / Executive Plant Summary Hero */}
         <div 
           style={{
-            padding: isExpanded ? '16px 28px' : '18px 22px',
+            padding: isExpanded ? '18px 28px 14px 28px' : '16px 20px 12px 20px',
             backgroundColor: t.bgHeader,
             borderBottom: `1px solid ${t.border}`,
             display: 'flex',
-            alignItems: 'flex-start',
-            justifyContent: 'space-between',
+            flexDirection: 'column',
             gap: '12px'
           }}
         >
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px', flexWrap: 'wrap' }}>
-              <span style={{
-                backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : 'rgba(16, 185, 129, 0.12)',
-                color: isDark ? '#34d399' : '#059669',
-                fontSize: '11px',
-                fontWeight: 700,
-                padding: '2px 8px',
-                borderRadius: '4px',
-                border: `1px solid ${isDark ? 'rgba(16, 185, 129, 0.3)' : 'rgba(16, 185, 129, 0.25)'}`
-              }}>
-                {plant.countryCode} • {plant.country}
-              </span>
-              <span style={{
-                backgroundColor: isDark ? 'rgba(56, 189, 248, 0.12)' : 'rgba(2, 132, 199, 0.08)',
-                color: isDark ? '#38bdf8' : '#0284c7',
-                fontSize: '11px',
-                fontFamily: 'monospace',
-                fontWeight: 600,
-                padding: '2px 8px',
-                borderRadius: '4px',
-                border: `1px solid ${isDark ? 'rgba(56, 189, 248, 0.25)' : 'rgba(2, 132, 199, 0.25)'}`
-              }}>
-                {plant.id}
-              </span>
-              {plant.isVerified && (
+          {/* Top Bar: Badges, Title, and Panel Controls */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', flexWrap: 'wrap' }}>
                 <span style={{
-                  backgroundColor: isDark ? 'rgba(6, 182, 212, 0.12)' : 'rgba(6, 182, 212, 0.1)',
-                  color: isDark ? '#22d3ee' : '#0891b2',
+                  backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : 'rgba(16, 185, 129, 0.1)',
+                  color: isDark ? '#34d399' : '#059669',
                   fontSize: '11px',
-                  fontWeight: 600,
+                  fontWeight: 700,
                   padding: '2px 8px',
-                  borderRadius: '4px',
-                  border: `1px solid ${isDark ? 'rgba(6, 182, 212, 0.25)' : 'rgba(6, 182, 212, 0.25)'}`,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px'
+                  borderRadius: '4px'
                 }}>
-                  <ShieldCheck size={12} /> Audited Meter
+                  {plant.countryCode} • {plant.country}
                 </span>
-              )}
+                <span style={{
+                  fontFamily: 'monospace',
+                  fontSize: '11px',
+                  color: t.textMuted,
+                  fontWeight: 600
+                }}>
+                  {plant.id}
+                </span>
+                {plant.isVerified && (
+                  <span style={{
+                    color: isDark ? '#22d3ee' : '#0891b2',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '3px'
+                  }}>
+                    <ShieldCheck size={12} /> Audited Meter
+                  </span>
+                )}
+              </div>
+
+              <h2 style={{ fontSize: isExpanded ? '22px' : '18px', fontWeight: 800, margin: 0, color: t.textMain, letterSpacing: '-0.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {plant.name}
+              </h2>
+              <p style={{ fontSize: '12px', color: t.textMuted, margin: '3px 0 0 0', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                <span style={{ color: t.textSecondary, fontWeight: 500 }}>{plant.operator || plant.legalEntityName || 'Independent Producer'}</span>
+                {plant.commissioningYear && <span>• Comm. {plant.commissioningYear}</span>}
+                {plant.networkOperator && <span>• Grid: <strong style={{ color: t.textSecondary }}>{plant.networkOperator}</strong></span>}
+              </p>
             </div>
-            <h2 style={{ fontSize: isExpanded ? '20px' : '18px', fontWeight: 700, margin: 0, color: t.textMain, letterSpacing: '-0.01em' }}>
-              {plant.name}
-            </h2>
-            <p style={{ fontSize: '12px', color: t.textMuted, margin: '4px 0 0 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ color: t.textSecondary }}>{plant.operator || plant.legalEntityName || 'Independent Producer'}</span>
-              {plant.commissioningYear && <span style={{ color: t.textMuted }}>• Comm. {plant.commissioningYear}</span>}
-            </p>
+
+            {/* Panel Controls */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+              <button
+                type="button"
+                onClick={toggleExpanded}
+                style={{
+                  background: t.btnBg,
+                  border: `1px solid ${t.btnBorder}`,
+                  color: t.btnText,
+                  cursor: 'pointer',
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  fontSize: '11px',
+                  fontWeight: 600
+                }}
+                title={isExpanded ? 'Collapse to side panel (F)' : 'Expand to full screen (F)'}
+              >
+                {isExpanded ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+                <span>{isExpanded ? 'Side Panel' : 'Full Screen'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={onClose}
+                style={{
+                  background: t.btnBg,
+                  border: `1px solid ${t.btnBorder}`,
+                  color: t.btnText,
+                  cursor: 'pointer',
+                  padding: '6px',
+                  borderRadius: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                title="Close (Esc)"
+              >
+                <X size={15} />
+              </button>
+            </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* Trader Core Summary Numbers (Open, borderless typography) */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: isExpanded ? '24px' : '14px',
+            flexWrap: 'wrap',
+            paddingTop: '8px',
+            borderTop: `1px solid ${t.borderLight}`
+          }}>
+            <div>
+              <span style={{ fontSize: '10px', color: t.textMuted, display: 'block', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Annual Energy</span>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                <strong style={{ fontSize: '15px', color: t.textMain, fontWeight: 800 }}>
+                  {plant.annualEnergyGWh ? `${plant.annualEnergyGWh.toLocaleString()} GWh/y` : '—'}
+                </strong>
+                {plant.annualEnergyGWh && (
+                  <span style={{ fontSize: '11px', color: t.textMuted }}>
+                    ({(plant.annualEnergyGWh * 1000).toLocaleString()} MWh)
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div style={{ height: '22px', width: '1px', backgroundColor: t.border }} />
+
+            <div>
+              <span style={{ fontSize: '10px', color: t.textMuted, display: 'block', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Injection Flow</span>
+              <strong style={{ fontSize: '15px', color: t.textMain, fontWeight: 800 }}>
+                {plant.capacityNm3h ? `${plant.capacityNm3h.toLocaleString()} Nm³/h` : '—'}
+              </strong>
+            </div>
+
+            <div style={{ height: '22px', width: '1px', backgroundColor: t.border }} />
+
+            <div>
+              <span style={{ fontSize: '10px', color: t.textMuted, display: 'block', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Audited CI</span>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '3px' }}>
+                <strong style={{ fontSize: '15px', fontWeight: 800, color: ciValue < 0 ? (isDark ? '#34d399' : '#059669') : (isDark ? '#fbbf24' : '#d97706') }}>
+                  {ciValue}
+                </strong>
+                <span style={{ fontSize: '11px', color: t.textMuted }}>gCO₂e/MJ</span>
+              </div>
+            </div>
+
+            <div style={{ height: '22px', width: '1px', backgroundColor: t.border }} />
+
+            <div>
+              <span style={{ fontSize: '10px', color: t.textMuted, display: 'block', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Primary Feedstock</span>
+              <strong style={{ fontSize: '13px', color: isDark ? '#10b981' : '#059669', fontWeight: 700 }}>
+                {plant.primaryFeedstockCategory || 'Agricultural Biomass'}
+              </strong>
+            </div>
+
+            <div style={{ height: '22px', width: '1px', backgroundColor: t.border }} />
+
+            <div>
+              <span style={{ fontSize: '10px', color: t.textMuted, display: 'block', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Optimal Route</span>
+              <strong style={{ fontSize: '13px', color: isDark ? '#38bdf8' : '#0284c7', fontWeight: 700 }}>
+                {defaultMarket}
+              </strong>
+            </div>
+          </div>
+
+          {/* Primary Desk Action Toolbar */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', paddingTop: '2px' }}>
             <button
               type="button"
-              onClick={toggleExpanded}
+              onClick={handleLaunchTrade}
               style={{
-                background: t.btnBg,
-                border: `1px solid ${t.btnBorder}`,
-                color: t.btnText,
-                cursor: 'pointer',
-                padding: '6px 11px',
-                borderRadius: '6px',
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                fontSize: '11px',
-                fontWeight: 600,
+                padding: '7px 14px',
+                backgroundColor: '#059669',
+                color: '#ffffff',
+                fontWeight: 700,
+                fontSize: '12px',
+                borderRadius: '6px',
+                border: 'none',
+                cursor: 'pointer',
+                boxShadow: '0 2px 6px rgba(5, 150, 105, 0.25)',
                 transition: 'all 0.15s ease'
               }}
-              title={isExpanded ? 'Collapse to side panel (or press F)' : 'Expand to full screen (or press F)'}
             >
-              {isExpanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-              <span>{isExpanded ? 'Side Panel' : 'Full Screen'}</span>
+              <Zap size={14} />
+              <span>Launch in Trade Builder</span>
             </button>
 
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleAuditPlantDiligence}
               style={{
-                background: t.btnBg,
-                border: `1px solid ${t.btnBorder}`,
-                color: t.btnText,
-                cursor: 'pointer',
-                padding: '6px',
-                borderRadius: '6px',
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 0.15s ease'
+                gap: '6px',
+                padding: '7px 12px',
+                backgroundColor: isDark ? 'rgba(217, 119, 6, 0.12)' : 'rgba(245, 158, 11, 0.08)',
+                color: isDark ? '#fbbf24' : '#d97706',
+                fontWeight: 600,
+                fontSize: '12px',
+                borderRadius: '6px',
+                border: `1px solid ${isDark ? 'rgba(245, 158, 11, 0.35)' : 'rgba(217, 119, 6, 0.3)'}`,
+                cursor: 'pointer'
               }}
-              title="Close (Esc)"
             >
-              <X size={16} />
+              <Scale size={14} />
+              <span>Facility Diligence</span>
+            </button>
+
+            <a
+              href={linkedinSearchUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '7px 12px',
+                backgroundColor: isDark ? 'rgba(14, 165, 233, 0.12)' : 'rgba(2, 132, 199, 0.08)',
+                color: isDark ? '#38bdf8' : '#0284c7',
+                fontWeight: 600,
+                fontSize: '12px',
+                borderRadius: '6px',
+                border: `1px solid ${isDark ? 'rgba(56, 189, 248, 0.3)' : 'rgba(2, 132, 199, 0.25)'}`,
+                textDecoration: 'none'
+              }}
+            >
+              <Linkedin size={13} />
+              <span>Find Decision-Makers</span>
+            </a>
+
+            <button
+              type="button"
+              onClick={handleStartEditOverride}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '7px 12px',
+                backgroundColor: t.btnBg,
+                color: deskOverride ? (isDark ? '#34d399' : '#059669') : t.textSecondary,
+                fontWeight: 500,
+                fontSize: '12px',
+                borderRadius: '6px',
+                border: `1px solid ${t.btnBorder}`,
+                cursor: 'pointer'
+              }}
+            >
+              <PlusCircle size={13} />
+              <span>{deskOverride ? 'Edit Desk Override' : 'Log Desk Signatory'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleCopyTermSheet}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '7px 10px',
+                backgroundColor: t.btnBg,
+                color: t.btnText,
+                fontWeight: 500,
+                fontSize: '12px',
+                borderRadius: '6px',
+                border: `1px solid ${t.btnBorder}`,
+                cursor: 'pointer'
+              }}
+              title="Copy term sheet summary to clipboard"
+            >
+              <Copy size={12} />
+              <span>Copy Brief</span>
             </button>
           </div>
         </div>
 
-        {/* Drawer Body */}
+        {/* Clean Underline Tab Navigation */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          padding: isExpanded ? '0 28px' : '0 20px',
+          backgroundColor: t.bg,
+          borderBottom: `1px solid ${t.border}`,
+          gap: '8px'
+        }}>
+          {[
+            { id: 'COMMERCIAL', label: 'Counterparty & Origination', count: plant.verifiedDossier?.commercialContacts.length || 0 },
+            { id: 'TECHNICAL', label: 'Technical & Grid Specs' },
+            { id: 'COMPLIANCE', label: 'Statutory Diligence & Audit' },
+            { id: 'ALL', label: 'All Details' },
+          ].map(tab => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id as DrawerTab)}
+                style={{
+                  padding: '11px 12px',
+                  background: 'none',
+                  border: 'none',
+                  borderBottom: isActive ? `2px solid ${isDark ? '#38bdf8' : '#0284c7'}` : '2px solid transparent',
+                  color: isActive ? (isDark ? '#38bdf8' : '#0284c7') : t.textMuted,
+                  fontWeight: isActive ? 700 : 500,
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <span>{tab.label}</span>
+                {tab.count !== undefined && tab.count > 0 && (
+                  <span style={{
+                    fontSize: '10px',
+                    padding: '1px 5px',
+                    borderRadius: '8px',
+                    backgroundColor: isActive ? (isDark ? 'rgba(56, 189, 248, 0.2)' : 'rgba(2, 132, 199, 0.12)') : t.bgSunken,
+                    color: isActive ? (isDark ? '#38bdf8' : '#0284c7') : t.textMuted
+                  }}>
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Drawer Body: Clean, Box-Free Tab Content */}
         <div 
           style={{ 
             flex: 1, 
@@ -490,246 +712,6 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
           }} 
           className="noscroll"
         >
-          {/* Quick Metrics Strip */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '12px',
-            padding: '10px 16px',
-            backgroundColor: t.bgSunken,
-            borderRadius: '8px',
-            border: `1px solid ${t.border}`,
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Activity size={14} style={{ color: isDark ? '#38bdf8' : '#0284c7' }} />
-              <span style={{ fontSize: '11px', color: t.textMuted }}>Capacity:</span>
-              <strong style={{ fontSize: '13px', color: t.textMain }}>
-                {plant.annualEnergyGWh ? `${plant.annualEnergyGWh.toLocaleString()} GWh/y` : '—'}
-              </strong>
-              {plant.annualEnergyGWh && (
-                <span style={{ fontSize: '11px', color: t.textMuted }}>
-                  ({(plant.annualEnergyGWh * 1000).toLocaleString()} MWh)
-                </span>
-              )}
-            </div>
-
-            <div style={{ height: '14px', width: '1px', backgroundColor: t.border }} />
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Flame size={14} style={{ color: isDark ? '#f59e0b' : '#d97706' }} />
-              <span style={{ fontSize: '11px', color: t.textMuted }}>Flow:</span>
-              <strong style={{ fontSize: '13px', color: t.textMain }}>
-                {plant.capacityNm3h ? `${plant.capacityNm3h.toLocaleString()} Nm³/h` : '—'}
-              </strong>
-            </div>
-
-            <div style={{ height: '14px', width: '1px', backgroundColor: t.border }} />
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '11px', color: t.textMuted }}>Audited CI:</span>
-              <strong style={{ fontSize: '13px', color: ciValue < 0 ? (isDark ? '#34d399' : '#059669') : (isDark ? '#fbbf24' : '#d97706') }}>
-                {ciValue} gCO₂e/MJ
-              </strong>
-            </div>
-
-            <div style={{ height: '14px', width: '1px', backgroundColor: t.border }} />
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '11px', color: t.textMuted }}>Feedstock:</span>
-              <strong style={{ fontSize: '12px', color: t.textMain }}>
-                {plant.primaryFeedstockCategory || 'Agricultural'}
-              </strong>
-            </div>
-
-            {plant.networkOperator && (
-              <>
-                <div style={{ height: '14px', width: '1px', backgroundColor: t.border }} />
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontSize: '11px', color: t.textMuted }}>Grid:</span>
-                  <strong style={{ fontSize: '12px', color: t.textSecondary }}>
-                    {plant.networkOperator}
-                  </strong>
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Unified Action Toolbar */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <button
-              type="button"
-              onClick={handleLaunchTrade}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 14px',
-                backgroundColor: '#059669',
-                color: '#ffffff',
-                fontWeight: 600,
-                fontSize: '12px',
-                borderRadius: '6px',
-                border: 'none',
-                cursor: 'pointer',
-                boxShadow: '0 2px 6px rgba(5, 150, 105, 0.25)',
-                transition: 'all 0.15s ease'
-              }}
-            >
-              <Zap size={14} />
-              <span>Launch Trade Builder</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleAuditPlantDiligence}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 13px',
-                backgroundColor: isDark ? 'rgba(217, 119, 6, 0.12)' : 'rgba(245, 158, 11, 0.08)',
-                color: isDark ? '#fbbf24' : '#d97706',
-                fontWeight: 600,
-                fontSize: '12px',
-                borderRadius: '6px',
-                border: `1px solid ${isDark ? 'rgba(245, 158, 11, 0.35)' : 'rgba(217, 119, 6, 0.3)'}`,
-                cursor: 'pointer',
-                transition: 'all 0.15s ease'
-              }}
-              title="Run 6-Gate Statutory Audit & State Aid diligence for this facility"
-            >
-              <Scale size={14} />
-              <span>Statutory Diligence</span>
-            </button>
-
-            <a
-              href={linkedinSearchUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 13px',
-                backgroundColor: isDark ? 'rgba(14, 165, 233, 0.12)' : 'rgba(2, 132, 199, 0.08)',
-                color: isDark ? '#38bdf8' : '#0284c7',
-                fontWeight: 600,
-                fontSize: '12px',
-                borderRadius: '6px',
-                border: `1px solid ${isDark ? 'rgba(56, 189, 248, 0.3)' : 'rgba(2, 132, 199, 0.25)'}`,
-                textDecoration: 'none',
-                transition: 'all 0.15s ease',
-              }}
-              title="Search verified commercial, origination, and executive decision-makers on LinkedIn"
-            >
-              <Linkedin size={13} />
-              <span>Find Decision-Makers</span>
-            </a>
-
-            <button
-              type="button"
-              onClick={handleStartEditOverride}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 12px',
-                backgroundColor: deskOverride ? (isDark ? 'rgba(16, 185, 129, 0.12)' : 'rgba(16, 185, 129, 0.1)') : t.btnBg,
-                color: deskOverride ? (isDark ? '#34d399' : '#059669') : t.textSecondary,
-                fontWeight: 500,
-                fontSize: '12px',
-                borderRadius: '6px',
-                border: `1px solid ${deskOverride ? (isDark ? 'rgba(16, 185, 129, 0.3)' : 'rgba(16, 185, 129, 0.4)') : t.btnBorder}`,
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              <PlusCircle size={13} />
-              <span>{deskOverride ? 'Edit Desk Override' : 'Log Verified Contact'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleCopyTermSheet}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '5px',
-                padding: '8px 11px',
-                backgroundColor: t.btnBg,
-                color: t.btnText,
-                fontWeight: 500,
-                fontSize: '12px',
-                borderRadius: '6px',
-                border: `1px solid ${t.btnBorder}`,
-                cursor: 'pointer',
-                transition: 'all 0.15s ease'
-              }}
-              title="Copy term sheet summary to clipboard"
-            >
-              <Copy size={12} />
-              <span>Copy Brief</span>
-            </button>
-          </div>
-
-          {/* Segmented Tabs Navigation */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            borderBottom: `1px solid ${t.border}`,
-            paddingBottom: '4px',
-            flexWrap: 'wrap',
-            gap: '8px'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              {[
-                { id: 'ALL', label: 'All Details' },
-                { id: 'COMMERCIAL', label: 'Commercial & Leads', count: plant.verifiedDossier?.commercialContacts.length || 0 },
-                { id: 'TECHNICAL', label: 'Technical Specs' },
-                { id: 'COMPLIANCE', label: 'Compliance & Audit' },
-              ].map(tab => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id as DrawerTab)}
-                  style={{
-                    padding: '6px 12px',
-                    backgroundColor: activeTab === tab.id ? (isDark ? 'rgba(56, 189, 248, 0.15)' : 'rgba(2, 132, 199, 0.1)') : 'transparent',
-                    color: activeTab === tab.id ? (isDark ? '#38bdf8' : '#0284c7') : t.textMuted,
-                    fontWeight: activeTab === tab.id ? 700 : 500,
-                    fontSize: '12px',
-                    borderRadius: '6px',
-                    border: activeTab === tab.id ? `1px solid ${isDark ? 'rgba(56, 189, 248, 0.3)' : 'rgba(2, 132, 199, 0.25)'}` : '1px solid transparent',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    transition: 'all 0.15s ease'
-                  }}
-                >
-                  <span>{tab.label}</span>
-                  {tab.count !== undefined && tab.count > 0 && (
-                    <span style={{
-                      fontSize: '10px',
-                      padding: '1px 5px',
-                      borderRadius: '8px',
-                      backgroundColor: activeTab === tab.id ? (isDark ? 'rgba(56, 189, 248, 0.25)' : 'rgba(2, 132, 199, 0.2)') : t.bgSunken,
-                      color: activeTab === tab.id ? (isDark ? '#38bdf8' : '#0284c7') : t.textMuted
-                    }}>
-                      {tab.count}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: t.textMuted }}>
-              <span>Press <kbd style={{ padding: '2px 5px', borderRadius: '4px', backgroundColor: t.bgSunken, border: `1px solid ${t.border}`, fontFamily: 'monospace' }}>F</kbd> for {isExpanded ? 'side panel' : 'full screen'}</span>
-            </div>
-          </div>
 
           {/* Inline Trader Desk Override Edit Form */}
           {isEditingOverride && (
@@ -856,126 +838,96 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
             </div>
           )}
 
-          {/* Main Content Layout: Single Column or Two Columns based on activeTab & isExpanded */}
+          {/* Main Tab Content Layout: Single Column in Tab Mode, Balanced Two Columns in 'ALL' Full Screen */}
           <div style={{
             display: 'grid',
             gridTemplateColumns: (activeTab === 'ALL' && isExpanded) ? 'minmax(0, 1.15fr) minmax(0, 0.85fr)' : '1fr',
-            gap: isExpanded ? '20px' : '16px',
+            gap: isExpanded ? '28px' : '20px',
             alignItems: 'start',
             width: '100%'
           }}>
 
-            {/* SECTION 1: Commercial & Counterparty Intelligence */}
+            {/* TAB 1: Commercial & Counterparty Origination */}
             {(activeTab === 'ALL' || activeTab === 'COMMERCIAL') && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', minWidth: 0 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', minWidth: 0 }}>
                 
-                {/* Header Strip with Status Badges */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', paddingBottom: '6px', borderBottom: `1px solid ${t.border}` }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <ShieldCheck size={16} style={{ color: isDark ? '#38bdf8' : '#0284c7' }} />
-                    <h3 style={{ margin: 0, fontSize: '12px', fontWeight: 800, color: t.textMain, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      Counterparty Identity & Leads
-                    </h3>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    {plant.verifiedDossier && (
-                      plant.verifiedDossier.verificationStatus === 'REGISTER_CONFIRMED' ? (
-                        <span style={{ fontSize: '10px', padding: '2px 7px', backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#34d399', borderRadius: '4px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                          <CheckCircle2 size={11} /> Register-confirmed{plant.verifiedDossier.verifiedAt ? ` ${plant.verifiedDossier.verifiedAt}` : ''}
-                        </span>
-                      ) : (
-                        <span style={{ fontSize: '10px', padding: '2px 7px', backgroundColor: 'rgba(245, 158, 11, 0.15)', color: isDark ? '#fbbf24' : '#d97706', borderRadius: '4px', fontWeight: 700 }}>
-                          Unverified — check register
-                        </span>
-                      )
-                    )}
-                    {deskOverride && (
-                      <span style={{ fontSize: '10px', padding: '2px 7px', backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#34d399', borderRadius: '4px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        <CheckCircle2 size={11} /> Confirmed by Desk
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Desk Confirmed Contact Card (if logged) */}
+                {/* Desk Confirmed Signatory Callout (if active) */}
                 {deskOverride && !isEditingOverride && (
-                  <div style={{ backgroundColor: isDark ? 'rgba(6, 78, 59, 0.25)' : 'rgba(16, 185, 129, 0.08)', border: `1px solid ${isDark ? '#10b981' : '#059669'}`, borderRadius: '8px', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 800, color: isDark ? '#34d399' : '#059669', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <CheckCircle2 size={13} style={{ color: '#10b981' }} /> Confirmed by Desk Signatory
+                  <div style={{
+                    padding: '10px 14px',
+                    borderRadius: '6px',
+                    backgroundColor: isDark ? 'rgba(6, 78, 59, 0.25)' : 'rgba(16, 185, 129, 0.08)',
+                    borderLeft: `3px solid ${isDark ? '#34d399' : '#059669'}`,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: isDark ? '#34d399' : '#059669', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <CheckCircle2 size={13} /> Desk Confirmed Signatory
                       </span>
-                      <span style={{ fontSize: '11px', color: isDark ? '#a7f3d0' : '#065f46' }}>
+                      <span style={{ fontSize: '11px', color: t.textMuted }}>
                         Verified by {deskOverride.traderName} on {new Date(deskOverride.verifiedAt).toLocaleDateString()}
                       </span>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '8px', fontSize: '12px' }}>
-                      <div>
-                        <span style={{ fontSize: '10px', color: isDark ? '#6ee7b7' : '#059669', display: 'block' }}>Signatory</span>
-                        <strong style={{ color: t.textMain }}>{deskOverride.counterpartySignatory}</strong>
-                      </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '12px', flexWrap: 'wrap' }}>
+                      <strong style={{ color: t.textMain }}>{deskOverride.counterpartySignatory}</strong>
                       {deskOverride.directEmail && (
-                        <div>
-                          <span style={{ fontSize: '10px', color: isDark ? '#6ee7b7' : '#059669', display: 'block' }}>Direct Email</span>
-                          <a href={`mailto:${deskOverride.directEmail}`} style={{ color: isDark ? '#38bdf8' : '#0284c7', textDecoration: 'none' }}>
-                            {deskOverride.directEmail}
-                          </a>
-                        </div>
+                        <a href={`mailto:${deskOverride.directEmail}`} style={{ color: isDark ? '#38bdf8' : '#0284c7', textDecoration: 'none' }}>
+                          {deskOverride.directEmail}
+                        </a>
                       )}
                       {deskOverride.directPhone && (
-                        <div>
-                          <span style={{ fontSize: '10px', color: isDark ? '#6ee7b7' : '#059669', display: 'block' }}>Direct Phone</span>
-                          <a href={`tel:${deskOverride.directPhone}`} style={{ color: t.textSecondary, textDecoration: 'none' }}>
-                            {deskOverride.directPhone}
-                          </a>
-                        </div>
+                        <a href={`tel:${deskOverride.directPhone}`} style={{ color: t.textSecondary, textDecoration: 'none' }}>
+                          {deskOverride.directPhone}
+                        </a>
                       )}
                     </div>
 
                     {deskOverride.notes && (
-                      <div style={{ fontSize: '11px', color: t.textSecondary, paddingTop: '6px', borderTop: '1px dashed rgba(16, 185, 129, 0.25)' }}>
-                        <strong style={{ color: isDark ? '#a7f3d0' : '#065f46' }}>Trader Notes: </strong> {deskOverride.notes}
+                      <div style={{ fontSize: '11px', color: t.textSecondary, marginTop: '2px' }}>
+                        <strong>Notes:</strong> {deskOverride.notes}
                       </div>
                     )}
                   </div>
                 )}
 
-                {/* Quality & Outreach Risk Alerts (Clean compact lines) */}
+                {/* Quality & Outreach Risk Alerts (Clean compact inline text, no heavy boxes) */}
                 {contactQuality.confidence === 'UNDELIVERABLE' && (
-                  <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: '6px', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: isDark ? '#fca5a5' : '#dc2626' }}>
-                    <AlertOctagon size={14} style={{ flexShrink: 0 }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: isDark ? '#fca5a5' : '#dc2626' }}>
+                    <AlertOctagon size={13} style={{ flexShrink: 0 }} />
                     <span><strong>Synthetic address:</strong> {plant.contactEmail} was auto-generated from place name; it will bounce. Approach operator via official register or LinkedIn below.</span>
                   </div>
                 )}
                 {contactQuality.confidence === 'INDIRECT' && (
-                  <div style={{ backgroundColor: 'rgba(245, 158, 11, 0.08)', border: '1px solid rgba(245, 158, 11, 0.25)', borderRadius: '6px', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: isDark ? '#fcd34d' : '#d97706' }}>
-                    <AlertTriangle size={14} style={{ flexShrink: 0 }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: isDark ? '#fcd34d' : '#d97706' }}>
+                    <AlertTriangle size={13} style={{ flexShrink: 0 }} />
                     <span><strong>Shared Switchboard:</strong> Contact connects to central EPC/hotline. Direct origination pathways are provided in the table below.</span>
                   </div>
                 )}
                 {contactQuality.isPersonalEmail && (
-                  <div style={{ backgroundColor: 'rgba(234, 88, 12, 0.08)', border: '1px solid rgba(234, 88, 12, 0.25)', borderRadius: '6px', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: isDark ? '#fdba74' : '#c2410c' }}>
-                    <ShieldAlert size={14} style={{ flexShrink: 0 }} />
-                    <span><strong>Personal Mailbox:</strong> Likely private farmer or sole trader. Cold email falls under GDPR/PECR; telephone first or use verified corporate lead.</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: isDark ? '#fdba74' : '#c2410c' }}>
+                    <ShieldAlert size={13} style={{ flexShrink: 0 }} />
+                    <span><strong>Personal Mailbox:</strong> Likely private farmer/sole trader email. Phone first or use verified corporate lead.</span>
                   </div>
                 )}
 
-                {/* Sleek Register Match Banner (No Giant Cyan Box) */}
+                {/* Suggested Register Match Callout (Clean single-line text banner, NO BOX) */}
                 {plant.verifiedDossier?.suggestedEntity && (
                   <div style={{
-                    backgroundColor: isDark ? 'rgba(14, 165, 233, 0.08)' : 'rgba(2, 132, 199, 0.05)',
-                    border: `1px solid ${isDark ? 'rgba(14, 165, 233, 0.3)' : 'rgba(2, 132, 199, 0.25)'}`,
-                    borderRadius: '6px',
                     padding: '8px 12px',
+                    borderRadius: '6px',
+                    backgroundColor: isDark ? 'rgba(14, 165, 233, 0.08)' : 'rgba(2, 132, 199, 0.05)',
+                    borderLeft: `3px solid ${isDark ? '#38bdf8' : '#0284c7'}`,
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '6px'
+                    gap: '4px'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
-                        <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 6px', backgroundColor: isDark ? 'rgba(14, 165, 233, 0.2)' : 'rgba(2, 132, 199, 0.12)', color: isDark ? '#38bdf8' : '#0284c7', borderRadius: '4px', textTransform: 'uppercase' }}>
-                          Register Match
+                        <span style={{ fontSize: '10px', fontWeight: 700, color: isDark ? '#38bdf8' : '#0284c7', textTransform: 'uppercase' }}>
+                          Matched in Register:
                         </span>
                         <strong style={{ color: t.textMain }}>{plant.verifiedDossier.suggestedEntity.name}</strong>
                         {plant.verifiedDossier.suggestedEntity.registerId && (
@@ -984,7 +936,7 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                           </span>
                         )}
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         {plant.verifiedDossier.suggestedEntity.evidence && plant.verifiedDossier.suggestedEntity.evidence.length > 0 && (
                           <button
                             type="button"
@@ -998,7 +950,7 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: '3px',
-                              padding: '2px 6px'
+                              padding: 0
                             }}
                           >
                             <span>{showMatchEvidence ? 'Hide Signals' : `Match Evidence (${plant.verifiedDossier.suggestedEntity.evidence.length})`}</span>
@@ -1012,28 +964,24 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                             setIsEditingOverride(true);
                           }}
                           style={{
-                            padding: '4px 10px',
+                            padding: '3px 8px',
                             backgroundColor: '#0284c7',
                             color: '#ffffff',
                             border: 'none',
-                            borderRadius: '5px',
+                            borderRadius: '4px',
                             fontSize: '11px',
                             fontWeight: 600,
-                            cursor: 'pointer',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px'
+                            cursor: 'pointer'
                           }}
                         >
-                          <UserCheck size={12} />
-                          <span>Use as Signatory</span>
+                          Use as Signatory
                         </button>
                       </div>
                     </div>
                     {showMatchEvidence && plant.verifiedDossier.suggestedEntity.evidence && (
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', paddingTop: '4px', borderTop: `1px dashed ${isDark ? 'rgba(14, 165, 233, 0.25)' : 'rgba(2, 132, 199, 0.2)'}` }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', paddingTop: '4px' }}>
                         {plant.verifiedDossier.suggestedEntity.evidence.map((ev, i) => (
-                          <span key={i} style={{ fontSize: '10px', padding: '2px 7px', backgroundColor: t.bgSunken, borderRadius: '4px', color: t.textSecondary, border: `1px solid ${t.border}` }}>
+                          <span key={i} style={{ fontSize: '11px', color: t.textSecondary }}>
                             • {ev}
                           </span>
                         ))}
@@ -1042,17 +990,14 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                   </div>
                 )}
 
-                {/* Ambiguous Register Candidates (Top 3) */}
+                {/* Ambiguous Register Candidates (if any) */}
                 {plant.registerMatch?.status === 'AMBIGUOUS' && plant.registerMatch.candidates && plant.registerMatch.candidates.length > 0 && (
-                  <div style={{ backgroundColor: t.bgSunken, border: `1px solid ${t.border}`, borderRadius: '6px', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px' }}>
-                      <span style={{ fontWeight: 700, color: t.textSecondary, textTransform: 'uppercase' }}>
-                        Multiple Register Candidates ({plant.registerMatch.candidates.length})
-                      </span>
-                      <span style={{ color: t.textMuted }}>{plant.registerMatch.source}</span>
-                    </div>
+                  <div style={{ padding: '8px 12px', borderLeft: `3px solid ${t.border}`, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: t.textMuted, textTransform: 'uppercase' }}>
+                      Multiple Register Candidates ({plant.registerMatch.candidates.length})
+                    </span>
                     {plant.registerMatch.candidates.slice(0, 3).map((cand, idx) => (
-                      <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '4px 0', borderTop: idx > 0 ? `1px solid ${t.border}` : 'none', fontSize: '11px' }}>
+                      <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', fontSize: '11px' }}>
                         <div>
                           <strong style={{ color: t.textMain }}>{cand.operatorName}</strong>
                           {cand.operatorRegisterId && <span style={{ fontFamily: 'monospace', color: t.textMuted }}> ({cand.operatorRegisterId})</span>}
@@ -1073,13 +1018,19 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                   </div>
                 )}
 
-                {/* Core Entity Identity Grid (Clean borderless metadata) */}
-                <div style={{ display: 'grid', gridTemplateColumns: isExpanded ? 'repeat(4, 1fr)' : 'repeat(2, 1fr)', gap: '12px', padding: '12px 14px', backgroundColor: t.bgSunken, borderRadius: '8px', border: `1px solid ${t.border}` }}>
+                {/* Core Entity Identity (Clean Definition List, NO BOXES) */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: isExpanded ? 'repeat(4, 1fr)' : 'repeat(2, 1fr)',
+                  gap: '14px 18px',
+                  paddingBottom: '14px',
+                  borderBottom: `1px solid ${t.borderLight}`
+                }}>
                   <div>
                     <span style={{ fontSize: '10px', color: t.textMuted, display: 'block', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '2px' }}>
                       Legal Operating Entity
                     </span>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <strong style={{ fontSize: '12px', color: t.textMain, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={plant.verifiedDossier?.officialLegalEntity || plant.legalEntityName || plant.operator || 'Not identified'}>
                         {plant.verifiedDossier?.officialLegalEntity || plant.legalEntityName || plant.operator || 'Not identified — search register'}
                       </strong>
@@ -1087,7 +1038,7 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                         <button
                           type="button"
                           onClick={() => copyToClipboard(plant.verifiedDossier?.officialLegalEntity || plant.legalEntityName || plant.operator || '', 'Legal Entity')}
-                          style={{ background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer', padding: '2px' }}
+                          style={{ background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer', padding: '1px' }}
                           title="Copy"
                         >
                           <Copy size={11} />
@@ -1100,7 +1051,7 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                     <span style={{ fontSize: '10px', color: t.textMuted, display: 'block', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '2px' }}>
                       Statutory Registration ID
                     </span>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span style={{ fontSize: '12px', fontFamily: 'monospace', color: plant.verifiedDossier?.statutoryRegistrationId ? (isDark ? '#34d399' : '#059669') : t.textMuted, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {plant.verifiedDossier?.statutoryRegistrationId || (plant.registrationCheck && plant.registrationCheck.status !== 'CONFIRMED' ? 'Source ID rejected by register' : 'Not verified — search register')}
                       </span>
@@ -1108,7 +1059,7 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                         <button
                           type="button"
                           onClick={() => copyToClipboard(plant.verifiedDossier?.statutoryRegistrationId || '', 'Registration ID')}
-                          style={{ background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer', padding: '2px' }}
+                          style={{ background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer', padding: '1px' }}
                           title="Copy"
                         >
                           <Copy size={11} />
@@ -1136,30 +1087,29 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                   </div>
                 </div>
 
-                {/* Commercial Origination Leads Table (Clean unified list, NO 3 GRAY BOXES!) */}
+                {/* Origination Pathways & Direct Leads (Clean Row List, NO BOXES) */}
                 {plant.verifiedDossier && plant.verifiedDossier.commercialContacts.length > 0 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '2px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <span style={{ fontSize: '11px', fontWeight: 700, color: t.textMuted, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                        Origination Pathways & Direct Leads ({plant.verifiedDossier.commercialContacts.length})
+                        Commercial Leads & Origination Pathways ({plant.verifiedDossier.commercialContacts.length})
                       </span>
                       <span style={{ fontSize: '11px', color: t.textMuted }}>
                         Target: <strong style={{ color: t.textSecondary }}>{targetOperator}</strong>
                       </span>
                     </div>
 
-                    <div style={{ border: `1px solid ${t.border}`, borderRadius: '8px', overflow: 'hidden', backgroundColor: t.bgCard }}>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
                       {plant.verifiedDossier.commercialContacts.map((contact, idx) => (
                         <div
                           key={idx}
                           style={{
-                            padding: '10px 14px',
-                            borderBottom: idx < plant.verifiedDossier!.commercialContacts.length - 1 ? `1px solid ${t.border}` : 'none',
+                            padding: '10px 0',
+                            borderBottom: idx < plant.verifiedDossier!.commercialContacts.length - 1 ? `1px solid ${t.borderLight}` : 'none',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
-                            gap: '12px',
-                            transition: 'background-color 0.15s ease'
+                            gap: '14px'
                           }}
                         >
                           <div style={{ minWidth: 0, flex: 1 }}>
@@ -1184,7 +1134,7 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
 
                             {/* Contact Channels if available */}
                             {(contact.workEmail || contact.directPhone) && (
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginTop: '4px', fontSize: '11px', flexWrap: 'wrap' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginTop: '3px', fontSize: '11px', flexWrap: 'wrap' }}>
                                 {contact.workEmail && (
                                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                                     <Mail size={11} style={{ color: isDark ? '#38bdf8' : '#0284c7' }} />
@@ -1231,21 +1181,17 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                                 display: 'inline-flex',
                                 alignItems: 'center',
                                 gap: '4px',
-                                padding: '5px 10px',
+                                padding: '4px 10px',
                                 borderRadius: '5px',
-                                backgroundColor: isDark ? 'rgba(56, 189, 248, 0.1)' : 'rgba(2, 132, 199, 0.08)',
                                 color: isDark ? '#38bdf8' : '#0284c7',
-                                border: isDark ? '1px solid rgba(56, 189, 248, 0.25)' : '1px solid rgba(2, 132, 199, 0.25)',
                                 fontSize: '11px',
                                 fontWeight: 600,
-                                textDecoration: 'none',
-                                transition: 'all 0.15s ease'
+                                textDecoration: 'none'
                               }}
                               title={`Search LinkedIn for ${contact.title} at ${targetOperator}`}
                             >
-                              <Linkedin size={11} />
-                              <span>Search Role</span>
-                              <ExternalLink size={9} />
+                              <Linkedin size={12} />
+                              <span>Search Role ↗</span>
                             </a>
                           </div>
                         </div>
@@ -1254,239 +1200,227 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                   </div>
                 )}
 
-                {/* Unified Verification & Institutional Portals Bar */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', padding: '8px 12px', backgroundColor: t.bgSunken, borderRadius: '6px', border: `1px solid ${t.border}`, fontSize: '11px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: t.textMuted }}>
+                {/* Clean Verification Links Row (NO BOX) */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '16px',
+                  paddingTop: '12px',
+                  borderTop: `1px solid ${t.borderLight}`,
+                  fontSize: '11px',
+                  flexWrap: 'wrap'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: t.textMuted }}>
                     <Scale size={13} style={{ color: isDark ? '#38bdf8' : '#0284c7' }} />
-                    <span>Official Register: <strong style={{ color: t.textSecondary }}>{officialRegister.registerName}</strong></span>
+                    <span>Register: <strong style={{ color: t.textSecondary }}>{officialRegister.registerName}</strong></span>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <a
-                      href={officialRegister.searchUrl || officialRegister.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        color: isDark ? '#38bdf8' : '#0284c7',
-                        fontWeight: 600,
-                        textDecoration: 'none',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '3px'
-                      }}
-                    >
-                      <span>Verify in {officialRegister.registerName.split(' ')[0]}</span>
-                      <ExternalLink size={10} />
-                    </a>
+                  <a
+                    href={officialRegister.searchUrl || officialRegister.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: isDark ? '#38bdf8' : '#0284c7', fontWeight: 600, textDecoration: 'none' }}
+                  >
+                    Verify in {officialRegister.registerName.split(' ')[0]} ↗
+                  </a>
 
-                    {websiteUrl && (
-                      <>
-                        <span style={{ color: t.border }}>•</span>
-                        <a
-                          href={websiteUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{ color: isDark ? '#60a5fa' : '#2563eb', fontWeight: 500, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
-                        >
-                          <Globe size={11} />
-                          <span>Website</span>
-                          <ExternalLink size={10} />
-                        </a>
-                      </>
-                    )}
+                  {websiteUrl && (
+                    <>
+                      <span style={{ color: t.border }}>•</span>
+                      <a
+                        href={websiteUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: isDark ? '#60a5fa' : '#2563eb', fontWeight: 500, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                      >
+                        <Globe size={11} />
+                        <span>Corporate Website ↗</span>
+                      </a>
+                    </>
+                  )}
 
-                    {linkedinCompanyUrl && (
-                      <>
-                        <span style={{ color: t.border }}>•</span>
-                        <a
-                          href={linkedinCompanyUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{ color: isDark ? '#38bdf8' : '#0284c7', fontWeight: 500, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
-                        >
-                          <Linkedin size={11} />
-                          <span>Company Page</span>
-                          <ExternalLink size={10} />
-                        </a>
-                      </>
-                    )}
-                  </div>
+                  {linkedinCompanyUrl && (
+                    <>
+                      <span style={{ color: t.border }}>•</span>
+                      <a
+                        href={linkedinCompanyUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: isDark ? '#38bdf8' : '#0284c7', fontWeight: 500, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                      >
+                        <Linkedin size={11} />
+                        <span>Company Page ↗</span>
+                      </a>
+                    </>
+                  )}
                 </div>
 
               </div>
             )}
 
-            {/* SECTION 2: Physical & Technical Parameters, Data Provenance */}
-            {(activeTab === 'ALL' || activeTab === 'TECHNICAL' || activeTab === 'COMPLIANCE') && (
+            {/* TAB 2: Physical & Technical Parameters */}
+            {(activeTab === 'ALL' || activeTab === 'TECHNICAL') && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', minWidth: 0 }}>
-                
-                {/* Physical & Technical Parameters Card */}
-                {(activeTab === 'ALL' || activeTab === 'TECHNICAL') && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '6px', borderBottom: `1px solid ${t.border}` }}>
-                      <Activity size={16} style={{ color: isDark ? '#38bdf8' : '#0284c7' }} />
-                      <h3 style={{ margin: 0, fontSize: '12px', fontWeight: 800, color: t.textMain, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        Physical Capacity & Technical Specs
-                      </h3>
-                    </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '4px', borderBottom: `1px solid ${t.borderLight}` }}>
+                  <Activity size={15} style={{ color: isDark ? '#38bdf8' : '#0284c7' }} />
+                  <h3 style={{ margin: 0, fontSize: '12px', fontWeight: 800, color: t.textMain, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Physical Capacity & Technical Parameters
+                  </h3>
+                </div>
 
-                    {/* Technical Parameter Specification Rows */}
-                    <div style={{ border: `1px solid ${t.border}`, borderRadius: '8px', overflow: 'hidden', backgroundColor: t.bgCard, fontSize: '12px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 14px', borderBottom: `1px solid ${t.border}`, backgroundColor: t.bgSunken }}>
-                        <span style={{ color: t.textMuted }}>Annual Injected Energy:</span>
-                        <strong style={{ color: t.textMain }}>
-                          {plant.annualEnergyGWh ? `${plant.annualEnergyGWh.toLocaleString()} GWh/y (${(plant.annualEnergyGWh * 1000).toLocaleString()} MWh/y)` : '—'}
-                        </strong>
-                      </div>
-
-                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 14px', borderBottom: `1px solid ${t.border}` }}>
-                        <span style={{ color: t.textMuted }}>Hourly Flow Rate:</span>
-                        <strong style={{ color: t.textMain }}>
-                          {plant.capacityNm3h ? `${plant.capacityNm3h.toLocaleString()} Nm³/h biomethane` : '—'}
-                        </strong>
-                      </div>
-
-                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 14px', borderBottom: `1px solid ${t.border}`, backgroundColor: t.bgSunken }}>
-                        <span style={{ color: t.textMuted }}>Audited Carbon Intensity:</span>
-                        <strong style={{ color: ciValue < 0 ? (isDark ? '#34d399' : '#059669') : (isDark ? '#fbbf24' : '#d97706') }}>
-                          {ciValue} gCO₂e/MJ {plant.verifiedCarbonIntensity ? '(Audited)' : '(RED III Annex IX Default)'}
-                        </strong>
-                      </div>
-
-                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 14px', borderBottom: `1px solid ${t.border}` }}>
-                        <span style={{ color: t.textMuted }}>Primary Feedstock Category:</span>
-                        <strong style={{ color: isDark ? '#10b981' : '#059669' }}>
-                          {plant.primaryFeedstockCategory || 'Agricultural Biomass'}
-                        </strong>
-                      </div>
-
-                      {plant.feedstockDetails && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 14px', borderBottom: `1px solid ${t.border}`, backgroundColor: t.bgSunken }}>
-                          <span style={{ color: t.textMuted, flexShrink: 0 }}>Substrate Mix / Recipe:</span>
-                          <span style={{ color: t.textSecondary, textAlign: 'right' }}>{plant.feedstockDetails}</span>
-                        </div>
-                      )}
-
-                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 14px', borderBottom: `1px solid ${t.border}` }}>
-                        <span style={{ color: t.textMuted }}>Upgrading Separation Technology:</span>
-                        <strong style={{ color: t.textMain }}>{plant.upgradingTechnology || 'Membrane separation'}</strong>
-                      </div>
-
-                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 14px', borderBottom: `1px solid ${t.border}`, backgroundColor: t.bgSunken }}>
-                        <span style={{ color: t.textMuted }}>Grid Operator (TSO/DSO):</span>
-                        <span style={{ fontFamily: 'monospace', color: t.textSecondary }}>{plant.networkOperator || 'National Gas Grid'}</span>
-                      </div>
-
-                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 14px', borderBottom: `1px solid ${t.border}` }}>
-                        <span style={{ color: t.textMuted }}>Grid Interconnection Level:</span>
-                        <span style={{ color: t.textSecondary }}>{plant.gridConnectionType || 'Distribution Grid Injection (DSO)'}</span>
-                      </div>
-
-                      {plant.supportScheme && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 14px', backgroundColor: t.bgSunken }}>
-                          <span style={{ color: t.textMuted }}>Statutory Subsidy Regime:</span>
-                          <strong style={{ color: isDark ? '#fbbf24' : '#d97706' }}>
-                            {plant.supportScheme} {plant.supportExpiryDate ? `(Expiry: ${plant.supportExpiryDate})` : ''}
-                          </strong>
-                        </div>
-                      )}
-                    </div>
+                {/* Clean Open Key-Value Specification Rows (NO BOX) */}
+                <div style={{ display: 'flex', flexDirection: 'column', fontSize: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: `1px solid ${t.borderLight}` }}>
+                    <span style={{ color: t.textMuted }}>Annual Injected Energy:</span>
+                    <strong style={{ color: t.textMain }}>
+                      {plant.annualEnergyGWh ? `${plant.annualEnergyGWh.toLocaleString()} GWh/y (${(plant.annualEnergyGWh * 1000).toLocaleString()} MWh/y)` : '—'}
+                    </strong>
                   </div>
-                )}
 
-                {/* Compliance, Raw Census Baseline & Provenance */}
-                {(activeTab === 'ALL' || activeTab === 'COMPLIANCE') && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '6px', borderBottom: `1px solid ${t.border}` }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Scale size={16} style={{ color: isDark ? '#10b981' : '#059669' }} />
-                        <h3 style={{ margin: 0, fontSize: '12px', fontWeight: 800, color: t.textMain, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                          Statutory Diligence & Provenance
-                        </h3>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleAuditPlantDiligence}
-                        style={{
-                          padding: '4px 10px',
-                          backgroundColor: isDark ? 'rgba(217, 119, 6, 0.12)' : 'rgba(245, 158, 11, 0.08)',
-                          color: isDark ? '#fbbf24' : '#d97706',
-                          border: `1px solid ${isDark ? 'rgba(245, 158, 11, 0.35)' : 'rgba(217, 119, 6, 0.3)'}`,
-                          borderRadius: '5px',
-                          fontSize: '11px',
-                          fontWeight: 600,
-                          cursor: 'pointer'
-                        }}
-                      >
-                        Run 6-Gate Audit ↗
-                      </button>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: `1px solid ${t.borderLight}` }}>
+                    <span style={{ color: t.textMuted }}>Hourly Biomethane Flow:</span>
+                    <strong style={{ color: t.textMain }}>
+                      {plant.capacityNm3h ? `${plant.capacityNm3h.toLocaleString()} Nm³/h` : '—'}
+                    </strong>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: `1px solid ${t.borderLight}` }}>
+                    <span style={{ color: t.textMuted }}>Audited Carbon Intensity:</span>
+                    <strong style={{ color: ciValue < 0 ? (isDark ? '#34d399' : '#059669') : (isDark ? '#fbbf24' : '#d97706') }}>
+                      {ciValue} gCO₂e/MJ {plant.verifiedCarbonIntensity ? '(Audited)' : '(RED III Annex IX Default)'}
+                    </strong>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: `1px solid ${t.borderLight}` }}>
+                    <span style={{ color: t.textMuted }}>Primary Feedstock Category:</span>
+                    <strong style={{ color: isDark ? '#10b981' : '#059669' }}>
+                      {plant.primaryFeedstockCategory || 'Agricultural Biomass'}
+                    </strong>
+                  </div>
+
+                  {plant.feedstockDetails && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: `1px solid ${t.borderLight}`, gap: '16px' }}>
+                      <span style={{ color: t.textMuted, flexShrink: 0 }}>Substrate Mix / Recipe:</span>
+                      <span style={{ color: t.textSecondary, textAlign: 'right' }}>{plant.feedstockDetails}</span>
                     </div>
+                  )}
 
-                    {/* Raw Census Baseline Collapsible */}
-                    <div style={{ border: `1px solid ${t.border}`, borderRadius: '6px', overflow: 'hidden' }}>
-                      <button
-                        type="button"
-                        onClick={() => setShowRawCensus(!showRawCensus)}
-                        style={{
-                          width: '100%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '8px 12px',
-                          backgroundColor: t.bgSunken,
-                          border: 'none',
-                          color: t.textMuted,
-                          fontSize: '11px',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.04em'
-                        }}
-                      >
-                        <span>Raw Census Baseline (GIE / EBA 2026)</span>
-                        {showRawCensus ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                      </button>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: `1px solid ${t.borderLight}` }}>
+                    <span style={{ color: t.textMuted }}>Upgrading Separation Technology:</span>
+                    <strong style={{ color: t.textMain }}>{plant.upgradingTechnology || 'Membrane separation'}</strong>
+                  </div>
 
-                      {showRawCensus && (
-                        <div style={{ padding: '10px 12px', backgroundColor: t.bgCard, fontSize: '11px', display: 'flex', flexDirection: 'column', gap: '6px', borderTop: `1px solid ${t.border}` }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span style={{ color: t.textMuted }}>Raw Email:</span>
-                            <span style={{ color: contactQuality.confidence === 'UNDELIVERABLE' ? '#ef4444' : t.textSecondary, fontFamily: 'monospace' }}>
-                              {plant.contactEmail || 'Unpublished'} {contactQuality.confidence === 'UNDELIVERABLE' ? '(Bounce)' : ''}
-                            </span>
-                          </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span style={{ color: t.textMuted }}>Raw Phone:</span>
-                            <span style={{ color: t.textSecondary, fontFamily: 'monospace' }}>{plant.contactPhone || 'Unpublished'}</span>
-                          </div>
-                          {plant.headquartersAddress && (
-                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
-                              <span style={{ color: t.textMuted, flexShrink: 0 }}>Raw Address:</span>
-                              <span style={{ color: t.textSecondary, textAlign: 'right' }}>{plant.headquartersAddress}</span>
-                            </div>
-                          )}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: `1px solid ${t.borderLight}` }}>
+                    <span style={{ color: t.textMuted }}>Grid Operator (TSO/DSO):</span>
+                    <span style={{ fontFamily: 'monospace', color: t.textSecondary }}>{plant.networkOperator || 'National Gas Grid'}</span>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: `1px solid ${t.borderLight}` }}>
+                    <span style={{ color: t.textMuted }}>Grid Connection Level:</span>
+                    <span style={{ color: t.textSecondary }}>{plant.gridConnectionType || 'Distribution Grid Injection (DSO)'}</span>
+                  </div>
+
+                  {plant.supportScheme && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: `1px solid ${t.borderLight}` }}>
+                      <span style={{ color: t.textMuted }}>Statutory Subsidy Regime:</span>
+                      <strong style={{ color: isDark ? '#fbbf24' : '#d97706' }}>
+                        {plant.supportScheme} {plant.supportExpiryDate ? `(Expiry: ${plant.supportExpiryDate})` : ''}
+                      </strong>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: Compliance & Provenance */}
+            {(activeTab === 'ALL' || activeTab === 'COMPLIANCE') && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '4px', borderBottom: `1px solid ${t.borderLight}` }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Scale size={15} style={{ color: isDark ? '#10b981' : '#059669' }} />
+                    <h3 style={{ margin: 0, fontSize: '12px', fontWeight: 800, color: t.textMain, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Statutory Diligence & Provenance
+                    </h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAuditPlantDiligence}
+                    style={{
+                      padding: '4px 10px',
+                      backgroundColor: isDark ? 'rgba(217, 119, 6, 0.12)' : 'rgba(245, 158, 11, 0.08)',
+                      color: isDark ? '#fbbf24' : '#d97706',
+                      border: `1px solid ${isDark ? 'rgba(245, 158, 11, 0.35)' : 'rgba(217, 119, 6, 0.3)'}`,
+                      borderRadius: '5px',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Run 6-Gate Audit ↗
+                  </button>
+                </div>
+
+                {/* Raw Census Baseline Collapsible */}
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setShowRawCensus(!showRawCensus)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: t.textMuted,
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      padding: 0,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em'
+                    }}
+                  >
+                    <span>Raw Census Baseline (GIE / EBA 2026)</span>
+                    {showRawCensus ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                  </button>
+
+                  {showRawCensus && (
+                    <div style={{ marginTop: '8px', padding: '10px 0', fontSize: '11px', display: 'flex', flexDirection: 'column', gap: '6px', borderTop: `1px solid ${t.borderLight}` }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: t.textMuted }}>Raw Email:</span>
+                        <span style={{ color: contactQuality.confidence === 'UNDELIVERABLE' ? '#ef4444' : t.textSecondary, fontFamily: 'monospace' }}>
+                          {plant.contactEmail || 'Unpublished'} {contactQuality.confidence === 'UNDELIVERABLE' ? '(Bounce)' : ''}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: t.textMuted }}>Raw Phone:</span>
+                        <span style={{ color: t.textSecondary, fontFamily: 'monospace' }}>{plant.contactPhone || 'Unpublished'}</span>
+                      </div>
+                      {plant.headquartersAddress && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
+                          <span style={{ color: t.textMuted, flexShrink: 0 }}>Raw Address:</span>
+                          <span style={{ color: t.textSecondary, textAlign: 'right' }}>{plant.headquartersAddress}</span>
                         </div>
                       )}
                     </div>
+                  )}
+                </div>
 
-                    {/* Institutional Provenance Declaration */}
-                    <div style={{ padding: '10px 12px', backgroundColor: t.bgSunken, borderRadius: '6px', border: `1px solid ${t.border}`, fontSize: '11px', color: t.textMuted, lineHeight: 1.5 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: t.textMain, fontWeight: 600, marginBottom: '3px' }}>
-                        <ShieldCheck size={13} style={{ color: isDark ? '#10b981' : '#059669' }} />
-                        <span>Data Provenance Tier</span>
-                      </div>
-                      <span style={{ color: t.textSecondary }}>
-                        {plant.provenance || 'Source attribution recorded under statutory census guidelines.'}
-                      </span>
-                    </div>
+                {/* Institutional Provenance Declaration */}
+                <div style={{ paddingTop: '8px', borderTop: `1px solid ${t.borderLight}`, fontSize: '11px', color: t.textMuted, lineHeight: 1.5 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: t.textMain, fontWeight: 600, marginBottom: '2px' }}>
+                    <ShieldCheck size={12} style={{ color: isDark ? '#10b981' : '#059669' }} />
+                    <span>Data Provenance Tier</span>
                   </div>
-                )}
-
+                  <span style={{ color: t.textSecondary }}>
+                    {plant.provenance || 'Source attribution recorded under statutory census guidelines.'}
+                  </span>
+                </div>
               </div>
             )}
 
           </div>
-      </div>
+        </div>
 
       {/* Drawer Footer */}
       <div style={{ padding: isExpanded ? '14px 28px' : '14px 22px', backgroundColor: t.bgHeader, borderTop: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px', color: t.textMuted }}>
