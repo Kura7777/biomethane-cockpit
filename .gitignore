@@ -20,6 +20,8 @@ dist-ssr
 !.env.example
 data/*
 !data/fueleu_shipping_crm_targets.*
+!data/registration_checks/
+!data/registration_matches/
 scratch/
 *.secret.json
 
@@ -61,4 +63,8 @@ NotebookLM_Sources/
 /test-results/
 /playwright-report/
 /blob-report/
-/playwright/.cache/
+# Python
+__pycache__/
+*.pyc
+data/.fr_siren_cache.json
+scripts/.siren_cache.json

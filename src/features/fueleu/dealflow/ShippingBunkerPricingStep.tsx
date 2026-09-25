@@ -26,6 +26,7 @@ import {
   Ship,
 } from 'lucide-react';
 import { showToast } from '../../../app/DeskToastContainer';
+import { getAssumption } from '../../../domain/assumptions/registry';
 
 const MONO_FONT = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
 
@@ -590,7 +591,7 @@ export function ShippingBunkerPricingStep({
             <span>
               {pathway === 'PHYSICAL'
                 ? `Total Delivered Invoice: €${(marineQuote.totalBioLngInvoiceEur || 0).toLocaleString()}`
-                : `Pool Transaction Volume: €${Math.round(Math.abs(counterparty.compliance_balance_2025_tco2e) * 435).toLocaleString()}`}
+                : `Pool Transaction Volume: €${Math.round(Math.abs(counterparty.compliance_balance_2025_tco2e) * getAssumption(counterparty.compliance_balance_2025_tco2e >= 0 ? 'fueleu.poolSellPriceEurPerTco2e' : 'fueleu.poolBuyPriceEurPerTco2e')).toLocaleString()}`}
             </span>
             <span>FX Benchmark: 1.08 EUR/USD</span>
           </div>

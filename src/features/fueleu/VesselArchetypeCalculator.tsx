@@ -30,6 +30,15 @@ import {
   Copy
 } from 'lucide-react';
 import { showToast } from '../../app/DeskToastContainer';
+import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
+import { AssumptionsStrip } from '../../shared/components/AssumptionsStrip';
+
+const FUELEU_PATHWAY_ASSUMPTIONS = [
+  'fueleu.bioLngPremiumEurPerMwh',
+  'fueleu.physicalDeskMarginEurPerMwh',
+  'fueleu.poolBuyPriceEurPerTco2e',
+  'fueleu.poolSellPriceEurPerTco2e',
+];
 
 export function VesselArchetypeCalculator() {
   const navigate = useNavigate();
@@ -62,6 +71,8 @@ export function VesselArchetypeCalculator() {
     setBioLngCi(archetype.defaultBioLngCi);
   };
 
+  const assumptionsVersion = useAssumptionsVersion();
+
   // Perform live exposure calculation
   const calculationResult = useMemo(() => {
     const input: VesselCalculationInput = {
@@ -74,7 +85,7 @@ export function VesselArchetypeCalculator() {
       consecutiveYearsNonCompliant: consecutiveYears,
     };
     return calculateVesselExposure(input);
-  }, [vlsfoTonnes, mgoTonnes, lngTonnes, bioLngTonnes, bioLngCi, targetYear, consecutiveYears]);
+  }, [vlsfoTonnes, mgoTonnes, lngTonnes, bioLngTonnes, bioLngCi, targetYear, consecutiveYears, assumptionsVersion]);
 
   // 1-Click trade builder
   const handleTradeBuilder = () => {
@@ -563,6 +574,10 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
                     <span className="num" style={{ color: 'var(--color-accent)', fontWeight: 700 }}>€{Math.round(calculationResult.poolingArrangementMarginEur).toLocaleString()}</span>
                   </div>
                 </div>
+              </div>
+
+              <div style={{ marginTop: '12px' }}>
+                <AssumptionsStrip keys={FUELEU_PATHWAY_ASSUMPTIONS} />
               </div>
 
               <button

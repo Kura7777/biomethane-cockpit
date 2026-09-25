@@ -1,0 +1,6638 @@
+{
+  "countryCode": "DE",
+  "source": "Bundesnetzagentur Marktstammdatenregister (Gesamtdatenexport 2026-09-25 26.1)",
+  "checkedAt": "2026-09-26",
+  "results": [
+    {
+      "plantId": "plant_de_205",
+      "plantName": "Schwedt (Neuer Hafen)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "BALANCE Erneuerbare Energien GmbH",
+        "operatorRegisterId": "HRB 33638 (AG Leipzig)",
+        "unitId": "GEE947295836191",
+        "town": "Schwedt",
+        "coordinates": [
+          53.09811,
+          14.322689
+        ],
+        "capacity": "7815 kW",
+        "evidence": [
+          "4.6 km from plant coordinates",
+          "same town: Schwedt",
+          "capacity plausible: 1280 Nm³/h vs 7815 kW",
+          "operator word overlap: schwedt",
+          "matched to same MaStR unit as plant_de_206 (duplicate census record)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_206",
+      "plantName": "Schwedt II",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "BALANCE Erneuerbare Energien GmbH",
+        "operatorRegisterId": "HRB 33638 (AG Leipzig)",
+        "unitId": "GEE947295836191",
+        "town": "Schwedt",
+        "coordinates": [
+          53.09811,
+          14.322689
+        ],
+        "capacity": "7815 kW",
+        "evidence": [
+          "4.6 km from plant coordinates",
+          "same town: Schwedt",
+          "capacity plausible: 1200 Nm³/h vs 7815 kW",
+          "operator word overlap: schwedt",
+          "matched to same MaStR unit as plant_de_205 (duplicate census record)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_280",
+      "plantName": "Pinnow",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "VERBIO SE",
+        "operatorRegisterId": "HRB 6435 (AG Stendal)",
+        "unitId": "GEE950475520667",
+        "town": "Pinnow",
+        "coordinates": [
+          53.059659,
+          14.111644
+        ],
+        "capacity": "15750 kW",
+        "evidence": [
+          "1.9 km from plant coordinates",
+          "same town: Pinnow",
+          "operator word overlap: pinnow, verbio"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_65",
+      "plantName": "Friedland",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogas Friedland GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 200502 (AG Oldenburg)",
+        "unitId": "GEE988651980301",
+        "town": "Friedland",
+        "coordinates": [
+          53.677074,
+          13.536665
+        ],
+        "capacity": "5180 kW",
+        "evidence": [
+          "1.1 km from plant coordinates",
+          "same town: Friedland",
+          "capacity plausible: 910 Nm³/h vs 5180 kW",
+          "operator word overlap: friedland"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_60",
+      "plantName": "Forst",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Biogas Forst",
+          "operatorRegisterId": "HRA 2038 (AG Cottbus)",
+          "unitId": "GEE931165926426",
+          "town": "Forst",
+          "coordinates": [
+            51.714701,
+            14.609013
+          ],
+          "capacity": "7560 kW",
+          "evidence": [
+            "4.3 km from plant coordinates",
+            "same town: Forst",
+            "capacity plausible: 1040 Nm³/h vs 7560 kW",
+            "operator word overlap: forst"
+          ]
+        },
+        {
+          "operatorName": "Biogas Forst",
+          "operatorRegisterId": "HRA 2038 (AG Cottbus)",
+          "unitId": "GEE937805610342",
+          "town": "Forst",
+          "coordinates": [
+            51.715296,
+            14.609313
+          ],
+          "capacity": "7700 kW",
+          "evidence": [
+            "4.2 km from plant coordinates",
+            "same town: Forst",
+            "capacity plausible: 1040 Nm³/h vs 7700 kW",
+            "operator word overlap: forst"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_de_61",
+      "plantName": "Forst",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Biogas Forst",
+          "operatorRegisterId": "HRA 2038 (AG Cottbus)",
+          "unitId": "GEE931165926426",
+          "town": "Forst",
+          "coordinates": [
+            51.714701,
+            14.609013
+          ],
+          "capacity": "7560 kW",
+          "evidence": [
+            "4.3 km from plant coordinates",
+            "same town: Forst",
+            "capacity matches: 940 Nm³/h ≈ 7560 kW (ratio 0.80)",
+            "operator word overlap: forst"
+          ]
+        },
+        {
+          "operatorName": "Biogas Forst",
+          "operatorRegisterId": "HRA 2038 (AG Cottbus)",
+          "unitId": "GEE937805610342",
+          "town": "Forst",
+          "coordinates": [
+            51.715296,
+            14.609313
+          ],
+          "capacity": "7700 kW",
+          "evidence": [
+            "4.2 km from plant coordinates",
+            "same town: Forst",
+            "capacity matches: 940 Nm³/h ≈ 7700 kW (ratio 0.82)",
+            "operator word overlap: forst"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_de_1",
+      "plantName": "Aalen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Papierfabrik Palm GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 501010 (AG Ulm)",
+        "unitId": "GEE989562465574",
+        "town": "Aalen",
+        "coordinates": [
+          48.823866,
+          10.117615
+        ],
+        "capacity": "13000 kW",
+        "evidence": [
+          "2.4 km from plant coordinates",
+          "same town: Aalen",
+          "capacity matches: 970 Nm³/h ≈ 13000 kW (ratio 1.34)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_2",
+      "plantName": "Achstetten",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Erdgas Südwest GmbH",
+        "operatorRegisterId": "HRB 105621 (AG Mannheim)",
+        "unitId": "GEE955312256037",
+        "town": "Achstetten",
+        "coordinates": [
+          48.267721,
+          9.877888
+        ],
+        "capacity": "2100 kW",
+        "evidence": [
+          "1.6 km from plant coordinates",
+          "same town: Achstetten",
+          "operator word overlap: achstetten"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_257",
+      "plantName": "Ahrenshagen-Daskow",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "biogeen Biomethan Zwei GmbH ＆ Co. KG",
+          "operatorRegisterId": "HRA 8633 (AG Münster)",
+          "unitId": "GEE976112070814",
+          "town": "Hage",
+          "coordinates": [
+            53.618728,
+            7.29841
+          ],
+          "capacity": "3500 kW",
+          "evidence": [
+            "same town: Hage"
+          ]
+        },
+        {
+          "operatorName": "ADAP Rinderzucht GmbH",
+          "operatorRegisterId": "HRB 2734 (AG Stralsund)",
+          "unitId": "GEE919231455728",
+          "town": "Ahrenshagen-Daskow",
+          "coordinates": [
+            54.227323,
+            12.601505
+          ],
+          "capacity": "1650 kW",
+          "evidence": [
+            "same town: Ahrenshagen-Daskow"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_de_3",
+      "plantName": "Aiterhofen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "EON Bioerdgas GmbH",
+        "operatorRegisterId": "HRB 19720 (AG Essen)",
+        "unitId": "GEE912804369316",
+        "town": "Aiterhofen",
+        "coordinates": [
+          48.856,
+          12.643
+        ],
+        "capacity": "11680 kW",
+        "evidence": [
+          "2.1 km from plant coordinates",
+          "same town: Aiterhofen",
+          "capacity matches: 1030 Nm³/h ≈ 11680 kW (ratio 1.13)",
+          "operator word overlap: aiterhofen"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_4",
+      "plantName": "Allendorf",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bio-Energie Allendorf GmbH",
+        "operatorRegisterId": "HRB 5889 (AG Marburg)",
+        "unitId": "GEE956247500202",
+        "town": "Allendorf",
+        "coordinates": [
+          51.030003,
+          8.677321
+        ],
+        "capacity": "2000 kW",
+        "evidence": [
+          "same town: Allendorf",
+          "capacity plausible: 310 Nm³/h vs 2000 kW",
+          "operator word overlap: allendorf"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_5",
+      "plantName": "Altenhof",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Alterric Biogas GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 203647 (AG Aurich)",
+        "unitId": "GEE954936741721",
+        "town": "Altenhof",
+        "coordinates": [
+          53.359415,
+          12.35449
+        ],
+        "capacity": "7350 kW",
+        "evidence": [
+          "same town: Altenhof",
+          "capacity matches: 800 Nm³/h ≈ 7350 kW (ratio 0.92)",
+          "operator word overlap: altenhof"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_6",
+      "plantName": "Altenstadt Schongau",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Greengas Altenstadt GmbH",
+        "operatorRegisterId": "HRB 284455 (AG München)",
+        "unitId": "GEE949557870400",
+        "town": "Altenstadt",
+        "coordinates": [
+          47.803857,
+          10.844083
+        ],
+        "capacity": "6540 kW",
+        "evidence": [
+          "3.1 km from plant coordinates",
+          "same town: Altenstadt",
+          "operator word overlap: altenstadt",
+          "matched to same MaStR unit as plant_de_7 (duplicate census record)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_7",
+      "plantName": "Altenstadt/Hessen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Greengas Altenstadt GmbH",
+        "operatorRegisterId": "HRB 284455 (AG München)",
+        "unitId": "GEE949557870400",
+        "town": "Altenstadt",
+        "coordinates": [
+          47.803857,
+          10.844083
+        ],
+        "capacity": "6540 kW",
+        "evidence": [
+          "3.1 km from plant coordinates",
+          "same town: Altenstadt",
+          "capacity plausible: 1000 Nm³/h vs 6540 kW",
+          "operator word overlap: altenstadt",
+          "matched to same MaStR unit as plant_de_6 (duplicate census record)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_258",
+      "plantName": "Amtzell",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_8",
+      "plantName": "Angermünde",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "biogeen BGA Drei GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 8087 (AG Münster)",
+        "unitId": "GEE903268776017",
+        "town": "Angermünde",
+        "coordinates": [
+          52.993182,
+          13.978475
+        ],
+        "capacity": "7490 kW",
+        "evidence": [
+          "3.0 km from plant coordinates",
+          "same town: Angermünde",
+          "capacity plausible: 1350 Nm³/h vs 7490 kW",
+          "operator word overlap: angermuende"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_9",
+      "plantName": "Anklam",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Cosun Beet Company GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 12588 (AG Neubrandenburg)",
+        "unitId": "GEE983261804153",
+        "town": "Anklam",
+        "coordinates": [
+          53.854372,
+          13.709494
+        ],
+        "capacity": "21600 kW",
+        "evidence": [
+          "1.4 km from plant coordinates",
+          "same town: Anklam",
+          "capacity plausible: 1310 Nm³/h vs 21600 kW"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_259",
+      "plantName": "Anröchte",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bürger GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 5842 (AG Paderborn)",
+        "unitId": "GEE983867788444",
+        "town": "Anröchte",
+        "coordinates": [
+          51.518309,
+          8.242665
+        ],
+        "capacity": "9309 kW",
+        "evidence": [
+          "same town: Anröchte",
+          "capacity plausible: 530 Nm³/h vs 9309 kW"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_10",
+      "plantName": "Apensen/Grundoldendorf",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bioenergie Geest GmbH ＆ Co.KG",
+        "operatorRegisterId": "HRA 201756 (AG Tostedt)",
+        "unitId": "GEE924650700397",
+        "town": "Apensen",
+        "coordinates": [
+          53.460672,
+          9.60152
+        ],
+        "capacity": "3833 kW",
+        "evidence": [
+          "3.0 km from plant coordinates",
+          "same town: Apensen",
+          "capacity matches: 500 Nm³/h ≈ 3833 kW (ratio 0.77)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_11",
+      "plantName": "Arendsee",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "LSKD Bioenergie",
+        "operatorRegisterId": "HRB 13487 (AG Stendal)",
+        "unitId": "GEE924947454576",
+        "town": "Arendsee",
+        "coordinates": [
+          52.809299,
+          11.475422
+        ],
+        "capacity": "3490 kW",
+        "evidence": [
+          "6.2 km from plant coordinates",
+          "same town: Arendsee"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_12",
+      "plantName": "Arnschwang",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Grüngas GmbH",
+        "operatorRegisterId": "HRB 10687 (AG Regensburg)",
+        "unitId": "GEE932803422850",
+        "town": "Arnschwang",
+        "coordinates": [
+          49.16184,
+          12.47592
+        ],
+        "capacity": "7590 kW",
+        "evidence": [
+          "same town: Arnschwang",
+          "capacity plausible: 1040 Nm³/h vs 7590 kW"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_13",
+      "plantName": "Arnstadt",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bioenergie Dannheim GmbH",
+        "operatorRegisterId": "HRB 508032 (AG Jena)",
+        "unitId": "GEE987418836325",
+        "town": "Arnstadt",
+        "coordinates": [
+          50.798692,
+          10.98486
+        ],
+        "capacity": "3201 kW",
+        "evidence": [
+          "2.1 km from plant coordinates",
+          "same town: Arnstadt"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_14",
+      "plantName": "Augsburg",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "AVA Abfallverwertung Augsburg Kommunalunternehmen",
+        "operatorRegisterId": "HRA 19729 (AG Augsburg)",
+        "unitId": "GEE972267295447",
+        "town": "Augsburg",
+        "coordinates": [
+          48.401679,
+          10.933528
+        ],
+        "capacity": "5000 kW",
+        "evidence": [
+          "4.5 km from plant coordinates",
+          "same town: Augsburg",
+          "capacity matches: 430 Nm³/h ≈ 5000 kW (ratio 1.16)",
+          "operator word overlap: augsburg"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_15",
+      "plantName": "Bad Münder",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biomethan Deister-Süntel GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 201649 (AG Hannover)",
+        "unitId": "GEE903134865258",
+        "town": "Bad Münder",
+        "coordinates": [
+          52.222449,
+          9.428528
+        ],
+        "capacity": "3500 kW",
+        "evidence": [
+          "3.8 km from plant coordinates",
+          "same town: Bad Münder"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_16",
+      "plantName": "Badbergen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "DeGeFa GmbH",
+        "operatorRegisterId": "HRB 19998 (AG Osnabrück)",
+        "unitId": "GEE906267118444",
+        "town": "Badbergen",
+        "coordinates": [
+          52.634965,
+          7.964677
+        ],
+        "capacity": "3850 kW",
+        "evidence": [
+          "1.1 km from plant coordinates",
+          "same town: Badbergen"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_17",
+      "plantName": "Bahrdorf",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogs Pool 2 für Stadtwerke",
+        "operatorRegisterId": "HRA 3421 (AG Hamm)",
+        "unitId": "GEE900560517256",
+        "town": "Bahrdorf",
+        "coordinates": [
+          52.375381,
+          11.047896
+        ],
+        "capacity": "3790 kW",
+        "evidence": [
+          "3.4 km from plant coordinates",
+          "same town: Bahrdorf"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_260",
+      "plantName": "Baisweil",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Burgösch REG GmbH",
+        "operatorRegisterId": "HRB 16805 (AG Kempten (Allgäu))",
+        "unitId": "GEE919001174729",
+        "town": "Baisweil",
+        "coordinates": [
+          47.960692,
+          10.570307
+        ],
+        "capacity": "5590 kW",
+        "evidence": [
+          "same town: Baisweil",
+          "capacity plausible: 770 Nm³/h vs 5590 kW"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_18",
+      "plantName": "Ballenstedt",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Natur-Energie Ostharz GmbH ＆ Co. KG",
+        "operatorRegisterId": null,
+        "unitId": "GEE978322394032",
+        "town": "Ballenstedt",
+        "coordinates": [
+          51.74396,
+          11.240199
+        ],
+        "capacity": "3000 kW",
+        "evidence": [
+          "2.5 km from plant coordinates",
+          "same town: Ballenstedt"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_19",
+      "plantName": "Barby",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "MVV Biomethan GmbH",
+        "operatorRegisterId": "HRB 27915 (AG Stendal)",
+        "unitId": "GEE921447812622",
+        "town": "Barby",
+        "coordinates": [
+          51.954369,
+          11.863209
+        ],
+        "capacity": "7500 kW",
+        "evidence": [
+          "2.1 km from plant coordinates",
+          "same town: Barby",
+          "capacity matches: 860 Nm³/h ≈ 7500 kW (ratio 0.87)",
+          "operator word overlap: barby"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_20",
+      "plantName": "Barleben",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "NEXOGAS Produktion Barleben GmbH",
+        "operatorRegisterId": "HRB 216835 (AG Oldenburg)",
+        "unitId": "GEE957856591629",
+        "town": "Barleben",
+        "coordinates": [
+          52.174387,
+          11.568867
+        ],
+        "capacity": "3750 kW",
+        "evidence": [
+          "4.6 km from plant coordinates",
+          "same town: Barleben",
+          "operator word overlap: barleben"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_21",
+      "plantName": "Barsikow",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "NEXOGAS Produktion Barsikow GmbH",
+        "operatorRegisterId": "HRB 222107 (AG Oldenburg)",
+        "unitId": "GEE948416326362",
+        "town": "Barsikow",
+        "coordinates": [
+          52.854,
+          12.512
+        ],
+        "capacity": "5824 kW",
+        "evidence": [
+          "1.8 km from plant coordinates",
+          "same town: Barsikow",
+          "capacity matches: 650 Nm³/h ≈ 5824 kW (ratio 0.90)",
+          "operator word overlap: barsikow"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_22",
+      "plantName": "Beetzendorf",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "BioEnergie Beetzendorf GmbH",
+        "operatorRegisterId": "HRB 14389 (AG Stendal)",
+        "unitId": "GEE982058576228",
+        "town": "Beetzendorf",
+        "coordinates": [
+          52.695168,
+          11.076447
+        ],
+        "capacity": "4180 kW",
+        "evidence": [
+          "1.4 km from plant coordinates",
+          "same town: Beetzendorf",
+          "operator word overlap: beetzendorf"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_23",
+      "plantName": "Bergheim/Paffendorf",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "RWE Generation SE",
+        "operatorRegisterId": "HRB 24353 (AG Essen)",
+        "unitId": "GEE964170509544",
+        "town": "Bergheim",
+        "coordinates": [
+          50.95589,
+          6.592237
+        ],
+        "capacity": "7490 kW",
+        "evidence": [
+          "3.4 km from plant coordinates",
+          "same town: Bergheim",
+          "capacity matches: 730 Nm³/h ≈ 7490 kW (ratio 1.03)",
+          "operator word overlap: bergheim, paffendorf"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_24",
+      "plantName": "Berlin-Ruhleben",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Berliner Stadtreinigungsbetriebe",
+        "operatorRegisterId": "HRA 33292 (AG Berlin (Charlottenburg))",
+        "unitId": "GEE969788833227",
+        "town": "Berlin",
+        "coordinates": [
+          52.531704,
+          13.222694
+        ],
+        "capacity": "9112 kW",
+        "evidence": [
+          "0.3 km from plant coordinates",
+          "same town: Berlin",
+          "capacity matches: 1020 Nm³/h ≈ 9112 kW (ratio 0.89)",
+          "operator word overlap: ruhleben"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_25",
+      "plantName": "Bernburg",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "MVV Biogas GmbH",
+        "operatorRegisterId": "HRB 37835 (AG Dresden)",
+        "unitId": "GEE998229767197",
+        "town": "Bernburg",
+        "coordinates": [
+          51.798807,
+          11.691399
+        ],
+        "capacity": "2845 kW",
+        "evidence": [
+          "3.2 km from plant coordinates",
+          "same town: Bernburg",
+          "capacity matches: 300 Nm³/h ≈ 2845 kW (ratio 0.95)",
+          "operator word overlap: bernburg"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_26",
+      "plantName": "Bersenbrück",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Burggas",
+        "operatorRegisterId": "HRA 208286 (AG Osnabrück)",
+        "unitId": "GEE908847951069",
+        "town": "Bersenbrück",
+        "coordinates": [
+          52.565559,
+          7.955548
+        ],
+        "capacity": "14300 kW",
+        "evidence": [
+          "1.3 km from plant coordinates",
+          "same town: Bersenbrück"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_27",
+      "plantName": "Betzendorf",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Gaswerker GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 2170 (AG Lüneburg)",
+        "unitId": "GEE994012282816",
+        "town": "Betzendorf",
+        "coordinates": [
+          53.153246,
+          10.299305
+        ],
+        "capacity": "1750 kW",
+        "evidence": [
+          "1.9 km from plant coordinates",
+          "same town: Betzendorf"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_28",
+      "plantName": "Biburg",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bioerdgas Biburg GbR",
+        "operatorRegisterId": null,
+        "unitId": "GEE990705215475",
+        "town": "Biburg",
+        "coordinates": [
+          48.784924,
+          11.86388
+        ],
+        "capacity": "10740 kW",
+        "evidence": [
+          "1.0 km from plant coordinates",
+          "same town: Biburg",
+          "capacity matches: 1310 Nm³/h ≈ 10740 kW (ratio 0.82)",
+          "operator word overlap: biburg"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_29",
+      "plantName": "Bitburg",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogaspartner Bitburg",
+        "operatorRegisterId": "HRB 44181 (AG Wittlich)",
+        "unitId": "GEE932084880370",
+        "town": "Bitburg",
+        "coordinates": [
+          49.95514,
+          6.572553
+        ],
+        "capacity": "7400 kW",
+        "evidence": [
+          "4.0 km from plant coordinates",
+          "same town: Bitburg",
+          "capacity matches: 550 Nm³/h ≈ 7400 kW (ratio 1.35)",
+          "operator word overlap: bitburg"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_30",
+      "plantName": "Bitterfeld-Wolfen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Danpower GmbH",
+        "operatorRegisterId": "HRB 19365P (AG Potsdam)",
+        "unitId": "GEE933005620846",
+        "town": "Bitterfeld-Wolfen",
+        "coordinates": [
+          51.629921,
+          12.315085
+        ],
+        "capacity": "6085 kW",
+        "evidence": [
+          "1.5 km from plant coordinates",
+          "same town: Bitterfeld-Wolfen",
+          "capacity plausible: 900 Nm³/h vs 6085 kW",
+          "operator word overlap: bitterfeld"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_31",
+      "plantName": "Blankenhain",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "biogeen BGA Blankenhain GmbH",
+        "operatorRegisterId": "HRB 12213 (AG Münster)",
+        "unitId": "GEE949337624414",
+        "town": "Blankenhain",
+        "coordinates": [
+          50.880409,
+          11.459751
+        ],
+        "capacity": "7470 kW",
+        "evidence": [
+          "8.6 km from plant coordinates",
+          "same town: Blankenhain",
+          "capacity plausible: 530 Nm³/h vs 7470 kW",
+          "operator word overlap: blankenhain"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_32",
+      "plantName": "Blaufelden - Emmertsbühl",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "EnBW Contracting GmbH",
+        "operatorRegisterId": "HRB 763838 (AG Stuttgart)",
+        "unitId": "GEE988414794367",
+        "town": "Blaufelden",
+        "coordinates": [
+          49.291081,
+          10.008416
+        ],
+        "capacity": "2750 kW",
+        "evidence": [
+          "same town: Blaufelden",
+          "operator word overlap: blaufelden, emmertsbuehl"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_261",
+      "plantName": "Bohmte",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_33",
+      "plantName": "Boppard",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "BEE Bioenergieerzeugung Koblenz GmbH",
+        "operatorRegisterId": "HRB 21138 (AG Koblenz)",
+        "unitId": "GEE972897077055",
+        "town": "Boppard",
+        "coordinates": [
+          50.205335,
+          7.555565
+        ],
+        "capacity": "7000 kW",
+        "evidence": [
+          "3.7 km from plant coordinates",
+          "same town: Boppard",
+          "capacity matches: 610 Nm³/h ≈ 7000 kW (ratio 1.15)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_35",
+      "plantName": "Brandis Waldpolenz",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "VORN Bioenergy BGA Brandis GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 10374 (AG Regensburg)",
+        "unitId": "GEE929638143128",
+        "town": "Brandis",
+        "coordinates": [
+          51.333422,
+          12.647312
+        ],
+        "capacity": "8298 kW",
+        "evidence": [
+          "same town: Brandis",
+          "capacity matches: 920 Nm³/h ≈ 8298 kW (ratio 0.90)",
+          "operator word overlap: brandis"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_262",
+      "plantName": "Brome",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "BALANCE Erneuerbare Energien GmbH",
+        "operatorRegisterId": "HRB 33638 (AG Leipzig)",
+        "unitId": "GEE997743818750",
+        "town": "Brome",
+        "coordinates": [
+          52.61512,
+          10.900166
+        ],
+        "capacity": "4240 kW",
+        "evidence": [
+          "same town: Brome",
+          "capacity matches: 350 Nm³/h ≈ 4240 kW (ratio 1.21)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_36",
+      "plantName": "Bruchhausen-Vilsen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogas Pool 1 für Stadtwerke",
+        "operatorRegisterId": "HRA 3476 (AG Hamm)",
+        "unitId": "GEE971492698856",
+        "town": "Bruchhausen-Vilsen",
+        "coordinates": [
+          52.810476,
+          8.957524
+        ],
+        "capacity": "3780 kW",
+        "evidence": [
+          "same town: Bruchhausen-Vilsen",
+          "capacity plausible: 690 Nm³/h vs 3780 kW",
+          "operator word overlap: bruchhausen, vilsen"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_37",
+      "plantName": "Burgrieden",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Erdgas Südwest GmbH",
+          "operatorRegisterId": "HRB 105621 (AG Mannheim)",
+          "unitId": "GEE940899219728",
+          "town": "Burgrieden",
+          "coordinates": [
+            48.209058,
+            9.913571
+          ],
+          "capacity": "3600 kW",
+          "evidence": [
+            "3.6 km from plant coordinates",
+            "same town: Burgrieden",
+            "capacity plausible: 560 Nm³/h vs 3600 kW",
+            "operator word overlap: burgrieden"
+          ]
+        },
+        {
+          "operatorName": "Erdgas Südwest GmbH",
+          "operatorRegisterId": "HRB 105621 (AG Mannheim)",
+          "unitId": "GEE940703867718",
+          "town": "Burgrieden",
+          "coordinates": [
+            48.209411,
+            9.914625
+          ],
+          "capacity": "3900 kW",
+          "evidence": [
+            "3.5 km from plant coordinates",
+            "same town: Burgrieden",
+            "capacity plausible: 560 Nm³/h vs 3900 kW",
+            "operator word overlap: burgrieden"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_de_38",
+      "plantName": "Burgrieden",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Erdgas Südwest GmbH",
+          "operatorRegisterId": "HRB 105621 (AG Mannheim)",
+          "unitId": "GEE940899219728",
+          "town": "Burgrieden",
+          "coordinates": [
+            48.209058,
+            9.913571
+          ],
+          "capacity": "3600 kW",
+          "evidence": [
+            "3.6 km from plant coordinates",
+            "same town: Burgrieden",
+            "operator word overlap: burgrieden"
+          ]
+        },
+        {
+          "operatorName": "Erdgas Südwest GmbH",
+          "operatorRegisterId": "HRB 105621 (AG Mannheim)",
+          "unitId": "GEE940703867718",
+          "town": "Burgrieden",
+          "coordinates": [
+            48.209411,
+            9.914625
+          ],
+          "capacity": "3900 kW",
+          "evidence": [
+            "3.5 km from plant coordinates",
+            "same town: Burgrieden",
+            "operator word overlap: burgrieden"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_de_34",
+      "plantName": "Börger",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Alterric Biogas GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 203647 (AG Aurich)",
+        "unitId": "GEE948096295309",
+        "town": "Börger",
+        "coordinates": [
+          52.914979,
+          7.559977
+        ],
+        "capacity": "5092 kW",
+        "evidence": [
+          "1.7 km from plant coordinates",
+          "same town: Börger",
+          "capacity matches: 520 Nm³/h ≈ 5092 kW (ratio 0.98)",
+          "operator word overlap: boerger"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_39",
+      "plantName": "Cadolzburg",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "infra fürth gmbh",
+        "operatorRegisterId": "HRB 7561 (AG Fürth)",
+        "unitId": "GEE942426059173",
+        "town": "Cadolzburg",
+        "coordinates": [
+          49.491384,
+          10.847715
+        ],
+        "capacity": "7500 kW",
+        "evidence": [
+          "3.6 km from plant coordinates",
+          "same town: Cadolzburg",
+          "capacity matches: 670 Nm³/h ≈ 7500 kW (ratio 1.12)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_40",
+      "plantName": "Dannenberg",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Kraft und Stoff Dannenberg GmbH ＆ Co KG",
+        "operatorRegisterId": "HRA 200683 (AG Lüneburg)",
+        "unitId": "GEE912998915351",
+        "town": "Dannenberg",
+        "coordinates": [
+          53.106264,
+          11.128488
+        ],
+        "capacity": "3000 kW",
+        "evidence": [
+          "2.3 km from plant coordinates",
+          "same town: Dannenberg",
+          "capacity plausible: 520 Nm³/h vs 3000 kW",
+          "operator word overlap: dannenberg"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_41",
+      "plantName": "Dargun",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "BALANCE Erneuerbare Energien GmbH",
+        "operatorRegisterId": "HRB 33638 (AG Leipzig)",
+        "unitId": "GEE920398533440",
+        "town": "Dargun",
+        "coordinates": [
+          53.900361,
+          12.868049
+        ],
+        "capacity": "14700 kW",
+        "evidence": [
+          "1.2 km from plant coordinates",
+          "same town: Dargun",
+          "operator word overlap: dargun"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_42",
+      "plantName": "Darmstadt-Wixhausen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Hock Biogas kann's GmbH",
+        "operatorRegisterId": "HRB 11728 (AG Aschaffenburg)",
+        "unitId": "GEE909105926447",
+        "town": "Darmstadt",
+        "coordinates": [
+          49.941818,
+          8.63705
+        ],
+        "capacity": "5129 kW",
+        "evidence": [
+          "1.5 km from plant coordinates",
+          "same town: Darmstadt",
+          "operator word overlap: wixhausen"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_43",
+      "plantName": "Deinstedt",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogas Pool 1 für Stadtwerke",
+        "operatorRegisterId": "HRA 3476 (AG Hamm)",
+        "unitId": "GEE954363132949",
+        "town": "Deinstedt",
+        "coordinates": [
+          53.423534,
+          9.28386
+        ],
+        "capacity": "3780 kW",
+        "evidence": [
+          "4.3 km from plant coordinates",
+          "same town: Deinstedt",
+          "capacity matches: 480 Nm³/h ≈ 3780 kW (ratio 0.79)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_44",
+      "plantName": "Deißlingen",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_45",
+      "plantName": "Dessau-Roßlau",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Aufwind BB GmbH ＆ Co. Bioenergie Dessau Sechzehnte KG",
+        "operatorRegisterId": "HRA 5842 (AG Stendal)",
+        "unitId": "GEE932932113810",
+        "town": "Dessau-Roßlau",
+        "coordinates": [
+          51.807338,
+          12.222239
+        ],
+        "capacity": "7590 kW",
+        "evidence": [
+          "6.2 km from plant coordinates",
+          "same town: Dessau-Roßlau",
+          "capacity plausible: 470 Nm³/h vs 7590 kW",
+          "operator word overlap: dessau"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_46",
+      "plantName": "Dorsten",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "TerraSol Wirtschaftsdünger GmbH",
+        "operatorRegisterId": "HRB 14203 (AG Münster)",
+        "unitId": "GEE953654281731",
+        "town": "Dorsten",
+        "coordinates": [
+          51.660712,
+          7.020451
+        ],
+        "capacity": "15000 kW",
+        "evidence": [
+          "3.8 km from plant coordinates",
+          "same town: Dorsten",
+          "capacity matches: 1370 Nm³/h ≈ 15000 kW (ratio 1.09)",
+          "operator word overlap: dorsten"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_47",
+      "plantName": "Drei Gleichen",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Ohra Energie GmbH",
+          "operatorRegisterId": "HRB 102507 (AG Jena)",
+          "unitId": "GEE954652284441",
+          "town": "Drei Gleichen",
+          "coordinates": [
+            50.941777,
+            10.838213
+          ],
+          "capacity": "3800 kW",
+          "evidence": [
+            "4.7 km from plant coordinates",
+            "same town: Drei Gleichen",
+            "capacity matches: 450 Nm³/h ≈ 3800 kW (ratio 0.84)"
+          ]
+        },
+        {
+          "operatorName": "Ohra Energie GmbH",
+          "operatorRegisterId": "HRB 102507 (AG Jena)",
+          "unitId": "GEE995741190076",
+          "town": "Drei Gleichen",
+          "coordinates": [
+            50.941777,
+            10.838213
+          ],
+          "capacity": "3800 kW",
+          "evidence": [
+            "4.7 km from plant coordinates",
+            "same town: Drei Gleichen",
+            "capacity matches: 450 Nm³/h ≈ 3800 kW (ratio 0.84)"
+          ]
+        },
+        {
+          "operatorName": "biogeen BGA Drei GmbH ＆ Co. KG",
+          "operatorRegisterId": "HRA 8087 (AG Münster)",
+          "unitId": "GEE990150723334",
+          "town": "Lambsborn",
+          "coordinates": [
+            49.370416,
+            7.440238
+          ],
+          "capacity": "4360 kW",
+          "evidence": [
+            "capacity matches: 450 Nm³/h ≈ 4360 kW (ratio 0.97)",
+            "operator word overlap: drei"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_de_48",
+      "plantName": "Drei Gleichen",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Ohra Energie GmbH",
+          "operatorRegisterId": "HRB 102507 (AG Jena)",
+          "unitId": "GEE954652284441",
+          "town": "Drei Gleichen",
+          "coordinates": [
+            50.941777,
+            10.838213
+          ],
+          "capacity": "3800 kW",
+          "evidence": [
+            "4.7 km from plant coordinates",
+            "same town: Drei Gleichen",
+            "capacity matches: 450 Nm³/h ≈ 3800 kW (ratio 0.84)"
+          ]
+        },
+        {
+          "operatorName": "Ohra Energie GmbH",
+          "operatorRegisterId": "HRB 102507 (AG Jena)",
+          "unitId": "GEE995741190076",
+          "town": "Drei Gleichen",
+          "coordinates": [
+            50.941777,
+            10.838213
+          ],
+          "capacity": "3800 kW",
+          "evidence": [
+            "4.7 km from plant coordinates",
+            "same town: Drei Gleichen",
+            "capacity matches: 450 Nm³/h ≈ 3800 kW (ratio 0.84)"
+          ]
+        },
+        {
+          "operatorName": "biogeen BGA Drei GmbH ＆ Co. KG",
+          "operatorRegisterId": "HRA 8087 (AG Münster)",
+          "unitId": "GEE990150723334",
+          "town": "Lambsborn",
+          "coordinates": [
+            49.370416,
+            7.440238
+          ],
+          "capacity": "4360 kW",
+          "evidence": [
+            "capacity matches: 450 Nm³/h ≈ 4360 kW (ratio 0.97)",
+            "operator word overlap: drei"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_de_49",
+      "plantName": "Dresden-Klotzsche",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "MVV Biogas GmbH",
+        "operatorRegisterId": "HRB 37835 (AG Dresden)",
+        "unitId": "GEE978774933452",
+        "town": "Dresden",
+        "coordinates": [
+          51.130769,
+          13.781648
+        ],
+        "capacity": "2475 kW",
+        "evidence": [
+          "1.9 km from plant coordinates",
+          "same town: Dresden",
+          "operator word overlap: dresden"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_50",
+      "plantName": "Dülmen",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "BWM Dülmen",
+          "operatorRegisterId": "HRB 14655 (AG Münster)",
+          "unitId": "GEE967952980296",
+          "town": "Dülmen",
+          "coordinates": [
+            51.811,
+            7.295
+          ],
+          "capacity": "10260 kW",
+          "evidence": [
+            "2.2 km from plant coordinates",
+            "same town: Dülmen",
+            "capacity plausible: 610 Nm³/h vs 10260 kW",
+            "operator word overlap: duelmen"
+          ]
+        },
+        {
+          "operatorName": "BWM Dülmen GmbH",
+          "operatorRegisterId": "HRB 14655 (AG Coesfeld)",
+          "unitId": "GEE912795589434",
+          "town": "Dülmen",
+          "coordinates": [
+            51.810532,
+            7.296073
+          ],
+          "capacity": "9180 kW",
+          "evidence": [
+            "2.3 km from plant coordinates",
+            "same town: Dülmen",
+            "capacity plausible: 610 Nm³/h vs 9180 kW",
+            "operator word overlap: duelmen"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_de_51",
+      "plantName": "Dümmer",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "ASVK Vierte Energie",
+        "operatorRegisterId": "HRA 26538 (AG Bremen)",
+        "unitId": "GEE997594444153",
+        "town": "Dümmer",
+        "coordinates": [
+          53.556917,
+          11.184144
+        ],
+        "capacity": "5080 kW",
+        "evidence": [
+          "3.2 km from plant coordinates",
+          "same town: Dümmer",
+          "capacity matches: 470 Nm³/h ≈ 5080 kW (ratio 1.08)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_52",
+      "plantName": "Ebsdorfergrund",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Nexogas Produktion Ebsdorfergrund GmbH",
+        "operatorRegisterId": "HRB 209802 (AG Oldenburg)",
+        "unitId": "GEE944937009500",
+        "town": "Ebsdorfergrund",
+        "coordinates": [
+          50.757,
+          8.83
+        ],
+        "capacity": "6160 kW",
+        "evidence": [
+          "2.6 km from plant coordinates",
+          "same town: Ebsdorfergrund",
+          "capacity matches: 580 Nm³/h ≈ 6160 kW (ratio 1.06)",
+          "operator word overlap: ebsdorfergrund",
+          "matched to same MaStR unit as plant_de_52_2 (duplicate census record)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_52_2",
+      "plantName": "Ebsdorfergrund",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Nexogas Produktion Ebsdorfergrund GmbH",
+        "operatorRegisterId": "HRB 209802 (AG Oldenburg)",
+        "unitId": "GEE944937009500",
+        "town": "Ebsdorfergrund",
+        "coordinates": [
+          50.757,
+          8.83
+        ],
+        "capacity": "6160 kW",
+        "evidence": [
+          "2.6 km from plant coordinates",
+          "same town: Ebsdorfergrund",
+          "capacity plausible: 1040 Nm³/h vs 6160 kW",
+          "operator word overlap: ebsdorfergrund",
+          "matched to same MaStR unit as plant_de_52 (duplicate census record)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_53",
+      "plantName": "Eggolsheim (Kreis Forchheim)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bioerdgas Eggolsheim GmbH",
+        "operatorRegisterId": "HRB 27291 (AG Nürnberg)",
+        "unitId": "GEE965161788894",
+        "town": "Eggolsheim",
+        "coordinates": [
+          49.757973,
+          11.061864
+        ],
+        "capacity": "4250 kW",
+        "evidence": [
+          "4.1 km from plant coordinates",
+          "same town: Eggolsheim",
+          "operator word overlap: eggolsheim"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_54",
+      "plantName": "Einbeck",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "EON Bioerdgas GmbH",
+        "operatorRegisterId": "HRB 19720 (AG Essen)",
+        "unitId": "GEE975818344878",
+        "town": "Einbeck",
+        "coordinates": [
+          51.825,
+          9.84
+        ],
+        "capacity": "7300 kW",
+        "evidence": [
+          "4.1 km from plant coordinates",
+          "same town: Einbeck",
+          "capacity plausible: 500 Nm³/h vs 7300 kW",
+          "operator word overlap: einbeck"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_55",
+      "plantName": "Elsteraue",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bioraffinerie Elsteraue GmbH",
+        "operatorRegisterId": "HRB 12928 (AG Stendal)",
+        "unitId": "GEE906717084817",
+        "town": "Elsteraue",
+        "coordinates": [
+          51.073986,
+          12.207808
+        ],
+        "capacity": "7630 kW",
+        "evidence": [
+          "0.7 km from plant coordinates",
+          "same town: Elsteraue",
+          "capacity plausible: 450 Nm³/h vs 7630 kW",
+          "operator word overlap: elsteraue"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_263",
+      "plantName": "Eslarn",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bioenergie Kleber Wolfgang Kleber",
+        "operatorRegisterId": null,
+        "unitId": "GEE909135601703",
+        "town": "Eslarn",
+        "coordinates": [
+          49.573941,
+          12.488282
+        ],
+        "capacity": "5550 kW",
+        "evidence": [
+          "same town: Eslarn",
+          "capacity plausible: 1090 Nm³/h vs 5550 kW"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_56",
+      "plantName": "Essen",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_57",
+      "plantName": "Euskirchen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "e-regio GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 5884 (AG Bonn)",
+        "unitId": "GEE919879721582",
+        "town": "Euskirchen",
+        "coordinates": [
+          50.628627,
+          6.88566
+        ],
+        "capacity": "3605 kW",
+        "evidence": [
+          "7.8 km from plant coordinates",
+          "same town: Euskirchen",
+          "capacity plausible: 530 Nm³/h vs 3605 kW"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_264",
+      "plantName": "Fehrbellin",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_58",
+      "plantName": "Feldberger Seenlandschaft",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Carbon CO2ncepts GmbH",
+        "operatorRegisterId": "HRB 279364 (AG München)",
+        "unitId": "GEE971025251138",
+        "town": "Feldberger Seenlandschaft",
+        "coordinates": [
+          53.345,
+          13.352
+        ],
+        "capacity": "3700 kW",
+        "evidence": [
+          "4.8 km from plant coordinates",
+          "same town: Feldberger Seenlandschaft"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_59",
+      "plantName": "Forchheim im Breisgau",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "badenova WärmePlus GmbH & Co. KG",
+        "operatorRegisterId": "HRA 391481 (AG Freiburg im Breisgau)",
+        "unitId": "GEE953987924299",
+        "town": "Forchheim",
+        "coordinates": [
+          48.163297,
+          7.68799
+        ],
+        "capacity": "7000 kW",
+        "evidence": [
+          "same town: Forchheim",
+          "capacity plausible: 1390 Nm³/h vs 7000 kW",
+          "operator word overlap: forchheim"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_63",
+      "plantName": "Frankfurt am Main",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Mainova AG",
+          "operatorRegisterId": "HRB 7173 (AG Frankfurt am Main)",
+          "unitId": "GEE955193448156",
+          "town": "Frankfurt",
+          "coordinates": [
+            50.116663,
+            8.736904
+          ],
+          "capacity": "3900 kW",
+          "evidence": [
+            "same town: Frankfurt",
+            "operator word overlap: frankfurt, main"
+          ]
+        },
+        {
+          "operatorName": "Berliner Häuser Verwaltungs-GmbH",
+          "operatorRegisterId": "(AG Berlin (Charlottenburg))",
+          "unitId": "GEE989198326713",
+          "town": "Frankfurt",
+          "coordinates": [
+            50.112368,
+            8.655869
+          ],
+          "capacity": "34 kW",
+          "evidence": [
+            "same town: Frankfurt",
+            "operator word overlap: verwaltungs"
+          ]
+        },
+        {
+          "operatorName": "Infranova Bioerdgas GmbH",
+          "operatorRegisterId": "HRB 87396 (AG Frankfurt am Main)",
+          "unitId": "GEE953936114566",
+          "town": "Frankfurt",
+          "coordinates": [
+            50.085107,
+            8.5176
+          ],
+          "capacity": "10000 kW",
+          "evidence": [
+            "same town: Frankfurt",
+            "capacity matches: 1160 Nm³/h ≈ 10000 kW (ratio 0.86)"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_de_64",
+      "plantName": "Freising",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_265",
+      "plantName": "Friesoythe",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "ASVK Zweite Energie",
+          "operatorRegisterId": "HRA 25444 (AG Bremen)",
+          "unitId": "GEE990152842729",
+          "town": "Friesoythe",
+          "coordinates": [
+            53.113993,
+            7.899183
+          ],
+          "capacity": "7700 kW",
+          "evidence": [
+            "same town: Friesoythe",
+            "capacity plausible: 1130 Nm³/h vs 7700 kW"
+          ]
+        },
+        {
+          "operatorName": "Heinfelder Naturstrom GmbH ＆ Co. KG",
+          "operatorRegisterId": "HRA 150971 (AG Oldenburg)",
+          "unitId": "GEE966673499377",
+          "town": "Friesoythe",
+          "coordinates": [
+            53.104082,
+            7.901206
+          ],
+          "capacity": "7770 kW",
+          "evidence": [
+            "same town: Friesoythe",
+            "capacity plausible: 1130 Nm³/h vs 7770 kW"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_de_66",
+      "plantName": "Friesoythe (Heinfelde)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "ASVK Zweite Energie",
+        "operatorRegisterId": "HRA 25444 (AG Bremen)",
+        "unitId": "GEE990152842729",
+        "town": "Friesoythe",
+        "coordinates": [
+          53.113993,
+          7.899183
+        ],
+        "capacity": "7700 kW",
+        "evidence": [
+          "same town: Friesoythe",
+          "operator word overlap: heinfelde"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_67",
+      "plantName": "Gardelegen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "BALANCE Erneuerbare Energien GmbH",
+        "operatorRegisterId": "HRB 33638 (AG Leipzig)",
+        "unitId": "GEE900797491404",
+        "town": "Gardelegen",
+        "coordinates": [
+          52.546854,
+          11.402216
+        ],
+        "capacity": "3745 kW",
+        "evidence": [
+          "same town: Gardelegen",
+          "operator word overlap: gardelegen",
+          "matched to same MaStR unit as plant_de_68 (duplicate census record)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_68",
+      "plantName": "Gardelegen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "BALANCE Erneuerbare Energien GmbH",
+        "operatorRegisterId": "HRB 33638 (AG Leipzig)",
+        "unitId": "GEE900797491404",
+        "town": "Gardelegen",
+        "coordinates": [
+          52.546854,
+          11.402216
+        ],
+        "capacity": "3745 kW",
+        "evidence": [
+          "same town: Gardelegen",
+          "capacity plausible: 670 Nm³/h vs 3745 kW",
+          "operator word overlap: gardelegen",
+          "matched to same MaStR unit as plant_de_67 (duplicate census record)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_69",
+      "plantName": "Geislingen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Veolia Biocycling Deutschland GmbH",
+        "operatorRegisterId": "HRB 80235 (AG Hamburg)",
+        "unitId": "GEE910818529535",
+        "town": "Geislingen",
+        "coordinates": [
+          48.581736,
+          9.792192
+        ],
+        "capacity": "5350 kW",
+        "evidence": [
+          "same town: Geislingen",
+          "capacity matches: 510 Nm³/h ≈ 5350 kW (ratio 1.05)",
+          "operator word overlap: geislingen"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_70",
+      "plantName": "Genthin",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "ENERTEC Biogas Genthin",
+          "operatorRegisterId": "HRB 19370 (AG Stendal)",
+          "unitId": "GEE990440643496",
+          "town": "Genthin",
+          "coordinates": [
+            52.419359,
+            12.167527
+          ],
+          "capacity": "6000 kW",
+          "evidence": [
+            "same town: Genthin",
+            "capacity matches: 490 Nm³/h ≈ 6000 kW (ratio 1.22)",
+            "operator word overlap: genthin"
+          ]
+        },
+        {
+          "operatorName": "ReFood GmbH ＆ Co. KG",
+          "operatorRegisterId": "HRA 17195 (AG Dortmund)",
+          "unitId": "GEE985858863222",
+          "town": "Genthin",
+          "coordinates": [
+            52.411678,
+            12.168094
+          ],
+          "capacity": "4536 kW",
+          "evidence": [
+            "same town: Genthin",
+            "capacity matches: 490 Nm³/h ≈ 4536 kW (ratio 0.93)",
+            "operator word overlap: genthin"
+          ]
+        },
+        {
+          "operatorName": "BALANCE Erneuerbare Energien GmbH",
+          "operatorRegisterId": "HRB 33638 (AG Leipzig)",
+          "unitId": "GEE901098491254",
+          "town": "Leizen",
+          "coordinates": [
+            53.377613,
+            12.465673
+          ],
+          "capacity": "3785 kW",
+          "evidence": [
+            "capacity matches: 490 Nm³/h ≈ 3785 kW (ratio 0.77)",
+            "operator word overlap: erneuerbare"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_de_71",
+      "plantName": "Genthin II",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "ENERTEC Biogas Genthin",
+          "operatorRegisterId": "HRB 19370 (AG Stendal)",
+          "unitId": "GEE990440643496",
+          "town": "Genthin",
+          "coordinates": [
+            52.419359,
+            12.167527
+          ],
+          "capacity": "6000 kW",
+          "evidence": [
+            "same town: Genthin",
+            "capacity plausible: 970 Nm³/h vs 6000 kW",
+            "operator word overlap: genthin"
+          ]
+        },
+        {
+          "operatorName": "ReFood GmbH ＆ Co. KG",
+          "operatorRegisterId": "HRA 17195 (AG Dortmund)",
+          "unitId": "GEE985858863222",
+          "town": "Genthin",
+          "coordinates": [
+            52.411678,
+            12.168094
+          ],
+          "capacity": "4536 kW",
+          "evidence": [
+            "same town: Genthin",
+            "operator word overlap: genthin"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_de_72",
+      "plantName": "Giesen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bioenergie Giesen GmbH",
+        "operatorRegisterId": "HRB 201965 (AG Hildesheim)",
+        "unitId": "GEE928593676849",
+        "town": "Giesen",
+        "coordinates": [
+          52.207398,
+          9.881485
+        ],
+        "capacity": "3500 kW",
+        "evidence": [
+          "same town: Giesen",
+          "operator word overlap: giesen"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_73",
+      "plantName": "Gollhofen-Ippesheim",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Gollipp Bioerdgas GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 9336 (AG Fürth)",
+        "unitId": "GEE950083632998",
+        "town": "Gollhofen",
+        "coordinates": [
+          49.584595,
+          10.180387
+        ],
+        "capacity": "7500 kW",
+        "evidence": [
+          "same town: Gollhofen",
+          "capacity matches: 830 Nm³/h ≈ 7500 kW (ratio 0.90)",
+          "operator word overlap: gollhofen"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_74",
+      "plantName": "Gommern",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Biogas Gommern",
+          "operatorRegisterId": "HRB 14716 (AG Münster)",
+          "unitId": "GEE909777974449",
+          "town": "Gommern",
+          "coordinates": [
+            52.086865,
+            11.827371
+          ],
+          "capacity": "7700 kW",
+          "evidence": [
+            "same town: Gommern",
+            "capacity plausible: 1150 Nm³/h vs 7700 kW",
+            "operator word overlap: gommern"
+          ]
+        },
+        {
+          "operatorName": "Biogas Gommern",
+          "operatorRegisterId": "HRB 14716 (AG Münster)",
+          "unitId": "GEE906436342212",
+          "town": "Gommern",
+          "coordinates": [
+            52.086902,
+            11.827426
+          ],
+          "capacity": "3850 kW",
+          "evidence": [
+            "same town: Gommern",
+            "operator word overlap: gommern"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_de_75",
+      "plantName": "Gommern II",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogas Gommern",
+        "operatorRegisterId": "HRB 14716 (AG Münster)",
+        "unitId": "GEE909777974449",
+        "town": "Gommern",
+        "coordinates": [
+          52.086865,
+          11.827371
+        ],
+        "capacity": "7700 kW",
+        "evidence": [
+          "same town: Gommern",
+          "capacity matches: 790 Nm³/h ≈ 7700 kW (ratio 0.97)",
+          "operator word overlap: gommern"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_76",
+      "plantName": "Gordemitz",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "BALANCE Erneuerbare Energien GmbH",
+        "operatorRegisterId": "HRB 33638 (AG Leipzig)",
+        "unitId": "GEE984106944508",
+        "town": "Jesewitz",
+        "coordinates": [
+          51.40335,
+          12.542832
+        ],
+        "capacity": "7500 kW",
+        "evidence": [
+          "unit name mentions town: 'BGA Gordemitz, BGAA'",
+          "capacity matches: 660 Nm³/h ≈ 7500 kW (ratio 1.14)",
+          "operator word overlap: gordemitz"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_77",
+      "plantName": "Graben/Lechfeld",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "EBI II Biomethan GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 129056 (AG Hamburg)",
+        "unitId": "GEE943020011819",
+        "town": "Graben",
+        "coordinates": [
+          48.200363,
+          10.851538
+        ],
+        "capacity": "5900 kW",
+        "evidence": [
+          "same town: Graben",
+          "capacity matches: 580 Nm³/h ≈ 5900 kW (ratio 1.02)",
+          "operator word overlap: graben"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_266",
+      "plantName": "Grammetal",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_78",
+      "plantName": "Greven",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "TW Energie GbR",
+        "operatorRegisterId": null,
+        "unitId": "GEE989592437329",
+        "town": "Greven",
+        "coordinates": [
+          52.07216,
+          7.66485
+        ],
+        "capacity": "5000 kW",
+        "evidence": [
+          "same town: Greven",
+          "capacity plausible: 970 Nm³/h vs 5000 kW",
+          "operator word overlap: greven"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_80",
+      "plantName": "Groß Kelle / Malchow",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biomethan Groß-Hesepe GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 208556 (AG Osnabrück)",
+        "unitId": "GEE984738535044",
+        "town": "Geeste",
+        "coordinates": [
+          52.62396,
+          7.20638
+        ],
+        "capacity": "7700 kW",
+        "evidence": [
+          "capacity matches: 790 Nm³/h ≈ 7700 kW (ratio 0.97)",
+          "operator word overlap: gross"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_81",
+      "plantName": "Groß Pankow",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Jörn Ahlers Biogas GmbH",
+          "operatorRegisterId": "HRB 202621 (AG Oldenburg)",
+          "unitId": "GEE950038470354",
+          "town": "Groß Pankow",
+          "coordinates": [
+            53.167394,
+            12.063186
+          ],
+          "capacity": "7700 kW",
+          "evidence": [
+            "same town: Groß Pankow",
+            "capacity matches: 920 Nm³/h ≈ 7700 kW (ratio 0.84)"
+          ]
+        },
+        {
+          "operatorName": "BALANCE Erneuerbare Energien GmbH",
+          "operatorRegisterId": "HRB 33638 (AG Leipzig)",
+          "unitId": "GEE921999434976",
+          "town": "Groß Pankow",
+          "coordinates": [
+            53.152817,
+            12.011971
+          ],
+          "capacity": "7700 kW",
+          "evidence": [
+            "same town: Groß Pankow",
+            "capacity matches: 920 Nm³/h ≈ 7700 kW (ratio 0.84)"
+          ]
+        },
+        {
+          "operatorName": "BALANCE Erneuerbare Energien GmbH",
+          "operatorRegisterId": "HRB 33638 (AG Leipzig)",
+          "unitId": "GEE925717802092",
+          "town": "Groß Pankow",
+          "coordinates": [
+            53.03819,
+            12.16442
+          ],
+          "capacity": "7490 kW",
+          "evidence": [
+            "same town: Groß Pankow",
+            "capacity matches: 920 Nm³/h ≈ 7490 kW (ratio 0.81)"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_de_82",
+      "plantName": "Groß Pankow",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Jörn Ahlers Biogas GmbH",
+          "operatorRegisterId": "HRB 202621 (AG Oldenburg)",
+          "unitId": "GEE950038470354",
+          "town": "Groß Pankow",
+          "coordinates": [
+            53.167394,
+            12.063186
+          ],
+          "capacity": "7700 kW",
+          "evidence": [
+            "same town: Groß Pankow",
+            "capacity matches: 990 Nm³/h ≈ 7700 kW (ratio 0.78)"
+          ]
+        },
+        {
+          "operatorName": "BALANCE Erneuerbare Energien GmbH",
+          "operatorRegisterId": "HRB 33638 (AG Leipzig)",
+          "unitId": "GEE921999434976",
+          "town": "Groß Pankow",
+          "coordinates": [
+            53.152817,
+            12.011971
+          ],
+          "capacity": "7700 kW",
+          "evidence": [
+            "same town: Groß Pankow",
+            "capacity matches: 990 Nm³/h ≈ 7700 kW (ratio 0.78)"
+          ]
+        },
+        {
+          "operatorName": "BALANCE Erneuerbare Energien GmbH",
+          "operatorRegisterId": "HRB 33638 (AG Leipzig)",
+          "unitId": "GEE925717802092",
+          "town": "Groß Pankow",
+          "coordinates": [
+            53.03819,
+            12.16442
+          ],
+          "capacity": "7490 kW",
+          "evidence": [
+            "same town: Groß Pankow",
+            "capacity matches: 990 Nm³/h ≈ 7490 kW (ratio 0.76)"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_de_83",
+      "plantName": "Groß Pankow",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Jörn Ahlers Biogas GmbH",
+          "operatorRegisterId": "HRB 202621 (AG Oldenburg)",
+          "unitId": "GEE950038470354",
+          "town": "Groß Pankow",
+          "coordinates": [
+            53.167394,
+            12.063186
+          ],
+          "capacity": "7700 kW",
+          "evidence": [
+            "same town: Groß Pankow",
+            "capacity plausible: 450 Nm³/h vs 7700 kW"
+          ]
+        },
+        {
+          "operatorName": "BALANCE Erneuerbare Energien GmbH",
+          "operatorRegisterId": "HRB 33638 (AG Leipzig)",
+          "unitId": "GEE921999434976",
+          "town": "Groß Pankow",
+          "coordinates": [
+            53.152817,
+            12.011971
+          ],
+          "capacity": "7700 kW",
+          "evidence": [
+            "same town: Groß Pankow",
+            "capacity plausible: 450 Nm³/h vs 7700 kW"
+          ]
+        },
+        {
+          "operatorName": "BALANCE Erneuerbare Energien GmbH",
+          "operatorRegisterId": "HRB 33638 (AG Leipzig)",
+          "unitId": "GEE925717802092",
+          "town": "Groß Pankow",
+          "coordinates": [
+            53.03819,
+            12.16442
+          ],
+          "capacity": "7490 kW",
+          "evidence": [
+            "same town: Groß Pankow",
+            "capacity plausible: 450 Nm³/h vs 7490 kW"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_de_84",
+      "plantName": "Groß-Umstadt",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Hock Biogas kann's GmbH",
+        "operatorRegisterId": "HRB 11728 (AG Aschaffenburg)",
+        "unitId": "GEE957616250216",
+        "town": "Groß-Umstadt",
+        "coordinates": [
+          49.884969,
+          8.872447
+        ],
+        "capacity": "2271 kW",
+        "evidence": [
+          "same town: Groß-Umstadt",
+          "capacity plausible: 340 Nm³/h vs 2271 kW"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_79",
+      "plantName": "Gröden",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Veolia Biocycling Deutschland GmbH",
+        "operatorRegisterId": "HRB 80235 (AG Hamburg)",
+        "unitId": "GEE968775244046",
+        "town": "Gröden",
+        "coordinates": [
+          51.413828,
+          13.593229
+        ],
+        "capacity": "4600 kW",
+        "evidence": [
+          "same town: Gröden",
+          "capacity plausible: 670 Nm³/h vs 4600 kW",
+          "operator word overlap: groeden"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_85",
+      "plantName": "Güstrow",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "EnviTec Bioenergie Güstrow GmbH",
+        "operatorRegisterId": "HRB 216051 (AG Oldenburg)",
+        "unitId": "GEE985909732255",
+        "town": "Güstrow",
+        "coordinates": [
+          53.826701,
+          12.193127
+        ],
+        "capacity": "54000 kW",
+        "evidence": [
+          "same town: Güstrow",
+          "operator word overlap: guestrow"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_86",
+      "plantName": "Güterglück",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Kreislaufwirtschaftsbetriebe Stegelitz GmbH ＆ Co.KG",
+        "operatorRegisterId": "HRA 5143 (AG Stendal)",
+        "unitId": "GEE922726883739",
+        "town": "Güterglück",
+        "coordinates": [
+          51.997799,
+          11.985505
+        ],
+        "capacity": "7000 kW",
+        "evidence": [
+          "same town: Güterglück",
+          "capacity matches: 810 Nm³/h ≈ 7000 kW (ratio 0.86)",
+          "operator word overlap: gueterglueck"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_87",
+      "plantName": "Hage",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "biogeen Biomethan Zwei GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 8633 (AG Münster)",
+        "unitId": "GEE976112070814",
+        "town": "Hage",
+        "coordinates": [
+          53.618728,
+          7.29841
+        ],
+        "capacity": "3500 kW",
+        "evidence": [
+          "same town: Hage",
+          "operator word overlap: hage"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_267",
+      "plantName": "Hahn-Flughafen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "NatürlichEnergie EMH GmbH",
+        "operatorRegisterId": "HRB 43212 (AG Wittlich)",
+        "unitId": "GEE969285176094",
+        "town": "Hahn-Flughafen",
+        "coordinates": [
+          49.932512,
+          7.259
+        ],
+        "capacity": "6713 kW",
+        "evidence": [
+          "same town: Hahn-Flughafen",
+          "capacity matches: 520 Nm³/h ≈ 6713 kW (ratio 1.29)",
+          "operator word overlap: hahn"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_88",
+      "plantName": "Halle/Westfalen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Alterric Biogas GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 203647 (AG Aurich)",
+        "unitId": "GEE996968189478",
+        "town": "Halle",
+        "coordinates": [
+          52.070071,
+          8.345031
+        ],
+        "capacity": "3675 kW",
+        "evidence": [
+          "same town: Halle",
+          "operator word overlap: halle"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_89",
+      "plantName": "Hamburg",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "ADM Hamburg Aktiengesellschaft",
+          "operatorRegisterId": "HRB 5114 (AG Hamburg)",
+          "unitId": "GEE906423158970",
+          "town": "Hamburg",
+          "coordinates": [
+            53.51848,
+            9.954054
+          ],
+          "capacity": "200 kW",
+          "evidence": [
+            "same town: Hamburg",
+            "operator word overlap: hamburg"
+          ]
+        },
+        {
+          "operatorName": "Hamburger Stadtentwässerung",
+          "operatorRegisterId": "HRA 126119 (AG Hamburg)",
+          "unitId": "GEE939041736770",
+          "town": "Hamburg",
+          "coordinates": [
+            53.535635,
+            9.940396
+          ],
+          "capacity": "13500 kW",
+          "evidence": [
+            "same town: Hamburg",
+            "capacity matches: 1150 Nm³/h ≈ 13500 kW (ratio 1.17)"
+          ]
+        },
+        {
+          "operatorName": "MVR Müllverwertung Rugenberger Damm GmbH",
+          "operatorRegisterId": "HRB 175566 (AG Hamburg)",
+          "unitId": "GEE948368163404",
+          "town": "Tangstedt",
+          "coordinates": [
+            53.725057,
+            10.102501
+          ],
+          "capacity": "3850 kW",
+          "evidence": [
+            "unit name mentions town: 'Stadtreinigung Hamburg AöR BKW Bützberg'",
+            "operator word overlap: hamburg"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_de_90",
+      "plantName": "Hankensbüttel / Emmen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bioerdgas Isenhagen GmbH",
+        "operatorRegisterId": "HRB 202257 (AG Braunschweig)",
+        "unitId": "GEE960672690049",
+        "town": "Hankensbüttel",
+        "coordinates": [
+          52.722713,
+          10.618946
+        ],
+        "capacity": "3710 kW",
+        "evidence": [
+          "same town: Hankensbüttel",
+          "capacity plausible: 730 Nm³/h vs 3710 kW"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_91",
+      "plantName": "Hardegsen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Hardegsen C4 Energie GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 5661 (AG Kiel)",
+        "unitId": "GEE917274181772",
+        "town": "Hardegsen",
+        "coordinates": [
+          51.645,
+          9.86
+        ],
+        "capacity": "5770 kW",
+        "evidence": [
+          "same town: Hardegsen",
+          "operator word overlap: hardegsen"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_268",
+      "plantName": "Harth-Pöllnitz",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_269",
+      "plantName": "Heek",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bioenergie Heek-Ahle GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 9749 (AG Coesfeld)",
+        "unitId": "GEE937168008152",
+        "town": "Heek",
+        "coordinates": [
+          52.111506,
+          7.070169
+        ],
+        "capacity": "8025 kW",
+        "evidence": [
+          "same town: Heek",
+          "capacity plausible: 580 Nm³/h vs 8025 kW",
+          "operator word overlap: heek",
+          "matched to same MaStR unit as plant_de_92 (duplicate census record)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_92",
+      "plantName": "Heek",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bioenergie Heek-Ahle GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 9749 (AG Coesfeld)",
+        "unitId": "GEE937168008152",
+        "town": "Heek",
+        "coordinates": [
+          52.111506,
+          7.070169
+        ],
+        "capacity": "8025 kW",
+        "evidence": [
+          "same town: Heek",
+          "capacity plausible: 460 Nm³/h vs 8025 kW",
+          "operator word overlap: heek",
+          "matched to same MaStR unit as plant_de_269 (duplicate census record)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_93",
+      "plantName": "Heidenau (Heidkoppel)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Heidkoppel GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 201404 (AG Tostedt)",
+        "unitId": "GEE965381899264",
+        "town": "Heidenau",
+        "coordinates": [
+          53.29697,
+          9.626291
+        ],
+        "capacity": "4255 kW",
+        "evidence": [
+          "same town: Heidenau",
+          "capacity plausible: 670 Nm³/h vs 4255 kW",
+          "operator word overlap: heidkoppel"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_270",
+      "plantName": "Heiligengrabe",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Bioenergie Heiligengrabe GmbH",
+          "operatorRegisterId": "HRB 14171 (AG Gelsenkirchen)",
+          "unitId": "GEE997850473552",
+          "town": "Heiligengrabe",
+          "coordinates": [
+            53.145065,
+            12.395718
+          ],
+          "capacity": "4500 kW",
+          "evidence": [
+            "same town: Heiligengrabe",
+            "operator word overlap: heiligengrabe"
+          ]
+        },
+        {
+          "operatorName": "BALANCE Erneuerbare Energien GmbH",
+          "operatorRegisterId": "HRB 33638 (AG Leipzig)",
+          "unitId": "GEE925717802092",
+          "town": "Groß Pankow",
+          "coordinates": [
+            53.03819,
+            12.16442
+          ],
+          "capacity": "7490 kW",
+          "evidence": [
+            "same municipality: Heiligengrabe",
+            "capacity matches: 940 Nm³/h ≈ 7490 kW (ratio 0.80)"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_de_94",
+      "plantName": "Helmstedt",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Erneuerbare Energien Dieckmann eG",
+        "operatorRegisterId": "GnR 200029 (AG Braunschweig)",
+        "unitId": "GEE927963328876",
+        "town": "Helmstedt",
+        "coordinates": [
+          52.214492,
+          10.99645
+        ],
+        "capacity": "4000 kW",
+        "evidence": [
+          "0.8 km from plant coordinates",
+          "same town: Helmstedt"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_271",
+      "plantName": "Hennstedt",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bioenergie Hennstedt GmbH",
+        "operatorRegisterId": "HRB 13004 (AG Gelsenkirchen)",
+        "unitId": "GEE917647123446",
+        "town": "Hennstedt",
+        "coordinates": [
+          54.268757,
+          9.167173
+        ],
+        "capacity": "4500 kW",
+        "evidence": [
+          "same town: Hennstedt",
+          "operator word overlap: hennstedt"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_95",
+      "plantName": "Heygendorf",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "biogeen BGA Zwei GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 8516 (AG Münster)",
+        "unitId": "GEE957865367161",
+        "town": "Artern",
+        "coordinates": [
+          51.349837,
+          11.366422
+        ],
+        "capacity": "4426 kW",
+        "evidence": [
+          "0.6 km from plant coordinates",
+          "unit name mentions town: 'BGA Heygendorf, Biomethananlage'",
+          "capacity matches: 560 Nm³/h ≈ 4426 kW (ratio 0.79)",
+          "operator word overlap: heygendorf"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_96",
+      "plantName": "Hille",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Entsorgungswirtschaft Minden-Lübbecke AöR",
+        "operatorRegisterId": "HRB 4282 (AG Bad Oeynhausen)",
+        "unitId": "GEE960254104469",
+        "town": "Hille",
+        "coordinates": [
+          52.384949,
+          8.767964
+        ],
+        "capacity": "3620 kW",
+        "evidence": [
+          "5.7 km from plant coordinates",
+          "same town: Hille",
+          "capacity plausible: 600 Nm³/h vs 3620 kW"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_97",
+      "plantName": "Hohenberg-Krusemark",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "NEXOGAS Produktion Arneburg GmbH",
+        "operatorRegisterId": "HRB 222161 (AG Oldenburg)",
+        "unitId": "GEE979880387078",
+        "town": "Hohenberg-Krusemark",
+        "coordinates": [
+          52.735127,
+          12.025205
+        ],
+        "capacity": "7840 kW",
+        "evidence": [
+          "5.3 km from plant coordinates",
+          "same town: Hohenberg-Krusemark",
+          "capacity matches: 610 Nm³/h ≈ 7840 kW (ratio 1.29)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_98",
+      "plantName": "Hohenhameln-Mehrum",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "HOH Biogasanlage GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 5689 (AG Stendal)",
+        "unitId": "GEE902934142071",
+        "town": "Hohenhameln",
+        "coordinates": [
+          52.315071,
+          10.111053
+        ],
+        "capacity": "7590 kW",
+        "evidence": [
+          "1.8 km from plant coordinates",
+          "same town: Hohenhameln",
+          "capacity matches: 620 Nm³/h ≈ 7590 kW (ratio 1.22)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_99",
+      "plantName": "Homberg/Efze",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogas Homberg GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 16735 (AG Kassel)",
+        "unitId": "GEE907512123053",
+        "town": "Homberg",
+        "coordinates": [
+          51.010971,
+          9.377631
+        ],
+        "capacity": "3789 kW",
+        "evidence": [
+          "same town: Homberg",
+          "capacity plausible: 670 Nm³/h vs 3789 kW",
+          "operator word overlap: homberg"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_100",
+      "plantName": "Horn - Bad Meinberg",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "VORN Bioenergy BGA Horn GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 4395 (AG Lemgo)",
+        "unitId": "GEE904840609556",
+        "town": "Horn-Bad Meinberg",
+        "coordinates": [
+          51.882453,
+          8.947722
+        ],
+        "capacity": "10000 kW",
+        "evidence": [
+          "1.8 km from plant coordinates",
+          "same town: Horn-Bad Meinberg",
+          "operator word overlap: horn, meinberg"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_272",
+      "plantName": "Hünxe",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bioenergie Hünxe GmbH",
+        "operatorRegisterId": "HRB 12323 (AG Gelsenkirchen)",
+        "unitId": "GEE932046701835",
+        "town": "Hünxe",
+        "coordinates": [
+          51.635381,
+          6.699384
+        ],
+        "capacity": "4733 kW",
+        "evidence": [
+          "same town: Hünxe",
+          "operator word overlap: huenxe"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_101",
+      "plantName": "Ilsede Solschen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Nat-Ur-Gas Solschen GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 201134 (AG Hildesheim)",
+        "unitId": "GEE959813466391",
+        "town": "Ilsede",
+        "coordinates": [
+          52.274958,
+          10.130705
+        ],
+        "capacity": "7595 kW",
+        "evidence": [
+          "same town: Ilsede",
+          "capacity plausible: 1040 Nm³/h vs 7595 kW",
+          "operator word overlap: solschen"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_102",
+      "plantName": "Jabel / Waren",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bioenergie Waren GmbH",
+        "operatorRegisterId": "HRB 6971 (AG Neubrandenburg)",
+        "unitId": "GEE954727744610",
+        "town": "Jabel",
+        "coordinates": [
+          53.541215,
+          12.60355
+        ],
+        "capacity": "3710 kW",
+        "evidence": [
+          "3.9 km from plant coordinates",
+          "same town: Jabel",
+          "operator word overlap: jabel, waren"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_103",
+      "plantName": "Jacobsdorf",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "BKW Pillgram GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 2696 (AG Frankfurt/Oder)",
+        "unitId": "GEE938363246851",
+        "town": "Jacobsdorf",
+        "coordinates": [
+          52.319825,
+          14.379786
+        ],
+        "capacity": "7742 kW",
+        "evidence": [
+          "3.7 km from plant coordinates",
+          "same town: Jacobsdorf",
+          "capacity matches: 1010 Nm³/h ≈ 7742 kW (ratio 0.77)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_104",
+      "plantName": "Jürgenshagen  (bei Rostock)",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Biogas Pool 1 für Stadtwerke",
+          "operatorRegisterId": "HRA 3476 (AG Hamm)",
+          "unitId": "GEE928453575282",
+          "town": "Jürgenshagen",
+          "coordinates": [
+            53.939474,
+            11.888565
+          ],
+          "capacity": "3840 kW",
+          "evidence": [
+            "1.2 km from plant coordinates",
+            "same town: Jürgenshagen",
+            "operator word overlap: juergenshagen"
+          ]
+        },
+        {
+          "operatorName": "Agrargesellschaft Jürgenshagen mbH",
+          "operatorRegisterId": "HRB 14397 (AG Rostock)",
+          "unitId": "GEE963797243633",
+          "town": "Jürgenshagen",
+          "coordinates": [
+            53.939241,
+            11.888205
+          ],
+          "capacity": "3840 kW",
+          "evidence": [
+            "1.2 km from plant coordinates",
+            "same town: Jürgenshagen",
+            "operator word overlap: juergenshagen"
+          ]
+        },
+        {
+          "operatorName": "Veolia Umweltservice Nord GmbH",
+          "operatorRegisterId": "HRB 99491 (AG Hamburg)",
+          "unitId": "GEE951809976037",
+          "town": "Rostock",
+          "coordinates": [
+            54.144321,
+            12.139804
+          ],
+          "capacity": "3675 kW",
+          "evidence": [
+            "same town: Rostock",
+            "operator word overlap: rostock"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_de_105",
+      "plantName": "Kaarßen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Agrarenergie Kaarßen GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 204248 (AG Osnabrück)",
+        "unitId": "GEE911785380655",
+        "town": "Kaarßen",
+        "coordinates": [
+          53.205501,
+          11.047563
+        ],
+        "capacity": "2420 kW",
+        "evidence": [
+          "1.3 km from plant coordinates",
+          "same town: Kaarßen",
+          "operator word overlap: kaarssen"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_273",
+      "plantName": "Kabelsketal",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Gut Gröbers GmbH ＆ Co.KG",
+        "operatorRegisterId": null,
+        "unitId": "GEE927076345906",
+        "town": "Kabelsketal",
+        "coordinates": [
+          51.444463,
+          12.12188
+        ],
+        "capacity": "4426 kW",
+        "evidence": [
+          "same town: Kabelsketal",
+          "capacity matches: 470 Nm³/h ≈ 4426 kW (ratio 0.94)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_106",
+      "plantName": "Kallmünz",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "REGAS GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRB 7358 (AG Regensburg)",
+        "unitId": "GEE990471875590",
+        "town": "Kallmünz",
+        "coordinates": [
+          49.180076,
+          11.96466
+        ],
+        "capacity": "6750 kW",
+        "evidence": [
+          "3.4 km from plant coordinates",
+          "same town: Kallmünz",
+          "capacity plausible: 1190 Nm³/h vs 6750 kW",
+          "operator word overlap: kallmuenz"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_107",
+      "plantName": "Kannawurf",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "biogeen BGA Kannawurf GmbH",
+        "operatorRegisterId": "HRB 12305 (AG Münster)",
+        "unitId": "GEE988608435908",
+        "town": "Kindelbrück",
+        "coordinates": [
+          51.268288,
+          11.104176
+        ],
+        "capacity": "7490 kW",
+        "evidence": [
+          "1.9 km from plant coordinates",
+          "unit name mentions town: 'BGA Kannawurf, Biomethananlage'",
+          "capacity plausible: 490 Nm³/h vs 7490 kW",
+          "operator word overlap: kannawurf"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_108",
+      "plantName": "Karben",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Karbener Biogas GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 48431 (AG Frankfurt am Main)",
+        "unitId": "GEE962046503535",
+        "town": "Karben",
+        "coordinates": [
+          50.237686,
+          8.806903
+        ],
+        "capacity": "3695 kW",
+        "evidence": [
+          "2.6 km from plant coordinates",
+          "same town: Karben",
+          "capacity matches: 460 Nm³/h ≈ 3695 kW (ratio 0.80)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_109",
+      "plantName": "Kerpen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bioenergie Kerpen - Sindorf",
+        "operatorRegisterId": "HRB 214515 (AG Hannover)",
+        "unitId": "GEE928298286985",
+        "town": "Kerpen",
+        "coordinates": [
+          50.894387,
+          6.661442
+        ],
+        "capacity": "6000 kW",
+        "evidence": [
+          "same town: Kerpen",
+          "capacity plausible: 1070 Nm³/h vs 6000 kW",
+          "operator word overlap: kerpen"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_110",
+      "plantName": "Ketzin",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "BMV Energie GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 3028 (AG Frankfurt/Oder)",
+        "unitId": "GEE901609227471",
+        "town": "Ketzin",
+        "coordinates": [
+          52.491789,
+          12.86736
+        ],
+        "capacity": "2300 kW",
+        "evidence": [
+          "2.3 km from plant coordinates",
+          "same town: Ketzin",
+          "operator word overlap: ketzin"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_111",
+      "plantName": "Kirchgellersen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bioenergie Gellersen GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 201447 (AG Lüneburg)",
+        "unitId": "GEE936354172318",
+        "town": "Kirchgellersen",
+        "coordinates": [
+          53.22273,
+          10.284913
+        ],
+        "capacity": "3794 kW",
+        "evidence": [
+          "1.0 km from plant coordinates",
+          "same town: Kirchgellersen"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_112",
+      "plantName": "Kirchhain-Stausebach",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "EAM Natur Energie GmbH",
+        "operatorRegisterId": "HRB 16218 (AG Kassel)",
+        "unitId": "GEE951632638409",
+        "town": "Kirchhain",
+        "coordinates": [
+          50.832495,
+          8.908054
+        ],
+        "capacity": "750 kW",
+        "evidence": [
+          "0.0 km from plant coordinates",
+          "same town: Kirchhain",
+          "operator word overlap: stausebach"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_274",
+      "plantName": "Kirchlinteln",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "KBB Biogas GmbH ＆ Co.KG",
+        "operatorRegisterId": "HRA 201193 (AG Walsrode)",
+        "unitId": "GEE965226761923",
+        "town": "Kirchlinteln",
+        "coordinates": [
+          52.905466,
+          9.346829
+        ],
+        "capacity": "4360 kW",
+        "evidence": [
+          "same town: Kirchlinteln",
+          "capacity plausible: 600 Nm³/h vs 4360 kW"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_113",
+      "plantName": "Kißlegg-Rahmhaus",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Thüga Energienetze GmbH",
+        "operatorRegisterId": "HRB 166526 (AG München)",
+        "unitId": "GEE976742781869",
+        "town": "Kißlegg",
+        "coordinates": [
+          47.838751,
+          9.900111
+        ],
+        "capacity": "3531 kW",
+        "evidence": [
+          "same town: Kißlegg",
+          "capacity plausible: 610 Nm³/h vs 3531 kW"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_115",
+      "plantName": "Kleinlüder bei Fulda",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_116",
+      "plantName": "Kleinlüder bei Fulda II",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_117",
+      "plantName": "Kodersdorf",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "BALANCE Erneuerbare Energien GmbH",
+        "operatorRegisterId": "HRB 33638 (AG Leipzig)",
+        "unitId": "GEE991115322692",
+        "town": "Kodersdorf",
+        "coordinates": [
+          51.228,
+          14.914
+        ],
+        "capacity": "7500 kW",
+        "evidence": [
+          "2.2 km from plant coordinates",
+          "same town: Kodersdorf",
+          "capacity matches: 800 Nm³/h ≈ 7500 kW (ratio 0.94)",
+          "operator word overlap: kodersdorf"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_275",
+      "plantName": "Kogel",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "ReFood GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 17195 (AG Dortmund)",
+        "unitId": "GEE988765623316",
+        "town": "Kogel",
+        "coordinates": [
+          53.500514,
+          10.936709
+        ],
+        "capacity": "7128 kW",
+        "evidence": [
+          "same town: Kogel",
+          "operator word overlap: kogel"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_123",
+      "plantName": "Krackow",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "GENO Bioenergie Leasingfonds Erste GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 1833 (AG Neubrandenburg)",
+        "unitId": "GEE940965455340",
+        "town": "Krackow",
+        "coordinates": [
+          53.32127,
+          14.270012
+        ],
+        "capacity": "7400 kW",
+        "evidence": [
+          "2.4 km from plant coordinates",
+          "same town: Krackow",
+          "capacity plausible: 1360 Nm³/h vs 7400 kW"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_124",
+      "plantName": "Krefeld",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "EGK Entsorgungsgesellschaft Krefeld GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 3346 (AG Krefeld)",
+        "unitId": "GEE979491808528",
+        "town": "Krefeld",
+        "coordinates": [
+          51.379643,
+          6.640328
+        ],
+        "capacity": "12840 kW",
+        "evidence": [
+          "7.5 km from plant coordinates",
+          "same town: Krefeld",
+          "capacity plausible: 720 Nm³/h vs 12840 kW",
+          "operator word overlap: krefeld"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_125",
+      "plantName": "Kroppenstedt",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "MVV Biomethan GmbH",
+        "operatorRegisterId": "HRB 27915 (AG Stendal)",
+        "unitId": "GEE986725026955",
+        "town": "Kroppenstedt",
+        "coordinates": [
+          51.95329,
+          11.298177
+        ],
+        "capacity": "7500 kW",
+        "evidence": [
+          "1.5 km from plant coordinates",
+          "same town: Kroppenstedt",
+          "capacity plausible: 450 Nm³/h vs 7500 kW",
+          "operator word overlap: kroppenstedt"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_118",
+      "plantName": "Köln",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Stadtentwässerungsbetriebe Köln, AöR",
+          "operatorRegisterId": null,
+          "unitId": "GEE962995441032",
+          "town": "Köln",
+          "coordinates": [
+            50.989098,
+            6.985731
+          ],
+          "capacity": "4880 kW",
+          "evidence": [
+            "5.9 km from plant coordinates",
+            "same town: Köln",
+            "capacity matches: 520 Nm³/h ≈ 4880 kW (ratio 0.94)",
+            "operator word overlap: koeln"
+          ]
+        },
+        {
+          "operatorName": "AVG Kompostierung GmbH",
+          "operatorRegisterId": "HRB 23177 (AG Köln)",
+          "unitId": "GEE938188864834",
+          "town": "Köln",
+          "coordinates": [
+            51.0048,
+            6.954223
+          ],
+          "capacity": "3300 kW",
+          "evidence": [
+            "7.4 km from plant coordinates",
+            "same town: Köln",
+            "capacity plausible: 520 Nm³/h vs 3300 kW",
+            "operator word overlap: koeln"
+          ]
+        },
+        {
+          "operatorName": "Bioenergie Kerpen - Sindorf",
+          "operatorRegisterId": "HRB 214515 (AG Hannover)",
+          "unitId": "GEE928298286985",
+          "town": "Kerpen",
+          "coordinates": [
+            50.894387,
+            6.661442
+          ],
+          "capacity": "6000 kW",
+          "evidence": [
+            "21.5 km from plant coordinates",
+            "capacity matches: 520 Nm³/h ≈ 6000 kW (ratio 1.15)"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_de_119",
+      "plantName": "Köln",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Stadtentwässerungsbetriebe Köln, AöR",
+          "operatorRegisterId": null,
+          "unitId": "GEE962995441032",
+          "town": "Köln",
+          "coordinates": [
+            50.989098,
+            6.985731
+          ],
+          "capacity": "4880 kW",
+          "evidence": [
+            "5.9 km from plant coordinates",
+            "same town: Köln",
+            "capacity plausible: 970 Nm³/h vs 4880 kW",
+            "operator word overlap: koeln"
+          ]
+        },
+        {
+          "operatorName": "AVG Kompostierung GmbH",
+          "operatorRegisterId": "HRB 23177 (AG Köln)",
+          "unitId": "GEE938188864834",
+          "town": "Köln",
+          "coordinates": [
+            51.0048,
+            6.954223
+          ],
+          "capacity": "3300 kW",
+          "evidence": [
+            "7.4 km from plant coordinates",
+            "same town: Köln",
+            "operator word overlap: koeln"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_de_120",
+      "plantName": "Königslutter",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "eCG Bioenergie GmbH",
+        "operatorRegisterId": "HRB 226241 (AG Hannover)",
+        "unitId": "GEE974029965568",
+        "town": "Königslutter",
+        "coordinates": [
+          52.345877,
+          10.808117
+        ],
+        "capacity": "3750 kW",
+        "evidence": [
+          "13.4 km from plant coordinates",
+          "same town: Königslutter",
+          "capacity plausible: 630 Nm³/h vs 3750 kW"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_121",
+      "plantName": "Könnern 1",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "biogeen BGA Drei GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 8087 (AG Münster)",
+        "unitId": "GEE907435038984",
+        "town": "Könnern",
+        "coordinates": [
+          51.662468,
+          11.790118
+        ],
+        "capacity": "8519 kW",
+        "evidence": [
+          "7.1 km from plant coordinates",
+          "same town: Könnern",
+          "capacity matches: 790 Nm³/h ≈ 8519 kW (ratio 1.08)",
+          "operator word overlap: koennern",
+          "matched to same MaStR unit as plant_de_122 (duplicate census record)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_122",
+      "plantName": "Könnern 2",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "biogeen BGA Drei GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 8087 (AG Münster)",
+        "unitId": "GEE907435038984",
+        "town": "Könnern",
+        "coordinates": [
+          51.662468,
+          11.790118
+        ],
+        "capacity": "8519 kW",
+        "evidence": [
+          "7.1 km from plant coordinates",
+          "same town: Könnern",
+          "capacity matches: 1010 Nm³/h ≈ 8519 kW (ratio 0.84)",
+          "operator word overlap: koennern",
+          "matched to same MaStR unit as plant_de_121 (duplicate census record)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_62",
+      "plantName": "L a k e",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_126",
+      "plantName": "Lambsborn",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "biogeen BGA Drei GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 8087 (AG Münster)",
+        "unitId": "GEE990150723334",
+        "town": "Lambsborn",
+        "coordinates": [
+          49.370416,
+          7.440238
+        ],
+        "capacity": "4360 kW",
+        "evidence": [
+          "0.9 km from plant coordinates",
+          "same town: Lambsborn",
+          "capacity plausible: 860 Nm³/h vs 4360 kW",
+          "operator word overlap: lambsborn"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_127",
+      "plantName": "Langenwetzendorf",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Danpower GmbH",
+        "operatorRegisterId": "HRB 19365P (AG Potsdam)",
+        "unitId": "GEE925722443310",
+        "town": "Langenwetzendorf",
+        "coordinates": [
+          50.688767,
+          12.114524
+        ],
+        "capacity": "7609 kW",
+        "evidence": [
+          "1.0 km from plant coordinates",
+          "same town: Langenwetzendorf",
+          "capacity matches: 810 Nm³/h ≈ 7609 kW (ratio 0.94)",
+          "operator word overlap: langenwetzendorf"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_128",
+      "plantName": "Lanken/Wotersen/Elmenhorst",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Lauenburgische Energiegenossenschaft eG",
+        "operatorRegisterId": "GnR 240 (AG Lübeck)",
+        "unitId": "GEE905550880464",
+        "town": "Elmenhorst",
+        "coordinates": [
+          53.531845,
+          10.515562
+        ],
+        "capacity": "3850 kW",
+        "evidence": [
+          "same town: Elmenhorst",
+          "operator word overlap: lanken"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_129",
+      "plantName": "Lauterhofen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "biogeen BGA Lauterhofen GmbH und Co. KG",
+        "operatorRegisterId": "HRA 12256 (AG Münster)",
+        "unitId": "GEE972357177219",
+        "town": "Lauterhofen",
+        "coordinates": [
+          49.359903,
+          11.608814
+        ],
+        "capacity": "4500 kW",
+        "evidence": [
+          "1.0 km from plant coordinates",
+          "same town: Lauterhofen",
+          "operator word overlap: lauterhofen"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_130",
+      "plantName": "Leizen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "BALANCE Erneuerbare Energien GmbH",
+        "operatorRegisterId": "HRB 33638 (AG Leipzig)",
+        "unitId": "GEE901098491254",
+        "town": "Leizen",
+        "coordinates": [
+          53.377613,
+          12.465673
+        ],
+        "capacity": "3785 kW",
+        "evidence": [
+          "1.5 km from plant coordinates",
+          "same town: Leizen",
+          "operator word overlap: leizen"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_131",
+      "plantName": "Lengede",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogas Fuhsetal GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 200915 (AG Hildesheim)",
+        "unitId": "GEE987304946268",
+        "town": "Lengede",
+        "coordinates": [
+          52.196036,
+          10.337287
+        ],
+        "capacity": "7630 kW",
+        "evidence": [
+          "3.0 km from plant coordinates",
+          "same town: Lengede",
+          "capacity matches: 1010 Nm³/h ≈ 7630 kW (ratio 0.76)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_132",
+      "plantName": "Lenzen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "BALANCE Erneuerbare Energien GmbH",
+        "operatorRegisterId": "HRB 33638 (AG Leipzig)",
+        "unitId": "GEE985903323626",
+        "town": "Lenzen",
+        "coordinates": [
+          53.103799,
+          11.483669
+        ],
+        "capacity": "8580 kW",
+        "evidence": [
+          "1.6 km from plant coordinates",
+          "same town: Lenzen",
+          "operator word overlap: lenzen"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_276",
+      "plantName": "Leuna",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "InfraLeuna GmbH",
+        "operatorRegisterId": "HRB 209877 (AG Stendal)",
+        "unitId": "GEE943281262685",
+        "town": "Leuna",
+        "coordinates": [
+          51.304992,
+          12.006001
+        ],
+        "capacity": "8904 kW",
+        "evidence": [
+          "same town: Leuna",
+          "capacity matches: 780 Nm³/h ≈ 8904 kW (ratio 1.14)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_133",
+      "plantName": "Lichtensee",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Danpower Biomasse GmbH",
+        "operatorRegisterId": "HRB 19761P (AG Potsdam)",
+        "unitId": "GEE966185051087",
+        "town": "Lichtensee",
+        "coordinates": [
+          51.376965,
+          13.363376
+        ],
+        "capacity": "7623 kW",
+        "evidence": [
+          "0.8 km from plant coordinates",
+          "same town: Lichtensee",
+          "capacity plausible: 500 Nm³/h vs 7623 kW",
+          "operator word overlap: lichtensee"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_277",
+      "plantName": "Lindern",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "BAHLMANN Naturstrom GmbH",
+        "operatorRegisterId": "HRB 152105 (AG Oldenburg)",
+        "unitId": "GEE941382311097",
+        "town": "Lindern",
+        "coordinates": [
+          52.830661,
+          7.771598
+        ],
+        "capacity": "5000 kW",
+        "evidence": [
+          "same town: Lindern",
+          "capacity plausible: 690 Nm³/h vs 5000 kW"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_134",
+      "plantName": "Lohne",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_136",
+      "plantName": "Loop",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bioenergie Loop GmbH",
+        "operatorRegisterId": "HRB 13402 (AG Kiel)",
+        "unitId": "GEE939585605969",
+        "town": "Loop",
+        "coordinates": [
+          54.146654,
+          9.968735
+        ],
+        "capacity": "6050 kW",
+        "evidence": [
+          "1.2 km from plant coordinates",
+          "same town: Loop",
+          "capacity matches: 560 Nm³/h ≈ 6050 kW (ratio 1.08)",
+          "operator word overlap: loop"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_138",
+      "plantName": "Luckaitztal",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogas Produktion Schöllnitz GmbH",
+        "operatorRegisterId": "HRB 8606CB (AG Cottbus)",
+        "unitId": "GEE979114275461",
+        "town": "Luckaitztal",
+        "coordinates": [
+          51.667601,
+          13.984043
+        ],
+        "capacity": "7490 kW",
+        "evidence": [
+          "1.1 km from plant coordinates",
+          "same town: Luckaitztal",
+          "capacity matches: 650 Nm³/h ≈ 7490 kW (ratio 1.15)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_139",
+      "plantName": "Luckau",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Veolia Biocycling Deutschland GmbH",
+        "operatorRegisterId": "HRB 80235 (AG Hamburg)",
+        "unitId": "GEE979261381817",
+        "town": "Luckau",
+        "coordinates": [
+          51.876436,
+          13.798068
+        ],
+        "capacity": "3850 kW",
+        "evidence": [
+          "6.3 km from plant coordinates",
+          "same town: Luckau",
+          "capacity plausible: 770 Nm³/h vs 3850 kW"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_135",
+      "plantName": "Löningen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "GF-Bio-Energie Hasetal GmbH",
+        "operatorRegisterId": "HRB 151509 (AG Oldenburg)",
+        "unitId": "GEE921490498224",
+        "town": "Löningen",
+        "coordinates": [
+          52.739887,
+          7.787738
+        ],
+        "capacity": "7400 kW",
+        "evidence": [
+          "2.1 km from plant coordinates",
+          "same town: Löningen"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_137",
+      "plantName": "Lüchow",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "biogeen BGA Zwei GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 8516 (AG Münster)",
+        "unitId": "GEE941272744837",
+        "town": "Lüchow",
+        "coordinates": [
+          52.985046,
+          11.158053
+        ],
+        "capacity": "7490 kW",
+        "evidence": [
+          "same town: Lüchow",
+          "capacity plausible: 1040 Nm³/h vs 7490 kW",
+          "operator word overlap: luechow"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_140",
+      "plantName": "Maihingen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogas Maihingen GbR",
+        "operatorRegisterId": null,
+        "unitId": "GEE934065594092",
+        "town": "Maihingen",
+        "coordinates": [
+          48.91991,
+          10.519125
+        ],
+        "capacity": "7000 kW",
+        "evidence": [
+          "1.6 km from plant coordinates",
+          "same town: Maihingen",
+          "capacity plausible: 1070 Nm³/h vs 7000 kW",
+          "operator word overlap: maihingen"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_141",
+      "plantName": "Malchin",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Danpower GmbH",
+        "operatorRegisterId": "HRB 19365P (AG Potsdam)",
+        "unitId": "GEE979626956841",
+        "town": "Malchin",
+        "coordinates": [
+          53.75,
+          12.773
+        ],
+        "capacity": "7623 kW",
+        "evidence": [
+          "1.4 km from plant coordinates",
+          "same town: Malchin",
+          "capacity plausible: 1380 Nm³/h vs 7623 kW",
+          "operator word overlap: malchin"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_142",
+      "plantName": "Mammendorf",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "biogeen BGA Mammendorf GmbH und Co. KG",
+        "operatorRegisterId": "HRA 12255 (AG Münster)",
+        "unitId": "GEE906796749805",
+        "town": "Mammendorf",
+        "coordinates": [
+          48.183664,
+          11.15315
+        ],
+        "capacity": "4500 kW",
+        "evidence": [
+          "2.8 km from plant coordinates",
+          "same town: Mammendorf",
+          "capacity matches: 570 Nm³/h ≈ 4500 kW (ratio 0.79)",
+          "operator word overlap: mammendorf"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_143",
+      "plantName": "Marienthal",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Hamburger Stadtentwässerung",
+        "operatorRegisterId": "HRA 126119 (AG Hamburg)",
+        "unitId": "GEE939041736770",
+        "town": "Hamburg",
+        "coordinates": [
+          53.535635,
+          9.940396
+        ],
+        "capacity": "13500 kW",
+        "evidence": [
+          "9.9 km from plant coordinates",
+          "capacity matches: 1000 Nm³/h ≈ 13500 kW (ratio 1.35)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_144",
+      "plantName": "Markranstädt",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Naturgas Quesitz GmbH",
+        "operatorRegisterId": "HRB 25902 (AG Leipzig)",
+        "unitId": "GEE947902764183",
+        "town": "Markranstädt",
+        "coordinates": [
+          51.273841,
+          12.187873
+        ],
+        "capacity": "7490 kW",
+        "evidence": [
+          "3.9 km from plant coordinates",
+          "same town: Markranstädt",
+          "capacity matches: 670 Nm³/h ≈ 7490 kW (ratio 1.12)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_145",
+      "plantName": "Marktoffingen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Stadtwerke Schwäbisch Hall GmbH",
+        "operatorRegisterId": "HRB 570157 (AG Stuttgart)",
+        "unitId": "GEE959862864193",
+        "town": "Marktoffingen",
+        "coordinates": [
+          48.921293,
+          10.482556
+        ],
+        "capacity": "3500 kW",
+        "evidence": [
+          "1.0 km from plant coordinates",
+          "same town: Marktoffingen",
+          "capacity matches: 350 Nm³/h ≈ 3500 kW (ratio 1.00)",
+          "operator word overlap: marktoffingen"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_146",
+      "plantName": "Menteroda",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biomethan Menteroda GmbH c/o AVRIO Energie GmbH",
+        "operatorRegisterId": "HRB 510286 (AG Jena)",
+        "unitId": "GEE941444679240",
+        "town": "Unstruttal",
+        "coordinates": [
+          51.320329,
+          10.583241
+        ],
+        "capacity": "8216 kW",
+        "evidence": [
+          "1.7 km from plant coordinates",
+          "unit name mentions town: 'Biomethan Menteroda Gas'",
+          "capacity matches: 1070 Nm³/h ≈ 8216 kW (ratio 0.77)",
+          "operator word overlap: menteroda"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_147",
+      "plantName": "Merzig",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bioenergie Merzig GmbH",
+        "operatorRegisterId": "HRB 18798 (AG Saarbrücken)",
+        "unitId": "GEE901452621921",
+        "town": "Merzig",
+        "coordinates": [
+          49.437,
+          6.576
+        ],
+        "capacity": "6500 kW",
+        "evidence": [
+          "4.5 km from plant coordinates",
+          "same town: Merzig",
+          "capacity matches: 530 Nm³/h ≈ 6500 kW (ratio 1.23)",
+          "operator word overlap: merzig"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_148",
+      "plantName": "Müden (Aller)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogs Pool 2 für Stadtwerke",
+        "operatorRegisterId": "HRA 3421 (AG Hamm)",
+        "unitId": "GEE976201699667",
+        "town": "Müden",
+        "coordinates": [
+          52.532097,
+          10.377992
+        ],
+        "capacity": "3780 kW",
+        "evidence": [
+          "same town: Müden",
+          "operator word overlap: aller, mueden"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_149",
+      "plantName": "Mühlacker",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biomethananlage Mühlacker GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 700981 (AG Mannheim)",
+        "unitId": "GEE902952621763",
+        "town": "Mühlacker",
+        "coordinates": [
+          48.952504,
+          8.888563
+        ],
+        "capacity": "5000 kW",
+        "evidence": [
+          "3.5 km from plant coordinates",
+          "same town: Mühlacker",
+          "capacity matches: 410 Nm³/h ≈ 5000 kW (ratio 1.22)",
+          "operator word overlap: muehlacker"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_278",
+      "plantName": "Münsingen",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_150",
+      "plantName": "Nauen / Neukammer 2",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Agro Biogasanlage Nauen GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 4226 (AG Potsdam)",
+        "unitId": "GEE983554511980",
+        "town": "Nauen",
+        "coordinates": [
+          52.591818,
+          12.855399
+        ],
+        "capacity": "7525 kW",
+        "evidence": [
+          "2.2 km from plant coordinates",
+          "same town: Nauen",
+          "capacity plausible: 500 Nm³/h vs 7525 kW",
+          "operator word overlap: nauen, neukammer"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_151",
+      "plantName": "Naundorf",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biomethan Produktion Raizen GmbH",
+        "operatorRegisterId": "HRB 204970 (AG Oldenburg)",
+        "unitId": "GEE936767769976",
+        "town": "Naundorf",
+        "coordinates": [
+          51.262718,
+          13.194444
+        ],
+        "capacity": "6085 kW",
+        "evidence": [
+          "0.6 km from plant coordinates",
+          "same town: Naundorf",
+          "capacity plausible: 1130 Nm³/h vs 6085 kW"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_152",
+      "plantName": "Neuburg-Steinhausen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogas Neuburg Steinhausen",
+        "operatorRegisterId": "HRA 204706 (AG Oldenburg)",
+        "unitId": "GEE924350849785",
+        "town": "Neuburg",
+        "coordinates": [
+          53.942623,
+          11.615398
+        ],
+        "capacity": "15120 kW",
+        "evidence": [
+          "1.5 km from plant coordinates",
+          "same town: Neuburg",
+          "operator word overlap: neuburg, steinhausen"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_153",
+      "plantName": "Neuenburg",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Biomethan Breisgau GmbH c/o AVRIO Energie GmbH",
+          "operatorRegisterId": "HRB 134759 (AG Frankfurt am Main)",
+          "unitId": "GEE991088525748",
+          "town": "Neuenburg",
+          "coordinates": [
+            47.892773,
+            7.608763
+          ],
+          "capacity": "7000 kW",
+          "evidence": [
+            "same town: Neuenburg",
+            "capacity matches: 750 Nm³/h ≈ 7000 kW (ratio 0.93)"
+          ]
+        },
+        {
+          "operatorName": "VORN Bioenergy BGA Brandis GmbH ＆ Co. KG",
+          "operatorRegisterId": "HRA 10374 (AG Regensburg)",
+          "unitId": "GEE929638143128",
+          "town": "Brandis",
+          "coordinates": [
+            51.333422,
+            12.647312
+          ],
+          "capacity": "8298 kW",
+          "evidence": [
+            "capacity matches: 750 Nm³/h ≈ 8298 kW (ratio 1.11)",
+            "operator word overlap: bioenergy"
+          ]
+        },
+        {
+          "operatorName": "VORN Bioenergy BGA Horn GmbH ＆ Co. KG",
+          "operatorRegisterId": "HRA 4395 (AG Lemgo)",
+          "unitId": "GEE904840609556",
+          "town": "Horn-Bad Meinberg",
+          "coordinates": [
+            51.882453,
+            8.947722
+          ],
+          "capacity": "10000 kW",
+          "evidence": [
+            "capacity matches: 750 Nm³/h ≈ 10000 kW (ratio 1.33)",
+            "operator word overlap: bioenergy"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_de_154",
+      "plantName": "Neuenburg",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biomethan Breisgau GmbH c/o AVRIO Energie GmbH",
+        "operatorRegisterId": "HRB 134759 (AG Frankfurt am Main)",
+        "unitId": "GEE991088525748",
+        "town": "Neuenburg",
+        "coordinates": [
+          47.892773,
+          7.608763
+        ],
+        "capacity": "7000 kW",
+        "evidence": [
+          "same town: Neuenburg",
+          "capacity matches: 580 Nm³/h ≈ 7000 kW (ratio 1.21)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_155",
+      "plantName": "Neuhardenberg",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_156",
+      "plantName": "Neuss am Niederrhein",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Königs Pflanzenenergie GmbH ＆ Co KG",
+        "operatorRegisterId": "HRA 6506 (AG Neuss)",
+        "unitId": "GEE982465113733",
+        "town": "Neuss",
+        "coordinates": [
+          51.140268,
+          6.688522
+        ],
+        "capacity": "2500 kW",
+        "evidence": [
+          "same town: Neuss",
+          "capacity matches: 330 Nm³/h ≈ 2500 kW (ratio 0.76)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_157",
+      "plantName": "Niederau",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "BIOREG Energy ＆ Recycling GmbH",
+        "operatorRegisterId": "HRB 34445 (AG Dresden)",
+        "unitId": "GEE902432320094",
+        "town": "Niederau",
+        "coordinates": [
+          51.198,
+          13.552
+        ],
+        "capacity": "5990 kW",
+        "evidence": [
+          "same town: Niederau",
+          "capacity matches: 520 Nm³/h ≈ 5990 kW (ratio 1.15)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_158",
+      "plantName": "Niederndodeleben I",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Bioraffinerie Magdeburg GmbH",
+          "operatorRegisterId": "HRB 7211 (AG Stendal)",
+          "unitId": "GEE920517672623",
+          "town": "Niederndodeleben",
+          "coordinates": [
+            52.148,
+            11.522
+          ],
+          "capacity": "7630 kW",
+          "evidence": [
+            "same town: Niederndodeleben",
+            "capacity matches: 1010 Nm³/h ≈ 7630 kW (ratio 0.76)",
+            "operator word overlap: niederndodeleben"
+          ]
+        },
+        {
+          "operatorName": "Bioraffinerie Magdeburg GmbH",
+          "operatorRegisterId": "HRB 7211 (AG Stendal)",
+          "unitId": "GEE970898595264",
+          "town": "Niederndodeleben",
+          "coordinates": [
+            52.149103,
+            11.533444
+          ],
+          "capacity": "7630 kW",
+          "evidence": [
+            "same town: Niederndodeleben",
+            "capacity matches: 1010 Nm³/h ≈ 7630 kW (ratio 0.76)",
+            "operator word overlap: niederndodeleben"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_de_159",
+      "plantName": "Niederndodeleben II",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Bioraffinerie Magdeburg GmbH",
+          "operatorRegisterId": "HRB 7211 (AG Stendal)",
+          "unitId": "GEE920517672623",
+          "town": "Niederndodeleben",
+          "coordinates": [
+            52.148,
+            11.522
+          ],
+          "capacity": "7630 kW",
+          "evidence": [
+            "same town: Niederndodeleben",
+            "capacity matches: 760 Nm³/h ≈ 7630 kW (ratio 1.00)",
+            "operator word overlap: niederndodeleben"
+          ]
+        },
+        {
+          "operatorName": "Bioraffinerie Magdeburg GmbH",
+          "operatorRegisterId": "HRB 7211 (AG Stendal)",
+          "unitId": "GEE970898595264",
+          "town": "Niederndodeleben",
+          "coordinates": [
+            52.149103,
+            11.533444
+          ],
+          "capacity": "7630 kW",
+          "evidence": [
+            "same town: Niederndodeleben",
+            "capacity matches: 760 Nm³/h ≈ 7630 kW (ratio 1.00)",
+            "operator word overlap: niederndodeleben"
+          ]
+        },
+        {
+          "operatorName": "BALANCE Erneuerbare Energien GmbH",
+          "operatorRegisterId": "HRB 33638 (AG Leipzig)",
+          "unitId": "GEE991115322692",
+          "town": "Kodersdorf",
+          "coordinates": [
+            51.228,
+            14.914
+          ],
+          "capacity": "7500 kW",
+          "evidence": [
+            "capacity matches: 760 Nm³/h ≈ 7500 kW (ratio 0.99)",
+            "operator word overlap: erneuerbare"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_de_160",
+      "plantName": "Niederröblingen",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_161",
+      "plantName": "Nonnendorf",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogas Produktion Nonnendorf GmbH ＆ Co.KG",
+        "operatorRegisterId": "HRA 6060P (AG Potsdam)",
+        "unitId": "GEE993787609644",
+        "town": "Niederer Fläming",
+        "coordinates": [
+          51.916416,
+          13.260505
+        ],
+        "capacity": "7490 kW",
+        "evidence": [
+          "unit name mentions town: 'BGAA Nonnendorf'",
+          "capacity plausible: 490 Nm³/h vs 7490 kW",
+          "operator word overlap: nonnendorf"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_162",
+      "plantName": "Nordgermersleben",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "DEL Biogas GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 2959 (AG Stendal)",
+        "unitId": "GEE986175346184",
+        "town": "Nordgermersleben",
+        "coordinates": [
+          52.21327,
+          11.337033
+        ],
+        "capacity": "9000 kW",
+        "evidence": [
+          "same town: Nordgermersleben",
+          "capacity matches: 980 Nm³/h ≈ 9000 kW (ratio 0.92)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_163",
+      "plantName": "Nordhausen (Bielen)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Energieversorgung Nordhausen - Biomethan GmbH",
+        "operatorRegisterId": "HRB 509438 (AG Jena)",
+        "unitId": "GEE950930288583",
+        "town": "Nordhausen",
+        "coordinates": [
+          51.490261,
+          10.834718
+        ],
+        "capacity": "3959 kW",
+        "evidence": [
+          "same town: Nordhausen",
+          "capacity matches: 460 Nm³/h ≈ 3959 kW (ratio 0.86)",
+          "operator word overlap: nordhausen"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_164",
+      "plantName": "Oberkrämer",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogas-Produktion Vehlefanz GmbH",
+        "operatorRegisterId": "HRB 9227NP (AG Neuruppin)",
+        "unitId": "GEE964590598517",
+        "town": "Oberkrämer",
+        "coordinates": [
+          52.710014,
+          13.11567
+        ],
+        "capacity": "7490 kW",
+        "evidence": [
+          "same town: Oberkrämer",
+          "capacity matches: 620 Nm³/h ≈ 7490 kW (ratio 1.21)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_165",
+      "plantName": "Oberriexingen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Stadtwerke Bietigheim-Bissingen GmbH",
+        "operatorRegisterId": "(AG Stuttgart)",
+        "unitId": "GEE982180123949",
+        "town": "Oberriexingen",
+        "coordinates": [
+          48.939267,
+          9.021729
+        ],
+        "capacity": "3855 kW",
+        "evidence": [
+          "same town: Oberriexingen",
+          "capacity plausible: 640 Nm³/h vs 3855 kW",
+          "operator word overlap: oberriexingen, stadtwerke"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_167",
+      "plantName": "Oebisfelde II",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "BALANCE Erneuerbare Energien GmbH",
+          "operatorRegisterId": "HRB 33638 (AG Leipzig)",
+          "unitId": "GEE977861356433",
+          "town": "Oebisfelde",
+          "coordinates": [
+            52.443722,
+            10.991414
+          ],
+          "capacity": "7490 kW",
+          "evidence": [
+            "same town: Oebisfelde",
+            "capacity plausible: 520 Nm³/h vs 7490 kW",
+            "operator word overlap: oebisfelde"
+          ]
+        },
+        {
+          "operatorName": "BALANCE Erneuerbare Energien GmbH",
+          "operatorRegisterId": "HRB 33638 (AG Leipzig)",
+          "unitId": "GEE939365965085",
+          "town": "Oebisfelde",
+          "coordinates": [
+            52.443722,
+            10.991414
+          ],
+          "capacity": "7490 kW",
+          "evidence": [
+            "same town: Oebisfelde",
+            "capacity plausible: 520 Nm³/h vs 7490 kW",
+            "operator word overlap: oebisfelde"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_de_166",
+      "plantName": "Oebisfelde-Weferlingen",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "BALANCE Erneuerbare Energien GmbH",
+          "operatorRegisterId": "HRB 33638 (AG Leipzig)",
+          "unitId": "GEE977861356433",
+          "town": "Oebisfelde",
+          "coordinates": [
+            52.443722,
+            10.991414
+          ],
+          "capacity": "7490 kW",
+          "evidence": [
+            "same town: Oebisfelde",
+            "capacity plausible: 1150 Nm³/h vs 7490 kW",
+            "operator word overlap: oebisfelde"
+          ]
+        },
+        {
+          "operatorName": "BALANCE Erneuerbare Energien GmbH",
+          "operatorRegisterId": "HRB 33638 (AG Leipzig)",
+          "unitId": "GEE939365965085",
+          "town": "Oebisfelde",
+          "coordinates": [
+            52.443722,
+            10.991414
+          ],
+          "capacity": "7490 kW",
+          "evidence": [
+            "same town: Oebisfelde",
+            "capacity plausible: 1150 Nm³/h vs 7490 kW",
+            "operator word overlap: oebisfelde"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_de_168",
+      "plantName": "Oschatz (Leuben)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "BALANCE Erneuerbare Energien GmbH",
+        "operatorRegisterId": "HRB 33638 (AG Leipzig)",
+        "unitId": "GEE927338952729",
+        "town": "Oschatz",
+        "coordinates": [
+          51.253336,
+          13.090737
+        ],
+        "capacity": "7745 kW",
+        "evidence": [
+          "same town: Oschatz",
+          "capacity matches: 760 Nm³/h ≈ 7745 kW (ratio 1.02)",
+          "operator word overlap: balance, energien, erneuerbare, oschatz"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_169",
+      "plantName": "Oschersleben",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bioraffinerie Hadmersleben GmbH",
+        "operatorRegisterId": "HRB 9752 (AG Stendal)",
+        "unitId": "GEE902177391205",
+        "town": "Oschersleben",
+        "coordinates": [
+          51.994922,
+          11.323798
+        ],
+        "capacity": "7630 kW",
+        "evidence": [
+          "same town: Oschersleben",
+          "capacity plausible: 560 Nm³/h vs 7630 kW"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_170",
+      "plantName": "Osterby",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biomethan Osterby GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 5412FL (AG Flensburg)",
+        "unitId": "GEE962670098056",
+        "town": "Osterby",
+        "coordinates": [
+          54.791363,
+          9.213894
+        ],
+        "capacity": "17250 kW",
+        "evidence": [
+          "same town: Osterby",
+          "capacity plausible: 1090 Nm³/h vs 17250 kW",
+          "operator word overlap: osterby",
+          "matched to same MaStR unit as plant_de_171 (duplicate census record)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_171",
+      "plantName": "Osterby",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biomethan Osterby GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 5412FL (AG Flensburg)",
+        "unitId": "GEE962670098056",
+        "town": "Osterby",
+        "coordinates": [
+          54.791363,
+          9.213894
+        ],
+        "capacity": "17250 kW",
+        "evidence": [
+          "same town: Osterby",
+          "operator word overlap: osterby",
+          "matched to same MaStR unit as plant_de_170 (duplicate census record)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_172",
+      "plantName": "Osterhofen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogas in Aicha",
+        "operatorRegisterId": "HRA 119290",
+        "unitId": "GEE904524802860",
+        "town": "Osterhofen",
+        "coordinates": [
+          48.724277,
+          12.983706
+        ],
+        "capacity": "7500 kW",
+        "evidence": [
+          "same town: Osterhofen",
+          "capacity plausible: 1190 Nm³/h vs 7500 kW"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_173",
+      "plantName": "Ostrach",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Energiepark Hahnennest GmbH & Co. KG",
+        "operatorRegisterId": "HRA 721914 (AG Ulm)",
+        "unitId": "GEE958237700128",
+        "town": "Ostrach",
+        "coordinates": [
+          47.920948,
+          9.323126
+        ],
+        "capacity": "7700 kW",
+        "evidence": [
+          "same town: Ostrach",
+          "capacity matches: 870 Nm³/h ≈ 7700 kW (ratio 0.89)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_174",
+      "plantName": "Ottersberg",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Alterric Biogas GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 203647 (AG Aurich)",
+        "unitId": "GEE954695077314",
+        "town": "Ottersberg",
+        "coordinates": [
+          53.123278,
+          9.148455
+        ],
+        "capacity": "7200 kW",
+        "evidence": [
+          "same town: Ottersberg",
+          "capacity plausible: 1120 Nm³/h vs 7200 kW",
+          "operator word overlap: ottersberg"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_175",
+      "plantName": "Pessin",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Aufwind BB GmbH ＆ Co. Sechsundzwanzigste Biogas KG",
+        "operatorRegisterId": "HRA 5804 (AG Stendal)",
+        "unitId": "GEE905168521605",
+        "town": "Pessin",
+        "coordinates": [
+          52.642976,
+          12.68547
+        ],
+        "capacity": "7590 kW",
+        "evidence": [
+          "same town: Pessin",
+          "capacity matches: 720 Nm³/h ≈ 7590 kW (ratio 1.05)",
+          "operator word overlap: pessin"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_279",
+      "plantName": "Pickließem",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "NAWARO-Energie Pickließem GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 31971 (AG Wittlich)",
+        "unitId": "GEE948521571008",
+        "town": "Pickließem",
+        "coordinates": [
+          49.988144,
+          6.658603
+        ],
+        "capacity": "3000 kW",
+        "evidence": [
+          "same town: Pickließem",
+          "operator word overlap: pickliessem"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_176",
+      "plantName": "Pirmasens-Winzeln",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_177",
+      "plantName": "Plaidt",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_177_2",
+      "plantName": "Plaidt",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_178",
+      "plantName": "Platten",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "NatürlichEnergie EMH GmbH",
+        "operatorRegisterId": "HRB 43212 (AG Wittlich)",
+        "unitId": "GEE922660517875",
+        "town": "Platten",
+        "coordinates": [
+          49.962042,
+          6.958666
+        ],
+        "capacity": "7840 kW",
+        "evidence": [
+          "same town: Platten",
+          "capacity plausible: 1080 Nm³/h vs 7840 kW",
+          "operator word overlap: platten"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_179",
+      "plantName": "Pliening",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Grüngold Biogasanlage Pliening KG",
+        "operatorRegisterId": "HRA 117860 (AG München)",
+        "unitId": "GEE996975330283",
+        "town": "Pliening",
+        "coordinates": [
+          48.209964,
+          11.782087
+        ],
+        "capacity": "7590 kW",
+        "evidence": [
+          "same town: Pliening",
+          "capacity matches: 910 Nm³/h ≈ 7590 kW (ratio 0.83)",
+          "operator word overlap: pliening"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_281",
+      "plantName": "Preußisch Oldendorf",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_180",
+      "plantName": "Rackwitz",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Rackwitzer Biogas GmbH",
+        "operatorRegisterId": "HRB 27820 (AG Leipzig)",
+        "unitId": "GEE941375791349",
+        "town": "Rackwitz",
+        "coordinates": [
+          51.441053,
+          12.395006
+        ],
+        "capacity": "8851 kW",
+        "evidence": [
+          "same town: Rackwitz",
+          "capacity matches: 1060 Nm³/h ≈ 8851 kW (ratio 0.83)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_181",
+      "plantName": "Ramstein-Miesenbach",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "ABO Kraft ＆ Wärme Ramstein GmbH＆ Co. KG",
+        "operatorRegisterId": "HRA 10240 (AG Wiesbaden)",
+        "unitId": "GEE987460501677",
+        "town": "Ramstein-Miesenbach",
+        "coordinates": [
+          49.440901,
+          7.527706
+        ],
+        "capacity": "4066 kW",
+        "evidence": [
+          "same town: Ramstein-Miesenbach",
+          "operator word overlap: ramstein"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_182",
+      "plantName": "Rathenow",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "GreenGas Produktionsanlage Rathenow GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 3482P (AG Potsdam)",
+        "unitId": "GEE993154838639",
+        "town": "Rathenow",
+        "coordinates": [
+          52.568414,
+          12.336283
+        ],
+        "capacity": "7420 kW",
+        "evidence": [
+          "same town: Rathenow",
+          "capacity plausible: 1310 Nm³/h vs 7420 kW",
+          "operator word overlap: rathenow"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_184",
+      "plantName": "Reimlingen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Carbon CO2ncepts GmbH",
+        "operatorRegisterId": "HRB 279364 (AG München)",
+        "unitId": "GEE956724153822",
+        "town": "Reimlingen",
+        "coordinates": [
+          48.83,
+          10.514
+        ],
+        "capacity": "7400 kW",
+        "evidence": [
+          "same town: Reimlingen",
+          "capacity matches: 750 Nm³/h ≈ 7400 kW (ratio 0.99)",
+          "operator word overlap: reimlingen"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_185",
+      "plantName": "Rhede",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_186",
+      "plantName": "Rheine",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_187",
+      "plantName": "Riedlingen-Daugendorf",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Erdgas Südwest GmbH",
+        "operatorRegisterId": "HRB 105621 (AG Mannheim)",
+        "unitId": "GEE905459257879",
+        "town": "Riedlingen",
+        "coordinates": [
+          48.174397,
+          9.480477
+        ],
+        "capacity": "8200 kW",
+        "evidence": [
+          "1.1 km from plant coordinates",
+          "same town: Riedlingen",
+          "capacity plausible: 1390 Nm³/h vs 8200 kW",
+          "operator word overlap: riedlingen"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_188",
+      "plantName": "Ronnenberg",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_189",
+      "plantName": "Rosche",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "uegas GmbH ＆ Co.KG",
+        "operatorRegisterId": "HRA 201125 (AG Lüneburg)",
+        "unitId": "GEE971925479908",
+        "town": "Rosche",
+        "coordinates": [
+          52.994836,
+          10.763886
+        ],
+        "capacity": "3500 kW",
+        "evidence": [
+          "1.2 km from plant coordinates",
+          "same town: Rosche",
+          "operator word overlap: rosche"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_190",
+      "plantName": "Rosendahl",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Gesellschaft des Kreises Coesfeld zur Förderung regenerativer Energien mbH",
+        "operatorRegisterId": "HRB 13402 (AG Coesfeld)",
+        "unitId": "GEE990349869652",
+        "town": "Rosendahl",
+        "coordinates": [
+          51.978943,
+          7.154649
+        ],
+        "capacity": "3745 kW",
+        "evidence": [
+          "5.4 km from plant coordinates",
+          "same town: Rosendahl"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_192",
+      "plantName": "Rostock, OT Peez",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Veolia Umweltservice Nord GmbH",
+        "operatorRegisterId": "HRB 99491 (AG Hamburg)",
+        "unitId": "GEE951809976037",
+        "town": "Rostock",
+        "coordinates": [
+          54.144321,
+          12.139804
+        ],
+        "capacity": "3675 kW",
+        "evidence": [
+          "same town: Rostock",
+          "operator word overlap: rostock"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_191",
+      "plantName": "Roßwein/Haßlau",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "SachsenEnergie AG",
+        "operatorRegisterId": "HRB 965 (AG Dresden)",
+        "unitId": "GEE943743014852",
+        "town": "Roßwein",
+        "coordinates": [
+          51.104073,
+          13.188064
+        ],
+        "capacity": "7420 kW",
+        "evidence": [
+          "2.8 km from plant coordinates",
+          "same town: Roßwein",
+          "capacity matches: 580 Nm³/h ≈ 7420 kW (ratio 1.28)",
+          "operator word overlap: hasslau"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_183",
+      "plantName": "Rätzlingen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogasraffinerie Rätzlingen GmbH",
+        "operatorRegisterId": "HRB 9800 (AG Stendal)",
+        "unitId": "GEE949349463742",
+        "town": "Rätzlingen",
+        "coordinates": [
+          52.407442,
+          11.127472
+        ],
+        "capacity": "3800 kW",
+        "evidence": [
+          "same town: Rätzlingen",
+          "operator word overlap: raetzlingen"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_193",
+      "plantName": "Sachsendorf II",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogas Sachsendorf",
+        "operatorRegisterId": "HRA 202521 (AG Oldenburg)",
+        "unitId": "GEE968929729511",
+        "town": "Sachsendorf",
+        "coordinates": [
+          51.883005,
+          11.849189
+        ],
+        "capacity": "3780 kW",
+        "evidence": [
+          "2.2 km from plant coordinates",
+          "same town: Sachsendorf",
+          "operator word overlap: sachsendorf"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_194",
+      "plantName": "Sagard (Rügen)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Alterric Biogas GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 203647 (AG Aurich)",
+        "unitId": "GEE950135490699",
+        "town": "Sagard",
+        "coordinates": [
+          54.523733,
+          13.538661
+        ],
+        "capacity": "6510 kW",
+        "evidence": [
+          "1.2 km from plant coordinates",
+          "same town: Sagard",
+          "capacity plausible: 1300 Nm³/h vs 6510 kW",
+          "operator word overlap: ruegen"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_195",
+      "plantName": "Salgen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Kerler Energie GmbH ＆ Co. KG",
+        "operatorRegisterId": null,
+        "unitId": "GEE973310609082",
+        "town": "Salgen",
+        "coordinates": [
+          48.115345,
+          10.47565
+        ],
+        "capacity": "5250 kW",
+        "evidence": [
+          "1.3 km from plant coordinates",
+          "same town: Salgen",
+          "capacity matches: 590 Nm³/h ≈ 5250 kW (ratio 0.89)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_282",
+      "plantName": "Sankt Augustin",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Rhein-Sieg-Abfallwirtschaftsgesellschaft mbH",
+        "operatorRegisterId": "HRB 1799 (AG Siegburg)",
+        "unitId": "GEE961000048563",
+        "town": "Sankt Augustin",
+        "coordinates": [
+          50.771572,
+          7.232958
+        ],
+        "capacity": "3270 kW",
+        "evidence": [
+          "same town: Sankt Augustin",
+          "capacity plausible: 440 Nm³/h vs 3270 kW"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_196",
+      "plantName": "Satuelle",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "BALANCE Erneuerbare Energien GmbH",
+          "operatorRegisterId": "HRB 33638 (AG Leipzig)",
+          "unitId": "GEE946264567432",
+          "town": "Satuelle",
+          "coordinates": [
+            52.327846,
+            11.38168
+          ],
+          "capacity": "7490 kW",
+          "evidence": [
+            "2.0 km from plant coordinates",
+            "same town: Satuelle",
+            "capacity matches: 790 Nm³/h ≈ 7490 kW (ratio 0.95)",
+            "operator word overlap: satuelle"
+          ]
+        },
+        {
+          "operatorName": "BALANCE Erneuerbare Energien GmbH",
+          "operatorRegisterId": "HRB 33638 (AG Leipzig)",
+          "unitId": "GEE934997384877",
+          "town": "Satuelle",
+          "coordinates": [
+            52.327846,
+            11.38168
+          ],
+          "capacity": "7490 kW",
+          "evidence": [
+            "2.0 km from plant coordinates",
+            "same town: Satuelle",
+            "capacity matches: 790 Nm³/h ≈ 7490 kW (ratio 0.95)",
+            "operator word overlap: satuelle"
+          ]
+        },
+        {
+          "operatorName": "Agrarenergie Vahldorf GmbH ＆ Co. KG",
+          "operatorRegisterId": "HRA 6171 (AG Stendal)",
+          "unitId": "GEE939475232596",
+          "town": "Vahldorf",
+          "coordinates": [
+            52.254571,
+            11.48875
+          ],
+          "capacity": "8217 kW",
+          "evidence": [
+            "12.0 km from plant coordinates",
+            "capacity matches: 790 Nm³/h ≈ 8217 kW (ratio 1.04)"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_de_197",
+      "plantName": "Satuelle",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "BALANCE Erneuerbare Energien GmbH",
+          "operatorRegisterId": "HRB 33638 (AG Leipzig)",
+          "unitId": "GEE946264567432",
+          "town": "Satuelle",
+          "coordinates": [
+            52.327846,
+            11.38168
+          ],
+          "capacity": "7490 kW",
+          "evidence": [
+            "2.0 km from plant coordinates",
+            "same town: Satuelle",
+            "operator word overlap: satuelle"
+          ]
+        },
+        {
+          "operatorName": "BALANCE Erneuerbare Energien GmbH",
+          "operatorRegisterId": "HRB 33638 (AG Leipzig)",
+          "unitId": "GEE934997384877",
+          "town": "Satuelle",
+          "coordinates": [
+            52.327846,
+            11.38168
+          ],
+          "capacity": "7490 kW",
+          "evidence": [
+            "2.0 km from plant coordinates",
+            "same town: Satuelle",
+            "operator word overlap: satuelle"
+          ]
+        },
+        {
+          "operatorName": "Biogs Pool 2 für Stadtwerke",
+          "operatorRegisterId": "HRA 3421 (AG Hamm)",
+          "unitId": "GEE900560517256",
+          "town": "Bahrdorf",
+          "coordinates": [
+            52.375381,
+            11.047896
+          ],
+          "capacity": "3790 kW",
+          "evidence": [
+            "23.7 km from plant coordinates",
+            "capacity matches: 320 Nm³/h ≈ 3790 kW (ratio 1.18)"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_de_198",
+      "plantName": "Schillingen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Marx ＆ Wahlen Agrar GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 41432 (AG Wittlich)",
+        "unitId": "GEE938646211149",
+        "town": "Schillingen",
+        "coordinates": [
+          49.645632,
+          6.790806
+        ],
+        "capacity": "2200 kW",
+        "evidence": [
+          "1.2 km from plant coordinates",
+          "same town: Schillingen"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_200",
+      "plantName": "Schuby",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bioenergie Schuby GmbH",
+        "operatorRegisterId": "HRB 15453 (AG Fürth)",
+        "unitId": "GEE954985669588",
+        "town": "Schuby",
+        "coordinates": [
+          54.524826,
+          9.461755
+        ],
+        "capacity": "10750 kW",
+        "evidence": [
+          "1.5 km from plant coordinates",
+          "same town: Schuby",
+          "capacity matches: 970 Nm³/h ≈ 10750 kW (ratio 1.11)",
+          "operator word overlap: schuby"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_201",
+      "plantName": "Schwaigern",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Carbon CO2ncepts GmbH",
+        "operatorRegisterId": "HRB 279364 (AG München)",
+        "unitId": "GEE968055210983",
+        "town": "Schwaigern",
+        "coordinates": [
+          49.134807,
+          9.082267
+        ],
+        "capacity": "3700 kW",
+        "evidence": [
+          "2.0 km from plant coordinates",
+          "same town: Schwaigern",
+          "operator word overlap: schwaigern"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_202",
+      "plantName": "Schwandorf",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bioerdgas Schwandorf GmbH",
+        "operatorRegisterId": "HRB 3964 (AG Amberg)",
+        "unitId": "GEE942524854557",
+        "town": "Schwandorf",
+        "coordinates": [
+          49.303,
+          12.08
+        ],
+        "capacity": "11650 kW",
+        "evidence": [
+          "1.4 km from plant coordinates",
+          "same town: Schwandorf",
+          "operator word overlap: schwandorf"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_203",
+      "plantName": "Schwarme",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Alterric Biogas GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 203647 (AG Aurich)",
+        "unitId": "GEE926290293956",
+        "town": "Schwarme",
+        "coordinates": [
+          52.902672,
+          9.005326
+        ],
+        "capacity": "3700 kW",
+        "evidence": [
+          "1.0 km from plant coordinates",
+          "same town: Schwarme",
+          "capacity plausible: 510 Nm³/h vs 3700 kW",
+          "operator word overlap: schwarme"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_204",
+      "plantName": "Schwarzenfeld",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "BG Bio-Energie GmbH",
+        "operatorRegisterId": "HRB 6769 (AG Amberg)",
+        "unitId": "GEE942482430107",
+        "town": "Schwarzenfeld",
+        "coordinates": [
+          49.371019,
+          12.117207
+        ],
+        "capacity": "12760 kW",
+        "evidence": [
+          "2.0 km from plant coordinates",
+          "same town: Schwarzenfeld",
+          "capacity matches: 980 Nm³/h ≈ 12760 kW (ratio 1.30)",
+          "operator word overlap: schwarzenfeld"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_199",
+      "plantName": "Schöpstal",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "BALANCE Erneuerbare Energien GmbH",
+        "operatorRegisterId": "HRB 33638 (AG Leipzig)",
+        "unitId": "GEE982870966818",
+        "town": "Schöpstal",
+        "coordinates": [
+          51.216697,
+          14.946543
+        ],
+        "capacity": "7500 kW",
+        "evidence": [
+          "4.9 km from plant coordinates",
+          "same town: Schöpstal",
+          "capacity matches: 890 Nm³/h ≈ 7500 kW (ratio 0.84)",
+          "operator word overlap: schoepstal"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_207",
+      "plantName": "Seedorf-Godenstedt",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "HPP Biogas GmbH",
+        "operatorRegisterId": "HRB 202560 (AG Tostedt)",
+        "unitId": "GEE988720343822",
+        "town": "Seedorf",
+        "coordinates": [
+          53.329401,
+          9.218404
+        ],
+        "capacity": "3430 kW",
+        "evidence": [
+          "2.9 km from plant coordinates",
+          "same town: Seedorf",
+          "capacity plausible: 540 Nm³/h vs 3430 kW"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_208",
+      "plantName": "Seegebiet Mansfelder Land",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biomethan Produktion Erdeborn GmbH",
+        "operatorRegisterId": "HRB 9480NP (AG Neuruppin)",
+        "unitId": "GEE971654452678",
+        "town": "Seegebiet Mansfelder Land",
+        "coordinates": [
+          51.485309,
+          11.616144
+        ],
+        "capacity": "6085 kW",
+        "evidence": [
+          "4.5 km from plant coordinates",
+          "same town: Seegebiet Mansfelder Land",
+          "capacity matches: 690 Nm³/h ≈ 6085 kW (ratio 0.88)",
+          "matched to same MaStR unit as plant_de_209 (duplicate census record)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_209",
+      "plantName": "Seegebiet Mansfelder Land",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biomethan Produktion Erdeborn GmbH",
+        "operatorRegisterId": "HRB 9480NP (AG Neuruppin)",
+        "unitId": "GEE971654452678",
+        "town": "Seegebiet Mansfelder Land",
+        "coordinates": [
+          51.485309,
+          11.616144
+        ],
+        "capacity": "6085 kW",
+        "evidence": [
+          "4.5 km from plant coordinates",
+          "same town: Seegebiet Mansfelder Land",
+          "capacity plausible: 430 Nm³/h vs 6085 kW",
+          "matched to same MaStR unit as plant_de_208 (duplicate census record)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_210",
+      "plantName": "Seelow",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Biogas Produktion Seelow GmbH",
+          "operatorRegisterId": "HRB 12451FF (AG Frankfurt/Oder)",
+          "unitId": "GEE927407689112",
+          "town": "Seelow",
+          "coordinates": [
+            52.54714,
+            14.423383
+          ],
+          "capacity": "7490 kW",
+          "evidence": [
+            "3.4 km from plant coordinates",
+            "same town: Seelow",
+            "capacity matches: 980 Nm³/h ≈ 7490 kW (ratio 0.76)",
+            "operator word overlap: seelow"
+          ]
+        },
+        {
+          "operatorName": "Biogas Produktion Seelow GmbH",
+          "operatorRegisterId": "HRB 12451FF (AG Frankfurt/Oder)",
+          "unitId": "GEE976218999132",
+          "town": "Seelow",
+          "coordinates": [
+            52.547318,
+            14.423745
+          ],
+          "capacity": "7490 kW",
+          "evidence": [
+            "3.4 km from plant coordinates",
+            "same town: Seelow",
+            "capacity matches: 980 Nm³/h ≈ 7490 kW (ratio 0.76)",
+            "operator word overlap: seelow"
+          ]
+        },
+        {
+          "operatorName": "BKW Pillgram GmbH ＆ Co. KG",
+          "operatorRegisterId": "HRA 2696 (AG Frankfurt/Oder)",
+          "unitId": "GEE938363246851",
+          "town": "Jacobsdorf",
+          "coordinates": [
+            52.319825,
+            14.379786
+          ],
+          "capacity": "7742 kW",
+          "evidence": [
+            "23.6 km from plant coordinates",
+            "capacity matches: 980 Nm³/h ≈ 7742 kW (ratio 0.79)"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_de_211",
+      "plantName": "Seelow",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Biogas Produktion Seelow GmbH",
+          "operatorRegisterId": "HRB 12451FF (AG Frankfurt/Oder)",
+          "unitId": "GEE927407689112",
+          "town": "Seelow",
+          "coordinates": [
+            52.54714,
+            14.423383
+          ],
+          "capacity": "7490 kW",
+          "evidence": [
+            "3.4 km from plant coordinates",
+            "same town: Seelow",
+            "capacity matches: 610 Nm³/h ≈ 7490 kW (ratio 1.23)",
+            "operator word overlap: seelow"
+          ]
+        },
+        {
+          "operatorName": "Biogas Produktion Seelow GmbH",
+          "operatorRegisterId": "HRB 12451FF (AG Frankfurt/Oder)",
+          "unitId": "GEE976218999132",
+          "town": "Seelow",
+          "coordinates": [
+            52.547318,
+            14.423745
+          ],
+          "capacity": "7490 kW",
+          "evidence": [
+            "3.4 km from plant coordinates",
+            "same town: Seelow",
+            "capacity matches: 610 Nm³/h ≈ 7490 kW (ratio 1.23)",
+            "operator word overlap: seelow"
+          ]
+        },
+        {
+          "operatorName": "MTB-Biogas Agrar GmbH",
+          "operatorRegisterId": "HRB 873 (AG Frankfurt/Oder)",
+          "unitId": "GEE919961773987",
+          "town": "Neuhardenberg",
+          "coordinates": [
+            52.588584,
+            14.288798
+          ],
+          "capacity": "3745 kW",
+          "evidence": [
+            "8.9 km from plant coordinates",
+            "capacity plausible: 610 Nm³/h vs 3745 kW"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_de_212",
+      "plantName": "Sinsheim",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "AVR BioGas GmbH",
+        "operatorRegisterId": "HRB 725000 (AG Mannheim)",
+        "unitId": "GEE973882975684",
+        "town": "Sinsheim",
+        "coordinates": [
+          49.27139,
+          8.885936
+        ],
+        "capacity": "5400 kW",
+        "evidence": [
+          "4.2 km from plant coordinates",
+          "same town: Sinsheim",
+          "capacity matches: 400 Nm³/h ≈ 5400 kW (ratio 1.35)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_213",
+      "plantName": "Soltau",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biomethan Soltau GmbH",
+        "operatorRegisterId": "HRB 208125 (AG Lüneburg)",
+        "unitId": "GEE995220174719",
+        "town": "Soltau",
+        "coordinates": [
+          52.950889,
+          9.777668
+        ],
+        "capacity": "8470 kW",
+        "evidence": [
+          "5.6 km from plant coordinates",
+          "same town: Soltau",
+          "operator word overlap: soltau"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_214",
+      "plantName": "Sonnenstein",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "EW Eichsfeldgas GmbH",
+        "operatorRegisterId": "(AG Jena)",
+        "unitId": "GEE903911771543",
+        "town": "Sonnenstein",
+        "coordinates": [
+          51.520514,
+          10.455091
+        ],
+        "capacity": "3815 kW",
+        "evidence": [
+          "2.2 km from plant coordinates",
+          "same town: Sonnenstein"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_283",
+      "plantName": "Spremberg",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "ASG Spremberg GmbH",
+        "operatorRegisterId": "HRB 1925 (AG Cottbus)",
+        "unitId": "GEE966143723506",
+        "town": "Spremberg",
+        "coordinates": [
+          51.529297,
+          14.368063
+        ],
+        "capacity": "10700 kW",
+        "evidence": [
+          "same town: Spremberg",
+          "capacity matches: 1270 Nm³/h ≈ 10700 kW (ratio 0.84)",
+          "operator word overlap: spremberg"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_215",
+      "plantName": "Staßfurt",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "MVV Biomethan GmbH",
+        "operatorRegisterId": "HRB 27915 (AG Stendal)",
+        "unitId": "GEE914504605350",
+        "town": "Staßfurt",
+        "coordinates": [
+          51.859562,
+          11.598427
+        ],
+        "capacity": "7500 kW",
+        "evidence": [
+          "1.0 km from plant coordinates",
+          "same town: Staßfurt",
+          "capacity plausible: 1340 Nm³/h vs 7500 kW",
+          "operator word overlap: stassfurt"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_216",
+      "plantName": "Steinhöfel",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "BKW Beerfelde GmbH ＆Co. KG",
+        "operatorRegisterId": "HRB 15007 (AG Frankfurt/Oder)",
+        "unitId": "GEE989256056323",
+        "town": "Steinhöfel",
+        "coordinates": [
+          52.446228,
+          14.081704
+        ],
+        "capacity": "7742 kW",
+        "evidence": [
+          "7.6 km from plant coordinates",
+          "same town: Steinhöfel",
+          "capacity matches: 960 Nm³/h ≈ 7742 kW (ratio 0.81)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_217",
+      "plantName": "Straelen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "MaStR Operator ABR927867263068",
+        "operatorRegisterId": null,
+        "unitId": "GEE920242367788",
+        "town": "Straelen",
+        "coordinates": [
+          51.431,
+          6.291
+        ],
+        "capacity": "5670 kW",
+        "evidence": [
+          "2.1 km from plant coordinates",
+          "same town: Straelen",
+          "operator word overlap: straelen"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_218",
+      "plantName": "Stralsund",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "SWS Natur GmbH",
+        "operatorRegisterId": "HRB 8355 (AG Stralsund)",
+        "unitId": "GEE990576040145",
+        "town": "Stralsund",
+        "coordinates": [
+          54.287684,
+          13.084554
+        ],
+        "capacity": "3850 kW",
+        "evidence": [
+          "2.4 km from plant coordinates",
+          "same town: Stralsund"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_219",
+      "plantName": "Stresow",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "biogeen BGA Stresow GmbH",
+        "operatorRegisterId": "HRB 12294 (AG Münster)",
+        "unitId": "GEE900126760591",
+        "town": "Stresow",
+        "coordinates": [
+          52.260913,
+          12.037972
+        ],
+        "capacity": "7490 kW",
+        "evidence": [
+          "1.6 km from plant coordinates",
+          "same town: Stresow",
+          "capacity matches: 870 Nm³/h ≈ 7490 kW (ratio 0.86)",
+          "operator word overlap: stresow"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_220",
+      "plantName": "Tangstedt/Bützberg",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "MVR Müllverwertung Rugenberger Damm GmbH",
+        "operatorRegisterId": "HRB 175566 (AG Hamburg)",
+        "unitId": "GEE948368163404",
+        "town": "Tangstedt",
+        "coordinates": [
+          53.725057,
+          10.102501
+        ],
+        "capacity": "3850 kW",
+        "evidence": [
+          "1.6 km from plant coordinates",
+          "same town: Tangstedt",
+          "capacity plausible: 680 Nm³/h vs 3850 kW",
+          "operator word overlap: buetzberg"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_221",
+      "plantName": "Tauberbischofsheim",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "EnBW Biogas GmbH",
+        "operatorRegisterId": "HRB 19195 (AG Stuttgart)",
+        "unitId": "GEE921644850922",
+        "town": "Tauberbischofsheim",
+        "coordinates": [
+          49.452651,
+          9.887671
+        ],
+        "capacity": "4510 kW",
+        "evidence": [
+          "24.9 km from plant coordinates",
+          "same town: Tauberbischofsheim",
+          "capacity plausible: 900 Nm³/h vs 4510 kW"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_223",
+      "plantName": "Teutschenthal",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogas Produktion Holleben GmbH",
+        "operatorRegisterId": "HRB 22324 (AG Stendal)",
+        "unitId": "GEE919189020405",
+        "town": "Teutschenthal",
+        "coordinates": [
+          51.437293,
+          11.853007
+        ],
+        "capacity": "8851 kW",
+        "evidence": [
+          "3.9 km from plant coordinates",
+          "same town: Teutschenthal",
+          "capacity plausible: 620 Nm³/h vs 8851 kW"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_224",
+      "plantName": "Torgelow",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biomethan Produktion Torgelow GmbH",
+        "operatorRegisterId": "HRB 120104 (AG Hamburg)",
+        "unitId": "GEE974206966357",
+        "town": "Torgelow",
+        "coordinates": [
+          53.636781,
+          13.98683
+        ],
+        "capacity": "7500 kW",
+        "evidence": [
+          "1.8 km from plant coordinates",
+          "same town: Torgelow",
+          "capacity matches: 900 Nm³/h ≈ 7500 kW (ratio 0.83)",
+          "operator word overlap: torgelow",
+          "matched to same MaStR unit as plant_de_225 (duplicate census record)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_225",
+      "plantName": "Torgelow 2",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biomethan Produktion Torgelow GmbH",
+        "operatorRegisterId": "HRB 120104 (AG Hamburg)",
+        "unitId": "GEE974206966357",
+        "town": "Torgelow",
+        "coordinates": [
+          53.636781,
+          13.98683
+        ],
+        "capacity": "7500 kW",
+        "evidence": [
+          "same town: Torgelow",
+          "capacity matches: 770 Nm³/h ≈ 7500 kW (ratio 0.97)",
+          "operator word overlap: torgelow",
+          "matched to same MaStR unit as plant_de_224 (duplicate census record)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_226",
+      "plantName": "Trebbin",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "EBI II Biomethan GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 129056 (AG Hamburg)",
+        "unitId": "GEE901816207792",
+        "town": "Trebbin",
+        "coordinates": [
+          52.189752,
+          13.241535
+        ],
+        "capacity": "3745 kW",
+        "evidence": [
+          "3.4 km from plant coordinates",
+          "same town: Trebbin",
+          "operator word overlap: trebbin"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_227",
+      "plantName": "Treben",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "BALANCE Erneuerbare Energien GmbH",
+        "operatorRegisterId": "HRB 33638 (AG Leipzig)",
+        "unitId": "GEE979414476094",
+        "town": "Treben",
+        "coordinates": [
+          51.043513,
+          12.412122
+        ],
+        "capacity": "6880 kW",
+        "evidence": [
+          "2.9 km from plant coordinates",
+          "same town: Treben",
+          "capacity plausible: 1160 Nm³/h vs 6880 kW"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_228",
+      "plantName": "Trebsen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogas Trebsen",
+        "operatorRegisterId": "HRB 794564 (AG Münster)",
+        "unitId": "GEE991683692302",
+        "town": "Trebsen",
+        "coordinates": [
+          51.28,
+          12.767
+        ],
+        "capacity": "7745 kW",
+        "evidence": [
+          "1.5 km from plant coordinates",
+          "same town: Trebsen",
+          "capacity plausible: 570 Nm³/h vs 7745 kW",
+          "operator word overlap: trebsen",
+          "matched to same MaStR unit as plant_de_284 (duplicate census record)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_284",
+      "plantName": "Trebsen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogas Trebsen",
+        "operatorRegisterId": "HRB 794564 (AG Münster)",
+        "unitId": "GEE991683692302",
+        "town": "Trebsen",
+        "coordinates": [
+          51.28,
+          12.767
+        ],
+        "capacity": "7745 kW",
+        "evidence": [
+          "1.5 km from plant coordinates",
+          "same town: Trebsen",
+          "capacity matches: 640 Nm³/h ≈ 7745 kW (ratio 1.21)",
+          "operator word overlap: trebsen",
+          "matched to same MaStR unit as plant_de_228 (duplicate census record)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_229",
+      "plantName": "Uchte",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Green Energy GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 201334 (AG Walsrode)",
+        "unitId": "GEE922420685080",
+        "town": "Uchte",
+        "coordinates": [
+          52.482565,
+          8.89735
+        ],
+        "capacity": "7305 kW",
+        "evidence": [
+          "1.9 km from plant coordinates",
+          "same town: Uchte",
+          "capacity matches: 610 Nm³/h ≈ 7305 kW (ratio 1.20)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_231",
+      "plantName": "Vahldorf/Jersleben",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Agrarenergie Vahldorf GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 6171 (AG Stendal)",
+        "unitId": "GEE939475232596",
+        "town": "Vahldorf",
+        "coordinates": [
+          52.254571,
+          11.48875
+        ],
+        "capacity": "8217 kW",
+        "evidence": [
+          "0.6 km from plant coordinates",
+          "same town: Vahldorf",
+          "capacity plausible: 1300 Nm³/h vs 8217 kW",
+          "operator word overlap: vahldorf"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_232",
+      "plantName": "Vettweiß",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Agrarenergie Vettweiß GmbH",
+        "operatorRegisterId": "HRB 202672 (AG Osnabrück)",
+        "unitId": "GEE954458780697",
+        "town": "Vettweiß",
+        "coordinates": [
+          50.74518,
+          6.6094
+        ],
+        "capacity": "7812 kW",
+        "evidence": [
+          "1.1 km from plant coordinates",
+          "same town: Vettweiß",
+          "capacity plausible: 1130 Nm³/h vs 7812 kW",
+          "operator word overlap: vettweiss"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_233",
+      "plantName": "Viöl",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biomethan Viöl",
+        "operatorRegisterId": "HRB 14098 (AG Flensburg)",
+        "unitId": "GEE949854998302",
+        "town": "Viöl",
+        "coordinates": [
+          54.559479,
+          9.168191
+        ],
+        "capacity": "5500 kW",
+        "evidence": [
+          "1.1 km from plant coordinates",
+          "same town: Viöl",
+          "capacity plausible: 790 Nm³/h vs 5500 kW",
+          "operator word overlap: vioel"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_234",
+      "plantName": "Völpke",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_235",
+      "plantName": "Walchum",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "BioMethan Terhorst GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 204120 (AG Osnabrück)",
+        "unitId": "GEE941719261620",
+        "town": "Walchum",
+        "coordinates": [
+          52.914778,
+          7.230843
+        ],
+        "capacity": "600 kW",
+        "evidence": [
+          "3.2 km from plant coordinates",
+          "same town: Walchum"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_236",
+      "plantName": "Wanzleben-Börde",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "MVV Biomethan GmbH",
+        "operatorRegisterId": "HRB 27915 (AG Stendal)",
+        "unitId": "GEE978188011708",
+        "town": "Wanzleben-Börde",
+        "coordinates": [
+          52.068101,
+          11.387916
+        ],
+        "capacity": "7500 kW",
+        "evidence": [
+          "2.4 km from plant coordinates",
+          "same town: Wanzleben-Börde",
+          "capacity matches: 950 Nm³/h ≈ 7500 kW (ratio 0.79)",
+          "operator word overlap: wanzleben"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_237",
+      "plantName": "Werlte",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Alterric Biogas GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 203647 (AG Aurich)",
+        "unitId": "GEE968121987009",
+        "town": "Werlte",
+        "coordinates": [
+          52.87057,
+          7.672014
+        ],
+        "capacity": "7350 kW",
+        "evidence": [
+          "2.1 km from plant coordinates",
+          "same town: Werlte",
+          "capacity matches: 880 Nm³/h ≈ 7350 kW (ratio 0.84)",
+          "operator word overlap: werlte"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_238",
+      "plantName": "Westheim",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Stadtwerke Bietigheim-Bissingen GmbH",
+        "operatorRegisterId": "(AG Stuttgart)",
+        "unitId": "GEE905197937477",
+        "town": "Westheim",
+        "coordinates": [
+          49.227602,
+          8.319527
+        ],
+        "capacity": "6600 kW",
+        "evidence": [
+          "same town: Westheim",
+          "capacity matches: 500 Nm³/h ≈ 6600 kW (ratio 1.32)",
+          "operator word overlap: westheim"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_239",
+      "plantName": "Wetschen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogas Wetscher Bruch GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 100720 (AG Walsrode)",
+        "unitId": "GEE928215961735",
+        "town": "Wetschen",
+        "coordinates": [
+          52.57041,
+          8.434616
+        ],
+        "capacity": "6930 kW",
+        "evidence": [
+          "5.0 km from plant coordinates",
+          "same town: Wetschen",
+          "capacity matches: 730 Nm³/h ≈ 6930 kW (ratio 0.95)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_240",
+      "plantName": "Willingshausen/Ransbach",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Schwälmer Biogas GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 4429 (AG Marburg)",
+        "unitId": "GEE916203948950",
+        "town": "Willingshausen",
+        "coordinates": [
+          50.891612,
+          9.206692
+        ],
+        "capacity": "3789 kW",
+        "evidence": [
+          "3.4 km from plant coordinates",
+          "same town: Willingshausen"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_241",
+      "plantName": "Wittenburg",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Danpower Biomasse GmbH",
+        "operatorRegisterId": "HRB 19761P (AG Potsdam)",
+        "unitId": "GEE997286775831",
+        "town": "Wittenburg",
+        "coordinates": [
+          53.512,
+          11.088
+        ],
+        "capacity": "3700 kW",
+        "evidence": [
+          "0.7 km from plant coordinates",
+          "same town: Wittenburg",
+          "capacity plausible: 600 Nm³/h vs 3700 kW",
+          "operator word overlap: danpower, wittenburg"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_243",
+      "plantName": "Wittendörp",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "ASVK Erste Energie",
+        "operatorRegisterId": "HRA 25442 (AG Bremen)",
+        "unitId": "GEE983712663575",
+        "town": "Wittendörp",
+        "coordinates": [
+          53.530323,
+          11.051678
+        ],
+        "capacity": "7700 kW",
+        "evidence": [
+          "2.6 km from plant coordinates",
+          "same town: Wittendörp",
+          "capacity plausible: 1270 Nm³/h vs 7700 kW"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_245",
+      "plantName": "Wolnzach (Hallertau)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bioerdgas Hallertau GmbH",
+        "operatorRegisterId": "HRB 5727 (AG Ingolstadt)",
+        "unitId": "GEE963490237526",
+        "town": "Wolnzach",
+        "coordinates": [
+          48.626,
+          11.691
+        ],
+        "capacity": "14000 kW",
+        "evidence": [
+          "5.4 km from plant coordinates",
+          "same town: Wolnzach",
+          "capacity matches: 1160 Nm³/h ≈ 14000 kW (ratio 1.21)",
+          "operator word overlap: hallertau, wolnzach"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_247",
+      "plantName": "Wriezen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "biogeen BGA Zwei GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 8516 (AG Münster)",
+        "unitId": "GEE907329466992",
+        "town": "Wriezen",
+        "coordinates": [
+          52.736644,
+          14.128769
+        ],
+        "capacity": "7490 kW",
+        "evidence": [
+          "2.3 km from plant coordinates",
+          "same town: Wriezen",
+          "capacity matches: 680 Nm³/h ≈ 7490 kW (ratio 1.10)",
+          "operator word overlap: wriezen"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_244",
+      "plantName": "Wölfersheim",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biogas Oberhessen GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 4289 (AG Friedberg (Hessen))",
+        "unitId": "GEE996344312353",
+        "town": "Wölfersheim",
+        "coordinates": [
+          50.422361,
+          8.845743
+        ],
+        "capacity": "7000 kW",
+        "evidence": [
+          "2.5 km from plant coordinates",
+          "same town: Wölfersheim",
+          "capacity plausible: 1330 Nm³/h vs 7000 kW",
+          "operator word overlap: woelfersheim"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_246",
+      "plantName": "Wörth",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Papierfabrik Palm GmbH ＆ Co. KG",
+        "operatorRegisterId": "HRA 501010 (AG Ulm)",
+        "unitId": "GEE995000467352",
+        "town": "Wörth",
+        "coordinates": [
+          49.068,
+          8.302
+        ],
+        "capacity": "10000 kW",
+        "evidence": [
+          "same town: Wörth",
+          "capacity plausible: 690 Nm³/h vs 10000 kW",
+          "operator word overlap: woerth"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_248",
+      "plantName": "Wüsting / Hude",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "VORN Bioenergy BGA Brandis GmbH ＆ Co. KG",
+          "operatorRegisterId": "HRA 10374 (AG Regensburg)",
+          "unitId": "GEE929638143128",
+          "town": "Brandis",
+          "coordinates": [
+            51.333422,
+            12.647312
+          ],
+          "capacity": "8298 kW",
+          "evidence": [
+            "capacity matches: 750 Nm³/h ≈ 8298 kW (ratio 1.11)",
+            "operator word overlap: bioenergy"
+          ]
+        },
+        {
+          "operatorName": "VORN Bioenergy BGA Horn GmbH ＆ Co. KG",
+          "operatorRegisterId": "HRA 4395 (AG Lemgo)",
+          "unitId": "GEE904840609556",
+          "town": "Horn-Bad Meinberg",
+          "coordinates": [
+            51.882453,
+            8.947722
+          ],
+          "capacity": "10000 kW",
+          "evidence": [
+            "capacity matches: 750 Nm³/h ≈ 10000 kW (ratio 1.33)",
+            "operator word overlap: bioenergy"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_de_249",
+      "plantName": "Zerbst",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bioraffinerie Zerbst GmbH",
+        "operatorRegisterId": "HRB 18712 (AG Stendal)",
+        "unitId": "GEE907246967619",
+        "town": "Zerbst",
+        "coordinates": [
+          52.004,
+          12.133
+        ],
+        "capacity": "7630 kW",
+        "evidence": [
+          "same town: Zerbst",
+          "capacity matches: 610 Nm³/h ≈ 7630 kW (ratio 1.25)",
+          "operator word overlap: zerbst"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_250",
+      "plantName": "Zernin",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Lauenburgische Energiegenossenschaft eG",
+        "operatorRegisterId": "GnR 240 (AG Lübeck)",
+        "unitId": "GEE938351437605",
+        "town": "Zernin",
+        "coordinates": [
+          53.789669,
+          11.930884
+        ],
+        "capacity": "7490 kW",
+        "evidence": [
+          "same town: Zernin",
+          "capacity matches: 940 Nm³/h ≈ 7490 kW (ratio 0.80)",
+          "operator word overlap: zernin",
+          "matched to same MaStR unit as plant_de_251 (duplicate census record)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_251",
+      "plantName": "Zernin",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Lauenburgische Energiegenossenschaft eG",
+        "operatorRegisterId": "GnR 240 (AG Lübeck)",
+        "unitId": "GEE938351437605",
+        "town": "Zernin",
+        "coordinates": [
+          53.789669,
+          11.930884
+        ],
+        "capacity": "7490 kW",
+        "evidence": [
+          "same town: Zernin",
+          "operator word overlap: zernin",
+          "matched to same MaStR unit as plant_de_250 (duplicate census record)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_252",
+      "plantName": "Zeven",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_253",
+      "plantName": "Zeven 2",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_254",
+      "plantName": "Zittau",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Biomethan Zittau GmbH",
+        "operatorRegisterId": "HRB 28251 (AG Dresden)",
+        "unitId": "GEE936765211132",
+        "town": "Zittau",
+        "coordinates": [
+          50.887091,
+          14.819185
+        ],
+        "capacity": "5900 kW",
+        "evidence": [
+          "same town: Zittau",
+          "capacity plausible: 1040 Nm³/h vs 5900 kW",
+          "operator word overlap: zittau"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_255",
+      "plantName": "Zörbig",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "VERBIO Zörbig GmbH",
+        "operatorRegisterId": "HRB 27960 (AG Stendal)",
+        "unitId": "GEE945529728953",
+        "town": "Zörbig",
+        "coordinates": [
+          51.376,
+          12.85
+        ],
+        "capacity": "33192 kW",
+        "evidence": [
+          "same town: Zörbig",
+          "operator word overlap: zoerbig"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_de_256",
+      "plantName": "Zülpich",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    }
+  ]
+}

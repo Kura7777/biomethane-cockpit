@@ -12,6 +12,7 @@ import {
   Scale,
   ShieldCheck,
   Anchor,
+  SlidersHorizontal,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -40,6 +41,7 @@ export const SIDEBAR_ITEMS: NavItem[] = [
   { to: '/pricing', label: 'Pricing Desk', keyHint: '5', icon: FileSpreadsheet },
   { to: '/connectors', label: 'Data Connectors', keyHint: 'K', icon: Zap },
   { to: '/data-sources', label: 'Data Sources', keyHint: '7', icon: Database },
+  { to: '/assumptions', label: 'Assumptions', keyHint: 'A', icon: SlidersHorizontal },
 ];
 
 /**
@@ -62,6 +64,7 @@ export const WORKSPACE_TABS: NavItem[] = [
   { to: '/registries', label: 'Registries', keyHint: 'G', icon: ShieldCheck },
   { to: '/citations', label: 'Citations', keyHint: 'C', icon: Scale },
   { to: '/data-sources', label: 'Sources', keyHint: '7', icon: Database },
+  { to: '/assumptions', label: 'Assumptions', keyHint: 'A', icon: SlidersHorizontal },
 ];
 
 export function getPageTitle(pathname: string): string {

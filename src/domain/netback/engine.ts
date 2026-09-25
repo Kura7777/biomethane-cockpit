@@ -21,6 +21,7 @@ import {
   FUELEU_TARGET_2030,
   bioLngFuelEUIntensity,
 } from '../fueleu/calculator';
+import { getAssumption } from '../assumptions/registry';
 
 /**
  * FuelEU Maritime Reference Constants (Regulation (EU) 2023/1805)
@@ -674,7 +675,7 @@ export function computeNetback(
   const originHub = HUB_BASIS_SPREADS[consignment.originCountry] || { basisSpreadToTtfEurMwh: 0.0 };
   const targetHub = HUB_BASIS_SPREADS[market.country] || { basisSpreadToTtfEurMwh: 0.0 };
   const basisDifferentialEurMwh = Number((targetHub.basisSpreadToTtfEurMwh - originHub.basisSpreadToTtfEurMwh).toFixed(2));
-  const dealVolume = consignment.volumeMWh ?? 10000;
+  const dealVolume = consignment.volumeMWh ?? getAssumption('risk.illustrativeVolumeMwh');
   const basisRiskNotionalEur = Math.round(Math.abs(basisDifferentialEurMwh) * dealVolume);
 
   let statutoryCeilingEurMwh: number | null = null;
@@ -684,8 +685,9 @@ export function computeNetback(
     statutoryCeilingEurMwh = Number((DE_THG_PENALTY_EUR_PER_TCO2E * tCO2ePerMWh(consignment.carbonIntensity)).toFixed(2));
   }
 
-  const effectiveCeiling = statutoryCeilingEurMwh ?? (netNetback !== null ? Math.max(120, netNetback * 1.5) : 120);
-  const effectiveProcurement = producerPayable ?? (molVal ? molVal + 25 : 58);
+  const ceilingFloor = getAssumption('risk.replacementCeilingFloorEurPerMwh');
+  const effectiveCeiling = statutoryCeilingEurMwh ?? (netNetback !== null ? Math.max(ceilingFloor, netNetback * getAssumption('risk.replacementCeilingNetbackMultiple')) : ceilingFloor);
+  const effectiveProcurement = producerPayable ?? (molVal ? molVal + getAssumption('risk.fallbackProcurementPremiumEurPerMwh') : getAssumption('risk.fallbackProcurementEurPerMwh'));
   const replacementCostExposureEur = Math.round(Math.max(0, effectiveCeiling - effectiveProcurement) * dealVolume);
 
   let germanCliffImpactEurMwh: number | null = null;
@@ -706,8 +708,8 @@ export function computeNetback(
 
   let clearingPriceWarning: string | null = null;
   const bundleBenchmark = consignment.observedBundlePriceEurPerMwh ?? (
-    market.id === 'DE_THG' && consignment.carbonIntensity <= -80 ? 147.0 :
-    market.id === 'DE_THG' && consignment.carbonIntensity <= 0 ? 120.0 :
+    market.id === 'DE_THG' && consignment.carbonIntensity <= -80 ? getAssumption('risk.deThgBundleRefNeg80EurPerMwh') :
+    market.id === 'DE_THG' && consignment.carbonIntensity <= 0 ? getAssumption('risk.deThgBundleRefNeg0EurPerMwh') :
     null
   );
   if (bundleBenchmark !== null && netNetback !== null && netNetback > bundleBenchmark) {

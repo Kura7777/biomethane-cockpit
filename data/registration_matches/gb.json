@@ -1,0 +1,2449 @@
+{
+  "countryCode": "GB",
+  "source": "UK Department for Energy Security and Net Zero (DESNZ) Renewable Energy Planning Database (REPD Q2 2026)",
+  "checkedAt": "2026-09-26",
+  "results": [
+    {
+      "plantId": "plant_uk_85",
+      "plantName": "Minworth",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_7",
+      "plantName": "Aylesbury",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_28",
+      "plantName": "Coleshill, Warwickshire",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Severn Trent Water",
+        "operatorRegisterId": "REPD Ref #256 (DESNZ / Ofgem)",
+        "unitId": "REPD_256",
+        "town": "Warwickshire",
+        "coordinates": [
+          52.51862,
+          -1.71017
+        ],
+        "capacity": "2.4 MWelec",
+        "evidence": [
+          "2.2 km from plant coordinates",
+          "site/town match: 'coleshill' in Coleshill STW (Waste AD)",
+          "county match: Warwickshire",
+          "capacity: 2.4 MWelec",
+          "Postcode: B46 1DA"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_1",
+      "plantName": "Aberdeen",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_2",
+      "plantName": "Aberford",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_3",
+      "plantName": "Andover, Hampshire",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_4",
+      "plantName": "Angus, Scotland",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_5",
+      "plantName": "Arreton",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Wight Farm Energy",
+        "operatorRegisterId": "REPD Ref #327 (DESNZ / Ofgem)",
+        "unitId": "REPD_327",
+        "town": "Isle of Wight",
+        "coordinates": [
+          50.67504,
+          -1.25091
+        ],
+        "capacity": "2.2 MWelec",
+        "evidence": [
+          "site/town match: 'arreton' in Gore Cross - AD",
+          "capacity: 2.2 MWelec",
+          "Postcode: PO30 3A"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_6",
+      "plantName": "Aspatria",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "First Milk Cheese Company",
+        "operatorRegisterId": "REPD Ref #5516 (DESNZ / Ofgem)",
+        "unitId": "REPD_5516",
+        "town": "Cumbria",
+        "coordinates": [
+          54.75805,
+          -3.32951
+        ],
+        "capacity": "5 MWelec",
+        "evidence": [
+          "site/town match: 'aspatria' in Aspatria Creamery",
+          "capacity: 5 MWelec",
+          "Postcode: CA7 2AR"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_120",
+      "plantName": "Attleborough",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Privelage Finance Ltd / Attleborough AD Plant Limited",
+        "operatorRegisterId": "REPD Ref #7590 (DESNZ / Ofgem)",
+        "unitId": "REPD_7590",
+        "town": "Norfolk",
+        "coordinates": [
+          52.52056,
+          0.99688
+        ],
+        "capacity": "1 MWelec",
+        "evidence": [
+          "site/town match: 'attleborough' in Attleborough Ad Plant Limited - Anaerobic Digestion Facility Expansion",
+          "operator word overlap: attleborough",
+          "capacity: 1 MWelec",
+          "Postcode: NR17 1AE"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_8",
+      "plantName": "Banffshire",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_9",
+      "plantName": "Basingstoke",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Thames Water Utilities",
+          "operatorRegisterId": "REPD Ref #6054 (DESNZ / Ofgem)",
+          "unitId": "REPD_6054",
+          "town": "Hampshire",
+          "coordinates": [
+            51.29114,
+            -1.03282
+          ],
+          "capacity": "1.2 MWelec",
+          "evidence": [
+            "site/town match: 'basingstoke' in Basingstoke Sewage Treatment Works",
+            "capacity: 1.2 MWelec",
+            "Postcode: RG24 8LL"
+          ]
+        },
+        {
+          "operatorName": "RKE Bio Group Limited",
+          "operatorRegisterId": "REPD Ref #11246 (DESNZ / Ofgem)",
+          "unitId": "REPD_11246",
+          "town": "Hampshire",
+          "coordinates": [
+            51.2156,
+            -1.05895
+          ],
+          "capacity": null,
+          "evidence": [
+            "site/town match: 'basingstoke' in Bushywarren Lane, Ellisfield - Anaerobic Digestor Plant",
+            "Postcode: RG25 2NS"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_uk_10",
+      "plantName": "Beccles",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_11",
+      "plantName": "Birchington-on-Sea",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_12",
+      "plantName": "Bishop's Cleeve",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_13",
+      "plantName": "Bonby",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Zebec Energy",
+        "operatorRegisterId": "REPD Ref #4876 (DESNZ / Ofgem)",
+        "unitId": "REPD_4876",
+        "town": "Humberside",
+        "coordinates": [
+          53.63438,
+          -0.46424
+        ],
+        "capacity": "1.5 MWelec",
+        "evidence": [
+          "site/town match: 'bonby' in Bonby Lane",
+          "operator word overlap: energy",
+          "capacity: 1.5 MWelec",
+          "Postcode: DN20 0QN"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_14",
+      "plantName": "Brackley",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_15",
+      "plantName": "Bridgnorth",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Swancote Energy",
+        "operatorRegisterId": "REPD Ref #5323 (DESNZ / Ofgem)",
+        "unitId": "REPD_5323",
+        "town": "Shropshire",
+        "coordinates": [
+          52.54236,
+          -2.37997
+        ],
+        "capacity": "1.2 MWelec",
+        "evidence": [
+          "site/town match: 'bridgnorth' in Swancote Farm",
+          "operator word overlap: energy",
+          "capacity: 1.2 MWelec",
+          "Postcode: WV15 5HB"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_16",
+      "plantName": "Bridgwater",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Cannington Bioenergy",
+          "operatorRegisterId": "REPD Ref #277 (DESNZ / Ofgem)",
+          "unitId": "REPD_277",
+          "town": "Somerset",
+          "coordinates": [
+            51.14388,
+            -3.09564
+          ],
+          "capacity": "3.3 MWelec",
+          "evidence": [
+            "site/town match: 'bridgwater' in Cannington Cold Stores",
+            "capacity: 3.3 MWelec",
+            "Postcode: TA5 2NJ"
+          ]
+        },
+        {
+          "operatorName": "Viridor",
+          "operatorRegisterId": "REPD Ref #317 (DESNZ / Ofgem)",
+          "unitId": "REPD_317",
+          "town": "Somerset",
+          "coordinates": [
+            51.18339,
+            -2.98161
+          ],
+          "capacity": "1.6 MWelec",
+          "evidence": [
+            "site/town match: 'bridgwater' in Walpole Landfill AD (Waste AD)",
+            "capacity: 1.6 MWelec"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_uk_17",
+      "plantName": "Brind",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_18",
+      "plantName": "Brinklow",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_19",
+      "plantName": "Bristol",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Energy Works / The Spencer Group",
+          "operatorRegisterId": "REPD Ref #290 (DESNZ / Ofgem)",
+          "unitId": "REPD_290",
+          "town": "Humberside",
+          "coordinates": [
+            53.75829,
+            -0.32872
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "operator word overlap: energy",
+            "capacity: 3 MWelec"
+          ]
+        },
+        {
+          "operatorName": "Biogen (formerly Tamar Energy)",
+          "operatorRegisterId": "REPD Ref #311 (DESNZ / Ofgem)",
+          "unitId": "REPD_311",
+          "town": "Hertfordshire",
+          "coordinates": [
+            51.76662,
+            0.00191
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "operator word overlap: energy",
+            "capacity: 3 MWelec",
+            "Postcode: EN11 0RG"
+          ]
+        },
+        {
+          "operatorName": "GENeco",
+          "operatorRegisterId": "REPD Ref #232 (DESNZ / Ofgem)",
+          "unitId": "REPD_232",
+          "town": "Avon",
+          "coordinates": [
+            51.51231,
+            -2.66871
+          ],
+          "capacity": "10 MWelec",
+          "evidence": [
+            "site/town match: 'bristol' in Bristol STW (Waste AD)",
+            "capacity: 10 MWelec",
+            "Postcode: BS11 0YS"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_uk_20",
+      "plantName": "Buckie",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Grissan Renewable Energy",
+        "operatorRegisterId": "REPD Ref #11249 (DESNZ / Ofgem)",
+        "unitId": "REPD_11249",
+        "town": "Grampian",
+        "coordinates": [
+          57.66294,
+          -3.01442
+        ],
+        "capacity": null,
+        "evidence": [
+          "site/town match: 'buckie' in Portgordon - Anaerobic Digestion Tanks",
+          "Postcode: AB56 5RA"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_21",
+      "plantName": "Burton Joyce",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Energy Works / The Spencer Group",
+          "operatorRegisterId": "REPD Ref #290 (DESNZ / Ofgem)",
+          "unitId": "REPD_290",
+          "town": "Humberside",
+          "coordinates": [
+            53.75829,
+            -0.32872
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "operator word overlap: energy",
+            "capacity: 3 MWelec"
+          ]
+        },
+        {
+          "operatorName": "Biogen (formerly Tamar Energy)",
+          "operatorRegisterId": "REPD Ref #311 (DESNZ / Ofgem)",
+          "unitId": "REPD_311",
+          "town": "Hertfordshire",
+          "coordinates": [
+            51.76662,
+            0.00191
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "operator word overlap: energy",
+            "capacity: 3 MWelec",
+            "Postcode: EN11 0RG"
+          ]
+        },
+        {
+          "operatorName": "Severn Trent Water",
+          "operatorRegisterId": "REPD Ref #213 (DESNZ / Ofgem)",
+          "unitId": "REPD_213",
+          "town": "Nottinghamshire",
+          "coordinates": [
+            52.97561,
+            -1.03802
+          ],
+          "capacity": "2 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "capacity: 2 MWelec"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_uk_22",
+      "plantName": "Chippenham",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "A J Butler & Sons Ltd",
+        "operatorRegisterId": "REPD Ref #5652 (DESNZ / Ofgem)",
+        "unitId": "REPD_5652",
+        "town": "Wiltshire",
+        "coordinates": [
+          51.39125,
+          -2.03595
+        ],
+        "capacity": "1.5 MWelec",
+        "evidence": [
+          "site/town match: 'chippenham' in Bromham House Farm",
+          "capacity: 1.5 MWelec",
+          "Postcode: SN15 2DX"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_23",
+      "plantName": "Chittering, Cambridgeshire",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_24",
+      "plantName": "Chittering, Cambridgeshire",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_121",
+      "plantName": "Christchurch (Bournemouth)",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_25",
+      "plantName": "Cleveland",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Energy Works / The Spencer Group",
+        "operatorRegisterId": "REPD Ref #290 (DESNZ / Ofgem)",
+        "unitId": "REPD_290",
+        "town": "Humberside",
+        "coordinates": [
+          53.75829,
+          -0.32872
+        ],
+        "capacity": "3 MWelec",
+        "evidence": [
+          "site/town match: 'cleveland' in Energy Works Hull - AD (Waste AD)",
+          "operator word overlap: energy",
+          "capacity: 3 MWelec"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_26",
+      "plantName": "Clyst St Mary",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Greener For Life Energy",
+        "operatorRegisterId": "REPD Ref #6390 (DESNZ / Ofgem)",
+        "unitId": "REPD_6390",
+        "town": "Devon",
+        "coordinates": [
+          50.70717,
+          -3.43942
+        ],
+        "capacity": "2 MWelec",
+        "evidence": [
+          "site/town match: 'clyst st mary' in Enfield Farm",
+          "capacity: 2 MWelec",
+          "Postcode: EX5 1AF"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_27",
+      "plantName": "Colchester",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_29",
+      "plantName": "Coupar Angus",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_30",
+      "plantName": "Coventry",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_31",
+      "plantName": "Cramlington",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_32",
+      "plantName": "Cranleigh",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Energy Works / The Spencer Group",
+          "operatorRegisterId": "REPD Ref #290 (DESNZ / Ofgem)",
+          "unitId": "REPD_290",
+          "town": "Humberside",
+          "coordinates": [
+            53.75829,
+            -0.32872
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "operator word overlap: energy",
+            "capacity: 3 MWelec"
+          ]
+        },
+        {
+          "operatorName": "Biogen (formerly Tamar Energy)",
+          "operatorRegisterId": "REPD Ref #311 (DESNZ / Ofgem)",
+          "unitId": "REPD_311",
+          "town": "Hertfordshire",
+          "coordinates": [
+            51.76662,
+            0.00191
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "operator word overlap: energy",
+            "capacity: 3 MWelec",
+            "Postcode: EN11 0RG"
+          ]
+        },
+        {
+          "operatorName": "Severn Trent Water",
+          "operatorRegisterId": "REPD Ref #213 (DESNZ / Ofgem)",
+          "unitId": "REPD_213",
+          "town": "Nottinghamshire",
+          "coordinates": [
+            52.97561,
+            -1.03802
+          ],
+          "capacity": "2 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "capacity: 2 MWelec"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_uk_33",
+      "plantName": "Cullompton",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Greener for Life Energy",
+        "operatorRegisterId": "REPD Ref #5748 (DESNZ / Ofgem)",
+        "unitId": "REPD_5748",
+        "town": "Devon",
+        "coordinates": [
+          50.89173,
+          -3.37889
+        ],
+        "capacity": "2 MWelec",
+        "evidence": [
+          "site/town match: 'cullompton' in Willand AD",
+          "capacity: 2 MWelec",
+          "Postcode: EX15 2PJ"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_34",
+      "plantName": "Cumbernauld",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Shanks Group",
+          "operatorRegisterId": "REPD Ref #211 (DESNZ / Ofgem)",
+          "unitId": "REPD_211",
+          "town": "Strathclyde",
+          "coordinates": [
+            55.97048,
+            -3.9562
+          ],
+          "capacity": "2.4 MWelec",
+          "evidence": [
+            "site/town match: 'cumbernauld' in Cumbernauld BioPlant  (Waste AD)",
+            "capacity: 2.4 MWelec"
+          ]
+        },
+        {
+          "operatorName": "Bio Capital Limited",
+          "operatorRegisterId": "REPD Ref #231 (DESNZ / Ofgem)",
+          "unitId": "REPD_231",
+          "town": "Strathclyde",
+          "coordinates": [
+            55.96975,
+            -3.95672
+          ],
+          "capacity": "2.4 MWelec",
+          "evidence": [
+            "site/town match: 'cumbernauld' in Energen biogas Cumbernauld",
+            "capacity: 2.4 MWelec",
+            "Postcode: G67 3EN"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_uk_35",
+      "plantName": "Derby",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_36",
+      "plantName": "Doncaster",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Prosper Demulder / ReFood",
+          "operatorRegisterId": "REPD Ref #242 (DESNZ / Ofgem)",
+          "unitId": "REPD_242",
+          "town": "South Yorkshire",
+          "coordinates": [
+            53.53666,
+            -1.13586
+          ],
+          "capacity": "2 MWelec",
+          "evidence": [
+            "site/town match: 'doncaster' in Prosper Demulder Limited Anaerobic Digestion Plant (Waste AD)",
+            "capacity: 2 MWelec",
+            "Postcode: DN5 9SW"
+          ]
+        },
+        {
+          "operatorName": "Prosper Demulder / ReFood",
+          "operatorRegisterId": "REPD Ref #307 (DESNZ / Ofgem)",
+          "unitId": "REPD_307",
+          "town": "South Yorkshire",
+          "coordinates": [
+            53.53666,
+            -1.13586
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site/town match: 'doncaster' in Prosper Demulder Limited Anaerobic Digestion Plant (Waste AD) - extension",
+            "capacity: 3 MWelec",
+            "Postcode: DN5 9SW"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_uk_37",
+      "plantName": "Dorchester, Dorset",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Eco Sustainable Solutions",
+        "operatorRegisterId": "REPD Ref #366 (DESNZ / Ofgem)",
+        "unitId": "REPD_366",
+        "town": "Dorset",
+        "coordinates": [
+          50.77654,
+          -2.39283
+        ],
+        "capacity": "1.1 MWelec",
+        "evidence": [
+          "site/town match: 'dorchester' in Bourne Park AD (AD)",
+          "county match: Dorset",
+          "capacity: 1.1 MWelec",
+          "Postcode: DT2 7TU"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_38",
+      "plantName": "Driffield",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_39",
+      "plantName": "Driffield",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_40",
+      "plantName": "Dufftown",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "William Grant and Sons Distillers",
+        "operatorRegisterId": "REPD Ref #7477 (DESNZ / Ofgem)",
+        "unitId": "REPD_7477",
+        "town": "Moray",
+        "coordinates": [
+          57.45511,
+          -3.12149
+        ],
+        "capacity": "1.5 MWelec",
+        "evidence": [
+          "site/town match: 'dufftown' in Glenfiddich Distillery",
+          "capacity: 1.5 MWelec",
+          "Postcode: AB55 4DH"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_41",
+      "plantName": "Dumfries",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Private Developer",
+        "operatorRegisterId": "REPD Ref #359 (DESNZ / Ofgem)",
+        "unitId": "REPD_359",
+        "town": "Dumfries and Galloway",
+        "coordinates": [
+          55.09505,
+          -3.53229
+        ],
+        "capacity": "1.2 MWelec",
+        "evidence": [
+          "site/town match: 'dumfries' in West Roucan Farm",
+          "capacity: 1.2 MWelec"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_42",
+      "plantName": "Dungannon",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Energy Works / The Spencer Group",
+          "operatorRegisterId": "REPD Ref #290 (DESNZ / Ofgem)",
+          "unitId": "REPD_290",
+          "town": "Humberside",
+          "coordinates": [
+            53.75829,
+            -0.32872
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "operator word overlap: energy",
+            "capacity: 3 MWelec"
+          ]
+        },
+        {
+          "operatorName": "Biogen (formerly Tamar Energy)",
+          "operatorRegisterId": "REPD Ref #311 (DESNZ / Ofgem)",
+          "unitId": "REPD_311",
+          "town": "Hertfordshire",
+          "coordinates": [
+            51.76662,
+            0.00191
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "operator word overlap: energy",
+            "capacity: 3 MWelec",
+            "Postcode: EN11 0RG"
+          ]
+        },
+        {
+          "operatorName": "Granville Ecopark",
+          "operatorRegisterId": "REPD Ref #301 (DESNZ / Ofgem)",
+          "unitId": "REPD_301",
+          "town": "Co. Tyrone",
+          "coordinates": [
+            54.49093,
+            -6.8112
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site/town match: 'dungannon' in Granville Ecopark",
+            "capacity: 3 MWelec",
+            "Postcode: BT70 1NJ"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_uk_43",
+      "plantName": "Eastchurch",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_122",
+      "plantName": "Ellon area",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_44",
+      "plantName": "Ellon, Aberdeenshire",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Brewdog Limited",
+        "operatorRegisterId": "REPD Ref #11248 (DESNZ / Ofgem)",
+        "unitId": "REPD_11248",
+        "town": "Grampian",
+        "coordinates": [
+          57.37102,
+          -2.04847
+        ],
+        "capacity": "3.5 MWelec",
+        "evidence": [
+          "site/town match: 'ellon' in Balmcassie Commercial Park - Anaerobic digestion plant",
+          "capacity: 3.5 MWelec",
+          "Postcode: AB41"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_46",
+      "plantName": "Essex",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_47",
+      "plantName": "Euston",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_48",
+      "plantName": "Fakenham",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_49",
+      "plantName": "Farley Hill, Berkshire",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_50",
+      "plantName": "Fife",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "RM Brown & Son Ltd",
+        "operatorRegisterId": "REPD Ref #5899 (DESNZ / Ofgem)",
+        "unitId": "REPD_5899",
+        "town": "Fife",
+        "coordinates": [
+          56.17833,
+          -3.21012
+        ],
+        "capacity": "2 MWelec",
+        "evidence": [
+          "site/town match: 'fife' in Inchdairnie",
+          "capacity: 2 MWelec",
+          "Postcode: KY5 0UL",
+          "matched to same REPD unit as plant_uk_56 (duplicate census record)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_51",
+      "plantName": "Fladbury",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_123",
+      "plantName": "Friskney area",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_52",
+      "plantName": "Frittenden",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Fridays & Rika Biofuels",
+        "operatorRegisterId": "REPD Ref #5561 (DESNZ / Ofgem)",
+        "unitId": "REPD_5561",
+        "town": "Kent",
+        "coordinates": [
+          51.1411,
+          0.56562
+        ],
+        "capacity": "2 MWelec",
+        "evidence": [
+          "site/town match: 'frittenden' in Knoxbridge Farm",
+          "capacity: 2 MWelec",
+          "Postcode: TN17 2BT"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_53",
+      "plantName": "Gainsborough, Lincolnshire",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_54",
+      "plantName": "Girvan",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_55",
+      "plantName": "Glasgow",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Scottish Water Solutions",
+          "operatorRegisterId": "REPD Ref #210 (DESNZ / Ofgem)",
+          "unitId": "REPD_210",
+          "town": "Strathclyde",
+          "coordinates": [
+            55.97048,
+            -3.9562
+          ],
+          "capacity": "1 MWelec",
+          "evidence": [
+            "site/town match: 'glasgow' in Deerdykes Composting and Organics Recycling Facility (Waste AD)",
+            "capacity: 1 MWelec",
+            "Postcode: G67 3EN"
+          ]
+        },
+        {
+          "operatorName": "Bio Capital Limited",
+          "operatorRegisterId": "REPD Ref #231 (DESNZ / Ofgem)",
+          "unitId": "REPD_231",
+          "town": "Strathclyde",
+          "coordinates": [
+            55.96975,
+            -3.95672
+          ],
+          "capacity": "2.4 MWelec",
+          "evidence": [
+            "site/town match: 'glasgow' in Energen biogas Cumbernauld",
+            "capacity: 2.4 MWelec",
+            "Postcode: G67 3EN"
+          ]
+        },
+        {
+          "operatorName": "Viridor",
+          "operatorRegisterId": "REPD Ref #286 (DESNZ / Ofgem)",
+          "unitId": "REPD_286",
+          "town": "Strathclyde",
+          "coordinates": [
+            55.83407,
+            -4.24345
+          ],
+          "capacity": "5 MWelec",
+          "evidence": [
+            "site/town match: 'glasgow' in Glasgow Renewable Energy and Recycling Centre (Waste AD)",
+            "capacity: 5 MWelec",
+            "Postcode: G42 0PJ"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_uk_56",
+      "plantName": "Glenrothes",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "RM Brown & Son Ltd",
+        "operatorRegisterId": "REPD Ref #5899 (DESNZ / Ofgem)",
+        "unitId": "REPD_5899",
+        "town": "Fife",
+        "coordinates": [
+          56.17833,
+          -3.21012
+        ],
+        "capacity": "2 MWelec",
+        "evidence": [
+          "site/town match: 'glenrothes' in Inchdairnie",
+          "capacity: 2 MWelec",
+          "Postcode: KY5 0UL",
+          "matched to same REPD unit as plant_uk_50 (duplicate census record)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_57",
+      "plantName": "Grantham",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_124",
+      "plantName": "Haddington",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Pure Malt Products Limited",
+        "operatorRegisterId": "REPD Ref #333 (DESNZ / Ofgem)",
+        "unitId": "REPD_333",
+        "town": "Lothian",
+        "coordinates": [
+          55.95666,
+          -2.76922
+        ],
+        "capacity": "1.5 MWelec",
+        "evidence": [
+          "site/town match: 'haddington' in Pure Malt Products AD",
+          "capacity: 1.5 MWelec",
+          "Postcode: EH41 4BD"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_58",
+      "plantName": "Hampton Bishop",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_59",
+      "plantName": "Hibaldstow",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_60",
+      "plantName": "Higher Fraddon",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_61",
+      "plantName": "Horton Kirby",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_62",
+      "plantName": "Ilkeston",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Stanton Energy Limited",
+        "operatorRegisterId": "REPD Ref #9510 (DESNZ / Ofgem)",
+        "unitId": "REPD_9510",
+        "town": "Derbyshire",
+        "coordinates": [
+          52.94819,
+          -1.28609
+        ],
+        "capacity": null,
+        "evidence": [
+          "site/town match: 'ilkeston' in Crompton Road, Ilkeston - Anaerobic Digestion Plant",
+          "Postcode: DE7 4BG",
+          "matched to same REPD unit as plant_uk_63 (duplicate census record)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_63",
+      "plantName": "Ilkeston",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Stanton Energy Limited",
+        "operatorRegisterId": "REPD Ref #9510 (DESNZ / Ofgem)",
+        "unitId": "REPD_9510",
+        "town": "Derbyshire",
+        "coordinates": [
+          52.94819,
+          -1.28609
+        ],
+        "capacity": null,
+        "evidence": [
+          "site/town match: 'ilkeston' in Crompton Road, Ilkeston - Anaerobic Digestion Plant",
+          "Postcode: DE7 4BG",
+          "matched to same REPD unit as plant_uk_62 (duplicate census record)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_125",
+      "plantName": "Invergordon",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_126",
+      "plantName": "Invergordon",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_64",
+      "plantName": "Inverness",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Morayhill",
+        "operatorRegisterId": "REPD Ref #5703 (DESNZ / Ofgem)",
+        "unitId": "REPD_5703",
+        "town": "Highland",
+        "coordinates": [
+          57.51844,
+          -4.08749
+        ],
+        "capacity": "2 MWelec",
+        "evidence": [
+          "site/town match: 'inverness' in Morayhill AD",
+          "capacity: 2 MWelec",
+          "Postcode: IV2 7JQ"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_65",
+      "plantName": "Ipsden",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_66",
+      "plantName": "Kettering",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Fernbrook Bio Limited",
+        "operatorRegisterId": "REPD Ref #226 (DESNZ / Ofgem)",
+        "unitId": "REPD_226",
+        "town": "Northamptonshire",
+        "coordinates": [
+          52.41153,
+          -0.76468
+        ],
+        "capacity": "1.5 MWelec",
+        "evidence": [
+          "site/town match: 'kettering' in Fernbrook AD Plant (Waste AD)",
+          "capacity: 1.5 MWelec",
+          "Postcode: NN16 8XF"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_45",
+      "plantName": "Kırıkkale",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Energy Works / The Spencer Group",
+          "operatorRegisterId": "REPD Ref #290 (DESNZ / Ofgem)",
+          "unitId": "REPD_290",
+          "town": "Humberside",
+          "coordinates": [
+            53.75829,
+            -0.32872
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "operator word overlap: energy",
+            "capacity: 3 MWelec"
+          ]
+        },
+        {
+          "operatorName": "Biogen (formerly Tamar Energy)",
+          "operatorRegisterId": "REPD Ref #311 (DESNZ / Ofgem)",
+          "unitId": "REPD_311",
+          "town": "Hertfordshire",
+          "coordinates": [
+            51.76662,
+            0.00191
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "operator word overlap: energy",
+            "capacity: 3 MWelec",
+            "Postcode: EN11 0RG"
+          ]
+        },
+        {
+          "operatorName": "Severn Trent Water",
+          "operatorRegisterId": "REPD Ref #213 (DESNZ / Ofgem)",
+          "unitId": "REPD_213",
+          "town": "Nottinghamshire",
+          "coordinates": [
+            52.97561,
+            -1.03802
+          ],
+          "capacity": "2 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "capacity: 2 MWelec"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_uk_67",
+      "plantName": "Laurencekirk",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_68",
+      "plantName": "Leeming, North Yorkshire",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "JFS Biogas",
+          "operatorRegisterId": "REPD Ref #330 (DESNZ / Ofgem)",
+          "unitId": "REPD_330",
+          "town": "North Yorkshire",
+          "coordinates": [
+            54.29107,
+            -1.54091
+          ],
+          "capacity": "1.5 MWelec",
+          "evidence": [
+            "site/town match: 'leeming' in Leeming Bar (Waste AD)",
+            "county match: North Yorkshire",
+            "capacity: 1.5 MWelec",
+            "Postcode: DL7 9LY"
+          ]
+        },
+        {
+          "operatorName": "Holsworthy Biogas Company ( North Tamar Business Network)",
+          "operatorRegisterId": "REPD Ref #209 (DESNZ / Ofgem)",
+          "unitId": "REPD_209",
+          "town": "Devon",
+          "coordinates": [
+            50.82747,
+            -4.35094
+          ],
+          "capacity": "1.4 MWelec",
+          "evidence": [
+            "site name overlap: north",
+            "operator word overlap: north",
+            "capacity: 1.4 MWelec"
+          ]
+        },
+        {
+          "operatorName": "North East Grains",
+          "operatorRegisterId": "REPD Ref #7245 (DESNZ / Ofgem)",
+          "unitId": "REPD_7245",
+          "town": "Northumberland",
+          "coordinates": [
+            55.19168,
+            -1.6328
+          ],
+          "capacity": "0.5 MWelec",
+          "evidence": [
+            "site name overlap: north",
+            "operator word overlap: north",
+            "capacity: 0.5 MWelec",
+            "Postcode: NE61 3HX"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_uk_69",
+      "plantName": "Lockerbie",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Energy Works / The Spencer Group",
+          "operatorRegisterId": "REPD Ref #290 (DESNZ / Ofgem)",
+          "unitId": "REPD_290",
+          "town": "Humberside",
+          "coordinates": [
+            53.75829,
+            -0.32872
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "operator word overlap: energy",
+            "capacity: 3 MWelec"
+          ]
+        },
+        {
+          "operatorName": "Biogen (formerly Tamar Energy)",
+          "operatorRegisterId": "REPD Ref #311 (DESNZ / Ofgem)",
+          "unitId": "REPD_311",
+          "town": "Hertfordshire",
+          "coordinates": [
+            51.76662,
+            0.00191
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "operator word overlap: energy",
+            "capacity: 3 MWelec",
+            "Postcode: EN11 0RG"
+          ]
+        },
+        {
+          "operatorName": "Severn Trent Water",
+          "operatorRegisterId": "REPD Ref #213 (DESNZ / Ofgem)",
+          "unitId": "REPD_213",
+          "town": "Nottinghamshire",
+          "coordinates": [
+            52.97561,
+            -1.03802
+          ],
+          "capacity": "2 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "capacity: 2 MWelec"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_uk_70",
+      "plantName": "London",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "ReFood UK",
+          "operatorRegisterId": "REPD Ref #328 (DESNZ / Ofgem)",
+          "unitId": "REPD_328",
+          "town": "London",
+          "coordinates": [
+            51.52359,
+            0.13806
+          ],
+          "capacity": "1.4 MWelec",
+          "evidence": [
+            "site/town match: 'london' in Dagenham Docks Biogas (Waste AD)",
+            "capacity: 1.4 MWelec",
+            "Postcode: RM9 6LF"
+          ]
+        },
+        {
+          "operatorName": "Thames Water Utilities",
+          "operatorRegisterId": "REPD Ref #6491 (DESNZ / Ofgem)",
+          "unitId": "REPD_6491",
+          "town": "London",
+          "coordinates": [
+            51.62603,
+            -0.03983
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site/town match: 'london' in Deephams Sewerage Treatment Works",
+            "capacity: 3 MWelec",
+            "Postcode: N9 0BA"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_uk_71",
+      "plantName": "London",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "ReFood UK",
+          "operatorRegisterId": "REPD Ref #328 (DESNZ / Ofgem)",
+          "unitId": "REPD_328",
+          "town": "London",
+          "coordinates": [
+            51.52359,
+            0.13806
+          ],
+          "capacity": "1.4 MWelec",
+          "evidence": [
+            "site/town match: 'london' in Dagenham Docks Biogas (Waste AD)",
+            "capacity: 1.4 MWelec",
+            "Postcode: RM9 6LF"
+          ]
+        },
+        {
+          "operatorName": "Thames Water Utilities",
+          "operatorRegisterId": "REPD Ref #6491 (DESNZ / Ofgem)",
+          "unitId": "REPD_6491",
+          "town": "London",
+          "coordinates": [
+            51.62603,
+            -0.03983
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site/town match: 'london' in Deephams Sewerage Treatment Works",
+            "capacity: 3 MWelec",
+            "Postcode: N9 0BA"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_uk_72",
+      "plantName": "London",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "ReFood UK",
+          "operatorRegisterId": "REPD Ref #328 (DESNZ / Ofgem)",
+          "unitId": "REPD_328",
+          "town": "London",
+          "coordinates": [
+            51.52359,
+            0.13806
+          ],
+          "capacity": "1.4 MWelec",
+          "evidence": [
+            "site/town match: 'london' in Dagenham Docks Biogas (Waste AD)",
+            "capacity: 1.4 MWelec",
+            "Postcode: RM9 6LF"
+          ]
+        },
+        {
+          "operatorName": "Thames Water Utilities",
+          "operatorRegisterId": "REPD Ref #6491 (DESNZ / Ofgem)",
+          "unitId": "REPD_6491",
+          "town": "London",
+          "coordinates": [
+            51.62603,
+            -0.03983
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site/town match: 'london' in Deephams Sewerage Treatment Works",
+            "capacity: 3 MWelec",
+            "Postcode: N9 0BA"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_uk_73",
+      "plantName": "Malmesbury",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_74",
+      "plantName": "Manchester",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Viridor",
+          "operatorRegisterId": "REPD Ref #217 (DESNZ / Ofgem)",
+          "unitId": "REPD_217",
+          "town": "Greater Manchester",
+          "coordinates": [
+            53.3941,
+            -2.24466
+          ],
+          "capacity": "2 MWelec",
+          "evidence": [
+            "site/town match: 'manchester' in South Manchester Resource Recovery Centre (AD)",
+            "capacity: 2 MWelec"
+          ]
+        },
+        {
+          "operatorName": "Viridor",
+          "operatorRegisterId": "REPD Ref #218 (DESNZ / Ofgem)",
+          "unitId": "REPD_218",
+          "town": "Greater Manchester",
+          "coordinates": [
+            53.50389,
+            -2.17921
+          ],
+          "capacity": "2 MWelec",
+          "evidence": [
+            "site/town match: 'manchester' in Reliance Street Mechanical Biological Treatment Facility (MBT)",
+            "capacity: 2 MWelec",
+            "Postcode: M40 3EZ"
+          ]
+        },
+        {
+          "operatorName": "DJ AND SJ RECYCLING",
+          "operatorRegisterId": "REPD Ref #384 (DESNZ / Ofgem)",
+          "unitId": "REPD_384",
+          "town": "Northumberland",
+          "coordinates": [
+            54.97327,
+            -2.08031
+          ],
+          "capacity": "1.5 MWelec",
+          "evidence": [
+            "site name overlap: water",
+            "capacity: 1.5 MWelec"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_uk_75",
+      "plantName": "Manea, Cambridgeshire",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Private Developer",
+        "operatorRegisterId": "REPD Ref #6824 (DESNZ / Ofgem)",
+        "unitId": "REPD_6824",
+        "town": "Cambridgeshire",
+        "coordinates": [
+          52.51395,
+          0.21143
+        ],
+        "capacity": "4 MWelec",
+        "evidence": [
+          "site/town match: 'manea' in Colony Farm",
+          "county match: Cambridgeshire",
+          "capacity: 4 MWelec",
+          "Postcode: PE15 0HN"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_76",
+      "plantName": "Mansfield",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_78",
+      "plantName": "Marchwiel",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_79",
+      "plantName": "Market Rasen",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Lockwood Estates",
+          "operatorRegisterId": "REPD Ref #72 (DESNZ / Ofgem)",
+          "unitId": "REPD_72",
+          "town": "Lincolnshire",
+          "coordinates": [
+            53.33582,
+            -0.53465
+          ],
+          "capacity": "1.1 MWelec",
+          "evidence": [
+            "site/town match: 'market rasen' in Land at Grange Farm",
+            "capacity: 1.1 MWelec",
+            "Postcode: LN8 2DN"
+          ]
+        },
+        {
+          "operatorName": "Glentham Farming Company",
+          "operatorRegisterId": "REPD Ref #11238 (DESNZ / Ofgem)",
+          "unitId": "REPD_11238",
+          "town": "Lincolnshire",
+          "coordinates": [
+            53.40685,
+            -0.49633
+          ],
+          "capacity": null,
+          "evidence": [
+            "site/town match: 'market rasen' in Barff Lane - Farm Anaerobic Digestion Plant",
+            "Postcode: LN8 2EY"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_uk_80",
+      "plantName": "Melrose",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_81",
+      "plantName": "Mepal",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Pretoria Energy Company",
+        "operatorRegisterId": "REPD Ref #6578 (DESNZ / Ofgem)",
+        "unitId": "REPD_6578",
+        "town": "Cambridgeshire",
+        "coordinates": [
+          52.42796,
+          0.08943
+        ],
+        "capacity": "14.4 MWelec",
+        "evidence": [
+          "site/town match: 'mepal' in Mepal CHP",
+          "capacity: 14.4 MWelec",
+          "Postcode: CB6 2AZ",
+          "matched to same REPD unit as plant_uk_82 (duplicate census record)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_82",
+      "plantName": "Mepal",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Pretoria Energy Company",
+        "operatorRegisterId": "REPD Ref #6578 (DESNZ / Ofgem)",
+        "unitId": "REPD_6578",
+        "town": "Cambridgeshire",
+        "coordinates": [
+          52.42796,
+          0.08943
+        ],
+        "capacity": "14.4 MWelec",
+        "evidence": [
+          "site/town match: 'mepal' in Mepal CHP",
+          "operator word overlap: energy",
+          "capacity: 14.4 MWelec",
+          "Postcode: CB6 2AZ",
+          "matched to same REPD unit as plant_uk_81 (duplicate census record)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_83",
+      "plantName": "Methwold",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Energy Works / The Spencer Group",
+          "operatorRegisterId": "REPD Ref #290 (DESNZ / Ofgem)",
+          "unitId": "REPD_290",
+          "town": "Humberside",
+          "coordinates": [
+            53.75829,
+            -0.32872
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "operator word overlap: energy",
+            "capacity: 3 MWelec"
+          ]
+        },
+        {
+          "operatorName": "Biogen (formerly Tamar Energy)",
+          "operatorRegisterId": "REPD Ref #311 (DESNZ / Ofgem)",
+          "unitId": "REPD_311",
+          "town": "Hertfordshire",
+          "coordinates": [
+            51.76662,
+            0.00191
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "operator word overlap: energy",
+            "capacity: 3 MWelec",
+            "Postcode: EN11 0RG"
+          ]
+        },
+        {
+          "operatorName": "Severn Trent Water",
+          "operatorRegisterId": "REPD Ref #213 (DESNZ / Ofgem)",
+          "unitId": "REPD_213",
+          "town": "Nottinghamshire",
+          "coordinates": [
+            52.97561,
+            -1.03802
+          ],
+          "capacity": "2 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "capacity: 2 MWelec"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_uk_84",
+      "plantName": "Middlesbrough",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_86",
+      "plantName": "Moreton-in-Marsh",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Energy Works / The Spencer Group",
+          "operatorRegisterId": "REPD Ref #290 (DESNZ / Ofgem)",
+          "unitId": "REPD_290",
+          "town": "Humberside",
+          "coordinates": [
+            53.75829,
+            -0.32872
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "operator word overlap: energy",
+            "capacity: 3 MWelec"
+          ]
+        },
+        {
+          "operatorName": "Biogen (formerly Tamar Energy)",
+          "operatorRegisterId": "REPD Ref #311 (DESNZ / Ofgem)",
+          "unitId": "REPD_311",
+          "town": "Hertfordshire",
+          "coordinates": [
+            51.76662,
+            0.00191
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "operator word overlap: energy",
+            "capacity: 3 MWelec",
+            "Postcode: EN11 0RG"
+          ]
+        },
+        {
+          "operatorName": "Severn Trent Water",
+          "operatorRegisterId": "REPD Ref #213 (DESNZ / Ofgem)",
+          "unitId": "REPD_213",
+          "town": "Nottinghamshire",
+          "coordinates": [
+            52.97561,
+            -1.03802
+          ],
+          "capacity": "2 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "capacity: 2 MWelec"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_uk_87",
+      "plantName": "Murrow, Cambridgeshire",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_88",
+      "plantName": "Newton Aycliffe",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Emerald Biogas",
+        "operatorRegisterId": "REPD Ref #280 (DESNZ / Ofgem)",
+        "unitId": "REPD_280",
+        "town": "County Durham",
+        "coordinates": [
+          54.60569,
+          -1.5787
+        ],
+        "capacity": "2.8 MWelec",
+        "evidence": [
+          "site/town match: 'newton aycliffe' in Preston Road AD Plant (Waste AD)",
+          "capacity: 2.8 MWelec"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_89",
+      "plantName": "Nocton",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_90",
+      "plantName": "Nottingham",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_91",
+      "plantName": "Nottinghamshire",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_92",
+      "plantName": "Penkridge",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_93",
+      "plantName": "Pershore",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_94",
+      "plantName": "Peterhead",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_95",
+      "plantName": "Plaxton Bridge",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_96",
+      "plantName": "Pontefract",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_97",
+      "plantName": "Ramsgate",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_127",
+      "plantName": "Reading / Burghfield",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_98",
+      "plantName": "Sand Hutton",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "JFS Biogas",
+        "operatorRegisterId": "REPD Ref #4919 (DESNZ / Ofgem)",
+        "unitId": "REPD_4919",
+        "town": "North Yorkshire",
+        "coordinates": [
+          54.0198,
+          -0.95625
+        ],
+        "capacity": "1 MWelec",
+        "evidence": [
+          "site/town match: 'sand hutton' in Gravel Pit Farm",
+          "capacity: 1 MWelec",
+          "Postcode: YO41 1LN"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_99",
+      "plantName": "Scunthorpe",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Energy Works / The Spencer Group",
+          "operatorRegisterId": "REPD Ref #290 (DESNZ / Ofgem)",
+          "unitId": "REPD_290",
+          "town": "Humberside",
+          "coordinates": [
+            53.75829,
+            -0.32872
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "operator word overlap: energy",
+            "capacity: 3 MWelec"
+          ]
+        },
+        {
+          "operatorName": "Biogen (formerly Tamar Energy)",
+          "operatorRegisterId": "REPD Ref #311 (DESNZ / Ofgem)",
+          "unitId": "REPD_311",
+          "town": "Hertfordshire",
+          "coordinates": [
+            51.76662,
+            0.00191
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "operator word overlap: energy",
+            "capacity: 3 MWelec",
+            "Postcode: EN11 0RG"
+          ]
+        },
+        {
+          "operatorName": "Severn Trent Water",
+          "operatorRegisterId": "REPD Ref #213 (DESNZ / Ofgem)",
+          "unitId": "REPD_213",
+          "town": "Nottinghamshire",
+          "coordinates": [
+            52.97561,
+            -1.03802
+          ],
+          "capacity": "2 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "capacity: 2 MWelec"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_uk_100",
+      "plantName": "Shepton Mallet",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Energy Works / The Spencer Group",
+          "operatorRegisterId": "REPD Ref #290 (DESNZ / Ofgem)",
+          "unitId": "REPD_290",
+          "town": "Humberside",
+          "coordinates": [
+            53.75829,
+            -0.32872
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "operator word overlap: energy",
+            "capacity: 3 MWelec"
+          ]
+        },
+        {
+          "operatorName": "Biogen (formerly Tamar Energy)",
+          "operatorRegisterId": "REPD Ref #311 (DESNZ / Ofgem)",
+          "unitId": "REPD_311",
+          "town": "Hertfordshire",
+          "coordinates": [
+            51.76662,
+            0.00191
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "operator word overlap: energy",
+            "capacity: 3 MWelec",
+            "Postcode: EN11 0RG"
+          ]
+        },
+        {
+          "operatorName": "Severn Trent Water",
+          "operatorRegisterId": "REPD Ref #213 (DESNZ / Ofgem)",
+          "unitId": "REPD_213",
+          "town": "Nottinghamshire",
+          "coordinates": [
+            52.97561,
+            -1.03802
+          ],
+          "capacity": "2 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "capacity: 2 MWelec"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_uk_101",
+      "plantName": "Shepton Mallet",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_102",
+      "plantName": "Sittingbourne",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_103",
+      "plantName": "South Milford",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Viridor",
+          "operatorRegisterId": "REPD Ref #217 (DESNZ / Ofgem)",
+          "unitId": "REPD_217",
+          "town": "Greater Manchester",
+          "coordinates": [
+            53.3941,
+            -2.24466
+          ],
+          "capacity": "2 MWelec",
+          "evidence": [
+            "site name overlap: south",
+            "capacity: 2 MWelec"
+          ]
+        },
+        {
+          "operatorName": "Shanks Group",
+          "operatorRegisterId": "REPD Ref #289 (DESNZ / Ofgem)",
+          "unitId": "REPD_289",
+          "town": "West Yorkshire",
+          "coordinates": [
+            53.60241,
+            -1.33914
+          ],
+          "capacity": "6 MWelec",
+          "evidence": [
+            "site name overlap: south",
+            "capacity: 6 MWelec",
+            "Postcode: WF9 4DG"
+          ]
+        },
+        {
+          "operatorName": "DJ AND SJ RECYCLING",
+          "operatorRegisterId": "REPD Ref #384 (DESNZ / Ofgem)",
+          "unitId": "REPD_384",
+          "town": "Northumberland",
+          "coordinates": [
+            54.97327,
+            -2.08031
+          ],
+          "capacity": "1.5 MWelec",
+          "evidence": [
+            "site name overlap: south",
+            "capacity: 1.5 MWelec"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_uk_104",
+      "plantName": "South Molton",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Greener for Life Energy",
+        "operatorRegisterId": "REPD Ref #345 (DESNZ / Ofgem)",
+        "unitId": "REPD_345",
+        "town": "Devon",
+        "coordinates": [
+          51.00455,
+          -3.82264
+        ],
+        "capacity": "1.3 MWelec",
+        "evidence": [
+          "site/town match: 'south molton' in Great Hele Farm AD farm waste",
+          "capacity: 1.3 MWelec"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_105",
+      "plantName": "South Petherton",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Viridor",
+          "operatorRegisterId": "REPD Ref #217 (DESNZ / Ofgem)",
+          "unitId": "REPD_217",
+          "town": "Greater Manchester",
+          "coordinates": [
+            53.3941,
+            -2.24466
+          ],
+          "capacity": "2 MWelec",
+          "evidence": [
+            "site name overlap: south",
+            "capacity: 2 MWelec"
+          ]
+        },
+        {
+          "operatorName": "Shanks Group",
+          "operatorRegisterId": "REPD Ref #289 (DESNZ / Ofgem)",
+          "unitId": "REPD_289",
+          "town": "West Yorkshire",
+          "coordinates": [
+            53.60241,
+            -1.33914
+          ],
+          "capacity": "6 MWelec",
+          "evidence": [
+            "site name overlap: south",
+            "capacity: 6 MWelec",
+            "Postcode: WF9 4DG"
+          ]
+        },
+        {
+          "operatorName": "DJ AND SJ RECYCLING",
+          "operatorRegisterId": "REPD Ref #384 (DESNZ / Ofgem)",
+          "unitId": "REPD_384",
+          "town": "Northumberland",
+          "coordinates": [
+            54.97327,
+            -2.08031
+          ],
+          "capacity": "1.5 MWelec",
+          "evidence": [
+            "site name overlap: south",
+            "capacity: 1.5 MWelec"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_uk_106",
+      "plantName": "Spridlington",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Lockwood Estates",
+        "operatorRegisterId": "REPD Ref #72 (DESNZ / Ofgem)",
+        "unitId": "REPD_72",
+        "town": "Lincolnshire",
+        "coordinates": [
+          53.33582,
+          -0.53465
+        ],
+        "capacity": "1.1 MWelec",
+        "evidence": [
+          "site/town match: 'spridlington' in Land at Grange Farm",
+          "capacity: 1.1 MWelec",
+          "Postcode: LN8 2DN"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_107",
+      "plantName": "Stoke-on-Trent",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Severn Trent Water",
+        "operatorRegisterId": "REPD Ref #213 (DESNZ / Ofgem)",
+        "unitId": "REPD_213",
+        "town": "Nottinghamshire",
+        "coordinates": [
+          52.97561,
+          -1.03802
+        ],
+        "capacity": "2 MWelec",
+        "evidence": [
+          "site name overlap: stoke",
+          "operator word overlap: trent",
+          "capacity: 2 MWelec"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_108",
+      "plantName": "Stourbridge",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_109",
+      "plantName": "Sutton Coldfield",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_110",
+      "plantName": "Telford",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_77",
+      "plantName": "Toka",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_111",
+      "plantName": "Towcester",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_112",
+      "plantName": "Trowbridge",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_113",
+      "plantName": "Wallsend",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_114",
+      "plantName": "Walsingham",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_115",
+      "plantName": "Wardley, Rutland",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_116",
+      "plantName": "West Malling",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Private Developer",
+          "operatorRegisterId": "REPD Ref #359 (DESNZ / Ofgem)",
+          "unitId": "REPD_359",
+          "town": "Dumfries and Galloway",
+          "coordinates": [
+            55.09505,
+            -3.53229
+          ],
+          "capacity": "1.2 MWelec",
+          "evidence": [
+            "site name overlap: west",
+            "capacity: 1.2 MWelec"
+          ]
+        },
+        {
+          "operatorName": "Belfast Harbour Commissioners",
+          "operatorRegisterId": "REPD Ref #5995 (DESNZ / Ofgem)",
+          "unitId": "REPD_5995",
+          "town": "Co. Antrim",
+          "coordinates": [
+            54.62591,
+            -5.87182
+          ],
+          "capacity": "1.2 MWelec",
+          "evidence": [
+            "site name overlap: west",
+            "capacity: 1.2 MWelec",
+            "Postcode: BT3 9ED"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_uk_117",
+      "plantName": "Widnes",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "ReFood UK",
+        "operatorRegisterId": "REPD Ref #306 (DESNZ / Ofgem)",
+        "unitId": "REPD_306",
+        "town": "Cheshire",
+        "coordinates": [
+          53.35222,
+          -2.74536
+        ],
+        "capacity": "5 MWelec",
+        "evidence": [
+          "site/town match: 'widnes' in Granox Biogas Plant",
+          "capacity: 5 MWelec",
+          "Postcode: WA8 0PB"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_128",
+      "plantName": "Winchester",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_118",
+      "plantName": "Worlington",
+      "status": "NO_MATCH",
+      "best": null,
+      "candidates": []
+    },
+    {
+      "plantId": "plant_uk_119",
+      "plantName": "York",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "JFS Biogas",
+          "operatorRegisterId": "REPD Ref #4919 (DESNZ / Ofgem)",
+          "unitId": "REPD_4919",
+          "town": "North Yorkshire",
+          "coordinates": [
+            54.0198,
+            -0.95625
+          ],
+          "capacity": "1 MWelec",
+          "evidence": [
+            "site/town match: 'york' in Gravel Pit Farm",
+            "capacity: 1 MWelec",
+            "Postcode: YO41 1LN"
+          ]
+        },
+        {
+          "operatorName": "Yorkshire Water",
+          "operatorRegisterId": "REPD Ref #6123 (DESNZ / Ofgem)",
+          "unitId": "REPD_6123",
+          "town": "West Yorkshire",
+          "coordinates": [
+            53.78123,
+            -1.48968
+          ],
+          "capacity": "4 MWelec",
+          "evidence": [
+            "site/town match: 'york' in Knostrop Sewage Treatment Works",
+            "capacity: 4 MWelec",
+            "Postcode: LS9 0PJ"
+          ]
+        }
+      ]
+    }
+  ]
+}

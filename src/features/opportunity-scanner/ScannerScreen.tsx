@@ -14,6 +14,9 @@ import { buildDealUrl } from '../../domain/trade/dealParams';
 import { showToast } from '../../app/DeskToastContainer';
 import { BIOMETHANE_PLANTS } from '../../domain/plants/plantsData';
 import { estimateFarmgateProcurementCost } from '../../domain/sourcing/benchmarks';
+import { getAssumption } from '../../domain/assumptions/registry';
+import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
+import { AssumptionsStrip } from '../../shared/components/AssumptionsStrip';
 import { 
   Radar, 
   Building2, 
@@ -89,6 +92,7 @@ export function ScannerScreen() {
   const [selectedFeedstock, setSelectedFeedstock] = useState<string>('ALL');
   const [minArbitrageSpread, setMinArbitrageSpread] = useState<number>(0);
   const [sortField, setSortField] = useState<'NET_MARGIN' | 'ANNUAL_PNL' | 'VOLUME'>('NET_MARGIN');
+  const [showAssumptions, setShowAssumptions] = useState(false);
 
   // Active consignment benchmark for ladder
   const consignment: Consignment = useMemo(() => {
@@ -159,6 +163,7 @@ export function ScannerScreen() {
   // MULTI-PLANT ASSET ARBITRAGE SCANNER ENGINE (1,975 Plants)
   // ---------------------------------------------------------------------------
   const ttfPrice = state.marks.gasIndex.mid ?? 0;
+  const assumptionsVersion = useAssumptionsVersion();
 
   const plantOpportunities = useMemo<PlantArbitrageOpportunity[]>(() => {
     const results: PlantArbitrageOpportunity[] = [];
@@ -176,27 +181,27 @@ export function ScannerScreen() {
 
       if (/crop|maize|silage/i.test(rawFeedstock)) {
         feedstockKey = 'energy_crops';
-        ciScore = 42;
+        ciScore = getAssumption('scanner.ci.energyCrops');
       } else if (/food|forsu|waste/i.test(rawFeedstock)) {
         feedstockKey = 'food_waste';
-        ciScore = 14;
+        ciScore = getAssumption('scanner.ci.foodWaste');
       } else if (/sewage|sludge/i.test(rawFeedstock)) {
         feedstockKey = 'sewage_sludge';
-        ciScore = 22;
+        ciScore = getAssumption('scanner.ci.sewageSludge');
       } else if (/agri|residue|straw|cive/i.test(rawFeedstock)) {
         feedstockKey = 'agricultural_residues';
-        ciScore = 16;
+        ciScore = getAssumption('scanner.ci.agriResidues');
       } else {
         feedstockKey = 'manure';
-        ciScore = countryCode === 'DK' ? -100 : -85;
+        ciScore = getAssumption(countryCode === 'DK' ? 'scanner.ci.manureDK' : 'scanner.ci.manureOther');
       }
 
       // Annual Volume
       const annualGWh = p.annualEnergyGWh && p.annualEnergyGWh > 0
         ? p.annualEnergyGWh
         : p.capacityNm3h
-        ? Math.round((p.capacityNm3h * 10.5 * 8000) / 1000000)
-        : 25;
+        ? Math.round((p.capacityNm3h * 10.5 * getAssumption('scanner.loadHoursPerYear')) / 1000000)
+        : getAssumption('scanner.fallbackAnnualGWh');
       const annualMWh = annualGWh * 1000;
 
       // Procurement Benchmark Cost
@@ -255,13 +260,13 @@ export function ScannerScreen() {
 
       if (bestMarketNetNetback === -999) {
         bestMarketId = bookFilter === 'COMPLIANCE' ? 'DE_THG' : 'AIB_GO';
-        bestMarketNetNetback = ttfPrice + 24.5;
+        bestMarketNetNetback = ttfPrice + getAssumption('scanner.noRoutePremiumEurPerMwh');
         bestVerdict = 'CONDITIONAL';
       }
 
       const bestMkt = getMarketById(bestMarketId);
       const isDomestic = countryCode === bestMkt?.country;
-      const logisticsFee = isDomestic ? 0.75 : 1.65; // Indicative UDB + entry/exit tariff
+      const logisticsFee = getAssumption(isDomestic ? 'scanner.logisticsDomesticEurPerMwh' : 'scanner.logisticsCrossBorderEurPerMwh');
       const netMargin = bestMarketNetNetback - bench.estimatedCostEurMwh - logisticsFee;
       const annualProfit = netMargin * annualMWh;
 
@@ -294,7 +299,7 @@ export function ScannerScreen() {
     }
 
     return results;
-  }, [activeMarkets, state.marks, ttfPrice, bookFilter]);
+  }, [activeMarkets, state.marks, ttfPrice, bookFilter, assumptionsVersion]);
 
   // Filtered and Sorted Plant Opportunities
   const filteredPlantOpportunities = useMemo(() => {
@@ -503,9 +508,33 @@ export function ScannerScreen() {
               Showing <strong>{filteredPlantOpportunities.length}</strong> actionable plants · TTF Month-Ahead Benchmark: <strong>€{ttfPrice.toFixed(2)}/MWh</strong>
             </span>
             <span>
-              Top Arbitrage Spread: <strong style={{ color: '#16a34a' }}>+€{filteredPlantOpportunities[0]?.netMarginEurMwh ?? 0}/MWh</strong>
+              Top Arbitrage Spread: <strong style={{ color: '#16a34a' }}>{filteredPlantOpportunities[0] ? `${filteredPlantOpportunities[0].netMarginEurMwh >= 0 ? '+' : '−'}€${Math.abs(filteredPlantOpportunities[0].netMarginEurMwh).toFixed(2)}/MWh` : '—'}</strong>
+              {' · '}
+              <button
+                type="button"
+                onClick={() => setShowAssumptions(v => !v)}
+                style={{ background: 'none', border: 'none', padding: 0, color: 'var(--color-accent)', cursor: 'pointer', fontSize: '12px' }}
+              >
+                {showAssumptions ? 'Hide assumptions' : 'Show assumptions'}
+              </button>
             </span>
           </div>
+          {showAssumptions && (
+            <div style={{ padding: '10px 20px 0' }}>
+              <AssumptionsStrip
+                title="Scanner assumptions — procurement cost is a desk estimate until a producer quotes"
+                keys={[
+                  'scanner.loadHoursPerYear',
+                  'scanner.fallbackAnnualGWh',
+                  'scanner.logisticsDomesticEurPerMwh',
+                  'scanner.logisticsCrossBorderEurPerMwh',
+                  'scanner.noRoutePremiumEurPerMwh',
+                  'farmgate.negativeCiUpliftEurPerMwh',
+                  'farmgate.highCiDiscountEurPerMwh',
+                ]}
+              />
+            </div>
+          )}
 
           {/* Multi-Plant Arbitrage Table */}
           <div style={{ overflowX: 'auto', padding: '0 20px 20px' }}>

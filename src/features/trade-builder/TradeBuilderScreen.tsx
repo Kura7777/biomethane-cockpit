@@ -22,6 +22,10 @@ import { TradeMarketAuditStep } from './steps/TradeMarketAuditStep';
 import { TradeEconomicsStep, WaterfallRow } from './steps/TradeEconomicsStep';
 import { TradeExecutionStep } from './steps/TradeExecutionStep';
 import { ListOrdered, LayoutGrid, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
+import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
+import { AssumptionsStrip } from '../../shared/components/AssumptionsStrip';
+
+const RISK_SUITE_ASSUMPTIONS = ['risk.illustrativeVolumeMwh', 'risk.replacementCeilingFloorEurPerMwh', 'risk.replacementCeilingNetbackMultiple', 'risk.fallbackProcurementPremiumEurPerMwh', 'risk.deThgBundleRefNeg80EurPerMwh', 'risk.deThgBundleRefNeg0EurPerMwh'];
 
 const MONO_FONT = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
 
@@ -375,7 +379,8 @@ export function TradeBuilderScreen() {
     return evaluateEligibility(consignment, selectedMarket);
   }, [consignment, selectedMarket]);
 
-  // Netback calculation
+  // Netback calculation (recomputes when a commercial assumption changes)
+  const assumptionsVersion = useAssumptionsVersion();
   const netback = useMemo(() => {
     return computeNetback(
       selectedMarket,
@@ -384,7 +389,7 @@ export function TradeBuilderScreen() {
       state.costs,
       state.marks.pricingSides
     );
-  }, [consignment, selectedMarket, state.marks, state.costs]);
+  }, [consignment, selectedMarket, state.marks, state.costs, assumptionsVersion]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // GHG savings % uses correct comparator per market sector:
   // Heat/Industrial (EU_ETS, DE_GO, NL_GO, FR_GO, VOL_SCOPE1) → 80 gCO₂e/MJ comparator (RED III Art. 29(10) heat)
@@ -1723,6 +1728,7 @@ export function TradeBuilderScreen() {
                   </span>
                 </div>
               )}
+              <AssumptionsStrip title="Risk suite assumptions" keys={RISK_SUITE_ASSUMPTIONS} />
             </div>
           </div>
         )}

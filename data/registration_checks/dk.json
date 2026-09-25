@@ -1,0 +1,739 @@
+{
+  "countryCode": "DK",
+  "source": "Danish CVR register via lasso.dk",
+  "checkedAt": "2026-09-26",
+  "results": [
+    {
+      "plantId": "plant_dk_21",
+      "plantName": "Holsted",
+      "claimedId": "CVR: 34734445",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Shell Holsted Biogas A/S",
+        "naf": null,
+        "active": null,
+        "commune": "Odense SØ"
+      }
+    },
+    {
+      "plantId": "plant_dk_22",
+      "plantName": "Holsted",
+      "claimedId": "CVR: 34734445",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Shell Holsted Biogas A/S",
+        "naf": null,
+        "active": null,
+        "commune": "Odense SØ"
+      }
+    },
+    {
+      "plantId": "plant_dk_1",
+      "plantName": "Aabenraa",
+      "claimedId": "CVR: 39682885",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Sustainable Bio Solutions Aabenraa K/S",
+        "naf": null,
+        "active": null,
+        "commune": "Aabenraa"
+      }
+    },
+    {
+      "plantId": "plant_dk_2",
+      "plantName": "Bogense",
+      "claimedId": "CVR: 34734666",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Shell Nordfyn Biogas A/S",
+        "naf": null,
+        "active": null,
+        "commune": "Odense SØ"
+      }
+    },
+    {
+      "plantId": "plant_dk_3",
+      "plantName": "Brande",
+      "claimedId": "CVR: 34734488",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Shell Månsson Biogas A/S",
+        "naf": null,
+        "active": null,
+        "commune": "Odense SØ"
+      }
+    },
+    {
+      "plantId": "plant_dk_4",
+      "plantName": "Brande",
+      "claimedId": "CVR: 34734488",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Shell Månsson Biogas A/S",
+        "naf": null,
+        "active": null,
+        "commune": "Odense SØ"
+      }
+    },
+    {
+      "plantId": "plant_dk_5",
+      "plantName": "Bredebro",
+      "claimedId": "CVR: 34256063",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Storde Biogas I/S",
+        "naf": null,
+        "active": null,
+        "commune": "Bredebro"
+      }
+    },
+    {
+      "plantId": "plant_dk_6",
+      "plantName": "Broby",
+      "claimedId": "CVR: 26262119",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "FANGEL BIOENERGI ApS",
+        "naf": null,
+        "active": null,
+        "commune": "Skanderborg"
+      }
+    },
+    {
+      "plantId": "plant_dk_7",
+      "plantName": "Brønderslev",
+      "claimedId": "CVR: 26931460",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "GFE KROGENSKÆR P/S",
+        "naf": null,
+        "active": null,
+        "commune": "Brønderslev"
+      }
+    },
+    {
+      "plantId": "plant_dk_8",
+      "plantName": "Esbjerg Ø",
+      "claimedId": "CVR: 34711631",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Shell Korskro Biogas A/S",
+        "naf": null,
+        "active": null,
+        "commune": "Odense SØ"
+      }
+    },
+    {
+      "plantId": "plant_dk_9",
+      "plantName": "Farsø",
+      "claimedId": "CVR: 39433982",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "BioCirc Vesthimmerland Biogas ApS",
+        "naf": null,
+        "active": null,
+        "commune": "Farsø"
+      }
+    },
+    {
+      "plantId": "plant_dk_10",
+      "plantName": "Fredericia",
+      "claimedId": "CVR: 32659365",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "FREDERICIA SPILDEVAND OG ENERGI A/S",
+        "naf": null,
+        "active": null,
+        "commune": "Fredericia"
+      }
+    },
+    {
+      "plantId": "plant_dk_11",
+      "plantName": "Glamsbjerg",
+      "claimedId": "CVR: 39037718",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Flemløse Biogas ApS",
+        "naf": null,
+        "active": null,
+        "commune": "Glamsbjerg"
+      }
+    },
+    {
+      "plantId": "plant_dk_12",
+      "plantName": "Gråsten",
+      "claimedId": "CVR: 40069097",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Shell Kværs Biogas A/S",
+        "naf": null,
+        "active": null,
+        "commune": "Odense SØ"
+      }
+    },
+    {
+      "plantId": "plant_dk_13",
+      "plantName": "Haderslev",
+      "claimedId": "CVR: 40096388",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "BioCirc Haderslev Biogas ApS",
+        "naf": null,
+        "active": null,
+        "commune": "Haderslev"
+      }
+    },
+    {
+      "plantId": "plant_dk_14",
+      "plantName": "Hammel",
+      "claimedId": "CVR: 36436557",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "BioCirc Favrskov Biogas ApS",
+        "naf": null,
+        "active": null,
+        "commune": "Hammel"
+      }
+    },
+    {
+      "plantId": "plant_dk_15",
+      "plantName": "Hemmet",
+      "claimedId": "CVR: 34352283",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Shell Hemmet Biogas ApS",
+        "naf": null,
+        "active": null,
+        "commune": "Odense SØ"
+      }
+    },
+    {
+      "plantId": "plant_dk_59",
+      "plantName": "Herning",
+      "claimedId": "CVR: 25809890",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "HERNING BIOENERGI ApS",
+        "naf": null,
+        "active": null,
+        "commune": "Skanderborg"
+      }
+    },
+    {
+      "plantId": "plant_dk_16",
+      "plantName": "Hjerm",
+      "claimedId": "CVR: 45717909",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Ausumgaard Biogen A/S",
+        "naf": null,
+        "active": null,
+        "commune": "Hjerm"
+      }
+    },
+    {
+      "plantId": "plant_dk_17",
+      "plantName": "Hjørring",
+      "claimedId": "CVR: 26114179",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "GRØNGAS, HJØRRING A/S",
+        "naf": null,
+        "active": null,
+        "commune": "Vrå"
+      }
+    },
+    {
+      "plantId": "plant_dk_18",
+      "plantName": "Hjørring",
+      "claimedId": "CVR: 26114179",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "GRØNGAS, HJØRRING A/S",
+        "naf": null,
+        "active": null,
+        "commune": "Vrå"
+      }
+    },
+    {
+      "plantId": "plant_dk_19",
+      "plantName": "Hjørring",
+      "claimedId": "CVR: 29809577",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "HJØRRING VANDSELSKAB A/S",
+        "naf": null,
+        "active": null,
+        "commune": "Hjørring"
+      }
+    },
+    {
+      "plantId": "plant_dk_23",
+      "plantName": "Horsens",
+      "claimedId": "CVR: 34700605",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "HORSENS BIOENERGI ApS",
+        "naf": null,
+        "active": null,
+        "commune": "Horsens"
+      }
+    },
+    {
+      "plantId": "plant_dk_24",
+      "plantName": "Horsens",
+      "claimedId": "CVR: 34700605",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "HORSENS BIOENERGI ApS",
+        "naf": null,
+        "active": null,
+        "commune": "Horsens"
+      }
+    },
+    {
+      "plantId": "plant_dk_25",
+      "plantName": "Hvidovre",
+      "claimedId": "CVR: 25690230",
+      "status": "MISMATCH",
+      "register": {
+        "name": "SOLUM A/S",
+        "naf": null,
+        "active": null,
+        "commune": "Hedehusene"
+      }
+    },
+    {
+      "plantId": "plant_dk_20",
+      "plantName": "Højslev",
+      "claimedId": "CVR: 39420236",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "BioCirc Vinkel Biogas ApS",
+        "naf": null,
+        "active": null,
+        "commune": "Højslev"
+      }
+    },
+    {
+      "plantId": "plant_dk_26",
+      "plantName": "Kalundborg",
+      "claimedId": "CVR: 37038997",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Kalundborg Bioenergi ApS",
+        "naf": null,
+        "active": null,
+        "commune": "Skanderborg"
+      }
+    },
+    {
+      "plantId": "plant_dk_27",
+      "plantName": "Karup",
+      "claimedId": "CVR: 43710427",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Midtjysk Biogas A/S",
+        "naf": null,
+        "active": null,
+        "commune": "Karup J"
+      }
+    },
+    {
+      "plantId": "plant_dk_28",
+      "plantName": "Kerteminde",
+      "claimedId": "CVR: 31600073",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "KERTEMINDE BIOGAS ApS",
+        "naf": null,
+        "active": null,
+        "commune": "Kerteminde"
+      }
+    },
+    {
+      "plantId": "plant_dk_29",
+      "plantName": "Langå",
+      "claimedId": "CVR: 44155893",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Langaa Bioenergi ApS",
+        "naf": null,
+        "active": null,
+        "commune": "Langå"
+      }
+    },
+    {
+      "plantId": "plant_dk_30",
+      "plantName": "Lemming",
+      "claimedId": "CVR: 40845747",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Grauballegaard Biogas ApS",
+        "naf": null,
+        "active": null,
+        "commune": "Lemming"
+      }
+    },
+    {
+      "plantId": "plant_dk_31",
+      "plantName": "Lille Skensved",
+      "claimedId": "CVR: 21210285",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "CP KELCO ApS",
+        "naf": null,
+        "active": null,
+        "commune": "Lille Skensved"
+      }
+    },
+    {
+      "plantId": "plant_dk_60",
+      "plantName": "Nysted",
+      "claimedId": "CVR: 36436743",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "NYSTED BIOENERGI ApS",
+        "naf": null,
+        "active": null,
+        "commune": "Skanderborg"
+      }
+    },
+    {
+      "plantId": "plant_dk_32",
+      "plantName": "Nørre Nebel",
+      "claimedId": "CVR: 44169681",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "BioCirc Blåbjerg Biogas ApS",
+        "naf": null,
+        "active": null,
+        "commune": "Nørre Nebel"
+      }
+    },
+    {
+      "plantId": "plant_dk_61",
+      "plantName": "Odense",
+      "claimedId": "CVR: 35517790",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "VANDCENTER SYD ENERGI ApS",
+        "naf": null,
+        "active": null,
+        "commune": "Odense C"
+      }
+    },
+    {
+      "plantId": "plant_dk_34",
+      "plantName": "Otterup",
+      "claimedId": "CVR: 36984880",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Lykkeslund Bioenergi ApS",
+        "naf": null,
+        "active": null,
+        "commune": "Otterup"
+      }
+    },
+    {
+      "plantId": "plant_dk_35",
+      "plantName": "Outrup",
+      "claimedId": "CVR: 38057812",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Outrup Biogas ApS",
+        "naf": null,
+        "active": null,
+        "commune": "Outrup"
+      }
+    },
+    {
+      "plantId": "plant_dk_36",
+      "plantName": "Redsted",
+      "claimedId": "CVR: 35378979",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "LIMFJORDENS BIOENERGI ApS",
+        "naf": null,
+        "active": null,
+        "commune": "Redsted M"
+      }
+    },
+    {
+      "plantId": "plant_dk_37",
+      "plantName": "Ribe",
+      "claimedId": "CVR: 12519184",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "RIBE BIOGAS A/S",
+        "naf": null,
+        "active": null,
+        "commune": "Ribe"
+      }
+    },
+    {
+      "plantId": "plant_dk_38",
+      "plantName": "Ringe",
+      "claimedId": "CVR: 34734658",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Shell Midtfyn Biogas A/S",
+        "naf": null,
+        "active": null,
+        "commune": "Odense SØ"
+      }
+    },
+    {
+      "plantId": "plant_dk_39",
+      "plantName": "Ringsted",
+      "claimedId": "CVR: 38788639",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "BioCirc Ringsted Biogas ApS",
+        "naf": null,
+        "active": null,
+        "commune": "Ringsted"
+      }
+    },
+    {
+      "plantId": "plant_dk_43",
+      "plantName": "Roslev",
+      "claimedId": "CVR: 36712198",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Rybjerg Biogas P/S",
+        "naf": null,
+        "active": null,
+        "commune": "Roslev"
+      }
+    },
+    {
+      "plantId": "plant_dk_40",
+      "plantName": "Rødding",
+      "claimedId": "CVR: 38814524",
+      "status": "MISMATCH",
+      "register": {
+        "name": "Bagværk I/S",
+        "naf": null,
+        "active": null,
+        "commune": "Aarhus C"
+      }
+    },
+    {
+      "plantId": "plant_dk_41",
+      "plantName": "Rødding",
+      "claimedId": "CVR: 38814524",
+      "status": "MISMATCH",
+      "register": {
+        "name": "Bagværk I/S",
+        "naf": null,
+        "active": null,
+        "commune": "Aarhus C"
+      }
+    },
+    {
+      "plantId": "plant_dk_42",
+      "plantName": "Rødekro",
+      "claimedId": "CVR: 41067640",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Taagholm Biogas A/S",
+        "naf": null,
+        "active": null,
+        "commune": "Rødekro"
+      }
+    },
+    {
+      "plantId": "plant_dk_45",
+      "plantName": "Skjern",
+      "claimedId": "CVR: 37808474",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Vestjysk Biogas ApS",
+        "naf": null,
+        "active": null,
+        "commune": "Skjern"
+      }
+    },
+    {
+      "plantId": "plant_dk_48",
+      "plantName": "Spøttrup",
+      "claimedId": "CVR: 38280880",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Greenlab Skive Biogas ApS",
+        "naf": null,
+        "active": null,
+        "commune": "Spøttrup"
+      }
+    },
+    {
+      "plantId": "plant_dk_49",
+      "plantName": "Spøttrup",
+      "claimedId": "CVR: 33845499",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Madsen Bioenergi I/S",
+        "naf": null,
+        "active": null,
+        "commune": "Spøttrup"
+      }
+    },
+    {
+      "plantId": "plant_dk_50",
+      "plantName": "Stoholm",
+      "claimedId": "CVR: 38130404",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "BioCirc Iglsø Biogas ApS",
+        "naf": null,
+        "active": null,
+        "commune": "Stoholm Jyll"
+      }
+    },
+    {
+      "plantId": "plant_dk_51",
+      "plantName": "Svendborg",
+      "claimedId": "CVR: 38221582",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Andekærgaard Biogas ApS",
+        "naf": null,
+        "active": null,
+        "commune": "Svendborg"
+      }
+    },
+    {
+      "plantId": "plant_dk_46",
+      "plantName": "Sønderborg",
+      "claimedId": "CVR: 34734682",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Shell Glansager Biogas A/S",
+        "naf": null,
+        "active": null,
+        "commune": "Odense SØ"
+      }
+    },
+    {
+      "plantId": "plant_dk_47",
+      "plantName": "Søndersø",
+      "claimedId": "CVR: 37255467",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "ZASTROW BIOENERGI ApS",
+        "naf": null,
+        "active": null,
+        "commune": "Otterup"
+      }
+    },
+    {
+      "plantId": "plant_dk_52",
+      "plantName": "Tarm",
+      "claimedId": "CVR: 37322458",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Foersom Bioenergi ApS",
+        "naf": null,
+        "active": null,
+        "commune": "Tarm"
+      }
+    },
+    {
+      "plantId": "plant_dk_53",
+      "plantName": "Thorsø",
+      "claimedId": "CVR: 43682229",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Thorsø Biogasanlæg ApS",
+        "naf": null,
+        "active": null,
+        "commune": "Thorsø"
+      }
+    },
+    {
+      "plantId": "plant_dk_54",
+      "plantName": "Trige",
+      "claimedId": "CVR: 28680872",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Shell Aarhus Biogas A/S",
+        "naf": null,
+        "active": null,
+        "commune": "Odense SØ"
+      }
+    },
+    {
+      "plantId": "plant_dk_55",
+      "plantName": "Vaarst",
+      "claimedId": "CVR: 34734623",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Shell Vaarst Biogas A/S",
+        "naf": null,
+        "active": null,
+        "commune": "Odense SØ"
+      }
+    },
+    {
+      "plantId": "plant_dk_56",
+      "plantName": "Vojens",
+      "claimedId": "CVR: 36704632",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Sønderjysk Biogas Bevtoft A/S",
+        "naf": null,
+        "active": null,
+        "commune": "Bevtoft"
+      }
+    },
+    {
+      "plantId": "plant_dk_57",
+      "plantName": "Vrå",
+      "claimedId": "CVR: 35384855",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Grøngas, Vraa A/S",
+        "naf": null,
+        "active": null,
+        "commune": "Vrå"
+      }
+    },
+    {
+      "plantId": "plant_dk_58",
+      "plantName": "Vrå",
+      "claimedId": "CVR: 42957909",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Agri Energy Vrå P/S",
+        "naf": null,
+        "active": null,
+        "commune": "Vrå"
+      }
+    },
+    {
+      "plantId": "plant_dk_33",
+      "plantName": "Ølgod",
+      "claimedId": "CVR: 38722042",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Ølgod BioEnergi ApS",
+        "naf": null,
+        "active": null,
+        "commune": "Ølgod"
+      }
+    },
+    {
+      "plantId": "plant_dk_44",
+      "plantName": "Sindal",
+      "claimedId": "CVR: 41538996",
+      "status": "CONFIRMED",
+      "register": {
+        "name": "Sindal Biogas A/S",
+        "naf": null,
+        "active": null,
+        "commune": "Sindal"
+      }
+    }
+  ]
+}

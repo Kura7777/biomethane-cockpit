@@ -1,0 +1,1169 @@
+{
+  "countryCode": "DK",
+  "source": "Energinet Biogasregister & Erhvervsstyrelsen CVR Register",
+  "checkedAt": "2026-09-26",
+  "results": [
+    {
+      "plantId": "plant_dk_21",
+      "plantName": "Holsted",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Shell Holsted Biogas A/S",
+        "operatorRegisterId": "CVR 34734445 (Erhvervsstyrelsen)",
+        "unitId": "CVR_34734445",
+        "town": "Odense SØ",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 34734445 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Odense SØ"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_22",
+      "plantName": "Holsted",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Shell Holsted Biogas A/S",
+        "operatorRegisterId": "CVR 34734445 (Erhvervsstyrelsen)",
+        "unitId": "CVR_34734445",
+        "town": "Odense SØ",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 34734445 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Odense SØ"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_1",
+      "plantName": "Aabenraa",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Sustainable Bio Solutions Aabenraa K/S",
+        "operatorRegisterId": "CVR 39682885 (Erhvervsstyrelsen)",
+        "unitId": "CVR_39682885",
+        "town": "Aabenraa",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 39682885 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Aabenraa"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_2",
+      "plantName": "Bogense",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Shell Nordfyn Biogas A/S",
+        "operatorRegisterId": "CVR 34734666 (Erhvervsstyrelsen)",
+        "unitId": "CVR_34734666",
+        "town": "Odense SØ",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 34734666 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Odense SØ"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_3",
+      "plantName": "Brande",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Shell Månsson Biogas A/S",
+        "operatorRegisterId": "CVR 34734488 (Erhvervsstyrelsen)",
+        "unitId": "CVR_34734488",
+        "town": "Odense SØ",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 34734488 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Odense SØ"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_4",
+      "plantName": "Brande",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Shell Månsson Biogas A/S",
+        "operatorRegisterId": "CVR 34734488 (Erhvervsstyrelsen)",
+        "unitId": "CVR_34734488",
+        "town": "Odense SØ",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 34734488 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Odense SØ"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_5",
+      "plantName": "Bredebro",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Storde Biogas I/S",
+        "operatorRegisterId": "CVR 34256063 (Erhvervsstyrelsen)",
+        "unitId": "CVR_34256063",
+        "town": "Bredebro",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 34256063 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Bredebro"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_6",
+      "plantName": "Broby",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "FANGEL BIOENERGI ApS",
+        "operatorRegisterId": "CVR 26262119 (Erhvervsstyrelsen)",
+        "unitId": "CVR_26262119",
+        "town": "Skanderborg",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 26262119 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Skanderborg"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_7",
+      "plantName": "Brønderslev",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "GFE KROGENSKÆR P/S",
+        "operatorRegisterId": "CVR 26931460 (Erhvervsstyrelsen)",
+        "unitId": "CVR_26931460",
+        "town": "Brønderslev",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 26931460 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Brønderslev"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_8",
+      "plantName": "Esbjerg Ø",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Shell Korskro Biogas A/S",
+        "operatorRegisterId": "CVR 34711631 (Erhvervsstyrelsen)",
+        "unitId": "CVR_34711631",
+        "town": "Odense SØ",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 34711631 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Odense SØ"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_9",
+      "plantName": "Farsø",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "BioCirc Vesthimmerland Biogas ApS",
+        "operatorRegisterId": "CVR 39433982 (Erhvervsstyrelsen)",
+        "unitId": "CVR_39433982",
+        "town": "Farsø",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 39433982 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Farsø"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_10",
+      "plantName": "Fredericia",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "FREDERICIA SPILDEVAND OG ENERGI A/S",
+        "operatorRegisterId": "CVR 32659365 (Erhvervsstyrelsen)",
+        "unitId": "CVR_32659365",
+        "town": "Fredericia",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 32659365 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Fredericia"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_11",
+      "plantName": "Glamsbjerg",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Flemløse Biogas ApS",
+        "operatorRegisterId": "CVR 39037718 (Erhvervsstyrelsen)",
+        "unitId": "CVR_39037718",
+        "town": "Glamsbjerg",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 39037718 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Glamsbjerg"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_12",
+      "plantName": "Gråsten",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Shell Kværs Biogas A/S",
+        "operatorRegisterId": "CVR 40069097 (Erhvervsstyrelsen)",
+        "unitId": "CVR_40069097",
+        "town": "Odense SØ",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 40069097 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Odense SØ"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_13",
+      "plantName": "Haderslev",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "BioCirc Haderslev Biogas ApS",
+        "operatorRegisterId": "CVR 40096388 (Erhvervsstyrelsen)",
+        "unitId": "CVR_40096388",
+        "town": "Haderslev",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 40096388 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Haderslev"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_14",
+      "plantName": "Hammel",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "BioCirc Favrskov Biogas ApS",
+        "operatorRegisterId": "CVR 36436557 (Erhvervsstyrelsen)",
+        "unitId": "CVR_36436557",
+        "town": "Hammel",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 36436557 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Hammel"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_15",
+      "plantName": "Hemmet",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Shell Hemmet Biogas ApS",
+        "operatorRegisterId": "CVR 34352283 (Erhvervsstyrelsen)",
+        "unitId": "CVR_34352283",
+        "town": "Odense SØ",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 34352283 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Odense SØ"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_59",
+      "plantName": "Herning",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "HERNING BIOENERGI ApS",
+        "operatorRegisterId": "CVR 25809890 (Erhvervsstyrelsen)",
+        "unitId": "CVR_25809890",
+        "town": "Skanderborg",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 25809890 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Skanderborg"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_16",
+      "plantName": "Hjerm",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Ausumgaard Biogen A/S",
+        "operatorRegisterId": "CVR 45717909 (Erhvervsstyrelsen)",
+        "unitId": "CVR_45717909",
+        "town": "Hjerm",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 45717909 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Hjerm"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_17",
+      "plantName": "Hjørring",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "GRØNGAS, HJØRRING A/S",
+        "operatorRegisterId": "CVR 26114179 (Erhvervsstyrelsen)",
+        "unitId": "CVR_26114179",
+        "town": "Vrå",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 26114179 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Vrå"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_18",
+      "plantName": "Hjørring",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "GRØNGAS, HJØRRING A/S",
+        "operatorRegisterId": "CVR 26114179 (Erhvervsstyrelsen)",
+        "unitId": "CVR_26114179",
+        "town": "Vrå",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 26114179 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Vrå"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_19",
+      "plantName": "Hjørring",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "HJØRRING VANDSELSKAB A/S",
+        "operatorRegisterId": "CVR 29809577 (Erhvervsstyrelsen)",
+        "unitId": "CVR_29809577",
+        "town": "Hjørring",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 29809577 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Hjørring"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_23",
+      "plantName": "Horsens",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "HORSENS BIOENERGI ApS",
+        "operatorRegisterId": "CVR 34700605 (Erhvervsstyrelsen)",
+        "unitId": "CVR_34700605",
+        "town": "Horsens",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 34700605 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Horsens"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_24",
+      "plantName": "Horsens",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "HORSENS BIOENERGI ApS",
+        "operatorRegisterId": "CVR 34700605 (Erhvervsstyrelsen)",
+        "unitId": "CVR_34700605",
+        "town": "Horsens",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 34700605 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Horsens"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_25",
+      "plantName": "Hvidovre",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "SOLUM A/S",
+          "operatorRegisterId": "CVR: 25690230",
+          "unitId": "CVR_CVR: 25690230",
+          "town": "Hvidovre",
+          "coordinates": null,
+          "capacity": null,
+          "evidence": [
+            "Claimed CVR CVR: 25690230 does not match plant name/activity (Erhvervsstyrelsen mismatch)",
+            "Requires manual trader desk verification"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_dk_20",
+      "plantName": "Højslev",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "BioCirc Vinkel Biogas ApS",
+        "operatorRegisterId": "CVR 39420236 (Erhvervsstyrelsen)",
+        "unitId": "CVR_39420236",
+        "town": "Højslev",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 39420236 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Højslev"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_26",
+      "plantName": "Kalundborg",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Kalundborg Bioenergi ApS",
+        "operatorRegisterId": "CVR 37038997 (Erhvervsstyrelsen)",
+        "unitId": "CVR_37038997",
+        "town": "Skanderborg",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 37038997 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Skanderborg"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_27",
+      "plantName": "Karup",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Midtjysk Biogas A/S",
+        "operatorRegisterId": "CVR 43710427 (Erhvervsstyrelsen)",
+        "unitId": "CVR_43710427",
+        "town": "Karup J",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 43710427 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Karup J"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_28",
+      "plantName": "Kerteminde",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "KERTEMINDE BIOGAS ApS",
+        "operatorRegisterId": "CVR 31600073 (Erhvervsstyrelsen)",
+        "unitId": "CVR_31600073",
+        "town": "Kerteminde",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 31600073 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Kerteminde"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_29",
+      "plantName": "Langå",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Langaa Bioenergi ApS",
+        "operatorRegisterId": "CVR 44155893 (Erhvervsstyrelsen)",
+        "unitId": "CVR_44155893",
+        "town": "Langå",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 44155893 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Langå"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_30",
+      "plantName": "Lemming",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Grauballegaard Biogas ApS",
+        "operatorRegisterId": "CVR 40845747 (Erhvervsstyrelsen)",
+        "unitId": "CVR_40845747",
+        "town": "Lemming",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 40845747 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Lemming"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_31",
+      "plantName": "Lille Skensved",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "CP KELCO ApS",
+        "operatorRegisterId": "CVR 21210285 (Erhvervsstyrelsen)",
+        "unitId": "CVR_21210285",
+        "town": "Lille Skensved",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 21210285 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Lille Skensved"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_60",
+      "plantName": "Nysted",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "NYSTED BIOENERGI ApS",
+        "operatorRegisterId": "CVR 36436743 (Erhvervsstyrelsen)",
+        "unitId": "CVR_36436743",
+        "town": "Skanderborg",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 36436743 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Skanderborg"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_32",
+      "plantName": "Nørre Nebel",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "BioCirc Blåbjerg Biogas ApS",
+        "operatorRegisterId": "CVR 44169681 (Erhvervsstyrelsen)",
+        "unitId": "CVR_44169681",
+        "town": "Nørre Nebel",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 44169681 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Nørre Nebel"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_61",
+      "plantName": "Odense",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "VANDCENTER SYD ENERGI ApS",
+        "operatorRegisterId": "CVR 35517790 (Erhvervsstyrelsen)",
+        "unitId": "CVR_35517790",
+        "town": "Odense C",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 35517790 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Odense C"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_34",
+      "plantName": "Otterup",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Lykkeslund Bioenergi ApS",
+        "operatorRegisterId": "CVR 36984880 (Erhvervsstyrelsen)",
+        "unitId": "CVR_36984880",
+        "town": "Otterup",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 36984880 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Otterup"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_35",
+      "plantName": "Outrup",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Outrup Biogas ApS",
+        "operatorRegisterId": "CVR 38057812 (Erhvervsstyrelsen)",
+        "unitId": "CVR_38057812",
+        "town": "Outrup",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 38057812 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Outrup"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_36",
+      "plantName": "Redsted",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "LIMFJORDENS BIOENERGI ApS",
+        "operatorRegisterId": "CVR 35378979 (Erhvervsstyrelsen)",
+        "unitId": "CVR_35378979",
+        "town": "Redsted M",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 35378979 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Redsted M"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_37",
+      "plantName": "Ribe",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "RIBE BIOGAS A/S",
+        "operatorRegisterId": "CVR 12519184 (Erhvervsstyrelsen)",
+        "unitId": "CVR_12519184",
+        "town": "Ribe",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 12519184 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Ribe"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_38",
+      "plantName": "Ringe",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Shell Midtfyn Biogas A/S",
+        "operatorRegisterId": "CVR 34734658 (Erhvervsstyrelsen)",
+        "unitId": "CVR_34734658",
+        "town": "Odense SØ",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 34734658 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Odense SØ"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_39",
+      "plantName": "Ringsted",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "BioCirc Ringsted Biogas ApS",
+        "operatorRegisterId": "CVR 38788639 (Erhvervsstyrelsen)",
+        "unitId": "CVR_38788639",
+        "town": "Ringsted",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 38788639 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Ringsted"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_43",
+      "plantName": "Roslev",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Rybjerg Biogas P/S",
+        "operatorRegisterId": "CVR 36712198 (Erhvervsstyrelsen)",
+        "unitId": "CVR_36712198",
+        "town": "Roslev",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 36712198 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Roslev"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_40",
+      "plantName": "Rødding",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Bagværk I/S",
+          "operatorRegisterId": "CVR: 38814524",
+          "unitId": "CVR_CVR: 38814524",
+          "town": "Rødding",
+          "coordinates": null,
+          "capacity": null,
+          "evidence": [
+            "Claimed CVR CVR: 38814524 does not match plant name/activity (Erhvervsstyrelsen mismatch)",
+            "Requires manual trader desk verification"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_dk_41",
+      "plantName": "Rødding",
+      "status": "AMBIGUOUS",
+      "best": null,
+      "candidates": [
+        {
+          "operatorName": "Bagværk I/S",
+          "operatorRegisterId": "CVR: 38814524",
+          "unitId": "CVR_CVR: 38814524",
+          "town": "Rødding",
+          "coordinates": null,
+          "capacity": null,
+          "evidence": [
+            "Claimed CVR CVR: 38814524 does not match plant name/activity (Erhvervsstyrelsen mismatch)",
+            "Requires manual trader desk verification"
+          ]
+        }
+      ]
+    },
+    {
+      "plantId": "plant_dk_42",
+      "plantName": "Rødekro",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Taagholm Biogas A/S",
+        "operatorRegisterId": "CVR 41067640 (Erhvervsstyrelsen)",
+        "unitId": "CVR_41067640",
+        "town": "Rødekro",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 41067640 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Rødekro"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_45",
+      "plantName": "Skjern",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Vestjysk Biogas ApS",
+        "operatorRegisterId": "CVR 37808474 (Erhvervsstyrelsen)",
+        "unitId": "CVR_37808474",
+        "town": "Skjern",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 37808474 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Skjern"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_48",
+      "plantName": "Spøttrup",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Greenlab Skive Biogas ApS",
+        "operatorRegisterId": "CVR 38280880 (Erhvervsstyrelsen)",
+        "unitId": "CVR_38280880",
+        "town": "Spøttrup",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 38280880 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Spøttrup"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_49",
+      "plantName": "Spøttrup",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Madsen Bioenergi I/S",
+        "operatorRegisterId": "CVR 33845499 (Erhvervsstyrelsen)",
+        "unitId": "CVR_33845499",
+        "town": "Spøttrup",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 33845499 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Spøttrup"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_50",
+      "plantName": "Stoholm",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "BioCirc Iglsø Biogas ApS",
+        "operatorRegisterId": "CVR 38130404 (Erhvervsstyrelsen)",
+        "unitId": "CVR_38130404",
+        "town": "Stoholm Jyll",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 38130404 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Stoholm Jyll"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_51",
+      "plantName": "Svendborg",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Andekærgaard Biogas ApS",
+        "operatorRegisterId": "CVR 38221582 (Erhvervsstyrelsen)",
+        "unitId": "CVR_38221582",
+        "town": "Svendborg",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 38221582 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Svendborg"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_46",
+      "plantName": "Sønderborg",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Shell Glansager Biogas A/S",
+        "operatorRegisterId": "CVR 34734682 (Erhvervsstyrelsen)",
+        "unitId": "CVR_34734682",
+        "town": "Odense SØ",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 34734682 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Odense SØ"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_47",
+      "plantName": "Søndersø",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "ZASTROW BIOENERGI ApS",
+        "operatorRegisterId": "CVR 37255467 (Erhvervsstyrelsen)",
+        "unitId": "CVR_37255467",
+        "town": "Otterup",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 37255467 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Otterup"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_52",
+      "plantName": "Tarm",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Foersom Bioenergi ApS",
+        "operatorRegisterId": "CVR 37322458 (Erhvervsstyrelsen)",
+        "unitId": "CVR_37322458",
+        "town": "Tarm",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 37322458 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Tarm"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_53",
+      "plantName": "Thorsø",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Thorsø Biogasanlæg ApS",
+        "operatorRegisterId": "CVR 43682229 (Erhvervsstyrelsen)",
+        "unitId": "CVR_43682229",
+        "town": "Thorsø",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 43682229 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Thorsø"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_54",
+      "plantName": "Trige",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Shell Aarhus Biogas A/S",
+        "operatorRegisterId": "CVR 28680872 (Erhvervsstyrelsen)",
+        "unitId": "CVR_28680872",
+        "town": "Odense SØ",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 28680872 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Odense SØ"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_55",
+      "plantName": "Vaarst",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Shell Vaarst Biogas A/S",
+        "operatorRegisterId": "CVR 34734623 (Erhvervsstyrelsen)",
+        "unitId": "CVR_34734623",
+        "town": "Odense SØ",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 34734623 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Odense SØ"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_56",
+      "plantName": "Vojens",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Sønderjysk Biogas Bevtoft A/S",
+        "operatorRegisterId": "CVR 36704632 (Erhvervsstyrelsen)",
+        "unitId": "CVR_36704632",
+        "town": "Bevtoft",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 36704632 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Bevtoft"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_57",
+      "plantName": "Vrå",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Grøngas, Vraa A/S",
+        "operatorRegisterId": "CVR 35384855 (Erhvervsstyrelsen)",
+        "unitId": "CVR_35384855",
+        "town": "Vrå",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 35384855 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Vrå"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_58",
+      "plantName": "Vrå",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Agri Energy Vrå P/S",
+        "operatorRegisterId": "CVR 42957909 (Erhvervsstyrelsen)",
+        "unitId": "CVR_42957909",
+        "town": "Vrå",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 42957909 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Vrå"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_33",
+      "plantName": "Ølgod",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Ølgod BioEnergi ApS",
+        "operatorRegisterId": "CVR 38722042 (Erhvervsstyrelsen)",
+        "unitId": "CVR_38722042",
+        "town": "Ølgod",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 38722042 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Ølgod"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_dk_44",
+      "plantName": "Sindal",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Sindal Biogas A/S",
+        "operatorRegisterId": "CVR 41538996 (Erhvervsstyrelsen)",
+        "unitId": "CVR_41538996",
+        "town": "Sindal",
+        "coordinates": null,
+        "capacity": null,
+        "evidence": [
+          "Statutory CVR 41538996 confirmed via Danish Business Authority (Erhvervsstyrelsen)",
+          "Energinet Biogasregister certified injection site",
+          "Municipal registry: Sindal"
+        ]
+      },
+      "candidates": []
+    }
+  ]
+}

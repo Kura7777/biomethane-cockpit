@@ -1,6 +1,8 @@
 import { BiomethanePlant, PlantDataQuality } from './types';
 import { buildContactFrequencyIndex, evaluatePlantContactQuality } from './contactQuality';
 import { getVerifiedPlantDossier } from './statutoryDossiers';
+import { REGISTRATION_CHECKS } from './registrationChecks.generated';
+import { REGISTER_MATCHES } from './registerMatches.generated';
 
 /**
  * Plant registry data-quality normalisation.
@@ -16,7 +18,12 @@ import { getVerifiedPlantDossier } from './statutoryDossiers';
  *  - placeholder regions ("<Country> Grid Injection Zone"),
  *  - rows repeated with identical name, capacity, energy and coordinates,
  *  - unverified commercial outreach contacts (dead domains that bounce, shared switchboards
- *    reused across 5+ plants, third-party operators, and private farmer mailboxes).
+ *    reused across 5+ plants, third-party operators, and private farmer mailboxes),
+ *  - company registration IDs that were generated, not looked up (sequential German HRB
+ *    numbers, "12345678", French SIRENs belonging to unrelated sole traders).
+ *
+ * Registration IDs are therefore kept only when a register check confirmed them
+ * (registrationChecks.generated.ts); the raw value is preserved as claimedRegistrationId.
  *
  * This module does not invent replacements. It derives each record's unverified fields
  * from its own provenance and from those detectable defects, so the UI never presents
@@ -90,6 +97,13 @@ export function normalizePlantRegistry(raw: BiomethanePlant[]): BiomethanePlant[
     if (p.contactEmail) unverified.add('contactEmail');
     if (p.contactPhone) unverified.add('contactPhone');
 
+    // Registration ID: show only what a register confirmed; keep the raw claim for audit
+    const registrationCheck = REGISTRATION_CHECKS[p.id] ?? null;
+    const registerMatch = REGISTER_MATCHES[p.id] ?? null;
+    const claimedRegistrationId = p.companyRegistrationId ?? null;
+    const companyRegistrationId = registrationCheck?.status === 'CONFIRMED' ? claimedRegistrationId : null;
+    if (claimedRegistrationId && !companyRegistrationId) unverified.add('companyRegistrationId');
+
     const dupKey = duplicateKey(p);
     const duplicateOf = firstIdByDuplicateKey.get(dupKey) ?? null;
     if (duplicateOf === null) firstIdByDuplicateKey.set(dupKey, p.id);
@@ -104,11 +118,15 @@ export function normalizePlantRegistry(raw: BiomethanePlant[]): BiomethanePlant[
 
     return {
       ...p,
+      companyRegistrationId,
+      claimedRegistrationId,
+      registrationCheck,
+      registerMatch,
       fieldsUnverified: [...unverified],
       isVerified: Boolean(p.isVerified) && duplicateOf === null && !CORE_FIELDS.some(f => unverified.has(f)),
       dataQuality,
       contactQuality,
-      verifiedDossier: getVerifiedPlantDossier(p),
+      verifiedDossier: getVerifiedPlantDossier({ ...p, companyRegistrationId, registrationCheck, registerMatch, contactQuality }),
     };
   });
 }

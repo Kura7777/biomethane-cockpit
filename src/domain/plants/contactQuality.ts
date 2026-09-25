@@ -19,6 +19,10 @@ import { getOfficialRegisterForCountry } from './officialRegisters';
  *  3. UNVERIFIED_LEAD: syntax passes basic structure checks, but active deliverability and commercial
  *     authority require manual desk verification.
  *  4. NO_CONTACT: no email or phone published.
+ *
+ * Detection is pattern-based — no DNS/MX lookup is performed. "Undeliverable" means the address
+ * was evidently constructed from a place name and must not be used; some such domains exist
+ * (e.g. a town hall's) and would reach an unrelated party rather than bounce.
  */
 
 export const SHARED_CONTACT_THRESHOLD = 5;
@@ -313,16 +317,16 @@ export function evaluatePlantContactQuality(
   let gdprWarning: string | undefined;
 
   if (isPersonal) {
-    gdprWarning = 'GDPR Article 6 Alert: Personal farmer or individual mailbox detected. Cold unsolicited commercial outreach is strictly restricted without prior verifiable consent.';
+    gdprWarning = 'Personal mailbox (likely a farmer or sole trader). Under the ePrivacy rules (Directive 2002/58/EC Art. 13 and national equivalents such as PECR), unsolicited marketing email to individuals generally needs prior consent. Prefer phone, or a registered business contact.';
     reasons.push(gdprWarning);
   }
 
   if (isInventedMailbox) {
-    reasons.push('Invented / truncated mailbox on corporate domain (e.g. truncated auto-generated inbox prefix). Outreach will bounce.');
+    reasons.push('Invented / truncated mailbox on a corporate domain (auto-generated inbox prefix cut off mid-word). Do not use.');
   }
 
   if (isDeadDomain) {
-    reasons.push('Dead / synthetic domain: Address was constructed from plant location name. Domain has no internet MX mail routing record and will bounce.');
+    reasons.push("Synthetic address: constructed from the plant's place name. It will bounce or reach an unrelated party (e.g. the town hall). Do not use.");
   }
 
   if (isSharedEmail) {
@@ -355,7 +359,7 @@ export function evaluatePlantContactQuality(
     reasons.push('No direct commercial contact details published for this facility.');
   } else if (isDeadDomain || isInventedMailbox) {
     confidence = 'UNDELIVERABLE';
-    confidenceLabel = 'Undeliverable (Certain Bounce)';
+    confidenceLabel = 'Synthetic Address — Do Not Use';
     confidenceBadgeColor = 'red';
   } else if (isSharedEmail || isSharedPhone || isOperatorMismatch || isGridOperatorSwitchboard) {
     confidence = 'INDIRECT';

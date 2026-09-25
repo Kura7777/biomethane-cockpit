@@ -10,6 +10,14 @@ import {
   generateUdbNominationXmlPayload,
   calculateTradeIntegritySeal,
   downloadDealFile,
+  inferDeskRole,
+  resolveParties,
+  describePricing,
+  annexClassificationLabel,
+  chainOfCustodyLabel,
+  environmentalAttributeLabel,
+  TBA,
+  DeskRole,
   LegalAnnexOptions
 } from '../../domain/trade/legalPackage';
 import { MARKETS } from '../../domain/markets/registry';
@@ -45,11 +53,13 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
   const [copiedType, setCopiedType] = useState<string | null>(null);
   const [signoffRecord, setSignoffRecord] = useState<{ signedBy: string; timestamp: string } | null>(null);
   
-  // Customization state for Legal Documents
-  const [sellerName, setSellerName] = useState('BIOMETHANE TRADING DESK EUROPE B.V.');
-  const [buyerName, setBuyerName] = useState(assessment?.consignment?.counterparty || 'OFFTAKE COUNTERPARTY CORP');
+  // Contract terms the desk must supply. Nothing is defaulted to a real-looking value:
+  // blanks render as bracketed placeholders on every document.
+  const [deskRole, setDeskRole] = useState<DeskRole>(() => (assessment ? inferDeskRole(assessment) : 'SELLER'));
+  const [deskEntity, setDeskEntity] = useState('');
+  const [counterpartyName, setCounterpartyName] = useState(assessment?.consignment?.counterparty ?? '');
   const [governingLaw, setGoverningLaw] = useState<'ENGLISH_LAW' | 'GERMAN_LAW'>('ENGLISH_LAW');
-  const [masterAgreementDate, setMasterAgreementDate] = useState('15 January 2024');
+  const [masterAgreementDate, setMasterAgreementDate] = useState('');
 
   const { can, user } = useAuth();
 
@@ -63,19 +73,30 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isOpen, onClose]);
 
-  // Sync buyer name if assessment changes
+  // Re-derive direction and counterparty when a different deal is opened
   useEffect(() => {
-    if (assessment?.consignment?.counterparty) {
-      setBuyerName(assessment.consignment.counterparty);
-    }
-  }, [assessment]);
+    if (!assessment) return;
+    setDeskRole(inferDeskRole(assessment));
+    setCounterpartyName(assessment.consignment.counterparty ?? '');
+  }, [assessment?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const parties = useMemo(() => {
+    if (!assessment) return null;
+    const withCounterparty = { ...assessment, consignment: { ...assessment.consignment, counterparty: counterpartyName } };
+    return resolveParties(withCounterparty, { deskRole, tradingDeskEntity: deskEntity });
+  }, [assessment, counterpartyName, deskRole, deskEntity]);
+
+  const sellerName = parties?.seller ?? '';
+  const buyerName = parties?.buyer ?? '';
 
   const legalOptions: LegalAnnexOptions = useMemo(() => ({
+    deskRole,
+    tradingDeskEntity: deskEntity,
     sellerName,
     buyerName,
     governingLaw,
     masterAgreementDate,
-  }), [sellerName, buyerName, governingLaw, masterAgreementDate]);
+  }), [deskRole, deskEntity, sellerName, buyerName, governingLaw, masterAgreementDate]);
 
   const seal = useMemo(() => {
     if (!assessment) return '';
@@ -127,13 +148,13 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
   // Document 3: ETRM CSV & JSON payloads
   const etrmCsv = useMemo(() => {
     if (!assessment) return '';
-    return generateEtrmCsvPayload(assessment);
-  }, [assessment]);
+    return generateEtrmCsvPayload(assessment, legalOptions);
+  }, [assessment, legalOptions]);
 
   const etrmJson = useMemo(() => {
     if (!assessment) return {};
-    return generateEtrmJsonPayload(assessment);
-  }, [assessment]);
+    return generateEtrmJsonPayload(assessment, legalOptions);
+  }, [assessment, legalOptions]);
 
   const etrmJsonStr = useMemo(() => {
     return JSON.stringify(etrmJson, null, 2);
@@ -144,17 +165,24 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
     if (!etrmCsv) return [];
     const lines = etrmCsv.trim().split(/\r?\n/);
     if (lines.length < 2) return [];
-    const headers = lines[0].split(',');
+    const headers = lines[0].split(',').map(h => h.replace(/^"|"$/g, ''));
     
     // Parse CSV line handling quotes
     const parseLine = (line: string) => {
-      const regex = /(?:^|,)(?:"([^"]*)"|([^,]*))/g;
       const items: string[] = [];
-      let match;
-      while ((match = regex.exec(line)) !== null) {
-        if (match.index === regex.lastIndex) regex.lastIndex++;
-        items.push(match[1] !== undefined ? match[1] : match[2] ?? '');
+      let field = '';
+      let quoted = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (quoted) {
+          if (ch === '"' && line[i + 1] === '"') { field += '"'; i++; }
+          else if (ch === '"') quoted = false;
+          else field += ch;
+        } else if (ch === '"') quoted = true;
+        else if (ch === ',') { items.push(field); field = ''; }
+        else field += ch;
       }
+      items.push(field);
       return items;
     };
     
@@ -165,8 +193,8 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
   // Document 4: UDB Mass Balance XML payload
   const udbXml = useMemo(() => {
     if (!assessment) return '';
-    return generateUdbNominationXmlPayload(assessment);
-  }, [assessment]);
+    return generateUdbNominationXmlPayload(assessment, legalOptions);
+  }, [assessment, legalOptions]);
 
   if (!isOpen || !assessment) return null;
 
@@ -179,13 +207,18 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
     unitLabel: '€/tCO₂e',
   };
 
-  const volume = c.volumeMWh ?? 10000;
+  const volumeLabel = c.volumeMWh != null ? `${c.volumeMWh.toLocaleString()} MWh` : TBA;
   const gasPrice = assessment.marks.gasIndex.mid ?? 0;
   const certVal = nb.certificateValue?.valueEurPerMWh ?? 0;
   const totalDelivered = gasPrice + certVal;
   const deskMargin = nb.deskMargin ?? 0;
-  const ghgSavingPct = Math.round(((94.0 - c.carbonIntensity) / 94.0) * 100);
-  const totalDealValue = totalDelivered * volume;
+  const pricingLines = describePricing(assessment, deskRole);
+  const attributeLabel = environmentalAttributeLabel(MARKETS.find(m => m.id === assessment.targetMarketId), assessment.targetMarketId);
+  const dp = c.deliveryPeriod;
+  const deliveryPeriodLabel = dp?.startDate && dp?.endDate ? `${dp.startDate} to ${dp.endDate}` : TBA;
+  const deliveryPointLabel = dp?.deliveryPointVtp || `${c.injectionCountry} virtual trading point ${TBA}`;
+  const originLabel = c.originPlantName || c.name || TBA;
+  const isBlocked = assessment.eligibility.overallVerdict === 'HARD_BLOCK';
 
   const handleCopy = (text: string, type: string) => {
     try {
@@ -203,9 +236,9 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
   const handleDownloadTermSheetPdf = () => {
     try {
       const doc = generateCommercialTermSheetPdf(assessment, legalOptions);
-      const filename = `Commercial-TermSheet-${assessment.id}-${assessment.targetMarketId}.pdf`;
+      const filename = `Indicative-TermSheet-${assessment.id}-${assessment.targetMarketId}.pdf`;
       doc.save(filename);
-      showToast(`Commercial Term Sheet PDF downloaded: ${filename}`);
+      showToast(`Indicative term sheet downloaded: ${filename}`);
     } catch {
       showToast('Failed to generate Commercial Term Sheet PDF');
     }
@@ -214,9 +247,9 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
   const handleDownloadEfetPdf = () => {
     try {
       const doc = generateEfetBiomethaneAnnexPdf(assessment, legalOptions);
-      const filename = `EFET-Biomethane-Annex-${assessment.id}-${assessment.targetMarketId}.pdf`;
+      const filename = `Draft-Confirmation-${assessment.id}-${assessment.targetMarketId}.pdf`;
       doc.save(filename);
-      showToast(`EFET Annex PDF downloaded: ${filename}`);
+      showToast(`Draft confirmation downloaded: ${filename}`);
     } catch {
       showToast('Failed to generate EFET Annex PDF');
     }
@@ -224,25 +257,25 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
 
   const handleDownloadEtrmCsv = () => {
     try {
-      const filename = `ETRM-DealTicket-${assessment.id}.csv`;
+      const filename = `DealRecord-${assessment.id}.csv`;
       downloadDealFile(filename, etrmCsv, 'text/csv;charset=utf-8');
-      showToast(`ETRM CSV deal ticket downloaded`);
+      showToast(`Deal record CSV downloaded`);
     } catch {
       showToast('Failed to generate ETRM CSV');
     }
   };
 
   const handleDownloadJson = () => {
-    const filename = `ETRM-DealTicket-${assessment.id}-${assessment.targetMarketId}.json`;
+    const filename = `DealRecord-${assessment.id}-${assessment.targetMarketId}.json`;
     downloadDealFile(filename, etrmJsonStr, 'application/json;charset=utf-8');
-    showToast(`ETRM JSON deal ticket downloaded`);
+    showToast(`Deal record JSON downloaded`);
   };
 
   const handleDownloadUdbXml = () => {
     try {
-      const filename = `UDB-Nomination-${assessment.id}.xml`;
+      const filename = `UDB-Worksheet-${assessment.id}.xml`;
       downloadDealFile(filename, udbXml, 'application/xml;charset=utf-8');
-      showToast(`UDB Mass Balance Nomination XML downloaded`);
+      showToast(`UDB worksheet downloaded`);
     } catch {
       showToast('Failed to generate UDB XML');
     }
@@ -251,9 +284,9 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
   const handleDownloadAuditMemoPdf = () => {
     try {
       const doc = generateStatutoryAuditMemoPdf(assessment, legalOptions);
-      const filename = `AUDIT-TR-${assessment.id}-${assessment.targetMarketId}.pdf`;
+      const filename = `PreScreen-${assessment.id}-${assessment.targetMarketId}.pdf`;
       doc.save(filename);
-      showToast(`Statutory Audit Memo PDF downloaded: ${filename}`);
+      showToast(`Pre-screen memo downloaded: ${filename}`);
     } catch {
       showToast('Failed to generate Statutory Audit Memo PDF');
     }
@@ -265,7 +298,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
     handleDownloadEtrmCsv();
     handleDownloadUdbXml();
     handleDownloadAuditMemoPdf();
-    showToast('All 5 deal handoff artifacts downloaded!');
+    showToast('All 5 draft documents downloaded');
   };
 
   const handleComplianceSignoff = () => {
@@ -283,11 +316,92 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
       'PRICED',
       user.name,
       user.role,
-      `Statutory compliance & UDB mass-balance signed off by ${user.name} (${user.role})`
+      `Compliance review recorded by ${user.name} (${user.role})`
     ).catch(() => {});
     deskSync.broadcastDealTransitioned(assessment.id, null, 'PRICED');
-    showToast(`Compliance Sign-Off executed by ${user.name}`);
+    showToast(`Compliance review recorded by ${user.name}`);
   };
+
+  const termsPanel = (
+    <div
+      style={{
+        padding: '12px 16px',
+        backgroundColor: 'var(--color-surface)',
+        border: '1px solid var(--color-divider)',
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: '12px',
+        alignItems: 'end',
+      }}
+    >
+      <div>
+        <label className="eyebrow" style={{ display: 'block', marginBottom: '3px' }}>Desk side</label>
+        <select
+          className="input"
+          value={deskRole}
+          onChange={e => setDeskRole(e.target.value as DeskRole)}
+          style={{ width: '100%', fontSize: '11px' }}
+        >
+          <option value="BUYER">Desk buys (offtake from producer)</option>
+          <option value="SELLER">Desk sells (to offtaker)</option>
+        </select>
+      </div>
+      <div>
+        <label className="eyebrow" style={{ display: 'block', marginBottom: '3px' }}>Desk legal entity</label>
+        <input
+          type="text"
+          className="input"
+          value={deskEntity}
+          placeholder="[DESK LEGAL ENTITY]"
+          onChange={e => setDeskEntity(e.target.value)}
+          style={{ width: '100%', fontSize: '11px' }}
+        />
+      </div>
+      <div>
+        <label className="eyebrow" style={{ display: 'block', marginBottom: '3px' }}>Counterparty legal entity</label>
+        <input
+          type="text"
+          className="input"
+          value={counterpartyName}
+          placeholder="[COUNTERPARTY LEGAL ENTITY]"
+          onChange={e => setCounterpartyName(e.target.value)}
+          style={{ width: '100%', fontSize: '11px' }}
+        />
+      </div>
+      <div>
+        <label className="eyebrow" style={{ display: 'block', marginBottom: '3px' }}>Governing law</label>
+        <select
+          className="input"
+          value={governingLaw}
+          onChange={e => setGoverningLaw(e.target.value as 'ENGLISH_LAW' | 'GERMAN_LAW')}
+          style={{ width: '100%', fontSize: '11px' }}
+        >
+          <option value="ENGLISH_LAW">English law</option>
+          <option value="GERMAN_LAW">German law</option>
+        </select>
+      </div>
+      <div>
+        <label className="eyebrow" style={{ display: 'block', marginBottom: '3px' }}>EFET master agreement date</label>
+        <input
+          type="text"
+          className="input"
+          value={masterAgreementDate}
+          placeholder={TBA}
+          onChange={e => setMasterAgreementDate(e.target.value)}
+          style={{ width: '100%', fontSize: '11px' }}
+        />
+      </div>
+      <div style={{ gridColumn: '1 / -1', fontSize: '11px', color: 'var(--color-muted)' }}>
+        Seller: <strong style={{ color: 'var(--color-text)' }}>{sellerName}</strong> · Buyer: <strong style={{ color: 'var(--color-text)' }}>{buyerName}</strong>. Blank fields print as bracketed placeholders — nothing is filled in for you.
+      </div>
+    </div>
+  );
+
+  const blockedBanner = isBlocked ? (
+    <div style={{ padding: '10px 14px', border: '2px solid #dc2626', color: '#f87171', fontSize: '12px', fontWeight: 700 }}>
+      NOT TRADEABLE AS STRUCTURED — {assessment.eligibility.summary}
+    </div>
+  ) : null;
 
   return (
     <div
@@ -300,7 +414,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
       }}
       role="dialog"
       aria-modal="true"
-      aria-label="Institutional Deal Handoff Package"
+      aria-label="Deal document drafts"
       onClick={onClose}
     >
       <div
@@ -356,11 +470,11 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                   textTransform: 'uppercase',
                 }}
               >
-                Complete 4-Piece Institutional Deal Package
+                Deal Document Drafts
               </h3>
             </div>
             <div style={{ fontSize: '12px', marginTop: '3px', color: 'var(--color-muted)' }}>
-              Ref: <strong style={{ color: 'var(--color-text)' }}>{assessment.id}</strong> · Destination: <strong style={{ color: 'var(--color-text)' }}>{assessment.targetMarketName}</strong> · Volume: <strong style={{ color: 'var(--color-text)' }}>{volume.toLocaleString()} MWh</strong> · Total Delivered: <strong style={{ color: 'var(--color-accent)' }}>€{totalDelivered.toFixed(2)}/MWh</strong>
+              Ref: <strong style={{ color: 'var(--color-text)' }}>{assessment.id}</strong> · Destination: <strong style={{ color: 'var(--color-text)' }}>{assessment.targetMarketName}</strong> · Volume: <strong style={{ color: 'var(--color-text)' }}>{volumeLabel}</strong> · Indicative delivered (desk marks): <strong style={{ color: 'var(--color-accent)' }}>€{totalDelivered.toFixed(2)}/MWh</strong>
             </div>
           </div>
 
@@ -425,7 +539,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
               }}
               onClick={() => setActiveTab('TERM_SHEET')}
             >
-              📄 1. Commercial Term Sheet (PDF)
+              📄 1. Indicative Term Sheet (PDF)
             </button>
             <button
               type="button"
@@ -439,7 +553,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
               }}
               onClick={() => setActiveTab('EFET_ANNEX')}
             >
-              ⚖️ 2. EFET Biomethane Annex (PDF)
+              ⚖️ 2. Draft EFET Confirmation (PDF)
             </button>
             <button
               type="button"
@@ -453,7 +567,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
               }}
               onClick={() => setActiveTab('ETRM_TICKET')}
             >
-              💾 3. ETRM Deal Ticket (CSV &amp; JSON)
+              💾 3. Deal Record (CSV &amp; JSON)
             </button>
             <button
               type="button"
@@ -467,7 +581,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
               }}
               onClick={() => setActiveTab('UDB_XML')}
             >
-              🌐 4. UDB Mass Balance Nomination (XML)
+              🌐 4. UDB Worksheet (XML)
             </button>
             <button
               type="button"
@@ -481,13 +595,13 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
               }}
               onClick={() => setActiveTab('AUDIT_MEMO')}
             >
-              🛡️ 5. Statutory Audit Memo (PDF)
+              🛡️ 5. Regulatory Pre-Screen (PDF)
             </button>
           </div>
 
           {/* Cryptographic SHA-256 Audit Seal Strip */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px' }}>
-            <span style={{ color: 'var(--color-muted)', fontWeight: 600 }}>Audit Seal:</span>
+            <span style={{ color: 'var(--color-muted)', fontWeight: 600 }} title="Change-detection fingerprint over the material terms; not a signature or registry seal">Fingerprint:</span>
             <code
               style={{
                 fontFamily: 'var(--font-mono, monospace)',
@@ -505,9 +619,9 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
               type="button"
               className="chip"
               style={{ fontSize: '10px', padding: '3px 8px', cursor: 'pointer' }}
-              onClick={() => handleCopy(seal, 'Audit Seal')}
+              onClick={() => handleCopy(seal, 'Fingerprint')}
             >
-              {copiedType === 'Audit Seal' ? '✓ Copied' : 'Copy Seal'}
+              {copiedType === 'Fingerprint' ? '✓ Copied' : 'Copy'}
             </button>
           </div>
         </div>
@@ -571,6 +685,9 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                 </div>
               </div>
 
+              {termsPanel}
+              {blockedBanner}
+
               {/* Sub-view A: Interactive Document Review */}
               {termSheetSubView === 'STRUCTURED' ? (
                 <div
@@ -587,13 +704,13 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                   {/* Header Banner */}
                   <div style={{ borderBottom: '3px solid var(--color-text)', paddingBottom: '14px' }}>
                     <div style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.12em', color: 'var(--color-accent)', textTransform: 'uppercase' }}>
-                      Commercial Transaction Term Sheet
+                      Indicative Term Sheet
                     </div>
                     <h2 style={{ margin: '4px 0 2px', fontSize: '20px', fontFamily: 'var(--font-heading)', fontWeight: 800, textTransform: 'uppercase' }}>
-                      Bilateral OTC Biomethane &amp; Environmental Attribute Confirmation
+                      Biomethane &amp; Environmental Attribute Supply
                     </h2>
                     <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
-                      Confidential &amp; Binding Commercial Term Sheet · Delivery Period: Cal 2026
+                      Non-binding · Subject to contract · Delivery period: {deliveryPeriodLabel}
                     </div>
                   </div>
 
@@ -614,15 +731,15 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                       <div style={{ fontWeight: 800, marginTop: '2px' }}>{assessment.id}</div>
                     </div>
                     <div>
-                      <span className="eyebrow">Confirmation Date</span>
+                      <span className="eyebrow">Date</span>
                       <div style={{ fontWeight: 700, marginTop: '2px' }}>{assessment.createdAt.slice(0, 10)}</div>
                     </div>
                     <div>
-                      <span className="eyebrow">Buyer (Offtake Counterparty)</span>
+                      <span className="eyebrow">Buyer</span>
                       <div style={{ fontWeight: 700, marginTop: '2px' }}>{buyerName}</div>
                     </div>
                     <div>
-                      <span className="eyebrow">Seller (Trading Principal)</span>
+                      <span className="eyebrow">Seller</span>
                       <div style={{ fontWeight: 700, marginTop: '2px' }}>{sellerName}</div>
                     </div>
                   </div>
@@ -636,31 +753,31 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                       <tbody>
                         <tr>
                           <td style={{ width: '32%', fontWeight: 700, color: 'var(--color-muted)' }}>Commodity Standard</td>
-                          <td>Pipeline-quality Biomethane complying with European standard EN 16723-1</td>
+                          <td>Biomethane injected to the gas grid; quality per the grid entry specification (EN 16723-1 reference)</td>
                         </tr>
                         <tr>
-                          <td style={{ fontWeight: 700, color: 'var(--color-muted)' }}>Annual Contract Volume</td>
-                          <td><strong>{volume.toLocaleString()} MWh/annum</strong> (~{(volume / 365).toFixed(1)} MWh/day flat delivery profile)</td>
+                          <td style={{ fontWeight: 700, color: 'var(--color-muted)' }}>Contract Volume</td>
+                          <td><strong>{volumeLabel}</strong> · profile: {dp?.deliveryProfile ? dp.deliveryProfile.replace(/_/g, ' ').toLowerCase() : TBA}</td>
                         </tr>
                         <tr>
                           <td style={{ fontWeight: 700, color: 'var(--color-muted)' }}>Origin Facility</td>
-                          <td>{c.name || 'Certified European Biomethane Facility'} ({c.originCountryName} - {c.originCountry})</td>
+                          <td>{originLabel} ({c.originCountryName} - {c.originCountry})</td>
                         </tr>
                         <tr>
                           <td style={{ fontWeight: 700, color: 'var(--color-muted)' }}>Delivery Point (VTP)</td>
-                          <td>{c.injectionCountry} Virtual Trading Point (High-Pressure Transmission Connected)</td>
+                          <td>{deliveryPointLabel}</td>
                         </tr>
                         <tr>
                           <td style={{ fontWeight: 700, color: 'var(--color-muted)' }}>Feedstock Substrate</td>
-                          <td>{c.feedstockName} · RED III Annex IX Part A Eligible</td>
+                          <td>{c.feedstockName} · {annexClassificationLabel(c.annexClassification)}</td>
                         </tr>
                         <tr>
-                          <td style={{ fontWeight: 700, color: 'var(--color-muted)' }}>Contract Carbon Intensity</td>
-                          <td><strong style={{ color: 'var(--color-accent)' }}>{c.carbonIntensity} gCO₂e/MJ</strong> ({ghgSavingPct}% GHG reduction vs 94.0 g benchmark)</td>
+                          <td style={{ fontWeight: 700, color: 'var(--color-muted)' }}>Carbon Intensity</td>
+                          <td><strong style={{ color: 'var(--color-accent)' }}>{c.carbonIntensity} gCO₂e/MJ</strong> declared; to be evidenced by the Proof of Sustainability</td>
                         </tr>
                         <tr>
                           <td style={{ fontWeight: 700, color: 'var(--color-muted)' }}>Chain of Custody</td>
-                          <td>Mass Balance under {c.certificationScheme.replace(/_/g, ' ')} (Single Interconnected European System)</td>
+                          <td>{chainOfCustodyLabel(c.chainOfCustody)} under {c.certificationScheme.replace(/_/g, ' ')}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -669,33 +786,27 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                   {/* Section 2: Commercial Pricing Formula */}
                   <div>
                     <h4 style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      2. Commercial Pricing &amp; Indexation Formula
+                      2. Price
                     </h4>
                     <table className="table" style={{ width: '100%', fontSize: '12px' }}>
                       <tbody>
+                        {pricingLines.map((line, i) => (
+                          <tr key={i}>
+                            <td style={{ width: '32%', fontWeight: 700, color: 'var(--color-muted)' }}>{i === 0 ? 'Price basis' : ''}</td>
+                            <td>{line}</td>
+                          </tr>
+                        ))}
                         <tr>
-                          <td style={{ width: '32%', fontWeight: 700, color: 'var(--color-muted)' }}>Leg A: Gas Molecule</td>
-                          <td>TTF Month-Ahead Floating Index (Current mark: <strong>€{gasPrice.toFixed(2)}/MWh</strong>)</td>
+                          <td style={{ fontWeight: 700, color: 'var(--color-muted)' }}>Environmental Attribute</td>
+                          <td>{attributeLabel} · destination {assessment.targetMarketName}</td>
                         </tr>
                         <tr>
-                          <td style={{ fontWeight: 700, color: 'var(--color-muted)' }}>Leg B: Environmental Attribute</td>
-                          <td>Statutory Sink: <strong>{assessment.targetMarketName}</strong> ({targetMarket.unitLabel})</td>
+                          <td style={{ fontWeight: 700, color: 'var(--color-muted)' }}>Carbon-Intensity Adjustment</td>
+                          <td>{TBA}</td>
                         </tr>
                         <tr>
-                          <td style={{ fontWeight: 700, color: 'var(--color-muted)' }}>Attribute Unit Value</td>
-                          <td><strong>€{certVal.toFixed(2)}/MWh</strong> delivered environmental attribute</td>
-                        </tr>
-                        <tr>
-                          <td style={{ fontWeight: 700, color: 'var(--color-muted)' }}>All-In Transaction Price</td>
-                          <td><strong style={{ color: 'var(--color-accent)', fontSize: '13px' }}>€{totalDelivered.toFixed(2)}/MWh</strong> (Total Deal Notional: <strong>€{Math.round(totalDealValue).toLocaleString()}</strong>)</td>
-                        </tr>
-                        <tr>
-                          <td style={{ fontWeight: 700, color: 'var(--color-muted)' }}>Dynamic Carbon Slider</td>
-                          <td><code>P_delivered = P_contract + α × (CI_contract − CI_actual)</code> capped at statutory replacement penalty</td>
-                        </tr>
-                        <tr>
-                          <td style={{ fontWeight: 700, color: 'var(--color-muted)' }}>Operational Volume Collar</td>
-                          <td>±5.0% annual tolerance with take-or-pay liquidated damages on unexcused shortfall</td>
+                          <td style={{ fontWeight: 700, color: 'var(--color-muted)' }}>Volume Tolerance / Shortfall</td>
+                          <td>{TBA}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -704,7 +815,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                   {/* Section 3: Registry Transfer Undertaking */}
                   <div>
                     <h4 style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      3. Registry Transfer &amp; Compliance Undertaking
+                      3. Sustainability Evidence (points to agree)
                     </h4>
                     <div
                       style={{
@@ -715,27 +826,13 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                         lineHeight: 1.6,
                       }}
                     >
-                      Title to the environmental attributes shall be transferred via the European Commission Union Database (UDB) under RED III Article 31a single mass balance rules, or designated national registry ({targetMarket.registry || 'dena / VertiCer'}), within thirty (30) calendar days of production month end. Seller covenants and warrants that the biomethane has not been double-claimed against conflicting national feed-in tariffs (EEG, GSE, or French Obligation d&apos;Achat).
+                      Transfer of {attributeLabel} via {targetMarket.registry || TBA}; transfer deadline {TBA}. Seller to warrant that the attributes have not been claimed elsewhere, including under national support schemes, and to disclose any support received. Remedies for late or invalid evidence {TBA}.
                     </div>
                   </div>
 
-                  {/* Execution Signatures */}
-                  <div>
-                    <h4 style={{ margin: '0 0 12px', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      4. Acceptance &amp; Commercial Signatures
-                    </h4>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
-                      <div style={{ borderTop: '2px solid var(--color-divider)', paddingTop: '8px' }}>
-                        <div style={{ fontSize: '12px', fontWeight: 700 }}>For: {sellerName}</div>
-                        <div style={{ fontSize: '11px', color: 'var(--color-muted)' }}>Authorized Commercial Representative</div>
-                        <div style={{ fontSize: '11px', color: 'var(--color-accent)', marginTop: '4px' }}>Date: {assessment.createdAt.slice(0, 10)}</div>
-                      </div>
-                      <div style={{ borderTop: '2px solid var(--color-divider)', paddingTop: '8px' }}>
-                        <div style={{ fontSize: '12px', fontWeight: 700 }}>For: {buyerName}</div>
-                        <div style={{ fontSize: '11px', color: 'var(--color-muted)' }}>Authorized Commercial Representative</div>
-                        <div style={{ fontSize: '11px', color: 'var(--color-accent)', marginTop: '4px' }}>Date: {assessment.createdAt.slice(0, 10)}</div>
-                      </div>
-                    </div>
+                  {/* Status */}
+                  <div style={{ fontSize: '11px', color: 'var(--color-muted)', lineHeight: 1.6 }}>
+                    Indicative only. Not an offer capable of acceptance; no binding obligation arises until a definitive agreement is executed by both parties. Prices reflect desk marks on {assessment.createdAt.slice(0, 10)} and will move.
                   </div>
 
                   {/* Audit Seal Strip */}
@@ -748,7 +845,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                       fontFamily: 'var(--font-mono)',
                     }}
                   >
-                    SHA-256 AUDIT DIGEST: {seal}
+                    Document fingerprint: {seal}
                   </div>
                 </div>
               ) : (
@@ -800,7 +897,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                       style={{ padding: '5px 12px', fontSize: '11px' }}
                       onClick={() => setEfetSubView('STRUCTURED')}
                     >
-                      📋 EFET Schedule Clauses
+                      📋 Structured Review
                     </button>
                     <button
                       type="button"
@@ -821,66 +918,13 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                     onClick={handleDownloadEfetPdf}
                   >
                     <span>⬇️</span>
-                    <span>Download EFET Annex (PDF)</span>
+                    <span>Download Draft Confirmation (PDF)</span>
                   </button>
                 </div>
               </div>
 
-              {/* Contracting Parties & Governing Law Customizer */}
-              <div
-                style={{
-                  padding: '12px 16px',
-                  backgroundColor: 'var(--color-surface)',
-                  border: '1px solid var(--color-divider)',
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                  gap: '12px',
-                  alignItems: 'center',
-                }}
-              >
-                <div>
-                  <label className="eyebrow" style={{ display: 'block', marginBottom: '3px' }}>Party A (Seller)</label>
-                  <input
-                    type="text"
-                    className="input"
-                    value={sellerName}
-                    onChange={e => setSellerName(e.target.value)}
-                    style={{ width: '100%', fontSize: '11px' }}
-                  />
-                </div>
-                <div>
-                  <label className="eyebrow" style={{ display: 'block', marginBottom: '3px' }}>Party B (Buyer)</label>
-                  <input
-                    type="text"
-                    className="input"
-                    value={buyerName}
-                    onChange={e => setBuyerName(e.target.value)}
-                    style={{ width: '100%', fontSize: '11px' }}
-                  />
-                </div>
-                <div>
-                  <label className="eyebrow" style={{ display: 'block', marginBottom: '3px' }}>Governing Law</label>
-                  <select
-                    className="input"
-                    value={governingLaw}
-                    onChange={e => setGoverningLaw(e.target.value as 'ENGLISH_LAW' | 'GERMAN_LAW')}
-                    style={{ width: '100%', fontSize: '11px' }}
-                  >
-                    <option value="ENGLISH_LAW">English Law (High Court, London)</option>
-                    <option value="GERMAN_LAW">German Law (Frankfurt am Main)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="eyebrow" style={{ display: 'block', marginBottom: '3px' }}>EFET Master Agreement Date</label>
-                  <input
-                    type="text"
-                    className="input"
-                    value={masterAgreementDate}
-                    onChange={e => setMasterAgreementDate(e.target.value)}
-                    style={{ width: '100%', fontSize: '11px' }}
-                  />
-                </div>
-              </div>
+              {termsPanel}
+              {blockedBanner}
 
               {/* Sub-view A: EFET Structured Clauses */}
               {efetSubView === 'STRUCTURED' ? (
@@ -897,13 +941,13 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                 >
                   <div style={{ borderBottom: '3px solid var(--color-text)', paddingBottom: '14px' }}>
                     <div style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.12em', color: 'var(--color-accent)', textTransform: 'uppercase' }}>
-                      European Federation of Energy Traders (EFET)
+                      Draft — for negotiation
                     </div>
                     <h2 style={{ margin: '4px 0 2px', fontSize: '20px', fontFamily: 'var(--font-heading)', fontWeight: 800, textTransform: 'uppercase' }}>
-                      Biomethane Annex &amp; Individual Transaction Confirmation
+                      Draft Individual Transaction Confirmation
                     </h2>
                     <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
-                      Subject to EFET General Agreement (Gas Version 2.0(a)) · Dated {masterAgreementDate}
+                      To be read with the EFET General Agreement (Natural Gas) between the parties dated {masterAgreementDate.trim() || TBA} · {governingLaw === 'ENGLISH_LAW' ? 'English law' : 'German law'}
                     </div>
                   </div>
 
@@ -918,7 +962,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                           <td style={{ width: '25%', fontWeight: 700 }}>Party A (Seller)</td>
                           <td style={{ width: '25%' }}>{sellerName}</td>
                           <td style={{ width: '25%', fontWeight: 700 }}>Origin Facility</td>
-                          <td style={{ width: '25%' }}>{c.name || 'European Biomethane Facility'}</td>
+                          <td style={{ width: '25%' }}>{originLabel}</td>
                         </tr>
                         <tr>
                           <td style={{ fontWeight: 700 }}>Party B (Buyer)</td>
@@ -928,13 +972,13 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                         </tr>
                         <tr>
                           <td style={{ fontWeight: 700 }}>Interconnection Point</td>
-                          <td>{c.injectionCountry} Transmission Grid</td>
+                          <td>{deliveryPointLabel}</td>
                           <td style={{ fontWeight: 700 }}>Feedstock Category</td>
-                          <td>{c.feedstockName} (Annex IX-A)</td>
+                          <td>{c.feedstockName} ({annexClassificationLabel(c.annexClassification)})</td>
                         </tr>
                         <tr>
                           <td style={{ fontWeight: 700 }}>Registry System</td>
-                          <td>{targetMarket.registry || 'Union Database (UDB)'}</td>
+                          <td>{targetMarket.registry || TBA}</td>
                           <td style={{ fontWeight: 700 }}>Sustainability Scheme</td>
                           <td>{c.certificationScheme.replace(/_/g, ' ')}</td>
                         </tr>
@@ -951,15 +995,15 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                       <tbody>
                         <tr>
                           <td style={{ width: '32%', fontWeight: 700, color: 'var(--color-muted)' }}>Delivery Point (VTP)</td>
-                          <td>{c.injectionCountry} Virtual Trading Point via Single Interconnected European Grid</td>
+                          <td>{deliveryPointLabel}</td>
                         </tr>
                         <tr>
                           <td style={{ fontWeight: 700, color: 'var(--color-muted)' }}>Contract Energy Volume</td>
-                          <td><strong>{volume.toLocaleString()} MWh</strong> (~{(volume / 365).toFixed(1)} MWh/day flat profile)</td>
+                          <td><strong>{volumeLabel}</strong> · delivery period {deliveryPeriodLabel}</td>
                         </tr>
                         <tr>
-                          <td style={{ fontWeight: 700, color: 'var(--color-muted)' }}>Commodity Pricing Index</td>
-                          <td>TTF Floating Index (Settlement Reference: <strong>€{gasPrice.toFixed(2)}/MWh</strong>)</td>
+                          <td style={{ fontWeight: 700, color: 'var(--color-muted)' }}>Contract Price</td>
+                          <td>{pricingLines.join(' ')}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -977,12 +1021,12 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                           <td><strong>{assessment.targetMarketName}</strong> ({targetMarket.unitLabel})</td>
                         </tr>
                         <tr>
-                          <td style={{ fontWeight: 700, color: 'var(--color-muted)' }}>Attribute Settlement Price</td>
-                          <td><strong>€{certVal.toFixed(2)}/MWh</strong> delivered attribute value</td>
+                          <td style={{ fontWeight: 700, color: 'var(--color-muted)' }}>Attribute Delivered</td>
+                          <td>{attributeLabel}</td>
                         </tr>
                         <tr>
-                          <td style={{ fontWeight: 700, color: 'var(--color-muted)' }}>Certified GHG Performance</td>
-                          <td><strong style={{ color: 'var(--color-accent)' }}>{c.carbonIntensity} gCO₂e/MJ</strong> ({ghgSavingPct}% GHG reduction)</td>
+                          <td style={{ fontWeight: 700, color: 'var(--color-muted)' }}>Carbon Intensity</td>
+                          <td><strong style={{ color: 'var(--color-accent)' }}>{c.carbonIntensity} gCO₂e/MJ</strong> declared; to be evidenced by the Proof of Sustainability</td>
                         </tr>
                       </tbody>
                     </table>
@@ -992,11 +1036,11 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginTop: '10px' }}>
                     <div style={{ borderTop: '2px solid var(--color-divider)', paddingTop: '8px' }}>
                       <div style={{ fontSize: '12px', fontWeight: 700 }}>For: {sellerName}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--color-muted)' }}>Authorized Commercial Signatory</div>
+                      <div style={{ fontSize: '11px', color: 'var(--color-muted)' }}>Signature {TBA} — draft, not for execution</div>
                     </div>
                     <div style={{ borderTop: '2px solid var(--color-divider)', paddingTop: '8px' }}>
                       <div style={{ fontSize: '12px', fontWeight: 700 }}>For: {buyerName}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--color-muted)' }}>Authorized Commercial Signatory</div>
+                      <div style={{ fontSize: '11px', color: 'var(--color-muted)' }}>Signature {TBA} — draft, not for execution</div>
                     </div>
                   </div>
                 </div>
@@ -1057,7 +1101,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                       style={{ padding: '5px 12px', fontSize: '11px' }}
                       onClick={() => setEtrmSubView('RAW_CSV')}
                     >
-                      📝 Raw CSV Ingestion
+                      📝 Raw CSV
                     </button>
                     <button
                       type="button"
@@ -1065,7 +1109,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                       style={{ padding: '5px 12px', fontSize: '11px' }}
                       onClick={() => setEtrmSubView('JSON')}
                     >
-                      🔧 JSON Payload
+                      🔧 JSON
                     </button>
                   </div>
                 </div>
@@ -1086,7 +1130,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                     onClick={handleDownloadEtrmCsv}
                   >
                     <span>⬇️</span>
-                    <span>Download ETRM CSV</span>
+                    <span>Download CSV</span>
                   </button>
                   <button
                     type="button"
@@ -1114,14 +1158,14 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 800, textTransform: 'uppercase' }}>
-                        ETRM Deal Ticket Field Mapping
+                        Generic Deal Record
                       </h4>
                       <div style={{ fontSize: '11px', color: 'var(--color-muted)' }}>
-                        Compatible with OpenLink Endur, TriplePoint Commodity XL, and SAP S/4HANA Commodity Management
+                        Generic internal format — map fields explicitly before importing into any ETRM. Blank values are unknown, not zero.
                       </div>
                     </div>
-                    <div className="chip chip-a" style={{ fontSize: '11px' }}>
-                      21 Institutional Fields Validated
+                    <div className="chip" style={{ fontSize: '11px' }}>
+                      {etrmCsvRows.length} fields · {etrmCsvRows.filter(r => !r.value).length} blank
                     </div>
                   </div>
 
@@ -1161,7 +1205,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                   }}
                 >
                   <div style={{ fontSize: '11px', color: 'var(--color-muted)' }}>
-                    Raw RFC 4180 CSV with headers ready for automated booking pipe:
+                    RFC 4180 CSV (UTF-8, CRLF). Map columns to your booking system before import:
                   </div>
                   <pre
                     style={{
@@ -1241,7 +1285,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                       style={{ padding: '5px 12px', fontSize: '11px' }}
                       onClick={() => setUdbSubView('SUMMARY')}
                     >
-                      📑 UDB Nomination Summary
+                      📑 Worksheet Summary
                     </button>
                     <button
                       type="button"
@@ -1249,7 +1293,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                       style={{ padding: '5px 12px', fontSize: '11px' }}
                       onClick={() => setUdbSubView('RAW_XML')}
                     >
-                      💻 Raw UDB XML Payload
+                      💻 Raw XML
                     </button>
                   </div>
                 </div>
@@ -1270,7 +1314,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                     onClick={handleDownloadUdbXml}
                   >
                     <span>⬇️</span>
-                    <span>Download UDB XML</span>
+                    <span>Download Worksheet XML</span>
                   </button>
                 </div>
               </div>
@@ -1289,10 +1333,10 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                 >
                   <div style={{ borderBottom: '1px solid var(--color-divider)', paddingBottom: '12px' }}>
                     <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, textTransform: 'uppercase' }}>
-                      EU Union Database (UDB) Mass Balance Transfer Verification
+                      Internal UDB Transfer Worksheet
                     </h4>
                     <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '2px' }}>
-                      Directive (EU) 2023/2413 (RED III) Article 31a Electronic Transaction Payload
+                      Checklist of what the UDB transfer will need. Not a UDB message format — the transfer itself is made in the Union Database by the account holders.
                     </div>
                   </div>
 
@@ -1302,10 +1346,10 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                     <div style={{ padding: '14px', backgroundColor: 'var(--color-subtier)', border: '1px solid var(--color-divider)' }}>
                       <div className="eyebrow" style={{ marginBottom: '8px' }}>Transaction Header</div>
                       <div style={{ fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <div>Message ID: <strong>UDB-TX-{assessment.id}</strong></div>
-                        <div>Sender EO: <strong>EO-969500XXXXXXXXXX01</strong></div>
-                        <div>Recipient EO: <strong>EO-969500XXXXXXXXXX02</strong></div>
-                        <div>Directive: <strong>RED III Directive (EU) 2023/2413</strong></div>
+                        <div>Deal ref: <strong>{assessment.id}</strong></div>
+                        <div>Transferor UDB account: <strong>{sellerName} — [UDB ACCOUNT ID]</strong></div>
+                        <div>Transferee UDB account: <strong>{buyerName} — [UDB ACCOUNT ID]</strong></div>
+                        <div>Basis: <strong>Directive (EU) 2018/2001 as amended by 2023/2413</strong></div>
                       </div>
                     </div>
 
@@ -1313,10 +1357,10 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                     <div style={{ padding: '14px', backgroundColor: 'var(--color-subtier)', border: '1px solid var(--color-divider)' }}>
                       <div className="eyebrow" style={{ marginBottom: '8px' }}>Origin Facility &amp; Grid Point</div>
                       <div style={{ fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <div>Facility ID: <strong>{c.id || 'DK-BIO-001'}</strong></div>
-                        <div>Name: <strong>{c.name || 'Certified European Facility'}</strong></div>
+                        <div>Facility: <strong>{originLabel}</strong></div>
                         <div>Origin Country: <strong>{c.originCountry}</strong></div>
-                        <div>Injection EIC: <strong>{c.injectionCountry}-TSO-VTP-001</strong></div>
+                        <div>Injection country: <strong>{c.injectionCountry}</strong></div>
+                        <div>Injection point EIC: <strong>[FROM GRID OPERATOR]</strong></div>
                       </div>
                     </div>
 
@@ -1324,9 +1368,9 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                     <div style={{ padding: '14px', backgroundColor: 'var(--color-subtier)', border: '1px solid var(--color-divider)' }}>
                       <div className="eyebrow" style={{ marginBottom: '8px' }}>Proof of Sustainability (PoS)</div>
                       <div style={{ fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <div>PoS Certificate: <strong>POS-{assessment.id}-01</strong></div>
+                        <div>PoS number: <strong>[ISSUED BY CERTIFICATION SCHEME]</strong> (status {c.posStatus})</div>
                         <div>Scheme: <strong>{c.certificationScheme}</strong></div>
-                        <div>Annex Classification: <strong>{c.annexClassification}</strong></div>
+                        <div>Classification: <strong>{annexClassificationLabel(c.annexClassification)}</strong></div>
                         <div>Carbon Intensity: <strong style={{ color: 'var(--color-accent)' }}>{c.carbonIntensity} gCO₂e/MJ</strong></div>
                       </div>
                     </div>
@@ -1335,17 +1379,17 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                     <div style={{ padding: '14px', backgroundColor: 'var(--color-subtier)', border: '1px solid var(--color-divider)' }}>
                       <div className="eyebrow" style={{ marginBottom: '8px' }}>Mass Balance Transfer Batch</div>
                       <div style={{ fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <div>Energy Quantity: <strong>{volume.toLocaleString()} MWh</strong></div>
-                        <div>Compliance Sink: <strong>{assessment.targetMarketId}</strong></div>
-                        <div>Effective Date: <strong>{assessment.createdAt.slice(0, 10)}</strong></div>
-                        <div>Escrow Status: <strong style={{ color: 'var(--color-status-pos-text)' }}>RELEASED_UPON_CONFIRMATION</strong></div>
+                        <div>Energy Quantity: <strong>{volumeLabel}</strong></div>
+                        <div>Destination: <strong>{assessment.targetMarketName}</strong></div>
+                        <div>Delivery period: <strong>{deliveryPeriodLabel}</strong></div>
+                        <div>UDB status: <strong>{c.udbStatus}</strong></div>
                       </div>
                     </div>
 
                   </div>
 
                   <div style={{ padding: '10px 14px', backgroundColor: 'var(--color-subtier)', border: '1px solid var(--color-divider)', fontSize: '11px', fontFamily: 'var(--font-mono)' }}>
-                    SHA-256 INTEGRITY SEAL: {seal}
+                    Document fingerprint: {seal}
                   </div>
                 </div>
               )}
@@ -1416,7 +1460,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                       style={{ fontSize: '11px', padding: '2px 12px' }}
                       onClick={() => setAuditMemoSubView('PDF')}
                     >
-                      📄 Official PDF Preview
+                      📄 PDF Preview
                     </button>
                   </div>
                 </div>
@@ -1427,22 +1471,22 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                     className="btn btn-secondary"
                     style={{ padding: '4px 10px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '5px' }}
                     onClick={() => {
-                      const memoText = `[STATUTORY COMPLIANCE AUDIT MEMORANDUM]
-Dossier Ref: AUDIT-TR-${assessment.id}
+                      const memoText = `[DESK REGULATORY PRE-SCREEN — internal, not legal advice]
+Ref: AUDIT-TR-${assessment.id}
 Date: ${assessment.createdAt.slice(0, 10)}
 Origin Facility: ${c.name || 'Biomethane Facility'} (${c.originCountry})
 Target Market: ${assessment.targetMarketName} (${assessment.targetMarketId})
 Feedstock: ${c.feedstockName || c.feedstock} · CI: ${c.carbonIntensity} gCO2e/MJ
-Volume: ${(c.volumeMWh || 10000).toLocaleString()} MWh
+Volume: ${volumeLabel}
 Verdict: ${assessment.eligibility.overallVerdict}
 
-6-GATE STATUTORY BREAKDOWN:
+6-GATE PRE-SCREEN:
 ${assessment.eligibility.gates.map((g, idx) => `• Gate ${idx + 1}: ${g.gateLabel} [${g.verdict}] - ${g.reason}`).join('\n')}
 
-SHA-256 Seal: ${seal}`.trim();
-                      navigator.clipboard.writeText(memoText);
+Document fingerprint: ${seal}`.trim();
+                      navigator.clipboard?.writeText(memoText).catch(() => {});
                       setCopiedType('AUDIT_MEMO');
-                      showToast('Statutory audit summary copied to clipboard');
+                      showToast('Pre-screen summary copied to clipboard');
                       setTimeout(() => setCopiedType(null), 2000);
                     }}
                   >
@@ -1477,10 +1521,10 @@ SHA-256 Seal: ${seal}`.trim();
                   <div style={{ borderBottom: '1px solid var(--color-divider)', paddingBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
                       <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, textTransform: 'uppercase' }}>
-                        Chief Regulatory Officer Statutory Compliance Audit Memo
+                        Desk Regulatory Pre-Screen Memo (internal — not legal advice)
                       </h4>
                       <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '2px' }}>
-                        Dossier Ref: <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700 }}>AUDIT-TR-{assessment.id}</span> · Directive (EU) 2023/2413 (RED III)
+                        Ref: <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700 }}>AUDIT-TR-{assessment.id}</span> · Directive (EU) 2023/2413 (RED III)
                       </div>
                     </div>
                     <span
@@ -1546,16 +1590,16 @@ SHA-256 Seal: ${seal}`.trim();
 
                   {/* EFET Protective Clauses Box */}
                   <div style={{ padding: '14px', backgroundColor: 'var(--color-subtier)', border: '1px solid var(--color-divider)' }}>
-                    <div className="eyebrow" style={{ marginBottom: '6px' }}>EFET Contractual Protective Covenants</div>
+                    <div className="eyebrow" style={{ marginBottom: '6px' }}>Protections to negotiate (desk checklist, not agreed terms)</div>
                     <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '11.5px', color: 'var(--color-text)', lineHeight: 1.6 }}>
-                      <li><strong>Proof of Sustainability Delivery:</strong> Electronic title transfer via Union Database within 10 business days following injection month.</li>
-                      <li><strong>Three-Business-Day Cure Notice:</strong> Delayed or invalid PoS triggers 3-day notice, after which Buyer may re-price gas to TTF Day-Ahead spot.</li>
-                      <li><strong>Subsidy Clawback Warranty:</strong> Strict covenant against double-recovery of Dutch SDE++, German EEG, or Italian GSE support.</li>
+                      <li><strong>Evidence deadline:</strong> when the PoS / UDB transfer must land after each delivery month.</li>
+                      <li><strong>Late or invalid evidence:</strong> cure period, then price reduction or termination of the attribute leg.</li>
+                      <li><strong>Support-scheme warranty:</strong> seller discloses national support received (e.g. SDE++, EEG, GSE) and warrants no double claim.</li>
                     </ul>
                   </div>
 
                   <div style={{ padding: '10px 14px', backgroundColor: 'var(--color-subtier)', border: '1px solid var(--color-divider)', fontSize: '11px', fontFamily: 'var(--font-mono)' }}>
-                    SHA-256 AUDIT SEAL: {seal}
+                    Document fingerprint: {seal}
                   </div>
                 </div>
               )}
@@ -1607,7 +1651,7 @@ SHA-256 Seal: ${seal}`.trim();
           }}
         >
           <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
-            Ref: <strong style={{ color: 'var(--color-text)' }}>{assessment.id}</strong> · Volume: <strong style={{ color: 'var(--color-text)' }}>{volume.toLocaleString()} MWh</strong> · Margin: <strong style={{ color: 'var(--color-accent)' }}>€{deskMargin.toFixed(2)}/MWh</strong>
+            Ref: <strong style={{ color: 'var(--color-text)' }}>{assessment.id}</strong> · Volume: <strong style={{ color: 'var(--color-text)' }}>{volumeLabel}</strong> · Desk margin (internal): <strong style={{ color: 'var(--color-accent)' }}>€{deskMargin.toFixed(2)}/MWh</strong>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
@@ -1623,7 +1667,7 @@ SHA-256 Seal: ${seal}`.trim();
                   padding: '5px 10px',
                 }}
               >
-                ✓ Signed Off: {signoffRecord.signedBy} ({new Date(signoffRecord.timestamp).toLocaleTimeString()})
+                ✓ Compliance reviewed: {signoffRecord.signedBy} ({new Date(signoffRecord.timestamp).toLocaleTimeString()})
               </span>
             ) : can('COMPLIANCE_SIGNOFF') ? (
               <button
@@ -1631,9 +1675,9 @@ SHA-256 Seal: ${seal}`.trim();
                 className="btn btn-secondary"
                 style={{ padding: '6px 12px', fontSize: '11px' }}
                 onClick={handleComplianceSignoff}
-                title="Execute compliance officer statutory sign-off"
+                title="Record that compliance has reviewed this deal"
               >
-                🛡️ Sign Off Compliance
+                🛡️ Record Compliance Review
               </button>
             ) : null}
 
@@ -1654,7 +1698,7 @@ SHA-256 Seal: ${seal}`.trim();
               onClick={handleDownloadEfetPdf}
               title="Download EFET Biomethane Annex PDF"
             >
-              ⚖️ EFET Annex PDF
+              ⚖️ Draft Confirmation PDF
             </button>
 
             <button
@@ -1664,7 +1708,7 @@ SHA-256 Seal: ${seal}`.trim();
               onClick={handleDownloadEtrmCsv}
               title="Download ETRM CSV Deal Ticket"
             >
-              💾 ETRM CSV
+              💾 Deal Record CSV
             </button>
 
             <button
@@ -1674,7 +1718,7 @@ SHA-256 Seal: ${seal}`.trim();
               onClick={handleDownloadUdbXml}
               title="Download UDB Mass Balance Nomination XML"
             >
-              🌐 UDB XML
+              🌐 UDB Worksheet
             </button>
 
             <button
@@ -1684,7 +1728,7 @@ SHA-256 Seal: ${seal}`.trim();
               onClick={handleDownloadAuditMemoPdf}
               title="Download Statutory Compliance Audit Memo PDF"
             >
-              🛡️ Audit Memo PDF
+              🛡️ Pre-Screen PDF
             </button>
 
             <button

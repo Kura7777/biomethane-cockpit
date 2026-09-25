@@ -149,7 +149,7 @@ describe('Plant Contact Quality & Commercial Outreach Guard Audit', () => {
   });
 
   describe('3. GDPR Personal Farmer Mailbox Risk Detection', () => {
-    it('flags consumer webmail domains as personal email with GDPR Article 6 alerts', () => {
+    it('flags consumer webmail domains as personal email with an ePrivacy consent warning', () => {
       expect(isPersonalEmailDomain('gmail.com')).toBe(true);
       expect(isPersonalEmailDomain('skynet.be')).toBe(true);
       expect(isPersonalEmailDomain('wanadoo.fr')).toBe(true);
@@ -171,8 +171,8 @@ describe('Plant Contact Quality & Commercial Outreach Guard Audit', () => {
       const quality = evaluatePlantContactQuality(personalPlant);
       expect(quality.isPersonalEmail).toBe(true);
       expect(quality.gdprWarning).toBeDefined();
-      expect(quality.gdprWarning).toContain('GDPR Article 6 Alert');
-      expect(quality.reasons.some(r => r.includes('GDPR Article 6'))).toBe(true);
+      expect(quality.gdprWarning).toContain('ePrivacy');
+      expect(quality.reasons.some(r => r.includes('prior consent'))).toBe(true);
     });
   });
 
@@ -205,9 +205,9 @@ describe('Plant Contact Quality & Commercial Outreach Guard Audit', () => {
       expect(de.mandatoryForOrigination).toBe(true);
 
       const dk = getOfficialRegisterForCountry('DK', 'Korskro');
-      expect(dk.registerName).toContain('Evida');
-      expect(dk.authority).toContain('Energinet');
-      expect(dk.url).toContain('evida.dk');
+      expect(dk.registerName).toContain('CVR');
+      expect(dk.instructions).toContain('Energinet');
+      expect(dk.url).toContain('datacvr.virk.dk');
 
       const at = getOfficialRegisterForCountry('AT', 'Bruck');
       expect(at.registerName).toContain('AGCS');

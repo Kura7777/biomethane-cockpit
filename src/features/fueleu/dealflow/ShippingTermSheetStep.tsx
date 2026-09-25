@@ -174,7 +174,7 @@ ${
 - Certification: ISCC EU / REDcert-EU Mass Balance under RED III (Directive (EU) 2018/2001)
 - EU ETS Zero-Rating: Verified under Regulation (EU) 2015/757 & Directive (EU) 2023/959
 - FuelEU Maritime Compliance: Full Article 20 Bunkering / Article 21 Pooling Validation
-- Governing Contract: Standard BIMCO Bunker Terms 2020 / EFET Marine Decarbonisation Annex
+- Governing Contract: BIMCO Bunker Terms 2018 or supplier standard terms (to be agreed)
 - Jurisdiction: Rotterdam, The Netherlands (Rotterdam District Court / POB)
 ================================================================================`;
   };
@@ -268,7 +268,7 @@ Please find below our institutional OTC marine fuel quotation to neutralise ${co
 
 3. GOVERNING TERMS & CERTIFICATION
 - Certification: ISCC EU / REDcert-EU under RED III (Directive (EU) 2018/2001)
-- Standard Terms: BIMCO Bunker Terms 2020 / EFET Marine Decarbonisation Annex
+- Standard Terms: BIMCO Bunker Terms 2018 or supplier standard terms (to be agreed)
 - Deal Reference: ${dealRef}
 
 Please let us know if you would like to schedule an execution call or receive the executed term sheet package.
@@ -390,7 +390,7 @@ European Biomethane & Marine Fuels Trading Desk`
             )}
           </div>
           <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
-            Institutional OTC Marine Bunker Deal Note · Governed by BIMCO Bunker Terms 2020 &amp; Regulation (EU) 2023/1805
+            Indicative Marine Bunker Deal Note · Subject to contract · Terms basis to be agreed (e.g. BIMCO Bunker Terms 2018) · Compliance under Regulation (EU) 2023/1805
           </div>
         </div>
 
@@ -490,7 +490,7 @@ European Biomethane & Marine Fuels Trading Desk`
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10.5px', fontFamily: MONO_FONT, color: 'var(--color-muted)' }}>
-            <span>BIMCO BUNKER TERMS 2020</span>
+            <span>SUBJECT TO CONTRACT</span>
             <span>·</span>
             <span>EFET DECARB ANNEX</span>
           </div>
@@ -630,7 +630,7 @@ European Biomethane & Marine Fuels Trading Desk`
             <div className="text-xs space-y-1.5" style={{ color: 'var(--color-muted)' }}>
               <div>• Certification: <span style={{ color: 'var(--color-text)' }}>ISCC EU / REDcert-EU Mass Balance under RED III (Directive (EU) 2018/2001)</span></div>
               <div>• EU ETS Zero-Rating: <span style={{ color: 'var(--color-text)' }}>Verified under Regulation (EU) 2015/757 &amp; Directive (EU) 2023/959</span></div>
-              <div>• Governing Contract: <span style={{ color: 'var(--color-text)' }}>Standard BIMCO Bunker Terms 2020 / EFET Marine Decarbonisation Annex</span></div>
+              <div>• Governing Contract: <span style={{ color: 'var(--color-text)' }}>BIMCO Bunker Terms 2018 or supplier standard terms (to be agreed)</span></div>
               <div>• Jurisdiction: <span style={{ color: 'var(--color-text)' }}>Rotterdam, The Netherlands (POB / Rotterdam District Court Arbitration)</span></div>
             </div>
             <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--color-divider)', display: 'flex', justifyContent: 'flex-end' }}>

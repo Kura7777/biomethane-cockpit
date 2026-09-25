@@ -40,7 +40,14 @@ import {
   saveTraderDeskOverride, 
   deleteTraderDeskOverride 
 } from '../../domain/plants/deskOverridesStore';
-import { TraderDeskOverride } from '../../domain/plants/types';
+import { TraderDeskOverride, CommercialContactLead } from '../../domain/plants/types';
+
+const LEAD_SOURCE_LABEL: Record<CommercialContactLead['source'], string> = {
+  SOURCE_DATASET: 'From registry data',
+  SUGGESTED_ROLE: 'Role to ask for',
+  INDUSTRY_DIRECTORY: 'Industry association',
+  DESK_VERIFIED: 'Desk verified',
+};
 
 interface PlantSourcingDrawerProps {
   plant: BiomethanePlant | null;
@@ -144,9 +151,11 @@ export function PlantSourcingDrawer({ plant, onClose }: PlantSourcingDrawerProps
 
   const handleStartEditOverride = () => {
     setOverrideTrader(deskOverride?.traderName || 'Front-Office Trader');
-    setOverrideSignatory(deskOverride?.counterpartySignatory || plant.verifiedDossier?.officialLegalEntity || plant.legalEntityName || plant.operator || '');
-    setOverrideEmail(deskOverride?.directEmail || plant.verifiedDossier?.commercialContacts?.[0]?.workEmail || '');
-    setOverridePhone(deskOverride?.directPhone || plant.verifiedDossier?.commercialContacts?.[0]?.directPhone || '');
+    // Pre-fill only what the desk or a register has confirmed — never a generated lead
+    const registerEntity = plant.verifiedDossier?.verificationStatus === 'REGISTER_CONFIRMED' ? plant.verifiedDossier.officialLegalEntity : null;
+    setOverrideSignatory(deskOverride?.counterpartySignatory || registerEntity || '');
+    setOverrideEmail(deskOverride?.directEmail || '');
+    setOverridePhone(deskOverride?.directPhone || '');
     setOverrideNotes(deskOverride?.notes || '');
     setIsEditingOverride(true);
   };
@@ -181,9 +190,10 @@ export function PlantSourcingDrawer({ plant, onClose }: PlantSourcingDrawerProps
   };
 
   const handleLaunchTrade = () => {
-    const verifiedLegal = deskOverride?.counterpartySignatory || plant.verifiedDossier?.officialLegalEntity || plant.legalEntityName || plant.operator || undefined;
-    const verifiedEmail = deskOverride?.directEmail || plant.verifiedDossier?.commercialContacts?.[0]?.workEmail || plant.contactEmail || undefined;
-    const verifiedPhone = deskOverride?.directPhone || plant.verifiedDossier?.commercialContacts?.[0]?.directPhone || plant.contactPhone || undefined;
+    // Only desk-confirmed contacts travel into the deal; an unknown entity stays blank
+    const verifiedLegal = deskOverride?.counterpartySignatory || plant.verifiedDossier?.officialLegalEntity || undefined;
+    const verifiedEmail = deskOverride?.directEmail || undefined;
+    const verifiedPhone = deskOverride?.directPhone || undefined;
 
     const dealUrl = buildDealUrl({
       marketId: defaultMarket,
@@ -236,7 +246,7 @@ Facility: ${plant.name} (${plant.countryCode} ${plant.countryFlag})
 Plant ID: ${plant.id}
 Operating Entity: ${plant.operator || 'N/A'}
 Legal Entity: ${plant.legalEntityName || 'N/A'}${tag('legalEntityName')}
-Registration / Statutory ID: ${plant.companyRegistrationId || 'N/A'}
+Registration / Statutory ID: ${plant.companyRegistrationId || 'Not verified'}
 Network Operator (TSO/DSO): ${plant.networkOperator || 'N/A'}
 Grid Connection: ${plant.gridConnectionType || 'Distribution Grid Injection'}
 Annual Capacity: ${plant.annualEnergyGWh ? `${plant.annualEnergyGWh} GWh/y (${(plant.annualEnergyGWh * 1000).toLocaleString()} MWh/y)` : 'N/A'} (${plant.capacityNm3h ? `${plant.capacityNm3h} Nm³/h` : 'N/A'})
@@ -685,13 +695,19 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
           <div style={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '10px', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
               <span style={{ fontSize: '11px', fontWeight: 700, color: '#f8fafc', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <ShieldCheck size={14} style={{ color: '#38bdf8' }} /> Statutory Identity & Origination Desk
+                <ShieldCheck size={14} style={{ color: '#38bdf8' }} /> Counterparty Identity & Leads
               </span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                {plant.verifiedDossier?.statutoryRegister && (
-                  <span style={{ fontSize: '10px', padding: '2px 6px', backgroundColor: 'rgba(56, 189, 248, 0.12)', color: '#38bdf8', borderRadius: '4px', fontWeight: 600 }}>
-                    {plant.verifiedDossier.statutoryRegister}
-                  </span>
+                {plant.verifiedDossier && (
+                  plant.verifiedDossier.verificationStatus === 'REGISTER_CONFIRMED' ? (
+                    <span title={plant.verifiedDossier.verificationSource} style={{ fontSize: '10px', padding: '2px 6px', backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#34d399', borderRadius: '4px', fontWeight: 700 }}>
+                      Register-confirmed{plant.verifiedDossier.verifiedAt ? ` ${plant.verifiedDossier.verifiedAt}` : ''}
+                    </span>
+                  ) : (
+                    <span title={plant.verifiedDossier.verificationSource} style={{ fontSize: '10px', padding: '2px 6px', backgroundColor: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24', borderRadius: '4px', fontWeight: 700 }}>
+                      Unverified — check register
+                    </span>
+                  )
                 )}
                 {deskOverride && (
                   <span style={{ fontSize: '10px', padding: '2px 6px', backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#34d399', borderRadius: '4px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
@@ -719,7 +735,7 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
               >
                 <AlertOctagon size={14} style={{ color: '#ef4444', flexShrink: 0 }} />
                 <span>
-                  <strong>Undeliverable Mailbox:</strong> Synthetic address detected ({plant.contactEmail}). Will bounce. Approach commercial lead via LinkedIn or official register below.
+                  <strong>Synthetic address — do not use:</strong> {plant.contactEmail} was constructed from the place name; it will bounce or reach an unrelated party. Find the operator via the official register or LinkedIn below.
                 </span>
               </div>
             )}
@@ -763,8 +779,168 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
               >
                 <ShieldAlert size={14} style={{ color: '#f97316', flexShrink: 0 }} />
                 <span>
-                  <strong>GDPR Article 6 Notice:</strong> Farmer personal mailbox. Cold B2B outreach is restricted; use LinkedIn commercial search.
+                  <strong>Personal mailbox:</strong> likely a farmer or sole trader. Unsolicited marketing email generally needs prior consent (ePrivacy / PECR) — phone first, or find a registered business contact.
                 </span>
+              </div>
+            )}
+
+            {/* Blue Register Match — Suggestion for Trader Confirmation */}
+            {plant.verifiedDossier?.suggestedEntity && (
+              <div
+                style={{
+                  backgroundColor: 'rgba(14, 165, 233, 0.08)',
+                  border: '1px solid rgba(14, 165, 233, 0.35)',
+                  borderRadius: '8px',
+                  padding: '10px 12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                    <span
+                      style={{
+                        fontSize: '10px',
+                        fontWeight: 700,
+                        padding: '2px 7px',
+                        backgroundColor: 'rgba(14, 165, 233, 0.25)',
+                        color: '#38bdf8',
+                        borderRadius: '4px',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                      }}
+                    >
+                      Register match — confirm
+                    </span>
+                    <span style={{ color: '#94a3b8', fontSize: '10px' }}>
+                      {plant.verifiedDossier.suggestedEntity.source}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOverrideSignatory(plant.verifiedDossier?.suggestedEntity?.name || '');
+                      setIsEditingOverride(true);
+                    }}
+                    style={{
+                      padding: '4px 9px',
+                      backgroundColor: '#0284c7',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '5px',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
+                    title="Pre-fill Log Verified Contact form with this operator name for trader confirmation"
+                  >
+                    <UserCheck size={12} /> Use as signatory
+                  </button>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                  <div style={{ color: '#f8fafc', fontWeight: 700, fontSize: '12px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
+                    <span>{plant.verifiedDossier.suggestedEntity.name}</span>
+                    {plant.verifiedDossier.suggestedEntity.registerId && (
+                      <span style={{ color: '#38bdf8', fontFamily: 'monospace', fontSize: '11px', fontWeight: 600 }}>
+                        ({plant.verifiedDossier.suggestedEntity.registerId})
+                      </span>
+                    )}
+                  </div>
+                  {plant.verifiedDossier.suggestedEntity.evidence && plant.verifiedDossier.suggestedEntity.evidence.length > 0 && (
+                    <div style={{ color: '#94a3b8', fontSize: '11px', marginTop: '2px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      {plant.verifiedDossier.suggestedEntity.evidence.map((ev, i) => (
+                        <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <span style={{ color: '#38bdf8' }}>•</span> {ev}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Ambiguous Register Candidates (Top 3) */}
+            {plant.registerMatch?.status === 'AMBIGUOUS' && plant.registerMatch.candidates && plant.registerMatch.candidates.length > 0 && (
+              <div
+                style={{
+                  backgroundColor: 'rgba(148, 163, 184, 0.08)',
+                  border: '1px solid rgba(148, 163, 184, 0.25)',
+                  borderRadius: '8px',
+                  padding: '10px 12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
+                  <span
+                    style={{
+                      fontSize: '10px',
+                      fontWeight: 700,
+                      padding: '2px 7px',
+                      backgroundColor: 'rgba(148, 163, 184, 0.2)',
+                      color: '#cbd5e1',
+                      borderRadius: '4px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                    }}
+                  >
+                    Several register candidates ({plant.registerMatch.candidates.length})
+                  </span>
+                  <span style={{ color: '#94a3b8', fontSize: '10px' }}>
+                    {plant.registerMatch.source}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {plant.registerMatch.candidates.slice(0, 3).map((cand, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        padding: '6px 8px',
+                        backgroundColor: 'rgba(0, 0, 0, 0.25)',
+                        borderRadius: '5px',
+                        border: '1px solid #334155',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '2px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
+                        <div style={{ color: '#f8fafc', fontWeight: 600, fontSize: '11px' }}>
+                          {cand.operatorName}
+                          {cand.operatorRegisterId ? ` (${cand.operatorRegisterId})` : ''}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOverrideSignatory(cand.operatorName);
+                            setIsEditingOverride(true);
+                          }}
+                          style={{
+                            padding: '2px 6px',
+                            backgroundColor: '#334155',
+                            color: '#e2e8f0',
+                            border: 'none',
+                            borderRadius: '4px',
+                            fontSize: '10px',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Use
+                        </button>
+                      </div>
+                      <div style={{ color: '#94a3b8', fontSize: '10px' }}>
+                        {cand.town ? `${cand.town} • ` : ''}
+                        {cand.evidence.join('; ')}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -772,16 +948,16 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 14px', fontSize: '12px' }}>
               <div>
                 <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '2px' }}>
-                  Legal Operating Entity
+                  Legal Operating Entity{plant.verifiedDossier?.verificationStatus !== 'REGISTER_CONFIRMED' ? ' (unverified)' : ''}
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontWeight: 600, color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={plant.verifiedDossier?.officialLegalEntity || plant.legalEntityName || plant.operator || '—'}>
-                    {plant.verifiedDossier?.officialLegalEntity || plant.legalEntityName || plant.operator || '—'}
+                  <span style={{ fontWeight: 600, color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={plant.verifiedDossier?.officialLegalEntity || 'Not identified'}>
+                    {plant.verifiedDossier?.officialLegalEntity || 'Not identified — search register'}
                   </span>
-                  {(plant.verifiedDossier?.officialLegalEntity || plant.legalEntityName || plant.operator) && (
+                  {plant.verifiedDossier?.officialLegalEntity && (
                     <button
                       type="button"
-                      onClick={() => copyToClipboard(plant.verifiedDossier?.officialLegalEntity || plant.legalEntityName || plant.operator || '', 'Legal Entity')}
+                      onClick={() => copyToClipboard(plant.verifiedDossier?.officialLegalEntity || '', 'Legal Entity')}
                       style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '2px', marginLeft: '4px' }}
                       title="Copy"
                     >
@@ -796,13 +972,20 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                   Statutory Registration ID
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontFamily: 'monospace', color: '#34d399', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {plant.verifiedDossier?.statutoryRegistrationId || plant.companyRegistrationId || 'Unpublished — verify in register'}
+                  <span
+                    style={{ fontFamily: 'monospace', color: plant.verifiedDossier?.statutoryRegistrationId ? '#34d399' : '#94a3b8', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                    title={
+                      plant.registrationCheck
+                        ? `${plant.verifiedDossier?.verificationSource || ''}\n[Source: ${plant.registrationCheck.source} | Checked: ${plant.registrationCheck.checkedAt}]`
+                        : plant.verifiedDossier?.verificationSource
+                    }
+                  >
+                    {plant.verifiedDossier?.statutoryRegistrationId || (plant.registrationCheck && plant.registrationCheck.status !== 'CONFIRMED' ? 'Source ID rejected by register' : 'Not verified — search register')}
                   </span>
-                  {(plant.verifiedDossier?.statutoryRegistrationId || plant.companyRegistrationId) && (
+                  {plant.verifiedDossier?.statutoryRegistrationId && (
                     <button
                       type="button"
-                      onClick={() => copyToClipboard(plant.verifiedDossier?.statutoryRegistrationId || plant.companyRegistrationId || '', 'Registration ID')}
+                      onClick={() => copyToClipboard(plant.verifiedDossier?.statutoryRegistrationId || '', 'Registration ID')}
                       style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '2px', marginLeft: '4px' }}
                       title="Copy"
                     >
@@ -817,16 +1000,16 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                   Parent Portfolio / Group
                 </span>
                 <span style={{ fontWeight: 500, color: '#cbd5e1', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
-                  {plant.verifiedDossier?.parentGroup || 'Independent Agricultural SPV'}
+                  {plant.verifiedDossier?.parentGroup || 'Not identified'}
                 </span>
               </div>
 
               <div>
                 <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '2px' }}>
-                  Commercial Desk Location
+                  Group Desk (research note)
                 </span>
                 <span style={{ fontWeight: 500, color: '#38bdf8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
-                  {plant.verifiedDossier?.groupTradingDeskLocation || `${plant.country} (Local Site Desk)`}
+                  {plant.verifiedDossier?.groupTradingDeskLocation || '—'}
                 </span>
               </div>
             </div>
@@ -864,7 +1047,7 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
             {!deskOverride && plant.verifiedDossier && plant.verifiedDossier.commercialContacts.length > 0 && (
               <div style={{ borderTop: '1px solid #1e293b', paddingTop: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <span style={{ fontSize: '10px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Verified Commercial Origination Contacts ({plant.verifiedDossier.commercialContacts.length})
+                  Leads to follow up — not verified ({plant.verifiedDossier.commercialContacts.length})
                 </span>
                 {plant.verifiedDossier.commercialContacts.map((contact, idx) => (
                   <div
@@ -922,12 +1105,12 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                         fontWeight: 700,
                         padding: '2px 6px',
                         borderRadius: '4px',
-                        backgroundColor: 'rgba(16, 185, 129, 0.15)',
-                        color: '#34d399',
+                        backgroundColor: 'rgba(148, 163, 184, 0.15)',
+                        color: '#cbd5e1',
                         flexShrink: 0,
                       }}
                     >
-                      {contact.confidenceScore}% Confirmed
+                      {LEAD_SOURCE_LABEL[contact.source]}
                     </span>
                   </div>
                 ))}
@@ -1114,10 +1297,10 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
           <div style={{ backgroundColor: '#0f172a', borderRadius: '10px', padding: '14px', border: '1px solid #334155', fontSize: '11px', color: '#94a3b8', display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#e2e8f0', fontWeight: 600 }}>
               <ShieldCheck size={14} style={{ color: '#10b981' }} />
-              <span>Institutional Audit Provenance Tier 1</span>
+              <span>Data Provenance</span>
             </div>
             <p style={{ margin: 0, lineHeight: 1.5 }}>
-              {plant.provenance || 'GIE/EBA European Biomethane Map 2026 & National Statutory TSO Registers. Injection point validated.'}
+              {plant.provenance || 'Source not recorded.'}
             </p>
           </div>
         </div>

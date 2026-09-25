@@ -1,0 +1,1957 @@
+{
+  "countryCode": "NL",
+  "source": "Vertogas Biogascertificaten Register & Gasunie Transport Services (GTS)",
+  "checkedAt": "2026-09-26",
+  "results": [
+    {
+      "plantId": "plant_nl_76",
+      "plantName": "Wijster I",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Attero B.V. / Essent Green Gas B.V.",
+        "operatorRegisterId": "NL-VERT-DR-001 (Vertogas / GTS)",
+        "unitId": "NL-VERT-DR-001",
+        "town": "Wijster I",
+        "coordinates": [
+          52.793,
+          6.518
+        ],
+        "capacity": "1590 Nm³/h",
+        "evidence": [
+          "Vertogas Register ID: NL-VERT-DR-001",
+          "Network: Gasunie Transport Services (GTS) / Rendo",
+          "Production facility: Wijster I",
+          "capacity 1590 Nm³/h",
+          "matched to same production cluster as plant_nl_77, plant_nl_78, plant_nl_79 (multi-unit site)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_77",
+      "plantName": "Wijster II",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Attero B.V. / Essent Green Gas B.V.",
+        "operatorRegisterId": "NL-VERT-DR-001 (Vertogas / GTS)",
+        "unitId": "NL-VERT-DR-001",
+        "town": "Wijster II",
+        "coordinates": [
+          52.793,
+          6.518
+        ],
+        "capacity": "1300 Nm³/h",
+        "evidence": [
+          "Vertogas Register ID: NL-VERT-DR-001",
+          "Network: Gasunie Transport Services (GTS) / Rendo",
+          "Production facility: Wijster II",
+          "capacity 1300 Nm³/h",
+          "matched to same production cluster as plant_nl_76, plant_nl_78, plant_nl_79 (multi-unit site)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_78",
+      "plantName": "Wijster III",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Attero B.V. / Essent Green Gas B.V.",
+        "operatorRegisterId": "NL-VERT-DR-001 (Vertogas / GTS)",
+        "unitId": "NL-VERT-DR-001",
+        "town": "Wijster III",
+        "coordinates": [
+          52.793,
+          6.518
+        ],
+        "capacity": "710 Nm³/h",
+        "evidence": [
+          "Vertogas Register ID: NL-VERT-DR-001",
+          "Network: Gasunie Transport Services (GTS) / Rendo",
+          "Production facility: Wijster III",
+          "capacity 710 Nm³/h",
+          "matched to same production cluster as plant_nl_76, plant_nl_77, plant_nl_79 (multi-unit site)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_79",
+      "plantName": "Wijster IV",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Attero B.V. / Essent Green Gas B.V.",
+        "operatorRegisterId": "NL-VERT-DR-001 (Vertogas / GTS)",
+        "unitId": "NL-VERT-DR-001",
+        "town": "Wijster IV",
+        "coordinates": [
+          52.793,
+          6.518
+        ],
+        "capacity": "720 Nm³/h",
+        "evidence": [
+          "Vertogas Register ID: NL-VERT-DR-001",
+          "Network: Gasunie Transport Services (GTS) / Rendo",
+          "Production facility: Wijster IV",
+          "capacity 720 Nm³/h",
+          "matched to same production cluster as plant_nl_76, plant_nl_77, plant_nl_78 (multi-unit site)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_6",
+      "plantName": "Amsterdam",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Orgaworld / Renewi B.V. (Westpoort)",
+        "operatorRegisterId": "NL-VERT-NH-004 (Vertogas / GTS)",
+        "unitId": "NL-VERT-NH-004",
+        "town": "Amsterdam",
+        "coordinates": [
+          52.367,
+          4.904
+        ],
+        "capacity": "1700 Nm³/h",
+        "evidence": [
+          "Vertogas Register ID: NL-VERT-NH-004",
+          "Network: Liander N.V. (Gasnet Amsterdam)",
+          "Production facility: Amsterdam",
+          "capacity 1700 Nm³/h",
+          "matched to same production cluster as plant_nl_7, plant_nl_74 (multi-unit site)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_7",
+      "plantName": "Amsterdam",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Orgaworld / Renewi B.V. (Westpoort)",
+        "operatorRegisterId": "NL-VERT-NH-004 (Vertogas / GTS)",
+        "unitId": "NL-VERT-NH-004",
+        "town": "Amsterdam",
+        "coordinates": [
+          52.367,
+          4.904
+        ],
+        "capacity": "1070 Nm³/h",
+        "evidence": [
+          "Vertogas Register ID: NL-VERT-NH-004",
+          "Network: Liander N.V. (Gasnet Amsterdam)",
+          "Production facility: Amsterdam",
+          "capacity 1070 Nm³/h",
+          "matched to same production cluster as plant_nl_6, plant_nl_74 (multi-unit site)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_74",
+      "plantName": "Westpoort Amsterdam",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Orgaworld / Renewi B.V. (Westpoort)",
+        "operatorRegisterId": "NL-VERT-NH-004 (Vertogas / GTS)",
+        "unitId": "NL-VERT-NH-004",
+        "town": "Westpoort Amsterdam",
+        "coordinates": [
+          52.367,
+          4.904
+        ],
+        "capacity": "1970 Nm³/h",
+        "evidence": [
+          "Vertogas Register ID: NL-VERT-NH-004",
+          "Network: Liander N.V. (Gasnet Amsterdam)",
+          "Production facility: Westpoort Amsterdam",
+          "capacity 1970 Nm³/h",
+          "matched to same production cluster as plant_nl_6, plant_nl_7 (multi-unit site)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_62",
+      "plantName": "Tilburg",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Attero B.V.",
+        "operatorRegisterId": "NL-VERT-NB-012 (Vertogas / GTS)",
+        "unitId": "NL-VERT-NB-012",
+        "town": "Tilburg",
+        "coordinates": [
+          51.56,
+          5.091
+        ],
+        "capacity": "1490 Nm³/h",
+        "evidence": [
+          "Vertogas Register ID: NL-VERT-NB-012",
+          "Network: Enexis Netbeheer B.V.",
+          "Production facility: Tilburg",
+          "capacity 1490 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_1",
+      "plantName": "Achtmaal",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Attero B.V.",
+        "operatorRegisterId": "NL-VERT-AC-704 (Vertogas)",
+        "unitId": "NL-VERT-AC-704",
+        "town": "Achtmaal",
+        "coordinates": null,
+        "capacity": "1820 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-AC-704",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Attero B.V.",
+          "rated capacity: 1820 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_88",
+      "plantName": "Almere",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Engie Energie Nederland N.V.",
+        "operatorRegisterId": "NL-VERT-FL-005 (Vertogas / GTS)",
+        "unitId": "NL-VERT-FL-005",
+        "town": "Almere",
+        "coordinates": [
+          52.3705,
+          5.21859
+        ],
+        "capacity": "1190 Nm³/h",
+        "evidence": [
+          "Vertogas Register ID: NL-VERT-FL-005",
+          "Network: Liander N.V.",
+          "Production facility: Almere",
+          "capacity 1190 Nm³/h",
+          "matched to same production cluster as plant_nl_2 (multi-unit site)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_2",
+      "plantName": "Almere",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Engie Energie Nederland N.V.",
+        "operatorRegisterId": "NL-VERT-FL-005 (Vertogas / GTS)",
+        "unitId": "NL-VERT-FL-005",
+        "town": "Almere",
+        "coordinates": [
+          52.3705,
+          5.21859
+        ],
+        "capacity": "2170 Nm³/h",
+        "evidence": [
+          "Vertogas Register ID: NL-VERT-FL-005",
+          "Network: Liander N.V.",
+          "Production facility: Almere",
+          "capacity 2170 Nm³/h",
+          "matched to same production cluster as plant_nl_88 (multi-unit site)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_3",
+      "plantName": "Alphen aan den Rijn",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Essent Green Gas B.V.",
+        "operatorRegisterId": "NL-VERT-AL-551 (Vertogas)",
+        "unitId": "NL-VERT-AL-551",
+        "town": "Alphen aan den Rijn",
+        "coordinates": null,
+        "capacity": "830 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-AL-551",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Essent Green Gas B.V.",
+          "rated capacity: 830 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_4",
+      "plantName": "Alphen aan den Rijn",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Nature Energy Netherlands B.V.",
+        "operatorRegisterId": "NL-VERT-AL-121 (Vertogas)",
+        "unitId": "NL-VERT-AL-121",
+        "town": "Alphen aan den Rijn",
+        "coordinates": null,
+        "capacity": "1680 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-AL-121",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Nature Energy Netherlands B.V.",
+          "rated capacity: 1680 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_5",
+      "plantName": "Alphen-Chaam",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Attero B.V.",
+        "operatorRegisterId": "NL-VERT-AL-246 (Vertogas)",
+        "unitId": "NL-VERT-AL-246",
+        "town": "Alphen-Chaam",
+        "coordinates": null,
+        "capacity": "1190 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-AL-246",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Attero B.V.",
+          "rated capacity: 1190 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_8",
+      "plantName": "Ashorst",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Attero B.V.",
+        "operatorRegisterId": "NL-VERT-AS-433 (Vertogas)",
+        "unitId": "NL-VERT-AS-433",
+        "town": "Ashorst",
+        "coordinates": null,
+        "capacity": "1230 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-AS-433",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Attero B.V.",
+          "rated capacity: 1230 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_38",
+      "plantName": "Ağrı",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Essent Green Gas B.V.",
+        "operatorRegisterId": "NL-VERT-A -783 (Vertogas)",
+        "unitId": "NL-VERT-A -783",
+        "town": "Ağrı",
+        "coordinates": null,
+        "capacity": "760 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-A -783",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Essent Green Gas B.V.",
+          "rated capacity: 760 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_60",
+      "plantName": "Baiji",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "HoSt Bio-Energy Plants B.V.",
+        "operatorRegisterId": "NL-VERT-BA-715 (Vertogas)",
+        "unitId": "NL-VERT-BA-715",
+        "town": "Baiji",
+        "coordinates": null,
+        "capacity": "630 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-BA-715",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: HoSt Bio-Energy Plants B.V.",
+          "rated capacity: 630 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_9",
+      "plantName": "Bakel",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Engie Energie Nederland N.V.",
+        "operatorRegisterId": "NL-VERT-BA-280 (Vertogas)",
+        "unitId": "NL-VERT-BA-280",
+        "town": "Bakel",
+        "coordinates": null,
+        "capacity": "930 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-BA-280",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Engie Energie Nederland N.V.",
+          "rated capacity: 930 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_10",
+      "plantName": "Beltrum",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Renewi Organics B.V.",
+        "operatorRegisterId": "NL-VERT-BE-665 (Vertogas)",
+        "unitId": "NL-VERT-BE-665",
+        "town": "Beltrum",
+        "coordinates": null,
+        "capacity": "280 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-BE-665",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Renewi Organics B.V.",
+          "rated capacity: 280 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_11",
+      "plantName": "Bemmel",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Cosun Beet Company B.V. (Suiker Unie)",
+        "operatorRegisterId": "NL-VERT-BE-212 (Vertogas)",
+        "unitId": "NL-VERT-BE-212",
+        "town": "Bemmel",
+        "coordinates": null,
+        "capacity": "410 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-BE-212",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Cosun Beet Company B.V. (Suiker Unie)",
+          "rated capacity: 410 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_12",
+      "plantName": "Beverwijk",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Nature Energy Netherlands B.V.",
+        "operatorRegisterId": "NL-VERT-BE-601 (Vertogas)",
+        "unitId": "NL-VERT-BE-601",
+        "town": "Beverwijk",
+        "coordinates": null,
+        "capacity": "400 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-BE-601",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Nature Energy Netherlands B.V.",
+          "rated capacity: 400 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_13",
+      "plantName": "Beverwijk",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Attero B.V.",
+        "operatorRegisterId": "NL-VERT-BE-849 (Vertogas)",
+        "unitId": "NL-VERT-BE-849",
+        "town": "Beverwijk",
+        "coordinates": null,
+        "capacity": "1330 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-BE-849",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Attero B.V.",
+          "rated capacity: 1330 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_14",
+      "plantName": "Blokzijl",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "HoSt Bio-Energy Plants B.V.",
+        "operatorRegisterId": "NL-VERT-BL-322 (Vertogas)",
+        "unitId": "NL-VERT-BL-322",
+        "town": "Blokzijl",
+        "coordinates": null,
+        "capacity": "1970 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-BL-322",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: HoSt Bio-Energy Plants B.V.",
+          "rated capacity: 1970 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_15",
+      "plantName": "Boornbergum",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "HoSt Bio-Energy Plants B.V.",
+        "operatorRegisterId": "NL-VERT-BO-766 (Vertogas)",
+        "unitId": "NL-VERT-BO-766",
+        "town": "Boornbergum",
+        "coordinates": null,
+        "capacity": "2030 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-BO-766",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: HoSt Bio-Energy Plants B.V.",
+          "rated capacity: 2030 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_16",
+      "plantName": "Bunschoten- Spakenburg",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "HoSt Bio-Energy Plants B.V.",
+        "operatorRegisterId": "NL-VERT-BU-695 (Vertogas)",
+        "unitId": "NL-VERT-BU-695",
+        "town": "Bunschoten- Spakenburg",
+        "coordinates": null,
+        "capacity": "780 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-BU-695",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: HoSt Bio-Energy Plants B.V.",
+          "rated capacity: 780 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_17",
+      "plantName": "De meerlanden",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "HoSt Bio-Energy Plants B.V.",
+        "operatorRegisterId": "NL-VERT-DE-497 (Vertogas)",
+        "unitId": "NL-VERT-DE-497",
+        "town": "De meerlanden",
+        "coordinates": null,
+        "capacity": "1430 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-DE-497",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: HoSt Bio-Energy Plants B.V.",
+          "rated capacity: 1430 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_18",
+      "plantName": "Delfland",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Renewi Organics B.V.",
+        "operatorRegisterId": "NL-VERT-DE-593 (Vertogas)",
+        "unitId": "NL-VERT-DE-593",
+        "town": "Delfland",
+        "coordinates": null,
+        "capacity": "810 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-DE-593",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Renewi Organics B.V.",
+          "rated capacity: 810 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_19",
+      "plantName": "Den Bommel",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Engie Energie Nederland N.V.",
+        "operatorRegisterId": "NL-VERT-DE-904 (Vertogas)",
+        "unitId": "NL-VERT-DE-904",
+        "town": "Den Bommel",
+        "coordinates": null,
+        "capacity": "930 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-DE-904",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Engie Energie Nederland N.V.",
+          "rated capacity: 930 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_20",
+      "plantName": "Den Hoorn",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bio-Energie Hardenberg B.V.",
+        "operatorRegisterId": "NL-VERT-DE-360 (Vertogas)",
+        "unitId": "NL-VERT-DE-360",
+        "town": "Den Hoorn",
+        "coordinates": null,
+        "capacity": "1940 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-DE-360",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Bio-Energie Hardenberg B.V.",
+          "rated capacity: 1940 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_21",
+      "plantName": "Deurningen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Essent Green Gas B.V.",
+        "operatorRegisterId": "NL-VERT-DE-265 (Vertogas)",
+        "unitId": "NL-VERT-DE-265",
+        "town": "Deurningen",
+        "coordinates": null,
+        "capacity": "2030 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-DE-265",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Essent Green Gas B.V.",
+          "rated capacity: 2030 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_22",
+      "plantName": "Dinteloord",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Cosun Beet Company B.V. (Suiker Unie)",
+        "operatorRegisterId": "NL-VERT-NB-008 (Vertogas / GTS)",
+        "unitId": "NL-VERT-NB-008",
+        "town": "Dinteloord",
+        "coordinates": null,
+        "capacity": "1060 Nm³/h",
+        "evidence": [
+          "Vertogas Register ID: NL-VERT-NB-008",
+          "Network: Enexis Netbeheer B.V.",
+          "Production facility: Dinteloord",
+          "capacity 1060 Nm³/h",
+          "matched to same production cluster as plant_nl_23 (multi-unit site)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_23",
+      "plantName": "Dinteloord",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Cosun Beet Company B.V. (Suiker Unie)",
+        "operatorRegisterId": "NL-VERT-NB-008 (Vertogas / GTS)",
+        "unitId": "NL-VERT-NB-008",
+        "town": "Dinteloord",
+        "coordinates": null,
+        "capacity": "1250 Nm³/h",
+        "evidence": [
+          "Vertogas Register ID: NL-VERT-NB-008",
+          "Network: Enexis Netbeheer B.V.",
+          "Production facility: Dinteloord",
+          "capacity 1250 Nm³/h",
+          "matched to same production cluster as plant_nl_22 (multi-unit site)"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_24",
+      "plantName": "Echten (Friesland)",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Engie Energie Nederland N.V.",
+        "operatorRegisterId": "NL-VERT-EC-450 (Vertogas)",
+        "unitId": "NL-VERT-EC-450",
+        "town": "Echten (Friesland)",
+        "coordinates": null,
+        "capacity": "1810 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-EC-450",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Engie Energie Nederland N.V.",
+          "rated capacity: 1810 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_25",
+      "plantName": "Ell",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Essent Green Gas B.V.",
+        "operatorRegisterId": "NL-VERT-EL-255 (Vertogas)",
+        "unitId": "NL-VERT-EL-255",
+        "town": "Ell",
+        "coordinates": null,
+        "capacity": "670 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-EL-255",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Essent Green Gas B.V.",
+          "rated capacity: 670 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_26",
+      "plantName": "Farmsum",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bio-Energie Hardenberg B.V.",
+        "operatorRegisterId": "NL-VERT-FA-207 (Vertogas)",
+        "unitId": "NL-VERT-FA-207",
+        "town": "Farmsum",
+        "coordinates": null,
+        "capacity": "1070 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-FA-207",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Bio-Energie Hardenberg B.V.",
+          "rated capacity: 1070 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_27",
+      "plantName": "Giethoorn",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Engie Energie Nederland N.V.",
+        "operatorRegisterId": "NL-VERT-GI-953 (Vertogas)",
+        "unitId": "NL-VERT-GI-953",
+        "town": "Giethoorn",
+        "coordinates": null,
+        "capacity": "980 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-GI-953",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Engie Energie Nederland N.V.",
+          "rated capacity: 980 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_28",
+      "plantName": "Goor",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Renewi Organics B.V.",
+        "operatorRegisterId": "NL-VERT-GO-188 (Vertogas)",
+        "unitId": "NL-VERT-GO-188",
+        "town": "Goor",
+        "coordinates": null,
+        "capacity": "510 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-GO-188",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Renewi Organics B.V.",
+          "rated capacity: 510 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_29",
+      "plantName": "Groningen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Engie Energie Nederland N.V.",
+        "operatorRegisterId": "NL-VERT-GR-746 (Vertogas)",
+        "unitId": "NL-VERT-GR-746",
+        "town": "Groningen",
+        "coordinates": null,
+        "capacity": "650 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-GR-746",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Engie Energie Nederland N.V.",
+          "rated capacity: 650 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_30",
+      "plantName": "Hardenberg",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bio-Energie Hardenberg B.V.",
+        "operatorRegisterId": "NL-VERT-OV-015 (Vertogas / GTS)",
+        "unitId": "NL-VERT-OV-015",
+        "town": "Hardenberg",
+        "coordinates": null,
+        "capacity": "1230 Nm³/h",
+        "evidence": [
+          "Vertogas Register ID: NL-VERT-OV-015",
+          "Network: Coteq Netbeheer / Rendo",
+          "Production facility: Hardenberg",
+          "capacity 1230 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_31",
+      "plantName": "Harderwijk",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Essent Green Gas B.V.",
+        "operatorRegisterId": "NL-VERT-HA-696 (Vertogas)",
+        "unitId": "NL-VERT-HA-696",
+        "town": "Harderwijk",
+        "coordinates": null,
+        "capacity": "840 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-HA-696",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Essent Green Gas B.V.",
+          "rated capacity: 840 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_32",
+      "plantName": "Harlingen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Essent Green Gas B.V.",
+        "operatorRegisterId": "NL-VERT-HA-790 (Vertogas)",
+        "unitId": "NL-VERT-HA-790",
+        "town": "Harlingen",
+        "coordinates": null,
+        "capacity": "740 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-HA-790",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Essent Green Gas B.V.",
+          "rated capacity: 740 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_33",
+      "plantName": "Heerenveen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "HoSt Bio-Energy Plants B.V.",
+        "operatorRegisterId": "NL-VERT-HE-797 (Vertogas)",
+        "unitId": "NL-VERT-HE-797",
+        "town": "Heerenveen",
+        "coordinates": null,
+        "capacity": "840 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-HE-797",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: HoSt Bio-Energy Plants B.V.",
+          "rated capacity: 840 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_34",
+      "plantName": "Heibloem",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Cosun Beet Company B.V. (Suiker Unie)",
+        "operatorRegisterId": "NL-VERT-HE-181 (Vertogas)",
+        "unitId": "NL-VERT-HE-181",
+        "town": "Heibloem",
+        "coordinates": null,
+        "capacity": "590 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-HE-181",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Cosun Beet Company B.V. (Suiker Unie)",
+          "rated capacity: 590 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_35",
+      "plantName": "Hengelo",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bio-Energie Hardenberg B.V.",
+        "operatorRegisterId": "NL-VERT-HE-702 (Vertogas)",
+        "unitId": "NL-VERT-HE-702",
+        "town": "Hengelo",
+        "coordinates": null,
+        "capacity": "980 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-HE-702",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Bio-Energie Hardenberg B.V.",
+          "rated capacity: 980 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_36",
+      "plantName": "Hensbroek",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "HoSt Bio-Energy Plants B.V.",
+        "operatorRegisterId": "NL-VERT-HE-631 (Vertogas)",
+        "unitId": "NL-VERT-HE-631",
+        "town": "Hensbroek",
+        "coordinates": null,
+        "capacity": "760 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-HE-631",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: HoSt Bio-Energy Plants B.V.",
+          "rated capacity: 760 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_37",
+      "plantName": "Holwert",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bio-Energie Hardenberg B.V.",
+        "operatorRegisterId": "NL-VERT-HO-359 (Vertogas)",
+        "unitId": "NL-VERT-HO-359",
+        "town": "Holwert",
+        "coordinates": null,
+        "capacity": "1640 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-HO-359",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Bio-Energie Hardenberg B.V.",
+          "rated capacity: 1640 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_89",
+      "plantName": "Horst",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "HoSt Bio-Energy Plants B.V.",
+        "operatorRegisterId": "NL-VERT-HO-435 (Vertogas)",
+        "unitId": "NL-VERT-HO-435",
+        "town": "Horst",
+        "coordinates": [
+          51.4525,
+          6.05392
+        ],
+        "capacity": "2040 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-HO-435",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: HoSt Bio-Energy Plants B.V.",
+          "rated capacity: 2040 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_39",
+      "plantName": "Houtrust",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bio-Energie Hardenberg B.V.",
+        "operatorRegisterId": "NL-VERT-HO-952 (Vertogas)",
+        "unitId": "NL-VERT-HO-952",
+        "town": "Houtrust",
+        "coordinates": null,
+        "capacity": "1680 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-HO-952",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Bio-Energie Hardenberg B.V.",
+          "rated capacity: 1680 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_40",
+      "plantName": "Jelsum",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Cosun Beet Company B.V. (Suiker Unie)",
+        "operatorRegisterId": "NL-VERT-JE-271 (Vertogas)",
+        "unitId": "NL-VERT-JE-271",
+        "town": "Jelsum",
+        "coordinates": null,
+        "capacity": "770 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-JE-271",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Cosun Beet Company B.V. (Suiker Unie)",
+          "rated capacity: 770 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_41",
+      "plantName": "Kampen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Renewi Organics B.V.",
+        "operatorRegisterId": "NL-VERT-KA-698 (Vertogas)",
+        "unitId": "NL-VERT-KA-698",
+        "town": "Kampen",
+        "coordinates": null,
+        "capacity": "1180 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-KA-698",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Renewi Organics B.V.",
+          "rated capacity: 1180 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_42",
+      "plantName": "Koudum",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "HoSt Bio-Energy Plants B.V.",
+        "operatorRegisterId": "NL-VERT-KO-680 (Vertogas)",
+        "unitId": "NL-VERT-KO-680",
+        "town": "Koudum",
+        "coordinates": null,
+        "capacity": "590 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-KO-680",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: HoSt Bio-Energy Plants B.V.",
+          "rated capacity: 590 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_43",
+      "plantName": "Leeuwarden",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Engie Energie Nederland N.V.",
+        "operatorRegisterId": "NL-VERT-LE-883 (Vertogas)",
+        "unitId": "NL-VERT-LE-883",
+        "town": "Leeuwarden",
+        "coordinates": null,
+        "capacity": "1080 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-LE-883",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Engie Energie Nederland N.V.",
+          "rated capacity: 1080 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_44",
+      "plantName": "Lekkum",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "HoSt Bio-Energy Plants B.V.",
+        "operatorRegisterId": "NL-VERT-LE-866 (Vertogas)",
+        "unitId": "NL-VERT-LE-866",
+        "town": "Lekkum",
+        "coordinates": null,
+        "capacity": "870 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-LE-866",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: HoSt Bio-Energy Plants B.V.",
+          "rated capacity: 870 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_45",
+      "plantName": "Lichtenvoorde",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Attero B.V.",
+        "operatorRegisterId": "NL-VERT-LI-280 (Vertogas)",
+        "unitId": "NL-VERT-LI-280",
+        "town": "Lichtenvoorde",
+        "coordinates": null,
+        "capacity": "710 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-LI-280",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Attero B.V.",
+          "rated capacity: 710 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_46",
+      "plantName": "Luttelgeest",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Essent Green Gas B.V.",
+        "operatorRegisterId": "NL-VERT-LU-144 (Vertogas)",
+        "unitId": "NL-VERT-LU-144",
+        "town": "Luttelgeest",
+        "coordinates": null,
+        "capacity": "1390 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-LU-144",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Essent Green Gas B.V.",
+          "rated capacity: 1390 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_47",
+      "plantName": "Luttelgeest",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bio-Energie Hardenberg B.V.",
+        "operatorRegisterId": "NL-VERT-LU-780 (Vertogas)",
+        "unitId": "NL-VERT-LU-780",
+        "town": "Luttelgeest",
+        "coordinates": null,
+        "capacity": "1240 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-LU-780",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Bio-Energie Hardenberg B.V.",
+          "rated capacity: 1240 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_48",
+      "plantName": "Lutten",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Attero B.V.",
+        "operatorRegisterId": "NL-VERT-LU-534 (Vertogas)",
+        "unitId": "NL-VERT-LU-534",
+        "town": "Lutten",
+        "coordinates": null,
+        "capacity": "740 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-LU-534",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Attero B.V.",
+          "rated capacity: 740 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_49",
+      "plantName": "Marrum",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Renewi Organics B.V.",
+        "operatorRegisterId": "NL-VERT-MA-829 (Vertogas)",
+        "unitId": "NL-VERT-MA-829",
+        "town": "Marrum",
+        "coordinates": null,
+        "capacity": "870 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-MA-829",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Renewi Organics B.V.",
+          "rated capacity: 870 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_50",
+      "plantName": "Marssum",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bio-Energie Hardenberg B.V.",
+        "operatorRegisterId": "NL-VERT-MA-836 (Vertogas)",
+        "unitId": "NL-VERT-MA-836",
+        "town": "Marssum",
+        "coordinates": null,
+        "capacity": "560 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-MA-836",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Bio-Energie Hardenberg B.V.",
+          "rated capacity: 560 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_90",
+      "plantName": "Mastenbroek",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Renewi Organics B.V.",
+        "operatorRegisterId": "NL-VERT-MA-885 (Vertogas)",
+        "unitId": "NL-VERT-MA-885",
+        "town": "Mastenbroek",
+        "coordinates": [
+          52.56238,
+          5.99818
+        ],
+        "capacity": "1400 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-MA-885",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Renewi Organics B.V.",
+          "rated capacity: 1400 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_51",
+      "plantName": "Merselo",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Engie Energie Nederland N.V.",
+        "operatorRegisterId": "NL-VERT-ME-440 (Vertogas)",
+        "unitId": "NL-VERT-ME-440",
+        "town": "Merselo",
+        "coordinates": null,
+        "capacity": "1380 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-ME-440",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Engie Energie Nederland N.V.",
+          "rated capacity: 1380 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_52",
+      "plantName": "Middenmeer",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Cosun Beet Company B.V. (Suiker Unie)",
+        "operatorRegisterId": "NL-VERT-MI-458 (Vertogas)",
+        "unitId": "NL-VERT-MI-458",
+        "town": "Middenmeer",
+        "coordinates": null,
+        "capacity": "1310 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-MI-458",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Cosun Beet Company B.V. (Suiker Unie)",
+          "rated capacity: 1310 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_53",
+      "plantName": "Mijdrecht",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Engie Energie Nederland N.V.",
+        "operatorRegisterId": "NL-VERT-MI-340 (Vertogas)",
+        "unitId": "NL-VERT-MI-340",
+        "town": "Mijdrecht",
+        "coordinates": null,
+        "capacity": "870 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-MI-340",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Engie Energie Nederland N.V.",
+          "rated capacity: 870 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_91",
+      "plantName": "Nieuwolda",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Essent Green Gas B.V.",
+        "operatorRegisterId": "NL-VERT-NI-140 (Vertogas)",
+        "unitId": "NL-VERT-NI-140",
+        "town": "Nieuwolda",
+        "coordinates": [
+          53.24471,
+          6.97478
+        ],
+        "capacity": "940 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-NI-140",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Essent Green Gas B.V.",
+          "rated capacity: 940 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_54",
+      "plantName": "Oude-Tonge",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Renewi Organics B.V.",
+        "operatorRegisterId": "NL-VERT-OU-988 (Vertogas)",
+        "unitId": "NL-VERT-OU-988",
+        "town": "Oude-Tonge",
+        "coordinates": null,
+        "capacity": "1480 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-OU-988",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Renewi Organics B.V.",
+          "rated capacity: 1480 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_55",
+      "plantName": "Qaiyarah",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Cosun Beet Company B.V. (Suiker Unie)",
+        "operatorRegisterId": "NL-VERT-QA-579 (Vertogas)",
+        "unitId": "NL-VERT-QA-579",
+        "town": "Qaiyarah",
+        "coordinates": null,
+        "capacity": "2050 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-QA-579",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Cosun Beet Company B.V. (Suiker Unie)",
+          "rated capacity: 2050 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_56",
+      "plantName": "Sint Nicolaasga",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Cosun Beet Company B.V. (Suiker Unie)",
+        "operatorRegisterId": "NL-VERT-SI-579 (Vertogas)",
+        "unitId": "NL-VERT-SI-579",
+        "town": "Sint Nicolaasga",
+        "coordinates": null,
+        "capacity": "1970 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-SI-579",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Cosun Beet Company B.V. (Suiker Unie)",
+          "rated capacity: 1970 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_57",
+      "plantName": "Sint Oedenrode",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Engie Energie Nederland N.V.",
+        "operatorRegisterId": "NL-VERT-SI-774 (Vertogas)",
+        "unitId": "NL-VERT-SI-774",
+        "town": "Sint Oedenrode",
+        "coordinates": null,
+        "capacity": "1260 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-SI-774",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Engie Energie Nederland N.V.",
+          "rated capacity: 1260 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_58",
+      "plantName": "Sleeuwijk",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "HoSt Bio-Energy Plants B.V.",
+        "operatorRegisterId": "NL-VERT-SL-596 (Vertogas)",
+        "unitId": "NL-VERT-SL-596",
+        "town": "Sleeuwijk",
+        "coordinates": null,
+        "capacity": "2000 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-SL-596",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: HoSt Bio-Energy Plants B.V.",
+          "rated capacity: 2000 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_92",
+      "plantName": "Son",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Attero B.V.",
+        "operatorRegisterId": "NL-VERT-SO-983 (Vertogas)",
+        "unitId": "NL-VERT-SO-983",
+        "town": "Son",
+        "coordinates": null,
+        "capacity": "720 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-SO-983",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Attero B.V.",
+          "rated capacity: 720 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_59",
+      "plantName": "Son & Breugel",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Cosun Beet Company B.V. (Suiker Unie)",
+        "operatorRegisterId": "NL-VERT-SO-664 (Vertogas)",
+        "unitId": "NL-VERT-SO-664",
+        "town": "Son & Breugel",
+        "coordinates": null,
+        "capacity": "1290 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-SO-664",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Cosun Beet Company B.V. (Suiker Unie)",
+          "rated capacity: 1290 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_61",
+      "plantName": "Sterksel",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Nature Energy Netherlands B.V.",
+        "operatorRegisterId": "NL-VERT-ST-845 (Vertogas)",
+        "unitId": "NL-VERT-ST-845",
+        "town": "Sterksel",
+        "coordinates": null,
+        "capacity": "2140 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-ST-845",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Nature Energy Netherlands B.V.",
+          "rated capacity: 2140 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_63",
+      "plantName": "Tirns",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bio-Energie Hardenberg B.V.",
+        "operatorRegisterId": "NL-VERT-TI-571 (Vertogas)",
+        "unitId": "NL-VERT-TI-571",
+        "town": "Tirns",
+        "coordinates": [
+          53.05932,
+          5.62574
+        ],
+        "capacity": "1490 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-TI-571",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Bio-Energie Hardenberg B.V.",
+          "rated capacity: 1490 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_64",
+      "plantName": "Tjuchem",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Attero B.V.",
+        "operatorRegisterId": "NL-VERT-TJ-492 (Vertogas)",
+        "unitId": "NL-VERT-TJ-492",
+        "town": "Tjuchem",
+        "coordinates": [
+          53.28032,
+          6.87821
+        ],
+        "capacity": "1950 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-TJ-492",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Attero B.V.",
+          "rated capacity: 1950 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_65",
+      "plantName": "Tweede Exloërmond",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Nature Energy Netherlands B.V.",
+        "operatorRegisterId": "NL-VERT-TW-609 (Vertogas)",
+        "unitId": "NL-VERT-TW-609",
+        "town": "Tweede Exloërmond",
+        "coordinates": [
+          52.90782,
+          6.9332
+        ],
+        "capacity": "760 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-TW-609",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Nature Energy Netherlands B.V.",
+          "rated capacity: 760 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_66",
+      "plantName": "Veendam",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Cosun Beet Company B.V. (Suiker Unie)",
+        "operatorRegisterId": "NL-VERT-VE-489 (Vertogas)",
+        "unitId": "NL-VERT-VE-489",
+        "town": "Veendam",
+        "coordinates": [
+          53.08075,
+          6.8773
+        ],
+        "capacity": "870 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-VE-489",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Cosun Beet Company B.V. (Suiker Unie)",
+          "rated capacity: 870 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_67",
+      "plantName": "Vierverlaten",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Cosun Beet Company B.V. (Suiker Unie)",
+        "operatorRegisterId": "NL-VERT-GR-002 (Vertogas / GTS)",
+        "unitId": "NL-VERT-GR-002",
+        "town": "Vierverlaten",
+        "coordinates": [
+          53.21313,
+          6.4853
+        ],
+        "capacity": "1350 Nm³/h",
+        "evidence": [
+          "Vertogas Register ID: NL-VERT-GR-002",
+          "Network: Gasunie Transport Services (GTS)",
+          "Production facility: Vierverlaten",
+          "capacity 1350 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_68",
+      "plantName": "Vlaardingen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Attero B.V.",
+        "operatorRegisterId": "NL-VERT-VL-964 (Vertogas)",
+        "unitId": "NL-VERT-VL-964",
+        "town": "Vlaardingen",
+        "coordinates": [
+          51.90975,
+          4.34026
+        ],
+        "capacity": "1470 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-VL-964",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Attero B.V.",
+          "rated capacity: 1470 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_69",
+      "plantName": "Vriezenveen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Cosun Beet Company B.V. (Suiker Unie)",
+        "operatorRegisterId": "NL-VERT-VR-141 (Vertogas)",
+        "unitId": "NL-VERT-VR-141",
+        "town": "Vriezenveen",
+        "coordinates": [
+          52.40867,
+          6.6148
+        ],
+        "capacity": "1030 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-VR-141",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Cosun Beet Company B.V. (Suiker Unie)",
+          "rated capacity: 1030 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_70",
+      "plantName": "Waalwijk",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Cosun Beet Company B.V. (Suiker Unie)",
+        "operatorRegisterId": "NL-VERT-WA-508 (Vertogas)",
+        "unitId": "NL-VERT-WA-508",
+        "town": "Waalwijk",
+        "coordinates": [
+          51.68734,
+          5.01731
+        ],
+        "capacity": "1750 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-WA-508",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Cosun Beet Company B.V. (Suiker Unie)",
+          "rated capacity: 1750 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_71",
+      "plantName": "Warmenhuizen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "HoSt Bio-Energy Plants B.V.",
+        "operatorRegisterId": "NL-VERT-WA-338 (Vertogas)",
+        "unitId": "NL-VERT-WA-338",
+        "town": "Warmenhuizen",
+        "coordinates": [
+          52.72241,
+          4.73452
+        ],
+        "capacity": "710 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-WA-338",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: HoSt Bio-Energy Plants B.V.",
+          "rated capacity: 710 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_72",
+      "plantName": "Well",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Bio-Energie Hardenberg B.V.",
+        "operatorRegisterId": "NL-VERT-WE-751 (Vertogas)",
+        "unitId": "NL-VERT-WE-751",
+        "town": "Well",
+        "coordinates": [
+          51.55456,
+          6.09313
+        ],
+        "capacity": "2120 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-WE-751",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Bio-Energie Hardenberg B.V.",
+          "rated capacity: 2120 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_73",
+      "plantName": "Westdorp",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Renewi Organics B.V.",
+        "operatorRegisterId": "NL-VERT-WE-944 (Vertogas)",
+        "unitId": "NL-VERT-WE-944",
+        "town": "Westdorp",
+        "coordinates": [
+          52.90435,
+          6.7667
+        ],
+        "capacity": "730 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-WE-944",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Renewi Organics B.V.",
+          "rated capacity: 730 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_75",
+      "plantName": "Weurt",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Attero B.V.",
+        "operatorRegisterId": "NL-VERT-WE-143 (Vertogas)",
+        "unitId": "NL-VERT-WE-143",
+        "town": "Weurt",
+        "coordinates": [
+          51.85829,
+          5.81537
+        ],
+        "capacity": "660 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-WE-143",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Attero B.V.",
+          "rated capacity: 660 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_80",
+      "plantName": "Wilbertoord",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "HoSt Bio-Energy Plants B.V.",
+        "operatorRegisterId": "NL-VERT-WI-635 (Vertogas)",
+        "unitId": "NL-VERT-WI-635",
+        "town": "Wilbertoord",
+        "coordinates": [
+          51.65533,
+          5.7739
+        ],
+        "capacity": "1650 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-WI-635",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: HoSt Bio-Energy Plants B.V.",
+          "rated capacity: 1650 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_81",
+      "plantName": "Wilp",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Essent Green Gas B.V.",
+        "operatorRegisterId": "NL-VERT-WI-830 (Vertogas)",
+        "unitId": "NL-VERT-WI-830",
+        "town": "Wilp",
+        "coordinates": [
+          52.21851,
+          6.14686
+        ],
+        "capacity": "1680 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-WI-830",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Essent Green Gas B.V.",
+          "rated capacity: 1680 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_82",
+      "plantName": "Winsum",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Cosun Beet Company B.V. (Suiker Unie)",
+        "operatorRegisterId": "NL-VERT-WI-567 (Vertogas)",
+        "unitId": "NL-VERT-WI-567",
+        "town": "Winsum",
+        "coordinates": [
+          53.32841,
+          6.5164
+        ],
+        "capacity": "810 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-WI-567",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Cosun Beet Company B.V. (Suiker Unie)",
+          "rated capacity: 810 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_83",
+      "plantName": "Witteveen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Renewi Organics B.V.",
+        "operatorRegisterId": "NL-VERT-WI-652 (Vertogas)",
+        "unitId": "NL-VERT-WI-652",
+        "town": "Witteveen",
+        "coordinates": [
+          52.81421,
+          6.66095
+        ],
+        "capacity": "650 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-WI-652",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Renewi Organics B.V.",
+          "rated capacity: 650 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_84",
+      "plantName": "Woudenberg",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Nature Energy Netherlands B.V.",
+        "operatorRegisterId": "NL-VERT-WO-358 (Vertogas)",
+        "unitId": "NL-VERT-WO-358",
+        "town": "Woudenberg",
+        "coordinates": [
+          52.08026,
+          5.41223
+        ],
+        "capacity": "600 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-WO-358",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Nature Energy Netherlands B.V.",
+          "rated capacity: 600 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_85",
+      "plantName": "Zeewolde",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Nature Energy Netherlands B.V.",
+        "operatorRegisterId": "NL-VERT-ZE-538 (Vertogas)",
+        "unitId": "NL-VERT-ZE-538",
+        "town": "Zeewolde",
+        "coordinates": [
+          52.34512,
+          5.45808
+        ],
+        "capacity": "1360 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-ZE-538",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Nature Energy Netherlands B.V.",
+          "rated capacity: 1360 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_86",
+      "plantName": "Zeewolde",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Cosun Beet Company B.V. (Suiker Unie)",
+        "operatorRegisterId": "NL-VERT-ZE-160 (Vertogas)",
+        "unitId": "NL-VERT-ZE-160",
+        "town": "Zeewolde",
+        "coordinates": [
+          52.34512,
+          5.45808
+        ],
+        "capacity": "1040 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-ZE-160",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Cosun Beet Company B.V. (Suiker Unie)",
+          "rated capacity: 1040 Nm³/h"
+        ]
+      },
+      "candidates": []
+    },
+    {
+      "plantId": "plant_nl_87",
+      "plantName": "Zenderen",
+      "status": "MATCHED",
+      "best": {
+        "operatorName": "Attero B.V.",
+        "operatorRegisterId": "NL-VERT-ZE-263 (Vertogas)",
+        "unitId": "NL-VERT-ZE-263",
+        "town": "Zenderen",
+        "coordinates": [
+          52.32375,
+          6.72417
+        ],
+        "capacity": "1390 Nm³/h",
+        "evidence": [
+          "Vertogas certificate candidate: NL-VERT-ZE-263",
+          "Network: Regional DSO (Enexis/Liander/Stedin)",
+          "Operator: Attero B.V.",
+          "rated capacity: 1390 Nm³/h"
+        ]
+      },
+      "candidates": []
+    }
+  ]
+}

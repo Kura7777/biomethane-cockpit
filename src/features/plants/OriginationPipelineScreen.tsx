@@ -488,10 +488,10 @@ export function OriginationPipelineScreen() {
                   {/* Operating Entity & Registration */}
                   <td style={{ padding: '10px 14px' }}>
                     <div style={{ fontWeight: 500, color: 'var(--color-text-primary)', maxWidth: '240px' }} className="truncate">
-                      {p.operator || p.legalEntityName || 'Independent Producer'}
+                      {p.verifiedDossier?.officialLegalEntity || 'Operator not identified'}
                     </div>
                     <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', fontFamily: 'monospace' }} className="truncate">
-                      {p.companyRegistrationId || 'Verified Statutory Node'}
+                      {p.companyRegistrationId || 'Registration ID not verified'}
                     </div>
                   </td>
 

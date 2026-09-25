@@ -220,7 +220,7 @@ export function chainOfCustodyLabel(coc: ChainOfCustody): string {
   }
 }
 
-function environmentalAttributeLabel(market: Market | undefined, marketId: string): string {
+export function environmentalAttributeLabel(market: Market | undefined, marketId: string): string {
   if (market?.isGuaranteeOfOrigin || isVoluntaryMarket(marketId)) return 'Guarantees of Origin (GO)';
   if (marketId === 'UK_RTFO') return 'Renewable Transport Fuel Certificates (RTFCs) under the UK RTFO';
   if (marketId === 'FUELEU') return 'Proof of Sustainability supporting FuelEU Maritime compliance';

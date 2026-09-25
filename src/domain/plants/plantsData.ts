@@ -1,7 +1,7 @@
 import { BiomethanePlant } from './types';
 import { normalizePlantRegistry } from './dataQuality';
 
-const RAW_BIOMETHANE_PLANTS: BiomethanePlant[] = [
+export const RAW_BIOMETHANE_PLANTS: BiomethanePlant[] = [
   {
     "id": "plant_at_1",
     "name": "Bruck an der Leitha",

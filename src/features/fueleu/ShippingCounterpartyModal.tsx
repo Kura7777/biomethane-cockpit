@@ -42,6 +42,7 @@ import {
   Minus,
 } from 'lucide-react';
 import { showToast } from '../../app/DeskToastContainer';
+import { getAssumption } from '../../domain/assumptions/registry';
 
 interface ShippingCounterpartyModalProps {
   counterparty: ShippingCounterparty;
@@ -132,7 +133,7 @@ export function ShippingCounterpartyModal({ counterparty, onClose }: ShippingCou
         },
         {
           title: 'Article 21 Surplus Monetisation',
-          detail: `Our desk can broker your surplus into deficit carrier pools at premium institutional spreads (€435/tCO2e), capturing €${(counterparty.client_savings_pooling_eur / 1e6).toFixed(1)}M in non-dilutive trading liquidity.`,
+          detail: `Our desk can broker your surplus into deficit carrier pools at the desk pool bid (€${getAssumption('fueleu.poolSellPriceEurPerTco2e').toFixed(0)}/tCO2e, indicative), capturing €${(counterparty.client_savings_pooling_eur / 1e6).toFixed(1)}M in non-dilutive trading liquidity.`,
         },
         {
           title: 'Execution & Settlement',
@@ -302,7 +303,7 @@ ${fullPitchText}
 - Certification: ISCC EU / REDcert-EU Mass Balance under RED III (Directive (EU) 2018/2001)
 - EU ETS Zero-Rating: Verified under Regulation (EU) 2015/757 & Directive (EU) 2023/959
 - FuelEU Maritime Compliance: Full Article 20 Bunkering / Article 21 Pooling Validation
-- Governing Contract: Standard BIMCO Bunker Terms 2020 / EFET Marine Decarbonisation Annex
+- Governing Contract: BIMCO Bunker Terms 2018 or supplier standard terms (to be agreed)
 - Jurisdiction: Rotterdam, The Netherlands (POB / Rotterdam District Court Arbitration)
 ================================================================================`;
   };

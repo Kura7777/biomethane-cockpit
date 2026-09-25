@@ -2,6 +2,9 @@ import React from 'react';
 import { Market } from '../../../domain/markets/types';
 import { NetbackResult, CostInputs } from '../../../domain/netback/types';
 import { ArrowLeft, ArrowRight, TrendingUp, AlertTriangle, DollarSign, ShieldAlert, BarChart3 } from 'lucide-react';
+import { AssumptionsStrip } from '../../../shared/components/AssumptionsStrip';
+
+const RISK_SUITE_ASSUMPTIONS = ['risk.illustrativeVolumeMwh', 'risk.replacementCeilingFloorEurPerMwh', 'risk.replacementCeilingNetbackMultiple', 'risk.fallbackProcurementPremiumEurPerMwh', 'risk.deThgBundleRefNeg80EurPerMwh', 'risk.deThgBundleRefNeg0EurPerMwh'];
 
 const MONO_FONT = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
 
@@ -407,6 +410,7 @@ export function TradeEconomicsStep({
                     </div>
                   </div>
                 )}
+                <AssumptionsStrip title="Risk suite assumptions" keys={RISK_SUITE_ASSUMPTIONS} />
               </div>
             </div>
           )}

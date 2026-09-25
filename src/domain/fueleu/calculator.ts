@@ -8,6 +8,7 @@ import {
   MarineBunkerQuotationResult,
   LngEngineType,
 } from './types';
+import { getAssumption, fuelEuPoolSpreadEurPerTco2e } from '../assumptions/registry';
 
 /**
  * FuelEU Maritime Physical & Regulatory Constants
@@ -347,24 +348,19 @@ export function calculateVesselExposure(input: VesselCalculationInput): VesselCa
     bioLngRequiredZeroCiTonnes = requiredBioEnergyMjZero / LHV_BIO_LNG_MJ_PER_TONNE;
     bioLngRequiredZeroCiMwh = requiredBioEnergyMjZero / MJ_PER_MWH;
 
-    // Pathway 1: Physical Bio-LNG bunkering economics
-    // Premium of Dutch/Danish manure bio-LNG over VLSFO/fossil fuel ≈ €65/MWh
-    // Desk trading margin = €15/MWh
-    const bioLngPremiumCost = bioLngRequiredNeg100Mwh * 65;
+    // Pathway 1: physical Bio-LNG bunkering (premium and desk margin: commercial assumptions register)
+    const bioLngPremiumCost = bioLngRequiredNeg100Mwh * getAssumption('fueleu.bioLngPremiumEurPerMwh');
     physicalSavingsEur = Math.max(0, statutoryPenaltyY1Eur - bioLngPremiumCost);
-    physicalTradingMarginEur = bioLngRequiredNeg100Mwh * 15;
+    physicalTradingMarginEur = bioLngRequiredNeg100Mwh * getAssumption('fueleu.physicalDeskMarginEurPerMwh');
 
-    // Pathway 2: Article 21 Compliance Pool transfer economics
-    // Pool clearing fee = €465/tCO2e vs statutory equivalent of ~€642/tCO2e
-    // Desk pool arrangement fee = €30/tCO2e
-    const poolDeficitCost = Math.abs(complianceBalanceTco2e) * 465;
+    // Pathway 2: Article 21 pooling — client pays the desk offer; desk keeps the offer − bid spread
+    const poolDeficitCost = Math.abs(complianceBalanceTco2e) * getAssumption('fueleu.poolBuyPriceEurPerTco2e');
     poolingSavingsEur = Math.max(0, statutoryPenaltyY1Eur - poolDeficitCost);
-    poolingArrangementMarginEur = Math.abs(complianceBalanceTco2e) * 30;
+    poolingArrangementMarginEur = Math.abs(complianceBalanceTco2e) * fuelEuPoolSpreadEurPerTco2e();
   } else {
-    // If already over-compliant (surplus generator), calculate surplus pool monetisation potential!
-    // Pool surplus can be sold at €435/tCO2e
-    poolingSavingsEur = complianceBalanceTco2e * 435;
-    poolingArrangementMarginEur = complianceBalanceTco2e * 30;
+    // Over-compliant fleet: surplus can be sold into a pool at the pool bid
+    poolingSavingsEur = complianceBalanceTco2e * getAssumption('fueleu.poolSellPriceEurPerTco2e');
+    poolingArrangementMarginEur = complianceBalanceTco2e * fuelEuPoolSpreadEurPerTco2e();
   }
 
   return {

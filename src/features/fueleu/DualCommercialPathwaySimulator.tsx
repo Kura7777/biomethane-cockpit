@@ -18,6 +18,9 @@ import {
   Layers
 } from 'lucide-react';
 import { showToast } from '../../app/DeskToastContainer';
+import { getAssumption, fuelEuPoolSpreadEurPerTco2e } from '../../domain/assumptions/registry';
+import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
+import { AssumptionsStrip } from '../../shared/components/AssumptionsStrip';
 
 export function DualCommercialPathwaySimulator() {
   const navigate = useNavigate();
@@ -28,6 +31,7 @@ export function DualCommercialPathwaySimulator() {
   const [targetYear, setTargetYear] = useState<2025 | 2030>(2025);
   const [consecutiveYears, setConsecutiveYears] = useState<number>(1);
   const [copied, setCopied] = useState<boolean>(false);
+  useAssumptionsVersion();
 
   // Economic formulas
   // Penalty: €2,400 / tonne VLSFO-eq
@@ -44,17 +48,18 @@ export function DualCommercialPathwaySimulator() {
   const requiredBioLngMwh = (simulatedDeficitTco2e * 1000000 / deltaCi) / 3600;
   const requiredBioLngTonnes = (simulatedDeficitTco2e * 1000000 / deltaCi) / 49100;
 
-  // Premium of Bio-LNG delivered over VLSFO ≈ €65/MWh
-  const physicalBioLngPremiumCost = requiredBioLngMwh * 65;
+  const bioLngPremium = getAssumption('fueleu.bioLngPremiumEurPerMwh');
+  const physicalBioLngPremiumCost = requiredBioLngMwh * bioLngPremium;
   const physicalClientSavingsEur = Math.max(0, statutoryPenaltyEur - physicalBioLngPremiumCost);
-  const physicalDeskMarginEur = requiredBioLngMwh * 15; // €15/MWh desk trading margin
+  const physicalDeskMarginEur = requiredBioLngMwh * getAssumption('fueleu.physicalDeskMarginEurPerMwh');
 
   // Pathway 2: Article 21 Compliance Pooling
-  // Client pays €465/tCO2e (providing ~27% discount vs €642.13 statutory penalty)
-  const poolingCostToClientEur = simulatedDeficitTco2e * 465;
+  // Client pays the desk offer; the surplus holder receives the bid; the desk keeps the spread
+  const poolOffer = getAssumption('fueleu.poolBuyPriceEurPerTco2e');
+  const poolingCostToClientEur = simulatedDeficitTco2e * poolOffer;
   const poolingClientSavingsEur = Math.max(0, statutoryPenaltyEur - poolingCostToClientEur);
-  const poolingProviderRevenueEur = simulatedDeficitTco2e * 435;
-  const poolingDeskMarginEur = simulatedDeficitTco2e * 30; // €30/tCO2e arrangement margin
+  const poolingProviderRevenueEur = simulatedDeficitTco2e * getAssumption('fueleu.poolSellPriceEurPerTco2e');
+  const poolingDeskMarginEur = simulatedDeficitTco2e * fuelEuPoolSpreadEurPerTco2e();
 
   const handleStructureTrade = () => {
     const url = buildDealUrl({
@@ -92,7 +97,7 @@ STATUTORY PENALTY EXPOSURE (DEFAULT INACTION): €${Math.round(statutoryPenaltyE
 2. PATHWAY B: ARTICLE 21 COMPLIANCE POOLING
 --------------------------------------------------------------------------------
 - Mechanism: Bilateral compliance pool transfer with over-compliant carriers (CMA CGM, ZIM, Ferry lines)
-- Pool Acquisition Rate: €465.00 / tCO2e (vs statutory €642.13 / tCO2e)
+- Pool Rate to Client: €${poolOffer.toFixed(2)} / tCO2e (vs statutory €642.13 / tCO2e at 91.16 g/MJ)
 - Cost to Client: €${Math.round(poolingCostToClientEur).toLocaleString()}
 - Client Net Savings: €${Math.round(poolingClientSavingsEur).toLocaleString()} (${((poolingClientSavingsEur / statutoryPenaltyEur) * 100).toFixed(1)}% savings)
 - Desk Pool Arrangement Margin: €${Math.round(poolingDeskMarginEur).toLocaleString()}
@@ -398,7 +403,7 @@ STATUTORY PENALTY EXPOSURE (DEFAULT INACTION): €${Math.round(statutoryPenaltyE
             <div style={{ border: '1px solid var(--color-divider)', padding: '10px', backgroundColor: 'var(--color-panel-header)', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span className="mut">Pool Clearing Rate:</span>
-                <span className="num" style={{ fontWeight: 600 }}>€465.00 / tCO₂e</span>
+                <span className="num" style={{ fontWeight: 600 }}>€{poolOffer.toFixed(2)} / tCO₂e</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span className="mut">Cost to Client:</span>
@@ -425,6 +430,9 @@ STATUTORY PENALTY EXPOSURE (DEFAULT INACTION): €${Math.round(statutoryPenaltyE
           </button>
         </div>
       </div>
+      <AssumptionsStrip
+        keys={['fueleu.bioLngPremiumEurPerMwh', 'fueleu.physicalDeskMarginEurPerMwh', 'fueleu.poolBuyPriceEurPerTco2e', 'fueleu.poolSellPriceEurPerTco2e']}
+      />
     </div>
   );
 }

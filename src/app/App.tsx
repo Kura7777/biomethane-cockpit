@@ -51,6 +51,7 @@ const CitationsScreen = lazyWithRetry(() => import('../features/citations/Citati
 const DataSourcesScreen = lazyWithRetry(() => import('../features/provenance/DataSourcesScreen').then(m => ({ default: m.DataSourcesScreen })));
 const DataConnectorsScreen = lazyWithRetry(() => import('../features/settings/DataConnectorsScreen').then(m => ({ default: m.DataConnectorsScreen })));
 const SettingsScreen = lazyWithRetry(() => import('../features/settings/SettingsScreen').then(m => ({ default: m.SettingsScreen })));
+const AssumptionsScreen = lazyWithRetry(() => import('../features/settings/AssumptionsScreen').then(m => ({ default: m.AssumptionsScreen })));
 const FuelEUShippingScreen = lazyWithRetry(() => import('../features/fueleu/FuelEUShippingScreen').then(m => ({ default: m.FuelEUShippingScreen })));
 
 import { ThemeProvider } from '../store/theme';
@@ -99,6 +100,7 @@ function AppContent() {
             <Route path="/citations" element={<CitationsScreen />} />
             <Route path="/connectors" element={<DataConnectorsScreen />} />
             <Route path="/settings" element={<SettingsScreen />} />
+            <Route path="/assumptions" element={<AssumptionsScreen />} />
 
             {/* Fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />

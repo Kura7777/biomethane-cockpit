@@ -951,7 +951,7 @@ export function PlantsScreen() {
                     <option value="ALL">👤 All Contact Tiers</option>
                     <option value="UNVERIFIED_LEAD">🎯 Unverified Lead (Passes checks)</option>
                     <option value="INDIRECT">🏢 Indirect / Shared Switchboard</option>
-                    <option value="UNDELIVERABLE">🚫 Undeliverable (Dead domain)</option>
+                    <option value="UNDELIVERABLE">🚫 Synthetic address (do not use)</option>
                     <option value="GDPR_RISK">⚠️ GDPR Risk (Personal mailbox)</option>
                     <option value="WITH_EMAIL">✉️ Has Email Address</option>
                     <option value="WITH_PHONE">📞 Has Telephone</option>
@@ -1340,7 +1340,7 @@ export function PlantsScreen() {
                                   </span>
                                 )}
 
-                                {p.verifiedDossier && (
+                                {p.verifiedDossier?.verificationStatus === 'REGISTER_CONFIRMED' && (
                                   <span
                                     className="chip"
                                     style={{
@@ -1356,9 +1356,9 @@ export function PlantsScreen() {
                                       cursor: 'pointer',
                                     }}
                                     onClick={() => setModalPlant(p)}
-                                    title={`Verified Statutory Dossier: ${p.verifiedDossier.officialLegalEntity} (${p.verifiedDossier.statutoryRegistrationId})`}
+                                    title={`Register-confirmed: ${p.verifiedDossier.officialLegalEntity} (${p.verifiedDossier.statutoryRegistrationId})`}
                                   >
-                                    <ShieldCheck size={10} /> Dossier
+                                    <ShieldCheck size={10} /> Register
                                   </span>
                                 )}
 

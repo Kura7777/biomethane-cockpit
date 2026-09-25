@@ -386,7 +386,7 @@ export function PlantScannerTable({
                               opp.isPlantVerified ? (
                                 <span 
                                   className="flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.2 bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 rounded shrink-0" 
-                                  title="Audited Institutional Producer"
+                                  title="Core plant fields (location, capacity, feedstock) consistent in the source registry; counterparty details not verified"
                                 >
                                   <ShieldCheck className="w-2.5 h-2.5" />
                                   <span>Verified</span>

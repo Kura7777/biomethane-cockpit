@@ -3,7 +3,7 @@ import {
   getVerifiedPlantDossier, 
   generateLinkedInOriginationUrl,
   generateStatutoryRegistrySearchUrl,
-  VERIFIED_STATUTORY_DOSSIERS 
+  isSynthesisedEntityName,
 } from '../plants/statutoryDossiers';
 import { 
   getTraderDeskOverride, 
@@ -22,86 +22,70 @@ describe('Statutory Dossier & Trader Verification Engine', () => {
     clearAllTraderDeskOverrides();
   });
 
-  describe('1. Statutory Dossier Resolution & Data Integrity', () => {
-    it('resolves official French SIRENE dossier for TotalEnergies BioBéarn (Mourenx)', () => {
-      const plant = BIOMETHANE_PLANTS.find(p => p.id === 'plant_fr_1' || p.name.includes('BioBéarn') || p.name.includes('Mourenx'));
-      const mockPlant: BiomethanePlant = plant ?? {
-        id: 'plant_fr_1',
-        name: 'Centrale BioBéarn Mourenx',
-        country: 'France',
-        countryCode: 'FR',
-        countryFlag: '🇫🇷',
-        provenance: 'GIE/EBA 2026',
-        operator: 'TotalEnergies Biogaz France',
-      };
+  describe('1. Dossier resolution never presents unchecked data as verified', () => {
+    const korskro: BiomethanePlant = {
+      id: 'dk-korskro',
+      name: 'Nature Energy Korskro',
+      country: 'Denmark',
+      countryCode: 'DK',
+      countryFlag: '🇩🇰',
+      provenance: 'GIE/EBA 2026',
+      operator: 'Nature Energy Biogas A/S (Shell)',
+    };
 
-      const dossier = getVerifiedPlantDossier(mockPlant);
-      expect(dossier).not.toBeNull();
-      expect(dossier?.statutoryRegister).toBe('FR_SIRENE');
-      expect(dossier?.statutoryRegistrationId).toContain('SIRET 84930219400012');
-      expect(dossier?.officialLegalEntity).toBe('SAS BIOBÉARN');
-      expect(dossier?.commercialContacts.length).toBeGreaterThan(0);
-      expect(dossier?.commercialContacts[0].workEmail).toBe('biogaz-origination@totalenergies.com');
+    it('Korskro carries the register-confirmed CVR, not the invented one', () => {
+      const d = getVerifiedPlantDossier(korskro);
+      expect(d.verificationStatus).toBe('REGISTER_CONFIRMED');
+      expect(d.statutoryRegistrationId).toBe('CVR 34711631');
+      expect(d.statutoryRegistrationId).not.toContain('37265489');
+      expect(d.officialLegalEntity).toContain('Shell Korskro Biogas A/S');
+      expect(d.verifiedAt).toBe('2026-09-26');
     });
 
-    it('resolves official German MaStR dossier for Verbio Schwedt', () => {
-      const plant = BIOMETHANE_PLANTS.find(p => p.id === 'plant_de_1' || p.name.includes('Schwedt'));
-      const mockPlant: BiomethanePlant = plant ?? {
-        id: 'plant_de_1',
-        name: 'Biomethananlage Schwedt',
-        country: 'Germany',
-        countryCode: 'DE',
-        countryFlag: '🇩🇪',
-        provenance: 'GIE/EBA 2026',
-        operator: 'VERBIO AG',
-      };
-
-      const dossier = getVerifiedPlantDossier(mockPlant);
-      expect(dossier).not.toBeNull();
-      expect(dossier?.statutoryRegister).toBe('DE_MASTR');
-      expect(dossier?.statutoryRegistrationId).toMatch(/^SEE\d+/);
-      expect(dossier?.officialLegalEntity).toBe('Bioenergie Schwedt GmbH & Co. KG');
-      expect(dossier?.groupTradingDeskLocation).toContain('Leipzig');
-      expect(dossier?.commercialContacts.some(c => c.workEmail?.includes('verbio.de'))).toBe(true);
+    it('BioBéarn carries the register-confirmed SIREN', () => {
+      const d = getVerifiedPlantDossier({ id: 'plant_fr_1', name: 'Centrale BioBéarn Mourenx', country: 'France', countryCode: 'FR', countryFlag: '🇫🇷', provenance: 'x' });
+      expect(d.verificationStatus).toBe('REGISTER_CONFIRMED');
+      expect(d.statutoryRegistrationId).toBe('SIREN 750 673 428');
     });
 
-    it('resolves official Danish CVR dossier for Nature Energy Korskro', () => {
-      const mockPlant: BiomethanePlant = {
-        id: 'dk-korskro',
-        name: 'Nature Energy Korskro',
-        country: 'Denmark',
-        countryCode: 'DK',
-        countryFlag: '🇩🇰',
-        provenance: 'GIE/EBA 2026',
-        operator: 'Nature Energy Biogas A/S (Shell)',
-      };
-
-      const dossier = getVerifiedPlantDossier(mockPlant);
-      expect(dossier).not.toBeNull();
-      expect(dossier?.statutoryRegister).toBe('DK_EVIDA_CVR');
-      expect(dossier?.statutoryRegistrationId).toContain('CVR 37265489');
-      expect(dossier?.parentGroup).toContain('Shell');
-      expect(dossier?.groupTradingDeskLocation).toContain('Odense');
-      expect(dossier?.commercialContacts.some(c => c.workEmail?.includes('nature-energy.com'))).toBe(true);
+    it('unchecked research notes are UNVERIFIED with no registration ID and no verified date', () => {
+      const d = getVerifiedPlantDossier({ id: 'x', name: 'Biomethananlage Schwedt', country: 'Germany', countryCode: 'DE', countryFlag: '🇩🇪', provenance: 'x', operator: 'VERBIO AG' });
+      expect(d.verificationStatus).toBe('UNVERIFIED');
+      expect(d.statutoryRegistrationId).toBeNull();
+      expect(d.verifiedAt).toBeNull();
+      expect(d.verificationSource).toMatch(/unverified/i);
     });
 
-    it('resolves official UK Companies House dossier for Severn Trent Green Power', () => {
-      const mockPlant: BiomethanePlant = {
-        id: 'plant_gb_1',
-        name: 'Coleshill Biomethane Facility',
-        country: 'United Kingdom',
-        countryCode: 'GB',
-        countryFlag: '🇬🇧',
-        provenance: 'GIE/EBA 2026',
-        operator: 'Severn Trent Green Power Ltd',
-      };
+    it('research-note contacts become roles to ask for: no invented emails, phones or scores', () => {
+      const d = getVerifiedPlantDossier(korskro);
+      const roles = d.commercialContacts.filter(c => c.source === 'SUGGESTED_ROLE');
+      expect(roles.length).toBeGreaterThan(0);
+      for (const c of roles) {
+        expect(c.workEmail).toBeNull();
+        expect(c.directPhone).toBeNull();
+        expect(c.confidenceScore).toBeNull();
+      }
+    });
 
-      const dossier = getVerifiedPlantDossier(mockPlant);
-      expect(dossier).not.toBeNull();
-      expect(dossier?.statutoryRegister).toBe('GB_COMPANIES_HOUSE');
-      expect(dossier?.statutoryRegistrationId).toContain('Company No.');
-      expect(dossier?.officialLegalEntity).toBe('Severn Trent Green Power Ltd');
-      expect(dossier?.commercialContacts.some(c => c.workEmail?.includes('severntrent.co.uk'))).toBe(true);
+    it('never synthesises an entity name from the plant or town name', () => {
+      expect(isSynthesisedEntityName('Claye-Souilly SAS', 'Claye-Souilly')).toBe(true);
+      expect(isSynthesisedEntityName('Communauté de Communes de Toulouse SAS', 'Communauté de Communes de Toulouse')).toBe(true);
+      expect(isSynthesisedEntityName('Suez RV Bioénergie France', 'Claye-Souilly')).toBe(false);
+      const d = getVerifiedPlantDossier({ id: 'y', name: 'Claye-Souilly', country: 'France', countryCode: 'FR', countryFlag: '🇫🇷', provenance: 'x', operator: 'Claye-Souilly SAS' });
+      expect(d.officialLegalEntity).toBeNull();
+    });
+
+    it('drops a registry email rated UNDELIVERABLE and keeps an indirect one with its rating', () => {
+      const base = { id: 'z', name: 'Test', country: 'France', countryCode: 'FR', countryFlag: '🇫🇷', provenance: 'x', contactEmail: 'contact@test.fr', contactPhone: '+33 1 00 00 00 00' };
+      const quality = (confidence: 'UNDELIVERABLE' | 'INDIRECT') => ({ confidence, confidenceLabel: confidence } as any);
+      const dead = getVerifiedPlantDossier({ ...base, contactQuality: quality('UNDELIVERABLE') });
+      const deadLead = dead.commercialContacts.find(c => c.source === 'SOURCE_DATASET');
+      expect(deadLead?.workEmail).toBeNull();
+      expect(deadLead?.directPhone).toBe('+33 1 00 00 00 00');
+      const indirect = getVerifiedPlantDossier({ ...base, contactQuality: quality('INDIRECT') });
+      const lead = indirect.commercialContacts.find(c => c.source === 'SOURCE_DATASET');
+      expect(lead?.workEmail).toBe('contact@test.fr');
+      expect(lead?.title).toBe('INDIRECT');
     });
   });
 
@@ -175,6 +159,22 @@ describe('Statutory Dossier & Trader Verification Engine', () => {
       expect(success).toBe(true);
       expect(getTraderDeskOverride('plant_alpha')?.counterpartySignatory).toBe('Signatory A');
     });
+
+    it('import merges with local contacts and keeps the newer entry per plant', () => {
+      const older = '2026-01-01T00:00:00.000Z';
+      const newer = '2026-06-01T00:00:00.000Z';
+      saveTraderDeskOverride({ plantId: 'local_only', traderName: 'Me', counterpartySignatory: 'Mine', verifiedAt: newer, isConfirmed: true });
+      saveTraderDeskOverride({ plantId: 'shared', traderName: 'Me', counterpartySignatory: 'My newer note', verifiedAt: newer, isConfirmed: true });
+      const colleague = JSON.stringify({
+        shared: { plantId: 'shared', traderName: 'Colleague', counterpartySignatory: 'Their older note', verifiedAt: older, isConfirmed: true },
+        theirs: { plantId: 'theirs', traderName: 'Colleague', counterpartySignatory: 'Theirs', verifiedAt: older, isConfirmed: true },
+      });
+      expect(importTraderOverridesJson(colleague)).toBe(true);
+      expect(getTraderDeskOverride('local_only')?.counterpartySignatory).toBe('Mine');
+      expect(getTraderDeskOverride('shared')?.counterpartySignatory).toBe('My newer note');
+      expect(getTraderDeskOverride('theirs')?.counterpartySignatory).toBe('Theirs');
+      expect(importTraderOverridesJson('{"x": 1}')).toBe(false);
+    });
   });
 
   describe('4. Non-Destructive Invariant Verification', () => {
@@ -191,75 +191,172 @@ describe('Statutory Dossier & Trader Verification Engine', () => {
     });
   });
 
-  describe('5. 100% European Plant Statutory Dossier Coverage Guarantee', () => {
-    it('guarantees that 100% of all 1,974 plants have a valid, non-null VerifiedPlantDossier', () => {
+  describe('5. Census-wide honesty invariants', () => {
+    it('every plant has a dossier with a register search link', () => {
       expect(BIOMETHANE_PLANTS.length).toBeGreaterThanOrEqual(1970);
-
-      let missingDossierCount = 0;
-      let missingLegalCount = 0;
-      let missingRegIdCount = 0;
-      let missingContactCount = 0;
-
       for (const plant of BIOMETHANE_PLANTS) {
-        const dossier = plant.verifiedDossier;
-        if (!dossier) {
-          missingDossierCount++;
-          continue;
-        }
-
-        if (!dossier.officialLegalEntity || dossier.officialLegalEntity.trim().length === 0) {
-          missingLegalCount++;
-        }
-        if (!dossier.statutoryRegistrationId || dossier.statutoryRegistrationId.trim().length === 0) {
-          missingRegIdCount++;
-        }
-        if (!dossier.commercialContacts || dossier.commercialContacts.length === 0) {
-          missingContactCount++;
-        }
-      }
-
-      expect(missingDossierCount).toBe(0);
-      expect(missingLegalCount).toBe(0);
-      expect(missingRegIdCount).toBe(0);
-      expect(missingContactCount).toBe(0);
-    });
-
-    it('guarantees high-confidence origination contacts (score >= 90) across all facilities', () => {
-      for (const plant of BIOMETHANE_PLANTS) {
-        const dossier = plant.verifiedDossier;
-        expect(dossier).toBeDefined();
-        expect(dossier?.commercialContacts.length).toBeGreaterThanOrEqual(1);
-
-        const primaryLead = dossier?.commercialContacts[0];
-        expect(primaryLead?.confidenceScore).toBeGreaterThanOrEqual(90);
-        expect(primaryLead?.fullName).toBeTruthy();
-        expect(primaryLead?.title).toBeTruthy();
+        expect(plant.verifiedDossier, plant.id).toBeTruthy();
+        expect(plant.verifiedDossier?.registerSearchUrl, plant.id).toMatch(/^https:/);
       }
     });
 
-    it('ensures major developer portfolios correctly route to group desks without switchboard pollution', () => {
-      // Find German Verbio plants
-      const verbioPlants = BIOMETHANE_PLANTS.filter(p => (p.operator || '').includes('VERBIO'));
-      expect(verbioPlants.length).toBeGreaterThan(0);
-
-      for (const plant of verbioPlants) {
-        const dossier = plant.verifiedDossier;
-        expect(dossier?.parentGroup).toContain('VERBIO');
-        expect(dossier?.groupTradingDeskLocation).toContain('Leipzig');
-        // Must NOT list EnviTec switchboard
-        const phone = dossier?.commercialContacts[0]?.directPhone;
-        expect(phone).not.toBe('+49 4442 80160');
+    it('shows a registration ID only when a register confirmed it', () => {
+      for (const plant of BIOMETHANE_PLANTS) {
+        const d = plant.verifiedDossier!;
+        if (d.statutoryRegistrationId) expect(d.verificationStatus, plant.id).toBe('REGISTER_CONFIRMED');
+        if (plant.companyRegistrationId) expect(plant.registrationCheck?.status, plant.id).toBe('CONFIRMED');
       }
+    });
 
-      // Find TotalEnergies plants
-      const totalPlants = BIOMETHANE_PLANTS.filter(p => (p.operator || '').includes('TotalEnergies'));
-      expect(totalPlants.length).toBeGreaterThan(0);
+    it('no generated contact carries a confidence score or a verified date', () => {
+      for (const plant of BIOMETHANE_PLANTS) {
+        for (const c of plant.verifiedDossier!.commercialContacts) {
+          expect(c.source, plant.id).not.toBe('DESK_VERIFIED');
+          expect(c.confidenceScore, plant.id).toBeNull();
+          expect(c.lastVerifiedDate, plant.id).toBeNull();
+        }
+      }
+    });
 
-      for (const plant of totalPlants) {
-        const dossier = plant.verifiedDossier;
-        expect(dossier?.parentGroup).toContain('TotalEnergies');
-        expect(dossier?.commercialContacts.some(c => c.workEmail?.includes('totalenergies.com'))).toBe(true);
+    it('never offers a contact email the contact checker rates undeliverable', () => {
+      for (const plant of BIOMETHANE_PLANTS) {
+        if (plant.contactQuality?.confidence !== 'UNDELIVERABLE') continue;
+        const emails = plant.verifiedDossier!.commercialContacts.map(c => c.workEmail).filter(Boolean);
+        expect(emails, plant.id).not.toContain(plant.contactEmail);
+      }
+    });
+
+    it('keeps the raw registration claim for audit when it is not shown', () => {
+      const withClaim = BIOMETHANE_PLANTS.filter(p => p.claimedRegistrationId);
+      expect(withClaim.length).toBeGreaterThan(1900);
+      const hidden = withClaim.filter(p => !p.companyRegistrationId);
+      for (const p of hidden) expect(p.fieldsUnverified, p.id).toContain('companyRegistrationId');
+    });
+  });
+
+  describe('6. Danish CVR Register Verification', () => {
+    it('a Danish plant with a CONFIRMED check shows the CVR and the register company name as entity, and is REGISTER_CONFIRMED', () => {
+      const plant = BIOMETHANE_PLANTS.find(p => p.id === 'plant_dk_21');
+      expect(plant).toBeDefined();
+      expect(plant?.registrationCheck?.status).toBe('CONFIRMED');
+      expect(plant?.companyRegistrationId).toBe('CVR: 34734445');
+      expect(plant?.verifiedDossier?.statutoryRegistrationId).toBe('CVR: 34734445');
+      expect(plant?.verifiedDossier?.officialLegalEntity).toBe('Shell Holsted Biogas A/S');
+      expect(plant?.verifiedDossier?.verificationStatus).toBe('REGISTER_CONFIRMED');
+      expect(plant?.fieldsUnverified).not.toContain('companyRegistrationId');
+    });
+
+    it('a MISMATCH Danish plant shows no registration ID and has companyRegistrationId in fieldsUnverified', () => {
+      const plant = BIOMETHANE_PLANTS.find(p => p.id === 'plant_dk_40');
+      expect(plant).toBeDefined();
+      expect(plant?.registrationCheck?.status).toBe('MISMATCH');
+      expect(plant?.companyRegistrationId).toBeNull();
+      expect(plant?.verifiedDossier?.statutoryRegistrationId).toBeNull();
+      expect(plant?.fieldsUnverified).toContain('companyRegistrationId');
+      expect(plant?.claimedRegistrationId).toBe('CVR: 38814524');
+    });
+  });
+
+  describe('7. German MaStR Register Matches', () => {
+    it('a MATCHED German plant gets suggestedEntity populated on verifiedDossier, but stays UNVERIFIED with no official registration ID', () => {
+      const plant = BIOMETHANE_PLANTS.find(p => p.id === 'plant_de_2');
+      expect(plant).toBeDefined();
+      expect(plant?.registerMatch?.status).toBe('MATCHED');
+      expect(plant?.registerMatch?.best).toBeDefined();
+      expect(plant?.registerMatch?.best?.operatorName).toBe('Erdgas Südwest GmbH');
+      expect(plant?.registerMatch?.best?.operatorRegisterId).toBe('HRB 105621 (AG Mannheim)');
+
+      // Dossier suggestedEntity is populated for trader confirmation
+      const dossier = plant?.verifiedDossier;
+      expect(dossier?.suggestedEntity).toBeDefined();
+      expect(dossier?.suggestedEntity?.name).toBe('Erdgas Südwest GmbH');
+      expect(dossier?.suggestedEntity?.registerId).toBe('HRB 105621 (AG Mannheim)');
+      expect(dossier?.suggestedEntity?.source).toContain('Marktstammdatenregister');
+      expect(dossier?.suggestedEntity?.evidence.length).toBeGreaterThan(0);
+
+      // Invariants: NEVER promoted to official / confirmed without trader action
+      expect(dossier?.verificationStatus).toBe('UNVERIFIED');
+      expect(dossier?.statutoryRegistrationId).toBeNull();
+      expect(plant?.companyRegistrationId).toBeNull();
+    });
+
+    it('an AMBIGUOUS German plant gets suggestedEntity: null on verifiedDossier and lists candidate matches', () => {
+      const plant = BIOMETHANE_PLANTS.find(p => p.id === 'plant_de_37');
+      expect(plant).toBeDefined();
+      expect(plant?.registerMatch?.status).toBe('AMBIGUOUS');
+      expect(plant?.registerMatch?.best).toBeNull();
+      expect(plant?.registerMatch?.candidates.length).toBeGreaterThanOrEqual(2);
+
+      // Dossier suggestedEntity MUST be null because candidates are ambiguous
+      expect(plant?.verifiedDossier?.suggestedEntity).toBeNull();
+      expect(plant?.verifiedDossier?.verificationStatus).toBe('UNVERIFIED');
+    });
+
+    it('census-wide invariant: NO German plant was marked REGISTER_CONFIRMED because of a register match', () => {
+      const dePlants = BIOMETHANE_PLANTS.filter(p => p.countryCode === 'DE');
+      expect(dePlants.length).toBe(282);
+
+      for (const plant of dePlants) {
+        expect(plant.verifiedDossier?.verificationStatus, plant.id).not.toBe('REGISTER_CONFIRMED');
+        expect(plant.companyRegistrationId, plant.id).toBeNull();
+        expect(plant.verifiedDossier?.statutoryRegistrationId, plant.id).toBeNull();
       }
     });
   });
+
+  describe('8. Pan-European Statutory Register Matches (FR, IT, GB, NL, DK)', () => {
+    it('French plants carry authentic ODRE and RNE/NaTran matches with suggestedEntity for trader confirmation', () => {
+      const plant = BIOMETHANE_PLANTS.find(p => p.id === 'plant_fr_244');
+      expect(plant).toBeDefined();
+      expect(plant?.registerMatch?.status).toBe('MATCHED');
+      expect(plant?.registerMatch?.best?.unitId).toBe('IR0194');
+      expect(plant?.registerMatch?.best?.operatorName).toBe('BIONORROIS');
+      expect(plant?.verifiedDossier?.suggestedEntity?.name).toBe('BIONORROIS');
+      expect(plant?.verifiedDossier?.suggestedEntity?.source).toContain('ODRE');
+      expect(plant?.verifiedDossier?.verificationStatus).toBe('UNVERIFIED');
+    });
+
+    it('Italian plants carry authentic GSE and Snam Rete Gas qualification matches', () => {
+      const plant = BIOMETHANE_PLANTS.find(p => p.id === 'plant_it_76');
+      expect(plant).toBeDefined();
+      expect(plant?.registerMatch?.status).toBe('MATCHED');
+      expect(plant?.registerMatch?.best?.operatorName).toBe('Montello S.p.A.');
+      expect(plant?.registerMatch?.best?.operatorRegisterId).toContain('GSE');
+      expect(plant?.verifiedDossier?.suggestedEntity?.name).toBe('Montello S.p.A.');
+      expect(plant?.verifiedDossier?.suggestedEntity?.source).toContain('GSE');
+      expect(plant?.verifiedDossier?.verificationStatus).toBe('UNVERIFIED');
+    });
+
+    it('Dutch plants carry authentic Vertogas & Gasunie Transport Services (GTS) certificate matches', () => {
+      const plant = BIOMETHANE_PLANTS.find(p => p.id === 'plant_nl_76');
+      expect(plant).toBeDefined();
+      expect(plant?.registerMatch?.status).toBe('MATCHED');
+      expect(plant?.registerMatch?.best?.operatorRegisterId).toContain('Vertogas');
+      expect(plant?.verifiedDossier?.suggestedEntity?.name).toContain('Attero');
+      expect(plant?.verifiedDossier?.suggestedEntity?.source).toContain('Vertogas');
+      expect(plant?.verifiedDossier?.verificationStatus).toBe('UNVERIFIED');
+    });
+
+    it('UK plants carry authentic DESNZ REPD / Ofgem renewable energy planning matches', () => {
+      const plant = BIOMETHANE_PLANTS.find(p => p.id === 'plant_uk_28');
+      expect(plant).toBeDefined();
+      expect(plant?.registerMatch?.status).toBe('MATCHED');
+      expect(plant?.registerMatch?.best?.operatorName).toBe('Severn Trent Water');
+      expect(plant?.registerMatch?.best?.operatorRegisterId).toContain('REPD');
+      expect(plant?.verifiedDossier?.suggestedEntity?.name).toBe('Severn Trent Water');
+      expect(plant?.verifiedDossier?.suggestedEntity?.source).toContain('DESNZ');
+      expect(plant?.verifiedDossier?.verificationStatus).toBe('UNVERIFIED');
+    });
+
+    it('over 1,600 European biomethane plants carry authoritative national register matches', () => {
+      const withMatches = BIOMETHANE_PLANTS.filter(p => p.registerMatch != null);
+      expect(withMatches.length).toBeGreaterThanOrEqual(1600);
+
+      const matchedCount = BIOMETHANE_PLANTS.filter(p => p.registerMatch?.status === 'MATCHED').length;
+      expect(matchedCount).toBeGreaterThanOrEqual(1350);
+    });
+  });
 });
+
+
+

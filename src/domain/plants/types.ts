@@ -100,6 +100,44 @@ export interface BiomethanePlant {
   // --- NON-DESTRUCTIVE ENRICHMENT LAYER ---
   verifiedDossier?: VerifiedPlantDossier | null;
   deskOverride?: TraderDeskOverride | null;
+  /** Registration ID as it appears in the raw registry, before any register check. */
+  claimedRegistrationId?: string | null;
+  /** Outcome of checking claimedRegistrationId against the national register, if checked. */
+  registrationCheck?: RegistrationCheck | null;
+  /** Suggestion matched from an authoritative register (e.g. MaStR) for a trader to confirm. */
+  registerMatch?: RegisterMatch | null;
+}
+
+export type RegistrationCheckStatus = 'CONFIRMED' | 'MISMATCH' | 'NOT_FOUND' | 'ERROR';
+
+export interface RegistrationCheck {
+  status: RegistrationCheckStatus;
+  claimedId: string;
+  /** Register or register mirror queried, and when. */
+  source: string;
+  checkedAt: string;
+  /** What the register holds under that ID (null if nothing). active is null when the source does not say. */
+  register: { name: string; naf: string | null; active: boolean | null; commune: string | null } | null;
+}
+
+export type RegisterMatchStatus = 'MATCHED' | 'AMBIGUOUS' | 'NO_MATCH';
+
+export interface RegisterMatchCandidate {
+  operatorName: string;
+  operatorRegisterId: string | null;   // e.g. "HRB 12345 (AG Oldenburg)", SIREN, MaStR ABR…
+  unitId: string | null;               // e.g. MaStR SEE…/GSE… unit number
+  town: string | null;
+  coordinates: [number, number] | null;
+  capacity: string | null;             // as the register states it, with unit
+  evidence: string[];                  // human-readable reasons, e.g. "1.2 km from plant", "same PLZ 16303"
+}
+
+export interface RegisterMatch {
+  status: RegisterMatchStatus;
+  source: string;                      // register + dataset name/version
+  checkedAt: string;                   // ISO date
+  best: RegisterMatchCandidate | null; // set only for MATCHED
+  candidates: RegisterMatchCandidate[];// top 3 for AMBIGUOUS
 }
 
 export interface CommercialContactLead {
@@ -109,23 +147,49 @@ export interface CommercialContactLead {
   workEmail?: string | null;
   directPhone?: string | null;
   linkedinUrl?: string | null;
-  confidenceScore: number; // 0 - 100
-  source: 'STATUTORY_FILING' | 'B2B_ENRICHMENT' | 'DESK_VERIFIED' | 'INDUSTRY_DIRECTORY';
-  lastVerifiedDate: string;
+  /** Only set for contacts a trader has confirmed; generated leads carry no score. */
+  confidenceScore: number | null;
+  /**
+   * SOURCE_DATASET: copied from the raw plant registry (see contactQuality for its rating).
+   * SUGGESTED_ROLE: a role/desk worth asking for — not a confirmed person or address.
+   * INDUSTRY_DIRECTORY: a public association or registry desk.
+   * DESK_VERIFIED: confirmed by a trader.
+   */
+  source: 'SOURCE_DATASET' | 'SUGGESTED_ROLE' | 'INDUSTRY_DIRECTORY' | 'DESK_VERIFIED';
+  lastVerifiedDate: string | null;
 }
 
+/** REGISTER_CONFIRMED: entity and ID checked against the national register on verifiedAt. */
+export type DossierVerificationStatus = 'REGISTER_CONFIRMED' | 'UNVERIFIED';
+
+/**
+ * Plant counterparty dossier. Despite the historical name, only fields with
+ * verificationStatus 'REGISTER_CONFIRMED' have been checked against a register.
+ */
 export interface VerifiedPlantDossier {
+  verificationStatus: DossierVerificationStatus;
   statutoryRegister: 'DE_MASTR' | 'FR_SIRENE' | 'GB_COMPANIES_HOUSE' | 'DK_EVIDA_CVR' | 'NL_KVK' | 'IT_GSE' | 'OTHER';
-  statutoryRegistrationId: string;
-  officialLegalEntity: string;
+  /** Null unless confirmed against the register. */
+  statutoryRegistrationId: string | null;
+  /** Null when no entity name is known (never synthesised). */
+  officialLegalEntity: string | null;
   legalForm?: string;
   registeredOfficeAddress: string;
   parentGroup?: string;
   groupTradingDeskLocation?: string;
   verifiedWebsiteUrl?: string | null;
   verificationSource: string;
-  verifiedAt: string;
+  verifiedAt: string | null;
+  /** Register search page for the trader to confirm the entity themselves. */
+  registerSearchUrl?: string | null;
   commercialContacts: CommercialContactLead[];
+  /** Suggestion matched from register for trader confirmation when no confirmed entity exists. */
+  suggestedEntity?: {
+    name: string;
+    registerId: string | null;
+    evidence: string[];
+    source: string;
+  } | null;
 }
 
 export interface TraderDeskOverride {

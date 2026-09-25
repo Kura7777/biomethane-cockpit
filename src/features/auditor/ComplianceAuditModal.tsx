@@ -817,10 +817,10 @@ ${auditResult.recommendations.map(r => `• ${r}`).join('\n')}`.trim();
               
               <div style={{ backgroundColor: '#1c1917', border: '1px solid #292524', padding: '14px', borderRadius: '6px' }}>
                 <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 800, color: '#f5f5f4', textTransform: 'uppercase' }}>
-                  EFET Biomethane Master Agreement Schedule Covenants
+                  Protective Clauses to Negotiate
                 </h4>
                 <div style={{ fontSize: '11.5px', color: '#a8a29e', marginTop: '3px' }}>
-                  Standard protective provisions to prevent green premium forfeiture and non-delivery liabilities.
+                  Desk drafting checklist — not EFET standard text. Deadlines and remedies below are suggested starting positions to agree with the counterparty.
                 </div>
               </div>
 
@@ -832,7 +832,7 @@ ${auditResult.recommendations.map(r => `• ${r}`).join('\n')}`.trim();
                     1. Proof of Sustainability (PoS) Delivery Schedule &amp; Deadline
                   </div>
                   <div style={{ fontSize: '11.5px', color: '#d6d3d1', lineHeight: 1.5 }}>
-                    Seller warrants that an audited Proof of Sustainability issued by an EU-recognized voluntary scheme (ISCC EU / REDcert-EU) shall be electronically delivered via the Union Database (UDB) or national registry connector no later than <strong>10 business days following the delivery month</strong>.
+                    Seller warrants that an audited Proof of Sustainability issued by an EU-recognized voluntary scheme (ISCC EU / REDcert-EU) shall be electronically delivered via the Union Database (UDB) or national registry connector by an agreed deadline after each delivery month (suggested starting position: <strong>10 business days</strong>).
                   </div>
                 </div>
 
@@ -841,7 +841,7 @@ ${auditResult.recommendations.map(r => `• ${r}`).join('\n')}`.trim();
                     2. 3-Business-Day Cure Period &amp; TTF Spot Repricing Fallback
                   </div>
                   <div style={{ fontSize: '11.5px', color: '#d6d3d1', lineHeight: 1.5 }}>
-                    In the event of Seller&apos;s failure to deliver valid PoS or if the certified Carbon Intensity exceeds the contractual specification, Buyer shall issue a formal <strong>3-business-day cure notice</strong>. If un-remedied, Buyer retains the contractual right to <strong>re-price the delivered gas to the standard TTF Day-Ahead spot price</strong>, with Seller forfeiting 100% of the green attribute premium.
+                    In the event of Seller&apos;s failure to deliver valid PoS or if the certified Carbon Intensity exceeds the contractual specification, Buyer issues a cure notice (suggested: <strong>3 business days</strong>). If un-remedied, Buyer may <strong>re-price the delivered gas to the standard TTF Day-Ahead spot price</strong>, with Seller forfeiting 100% of the green attribute premium.
                   </div>
                 </div>
 
@@ -850,7 +850,7 @@ ${auditResult.recommendations.map(r => `• ${r}`).join('\n')}`.trim();
                     3. Anti-Double Counting &amp; Subsidy Clawback Covenant (SDE++ / EEG / GSE)
                   </div>
                   <div style={{ fontSize: '11.5px', color: '#d6d3d1', lineHeight: 1.5 }}>
-                    Seller explicitly warrants and covenants that the biomethane volume delivered has not been compensated under conflicting national feed-in subsidy schemes (such as Dutch SDE++, German EEG, or Italian GSE) without statutory correction. Seller warrants full compliance with national registry cancellation (VertiCer/dena) and single-accounting rules.
+                    Seller warrants that the biomethane volume delivered has not been compensated under conflicting national feed-in subsidy schemes (such as Dutch SDE++, German EEG, or Italian GSE) without statutory correction. Seller warrants full compliance with national registry cancellation (VertiCer/dena) and single-accounting rules.
                   </div>
                 </div>
 
@@ -859,7 +859,7 @@ ${auditResult.recommendations.map(r => `• ${r}`).join('\n')}`.trim();
                     4. Regulatory Change Allocation Without Breach Penalty
                   </div>
                   <div style={{ fontSize: '11.5px', color: '#d6d3d1', lineHeight: 1.5 }}>
-                    Where statutory amendments (e.g. the 2026 German 38. BImSchV phase-out of the 2× double-counting multiplier) alter the commercial value of the certificates, parties shall adjust the certificate unit valuation in accordance with EFET Biomethane Annex Section 8 without triggering unilateral default damages.
+                    Where statutory amendments (e.g. a change to German double-counting rules under the 38. BImSchV) alter the value of the certificates, the parties renegotiate the certificate price under an agreed change-in-law clause rather than either side being in default.
                   </div>
                 </div>
 

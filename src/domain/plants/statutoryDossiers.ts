@@ -1,23 +1,59 @@
-import { VerifiedPlantDossier, BiomethanePlant, CommercialContactLead } from './types';
+import {
+  VerifiedPlantDossier,
+  BiomethanePlant,
+  CommercialContactLead,
+  PlantContactQuality,
+  RegistrationCheck,
+  RegisterMatch,
+} from './types';
 
 /**
- * Statutory Registry Dossiers & Commercial Origination Leads
+ * Plant counterparty dossiers.
  *
- * Provides authoritative statutory data (SIRET, MaStR-ID, Companies House, CVR, GSE, KVK)
- * and verified commercial origination trading desks for all European biomethane facilities.
+ * AUDIT NOTE (2026-09-26): the hand-written dossiers and portfolio contacts below were
+ * written as desk research notes. Spot checks against national registers found invented
+ * registration numbers (e.g. Korskro "CVR 37265489"; the register holds CVR 34711631),
+ * out-of-date names and addresses, and emails attributed to "statutory filings", which
+ * never list sales contacts. They are therefore treated as UNVERIFIED research notes:
  *
- * Ground rules:
- * 1. Non-destructive: This layer does not overwrite or delete any raw census data.
- * 2. Statutory fidelity: Operating entities and registration IDs are sourced from official registers.
- * 3. Commercial realism: Large developer portfolios are routed to their group commercial desk,
- *    eliminating erroneous third-party cross-stamped switchboards, while independent SPVs
- *    are routed to their registered statutory entity, national registry search, and origination lead.
- * 4. 100% Coverage: Guarantees every plant resolves a verified statutory dossier with an actionable
- *    origination pathway.
+ *  - registration IDs are shown only when confirmed against a register (REGISTER_CONFIRMED
+ *    below, or a CONFIRMED registration check from scripts/verify_fr_sirens.ts);
+ *  - entity names are never synthesised from a plant or town name;
+ *  - hand-written emails and phone numbers are dropped; the named desks/roles are kept as
+ *    "suggested roles" to ask for;
+ *  - the raw registry contact is passed through with its contact-quality rating, and dropped
+ *    when that rating is UNDELIVERABLE;
+ *  - no generated contact carries a confidence score.
  */
 
+/** Shape of the hand-written research notes (kept for their role/desk leads). */
+interface LegacyContact {
+  fullName: string;
+  title: string;
+  roleCategory: CommercialContactLead['roleCategory'];
+  workEmail?: string;
+  directPhone?: string;
+  confidenceScore: number;
+  source: string;
+  lastVerifiedDate: string;
+}
+
+interface LegacyDossier {
+  statutoryRegister: VerifiedPlantDossier['statutoryRegister'];
+  statutoryRegistrationId: string;
+  officialLegalEntity: string;
+  legalForm?: string;
+  registeredOfficeAddress: string;
+  parentGroup?: string;
+  groupTradingDeskLocation?: string;
+  verifiedWebsiteUrl?: string;
+  verificationSource: string;
+  verifiedAt: string;
+  commercialContacts: LegacyContact[];
+}
+
 // --- TIER 1: FLAGSHIP ASSET SPECIFIC DOSSIERS ---
-export const VERIFIED_STATUTORY_DOSSIERS: Record<string, VerifiedPlantDossier> = {
+const RESEARCH_NOTE_DOSSIERS: Record<string, LegacyDossier> = {
   // Denmark
   'dk-korskro': {
     statutoryRegister: 'DK_EVIDA_CVR',
@@ -434,7 +470,7 @@ interface PortfolioDefinition {
   patterns: RegExp[];
   groupDeskLocation: string;
   websiteUrl: string;
-  contacts: CommercialContactLead[];
+  contacts: LegacyContact[];
 }
 
 const PORTFOLIO_DEFINITIONS: PortfolioDefinition[] = [
@@ -1396,164 +1432,52 @@ const PORTFOLIO_DEFINITIONS: PortfolioDefinition[] = [
   },
 ];
 
-// --- STATUTORY PRODUCER ASSOCIATIONS & REGIONAL CLEARING DESKS ---
-const NATIONAL_PRODUCER_ASSOCIATIONS: Record<string, CommercialContactLead> = {
-  FR: {
-    fullName: 'AAMF Origination & Offtake Clearing Desk',
-    title: 'Association des Agriculteurs Méthaniseurs de France (AAMF)',
-    roleCategory: 'ORIGINATION',
-    workEmail: 'contact@agriculteurs-methaniseurs.fr',
-    directPhone: '+33 1 40 04 35 00',
-    confidenceScore: 95,
-    source: 'STATUTORY_FILING',
-    lastVerifiedDate: '2026-08-01',
+// --- NATIONAL PRODUCER ASSOCIATIONS (public directories, not trading desks) ---
+const NATIONAL_PRODUCER_ASSOCIATIONS: Record<string, string> = {
+  FR: 'AAMF — Association des Agriculteurs Méthaniseurs de France',
+  DE: 'Fachverband Biogas e.V.',
+  IT: 'Consorzio Italiano Biogas (CIB)',
+  GB: 'ADBA — Anaerobic Digestion and Bioresources Association',
+  UK: 'ADBA — Anaerobic Digestion and Bioresources Association',
+  DK: 'Biogas Danmark',
+  NL: 'Groen Gas Nederland / BBO',
+  ES: 'AEBIG — Asociación Española de Biogás',
+  SE: 'Energigas Sverige',
+  AT: 'Kompost & Biogas Verband Österreich',
+  BE: 'Biogas-E (Flanders) / ValBiom (Wallonia)',
+  CH: 'Biomasse Suisse',
+};
+
+const DEFAULT_ASSOCIATION = 'European Biogas Association (EBA)';
+
+/**
+ * Registry facts confirmed by a desk lookup. Only these override the research notes.
+ * Add an entry only with the register, the lookup date, and what was checked.
+ */
+const REGISTER_CONFIRMED: Record<string, Pick<VerifiedPlantDossier, 'statutoryRegistrationId' | 'officialLegalEntity' | 'registeredOfficeAddress' | 'verificationSource' | 'verifiedAt'>> = {
+  'dk-korskro': {
+    statutoryRegistrationId: 'CVR 34711631',
+    officialLegalEntity: 'Shell Korskro Biogas A/S (formerly Nature Energy Korskro A/S)',
+    registeredOfficeAddress: 'Lunde Hovedvej 51, 6705 Esbjerg Ø, Denmark',
+    verificationSource: 'Danish Central Business Register (CVR) record, via proff.dk and lasso.dk — name change registered 27 May 2025',
+    verifiedAt: '2026-09-26',
   },
-  DE: {
-    fullName: 'Fachverband Biogas Markt- & Netzzugang Desk',
-    title: 'German Biogas Association Commercial Origination Clearing',
-    roleCategory: 'ORIGINATION',
-    workEmail: 'biogas@biogas.org',
-    directPhone: '+49 8161 984660',
-    confidenceScore: 95,
-    source: 'STATUTORY_FILING',
-    lastVerifiedDate: '2026-08-01',
-  },
-  IT: {
-    fullName: 'Consorzio Italiano Biogas (CIB) Origination Desk',
-    title: 'CIB Biomethane Origination & Trading Support',
-    roleCategory: 'ORIGINATION',
-    workEmail: 'info@consorziobiogas.it',
-    directPhone: '+39 0371 466222',
-    confidenceScore: 95,
-    source: 'STATUTORY_FILING',
-    lastVerifiedDate: '2026-08-01',
-  },
-  GB: {
-    fullName: 'ADBA Green Gas Trading Clearing Desk',
-    title: 'Anaerobic Digestion and Bioresources Association',
-    roleCategory: 'ORIGINATION',
-    workEmail: 'enquiries@adbioresources.org',
-    directPhone: '+44 20 3176 4414',
-    confidenceScore: 95,
-    source: 'STATUTORY_FILING',
-    lastVerifiedDate: '2026-08-01',
-  },
-  UK: {
-    fullName: 'ADBA Green Gas Trading Clearing Desk',
-    title: 'Anaerobic Digestion and Bioresources Association',
-    roleCategory: 'ORIGINATION',
-    workEmail: 'enquiries@adbioresources.org',
-    directPhone: '+44 20 3176 4414',
-    confidenceScore: 95,
-    source: 'STATUTORY_FILING',
-    lastVerifiedDate: '2026-08-01',
-  },
-  DK: {
-    fullName: 'Biogas Danmark Commercial Origination Desk',
-    title: 'Danish Biogas Association Origination Clearing',
-    roleCategory: 'ORIGINATION',
-    workEmail: 'info@biogas.dk',
-    directPhone: '+45 35 87 87 87',
-    confidenceScore: 95,
-    source: 'STATUTORY_FILING',
-    lastVerifiedDate: '2026-08-01',
-  },
-  NL: {
-    fullName: 'Biogas Branche Organisatie (BBE) Desk',
-    title: 'Dutch Biogas Producer Network & Trading Liaison',
-    roleCategory: 'ORIGINATION',
-    workEmail: 'info@biogasbrancheorganisatie.nl',
-    directPhone: '+31 38 426 7260',
-    confidenceScore: 95,
-    source: 'STATUTORY_FILING',
-    lastVerifiedDate: '2026-08-01',
-  },
-  ES: {
-    fullName: 'Sedigas / AEBIG Origination Liaison',
-    title: 'Spanish Biogas Association Commercial Desk',
-    roleCategory: 'ORIGINATION',
-    workEmail: 'info@aebig.org',
-    directPhone: '+34 91 578 30 76',
-    confidenceScore: 95,
-    source: 'STATUTORY_FILING',
-    lastVerifiedDate: '2026-08-01',
-  },
-  SE: {
-    fullName: 'Energigas Sverige Biomethane Desk',
-    title: 'Swedish Gas Association Biomethane Desk',
-    roleCategory: 'ORIGINATION',
-    workEmail: 'info@energigas.se',
-    directPhone: '+46 8 692 55 00',
-    confidenceScore: 95,
-    source: 'STATUTORY_FILING',
-    lastVerifiedDate: '2026-08-01',
-  },
-  AT: {
-    fullName: 'Kompost & Biogas Verband Österreich Clearing',
-    title: 'Austrian Biogas Association Clearing Desk',
-    roleCategory: 'ORIGINATION',
-    workEmail: 'office@biogas-oesterreich.at',
-    directPhone: '+43 1 890 1522',
-    confidenceScore: 95,
-    source: 'STATUTORY_FILING',
-    lastVerifiedDate: '2026-08-01',
-  },
-  BE: {
-    fullName: 'ValBiom / Biogas-E Commercial Desk',
-    title: 'Belgian Biogas Network Origination Liaison',
-    roleCategory: 'ORIGINATION',
-    workEmail: 'info@biogas-e.be',
-    directPhone: '+32 9 241 56 60',
-    confidenceScore: 95,
-    source: 'STATUTORY_FILING',
-    lastVerifiedDate: '2026-08-01',
-  },
-  CH: {
-    fullName: 'Biomasse Suisse / VSG Biogas Desk',
-    title: 'Swiss Biogas Producers Association Liaison',
-    roleCategory: 'ORIGINATION',
-    workEmail: 'info@biomasse-suisse.ch',
-    directPhone: '+41 44 288 31 31',
-    confidenceScore: 95,
-    source: 'STATUTORY_FILING',
-    lastVerifiedDate: '2026-08-01',
+  'plant_fr_1': {
+    statutoryRegistrationId: 'SIREN 750 673 428',
+    officialLegalEntity: 'BIOBEARN (TotalEnergies group)',
+    registeredOfficeAddress: 'Registered seat: Roquefort (47), France — plant at Mourenx (64)',
+    verificationSource: 'Annuaire des Entreprises (recherche-entreprises.api.gouv.fr): active, NAF 35.21Z',
+    verifiedAt: '2026-09-26',
   },
 };
 
-const DEFAULT_EUROPEAN_ASSOCIATION: CommercialContactLead = {
-  fullName: 'European Biogas Association (EBA) Origination Liaison',
-  title: 'EBA Cross-Border Biomethane Trade Liaison',
-  roleCategory: 'ORIGINATION',
-  workEmail: 'info@europeanbiogas.eu',
-  directPhone: '+32 2 400 10 89',
-  confidenceScore: 94,
-  source: 'STATUTORY_FILING',
-  lastVerifiedDate: '2026-08-01',
-};
-
-function getOfficerTitleForCountry(countryCode: string): string {
-  switch (countryCode.toUpperCase()) {
-    case 'FR':
-      return 'Gérant / Président SAS';
-    case 'DE':
-      return 'Geschäftsführer / Betriebsleiter';
-    case 'GB':
-    case 'UK':
-      return 'Managing Director / Director';
-    case 'DK':
-      return 'Direktør (CEO / COO)';
-    case 'IT':
-      return 'Amministratore Delegato (AD)';
-    case 'NL':
-      return 'Directeur / Bestuurder';
-    case 'ES':
-      return 'Director Gerente';
-    case 'SE':
-      return 'Verkställande Direktör (VD)';
-    default:
-      return 'Plant Director / General Manager';
-  }
-}
+/** Inputs the resolver may use; contact quality and registration check come from normalisation. */
+export type DossierInput = Pick<BiomethanePlant, 'id' | 'name' | 'countryCode'> &
+  Partial<BiomethanePlant> & {
+    contactQuality?: PlantContactQuality;
+    registrationCheck?: RegistrationCheck | null;
+    registerMatch?: RegisterMatch | null;
+  };
 
 function getStatutoryRegisterType(countryCode: string): VerifiedPlantDossier['statutoryRegister'] {
   switch (countryCode.toUpperCase()) {
@@ -1575,197 +1499,181 @@ function getStatutoryRegisterType(countryCode: string): VerifiedPlantDossier['st
   }
 }
 
-function resolvePortfolioDossier(
-  plant: Pick<BiomethanePlant, 'id' | 'name' | 'countryCode'> & Partial<BiomethanePlant>
-): VerifiedPlantDossier | null {
-  const normName = (plant.name || '').toLowerCase();
-  const normOp = (plant.operator || '').toLowerCase();
-  const normLegal = (plant.legalEntityName || '').toLowerCase();
-
-  const found = PORTFOLIO_DEFINITIONS.find(def =>
-    def.patterns.some(p => p.test(normOp) || p.test(normName) || p.test(normLegal))
-  );
-
-  if (!found) return null;
-
-  const country = (plant.countryCode || 'EU').toUpperCase();
-  const registerType = getStatutoryRegisterType(country);
-
-  // Extract or synthesize registration ID
-  let regId = plant.companyRegistrationId?.trim();
-  if (!regId) {
-    if (country === 'DE') regId = `MaStR ${found.name.replace(/\s+/g, '-').toUpperCase()}`;
-    else if (country === 'FR') regId = `SIREN (Groupe ${found.name})`;
-    else if (country === 'GB' || country === 'UK') regId = `Companies House (${found.name})`;
-    else if (country === 'DK') regId = `Danish CVR (${found.name})`;
-    else if (country === 'IT') regId = `GSE Qualifica (${found.name})`;
-    else if (country === 'NL') regId = `KvK (${found.name})`;
-    else regId = `Filing ID (${found.name})`;
-  }
-
-  const officialLegal = plant.legalEntityName?.trim() || plant.operator?.trim() || `${found.name} (${plant.name})`;
-
-  return {
-    statutoryRegister: registerType,
-    statutoryRegistrationId: regId,
-    officialLegalEntity: officialLegal,
-    legalForm: officialLegal.includes('GmbH') ? 'GmbH' : officialLegal.includes('SAS') ? 'SAS' : officialLegal.includes('Ltd') ? 'Ltd' : officialLegal.includes('A/S') ? 'A/S' : officialLegal.includes('S.r.l.') ? 'S.r.l.' : 'Corporation',
-    registeredOfficeAddress: plant.headquartersAddress || `${found.groupDeskLocation}`,
-    parentGroup: found.name,
-    groupTradingDeskLocation: found.groupDeskLocation,
-    verifiedWebsiteUrl: found.websiteUrl,
-    verificationSource: `${found.name} Corporate Governance & National Regulatory Filing`,
-    verifiedAt: '2026-08-20',
-    commercialContacts: found.contacts,
-  };
-}
-
-function resolveAlgorithmicSpvDossier(
-  plant: Pick<BiomethanePlant, 'id' | 'name' | 'countryCode'> & Partial<BiomethanePlant>
-): VerifiedPlantDossier {
-  const country = (plant.countryCode || 'EU').toUpperCase();
-  const registerType = getStatutoryRegisterType(country);
-  const officerTitle = getOfficerTitleForCountry(country);
-
-  // 1. Official Legal Entity Name
-  let officialLegal = plant.legalEntityName?.trim();
-  if (!officialLegal || officialLegal.length < 3) {
-    officialLegal = plant.operator?.trim();
-  }
-  if (!officialLegal || officialLegal.length < 3 || /not published/i.test(officialLegal)) {
-    if (country === 'FR') officialLegal = `${plant.name} SAS`;
-    else if (country === 'DE') officialLegal = `Biogas ${plant.name} GmbH & Co. KG`;
-    else if (country === 'GB' || country === 'UK') officialLegal = `${plant.name} Biogas Ltd`;
-    else if (country === 'IT') officialLegal = `${plant.name} Biometano S.r.l.`;
-    else if (country === 'DK') officialLegal = `${plant.name} Biogas ApS`;
-    else if (country === 'NL') officialLegal = `${plant.name} Groen Gas B.V.`;
-    else officialLegal = `${plant.name} Biomethane SPV`;
-  }
-
-  // 2. Statutory Registration ID (1,913 plants already have high-fidelity IDs in dataset)
-  let regId = plant.companyRegistrationId?.trim();
-  if (!regId || regId.length < 3) {
-    if (country === 'FR') regId = `SIREN / RCS Registre National (${plant.name})`;
-    else if (country === 'DE') regId = `MaStR-Einheit BNetzA (${plant.name})`;
-    else if (country === 'GB' || country === 'UK') regId = `Companies House Registered Entity (${plant.name})`;
-    else if (country === 'DK') regId = `Danish CVR / Energinet Gas Metrologi (${plant.name})`;
-    else if (country === 'IT') regId = `GSE Qualifica Biometano PNRR / REA (${plant.name})`;
-    else if (country === 'NL') regId = `KVK Handelsregister (${plant.name})`;
-    else regId = `Official Energy Registry Reference (${plant.name})`;
-  }
-
-  // 3. Legal Form
-  let legalForm = 'Commercial Production Entity';
-  if (/GmbH & Co\.?\s*KG/i.test(officialLegal)) legalForm = 'GmbH & Co. KG';
-  else if (/GmbH/i.test(officialLegal)) legalForm = 'Gesellschaft mit beschränkter Haftung (GmbH)';
-  else if (/SAS/i.test(officialLegal)) legalForm = 'Société par Actions Simplifiée (SAS)';
-  else if (/SARL/i.test(officialLegal)) legalForm = 'Société à Responsabilité Limitée (SARL)';
-  else if (/Ltd|Limited/i.test(officialLegal)) legalForm = 'Private Limited Company (Ltd)';
-  else if (/S\.?r\.?l\.?/i.test(officialLegal)) legalForm = 'Società a responsabilità limitata (S.r.l.)';
-  else if (/S\.?p\.?A\.?/i.test(officialLegal)) legalForm = 'Società per Azioni (S.p.A.)';
-  else if (/ApS/i.test(officialLegal)) legalForm = 'Anpartsselskab (ApS)';
-  else if (/A\/S/i.test(officialLegal)) legalForm = 'Aktieselskab (A/S)';
-  else if (/B\.?V\.?/i.test(officialLegal)) legalForm = 'Besloten Vennootschap (B.V.)';
-
-  // 4. Address & Desk Location
-  const officeAddress = plant.headquartersAddress || `${plant.name}, ${country}`;
-  const deskLocation = `${plant.name}, ${country} (Local Facility Origination Desk)`;
-
-  // 5. Website / Statutory Portal Link
-  const websiteUrl = plant.corporateWebsite && plant.corporateWebsite.startsWith('http')
-    ? plant.corporateWebsite
-    : generateStatutoryRegistrySearchUrl(country, officialLegal);
-
-  // 6. Source
-  let source = 'National Statutory Energy & Company Register';
-  if (country === 'FR') source = 'INSEE SIRENE & Registre ODRE Biométhane';
-  else if (country === 'DE') source = 'Bundesnetzagentur Marktstammdatenregister (MaStR)';
-  else if (country === 'GB' || country === 'UK') source = 'Companies House & Ofgem Non-Domestic RHI Register';
-  else if (country === 'DK') source = 'Danish Central Business Register (CVR) & Evida Ingestion Registry';
-  else if (country === 'NL') source = 'Kamer van Koophandel (KVK) & VertiCer Register';
-  else if (country === 'IT') source = 'GSE Registro Biometano & Registro Imprese';
-
-  // 7. Commercial Contacts (Direct Origination Lead + Statutory Regional Producer Association)
-  const assocContact = NATIONAL_PRODUCER_ASSOCIATIONS[country] ?? DEFAULT_EUROPEAN_ASSOCIATION;
-
-  const directLead: CommercialContactLead = {
-    fullName: `Commercial Origination Lead — ${officialLegal}`,
-    title: `Commercial Director / Managing Director (${officerTitle})`,
-    roleCategory: 'COMMERCIAL_DIRECTOR',
-    workEmail: plant.contactEmail && !plant.contactEmail.includes('fontaine-le-dun.fr') ? plant.contactEmail : undefined,
-    directPhone: plant.contactPhone || undefined,
-    linkedinUrl: generateLinkedInOriginationUrl(officialLegal),
-    confidenceScore: 92,
-    source: 'STATUTORY_FILING',
-    lastVerifiedDate: '2026-08-01',
-  };
-
-  return {
-    statutoryRegister: registerType,
-    statutoryRegistrationId: regId,
-    officialLegalEntity: officialLegal,
-    legalForm,
-    registeredOfficeAddress: officeAddress,
-    parentGroup: 'Independent Agricultural SPV / Municipal Operator',
-    groupTradingDeskLocation: deskLocation,
-    verifiedWebsiteUrl: websiteUrl,
-    verificationSource: source,
-    verifiedAt: '2026-08-01',
-    commercialContacts: [directLead, assocContact],
-  };
-}
+const LEGAL_SUFFIX = /\s+(SAS|SARL|EARL|GAEC|SCEA|SA|GmbH(\s*&\s*Co\.?\s*KG)?|Ltd|Limited|S\.r\.l\.|ApS|A\/S|B\.V\.|AB)\.?$/i;
 
 /**
- * Returns the verified statutory dossier for any biomethane plant.
- * Guaranteed 100% resolution across all 1,974 facilities via:
- * 1. Specific flagship asset ID match
- * 2. Major European corporate & developer portfolio resolution (46+ groups)
- * 3. Algorithmic statutory SPV resolution (official legal entity, registration ID, LinkedIn & clearing contacts)
+ * An operator that is just the plant/town name plus a legal suffix ("Claye-Souilly SAS")
+ * was generated by an enrichment pass, not taken from a register.
  */
-export function getVerifiedPlantDossier(
-  plant: Pick<BiomethanePlant, 'id' | 'name' | 'countryCode'> & Partial<BiomethanePlant>
-): VerifiedPlantDossier {
-  // 1. Direct ID match
-  if (VERIFIED_STATUTORY_DOSSIERS[plant.id]) {
-    return VERIFIED_STATUTORY_DOSSIERS[plant.id];
-  }
+export function isSynthesisedEntityName(entity: string | null | undefined, plantName: string): boolean {
+  if (!entity) return false;
+  const stripped = entity.trim().replace(LEGAL_SUFFIX, '').trim().toLowerCase();
+  return stripped === plantName.trim().toLowerCase() || /^communaut[ée] de communes de /i.test(entity);
+}
 
-  // Specific flagship asset token matching
+function knownEntityName(plant: DossierInput): string | null {
+  const check = plant.registrationCheck;
+  if (check?.status === 'CONFIRMED' && check.register) return check.register.name;
+  for (const candidate of [plant.legalEntityName, plant.operator]) {
+    const c = candidate?.trim();
+    if (c && c.length >= 3 && !/not published/i.test(c) && !isSynthesisedEntityName(c, plant.name)) return c;
+  }
+  return null;
+}
+
+function confirmedRegistrationId(plant: DossierInput): string | null {
+  return plant.registrationCheck?.status === 'CONFIRMED' ? plant.registrationCheck.claimedId : null;
+}
+
+function suggestedRole(c: LegacyContact): CommercialContactLead {
+  return {
+    fullName: c.fullName,
+    title: c.title,
+    roleCategory: c.roleCategory,
+    workEmail: null,
+    directPhone: null,
+    confidenceScore: null,
+    source: 'SUGGESTED_ROLE',
+    lastVerifiedDate: null,
+  };
+}
+
+function sourceDatasetLead(plant: DossierInput): CommercialContactLead | null {
+  const q = plant.contactQuality;
+  const email = plant.contactEmail?.trim() || null;
+  const phone = plant.contactPhone?.trim() || null;
+  const usableEmail = email && q?.confidence !== 'UNDELIVERABLE' ? email : null;
+  if (!usableEmail && !phone) return null;
+  return {
+    fullName: 'Contact listed in plant registry',
+    title: q ? q.confidenceLabel : 'Unverified registry contact',
+    roleCategory: 'PLANT_DIRECTOR',
+    workEmail: usableEmail,
+    directPhone: phone,
+    confidenceScore: null,
+    source: 'SOURCE_DATASET',
+    lastVerifiedDate: null,
+  };
+}
+
+function associationLead(countryCode: string): CommercialContactLead {
+  const name = NATIONAL_PRODUCER_ASSOCIATIONS[countryCode] ?? DEFAULT_ASSOCIATION;
+  return {
+    fullName: name,
+    title: 'National producer association — can introduce member plants; not a trading desk',
+    roleCategory: 'ORIGINATION',
+    workEmail: null,
+    directPhone: null,
+    linkedinUrl: `https://www.linkedin.com/search/results/companies/?keywords=${encodeURIComponent(name)}`,
+    confidenceScore: null,
+    source: 'INDUSTRY_DIRECTORY',
+    lastVerifiedDate: null,
+  };
+}
+
+function registrationCheckNote(plant: DossierInput): string {
+  const check = plant.registrationCheck;
+  if (!check) return 'Registration ID in the source data has not been checked against a register — not shown.';
+  if (check.status === 'CONFIRMED') return `Registration ID confirmed in the register (${check.register?.name}).`;
+  if (check.status === 'MISMATCH') return `Registration ID in the source data belongs to an unrelated company in the register (${check.register?.name}) — discarded.`;
+  if (check.status === 'NOT_FOUND') return 'Registration ID in the source data does not exist in the register — discarded.';
+  return 'Register check failed — ID not shown.';
+}
+
+function buildDossier(
+  plant: DossierInput,
+  research: { key?: string; notes?: LegacyDossier; group?: PortfolioDefinition },
+): VerifiedPlantDossier {
+  const country = (plant.countryCode || 'EU').toUpperCase();
+  const confirmed = research.key ? REGISTER_CONFIRMED[research.key] : undefined;
+  const entity = confirmed?.officialLegalEntity ?? knownEntityName(plant) ?? research.notes?.officialLegalEntity ?? null;
+  const regId = confirmed?.statutoryRegistrationId ?? confirmedRegistrationId(plant);
+  const registerConfirmed = Boolean(confirmed) || plant.registrationCheck?.status === 'CONFIRMED';
+
+  const researchContacts = research.notes?.commercialContacts ?? research.group?.contacts ?? [];
+  const datasetLead = sourceDatasetLead(plant);
+  const contacts: CommercialContactLead[] = [
+    ...researchContacts.map(suggestedRole),
+    ...(datasetLead ? [datasetLead] : []),
+    associationLead(country),
+  ];
+
+  const notesSource = research.notes || research.group
+    ? 'Desk research notes (unverified) — confirm the entity in the national register before contracting.'
+    : 'No desk research on file.';
+
+  return {
+    verificationStatus: registerConfirmed ? 'REGISTER_CONFIRMED' : 'UNVERIFIED',
+    statutoryRegister: research.notes?.statutoryRegister ?? getStatutoryRegisterType(country),
+    statutoryRegistrationId: regId,
+    officialLegalEntity: entity,
+    legalForm: research.notes?.legalForm,
+    registeredOfficeAddress: confirmed?.registeredOfficeAddress ?? 'Not verified — see register',
+    parentGroup: research.notes?.parentGroup ?? research.group?.name,
+    groupTradingDeskLocation: research.notes?.groupTradingDeskLocation ?? research.group?.groupDeskLocation,
+    verifiedWebsiteUrl: research.notes?.verifiedWebsiteUrl ?? research.group?.websiteUrl
+      ?? (plant.corporateWebsite?.startsWith('http') ? plant.corporateWebsite : null),
+    verificationSource: confirmed?.verificationSource ?? `${notesSource} ${registrationCheckNote(plant)}`,
+    verifiedAt: confirmed?.verifiedAt ?? null,
+    registerSearchUrl: generateStatutoryRegistrySearchUrl(country, entity ?? plant.name),
+    commercialContacts: contacts,
+    suggestedEntity:
+      !confirmed && plant.registrationCheck?.status !== 'CONFIRMED' && plant.registerMatch?.status === 'MATCHED' && plant.registerMatch.best
+        ? {
+            name: plant.registerMatch.best.operatorName,
+            registerId: plant.registerMatch.best.operatorRegisterId,
+            evidence: plant.registerMatch.best.evidence,
+            source: plant.registerMatch.source,
+          }
+        : null,
+  };
+}
+
+function findResearchNoteKey(plant: DossierInput): string | null {
+  if (RESEARCH_NOTE_DOSSIERS[plant.id]) return plant.id;
   const normName = (plant.name || '').toLowerCase();
   const normOp = (plant.operator || '').toLowerCase();
   const country = (plant.countryCode || '').toUpperCase();
 
   if (country === 'DK') {
-    if (normName.includes('korskro') || normOp.includes('korskro')) return VERIFIED_STATUTORY_DOSSIERS['dk-korskro'];
-    if (normName.includes('holsted') || normOp.includes('holsted')) return VERIFIED_STATUTORY_DOSSIERS['dk-holsted'];
-    if (normName.includes('kalundborg')) return VERIFIED_STATUTORY_DOSSIERS['dk-kalundborg'];
-    if (normName.includes('vinkel')) return VERIFIED_STATUTORY_DOSSIERS['dk-vinkel'];
+    if (normName.includes('korskro') || normOp.includes('korskro')) return 'dk-korskro';
+    if (normName.includes('holsted') || normOp.includes('holsted')) return 'dk-holsted';
+    if (normName.includes('kalundborg')) return 'dk-kalundborg';
+    if (normName.includes('vinkel')) return 'dk-vinkel';
   }
-
   if (country === 'DE') {
-    if (normName.includes('schwedt') || normOp.includes('schwedt')) return VERIFIED_STATUTORY_DOSSIERS['plant_de_1'];
-    if (normName.includes('steinfurt') || normOp.includes('steinfurt')) return VERIFIED_STATUTORY_DOSSIERS['plant_de_2'];
-    if (normName.includes('könnern') || normName.includes('koennern')) return VERIFIED_STATUTORY_DOSSIERS['plant_de_3'];
+    if (normName.includes('schwedt') || normOp.includes('schwedt')) return 'plant_de_1';
+    if (normName.includes('steinfurt') || normOp.includes('steinfurt')) return 'plant_de_2';
+    if (normName.includes('könnern') || normName.includes('koennern')) return 'plant_de_3';
   }
-
   if (country === 'FR') {
-    if (normName.includes('béarn') || normName.includes('bearn') || normName.includes('mourenx')) return VERIFIED_STATUTORY_DOSSIERS['plant_fr_1'];
-    if (normName.includes('fontaine') && normName.includes('dun')) return VERIFIED_STATUTORY_DOSSIERS['plant_fr_2'];
+    if (normName.includes('béarn') || normName.includes('bearn') || normName.includes('mourenx')) return 'plant_fr_1';
+    if (normName.includes('fontaine') && normName.includes('dun')) return 'plant_fr_2';
   }
-
   if (country === 'GB' || country === 'UK') {
-    if (normOp.includes('severn trent')) return VERIFIED_STATUTORY_DOSSIERS['plant_gb_1'];
-    if (normOp.includes('future biogas')) return VERIFIED_STATUTORY_DOSSIERS['plant_gb_2'];
+    if (normOp.includes('severn trent')) return 'plant_gb_1';
+    if (normOp.includes('future biogas')) return 'plant_gb_2';
   }
+  return null;
+}
 
-  // 2. Known portfolio match
-  const portfolioDossier = resolvePortfolioDossier(plant);
-  if (portfolioDossier) {
-    return portfolioDossier;
+function findPortfolio(plant: DossierInput): PortfolioDefinition | undefined {
+  const fields = [plant.operator, plant.name, plant.legalEntityName].map(f => (f || '').toLowerCase());
+  return PORTFOLIO_DEFINITIONS.find(def => def.patterns.some(p => fields.some(f => p.test(f))));
+}
+
+/**
+ * Returns the counterparty dossier for any plant. Every plant gets one, but only
+ * REGISTER_CONFIRMED dossiers carry register-checked facts; the rest are research notes
+ * plus a register search link.
+ */
+export function getVerifiedPlantDossier(plant: DossierInput): VerifiedPlantDossier {
+  const key = findResearchNoteKey(plant);
+  if (key && RESEARCH_NOTE_DOSSIERS[key]) {
+    return buildDossier(plant, { key, notes: RESEARCH_NOTE_DOSSIERS[key] });
   }
-
-  // 3. Algorithmic Statutory SPV Resolution (100% coverage guarantee)
-  return resolveAlgorithmicSpvDossier(plant);
+  const group = findPortfolio(plant);
+  return buildDossier(plant, { group });
 }
 
 /**
@@ -1799,8 +1707,8 @@ export function generateStatutoryRegistrySearchUrl(countryCode: string, searchTe
     case 'NL':
       return `https://www.kvk.nl/zoeken/?source=all&q=${term}`;
     case 'IT':
-      return `https://www.gse.it/servizi-per-te/fonti-rinnovabili/biometano`;
+      return `https://www.registroimprese.it/ricerca-libera-e-acquisto?query=${term}`;
     default:
-      return `https://www.google.com/search?q=${term}+biomethane+register`;
+      return `https://www.google.com/search?q=${term}+company+register`;
   }
 }

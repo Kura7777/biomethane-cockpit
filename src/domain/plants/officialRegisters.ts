@@ -22,10 +22,10 @@ export const OFFICIAL_NATIONAL_REGISTERS: Record<string, Omit<OfficialRegisterLo
   DK: {
     countryCode: 'DK',
     countryName: 'Denmark',
-    registerName: 'Evida & Energinet Biometanregister',
-    authority: 'Evida / Energinet',
-    url: 'https://evida.dk/',
-    instructions: 'Official Danish gas distribution and transmission biomethane injection register. Verify active grid connection agreement, hourly injection telemetry, and certified metering point (GSRN).',
+    registerName: 'CVR — Central Business Register',
+    authority: 'Danish Business Authority (Erhvervsstyrelsen)',
+    url: 'https://datacvr.virk.dk/',
+    instructions: 'Search CVR for the operating company to confirm its CVR number, current name, address and signatories. Energinet issues biomethane certificates; Evida (the DSO) holds grid connections but does not publish plant injection data.',
     mandatoryForOrigination: true,
   },
   AT: {
@@ -94,10 +94,10 @@ export const OFFICIAL_NATIONAL_REGISTERS: Record<string, Omit<OfficialRegisterLo
   SE: {
     countryCode: 'SE',
     countryName: 'Sweden',
-    registerName: 'Energigas Sverige & Bolagsverket',
-    authority: 'Energigas Sverige / Bolagsverket',
-    url: 'https://www.energigas.se/',
-    instructions: 'Swedish gas industry biomethane tracker and Swedish Companies Registration Office (Bolagsverket). Verify company registration number (organisationsnummer).',
+    registerName: 'Bolagsverket — Companies Registration Office',
+    authority: 'Bolagsverket',
+    url: 'https://www.bolagsverket.se/',
+    instructions: 'Verify the operating company and its organisationsnummer in Bolagsverket. Energigas Sverige is the industry association (not a register) and can point to operators.',
     mandatoryForOrigination: false,
   },
   BE: {
@@ -112,10 +112,10 @@ export const OFFICIAL_NATIONAL_REGISTERS: Record<string, Omit<OfficialRegisterLo
   CH: {
     countryCode: 'CH',
     countryName: 'Switzerland',
-    registerName: 'Pronovo & VSG Biogasregister',
-    authority: 'Pronovo AG / Verband der Schweizerischen Gasindustrie (VSG)',
-    url: 'https://pronovo.ch/',
-    instructions: 'Swiss statutory Guarantee of Origin registry (Pronovo) and Swiss Gas Industry Biogas Register.',
+    registerName: 'Zefix — Central Business Name Index',
+    authority: 'Federal Office of Justice / cantonal commercial registers',
+    url: 'https://www.zefix.ch/',
+    instructions: 'Verify the operating company (UID CHE-…) in Zefix. Biogas injection certificates are handled by the Swiss gas industry (VSG) register, not Pronovo (electricity).',
     mandatoryForOrigination: false,
   },
 };
