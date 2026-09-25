@@ -262,7 +262,17 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
     copyToClipboard(summary, 'Origination Brief');
   };
 
-  const websiteUrl = formatExternalUrl(plant.corporateWebsite);
+  const targetOperator = plant.verifiedDossier?.officialLegalEntity 
+    || plant.registerMatch?.best?.operatorName 
+    || plant.operator 
+    || plant.name;
+  const websiteUrl = formatExternalUrl(plant.verifiedDossier?.verifiedWebsiteUrl || plant.corporateWebsite);
+  const linkedinCompanyUrl = plant.verifiedDossier?.linkedinCompanyUrl || null;
+  const linkedinSearchUrl = plant.verifiedDossier?.linkedinSearchUrl || generateLinkedInOriginationUrl(
+    targetOperator,
+    plant.countryCode,
+    plant.verifiedDossier?.parentGroup
+  );
 
   // Contact quality evaluation & official register lookup
   const contactQuality = plant.contactQuality ?? evaluatePlantContactQuality(plant);
@@ -440,9 +450,36 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
               </button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.2fr 0.9fr', gap: '8px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: linkedinCompanyUrl ? '1fr 1.3fr 1.2fr 0.8fr' : '1.3fr 1.2fr 0.8fr', gap: '8px' }}>
+              {linkedinCompanyUrl && (
+                <a
+                  href={linkedinCompanyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '5px',
+                    padding: '7px 8px',
+                    backgroundColor: 'rgba(10, 102, 194, 0.16)',
+                    color: '#38bdf8',
+                    fontWeight: 600,
+                    fontSize: '11px',
+                    borderRadius: '6px',
+                    border: '1px solid rgba(56, 189, 248, 0.35)',
+                    textDecoration: 'none',
+                    transition: 'all 0.15s ease',
+                  }}
+                  title="Open official verified corporate LinkedIn page"
+                >
+                  <Building2 size={12} style={{ color: '#0ea5e9' }} />
+                  <span>Company</span>
+                </a>
+              )}
+
               <a
-                href={generateLinkedInOriginationUrl(plant.verifiedDossier?.officialLegalEntity || plant.operator || plant.name)}
+                href={linkedinSearchUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{
@@ -460,10 +497,10 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                   textDecoration: 'none',
                   transition: 'all 0.15s ease',
                 }}
-                title="Search verified commercial and origination leads on LinkedIn"
+                title="Search verified commercial, origination, and executive decision-makers on LinkedIn"
               >
                 <Linkedin size={13} style={{ color: '#0ea5e9' }} />
-                <span>LinkedIn Leads</span>
+                <span>Find Decision-Makers</span>
               </a>
 
               <button
@@ -1097,6 +1134,27 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                             </button>
                           </div>
                         )}
+                        <a
+                          href={`https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(`"${targetOperator.replace(/\b(SAS|SARL|GmbH(\s*&\s*Co\.?\s*KG)?|Ltd|Limited|SpA|Srl|ApS|A\/S|B\.V\.|BV|AG|SE|e\.V\.)\b/gi, '').replace(/[()[\]"']/g, '').trim()}" "${contact.title.replace(/\s*—\s*/g, ' ')}"`)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '3px',
+                            color: '#38bdf8',
+                            fontSize: '10px',
+                            textDecoration: 'none',
+                            padding: '1px 5px',
+                            borderRadius: '3px',
+                            backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                            border: '1px solid rgba(56, 189, 248, 0.2)',
+                          }}
+                          title={`Search for "${contact.title}" at ${targetOperator} on LinkedIn`}
+                        >
+                          <Linkedin size={9} />
+                          <span>Search role</span>
+                        </a>
                       </div>
                     </div>
                     <span
@@ -1157,22 +1215,39 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
               </a>
             </div>
 
-            {/* Corporate Portal Link (if available) */}
-            {websiteUrl && (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px', paddingTop: '6px', borderTop: '1px dashed #1e293b' }}>
-                <span style={{ color: '#94a3b8' }}>Corporate Website:</span>
-                <a
-                  href={websiteUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: '#60a5fa', fontWeight: 500, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                >
-                  <Globe size={11} />
-                  <span>{websiteUrl.replace(/^https?:\/\//, '')}</span>
-                  <ExternalLink size={10} />
-                </a>
-              </div>
-            )}
+            {/* Corporate Portal Link & Corporate LinkedIn Profile (if available) */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingTop: '6px', borderTop: '1px dashed #1e293b' }}>
+              {websiteUrl && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px' }}>
+                  <span style={{ color: '#94a3b8' }}>Corporate Website:</span>
+                  <a
+                    href={websiteUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: '#60a5fa', fontWeight: 500, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    <Globe size={11} />
+                    <span>{websiteUrl.replace(/^https?:\/\//, '')}</span>
+                    <ExternalLink size={10} />
+                  </a>
+                </div>
+              )}
+              {linkedinCompanyUrl && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px' }}>
+                  <span style={{ color: '#94a3b8' }}>Corporate LinkedIn:</span>
+                  <a
+                    href={linkedinCompanyUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: '#38bdf8', fontWeight: 500, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    <Linkedin size={11} style={{ color: '#0ea5e9' }} />
+                    <span>Company Page</span>
+                    <ExternalLink size={10} />
+                  </a>
+                </div>
+              )}
+            </div>
 
             {/* Collapsible Raw Census Audit Details */}
             <div style={{ borderTop: '1px solid #1e293b', paddingTop: '8px' }}>

@@ -178,6 +178,8 @@ export interface VerifiedPlantDossier {
   parentGroup?: string;
   groupTradingDeskLocation?: string;
   verifiedWebsiteUrl?: string | null;
+  linkedinCompanyUrl?: string | null;
+  linkedinSearchUrl?: string | null;
   verificationSource: string;
   verifiedAt: string | null;
   /** Register search page for the trader to confirm the entity themselves. */

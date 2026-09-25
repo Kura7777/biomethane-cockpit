@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { 
   getVerifiedPlantDossier, 
   generateLinkedInOriginationUrl,
+  generateLinkedInCompanySearchUrl,
   generateStatutoryRegistrySearchUrl,
   isSynthesisedEntityName,
 } from '../plants/statutoryDossiers';
@@ -95,6 +96,35 @@ describe('Statutory Dossier & Trader Verification Engine', () => {
       expect(url).toContain('linkedin.com/search/results/people');
       expect(url).toContain('Schwedt');
       expect(url).toContain('origination');
+    });
+
+    it('tailors LinkedIn role keywords by country ISO (DE, FR, IT, GB, DK)', () => {
+      const deUrl = generateLinkedInOriginationUrl('EnviTec Biogas AG', 'DE');
+      expect(deUrl).toContain('Gesch%C3%A4ftsf%C3%BChrer'); // encoded Geschäftsführer
+
+      const frUrl = generateLinkedInOriginationUrl('TotalEnergies Biogaz France SAS', 'FR');
+      expect(frUrl).toContain('Directeur%20Commercial'); // encoded Directeur Commercial
+
+      const itUrl = generateLinkedInOriginationUrl('Calvenzano Biometano S.r.l.', 'IT');
+      expect(itUrl).toContain('Amministratore');
+
+      const gbUrl = generateLinkedInOriginationUrl('Future Biogas Limited', 'GB');
+      expect(gbUrl).toContain('Managing%20Director');
+    });
+
+    it('generates targeted LinkedIn company search URL', () => {
+      const companyUrl = generateLinkedInCompanySearchUrl('Waga Energy SA');
+      expect(companyUrl).toContain('linkedin.com/search/results/companies');
+      expect(companyUrl).toContain('Waga%20Energy');
+    });
+
+    it('attaches verified corporate LinkedIn page to portfolio developer dossiers', () => {
+      const plant = BIOMETHANE_PLANTS.find(p => (p.operator || '').includes('VERBIO'));
+      expect(plant).toBeDefined();
+      if (plant) {
+        expect(plant.verifiedDossier?.linkedinCompanyUrl).toBe('https://www.linkedin.com/company/verbio-ag/');
+        expect(plant.verifiedDossier?.linkedinSearchUrl).toContain('linkedin.com/search/results/people');
+      }
     });
 
     it('generates country-specific statutory registry search URLs', () => {

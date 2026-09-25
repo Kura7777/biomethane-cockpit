@@ -470,6 +470,7 @@ interface PortfolioDefinition {
   patterns: RegExp[];
   groupDeskLocation: string;
   websiteUrl: string;
+  linkedinCompanyUrl?: string;
   contacts: LegacyContact[];
 }
 
@@ -480,6 +481,7 @@ const PORTFOLIO_DEFINITIONS: PortfolioDefinition[] = [
     patterns: [/nature energy/i, /shell.*biogas/i, /holsted/i, /korskro/i],
     groupDeskLocation: 'Odense, Denmark (Central Commercial Trading Desk)',
     websiteUrl: 'https://nature-energy.com',
+    linkedinCompanyUrl: 'https://www.linkedin.com/company/nature-energy/',
     contacts: [
       {
         fullName: 'Nature Energy Commercial Origination Desk',
@@ -507,6 +509,7 @@ const PORTFOLIO_DEFINITIONS: PortfolioDefinition[] = [
     patterns: [/totalenergies/i, /biobéarn/i, /biobearn/i, /fonroche/i],
     groupDeskLocation: 'Courbevoie / Paris, France (Global Energy Management)',
     websiteUrl: 'https://totalenergies.fr/entreprises/biogaz',
+    linkedinCompanyUrl: 'https://www.linkedin.com/company/totalenergies/',
     contacts: [
       {
         fullName: 'TotalEnergies Biomethane Origination Europe',
@@ -534,6 +537,7 @@ const PORTFOLIO_DEFINITIONS: PortfolioDefinition[] = [
     patterns: [/engie/i, /storengy/i],
     groupDeskLocation: 'Paris La Défense, France (Global Energy Management & Sales)',
     websiteUrl: 'https://www.engie-bioz.fr',
+    linkedinCompanyUrl: 'https://www.linkedin.com/company/engie/',
     contacts: [
       {
         fullName: 'ENGIE GEM Green Gas Trading',
@@ -561,6 +565,7 @@ const PORTFOLIO_DEFINITIONS: PortfolioDefinition[] = [
     patterns: [/verbio/i, /pinnow/i],
     groupDeskLocation: 'Leipzig, Germany (Central Trading Desk)',
     websiteUrl: 'https://www.verbio.de',
+    linkedinCompanyUrl: 'https://www.linkedin.com/company/verbio-ag/',
     contacts: [
       {
         fullName: 'VERBIO AG Bioenergy Trading Desk',
@@ -588,6 +593,7 @@ const PORTFOLIO_DEFINITIONS: PortfolioDefinition[] = [
     patterns: [/envitec/i],
     groupDeskLocation: 'Lohne / Saerbeck, Germany (Central Sales & Energy Trading)',
     websiteUrl: 'https://www.envitec-biogas.de',
+    linkedinCompanyUrl: 'https://www.linkedin.com/company/envitec-biogas-ag/',
     contacts: [
       {
         fullName: 'EnviTec Energy Trading & Sales',
@@ -606,6 +612,7 @@ const PORTFOLIO_DEFINITIONS: PortfolioDefinition[] = [
     patterns: [/weltec/i],
     groupDeskLocation: 'Vechta, Germany',
     websiteUrl: 'https://www.weltec-biopower.de',
+    linkedinCompanyUrl: 'https://www.linkedin.com/company/weltec-biopower-gmbh/',
     contacts: [
       {
         fullName: 'WELTEC Commercial Energy Team',
@@ -624,6 +631,7 @@ const PORTFOLIO_DEFINITIONS: PortfolioDefinition[] = [
     patterns: [/waga/i],
     groupDeskLocation: 'Meylan (Grenoble), France',
     websiteUrl: 'https://waga-energy.com',
+    linkedinCompanyUrl: 'https://www.linkedin.com/company/waga-energy/',
     contacts: [
       {
         fullName: 'Waga Energy Commercial Desk',
@@ -1602,6 +1610,21 @@ function buildDossier(
     ? 'Desk research notes (unverified) — confirm the entity in the national register before contracting.'
     : 'No desk research on file.';
 
+  const linkedinCompany = research.group?.linkedinCompanyUrl 
+    ?? (research.notes?.verifiedWebsiteUrl && research.notes.verifiedWebsiteUrl.includes('linkedin.com') ? research.notes.verifiedWebsiteUrl : null);
+
+  const targetSearchEntity = entity 
+    ?? plant.registerMatch?.best?.operatorName 
+    ?? (research.group ? research.group.name : null)
+    ?? plant.operator 
+    ?? plant.name;
+
+  const linkedinSearch = generateLinkedInOriginationUrl(
+    targetSearchEntity, 
+    country, 
+    research.notes?.parentGroup ?? research.group?.name
+  );
+
   return {
     verificationStatus: registerConfirmed ? 'REGISTER_CONFIRMED' : 'UNVERIFIED',
     statutoryRegister: research.notes?.statutoryRegister ?? getStatutoryRegisterType(country),
@@ -1613,6 +1636,8 @@ function buildDossier(
     groupTradingDeskLocation: research.notes?.groupTradingDeskLocation ?? research.group?.groupDeskLocation,
     verifiedWebsiteUrl: research.notes?.verifiedWebsiteUrl ?? research.group?.websiteUrl
       ?? (plant.corporateWebsite?.startsWith('http') ? plant.corporateWebsite : null),
+    linkedinCompanyUrl: linkedinCompany,
+    linkedinSearchUrl: linkedinSearch,
     verificationSource: confirmed?.verificationSource ?? `${notesSource} ${registrationCheckNote(plant)}`,
     verifiedAt: confirmed?.verifiedAt ?? null,
     registerSearchUrl: generateStatutoryRegistrySearchUrl(country, entity ?? plant.name),
@@ -1658,7 +1683,12 @@ function findResearchNoteKey(plant: DossierInput): string | null {
 }
 
 function findPortfolio(plant: DossierInput): PortfolioDefinition | undefined {
-  const fields = [plant.operator, plant.name, plant.legalEntityName].map(f => (f || '').toLowerCase());
+  const fields = [
+    plant.operator, 
+    plant.name, 
+    plant.legalEntityName,
+    plant.registerMatch?.best?.operatorName,
+  ].map(f => (f || '').toLowerCase());
   return PORTFOLIO_DEFINITIONS.find(def => def.patterns.some(p => fields.some(f => p.test(f))));
 }
 
@@ -1669,23 +1699,58 @@ function findPortfolio(plant: DossierInput): PortfolioDefinition | undefined {
  */
 export function getVerifiedPlantDossier(plant: DossierInput): VerifiedPlantDossier {
   const key = findResearchNoteKey(plant);
-  if (key && RESEARCH_NOTE_DOSSIERS[key]) {
-    return buildDossier(plant, { key, notes: RESEARCH_NOTE_DOSSIERS[key] });
-  }
+  const notes = key ? RESEARCH_NOTE_DOSSIERS[key] : undefined;
   const group = findPortfolio(plant);
-  return buildDossier(plant, { group });
+  return buildDossier(plant, { key: key || undefined, notes, group });
 }
 
 /**
  * Builds a targeted LinkedIn search URL to identify real biomethane commercial traders
  * and origination leads for any given plant operator.
  */
-export function generateLinkedInOriginationUrl(operatorOrPlantName: string): string {
-  const cleanName = operatorOrPlantName
-    .replace(/\b(SAS|SARL|GmbH|Co|KG|Ltd|Limited|SpA|Srl|ApS|AS|B\.V\.|BV)\b/gi, '')
+export function generateLinkedInOriginationUrl(
+  operatorOrPlantName: string,
+  countryCode?: string,
+  parentGroup?: string
+): string {
+  const targetEntity = parentGroup || operatorOrPlantName;
+  const cleanName = targetEntity
+    .replace(/\b(SAS|SARL|GmbH(\s*&\s*Co\.?\s*KG)?|Ltd|Limited|SpA|Srl|ApS|A\/S|B\.V\.|BV|AG|SE|e\.V\.)\b/gi, '')
+    .replace(/[()[\]"']/g, '')
     .trim();
-  const query = `"${cleanName}" (biomethane OR biogas OR origination OR "energy sales" OR "directeur commercial")`;
+
+  const iso = (countryCode || '').toUpperCase();
+  let roleKeywords = 'biomethane OR biogas OR origination OR "energy sales" OR "directeur commercial"';
+
+  if (iso === 'DE' || iso === 'AT' || iso === 'CH') {
+    roleKeywords = 'Biomethan OR Biogas OR Origination OR Geschäftsführer OR "Leiter Vertrieb" OR Handel';
+  } else if (iso === 'FR' || iso === 'BE') {
+    roleKeywords = 'Biométhane OR Biogaz OR Origination OR "Directeur Commercial" OR "Directeur Général" OR Gérant';
+  } else if (iso === 'IT') {
+    roleKeywords = 'Biometano OR Biogas OR Origination OR "Amministratore Unico" OR "Direttore Commerciale"';
+  } else if (iso === 'GB' || iso === 'UK' || iso === 'IE') {
+    roleKeywords = 'Biomethane OR Biogas OR Origination OR "Commercial Director" OR "Managing Director" OR "Energy Sales"';
+  } else if (iso === 'DK' || iso === 'SE' || iso === 'NO' || iso === 'FI') {
+    roleKeywords = 'Biomethane OR Biogas OR Direktør OR "Commercial Director" OR Origination';
+  } else if (iso === 'ES') {
+    roleKeywords = 'Biometano OR Biogás OR "Director Comercial" OR "Desarrollo de Negocio" OR Origination';
+  } else if (iso === 'NL') {
+    roleKeywords = 'Groen Gas OR Biogas OR Directeur OR "Commercieel Directeur" OR Origination';
+  }
+
+  const query = `"${cleanName}" (${roleKeywords})`;
   return `https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(query)}`;
+}
+
+/**
+ * Builds a targeted LinkedIn company search URL.
+ */
+export function generateLinkedInCompanySearchUrl(companyName: string): string {
+  const clean = companyName
+    .replace(/\b(SAS|SARL|GmbH(\s*&\s*Co\.?\s*KG)?|Ltd|Limited|SpA|Srl|ApS|A\/S|B\.V\.|BV|AG|SE|e\.V\.)\b/gi, '')
+    .replace(/[()[\]"']/g, '')
+    .trim();
+  return `https://www.linkedin.com/search/results/companies/?keywords=${encodeURIComponent(clean)}`;
 }
 
 /**

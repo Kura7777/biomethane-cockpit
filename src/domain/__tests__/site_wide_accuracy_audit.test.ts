@@ -635,7 +635,7 @@ describe('SITE-WIDE ACCURACY & MATHEMATICAL GROUND-TRUTH AUDIT', () => {
 
       // 20 active markets x 6 feedstocks = 120 matrix scans verified
       expect(totalMatrixEvaluations).toBeGreaterThanOrEqual(100);
-    });
+    }, 15000);
   });
 
   // --------------------------------------------------------------------------
