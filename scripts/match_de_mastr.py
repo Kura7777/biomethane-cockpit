@@ -218,6 +218,8 @@ for plant in de_plants:
                 'operatorName': u['operatorName'],
                 'operatorRegisterId': u['operatorRegisterId'],
                 'unitId': u['unitId'],
+                'idLabel': 'Handelsregister',
+                'nameLabel': 'Operator (MaStR)',
                 'town': u['town'],
                 'coordinates': [u['lat'], u['lon']] if u['lat'] and u['lon'] else None,
                 'capacity': f"{u['capacityKw']:.0f} kW" if u['capacityKw'] else None,
@@ -303,6 +305,7 @@ print(f"Centroid placeholder plants that matched: {centroid_plants_matched}")
 # Write to data/registration_matches/de.json
 out_data = {
     "countryCode": "DE",
+    "matchKind": "OPERATOR_REGISTER",
     "source": "Bundesnetzagentur Marktstammdatenregister (Gesamtdatenexport 2026-09-25 26.1)",
     "checkedAt": "2026-09-26",
     "results": matches_out

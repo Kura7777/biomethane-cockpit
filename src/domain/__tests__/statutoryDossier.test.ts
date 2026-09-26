@@ -1,4 +1,7 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import { describe, it, expect, beforeEach } from 'vitest';
+import { regenerate } from '../../../scripts/lib/registerMatchesWriter';
 import { 
   getVerifiedPlantDossier, 
   generateLinkedInOriginationUrl,
@@ -334,80 +337,123 @@ describe('Statutory Dossier & Trader Verification Engine', () => {
     });
   });
 
-  describe('8. Pan-European Statutory Register Matches (FR, IT, GB, NL, DK)', () => {
-    it('French plants carry authentic ODRE and RNE/NaTran matches with suggestedEntity for trader confirmation', () => {
+  describe('8. Statutory Register Matches (Authentic DE, FR, GB, DK Only)', () => {
+    it('French plants carry authentic ODRE matches with suggestedEntity for trader confirmation', () => {
       const plant = BIOMETHANE_PLANTS.find(p => p.id === 'plant_fr_244');
       expect(plant).toBeDefined();
       expect(plant?.registerMatch?.status).toBe('MATCHED');
+      expect(plant?.registerMatch?.matchKind).toBe('INJECTION_SITE');
       expect(plant?.registerMatch?.best?.unitId).toBe('IR0194');
       expect(plant?.registerMatch?.best?.operatorName).toBe('BIONORROIS');
+      expect(plant?.registerMatch?.best?.idLabel).toBe('ODRE injection point');
+      expect(plant?.registerMatch?.best?.nameLabel).toBe('ODRE project name');
       expect(plant?.verifiedDossier?.suggestedEntity?.name).toBe('BIONORROIS');
+      expect(plant?.verifiedDossier?.suggestedEntity?.matchKind).toBe('INJECTION_SITE');
       expect(plant?.verifiedDossier?.suggestedEntity?.source).toContain('ODRE');
       expect(plant?.verifiedDossier?.verificationStatus).toBe('UNVERIFIED');
     });
 
-    it('Italian plants carry authentic GSE and Snam Rete Gas qualification matches', () => {
-      const plant = BIOMETHANE_PLANTS.find(p => p.id === 'plant_it_76');
-      expect(plant).toBeDefined();
-      expect(plant?.registerMatch?.status).toBe('MATCHED');
-      expect(plant?.registerMatch?.best?.operatorName).toBe('Montello S.p.A.');
-      expect(plant?.registerMatch?.best?.operatorRegisterId).toContain('GSE');
-      expect(plant?.verifiedDossier?.suggestedEntity?.name).toBe('Montello S.p.A.');
-      expect(plant?.verifiedDossier?.suggestedEntity?.source).toContain('GSE');
-      expect(plant?.verifiedDossier?.verificationStatus).toBe('UNVERIFIED');
-    });
-
-    it('Dutch plants carry authentic Vertogas & Gasunie Transport Services (GTS) certificate matches', () => {
-      const plant = BIOMETHANE_PLANTS.find(p => p.id === 'plant_nl_76');
-      expect(plant).toBeDefined();
-      expect(plant?.registerMatch?.status).toBe('MATCHED');
-      expect(plant?.registerMatch?.best?.operatorRegisterId).toContain('Vertogas');
-      expect(plant?.verifiedDossier?.suggestedEntity?.name).toContain('Attero');
-      expect(plant?.verifiedDossier?.suggestedEntity?.source).toContain('Vertogas');
-      expect(plant?.verifiedDossier?.verificationStatus).toBe('UNVERIFIED');
-    });
-
-    it('UK plants carry authentic DESNZ REPD / Ofgem renewable energy planning matches', () => {
+    it('UK plants carry authentic DESNZ REPD renewable energy planning matches with candidate review warning', () => {
       const plant = BIOMETHANE_PLANTS.find(p => p.id === 'plant_uk_28');
       expect(plant).toBeDefined();
       expect(plant?.registerMatch?.status).toBe('MATCHED');
+      expect(plant?.registerMatch?.matchKind).toBe('PROJECT_DATABASE');
       expect(plant?.registerMatch?.best?.operatorName).toBe('Severn Trent Water');
       expect(plant?.registerMatch?.best?.operatorRegisterId).toContain('REPD');
+      expect(plant?.registerMatch?.best?.idLabel).toBe('REPD reference');
+      expect(plant?.registerMatch?.best?.nameLabel).toBe('REPD operator/applicant');
+      expect(plant?.registerMatch?.best?.evidence.some(e => e.includes('confirm it is the biomethane operator'))).toBe(true);
       expect(plant?.verifiedDossier?.suggestedEntity?.name).toBe('Severn Trent Water');
+      expect(plant?.verifiedDossier?.suggestedEntity?.matchKind).toBe('PROJECT_DATABASE');
       expect(plant?.verifiedDossier?.suggestedEntity?.source).toContain('DESNZ');
       expect(plant?.verifiedDossier?.verificationStatus).toBe('UNVERIFIED');
     });
 
-    it('Swiss plants carry audited Zefix UIDs and Pronovo HKN register matches', () => {
-      const plant = BIOMETHANE_PLANTS.find(p => p.id === 'plant_ch_14');
-      expect(plant).toBeDefined();
-      expect(plant?.registerMatch?.status).toBe('MATCHED');
-      expect(plant?.registerMatch?.best?.operatorName).toBe('SwissFarmerPower Inwil AG');
-      expect(plant?.registerMatch?.best?.operatorRegisterId).toContain('CHE-112.871.933');
-      expect(plant?.verifiedDossier?.suggestedEntity?.name).toBe('SwissFarmerPower Inwil AG');
-      expect(plant?.verifiedDossier?.suggestedEntity?.source).toContain('Pronovo');
-      expect(plant?.verifiedDossier?.verificationStatus).toBe('UNVERIFIED');
+    it('the Danish rejected-CVR plants have registerMatch.status === "NO_MATCH"', () => {
+      const rejectedIds = ['plant_dk_25', 'plant_dk_40', 'plant_dk_41'];
+      for (const id of rejectedIds) {
+        const plant = BIOMETHANE_PLANTS.find(p => p.id === id);
+        expect(plant, id).toBeDefined();
+        expect(plant?.registerMatch?.status, id).toBe('NO_MATCH');
+        expect(plant?.registerMatch?.matchKind, id).toBe('OPERATOR_REGISTER');
+        expect(plant?.verifiedDossier?.suggestedEntity, id).toBeNull();
+        const cand = plant?.registerMatch?.candidates?.[0];
+        expect(cand, `${id} should preserve rejected candidate evidence`).toBeDefined();
+        expect(cand?.evidence.some(e => e.includes('rejected'))).toBe(true);
+      }
     });
 
-    it('Austrian plants carry authentic AGCS Biomethan Register Austria matches', () => {
-      const plant = BIOMETHANE_PLANTS.find(p => p.id === 'plant_at_1');
-      expect(plant).toBeDefined();
-      expect(plant?.registerMatch?.status).toBe('MATCHED');
-      expect(plant?.registerMatch?.best?.operatorRegisterId).toContain('AT-AGCS');
-      expect(plant?.verifiedDossier?.suggestedEntity?.name).toContain('Bruck/Leitha');
-      expect(plant?.verifiedDossier?.suggestedEntity?.source).toContain('AGCS');
-      expect(plant?.verifiedDossier?.verificationStatus).toBe('UNVERIFIED');
+    it('every registerMatch in the census comes from DE/FR/GB/DK only, and every candidate has a non-empty idLabel and nameLabel', () => {
+      const allowedCountries = new Set(['DE', 'FR', 'GB', 'DK']);
+      for (const plant of BIOMETHANE_PLANTS) {
+        if (plant.registerMatch) {
+          expect(allowedCountries.has(plant.countryCode), `Unexpected registerMatch for plant ${plant.id} in ${plant.countryCode}`).toBe(true);
+          const candidates = [
+            ...(plant.registerMatch.best ? [plant.registerMatch.best] : []),
+            ...(plant.registerMatch.candidates ?? []),
+          ];
+          for (const cand of candidates) {
+            expect(cand.idLabel, `Missing idLabel in plant ${plant.id}`).toBeTruthy();
+            expect(cand.idLabel.trim().length).toBeGreaterThan(0);
+            expect(cand.nameLabel, `Missing nameLabel in plant ${plant.id}`).toBeTruthy();
+            expect(cand.nameLabel.trim().length).toBeGreaterThan(0);
+          }
+        }
+      }
     });
 
-    it('100% of all 1,974 European biomethane plants carry authoritative national register matches', () => {
-      const withMatches = BIOMETHANE_PLANTS.filter(p => p.registerMatch != null);
-      expect(withMatches.length).toBe(1974);
+    it('no operatorRegisterId or unitId matches fabricated patterns', () => {
+      const fabricatedIdPattern = /^(NL-VERT|GSE-BIO|SE-EGS|FI-GGF|ES-ENAGAS|AT-AGCS|BE-FLUXYS|NO-AVFALL|CZ-OTE|PT-REN|EE-ELERING|LT-AMBER|LV-CONEXUS|UA-GTSOU|SK-OKTE|HU-FGSZ|IE-GNI|IS-ORKU|LU-CREOS|LI-LGV|PL-GAZ)/;
+      const pronovoPattern = /Pronovo HKN #CH-BIO/;
 
-      const matchedCount = BIOMETHANE_PLANTS.filter(p => p.registerMatch?.status === 'MATCHED').length;
-      expect(matchedCount).toBeGreaterThanOrEqual(1700);
+      for (const plant of BIOMETHANE_PLANTS) {
+        const candidates = [
+          ...(plant.registerMatch?.best ? [plant.registerMatch.best] : []),
+          ...(plant.registerMatch?.candidates ?? []),
+        ];
+        for (const cand of candidates) {
+          if (cand.operatorRegisterId) {
+            expect(cand.operatorRegisterId).not.toMatch(fabricatedIdPattern);
+            expect(cand.operatorRegisterId).not.toMatch(pronovoPattern);
+          }
+          if (cand.unitId) {
+            expect(cand.unitId).not.toMatch(fabricatedIdPattern);
+            expect(cand.unitId).not.toMatch(pronovoPattern);
+          }
+        }
+      }
+    });
+
+    it('no operator name ends with "Biomethane Operator"', () => {
+      for (const plant of BIOMETHANE_PLANTS) {
+        const candidates = [
+          ...(plant.registerMatch?.best ? [plant.registerMatch.best] : []),
+          ...(plant.registerMatch?.candidates ?? []),
+        ];
+        for (const cand of candidates) {
+          expect(cand.operatorName.trim().endsWith('Biomethane Operator')).toBe(false);
+        }
+      }
+    });
+
+    it('suggestedEntity never sets REGISTER_CONFIRMED', () => {
+      for (const plant of BIOMETHANE_PLANTS) {
+        if (plant.verifiedDossier?.suggestedEntity) {
+          expect(plant.verifiedDossier.verificationStatus).not.toBe('REGISTER_CONFIRMED');
+        }
+      }
+    });
+
+    it('regenerating twice produces an identical generated file (determinism)', () => {
+      const generatedPath = path.join(__dirname, '..', 'plants', 'registerMatches.generated.ts');
+      const contentBefore = fs.readFileSync(generatedPath, 'utf8');
+      regenerate();
+      const contentAfter = fs.readFileSync(generatedPath, 'utf8');
+      expect(contentAfter).toBe(contentBefore);
     });
   });
 });
+
 
 
 

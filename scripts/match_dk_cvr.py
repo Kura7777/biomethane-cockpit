@@ -15,19 +15,21 @@ for item in dk_checks.get('results', []):
     st = item['status']
     claimed = item.get('claimedId')
     reg = item.get('register')
+    cvr_clean = claimed.replace('CVR: ', '').replace('CVR', '').strip() if claimed else ''
     
     if st == 'CONFIRMED' and reg and reg.get('name'):
-        cvr_clean = claimed.replace('CVR: ', '').strip() if claimed else ''
         cand = {
             'operatorName': reg['name'],
-            'operatorRegisterId': f"CVR {cvr_clean} (Erhvervsstyrelsen)",
+            'operatorRegisterId': cvr_clean,
             'unitId': f"CVR_{cvr_clean}",
+            'idLabel': 'CVR',
+            'nameLabel': 'Operator (CVR)',
             'town': reg.get('commune') or pname,
             'coordinates': None,
             'capacity': None,
             'evidence': [
                 f"Statutory CVR {cvr_clean} confirmed via Danish Business Authority (Erhvervsstyrelsen)",
-                "Energinet Biogasregister certified injection site",
+                "Danish CVR register via lasso.dk",
                 f"Municipal registry: {reg.get('commune') or pname}"
             ]
         }
@@ -35,24 +37,25 @@ for item in dk_checks.get('results', []):
         best = cand
         candidates = []
         matched_count += 1
-    elif st == 'MISMATCH':
-        status = 'AMBIGUOUS'
+    elif st == 'MISMATCH' and reg and reg.get('name'):
+        status = 'NO_MATCH'
         best = None
         candidates = [
             {
-                'operatorName': reg.get('name') if reg else f"Unverified CVR ({claimed})",
-                'operatorRegisterId': claimed,
-                'unitId': f"CVR_{claimed}",
-                'town': pname,
+                'operatorName': reg.get('name'),
+                'operatorRegisterId': cvr_clean,
+                'unitId': f"CVR_{cvr_clean}",
+                'idLabel': 'CVR',
+                'nameLabel': 'Operator (CVR)',
+                'town': reg.get('commune') or pname,
                 'coordinates': None,
                 'capacity': None,
                 'evidence': [
-                    f"Claimed CVR {claimed} does not match plant name/activity (Erhvervsstyrelsen mismatch)",
-                    "Requires manual trader desk verification"
+                    f"Claimed CVR belongs to {reg.get('name')} — rejected"
                 ]
             }
         ]
-        ambiguous_count += 1
+        no_match_count += 1
     else:
         status = 'NO_MATCH'
         best = None
@@ -75,7 +78,8 @@ print(f"NO_MATCH:   {no_match_count}")
 
 out_data = {
     "countryCode": "DK",
-    "source": "Energinet Biogasregister & Erhvervsstyrelsen CVR Register",
+    "matchKind": "OPERATOR_REGISTER",
+    "source": "Danish CVR register via lasso.dk",
     "checkedAt": "2026-09-26",
     "results": results_out
 }

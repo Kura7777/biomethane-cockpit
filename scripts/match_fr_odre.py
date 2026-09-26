@@ -191,16 +191,22 @@ for plant in fr_plants:
         
         op_name = extract_operator_name(raw_proj, commune)
         
-        reg_id = f"Point {pit} ({tso})"
+        # Bare injection point code
+        reg_id = pit
+        evidence = list(c['evidence'])
+        if tso:
+            evidence.append(f"Network operator: {tso}")
         
         return {
             'operatorName': op_name,
             'operatorRegisterId': reg_id,
             'unitId': pit,
+            'idLabel': 'ODRE injection point',
+            'nameLabel': 'ODRE project name',
             'town': commune,
             'coordinates': [coords.get('lat'), coords.get('lon')] if coords.get('lat') else None,
             'capacity': f"{cap_gwh:.1f} GWh/an" if cap_gwh else None,
-            'evidence': c['evidence'],
+            'evidence': evidence,
             '_ptId': pt.get('id_unique_projet') or pit
         }
         
@@ -252,6 +258,7 @@ print(f"Centroid placeholder plants that matched: {centroid_plants_matched}")
 
 out_data = {
     "countryCode": "FR",
+    "matchKind": "INJECTION_SITE",
     "source": "Open Data Réseaux Énergies (ODRE points d'injection biométhane) & NaTran",
     "checkedAt": "2026-09-26",
     "results": matches_out

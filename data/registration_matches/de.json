@@ -1,5 +1,6 @@
 {
   "countryCode": "DE",
+  "matchKind": "OPERATOR_REGISTER",
   "source": "Bundesnetzagentur Marktstammdatenregister (Gesamtdatenexport 2026-09-25 26.1)",
   "checkedAt": "2026-09-26",
   "results": [
@@ -11,6 +12,8 @@
         "operatorName": "BALANCE Erneuerbare Energien GmbH",
         "operatorRegisterId": "HRB 33638 (AG Leipzig)",
         "unitId": "GEE947295836191",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Schwedt",
         "coordinates": [
           53.09811,
@@ -35,6 +38,8 @@
         "operatorName": "BALANCE Erneuerbare Energien GmbH",
         "operatorRegisterId": "HRB 33638 (AG Leipzig)",
         "unitId": "GEE947295836191",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Schwedt",
         "coordinates": [
           53.09811,
@@ -59,6 +64,8 @@
         "operatorName": "VERBIO SE",
         "operatorRegisterId": "HRB 6435 (AG Stendal)",
         "unitId": "GEE950475520667",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Pinnow",
         "coordinates": [
           53.059659,
@@ -81,6 +88,8 @@
         "operatorName": "Biogas Friedland GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 200502 (AG Oldenburg)",
         "unitId": "GEE988651980301",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Friedland",
         "coordinates": [
           53.677074,
@@ -106,6 +115,8 @@
           "operatorName": "Biogas Forst",
           "operatorRegisterId": "HRA 2038 (AG Cottbus)",
           "unitId": "GEE931165926426",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Forst",
           "coordinates": [
             51.714701,
@@ -123,6 +134,8 @@
           "operatorName": "Biogas Forst",
           "operatorRegisterId": "HRA 2038 (AG Cottbus)",
           "unitId": "GEE937805610342",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Forst",
           "coordinates": [
             51.715296,
@@ -148,6 +161,8 @@
           "operatorName": "Biogas Forst",
           "operatorRegisterId": "HRA 2038 (AG Cottbus)",
           "unitId": "GEE931165926426",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Forst",
           "coordinates": [
             51.714701,
@@ -165,6 +180,8 @@
           "operatorName": "Biogas Forst",
           "operatorRegisterId": "HRA 2038 (AG Cottbus)",
           "unitId": "GEE937805610342",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Forst",
           "coordinates": [
             51.715296,
@@ -188,6 +205,8 @@
         "operatorName": "Papierfabrik Palm GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 501010 (AG Ulm)",
         "unitId": "GEE989562465574",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Aalen",
         "coordinates": [
           48.823866,
@@ -210,6 +229,8 @@
         "operatorName": "Erdgas Südwest GmbH",
         "operatorRegisterId": "HRB 105621 (AG Mannheim)",
         "unitId": "GEE955312256037",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Achstetten",
         "coordinates": [
           48.267721,
@@ -234,6 +255,8 @@
           "operatorName": "biogeen Biomethan Zwei GmbH ＆ Co. KG",
           "operatorRegisterId": "HRA 8633 (AG Münster)",
           "unitId": "GEE976112070814",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Hage",
           "coordinates": [
             53.618728,
@@ -248,6 +271,8 @@
           "operatorName": "ADAP Rinderzucht GmbH",
           "operatorRegisterId": "HRB 2734 (AG Stralsund)",
           "unitId": "GEE919231455728",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Ahrenshagen-Daskow",
           "coordinates": [
             54.227323,
@@ -268,6 +293,8 @@
         "operatorName": "EON Bioerdgas GmbH",
         "operatorRegisterId": "HRB 19720 (AG Essen)",
         "unitId": "GEE912804369316",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Aiterhofen",
         "coordinates": [
           48.856,
@@ -291,6 +318,8 @@
         "operatorName": "Bio-Energie Allendorf GmbH",
         "operatorRegisterId": "HRB 5889 (AG Marburg)",
         "unitId": "GEE956247500202",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Allendorf",
         "coordinates": [
           51.030003,
@@ -313,6 +342,8 @@
         "operatorName": "Alterric Biogas GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 203647 (AG Aurich)",
         "unitId": "GEE954936741721",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Altenhof",
         "coordinates": [
           53.359415,
@@ -335,6 +366,8 @@
         "operatorName": "Greengas Altenstadt GmbH",
         "operatorRegisterId": "HRB 284455 (AG München)",
         "unitId": "GEE949557870400",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Altenstadt",
         "coordinates": [
           47.803857,
@@ -358,6 +391,8 @@
         "operatorName": "Greengas Altenstadt GmbH",
         "operatorRegisterId": "HRB 284455 (AG München)",
         "unitId": "GEE949557870400",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Altenstadt",
         "coordinates": [
           47.803857,
@@ -389,6 +424,8 @@
         "operatorName": "biogeen BGA Drei GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 8087 (AG Münster)",
         "unitId": "GEE903268776017",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Angermünde",
         "coordinates": [
           52.993182,
@@ -412,6 +449,8 @@
         "operatorName": "Cosun Beet Company GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 12588 (AG Neubrandenburg)",
         "unitId": "GEE983261804153",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Anklam",
         "coordinates": [
           53.854372,
@@ -434,6 +473,8 @@
         "operatorName": "Bürger GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 5842 (AG Paderborn)",
         "unitId": "GEE983867788444",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Anröchte",
         "coordinates": [
           51.518309,
@@ -455,6 +496,8 @@
         "operatorName": "Bioenergie Geest GmbH ＆ Co.KG",
         "operatorRegisterId": "HRA 201756 (AG Tostedt)",
         "unitId": "GEE924650700397",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Apensen",
         "coordinates": [
           53.460672,
@@ -477,6 +520,8 @@
         "operatorName": "LSKD Bioenergie",
         "operatorRegisterId": "HRB 13487 (AG Stendal)",
         "unitId": "GEE924947454576",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Arendsee",
         "coordinates": [
           52.809299,
@@ -498,6 +543,8 @@
         "operatorName": "Grüngas GmbH",
         "operatorRegisterId": "HRB 10687 (AG Regensburg)",
         "unitId": "GEE932803422850",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Arnschwang",
         "coordinates": [
           49.16184,
@@ -519,6 +566,8 @@
         "operatorName": "Bioenergie Dannheim GmbH",
         "operatorRegisterId": "HRB 508032 (AG Jena)",
         "unitId": "GEE987418836325",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Arnstadt",
         "coordinates": [
           50.798692,
@@ -540,6 +589,8 @@
         "operatorName": "AVA Abfallverwertung Augsburg Kommunalunternehmen",
         "operatorRegisterId": "HRA 19729 (AG Augsburg)",
         "unitId": "GEE972267295447",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Augsburg",
         "coordinates": [
           48.401679,
@@ -563,6 +614,8 @@
         "operatorName": "Biomethan Deister-Süntel GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 201649 (AG Hannover)",
         "unitId": "GEE903134865258",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Bad Münder",
         "coordinates": [
           52.222449,
@@ -584,6 +637,8 @@
         "operatorName": "DeGeFa GmbH",
         "operatorRegisterId": "HRB 19998 (AG Osnabrück)",
         "unitId": "GEE906267118444",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Badbergen",
         "coordinates": [
           52.634965,
@@ -605,6 +660,8 @@
         "operatorName": "Biogs Pool 2 für Stadtwerke",
         "operatorRegisterId": "HRA 3421 (AG Hamm)",
         "unitId": "GEE900560517256",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Bahrdorf",
         "coordinates": [
           52.375381,
@@ -626,6 +683,8 @@
         "operatorName": "Burgösch REG GmbH",
         "operatorRegisterId": "HRB 16805 (AG Kempten (Allgäu))",
         "unitId": "GEE919001174729",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Baisweil",
         "coordinates": [
           47.960692,
@@ -647,6 +706,8 @@
         "operatorName": "Natur-Energie Ostharz GmbH ＆ Co. KG",
         "operatorRegisterId": null,
         "unitId": "GEE978322394032",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Ballenstedt",
         "coordinates": [
           51.74396,
@@ -668,6 +729,8 @@
         "operatorName": "MVV Biomethan GmbH",
         "operatorRegisterId": "HRB 27915 (AG Stendal)",
         "unitId": "GEE921447812622",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Barby",
         "coordinates": [
           51.954369,
@@ -691,6 +754,8 @@
         "operatorName": "NEXOGAS Produktion Barleben GmbH",
         "operatorRegisterId": "HRB 216835 (AG Oldenburg)",
         "unitId": "GEE957856591629",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Barleben",
         "coordinates": [
           52.174387,
@@ -713,6 +778,8 @@
         "operatorName": "NEXOGAS Produktion Barsikow GmbH",
         "operatorRegisterId": "HRB 222107 (AG Oldenburg)",
         "unitId": "GEE948416326362",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Barsikow",
         "coordinates": [
           52.854,
@@ -736,6 +803,8 @@
         "operatorName": "BioEnergie Beetzendorf GmbH",
         "operatorRegisterId": "HRB 14389 (AG Stendal)",
         "unitId": "GEE982058576228",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Beetzendorf",
         "coordinates": [
           52.695168,
@@ -758,6 +827,8 @@
         "operatorName": "RWE Generation SE",
         "operatorRegisterId": "HRB 24353 (AG Essen)",
         "unitId": "GEE964170509544",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Bergheim",
         "coordinates": [
           50.95589,
@@ -781,6 +852,8 @@
         "operatorName": "Berliner Stadtreinigungsbetriebe",
         "operatorRegisterId": "HRA 33292 (AG Berlin (Charlottenburg))",
         "unitId": "GEE969788833227",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Berlin",
         "coordinates": [
           52.531704,
@@ -804,6 +877,8 @@
         "operatorName": "MVV Biogas GmbH",
         "operatorRegisterId": "HRB 37835 (AG Dresden)",
         "unitId": "GEE998229767197",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Bernburg",
         "coordinates": [
           51.798807,
@@ -827,6 +902,8 @@
         "operatorName": "Burggas",
         "operatorRegisterId": "HRA 208286 (AG Osnabrück)",
         "unitId": "GEE908847951069",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Bersenbrück",
         "coordinates": [
           52.565559,
@@ -848,6 +925,8 @@
         "operatorName": "Gaswerker GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 2170 (AG Lüneburg)",
         "unitId": "GEE994012282816",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Betzendorf",
         "coordinates": [
           53.153246,
@@ -869,6 +948,8 @@
         "operatorName": "Bioerdgas Biburg GbR",
         "operatorRegisterId": null,
         "unitId": "GEE990705215475",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Biburg",
         "coordinates": [
           48.784924,
@@ -892,6 +973,8 @@
         "operatorName": "Biogaspartner Bitburg",
         "operatorRegisterId": "HRB 44181 (AG Wittlich)",
         "unitId": "GEE932084880370",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Bitburg",
         "coordinates": [
           49.95514,
@@ -915,6 +998,8 @@
         "operatorName": "Danpower GmbH",
         "operatorRegisterId": "HRB 19365P (AG Potsdam)",
         "unitId": "GEE933005620846",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Bitterfeld-Wolfen",
         "coordinates": [
           51.629921,
@@ -938,6 +1023,8 @@
         "operatorName": "biogeen BGA Blankenhain GmbH",
         "operatorRegisterId": "HRB 12213 (AG Münster)",
         "unitId": "GEE949337624414",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Blankenhain",
         "coordinates": [
           50.880409,
@@ -961,6 +1048,8 @@
         "operatorName": "EnBW Contracting GmbH",
         "operatorRegisterId": "HRB 763838 (AG Stuttgart)",
         "unitId": "GEE988414794367",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Blaufelden",
         "coordinates": [
           49.291081,
@@ -989,6 +1078,8 @@
         "operatorName": "BEE Bioenergieerzeugung Koblenz GmbH",
         "operatorRegisterId": "HRB 21138 (AG Koblenz)",
         "unitId": "GEE972897077055",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Boppard",
         "coordinates": [
           50.205335,
@@ -1011,6 +1102,8 @@
         "operatorName": "VORN Bioenergy BGA Brandis GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 10374 (AG Regensburg)",
         "unitId": "GEE929638143128",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Brandis",
         "coordinates": [
           51.333422,
@@ -1033,6 +1126,8 @@
         "operatorName": "BALANCE Erneuerbare Energien GmbH",
         "operatorRegisterId": "HRB 33638 (AG Leipzig)",
         "unitId": "GEE997743818750",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Brome",
         "coordinates": [
           52.61512,
@@ -1054,6 +1149,8 @@
         "operatorName": "Biogas Pool 1 für Stadtwerke",
         "operatorRegisterId": "HRA 3476 (AG Hamm)",
         "unitId": "GEE971492698856",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Bruchhausen-Vilsen",
         "coordinates": [
           52.810476,
@@ -1078,6 +1175,8 @@
           "operatorName": "Erdgas Südwest GmbH",
           "operatorRegisterId": "HRB 105621 (AG Mannheim)",
           "unitId": "GEE940899219728",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Burgrieden",
           "coordinates": [
             48.209058,
@@ -1095,6 +1194,8 @@
           "operatorName": "Erdgas Südwest GmbH",
           "operatorRegisterId": "HRB 105621 (AG Mannheim)",
           "unitId": "GEE940703867718",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Burgrieden",
           "coordinates": [
             48.209411,
@@ -1120,6 +1221,8 @@
           "operatorName": "Erdgas Südwest GmbH",
           "operatorRegisterId": "HRB 105621 (AG Mannheim)",
           "unitId": "GEE940899219728",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Burgrieden",
           "coordinates": [
             48.209058,
@@ -1136,6 +1239,8 @@
           "operatorName": "Erdgas Südwest GmbH",
           "operatorRegisterId": "HRB 105621 (AG Mannheim)",
           "unitId": "GEE940703867718",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Burgrieden",
           "coordinates": [
             48.209411,
@@ -1158,6 +1263,8 @@
         "operatorName": "Alterric Biogas GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 203647 (AG Aurich)",
         "unitId": "GEE948096295309",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Börger",
         "coordinates": [
           52.914979,
@@ -1181,6 +1288,8 @@
         "operatorName": "infra fürth gmbh",
         "operatorRegisterId": "HRB 7561 (AG Fürth)",
         "unitId": "GEE942426059173",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Cadolzburg",
         "coordinates": [
           49.491384,
@@ -1203,6 +1312,8 @@
         "operatorName": "Kraft und Stoff Dannenberg GmbH ＆ Co KG",
         "operatorRegisterId": "HRA 200683 (AG Lüneburg)",
         "unitId": "GEE912998915351",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Dannenberg",
         "coordinates": [
           53.106264,
@@ -1226,6 +1337,8 @@
         "operatorName": "BALANCE Erneuerbare Energien GmbH",
         "operatorRegisterId": "HRB 33638 (AG Leipzig)",
         "unitId": "GEE920398533440",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Dargun",
         "coordinates": [
           53.900361,
@@ -1248,6 +1361,8 @@
         "operatorName": "Hock Biogas kann's GmbH",
         "operatorRegisterId": "HRB 11728 (AG Aschaffenburg)",
         "unitId": "GEE909105926447",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Darmstadt",
         "coordinates": [
           49.941818,
@@ -1270,6 +1385,8 @@
         "operatorName": "Biogas Pool 1 für Stadtwerke",
         "operatorRegisterId": "HRA 3476 (AG Hamm)",
         "unitId": "GEE954363132949",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Deinstedt",
         "coordinates": [
           53.423534,
@@ -1299,6 +1416,8 @@
         "operatorName": "Aufwind BB GmbH ＆ Co. Bioenergie Dessau Sechzehnte KG",
         "operatorRegisterId": "HRA 5842 (AG Stendal)",
         "unitId": "GEE932932113810",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Dessau-Roßlau",
         "coordinates": [
           51.807338,
@@ -1322,6 +1441,8 @@
         "operatorName": "TerraSol Wirtschaftsdünger GmbH",
         "operatorRegisterId": "HRB 14203 (AG Münster)",
         "unitId": "GEE953654281731",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Dorsten",
         "coordinates": [
           51.660712,
@@ -1347,6 +1468,8 @@
           "operatorName": "Ohra Energie GmbH",
           "operatorRegisterId": "HRB 102507 (AG Jena)",
           "unitId": "GEE954652284441",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Drei Gleichen",
           "coordinates": [
             50.941777,
@@ -1363,6 +1486,8 @@
           "operatorName": "Ohra Energie GmbH",
           "operatorRegisterId": "HRB 102507 (AG Jena)",
           "unitId": "GEE995741190076",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Drei Gleichen",
           "coordinates": [
             50.941777,
@@ -1379,6 +1504,8 @@
           "operatorName": "biogeen BGA Drei GmbH ＆ Co. KG",
           "operatorRegisterId": "HRA 8087 (AG Münster)",
           "unitId": "GEE990150723334",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Lambsborn",
           "coordinates": [
             49.370416,
@@ -1402,6 +1529,8 @@
           "operatorName": "Ohra Energie GmbH",
           "operatorRegisterId": "HRB 102507 (AG Jena)",
           "unitId": "GEE954652284441",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Drei Gleichen",
           "coordinates": [
             50.941777,
@@ -1418,6 +1547,8 @@
           "operatorName": "Ohra Energie GmbH",
           "operatorRegisterId": "HRB 102507 (AG Jena)",
           "unitId": "GEE995741190076",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Drei Gleichen",
           "coordinates": [
             50.941777,
@@ -1434,6 +1565,8 @@
           "operatorName": "biogeen BGA Drei GmbH ＆ Co. KG",
           "operatorRegisterId": "HRA 8087 (AG Münster)",
           "unitId": "GEE990150723334",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Lambsborn",
           "coordinates": [
             49.370416,
@@ -1455,6 +1588,8 @@
         "operatorName": "MVV Biogas GmbH",
         "operatorRegisterId": "HRB 37835 (AG Dresden)",
         "unitId": "GEE978774933452",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Dresden",
         "coordinates": [
           51.130769,
@@ -1479,6 +1614,8 @@
           "operatorName": "BWM Dülmen",
           "operatorRegisterId": "HRB 14655 (AG Münster)",
           "unitId": "GEE967952980296",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Dülmen",
           "coordinates": [
             51.811,
@@ -1496,6 +1633,8 @@
           "operatorName": "BWM Dülmen GmbH",
           "operatorRegisterId": "HRB 14655 (AG Coesfeld)",
           "unitId": "GEE912795589434",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Dülmen",
           "coordinates": [
             51.810532,
@@ -1519,6 +1658,8 @@
         "operatorName": "ASVK Vierte Energie",
         "operatorRegisterId": "HRA 26538 (AG Bremen)",
         "unitId": "GEE997594444153",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Dümmer",
         "coordinates": [
           53.556917,
@@ -1541,6 +1682,8 @@
         "operatorName": "Nexogas Produktion Ebsdorfergrund GmbH",
         "operatorRegisterId": "HRB 209802 (AG Oldenburg)",
         "unitId": "GEE944937009500",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Ebsdorfergrund",
         "coordinates": [
           50.757,
@@ -1565,6 +1708,8 @@
         "operatorName": "Nexogas Produktion Ebsdorfergrund GmbH",
         "operatorRegisterId": "HRB 209802 (AG Oldenburg)",
         "unitId": "GEE944937009500",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Ebsdorfergrund",
         "coordinates": [
           50.757,
@@ -1589,6 +1734,8 @@
         "operatorName": "Bioerdgas Eggolsheim GmbH",
         "operatorRegisterId": "HRB 27291 (AG Nürnberg)",
         "unitId": "GEE965161788894",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Eggolsheim",
         "coordinates": [
           49.757973,
@@ -1611,6 +1758,8 @@
         "operatorName": "EON Bioerdgas GmbH",
         "operatorRegisterId": "HRB 19720 (AG Essen)",
         "unitId": "GEE975818344878",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Einbeck",
         "coordinates": [
           51.825,
@@ -1634,6 +1783,8 @@
         "operatorName": "Bioraffinerie Elsteraue GmbH",
         "operatorRegisterId": "HRB 12928 (AG Stendal)",
         "unitId": "GEE906717084817",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Elsteraue",
         "coordinates": [
           51.073986,
@@ -1657,6 +1808,8 @@
         "operatorName": "Bioenergie Kleber Wolfgang Kleber",
         "operatorRegisterId": null,
         "unitId": "GEE909135601703",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Eslarn",
         "coordinates": [
           49.573941,
@@ -1685,6 +1838,8 @@
         "operatorName": "e-regio GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 5884 (AG Bonn)",
         "unitId": "GEE919879721582",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Euskirchen",
         "coordinates": [
           50.628627,
@@ -1714,6 +1869,8 @@
         "operatorName": "Carbon CO2ncepts GmbH",
         "operatorRegisterId": "HRB 279364 (AG München)",
         "unitId": "GEE971025251138",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Feldberger Seenlandschaft",
         "coordinates": [
           53.345,
@@ -1735,6 +1892,8 @@
         "operatorName": "badenova WärmePlus GmbH & Co. KG",
         "operatorRegisterId": "HRA 391481 (AG Freiburg im Breisgau)",
         "unitId": "GEE953987924299",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Forchheim",
         "coordinates": [
           48.163297,
@@ -1759,6 +1918,8 @@
           "operatorName": "Mainova AG",
           "operatorRegisterId": "HRB 7173 (AG Frankfurt am Main)",
           "unitId": "GEE955193448156",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Frankfurt",
           "coordinates": [
             50.116663,
@@ -1774,6 +1935,8 @@
           "operatorName": "Berliner Häuser Verwaltungs-GmbH",
           "operatorRegisterId": "(AG Berlin (Charlottenburg))",
           "unitId": "GEE989198326713",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Frankfurt",
           "coordinates": [
             50.112368,
@@ -1789,6 +1952,8 @@
           "operatorName": "Infranova Bioerdgas GmbH",
           "operatorRegisterId": "HRB 87396 (AG Frankfurt am Main)",
           "unitId": "GEE953936114566",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Frankfurt",
           "coordinates": [
             50.085107,
@@ -1819,6 +1984,8 @@
           "operatorName": "ASVK Zweite Energie",
           "operatorRegisterId": "HRA 25444 (AG Bremen)",
           "unitId": "GEE990152842729",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Friesoythe",
           "coordinates": [
             53.113993,
@@ -1834,6 +2001,8 @@
           "operatorName": "Heinfelder Naturstrom GmbH ＆ Co. KG",
           "operatorRegisterId": "HRA 150971 (AG Oldenburg)",
           "unitId": "GEE966673499377",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Friesoythe",
           "coordinates": [
             53.104082,
@@ -1855,6 +2024,8 @@
         "operatorName": "ASVK Zweite Energie",
         "operatorRegisterId": "HRA 25444 (AG Bremen)",
         "unitId": "GEE990152842729",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Friesoythe",
         "coordinates": [
           53.113993,
@@ -1876,6 +2047,8 @@
         "operatorName": "BALANCE Erneuerbare Energien GmbH",
         "operatorRegisterId": "HRB 33638 (AG Leipzig)",
         "unitId": "GEE900797491404",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Gardelegen",
         "coordinates": [
           52.546854,
@@ -1898,6 +2071,8 @@
         "operatorName": "BALANCE Erneuerbare Energien GmbH",
         "operatorRegisterId": "HRB 33638 (AG Leipzig)",
         "unitId": "GEE900797491404",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Gardelegen",
         "coordinates": [
           52.546854,
@@ -1921,6 +2096,8 @@
         "operatorName": "Veolia Biocycling Deutschland GmbH",
         "operatorRegisterId": "HRB 80235 (AG Hamburg)",
         "unitId": "GEE910818529535",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Geislingen",
         "coordinates": [
           48.581736,
@@ -1945,6 +2122,8 @@
           "operatorName": "ENERTEC Biogas Genthin",
           "operatorRegisterId": "HRB 19370 (AG Stendal)",
           "unitId": "GEE990440643496",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Genthin",
           "coordinates": [
             52.419359,
@@ -1961,6 +2140,8 @@
           "operatorName": "ReFood GmbH ＆ Co. KG",
           "operatorRegisterId": "HRA 17195 (AG Dortmund)",
           "unitId": "GEE985858863222",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Genthin",
           "coordinates": [
             52.411678,
@@ -1977,6 +2158,8 @@
           "operatorName": "BALANCE Erneuerbare Energien GmbH",
           "operatorRegisterId": "HRB 33638 (AG Leipzig)",
           "unitId": "GEE901098491254",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Leizen",
           "coordinates": [
             53.377613,
@@ -2000,6 +2183,8 @@
           "operatorName": "ENERTEC Biogas Genthin",
           "operatorRegisterId": "HRB 19370 (AG Stendal)",
           "unitId": "GEE990440643496",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Genthin",
           "coordinates": [
             52.419359,
@@ -2016,6 +2201,8 @@
           "operatorName": "ReFood GmbH ＆ Co. KG",
           "operatorRegisterId": "HRA 17195 (AG Dortmund)",
           "unitId": "GEE985858863222",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Genthin",
           "coordinates": [
             52.411678,
@@ -2037,6 +2224,8 @@
         "operatorName": "Bioenergie Giesen GmbH",
         "operatorRegisterId": "HRB 201965 (AG Hildesheim)",
         "unitId": "GEE928593676849",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Giesen",
         "coordinates": [
           52.207398,
@@ -2058,6 +2247,8 @@
         "operatorName": "Gollipp Bioerdgas GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 9336 (AG Fürth)",
         "unitId": "GEE950083632998",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Gollhofen",
         "coordinates": [
           49.584595,
@@ -2082,6 +2273,8 @@
           "operatorName": "Biogas Gommern",
           "operatorRegisterId": "HRB 14716 (AG Münster)",
           "unitId": "GEE909777974449",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Gommern",
           "coordinates": [
             52.086865,
@@ -2098,6 +2291,8 @@
           "operatorName": "Biogas Gommern",
           "operatorRegisterId": "HRB 14716 (AG Münster)",
           "unitId": "GEE906436342212",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Gommern",
           "coordinates": [
             52.086902,
@@ -2119,6 +2314,8 @@
         "operatorName": "Biogas Gommern",
         "operatorRegisterId": "HRB 14716 (AG Münster)",
         "unitId": "GEE909777974449",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Gommern",
         "coordinates": [
           52.086865,
@@ -2141,6 +2338,8 @@
         "operatorName": "BALANCE Erneuerbare Energien GmbH",
         "operatorRegisterId": "HRB 33638 (AG Leipzig)",
         "unitId": "GEE984106944508",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Jesewitz",
         "coordinates": [
           51.40335,
@@ -2163,6 +2362,8 @@
         "operatorName": "EBI II Biomethan GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 129056 (AG Hamburg)",
         "unitId": "GEE943020011819",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Graben",
         "coordinates": [
           48.200363,
@@ -2192,6 +2393,8 @@
         "operatorName": "TW Energie GbR",
         "operatorRegisterId": null,
         "unitId": "GEE989592437329",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Greven",
         "coordinates": [
           52.07216,
@@ -2214,6 +2417,8 @@
         "operatorName": "Biomethan Groß-Hesepe GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 208556 (AG Osnabrück)",
         "unitId": "GEE984738535044",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Geeste",
         "coordinates": [
           52.62396,
@@ -2237,6 +2442,8 @@
           "operatorName": "Jörn Ahlers Biogas GmbH",
           "operatorRegisterId": "HRB 202621 (AG Oldenburg)",
           "unitId": "GEE950038470354",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Groß Pankow",
           "coordinates": [
             53.167394,
@@ -2252,6 +2459,8 @@
           "operatorName": "BALANCE Erneuerbare Energien GmbH",
           "operatorRegisterId": "HRB 33638 (AG Leipzig)",
           "unitId": "GEE921999434976",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Groß Pankow",
           "coordinates": [
             53.152817,
@@ -2267,6 +2476,8 @@
           "operatorName": "BALANCE Erneuerbare Energien GmbH",
           "operatorRegisterId": "HRB 33638 (AG Leipzig)",
           "unitId": "GEE925717802092",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Groß Pankow",
           "coordinates": [
             53.03819,
@@ -2290,6 +2501,8 @@
           "operatorName": "Jörn Ahlers Biogas GmbH",
           "operatorRegisterId": "HRB 202621 (AG Oldenburg)",
           "unitId": "GEE950038470354",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Groß Pankow",
           "coordinates": [
             53.167394,
@@ -2305,6 +2518,8 @@
           "operatorName": "BALANCE Erneuerbare Energien GmbH",
           "operatorRegisterId": "HRB 33638 (AG Leipzig)",
           "unitId": "GEE921999434976",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Groß Pankow",
           "coordinates": [
             53.152817,
@@ -2320,6 +2535,8 @@
           "operatorName": "BALANCE Erneuerbare Energien GmbH",
           "operatorRegisterId": "HRB 33638 (AG Leipzig)",
           "unitId": "GEE925717802092",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Groß Pankow",
           "coordinates": [
             53.03819,
@@ -2343,6 +2560,8 @@
           "operatorName": "Jörn Ahlers Biogas GmbH",
           "operatorRegisterId": "HRB 202621 (AG Oldenburg)",
           "unitId": "GEE950038470354",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Groß Pankow",
           "coordinates": [
             53.167394,
@@ -2358,6 +2577,8 @@
           "operatorName": "BALANCE Erneuerbare Energien GmbH",
           "operatorRegisterId": "HRB 33638 (AG Leipzig)",
           "unitId": "GEE921999434976",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Groß Pankow",
           "coordinates": [
             53.152817,
@@ -2373,6 +2594,8 @@
           "operatorName": "BALANCE Erneuerbare Energien GmbH",
           "operatorRegisterId": "HRB 33638 (AG Leipzig)",
           "unitId": "GEE925717802092",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Groß Pankow",
           "coordinates": [
             53.03819,
@@ -2394,6 +2617,8 @@
         "operatorName": "Hock Biogas kann's GmbH",
         "operatorRegisterId": "HRB 11728 (AG Aschaffenburg)",
         "unitId": "GEE957616250216",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Groß-Umstadt",
         "coordinates": [
           49.884969,
@@ -2415,6 +2640,8 @@
         "operatorName": "Veolia Biocycling Deutschland GmbH",
         "operatorRegisterId": "HRB 80235 (AG Hamburg)",
         "unitId": "GEE968775244046",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Gröden",
         "coordinates": [
           51.413828,
@@ -2437,6 +2664,8 @@
         "operatorName": "EnviTec Bioenergie Güstrow GmbH",
         "operatorRegisterId": "HRB 216051 (AG Oldenburg)",
         "unitId": "GEE985909732255",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Güstrow",
         "coordinates": [
           53.826701,
@@ -2458,6 +2687,8 @@
         "operatorName": "Kreislaufwirtschaftsbetriebe Stegelitz GmbH ＆ Co.KG",
         "operatorRegisterId": "HRA 5143 (AG Stendal)",
         "unitId": "GEE922726883739",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Güterglück",
         "coordinates": [
           51.997799,
@@ -2480,6 +2711,8 @@
         "operatorName": "biogeen Biomethan Zwei GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 8633 (AG Münster)",
         "unitId": "GEE976112070814",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Hage",
         "coordinates": [
           53.618728,
@@ -2501,6 +2734,8 @@
         "operatorName": "NatürlichEnergie EMH GmbH",
         "operatorRegisterId": "HRB 43212 (AG Wittlich)",
         "unitId": "GEE969285176094",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Hahn-Flughafen",
         "coordinates": [
           49.932512,
@@ -2523,6 +2758,8 @@
         "operatorName": "Alterric Biogas GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 203647 (AG Aurich)",
         "unitId": "GEE996968189478",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Halle",
         "coordinates": [
           52.070071,
@@ -2546,6 +2783,8 @@
           "operatorName": "ADM Hamburg Aktiengesellschaft",
           "operatorRegisterId": "HRB 5114 (AG Hamburg)",
           "unitId": "GEE906423158970",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Hamburg",
           "coordinates": [
             53.51848,
@@ -2561,6 +2800,8 @@
           "operatorName": "Hamburger Stadtentwässerung",
           "operatorRegisterId": "HRA 126119 (AG Hamburg)",
           "unitId": "GEE939041736770",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Hamburg",
           "coordinates": [
             53.535635,
@@ -2576,6 +2817,8 @@
           "operatorName": "MVR Müllverwertung Rugenberger Damm GmbH",
           "operatorRegisterId": "HRB 175566 (AG Hamburg)",
           "unitId": "GEE948368163404",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Tangstedt",
           "coordinates": [
             53.725057,
@@ -2597,6 +2840,8 @@
         "operatorName": "Bioerdgas Isenhagen GmbH",
         "operatorRegisterId": "HRB 202257 (AG Braunschweig)",
         "unitId": "GEE960672690049",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Hankensbüttel",
         "coordinates": [
           52.722713,
@@ -2618,6 +2863,8 @@
         "operatorName": "Hardegsen C4 Energie GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 5661 (AG Kiel)",
         "unitId": "GEE917274181772",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Hardegsen",
         "coordinates": [
           51.645,
@@ -2646,6 +2893,8 @@
         "operatorName": "Bioenergie Heek-Ahle GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 9749 (AG Coesfeld)",
         "unitId": "GEE937168008152",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Heek",
         "coordinates": [
           52.111506,
@@ -2669,6 +2918,8 @@
         "operatorName": "Bioenergie Heek-Ahle GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 9749 (AG Coesfeld)",
         "unitId": "GEE937168008152",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Heek",
         "coordinates": [
           52.111506,
@@ -2692,6 +2943,8 @@
         "operatorName": "Heidkoppel GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 201404 (AG Tostedt)",
         "unitId": "GEE965381899264",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Heidenau",
         "coordinates": [
           53.29697,
@@ -2716,6 +2969,8 @@
           "operatorName": "Bioenergie Heiligengrabe GmbH",
           "operatorRegisterId": "HRB 14171 (AG Gelsenkirchen)",
           "unitId": "GEE997850473552",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Heiligengrabe",
           "coordinates": [
             53.145065,
@@ -2731,6 +2986,8 @@
           "operatorName": "BALANCE Erneuerbare Energien GmbH",
           "operatorRegisterId": "HRB 33638 (AG Leipzig)",
           "unitId": "GEE925717802092",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Groß Pankow",
           "coordinates": [
             53.03819,
@@ -2752,6 +3009,8 @@
         "operatorName": "Erneuerbare Energien Dieckmann eG",
         "operatorRegisterId": "GnR 200029 (AG Braunschweig)",
         "unitId": "GEE927963328876",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Helmstedt",
         "coordinates": [
           52.214492,
@@ -2773,6 +3032,8 @@
         "operatorName": "Bioenergie Hennstedt GmbH",
         "operatorRegisterId": "HRB 13004 (AG Gelsenkirchen)",
         "unitId": "GEE917647123446",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Hennstedt",
         "coordinates": [
           54.268757,
@@ -2794,6 +3055,8 @@
         "operatorName": "biogeen BGA Zwei GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 8516 (AG Münster)",
         "unitId": "GEE957865367161",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Artern",
         "coordinates": [
           51.349837,
@@ -2817,6 +3080,8 @@
         "operatorName": "Entsorgungswirtschaft Minden-Lübbecke AöR",
         "operatorRegisterId": "HRB 4282 (AG Bad Oeynhausen)",
         "unitId": "GEE960254104469",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Hille",
         "coordinates": [
           52.384949,
@@ -2839,6 +3104,8 @@
         "operatorName": "NEXOGAS Produktion Arneburg GmbH",
         "operatorRegisterId": "HRB 222161 (AG Oldenburg)",
         "unitId": "GEE979880387078",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Hohenberg-Krusemark",
         "coordinates": [
           52.735127,
@@ -2861,6 +3128,8 @@
         "operatorName": "HOH Biogasanlage GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 5689 (AG Stendal)",
         "unitId": "GEE902934142071",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Hohenhameln",
         "coordinates": [
           52.315071,
@@ -2883,6 +3152,8 @@
         "operatorName": "Biogas Homberg GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 16735 (AG Kassel)",
         "unitId": "GEE907512123053",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Homberg",
         "coordinates": [
           51.010971,
@@ -2905,6 +3176,8 @@
         "operatorName": "VORN Bioenergy BGA Horn GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 4395 (AG Lemgo)",
         "unitId": "GEE904840609556",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Horn-Bad Meinberg",
         "coordinates": [
           51.882453,
@@ -2927,6 +3200,8 @@
         "operatorName": "Bioenergie Hünxe GmbH",
         "operatorRegisterId": "HRB 12323 (AG Gelsenkirchen)",
         "unitId": "GEE932046701835",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Hünxe",
         "coordinates": [
           51.635381,
@@ -2948,6 +3223,8 @@
         "operatorName": "Nat-Ur-Gas Solschen GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 201134 (AG Hildesheim)",
         "unitId": "GEE959813466391",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Ilsede",
         "coordinates": [
           52.274958,
@@ -2970,6 +3247,8 @@
         "operatorName": "Bioenergie Waren GmbH",
         "operatorRegisterId": "HRB 6971 (AG Neubrandenburg)",
         "unitId": "GEE954727744610",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Jabel",
         "coordinates": [
           53.541215,
@@ -2992,6 +3271,8 @@
         "operatorName": "BKW Pillgram GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 2696 (AG Frankfurt/Oder)",
         "unitId": "GEE938363246851",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Jacobsdorf",
         "coordinates": [
           52.319825,
@@ -3016,6 +3297,8 @@
           "operatorName": "Biogas Pool 1 für Stadtwerke",
           "operatorRegisterId": "HRA 3476 (AG Hamm)",
           "unitId": "GEE928453575282",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Jürgenshagen",
           "coordinates": [
             53.939474,
@@ -3032,6 +3315,8 @@
           "operatorName": "Agrargesellschaft Jürgenshagen mbH",
           "operatorRegisterId": "HRB 14397 (AG Rostock)",
           "unitId": "GEE963797243633",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Jürgenshagen",
           "coordinates": [
             53.939241,
@@ -3048,6 +3333,8 @@
           "operatorName": "Veolia Umweltservice Nord GmbH",
           "operatorRegisterId": "HRB 99491 (AG Hamburg)",
           "unitId": "GEE951809976037",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Rostock",
           "coordinates": [
             54.144321,
@@ -3069,6 +3356,8 @@
         "operatorName": "Agrarenergie Kaarßen GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 204248 (AG Osnabrück)",
         "unitId": "GEE911785380655",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Kaarßen",
         "coordinates": [
           53.205501,
@@ -3091,6 +3380,8 @@
         "operatorName": "Gut Gröbers GmbH ＆ Co.KG",
         "operatorRegisterId": null,
         "unitId": "GEE927076345906",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Kabelsketal",
         "coordinates": [
           51.444463,
@@ -3112,6 +3403,8 @@
         "operatorName": "REGAS GmbH ＆ Co. KG",
         "operatorRegisterId": "HRB 7358 (AG Regensburg)",
         "unitId": "GEE990471875590",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Kallmünz",
         "coordinates": [
           49.180076,
@@ -3135,6 +3428,8 @@
         "operatorName": "biogeen BGA Kannawurf GmbH",
         "operatorRegisterId": "HRB 12305 (AG Münster)",
         "unitId": "GEE988608435908",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Kindelbrück",
         "coordinates": [
           51.268288,
@@ -3158,6 +3453,8 @@
         "operatorName": "Karbener Biogas GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 48431 (AG Frankfurt am Main)",
         "unitId": "GEE962046503535",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Karben",
         "coordinates": [
           50.237686,
@@ -3180,6 +3477,8 @@
         "operatorName": "Bioenergie Kerpen - Sindorf",
         "operatorRegisterId": "HRB 214515 (AG Hannover)",
         "unitId": "GEE928298286985",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Kerpen",
         "coordinates": [
           50.894387,
@@ -3202,6 +3501,8 @@
         "operatorName": "BMV Energie GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 3028 (AG Frankfurt/Oder)",
         "unitId": "GEE901609227471",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Ketzin",
         "coordinates": [
           52.491789,
@@ -3224,6 +3525,8 @@
         "operatorName": "Bioenergie Gellersen GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 201447 (AG Lüneburg)",
         "unitId": "GEE936354172318",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Kirchgellersen",
         "coordinates": [
           53.22273,
@@ -3245,6 +3548,8 @@
         "operatorName": "EAM Natur Energie GmbH",
         "operatorRegisterId": "HRB 16218 (AG Kassel)",
         "unitId": "GEE951632638409",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Kirchhain",
         "coordinates": [
           50.832495,
@@ -3267,6 +3572,8 @@
         "operatorName": "KBB Biogas GmbH ＆ Co.KG",
         "operatorRegisterId": "HRA 201193 (AG Walsrode)",
         "unitId": "GEE965226761923",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Kirchlinteln",
         "coordinates": [
           52.905466,
@@ -3288,6 +3595,8 @@
         "operatorName": "Thüga Energienetze GmbH",
         "operatorRegisterId": "HRB 166526 (AG München)",
         "unitId": "GEE976742781869",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Kißlegg",
         "coordinates": [
           47.838751,
@@ -3323,6 +3632,8 @@
         "operatorName": "BALANCE Erneuerbare Energien GmbH",
         "operatorRegisterId": "HRB 33638 (AG Leipzig)",
         "unitId": "GEE991115322692",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Kodersdorf",
         "coordinates": [
           51.228,
@@ -3346,6 +3657,8 @@
         "operatorName": "ReFood GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 17195 (AG Dortmund)",
         "unitId": "GEE988765623316",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Kogel",
         "coordinates": [
           53.500514,
@@ -3367,6 +3680,8 @@
         "operatorName": "GENO Bioenergie Leasingfonds Erste GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 1833 (AG Neubrandenburg)",
         "unitId": "GEE940965455340",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Krackow",
         "coordinates": [
           53.32127,
@@ -3389,6 +3704,8 @@
         "operatorName": "EGK Entsorgungsgesellschaft Krefeld GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 3346 (AG Krefeld)",
         "unitId": "GEE979491808528",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Krefeld",
         "coordinates": [
           51.379643,
@@ -3412,6 +3729,8 @@
         "operatorName": "MVV Biomethan GmbH",
         "operatorRegisterId": "HRB 27915 (AG Stendal)",
         "unitId": "GEE986725026955",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Kroppenstedt",
         "coordinates": [
           51.95329,
@@ -3437,6 +3756,8 @@
           "operatorName": "Stadtentwässerungsbetriebe Köln, AöR",
           "operatorRegisterId": null,
           "unitId": "GEE962995441032",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Köln",
           "coordinates": [
             50.989098,
@@ -3454,6 +3775,8 @@
           "operatorName": "AVG Kompostierung GmbH",
           "operatorRegisterId": "HRB 23177 (AG Köln)",
           "unitId": "GEE938188864834",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Köln",
           "coordinates": [
             51.0048,
@@ -3471,6 +3794,8 @@
           "operatorName": "Bioenergie Kerpen - Sindorf",
           "operatorRegisterId": "HRB 214515 (AG Hannover)",
           "unitId": "GEE928298286985",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Kerpen",
           "coordinates": [
             50.894387,
@@ -3494,6 +3819,8 @@
           "operatorName": "Stadtentwässerungsbetriebe Köln, AöR",
           "operatorRegisterId": null,
           "unitId": "GEE962995441032",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Köln",
           "coordinates": [
             50.989098,
@@ -3511,6 +3838,8 @@
           "operatorName": "AVG Kompostierung GmbH",
           "operatorRegisterId": "HRB 23177 (AG Köln)",
           "unitId": "GEE938188864834",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Köln",
           "coordinates": [
             51.0048,
@@ -3533,6 +3862,8 @@
         "operatorName": "eCG Bioenergie GmbH",
         "operatorRegisterId": "HRB 226241 (AG Hannover)",
         "unitId": "GEE974029965568",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Königslutter",
         "coordinates": [
           52.345877,
@@ -3555,6 +3886,8 @@
         "operatorName": "biogeen BGA Drei GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 8087 (AG Münster)",
         "unitId": "GEE907435038984",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Könnern",
         "coordinates": [
           51.662468,
@@ -3579,6 +3912,8 @@
         "operatorName": "biogeen BGA Drei GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 8087 (AG Münster)",
         "unitId": "GEE907435038984",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Könnern",
         "coordinates": [
           51.662468,
@@ -3610,6 +3945,8 @@
         "operatorName": "biogeen BGA Drei GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 8087 (AG Münster)",
         "unitId": "GEE990150723334",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Lambsborn",
         "coordinates": [
           49.370416,
@@ -3633,6 +3970,8 @@
         "operatorName": "Danpower GmbH",
         "operatorRegisterId": "HRB 19365P (AG Potsdam)",
         "unitId": "GEE925722443310",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Langenwetzendorf",
         "coordinates": [
           50.688767,
@@ -3656,6 +3995,8 @@
         "operatorName": "Lauenburgische Energiegenossenschaft eG",
         "operatorRegisterId": "GnR 240 (AG Lübeck)",
         "unitId": "GEE905550880464",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Elmenhorst",
         "coordinates": [
           53.531845,
@@ -3677,6 +4018,8 @@
         "operatorName": "biogeen BGA Lauterhofen GmbH und Co. KG",
         "operatorRegisterId": "HRA 12256 (AG Münster)",
         "unitId": "GEE972357177219",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Lauterhofen",
         "coordinates": [
           49.359903,
@@ -3699,6 +4042,8 @@
         "operatorName": "BALANCE Erneuerbare Energien GmbH",
         "operatorRegisterId": "HRB 33638 (AG Leipzig)",
         "unitId": "GEE901098491254",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Leizen",
         "coordinates": [
           53.377613,
@@ -3721,6 +4066,8 @@
         "operatorName": "Biogas Fuhsetal GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 200915 (AG Hildesheim)",
         "unitId": "GEE987304946268",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Lengede",
         "coordinates": [
           52.196036,
@@ -3743,6 +4090,8 @@
         "operatorName": "BALANCE Erneuerbare Energien GmbH",
         "operatorRegisterId": "HRB 33638 (AG Leipzig)",
         "unitId": "GEE985903323626",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Lenzen",
         "coordinates": [
           53.103799,
@@ -3765,6 +4114,8 @@
         "operatorName": "InfraLeuna GmbH",
         "operatorRegisterId": "HRB 209877 (AG Stendal)",
         "unitId": "GEE943281262685",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Leuna",
         "coordinates": [
           51.304992,
@@ -3786,6 +4137,8 @@
         "operatorName": "Danpower Biomasse GmbH",
         "operatorRegisterId": "HRB 19761P (AG Potsdam)",
         "unitId": "GEE966185051087",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Lichtensee",
         "coordinates": [
           51.376965,
@@ -3809,6 +4162,8 @@
         "operatorName": "BAHLMANN Naturstrom GmbH",
         "operatorRegisterId": "HRB 152105 (AG Oldenburg)",
         "unitId": "GEE941382311097",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Lindern",
         "coordinates": [
           52.830661,
@@ -3837,6 +4192,8 @@
         "operatorName": "Bioenergie Loop GmbH",
         "operatorRegisterId": "HRB 13402 (AG Kiel)",
         "unitId": "GEE939585605969",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Loop",
         "coordinates": [
           54.146654,
@@ -3860,6 +4217,8 @@
         "operatorName": "Biogas Produktion Schöllnitz GmbH",
         "operatorRegisterId": "HRB 8606CB (AG Cottbus)",
         "unitId": "GEE979114275461",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Luckaitztal",
         "coordinates": [
           51.667601,
@@ -3882,6 +4241,8 @@
         "operatorName": "Veolia Biocycling Deutschland GmbH",
         "operatorRegisterId": "HRB 80235 (AG Hamburg)",
         "unitId": "GEE979261381817",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Luckau",
         "coordinates": [
           51.876436,
@@ -3904,6 +4265,8 @@
         "operatorName": "GF-Bio-Energie Hasetal GmbH",
         "operatorRegisterId": "HRB 151509 (AG Oldenburg)",
         "unitId": "GEE921490498224",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Löningen",
         "coordinates": [
           52.739887,
@@ -3925,6 +4288,8 @@
         "operatorName": "biogeen BGA Zwei GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 8516 (AG Münster)",
         "unitId": "GEE941272744837",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Lüchow",
         "coordinates": [
           52.985046,
@@ -3947,6 +4312,8 @@
         "operatorName": "Biogas Maihingen GbR",
         "operatorRegisterId": null,
         "unitId": "GEE934065594092",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Maihingen",
         "coordinates": [
           48.91991,
@@ -3970,6 +4337,8 @@
         "operatorName": "Danpower GmbH",
         "operatorRegisterId": "HRB 19365P (AG Potsdam)",
         "unitId": "GEE979626956841",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Malchin",
         "coordinates": [
           53.75,
@@ -3993,6 +4362,8 @@
         "operatorName": "biogeen BGA Mammendorf GmbH und Co. KG",
         "operatorRegisterId": "HRA 12255 (AG Münster)",
         "unitId": "GEE906796749805",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Mammendorf",
         "coordinates": [
           48.183664,
@@ -4016,6 +4387,8 @@
         "operatorName": "Hamburger Stadtentwässerung",
         "operatorRegisterId": "HRA 126119 (AG Hamburg)",
         "unitId": "GEE939041736770",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Hamburg",
         "coordinates": [
           53.535635,
@@ -4037,6 +4410,8 @@
         "operatorName": "Naturgas Quesitz GmbH",
         "operatorRegisterId": "HRB 25902 (AG Leipzig)",
         "unitId": "GEE947902764183",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Markranstädt",
         "coordinates": [
           51.273841,
@@ -4059,6 +4434,8 @@
         "operatorName": "Stadtwerke Schwäbisch Hall GmbH",
         "operatorRegisterId": "HRB 570157 (AG Stuttgart)",
         "unitId": "GEE959862864193",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Marktoffingen",
         "coordinates": [
           48.921293,
@@ -4082,6 +4459,8 @@
         "operatorName": "Biomethan Menteroda GmbH c/o AVRIO Energie GmbH",
         "operatorRegisterId": "HRB 510286 (AG Jena)",
         "unitId": "GEE941444679240",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Unstruttal",
         "coordinates": [
           51.320329,
@@ -4105,6 +4484,8 @@
         "operatorName": "Bioenergie Merzig GmbH",
         "operatorRegisterId": "HRB 18798 (AG Saarbrücken)",
         "unitId": "GEE901452621921",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Merzig",
         "coordinates": [
           49.437,
@@ -4128,6 +4509,8 @@
         "operatorName": "Biogs Pool 2 für Stadtwerke",
         "operatorRegisterId": "HRA 3421 (AG Hamm)",
         "unitId": "GEE976201699667",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Müden",
         "coordinates": [
           52.532097,
@@ -4149,6 +4532,8 @@
         "operatorName": "Biomethananlage Mühlacker GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 700981 (AG Mannheim)",
         "unitId": "GEE902952621763",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Mühlacker",
         "coordinates": [
           48.952504,
@@ -4179,6 +4564,8 @@
         "operatorName": "Agro Biogasanlage Nauen GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 4226 (AG Potsdam)",
         "unitId": "GEE983554511980",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Nauen",
         "coordinates": [
           52.591818,
@@ -4202,6 +4589,8 @@
         "operatorName": "Biomethan Produktion Raizen GmbH",
         "operatorRegisterId": "HRB 204970 (AG Oldenburg)",
         "unitId": "GEE936767769976",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Naundorf",
         "coordinates": [
           51.262718,
@@ -4224,6 +4613,8 @@
         "operatorName": "Biogas Neuburg Steinhausen",
         "operatorRegisterId": "HRA 204706 (AG Oldenburg)",
         "unitId": "GEE924350849785",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Neuburg",
         "coordinates": [
           53.942623,
@@ -4248,6 +4639,8 @@
           "operatorName": "Biomethan Breisgau GmbH c/o AVRIO Energie GmbH",
           "operatorRegisterId": "HRB 134759 (AG Frankfurt am Main)",
           "unitId": "GEE991088525748",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Neuenburg",
           "coordinates": [
             47.892773,
@@ -4263,6 +4656,8 @@
           "operatorName": "VORN Bioenergy BGA Brandis GmbH ＆ Co. KG",
           "operatorRegisterId": "HRA 10374 (AG Regensburg)",
           "unitId": "GEE929638143128",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Brandis",
           "coordinates": [
             51.333422,
@@ -4278,6 +4673,8 @@
           "operatorName": "VORN Bioenergy BGA Horn GmbH ＆ Co. KG",
           "operatorRegisterId": "HRA 4395 (AG Lemgo)",
           "unitId": "GEE904840609556",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Horn-Bad Meinberg",
           "coordinates": [
             51.882453,
@@ -4299,6 +4696,8 @@
         "operatorName": "Biomethan Breisgau GmbH c/o AVRIO Energie GmbH",
         "operatorRegisterId": "HRB 134759 (AG Frankfurt am Main)",
         "unitId": "GEE991088525748",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Neuenburg",
         "coordinates": [
           47.892773,
@@ -4327,6 +4726,8 @@
         "operatorName": "Königs Pflanzenenergie GmbH ＆ Co KG",
         "operatorRegisterId": "HRA 6506 (AG Neuss)",
         "unitId": "GEE982465113733",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Neuss",
         "coordinates": [
           51.140268,
@@ -4348,6 +4749,8 @@
         "operatorName": "BIOREG Energy ＆ Recycling GmbH",
         "operatorRegisterId": "HRB 34445 (AG Dresden)",
         "unitId": "GEE902432320094",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Niederau",
         "coordinates": [
           51.198,
@@ -4371,6 +4774,8 @@
           "operatorName": "Bioraffinerie Magdeburg GmbH",
           "operatorRegisterId": "HRB 7211 (AG Stendal)",
           "unitId": "GEE920517672623",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Niederndodeleben",
           "coordinates": [
             52.148,
@@ -4387,6 +4792,8 @@
           "operatorName": "Bioraffinerie Magdeburg GmbH",
           "operatorRegisterId": "HRB 7211 (AG Stendal)",
           "unitId": "GEE970898595264",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Niederndodeleben",
           "coordinates": [
             52.149103,
@@ -4411,6 +4818,8 @@
           "operatorName": "Bioraffinerie Magdeburg GmbH",
           "operatorRegisterId": "HRB 7211 (AG Stendal)",
           "unitId": "GEE920517672623",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Niederndodeleben",
           "coordinates": [
             52.148,
@@ -4427,6 +4836,8 @@
           "operatorName": "Bioraffinerie Magdeburg GmbH",
           "operatorRegisterId": "HRB 7211 (AG Stendal)",
           "unitId": "GEE970898595264",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Niederndodeleben",
           "coordinates": [
             52.149103,
@@ -4443,6 +4854,8 @@
           "operatorName": "BALANCE Erneuerbare Energien GmbH",
           "operatorRegisterId": "HRB 33638 (AG Leipzig)",
           "unitId": "GEE991115322692",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Kodersdorf",
           "coordinates": [
             51.228,
@@ -4471,6 +4884,8 @@
         "operatorName": "Biogas Produktion Nonnendorf GmbH ＆ Co.KG",
         "operatorRegisterId": "HRA 6060P (AG Potsdam)",
         "unitId": "GEE993787609644",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Niederer Fläming",
         "coordinates": [
           51.916416,
@@ -4493,6 +4908,8 @@
         "operatorName": "DEL Biogas GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 2959 (AG Stendal)",
         "unitId": "GEE986175346184",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Nordgermersleben",
         "coordinates": [
           52.21327,
@@ -4514,6 +4931,8 @@
         "operatorName": "Energieversorgung Nordhausen - Biomethan GmbH",
         "operatorRegisterId": "HRB 509438 (AG Jena)",
         "unitId": "GEE950930288583",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Nordhausen",
         "coordinates": [
           51.490261,
@@ -4536,6 +4955,8 @@
         "operatorName": "Biogas-Produktion Vehlefanz GmbH",
         "operatorRegisterId": "HRB 9227NP (AG Neuruppin)",
         "unitId": "GEE964590598517",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Oberkrämer",
         "coordinates": [
           52.710014,
@@ -4557,6 +4978,8 @@
         "operatorName": "Stadtwerke Bietigheim-Bissingen GmbH",
         "operatorRegisterId": "(AG Stuttgart)",
         "unitId": "GEE982180123949",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Oberriexingen",
         "coordinates": [
           48.939267,
@@ -4581,6 +5004,8 @@
           "operatorName": "BALANCE Erneuerbare Energien GmbH",
           "operatorRegisterId": "HRB 33638 (AG Leipzig)",
           "unitId": "GEE977861356433",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Oebisfelde",
           "coordinates": [
             52.443722,
@@ -4597,6 +5022,8 @@
           "operatorName": "BALANCE Erneuerbare Energien GmbH",
           "operatorRegisterId": "HRB 33638 (AG Leipzig)",
           "unitId": "GEE939365965085",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Oebisfelde",
           "coordinates": [
             52.443722,
@@ -4621,6 +5048,8 @@
           "operatorName": "BALANCE Erneuerbare Energien GmbH",
           "operatorRegisterId": "HRB 33638 (AG Leipzig)",
           "unitId": "GEE977861356433",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Oebisfelde",
           "coordinates": [
             52.443722,
@@ -4637,6 +5066,8 @@
           "operatorName": "BALANCE Erneuerbare Energien GmbH",
           "operatorRegisterId": "HRB 33638 (AG Leipzig)",
           "unitId": "GEE939365965085",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Oebisfelde",
           "coordinates": [
             52.443722,
@@ -4659,6 +5090,8 @@
         "operatorName": "BALANCE Erneuerbare Energien GmbH",
         "operatorRegisterId": "HRB 33638 (AG Leipzig)",
         "unitId": "GEE927338952729",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Oschatz",
         "coordinates": [
           51.253336,
@@ -4681,6 +5114,8 @@
         "operatorName": "Bioraffinerie Hadmersleben GmbH",
         "operatorRegisterId": "HRB 9752 (AG Stendal)",
         "unitId": "GEE902177391205",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Oschersleben",
         "coordinates": [
           51.994922,
@@ -4702,6 +5137,8 @@
         "operatorName": "Biomethan Osterby GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 5412FL (AG Flensburg)",
         "unitId": "GEE962670098056",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Osterby",
         "coordinates": [
           54.791363,
@@ -4725,6 +5162,8 @@
         "operatorName": "Biomethan Osterby GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 5412FL (AG Flensburg)",
         "unitId": "GEE962670098056",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Osterby",
         "coordinates": [
           54.791363,
@@ -4747,6 +5186,8 @@
         "operatorName": "Biogas in Aicha",
         "operatorRegisterId": "HRA 119290",
         "unitId": "GEE904524802860",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Osterhofen",
         "coordinates": [
           48.724277,
@@ -4768,6 +5209,8 @@
         "operatorName": "Energiepark Hahnennest GmbH & Co. KG",
         "operatorRegisterId": "HRA 721914 (AG Ulm)",
         "unitId": "GEE958237700128",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Ostrach",
         "coordinates": [
           47.920948,
@@ -4789,6 +5232,8 @@
         "operatorName": "Alterric Biogas GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 203647 (AG Aurich)",
         "unitId": "GEE954695077314",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Ottersberg",
         "coordinates": [
           53.123278,
@@ -4811,6 +5256,8 @@
         "operatorName": "Aufwind BB GmbH ＆ Co. Sechsundzwanzigste Biogas KG",
         "operatorRegisterId": "HRA 5804 (AG Stendal)",
         "unitId": "GEE905168521605",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Pessin",
         "coordinates": [
           52.642976,
@@ -4833,6 +5280,8 @@
         "operatorName": "NAWARO-Energie Pickließem GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 31971 (AG Wittlich)",
         "unitId": "GEE948521571008",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Pickließem",
         "coordinates": [
           49.988144,
@@ -4875,6 +5324,8 @@
         "operatorName": "NatürlichEnergie EMH GmbH",
         "operatorRegisterId": "HRB 43212 (AG Wittlich)",
         "unitId": "GEE922660517875",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Platten",
         "coordinates": [
           49.962042,
@@ -4897,6 +5348,8 @@
         "operatorName": "Grüngold Biogasanlage Pliening KG",
         "operatorRegisterId": "HRA 117860 (AG München)",
         "unitId": "GEE996975330283",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Pliening",
         "coordinates": [
           48.209964,
@@ -4926,6 +5379,8 @@
         "operatorName": "Rackwitzer Biogas GmbH",
         "operatorRegisterId": "HRB 27820 (AG Leipzig)",
         "unitId": "GEE941375791349",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Rackwitz",
         "coordinates": [
           51.441053,
@@ -4947,6 +5402,8 @@
         "operatorName": "ABO Kraft ＆ Wärme Ramstein GmbH＆ Co. KG",
         "operatorRegisterId": "HRA 10240 (AG Wiesbaden)",
         "unitId": "GEE987460501677",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Ramstein-Miesenbach",
         "coordinates": [
           49.440901,
@@ -4968,6 +5425,8 @@
         "operatorName": "GreenGas Produktionsanlage Rathenow GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 3482P (AG Potsdam)",
         "unitId": "GEE993154838639",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Rathenow",
         "coordinates": [
           52.568414,
@@ -4990,6 +5449,8 @@
         "operatorName": "Carbon CO2ncepts GmbH",
         "operatorRegisterId": "HRB 279364 (AG München)",
         "unitId": "GEE956724153822",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Reimlingen",
         "coordinates": [
           48.83,
@@ -5026,6 +5487,8 @@
         "operatorName": "Erdgas Südwest GmbH",
         "operatorRegisterId": "HRB 105621 (AG Mannheim)",
         "unitId": "GEE905459257879",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Riedlingen",
         "coordinates": [
           48.174397,
@@ -5056,6 +5519,8 @@
         "operatorName": "uegas GmbH ＆ Co.KG",
         "operatorRegisterId": "HRA 201125 (AG Lüneburg)",
         "unitId": "GEE971925479908",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Rosche",
         "coordinates": [
           52.994836,
@@ -5078,6 +5543,8 @@
         "operatorName": "Gesellschaft des Kreises Coesfeld zur Förderung regenerativer Energien mbH",
         "operatorRegisterId": "HRB 13402 (AG Coesfeld)",
         "unitId": "GEE990349869652",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Rosendahl",
         "coordinates": [
           51.978943,
@@ -5099,6 +5566,8 @@
         "operatorName": "Veolia Umweltservice Nord GmbH",
         "operatorRegisterId": "HRB 99491 (AG Hamburg)",
         "unitId": "GEE951809976037",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Rostock",
         "coordinates": [
           54.144321,
@@ -5120,6 +5589,8 @@
         "operatorName": "SachsenEnergie AG",
         "operatorRegisterId": "HRB 965 (AG Dresden)",
         "unitId": "GEE943743014852",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Roßwein",
         "coordinates": [
           51.104073,
@@ -5143,6 +5614,8 @@
         "operatorName": "Biogasraffinerie Rätzlingen GmbH",
         "operatorRegisterId": "HRB 9800 (AG Stendal)",
         "unitId": "GEE949349463742",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Rätzlingen",
         "coordinates": [
           52.407442,
@@ -5164,6 +5637,8 @@
         "operatorName": "Biogas Sachsendorf",
         "operatorRegisterId": "HRA 202521 (AG Oldenburg)",
         "unitId": "GEE968929729511",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Sachsendorf",
         "coordinates": [
           51.883005,
@@ -5186,6 +5661,8 @@
         "operatorName": "Alterric Biogas GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 203647 (AG Aurich)",
         "unitId": "GEE950135490699",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Sagard",
         "coordinates": [
           54.523733,
@@ -5209,6 +5686,8 @@
         "operatorName": "Kerler Energie GmbH ＆ Co. KG",
         "operatorRegisterId": null,
         "unitId": "GEE973310609082",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Salgen",
         "coordinates": [
           48.115345,
@@ -5231,6 +5710,8 @@
         "operatorName": "Rhein-Sieg-Abfallwirtschaftsgesellschaft mbH",
         "operatorRegisterId": "HRB 1799 (AG Siegburg)",
         "unitId": "GEE961000048563",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Sankt Augustin",
         "coordinates": [
           50.771572,
@@ -5254,6 +5735,8 @@
           "operatorName": "BALANCE Erneuerbare Energien GmbH",
           "operatorRegisterId": "HRB 33638 (AG Leipzig)",
           "unitId": "GEE946264567432",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Satuelle",
           "coordinates": [
             52.327846,
@@ -5271,6 +5754,8 @@
           "operatorName": "BALANCE Erneuerbare Energien GmbH",
           "operatorRegisterId": "HRB 33638 (AG Leipzig)",
           "unitId": "GEE934997384877",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Satuelle",
           "coordinates": [
             52.327846,
@@ -5288,6 +5773,8 @@
           "operatorName": "Agrarenergie Vahldorf GmbH ＆ Co. KG",
           "operatorRegisterId": "HRA 6171 (AG Stendal)",
           "unitId": "GEE939475232596",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Vahldorf",
           "coordinates": [
             52.254571,
@@ -5311,6 +5798,8 @@
           "operatorName": "BALANCE Erneuerbare Energien GmbH",
           "operatorRegisterId": "HRB 33638 (AG Leipzig)",
           "unitId": "GEE946264567432",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Satuelle",
           "coordinates": [
             52.327846,
@@ -5327,6 +5816,8 @@
           "operatorName": "BALANCE Erneuerbare Energien GmbH",
           "operatorRegisterId": "HRB 33638 (AG Leipzig)",
           "unitId": "GEE934997384877",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Satuelle",
           "coordinates": [
             52.327846,
@@ -5343,6 +5834,8 @@
           "operatorName": "Biogs Pool 2 für Stadtwerke",
           "operatorRegisterId": "HRA 3421 (AG Hamm)",
           "unitId": "GEE900560517256",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Bahrdorf",
           "coordinates": [
             52.375381,
@@ -5364,6 +5857,8 @@
         "operatorName": "Marx ＆ Wahlen Agrar GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 41432 (AG Wittlich)",
         "unitId": "GEE938646211149",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Schillingen",
         "coordinates": [
           49.645632,
@@ -5385,6 +5880,8 @@
         "operatorName": "Bioenergie Schuby GmbH",
         "operatorRegisterId": "HRB 15453 (AG Fürth)",
         "unitId": "GEE954985669588",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Schuby",
         "coordinates": [
           54.524826,
@@ -5408,6 +5905,8 @@
         "operatorName": "Carbon CO2ncepts GmbH",
         "operatorRegisterId": "HRB 279364 (AG München)",
         "unitId": "GEE968055210983",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Schwaigern",
         "coordinates": [
           49.134807,
@@ -5430,6 +5929,8 @@
         "operatorName": "Bioerdgas Schwandorf GmbH",
         "operatorRegisterId": "HRB 3964 (AG Amberg)",
         "unitId": "GEE942524854557",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Schwandorf",
         "coordinates": [
           49.303,
@@ -5452,6 +5953,8 @@
         "operatorName": "Alterric Biogas GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 203647 (AG Aurich)",
         "unitId": "GEE926290293956",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Schwarme",
         "coordinates": [
           52.902672,
@@ -5475,6 +5978,8 @@
         "operatorName": "BG Bio-Energie GmbH",
         "operatorRegisterId": "HRB 6769 (AG Amberg)",
         "unitId": "GEE942482430107",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Schwarzenfeld",
         "coordinates": [
           49.371019,
@@ -5498,6 +6003,8 @@
         "operatorName": "BALANCE Erneuerbare Energien GmbH",
         "operatorRegisterId": "HRB 33638 (AG Leipzig)",
         "unitId": "GEE982870966818",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Schöpstal",
         "coordinates": [
           51.216697,
@@ -5521,6 +6028,8 @@
         "operatorName": "HPP Biogas GmbH",
         "operatorRegisterId": "HRB 202560 (AG Tostedt)",
         "unitId": "GEE988720343822",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Seedorf",
         "coordinates": [
           53.329401,
@@ -5543,6 +6052,8 @@
         "operatorName": "Biomethan Produktion Erdeborn GmbH",
         "operatorRegisterId": "HRB 9480NP (AG Neuruppin)",
         "unitId": "GEE971654452678",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Seegebiet Mansfelder Land",
         "coordinates": [
           51.485309,
@@ -5566,6 +6077,8 @@
         "operatorName": "Biomethan Produktion Erdeborn GmbH",
         "operatorRegisterId": "HRB 9480NP (AG Neuruppin)",
         "unitId": "GEE971654452678",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Seegebiet Mansfelder Land",
         "coordinates": [
           51.485309,
@@ -5591,6 +6104,8 @@
           "operatorName": "Biogas Produktion Seelow GmbH",
           "operatorRegisterId": "HRB 12451FF (AG Frankfurt/Oder)",
           "unitId": "GEE927407689112",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Seelow",
           "coordinates": [
             52.54714,
@@ -5608,6 +6123,8 @@
           "operatorName": "Biogas Produktion Seelow GmbH",
           "operatorRegisterId": "HRB 12451FF (AG Frankfurt/Oder)",
           "unitId": "GEE976218999132",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Seelow",
           "coordinates": [
             52.547318,
@@ -5625,6 +6142,8 @@
           "operatorName": "BKW Pillgram GmbH ＆ Co. KG",
           "operatorRegisterId": "HRA 2696 (AG Frankfurt/Oder)",
           "unitId": "GEE938363246851",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Jacobsdorf",
           "coordinates": [
             52.319825,
@@ -5648,6 +6167,8 @@
           "operatorName": "Biogas Produktion Seelow GmbH",
           "operatorRegisterId": "HRB 12451FF (AG Frankfurt/Oder)",
           "unitId": "GEE927407689112",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Seelow",
           "coordinates": [
             52.54714,
@@ -5665,6 +6186,8 @@
           "operatorName": "Biogas Produktion Seelow GmbH",
           "operatorRegisterId": "HRB 12451FF (AG Frankfurt/Oder)",
           "unitId": "GEE976218999132",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Seelow",
           "coordinates": [
             52.547318,
@@ -5682,6 +6205,8 @@
           "operatorName": "MTB-Biogas Agrar GmbH",
           "operatorRegisterId": "HRB 873 (AG Frankfurt/Oder)",
           "unitId": "GEE919961773987",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Neuhardenberg",
           "coordinates": [
             52.588584,
@@ -5703,6 +6228,8 @@
         "operatorName": "AVR BioGas GmbH",
         "operatorRegisterId": "HRB 725000 (AG Mannheim)",
         "unitId": "GEE973882975684",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Sinsheim",
         "coordinates": [
           49.27139,
@@ -5725,6 +6252,8 @@
         "operatorName": "Biomethan Soltau GmbH",
         "operatorRegisterId": "HRB 208125 (AG Lüneburg)",
         "unitId": "GEE995220174719",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Soltau",
         "coordinates": [
           52.950889,
@@ -5747,6 +6276,8 @@
         "operatorName": "EW Eichsfeldgas GmbH",
         "operatorRegisterId": "(AG Jena)",
         "unitId": "GEE903911771543",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Sonnenstein",
         "coordinates": [
           51.520514,
@@ -5768,6 +6299,8 @@
         "operatorName": "ASG Spremberg GmbH",
         "operatorRegisterId": "HRB 1925 (AG Cottbus)",
         "unitId": "GEE966143723506",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Spremberg",
         "coordinates": [
           51.529297,
@@ -5790,6 +6323,8 @@
         "operatorName": "MVV Biomethan GmbH",
         "operatorRegisterId": "HRB 27915 (AG Stendal)",
         "unitId": "GEE914504605350",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Staßfurt",
         "coordinates": [
           51.859562,
@@ -5813,6 +6348,8 @@
         "operatorName": "BKW Beerfelde GmbH ＆Co. KG",
         "operatorRegisterId": "HRB 15007 (AG Frankfurt/Oder)",
         "unitId": "GEE989256056323",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Steinhöfel",
         "coordinates": [
           52.446228,
@@ -5835,6 +6372,8 @@
         "operatorName": "MaStR Operator ABR927867263068",
         "operatorRegisterId": null,
         "unitId": "GEE920242367788",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Straelen",
         "coordinates": [
           51.431,
@@ -5857,6 +6396,8 @@
         "operatorName": "SWS Natur GmbH",
         "operatorRegisterId": "HRB 8355 (AG Stralsund)",
         "unitId": "GEE990576040145",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Stralsund",
         "coordinates": [
           54.287684,
@@ -5878,6 +6419,8 @@
         "operatorName": "biogeen BGA Stresow GmbH",
         "operatorRegisterId": "HRB 12294 (AG Münster)",
         "unitId": "GEE900126760591",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Stresow",
         "coordinates": [
           52.260913,
@@ -5901,6 +6444,8 @@
         "operatorName": "MVR Müllverwertung Rugenberger Damm GmbH",
         "operatorRegisterId": "HRB 175566 (AG Hamburg)",
         "unitId": "GEE948368163404",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Tangstedt",
         "coordinates": [
           53.725057,
@@ -5924,6 +6469,8 @@
         "operatorName": "EnBW Biogas GmbH",
         "operatorRegisterId": "HRB 19195 (AG Stuttgart)",
         "unitId": "GEE921644850922",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Tauberbischofsheim",
         "coordinates": [
           49.452651,
@@ -5946,6 +6493,8 @@
         "operatorName": "Biogas Produktion Holleben GmbH",
         "operatorRegisterId": "HRB 22324 (AG Stendal)",
         "unitId": "GEE919189020405",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Teutschenthal",
         "coordinates": [
           51.437293,
@@ -5968,6 +6517,8 @@
         "operatorName": "Biomethan Produktion Torgelow GmbH",
         "operatorRegisterId": "HRB 120104 (AG Hamburg)",
         "unitId": "GEE974206966357",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Torgelow",
         "coordinates": [
           53.636781,
@@ -5992,6 +6543,8 @@
         "operatorName": "Biomethan Produktion Torgelow GmbH",
         "operatorRegisterId": "HRB 120104 (AG Hamburg)",
         "unitId": "GEE974206966357",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Torgelow",
         "coordinates": [
           53.636781,
@@ -6015,6 +6568,8 @@
         "operatorName": "EBI II Biomethan GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 129056 (AG Hamburg)",
         "unitId": "GEE901816207792",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Trebbin",
         "coordinates": [
           52.189752,
@@ -6037,6 +6592,8 @@
         "operatorName": "BALANCE Erneuerbare Energien GmbH",
         "operatorRegisterId": "HRB 33638 (AG Leipzig)",
         "unitId": "GEE979414476094",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Treben",
         "coordinates": [
           51.043513,
@@ -6059,6 +6616,8 @@
         "operatorName": "Biogas Trebsen",
         "operatorRegisterId": "HRB 794564 (AG Münster)",
         "unitId": "GEE991683692302",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Trebsen",
         "coordinates": [
           51.28,
@@ -6083,6 +6642,8 @@
         "operatorName": "Biogas Trebsen",
         "operatorRegisterId": "HRB 794564 (AG Münster)",
         "unitId": "GEE991683692302",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Trebsen",
         "coordinates": [
           51.28,
@@ -6107,6 +6668,8 @@
         "operatorName": "Green Energy GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 201334 (AG Walsrode)",
         "unitId": "GEE922420685080",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Uchte",
         "coordinates": [
           52.482565,
@@ -6129,6 +6692,8 @@
         "operatorName": "Agrarenergie Vahldorf GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 6171 (AG Stendal)",
         "unitId": "GEE939475232596",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Vahldorf",
         "coordinates": [
           52.254571,
@@ -6152,6 +6717,8 @@
         "operatorName": "Agrarenergie Vettweiß GmbH",
         "operatorRegisterId": "HRB 202672 (AG Osnabrück)",
         "unitId": "GEE954458780697",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Vettweiß",
         "coordinates": [
           50.74518,
@@ -6175,6 +6742,8 @@
         "operatorName": "Biomethan Viöl",
         "operatorRegisterId": "HRB 14098 (AG Flensburg)",
         "unitId": "GEE949854998302",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Viöl",
         "coordinates": [
           54.559479,
@@ -6205,6 +6774,8 @@
         "operatorName": "BioMethan Terhorst GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 204120 (AG Osnabrück)",
         "unitId": "GEE941719261620",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Walchum",
         "coordinates": [
           52.914778,
@@ -6226,6 +6797,8 @@
         "operatorName": "MVV Biomethan GmbH",
         "operatorRegisterId": "HRB 27915 (AG Stendal)",
         "unitId": "GEE978188011708",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Wanzleben-Börde",
         "coordinates": [
           52.068101,
@@ -6249,6 +6822,8 @@
         "operatorName": "Alterric Biogas GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 203647 (AG Aurich)",
         "unitId": "GEE968121987009",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Werlte",
         "coordinates": [
           52.87057,
@@ -6272,6 +6847,8 @@
         "operatorName": "Stadtwerke Bietigheim-Bissingen GmbH",
         "operatorRegisterId": "(AG Stuttgart)",
         "unitId": "GEE905197937477",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Westheim",
         "coordinates": [
           49.227602,
@@ -6294,6 +6871,8 @@
         "operatorName": "Biogas Wetscher Bruch GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 100720 (AG Walsrode)",
         "unitId": "GEE928215961735",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Wetschen",
         "coordinates": [
           52.57041,
@@ -6316,6 +6895,8 @@
         "operatorName": "Schwälmer Biogas GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 4429 (AG Marburg)",
         "unitId": "GEE916203948950",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Willingshausen",
         "coordinates": [
           50.891612,
@@ -6337,6 +6918,8 @@
         "operatorName": "Danpower Biomasse GmbH",
         "operatorRegisterId": "HRB 19761P (AG Potsdam)",
         "unitId": "GEE997286775831",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Wittenburg",
         "coordinates": [
           53.512,
@@ -6360,6 +6943,8 @@
         "operatorName": "ASVK Erste Energie",
         "operatorRegisterId": "HRA 25442 (AG Bremen)",
         "unitId": "GEE983712663575",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Wittendörp",
         "coordinates": [
           53.530323,
@@ -6382,6 +6967,8 @@
         "operatorName": "Bioerdgas Hallertau GmbH",
         "operatorRegisterId": "HRB 5727 (AG Ingolstadt)",
         "unitId": "GEE963490237526",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Wolnzach",
         "coordinates": [
           48.626,
@@ -6405,6 +6992,8 @@
         "operatorName": "biogeen BGA Zwei GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 8516 (AG Münster)",
         "unitId": "GEE907329466992",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Wriezen",
         "coordinates": [
           52.736644,
@@ -6428,6 +7017,8 @@
         "operatorName": "Biogas Oberhessen GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 4289 (AG Friedberg (Hessen))",
         "unitId": "GEE996344312353",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Wölfersheim",
         "coordinates": [
           50.422361,
@@ -6451,6 +7042,8 @@
         "operatorName": "Papierfabrik Palm GmbH ＆ Co. KG",
         "operatorRegisterId": "HRA 501010 (AG Ulm)",
         "unitId": "GEE995000467352",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Wörth",
         "coordinates": [
           49.068,
@@ -6475,6 +7068,8 @@
           "operatorName": "VORN Bioenergy BGA Brandis GmbH ＆ Co. KG",
           "operatorRegisterId": "HRA 10374 (AG Regensburg)",
           "unitId": "GEE929638143128",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Brandis",
           "coordinates": [
             51.333422,
@@ -6490,6 +7085,8 @@
           "operatorName": "VORN Bioenergy BGA Horn GmbH ＆ Co. KG",
           "operatorRegisterId": "HRA 4395 (AG Lemgo)",
           "unitId": "GEE904840609556",
+          "idLabel": "Handelsregister",
+          "nameLabel": "Operator (MaStR)",
           "town": "Horn-Bad Meinberg",
           "coordinates": [
             51.882453,
@@ -6511,6 +7108,8 @@
         "operatorName": "Bioraffinerie Zerbst GmbH",
         "operatorRegisterId": "HRB 18712 (AG Stendal)",
         "unitId": "GEE907246967619",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Zerbst",
         "coordinates": [
           52.004,
@@ -6533,6 +7132,8 @@
         "operatorName": "Lauenburgische Energiegenossenschaft eG",
         "operatorRegisterId": "GnR 240 (AG Lübeck)",
         "unitId": "GEE938351437605",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Zernin",
         "coordinates": [
           53.789669,
@@ -6556,6 +7157,8 @@
         "operatorName": "Lauenburgische Energiegenossenschaft eG",
         "operatorRegisterId": "GnR 240 (AG Lübeck)",
         "unitId": "GEE938351437605",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Zernin",
         "coordinates": [
           53.789669,
@@ -6592,6 +7195,8 @@
         "operatorName": "Biomethan Zittau GmbH",
         "operatorRegisterId": "HRB 28251 (AG Dresden)",
         "unitId": "GEE936765211132",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Zittau",
         "coordinates": [
           50.887091,
@@ -6614,6 +7219,8 @@
         "operatorName": "VERBIO Zörbig GmbH",
         "operatorRegisterId": "HRB 27960 (AG Stendal)",
         "unitId": "GEE945529728953",
+        "idLabel": "Handelsregister",
+        "nameLabel": "Operator (MaStR)",
         "town": "Zörbig",
         "coordinates": [
           51.376,

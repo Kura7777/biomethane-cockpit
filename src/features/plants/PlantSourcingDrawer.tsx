@@ -897,7 +897,7 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                 {contactQuality.confidence === 'UNDELIVERABLE' && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: isDark ? '#fca5a5' : '#dc2626' }}>
                     <AlertOctagon size={13} style={{ flexShrink: 0 }} />
-                    <span><strong>Synthetic address:</strong> {plant.contactEmail} was auto-generated from place name; it will bounce. Approach operator via official register or LinkedIn below.</span>
+                    <span><strong>Synthetic address:</strong> {plant.contactEmail} was auto-generated from place name; it will bounce or reach an unrelated party (e.g. the town hall). Approach operator via official register or LinkedIn below.</span>
                   </div>
                 )}
                 {contactQuality.confidence === 'INDIRECT' && (
@@ -925,14 +925,23 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                     gap: '4px'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
-                        <span style={{ fontSize: '10px', fontWeight: 700, color: isDark ? '#38bdf8' : '#0284c7', textTransform: 'uppercase' }}>
-                          Matched in Register:
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: isDark ? '#38bdf8' : '#0284c7' }}>
+                          {plant.verifiedDossier.suggestedEntity.matchKind === 'INJECTION_SITE'
+                            ? 'Injection-site match (ODRE) — operator not verified'
+                            : plant.verifiedDossier.suggestedEntity.matchKind === 'PROJECT_DATABASE'
+                            ? 'Planning-database match (REPD) — confirm operator'
+                            : 'Register match — confirm'}:
                         </span>
                         <strong style={{ color: t.textMain }}>{plant.verifiedDossier.suggestedEntity.name}</strong>
                         {plant.verifiedDossier.suggestedEntity.registerId && (
                           <span style={{ color: isDark ? '#38bdf8' : '#0284c7', fontFamily: 'monospace', fontSize: '11px' }}>
-                            ({plant.verifiedDossier.suggestedEntity.registerId})
+                            ({plant.verifiedDossier.suggestedEntity.idLabel}: {plant.verifiedDossier.suggestedEntity.registerId})
+                          </span>
+                        )}
+                        {plant.verifiedDossier.suggestedEntity.matchKind === 'OPERATOR_REGISTER' && plant.verifiedDossier.suggestedEntity.unitId && (
+                          <span style={{ color: t.textMuted, fontFamily: 'monospace', fontSize: '11px' }}>
+                            (MaStR unit: {plant.verifiedDossier.suggestedEntity.unitId})
                           </span>
                         )}
                       </div>
@@ -957,25 +966,27 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                             {showMatchEvidence ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
                           </button>
                         )}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setOverrideSignatory(plant.verifiedDossier?.suggestedEntity?.name || '');
-                            setIsEditingOverride(true);
-                          }}
-                          style={{
-                            padding: '3px 8px',
-                            backgroundColor: '#0284c7',
-                            color: '#ffffff',
-                            border: 'none',
-                            borderRadius: '4px',
-                            fontSize: '11px',
-                            fontWeight: 600,
-                            cursor: 'pointer'
-                          }}
-                        >
-                          Use as Signatory
-                        </button>
+                        {plant.verifiedDossier.suggestedEntity.matchKind === 'OPERATOR_REGISTER' && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setOverrideSignatory(plant.verifiedDossier?.suggestedEntity?.name || '');
+                              setIsEditingOverride(true);
+                            }}
+                            style={{
+                              padding: '3px 8px',
+                              backgroundColor: '#0284c7',
+                              color: '#ffffff',
+                              border: 'none',
+                              borderRadius: '4px',
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Use as Signatory
+                          </button>
+                        )}
                       </div>
                     </div>
                     {showMatchEvidence && plant.verifiedDossier.suggestedEntity.evidence && (

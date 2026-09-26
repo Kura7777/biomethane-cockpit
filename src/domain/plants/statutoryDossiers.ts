@@ -1647,6 +1647,10 @@ function buildDossier(
         ? {
             name: plant.registerMatch.best.operatorName,
             registerId: plant.registerMatch.best.operatorRegisterId,
+            unitId: plant.registerMatch.best.unitId,
+            matchKind: plant.registerMatch.matchKind,
+            idLabel: plant.registerMatch.best.idLabel,
+            nameLabel: plant.registerMatch.best.nameLabel,
             evidence: plant.registerMatch.best.evidence,
             source: plant.registerMatch.source,
           }

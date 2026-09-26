@@ -5,12 +5,13 @@
  */
 import * as fs from 'fs';
 import * as path from 'path';
-import { RegisterMatch, RegisterMatchCandidate, RegisterMatchStatus } from '../../src/domain/plants/types';
+import { RegisterMatch, RegisterMatchCandidate, RegisterMatchKind, RegisterMatchStatus } from '../../src/domain/plants/types';
 
 export interface PlantMatchResult {
   plantId: string;
   plantName: string;
   status: RegisterMatchStatus;
+  matchKind?: RegisterMatchKind;
   best: RegisterMatchCandidate | null;
   candidates: RegisterMatchCandidate[];
 }
@@ -19,6 +20,7 @@ export interface CountryMatchesFile {
   countryCode: string;
   source: string;
   checkedAt: string;
+  matchKind?: RegisterMatchKind;
   results: PlantMatchResult[];
 }
 
@@ -50,8 +52,14 @@ export function regenerate(): void {
 
   const entries = files.flatMap(f =>
     f.results.map(r => {
+      const matchKind: RegisterMatchKind = r.matchKind ?? f.matchKind ?? (
+        f.countryCode === 'FR' ? 'INJECTION_SITE' :
+        f.countryCode === 'GB' ? 'PROJECT_DATABASE' :
+        'OPERATOR_REGISTER'
+      );
       const matchObj: RegisterMatch = {
         status: r.status,
+        matchKind,
         source: f.source,
         checkedAt: f.checkedAt,
         best: r.best,

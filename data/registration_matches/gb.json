@@ -1,5 +1,6 @@
 {
   "countryCode": "GB",
+  "matchKind": "PROJECT_DATABASE",
   "source": "UK Department for Energy Security and Net Zero (DESNZ) Renewable Energy Planning Database (REPD Q2 2026)",
   "checkedAt": "2026-09-26",
   "results": [
@@ -23,20 +24,23 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "Severn Trent Water",
-        "operatorRegisterId": "REPD Ref #256 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #256",
         "unitId": "REPD_256",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "Warwickshire",
         "coordinates": [
-          52.51862,
-          -1.71017
+          52.51899,
+          -1.71164
         ],
         "capacity": "2.4 MWelec",
         "evidence": [
-          "2.2 km from plant coordinates",
+          "2.3 km from plant coordinates",
           "site/town match: 'coleshill' in Coleshill STW (Waste AD)",
           "county match: Warwickshire",
           "capacity: 2.4 MWelec",
-          "Postcode: B46 1DA"
+          "Postcode: B46 1DA",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
         ]
       },
       "candidates": []
@@ -75,18 +79,21 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "Wight Farm Energy",
-        "operatorRegisterId": "REPD Ref #327 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #327",
         "unitId": "REPD_327",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "Isle of Wight",
         "coordinates": [
-          50.67504,
-          -1.25091
+          50.67563,
+          -1.25236
         ],
         "capacity": "2.2 MWelec",
         "evidence": [
           "site/town match: 'arreton' in Gore Cross - AD",
           "capacity: 2.2 MWelec",
-          "Postcode: PO30 3A"
+          "Postcode: PO30 3A",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
         ]
       },
       "candidates": []
@@ -97,18 +104,21 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "First Milk Cheese Company",
-        "operatorRegisterId": "REPD Ref #5516 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #5516",
         "unitId": "REPD_5516",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "Cumbria",
         "coordinates": [
-          54.75805,
-          -3.32951
+          54.75813,
+          -3.33087
         ],
         "capacity": "5 MWelec",
         "evidence": [
           "site/town match: 'aspatria' in Aspatria Creamery",
           "capacity: 5 MWelec",
-          "Postcode: CA7 2AR"
+          "Postcode: CA7 2AR",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
         ]
       },
       "candidates": []
@@ -119,19 +129,22 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "Privelage Finance Ltd / Attleborough AD Plant Limited",
-        "operatorRegisterId": "REPD Ref #7590 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #7590",
         "unitId": "REPD_7590",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "Norfolk",
         "coordinates": [
-          52.52056,
-          0.99688
+          52.52097,
+          0.9951
         ],
         "capacity": "1 MWelec",
         "evidence": [
           "site/town match: 'attleborough' in Attleborough Ad Plant Limited - Anaerobic Digestion Facility Expansion",
           "operator word overlap: attleborough",
           "capacity: 1 MWelec",
-          "Postcode: NR17 1AE"
+          "Postcode: NR17 1AE",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
         ]
       },
       "candidates": []
@@ -151,33 +164,39 @@
       "candidates": [
         {
           "operatorName": "Thames Water Utilities",
-          "operatorRegisterId": "REPD Ref #6054 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #6054",
           "unitId": "REPD_6054",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Hampshire",
           "coordinates": [
-            51.29114,
-            -1.03282
+            51.29166,
+            -1.03431
           ],
           "capacity": "1.2 MWelec",
           "evidence": [
             "site/town match: 'basingstoke' in Basingstoke Sewage Treatment Works",
             "capacity: 1.2 MWelec",
-            "Postcode: RG24 8LL"
+            "Postcode: RG24 8LL",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         },
         {
           "operatorName": "RKE Bio Group Limited",
-          "operatorRegisterId": "REPD Ref #11246 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #11246",
           "unitId": "REPD_11246",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Hampshire",
           "coordinates": [
-            51.2156,
-            -1.05895
+            51.21613,
+            -1.06043
           ],
           "capacity": null,
           "evidence": [
             "site/town match: 'basingstoke' in Bushywarren Lane, Ellisfield - Anaerobic Digestor Plant",
-            "Postcode: RG25 2NS"
+            "Postcode: RG25 2NS",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         }
       ]
@@ -209,19 +228,22 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "Zebec Energy",
-        "operatorRegisterId": "REPD Ref #4876 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #4876",
         "unitId": "REPD_4876",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "Humberside",
         "coordinates": [
-          53.63438,
-          -0.46424
+          53.63463,
+          -0.4659
         ],
         "capacity": "1.5 MWelec",
         "evidence": [
           "site/town match: 'bonby' in Bonby Lane",
           "operator word overlap: energy",
           "capacity: 1.5 MWelec",
-          "Postcode: DN20 0QN"
+          "Postcode: DN20 0QN",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
         ]
       },
       "candidates": []
@@ -239,19 +261,22 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "Swancote Energy",
-        "operatorRegisterId": "REPD Ref #5323 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #5323",
         "unitId": "REPD_5323",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "Shropshire",
         "coordinates": [
-          52.54236,
-          -2.37997
+          52.54272,
+          -2.38135
         ],
         "capacity": "1.2 MWelec",
         "evidence": [
           "site/town match: 'bridgnorth' in Swancote Farm",
           "operator word overlap: energy",
           "capacity: 1.2 MWelec",
-          "Postcode: WV15 5HB"
+          "Postcode: WV15 5HB",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
         ]
       },
       "candidates": []
@@ -264,33 +289,39 @@
       "candidates": [
         {
           "operatorName": "Cannington Bioenergy",
-          "operatorRegisterId": "REPD Ref #277 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #277",
           "unitId": "REPD_277",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Somerset",
           "coordinates": [
-            51.14388,
-            -3.09564
+            51.14439,
+            -3.09689
           ],
           "capacity": "3.3 MWelec",
           "evidence": [
             "site/town match: 'bridgwater' in Cannington Cold Stores",
             "capacity: 3.3 MWelec",
-            "Postcode: TA5 2NJ"
+            "Postcode: TA5 2NJ",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         },
         {
           "operatorName": "Viridor",
-          "operatorRegisterId": "REPD Ref #317 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #317",
           "unitId": "REPD_317",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Somerset",
           "coordinates": [
-            51.18339,
-            -2.98161
+            51.18389,
+            -2.98288
           ],
           "capacity": "1.6 MWelec",
           "evidence": [
             "site/town match: 'bridgwater' in Walpole Landfill AD (Waste AD)",
-            "capacity: 1.6 MWelec"
+            "capacity: 1.6 MWelec",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         }
       ]
@@ -317,51 +348,60 @@
       "candidates": [
         {
           "operatorName": "Energy Works / The Spencer Group",
-          "operatorRegisterId": "REPD Ref #290 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #290",
           "unitId": "REPD_290",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Humberside",
           "coordinates": [
-            53.75829,
-            -0.32872
-          ],
-          "capacity": "3 MWelec",
-          "evidence": [
-            "site name overlap: energy",
-            "operator word overlap: energy",
-            "capacity: 3 MWelec"
-          ]
-        },
-        {
-          "operatorName": "Biogen (formerly Tamar Energy)",
-          "operatorRegisterId": "REPD Ref #311 (DESNZ / Ofgem)",
-          "unitId": "REPD_311",
-          "town": "Hertfordshire",
-          "coordinates": [
-            51.76662,
-            0.00191
+            53.75854,
+            -0.3304
           ],
           "capacity": "3 MWelec",
           "evidence": [
             "site name overlap: energy",
             "operator word overlap: energy",
             "capacity: 3 MWelec",
-            "Postcode: EN11 0RG"
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
+          ]
+        },
+        {
+          "operatorName": "Biogen (formerly Tamar Energy)",
+          "operatorRegisterId": "REPD Ref #311",
+          "unitId": "REPD_311",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
+          "town": "Hertfordshire",
+          "coordinates": [
+            51.7671,
+            0.00028
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "operator word overlap: energy",
+            "capacity: 3 MWelec",
+            "Postcode: EN11 0RG",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         },
         {
           "operatorName": "GENeco",
-          "operatorRegisterId": "REPD Ref #232 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #232",
           "unitId": "REPD_232",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Avon",
           "coordinates": [
-            51.51231,
-            -2.66871
+            51.51278,
+            -2.67003
           ],
           "capacity": "10 MWelec",
           "evidence": [
             "site/town match: 'bristol' in Bristol STW (Waste AD)",
             "capacity: 10 MWelec",
-            "Postcode: BS11 0YS"
+            "Postcode: BS11 0YS",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         }
       ]
@@ -372,17 +412,20 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "Grissan Renewable Energy",
-        "operatorRegisterId": "REPD Ref #11249 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #11249",
         "unitId": "REPD_11249",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "Grampian",
         "coordinates": [
-          57.66294,
-          -3.01442
+          57.66268,
+          -3.01595
         ],
         "capacity": null,
         "evidence": [
           "site/town match: 'buckie' in Portgordon - Anaerobic Digestion Tanks",
-          "Postcode: AB56 5RA"
+          "Postcode: AB56 5RA",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
         ]
       },
       "candidates": []
@@ -395,50 +438,59 @@
       "candidates": [
         {
           "operatorName": "Energy Works / The Spencer Group",
-          "operatorRegisterId": "REPD Ref #290 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #290",
           "unitId": "REPD_290",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Humberside",
           "coordinates": [
-            53.75829,
-            -0.32872
-          ],
-          "capacity": "3 MWelec",
-          "evidence": [
-            "site name overlap: energy",
-            "operator word overlap: energy",
-            "capacity: 3 MWelec"
-          ]
-        },
-        {
-          "operatorName": "Biogen (formerly Tamar Energy)",
-          "operatorRegisterId": "REPD Ref #311 (DESNZ / Ofgem)",
-          "unitId": "REPD_311",
-          "town": "Hertfordshire",
-          "coordinates": [
-            51.76662,
-            0.00191
+            53.75854,
+            -0.3304
           ],
           "capacity": "3 MWelec",
           "evidence": [
             "site name overlap: energy",
             "operator word overlap: energy",
             "capacity: 3 MWelec",
-            "Postcode: EN11 0RG"
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
+          ]
+        },
+        {
+          "operatorName": "Biogen (formerly Tamar Energy)",
+          "operatorRegisterId": "REPD Ref #311",
+          "unitId": "REPD_311",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
+          "town": "Hertfordshire",
+          "coordinates": [
+            51.7671,
+            0.00028
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "operator word overlap: energy",
+            "capacity: 3 MWelec",
+            "Postcode: EN11 0RG",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         },
         {
           "operatorName": "Severn Trent Water",
-          "operatorRegisterId": "REPD Ref #213 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #213",
           "unitId": "REPD_213",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Nottinghamshire",
           "coordinates": [
-            52.97561,
-            -1.03802
+            52.97593,
+            -1.03958
           ],
           "capacity": "2 MWelec",
           "evidence": [
             "site name overlap: energy",
-            "capacity: 2 MWelec"
+            "capacity: 2 MWelec",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         }
       ]
@@ -449,18 +501,21 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "A J Butler & Sons Ltd",
-        "operatorRegisterId": "REPD Ref #5652 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #5652",
         "unitId": "REPD_5652",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "Wiltshire",
         "coordinates": [
-          51.39125,
-          -2.03595
+          51.39175,
+          -2.03733
         ],
         "capacity": "1.5 MWelec",
         "evidence": [
           "site/town match: 'chippenham' in Bromham House Farm",
           "capacity: 1.5 MWelec",
-          "Postcode: SN15 2DX"
+          "Postcode: SN15 2DX",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
         ]
       },
       "candidates": []
@@ -492,18 +547,21 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "Energy Works / The Spencer Group",
-        "operatorRegisterId": "REPD Ref #290 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #290",
         "unitId": "REPD_290",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "Humberside",
         "coordinates": [
-          53.75829,
-          -0.32872
+          53.75854,
+          -0.3304
         ],
         "capacity": "3 MWelec",
         "evidence": [
           "site/town match: 'cleveland' in Energy Works Hull - AD (Waste AD)",
           "operator word overlap: energy",
-          "capacity: 3 MWelec"
+          "capacity: 3 MWelec",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
         ]
       },
       "candidates": []
@@ -514,18 +572,21 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "Greener For Life Energy",
-        "operatorRegisterId": "REPD Ref #6390 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #6390",
         "unitId": "REPD_6390",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "Devon",
         "coordinates": [
-          50.70717,
-          -3.43942
+          50.70773,
+          -3.44062
         ],
         "capacity": "2 MWelec",
         "evidence": [
           "site/town match: 'clyst st mary' in Enfield Farm",
           "capacity: 2 MWelec",
-          "Postcode: EX5 1AF"
+          "Postcode: EX5 1AF",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
         ]
       },
       "candidates": []
@@ -566,50 +627,59 @@
       "candidates": [
         {
           "operatorName": "Energy Works / The Spencer Group",
-          "operatorRegisterId": "REPD Ref #290 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #290",
           "unitId": "REPD_290",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Humberside",
           "coordinates": [
-            53.75829,
-            -0.32872
-          ],
-          "capacity": "3 MWelec",
-          "evidence": [
-            "site name overlap: energy",
-            "operator word overlap: energy",
-            "capacity: 3 MWelec"
-          ]
-        },
-        {
-          "operatorName": "Biogen (formerly Tamar Energy)",
-          "operatorRegisterId": "REPD Ref #311 (DESNZ / Ofgem)",
-          "unitId": "REPD_311",
-          "town": "Hertfordshire",
-          "coordinates": [
-            51.76662,
-            0.00191
+            53.75854,
+            -0.3304
           ],
           "capacity": "3 MWelec",
           "evidence": [
             "site name overlap: energy",
             "operator word overlap: energy",
             "capacity: 3 MWelec",
-            "Postcode: EN11 0RG"
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
+          ]
+        },
+        {
+          "operatorName": "Biogen (formerly Tamar Energy)",
+          "operatorRegisterId": "REPD Ref #311",
+          "unitId": "REPD_311",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
+          "town": "Hertfordshire",
+          "coordinates": [
+            51.7671,
+            0.00028
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "operator word overlap: energy",
+            "capacity: 3 MWelec",
+            "Postcode: EN11 0RG",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         },
         {
           "operatorName": "Severn Trent Water",
-          "operatorRegisterId": "REPD Ref #213 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #213",
           "unitId": "REPD_213",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Nottinghamshire",
           "coordinates": [
-            52.97561,
-            -1.03802
+            52.97593,
+            -1.03958
           ],
           "capacity": "2 MWelec",
           "evidence": [
             "site name overlap: energy",
-            "capacity: 2 MWelec"
+            "capacity: 2 MWelec",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         }
       ]
@@ -620,18 +690,21 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "Greener for Life Energy",
-        "operatorRegisterId": "REPD Ref #5748 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #5748",
         "unitId": "REPD_5748",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "Devon",
         "coordinates": [
-          50.89173,
-          -3.37889
+          50.89227,
+          -3.3801
         ],
         "capacity": "2 MWelec",
         "evidence": [
           "site/town match: 'cullompton' in Willand AD",
           "capacity: 2 MWelec",
-          "Postcode: EX15 2PJ"
+          "Postcode: EX15 2PJ",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
         ]
       },
       "candidates": []
@@ -644,33 +717,39 @@
       "candidates": [
         {
           "operatorName": "Shanks Group",
-          "operatorRegisterId": "REPD Ref #211 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #211",
           "unitId": "REPD_211",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Strathclyde",
           "coordinates": [
-            55.97048,
-            -3.9562
+            55.97041,
+            -3.95752
           ],
           "capacity": "2.4 MWelec",
           "evidence": [
             "site/town match: 'cumbernauld' in Cumbernauld BioPlant  (Waste AD)",
-            "capacity: 2.4 MWelec"
+            "capacity: 2.4 MWelec",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         },
         {
           "operatorName": "Bio Capital Limited",
-          "operatorRegisterId": "REPD Ref #231 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #231",
           "unitId": "REPD_231",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Strathclyde",
           "coordinates": [
-            55.96975,
-            -3.95672
+            55.96968,
+            -3.95805
           ],
           "capacity": "2.4 MWelec",
           "evidence": [
             "site/town match: 'cumbernauld' in Energen biogas Cumbernauld",
             "capacity: 2.4 MWelec",
-            "Postcode: G67 3EN"
+            "Postcode: G67 3EN",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         }
       ]
@@ -690,34 +769,40 @@
       "candidates": [
         {
           "operatorName": "Prosper Demulder / ReFood",
-          "operatorRegisterId": "REPD Ref #242 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #242",
           "unitId": "REPD_242",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "South Yorkshire",
           "coordinates": [
-            53.53666,
-            -1.13586
+            53.53692,
+            -1.13743
           ],
           "capacity": "2 MWelec",
           "evidence": [
             "site/town match: 'doncaster' in Prosper Demulder Limited Anaerobic Digestion Plant (Waste AD)",
             "capacity: 2 MWelec",
-            "Postcode: DN5 9SW"
+            "Postcode: DN5 9SW",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         },
         {
           "operatorName": "Prosper Demulder / ReFood",
-          "operatorRegisterId": "REPD Ref #307 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #307",
           "unitId": "REPD_307",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "South Yorkshire",
           "coordinates": [
-            53.53666,
-            -1.13586
+            53.53692,
+            -1.13743
           ],
           "capacity": "3 MWelec",
           "evidence": [
             "site/town match: 'doncaster' in Prosper Demulder Limited Anaerobic Digestion Plant (Waste AD) - extension",
             "capacity: 3 MWelec",
-            "Postcode: DN5 9SW"
+            "Postcode: DN5 9SW",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         }
       ]
@@ -728,19 +813,22 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "Eco Sustainable Solutions",
-        "operatorRegisterId": "REPD Ref #366 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #366",
         "unitId": "REPD_366",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "Dorset",
         "coordinates": [
-          50.77654,
-          -2.39283
+          50.7771,
+          -2.39415
         ],
         "capacity": "1.1 MWelec",
         "evidence": [
           "site/town match: 'dorchester' in Bourne Park AD (AD)",
           "county match: Dorset",
           "capacity: 1.1 MWelec",
-          "Postcode: DT2 7TU"
+          "Postcode: DT2 7TU",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
         ]
       },
       "candidates": []
@@ -765,18 +853,21 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "William Grant and Sons Distillers",
-        "operatorRegisterId": "REPD Ref #7477 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #7477",
         "unitId": "REPD_7477",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "Moray",
         "coordinates": [
-          57.45511,
-          -3.12149
+          57.45487,
+          -3.12299
         ],
         "capacity": "1.5 MWelec",
         "evidence": [
           "site/town match: 'dufftown' in Glenfiddich Distillery",
           "capacity: 1.5 MWelec",
-          "Postcode: AB55 4DH"
+          "Postcode: AB55 4DH",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
         ]
       },
       "candidates": []
@@ -787,17 +878,20 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "Private Developer",
-        "operatorRegisterId": "REPD Ref #359 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #359",
         "unitId": "REPD_359",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "Dumfries and Galloway",
         "coordinates": [
-          55.09505,
-          -3.53229
+          55.09509,
+          -3.53363
         ],
         "capacity": "1.2 MWelec",
         "evidence": [
           "site/town match: 'dumfries' in West Roucan Farm",
-          "capacity: 1.2 MWelec"
+          "capacity: 1.2 MWelec",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
         ]
       },
       "candidates": []
@@ -810,51 +904,60 @@
       "candidates": [
         {
           "operatorName": "Energy Works / The Spencer Group",
-          "operatorRegisterId": "REPD Ref #290 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #290",
           "unitId": "REPD_290",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Humberside",
           "coordinates": [
-            53.75829,
-            -0.32872
-          ],
-          "capacity": "3 MWelec",
-          "evidence": [
-            "site name overlap: energy",
-            "operator word overlap: energy",
-            "capacity: 3 MWelec"
-          ]
-        },
-        {
-          "operatorName": "Biogen (formerly Tamar Energy)",
-          "operatorRegisterId": "REPD Ref #311 (DESNZ / Ofgem)",
-          "unitId": "REPD_311",
-          "town": "Hertfordshire",
-          "coordinates": [
-            51.76662,
-            0.00191
+            53.75854,
+            -0.3304
           ],
           "capacity": "3 MWelec",
           "evidence": [
             "site name overlap: energy",
             "operator word overlap: energy",
             "capacity: 3 MWelec",
-            "Postcode: EN11 0RG"
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
+          ]
+        },
+        {
+          "operatorName": "Biogen (formerly Tamar Energy)",
+          "operatorRegisterId": "REPD Ref #311",
+          "unitId": "REPD_311",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
+          "town": "Hertfordshire",
+          "coordinates": [
+            51.7671,
+            0.00028
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "operator word overlap: energy",
+            "capacity: 3 MWelec",
+            "Postcode: EN11 0RG",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         },
         {
           "operatorName": "Granville Ecopark",
-          "operatorRegisterId": "REPD Ref #301 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #301",
           "unitId": "REPD_301",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Co. Tyrone",
           "coordinates": [
-            54.49093,
-            -6.8112
+            54.491,
+            -6.81211
           ],
           "capacity": "3 MWelec",
           "evidence": [
             "site/town match: 'dungannon' in Granville Ecopark",
             "capacity: 3 MWelec",
-            "Postcode: BT70 1NJ"
+            "Postcode: BT70 1NJ",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         }
       ]
@@ -879,18 +982,21 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "Brewdog Limited",
-        "operatorRegisterId": "REPD Ref #11248 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #11248",
         "unitId": "REPD_11248",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "Grampian",
         "coordinates": [
-          57.37102,
-          -2.04847
+          57.37081,
+          -2.05011
         ],
         "capacity": "3.5 MWelec",
         "evidence": [
           "site/town match: 'ellon' in Balmcassie Commercial Park - Anaerobic digestion plant",
           "capacity: 3.5 MWelec",
-          "Postcode: AB41"
+          "Postcode: AB41",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
         ]
       },
       "candidates": []
@@ -929,18 +1035,21 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "RM Brown & Son Ltd",
-        "operatorRegisterId": "REPD Ref #5899 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #5899",
         "unitId": "REPD_5899",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "Fife",
         "coordinates": [
-          56.17833,
-          -3.21012
+          56.17824,
+          -3.21155
         ],
         "capacity": "2 MWelec",
         "evidence": [
           "site/town match: 'fife' in Inchdairnie",
           "capacity: 2 MWelec",
           "Postcode: KY5 0UL",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator",
           "matched to same REPD unit as plant_uk_56 (duplicate census record)"
         ]
       },
@@ -966,18 +1075,21 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "Fridays & Rika Biofuels",
-        "operatorRegisterId": "REPD Ref #5561 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #5561",
         "unitId": "REPD_5561",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "Kent",
         "coordinates": [
-          51.1411,
-          0.56562
+          51.14166,
+          0.56395
         ],
         "capacity": "2 MWelec",
         "evidence": [
           "site/town match: 'frittenden' in Knoxbridge Farm",
           "capacity: 2 MWelec",
-          "Postcode: TN17 2BT"
+          "Postcode: TN17 2BT",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
         ]
       },
       "candidates": []
@@ -1004,50 +1116,59 @@
       "candidates": [
         {
           "operatorName": "Scottish Water Solutions",
-          "operatorRegisterId": "REPD Ref #210 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #210",
           "unitId": "REPD_210",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Strathclyde",
           "coordinates": [
-            55.97048,
-            -3.9562
+            55.97041,
+            -3.95752
           ],
           "capacity": "1 MWelec",
           "evidence": [
             "site/town match: 'glasgow' in Deerdykes Composting and Organics Recycling Facility (Waste AD)",
             "capacity: 1 MWelec",
-            "Postcode: G67 3EN"
+            "Postcode: G67 3EN",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         },
         {
           "operatorName": "Bio Capital Limited",
-          "operatorRegisterId": "REPD Ref #231 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #231",
           "unitId": "REPD_231",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Strathclyde",
           "coordinates": [
-            55.96975,
-            -3.95672
+            55.96968,
+            -3.95805
           ],
           "capacity": "2.4 MWelec",
           "evidence": [
             "site/town match: 'glasgow' in Energen biogas Cumbernauld",
             "capacity: 2.4 MWelec",
-            "Postcode: G67 3EN"
+            "Postcode: G67 3EN",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         },
         {
           "operatorName": "Viridor",
-          "operatorRegisterId": "REPD Ref #286 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #286",
           "unitId": "REPD_286",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Strathclyde",
           "coordinates": [
-            55.83407,
-            -4.24345
+            55.83401,
+            -4.24473
           ],
           "capacity": "5 MWelec",
           "evidence": [
             "site/town match: 'glasgow' in Glasgow Renewable Energy and Recycling Centre (Waste AD)",
             "capacity: 5 MWelec",
-            "Postcode: G42 0PJ"
+            "Postcode: G42 0PJ",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         }
       ]
@@ -1058,18 +1179,21 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "RM Brown & Son Ltd",
-        "operatorRegisterId": "REPD Ref #5899 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #5899",
         "unitId": "REPD_5899",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "Fife",
         "coordinates": [
-          56.17833,
-          -3.21012
+          56.17824,
+          -3.21155
         ],
         "capacity": "2 MWelec",
         "evidence": [
           "site/town match: 'glenrothes' in Inchdairnie",
           "capacity: 2 MWelec",
           "Postcode: KY5 0UL",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator",
           "matched to same REPD unit as plant_uk_50 (duplicate census record)"
         ]
       },
@@ -1088,18 +1212,21 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "Pure Malt Products Limited",
-        "operatorRegisterId": "REPD Ref #333 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #333",
         "unitId": "REPD_333",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "Lothian",
         "coordinates": [
-          55.95666,
-          -2.76922
+          55.95661,
+          -2.7707
         ],
         "capacity": "1.5 MWelec",
         "evidence": [
           "site/town match: 'haddington' in Pure Malt Products AD",
           "capacity: 1.5 MWelec",
-          "Postcode: EH41 4BD"
+          "Postcode: EH41 4BD",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
         ]
       },
       "candidates": []
@@ -1138,17 +1265,20 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "Stanton Energy Limited",
-        "operatorRegisterId": "REPD Ref #9510 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #9510",
         "unitId": "REPD_9510",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "Derbyshire",
         "coordinates": [
-          52.94819,
-          -1.28609
+          52.94852,
+          -1.28762
         ],
         "capacity": null,
         "evidence": [
           "site/town match: 'ilkeston' in Crompton Road, Ilkeston - Anaerobic Digestion Plant",
           "Postcode: DE7 4BG",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator",
           "matched to same REPD unit as plant_uk_63 (duplicate census record)"
         ]
       },
@@ -1160,17 +1290,20 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "Stanton Energy Limited",
-        "operatorRegisterId": "REPD Ref #9510 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #9510",
         "unitId": "REPD_9510",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "Derbyshire",
         "coordinates": [
-          52.94819,
-          -1.28609
+          52.94852,
+          -1.28762
         ],
         "capacity": null,
         "evidence": [
           "site/town match: 'ilkeston' in Crompton Road, Ilkeston - Anaerobic Digestion Plant",
           "Postcode: DE7 4BG",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator",
           "matched to same REPD unit as plant_uk_62 (duplicate census record)"
         ]
       },
@@ -1196,18 +1329,21 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "Morayhill",
-        "operatorRegisterId": "REPD Ref #5703 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #5703",
         "unitId": "REPD_5703",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "Highland",
         "coordinates": [
-          57.51844,
-          -4.08749
+          57.51818,
+          -4.08886
         ],
         "capacity": "2 MWelec",
         "evidence": [
           "site/town match: 'inverness' in Morayhill AD",
           "capacity: 2 MWelec",
-          "Postcode: IV2 7JQ"
+          "Postcode: IV2 7JQ",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
         ]
       },
       "candidates": []
@@ -1225,18 +1361,21 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "Fernbrook Bio Limited",
-        "operatorRegisterId": "REPD Ref #226 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #226",
         "unitId": "REPD_226",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "Northamptonshire",
         "coordinates": [
-          52.41153,
-          -0.76468
+          52.41193,
+          -0.76625
         ],
         "capacity": "1.5 MWelec",
         "evidence": [
           "site/town match: 'kettering' in Fernbrook AD Plant (Waste AD)",
           "capacity: 1.5 MWelec",
-          "Postcode: NN16 8XF"
+          "Postcode: NN16 8XF",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
         ]
       },
       "candidates": []
@@ -1249,50 +1388,59 @@
       "candidates": [
         {
           "operatorName": "Energy Works / The Spencer Group",
-          "operatorRegisterId": "REPD Ref #290 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #290",
           "unitId": "REPD_290",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Humberside",
           "coordinates": [
-            53.75829,
-            -0.32872
-          ],
-          "capacity": "3 MWelec",
-          "evidence": [
-            "site name overlap: energy",
-            "operator word overlap: energy",
-            "capacity: 3 MWelec"
-          ]
-        },
-        {
-          "operatorName": "Biogen (formerly Tamar Energy)",
-          "operatorRegisterId": "REPD Ref #311 (DESNZ / Ofgem)",
-          "unitId": "REPD_311",
-          "town": "Hertfordshire",
-          "coordinates": [
-            51.76662,
-            0.00191
+            53.75854,
+            -0.3304
           ],
           "capacity": "3 MWelec",
           "evidence": [
             "site name overlap: energy",
             "operator word overlap: energy",
             "capacity: 3 MWelec",
-            "Postcode: EN11 0RG"
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
+          ]
+        },
+        {
+          "operatorName": "Biogen (formerly Tamar Energy)",
+          "operatorRegisterId": "REPD Ref #311",
+          "unitId": "REPD_311",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
+          "town": "Hertfordshire",
+          "coordinates": [
+            51.7671,
+            0.00028
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "operator word overlap: energy",
+            "capacity: 3 MWelec",
+            "Postcode: EN11 0RG",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         },
         {
           "operatorName": "Severn Trent Water",
-          "operatorRegisterId": "REPD Ref #213 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #213",
           "unitId": "REPD_213",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Nottinghamshire",
           "coordinates": [
-            52.97561,
-            -1.03802
+            52.97593,
+            -1.03958
           ],
           "capacity": "2 MWelec",
           "evidence": [
             "site name overlap: energy",
-            "capacity: 2 MWelec"
+            "capacity: 2 MWelec",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         }
       ]
@@ -1312,52 +1460,61 @@
       "candidates": [
         {
           "operatorName": "JFS Biogas",
-          "operatorRegisterId": "REPD Ref #330 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #330",
           "unitId": "REPD_330",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "North Yorkshire",
           "coordinates": [
-            54.29107,
-            -1.54091
+            54.29123,
+            -1.54247
           ],
           "capacity": "1.5 MWelec",
           "evidence": [
             "site/town match: 'leeming' in Leeming Bar (Waste AD)",
             "county match: North Yorkshire",
             "capacity: 1.5 MWelec",
-            "Postcode: DL7 9LY"
+            "Postcode: DL7 9LY",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         },
         {
           "operatorName": "Holsworthy Biogas Company ( North Tamar Business Network)",
-          "operatorRegisterId": "REPD Ref #209 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #209",
           "unitId": "REPD_209",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Devon",
           "coordinates": [
-            50.82747,
-            -4.35094
+            50.828,
+            -4.35204
           ],
           "capacity": "1.4 MWelec",
           "evidence": [
             "site name overlap: north",
             "operator word overlap: north",
-            "capacity: 1.4 MWelec"
+            "capacity: 1.4 MWelec",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         },
         {
           "operatorName": "North East Grains",
-          "operatorRegisterId": "REPD Ref #7245 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #7245",
           "unitId": "REPD_7245",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Northumberland",
           "coordinates": [
-            55.19168,
-            -1.6328
+            55.19173,
+            -1.63438
           ],
           "capacity": "0.5 MWelec",
           "evidence": [
             "site name overlap: north",
             "operator word overlap: north",
             "capacity: 0.5 MWelec",
-            "Postcode: NE61 3HX"
+            "Postcode: NE61 3HX",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         }
       ]
@@ -1370,50 +1527,59 @@
       "candidates": [
         {
           "operatorName": "Energy Works / The Spencer Group",
-          "operatorRegisterId": "REPD Ref #290 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #290",
           "unitId": "REPD_290",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Humberside",
           "coordinates": [
-            53.75829,
-            -0.32872
-          ],
-          "capacity": "3 MWelec",
-          "evidence": [
-            "site name overlap: energy",
-            "operator word overlap: energy",
-            "capacity: 3 MWelec"
-          ]
-        },
-        {
-          "operatorName": "Biogen (formerly Tamar Energy)",
-          "operatorRegisterId": "REPD Ref #311 (DESNZ / Ofgem)",
-          "unitId": "REPD_311",
-          "town": "Hertfordshire",
-          "coordinates": [
-            51.76662,
-            0.00191
+            53.75854,
+            -0.3304
           ],
           "capacity": "3 MWelec",
           "evidence": [
             "site name overlap: energy",
             "operator word overlap: energy",
             "capacity: 3 MWelec",
-            "Postcode: EN11 0RG"
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
+          ]
+        },
+        {
+          "operatorName": "Biogen (formerly Tamar Energy)",
+          "operatorRegisterId": "REPD Ref #311",
+          "unitId": "REPD_311",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
+          "town": "Hertfordshire",
+          "coordinates": [
+            51.7671,
+            0.00028
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "operator word overlap: energy",
+            "capacity: 3 MWelec",
+            "Postcode: EN11 0RG",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         },
         {
           "operatorName": "Severn Trent Water",
-          "operatorRegisterId": "REPD Ref #213 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #213",
           "unitId": "REPD_213",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Nottinghamshire",
           "coordinates": [
-            52.97561,
-            -1.03802
+            52.97593,
+            -1.03958
           ],
           "capacity": "2 MWelec",
           "evidence": [
             "site name overlap: energy",
-            "capacity: 2 MWelec"
+            "capacity: 2 MWelec",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         }
       ]
@@ -1426,34 +1592,40 @@
       "candidates": [
         {
           "operatorName": "ReFood UK",
-          "operatorRegisterId": "REPD Ref #328 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #328",
           "unitId": "REPD_328",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "London",
           "coordinates": [
-            51.52359,
-            0.13806
+            51.52411,
+            0.13642
           ],
           "capacity": "1.4 MWelec",
           "evidence": [
             "site/town match: 'london' in Dagenham Docks Biogas (Waste AD)",
             "capacity: 1.4 MWelec",
-            "Postcode: RM9 6LF"
+            "Postcode: RM9 6LF",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         },
         {
           "operatorName": "Thames Water Utilities",
-          "operatorRegisterId": "REPD Ref #6491 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #6491",
           "unitId": "REPD_6491",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "London",
           "coordinates": [
-            51.62603,
-            -0.03983
+            51.62653,
+            -0.04145
           ],
           "capacity": "3 MWelec",
           "evidence": [
             "site/town match: 'london' in Deephams Sewerage Treatment Works",
             "capacity: 3 MWelec",
-            "Postcode: N9 0BA"
+            "Postcode: N9 0BA",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         }
       ]
@@ -1466,34 +1638,40 @@
       "candidates": [
         {
           "operatorName": "ReFood UK",
-          "operatorRegisterId": "REPD Ref #328 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #328",
           "unitId": "REPD_328",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "London",
           "coordinates": [
-            51.52359,
-            0.13806
+            51.52411,
+            0.13642
           ],
           "capacity": "1.4 MWelec",
           "evidence": [
             "site/town match: 'london' in Dagenham Docks Biogas (Waste AD)",
             "capacity: 1.4 MWelec",
-            "Postcode: RM9 6LF"
+            "Postcode: RM9 6LF",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         },
         {
           "operatorName": "Thames Water Utilities",
-          "operatorRegisterId": "REPD Ref #6491 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #6491",
           "unitId": "REPD_6491",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "London",
           "coordinates": [
-            51.62603,
-            -0.03983
+            51.62653,
+            -0.04145
           ],
           "capacity": "3 MWelec",
           "evidence": [
             "site/town match: 'london' in Deephams Sewerage Treatment Works",
             "capacity: 3 MWelec",
-            "Postcode: N9 0BA"
+            "Postcode: N9 0BA",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         }
       ]
@@ -1506,34 +1684,40 @@
       "candidates": [
         {
           "operatorName": "ReFood UK",
-          "operatorRegisterId": "REPD Ref #328 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #328",
           "unitId": "REPD_328",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "London",
           "coordinates": [
-            51.52359,
-            0.13806
+            51.52411,
+            0.13642
           ],
           "capacity": "1.4 MWelec",
           "evidence": [
             "site/town match: 'london' in Dagenham Docks Biogas (Waste AD)",
             "capacity: 1.4 MWelec",
-            "Postcode: RM9 6LF"
+            "Postcode: RM9 6LF",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         },
         {
           "operatorName": "Thames Water Utilities",
-          "operatorRegisterId": "REPD Ref #6491 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #6491",
           "unitId": "REPD_6491",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "London",
           "coordinates": [
-            51.62603,
-            -0.03983
+            51.62653,
+            -0.04145
           ],
           "capacity": "3 MWelec",
           "evidence": [
             "site/town match: 'london' in Deephams Sewerage Treatment Works",
             "capacity: 3 MWelec",
-            "Postcode: N9 0BA"
+            "Postcode: N9 0BA",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         }
       ]
@@ -1553,48 +1737,57 @@
       "candidates": [
         {
           "operatorName": "Viridor",
-          "operatorRegisterId": "REPD Ref #217 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #217",
           "unitId": "REPD_217",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Greater Manchester",
           "coordinates": [
-            53.3941,
-            -2.24466
+            53.39436,
+            -2.2461
           ],
           "capacity": "2 MWelec",
           "evidence": [
             "site/town match: 'manchester' in South Manchester Resource Recovery Centre (AD)",
-            "capacity: 2 MWelec"
+            "capacity: 2 MWelec",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         },
         {
           "operatorName": "Viridor",
-          "operatorRegisterId": "REPD Ref #218 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #218",
           "unitId": "REPD_218",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Greater Manchester",
           "coordinates": [
-            53.50389,
-            -2.17921
+            53.50413,
+            -2.18065
           ],
           "capacity": "2 MWelec",
           "evidence": [
             "site/town match: 'manchester' in Reliance Street Mechanical Biological Treatment Facility (MBT)",
             "capacity: 2 MWelec",
-            "Postcode: M40 3EZ"
+            "Postcode: M40 3EZ",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         },
         {
           "operatorName": "DJ AND SJ RECYCLING",
-          "operatorRegisterId": "REPD Ref #384 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #384",
           "unitId": "REPD_384",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Northumberland",
           "coordinates": [
-            54.97327,
-            -2.08031
+            54.97334,
+            -2.08183
           ],
           "capacity": "1.5 MWelec",
           "evidence": [
             "site name overlap: water",
-            "capacity: 1.5 MWelec"
+            "capacity: 1.5 MWelec",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         }
       ]
@@ -1605,19 +1798,22 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "Private Developer",
-        "operatorRegisterId": "REPD Ref #6824 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #6824",
         "unitId": "REPD_6824",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "Cambridgeshire",
         "coordinates": [
-          52.51395,
-          0.21143
+          52.51435,
+          0.20974
         ],
         "capacity": "4 MWelec",
         "evidence": [
           "site/town match: 'manea' in Colony Farm",
           "county match: Cambridgeshire",
           "capacity: 4 MWelec",
-          "Postcode: PE15 0HN"
+          "Postcode: PE15 0HN",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
         ]
       },
       "candidates": []
@@ -1644,33 +1840,39 @@
       "candidates": [
         {
           "operatorName": "Lockwood Estates",
-          "operatorRegisterId": "REPD Ref #72 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #72",
           "unitId": "REPD_72",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Lincolnshire",
           "coordinates": [
-            53.33582,
-            -0.53465
+            53.33611,
+            -0.53629
           ],
           "capacity": "1.1 MWelec",
           "evidence": [
             "site/town match: 'market rasen' in Land at Grange Farm",
             "capacity: 1.1 MWelec",
-            "Postcode: LN8 2DN"
+            "Postcode: LN8 2DN",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         },
         {
           "operatorName": "Glentham Farming Company",
-          "operatorRegisterId": "REPD Ref #11238 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #11238",
           "unitId": "REPD_11238",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Lincolnshire",
           "coordinates": [
-            53.40685,
-            -0.49633
+            53.40713,
+            -0.49797
           ],
           "capacity": null,
           "evidence": [
             "site/town match: 'market rasen' in Barff Lane - Farm Anaerobic Digestion Plant",
-            "Postcode: LN8 2EY"
+            "Postcode: LN8 2EY",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         }
       ]
@@ -1688,18 +1890,21 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "Pretoria Energy Company",
-        "operatorRegisterId": "REPD Ref #6578 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #6578",
         "unitId": "REPD_6578",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "Cambridgeshire",
         "coordinates": [
-          52.42796,
-          0.08943
+          52.42836,
+          0.08776
         ],
         "capacity": "14.4 MWelec",
         "evidence": [
           "site/town match: 'mepal' in Mepal CHP",
           "capacity: 14.4 MWelec",
           "Postcode: CB6 2AZ",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator",
           "matched to same REPD unit as plant_uk_82 (duplicate census record)"
         ]
       },
@@ -1711,12 +1916,14 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "Pretoria Energy Company",
-        "operatorRegisterId": "REPD Ref #6578 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #6578",
         "unitId": "REPD_6578",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "Cambridgeshire",
         "coordinates": [
-          52.42796,
-          0.08943
+          52.42836,
+          0.08776
         ],
         "capacity": "14.4 MWelec",
         "evidence": [
@@ -1724,6 +1931,7 @@
           "operator word overlap: energy",
           "capacity: 14.4 MWelec",
           "Postcode: CB6 2AZ",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator",
           "matched to same REPD unit as plant_uk_81 (duplicate census record)"
         ]
       },
@@ -1737,50 +1945,59 @@
       "candidates": [
         {
           "operatorName": "Energy Works / The Spencer Group",
-          "operatorRegisterId": "REPD Ref #290 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #290",
           "unitId": "REPD_290",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Humberside",
           "coordinates": [
-            53.75829,
-            -0.32872
-          ],
-          "capacity": "3 MWelec",
-          "evidence": [
-            "site name overlap: energy",
-            "operator word overlap: energy",
-            "capacity: 3 MWelec"
-          ]
-        },
-        {
-          "operatorName": "Biogen (formerly Tamar Energy)",
-          "operatorRegisterId": "REPD Ref #311 (DESNZ / Ofgem)",
-          "unitId": "REPD_311",
-          "town": "Hertfordshire",
-          "coordinates": [
-            51.76662,
-            0.00191
+            53.75854,
+            -0.3304
           ],
           "capacity": "3 MWelec",
           "evidence": [
             "site name overlap: energy",
             "operator word overlap: energy",
             "capacity: 3 MWelec",
-            "Postcode: EN11 0RG"
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
+          ]
+        },
+        {
+          "operatorName": "Biogen (formerly Tamar Energy)",
+          "operatorRegisterId": "REPD Ref #311",
+          "unitId": "REPD_311",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
+          "town": "Hertfordshire",
+          "coordinates": [
+            51.7671,
+            0.00028
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "operator word overlap: energy",
+            "capacity: 3 MWelec",
+            "Postcode: EN11 0RG",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         },
         {
           "operatorName": "Severn Trent Water",
-          "operatorRegisterId": "REPD Ref #213 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #213",
           "unitId": "REPD_213",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Nottinghamshire",
           "coordinates": [
-            52.97561,
-            -1.03802
+            52.97593,
+            -1.03958
           ],
           "capacity": "2 MWelec",
           "evidence": [
             "site name overlap: energy",
-            "capacity: 2 MWelec"
+            "capacity: 2 MWelec",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         }
       ]
@@ -1800,50 +2017,59 @@
       "candidates": [
         {
           "operatorName": "Energy Works / The Spencer Group",
-          "operatorRegisterId": "REPD Ref #290 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #290",
           "unitId": "REPD_290",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Humberside",
           "coordinates": [
-            53.75829,
-            -0.32872
-          ],
-          "capacity": "3 MWelec",
-          "evidence": [
-            "site name overlap: energy",
-            "operator word overlap: energy",
-            "capacity: 3 MWelec"
-          ]
-        },
-        {
-          "operatorName": "Biogen (formerly Tamar Energy)",
-          "operatorRegisterId": "REPD Ref #311 (DESNZ / Ofgem)",
-          "unitId": "REPD_311",
-          "town": "Hertfordshire",
-          "coordinates": [
-            51.76662,
-            0.00191
+            53.75854,
+            -0.3304
           ],
           "capacity": "3 MWelec",
           "evidence": [
             "site name overlap: energy",
             "operator word overlap: energy",
             "capacity: 3 MWelec",
-            "Postcode: EN11 0RG"
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
+          ]
+        },
+        {
+          "operatorName": "Biogen (formerly Tamar Energy)",
+          "operatorRegisterId": "REPD Ref #311",
+          "unitId": "REPD_311",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
+          "town": "Hertfordshire",
+          "coordinates": [
+            51.7671,
+            0.00028
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "operator word overlap: energy",
+            "capacity: 3 MWelec",
+            "Postcode: EN11 0RG",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         },
         {
           "operatorName": "Severn Trent Water",
-          "operatorRegisterId": "REPD Ref #213 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #213",
           "unitId": "REPD_213",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Nottinghamshire",
           "coordinates": [
-            52.97561,
-            -1.03802
+            52.97593,
+            -1.03958
           ],
           "capacity": "2 MWelec",
           "evidence": [
             "site name overlap: energy",
-            "capacity: 2 MWelec"
+            "capacity: 2 MWelec",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         }
       ]
@@ -1861,17 +2087,20 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "Emerald Biogas",
-        "operatorRegisterId": "REPD Ref #280 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #280",
         "unitId": "REPD_280",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "County Durham",
         "coordinates": [
-          54.60569,
-          -1.5787
+          54.60581,
+          -1.58027
         ],
         "capacity": "2.8 MWelec",
         "evidence": [
           "site/town match: 'newton aycliffe' in Preston Road AD Plant (Waste AD)",
-          "capacity: 2.8 MWelec"
+          "capacity: 2.8 MWelec",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
         ]
       },
       "candidates": []
@@ -1952,18 +2181,21 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "JFS Biogas",
-        "operatorRegisterId": "REPD Ref #4919 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #4919",
         "unitId": "REPD_4919",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "North Yorkshire",
         "coordinates": [
-          54.0198,
-          -0.95625
+          54.02001,
+          -0.95787
         ],
         "capacity": "1 MWelec",
         "evidence": [
           "site/town match: 'sand hutton' in Gravel Pit Farm",
           "capacity: 1 MWelec",
-          "Postcode: YO41 1LN"
+          "Postcode: YO41 1LN",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
         ]
       },
       "candidates": []
@@ -1976,50 +2208,59 @@
       "candidates": [
         {
           "operatorName": "Energy Works / The Spencer Group",
-          "operatorRegisterId": "REPD Ref #290 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #290",
           "unitId": "REPD_290",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Humberside",
           "coordinates": [
-            53.75829,
-            -0.32872
-          ],
-          "capacity": "3 MWelec",
-          "evidence": [
-            "site name overlap: energy",
-            "operator word overlap: energy",
-            "capacity: 3 MWelec"
-          ]
-        },
-        {
-          "operatorName": "Biogen (formerly Tamar Energy)",
-          "operatorRegisterId": "REPD Ref #311 (DESNZ / Ofgem)",
-          "unitId": "REPD_311",
-          "town": "Hertfordshire",
-          "coordinates": [
-            51.76662,
-            0.00191
+            53.75854,
+            -0.3304
           ],
           "capacity": "3 MWelec",
           "evidence": [
             "site name overlap: energy",
             "operator word overlap: energy",
             "capacity: 3 MWelec",
-            "Postcode: EN11 0RG"
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
+          ]
+        },
+        {
+          "operatorName": "Biogen (formerly Tamar Energy)",
+          "operatorRegisterId": "REPD Ref #311",
+          "unitId": "REPD_311",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
+          "town": "Hertfordshire",
+          "coordinates": [
+            51.7671,
+            0.00028
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "operator word overlap: energy",
+            "capacity: 3 MWelec",
+            "Postcode: EN11 0RG",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         },
         {
           "operatorName": "Severn Trent Water",
-          "operatorRegisterId": "REPD Ref #213 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #213",
           "unitId": "REPD_213",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Nottinghamshire",
           "coordinates": [
-            52.97561,
-            -1.03802
+            52.97593,
+            -1.03958
           ],
           "capacity": "2 MWelec",
           "evidence": [
             "site name overlap: energy",
-            "capacity: 2 MWelec"
+            "capacity: 2 MWelec",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         }
       ]
@@ -2032,50 +2273,59 @@
       "candidates": [
         {
           "operatorName": "Energy Works / The Spencer Group",
-          "operatorRegisterId": "REPD Ref #290 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #290",
           "unitId": "REPD_290",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Humberside",
           "coordinates": [
-            53.75829,
-            -0.32872
-          ],
-          "capacity": "3 MWelec",
-          "evidence": [
-            "site name overlap: energy",
-            "operator word overlap: energy",
-            "capacity: 3 MWelec"
-          ]
-        },
-        {
-          "operatorName": "Biogen (formerly Tamar Energy)",
-          "operatorRegisterId": "REPD Ref #311 (DESNZ / Ofgem)",
-          "unitId": "REPD_311",
-          "town": "Hertfordshire",
-          "coordinates": [
-            51.76662,
-            0.00191
+            53.75854,
+            -0.3304
           ],
           "capacity": "3 MWelec",
           "evidence": [
             "site name overlap: energy",
             "operator word overlap: energy",
             "capacity: 3 MWelec",
-            "Postcode: EN11 0RG"
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
+          ]
+        },
+        {
+          "operatorName": "Biogen (formerly Tamar Energy)",
+          "operatorRegisterId": "REPD Ref #311",
+          "unitId": "REPD_311",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
+          "town": "Hertfordshire",
+          "coordinates": [
+            51.7671,
+            0.00028
+          ],
+          "capacity": "3 MWelec",
+          "evidence": [
+            "site name overlap: energy",
+            "operator word overlap: energy",
+            "capacity: 3 MWelec",
+            "Postcode: EN11 0RG",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         },
         {
           "operatorName": "Severn Trent Water",
-          "operatorRegisterId": "REPD Ref #213 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #213",
           "unitId": "REPD_213",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Nottinghamshire",
           "coordinates": [
-            52.97561,
-            -1.03802
+            52.97593,
+            -1.03958
           ],
           "capacity": "2 MWelec",
           "evidence": [
             "site name overlap: energy",
-            "capacity: 2 MWelec"
+            "capacity: 2 MWelec",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         }
       ]
@@ -2102,48 +2352,57 @@
       "candidates": [
         {
           "operatorName": "Viridor",
-          "operatorRegisterId": "REPD Ref #217 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #217",
           "unitId": "REPD_217",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Greater Manchester",
           "coordinates": [
-            53.3941,
-            -2.24466
+            53.39436,
+            -2.2461
           ],
           "capacity": "2 MWelec",
           "evidence": [
             "site name overlap: south",
-            "capacity: 2 MWelec"
+            "capacity: 2 MWelec",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         },
         {
           "operatorName": "Shanks Group",
-          "operatorRegisterId": "REPD Ref #289 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #289",
           "unitId": "REPD_289",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "West Yorkshire",
           "coordinates": [
-            53.60241,
-            -1.33914
+            53.60266,
+            -1.3407
           ],
           "capacity": "6 MWelec",
           "evidence": [
             "site name overlap: south",
             "capacity: 6 MWelec",
-            "Postcode: WF9 4DG"
+            "Postcode: WF9 4DG",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         },
         {
           "operatorName": "DJ AND SJ RECYCLING",
-          "operatorRegisterId": "REPD Ref #384 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #384",
           "unitId": "REPD_384",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Northumberland",
           "coordinates": [
-            54.97327,
-            -2.08031
+            54.97334,
+            -2.08183
           ],
           "capacity": "1.5 MWelec",
           "evidence": [
             "site name overlap: south",
-            "capacity: 1.5 MWelec"
+            "capacity: 1.5 MWelec",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         }
       ]
@@ -2154,17 +2413,20 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "Greener for Life Energy",
-        "operatorRegisterId": "REPD Ref #345 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #345",
         "unitId": "REPD_345",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "Devon",
         "coordinates": [
-          51.00455,
-          -3.82264
+          51.00507,
+          -3.82381
         ],
         "capacity": "1.3 MWelec",
         "evidence": [
           "site/town match: 'south molton' in Great Hele Farm AD farm waste",
-          "capacity: 1.3 MWelec"
+          "capacity: 1.3 MWelec",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
         ]
       },
       "candidates": []
@@ -2177,48 +2439,57 @@
       "candidates": [
         {
           "operatorName": "Viridor",
-          "operatorRegisterId": "REPD Ref #217 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #217",
           "unitId": "REPD_217",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Greater Manchester",
           "coordinates": [
-            53.3941,
-            -2.24466
+            53.39436,
+            -2.2461
           ],
           "capacity": "2 MWelec",
           "evidence": [
             "site name overlap: south",
-            "capacity: 2 MWelec"
+            "capacity: 2 MWelec",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         },
         {
           "operatorName": "Shanks Group",
-          "operatorRegisterId": "REPD Ref #289 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #289",
           "unitId": "REPD_289",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "West Yorkshire",
           "coordinates": [
-            53.60241,
-            -1.33914
+            53.60266,
+            -1.3407
           ],
           "capacity": "6 MWelec",
           "evidence": [
             "site name overlap: south",
             "capacity: 6 MWelec",
-            "Postcode: WF9 4DG"
+            "Postcode: WF9 4DG",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         },
         {
           "operatorName": "DJ AND SJ RECYCLING",
-          "operatorRegisterId": "REPD Ref #384 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #384",
           "unitId": "REPD_384",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Northumberland",
           "coordinates": [
-            54.97327,
-            -2.08031
+            54.97334,
+            -2.08183
           ],
           "capacity": "1.5 MWelec",
           "evidence": [
             "site name overlap: south",
-            "capacity: 1.5 MWelec"
+            "capacity: 1.5 MWelec",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         }
       ]
@@ -2229,18 +2500,21 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "Lockwood Estates",
-        "operatorRegisterId": "REPD Ref #72 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #72",
         "unitId": "REPD_72",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "Lincolnshire",
         "coordinates": [
-          53.33582,
-          -0.53465
+          53.33611,
+          -0.53629
         ],
         "capacity": "1.1 MWelec",
         "evidence": [
           "site/town match: 'spridlington' in Land at Grange Farm",
           "capacity: 1.1 MWelec",
-          "Postcode: LN8 2DN"
+          "Postcode: LN8 2DN",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
         ]
       },
       "candidates": []
@@ -2251,18 +2525,21 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "Severn Trent Water",
-        "operatorRegisterId": "REPD Ref #213 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #213",
         "unitId": "REPD_213",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "Nottinghamshire",
         "coordinates": [
-          52.97561,
-          -1.03802
+          52.97593,
+          -1.03958
         ],
         "capacity": "2 MWelec",
         "evidence": [
           "site name overlap: stoke",
           "operator word overlap: trent",
-          "capacity: 2 MWelec"
+          "capacity: 2 MWelec",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
         ]
       },
       "candidates": []
@@ -2338,33 +2615,39 @@
       "candidates": [
         {
           "operatorName": "Private Developer",
-          "operatorRegisterId": "REPD Ref #359 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #359",
           "unitId": "REPD_359",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "Dumfries and Galloway",
           "coordinates": [
-            55.09505,
-            -3.53229
-          ],
-          "capacity": "1.2 MWelec",
-          "evidence": [
-            "site name overlap: west",
-            "capacity: 1.2 MWelec"
-          ]
-        },
-        {
-          "operatorName": "Belfast Harbour Commissioners",
-          "operatorRegisterId": "REPD Ref #5995 (DESNZ / Ofgem)",
-          "unitId": "REPD_5995",
-          "town": "Co. Antrim",
-          "coordinates": [
-            54.62591,
-            -5.87182
+            55.09509,
+            -3.53363
           ],
           "capacity": "1.2 MWelec",
           "evidence": [
             "site name overlap: west",
             "capacity: 1.2 MWelec",
-            "Postcode: BT3 9ED"
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
+          ]
+        },
+        {
+          "operatorName": "Belfast Harbour Commissioners",
+          "operatorRegisterId": "REPD Ref #5995",
+          "unitId": "REPD_5995",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
+          "town": "Co. Antrim",
+          "coordinates": [
+            54.62598,
+            -5.87286
+          ],
+          "capacity": "1.2 MWelec",
+          "evidence": [
+            "site name overlap: west",
+            "capacity: 1.2 MWelec",
+            "Postcode: BT3 9ED",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         }
       ]
@@ -2375,18 +2658,21 @@
       "status": "MATCHED",
       "best": {
         "operatorName": "ReFood UK",
-        "operatorRegisterId": "REPD Ref #306 (DESNZ / Ofgem)",
+        "operatorRegisterId": "REPD Ref #306",
         "unitId": "REPD_306",
+        "idLabel": "REPD reference",
+        "nameLabel": "REPD operator/applicant",
         "town": "Cheshire",
         "coordinates": [
-          53.35222,
-          -2.74536
+          53.35247,
+          -2.74673
         ],
         "capacity": "5 MWelec",
         "evidence": [
           "site/town match: 'widnes' in Granox Biogas Plant",
           "capacity: 5 MWelec",
-          "Postcode: WA8 0PB"
+          "Postcode: WA8 0PB",
+          "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
         ]
       },
       "candidates": []
@@ -2413,34 +2699,40 @@
       "candidates": [
         {
           "operatorName": "JFS Biogas",
-          "operatorRegisterId": "REPD Ref #4919 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #4919",
           "unitId": "REPD_4919",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "North Yorkshire",
           "coordinates": [
-            54.0198,
-            -0.95625
+            54.02001,
+            -0.95787
           ],
           "capacity": "1 MWelec",
           "evidence": [
             "site/town match: 'york' in Gravel Pit Farm",
             "capacity: 1 MWelec",
-            "Postcode: YO41 1LN"
+            "Postcode: YO41 1LN",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         },
         {
           "operatorName": "Yorkshire Water",
-          "operatorRegisterId": "REPD Ref #6123 (DESNZ / Ofgem)",
+          "operatorRegisterId": "REPD Ref #6123",
           "unitId": "REPD_6123",
+          "idLabel": "REPD reference",
+          "nameLabel": "REPD operator/applicant",
           "town": "West Yorkshire",
           "coordinates": [
-            53.78123,
-            -1.48968
+            53.78146,
+            -1.49122
           ],
           "capacity": "4 MWelec",
           "evidence": [
             "site/town match: 'york' in Knostrop Sewage Treatment Works",
             "capacity: 4 MWelec",
-            "Postcode: LS9 0PJ"
+            "Postcode: LS9 0PJ",
+            "REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator"
           ]
         }
       ]

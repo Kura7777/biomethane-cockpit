@@ -122,10 +122,14 @@ export interface RegistrationCheck {
 
 export type RegisterMatchStatus = 'MATCHED' | 'AMBIGUOUS' | 'NO_MATCH';
 
+export type RegisterMatchKind = 'OPERATOR_REGISTER' | 'INJECTION_SITE' | 'PROJECT_DATABASE';
+
 export interface RegisterMatchCandidate {
   operatorName: string;
   operatorRegisterId: string | null;   // e.g. "HRB 12345 (AG Oldenburg)", SIREN, MaStR ABR…
   unitId: string | null;               // e.g. MaStR SEE…/GSE… unit number
+  idLabel: string;
+  nameLabel: string;
   town: string | null;
   coordinates: [number, number] | null;
   capacity: string | null;             // as the register states it, with unit
@@ -134,6 +138,7 @@ export interface RegisterMatchCandidate {
 
 export interface RegisterMatch {
   status: RegisterMatchStatus;
+  matchKind: RegisterMatchKind;
   source: string;                      // register + dataset name/version
   checkedAt: string;                   // ISO date
   best: RegisterMatchCandidate | null; // set only for MATCHED
@@ -189,6 +194,10 @@ export interface VerifiedPlantDossier {
   suggestedEntity?: {
     name: string;
     registerId: string | null;
+    unitId?: string | null;
+    matchKind: RegisterMatchKind;
+    idLabel: string;
+    nameLabel: string;
     evidence: string[];
     source: string;
   } | null;

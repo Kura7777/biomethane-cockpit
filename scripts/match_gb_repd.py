@@ -4,7 +4,9 @@ import re
 import math
 import os
 
-from test_osgb36 import osgb36_to_wgs84
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from scripts.lib.osgb36 import osgb36_to_wgs84
 
 # 1. Load UK REPD AD units
 ad_units = []
@@ -189,17 +191,22 @@ for plant in gb_plants:
         u = c['_u']
         ref = u['refId']
         op_name = u['operator'] if u['operator'] else f"REPD Operator ({u['siteName']})"
-        reg_id = f"REPD Ref #{ref} (DESNZ / Ofgem)"
+        reg_id = f"REPD Ref #{ref}"
         coords = [round(u['lat'], 5), round(u['lon'], 5)] if u['lat'] and u['lon'] else None
+        
+        evidence = list(c['evidence'])
+        evidence.append("REPD lists an anaerobic-digestion project here; confirm it is the biomethane operator")
         
         return {
             'operatorName': op_name,
             'operatorRegisterId': reg_id,
             'unitId': f"REPD_{ref}",
+            'idLabel': 'REPD reference',
+            'nameLabel': 'REPD operator/applicant',
             'town': u['county'] or u['siteName'],
             'coordinates': coords,
             'capacity': f"{u['capMWelec']} MWelec" if u['capMWelec'] else None,
-            'evidence': c['evidence'],
+            'evidence': evidence,
             '_refId': ref
         }
         
@@ -251,6 +258,7 @@ print(f"Centroid placeholder plants that matched: {centroid_plants_matched}")
 
 out_data = {
     "countryCode": "GB",
+    "matchKind": "PROJECT_DATABASE",
     "source": "UK Department for Energy Security and Net Zero (DESNZ) Renewable Energy Planning Database (REPD Q2 2026)",
     "checkedAt": "2026-09-26",
     "results": matches_out
