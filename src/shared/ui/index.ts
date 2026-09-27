@@ -5,3 +5,4 @@ export * from './KpiTile';
 export * from './Card';
 export * from './DataTable';
 export * from './SidePanel';
+export * from './FlowSteps';

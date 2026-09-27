@@ -17,9 +17,9 @@ export interface FlowStepsProps<T extends number = number> {
   ariaLabel: string;
 }
 
-/** Vertical step flow shared by the FuelEU tools: numbered markers on a rail, only the current
- *  step open, finished steps folded to a one-line summary with an Edit link. Every step is
- *  clickable, and all steps share one column width (see .fva in vesselArchetypeCalculator.css). */
+/** Vertical step flow: numbered markers on a rail, only the current step open, finished steps
+ *  folded to a one-line summary with an Edit link. Every step is clickable. Wrap it in
+ *  .ds-flow-column so every step shares one fixed width. Styles: ds-flow-* in desk.css. */
 export function FlowSteps<T extends number = number>({ steps, current, onSelect, renderBody, ariaLabel }: FlowStepsProps<T>) {
   const stepRefs = useRef(new Map<T, HTMLLIElement>());
   const hasMounted = useRef(false);
@@ -39,7 +39,7 @@ export function FlowSteps<T extends number = number>({ steps, current, onSelect,
   const currentIndex = steps.findIndex(s => s.id === current);
 
   return (
-    <ol className="fva-flow" aria-label={ariaLabel}>
+    <ol className="ds-flow" aria-label={ariaLabel}>
       {steps.map(({ id, label, summary }, index) => {
         const state = index < currentIndex ? 'done' : index === currentIndex ? 'current' : 'todo';
         return (
@@ -49,38 +49,38 @@ export function FlowSteps<T extends number = number>({ steps, current, onSelect,
               if (el) stepRefs.current.set(id, el);
               else stepRefs.current.delete(id);
             }}
-            className={`fva-flow-step ${state}`}
+            className={`ds-flow-step ${state}`}
             aria-current={state === 'current' ? 'step' : undefined}
           >
-            <div className="fva-flow-rail" aria-hidden="true">
-              <div className="fva-flow-marker num">
+            <div className="ds-flow-rail" aria-hidden="true">
+              <div className="ds-flow-marker num">
                 {state === 'done' ? <Check size={16} strokeWidth={3} /> : String(index + 1).padStart(2, '0')}
               </div>
-              <div className="fva-flow-line" />
+              <div className="ds-flow-line" />
             </div>
 
-            <div className="fva-flow-main">
-              <div className="fva-flow-head">
-                <h3 className="fva-flow-name">
+            <div className="ds-flow-main">
+              <div className="ds-flow-head">
+                <h3 className="ds-flow-name">
                   <button
                     type="button"
-                    className="fva-flow-title"
+                    className="ds-flow-title"
                     onClick={() => onSelect(id)}
                     disabled={state === 'current'}
                     aria-expanded={state === 'current'}
                   >
-                    <span className="fva-flow-label">{label}</span>
-                    {state === 'done' && <span className="fva-flow-summary num">{summary}</span>}
+                    <span className="ds-flow-label">{label}</span>
+                    {state === 'done' && <span className="ds-flow-summary num">{summary}</span>}
                   </button>
                 </h3>
                 {state === 'done' && (
-                  <button type="button" className="fva-edit-link" onClick={() => onSelect(id)} aria-label={`Edit ${label.toLowerCase()}`}>
+                  <button type="button" className="ds-flow-edit" onClick={() => onSelect(id)} aria-label={`Edit ${label.toLowerCase()}`}>
                     <Pencil size={12} /> Edit
                   </button>
                 )}
               </div>
 
-              {state === 'current' && <div className="fva-flow-body">{renderBody(id)}</div>}
+              {state === 'current' && <div className="ds-flow-body">{renderBody(id)}</div>}
             </div>
           </li>
         );

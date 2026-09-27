@@ -1,0 +1,30 @@
+/* Trade builder — deal flow layout. The flow sits in the shared fixed-width column
+ * (.ds-flow-column) so every step keeps the same width. */
+
+.tb-flow {
+  box-sizing: content-box;
+  padding: 24px 16px 48px;
+}
+
+/* A step body: its panels stacked in one column */
+.tb-step,
+.tb-step-cols,
+.tb-step-cols > div {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* Tailwind's space-y-* margins would double the gap inside the flex columns */
+.tb-step-cols > .space-y-4 > * + * {
+  margin-top: 0;
+}
+
+.tb-step-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 4px;
+}

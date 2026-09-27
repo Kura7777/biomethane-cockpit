@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { Market } from '../../../domain/markets/types';
 import { MARKETS, isVoluntaryMarket } from '../../../domain/markets/registry';
 import { EligibilityAssessment } from '../../../domain/eligibility/types';
-import { ArrowLeft, ArrowRight, ShieldCheck, AlertTriangle, XCircle, CheckCircle2, Scale, ExternalLink } from 'lucide-react';
+import { ShieldCheck, AlertTriangle, XCircle, CheckCircle2, Scale, ExternalLink } from 'lucide-react';
 
 const MONO_FONT = 'var(--font-mono, "IBM Plex Mono", monospace)';
 
@@ -13,8 +13,6 @@ interface TradeMarketAuditStepProps {
   assessment: EligibilityAssessment;
   ghgSavingPct: number;
   origin: string;
-  onBack: () => void;
-  onNext: () => void;
 }
 
 export function TradeMarketAuditStep({
@@ -24,8 +22,6 @@ export function TradeMarketAuditStep({
   assessment,
   ghgSavingPct,
   origin,
-  onBack,
-  onNext,
 }: TradeMarketAuditStepProps) {
   const isPass = assessment.overallVerdict === 'ELIGIBLE';
   const isBlock = assessment.overallVerdict === 'HARD_BLOCK';
@@ -45,9 +41,9 @@ export function TradeMarketAuditStep({
   }, []);
 
   return (
-    <div className="w-full max-w-[1600px] mx-auto p-4 sm:p-5 space-y-4">
+    <div className="tb-step">
       {/* 2-Column Workstation Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+      <div className="tb-step-cols">
         
         {/* Left Column: Target Market Matrix & Jurisdiction Selector */}
         <div className="space-y-4">
@@ -407,38 +403,6 @@ export function TradeMarketAuditStep({
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Bottom Dock Navigation Bar */}
-      <div
-        style={{
-          border: '1px solid var(--color-divider)',
-          backgroundColor: 'var(--color-surface)',
-          borderRadius: 'var(--radius-card)',
-          padding: '10px 16px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '12px',
-        }}
-      >
-        <button
-          type="button"
-          onClick={onBack}
-          className="btn btn-secondary"
-        >
-          <ArrowLeft size={13} />
-          <span>Back: Consignment &amp; Asset</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={onNext}
-          className="btn btn-primary"
-        >
-          <span>Next: Economics, Waterfall &amp; Risk</span>
-          <ArrowRight size={13} />
-        </button>
       </div>
     </div>
   );

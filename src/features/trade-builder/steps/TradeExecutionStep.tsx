@@ -5,7 +5,6 @@ import { DocumentTab } from '../LegalPackageModal';
 import { getVtpForMarket } from '../TradeBuilderScreen';
 import { generateStatutoryAuditMemoPdf } from '../../../domain/trade/legalPackage';
 import {
-  ArrowLeft,
   RotateCcw,
   FileText,
   Download,
@@ -36,7 +35,6 @@ interface TradeExecutionStepProps {
   onSaveDossier: () => void;
   onExportPdf: () => void;
   onExportTermSheetPdf: () => void;
-  onBack: () => void;
   onReset: () => void;
 }
 
@@ -53,7 +51,6 @@ export function TradeExecutionStep({
   onSaveDossier,
   onExportPdf,
   onExportTermSheetPdf,
-  onBack,
   onReset,
 }: TradeExecutionStepProps) {
   const [copiedSummary, setCopiedSummary] = useState(false);
@@ -102,9 +99,9 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
   };
 
   return (
-    <div className="w-full max-w-[1600px] mx-auto p-4 sm:p-5 space-y-4">
+    <div className="tb-step">
       {/* 2-Column Workstation Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+      <div className="tb-step-cols">
         
         {/* Left Column: Deal Terms Note & Quick Export Actions */}
         <div className="space-y-4">
@@ -450,47 +447,16 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
         </div>
       </div>
 
-      {/* Bottom Dock Navigation Bar */}
-      <div
-        style={{
-          border: '1px solid var(--color-divider)',
-          backgroundColor: 'var(--color-surface)',
-          borderRadius: 'var(--radius-card)',
-          padding: '10px 16px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '12px',
-        }}
-      >
-        <button
-          type="button"
-          onClick={onBack}
-          className="btn btn-secondary"
-        >
-          <ArrowLeft size={13} />
-          <span>Back: Economics &amp; Risk</span>
+      {/* Final actions */}
+      <div className="tb-step-actions">
+        <button type="button" onClick={() => onOpenDocReview('TERM_SHEET')} className="btn btn-primary">
+          <Package size={13} />
+          <span>Review Full Legal Package (4 Docs) →</span>
         </button>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <button
-            type="button"
-            onClick={onReset}
-            className="btn btn-secondary"
-          >
-            <RotateCcw size={12} />
-            <span>Start New Deal (Clear)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => onOpenDocReview('TERM_SHEET')}
-            className="btn btn-primary"
-          >
-            <Package size={13} />
-            <span>Review Full Legal Package (4 Docs) →</span>
-          </button>
-        </div>
+        <button type="button" onClick={onReset} className="btn btn-secondary">
+          <RotateCcw size={12} />
+          <span>Start New Deal (Clear)</span>
+        </button>
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Market } from '../../../domain/markets/types';
 import { NetbackResult, CostInputs } from '../../../domain/netback/types';
-import { ArrowLeft, ArrowRight, TrendingUp, AlertTriangle, DollarSign, ShieldAlert, BarChart3 } from 'lucide-react';
+import { TrendingUp, AlertTriangle, DollarSign, ShieldAlert, BarChart3 } from 'lucide-react';
 import { AssumptionsStrip } from '../../../shared/components/AssumptionsStrip';
 
 const RISK_SUITE_ASSUMPTIONS = ['risk.illustrativeVolumeMwh', 'risk.replacementCeilingFloorEurPerMwh', 'risk.replacementCeilingNetbackMultiple', 'risk.fallbackProcurementPremiumEurPerMwh', 'risk.deThgBundleRefNeg80EurPerMwh', 'risk.deThgBundleRefNeg0EurPerMwh'];
@@ -28,8 +28,6 @@ interface TradeEconomicsStepProps {
   deskMarginEurMwh: string;
   annualPnl: number;
   origin: string;
-  onBack: () => void;
-  onNext: () => void;
 }
 
 export function TradeEconomicsStep({
@@ -45,15 +43,13 @@ export function TradeEconomicsStep({
   deskMarginEurMwh,
   annualPnl,
   origin,
-  onBack,
-  onNext,
 }: TradeEconomicsStepProps) {
   const isPositivePnl = (netback.deskMargin ?? 0) >= 0;
 
   return (
-    <div className="w-full max-w-[1600px] mx-auto p-4 sm:p-5 space-y-4">
+    <div className="tb-step">
       {/* 2-Column Workstation Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+      <div className="tb-step-cols">
         
         {/* Left Column: Hero Figure, 2x2 Metric Grid, Netback Summary */}
         <div className="space-y-4">
@@ -424,38 +420,6 @@ export function TradeEconomicsStep({
             </div>
           )}
         </div>
-      </div>
-
-      {/* Bottom Dock Navigation Bar */}
-      <div
-        style={{
-          border: '1px solid var(--color-divider)',
-          backgroundColor: 'var(--color-surface)',
-          borderRadius: 'var(--radius-card)',
-          padding: '10px 16px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '12px',
-        }}
-      >
-        <button
-          type="button"
-          onClick={onBack}
-          className="btn btn-secondary"
-        >
-          <ArrowLeft size={13} />
-          <span>Back: Destination &amp; Audit</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={onNext}
-          className="btn btn-primary"
-        >
-          <span>Next: Deal Package &amp; Term Sheet</span>
-          <ArrowRight size={13} />
-        </button>
       </div>
     </div>
   );

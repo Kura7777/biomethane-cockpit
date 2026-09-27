@@ -16,7 +16,7 @@ import { showToast } from '../../app/DeskToastContainer';
 import { getAssumption, fuelEuPoolSpreadEurPerTco2e, fuelEuPoolBidPriceEurPerTco2e } from '../../domain/assumptions/registry';
 import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
 import { AssumptionsStrip } from '../../shared/components/AssumptionsStrip';
-import { FlowSteps } from './FlowSteps';
+import { FlowSteps } from '../../shared/ui/FlowSteps';
 
 type PathwayStep = 1 | 2 | 3;
 

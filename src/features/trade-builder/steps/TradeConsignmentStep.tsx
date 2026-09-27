@@ -5,7 +5,7 @@ import { BiomethanePlant } from '../../../domain/plants/types';
 import { DealParams } from '../../../domain/trade/dealParams';
 import { getCountryFeedstockCI } from '../../../domain/consignment/feedstocks';
 import { getVtpForMarket } from '../TradeBuilderScreen';
-import { ArrowRight, FileText, Lock, Calendar } from 'lucide-react';
+import { FileText, Lock, Calendar } from 'lucide-react';
 
 const MONO_FONT = 'var(--font-mono, "IBM Plex Mono", monospace)';
 
@@ -87,7 +87,8 @@ interface TradeConsignmentStepProps {
   deal: Partial<DealParams>;
   linkedPlant: BiomethanePlant | null | undefined;
   onOpenPoS: () => void;
-  onNext: () => void;
+  /** PRODUCT: origin, feedstock, certification, CI and PoS ingestion. SCHEDULE: volume and delivery schedule. */
+  section: 'PRODUCT' | 'SCHEDULE';
 }
 
 export function TradeConsignmentStep({
@@ -140,96 +141,92 @@ export function TradeConsignmentStep({
   deal,
   linkedPlant,
   onOpenPoS,
-  onNext,
+  section,
 }: TradeConsignmentStepProps) {
   const monthlyRateMwh = Math.round(volumeMwh / 12);
   const dailyRateMwh = Number((volumeMwh / 365).toFixed(1));
 
   return (
-    <div className="w-full max-w-[1600px] mx-auto p-4 sm:p-5 space-y-4">
-      {/* Upstream FuelEU Maritime Physical Gas Hedge Context Banner */}
-      {(deal.marketId === 'FUELEU' || (deal.counterparty && deal.feedstock === 'manure')) && (
-        <div
-          style={{
-            border: '1px solid rgba(14, 165, 233, 0.4)',
-            backgroundColor: 'rgba(14, 165, 233, 0.08)',
-            padding: '12px 16px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '12px',
-            flexWrap: 'wrap',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+    <div className="tb-step">
+      {section === 'PRODUCT' && (
+        <>
+          {/* Upstream FuelEU Maritime Physical Gas Hedge Context Banner */}
+          {(deal.marketId === 'FUELEU' || (deal.counterparty && deal.feedstock === 'manure')) && (
             <div
               style={{
-                width: '34px',
-                height: '34px',
-                backgroundColor: 'rgba(14, 165, 233, 0.2)',
-                border: '1px solid rgba(14, 165, 233, 0.5)',
+                border: '1px solid rgba(14, 165, 233, 0.4)',
+                backgroundColor: 'rgba(14, 165, 233, 0.08)',
+                padding: '12px 16px',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                color: '#38bdf8',
-                fontSize: '15px',
-                flexShrink: 0,
+                justifyContent: 'space-between',
+                gap: '12px',
+                flexWrap: 'wrap',
               }}
             >
-              ⚓
-            </div>
-            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div
+                  style={{
+                    width: '34px',
+                    height: '34px',
+                    backgroundColor: 'rgba(14, 165, 233, 0.2)',
+                    border: '1px solid rgba(14, 165, 233, 0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#38bdf8',
+                    fontSize: '15px',
+                    flexShrink: 0,
+                  }}
+                >
+                  ⚓
+                </div>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <span
+                      style={{
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        padding: '2px 8px',
+                        borderRadius: 'var(--radius-control)',
+                        backgroundColor: 'rgba(14, 165, 233, 0.15)',
+                        color: 'var(--color-accent)',
+                        border: '1px solid rgba(14, 165, 233, 0.3)',
+                      }}
+                    >
+                      FuelEU Maritime Upstream Sourcing Hedge
+                    </span>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)' }}>
+                      Marine Counterparty: {deal.counterparty || 'Maritime Fleet Buyer'}
+                    </span>
+                    <span className="tabular-nums" style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
+                      ({volumeMwh.toLocaleString()} MWh physical biomethane requirement)
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '3px' }}>
+                    Sourcing pipeline biomethane on the European gas grid via RED III Mass Balance to feed cryogenic Bio-LNG liquefaction at European bunkering terminals.
+                  </div>
+                </div>
+              </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                 <span
+                  className="tabular-nums"
                   style={{
                     fontSize: '12px',
                     fontWeight: 600,
-                    padding: '2px 8px',
+                    color: 'var(--color-status-pos-text)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                    border: '1px solid rgba(16, 185, 129, 0.3)',
                     borderRadius: 'var(--radius-control)',
-                    backgroundColor: 'rgba(14, 165, 233, 0.15)',
-                    color: 'var(--color-accent)',
-                    border: '1px solid rgba(14, 165, 233, 0.3)',
+                    padding: '4px 10px',
                   }}
                 >
-                  FuelEU Maritime Upstream Sourcing Hedge
+                  -100 gCO₂e/MJ Manure · 100% RED III Compliant
                 </span>
-                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)' }}>
-                  Marine Counterparty: {deal.counterparty || 'Maritime Fleet Buyer'}
-                </span>
-                <span className="tabular-nums" style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
-                  ({volumeMwh.toLocaleString()} MWh physical biomethane requirement)
-                </span>
-              </div>
-              <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '3px' }}>
-                Sourcing pipeline biomethane on the European gas grid via RED III Mass Balance to feed cryogenic Bio-LNG liquefaction at European bunkering terminals.
               </div>
             </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <span
-              className="tabular-nums"
-              style={{
-                fontSize: '12px',
-                fontWeight: 600,
-                color: 'var(--color-status-pos-text)',
-                backgroundColor: 'rgba(16, 185, 129, 0.12)',
-                border: '1px solid rgba(16, 185, 129, 0.3)',
-                borderRadius: 'var(--radius-control)',
-                padding: '4px 10px',
-              }}
-            >
-              -100 gCO₂e/MJ Manure · 100% RED III Compliant
-            </span>
-          </div>
-        </div>
-      )}
+          )}
 
-      {/* 2-Column Workstation Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
-        
-        {/* Left Column: Asset Sourcing, PoS & Schedule */}
-        <div className="space-y-4">
-          
           {/* PoS Certificate Ingestion Card */}
           <div
             style={{
@@ -344,156 +341,6 @@ export function TradeConsignmentStep({
             </div>
           )}
 
-          {/* Production & Delivery Schedule */}
-          <div
-            style={{
-              border: '1px solid var(--color-divider)',
-              backgroundColor: 'var(--color-surface)',
-              borderRadius: 'var(--radius-card)',
-              overflow: 'hidden',
-            }}
-          >
-            <div
-              style={{
-                padding: '9px 14px',
-                borderBottom: '1px solid var(--color-divider)',
-                backgroundColor: 'var(--color-panel-header)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Calendar size={13} style={{ color: 'var(--color-accent)' }} />
-                <span style={{ fontSize: '13px', fontWeight: 600 }}>
-                  Production &amp; Delivery Schedule
-                </span>
-              </div>
-              <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
-                EFET biomethane schedule
-              </span>
-            </div>
-
-            <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {/* Compliance Year */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '12px', fontWeight: 600 }}>Compliance Target Year</span>
-                <div style={{ display: 'flex', gap: '4px' }}>
-                  {[2025, 2026, 2027].map(yr => (
-                    <button
-                      key={yr}
-                      type="button"
-                      className={`chip ${complianceYear === yr ? 'chip-a' : ''}`}
-                      onClick={() => handleComplianceYearChange(yr)}
-                    >
-                      {yr}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Vintage Presets */}
-              <div>
-                <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>Production Vintage (Gas Grid Injection)</span>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
-                  {[
-                    { key: 'CAL_YEAR', label: `Cal-${complianceYear}` },
-                    { key: 'Q1', label: `Q1-${complianceYear}` },
-                    { key: 'Q2', label: `Q2-${complianceYear}` },
-                    { key: 'Q3', label: `Q3-${complianceYear}` },
-                    { key: 'Q4', label: `Q4-${complianceYear}` },
-                    { key: 'PROMPT', label: 'Prompt Month' },
-                    { key: 'CUSTOM', label: 'Custom' },
-                  ].map(p => (
-                    <button
-                      key={p.key}
-                      type="button"
-                      className={`chip ${vintagePreset === p.key ? 'chip-a' : ''}`}
-                      onClick={() => handleVintagePreset(p.key)}
-                    >
-                      {p.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Date Pickers */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label style={{ fontSize: '12px', color: 'var(--color-muted)', display: 'block', marginBottom: '3px' }}>
-                    Injection Start Date
-                  </label>
-                  <input
-                    type="date"
-                    className="input tabular-nums"
-                    value={prodStartDate}
-                    onChange={e => setProdStartDate(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label style={{ fontSize: '12px', color: 'var(--color-muted)', display: 'block', marginBottom: '3px' }}>
-                    Injection End Date
-                  </label>
-                  <input
-                    type="date"
-                    className="input tabular-nums"
-                    value={prodEndDate}
-                    onChange={e => setProdEndDate(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              {/* Delivery Profile */}
-              <div>
-                <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>Delivery Rate Profile</span>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
-                  {(['FLAT_MONTHLY', 'SEASONAL_WINTER', 'PROMPT_SPOT', 'CUSTOM'] as DeliveryProfile[]).map(dp => (
-                    <button
-                      key={dp}
-                      type="button"
-                      className={`chip ${deliveryProfile === dp ? 'chip-a' : ''}`}
-                      onClick={() => setDeliveryProfile(dp)}
-                    >
-                      {dp.replace('_', ' ')}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Grid Delivery Point & Statutory Deadline Card */}
-              <div
-                style={{
-                  padding: '10px 12px',
-                  backgroundColor: 'var(--color-panel-header)',
-                  border: '1px solid var(--color-divider)',
-                  borderRadius: 'var(--radius-control)',
-                  fontSize: '12px',
-                  lineHeight: 1.5,
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
-                  <span style={{ color: 'var(--color-muted)' }}>Grid Delivery Point (VTP):</span>
-                  <strong style={{ color: 'var(--color-text)' }}>
-                    {getVtpForMarket(selectedMarket.country)}
-                  </strong>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
-                  <span style={{ color: 'var(--color-muted)' }}>Registry Surrender Deadline:</span>
-                  <strong className="tabular-nums" style={{ color: 'var(--color-accent)' }}>
-                    {statutorySurrenderDeadline}
-                  </strong>
-                </div>
-                <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '4px' }}>
-                  UDB Mass Balance Rule: Certificates must be balanced and surrendered within 12 months of injection month end (RED III Art. 30).
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column: Specification & Volume Allocation */}
-        <div className="space-y-4">
-          
           {/* Origin Country Selector */}
           <div
             style={{
@@ -579,76 +426,6 @@ export function TradeConsignmentStep({
                 </div>
               )}
             </div>
-          </div>
-
-          {/* Volume Allocation */}
-          <div
-            style={{
-              border: '1px solid var(--color-divider)',
-              backgroundColor: 'var(--color-surface)',
-              borderRadius: 'var(--radius-card)',
-              padding: '14px 16px',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <span style={{ fontSize: '13px', fontWeight: 600 }}>
-                Contract Traded Volume
-              </span>
-              <span className="tabular-nums" style={{ fontWeight: 600, fontSize: '16px', color: 'var(--color-accent)' }}>
-                {volumeMwh.toLocaleString()} MWh
-              </span>
-            </div>
-
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <input
-                type="number"
-                min="100"
-                step="500"
-                className="input tabular-nums"
-                style={{ fontWeight: 600, fontSize: '14px', flex: 1 }}
-                value={volumeMwh}
-                onChange={e => setVolumeMwh(Math.max(0, Number(e.target.value) || 0))}
-              />
-              <div style={{ display: 'flex', gap: '3px' }}>
-                {[5000, 10000, 25000, 50000].map(v => (
-                  <button
-                    key={v}
-                    type="button"
-                    className="chip tabular-nums"
-                    onClick={() => setVolumeMwh(v)}
-                  >
-                    {(v / 1000).toFixed(0)}k
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Run-rate breakdown */}
-            <div className="tabular-nums" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--color-muted)', marginTop: '8px' }}>
-              <span>Delivery Run-rate:</span>
-              <span>~{monthlyRateMwh.toLocaleString()} MWh/mo · {dailyRateMwh.toLocaleString()} MWh/d</span>
-            </div>
-
-            {plantTotalMWh !== null && (
-              <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--color-divider)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
-                  <span style={{ color: 'var(--color-muted)' }}>Facility Capacity Utilisation:</span>
-                  <span className="tabular-nums" style={{ fontWeight: 600, color: isOversubscribed ? 'var(--color-status-neg-text)' : 'var(--color-text)' }}>
-                    {plantCommittedPct}% ({volumeMwh.toLocaleString()} / {plantTotalMWh.toLocaleString()} MWh)
-                  </span>
-                </div>
-                <div style={{ height: '4px', backgroundColor: 'var(--color-divider)', borderRadius: 'var(--radius-bar)', position: 'relative' }}>
-                  <div
-                    style={{
-                      height: '100%',
-                      width: `${Math.min(100, plantCommittedPct || 0)}%`,
-                      borderRadius: 'var(--radius-bar)',
-                      backgroundColor: isOversubscribed ? 'var(--color-status-neg-text)' : 'var(--color-accent)',
-                    }}
-                  />
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Feedstock, Certification & Chain of Custody */}
@@ -889,35 +666,228 @@ export function TradeConsignmentStep({
               </div>
             )}
           </div>
-        </div>
-      </div>
+        </>
+      )}
 
-      {/* Bottom Dock Navigation Bar */}
-      <div
-        style={{
-          border: '1px solid var(--color-divider)',
-          backgroundColor: 'var(--color-surface)',
-          borderRadius: 'var(--radius-card)',
-          padding: '10px 16px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '12px',
-        }}
-      >
-        <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
-          Step 1 of 4 · Consignment &amp; physical asset sourcing
-        </div>
+      {section === 'SCHEDULE' && (
+        <>
+          {/* Volume Allocation */}
+          <div
+            style={{
+              border: '1px solid var(--color-divider)',
+              backgroundColor: 'var(--color-surface)',
+              borderRadius: 'var(--radius-card)',
+              padding: '14px 16px',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <span style={{ fontSize: '13px', fontWeight: 600 }}>
+                Contract Traded Volume
+              </span>
+              <span className="tabular-nums" style={{ fontWeight: 600, fontSize: '16px', color: 'var(--color-accent)' }}>
+                {volumeMwh.toLocaleString()} MWh
+              </span>
+            </div>
 
-        <button
-          type="button"
-          onClick={onNext}
-          className="btn btn-primary"
-        >
-          <span>Next: Target Market &amp; 6-Gate Audit</span>
-          <ArrowRight size={13} />
-        </button>
-      </div>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <input
+                type="number"
+                min="100"
+                step="500"
+                className="input tabular-nums"
+                style={{ fontWeight: 600, fontSize: '14px', flex: 1 }}
+                value={volumeMwh}
+                onChange={e => setVolumeMwh(Math.max(0, Number(e.target.value) || 0))}
+              />
+              <div style={{ display: 'flex', gap: '3px' }}>
+                {[5000, 10000, 25000, 50000].map(v => (
+                  <button
+                    key={v}
+                    type="button"
+                    className="chip tabular-nums"
+                    onClick={() => setVolumeMwh(v)}
+                  >
+                    {(v / 1000).toFixed(0)}k
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Run-rate breakdown */}
+            <div className="tabular-nums" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--color-muted)', marginTop: '8px' }}>
+              <span>Delivery Run-rate:</span>
+              <span>~{monthlyRateMwh.toLocaleString()} MWh/mo · {dailyRateMwh.toLocaleString()} MWh/d</span>
+            </div>
+
+            {plantTotalMWh !== null && (
+              <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--color-divider)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
+                  <span style={{ color: 'var(--color-muted)' }}>Facility Capacity Utilisation:</span>
+                  <span className="tabular-nums" style={{ fontWeight: 600, color: isOversubscribed ? 'var(--color-status-neg-text)' : 'var(--color-text)' }}>
+                    {plantCommittedPct}% ({volumeMwh.toLocaleString()} / {plantTotalMWh.toLocaleString()} MWh)
+                  </span>
+                </div>
+                <div style={{ height: '4px', backgroundColor: 'var(--color-divider)', borderRadius: 'var(--radius-bar)', position: 'relative' }}>
+                  <div
+                    style={{
+                      height: '100%',
+                      width: `${Math.min(100, plantCommittedPct || 0)}%`,
+                      borderRadius: 'var(--radius-bar)',
+                      backgroundColor: isOversubscribed ? 'var(--color-status-neg-text)' : 'var(--color-accent)',
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Production & Delivery Schedule */}
+          <div
+            style={{
+              border: '1px solid var(--color-divider)',
+              backgroundColor: 'var(--color-surface)',
+              borderRadius: 'var(--radius-card)',
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                padding: '9px 14px',
+                borderBottom: '1px solid var(--color-divider)',
+                backgroundColor: 'var(--color-panel-header)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Calendar size={13} style={{ color: 'var(--color-accent)' }} />
+                <span style={{ fontSize: '13px', fontWeight: 600 }}>
+                  Production &amp; Delivery Schedule
+                </span>
+              </div>
+              <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
+                EFET biomethane schedule
+              </span>
+            </div>
+
+            <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {/* Compliance Year */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '12px', fontWeight: 600 }}>Compliance Target Year</span>
+                <div style={{ display: 'flex', gap: '4px' }}>
+                  {[2025, 2026, 2027].map(yr => (
+                    <button
+                      key={yr}
+                      type="button"
+                      className={`chip ${complianceYear === yr ? 'chip-a' : ''}`}
+                      onClick={() => handleComplianceYearChange(yr)}
+                    >
+                      {yr}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Vintage Presets */}
+              <div>
+                <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>Production Vintage (Gas Grid Injection)</span>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
+                  {[
+                    { key: 'CAL_YEAR', label: `Cal-${complianceYear}` },
+                    { key: 'Q1', label: `Q1-${complianceYear}` },
+                    { key: 'Q2', label: `Q2-${complianceYear}` },
+                    { key: 'Q3', label: `Q3-${complianceYear}` },
+                    { key: 'Q4', label: `Q4-${complianceYear}` },
+                    { key: 'PROMPT', label: 'Prompt Month' },
+                    { key: 'CUSTOM', label: 'Custom' },
+                  ].map(p => (
+                    <button
+                      key={p.key}
+                      type="button"
+                      className={`chip ${vintagePreset === p.key ? 'chip-a' : ''}`}
+                      onClick={() => handleVintagePreset(p.key)}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Date Pickers */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label style={{ fontSize: '12px', color: 'var(--color-muted)', display: 'block', marginBottom: '3px' }}>
+                    Injection Start Date
+                  </label>
+                  <input
+                    type="date"
+                    className="input tabular-nums"
+                    value={prodStartDate}
+                    onChange={e => setProdStartDate(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '12px', color: 'var(--color-muted)', display: 'block', marginBottom: '3px' }}>
+                    Injection End Date
+                  </label>
+                  <input
+                    type="date"
+                    className="input tabular-nums"
+                    value={prodEndDate}
+                    onChange={e => setProdEndDate(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Delivery Profile */}
+              <div>
+                <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>Delivery Rate Profile</span>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
+                  {(['FLAT_MONTHLY', 'SEASONAL_WINTER', 'PROMPT_SPOT', 'CUSTOM'] as DeliveryProfile[]).map(dp => (
+                    <button
+                      key={dp}
+                      type="button"
+                      className={`chip ${deliveryProfile === dp ? 'chip-a' : ''}`}
+                      onClick={() => setDeliveryProfile(dp)}
+                    >
+                      {dp.replace('_', ' ')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Grid Delivery Point & Statutory Deadline Card */}
+              <div
+                style={{
+                  padding: '10px 12px',
+                  backgroundColor: 'var(--color-panel-header)',
+                  border: '1px solid var(--color-divider)',
+                  borderRadius: 'var(--radius-control)',
+                  fontSize: '12px',
+                  lineHeight: 1.5,
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
+                  <span style={{ color: 'var(--color-muted)' }}>Grid Delivery Point (VTP):</span>
+                  <strong style={{ color: 'var(--color-text)' }}>
+                    {getVtpForMarket(selectedMarket.country)}
+                  </strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
+                  <span style={{ color: 'var(--color-muted)' }}>Registry Surrender Deadline:</span>
+                  <strong className="tabular-nums" style={{ color: 'var(--color-accent)' }}>
+                    {statutorySurrenderDeadline}
+                  </strong>
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '4px' }}>
+                  UDB Mass Balance Rule: Certificates must be balanced and surrendered within 12 months of injection month end (RED III Art. 30).
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

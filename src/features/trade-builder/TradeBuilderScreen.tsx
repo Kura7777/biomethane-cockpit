@@ -21,9 +21,28 @@ import { TradeConsignmentStep } from './steps/TradeConsignmentStep';
 import { TradeMarketAuditStep } from './steps/TradeMarketAuditStep';
 import { TradeEconomicsStep, WaterfallRow } from './steps/TradeEconomicsStep';
 import { TradeExecutionStep } from './steps/TradeExecutionStep';
-import { ListOrdered, LayoutGrid, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
+import { ListOrdered, LayoutGrid, CheckCircle2, XCircle, AlertTriangle, ArrowRight } from 'lucide-react';
 import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
 import { AssumptionsStrip } from '../../shared/components/AssumptionsStrip';
+import { FlowSteps } from '../../shared/ui/FlowSteps';
+import './tradeBuilder.css';
+
+type DealStep = 1 | 2 | 3 | 4 | 5;
+
+/** Deal flow, top to bottom. Step 1 of the old four-step flow is split into product (what is
+ *  being sold) and volume & schedule (how much, when), so no step carries more than a few panels. */
+const DEAL_STEPS: { id: DealStep; label: string; next: string }[] = [
+  { id: 1, label: 'Product', next: 'Next: Volume & schedule' },
+  { id: 2, label: 'Volume & schedule', next: 'Next: Market & 6-gate audit' },
+  { id: 3, label: 'Market & 6-gate audit', next: 'Next: Economics & waterfall' },
+  { id: 4, label: 'Economics & waterfall', next: 'Next: Deal package' },
+  { id: 5, label: 'Deal package & execution', next: '' },
+];
+
+const formatShortDate = (iso: string) => {
+  const [y, m, d] = iso.split('-');
+  return y && m && d ? `${d}/${m}/${y}` : iso;
+};
 
 const RISK_SUITE_ASSUMPTIONS = ['risk.illustrativeVolumeMwh', 'risk.replacementCeilingFloorEurPerMwh', 'risk.replacementCeilingNetbackMultiple', 'risk.fallbackProcurementPremiumEurPerMwh', 'risk.deThgBundleRefNeg80EurPerMwh', 'risk.deThgBundleRefNeg0EurPerMwh'];
 
@@ -128,12 +147,12 @@ export function TradeBuilderScreen() {
   const { state, dispatch } = useAppState();
 
   const stepParam = Number(searchParams.get('step')) || 1;
-  const currentStep = (stepParam >= 1 && stepParam <= 4 ? stepParam : 1) as 1 | 2 | 3 | 4;
+  const currentStep = (stepParam >= 1 && stepParam <= DEAL_STEPS.length ? stepParam : 1) as DealStep;
 
   const modeParam = searchParams.get('mode') === 'grid' ? 'GRID' : 'STEPPER';
   const [flowMode, setFlowMode] = useState<'STEPPER' | 'GRID'>(modeParam);
 
-  const handleStepChange = (step: 1 | 2 | 3 | 4) => {
+  const handleStepChange = (step: DealStep) => {
     setSearchParams(prev => {
       const next = new URLSearchParams(prev);
       next.set('step', String(step));
@@ -514,6 +533,22 @@ export function TradeBuilderScreen() {
     }
   };
 
+  const stepSummary: Record<DealStep, string> = {
+    1: `${currentOriginObj.flag} ${currentOriginObj.name} · ${currentFeedstockObj.label} · ${currentSchemeObj.label} · ${currentCustodyObj.label} · CI ${ci} g/MJ`,
+    2: `${volumeMwh.toLocaleString()} MWh · ${complianceYear} compliance · ${formatShortDate(deliveryStartDate)} – ${formatShortDate(deliveryEndDate)} · ${deliveryProfile.replace(/_/g, ' ').toLowerCase()}`,
+    3: `${selectedMarket.name} · ${assessment.overallVerdict === 'ELIGIBLE' ? '6/6 gates pass' : 'blocked'}`,
+    4: `Net netback ${netNetbackVal >= 0 ? '+' : '−'}€${Math.abs(netNetbackVal).toFixed(2)}/MWh · P&L ${netback.deskMargin !== null ? `€${annualPnl.toLocaleString()}` : '—'}`,
+    5: '',
+  };
+
+  const nextAction = (step: DealStep) => (
+    <div className="tb-step-actions">
+      <button type="button" className="btn btn-primary" onClick={() => handleStepChange((step + 1) as DealStep)}>
+        {DEAL_STEPS[step - 1].next} <ArrowRight size={14} />
+      </button>
+    </div>
+  );
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' }}>
       {/* Top Deal Command Header & Stepper Bar */}
@@ -701,179 +736,131 @@ export function TradeBuilderScreen() {
           </div>
         </div>
 
-        {/* Inline Stepper Bar (visible in STEPPER mode) */}
-        {flowMode === 'STEPPER' && (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              paddingTop: '8px',
-              borderTop: '1px solid var(--color-divider)',
-              overflowX: 'auto',
-            }}
-          >
-            {[
-              { num: 1, label: 'Consignment & Asset' },
-              { num: 2, label: 'Destination & 6-Gate Audit' },
-              { num: 3, label: 'Economics & Waterfall' },
-              { num: 4, label: 'Deal Package & Execution' },
-            ].map(s => {
-              const isActive = currentStep === s.num;
-              const isDone = currentStep > s.num;
-              return (
-                <button
-                  key={s.num}
-                  type="button"
-                  onClick={() => handleStepChange(s.num as 1 | 2 | 3 | 4)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '6px 14px',
-                    border: '1px solid',
-                    borderColor: isActive ? 'var(--color-text)' : isDone ? 'var(--color-divider)' : 'var(--color-divider)',
-                    borderRadius: 'var(--radius-control)',
-                    backgroundColor: isActive ? 'var(--color-surface)' : 'transparent',
-                    color: isActive ? 'var(--color-text)' : 'var(--color-muted)',
-                    cursor: 'pointer',
-                    fontSize: '13px',
-                    whiteSpace: 'nowrap',
-                    transition: 'all 120ms ease',
-                  }}
-                >
-                  <span
-                    style={{
-                      width: '18px',
-                      height: '18px',
-                      borderRadius: '50%',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontWeight: 600,
-                      fontSize: '12px',
-                      backgroundColor: isActive ? 'var(--color-text)' : isDone ? 'var(--color-status-pass-text)' : 'var(--color-subtier)',
-                      color: isActive ? 'var(--color-bg)' : isDone ? 'var(--color-contrast-white, #ffffff)' : 'var(--color-muted)',
-                      border: isDone || isActive ? 'none' : '1px solid var(--color-divider)',
-                    }}
-                  >
-                    {isDone ? '✓' : s.num}
-                  </span>
-                  <span style={{ fontWeight: isActive ? 500 : 400 }}>{s.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        )}
       </div>
 
       {flowMode === 'STEPPER' ? (
-        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
-          {currentStep === 1 && (
-            <TradeConsignmentStep
-              origin={origin}
-              setOrigin={setOrigin}
-              origins={ORIGINS}
-              currentOriginObj={currentOriginObj}
-              feedstockKey={feedstockKey}
-              setFeedstockKey={setFeedstockKey}
-              feedstocks={FEEDSTOCKS}
-              currentFeedstockObj={currentFeedstockObj}
-              scheme={scheme}
-              setScheme={setScheme}
-              schemes={SCHEMES}
-              currentSchemeObj={currentSchemeObj}
-              chainOfCustody={chainOfCustody}
-              setChainOfCustody={setChainOfCustody}
-              custodies={CUSTODIES}
-              currentCustodyObj={currentCustodyObj}
-              ci={ci}
-              setCi={setCi}
-              ciTier={ciTier}
-              setCiTier={setCiTier}
-              ghgSavingPct={ghgSavingPct}
-              volumeMwh={volumeMwh}
-              setVolumeMwh={setVolumeMwh}
-              plantTotalMWh={plantTotalMWh}
-              plantCommittedMwh={plantCommittedMwh}
-              availablePlantCapacity={availablePlantCapacity}
-              ciProvenance={ciSource === 'pos' ? 'pos' : ciSource !== 'manual' && (ciSource === 'estimate' || deal.ciIsEstimated || linkedPlant) ? 'estimated' : null}
-              onCiSourceChange={setCiSource}
-              isOversubscribed={isOversubscribed}
-              plantCommittedPct={plantCommittedPct}
-              complianceYear={complianceYear}
-              handleComplianceYearChange={handleComplianceYearChange}
-              vintagePreset={vintagePreset}
-              handleVintagePreset={handleVintagePreset}
-              prodStartDate={prodStartDate}
-              setProdStartDate={setProdStartDate}
-              prodEndDate={prodEndDate}
-              setProdEndDate={setProdEndDate}
-              deliveryStartDate={deliveryStartDate}
-              setDeliveryStartDate={setDeliveryStartDate}
-              deliveryEndDate={deliveryEndDate}
-              setDeliveryEndDate={setDeliveryEndDate}
-              deliveryProfile={deliveryProfile}
-              setDeliveryProfile={setDeliveryProfile}
-              selectedMarket={selectedMarket}
-              statutorySurrenderDeadline={statutorySurrenderDeadline}
-              deal={deal}
-              linkedPlant={linkedPlant}
-              onOpenPoS={() => setIsPoSUploaderOpen(true)}
-              onNext={() => handleStepChange(2)}
-            />
-          )}
-
-          {currentStep === 2 && (
-            <TradeMarketAuditStep
-              marketId={marketId}
-              setMarketId={setMarketId}
-              selectedMarket={selectedMarket}
-              assessment={assessment}
-              ghgSavingPct={ghgSavingPct}
-              origin={origin}
-              onBack={() => handleStepChange(1)}
-              onNext={() => handleStepChange(3)}
-            />
-          )}
-
-          {currentStep === 3 && (
-            <TradeEconomicsStep
-              netback={netback}
-              costs={state.costs}
-              selectedMarket={selectedMarket}
-              currentSide={currentSide}
-              netNetbackVal={netNetbackVal}
-              waterfallRows={waterfallRows}
-              waterfallMax={waterfallMax}
-              volumeMwh={volumeMwh}
-              grossTotal={grossTotal}
-              deskMarginEurMwh={deskMarginEurMwh}
-              annualPnl={annualPnl}
-              origin={origin}
-              onBack={() => handleStepChange(2)}
-              onNext={() => handleStepChange(4)}
-            />
-          )}
-
-          {currentStep === 4 && (
-            <TradeExecutionStep
-              currentTradeAssessment={currentTradeAssessment}
-              selectedMarket={selectedMarket}
-              origin={origin}
-              volumeMwh={volumeMwh}
-              netNetbackVal={netNetbackVal}
-              deskMarginEurMwh={deskMarginEurMwh}
-              annualPnl={annualPnl}
-              onOpenDocReview={handleOpenDocReview}
-              onOpenLogistics={() => setIsLogisticsOpen(true)}
-              onSaveDossier={handleSaveDossier}
-              onExportPdf={handleExportPdf}
-              onExportTermSheetPdf={handleExportTermSheetPdf}
-              onBack={() => handleStepChange(3)}
-              onReset={handleResetDeal}
-            />
-          )}
+        <div className="ds-flow-column tb-flow">
+          <FlowSteps
+            steps={DEAL_STEPS.map(({ id, label }) => ({ id, label, summary: stepSummary[id] }))}
+            current={currentStep}
+            onSelect={handleStepChange}
+            ariaLabel="Deal flow steps"
+            renderBody={id => {
+              switch (id) {
+                case 1:
+                case 2:
+                  return (
+                    <>
+                      <TradeConsignmentStep
+                        origin={origin}
+                        setOrigin={setOrigin}
+                        origins={ORIGINS}
+                        currentOriginObj={currentOriginObj}
+                        feedstockKey={feedstockKey}
+                        setFeedstockKey={setFeedstockKey}
+                        feedstocks={FEEDSTOCKS}
+                        currentFeedstockObj={currentFeedstockObj}
+                        scheme={scheme}
+                        setScheme={setScheme}
+                        schemes={SCHEMES}
+                        currentSchemeObj={currentSchemeObj}
+                        chainOfCustody={chainOfCustody}
+                        setChainOfCustody={setChainOfCustody}
+                        custodies={CUSTODIES}
+                        currentCustodyObj={currentCustodyObj}
+                        ci={ci}
+                        setCi={setCi}
+                        ciTier={ciTier}
+                        setCiTier={setCiTier}
+                        ghgSavingPct={ghgSavingPct}
+                        volumeMwh={volumeMwh}
+                        setVolumeMwh={setVolumeMwh}
+                        plantTotalMWh={plantTotalMWh}
+                        plantCommittedMwh={plantCommittedMwh}
+                        availablePlantCapacity={availablePlantCapacity}
+                        ciProvenance={ciSource === 'pos' ? 'pos' : ciSource !== 'manual' && (ciSource === 'estimate' || deal.ciIsEstimated || linkedPlant) ? 'estimated' : null}
+                        onCiSourceChange={setCiSource}
+                        isOversubscribed={isOversubscribed}
+                        plantCommittedPct={plantCommittedPct}
+                        complianceYear={complianceYear}
+                        handleComplianceYearChange={handleComplianceYearChange}
+                        vintagePreset={vintagePreset}
+                        handleVintagePreset={handleVintagePreset}
+                        prodStartDate={prodStartDate}
+                        setProdStartDate={setProdStartDate}
+                        prodEndDate={prodEndDate}
+                        setProdEndDate={setProdEndDate}
+                        deliveryStartDate={deliveryStartDate}
+                        setDeliveryStartDate={setDeliveryStartDate}
+                        deliveryEndDate={deliveryEndDate}
+                        setDeliveryEndDate={setDeliveryEndDate}
+                        deliveryProfile={deliveryProfile}
+                        setDeliveryProfile={setDeliveryProfile}
+                        selectedMarket={selectedMarket}
+                        statutorySurrenderDeadline={statutorySurrenderDeadline}
+                        deal={deal}
+                        linkedPlant={linkedPlant}
+                        onOpenPoS={() => setIsPoSUploaderOpen(true)}
+                        section={id === 1 ? 'PRODUCT' : 'SCHEDULE'}
+                      />
+                      {nextAction(id)}
+                    </>
+                  );
+                case 3:
+                  return (
+                    <>
+                      <TradeMarketAuditStep
+                        marketId={marketId}
+                        setMarketId={setMarketId}
+                        selectedMarket={selectedMarket}
+                        assessment={assessment}
+                        ghgSavingPct={ghgSavingPct}
+                        origin={origin}
+                      />
+                      {nextAction(3)}
+                    </>
+                  );
+                case 4:
+                  return (
+                    <>
+                      <TradeEconomicsStep
+                        netback={netback}
+                        costs={state.costs}
+                        selectedMarket={selectedMarket}
+                        currentSide={currentSide}
+                        netNetbackVal={netNetbackVal}
+                        waterfallRows={waterfallRows}
+                        waterfallMax={waterfallMax}
+                        volumeMwh={volumeMwh}
+                        grossTotal={grossTotal}
+                        deskMarginEurMwh={deskMarginEurMwh}
+                        annualPnl={annualPnl}
+                        origin={origin}
+                      />
+                      {nextAction(4)}
+                    </>
+                  );
+                default:
+                  return (
+                    <TradeExecutionStep
+                      currentTradeAssessment={currentTradeAssessment}
+                      selectedMarket={selectedMarket}
+                      origin={origin}
+                      volumeMwh={volumeMwh}
+                      netNetbackVal={netNetbackVal}
+                      deskMarginEurMwh={deskMarginEurMwh}
+                      annualPnl={annualPnl}
+                      onOpenDocReview={handleOpenDocReview}
+                      onOpenLogistics={() => setIsLogisticsOpen(true)}
+                      onSaveDossier={handleSaveDossier}
+                      onExportPdf={handleExportPdf}
+                      onExportTermSheetPdf={handleExportTermSheetPdf}
+                      onReset={handleResetDeal}
+                    />
+                  );
+              }
+            }}
+          />
         </div>
       ) : (
         /* Legacy 3-Column Desk Grid */

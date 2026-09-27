@@ -33,7 +33,7 @@ import {
 import { showToast } from '../../app/DeskToastContainer';
 import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
 import { AssumptionsStrip } from '../../shared/components/AssumptionsStrip';
-import { FlowSteps } from './FlowSteps';
+import { FlowSteps } from '../../shared/ui/FlowSteps';
 import './vesselArchetypeCalculator.css';
 
 const FUELEU_PATHWAY_ASSUMPTIONS = [
