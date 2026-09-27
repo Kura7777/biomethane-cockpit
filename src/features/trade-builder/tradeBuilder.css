@@ -372,3 +372,121 @@ html.dark .tb-range {
   font-weight: 600;
   font-size: 14px;
 }
+
+.tb-badge.neg {
+  color: var(--color-status-neg-text);
+  background: var(--color-status-neg-bg);
+  border-color: color-mix(in srgb, var(--color-status-neg-text) 35%, transparent);
+}
+
+.tb-badge.warn {
+  color: var(--color-status-warn-text);
+  background: var(--color-status-warn-bg);
+  border-color: color-mix(in srgb, var(--color-status-warn-text) 35%, transparent);
+}
+
+.tb-market-name {
+  margin: 2px 0 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.tb-alert-block {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.tb-alert-body {
+  margin: 0;
+  font-weight: 400;
+  color: var(--color-text);
+}
+
+/* ── Six-gate audit list ── */
+.tb-gates {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-control);
+  overflow: hidden;
+}
+
+.tb-gates li + li {
+  border-top: 1px solid var(--color-divider);
+}
+
+.tb-gate {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  align-items: start;
+  column-gap: 12px;
+  padding: 12px 16px;
+  border: 0;
+  background: var(--color-surface);
+  font: inherit;
+  text-align: left;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.tb-gate:hover {
+  background: var(--color-subtier);
+}
+
+.tb-gate.neg {
+  box-shadow: inset 3px 0 0 var(--color-status-neg-text);
+}
+
+.tb-gate.warn {
+  box-shadow: inset 3px 0 0 var(--color-status-warn-text);
+}
+
+.tb-gate-icon {
+  display: flex;
+  padding-top: 1px;
+}
+
+.tb-gate-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.tb-gate-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.tb-gate-reason {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-muted);
+}
+
+.tb-gate-cite {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--color-accent);
+}
+
+.tb-gate-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.tb-gate-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-accent);
+}
