@@ -1,0 +1,380 @@
+/*
+ * Data Connectors screen
+ * Feature-local styling; shared primitives live in src/shared/ui/desk.css
+ */
+
+.dc-body {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding-top: 24px;
+  padding-bottom: 24px;
+}
+
+/* ── Top banner ── */
+.dc-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-top: 24px;
+}
+
+.dc-eyebrow {
+  color: var(--color-accent-600, var(--color-accent));
+}
+
+.dc-title {
+  margin-top: 4px;
+  font-size: 24px;
+}
+
+.dc-subtitle {
+  max-width: 800px;
+  margin-top: 6px;
+}
+
+.dc-banner-chips {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* ── Status chips (header actions) ── */
+.dc-stat-chip {
+  background-color: var(--color-surface);
+  padding: 10px 18px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-divider);
+}
+
+.dc-stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-accent-700);
+}
+
+.dc-telemetry-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-status-pass-text, #16a34a);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.dc-telemetry-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: currentColor;
+  display: inline-block;
+}
+
+/* ── OTC broker run panel ── */
+.dc-otc-panel {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-card);
+  padding: 20px;
+}
+
+.dc-otc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.dc-otc-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dc-otc-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--color-text);
+}
+
+.dc-otc-sub {
+  font-size: 12px;
+  color: var(--color-muted);
+  margin-top: 2px;
+}
+
+.dc-otc-apply-btn {
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dc-otc-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.dc-otc-grid.has-quotes {
+  grid-template-columns: 1fr 1fr;
+}
+
+.dc-textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-divider);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  resize: vertical;
+}
+
+.dc-quotes-box {
+  max-height: 180px;
+  overflow-y: auto;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-control);
+  background-color: var(--color-bg);
+  padding: 10px;
+}
+
+.dc-quotes-header {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-muted);
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.dc-quote-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dc-quote-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  padding: 4px 8px;
+  background-color: var(--color-surface);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-divider);
+}
+
+.dc-quote-class {
+  color: var(--color-accent);
+}
+
+.dc-quote-class.bundled {
+  color: var(--color-status-pass-text, #15803d);
+}
+
+.dc-quote-price {
+  font-family: var(--font-mono, monospace);
+  font-weight: 600;
+}
+
+/* ── Category tabs ── */
+.dc-cat-tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid var(--color-divider);
+  padding-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.dc-cat-tab {
+  font-size: 13px;
+  padding: 6px 14px;
+}
+
+/* ── Connectors grid ── */
+.dc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  gap: 20px;
+}
+
+.dc-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-card);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.dc-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.dc-card-badge {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--dc-badge-color, var(--color-accent));
+  background-color: var(--color-subtier);
+  padding: 3px 8px;
+  border-radius: var(--radius-control);
+  display: inline-block;
+}
+
+.dc-card-badge.grid-flow {
+  --dc-badge-color: var(--color-status-pass-text, #15803d);
+}
+
+.dc-card-badge.registry {
+  --dc-badge-color: #9333ea;
+}
+
+.dc-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 6px 0 2px 0;
+  color: var(--color-text);
+}
+
+.dc-mode-pill {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--color-divider);
+  cursor: pointer;
+  background-color: var(--color-bg);
+  color: var(--color-muted);
+}
+
+.dc-mode-pill.live {
+  background-color: var(--color-status-pass-text, #16a34a);
+  color: var(--color-bg-inverse, #ffffff);
+  border-color: var(--color-status-pass-text, #16a34a);
+}
+
+.dc-card-desc {
+  font-size: 12px;
+  color: var(--color-muted);
+  margin-bottom: 14px;
+  line-height: 1.4;
+}
+
+.dc-field {
+  margin-bottom: 10px;
+}
+
+.dc-field.with-toggle {
+  margin-bottom: 12px;
+}
+
+.dc-field-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.dc-field-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-muted);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.dc-field-label-row .dc-field-label {
+  margin-bottom: 0;
+}
+
+.dc-field-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-muted);
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+
+.dc-input {
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--color-divider);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-size: 12px;
+  font-family: var(--font-mono, monospace);
+}
+
+.dc-status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+.dc-status-connected {
+  color: var(--color-status-pass-text, #16a34a);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+}
+
+.dc-status-error {
+  color: var(--color-status-neg-text, #dc2626);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+}
+
+.dc-status-pending {
+  color: var(--color-muted);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.dc-card-actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-divider);
+}
+
+.dc-card-actions .btn {
+  font-size: 12px;
+}
+
+.dc-test-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.dc-save-btn {
+  padding: 6px 16px;
+}

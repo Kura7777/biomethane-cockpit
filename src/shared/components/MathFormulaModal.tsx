@@ -119,7 +119,7 @@ export function MathFormulaModal({
                 <h2 className="text-base font-bold text-zinc-100">
                   Step-by-Step Mathematical Proof &amp; Regulatory Audit
                 </h2>
-                <span className="px-2 py-0.5 font-mono text-[10px] font-bold rounded-xs bg-emerald-950 border border-emerald-800 text-emerald-300">
+                <span className="px-2 py-0.5 font-mono text-xs font-bold rounded-xs bg-emerald-950 border border-emerald-800 text-emerald-300">
                   DETERMINISTIC
                 </span>
               </div>
@@ -144,11 +144,11 @@ export function MathFormulaModal({
           {/* STEP 1 */}
           <div className="p-3.5 bg-[#0e1118] border border-[#1e2433] rounded-xs space-y-2">
             <div className="flex items-center justify-between text-cyan-400 font-bold">
-              <span className="text-[11px] uppercase tracking-wider flex items-center gap-1.5">
+              <span className="text-xs flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" />
                 Step 1: Physical Carbon Intensity Savings (RED III Annex V, Part C)
               </span>
-              <span className="text-[10px] text-zinc-400 font-normal">SI Standard: 3,600 MJ = 1 MWh</span>
+              <span className="text-xs text-zinc-400 font-normal">SI Standard: 3,600 MJ = 1 MWh</span>
             </div>
             <div className="bg-[#08090d] p-3 rounded-xs border border-stone-850 space-y-1.5 text-zinc-300">
               <div className="flex justify-between">
@@ -163,7 +163,7 @@ export function MathFormulaModal({
                 <span className="text-zinc-400">Avoided GHG Emissions ($\Delta CI$):</span>
                 <span className="text-zinc-100 font-bold">{deltaCI.toFixed(2)} gCO₂e/MJ avoided</span>
               </div>
-              <div className="p-2 bg-[#0e1118] rounded-xs border border-[#1e2433] text-cyan-300 font-mono text-[11px]">
+              <div className="p-2 bg-[#0e1118] rounded-xs border border-[#1e2433] text-cyan-300 font-mono text-xs">
                 tCO₂e/MWh = ({comparator.toFixed(1)} − ({ci})) × 3600 ÷ 1,000,000 = <strong className="text-emerald-300">{tCO2ePerMWh.toFixed(5)} tCO₂e/MWh</strong>
               </div>
             </div>
@@ -172,11 +172,11 @@ export function MathFormulaModal({
           {/* STEP 2 */}
           <div className="p-3.5 bg-[#0e1118] border border-[#1e2433] rounded-xs space-y-2">
             <div className="flex items-center justify-between text-cyan-400 font-bold">
-              <span className="text-[11px] uppercase tracking-wider flex items-center gap-1.5">
+              <span className="text-xs flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" />
                 Step 2: Statutory Policy Multiplier (§37a BImSchG &amp; Annex IX-A)
               </span>
-              <span className="text-[10px] text-zinc-400 font-normal">Classification: {feedstock.annexClassification.replace('_', ' ')}</span>
+              <span className="text-xs text-zinc-400 font-normal">Classification: {feedstock.annexClassification.replace('_', ' ')}</span>
             </div>
             <div className="bg-[#08090d] p-3 rounded-xs border border-stone-850 space-y-1.5 text-zinc-300">
               <div className="flex justify-between">
@@ -197,11 +197,11 @@ export function MathFormulaModal({
           {/* STEP 3 */}
           <div className="p-3.5 bg-[#0e1118] border border-[#1e2433] rounded-xs space-y-2">
             <div className="flex items-center justify-between text-cyan-400 font-bold">
-              <span className="text-[11px] uppercase tracking-wider flex items-center gap-1.5">
+              <span className="text-xs flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" />
                 Step 3: Green Compliance Certificate Monetization
               </span>
-              <span className="text-[10px] text-zinc-400 font-normal">Single Pricing Authority</span>
+              <span className="text-xs text-zinc-400 font-normal">Single Pricing Authority</span>
             </div>
             <div className="bg-[#08090d] p-3 rounded-xs border border-stone-850 space-y-1.5 text-zinc-300">
               <div className="flex justify-between">
@@ -217,7 +217,7 @@ export function MathFormulaModal({
                 </span>
               </div>
               {netbackResult?.certificateValue?.calculation && (
-                <div className="p-2 bg-[#0e1118] rounded-xs border border-[#1e2433] text-cyan-300 text-[11px]">
+                <div className="p-2 bg-[#0e1118] rounded-xs border border-[#1e2433] text-cyan-300 text-xs">
                   {netbackResult.certificateValue.calculation}
                 </div>
               )}
@@ -227,11 +227,11 @@ export function MathFormulaModal({
           {/* STEP 4 */}
           <div className="p-3.5 bg-[#0e1118] border border-[#1e2433] rounded-xs space-y-2">
             <div className="flex items-center justify-between text-cyan-400 font-bold">
-              <span className="text-[11px] uppercase tracking-wider flex items-center gap-1.5">
+              <span className="text-xs flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" />
                 Step 4: All-In Delivered Commercial Netback
               </span>
-              <span className="text-[10px] text-zinc-400 font-normal">Physical Gas + Green Premium − Costs</span>
+              <span className="text-xs text-zinc-400 font-normal">Physical Gas + Green Premium − Costs</span>
             </div>
             <div className="bg-[#08090d] p-3 rounded-xs border border-stone-850 space-y-1.5 text-zinc-300">
               <div className="flex justify-between">
@@ -264,11 +264,11 @@ export function MathFormulaModal({
           {/* STEP 5 */}
           <div className="p-3.5 bg-cyan-950/40 border border-cyan-500/40 rounded-xs space-y-2">
             <div className="flex items-center justify-between text-cyan-300 font-bold">
-              <span className="text-[11px] uppercase tracking-wider flex items-center gap-1.5">
+              <span className="text-xs flex items-center gap-1.5">
                 <Scale className="w-3.5 h-3.5 text-cyan-400" />
                 Step 5: Producer Settlement &amp; Commercial Desk Profit
               </span>
-              <span className="text-[10px] text-cyan-400 font-bold">Order Volume: {volume.toLocaleString()} MWh</span>
+              <span className="text-xs text-cyan-400 font-bold">Order Volume: {volume.toLocaleString()} MWh</span>
             </div>
             <div className="bg-[#08090d] p-3 rounded-xs border border-stone-850 space-y-1.5 text-zinc-300">
               <div className="flex justify-between">
