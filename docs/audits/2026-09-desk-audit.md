@@ -128,7 +128,7 @@ Tests: `statutoryDossier.test.ts`, `plantContactQuality.test.ts`, `plantResearch
 
 | Item | Status |
 |---|---|
-| Carbon intensity shown as "(Audited)" and passed to the Trade Builder as not estimated | **Open.** Should be labelled a feedstock default with `ciIsEstimated: true`. Affects pricing |
+| Carbon intensity shown as "(Audited)" and passed to the Trade Builder as not estimated | **Fixed 28 Sept (`e014a8d`)**, except the plant drawer (`PlantSourcingDrawer.tsx`), which still says "(Audited)". The Trade Builder labels plant CIs "Estimated CI" and shows "PoS CI" only after a PoS upload. The flag was display-only; no price used it. Test: `ciProvenance.test.ts` |
 | Real plant coordinates (666 placeholders) | Open. Needs an external source (MaStR/ODRE coordinates for matched plants, or a GIE/EBA export) |
 | German register matches: 11 units matched by more than one plant (e.g. Schwedt → BALANCE, not Verbio); 83 matches without distance evidence | Open |
 | French operators: ODRE project name found, company (SIREN) not yet confirmed | Open |
