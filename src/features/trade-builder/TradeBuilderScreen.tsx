@@ -27,7 +27,7 @@ import { AssumptionsStrip } from '../../shared/components/AssumptionsStrip';
 
 const RISK_SUITE_ASSUMPTIONS = ['risk.illustrativeVolumeMwh', 'risk.replacementCeilingFloorEurPerMwh', 'risk.replacementCeilingNetbackMultiple', 'risk.fallbackProcurementPremiumEurPerMwh', 'risk.deThgBundleRefNeg80EurPerMwh', 'risk.deThgBundleRefNeg0EurPerMwh'];
 
-const MONO_FONT = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
+const MONO_FONT = 'var(--font-mono, "IBM Plex Mono", monospace)';
 
 export function getVtpForMarket(marketCountry?: string): string {
   switch (marketCountry) {
@@ -544,18 +544,19 @@ export function TradeBuilderScreen() {
                 <span
                   style={{
                     fontSize: '9.5px',
-                    fontWeight: 700,
+                    fontWeight: 600,
                     padding: '1px 6px',
-                    border: '1px solid rgba(16, 185, 129, 0.4)',
-                    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-                    color: 'var(--color-status-pos-text)',
+                    border: '1px solid var(--color-status-pass-border)',
+                    backgroundColor: 'var(--color-status-pass-bg)',
+                    color: 'var(--color-status-pass-text)',
+                    borderRadius: 'var(--radius-bar)',
                   }}
                 >
                   AUDITED ASSET LOCKED
                 </span>
               </div>
             ) : (
-              <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--color-text)' }}>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)' }}>
                 {currentOriginObj.flag} {currentOriginObj.name} · {currentFeedstockObj.label}
               </span>
             )}
@@ -565,11 +566,12 @@ export function TradeBuilderScreen() {
                 style={{
                   fontSize: '10px',
                   fontFamily: MONO_FONT,
-                  fontWeight: 700,
+                  fontWeight: 600,
                   padding: '2px 7px',
                   border: '1px solid rgba(14, 165, 233, 0.4)',
                   backgroundColor: 'rgba(14, 165, 233, 0.12)',
                   color: '#38bdf8',
+                  borderRadius: 'var(--radius-bar)',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '4px',
@@ -589,11 +591,12 @@ export function TradeBuilderScreen() {
                 display: 'flex',
                 alignItems: 'baseline',
                 gap: '4px',
-                padding: '2px 8px',
+                padding: '3px 8px',
                 border: '1px solid var(--color-divider)',
+                borderRadius: 'var(--radius-control)',
                 backgroundColor: 'var(--color-subtier)',
-                fontFamily: MONO_FONT,
-                fontSize: '11px',
+                fontVariantNumeric: 'tabular-nums',
+                fontSize: '12px',
               }}
             >
               <span style={{ color: 'var(--color-muted)' }}>Netback:</span>
@@ -607,11 +610,12 @@ export function TradeBuilderScreen() {
                 display: 'flex',
                 alignItems: 'baseline',
                 gap: '4px',
-                padding: '2px 8px',
+                padding: '3px 8px',
                 border: '1px solid var(--color-divider)',
+                borderRadius: 'var(--radius-control)',
                 backgroundColor: 'var(--color-subtier)',
-                fontFamily: MONO_FONT,
-                fontSize: '11px',
+                fontVariantNumeric: 'tabular-nums',
+                fontSize: '12px',
               }}
             >
               <span style={{ color: 'var(--color-muted)' }}>P&amp;L:</span>
@@ -622,17 +626,18 @@ export function TradeBuilderScreen() {
 
             <span
               style={{
-                fontSize: '10.5px',
-                fontWeight: 700,
-                padding: '2px 8px',
+                fontSize: '11px',
+                fontWeight: 600,
+                padding: '3px 8px',
+                borderRadius: 'var(--radius-bar)',
                 border: assessment.overallVerdict === 'ELIGIBLE'
-                  ? '1px solid rgba(16, 185, 129, 0.4)'
-                  : '1px solid rgba(239, 68, 68, 0.4)',
+                  ? '1px solid var(--color-status-pass-border)'
+                  : '1px solid var(--color-status-neg-border)',
                 backgroundColor: assessment.overallVerdict === 'ELIGIBLE'
-                  ? 'rgba(16, 185, 129, 0.12)'
-                  : 'rgba(239, 68, 68, 0.12)',
+                  ? 'var(--color-status-pass-bg)'
+                  : 'var(--color-status-neg-bg)',
                 color: assessment.overallVerdict === 'ELIGIBLE'
-                  ? 'var(--color-status-pos-text)'
+                  ? 'var(--color-status-pass-text)'
                   : 'var(--color-status-neg-text)',
               }}
             >
@@ -640,46 +645,47 @@ export function TradeBuilderScreen() {
             </span>
 
             {/* View Mode Toggle */}
-            <div style={{ display: 'flex', border: '1px solid var(--color-divider)', borderRadius: 0, overflow: 'hidden' }}>
+            <div style={{ display: 'flex', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-control)', overflow: 'hidden' }}>
               <button
                 type="button"
                 onClick={() => handleToggleMode('STEPPER')}
                 style={{
-                  padding: '4px 8px',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  backgroundColor: flowMode === 'STEPPER' ? 'var(--color-accent)' : 'var(--color-surface)',
-                  color: flowMode === 'STEPPER' ? 'var(--color-bg)' : 'var(--color-text)',
+                  padding: '4px 10px',
+                  fontSize: '12px',
+                  fontWeight: 500,
+                  backgroundColor: flowMode === 'STEPPER' ? 'var(--color-text)' : 'var(--color-surface)',
+                  color: flowMode === 'STEPPER' ? 'var(--color-bg)' : 'var(--color-muted)',
                   border: 'none',
                   cursor: 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '4px',
+                  gap: '5px',
                 }}
                 title="Fluid 4-Step Deal Flow"
               >
                 <ListOrdered size={12} />
-                <span>Deal Flow</span>
+                <span>Deal flow</span>
               </button>
               <button
                 type="button"
                 onClick={() => handleToggleMode('GRID')}
                 style={{
-                  padding: '4px 8px',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  backgroundColor: flowMode === 'GRID' ? 'var(--color-accent)' : 'var(--color-surface)',
-                  color: flowMode === 'GRID' ? 'var(--color-bg)' : 'var(--color-text)',
+                  padding: '4px 10px',
+                  fontSize: '12px',
+                  fontWeight: 500,
+                  backgroundColor: flowMode === 'GRID' ? 'var(--color-text)' : 'var(--color-surface)',
+                  color: flowMode === 'GRID' ? 'var(--color-bg)' : 'var(--color-muted)',
                   border: 'none',
+                  borderLeft: '1px solid var(--color-divider)',
                   cursor: 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '4px',
+                  gap: '5px',
                 }}
                 title="All-In-One 3-Column Desk Grid"
               >
                 <LayoutGrid size={12} />
-                <span>Desk Grid</span>
+                <span>Desk grid</span>
               </button>
             </div>
           </div>
@@ -691,8 +697,8 @@ export function TradeBuilderScreen() {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '4px',
-              paddingTop: '6px',
+              gap: '8px',
+              paddingTop: '8px',
               borderTop: '1px solid var(--color-divider)',
               overflowX: 'auto',
             }}
@@ -714,31 +720,36 @@ export function TradeBuilderScreen() {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px',
-                    padding: '4px 12px',
+                    padding: '6px 14px',
                     border: '1px solid',
-                    borderColor: isActive ? 'var(--color-accent)' : isDone ? 'rgba(16, 185, 129, 0.4)' : 'var(--color-divider)',
-                    backgroundColor: isActive ? 'var(--color-subtier)' : 'transparent',
+                    borderColor: isActive ? 'var(--color-text)' : isDone ? 'var(--color-divider)' : 'var(--color-divider)',
+                    borderRadius: 'var(--radius-control)',
+                    backgroundColor: isActive ? 'var(--color-surface)' : 'transparent',
                     color: isActive ? 'var(--color-text)' : 'var(--color-muted)',
                     cursor: 'pointer',
-                    fontSize: '11.5px',
+                    fontSize: '13px',
                     whiteSpace: 'nowrap',
+                    transition: 'all 120ms ease',
                   }}
                 >
                   <span
                     style={{
-                      fontFamily: MONO_FONT,
-                      fontWeight: 800,
+                      width: '18px',
+                      height: '18px',
+                      borderRadius: '50%',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 600,
                       fontSize: '11px',
-                      padding: '1px 5px',
-                      backgroundColor: isActive ? 'var(--color-accent)' : isDone ? 'var(--color-status-pos-text)' : 'var(--color-divider)',
-                      color: isActive ? 'var(--color-bg)' : isDone ? '#fff' : 'var(--color-text)',
+                      backgroundColor: isActive ? 'var(--color-text)' : isDone ? 'var(--color-status-pass-text)' : 'var(--color-subtier)',
+                      color: isActive ? 'var(--color-bg)' : isDone ? '#ffffff' : 'var(--color-muted)',
+                      border: isDone || isActive ? 'none' : '1px solid var(--color-divider)',
                     }}
                   >
                     {isDone ? '✓' : s.num}
                   </span>
-                  <div style={{ textAlign: 'left' }}>
-                    <div style={{ fontWeight: isActive ? 700 : 600 }}>{s.label}</div>
-                  </div>
+                  <span style={{ fontWeight: isActive ? 500 : 400 }}>{s.label}</span>
                 </button>
               );
             })}

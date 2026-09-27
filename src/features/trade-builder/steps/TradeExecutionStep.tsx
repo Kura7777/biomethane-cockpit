@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { showToast } from '../../../app/DeskToastContainer';
 
-const MONO_FONT = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
+const MONO_FONT = 'var(--font-mono, "IBM Plex Mono", monospace)';
 
 interface TradeExecutionStepProps {
   currentTradeAssessment: TradeAssessment;

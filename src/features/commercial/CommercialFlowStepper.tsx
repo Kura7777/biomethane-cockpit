@@ -140,31 +140,31 @@ export function CommercialFlowStepper() {
                 >
                   {/* Step Number Circle */}
                   <div
-                    className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all shrink-0 ${
+                    className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-all shrink-0 ${
                       isDone
-                        ? 'bg-cyan-600 text-white dark:bg-cyan-500 dark:text-stone-950'
+                        ? 'bg-[var(--color-status-pos-text)] text-white dark:text-stone-950'
                         : isCurrent
-                        ? 'bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300 border-2 border-cyan-500 ring-2 ring-cyan-500/20'
-                        : 'bg-slate-100 dark:bg-[#08090d] text-slate-400 dark:text-zinc-600 border border-slate-200 dark:border-[#1e2433]'
+                        ? 'bg-[var(--color-text)] text-[var(--color-bg)] border-2 border-[var(--color-text)]'
+                        : 'bg-[var(--color-subtier)] text-[var(--color-muted)] border border-[var(--color-divider)]'
                     }`}
                   >
-                    {isDone ? <Check className="w-4 h-4 stroke-[3]" /> : s.step}
+                    {isDone ? <Check className="w-3.5 h-3.5 stroke-[2.5]" /> : s.step}
                   </div>
 
                   {/* Step Text */}
                   <div className="hidden sm:block">
                     <span
-                      className={`text-xs font-semibold tracking-wide block ${
+                      className={`text-xs font-medium block ${
                         isCurrent
-                          ? 'text-cyan-700 dark:text-cyan-300'
+                          ? 'text-[var(--color-text)]'
                           : isDone
-                          ? 'text-slate-800 dark:text-zinc-300'
-                          : 'text-slate-400 dark:text-zinc-600'
+                          ? 'text-[var(--color-text)]'
+                          : 'text-[var(--color-muted)]'
                       }`}
                     >
                       {s.title}
                     </span>
-                    <span className="text-[11px] text-slate-500 dark:text-zinc-500 block">
+                    <span className="text-[11px] text-[var(--color-muted)] block">
                       {s.desc}
                     </span>
                   </div>
@@ -172,9 +172,9 @@ export function CommercialFlowStepper() {
 
                 {/* Arrow Divider between steps */}
                 {idx < STEPS.length - 1 && (
-                  <div className="w-8 md:w-16 h-[2px] bg-slate-200 dark:bg-[#141824] shrink-0 mx-1">
+                  <div className="w-8 md:w-16 h-[1px] bg-[var(--color-divider)] shrink-0 mx-1">
                     <div
-                      className={`h-full bg-cyan-600 dark:bg-cyan-500 transition-all duration-300 ${
+                      className={`h-full bg-[var(--color-text)] transition-all duration-300 ${
                         currentStep > s.step ? 'w-full' : 'w-0'
                       }`}
                     />

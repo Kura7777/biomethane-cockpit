@@ -4,7 +4,7 @@ import { MARKETS, isVoluntaryMarket } from '../../../domain/markets/registry';
 import { EligibilityAssessment } from '../../../domain/eligibility/types';
 import { ArrowLeft, ArrowRight, ShieldCheck, AlertTriangle, XCircle, CheckCircle2, Scale, ExternalLink } from 'lucide-react';
 
-const MONO_FONT = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
+const MONO_FONT = 'var(--font-mono, "IBM Plex Mono", monospace)';
 
 interface TradeMarketAuditStepProps {
   marketId: string;

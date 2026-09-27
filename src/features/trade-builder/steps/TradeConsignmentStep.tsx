@@ -7,7 +7,7 @@ import { getCountryFeedstockCI } from '../../../domain/consignment/feedstocks';
 import { getVtpForMarket } from '../TradeBuilderScreen';
 import { ArrowRight, FileText, Lock, Calendar } from 'lucide-react';
 
-const MONO_FONT = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
+const MONO_FONT = 'var(--font-mono, "IBM Plex Mono", monospace)';
 
 export interface OriginOption {
   code: string;

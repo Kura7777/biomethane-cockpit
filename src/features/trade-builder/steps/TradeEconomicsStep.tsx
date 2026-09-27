@@ -6,7 +6,7 @@ import { AssumptionsStrip } from '../../../shared/components/AssumptionsStrip';
 
 const RISK_SUITE_ASSUMPTIONS = ['risk.illustrativeVolumeMwh', 'risk.replacementCeilingFloorEurPerMwh', 'risk.replacementCeilingNetbackMultiple', 'risk.fallbackProcurementPremiumEurPerMwh', 'risk.deThgBundleRefNeg80EurPerMwh', 'risk.deThgBundleRefNeg0EurPerMwh'];
 
-const MONO_FONT = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
+const MONO_FONT = 'var(--font-mono, "IBM Plex Mono", monospace)';
 
 export interface WaterfallRow {
   label: string;
