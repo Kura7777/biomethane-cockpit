@@ -157,13 +157,13 @@ export function MarketPricesModal({ isOpen, onClose }: MarketPricesModalProps) {
                 {savedMessage && (
                   <span
                     className="chip chip-pos"
-                    style={{ fontSize: '10.5px', padding: '1px 6px' }}
+                    style={{ fontSize: '12px', padding: '1px 6px' }}
                   >
                     ✓ {savedMessage}
                   </span>
                 )}
               </h2>
-              <p style={{ fontSize: '11.5px', color: 'var(--color-muted)', margin: '2px 0 0' }}>
+              <p style={{ fontSize: '12px', color: 'var(--color-muted)', margin: '2px 0 0' }}>
                 Adjust wholesale gas, national certificate quotas, and FX rates to immediately re-price all deals
               </p>
             </div>
@@ -175,7 +175,7 @@ export function MarketPricesModal({ isOpen, onClose }: MarketPricesModalProps) {
               className="seg"
               style={{ padding: '2px', borderRadius: 'var(--radius-control)' }}
             >
-              <span style={{ fontSize: '10.5px', color: 'var(--color-muted)', textTransform: 'uppercase', fontWeight: 700, padding: '0 6px' }}>
+              <span style={{ fontSize: '12px', color: 'var(--color-muted)', fontWeight: 700, padding: '0 6px' }}>
                 Side:
               </span>
               {(['bid', 'mid', 'offer'] as PriceSide[]).map(side => (
@@ -185,7 +185,7 @@ export function MarketPricesModal({ isOpen, onClose }: MarketPricesModalProps) {
                   onClick={() => dispatch({ type: 'SET_PRICING_SIDE', side })}
                   className={`btn ${currentSide === side ? 'btn-primary' : 'btn-secondary'}`}
                   style={{
-                    fontSize: '11px',
+                    fontSize: '12px',
                     padding: '2px 8px',
                     minHeight: '22px',
                     textTransform: 'uppercase',
@@ -226,7 +226,7 @@ export function MarketPricesModal({ isOpen, onClose }: MarketPricesModalProps) {
                   <Flame className="w-4 h-4" style={{ color: 'var(--color-warn, #b45309)' }} />
                   Wholesale Gas Index (TTF M+1)
                 </span>
-                <span className="chip chip-neutral" style={{ fontSize: '10px' }}>Benchmark Molecule</span>
+                <span className="chip chip-neutral" style={{ fontSize: '12px' }}>Benchmark Molecule</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <div style={{ position: 'relative', flex: 1 }}>
@@ -244,7 +244,7 @@ export function MarketPricesModal({ isOpen, onClose }: MarketPricesModalProps) {
                       borderRadius: 'var(--radius-control)',
                     }}
                   />
-                  <span style={{ position: 'absolute', right: '10px', top: '7px', fontSize: '11px', color: 'var(--color-muted)' }}>€/MWh</span>
+                  <span style={{ position: 'absolute', right: '10px', top: '7px', fontSize: '12px', color: 'var(--color-muted)' }}>€/MWh</span>
                 </div>
                 <button
                   type="button"
@@ -255,7 +255,7 @@ export function MarketPricesModal({ isOpen, onClose }: MarketPricesModalProps) {
                   Save
                 </button>
               </div>
-              <span className="num" style={{ fontSize: '11px', color: 'var(--color-muted)', display: 'block', marginTop: '6px' }}>
+              <span className="num" style={{ fontSize: '12px', color: 'var(--color-muted)', display: 'block', marginTop: '6px' }}>
                 Current Mid: €{state.marks.gasIndex.mid?.toFixed(2)}/MWh · Bid: €{state.marks.gasIndex.bid?.toFixed(2)} · Offer: €{state.marks.gasIndex.offer?.toFixed(2)}
               </span>
             </div>
@@ -274,7 +274,7 @@ export function MarketPricesModal({ isOpen, onClose }: MarketPricesModalProps) {
                   <DollarSign className="w-4 h-4" style={{ color: 'var(--color-accent)' }} />
                   GBP / EUR Foreign Exchange
                 </span>
-                <span className="chip chip-neutral" style={{ fontSize: '10px' }}>UK RTFO Conversion</span>
+                <span className="chip chip-neutral" style={{ fontSize: '12px' }}>UK RTFO Conversion</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <div style={{ position: 'relative', flex: 1 }}>
@@ -292,7 +292,7 @@ export function MarketPricesModal({ isOpen, onClose }: MarketPricesModalProps) {
                       borderRadius: 'var(--radius-control)',
                     }}
                   />
-                  <span style={{ position: 'absolute', right: '10px', top: '7px', fontSize: '11px', color: 'var(--color-muted)' }}>Rate</span>
+                  <span style={{ position: 'absolute', right: '10px', top: '7px', fontSize: '12px', color: 'var(--color-muted)' }}>Rate</span>
                 </div>
                 <button
                   type="button"
@@ -303,7 +303,7 @@ export function MarketPricesModal({ isOpen, onClose }: MarketPricesModalProps) {
                   Save
                 </button>
               </div>
-              <span className="num" style={{ fontSize: '11px', color: 'var(--color-muted)', display: 'block', marginTop: '6px' }}>
+              <span className="num" style={{ fontSize: '12px', color: 'var(--color-muted)', display: 'block', marginTop: '6px' }}>
                 Current Exchange Rate: £1.00 = €{state.marks.fx.gbpEur?.toFixed(3)}
               </span>
             </div>
@@ -323,7 +323,7 @@ export function MarketPricesModal({ isOpen, onClose }: MarketPricesModalProps) {
                 <Globe className="w-4 h-4" style={{ color: 'var(--color-accent)' }} />
                 National Compliance Certificate Marks (RED III Quotas)
               </span>
-              <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>
+              <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
                 Adjust levels directly below based on broker runs or news
               </span>
             </div>
@@ -335,7 +335,7 @@ export function MarketPricesModal({ isOpen, onClose }: MarketPricesModalProps) {
                     <th>Market &amp; Territory</th>
                     <th>Quota Unit</th>
                     <th style={{ textAlign: 'right', width: '160px' }}>Adjust Mid Level</th>
-                    <th style={{ textAlign: 'right' }}>Effective Side ({currentSide.toUpperCase()})</th>
+                    <th style={{ textAlign: 'right' }}>Effective side ({currentSide})</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -350,12 +350,12 @@ export function MarketPricesModal({ isOpen, onClose }: MarketPricesModalProps) {
                           <div style={{ fontWeight: 600, color: 'var(--color-text)' }}>
                             {m.name}
                           </div>
-                          <div className="mut" style={{ fontSize: '10.5px' }}>{m.countryName} ({m.id})</div>
+                          <div className="mut" style={{ fontSize: '12px' }}>{m.countryName} ({m.id})</div>
                         </td>
 
                         <td style={{ padding: '8px 10px' }}>
                           <div>{m.unitLabel}</div>
-                          <div className="chip chip-info" style={{ fontSize: '9px', padding: '1px 5px', marginTop: '2px', display: 'inline-block' }}>{m.registry || 'National Register'}</div>
+                          <div className="chip chip-info" style={{ fontSize: '12px', padding: '1px 5px', marginTop: '2px', display: 'inline-block' }}>{m.registry || 'National Register'}</div>
                         </td>
 
                         <td style={{ padding: '8px 10px', textAlign: 'right' }}>
@@ -398,7 +398,7 @@ export function MarketPricesModal({ isOpen, onClose }: MarketPricesModalProps) {
             alignItems: 'center',
             justifyContent: 'space-between',
             backgroundColor: 'var(--color-panel-header)',
-            fontSize: '11.5px',
+            fontSize: '12px',
             color: 'var(--color-muted)',
           }}
         >

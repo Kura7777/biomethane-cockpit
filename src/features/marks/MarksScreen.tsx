@@ -6,6 +6,8 @@ import { SIMULATED_SOURCE_NAME } from '../../domain/marks/simulate';
 import { BrokerRunImporterModal } from './BrokerRunImporterModal';
 import { showToast } from '../../app/DeskToastContainer';
 import { INITIAL_BROKER_QUOTES, BrokerMarketQuote, ProvenanceTier } from '../../domain/markets/brokerMarketData';
+import { PageShell } from '../../shared/ui/PageShell';
+import { KpiRow, KpiTile } from '../../shared/ui/KpiTile';
 import {
   Download,
   Search,
@@ -196,7 +198,7 @@ export function MarksScreen() {
     v === 'POSITIVE' ? 'chip chip-pos' : v === 'WARNING' ? 'chip chip-warn' : v === 'INFO' ? 'chip chip-info' : 'chip chip-neutral';
 
   return (
-    <div>
+    <PageShell>
       {/* Top Header Bar */}
       <div
         style={{
@@ -256,56 +258,63 @@ export function MarksScreen() {
       </div>
 
       {/* Four-cell Institutional Ledger Strip */}
-      <div className="cellrow" style={{ gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-            <span className="eyebrow">TTF M+1 Base Natural Gas</span>
-            <span className={chipClassForVariant(gasIndexBadge.variant)}>{gasIndexBadge.label}</span>
-          </div>
-          <div className="big num" style={gasIndexBadge.variant === 'WARNING' ? { color: 'var(--color-warn, #b45309)' } : undefined}>
-            {gasIndexPrice !== null && gasIndexPrice !== undefined ? `€${gasIndexPrice.toFixed(2)}` : 'unrecorded'}
-          </div>
-          <div className="subttl num">
-            {gasIndexPrice !== null && gasIndexPrice !== undefined
+      <KpiRow columns={4}>
+        <KpiTile
+          label={
+            <span style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px' }}>
+              <span>TTF M+1 base natural gas</span>
+              <span className={chipClassForVariant(gasIndexBadge.variant)}>{gasIndexBadge.label}</span>
+            </span>
+          }
+          value={gasIndexPrice !== null && gasIndexPrice !== undefined ? `€${gasIndexPrice.toFixed(2)}` : 'unrecorded'}
+          style={gasIndexBadge.variant === 'WARNING' ? { color: 'var(--color-warn, #b45309)' } as React.CSSProperties : undefined}
+          sub={
+            gasIndexPrice !== null && gasIndexPrice !== undefined
               ? `bid ${(state.marks.gasIndex.bid ?? gasIndexPrice).toFixed(2)} · offer ${(state.marks.gasIndex.offer ?? gasIndexPrice).toFixed(2)} / MWh`
-              : 'unrecorded'}
-          </div>
-        </div>
+              : 'unrecorded'
+          }
+        />
 
-        <div>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-            <span className="eyebrow">GBP / EUR Fix</span>
-            <span className={chipClassForVariant(fxBadge.variant)}>{fxBadge.label}</span>
-          </div>
-          <div className="big num" style={fxBadge.variant === 'WARNING' ? { color: 'var(--color-warn, #b45309)' } : undefined}>
-            {gbpRate !== null && gbpRate !== undefined ? gbpRate.toFixed(4) : 'unrecorded'}
-          </div>
-          <div className="subttl">UK RTFO &amp; RGGO currency conversion parity</div>
-        </div>
+        <KpiTile
+          label={
+            <span style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px' }}>
+              <span>GBP / EUR fix</span>
+              <span className={chipClassForVariant(fxBadge.variant)}>{fxBadge.label}</span>
+            </span>
+          }
+          value={gbpRate !== null && gbpRate !== undefined ? gbpRate.toFixed(4) : 'unrecorded'}
+          sub="UK RTFO & RGGO currency conversion parity"
+        />
 
-        <div>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-            <span className="eyebrow">Pan-European Quotes</span>
-            <span className="chip chip-info">{provenanceCounts.BROKER_RUN > 0 ? `${provenanceCounts.BROKER_RUN} Broker Runs` : 'Active'}</span>
-          </div>
-          <div className="big num">{filteredQuotes.length} / {quotes.length}</div>
-          <div className="subttl">All 38 European hubs &amp; registries priced</div>
-        </div>
+        <KpiTile
+          label={
+            <span style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px' }}>
+              <span>Pan-European quotes</span>
+              <span className="chip chip-info">{provenanceCounts.BROKER_RUN > 0 ? `${provenanceCounts.BROKER_RUN} broker runs` : 'Active'}</span>
+            </span>
+          }
+          value={`${filteredQuotes.length} / ${quotes.length}`}
+          sub="All 38 European hubs & registries priced"
+        />
 
-        <div>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-            <span className="eyebrow">Provenance Breakdown</span>
-            <span className="chip">{quotes.length} Total</span>
-          </div>
-          <div className="num" style={{ fontSize: '13px', fontWeight: 600, marginTop: '6px', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-            <span className="chip chip-info" style={{ fontSize: '9.5px', padding: '1px 5px' }}>{provenanceCounts.BROKER_RUN} Broker</span>
-            <span className="chip chip-info" style={{ fontSize: '9.5px', padding: '1px 5px' }}>{provenanceCounts.WEB_INDEX} Web/Index</span>
-            <span className="chip chip-warn" style={{ fontSize: '9.5px', padding: '1px 5px' }}>{provenanceCounts.STATUTORY_DIRECTIVE} Statutory</span>
-            <span className="chip chip-neutral" style={{ fontSize: '9.5px', padding: '1px 5px' }}>{provenanceCounts.MODELLED_SIMULATED} Modelled</span>
-          </div>
-          <div className="subttl" style={{ marginTop: '3px' }}>Every quote declares verified source origin</div>
-        </div>
-      </div>
+        <KpiTile
+          label={
+            <span style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px' }}>
+              <span>Provenance breakdown</span>
+              <span className="chip">{quotes.length} total</span>
+            </span>
+          }
+          value={
+            <span style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', fontSize: '13px' }}>
+              <span className="chip chip-info">{provenanceCounts.BROKER_RUN} broker</span>
+              <span className="chip chip-info">{provenanceCounts.WEB_INDEX} web/index</span>
+              <span className="chip chip-warn">{provenanceCounts.STATUTORY_DIRECTIVE} statutory</span>
+              <span className="chip chip-neutral">{provenanceCounts.MODELLED_SIMULATED} modelled</span>
+            </span>
+          }
+          sub="Every quote declares verified source origin"
+        />
+      </KpiRow>
 
       {/* Main Order Book Container */}
       <div style={{ padding: '16px 18px 24px' }}>
@@ -322,13 +331,13 @@ export function MarksScreen() {
         >
           {/* Book Filter Pills */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)' }}>
               Book:
             </span>
             <button
               type="button"
               className={`btn ${bookFilter === 'ALL' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ fontSize: '11.5px', padding: '3px 10px' }}
+              style={{ fontSize: '12px', padding: '3px 10px' }}
               onClick={() => setBookFilter('ALL')}
             >
               All Book ({quotes.length})
@@ -336,7 +345,7 @@ export function MarksScreen() {
             <button
               type="button"
               className={`btn ${bookFilter === 'COMPLIANCE' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ fontSize: '11.5px', padding: '3px 10px' }}
+              style={{ fontSize: '12px', padding: '3px 10px' }}
               onClick={() => setBookFilter('COMPLIANCE')}
             >
               🏛️ Compliance Quotas ({quotes.filter(q => q.productClass === 'BUNDLED_COMPLIANCE').length})
@@ -344,7 +353,7 @@ export function MarksScreen() {
             <button
               type="button"
               className={`btn ${bookFilter === 'VOLUNTARY' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ fontSize: '11.5px', padding: '3px 10px' }}
+              style={{ fontSize: '12px', padding: '3px 10px' }}
               onClick={() => setBookFilter('VOLUNTARY')}
             >
               🌱 Voluntary GOs ({quotes.filter(q => q.productClass === 'GO_VOLUNTARY').length})
@@ -355,7 +364,7 @@ export function MarksScreen() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             {/* Provenance Filter */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)' }}>
                 Source:
               </span>
               <select
@@ -363,7 +372,7 @@ export function MarksScreen() {
                 onChange={e => setProvenanceFilter(e.target.value as any)}
                 style={{
                   padding: '4px 8px',
-                  fontSize: '11.5px',
+                  fontSize: '12px',
                   border: '1px solid var(--color-divider)',
                   backgroundColor: 'var(--color-surface)',
                   color: 'var(--color-text)',
@@ -389,7 +398,7 @@ export function MarksScreen() {
                 style={{
                   width: '100%',
                   padding: '4px 8px 4px 28px',
-                  fontSize: '11.5px',
+                  fontSize: '12px',
                   border: '1px solid var(--color-divider)',
                   backgroundColor: 'var(--color-surface)',
                   color: 'var(--color-text)',
@@ -413,7 +422,7 @@ export function MarksScreen() {
             borderRadius: 'var(--radius-control)',
           }}
         >
-          <span style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', marginRight: '4px' }}>
+          <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', marginRight: '4px' }}>
             Countries:
           </span>
           {countryPills.map(p => (
@@ -422,7 +431,7 @@ export function MarksScreen() {
               type="button"
               onClick={() => setSelectedCountryGroup(p.id)}
               className={`btn ${selectedCountryGroup === p.id ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ fontSize: '10.5px', padding: '2px 7px', minHeight: '22px', borderRadius: 'var(--radius-control)' }}
+              style={{ fontSize: '12px', padding: '2px 7px', minHeight: '22px', borderRadius: 'var(--radius-control)' }}
             >
               {p.label}
             </button>
@@ -480,7 +489,7 @@ export function MarksScreen() {
 
                     {/* Class */}
                     <td style={{ textAlign: 'center' }}>
-                      <span className={`chip ${q.productClass === 'GO_VOLUNTARY' ? 'chip-info' : 'chip-neutral'}`} style={{ fontSize: '9px', padding: '1px 5px' }}>
+                      <span className={`chip ${q.productClass === 'GO_VOLUNTARY' ? 'chip-info' : 'chip-neutral'}`} style={{ fontSize: '12px', padding: '1px 5px' }}>
                         {q.class}
                       </span>
                     </td>
@@ -489,7 +498,7 @@ export function MarksScreen() {
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         {isFocus && (
-                          <span className="chip chip-warn" style={{ fontSize: '9px', padding: '1px 5px', fontWeight: 700 }}>
+                          <span className="chip chip-warn" style={{ fontSize: '12px', padding: '1px 5px', fontWeight: 700 }}>
                             ★ FOCUS
                           </span>
                         )}
@@ -505,13 +514,13 @@ export function MarksScreen() {
                     </td>
 
                     {/* Certified */}
-                    <td style={{ textAlign: 'center', fontSize: '11.5px' }} className="mut">
+                    <td style={{ textAlign: 'center', fontSize: '12px' }} className="mut">
                       {q.certified}
                     </td>
 
                     {/* Subsidized */}
                     <td style={{ textAlign: 'center' }}>
-                      <span className={`chip ${q.subsidized === 'Unsubsidised' ? 'chip-pos' : 'chip-neutral'}`} style={{ fontSize: '9px', padding: '1px 5px' }}>
+                      <span className={`chip ${q.subsidized === 'Unsubsidised' ? 'chip-pos' : 'chip-neutral'}`} style={{ fontSize: '12px', padding: '1px 5px' }}>
                         {q.subsidized}
                       </span>
                     </td>
@@ -610,10 +619,10 @@ export function MarksScreen() {
                     {/* Price Derived From (Explicit Data Source Citation) */}
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span className={`chip ${badgeClass}`} style={{ fontSize: '9px', padding: '1px 5px', flexShrink: 0 }}>
+                        <span className={`chip ${badgeClass}`} style={{ fontSize: '12px', padding: '1px 5px', flexShrink: 0 }}>
                           {badgeLabel}
                         </span>
-                        <span style={{ fontSize: '11px', color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={q.derivedFrom}>
+                        <span style={{ fontSize: '12px', color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={q.derivedFrom}>
                           {q.derivedFrom}
                         </span>
                       </div>
@@ -636,7 +645,7 @@ export function MarksScreen() {
             border: '1px solid var(--color-divider)',
             borderTop: 'none',
             borderRadius: '0 0 var(--radius-panel) var(--radius-panel)',
-            fontSize: '11.5px',
+            fontSize: '12px',
             flexWrap: 'wrap',
             gap: '8px',
           }}
@@ -655,6 +664,6 @@ export function MarksScreen() {
         isOpen={isImporterOpen}
         onClose={() => setIsImporterOpen(false)}
       />
-    </div>
+    </PageShell>
   );
 }
