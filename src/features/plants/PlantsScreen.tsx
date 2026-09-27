@@ -512,212 +512,212 @@ export function PlantsScreen() {
         <PageShell className="plants-body">
           <PlantsKpiTiles plants={filteredPlants} />
 
-          <div className="plants-grid">
-            <div className="plants-table-col">
-              <div className="plants-toolbar">
-                <label className="ds-search">
-                  <Search size={14} />
-                  <input
-                    type="search"
-                    placeholder="Plant, operator, city, TSO"
-                    aria-label="Filter facility name"
-                    data-testid="plant-search-input"
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                  />
-                </label>
+          <div className="plants-toolbar">
+            <label className="ds-search">
+              <Search size={14} />
+              <input
+                type="search"
+                placeholder="Plant, operator, city, TSO"
+                aria-label="Filter facility name"
+                data-testid="plant-search-input"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+              />
+            </label>
 
-                <select
-                  className="input plants-country-select"
-                  aria-label="Country"
-                  value={selectedCountry}
-                  onChange={e => setSelectedCountry(e.target.value)}
+            <select
+              className="input plants-country-select"
+              aria-label="Country"
+              value={selectedCountry}
+              onChange={e => setSelectedCountry(e.target.value)}
+            >
+              <option value="ALL">All countries ({COMBINED_BIOMETHANE_PLANTS.length})</option>
+              {countryOptions.map(([code, meta]) => (
+                <option key={code} value={code}>
+                  {meta.flag} {meta.name} ({code} · {meta.count})
+                </option>
+              ))}
+            </select>
+
+            <div className="seg" role="group" aria-label="Feedstock">
+              {FEEDSTOCK_OPTIONS.map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`seg-opt ${selectedFeedstock === opt.value ? 'active' : ''}`}
+                  onClick={() => setSelectedFeedstock(opt.value)}
                 >
-                  <option value="ALL">All countries ({COMBINED_BIOMETHANE_PLANTS.length})</option>
-                  {countryOptions.map(([code, meta]) => (
-                    <option key={code} value={code}>
-                      {meta.flag} {meta.name} ({code} · {meta.count})
-                    </option>
-                  ))}
-                </select>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
 
-                <div className="seg" role="group" aria-label="Feedstock">
-                  {FEEDSTOCK_OPTIONS.map(opt => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      className={`seg-opt ${selectedFeedstock === opt.value ? 'active' : ''}`}
-                      onClick={() => setSelectedFeedstock(opt.value)}
-                    >
-                      {opt.label}
+            <div ref={popoverRef} style={{ display: 'flex', gap: '8px', position: 'relative' }}>
+              <button
+                type="button"
+                className={`ds-filter-btn ${selectedScale !== 'ALL' ? 'active' : ''}`}
+                onClick={() => setOpenPopover(o => (o === 'SCALE' ? null : 'SCALE'))}
+              >
+                {selectedScale === 'ALL' ? '+ Scale' : `Scale: ${selectedScale}`}
+              </button>
+              {openPopover === 'SCALE' && (
+                <div className="plants-popover" role="menu">
+                  {[
+                    { v: 'ALL', l: 'All capacity scales' },
+                    { v: 'UTILITY', l: 'Utility scale (> 50 GWh/y)' },
+                    { v: 'MEDIUM', l: 'Medium scale (20–50 GWh/y)' },
+                    { v: 'DISTRIBUTED', l: 'Distributed (< 20 GWh/y)' },
+                  ].map(o => (
+                    <button key={o.v} type="button" className={selectedScale === o.v ? 'active' : ''} onClick={() => { setSelectedScale(o.v); setOpenPopover(null); }}>
+                      {o.l}
                     </button>
                   ))}
                 </div>
+              )}
 
-                <div ref={popoverRef} style={{ display: 'flex', gap: '8px', position: 'relative' }}>
-                  <button
-                    type="button"
-                    className={`ds-filter-btn ${selectedScale !== 'ALL' ? 'active' : ''}`}
-                    onClick={() => setOpenPopover(o => (o === 'SCALE' ? null : 'SCALE'))}
-                  >
-                    {selectedScale === 'ALL' ? '+ Scale' : `Scale: ${selectedScale}`}
-                  </button>
-                  {openPopover === 'SCALE' && (
-                    <div className="plants-popover" role="menu">
-                      {[
-                        { v: 'ALL', l: 'All capacity scales' },
-                        { v: 'UTILITY', l: 'Utility scale (> 50 GWh/y)' },
-                        { v: 'MEDIUM', l: 'Medium scale (20–50 GWh/y)' },
-                        { v: 'DISTRIBUTED', l: 'Distributed (< 20 GWh/y)' },
-                      ].map(o => (
-                        <button key={o.v} type="button" className={selectedScale === o.v ? 'active' : ''} onClick={() => { setSelectedScale(o.v); setOpenPopover(null); }}>
-                          {o.l}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  <button
-                    type="button"
-                    className={`ds-filter-btn ${selectedContact !== 'ALL' ? 'active' : ''}`}
-                    onClick={() => setOpenPopover(o => (o === 'CONTACT' ? null : 'CONTACT'))}
-                  >
-                    {selectedContact === 'ALL' ? '+ Contact status' : `Contact: ${selectedContact}`}
-                  </button>
-                  {openPopover === 'CONTACT' && (
-                    <div className="plants-popover" role="menu">
-                      {[
-                        { v: 'ALL', l: 'All contact tiers' },
-                        { v: 'UNVERIFIED_LEAD', l: 'Unverified lead' },
-                        { v: 'INDIRECT', l: 'Indirect / shared switchboard' },
-                        { v: 'UNDELIVERABLE', l: 'Synthetic address (do not use)' },
-                        { v: 'GDPR_RISK', l: 'GDPR risk (personal mailbox)' },
-                        { v: 'WITH_EMAIL', l: 'Has email address' },
-                        { v: 'WITH_PHONE', l: 'Has telephone' },
-                        { v: 'WITH_WEBSITE', l: 'Corporate website' },
-                        { v: 'NO_CONTACT', l: 'No contact published' },
-                      ].map(o => (
-                        <button key={o.v} type="button" className={selectedContact === o.v ? 'active' : ''} onClick={() => { setSelectedContact(o.v); setOpenPopover(null); }}>
-                          {o.l}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  <button
-                    type="button"
-                    className={`ds-filter-btn ${(selectedCiRange !== 'ALL' || selectedTech !== 'ALL' || selectedGrid !== 'ALL' || selectedMarket !== 'ALL') ? 'active' : ''}`}
-                    onClick={() => setOpenPopover(o => (o === 'MORE' ? null : 'MORE'))}
-                  >
-                    + More
-                  </button>
-                  {openPopover === 'MORE' && (
-                    <div className="plants-popover plants-popover-wide" role="menu">
-                      <div className="plants-popover-heading">Saved views</div>
-                      <div className="plants-popover-row">
-                        <button type="button" onClick={() => { resetAllFilters(); setOpenPopover(null); }}>All facilities</button>
-                        <button type="button" onClick={() => { resetAllFilters(); setSelectedFeedstock('MANURE'); setOpenPopover(null); }}>Negative-CI manure</button>
-                        <button type="button" onClick={() => { resetAllFilters(); setSelectedScale('UTILITY'); setOpenPopover(null); }}>Utility scale (&gt;50 GWh)</button>
-                        <button type="button" onClick={() => { resetAllFilters(); setSelectedContact('UNVERIFIED_LEAD'); setOpenPopover(null); }}>Unverified leads</button>
-                        <button type="button" onClick={() => { resetAllFilters(); setSelectedContact('UNDELIVERABLE'); setOpenPopover(null); }}>Dead domains</button>
-                      </div>
-                      <div className="plants-popover-heading">Carbon intensity range</div>
-                      <select className="input" value={selectedCiRange} onChange={e => setSelectedCiRange(e.target.value)}>
-                        <option value="ALL">All carbon intensities</option>
-                        <option value="DEEP_NEGATIVE">Deep negative (&lt; -50 g/MJ)</option>
-                        <option value="SUB_ZERO">Sub-zero (&lt; 0 g/MJ)</option>
-                        <option value="LOW_POSITIVE">Low positive (0–25 g/MJ)</option>
-                        <option value="STANDARD">Standard (&gt; 25 g/MJ)</option>
-                      </select>
-                      <div className="plants-popover-heading">Upgrading technology</div>
-                      <select className="input" value={selectedTech} onChange={e => setSelectedTech(e.target.value)}>
-                        <option value="ALL">All upgrading tech</option>
-                        <option value="MEMBRANE">Membrane separation</option>
-                        <option value="AMINE">Amine / chemical scrubbing</option>
-                        <option value="WATER_SCRUBBING">Water scrubbing</option>
-                        <option value="PSA">Pressure swing adsorption (PSA)</option>
-                        <option value="CRYOGENIC">Cryogenic separation (WAGABOX)</option>
-                      </select>
-                      <div className="plants-popover-heading">Grid tier</div>
-                      <select className="input" value={selectedGrid} onChange={e => setSelectedGrid(e.target.value)}>
-                        <option value="ALL">All grid tiers</option>
-                        <option value="TSO">Transmission (GRTgaz, Terega, Snam…)</option>
-                        <option value="DSO">Distribution (GRDF, Fluvius, Enexis…)</option>
-                        <option value="OFF_GRID">Dedicated / off-grid (Bio-LNG)</option>
-                      </select>
-                      <div className="plants-popover-heading">Statutory market</div>
-                      <select className="input" value={selectedMarket} onChange={e => setSelectedMarket(e.target.value)}>
-                        <option value="ALL">All markets</option>
-                        <option value="DE_THG">DE — THG-Quote</option>
-                        <option value="UK_RTFO">UK — RTFO</option>
-                        <option value="IT_CIC">IT — CIC</option>
-                        <option value="FR_CPB">FR — CPB</option>
-                        <option value="NL_ERE">NL — ERE</option>
-                        <option value="UK_RGGO">UK — RGGO</option>
-                      </select>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {isFiltered && (
-                <div className="plants-active-chips">
-                  {selectedCountry !== 'ALL' && (
-                    <span className="chip chip-a plants-filter-chip">
-                      Country: {selectedCountry}
-                      <button type="button" onClick={() => setSelectedCountry('ALL')} aria-label="Remove country filter">×</button>
-                    </span>
-                  )}
-                  {selectedFeedstock !== 'ALL' && (
-                    <span className="chip chip-a plants-filter-chip">
-                      Feedstock: {FEEDSTOCK_OPTIONS.find(o => o.value === selectedFeedstock)?.label}
-                      <button type="button" onClick={() => setSelectedFeedstock('ALL')} aria-label="Remove feedstock filter">×</button>
-                    </span>
-                  )}
-                  {selectedCiRange !== 'ALL' && (
-                    <span className="chip chip-a plants-filter-chip">
-                      CI: {selectedCiRange}
-                      <button type="button" onClick={() => setSelectedCiRange('ALL')} aria-label="Remove CI filter">×</button>
-                    </span>
-                  )}
-                  {selectedScale !== 'ALL' && (
-                    <span className="chip chip-a plants-filter-chip">
-                      Scale: {selectedScale}
-                      <button type="button" onClick={() => setSelectedScale('ALL')} aria-label="Remove scale filter">×</button>
-                    </span>
-                  )}
-                  {selectedTech !== 'ALL' && (
-                    <span className="chip chip-a plants-filter-chip">
-                      Tech: {selectedTech}
-                      <button type="button" onClick={() => setSelectedTech('ALL')} aria-label="Remove tech filter">×</button>
-                    </span>
-                  )}
-                  {selectedGrid !== 'ALL' && (
-                    <span className="chip chip-a plants-filter-chip">
-                      Grid: {selectedGrid}
-                      <button type="button" onClick={() => setSelectedGrid('ALL')} aria-label="Remove grid filter">×</button>
-                    </span>
-                  )}
-                  {selectedContact !== 'ALL' && (
-                    <span className="chip chip-a plants-filter-chip">
-                      Contact: {selectedContact}
-                      <button type="button" onClick={() => setSelectedContact('ALL')} aria-label="Remove contact filter">×</button>
-                    </span>
-                  )}
-                  {selectedMarket !== 'ALL' && (
-                    <span className="chip chip-a plants-filter-chip">
-                      Market: {selectedMarket}
-                      <button type="button" onClick={() => setSelectedMarket('ALL')} aria-label="Remove market filter">×</button>
-                    </span>
-                  )}
-                  <button type="button" className="plants-clear-all" onClick={resetAllFilters}>Clear all</button>
+              <button
+                type="button"
+                className={`ds-filter-btn ${selectedContact !== 'ALL' ? 'active' : ''}`}
+                onClick={() => setOpenPopover(o => (o === 'CONTACT' ? null : 'CONTACT'))}
+              >
+                {selectedContact === 'ALL' ? '+ Contact status' : `Contact: ${selectedContact}`}
+              </button>
+              {openPopover === 'CONTACT' && (
+                <div className="plants-popover" role="menu">
+                  {[
+                    { v: 'ALL', l: 'All contact tiers' },
+                    { v: 'UNVERIFIED_LEAD', l: 'Unverified lead' },
+                    { v: 'INDIRECT', l: 'Indirect / shared switchboard' },
+                    { v: 'UNDELIVERABLE', l: 'Synthetic address (do not use)' },
+                    { v: 'GDPR_RISK', l: 'GDPR risk (personal mailbox)' },
+                    { v: 'WITH_EMAIL', l: 'Has email address' },
+                    { v: 'WITH_PHONE', l: 'Has telephone' },
+                    { v: 'WITH_WEBSITE', l: 'Corporate website' },
+                    { v: 'NO_CONTACT', l: 'No contact published' },
+                  ].map(o => (
+                    <button key={o.v} type="button" className={selectedContact === o.v ? 'active' : ''} onClick={() => { setSelectedContact(o.v); setOpenPopover(null); }}>
+                      {o.l}
+                    </button>
+                  ))}
                 </div>
               )}
 
-              <div className="plants-protocol-line">
-                Origination protocol: census email/phone records are unverified leads, indirect switchboards, or synthetic placeholders. Filter targets here, then verify operating entity and authorized signatories in the official national register (MaStR, Evida, AGCS, Infogreffe, Companies House) prior to commercial outreach.
-              </div>
+              <button
+                type="button"
+                className={`ds-filter-btn ${(selectedCiRange !== 'ALL' || selectedTech !== 'ALL' || selectedGrid !== 'ALL' || selectedMarket !== 'ALL') ? 'active' : ''}`}
+                onClick={() => setOpenPopover(o => (o === 'MORE' ? null : 'MORE'))}
+              >
+                + More
+              </button>
+              {openPopover === 'MORE' && (
+                <div className="plants-popover plants-popover-wide" role="menu">
+                  <div className="plants-popover-heading">Saved views</div>
+                  <div className="plants-popover-row">
+                    <button type="button" onClick={() => { resetAllFilters(); setOpenPopover(null); }}>All facilities</button>
+                    <button type="button" onClick={() => { resetAllFilters(); setSelectedFeedstock('MANURE'); setOpenPopover(null); }}>Negative-CI manure</button>
+                    <button type="button" onClick={() => { resetAllFilters(); setSelectedScale('UTILITY'); setOpenPopover(null); }}>Utility scale (&gt;50 GWh)</button>
+                    <button type="button" onClick={() => { resetAllFilters(); setSelectedContact('UNVERIFIED_LEAD'); setOpenPopover(null); }}>Unverified leads</button>
+                    <button type="button" onClick={() => { resetAllFilters(); setSelectedContact('UNDELIVERABLE'); setOpenPopover(null); }}>Dead domains</button>
+                  </div>
+                  <div className="plants-popover-heading">Carbon intensity range</div>
+                  <select className="input" value={selectedCiRange} onChange={e => setSelectedCiRange(e.target.value)}>
+                    <option value="ALL">All carbon intensities</option>
+                    <option value="DEEP_NEGATIVE">Deep negative (&lt; -50 g/MJ)</option>
+                    <option value="SUB_ZERO">Sub-zero (&lt; 0 g/MJ)</option>
+                    <option value="LOW_POSITIVE">Low positive (0–25 g/MJ)</option>
+                    <option value="STANDARD">Standard (&gt; 25 g/MJ)</option>
+                  </select>
+                  <div className="plants-popover-heading">Upgrading technology</div>
+                  <select className="input" value={selectedTech} onChange={e => setSelectedTech(e.target.value)}>
+                    <option value="ALL">All upgrading tech</option>
+                    <option value="MEMBRANE">Membrane separation</option>
+                    <option value="AMINE">Amine / chemical scrubbing</option>
+                    <option value="WATER_SCRUBBING">Water scrubbing</option>
+                    <option value="PSA">Pressure swing adsorption (PSA)</option>
+                    <option value="CRYOGENIC">Cryogenic separation (WAGABOX)</option>
+                  </select>
+                  <div className="plants-popover-heading">Grid tier</div>
+                  <select className="input" value={selectedGrid} onChange={e => setSelectedGrid(e.target.value)}>
+                    <option value="ALL">All grid tiers</option>
+                    <option value="TSO">Transmission (GRTgaz, Terega, Snam…)</option>
+                    <option value="DSO">Distribution (GRDF, Fluvius, Enexis…)</option>
+                    <option value="OFF_GRID">Dedicated / off-grid (Bio-LNG)</option>
+                  </select>
+                  <div className="plants-popover-heading">Statutory market</div>
+                  <select className="input" value={selectedMarket} onChange={e => setSelectedMarket(e.target.value)}>
+                    <option value="ALL">All markets</option>
+                    <option value="DE_THG">DE — THG-Quote</option>
+                    <option value="UK_RTFO">UK — RTFO</option>
+                    <option value="IT_CIC">IT — CIC</option>
+                    <option value="FR_CPB">FR — CPB</option>
+                    <option value="NL_ERE">NL — ERE</option>
+                    <option value="UK_RGGO">UK — RGGO</option>
+                  </select>
+                </div>
+              )}
+            </div>
+          </div>
 
+          {isFiltered && (
+            <div className="plants-active-chips">
+              {selectedCountry !== 'ALL' && (
+                <span className="chip chip-a plants-filter-chip">
+                  Country: {selectedCountry}
+                  <button type="button" onClick={() => setSelectedCountry('ALL')} aria-label="Remove country filter">×</button>
+                </span>
+              )}
+              {selectedFeedstock !== 'ALL' && (
+                <span className="chip chip-a plants-filter-chip">
+                  Feedstock: {FEEDSTOCK_OPTIONS.find(o => o.value === selectedFeedstock)?.label}
+                  <button type="button" onClick={() => setSelectedFeedstock('ALL')} aria-label="Remove feedstock filter">×</button>
+                </span>
+              )}
+              {selectedCiRange !== 'ALL' && (
+                <span className="chip chip-a plants-filter-chip">
+                  CI: {selectedCiRange}
+                  <button type="button" onClick={() => setSelectedCiRange('ALL')} aria-label="Remove CI filter">×</button>
+                </span>
+              )}
+              {selectedScale !== 'ALL' && (
+                <span className="chip chip-a plants-filter-chip">
+                  Scale: {selectedScale}
+                  <button type="button" onClick={() => setSelectedScale('ALL')} aria-label="Remove scale filter">×</button>
+                </span>
+              )}
+              {selectedTech !== 'ALL' && (
+                <span className="chip chip-a plants-filter-chip">
+                  Tech: {selectedTech}
+                  <button type="button" onClick={() => setSelectedTech('ALL')} aria-label="Remove tech filter">×</button>
+                </span>
+              )}
+              {selectedGrid !== 'ALL' && (
+                <span className="chip chip-a plants-filter-chip">
+                  Grid: {selectedGrid}
+                  <button type="button" onClick={() => setSelectedGrid('ALL')} aria-label="Remove grid filter">×</button>
+                </span>
+              )}
+              {selectedContact !== 'ALL' && (
+                <span className="chip chip-a plants-filter-chip">
+                  Contact: {selectedContact}
+                  <button type="button" onClick={() => setSelectedContact('ALL')} aria-label="Remove contact filter">×</button>
+                </span>
+              )}
+              {selectedMarket !== 'ALL' && (
+                <span className="chip chip-a plants-filter-chip">
+                  Market: {selectedMarket}
+                  <button type="button" onClick={() => setSelectedMarket('ALL')} aria-label="Remove market filter">×</button>
+                </span>
+              )}
+              <button type="button" className="plants-clear-all" onClick={resetAllFilters}>Clear all</button>
+            </div>
+          )}
+
+          <div className="plants-protocol-line">
+            Origination protocol: census email/phone records are unverified leads, indirect switchboards, or synthetic placeholders. Filter targets here, then verify operating entity and authorized signatories in the official national register (MaStR, Evida, AGCS, Infogreffe, Companies House) prior to commercial outreach.
+          </div>
+
+          <div className="plants-grid">
+            <div className="plants-table-col">
               {sortedPlants.length === 0 ? (
                 <div className="plants-empty">
                   <h4>No matching facility found for your active filter criteria</h4>

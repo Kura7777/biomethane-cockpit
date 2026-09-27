@@ -514,3 +514,106 @@
 .plants-country-row.selected .plants-country-bar-fill {
   background: var(--color-accent);
 }
+
+/* Pull the buttons out by their padding so the ✕ glyph sits on the panel's right content edge */
+.plants-panel-actions {
+  display: flex;
+  gap: 2px;
+  margin-right: -7px;
+  flex-shrink: 0;
+}
+
+/* ── Side panel: expanded (full-screen) view ── */
+.plants-expand-scrim {
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+}
+
+.plants-aside.plants-aside-expanded {
+  position: relative;
+  top: auto;
+  width: min(1120px, 100%);
+  max-height: calc(100vh - 64px);
+  box-shadow: var(--shadow-lg);
+  outline: none;
+}
+
+.plants-aside-expanded .ds-aside-section {
+  padding: 28px 32px;
+}
+
+.plants-aside-expanded .ds-panel-title {
+  font-size: 26px;
+}
+
+.plants-aside-expanded .ds-panel-meta {
+  font-size: 14px;
+}
+
+.plants-aside-expanded .plants-panel-stats {
+  gap: 24px;
+}
+
+.plants-aside-expanded .plants-panel-stats .ds-panel-stat-label {
+  font-size: 13px;
+}
+
+.plants-aside-expanded .plants-panel-stats .ds-panel-stat-value {
+  font-size: 30px;
+}
+
+.plants-aside-expanded .plants-panel-stats .ds-panel-stat-value .unit {
+  font-size: 14px;
+}
+
+/* Supply and Counterparty side by side; Data quality spans the full width */
+.plants-aside-expanded .ds-aside-body {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+}
+
+.plants-aside-expanded .ds-aside-body > .ds-aside-section:nth-child(odd) {
+  border-right: 1px solid var(--color-divider);
+}
+
+.plants-aside-expanded .ds-aside-body > .ds-aside-section:last-child {
+  grid-column: 1 / -1;
+  border-right: 0;
+}
+
+.plants-aside-expanded .ds-panel-section-heading {
+  font-size: 15px;
+}
+
+.plants-aside-expanded .plants-panel-row {
+  font-size: 14px;
+}
+
+.plants-aside-expanded .plants-panel-note,
+.plants-aside-expanded .plants-flag-chip {
+  font-size: 13px;
+}
+
+.plants-aside-expanded .ds-aside-footer {
+  padding: 16px 32px;
+  justify-content: flex-end;
+}
+
+.plants-aside-expanded .plants-panel-btn {
+  flex: 0 0 auto;
+  min-width: 160px;
+}
+
+@media (max-width: 900px) {
+  .plants-expand-scrim {
+    padding: 16px;
+  }
+  .plants-aside-expanded .ds-aside-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .plants-aside-expanded .ds-aside-body > .ds-aside-section:nth-child(odd) {
+    border-right: 0;
+  }
+}
