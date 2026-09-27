@@ -508,7 +508,7 @@ export function ScannerScreen() {
               Showing <strong>{filteredPlantOpportunities.length}</strong> actionable plants · TTF Month-Ahead Benchmark: <strong>€{ttfPrice.toFixed(2)}/MWh</strong>
             </span>
             <span>
-              Top Arbitrage Spread: <strong style={{ color: '#16a34a' }}>{filteredPlantOpportunities[0] ? `${filteredPlantOpportunities[0].netMarginEurMwh >= 0 ? '+' : '−'}€${Math.abs(filteredPlantOpportunities[0].netMarginEurMwh).toFixed(2)}/MWh` : '—'}</strong>
+              Top Arbitrage Spread: <strong style={{ color: 'var(--color-pnl-pos, var(--color-accent))' }}>{filteredPlantOpportunities[0] ? `${filteredPlantOpportunities[0].netMarginEurMwh >= 0 ? '+' : '−'}€${Math.abs(filteredPlantOpportunities[0].netMarginEurMwh).toFixed(2)}/MWh` : '—'}</strong>
               {' · '}
               <button
                 type="button"
@@ -537,92 +537,94 @@ export function ScannerScreen() {
           )}
 
           {/* Multi-Plant Arbitrage Table */}
-          <div style={{ overflowX: 'auto', padding: '0 20px 20px' }}>
-            <table className="table" style={{ width: '100%', marginTop: '10px' }}>
-              <thead>
-                <tr>
-                  <th style={{ width: '40px' }}>#</th>
-                  <th>Production Asset & Country</th>
-                  <th>Substrate & Carbon Intensity</th>
-                  <th style={{ textAlign: 'right' }}>Annual Volume</th>
-                  <th style={{ textAlign: 'right' }}>Est. Procurement</th>
-                  <th>Optimal Statutory Sink</th>
-                  <th style={{ textAlign: 'right' }}>Gross Netback</th>
-                  <th style={{ textAlign: 'right', width: '130px' }}>Net Spread €/MWh</th>
-                  <th style={{ textAlign: 'right', width: '140px' }}>Annual Gross PnL</th>
-                  <th style={{ width: '130px', textAlign: 'center' }}>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredPlantOpportunities.slice(0, 50).map((opp, idx) => (
-                  <tr key={opp.plantId} style={{ backgroundColor: opp.isRestrictedSubsidy ? 'rgba(239, 68, 68, 0.03)' : undefined }}>
-                    <td className="num dim">{String(idx + 1).padStart(2, '0')}</td>
-                    <td>
-                      <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span>{opp.countryFlag}</span>
-                        <span>{opp.plantName}</span>
-                      </div>
-                      <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
-                        {opp.countryName} ({opp.countryCode}) {opp.isRestrictedSubsidy ? '· ⚠ State Auction Feed-in Tariff' : ''}
-                      </div>
-                    </td>
-                    <td>
-                      <div style={{ fontWeight: 600, fontSize: '12px' }}>{opp.feedstockCategory}</div>
-                      <div style={{ fontSize: '11px', color: opp.carbonIntensity < 0 ? '#16a34a' : 'var(--color-text-secondary)', fontWeight: opp.carbonIntensity < 0 ? 700 : 400 }}>
-                        CI: {opp.carbonIntensity} gCO₂e/MJ
-                      </div>
-                    </td>
-                    <td className="num" style={{ textAlign: 'right' }}>
-                      <div style={{ fontWeight: 700 }}>{opp.annualGWh.toLocaleString()} GWh</div>
-                      <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>{(opp.annualMWh).toLocaleString()} MWh</div>
-                    </td>
-                    <td className="num" style={{ textAlign: 'right' }}>
-                      <div style={{ fontWeight: 700 }}>€{opp.procurementCostEurMwh.toFixed(2)}</div>
-                      <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{opp.procurementMode === 'FIXED_FARMGATE' ? 'Fixed Farmgate' : 'TTF + Premium'}</div>
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ 
-                          fontSize: '11px', 
-                          fontWeight: 700, 
-                          padding: '2px 8px', 
-                          borderRadius: '4px',
-                          backgroundColor: opp.bestMarketId === 'DE_THG' ? 'rgba(22, 163, 74, 0.1)' : opp.bestMarketId === 'NL_ERE' ? 'rgba(37, 99, 235, 0.1)' : 'rgba(0,0,0,0.06)',
-                          color: opp.bestMarketId === 'DE_THG' ? '#16a34a' : opp.bestMarketId === 'NL_ERE' ? '#2563eb' : 'var(--color-text)'
+          <div style={{ overflowX: 'auto', padding: '16px 20px 20px' }}>
+            <div style={{ overflowX: 'auto', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-panel)' }}>
+              <table className="table" style={{ width: '100%', margin: 0 }}>
+                <thead>
+                  <tr>
+                    <th style={{ width: '40px' }}>#</th>
+                    <th>Production Asset &amp; Country</th>
+                    <th>Substrate &amp; Carbon Intensity</th>
+                    <th style={{ textAlign: 'right' }}>Annual Volume</th>
+                    <th style={{ textAlign: 'right' }}>Est. Procurement</th>
+                    <th>Optimal Statutory Sink</th>
+                    <th style={{ textAlign: 'right' }}>Gross Netback</th>
+                    <th style={{ textAlign: 'right', width: '130px' }}>Net Spread €/MWh</th>
+                    <th style={{ textAlign: 'right', width: '140px' }}>Annual Gross PnL</th>
+                    <th style={{ width: '130px', textAlign: 'center' }}>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredPlantOpportunities.slice(0, 50).map((opp, idx) => (
+                    <tr key={opp.plantId} style={{ backgroundColor: opp.isRestrictedSubsidy ? 'rgba(239, 68, 68, 0.03)' : undefined }}>
+                      <td className="num dim">{String(idx + 1).padStart(2, '0')}</td>
+                      <td>
+                        <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span>{opp.countryFlag}</span>
+                          <span>{opp.plantName}</span>
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                          {opp.countryName} ({opp.countryCode}) {opp.isRestrictedSubsidy ? '· ⚠ State Auction Feed-in Tariff' : ''}
+                        </div>
+                      </td>
+                      <td>
+                        <div style={{ fontWeight: 600, fontSize: '12px' }}>{opp.feedstockCategory}</div>
+                        <div style={{ fontSize: '11px', color: opp.carbonIntensity < 0 ? 'var(--color-accent)' : 'var(--color-text-secondary)', fontWeight: opp.carbonIntensity < 0 ? 700 : 400 }}>
+                          CI: {opp.carbonIntensity} gCO₂e/MJ
+                        </div>
+                      </td>
+                      <td className="num" style={{ textAlign: 'right' }}>
+                        <div style={{ fontWeight: 700 }}>{opp.annualGWh.toLocaleString()} GWh</div>
+                        <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>{(opp.annualMWh).toLocaleString()} MWh</div>
+                      </td>
+                      <td className="num" style={{ textAlign: 'right' }}>
+                        <div style={{ fontWeight: 700 }}>€{opp.procurementCostEurMwh.toFixed(2)}</div>
+                        <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{opp.procurementMode === 'FIXED_FARMGATE' ? 'Fixed Farmgate' : 'TTF + Premium'}</div>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ 
+                            fontSize: '11px', 
+                            fontWeight: 700, 
+                            padding: '2px 8px', 
+                            borderRadius: 'var(--radius-control)',
+                            border: '1px solid var(--color-divider)',
+                            backgroundColor: 'var(--color-surface)',
+                            color: 'var(--color-text)'
+                          }}>
+                            {opp.bestMarketName}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
+                          Transit friction: €{opp.logisticsFeeEurMwh.toFixed(2)}/MWh
+                        </div>
+                      </td>
+                      <td className="num" style={{ textAlign: 'right', fontWeight: 600 }}>
+                        €{opp.bestMarketNetNetback.toFixed(2)}
+                      </td>
+                      <td className="num" style={{ textAlign: 'right' }}>
+                        <span style={{
+                          fontSize: '15px',
+                          fontWeight: 800,
+                          color: opp.netMarginEurMwh >= 0 ? 'var(--color-pnl-pos, var(--color-accent))' : 'var(--color-status-neg-text, #dc2626)',
                         }}>
-                          {opp.bestMarketName}
+                          {opp.netMarginEurMwh >= 0 ? `+€${opp.netMarginEurMwh.toFixed(2)}` : `−€${Math.abs(opp.netMarginEurMwh).toFixed(2)}`}
                         </span>
-                      </div>
-                      <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
-                        Transit friction: €{opp.logisticsFeeEurMwh.toFixed(2)}/MWh
-                      </div>
-                    </td>
-                    <td className="num" style={{ textAlign: 'right', fontWeight: 600 }}>
-                      €{opp.bestMarketNetNetback.toFixed(2)}
-                    </td>
-                    <td className="num" style={{ textAlign: 'right' }}>
-                      <span style={{
-                        fontSize: '15px',
-                        fontWeight: 800,
-                        color: opp.netMarginEurMwh >= 15 ? '#16a34a' : opp.netMarginEurMwh >= 0 ? '#2563eb' : '#dc2626',
-                      }}>
-                        {opp.netMarginEurMwh >= 0 ? `+€${opp.netMarginEurMwh.toFixed(2)}` : `−€${Math.abs(opp.netMarginEurMwh).toFixed(2)}`}
-                      </span>
-                    </td>
-                    <td className="num" style={{ textAlign: 'right', fontWeight: 800, color: opp.annualProfitEur >= 0 ? 'var(--color-text)' : '#dc2626' }}>
-                      {opp.annualProfitEur >= 0 ? `+€${(opp.annualProfitEur / 1000).toFixed(0)}k` : `−€${(Math.abs(opp.annualProfitEur) / 1000).toFixed(0)}k`}
-                    </td>
-                    <td style={{ textAlign: 'center' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
-                        <button
-                          type="button"
-                          className="btn btn-primary"
-                          onClick={() => handleStructurePlantTrade(opp)}
-                          style={{ fontSize: '11px', padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px', width: '100%', justifyContent: 'center' }}
-                        >
-                          <Zap className="w-3 h-3" />
-                          Structure ➔
-                        </button>
+                      </td>
+                      <td className="num" style={{ textAlign: 'right', fontWeight: 800, color: opp.annualProfitEur >= 0 ? 'var(--color-pnl-pos, var(--color-accent))' : 'var(--color-status-neg-text, #dc2626)' }}>
+                        {opp.annualProfitEur >= 0 ? `+€${(opp.annualProfitEur / 1000).toFixed(0)}k` : `−€${(Math.abs(opp.annualProfitEur) / 1000).toFixed(0)}k`}
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+                          <button
+                            type="button"
+                            className="btn btn-primary"
+                            onClick={() => handleStructurePlantTrade(opp)}
+                            style={{ fontSize: '11px', padding: '4px 10px', borderRadius: 'var(--radius-control)', display: 'inline-flex', alignItems: 'center', gap: '4px', width: '100%', justifyContent: 'center' }}
+                          >
+                            <Zap className="w-3 h-3" />
+                            Structure ➔
+                          </button>
                         {opp.isRestrictedSubsidy && (
                           <button
                             type="button"
