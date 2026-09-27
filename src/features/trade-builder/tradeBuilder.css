@@ -28,3 +28,347 @@
   gap: 12px;
   padding-top: 4px;
 }
+
+/* ── Panels: one pattern for every card in the flow ──
+ * 20px padding, a title row (14px/600 + icon, 13px muted meta on the right), 16px between
+ * blocks, 13px muted field labels, 12px hints. */
+.tb-panel {
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.tb-panel.accent-left {
+  box-shadow: inset 4px 0 0 var(--color-accent);
+}
+
+.tb-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.tb-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.tb-panel-title svg {
+  flex-shrink: 0;
+  color: var(--color-accent);
+}
+
+.tb-panel-meta {
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+.tb-panel-desc {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--color-muted);
+  line-height: 1.5;
+}
+
+.tb-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.tb-panel > .tb-section + .tb-section,
+.tb-ruled {
+  padding-top: 16px;
+  border-top: 1px solid var(--color-divider);
+}
+
+.tb-section-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-divider);
+}
+
+.tb-label {
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+.tb-label.strong {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.tb-hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-muted);
+}
+
+.tb-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tb-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.tb-row-start {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.tb-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.tb-value .unit {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--color-muted);
+}
+
+.tb-num {
+  font-variant-numeric: tabular-nums;
+}
+
+.tb-pos {
+  color: var(--color-status-pos-text);
+}
+
+.tb-neg {
+  color: var(--color-status-neg-text);
+}
+
+.tb-warn {
+  color: var(--color-status-warn-text);
+}
+
+.tb-accent {
+  color: var(--color-accent);
+}
+
+.tb-range {
+  width: 100%;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--color-text);
+}
+
+html.dark .tb-range {
+  color-scheme: dark;
+}
+
+.tb-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.tb-date-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+/* Key/value list inside a panel */
+.tb-kv {
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-control);
+  background: var(--color-panel-header);
+  padding: 4px 12px;
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+}
+
+.tb-kv-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.tb-kv-row + .tb-kv-row {
+  border-top: 1px solid var(--color-divider);
+}
+
+.tb-kv-row > :first-child {
+  color: var(--color-muted);
+}
+
+.tb-kv-row > :last-child {
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.tb-kv-note {
+  padding: 8px 0;
+  border-top: 1px solid var(--color-divider);
+  font-size: 12px;
+  color: var(--color-muted);
+  line-height: 1.5;
+}
+
+/* Two-column fact grid (locked plant card) */
+.tb-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 24px;
+  font-size: 13px;
+  color: var(--color-muted);
+  line-height: 1.5;
+}
+
+.tb-facts .full {
+  grid-column: 1 / -1;
+}
+
+.tb-facts strong {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+/* Alerts built from the status tokens */
+.tb-alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding: 10px 12px;
+  border: 1px solid;
+  border-radius: var(--radius-control);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.tb-alert-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tb-alert-text svg {
+  flex-shrink: 0;
+}
+
+.tb-alert.neg {
+  color: var(--color-status-neg-text);
+  background: var(--color-status-neg-bg);
+  border-color: color-mix(in srgb, var(--color-status-neg-text) 35%, transparent);
+}
+
+.tb-alert.warn {
+  color: var(--color-status-warn-text);
+  background: var(--color-status-warn-bg);
+  border-color: color-mix(in srgb, var(--color-status-warn-text) 35%, transparent);
+}
+
+.tb-alert.info {
+  color: var(--color-status-info-text);
+  background: var(--color-status-info-bg);
+  border-color: color-mix(in srgb, var(--color-status-info-text) 35%, transparent);
+}
+
+.tb-alert .btn {
+  height: 28px;
+  min-height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+  color: inherit;
+  border-color: currentColor;
+  background: transparent;
+}
+
+.tb-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border: 1px solid;
+  border-radius: var(--radius-control);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tb-badge.pos {
+  color: var(--color-status-pos-text);
+  background: var(--color-status-pos-bg);
+  border-color: color-mix(in srgb, var(--color-status-pos-text) 35%, transparent);
+}
+
+.tb-badge.info {
+  color: var(--color-status-info-text);
+  background: var(--color-status-info-bg);
+  border-color: color-mix(in srgb, var(--color-status-info-text) 35%, transparent);
+}
+
+.tb-accent-btn.btn {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+  font-weight: 600;
+}
+
+.tb-meter {
+  height: 4px;
+  border-radius: var(--radius-bar);
+  background: var(--color-divider);
+  overflow: hidden;
+}
+
+.tb-meter-fill {
+  height: 100%;
+  border-radius: var(--radius-bar);
+  background: var(--color-accent);
+}
+
+.tb-meter-fill.neg {
+  background: var(--color-status-neg-text);
+}
+
+@media (max-width: 900px) {
+  .tb-section-row,
+  .tb-facts,
+  .tb-date-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.tb-volume-input.input {
+  width: 200px;
+  font-weight: 600;
+  font-size: 14px;
+}
