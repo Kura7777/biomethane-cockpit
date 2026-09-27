@@ -66,7 +66,7 @@ export function PlantsKpiTiles({ plants }: { plants: BiomethanePlant[] }) {
         label="Negative-CI supply"
         value={`${stats.negSharePct.toFixed(1)}%`}
         barPercent={stats.negSharePct}
-        sub={`Manure & slurry · ${stats.negCount.toLocaleString()} plants`}
+        sub={`${stats.negCount.toLocaleString()} plants below zero CI · mostly manure & slurry`}
         className="plants-kpi-blue-bar"
       />
 
