@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   VESSEL_ARCHETYPES,
@@ -28,12 +28,12 @@ import {
   Flame,
   Check,
   Copy,
-  ArrowRight,
-  Pencil
+  ArrowRight
 } from 'lucide-react';
 import { showToast } from '../../app/DeskToastContainer';
 import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
 import { AssumptionsStrip } from '../../shared/components/AssumptionsStrip';
+import { FlowSteps } from './FlowSteps';
 import './vesselArchetypeCalculator.css';
 
 const FUELEU_PATHWAY_ASSUMPTIONS = [
@@ -88,21 +88,6 @@ export function VesselArchetypeCalculator() {
   );
   const [copied, setCopied] = useState<boolean>(false);
   const [step, setStep] = useState<CalcStep>(1);
-  const stepRefs = useRef<Partial<Record<CalcStep, HTMLLIElement | null>>>({});
-  const hasMounted = useRef(false);
-
-  // When a step opens, bring its heading into view if the fold moved it off screen
-  useEffect(() => {
-    if (!hasMounted.current) {
-      hasMounted.current = true;
-      return;
-    }
-    const el = stepRefs.current[step];
-    if (!el) return;
-    const top = el.getBoundingClientRect().top;
-    if (top < 60 || top > window.innerHeight - 160) el.scrollIntoView({ block: 'start', behavior: 'smooth' });
-  }, [step]);
-
   const goToStep = (next: CalcStep) => setStep(next);
 
   // Active archetype object
@@ -611,48 +596,13 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
 
   return (
     <div className="fva">
-      <ol className="fva-flow" aria-label="Vessel calculator steps">
-        {CALC_STEPS.map(({ id, label }) => {
-          const state = id < step ? 'done' : id === step ? 'current' : 'todo';
-          return (
-            <li
-              key={id}
-              ref={el => { stepRefs.current[id] = el; }}
-              className={`fva-flow-step ${state}`}
-              aria-current={state === 'current' ? 'step' : undefined}
-            >
-              <div className="fva-flow-rail" aria-hidden="true">
-                <div className="fva-flow-marker num">{state === 'done' ? <Check size={16} strokeWidth={3} /> : String(id).padStart(2, '0')}</div>
-                <div className="fva-flow-line" />
-              </div>
-
-              <div className="fva-flow-main">
-                <div className="fva-flow-head">
-                  <h3 className="fva-flow-name">
-                    <button
-                      type="button"
-                      className="fva-flow-title"
-                      onClick={() => goToStep(id)}
-                      disabled={state === 'current'}
-                      aria-expanded={state === 'current'}
-                    >
-                      <span className="fva-flow-label">{label}</span>
-                      {state === 'done' && <span className="fva-flow-summary num">{stepSummary[id]}</span>}
-                    </button>
-                  </h3>
-                  {state === 'done' && (
-                    <button type="button" className="fva-edit-link" onClick={() => goToStep(id)} aria-label={`Edit ${label.toLowerCase()}`}>
-                      <Pencil size={12} /> Edit
-                    </button>
-                  )}
-                </div>
-
-                {state === 'current' && <div className="fva-flow-body">{renderBody(id)}</div>}
-              </div>
-            </li>
-          );
-        })}
-      </ol>
+      <FlowSteps
+        steps={CALC_STEPS.map(({ id, label }) => ({ id, label, summary: stepSummary[id] }))}
+        current={step}
+        onSelect={goToStep}
+        renderBody={renderBody}
+        ariaLabel="Vessel calculator steps"
+      />
     </div>
   );
 }

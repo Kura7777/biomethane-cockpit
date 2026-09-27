@@ -11,28 +11,34 @@ import {
   DEFAULT_LNG_ENGINE,
 } from '../../domain/fueleu/calculator';
 import { LngEngineType } from '../../domain/fueleu/types';
-import {
-  Scale,
-  Zap,
-  ShieldCheck,
-  Coins,
-  TrendingDown,
-  ArrowRight,
-  HelpCircle,
-  FileText,
-  Copy,
-  Check,
-  Anchor,
-  Flame,
-  Layers
-} from 'lucide-react';
+import { Zap, ShieldCheck, ArrowRight, FileText, Check, Flame } from 'lucide-react';
 import { showToast } from '../../app/DeskToastContainer';
 import { getAssumption, fuelEuPoolSpreadEurPerTco2e, fuelEuPoolBidPriceEurPerTco2e } from '../../domain/assumptions/registry';
 import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
 import { AssumptionsStrip } from '../../shared/components/AssumptionsStrip';
+import { FlowSteps } from './FlowSteps';
 
+type PathwayStep = 1 | 2 | 3;
+
+const ESCALATION_LABELS: Record<number, string> = {
+  1: 'Year 1 (0% escalation)',
+  2: 'Year 2 (+10% escalation)',
+  3: 'Year 3 (+20% escalation)',
+  4: 'Year 4+ (+30% escalation)',
+};
+
+const LNG_ENGINE_LABELS: Record<LngEngineType, string> = {
+  LNG_OTTO_SS: 'Otto slow-speed (1.7% slip)',
+  LNG_OTTO_MS: 'Otto medium-speed (3.1% slip)',
+  LNG_DIESEL_SS: 'Diesel slow-speed (0.2% slip)',
+  LBSI: 'Lean-burn spark-ignited (2.6% slip)',
+};
+
+/** FuelEU commercial pathways as a vertical three-step flow: size the fleet deficit, set the
+ *  fuel and fleet, then compare inaction, physical Bio-LNG and Article 21 pooling side by side. */
 export function DualCommercialPathwaySimulator() {
   const navigate = useNavigate();
+  const [step, setStep] = useState<PathwayStep>(1);
 
   // Deficit volume slider in tCO2e
   const [simulatedDeficitTco2e, setSimulatedDeficitTco2e] = useState<number>(25000);
@@ -126,387 +132,332 @@ ESTIMATED PENALTY EXPOSURE (DEFAULT INACTION, ART. 23(2)): €${Math.round(statu
     setTimeout(() => setCopied(false), 2500);
   };
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-      {/* Overview Header Banner */}
-      <div
-        style={{
-          border: '1px solid var(--color-divider)',
-          backgroundColor: 'var(--color-surface)',
-          padding: '14px 16px',
-          display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '12px',
-        }}
-      >
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="eyebrow" style={{ color: 'var(--color-accent)', fontWeight: 700 }}>
-              Strategic Advisory &amp; Structuring
-            </span>
-            <span className="chip chip-info">Regulation (EU) 2023/1805</span>
-          </div>
-          <h2 className="ptitle" style={{ fontSize: '16px', margin: '4px 0 2px' }}>
-            Dual Commercial Compliance Pathways: Physical Bunkering vs. Article 21 Pooling
-          </h2>
-          <div className="subttl" style={{ maxWidth: '800px' }}>
-            Shipping operators facing FuelEU Maritime non-compliance fines have two routes to reduce exposure: physically bunkering negative-CI Bio-LNG (Art. 4, Annex I-II) or purchasing pooled compliance surplus from over-compliant fleets (Article 21). Indicative estimate — desk assumptions.
-          </div>
-          <div className="subttl" style={{ maxWidth: '800px', fontStyle: 'italic', marginTop: '2px' }}>
-            Desk margin figures below are internal — not for client distribution.
-          </div>
-        </div>
+  const stepSummary: Record<PathwayStep, string> = {
+    1: `${simulatedDeficitTco2e.toLocaleString()} tCO₂e · ${targetYear} target (${targetYear === 2025 ? '-2%' : '-6%'}) · ${ESCALATION_LABELS[consecutiveYears]} · fleet ${fleetActualGhgie.toFixed(2)} g/MJ`,
+    2: `Bio-LNG CI ${bioLngCi} g/MJ · ${isLngCapable ? `LNG fleet, ${LNG_ENGINE_LABELS[lngEngine]}` : 'VLSFO fleet'}`,
+    3: '',
+  };
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <button
-            type="button"
-            onClick={handleCopyBriefing}
-            className="btn btn-secondary"
-            style={{ fontSize: '11px', height: '30px', padding: '0 10px', display: 'flex', alignItems: 'center', gap: '5px' }}
-          >
-            {copied ? <Check size={12} style={{ color: 'var(--color-status-pos-text)' }} /> : <Copy size={12} />}
-            {copied ? 'Copied Briefing' : 'Copy Briefing'}
-          </button>
-          <button
-            type="button"
-            onClick={handleStructureTrade}
-            className="btn btn-primary"
-            style={{ fontSize: '11px', height: '30px', padding: '0 10px', display: 'flex', alignItems: 'center', gap: '5px' }}
-          >
-            <Zap size={12} /> Trade Builder
-          </button>
-        </div>
+  const stepActions = (current: PathwayStep, label: string) => (
+    <div className="fva-step-actions">
+      <button type="button" className="btn btn-primary" onClick={() => setStep((current + 1) as PathwayStep)}>
+        {label} <ArrowRight size={14} />
+      </button>
+      <div className="fva-estimate num" aria-live="polite">
+        <span className="fva-estimate-label">Default inaction penalty</span>
+        <span className="fva-neg">€{Math.round(statutoryPenaltyEur).toLocaleString()}</span>
+        <span className="fva-estimate-sep">·</span>
+        <span className="fva-estimate-label">Bio-LNG to close</span>
+        <span>{Math.round(requiredBioLngTonnes).toLocaleString()} t</span>
       </div>
+    </div>
+  );
 
-      {/* Interactive Fleet Deficit Block Simulator */}
-      <div
-        style={{
-          border: '1px solid var(--color-divider)',
-          backgroundColor: 'var(--color-surface)',
-          padding: '14px 16px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '10px',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '8px', borderBottom: '1px solid var(--color-divider)' }}>
-          <span className="eyebrow" style={{ fontSize: '11px', color: 'var(--color-text)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Layers size={13} style={{ color: 'var(--color-accent)' }} /> Configure Fleet Deficit Block
-          </span>
-          <span className="subttl num" style={{ fontSize: '12px' }}>
-            Default Inaction Penalty: <strong style={{ color: 'var(--color-status-neg-text)' }}>€{Math.round(statutoryPenaltyEur).toLocaleString()}</strong>
-          </span>
-        </div>
+  const renderBody = (id: PathwayStep) => {
+    switch (id) {
+      case 1:
+        return (
+          <>
+            <div className="fva-section-head">
+              <span>Configure Fleet Deficit Block</span>
+            </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
-          {/* Target Compliance Year */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
-              <span className="mut">Target Year:</span>
-              <span className="num" style={{ fontWeight: 700, color: 'var(--color-accent)' }}>{targetYear} ({targetYear === 2025 ? '-2%' : '-6%'})</span>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', paddingTop: '2px' }}>
-              <button
-                type="button"
-                onClick={() => setTargetYear(2025)}
-                className={`btn ${targetYear === 2025 ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ height: '28px', fontSize: '11px', padding: '0' }}
-              >
-                2025 (89.34)
-              </button>
-              <button
-                type="button"
-                onClick={() => setTargetYear(2030)}
-                className={`btn ${targetYear === 2030 ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ height: '28px', fontSize: '11px', padding: '0' }}
-              >
-                2030 (85.69)
-              </button>
-            </div>
-          </div>
-
-          {/* Deficit Volume Slider */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
-              <span className="mut">Fleet Deficit Volume:</span>
-              <span className="num" style={{ fontWeight: 700, color: 'var(--color-status-warn-text)' }}>{simulatedDeficitTco2e.toLocaleString()} tCO₂e</span>
-            </div>
-            <input
-              type="range"
-              min="1000"
-              max="200000"
-              step="1000"
-              value={simulatedDeficitTco2e}
-              onChange={(e) => setSimulatedDeficitTco2e(Number(e.target.value))}
-              style={{ width: '100%', cursor: 'pointer' }}
-            />
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px' }} className="subttl num">
-              <span>1,000 t</span>
-              <span>100,000 t</span>
-              <span>200,000 t</span>
-            </div>
-          </div>
-
-          {/* Bio-LNG Carbon Intensity */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
-              <span className="mut">Bio-LNG Substrate CI:</span>
-              <span className="num" style={{ fontWeight: 700, color: 'var(--color-status-pos-text)' }}>{bioLngCi} g/MJ</span>
-            </div>
-            <input
-              type="range"
-              min="-120"
-              max="20"
-              step="5"
-              value={bioLngCi}
-              onChange={(e) => setBioLngCi(Number(e.target.value))}
-              style={{ width: '100%', cursor: 'pointer' }}
-            />
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px' }} className="subttl num">
-              <span>-120 (Manure)</span>
-              <span>-50</span>
-              <span>+20 (Waste)</span>
-            </div>
-          </div>
-
-          {/* Consecutive Years Multiplier */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
-              <span className="mut">Escalation Vintage:</span>
-              <span className="num" style={{ fontWeight: 600 }}>Year {consecutiveYears} ({((1 + (consecutiveYears - 1) / 10) * 100).toFixed(0)}%)</span>
-            </div>
-            <select
-              value={consecutiveYears}
-              onChange={(e) => setConsecutiveYears(Number(e.target.value))}
-              className="input"
-              style={{ height: '28px', fontSize: '11px', padding: '0 6px' }}
-            >
-              <option value={1}>Year 1 (0% escalation)</option>
-              <option value={2}>Year 2 (+10% escalation)</option>
-              <option value={3}>Year 3 (+20% escalation)</option>
-              <option value={4}>Year 4+ (+30% escalation)</option>
-            </select>
-          </div>
-
-          {/* Fleet Actual GHG Intensity */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
-              <span className="mut">Fleet Actual GHG Intensity:</span>
+            {/* Deficit Volume Slider */}
+            <div className="fva-field">
+              <div className="fva-field-row">
+                <span className="fva-label">Fleet Deficit Volume (tCO₂e):</span>
+                <input
+                  type="number"
+                  min={1000}
+                  max={200000}
+                  step={1000}
+                  value={simulatedDeficitTco2e}
+                  onChange={(e) => setSimulatedDeficitTco2e(Math.min(200000, Math.max(1000, Number(e.target.value) || 1000)))}
+                  className="input num fva-num-input"
+                  aria-label="Fleet deficit volume (tCO2e)"
+                />
+              </div>
               <input
-                type="number"
-                step="0.01"
-                value={fleetActualGhgie}
-                onChange={(e) => setFleetActualGhgie(Math.max(0.01, Number(e.target.value) || 0))}
-                className="input num"
-                style={{ width: '80px', height: '26px', fontSize: '12px', textAlign: 'right' }}
+                type="range"
+                min="1000"
+                max="200000"
+                step="1000"
+                value={simulatedDeficitTco2e}
+                onChange={(e) => setSimulatedDeficitTco2e(Number(e.target.value))}
+                className="fva-range"
+                aria-label="Fleet deficit volume slider"
               />
-            </div>
-            <span className="subttl num" style={{ fontSize: '10px' }}>gCO₂e/MJ (Annex IV Part B uses the fleet's own achieved intensity)</span>
-          </div>
-
-          {/* LNG-Capable Fleet Toggle */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
-              <span className="mut">LNG-Capable Fleet:</span>
-              <span className="num" style={{ fontWeight: 600 }}>{isLngCapable ? 'Yes' : 'No'}</span>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
-              <button
-                type="button"
-                onClick={() => setIsLngCapable(false)}
-                className={`btn ${!isLngCapable ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ height: '28px', fontSize: '11px', padding: '0' }}
-              >
-                VLSFO Fleet
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsLngCapable(true)}
-                className={`btn ${isLngCapable ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ height: '28px', fontSize: '11px', padding: '0' }}
-              >
-                LNG Fleet
-              </button>
-            </div>
-            {isLngCapable && (
-              <select
-                value={lngEngine}
-                onChange={(e) => setLngEngine(e.target.value as LngEngineType)}
-                className="input"
-                style={{ height: '28px', fontSize: '11px', padding: '0 6px', marginTop: '2px' }}
-              >
-                <option value="LNG_OTTO_SS">Otto slow-speed (1.7% slip)</option>
-                <option value="LNG_OTTO_MS">Otto medium-speed (3.1% slip)</option>
-                <option value="LNG_DIESEL_SS">Diesel slow-speed (0.2% slip)</option>
-                <option value="LBSI">Lean-burn spark-ignited (2.6% slip)</option>
-              </select>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* 3-Column Comparative Solution Matrix */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
-        {/* Option 0: Statutory Inaction (Default Penalty) */}
-        <div
-          style={{
-            border: '1px solid var(--color-divider)',
-            backgroundColor: 'var(--color-surface)',
-            padding: '14px 16px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-          }}
-        >
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '8px', borderBottom: '1px solid var(--color-divider)' }}>
-              <span style={{ fontWeight: 700, fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-status-neg-text)' }}>
-                <Flame size={14} /> Statutory Inaction (Default Penalty)
-              </span>
-              <span className="chip chip-neg">Default</span>
-            </div>
-            <div className="subttl" style={{ margin: '8px 0 12px' }}>
-              Paying the FuelEU penalty directly to the administering State (Art. 23(2)).
+              <div className="fva-scale num">
+                <span>1,000 t</span>
+                <span>100,000 t</span>
+                <span>200,000 t</span>
+              </div>
             </div>
 
-            <div style={{ border: '1px solid var(--color-divider)', padding: '10px', backgroundColor: 'var(--color-panel-header)', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span className="mut">Statutory Rate:</span>
-                <span className="num">€2,400 / t VLSFO-eq</span>
+            <div className="fva-settings">
+              {/* Target Compliance Year */}
+              <div className="fva-field">
+                <span className="fva-label">Target Year</span>
+                <div className="fe-seg fva-seg" role="group" aria-label="Target year">
+                  <button type="button" className={targetYear === 2025 ? 'active' : ''} onClick={() => setTargetYear(2025)}>
+                    2025 (89.34)
+                  </button>
+                  <button type="button" className={targetYear === 2030 ? 'active' : ''} onClick={() => setTargetYear(2030)}>
+                    2030 (85.69)
+                  </button>
+                </div>
+                <span className="fva-hint num">Target GHGIE {targetGhgie.toFixed(2)} g/MJ ({targetYear === 2025 ? '-2%' : '-6%'})</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span className="mut">Effective CI Cost:</span>
-                <span className="num">€{effectivePenaltyRatePerTco2e.toFixed(2)} / tCO₂e</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '4px', borderTop: '1px solid var(--color-divider)', fontWeight: 700, color: 'var(--color-status-neg-text)' }}>
-                <span>Total Cash Penalty:</span>
-                <span className="num">€{Math.round(statutoryPenaltyEur).toLocaleString()}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span className="mut">Client Savings:</span>
-                <span className="num" style={{ color: 'var(--color-status-neg-text)' }}>€0 (100% loss)</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span className="mut">Desk Margin (internal):</span>
-                <span className="num">€0</span>
-              </div>
-            </div>
-          </div>
 
-          <div className="subttl" style={{ marginTop: '12px', padding: '8px', border: '1px solid var(--color-status-neg-border, #fecaca)', backgroundColor: 'var(--color-status-neg-bg, #fef2f2)', color: 'var(--color-status-neg-text, #b91c1c)', fontSize: '11px' }}>
-            Inaction triggers consecutive year multipliers (Year 2: +10%, Year 3: +20%).
-          </div>
-        </div>
+              {/* Consecutive Years Multiplier */}
+              <label className="fva-field">
+                <span className="fva-label">Escalation Vintage</span>
+                <select value={consecutiveYears} onChange={(e) => setConsecutiveYears(Number(e.target.value))} className="input">
+                  {Object.entries(ESCALATION_LABELS).map(([years, label]) => (
+                    <option key={years} value={years}>{label}</option>
+                  ))}
+                </select>
+                <span className="fva-hint num">Penalty at {((1 + (consecutiveYears - 1) / 10) * 100).toFixed(0)}% of the base rate</span>
+              </label>
 
-        {/* Option 1: Physical Bio-LNG Bunkering */}
-        <div
-          style={{
-            border: '1px solid var(--color-divider)',
-            backgroundColor: 'var(--color-surface)',
-            padding: '14px 16px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-          }}
-        >
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '8px', borderBottom: '1px solid var(--color-divider)' }}>
-              <span style={{ fontWeight: 700, fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-accent)' }}>
-                <Zap size={14} /> Pathway 1: Physical Bio-LNG
-              </span>
-              <span className="chip chip-info">Art. 4, Annex I-II</span>
-            </div>
-            <div className="subttl" style={{ margin: '8px 0 12px' }}>
-              Physical drop-in bunkering of Danish/Dutch manure Bio-LNG (CI = {bioLngCi} g/MJ) at Rotterdam or Antwerp.
+              {/* Fleet Actual GHG Intensity */}
+              <label className="fva-field full">
+                <span className="fva-label">Fleet Actual GHG Intensity (gCO₂e/MJ)</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={fleetActualGhgie}
+                  onChange={(e) => setFleetActualGhgie(Math.max(0.01, Number(e.target.value) || 0))}
+                  className="input num fva-num-input"
+                />
+                <span className="fva-hint">Annex IV Part B uses the fleet&apos;s own achieved intensity</span>
+              </label>
             </div>
 
-            <div style={{ border: '1px solid var(--color-divider)', padding: '10px', backgroundColor: 'var(--color-panel-header)', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span className="mut">Bio-LNG Volume:</span>
-                <span className="num" style={{ fontWeight: 600 }}>{Math.round(requiredBioLngTonnes).toLocaleString()} t ({Math.round(requiredBioLngMwh).toLocaleString()} MWh)</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span className="mut">Fuel Premium Cost:</span>
-                <span className="num">€{Math.round(physicalBioLngPremiumCost).toLocaleString()}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '4px', borderTop: '1px solid var(--color-divider)', fontWeight: 700, color: 'var(--color-status-pos-text)' }}>
-                <span>Client Net Savings:</span>
-                <span className="num">€{Math.round(physicalClientSavingsEur).toLocaleString()}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--color-accent)', fontWeight: 600 }}>
-                <span>Desk Trading Margin (internal):</span>
-                <span className="num">€{Math.round(physicalDeskMarginEur).toLocaleString()}</span>
+            {stepActions(1, 'Next: Fuel & fleet')}
+          </>
+        );
+
+      case 2:
+        return (
+          <>
+            {/* Bio-LNG Carbon Intensity */}
+            <div className="fva-subpanel">
+              <div className="fva-field">
+                <div className="fva-field-row">
+                  <span className="fva-label pos">Bio-LNG Substrate CI (g/MJ):</span>
+                  <div className="fva-ci-input">
+                    <input
+                      type="number"
+                      min={-120}
+                      max={20}
+                      step={5}
+                      value={bioLngCi}
+                      onChange={(e) => setBioLngCi(Math.min(20, Math.max(-120, Number(e.target.value) || 0)))}
+                      className="input num"
+                      aria-label="Bio-LNG substrate carbon intensity (g/MJ)"
+                    />
+                  </div>
+                </div>
+                <input
+                  type="range"
+                  min="-120"
+                  max="20"
+                  step="5"
+                  value={bioLngCi}
+                  onChange={(e) => setBioLngCi(Number(e.target.value))}
+                  className="fva-range"
+                  aria-label="Bio-LNG substrate carbon intensity slider"
+                />
+                <div className="fva-scale num">
+                  <span>-120 (Manure)</span>
+                  <span>-50</span>
+                  <span>+20 (Waste)</span>
+                </div>
               </div>
             </div>
-          </div>
 
-          <button
-            type="button"
-            onClick={handleStructureTrade}
-            className="btn btn-primary"
-            style={{ width: '100%', marginTop: '12px', fontSize: '11px', height: '32px' }}
-          >
-            <Zap size={12} /> Structure Bio-LNG Supply in Trade Builder
-          </button>
-        </div>
+            {/* LNG-Capable Fleet Toggle */}
+            <div className="fva-settings">
+              <div className="fva-field">
+                <span className="fva-label">LNG-Capable Fleet</span>
+                <div className="fe-seg fva-seg" role="group" aria-label="Fleet fuel">
+                  <button type="button" className={!isLngCapable ? 'active' : ''} onClick={() => setIsLngCapable(false)}>
+                    VLSFO Fleet
+                  </button>
+                  <button type="button" className={isLngCapable ? 'active' : ''} onClick={() => setIsLngCapable(true)}>
+                    LNG Fleet
+                  </button>
+                </div>
+                <span className="fva-hint">Bio-LNG displaces {isLngCapable ? 'fossil LNG' : 'VLSFO'} ({displacedIntensity.toFixed(2)} g/MJ WtW)</span>
+              </div>
 
-        {/* Option 2: Article 21 Pooling Mechanism */}
-        <div
-          style={{
-            border: '1px solid var(--color-divider)',
-            backgroundColor: 'var(--color-surface)',
-            padding: '14px 16px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-          }}
-        >
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '8px', borderBottom: '1px solid var(--color-divider)' }}>
-              <span style={{ fontWeight: 700, fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-status-pos-text)' }}>
-                <ShieldCheck size={14} /> Pathway 2: Article 21 Pooling
-              </span>
-              <span className="chip chip-pos">Article 21</span>
-            </div>
-            <div className="subttl" style={{ margin: '8px 0 12px' }}>
-              Bilateral compliance pool matching deficit vessels with over-compliant LNG fleets, recorded via the FuelEU database (Art. 19).
+              {isLngCapable && (
+                <label className="fva-field">
+                  <span className="fva-label">LNG engine</span>
+                  <select value={lngEngine} onChange={(e) => setLngEngine(e.target.value as LngEngineType)} className="input">
+                    {(Object.keys(LNG_ENGINE_LABELS) as LngEngineType[]).map(engine => (
+                      <option key={engine} value={engine}>{LNG_ENGINE_LABELS[engine]}</option>
+                    ))}
+                  </select>
+                </label>
+              )}
             </div>
 
-            <div style={{ border: '1px solid var(--color-divider)', padding: '10px', backgroundColor: 'var(--color-panel-header)', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span className="mut">Pool Clearing Rate:</span>
-                <span className="num" style={{ fontWeight: 600 }}>€{poolOffer.toFixed(2)} / tCO₂e</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span className="mut">Cost to Client:</span>
-                <span className="num">€{Math.round(poolingCostToClientEur).toLocaleString()}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '4px', borderTop: '1px solid var(--color-divider)', fontWeight: 700, color: 'var(--color-status-pos-text)' }}>
-                <span>Client Net Savings:</span>
-                <span className="num">€{Math.round(poolingClientSavingsEur).toLocaleString()}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--color-accent)', fontWeight: 600 }}>
-                <span>Desk Arrangement Fee (internal):</span>
-                <span className="num">€{Math.round(poolingDeskMarginEur).toLocaleString()}</span>
-              </div>
-            </div>
-          </div>
+            {stepActions(2, 'Next: Compare pathways')}
+          </>
+        );
 
-          <button
-            type="button"
-            onClick={handleCopyBriefing}
-            className="btn btn-secondary"
-            style={{ width: '100%', marginTop: '12px', fontSize: '11px', height: '32px' }}
-          >
-            <FileText size={12} /> Copy Indicative Pool Term Sheet
-          </button>
-        </div>
-      </div>
-      <AssumptionsStrip
-        keys={['fueleu.bioLngPremiumEurPerMwh', 'fueleu.physicalDeskMarginEurPerMwh', 'fueleu.poolBuyPriceEurPerTco2e', 'fueleu.poolSellPriceEurPerTco2e']}
+      case 3:
+        return (
+          <>
+            <div className="fva-intro">
+              <p className="fva-desc">
+                Shipping operators facing FuelEU Maritime non-compliance fines have two routes to reduce exposure: physically bunkering negative-CI Bio-LNG (Art. 4, Annex I-II) or purchasing pooled compliance surplus from over-compliant fleets (Article 21). Indicative estimate — desk assumptions.
+              </p>
+              <p className="fva-hint">Desk margin figures below are internal — not for client distribution.</p>
+            </div>
+
+            {/* Comparative Solution Matrix: one row per option, figures on the right */}
+            <div className="fva-options">
+              {/* Option 0: Statutory Inaction (Default Penalty) */}
+              <section className="fva-card fva-option">
+                <div className="fva-option-info">
+                <div className="fva-card-head">
+                  <h3 className="fva-title neg">
+                    <Flame size={16} /> Statutory Inaction (Default Penalty)
+                  </h3>
+                  <span className="chip chip-neg">Default</span>
+                </div>
+                <p className="fva-desc">Paying the FuelEU penalty directly to the administering State (Art. 23(2)).</p>
+
+                <div className="fva-note-neg">Inaction triggers consecutive year multipliers (Year 2: +10%, Year 3: +20%).</div>
+                </div>
+
+                <div className="fva-kv">
+                  <div className="fva-kv-row">
+                    <span className="muted">Statutory Rate:</span>
+                    <span className="num">€2,400 / t VLSFO-eq</span>
+                  </div>
+                  <div className="fva-kv-row">
+                    <span className="muted">Effective CI Cost:</span>
+                    <span className="num">€{effectivePenaltyRatePerTco2e.toFixed(2)} / tCO₂e</span>
+                  </div>
+                  <div className="fva-kv-row neg">
+                    <span>Total Cash Penalty:</span>
+                    <span className="num">€{Math.round(statutoryPenaltyEur).toLocaleString()}</span>
+                  </div>
+                  <div className="fva-kv-row">
+                    <span className="muted">Client Savings:</span>
+                    <span className="num fva-neg">€0 (100% loss)</span>
+                  </div>
+                  <div className="fva-kv-row">
+                    <span className="muted">Desk Margin (internal):</span>
+                    <span className="num">€0</span>
+                  </div>
+                </div>
+              </section>
+
+              {/* Option 1: Physical Bio-LNG Bunkering */}
+              <section className="fva-card fva-option">
+                <div className="fva-option-info">
+                <div className="fva-card-head">
+                  <h3 className="fva-title">
+                    <Zap size={16} /> Pathway 1: Physical Bio-LNG
+                  </h3>
+                  <span className="chip chip-info">Art. 4, Annex I-II</span>
+                </div>
+                <p className="fva-desc">
+                  Physical drop-in bunkering of Danish/Dutch manure Bio-LNG (CI = {bioLngCi} g/MJ) at Rotterdam or Antwerp.
+                </p>
+
+                <button type="button" onClick={handleStructureTrade} className="btn btn-primary fva-cta">
+                  <Zap size={14} /> Structure Bio-LNG Supply in Trade Builder
+                </button>
+                </div>
+
+                <div className="fva-kv">
+                  <div className="fva-kv-row">
+                    <span className="muted">Bio-LNG Volume:</span>
+                    <span className="num">{Math.round(requiredBioLngTonnes).toLocaleString()} t ({Math.round(requiredBioLngMwh).toLocaleString()} MWh)</span>
+                  </div>
+                  <div className="fva-kv-row">
+                    <span className="muted">Fuel Premium Cost:</span>
+                    <span className="num">€{Math.round(physicalBioLngPremiumCost).toLocaleString()}</span>
+                  </div>
+                  <div className="fva-kv-row pos">
+                    <span>Client Net Savings:</span>
+                    <span className="num">€{Math.round(physicalClientSavingsEur).toLocaleString()}</span>
+                  </div>
+                  <div className="fva-kv-row accent">
+                    <span>Desk Trading Margin (internal):</span>
+                    <span className="num">€{Math.round(physicalDeskMarginEur).toLocaleString()}</span>
+                  </div>
+                </div>
+              </section>
+
+              {/* Option 2: Article 21 Pooling Mechanism */}
+              <section className="fva-card fva-option">
+                <div className="fva-option-info">
+                <div className="fva-card-head">
+                  <h3 className="fva-title pos">
+                    <ShieldCheck size={16} /> Pathway 2: Article 21 Pooling
+                  </h3>
+                  <span className="chip chip-pos">Article 21</span>
+                </div>
+                <p className="fva-desc">
+                  Bilateral compliance pool matching deficit vessels with over-compliant LNG fleets, recorded via the FuelEU database (Art. 19).
+                </p>
+
+                <button type="button" onClick={handleCopyBriefing} className="btn btn-secondary fva-cta">
+                  {copied ? <Check size={14} className="fva-pos" /> : <FileText size={14} />}
+                  {copied ? 'Copied Briefing' : 'Copy Indicative Pool Term Sheet'}
+                </button>
+                </div>
+
+                <div className="fva-kv">
+                  <div className="fva-kv-row">
+                    <span className="muted">Pool Clearing Rate:</span>
+                    <span className="num">€{poolOffer.toFixed(2)} / tCO₂e</span>
+                  </div>
+                  <div className="fva-kv-row">
+                    <span className="muted">Cost to Client:</span>
+                    <span className="num">€{Math.round(poolingCostToClientEur).toLocaleString()}</span>
+                  </div>
+                  <div className="fva-kv-row pos">
+                    <span>Client Net Savings:</span>
+                    <span className="num">€{Math.round(poolingClientSavingsEur).toLocaleString()}</span>
+                  </div>
+                  <div className="fva-kv-row accent">
+                    <span>Desk Arrangement Fee (internal):</span>
+                    <span className="num">€{Math.round(poolingDeskMarginEur).toLocaleString()}</span>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <AssumptionsStrip
+              keys={['fueleu.bioLngPremiumEurPerMwh', 'fueleu.physicalDeskMarginEurPerMwh', 'fueleu.poolBuyPriceEurPerTco2e', 'fueleu.poolSellPriceEurPerTco2e']}
+            />
+          </>
+        );
+    }
+  };
+
+  const steps: { id: PathwayStep; label: string }[] = [
+    { id: 1, label: 'Deficit' },
+    { id: 2, label: 'Fuel & fleet' },
+    { id: 3, label: 'Compare pathways' },
+  ];
+
+  return (
+    <div className="fva">
+      <FlowSteps
+        steps={steps.map(({ id, label }) => ({ id, label, summary: stepSummary[id] }))}
+        current={step}
+        onSelect={setStep}
+        renderBody={renderBody}
+        ariaLabel="Commercial pathways steps"
       />
     </div>
   );

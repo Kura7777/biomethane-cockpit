@@ -661,3 +661,85 @@ html.dark .fva-range {
   width: 100%;
   margin-top: auto;
 }
+
+/* ── Commercial pathways extras ── */
+.fva-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fva-intro .fva-desc {
+  max-width: 80ch;
+}
+
+.fva-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--fe-fs-caption);
+  color: var(--fe-muted);
+}
+
+.fva-seg {
+  align-self: flex-start;
+}
+
+.fva-title.neg,
+.fva-title.neg svg {
+  color: var(--fe-deficit);
+}
+
+.fva-kv-row.neg {
+  color: var(--fe-deficit);
+  font-weight: 600;
+}
+
+.fva-note-neg {
+  align-self: end;
+  padding: 8px 12px;
+  border: 1px solid color-mix(in srgb, var(--fe-deficit) 35%, transparent);
+  border-radius: var(--radius-control);
+  background: var(--fe-deficit-soft);
+  color: var(--fe-deficit);
+  font-size: var(--fe-fs-caption);
+  line-height: 1.4;
+}
+
+.fva-options {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Each option is one row: title, description and action on the left, its figures on the right */
+.fva-option.fva-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 32px;
+  align-items: stretch;
+}
+
+.fva-option-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.fva-option .fva-cta.btn,
+.fva-option .fva-note-neg {
+  margin-top: auto;
+  align-self: flex-start;
+  width: auto;
+}
+
+.fva-option .fva-kv {
+  align-self: start;
+}
+
+@media (max-width: 1100px) {
+  .fva-option.fva-card {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 16px;
+  }
+}
