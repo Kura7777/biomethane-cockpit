@@ -679,6 +679,7 @@ export function ScannerScreen() {
             </table>
           </div>
         </div>
+      </div>
       ) : (
         /* =========================================================================
            MODE 2: SINGLE CONSIGNMENT NETBACK LADDER
