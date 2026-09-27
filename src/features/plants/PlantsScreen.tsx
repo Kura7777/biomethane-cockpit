@@ -397,7 +397,7 @@ export function PlantsScreen() {
         originCountry: plant.countryCode,
         feedstock: feedKey,
         ci: ciVal,
-        ciIsEstimated: !plant.verifiedCarbonIntensity,
+        ciIsEstimated: true, // census CI is a feedstock default, not an audited PoS value
         volume: volumeMWh,
         plantId: plant.id,
         plantName: plant.name,
@@ -418,7 +418,7 @@ export function PlantsScreen() {
     const headers = [
       'Plant ID', 'Plant Name', 'Country', 'ISO', 'Operator', 'Legal Entity', 'Registration ID',
       'Grid Operator', 'Grid Level', 'Capacity (Nm3/h)', 'Annual Energy (GWh/y)', 'Primary Feedstock',
-      'Feedstock Details', 'Audited CI (gCO2e/MJ)', 'Upgrading Tech', 'Commissioning Year', 'Website',
+      'Feedstock Details', 'CI, feedstock default (gCO2e/MJ)', 'Upgrading Tech', 'Commissioning Year', 'Website',
       'Contact Email', 'Contact Phone', 'Address', 'Verified',
     ];
     const rows = sortedPlants.map(p => [

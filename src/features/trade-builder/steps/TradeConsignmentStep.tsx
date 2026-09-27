@@ -63,6 +63,9 @@ interface TradeConsignmentStepProps {
   plantTotalMWh: number | null;
   plantCommittedMwh: number;
   availablePlantCapacity: number | null;
+  /** Where the CI came from, for the provenance label: an uploaded PoS, an estimate/default, or neither (manual). */
+  ciProvenance: 'pos' | 'estimated' | null;
+  onCiSourceChange: (source: 'estimate' | 'manual') => void;
   isOversubscribed: boolean;
   plantCommittedPct: number | null;
   complianceYear: number;
@@ -114,6 +117,8 @@ export function TradeConsignmentStep({
   plantTotalMWh,
   plantCommittedMwh,
   availablePlantCapacity,
+  ciProvenance,
+  onCiSourceChange,
   isOversubscribed,
   plantCommittedPct,
   complianceYear,
@@ -673,6 +678,7 @@ export function TradeConsignmentStep({
                       setFeedstockKey(f.key);
                       const benchmark = getCountryFeedstockCI(origin, f.key, ciTier);
                       setCi(benchmark.ci);
+                      onCiSourceChange('estimate');
                     }}
                   >
                     {f.label}
@@ -785,6 +791,11 @@ export function TradeConsignmentStep({
                 <span style={{ fontSize: '13px', fontWeight: 600 }}>
                   Carbon Intensity (CI)
                 </span>
+                {ciProvenance === 'pos' ? (
+                  <span className="chip chip-pos" title="CI taken from the uploaded Proof of Sustainability. Check it against the certificate before confirming.">PoS CI</span>
+                ) : ciProvenance === 'estimated' ? (
+                  <span className="chip chip-warn" title="Feedstock default or benchmark CI, not from an audited PoS. Treat as indicative until the producer's PoS is received.">Estimated CI</span>
+                ) : null}
                 <div style={{ display: 'flex', gap: '2px' }}>
                   {(['conservative', 'base', 'optimistic'] as const).map(t => (
                     <button
@@ -796,6 +807,7 @@ export function TradeConsignmentStep({
                         setCiTier(t);
                         const benchmark = getCountryFeedstockCI(origin, feedstockKey, t);
                         setCi(benchmark.ci);
+                        onCiSourceChange('estimate');
                       }}
                     >
                       {t.slice(0, 4)}
@@ -819,7 +831,7 @@ export function TradeConsignmentStep({
               max="50"
               step="1"
               value={ci}
-              onChange={e => setCi(Number(e.target.value))}
+              onChange={e => { setCi(Number(e.target.value)); onCiSourceChange('manual'); }}
               style={{ width: '100%', cursor: 'pointer' }}
               aria-label="Adjust carbon intensity"
             />

@@ -160,6 +160,7 @@ export function TradeBuilderScreen() {
     setScheme('ISCC_EU');
     setChainOfCustody('MASS_BALANCE');
     setCi(-100);
+    setCiSource('deal');
     setCiTier('base');
     setVolumeMwh(10000);
     setMarketId('DE_THG');
@@ -186,6 +187,9 @@ export function TradeBuilderScreen() {
   const [scheme, setScheme] = useState<CertificationScheme>((deal.scheme as CertificationScheme) || 'ISCC_EU');
   const [chainOfCustody, setChainOfCustody] = useState<ChainOfCustody>((deal.coc as ChainOfCustody) || 'MASS_BALANCE');
   const [ci, setCi] = useState<number>(deal.ci !== null && deal.ci !== undefined ? deal.ci : -100);
+  // Where the CI on screen came from: the deal link, a feedstock/benchmark estimate, an uploaded PoS, or a manual slider edit.
+  // Plant CIs in the census are feedstock defaults, so a plant-linked CI is never shown as verified.
+  const [ciSource, setCiSource] = useState<'deal' | 'estimate' | 'pos' | 'manual'>('deal');
   const [ciTier, setCiTier] = useState<'optimistic' | 'base' | 'conservative'>('base');
   const [marketId, setMarketId] = useState<string>(
     deal.marketId || state.selectedMarketId || getDefaultMarketForOrigin(deal.originCountry)
@@ -222,7 +226,10 @@ export function TradeBuilderScreen() {
     if (parsed.scheme && parsed.scheme !== 'UNKNOWN') setScheme(parsed.scheme);
     if (parsed.chainOfCustody) setChainOfCustody(parsed.chainOfCustody);
     if (parsed.canonicalFeedstock) setFeedstockKey(parsed.canonicalFeedstock);
-    if (parsed.carbonIntensityGCo2Mj !== undefined) setCi(parsed.carbonIntensityGCo2Mj);
+    if (parsed.carbonIntensityGCo2Mj !== undefined) {
+      setCi(parsed.carbonIntensityGCo2Mj);
+      setCiSource('pos');
+    }
     if (parsed.volumeMWh) setVolumeMwh(parsed.volumeMWh);
   };
 
@@ -236,7 +243,10 @@ export function TradeBuilderScreen() {
     }
     if (deal.originCountry) setOrigin(deal.originCountry);
     if (deal.feedstock) setFeedstockKey(deal.feedstock);
-    if (deal.ci !== null && deal.ci !== undefined) setCi(deal.ci);
+    if (deal.ci !== null && deal.ci !== undefined) {
+      setCi(deal.ci);
+      setCiSource('deal');
+    }
     if (deal.volume) {
       setVolumeMwh(deal.volume);
     } else if (deal.plantAnnualGWh || linkedPlant?.annualEnergyGWh) {
@@ -787,6 +797,8 @@ export function TradeBuilderScreen() {
               plantTotalMWh={plantTotalMWh}
               plantCommittedMwh={plantCommittedMwh}
               availablePlantCapacity={availablePlantCapacity}
+              ciProvenance={ciSource === 'pos' ? 'pos' : ciSource !== 'manual' && (ciSource === 'estimate' || deal.ciIsEstimated || linkedPlant) ? 'estimated' : null}
+              onCiSourceChange={setCiSource}
               isOversubscribed={isOversubscribed}
               plantCommittedPct={plantCommittedPct}
               complianceYear={complianceYear}
@@ -1146,6 +1158,7 @@ export function TradeBuilderScreen() {
                   onClick={() => {
                     setFeedstockKey(f.key);
                     setCi(f.defaultCI);
+                    setCiSource('estimate');
                   }}
                 >
                   {f.label}
@@ -1202,15 +1215,15 @@ export function TradeBuilderScreen() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span className="eyebrow" style={{ margin: 0 }}>Carbon intensity</span>
-                {deal.ciIsEstimated || (linkedPlant && linkedPlant.verifiedCarbonIntensity == null) ? (
-                  <span className="chip" style={{ fontSize: '12px', fontWeight: 700, backgroundColor: 'rgba(234, 179, 8, 0.15)', color: 'var(--color-amber-500, #eab308)', border: '1px solid rgba(234, 179, 8, 0.3)' }} title="Estimated default CI from substrate mix — unverified by audited PoS">
+                {ciSource === 'pos' ? (
+                  <span className="chip" style={{ fontSize: '12px', fontWeight: 700, backgroundColor: 'var(--color-status-pos-bg)', color: 'var(--color-status-pos-text)', border: '1px solid var(--color-status-pos-border)' }} title="CI taken from the uploaded Proof of Sustainability. Check it against the certificate before confirming.">
+                    PoS CI
+                  </span>
+                ) : ciSource !== 'manual' && (ciSource === 'estimate' || deal.ciIsEstimated || linkedPlant) ? (
+                  <span className="chip" style={{ fontSize: '12px', fontWeight: 700, backgroundColor: 'rgba(234, 179, 8, 0.15)', color: 'var(--color-amber-500, #eab308)', border: '1px solid rgba(234, 179, 8, 0.3)' }} title="Feedstock default or benchmark CI, not from an audited PoS. Treat as indicative until the producer's PoS is received.">
                     Estimated CI
                   </span>
-                ) : (linkedPlant?.verifiedCarbonIntensity != null ? (
-                  <span className="chip" style={{ fontSize: '12px', fontWeight: 700, backgroundColor: 'var(--color-status-pos-bg)', color: 'var(--color-status-pos-text)', border: '1px solid var(--color-status-pos-border)' }} title="Audited PoS verified CI">
-                    Verified CI
-                  </span>
-                ) : null)}
+                ) : null}
                 <div style={{ display: 'flex', gap: '2px' }}>
                   {(['conservative', 'base', 'optimistic'] as const).map(t => (
                     <button
@@ -1222,6 +1235,7 @@ export function TradeBuilderScreen() {
                         setCiTier(t);
                         const benchmark = getCountryFeedstockCI(origin, feedstockKey, t);
                         setCi(benchmark.ci);
+                        setCiSource('estimate');
                       }}
                       title={`Set ${t} ISCC benchmark CI for ${origin} ${feedstockKey}`}
                     >
@@ -1261,7 +1275,7 @@ export function TradeBuilderScreen() {
               max="50"
               step="1"
               value={ci}
-              onChange={e => setCi(Number(e.target.value))}
+              onChange={e => { setCi(Number(e.target.value)); setCiSource('manual'); }}
               style={{ width: '100%', opacity: 0, height: '16px', marginTop: '-14px', cursor: 'pointer' }}
               aria-label="Adjust carbon intensity"
             />

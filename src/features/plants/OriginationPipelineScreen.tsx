@@ -110,7 +110,7 @@ export function OriginationPipelineScreen() {
       'Support Scheme',
       'Annual GWh',
       'Feedstock',
-      'Audited CI (gCO2e/MJ)',
+      'CI, feedstock default (gCO2e/MJ)',
       'Contact Confidence',
       'Contact Risk Flags',
       'Statutory Register',
@@ -187,6 +187,7 @@ export function OriginationPipelineScreen() {
       volume: volumeMWh,
       feedstock: feedstockId,
       ci: plant.verifiedCarbonIntensity ?? defaultCi,
+      ciIsEstimated: true, // census CI is a feedstock default, not an audited PoS value
       marketId: defaultMarket,
       legalEntityName: plant.legalEntityName || plant.operator || undefined,
       networkOperator: plant.networkOperator || undefined,

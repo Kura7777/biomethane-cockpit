@@ -188,11 +188,13 @@ function getDomesticSubsidyBaseline(countryCode: string, feedstock: string): {
 }
 
 /**
- * Estimates plant carbon intensity based on verified feedstock if missing
+ * Resolves a plant's carbon intensity for pricing. Census CIs (`verifiedCarbonIntensity`) are one of
+ * 15 feedstock defaults, not audited PoS values (Sept 2026 desk audit, §5), so every result is
+ * flagged estimated. A CI becomes firm only when a trader loads the producer's PoS in the Trade builder.
  */
 export function resolveAuditedCarbonIntensity(plant: BiomethanePlant): { ci: number; isEstimated: boolean } {
   if (plant.verifiedCarbonIntensity !== null && plant.verifiedCarbonIntensity !== undefined) {
-    return { ci: plant.verifiedCarbonIntensity, isEstimated: false };
+    return { ci: plant.verifiedCarbonIntensity, isEstimated: true };
   }
   const desc = `${plant.primaryFeedstockCategory ?? ''} ${plant.feedstockDetails ?? ''}`.toLowerCase();
   if (desc.includes('swine') || desc.includes('pig') || desc.includes('slurry') || desc.includes('gülle')) {

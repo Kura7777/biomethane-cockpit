@@ -531,7 +531,7 @@ export function SourcingOriginationDesk() {
       dealCi = overrideCi;
     } else if (plant?.verifiedCarbonIntensity !== undefined && plant?.verifiedCarbonIntensity !== null) {
       dealCi = plant.verifiedCarbonIntensity;
-      dealCiIsEstimated = false;
+      dealCiIsEstimated = true; // census CI is a feedstock default, not an audited PoS value
     } else if (plant) {
       const resolved = resolveAuditedCarbonIntensity(plant);
       dealCi = resolved.ci;
@@ -1453,7 +1453,7 @@ export function SourcingOriginationDesk() {
                     className={`chip ${plantValuation.plant.carbonIntensity <= 0 ? 'chip-pos' : 'chip-warn'}`}
                     style={{ fontSize: '12px', padding: '1px 6px', fontWeight: 700 }}
                   >
-                    Audited CI: {plantValuation.plant.carbonIntensity > 0 ? `+${plantValuation.plant.carbonIntensity}` : plantValuation.plant.carbonIntensity} gCO₂e/MJ
+                    CI (feedstock default): {plantValuation.plant.carbonIntensity > 0 ? `+${plantValuation.plant.carbonIntensity}` : plantValuation.plant.carbonIntensity} gCO₂e/MJ
                   </span>
                   <span className="dim" style={{ fontSize: '12px' }}>
                     {plantValuation.plant.feedstockDetails}
