@@ -182,14 +182,14 @@ export function PlantScannerTable({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-100">
+              <span className="text-xs font-bold text-zinc-100">
                 Institutional Sourcing &amp; Netback Data Grid
               </span>
-              <span className="font-mono text-[9px] bg-cyan-950/80 text-cyan-300 border border-cyan-700/50 px-2 py-0.2 rounded font-bold">
+              <span className="text-[12px] bg-cyan-950/80 text-cyan-300 border border-cyan-700/50 px-2 py-0.2 rounded font-bold">
                 {sortedOpps.length} Eligible Routes
               </span>
             </div>
-            <p className="text-[10px] text-zinc-500 font-mono">
+            <p className="text-[12px] text-zinc-500">
               Live Continental Arbitrage Scanner · Click any row to inspect Deal Dossier &amp; Topology
             </p>
           </div>
@@ -204,7 +204,7 @@ export function PlantScannerTable({
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               placeholder="Search facility, origin, feedstock, market..."
-              className="pl-8 pr-3 py-1 bg-[#08090d] border border-[#1e2433] hover:border-[#2b3347] rounded text-xs text-zinc-200 placeholder-zinc-500 font-mono focus:border-cyan-500 focus:outline-none transition-colors w-52 sm:w-72"
+              className="pl-8 pr-3 py-1 bg-[#08090d] border border-[#1e2433] hover:border-[#2b3347] rounded text-xs text-zinc-200 placeholder-zinc-500 focus:border-cyan-500 focus:outline-none transition-colors w-52 sm:w-72"
             />
           </div>
 
@@ -213,32 +213,32 @@ export function PlantScannerTable({
             <button
               type="button"
               onClick={() => toggleSort('MARGIN')}
-              className={`px-2.5 py-1 rounded font-mono text-[10px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
+              className={`px-2.5 py-1 rounded text-[12px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
                 sortBy === 'MARGIN' ? 'bg-[#141824] text-cyan-300 border border-cyan-500/40 shadow-xs' : 'text-zinc-400 hover:text-zinc-200'
               }`}
             >
               <span>Max Margin</span>
-              {sortBy === 'MARGIN' && <span className="text-[9px]">{sortOrder === 'DESC' ? '↓' : '↑'}</span>}
+              {sortBy === 'MARGIN' && <span className="text-[12px]">{sortOrder === 'DESC' ? '↓' : '↑'}</span>}
             </button>
             <button
               type="button"
               onClick={() => toggleSort('COST')}
-              className={`px-2.5 py-1 rounded font-mono text-[10px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
+              className={`px-2.5 py-1 rounded text-[12px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
                 sortBy === 'COST' ? 'bg-[#141824] text-cyan-300 border border-cyan-500/40 shadow-xs' : 'text-zinc-400 hover:text-zinc-200'
               }`}
             >
               <span>Lowest Cost</span>
-              {sortBy === 'COST' && <span className="text-[9px]">{sortOrder === 'DESC' ? '↓' : '↑'}</span>}
+              {sortBy === 'COST' && <span className="text-[12px]">{sortOrder === 'DESC' ? '↓' : '↑'}</span>}
             </button>
             <button
               type="button"
               onClick={() => toggleSort('DISTANCE')}
-              className={`px-2.5 py-1 rounded font-mono text-[10px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
+              className={`px-2.5 py-1 rounded text-[12px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
                 sortBy === 'DISTANCE' ? 'bg-[#141824] text-cyan-300 border border-cyan-500/40 shadow-xs' : 'text-zinc-400 hover:text-zinc-200'
               }`}
             >
               <span>Distance</span>
-              {sortBy === 'DISTANCE' && <span className="text-[9px]">{sortOrder === 'DESC' ? '↓' : '↑'}</span>}
+              {sortBy === 'DISTANCE' && <span className="text-[12px]">{sortOrder === 'DESC' ? '↓' : '↑'}</span>}
             </button>
           </div>
         </div>
@@ -247,19 +247,19 @@ export function PlantScannerTable({
       {/* Full-Width Financial Data Grid */}
       <div className="flex-1 overflow-x-auto overflow-y-auto no-scrollbar">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center h-64 text-zinc-400 font-mono text-xs gap-3">
+          <div className="flex flex-col items-center justify-center h-64 text-zinc-400 text-xs gap-3">
             <div className="w-7 h-7 rounded-full border-2 border-cyan-400 border-t-transparent animate-spin" />
             <span>Scanning 1,975 European Facilities &amp; Solving Dijkstra Gas Corridors...</span>
           </div>
         ) : sortedOpps.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-zinc-500 font-mono text-xs gap-1.5">
+          <div className="flex flex-col items-center justify-center h-64 text-zinc-500 text-xs gap-1.5">
             <Building2 className="w-8 h-8 text-zinc-600" />
             <span>No matching opportunities found for current filters.</span>
-            <span className="text-zinc-600 text-[11px]">Adjust your feedstock, market criteria, or search term.</span>
+            <span className="text-zinc-600 text-[12px]">Adjust your feedstock, market criteria, or search term.</span>
           </div>
         ) : (
           <table className="w-full text-left border-collapse min-w-[960px]">
-            <thead className="sticky top-0 bg-[#0c1017] z-10 border-b border-[#1e2433] text-[10px] font-mono uppercase tracking-wider text-zinc-400 select-none">
+            <thead className="sticky top-0 bg-[#0c1017] z-10 border-b border-[#1e2433] text-[12px] text-zinc-400 select-none">
               <tr>
                 <th 
                   onClick={() => toggleSort('NAME')} 
@@ -348,7 +348,7 @@ export function PlantScannerTable({
                 <th className="py-2.5 px-3 font-semibold text-center w-[5%]">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#161c28] text-xs font-mono">
+            <tbody className="divide-y divide-[#161c28] text-xs">
               {sortedOpps.map(opp => {
                 const isSelected = selectedOpp?.id === opp.id;
                 const marginEur = opp.deskNetMarginEurPerMWh ?? 0;
@@ -385,7 +385,7 @@ export function PlantScannerTable({
                             {opp.isDirectPlantSource && (
                               opp.isPlantVerified ? (
                                 <span 
-                                  className="flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.2 bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 rounded shrink-0" 
+                                  className="flex items-center gap-0.5 text-[12px] font-bold px-1.5 py-0.2 bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 rounded shrink-0" 
                                   title="Core plant fields (location, capacity, feedstock) consistent in the source registry; counterparty details not verified"
                                 >
                                   <ShieldCheck className="w-2.5 h-2.5" />
@@ -393,7 +393,7 @@ export function PlantScannerTable({
                                 </span>
                               ) : (
                                 <span
-                                  className="text-[9px] font-bold px-1.5 py-0.2 bg-amber-500/15 border border-amber-500/40 text-amber-300 rounded shrink-0"
+                                  className="text-[12px] font-bold px-1.5 py-0.2 bg-amber-500/15 border border-amber-500/40 text-amber-300 rounded shrink-0"
                                   title="Unverified Producer — Due Diligence Required"
                                 >
                                   Audit Req.
@@ -401,7 +401,7 @@ export function PlantScannerTable({
                               )
                             )}
                           </div>
-                          <div className="text-[10px] text-zinc-500 truncate flex items-center gap-1.5 mt-0.5">
+                          <div className="text-[12px] text-zinc-500 truncate flex items-center gap-1.5 mt-0.5">
                             <span>{opp.originCountry} Grid Hub</span>
                             {opp.plantAnnualGWh && (
                               <>
@@ -427,7 +427,7 @@ export function PlantScannerTable({
                           <span className="text-zinc-200 font-medium truncate">
                             {opp.feedstockName}
                           </span>
-                          <span className={`px-1.5 py-0.2 rounded font-bold tabular-nums text-[10px] shrink-0 ${
+                          <span className={`px-1.5 py-0.2 rounded font-bold tabular-nums text-[12px] shrink-0 ${
                             opp.carbonIntensity <= 0 
                               ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' 
                               : 'text-zinc-300 bg-[#141824] border border-[#1e2433]'
@@ -435,7 +435,7 @@ export function PlantScannerTable({
                             CI {opp.carbonIntensity > 0 ? `+${opp.carbonIntensity}` : opp.carbonIntensity}
                           </span>
                         </div>
-                        <div className="text-[10px] text-zinc-500 mt-0.5 flex items-center gap-1">
+                        <div className="text-[12px] text-zinc-500 mt-0.5 flex items-center gap-1">
                           {opp.targetMarketId === 'UK_RGGO' || opp.targetMarketId.includes('_GO') || opp.targetMarketId === 'VOL_SCOPE1' ? (
                             <span className="text-emerald-400">GHG Protocol / GO</span>
                           ) : (
@@ -458,7 +458,7 @@ export function PlantScannerTable({
                             {opp.targetMarketName}
                           </span>
                         </div>
-                        <div className="text-[10px] text-zinc-500 mt-0.5 truncate">
+                        <div className="text-[12px] text-zinc-500 mt-0.5 truncate">
                           {opp.targetMarketId} · Quota Compliance
                         </div>
                       </div>
@@ -472,7 +472,7 @@ export function PlantScannerTable({
                             {opp.logisticsDistanceKm ? `${opp.logisticsDistanceKm.toLocaleString()} km` : 'Direct grid'}
                           </span>
                         </div>
-                        <div className="text-[10px] text-zinc-500 mt-0.5 flex items-center gap-1">
+                        <div className="text-[12px] text-zinc-500 mt-0.5 flex items-center gap-1">
                           <span>{opp.originCountry} ➔ {opp.targetCountry}</span>
                           <span>·</span>
                           <span className="text-cyan-400 font-semibold">
@@ -488,7 +488,7 @@ export function PlantScannerTable({
                         <div className="font-bold text-zinc-200 tabular-nums">
                           {deliveredCostEur !== null ? `€${deliveredCostEur.toFixed(2)}` : '—'}
                         </div>
-                        <div className="text-[10px] text-zinc-500 tabular-nums mt-0.5">
+                        <div className="text-[12px] text-zinc-500 tabular-nums mt-0.5">
                           {gatePriceEur !== null && gatePriceEur !== undefined ? `Gate €${gatePriceEur.toFixed(2)}` : 'Gate —'}
                         </div>
                       </div>
@@ -504,7 +504,7 @@ export function PlantScannerTable({
                         }`}>
                           {marginEur > 0 ? '+' : ''}€{marginEur.toFixed(2)}
                         </span>
-                        <span className="text-[9px] text-zinc-500 font-mono mt-0.5">
+                        <span className="text-[12px] text-zinc-500 mt-0.5">
                           per MWh
                         </span>
                       </div>
@@ -519,7 +519,7 @@ export function PlantScannerTable({
                             e.stopPropagation();
                             handleRowClick(opp);
                           }}
-                          className="px-2 py-1 rounded bg-[#141824] hover:bg-[#1c2436] border border-[#1e2433] hover:border-cyan-500/40 text-cyan-300 font-mono text-[11px] font-semibold transition-all flex items-center gap-1 cursor-pointer"
+                          className="px-2 py-1 rounded bg-[#141824] hover:bg-[#1c2436] border border-[#1e2433] hover:border-cyan-500/40 text-cyan-300 text-[12px] font-semibold transition-all flex items-center gap-1 cursor-pointer"
                           title="Inspect deal waterfall, route corridor, and plant audit trail"
                         >
                           <Eye className="w-3 h-3" />
@@ -529,7 +529,7 @@ export function PlantScannerTable({
                         <button
                           type="button"
                           onClick={(e) => handleStructureDeal(opp, e)}
-                          className="px-2 py-1 rounded bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-mono text-[11px] font-bold transition-all flex items-center gap-1 shadow-xs hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                          className="px-2 py-1 rounded bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black text-[12px] font-bold transition-all flex items-center gap-1 shadow-xs hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
                           title="Route opportunity into Trade Builder"
                         >
                           <Zap className="w-3 h-3 fill-black" />

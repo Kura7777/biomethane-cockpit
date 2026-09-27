@@ -67,12 +67,12 @@ export function CorridorMatrix({
           <h4 className="ptitle" style={{ margin: 0, fontSize: '13px' }}>
             Pan-European Corridor Arbitrage Heatmap
           </h4>
-          <span className="subttl" style={{ fontSize: '11px' }}>
+          <span className="subttl" style={{ fontSize: '12px' }}>
             Visual netback &amp; margin matrix across all {allOrigins.length} European origins × 6 primary compliance quota sinks
           </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '11px' }} className="eyebrow">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12px' }} className="eyebrow">
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             <span style={{ width: '10px', height: '10px', backgroundColor: 'var(--color-status-pos-border)' }} />
             <span>&gt; €30/MWh</span>
@@ -100,7 +100,7 @@ export function CorridorMatrix({
               {PRIMARY_MARKETS.map(m => (
                 <th key={m.id} style={{ textAlign: 'center', minWidth: '120px' }}>
                   <div>{m.label}</div>
-                  <div style={{ fontSize: '10px', fontWeight: 'normal' }} className="mut">{m.country}</div>
+                  <div style={{ fontSize: '12px', fontWeight: 'normal' }} className="mut">{m.country}</div>
                 </th>
               ))}
             </tr>
@@ -155,7 +155,7 @@ export function CorridorMatrix({
                           <div className="num" style={{ fontWeight: 700, fontSize: '12px' }}>
                             {marginVal !== null ? `+€${marginVal.toFixed(1)}` : (netbackVal !== null ? `€${netbackVal.toFixed(1)}` : '—')}
                           </div>
-                          <div style={{ fontSize: '10px', opacity: 0.85, fontWeight: 500 }}>
+                          <div className="tabular-nums" style={{ fontSize: '12px', opacity: 0.85, fontWeight: 500 }}>
                             {r.feedstockKey} · {r.carbonIntensity} CI
                           </div>
                         </button>
@@ -178,8 +178,8 @@ export function CorridorMatrix({
                           }}
                           title={`Blocked: ${entry.blockedRoute?.eligibility.summary || 'Regulatory Gate Block'}`}
                         >
-                          <div style={{ fontWeight: 700, fontSize: '10px', textTransform: 'uppercase' }}>BLOCKED</div>
-                          <div style={{ fontSize: '10px', opacity: 0.85, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          <div style={{ fontWeight: 700, fontSize: '12px', textTransform: 'uppercase' }}>BLOCKED</div>
+                          <div style={{ fontSize: '12px', opacity: 0.85, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {entry.blockedRoute?.eligibility.blockingGate || 'Non-EU Grid'}
                           </div>
                         </div>
@@ -203,8 +203,8 @@ export function CorridorMatrix({
                         }}
                         title="Click to evaluate corridor in Sourcing"
                       >
-                        <div style={{ fontSize: '11px', fontWeight: 600 }}>—</div>
-                        <div style={{ fontSize: '10px' }}>Unquoted</div>
+                        <div style={{ fontSize: '12px', fontWeight: 600 }}>—</div>
+                        <div style={{ fontSize: '12px' }}>Unquoted</div>
                       </button>
                     </td>
                   );

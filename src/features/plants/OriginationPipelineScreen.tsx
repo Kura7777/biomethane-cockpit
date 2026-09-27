@@ -5,6 +5,7 @@ import { BiomethanePlant } from '../../domain/plants/types';
 import { buildDealUrl } from '../../domain/trade/dealParams';
 import { PlantSourcingDrawer } from './PlantSourcingDrawer';
 import { AlertOctagon, AlertTriangle, Mail } from 'lucide-react';
+import { PageShell } from '../../shared/ui/PageShell';
 
 
 export function OriginationPipelineScreen() {
@@ -209,8 +210,7 @@ export function OriginationPipelineScreen() {
 
 
   return (
-    <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px', minHeight: '100%', backgroundColor: 'var(--color-bg-base)' }}>
-      
+    <PageShell style={{ padding: '24px 0', display: 'flex', flexDirection: 'column', gap: '20px', minHeight: '100%' }}>
       {/* Header & Strategic Context */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
         <div>
@@ -222,7 +222,7 @@ export function OriginationPipelineScreen() {
             <span style={{ 
               backgroundColor: 'var(--color-info-subtle, rgba(31, 95, 173, 0.12))', 
               color: 'var(--color-accent)', 
-              fontSize: '11px', 
+              fontSize: '12px', 
               fontWeight: 700, 
               padding: '2px 8px', 
               borderRadius: 'var(--radius-control)',
@@ -286,7 +286,7 @@ export function OriginationPipelineScreen() {
         >
           <span>🌍 All Europe</span>
           <span style={{ 
-            fontSize: '10px', 
+            fontSize: '12px', 
             padding: '1px 6px', 
             borderRadius: '10px', 
             backgroundColor: selectedCountry === 'ALL' ? 'rgba(255,255,255,0.25)' : 'var(--color-surface-elevated)' 
@@ -319,7 +319,7 @@ export function OriginationPipelineScreen() {
             >
               <span>{data.flag} {data.name}</span>
               <span style={{ 
-                fontSize: '10px', 
+                fontSize: '12px', 
                 padding: '1px 6px', 
                 borderRadius: '10px', 
                 backgroundColor: isSelected ? 'rgba(255,255,255,0.25)' : 'var(--color-surface-elevated)' 
@@ -334,28 +334,28 @@ export function OriginationPipelineScreen() {
       {/* KPI Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
         <div style={{ padding: '14px 18px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px' }}>
-          <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', fontWeight: 600 }}>Active Assets Monitored</div>
+          <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', fontWeight: 600 }}>Active Assets Monitored</div>
           <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--color-text-primary)', marginTop: '4px' }}>
             {stats.totalPlants.toLocaleString()} plants <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)', fontWeight: 400 }}>({stats.totalGWh.toLocaleString()} GWh/yr)</span>
           </div>
         </div>
 
         <div style={{ padding: '14px 18px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-status-neg-border, rgba(239, 68, 68, 0.4))', borderRadius: 'var(--radius-panel)' }}>
-          <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-status-neg-text, #ef4444)', fontWeight: 600 }}>Subsidy Cliff / Post-Tariff (&le; 2027)</div>
+          <div style={{ fontSize: '12px', color: 'var(--color-status-neg-text, #ef4444)', fontWeight: 600 }}>Subsidy Cliff / Post-Tariff (&le; 2027)</div>
           <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--color-status-neg-text, #ef4444)', marginTop: '4px' }}>
             {stats.criticalCount} sites <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)', fontWeight: 400 }}>({stats.criticalGWh.toLocaleString()} GWh/yr)</span>
           </div>
         </div>
 
         <div style={{ padding: '14px 18px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-panel)' }}>
-          <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-pnl-pos, var(--color-accent))', fontWeight: 600 }}>High-Margin Manure / Double-Counting</div>
+          <div style={{ fontSize: '12px', color: 'var(--color-pnl-pos, var(--color-accent))', fontWeight: 600 }}>High-Margin Manure / Double-Counting</div>
           <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--color-pnl-pos, var(--color-accent))', marginTop: '4px' }}>
             {stats.manureCount} sites <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)', fontWeight: 400 }}>(-78 to -84 gCO₂e/MJ)</span>
           </div>
         </div>
 
         <div style={{ padding: '14px 18px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-panel)' }}>
-          <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-muted)', fontWeight: 600 }}>Indicative Netback Yield</div>
+          <div style={{ fontSize: '12px', color: 'var(--color-muted)', fontWeight: 600 }}>Indicative Netback Yield</div>
           <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--color-pnl-pos, var(--color-accent))', marginTop: '4px' }}>
             €118 – €152 <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)', fontWeight: 400 }}>/MWh (All-in)</span>
           </div>
@@ -477,7 +477,7 @@ export function OriginationPipelineScreen() {
                       <span style={{ fontSize: '16px' }}>{p.countryFlag || '🌍'}</span>
                       <div>
                         <div style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{p.name}</div>
-                        <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', display: 'flex', gap: '6px' }}>
+                        <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', display: 'flex', gap: '6px' }}>
                           <span className="font-mono">{p.id}</span>
                           {p.commissioningYear && <span>• Comm. {p.commissioningYear}</span>}
                         </div>
@@ -490,7 +490,7 @@ export function OriginationPipelineScreen() {
                     <div style={{ fontWeight: 500, color: 'var(--color-text-primary)', maxWidth: '240px' }} className="truncate">
                       {p.verifiedDossier?.officialLegalEntity || 'Operator not identified'}
                     </div>
-                    <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', fontFamily: 'monospace' }} className="truncate">
+                    <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', fontFamily: 'monospace' }} className="truncate">
                       {p.companyRegistrationId || 'Registration ID not verified'}
                     </div>
                   </td>
@@ -501,7 +501,7 @@ export function OriginationPipelineScreen() {
                       <span style={{
                         padding: '2px 6px',
                         borderRadius: 'var(--radius-control)',
-                        fontSize: '11px',
+                        fontSize: '12px',
                         fontWeight: 600,
                         backgroundColor: 'var(--color-info-subtle, rgba(31, 95, 173, 0.12))',
                         color: 'var(--color-accent)'
@@ -509,7 +509,7 @@ export function OriginationPipelineScreen() {
                         {p.primaryFeedstockCategory || 'Agri Waste'}
                       </span>
                     </div>
-                    <div style={{ fontSize: '11px', color: ciVal < 0 ? 'var(--color-pnl-pos, var(--color-accent))' : 'var(--color-text-secondary)', marginTop: '2px', fontWeight: 600 }}>
+                    <div style={{ fontSize: '12px', color: ciVal < 0 ? 'var(--color-pnl-pos, var(--color-accent))' : 'var(--color-text-secondary)', marginTop: '2px', fontWeight: 600 }}>
                       CI: {ciVal} gCO₂e/MJ
                     </div>
                   </td>
@@ -519,7 +519,7 @@ export function OriginationPipelineScreen() {
                     <div style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>
                       {p.annualEnergyGWh ? `${p.annualEnergyGWh} GWh/y` : '—'}
                     </div>
-                    <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)' }}>
                       {p.capacityNm3h ? `${p.capacityNm3h.toLocaleString()} Nm³/h` : ''}
                     </div>
                   </td>
@@ -529,7 +529,7 @@ export function OriginationPipelineScreen() {
                     <div style={{ fontWeight: 500, color: 'var(--color-text-primary)' }}>
                       {p.networkOperator || 'National Gas Grid'}
                     </div>
-                    <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
                       {p.gridConnectionType || 'Distribution Grid Injection'}
                     </div>
                   </td>
@@ -544,7 +544,7 @@ export function OriginationPipelineScreen() {
                               backgroundColor: 'rgba(239, 68, 68, 0.15)',
                               color: '#ef4444',
                               border: '1px solid rgba(239, 68, 68, 0.3)',
-                              fontSize: '10px',
+                              fontSize: '12px',
                               padding: '1px 6px',
                               borderRadius: '4px',
                               fontWeight: 700,
@@ -564,7 +564,7 @@ export function OriginationPipelineScreen() {
                               backgroundColor: 'rgba(245, 158, 11, 0.15)',
                               color: '#f59e0b',
                               border: '1px solid rgba(245, 158, 11, 0.3)',
-                              fontSize: '10px',
+                              fontSize: '12px',
                               padding: '1px 6px',
                               borderRadius: '4px',
                               fontWeight: 600,
@@ -584,7 +584,7 @@ export function OriginationPipelineScreen() {
                               backgroundColor: 'rgba(14, 165, 233, 0.15)',
                               color: '#0ea5e9',
                               border: '1px solid rgba(14, 165, 233, 0.3)',
-                              fontSize: '10px',
+                              fontSize: '12px',
                               padding: '1px 6px',
                               borderRadius: '4px',
                               fontWeight: 600,
@@ -599,7 +599,7 @@ export function OriginationPipelineScreen() {
                             <Mail size={10} /> Lead
                           </span>
                         ) : (
-                          <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>No Contact</span>
+                          <span style={{ fontSize: '12px', color: 'var(--color-text-tertiary)' }}>No Contact</span>
                         )}
 
                         {p.contactQuality?.isPersonalEmail && (
@@ -607,7 +607,7 @@ export function OriginationPipelineScreen() {
                             style={{
                               backgroundColor: 'rgba(234, 88, 12, 0.2)',
                               color: '#ea580c',
-                              fontSize: '9px',
+                              fontSize: '12px',
                               fontWeight: 800,
                               padding: '1px 4px',
                               borderRadius: '3px',
@@ -622,7 +622,7 @@ export function OriginationPipelineScreen() {
                       {p.contactEmail && (
                         <span
                           style={{
-                            fontSize: '11px',
+                            fontSize: '12px',
                             color: p.contactQuality?.confidence === 'UNDELIVERABLE' ? '#64748b' : '#94a3b8',
                             textDecoration: p.contactQuality?.confidence === 'UNDELIVERABLE' ? 'line-through' : 'none',
                             maxWidth: '180px',
@@ -648,7 +648,7 @@ export function OriginationPipelineScreen() {
                         title="Open 360° Sourcing Drawer"
                         style={{
                           padding: '4px 8px',
-                          fontSize: '11px',
+                          fontSize: '12px',
                           fontWeight: 600,
                           borderRadius: '4px',
                           backgroundColor: 'var(--color-surface-elevated)',
@@ -665,7 +665,7 @@ export function OriginationPipelineScreen() {
                         title="Structure Offtake in Trade Builder"
                         style={{
                           padding: '4px 8px',
-                          fontSize: '11px',
+                          fontSize: '12px',
                           fontWeight: 600,
                           borderRadius: 'var(--radius-control)',
                           backgroundColor: 'var(--color-accent)',
@@ -682,7 +682,7 @@ export function OriginationPipelineScreen() {
                         title="Copy Lead Brief to Clipboard"
                         style={{
                           padding: '4px 6px',
-                          fontSize: '11px',
+                          fontSize: '12px',
                           borderRadius: 'var(--radius-control)',
                           backgroundColor: 'var(--color-surface-elevated, var(--color-surface))',
                           border: '1px solid var(--color-divider)',
@@ -715,6 +715,6 @@ export function OriginationPipelineScreen() {
         />
       )}
 
-    </div>
+    </PageShell>
   );
 }

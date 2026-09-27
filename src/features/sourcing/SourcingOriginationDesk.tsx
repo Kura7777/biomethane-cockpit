@@ -636,10 +636,10 @@ export function SourcingOriginationDesk() {
             aria-selected={activeTab === 'STRATEGIES'}
             onClick={() => setActiveTab('STRATEGIES')}
             className={`chip ${activeTab === 'STRATEGIES' ? 'chip-a' : ''} cursor-pointer`}
-            style={{ padding: '6px 14px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: activeTab === 'STRATEGIES' ? 700 : 500 }}
+            style={{ padding: '6px 14px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: activeTab === 'STRATEGIES' ? 700 : 500 }}
           >
             <span>✦ Asset Deal Calculator</span>
-            <span className="chip" style={{ fontSize: '10px', padding: '1px 5px', fontWeight: 700, backgroundColor: 'var(--color-accent-700)', color: '#fff' }}>
+            <span className="chip" style={{ fontSize: '12px', padding: '1px 5px', fontWeight: 700, backgroundColor: 'var(--color-accent-700)', color: '#fff' }}>
               6 Monetization Plays
             </span>
           </button>
@@ -650,10 +650,10 @@ export function SourcingOriginationDesk() {
             aria-selected={activeTab === 'CORRIDORS'}
             onClick={() => setActiveTab('CORRIDORS')}
             className={`chip ${activeTab === 'CORRIDORS' ? 'chip-a' : ''} cursor-pointer`}
-            style={{ padding: '6px 12px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
           >
             <span>European Sourcing Corridors</span>
-            <span className="chip" style={{ fontSize: '10px', padding: '1px 5px', fontWeight: 700 }}>
+            <span className="chip" style={{ fontSize: '12px', padding: '1px 5px', fontWeight: 700 }}>
               {corridorRows.filter(r => r.isTradeable).length} Tradeable
             </span>
           </button>
@@ -664,10 +664,10 @@ export function SourcingOriginationDesk() {
             aria-selected={activeTab === 'PLANTS'}
             onClick={() => setActiveTab('PLANTS')}
             className={`chip ${activeTab === 'PLANTS' ? 'chip-a' : ''} cursor-pointer`}
-            style={{ padding: '6px 12px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
           >
             <span>Matched Producer Plants</span>
-            <span className="chip" style={{ fontSize: '10px', padding: '1px 5px', fontWeight: 700 }}>
+            <span className="chip" style={{ fontSize: '12px', padding: '1px 5px', fontWeight: 700 }}>
               {matchedFeedstockPlants.length} Plants
             </span>
           </button>
@@ -678,10 +678,10 @@ export function SourcingOriginationDesk() {
             aria-selected={activeTab === 'MARKETS'}
             onClick={() => setActiveTab('MARKETS')}
             className={`chip ${activeTab === 'MARKETS' ? 'chip-a' : ''} cursor-pointer`}
-            style={{ padding: '6px 12px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
           >
             <span>Destination Market Ranking</span>
-            <span className="chip" style={{ fontSize: '10px', padding: '1px 5px', fontWeight: 700 }}>
+            <span className="chip" style={{ fontSize: '12px', padding: '1px 5px', fontWeight: 700 }}>
               {MARKETS.length} Markets
             </span>
           </button>
@@ -692,13 +692,13 @@ export function SourcingOriginationDesk() {
             aria-selected={activeTab === 'HEATMAP'}
             onClick={() => setActiveTab('HEATMAP')}
             className={`chip ${activeTab === 'HEATMAP' ? 'chip-a' : ''} cursor-pointer`}
-            style={{ padding: '6px 12px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
           >
             <span>Pan-European Heatmap</span>
           </button>
         </div>
 
-        <div style={{ display: 'flex', gap: '14px', fontSize: '11px' }} className="eyebrow">
+        <div style={{ display: 'flex', gap: '14px', fontSize: '12px' }} className="eyebrow">
           <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             <span style={{ width: '8px', height: '8px', backgroundColor: 'var(--color-text)' }} />
             Eligible
@@ -798,7 +798,7 @@ export function SourcingOriginationDesk() {
                     key={t}
                     type="button"
                     className={`chip ${ciTier === t ? 'chip-a' : ''}`}
-                    style={{ fontSize: '9px', padding: '1px 5px', textTransform: 'capitalize' }}
+                    style={{ fontSize: '12px', padding: '1px 5px', textTransform: 'capitalize' }}
                     onClick={() => {
                       setCiTier(t);
                       updateCIForFeedstock(feedstockSelect, t, selectedRowId);
@@ -856,10 +856,10 @@ export function SourcingOriginationDesk() {
               {/* Top Controls Row */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', color: 'var(--color-text)', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span>🏢</span> FACILITY UNDER VALUATION:
                   </span>
-                  <span className="chip chip-a" style={{ fontSize: '11px', padding: '2px 8px', fontWeight: 700 }}>
+                  <span className="chip chip-a" style={{ fontSize: '12px', padding: '2px 8px', fontWeight: 700 }}>
                     {BIOMETHANE_PLANTS.length.toLocaleString()} European Assets Indexed
                   </span>
                 </div>
@@ -916,7 +916,7 @@ export function SourcingOriginationDesk() {
                           overflowY: 'auto',
                         }}
                       >
-                        <div style={{ padding: '6px 10px', fontSize: '10px', fontWeight: 700, color: 'var(--color-dim)', borderBottom: '1px solid var(--color-divider)', backgroundColor: 'var(--color-panel-header)', textTransform: 'uppercase' }}>
+                        <div style={{ padding: '6px 10px', fontSize: '12px', fontWeight: 700, color: 'var(--color-dim)', borderBottom: '1px solid var(--color-divider)', backgroundColor: 'var(--color-panel-header)' }}>
                           Matching Facilities ({inlineSearchResults.length})
                         </div>
                         {inlineSearchResults.map(p => (
@@ -947,14 +947,14 @@ export function SourcingOriginationDesk() {
                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                 <span style={{ fontSize: '14px' }}>{p.countryFlag || '🌍'}</span>
                                 <strong style={{ fontSize: '12px', color: 'var(--color-text)' }}>{p.name}</strong>
-                                <span style={{ fontSize: '10px', color: 'var(--color-dim)' }}>• {p.countryCode}</span>
+                                <span style={{ fontSize: '12px', color: 'var(--color-dim)' }}>• {p.countryCode}</span>
                               </div>
-                              <div style={{ fontSize: '10px', color: 'var(--color-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              <div style={{ fontSize: '12px', color: 'var(--color-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                 {p.operator || p.legalEntityName || 'Operating Entity'} • {p.primaryFeedstockCategory || 'Agri'}
                               </div>
                             </div>
                             <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                              <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-accent)' }}>
+                              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-accent)' }}>
                                 {p.annualEnergyGWh ? `${p.annualEnergyGWh.toFixed(1)} GWh` : '—'}
                               </span>
                             </div>
@@ -964,7 +964,7 @@ export function SourcingOriginationDesk() {
                           style={{
                             padding: '8px 12px',
                             textAlign: 'center',
-                            fontSize: '11px',
+                            fontSize: '12px',
                             fontWeight: 700,
                             color: 'var(--color-accent-700)',
                             backgroundColor: 'var(--color-panel-header)',
@@ -990,7 +990,7 @@ export function SourcingOriginationDesk() {
                     onClick={() => setIsPlantPickerOpen(true)}
                   >
                     <span>🔍 Facility Census Explorer</span>
-                    <span style={{ fontSize: '10px', opacity: 0.85, backgroundColor: 'rgba(255,255,255,0.2)', padding: '1px 6px', borderRadius: '4px' }}>
+                    <span style={{ fontSize: '12px', opacity: 0.85, backgroundColor: 'rgba(255,255,255,0.2)', padding: '1px 6px', borderRadius: '4px' }}>
                       {availablePlants.length}
                     </span>
                   </button>
@@ -1038,16 +1038,16 @@ export function SourcingOriginationDesk() {
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span style={{ fontSize: '20px' }}>{selectedPlant.countryFlag || '🌍'}</span>
-                    <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-dim)', textTransform: 'uppercase' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-dim)' }}>
                       {selectedPlant.countryCode} · {selectedPlant.country}
                     </span>
-                    <span style={{ fontSize: '10px', fontFamily: 'monospace', color: 'var(--color-dim)', marginLeft: 'auto' }}>
+                    <span style={{ fontSize: '12px', fontFamily: 'monospace', color: 'var(--color-dim)', marginLeft: 'auto' }}>
                       {selectedPlant.id}
                     </span>
                   </div>
                   <div style={{ fontSize: '17px', fontWeight: 800, color: 'var(--color-text)', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span>{selectedPlant.name}</span>
-                    <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-accent-700)', backgroundColor: 'var(--color-panel-header)', padding: '1px 6px', borderRadius: '4px', border: '1px solid var(--color-divider)' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-accent-700)', backgroundColor: 'var(--color-panel-header)', padding: '1px 6px', borderRadius: '4px', border: '1px solid var(--color-divider)' }}>
                       Switch 🔍
                     </span>
                   </div>
@@ -1058,18 +1058,18 @@ export function SourcingOriginationDesk() {
 
                 {/* Production Capacity */}
                 <div>
-                  <div className="eyebrow" style={{ fontSize: '10px' }}>Annual Energy Capacity</div>
+                  <div className="eyebrow" style={{ fontSize: '12px' }}>Annual Energy Capacity</div>
                   <div className="num" style={{ fontSize: '16px', fontWeight: 800, color: 'var(--color-text)', marginTop: '2px' }}>
                     {selectedPlant.annualEnergyGWh ? `${selectedPlant.annualEnergyGWh.toFixed(1)} GWh/y` : '—'}
                   </div>
-                  <div className="dim" style={{ fontSize: '11px', marginTop: '1px' }}>
+                  <div className="dim" style={{ fontSize: '12px', marginTop: '1px' }}>
                     {selectedPlant.capacityNm3h ? `${selectedPlant.capacityNm3h.toLocaleString()} Nm³/h` : ''} · {selectedPlant.annualEnergyGWh ? `${(selectedPlant.annualEnergyGWh * 1000).toLocaleString()} MWh` : ''}
                   </div>
                 </div>
 
                 {/* Feedstock & Carbon Score */}
                 <div>
-                  <div className="eyebrow" style={{ fontSize: '10px' }}>Feedstock &amp; Carbon Score</div>
+                  <div className="eyebrow" style={{ fontSize: '12px' }}>Feedstock &amp; Carbon Score</div>
                   <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {selectedPlant.primaryFeedstockCategory || 'Agricultural Biomass'}
                   </div>
@@ -1081,7 +1081,7 @@ export function SourcingOriginationDesk() {
                         padding: '1px 6px',
                         borderRadius: '4px',
                         fontWeight: 700,
-                        fontSize: '10px',
+                        fontSize: '12px',
                         fontFamily: 'monospace'
                       }}
                     >
@@ -1092,22 +1092,22 @@ export function SourcingOriginationDesk() {
 
                 {/* Grid Injection Node */}
                 <div>
-                  <div className="eyebrow" style={{ fontSize: '10px' }}>Network Grid Operator</div>
+                  <div className="eyebrow" style={{ fontSize: '12px' }}>Network Grid Operator</div>
                   <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={selectedPlant.networkOperator || ''}>
                     {selectedPlant.networkOperator || 'National Gas Grid'}
                   </div>
-                  <div className="dim" style={{ fontSize: '11px', marginTop: '1px' }}>
+                  <div className="dim" style={{ fontSize: '12px', marginTop: '1px' }}>
                     {selectedPlant.gridConnectionType?.includes('Transmission') ? '⚡ TSO Injection' : '🏘️ DSO Injection'}
                   </div>
                 </div>
 
                 {/* Tech & Commissioning */}
                 <div>
-                  <div className="eyebrow" style={{ fontSize: '10px' }}>Upgrading &amp; Era</div>
+                  <div className="eyebrow" style={{ fontSize: '12px' }}>Upgrading &amp; Era</div>
                   <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text)', marginTop: '2px' }}>
                     {selectedPlant.upgradingTechnology || 'Membrane separation'}
                   </div>
-                  <div className="dim" style={{ fontSize: '11px', marginTop: '1px' }}>
+                  <div className="dim" style={{ fontSize: '12px', marginTop: '1px' }}>
                     {selectedPlant.commissioningYear ? `Comm. ${selectedPlant.commissioningYear}` : 'Verified Meter'}
                   </div>
                 </div>
@@ -1115,7 +1115,7 @@ export function SourcingOriginationDesk() {
 
               {/* Quick Flagship Assets Switching Bar */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflowX: 'auto', paddingTop: '2px' }} className="noscroll">
-                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-dim)', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-dim)', whiteSpace: 'nowrap' }}>
                   Quick Flagships:
                 </span>
                 {FLAGSHIP_PRESETS.map(flag => {
@@ -1125,7 +1125,7 @@ export function SourcingOriginationDesk() {
                       key={flag.id}
                       type="button"
                       className={`chip ${isCurrent ? 'chip-a' : ''}`}
-                      style={{ fontSize: '11px', padding: '3px 8px', whiteSpace: 'nowrap', fontWeight: isCurrent ? 700 : 500 }}
+                      style={{ fontSize: '12px', padding: '3px 8px', whiteSpace: 'nowrap', fontWeight: isCurrent ? 700 : 500 }}
                       onClick={() => {
                         const p = BIOMETHANE_PLANTS.find(item => item.id === flag.id || item.name.toLowerCase().includes(flag.name.toLowerCase()));
                         if (p) {
@@ -1221,7 +1221,7 @@ export function SourcingOriginationDesk() {
 
                       {/* Sort Dropdown */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                        <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-dim)' }}>Sort:</span>
+                        <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-dim)' }}>Sort:</span>
                         <select
                           className="input"
                           style={{ height: '38px', fontSize: '12px', fontWeight: 600 }}
@@ -1238,13 +1238,13 @@ export function SourcingOriginationDesk() {
 
                     {/* Country Filter Chips */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }} className="noscroll">
-                      <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-dim)', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-dim)', whiteSpace: 'nowrap' }}>
                         Country:
                       </span>
                       <button
                         type="button"
                         className={`chip ${selectedCountryFilter === 'ALL' ? 'chip-a' : ''}`}
-                        style={{ fontSize: '11px', padding: '2px 8px' }}
+                        style={{ fontSize: '12px', padding: '2px 8px' }}
                         onClick={() => setSelectedCountryFilter('ALL')}
                       >
                         All ({BIOMETHANE_PLANTS.length})
@@ -1254,7 +1254,7 @@ export function SourcingOriginationDesk() {
                           key={c.code}
                           type="button"
                           className={`chip ${selectedCountryFilter === c.code ? 'chip-a' : ''}`}
-                          style={{ fontSize: '11px', padding: '2px 8px', whiteSpace: 'nowrap' }}
+                          style={{ fontSize: '12px', padding: '2px 8px', whiteSpace: 'nowrap' }}
                           onClick={() => setSelectedCountryFilter(c.code)}
                         >
                           {c.flag} {c.code} ({c.count})
@@ -1266,7 +1266,7 @@ export function SourcingOriginationDesk() {
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                       {/* Feedstock Substrate Filter */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '5px', overflowX: 'auto' }} className="noscroll">
-                        <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--color-dim)', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-dim)', whiteSpace: 'nowrap' }}>
                           Substrate:
                         </span>
                         {[
@@ -1281,7 +1281,7 @@ export function SourcingOriginationDesk() {
                             key={f.key}
                             type="button"
                             className={`chip ${pickerFeedstockFilter === f.key ? 'chip-a' : ''}`}
-                            style={{ fontSize: '10px', padding: '2px 6px', whiteSpace: 'nowrap' }}
+                            style={{ fontSize: '12px', padding: '2px 6px', whiteSpace: 'nowrap' }}
                             onClick={() => setPickerFeedstockFilter(f.key)}
                           >
                             {f.label}
@@ -1291,7 +1291,7 @@ export function SourcingOriginationDesk() {
 
                       {/* Scale / Capacity Filter */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--color-dim)', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-dim)', whiteSpace: 'nowrap' }}>
                           Scale:
                         </span>
                         {[
@@ -1304,7 +1304,7 @@ export function SourcingOriginationDesk() {
                             key={s.key}
                             type="button"
                             className={`chip ${pickerScaleFilter === s.key ? 'chip-a' : ''}`}
-                            style={{ fontSize: '10px', padding: '2px 6px' }}
+                            style={{ fontSize: '12px', padding: '2px 6px' }}
                             onClick={() => setPickerScaleFilter(s.key as any)}
                           >
                             {s.label}
@@ -1316,7 +1316,7 @@ export function SourcingOriginationDesk() {
 
                   {/* Results List */}
                   <div style={{ flex: 1, overflowY: 'auto', padding: '12px 20px', display: 'flex', flexDirection: 'column', gap: '6px' }} className="noscroll">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', fontWeight: 700, color: 'var(--color-dim)', marginBottom: '4px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', fontWeight: 700, color: 'var(--color-dim)', marginBottom: '4px' }}>
                       <span>SHOWING {availablePlants.length} MATCHING FACILITIES</span>
                       <span>(Total Indexed: {BIOMETHANE_PLANTS.length.toLocaleString()})</span>
                     </div>
@@ -1355,15 +1355,15 @@ export function SourcingOriginationDesk() {
                               <div style={{ minWidth: 0 }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                   <span style={{ fontWeight: 700, fontSize: '13px', color: 'var(--color-text)' }}>{p.name}</span>
-                                  <span style={{ fontSize: '11px', color: 'var(--color-dim)' }}>• {p.countryCode}</span>
-                                  {p.region && <span style={{ fontSize: '11px', color: 'var(--color-dim)' }}>({p.region})</span>}
+                                  <span style={{ fontSize: '12px', color: 'var(--color-dim)' }}>• {p.countryCode}</span>
+                                  {p.region && <span style={{ fontSize: '12px', color: 'var(--color-dim)' }}>({p.region})</span>}
                                   {isSelected && (
-                                    <span style={{ fontSize: '9px', fontWeight: 800, backgroundColor: 'var(--color-accent)', color: 'var(--color-bg)', padding: '1px 5px', borderRadius: 'var(--radius-control)' }}>
+                                    <span style={{ fontSize: '12px', fontWeight: 800, backgroundColor: 'var(--color-accent)', color: 'var(--color-bg)', padding: '1px 5px', borderRadius: 'var(--radius-control)' }}>
                                       CURRENTLY SELECTED
                                     </span>
                                   )}
                                 </div>
-                                <div style={{ fontSize: '11px', color: 'var(--color-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                <div style={{ fontSize: '12px', color: 'var(--color-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                   {p.operator || p.legalEntityName || 'Independent Operating Entity'} • {p.networkOperator || 'National Gas Grid'}
                                 </div>
                               </div>
@@ -1374,7 +1374,7 @@ export function SourcingOriginationDesk() {
                                 <div className="num" style={{ fontWeight: 700, fontSize: '13px', color: 'var(--color-accent)' }}>
                                   {p.annualEnergyGWh ? `${p.annualEnergyGWh.toFixed(1)} GWh/y` : '—'}
                                 </div>
-                                <div style={{ fontSize: '10px', color: 'var(--color-dim)' }}>
+                                <div style={{ fontSize: '12px', color: 'var(--color-dim)' }}>
                                   {p.capacityNm3h ? `${p.capacityNm3h.toLocaleString()} Nm³/h` : (p.primaryFeedstockCategory || 'Agri')}
                                 </div>
                               </div>
@@ -1386,7 +1386,7 @@ export function SourcingOriginationDesk() {
                                   padding: '2px 6px',
                                   borderRadius: '4px',
                                   fontWeight: 700,
-                                  fontSize: '10px',
+                                  fontSize: '12px',
                                   fontFamily: 'monospace'
                                 }}
                               >
@@ -1396,7 +1396,7 @@ export function SourcingOriginationDesk() {
                               <button
                                 type="button"
                                 className={`btn ${isSelected ? 'btn-primary' : 'btn-secondary'}`}
-                                style={{ fontSize: '11px', padding: '3px 10px', height: '28px', fontWeight: 700 }}
+                                style={{ fontSize: '12px', padding: '3px 10px', height: '28px', fontWeight: 700 }}
                               >
                                 {isSelected ? '✓ Active' : 'Select'}
                               </button>
@@ -1425,7 +1425,7 @@ export function SourcingOriginationDesk() {
                   <span style={{ fontSize: '16px' }}>{plantValuation.plant.countryFlag}</span>
                   <span style={{ fontWeight: 700, fontSize: '13px' }}>{plantValuation.plant.name}</span>
                 </div>
-                <div className="dim" style={{ fontSize: '11px', marginTop: '2px' }}>
+                <div className="dim" style={{ fontSize: '12px', marginTop: '2px' }}>
                   {plantValuation.plant.networkOperator}
                 </div>
               </div>
@@ -1434,11 +1434,11 @@ export function SourcingOriginationDesk() {
                 <div className="eyebrow">Audited Production Capacity</div>
                 <div className="num" style={{ fontWeight: 700, fontSize: '13px', marginTop: '2px' }}>
                   {plantValuation.plant.annualEnergyGWh.toFixed(1)} GWh/yr{' '}
-                  <span className="dim" style={{ fontWeight: 400, fontSize: '11px' }}>
+                  <span className="dim" style={{ fontWeight: 400, fontSize: '12px' }}>
                     ({plantValuation.plant.annualVolumeMWh.toLocaleString()} MWh · {plantValuation.plant.hourlyCapacityMWh} MWh/h)
                   </span>
                 </div>
-                <div className="dim" style={{ fontSize: '11px', marginTop: '2px' }}>
+                <div className="dim" style={{ fontSize: '12px', marginTop: '2px' }}>
                   Upgrading: {plantValuation.plant.upgradingTechnology}
                 </div>
               </div>
@@ -1451,11 +1451,11 @@ export function SourcingOriginationDesk() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
                   <span
                     className={`chip ${plantValuation.plant.carbonIntensity <= 0 ? 'chip-pos' : 'chip-warn'}`}
-                    style={{ fontSize: '10px', padding: '1px 6px', fontWeight: 700 }}
+                    style={{ fontSize: '12px', padding: '1px 6px', fontWeight: 700 }}
                   >
                     Audited CI: {plantValuation.plant.carbonIntensity > 0 ? `+${plantValuation.plant.carbonIntensity}` : plantValuation.plant.carbonIntensity} gCO₂e/MJ
                   </span>
-                  <span className="dim" style={{ fontSize: '10px' }}>
+                  <span className="dim" style={{ fontSize: '12px' }}>
                     {plantValuation.plant.feedstockDetails}
                   </span>
                 </div>
@@ -1466,13 +1466,13 @@ export function SourcingOriginationDesk() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
                   <span
                     className={`chip ${plantValuation.domesticSubsidyBaseline.status === 'ACTIVE_SUBSIDY' ? 'chip-info' : 'chip-neutral'}`}
-                    style={{ fontSize: '10px', padding: '1px 5px', fontWeight: 700 }}
+                    style={{ fontSize: '12px', padding: '1px 5px', fontWeight: 700 }}
                   >
                     {plantValuation.domesticSubsidyBaseline.status === 'ACTIVE_SUBSIDY' ? 'Active Subsidy' : 'Merchant'}
                   </span>
                   <span style={{ fontWeight: 700, fontSize: '12px' }}>{plantValuation.domesticSubsidyBaseline.schemeName}</span>
                 </div>
-                <div className="num" style={{ fontSize: '11px', marginTop: '2px', fontWeight: 600 }}>
+                <div className="num" style={{ fontSize: '12px', marginTop: '2px', fontWeight: 600 }}>
                   Subsidy Hurdle: €{plantValuation.domesticSubsidyBaseline.strikePriceEurMwh.toFixed(2)}/MWh
                 </div>
               </div>
@@ -1489,7 +1489,7 @@ export function SourcingOriginationDesk() {
                   <button
                     type="button"
                     className="btn btn-primary"
-                    style={{ padding: '4px 12px', fontSize: '11px', fontWeight: 700, height: '28px', backgroundColor: 'var(--color-accent)', color: 'var(--color-bg)', border: 'none', borderRadius: 'var(--radius-control)' }}
+                    style={{ padding: '4px 12px', fontSize: '12px', fontWeight: 700, height: '28px', backgroundColor: 'var(--color-accent)', color: 'var(--color-bg)', border: 'none', borderRadius: 'var(--radius-control)' }}
                     onClick={() => setIsPlantDrawerOpen(true)}
                     title="Open verified producer contacts, registration ID, and direct outreach brief"
                   >
@@ -1498,7 +1498,7 @@ export function SourcingOriginationDesk() {
                   <button
                     type="button"
                     className="btn btn-secondary"
-                    style={{ padding: '4px 10px', fontSize: '11px', fontWeight: 600, height: '28px', borderRadius: 'var(--radius-control)' }}
+                    style={{ padding: '4px 10px', fontSize: '12px', fontWeight: 600, height: '28px', borderRadius: 'var(--radius-control)' }}
                     onClick={() => {
                       if (navigator?.clipboard) {
                         navigator.clipboard.writeText(plantValuation.commercialPitchSummary.pitchScript);
@@ -1509,7 +1509,7 @@ export function SourcingOriginationDesk() {
                   >
                     📋 Copy Pitch Script
                   </button>
-                  <span className="dim" style={{ fontSize: '11px' }}>
+                  <span className="dim" style={{ fontSize: '12px' }}>
                     Click row to inspect bilateral contract specifications &amp; hedging ticket
                   </span>
                 </div>
@@ -1553,12 +1553,12 @@ export function SourcingOriginationDesk() {
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                               <span style={{ fontWeight: isWinner ? 700 : 600 }}>{strat.strategyName}</span>
                               {isWinner && (
-                                <span className="chip chip-pos" style={{ fontSize: '9px', padding: '1px 4px', fontWeight: 800 }}>
+                                <span className="chip chip-pos" style={{ fontSize: '12px', padding: '1px 4px', fontWeight: 800 }}>
                                   WINNING
                                 </span>
                               )}
                             </div>
-                            <div className="dim" style={{ fontSize: '11px' }}>
+                            <div className="dim" style={{ fontSize: '12px' }}>
                               {strat.targetMarket}
                             </div>
                           </td>
@@ -1567,7 +1567,7 @@ export function SourcingOriginationDesk() {
                               <span
                                 className="chip"
                                 style={{
-                                  fontSize: '9px',
+                                  fontSize: '12px',
                                   padding: '1px 5px',
                                   fontWeight: 600,
                                   backgroundColor:
@@ -1592,7 +1592,7 @@ export function SourcingOriginationDesk() {
                               </span>
                               <span
                                 style={{
-                                  fontSize: '10px',
+                                  fontSize: '12px',
                                   fontWeight: 600,
                                   color: strat.deliveryModel === 'UNBUNDLED_CERTIFICATE_ONLY' ? '#2563eb' : 'var(--color-muted)',
                                 }}
@@ -1604,7 +1604,7 @@ export function SourcingOriginationDesk() {
                           <td>
                             <span
                               className={`chip ${strat.subsidyAction === 'SUPPORT_SWITCH_OFF' ? 'chip-warn' : 'chip-info'}`}
-                              style={{ fontSize: '9px', padding: '1px 5px', fontWeight: 600 }}
+                              style={{ fontSize: '12px', padding: '1px 5px', fontWeight: 600 }}
                             >
                               {strat.subsidyAction === 'SUPPORT_SWITCH_OFF' ? '⚡ Switch Off' : '🛡️ Retain Subsidy'}
                             </span>
@@ -1652,11 +1652,11 @@ export function SourcingOriginationDesk() {
                           </td>
                           <td style={{ textAlign: 'center' }}>
                             {strat.isEligible ? (
-                              <span className="chip chip-pos" style={{ fontSize: '9px', padding: '1px 5px' }}>
+                              <span className="chip chip-pos" style={{ fontSize: '12px', padding: '1px 5px' }}>
                                 Pass
                               </span>
                             ) : (
-                              <span className="chip chip-neg" style={{ fontSize: '9px', padding: '1px 5px' }} title={strat.ineligibilityReason}>
+                              <span className="chip chip-neg" style={{ fontSize: '12px', padding: '1px 5px' }} title={strat.ineligibilityReason}>
                                 Ineligible
                               </span>
                             )}
@@ -1666,7 +1666,7 @@ export function SourcingOriginationDesk() {
                               <button
                                 type="button"
                                 className={`btn ${isWinner ? 'btn-primary' : 'btn-secondary'}`}
-                                style={{ height: '24px', fontSize: '11px', padding: '0 8px', fontWeight: 700 }}
+                                style={{ height: '24px', fontSize: '12px', padding: '0 8px', fontWeight: 700 }}
                                 onClick={e => {
                                   e.stopPropagation();
                                   handleStructureDealForStrategy(strat);
@@ -1675,7 +1675,7 @@ export function SourcingOriginationDesk() {
                                 Structure →
                               </button>
                             ) : (
-                              <span className="dim" style={{ fontSize: '11px' }}>Blocked</span>
+                              <span className="dim" style={{ fontSize: '12px' }}>Blocked</span>
                             )}
                           </td>
                         </tr>
@@ -1706,7 +1706,7 @@ export function SourcingOriginationDesk() {
                   <span style={{ fontWeight: 700, fontSize: '13px' }}>{activeStrategy.strategyName}</span>
                   <span
                     className={`chip ${activeStrategy.isEligible ? 'chip-pos' : 'chip-neg'}`}
-                    style={{ fontSize: '9px', padding: '1px 5px', fontWeight: 700 }}
+                    style={{ fontSize: '12px', padding: '1px 5px', fontWeight: 700 }}
                   >
                     {activeStrategy.isEligible ? 'ELIGIBLE ROUTE' : 'STATUTORY BLOCK'}
                   </span>
@@ -1715,7 +1715,7 @@ export function SourcingOriginationDesk() {
                   <button
                     type="button"
                     className="btn btn-primary"
-                    style={{ height: '28px', fontSize: '11px', padding: '0 12px', fontWeight: 800 }}
+                    style={{ height: '28px', fontSize: '12px', padding: '0 12px', fontWeight: 800 }}
                     onClick={() => handleStructureDealForStrategy(activeStrategy)}
                   >
                     Structure This Route in Trade Builder →
@@ -1730,36 +1730,36 @@ export function SourcingOriginationDesk() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                       <div className="eyebrow" style={{ color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span>Voluntary GoO Offtake Structure (Single-Leg Unbundled)</span>
-                        <span className="chip chip-info" style={{ fontSize: '9px', padding: '1px 5px' }}>
+                        <span className="chip chip-info" style={{ fontSize: '12px', padding: '1px 5px' }}>
                           BOOK &amp; CLAIM
                         </span>
                       </div>
 
                       <div style={{ padding: '10px 12px', backgroundColor: 'var(--color-panel-header)', border: '1px solid var(--color-divider)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <div>
-                          <span className="eyebrow" style={{ fontSize: '9px', color: 'var(--color-text)' }}>Physical Commodity Disposition</span>
+                          <span className="eyebrow" style={{ fontSize: '12px', color: 'var(--color-text)' }}>Physical Commodity Disposition</span>
                           <div style={{ fontWeight: 800, fontSize: '12px', marginTop: '1px', color: 'var(--color-muted)' }}>
                             🚫 NO PHYSICAL GAS DELIVERY TO BUYER
                           </div>
-                          <div className="dim" style={{ fontSize: '11px', marginTop: '2px', lineHeight: 1.4 }}>
+                          <div className="dim" style={{ fontSize: '12px', marginTop: '2px', lineHeight: 1.4 }}>
                             Physical biomethane molecules remain in {plantValuation.plant.countryCode} domestic grid. Injected locally and remunerated under {plantValuation.domesticSubsidyBaseline.schemeName} (~€{plantValuation.domesticSubsidyBaseline.strikePriceEurMwh.toFixed(2)}/MWh). Zero pipeline transit tariffs, zero VTP balancing liability.
                           </div>
                         </div>
 
                         <div style={{ borderTop: '1px solid var(--color-divider)', paddingTop: '6px' }}>
-                          <span className="eyebrow" style={{ fontSize: '9px', color: 'var(--color-text)' }}>Single-Leg Green Attribute Transfer (Registry Cancellation)</span>
+                          <span className="eyebrow" style={{ fontSize: '12px', color: 'var(--color-text)' }}>Single-Leg Green Attribute Transfer (Registry Cancellation)</span>
                           <div style={{ fontWeight: 800, fontSize: '12px', marginTop: '1px', color: 'var(--color-text)' }}>
                             {activeStrategy.twoLegFormula.certLegFormula}
                           </div>
-                          <div className="dim" style={{ fontSize: '11px', marginTop: '2px', lineHeight: 1.4 }}>
+                          <div className="dim" style={{ fontSize: '12px', marginTop: '2px', lineHeight: 1.4 }}>
                             Electronic Guarantee of Origin (GoO) certificate transferred directly to corporate buyer via national registry and permanently cancelled for Corporate Scope 1 GHG Protocol compliance. Fixed €/MWh premium with zero CI sliding penalty.
                           </div>
                         </div>
                       </div>
 
                       <div>
-                        <span className="eyebrow" style={{ fontSize: '9px' }}>Statutory &amp; Voluntary Registry Directives:</span>
-                        <div style={{ fontSize: '11px', color: 'var(--color-dim)', marginTop: '4px', lineHeight: 1.4 }}>
+                        <span className="eyebrow" style={{ fontSize: '12px' }}>Statutory &amp; Voluntary Registry Directives:</span>
+                        <div style={{ fontSize: '12px', color: 'var(--color-dim)', marginTop: '4px', lineHeight: 1.4 }}>
                           {activeStrategy.regulatoryNotes.map((note, nIdx) => (
                             <div key={nIdx} style={{ marginBottom: '3px' }}>• {note}</div>
                           ))}
@@ -1775,37 +1775,37 @@ export function SourcingOriginationDesk() {
 
                       <div style={{ padding: '10px 12px', backgroundColor: 'var(--color-panel-header)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-control)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <div>
-                          <span className="eyebrow" style={{ fontSize: '9px', color: 'var(--color-text)' }}>Commodity Market Risk Exposure</span>
+                          <span className="eyebrow" style={{ fontSize: '12px', color: 'var(--color-text)' }}>Commodity Market Risk Exposure</span>
                           <div className="num" style={{ fontWeight: 800, fontSize: '13px', color: 'var(--color-accent)', marginTop: '1px' }}>
                             🚫 NO EEX SHORT HEDGE REQUIRED (Zero Commodity Delta)
                           </div>
-                          <div className="dim" style={{ fontSize: '11px', marginTop: '2px', lineHeight: 1.4 }}>
+                          <div className="dim" style={{ fontSize: '12px', marginTop: '2px', lineHeight: 1.4 }}>
                             Pure unbundled certificate trade. The desk carries zero natural gas price risk, zero basis risk, and zero imbalance exposure. Only registry certificate transfer execution is required.
                           </div>
                         </div>
 
                         <div style={{ borderTop: '1px solid var(--color-divider)', paddingTop: '6px' }}>
-                          <span className="eyebrow" style={{ fontSize: '9px', color: 'var(--color-text)' }}>Domestic Subsidy &amp; Producer Bonus</span>
-                          <div style={{ fontSize: '11px', marginTop: '2px' }}>
+                          <span className="eyebrow" style={{ fontSize: '12px', color: 'var(--color-text)' }}>Domestic Subsidy &amp; Producer Bonus</span>
+                          <div style={{ fontSize: '12px', marginTop: '2px' }}>
                             <strong>Producer Subsidy:</strong> Retains 100% of {plantValuation.domesticSubsidyBaseline.schemeName} (~€{plantValuation.domesticSubsidyBaseline.strikePriceEurMwh.toFixed(2)}/MWh)
                           </div>
-                          <div className="dim" style={{ fontSize: '11px', marginTop: '2px', lineHeight: 1.4 }}>
+                          <div className="dim" style={{ fontSize: '12px', marginTop: '2px', lineHeight: 1.4 }}>
                             Bonus of +€{activeStrategy.recommendedBidToProducerEurMwh.toFixed(2)}/MWh paid to producer for GoO title transfer. 100% exempt from RED III 65% transport GHG threshold.
                           </div>
                         </div>
                       </div>
 
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', fontSize: '11px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', fontSize: '12px' }}>
                         <div style={{ padding: '6px 8px', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)', borderRadius: 'var(--radius-control)' }}>
-                          <div className="eyebrow" style={{ fontSize: '9px' }}>Certificate Volume</div>
+                          <div className="eyebrow" style={{ fontSize: '12px' }}>Certificate Volume</div>
                           <div className="num" style={{ fontWeight: 700, marginTop: '2px' }}>{plantValuation.plant.annualVolumeMWh.toLocaleString()} GoOs</div>
                         </div>
                         <div style={{ padding: '6px 8px', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)', borderRadius: 'var(--radius-control)' }}>
-                          <div className="eyebrow" style={{ fontSize: '9px' }}>Producer Bonus</div>
+                          <div className="eyebrow" style={{ fontSize: '12px' }}>Producer Bonus</div>
                           <div className="num" style={{ fontWeight: 700, marginTop: '2px', color: 'var(--color-pnl-pos, var(--color-accent))' }}>+€{activeStrategy.recommendedBidToProducerEurMwh.toFixed(2)}/MWh</div>
                         </div>
                         <div style={{ padding: '6px 8px', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)', borderRadius: 'var(--radius-control)' }}>
-                          <div className="eyebrow" style={{ fontSize: '9px' }}>Desk Annual P&amp;L</div>
+                          <div className="eyebrow" style={{ fontSize: '12px' }}>Desk Annual P&amp;L</div>
                           <div className="num" style={{ fontWeight: 800, marginTop: '2px', color: 'var(--color-pnl-pos, var(--color-accent))' }}>
                             +€{activeStrategy.annualDeskPnLEur.toLocaleString()}
                           </div>
@@ -1823,29 +1823,29 @@ export function SourcingOriginationDesk() {
 
                       <div style={{ padding: '10px 12px', backgroundColor: 'var(--color-panel-header)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-control)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         <div>
-                          <span className="eyebrow" style={{ fontSize: '9px' }}>Leg 1: Physical Gas (TTF Indexation)</span>
+                          <span className="eyebrow" style={{ fontSize: '12px' }}>Leg 1: Physical Gas (TTF Indexation)</span>
                           <div style={{ fontWeight: 700, fontSize: '12px', marginTop: '1px' }}>
                             {activeStrategy.twoLegFormula.physicalLegFormula}
                           </div>
-                          <div className="dim" style={{ fontSize: '11px', marginTop: '2px' }}>
+                          <div className="dim" style={{ fontSize: '12px', marginTop: '2px' }}>
                             Invoiced monthly on the 20th of month M+1. Delivered at VTP Virtual Trading Point. Offtaker balances hourly flow ({plantValuation.plant.hourlyCapacityMWh} MWh/h).
                           </div>
                         </div>
 
                         <div style={{ borderTop: '1px solid var(--color-divider)', paddingTop: '6px' }}>
-                          <span className="eyebrow" style={{ fontSize: '9px' }}>Leg 2: Green Attribute (Proof of Sustainability + CI Slider)</span>
+                          <span className="eyebrow" style={{ fontSize: '12px' }}>Leg 2: Green Attribute (Proof of Sustainability + CI Slider)</span>
                           <div style={{ fontWeight: 700, fontSize: '12px', marginTop: '1px' }}>
                             {activeStrategy.twoLegFormula.certLegFormula}
                           </div>
-                          <div className="dim" style={{ fontSize: '11px', marginTop: '2px' }}>
+                          <div className="dim" style={{ fontSize: '12px', marginTop: '2px' }}>
                             Invoiced 10 business days post-registry transfer. Carbon intensity adjustment rate slides at €{activeStrategy.twoLegFormula.ciSliderEurMwhPerGram.toFixed(2)}/gCO₂e from base.
                           </div>
                         </div>
                       </div>
 
                       <div>
-                        <span className="eyebrow" style={{ fontSize: '9px' }}>Statutory &amp; Regulatory Directives:</span>
-                        <div style={{ fontSize: '11px', color: 'var(--color-dim)', marginTop: '4px', lineHeight: 1.4 }}>
+                        <span className="eyebrow" style={{ fontSize: '12px' }}>Statutory &amp; Regulatory Directives:</span>
+                        <div style={{ fontSize: '12px', color: 'var(--color-dim)', marginTop: '4px', lineHeight: 1.4 }}>
                           {activeStrategy.regulatoryNotes.map((note, nIdx) => (
                             <div key={nIdx} style={{ marginBottom: '3px' }}>• {note}</div>
                           ))}
@@ -1866,40 +1866,40 @@ export function SourcingOriginationDesk() {
 
                       <div style={{ padding: '10px 12px', backgroundColor: 'var(--color-panel-header)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-control)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <div>
-                          <span className="eyebrow" style={{ fontSize: '9px' }}>EEX Futures Short Hedge Ticket</span>
+                          <span className="eyebrow" style={{ fontSize: '12px' }}>EEX Futures Short Hedge Ticket</span>
                           <div className="num" style={{ fontWeight: 700, fontSize: '13px', color: 'var(--color-text)', marginTop: '1px' }}>
                             Sell Short {plantValuation.plant.annualVolumeMWh.toLocaleString()} MWh on EEX TTF Natural Gas Futures
                           </div>
-                          <div className="dim" style={{ fontSize: '11px', marginTop: '2px' }}>
+                          <div className="dim" style={{ fontSize: '12px', marginTop: '2px' }}>
                             Delta-neutral commodity hedge locks in the green compliance spread (+€{activeStrategy.netDeskMarginEurPerMWh.toFixed(2)}/MWh) against natural gas wholesale market drops.
                           </div>
                         </div>
 
                         <div style={{ borderTop: '1px solid var(--color-divider)', paddingTop: '6px' }}>
-                          <span className="eyebrow" style={{ fontSize: '9px' }}>Domestic Subsidy &amp; Registry Transfer</span>
-                          <div style={{ fontSize: '11px', marginTop: '2px' }}>
+                          <span className="eyebrow" style={{ fontSize: '12px' }}>Domestic Subsidy &amp; Registry Transfer</span>
+                          <div style={{ fontSize: '12px', marginTop: '2px' }}>
                             <strong>Subsidy Action:</strong>{' '}
                             {activeStrategy.subsidyAction === 'SUPPORT_SWITCH_OFF'
                               ? `Switch off ${plantValuation.domesticSubsidyBaseline.schemeName} (strike €${plantValuation.domesticSubsidyBaseline.strikePriceEurMwh.toFixed(2)}/MWh)`
                               : `Maintain domestic ${plantValuation.domesticSubsidyBaseline.schemeName} support`}
                           </div>
-                          <div className="dim" style={{ fontSize: '11px', marginTop: '2px' }}>
+                          <div className="dim" style={{ fontSize: '12px', marginTop: '2px' }}>
                             Chain of custody: Registered via {plantValuation.plant.networkOperator} → transferred via EU Union Database (UDB) &amp; national registry.
                           </div>
                         </div>
                       </div>
 
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', fontSize: '11px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', fontSize: '12px' }}>
                         <div style={{ padding: '6px 8px', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)', borderRadius: 'var(--radius-control)' }}>
-                          <div className="eyebrow" style={{ fontSize: '9px' }}>Hourly Volume</div>
+                          <div className="eyebrow" style={{ fontSize: '12px' }}>Hourly Volume</div>
                           <div className="num" style={{ fontWeight: 700, marginTop: '2px' }}>{plantValuation.plant.hourlyCapacityMWh} MWh/h</div>
                         </div>
                         <div style={{ padding: '6px 8px', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)', borderRadius: 'var(--radius-control)' }}>
-                          <div className="eyebrow" style={{ fontSize: '9px' }}>Annual Volume</div>
+                          <div className="eyebrow" style={{ fontSize: '12px' }}>Annual Volume</div>
                           <div className="num" style={{ fontWeight: 700, marginTop: '2px' }}>{plantValuation.plant.annualVolumeMWh.toLocaleString()} MWh</div>
                         </div>
                         <div style={{ padding: '6px 8px', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)', borderRadius: 'var(--radius-control)' }}>
-                          <div className="eyebrow" style={{ fontSize: '9px' }}>Desk Annual P&amp;L</div>
+                          <div className="eyebrow" style={{ fontSize: '12px' }}>Desk Annual P&amp;L</div>
                           <div className="num" style={{ fontWeight: 800, marginTop: '2px', color: activeStrategy.annualDeskPnLEur > 0 ? 'var(--color-pnl-pos, var(--color-accent))' : 'inherit' }}>
                             {activeStrategy.isEligible ? `+€${activeStrategy.annualDeskPnLEur.toLocaleString()}` : '—'}
                           </div>
@@ -1978,7 +1978,7 @@ export function SourcingOriginationDesk() {
                               <span style={{ fontSize: '15px' }}>{row.originFlag}</span>
                               <span>{row.originName}</span>
                             </div>
-                            <div style={{ fontSize: '11px' }} className="mut">
+                            <div style={{ fontSize: '12px' }} className="mut">
                               {row.primaryRegistry} · {row.gridZone === 'EU_INTERCONNECTED' ? 'EU Grid' : 'Non-EU Grid'}
                             </div>
                           </td>
@@ -1986,7 +1986,7 @@ export function SourcingOriginationDesk() {
                             <div style={{ fontWeight: 600 }}>
                               {row.originCode} → {row.targetCountry} ({row.distanceKm} km)
                             </div>
-                            <div style={{ fontSize: '11px' }} className="mut">
+                            <div style={{ fontSize: '12px' }} className="mut">
                               {row.routeHops.join(' → ')}
                             </div>
                           </td>
@@ -2006,7 +2006,7 @@ export function SourcingOriginationDesk() {
                                       display: 'flex',
                                       alignItems: 'center',
                                       justifyContent: 'center',
-                                      fontSize: '9px',
+                                      fontSize: '12px',
                                       fontWeight: 700,
                                       backgroundColor: isHard
                                         ? 'var(--color-accent)'
@@ -2053,7 +2053,7 @@ export function SourcingOriginationDesk() {
                             <button
                               type="button"
                               className={`chip ${isExpanded ? 'chip-a' : ''}`}
-                              style={{ cursor: 'pointer', fontWeight: 600, fontSize: '11px' }}
+                              style={{ cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}
                               onClick={e => {
                                 e.stopPropagation();
                                 setExpandedOrigin(isExpanded ? null : row.originCode);
@@ -2066,7 +2066,7 @@ export function SourcingOriginationDesk() {
                             <button
                               type="button"
                               className={`btn ${row.isTradeable ? 'btn-primary' : 'btn-secondary'}`}
-                              style={{ height: '26px', fontSize: '11px', padding: '0 8px' }}
+                              style={{ height: '26px', fontSize: '12px', padding: '0 8px' }}
                               onClick={e => {
                                 e.stopPropagation();
                                 handleStructureDeal(row.targetMarketId, row.originCode, row.matchingPlants[0] || undefined);
@@ -2089,7 +2089,7 @@ export function SourcingOriginationDesk() {
                                       Eligible {row.originName} Biomethane Facilities ({row.matchingPlants.length} assets matching {FEEDSTOCK_REGISTRY[feedstockSelect]?.name})
                                     </strong>
                                   </div>
-                                  <span style={{ fontSize: '11px' }} className="mut">
+                                  <span style={{ fontSize: '12px' }} className="mut">
                                     Click &ldquo;Source Plant&rdquo; to carry verified capacity and TSO node into Trade Builder
                                   </span>
                                 </div>
@@ -2100,7 +2100,7 @@ export function SourcingOriginationDesk() {
                                   </div>
                                 ) : (
                                   <div style={{ maxHeight: '280px', overflowY: 'auto', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)' }}>
-                                    <table className="table" style={{ fontSize: '11px', margin: 0 }}>
+                                    <table className="table" style={{ fontSize: '12px', margin: 0 }}>
                                       <thead>
                                         <tr>
                                           <th style={{ width: '28px' }}>#</th>
@@ -2119,7 +2119,7 @@ export function SourcingOriginationDesk() {
                                             <td className="num dim">{String(pIdx + 1).padStart(2, '0')}</td>
                                             <td>
                                               <div style={{ fontWeight: 600 }}>{plant.name}</div>
-                                              <div style={{ fontSize: '10px' }} className="mut">{plant.region || 'National Grid Zone'}</div>
+                                              <div style={{ fontSize: '12px' }} className="mut">{plant.region || 'National Grid Zone'}</div>
                                             </td>
                                             <td className="mut">{plant.operator || plant.legalEntityName || <span style={{ fontStyle: 'italic', opacity: 0.65 }}>Operator unrecorded</span>}</td>
                                             <td>{plant.networkOperator || row.primaryRegistry}</td>
@@ -2129,7 +2129,7 @@ export function SourcingOriginationDesk() {
                                             <td className="num mut" style={{ textAlign: 'right' }}>
                                               {plant.capacityNm3h ? `${plant.capacityNm3h.toLocaleString()} Nm³/h` : '—'}
                                             </td>
-                                            <td style={{ fontSize: '10px' }}>
+                                            <td style={{ fontSize: '12px' }}>
                                               <div>{plant.primaryFeedstockCategory || 'Manure & Slurry'}</div>
                                               <div className="mut">{plant.feedstockDetails || 'Audited substrate'}</div>
                                             </td>
@@ -2137,7 +2137,7 @@ export function SourcingOriginationDesk() {
                                               <button
                                                 type="button"
                                                 className="btn btn-primary"
-                                                style={{ height: '22px', fontSize: '10px', padding: '0 8px' }}
+                                                style={{ height: '22px', fontSize: '12px', padding: '0 8px' }}
                                                 onClick={(e) => {
                                                   e.stopPropagation();
                                                   handleStructureDeal(row.targetMarketId, row.originCode, plant);
@@ -2179,14 +2179,14 @@ export function SourcingOriginationDesk() {
                   type="text"
                   placeholder="Search plant, operator, or grid node..."
                   className="input"
-                  style={{ minWidth: '240px', height: '28px', fontSize: '11px' }}
+                  style={{ minWidth: '240px', height: '28px', fontSize: '12px' }}
                   value={plantSearchQuery}
                   onChange={e => setPlantSearchQuery(e.target.value)}
                 />
 
                 <select
                   className="input"
-                  style={{ height: '28px', fontSize: '11px' }}
+                  style={{ height: '28px', fontSize: '12px' }}
                   value={plantCountryFilter}
                   onChange={e => setPlantCountryFilter(e.target.value)}
                 >
@@ -2219,7 +2219,7 @@ export function SourcingOriginationDesk() {
                     <td className="num dim">{String(pIdx + 1).padStart(2, '0')}</td>
                     <td>
                       <div style={{ fontWeight: 600 }}>{plant.name}</div>
-                      <div style={{ fontSize: '11px' }} className="mut">
+                      <div style={{ fontSize: '12px' }} className="mut">
                         {plant.operator || plant.legalEntityName || <span style={{ fontStyle: 'italic', opacity: 0.65 }}>Operator unrecorded</span>}
                       </div>
                     </td>
@@ -2228,11 +2228,11 @@ export function SourcingOriginationDesk() {
                         <span>{plant.countryFlag}</span>
                         <span>{plant.country}</span>
                       </div>
-                      <div style={{ fontSize: '11px' }} className="mut">{plant.region || 'Grid Zone'}</div>
+                      <div style={{ fontSize: '12px' }} className="mut">{plant.region || 'Grid Zone'}</div>
                     </td>
                     <td>
                       <div style={{ fontWeight: 500 }}>{plant.networkOperator || 'National Grid'}</div>
-                      <div style={{ fontSize: '11px' }} className="mut">{plant.gridConnectionType || 'Transmission Injection'}</div>
+                      <div style={{ fontSize: '12px' }} className="mut">{plant.gridConnectionType || 'Transmission Injection'}</div>
                     </td>
                     <td className="num" style={{ textAlign: 'right', fontWeight: 600 }}>
                       {plant.annualEnergyGWh ? `${plant.annualEnergyGWh.toFixed(1)} GWh` : '—'}
@@ -2241,14 +2241,14 @@ export function SourcingOriginationDesk() {
                       {plant.capacityNm3h ? `${plant.capacityNm3h.toLocaleString()} Nm³/h` : '—'}
                     </td>
                     <td>
-                      <div style={{ fontSize: '11px' }}>{plant.primaryFeedstockCategory || 'Manure & Slurry'}</div>
-                      <div style={{ fontSize: '10px' }} className="mut">{plant.feedstockDetails || 'Standard RED III feedstock'}</div>
+                      <div style={{ fontSize: '12px' }}>{plant.primaryFeedstockCategory || 'Manure & Slurry'}</div>
+                      <div style={{ fontSize: '12px' }} className="mut">{plant.feedstockDetails || 'Standard RED III feedstock'}</div>
                     </td>
                     <td style={{ textAlign: 'right' }}>
                       <button
                         type="button"
                         className="btn btn-primary"
-                        style={{ height: '24px', fontSize: '11px', padding: '0 8px' }}
+                        style={{ height: '24px', fontSize: '12px', padding: '0 8px' }}
                         onClick={() => handleStructureDeal(selectedMarketSelect === 'ALL' ? getDefaultMarketForOrigin(plant.countryCode) : selectedMarketSelect, plant.countryCode, plant)}
                       >
                         Source Plant →
@@ -2303,7 +2303,7 @@ export function SourcingOriginationDesk() {
                       <td className="num dim">{String(idx + 1).padStart(2, '0')}</td>
                       <td>
                         <div style={{ fontWeight: 600 }}>{item.marketName}</div>
-                        <div style={{ fontSize: '11px' }} className="mut">{mkt?.registry || mkt?.legalBasis || ''}</div>
+                        <div style={{ fontSize: '12px' }} className="mut">{mkt?.registry || mkt?.legalBasis || ''}</div>
                       </td>
                       <td>
                         <div style={{ display: 'flex', gap: '2px' }}>
@@ -2321,7 +2321,7 @@ export function SourcingOriginationDesk() {
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
-                                  fontSize: '10px',
+                                  fontSize: '12px',
                                   fontWeight: 600,
                                   backgroundColor: isHard
                                     ? 'var(--color-accent)'
@@ -2373,7 +2373,7 @@ export function SourcingOriginationDesk() {
                           {isSim ? 'Estimate · sim' : 'Desk · manual'}
                         </span>
                       </td>
-                      <td className="num mut" style={{ textAlign: 'center', fontSize: '11px' }}>
+                      <td className="num mut" style={{ textAlign: 'center', fontSize: '12px' }}>
                         {isSim ? 'sim' : '1d'}
                       </td>
                     </tr>
@@ -2418,13 +2418,14 @@ export function SourcingOriginationDesk() {
       >
         <span
           style={{
-            fontSize: '10px',
-            fontWeight: 800,
-            letterSpacing: '0.1em',
+            fontSize: '12px',
+            fontWeight: 700,
+            letterSpacing: '0.06em',
             textTransform: 'uppercase',
             backgroundColor: 'var(--color-accent)',
             color: 'var(--color-bg)',
             padding: '3px 8px',
+            borderRadius: 'var(--radius-control)',
           }}
         >
           Blocked
@@ -2437,7 +2438,7 @@ export function SourcingOriginationDesk() {
             {highestBlocked ? `${highestBlocked.blockingReason}. Remedy: ${highestBlocked.remedy}` : 'Grid injection cannot evidence UDB ingestion for the RTFO. Remedy: physical bio-LNG delivery under mass balance.'}
           </div>
         </div>
-        <span style={{ marginLeft: 'auto', fontSize: '11px', whiteSpace: 'nowrap' }} className="mut">
+        <span style={{ marginLeft: 'auto', fontSize: '12px', whiteSpace: 'nowrap' }} className="mut">
           RED III Art. 28(2) · Reg. (EU) 2024/2792
         </span>
       </div>

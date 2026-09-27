@@ -115,8 +115,8 @@ export function QuickDealDrawer({
     const isEuGrid = originInfo?.gridZone === 'EU_INTERCONNECTED';
 
     const consignment: Consignment = {
-      id: `consignment-${route.originCountry}-${route.feedstockKey}`,
-      name: `${route.originCountryName} ${route.feedstockName}`,
+      id:`consignment-${route.originCountry}-${route.feedstockKey}`,
+      name:`${route.originCountryName} ${route.feedstockName}`,
       originCountry: route.originCountry,
       originCountryName: route.originCountryName,
       feedstock: route.feedstockKey,
@@ -139,7 +139,7 @@ export function QuickDealDrawer({
     if (!netbackRes) return;
 
     const assessment: TradeAssessment = {
-      id: `DEAL-${Date.now()}`,
+      id:`DEAL-${Date.now()}`,
       createdAt: new Date().toISOString(),
       consignment,
       targetMarketId: route.targetMarketId,
@@ -148,7 +148,7 @@ export function QuickDealDrawer({
       netback: netbackRes,
       marks,
       costs,
-      userNotes: request.notes || `Structured trade for ${request.counterparty || 'Counterparty'} (${route.originCountryName} ➔ ${route.targetMarketName}).`,
+      userNotes: request.notes ||`Structured trade for ${request.counterparty || 'Counterparty'} (${route.originCountryName} ➔ ${route.targetMarketName}).`,
     };
 
     dispatch({ type: 'SAVE_ASSESSMENT', assessment });
@@ -161,18 +161,18 @@ export function QuickDealDrawer({
 
   const handleCopyDealSummary = () => {
     const lines = [
-      `BIOMETHANE DESK DEAL INSPECTION SUMMARY`,
-      `Facility: ${sourcedRoute?.originPlantName || route.originCountryName} (${route.originCountry})`,
-      `Destination: ${route.targetMarketName} (${route.targetCountry})`,
-      `Feedstock: ${route.feedstockName} (CI: ${route.carbonIntensity} gCO2e/MJ)`,
-      `Scheme / CoC: ${route.certificationScheme} / ${route.chainOfCustody}`,
-      `Volume: ${volumeOverride ? `${volumeOverride.toLocaleString()} MWh` : 'Unspecified'}`,
-      `Delivered Netback: ${currentNetback !== null ? `€${currentNetback.toFixed(2)}/MWh` : 'Unpriced'}`,
-      `Desk Margin: ${currentDeskMargin !== null ? `+€${currentDeskMargin.toFixed(2)}/MWh` : 'Unpriced'}`,
-      `Indicative P&L: ${currentPnl !== null ? `€${Math.round(currentPnl).toLocaleString()}` : '—'}`,
-      `Corridor: ${route.originCountry} ➔ ${route.targetCountry} (${sourcedRoute?.logisticsDistanceKm ? `${sourcedRoute.logisticsDistanceKm} km` : 'Direct grid'})`,
-      `TSO Operator: ${sourcedRoute?.networkOperator || 'Continental Gas Transmission System'}`,
-      `Statutory Verdict: ${route.overallVerdict} (6-Gate RED III Verified)`,
+`BIOMETHANE DESK DEAL INSPECTION SUMMARY`,
+`Facility: ${sourcedRoute?.originPlantName || route.originCountryName} (${route.originCountry})`,
+`Destination: ${route.targetMarketName} (${route.targetCountry})`,
+`Feedstock: ${route.feedstockName} (CI: ${route.carbonIntensity} gCO2e/MJ)`,
+`Scheme / CoC: ${route.certificationScheme} / ${route.chainOfCustody}`,
+`Volume: ${volumeOverride ?`${volumeOverride.toLocaleString()} MWh` : 'Unspecified'}`,
+`Delivered Netback: ${currentNetback !== null ?`€${currentNetback.toFixed(2)}/MWh` : 'Unpriced'}`,
+`Desk Margin: ${currentDeskMargin !== null ?`+€${currentDeskMargin.toFixed(2)}/MWh` : 'Unpriced'}`,
+`Indicative P&L: ${currentPnl !== null ?`€${Math.round(currentPnl).toLocaleString()}` : '—'}`,
+`Corridor: ${route.originCountry} ➔ ${route.targetCountry} (${sourcedRoute?.logisticsDistanceKm ?`${sourcedRoute.logisticsDistanceKm} km` : 'Direct grid'})`,
+`TSO Operator: ${sourcedRoute?.networkOperator || 'Continental Gas Transmission System'}`,
+`Statutory Verdict: ${route.overallVerdict} (6-Gate RED III Verified)`,
     ];
     navigator.clipboard.writeText(lines.join('\n'));
     setCopied(true);
@@ -197,15 +197,15 @@ export function QuickDealDrawer({
               {getCountryFlag(route.originCountry)}
             </span>
             <div className="min-w-0">
-              <div className="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-wider text-zinc-100 truncate">
+              <div className="flex items-center gap-2 text-xs font-bold text-zinc-100 truncate">
                 <span className="truncate">{sourcedRoute?.originPlantName || route.originCountryName}</span>
                 <span className="text-zinc-600">➔</span>
                 <span className="text-cyan-300 shrink-0">{route.targetMarketName}</span>
               </div>
-              <div className="text-[11px] font-mono text-zinc-400 mt-0.5 flex items-center gap-1.5 flex-wrap">
+              <div className="text-[12px] text-zinc-400 mt-0.5 flex items-center gap-1.5 flex-wrap">
                 <span>{route.feedstockName}</span>
                 <span className="text-zinc-600">·</span>
-                <span className="text-emerald-400 font-bold">CI {route.carbonIntensity > 0 ? `+${route.carbonIntensity}` : route.carbonIntensity} gCO₂e/MJ</span>
+                <span className="text-emerald-400 font-bold">CI {route.carbonIntensity > 0 ?`+${route.carbonIntensity}` : route.carbonIntensity} gCO₂e/MJ</span>
                 <span className="text-zinc-600">·</span>
                 <span className="text-zinc-400">{route.certificationScheme}</span>
               </div>
@@ -245,13 +245,13 @@ export function QuickDealDrawer({
           {/* 2. Financial Valuation Hero Cards */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="font-mono text-[11px] uppercase tracking-wider text-zinc-400 font-bold">
+              <span className="text-[12px] text-zinc-400 font-bold">
                 Commercial Netback &amp; Spread
               </span>
               <button
                 type="button"
                 onClick={() => setIsMathOpen(true)}
-                className="flex items-center gap-1 px-2 py-0.5 bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-700/60 text-cyan-300 rounded font-mono text-[10px] font-bold cursor-pointer transition-colors shadow-xs"
+                className="flex items-center gap-1 px-2 py-0.5 bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-700/60 text-cyan-300 rounded text-[12px] font-bold cursor-pointer transition-colors shadow-xs"
                 title="Inspect statutory formula and mathematical proof"
               >
                 <Calculator className="w-3 h-3" />
@@ -261,36 +261,36 @@ export function QuickDealDrawer({
 
             <div className="grid grid-cols-3 gap-2">
               <div className="bg-[#0e1118] border border-[#1e2433] p-2.5 rounded flex flex-col">
-                <span className="font-mono text-[10px] text-zinc-400 uppercase tracking-wider">
+                <span className="text-[12px] text-zinc-400">
                   Delivered Netback
                 </span>
-                <span className="font-mono font-bold text-base text-cyan-300 mt-1 tabular-nums">
-                  {currentNetback !== null ? `€${currentNetback.toFixed(2)}` : '—'}
+                <span className="font-bold text-base text-cyan-300 mt-1 tabular-nums">
+                  {currentNetback !== null ?`€${currentNetback.toFixed(2)}` : '—'}
                 </span>
-                <span className="text-[10px] text-zinc-500 font-mono">per MWh</span>
+                <span className="text-[12px] text-zinc-500">per MWh</span>
               </div>
 
               <div className="bg-[#0e1118] border border-[#1e2433] p-2.5 rounded flex flex-col">
-                <span className="font-mono text-[10px] text-zinc-400 uppercase tracking-wider">
+                <span className="text-[12px] text-zinc-400">
                   Desk Margin
                 </span>
-                <span className={`font-mono font-bold text-base mt-1 tabular-nums ${
+                <span className={`font-bold text-base mt-1 tabular-nums ${
                   currentDeskMargin !== null && currentDeskMargin > 0 ? 'text-emerald-400' : 'text-zinc-300'
                 }`}>
-                  {currentDeskMargin !== null ? `${currentDeskMargin > 0 ? '+' : ''}€${currentDeskMargin.toFixed(2)}` : '—'}
+                  {currentDeskMargin !== null ?`${currentDeskMargin > 0 ? '+' : ''}€${currentDeskMargin.toFixed(2)}` : '—'}
                 </span>
-                <span className="text-[10px] text-zinc-500 font-mono">per MWh</span>
+                <span className="text-[12px] text-zinc-500">per MWh</span>
               </div>
 
               <div className="bg-[#0e1118] border border-[#1e2433] p-2.5 rounded flex flex-col">
-                <span className="font-mono text-[10px] text-zinc-400 uppercase tracking-wider">
+                <span className="text-[12px] text-zinc-400">
                   Consignment P&amp;L
                 </span>
-                <span className="font-mono font-bold text-base text-emerald-300 mt-1 tabular-nums">
-                  {currentPnl !== null ? `€${Math.round(currentPnl).toLocaleString()}` : '—'}
+                <span className="font-bold text-base text-emerald-300 mt-1 tabular-nums">
+                  {currentPnl !== null ?`€${Math.round(currentPnl).toLocaleString()}` : '—'}
                 </span>
-                <span className="text-[10px] text-zinc-500 font-mono">
-                  {volumeOverride ? `${volumeOverride.toLocaleString()} MWh` : 'Full Cargo'}
+                <span className="text-[12px] text-zinc-500">
+                  {volumeOverride ?`${volumeOverride.toLocaleString()} MWh` : 'Full Cargo'}
                 </span>
               </div>
             </div>
@@ -298,11 +298,11 @@ export function QuickDealDrawer({
 
           {/* 3. Complete Netback Component Stack Waterfall */}
           <div className="bg-[#0e1118] border border-[#1e2433] rounded-lg p-3 space-y-2">
-            <span className="font-mono text-[11px] uppercase tracking-wider text-zinc-400 font-bold block">
+            <span className="text-[12px] text-zinc-400 font-bold block">
               Component Waterfall Stack
             </span>
 
-            <div className="divide-y divide-[#182030] text-xs font-mono">
+            <div className="divide-y divide-[#182030] text-xs">
               <div className="py-1.5 flex items-center justify-between">
                 <span className="text-zinc-300">Gross Terminal Revenue / Quota Value</span>
                 <span className="font-bold text-cyan-300 tabular-nums">
@@ -316,7 +316,7 @@ export function QuickDealDrawer({
                 </span>
                 <span className="tabular-nums text-zinc-300">
                   {marks.gasIndex.mid !== null && marks.gasIndex.mid !== undefined
-                    ? `-€${marks.gasIndex.mid.toFixed(2)} / MWh`
+                    ?`-€${marks.gasIndex.mid.toFixed(2)} / MWh`
                     : '—'}
                 </span>
               </div>
@@ -325,7 +325,7 @@ export function QuickDealDrawer({
                 <span>(-) Cross-Border Grid Transit &amp; Transmission</span>
                 <span className="tabular-nums text-zinc-300">
                   {route.transitCostEurPerMWh !== null && route.transitCostEurPerMWh !== undefined
-                    ? `-€${route.transitCostEurPerMWh.toFixed(2)} / MWh`
+                    ?`-€${route.transitCostEurPerMWh.toFixed(2)} / MWh`
                     : '—'}
                 </span>
               </div>
@@ -334,7 +334,7 @@ export function QuickDealDrawer({
                 <span>(-) Mass Balance &amp; Transfer Costs</span>
                 <span className="tabular-nums text-zinc-300">
                   {costs.transferCosts !== null && costs.transferCosts !== undefined
-                    ? `-€${costs.transferCosts.toFixed(2)} / MWh`
+                    ?`-€${costs.transferCosts.toFixed(2)} / MWh`
                     : '—'}
                 </span>
               </div>
@@ -343,7 +343,7 @@ export function QuickDealDrawer({
                 <span>(-) Registry &amp; Certification Fees</span>
                 <span className="tabular-nums text-zinc-300">
                   {costs.certificationCosts !== null && costs.certificationCosts !== undefined
-                    ? `-€${costs.certificationCosts.toFixed(2)} / MWh`
+                    ?`-€${costs.certificationCosts.toFixed(2)} / MWh`
                     : '—'}
                 </span>
               </div>
@@ -358,7 +358,7 @@ export function QuickDealDrawer({
               <div className="py-1.5 flex items-center justify-between bg-emerald-950/20 px-2 rounded mt-1">
                 <span className="font-bold text-emerald-400">(=) Net Desk Trading Margin</span>
                 <span className="font-bold text-emerald-400 tabular-nums text-sm">
-                  {currentDeskMargin !== null ? `+€${currentDeskMargin.toFixed(2)}` : '—'} / MWh
+                  {currentDeskMargin !== null ?`+€${currentDeskMargin.toFixed(2)}` : '—'} / MWh
                 </span>
               </div>
             </div>
@@ -367,47 +367,47 @@ export function QuickDealDrawer({
           {/* 4. Audited Plant Technical Details & Legal Contacts */}
           <div className="bg-[#0e1118] border border-[#1e2433] rounded-lg p-3 space-y-2.5">
             <div className="flex items-center justify-between">
-              <span className="font-mono text-[11px] uppercase tracking-wider text-zinc-400 font-bold flex items-center gap-1.5">
+              <span className="text-[12px] text-zinc-400 font-bold flex items-center gap-1.5">
                 <Building2 className="w-3.5 h-3.5 text-cyan-400" />
                 <span>Audited Asset &amp; Commercial Contacts</span>
               </span>
               {sourcedRoute?.isPlantVerified ? (
-                <span className="flex items-center gap-1 font-mono text-[9px] bg-emerald-500/15 text-emerald-300 border border-emerald-500/40 px-1.5 py-0.2 rounded font-bold">
+                <span className="flex items-center gap-1 text-[12px] bg-emerald-500/15 text-emerald-300 border border-emerald-500/40 px-1.5 py-0.2 rounded font-bold">
                   <ShieldCheck className="w-3 h-3" />
                   <span>Audited Physical Facility</span>
                 </span>
               ) : (
-                <span className="font-mono text-[9px] bg-amber-500/15 text-amber-300 border border-amber-500/40 px-1.5 py-0.2 rounded font-bold">
+                <span className="text-[12px] bg-amber-500/15 text-amber-300 border border-amber-500/40 px-1.5 py-0.2 rounded font-bold">
                   Due Diligence Required
                 </span>
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+            <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="bg-[#08090d] p-2 rounded border border-[#161c28]">
-                <span className="text-[10px] text-zinc-500 block uppercase">Operating Entity</span>
+                <span className="text-[12px] text-zinc-500 block">Operating Entity</span>
                 <span className="text-zinc-200 font-bold truncate block mt-0.5">
                   {sourcedRoute?.legalEntityName || sourcedRoute?.originPlantName || 'European Biomethane Producer'}
                 </span>
               </div>
 
               <div className="bg-[#08090d] p-2 rounded border border-[#161c28]">
-                <span className="text-[10px] text-zinc-500 block uppercase">Grid / TSO Operator</span>
+                <span className="text-[12px] text-zinc-500 block">Grid / TSO Operator</span>
                 <span className="text-zinc-200 font-bold truncate block mt-0.5">
-                  {sourcedRoute?.networkOperator || `${route.originCountry} Gas Transmission System`}
+                  {sourcedRoute?.networkOperator ||`${route.originCountry} Gas Transmission System`}
                 </span>
               </div>
 
               <div className="bg-[#08090d] p-2 rounded border border-[#161c28]">
-                <span className="text-[10px] text-zinc-500 block uppercase">Annual Energy Yield</span>
+                <span className="text-[12px] text-zinc-500 block">Annual Energy Yield</span>
                 <span className="text-cyan-300 font-bold tabular-nums block mt-0.5">
-                  {sourcedRoute?.plantAnnualGWh ? `${sourcedRoute.plantAnnualGWh} GWh/year` : 'Nominal Capacity'}
-                  {sourcedRoute?.plantCapacityNm3h && ` (${sourcedRoute.plantCapacityNm3h} Nm³/h)`}
+                  {sourcedRoute?.plantAnnualGWh ?`${sourcedRoute.plantAnnualGWh} GWh/year` : 'Nominal Capacity'}
+                  {sourcedRoute?.plantCapacityNm3h &&` (${sourcedRoute.plantCapacityNm3h} Nm³/h)`}
                 </span>
               </div>
 
               <div className="bg-[#08090d] p-2 rounded border border-[#161c28]">
-                <span className="text-[10px] text-zinc-500 block uppercase">Upgrading Technology</span>
+                <span className="text-[12px] text-zinc-500 block">Upgrading Technology</span>
                 <span className="text-zinc-200 font-bold block mt-0.5 truncate">
                   Membrane / Amine Scrubbing
                 </span>
@@ -415,11 +415,11 @@ export function QuickDealDrawer({
             </div>
 
             {/* Direct Contacts */}
-            <div className="bg-[#08090d] p-2.5 rounded border border-[#161c28] flex items-center justify-between gap-2 text-xs font-mono">
+            <div className="bg-[#08090d] p-2.5 rounded border border-[#161c28] flex items-center justify-between gap-2 text-xs">
               <div className="flex items-center gap-2 min-w-0">
                 <Mail className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
                 <span className="text-zinc-300 truncate">
-                  {sourcedRoute?.contactEmail || `desk-trading@${route.originCountry.toLowerCase()}-biogas.eu`}
+                  {sourcedRoute?.contactEmail ||`desk-trading@${route.originCountry.toLowerCase()}-biogas.eu`}
                 </span>
               </div>
               <div className="flex items-center gap-2 shrink-0">
@@ -433,13 +433,13 @@ export function QuickDealDrawer({
 
           {/* 5. Quick Deal Structuring Parameters */}
           <div className="bg-[#0e1118] border border-[#1e2433] p-3 rounded-lg space-y-2.5">
-            <span className="font-mono text-[11px] uppercase tracking-wider text-zinc-400 font-bold block">
+            <span className="text-[12px] text-zinc-400 font-bold block">
               Deal Structuring Parameters
             </span>
 
             <div className="grid grid-cols-3 gap-2">
               <div>
-                <label className="block font-mono text-[10px] text-zinc-500 uppercase mb-1">
+                <label className="block text-[12px] text-zinc-500 mb-1">
                   Volume (MWh)
                 </label>
                 <input
@@ -447,28 +447,28 @@ export function QuickDealDrawer({
                   value={volumeOverride ?? ''}
                   onChange={e => setVolumeOverride(e.target.value ? Number(e.target.value) : null)}
                   placeholder="e.g. 10000"
-                  className="w-full bg-[#08090d] border border-[#1e2433] rounded p-1 px-2 font-mono text-xs text-zinc-100 font-bold focus:border-cyan-500 focus:outline-none"
+                  className="w-full bg-[#08090d] border border-[#1e2433] rounded p-1 px-2 text-xs text-zinc-100 font-bold focus:border-cyan-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block font-mono text-[10px] text-zinc-500 uppercase mb-1">
+                <label className="block text-[12px] text-zinc-500 mb-1">
                   Delivery Vintage
                 </label>
-                <div className="w-full bg-[#08090d] border border-[#1e2433] rounded p-1 px-2 font-mono text-xs text-cyan-300 font-bold truncate">
-                  {request.delivery.complianceYear ? `Cal ${request.delivery.complianceYear}` : 'Prompt Delivery'}
+                <div className="w-full bg-[#08090d] border border-[#1e2433] rounded p-1 px-2 text-xs text-cyan-300 font-bold truncate">
+                  {request.delivery.complianceYear ?`Cal ${request.delivery.complianceYear}` : 'Prompt Delivery'}
                 </div>
               </div>
 
               <div>
-                <label className="block font-mono text-[10px] text-zinc-500 uppercase mb-1">
+                <label className="block text-[12px] text-zinc-500 mb-1">
                   Counterparty
                 </label>
                 <input
                   type="text"
                   value={counterparty}
                   onChange={e => setCounterparty(e.target.value)}
-                  className="w-full bg-[#08090d] border border-[#1e2433] rounded p-1 px-2 font-mono text-xs text-zinc-100 focus:border-cyan-500 focus:outline-none"
+                  className="w-full bg-[#08090d] border border-[#1e2433] rounded p-1 px-2 text-xs text-zinc-100 focus:border-cyan-500 focus:outline-none"
                 />
               </div>
             </div>
@@ -476,29 +476,29 @@ export function QuickDealDrawer({
 
           {/* 6. 6-Gate Statutory Audit Trail */}
           <div className="space-y-2">
-            <span className="font-mono text-[11px] uppercase tracking-wider text-zinc-400 font-bold flex items-center gap-1.5">
+            <span className="text-[12px] text-zinc-400 font-bold flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
               <span>6-Gate Statutory Audit Trail</span>
             </span>
 
             <div className="bg-[#0e1118] border border-[#1e2433] rounded-lg divide-y divide-[#182030]">
               {route.eligibility.gates.map((gate, i) => (
-                <div key={i} className="p-2.5 px-3 flex items-start justify-between gap-3 text-xs font-mono">
+                <div key={i} className="p-2.5 px-3 flex items-start justify-between gap-3 text-xs">
                   <div className="min-w-0">
                     <div className="font-semibold text-zinc-200 flex items-center gap-2">
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                       <span>{gate.gateLabel}</span>
                     </div>
-                    <div className="text-[11px] text-zinc-400 mt-0.5 leading-relaxed font-sans">
+                    <div className="text-[12px] text-zinc-400 mt-0.5 leading-relaxed font-sans">
                       {gate.reason}
                     </div>
                     {gate.citations && gate.citations.length > 0 && (
-                      <div className="text-[10px] text-cyan-400 mt-0.5">
+                      <div className="text-[12px] text-cyan-400 mt-0.5">
                         Reference: {gate.citations.map(c => c.shortName).join(' · ')}
                       </div>
                     )}
                   </div>
-                  <span className="text-[9px] uppercase px-1.5 py-0.2 bg-emerald-950/80 text-emerald-300 border border-emerald-700/60 rounded shrink-0 font-bold">
+                  <span className="text-[12px] uppercase px-1.5 py-0.2 bg-emerald-950/80 text-emerald-300 border border-emerald-700/60 rounded shrink-0 font-bold">
                     {gate.verdict}
                   </span>
                 </div>
@@ -512,7 +512,7 @@ export function QuickDealDrawer({
           <button
             type="button"
             onClick={handleCopyDealSummary}
-            className="px-3 py-2 bg-[#141824] hover:bg-[#1c2436] border border-[#1e2433] text-zinc-200 font-mono text-xs font-semibold rounded flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+            className="px-3 py-2 bg-[#141824] hover:bg-[#1c2436] border border-[#1e2433] text-zinc-200 text-xs font-semibold rounded flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
             title="Copy structured deal summary to clipboard"
           >
             {copied ? (
@@ -531,7 +531,7 @@ export function QuickDealDrawer({
           <button
             type="button"
             onClick={handleSaveToLibrary}
-            className="flex-1 py-2 px-3 bg-[#141824] hover:bg-[#1c2436] border border-cyan-800/60 text-cyan-300 font-mono text-xs font-semibold rounded flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+            className="flex-1 py-2 px-3 bg-[#141824] hover:bg-[#1c2436] border border-cyan-800/60 text-cyan-300 text-xs font-semibold rounded flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
           >
             {savedToLib ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Bookmark className="w-3.5 h-3.5 text-cyan-400" />}
             <span>{savedToLib ? 'Committed & Saved!' : 'Save to Library'}</span>
@@ -540,7 +540,7 @@ export function QuickDealDrawer({
           <button
             type="button"
             onClick={handleOpenFullTrade}
-            className="flex-1 py-2 px-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-mono text-xs font-bold rounded flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-md shadow-cyan-500/20"
+            className="flex-1 py-2 px-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black text-xs font-bold rounded flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-md shadow-cyan-500/20"
           >
             <span>Structure in Trade Builder</span>
             <ArrowRight className="w-3.5 h-3.5" />
