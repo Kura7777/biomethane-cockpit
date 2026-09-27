@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { LEGAL_CITATIONS, getCitationById, searchCitations } from '../../domain/citations/registry';
 import { LegalCitation } from '../../domain/citations/types';
 import { showToast } from '../../app/DeskToastContainer';
+import { PageShell } from '../../shared/ui/PageShell';
 
 export function CitationsScreen() {
   const [selectedCitationId, setSelectedCitationId] = useState<string>('RED_III_DIR_2023_2413');
@@ -32,7 +33,7 @@ export function CitationsScreen() {
   };
 
   return (
-    <div
+    <PageShell
       style={{
         display: 'grid',
         gridTemplateColumns: '280px minmax(0, 1fr) 236px',
@@ -84,7 +85,7 @@ export function CitationsScreen() {
                   className="num mut"
                   style={{
                     width: '24px',
-                    fontSize: '11px',
+                    fontSize: '12px',
                     fontWeight: 600,
                     flexShrink: 0,
                   }}
@@ -120,7 +121,7 @@ export function CitationsScreen() {
         {/* Document Header */}
         <div style={{ padding: '20px 24px', borderBottom: '2px solid var(--color-divider)' }}>
           <div className="eyebrow">
-            {activeDoc.jurisdictionName.toUpperCase()} · {activeDoc.status.replace(/_/g, ' ')} · CONSOLIDATED TO AUGUST 2026
+            {activeDoc.jurisdictionName} · {activeDoc.status.replace(/_/g, ' ').toLowerCase()} · Consolidated to August 2026
           </div>
           <h3 style={{ fontSize: '30px', margin: '8px 0 6px', fontWeight: 800 }} className="font-heading">
             {activeDoc.shortTitle}
@@ -301,6 +302,6 @@ export function CitationsScreen() {
           ))}
         </div>
       </div>
-    </div>
+    </PageShell>
   );
 }

@@ -368,7 +368,7 @@ export function RegistryHub() {
             aria-selected={activeHubView === 'OVERVIEW'}
             onClick={() => setActiveHubView('OVERVIEW')}
             className={`chip ${activeHubView === 'OVERVIEW' ? 'chip-a' : ''} cursor-pointer`}
-            style={{ padding: '6px 12px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
           >
             <Scale style={{ width: '13px', height: '13px' }} />
             <span>Balance of Trade Matrix ({BASELINE_BALANCE_OF_TRADE.length})</span>
@@ -380,7 +380,7 @@ export function RegistryHub() {
             aria-selected={activeHubView === 'TELEMETRY'}
             onClick={() => setActiveHubView('TELEMETRY')}
             className={`chip ${activeHubView === 'TELEMETRY' ? 'chip-a' : ''} cursor-pointer`}
-            style={{ padding: '6px 12px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
           >
             <Radio style={{ width: '13px', height: '13px', color: 'var(--color-status-pass-text, #15803d)' }} />
             <span>Live Flow Telemetry &amp; TSO Feeds</span>
@@ -393,12 +393,12 @@ export function RegistryHub() {
             aria-selected={activeHubView === 'INGESTION'}
             onClick={() => setActiveHubView('INGESTION')}
             className={`chip ${activeHubView === 'INGESTION' ? 'chip-a' : ''} cursor-pointer`}
-            style={{ padding: '6px 12px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
           >
             <Upload style={{ width: '13px', height: '13px' }} />
             <span>Ingestion &amp; Statements</span>
             {customBatches.length > 0 && (
-              <span className="chip chip-pos" style={{ padding: '1px 4px', fontSize: '9px', fontWeight: 700 }}>
+              <span className="chip chip-pos" style={{ padding: '1px 4px', fontSize: '12px', fontWeight: 700 }}>
                 +{customBatches.length}
               </span>
             )}
@@ -410,7 +410,7 @@ export function RegistryHub() {
             aria-selected={activeHubView === 'LEDGER'}
             onClick={() => setActiveHubView('LEDGER')}
             className={`chip ${activeHubView === 'LEDGER' ? 'chip-a' : ''} cursor-pointer`}
-            style={{ padding: '6px 12px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
           >
             <Database style={{ width: '13px', height: '13px' }} />
             <span>Batch Flow Ledger ({allBatches.length})</span>
@@ -422,14 +422,14 @@ export function RegistryHub() {
             aria-selected={activeHubView === 'SIMULATOR'}
             onClick={() => setActiveHubView('SIMULATOR')}
             className={`chip ${activeHubView === 'SIMULATOR' ? 'chip-a' : ''} cursor-pointer`}
-            style={{ padding: '6px 12px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
           >
             <ArrowLeftRight style={{ width: '13px', height: '13px' }} />
             <span>Title Transfer Simulator</span>
           </button>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px' }} className="mut">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' }} className="mut">
           <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--color-status-pos-text)', display: 'inline-block' }} />
           <span>Live TSO Telemetry: <strong style={{ color: 'var(--color-text)' }} className="num">{tsoMetrics ? `${tsoMetrics.connectedTsoCount} Systems Online` : 'Connecting...'}</strong></span>
         </div>
@@ -563,7 +563,7 @@ export function RegistryHub() {
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
                       <span className="eyebrow" style={{ margin: 0, fontWeight: 700 }}>{feed.countryCode} · {feed.tsoCode}</span>
-                      <span className="chip chip-pos" style={{ fontSize: '9px', padding: '1px 4px' }}>
+                      <span className="chip chip-pos" style={{ fontSize: '12px', padding: '1px 4px' }}>
                         {feed.status === 'ONLINE' ? 'LIVE' : 'SYNCED'}
                       </span>
                     </div>
@@ -721,7 +721,7 @@ export function RegistryHub() {
                       </td>
                       <td style={{ textAlign: 'right' }} className="num">
                         <span style={{ fontWeight: 600, color: point.verifiedCI < 0 ? 'var(--color-status-pos-text)' : 'var(--color-text)' }}>
-                          {point.verifiedCI > 0 ? `+${point.verifiedCI}` : point.verifiedCI} <span style={{ fontSize: '11px' }} className="dim">g/MJ</span>
+                          {point.verifiedCI > 0 ? `+${point.verifiedCI}` : point.verifiedCI} <span style={{ fontSize: '12px' }} className="dim">g/MJ</span>
                         </span>
                       </td>
                       <td style={{ fontSize: '12px' }} className="dim">
@@ -822,12 +822,12 @@ export function RegistryHub() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  fontSize: '11px',
+                  fontSize: '12px',
                 }}
                 className="dim"
               >
                 <span>Source: api.energidataservice.dk/dataset/Gasflow</span>
-                <span className="chip chip-a" style={{ fontSize: '9px' }}>RED III Annex IX-A Manure</span>
+                <span className="chip chip-a" style={{ fontSize: '12px' }}>RED III Annex IX-A Manure</span>
               </div>
             </div>
 
@@ -873,7 +873,7 @@ export function RegistryHub() {
                   <div style={{ fontWeight: 600, fontSize: '13px' }}>
                     Drag &amp; drop registry export or click to browse
                   </div>
-                  <div className="dim" style={{ fontSize: '11px', marginTop: '2px' }}>
+                  <div className="dim" style={{ fontSize: '12px', marginTop: '2px' }}>
                     Supports .CSV, .JSON, .XML (All 22 Pan-European Registries)
                   </div>
                 </div>
@@ -888,7 +888,7 @@ export function RegistryHub() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  fontSize: '11px',
+                  fontSize: '12px',
                 }}
               >
                 <span className="dim">Quick Test Seeders:</span>
@@ -897,7 +897,7 @@ export function RegistryHub() {
                     type="button"
                     onClick={handleSeedDenaSample}
                     className="btn btn-secondary"
-                    style={{ fontSize: '11px', padding: '4px 8px', height: '28px' }}
+                    style={{ fontSize: '12px', padding: '4px 8px', height: '28px' }}
                   >
                     🇩🇪 Seed dena Monthly (63.4k MWh)
                   </button>
@@ -905,7 +905,7 @@ export function RegistryHub() {
                     type="button"
                     onClick={handleSeedVertiCerSample}
                     className="btn btn-secondary"
-                    style={{ fontSize: '11px', padding: '4px 8px', height: '28px' }}
+                    style={{ fontSize: '12px', padding: '4px 8px', height: '28px' }}
                   >
                     🇳🇱 Seed VertiCer Export (40.5k MWh)
                   </button>
@@ -1023,7 +1023,7 @@ export function RegistryHub() {
                     European Balance of Trade Matrix ({BASELINE_BALANCE_OF_TRADE.length} Jurisdictions)
                   </h4>
                 </div>
-                <span className="dim" style={{ fontSize: '11px' }}>
+                <span className="dim" style={{ fontSize: '12px' }}>
                   Audited Annual Trade Balances
                 </span>
               </div>
@@ -1061,7 +1061,7 @@ export function RegistryHub() {
                               </span>
                               <div>
                                 <div style={{ fontWeight: 600 }}>{bot.registryName}</div>
-                                <div className="dim" style={{ fontSize: '11px' }}>{REGISTRY_METADATA_TABLE[bot.registryId]?.hubConnection || 'Gas Hub'}</div>
+                                <div className="dim" style={{ fontSize: '12px' }}>{REGISTRY_METADATA_TABLE[bot.registryId]?.hubConnection || 'Gas Hub'}</div>
                               </div>
                             </div>
                           </td>
@@ -1117,7 +1117,7 @@ export function RegistryHub() {
                                   }}
                                 />
                               </div>
-                              <span className="num dim" style={{ fontSize: '11px' }}>
+                              <span className="num dim" style={{ fontSize: '12px' }}>
                                 {bot.exportSharePercent.toFixed(1)}%
                               </span>
                             </div>
@@ -1162,7 +1162,7 @@ export function RegistryHub() {
                   onClick={() => handleAdvanceSimulatorState('RESET')}
                   aria-label="Reset simulation"
                   className="btn btn-secondary"
-                  style={{ fontSize: '11px', padding: '3px 8px', height: '26px' }}
+                  style={{ fontSize: '12px', padding: '3px 8px', height: '26px' }}
                 >
                   <RefreshCw style={{ width: '12px', height: '12px' }} aria-hidden="true" /> Reset
                 </button>
@@ -1255,7 +1255,7 @@ export function RegistryHub() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  fontSize: '11px',
+                  fontSize: '12px',
                 }}
               >
                 <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
@@ -1321,7 +1321,7 @@ export function RegistryHub() {
                 {liveVerification.blockingReasons.length > 0 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     {liveVerification.blockingReasons.map((reason, idx) => (
-                      <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', color: 'var(--color-status-neg-text)', fontSize: '11px' }}>
+                      <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', color: 'var(--color-status-neg-text)', fontSize: '12px' }}>
                         <AlertTriangle style={{ width: '13px', height: '13px', flexShrink: 0, marginTop: '2px' }} aria-hidden="true" />
                         <span>{reason}</span>
                       </div>
@@ -1330,7 +1330,7 @@ export function RegistryHub() {
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     {liveVerification.auditNotes.map((note, idx) => (
-                      <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', color: 'var(--color-status-pos-text)', fontSize: '11px' }}>
+                      <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', color: 'var(--color-status-pos-text)', fontSize: '12px' }}>
                         <CheckCircle2 style={{ width: '13px', height: '13px', flexShrink: 0, marginTop: '2px' }} aria-hidden="true" />
                         <span>{note}</span>
                       </div>
@@ -1343,7 +1343,7 @@ export function RegistryHub() {
                   style={{
                     paddingTop: '8px',
                     borderTop: '1px solid var(--color-divider)',
-                    fontSize: '11px',
+                    fontSize: '12px',
                   }}
                   className="dim"
                 >
@@ -1361,7 +1361,7 @@ export function RegistryHub() {
                       justifyContent: 'space-between',
                     }}
                   >
-                    <span style={{ fontSize: '11px' }} className="mut">
+                    <span style={{ fontSize: '12px' }} className="mut">
                       State: <strong style={{ color: 'var(--color-text)' }}>{simulatorUdbState}</strong>
                     </span>
 
@@ -1371,7 +1371,7 @@ export function RegistryHub() {
                           type="button"
                           onClick={() => handleAdvanceSimulatorState('SUBMIT')}
                           className="btn btn-secondary"
-                          style={{ fontSize: '11px', padding: '3px 8px', height: '26px' }}
+                          style={{ fontSize: '12px', padding: '3px 8px', height: '26px' }}
                         >
                           Submit Transfer
                         </button>
@@ -1382,7 +1382,7 @@ export function RegistryHub() {
                           type="button"
                           onClick={() => handleAdvanceSimulatorState('LOCK_ESCROW')}
                           className="btn btn-secondary"
-                          style={{ fontSize: '11px', padding: '3px 8px', height: '26px' }}
+                          style={{ fontSize: '12px', padding: '3px 8px', height: '26px' }}
                         >
                           <Lock style={{ width: '12px', height: '12px' }} aria-hidden="true" /> Lock Escrow
                         </button>
@@ -1393,7 +1393,7 @@ export function RegistryHub() {
                           type="button"
                           onClick={() => handleAdvanceSimulatorState('TRANSFER_TITLE')}
                           className="btn btn-primary"
-                          style={{ fontSize: '11px', padding: '3px 10px', height: '26px' }}
+                          style={{ fontSize: '12px', padding: '3px 10px', height: '26px' }}
                         >
                           <Send style={{ width: '12px', height: '12px' }} aria-hidden="true" /> Transfer Title
                         </button>
@@ -1409,7 +1409,7 @@ export function RegistryHub() {
                       backgroundColor: 'var(--color-status-pos-bg)',
                       border: '1px solid var(--color-status-pos-border)',
                       color: 'var(--color-status-pos-text)',
-                      fontSize: '11px',
+                      fontSize: '12px',
                       fontWeight: 600,
                     }}
                   >
@@ -1446,7 +1446,7 @@ export function RegistryHub() {
                   Pan-European Registry Network &amp; Direct Statutory Matrix (22 Jurisdictions)
                 </h4>
               </div>
-              <span className="dim" style={{ fontSize: '11px' }}>
+              <span className="dim" style={{ fontSize: '12px' }}>
                 UDB Interoperability &amp; Regulatory Mandates
               </span>
             </div>
@@ -1474,7 +1474,7 @@ export function RegistryHub() {
                           </span>
                           <div>
                             <div style={{ fontWeight: 600 }}>{meta.name}</div>
-                            <div className="dim" style={{ fontSize: '11px' }}>{meta.countryName}</div>
+                            <div className="dim" style={{ fontSize: '12px' }}>{meta.countryName}</div>
                           </div>
                         </div>
                       </td>
@@ -1487,14 +1487,14 @@ export function RegistryHub() {
                         {meta.hubConnection}
                       </td>
 
-                      <td className="dim" style={{ fontSize: '11px', maxWidth: '240px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={meta.statutoryLegalBasis}>
+                      <td className="dim" style={{ fontSize: '12px', maxWidth: '240px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={meta.statutoryLegalBasis}>
                         {meta.statutoryLegalBasis}
                       </td>
 
                       <td>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                           {meta.primaryProtocols.map(p => (
-                            <span key={p} className="chip" style={{ fontSize: '9px', padding: '1px 4px' }}>
+                            <span key={p} className="chip" style={{ fontSize: '12px', padding: '1px 4px' }}>
                               {p.replace('_TRANSFER', '').replace('_RECOGNITION', '')}
                             </span>
                           ))}
@@ -1521,7 +1521,7 @@ export function RegistryHub() {
                             setActiveHubView('SIMULATOR');
                           }}
                           className="btn btn-secondary"
-                          style={{ fontSize: '11px', padding: '3px 8px', height: '26px' }}
+                          style={{ fontSize: '12px', padding: '3px 8px', height: '26px' }}
                         >
                           Simulate
                         </button>
@@ -1678,7 +1678,7 @@ export function RegistryHub() {
                       {/* Registry & Grid Point */}
                       <td>
                         <div style={{ fontWeight: 600 }}>{batch.registryId}</div>
-                        <div className="dim" style={{ fontSize: '11px' }}>{batch.injectionPointId}</div>
+                        <div className="dim" style={{ fontSize: '12px' }}>{batch.injectionPointId}</div>
                       </td>
 
                       {/* Volume MWh */}
@@ -1697,7 +1697,7 @@ export function RegistryHub() {
                           <span style={{ maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '12px' }}>
                             {batch.feedstockCategory}
                           </span>
-                          <span className={`chip ${batch.annexClassification === 'IX_A' ? 'chip-a' : ''}`} style={{ fontSize: '9px', padding: '1px 3px' }}>
+                          <span className={`chip ${batch.annexClassification === 'IX_A' ? 'chip-a' : ''}`} style={{ fontSize: '12px', padding: '1px 3px' }}>
                             {batch.annexClassification}
                           </span>
                         </div>
@@ -1706,16 +1706,16 @@ export function RegistryHub() {
                       {/* Verified CI */}
                       <td style={{ textAlign: 'right' }} className="num font-bold">
                         <span style={{ color: isNegativeCI ? 'var(--color-status-pos-text)' : 'inherit' }}>
-                          {batch.verifiedCI.toFixed(1)} <span className="dim" style={{ fontSize: '11px', fontWeight: 400 }}>g/MJ</span>
+                          {batch.verifiedCI.toFixed(1)} <span className="dim" style={{ fontSize: '12px', fontWeight: 400 }}>g/MJ</span>
                         </span>
                       </td>
 
                       {/* Sustainability Proof */}
                       <td>
-                        <div className="dim" style={{ fontSize: '11px', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <div className="dim" style={{ fontSize: '12px', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {batch.sustainabilityProofId}
                         </div>
-                        <div className="dim" style={{ fontSize: '10px' }}>{batch.certificationScheme}</div>
+                        <div className="dim" style={{ fontSize: '12px' }}>{batch.certificationScheme}</div>
                       </td>
 
                       {/* UDB Registration */}
@@ -1740,7 +1740,7 @@ export function RegistryHub() {
                           aria-label={`Select batch ${batch.id} for transfer`}
                           onClick={() => toggleBatchSelection(batch.id, batch.volumeMWh)}
                           className={`btn ${isSelected ? 'btn-primary' : 'btn-secondary'}`}
-                          style={{ fontSize: '11px', padding: '3px 8px', height: '26px' }}
+                          style={{ fontSize: '12px', padding: '3px 8px', height: '26px' }}
                         >
                           {isSelected ? 'SELECTED' : 'SELECT'}
                         </button>
@@ -1876,7 +1876,7 @@ export function RegistryHub() {
                 justifyContent: 'space-between',
               }}
             >
-              <div className="dim" style={{ fontSize: '11px' }}>
+              <div className="dim" style={{ fontSize: '12px' }}>
                 Metering Period: {selectedBatch.meteringPeriod.startDate} → {selectedBatch.meteringPeriod.endDate}
               </div>
               <button
