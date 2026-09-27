@@ -12,42 +12,19 @@
  * primitives to the FuelEU palette without editing every consumer file).
  */
 .fueleu-desk {
-  /* FuelEU-native token names, per the approved mockup (light values) */
-  --fe-bg: #f6f6f3;
-  --fe-surface: #ffffff;
-  --fe-ink: #15171c;
-  --fe-muted: #5e6470;
-  --fe-line: #e4e4df;
-  --fe-track: #eeeeea;
-  --fe-deficit: #b03a2e;
-  --fe-deficit-soft: rgba(176, 58, 46, 0.10);
-  --fe-surplus: #1f5fad;
-  --fe-warn: #c27a12;
-  --fe-accent: #c9321f;
+  /* FuelEU token aliases mapping to global desk tokens */
+  --fe-bg: var(--color-bg);
+  --fe-surface: var(--color-surface);
+  --fe-ink: var(--color-text);
+  --fe-muted: var(--color-muted);
+  --fe-line: var(--color-divider);
+  --fe-track: var(--color-subtier);
+  --fe-deficit: var(--color-status-neg-text);
+  --fe-deficit-soft: var(--color-status-neg-bg);
+  --fe-surplus: var(--color-status-pos-text);
+  --fe-warn: var(--color-status-warn-text);
+  --fe-accent: var(--color-accent);
   --fe-sel: #f4f6fa;
-
-  /* Re-skin the app's shared design-system variables to the FuelEU palette within this scope */
-  --color-bg: var(--fe-bg);
-  --color-surface: var(--fe-surface);
-  --color-panel: var(--fe-surface);
-  --color-panel-header: var(--fe-bg);
-  --color-subtier: var(--fe-track);
-  --color-text: var(--fe-ink);
-  --color-muted: var(--fe-muted);
-  --color-dim: var(--fe-muted);
-  --color-divider: var(--fe-line);
-  --color-border: var(--fe-line);
-  --color-accent: var(--fe-accent);
-
-  --color-status-pos-text: var(--fe-surplus);
-  --color-status-pos-bg: rgba(31, 95, 173, 0.08);
-  --color-status-pos-border: var(--fe-surplus);
-  --color-status-neg-text: var(--fe-deficit);
-  --color-status-neg-bg: var(--fe-deficit-soft);
-  --color-status-neg-border: var(--fe-deficit);
-  --color-status-warn-text: var(--fe-warn);
-  --color-status-warn-bg: rgba(194, 122, 18, 0.10);
-  --color-status-warn-border: var(--fe-warn);
 
   --font-body: 'IBM Plex Sans', system-ui, sans-serif;
   --font-heading: 'IBM Plex Sans', system-ui, sans-serif;
@@ -101,22 +78,7 @@
 }
 
 html.dark .fueleu-desk {
-  --fe-bg: #0e1014;
-  --fe-surface: #15181e;
-  --fe-ink: #ecedef;
-  --fe-muted: #9aa1ad;
-  --fe-line: #262a31;
-  --fe-track: #262a31;
-  --fe-deficit: #f08a7c;
-  --fe-deficit-soft: rgba(240, 138, 124, 0.14);
-  --fe-surplus: #7fb0f0;
-  --fe-warn: #e0a43a;
-  --fe-accent: #c9321f;
   --fe-sel: #1b2029;
-
-  --color-status-pos-bg: rgba(127, 176, 240, 0.12);
-  --color-status-neg-bg: var(--fe-deficit-soft);
-  --color-status-warn-bg: rgba(224, 164, 58, 0.14);
 }
 
 /* The approved mockup sets every figure (table cells, KPI values, header pills, panel stats) in

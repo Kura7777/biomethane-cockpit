@@ -179,8 +179,8 @@ export function Layout() {
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '0 18px',
-          borderTop: '2px solid var(--color-divider)',
-          fontSize: '11px',
+          borderTop: '1px solid var(--color-divider)',
+          fontSize: '12px',
           backgroundColor: 'var(--color-bg)',
         }}
         className="mut"

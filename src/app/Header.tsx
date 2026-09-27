@@ -36,7 +36,7 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
         flex: 'none',
         display: 'flex',
         alignItems: 'stretch',
-        borderBottom: '2px solid var(--color-header-divider)',
+        borderBottom: '1px solid var(--color-header-divider)',
         backgroundColor: 'var(--color-header-bg)',
         color: 'var(--color-header-text)',
       }}
@@ -49,17 +49,17 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
           alignItems: 'center',
           gap: '10px',
           padding: '0 18px',
-          borderRight: '2px solid var(--color-header-divider)',
+          borderRight: '1px solid var(--color-header-divider)',
           cursor: 'pointer',
           flexShrink: 0,
         }}
         onClick={() => navigate('/sourcing')}
       >
-        <div style={{ width: '10px', height: '10px', backgroundColor: 'var(--color-accent)', flex: 'none' }} />
+        <div style={{ width: '10px', height: '10px', backgroundColor: 'var(--color-accent)', flex: 'none', borderRadius: '2px' }} />
         <span
           style={{
             fontFamily: 'var(--font-heading)',
-            fontWeight: 800,
+            fontWeight: 600,
             fontSize: '15px',
             whiteSpace: 'nowrap',
             color: '#ffffff',
@@ -77,7 +77,7 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
           alignItems: 'center',
           gap: '12px',
           padding: '0 16px',
-          borderRight: '2px solid var(--color-header-divider)',
+          borderRight: '1px solid var(--color-header-divider)',
           backgroundColor: 'rgba(255, 255, 255, 0.02)',
           flexShrink: 0,
         }}
@@ -88,7 +88,7 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
           </span>
           <span
             className="num"
-            style={{ fontSize: '14px', fontWeight: 700, color: isSimulatedGasIndex ? '#fbbf24' : '#ffffff' }}
+            style={{ fontSize: '14px', fontWeight: 600, color: isSimulatedGasIndex ? '#fbbf24' : '#ffffff' }}
             title={isSimulatedGasIndex ? 'Simulated — not a live market feed. See Marks screen.' : undefined}
           >
             {gasIndexPrice !== null && gasIndexPrice !== undefined ? `€${gasIndexPrice.toFixed(2)}` : '—'}
@@ -97,11 +97,11 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
             <span
               style={{
                 fontSize: '9px',
-                fontWeight: 700,
+                fontWeight: 600,
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em',
                 padding: '1px 5px',
-                borderRadius: '2px',
+                borderRadius: 'var(--radius-bar)',
                 backgroundColor: 'rgba(251, 191, 36, 0.18)',
                 color: '#fbbf24',
               }}
@@ -118,11 +118,11 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
           <span
             style={{
               fontSize: '11px',
-              fontWeight: 700,
+              fontWeight: 600,
               textTransform: 'uppercase',
               letterSpacing: '0.06em',
               padding: '1px 6px',
-              borderRadius: '2px',
+              borderRadius: 'var(--radius-bar)',
               backgroundColor: 'rgba(255, 255, 255, 0.08)',
               color: 'var(--color-accent)',
             }}
@@ -190,9 +190,9 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
           marginLeft: 'auto',
           display: 'flex',
           alignItems: 'center',
-          gap: '12px',
+          gap: '10px',
           padding: '0 16px',
-          borderLeft: '2px solid var(--color-header-divider)',
+          borderLeft: '1px solid var(--color-header-divider)',
           flexShrink: 0,
         }}
       >
@@ -202,6 +202,8 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
           style={{
             padding: '4px 10px',
             fontSize: '12px',
+            height: '28px',
+            borderRadius: 'var(--radius-control)',
             backgroundColor: 'rgba(16, 185, 129, 0.15)',
             borderColor: '#059669',
             color: '#34d399',
@@ -222,6 +224,8 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
           style={{
             padding: '4px 10px',
             fontSize: '12px',
+            height: '28px',
+            borderRadius: 'var(--radius-control)',
             backgroundColor: 'var(--color-header-surface)',
             borderColor: 'var(--color-header-divider)',
             color: '#ffffff',
@@ -237,6 +241,8 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
           style={{
             padding: '4px 10px',
             fontSize: '12px',
+            height: '28px',
+            borderRadius: 'var(--radius-control)',
             backgroundColor: 'var(--color-header-surface)',
             borderColor: 'var(--color-header-divider)',
             color: '#ffffff',
@@ -255,11 +261,11 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
             borderLeft: '1px solid var(--color-header-divider)',
           }}
         >
-          <span style={{ width: '6px', height: '6px', backgroundColor: '#10b981', flex: 'none' }} />
+          <span style={{ width: '6px', height: '6px', backgroundColor: '#10b981', flex: 'none', borderRadius: '50%' }} />
           <span
             style={{
               fontSize: '13px',
-              fontWeight: 600,
+              fontWeight: 500,
               whiteSpace: 'nowrap',
               color: '#ffffff',
             }}
