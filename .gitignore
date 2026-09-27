@@ -20,6 +20,11 @@ dist-ssr
 !.env.example
 data/*
 !data/fueleu_mrv_2024_companies.json
+!data/fueleu_mrv_2024_ships.json
+!data/fueleu_group_map.json
+!data/fueleu_group_map_overrides.json
+!data/fueleu_group_contacts.json
+!data/fueleu_group_contacts.verification.json
 !data/registration_checks/
 !data/registration_matches/
 !data/plant_research/

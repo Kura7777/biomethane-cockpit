@@ -172,6 +172,22 @@ export interface ShippingContact {
   checkedAt: string;
 }
 
+/**
+ * A verified contact for a commercial GROUP (data/fueleu_group_contacts.json — sourced separately
+ * from the per-ship ShippingContact rows). Superset shape: `kind` classifies the contact (e.g.
+ * PRESS, IR, COMPLIANCE) and `sourceQuote` is the exact quoted snippet backing it.
+ */
+export interface GroupContact {
+  kind: string;
+  name?: string;
+  role?: string;
+  email?: string;
+  phone?: string;
+  sourceUrl: string;
+  sourceQuote?: string;
+  checkedAt: string;
+}
+
 export interface ShippingCounterparty {
   rank: number;
   parent_name: string;
@@ -185,9 +201,9 @@ export interface ShippingCounterparty {
   lng_tonnes: number;
   total_energy_mwh: number;
   actual_ghgie: number;
-  compliance_balance_2025_tco2e: number;
-  penalty_2025_y1_eur: number;
-  penalty_2025_y2_eur: number;
+  compliance_balance_2026_tco2e: number;
+  penalty_2026_y1_eur: number;
+  penalty_2026_y2_eur: number;
   compliance_balance_2030_tco2e: number;
   penalty_2030_y1_eur: number;
   bio_lng_required_neg100_t: number;
@@ -214,10 +230,10 @@ export interface ShippingCounterparty {
   fleetCapability: FleetCapability;
   lng_vessels_in_scope: number;
   conventional_vessels_in_scope: number;
-  ets_exposure_2025_tco2: number;
-  ets_exposure_2025_eur: number;
+  /** MRV-reported ets_co2_t (100% 2026 phase-in) plus an estimated CH4 CO2e add-on (see generator; N2O omitted). */
+  ets_exposure_2026_tco2: number;
   ets_exposure_2026_eur: number;
-  combined_regulatory_exposure_2025_eur: number;
+  combined_regulatory_exposure_2026_eur: number;
   // EU MRV (THETIS-MRV) provenance — every row is traceable back to the source dataset/ships.
   company_imo: string;
   ship_imos: string[];
@@ -228,6 +244,28 @@ export interface ShippingCounterparty {
   partialReportShips: number;
   /** Verified human contacts. Empty for every row until manually researched — never invented. */
   contacts: ShippingContact[];
+  // Commercial group mapping (data/fueleu_group_map.json) — the group_id the DoC-holder company
+  // is consolidated into for compliance-purchasing purposes; see scripts/build_fueleu_group_map.py.
+  group_id: string;
+  group_name: string;
+  entityType: GroupEntityType;
+  /** Corporate-parent link between two groups (e.g. msc-cruises -> msc); '' when none. Kept
+   *  non-optional (empty-string sentinel) rather than `?:` so this large generated array's
+   *  element shape stays uniform (an added always-toggling optional field on ~3,500 rows tips
+   *  TypeScript's array-literal inference into a "union type too complex" error). */
+  parent_group_id: string;
+  /** Who typically bears marine fuel cost/FuelEU compliance cost for this row's segment (industry-typical default, not a fact about this specific company). */
+  fuelCostBearer: FuelCostBearer;
+}
+
+/** Commercial group classification (data/fueleu_group_map.json). */
+export type GroupEntityType = 'OWNER_OPERATOR' | 'THIRD_PARTY_MANAGER' | 'CRUISE' | 'UNKNOWN';
+
+export type FuelCostBearerType = 'OWNER_OPERATOR' | 'TIME_CHARTERER' | 'MIXED';
+
+export interface FuelCostBearer {
+  typicalBearer: FuelCostBearerType;
+  note: string;
 }
 
 export interface VesselArchetype {

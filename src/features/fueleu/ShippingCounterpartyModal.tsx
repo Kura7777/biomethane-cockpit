@@ -1,3 +1,4 @@
+import { FUELEU_ACTIVE_PERIOD } from '../../domain/fueleu/calculator';
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -42,7 +43,9 @@ import {
   Minus,
 } from 'lucide-react';
 import { showToast } from '../../app/DeskToastContainer';
-import { getAssumption } from '../../domain/assumptions/registry';
+import { getAssumption, fuelEuPoolBidPriceEurPerTco2e } from '../../domain/assumptions/registry';
+import { FuelEuProjectionChart } from './FuelEuProjectionChart';
+import { PoolPriceMark } from './PoolPriceMark';
 
 interface ShippingCounterpartyModalProps {
   counterparty: ShippingCounterparty;
@@ -84,8 +87,8 @@ export function ShippingCounterpartyModal({ counterparty, onClose }: ShippingCou
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
-  const isSurplus = counterparty.compliance_balance_2025_tco2e > 0;
-  const absDeficit = Math.abs(counterparty.compliance_balance_2025_tco2e);
+  const isSurplus = counterparty.compliance_balance_2026_tco2e > 0;
+  const absDeficit = Math.abs(counterparty.compliance_balance_2026_tco2e);
   const isDualFuel = counterparty.fleetCapability === 'DUAL_FUEL_LNG';
 
   // Compute live marine bunker quotation
@@ -98,23 +101,20 @@ export function ShippingCounterpartyModal({ counterparty, onClose }: ShippingCou
       vlsfoPriceUsdPerTonne: vlsfoPrice,
       bioLngVolumeTonnes: counterparty.bio_lng_required_neg100_t,
       bioLngCi: -100,
-      targetYear: 2025,
+      targetYear: FUELEU_ACTIVE_PERIOD,
     });
   }, [ttfGasIndex, liquefactionFee, greenPremium, euaPrice, vlsfoPrice, counterparty.bio_lng_required_neg100_t]);
 
-  // Live recalculated EU ETS and Combined exposure based on active EUA slider
-  const liveEtsExposure2025Eur = useMemo(() => {
-    return Math.round(counterparty.ets_exposure_2025_tco2 * euaPrice);
-  }, [counterparty.ets_exposure_2025_tco2, euaPrice]);
-
+  // Live recalculated EU ETS and Combined exposure based on active EUA slider.
+  // ets_exposure_2026_tco2 is already the 2026 100%-phase-in figure (MRV ets_co2_t + an estimated
+  // CH4 CO2e add-on; N2O omitted) -- no further phase-in grossing is applied here.
   const liveEtsExposure2026Eur = useMemo(() => {
-    const grossTco2 = counterparty.ets_exposure_2025_tco2 / 0.70;
-    return Math.round(grossTco2 * euaPrice);
-  }, [counterparty.ets_exposure_2025_tco2, euaPrice]);
+    return Math.round(counterparty.ets_exposure_2026_tco2 * euaPrice);
+  }, [counterparty.ets_exposure_2026_tco2, euaPrice]);
 
-  const liveCombinedExposure2025Eur = useMemo(() => {
-    return counterparty.penalty_2025_y1_eur + liveEtsExposure2025Eur;
-  }, [counterparty.penalty_2025_y1_eur, liveEtsExposure2025Eur]);
+  const liveCombinedExposure2026Eur = useMemo(() => {
+    return counterparty.penalty_2026_y1_eur + liveEtsExposure2026Eur;
+  }, [counterparty.penalty_2026_y1_eur, liveEtsExposure2026Eur]);
 
   // Only a contact on file is rendered — never construct an email/phone/domain from other fields.
   const primaryContact = counterparty.contacts?.[0];
@@ -126,11 +126,11 @@ export function ShippingCounterpartyModal({ counterparty, onClose }: ShippingCou
       return [
         {
           title: 'Fleet Compliance Position',
-          detail: `${counterparty.parent_name} operates an EU MRV fleet (Source: EU MRV 2024, THETIS-MRV public report; fuel split estimated) of ${counterparty.vessels_in_scope} vessels generating a premier +${(counterparty.compliance_balance_2025_tco2e / 1000).toFixed(1)} kt FuelEU surplus in 2025.`,
+          detail: `${counterparty.parent_name} operates an EU MRV fleet (Source: EU MRV 2024, THETIS-MRV public report; fuel split estimated) of ${counterparty.vessels_in_scope} vessels generating a premier +${(counterparty.compliance_balance_2026_tco2e / 1000).toFixed(1)} kt FuelEU surplus in 2025.`,
         },
         {
           title: 'Article 21 Surplus Monetisation',
-          detail: `Our desk can broker your surplus into deficit carrier pools at the desk pool bid (€${getAssumption('fueleu.poolSellPriceEurPerTco2e').toFixed(0)}/tCO2e, indicative — desk assumption, not a statutory rate), capturing €${(counterparty.client_savings_pooling_eur / 1e6).toFixed(1)}M in non-dilutive trading liquidity.`,
+          detail: `Our desk can broker your surplus into deficit carrier pools at the desk pool bid (€${fuelEuPoolBidPriceEurPerTco2e().toFixed(0)}/tCO2e, indicative — desk assumption, not a statutory rate), capturing €${(counterparty.client_savings_pooling_eur / 1e6).toFixed(1)}M in non-dilutive trading liquidity.`,
         },
         {
           title: 'Execution & Settlement',
@@ -146,7 +146,7 @@ export function ShippingCounterpartyModal({ counterparty, onClose }: ShippingCou
         },
         {
           title: 'Statutory Exposure Neutralisation',
-          detail: `Combined 2025 exposure of €${(liveCombinedExposure2025Eur / 1e6).toFixed(1)}M (€${(counterparty.penalty_2025_y1_eur / 1e6).toFixed(1)}M FuelEU penalty + €${(liveEtsExposure2025Eur / 1e6).toFixed(1)}M EU ETS liability) is fully wiped out.`,
+          detail: `Combined ${FUELEU_ACTIVE_PERIOD} exposure of €${(liveCombinedExposure2026Eur / 1e6).toFixed(1)}M (€${(counterparty.penalty_2026_y1_eur / 1e6).toFixed(1)}M FuelEU penalty + €${(liveEtsExposure2026Eur / 1e6).toFixed(1)}M EU ETS liability) is fully wiped out.`,
         },
         {
           title: 'Double Statutory Exemption (RED III + EU ETS)',
@@ -161,7 +161,7 @@ export function ShippingCounterpartyModal({ counterparty, onClose }: ShippingCou
     return [
       {
         title: 'Conventional Fleet Exposure',
-        detail: `${counterparty.parent_name}'s fleet of ${counterparty.vessels_in_scope} conventional 2-stroke diesel vessels incurs €${(liveCombinedExposure2025Eur / 1e6).toFixed(1)}M in joint 2025 statutory exposure (€${(counterparty.penalty_2025_y1_eur / 1e6).toFixed(1)}M FuelEU + €${(liveEtsExposure2025Eur / 1e6).toFixed(1)}M EU ETS).`,
+        detail: `${counterparty.parent_name}'s fleet of ${counterparty.vessels_in_scope} conventional 2-stroke diesel vessels incurs €${(liveCombinedExposure2026Eur / 1e6).toFixed(1)}M in joint ${FUELEU_ACTIVE_PERIOD} regulatory exposure (€${(counterparty.penalty_2026_y1_eur / 1e6).toFixed(1)}M FuelEU + €${(liveEtsExposure2026Eur / 1e6).toFixed(1)}M EU ETS).`,
       },
       {
         title: 'Article 21 Compliance Pooling Solution',
@@ -172,7 +172,7 @@ export function ShippingCounterpartyModal({ counterparty, onClose }: ShippingCou
         detail: `Transfers statutory liability into our desk compliance pool at the desk pool offer (€${getAssumption('fueleu.poolBuyPriceEurPerTco2e').toFixed(0)}/tCO2e, indicative), generating an estimated €${(counterparty.client_savings_pooling_eur / 1e6).toFixed(1)}M in net savings vs statutory penalties.`,
       },
     ];
-  }, [counterparty, isSurplus, isDualFuel, liveCombinedExposure2025Eur, liveEtsExposure2025Eur, marineQuote, absDeficit]);
+  }, [counterparty, isSurplus, isDualFuel, liveCombinedExposure2026Eur, liveEtsExposure2026Eur, marineQuote, absDeficit]);
 
   // Full Tailored Sales Pitch (for 1-click clipboard copy)
   const fullPitchText = useMemo(() => {
@@ -199,7 +199,7 @@ export function ShippingCounterpartyModal({ counterparty, onClose }: ShippingCou
       volume: volumeMwh,
       counterparty: counterparty.parent_name,
       legalEntityName: counterparty.parent_name,
-      complianceYear: 2025,
+      complianceYear: FUELEU_ACTIVE_PERIOD,
     });
     navigate(url);
   };
@@ -261,12 +261,11 @@ TRADE LANE: ${(counterparty.tradeLane && TRADE_LANES[counterparty.tradeLane]?.la
     * Fossil LNG: ${counterparty.lng_tonnes.toLocaleString()} tonnes
 - Fleet Energy Consumption: ${(counterparty.total_energy_mwh / 1000).toFixed(1)} GWh
 - Actual Achieved GHG Intensity: ${counterparty.actual_ghgie.toFixed(2)} gCO2e/MJ
-- 2025 FuelEU Target (2% reduction): 89.34 gCO2e/MJ
-- Estimated Compliance Balance 2025: ${counterparty.compliance_balance_2025_tco2e > 0 ? '+' : ''}${counterparty.compliance_balance_2025_tco2e.toLocaleString()} tCO2e
-- Indicative FuelEU Penalty Exposure (Art. 23(2)): €${counterparty.penalty_2025_y1_eur.toLocaleString()} (Yr 2 multiplier 1+(n-1)/10: €${counterparty.penalty_2025_y2_eur.toLocaleString()})
-- EU ETS 2025 Gross Carbon Liability (70% Phase-In @ €${euaPrice.toFixed(2)}/t EUA): €${liveEtsExposure2025Eur.toLocaleString()} (${counterparty.ets_exposure_2025_tco2.toLocaleString()} tCO2)
-- EU ETS 2026 Full Enforcement (100% Phase-In): €${liveEtsExposure2026Eur.toLocaleString()}
-- COMBINED 2025 ESTIMATED EXPOSURE: €${liveCombinedExposure2025Eur.toLocaleString()}
+- 2026 FuelEU Target (2% reduction): 89.34 gCO2e/MJ
+- Estimated Compliance Balance 2026: ${counterparty.compliance_balance_2026_tco2e > 0 ? '+' : ''}${counterparty.compliance_balance_2026_tco2e.toLocaleString()} tCO2e
+- Indicative FuelEU Penalty Exposure (Art. 23(2)): €${counterparty.penalty_2026_y1_eur.toLocaleString()} (if repeated next year, ×1.1 per Art. 23(2): €${counterparty.penalty_2026_y2_eur.toLocaleString()})
+- EU ETS 2026 Carbon Liability (100% Phase-In + estimated CH4 CO2e @ €${euaPrice.toFixed(2)}/t EUA): €${liveEtsExposure2026Eur.toLocaleString()} (${counterparty.ets_exposure_2026_tco2.toLocaleString()} tCO2e)
+- COMBINED 2026 ESTIMATED EXPOSURE: €${liveCombinedExposure2026Eur.toLocaleString()}
 
 2. MARINE BUNKER PRICING ENGINE (€/t & $/t) — Indicative estimate, desk assumptions
 --------------------------------------------------------------------------------
@@ -560,46 +559,33 @@ ${fullPitchText}
               </span>
             </div>
             <div className="num" style={{ fontSize: '15px', fontWeight: 800, marginTop: '2px', color: isSurplus ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)' }}>
-              {isSurplus ? `+${(counterparty.compliance_balance_2025_tco2e / 1000).toFixed(1)} kt` : `${(counterparty.compliance_balance_2025_tco2e / 1000).toFixed(1)} kt`}
+              {isSurplus ? `+${(counterparty.compliance_balance_2026_tco2e / 1000).toFixed(1)} kt` : `${(counterparty.compliance_balance_2026_tco2e / 1000).toFixed(1)} kt`}
             </div>
             <div className="subttl num" style={{ fontSize: '10px', marginTop: '1px' }}>
-              Penalty: {isSurplus ? '€0' : `€${(counterparty.penalty_2025_y1_eur / 1e6).toFixed(2)}M`}
+              Penalty: {isSurplus ? '€0' : `€${(counterparty.penalty_2026_y1_eur / 1e6).toFixed(2)}M`}
             </div>
           </div>
 
           <div style={{ padding: '8px 10px', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-panel-header)', borderRadius: '3px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span className="eyebrow" style={{ fontSize: '9.5px' }}>'25 EU ETS (70%)</span>
+              <span className="eyebrow" style={{ fontSize: '9.5px' }}>'26 EU ETS (100% + CH4 est.)</span>
               <span className="chip" style={{ fontSize: '8.5px', padding: '0 3px' }}>€{euaPrice.toFixed(0)}/t</span>
-            </div>
-            <div className="num" style={{ fontSize: '15px', fontWeight: 800, marginTop: '2px', color: 'var(--color-status-warn-text, #d97706)' }}>
-              €{(liveEtsExposure2025Eur / 1e6).toFixed(2)}M
-            </div>
-            <div className="subttl num" style={{ fontSize: '10px', marginTop: '1px' }}>
-              {(counterparty.ets_exposure_2025_tco2 / 1000).toFixed(1)} kt CO₂ liability
-            </div>
-          </div>
-
-          <div style={{ padding: '8px 10px', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-panel-header)', borderRadius: '3px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span className="eyebrow" style={{ fontSize: '9.5px' }}>'26 EU ETS (100%)</span>
-              <span className="chip chip-neg" style={{ fontSize: '8.5px', padding: '0 3px' }}>100% Scope</span>
             </div>
             <div className="num" style={{ fontSize: '15px', fontWeight: 800, marginTop: '2px', color: 'var(--color-status-warn-text, #d97706)' }}>
               €{(liveEtsExposure2026Eur / 1e6).toFixed(2)}M
             </div>
             <div className="subttl num" style={{ fontSize: '10px', marginTop: '1px' }}>
-              Full unmitigated liability
+              {(counterparty.ets_exposure_2026_tco2 / 1000).toFixed(1)} kt CO₂e liability
             </div>
           </div>
 
           <div style={{ padding: '8px 10px', border: '1px solid var(--color-accent)', backgroundColor: 'var(--color-panel-header)', borderRadius: '3px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span className="eyebrow" style={{ fontSize: '9.5px', color: 'var(--color-accent)' }}>Combined '25 Liability</span>
+              <span className="eyebrow" style={{ fontSize: '9.5px', color: 'var(--color-accent)' }}>Combined '26 Liability</span>
               <span className="chip chip-info" style={{ fontSize: '8.5px', padding: '0 3px' }}>Total Exposure</span>
             </div>
             <div className="num" style={{ fontSize: '15px', fontWeight: 800, marginTop: '2px', color: 'var(--color-accent)' }}>
-              €{(liveCombinedExposure2025Eur / 1e6).toFixed(2)}M
+              €{(liveCombinedExposure2026Eur / 1e6).toFixed(2)}M
             </div>
             <div className="subttl num" style={{ fontSize: '10px', marginTop: '1px' }}>
               FuelEU Deficit + EU ETS
@@ -621,6 +607,30 @@ ${fullPitchText}
         >
           <strong style={{ color: 'var(--color-accent)' }}>Double Zero-Rating (subject to RED certification):</strong> RED-certified Bio-LNG (Directive (EU) 2018/2001, as amended by (EU) 2023/2413) carries an emissions factor of <strong>0.000 tCO2/t</strong> under EU ETS (Directive 2003/87/EC, MRR (EU) 2018/2066) and <strong>-100 gCO2e/MJ</strong> under FuelEU Maritime (Regulation 2023/1805). Bunkering RED-certified Bio-LNG simultaneously eliminates both compliance liabilities.
         </div>
+      </div>
+
+      {/* 2b. Static-Fleet Compliance Projection Chart (do-nothing scenario) */}
+      <div
+        style={{
+          padding: '12px 14px',
+          borderRadius: '4px',
+          border: '1px solid var(--color-divider)',
+          backgroundColor: 'var(--color-surface)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '10px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
+          <span className="eyebrow" style={{ fontWeight: 800, fontSize: '11px', color: 'var(--color-text)' }}>
+            Statutory Do-Nothing Projection
+          </span>
+          <PoolPriceMark variant="inline" />
+        </div>
+        <FuelEuProjectionChart
+          fleetInput={{ vlsfoTonnes: counterparty.vlsfo_tonnes, mgoTonnes: counterparty.mgo_tonnes, lngTonnes: counterparty.lng_tonnes }}
+          title={`${counterparty.parent_name} — Static-Fleet Projection`}
+        />
       </div>
 
       {/* 3. MRV Fleet Energy Breakdown & CRM Dossier */}
@@ -1445,7 +1455,7 @@ ${fullPitchText}
             <div>
               <span className="mut" style={{ marginRight: '4px' }}>Combined '25:</span>
               <strong style={{ color: 'var(--color-accent)', fontWeight: 700 }}>
-                €{(liveCombinedExposure2025Eur / 1e6).toFixed(2)}M
+                €{(liveCombinedExposure2026Eur / 1e6).toFixed(2)}M
               </strong>
             </div>
             <div style={{ height: '12px', width: '1px', backgroundColor: 'var(--color-divider)' }} />

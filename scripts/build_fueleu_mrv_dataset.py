@@ -162,6 +162,8 @@ RAW_DIR = os.path.join(REPO_ROOT, "data", "raw")
 RAW_XLSX = os.path.join(RAW_DIR, "mrv_2024_v244.xlsx")
 FALLBACK_XLSX = os.path.join(REPO_ROOT, "scratch", "fueleu_audit", "part2", "mrv_2024.xlsx")
 OUTPUT_JSON = os.path.join(REPO_ROOT, "data", "fueleu_mrv_2024_companies.json")
+# Per-ship records (ships with fuel > 0), same source block; one ship per line.
+OUTPUT_SHIPS_JSON = os.path.join(REPO_ROOT, "data", "fueleu_mrv_2024_ships.json")
 
 SOURCE_URL = "https://mrv.emsa.europa.eu/api/public-emission-report/reporting-period-document/binary/2024/244"
 REPORTING_PERIOD = 2024
@@ -325,6 +327,7 @@ def main():
     })
 
     total_ships = 0
+    ship_records = []
     total_co2_all = 0.0
     total_co2_full = 0.0
     total_co2_partial = 0.0
@@ -411,6 +414,27 @@ def main():
                 c["partialReportShips"] += 1
             if other_fuel_suspected:
                 c["otherFuelSuspectedShips"] += 1
+
+            if fuel_t > 0:
+                ship_records.append({
+                    "imo": str(ship_imo),
+                    "name": ship_name,
+                    "shipType": ship_type,
+                    "company_imo": company_key,
+                    "iceClass": row[7],
+                    "partialReport": is_partial,
+                    "scopeShare": round(scope_share, 4),
+                    "in_scope_vlsfo_t": round(in_scope_vlsfo, 1),
+                    "in_scope_mgo_t": round(in_scope_mgo, 1),
+                    "in_scope_lng_t": round(in_scope_lng, 1),
+                    "in_scope_co2_t": round(in_scope_co2, 1),
+                    "total_co2_t": round(total_co2, 1),
+                    "ets_co2_t": round(ets_co2, 1),
+                    "ch4_t": round(ch4_t, 3),
+                    "isLng": is_lng,
+                    "otherFuelSuspected": other_fuel_suspected,
+                    "_in_scope_co2_raw": in_scope_co2,
+                })
 
             total_ships += 1
             total_co2_all += total_co2
@@ -500,6 +524,21 @@ def main():
     os.makedirs(os.path.dirname(OUTPUT_JSON), exist_ok=True)
     with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
         json.dump(output, f, indent=2)
+
+    # Per-ship output. Reconcile against company totals using unrounded values
+    # (summing 1-dp ship figures over hundreds of ships drifts by rounding alone).
+    raw_by_company = defaultdict(float)
+    for sr in ship_records:
+        raw_by_company[sr["company_imo"]] += sr["_in_scope_co2_raw"]
+    for c in company_list:
+        diff = abs(raw_by_company.get(c["company_imo"], 0.0) - c["in_scope_co2_t"])
+        assert diff <= 0.1, f"ship/company in-scope CO2 mismatch for {c['company_imo']}: {diff}"
+    with open(OUTPUT_SHIPS_JSON, "w", encoding="utf-8") as f:
+        f.write(json.dumps({"source": output["source"]}, ensure_ascii=False)[:-1] + ',"ships":[\n')
+        clean = [{k: v for k, v in sr.items() if not k.startswith("_")} for sr in ship_records]
+        f.write(",\n".join(json.dumps(sr, ensure_ascii=False, separators=(",", ":")) for sr in clean))
+        f.write("\n]}\n")
+    print(f"Wrote {len(ship_records)} ship records to {OUTPUT_SHIPS_JSON} (ship/company reconciliation OK)")
 
     # ---------------- Sanity checks ----------------
     print("\n================ SANITY CHECKS ================")

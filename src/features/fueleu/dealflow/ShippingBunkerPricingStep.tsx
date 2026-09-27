@@ -1,3 +1,4 @@
+import { FUELEU_ACTIVE_PERIOD } from '../../../domain/fueleu/calculator';
 import React, { useMemo } from 'react';
 import { ShippingCounterparty } from '../../../domain/fueleu/types';
 import {
@@ -26,7 +27,7 @@ import {
   Ship,
 } from 'lucide-react';
 import { showToast } from '../../../app/DeskToastContainer';
-import { getAssumption } from '../../../domain/assumptions/registry';
+import { getAssumption, fuelEuPoolBidPriceEurPerTco2e } from '../../../domain/assumptions/registry';
 
 const MONO_FONT = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
 
@@ -66,8 +67,8 @@ export function ShippingBunkerPricingStep({
   onNext,
 }: ShippingBunkerPricingStepProps) {
   const isDualFuel = counterparty.fleetCapability === 'DUAL_FUEL_LNG';
-  const isSurplus = counterparty.compliance_balance_2025_tco2e > 0;
-  const absDeficit = Math.abs(counterparty.compliance_balance_2025_tco2e);
+  const isSurplus = counterparty.compliance_balance_2026_tco2e > 0;
+  const absDeficit = Math.abs(counterparty.compliance_balance_2026_tco2e);
 
   // Compute live marine quotation
   const marineQuote = useMemo(() => {
@@ -79,7 +80,7 @@ export function ShippingBunkerPricingStep({
       vlsfoPriceUsdPerTonne: vlsfoPrice,
       bioLngVolumeTonnes: counterparty.bio_lng_required_neg100_t,
       bioLngCi: -100,
-      targetYear: 2025,
+      targetYear: FUELEU_ACTIVE_PERIOD,
     });
   }, [ttfGasIndex, liquefactionFee, greenPremium, euaPrice, vlsfoPrice, counterparty.bio_lng_required_neg100_t]);
 
@@ -206,7 +207,7 @@ export function ShippingBunkerPricingStep({
           <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
             {isSurplus ? (
               <>
-                Monetising <strong style={{ color: 'var(--color-status-pos-text)' }}>+{(counterparty.compliance_balance_2025_tco2e / 1000).toFixed(1)} kt FuelEU surplus</strong> via Article 21 pooling · FuelEU database (Art. 19) registry transfer across <strong style={{ color: 'var(--color-accent)' }}>{counterparty.primary_bunkering_hubs}</strong>
+                Monetising <strong style={{ color: 'var(--color-status-pos-text)' }}>+{(counterparty.compliance_balance_2026_tco2e / 1000).toFixed(1)} kt FuelEU surplus</strong> via Article 21 pooling · FuelEU database (Art. 19) registry transfer across <strong style={{ color: 'var(--color-accent)' }}>{counterparty.primary_bunkering_hubs}</strong>
               </>
             ) : (
               <>
@@ -591,7 +592,7 @@ export function ShippingBunkerPricingStep({
             <span>
               {pathway === 'PHYSICAL'
                 ? `Total Delivered Invoice: €${(marineQuote.totalBioLngInvoiceEur || 0).toLocaleString()}`
-                : `Pool Transaction Volume: €${Math.round(Math.abs(counterparty.compliance_balance_2025_tco2e) * getAssumption(counterparty.compliance_balance_2025_tco2e >= 0 ? 'fueleu.poolSellPriceEurPerTco2e' : 'fueleu.poolBuyPriceEurPerTco2e')).toLocaleString()}`}
+                : `Pool Transaction Volume: €${Math.round(Math.abs(counterparty.compliance_balance_2026_tco2e) * (counterparty.compliance_balance_2026_tco2e >= 0 ? fuelEuPoolBidPriceEurPerTco2e() : getAssumption('fueleu.poolBuyPriceEurPerTco2e'))).toLocaleString()}`}
             </span>
             <span>FX Benchmark: 1.08 EUR/USD</span>
           </div>

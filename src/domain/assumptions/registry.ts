@@ -84,11 +84,22 @@ export const ASSUMPTION_DEFINITIONS: AssumptionDefinition[] = [
     min: 0,
   },
   {
+    key: 'fueleu.poolDeskSpreadEurPerTco2e',
+    category: 'FUELEU',
+    label: 'Desk bid/offer spread on FuelEU pool transfers',
+    unit: '€/tCO₂e',
+    defaultValue: 10,
+    basis: 'DESK_ESTIMATE',
+    source: 'Desk spread — no public bid print exists (see OPX note).',
+    usedIn: 'FuelEU calculators: pool bid = mark offer − this spread',
+    min: 0,
+  },
+  {
     key: 'fueleu.poolBuyPriceEurPerTco2e',
     category: 'FUELEU',
     label: 'Pool price charged to a deficit client (desk offer)',
     unit: '€/tCO₂e',
-    defaultValue: fueleuMark?.offerPrice ?? 300,
+    defaultValue: fueleuMark?.offerPrice ?? 109,
     basis: 'MARKET_MARK',
     source: `${fueleuMarkSource} — offer side.`,
     usedIn: 'FuelEU calculators: client saving on the pooling route; desk margin = offer − bid',
@@ -97,11 +108,11 @@ export const ASSUMPTION_DEFINITIONS: AssumptionDefinition[] = [
   {
     key: 'fueleu.poolSellPriceEurPerTco2e',
     category: 'FUELEU',
-    label: 'Pool price paid to a surplus holder (desk bid)',
+    label: 'Pool price paid to a surplus holder (desk bid = mark offer − desk spread)',
     unit: '€/tCO₂e',
-    defaultValue: fueleuMark?.bidPrice ?? 270,
-    basis: 'MARKET_MARK',
-    source: `${fueleuMarkSource} — bid side.`,
+    defaultValue: (fueleuMark?.offerPrice ?? 109) - 10,
+    basis: 'DESK_ESTIMATE',
+    source: `${fueleuMarkSource} offer, less the desk bid/offer spread (fueleu.poolDeskSpreadEurPerTco2e) — no public bid print exists (see OPX note).`,
     usedIn: 'FuelEU calculators: surplus monetisation; desk margin = offer − bid',
     min: 0,
   },
@@ -502,7 +513,17 @@ export function getAssumptionsVersion(): number {
   return version;
 }
 
+/**
+ * Live desk bid: the mark offer minus the desk spread, unless the user has explicitly overridden
+ * fueleu.poolSellPriceEurPerTco2e directly — so moving fueleu.poolDeskSpreadEurPerTco2e moves the
+ * bid without a separate edit, but an explicit bid override still pins the value.
+ */
+export function fuelEuPoolBidPriceEurPerTco2e(): number {
+  if (isOverridden('fueleu.poolSellPriceEurPerTco2e')) return getAssumption('fueleu.poolSellPriceEurPerTco2e');
+  return getAssumption('fueleu.poolBuyPriceEurPerTco2e') - getAssumption('fueleu.poolDeskSpreadEurPerTco2e');
+}
+
 /** Desk pooling margin per tCO2e: the spread between what deficit clients pay and surplus holders receive. */
 export function fuelEuPoolSpreadEurPerTco2e(): number {
-  return Math.max(0, getAssumption('fueleu.poolBuyPriceEurPerTco2e') - getAssumption('fueleu.poolSellPriceEurPerTco2e'));
+  return Math.max(0, getAssumption('fueleu.poolBuyPriceEurPerTco2e') - fuelEuPoolBidPriceEurPerTco2e());
 }

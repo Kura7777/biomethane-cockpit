@@ -2,6 +2,9 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { CounterpartyDirectoryTable } from './CounterpartyDirectoryTable';
 import { VesselArchetypeCalculator } from './VesselArchetypeCalculator';
 import { DualCommercialPathwaySimulator } from './DualCommercialPathwaySimulator';
+import { LngVesselBookTable } from './LngVesselBookTable';
+import { PoolMatchingTab } from './PoolMatchingTab';
+import { PoolPriceMark } from './PoolPriceMark';
 import { ShippingExposureStep } from './dealflow/ShippingExposureStep';
 import { ShippingBunkerPricingStep } from './dealflow/ShippingBunkerPricingStep';
 import { ShippingTermSheetStep } from './dealflow/ShippingTermSheetStep';
@@ -14,9 +17,12 @@ import {
   ArrowLeft,
   Check,
   Flame,
+  Fuel,
+  Users,
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FUEL_EU_SHIPPING_COUNTERPARTIES } from '../../domain/fueleu/shippingTargetsData';
+import { FUEL_EU_LNG_SHIPS } from '../../domain/fueleu/lngShipsData';
 import { ShippingCounterparty } from '../../domain/fueleu/types';
 import {
   DEFAULT_TTF_GAS_INDEX_EUR_MWH,
@@ -24,9 +30,13 @@ import {
   DEFAULT_GREEN_PREMIUM_EUR_MWH,
   DEFAULT_VLSFO_PRICE_USD_PER_TONNE,
   EUA_BENCHMARK_EUR_PER_TONNE,
+  FUELEU_ACTIVE_PERIOD,
+  FUELEU_POOLING_BORROWING_DATABASE_DEADLINE,
+  FUELEU_DOCUMENT_OF_COMPLIANCE_AND_PENALTY_DEADLINE,
 } from '../../domain/fueleu/calculator';
+import { daysUntil } from '../../domain/fueleu/uiHelpers';
 
-type ActiveTab = 'DIRECTORY' | 'CALCULATOR' | 'PATHWAYS';
+type ActiveTab = 'DIRECTORY' | 'CALCULATOR' | 'PATHWAYS' | 'LNG_BOOK' | 'POOL_MATCHING';
 
 const DEAL_STEPS = [
   { step: 1, title: '1. Select Counterparty', desc: `${FUEL_EU_SHIPPING_COUNTERPARTIES.length.toLocaleString('en-US')} shipping groups` },
@@ -44,7 +54,14 @@ export function FuelEUShippingScreen() {
 
   // Tab State derived directly from searchParams
   const tabParam = searchParams.get('tab')?.toUpperCase();
-  const activeTab: ActiveTab = (tabParam === 'CALCULATOR' || tabParam === 'PATHWAYS') ? tabParam : 'DIRECTORY';
+  const activeTab: ActiveTab =
+    (tabParam === 'CALCULATOR' || tabParam === 'PATHWAYS' || tabParam === 'LNG_BOOK' || tabParam === 'POOL_MATCHING')
+      ? tabParam
+      : 'DIRECTORY';
+
+  const poolingDeadlineDays = daysUntil(FUELEU_POOLING_BORROWING_DATABASE_DEADLINE);
+  const poolingDeadlineLabel = new Date(`${FUELEU_POOLING_BORROWING_DATABASE_DEADLINE}T00:00:00Z`).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  const penaltyDeadlineLabel = new Date(`${FUELEU_DOCUMENT_OF_COMPLIANCE_AND_PENALTY_DEADLINE}T00:00:00Z`).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
   // 4-Screen Deal Flow State derived from searchParams for seamless browser back/forward and deep linking
   const companyParam = searchParams.get('company');
@@ -213,10 +230,18 @@ export function FuelEUShippingScreen() {
               <div className="subttl" style={{ fontSize: '12px' }}>
                 Pan-European compliance ledger · {totalGroups.toLocaleString()} shipping groups · {totalVessels.toLocaleString()} commercial vessels · Bio-LNG bunkering (Art. 4, Annex I-II) &amp; Article 21 pooling
               </div>
+              <div
+                className="subttl num"
+                style={{ fontSize: '11px', marginTop: '4px', fontFamily: 'monospace' }}
+                title="Regulation (EU) 2023/1805, Art. 20(3) / Art. 21(8): pooling and borrowing must be recorded in the FuelEU database by 30 April of the verification period. Art. 22(1)-(2) / Art. 23(2): any FuelEU penalty is due by 30 June of the verification period."
+              >
+                Reporting period {FUELEU_ACTIVE_PERIOD} · Pooling &amp; borrowing must be recorded in the FuelEU database by {poolingDeadlineLabel} ({poolingDeadlineDays >= 0 ? `${poolingDeadlineDays}d` : 'overdue'}) · Penalty due {penaltyDeadlineLabel}
+              </div>
             </div>
 
             {/* Action / Reference Links */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <PoolPriceMark variant="inline" />
               <button
                 type="button"
                 onClick={() => navigate('/citations')}
@@ -251,6 +276,8 @@ export function FuelEUShippingScreen() {
               { id: 'DIRECTORY' as const, label: `Deal Flow & Directory (${totalGroups.toLocaleString()})`, icon: Ship },
               { id: 'CALCULATOR' as const, label: 'Vessel Archetypes', icon: Sliders },
               { id: 'PATHWAYS' as const, label: 'Commercial Pathways (Art. 21)', icon: Scale },
+              { id: 'LNG_BOOK' as const, label: `LNG vessel book (${FUEL_EU_LNG_SHIPS.length})`, icon: Fuel },
+              { id: 'POOL_MATCHING' as const, label: 'Pool Matching (Art. 21)', icon: Users },
             ].map((tab) => {
               const isActive = activeTab === tab.id;
               const Icon = tab.icon;
@@ -449,9 +476,9 @@ export function FuelEUShippingScreen() {
                 fontFamily: 'monospace',
               }}
             >
-              <span style={{ color: 'var(--color-muted)' }}>2025 Risk:</span>
+              <span style={{ color: 'var(--color-muted)' }}>{FUELEU_ACTIVE_PERIOD} Risk:</span>
               <span style={{ fontWeight: 700, color: 'var(--color-status-neg-text)' }}>
-                €{(selectedCounterparty.combined_regulatory_exposure_2025_eur / 1e6).toFixed(2)}M
+                €{(selectedCounterparty.combined_regulatory_exposure_2026_eur / 1e6).toFixed(2)}M
               </span>
             </div>
 
@@ -528,6 +555,8 @@ export function FuelEUShippingScreen() {
 
         {activeTab === 'CALCULATOR' && <VesselArchetypeCalculator />}
         {activeTab === 'PATHWAYS' && <DualCommercialPathwaySimulator />}
+        {activeTab === 'LNG_BOOK' && <LngVesselBookTable />}
+        {activeTab === 'POOL_MATCHING' && <PoolMatchingTab />}
       </div>
     </div>
   );

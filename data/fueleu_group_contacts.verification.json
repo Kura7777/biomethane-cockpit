@@ -1,0 +1,765 @@
+{
+  "summary": {
+    "verifiedAt": "2026-09-27T07:03:48.494368+00:00",
+    "totalGroups": 49,
+    "totalContacts": 38,
+    "passed": 38,
+    "failed": 0,
+    "websites_checked": 49,
+    "websites_resolving": 49
+  },
+  "contacts": [
+    {
+      "group_id": "maersk",
+      "kind": "PRESS",
+      "name": "Jesper Lov",
+      "sourceUrl": "https://www.maersk.com/press/press-contacts",
+      "checks": {
+        "email": true,
+        "email_domain_dns": true,
+        "name": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "grimaldi",
+      "kind": "SWITCHBOARD",
+      "name": null,
+      "sourceUrl": "https://www.grimaldi.co.uk/contact-us",
+      "checks": {
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "grimaldi",
+      "kind": "GENERAL_EMAIL",
+      "name": null,
+      "sourceUrl": "https://www.grimaldi.co.uk/contact-us",
+      "checks": {
+        "email": true,
+        "email_domain_dns": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "cma-cgm",
+      "kind": "SWITCHBOARD",
+      "name": null,
+      "sourceUrl": "https://www.cmacgm-group.com/en/legal-terms",
+      "checks": {
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "carnival",
+      "kind": "PRESS",
+      "name": "Jody Venturoni",
+      "sourceUrl": "https://www.carnivalcorp.com/impact/sustainability-reports/",
+      "checks": {
+        "email": true,
+        "email_domain_dns": true,
+        "name": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "dfds",
+      "kind": "PRESS",
+      "name": null,
+      "sourceUrl": "https://www.dfds.com/en/about/media/press-contacts",
+      "checks": {
+        "email": true,
+        "email_domain_dns": true,
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "msc-cruises",
+      "kind": "PRESS",
+      "name": null,
+      "sourceUrl": "https://www.mscpressarea.com/en_US/contact/",
+      "checks": {
+        "email": true,
+        "email_domain_dns": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "msc-cruises",
+      "kind": "GENERAL_EMAIL",
+      "name": null,
+      "sourceUrl": "https://www.mscpressarea.com/en_US/contact/",
+      "checks": {
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "attica-group",
+      "kind": "PERSON",
+      "name": "Thomas Economou",
+      "sourceUrl": "https://www.attica-group.com/en/shareholder-contact",
+      "checks": {
+        "email": true,
+        "email_domain_dns": true,
+        "name": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "attica-group",
+      "kind": "GENERAL_EMAIL",
+      "name": null,
+      "sourceUrl": "https://www.attica-group.com/en/shareholder-contact",
+      "checks": {
+        "email": true,
+        "email_domain_dns": true,
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "stena",
+      "kind": "SWITCHBOARD",
+      "name": null,
+      "sourceUrl": "https://stena.com/media-contact/",
+      "checks": {
+        "email": true,
+        "email_domain_dns": true,
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "seaspan",
+      "kind": "SWITCHBOARD",
+      "name": null,
+      "sourceUrl": "https://www.seaspancorp.com/contact-us/",
+      "checks": {
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "moby-group",
+      "kind": "GENERAL_EMAIL",
+      "name": null,
+      "sourceUrl": "https://www.mobylines.com/the-company/institutional-contacts/",
+      "checks": {
+        "email": true,
+        "email_domain_dns": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "evergreen",
+      "kind": "SWITCHBOARD",
+      "name": null,
+      "sourceUrl": "https://www.evergreen-marine.com/emc/aboutevergreen/jsp/EMC_ContactInformation.jsp?lang=en",
+      "checks": {
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "nclh",
+      "kind": "PRESS",
+      "name": null,
+      "sourceUrl": "https://www.nclhltd.com/news-media/media-contacts",
+      "checks": {
+        "email": true,
+        "email_domain_dns": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "mol",
+      "kind": "PERSON",
+      "name": "Toru Hikima",
+      "sourceUrl": "https://www.mol.co.jp/en/sustainability/message/",
+      "checks": {
+        "name": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "eastern-pacific-shipping",
+      "kind": "SWITCHBOARD",
+      "name": null,
+      "sourceUrl": "https://www.epshipping.com.sg/contact/",
+      "checks": {
+        "email": true,
+        "email_domain_dns": true,
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "spliethoffs-bevrachtingskantoor-b-v",
+      "kind": "SWITCHBOARD",
+      "name": null,
+      "sourceUrl": "https://www.spliethoff.com/contact/",
+      "checks": {
+        "email": true,
+        "email_domain_dns": true,
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "zodiac-maritime",
+      "kind": "SWITCHBOARD",
+      "name": null,
+      "sourceUrl": "https://www.zodiac-maritime.com/contact-us/",
+      "checks": {
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "zodiac-maritime",
+      "kind": "PRESS",
+      "name": null,
+      "sourceUrl": "https://www.zodiac-maritime.com/contact-us/",
+      "checks": {
+        "email": true,
+        "email_domain_dns": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "tms-group",
+      "kind": "SWITCHBOARD",
+      "name": null,
+      "sourceUrl": "https://www.tms-cardiffgas.com/contact.html",
+      "checks": {
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "thenamaris",
+      "kind": "SWITCHBOARD",
+      "name": null,
+      "sourceUrl": "https://www.thenamaris.com/contact-us/",
+      "checks": {
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "thenamaris",
+      "kind": "GENERAL_EMAIL",
+      "name": null,
+      "sourceUrl": "https://www.thenamaris.com/contact-us/",
+      "checks": {
+        "email": true,
+        "email_domain_dns": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "forship-spa",
+      "kind": "PERSON",
+      "name": "Sebastien Romani",
+      "sourceUrl": "https://www.forship.it/index-2.html",
+      "checks": {
+        "email": true,
+        "email_domain_dns": true,
+        "name": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "peter-dohle-schiffahrts-kg",
+      "kind": "SWITCHBOARD",
+      "name": null,
+      "sourceUrl": "https://www.doehle.de/company/contact/",
+      "checks": {
+        "email": true,
+        "email_domain_dns": true,
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "danaos",
+      "kind": "PERSON",
+      "name": "Evangelos Chatzis",
+      "sourceUrl": "https://www.danaos.com/contact-us/default.aspx",
+      "checks": {
+        "email": true,
+        "email_domain_dns": true,
+        "phone": true,
+        "name": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "bw-group",
+      "kind": "SWITCHBOARD",
+      "name": null,
+      "sourceUrl": "https://bw-group.com/contact-us/",
+      "checks": {
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "color-line-marine-as",
+      "kind": "SWITCHBOARD",
+      "name": null,
+      "sourceUrl": "https://www.colorline.com/practical-information/contact-us",
+      "checks": {
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "knutsen",
+      "kind": "SWITCHBOARD",
+      "name": null,
+      "sourceUrl": "https://knutsenoas.com/contact-us/",
+      "checks": {
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "minerva-marine",
+      "kind": "SWITCHBOARD",
+      "name": null,
+      "sourceUrl": "https://www.minervamarine.com/",
+      "checks": {
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "fred-olsen-sa",
+      "kind": "GENERAL_EMAIL",
+      "name": null,
+      "sourceUrl": "https://www.fredolsen.es/en/contact",
+      "checks": {
+        "email": true,
+        "email_domain_dns": true,
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "polska-zegluga-morska-p-p",
+      "kind": "SWITCHBOARD",
+      "name": null,
+      "sourceUrl": "https://polsteam.com/en/contact-eng/",
+      "checks": {
+        "email": true,
+        "email_domain_dns": true,
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "brittany-ferries-bai-sa",
+      "kind": "PRESS",
+      "name": null,
+      "sourceUrl": "https://brittanyferriesnewsroom.com/contact/",
+      "checks": {
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "sfl-frontline",
+      "kind": "SWITCHBOARD",
+      "name": null,
+      "sourceUrl": "https://www.sflcorp.com/ir-home/",
+      "checks": {
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "matrix-ship-management-ltd",
+      "kind": "SWITCHBOARD",
+      "name": null,
+      "sourceUrl": "https://matrixshipmanagement.com/app/contact.php",
+      "checks": {
+        "email": true,
+        "email_domain_dns": true,
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "arkas",
+      "kind": "SWITCHBOARD",
+      "name": null,
+      "sourceUrl": "https://arkas.com.tr/en/contact/",
+      "checks": {
+        "email": true,
+        "email_domain_dns": true,
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "costamare",
+      "kind": "PERSON",
+      "name": "Gregory G. Zikos",
+      "sourceUrl": "https://www.costamare.com/investors/overview/ir-contacts",
+      "checks": {
+        "phone": true,
+        "name": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "wagenborg-shipping-bv",
+      "kind": "SWITCHBOARD",
+      "name": null,
+      "sourceUrl": "https://www.wagenborg.com/contact",
+      "checks": {
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    }
+  ],
+  "websites": [
+    {
+      "group_id": "msc",
+      "website": "https://www.msc.com",
+      "dns_resolves": true,
+      "host": "www.msc.com"
+    },
+    {
+      "group_id": "maersk",
+      "website": "https://www.maersk.com",
+      "dns_resolves": true,
+      "host": "www.maersk.com"
+    },
+    {
+      "group_id": "grimaldi",
+      "website": "https://www.grimaldi.napoli.it",
+      "dns_resolves": true,
+      "host": "www.grimaldi.napoli.it"
+    },
+    {
+      "group_id": "cma-cgm",
+      "website": "https://www.cma-cgm.com",
+      "dns_resolves": true,
+      "host": "www.cma-cgm.com"
+    },
+    {
+      "group_id": "cosco",
+      "website": "https://en.coscoshipping.com",
+      "dns_resolves": true,
+      "host": "en.coscoshipping.com"
+    },
+    {
+      "group_id": "carnival",
+      "website": "https://www.carnivalcorp.com",
+      "dns_resolves": true,
+      "host": "www.carnivalcorp.com"
+    },
+    {
+      "group_id": "dfds",
+      "website": "https://www.dfds.com",
+      "dns_resolves": true,
+      "host": "www.dfds.com"
+    },
+    {
+      "group_id": "msc-cruises",
+      "website": "https://www.msccruises.com",
+      "dns_resolves": true,
+      "host": "www.msccruises.com"
+    },
+    {
+      "group_id": "hapag-lloyd",
+      "website": "https://www.hapag-lloyd.com",
+      "dns_resolves": true,
+      "host": "www.hapag-lloyd.com"
+    },
+    {
+      "group_id": "attica-group",
+      "website": "https://www.attica-group.com",
+      "dns_resolves": true,
+      "host": "www.attica-group.com"
+    },
+    {
+      "group_id": "stena",
+      "website": "https://stena.com",
+      "dns_resolves": true,
+      "host": "stena.com"
+    },
+    {
+      "group_id": "seaspan",
+      "website": "https://www.seaspancorp.com",
+      "dns_resolves": true,
+      "host": "www.seaspancorp.com"
+    },
+    {
+      "group_id": "royal-caribbean-group",
+      "website": "https://www.royalcaribbeangroup.com",
+      "dns_resolves": true,
+      "host": "www.royalcaribbeangroup.com"
+    },
+    {
+      "group_id": "moby-group",
+      "website": "https://www.mobylines.com",
+      "dns_resolves": true,
+      "host": "www.mobylines.com"
+    },
+    {
+      "group_id": "evergreen",
+      "website": "https://www.evergreen-marine.com",
+      "dns_resolves": true,
+      "host": "www.evergreen-marine.com"
+    },
+    {
+      "group_id": "nclh",
+      "website": "https://www.nclhltd.com",
+      "dns_resolves": true,
+      "host": "www.nclhltd.com"
+    },
+    {
+      "group_id": "technomar-shipping-inc-lib",
+      "website": "http://www.technomar.gr",
+      "dns_resolves": true,
+      "host": "www.technomar.gr"
+    },
+    {
+      "group_id": "mol",
+      "website": "https://www.mol.co.jp",
+      "dns_resolves": true,
+      "host": "www.mol.co.jp"
+    },
+    {
+      "group_id": "nyk",
+      "website": "https://www.nyk.com",
+      "dns_resolves": true,
+      "host": "www.nyk.com"
+    },
+    {
+      "group_id": "k-line",
+      "website": "https://www.kline.co.jp",
+      "dns_resolves": true,
+      "host": "www.kline.co.jp"
+    },
+    {
+      "group_id": "hmm",
+      "website": "https://www.hmm21.com",
+      "dns_resolves": true,
+      "host": "www.hmm21.com"
+    },
+    {
+      "group_id": "eastern-pacific-shipping",
+      "website": "https://www.epshipping.com.sg",
+      "dns_resolves": true,
+      "host": "www.epshipping.com.sg"
+    },
+    {
+      "group_id": "spliethoffs-bevrachtingskantoor-b-v",
+      "website": "https://www.spliethoff.com",
+      "dns_resolves": true,
+      "host": "www.spliethoff.com"
+    },
+    {
+      "group_id": "seapeak-maritime-limited",
+      "website": "https://seapeak.com",
+      "dns_resolves": true,
+      "host": "seapeak.com"
+    },
+    {
+      "group_id": "zodiac-maritime",
+      "website": "https://www.zodiac-maritime.com",
+      "dns_resolves": true,
+      "host": "www.zodiac-maritime.com"
+    },
+    {
+      "group_id": "balearia-eurolineas-maritimas-sa",
+      "website": "https://www.balearia.com",
+      "dns_resolves": true,
+      "host": "www.balearia.com"
+    },
+    {
+      "group_id": "tms-group",
+      "website": "https://www.tms-cardiffgas.com",
+      "dns_resolves": true,
+      "host": "www.tms-cardiffgas.com"
+    },
+    {
+      "group_id": "maran-angelicoussis",
+      "website": "https://marantankers.gr",
+      "dns_resolves": true,
+      "host": "marantankers.gr"
+    },
+    {
+      "group_id": "thenamaris",
+      "website": "https://www.thenamaris.com",
+      "dns_resolves": true,
+      "host": "www.thenamaris.com"
+    },
+    {
+      "group_id": "forship-spa",
+      "website": "https://www.forship.it",
+      "dns_resolves": true,
+      "host": "www.forship.it"
+    },
+    {
+      "group_id": "peter-dohle-schiffahrts-kg",
+      "website": "https://www.doehle.de",
+      "dns_resolves": true,
+      "host": "www.doehle.de"
+    },
+    {
+      "group_id": "danaos",
+      "website": "https://www.danaos.com",
+      "dns_resolves": true,
+      "host": "www.danaos.com"
+    },
+    {
+      "group_id": "tsakos",
+      "website": "https://www.tenn.gr",
+      "dns_resolves": true,
+      "host": "www.tenn.gr"
+    },
+    {
+      "group_id": "bw-group",
+      "website": "https://bw-group.com",
+      "dns_resolves": true,
+      "host": "bw-group.com"
+    },
+    {
+      "group_id": "shoei-kisen-kaisha-ltd",
+      "website": "https://www.shoei-kisen.com",
+      "dns_resolves": true,
+      "host": "www.shoei-kisen.com"
+    },
+    {
+      "group_id": "dynagas",
+      "website": "https://www.dynagaspartners.com",
+      "dns_resolves": true,
+      "host": "www.dynagaspartners.com"
+    },
+    {
+      "group_id": "color-line-marine-as",
+      "website": "https://www.colorline.com",
+      "dns_resolves": true,
+      "host": "www.colorline.com"
+    },
+    {
+      "group_id": "knutsen",
+      "website": "https://knutsenoas.com",
+      "dns_resolves": true,
+      "host": "knutsenoas.com"
+    },
+    {
+      "group_id": "minerva-marine",
+      "website": "https://www.minervamarine.com",
+      "dns_resolves": true,
+      "host": "www.minervamarine.com"
+    },
+    {
+      "group_id": "fred-olsen-sa",
+      "website": "https://www.fredolsen.es",
+      "dns_resolves": true,
+      "host": "www.fredolsen.es"
+    },
+    {
+      "group_id": "polska-zegluga-morska-p-p",
+      "website": "https://polsteam.com",
+      "dns_resolves": true,
+      "host": "polsteam.com"
+    },
+    {
+      "group_id": "tt-line-gmbh-and-co-kg",
+      "website": "https://www.ttline.com",
+      "dns_resolves": true,
+      "host": "www.ttline.com"
+    },
+    {
+      "group_id": "tui-cruises",
+      "website": "https://corporate.tuicruises.com",
+      "dns_resolves": true,
+      "host": "corporate.tuicruises.com"
+    },
+    {
+      "group_id": "brittany-ferries-bai-sa",
+      "website": "https://www.brittany-ferries.com",
+      "dns_resolves": true,
+      "host": "www.brittany-ferries.com"
+    },
+    {
+      "group_id": "sfl-frontline",
+      "website": "https://www.sflcorp.com",
+      "dns_resolves": true,
+      "host": "www.sflcorp.com"
+    },
+    {
+      "group_id": "matrix-ship-management-ltd",
+      "website": "https://www.matrixshipmanagement.com",
+      "dns_resolves": true,
+      "host": "www.matrixshipmanagement.com"
+    },
+    {
+      "group_id": "arkas",
+      "website": "https://arkas.com.tr",
+      "dns_resolves": true,
+      "host": "arkas.com.tr"
+    },
+    {
+      "group_id": "costamare",
+      "website": "https://www.costamare.com",
+      "dns_resolves": true,
+      "host": "www.costamare.com"
+    },
+    {
+      "group_id": "wagenborg-shipping-bv",
+      "website": "https://www.wagenborg.com",
+      "dns_resolves": true,
+      "host": "www.wagenborg.com"
+    }
+  ]
+}

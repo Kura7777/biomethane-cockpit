@@ -1,0 +1,322 @@
+{
+  "generatedAt": "2026-09-27T00:00:00Z",
+  "method": "Manual research of official company websites, investor-relations pages and press pages for the top 50 FuelEU shipping groups (ranked by summed in_scope_co2_t across OWNER_OPERATOR/CRUISE groups in data/fueleu_group_map.json). Only values found verbatim on an official company page (own domain or an official subsidiary domain) were recorded; nothing was guessed or pattern-generated. Every contact is machine-verified by scripts/verify_fueleu_contacts.py, which fetches sourceUrl and checks the value appears on the page.",
+  "groups": [
+    {
+      "group_id": "msc",
+      "website": "https://www.msc.com",
+      "contacts": []
+    },
+    {
+      "group_id": "maersk",
+      "website": "https://www.maersk.com",
+      "contacts": [
+        { "kind": "PRESS", "name": "Jesper Lov", "role": "Head of Media Relations", "email": "jesper.lov@maersk.com", "sourceUrl": "https://www.maersk.com/press/press-contacts", "sourceQuote": "Head of Media Relations Jesper Lov jesper.lov@maersk.com", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "grimaldi",
+      "website": "https://www.grimaldi.napoli.it",
+      "contacts": [
+        { "kind": "SWITCHBOARD", "phone": "0207 930 5683", "sourceUrl": "https://www.grimaldi.co.uk/contact-us", "sourceQuote": "London 0207 930 5683", "checkedAt": "2026-09-27" },
+        { "kind": "GENERAL_EMAIL", "email": "euromed@grimaldi.co.uk", "sourceUrl": "https://www.grimaldi.co.uk/contact-us", "sourceQuote": "euromed@grimaldi.co.uk", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "cma-cgm",
+      "website": "https://www.cma-cgm.com",
+      "contacts": [
+        { "kind": "SWITCHBOARD", "phone": "+33 (0)4 88 91 90 00", "sourceUrl": "https://www.cmacgm-group.com/en/legal-terms", "sourceQuote": "Boulevard Jacques Saade, 4 quai d'Arenc, 13002 Marseille +33 (0)4 88 91 90 00", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "cosco",
+      "website": "https://en.coscoshipping.com",
+      "contacts": []
+    },
+    {
+      "group_id": "carnival",
+      "website": "https://www.carnivalcorp.com",
+      "contacts": [
+        { "kind": "PRESS", "name": "Jody Venturoni", "role": "Chief Communications Officer", "email": "ChiefCommsOffice@carnival.com", "sourceUrl": "https://www.carnivalcorp.com/impact/sustainability-reports/", "sourceQuote": "Jody Venturoni, Chief Communications Officer, at ChiefCommsOffice@carnival.com", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "dfds",
+      "website": "https://www.dfds.com",
+      "contacts": [
+        { "kind": "PRESS", "email": "grcom@dfds.com", "phone": "+45 33 42 30 60", "sourceUrl": "https://www.dfds.com/en/about/media/press-contacts", "sourceQuote": "Global Media Relations +45 33 42 30 60 grcom@dfds.com", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "msc-cruises",
+      "website": "https://www.msccruises.com",
+      "contacts": [
+        { "kind": "PRESS", "email": "mediarelations@msccruisesusa.com", "sourceUrl": "https://www.mscpressarea.com/en_US/contact/", "sourceQuote": "Media Relations mediarelations@msccruisesusa.com", "checkedAt": "2026-09-27" },
+        { "kind": "GENERAL_EMAIL", "phone": "+1 (800) 666-9333", "sourceUrl": "https://www.mscpressarea.com/en_US/contact/", "sourceQuote": "+1 (800) 666-9333", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "hapag-lloyd",
+      "website": "https://www.hapag-lloyd.com",
+      "contacts": []
+    },
+    {
+      "group_id": "attica-group",
+      "website": "https://www.attica-group.com",
+      "contacts": [
+        { "kind": "PERSON", "name": "Thomas Economou", "role": "Shareholder Service Manager", "email": "economou@attica-group.com", "sourceUrl": "https://www.attica-group.com/en/shareholder-contact", "sourceQuote": "Thomas Economou, Shareholder Service Manager, economou@attica-group.com", "checkedAt": "2026-09-27" },
+        { "kind": "GENERAL_EMAIL", "email": "ir@attica-group.com", "phone": "+30 210 891 9500", "sourceUrl": "https://www.attica-group.com/en/shareholder-contact", "sourceQuote": "Investor Relations Department ir@attica-group.com +30 210 891 9500", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "stena",
+      "website": "https://stena.com",
+      "contacts": [
+        { "kind": "SWITCHBOARD", "phone": "+46 31 85 50 00", "email": "info@stena.com", "sourceUrl": "https://stena.com/media-contact/", "sourceQuote": "+46 31 85 50 00 info@stena.com", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "seaspan",
+      "website": "https://www.seaspancorp.com",
+      "contacts": [
+        { "kind": "SWITCHBOARD", "phone": "+65 6037 9950", "sourceUrl": "https://www.seaspancorp.com/contact-us/", "sourceQuote": "1 Harbourfront Place, Harbourfront Tower One, #17-04/05, Singapore 098633 +65 6037 9950", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "royal-caribbean-group",
+      "website": "https://www.royalcaribbeangroup.com",
+      "contacts": []
+    },
+    {
+      "group_id": "moby-group",
+      "website": "https://www.mobylines.com",
+      "contacts": [
+        { "kind": "GENERAL_EMAIL", "email": "info@moby.it", "sourceUrl": "https://www.mobylines.com/the-company/institutional-contacts/", "sourceQuote": "MOBY S.p.A. info@moby.it", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "evergreen",
+      "website": "https://www.evergreen-marine.com",
+      "contacts": [
+        { "kind": "SWITCHBOARD", "phone": "886-03-3123508", "sourceUrl": "https://www.evergreen-marine.com/emc/aboutevergreen/jsp/EMC_ContactInformation.jsp?lang=en", "sourceQuote": "No.163, Sec. 1, Xinnan Rd., Luzhu Dist., Taoyuan City 338302, Taiwan 886-03-3123508", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "nclh",
+      "website": "https://www.nclhltd.com",
+      "contacts": [
+        { "kind": "PRESS", "email": "NCLHMedia@nclcorp.com", "sourceUrl": "https://www.nclhltd.com/news-media/media-contacts", "sourceQuote": "NCLH Public Relations NCLHMedia@nclcorp.com", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "technomar-shipping-inc-lib",
+      "website": "http://www.technomar.gr",
+      "contacts": []
+    },
+    {
+      "group_id": "mol",
+      "website": "https://www.mol.co.jp",
+      "contacts": [
+        { "kind": "PERSON", "name": "Toru Hikima", "role": "Executive Officer, Chief Sustainability Officer (CSuO)", "sourceUrl": "https://www.mol.co.jp/en/sustainability/message/", "sourceQuote": "Toru Hikima Executive Officer Chief Sustainability Officer (CSuO)", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "nyk",
+      "website": "https://www.nyk.com",
+      "contacts": []
+    },
+    {
+      "group_id": "k-line",
+      "website": "https://www.kline.co.jp",
+      "contacts": []
+    },
+    {
+      "group_id": "hmm",
+      "website": "https://www.hmm21.com",
+      "contacts": []
+    },
+    {
+      "group_id": "eastern-pacific-shipping",
+      "website": "https://www.epshipping.com.sg",
+      "contacts": [
+        { "kind": "SWITCHBOARD", "phone": "+65 6433 5111", "email": "general@epshipping.com.sg", "sourceUrl": "https://www.epshipping.com.sg/contact/", "sourceQuote": "1 Temasek Avenue #38-01 Millenia Tower Singapore 039192 +65 6433 5111 general@epshipping.com.sg", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "spliethoffs-bevrachtingskantoor-b-v",
+      "website": "https://www.spliethoff.com",
+      "contacts": [
+        { "kind": "SWITCHBOARD", "phone": "+31 20 448 8400", "email": "amsterdam@spliethoff.com", "sourceUrl": "https://www.spliethoff.com/contact/", "sourceQuote": "Radarweg 36, 1042 AA Amsterdam +31 20 448 8400 amsterdam@spliethoff.com", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "seapeak-maritime-limited",
+      "website": "https://seapeak.com",
+      "contacts": []
+    },
+    {
+      "group_id": "zodiac-maritime",
+      "website": "https://www.zodiac-maritime.com",
+      "contacts": [
+        { "kind": "SWITCHBOARD", "phone": "+44 (0)20 7333 2222", "sourceUrl": "https://www.zodiac-maritime.com/contact-us/", "sourceQuote": "Head Office Phone: +44 (0)20 7333 2222", "checkedAt": "2026-09-27" },
+        { "kind": "PRESS", "email": "media@zodiac-maritime.com", "sourceUrl": "https://www.zodiac-maritime.com/contact-us/", "sourceQuote": "media@zodiac-maritime.com", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "balearia-eurolineas-maritimas-sa",
+      "website": "https://www.balearia.com",
+      "contacts": []
+    },
+    {
+      "group_id": "tms-group",
+      "website": "https://www.tms-cardiffgas.com",
+      "contacts": [
+        { "kind": "SWITCHBOARD", "phone": "+30-210-8090350", "sourceUrl": "https://www.tms-cardiffgas.com/contact.html", "sourceQuote": "109, Kifissias Avenue & Sina Street, Marousi, 151 24, Athens, Greece +30-210-8090350", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "maran-angelicoussis",
+      "website": "https://marantankers.gr",
+      "contacts": []
+    },
+    {
+      "group_id": "thenamaris",
+      "website": "https://www.thenamaris.com",
+      "contacts": [
+        { "kind": "SWITCHBOARD", "phone": "+30 210 8909000", "sourceUrl": "https://www.thenamaris.com/contact-us/", "sourceQuote": "16 Athinas Street, Vouliagmeni, 16671, Athens, Greece Phone: +30 210 8909000", "checkedAt": "2026-09-27" },
+        { "kind": "GENERAL_EMAIL", "email": "comms@thenamaris.com", "sourceUrl": "https://www.thenamaris.com/contact-us/", "sourceQuote": "Corporate Communications: comms@thenamaris.com", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "forship-spa",
+      "website": "https://www.forship.it",
+      "contacts": [
+        { "kind": "PERSON", "name": "Sebastien Romani", "role": "CEO and Director of Sales", "email": "s.romani@corsicaferries.com", "sourceUrl": "https://www.forship.it/index-2.html", "sourceQuote": "Sebastien Romani (C.E.O. and Director of Sales): s.romani@corsicaferries.com", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "peter-dohle-schiffahrts-kg",
+      "website": "https://www.doehle.de",
+      "contacts": [
+        { "kind": "SWITCHBOARD", "phone": "+49-40-38108-0", "email": "pd-info@doehle.de", "sourceUrl": "https://www.doehle.de/company/contact/", "sourceQuote": "Elbchaussee 370, 22609 Hamburg +49-40-38108-0 pd-info@doehle.de", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "danaos",
+      "website": "https://www.danaos.com",
+      "contacts": [
+        { "kind": "PERSON", "name": "Evangelos Chatzis", "role": "Chief Financial Officer", "email": "cfo@danaos.com", "phone": "+30 210 419 6480", "sourceUrl": "https://www.danaos.com/contact-us/default.aspx", "sourceQuote": "Evangelos Chatzis Chief Financial Officer +30 210 419 6480 cfo@danaos.com", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "tsakos",
+      "website": "https://www.tenn.gr",
+      "contacts": []
+    },
+    {
+      "group_id": "bw-group",
+      "website": "https://bw-group.com",
+      "contacts": [
+        { "kind": "SWITCHBOARD", "phone": "+65 6337 2133", "sourceUrl": "https://bw-group.com/contact-us/", "sourceQuote": "BW Group: +65 6337 2133", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "shoei-kisen-kaisha-ltd",
+      "website": "https://www.shoei-kisen.com",
+      "contacts": []
+    },
+    {
+      "group_id": "dynagas",
+      "website": "https://www.dynagaspartners.com",
+      "contacts": []
+    },
+    {
+      "group_id": "color-line-marine-as",
+      "website": "https://www.colorline.com",
+      "contacts": [
+        { "kind": "SWITCHBOARD", "phone": "+47 22 94 44 00", "sourceUrl": "https://www.colorline.com/practical-information/contact-us", "sourceQuote": "Oslo: Color Line Terminalen, Hjortnes, 0250 Oslo Switchboard: +47 22 94 44 00", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "knutsen",
+      "website": "https://knutsenoas.com",
+      "contacts": [
+        { "kind": "SWITCHBOARD", "phone": "+47 52 70 40 00", "sourceUrl": "https://knutsenoas.com/contact-us/", "sourceQuote": "Smedasundet 40, Postbox 2017, N-5504 Haugesund +47 52 70 40 00", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "minerva-marine",
+      "website": "https://www.minervamarine.com",
+      "contacts": [
+        { "kind": "SWITCHBOARD", "phone": "+302108907500", "sourceUrl": "https://www.minervamarine.com/", "sourceQuote": "141-143 Vouliagmenis Avenue, Voula, Athens, 16673 Greece +302108907500", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "fred-olsen-sa",
+      "website": "https://www.fredolsen.es",
+      "contacts": [
+        { "kind": "GENERAL_EMAIL", "email": "reservas@fredolsen.es", "phone": "+34 922 290 070", "sourceUrl": "https://www.fredolsen.es/en/contact", "sourceQuote": "+34 922 290 070 reservas@fredolsen.es", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "polska-zegluga-morska-p-p",
+      "website": "https://polsteam.com",
+      "contacts": [
+        { "kind": "SWITCHBOARD", "phone": "(+48) 91 359 43 33", "email": "pzmmanagement@polsteam.com", "sourceUrl": "https://polsteam.com/en/contact-eng/", "sourceQuote": "Pl. Rodla 8, 70-419 Szczecin (+48) 91 359 43 33 pzmmanagement@polsteam.com", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "tt-line-gmbh-and-co-kg",
+      "website": "https://www.ttline.com",
+      "contacts": []
+    },
+    {
+      "group_id": "tui-cruises",
+      "website": "https://corporate.tuicruises.com",
+      "contacts": []
+    },
+    {
+      "group_id": "brittany-ferries-bai-sa",
+      "website": "https://www.brittany-ferries.com",
+      "contacts": [
+        { "kind": "PRESS", "phone": "0330 159 6999", "sourceUrl": "https://brittanyferriesnewsroom.com/contact/", "sourceQuote": "UK 0330 159 6999", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "sfl-frontline",
+      "website": "https://www.sflcorp.com",
+      "contacts": [
+        { "kind": "SWITCHBOARD", "phone": "+1 441 295 95 00", "sourceUrl": "https://www.sflcorp.com/ir-home/", "sourceQuote": "SFL Corporation Ltd Phone: +1 441 295 95 00", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "matrix-ship-management-ltd",
+      "website": "https://www.matrixshipmanagement.com",
+      "contacts": [
+        { "kind": "SWITCHBOARD", "phone": "+357 25 327 050", "email": "info@matrixmarinegroup.com", "sourceUrl": "https://matrixshipmanagement.com/app/contact.php", "sourceQuote": "Agathokleous House, Office 101, Spyrou Kyprianou 80, Limassol 4043, Cyprus +357 25 327 050 info@matrixmarinegroup.com", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "arkas",
+      "website": "https://arkas.com.tr",
+      "contacts": [
+        { "kind": "SWITCHBOARD", "phone": "+90 (232) 477 77 77", "email": "arkasizm@arkas.com.tr", "sourceUrl": "https://arkas.com.tr/en/contact/", "sourceQuote": "Liman Caddesi Arkas Binasi No:38 Alsancak 35230 Izmir Tel: +90 (232) 477 77 77 arkasizm@arkas.com.tr", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "costamare",
+      "website": "https://www.costamare.com",
+      "contacts": [
+        { "kind": "PERSON", "name": "Gregory G. Zikos", "role": "Chief Financial Officer", "phone": "(+377) 93 25 09 40", "sourceUrl": "https://www.costamare.com/investors/overview/ir-contacts", "sourceQuote": "Gregory G. Zikos Chief Financial Officer (+377) 93 25 09 40", "checkedAt": "2026-09-27" }
+      ]
+    },
+    {
+      "group_id": "wagenborg-shipping-bv",
+      "website": "https://www.wagenborg.com",
+      "contacts": [
+        { "kind": "SWITCHBOARD", "phone": "+31 596 636 911", "sourceUrl": "https://www.wagenborg.com/contact", "sourceQuote": "Marktstraat 10, 9934 CK Delfzijl +31 596 636 911", "checkedAt": "2026-09-27" }
+      ]
+    }
+  ]
+}

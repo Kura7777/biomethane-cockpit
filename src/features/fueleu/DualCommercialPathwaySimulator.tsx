@@ -27,7 +27,7 @@ import {
   Layers
 } from 'lucide-react';
 import { showToast } from '../../app/DeskToastContainer';
-import { getAssumption, fuelEuPoolSpreadEurPerTco2e } from '../../domain/assumptions/registry';
+import { getAssumption, fuelEuPoolSpreadEurPerTco2e, fuelEuPoolBidPriceEurPerTco2e } from '../../domain/assumptions/registry';
 import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
 import { AssumptionsStrip } from '../../shared/components/AssumptionsStrip';
 
@@ -77,7 +77,7 @@ export function DualCommercialPathwaySimulator() {
   const poolOffer = getAssumption('fueleu.poolBuyPriceEurPerTco2e');
   const poolingCostToClientEur = simulatedDeficitTco2e * poolOffer;
   const poolingClientSavingsEur = Math.max(0, statutoryPenaltyEur - poolingCostToClientEur);
-  const poolingProviderRevenueEur = simulatedDeficitTco2e * getAssumption('fueleu.poolSellPriceEurPerTco2e');
+  const poolingProviderRevenueEur = simulatedDeficitTco2e * fuelEuPoolBidPriceEurPerTco2e();
   const poolingDeskMarginEur = simulatedDeficitTco2e * fuelEuPoolSpreadEurPerTco2e();
 
   const handleStructureTrade = () => {

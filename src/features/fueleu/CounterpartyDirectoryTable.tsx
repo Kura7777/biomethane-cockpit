@@ -8,7 +8,7 @@ import {
   getStrategyTierBadgeClass,
 } from '../../domain/fueleu/types';
 import { FUEL_EU_SHIPPING_COUNTERPARTIES } from '../../domain/fueleu/shippingTargetsData';
-import { FUELEU_VLSFO_WTW, FUELEU_LFO_WTW } from '../../domain/fueleu/calculator';
+import { FUELEU_VLSFO_WTW, FUELEU_LFO_WTW, FUELEU_ACTIVE_PERIOD } from '../../domain/fueleu/calculator';
 import {
   Search,
   Filter,
@@ -31,6 +31,7 @@ import {
   MapPin,
 } from 'lucide-react';
 import { showToast } from '../../app/DeskToastContainer';
+import { GroupDirectoryTable } from './GroupDirectoryTable';
 
 const MONO_FONT = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
 
@@ -42,10 +43,10 @@ type SortField =
   | 'vessels_in_scope'
   | 'total_energy_mwh'
   | 'actual_ghgie'
-  | 'compliance_balance_2025_tco2e'
-  | 'penalty_2025_y1_eur'
-  | 'ets_exposure_2025_eur'
-  | 'combined_regulatory_exposure_2025_eur'
+  | 'compliance_balance_2026_tco2e'
+  | 'penalty_2026_y1_eur'
+  | 'ets_exposure_2026_eur'
+  | 'combined_regulatory_exposure_2026_eur'
   | 'bio_lng_required_neg100_mwh'
   | 'client_savings_physical_eur'
   | 'desk_margin_physical_eur';
@@ -66,6 +67,9 @@ export function CounterpartyDirectoryTable({
       onSelectCounterparty(c);
     }
   };
+
+  // Company / Group view toggle
+  const [viewMode, setViewMode] = useState<'COMPANY' | 'GROUP'>('COMPANY');
 
   // Filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -197,8 +201,8 @@ export function CounterpartyDirectoryTable({
       }
 
       // Balance Type
-      if (selectedBalanceType === 'DEFICIT' && c.compliance_balance_2025_tco2e >= 0) return false;
-      if (selectedBalanceType === 'SURPLUS' && c.compliance_balance_2025_tco2e <= 0) return false;
+      if (selectedBalanceType === 'DEFICIT' && c.compliance_balance_2026_tco2e >= 0) return false;
+      if (selectedBalanceType === 'SURPLUS' && c.compliance_balance_2026_tco2e <= 0) return false;
 
       return true;
     }).sort((a, b) => {
@@ -235,15 +239,15 @@ export function CounterpartyDirectoryTable({
       } else {
         conventionalCount++;
       }
-      if (c.compliance_balance_2025_tco2e < 0) {
-        grossDeficit += c.compliance_balance_2025_tco2e;
+      if (c.compliance_balance_2026_tco2e < 0) {
+        grossDeficit += c.compliance_balance_2026_tco2e;
       } else {
-        lngSurplus += c.compliance_balance_2025_tco2e;
+        lngSurplus += c.compliance_balance_2026_tco2e;
         surplusFleetCount++;
       }
-      netPenalty += c.penalty_2025_y1_eur;
-      etsExposureSum += c.ets_exposure_2025_eur;
-      combinedExposureSum += c.combined_regulatory_exposure_2025_eur;
+      netPenalty += c.penalty_2026_y1_eur;
+      etsExposureSum += c.ets_exposure_2026_eur;
+      combinedExposureSum += c.combined_regulatory_exposure_2026_eur;
       bioLngMwh += c.bio_lng_required_neg100_mwh;
       clientSavings += c.client_savings_physical_eur;
       deskMarginSum += c.desk_margin_physical_eur;
@@ -404,13 +408,13 @@ export function CounterpartyDirectoryTable({
       escapeVal(c.strategy_tier),
       c.total_energy_mwh,
       c.actual_ghgie,
-      c.compliance_balance_2025_tco2e,
-      c.penalty_2025_y1_eur,
-      c.penalty_2025_y2_eur,
+      c.compliance_balance_2026_tco2e,
+      c.penalty_2026_y1_eur,
+      c.penalty_2026_y2_eur,
       c.penalty_2030_y1_eur,
-      c.ets_exposure_2025_eur,
       c.ets_exposure_2026_eur,
-      c.combined_regulatory_exposure_2025_eur,
+      c.ets_exposure_2026_eur,
+      c.combined_regulatory_exposure_2026_eur,
       c.bio_lng_required_neg100_t,
       c.bio_lng_required_neg100_mwh,
       c.bio_lng_required_zero_t,
@@ -477,13 +481,13 @@ export function CounterpartyDirectoryTable({
       `"${c.strategy_tier.replace(/"/g, '""')}"`,
       c.total_energy_mwh,
       c.actual_ghgie,
-      c.compliance_balance_2025_tco2e,
-      c.penalty_2025_y1_eur,
-      c.penalty_2025_y2_eur,
+      c.compliance_balance_2026_tco2e,
+      c.penalty_2026_y1_eur,
+      c.penalty_2026_y2_eur,
       c.penalty_2030_y1_eur,
-      c.ets_exposure_2025_eur,
       c.ets_exposure_2026_eur,
-      c.combined_regulatory_exposure_2025_eur,
+      c.ets_exposure_2026_eur,
+      c.combined_regulatory_exposure_2026_eur,
       c.bio_lng_required_neg100_t,
       c.bio_lng_required_neg100_mwh,
       c.client_savings_physical_eur,
@@ -519,6 +523,42 @@ export function CounterpartyDirectoryTable({
       >
         Assumption: VLSFO treated as Annex II HFO class (ISO 8217 RME&ndash;RMK); if RMA&ndash;RMD (LFO class) the intensity is ~{vlsfoLfoDeltaGCo2eMj} g/MJ lower.
       </div>
+
+      {/* Company / Group View Toggle */}
+      <div
+        style={{
+          padding: '8px 18px',
+          borderBottom: '1px solid var(--color-divider)',
+          backgroundColor: 'var(--color-surface)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+        }}
+      >
+        <div className="seg" role="group" aria-label="Directory view mode">
+          <button
+            type="button"
+            className={`seg-opt ${viewMode === 'COMPANY' ? 'active' : ''}`}
+            style={{ height: '28px', fontSize: '11px', padding: '0 12px', fontWeight: 600 }}
+            onClick={() => setViewMode('COMPANY')}
+          >
+            <Building2 size={11} style={{ marginRight: '5px', verticalAlign: 'middle' }} /> Company ({FUEL_EU_SHIPPING_COUNTERPARTIES.length})
+          </button>
+          <button
+            type="button"
+            className={`seg-opt ${viewMode === 'GROUP' ? 'active' : ''}`}
+            style={{ height: '28px', fontSize: '11px', padding: '0 12px', fontWeight: 600 }}
+            onClick={() => setViewMode('GROUP')}
+          >
+            <Ship size={11} style={{ marginRight: '5px', verticalAlign: 'middle' }} /> Group ({new Set(FUEL_EU_SHIPPING_COUNTERPARTIES.map(c => c.group_id)).size})
+          </button>
+        </div>
+      </div>
+
+      {viewMode === 'GROUP' ? (
+        <GroupDirectoryTable />
+      ) : (
+      <>
       {/* Metric Ledger Strip */}
       <div
         style={{
@@ -561,7 +601,7 @@ export function CounterpartyDirectoryTable({
         <div style={{ padding: '12px 18px', borderRight: '1px solid var(--color-divider)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
             <span className="eyebrow" style={{ fontSize: '10px', letterSpacing: '0.08em', color: 'var(--color-muted)' }}>
-              2025 FUELEU DEFICIT PENALTY
+              {FUELEU_ACTIVE_PERIOD} FUELEU DEFICIT PENALTY
             </span>
             <span
               style={{
@@ -590,7 +630,7 @@ export function CounterpartyDirectoryTable({
         <div style={{ padding: '12px 18px', borderRight: '1px solid var(--color-divider)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
             <span className="eyebrow" style={{ fontSize: '10px', letterSpacing: '0.08em', color: 'var(--color-muted)' }}>
-              2025 EU ETS MARITIME
+              {FUELEU_ACTIVE_PERIOD} EU ETS MARITIME
             </span>
             <span
               style={{
@@ -604,14 +644,14 @@ export function CounterpartyDirectoryTable({
                 border: '1px solid var(--color-status-warn-border)',
               }}
             >
-              70% PHASE-IN (€70/t)
+              2026: 100% + CH4 EST. (€70/t)
             </span>
           </div>
           <div className="num font-mono" style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-status-warn-text, #d97706)', lineHeight: 1.15, fontFamily: MONO_FONT }}>
             €{aggregateMetrics.etsExposureM} <span style={{ fontSize: '14px', fontWeight: 600 }}>M</span>
           </div>
           <div className="subttl num" style={{ fontSize: '11px', marginTop: '4px', color: 'var(--color-muted)' }}>
-            Directive (EU) 2023/959 liability · 2026 (100%): €{(Number(aggregateMetrics.etsExposureM) / 0.7).toFixed(1)}M
+            Directive (EU) 2023/959 liability · 2026 full phase-in, estimated CH4 CO2e included (N2O omitted)
           </div>
         </div>
 
@@ -619,7 +659,7 @@ export function CounterpartyDirectoryTable({
         <div style={{ padding: '12px 18px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
             <span className="eyebrow" style={{ fontSize: '10px', letterSpacing: '0.08em', color: 'var(--color-muted)' }}>
-              COMBINED 2025 EXPOSURE
+              COMBINED {FUELEU_ACTIVE_PERIOD} EXPOSURE
             </span>
             <span
               style={{
@@ -863,8 +903,8 @@ export function CounterpartyDirectoryTable({
                     style={{ height: '28px', minHeight: '28px', fontSize: '11px', padding: '0 8px' }}
                   >
                     <option value="ALL">All Balances</option>
-                    <option value="DEFICIT">Deficit Only ({FUEL_EU_SHIPPING_COUNTERPARTIES.filter(c => c.compliance_balance_2025_tco2e < 0).length})</option>
-                    <option value="SURPLUS">Surplus Only ({FUEL_EU_SHIPPING_COUNTERPARTIES.filter(c => c.compliance_balance_2025_tco2e > 0).length})</option>
+                    <option value="DEFICIT">Deficit Only ({FUEL_EU_SHIPPING_COUNTERPARTIES.filter(c => c.compliance_balance_2026_tco2e < 0).length})</option>
+                    <option value="SURPLUS">Surplus Only ({FUEL_EU_SHIPPING_COUNTERPARTIES.filter(c => c.compliance_balance_2026_tco2e > 0).length})</option>
                   </select>
                 </div>
               </div>
@@ -960,6 +1000,10 @@ export function CounterpartyDirectoryTable({
                 </div>
               </th>
 
+              <th style={{ width: '150px', textAlign: 'left', padding: '8px 8px', whiteSpace: 'nowrap' }} title="Commercial group this DoC-holder company is consolidated into">
+                GROUP
+              </th>
+
               <th
                 style={{ width: '145px', textAlign: 'center', padding: '8px 8px', cursor: 'pointer', whiteSpace: 'nowrap' }}
                 onClick={() => handleSort('lng_vessels_in_scope')}
@@ -991,12 +1035,12 @@ export function CounterpartyDirectoryTable({
 
               <th
                 style={{ width: '125px', textAlign: 'right', padding: '8px 8px', cursor: 'pointer', whiteSpace: 'nowrap' }}
-                onClick={() => handleSort('penalty_2025_y1_eur')}
+                onClick={() => handleSort('penalty_2026_y1_eur')}
                 title="FuelEU Maritime Statutory Penalty Exposure (Year 1)"
               >
                 <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', width: '100%' }}>
                   <span>FUELEU PENALTY</span>
-                  {sortField === 'penalty_2025_y1_eur' ? (
+                  {sortField === 'penalty_2026_y1_eur' ? (
                     sortDirection === 'asc' ? <ArrowUp size={11} style={{ color: 'var(--color-accent)' }} /> : <ArrowDown size={11} style={{ color: 'var(--color-accent)' }} />
                   ) : (
                     <ArrowUpDown size={11} style={{ opacity: 0.25 }} />
@@ -1006,12 +1050,12 @@ export function CounterpartyDirectoryTable({
 
               <th
                 style={{ width: '110px', textAlign: 'right', padding: '8px 8px', cursor: 'pointer', whiteSpace: 'nowrap' }}
-                onClick={() => handleSort('ets_exposure_2025_eur')}
-                title="EU ETS Maritime 2025 Liability (Directive (EU) 2023/959 70% Phase-In @ €70/t EUA)"
+                onClick={() => handleSort('ets_exposure_2026_eur')}
+                title={`EU ETS Maritime ${FUELEU_ACTIVE_PERIOD} Liability (Directive (EU) 2023/959 70% Phase-In @ €70/t EUA)`}
               >
                 <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', width: '100%' }}>
-                  <span>EU ETS 2025</span>
-                  {sortField === 'ets_exposure_2025_eur' ? (
+                  <span>EU ETS {FUELEU_ACTIVE_PERIOD}</span>
+                  {sortField === 'ets_exposure_2026_eur' ? (
                     sortDirection === 'asc' ? <ArrowUp size={11} style={{ color: 'var(--color-accent)' }} /> : <ArrowDown size={11} style={{ color: 'var(--color-accent)' }} />
                   ) : (
                     <ArrowUpDown size={11} style={{ opacity: 0.25 }} />
@@ -1021,12 +1065,12 @@ export function CounterpartyDirectoryTable({
 
               <th
                 style={{ width: '125px', textAlign: 'right', padding: '8px 8px', cursor: 'pointer', whiteSpace: 'nowrap' }}
-                onClick={() => handleSort('combined_regulatory_exposure_2025_eur')}
-                title="Combined 2025 Statutory Exposure (FuelEU Penalty + EU ETS 70% Liability)"
+                onClick={() => handleSort('combined_regulatory_exposure_2026_eur')}
+                title={`Combined ${FUELEU_ACTIVE_PERIOD} Statutory Exposure (FuelEU Penalty + EU ETS 70% Liability)`}
               >
                 <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', width: '100%' }}>
-                  <span>COMBINED 2025</span>
-                  {sortField === 'combined_regulatory_exposure_2025_eur' ? (
+                  <span>COMBINED {FUELEU_ACTIVE_PERIOD}</span>
+                  {sortField === 'combined_regulatory_exposure_2026_eur' ? (
                     sortDirection === 'asc' ? <ArrowUp size={11} style={{ color: 'var(--color-accent)' }} /> : <ArrowDown size={11} style={{ color: 'var(--color-accent)' }} />
                   ) : (
                     <ArrowUpDown size={11} style={{ opacity: 0.25 }} />
@@ -1057,13 +1101,13 @@ export function CounterpartyDirectoryTable({
           <tbody>
             {filteredCounterparties.length === 0 ? (
               <tr>
-                <td colSpan={9} style={{ textAlign: 'center', padding: '36px 18px', color: 'var(--color-muted)' }}>
+                <td colSpan={10} style={{ textAlign: 'center', padding: '36px 18px', color: 'var(--color-muted)' }}>
                   No shipping counterparties match the current search &amp; filter criteria.
                 </td>
               </tr>
             ) : (
               paginatedCounterparties.map((c) => {
-                const isSurplus = c.compliance_balance_2025_tco2e > 0;
+                const isSurplus = c.compliance_balance_2026_tco2e > 0;
                 return (
                   <tr
                     key={c.parent_name}
@@ -1096,6 +1140,11 @@ export function CounterpartyDirectoryTable({
                       <div className="subttl" style={{ fontSize: '10.5px', marginTop: '1px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '360px' }}>
                         {c.headquarters || '—'} · <span style={{ color: 'var(--color-muted)' }}>{c.segment}</span> · {(c.callingRegion && CALLING_REGIONS[c.callingRegion]?.label) || c.callingRegion || '—'}
                       </div>
+                    </td>
+
+                    {/* Commercial Group */}
+                    <td style={{ padding: '6px 8px', fontSize: '11px', color: 'var(--color-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px' }} title={c.group_name}>
+                      {c.group_name}
                     </td>
 
                     {/* Propulsion & Engine Readiness: Clean single-line badge */}
@@ -1141,18 +1190,18 @@ export function CounterpartyDirectoryTable({
                     {/* FuelEU Penalty */}
                     <td className="num font-mono" style={{ textAlign: 'right', padding: '6px 8px', fontSize: '12px', fontWeight: 600, fontFamily: MONO_FONT }}>
                       <span style={{ color: isSurplus ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)' }}>
-                        {isSurplus ? '€0 (Surplus)' : `€${(c.penalty_2025_y1_eur / 1e6).toFixed(2)}M`}
+                        {isSurplus ? '€0 (Surplus)' : `€${(c.penalty_2026_y1_eur / 1e6).toFixed(2)}M`}
                       </span>
                     </td>
 
                     {/* EU ETS 2025 */}
                     <td className="num font-mono" style={{ textAlign: 'right', padding: '6px 8px', fontSize: '12px', fontWeight: 500, color: 'var(--color-status-warn-text, #d97706)', fontFamily: MONO_FONT }}>
-                      €{(c.ets_exposure_2025_eur / 1e6).toFixed(2)}M
+                      €{(c.ets_exposure_2026_eur / 1e6).toFixed(2)}M
                     </td>
 
                     {/* Combined 2025 */}
                     <td className="num font-mono" style={{ textAlign: 'right', padding: '6px 8px', fontSize: '12px', fontWeight: 700, color: 'var(--color-text)', fontFamily: MONO_FONT }}>
-                      €{(c.combined_regulatory_exposure_2025_eur / 1e6).toFixed(2)}M
+                      €{(c.combined_regulatory_exposure_2026_eur / 1e6).toFixed(2)}M
                     </td>
 
                     {/* Net Savings */}
@@ -1188,6 +1237,7 @@ export function CounterpartyDirectoryTable({
               <td style={{ padding: '7px 12px', fontWeight: 700, fontSize: '12px' }}>
                 Total Active ({filteredCounterparties.length} of {FUEL_EU_SHIPPING_COUNTERPARTIES.length} Groups)
               </td>
+              <td />
               <td className="num font-mono" style={{ textAlign: 'center', padding: '7px 8px', fontSize: '11px', color: 'var(--color-muted)', fontFamily: MONO_FONT }}>
                 {aggregateMetrics.dualFuelCount} LNG · {aggregateMetrics.conventionalCount} Conv
               </td>
@@ -1280,6 +1330,8 @@ export function CounterpartyDirectoryTable({
           )}
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 }

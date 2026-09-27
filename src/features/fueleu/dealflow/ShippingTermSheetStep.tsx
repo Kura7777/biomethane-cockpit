@@ -1,3 +1,4 @@
+import { FUELEU_ACTIVE_PERIOD } from '../../../domain/fueleu/calculator';
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -25,7 +26,7 @@ import {
   Mail,
 } from 'lucide-react';
 import { showToast } from '../../../app/DeskToastContainer';
-import { getAssumption } from '../../../domain/assumptions/registry';
+import { getAssumption, fuelEuPoolBidPriceEurPerTco2e } from '../../../domain/assumptions/registry';
 
 const MONO_FONT = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
 
@@ -57,7 +58,7 @@ export function ShippingTermSheetStep({
   const [dealCopied, setDealCopied] = useState(false);
   const [isBooked, setIsBooked] = useState(false);
 
-  const isSurplus = counterparty.compliance_balance_2025_tco2e > 0;
+  const isSurplus = counterparty.compliance_balance_2026_tco2e > 0;
   const isDualFuel = counterparty.fleetCapability === 'DUAL_FUEL_LNG';
 
   const marineQuote = useMemo(() => {
@@ -69,7 +70,7 @@ export function ShippingTermSheetStep({
       vlsfoPriceUsdPerTonne: vlsfoPrice,
       bioLngVolumeTonnes: counterparty.bio_lng_required_neg100_t,
       bioLngCi: -100,
-      targetYear: 2025,
+      targetYear: FUELEU_ACTIVE_PERIOD,
     });
   }, [ttfGasIndex, liquefactionFee, greenPremium, euaPrice, vlsfoPrice, counterparty.bio_lng_required_neg100_t]);
 
@@ -84,7 +85,7 @@ export function ShippingTermSheetStep({
   const contactEmail = primaryContact?.email || 'No verified contact on file';
 
   const poolClearingPriceEurPerTco2e = isSurplus
-    ? getAssumption('fueleu.poolSellPriceEurPerTco2e')
+    ? fuelEuPoolBidPriceEurPerTco2e()
     : getAssumption('fueleu.poolBuyPriceEurPerTco2e');
 
   const effectiveClientSavingsEur = useMemo(() => {
@@ -131,11 +132,11 @@ TRADE LANE: ${(counterparty.tradeLane && TRADE_LANES[counterparty.tradeLane]?.la
 - Fleet Energy Consumption in EU Scope: ${(counterparty.total_energy_mwh / 1000).toFixed(1)} GWh
 - Fleet Fuel Burn: ${counterparty.vlsfo_tonnes.toLocaleString()}t VLSFO / ${counterparty.mgo_tonnes.toLocaleString()}t MGO / ${counterparty.lng_tonnes.toLocaleString()}t LNG
 - Actual Achieved GHG Intensity: ${counterparty.actual_ghgie.toFixed(2)} gCO2e/MJ
-- 2025 FuelEU Target (2.00% reduction): 89.34 gCO2e/MJ
-- Estimated Compliance Balance 2025: ${counterparty.compliance_balance_2025_tco2e > 0 ? '+' : ''}${counterparty.compliance_balance_2025_tco2e.toLocaleString()} tCO2e
-- Indicative FuelEU 2025 Penalty (Art. 23(2)): €${counterparty.penalty_2025_y1_eur.toLocaleString()} (Yr 2 multiplier 1+(n-1)/10: €${counterparty.penalty_2025_y2_eur.toLocaleString()})
-- EU ETS 2025 Gross Carbon Liability (70% Phase-In @ €${euaPrice.toFixed(2)}/t): €${counterparty.ets_exposure_2025_eur.toLocaleString()} (${counterparty.ets_exposure_2025_tco2.toLocaleString()} tCO2)
-- COMBINED 2025 ESTIMATED EXPOSURE: €${counterparty.combined_regulatory_exposure_2025_eur.toLocaleString()}
+- ${FUELEU_ACTIVE_PERIOD} FuelEU Target (2.00% reduction): 89.34 gCO2e/MJ
+- Estimated Compliance Balance ${FUELEU_ACTIVE_PERIOD}: ${counterparty.compliance_balance_2026_tco2e > 0 ? '+' : ''}${counterparty.compliance_balance_2026_tco2e.toLocaleString()} tCO2e
+- Indicative FuelEU ${FUELEU_ACTIVE_PERIOD} Penalty (Art. 23(2)): €${counterparty.penalty_2026_y1_eur.toLocaleString()} (if repeated next year, ×1.1 per Art. 23(2): €${counterparty.penalty_2026_y2_eur.toLocaleString()})
+- EU ETS ${FUELEU_ACTIVE_PERIOD} Carbon Liability (100% phase-in, CO2 + LNG CH4 @ €${euaPrice.toFixed(2)}/t): €${counterparty.ets_exposure_2026_eur.toLocaleString()} (${counterparty.ets_exposure_2026_tco2.toLocaleString()} tCO2e)
+- COMBINED ${FUELEU_ACTIVE_PERIOD} ESTIMATED EXPOSURE: €${counterparty.combined_regulatory_exposure_2026_eur.toLocaleString()}
 
 2. MARINE BUNKER PRICING ENGINE (€/t & $/t) — Indicative estimate, desk assumptions
 --------------------------------------------------------------------------------
@@ -160,10 +161,10 @@ ${
 - Delivery Terms: DES (Delivered Ex-Ship) / TTS (Truck-to-Ship) at ${counterparty.primary_bunkering_hubs || '—'}
 - Total Delivered Invoice (EUR): €${(marineQuote.totalBioLngInvoiceEur || 0).toLocaleString()}
 - Total Delivered Invoice (USD): $${(marineQuote.totalBioLngInvoiceUsd || 0).toLocaleString()}`
-    : `- Article 21 Compliance Allocation: ${Math.abs(counterparty.compliance_balance_2025_tco2e).toLocaleString()} tCO2e (${isSurplus ? 'Surplus Monetisation' : 'Deficit Clearing'})
+    : `- Article 21 Compliance Allocation: ${Math.abs(counterparty.compliance_balance_2026_tco2e).toLocaleString()} tCO2e (${isSurplus ? 'Surplus Monetisation' : 'Deficit Clearing'})
 - Delivery Terms: Bilateral transfer recorded via the FuelEU database (Art. 19, Art. 21)
 - Desk Pool Clearing Price (indicative, ${isSurplus ? 'bid' : 'offer'} side): €${poolClearingPriceEurPerTco2e.toFixed(2)} / tCO2e non-dilutive pool clearing
-- Total Compliance Allocation Value: €${Math.round(Math.abs(counterparty.compliance_balance_2025_tco2e) * poolClearingPriceEurPerTco2e).toLocaleString()}`
+- Total Compliance Allocation Value: €${Math.round(Math.abs(counterparty.compliance_balance_2026_tco2e) * poolClearingPriceEurPerTco2e).toLocaleString()}`
 }
 - Net Client Statutory Savings: €${effectiveClientSavingsEur.toLocaleString()}
 
@@ -206,7 +207,7 @@ ${
     const volumeSummary =
       pathway === 'PHYSICAL'
         ? `${counterparty.bio_lng_required_neg100_t.toLocaleString()} tonnes (-100 CI Manure Bio-LNG)`
-        : `${Math.abs(counterparty.compliance_balance_2025_tco2e).toLocaleString()} tCO2e (Article 21 Compliance Pool)`;
+        : `${Math.abs(counterparty.compliance_balance_2026_tco2e).toLocaleString()} tCO2e (Article 21 Compliance Pool)`;
 
     const summary = `[FUELEU MARITIME OTC DEAL SUMMARY]
 Ref: ${dealRef}
@@ -243,22 +244,22 @@ Contact: ${primaryContact?.name || counterparty.key_executive || 'No verified co
       return;
     }
     const subject = encodeURIComponent(
-      `FuelEU Maritime 2025 Compliance & Bio-LNG Bunker Proposal — ${counterparty.parent_name} [Ref: ${dealRef}]`
+      `FuelEU Maritime ${FUELEU_ACTIVE_PERIOD} Compliance & Bio-LNG Bunker Proposal — ${counterparty.parent_name} [Ref: ${dealRef}]`
     );
     const volumeSummary =
       pathway === 'PHYSICAL'
         ? `${counterparty.bio_lng_required_neg100_t.toLocaleString()} metric tonnes (-100 gCO2e/MJ Manure Bio-LNG)`
-        : `${Math.abs(counterparty.compliance_balance_2025_tco2e).toLocaleString()} tCO2e Compliance Pool`;
+        : `${Math.abs(counterparty.compliance_balance_2026_tco2e).toLocaleString()} tCO2e Compliance Pool`;
 
     const body = encodeURIComponent(
 `Dear ${primaryContact.name},
 
-Please find below our indicative OTC marine fuel quotation (desk assumptions — subject to contract) to address ${counterparty.parent_name}'s 2025 FuelEU Maritime estimated exposure:
+Please find below our indicative OTC marine fuel quotation (desk assumptions — subject to contract) to address ${counterparty.parent_name}'s ${FUELEU_ACTIVE_PERIOD} FuelEU Maritime estimated exposure:
 
 1. COUNTERPARTY & EXPOSURE PROFILE
 - Counterparty: ${counterparty.parent_name} (#${counterparty.rank})
 - Fleet in EU MRV Scope: ${counterparty.vessels_in_scope} vessels (${counterparty.segment})
-- 2025 Estimated Exposure: €${(counterparty.combined_regulatory_exposure_2025_eur / 1e6).toFixed(2)}M (indicative FuelEU penalty + EU ETS 70% liability)
+- ${FUELEU_ACTIVE_PERIOD} Estimated Exposure: €${(counterparty.combined_regulatory_exposure_2026_eur / 1e6).toFixed(2)}M (indicative FuelEU penalty + EU ETS 70% liability)
 - Primary Bunkering Corridor: ${counterparty.primary_bunkering_hubs || '—'}
 
 2. COMMERCIAL PROPOSAL (${pathway === 'PHYSICAL' ? 'Bio-LNG bunkering (Art. 4, Annex I-II)' : 'Article 21 Compliance Pooling'})
@@ -294,7 +295,7 @@ European Biomethane & Marine Fuels Trading Desk`
       volume: volumeMwh,
       counterparty: counterparty.parent_name,
       legalEntityName: counterparty.parent_name,
-      complianceYear: 2025,
+      complianceYear: FUELEU_ACTIVE_PERIOD,
       contactEmail: primaryContact?.email,
       contactPhone: primaryContact?.phone || counterparty.switchboardPhone,
     });
@@ -527,9 +528,9 @@ European Biomethane & Marine Fuels Trading Desk`
               <div>• Fleet Energy in Scope: <strong style={{ color: 'var(--color-text)' }}>{(counterparty.total_energy_mwh / 1000).toFixed(1)} GWh</strong></div>
               <div>• FuelEU Target: <strong style={{ color: 'var(--color-text)' }}>89.34 gCO2e/MJ</strong> (Actual: {counterparty.actual_ghgie.toFixed(2)})</div>
               <div>• Vessels in Scope: <strong style={{ color: 'var(--color-text)' }}>{counterparty.vessels_in_scope}</strong> ({isDualFuel ? `${counterparty.lng_vessels_in_scope} LNG-ready` : 'Conventional'})</div>
-              <div>• 2025 FuelEU Penalty: <strong style={{ color: 'var(--color-status-neg-text)' }}>€{(counterparty.penalty_2025_y1_eur / 1e6).toFixed(2)}M</strong></div>
-              <div>• 2025 EU ETS Liability (70%): <strong style={{ color: 'var(--color-warning)' }}>€{(counterparty.ets_exposure_2025_eur / 1e6).toFixed(2)}M</strong></div>
-              <div>• Combined 2025 Exposure: <strong style={{ color: 'var(--color-status-neg-text)' }}>€{(counterparty.combined_regulatory_exposure_2025_eur / 1e6).toFixed(2)}M</strong></div>
+              <div>• {FUELEU_ACTIVE_PERIOD} FuelEU Penalty: <strong style={{ color: 'var(--color-status-neg-text)' }}>€{(counterparty.penalty_2026_y1_eur / 1e6).toFixed(2)}M</strong></div>
+              <div>• {FUELEU_ACTIVE_PERIOD} EU ETS Liability (100%): <strong style={{ color: 'var(--color-warning)' }}>€{(counterparty.ets_exposure_2026_eur / 1e6).toFixed(2)}M</strong></div>
+              <div>• Combined {FUELEU_ACTIVE_PERIOD} Exposure: <strong style={{ color: 'var(--color-status-neg-text)' }}>€{(counterparty.combined_regulatory_exposure_2026_eur / 1e6).toFixed(2)}M</strong></div>
             </div>
           </div>
 
@@ -595,10 +596,10 @@ European Biomethane & Marine Fuels Trading Desk`
               <span style={{ fontSize: '10px', color: 'var(--color-accent)', fontWeight: 600 }}>OTC COMMODITY</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-              <div>• Product Volume: <strong style={{ color: 'var(--color-text)' }}>{pathway === 'PHYSICAL' ? `${counterparty.bio_lng_required_neg100_t.toLocaleString()} tonnes (${counterparty.bio_lng_required_neg100_mwh.toLocaleString()} MWh)` : `${Math.abs(counterparty.compliance_balance_2025_tco2e).toLocaleString()} tCO₂e (Article 21)`}</strong></div>
+              <div>• Product Volume: <strong style={{ color: 'var(--color-text)' }}>{pathway === 'PHYSICAL' ? `${counterparty.bio_lng_required_neg100_t.toLocaleString()} tonnes (${counterparty.bio_lng_required_neg100_mwh.toLocaleString()} MWh)` : `${Math.abs(counterparty.compliance_balance_2026_tco2e).toLocaleString()} tCO₂e (Article 21)`}</strong></div>
               <div>• Substrate / Solution: <strong style={{ color: 'var(--color-text)' }}>{pathway === 'PHYSICAL' ? 'Manure (-100 gCO₂e/MJ)' : 'Drop-in Biofuel Compliance Pool'}</strong></div>
               <div>• Delivery Hubs / Registry: <strong style={{ color: 'var(--color-accent)' }}>{counterparty.primary_bunkering_hubs || '—'}</strong> ({pathway === 'PHYSICAL' ? 'DES / TTS' : 'FuelEU database (Art. 19)'})</div>
-              <div>• Total Transaction Value: <strong style={{ color: 'var(--color-text)' }}>{pathway === 'PHYSICAL' ? `€${(marineQuote.totalBioLngInvoiceEur || 0).toLocaleString()}` : `€${Math.round(Math.abs(counterparty.compliance_balance_2025_tco2e) * poolClearingPriceEurPerTco2e).toLocaleString()}`}</strong></div>
+              <div>• Total Transaction Value: <strong style={{ color: 'var(--color-text)' }}>{pathway === 'PHYSICAL' ? `€${(marineQuote.totalBioLngInvoiceEur || 0).toLocaleString()}` : `€${Math.round(Math.abs(counterparty.compliance_balance_2026_tco2e) * poolClearingPriceEurPerTco2e).toLocaleString()}`}</strong></div>
               <div>• Total Net Client Savings: <strong style={{ color: 'var(--color-status-pos-text)' }}>€{effectiveClientSavingsEur.toLocaleString()}</strong></div>
               <div>• Desk Structuring Margin <span style={{ fontWeight: 400, fontStyle: 'italic', color: 'var(--color-muted)' }}>(Internal — not for client distribution)</span>: <strong style={{ color: 'var(--color-accent)' }}>€{effectiveDeskMarginEur.toLocaleString()}</strong></div>
             </div>

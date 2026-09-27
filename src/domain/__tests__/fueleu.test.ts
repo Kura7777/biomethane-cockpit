@@ -34,8 +34,8 @@ describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2024)', () => {
       expect(c.vessels_in_scope).toBeGreaterThan(0);
       expect(c.total_energy_mwh).toBeGreaterThan(0);
       expect(c.actual_ghgie).toBeGreaterThan(0);
-      expect(Number.isFinite(c.compliance_balance_2025_tco2e)).toBe(true);
-      expect(Number.isFinite(c.penalty_2025_y1_eur)).toBe(true);
+      expect(Number.isFinite(c.compliance_balance_2026_tco2e)).toBe(true);
+      expect(Number.isFinite(c.penalty_2026_y1_eur)).toBe(true);
       expect(Number.isFinite(c.bio_lng_required_neg100_t)).toBe(true);
       expect(Number.isFinite(c.client_savings_physical_eur)).toBe(true);
       expect(Number.isFinite(c.desk_margin_physical_eur)).toBe(true);
@@ -45,19 +45,19 @@ describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2024)', () => {
       // Fleet Capability & Joint Regulatory Exposure asserts
       expect(['DUAL_FUEL_LNG', 'CONVENTIONAL_ONLY']).toContain(c.fleetCapability);
       expect(c.lng_vessels_in_scope + c.conventional_vessels_in_scope).toBe(c.vessels_in_scope);
-      expect(Number.isFinite(c.ets_exposure_2025_tco2)).toBe(true);
-      expect(Number.isFinite(c.ets_exposure_2025_eur)).toBe(true);
+      expect(Number.isFinite(c.ets_exposure_2026_tco2)).toBe(true);
       expect(Number.isFinite(c.ets_exposure_2026_eur)).toBe(true);
-      expect(Number.isFinite(c.combined_regulatory_exposure_2025_eur)).toBe(true);
-      expect(c.combined_regulatory_exposure_2025_eur).toBe(c.penalty_2025_y1_eur + c.ets_exposure_2025_eur);
+      expect(Number.isFinite(c.ets_exposure_2026_eur)).toBe(true);
+      expect(Number.isFinite(c.combined_regulatory_exposure_2026_eur)).toBe(true);
+      expect(c.combined_regulatory_exposure_2026_eur).toBe(c.penalty_2026_y1_eur + c.ets_exposure_2026_eur);
     }
   });
 
   it('correctly aggregates portfolio metrics across the fleet', () => {
     const totalVessels = FUEL_EU_SHIPPING_COUNTERPARTIES.reduce((acc, c) => acc + c.vessels_in_scope, 0);
     const totalEnergyMwh = FUEL_EU_SHIPPING_COUNTERPARTIES.reduce((acc, c) => acc + c.total_energy_mwh, 0);
-    const surplusCounterparties = FUEL_EU_SHIPPING_COUNTERPARTIES.filter(c => c.compliance_balance_2025_tco2e > 0);
-    const deficitCounterparties = FUEL_EU_SHIPPING_COUNTERPARTIES.filter(c => c.compliance_balance_2025_tco2e < 0);
+    const surplusCounterparties = FUEL_EU_SHIPPING_COUNTERPARTIES.filter(c => c.compliance_balance_2026_tco2e > 0);
+    const deficitCounterparties = FUEL_EU_SHIPPING_COUNTERPARTIES.filter(c => c.compliance_balance_2026_tco2e < 0);
 
     expect(totalVessels).toBeGreaterThan(10000);
     expect(totalEnergyMwh).toBeGreaterThan(100000000);
@@ -82,9 +82,9 @@ describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2024)', () => {
 
       expect(c.total_energy_mwh, c.parent_name).toBe(Math.round(r25.totalEnergyMwh));
       expect(c.actual_ghgie, c.parent_name).toBe(Number(r25.weightedGhgie.toFixed(2)));
-      expect(c.compliance_balance_2025_tco2e, c.parent_name).toBe(Number(r25.complianceBalanceTco2e.toFixed(1)) || 0);
-      expect(c.penalty_2025_y1_eur, c.parent_name).toBe(Math.round(r25.statutoryPenaltyY1Eur));
-      expect(c.penalty_2025_y2_eur, c.parent_name).toBe(Math.round(r25.statutoryPenaltyY2Eur));
+      expect(c.compliance_balance_2026_tco2e, c.parent_name).toBe(Number(r25.complianceBalanceTco2e.toFixed(1)) || 0);
+      expect(c.penalty_2026_y1_eur, c.parent_name).toBe(Math.round(r25.statutoryPenaltyY1Eur));
+      expect(c.penalty_2026_y2_eur, c.parent_name).toBe(Math.round(r25.statutoryPenaltyY2Eur));
       expect(c.compliance_balance_2030_tco2e, c.parent_name).toBe(Number(r30.complianceBalanceTco2e.toFixed(1)) || 0);
       expect(c.penalty_2030_y1_eur, c.parent_name).toBe(Math.round(r30.statutoryPenaltyY1Eur));
       expect(c.bio_lng_required_neg100_t, c.parent_name).toBe(Number(r25.bioLngRequiredNeg100Tonnes.toFixed(1)));
@@ -173,9 +173,9 @@ describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2024)', () => {
   it('contains expected worked example: rank 1 is a deficit carrier with the largest 2025 penalty', () => {
     const rank1 = FUEL_EU_SHIPPING_COUNTERPARTIES[0];
     expect(rank1.rank).toBe(1);
-    expect(rank1.compliance_balance_2025_tco2e).toBeLessThan(0);
+    expect(rank1.compliance_balance_2026_tco2e).toBeLessThan(0);
     for (const c of FUEL_EU_SHIPPING_COUNTERPARTIES) {
-      expect(rank1.penalty_2025_y1_eur).toBeGreaterThanOrEqual(c.compliance_balance_2025_tco2e < 0 ? c.penalty_2025_y1_eur : 0);
+      expect(rank1.penalty_2026_y1_eur).toBeGreaterThanOrEqual(c.compliance_balance_2026_tco2e < 0 ? c.penalty_2026_y1_eur : 0);
     }
   });
 
@@ -373,12 +373,12 @@ describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2024)', () => {
     }
 
     // Deficit carriers are sorted descending by penalty, and all precede surplus holders
-    const deficits = FUEL_EU_SHIPPING_COUNTERPARTIES.filter(c => c.compliance_balance_2025_tco2e < 0);
-    const surpluses = FUEL_EU_SHIPPING_COUNTERPARTIES.filter(c => c.compliance_balance_2025_tco2e > 0);
+    const deficits = FUEL_EU_SHIPPING_COUNTERPARTIES.filter(c => c.compliance_balance_2026_tco2e < 0);
+    const surpluses = FUEL_EU_SHIPPING_COUNTERPARTIES.filter(c => c.compliance_balance_2026_tco2e > 0);
     expect(deficits.length).toBeGreaterThan(0);
     expect(surpluses.length).toBeGreaterThan(0);
     for (let i = 0; i < deficits.length - 1; i++) {
-      expect(deficits[i].penalty_2025_y1_eur).toBeGreaterThanOrEqual(deficits[i + 1].penalty_2025_y1_eur);
+      expect(deficits[i].penalty_2026_y1_eur).toBeGreaterThanOrEqual(deficits[i + 1].penalty_2026_y1_eur);
     }
     expect(deficits[deficits.length - 1].rank).toBeLessThan(surpluses[0].rank);
 
@@ -393,18 +393,18 @@ describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2024)', () => {
     expect(tier3.length).toBeGreaterThan(0);
     expect(tier4.length).toBe(surpluses.length);
 
-    for (const c of tier1) expect(c.penalty_2025_y1_eur).toBeGreaterThan(10000000);
+    for (const c of tier1) expect(c.penalty_2026_y1_eur).toBeGreaterThan(10000000);
     for (const c of tier2) {
-      expect(c.penalty_2025_y1_eur).toBeGreaterThanOrEqual(2000000);
-      expect(c.penalty_2025_y1_eur).toBeLessThanOrEqual(10000000);
+      expect(c.penalty_2026_y1_eur).toBeGreaterThanOrEqual(2000000);
+      expect(c.penalty_2026_y1_eur).toBeLessThanOrEqual(10000000);
     }
     for (const c of tier3) {
-      expect(c.penalty_2025_y1_eur).toBeGreaterThan(0);
-      expect(c.penalty_2025_y1_eur).toBeLessThan(2000000);
+      expect(c.penalty_2026_y1_eur).toBeGreaterThan(0);
+      expect(c.penalty_2026_y1_eur).toBeLessThan(2000000);
     }
     for (const c of tier4) {
-      expect(c.compliance_balance_2025_tco2e).toBeGreaterThan(0);
-      expect(c.penalty_2025_y1_eur).toBe(0);
+      expect(c.compliance_balance_2026_tco2e).toBeGreaterThan(0);
+      expect(c.penalty_2026_y1_eur).toBe(0);
     }
   });
 
@@ -487,15 +487,15 @@ describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2024)', () => {
     // ETS fields are computed from the MRV-reported ets_co2_t, not the estimated fuel split, so
     // they need not track the VLSFO/MGO/LNG-based totalGrossCo2Tonnes formula above exactly.
     for (const c of FUEL_EU_SHIPPING_COUNTERPARTIES) {
-      expect(c.ets_exposure_2025_eur).toBeGreaterThanOrEqual(0);
-      expect(c.ets_exposure_2026_eur).toBeGreaterThanOrEqual(c.ets_exposure_2025_eur);
-      expect(c.combined_regulatory_exposure_2025_eur).toBe(c.penalty_2025_y1_eur + c.ets_exposure_2025_eur);
+      expect(c.ets_exposure_2026_eur).toBeGreaterThanOrEqual(0);
+      expect(c.ets_exposure_2026_eur).toBeGreaterThanOrEqual(c.ets_exposure_2026_eur);
+      expect(c.combined_regulatory_exposure_2026_eur).toBe(c.penalty_2026_y1_eur + c.ets_exposure_2026_eur);
 
-      if (c.compliance_balance_2025_tco2e > 0) {
-        expect(c.penalty_2025_y1_eur).toBe(0);
-        expect(c.combined_regulatory_exposure_2025_eur).toBe(c.ets_exposure_2025_eur);
+      if (c.compliance_balance_2026_tco2e > 0) {
+        expect(c.penalty_2026_y1_eur).toBe(0);
+        expect(c.combined_regulatory_exposure_2026_eur).toBe(c.ets_exposure_2026_eur);
       } else {
-        expect(c.combined_regulatory_exposure_2025_eur).toBeGreaterThanOrEqual(c.penalty_2025_y1_eur);
+        expect(c.combined_regulatory_exposure_2026_eur).toBeGreaterThanOrEqual(c.penalty_2026_y1_eur);
       }
     }
   });
@@ -544,8 +544,8 @@ describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2024)', () => {
 
     for (const cp of [dualFuelTarget!, conventionalTarget!]) {
       const isDualFuel = cp.fleetCapability === 'DUAL_FUEL_LNG';
-      const combinedRisk = cp.penalty_2025_y1_eur + cp.ets_exposure_2025_eur;
-      expect(cp.combined_regulatory_exposure_2025_eur).toBe(combinedRisk);
+      const combinedRisk = cp.penalty_2026_y1_eur + cp.ets_exposure_2026_eur;
+      expect(cp.combined_regulatory_exposure_2026_eur).toBe(combinedRisk);
 
       const quote = calculateMarineBunkerQuotation({
         ttfGasIndexEurMwh: 36.0,
@@ -560,20 +560,20 @@ describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2024)', () => {
         expect(quote.totalClientSavingsEur).toBeGreaterThan(0);
       }
 
-      if (isDualFuel && cp.compliance_balance_2025_tco2e < 0) {
+      if (isDualFuel && cp.compliance_balance_2026_tco2e < 0) {
         expect(cp.desk_margin_physical_eur).toBeGreaterThan(0);
       }
-      if (cp.compliance_balance_2025_tco2e !== 0) {
+      if (cp.compliance_balance_2026_tco2e !== 0) {
         expect(cp.desk_margin_pooling_eur).toBeGreaterThan(0);
       }
     }
   });
 
   it('verifies deal flow pooling invariants for a surplus holder and Trade Builder URL parameter mapping', () => {
-    const surplusTarget = FUEL_EU_SHIPPING_COUNTERPARTIES.find(c => c.compliance_balance_2025_tco2e > 0);
+    const surplusTarget = FUEL_EU_SHIPPING_COUNTERPARTIES.find(c => c.compliance_balance_2026_tco2e > 0);
     expect(surplusTarget).toBeDefined();
-    expect(surplusTarget!.compliance_balance_2025_tco2e).toBeGreaterThan(0);
-    expect(surplusTarget!.penalty_2025_y1_eur).toBe(0);
+    expect(surplusTarget!.compliance_balance_2026_tco2e).toBeGreaterThan(0);
+    expect(surplusTarget!.penalty_2026_y1_eur).toBe(0);
     expect(surplusTarget!.client_savings_pooling_eur).toBeGreaterThan(0);
     expect(surplusTarget!.desk_margin_pooling_eur).toBeGreaterThan(0);
 
@@ -731,10 +731,10 @@ describe('September 2026 audit remediation — Bio-LNG methodology, scope, ETS 2
   it('quote surplus and fossil-LNG balance are valued at the desk bid register assumption, not a fixed benchmark', () => {
     const quoteAtDefault = calculateMarineBunkerQuotation({ bioLngCi: -100 });
     const quoteAtCustomBid = calculateMarineBunkerQuotation({ bioLngCi: -100, fuelEuSurplusPriceEurPerTco2e: 100 });
-    expect(quoteAtDefault.fuelEuSurplusPriceEurPerTco2e).toBe(270); // fueleu.poolSellPriceEurPerTco2e desk bid
+    expect(quoteAtDefault.fuelEuSurplusPriceEurPerTco2e).toBe(98.6); // fueleu.poolSellPriceEurPerTco2e desk bid (offer 108.60 - spread 10)
     expect(quoteAtCustomBid.fuelEuSurplusPriceEurPerTco2e).toBe(100);
     expect(quoteAtCustomBid.fuelEuSurplusValueEurPerTonne).toBeCloseTo(
-      quoteAtDefault.fuelEuSurplusValueEurPerTonne * (100 / 270),
+      quoteAtDefault.fuelEuSurplusValueEurPerTonne * (100 / 98.6),
       2
     );
   });

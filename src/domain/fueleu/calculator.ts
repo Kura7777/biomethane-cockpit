@@ -8,7 +8,7 @@ import {
   MarineBunkerQuotationResult,
   LngEngineType,
 } from './types';
-import { getAssumption, fuelEuPoolSpreadEurPerTco2e } from '../assumptions/registry';
+import { getAssumption, fuelEuPoolSpreadEurPerTco2e, fuelEuPoolBidPriceEurPerTco2e } from '../assumptions/registry';
 
 /**
  * FuelEU Maritime Physical & Regulatory Constants
@@ -17,6 +17,20 @@ import { getAssumption, fuelEuPoolSpreadEurPerTco2e } from '../assumptions/regis
 /** Art. 4(2) reference value: 2020 fleet-average GHG intensity. Targets are reductions from it. */
 export const FUELEU_REFERENCE_INTENSITY = 91.16; // gCO2e/MJ
 export const FUELEU_TARGET_2025 = 89.3368; // 2% reduction vs 91.16 reference
+/** The compliance year this desk actively works: the 2025 target step (89.3368 g/MJ, Art. 4(2))
+ *  applies unchanged through 2029, so 2026 carries the same target as 2025. */
+export const FUELEU_ACTIVE_PERIOD = 2026;
+export const FUELEU_TARGET_2026 = FUELEU_TARGET_2025;
+/**
+ * Statutory deadlines for the FUELEU_ACTIVE_PERIOD (2026) reporting period, falling in the
+ * following calendar year's "verification period" (Regulation (EU) 2023/1805):
+ *  - Art. 20(3) (banking/borrowing) and Art. 21(8) (pooling): the company/verifier must record
+ *    banking, borrowing, or a pool's definitive composition in the FuelEU database "by 30 April
+ *    of the verification period".
+ *  - Art. 23(2): the company must pay any FuelEU penalty "by 30 June of the verification period".
+ */
+export const FUELEU_POOLING_BORROWING_DATABASE_DEADLINE = '2027-04-30'; // Art. 20(3) / Art. 21(8)
+export const FUELEU_DOCUMENT_OF_COMPLIANCE_AND_PENALTY_DEADLINE = '2027-06-30'; // Art. 22(1)-(2) / Art. 23(2)
 export const FUELEU_TARGET_2030 = 85.6904; // 6% reduction vs 91.16 reference
 export const FUELEU_TARGET_2035 = 77.9418; // 14.5% reduction vs 91.16 reference
 export const FUELEU_TARGET_2040 = 62.9004; // 31% reduction vs 91.16 reference
@@ -469,7 +483,7 @@ export function calculateVesselExposure(input: VesselCalculationInput): VesselCa
     poolingArrangementMarginEur = Math.abs(complianceBalanceTco2e) * fuelEuPoolSpreadEurPerTco2e();
   } else {
     // Over-compliant fleet: surplus can be sold into a pool at the pool bid
-    poolingSavingsEur = complianceBalanceTco2e * getAssumption('fueleu.poolSellPriceEurPerTco2e');
+    poolingSavingsEur = complianceBalanceTco2e * fuelEuPoolBidPriceEurPerTco2e();
     poolingArrangementMarginEur = complianceBalanceTco2e * fuelEuPoolSpreadEurPerTco2e();
   }
 
@@ -608,7 +622,7 @@ export function calculateMarineBunkerQuotation(
   // actually paid), not a fixed benchmark — Regulation (EU) 2023/1805 sets no statutory price.
   const surplusPriceEur = input.fuelEuSurplusPriceEurPerTco2e !== undefined
     ? input.fuelEuSurplusPriceEurPerTco2e
-    : getAssumption('fueleu.poolSellPriceEurPerTco2e');
+    : fuelEuPoolBidPriceEurPerTco2e();
 
   const targetGhgie = getFuelEUTargetIntensity(targetYear);
   const fossilLngIntensity = fossilLngWtw(lngEngine);
@@ -706,4 +720,112 @@ export function calculateMarineBunkerQuotation(
   }
 
   return result;
+}
+
+/**
+ * Static-fleet FuelEU compliance projection: milestone years shown to a client/desk.
+ * Fleet activity is held constant at the input tonnages (no Bio-LNG blend, no Article 21 pooling).
+ */
+export interface StaticFleetProjectionPoint {
+  year: number;
+  targetGhgie: number;
+  complianceBalanceTco2e: number;
+  consecutiveN: number;
+  multiplier: number;
+  penaltyEur: number;
+}
+
+export const STATIC_FLEET_PROJECTION_YEARS = [2026, 2027, 2028, 2029, 2030, 2035, 2040] as const;
+
+/**
+ * Projects a fleet's FuelEU compliance position across statutory milestone years, holding fleet
+ * activity constant at the fleet's (2024 MRV) fuel tonnages — no Bio-LNG blending, no Article 21
+ * pooling: "what happens if nothing changes."
+ *
+ * Escalation follows Art. 23(2): penalty multiplier = 1 + (n − 1)/10, where n is the number of
+ * consecutive reporting periods (including the current one) the ship has had a compliance deficit.
+ * If `assume2025NonCompliant` (default true), 2025 is treated as the ship's first non-compliant
+ * year, so 2026 starts at n = 2; otherwise 2026 starts at n = 1. n increments by 1 in every
+ * subsequent year the balance stays negative and resets to 0 in any surplus year (from which the
+ * next deficit year would restart at n = 1). Gap years (2031–2034, 2036–2039) are not returned but
+ * are still walked internally so n keeps accruing correctly across them.
+ *
+ * Doc note: the Art. 23(2) multiplier is defined and applied PER SHIP. This function models one
+ * fleet/ship-aggregate input; a company or group projection built by summing member projections
+ * (see projectStaticFleetForCounterparties) implicitly assumes every ship in that aggregate shares
+ * the same compliance-balance sign and consecutive-non-compliance history as its own tonnages —
+ * a simplification for desk-level sizing, not a per-ship calculation.
+ */
+export function projectStaticFleet(params: {
+  vlsfoTonnes: number;
+  mgoTonnes: number;
+  lngTonnes: number;
+  lngEngineType?: LngEngineType;
+  assume2025NonCompliant?: boolean;
+}): StaticFleetProjectionPoint[] {
+  const { vlsfoTonnes, mgoTonnes, lngTonnes, lngEngineType, assume2025NonCompliant = true } = params;
+  const points: StaticFleetProjectionPoint[] = [];
+  let nPrev = assume2025NonCompliant ? 1 : 0;
+  const lastYear = STATIC_FLEET_PROJECTION_YEARS[STATIC_FLEET_PROJECTION_YEARS.length - 1];
+
+  for (let year = 2026; year <= lastYear; year++) {
+    // n does not affect the balance itself (only the penalty multiplier), so a placeholder n=1
+    // is enough to read off this year's surplus/deficit sign and magnitude.
+    const probe = calculateVesselExposure({
+      vlsfoTonnes,
+      mgoTonnes,
+      lngTonnes,
+      bioLngTonnes: 0,
+      bioLngCi: -100,
+      targetYear: year,
+      consecutiveYearsNonCompliant: 1,
+      lngEngineType,
+    });
+    const isDeficit = !probe.isOverCompliant;
+    const n = isDeficit ? nPrev + 1 : 0;
+    const multiplier = isDeficit ? 1 + (n - 1) / 10 : 0;
+    const penalty = isDeficit ? penaltyEur(probe.complianceBalanceTco2e, probe.weightedGhgie, n) : 0;
+
+    if ((STATIC_FLEET_PROJECTION_YEARS as readonly number[]).includes(year)) {
+      points.push({
+        year,
+        targetGhgie: probe.targetGhgie,
+        complianceBalanceTco2e: probe.complianceBalanceTco2e,
+        consecutiveN: n,
+        multiplier,
+        penaltyEur: penalty,
+      });
+    }
+    nPrev = n;
+  }
+
+  return points;
+}
+
+export interface StaticFleetGroupProjectionPoint {
+  year: number;
+  complianceBalanceTco2e: number;
+  penaltyEur: number;
+}
+
+/**
+ * Sums projectStaticFleet point-wise across a group's member fleets (each row is one company's
+ * static tonnages). Compliance balance and penalty both sum cleanly; per-ship fields like
+ * consecutiveN/multiplier do not (see projectStaticFleet's doc note) and are not aggregated here.
+ */
+export function projectStaticFleetForCounterparties(
+  rows: Array<{
+    vlsfoTonnes: number;
+    mgoTonnes: number;
+    lngTonnes: number;
+    lngEngineType?: LngEngineType;
+    assume2025NonCompliant?: boolean;
+  }>
+): StaticFleetGroupProjectionPoint[] {
+  const perRow = rows.map(r => projectStaticFleet(r));
+  return STATIC_FLEET_PROJECTION_YEARS.map((year, i) => ({
+    year,
+    complianceBalanceTco2e: perRow.reduce((sum, pts) => sum + (pts[i]?.complianceBalanceTco2e ?? 0), 0),
+    penaltyEur: perRow.reduce((sum, pts) => sum + (pts[i]?.penaltyEur ?? 0), 0),
+  }));
 }
