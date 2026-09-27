@@ -1,0 +1,498 @@
+/* Plants desk — scoped styles (Round 2 restyle, census rebuild) */
+
+.plants-screen {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.plants-body {
+  padding-top: 20px;
+  padding-bottom: 32px;
+}
+
+.plants-export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── Body grid: table column + side panel column ── */
+.plants-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(440px, 30%, 600px);
+  gap: 24px;
+  align-items: start;
+}
+
+.plants-table-col {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Toolbar ── */
+.plants-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-bottom: 12px;
+}
+
+.plants-country-select {
+  width: 220px;
+  flex-shrink: 0;
+}
+
+.plants-popover {
+  position: absolute;
+  top: 36px;
+  left: 0;
+  z-index: 20;
+  min-width: 220px;
+  padding: 8px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.plants-popover-wide {
+  min-width: 260px;
+  gap: 8px;
+}
+
+.plants-popover button {
+  text-align: left;
+  background: none;
+  border: none;
+  font: inherit;
+  font-size: 13px;
+  padding: 6px 8px;
+  border-radius: var(--radius-control);
+  cursor: pointer;
+  color: var(--color-text);
+}
+
+.plants-popover button:hover {
+  background: var(--color-subtier);
+}
+
+.plants-popover button.active {
+  background: var(--color-accent-100);
+  color: var(--color-accent-800);
+  font-weight: 500;
+}
+
+.plants-popover-heading {
+  font-size: 12px;
+  color: var(--color-muted);
+  padding: 6px 4px 2px;
+}
+
+.plants-popover-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* ── Active filter chips ── */
+.plants-active-chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding-bottom: 10px;
+}
+
+.plants-filter-chip {
+  gap: 6px;
+}
+
+.plants-filter-chip button {
+  background: none;
+  border: none;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.plants-clear-all {
+  background: none;
+  border: none;
+  color: var(--color-accent);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 4px;
+}
+
+/* ── Protocol line ── */
+.plants-protocol-line {
+  font-size: 12px;
+  color: var(--color-muted);
+  padding-bottom: 10px;
+}
+
+/* ── Empty state ── */
+.plants-empty {
+  padding: 56px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 12px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.plants-empty h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.plants-empty p {
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0;
+  max-width: 440px;
+  color: var(--color-muted);
+}
+
+/* ── Table ── */
+.plants-table-wrap {
+  min-width: 0;
+}
+
+.plants-table-cols {
+  grid-template-columns: minmax(200px, 2.2fr) minmax(120px, 1.3fr) 130px minmax(140px, 1.1fr) 130px 130px;
+}
+
+@media (max-width: 1680px) {
+  .plants-table-cols {
+    grid-template-columns: minmax(200px, 2.2fr) minmax(120px, 1.3fr) 130px minmax(140px, 1.1fr) 130px;
+  }
+  .plants-col-grid {
+    display: none;
+  }
+}
+
+.plants-operator-cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.plants-output-bar-track {
+  width: 44px;
+  height: 6px;
+  border-radius: var(--radius-bar);
+  background: var(--color-subtier);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.plants-output-bar-fill {
+  height: 6px;
+  border-radius: var(--radius-bar);
+  background: var(--color-accent);
+}
+
+.plants-feedstock-cell {
+  font-size: 13px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plants-ci-chip {
+  display: inline-flex;
+  margin-top: 2px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--color-subtier);
+  color: var(--color-muted);
+}
+
+.plants-ci-chip.neg {
+  background: color-mix(in srgb, var(--color-status-pos-text) 12%, transparent);
+  color: var(--color-status-pos-text);
+}
+
+.plants-grid-cell {
+  overflow: hidden;
+}
+
+.plants-grid-cell > div:first-child {
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plants-sub {
+  font-size: 12px;
+  color: var(--color-muted);
+}
+
+/* ── Contact status dot (table row + panel) ── */
+.plants-contact-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.plants-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.plants-dot-amber {
+  background: var(--color-status-warn-text);
+}
+
+.plants-dot-grey {
+  background: var(--color-muted);
+}
+
+.plants-dot-red {
+  background: var(--color-status-neg-text);
+}
+
+/* ── Pagination footer controls ── */
+.plants-page-label {
+  font-size: 12px;
+  color: var(--color-muted);
+}
+
+.plants-page-select {
+  height: 28px;
+  min-height: 28px;
+  width: auto;
+  font-size: 12px;
+  padding: 0 6px;
+}
+
+/* ── ISO tag (table meta line + panel meta line) ── */
+.plants-iso-tag {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  color: var(--color-muted);
+}
+
+/* ── KPI tile extras ── */
+.plants-kpi-blue-bar .ds-kpi-bar-fill {
+  background: var(--color-status-pos-text);
+}
+
+.plants-kpi-stack {
+  display: flex;
+  height: 6px;
+  border-radius: var(--radius-bar);
+  overflow: hidden;
+  background: var(--color-subtier);
+  margin-top: auto;
+}
+
+.plants-kpi-stack-lead {
+  height: 6px;
+  background: var(--color-status-warn-text);
+}
+
+.plants-kpi-stack-switch {
+  height: 6px;
+  background: var(--color-muted);
+}
+
+/* ── Side panel ── */
+.plants-aside {
+  position: sticky;
+  top: 16px;
+}
+
+.plants-panel-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.plants-ci-negative {
+  color: var(--color-status-pos-text);
+}
+
+.plants-panel-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.plants-panel-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  padding: 4px 0;
+}
+
+.plants-panel-row-label {
+  color: var(--color-muted);
+  flex-shrink: 0;
+}
+
+.plants-panel-row-value {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-align: right;
+}
+
+.plants-panel-note {
+  font-size: 12px;
+  color: var(--color-muted);
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+.plants-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: var(--radius-control);
+  white-space: nowrap;
+}
+
+.plants-badge-pos {
+  background: var(--color-status-pos-bg, rgba(16, 185, 129, 0.12));
+  color: var(--color-status-pos-text, #10b981);
+}
+
+.plants-badge-warn {
+  background: var(--color-status-warn-bg);
+  color: var(--color-status-warn-text);
+}
+
+.plants-flag-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.plants-flag-chip {
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: var(--radius-control);
+  background: var(--color-subtier);
+  color: var(--color-muted);
+}
+
+.plants-panel-btn {
+  flex: 1;
+}
+
+/* ── Side panel: country totals rail (no selection state) ── */
+.plants-country-hint {
+  font-size: 12px;
+  color: var(--color-muted);
+}
+
+.plants-country-list {
+  padding: 8px 16px 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.plants-country-row {
+  padding: 7px 8px;
+  margin: 2px 0;
+  border-radius: var(--radius-control);
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  width: 100%;
+}
+
+.plants-country-row:hover {
+  background: var(--color-subtier);
+}
+
+.plants-country-row.selected {
+  background: var(--color-surface-sunken, var(--color-subtier));
+  border-color: var(--color-accent);
+}
+
+.plants-country-row-top {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.plants-country-iso {
+  font-weight: 600;
+  width: 22px;
+  flex-shrink: 0;
+}
+
+.plants-country-name {
+  flex: 1;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plants-country-count {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.plants-country-twh {
+  font-size: 12px;
+  width: 52px;
+  text-align: right;
+  color: var(--color-muted);
+}
+
+.plants-country-bar-track {
+  height: 3px;
+  margin-top: 5px;
+  background: var(--color-subtier);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.plants-country-bar-fill {
+  height: 3px;
+  background: var(--color-text);
+}
+
+.plants-country-row.selected .plants-country-bar-fill {
+  background: var(--color-accent);
+}
