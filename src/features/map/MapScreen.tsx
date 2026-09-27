@@ -244,7 +244,7 @@ export function MapScreen() {
             <button
               type="button"
               className="btn btn-primary"
-              style={{ height: '28px', minHeight: '28px', fontSize: '11px', padding: '0 10px', marginLeft: '4px' }}
+              style={{ height: '28px', minHeight: '28px', fontSize: '12px', padding: '0 10px', marginLeft: '4px' }}
               onClick={handleSimulateTrade}
             >
               Trade →
@@ -358,7 +358,7 @@ export function MapScreen() {
                     style={{
                       fontFamily: 'var(--font-heading)',
                       fontWeight: 800,
-                      fontSize: '10px',
+                      fontSize: '12px',
                       fill: 'var(--color-text)',
                       paintOrder: 'stroke',
                       stroke: 'var(--color-bg)',
@@ -372,12 +372,12 @@ export function MapScreen() {
                   </text>
                   <text
                     textAnchor="middle"
-                    y={9}
+                    y={12}
                     className="num"
                     style={{
                       fontFamily: 'var(--font-body)',
                       fontWeight: 600,
-                      fontSize: '9px',
+                      fontSize: '12px',
                       fill: 'color-mix(in srgb, var(--color-text) 70%, transparent)',
                       paintOrder: 'stroke',
                       stroke: 'var(--color-bg)',
@@ -412,7 +412,7 @@ export function MapScreen() {
               <button
                 type="button"
                 className={`btn ${mode === 'ORIGIN' ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ padding: '3px 8px', fontSize: '11px', flex: 1 }}
+                style={{ padding: '3px 8px', fontSize: '12px', flex: 1 }}
                 onClick={() => setMode('ORIGIN')}
               >
                 Set Origin
@@ -420,13 +420,13 @@ export function MapScreen() {
               <button
                 type="button"
                 className={`btn ${mode === 'TARGET' ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ padding: '3px 8px', fontSize: '11px', flex: 1 }}
+                style={{ padding: '3px 8px', fontSize: '12px', flex: 1 }}
                 onClick={() => setMode('TARGET')}
               >
                 Set Target
               </button>
             </div>
-            <div style={{ fontSize: '11px', marginTop: '6px' }} className="mut">
+            <div style={{ fontSize: '12px', marginTop: '6px' }} className="mut">
               Clicking a country sets it as <strong>{mode === 'ORIGIN' ? 'Origin' : 'Target'}</strong>.
             </div>
 
@@ -434,10 +434,10 @@ export function MapScreen() {
               <div className="eyebrow" style={{ marginBottom: '5px' }}>Compliance status</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 {(['ACTIVE', 'EMERGING', 'FUTURE_2028', 'RESTRICTED'] as const).map(s => (
-                  <div key={s} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px' }}>
+                  <div key={s} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' }}>
                     <span style={{ width: '9px', height: '9px', flex: 'none', backgroundColor: STATUS_CONFIG[s].swatch }} />
                     <span style={{ flex: 1 }}>{STATUS_CONFIG[s].label}</span>
-                    <span className="num mut" style={{ fontSize: '10px' }}>{statusCounts[s]}</span>
+                    <span className="num mut" style={{ fontSize: '12px' }}>{statusCounts[s]}</span>
                   </div>
                 ))}
               </div>
@@ -478,7 +478,7 @@ export function MapScreen() {
             <button
               type="button"
               className="btn btn-secondary"
-              style={{ width: '28px', height: '28px', padding: 0, fontSize: '10px', letterSpacing: '0.06em', borderTop: 0, borderRadius: 0 }}
+              style={{ width: '28px', height: '28px', padding: 0, fontSize: '12px', borderTop: 0, borderRadius: 0 }}
               aria-label="Reset view"
               onClick={() => {
                 setZoomLevel(3.6);
@@ -508,7 +508,7 @@ export function MapScreen() {
               <div style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '17px', marginTop: '4px' }}>
                 {hoveredCountry.name}
               </div>
-              <div style={{ fontSize: '11px', marginTop: '2px' }} className="mut">
+              <div style={{ fontSize: '12px', marginTop: '2px' }} className="mut">
                 {hoveredCountry.legal}
               </div>
               <div style={{ display: 'flex', gap: '18px', marginTop: '8px' }}>
@@ -580,7 +580,7 @@ export function MapScreen() {
             </span>
           </div>
           <h4 style={{ margin: '6px 0 2px', fontSize: '20px', fontWeight: 800 }}>{selectedMeta.name}</h4>
-          <div style={{ fontSize: '11px' }} className="mut">
+          <div style={{ fontSize: '12px' }} className="mut">
             {selectedMeta.legal}
           </div>
 
@@ -655,7 +655,7 @@ export function MapScreen() {
                     : '1.80'}
                 </span>
               </div>
-              <div style={{ fontSize: '11px' }} className="mut">
+              <div style={{ fontSize: '12px' }} className="mut">
                 {corridorCalculation.modes.virtualSwap.regulatoryFeasibility === 'CONTESTED'
                   ? 'Recommended · contested in some member states'
                   : 'Single mass balance zone transfer'}
@@ -670,7 +670,7 @@ export function MapScreen() {
                     : '3.20'}
                 </span>
               </div>
-              <div style={{ fontSize: '11px' }} className="mut">
+              <div style={{ fontSize: '12px' }} className="mut">
                 Multi-zone transit · PRISMA capacity required
               </div>
             </div>
@@ -683,7 +683,7 @@ export function MapScreen() {
                     : 'Tariff incomplete'}
                 </span>
               </div>
-              <div style={{ fontSize: '11px' }} className="mut">
+              <div style={{ fontSize: '12px' }} className="mut">
                 Liquefaction leg unverified — never summed around a null tariff
               </div>
             </div>

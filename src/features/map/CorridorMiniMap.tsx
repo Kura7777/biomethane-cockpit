@@ -43,7 +43,7 @@ export function CorridorMiniMap({
     .map(iso => EUROPEAN_HUBS.find(h => h.iso === iso)?.name || iso);
 
   return (
-    <div className="relative w-full h-full min-h-[220px] rounded-lg overflow-hidden border border-[#1e2433] bg-[#07090e] flex flex-col shadow-sm select-none">
+    <div className="relative w-full h-full min-h-[220px] rounded-lg overflow-hidden border border-[var(--color-divider)] bg-[var(--color-bg)] flex flex-col shadow-sm select-none">
       <style>{`
         @keyframes pipelinePulse {
           0% { stroke-dashoffset: 40; }
@@ -56,16 +56,16 @@ export function CorridorMiniMap({
       `}</style>
 
       {/* Header Overlay: Route Title & Telemetry */}
-      <div className="flex items-center justify-between px-3 py-2 bg-[#0c1017] border-b border-[#1e2433] z-10">
+      <div className="flex items-center justify-between px-3 py-2 bg-[var(--color-panel-header)] border-b border-[var(--color-divider)] z-10">
         <div className="flex items-center gap-2 min-w-0">
           <div className="w-2 h-2 rounded-full bg-cyan-400 animate-ping shrink-0" />
-          <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+          <span className="font-mono text-xs font-bold text-zinc-400">
             Pipeline Corridor Topology
           </span>
           <span className="font-mono text-xs font-bold text-cyan-300 truncate">
             {routeNodesLabel}
           </span>
-          <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-cyan-950/80 text-cyan-300 border border-cyan-700/50 shrink-0 font-semibold">
+          <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-cyan-950/80 text-cyan-300 border border-cyan-700/50 shrink-0 font-semibold">
             {hopsCount === 0 ? 'Direct Grid' : `${hopsCount} Transit ${hopsCount === 1 ? 'Hop' : 'Hops'}`}
           </span>
         </div>
@@ -74,7 +74,7 @@ export function CorridorMiniMap({
           type="button"
           onClick={() => navigate(`/map?origin=${originCountry}&target=${targetCountry}`)}
           title="Open Full Continental Logistics Map"
-          className="flex items-center gap-1 bg-[#141824] hover:bg-[#1c2234] border border-[#232b3e] hover:border-cyan-500/50 px-2 py-0.5 rounded text-zinc-300 hover:text-cyan-300 transition-colors font-mono text-[10px] cursor-pointer shrink-0 ml-2"
+          className="flex items-center gap-1 bg-[var(--color-surface)] hover:bg-[var(--color-subtier)] border border-[var(--color-divider)] hover:border-cyan-500/50 px-2 py-0.5 rounded text-zinc-300 hover:text-cyan-300 transition-colors font-mono text-xs cursor-pointer shrink-0 ml-2"
         >
           <Maximize2 className="w-3 h-3 text-cyan-400" />
           <span className="hidden sm:inline">Inspect Map</span>
@@ -91,8 +91,8 @@ export function CorridorMiniMap({
           <defs>
             {/* Continental Grid Mesh Pattern */}
             <pattern id={patternId} width="24" height="24" patternUnits="userSpaceOnUse">
-              <path d="M 24 0 L 0 0 0 24" fill="none" stroke="#161c28" strokeWidth="0.8" />
-              <circle cx="24" cy="24" r="0.8" fill="#1e2738" />
+              <path d="M 24 0 L 0 0 0 24" fill="none" stroke="var(--color-divider)" strokeWidth="0.8" />
+              <circle cx="24" cy="24" r="0.8" fill="var(--color-divider)" />
             </pattern>
 
             {/* Glowing Pipeline Filters */}
@@ -103,9 +103,9 @@ export function CorridorMiniMap({
 
             {/* Linear Gradient for Pipeline */}
             <linearGradient id={`grad-${patternId}`} x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#10b981" />
-              <stop offset="50%" stopColor="#06b6d4" />
-              <stop offset="100%" stopColor="#3b82f6" />
+              <stop offset="0%" stopColor="var(--chart-6)" />
+              <stop offset="50%" stopColor="var(--chart-1)" />
+              <stop offset="100%" stopColor="var(--chart-5)" />
             </linearGradient>
           </defs>
 
@@ -116,7 +116,7 @@ export function CorridorMiniMap({
           <path
             d="M 90 90 Q 250 50, 300 90 T 510 90"
             fill="none"
-            stroke="#0a101d"
+            stroke="var(--color-bg)"
             strokeWidth="14"
             strokeLinecap="round"
           />
@@ -125,7 +125,7 @@ export function CorridorMiniMap({
           <path
             d="M 90 90 Q 250 50, 300 90 T 510 90"
             fill="none"
-            stroke="#1c2436"
+            stroke="var(--color-divider)"
             strokeWidth="8"
             strokeLinecap="round"
           />
@@ -145,7 +145,7 @@ export function CorridorMiniMap({
           <path
             d="M 90 90 Q 250 50, 300 90 T 510 90"
             fill="none"
-            stroke="#38bdf8"
+            stroke="var(--chart-1)"
             strokeWidth="2.5"
             strokeLinecap="round"
             className="animate-pipeline-flow"
@@ -159,17 +159,17 @@ export function CorridorMiniMap({
               width="130"
               height="24"
               rx="12"
-              fill="#0b0f19"
-              stroke="#243047"
+              fill="var(--color-bg)"
+              stroke="var(--color-divider)"
               strokeWidth="1"
             />
             <text
               x="0"
               y="4"
               textAnchor="middle"
-              fill="#94a3b8"
+              fill="var(--color-muted)"
               fontFamily="monospace"
-              fontSize="10"
+              fontSize="12"
               fontWeight="bold"
             >
               {distanceKm > 0 ? `${distanceKm.toLocaleString()} km` : 'Direct Grid Intertie'}
@@ -183,25 +183,25 @@ export function CorridorMiniMap({
             const cy = 76;
             return (
               <g key={idx} transform={`translate(${cx}, ${cy})`}>
-                <circle r="7" fill="#0f172a" stroke="#0ea5e9" strokeWidth="2" />
-                <circle r="2.5" fill="#38bdf8" />
+                <circle r="7" fill="var(--color-bg)" stroke="var(--chart-1)" strokeWidth="2" />
+                <circle r="2.5" fill="var(--chart-1)" />
                 <rect
-                  x="-35"
-                  y="-22"
-                  width="70"
-                  height="14"
-                  rx="3"
-                  fill="#0b0f19"
-                  stroke="#1e293b"
+                  x="-45"
+                  y="-27"
+                  width="90"
+                  height="18"
+                  rx="4"
+                  fill="var(--color-bg)"
+                  stroke="var(--color-divider)"
                   strokeWidth="0.8"
                 />
                 <text
                   x="0"
-                  y="-12"
+                  y="-14"
                   textAnchor="middle"
-                  fill="#7dd3fc"
+                  fill="var(--chart-1)"
                   fontFamily="monospace"
-                  fontSize="8"
+                  fontSize="12"
                   fontWeight="600"
                 >
                   {hubName.length > 10 ? `${hubName.slice(0, 9)}…` : hubName}
@@ -213,15 +213,15 @@ export function CorridorMiniMap({
           {/* ORIGIN FACILITY NODE (Left) */}
           <g transform="translate(90, 90)">
             {/* Outer Pulse Rings */}
-            <circle r="24" fill="#10b981" opacity="0.08" />
-            <circle r="16" fill="#10b981" opacity="0.15" />
-            <circle r="10" fill="#0f172a" stroke="#10b981" strokeWidth="2.5" />
-            <circle r="4" fill="#34d399" />
+            <circle r="24" fill="var(--chart-6)" opacity="0.08" />
+            <circle r="16" fill="var(--chart-6)" opacity="0.15" />
+            <circle r="10" fill="var(--color-bg)" stroke="var(--chart-6)" strokeWidth="2.5" />
+            <circle r="4" fill="var(--chart-6)" />
 
             {/* Flag & ISO Badge */}
-            <foreignObject x="-75" y="-55" width="150" height="42">
+            <foreignObject x="-95" y="-58" width="190" height="44">
               <div className="flex flex-col items-center">
-                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#0b0f19]/95 border border-emerald-500/50 shadow-md font-mono text-[10px] text-emerald-300 font-bold whitespace-nowrap">
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[var(--color-bg)]/95 border border-emerald-500/50 shadow-md font-mono text-xs text-emerald-300 font-bold whitespace-nowrap">
                   <span>{getCountryFlag(originCountry)}</span>
                   <span>{originCountry} · {plantName ? 'Facility' : 'Origin Hub'}</span>
                 </div>
@@ -231,22 +231,22 @@ export function CorridorMiniMap({
             {/* Name Label */}
             <text
               x="0"
-              y="32"
+              y="34"
               textAnchor="middle"
-              fill="#e2e8f0"
+              fill="var(--color-text)"
               fontFamily="monospace"
-              fontSize="10"
+              fontSize="12"
               fontWeight="bold"
             >
               {originLabel.length > 18 ? `${originLabel.slice(0, 16)}...` : originLabel}
             </text>
             <text
               x="0"
-              y="44"
+              y="50"
               textAnchor="middle"
-              fill="#10b981"
+              fill="var(--chart-6)"
               fontFamily="monospace"
-              fontSize="8"
+              fontSize="12"
             >
               Grid Injected
             </text>
@@ -255,15 +255,15 @@ export function CorridorMiniMap({
           {/* TARGET DESTINATION NODE (Right) */}
           <g transform="translate(510, 90)">
             {/* Outer Pulse Rings */}
-            <circle r="24" fill="#06b6d4" opacity="0.08" />
-            <circle r="16" fill="#06b6d4" opacity="0.15" />
-            <circle r="10" fill="#0f172a" stroke="#06b6d4" strokeWidth="2.5" />
-            <circle r="4" fill="#38bdf8" />
+            <circle r="24" fill="var(--chart-1)" opacity="0.08" />
+            <circle r="16" fill="var(--chart-1)" opacity="0.15" />
+            <circle r="10" fill="var(--color-bg)" stroke="var(--chart-1)" strokeWidth="2.5" />
+            <circle r="4" fill="var(--chart-1)" />
 
             {/* Flag & Market Badge */}
-            <foreignObject x="-75" y="-55" width="150" height="42">
+            <foreignObject x="-95" y="-58" width="190" height="44">
               <div className="flex flex-col items-center">
-                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#0b0f19]/95 border border-cyan-500/50 shadow-md font-mono text-[10px] text-cyan-300 font-bold whitespace-nowrap">
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[var(--color-bg)]/95 border border-cyan-500/50 shadow-md font-mono text-xs text-cyan-300 font-bold whitespace-nowrap">
                   <span>{getCountryFlag(targetCountry)}</span>
                   <span>{targetCountry} · Compliance Hub</span>
                 </div>
@@ -273,22 +273,22 @@ export function CorridorMiniMap({
             {/* Name Label */}
             <text
               x="0"
-              y="32"
+              y="34"
               textAnchor="middle"
-              fill="#e2e8f0"
+              fill="var(--color-text)"
               fontFamily="monospace"
-              fontSize="10"
+              fontSize="12"
               fontWeight="bold"
             >
               {targetLabel.length > 18 ? `${targetLabel.slice(0, 16)}...` : targetLabel}
             </text>
             <text
               x="0"
-              y="44"
+              y="50"
               textAnchor="middle"
-              fill="#38bdf8"
+              fill="var(--chart-1)"
               fontFamily="monospace"
-              fontSize="8"
+              fontSize="12"
             >
               Virtual Trading Point
             </text>
@@ -297,20 +297,20 @@ export function CorridorMiniMap({
       </div>
 
       {/* Bottom Telemetry HUD Ribbon */}
-      <div className="flex items-center justify-between px-3 py-1.5 bg-[#090d14] border-t border-[#1e2433] text-zinc-300 font-mono text-xs z-10">
+      <div className="flex items-center justify-between px-3 py-1.5 bg-[var(--color-panel-header)] border-t border-[var(--color-divider)] text-zinc-300 font-mono text-xs z-10">
         <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1 text-cyan-300 font-semibold text-[10px]">
+          <span className="flex items-center gap-1 text-cyan-300 font-semibold text-xs">
             <Zap className="w-3 h-3 text-cyan-400" />
             <span>{deliveryMode.replace(/_/g, ' ')}</span>
           </span>
           <span className="text-zinc-600">|</span>
-          <span className="text-zinc-400 text-[10px]">
+          <span className="text-zinc-400 text-xs">
             Path: <strong className="text-zinc-200 tabular-nums">{distanceKm > 0 ? `${distanceKm.toLocaleString()} km` : 'Direct injection'}</strong>
           </span>
         </div>
 
         <div className="flex items-center gap-1.5">
-          <span className="text-[10px] text-zinc-400">Transmission Tariff:</span>
+          <span className="text-xs text-zinc-400">Transmission Tariff:</span>
           <span className="font-bold text-amber-300 tabular-nums text-xs">
             €{logisticsCostEur.toFixed(2)}/MWh
           </span>
