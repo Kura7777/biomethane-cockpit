@@ -220,13 +220,13 @@ export function OriginationPipelineScreen() {
               Pan-European Physical Biomethane Origination Pipeline
             </h2>
             <span style={{ 
-              backgroundColor: 'rgba(16, 185, 129, 0.15)', 
-              color: '#10b981', 
+              backgroundColor: 'var(--color-info-subtle, rgba(31, 95, 173, 0.12))', 
+              color: 'var(--color-accent)', 
               fontSize: '11px', 
               fontWeight: 700, 
               padding: '2px 8px', 
-              borderRadius: '4px',
-              border: '1px solid rgba(16, 185, 129, 0.3)'
+              borderRadius: 'var(--radius-control)',
+              border: '1px solid var(--color-accent)'
             }}>
               1,975 AUDITED FACILITIES
             </span>
@@ -340,23 +340,23 @@ export function OriginationPipelineScreen() {
           </div>
         </div>
 
-        <div style={{ padding: '14px 18px', backgroundColor: 'var(--color-surface)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: '8px' }}>
-          <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#ef4444', fontWeight: 600 }}>Subsidy Cliff / Post-Tariff (&le; 2027)</div>
-          <div style={{ fontSize: '22px', fontWeight: 700, color: '#ef4444', marginTop: '4px' }}>
+        <div style={{ padding: '14px 18px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-status-neg-border, rgba(239, 68, 68, 0.4))', borderRadius: 'var(--radius-panel)' }}>
+          <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-status-neg-text, #ef4444)', fontWeight: 600 }}>Subsidy Cliff / Post-Tariff (&le; 2027)</div>
+          <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--color-status-neg-text, #ef4444)', marginTop: '4px' }}>
             {stats.criticalCount} sites <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)', fontWeight: 400 }}>({stats.criticalGWh.toLocaleString()} GWh/yr)</span>
           </div>
         </div>
 
-        <div style={{ padding: '14px 18px', backgroundColor: 'var(--color-surface)', border: '1px solid rgba(16, 185, 129, 0.4)', borderRadius: '8px' }}>
-          <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#10b981', fontWeight: 600 }}>High-Margin Manure / Double-Counting</div>
-          <div style={{ fontSize: '22px', fontWeight: 700, color: '#10b981', marginTop: '4px' }}>
+        <div style={{ padding: '14px 18px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-panel)' }}>
+          <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-pnl-pos, var(--color-accent))', fontWeight: 600 }}>High-Margin Manure / Double-Counting</div>
+          <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--color-pnl-pos, var(--color-accent))', marginTop: '4px' }}>
             {stats.manureCount} sites <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)', fontWeight: 400 }}>(-78 to -84 gCO₂e/MJ)</span>
           </div>
         </div>
 
-        <div style={{ padding: '14px 18px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px' }}>
-          <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)', fontWeight: 600 }}>Indicative Netback Yield</div>
-          <div style={{ fontSize: '22px', fontWeight: 700, color: '#38bdf8', marginTop: '4px' }}>
+        <div style={{ padding: '14px 18px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-panel)' }}>
+          <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-muted)', fontWeight: 600 }}>Indicative Netback Yield</div>
+          <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--color-pnl-pos, var(--color-accent))', marginTop: '4px' }}>
             €118 – €152 <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)', fontWeight: 400 }}>/MWh (All-in)</span>
           </div>
         </div>
@@ -500,16 +500,16 @@ export function OriginationPipelineScreen() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span style={{
                         padding: '2px 6px',
-                        borderRadius: '4px',
+                        borderRadius: 'var(--radius-control)',
                         fontSize: '11px',
                         fontWeight: 600,
-                        backgroundColor: isManure ? 'rgba(16, 185, 129, 0.15)' : 'rgba(56, 189, 248, 0.15)',
-                        color: isManure ? '#10b981' : '#38bdf8'
+                        backgroundColor: 'var(--color-info-subtle, rgba(31, 95, 173, 0.12))',
+                        color: 'var(--color-accent)'
                       }}>
                         {p.primaryFeedstockCategory || 'Agri Waste'}
                       </span>
                     </div>
-                    <div style={{ fontSize: '11px', color: ciVal < 0 ? '#10b981' : 'var(--color-text-secondary)', marginTop: '2px', fontWeight: 600 }}>
+                    <div style={{ fontSize: '11px', color: ciVal < 0 ? 'var(--color-pnl-pos, var(--color-accent))' : 'var(--color-text-secondary)', marginTop: '2px', fontWeight: 600 }}>
                       CI: {ciVal} gCO₂e/MJ
                     </div>
                   </td>
@@ -667,10 +667,10 @@ export function OriginationPipelineScreen() {
                           padding: '4px 8px',
                           fontSize: '11px',
                           fontWeight: 600,
-                          borderRadius: '4px',
-                          backgroundColor: '#10b981',
+                          borderRadius: 'var(--radius-control)',
+                          backgroundColor: 'var(--color-accent)',
                           border: 'none',
-                          color: '#ffffff',
+                          color: 'var(--color-bg)',
                           cursor: 'pointer'
                         }}
                       >
@@ -683,10 +683,10 @@ export function OriginationPipelineScreen() {
                         style={{
                           padding: '4px 6px',
                           fontSize: '11px',
-                          borderRadius: '4px',
-                          backgroundColor: 'var(--color-surface-elevated)',
-                          border: '1px solid var(--color-border)',
-                          color: copyFeedback === p.id ? '#10b981' : 'var(--color-text-secondary)',
+                          borderRadius: 'var(--radius-control)',
+                          backgroundColor: 'var(--color-surface-elevated, var(--color-surface))',
+                          border: '1px solid var(--color-divider)',
+                          color: copyFeedback === p.id ? 'var(--color-accent)' : 'var(--color-text-secondary)',
                           cursor: 'pointer'
                         }}
                       >

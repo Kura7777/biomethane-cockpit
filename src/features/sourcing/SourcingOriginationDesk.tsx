@@ -954,7 +954,7 @@ export function SourcingOriginationDesk() {
                               </div>
                             </div>
                             <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                              <span style={{ fontSize: '11px', fontWeight: 700, color: '#10b981' }}>
+                              <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-accent)' }}>
                                 {p.annualEnergyGWh ? `${p.annualEnergyGWh.toFixed(1)} GWh` : '—'}
                               </span>
                             </div>
@@ -1059,7 +1059,7 @@ export function SourcingOriginationDesk() {
                 {/* Production Capacity */}
                 <div>
                   <div className="eyebrow" style={{ fontSize: '10px' }}>Annual Energy Capacity</div>
-                  <div className="num" style={{ fontSize: '16px', fontWeight: 800, color: '#10b981', marginTop: '2px' }}>
+                  <div className="num" style={{ fontSize: '16px', fontWeight: 800, color: 'var(--color-text)', marginTop: '2px' }}>
                     {selectedPlant.annualEnergyGWh ? `${selectedPlant.annualEnergyGWh.toFixed(1)} GWh/y` : '—'}
                   </div>
                   <div className="dim" style={{ fontSize: '11px', marginTop: '1px' }}>
@@ -1336,9 +1336,9 @@ export function SourcingOriginationDesk() {
                               alignItems: 'center',
                               justifyContent: 'space-between',
                               padding: '10px 14px',
-                              borderRadius: '6px',
-                              backgroundColor: isSelected ? 'var(--color-accent-100, rgba(16, 185, 129, 0.1))' : 'var(--color-surface)',
-                              border: isSelected ? '2px solid #10b981' : '1px solid var(--color-divider)',
+                              borderRadius: 'var(--radius-control)',
+                              backgroundColor: isSelected ? 'var(--color-surface-hover, var(--color-surface))' : 'var(--color-surface)',
+                              border: isSelected ? '2px solid var(--color-accent)' : '1px solid var(--color-divider)',
                               cursor: 'pointer',
                               transition: 'all 0.1s ease',
                               gap: '12px'
@@ -1358,7 +1358,7 @@ export function SourcingOriginationDesk() {
                                   <span style={{ fontSize: '11px', color: 'var(--color-dim)' }}>• {p.countryCode}</span>
                                   {p.region && <span style={{ fontSize: '11px', color: 'var(--color-dim)' }}>({p.region})</span>}
                                   {isSelected && (
-                                    <span style={{ fontSize: '9px', fontWeight: 800, backgroundColor: '#10b981', color: '#fff', padding: '1px 5px', borderRadius: '3px' }}>
+                                    <span style={{ fontSize: '9px', fontWeight: 800, backgroundColor: 'var(--color-accent)', color: 'var(--color-bg)', padding: '1px 5px', borderRadius: 'var(--radius-control)' }}>
                                       CURRENTLY SELECTED
                                     </span>
                                   )}
@@ -1371,7 +1371,7 @@ export function SourcingOriginationDesk() {
 
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
                               <div style={{ textAlign: 'right' }}>
-                                <div className="num" style={{ fontWeight: 700, fontSize: '13px', color: '#10b981' }}>
+                                <div className="num" style={{ fontWeight: 700, fontSize: '13px', color: 'var(--color-accent)' }}>
                                   {p.annualEnergyGWh ? `${p.annualEnergyGWh.toFixed(1)} GWh/y` : '—'}
                                 </div>
                                 <div style={{ fontSize: '10px', color: 'var(--color-dim)' }}>
@@ -1489,7 +1489,7 @@ export function SourcingOriginationDesk() {
                   <button
                     type="button"
                     className="btn btn-primary"
-                    style={{ padding: '4px 12px', fontSize: '11px', fontWeight: 700, height: '28px', backgroundColor: '#10b981', color: '#fff', border: 'none' }}
+                    style={{ padding: '4px 12px', fontSize: '11px', fontWeight: 700, height: '28px', backgroundColor: 'var(--color-accent)', color: 'var(--color-bg)', border: 'none', borderRadius: 'var(--radius-control)' }}
                     onClick={() => setIsPlantDrawerOpen(true)}
                     title="Open verified producer contacts, registration ID, and direct outreach brief"
                   >
@@ -1498,7 +1498,7 @@ export function SourcingOriginationDesk() {
                   <button
                     type="button"
                     className="btn btn-secondary"
-                    style={{ padding: '4px 10px', fontSize: '11px', fontWeight: 600, height: '28px' }}
+                    style={{ padding: '4px 10px', fontSize: '11px', fontWeight: 600, height: '28px', borderRadius: 'var(--radius-control)' }}
                     onClick={() => {
                       if (navigator?.clipboard) {
                         navigator.clipboard.writeText(plantValuation.commercialPitchSummary.pitchScript);
@@ -1515,7 +1515,7 @@ export function SourcingOriginationDesk() {
                 </div>
               </div>
 
-              <div style={{ overflowX: 'auto', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)' }}>
+              <div style={{ overflowX: 'auto', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)', borderRadius: 'var(--radius-panel)' }}>
                 <table className="table" style={{ fontSize: '12px', margin: 0 }}>
                   <thead>
                     <tr>
@@ -1543,8 +1543,8 @@ export function SourcingOriginationDesk() {
                           key={strat.strategyId}
                           className={`${isSelected ? 'selrow' : ''} cursor-pointer`}
                           style={{
-                            backgroundColor: isWinner && !isSelected ? 'rgba(16, 185, 129, 0.04)' : undefined,
-                            boxShadow: isWinner ? 'inset 3px 0 0 #10b981' : undefined,
+                            backgroundColor: isWinner && !isSelected ? 'rgba(31, 95, 173, 0.05)' : undefined,
+                            boxShadow: isWinner ? 'inset 3px 0 0 var(--color-accent)' : undefined,
                           }}
                           onClick={() => setSelectedStrategyId(strat.strategyId)}
                         >
@@ -1625,7 +1625,7 @@ export function SourcingOriginationDesk() {
                             className="num"
                             style={{
                               textAlign: 'right',
-                              color: strat.producerIncentiveDeltaEurMwh > 0 ? 'var(--color-status-pos-text)' : 'inherit',
+                              color: strat.producerIncentiveDeltaEurMwh > 0 ? 'var(--color-pnl-pos, var(--color-accent))' : 'inherit',
                               fontWeight: 600,
                             }}
                           >
@@ -1633,7 +1633,7 @@ export function SourcingOriginationDesk() {
                           </td>
                           <td className="num" style={{ textAlign: 'right', fontWeight: 800, fontSize: '13px' }}>
                             {strat.isEligible ? (
-                              <span style={{ color: strat.netDeskMarginEurPerMWh > 0 ? 'var(--color-status-pos-text)' : 'inherit' }}>
+                              <span style={{ color: strat.netDeskMarginEurPerMWh > 0 ? 'var(--color-pnl-pos, var(--color-accent))' : 'inherit' }}>
                                 +€{strat.netDeskMarginEurPerMWh.toFixed(2)}
                               </span>
                             ) : (
@@ -1645,7 +1645,7 @@ export function SourcingOriginationDesk() {
                             style={{
                               textAlign: 'right',
                               fontWeight: 700,
-                              color: strat.annualDeskPnLEur > 0 ? 'var(--color-status-pos-text)' : 'inherit',
+                              color: strat.annualDeskPnLEur > 0 ? 'var(--color-pnl-pos, var(--color-accent))' : 'inherit',
                             }}
                           >
                             {strat.isEligible ? `+€${strat.annualDeskPnLEur.toLocaleString()}` : '—'}
@@ -1748,7 +1748,7 @@ export function SourcingOriginationDesk() {
 
                         <div style={{ borderTop: '1px solid var(--color-divider)', paddingTop: '6px' }}>
                           <span className="eyebrow" style={{ fontSize: '9px', color: 'var(--color-text)' }}>Single-Leg Green Attribute Transfer (Registry Cancellation)</span>
-                          <div style={{ fontWeight: 800, fontSize: '12px', marginTop: '1px', color: 'var(--color-status-pos-text)' }}>
+                          <div style={{ fontWeight: 800, fontSize: '12px', marginTop: '1px', color: 'var(--color-text)' }}>
                             {activeStrategy.twoLegFormula.certLegFormula}
                           </div>
                           <div className="dim" style={{ fontSize: '11px', marginTop: '2px', lineHeight: 1.4 }}>
@@ -1773,10 +1773,10 @@ export function SourcingOriginationDesk() {
                         Desk Risk Profile &amp; Producer Economics
                       </div>
 
-                      <div style={{ padding: '10px 12px', backgroundColor: 'var(--color-panel-header)', border: '1px solid var(--color-divider)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ padding: '10px 12px', backgroundColor: 'var(--color-panel-header)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-control)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <div>
                           <span className="eyebrow" style={{ fontSize: '9px', color: 'var(--color-text)' }}>Commodity Market Risk Exposure</span>
-                          <div className="num" style={{ fontWeight: 800, fontSize: '13px', color: 'var(--color-accent-700)', marginTop: '1px' }}>
+                          <div className="num" style={{ fontWeight: 800, fontSize: '13px', color: 'var(--color-accent)', marginTop: '1px' }}>
                             🚫 NO EEX SHORT HEDGE REQUIRED (Zero Commodity Delta)
                           </div>
                           <div className="dim" style={{ fontSize: '11px', marginTop: '2px', lineHeight: 1.4 }}>
@@ -1796,17 +1796,17 @@ export function SourcingOriginationDesk() {
                       </div>
 
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', fontSize: '11px' }}>
-                        <div style={{ padding: '6px 8px', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)' }}>
+                        <div style={{ padding: '6px 8px', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)', borderRadius: 'var(--radius-control)' }}>
                           <div className="eyebrow" style={{ fontSize: '9px' }}>Certificate Volume</div>
                           <div className="num" style={{ fontWeight: 700, marginTop: '2px' }}>{plantValuation.plant.annualVolumeMWh.toLocaleString()} GoOs</div>
                         </div>
-                        <div style={{ padding: '6px 8px', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)' }}>
+                        <div style={{ padding: '6px 8px', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)', borderRadius: 'var(--radius-control)' }}>
                           <div className="eyebrow" style={{ fontSize: '9px' }}>Producer Bonus</div>
-                          <div className="num" style={{ fontWeight: 700, marginTop: '2px', color: 'var(--color-status-pos-text)' }}>+€{activeStrategy.recommendedBidToProducerEurMwh.toFixed(2)}/MWh</div>
+                          <div className="num" style={{ fontWeight: 700, marginTop: '2px', color: 'var(--color-pnl-pos, var(--color-accent))' }}>+€{activeStrategy.recommendedBidToProducerEurMwh.toFixed(2)}/MWh</div>
                         </div>
-                        <div style={{ padding: '6px 8px', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)' }}>
+                        <div style={{ padding: '6px 8px', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)', borderRadius: 'var(--radius-control)' }}>
                           <div className="eyebrow" style={{ fontSize: '9px' }}>Desk Annual P&amp;L</div>
-                          <div className="num" style={{ fontWeight: 800, marginTop: '2px', color: 'var(--color-status-pos-text)' }}>
+                          <div className="num" style={{ fontWeight: 800, marginTop: '2px', color: 'var(--color-pnl-pos, var(--color-accent))' }}>
                             +€{activeStrategy.annualDeskPnLEur.toLocaleString()}
                           </div>
                         </div>
@@ -1821,7 +1821,7 @@ export function SourcingOriginationDesk() {
                         Bilateral Offtake Structure (Institutional Two-Leg Model)
                       </div>
 
-                      <div style={{ padding: '10px 12px', backgroundColor: 'var(--color-panel-header)', border: '1px solid var(--color-divider)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <div style={{ padding: '10px 12px', backgroundColor: 'var(--color-panel-header)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-control)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         <div>
                           <span className="eyebrow" style={{ fontSize: '9px' }}>Leg 1: Physical Gas (TTF Indexation)</span>
                           <div style={{ fontWeight: 700, fontSize: '12px', marginTop: '1px' }}>
@@ -1864,10 +1864,10 @@ export function SourcingOriginationDesk() {
                         Desk Risk Management &amp; Exchange Hedging
                       </div>
 
-                      <div style={{ padding: '10px 12px', backgroundColor: 'var(--color-panel-header)', border: '1px solid var(--color-divider)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ padding: '10px 12px', backgroundColor: 'var(--color-panel-header)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-control)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <div>
                           <span className="eyebrow" style={{ fontSize: '9px' }}>EEX Futures Short Hedge Ticket</span>
-                          <div className="num" style={{ fontWeight: 700, fontSize: '13px', color: 'var(--color-status-pos-text)', marginTop: '1px' }}>
+                          <div className="num" style={{ fontWeight: 700, fontSize: '13px', color: 'var(--color-text)', marginTop: '1px' }}>
                             Sell Short {plantValuation.plant.annualVolumeMWh.toLocaleString()} MWh on EEX TTF Natural Gas Futures
                           </div>
                           <div className="dim" style={{ fontSize: '11px', marginTop: '2px' }}>
@@ -1890,17 +1890,17 @@ export function SourcingOriginationDesk() {
                       </div>
 
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', fontSize: '11px' }}>
-                        <div style={{ padding: '6px 8px', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)' }}>
+                        <div style={{ padding: '6px 8px', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)', borderRadius: 'var(--radius-control)' }}>
                           <div className="eyebrow" style={{ fontSize: '9px' }}>Hourly Volume</div>
                           <div className="num" style={{ fontWeight: 700, marginTop: '2px' }}>{plantValuation.plant.hourlyCapacityMWh} MWh/h</div>
                         </div>
-                        <div style={{ padding: '6px 8px', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)' }}>
+                        <div style={{ padding: '6px 8px', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)', borderRadius: 'var(--radius-control)' }}>
                           <div className="eyebrow" style={{ fontSize: '9px' }}>Annual Volume</div>
                           <div className="num" style={{ fontWeight: 700, marginTop: '2px' }}>{plantValuation.plant.annualVolumeMWh.toLocaleString()} MWh</div>
                         </div>
-                        <div style={{ padding: '6px 8px', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)' }}>
+                        <div style={{ padding: '6px 8px', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)', borderRadius: 'var(--radius-control)' }}>
                           <div className="eyebrow" style={{ fontSize: '9px' }}>Desk Annual P&amp;L</div>
-                          <div className="num" style={{ fontWeight: 800, marginTop: '2px', color: activeStrategy.annualDeskPnLEur > 0 ? 'var(--color-status-pos-text)' : 'inherit' }}>
+                          <div className="num" style={{ fontWeight: 800, marginTop: '2px', color: activeStrategy.annualDeskPnLEur > 0 ? 'var(--color-pnl-pos, var(--color-accent))' : 'inherit' }}>
                             {activeStrategy.isEligible ? `+€${activeStrategy.annualDeskPnLEur.toLocaleString()}` : '—'}
                           </div>
                         </div>
