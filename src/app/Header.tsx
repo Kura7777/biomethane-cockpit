@@ -83,7 +83,7 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-          <span className="eyebrow" style={{ color: 'var(--color-header-muted)', fontSize: '11px', letterSpacing: '0.04em' }}>
+          <span className="eyebrow" style={{ color: 'var(--color-header-muted)' }}>
             TTF M+1
           </span>
           <span
@@ -96,7 +96,7 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
           {isSimulatedGasIndex && (
             <span
               style={{
-                fontSize: '9px',
+                fontSize: '12px',
                 fontWeight: 600,
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em',
@@ -112,12 +112,12 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-          <span className="eyebrow" style={{ color: 'var(--color-header-muted)', fontSize: '11px', letterSpacing: '0.04em' }}>
+          <span className="eyebrow" style={{ color: 'var(--color-header-muted)' }}>
             Side
           </span>
           <span
             style={{
-              fontSize: '11px',
+              fontSize: '12px',
               fontWeight: 600,
               textTransform: 'uppercase',
               letterSpacing: '0.06em',
@@ -215,7 +215,7 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
           title="Open Statutory Compliance Auditor & Knowledge Vault (Alt+A)"
         >
           <span>⚖ Auditor</span>
-          <span className="num" style={{ fontWeight: 400, opacity: 0.75, fontSize: '10px' }}>Alt+A</span>
+          <span className="num" style={{ fontWeight: 400, opacity: 0.75, fontSize: '12px' }}>Alt+A</span>
         </button>
 
         <button
