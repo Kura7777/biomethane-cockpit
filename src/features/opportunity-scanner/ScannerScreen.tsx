@@ -17,6 +17,7 @@ import { estimateFarmgateProcurementCost } from '../../domain/sourcing/benchmark
 import { getAssumption } from '../../domain/assumptions/registry';
 import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
 import { AssumptionsStrip } from '../../shared/components/AssumptionsStrip';
+import { PageShell } from '../../shared/ui/PageShell';
 import { 
   Radar, 
   Building2, 
@@ -360,7 +361,7 @@ export function ScannerScreen() {
   }, [plantOpportunities]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
+    <PageShell style={{ display: 'flex', flexDirection: 'column' }}>
       {/* Tab Switcher Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: '2px solid var(--color-divider)', backgroundColor: 'var(--color-surface)', flexWrap: 'wrap', gap: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -377,13 +378,13 @@ export function ScannerScreen() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
           {/* Dual-Book Pill Selector */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', backgroundColor: 'var(--color-bg)', padding: '3px 8px', borderRadius: '6px', border: '1px solid var(--color-divider)' }}>
-            <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text-muted)' }}>
               Book:
             </span>
             <button
               type="button"
               className={`btn ${bookFilter === 'ALL' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ fontSize: '11px', padding: '3px 9px' }}
+              style={{ fontSize: '13px', padding: '3px 9px' }}
               onClick={() => setBookFilter('ALL')}
             >
               All (50/50)
@@ -391,7 +392,7 @@ export function ScannerScreen() {
             <button
               type="button"
               className={`btn ${bookFilter === 'COMPLIANCE' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ fontSize: '11px', padding: '3px 9px' }}
+              style={{ fontSize: '13px', padding: '3px 9px' }}
               onClick={() => setBookFilter('COMPLIANCE')}
             >
               🏛️ Compliance (50%)
@@ -399,7 +400,7 @@ export function ScannerScreen() {
             <button
               type="button"
               className={`btn ${bookFilter === 'VOLUNTARY' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ fontSize: '11px', padding: '3px 9px' }}
+              style={{ fontSize: '13px', padding: '3px 9px' }}
               onClick={() => setBookFilter('VOLUNTARY')}
             >
               🌱 Voluntary (50%)
@@ -479,7 +480,7 @@ export function ScannerScreen() {
                   key={s}
                   type="button"
                   className={`chip ${minArbitrageSpread === s ? 'chip-a' : ''}`}
-                  style={{ fontSize: '10px', padding: '2px 8px' }}
+                  style={{ fontSize: '12px', padding: '2px 8px' }}
                   onClick={() => setMinArbitrageSpread(s)}
                 >
                   {s === 0 ? 'All' : `≥€${s}/MWh`}
@@ -563,28 +564,28 @@ export function ScannerScreen() {
                           <span>{opp.countryFlag}</span>
                           <span>{opp.plantName}</span>
                         </div>
-                        <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                        <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
                           {opp.countryName} ({opp.countryCode}) {opp.isRestrictedSubsidy ? '· ⚠ State Auction Feed-in Tariff' : ''}
                         </div>
                       </td>
                       <td>
                         <div style={{ fontWeight: 600, fontSize: '12px' }}>{opp.feedstockCategory}</div>
-                        <div style={{ fontSize: '11px', color: opp.carbonIntensity < 0 ? 'var(--color-accent)' : 'var(--color-text-secondary)', fontWeight: opp.carbonIntensity < 0 ? 700 : 400 }}>
+                        <div style={{ fontSize: '13px', color: opp.carbonIntensity < 0 ? 'var(--color-accent)' : 'var(--color-text-secondary)', fontWeight: opp.carbonIntensity < 0 ? 700 : 400 }}>
                           CI: {opp.carbonIntensity} gCO₂e/MJ
                         </div>
                       </td>
                       <td className="num" style={{ textAlign: 'right' }}>
                         <div style={{ fontWeight: 700 }}>{opp.annualGWh.toLocaleString()} GWh</div>
-                        <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>{(opp.annualMWh).toLocaleString()} MWh</div>
+                        <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>{(opp.annualMWh).toLocaleString()} MWh</div>
                       </td>
                       <td className="num" style={{ textAlign: 'right' }}>
                         <div style={{ fontWeight: 700 }}>€{opp.procurementCostEurMwh.toFixed(2)}</div>
-                        <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{opp.procurementMode === 'FIXED_FARMGATE' ? 'Fixed Farmgate' : 'TTF + Premium'}</div>
+                        <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>{opp.procurementMode === 'FIXED_FARMGATE' ? 'Fixed Farmgate' : 'TTF + Premium'}</div>
                       </td>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <span style={{ 
-                            fontSize: '11px', 
+                            fontSize: '13px', 
                             fontWeight: 700, 
                             padding: '2px 8px', 
                             borderRadius: 'var(--radius-control)',
@@ -595,7 +596,7 @@ export function ScannerScreen() {
                             {opp.bestMarketName}
                           </span>
                         </div>
-                        <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
+                        <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
                           Transit friction: €{opp.logisticsFeeEurMwh.toFixed(2)}/MWh
                         </div>
                       </td>
@@ -620,7 +621,7 @@ export function ScannerScreen() {
                             type="button"
                             className="btn btn-primary"
                             onClick={() => handleStructurePlantTrade(opp)}
-                            style={{ fontSize: '11px', padding: '4px 10px', borderRadius: 'var(--radius-control)', display: 'inline-flex', alignItems: 'center', gap: '4px', width: '100%', justifyContent: 'center' }}
+                            style={{ fontSize: '13px', padding: '4px 10px', borderRadius: 'var(--radius-control)', display: 'inline-flex', alignItems: 'center', gap: '4px', width: '100%', justifyContent: 'center' }}
                           >
                             <Zap className="w-3 h-3" />
                             Structure ➔
@@ -653,9 +654,9 @@ export function ScannerScreen() {
                             }}
                             className="btn btn-outline"
                             style={{
-                              fontSize: '10px',
+                              fontSize: '12px',
                               padding: '2px 6px',
-                              color: '#dc2626',
+                              color: 'var(--color-status-neg-text)',
                               borderColor: 'rgba(239, 68, 68, 0.4)',
                               backgroundColor: 'rgba(239, 68, 68, 0.05)',
                               whiteSpace: 'nowrap',
@@ -808,7 +809,7 @@ export function ScannerScreen() {
                   key={m}
                   type="button"
                   className={`chip ${minMargin === m ? 'chip-a' : ''}`}
-                  style={{ fontSize: '10px', padding: '2px 7px' }}
+                  style={{ fontSize: '12px', padding: '2px 7px' }}
                   onClick={() => setMinMargin(m)}
                 >
                   {m === 0 ? 'All' : `≥€${m}`}
@@ -916,9 +917,9 @@ export function ScannerScreen() {
                               }}
                               className="btn btn-outline"
                               style={{
-                                fontSize: '10px',
+                                fontSize: '12px',
                                 padding: '1px 6px',
-                                color: '#dc2626',
+                                color: 'var(--color-status-neg-text)',
                                 borderColor: 'rgba(239, 68, 68, 0.4)',
                                 backgroundColor: 'rgba(239, 68, 68, 0.05)',
                                 display: 'inline-flex',
@@ -934,7 +935,7 @@ export function ScannerScreen() {
                             </button>
                           )}
                         </div>
-                        <div style={{ fontSize: '11px' }} className="mut">{mkt?.legalBasis}</div>
+                        <div style={{ fontSize: '13px' }} className="mut">{mkt?.legalBasis}</div>
                       </td>
                       <td>
                         <div style={{ display: 'flex', gap: '2px' }}>
@@ -973,7 +974,7 @@ export function ScannerScreen() {
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
-                                  fontSize: '10px',
+                                  fontSize: '12px',
                                   fontWeight: 600,
                                   cursor: 'pointer',
                                   backgroundColor: isHard
@@ -1022,8 +1023,8 @@ export function ScannerScreen() {
                           ? `${item.marginPercent >= 0 ? '+' : ''}${Math.round(item.marginPercent)}%`
                           : '—'}
                       </td>
-                      <td style={{ fontSize: '11px' }} className="mut">{mkt?.unitLabel}</td>
-                      <td className="num mut" style={{ textAlign: 'center', fontSize: '11px' }}>
+                      <td style={{ fontSize: '13px' }} className="mut">{mkt?.unitLabel}</td>
+                      <td className="num mut" style={{ textAlign: 'center', fontSize: '13px' }}>
                         {isSim ? 'sim' : '1d'}
                       </td>
                     </tr>
@@ -1046,11 +1047,11 @@ export function ScannerScreen() {
               <div className="eyebrow">Germany · dual branch</div>
               <div style={{ display: 'flex', gap: '24px', marginTop: '8px' }}>
                 <div>
-                  <div style={{ fontSize: '11px' }} className="mut">1× single</div>
+                  <div style={{ fontSize: '13px' }} className="mut">1× single</div>
                   <div className="num" style={{ fontSize: '22px', fontWeight: 800 }}>+€72.07</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '11px' }} className="mut">2× retained</div>
+                  <div style={{ fontSize: '13px' }} className="mut">2× retained</div>
                   <div className="num" style={{ fontSize: '22px', fontWeight: 800 }}>+€225.22</div>
                 </div>
               </div>
@@ -1108,7 +1109,7 @@ export function ScannerScreen() {
               <p style={{ fontSize: '12px', lineHeight: 1.5, margin: '6px 0 0' }} className="mut">
                 {highestBlocked?.blockingReason || 'Grid-injected volume cannot evidence UDB ingestion, so the dRTFC route hard-blocks at gate 2.'} Remedy is {highestBlocked?.remedy || 'physical bio-LNG delivery under mass balance.'}
               </p>
-              <div style={{ fontSize: '11px', marginTop: '8px', color: 'var(--color-accent-700)' }}>
+              <div style={{ fontSize: '13px', marginTop: '8px', color: 'var(--color-accent-700)' }}>
                 RED III Art. 28(2) · Reg. (EU) 2024/2792
               </div>
               <div style={{ marginTop: 'auto', paddingTop: '10px' }}>
@@ -1116,14 +1117,14 @@ export function ScannerScreen() {
                   type="button"
                   className="btn btn-outline"
                   style={{
-                    fontSize: '11px',
+                    fontSize: '13px',
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '6px',
                     width: '100%',
                     justifyContent: 'center',
                     borderColor: 'rgba(239, 68, 68, 0.4)',
-                    color: '#dc2626',
+                    color: 'var(--color-status-neg-text)',
                     backgroundColor: 'rgba(239, 68, 68, 0.05)',
                     padding: '5px 10px',
                     fontWeight: 600,
@@ -1167,6 +1168,6 @@ export function ScannerScreen() {
         originCountry={consignment.originCountry}
         targetCountry={getMarketById(selectedItem?.marketId || 'DE_THG')?.country || 'DE'}
       />
-    </div>
+    </PageShell>
   );
 }
