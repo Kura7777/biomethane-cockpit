@@ -108,150 +108,156 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
   ];
 
   return (
-    <div className="tb-step">
-      {/* Deal Note Card */}
-      <section className="tb-panel">
-        <div className="tb-panel-head">
-          <h3 className="tb-panel-title">
-            <span className="tb-id">{currentTradeAssessment.id}</span> Institutional Deal Confirmation Note
-          </h3>
-          <span className={`tb-badge ${verdictClass}`}>{isEligible ? 'STATUTORY AUDIT PASSED' : 'COMPLIANCE BLOCKED'}</span>
-        </div>
-
-        {/* Structured Deal Note Details */}
-        <div className="tb-kv">
-          <div className="tb-kv-row"><span>Asset / Consignment</span><span>{consignment.name}</span></div>
-          <div className="tb-kv-row"><span>Origin Country</span><span>{consignment.originCountry} ({consignment.originCountryName})</span></div>
-          <div className="tb-kv-row"><span>Target Market</span><span>{selectedMarket.name} ({selectedMarket.country})</span></div>
-          <div className="tb-kv-row"><span>Contract Volume</span><span>{volumeMwh.toLocaleString()} MWh</span></div>
-          <div className="tb-kv-row"><span>Certified Feedstock</span><span>{consignment.feedstock} ({consignment.annexClassification})</span></div>
-          <div className="tb-kv-row"><span>Carbon Intensity</span><span>{consignment.carbonIntensity} gCO₂e/MJ</span></div>
-          <div className="tb-kv-row"><span>Wholesale Net Netback</span><span className={netNetbackVal >= 0 ? 'tb-pos' : 'tb-neg'}>€{netNetbackVal.toFixed(2)} / MWh</span></div>
-          <div className="tb-kv-row"><span>Trader Desk Margin</span><span className={annualPnl >= 0 ? 'tb-pos' : 'tb-neg'}>€{deskMarginEurMwh} / MWh</span></div>
-          <div className="tb-kv-row"><span>Annual Desk P&amp;L</span><span className={annualPnl >= 0 ? 'tb-pos' : 'tb-neg'}>€{annualPnl.toLocaleString()}</span></div>
-          <div className="tb-kv-row"><span>Physical VTP Delivery</span><span>{getVtpForMarket(selectedMarket.country)}</span></div>
-          <div className="tb-kv-row"><span>Governing Standard</span><span>EFET 2026 Biomethane Annex / RED III Art. 30</span></div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="tb-row-start">
-          <button type="button" onClick={handleCopyDealSummary} className="btn btn-secondary">
-            {copiedSummary ? <Check size={14} className="tb-pos" /> : <Copy size={14} />}
-            <span>{copiedSummary ? 'Copied to Clipboard!' : 'Copy Deal Summary'}</span>
-          </button>
-          <button type="button" onClick={onExportTermSheetPdf} className="btn btn-secondary" data-testid="download-termsheet-pdf-btn">
-            <Download size={14} />
-            <span>Download Term Sheet (PDF)</span>
-          </button>
-          <button type="button" onClick={onExportPdf} className="btn btn-secondary" data-testid="download-efet-pdf-btn">
-            <Download size={14} />
-            <span>Download EFET Annex (PDF)</span>
-          </button>
-        </div>
-      </section>
-
-      {/* Chief Compliance Officer Pre-Trade Clearance Card */}
-      <section className={`tb-panel tb-edge ${verdictClass}`}>
-        <div className="tb-panel-head">
-          <div>
-            <h3 className={`tb-panel-title ${verdictClass}`}>
-              <ShieldCheck size={16} /> Chief Compliance Officer Pre-Trade Clearance
-            </h3>
-            <p className="tb-panel-desc">Institutional 6-gate statutory audit trail under RED III Directive &amp; national registry rules.</p>
-          </div>
-          <span className={`tb-badge ${verdictClass}`}>
-            {currentTradeAssessment.eligibility.overallVerdict} ({gatesClear}/6 GATES CLEAR)
+    <div className="tb-form">
+      {/* Deal Note */}
+      <div className="tb-form-row">
+        <span className="tb-form-label">Deal note</span>
+        <div className="tb-form-control">
+          <span className="tb-form-value">
+            <span className="tb-id">{currentTradeAssessment.id}</span> Institutional Deal Confirmation Note{' '}
+            <span className={`tb-badge ${verdictClass}`}>{isEligible ? 'STATUTORY AUDIT PASSED' : 'COMPLIANCE BLOCKED'}</span>
           </span>
-        </div>
 
-        <div className="tb-facts">
-          <div><strong>Origin Facility:</strong> {consignment.name || 'Biomethane Asset'} ({consignment.originCountry})</div>
-          <div><strong>Compliance Sink:</strong> {selectedMarket.name}</div>
-          <div><strong>Certified CI:</strong> {consignment.carbonIntensity} gCO₂e/MJ</div>
-          <div><strong>Mass Balance:</strong> UDB Single Interconnected Area</div>
-        </div>
-
-        <div className="tb-row-start">
-          <button
-            type="button"
-            onClick={() => {
-              window.dispatchEvent(new CustomEvent('open-compliance-auditor', {
-                detail: {
-                  originCountry: consignment.originCountry,
-                  targetMarketId: selectedMarket.id,
-                  targetMarketName: selectedMarket.name,
-                  annualVolumeMWh: volumeMwh,
-                  carbonIntensity: consignment.carbonIntensity,
-                  feedstockCategory: consignment.feedstock,
-                  deliveredValueEurMwh: netNetbackVal,
-                  initialTab: 'GATE_BREAKDOWN'
-                }
-              }));
-            }}
-            className="btn btn-secondary"
-          >
-            <Scale size={14} />
-            <span>Run Full Statutory Audit</span>
-          </button>
-          <button
-            type="button"
-            onClick={handleDownloadAuditMemo}
-            className="btn btn-secondary"
-            title="Download 2-page institutional statutory compliance memorandum PDF"
-          >
-            <Download size={14} />
-            <span>Download Audit Memo (PDF)</span>
-          </button>
-        </div>
-      </section>
-
-      {/* Main Deal Package Card */}
-      <section className="tb-panel">
-        <div className="tb-panel-head">
-          <div>
-            <h3 className="tb-panel-title">
-              <Package size={16} /> Institutional 5-Document Deal Package
-            </h3>
-            <p className="tb-panel-desc">Full ETRM-compliant documentation suite for counterparty execution and audit trails.</p>
+          {/* Structured Deal Note Details */}
+          <div className="tb-kv">
+            <div className="tb-kv-row"><span>Asset / Consignment</span><span>{consignment.name}</span></div>
+            <div className="tb-kv-row"><span>Origin Country</span><span>{consignment.originCountry} ({consignment.originCountryName})</span></div>
+            <div className="tb-kv-row"><span>Target Market</span><span>{selectedMarket.name} ({selectedMarket.country})</span></div>
+            <div className="tb-kv-row"><span>Contract Volume</span><span>{volumeMwh.toLocaleString()} MWh</span></div>
+            <div className="tb-kv-row"><span>Certified Feedstock</span><span>{consignment.feedstock} ({consignment.annexClassification})</span></div>
+            <div className="tb-kv-row"><span>Carbon Intensity</span><span>{consignment.carbonIntensity} gCO₂e/MJ</span></div>
+            <div className="tb-kv-row"><span>Wholesale Net Netback</span><span className={netNetbackVal >= 0 ? 'tb-pos' : 'tb-neg'}>€{netNetbackVal.toFixed(2)} / MWh</span></div>
+            <div className="tb-kv-row"><span>Trader Desk Margin</span><span className={annualPnl >= 0 ? 'tb-pos' : 'tb-neg'}>€{deskMarginEurMwh} / MWh</span></div>
+            <div className="tb-kv-row"><span>Annual Desk P&amp;L</span><span className={annualPnl >= 0 ? 'tb-pos' : 'tb-neg'}>€{annualPnl.toLocaleString()}</span></div>
+            <div className="tb-kv-row"><span>Physical VTP Delivery</span><span>{getVtpForMarket(selectedMarket.country)}</span></div>
+            <div className="tb-kv-row"><span>Governing Standard</span><span>EFET 2026 Biomethane Annex / RED III Art. 30</span></div>
           </div>
-          <button
-            type="button"
-            onClick={() => onOpenDocReview('TERM_SHEET')}
-            className="btn btn-primary"
-            data-testid="review-deal-package-btn"
-          >
-            <Package size={14} />
-            <span>Review Complete Deal Package (In-Browser Preview)</span>
-          </button>
-        </div>
 
-        {/* 5 Documents */}
-        <div className="tb-docs">
-          {documents.map(d => (
-            <button key={d.tab} type="button" onClick={() => onOpenDocReview(d.tab)} className="tb-doc" data-testid={d.testId}>
-              <span className="tb-doc-icon">{d.icon}</span>
-              <span>{d.label}</span>
+          {/* Action Buttons */}
+          <div className="tb-row-start">
+            <button type="button" onClick={handleCopyDealSummary} className="btn btn-secondary">
+              {copiedSummary ? <Check size={14} className="tb-pos" /> : <Copy size={14} />}
+              <span>{copiedSummary ? 'Copied to Clipboard!' : 'Copy Deal Summary'}</span>
             </button>
-          ))}
+            <button type="button" onClick={onExportTermSheetPdf} className="btn btn-secondary" data-testid="download-termsheet-pdf-btn">
+              <Download size={14} />
+              <span>Download Term Sheet (PDF)</span>
+            </button>
+            <button type="button" onClick={onExportPdf} className="btn btn-secondary" data-testid="download-efet-pdf-btn">
+              <Download size={14} />
+              <span>Download EFET Annex (PDF)</span>
+            </button>
+          </div>
         </div>
-      </section>
+      </div>
+
+      {/* Chief Compliance Officer Pre-Trade Clearance */}
+      <div className="tb-form-row">
+        <span className="tb-form-label">Compliance clearance</span>
+        <div className="tb-form-control">
+          <span className={`tb-form-value ${verdictClass === 'pos' ? 'tb-pos' : 'tb-neg'}`}>
+            <ShieldCheck size={16} />
+            <span className={`tb-badge ${verdictClass}`}>
+              {currentTradeAssessment.eligibility.overallVerdict} ({gatesClear}/6 GATES CLEAR)
+            </span>
+          </span>
+          <p className="tb-hint">Chief Compliance Officer Pre-Trade Clearance · Institutional 6-gate statutory audit trail under RED III Directive &amp; national registry rules.</p>
+
+          <dl className="tb-facts-list">
+            <div><dt>Origin Facility</dt><dd>{consignment.name || 'Biomethane Asset'} ({consignment.originCountry})</dd></div>
+            <div><dt>Compliance Sink</dt><dd>{selectedMarket.name}</dd></div>
+            <div><dt>Certified CI</dt><dd>{consignment.carbonIntensity} gCO₂e/MJ</dd></div>
+            <div><dt>Mass Balance</dt><dd>UDB Single Interconnected Area</dd></div>
+          </dl>
+
+          <div className="tb-row-start">
+            <button
+              type="button"
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent('open-compliance-auditor', {
+                  detail: {
+                    originCountry: consignment.originCountry,
+                    targetMarketId: selectedMarket.id,
+                    targetMarketName: selectedMarket.name,
+                    annualVolumeMWh: volumeMwh,
+                    carbonIntensity: consignment.carbonIntensity,
+                    feedstockCategory: consignment.feedstock,
+                    deliveredValueEurMwh: netNetbackVal,
+                    initialTab: 'GATE_BREAKDOWN'
+                  }
+                }));
+              }}
+              className="btn btn-secondary"
+            >
+              <Scale size={14} />
+              <span>Run Full Statutory Audit</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleDownloadAuditMemo}
+              className="btn btn-secondary"
+              title="Download 2-page institutional statutory compliance memorandum PDF"
+            >
+              <Download size={14} />
+              <span>Download Audit Memo (PDF)</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Deal Package */}
+      <div className="tb-form-row">
+        <span className="tb-form-label">Deal package</span>
+        <div className="tb-form-control">
+          <div className="tb-row">
+            <span className="tb-form-value">Institutional 5-Document Deal Package</span>
+            <button
+              type="button"
+              onClick={() => onOpenDocReview('TERM_SHEET')}
+              className="btn btn-primary"
+              data-testid="review-deal-package-btn"
+            >
+              <Package size={14} />
+              <span>Review Complete Deal Package (In-Browser Preview)</span>
+            </button>
+          </div>
+          <p className="tb-hint">Full ETRM-compliant documentation suite for counterparty execution and audit trails.</p>
+
+          {/* 5 Documents */}
+          <ul className="tb-docs">
+            {documents.map(d => (
+              <li key={d.tab}>
+                <button type="button" onClick={() => onOpenDocReview(d.tab)} className="tb-doc" data-testid={d.testId}>
+                  <span className="tb-doc-icon">{d.icon}</span>
+                  <span>{d.label}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
 
       {/* Dossier, logistics and reset */}
-      <div className="tb-step-actions">
-        <button type="button" onClick={onSaveDossier} className="btn btn-secondary" data-testid="save-dossier-btn">
-          <FolderDown size={14} />
-          <span>Save Dossier with Statutory Citations</span>
-        </button>
-        <button type="button" onClick={onOpenLogistics} className="btn btn-secondary" data-testid="delivery-playbook-btn">
-          <MapPin size={14} />
-          <span>View TSO Pipeline Logistics Route (Dijkstra)</span>
-        </button>
-        <button type="button" onClick={onReset} className="btn btn-secondary">
-          <RotateCcw size={14} />
-          <span>Start New Deal (Clear)</span>
-        </button>
+      <div className="tb-form-row">
+        <span className="tb-form-label">Finish</span>
+        <div className="tb-form-control">
+          <div className="tb-row-start">
+            <button type="button" onClick={onSaveDossier} className="btn btn-secondary" data-testid="save-dossier-btn">
+              <FolderDown size={14} />
+              <span>Save Dossier with Statutory Citations</span>
+            </button>
+            <button type="button" onClick={onOpenLogistics} className="btn btn-secondary" data-testid="delivery-playbook-btn">
+              <MapPin size={14} />
+              <span>View TSO Pipeline Logistics Route (Dijkstra)</span>
+            </button>
+            <button type="button" onClick={onReset} className="btn btn-secondary">
+              <RotateCcw size={14} />
+              <span>Start New Deal (Clear)</span>
+            </button>
+          </div>
+          <p className="tb-hint">Institutional audit trail · EFET 2026 Annex compliant · Union Database mass-balance validated</p>
+        </div>
       </div>
-      <p className="tb-hint">Institutional audit trail · EFET 2026 Annex compliant · Union Database mass-balance validated</p>
     </div>
   );
 }

@@ -6,21 +6,6 @@
   padding: 24px 16px 48px;
 }
 
-/* A step body: its panels stacked in one column */
-.tb-step,
-.tb-step-cols,
-.tb-step-cols > div {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  min-width: 0;
-}
-
-/* Tailwind's space-y-* margins would double the gap inside the flex columns */
-.tb-step-cols > .space-y-4 > * + * {
-  margin-top: 0;
-}
-
 .tb-step-actions {
   display: flex;
   align-items: center;
@@ -29,78 +14,14 @@
   padding-top: 4px;
 }
 
-/* ── Panels: one pattern for every card in the flow ──
- * 20px padding, a title row (14px/600 + icon, 13px muted meta on the right), 16px between
- * blocks, 13px muted field labels, 12px hints. */
-.tb-panel {
-  border: 1px solid var(--color-divider);
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  min-width: 0;
-}
-
-.tb-panel.accent-left {
-  box-shadow: inset 4px 0 0 var(--color-accent);
-}
-
-.tb-panel-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px 16px;
-}
-
-.tb-panel-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-.tb-panel-title svg {
-  flex-shrink: 0;
-  color: var(--color-accent);
-}
-
-.tb-panel-meta {
-  font-size: 13px;
-  color: var(--color-muted);
-}
-
-.tb-panel-desc {
-  margin: 4px 0 0;
-  font-size: 13px;
-  color: var(--color-muted);
-  line-height: 1.5;
-}
+/* ── Shared text and layout helpers ──
+ * 13px muted labels, 12px hints, 6px between chips. */
 
 .tb-section {
   display: flex;
   flex-direction: column;
   gap: 8px;
   min-width: 0;
-}
-
-.tb-panel > .tb-section + .tb-section,
-.tb-ruled {
-  padding-top: 16px;
-  border-top: 1px solid var(--color-divider);
-}
-
-.tb-section-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px 24px;
-  padding-top: 16px;
-  border-top: 1px solid var(--color-divider);
 }
 
 .tb-label {
@@ -166,14 +87,6 @@
   color: var(--color-status-neg-text);
 }
 
-.tb-warn {
-  color: var(--color-status-warn-text);
-}
-
-.tb-accent {
-  color: var(--color-accent);
-}
-
 .tb-range {
   width: 100%;
   margin: 0;
@@ -191,12 +104,6 @@ html.dark .tb-range {
   font-size: 12px;
   color: var(--color-muted);
   font-variant-numeric: tabular-nums;
-}
-
-.tb-date-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
 }
 
 /* Key/value list inside a panel: plain divided rows, no box of its own */
@@ -231,33 +138,6 @@ html.dark .tb-range {
   font-weight: 600;
   text-align: right;
   font-variant-numeric: tabular-nums;
-}
-
-.tb-kv-note {
-  padding: 8px 0;
-  border-top: 1px solid var(--color-divider);
-  font-size: 12px;
-  color: var(--color-muted);
-  line-height: 1.5;
-}
-
-/* Two-column fact grid (locked plant card) */
-.tb-facts {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px 24px;
-  font-size: 13px;
-  color: var(--color-muted);
-  line-height: 1.5;
-}
-
-.tb-facts .full {
-  grid-column: 1 / -1;
-}
-
-.tb-facts strong {
-  color: var(--color-text);
-  font-weight: 600;
 }
 
 /* Alerts built from the status tokens */
@@ -337,12 +217,6 @@ html.dark .tb-range {
   border-color: color-mix(in srgb, var(--color-status-info-text) 35%, transparent);
 }
 
-.tb-accent-btn.btn {
-  color: var(--color-accent);
-  border-color: var(--color-accent);
-  font-weight: 600;
-}
-
 .tb-meter {
   height: 4px;
   border-radius: var(--radius-bar);
@@ -358,14 +232,6 @@ html.dark .tb-range {
 
 .tb-meter-fill.neg {
   background: var(--color-status-neg-text);
-}
-
-@media (max-width: 900px) {
-  .tb-section-row,
-  .tb-facts,
-  .tb-date-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 
 .tb-volume-input.input {
@@ -386,13 +252,6 @@ html.dark .tb-range {
   border-color: color-mix(in srgb, var(--color-status-warn-text) 35%, transparent);
 }
 
-.tb-market-name {
-  margin: 2px 0 0;
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--color-text);
-}
-
 .tb-alert-block {
   flex-direction: column;
   align-items: flex-start;
@@ -409,9 +268,8 @@ html.dark .tb-range {
   list-style: none;
   margin: 0;
   padding: 0;
-  border: 1px solid var(--color-divider);
-  border-radius: var(--radius-control);
-  overflow: hidden;
+  border-top: 1px solid var(--color-divider);
+  border-bottom: 1px solid var(--color-divider);
 }
 
 .tb-gates li + li {
@@ -424,9 +282,9 @@ html.dark .tb-range {
   grid-template-columns: 20px minmax(0, 1fr) auto;
   align-items: start;
   column-gap: 12px;
-  padding: 12px 16px;
+  padding: 14px 12px;
   border: 0;
-  background: var(--color-surface);
+  background: transparent;
   font: inherit;
   text-align: left;
   color: var(--color-text);
@@ -496,10 +354,6 @@ html.dark .tb-range {
   color: var(--color-muted);
 }
 
-.tb-panel-title.warn svg {
-  color: var(--color-status-warn-text);
-}
-
 .tb-full {
   width: 100%;
 }
@@ -517,45 +371,6 @@ html.dark .tb-range {
   font-weight: 400;
   letter-spacing: 0;
   color: var(--color-muted);
-}
-
-.tb-metrics {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  border: 1px solid var(--color-divider);
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-  overflow: hidden;
-}
-
-.tb-metric {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 16px 20px;
-  min-width: 0;
-}
-
-.tb-metric + .tb-metric {
-  border-left: 1px solid var(--color-divider);
-}
-
-.tb-metric-value {
-  font-size: 20px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-@media (max-width: 900px) {
-  .tb-metrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .tb-metric:nth-child(3) {
-    border-left: 0;
-  }
-  .tb-metric:nth-child(n + 3) {
-    border-top: 1px solid var(--color-divider);
-  }
 }
 
 .tb-kv-row.total {
@@ -653,61 +468,39 @@ html.dark .tb-range {
   color: var(--color-accent);
 }
 
-.tb-edge.pos {
-  box-shadow: inset 4px 0 0 var(--color-status-pos-text);
-}
-
-.tb-edge.neg {
-  box-shadow: inset 4px 0 0 var(--color-status-neg-text);
-}
-
-.tb-panel-title.pos svg {
-  color: var(--color-status-pos-text);
-}
-
-.tb-panel-title.neg svg {
-  color: var(--color-status-neg-text);
-}
-
 .tb-docs {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--color-divider);
+}
+
+.tb-docs li {
+  border-bottom: 1px solid var(--color-divider);
 }
 
 .tb-doc {
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 40px;
-  padding: 8px 12px;
-  border: 1px solid var(--color-divider);
-  border-radius: var(--radius-control);
-  background: var(--color-surface);
+  padding: 10px 4px;
+  border: 0;
+  background: transparent;
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
   text-align: left;
   color: var(--color-text);
   cursor: pointer;
 }
 
 .tb-doc:hover {
-  background: var(--color-subtier);
-}
-
-.tb-doc:last-child:nth-child(odd) {
-  grid-column: 1 / -1;
+  color: var(--color-accent);
 }
 
 .tb-doc-icon {
   display: flex;
   color: var(--color-accent);
-}
-
-@media (max-width: 900px) {
-  .tb-docs {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 
 /* ── Input steps: one open form, no boxes ──
@@ -785,4 +578,50 @@ html.dark .tb-range {
   .tb-facts-list {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+.tb-caption {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-muted);
+}
+
+/* Deal figures: four values in one row, no box */
+.tb-figures {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px 24px;
+}
+
+.tb-figures dt {
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+.tb-figures dd {
+  margin: 4px 0 0;
+  font-size: 20px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+@media (max-width: 1100px) {
+  .tb-figures {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Inside the deal flow the shared assumptions list sits in the form, not in its own box */
+.tb-form .ds-assumptions {
+  padding: 16px 0 0;
+  border: 0;
+  border-top: 1px solid var(--color-divider);
+  border-radius: 0;
+  background: transparent;
+}
+
+/* Separate stacked chip groups (market directory) a little more than lines within a group */
+.tb-form-control > .tb-section + .tb-section {
+  margin-top: 6px;
 }
