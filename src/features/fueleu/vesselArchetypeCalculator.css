@@ -168,25 +168,142 @@
   font-weight: 600;
 }
 
-/* ── Two-column body: inputs | results ── */
-.fva-main {
+/* Input steps read as a form, not a full-bleed dashboard */
+.fva-narrow {
+  max-width: 880px;
+}
+
+.fva-ink {
+  color: var(--fe-ink);
+  font-weight: 600;
+}
+
+/* ── Step footer: back · live estimate · next ── */
+.fva-step-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--fe-line);
+}
+
+.fva-step-footer-left {
+  min-width: 96px;
+}
+
+.fva-step-footer-end {
+  padding-top: 0;
+  border-top: 0;
+  justify-content: flex-start;
+}
+
+.fva-estimate {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: var(--fe-fs-meta);
+  font-weight: 600;
+}
+
+.fva-estimate-label {
+  font-weight: 400;
+  color: var(--fe-muted);
+}
+
+.fva-estimate-sep {
+  color: var(--fe-muted);
+  font-weight: 400;
+}
+
+/* ── Summary: inputs recap beside the pricing assumptions ── */
+.fva-basis {
   display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 24px;
   align-items: start;
 }
 
-@media (max-width: 1100px) {
-  .fva-main {
+@media (max-width: 1280px) {
+  .fva-basis {
     grid-template-columns: minmax(0, 1fr);
   }
 }
 
-.fva-results {
+.fva-recap {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+@media (max-width: 1600px) {
+  .fva-recap {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+}
+
+.fva-recap-group {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  min-width: 0;
+  font-size: var(--fe-fs-meta);
+}
+
+.fva-recap-group + .fva-recap-group {
+  padding-top: 16px;
+  border-top: 1px solid var(--fe-line);
+}
+
+@media (min-width: 1601px) {
+  .fva-recap-group + .fva-recap-group {
+    padding-top: 0;
+    border-top: 0;
+  }
+}
+
+.fva-recap-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 4px;
+  font-weight: 600;
+  color: var(--fe-ink);
+}
+
+.fva-recap-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+  text-align: right;
+}
+
+.fva-recap-row .muted {
+  color: var(--fe-muted);
+  text-align: left;
+  flex-shrink: 0;
+}
+
+.fva-edit-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--fe-fs-caption);
+  font-weight: 500;
+  color: var(--fe-accent);
+  cursor: pointer;
+}
+
+.fva-edit-link:hover {
+  text-decoration: underline;
 }
 
 /* ── Inputs ── */
@@ -266,9 +383,7 @@
 .fva-settings {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-  padding-top: 20px;
-  border-top: 1px solid var(--fe-line);
+  gap: 20px 16px;
 }
 
 .fva-settings .fva-field.full {
@@ -284,7 +399,7 @@
   overflow: hidden;
 }
 
-@media (max-width: 1440px) {
+@media (max-width: 900px) {
   .fva-kpis {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -392,7 +507,7 @@
 
 .fva-pathway .fva-card-head {
   align-self: stretch;
-  align-items: flex-start;
+  align-items: baseline;
 }
 
 .fva-pathway .fva-cta.btn {

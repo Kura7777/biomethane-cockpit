@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   VESSEL_ARCHETYPES,
@@ -27,11 +27,15 @@ import {
   Anchor,
   Flame,
   Check,
-  Copy
+  Copy,
+  ArrowLeft,
+  ArrowRight,
+  Pencil
 } from 'lucide-react';
 import { showToast } from '../../app/DeskToastContainer';
 import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
 import { AssumptionsStrip } from '../../shared/components/AssumptionsStrip';
+import { Stepper } from '../../shared/ui/Stepper';
 import './vesselArchetypeCalculator.css';
 
 const FUELEU_PATHWAY_ASSUMPTIONS = [
@@ -41,6 +45,31 @@ const FUELEU_PATHWAY_ASSUMPTIONS = [
   'fueleu.poolSellPriceEurPerTco2e',
 ];
 
+type CalcStep = 1 | 2 | 3 | 4;
+
+const CALC_STEPS: { id: CalcStep; label: string }[] = [
+  { id: 1, label: 'Vessel' },
+  { id: 2, label: 'Fuel burn' },
+  { id: 3, label: 'Regulation' },
+  { id: 4, label: 'Summary' },
+];
+
+const COMPLIANCE_YEAR_LABELS: Record<number, string> = {
+  2025: '2025 (89.34 g/MJ, -2%)',
+  2030: '2030 (85.69 g/MJ, -6%)',
+  2035: '2035 (77.94 g/MJ, -14.5%)',
+  2040: '2040 (62.90 g/MJ, -31%)',
+};
+
+const ESCALATION_LABELS: Record<number, string> = {
+  1: 'Year 1 (1.00×)',
+  2: 'Year 2 (1.10×)',
+  3: 'Year 3 (1.20×)',
+  4: 'Year 4+ (1.30×)',
+};
+
+/** Single-vessel FuelEU exposure calculator as a four-step flow: pick a vessel, enter its fuel
+ *  burn, set the regulatory year, then read the result and the two commercial pathways. */
 export function VesselArchetypeCalculator() {
   const navigate = useNavigate();
 
@@ -59,6 +88,15 @@ export function VesselArchetypeCalculator() {
     VESSEL_ARCHETYPES[0].defaultShareThirdCountryVoyages
   );
   const [copied, setCopied] = useState<boolean>(false);
+  const [step, setStep] = useState<CalcStep>(1);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  // Keep the stepper in view when moving between steps from the bottom of a long step
+  const goToStep = (next: CalcStep) => {
+    setStep(next);
+    const top = rootRef.current?.getBoundingClientRect().top ?? 0;
+    if (top < 0) rootRef.current?.scrollIntoView({ block: 'start' });
+  };
 
   // Active archetype object
   const activeArchetype = useMemo(() => {
@@ -151,52 +189,101 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
 
   const isSurplus = calculationResult.isOverCompliant;
 
+  const nextLabel: Record<CalcStep, string> = {
+    1: 'Next: Fuel burn',
+    2: 'Next: Regulation',
+    3: 'See summary',
+    4: '',
+  };
+
+  const liveEstimate = (
+    <div className="fva-estimate num" aria-live="polite">
+      <span className="fva-estimate-label">Current estimate</span>
+      <span className={isSurplus ? 'fva-pos' : 'fva-neg'}>
+        {calculationResult.complianceBalanceTco2e > 0 ? '+' : ''}
+        {calculationResult.complianceBalanceTco2e.toFixed(1)} tCO₂e
+      </span>
+      <span className="fva-estimate-sep">·</span>
+      <span className={isSurplus ? 'fva-pos' : 'fva-neg'}>
+        {isSurplus ? '€0' : `€${Math.round(calculationResult.statutoryPenaltyY1Eur).toLocaleString()}`} penalty
+      </span>
+    </div>
+  );
+
+  const stepFooter = step < 4 && (
+    <div className="fva-step-footer">
+      <div className="fva-step-footer-left">
+        {step > 1 && (
+          <button type="button" className="btn btn-secondary" onClick={() => goToStep((step - 1) as CalcStep)}>
+            <ArrowLeft size={14} /> Back
+          </button>
+        )}
+      </div>
+      {liveEstimate}
+      <button type="button" className="btn btn-primary" onClick={() => goToStep((step + 1) as CalcStep)}>
+        {nextLabel[step]} <ArrowRight size={14} />
+      </button>
+    </div>
+  );
+
+  const editLink = (target: CalcStep) => (
+    <button type="button" className="fva-edit-link" onClick={() => goToStep(target)}>
+      <Pencil size={12} /> Edit
+    </button>
+  );
+
   return (
-    <div className="fva">
-      {/* Archetype Quick-Select Ribbon */}
-      <section className="fva-card">
-        <div className="fva-card-head">
-          <h3 className="fva-title">
-            <Ship size={16} /> Select Vessel Archetype Preset
-          </h3>
-          <span className="fva-meta">7 Calibrated Ships · Regulation (EU) 2023/1805 Benchmark</span>
-        </div>
+    <div className="fva" ref={rootRef}>
+      <Stepper steps={CALC_STEPS} current={step} onSelect={goToStep} ariaLabel="Vessel calculator steps" />
 
-        <div className="fva-presets">
-          {VESSEL_ARCHETYPES.map((archetype) => {
-            const isSelected = archetype.id === selectedArchetypeId;
-            return (
-              <button
-                key={archetype.id}
-                type="button"
-                onClick={() => handleSelectArchetype(archetype)}
-                className={`btn fva-preset ${isSelected ? 'btn-primary' : 'btn-secondary'}`}
-              >
-                <div className="fva-preset-text">
-                  <div className="fva-preset-name" title={archetype.name}>
-                    {archetype.name.split(' (')[0]}
-                  </div>
-                  <div className="fva-preset-segment">{archetype.segment}</div>
-                </div>
-                <div className="fva-preset-size num">{archetype.dwtOrTeu.split(' / ')[0]}</div>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Selected Archetype Context Note */}
-        <div className="fva-context">
-          <div>
-            <strong>{activeArchetype.name}:</strong> {activeArchetype.description}
+      {/* ── Step 1: Vessel ── */}
+      {step === 1 && (
+        <section className="fva-card">
+          <div className="fva-card-head">
+            <h3 className="fva-title">
+              <Ship size={16} /> Select Vessel Archetype Preset
+            </h3>
+            <span className="fva-meta">7 Calibrated Ships · Regulation (EU) 2023/1805 Benchmark</span>
           </div>
-          <div className="num">Hubs: {activeArchetype.keyPorts.slice(0, 3).join(', ')}</div>
-        </div>
-      </section>
 
-      {/* Main Two-Column Layout: Controls vs Real-Time Results */}
-      <div className="fva-main">
-        {/* Left Column: Interactive Fuel Consumption Inputs */}
-        <section className="fva-card fva-inputs">
+          <div className="fva-presets">
+            {VESSEL_ARCHETYPES.map((archetype) => {
+              const isSelected = archetype.id === selectedArchetypeId;
+              return (
+                <button
+                  key={archetype.id}
+                  type="button"
+                  aria-pressed={isSelected}
+                  onClick={() => handleSelectArchetype(archetype)}
+                  className={`btn fva-preset ${isSelected ? 'btn-primary' : 'btn-secondary'}`}
+                >
+                  <div className="fva-preset-text">
+                    <div className="fva-preset-name" title={archetype.name}>
+                      {archetype.name.split(' (')[0]}
+                    </div>
+                    <div className="fva-preset-segment">{archetype.segment}</div>
+                  </div>
+                  <div className="fva-preset-size num">{archetype.dwtOrTeu.split(' / ')[0]}</div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Selected Archetype Context Note */}
+          <div className="fva-context">
+            <div>
+              <strong>{activeArchetype.name}:</strong> {activeArchetype.description}
+            </div>
+            <div className="num">Hubs: {activeArchetype.keyPorts.slice(0, 3).join(', ')}</div>
+          </div>
+
+          {stepFooter}
+        </section>
+      )}
+
+      {/* ── Step 2: Fuel burn ── */}
+      {step === 2 && (
+        <section className="fva-card fva-inputs fva-narrow">
           <div className="fva-card-head ruled">
             <h3 className="fva-title">
               <Sliders size={16} /> Annual Fuel Burn Parameters
@@ -204,6 +291,10 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
             <button type="button" onClick={() => handleSelectArchetype(activeArchetype)} className="btn btn-secondary fva-small-btn">
               <RotateCcw size={13} /> Reset
             </button>
+          </div>
+
+          <div className="fva-meta">
+            Defaults loaded from <strong className="fva-ink">{activeArchetype.name}</strong>
           </div>
 
           {/* VLSFO Tonnes Slider & Input */}
@@ -215,6 +306,7 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
                 value={vlsfoTonnes}
                 onChange={(e) => setVlsfoTonnes(Math.max(0, Number(e.target.value) || 0))}
                 className="input num fva-num-input"
+                aria-label="VLSFO consumption (tonnes)"
               />
             </div>
             <input
@@ -225,6 +317,7 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
               value={vlsfoTonnes}
               onChange={(e) => setVlsfoTonnes(Number(e.target.value))}
               className="fva-range"
+              aria-label="VLSFO consumption slider"
             />
             <span className="fva-hint num">{LHV_VLSFO_MJ_PER_TONNE.toLocaleString()} MJ/t · {FUELEU_VLSFO_WTW.toFixed(2)} gCO₂e/MJ WtW</span>
           </div>
@@ -238,6 +331,7 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
                 value={mgoTonnes}
                 onChange={(e) => setMgoTonnes(Math.max(0, Number(e.target.value) || 0))}
                 className="input num fva-num-input"
+                aria-label="MGO / MDO consumption (tonnes)"
               />
             </div>
             <input
@@ -248,6 +342,7 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
               value={mgoTonnes}
               onChange={(e) => setMgoTonnes(Number(e.target.value))}
               className="fva-range"
+              aria-label="MGO / MDO consumption slider"
             />
             <span className="fva-hint num">{LHV_MGO_MJ_PER_TONNE.toLocaleString()} MJ/t · {FUELEU_MGO_WTW.toFixed(2)} gCO₂e/MJ WtW</span>
           </div>
@@ -261,6 +356,7 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
                 value={lngTonnes}
                 onChange={(e) => setLngTonnes(Math.max(0, Number(e.target.value) || 0))}
                 className="input num fva-num-input"
+                aria-label="Fossil LNG consumption (tonnes)"
               />
             </div>
             <input
@@ -271,6 +367,7 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
               value={lngTonnes}
               onChange={(e) => setLngTonnes(Number(e.target.value))}
               className="fva-range"
+              aria-label="Fossil LNG consumption slider"
             />
             <span className="fva-hint num">49,100 MJ/t · {fossilLngWtw().toFixed(2)} gCO₂e/MJ WtW (incl. 1.7% slip)</span>
           </div>
@@ -285,6 +382,7 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
                   value={bioLngTonnes}
                   onChange={(e) => setBioLngTonnes(Math.max(0, Number(e.target.value) || 0))}
                   className="input num fva-num-input pos"
+                  aria-label="Bio-LNG blend (tonnes)"
                 />
               </div>
               <input
@@ -295,6 +393,7 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
                 value={bioLngTonnes}
                 onChange={(e) => setBioLngTonnes(Number(e.target.value))}
                 className="fva-range"
+                aria-label="Bio-LNG blend slider"
               />
             </div>
 
@@ -308,6 +407,7 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
                     value={bioLngCi}
                     onChange={(e) => setBioLngCi(Number(e.target.value))}
                     className="input num"
+                    aria-label="Bio-LNG substrate carbon intensity (g/MJ)"
                   />
                   <span className="fva-label">g/MJ</span>
                 </div>
@@ -316,25 +416,35 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
             </div>
           </div>
 
-          {/* Regulatory Settings: Target Year & Multiplier */}
+          {stepFooter}
+        </section>
+      )}
+
+      {/* ── Step 3: Regulation ── */}
+      {step === 3 && (
+        <section className="fva-card fva-inputs fva-narrow">
+          <div className="fva-card-head ruled">
+            <h3 className="fva-title">
+              <ShieldCheck size={16} /> Regulatory settings
+            </h3>
+          </div>
+
           <div className="fva-settings">
             <label className="fva-field">
               <span className="fva-label">Compliance Year</span>
               <select value={targetYear} onChange={(e) => setTargetYear(Number(e.target.value))} className="input">
-                <option value={2025}>2025 (89.34 g/MJ, -2%)</option>
-                <option value={2030}>2030 (85.69 g/MJ, -6%)</option>
-                <option value={2035}>2035 (77.94 g/MJ, -14.5%)</option>
-                <option value={2040}>2040 (62.90 g/MJ, -31%)</option>
+                {Object.entries(COMPLIANCE_YEAR_LABELS).map(([year, label]) => (
+                  <option key={year} value={year}>{label}</option>
+                ))}
               </select>
             </label>
 
             <label className="fva-field">
               <span className="fva-label">Escalation Multiplier</span>
               <select value={consecutiveYears} onChange={(e) => setConsecutiveYears(Number(e.target.value))} className="input">
-                <option value={1}>Year 1 (1.00×)</option>
-                <option value={2}>Year 2 (1.10×)</option>
-                <option value={3}>Year 3 (1.20×)</option>
-                <option value={4}>Year 4+ (1.30×)</option>
+                {Object.entries(ESCALATION_LABELS).map(([years, label]) => (
+                  <option key={years} value={years}>{label}</option>
+                ))}
               </select>
             </label>
 
@@ -352,10 +462,14 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
               <span className="fva-hint">Counted at 50% in scope; intra-EU voyages and at-berth energy count 100%.</span>
             </label>
           </div>
-        </section>
 
-        {/* Right Column: Real-Time Results & Dual Commercial Pathways */}
-        <div className="fva-results">
+          {stepFooter}
+        </section>
+      )}
+
+      {/* ── Step 4: Summary ── */}
+      {step === 4 && (
+        <>
           {/* Key Vessel Compliance Audit Card */}
           <section className="fva-card">
             <div className="fva-card-head ruled">
@@ -489,10 +603,87 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
             </section>
           </div>
 
-          {/* Pathway pricing assumptions (shared by both pathways) */}
-          <AssumptionsStrip keys={FUELEU_PATHWAY_ASSUMPTIONS} />
-        </div>
-      </div>
+          {/* What the result is based on: inputs recap + pricing assumptions */}
+          <div className="fva-basis">
+            <section className="fva-card">
+              <div className="fva-card-head">
+                <h3 className="fva-title">Inputs used</h3>
+              </div>
+
+              <div className="fva-recap">
+                <div className="fva-recap-group">
+                  <div className="fva-recap-head">
+                    <span>Vessel</span>
+                    {editLink(1)}
+                  </div>
+                  <div className="fva-recap-row">
+                    <span className="muted">Archetype</span>
+                    <span>{activeArchetype.name.split(' (')[0]}</span>
+                  </div>
+                  <div className="fva-recap-row">
+                    <span className="muted">Segment</span>
+                    <span>{activeArchetype.segment}</span>
+                  </div>
+                </div>
+
+                <div className="fva-recap-group">
+                  <div className="fva-recap-head">
+                    <span>Fuel burn</span>
+                    {editLink(2)}
+                  </div>
+                  <div className="fva-recap-row">
+                    <span className="muted">VLSFO</span>
+                    <span className="num">{vlsfoTonnes.toLocaleString()} t</span>
+                  </div>
+                  <div className="fva-recap-row">
+                    <span className="muted">MGO / MDO</span>
+                    <span className="num">{mgoTonnes.toLocaleString()} t</span>
+                  </div>
+                  <div className="fva-recap-row">
+                    <span className="muted">Fossil LNG</span>
+                    <span className="num">{lngTonnes.toLocaleString()} t</span>
+                  </div>
+                  <div className="fva-recap-row">
+                    <span className="muted">Bio-LNG</span>
+                    <span className="num">{bioLngTonnes.toLocaleString()} t at {bioLngCi} g/MJ</span>
+                  </div>
+                </div>
+
+                <div className="fva-recap-group">
+                  <div className="fva-recap-head">
+                    <span>Regulation</span>
+                    {editLink(3)}
+                  </div>
+                  <div className="fva-recap-row">
+                    <span className="muted">Compliance year</span>
+                    <span className="num">{COMPLIANCE_YEAR_LABELS[targetYear] ?? targetYear}</span>
+                  </div>
+                  <div className="fva-recap-row">
+                    <span className="muted">Escalation</span>
+                    <span className="num">{ESCALATION_LABELS[consecutiveYears] ?? consecutiveYears}</span>
+                  </div>
+                  <div className="fva-recap-row">
+                    <span className="muted">Third-country voyages</span>
+                    <span className="num">{Math.round(shareThirdCountryVoyages * 100)}%</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Pathway pricing assumptions (shared by both pathways) */}
+            <AssumptionsStrip keys={FUELEU_PATHWAY_ASSUMPTIONS} />
+          </div>
+
+          <div className="fva-step-footer fva-step-footer-end">
+            <button type="button" className="btn btn-secondary" onClick={() => goToStep(3)}>
+              <ArrowLeft size={14} /> Back
+            </button>
+            <button type="button" className="btn btn-secondary" onClick={() => goToStep(1)}>
+              <RotateCcw size={14} /> Start with another vessel
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
