@@ -1,3 +1,5 @@
+> **⚠ SUPERSEDED — do not rely on this report.** This report (17 Aug 2026) scored the app "100 / 100 — Certified Production Ready". The September 2026 audit found critical calculation defects and fabricated data that this report missed: wrong FuelEU units, halved German THG P&L, UK RTFO eligibility errors, generated registration IDs, and invented contacts and dossiers. See [docs/audits/2026-09-desk-audit.md](docs/audits/2026-09-desk-audit.md) for the current record. Kept for history only.
+
 # Master Formal Technical Audit & Production Readiness Certification
 ## European Biomethane Arbitrage & Desk Cockpit
 **Repository Root**: `c:\Users\Chris's PC\OneDrive\Desktop\Biomethane Tool (Gemini)`  
