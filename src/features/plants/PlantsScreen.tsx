@@ -571,8 +571,6 @@ export function PlantsScreen() {
           onClick={() => setViewMode('PIPELINE')}
           style={{ 
             fontWeight: 700,
-            borderColor: viewMode === 'PIPELINE' ? 'rgba(16, 185, 129, 0.8)' : undefined,
-            color: viewMode === 'PIPELINE' ? '#10b981' : undefined,
             display: 'flex',
             alignItems: 'center',
             gap: '6px'
@@ -686,7 +684,7 @@ export function PlantsScreen() {
                   <button
                     type="button"
                     className={`chip ${selectedFeedstock === 'MANURE' ? 'chip-a' : ''}`}
-                    style={{ fontSize: '11px', padding: '3px 8px', color: selectedFeedstock === 'MANURE' ? '#10b981' : undefined }}
+                    style={{ fontSize: '11px', padding: '3px 8px' }}
                     onClick={() => {
                       resetAllFilters();
                       setSelectedFeedstock('MANURE');
@@ -978,7 +976,7 @@ export function PlantsScreen() {
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <span style={{ fontWeight: 700, color: 'var(--color-text)' }}>
-                    Showing <span style={{ color: '#10b981' }}>{sortedPlants.length.toLocaleString()}</span> of {COMBINED_BIOMETHANE_PLANTS.length.toLocaleString()} facilities
+                    Showing <span style={{ color: 'var(--color-accent)' }}>{sortedPlants.length.toLocaleString()}</span> of {COMBINED_BIOMETHANE_PLANTS.length.toLocaleString()} facilities
                   </span>
                   {selectedCountry !== 'ALL' && (
                     <span className="chip chip-a" style={{ fontSize: '10px', padding: '1px 6px' }}>
@@ -1220,7 +1218,7 @@ export function PlantsScreen() {
                             </td>
 
                             {/* Annual Energy GWh */}
-                            <td className="num" style={{ textAlign: 'right', fontWeight: 700, color: (p.annualEnergyGWh || 0) >= 50 ? '#10b981' : 'inherit' }}>
+                            <td className="num" style={{ textAlign: 'right', fontWeight: 700, color: (p.annualEnergyGWh || 0) >= 50 ? 'var(--color-accent)' : 'inherit' }}>
                               {renderUnrecorded(p.annualEnergyGWh ? p.annualEnergyGWh.toFixed(1) : null)}
                             </td>
 
@@ -1429,7 +1427,7 @@ export function PlantsScreen() {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#10b981', fontWeight: 600 }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--color-accent)', fontWeight: 600 }}>
                     <ShieldCheck size={14} /> Tier-1 Audited Registry (1,975 Facilities)
                   </span>
                   <span>
@@ -1438,22 +1436,22 @@ export function PlantsScreen() {
                     </strong>
                   </span>
                   <span>
-                    Sub-Zero Assets: <strong style={{ color: '#10b981' }}>
+                    Sub-Zero Assets: <strong style={{ color: 'var(--color-accent)' }}>
                       {sortedPlants.filter(p => (p.verifiedCarbonIntensity ?? 0) < 0).length}
                     </strong>
                   </span>
                   <span>
-                    Unverified Leads: <strong style={{ color: '#0ea5e9' }}>
+                    Unverified Leads: <strong style={{ color: 'var(--color-accent)' }}>
                       {sortedPlants.filter(p => p.contactQuality?.confidence === 'UNVERIFIED_LEAD').length}
                     </strong>
                   </span>
                   <span>
-                    Shared Switchboards: <strong style={{ color: '#f59e0b' }}>
+                    Shared Switchboards: <strong style={{ color: 'var(--color-warn, #b45309)' }}>
                       {sortedPlants.filter(p => p.contactQuality?.confidence === 'INDIRECT').length}
                     </strong>
                   </span>
                   <span>
-                    Dead Domains: <strong style={{ color: '#ef4444' }}>
+                    Dead Domains: <strong style={{ color: 'var(--color-status-neg-text, #ef4444)' }}>
                       {sortedPlants.filter(p => p.contactQuality?.confidence === 'UNDELIVERABLE').length}
                     </strong>
                   </span>
@@ -1481,7 +1479,7 @@ export function PlantsScreen() {
                   {selectedCountry !== 'ALL' && (
                     <button
                       type="button"
-                      style={{ background: 'none', border: 'none', color: '#10b981', cursor: 'pointer', fontSize: '11px', fontWeight: 700 }}
+                      style={{ background: 'none', border: 'none', color: 'var(--color-accent)', cursor: 'pointer', fontSize: '11px', fontWeight: 700 }}
                       onClick={() => setSelectedCountry('ALL')}
                     >
                       Show All
@@ -1505,11 +1503,11 @@ export function PlantsScreen() {
                       style={{ 
                         padding: '7px 8px', 
                         margin: '2px 0',
-                        borderRadius: '4px',
+                        borderRadius: 'var(--radius-control)',
                         borderBottom: '1px solid var(--color-divider)',
                         cursor: 'pointer',
                         backgroundColor: isSelected ? 'var(--color-surface-sunken)' : 'transparent',
-                        outline: isSelected ? '1px solid #10b981' : 'none'
+                        outline: isSelected ? '1px solid var(--color-accent)' : 'none'
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
@@ -1518,7 +1516,7 @@ export function PlantsScreen() {
                         <span style={{ flex: 1, fontSize: '12px', fontWeight: isSelected ? 700 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {c.country}
                         </span>
-                        <span className="num" style={{ fontSize: '12px', fontWeight: 700, color: isSelected ? '#10b981' : 'inherit' }}>
+                        <span className="num" style={{ fontSize: '12px', fontWeight: 700, color: isSelected ? 'var(--color-accent)' : 'inherit' }}>
                           {c.activePlants}
                         </span>
                         <span className="num mut" style={{ fontSize: '10px', width: '48px', textAlign: 'right' }}>
@@ -1526,7 +1524,7 @@ export function PlantsScreen() {
                         </span>
                       </div>
                       <div style={{ height: '3px', marginTop: '5px', backgroundColor: 'color-mix(in srgb, var(--color-text) 10%, transparent)', borderRadius: '2px', overflow: 'hidden' }}>
-                        <div style={{ height: '3px', width: `${barWidth}%`, backgroundColor: isSelected ? '#10b981' : 'var(--color-text)' }} />
+                        <div style={{ height: '3px', width: `${barWidth}%`, backgroundColor: isSelected ? 'var(--color-accent)' : 'var(--color-text)' }} />
                       </div>
                     </div>
                   );
