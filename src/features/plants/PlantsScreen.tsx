@@ -640,7 +640,7 @@ export function PlantsScreen() {
                       </span>
                     </h3>
                     <div className="subttl" style={{ marginTop: '2px' }}>
-                      Audited European facility directory with statutory SIREN/PITD/HRB IDs, grid operators, contacts, and RED III carbon intensities.
+                      European facility directory (GIE/EBA Biomethane Map). Registration IDs shown only where a national register confirms them; contacts are unverified leads; carbon intensities are feedstock defaults.
                     </div>
                   </div>
 
