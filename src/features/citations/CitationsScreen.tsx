@@ -229,7 +229,7 @@ export function CitationsScreen() {
             <h4 style={{ fontSize: '19px', margin: '0 0 8px', fontWeight: 800 }} className="font-heading">
               Compliance gates &amp; audit scope
             </h4>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px', background: 'var(--color-divider)', marginTop: '8px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px', background: 'var(--color-divider)', marginTop: '8px', borderRadius: 'var(--radius-control)', overflow: 'hidden' }}>
               <div style={{ background: 'var(--color-bg)', padding: '12px 16px' }}>
                 <div className="eyebrow">Evaluated Gate</div>
                 <div style={{ fontSize: '14px', fontWeight: 600, marginTop: '2px' }}>{activeDoc.complianceGate}</div>
@@ -249,7 +249,7 @@ export function CitationsScreen() {
               <h4 style={{ fontSize: '19px', margin: '0 0 8px', fontWeight: 800 }} className="font-heading">
                 Penalties, floor prices &amp; buyout caps
               </h4>
-              <div style={{ padding: '12px 16px', background: 'var(--color-accent-100)', border: '1px solid var(--color-accent-300)', color: 'var(--color-accent-900)', fontSize: '13px', lineHeight: 1.5 }}>
+              <div style={{ padding: '12px 16px', background: 'var(--color-accent-100)', border: '1px solid var(--color-accent-300)', color: 'var(--color-accent-900)', fontSize: '13px', lineHeight: 1.5, borderRadius: 'var(--radius-control)' }}>
                 {activeDoc.penaltiesOrCaps}
               </div>
             </section>
