@@ -177,39 +177,39 @@ export function TradeConsignmentStep({
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                 <span
                   style={{
-                    fontSize: '10px',
-                    fontFamily: MONO_FONT,
-                    fontWeight: 800,
-                    letterSpacing: '0.06em',
-                    padding: '2px 7px',
-                    backgroundColor: 'rgba(14, 165, 233, 0.25)',
-                    color: '#38bdf8',
-                    border: '1px solid rgba(14, 165, 233, 0.4)',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    padding: '2px 8px',
+                    borderRadius: 'var(--radius-control)',
+                    backgroundColor: 'rgba(14, 165, 233, 0.15)',
+                    color: 'var(--color-accent)',
+                    border: '1px solid rgba(14, 165, 233, 0.3)',
                   }}
                 >
-                  FUELEU MARITIME UPSTREAM SOURCING HEDGE
+                  FuelEU Maritime Upstream Sourcing Hedge
                 </span>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text)' }}>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)' }}>
                   Marine Counterparty: {deal.counterparty || 'Maritime Fleet Buyer'}
                 </span>
-                <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
+                <span className="tabular-nums" style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
                   ({volumeMwh.toLocaleString()} MWh physical biomethane requirement)
                 </span>
               </div>
-              <div style={{ fontSize: '11.5px', color: 'var(--color-muted)', marginTop: '3px' }}>
+              <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '3px' }}>
                 Sourcing pipeline biomethane on the European gas grid via RED III Mass Balance to feed cryogenic Bio-LNG liquefaction at European bunkering terminals.
               </div>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             <span
+              className="tabular-nums"
               style={{
-                fontSize: '11px',
-                fontFamily: MONO_FONT,
+                fontSize: '12px',
                 fontWeight: 600,
                 color: 'var(--color-status-pos-text)',
                 backgroundColor: 'rgba(16, 185, 129, 0.12)',
                 border: '1px solid rgba(16, 185, 129, 0.3)',
+                borderRadius: 'var(--radius-control)',
                 padding: '4px 10px',
               }}
             >
@@ -230,6 +230,7 @@ export function TradeConsignmentStep({
             style={{
               border: '1px solid var(--color-divider)',
               backgroundColor: 'var(--color-surface)',
+              borderRadius: 'var(--radius-card)',
               padding: '14px 16px',
               display: 'flex',
               alignItems: 'center',
@@ -239,11 +240,11 @@ export function TradeConsignmentStep({
             }}
           >
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, fontSize: '12.5px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, fontSize: '13px' }}>
                 <FileText size={15} style={{ color: 'var(--color-accent)' }} />
                 <span>Audited Proof of Sustainability (PoS)</span>
               </div>
-              <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '2px' }}>
+              <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '2px' }}>
                 Auto-extract audited substrate mix, certified CI, and registration ID from ISCC EU or REDcert-EU
               </div>
             </div>
@@ -252,15 +253,9 @@ export function TradeConsignmentStep({
               onClick={onOpenPoS}
               className="btn btn-secondary"
               style={{
-                height: '32px',
-                padding: '0 14px',
-                fontSize: '11.5px',
-                fontWeight: 700,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
                 borderColor: 'var(--color-accent)',
                 color: 'var(--color-accent)',
+                fontWeight: 600,
               }}
               data-testid="pos-uploader-btn"
             >
@@ -276,21 +271,23 @@ export function TradeConsignmentStep({
                 border: '1px solid var(--color-divider)',
                 borderLeft: '4px solid var(--color-accent)',
                 backgroundColor: 'var(--color-surface)',
+                borderRadius: 'var(--radius-card)',
                 padding: '14px 16px',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ fontSize: '18px' }}>{currentOriginObj.flag}</span>
-                  <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--color-text)' }}>
+                  <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text)' }}>
                     {deal.plantName || linkedPlant?.name}
                   </span>
                 </div>
                 <span
                   style={{
-                    fontSize: '9.5px',
-                    fontWeight: 700,
+                    fontSize: '12px',
+                    fontWeight: 600,
                     padding: '2px 8px',
+                    borderRadius: 'var(--radius-control)',
                     border: '1px solid rgba(16, 185, 129, 0.4)',
                     backgroundColor: 'rgba(16, 185, 129, 0.12)',
                     color: 'var(--color-status-pos-text)',
@@ -314,7 +311,7 @@ export function TradeConsignmentStep({
                   {deal.networkOperator || linkedPlant?.networkOperator || `${currentOriginObj.name} Gas Grid`}
                 </div>
                 {(deal.plantAnnualGWh || linkedPlant?.annualEnergyGWh) && (
-                  <div>
+                  <div className="tabular-nums">
                     <strong style={{ color: 'var(--color-text)' }}>Facility Capacity:</strong>{' '}
                     {deal.plantAnnualGWh || linkedPlant?.annualEnergyGWh} GWh/y
                   </div>
@@ -332,7 +329,7 @@ export function TradeConsignmentStep({
                   </div>
                 )}
                 {(deal.contactEmail || linkedPlant?.contactEmail) && (
-                  <div className="sm:col-span-2" style={{ fontFamily: MONO_FONT, fontSize: '11px' }}>
+                  <div className="sm:col-span-2" style={{ fontSize: '12px' }}>
                     <strong style={{ color: 'var(--color-text)' }}>Desk Contact:</strong>{' '}
                     {deal.contactEmail || linkedPlant?.contactEmail}{' '}
                     {deal.contactPhone || linkedPlant?.contactPhone ? `· ${deal.contactPhone || linkedPlant?.contactPhone}` : ''}
@@ -347,6 +344,7 @@ export function TradeConsignmentStep({
             style={{
               border: '1px solid var(--color-divider)',
               backgroundColor: 'var(--color-surface)',
+              borderRadius: 'var(--radius-card)',
               overflow: 'hidden',
             }}
           >
@@ -362,12 +360,12 @@ export function TradeConsignmentStep({
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Calendar size={13} style={{ color: 'var(--color-accent)' }} />
-                <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                <span style={{ fontSize: '13px', fontWeight: 600 }}>
                   Production &amp; Delivery Schedule
                 </span>
               </div>
-              <span style={{ fontSize: '9.5px', fontFamily: MONO_FONT, color: 'var(--color-muted)' }}>
-                EFET BIOMETHANE SCHEDULE
+              <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
+                EFET biomethane schedule
               </span>
             </div>
 
@@ -381,7 +379,6 @@ export function TradeConsignmentStep({
                       key={yr}
                       type="button"
                       className={`chip ${complianceYear === yr ? 'chip-a' : ''}`}
-                      style={{ fontSize: '11px', padding: '2px 10px' }}
                       onClick={() => handleComplianceYearChange(yr)}
                     >
                       {yr}
@@ -392,7 +389,7 @@ export function TradeConsignmentStep({
 
               {/* Vintage Presets */}
               <div>
-                <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>Production Vintage (Gas Grid Injection)</span>
+                <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>Production Vintage (Gas Grid Injection)</span>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
                   {[
                     { key: 'CAL_YEAR', label: `Cal-${complianceYear}` },
@@ -407,7 +404,6 @@ export function TradeConsignmentStep({
                       key={p.key}
                       type="button"
                       className={`chip ${vintagePreset === p.key ? 'chip-a' : ''}`}
-                      style={{ fontSize: '10.5px', padding: '2px 8px' }}
                       onClick={() => handleVintagePreset(p.key)}
                     >
                       {p.label}
@@ -419,25 +415,23 @@ export function TradeConsignmentStep({
               {/* Date Pickers */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label style={{ fontSize: '10px', color: 'var(--color-muted)', display: 'block', marginBottom: '3px' }}>
+                  <label style={{ fontSize: '12px', color: 'var(--color-muted)', display: 'block', marginBottom: '3px' }}>
                     Injection Start Date
                   </label>
                   <input
                     type="date"
-                    className="input"
-                    style={{ fontSize: '11px', padding: '4px 8px', width: '100%', fontFamily: MONO_FONT }}
+                    className="input tabular-nums"
                     value={prodStartDate}
                     onChange={e => setProdStartDate(e.target.value)}
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: '10px', color: 'var(--color-muted)', display: 'block', marginBottom: '3px' }}>
+                  <label style={{ fontSize: '12px', color: 'var(--color-muted)', display: 'block', marginBottom: '3px' }}>
                     Injection End Date
                   </label>
                   <input
                     type="date"
-                    className="input"
-                    style={{ fontSize: '11px', padding: '4px 8px', width: '100%', fontFamily: MONO_FONT }}
+                    className="input tabular-nums"
                     value={prodEndDate}
                     onChange={e => setProdEndDate(e.target.value)}
                   />
@@ -446,14 +440,13 @@ export function TradeConsignmentStep({
 
               {/* Delivery Profile */}
               <div>
-                <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>Delivery Rate Profile</span>
+                <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>Delivery Rate Profile</span>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
                   {(['FLAT_MONTHLY', 'SEASONAL_WINTER', 'PROMPT_SPOT', 'CUSTOM'] as DeliveryProfile[]).map(dp => (
                     <button
                       key={dp}
                       type="button"
                       className={`chip ${deliveryProfile === dp ? 'chip-a' : ''}`}
-                      style={{ fontSize: '10.5px', padding: '2px 8px' }}
                       onClick={() => setDeliveryProfile(dp)}
                     >
                       {dp.replace('_', ' ')}
@@ -468,23 +461,24 @@ export function TradeConsignmentStep({
                   padding: '10px 12px',
                   backgroundColor: 'var(--color-panel-header)',
                   border: '1px solid var(--color-divider)',
-                  fontSize: '11px',
+                  borderRadius: 'var(--radius-control)',
+                  fontSize: '12px',
                   lineHeight: 1.5,
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
                   <span style={{ color: 'var(--color-muted)' }}>Grid Delivery Point (VTP):</span>
-                  <strong style={{ color: 'var(--color-text)', fontFamily: MONO_FONT }}>
+                  <strong style={{ color: 'var(--color-text)' }}>
                     {getVtpForMarket(selectedMarket.country)}
                   </strong>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
                   <span style={{ color: 'var(--color-muted)' }}>Registry Surrender Deadline:</span>
-                  <strong style={{ color: 'var(--color-accent)', fontFamily: MONO_FONT }}>
+                  <strong className="tabular-nums" style={{ color: 'var(--color-accent)' }}>
                     {statutorySurrenderDeadline}
                   </strong>
                 </div>
-                <div style={{ fontSize: '10px', color: 'var(--color-muted)', marginTop: '4px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '4px' }}>
                   UDB Mass Balance Rule: Certificates must be balanced and surrendered within 12 months of injection month end (RED III Art. 30).
                 </div>
               </div>
@@ -513,10 +507,10 @@ export function TradeConsignmentStep({
                 justifyContent: 'space-between',
               }}
             >
-              <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              <span style={{ fontSize: '13px', fontWeight: 600 }}>
                 Origin Country &amp; Grid Injection Zone
               </span>
-              <span style={{ fontSize: '10.5px', fontFamily: MONO_FONT, color: 'var(--color-muted)' }}>
+              <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
                 {currentOriginObj.code} · {currentOriginObj.name}
               </span>
             </div>
@@ -528,7 +522,6 @@ export function TradeConsignmentStep({
                     key={o.code}
                     type="button"
                     className={`chip ${o.code === origin ? 'chip-a' : ''}`}
-                    style={{ fontSize: '11px', padding: '3px 8px' }}
                     onClick={() => setOrigin(o.code)}
                   >
                     <span>{o.flag}</span>
@@ -536,7 +529,7 @@ export function TradeConsignmentStep({
                   </button>
                 ))}
               </div>
-              <p style={{ fontSize: '11.5px', lineHeight: 1.5, margin: '6px 0 0', color: 'var(--color-muted)' }}>
+              <p style={{ fontSize: '12px', lineHeight: 1.5, margin: '6px 0 0', color: 'var(--color-muted)' }}>
                 {currentOriginObj.desc}
               </p>
 
@@ -547,7 +540,7 @@ export function TradeConsignmentStep({
                     padding: '8px 12px',
                     backgroundColor: 'rgba(239, 68, 68, 0.12)',
                     border: '1px solid rgba(239, 68, 68, 0.4)',
-                    borderRadius: '4px',
+                    borderRadius: 'var(--radius-control)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
@@ -555,7 +548,7 @@ export function TradeConsignmentStep({
                     flexWrap: 'wrap'
                   }}
                 >
-                  <div style={{ fontSize: '11px', color: '#f87171', fontWeight: 600 }}>
+                  <div style={{ fontSize: '12px', color: 'var(--color-status-neg-text)', fontWeight: 600 }}>
                     🛑 Non-EU Gas Grid — Physical grid disconnected from EU UDB single mass balance area.
                   </div>
                   <button
@@ -574,7 +567,7 @@ export function TradeConsignmentStep({
                       }));
                     }}
                     className="btn btn-secondary"
-                    style={{ fontSize: '10.5px', padding: '2px 8px', color: '#f87171', borderColor: 'rgba(239, 68, 68, 0.4)', fontWeight: 700 }}
+                    style={{ fontSize: '12px', padding: '2px 8px', color: 'var(--color-status-neg-text)', borderColor: 'var(--color-status-neg-border)', fontWeight: 600 }}
                   >
                     ⚖ Audit UDB Cross-Border Ingestion
                   </button>
@@ -588,14 +581,15 @@ export function TradeConsignmentStep({
             style={{
               border: '1px solid var(--color-divider)',
               backgroundColor: 'var(--color-surface)',
+              borderRadius: 'var(--radius-card)',
               padding: '14px 16px',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              <span style={{ fontSize: '13px', fontWeight: 600 }}>
                 Contract Traded Volume
               </span>
-              <span style={{ fontFamily: MONO_FONT, fontWeight: 800, fontSize: '16px', color: 'var(--color-accent)' }}>
+              <span className="tabular-nums" style={{ fontWeight: 600, fontSize: '16px', color: 'var(--color-accent)' }}>
                 {volumeMwh.toLocaleString()} MWh
               </span>
             </div>
@@ -605,8 +599,8 @@ export function TradeConsignmentStep({
                 type="number"
                 min="100"
                 step="500"
-                className="input"
-                style={{ fontWeight: 700, fontSize: '14px', flex: 1, fontFamily: MONO_FONT }}
+                className="input tabular-nums"
+                style={{ fontWeight: 600, fontSize: '14px', flex: 1 }}
                 value={volumeMwh}
                 onChange={e => setVolumeMwh(Math.max(0, Number(e.target.value) || 0))}
               />
@@ -615,8 +609,7 @@ export function TradeConsignmentStep({
                   <button
                     key={v}
                     type="button"
-                    className="chip"
-                    style={{ fontSize: '10px', padding: '3px 6px', fontFamily: MONO_FONT }}
+                    className="chip tabular-nums"
                     onClick={() => setVolumeMwh(v)}
                   >
                     {(v / 1000).toFixed(0)}k
@@ -626,25 +619,25 @@ export function TradeConsignmentStep({
             </div>
 
             {/* Run-rate breakdown */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--color-muted)', marginTop: '8px', fontFamily: MONO_FONT }}>
+            <div className="tabular-nums" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--color-muted)', marginTop: '8px' }}>
               <span>Delivery Run-rate:</span>
               <span>~{monthlyRateMwh.toLocaleString()} MWh/mo · {dailyRateMwh.toLocaleString()} MWh/d</span>
             </div>
 
-            {/* Facility capacity bar if linked */}
             {plantTotalMWh !== null && (
               <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--color-divider)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', marginBottom: '4px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
                   <span style={{ color: 'var(--color-muted)' }}>Facility Capacity Utilisation:</span>
-                  <span style={{ fontFamily: MONO_FONT, fontWeight: 700, color: isOversubscribed ? 'var(--color-status-neg-text)' : 'var(--color-text)' }}>
+                  <span className="tabular-nums" style={{ fontWeight: 600, color: isOversubscribed ? 'var(--color-status-neg-text)' : 'var(--color-text)' }}>
                     {plantCommittedPct}% ({volumeMwh.toLocaleString()} / {plantTotalMWh.toLocaleString()} MWh)
                   </span>
                 </div>
-                <div style={{ height: '4px', backgroundColor: 'var(--color-divider)', position: 'relative' }}>
+                <div style={{ height: '4px', backgroundColor: 'var(--color-divider)', borderRadius: 'var(--radius-bar)', position: 'relative' }}>
                   <div
                     style={{
                       height: '100%',
                       width: `${Math.min(100, plantCommittedPct || 0)}%`,
+                      borderRadius: 'var(--radius-bar)',
                       backgroundColor: isOversubscribed ? 'var(--color-status-neg-text)' : 'var(--color-accent)',
                     }}
                   />
@@ -658,6 +651,7 @@ export function TradeConsignmentStep({
             style={{
               border: '1px solid var(--color-divider)',
               backgroundColor: 'var(--color-surface)',
+              borderRadius: 'var(--radius-card)',
               padding: '14px 16px',
               display: 'flex',
               flexDirection: 'column',
@@ -666,7 +660,7 @@ export function TradeConsignmentStep({
           >
             {/* Feedstock */}
             <div>
-              <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              <span style={{ fontSize: '13px', fontWeight: 600 }}>
                 Primary Feedstock Substrate
               </span>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
@@ -675,7 +669,6 @@ export function TradeConsignmentStep({
                     key={f.key}
                     type="button"
                     className={`chip ${f.key === feedstockKey ? 'chip-a' : ''}`}
-                    style={{ fontSize: '11px', padding: '3px 8px' }}
                     onClick={() => {
                       setFeedstockKey(f.key);
                       const benchmark = getCountryFeedstockCI(origin, f.key, ciTier);
@@ -686,7 +679,7 @@ export function TradeConsignmentStep({
                   </button>
                 ))}
               </div>
-              <p style={{ fontSize: '11.5px', lineHeight: 1.5, margin: '6px 0 0', color: 'var(--color-muted)' }}>
+              <p style={{ fontSize: '12px', lineHeight: 1.5, margin: '6px 0 0', color: 'var(--color-muted)' }}>
                 {currentFeedstockObj.hint}
               </p>
 
@@ -697,7 +690,7 @@ export function TradeConsignmentStep({
                     padding: '8px 12px',
                     backgroundColor: 'rgba(245, 158, 11, 0.12)',
                     border: '1px solid rgba(245, 158, 11, 0.4)',
-                    borderRadius: '4px',
+                    borderRadius: 'var(--radius-control)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
@@ -705,7 +698,7 @@ export function TradeConsignmentStep({
                     flexWrap: 'wrap'
                   }}
                 >
-                  <div style={{ fontSize: '11px', color: '#fbbf24', fontWeight: 600 }}>
+                  <div style={{ fontSize: '12px', color: 'var(--color-status-warn-text)', fontWeight: 600 }}>
                     ⚠ Food/Crop Cap — Energy crops are subject to statutory transport caps under RED III Art. 26.
                   </div>
                   <button
@@ -724,7 +717,7 @@ export function TradeConsignmentStep({
                       }));
                     }}
                     className="btn btn-secondary"
-                    style={{ fontSize: '10.5px', padding: '2px 8px', color: '#fbbf24', borderColor: 'rgba(245, 158, 11, 0.4)', fontWeight: 700 }}
+                    style={{ fontSize: '12px', padding: '2px 8px', color: 'var(--color-status-warn-text)', borderColor: 'var(--color-status-warn-border)', fontWeight: 600 }}
                   >
                     ⚖ Audit Quota Eligibility
                   </button>
@@ -735,7 +728,7 @@ export function TradeConsignmentStep({
             {/* Scheme & Custody row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3" style={{ borderTop: '1px solid var(--color-divider)' }}>
               <div>
-                <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                <span style={{ fontSize: '13px', fontWeight: 600 }}>
                   Certification Scheme
                 </span>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
@@ -744,20 +737,19 @@ export function TradeConsignmentStep({
                       key={s.scheme}
                       type="button"
                       className={`chip ${s.scheme === scheme ? 'chip-a' : ''}`}
-                      style={{ fontSize: '10.5px', padding: '2px 8px' }}
                       onClick={() => setScheme(s.scheme)}
                     >
                       {s.label}
                     </button>
                   ))}
                 </div>
-                <div style={{ fontSize: '10.5px', color: 'var(--color-muted)', marginTop: '4px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '4px' }}>
                   {currentSchemeObj.hint}
                 </div>
               </div>
 
               <div>
-                <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                <span style={{ fontSize: '13px', fontWeight: 600 }}>
                   Chain of Custody
                 </span>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
@@ -766,14 +758,13 @@ export function TradeConsignmentStep({
                       key={c.custody}
                       type="button"
                       className={`chip ${c.custody === chainOfCustody ? 'chip-a' : ''}`}
-                      style={{ fontSize: '10.5px', padding: '2px 8px' }}
                       onClick={() => setChainOfCustody(c.custody)}
                     >
                       {c.label}
                     </button>
                   ))}
                 </div>
-                <div style={{ fontSize: '10.5px', color: 'var(--color-muted)', marginTop: '4px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '4px' }}>
                   {currentCustodyObj.hint}
                 </div>
               </div>
@@ -785,12 +776,13 @@ export function TradeConsignmentStep({
             style={{
               border: '1px solid var(--color-divider)',
               backgroundColor: 'var(--color-surface)',
+              borderRadius: 'var(--radius-card)',
               padding: '14px 16px',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                <span style={{ fontSize: '13px', fontWeight: 600 }}>
                   Carbon Intensity (CI)
                 </span>
                 <div style={{ display: 'flex', gap: '2px' }}>
@@ -799,7 +791,7 @@ export function TradeConsignmentStep({
                       key={t}
                       type="button"
                       className={`chip ${ciTier === t ? 'chip-a' : ''}`}
-                      style={{ fontSize: '9px', padding: '1px 6px', textTransform: 'capitalize' }}
+                      style={{ padding: '1px 6px', textTransform: 'capitalize' }}
                       onClick={() => {
                         setCiTier(t);
                         const benchmark = getCountryFeedstockCI(origin, feedstockKey, t);
@@ -813,10 +805,10 @@ export function TradeConsignmentStep({
               </div>
 
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                <span style={{ fontFamily: MONO_FONT, fontWeight: 800, fontSize: '20px', color: 'var(--color-text)' }}>
+                <span className="tabular-nums" style={{ fontWeight: 600, fontSize: '20px', color: 'var(--color-text)' }}>
                   {ci >= 0 ? `+${ci}` : `−${Math.abs(ci)}`}
                 </span>
-                <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>gCO₂e/MJ</span>
+                <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>gCO₂e/MJ</span>
               </div>
             </div>
 
@@ -831,15 +823,15 @@ export function TradeConsignmentStep({
               style={{ width: '100%', cursor: 'pointer' }}
               aria-label="Adjust carbon intensity"
             />
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--color-muted)', fontFamily: MONO_FONT, marginTop: '2px' }}>
+            <div className="tabular-nums" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--color-muted)', marginTop: '2px' }}>
               <span>−150 (Deep negative manure)</span>
               <span>0 (Neutral)</span>
               <span>+50 (Crop)</span>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', paddingTop: '8px', borderTop: '1px solid var(--color-divider)' }}>
-              <span style={{ fontSize: '11.5px', color: 'var(--color-muted)' }}>GHG Savings vs RED III Comparator:</span>
-              <span style={{ fontFamily: MONO_FONT, fontWeight: 800, fontSize: '14px', color: ghgSavingPct >= 65 ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)' }}>
+              <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>GHG Savings vs RED III Comparator:</span>
+              <span className="tabular-nums" style={{ fontWeight: 600, fontSize: '14px', color: ghgSavingPct >= 65 ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)' }}>
                 {ghgSavingPct}% {ghgSavingPct >= 65 ? '(>= 65% Compliant)' : '(< 65% Non-compliant)'}
               </span>
             </div>
@@ -851,7 +843,7 @@ export function TradeConsignmentStep({
                   padding: '8px 12px',
                   backgroundColor: 'rgba(239, 68, 68, 0.12)',
                   border: '1px solid rgba(239, 68, 68, 0.4)',
-                  borderRadius: '4px',
+                  borderRadius: 'var(--radius-control)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
@@ -859,7 +851,7 @@ export function TradeConsignmentStep({
                   flexWrap: 'wrap'
                 }}
               >
-                <div style={{ fontSize: '11px', color: '#f87171', fontWeight: 600 }}>
+                <div style={{ fontSize: '12px', color: 'var(--color-status-neg-text)', fontWeight: 600 }}>
                   ⚠ RED III 65% Violation — Achieved {ghgSavingPct}% vs 65% minimum required (CI must be ≤ 32.9 gCO₂e/MJ).
                 </div>
                 <button
@@ -878,7 +870,7 @@ export function TradeConsignmentStep({
                     }));
                   }}
                   className="btn btn-secondary"
-                  style={{ fontSize: '10.5px', padding: '2px 8px', color: '#f87171', borderColor: 'rgba(239, 68, 68, 0.4)', fontWeight: 700 }}
+                  style={{ fontSize: '12px', padding: '2px 8px', color: 'var(--color-status-neg-text)', borderColor: 'var(--color-status-neg-border)', fontWeight: 600 }}
                 >
                   ⚖ Audit Statutory Impact &amp; Remediation
                 </button>
@@ -893,6 +885,7 @@ export function TradeConsignmentStep({
         style={{
           border: '1px solid var(--color-divider)',
           backgroundColor: 'var(--color-surface)',
+          borderRadius: 'var(--radius-card)',
           padding: '10px 16px',
           display: 'flex',
           alignItems: 'center',
@@ -900,7 +893,7 @@ export function TradeConsignmentStep({
           gap: '12px',
         }}
       >
-        <div style={{ fontSize: '11.5px', color: 'var(--color-muted)' }}>
+        <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
           Step 1 of 4 · Consignment &amp; physical asset sourcing
         </div>
 
@@ -908,7 +901,6 @@ export function TradeConsignmentStep({
           type="button"
           onClick={onNext}
           className="btn btn-primary"
-          style={{ height: '32px', padding: '0 18px', fontSize: '11.5px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}
         >
           <span>Next: Target Market &amp; 6-Gate Audit</span>
           <ArrowRight size={13} />

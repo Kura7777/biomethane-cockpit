@@ -340,7 +340,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
           className="input"
           value={deskRole}
           onChange={e => setDeskRole(e.target.value as DeskRole)}
-          style={{ width: '100%', fontSize: '11px' }}
+          style={{ width: '100%', fontSize: '12px' }}
         >
           <option value="BUYER">Desk buys (offtake from producer)</option>
           <option value="SELLER">Desk sells (to offtaker)</option>
@@ -354,7 +354,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
           value={deskEntity}
           placeholder="[DESK LEGAL ENTITY]"
           onChange={e => setDeskEntity(e.target.value)}
-          style={{ width: '100%', fontSize: '11px' }}
+          style={{ width: '100%', fontSize: '12px' }}
         />
       </div>
       <div>
@@ -365,7 +365,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
           value={counterpartyName}
           placeholder="[COUNTERPARTY LEGAL ENTITY]"
           onChange={e => setCounterpartyName(e.target.value)}
-          style={{ width: '100%', fontSize: '11px' }}
+          style={{ width: '100%', fontSize: '12px' }}
         />
       </div>
       <div>
@@ -374,7 +374,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
           className="input"
           value={governingLaw}
           onChange={e => setGoverningLaw(e.target.value as 'ENGLISH_LAW' | 'GERMAN_LAW')}
-          style={{ width: '100%', fontSize: '11px' }}
+          style={{ width: '100%', fontSize: '12px' }}
         >
           <option value="ENGLISH_LAW">English law</option>
           <option value="GERMAN_LAW">German law</option>
@@ -388,17 +388,17 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
           value={masterAgreementDate}
           placeholder={TBA}
           onChange={e => setMasterAgreementDate(e.target.value)}
-          style={{ width: '100%', fontSize: '11px' }}
+          style={{ width: '100%', fontSize: '12px' }}
         />
       </div>
-      <div style={{ gridColumn: '1 / -1', fontSize: '11px', color: 'var(--color-muted)' }}>
+      <div style={{ gridColumn: '1 / -1', fontSize: '12px', color: 'var(--color-muted)' }}>
         Seller: <strong style={{ color: 'var(--color-text)' }}>{sellerName}</strong> · Buyer: <strong style={{ color: 'var(--color-text)' }}>{buyerName}</strong>. Blank fields print as bracketed placeholders — nothing is filled in for you.
       </div>
     </div>
   );
 
   const blockedBanner = isBlocked ? (
-    <div style={{ padding: '10px 14px', border: '2px solid #dc2626', color: '#f87171', fontSize: '12px', fontWeight: 700 }}>
+    <div style={{ padding: '10px 14px', border: '2px solid var(--color-status-neg-border, #dc2626)', color: 'var(--color-status-neg-text, #f87171)', fontSize: '12px', fontWeight: 700 }}>
       NOT TRADEABLE AS STRUCTURED — {assessment.eligibility.summary}
     </div>
   ) : null;
@@ -452,10 +452,8 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                   padding: '2px 8px',
                   backgroundColor: 'var(--color-accent)',
                   color: 'var(--color-bg)',
-                  fontSize: '11px',
+                  fontSize: '12px',
                   fontWeight: 800,
-                  letterSpacing: '0.06em',
-                  textTransform: 'uppercase',
                 }}
               >
                 Deal Handoff Suite
@@ -466,8 +464,6 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                   fontSize: '16px',
                   fontFamily: 'var(--font-heading)',
                   fontWeight: 800,
-                  letterSpacing: '0.08em',
-                  textTransform: 'uppercase',
                 }}
               >
                 Deal Document Drafts
@@ -531,7 +527,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
               type="button"
               className={`chip ${activeTab === 'TERM_SHEET' ? 'chip-a' : ''}`}
               style={{
-                fontSize: '11px',
+                fontSize: '12px',
                 padding: '6px 14px',
                 cursor: 'pointer',
                 fontWeight: activeTab === 'TERM_SHEET' ? 800 : 600,
@@ -545,7 +541,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
               type="button"
               className={`chip ${activeTab === 'EFET_ANNEX' ? 'chip-a' : ''}`}
               style={{
-                fontSize: '11px',
+                fontSize: '12px',
                 padding: '6px 14px',
                 cursor: 'pointer',
                 fontWeight: activeTab === 'EFET_ANNEX' ? 800 : 600,
@@ -559,7 +555,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
               type="button"
               className={`chip ${activeTab === 'ETRM_TICKET' ? 'chip-a' : ''}`}
               style={{
-                fontSize: '11px',
+                fontSize: '12px',
                 padding: '6px 14px',
                 cursor: 'pointer',
                 fontWeight: activeTab === 'ETRM_TICKET' ? 800 : 600,
@@ -573,7 +569,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
               type="button"
               className={`chip ${activeTab === 'UDB_XML' ? 'chip-a' : ''}`}
               style={{
-                fontSize: '11px',
+                fontSize: '12px',
                 padding: '6px 14px',
                 cursor: 'pointer',
                 fontWeight: activeTab === 'UDB_XML' ? 800 : 600,
@@ -587,7 +583,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
               type="button"
               className={`chip ${activeTab === 'AUDIT_MEMO' ? 'chip-a' : ''}`}
               style={{
-                fontSize: '11px',
+                fontSize: '12px',
                 padding: '6px 14px',
                 cursor: 'pointer',
                 fontWeight: activeTab === 'AUDIT_MEMO' ? 800 : 600,
@@ -600,7 +596,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
           </div>
 
           {/* Cryptographic SHA-256 Audit Seal Strip */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' }}>
             <span style={{ color: 'var(--color-muted)', fontWeight: 600 }} title="Change-detection fingerprint over the material terms; not a signature or registry seal">Fingerprint:</span>
             <code
               style={{
@@ -609,7 +605,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                 padding: '3px 8px',
                 border: '1px solid var(--color-divider)',
                 color: 'var(--color-accent)',
-                fontSize: '10px',
+                fontSize: '12px',
               }}
               title={seal}
             >
@@ -618,7 +614,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
             <button
               type="button"
               className="chip"
-              style={{ fontSize: '10px', padding: '3px 8px', cursor: 'pointer' }}
+              style={{ fontSize: '12px', padding: '3px 8px', cursor: 'pointer' }}
               onClick={() => handleCopy(seal, 'Fingerprint')}
             >
               {copiedType === 'Fingerprint' ? '✓ Copied' : 'Copy'}
@@ -649,14 +645,14 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 800 }}>
                     Document 1 Review:
                   </span>
                   <div style={{ display: 'flex', gap: '4px' }}>
                     <button
                       type="button"
                       className={`btn ${termSheetSubView === 'STRUCTURED' ? 'btn-primary' : 'btn-secondary'}`}
-                      style={{ padding: '5px 12px', fontSize: '11px' }}
+                      style={{ padding: '5px 12px', fontSize: '12px' }}
                       onClick={() => setTermSheetSubView('STRUCTURED')}
                     >
                       📋 Interactive Document Review
@@ -664,7 +660,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                     <button
                       type="button"
                       className={`btn ${termSheetSubView === 'PDF' ? 'btn-primary' : 'btn-secondary'}`}
-                      style={{ padding: '5px 12px', fontSize: '11px' }}
+                      style={{ padding: '5px 12px', fontSize: '12px' }}
                       onClick={() => setTermSheetSubView('PDF')}
                     >
                       👁️ Live A4 PDF View
@@ -676,7 +672,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                   <button
                     type="button"
                     className="btn btn-primary"
-                    style={{ padding: '6px 14px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '5px' }}
+                    style={{ padding: '6px 14px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '5px' }}
                     onClick={handleDownloadTermSheetPdf}
                   >
                     <span>⬇️</span>
@@ -703,10 +699,10 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                 >
                   {/* Header Banner */}
                   <div style={{ borderBottom: '3px solid var(--color-text)', paddingBottom: '14px' }}>
-                    <div style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.12em', color: 'var(--color-accent)', textTransform: 'uppercase' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-accent)' }}>
                       Indicative Term Sheet
                     </div>
-                    <h2 style={{ margin: '4px 0 2px', fontSize: '20px', fontFamily: 'var(--font-heading)', fontWeight: 800, textTransform: 'uppercase' }}>
+                    <h2 style={{ margin: '4px 0 2px', fontSize: '20px', fontFamily: 'var(--font-heading)', fontWeight: 800 }}>
                       Biomethane &amp; Environmental Attribute Supply
                     </h2>
                     <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
@@ -746,7 +742,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
 
                   {/* Section 1: Commodity Specifications */}
                   <div>
-                    <h4 style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    <h4 style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 800 }}>
                       1. Commodity &amp; Volume Specifications
                     </h4>
                     <table className="table" style={{ width: '100%', fontSize: '12px' }}>
@@ -785,7 +781,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
 
                   {/* Section 2: Commercial Pricing Formula */}
                   <div>
-                    <h4 style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    <h4 style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 800 }}>
                       2. Price
                     </h4>
                     <table className="table" style={{ width: '100%', fontSize: '12px' }}>
@@ -814,7 +810,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
 
                   {/* Section 3: Registry Transfer Undertaking */}
                   <div>
-                    <h4 style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    <h4 style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 800 }}>
                       3. Sustainability Evidence (points to agree)
                     </h4>
                     <div
@@ -831,7 +827,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                   </div>
 
                   {/* Status */}
-                  <div style={{ fontSize: '11px', color: 'var(--color-muted)', lineHeight: 1.6 }}>
+                  <div style={{ fontSize: '12px', color: 'var(--color-muted)', lineHeight: 1.6 }}>
                     Indicative only. Not an offer capable of acceptance; no binding obligation arises until a definitive agreement is executed by both parties. Prices reflect desk marks on {assessment.createdAt.slice(0, 10)} and will move.
                   </div>
 
@@ -841,7 +837,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                       padding: '8px 12px',
                       backgroundColor: 'var(--color-subtier)',
                       border: '1px solid var(--color-divider)',
-                      fontSize: '11px',
+                      fontSize: '12px',
                       fontFamily: 'var(--font-mono)',
                     }}
                   >
@@ -855,7 +851,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                     <iframe
                       src={termSheetPdfBlobUrl}
                       title="Commercial Term Sheet PDF Preview"
-                      style={{ width: '100%', height: '100%', border: 'none', backgroundColor: '#525659' }}
+                      style={{ width: '100%', height: '100%', border: 'none', backgroundColor: 'var(--color-neutral-700, #525659)' }}
                     />
                   ) : (
                     <div style={{ padding: '40px', textAlign: 'center', color: 'var(--color-muted)' }}>
@@ -887,14 +883,14 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 800 }}>
                     Document 2 Review:
                   </span>
                   <div style={{ display: 'flex', gap: '4px' }}>
                     <button
                       type="button"
                       className={`btn ${efetSubView === 'STRUCTURED' ? 'btn-primary' : 'btn-secondary'}`}
-                      style={{ padding: '5px 12px', fontSize: '11px' }}
+                      style={{ padding: '5px 12px', fontSize: '12px' }}
                       onClick={() => setEfetSubView('STRUCTURED')}
                     >
                       📋 Structured Review
@@ -902,7 +898,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                     <button
                       type="button"
                       className={`btn ${efetSubView === 'PDF' ? 'btn-primary' : 'btn-secondary'}`}
-                      style={{ padding: '5px 12px', fontSize: '11px' }}
+                      style={{ padding: '5px 12px', fontSize: '12px' }}
                       onClick={() => setEfetSubView('PDF')}
                     >
                       👁️ Live A4 PDF View
@@ -914,7 +910,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                   <button
                     type="button"
                     className="btn btn-primary"
-                    style={{ padding: '6px 14px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '5px' }}
+                    style={{ padding: '6px 14px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '5px' }}
                     onClick={handleDownloadEfetPdf}
                   >
                     <span>⬇️</span>
@@ -940,10 +936,10 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                   }}
                 >
                   <div style={{ borderBottom: '3px solid var(--color-text)', paddingBottom: '14px' }}>
-                    <div style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.12em', color: 'var(--color-accent)', textTransform: 'uppercase' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-accent)' }}>
                       Draft — for negotiation
                     </div>
-                    <h2 style={{ margin: '4px 0 2px', fontSize: '20px', fontFamily: 'var(--font-heading)', fontWeight: 800, textTransform: 'uppercase' }}>
+                    <h2 style={{ margin: '4px 0 2px', fontSize: '20px', fontFamily: 'var(--font-heading)', fontWeight: 800 }}>
                       Draft Individual Transaction Confirmation
                     </h2>
                     <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
@@ -953,7 +949,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
 
                   {/* Section 1: Contracting Parties */}
                   <div>
-                    <h4 style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase' }}>
+                    <h4 style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 800 }}>
                       1. Contracting Parties &amp; Facility Attribution
                     </h4>
                     <table className="table" style={{ width: '100%', fontSize: '12px' }}>
@@ -988,7 +984,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
 
                   {/* Section 2: Leg A - Physical Delivery */}
                   <div>
-                    <h4 style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase' }}>
+                    <h4 style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 800 }}>
                       2. Leg A: Physical Gas Molecule Delivery Terms
                     </h4>
                     <table className="table" style={{ width: '100%', fontSize: '12px' }}>
@@ -1011,7 +1007,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
 
                   {/* Section 3: Leg B - Certificate Transfer */}
                   <div>
-                    <h4 style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase' }}>
+                    <h4 style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 800 }}>
                       3. Leg B: Environmental Attribute &amp; Certificate Delivery Terms
                     </h4>
                     <table className="table" style={{ width: '100%', fontSize: '12px' }}>
@@ -1036,11 +1032,11 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginTop: '10px' }}>
                     <div style={{ borderTop: '2px solid var(--color-divider)', paddingTop: '8px' }}>
                       <div style={{ fontSize: '12px', fontWeight: 700 }}>For: {sellerName}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--color-muted)' }}>Signature {TBA} — draft, not for execution</div>
+                      <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>Signature {TBA} — draft, not for execution</div>
                     </div>
                     <div style={{ borderTop: '2px solid var(--color-divider)', paddingTop: '8px' }}>
                       <div style={{ fontSize: '12px', fontWeight: 700 }}>For: {buyerName}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--color-muted)' }}>Signature {TBA} — draft, not for execution</div>
+                      <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>Signature {TBA} — draft, not for execution</div>
                     </div>
                   </div>
                 </div>
@@ -1051,7 +1047,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                     <iframe
                       src={efetPdfBlobUrl}
                       title="EFET Biomethane Annex PDF Preview"
-                      style={{ width: '100%', height: '100%', border: 'none', backgroundColor: '#525659' }}
+                      style={{ width: '100%', height: '100%', border: 'none', backgroundColor: 'var(--color-neutral-700, #525659)' }}
                     />
                   ) : (
                     <div style={{ padding: '40px', textAlign: 'center', color: 'var(--color-muted)' }}>
@@ -1083,14 +1079,14 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 800 }}>
                     Document 3 Review:
                   </span>
                   <div style={{ display: 'flex', gap: '4px' }}>
                     <button
                       type="button"
                       className={`btn ${etrmSubView === 'TABLE' ? 'btn-primary' : 'btn-secondary'}`}
-                      style={{ padding: '5px 12px', fontSize: '11px' }}
+                      style={{ padding: '5px 12px', fontSize: '12px' }}
                       onClick={() => setEtrmSubView('TABLE')}
                     >
                       📊 Deal Fields Table
@@ -1098,7 +1094,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                     <button
                       type="button"
                       className={`btn ${etrmSubView === 'RAW_CSV' ? 'btn-primary' : 'btn-secondary'}`}
-                      style={{ padding: '5px 12px', fontSize: '11px' }}
+                      style={{ padding: '5px 12px', fontSize: '12px' }}
                       onClick={() => setEtrmSubView('RAW_CSV')}
                     >
                       📝 Raw CSV
@@ -1106,7 +1102,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                     <button
                       type="button"
                       className={`btn ${etrmSubView === 'JSON' ? 'btn-primary' : 'btn-secondary'}`}
-                      style={{ padding: '5px 12px', fontSize: '11px' }}
+                      style={{ padding: '5px 12px', fontSize: '12px' }}
                       onClick={() => setEtrmSubView('JSON')}
                     >
                       🔧 JSON
@@ -1118,7 +1114,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                   <button
                     type="button"
                     className="btn btn-secondary"
-                    style={{ padding: '6px 12px', fontSize: '11px' }}
+                    style={{ padding: '6px 12px', fontSize: '12px' }}
                     onClick={() => handleCopy(etrmSubView === 'JSON' ? etrmJsonStr : etrmCsv, etrmSubView === 'JSON' ? 'JSON' : 'CSV')}
                   >
                     {copiedType === 'CSV' || copiedType === 'JSON' ? '✓ Copied' : 'Copy'}
@@ -1126,7 +1122,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                   <button
                     type="button"
                     className="btn btn-primary"
-                    style={{ padding: '6px 14px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '5px' }}
+                    style={{ padding: '6px 14px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '5px' }}
                     onClick={handleDownloadEtrmCsv}
                   >
                     <span>⬇️</span>
@@ -1135,7 +1131,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                   <button
                     type="button"
                     className="btn btn-secondary"
-                    style={{ padding: '6px 14px', fontSize: '11px' }}
+                    style={{ padding: '6px 14px', fontSize: '12px' }}
                     onClick={handleDownloadJson}
                   >
                     Download JSON
@@ -1157,14 +1153,14 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
-                      <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 800, textTransform: 'uppercase' }}>
+                      <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 800 }}>
                         Generic Deal Record
                       </h4>
-                      <div style={{ fontSize: '11px', color: 'var(--color-muted)' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
                         Generic internal format — map fields explicitly before importing into any ETRM. Blank values are unknown, not zero.
                       </div>
                     </div>
-                    <div className="chip" style={{ fontSize: '11px' }}>
+                    <div className="chip" style={{ fontSize: '12px' }}>
                       {etrmCsvRows.length} fields · {etrmCsvRows.filter(r => !r.value).length} blank
                     </div>
                   </div>
@@ -1182,7 +1178,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                           gap: '2px',
                         }}
                       >
-                        <span className="eyebrow" style={{ fontSize: '10px' }}>{row.header}</span>
+                        <span className="eyebrow" style={{ fontSize: '12px' }}>{row.header}</span>
                         <span style={{ fontSize: '12px', fontWeight: 700, wordBreak: 'break-all', color: 'var(--color-text)' }}>
                           {row.value || '—'}
                         </span>
@@ -1204,7 +1200,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                     gap: '8px',
                   }}
                 >
-                  <div style={{ fontSize: '11px', color: 'var(--color-muted)' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
                     RFC 4180 CSV (UTF-8, CRLF). Map columns to your booking system before import:
                   </div>
                   <pre
@@ -1213,7 +1209,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                       padding: '12px',
                       backgroundColor: 'var(--color-subtier)',
                       border: '1px solid var(--color-divider)',
-                      fontSize: '11px',
+                      fontSize: '12px',
                       fontFamily: 'var(--font-mono)',
                       lineHeight: 1.6,
                       overflowX: 'auto',
@@ -1241,7 +1237,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                       padding: '12px',
                       backgroundColor: 'var(--color-subtier)',
                       border: '1px solid var(--color-divider)',
-                      fontSize: '11px',
+                      fontSize: '12px',
                       fontFamily: 'var(--font-mono)',
                       lineHeight: 1.5,
                       overflowX: 'auto',
@@ -1275,14 +1271,14 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 800 }}>
                     Document 4 Review:
                   </span>
                   <div style={{ display: 'flex', gap: '4px' }}>
                     <button
                       type="button"
                       className={`btn ${udbSubView === 'SUMMARY' ? 'btn-primary' : 'btn-secondary'}`}
-                      style={{ padding: '5px 12px', fontSize: '11px' }}
+                      style={{ padding: '5px 12px', fontSize: '12px' }}
                       onClick={() => setUdbSubView('SUMMARY')}
                     >
                       📑 Worksheet Summary
@@ -1290,7 +1286,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                     <button
                       type="button"
                       className={`btn ${udbSubView === 'RAW_XML' ? 'btn-primary' : 'btn-secondary'}`}
-                      style={{ padding: '5px 12px', fontSize: '11px' }}
+                      style={{ padding: '5px 12px', fontSize: '12px' }}
                       onClick={() => setUdbSubView('RAW_XML')}
                     >
                       💻 Raw XML
@@ -1302,7 +1298,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                   <button
                     type="button"
                     className="btn btn-secondary"
-                    style={{ padding: '6px 12px', fontSize: '11px' }}
+                    style={{ padding: '6px 12px', fontSize: '12px' }}
                     onClick={() => handleCopy(udbXml, 'UDB XML')}
                   >
                     {copiedType === 'UDB XML' ? '✓ Copied' : 'Copy XML'}
@@ -1310,7 +1306,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                   <button
                     type="button"
                     className="btn btn-primary"
-                    style={{ padding: '6px 14px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '5px' }}
+                    style={{ padding: '6px 14px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '5px' }}
                     onClick={handleDownloadUdbXml}
                   >
                     <span>⬇️</span>
@@ -1332,7 +1328,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                   }}
                 >
                   <div style={{ borderBottom: '1px solid var(--color-divider)', paddingBottom: '12px' }}>
-                    <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, textTransform: 'uppercase' }}>
+                    <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800 }}>
                       Internal UDB Transfer Worksheet
                     </h4>
                     <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '2px' }}>
@@ -1388,7 +1384,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
 
                   </div>
 
-                  <div style={{ padding: '10px 14px', backgroundColor: 'var(--color-subtier)', border: '1px solid var(--color-divider)', fontSize: '11px', fontFamily: 'var(--font-mono)' }}>
+                  <div style={{ padding: '10px 14px', backgroundColor: 'var(--color-subtier)', border: '1px solid var(--color-divider)', fontSize: '12px', fontFamily: 'var(--font-mono)' }}>
                     Document fingerprint: {seal}
                   </div>
                 </div>
@@ -1409,7 +1405,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                       padding: '14px',
                       backgroundColor: 'var(--color-subtier)',
                       border: '1px solid var(--color-divider)',
-                      fontSize: '11px',
+                      fontSize: '12px',
                       fontFamily: 'var(--font-mono)',
                       lineHeight: 1.5,
                       overflowX: 'auto',
@@ -1449,7 +1445,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                     <button
                       type="button"
                       className={`seg-opt ${auditMemoSubView === 'STRUCTURED' ? 'active' : ''}`}
-                      style={{ fontSize: '11px', padding: '2px 12px' }}
+                      style={{ fontSize: '12px', padding: '2px 12px' }}
                       onClick={() => setAuditMemoSubView('STRUCTURED')}
                     >
                       📋 Structured Review
@@ -1457,7 +1453,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                     <button
                       type="button"
                       className={`seg-opt ${auditMemoSubView === 'PDF' ? 'active' : ''}`}
-                      style={{ fontSize: '11px', padding: '2px 12px' }}
+                      style={{ fontSize: '12px', padding: '2px 12px' }}
                       onClick={() => setAuditMemoSubView('PDF')}
                     >
                       📄 PDF Preview
@@ -1469,7 +1465,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                   <button
                     type="button"
                     className="btn btn-secondary"
-                    style={{ padding: '4px 10px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '5px' }}
+                    style={{ padding: '4px 10px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '5px' }}
                     onClick={() => {
                       const memoText = `[DESK REGULATORY PRE-SCREEN — internal, not legal advice]
 Ref: AUDIT-TR-${assessment.id}
@@ -1497,7 +1493,7 @@ Document fingerprint: ${seal}`.trim();
                   <button
                     type="button"
                     className="btn btn-primary"
-                    style={{ padding: '4px 12px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 700 }}
+                    style={{ padding: '4px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 700 }}
                     onClick={handleDownloadAuditMemoPdf}
                   >
                     <span>📥</span>
@@ -1520,7 +1516,7 @@ Document fingerprint: ${seal}`.trim();
                 >
                   <div style={{ borderBottom: '1px solid var(--color-divider)', paddingBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
-                      <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, textTransform: 'uppercase' }}>
+                      <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800 }}>
                         Desk Regulatory Pre-Screen Memo (internal — not legal advice)
                       </h4>
                       <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '2px' }}>
@@ -1531,11 +1527,11 @@ Document fingerprint: ${seal}`.trim();
                       style={{
                         padding: '4px 10px',
                         borderRadius: '4px',
-                        fontSize: '11px',
+                        fontSize: '12px',
                         fontWeight: 800,
-                        backgroundColor: assessment.eligibility.overallVerdict === 'ELIGIBLE' ? 'rgba(5, 150, 105, 0.15)' : 'rgba(220, 38, 38, 0.15)',
-                        color: assessment.eligibility.overallVerdict === 'ELIGIBLE' ? '#10b981' : '#f87171',
-                        border: `1px solid ${assessment.eligibility.overallVerdict === 'ELIGIBLE' ? '#059669' : '#dc2626'}`,
+                        backgroundColor: assessment.eligibility.overallVerdict === 'ELIGIBLE' ? 'var(--color-status-pass-bg, rgba(5, 150, 105, 0.15))' : 'var(--color-status-neg-bg, rgba(220, 38, 38, 0.15))',
+                        color: assessment.eligibility.overallVerdict === 'ELIGIBLE' ? 'var(--color-status-pass-text, #10b981)' : 'var(--color-status-neg-text, #f87171)',
+                        border: `1px solid ${assessment.eligibility.overallVerdict === 'ELIGIBLE' ? 'var(--color-status-pass-border, #059669)' : 'var(--color-status-neg-border, #dc2626)'}`,
                       }}
                     >
                       VERDICT: {assessment.eligibility.overallVerdict}
@@ -1562,10 +1558,10 @@ Document fingerprint: ${seal}`.trim();
                             style={{
                               padding: '2px 6px',
                               borderRadius: '3px',
-                              fontSize: '10px',
+                              fontSize: '12px',
                               fontWeight: 800,
-                              backgroundColor: g.verdict === 'PASS' ? '#065f46' : g.verdict === 'HARD_BLOCK' ? '#991b1b' : '#92400e',
-                              color: '#ffffff',
+                              backgroundColor: g.verdict === 'PASS' ? 'var(--color-emerald-700, #065f46)' : g.verdict === 'HARD_BLOCK' ? 'var(--color-rose-700, #991b1b)' : 'var(--color-amber-700, #92400e)',
+                              color: 'var(--color-contrast-white, #ffffff)',
                             }}
                           >
                             {g.verdict}
@@ -1574,11 +1570,11 @@ Document fingerprint: ${seal}`.trim();
                             <div style={{ fontWeight: 700, fontSize: '12px', color: 'var(--color-text)' }}>
                               Gate {idx + 1}: {g.gateLabel}
                             </div>
-                            <div style={{ fontSize: '11.5px', color: 'var(--color-muted)', marginTop: '2px' }}>
+                            <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '2px' }}>
                               {g.reason}
                             </div>
                             {g.citations && g.citations[0] && (
-                              <div style={{ fontSize: '10.5px', color: 'var(--color-accent)', marginTop: '3px', fontFamily: 'var(--font-mono)' }}>
+                              <div style={{ fontSize: '12px', color: 'var(--color-accent)', marginTop: '3px', fontFamily: 'var(--font-mono)' }}>
                                 📌 {g.citations[0].fullReference || g.citations[0].shortName}
                               </div>
                             )}
@@ -1591,14 +1587,14 @@ Document fingerprint: ${seal}`.trim();
                   {/* EFET Protective Clauses Box */}
                   <div style={{ padding: '14px', backgroundColor: 'var(--color-subtier)', border: '1px solid var(--color-divider)' }}>
                     <div className="eyebrow" style={{ marginBottom: '6px' }}>Protections to negotiate (desk checklist, not agreed terms)</div>
-                    <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '11.5px', color: 'var(--color-text)', lineHeight: 1.6 }}>
+                    <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: 'var(--color-text)', lineHeight: 1.6 }}>
                       <li><strong>Evidence deadline:</strong> when the PoS / UDB transfer must land after each delivery month.</li>
                       <li><strong>Late or invalid evidence:</strong> cure period, then price reduction or termination of the attribute leg.</li>
                       <li><strong>Support-scheme warranty:</strong> seller discloses national support received (e.g. SDE++, EEG, GSE) and warrants no double claim.</li>
                     </ul>
                   </div>
 
-                  <div style={{ padding: '10px 14px', backgroundColor: 'var(--color-subtier)', border: '1px solid var(--color-divider)', fontSize: '11px', fontFamily: 'var(--font-mono)' }}>
+                  <div style={{ padding: '10px 14px', backgroundColor: 'var(--color-subtier)', border: '1px solid var(--color-divider)', fontSize: '12px', fontFamily: 'var(--font-mono)' }}>
                     Document fingerprint: {seal}
                   </div>
                 </div>
@@ -1620,7 +1616,7 @@ Document fingerprint: ${seal}`.trim();
                         width: '100%',
                         height: '750px',
                         border: 'none',
-                        backgroundColor: '#ffffff',
+                        backgroundColor: 'var(--color-contrast-white, #ffffff)',
                       }}
                       title="Statutory Audit Memo PDF Preview"
                     />
@@ -1662,7 +1658,7 @@ Document fingerprint: ${seal}`.trim();
                   backgroundColor: 'var(--color-status-pos-bg)',
                   color: 'var(--color-status-pos-text)',
                   border: '1px solid var(--color-status-pos-border)',
-                  fontSize: '11px',
+                  fontSize: '12px',
                   fontWeight: 700,
                   padding: '5px 10px',
                 }}
@@ -1673,7 +1669,7 @@ Document fingerprint: ${seal}`.trim();
               <button
                 type="button"
                 className="btn btn-secondary"
-                style={{ padding: '6px 12px', fontSize: '11px' }}
+                style={{ padding: '6px 12px', fontSize: '12px' }}
                 onClick={handleComplianceSignoff}
                 title="Record that compliance has reviewed this deal"
               >
@@ -1684,7 +1680,7 @@ Document fingerprint: ${seal}`.trim();
             <button
               type="button"
               className="btn btn-secondary"
-              style={{ padding: '6px 10px', fontSize: '11px' }}
+              style={{ padding: '6px 10px', fontSize: '12px' }}
               onClick={handleDownloadTermSheetPdf}
               title="Download Commercial Term Sheet PDF"
             >
@@ -1694,7 +1690,7 @@ Document fingerprint: ${seal}`.trim();
             <button
               type="button"
               className="btn btn-secondary"
-              style={{ padding: '6px 10px', fontSize: '11px' }}
+              style={{ padding: '6px 10px', fontSize: '12px' }}
               onClick={handleDownloadEfetPdf}
               title="Download EFET Biomethane Annex PDF"
             >
@@ -1704,7 +1700,7 @@ Document fingerprint: ${seal}`.trim();
             <button
               type="button"
               className="btn btn-secondary"
-              style={{ padding: '6px 10px', fontSize: '11px' }}
+              style={{ padding: '6px 10px', fontSize: '12px' }}
               onClick={handleDownloadEtrmCsv}
               title="Download ETRM CSV Deal Ticket"
             >
@@ -1714,7 +1710,7 @@ Document fingerprint: ${seal}`.trim();
             <button
               type="button"
               className="btn btn-secondary"
-              style={{ padding: '6px 10px', fontSize: '11px' }}
+              style={{ padding: '6px 10px', fontSize: '12px' }}
               onClick={handleDownloadUdbXml}
               title="Download UDB Mass Balance Nomination XML"
             >
@@ -1724,7 +1720,7 @@ Document fingerprint: ${seal}`.trim();
             <button
               type="button"
               className="btn btn-secondary"
-              style={{ padding: '6px 10px', fontSize: '11px' }}
+              style={{ padding: '6px 10px', fontSize: '12px' }}
               onClick={handleDownloadAuditMemoPdf}
               title="Download Statutory Compliance Audit Memo PDF"
             >
@@ -1734,7 +1730,7 @@ Document fingerprint: ${seal}`.trim();
             <button
               type="button"
               className="btn btn-primary"
-              style={{ padding: '6px 14px', fontSize: '11px', fontWeight: 800 }}
+              style={{ padding: '6px 14px', fontSize: '12px', fontWeight: 800 }}
               onClick={handleDownloadCompletePackage}
               title="Download all 5 deal documents at once"
             >

@@ -524,7 +524,7 @@ export function TradeBuilderScreen() {
             <span
               style={{
                 fontFamily: MONO_FONT,
-                fontSize: '11px',
+                fontSize: '12px',
                 fontWeight: 700,
                 color: 'var(--color-accent)',
                 padding: '2px 6px',
@@ -543,7 +543,7 @@ export function TradeBuilderScreen() {
                 </span>
                 <span
                   style={{
-                    fontSize: '9.5px',
+                    fontSize: '12px',
                     fontWeight: 600,
                     padding: '1px 6px',
                     border: '1px solid var(--color-status-pass-border)',
@@ -564,13 +564,13 @@ export function TradeBuilderScreen() {
             {deal.counterparty && (
               <span
                 style={{
-                  fontSize: '10px',
+                  fontSize: '12px',
                   fontFamily: MONO_FONT,
                   fontWeight: 600,
                   padding: '2px 7px',
                   border: '1px solid rgba(14, 165, 233, 0.4)',
                   backgroundColor: 'rgba(14, 165, 233, 0.12)',
-                  color: '#38bdf8',
+                  color: 'var(--color-sky-400, #38bdf8)',
                   borderRadius: 'var(--radius-bar)',
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -626,7 +626,7 @@ export function TradeBuilderScreen() {
 
             <span
               style={{
-                fontSize: '11px',
+                fontSize: '12px',
                 fontWeight: 600,
                 padding: '3px 8px',
                 borderRadius: 'var(--radius-bar)',
@@ -741,9 +741,9 @@ export function TradeBuilderScreen() {
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontWeight: 600,
-                      fontSize: '11px',
+                      fontSize: '12px',
                       backgroundColor: isActive ? 'var(--color-text)' : isDone ? 'var(--color-status-pass-text)' : 'var(--color-subtier)',
-                      color: isActive ? 'var(--color-bg)' : isDone ? '#ffffff' : 'var(--color-muted)',
+                      color: isActive ? 'var(--color-bg)' : isDone ? 'var(--color-contrast-white, #ffffff)' : 'var(--color-muted)',
                       border: isDone || isActive ? 'none' : '1px solid var(--color-divider)',
                     }}
                   >
@@ -895,13 +895,13 @@ export function TradeBuilderScreen() {
               justifyContent: 'center',
               backgroundColor: 'var(--color-accent)',
               color: 'var(--color-bg)',
-              fontSize: '11px',
+              fontSize: '12px',
               fontWeight: 800,
             }}
           >
             1
           </span>
-          <h4 style={{ margin: 0, fontSize: '15px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+          <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 600 }}>
             Consignment
           </h4>
         </div>
@@ -949,11 +949,11 @@ export function TradeBuilderScreen() {
                   <span style={{ fontSize: '15px' }}>{currentOriginObj.flag}</span>
                   <strong style={{ fontSize: '13px' }}>{deal.plantName || linkedPlant?.name}</strong>
                 </div>
-                <span className="chip" style={{ fontSize: '9px', fontWeight: 700, backgroundColor: 'var(--color-status-pos-bg)', color: 'var(--color-status-pos-text)', border: '1px solid var(--color-status-pos-border)' }}>
+                <span className="chip" style={{ fontSize: '12px', fontWeight: 700, backgroundColor: 'var(--color-status-pos-bg)', color: 'var(--color-status-pos-text)', border: '1px solid var(--color-status-pos-border)' }}>
                   Audited Asset Locked
                 </span>
               </div>
-              <div style={{ fontSize: '11px', lineHeight: 1.4 }} className="mut">
+              <div style={{ fontSize: '12px', lineHeight: 1.4 }} className="mut">
                 <div><strong>Operating Entity:</strong> {deal.legalEntityName || linkedPlant?.legalEntityName || linkedPlant?.operator || 'Operating Entity'}</div>
                 <div><strong>Grid / TSO Injection:</strong> {deal.networkOperator || linkedPlant?.networkOperator || `${currentOriginObj.name} Gas Grid`}</div>
                 {(deal.plantAnnualGWh || linkedPlant?.annualEnergyGWh) && (
@@ -1002,7 +1002,7 @@ export function TradeBuilderScreen() {
               <button
                 type="button"
                 className={`chip ${volumeMwh === 10000 ? 'chip-a' : ''}`}
-                style={{ fontSize: '10px', padding: '2px 6px' }}
+                style={{ fontSize: '12px', padding: '2px 6px' }}
                 onClick={() => setVolumeMwh(10000)}
               >
                 10k MWh (Cargo)
@@ -1012,7 +1012,7 @@ export function TradeBuilderScreen() {
                   <button
                     type="button"
                     className={`chip ${volumeMwh === Math.round(plantTotalMWh / 4) ? 'chip-a' : ''}`}
-                    style={{ fontSize: '10px', padding: '2px 6px' }}
+                    style={{ fontSize: '12px', padding: '2px 6px' }}
                     onClick={() => setVolumeMwh(Math.round(plantTotalMWh / 4))}
                   >
                     25% ({Math.round(plantTotalMWh / 4).toLocaleString()} MWh)
@@ -1020,7 +1020,7 @@ export function TradeBuilderScreen() {
                   <button
                     type="button"
                     className={`chip ${volumeMwh === Math.round(plantTotalMWh / 2) ? 'chip-a' : ''}`}
-                    style={{ fontSize: '10px', padding: '2px 6px' }}
+                    style={{ fontSize: '12px', padding: '2px 6px' }}
                     onClick={() => setVolumeMwh(Math.round(plantTotalMWh / 2))}
                   >
                     50% ({Math.round(plantTotalMWh / 2).toLocaleString()} MWh)
@@ -1028,7 +1028,7 @@ export function TradeBuilderScreen() {
                   <button
                     type="button"
                     className={`chip ${availablePlantCapacity !== null && volumeMwh === availablePlantCapacity ? 'chip-a' : ''}`}
-                    style={{ fontSize: '10px', padding: '2px 6px' }}
+                    style={{ fontSize: '12px', padding: '2px 6px' }}
                     onClick={() => availablePlantCapacity && setVolumeMwh(availablePlantCapacity)}
                   >
                     100% Avail ({availablePlantCapacity?.toLocaleString()} MWh)
@@ -1039,7 +1039,7 @@ export function TradeBuilderScreen() {
 
             {/* Plant Capacity & Existing Commitment Tracking */}
             {plantTotalMWh && (
-              <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px dashed var(--color-divider)', fontSize: '11px' }}>
+              <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px dashed var(--color-divider)', fontSize: '12px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                   <span className="mut">Facility Nameplate Capacity:</span>
                   <span className="num" style={{ fontWeight: 600 }}>{plantTotalMWh.toLocaleString()} MWh/yr</span>
@@ -1053,7 +1053,7 @@ export function TradeBuilderScreen() {
                       max={plantTotalMWh}
                       step="1000"
                       className="input num"
-                      style={{ height: '22px', width: '80px', fontSize: '11px', padding: '1px 4px', textAlign: 'right' }}
+                      style={{ height: '22px', width: '80px', fontSize: '12px', padding: '1px 4px', textAlign: 'right' }}
                       value={plantCommittedMwh}
                       onChange={e => setPlantCommittedMwh(Math.max(0, Number(e.target.value) || 0))}
                       aria-label="Prior committed volume in MWh"
@@ -1093,13 +1093,13 @@ export function TradeBuilderScreen() {
                     title={`This trade: ${volumeMwh.toLocaleString()} MWh`}
                   />
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', marginTop: '3px' }} className="dim">
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginTop: '3px' }} className="dim">
                   <span>Allocation: {((volumeMwh / plantTotalMWh) * 100).toFixed(1)}% of plant</span>
                   <span>Total allocated: {plantCommittedPct}%</span>
                 </div>
 
                 {isOversubscribed && (
-                  <div style={{ marginTop: '6px', padding: '6px 8px', backgroundColor: 'var(--color-status-warn-bg)', border: '1px solid var(--color-status-warn-border)', color: 'var(--color-status-warn-ink)', borderRadius: 'var(--radius-control)', fontWeight: 600, fontSize: '11px', lineHeight: 1.3 }}>
+                  <div style={{ marginTop: '6px', padding: '6px 8px', backgroundColor: 'var(--color-status-warn-bg)', border: '1px solid var(--color-status-warn-border)', color: 'var(--color-status-warn-ink)', borderRadius: 'var(--radius-control)', fontWeight: 600, fontSize: '12px', lineHeight: 1.3 }}>
                     ⚠️ Oversubscription Warning: Contract volume ({volumeMwh.toLocaleString()} MWh) exceeds available plant capacity ({availablePlantCapacity?.toLocaleString()} MWh) by {(volumeMwh - (availablePlantCapacity ?? 0)).toLocaleString()} MWh. Risk of physical delivery default.
                   </div>
                 )}
@@ -1111,7 +1111,7 @@ export function TradeBuilderScreen() {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div className="eyebrow">Origin ({ORIGINS.length} European Jurisdictions)</div>
-              <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>
+              <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
                 {currentOriginObj.flag} {currentOriginObj.name} ({currentOriginObj.code})
               </span>
             </div>
@@ -1124,7 +1124,7 @@ export function TradeBuilderScreen() {
                   className={`chip ${o.code === origin ? 'chip-a' : ''} ${o.isolated ? 'dim' : ''}`}
                   onClick={() => setOrigin(o.code)}
                 >
-                  <span style={{ marginRight: '3px', fontSize: '11px' }}>{o.flag}</span>
+                  <span style={{ marginRight: '3px', fontSize: '12px' }}>{o.flag}</span>
                   {o.code}
                 </button>
               ))}
@@ -1203,11 +1203,11 @@ export function TradeBuilderScreen() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span className="eyebrow" style={{ margin: 0 }}>Carbon intensity</span>
                 {deal.ciIsEstimated || (linkedPlant && linkedPlant.verifiedCarbonIntensity == null) ? (
-                  <span className="chip" style={{ fontSize: '9px', fontWeight: 700, backgroundColor: 'rgba(234, 179, 8, 0.15)', color: '#eab308', border: '1px solid rgba(234, 179, 8, 0.3)' }} title="Estimated default CI from substrate mix — unverified by audited PoS">
+                  <span className="chip" style={{ fontSize: '12px', fontWeight: 700, backgroundColor: 'rgba(234, 179, 8, 0.15)', color: 'var(--color-amber-500, #eab308)', border: '1px solid rgba(234, 179, 8, 0.3)' }} title="Estimated default CI from substrate mix — unverified by audited PoS">
                     Estimated CI
                   </span>
                 ) : (linkedPlant?.verifiedCarbonIntensity != null ? (
-                  <span className="chip" style={{ fontSize: '9px', fontWeight: 700, backgroundColor: 'var(--color-status-pos-bg)', color: 'var(--color-status-pos-text)', border: '1px solid var(--color-status-pos-border)' }} title="Audited PoS verified CI">
+                  <span className="chip" style={{ fontSize: '12px', fontWeight: 700, backgroundColor: 'var(--color-status-pos-bg)', color: 'var(--color-status-pos-text)', border: '1px solid var(--color-status-pos-border)' }} title="Audited PoS verified CI">
                     Verified CI
                   </span>
                 ) : null)}
@@ -1217,7 +1217,7 @@ export function TradeBuilderScreen() {
                       key={t}
                       type="button"
                       className={`chip ${ciTier === t ? 'chip-a' : ''}`}
-                      style={{ fontSize: '9px', padding: '1px 5px', textTransform: 'capitalize' }}
+                      style={{ fontSize: '12px', padding: '1px 5px', textTransform: 'capitalize' }}
                       onClick={() => {
                         setCiTier(t);
                         const benchmark = getCountryFeedstockCI(origin, feedstockKey, t);
@@ -1265,7 +1265,7 @@ export function TradeBuilderScreen() {
               style={{ width: '100%', opacity: 0, height: '16px', marginTop: '-14px', cursor: 'pointer' }}
               aria-label="Adjust carbon intensity"
             />
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', marginTop: '6px' }} className="dim">
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginTop: '6px' }} className="dim">
               <span>−150</span>
               <span>0</span>
               <span>+50</span>
@@ -1290,7 +1290,7 @@ export function TradeBuilderScreen() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '7px',
-                fontSize: '11px',
+                fontSize: '12px',
                 fontWeight: 700,
                 backgroundColor: 'var(--color-status-pass-bg)',
                 borderColor: 'var(--color-status-pass-border)',
@@ -1320,7 +1320,7 @@ export function TradeBuilderScreen() {
           <div style={{ paddingTop: '16px', borderTop: '2px solid var(--color-divider)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
               <div className="eyebrow" style={{ margin: 0 }}>Production &amp; Delivery Schedule</div>
-              <span className="chip chip-a" style={{ fontSize: '10px' }}>
+              <span className="chip chip-a" style={{ fontSize: '12px' }}>
                 EFET Biomethane Schedule
               </span>
             </div>
@@ -1334,7 +1334,7 @@ export function TradeBuilderScreen() {
                     key={yr}
                     type="button"
                     className={`chip ${complianceYear === yr ? 'chip-a' : ''}`}
-                    style={{ fontSize: '11px', padding: '2px 8px' }}
+                    style={{ fontSize: '12px', padding: '2px 8px' }}
                     onClick={() => handleComplianceYearChange(yr)}
                   >
                     {yr}
@@ -1345,7 +1345,7 @@ export function TradeBuilderScreen() {
 
             {/* Production Period Presets */}
             <div style={{ marginBottom: '8px' }}>
-              <span style={{ fontSize: '11px' }} className="mut">Production Vintage (Gas Grid Injection)</span>
+              <span style={{ fontSize: '12px' }} className="mut">Production Vintage (Gas Grid Injection)</span>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', marginTop: '4px' }}>
                 {[
                   { key: 'CAL_YEAR', label: `Cal-${complianceYear}` },
@@ -1360,7 +1360,7 @@ export function TradeBuilderScreen() {
                     key={p.key}
                     type="button"
                     className={`chip ${vintagePreset === p.key ? 'chip-a' : ''}`}
-                    style={{ fontSize: '10px', padding: '2px 6px' }}
+                    style={{ fontSize: '12px', padding: '2px 6px' }}
                     onClick={() => handleVintagePreset(p.key)}
                   >
                     {p.label}
@@ -1372,11 +1372,11 @@ export function TradeBuilderScreen() {
             {/* Date Inputs */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
               <div>
-                <label className="dim" style={{ fontSize: '10px', display: 'block', marginBottom: '2px' }}>Injection Start</label>
+                <label className="dim" style={{ fontSize: '12px', display: 'block', marginBottom: '2px' }}>Injection Start</label>
                 <input
                   type="date"
                   className="input"
-                  style={{ fontSize: '11px', padding: '3px 6px', width: '100%' }}
+                  style={{ fontSize: '12px', padding: '3px 6px', width: '100%' }}
                   value={prodStartDate}
                   onChange={e => {
                     setProdStartDate(e.target.value);
@@ -1386,11 +1386,11 @@ export function TradeBuilderScreen() {
                 />
               </div>
               <div>
-                <label className="dim" style={{ fontSize: '10px', display: 'block', marginBottom: '2px' }}>Injection End</label>
+                <label className="dim" style={{ fontSize: '12px', display: 'block', marginBottom: '2px' }}>Injection End</label>
                 <input
                   type="date"
                   className="input"
-                  style={{ fontSize: '11px', padding: '3px 6px', width: '100%' }}
+                  style={{ fontSize: '12px', padding: '3px 6px', width: '100%' }}
                   value={prodEndDate}
                   onChange={e => {
                     setProdEndDate(e.target.value);
@@ -1404,8 +1404,8 @@ export function TradeBuilderScreen() {
             {/* Delivery Profile & Flow Rate */}
             <div style={{ marginBottom: '8px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                <span style={{ fontSize: '11px' }} className="mut">Physical Delivery Profile</span>
-                <span className="num" style={{ fontSize: '11px', fontWeight: 600 }}>
+                <span style={{ fontSize: '12px' }} className="mut">Physical Delivery Profile</span>
+                <span className="num" style={{ fontSize: '12px', fontWeight: 600 }}>
                   {deliveryProfile === 'FLAT_MONTHLY' ? `~${monthlyRateMwh.toLocaleString()} MWh/mo` : deliveryProfile === 'FLAT_DAILY' ? `~${dailyRateMwh.toLocaleString()} MWh/day` : '100% Bullet Transfer'}
                 </span>
               </div>
@@ -1419,7 +1419,7 @@ export function TradeBuilderScreen() {
                     key={prof.key}
                     type="button"
                     className={`chip ${deliveryProfile === prof.key ? 'chip-a' : ''}`}
-                    style={{ fontSize: '10px', padding: '2px 6px' }}
+                    style={{ fontSize: '12px', padding: '2px 6px' }}
                     onClick={() => setDeliveryProfile(prof.key as DeliveryProfile)}
                   >
                     {prof.label}
@@ -1429,7 +1429,7 @@ export function TradeBuilderScreen() {
             </div>
 
             {/* Delivery Point & Statutory Deadline Card */}
-            <div style={{ padding: '8px 10px', backgroundColor: 'var(--color-panel-header)', border: '1px solid var(--color-divider)', fontSize: '11px', lineHeight: 1.4 }}>
+            <div style={{ padding: '8px 10px', backgroundColor: 'var(--color-panel-header)', border: '1px solid var(--color-divider)', fontSize: '12px', lineHeight: 1.4 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
                 <span className="mut">Grid Delivery Point (VTP):</span>
                 <strong style={{ color: 'var(--color-text)' }}>{getVtpForMarket(selectedMarket.country)}</strong>
@@ -1438,7 +1438,7 @@ export function TradeBuilderScreen() {
                 <span className="mut">Registry Surrender Deadline:</span>
                 <strong style={{ color: 'var(--color-accent-700)' }}>{statutorySurrenderDeadline}</strong>
               </div>
-              <div className="dim" style={{ fontSize: '10px', marginTop: '4px' }}>
+              <div className="dim" style={{ fontSize: '12px', marginTop: '4px' }}>
                 UDB Mass Balance Rule: Certificates must be balanced and surrendered within 12 months of injection month end (RED III Art. 30).
               </div>
             </div>
@@ -1467,13 +1467,13 @@ export function TradeBuilderScreen() {
               justifyContent: 'center',
               backgroundColor: 'var(--color-accent)',
               color: 'var(--color-bg)',
-              fontSize: '11px',
+              fontSize: '12px',
               fontWeight: 800,
             }}
           >
             2
           </span>
-          <h4 style={{ margin: 0, fontSize: '15px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+          <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 600 }}>
             Destination &amp; legal validation
           </h4>
         </div>
@@ -1510,7 +1510,7 @@ export function TradeBuilderScreen() {
                 : 'Blocked'}
             </span>
           </div>
-          <div style={{ fontSize: '11px', marginTop: '3px' }} className="mut">
+          <div style={{ fontSize: '12px', marginTop: '3px' }} className="mut">
             {selectedMarket.legalBasis} · {selectedMarket.registry || 'Statutory registry'}
           </div>
 
@@ -1522,11 +1522,11 @@ export function TradeBuilderScreen() {
                 backgroundColor: 'rgba(37, 99, 235, 0.08)',
                 border: '1px solid rgba(37, 99, 235, 0.25)',
                 borderRadius: '3px',
-                fontSize: '11px',
+                fontSize: '12px',
                 lineHeight: 1.4,
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 700, color: '#1d4ed8', marginBottom: '2px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 700, color: 'var(--color-blue-700, #1d4ed8)', marginBottom: '2px' }}>
                 <span>📦 UNBUNDLED BOOK-AND-CLAIM TRADE</span>
               </div>
               <div style={{ color: 'var(--color-text)' }}>
@@ -1561,7 +1561,7 @@ export function TradeBuilderScreen() {
                 <div style={{ fontSize: '12px', lineHeight: 1.5, marginTop: '3px' }} className="mut">
                   {g.reason}
                 </div>
-                <div style={{ fontSize: '11px', marginTop: '3px', color: 'var(--color-accent-700)' }}>
+                <div style={{ fontSize: '12px', marginTop: '3px', color: 'var(--color-accent-700)' }}>
                   {g.citations[0]?.shortName || g.citations[0]?.fullReference || 'RED III Statutory Directive'}
                 </div>
               </div>
@@ -1591,13 +1591,13 @@ export function TradeBuilderScreen() {
               justifyContent: 'center',
               backgroundColor: 'var(--color-accent)',
               color: 'var(--color-bg)',
-              fontSize: '11px',
+              fontSize: '12px',
               fontWeight: 800,
             }}
           >
             3
           </span>
-          <h4 style={{ margin: 0, fontSize: '15px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+          <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 600 }}>
             Netback &amp; dossier
           </h4>
         </div>
@@ -1622,7 +1622,7 @@ export function TradeBuilderScreen() {
             per MWh · {currentSide} · {selectedMarket.unitLabel} unit of account
           </div>
           {netback.clearingPriceWarning && (
-            <div style={{ marginTop: '8px', padding: '6px 10px', backgroundColor: 'color-mix(in srgb, var(--color-amber-500) 15%, transparent)', border: '1px solid var(--color-amber-500)', fontSize: '11px', color: 'var(--color-amber-400)', lineHeight: 1.4 }}>
+            <div style={{ marginTop: '8px', padding: '6px 10px', backgroundColor: 'color-mix(in srgb, var(--color-amber-500) 15%, transparent)', border: '1px solid var(--color-amber-500)', fontSize: '12px', color: 'var(--color-amber-400)', lineHeight: 1.4 }}>
               ⚠️ {netback.clearingPriceWarning}
             </div>
           )}
@@ -1658,7 +1658,7 @@ export function TradeBuilderScreen() {
                         : w.kind === 'net'
                         ? 'var(--color-accent)'
                         : w.kind === 'margin'
-                        ? '#10b981'
+                        ? 'var(--color-emerald-500, #10b981)'
                         : 'var(--color-text)',
                     }}
                   />
@@ -1716,7 +1716,7 @@ export function TradeBuilderScreen() {
                 <span className="mut">Hub Basis Spread ({origin} ➔ {selectedMarket.country}):</span>
                 <span className="num" style={{ fontWeight: 700 }}>
                   {netback.principalRisk.basisDifferentialEurMwh >= 0 ? `+€${netback.principalRisk.basisDifferentialEurMwh.toFixed(2)}` : `−€${Math.abs(netback.principalRisk.basisDifferentialEurMwh).toFixed(2)}`}/MWh 
-                  <span style={{ fontSize: '11px', color: 'var(--color-dim)', marginLeft: '4px' }}>
+                  <span style={{ fontSize: '12px', color: 'var(--color-dim)', marginLeft: '4px' }}>
                     (€{netback.principalRisk.basisRiskNotionalEur.toLocaleString()})
                   </span>
                 </span>
@@ -1783,7 +1783,7 @@ export function TradeBuilderScreen() {
               <span>📦</span>
               <span>Review Deal Package (4 Documents)</span>
             </div>
-            <span style={{ fontSize: '10px', opacity: 0.9, fontWeight: 500 }}>
+            <span style={{ fontSize: '12px', opacity: 0.9, fontWeight: 500 }}>
               Term Sheet · EFET Annex · ETRM CSV · UDB XML
             </span>
           </button>
@@ -1798,7 +1798,7 @@ export function TradeBuilderScreen() {
               alignItems: 'center',
               justifyContent: 'center',
               gap: '6px',
-              fontSize: '11px',
+              fontSize: '12px',
               fontWeight: 700,
               backgroundColor: 'var(--color-status-pass-bg)',
               borderColor: 'var(--color-status-pass-border)',
@@ -1829,7 +1829,7 @@ export function TradeBuilderScreen() {
               <button
                 type="button"
                 className="btn btn-secondary"
-                style={{ flex: 1, padding: '8px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', fontSize: '11px', fontWeight: 600 }}
+                style={{ flex: 1, padding: '8px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', fontSize: '12px', fontWeight: 600 }}
                 onClick={() => handleOpenDocReview('TERM_SHEET')}
                 data-testid="term-sheet-btn"
                 title="Review the Commercial Counterparty Term Sheet PDF"
@@ -1840,7 +1840,7 @@ export function TradeBuilderScreen() {
               <button
                 type="button"
                 className="btn btn-secondary"
-                style={{ padding: '8px 8px', fontSize: '11px' }}
+                style={{ padding: '8px 8px', fontSize: '12px' }}
                 onClick={handleExportTermSheetPdf}
                 data-testid="download-termsheet-pdf-btn"
                 title="1-Click Instant Download Commercial Term Sheet PDF"
@@ -1853,7 +1853,7 @@ export function TradeBuilderScreen() {
               <button
                 type="button"
                 className="btn btn-secondary"
-                style={{ flex: 1, padding: '8px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', fontSize: '11px', fontWeight: 600 }}
+                style={{ flex: 1, padding: '8px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', fontSize: '12px', fontWeight: 600 }}
                 onClick={() => handleOpenDocReview('EFET_ANNEX')}
                 data-testid="efet-annex-btn"
                 title="Review the EFET Biomethane Annex PDF"
@@ -1864,7 +1864,7 @@ export function TradeBuilderScreen() {
               <button
                 type="button"
                 className="btn btn-secondary"
-                style={{ padding: '8px 8px', fontSize: '11px' }}
+                style={{ padding: '8px 8px', fontSize: '12px' }}
                 onClick={handleExportPdf}
                 data-testid="download-efet-pdf-btn"
                 title="1-Click Instant Download EFET Biomethane Annex PDF"
@@ -1878,7 +1878,7 @@ export function TradeBuilderScreen() {
             <button
               type="button"
               className="btn btn-secondary"
-              style={{ padding: '8px 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '11px', fontWeight: 600 }}
+              style={{ padding: '8px 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '12px', fontWeight: 600 }}
               onClick={() => handleOpenDocReview('ETRM_TICKET')}
               data-testid="etrm-ticket-btn"
               title="Review ETRM CSV Deal Ticket & JSON fields"
@@ -1889,7 +1889,7 @@ export function TradeBuilderScreen() {
             <button
               type="button"
               className="btn btn-secondary"
-              style={{ padding: '8px 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '11px', fontWeight: 600 }}
+              style={{ padding: '8px 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '12px', fontWeight: 600 }}
               onClick={() => handleOpenDocReview('UDB_XML')}
               data-testid="udb-xml-btn"
               title="Review Union Database (UDB) Mass Balance Nomination XML"
@@ -1902,7 +1902,7 @@ export function TradeBuilderScreen() {
           <button
             type="button"
             className="btn btn-secondary btn-block"
-            style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '11px' }}
+            style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '12px' }}
             onClick={() => setIsLogisticsOpen(true)}
             data-testid="delivery-playbook-btn"
             title="Opens interactive TSO pipeline routing, transit tariff breakdown, and UDB mass-balance transfer protocol"
@@ -1911,7 +1911,7 @@ export function TradeBuilderScreen() {
             <span>View TSO Pipeline Logistics Route</span>
           </button>
 
-          <div style={{ fontSize: '11px', textAlign: 'center', color: 'var(--color-dim)', marginTop: '2px' }}>
+          <div style={{ fontSize: '12px', textAlign: 'center', color: 'var(--color-dim)', marginTop: '2px' }}>
             Institutional audit trail · EFET 2026 Annex compliant · Dijkstra TSO pathing
           </div>
         </div>

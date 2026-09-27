@@ -100,7 +100,7 @@ export function PoSUploaderModal({ isOpen, onClose, onApply }: PoSUploaderModalP
             <div>
               <h2 className="text-base font-semibold text-stone-100 flex items-center gap-2">
                 Automated Proof of Sustainability (PoS) Ingestion
-                <span className="text-xs px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 font-mono">RED III Ready</span>
+                <span className="text-xs px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 font-medium">RED III Ready</span>
               </h2>
               <p className="text-xs text-stone-400">
                 Extract audited substrate fractions, verified CI, and certificate metadata from ISCC EU, REDcert-EU, or 2BSvs documents.
@@ -182,7 +182,7 @@ export function PoSUploaderModal({ isOpen, onClose, onApply }: PoSUploaderModalP
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-stone-400">Confidence:</span>
-                  <span className="px-2 py-0.5 rounded bg-stone-800 text-emerald-400 font-mono font-bold">
+                  <span className="px-2 py-0.5 rounded bg-stone-800 text-emerald-400 tabular-nums font-bold">
                     {parsed.confidenceScore}%
                   </span>
                 </div>
@@ -191,43 +191,43 @@ export function PoSUploaderModal({ isOpen, onClose, onApply }: PoSUploaderModalP
               {/* Parsed Attributes Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div className="p-2.5 rounded bg-stone-900 border border-stone-800">
-                  <div className="text-stone-400 text-[11px]">Certificate #</div>
+                  <div className="text-stone-400 text-xs">Certificate #</div>
                   <div className="font-mono font-semibold text-stone-200 truncate" title={parsed.certificateNumber}>
                     {parsed.certificateNumber}
                   </div>
                 </div>
 
                 <div className="p-2.5 rounded bg-stone-900 border border-stone-800">
-                  <div className="text-stone-400 text-[11px]">Issuing Body</div>
+                  <div className="text-stone-400 text-xs">Issuing Body</div>
                   <div className="font-semibold text-stone-200 truncate" title={parsed.issuingBody}>
                     {parsed.issuingBody}
                   </div>
                 </div>
 
                 <div className="p-2.5 rounded bg-stone-900 border border-stone-800">
-                  <div className="text-stone-400 text-[11px]">Origin Country</div>
+                  <div className="text-stone-400 text-xs">Origin Country</div>
                   <div className="font-semibold text-stone-200">
                     {parsed.countryCode} ({parsed.chainOfCustody})
                   </div>
                 </div>
 
                 <div className="p-2.5 rounded bg-stone-900 border border-stone-800">
-                  <div className="text-stone-400 text-[11px]">Feedstock Substrate</div>
+                  <div className="text-stone-400 text-xs">Feedstock Substrate</div>
                   <div className="font-semibold text-emerald-300 truncate" title={parsed.primaryFeedstockName}>
                     {parsed.primaryFeedstockName}
                   </div>
                 </div>
 
                 <div className="p-2.5 rounded bg-stone-900 border border-stone-800">
-                  <div className="text-stone-400 text-[11px]">Certified CI</div>
-                  <div className="font-mono font-bold text-amber-300">
+                  <div className="text-stone-400 text-xs">Certified CI</div>
+                  <div className="tabular-nums font-bold text-amber-300">
                     {parsed.carbonIntensityGCo2Mj > 0 ? `+${parsed.carbonIntensityGCo2Mj}` : parsed.carbonIntensityGCo2Mj} gCO₂e/MJ
                   </div>
                 </div>
 
                 <div className="p-2.5 rounded bg-stone-900 border border-stone-800">
-                  <div className="text-stone-400 text-[11px]">Volume / Batch</div>
-                  <div className="font-mono font-bold text-stone-200">
+                  <div className="text-stone-400 text-xs">Volume / Batch</div>
+                  <div className="tabular-nums font-bold text-stone-200">
                     {parsed.volumeMWh.toLocaleString()} MWh
                   </div>
                 </div>

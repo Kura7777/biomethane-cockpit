@@ -133,26 +133,28 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
                 <span
                   style={{
                     fontFamily: MONO_FONT,
-                    fontSize: '11px',
+                    fontSize: '12px',
                     fontWeight: 700,
                     color: 'var(--color-accent)',
-                    padding: '1px 6px',
+                    padding: '2px 8px',
                     border: '1px solid var(--color-divider)',
                     backgroundColor: 'var(--color-subtier)',
+                    borderRadius: 'var(--radius-control)',
                   }}
                 >
                   {currentTradeAssessment.id}
                 </span>
-                <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--color-text)' }}>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)' }}>
                   Institutional Deal Confirmation Note
                 </span>
               </div>
 
               <span
                 style={{
-                  fontSize: '10.5px',
-                  fontWeight: 700,
+                  fontSize: '12px',
+                  fontWeight: 600,
                   padding: '2px 8px',
+                  borderRadius: 'var(--radius-control)',
                   border: isEligible
                     ? '1px solid rgba(16, 185, 129, 0.4)'
                     : '1px solid rgba(239, 68, 68, 0.4)',
@@ -167,17 +169,18 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
             </div>
 
             {/* Structured Deal Note Details */}
-            <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '12px' }}>
+            <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px' }}>
               <div
                 style={{
                   border: '1px solid var(--color-divider)',
                   backgroundColor: 'var(--color-subtier)',
+                  borderRadius: 'var(--radius-control)',
                   padding: '12px 14px',
-                  fontFamily: MONO_FONT,
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '6px',
                 }}
+                className="tabular-nums"
               >
                 <div>• Asset / Consignment: <strong style={{ color: 'var(--color-text)' }}>{consignment.name}</strong></div>
                 <div>• Origin Country: <strong style={{ color: 'var(--color-text)' }}>{consignment.originCountry} ({consignment.originCountryName})</strong></div>
@@ -198,7 +201,6 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
                   type="button"
                   onClick={handleCopyDealSummary}
                   className="btn btn-secondary"
-                  style={{ height: '32px', padding: '0 12px', fontSize: '11.5px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}
                 >
                   {copiedSummary ? <Check size={13} style={{ color: 'var(--color-status-pos-text)' }} /> : <Copy size={13} />}
                   <span>{copiedSummary ? 'Copied to Clipboard!' : 'Copy Deal Summary'}</span>
@@ -208,7 +210,6 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
                   type="button"
                   onClick={onExportTermSheetPdf}
                   className="btn btn-secondary"
-                  style={{ height: '32px', padding: '0 12px', fontSize: '11.5px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}
                   data-testid="download-termsheet-pdf-btn"
                 >
                   <Download size={13} />
@@ -219,7 +220,6 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
                   type="button"
                   onClick={onExportPdf}
                   className="btn btn-secondary"
-                  style={{ height: '32px', padding: '0 12px', fontSize: '11.5px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}
                   data-testid="download-efet-pdf-btn"
                 >
                   <Download size={13} />
@@ -248,10 +248,10 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <ShieldCheck size={18} style={{ color: isEligible ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)' }} />
                 <div>
-                  <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: 'var(--color-text)' }}>
+                  <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: 'var(--color-text)' }}>
                     Chief Compliance Officer Pre-Trade Clearance
                   </h4>
-                  <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '2px' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '2px' }}>
                     Institutional 6-gate statutory audit trail under RED III Directive &amp; national registry rules.
                   </div>
                 </div>
@@ -259,11 +259,10 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
 
               <span
                 style={{
-                  fontSize: '11px',
-                  fontWeight: 800,
-                  fontFamily: MONO_FONT,
-                  padding: '3px 8px',
-                  borderRadius: '4px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  padding: '2px 8px',
+                  borderRadius: 'var(--radius-control)',
                   backgroundColor: isEligible ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
                   color: isEligible ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)',
                   border: `1px solid ${isEligible ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}`,
@@ -297,8 +296,7 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
                     }
                   }));
                 }}
-                className="btn btn-secondary"
-                style={{ flex: 1, padding: '7px 12px', fontSize: '11.5px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontWeight: 600 }}
+                className="btn btn-secondary flex-1"
               >
                 <Scale size={13} style={{ color: 'var(--color-accent)' }} />
                 <span>⚖ Run Full Statutory Audit</span>
@@ -307,8 +305,7 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
               <button
                 type="button"
                 onClick={handleDownloadAuditMemo}
-                className="btn btn-secondary"
-                style={{ flex: 1, padding: '7px 12px', fontSize: '11.5px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontWeight: 600 }}
+                className="btn btn-secondary flex-1"
                 title="Download 2-page institutional statutory compliance memorandum PDF"
               >
                 <Download size={13} style={{ color: 'var(--color-accent)' }} />
@@ -322,6 +319,7 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
             style={{
               border: '1px solid var(--color-divider)',
               backgroundColor: 'var(--color-surface)',
+              borderRadius: 'var(--radius-card)',
               padding: '16px',
               display: 'flex',
               flexDirection: 'column',
@@ -331,10 +329,10 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Package size={18} style={{ color: 'var(--color-accent)' }} />
               <div>
-                <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: 'var(--color-text)' }}>
+                <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: 'var(--color-text)' }}>
                   Institutional 5-Document Deal Package
                 </h4>
-                <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '2px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '2px' }}>
                   Full ETRM-compliant documentation suite for counterparty execution and audit trails.
                 </div>
               </div>
@@ -345,15 +343,7 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
               type="button"
               onClick={() => onOpenDocReview('TERM_SHEET')}
               className="btn btn-primary"
-              style={{
-                padding: '12px 16px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                fontSize: '12.5px',
-                fontWeight: 800,
-              }}
+              style={{ padding: '10px 16px', fontSize: '13px', fontWeight: 600 }}
               data-testid="review-deal-package-btn"
             >
               <Package size={15} />
@@ -366,7 +356,7 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
                 type="button"
                 onClick={() => onOpenDocReview('TERM_SHEET')}
                 className="btn btn-secondary"
-                style={{ padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11.5px', justifyContent: 'flex-start' }}
+                style={{ padding: '8px 12px', fontSize: '12px', justifyContent: 'flex-start' }}
                 data-testid="term-sheet-btn"
               >
                 <FileText size={14} style={{ color: 'var(--color-accent)' }} />
@@ -377,7 +367,7 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
                 type="button"
                 onClick={() => onOpenDocReview('EFET_ANNEX')}
                 className="btn btn-secondary"
-                style={{ padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11.5px', justifyContent: 'flex-start' }}
+                style={{ padding: '8px 12px', fontSize: '12px', justifyContent: 'flex-start' }}
                 data-testid="efet-annex-btn"
               >
                 <Scale size={14} style={{ color: 'var(--color-accent)' }} />
@@ -388,7 +378,7 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
                 type="button"
                 onClick={() => onOpenDocReview('ETRM_TICKET')}
                 className="btn btn-secondary"
-                style={{ padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11.5px', justifyContent: 'flex-start' }}
+                style={{ padding: '8px 12px', fontSize: '12px', justifyContent: 'flex-start' }}
                 data-testid="etrm-ticket-btn"
               >
                 <Database size={14} style={{ color: 'var(--color-accent)' }} />
@@ -399,7 +389,7 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
                 type="button"
                 onClick={() => onOpenDocReview('UDB_XML')}
                 className="btn btn-secondary"
-                style={{ padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11.5px', justifyContent: 'flex-start' }}
+                style={{ padding: '8px 12px', fontSize: '12px', justifyContent: 'flex-start' }}
                 data-testid="udb-xml-btn"
               >
                 <Database size={14} style={{ color: 'var(--color-accent)' }} />
@@ -410,7 +400,7 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
                 type="button"
                 onClick={() => onOpenDocReview('AUDIT_MEMO')}
                 className="btn btn-secondary"
-                style={{ padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11.5px', justifyContent: 'flex-start', gridColumn: 'span 2' }}
+                style={{ padding: '8px 12px', fontSize: '12px', justifyContent: 'flex-start', gridColumn: 'span 2' }}
                 data-testid="audit-memo-deal-btn"
               >
                 <ShieldCheck size={14} style={{ color: 'var(--color-accent)' }} />
@@ -424,6 +414,7 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
             style={{
               border: '1px solid var(--color-divider)',
               backgroundColor: 'var(--color-surface)',
+              borderRadius: 'var(--radius-card)',
               padding: '14px 16px',
               display: 'flex',
               flexDirection: 'column',
@@ -434,15 +425,7 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
               type="button"
               onClick={onSaveDossier}
               className="btn btn-primary"
-              style={{
-                height: '36px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                fontSize: '12px',
-                fontWeight: 700,
-              }}
+              style={{ fontSize: '13px', fontWeight: 600 }}
               data-testid="save-dossier-btn"
             >
               <FolderDown size={14} />
@@ -453,22 +436,14 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
               type="button"
               onClick={onOpenLogistics}
               className="btn btn-secondary"
-              style={{
-                height: '34px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                fontSize: '11.5px',
-                fontWeight: 600,
-              }}
+              style={{ fontSize: '12px', fontWeight: 500 }}
               data-testid="delivery-playbook-btn"
             >
               <MapPin size={13} />
               <span>View TSO Pipeline Logistics Route (Dijkstra)</span>
             </button>
 
-            <div style={{ fontSize: '10.5px', color: 'var(--color-muted)', textAlign: 'center', marginTop: '2px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--color-muted)', textAlign: 'center', marginTop: '2px' }}>
               Institutional audit trail · EFET 2026 Annex compliant · Union Database mass-balance validated
             </div>
           </div>
@@ -480,6 +455,7 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
         style={{
           border: '1px solid var(--color-divider)',
           backgroundColor: 'var(--color-surface)',
+          borderRadius: 'var(--radius-card)',
           padding: '10px 16px',
           display: 'flex',
           alignItems: 'center',
@@ -491,7 +467,6 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
           type="button"
           onClick={onBack}
           className="btn btn-secondary"
-          style={{ height: '32px', padding: '0 14px', fontSize: '11.5px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}
         >
           <ArrowLeft size={13} />
           <span>Back: Economics &amp; Risk</span>
@@ -502,7 +477,6 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
             type="button"
             onClick={onReset}
             className="btn btn-secondary"
-            style={{ height: '32px', padding: '0 12px', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
             <RotateCcw size={12} />
             <span>Start New Deal (Clear)</span>
@@ -512,7 +486,6 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
             type="button"
             onClick={() => onOpenDocReview('TERM_SHEET')}
             className="btn btn-primary"
-            style={{ height: '32px', padding: '0 18px', fontSize: '11.5px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}
           >
             <Package size={13} />
             <span>Review Full Legal Package (4 Docs) →</span>

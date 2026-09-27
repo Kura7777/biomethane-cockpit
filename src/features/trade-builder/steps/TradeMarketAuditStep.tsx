@@ -72,19 +72,19 @@ export function TradeMarketAuditStep({
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Scale size={13} style={{ color: 'var(--color-accent)' }} />
-                <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                <span style={{ fontSize: '13px', fontWeight: 600 }}>
                   Target Compliance Destination
                 </span>
               </div>
-              <span style={{ fontSize: '9.5px', fontFamily: MONO_FONT, color: 'var(--color-muted)' }}>
-                16 STATUTORY JURISDICTIONS
+              <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
+                16 statutory jurisdictions
               </span>
             </div>
 
             <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
               {/* Transport Quota Markets */}
               <div>
-                <div style={{ fontSize: '10.5px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--color-muted)', marginBottom: '6px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-muted)', marginBottom: '6px' }}>
                   National Transport Quotas (RED III Annex IX-A)
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
@@ -93,7 +93,6 @@ export function TradeMarketAuditStep({
                       key={m.id}
                       type="button"
                       className={`chip ${m.id === marketId ? 'chip-a' : ''}`}
-                      style={{ fontSize: '11px', padding: '3px 8px' }}
                       onClick={() => setMarketId(m.id)}
                     >
                       <span>{m.country}</span>
@@ -106,7 +105,7 @@ export function TradeMarketAuditStep({
 
               {/* Industrial ETS */}
               <div style={{ paddingTop: '10px', borderTop: '1px solid var(--color-divider)' }}>
-                <div style={{ fontSize: '10.5px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--color-muted)', marginBottom: '6px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-muted)', marginBottom: '6px' }}>
                   Compliance Industrial ETS (Directive (EU) 2023/959)
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
@@ -115,7 +114,6 @@ export function TradeMarketAuditStep({
                       key={m.id}
                       type="button"
                       className={`chip ${m.id === marketId ? 'chip-a' : ''}`}
-                      style={{ fontSize: '11px', padding: '3px 8px' }}
                       onClick={() => setMarketId(m.id)}
                     >
                       <span>EU</span>
@@ -128,7 +126,7 @@ export function TradeMarketAuditStep({
 
               {/* Voluntary Guarantees of Origin */}
               <div style={{ paddingTop: '10px', borderTop: '1px solid var(--color-divider)' }}>
-                <div style={{ fontSize: '10.5px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--color-muted)', marginBottom: '6px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-muted)', marginBottom: '6px' }}>
                   Voluntary &amp; Guarantees of Origin (Unbundled / Scope 1)
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
@@ -137,7 +135,6 @@ export function TradeMarketAuditStep({
                       key={m.id}
                       type="button"
                       className={`chip ${m.id === marketId ? 'chip-a' : ''}`}
-                      style={{ fontSize: '11px', padding: '3px 8px' }}
                       onClick={() => setMarketId(m.id)}
                     >
                       <span>{m.country}</span>
@@ -155,25 +152,26 @@ export function TradeMarketAuditStep({
             style={{
               border: '1px solid var(--color-divider)',
               backgroundColor: 'var(--color-surface)',
+              borderRadius: 'var(--radius-card)',
               padding: '14px 16px',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
               <div>
-                <span style={{ fontSize: '10.5px', color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Active Statutory Route
+                <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
+                  Active statutory route
                 </span>
-                <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: 'var(--color-text)' }}>
+                <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 600, color: 'var(--color-text)' }}>
                   {selectedMarket.name}
                 </h3>
               </div>
 
               <span
                 style={{
-                  fontSize: '11px',
-                  fontWeight: 800,
-                  fontFamily: MONO_FONT,
+                  fontSize: '12px',
+                  fontWeight: 600,
                   padding: '3px 10px',
+                  borderRadius: 'var(--radius-control)',
                   border: isPass
                     ? '1px solid rgba(16, 185, 129, 0.4)'
                     : isBlock
@@ -219,14 +217,15 @@ export function TradeMarketAuditStep({
                 style={{
                   marginTop: '12px',
                   padding: '10px 12px',
+                  borderRadius: 'var(--radius-control)',
                   border: '1px solid rgba(59, 130, 246, 0.3)',
                   backgroundColor: 'rgba(59, 130, 246, 0.08)',
-                  fontSize: '11.5px',
+                  fontSize: '12px',
                   lineHeight: 1.5,
                 }}
               >
-                <div style={{ fontWeight: 700, color: 'var(--color-accent)', marginBottom: '3px' }}>
-                  📦 UNBUNDLED BOOK-AND-CLAIM SCHEME
+                <div style={{ fontWeight: 600, color: 'var(--color-accent)', marginBottom: '3px' }}>
+                  📦 Unbundled Book-and-Claim Scheme
                 </div>
                 <div style={{ color: 'var(--color-text)' }}>
                   Single-leg Guarantee of Origin (GoO) registry transfer. <strong>No physical gas molecule delivery to counterparty</strong>. Biomethane remains in the {origin} domestic gas grid; buyer acquires verified environmental attributes only.
@@ -242,6 +241,7 @@ export function TradeMarketAuditStep({
             style={{
               border: '1px solid var(--color-divider)',
               backgroundColor: 'var(--color-surface)',
+              borderRadius: 'var(--radius-card)',
               overflow: 'hidden',
             }}
           >
@@ -259,7 +259,7 @@ export function TradeMarketAuditStep({
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <ShieldCheck size={13} style={{ color: 'var(--color-accent)' }} />
-                <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                <span style={{ fontSize: '13px', fontWeight: 600 }}>
                   RED III Six-Gate Regulatory Audit
                 </span>
               </div>
@@ -283,8 +283,8 @@ export function TradeMarketAuditStep({
                   className="btn btn-secondary"
                   style={{
                     padding: '2px 8px',
-                    fontSize: '10.5px',
-                    fontWeight: 700,
+                    fontSize: '12px',
+                    fontWeight: 600,
                     color: 'var(--color-accent)',
                     borderColor: 'var(--color-accent)',
                     display: 'inline-flex',
@@ -297,11 +297,11 @@ export function TradeMarketAuditStep({
                 </button>
                 <span
                   style={{
-                    fontSize: '10.5px',
-                    fontFamily: MONO_FONT,
-                    fontWeight: 700,
+                    fontSize: '12px',
+                    fontWeight: 600,
                     color: isPass ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)',
                   }}
+                  className="tabular-nums"
                 >
                   {assessment.gates.filter(g => g.verdict === 'PASS').length} OF 6 GATES CLEAR
                 </span>
@@ -335,6 +335,7 @@ export function TradeMarketAuditStep({
                     style={{
                       border: isBlock && gateBlock ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--color-divider)',
                       backgroundColor: 'var(--color-subtier)',
+                      borderRadius: 'var(--radius-control)',
                       padding: '10px 12px',
                       cursor: 'pointer',
                       transition: 'all 0.15s ease',
@@ -350,23 +351,23 @@ export function TradeMarketAuditStep({
                         ) : (
                           <AlertTriangle size={13} style={{ color: 'var(--color-warning)' }} />
                         )}
-                        <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text)' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)' }}>
                           Gate {gIdx + 1}: {g.gateLabel}
                         </span>
                       </div>
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         {(!gatePass) && (
-                          <span style={{ fontSize: '10px', color: 'var(--color-accent)', textDecoration: 'underline' }}>
+                          <span style={{ fontSize: '12px', color: 'var(--color-accent)', textDecoration: 'underline' }}>
                             ⚖ Audit Gate →
                           </span>
                         )}
                         <span
                           style={{
-                            fontSize: '9.5px',
-                            fontFamily: MONO_FONT,
-                            fontWeight: 700,
+                            fontSize: '12px',
+                            fontWeight: 600,
                             padding: '1px 6px',
+                            borderRadius: 'var(--radius-control)',
                             border: gatePass
                               ? '1px solid rgba(16, 185, 129, 0.4)'
                               : gateBlock
@@ -393,11 +394,11 @@ export function TradeMarketAuditStep({
                       </div>
                     </div>
 
-                    <div style={{ fontSize: '11.5px', color: 'var(--color-muted)', lineHeight: 1.45, marginTop: '3px' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--color-muted)', lineHeight: 1.45, marginTop: '3px' }}>
                       {g.reason}
                     </div>
 
-                    <div style={{ fontSize: '10.5px', color: 'var(--color-accent)', marginTop: '4px', fontFamily: MONO_FONT }}>
+                    <div style={{ fontSize: '12px', color: 'var(--color-accent)', marginTop: '4px' }}>
                       📜 {g.citations[0]?.shortName || g.citations[0]?.fullReference || 'RED III Statutory Directive'}
                     </div>
                   </div>
@@ -413,6 +414,7 @@ export function TradeMarketAuditStep({
         style={{
           border: '1px solid var(--color-divider)',
           backgroundColor: 'var(--color-surface)',
+          borderRadius: 'var(--radius-card)',
           padding: '10px 16px',
           display: 'flex',
           alignItems: 'center',
@@ -424,7 +426,6 @@ export function TradeMarketAuditStep({
           type="button"
           onClick={onBack}
           className="btn btn-secondary"
-          style={{ height: '32px', padding: '0 14px', fontSize: '11.5px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}
         >
           <ArrowLeft size={13} />
           <span>Back: Consignment &amp; Asset</span>
@@ -434,7 +435,6 @@ export function TradeMarketAuditStep({
           type="button"
           onClick={onNext}
           className="btn btn-primary"
-          style={{ height: '32px', padding: '0 18px', fontSize: '11.5px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}
         >
           <span>Next: Economics, Waterfall &amp; Risk</span>
           <ArrowRight size={13} />

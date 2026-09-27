@@ -63,25 +63,26 @@ export function TradeEconomicsStep({
             style={{
               border: '1px solid var(--color-divider)',
               backgroundColor: 'var(--color-surface)',
+              borderRadius: 'var(--radius-card)',
               padding: '18px 20px',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--color-muted)' }}>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-muted)' }}>
                 Net Netback (Delivered Parity)
               </span>
-              <span className="chip" style={{ fontSize: '10px', fontFamily: MONO_FONT }}>
+              <span className="chip tabular-nums">
                 {currentSide.toUpperCase()} · {selectedMarket.unitLabel}
               </span>
             </div>
 
             <div
+              className="tabular-nums"
               style={{
-                fontFamily: MONO_FONT,
-                fontWeight: 800,
-                fontSize: '48px',
+                fontWeight: 700,
+                fontSize: '44px',
                 lineHeight: 1.1,
-                letterSpacing: '-0.03em',
+                letterSpacing: '-0.02em',
                 margin: '8px 0 4px',
                 color: netNetbackVal >= 0 ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)',
               }}
@@ -99,9 +100,10 @@ export function TradeEconomicsStep({
                 style={{
                   marginTop: '10px',
                   padding: '8px 12px',
+                  borderRadius: 'var(--radius-control)',
                   border: '1px solid rgba(245, 158, 11, 0.4)',
                   backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                  fontSize: '11.5px',
+                  fontSize: '12px',
                   color: 'var(--color-warning)',
                   lineHeight: 1.4,
                   display: 'flex',
@@ -123,35 +125,37 @@ export function TradeEconomicsStep({
               gap: '1px',
               backgroundColor: 'var(--color-divider)',
               border: '1px solid var(--color-divider)',
+              borderRadius: 'var(--radius-card)',
+              overflow: 'hidden',
             }}
           >
             <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 16px' }}>
-              <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--color-muted)', marginBottom: '3px' }}>
+              <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-muted)', marginBottom: '3px' }}>
                 Contract Traded Volume
               </div>
-              <div style={{ fontFamily: MONO_FONT, fontSize: '18px', fontWeight: 800, color: 'var(--color-text)' }}>
+              <div className="tabular-nums" style={{ fontSize: '18px', fontWeight: 600, color: 'var(--color-text)' }}>
                 {volumeMwh.toLocaleString()} MWh
               </div>
             </div>
 
             <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 16px' }}>
-              <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--color-muted)', marginBottom: '3px' }}>
+              <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-muted)', marginBottom: '3px' }}>
                 Gross Deal Notional
               </div>
-              <div style={{ fontFamily: MONO_FONT, fontSize: '18px', fontWeight: 800, color: 'var(--color-text)' }}>
+              <div className="tabular-nums" style={{ fontSize: '18px', fontWeight: 600, color: 'var(--color-text)' }}>
                 €{grossTotal.toLocaleString()}
               </div>
             </div>
 
             <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 16px' }}>
-              <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--color-muted)', marginBottom: '3px' }}>
+              <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-muted)', marginBottom: '3px' }}>
                 Trader Desk Margin
               </div>
               <div
+                className="tabular-nums"
                 style={{
-                  fontFamily: MONO_FONT,
                   fontSize: '18px',
-                  fontWeight: 800,
+                  fontWeight: 600,
                   color: netback.deskMargin !== null ? (isPositivePnl ? 'var(--color-accent)' : 'var(--color-status-neg-text)') : 'var(--color-muted)',
                 }}
               >
@@ -160,14 +164,14 @@ export function TradeEconomicsStep({
             </div>
 
             <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 16px' }}>
-              <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--color-muted)', marginBottom: '3px' }}>
+              <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-muted)', marginBottom: '3px' }}>
                 Annual Gross P&amp;L
               </div>
               <div
+                className="tabular-nums"
                 style={{
-                  fontFamily: MONO_FONT,
                   fontSize: '18px',
-                  fontWeight: 800,
+                  fontWeight: 600,
                   color: netback.deskMargin !== null ? (isPositivePnl ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)') : 'var(--color-muted)',
                 }}
               >
@@ -181,6 +185,7 @@ export function TradeEconomicsStep({
             style={{
               border: '1px solid var(--color-divider)',
               backgroundColor: 'var(--color-surface)',
+              borderRadius: 'var(--radius-card)',
               overflow: 'hidden',
             }}
           >
@@ -196,51 +201,51 @@ export function TradeEconomicsStep({
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <DollarSign size={13} style={{ color: 'var(--color-accent)' }} />
-                <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                <span style={{ fontSize: '13px', fontWeight: 600 }}>
                   Commercial Pricing Formation
                 </span>
               </div>
-              <span style={{ fontSize: '9.5px', fontFamily: MONO_FONT, color: 'var(--color-muted)' }}>
-                EUR / MWH EQUIVALENT
+              <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
+                EUR / MWh equivalent
               </span>
             </div>
 
             <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid var(--color-divider)' }}>
                 <span style={{ color: 'var(--color-muted)' }}>1. Environmental Certificate Premium:</span>
-                <strong style={{ fontFamily: MONO_FONT, color: 'var(--color-status-pos-text)' }}>
+                <strong className="tabular-nums" style={{ color: 'var(--color-status-pos-text)' }}>
                   +€{(netback.certificateValue?.valueEurPerMWh ?? 0).toFixed(2)} / MWh
                 </strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid var(--color-divider)' }}>
                 <span style={{ color: 'var(--color-muted)' }}>2. Wholesale Gas Molecule Value:</span>
-                <strong style={{ fontFamily: MONO_FONT, color: 'var(--color-text)' }}>
+                <strong className="tabular-nums" style={{ color: 'var(--color-text)' }}>
                   +€{(netback.moleculeValue ?? 0).toFixed(2)} / MWh
                 </strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid var(--color-divider)' }}>
                 <span style={{ color: 'var(--color-muted)' }}>3. Transfer, Registry &amp; Certification:</span>
-                <strong style={{ fontFamily: MONO_FONT, color: 'var(--color-status-neg-text)' }}>
+                <strong className="tabular-nums" style={{ color: 'var(--color-status-neg-text)' }}>
                   −€{((costs?.transferCosts ?? 0) + (costs?.certificationCosts ?? 0)).toFixed(2)} / MWh
                 </strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid var(--color-divider)' }}>
                 <span style={{ color: 'var(--color-muted)' }}>4. TSO Gas Transit Tariffs ({origin} ➔ {selectedMarket.country}):</span>
-                <strong style={{ fontFamily: MONO_FONT, color: 'var(--color-status-neg-text)' }}>
+                <strong className="tabular-nums" style={{ color: 'var(--color-status-neg-text)' }}>
                   −€{(costs?.logistics ?? 0).toFixed(2)} / MWh
                 </strong>
               </div>
               {netback.producerPayable !== null && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid var(--color-divider)' }}>
                   <span style={{ color: 'var(--color-muted)' }}>5. Producer Payable (Offtake Floor):</span>
-                  <strong style={{ fontFamily: MONO_FONT, color: 'var(--color-status-neg-text)' }}>
+                  <strong className="tabular-nums" style={{ color: 'var(--color-status-neg-text)' }}>
                     −€{netback.producerPayable.toFixed(2)} / MWh
                   </strong>
                 </div>
               )}
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontWeight: 800, fontSize: '13px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontWeight: 600, fontSize: '13px' }}>
                 <span>Net Trader Desk Spread:</span>
-                <span style={{ fontFamily: MONO_FONT, color: isPositivePnl ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)' }}>
+                <span className="tabular-nums" style={{ color: isPositivePnl ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)' }}>
                   €{deskMarginEurMwh} / MWh
                 </span>
               </div>
@@ -256,6 +261,7 @@ export function TradeEconomicsStep({
             style={{
               border: '1px solid var(--color-divider)',
               backgroundColor: 'var(--color-surface)',
+              borderRadius: 'var(--radius-card)',
               overflow: 'hidden',
             }}
           >
@@ -271,12 +277,12 @@ export function TradeEconomicsStep({
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <BarChart3 size={13} style={{ color: 'var(--color-accent)' }} />
-                <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                <span style={{ fontSize: '13px', fontWeight: 600 }}>
                   Netback Waterfall Breakdown
                 </span>
               </div>
-              <span style={{ fontSize: '9.5px', fontFamily: MONO_FONT, color: 'var(--color-muted)' }}>
-                VALUE DEDUCTION ENGINE
+              <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
+                Value deduction engine
               </span>
             </div>
 
@@ -294,10 +300,10 @@ export function TradeEconomicsStep({
                       padding: '3px 0',
                     }}
                   >
-                    <span style={{ fontSize: '11.5px', color: 'var(--color-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={w.label}>
+                    <span style={{ fontSize: '12px', color: 'var(--color-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={w.label}>
                       {w.label}
                     </span>
-                    <div style={{ position: 'relative', height: '14px', backgroundColor: 'var(--color-subtier)', border: '1px solid var(--color-divider)' }}>
+                    <div style={{ position: 'relative', height: '14px', backgroundColor: 'var(--color-subtier)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-bar)' }}>
                       <div
                         style={{
                           position: 'absolute',
@@ -305,6 +311,7 @@ export function TradeEconomicsStep({
                           bottom: 0,
                           left: 0,
                           width: `${barPct}%`,
+                          borderRadius: 'var(--radius-bar)',
                           backgroundColor: w.kind === 'sub'
                             ? 'var(--color-muted)'
                             : w.kind === 'net'
@@ -315,7 +322,7 @@ export function TradeEconomicsStep({
                         }}
                       />
                     </div>
-                    <span style={{ fontFamily: MONO_FONT, textAlign: 'right', fontSize: '12px', fontWeight: 700, color: 'var(--color-text)' }}>
+                    <span className="tabular-nums" style={{ textAlign: 'right', fontSize: '12px', fontWeight: 600, color: 'var(--color-text)' }}>
                       {w.val}
                     </span>
                   </div>
@@ -330,6 +337,7 @@ export function TradeEconomicsStep({
               style={{
                 border: '1px solid var(--color-divider)',
                 backgroundColor: 'var(--color-surface)',
+                borderRadius: 'var(--radius-card)',
                 overflow: 'hidden',
               }}
             >
@@ -345,12 +353,12 @@ export function TradeEconomicsStep({
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <ShieldAlert size={13} style={{ color: 'var(--color-warning)' }} />
-                  <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 600 }}>
                     Principal Trader Risk Suite
                   </span>
                 </div>
-                <span style={{ fontSize: '9.5px', fontFamily: MONO_FONT, color: 'var(--color-muted)' }}>
-                  CROSS-BORDER HEDGING
+                <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
+                  Cross-border hedging
                 </span>
               </div>
 
@@ -359,15 +367,15 @@ export function TradeEconomicsStep({
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
                     <span style={{ color: 'var(--color-text)', fontWeight: 600 }}>Hub Basis Spread:</span>
-                    <div style={{ fontSize: '10.5px', color: 'var(--color-muted)' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
                       Physical delivery differential ({origin} ➔ {selectedMarket.country})
                     </div>
                   </div>
-                  <div style={{ textAlign: 'right', fontFamily: MONO_FONT }}>
+                  <div className="tabular-nums" style={{ textAlign: 'right' }}>
                     <strong style={{ fontSize: '13px' }}>
                       {netback.principalRisk.basisDifferentialEurMwh >= 0 ? `+€${netback.principalRisk.basisDifferentialEurMwh.toFixed(2)}` : `−€${Math.abs(netback.principalRisk.basisDifferentialEurMwh).toFixed(2)}`}/MWh
                     </strong>
-                    <div style={{ fontSize: '10.5px', color: 'var(--color-muted)' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
                       €{netback.principalRisk.basisRiskNotionalEur.toLocaleString()} notional
                     </div>
                   </div>
@@ -377,11 +385,11 @@ export function TradeEconomicsStep({
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '8px', borderTop: '1px solid var(--color-divider)' }}>
                   <div>
                     <span style={{ color: 'var(--color-status-neg-text)', fontWeight: 600 }}>Default Replacement Risk:</span>
-                    <div style={{ fontSize: '10.5px', color: 'var(--color-muted)' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
                       Secondary market replacement exposure
                     </div>
                   </div>
-                  <span style={{ fontFamily: MONO_FONT, fontWeight: 800, fontSize: '13px', color: 'var(--color-status-neg-text)' }}>
+                  <span className="tabular-nums" style={{ fontWeight: 600, fontSize: '13px', color: 'var(--color-status-neg-text)' }}>
                     €{netback.principalRisk.replacementCostExposureEur.toLocaleString()} at risk
                   </span>
                 </div>
@@ -392,20 +400,21 @@ export function TradeEconomicsStep({
                     style={{
                       marginTop: '4px',
                       padding: '8px 10px',
+                      borderRadius: 'var(--radius-control)',
                       backgroundColor: 'rgba(239, 68, 68, 0.08)',
                       border: '1px solid rgba(239, 68, 68, 0.3)',
-                      fontSize: '11.5px',
+                      fontSize: '12px',
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ color: 'var(--color-status-neg-text)', fontWeight: 700 }}>
+                      <span style={{ color: 'var(--color-status-neg-text)', fontWeight: 600 }}>
                         German 2026 Double-Counting Cliff:
                       </span>
-                      <span style={{ fontFamily: MONO_FONT, fontWeight: 800, color: 'var(--color-status-neg-text)' }}>
+                      <span className="tabular-nums" style={{ fontWeight: 600, color: 'var(--color-status-neg-text)' }}>
                         −€{netback.principalRisk.germanCliffImpactEurMwh.toFixed(2)}/MWh
                       </span>
                     </div>
-                    <div style={{ fontSize: '10.5px', color: 'var(--color-muted)', marginTop: '2px' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '2px' }}>
                       Statutory sunset on manure multiplier eliminates −€{netback.principalRisk.germanCliffNotionalEur?.toLocaleString()} of quota value post-2026.
                     </div>
                   </div>
@@ -422,6 +431,7 @@ export function TradeEconomicsStep({
         style={{
           border: '1px solid var(--color-divider)',
           backgroundColor: 'var(--color-surface)',
+          borderRadius: 'var(--radius-card)',
           padding: '10px 16px',
           display: 'flex',
           alignItems: 'center',
@@ -433,7 +443,6 @@ export function TradeEconomicsStep({
           type="button"
           onClick={onBack}
           className="btn btn-secondary"
-          style={{ height: '32px', padding: '0 14px', fontSize: '11.5px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}
         >
           <ArrowLeft size={13} />
           <span>Back: Destination &amp; Audit</span>
@@ -443,7 +452,6 @@ export function TradeEconomicsStep({
           type="button"
           onClick={onNext}
           className="btn btn-primary"
-          style={{ height: '32px', padding: '0 18px', fontSize: '11.5px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}
         >
           <span>Next: Deal Package &amp; Term Sheet</span>
           <ArrowRight size={13} />
