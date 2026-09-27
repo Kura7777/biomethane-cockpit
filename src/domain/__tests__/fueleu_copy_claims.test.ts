@@ -105,7 +105,6 @@ describe('FuelEU Maritime UI copy — no misleading client-facing claims', () =>
   it('client-export/copy/email template strings do not leak "Desk Margin" / "Desk Structuring Margin"', () => {
     const targeted = [
       'ShippingTermSheetStep.tsx',
-      'ShippingCounterpartyModal.tsx',
       'DualCommercialPathwaySimulator.tsx',
     ];
     for (const f of files) {

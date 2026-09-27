@@ -32,7 +32,9 @@
     {
       "group_id": "cosco",
       "website": "https://en.coscoshipping.com",
-      "contacts": []
+      "contacts": [
+        { "kind": "PRESS", "role": "Public Relations Department", "email": "ir.csp@coscoshipping.com", "phone": "+852 2809 8188", "sourceUrl": "https://ports.coscoshipping.com/en/Media/MediaContact/", "sourceQuote": "Media Contact Public Relations Department ir.csp@coscoshipping.com 49/F, COSCO Tower, 183 Queen's Road Central Hong Kong +852 2809 8188", "checkedAt": "2026-09-27" }
+      ]
     },
     {
       "group_id": "carnival",
@@ -86,7 +88,9 @@
     {
       "group_id": "royal-caribbean-group",
       "website": "https://www.royalcaribbeangroup.com",
-      "contacts": []
+      "contacts": [
+        { "kind": "PRESS", "role": "Corporate Communications", "email": "CorporateCommunications@rccl.com", "phone": "305-539-6000", "sourceUrl": "https://www.rclinvestor.com/contact-us/", "sourceQuote": "Corporate Communications Phone 305-539-6000 Address Royal Caribbean Group 1050 Caribbean Way Miami, FL 33132-2096 Email CorporateCommunications@rccl.com", "checkedAt": "2026-09-27" }
+      ]
     },
     {
       "group_id": "moby-group",
@@ -124,12 +128,16 @@
     {
       "group_id": "nyk",
       "website": "https://www.nyk.com",
-      "contacts": []
+      "contacts": [
+        { "kind": "SWITCHBOARD", "role": "NYK Group Europe, London", "phone": "+44 (0)20 3409 7500", "sourceUrl": "https://www.nykeurope.com/contact-us/", "sourceQuote": "Europe United Kingdom London NYK Group Europe, London Floor 19 1 Cabot Square Canary Wharf London E14 4QJ UK Tel: +44 (0)20 3409 7500", "checkedAt": "2026-09-27" }
+      ]
     },
     {
       "group_id": "k-line",
       "website": "https://www.kline.co.jp",
-      "contacts": []
+      "contacts": [
+        { "kind": "SWITCHBOARD", "role": "Head Office", "phone": "+81 3-3595-5000", "sourceUrl": "https://www.kline.co.jp/en/corporate/network.html", "sourceQuote": "Head Office Address Address Iino Building, 1-1, Uchisaiwaicho 2-chome, Chiyoda-ku, Tokyo 100-8540, Japan Phone (+81) 3-3595-5000", "checkedAt": "2026-09-27" }
+      ]
     },
     {
       "group_id": "hmm",
@@ -153,7 +161,9 @@
     {
       "group_id": "seapeak-maritime-limited",
       "website": "https://seapeak.com",
-      "contacts": []
+      "contacts": [
+        { "kind": "SWITCHBOARD", "role": "Seapeak Maritime Limited, Bermuda", "phone": "+1 441 295 1422", "sourceUrl": "https://seapeak.com/contact/", "sourceQuote": "Bermuda Seapeak Maritime Limited Tel: +1 441 295 1422", "checkedAt": "2026-09-27" }
+      ]
     },
     {
       "group_id": "zodiac-maritime",
@@ -178,7 +188,9 @@
     {
       "group_id": "maran-angelicoussis",
       "website": "https://marantankers.gr",
-      "contacts": []
+      "contacts": [
+        { "kind": "GENERAL_EMAIL", "email": "mail@marantankers.gr", "phone": "+30 2130 076 300", "sourceUrl": "https://marantankers.gr/contact/", "sourceQuote": "Contact us Tel :+30 2130 076 300 Fax :+30 210 9408 510 Email : mail@marantankers.gr", "checkedAt": "2026-09-27" }
+      ]
     },
     {
       "group_id": "thenamaris",
@@ -224,12 +236,16 @@
     {
       "group_id": "shoei-kisen-kaisha-ltd",
       "website": "https://www.shoei-kisen.com",
-      "contacts": []
+      "contacts": [
+        { "kind": "SWITCHBOARD", "role": "Imabari Head Office", "phone": "+81-898-41-9908", "sourceUrl": "https://www.shoei-kisen.com/en/about", "sourceQuote": "Imabari Head Office 1-4-52 Koura-cho, Imabari City, Ehime Pref., Japan Phone: +81-898-41-9908 (main)", "checkedAt": "2026-09-27" }
+      ]
     },
     {
       "group_id": "dynagas",
       "website": "https://www.dynagaspartners.com",
-      "contacts": []
+      "contacts": [
+        { "kind": "SWITCHBOARD", "role": "Dynagas LNG Partners", "phone": "+30 210 891 7960", "sourceUrl": "http://www.dynagaspartners.com/?d=dngpart&page=email", "sourceQuote": "Contact Dynagas LNG Partners +30 210 891 7960", "checkedAt": "2026-09-27" }
+      ]
     },
     {
       "group_id": "color-line-marine-as",
@@ -274,7 +290,9 @@
     {
       "group_id": "tui-cruises",
       "website": "https://corporate.tuicruises.com",
-      "contacts": []
+      "contacts": [
+        { "kind": "GENERAL_EMAIL", "email": "info@tuicruises.com", "phone": "+49 40 60001-5000", "sourceUrl": "https://corporate.tuicruises.com/en/imprint", "sourceQuote": "TUI Cruises GmbH Heidenkampsweg 58, 20097 Hamburg Tel.: +49 40 60001-5000 Fax: +49 40 60001-5100 Email: info@tuicruises.com", "checkedAt": "2026-09-27" }
+      ]
     },
     {
       "group_id": "brittany-ferries-bai-sa",

@@ -1,9 +1,9 @@
 {
   "summary": {
-    "verifiedAt": "2026-09-27T07:03:48.494368+00:00",
+    "verifiedAt": "2026-09-27T11:20:46.182628+00:00",
     "totalGroups": 49,
-    "totalContacts": 38,
-    "passed": 38,
+    "totalContacts": 47,
+    "passed": 47,
     "failed": 0,
     "websites_checked": 49,
     "websites_resolving": 49
@@ -51,6 +51,19 @@
       "name": null,
       "sourceUrl": "https://www.cmacgm-group.com/en/legal-terms",
       "checks": {
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "cosco",
+      "kind": "PRESS",
+      "name": null,
+      "sourceUrl": "https://ports.coscoshipping.com/en/Media/MediaContact/",
+      "checks": {
+        "email": true,
+        "email_domain_dns": true,
         "phone": true
       },
       "pass": true,
@@ -156,6 +169,19 @@
       "reasons": []
     },
     {
+      "group_id": "royal-caribbean-group",
+      "kind": "PRESS",
+      "name": null,
+      "sourceUrl": "https://www.rclinvestor.com/contact-us/",
+      "checks": {
+        "email": true,
+        "email_domain_dns": true,
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
       "group_id": "moby-group",
       "kind": "GENERAL_EMAIL",
       "name": null,
@@ -202,6 +228,28 @@
       "reasons": []
     },
     {
+      "group_id": "nyk",
+      "kind": "SWITCHBOARD",
+      "name": null,
+      "sourceUrl": "https://www.nykeurope.com/contact-us/",
+      "checks": {
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "k-line",
+      "kind": "SWITCHBOARD",
+      "name": null,
+      "sourceUrl": "https://www.kline.co.jp/en/corporate/network.html",
+      "checks": {
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
       "group_id": "eastern-pacific-shipping",
       "kind": "SWITCHBOARD",
       "name": null,
@@ -222,6 +270,17 @@
       "checks": {
         "email": true,
         "email_domain_dns": true,
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "seapeak-maritime-limited",
+      "kind": "SWITCHBOARD",
+      "name": null,
+      "sourceUrl": "https://seapeak.com/contact/",
+      "checks": {
         "phone": true
       },
       "pass": true,
@@ -256,6 +315,19 @@
       "name": null,
       "sourceUrl": "https://www.tms-cardiffgas.com/contact.html",
       "checks": {
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "maran-angelicoussis",
+      "kind": "GENERAL_EMAIL",
+      "name": null,
+      "sourceUrl": "https://marantankers.gr/contact/",
+      "checks": {
+        "email": true,
+        "email_domain_dns": true,
         "phone": true
       },
       "pass": true,
@@ -336,6 +408,28 @@
       "reasons": []
     },
     {
+      "group_id": "shoei-kisen-kaisha-ltd",
+      "kind": "SWITCHBOARD",
+      "name": null,
+      "sourceUrl": "https://www.shoei-kisen.com/en/about",
+      "checks": {
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "dynagas",
+      "kind": "SWITCHBOARD",
+      "name": null,
+      "sourceUrl": "http://www.dynagaspartners.com/?d=dngpart&page=email",
+      "checks": {
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
       "group_id": "color-line-marine-as",
       "kind": "SWITCHBOARD",
       "name": null,
@@ -386,6 +480,19 @@
       "kind": "SWITCHBOARD",
       "name": null,
       "sourceUrl": "https://polsteam.com/en/contact-eng/",
+      "checks": {
+        "email": true,
+        "email_domain_dns": true,
+        "phone": true
+      },
+      "pass": true,
+      "reasons": []
+    },
+    {
+      "group_id": "tui-cruises",
+      "kind": "GENERAL_EMAIL",
+      "name": null,
+      "sourceUrl": "https://corporate.tuicruises.com/en/imprint",
       "checks": {
         "email": true,
         "email_domain_dns": true,
