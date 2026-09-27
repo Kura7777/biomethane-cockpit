@@ -194,6 +194,15 @@
   --color-neutral-700: #c4c9d2;
   --color-neutral-800: #ecedef;
   --color-neutral-900: #fbfbf9;
+
+  /* Chart series palette (Dark Mode) — light-mode hues lifted for dark backgrounds,
+     same treatment as the status tokens above */
+  --chart-1: #7fb0f0;
+  --chart-2: #f08a7c;
+  --chart-3: #e0a43a;
+  --chart-4: #9aa1ad;
+  --chart-5: #9499f5;
+  --chart-6: #34b8ab;
 }
 
 *, *::before, *::after {
