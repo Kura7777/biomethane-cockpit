@@ -4,6 +4,8 @@ import { ClientRequest, RegulatoryWhatIfScenario } from '../arbitrage/types';
 import { MarksState, CostInputs } from '../netback/types';
 import { DEFAULT_WHAT_IF_SCENARIO } from '../arbitrage/engine';
 import { PRODUCING_ORIGINS } from '../arbitrage/origins';
+import { generateSourcingNoteText } from '../trade/sourcingNote';
+import { searchResultContainsPraData } from '../trade/licensing';
 
 const totalOriginsCount = Object.keys(PRODUCING_ORIGINS).length;
 
@@ -275,10 +277,7 @@ describe('SOURCING ADAPTER — searchSourcingRoutes', () => {
     expect(durationMs).toBeLessThan(2000);
   });
 
-  it('generates unstyled, plain-text sourcing note matching exact specifications', async () => {
-    const { generateSourcingNoteText } = await import('../trade/sourcingNote');
-    const { searchResultContainsPraData } = await import('../trade/licensing');
-
+  it('generates unstyled, plain-text sourcing note matching exact specifications', () => {
     const req: ClientRequest = {
       targetMarketId: 'DE_THG',
       volumeMwh: 20000,
