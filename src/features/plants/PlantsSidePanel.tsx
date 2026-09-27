@@ -1,5 +1,6 @@
-import React from 'react';
-import { X } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { Maximize2, Minimize2, X } from 'lucide-react';
 import { BiomethanePlant, CountryMacroStat } from '../../domain/plants/types';
 
 const DATA_QUALITY_LABELS: Record<string, string> = {
@@ -30,7 +31,8 @@ export interface PlantsSidePanelProps {
 }
 
 /** Sticky right-hand panel: selected plant detail with a "price a deal" / "full dossier" footer,
- *  or — when nothing is selected — the country totals rail it replaces. */
+ *  or — when nothing is selected — the country totals rail it replaces. The detail can be
+ *  expanded into a large centred dialog for reading it at a bigger size. */
 export function PlantsSidePanel({
   plant,
   countryStats,
@@ -41,6 +43,24 @@ export function PlantsSidePanel({
   onPriceDeal,
   onOpenDossier,
 }: PlantsSidePanelProps) {
+  const [expanded, setExpanded] = useState(false);
+  const expandedRef = useRef<HTMLElement>(null);
+
+  // Selecting another plant (or closing) always returns to the side panel
+  useEffect(() => {
+    setExpanded(false);
+  }, [plant?.id]);
+
+  useEffect(() => {
+    if (!expanded) return;
+    expandedRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setExpanded(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [expanded]);
+
   if (!plant) {
     return (
       <aside className="ds-aside plants-aside">
@@ -91,8 +111,15 @@ export function PlantsSidePanel({
   }
   flags.push('CI is feedstock default');
 
-  return (
-    <aside className="ds-aside plants-aside">
+  const renderPanel = (isExpanded: boolean) => (
+    <aside
+      ref={isExpanded ? expandedRef : undefined}
+      className={`ds-aside plants-aside ${isExpanded ? 'plants-aside-expanded' : ''}`}
+      role={isExpanded ? 'dialog' : undefined}
+      aria-modal={isExpanded ? true : undefined}
+      aria-label={isExpanded ? `${plant.name} details` : undefined}
+      tabIndex={isExpanded ? -1 : undefined}
+    >
       <div className="ds-aside-section">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
           <div>
@@ -103,9 +130,20 @@ export function PlantsSidePanel({
               {plant.commissioningYear && <> · Active since {plant.commissioningYear}</>}
             </div>
           </div>
-          <button type="button" aria-label="Close panel" onClick={onClose} className="ds-icon-btn ds-icon-btn-sm">
-            <X size={14} />
-          </button>
+          <div className="plants-panel-actions">
+            <button
+              type="button"
+              aria-label={isExpanded ? 'Exit full screen' : 'Expand panel'}
+              title={isExpanded ? 'Exit full screen (Esc)' : 'Expand panel'}
+              onClick={() => setExpanded(!isExpanded)}
+              className="ds-icon-btn ds-icon-btn-sm"
+            >
+              {isExpanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+            </button>
+            <button type="button" aria-label="Close panel" title="Close panel" onClick={onClose} className="ds-icon-btn ds-icon-btn-sm">
+              <X size={14} />
+            </button>
+          </div>
         </div>
 
         <div className="plants-panel-stats">
@@ -195,5 +233,23 @@ export function PlantsSidePanel({
         </button>
       </div>
     </aside>
+  );
+
+  return (
+    <>
+      {renderPanel(false)}
+      {expanded &&
+        createPortal(
+          <div
+            className="scrim plants-expand-scrim"
+            onMouseDown={e => {
+              if (e.target === e.currentTarget) setExpanded(false);
+            }}
+          >
+            {renderPanel(true)}
+          </div>,
+          document.body,
+        )}
+    </>
   );
 }
