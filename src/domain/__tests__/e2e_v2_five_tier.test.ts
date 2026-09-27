@@ -38,7 +38,6 @@ import {
   FR_CPB_CEILING_EUR_MWH,
   MWH_PER_CIC_ADVANCED,
   MWH_PER_CIC_CONVENTIONAL,
-  FUELEU_PENALTY_EUR_PER_TONNE,
 } from '../markets/constants';
 import {
   computeNetback,

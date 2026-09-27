@@ -24,16 +24,8 @@ export const GCAL_PER_CIC_ADVANCED = 5;
 export const MWH_PER_CIC_CONVENTIONAL = GCAL_PER_CIC_CONVENTIONAL * MWH_PER_GCAL; // 11.63
 export const MWH_PER_CIC_ADVANCED = GCAL_PER_CIC_ADVANCED * MWH_PER_GCAL; // 5.815
 
-/**
- * FuelEU Maritime Penalty per tonne VLSFO-eq
- * Source: Regulation (EU) 2023/1805
- */
-export const FUELEU_PENALTY_EUR_PER_TONNE = 2400;
-
-/**
- * Energy density of Very Low Sulfur Fuel Oil (VLSFO)
- */
-export const VLSFO_MJ_PER_TONNE = 41000;
+// FuelEU Annex IV penalty constants live in src/domain/fueleu/calculator.ts
+// (FUELEU_STATUTORY_PENALTY_PER_TONNE, FUELEU_PENALTY_VLSFO_MJ_PER_TONNE) — single source.
 
 /**
  * France CPB Ceiling Price in EUR/MWh

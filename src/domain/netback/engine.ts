@@ -4,8 +4,6 @@ import {
   FR_CPB_CEILING_EUR_MWH,
   DE_THG_PENALTY_EUR_PER_TCO2E,
   UK_RTFC_BUYOUT_GBP,
-  FUELEU_PENALTY_EUR_PER_TONNE,
-  VLSFO_MJ_PER_TONNE,
   MWH_PER_CIC_ADVANCED,
   MWH_PER_CIC_CONVENTIONAL,
 } from '../markets/constants';
@@ -20,6 +18,8 @@ import {
   FUELEU_TARGET_2025,
   FUELEU_TARGET_2030,
   bioLngFuelEUIntensity,
+  FUELEU_STATUTORY_PENALTY_PER_TONNE,
+  FUELEU_PENALTY_VLSFO_MJ_PER_TONNE,
 } from '../fueleu/calculator';
 import { getAssumption } from '../assumptions/registry';
 
@@ -120,12 +120,12 @@ export function computeFuelEUDeficitClosureValue(
   }
 
   // Exact marginal of the Annex IV penalty with respect to displaced ship-fuel energy
-  const penaltyPerMJ = (FUELEU_PENALTY_EUR_PER_TONNE / VLSFO_MJ_PER_TONNE)
+  const penaltyPerMJ = (FUELEU_STATUTORY_PENALTY_PER_TONNE / FUELEU_PENALTY_VLSFO_MJ_PER_TONNE)
     * deltaCI * Math.max(0, targetCI) / (shipActualCI * shipActualCI) * penaltyMultiplier;
   const valueEurPerMWh = penaltyPerMJ * MJ_PER_MWH;
 
-  const unitConversion = `FuelEU Target: ${targetCI} g/MJ | Ship CI: ${shipActualCI.toFixed(2)} g/MJ | Bio-LNG WtW: ${bioWtw.toFixed(2)} g/MJ (RED CI ${consignmentCI} + slip) | ΔCI: ${deltaCI.toFixed(1)} g/MJ | Penalty: €2,400/t VLSFO-eq (Yr ${consecutiveYears}: ${((penaltyMultiplier - 1) * 100).toFixed(0)}% escalation)`;
-  const calculation = `(€2,400 ÷ 41,000) × ${deltaCI.toFixed(1)} × ${targetCI} ÷ ${shipActualCI.toFixed(2)}² × ${penaltyMultiplier.toFixed(1)} × 3600 = €${valueEurPerMWh.toFixed(2)}/MWh compliance value`;
+  const unitConversion = `FuelEU Target: ${targetCI} g/MJ | Ship CI: ${shipActualCI.toFixed(2)} g/MJ | Bio-LNG WtW: ${bioWtw.toFixed(2)} g/MJ (RED CI ${consignmentCI} + slip) | ΔCI: ${deltaCI.toFixed(1)} g/MJ | Penalty: €${FUELEU_STATUTORY_PENALTY_PER_TONNE.toLocaleString('en-GB')}/t VLSFO-eq (Yr ${consecutiveYears}: ${((penaltyMultiplier - 1) * 100).toFixed(0)}% escalation)`;
+  const calculation = `(€${FUELEU_STATUTORY_PENALTY_PER_TONNE.toLocaleString('en-GB')} ÷ ${FUELEU_PENALTY_VLSFO_MJ_PER_TONNE.toLocaleString('en-GB')}) × ${deltaCI.toFixed(1)} × ${targetCI} ÷ ${shipActualCI.toFixed(2)}² × ${penaltyMultiplier.toFixed(1)} × 3600 = €${valueEurPerMWh.toFixed(2)}/MWh compliance value`;
 
   return { valueEurPerMWh, calculation, unitConversion };
 }
