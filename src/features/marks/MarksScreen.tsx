@@ -7,6 +7,7 @@ import { BrokerRunImporterModal } from './BrokerRunImporterModal';
 import { showToast } from '../../app/DeskToastContainer';
 import { INITIAL_BROKER_QUOTES, BrokerMarketQuote, ProvenanceTier } from '../../domain/markets/brokerMarketData';
 import { PageShell } from '../../shared/ui/PageShell';
+import './marks.css';
 import { KpiRow, KpiTile } from '../../shared/ui/KpiTile';
 import {
   Download,
@@ -447,14 +448,14 @@ export function MarksScreen() {
                 <th style={{ width: '75px', textAlign: 'center' }}>Class</th>
                 <th style={{ minWidth: '220px' }}>Feedstock &amp; Specification</th>
                 <th style={{ width: '75px', textAlign: 'center' }}>Vintage</th>
-                <th style={{ width: '135px', textAlign: 'center' }}>Certified</th>
-                <th style={{ width: '95px', textAlign: 'center' }}>Subsidized</th>
+                <th style={{ width: '112px', textAlign: 'center' }}>Certified</th>
+                <th className="marks-col-subsidized" style={{ width: '95px', textAlign: 'center' }}>Subsidized</th>
                 <th style={{ width: '95px', textAlign: 'center' }}>CI Score</th>
                 <th style={{ width: '105px', textAlign: 'right' }}>BID Price</th>
                 <th style={{ width: '105px', textAlign: 'right' }}>OFFER Price</th>
                 <th style={{ width: '95px', textAlign: 'right' }}>BID Vol</th>
                 <th style={{ width: '95px', textAlign: 'right' }}>OFFER Vol</th>
-                <th style={{ minWidth: '260px' }}>Price Derived From</th>
+                <th className="marks-col-source">Price Derived From</th>
               </tr>
             </thead>
             <tbody>
@@ -519,7 +520,7 @@ export function MarksScreen() {
                     </td>
 
                     {/* Subsidized */}
-                    <td style={{ textAlign: 'center' }}>
+                    <td className="marks-col-subsidized" style={{ textAlign: 'center' }}>
                       <span className={`chip ${q.subsidized === 'Unsubsidised' ? 'chip-pos' : 'chip-neutral'}`} style={{ fontSize: '12px', padding: '1px 5px' }}>
                         {q.subsidized}
                       </span>
@@ -540,7 +541,7 @@ export function MarksScreen() {
                         aria-label={`Bid price for ${q.country} ${q.feedstock}`}
                         className="input num"
                         style={{
-                          width: '100%',
+                          width: '100%', minWidth: '108px',
                           textAlign: 'right',
                           minHeight: '26px',
                           padding: '2px 6px',
@@ -562,7 +563,7 @@ export function MarksScreen() {
                         aria-label={`Offer price for ${q.country} ${q.feedstock}`}
                         className="input num"
                         style={{
-                          width: '100%',
+                          width: '100%', minWidth: '108px',
                           textAlign: 'right',
                           minHeight: '26px',
                           padding: '2px 6px',
@@ -584,7 +585,7 @@ export function MarksScreen() {
                         aria-label={`Bid volume for ${q.country} ${q.feedstock}`}
                         className="input num"
                         style={{
-                          width: '100%',
+                          width: '100%', minWidth: '76px',
                           textAlign: 'right',
                           minHeight: '26px',
                           padding: '2px 6px',
@@ -605,7 +606,7 @@ export function MarksScreen() {
                         aria-label={`Offer volume for ${q.country} ${q.feedstock}`}
                         className="input num"
                         style={{
-                          width: '100%',
+                          width: '100%', minWidth: '76px',
                           textAlign: 'right',
                           minHeight: '26px',
                           padding: '2px 6px',
@@ -617,7 +618,7 @@ export function MarksScreen() {
                     </td>
 
                     {/* Price Derived From (Explicit Data Source Citation) */}
-                    <td>
+                    <td className="marks-col-source">
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span className={`chip ${badgeClass}`} style={{ fontSize: '12px', padding: '1px 5px', flexShrink: 0 }}>
                           {badgeLabel}

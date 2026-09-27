@@ -1,0 +1,15 @@
+/* Pricing desk table: the source column takes whatever width is left and truncates
+ * (full text in its title tooltip), so the price/volume inputs never get squeezed. */
+.marks-col-source {
+  width: 100%;
+  max-width: 0;
+  min-width: 144px;
+}
+.marks-col-source > div > span:last-child {
+  display: block;
+  min-width: 0;
+}
+/* Below 1680px the Subsidized column drops out (it is also in the CSV export). */
+@media (max-width: 1680px) {
+  .marks-col-subsidized { display: none; }
+}
