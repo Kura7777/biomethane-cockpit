@@ -209,8 +209,9 @@
 .plants-output-bar-fill {
   height: 6px;
   border-radius: var(--radius-bar);
-  background: var(--color-accent);
+  background: var(--color-text);
 }
+/* volume bar is neutral: red on this desk means negative/loss */
 
 .plants-feedstock-cell {
   font-size: 13px;
@@ -332,10 +333,11 @@
 }
 
 .plants-panel-meta {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex-wrap: wrap;
+  display: block; /* inline flow so the ISO tag stays on the first line when the region wraps */
+}
+.plants-panel-stats .ds-panel-stat-value {
+  white-space: nowrap;
+  font-size: clamp(16px, 1.3vw, 20px);
 }
 
 .plants-ci-negative {
