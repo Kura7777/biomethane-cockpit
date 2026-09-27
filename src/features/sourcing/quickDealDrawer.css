@@ -1,0 +1,178 @@
+/* Quick Deal Drawer — scoped design-token retokening (Round 2 restyle).
+ * Replaces the drawer's previous hard-coded dark cyan/zinc palette with the app's shared
+ * --color-* tokens so it matches the rest of the app in both light and dark mode.
+ * Scoped to `.qd-drawer` so it never touches other screens. */
+.qd-drawer {
+  --qd-bg: var(--color-surface);
+  --qd-panel: var(--color-panel);
+  --qd-panel-header: var(--color-panel-header);
+  --qd-line: var(--color-divider);
+  --qd-ink: var(--color-text);
+  --qd-muted: var(--color-muted);
+  --qd-accent: var(--color-accent);
+  --qd-pos-bg: var(--color-status-pos-bg);
+  --qd-pos-border: var(--color-status-pos-border);
+  --qd-pos-text: var(--color-status-pos-text);
+  --qd-neg-bg: var(--color-status-neg-bg);
+  --qd-neg-border: var(--color-status-neg-border);
+  --qd-neg-text: var(--color-status-neg-text);
+  --qd-warn-bg: var(--color-status-warn-bg);
+  --qd-warn-border: var(--color-status-warn-border);
+  --qd-warn-text: var(--color-status-warn-text);
+  --qd-subtier: var(--color-subtier);
+
+  background: var(--qd-bg);
+  border-left: 1px solid var(--qd-line);
+  color: var(--qd-ink);
+}
+
+.qd-header {
+  background: var(--qd-panel-header);
+  border-bottom: 1px solid var(--qd-line);
+}
+
+.qd-close-btn {
+  color: var(--qd-muted);
+  background: transparent;
+}
+.qd-close-btn:hover {
+  color: var(--qd-ink);
+  background: var(--qd-subtier);
+}
+
+.qd-target {
+  color: var(--qd-accent);
+}
+
+.qd-map-frame {
+  border: 1px solid var(--qd-line);
+}
+
+.qd-math-btn {
+  background: var(--qd-pos-bg);
+  border: 1px solid var(--qd-pos-border);
+  color: var(--qd-pos-text);
+}
+.qd-math-btn:hover {
+  filter: brightness(1.08);
+}
+
+.qd-card {
+  background: var(--qd-panel);
+  border: 1px solid var(--qd-line);
+}
+
+.qd-subcard {
+  background: var(--qd-panel-header);
+  border: 1px solid var(--qd-line);
+}
+
+.qd-label {
+  color: var(--qd-muted);
+}
+
+.qd-value-accent {
+  color: var(--qd-accent);
+}
+
+.qd-pos {
+  color: var(--qd-pos-text);
+}
+.qd-neutral-value {
+  color: var(--qd-ink);
+}
+
+.qd-divider > * + * {
+  border-top: 1px solid var(--qd-line);
+}
+
+.qd-row-muted {
+  color: var(--qd-muted);
+}
+
+.qd-total-row {
+  border-top: 1px solid var(--qd-line);
+}
+
+.qd-margin-row {
+  background: var(--qd-pos-bg);
+}
+.qd-margin-row .qd-margin-label,
+.qd-margin-row .qd-margin-value {
+  color: var(--qd-pos-text);
+}
+
+.qd-badge-verified {
+  background: var(--qd-pos-bg);
+  color: var(--qd-pos-text);
+  border: 1px solid var(--qd-pos-border);
+}
+.qd-badge-warn {
+  background: var(--qd-warn-bg);
+  color: var(--qd-warn-text);
+  border: 1px solid var(--qd-warn-border);
+}
+
+.qd-input,
+.qd-static-field {
+  background: var(--qd-panel-header);
+  border: 1px solid var(--qd-line);
+  color: var(--qd-ink);
+}
+.qd-input:focus {
+  border-color: var(--qd-accent);
+  outline: none;
+}
+.qd-static-field {
+  color: var(--qd-accent);
+}
+
+.qd-gate-icon {
+  color: var(--qd-pos-text);
+}
+.qd-gate-citation {
+  color: var(--qd-accent);
+}
+.qd-gate-verdict {
+  background: var(--qd-pos-bg);
+  color: var(--qd-pos-text);
+  border: 1px solid var(--qd-pos-border);
+}
+
+.qd-footer {
+  background: var(--qd-panel-header);
+  border-top: 1px solid var(--qd-line);
+}
+
+.qd-btn-secondary {
+  background: var(--qd-panel);
+  border: 1px solid var(--qd-line);
+  color: var(--qd-ink);
+}
+.qd-btn-secondary:hover {
+  background: var(--qd-subtier);
+}
+
+.qd-btn-outline-accent {
+  background: var(--qd-panel);
+  border: 1px solid var(--qd-pos-border);
+  color: var(--qd-pos-text);
+}
+.qd-btn-outline-accent:hover {
+  background: var(--qd-pos-bg);
+}
+
+.qd-btn-primary {
+  background: var(--qd-accent);
+  color: #ffffff;
+  border: none;
+}
+.qd-btn-primary:hover {
+  filter: brightness(1.1);
+}
+
+/* Numbers throughout the drawer render in Sans with tabular-nums; Plex Mono stays reserved for
+ * true identifiers elsewhere in the app (this drawer has none). */
+.qd-drawer .tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
