@@ -137,6 +137,7 @@ export function LogisticsModal({
         style={{
           width: 'min(1120px, 100%)',
           backgroundColor: 'var(--color-bg)',
+          overflow: 'hidden',
         }}
         onClick={e => e.stopPropagation()}
       >
@@ -218,7 +219,7 @@ export function LogisticsModal({
                     padding: '4px 8px',
                     fontSize: '11px',
                     fontWeight: isSelected ? 700 : 500,
-                    borderRadius: '4px',
+                    borderRadius: 'var(--radius-control)',
                     border: isSelected ? '1px solid var(--color-accent-700)' : '1px solid var(--color-divider)',
                     backgroundColor: isSelected ? 'var(--color-surface)' : 'transparent',
                     color: isSelected ? 'var(--color-accent-700)' : 'var(--color-text-secondary)',
@@ -431,16 +432,16 @@ export function LogisticsModal({
                 style={{
                   marginTop: '12px',
                   padding: '8px 12px',
-                  borderRadius: '4px',
-                  backgroundColor: 'rgba(16, 185, 129, 0.08)',
-                  border: '1px solid rgba(16, 185, 129, 0.3)',
+                  borderRadius: 'var(--radius-control)',
+                  backgroundColor: 'color-mix(in srgb, var(--color-pnl-pos) 8%, transparent)',
+                  border: '1px solid color-mix(in srgb, var(--color-pnl-pos) 30%, transparent)',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-success)' }}>
-                    🟢 {originCountry} Grid Injection Credit ({injectionIncentive.statutoryBasis})
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-pnl-pos)' }}>
+                    {originCountry} Grid Injection Credit ({injectionIncentive.statutoryBasis})
                   </span>
-                  <span className="num" style={{ fontSize: '13px', fontWeight: 800, color: 'var(--color-success)' }}>
+                  <span className="num" style={{ fontSize: '13px', fontWeight: 800, color: 'var(--color-pnl-pos)' }}>
                     -€{assessment.dsoInjectionCreditEurMwh.toFixed(2)}/MWh
                   </span>
                 </div>

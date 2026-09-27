@@ -174,6 +174,7 @@ export function MapScreen() {
               backgroundColor: 'var(--color-bg)',
               padding: '6px 10px',
               border: '1px solid var(--color-divider)',
+              borderRadius: 'var(--radius-control)',
             }}
           >
             {/* Origin Selector */}
@@ -401,6 +402,8 @@ export function MapScreen() {
               minWidth: '210px',
               backgroundColor: 'color-mix(in srgb, var(--color-surface) 96%, transparent)',
               border: '1px solid var(--color-divider)',
+              borderRadius: 'var(--radius-panel)',
+              boxShadow: 'var(--shadow-card)',
               padding: '10px 12px',
             }}
           >
@@ -442,11 +445,22 @@ export function MapScreen() {
           </div>
 
           {/* Overlay: Top-Right Zoom Buttons */}
-          <div style={{ position: 'absolute', top: '12px', right: '12px', display: 'flex', flexDirection: 'column' }}>
+          <div
+            style={{
+              position: 'absolute',
+              top: '12px',
+              right: '12px',
+              display: 'flex',
+              flexDirection: 'column',
+              borderRadius: 'var(--radius-control)',
+              overflow: 'hidden',
+              boxShadow: 'var(--shadow-card)',
+            }}
+          >
             <button
               type="button"
               className="btn btn-secondary"
-              style={{ width: '28px', height: '28px', padding: 0, fontSize: '14px', fontWeight: 800 }}
+              style={{ width: '28px', height: '28px', padding: 0, fontSize: '14px', fontWeight: 800, borderRadius: 0 }}
               aria-label="Zoom in"
               onClick={() => setZoomLevel(z => Math.min(z + 1, 8))}
             >
@@ -455,7 +469,7 @@ export function MapScreen() {
             <button
               type="button"
               className="btn btn-secondary"
-              style={{ width: '28px', height: '28px', padding: 0, fontSize: '14px', fontWeight: 800, borderTop: 0 }}
+              style={{ width: '28px', height: '28px', padding: 0, fontSize: '14px', fontWeight: 800, borderTop: 0, borderRadius: 0 }}
               aria-label="Zoom out"
               onClick={() => setZoomLevel(z => Math.max(z - 1, 1))}
             >
@@ -464,7 +478,7 @@ export function MapScreen() {
             <button
               type="button"
               className="btn btn-secondary"
-              style={{ width: '28px', height: '28px', padding: 0, fontSize: '10px', letterSpacing: '0.06em', borderTop: 0 }}
+              style={{ width: '28px', height: '28px', padding: 0, fontSize: '10px', letterSpacing: '0.06em', borderTop: 0, borderRadius: 0 }}
               aria-label="Reset view"
               onClick={() => {
                 setZoomLevel(3.6);
@@ -485,6 +499,8 @@ export function MapScreen() {
                 width: '236px',
                 backgroundColor: 'color-mix(in srgb, var(--color-surface) 96%, transparent)',
                 border: '1px solid var(--color-divider)',
+                borderRadius: 'var(--radius-panel)',
+                boxShadow: 'var(--shadow-card)',
                 padding: '10px 12px',
               }}
             >
