@@ -1063,7 +1063,7 @@ export function TradeBuilderScreen() {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                   <span className="mut">Uncommitted Available Capacity:</span>
-                  <span className="num" style={{ fontWeight: 700, color: (availablePlantCapacity ?? 0) <= 0 ? '#ef4444' : 'var(--color-accent-700)' }}>
+                  <span className="num" style={{ fontWeight: 700, color: (availablePlantCapacity ?? 0) <= 0 ? 'var(--color-pnl-neg)' : 'var(--color-pnl-pos)' }}>
                     {availablePlantCapacity?.toLocaleString()} MWh
                   </span>
                 </div>
@@ -1088,7 +1088,7 @@ export function TradeBuilderScreen() {
                       top: 0,
                       bottom: 0,
                       width: `${Math.min(100 - (plantCommittedMwh / plantTotalMWh) * 100, (volumeMwh / plantTotalMWh) * 100)}%`,
-                      backgroundColor: isOversubscribed ? '#ef4444' : 'var(--color-accent)',
+                      backgroundColor: isOversubscribed ? 'var(--color-pnl-neg)' : 'var(--color-accent)',
                     }}
                     title={`This trade: ${volumeMwh.toLocaleString()} MWh`}
                   />
@@ -1099,7 +1099,7 @@ export function TradeBuilderScreen() {
                 </div>
 
                 {isOversubscribed && (
-                  <div style={{ marginTop: '6px', padding: '6px 8px', backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid #ef4444', color: '#dc2626', fontWeight: 600, fontSize: '11px', lineHeight: 1.3 }}>
+                  <div style={{ marginTop: '6px', padding: '6px 8px', backgroundColor: 'var(--color-status-warn-bg)', border: '1px solid var(--color-status-warn-border)', color: 'var(--color-status-warn-ink)', borderRadius: 'var(--radius-control)', fontWeight: 600, fontSize: '11px', lineHeight: 1.3 }}>
                     ⚠️ Oversubscription Warning: Contract volume ({volumeMwh.toLocaleString()} MWh) exceeds available plant capacity ({availablePlantCapacity?.toLocaleString()} MWh) by {(volumeMwh - (availablePlantCapacity ?? 0)).toLocaleString()} MWh. Risk of physical delivery default.
                   </div>
                 )}
@@ -1292,9 +1292,9 @@ export function TradeBuilderScreen() {
                 gap: '7px',
                 fontSize: '11px',
                 fontWeight: 700,
-                backgroundColor: 'rgba(16, 185, 129, 0.15)',
-                borderColor: '#059669',
-                color: '#34d399',
+                backgroundColor: 'var(--color-status-pass-bg)',
+                borderColor: 'var(--color-status-pass-border)',
+                color: 'var(--color-status-pass-ink)',
               }}
               onClick={() => {
                 const tradeAuditPayload = {
@@ -1691,13 +1691,13 @@ export function TradeBuilderScreen() {
           </div>
           <div style={{ backgroundColor: 'var(--color-bg)', padding: '12px 18px' }}>
             <div className="eyebrow">Desk margin</div>
-            <div className="num" style={{ fontSize: '19px', fontWeight: 800, color: (netback.deskMargin ?? 0) < 0 ? '#ef4444' : 'inherit' }}>
+            <div className="num" style={{ fontSize: '19px', fontWeight: 800, color: (netback.deskMargin ?? 0) < 0 ? 'var(--color-pnl-neg)' : 'var(--color-pnl-pos)' }}>
               {netback.deskMargin !== null ? `€${deskMarginEurMwh} / MWh` : '— (Unset)'}
             </div>
           </div>
           <div style={{ backgroundColor: 'var(--color-bg)', padding: '12px 18px' }}>
             <div className="eyebrow">Annual P&amp;L</div>
-            <div className="num" style={{ fontSize: '19px', fontWeight: 800, color: (netback.deskMargin ?? 0) < 0 ? '#ef4444' : 'var(--color-accent-700)' }}>
+            <div className="num" style={{ fontSize: '19px', fontWeight: 800, color: (netback.deskMargin ?? 0) < 0 ? 'var(--color-pnl-neg)' : 'var(--color-pnl-pos)' }}>
               {netback.deskMargin !== null ? `€${annualPnl.toLocaleString()}` : '—'}
             </div>
           </div>
@@ -1725,16 +1725,16 @@ export function TradeBuilderScreen() {
               {/* Statutory Replacement Risk */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span className="mut">Delivery Default Replacement Exposure:</span>
-                <span className="num" style={{ fontWeight: 700, color: '#dc2626' }}>
+                <span className="num" style={{ fontWeight: 700, color: 'var(--color-pnl-neg)' }}>
                   €{netback.principalRisk.replacementCostExposureEur.toLocaleString()} at risk
                 </span>
               </div>
 
               {/* German 2026 Cliff Impact (if applicable) */}
               {netback.principalRisk.germanCliffImpactEurMwh !== null && netback.principalRisk.germanCliffImpactEurMwh !== undefined && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'rgba(239, 68, 68, 0.06)', padding: '6px 8px', borderRadius: '4px' }}>
-                  <span style={{ color: '#dc2626', fontWeight: 600 }}>German 2026 Double-Counting Cliff:</span>
-                  <span className="num" style={{ fontWeight: 800, color: '#dc2626' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--color-status-warn-bg)', border: '1px solid var(--color-status-warn-border)', padding: '6px 8px', borderRadius: 'var(--radius-control)' }}>
+                  <span style={{ color: 'var(--color-status-warn-ink)', fontWeight: 600 }}>German 2026 Double-Counting Cliff:</span>
+                  <span className="num" style={{ fontWeight: 800, color: 'var(--color-pnl-neg)' }}>
                     −€{netback.principalRisk.germanCliffImpactEurMwh.toFixed(2)}/MWh (−€{netback.principalRisk.germanCliffNotionalEur?.toLocaleString()})
                   </span>
                 </div>
@@ -1800,9 +1800,9 @@ export function TradeBuilderScreen() {
               gap: '6px',
               fontSize: '11px',
               fontWeight: 700,
-              backgroundColor: 'rgba(16, 185, 129, 0.15)',
-              borderColor: '#059669',
-              color: '#34d399',
+              backgroundColor: 'var(--color-status-pass-bg)',
+              borderColor: 'var(--color-status-pass-border)',
+              color: 'var(--color-status-pass-ink)',
               marginBottom: '8px'
             }}
             onClick={() => {

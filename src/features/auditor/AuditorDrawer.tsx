@@ -220,45 +220,45 @@ export function AuditorDrawer({ isOpen, onClose, dealContextOverride }: AuditorD
         bottom: 0,
         width: '540px',
         maxWidth: '95vw',
-        backgroundColor: '#141210',
-        borderLeft: '2px solid #292524',
-        boxShadow: '-8px 0 24px rgba(0, 0, 0, 0.6)',
+        backgroundColor: 'var(--color-surface)',
+        borderLeft: '1px solid var(--color-line)',
+        boxShadow: '-8px 0 24px rgba(0, 0, 0, 0.25)',
         zIndex: 9999,
         display: 'flex',
         flexDirection: 'column',
-        color: '#e7e5e4',
-        fontFamily: 'var(--font-sans, -apple-system, sans-serif)',
+        color: 'var(--color-text)',
+        fontFamily: 'var(--font-body, system-ui, sans-serif)',
       }}
     >
       {/* Header Bar */}
       <div
         style={{
           height: '52px',
-          borderBottom: '1px solid #292524',
+          borderBottom: '1px solid var(--color-line)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '0 18px',
-          backgroundColor: '#1c1917',
+          backgroundColor: 'var(--color-bg)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ fontSize: '18px' }}>⚖</span>
           <div>
-            <div style={{ fontWeight: 700, fontSize: '14px', color: '#f5f5f4', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: '6px' }}>
               Statutory Compliance Auditor
               <span style={{
                 fontSize: '10px',
                 padding: '2px 6px',
-                backgroundColor: hasApiKey ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-                color: hasApiKey ? '#10b981' : '#f59e0b',
-                borderRadius: '4px',
-                border: `1px solid ${hasApiKey ? '#059669' : '#d97706'}`
+                backgroundColor: hasApiKey ? 'var(--color-status-pass-bg)' : 'var(--color-status-warn-bg)',
+                color: hasApiKey ? 'var(--color-status-pass-ink)' : 'var(--color-status-warn-ink)',
+                borderRadius: 'var(--radius-control)',
+                border: `1px solid ${hasApiKey ? 'var(--color-status-pass-border)' : 'var(--color-status-warn-border)'}`
               }}>
                 {hasApiKey ? '● Grounded Gemini' : '● Deterministic Offline'}
               </span>
             </div>
-            <div style={{ fontSize: '10px', color: '#a8a29e' }}>
+            <div style={{ fontSize: '10px', color: 'var(--color-muted)' }}>
               Zero-Hallucination Knowledge Vault (RED III / UDB / Quotas)
             </div>
           </div>
@@ -280,22 +280,24 @@ export function AuditorDrawer({ isOpen, onClose, dealContextOverride }: AuditorD
       </div>
 
       {/* Navigation Tabs */}
-      <div style={{ display: 'flex', borderBottom: '1px solid #292524', backgroundColor: '#181614' }}>
+      <div style={{ display: 'flex', borderBottom: '1px solid var(--color-line)', backgroundColor: 'var(--color-bg)', padding: '0 8px', gap: '4px' }}>
         <button
           onClick={() => setActiveTab('AUDIT_DEAL')}
           style={{
             flex: 1,
             padding: '10px 0',
             fontSize: '12px',
-            fontWeight: activeTab === 'AUDIT_DEAL' ? 700 : 500,
-            color: activeTab === 'AUDIT_DEAL' ? '#ffffff' : '#a8a29e',
-            borderBottom: activeTab === 'AUDIT_DEAL' ? '2px solid #10b981' : 'none',
+            fontWeight: activeTab === 'AUDIT_DEAL' ? 600 : 400,
+            color: activeTab === 'AUDIT_DEAL' ? 'var(--color-text)' : 'var(--color-muted)',
+            borderBottom: activeTab === 'AUDIT_DEAL' ? '2px solid var(--color-text)' : '2px solid transparent',
             background: 'none',
-            border: 'none',
+            borderTop: 'none',
+            borderLeft: 'none',
+            borderRight: 'none',
             cursor: 'pointer'
           }}
         >
-          ⚡ Audit Active Deal
+          ⚡ Audit active deal
         </button>
         <button
           onClick={() => setActiveTab('QA')}
@@ -303,11 +305,13 @@ export function AuditorDrawer({ isOpen, onClose, dealContextOverride }: AuditorD
             flex: 1,
             padding: '10px 0',
             fontSize: '12px',
-            fontWeight: activeTab === 'QA' ? 700 : 500,
-            color: activeTab === 'QA' ? '#ffffff' : '#a8a29e',
-            borderBottom: activeTab === 'QA' ? '2px solid #10b981' : 'none',
+            fontWeight: activeTab === 'QA' ? 600 : 400,
+            color: activeTab === 'QA' ? 'var(--color-text)' : 'var(--color-muted)',
+            borderBottom: activeTab === 'QA' ? '2px solid var(--color-text)' : '2px solid transparent',
             background: 'none',
-            border: 'none',
+            borderTop: 'none',
+            borderLeft: 'none',
+            borderRight: 'none',
             cursor: 'pointer'
           }}
         >
@@ -319,15 +323,17 @@ export function AuditorDrawer({ isOpen, onClose, dealContextOverride }: AuditorD
             flex: 1,
             padding: '10px 0',
             fontSize: '12px',
-            fontWeight: activeTab === 'SETTINGS' ? 700 : 500,
-            color: activeTab === 'SETTINGS' ? '#ffffff' : '#a8a29e',
-            borderBottom: activeTab === 'SETTINGS' ? '2px solid #10b981' : 'none',
+            fontWeight: activeTab === 'SETTINGS' ? 600 : 400,
+            color: activeTab === 'SETTINGS' ? 'var(--color-text)' : 'var(--color-muted)',
+            borderBottom: activeTab === 'SETTINGS' ? '2px solid var(--color-text)' : '2px solid transparent',
             background: 'none',
-            border: 'none',
+            borderTop: 'none',
+            borderLeft: 'none',
+            borderRight: 'none',
             cursor: 'pointer'
           }}
         >
-          ⚙ Vault & API Key
+          ⚙ Vault & API key
         </button>
       </div>
 

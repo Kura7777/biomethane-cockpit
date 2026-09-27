@@ -54,22 +54,22 @@ export function ComplianceAuditModal({
   const isDark = theme === 'dark';
 
   const t = {
-    modalBg: isDark ? '#141210' : '#ffffff',
-    modalBorder: isDark ? '#332d29' : '#e2e8f0',
-    headerBg: isDark ? '#1c1917' : '#f8fafc',
-    stripBg: isDark ? '#181614' : '#f1f5f9',
-    cardBg: isDark ? '#1c1917' : '#f8fafc',
-    cardInnerBg: isDark ? '#181614' : '#ffffff',
-    cardBorder: isDark ? '#292524' : '#e2e8f0',
-    textMain: isDark ? '#f5f5f4' : '#0f172a',
-    textSecondary: isDark ? '#d6d3d1' : '#334155',
-    textMuted: isDark ? '#a8a29e' : '#64748b',
-    btnBg: isDark ? '#292524' : '#f1f5f9',
-    btnBorder: isDark ? '#44403c' : '#cbd5e1',
-    btnText: isDark ? '#e7e5e4' : '#1e293b',
-    inputBg: isDark ? '#141210' : '#ffffff',
-    inputBorder: isDark ? '#44403c' : '#cbd5e1',
-    inputText: isDark ? '#ffffff' : '#0f172a',
+    modalBg: 'var(--color-surface)',
+    modalBorder: 'var(--color-line)',
+    headerBg: 'var(--color-bg)',
+    stripBg: 'var(--color-track)',
+    cardBg: 'var(--color-surface)',
+    cardInnerBg: 'var(--color-bg)',
+    cardBorder: 'var(--color-line)',
+    textMain: 'var(--color-text)',
+    textSecondary: 'var(--color-text)',
+    textMuted: 'var(--color-muted)',
+    btnBg: 'var(--color-surface)',
+    btnBorder: 'var(--color-line)',
+    btnText: 'var(--color-text)',
+    inputBg: 'var(--color-bg)',
+    inputBorder: 'var(--color-line)',
+    inputText: 'var(--color-text)',
   };
 
   const [activeTab, setActiveTab] = useState<AuditorModalTab>(normalizeAuditorTab(initialTab));
@@ -619,16 +619,15 @@ ${auditResult.recommendations.map(r => `• ${r}`).join('\n')}`.trim();
         </div>
 
         {/* 4 Navigation Tabs */}
-        <div style={{ display: 'flex', borderBottom: `1px solid ${t.cardBorder}`, backgroundColor: t.headerBg }}>
+        <div style={{ display: 'flex', borderBottom: `1px solid ${t.cardBorder}`, backgroundColor: t.headerBg, padding: '0 16px', gap: '8px' }}>
           <button
             onClick={() => setActiveTab('GATE_BREAKDOWN')}
             style={{
-              flex: 1,
-              padding: '11px 0',
-              fontSize: '12px',
-              fontWeight: activeTab === 'GATE_BREAKDOWN' ? 800 : 600,
-              color: activeTab === 'GATE_BREAKDOWN' ? (isDark ? '#ffffff' : '#059669') : t.textMuted,
-              borderBottom: activeTab === 'GATE_BREAKDOWN' ? '2px solid #10b981' : 'none',
+              padding: '10px 14px',
+              fontSize: '13px',
+              fontWeight: activeTab === 'GATE_BREAKDOWN' ? 600 : 400,
+              color: activeTab === 'GATE_BREAKDOWN' ? 'var(--color-text)' : t.textMuted,
+              borderBottom: activeTab === 'GATE_BREAKDOWN' ? '2px solid var(--color-text)' : '2px solid transparent',
               background: 'none',
               borderTop: 'none',
               borderLeft: 'none',
@@ -641,12 +640,11 @@ ${auditResult.recommendations.map(r => `• ${r}`).join('\n')}`.trim();
           <button
             onClick={() => setActiveTab('EFET_SCHEDULE')}
             style={{
-              flex: 1,
-              padding: '11px 0',
-              fontSize: '12px',
-              fontWeight: activeTab === 'EFET_SCHEDULE' ? 800 : 600,
-              color: activeTab === 'EFET_SCHEDULE' ? (isDark ? '#ffffff' : '#059669') : t.textMuted,
-              borderBottom: activeTab === 'EFET_SCHEDULE' ? '2px solid #10b981' : 'none',
+              padding: '10px 14px',
+              fontSize: '13px',
+              fontWeight: activeTab === 'EFET_SCHEDULE' ? 600 : 400,
+              color: activeTab === 'EFET_SCHEDULE' ? 'var(--color-text)' : t.textMuted,
+              borderBottom: activeTab === 'EFET_SCHEDULE' ? '2px solid var(--color-text)' : '2px solid transparent',
               background: 'none',
               borderTop: 'none',
               borderLeft: 'none',
@@ -659,12 +657,11 @@ ${auditResult.recommendations.map(r => `• ${r}`).join('\n')}`.trim();
           <button
             onClick={() => setActiveTab('DOSSIER_QA')}
             style={{
-              flex: 1,
-              padding: '11px 0',
-              fontSize: '12px',
-              fontWeight: activeTab === 'DOSSIER_QA' ? 800 : 600,
-              color: activeTab === 'DOSSIER_QA' ? (isDark ? '#ffffff' : '#059669') : t.textMuted,
-              borderBottom: activeTab === 'DOSSIER_QA' ? '2px solid #10b981' : 'none',
+              padding: '10px 14px',
+              fontSize: '13px',
+              fontWeight: activeTab === 'DOSSIER_QA' ? 600 : 400,
+              color: activeTab === 'DOSSIER_QA' ? 'var(--color-text)' : t.textMuted,
+              borderBottom: activeTab === 'DOSSIER_QA' ? '2px solid var(--color-text)' : '2px solid transparent',
               background: 'none',
               borderTop: 'none',
               borderLeft: 'none',
@@ -677,12 +674,11 @@ ${auditResult.recommendations.map(r => `• ${r}`).join('\n')}`.trim();
           <button
             onClick={() => setActiveTab('SETTINGS')}
             style={{
-              flex: 1,
-              padding: '11px 0',
-              fontSize: '12px',
-              fontWeight: activeTab === 'SETTINGS' ? 800 : 600,
-              color: activeTab === 'SETTINGS' ? (isDark ? '#ffffff' : '#059669') : t.textMuted,
-              borderBottom: activeTab === 'SETTINGS' ? '2px solid #10b981' : 'none',
+              padding: '10px 14px',
+              fontSize: '13px',
+              fontWeight: activeTab === 'SETTINGS' ? 600 : 400,
+              color: activeTab === 'SETTINGS' ? 'var(--color-text)' : t.textMuted,
+              borderBottom: activeTab === 'SETTINGS' ? '2px solid var(--color-text)' : '2px solid transparent',
               background: 'none',
               borderTop: 'none',
               borderLeft: 'none',
