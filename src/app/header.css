@@ -1,8 +1,14 @@
-/* App header — two rows so every workspace tab always fits.
- * Row 1 (48px): brand, TTF ticker, desk actions. Row 2 (40px): the workspace tabs, full width.
- * Total 88px; --ds-chrome-offset and --fe-chrome-offset budget for it. */
+/* App header: one dark block, two rows, one grid.
+ * Row 1 (48px) holds identity + market context on the left and desk tools on the right.
+ * Row 2 (40px) holds the workspace tabs. Total 88px; --ds-chrome-offset and --fe-chrome-offset budget for it.
+ *
+ * Both rows share the page column's left and right edges (max width + gutter), so the brand,
+ * the first tab and the page title below all start on the same vertical line. */
 
 .app-header {
+  --app-header-edge: calc(max(0px, (100% - var(--ds-page-max-width)) / 2) + var(--ds-page-gutter));
+  --app-header-control: 32px;
+
   flex: none;
   display: flex;
   flex-direction: column;
@@ -11,15 +17,26 @@
   border-bottom: 1px solid var(--color-header-divider);
 }
 
-.app-header-top {
-  height: 48px;
+.app-header-row {
   display: flex;
   align-items: center;
-  gap: 24px;
-  padding: 0 16px 0 18px;
-  border-bottom: 1px solid var(--color-header-divider);
+  padding-left: var(--app-header-edge);
+  padding-right: var(--app-header-edge);
 }
 
+.app-header-top {
+  height: 48px;
+  gap: 16px;
+}
+
+.app-header-sep {
+  flex: none;
+  width: 1px;
+  height: 20px;
+  background: var(--color-header-divider);
+}
+
+/* ── Identity ── */
 .app-brand {
   display: inline-flex;
   align-items: center;
@@ -32,144 +49,234 @@
   font-weight: 600;
   letter-spacing: -0.01em;
   white-space: nowrap;
-  color: #ffffff;
+  color: var(--color-header-text);
   cursor: pointer;
 }
 
 .app-brand-mark {
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
   background: var(--color-accent);
-}
-
-/* Market reference */
-.app-ticker {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding-left: 24px;
-  border-left: 1px solid var(--color-header-divider);
-  height: 24px;
-}
-
-.app-ticker-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.app-ticker-label {
-  font-size: 12px;
-  color: var(--color-header-muted);
-}
-
-.app-ticker-price {
-  font-size: 14px;
-  font-weight: 600;
   color: #ffffff;
 }
 
-.app-ticker-price.simulated {
-  color: #fbbf24;
+/* ── Market context: quiet label, figure in the text colour ── */
+.app-ticker {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin: 0;
 }
 
-/* Tiny status badges keep their uppercase ticker style */
-.app-badge {
-  padding: 1px 6px;
-  border-radius: var(--radius-bar);
+.app-ticker-item {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.app-ticker-item dt {
+  color: var(--color-header-muted);
+}
+
+.app-ticker-item dd {
+  margin: 0;
+  font-weight: 500;
+  color: var(--color-header-text);
+}
+
+.app-ticker-item dd.app-sim {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.app-badge.warn {
-  background: rgba(251, 191, 36, 0.18);
+  font-weight: 400;
   color: #fbbf24;
 }
 
-.app-badge.side {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--color-accent);
+.app-sim-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
 }
 
-/* Desk actions */
+/* ── Desk tools: one search field, then ghost buttons of a single size ── */
 .app-header-actions {
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
 }
 
-.app-header-btn {
+.app-search {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  height: 30px;
-  padding: 0 10px;
+  gap: 8px;
+  width: 260px;
+  height: var(--app-header-control);
+  margin-right: 8px;
+  padding: 0 6px 0 10px;
   border: 1px solid var(--color-header-divider);
   border-radius: var(--radius-control);
   background: var(--color-header-surface);
   font: inherit;
   font-size: 13px;
-  font-weight: 500;
-  white-space: nowrap;
-  color: #ffffff;
+  color: var(--color-header-muted);
   cursor: pointer;
-  transition: background-color 150ms ease;
+  transition: border-color 150ms ease, color 150ms ease;
 }
 
-.app-header-btn:hover {
-  background: var(--color-header-hover);
+.app-search:hover {
+  border-color: #3a3f48;
+  color: var(--color-header-text);
 }
 
-.app-header-btn.auditor {
-  border-color: #059669;
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
+.app-search-text {
+  flex: 1;
+  text-align: left;
 }
 
 .app-kbd {
+  padding: 1px 6px;
+  border: 1px solid var(--color-header-divider);
+  border-radius: 4px;
+  font-family: var(--font-sans);
   font-size: 12px;
-  font-weight: 400;
-  opacity: 0.7;
+  line-height: 18px;
+  color: var(--color-header-muted);
 }
 
+.app-icon-btn {
+  display: inline-grid;
+  grid-auto-flow: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: var(--app-header-control);
+  height: var(--app-header-control);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-header-muted);
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.app-icon-btn-label {
+  padding: 0 10px;
+}
+
+.app-icon-btn:hover {
+  background: var(--color-header-hover);
+  color: var(--color-header-text);
+}
+
+.app-search:focus-visible,
+.app-icon-btn:focus-visible,
+.app-brand:focus-visible,
+.app-tab:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* ── Signed-in user ── */
 .app-user {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-left: 8px;
-  padding-left: 16px;
-  border-left: 1px solid var(--color-header-divider);
+  margin-left: 12px;
   font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
-  color: #ffffff;
+  color: var(--color-header-text);
 }
 
-.app-user-dot {
-  width: 6px;
-  height: 6px;
+.app-user-role {
+  font-weight: 400;
+  color: var(--color-header-muted);
+}
+
+.app-avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
-  background: #10b981;
+  background: var(--color-header-surface);
+  box-shadow: inset 0 0 0 1px var(--color-header-divider);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--color-header-text);
 }
 
-/* Row 2: workspace tabs. Padding lines the first tab's text up with the brand name. */
+/* ── Row 2: workspace tabs ──
+ * Each tab is a 32px pill with 12px side padding; the row pulls in by that padding so the
+ * first label's text sits on the header edge. The active underline spans the label only. */
 .app-header-nav {
   height: 40px;
-  display: flex;
-  align-items: stretch;
-  padding: 0 16px 0 24px;
+  gap: 2px;
+  padding-left: calc(var(--app-header-edge) - 12px);
+  padding-right: calc(var(--app-header-edge) - 12px);
   overflow-x: auto;
 }
 
-.app-nav-divider {
-  flex-shrink: 0;
-  align-self: center;
-  width: 1px;
-  height: 16px;
-  margin: 0 8px;
-  background: var(--color-header-divider);
+.app-tab {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--radius-control);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  color: var(--color-header-muted);
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.app-tab:hover {
+  background: var(--color-header-hover);
+  color: var(--color-header-text);
+}
+
+.app-tab.active {
+  color: var(--color-header-text);
+}
+
+.app-tab.active::after {
+  content: '';
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: -4px;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--color-accent);
+}
+
+/* Narrow desks: the search field shrinks to its shortcut, the role label drops */
+@media (max-width: 1280px) {
+  .app-search {
+    width: auto;
+  }
+
+  .app-search-text {
+    display: none;
+  }
+
+  .app-user-role {
+    display: none;
+  }
 }

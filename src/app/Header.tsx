@@ -1,6 +1,5 @@
-import React from 'react';
 import { useLocation, useNavigate, NavLink } from 'react-router-dom';
-import { Scale, Moon, Sun, Search } from 'lucide-react';
+import { Scale, Moon, Sun, Search, Flame } from 'lucide-react';
 import './header.css';
 import { WORKSPACE_TABS } from './navConfig';
 import { useAppState } from '../store/context';
@@ -31,74 +30,85 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
   const gasIndexBadge = deriveSourceBadge(state.marks.gasIndex.provenance, SIMULATED_SOURCE_NAME);
   const isSimulatedGasIndex = gasIndexBadge.variant === 'WARNING';
 
-  /** The workspace tabs, split into their four groups (pricing | supply | deals | compliance). */
-  const GROUP_STARTS = new Set([1, 4, 6]);
+  const sideLabel = pricingSide.charAt(0).toUpperCase() + pricingSide.slice(1);
 
   return (
     <header className="app-header select-none z-50">
-      {/* Row 1: brand, market reference, desk actions */}
-      <div className="app-header-top">
+      {/* Row 1: identity and market context on the left, desk tools on the right */}
+      <div className="app-header-row app-header-top">
         <button type="button" className="app-brand" onClick={() => navigate('/sourcing')}>
-          <span className="app-brand-mark" aria-hidden="true" />
+          <span className="app-brand-mark" aria-hidden="true">
+            <Flame size={13} strokeWidth={2.25} />
+          </span>
           <span>Biomethane Desk</span>
         </button>
 
-        {/* Market Reference Ticker: TTF M+1 & Side */}
-        <div className="app-ticker">
-          <span className="app-ticker-item">
-            <span className="app-ticker-label">TTF M+1</span>
-            <span
-              className={`app-ticker-price num ${isSimulatedGasIndex ? 'simulated' : ''}`}
+        <span className="app-header-sep" aria-hidden="true" />
+
+        {/* Market reference: TTF M+1 and the pricing side */}
+        <dl className="app-ticker">
+          <div className="app-ticker-item">
+            <dt>TTF M+1</dt>
+            <dd
+              className="num"
               title={isSimulatedGasIndex ? 'Simulated — not a live market feed. See Marks screen.' : undefined}
             >
               {gasIndexPrice !== null && gasIndexPrice !== undefined ? `€${gasIndexPrice.toFixed(2)}` : '—'}
-            </span>
-            {isSimulatedGasIndex && <span className="app-badge warn">Simulated</span>}
-          </span>
-          <span className="app-ticker-item">
-            <span className="app-ticker-label">Side</span>
-            <span className="app-badge side">{pricingSide}</span>
-          </span>
-        </div>
+            </dd>
+            {isSimulatedGasIndex && (
+              <dd className="app-sim">
+                <span className="app-sim-dot" aria-hidden="true" />
+                Simulated
+              </dd>
+            )}
+          </div>
+          <div className="app-ticker-item">
+            <dt>Side</dt>
+            <dd>{sideLabel}</dd>
+          </div>
+        </dl>
 
-        {/* Desk actions */}
         <div className="app-header-actions">
+          <button type="button" className="app-search" onClick={onOpenSearch} aria-label="Search commands (⌘K)">
+            <Search size={14} aria-hidden="true" />
+            <span className="app-search-text">Search commands…</span>
+            <kbd className="app-kbd">⌘K</kbd>
+          </button>
+
           <button
             type="button"
-            className="app-header-btn auditor"
+            className="app-icon-btn app-icon-btn-label"
             onClick={onOpenAuditor}
-            title="Open Statutory Compliance Auditor & Knowledge Vault (Alt+A)"
+            title="Statutory compliance auditor (Alt+A)"
           >
-            <Scale size={14} />
+            <Scale size={15} aria-hidden="true" />
             <span>Auditor</span>
-            <span className="app-kbd num">Alt+A</span>
-          </button>
-
-          <button type="button" className="app-header-btn" onClick={onOpenSearch}>
-            <Search size={14} />
-            Command <span className="app-kbd num">⌘K</span>
           </button>
 
           <button
             type="button"
-            className="app-header-btn"
+            className="app-icon-btn"
             onClick={toggleTheme}
             title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
           >
-            {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
-            {theme === 'dark' ? 'Light' : 'Dark'}
+            {theme === 'dark' ? <Sun size={15} aria-hidden="true" /> : <Moon size={15} aria-hidden="true" />}
+            <span className="sr-only">{theme === 'dark' ? 'Light' : 'Dark'}</span>
           </button>
 
+          <span className="app-header-sep" aria-hidden="true" />
+
           <span className="app-user">
-            <span className="app-user-dot" aria-hidden="true" />
-            Trader · A. Vos
+            <span className="app-avatar" aria-hidden="true">AV</span>
+            <span className="app-user-name">
+              <span className="app-user-role">Trader · </span>A. Vos
+            </span>
           </span>
         </div>
       </div>
 
-      {/* Row 2: every workspace, full width */}
-      <nav className="app-header-nav noscroll" aria-label="Workspaces">
-        {WORKSPACE_TABS.map((tab, idx) => {
+      {/* Row 2: every workspace, aligned to the page column below */}
+      <nav className="app-header-row app-header-nav noscroll" aria-label="Workspaces">
+        {WORKSPACE_TABS.map(tab => {
           const isActive =
             (tab.to === '/sourcing' && (location.pathname === '/' || location.pathname.startsWith('/sourcing'))) ||
             (tab.to === '/pricing' && (location.pathname.startsWith('/pricing') || location.pathname.startsWith('/marks'))) ||
@@ -108,17 +118,14 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
             location.pathname.startsWith(tab.to + '/');
 
           return (
-            <React.Fragment key={tab.to}>
-              {GROUP_STARTS.has(idx) && <span className="app-nav-divider" aria-hidden="true" />}
-              <NavLink
-                to={tab.to}
-                className={`navtab ${isActive ? 'active' : ''}`}
-                data-on={isActive ? '1' : '0'}
-                aria-current={isActive ? 'page' : undefined}
-              >
-                {tab.label}
-              </NavLink>
-            </React.Fragment>
+            <NavLink
+              key={tab.to}
+              to={tab.to}
+              className={`app-tab ${isActive ? 'active' : ''}`}
+              aria-current={isActive ? 'page' : undefined}
+            >
+              {tab.label}
+            </NavLink>
           );
         })}
       </nav>
