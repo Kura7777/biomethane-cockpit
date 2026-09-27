@@ -98,24 +98,72 @@ export function MarketPricesModal({ isOpen, onClose }: MarketPricesModalProps) {
   const currentSide: PriceSide = state.marks.pricingSides.certificateSide;
 
   return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="bg-[#0e1118] border border-[#2b3347] rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-150">
+      <div
+        className="panel"
+        style={{
+          width: 'min(860px, 100%)',
+          maxHeight: '90vh',
+          display: 'flex',
+          flexDirection: 'column',
+          backgroundColor: 'var(--color-bg)',
+          borderRadius: 'var(--radius-panel)',
+          border: '1px solid var(--color-divider)',
+          overflow: 'hidden',
+          boxShadow: 'var(--shadow-modal)',
+        }}
+      >
         {/* Modal Header */}
-        <div className="p-4 border-b border-[#1e2433] flex items-center justify-between bg-[#08090d]">
+        <div
+          style={{
+            padding: '14px 18px',
+            borderBottom: '1px solid var(--color-divider)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            backgroundColor: 'var(--color-surface)',
+          }}
+        >
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-cyan-950/40 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
+            <div
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: 'var(--radius-control)',
+                backgroundColor: 'var(--color-info-subtle, rgba(31,95,173,0.12))',
+                border: '1px solid var(--color-accent)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--color-accent)',
+              }}
+            >
               <TrendingUp className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="font-mono text-sm font-bold uppercase tracking-wider text-zinc-100 flex items-center gap-2">
+              <h2
+                style={{
+                  fontSize: '15px',
+                  fontWeight: 800,
+                  fontFamily: 'var(--font-heading)',
+                  color: 'var(--color-text)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  margin: 0,
+                }}
+              >
                 <span>Live Market Marks &amp; News Pricing</span>
                 {savedMessage && (
-                  <span className="font-mono text-[10px] text-emerald-400 bg-emerald-950 border border-emerald-800 px-2 py-0.5 rounded animate-pulse">
+                  <span
+                    className="chip chip-pos"
+                    style={{ fontSize: '10.5px', padding: '1px 6px' }}
+                  >
                     ✓ {savedMessage}
                   </span>
                 )}
               </h2>
-              <p className="font-mono text-micro text-zinc-400">
+              <p style={{ fontSize: '11.5px', color: 'var(--color-muted)', margin: '2px 0 0' }}>
                 Adjust wholesale gas, national certificate quotas, and FX rates to immediately re-price all deals
               </p>
             </div>
@@ -123,8 +171,11 @@ export function MarketPricesModal({ isOpen, onClose }: MarketPricesModalProps) {
 
           <div className="flex items-center gap-3">
             {/* Pricing Side Selector */}
-            <div className="flex items-center gap-1.5 bg-[#0e1118] border border-[#1e2433] rounded p-0.5">
-              <span className="font-mono text-micro text-zinc-400 uppercase font-semibold px-1.5">
+            <div
+              className="seg"
+              style={{ padding: '2px', borderRadius: 'var(--radius-control)' }}
+            >
+              <span style={{ fontSize: '10.5px', color: 'var(--color-muted)', textTransform: 'uppercase', fontWeight: 700, padding: '0 6px' }}>
                 Side:
               </span>
               {(['bid', 'mid', 'offer'] as PriceSide[]).map(side => (
@@ -132,11 +183,14 @@ export function MarketPricesModal({ isOpen, onClose }: MarketPricesModalProps) {
                   key={side}
                   type="button"
                   onClick={() => dispatch({ type: 'SET_PRICING_SIDE', side })}
-                  className={`px-2 py-0.5 font-mono text-micro uppercase font-bold rounded transition-colors cursor-pointer ${
-                    currentSide === side
-                      ? 'bg-cyan-500 text-black font-bold text-stone-950'
-                      : 'text-zinc-400 hover:text-zinc-200'
-                  }`}
+                  className={`btn ${currentSide === side ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{
+                    fontSize: '11px',
+                    padding: '2px 8px',
+                    minHeight: '22px',
+                    textTransform: 'uppercase',
+                    borderRadius: 'var(--radius-control)',
+                  }}
                 >
                   {side}
                 </button>
@@ -146,140 +200,184 @@ export function MarketPricesModal({ isOpen, onClose }: MarketPricesModalProps) {
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-[#141824] transition-colors cursor-pointer"
+              className="btn btn-secondary"
+              style={{ padding: '4px 8px', borderRadius: 'var(--radius-control)' }}
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 overflow-y-auto space-y-6 font-mono text-xs text-zinc-300 bg-[#0e1118]">
+        <div style={{ padding: '18px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px', backgroundColor: 'var(--color-bg)' }}>
           {/* Top Indices: TTF Natural Gas & FX */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
             {/* TTF Natural Gas */}
-            <div className="p-4 rounded-xl bg-[#08090d] border border-[#1e2433] shadow-md">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-bold text-zinc-200 text-xs uppercase tracking-wider flex items-center gap-1.5">
-                  <Flame className="w-4 h-4 text-amber-400" />
+            <div
+              style={{
+                padding: '14px',
+                borderRadius: 'var(--radius-panel)',
+                backgroundColor: 'var(--color-surface)',
+                border: '1px solid var(--color-divider)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ fontWeight: 700, fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Flame className="w-4 h-4" style={{ color: 'var(--color-warn, #b45309)' }} />
                   Wholesale Gas Index (TTF M+1)
                 </span>
-                <span className="text-micro text-zinc-500">Benchmark Molecule</span>
+                <span className="chip chip-neutral" style={{ fontSize: '10px' }}>Benchmark Molecule</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="relative flex-1">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ position: 'relative', flex: 1 }}>
                   <input
                     type="number"
                     step="0.10"
                     value={gasIndexInput}
                     onChange={e => setGasIndexInput(e.target.value)}
-                    className="w-full bg-[#0e1118] border border-[#2b3347] rounded-lg px-3 py-2 text-zinc-100 font-bold text-sm focus:outline-hidden focus:border-cyan-500/60"
+                    className="input num"
+                    style={{
+                      width: '100%',
+                      padding: '6px 40px 6px 10px',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      borderRadius: 'var(--radius-control)',
+                    }}
                   />
-                  <span className="absolute right-3 top-2.5 text-zinc-400 text-xs">€/MWh</span>
+                  <span style={{ position: 'absolute', right: '10px', top: '7px', fontSize: '11px', color: 'var(--color-muted)' }}>€/MWh</span>
                 </div>
                 <button
                   type="button"
                   onClick={handleSaveGasIndex}
-                  className="px-4 py-2 rounded-lg bg-cyan-500 text-black font-bold hover:bg-cyan-500 text-stone-950 font-bold text-xs transition-colors cursor-pointer"
+                  className="btn btn-primary"
+                  style={{ padding: '6px 14px', fontSize: '12px', borderRadius: 'var(--radius-control)' }}
                 >
                   Save
                 </button>
               </div>
-              <span className="text-[10px] text-zinc-500 block mt-1.5">
+              <span className="num" style={{ fontSize: '11px', color: 'var(--color-muted)', display: 'block', marginTop: '6px' }}>
                 Current Mid: €{state.marks.gasIndex.mid?.toFixed(2)}/MWh · Bid: €{state.marks.gasIndex.bid?.toFixed(2)} · Offer: €{state.marks.gasIndex.offer?.toFixed(2)}
               </span>
             </div>
 
             {/* GBP / EUR FX Rate */}
-            <div className="p-4 rounded-xl bg-[#08090d] border border-[#1e2433] shadow-md">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-bold text-zinc-200 text-xs uppercase tracking-wider flex items-center gap-1.5">
-                  <DollarSign className="w-4 h-4 text-cyan-400" />
+            <div
+              style={{
+                padding: '14px',
+                borderRadius: 'var(--radius-panel)',
+                backgroundColor: 'var(--color-surface)',
+                border: '1px solid var(--color-divider)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ fontWeight: 700, fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <DollarSign className="w-4 h-4" style={{ color: 'var(--color-accent)' }} />
                   GBP / EUR Foreign Exchange
                 </span>
-                <span className="text-micro text-zinc-500">UK RTFO Conversion</span>
+                <span className="chip chip-neutral" style={{ fontSize: '10px' }}>UK RTFO Conversion</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="relative flex-1">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ position: 'relative', flex: 1 }}>
                   <input
                     type="number"
                     step="0.005"
                     value={fxInput}
                     onChange={e => setFxInput(e.target.value)}
-                    className="w-full bg-[#0e1118] border border-[#2b3347] rounded-lg px-3 py-2 text-zinc-100 font-bold text-sm focus:outline-hidden focus:border-cyan-500/60"
+                    className="input num"
+                    style={{
+                      width: '100%',
+                      padding: '6px 40px 6px 10px',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      borderRadius: 'var(--radius-control)',
+                    }}
                   />
-                  <span className="absolute right-3 top-2.5 text-zinc-400 text-xs">Rate</span>
+                  <span style={{ position: 'absolute', right: '10px', top: '7px', fontSize: '11px', color: 'var(--color-muted)' }}>Rate</span>
                 </div>
                 <button
                   type="button"
                   onClick={handleSaveFx}
-                  className="px-4 py-2 rounded-lg bg-cyan-500 text-black font-bold hover:bg-cyan-500 text-stone-950 font-bold text-xs transition-colors cursor-pointer"
+                  className="btn btn-primary"
+                  style={{ padding: '6px 14px', fontSize: '12px', borderRadius: 'var(--radius-control)' }}
                 >
                   Save
                 </button>
               </div>
-              <span className="text-[10px] text-zinc-500 block mt-1.5">
+              <span className="num" style={{ fontSize: '11px', color: 'var(--color-muted)', display: 'block', marginTop: '6px' }}>
                 Current Exchange Rate: £1.00 = €{state.marks.fx.gbpEur?.toFixed(3)}
               </span>
             </div>
           </div>
 
           {/* National Green Compliance Certificate Quotas */}
-          <div className="p-4 rounded-xl bg-[#08090d] border border-[#1e2433] shadow-md space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-zinc-200 text-xs uppercase tracking-wider flex items-center gap-1.5">
-                <Globe className="w-4 h-4 text-emerald-400" />
+          <div
+            style={{
+              padding: '14px',
+              borderRadius: 'var(--radius-panel)',
+              backgroundColor: 'var(--color-surface)',
+              border: '1px solid var(--color-divider)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '6px' }}>
+              <span style={{ fontWeight: 700, fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Globe className="w-4 h-4" style={{ color: 'var(--color-accent)' }} />
                 National Compliance Certificate Marks (RED III Quotas)
               </span>
-              <span className="text-micro text-zinc-500">
+              <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>
                 Adjust levels directly below based on broker runs or news
               </span>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+            <div style={{ overflowX: 'auto', borderRadius: 'var(--radius-control)', border: '1px solid var(--color-divider)' }}>
+              <table className="table" style={{ margin: 0 }}>
                 <thead>
-                  <tr className="border-b border-[#1e2433] text-[10px] text-zinc-500 uppercase">
-                    <th className="py-2">Market &amp; Territory</th>
-                    <th className="py-2">Quota Unit</th>
-                    <th className="py-2 text-right w-44">Adjust Mid Level</th>
-                    <th className="py-2 text-right">Effective Side ({currentSide.toUpperCase()})</th>
+                  <tr>
+                    <th>Market &amp; Territory</th>
+                    <th>Quota Unit</th>
+                    <th style={{ textAlign: 'right', width: '160px' }}>Adjust Mid Level</th>
+                    <th style={{ textAlign: 'right' }}>Effective Side ({currentSide.toUpperCase()})</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-stone-800/60 text-xs">
+                <tbody>
                   {activeMarkets.map(m => {
                     const mark = state.marks.marks[m.id];
                     const midVal = mark?.mid ?? '';
                     const effectiveVal = mark ? mark[currentSide] ?? mark.mid : null;
 
                     return (
-                      <tr key={m.id} className="hover:bg-[#0e1118]">
-                        <td className="py-2.5 pr-2">
-                          <div className="font-semibold text-zinc-100 flex items-center gap-1.5">
-                            <span>{m.name}</span>
+                      <tr key={m.id}>
+                        <td style={{ padding: '8px 10px' }}>
+                          <div style={{ fontWeight: 600, color: 'var(--color-text)' }}>
+                            {m.name}
                           </div>
-                          <span className="text-[10px] text-zinc-500">{m.countryName} ({m.id})</span>
+                          <div className="mut" style={{ fontSize: '10.5px' }}>{m.countryName} ({m.id})</div>
                         </td>
 
-                        <td className="py-2.5 text-zinc-300">
-                          <span>{m.unitLabel}</span>
-                          <span className="text-[10px] text-cyan-400 block">{m.registry || 'National Register'}</span>
+                        <td style={{ padding: '8px 10px' }}>
+                          <div>{m.unitLabel}</div>
+                          <div className="chip chip-info" style={{ fontSize: '9px', padding: '1px 5px', marginTop: '2px', display: 'inline-block' }}>{m.registry || 'National Register'}</div>
                         </td>
 
-                        <td className="py-2.5 text-right pr-2">
-                          <div className="inline-flex items-center gap-1">
-                            <input
-                              type="number"
-                              step={m.id === 'NL_ERE' || m.id === 'UK_RTFO' ? '0.01' : '1'}
-                              value={midVal !== null ? midVal : ''}
-                              onChange={e => handleMarkChange(m.id, e.target.value)}
-                              placeholder="Unset"
-                              className="w-28 bg-[#0e1118] border border-[#2b3347] rounded px-2 py-1 text-right text-zinc-100 font-bold text-xs focus:outline-hidden focus:border-cyan-500/60"
-                            />
-                          </div>
+                        <td style={{ padding: '8px 10px', textAlign: 'right' }}>
+                          <input
+                            type="number"
+                            step={m.id === 'NL_ERE' || m.id === 'UK_RTFO' ? '0.01' : '1'}
+                            value={midVal !== null ? midVal : ''}
+                            onChange={e => handleMarkChange(m.id, e.target.value)}
+                            placeholder="Unset"
+                            className="input num"
+                            style={{
+                              width: '110px',
+                              textAlign: 'right',
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              borderRadius: 'var(--radius-control)',
+                              padding: '3px 8px',
+                            }}
+                          />
                         </td>
 
-                        <td className="py-2.5 text-right font-bold text-cyan-300">
+                        <td className="num" style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 700, color: 'var(--color-pnl-pos, var(--color-accent))' }}>
                           {effectiveVal != null ? `€${effectiveVal.toFixed(2)}` : '—'}
                         </td>
                       </tr>
@@ -292,14 +390,26 @@ export function MarketPricesModal({ isOpen, onClose }: MarketPricesModalProps) {
         </div>
 
         {/* Modal Footer */}
-        <div className="p-3 border-t border-[#1e2433] flex items-center justify-between bg-[#08090d] text-zinc-500 font-mono text-micro">
+        <div
+          style={{
+            padding: '10px 18px',
+            borderTop: '1px solid var(--color-divider)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            backgroundColor: 'var(--color-panel-header)',
+            fontSize: '11.5px',
+            color: 'var(--color-muted)',
+          }}
+        >
           <span>All modified prices immediately update all sourcing calculations &amp; margin waterfalls.</span>
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-1.5 rounded-lg bg-cyan-500 text-black font-bold hover:bg-cyan-500 text-stone-950 font-bold transition-colors cursor-pointer"
+            className="btn btn-primary"
+            style={{ padding: '5px 16px', fontSize: '12px', borderRadius: 'var(--radius-control)' }}
           >
-            Apply &amp; Return to Map
+            Apply &amp; Return
           </button>
         </div>
       </div>

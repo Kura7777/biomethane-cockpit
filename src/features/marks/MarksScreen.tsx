@@ -298,7 +298,7 @@ export function MarksScreen() {
             <span className="chip">{quotes.length} Total</span>
           </div>
           <div className="num" style={{ fontSize: '13px', fontWeight: 600, marginTop: '6px', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-            <span className="chip chip-pos" style={{ fontSize: '9.5px', padding: '1px 5px' }}>{provenanceCounts.BROKER_RUN} Broker</span>
+            <span className="chip chip-info" style={{ fontSize: '9.5px', padding: '1px 5px' }}>{provenanceCounts.BROKER_RUN} Broker</span>
             <span className="chip chip-info" style={{ fontSize: '9.5px', padding: '1px 5px' }}>{provenanceCounts.WEB_INDEX} Web/Index</span>
             <span className="chip chip-warn" style={{ fontSize: '9.5px', padding: '1px 5px' }}>{provenanceCounts.STATUTORY_DIRECTIVE} Statutory</span>
             <span className="chip chip-neutral" style={{ fontSize: '9.5px', padding: '1px 5px' }}>{provenanceCounts.MODELLED_SIMULATED} Modelled</span>
@@ -410,6 +410,7 @@ export function MarksScreen() {
             padding: '6px 10px',
             backgroundColor: 'var(--color-surface)',
             border: '1px solid var(--color-divider)',
+            borderRadius: 'var(--radius-control)',
           }}
         >
           <span style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', marginRight: '4px' }}>
@@ -421,7 +422,7 @@ export function MarksScreen() {
               type="button"
               onClick={() => setSelectedCountryGroup(p.id)}
               className={`btn ${selectedCountryGroup === p.id ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ fontSize: '10.5px', padding: '2px 7px', minHeight: '22px' }}
+              style={{ fontSize: '10.5px', padding: '2px 7px', minHeight: '22px', borderRadius: 'var(--radius-control)' }}
             >
               {p.label}
             </button>
@@ -429,7 +430,7 @@ export function MarksScreen() {
         </div>
 
         {/* Master Clean Institutional Table */}
-        <div style={{ overflowX: 'auto', border: '1px solid var(--color-divider)' }}>
+        <div style={{ overflowX: 'auto', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-panel)' }}>
           <table className="table" style={{ margin: 0 }}>
             <thead>
               <tr>
@@ -455,7 +456,7 @@ export function MarksScreen() {
                 let badgeClass = 'chip-neutral';
                 let badgeLabel = '🔬 Modelled';
                 if (q.provenanceTier === 'BROKER_RUN') {
-                  badgeClass = 'chip-pos';
+                  badgeClass = 'chip-info';
                   badgeLabel = '📑 Broker';
                 } else if (q.provenanceTier === 'WEB_INDEX') {
                   badgeClass = 'chip-info';
@@ -479,7 +480,7 @@ export function MarksScreen() {
 
                     {/* Class */}
                     <td style={{ textAlign: 'center' }}>
-                      <span className={`chip ${q.productClass === 'GO_VOLUNTARY' ? 'chip-pos' : 'chip-info'}`} style={{ fontSize: '9px', padding: '1px 5px' }}>
+                      <span className={`chip ${q.productClass === 'GO_VOLUNTARY' ? 'chip-info' : 'chip-neutral'}`} style={{ fontSize: '9px', padding: '1px 5px' }}>
                         {q.class}
                       </span>
                     </td>
@@ -499,7 +500,7 @@ export function MarksScreen() {
                     </td>
 
                     {/* Vintage */}
-                    <td style={{ textAlign: 'center' }} className="num font-mono">
+                    <td style={{ textAlign: 'center' }} className="num">
                       {q.vintage}
                     </td>
 
@@ -536,6 +537,7 @@ export function MarksScreen() {
                           padding: '2px 6px',
                           fontSize: '12px',
                           fontWeight: 700,
+                          borderRadius: 'var(--radius-control)',
                           backgroundColor: 'var(--color-bg)',
                         }}
                       />
@@ -557,6 +559,7 @@ export function MarksScreen() {
                           padding: '2px 6px',
                           fontSize: '12px',
                           fontWeight: 700,
+                          borderRadius: 'var(--radius-control)',
                           backgroundColor: 'var(--color-bg)',
                         }}
                       />
@@ -577,6 +580,7 @@ export function MarksScreen() {
                           minHeight: '26px',
                           padding: '2px 6px',
                           fontSize: '12px',
+                          borderRadius: 'var(--radius-control)',
                           backgroundColor: 'var(--color-bg)',
                         }}
                       />
@@ -597,6 +601,7 @@ export function MarksScreen() {
                           minHeight: '26px',
                           padding: '2px 6px',
                           fontSize: '12px',
+                          borderRadius: 'var(--radius-control)',
                           backgroundColor: 'var(--color-bg)',
                         }}
                       />
@@ -630,6 +635,7 @@ export function MarksScreen() {
             backgroundColor: 'var(--color-panel-header)',
             border: '1px solid var(--color-divider)',
             borderTop: 'none',
+            borderRadius: '0 0 var(--radius-panel) var(--radius-panel)',
             fontSize: '11.5px',
             flexWrap: 'wrap',
             gap: '8px',
@@ -638,7 +644,7 @@ export function MarksScreen() {
           <span style={{ color: 'var(--color-muted)' }}>
             * Bids and offers are for certificates / quota premium only. Base natural gas index (TTF M+1{gasIndexPrice !== null && gasIndexPrice !== undefined ? `: €${gasIndexPrice.toFixed(2)}/MWh` : ''}) added on top for bundled physical delivery.
           </span>
-          <span className="num font-mono" style={{ fontWeight: 600 }}>
+          <span className="num" style={{ fontWeight: 600 }}>
             {filteredQuotes.length} quotes displayed ({quotes.length} total across Europe)
           </span>
         </div>

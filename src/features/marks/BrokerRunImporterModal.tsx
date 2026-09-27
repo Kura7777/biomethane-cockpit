@@ -118,6 +118,8 @@ export function BrokerRunImporterModal({ isOpen, onClose, onCommitted, onFail }:
         style={{
           width: 'min(720px, 100%)',
           backgroundColor: 'var(--color-bg)',
+          borderRadius: 'var(--radius-panel)',
+          overflow: 'hidden',
         }}
         onClick={e => e.stopPropagation()}
       >
@@ -147,6 +149,7 @@ export function BrokerRunImporterModal({ isOpen, onClose, onCommitted, onFail }:
               marginLeft: 'auto',
               padding: '4px 10px',
               fontSize: '12px',
+              borderRadius: 'var(--radius-control)',
             }}
             onClick={onClose}
           >
@@ -161,7 +164,7 @@ export function BrokerRunImporterModal({ isOpen, onClose, onCommitted, onFail }:
             <textarea
               id="brokerRun"
               className="input num"
-              style={{ minHeight: '150px', fontSize: '12px', lineHeight: 1.6 }}
+              style={{ minHeight: '150px', fontSize: '12px', lineHeight: 1.6, borderRadius: 'var(--radius-control)' }}
               value={inputText}
               onChange={e => setInputText(e.target.value)}
             />
@@ -173,6 +176,8 @@ export function BrokerRunImporterModal({ isOpen, onClose, onCommitted, onFail }:
               gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
               gap: '1px',
               backgroundColor: 'var(--color-divider)',
+              borderRadius: 'var(--radius-control)',
+              overflow: 'hidden',
             }}
           >
             <div style={{ backgroundColor: 'var(--color-bg)', padding: '10px 14px' }}>
@@ -203,6 +208,7 @@ export function BrokerRunImporterModal({ isOpen, onClose, onCommitted, onFail }:
             <button
               type="button"
               className="btn btn-secondary"
+              style={{ borderRadius: 'var(--radius-control)' }}
               onClick={handleSimulateBadRun}
             >
               Simulate a bad run
@@ -210,6 +216,7 @@ export function BrokerRunImporterModal({ isOpen, onClose, onCommitted, onFail }:
             <button
               type="button"
               className="btn btn-primary"
+              style={{ borderRadius: 'var(--radius-control)' }}
               onClick={handleCommit}
             >
               Parse and write {validLinesCount} marks
