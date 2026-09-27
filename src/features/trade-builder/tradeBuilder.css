@@ -199,15 +199,16 @@ html.dark .tb-range {
   gap: 16px;
 }
 
-/* Key/value list inside a panel */
+/* Key/value list inside a panel: plain divided rows, no box of its own */
 .tb-kv {
-  border: 1px solid var(--color-divider);
-  border-radius: var(--radius-control);
-  background: var(--color-panel-header);
-  padding: 4px 12px;
   display: flex;
   flex-direction: column;
   font-size: 13px;
+  border-top: 1px solid var(--color-divider);
+}
+
+.tb-kv > .tb-kv-row:first-child {
+  border-top: 0;
 }
 
 .tb-kv-row {
@@ -705,6 +706,83 @@ html.dark .tb-range {
 
 @media (max-width: 900px) {
   .tb-docs {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ── Input steps: one open form, no boxes ──
+ * A fixed label column on the left and the choices on the right, one row per decision. */
+.tb-form {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.tb-form-row {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  column-gap: 32px;
+  align-items: start;
+}
+
+.tb-form-label {
+  padding-top: 5px; /* sits on the first line of chips */
+  font-size: 14px;
+  color: var(--color-muted);
+}
+
+.tb-form-control {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.tb-form-value {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.tb-facts-list {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 24px;
+  font-size: 13px;
+}
+
+.tb-facts-list dt {
+  color: var(--color-muted);
+}
+
+.tb-facts-list dd {
+  margin: 0;
+  color: var(--color-text);
+}
+
+.tb-seg-start {
+  align-self: flex-start;
+}
+
+.tb-date-input.input {
+  width: 180px;
+}
+
+@media (max-width: 900px) {
+  .tb-form-row {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 8px;
+  }
+  .tb-form-label {
+    padding-top: 0;
+  }
+  .tb-facts-list {
     grid-template-columns: minmax(0, 1fr);
   }
 }

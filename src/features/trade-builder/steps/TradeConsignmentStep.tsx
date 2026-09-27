@@ -5,7 +5,7 @@ import { BiomethanePlant } from '../../../domain/plants/types';
 import { DealParams } from '../../../domain/trade/dealParams';
 import { getCountryFeedstockCI } from '../../../domain/consignment/feedstocks';
 import { getVtpForMarket } from '../TradeBuilderScreen';
-import { FileText, Lock, Calendar, FileUp, Scale, AlertTriangle, Globe, Leaf, Gauge, Layers, Anchor } from 'lucide-react';
+import { Lock, FileUp, Scale, AlertTriangle } from 'lucide-react';
 
 const MONO_FONT = 'var(--font-mono, "IBM Plex Mono", monospace)';
 
@@ -172,140 +172,132 @@ export function TradeConsignmentStep({
   };
 
   return (
-    <div className="tb-step">
+    <div className="tb-form">
       {section === 'PRODUCT' && (
         <>
-          {/* Upstream FuelEU Maritime Physical Gas Hedge Context Banner */}
+          {/* Upstream FuelEU Maritime hedge context (deal handed over from FuelEU) */}
           {(deal.marketId === 'FUELEU' || (deal.counterparty && deal.feedstock === 'manure')) && (
-            <div className="tb-alert info">
-              <div className="tb-section">
-                <div className="tb-row-start">
-                  <Anchor size={16} />
+            <div className="tb-form-row">
+              <span className="tb-form-label">Counterparty</span>
+              <div className="tb-form-control">
+                <span className="tb-form-value">
+                  {deal.counterparty || 'Maritime Fleet Buyer'}{' '}
                   <span className="tb-badge info">FuelEU Maritime Upstream Sourcing Hedge</span>
-                  <span className="tb-label strong">Marine Counterparty: {deal.counterparty || 'Maritime Fleet Buyer'}</span>
-                  <span className="tb-label tb-num">({volumeMwh.toLocaleString()} MWh physical biomethane requirement)</span>
-                </div>
-                <p className="tb-hint">
-                  Sourcing pipeline biomethane on the European gas grid via RED III Mass Balance to feed cryogenic Bio-LNG liquefaction at European bunkering terminals.
+                </span>
+                <p className="tb-hint tb-num">
+                  {volumeMwh.toLocaleString()} MWh physical biomethane requirement · -100 gCO₂e/MJ Manure · 100% RED III Compliant. Sourcing pipeline biomethane on the European gas grid via RED III Mass Balance to feed cryogenic Bio-LNG liquefaction at European bunkering terminals.
                 </p>
               </div>
-              <span className="tb-badge pos tb-num">-100 gCO₂e/MJ Manure · 100% RED III Compliant</span>
             </div>
           )}
 
-          {/* PoS Certificate Ingestion Card */}
-          <section className="tb-panel">
-            <div className="tb-panel-head">
-              <div>
-                <h3 className="tb-panel-title">
-                  <FileText size={16} /> Audited Proof of Sustainability (PoS)
-                </h3>
-                <p className="tb-panel-desc">Auto-extract audited substrate mix, certified CI, and registration ID from ISCC EU or REDcert-EU</p>
+          {/* PoS Certificate Ingestion */}
+          <div className="tb-form-row">
+            <span className="tb-form-label">Proof of Sustainability</span>
+            <div className="tb-form-control">
+              <div className="tb-row-start">
+                <button type="button" onClick={onOpenPoS} className="btn btn-secondary" data-testid="pos-uploader-btn">
+                  <FileUp size={14} />
+                  <span>Ingest PoS PDF / XML</span>
+                </button>
+                <span className="tb-hint">Auto-extract audited substrate mix, certified CI, and registration ID from ISCC EU or REDcert-EU</span>
               </div>
-              <button type="button" onClick={onOpenPoS} className="btn btn-secondary tb-accent-btn" data-testid="pos-uploader-btn">
-                <FileUp size={14} />
-                <span>Ingest PoS PDF / XML</span>
-              </button>
             </div>
-          </section>
+          </div>
 
-          {/* Physical Asset Sourcing Locked Card (if passed) */}
+          {/* Physical Asset Sourcing Locked (if passed) */}
           {(deal.plantName || linkedPlant) && (
-            <section className="tb-panel accent-left">
-              <div className="tb-panel-head">
-                <h3 className="tb-panel-title">
-                  <span>{currentOriginObj.flag}</span> {deal.plantName || linkedPlant?.name}
-                </h3>
-                <span className="tb-badge pos">
-                  <Lock size={11} />
-                  <span>AUDITED ASSET LOCKED</span>
+            <div className="tb-form-row">
+              <span className="tb-form-label">Asset</span>
+              <div className="tb-form-control">
+                <span className="tb-form-value">
+                  {currentOriginObj.flag} {deal.plantName || linkedPlant?.name}{' '}
+                  <span className="tb-badge pos">
+                    <Lock size={11} />
+                    <span>AUDITED ASSET LOCKED</span>
+                  </span>
                 </span>
-              </div>
-
-              <div className="tb-facts">
-                <div>
-                  <strong>Operating Entity:</strong>{' '}
-                  {deal.legalEntityName || linkedPlant?.legalEntityName || linkedPlant?.operator || 'Operating Entity'}
-                </div>
-                <div>
-                  <strong>Grid Injection TSO:</strong>{' '}
-                  {deal.networkOperator || linkedPlant?.networkOperator || `${currentOriginObj.name} Gas Grid`}
-                </div>
-                {(deal.plantAnnualGWh || linkedPlant?.annualEnergyGWh) && (
-                  <div className="tb-num">
-                    <strong>Facility Capacity:</strong>{' '}
-                    {deal.plantAnnualGWh || linkedPlant?.annualEnergyGWh} GWh/y
-                  </div>
-                )}
-                {linkedPlant?.upgradingTechnology && (
+                <dl className="tb-facts-list">
                   <div>
-                    <strong>Upgrading Technology:</strong>{' '}
-                    {linkedPlant.upgradingTechnology}
+                    <dt>Operating Entity</dt>
+                    <dd>{deal.legalEntityName || linkedPlant?.legalEntityName || linkedPlant?.operator || 'Operating Entity'}</dd>
                   </div>
-                )}
-                {linkedPlant?.feedstockDetails && (
-                  <div className="full">
-                    <strong>Audited Substrates:</strong>{' '}
-                    {linkedPlant.feedstockDetails}
+                  <div>
+                    <dt>Grid Injection TSO</dt>
+                    <dd>{deal.networkOperator || linkedPlant?.networkOperator || `${currentOriginObj.name} Gas Grid`}</dd>
                   </div>
-                )}
-                {(deal.contactEmail || linkedPlant?.contactEmail) && (
-                  <div className="full">
-                    <strong>Desk Contact:</strong>{' '}
-                    {deal.contactEmail || linkedPlant?.contactEmail}{' '}
-                    {deal.contactPhone || linkedPlant?.contactPhone ? `· ${deal.contactPhone || linkedPlant?.contactPhone}` : ''}
-                  </div>
-                )}
+                  {(deal.plantAnnualGWh || linkedPlant?.annualEnergyGWh) && (
+                    <div>
+                      <dt>Facility Capacity</dt>
+                      <dd className="tb-num">{deal.plantAnnualGWh || linkedPlant?.annualEnergyGWh} GWh/y</dd>
+                    </div>
+                  )}
+                  {linkedPlant?.upgradingTechnology && (
+                    <div>
+                      <dt>Upgrading Technology</dt>
+                      <dd>{linkedPlant.upgradingTechnology}</dd>
+                    </div>
+                  )}
+                  {linkedPlant?.feedstockDetails && (
+                    <div>
+                      <dt>Audited Substrates</dt>
+                      <dd>{linkedPlant.feedstockDetails}</dd>
+                    </div>
+                  )}
+                  {(deal.contactEmail || linkedPlant?.contactEmail) && (
+                    <div>
+                      <dt>Desk Contact</dt>
+                      <dd>
+                        {deal.contactEmail || linkedPlant?.contactEmail}{' '}
+                        {deal.contactPhone || linkedPlant?.contactPhone ? `· ${deal.contactPhone || linkedPlant?.contactPhone}` : ''}
+                      </dd>
+                    </div>
+                  )}
+                </dl>
               </div>
-            </section>
+            </div>
           )}
 
           {/* Origin Country Selector */}
-          <section className="tb-panel">
-            <div className="tb-panel-head">
-              <h3 className="tb-panel-title">
-                <Globe size={16} /> Origin Country &amp; Grid Injection Zone
-              </h3>
-              <span className="tb-panel-meta">{currentOriginObj.code} · {currentOriginObj.name}</span>
-            </div>
-
-            <div className="tb-chips">
-              {origins.map(o => (
-                <button
-                  key={o.code}
-                  type="button"
-                  className={`chip ${o.code === origin ? 'chip-a' : ''}`}
-                  onClick={() => setOrigin(o.code)}
-                >
-                  <span>{o.flag}</span>
-                  <span>{o.code}</span>
-                </button>
-              ))}
-            </div>
-            <p className="tb-hint">{currentOriginObj.desc}</p>
-
-            {(origin === 'GB' || currentOriginObj.isolated) && (
-              <div className="tb-alert neg">
-                <span className="tb-alert-text">
-                  <AlertTriangle size={14} /> Non-EU Gas Grid — Physical grid disconnected from EU UDB single mass balance area.
-                </span>
-                <button
-                  type="button"
-                  onClick={() => openAuditor({ feedstockCategory: currentFeedstockObj.label, focusedGateIndex: 1 })}
-                  className="btn btn-secondary"
-                >
-                  <Scale size={13} /> Audit UDB Cross-Border Ingestion
-                </button>
+          <div className="tb-form-row">
+            <span className="tb-form-label">Origin</span>
+            <div className="tb-form-control">
+              <div className="tb-chips">
+                {origins.map(o => (
+                  <button
+                    key={o.code}
+                    type="button"
+                    className={`chip ${o.code === origin ? 'chip-a' : ''}`}
+                    onClick={() => setOrigin(o.code)}
+                  >
+                    <span>{o.flag}</span>
+                    <span>{o.code}</span>
+                  </button>
+                ))}
               </div>
-            )}
-          </section>
+              <p className="tb-hint">{currentOriginObj.desc}</p>
 
-          {/* Feedstock, Certification & Chain of Custody */}
-          <section className="tb-panel">
-            <div className="tb-section">
-              <h3 className="tb-panel-title">
-                <Leaf size={16} /> Primary Feedstock Substrate
-              </h3>
+              {(origin === 'GB' || currentOriginObj.isolated) && (
+                <div className="tb-alert neg">
+                  <span className="tb-alert-text">
+                    <AlertTriangle size={14} /> Non-EU Gas Grid — Physical grid disconnected from EU UDB single mass balance area.
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => openAuditor({ feedstockCategory: currentFeedstockObj.label, focusedGateIndex: 1 })}
+                    className="btn btn-secondary"
+                  >
+                    <Scale size={13} /> Audit UDB Cross-Border Ingestion
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Feedstock */}
+          <div className="tb-form-row">
+            <span className="tb-form-label">Feedstock</span>
+            <div className="tb-form-control">
               <div className="tb-chips">
                 {feedstocks.map(f => (
                   <button
@@ -340,87 +332,83 @@ export function TradeConsignmentStep({
                 </div>
               )}
             </div>
+          </div>
 
-            {/* Scheme & Custody row */}
-            <div className="tb-section-row">
-              <div className="tb-section">
-                <span className="tb-label strong">Certification Scheme</span>
-                <div className="tb-chips">
-                  {schemes.map(sc => (
-                    <button
-                      key={sc.scheme}
-                      type="button"
-                      className={`chip ${sc.scheme === scheme ? 'chip-a' : ''}`}
-                      onClick={() => setScheme(sc.scheme)}
-                    >
-                      {sc.label}
-                    </button>
-                  ))}
-                </div>
-                <p className="tb-hint">{currentSchemeObj.hint}</p>
-              </div>
-
-              <div className="tb-section">
-                <span className="tb-label strong">Chain of Custody</span>
-                <div className="tb-chips">
-                  {custodies.map(c => (
-                    <button
-                      key={c.custody}
-                      type="button"
-                      className={`chip ${c.custody === chainOfCustody ? 'chip-a' : ''}`}
-                      onClick={() => setChainOfCustody(c.custody)}
-                    >
-                      {c.label}
-                    </button>
-                  ))}
-                </div>
-                <p className="tb-hint">{currentCustodyObj.hint}</p>
-              </div>
-            </div>
-          </section>
-
-          {/* Carbon Intensity & Benchmark Slider */}
-          <section className="tb-panel">
-            <div className="tb-panel-head">
-              <div className="tb-row-start">
-                <h3 className="tb-panel-title">
-                  <Gauge size={16} /> Carbon Intensity (CI)
-                </h3>
-                {ciProvenance === 'pos' ? (
-                  <span className="chip chip-pos" title="CI taken from the uploaded Proof of Sustainability. Check it against the certificate before confirming.">PoS CI</span>
-                ) : ciProvenance === 'estimated' ? (
-                  <span className="chip chip-warn" title="Feedstock default or benchmark CI, not from an audited PoS. Treat as indicative until the producer's PoS is received.">Estimated CI</span>
-                ) : null}
-              </div>
-              <span className="tb-value">
-                {ci >= 0 ? `+${ci}` : `−${Math.abs(ci)}`}{' '}
-                <span className="unit">gCO₂e/MJ</span>
-              </span>
-            </div>
-
-            <div className="tb-row">
-              <span className="tb-label">Benchmark tier</span>
-              <div className="seg" role="group" aria-label="CI benchmark tier">
-                {(['conservative', 'base', 'optimistic'] as const).map(t => (
+          {/* Certification Scheme */}
+          <div className="tb-form-row">
+            <span className="tb-form-label">Certification</span>
+            <div className="tb-form-control">
+              <div className="tb-chips">
+                {schemes.map(sc => (
                   <button
-                    key={t}
+                    key={sc.scheme}
                     type="button"
-                    className={`seg-opt ${ciTier === t ? 'active' : ''}`}
-                    onClick={() => {
-                      setCiTier(t);
-                      const benchmark = getCountryFeedstockCI(origin, feedstockKey, t);
-                      setCi(benchmark.ci);
-                      onCiSourceChange('estimate');
-                    }}
+                    className={`chip ${sc.scheme === scheme ? 'chip-a' : ''}`}
+                    onClick={() => setScheme(sc.scheme)}
                   >
-                    {ciTierLabel[t]}
+                    {sc.label}
                   </button>
                 ))}
               </div>
+              <p className="tb-hint">{currentSchemeObj.hint}</p>
             </div>
+          </div>
 
-            {/* Range Slider */}
-            <div className="tb-section">
+          {/* Chain of Custody */}
+          <div className="tb-form-row">
+            <span className="tb-form-label">Chain of custody</span>
+            <div className="tb-form-control">
+              <div className="tb-chips">
+                {custodies.map(c => (
+                  <button
+                    key={c.custody}
+                    type="button"
+                    className={`chip ${c.custody === chainOfCustody ? 'chip-a' : ''}`}
+                    onClick={() => setChainOfCustody(c.custody)}
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+              <p className="tb-hint">{currentCustodyObj.hint}</p>
+            </div>
+          </div>
+
+          {/* Carbon Intensity */}
+          <div className="tb-form-row">
+            <span className="tb-form-label">Carbon intensity</span>
+            <div className="tb-form-control">
+              <div className="tb-row">
+                <div className="tb-row-start">
+                  <span className="tb-value">
+                    {ci >= 0 ? `+${ci}` : `−${Math.abs(ci)}`}{' '}
+                    <span className="unit">gCO₂e/MJ</span>
+                  </span>
+                  {ciProvenance === 'pos' ? (
+                    <span className="chip chip-pos" title="CI taken from the uploaded Proof of Sustainability. Check it against the certificate before confirming.">PoS CI</span>
+                  ) : ciProvenance === 'estimated' ? (
+                    <span className="chip chip-warn" title="Feedstock default or benchmark CI, not from an audited PoS. Treat as indicative until the producer's PoS is received.">Estimated CI</span>
+                  ) : null}
+                </div>
+                <div className="seg" role="group" aria-label="CI benchmark tier">
+                  {(['conservative', 'base', 'optimistic'] as const).map(t => (
+                    <button
+                      key={t}
+                      type="button"
+                      className={`seg-opt ${ciTier === t ? 'active' : ''}`}
+                      onClick={() => {
+                        setCiTier(t);
+                        const benchmark = getCountryFeedstockCI(origin, feedstockKey, t);
+                        setCi(benchmark.ci);
+                        onCiSourceChange('estimate');
+                      }}
+                    >
+                      {ciTierLabel[t]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <input
                 type="range"
                 min="-150"
@@ -436,108 +424,88 @@ export function TradeConsignmentStep({
                 <span>0 (Neutral)</span>
                 <span>+50 (Crop)</span>
               </div>
-            </div>
 
-            <div className="tb-row tb-ruled">
-              <span className="tb-label">GHG Savings vs RED III Comparator:</span>
-              <span className={`tb-num tb-label strong ${ghgSavingPct >= 65 ? 'tb-pos' : 'tb-neg'}`}>
-                {ghgSavingPct}% {ghgSavingPct >= 65 ? '(>= 65% Compliant)' : '(< 65% Non-compliant)'}
-              </span>
-            </div>
+              <p className="tb-hint">
+                GHG Savings vs RED III Comparator:{' '}
+                <strong className={`tb-num ${ghgSavingPct >= 65 ? 'tb-pos' : 'tb-neg'}`}>
+                  {ghgSavingPct}% {ghgSavingPct >= 65 ? '(>= 65% Compliant)' : '(< 65% Non-compliant)'}
+                </strong>
+              </p>
 
-            {ghgSavingPct < 65 && (
-              <div className="tb-alert neg">
-                <span className="tb-alert-text">
-                  <AlertTriangle size={14} /> RED III 65% Violation — Achieved {ghgSavingPct}% vs 65% minimum required (CI must be ≤ 32.9 gCO₂e/MJ).
-                </span>
-                <button
-                  type="button"
-                  onClick={() => openAuditor({ feedstockCategory: currentFeedstockObj.label, focusedGateIndex: 4 })}
-                  className="btn btn-secondary"
-                >
-                  <Scale size={13} /> Audit Statutory Impact &amp; Remediation
-                </button>
-              </div>
-            )}
-          </section>
+              {ghgSavingPct < 65 && (
+                <div className="tb-alert neg">
+                  <span className="tb-alert-text">
+                    <AlertTriangle size={14} /> RED III 65% Violation — Achieved {ghgSavingPct}% vs 65% minimum required (CI must be ≤ 32.9 gCO₂e/MJ).
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => openAuditor({ feedstockCategory: currentFeedstockObj.label, focusedGateIndex: 4 })}
+                    className="btn btn-secondary"
+                  >
+                    <Scale size={13} /> Audit Statutory Impact &amp; Remediation
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </>
       )}
 
       {section === 'SCHEDULE' && (
         <>
           {/* Volume Allocation */}
-          <section className="tb-panel">
-            <div className="tb-panel-head">
-              <h3 className="tb-panel-title">
-                <Layers size={16} /> Contract Traded Volume
-              </h3>
-              <span className="tb-value">
-                {volumeMwh.toLocaleString()}{' '}
-                <span className="unit">MWh</span>
-              </span>
-            </div>
-
-            <div className="tb-row-start">
-              <input
-                type="number"
-                min="100"
-                step="500"
-                className="input tb-num tb-volume-input"
-                value={volumeMwh}
-                onChange={e => setVolumeMwh(Math.max(0, Number(e.target.value) || 0))}
-                aria-label="Contract traded volume (MWh)"
-              />
-              <div className="tb-chips">
-                {[5000, 10000, 25000, 50000].map(v => (
-                  <button
-                    key={v}
-                    type="button"
-                    className={`chip tb-num ${volumeMwh === v ? 'chip-a' : ''}`}
-                    onClick={() => setVolumeMwh(v)}
-                  >
-                    {(v / 1000).toFixed(0)}k
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Run-rate breakdown */}
-            <div className="tb-row">
-              <span className="tb-label">Delivery Run-rate:</span>
-              <span className="tb-label tb-num">~{monthlyRateMwh.toLocaleString()} MWh/mo · {dailyRateMwh.toLocaleString()} MWh/d</span>
-            </div>
-
-            {plantTotalMWh !== null && (
-              <div className="tb-section tb-ruled">
-                <div className="tb-row">
-                  <span className="tb-label">Facility Capacity Utilisation:</span>
-                  <span className={`tb-label strong tb-num ${isOversubscribed ? 'tb-neg' : ''}`}>
-                    {plantCommittedPct}% ({volumeMwh.toLocaleString()} / {plantTotalMWh.toLocaleString()} MWh)
-                  </span>
-                </div>
-                <div className="tb-meter">
-                  <div
-                    className={`tb-meter-fill ${isOversubscribed ? 'neg' : ''}`}
-                    style={{ width: `${Math.min(100, plantCommittedPct || 0)}%` }}
-                  />
+          <div className="tb-form-row">
+            <span className="tb-form-label">Volume</span>
+            <div className="tb-form-control">
+              <div className="tb-row-start">
+                <input
+                  type="number"
+                  min="100"
+                  step="500"
+                  className="input tb-num tb-volume-input"
+                  value={volumeMwh}
+                  onChange={e => setVolumeMwh(Math.max(0, Number(e.target.value) || 0))}
+                  aria-label="Contract traded volume (MWh)"
+                />
+                <span className="tb-label">MWh</span>
+                <div className="tb-chips">
+                  {[5000, 10000, 25000, 50000].map(v => (
+                    <button
+                      key={v}
+                      type="button"
+                      className={`chip tb-num ${volumeMwh === v ? 'chip-a' : ''}`}
+                      onClick={() => setVolumeMwh(v)}
+                    >
+                      {(v / 1000).toFixed(0)}k
+                    </button>
+                  ))}
                 </div>
               </div>
-            )}
-          </section>
+              <p className="tb-hint tb-num">
+                Delivery Run-rate: ~{monthlyRateMwh.toLocaleString()} MWh/mo · {dailyRateMwh.toLocaleString()} MWh/d
+              </p>
 
-          {/* Production & Delivery Schedule */}
-          <section className="tb-panel">
-            <div className="tb-panel-head">
-              <h3 className="tb-panel-title">
-                <Calendar size={16} /> Production &amp; Delivery Schedule
-              </h3>
-              <span className="tb-panel-meta">EFET biomethane schedule</span>
+              {plantTotalMWh !== null && (
+                <div className="tb-section">
+                  <p className={`tb-hint tb-num ${isOversubscribed ? 'tb-neg' : ''}`}>
+                    Facility Capacity Utilisation: {plantCommittedPct}% ({volumeMwh.toLocaleString()} / {plantTotalMWh.toLocaleString()} MWh)
+                  </p>
+                  <div className="tb-meter">
+                    <div
+                      className={`tb-meter-fill ${isOversubscribed ? 'neg' : ''}`}
+                      style={{ width: `${Math.min(100, plantCommittedPct || 0)}%` }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
+          </div>
 
-            {/* Compliance Year */}
-            <div className="tb-row">
-              <span className="tb-label strong">Compliance Target Year</span>
-              <div className="seg" role="group" aria-label="Compliance target year">
+          {/* Compliance Year */}
+          <div className="tb-form-row">
+            <span className="tb-form-label">Compliance year</span>
+            <div className="tb-form-control">
+              <div className="seg tb-seg-start" role="group" aria-label="Compliance target year">
                 {[2025, 2026, 2027].map(yr => (
                   <button
                     key={yr}
@@ -550,10 +518,12 @@ export function TradeConsignmentStep({
                 ))}
               </div>
             </div>
+          </div>
 
-            {/* Vintage Presets */}
-            <div className="tb-section">
-              <span className="tb-label">Production Vintage (Gas Grid Injection)</span>
+          {/* Vintage Presets */}
+          <div className="tb-form-row">
+            <span className="tb-form-label">Production vintage</span>
+            <div className="tb-form-control">
               <div className="tb-chips">
                 {[
                   { key: 'CAL_YEAR', label: `Cal-${complianceYear}` },
@@ -574,33 +544,38 @@ export function TradeConsignmentStep({
                   </button>
                 ))}
               </div>
+              <p className="tb-hint">Gas grid injection window</p>
             </div>
+          </div>
 
-            {/* Date Pickers */}
-            <div className="tb-date-grid">
-              <label className="tb-section">
-                <span className="tb-label">Injection Start Date</span>
+          {/* Date Pickers */}
+          <div className="tb-form-row">
+            <span className="tb-form-label">Injection dates</span>
+            <div className="tb-form-control">
+              <div className="tb-row-start">
                 <input
                   type="date"
-                  className="input tb-num"
+                  className="input tb-num tb-date-input"
                   value={prodStartDate}
                   onChange={e => setProdStartDate(e.target.value)}
+                  aria-label="Injection start date"
                 />
-              </label>
-              <label className="tb-section">
-                <span className="tb-label">Injection End Date</span>
+                <span className="tb-label">to</span>
                 <input
                   type="date"
-                  className="input tb-num"
+                  className="input tb-num tb-date-input"
                   value={prodEndDate}
                   onChange={e => setProdEndDate(e.target.value)}
+                  aria-label="Injection end date"
                 />
-              </label>
+              </div>
             </div>
+          </div>
 
-            {/* Delivery Profile */}
-            <div className="tb-section">
-              <span className="tb-label">Delivery Rate Profile</span>
+          {/* Delivery Profile */}
+          <div className="tb-form-row">
+            <span className="tb-form-label">Delivery profile</span>
+            <div className="tb-form-control">
               <div className="tb-chips">
                 {(['FLAT_MONTHLY', 'SEASONAL_WINTER', 'PROMPT_SPOT', 'CUSTOM'] as DeliveryProfile[]).map(dp => (
                   <button
@@ -614,22 +589,26 @@ export function TradeConsignmentStep({
                 ))}
               </div>
             </div>
+          </div>
 
-            {/* Grid Delivery Point & Statutory Deadline Card */}
-            <div className="tb-kv">
-              <div className="tb-kv-row">
-                <span>Grid Delivery Point (VTP):</span>
-                <span>{getVtpForMarket(selectedMarket.country)}</span>
-              </div>
-              <div className="tb-kv-row">
-                <span>Registry Surrender Deadline:</span>
-                <span className="tb-accent">{statutorySurrenderDeadline}</span>
-              </div>
-              <div className="tb-kv-note">
-                UDB Mass Balance Rule: Certificates must be balanced and surrendered within 12 months of injection month end (RED III Art. 30).
-              </div>
+          {/* Grid Delivery Point & Statutory Deadline */}
+          <div className="tb-form-row">
+            <span className="tb-form-label">Delivery point</span>
+            <div className="tb-form-control">
+              <span className="tb-form-value">{getVtpForMarket(selectedMarket.country)}</span>
+              <p className="tb-hint">EFET biomethane schedule · Grid Delivery Point (VTP)</p>
             </div>
-          </section>
+          </div>
+
+          <div className="tb-form-row">
+            <span className="tb-form-label">Surrender deadline</span>
+            <div className="tb-form-control">
+              <span className="tb-form-value tb-num">{statutorySurrenderDeadline}</span>
+              <p className="tb-hint">
+                UDB Mass Balance Rule: Certificates must be balanced and surrendered within 12 months of injection month end (RED III Art. 30).
+              </p>
+            </div>
+          </div>
         </>
       )}
     </div>
