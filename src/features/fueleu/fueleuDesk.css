@@ -1,5 +1,5 @@
-/* Font loaded via <link> in index.html (IBM Plex Sans/Mono) — matches the app's existing pattern
- * for its Archivo font, so this scoped stylesheet doesn't duplicate a render-blocking @import. */
+/* Font loaded via <link> in index.html (IBM Plex Sans/Mono) — matches the app's existing pattern,
+ * so this scoped stylesheet doesn't duplicate a render-blocking @import. */
 
 /*
  * FuelEU Maritime desk — scoped design tokens & primitives for the redesigned screen.
