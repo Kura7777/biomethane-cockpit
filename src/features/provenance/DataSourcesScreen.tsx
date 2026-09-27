@@ -86,44 +86,46 @@ export function DataSourcesScreen() {
         </div>
       </div>
 
-      {/* Table */}
-      <div style={{ padding: '0 18px 18px', overflowX: 'auto' }}>
-        <table className="table" style={{ fontSize: '13px' }}>
-          <thead>
-            <tr>
-              <th>Source</th>
-              <th style={{ width: '220px' }}>Authority</th>
-              <th style={{ width: '130px' }}>Category</th>
-              <th style={{ width: '160px' }}>Coverage</th>
-              <th style={{ width: '110px' }}>Cadence</th>
-              <th style={{ width: '170px' }}>Provenance tier</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredSources.map(s => {
-              const tierInfo = getTierDisplay(s.provenanceTier);
-              return (
-                <tr key={s.id}>
-                  <td>
-                    <div style={{ fontWeight: 600 }}>{s.name}</div>
-                    <div style={{ fontSize: '11px' }} className="mut">
-                      {s.legalBasis || s.sourceDocumentOrUrl}
-                    </div>
-                  </td>
-                  <td style={{ fontSize: '12px' }}>{s.authority}</td>
-                  <td style={{ fontSize: '12px' }}>{s.categoryLabel}</td>
-                  <td className="num" style={{ fontSize: '12px' }}>{s.coverageCount}</td>
-                  <td style={{ fontSize: '12px' }}>{formatCadence(s.updateFrequency)}</td>
-                  <td>
-                    <span className={`chip ${tierInfo.isAccent ? 'chip-a' : ''}`}>
-                      {tierInfo.label}
-                    </span>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+      {/* Table Container */}
+      <div style={{ padding: '16px 18px' }}>
+        <div style={{ overflowX: 'auto', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-panel)' }}>
+          <table className="table" style={{ fontSize: '13px', margin: 0 }}>
+            <thead>
+              <tr>
+                <th>Source</th>
+                <th style={{ width: '220px' }}>Authority</th>
+                <th style={{ width: '130px' }}>Category</th>
+                <th style={{ width: '160px' }}>Coverage</th>
+                <th style={{ width: '110px' }}>Cadence</th>
+                <th style={{ width: '170px' }}>Provenance tier</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredSources.map(s => {
+                const tierInfo = getTierDisplay(s.provenanceTier);
+                return (
+                  <tr key={s.id}>
+                    <td>
+                      <div style={{ fontWeight: 600 }}>{s.name}</div>
+                      <div style={{ fontSize: '11px' }} className="mut">
+                        {s.legalBasis || s.sourceDocumentOrUrl}
+                      </div>
+                    </td>
+                    <td style={{ fontSize: '12px' }}>{s.authority}</td>
+                    <td style={{ fontSize: '12px' }}>{s.categoryLabel}</td>
+                    <td className="num" style={{ fontSize: '12px' }}>{s.coverageCount}</td>
+                    <td style={{ fontSize: '12px' }}>{formatCadence(s.updateFrequency)}</td>
+                    <td>
+                      <span className={`chip ${tierInfo.isAccent ? 'chip-a' : ''}`}>
+                        {tierInfo.label}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
