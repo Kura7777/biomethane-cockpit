@@ -1,176 +1,193 @@
 /* Tools tab — Vessel archetypes calculator. Scoped under .fueleu-desk tokens.
- * One spacing rhythm: 24px between blocks, 20px card padding, 16px inside cards, 8px within a field. */
+ * A vertical flow: numbered markers on a rail, the active step open, finished steps folded
+ * to a one-line summary. Every step shares one column width so nothing resizes between steps. */
 
 /* ── Tools tab shell (tool switch + active tool share the page gutter) ── */
 .fe-tools {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
   padding-top: 20px;
-  padding-bottom: 32px;
+  padding-bottom: 48px;
 }
 
 .fe-tools .fe-seg {
   align-self: flex-start;
 }
 
-/* ── Calculator layout ── */
+/* ── Flow ── */
 .fva {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+  --fva-marker: 36px;
+  --fva-rail-gap: 20px;
+  width: 100%;
+  max-width: 1120px;
 }
 
-.fva-card {
-  border: 1px solid var(--fe-line);
-  border-radius: var(--radius-card);
-  background: var(--fe-surface);
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  min-width: 0;
-}
-
-.fva-card-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-  min-height: 32px;
-}
-
-.fva-card-head.ruled {
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--fe-line);
-}
-
-.fva-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.fva-flow {
+  list-style: none;
   margin: 0;
-  font-size: var(--fe-fs-section-heading);
+  padding: 0;
+}
+
+.fva-flow-step {
+  display: grid;
+  grid-template-columns: var(--fva-marker) minmax(0, 1fr);
+  column-gap: var(--fva-rail-gap);
+}
+
+/* Marker column: the numbered box, then the rail line down to the next step */
+.fva-flow-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.fva-flow-marker {
+  width: var(--fva-marker);
+  height: var(--fva-marker);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--fe-line);
+  background: var(--fe-surface);
+  color: var(--fe-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: var(--fe-fs-meta);
+  font-weight: 600;
+}
+
+.fva-flow-line {
+  flex: 1;
+  width: 1px;
+  min-height: 12px;
+  margin: 6px 0;
+  background: var(--fe-line);
+}
+
+.fva-flow-step:last-child .fva-flow-line {
+  display: none;
+}
+
+.fva-flow-step.current .fva-flow-marker {
+  border-color: var(--fe-ink);
+  color: var(--fe-ink);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--fe-ink) 10%, transparent);
+}
+
+.fva-flow-step.done .fva-flow-marker {
+  border-color: var(--fe-ink);
+  background: var(--fe-ink);
+  color: var(--fe-bg);
+}
+
+.fva-flow-step.done .fva-flow-line,
+.fva-flow-step.current .fva-flow-line {
+  background: color-mix(in srgb, var(--fe-ink) 35%, transparent);
+}
+
+/* Content column */
+.fva-flow-main {
+  min-width: 0;
+  padding-bottom: 20px;
+}
+
+.fva-flow-step.current .fva-flow-main {
+  padding-bottom: 32px;
+}
+
+.fva-flow-step:last-child .fva-flow-main {
+  padding-bottom: 0;
+}
+
+.fva-flow-head {
+  min-height: var(--fva-marker);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.fva-flow-name {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font: inherit;
+}
+
+.fva-flow-title {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+
+.fva-flow-title:disabled {
+  cursor: default;
+}
+
+.fva-flow-label {
+  font-size: var(--fe-fs-panel-title);
   font-weight: 600;
   color: var(--fe-ink);
+  white-space: nowrap;
 }
 
-.fva-title svg {
-  flex-shrink: 0;
-  color: var(--fe-accent);
-}
-
-.fva-title.pos svg {
-  color: var(--fe-surplus);
-}
-
-.fva-meta {
-  font-size: var(--fe-fs-caption);
+.fva-flow-step.todo .fva-flow-label {
   color: var(--fe-muted);
+  font-weight: 500;
 }
 
-.fva-small-btn {
-  height: 32px;
-  font-size: var(--fe-fs-meta);
-}
-
-/* ── Archetype presets ── */
-.fva-presets {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 8px;
-}
-
-@media (max-width: 1280px) {
-  .fva-presets {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 800px) {
-  .fva-presets {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-.fva-preset.btn {
-  height: auto;
-  min-height: 76px;
-  padding: 10px 12px;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: space-between;
-  gap: 6px;
-  text-align: left;
+.fva-flow-summary {
   min-width: 0;
-}
-
-.fva-preset-text {
-  min-width: 0;
-}
-
-/* Names wrap (two lines at most) rather than truncating; segment lines truncate */
-.fva-preset-name {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  line-height: 1.3;
-}
-
-.fva-preset-segment {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-}
-
-.fva-preset-name {
-  font-size: var(--fe-fs-meta);
-  font-weight: 600;
-}
-
-.fva-preset-segment {
-  font-size: var(--fe-fs-caption);
-  font-weight: 400;
+  font-size: var(--fe-fs-base);
   color: var(--fe-muted);
 }
 
-.fva-preset-size {
-  font-size: var(--fe-fs-caption);
-  font-weight: 600;
+.fva-edit-link {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--fe-fs-meta);
+  font-weight: 500;
   color: var(--fe-accent);
+  cursor: pointer;
 }
 
-.fva-preset.btn-primary .fva-preset-segment {
-  color: rgba(255, 255, 255, 0.8);
+.fva-edit-link:hover {
+  text-decoration: underline;
 }
 
-.fva-preset.btn-primary .fva-preset-size {
-  color: #ffffff;
+.fva-flow-body {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.fva-context {
+.fva-section-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 8px 24px;
-  padding-top: 16px;
-  border-top: 1px solid var(--fe-line);
+  gap: 8px 16px;
   font-size: var(--fe-fs-meta);
   color: var(--fe-muted);
-}
-
-.fva-context strong {
-  color: var(--fe-ink);
-  font-weight: 600;
-}
-
-/* Input steps read as a form, not a full-bleed dashboard */
-.fva-narrow {
-  max-width: 880px;
 }
 
 .fva-ink {
@@ -178,25 +195,18 @@
   font-weight: 600;
 }
 
-/* ── Step footer: back · live estimate · next ── */
-.fva-step-footer {
+.fva-small-btn {
+  height: 32px;
+  font-size: var(--fe-fs-meta);
+}
+
+/* Next button with the live estimate beside it */
+.fva-step-actions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   flex-wrap: wrap;
-  gap: 12px 16px;
-  padding-top: 16px;
-  border-top: 1px solid var(--fe-line);
-}
-
-.fva-step-footer-left {
-  min-width: 96px;
-}
-
-.fva-step-footer-end {
-  padding-top: 0;
-  border-top: 0;
-  justify-content: flex-start;
+  gap: 12px 20px;
+  padding-top: 4px;
 }
 
 .fva-estimate {
@@ -218,98 +228,165 @@
   font-weight: 400;
 }
 
-/* ── Summary: inputs recap beside the pricing assumptions ── */
-.fva-basis {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 24px;
-  align-items: start;
-}
-
-@media (max-width: 1280px) {
-  .fva-basis {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-.fva-recap {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 24px;
-}
-
-@media (max-width: 1600px) {
-  .fva-recap {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 16px;
-  }
-}
-
-.fva-recap-group {
+/* ── Shared panel (pathway cards, audit block) ── */
+.fva-card {
+  border: 1px solid var(--fe-line);
+  border-radius: var(--radius-card);
+  background: var(--fe-surface);
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  font-size: var(--fe-fs-meta);
+  gap: 16px;
+  min-width: 0;
 }
 
-.fva-recap-group + .fva-recap-group {
-  padding-top: 16px;
-  border-top: 1px solid var(--fe-line);
-}
-
-@media (min-width: 1601px) {
-  .fva-recap-group + .fva-recap-group {
-    padding-top: 0;
-    border-top: 0;
-  }
-}
-
-.fva-recap-head {
+.fva-card-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.fva-title {
+  display: flex;
+  align-items: center;
   gap: 8px;
-  padding-bottom: 4px;
+  margin: 0;
+  font-size: var(--fe-fs-section-heading);
   font-weight: 600;
   color: var(--fe-ink);
 }
 
-.fva-recap-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 4px 0;
-  text-align: right;
-}
-
-.fva-recap-row .muted {
-  color: var(--fe-muted);
-  text-align: left;
+.fva-title svg {
   flex-shrink: 0;
+  color: var(--fe-accent);
 }
 
-.fva-edit-link {
-  display: inline-flex;
+.fva-title.pos svg {
+  color: var(--fe-surplus);
+}
+
+/* ── Step 1: vessel list ── */
+.fva-vessels {
+  border: 1px solid var(--fe-line);
+  border-radius: var(--radius-card);
+  background: var(--fe-surface);
+  overflow: hidden;
+}
+
+.fva-vessel-cols {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 2.4fr) minmax(0, 1fr) repeat(3, minmax(0, 0.9fr)) minmax(0, 1fr);
   align-items: center;
-  gap: 4px;
-  padding: 2px 4px;
-  border: 0;
-  background: none;
-  font: inherit;
+  column-gap: 16px;
+  padding: 0 16px;
+}
+
+.fva-vessel-headrow {
+  min-height: 40px;
   font-size: var(--fe-fs-caption);
-  font-weight: 500;
-  color: var(--fe-accent);
+  color: var(--fe-muted);
+  border-bottom: 1px solid var(--fe-line);
+  background: var(--color-panel-header);
+}
+
+.fva-vessel-row {
+  width: 100%;
+  min-height: 60px;
+  border: 0;
+  border-top: 1px solid var(--fe-line);
+  background: var(--fe-surface);
+  font: inherit;
+  text-align: left;
+  color: var(--fe-ink);
   cursor: pointer;
 }
 
-.fva-edit-link:hover {
-  text-decoration: underline;
+.fva-vessel-headrow + .fva-vessel-row {
+  border-top: 0;
+}
+
+.fva-vessel-row:hover {
+  background: var(--fe-sel);
+}
+
+.fva-vessel-row.selected {
+  background: var(--fe-sel);
+  box-shadow: inset 3px 0 0 var(--fe-ink);
+}
+
+.fva-num-col {
+  text-align: right;
+}
+
+.fva-radio {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid var(--fe-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fva-vessel-row.selected .fva-radio {
+  border-color: var(--fe-ink);
+}
+
+.fva-vessel-row.selected .fva-radio::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--fe-ink);
+}
+
+.fva-vessel-text {
+  min-width: 0;
+}
+
+.fva-vessel-name {
+  font-size: var(--fe-fs-base);
+  font-weight: 600;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.fva-vessel-segment,
+.fva-vessel-cell {
+  font-size: var(--fe-fs-meta);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.fva-vessel-segment {
+  color: var(--fe-muted);
+}
+
+@media (max-width: 1100px) {
+  .fva-vessel-cols {
+    grid-template-columns: 28px minmax(0, 2.4fr) minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .fva-vessel-optional {
+    display: none;
+  }
+}
+
+.fva-context {
+  font-size: var(--fe-fs-meta);
+  color: var(--fe-muted);
+  line-height: 1.5;
+}
+
+.fva-context strong {
+  color: var(--fe-ink);
+  font-weight: 600;
 }
 
 /* ── Inputs ── */
-.fva-inputs {
-  gap: 20px;
-}
 
 .fva-field {
   display: flex;
@@ -362,6 +439,12 @@
   width: 100%;
   margin: 0;
   cursor: pointer;
+  accent-color: var(--fe-ink);
+}
+
+/* Native range tracks otherwise render light-theme white on the dark desk */
+html.dark .fva-range {
+  color-scheme: dark;
 }
 
 .fva-hint {
