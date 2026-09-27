@@ -106,6 +106,76 @@ export interface BiomethanePlant {
   registrationCheck?: RegistrationCheck | null;
   /** Suggestion matched from an authoritative register (e.g. MaStR) for a trader to confirm. */
   registerMatch?: RegisterMatch | null;
+  /** Sourced research record for counterparty outreach. */
+  research?: PlantResearch | null;
+}
+
+export type SourceCheckStatus =
+  | 'VERIFIED'
+  | 'NOT_ON_PAGE'
+  | 'PAGE_NOT_FOUND'
+  | 'DNS_FAIL'
+  | 'BLOCKED'
+  | 'PDF_UNCHECKED'
+  | 'ERROR';
+
+export interface SourceCheckDetail {
+  status: SourceCheckStatus;
+  checkedAt: string;
+  httpStatus?: number;
+  finalUrl?: string;
+  error?: string;
+  viesValid?: boolean;
+}
+
+export interface SourcedValue<T = string> {
+  value: T;
+  sourceUrl: string;
+  retrievedAt: string;
+  note?: string;
+  check?: SourceCheckDetail;
+}
+
+export type ResearchContactType =
+  | 'COMPANY_SWITCHBOARD'
+  | 'GENERIC_EMAIL'
+  | 'CONTACT_FORM'
+  | 'SALES_OR_ENERGY_EMAIL'
+  | 'NAMED_PERSON';
+
+export type ContactScope = 'PLANT_OPERATOR' | 'PARENT_COMMERCIAL' | 'GENERAL_OR_PRESS';
+
+export interface ResearchContact {
+  type: ResearchContactType;
+  value: string; // phone, email or form URL
+  personName?: string; // NAMED_PERSON only
+  role?: string; // as published
+  sourceUrl: string; // page where it is published
+  retrievedAt: string;
+  note?: string; // verbatim quote or snippet from sourceUrl
+  contactScope?: ContactScope;
+  check?: SourceCheckDetail;
+}
+
+export type OutreachTier = 'READY' | 'ENTITY_ONLY' | 'UNRESOLVED';
+
+export interface PlantResearch {
+  plantId: string;
+  status: 'ACTIVE' | 'UNDER_CONSTRUCTION' | 'PLANNED' | 'CLOSED' | 'UNKNOWN';
+  legalEntity: SourcedValue | null; // operating company (SPV) as registered
+  registrationId: SourcedValue | null; // e.g. "CIF B12345678" — only from an official register or the company's legal notice
+  registerSource: string | null; // e.g. "Registro Mercantil / BORME", "VIES"
+  parentGroup: SourcedValue | null; // group/developer that owns the SPV
+  siteAddress: SourcedValue | null;
+  siteCoordinates: SourcedValue<[number, number]> | null; // from a published source or OSM Nominatim geocode of siteAddress
+  website: SourcedValue | null; // official site of the SPV or parent
+  contacts: ResearchContact[];
+  injectionOrOfftakeNotes: SourcedValue[]; // e.g. existing offtaker, grid connection, GO registration, subsidy
+  tier: OutreachTier;
+  effectiveTier?: OutreachTier;
+  researchedAt: string;
+  openQuestions: string[]; // what a trader should still confirm
+  plantLink?: SourcedValue | null; // source linking the plant to that entity
 }
 
 export type RegistrationCheckStatus = 'CONFIRMED' | 'MISMATCH' | 'NOT_FOUND' | 'ERROR';
@@ -173,6 +243,8 @@ export type DossierVerificationStatus = 'REGISTER_CONFIRMED' | 'UNVERIFIED';
  */
 export interface VerifiedPlantDossier {
   verificationStatus: DossierVerificationStatus;
+  /** True when the entity & CIF were confirmed via an official register in desk research (e.g. BORME/VIES). */
+  researchConfirmedEntity?: boolean;
   statutoryRegister: 'DE_MASTR' | 'FR_SIRENE' | 'GB_COMPANIES_HOUSE' | 'DK_EVIDA_CVR' | 'NL_KVK' | 'IT_GSE' | 'OTHER';
   /** Null unless confirmed against the register. */
   statutoryRegistrationId: string | null;

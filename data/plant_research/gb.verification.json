@@ -1,0 +1,2439 @@
+{
+  "countryCode": "GB",
+  "verifiedAt": "2026-09-26T18:10:53.130Z",
+  "counts": {
+    "totalPlants": 40,
+    "effectiveTiers": {
+      "READY": 4,
+      "ENTITY_ONLY": 28,
+      "UNRESOLVED": 8
+    },
+    "statusCounts": {
+      "VERIFIED": 204,
+      "NOT_ON_PAGE": 71,
+      "PAGE_NOT_FOUND": 0,
+      "DNS_FAIL": 3,
+      "BLOCKED": 0,
+      "PDF_UNCHECKED": 0,
+      "ERROR": 0
+    },
+    "contactsTotal": 32,
+    "contactsVerified": 6
+  },
+  "plants": {
+    "plant_uk_10": {
+      "plantId": "plant_uk_10",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "info@ecoverde.energy",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "NOT_ON_PAGE",
+          "checkedAt": "2026-09-26T18:10:27.442Z",
+          "sourceUrl": "https://ecoverde.energy",
+          "httpStatus": 200,
+          "finalUrl": "https://ecoverde.energy/",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:27.442Z",
+          "sourceUrl": "https://www.privilege.finance",
+          "httpStatus": 200,
+          "finalUrl": "https://www.privilege.finance/"
+        },
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:27.442Z",
+          "sourceUrl": "https://ecoverde.energy",
+          "httpStatus": 200,
+          "finalUrl": "https://ecoverde.energy/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:27.442Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/07475331",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/07475331",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:27.442Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/07475331",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:27.442Z",
+        "sourceUrl": "https://ecoverde.energy",
+        "httpStatus": 200,
+        "finalUrl": "https://ecoverde.energy/"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:27.442Z",
+        "sourceUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "httpStatus": 200,
+        "finalUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:27.442Z",
+        "sourceUrl": "https://ecoverde.energy",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:27.442Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/07475331",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_100": {
+      "plantId": "plant_uk_100",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "info@engie.co.uk",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "NOT_ON_PAGE",
+          "checkedAt": "2026-09-26T18:10:28.582Z",
+          "sourceUrl": "https://www.engie.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://www.engie.co.uk/",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:28.582Z",
+          "sourceUrl": "https://www.engie.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://www.engie.co.uk/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:28.582Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/10895324",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/10895324",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:28.582Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/10895324",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:28.582Z",
+        "sourceUrl": "https://www.engie.co.uk",
+        "httpStatus": 200,
+        "finalUrl": "https://www.engie.co.uk/"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:28.582Z",
+        "sourceUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "httpStatus": 200,
+        "finalUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:28.582Z",
+        "sourceUrl": "https://www.engie.co.uk",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:28.582Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/10895324",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_108": {
+      "plantId": "plant_uk_108",
+      "effectiveTier": "UNRESOLVED",
+      "contacts": [],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:29.408Z",
+          "sourceUrl": "https://www.weltec-biopower.com",
+          "httpStatus": 200,
+          "finalUrl": "https://www.weltec-biopower.com/de"
+        }
+      ],
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:29.408Z",
+        "sourceUrl": "https://www.weltec-biopower.com",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_110": {
+      "plantId": "plant_uk_110",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "enquiries@ch4mail.com",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "PLANT_OPERATOR",
+          "status": "DNS_FAIL",
+          "checkedAt": "2026-09-26T18:10:29.409Z",
+          "sourceUrl": "https://biotech4.co.uk/contact",
+          "error": "Email domain ch4mail.com DNS failed",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:29.409Z",
+          "sourceUrl": "https://biotech4.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://biotech4.co.uk/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:29.409Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/09434307",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/09434307",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:29.409Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/09434307",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:29.409Z",
+        "sourceUrl": "https://biotech4.co.uk",
+        "httpStatus": 200,
+        "finalUrl": "https://biotech4.co.uk/"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:29.409Z",
+        "sourceUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "httpStatus": 200,
+        "finalUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:29.409Z",
+        "sourceUrl": "https://biotech4.co.uk",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:29.409Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/09434307",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_113": {
+      "plantId": "plant_uk_113",
+      "effectiveTier": "UNRESOLVED",
+      "contacts": [],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:29.872Z",
+          "sourceUrl": "https://www.weltec-biopower.com",
+          "httpStatus": 200,
+          "finalUrl": "https://www.weltec-biopower.com/de"
+        }
+      ],
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:29.872Z",
+        "sourceUrl": "https://www.weltec-biopower.com",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_12": {
+      "plantId": "plant_uk_12",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "info@andigestion.com",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "PLANT_OPERATOR",
+          "status": "NOT_ON_PAGE",
+          "checkedAt": "2026-09-26T18:10:29.873Z",
+          "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/01847506",
+          "httpStatus": 200,
+          "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/01847506",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:29.873Z",
+          "sourceUrl": "https://www.greengas.org.uk/certificates/producer-information",
+          "httpStatus": 200,
+          "finalUrl": "https://www.greengas.org.uk/certificates/producer-information"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:29.873Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/01847506",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/01847506",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:29.873Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/01847506",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:29.873Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/01847506",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/01847506"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:29.873Z",
+        "sourceUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "httpStatus": 200,
+        "finalUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:29.873Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/01847506",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:29.873Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/01847506",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_121": {
+      "plantId": "plant_uk_121",
+      "effectiveTier": "UNRESOLVED",
+      "contacts": [],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:31.892Z",
+          "sourceUrl": "https://www.ionacapital.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://ionacapital.co.uk/"
+        }
+      ],
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:31.892Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/09101997",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_123": {
+      "plantId": "plant_uk_123",
+      "effectiveTier": "READY",
+      "contacts": [
+        {
+          "value": "info@aelenton.co.uk",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "PLANT_OPERATOR",
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:31.893Z",
+          "sourceUrl": "https://aelenton.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://www.aelenton.co.uk/",
+          "matchedOnPage": true
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:31.893Z",
+          "sourceUrl": "https://aelenton.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://www.aelenton.co.uk/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:31.893Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/00565781",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/00565781",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:31.893Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/00565781",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:31.893Z",
+        "sourceUrl": "https://aelenton.co.uk",
+        "httpStatus": 200,
+        "finalUrl": "https://www.aelenton.co.uk/"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:31.893Z",
+        "sourceUrl": "https://aelenton.co.uk",
+        "httpStatus": 200,
+        "finalUrl": "https://www.aelenton.co.uk/",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:31.893Z",
+        "sourceUrl": "https://aelenton.co.uk",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:31.893Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/00565781",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_127": {
+      "plantId": "plant_uk_127",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "info@futurebiogas.com",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:32.921Z",
+          "sourceUrl": "https://www.futurebiogas.com/contact",
+          "httpStatus": 200,
+          "finalUrl": "https://www.futurebiogas.com/contact/",
+          "matchedOnPage": true
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:32.921Z",
+          "sourceUrl": "https://www.futurebiogas.com",
+          "httpStatus": 200,
+          "finalUrl": "https://www.futurebiogas.com/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:32.921Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/07207977",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/07207977",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:32.921Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/07207977",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:32.921Z",
+        "sourceUrl": "https://www.futurebiogas.com",
+        "httpStatus": 200,
+        "finalUrl": "https://www.futurebiogas.com/"
+      },
+      "plantLink": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:32.921Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/07207977",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/07207977",
+        "matchedOnPage": false
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:32.921Z",
+        "sourceUrl": "https://www.futurebiogas.com",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:32.921Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/07207977",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_14": {
+      "plantId": "plant_uk_14",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "info@acornbioenergy.com",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "NOT_ON_PAGE",
+          "checkedAt": "2026-09-26T18:10:33.923Z",
+          "sourceUrl": "https://acornbioenergy.com",
+          "httpStatus": 200,
+          "finalUrl": "https://www.acornbioenergy.com/",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:33.923Z",
+          "sourceUrl": "https://acornbioenergy.com",
+          "httpStatus": 200,
+          "finalUrl": "https://www.acornbioenergy.com/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:33.923Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/12020505",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/12020505",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:33.923Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/12020505",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:33.923Z",
+        "sourceUrl": "https://acornbioenergy.com",
+        "httpStatus": 200,
+        "finalUrl": "https://www.acornbioenergy.com/"
+      },
+      "plantLink": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:33.923Z",
+        "sourceUrl": "https://acornbioenergy.com",
+        "httpStatus": 200,
+        "finalUrl": "https://www.acornbioenergy.com/",
+        "matchedOnPage": false
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:33.923Z",
+        "sourceUrl": "https://acornbioenergy.com",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:33.923Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/12020505",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_24": {
+      "plantId": "plant_uk_24",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "01353 647020",
+          "type": "COMPANY_SWITCHBOARD",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "NOT_ON_PAGE",
+          "checkedAt": "2026-09-26T18:10:34.985Z",
+          "sourceUrl": "https://pretoriaenergy.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://pretoriaenergy.co.uk/",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:34.985Z",
+          "sourceUrl": "https://pretoriaenergy.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://pretoriaenergy.co.uk/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:34.985Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/07964362",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/07964362",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:34.985Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/07964362",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:34.985Z",
+        "sourceUrl": "https://pretoriaenergy.co.uk",
+        "httpStatus": 200,
+        "finalUrl": "https://pretoriaenergy.co.uk/"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:34.985Z",
+        "sourceUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "httpStatus": 200,
+        "finalUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:34.985Z",
+        "sourceUrl": "https://pretoriaenergy.co.uk",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:34.985Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/07964362",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_27": {
+      "plantId": "plant_uk_27",
+      "effectiveTier": "UNRESOLVED",
+      "contacts": [],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:35.945Z",
+          "sourceUrl": "https://www.envitec-biogas.com",
+          "httpStatus": 200,
+          "finalUrl": "https://www.envitec-biogas.com/"
+        }
+      ],
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:35.945Z",
+        "sourceUrl": "https://www.envitec-biogas.com",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_30": {
+      "plantId": "plant_uk_30",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "enquiries@stgreenpower.co.uk",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "NOT_ON_PAGE",
+          "checkedAt": "2026-09-26T18:10:35.945Z",
+          "sourceUrl": "https://www.stgreenpower.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://www.stgreenpower.co.uk/",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:35.945Z",
+          "sourceUrl": "https://www.stgreenpower.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://www.stgreenpower.co.uk/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:35.945Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/04501557",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/04501557",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:35.945Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/04501557",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:35.945Z",
+        "sourceUrl": "https://www.stgreenpower.co.uk",
+        "httpStatus": 200,
+        "finalUrl": "https://www.stgreenpower.co.uk/"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:35.945Z",
+        "sourceUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "httpStatus": 200,
+        "finalUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:35.945Z",
+        "sourceUrl": "https://www.stgreenpower.co.uk",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:35.945Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/04501557",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_31": {
+      "plantId": "plant_uk_31",
+      "effectiveTier": "UNRESOLVED",
+      "contacts": [],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:36.983Z",
+          "sourceUrl": "https://www.ionacapital.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://ionacapital.co.uk/"
+        }
+      ],
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:36.983Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/09101997",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_32": {
+      "plantId": "plant_uk_32",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "info@engie.co.uk",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "NOT_ON_PAGE",
+          "checkedAt": "2026-09-26T18:10:36.983Z",
+          "sourceUrl": "https://www.engie.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://www.engie.co.uk/",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:36.983Z",
+          "sourceUrl": "https://www.engie.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://www.engie.co.uk/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:36.983Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/10895324",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/10895324",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:36.983Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/10895324",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:36.983Z",
+        "sourceUrl": "https://www.engie.co.uk",
+        "httpStatus": 200,
+        "finalUrl": "https://www.engie.co.uk/"
+      },
+      "plantLink": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:36.983Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/10895324",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/10895324",
+        "matchedOnPage": false
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:36.983Z",
+        "sourceUrl": "https://www.engie.co.uk",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:36.983Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/10895324",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_35": {
+      "plantId": "plant_uk_35",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "enquiries@stgreenpower.co.uk",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "NOT_ON_PAGE",
+          "checkedAt": "2026-09-26T18:10:36.984Z",
+          "sourceUrl": "https://www.stgreenpower.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://www.stgreenpower.co.uk/",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:36.984Z",
+          "sourceUrl": "https://www.stgreenpower.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://www.stgreenpower.co.uk/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:36.984Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/04501557",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/04501557",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:36.984Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/04501557",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:36.984Z",
+        "sourceUrl": "https://www.stgreenpower.co.uk",
+        "httpStatus": 200,
+        "finalUrl": "https://www.stgreenpower.co.uk/"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:36.984Z",
+        "sourceUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "httpStatus": 200,
+        "finalUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:36.984Z",
+        "sourceUrl": "https://www.stgreenpower.co.uk",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:36.984Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/04501557",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_36": {
+      "plantId": "plant_uk_36",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "01302 390890",
+          "type": "COMPANY_SWITCHBOARD",
+          "contactScope": "PLANT_OPERATOR",
+          "status": "NOT_ON_PAGE",
+          "checkedAt": "2026-09-26T18:10:36.985Z",
+          "sourceUrl": "https://refood.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://refood.co.uk/",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:36.985Z",
+          "sourceUrl": "https://refood.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://refood.co.uk/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:36.985Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/06561170",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/06561170",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:36.985Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/06561170",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:36.985Z",
+        "sourceUrl": "https://refood.co.uk",
+        "httpStatus": 200,
+        "finalUrl": "https://refood.co.uk/"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:36.985Z",
+        "sourceUrl": "https://refood.co.uk",
+        "httpStatus": 200,
+        "finalUrl": "https://refood.co.uk/",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:36.985Z",
+        "sourceUrl": "https://www.saria.co.uk",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:36.985Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/06561170",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      }
+    },
+    "plant_uk_38": {
+      "plantId": "plant_uk_38",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "enquiries@stgreenpower.co.uk",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "NOT_ON_PAGE",
+          "checkedAt": "2026-09-26T18:10:37.942Z",
+          "sourceUrl": "https://www.stgreenpower.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://www.stgreenpower.co.uk/",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:37.942Z",
+          "sourceUrl": "https://www.greengas.org.uk/certificates/producer-information",
+          "httpStatus": 200,
+          "finalUrl": "https://www.greengas.org.uk/certificates/producer-information"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:37.942Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/04501557",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/04501557",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:37.942Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/04501557",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:37.942Z",
+        "sourceUrl": "https://www.stgreenpower.co.uk",
+        "httpStatus": 200,
+        "finalUrl": "https://www.stgreenpower.co.uk/"
+      },
+      "plantLink": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:37.942Z",
+        "sourceUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "httpStatus": 200,
+        "finalUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "matchedOnPage": false
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:37.942Z",
+        "sourceUrl": "https://www.stgreenpower.co.uk",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:37.942Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/04501557",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_39": {
+      "plantId": "plant_uk_39",
+      "effectiveTier": "UNRESOLVED",
+      "contacts": [],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:37.944Z",
+          "sourceUrl": "https://www.envitec-biogas.com",
+          "httpStatus": 200,
+          "finalUrl": "https://www.envitec-biogas.com/"
+        }
+      ],
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:37.944Z",
+        "sourceUrl": "https://www.envitec-biogas.com",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_40": {
+      "plantId": "plant_uk_40",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "0131 333 4444",
+          "type": "COMPANY_SWITCHBOARD",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "NOT_ON_PAGE",
+          "checkedAt": "2026-09-26T18:10:37.944Z",
+          "sourceUrl": "https://www.williamgrant.com",
+          "httpStatus": 200,
+          "finalUrl": "https://www.williamgrant.com/",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:37.944Z",
+          "sourceUrl": "https://www.williamgrant.com",
+          "httpStatus": 200,
+          "finalUrl": "https://www.williamgrant.com/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:37.944Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/SC134248",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/SC134248",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:37.944Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/SC134248",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:37.944Z",
+        "sourceUrl": "https://www.williamgrant.com",
+        "httpStatus": 200,
+        "finalUrl": "https://www.williamgrant.com/"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:37.944Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/SC134248",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/SC134248",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:37.944Z",
+        "sourceUrl": "https://www.williamgrant.com",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:37.944Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/SC134248",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_43": {
+      "plantId": "plant_uk_43",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "privilege@privilege.finance",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:38.966Z",
+          "sourceUrl": "https://www.privilege.finance/contact",
+          "httpStatus": 200,
+          "finalUrl": "https://www.privilege.finance/contact/",
+          "matchedOnPage": true
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:38.966Z",
+          "sourceUrl": "https://www.privilege.finance",
+          "httpStatus": 200,
+          "finalUrl": "https://www.privilege.finance/"
+        },
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:38.966Z",
+          "sourceUrl": "https://www.greengas.org.uk/certificates/producer-information",
+          "httpStatus": 200,
+          "finalUrl": "https://www.greengas.org.uk/certificates/producer-information"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:38.966Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/10285991",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/10285991",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:38.966Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/10285991",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:38.966Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/10285991",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/10285991"
+      },
+      "plantLink": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:38.966Z",
+        "sourceUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "httpStatus": 200,
+        "finalUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "matchedOnPage": false
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:38.966Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/10285991",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:38.966Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/10285991",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_44": {
+      "plantId": "plant_uk_44",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "info@brewdog.com",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "NOT_ON_PAGE",
+          "checkedAt": "2026-09-26T18:10:41.000Z",
+          "sourceUrl": "https://www.brewdog.com",
+          "httpStatus": 200,
+          "finalUrl": "https://brewdog.com/",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:41.000Z",
+          "sourceUrl": "https://www.brewdog.com",
+          "httpStatus": 200,
+          "finalUrl": "https://brewdog.com/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:41.000Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/SC311560",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/SC311560",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:41.000Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/SC311560",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:41.000Z",
+        "sourceUrl": "https://www.brewdog.com",
+        "httpStatus": 200,
+        "finalUrl": "https://brewdog.com/"
+      },
+      "plantLink": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:41.000Z",
+        "sourceUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "httpStatus": 200,
+        "finalUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "matchedOnPage": false
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:41.000Z",
+        "sourceUrl": "https://www.brewdog.com",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:41.000Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/SC311560",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_45": {
+      "plantId": "plant_uk_45",
+      "effectiveTier": "UNRESOLVED",
+      "contacts": [],
+      "injectionOrOfftakeNotes": []
+    },
+    "plant_uk_47": {
+      "plantId": "plant_uk_47",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "+44 1483 375 920",
+          "type": "COMPANY_SWITCHBOARD",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "NOT_ON_PAGE",
+          "checkedAt": "2026-09-26T18:10:42.005Z",
+          "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/08885911",
+          "httpStatus": 200,
+          "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/08885911",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:42.005Z",
+          "sourceUrl": "https://www.greengas.org.uk/certificates/producer-information",
+          "httpStatus": 200,
+          "finalUrl": "https://www.greengas.org.uk/certificates/producer-information"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:42.005Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/08885911",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/08885911",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:42.005Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/08885911",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:42.005Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/08885911",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/08885911"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:42.005Z",
+        "sourceUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "httpStatus": 200,
+        "finalUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:42.005Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/16955399",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:42.005Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/08885911",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_53": {
+      "plantId": "plant_uk_53",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "enquiries@ch4mail.com",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "PLANT_OPERATOR",
+          "status": "DNS_FAIL",
+          "checkedAt": "2026-09-26T18:10:43.015Z",
+          "sourceUrl": "https://biotech4.co.uk/contact",
+          "error": "Email domain ch4mail.com DNS failed",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:43.015Z",
+          "sourceUrl": "https://biotech4.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://biotech4.co.uk/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:43.015Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/12568943",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/12568943",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:43.015Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/12568943",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:43.015Z",
+        "sourceUrl": "https://biotech4.co.uk",
+        "httpStatus": 200,
+        "finalUrl": "https://biotech4.co.uk/"
+      },
+      "plantLink": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:43.015Z",
+        "sourceUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "httpStatus": 200,
+        "finalUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "matchedOnPage": false
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:43.015Z",
+        "sourceUrl": "https://biotech4.co.uk",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:43.015Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/12568943",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_54": {
+      "plantId": "plant_uk_54",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "info@grissan.com",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "NOT_ON_PAGE",
+          "checkedAt": "2026-09-26T18:10:44.025Z",
+          "sourceUrl": "https://grissan.com",
+          "httpStatus": 200,
+          "finalUrl": "https://grissan.com/",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:44.025Z",
+          "sourceUrl": "https://www.privilege.finance",
+          "httpStatus": 200,
+          "finalUrl": "https://www.privilege.finance/"
+        },
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:44.025Z",
+          "sourceUrl": "https://grissan.com",
+          "httpStatus": 200,
+          "finalUrl": "https://grissan.com/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:44.025Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/SC448881",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/SC448881",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:44.025Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/SC448881",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:44.025Z",
+        "sourceUrl": "https://grissan.com",
+        "httpStatus": 200,
+        "finalUrl": "https://grissan.com/"
+      },
+      "plantLink": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:44.025Z",
+        "sourceUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "httpStatus": 200,
+        "finalUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "matchedOnPage": false
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:44.025Z",
+        "sourceUrl": "https://grissan.com",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:44.025Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/SC448881",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      }
+    },
+    "plant_uk_57": {
+      "plantId": "plant_uk_57",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "enquiries@stgreenpower.co.uk",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "NOT_ON_PAGE",
+          "checkedAt": "2026-09-26T18:10:45.039Z",
+          "sourceUrl": "https://www.stgreenpower.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://www.stgreenpower.co.uk/",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:45.039Z",
+          "sourceUrl": "https://www.stgreenpower.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://www.stgreenpower.co.uk/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:45.039Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/04501557",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/04501557",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:45.039Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/04501557",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:45.039Z",
+        "sourceUrl": "https://www.stgreenpower.co.uk",
+        "httpStatus": 200,
+        "finalUrl": "https://www.stgreenpower.co.uk/"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:45.039Z",
+        "sourceUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "httpStatus": 200,
+        "finalUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:45.039Z",
+        "sourceUrl": "https://www.stgreenpower.co.uk",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:45.039Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/04501557",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_58": {
+      "plantId": "plant_uk_58",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "enquiries@ch4mail.com",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "PLANT_OPERATOR",
+          "status": "DNS_FAIL",
+          "checkedAt": "2026-09-26T18:10:45.040Z",
+          "sourceUrl": "https://biotech4.co.uk/contact",
+          "error": "Email domain ch4mail.com DNS failed",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:45.040Z",
+          "sourceUrl": "https://biotech4.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://biotech4.co.uk/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:45.040Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/12568943",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/12568943",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:45.040Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/12568943",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:45.040Z",
+        "sourceUrl": "https://biotech4.co.uk",
+        "httpStatus": 200,
+        "finalUrl": "https://biotech4.co.uk/"
+      },
+      "plantLink": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:45.040Z",
+        "sourceUrl": "https://biotech4.co.uk",
+        "httpStatus": 200,
+        "finalUrl": "https://biotech4.co.uk/",
+        "matchedOnPage": false
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:45.040Z",
+        "sourceUrl": "https://biotech4.co.uk",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:45.040Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/12568943",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_6": {
+      "plantId": "plant_uk_6",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "01608 677700",
+          "type": "COMPANY_SWITCHBOARD",
+          "contactScope": "PLANT_OPERATOR",
+          "status": "NOT_ON_PAGE",
+          "checkedAt": "2026-09-26T18:10:45.041Z",
+          "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/SC491828",
+          "httpStatus": 200,
+          "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/SC491828",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:45.041Z",
+          "sourceUrl": "https://www.greengas.org.uk/certificates/producer-information",
+          "httpStatus": 200,
+          "finalUrl": "https://www.greengas.org.uk/certificates/producer-information"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:45.041Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/SC491828",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/SC491828",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:45.041Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/SC491828",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:45.041Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/SC491828",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/SC491828"
+      },
+      "plantLink": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:45.041Z",
+        "sourceUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "httpStatus": 200,
+        "finalUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "matchedOnPage": false
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:45.041Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/SC491828",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:45.041Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/SC491828",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_62": {
+      "plantId": "plant_uk_62",
+      "effectiveTier": "UNRESOLVED",
+      "contacts": [],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:46.075Z",
+          "sourceUrl": "https://www.weltec-biopower.com",
+          "httpStatus": 200,
+          "finalUrl": "https://www.weltec-biopower.com/de"
+        }
+      ],
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:46.075Z",
+        "sourceUrl": "https://www.weltec-biopower.com",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_68": {
+      "plantId": "plant_uk_68",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "info.kl@kanadevia-inova.com",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "NOT_ON_PAGE",
+          "checkedAt": "2026-09-26T18:10:46.076Z",
+          "sourceUrl": "https://www.kanadevia-inova.com/contact/",
+          "httpStatus": 200,
+          "finalUrl": "https://kanadevia-inova.com/contact/",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:46.076Z",
+          "sourceUrl": "https://www.kanadevia-inova.com",
+          "httpStatus": 200,
+          "finalUrl": "https://kanadevia-inova.com/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:46.076Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/09101997",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/09101997",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:46.076Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/09101997",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:46.076Z",
+        "sourceUrl": "https://www.kanadevia-inova.com",
+        "httpStatus": 200,
+        "finalUrl": "https://kanadevia-inova.com/"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:46.076Z",
+        "sourceUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "httpStatus": 200,
+        "finalUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:46.076Z",
+        "sourceUrl": "https://www.kanadevia-inova.com",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:46.076Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/09101997",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_70": {
+      "plantId": "plant_uk_70",
+      "effectiveTier": "READY",
+      "contacts": [
+        {
+          "value": "info@futurebiogas.com",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:47.097Z",
+          "sourceUrl": "https://www.futurebiogas.com/contact",
+          "httpStatus": 200,
+          "finalUrl": "https://www.futurebiogas.com/contact/",
+          "matchedOnPage": true
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:47.097Z",
+          "sourceUrl": "https://www.futurebiogas.com",
+          "httpStatus": 200,
+          "finalUrl": "https://www.futurebiogas.com/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:47.097Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/07854815",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/07854815",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:47.097Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/07854815",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:47.097Z",
+        "sourceUrl": "https://www.futurebiogas.com",
+        "httpStatus": 200,
+        "finalUrl": "https://www.futurebiogas.com/"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:47.097Z",
+        "sourceUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "httpStatus": 200,
+        "finalUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:47.097Z",
+        "sourceUrl": "https://www.futurebiogas.com",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:47.097Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/07854815",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_76": {
+      "plantId": "plant_uk_76",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "+44 1483 375 920",
+          "type": "COMPANY_SWITCHBOARD",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "NOT_ON_PAGE",
+          "checkedAt": "2026-09-26T18:10:48.044Z",
+          "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/16955399",
+          "httpStatus": 200,
+          "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/16955399",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:48.044Z",
+          "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/16955399",
+          "httpStatus": 200,
+          "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/16955399"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:48.044Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/16955399",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/16955399",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:48.044Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/16955399",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:48.044Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/16955399",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/16955399"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:48.044Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/16955399",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/16955399",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:48.044Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/16955399",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:48.044Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/16955399",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_81": {
+      "plantId": "plant_uk_81",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "01353 647020",
+          "type": "COMPANY_SWITCHBOARD",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "NOT_ON_PAGE",
+          "checkedAt": "2026-09-26T18:10:49.142Z",
+          "sourceUrl": "https://pretoriaenergy.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://pretoriaenergy.co.uk/",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:49.142Z",
+          "sourceUrl": "https://pretoriaenergy.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://pretoriaenergy.co.uk/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:49.142Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/07964362",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/07964362",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:49.142Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/07964362",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:49.142Z",
+        "sourceUrl": "https://pretoriaenergy.co.uk",
+        "httpStatus": 200,
+        "finalUrl": "https://pretoriaenergy.co.uk/"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:49.142Z",
+        "sourceUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "httpStatus": 200,
+        "finalUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:49.142Z",
+        "sourceUrl": "https://pretoriaenergy.co.uk",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:49.142Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/07964362",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_83": {
+      "plantId": "plant_uk_83",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "info@engie.co.uk",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "NOT_ON_PAGE",
+          "checkedAt": "2026-09-26T18:10:49.143Z",
+          "sourceUrl": "https://www.engie.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://www.engie.co.uk/",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:49.143Z",
+          "sourceUrl": "https://www.engie.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://www.engie.co.uk/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:49.143Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/10895324",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/10895324",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:49.143Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/10895324",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:49.143Z",
+        "sourceUrl": "https://www.engie.co.uk",
+        "httpStatus": 200,
+        "finalUrl": "https://www.engie.co.uk/"
+      },
+      "plantLink": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:49.143Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/10895324",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/10895324",
+        "matchedOnPage": false
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:49.143Z",
+        "sourceUrl": "https://www.engie.co.uk",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:49.143Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/10895324",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_84": {
+      "plantId": "plant_uk_84",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "customer.services@nwl.co.uk",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "NOT_ON_PAGE",
+          "checkedAt": "2026-09-26T18:10:49.144Z",
+          "sourceUrl": "https://www.nwl.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://www.nwl.co.uk/",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:49.144Z",
+          "sourceUrl": "https://www.envitec-biogas.com",
+          "httpStatus": 200,
+          "finalUrl": "https://www.envitec-biogas.com/"
+        },
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:49.144Z",
+          "sourceUrl": "https://www.nwl.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://www.nwl.co.uk/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:49.144Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/02366703",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/02366703",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:49.144Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/02366703",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:49.144Z",
+        "sourceUrl": "https://www.nwl.co.uk",
+        "httpStatus": 200,
+        "finalUrl": "https://www.nwl.co.uk/"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:49.144Z",
+        "sourceUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "httpStatus": 200,
+        "finalUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:49.144Z",
+        "sourceUrl": "https://www.nwl.co.uk",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:49.144Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/02366703",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_86": {
+      "plantId": "plant_uk_86",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "info@northwickpower.co.uk",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "PLANT_OPERATOR",
+          "status": "NOT_ON_PAGE",
+          "checkedAt": "2026-09-26T18:10:50.115Z",
+          "sourceUrl": "https://northwickpower.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://northwickpower.co.uk/",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:50.115Z",
+          "sourceUrl": "https://www.greengas.org.uk/certificates/producer-information",
+          "httpStatus": 200,
+          "finalUrl": "https://www.greengas.org.uk/certificates/producer-information"
+        },
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:50.115Z",
+          "sourceUrl": "https://northwickpower.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://northwickpower.co.uk/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:50.115Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/13503522",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/13503522",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:50.115Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/13503522",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:50.115Z",
+        "sourceUrl": "https://northwickpower.co.uk",
+        "httpStatus": 200,
+        "finalUrl": "https://northwickpower.co.uk/"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:50.115Z",
+        "sourceUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "httpStatus": 200,
+        "finalUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:50.115Z",
+        "sourceUrl": "https://northwickpower.co.uk",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:50.115Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/13503522",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_90": {
+      "plantId": "plant_uk_90",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "enquiries@stgreenpower.co.uk",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "NOT_ON_PAGE",
+          "checkedAt": "2026-09-26T18:10:51.261Z",
+          "sourceUrl": "https://www.stgreenpower.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://www.stgreenpower.co.uk/",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:51.261Z",
+          "sourceUrl": "https://www.greengas.org.uk/certificates/producer-information",
+          "httpStatus": 200,
+          "finalUrl": "https://www.greengas.org.uk/certificates/producer-information"
+        },
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:51.261Z",
+          "sourceUrl": "https://www.stgreenpower.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://www.stgreenpower.co.uk/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:51.261Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/04501557",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/04501557",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:51.261Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/04501557",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:51.261Z",
+        "sourceUrl": "https://www.stgreenpower.co.uk",
+        "httpStatus": 200,
+        "finalUrl": "https://www.stgreenpower.co.uk/"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:51.261Z",
+        "sourceUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "httpStatus": 200,
+        "finalUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:51.261Z",
+        "sourceUrl": "https://www.stgreenpower.co.uk",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:51.261Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/04501557",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_95": {
+      "plantId": "plant_uk_95",
+      "effectiveTier": "READY",
+      "contacts": [
+        {
+          "value": "info@bio-capital.co.uk",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:51.262Z",
+          "sourceUrl": "https://bio-capital.co.uk/contact/",
+          "httpStatus": 200,
+          "finalUrl": "https://bio-capital.co.uk/contact-us/",
+          "matchedOnPage": true
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:51.262Z",
+          "sourceUrl": "https://www.envitec-biogas.com",
+          "httpStatus": 200,
+          "finalUrl": "https://www.envitec-biogas.com/"
+        },
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:51.262Z",
+          "sourceUrl": "https://bio-capital.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://bio-capital.co.uk/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:51.262Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/06887312",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/06887312",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:51.262Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/06887312",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:51.262Z",
+        "sourceUrl": "https://bio-capital.co.uk",
+        "httpStatus": 200,
+        "finalUrl": "https://bio-capital.co.uk/"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:51.262Z",
+        "sourceUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "httpStatus": 200,
+        "finalUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:51.262Z",
+        "sourceUrl": "https://bio-capital.co.uk",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:51.262Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/06887312",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_uk_96": {
+      "plantId": "plant_uk_96",
+      "effectiveTier": "READY",
+      "contacts": [
+        {
+          "value": "info@bio-capital.co.uk",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:52.182Z",
+          "sourceUrl": "https://bio-capital.co.uk/contact/",
+          "httpStatus": 200,
+          "finalUrl": "https://bio-capital.co.uk/contact-us/",
+          "matchedOnPage": true
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:52.182Z",
+          "sourceUrl": "https://www.privilege.finance",
+          "httpStatus": 200,
+          "finalUrl": "https://www.privilege.finance/"
+        },
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:52.182Z",
+          "sourceUrl": "https://bio-capital.co.uk",
+          "httpStatus": 200,
+          "finalUrl": "https://bio-capital.co.uk/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:52.182Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/08773859",
+        "httpStatus": 200,
+        "finalUrl": "https://find-and-update.company-information.service.gov.uk/company/08773859",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:52.182Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/08773859",
+        "httpStatus": 200,
+        "matchedOnPage": true
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:52.182Z",
+        "sourceUrl": "https://bio-capital.co.uk",
+        "httpStatus": 200,
+        "finalUrl": "https://bio-capital.co.uk/"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:52.182Z",
+        "sourceUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "httpStatus": 200,
+        "finalUrl": "https://www.greengas.org.uk/certificates/producer-information",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:52.182Z",
+        "sourceUrl": "https://bio-capital.co.uk",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:52.182Z",
+        "sourceUrl": "https://find-and-update.company-information.service.gov.uk/company/08773859",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    }
+  }
+}

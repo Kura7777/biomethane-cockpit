@@ -52,6 +52,44 @@ const LEAD_SOURCE_LABEL: Record<CommercialContactLead['source'], string> = {
   DESK_VERIFIED: 'Desk verified',
 };
 
+const scopeOrder: Record<string, number> = {
+  PLANT_OPERATOR: 30,
+  PARENT_COMMERCIAL: 20,
+  GENERAL_OR_PRESS: 10,
+};
+
+const typeOrder: Record<string, number> = {
+  SALES_OR_ENERGY_EMAIL: 5,
+  GENERIC_EMAIL: 4,
+  COMPANY_SWITCHBOARD: 3,
+  CONTACT_FORM: 2,
+  NAMED_PERSON: 1,
+};
+
+export function getBestResearchContact(research?: BiomethanePlant['research']): { text: string; isVerified: boolean; contact?: any } {
+  if (!research || !research.contacts || research.contacts.length === 0) {
+    return { text: 'no verified contact', isVerified: false };
+  }
+  const verified = research.contacts.filter(c => c.check?.status === 'VERIFIED');
+  if (verified.length === 0) {
+    return { text: 'no verified contact', isVerified: false };
+  }
+  const sorted = [...verified].sort((a, b) => {
+    const sA = scopeOrder[a.contactScope || ''] || 0;
+    const sB = scopeOrder[b.contactScope || ''] || 0;
+    if (sB !== sA) return sB - sA;
+    const tA = typeOrder[a.type] || 0;
+    const tB = typeOrder[b.type] || 0;
+    return tB - tA;
+  });
+  const top = sorted[0];
+  return {
+    text: `${top.type}: ${top.value}`,
+    isVerified: true,
+    contact: top,
+  };
+}
+
 type DrawerTab = 'ALL' | 'COMMERCIAL' | 'TECHNICAL' | 'COMPLIANCE';
 
 interface PlantSourcingDrawerProps {
@@ -69,6 +107,7 @@ export function PlantSourcingDrawer({ plant, onClose }: PlantSourcingDrawerProps
   const [deskOverride, setDeskOverride] = useState<TraderDeskOverride | null>(() => plant ? getTraderDeskOverride(plant.id) : null);
   const [isEditingOverride, setIsEditingOverride] = useState(false);
   const [showRawCensus, setShowRawCensus] = useState(false);
+  const [showUnconfirmedContacts, setShowUnconfirmedContacts] = useState(false);
   const [overrideTrader, setOverrideTrader] = useState('');
   const [overrideSignatory, setOverrideSignatory] = useState('');
   const [overrideEmail, setOverrideEmail] = useState('');
@@ -1098,6 +1137,484 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                   </div>
                 </div>
 
+                {/* Researched Counterparty Block (Official Desk Research) */}
+                {plant.research && (
+                  <div style={{
+                    backgroundColor: isDark ? 'rgba(15, 23, 42, 0.6)' : '#f8fafc',
+                    border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+                    borderRadius: '8px',
+                    padding: '16px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px'
+                  }}>
+                    {/* Header with Title and Tier Badge */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Building2 size={16} style={{ color: isDark ? '#38bdf8' : '#0284c7' }} />
+                        <span style={{ fontSize: '13px', fontWeight: 800, color: t.textMain, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                          Researched Counterparty
+                        </span>
+                      </div>
+
+                      {/* Tier Badge */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {(() => {
+                          const displayTier = plant.research.effectiveTier || plant.research.tier;
+                          return (
+                            <span style={{
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              padding: '2px 8px',
+                              borderRadius: '4px',
+                              backgroundColor:
+                                displayTier === 'READY'
+                                  ? (isDark ? 'rgba(16, 185, 129, 0.2)' : 'rgba(16, 185, 129, 0.12)')
+                                  : displayTier === 'ENTITY_ONLY'
+                                  ? (isDark ? 'rgba(245, 158, 11, 0.2)' : 'rgba(245, 158, 11, 0.12)')
+                                  : (isDark ? 'rgba(148, 163, 184, 0.2)' : 'rgba(100, 116, 139, 0.12)'),
+                              color:
+                                displayTier === 'READY'
+                                  ? (isDark ? '#34d399' : '#059669')
+                                  : displayTier === 'ENTITY_ONLY'
+                                  ? (isDark ? '#fbbf24' : '#d97706')
+                                  : (isDark ? '#94a3b8' : '#64748b'),
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}>
+                              {displayTier === 'READY' && <CheckCircle2 size={12} />}
+                              {displayTier === 'ENTITY_ONLY' && <AlertTriangle size={12} />}
+                              {displayTier === 'UNRESOLVED' && <AlertOctagon size={12} />}
+                              {displayTier === 'READY' ? 'Outreach-ready (sourced)' : displayTier === 'ENTITY_ONLY' ? 'ENTITY_ONLY' : 'UNRESOLVED'}
+                            </span>
+                          );
+                        })()}
+                        <span style={{ fontSize: '10px', color: t.textMuted }}>
+                          Updated {new Date(plant.research.researchedAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Discrepancy Warning if Raw Registry Contact Differs */}
+                    {plant.contactEmail && plant.research.contacts && plant.research.contacts.length > 0 &&
+                      !plant.research.contacts.some(c => c.value.toLowerCase().trim() === plant.contactEmail?.toLowerCase().trim()) && (
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        fontSize: '11px',
+                        padding: '6px 10px',
+                        borderRadius: '5px',
+                        backgroundColor: isDark ? 'rgba(245, 158, 11, 0.1)' : 'rgba(245, 158, 11, 0.08)',
+                        color: isDark ? '#fbbf24' : '#b45309',
+                        border: `1px solid ${isDark ? 'rgba(245, 158, 11, 0.3)' : 'rgba(245, 158, 11, 0.2)'}`
+                      }}>
+                        <AlertTriangle size={13} style={{ flexShrink: 0 }} />
+                        <span>
+                          <strong>Registry contact differs from researched contact:</strong> Initial dataset listed <code>{plant.contactEmail}</code>, but verified research identified official desk <code>{plant.research.contacts.map(c => c.value).join(', ')}</code>.
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Entity details grid */}
+                    <div style={{ display: 'grid', gridTemplateColumns: isExpanded ? 'repeat(3, 1fr)' : 'repeat(1, 1fr)', gap: '10px', fontSize: '12px' }}>
+                      {plant.research.legalEntity && (
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+                            <span style={{ fontSize: '10px', color: t.textMuted, textTransform: 'uppercase' }}>Operating Company (SPV)</span>
+                            {plant.research.legalEntity.check && (
+                              <span style={{
+                                fontSize: '9px',
+                                padding: '1px 5px',
+                                borderRadius: '3px',
+                                fontWeight: 600,
+                                backgroundColor: plant.research.legalEntity.check.status === 'VERIFIED' ? (isDark ? 'rgba(16, 185, 129, 0.2)' : 'rgba(16, 185, 129, 0.1)') : (isDark ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.1)'),
+                                color: plant.research.legalEntity.check.status === 'VERIFIED' ? (isDark ? '#34d399' : '#059669') : (isDark ? '#f87171' : '#dc2626')
+                              }}>
+                                {plant.research.legalEntity.check.status === 'VERIFIED' ? '✓ verified' : plant.research.legalEntity.check.status.toLowerCase().replace(/_/g, ' ')}
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                            <strong style={{ color: t.textMain }}>{plant.research.legalEntity.value}</strong>
+                            <a href={plant.research.legalEntity.sourceUrl} target="_blank" rel="noopener noreferrer" title={`Source: ${plant.research.legalEntity.sourceUrl} (${plant.research.legalEntity.retrievedAt})`} style={{ color: isDark ? '#38bdf8' : '#0284c7' }}>
+                              <ExternalLink size={12} />
+                            </a>
+                          </div>
+                          {plant.research.legalEntity.note && (
+                            <span style={{ fontSize: '10px', color: t.textMuted, display: 'block', marginTop: '1px' }}>{plant.research.legalEntity.note}</span>
+                          )}
+                        </div>
+                      )}
+
+                      {plant.research.registrationId && (
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+                            <span style={{ fontSize: '10px', color: t.textMuted, textTransform: 'uppercase' }}>Confirmed Registration / CIF</span>
+                            {plant.research.registrationId.check && (
+                              <span style={{
+                                fontSize: '9px',
+                                padding: '1px 5px',
+                                borderRadius: '3px',
+                                fontWeight: 600,
+                                backgroundColor: plant.research.registrationId.check.status === 'VERIFIED' ? (isDark ? 'rgba(16, 185, 129, 0.2)' : 'rgba(16, 185, 129, 0.1)') : (isDark ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.1)'),
+                                color: plant.research.registrationId.check.status === 'VERIFIED' ? (isDark ? '#34d399' : '#059669') : (isDark ? '#f87171' : '#dc2626')
+                              }}>
+                                {plant.research.registrationId.check.status === 'VERIFIED' ? '✓ verified' : plant.research.registrationId.check.status.toLowerCase().replace(/_/g, ' ')}
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                            <code style={{ color: isDark ? '#34d399' : '#059669', fontWeight: 700 }}>{plant.research.registrationId.value}</code>
+                            <a href={plant.research.registrationId.sourceUrl} target="_blank" rel="noopener noreferrer" title={`Source: ${plant.research.registrationId.sourceUrl}`} style={{ color: isDark ? '#38bdf8' : '#0284c7' }}>
+                              <ExternalLink size={12} />
+                            </a>
+                          </div>
+                          {plant.research.registrationId.note && (
+                            <span style={{ fontSize: '10px', color: t.textMuted, display: 'block', marginTop: '1px' }}>{plant.research.registrationId.note}</span>
+                          )}
+                        </div>
+                      )}
+
+                      {plant.research.parentGroup && (
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+                            <span style={{ fontSize: '10px', color: t.textMuted, textTransform: 'uppercase' }}>Parent Group / Developer</span>
+                            {plant.research.parentGroup.check && (
+                              <span style={{
+                                fontSize: '9px',
+                                padding: '1px 5px',
+                                borderRadius: '3px',
+                                fontWeight: 600,
+                                backgroundColor: plant.research.parentGroup.check.status === 'VERIFIED' ? (isDark ? 'rgba(16, 185, 129, 0.2)' : 'rgba(16, 185, 129, 0.1)') : (isDark ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.1)'),
+                                color: plant.research.parentGroup.check.status === 'VERIFIED' ? (isDark ? '#34d399' : '#059669') : (isDark ? '#f87171' : '#dc2626')
+                              }}>
+                                {plant.research.parentGroup.check.status === 'VERIFIED' ? '✓ verified' : plant.research.parentGroup.check.status.toLowerCase().replace(/_/g, ' ')}
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                            <span style={{ color: t.textSecondary, fontWeight: 600 }}>{plant.research.parentGroup.value}</span>
+                            <a href={plant.research.parentGroup.sourceUrl} target="_blank" rel="noopener noreferrer" title={`Source: ${plant.research.parentGroup.sourceUrl}`} style={{ color: isDark ? '#38bdf8' : '#0284c7' }}>
+                              <ExternalLink size={12} />
+                            </a>
+                          </div>
+                        </div>
+                      )}
+
+                      {plant.research.website && (
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+                            <span style={{ fontSize: '10px', color: t.textMuted, textTransform: 'uppercase' }}>Corporate Website</span>
+                            {plant.research.website.check && (
+                              <span style={{
+                                fontSize: '9px',
+                                padding: '1px 5px',
+                                borderRadius: '3px',
+                                fontWeight: 600,
+                                backgroundColor: plant.research.website.check.status === 'VERIFIED' ? (isDark ? 'rgba(16, 185, 129, 0.2)' : 'rgba(16, 185, 129, 0.1)') : (isDark ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.1)'),
+                                color: plant.research.website.check.status === 'VERIFIED' ? (isDark ? '#34d399' : '#059669') : (isDark ? '#f87171' : '#dc2626')
+                              }}>
+                                {plant.research.website.check.status === 'VERIFIED' ? '✓ verified' : plant.research.website.check.status.toLowerCase().replace(/_/g, ' ')}
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                            <a href={plant.research.website.value} target="_blank" rel="noopener noreferrer" style={{ color: isDark ? '#38bdf8' : '#0284c7', textDecoration: 'none', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                              <Globe size={12} /> {plant.research.website.value.replace(/^https?:\/\//, '')}
+                            </a>
+                          </div>
+                        </div>
+                      )}
+
+                      {plant.research.plantLink && (
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+                            <span style={{ fontSize: '10px', color: t.textMuted, textTransform: 'uppercase' }}>Verified Plant Link</span>
+                            {plant.research.plantLink.check && (
+                              <span style={{
+                                fontSize: '9px',
+                                padding: '1px 5px',
+                                borderRadius: '3px',
+                                fontWeight: 600,
+                                backgroundColor: plant.research.plantLink.check.status === 'VERIFIED' ? (isDark ? 'rgba(16, 185, 129, 0.2)' : 'rgba(16, 185, 129, 0.1)') : (isDark ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.1)'),
+                                color: plant.research.plantLink.check.status === 'VERIFIED' ? (isDark ? '#34d399' : '#059669') : (isDark ? '#f87171' : '#dc2626')
+                              }}>
+                                {plant.research.plantLink.check.status === 'VERIFIED' ? '✓ verified' : plant.research.plantLink.check.status.toLowerCase().replace(/_/g, ' ')}
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                            <a href={plant.research.plantLink.value} target="_blank" rel="noopener noreferrer" style={{ color: isDark ? '#38bdf8' : '#0284c7', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                              <ExternalLink size={12} /> Asset Confirmation Link
+                            </a>
+                          </div>
+                          {plant.research.plantLink.note && (
+                            <span style={{ fontSize: '10px', color: t.textMuted, display: 'block', marginTop: '1px' }}>{plant.research.plantLink.note}</span>
+                          )}
+                        </div>
+                      )}
+
+                      {plant.research.siteAddress && (
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+                            <span style={{ fontSize: '10px', color: t.textMuted, textTransform: 'uppercase' }}>Audited Physical Address</span>
+                            {plant.research.siteAddress.check && (
+                              <span style={{
+                                fontSize: '9px',
+                                padding: '1px 5px',
+                                borderRadius: '3px',
+                                fontWeight: 600,
+                                backgroundColor: plant.research.siteAddress.check.status === 'VERIFIED' ? (isDark ? 'rgba(16, 185, 129, 0.2)' : 'rgba(16, 185, 129, 0.1)') : (isDark ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.1)'),
+                                color: plant.research.siteAddress.check.status === 'VERIFIED' ? (isDark ? '#34d399' : '#059669') : (isDark ? '#f87171' : '#dc2626')
+                              }}>
+                                {plant.research.siteAddress.check.status === 'VERIFIED' ? '✓ verified' : plant.research.siteAddress.check.status.toLowerCase().replace(/_/g, ' ')}
+                              </span>
+                            )}
+                          </div>
+                          <span style={{ color: t.textSecondary, display: 'block', marginTop: '2px' }}>
+                            {plant.research.siteAddress.value}
+                            {plant.research.siteCoordinates && (
+                              <span style={{ color: t.textMuted, fontSize: '10px', display: 'block' }}>
+                                ({plant.research.siteCoordinates.value[0].toFixed(4)}, {plant.research.siteCoordinates.value[1].toFixed(4)})
+                              </span>
+                            )}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Best Verified Contact */}
+                      {(() => {
+                        const best = getBestResearchContact(plant.research);
+                        return (
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+                              <span style={{ fontSize: '10px', color: t.textMuted, textTransform: 'uppercase' }}>Best Contact</span>
+                              <span style={{
+                                fontSize: '9px',
+                                padding: '1px 5px',
+                                borderRadius: '3px',
+                                fontWeight: 600,
+                                backgroundColor: best.isVerified ? (isDark ? 'rgba(16, 185, 129, 0.2)' : 'rgba(16, 185, 129, 0.1)') : (isDark ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.1)'),
+                                color: best.isVerified ? (isDark ? '#34d399' : '#059669') : (isDark ? '#f87171' : '#dc2626')
+                              }}>
+                                {best.isVerified ? '✓ verified' : 'no verified contact'}
+                              </span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                              <strong style={{
+                                color: best.isVerified ? t.textMain : (isDark ? '#f87171' : '#dc2626'),
+                                fontSize: '12px'
+                              }}>
+                                {best.text}
+                              </strong>
+                              {best.contact?.sourceUrl && (
+                                <a href={best.contact.sourceUrl} target="_blank" rel="noopener noreferrer" title={`Source: ${best.contact.sourceUrl}`} style={{ color: isDark ? '#38bdf8' : '#0284c7' }}>
+                                  <ExternalLink size={12} />
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+
+                    {/* Researched Contacts List (Verified + Collapsible Unconfirmed) */}
+                    {plant.research.contacts && plant.research.contacts.length > 0 && (() => {
+                      const allContacts = plant.research.contacts;
+                      const verified = allContacts.filter(c => c.check?.status === 'VERIFIED');
+                      const unconfirmed = allContacts.filter(c => c.check && c.check.status !== 'VERIFIED');
+
+                      const sortedVerified = [...verified].sort((a, b) => {
+                        const sA = scopeOrder[a.contactScope || ''] || 0;
+                        const sB = scopeOrder[b.contactScope || ''] || 0;
+                        if (sB !== sA) return sB - sA;
+                        const tA = typeOrder[a.type] || 0;
+                        const tB = typeOrder[b.type] || 0;
+                        return tB - tA;
+                      });
+
+                      const renderContactRow = (contact: typeof allContacts[0], idx: number) => {
+                        const isVerified = contact.check?.status === 'VERIFIED';
+                        const isGeneralPress = contact.contactScope === 'GENERAL_OR_PRESS';
+                        return (
+                          <div key={idx} style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '10px',
+                            padding: '6px 8px',
+                            borderRadius: '6px',
+                            backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#ffffff',
+                            border: `1px solid ${t.borderLight}`
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                              <span style={{
+                                fontSize: '9px',
+                                fontWeight: 700,
+                                padding: '1px 6px',
+                                borderRadius: '3px',
+                                backgroundColor: isDark ? 'rgba(56, 189, 248, 0.15)' : 'rgba(2, 132, 199, 0.1)',
+                                color: isDark ? '#38bdf8' : '#0284c7'
+                              }}>
+                                {contact.type}
+                              </span>
+                              <strong style={{ fontSize: '12px', color: t.textMain }}>{contact.value}</strong>
+                              {contact.check && (
+                                <span style={{
+                                  fontSize: '9px',
+                                  padding: '1px 5px',
+                                  borderRadius: '3px',
+                                  fontWeight: 600,
+                                  backgroundColor: isVerified ? (isDark ? 'rgba(16, 185, 129, 0.2)' : 'rgba(16, 185, 129, 0.1)') : (isDark ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.1)'),
+                                  color: isVerified ? (isDark ? '#34d399' : '#059669') : (isDark ? '#f87171' : '#dc2626')
+                                }}>
+                                  {isVerified ? '✓ verified' : contact.check.status.toLowerCase().replace(/_/g, ' ')}
+                                </span>
+                              )}
+                              {isGeneralPress && (
+                                <span style={{ fontSize: '10px', color: isDark ? '#fbbf24' : '#d97706', fontWeight: 600 }}>
+                                  General/press inbox — not a commercial contact
+                                </span>
+                              )}
+                              {contact.role && <span style={{ fontSize: '11px', color: t.textMuted }}>• {contact.role}</span>}
+                              {contact.personName && <span style={{ fontSize: '11px', color: t.textSecondary }}>({contact.personName})</span>}
+                            </div>
+
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <button
+                                type="button"
+                                onClick={() => copyToClipboard(contact.value, 'Contact')}
+                                style={{ background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer', padding: '2px' }}
+                                title="Copy contact"
+                              >
+                                <Copy size={11} />
+                              </button>
+                              <a
+                                href={contact.sourceUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title={`Source: ${contact.sourceUrl}${contact.note ? `\nQuote: "${contact.note}"` : ''}`}
+                                style={{
+                                  color: isDark ? '#38bdf8' : '#0284c7',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  fontSize: '11px',
+                                  textDecoration: 'none'
+                                }}
+                              >
+                                <ExternalLink size={11} />
+                                <span>{contact.retrievedAt ? new Date(contact.retrievedAt).toISOString().split('T')[0] : 'source'}</span>
+                              </a>
+                            </div>
+                          </div>
+                        );
+                      };
+
+                      return (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', borderTop: `1px solid ${t.borderLight}`, paddingTop: '10px' }}>
+                          <span style={{ fontSize: '11px', fontWeight: 700, color: t.textMuted, textTransform: 'uppercase' }}>
+                            Researched Outreach Channels ({allContacts.length})
+                          </span>
+
+                          {/* Verified contacts displayed first, or explicit 'no verified contact' */}
+                          {sortedVerified.length > 0 ? (
+                            sortedVerified.map((c, i) => renderContactRow(c, i))
+                          ) : (
+                            <div style={{
+                              padding: '6px 10px',
+                              borderRadius: '5px',
+                              backgroundColor: isDark ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.06)',
+                              border: `1px solid ${isDark ? 'rgba(239, 68, 68, 0.25)' : 'rgba(239, 68, 68, 0.2)'}`,
+                              color: isDark ? '#f87171' : '#dc2626',
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px'
+                            }}>
+                              <AlertTriangle size={13} style={{ flexShrink: 0 }} />
+                              <span>no verified contact</span>
+                            </div>
+                          )}
+
+                          {/* Collapsible toggle for unconfirmed contacts */}
+                          {unconfirmed.length > 0 && (
+                            <div style={{ marginTop: '4px' }}>
+                              <button
+                                type="button"
+                                onClick={() => setShowUnconfirmedContacts(!showUnconfirmedContacts)}
+                                style={{
+                                  background: 'none',
+                                  border: `1px solid ${t.border}`,
+                                  borderRadius: '4px',
+                                  padding: '4px 8px',
+                                  color: t.textMuted,
+                                  fontSize: '11px',
+                                  fontWeight: 600,
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px'
+                                }}
+                              >
+                                <span>Unconfirmed ({unconfirmed.length})</span>
+                                {showUnconfirmedContacts ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                              </button>
+
+                              {showUnconfirmedContacts && (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '6px' }}>
+                                  {unconfirmed.map((c, i) => renderContactRow(c, i))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+
+                    {/* Offtake / Injection Notes */}
+                    {plant.research.injectionOrOfftakeNotes && plant.research.injectionOrOfftakeNotes.length > 0 && (
+                      <div style={{ fontSize: '11px', color: t.textSecondary, borderTop: `1px solid ${t.borderLight}`, paddingTop: '8px' }}>
+                        <strong>Offtake & Grid Notes: </strong>
+                        {plant.research.injectionOrOfftakeNotes.map((n, i) => (
+                          <span key={i}>
+                            {n.value}{' '}
+                            <a href={n.sourceUrl} target="_blank" rel="noopener noreferrer" style={{ color: isDark ? '#38bdf8' : '#0284c7' }}>
+                              [source]
+                            </a>
+                            {i < plant.research!.injectionOrOfftakeNotes.length - 1 ? '; ' : ''}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Open Questions for Trader */}
+                    {plant.research.openQuestions && plant.research.openQuestions.length > 0 && (
+                      <div style={{
+                        padding: '8px 10px',
+                        borderRadius: '6px',
+                        backgroundColor: isDark ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.06)',
+                        borderLeft: '3px solid #ef4444',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '4px'
+                      }}>
+                        <span style={{ fontSize: '10px', fontWeight: 700, color: '#ef4444', textTransform: 'uppercase' }}>
+                          Open Questions Before Contacting:
+                        </span>
+                        {plant.research.openQuestions.map((q, idx) => (
+                          <span key={idx} style={{ fontSize: '11px', color: t.textSecondary }}>
+                            • {q}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Origination Pathways & Direct Leads (Clean Row List, NO BOXES) */}
                 {plant.verifiedDossier && plant.verifiedDossier.commercialContacts.length > 0 && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -1141,6 +1658,12 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                             </div>
                             <div style={{ fontSize: '11px', color: t.textMuted, marginTop: '2px' }}>
                               {contact.title}
+                              {contact.source === 'SOURCE_DATASET' && plant.research?.contacts && plant.research.contacts.length > 0 && contact.workEmail &&
+                                !plant.research.contacts.some(c => c.value.toLowerCase().trim() === contact.workEmail?.toLowerCase().trim()) && (
+                                <span style={{ marginLeft: '8px', color: isDark ? '#fbbf24' : '#d97706', fontStyle: 'italic', fontWeight: 500 }}>
+                                  — Registry contact differs from researched contact
+                                </span>
+                              )}
                             </div>
 
                             {/* Contact Channels if available */}

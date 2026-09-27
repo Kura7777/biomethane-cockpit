@@ -1,0 +1,1678 @@
+{
+  "countryCode": "ES",
+  "verifiedAt": "2026-09-26T18:10:19.299Z",
+  "counts": {
+    "totalPlants": 26,
+    "effectiveTiers": {
+      "READY": 5,
+      "ENTITY_ONLY": 19,
+      "UNRESOLVED": 2
+    },
+    "statusCounts": {
+      "VERIFIED": 82,
+      "NOT_ON_PAGE": 13,
+      "PAGE_NOT_FOUND": 47,
+      "DNS_FAIL": 14,
+      "BLOCKED": 3,
+      "PDF_UNCHECKED": 5,
+      "ERROR": 33
+    },
+    "contactsTotal": 29,
+    "contactsVerified": 14
+  },
+  "plants": {
+    "plant_es_1": {
+      "plantId": "plant_es_1",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "atencionalcliente@redexis.es",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "GENERAL_OR_PRESS",
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:19.236Z",
+          "sourceUrl": "https://www.redexis.es/aviso-legal/",
+          "httpStatus": 200,
+          "finalUrl": "https://www.redexis.es/aviso-legal/",
+          "matchedOnPage": true
+        },
+        {
+          "value": "+34 900 811 339",
+          "type": "COMPANY_SWITCHBOARD",
+          "contactScope": "GENERAL_OR_PRESS",
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:19.236Z",
+          "sourceUrl": "https://www.redexis.es/aviso-legal/",
+          "httpStatus": 200,
+          "finalUrl": "https://www.redexis.es/aviso-legal/",
+          "matchedOnPage": true
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "PAGE_NOT_FOUND",
+          "checkedAt": "2026-09-26T18:10:19.236Z",
+          "sourceUrl": "https://www.redexis.es/redexis-adquiere-el-70-de-la-planta-de-biometano-de-almazan/",
+          "httpStatus": 404,
+          "finalUrl": "https://www.redexis.es/redexis-adquiere-el-70-de-la-planta-de-biometano-de-almazan/"
+        }
+      ],
+      "legalEntity": {
+        "status": "PAGE_NOT_FOUND",
+        "checkedAt": "2026-09-26T18:10:19.236Z",
+        "sourceUrl": "https://www.boe.es/borme/dias/2021/11/04/pdfs/BORME-A-2021-211-42.pdf",
+        "httpStatus": 404
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.236Z",
+        "sourceUrl": "https://ec.europa.eu/taxation_customs/vies/rest-api/ms/ES/vat/B95927380",
+        "viesValid": true,
+        "httpStatus": 200
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.236Z",
+        "sourceUrl": "https://www.redexis.es",
+        "httpStatus": 200,
+        "finalUrl": "https://www.redexis.es/"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.236Z",
+        "sourceUrl": "https://www.redexis.es/sala-de-comunicacion/la-planta-de-biogas-de-almazan-galardonada-en-los-premios-renmad-biometano",
+        "httpStatus": 200,
+        "finalUrl": "https://www.redexis.es/sala-de-comunicacion/la-planta-de-biogas-de-almazan-galardonada-en-los-premios-renmad-biometano",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "PAGE_NOT_FOUND",
+        "checkedAt": "2026-09-26T18:10:19.236Z",
+        "sourceUrl": "https://www.redexis.es/redexis-adquiere-el-70-de-la-planta-de-biometano-de-almazan/",
+        "httpStatus": 404
+      },
+      "siteAddress": {
+        "status": "PAGE_NOT_FOUND",
+        "checkedAt": "2026-09-26T18:10:19.236Z",
+        "sourceUrl": "https://www.redexis.es/redexis-adquiere-el-70-de-la-planta-de-biometano-de-almazan/",
+        "httpStatus": 404
+      }
+    },
+    "plant_es_10": {
+      "plantId": "plant_es_10",
+      "effectiveTier": "READY",
+      "contacts": [
+        {
+          "value": "info@sitra.es",
+          "type": "SALES_OR_ENERGY_EMAIL",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:19.270Z",
+          "sourceUrl": "https://sitra.es/aviso-legal/",
+          "httpStatus": 200,
+          "finalUrl": "https://sitra.es/aviso-legal/",
+          "matchedOnPage": true
+        },
+        {
+          "value": "+34 964 571 855",
+          "type": "COMPANY_SWITCHBOARD",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:19.270Z",
+          "sourceUrl": "https://sitra.es/aviso-legal/",
+          "httpStatus": 200,
+          "finalUrl": "https://sitra.es/aviso-legal/",
+          "matchedOnPage": true
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "PAGE_NOT_FOUND",
+          "checkedAt": "2026-09-26T18:10:19.270Z",
+          "sourceUrl": "https://sumacapital.com/suma-capital-invierte-en-la-planta-de-biometano-montes-de-toledo/",
+          "httpStatus": 404,
+          "finalUrl": "https://sumacapital.com/suma-capital-invierte-en-la-planta-de-biometano-montes-de-toledo/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.270Z",
+        "sourceUrl": "https://sitra.es/bioenergia/casos-de-exito-a/biometano-Montes-de-Toledo/",
+        "httpStatus": 200,
+        "finalUrl": "https://sitra.es/bioenergia/casos-exito/biometano-montes-de-toledo/",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.270Z",
+        "sourceUrl": "https://ec.europa.eu/taxation_customs/vies/rest-api/ms/ES/vat/B42797563",
+        "viesValid": true,
+        "httpStatus": 200
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.270Z",
+        "sourceUrl": "https://sitra.es",
+        "httpStatus": 200,
+        "finalUrl": "https://sitra.es/"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.270Z",
+        "sourceUrl": "https://sitra.es/bioenergia/casos-de-exito-a/biometano-Montes-de-Toledo/",
+        "httpStatus": 200,
+        "finalUrl": "https://sitra.es/bioenergia/casos-exito/biometano-montes-de-toledo/",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "PAGE_NOT_FOUND",
+        "checkedAt": "2026-09-26T18:10:19.270Z",
+        "sourceUrl": "https://sumacapital.com/suma-capital-invierte-en-la-planta-de-biometano-montes-de-toledo/",
+        "httpStatus": 404
+      },
+      "siteAddress": {
+        "status": "PAGE_NOT_FOUND",
+        "checkedAt": "2026-09-26T18:10:19.270Z",
+        "sourceUrl": "https://sumacapital.com/suma-capital-invierte-en-la-planta-de-biometano-montes-de-toledo/",
+        "httpStatus": 404
+      }
+    },
+    "plant_es_11": {
+      "plantId": "plant_es_11",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "info@nortegas.es",
+          "type": "SALES_OR_ENERGY_EMAIL",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "ERROR",
+          "checkedAt": "2026-09-26T18:10:19.272Z",
+          "sourceUrl": "https://nortegas.es/aviso-legal/",
+          "httpStatus": 0,
+          "finalUrl": "https://nortegas.es/aviso-legal/",
+          "error": "fetch failed",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "ERROR",
+          "checkedAt": "2026-09-26T18:10:19.272Z",
+          "sourceUrl": "https://nortegas.es/nortegas-pone-en-marcha-la-planta-de-biolvegas/",
+          "httpStatus": 0,
+          "finalUrl": "https://nortegas.es/nortegas-pone-en-marcha-la-planta-de-biolvegas/"
+        }
+      ],
+      "legalEntity": {
+        "status": "PAGE_NOT_FOUND",
+        "checkedAt": "2026-09-26T18:10:19.272Z",
+        "sourceUrl": "https://www.boe.es/borme/dias/2021/08/17/pdfs/BORME-A-2021-156-42.pdf",
+        "httpStatus": 404
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.272Z",
+        "sourceUrl": "https://ec.europa.eu/taxation_customs/vies/rest-api/ms/ES/vat/B42220830",
+        "viesValid": true,
+        "httpStatus": 200
+      },
+      "website": {
+        "status": "ERROR",
+        "checkedAt": "2026-09-26T18:10:19.272Z",
+        "sourceUrl": "https://nortegas.es",
+        "httpStatus": 0,
+        "error": "fetch failed"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.272Z",
+        "sourceUrl": "https://www.retema.es/actualidad/biolvegas-comienza-la-inyeccion-de-biometano-en-la-red-de-gas-natural",
+        "httpStatus": 200,
+        "finalUrl": "https://www.retema.es/actualidad/biolvegas-comienza-la-inyeccion-de-biometano-en-la-red-de-gas-natural",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "ERROR",
+        "checkedAt": "2026-09-26T18:10:19.272Z",
+        "sourceUrl": "https://nortegas.es/nortegas-pone-en-marcha-la-planta-de-biolvegas/",
+        "httpStatus": 0
+      },
+      "siteAddress": {
+        "status": "ERROR",
+        "checkedAt": "2026-09-26T18:10:19.272Z",
+        "sourceUrl": "https://nortegas.es/nortegas-pone-en-marcha-la-planta-de-biolvegas/",
+        "httpStatus": 0
+      }
+    },
+    "plant_es_12": {
+      "plantId": "plant_es_12",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "coren@coren.es",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "GENERAL_OR_PRESS",
+          "status": "NOT_ON_PAGE",
+          "checkedAt": "2026-09-26T18:10:19.272Z",
+          "sourceUrl": "https://coren.es/aviso-legal/",
+          "httpStatus": 200,
+          "finalUrl": "https://www.coren.es/aviso-legal/",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "PAGE_NOT_FOUND",
+          "checkedAt": "2026-09-26T18:10:19.272Z",
+          "sourceUrl": "https://coren.es/medio-ambiente/",
+          "httpStatus": 404,
+          "finalUrl": "https://www.coren.es/medio-ambiente/"
+        }
+      ],
+      "legalEntity": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:19.272Z",
+        "sourceUrl": "https://coren.es/aviso-legal/",
+        "httpStatus": 200,
+        "finalUrl": "https://www.coren.es/aviso-legal/",
+        "matchedOnPage": false
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.272Z",
+        "sourceUrl": "https://ec.europa.eu/taxation_customs/vies/rest-api/ms/ES/vat/F32001976",
+        "viesValid": true,
+        "httpStatus": 200
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.272Z",
+        "sourceUrl": "https://coren.es",
+        "httpStatus": 200,
+        "finalUrl": "https://www.coren.es/"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.272Z",
+        "sourceUrl": "https://www.retema.es/actualidad/coren-retoma-puesta-marcha-su-nueva-planta-generacion-biogas",
+        "httpStatus": 200,
+        "finalUrl": "https://www.retema.es/actualidad/coren-retoma-puesta-marcha-su-nueva-planta-generacion-biogas",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.272Z",
+        "sourceUrl": "https://coren.es",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:19.272Z",
+        "sourceUrl": "https://coren.es/aviso-legal/",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_es_13": {
+      "plantId": "plant_es_13",
+      "effectiveTier": "UNRESOLVED",
+      "contacts": [],
+      "injectionOrOfftakeNotes": []
+    },
+    "plant_es_14": {
+      "plantId": "plant_es_14",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "info@ecobiogas.net",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "GENERAL_OR_PRESS",
+          "status": "DNS_FAIL",
+          "checkedAt": "2026-09-26T18:10:19.276Z",
+          "sourceUrl": "https://ecobiogas.net/aviso-legal/",
+          "error": "Email domain ecobiogas.net DNS failed",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "DNS_FAIL",
+          "checkedAt": "2026-09-26T18:10:19.276Z",
+          "sourceUrl": "https://ecobiogas.net/planta-biogas-vilasana/",
+          "httpStatus": 0,
+          "finalUrl": "https://ecobiogas.net/planta-biogas-vilasana/"
+        }
+      ],
+      "legalEntity": {
+        "status": "PDF_UNCHECKED",
+        "checkedAt": "2026-09-26T18:10:19.276Z",
+        "sourceUrl": "https://www.boe.es/borme/dias/2012/10/24/pdfs/BORME-A-2012-205-25.pdf",
+        "httpStatus": 200
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.276Z",
+        "sourceUrl": "https://ec.europa.eu/taxation_customs/vies/rest-api/ms/ES/vat/B25626771",
+        "viesValid": true,
+        "httpStatus": 200
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.276Z",
+        "sourceUrl": "https://ecobiogas.es",
+        "httpStatus": 200,
+        "finalUrl": "https://ecobiogas.es/"
+      },
+      "plantLink": {
+        "status": "DNS_FAIL",
+        "checkedAt": "2026-09-26T18:10:19.276Z",
+        "sourceUrl": "https://ecobiogas.net/planta-biogas-vilasana/",
+        "error": "DNS resolution failed: ENOTFOUND"
+      },
+      "parentGroup": {
+        "status": "DNS_FAIL",
+        "checkedAt": "2026-09-26T18:10:19.276Z",
+        "sourceUrl": "https://ecobiogas.net"
+      },
+      "siteAddress": {
+        "status": "DNS_FAIL",
+        "checkedAt": "2026-09-26T18:10:19.276Z",
+        "sourceUrl": "https://ecobiogas.net/planta-biogas-vilasana/"
+      }
+    },
+    "plant_es_15": {
+      "plantId": "plant_es_15",
+      "effectiveTier": "READY",
+      "contacts": [
+        {
+          "value": "info@enagasrenovable.es",
+          "type": "SALES_OR_ENERGY_EMAIL",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:19.277Z",
+          "sourceUrl": "https://enagasrenovable.es/aviso-legal/",
+          "httpStatus": 200,
+          "finalUrl": "https://enagasrenovable.es/aviso-legal/",
+          "matchedOnPage": true
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "PAGE_NOT_FOUND",
+          "checkedAt": "2026-09-26T18:10:19.277Z",
+          "sourceUrl": "https://enagasrenovable.es/proyectos/unue-biometano-burgos/",
+          "httpStatus": 404,
+          "finalUrl": "https://enagasrenovable.es/proyectos/unue-biometano-burgos/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.277Z",
+        "sourceUrl": "https://enagasrenovable.es/aviso-legal/",
+        "httpStatus": 200,
+        "finalUrl": "https://enagasrenovable.es/aviso-legal/",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.277Z",
+        "sourceUrl": "https://ec.europa.eu/taxation_customs/vies/rest-api/ms/ES/vat/A88511183",
+        "viesValid": true,
+        "httpStatus": 200
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.277Z",
+        "sourceUrl": "https://enagasrenovable.es",
+        "httpStatus": 200,
+        "finalUrl": "https://enagasrenovable.es/"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.277Z",
+        "sourceUrl": "https://enagasrenovable.es/proyectos/",
+        "httpStatus": 200,
+        "finalUrl": "https://enagasrenovable.es/proyectos/",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "PAGE_NOT_FOUND",
+        "checkedAt": "2026-09-26T18:10:19.277Z",
+        "sourceUrl": "https://enagasrenovable.es/proyectos/unue-biometano-burgos/",
+        "httpStatus": 404
+      },
+      "siteAddress": {
+        "status": "PAGE_NOT_FOUND",
+        "checkedAt": "2026-09-26T18:10:19.277Z",
+        "sourceUrl": "https://enagasrenovable.es/proyectos/unue-biometano-burgos/",
+        "httpStatus": 404
+      }
+    },
+    "plant_es_16": {
+      "plantId": "plant_es_16",
+      "effectiveTier": "UNRESOLVED",
+      "contacts": [],
+      "injectionOrOfftakeNotes": []
+    },
+    "plant_es_17": {
+      "plantId": "plant_es_17",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "info@grupoan.com",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "GENERAL_OR_PRESS",
+          "status": "ERROR",
+          "checkedAt": "2026-09-26T18:10:19.278Z",
+          "sourceUrl": "https://grupoan.com/aviso-legal/",
+          "httpStatus": 0,
+          "finalUrl": "https://grupoan.com/aviso-legal/",
+          "error": "fetch failed",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "PAGE_NOT_FOUND",
+          "checkedAt": "2026-09-26T18:10:19.278Z",
+          "sourceUrl": "https://www.navarra.es/es/noticias/2021/04/16/la-planta-de-biogas-de-artajona-amplia-su-capacidad-para-producir-biometano",
+          "httpStatus": 404,
+          "finalUrl": "https://www.navarra.es/es/noticias/2021/04/16/la-planta-de-biogas-de-artajona-amplia-su-capacidad-para-producir-biometano"
+        }
+      ],
+      "legalEntity": {
+        "status": "PDF_UNCHECKED",
+        "checkedAt": "2026-09-26T18:10:19.278Z",
+        "sourceUrl": "https://www.boe.es/borme/dias/2010/05/17/pdfs/BORME-A-2010-92-31.pdf",
+        "httpStatus": 200
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.278Z",
+        "sourceUrl": "https://ec.europa.eu/taxation_customs/vies/rest-api/ms/ES/vat/B31971229",
+        "viesValid": true,
+        "httpStatus": 200
+      },
+      "website": {
+        "status": "ERROR",
+        "checkedAt": "2026-09-26T18:10:19.278Z",
+        "sourceUrl": "https://grupoan.com",
+        "httpStatus": 0,
+        "error": "fetch failed"
+      },
+      "plantLink": {
+        "status": "PAGE_NOT_FOUND",
+        "checkedAt": "2026-09-26T18:10:19.278Z",
+        "sourceUrl": "https://www.navarra.es/es/noticias/2021/04/16/la-planta-de-biogas-de-artajona-amplia-su-capacidad-para-producir-biometano",
+        "httpStatus": 404
+      },
+      "parentGroup": {
+        "status": "ERROR",
+        "checkedAt": "2026-09-26T18:10:19.278Z",
+        "sourceUrl": "https://grupoan.com",
+        "httpStatus": 0
+      },
+      "siteAddress": {
+        "status": "PAGE_NOT_FOUND",
+        "checkedAt": "2026-09-26T18:10:19.278Z",
+        "sourceUrl": "https://www.navarra.es/es/noticias/2021/04/16/la-planta-de-biogas-de-artajona-amplia-su-capacidad-para-producir-biometano",
+        "httpStatus": 404
+      }
+    },
+    "plant_es_18": {
+      "plantId": "plant_es_18",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "https://cycle0.com/contact/",
+          "type": "CONTACT_FORM",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:19.279Z",
+          "sourceUrl": "https://cycle0.com/contact/",
+          "httpStatus": 200,
+          "finalUrl": "https://www.cycle0.com/contact/",
+          "matchedOnPage": true
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:19.279Z",
+          "sourceUrl": "https://cycle0.com/our-projects/bellcaire/",
+          "httpStatus": 200,
+          "finalUrl": "https://www.cycle0.com/es/bellcaire-d-urgell-planta/"
+        }
+      ],
+      "legalEntity": {
+        "status": "PAGE_NOT_FOUND",
+        "checkedAt": "2026-09-26T18:10:19.279Z",
+        "sourceUrl": "https://www.boe.es/borme/dias/2022/02/10/pdfs/BORME-A-2022-29-25.pdf",
+        "httpStatus": 404
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.279Z",
+        "sourceUrl": "https://ec.europa.eu/taxation_customs/vies/rest-api/ms/ES/vat/B72566664",
+        "viesValid": true,
+        "httpStatus": 200
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.279Z",
+        "sourceUrl": "https://cycle0.com",
+        "httpStatus": 200,
+        "finalUrl": "https://www.cycle0.com/"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.279Z",
+        "sourceUrl": "https://cycle0.com/our-projects/bellcaire/",
+        "httpStatus": 200,
+        "finalUrl": "https://www.cycle0.com/es/bellcaire-d-urgell-planta/",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.279Z",
+        "sourceUrl": "https://cycle0.com",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:19.279Z",
+        "sourceUrl": "https://cycle0.com/our-projects/bellcaire/",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_es_19": {
+      "plantId": "plant_es_19",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "enhol@grupoenhol.com",
+          "type": "SALES_OR_ENERGY_EMAIL",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "ERROR",
+          "checkedAt": "2026-09-26T18:10:19.280Z",
+          "sourceUrl": "https://grupoenhol.com/aviso-legal/",
+          "httpStatus": 0,
+          "finalUrl": "https://grupoenhol.com/aviso-legal/",
+          "error": "fetch failed",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "ERROR",
+          "checkedAt": "2026-09-26T18:10:19.280Z",
+          "sourceUrl": "https://grupoenhol.com/proyectos-biomasa-biogas/",
+          "httpStatus": 0,
+          "finalUrl": "https://grupoenhol.com/proyectos-biomasa-biogas/"
+        }
+      ],
+      "legalEntity": {
+        "status": "PAGE_NOT_FOUND",
+        "checkedAt": "2026-09-26T18:10:19.280Z",
+        "sourceUrl": "https://www.boe.es/borme/dias/2010/04/09/pdfs/BORME-A-2010-67-31.pdf",
+        "httpStatus": 404
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.280Z",
+        "sourceUrl": "https://ec.europa.eu/taxation_customs/vies/rest-api/ms/ES/vat/B31948664",
+        "viesValid": true,
+        "httpStatus": 200
+      },
+      "website": {
+        "status": "ERROR",
+        "checkedAt": "2026-09-26T18:10:19.280Z",
+        "sourceUrl": "https://grupoenhol.com",
+        "httpStatus": 0,
+        "error": "fetch failed"
+      },
+      "plantLink": {
+        "status": "ERROR",
+        "checkedAt": "2026-09-26T18:10:19.280Z",
+        "sourceUrl": "https://grupoenhol.com/proyectos-biomasa-biogas/",
+        "httpStatus": 0,
+        "error": "fetch failed"
+      },
+      "parentGroup": {
+        "status": "ERROR",
+        "checkedAt": "2026-09-26T18:10:19.280Z",
+        "sourceUrl": "https://grupoenhol.com",
+        "httpStatus": 0
+      },
+      "siteAddress": {
+        "status": "ERROR",
+        "checkedAt": "2026-09-26T18:10:19.280Z",
+        "sourceUrl": "https://grupoenhol.com/aviso-legal/",
+        "httpStatus": 0
+      }
+    },
+    "plant_es_2": {
+      "plantId": "plant_es_2",
+      "effectiveTier": "READY",
+      "contacts": [
+        {
+          "value": "secretaria@edarbens.es",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "PLANT_OPERATOR",
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:19.280Z",
+          "sourceUrl": "https://edarbens.es/contacto/",
+          "httpStatus": 200,
+          "finalUrl": "https://edarbens.es/contacto/",
+          "matchedOnPage": true
+        },
+        {
+          "value": "+34 981 154 080",
+          "type": "COMPANY_SWITCHBOARD",
+          "contactScope": "PLANT_OPERATOR",
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:19.280Z",
+          "sourceUrl": "https://edarbens.es/contacto/",
+          "httpStatus": 200,
+          "finalUrl": "https://edarbens.es/contacto/",
+          "matchedOnPage": true
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "DNS_FAIL",
+          "checkedAt": "2026-09-26T18:10:19.280Z",
+          "sourceUrl": "https://edarbens.com/instalaciones/bens/",
+          "httpStatus": 0,
+          "finalUrl": "https://edarbens.com/instalaciones/bens/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.280Z",
+        "sourceUrl": "https://edarbens.es/aviso-legal/",
+        "httpStatus": 200,
+        "finalUrl": "https://edarbens.es/aviso-legal/",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.280Z",
+        "sourceUrl": "https://ec.europa.eu/taxation_customs/vies/rest-api/ms/ES/vat/A70290358",
+        "viesValid": true,
+        "httpStatus": 200
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.280Z",
+        "sourceUrl": "https://edarbens.es",
+        "httpStatus": 200,
+        "finalUrl": "https://edarbens.es/"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.280Z",
+        "sourceUrl": "https://edarbens.es",
+        "httpStatus": 200,
+        "finalUrl": "https://edarbens.es/",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "DNS_FAIL",
+        "checkedAt": "2026-09-26T18:10:19.280Z",
+        "sourceUrl": "https://edarbens.com/quenes-somos/"
+      },
+      "siteAddress": {
+        "status": "DNS_FAIL",
+        "checkedAt": "2026-09-26T18:10:19.280Z",
+        "sourceUrl": "https://edarbens.com/contacto/"
+      }
+    },
+    "plant_es_20": {
+      "plantId": "plant_es_20",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "info@agrbiogas.com",
+          "type": "SALES_OR_ENERGY_EMAIL",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "NOT_ON_PAGE",
+          "checkedAt": "2026-09-26T18:10:19.282Z",
+          "sourceUrl": "https://agrbiogas.com/contacto/",
+          "httpStatus": 200,
+          "finalUrl": "https://www.agrbiogas.com/contacto/",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "PAGE_NOT_FOUND",
+          "checkedAt": "2026-09-26T18:10:19.282Z",
+          "sourceUrl": "https://agrbiogas.com/planta-la-calahorra/",
+          "httpStatus": 404,
+          "finalUrl": "https://www.agrbiogas.com/planta-la-calahorra/"
+        }
+      ],
+      "legalEntity": {
+        "status": "PDF_UNCHECKED",
+        "checkedAt": "2026-09-26T18:10:19.282Z",
+        "sourceUrl": "https://www.boe.es/borme/dias/2021/01/22/pdfs/BORME-A-2021-14-41.pdf",
+        "httpStatus": 200
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.282Z",
+        "sourceUrl": "https://ec.europa.eu/taxation_customs/vies/rest-api/ms/ES/vat/A90381401",
+        "viesValid": true,
+        "httpStatus": 200
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.282Z",
+        "sourceUrl": "https://agrbiogas.com",
+        "httpStatus": 200,
+        "finalUrl": "https://www.agrbiogas.com/"
+      },
+      "plantLink": {
+        "status": "PAGE_NOT_FOUND",
+        "checkedAt": "2026-09-26T18:10:19.282Z",
+        "sourceUrl": "https://agrbiogas.com/planta-la-calahorra/",
+        "httpStatus": 404
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.282Z",
+        "sourceUrl": "https://agrbiogas.com",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "PAGE_NOT_FOUND",
+        "checkedAt": "2026-09-26T18:10:19.282Z",
+        "sourceUrl": "https://agrbiogas.com/planta-la-calahorra/",
+        "httpStatus": 404
+      }
+    },
+    "plant_es_21": {
+      "plantId": "plant_es_21",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "info@trargisa.cat",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "GENERAL_OR_PRESS",
+          "status": "ERROR",
+          "checkedAt": "2026-09-26T18:10:19.282Z",
+          "sourceUrl": "https://trargisa.cat/contacte/",
+          "httpStatus": 0,
+          "finalUrl": "https://trargisa.cat/contacte/",
+          "error": "fetch failed",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "ERROR",
+          "checkedAt": "2026-09-26T18:10:19.282Z",
+          "sourceUrl": "https://trargisa.cat/projecte-bioenergy/",
+          "httpStatus": 0,
+          "finalUrl": "https://trargisa.cat/projecte-bioenergy/"
+        }
+      ],
+      "legalEntity": {
+        "status": "ERROR",
+        "checkedAt": "2026-09-26T18:10:19.282Z",
+        "sourceUrl": "https://trargisa.cat/avis-legal/",
+        "httpStatus": 0,
+        "error": "fetch failed"
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.282Z",
+        "sourceUrl": "https://ec.europa.eu/taxation_customs/vies/rest-api/ms/ES/vat/A17068511",
+        "viesValid": true,
+        "httpStatus": 200
+      },
+      "website": {
+        "status": "ERROR",
+        "checkedAt": "2026-09-26T18:10:19.282Z",
+        "sourceUrl": "https://trargisa.cat",
+        "httpStatus": 0,
+        "error": "fetch failed"
+      },
+      "plantLink": {
+        "status": "ERROR",
+        "checkedAt": "2026-09-26T18:10:19.282Z",
+        "sourceUrl": "https://trargisa.cat/projecte-bioenergy/",
+        "httpStatus": 0,
+        "error": "fetch failed"
+      },
+      "parentGroup": {
+        "status": "ERROR",
+        "checkedAt": "2026-09-26T18:10:19.282Z",
+        "sourceUrl": "https://trargisa.cat/qui-som/",
+        "httpStatus": 0
+      },
+      "siteAddress": {
+        "status": "ERROR",
+        "checkedAt": "2026-09-26T18:10:19.282Z",
+        "sourceUrl": "https://trargisa.cat/contacte/",
+        "httpStatus": 0
+      }
+    },
+    "plant_es_22": {
+      "plantId": "plant_es_22",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "atencionalcliente@redexis.es",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "GENERAL_OR_PRESS",
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:19.282Z",
+          "sourceUrl": "https://www.redexis.es/aviso-legal/",
+          "httpStatus": 200,
+          "finalUrl": "https://www.redexis.es/aviso-legal/",
+          "matchedOnPage": true
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "PAGE_NOT_FOUND",
+          "checkedAt": "2026-09-26T18:10:19.282Z",
+          "sourceUrl": "https://www.redexis.es/redexis-inicia-la-construccion-de-la-planta-de-biometano-en-lorca/",
+          "httpStatus": 404,
+          "finalUrl": "https://www.redexis.es/redexis-inicia-la-construccion-de-la-planta-de-biometano-en-lorca/"
+        }
+      ],
+      "legalEntity": {
+        "status": "PDF_UNCHECKED",
+        "checkedAt": "2026-09-26T18:10:19.282Z",
+        "sourceUrl": "https://www.boe.es/borme/dias/2022/07/15/pdfs/BORME-A-2022-135-30.pdf",
+        "httpStatus": 200
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.282Z",
+        "sourceUrl": "https://ec.europa.eu/taxation_customs/vies/rest-api/ms/ES/vat/B54212873",
+        "viesValid": true,
+        "httpStatus": 200
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.282Z",
+        "sourceUrl": "https://www.redexis.es",
+        "httpStatus": 200,
+        "finalUrl": "https://www.redexis.es/"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.282Z",
+        "sourceUrl": "https://www.redexis.es/sala-de-comunicacion/redexis-renovables-impulsara-la-produccion-de-biometano-en-espana-con-la",
+        "httpStatus": 200,
+        "finalUrl": "https://www.redexis.es/sala-de-comunicacion/redexis-renovables-impulsara-la-produccion-de-biometano-en-espana-con-la",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "PAGE_NOT_FOUND",
+        "checkedAt": "2026-09-26T18:10:19.282Z",
+        "sourceUrl": "https://www.redexis.es/redexis-inicia-la-construccion-de-la-planta-de-biometano-en-lorca/",
+        "httpStatus": 404
+      },
+      "siteAddress": {
+        "status": "PAGE_NOT_FOUND",
+        "checkedAt": "2026-09-26T18:10:19.282Z",
+        "sourceUrl": "https://www.redexis.es/redexis-inicia-la-construccion-de-la-planta-de-biometano-en-lorca/",
+        "httpStatus": 404
+      }
+    },
+    "plant_es_23": {
+      "plantId": "plant_es_23",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "depuradores@depuradoresosona.cat",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "GENERAL_OR_PRESS",
+          "status": "PAGE_NOT_FOUND",
+          "checkedAt": "2026-09-26T18:10:19.284Z",
+          "sourceUrl": "https://depuradoresosona.cat/contacte/",
+          "httpStatus": 404,
+          "finalUrl": "https://depuradoresosona.cat/contacte/",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "PAGE_NOT_FOUND",
+          "checkedAt": "2026-09-26T18:10:19.284Z",
+          "sourceUrl": "https://depuradoresosona.cat/instal-lacions/edar-manlleu/",
+          "httpStatus": 404,
+          "finalUrl": "https://depuradoresosona.cat/instal-lacions/edar-manlleu/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.284Z",
+        "sourceUrl": "https://depuradoresosona.cat/avis-legal/",
+        "httpStatus": 200,
+        "finalUrl": "https://depuradoresosona.cat/avis-legal/",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.284Z",
+        "sourceUrl": "https://ec.europa.eu/taxation_customs/vies/rest-api/ms/ES/vat/B60858982",
+        "viesValid": true,
+        "httpStatus": 200
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.284Z",
+        "sourceUrl": "https://depuradoresosona.cat",
+        "httpStatus": 200,
+        "finalUrl": "https://depuradoresosona.cat/"
+      },
+      "plantLink": {
+        "status": "PAGE_NOT_FOUND",
+        "checkedAt": "2026-09-26T18:10:19.284Z",
+        "sourceUrl": "https://depuradoresosona.cat/instal-lacions/edar-manlleu/",
+        "httpStatus": 404
+      },
+      "parentGroup": {
+        "status": "PAGE_NOT_FOUND",
+        "checkedAt": "2026-09-26T18:10:19.284Z",
+        "sourceUrl": "https://depuradoresosona.cat/qui-som/",
+        "httpStatus": 404
+      },
+      "siteAddress": {
+        "status": "PAGE_NOT_FOUND",
+        "checkedAt": "2026-09-26T18:10:19.284Z",
+        "sourceUrl": "https://depuradoresosona.cat/contacte/",
+        "httpStatus": 404
+      }
+    },
+    "plant_es_24": {
+      "plantId": "plant_es_24",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "espana@gunvorgroup.com",
+          "type": "SALES_OR_ENERGY_EMAIL",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "NOT_ON_PAGE",
+          "checkedAt": "2026-09-26T18:10:19.284Z",
+          "sourceUrl": "https://gunvorgroup.com/es/contact/",
+          "httpStatus": 200,
+          "finalUrl": "https://gunvorgroup.com/es/media/contact/",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "PAGE_NOT_FOUND",
+          "checkedAt": "2026-09-26T18:10:19.284Z",
+          "sourceUrl": "https://veolia.es/primera-inyeccion-biometano-residuos-industriales-gunvor-palos-frontera/",
+          "httpStatus": 404,
+          "finalUrl": "https://www.veolia.es/primera-inyeccion-biometano-residuos-industriales-gunvor-palos-frontera/"
+        }
+      ],
+      "legalEntity": {
+        "status": "PDF_UNCHECKED",
+        "checkedAt": "2026-09-26T18:10:19.284Z",
+        "sourceUrl": "https://www.boe.es/borme/dias/2018/10/30/pdfs/BORME-A-2018-209-28.pdf",
+        "httpStatus": 200
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.284Z",
+        "sourceUrl": "https://ec.europa.eu/taxation_customs/vies/rest-api/ms/ES/vat/B88223813",
+        "viesValid": true,
+        "httpStatus": 200
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.284Z",
+        "sourceUrl": "https://gunvorgroup.com/es/",
+        "httpStatus": 200,
+        "finalUrl": "https://gunvorgroup.com/es/"
+      },
+      "plantLink": {
+        "status": "PAGE_NOT_FOUND",
+        "checkedAt": "2026-09-26T18:10:19.284Z",
+        "sourceUrl": "https://veolia.es/primera-inyeccion-biometano-residuos-industriales-gunvor-palos-frontera/",
+        "httpStatus": 404
+      },
+      "parentGroup": {
+        "status": "PAGE_NOT_FOUND",
+        "checkedAt": "2026-09-26T18:10:19.284Z",
+        "sourceUrl": "https://veolia.es/primera-inyeccion-biometano-residuos-industriales-gunvor-palos-frontera/",
+        "httpStatus": 404
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:19.284Z",
+        "sourceUrl": "https://gunvorgroup.com/es/contact/",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_es_25": {
+      "plantId": "plant_es_25",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "innovacion@naturgy.com",
+          "type": "SALES_OR_ENERGY_EMAIL",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "DNS_FAIL",
+          "checkedAt": "2026-09-26T18:10:19.284Z",
+          "sourceUrl": "https://www.naturgy.es/aviso-legal",
+          "error": "Email domain naturgy.com DNS failed",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "ERROR",
+          "checkedAt": "2026-09-26T18:10:19.284Z",
+          "sourceUrl": "https://www.naturgy.com/planta-biometano-utiel-primera-inyeccion-comunitat-valenciana/",
+          "httpStatus": 403,
+          "finalUrl": "https://www.naturgy.com/planta-biometano-utiel-primera-inyeccion-comunitat-valenciana/"
+        }
+      ],
+      "legalEntity": {
+        "status": "PAGE_NOT_FOUND",
+        "checkedAt": "2026-09-26T18:10:19.284Z",
+        "sourceUrl": "https://www.boe.es/borme/dias/2019/06/18/pdfs/BORME-A-2019-115-28.pdf",
+        "httpStatus": 404
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.284Z",
+        "sourceUrl": "https://ec.europa.eu/taxation_customs/vies/rest-api/ms/ES/vat/B88263249",
+        "viesValid": true,
+        "httpStatus": 200
+      },
+      "website": {
+        "status": "BLOCKED",
+        "checkedAt": "2026-09-26T18:10:19.284Z",
+        "sourceUrl": "https://www.naturgy.com",
+        "httpStatus": 403
+      },
+      "plantLink": {
+        "status": "BLOCKED",
+        "checkedAt": "2026-09-26T18:10:19.284Z",
+        "sourceUrl": "https://www.naturgy.com/planta-biometano-utiel-primera-inyeccion-comunitat-valenciana/",
+        "httpStatus": 403
+      },
+      "parentGroup": {
+        "status": "ERROR",
+        "checkedAt": "2026-09-26T18:10:19.284Z",
+        "sourceUrl": "https://www.naturgy.com",
+        "httpStatus": 403
+      },
+      "siteAddress": {
+        "status": "ERROR",
+        "checkedAt": "2026-09-26T18:10:19.284Z",
+        "sourceUrl": "https://www.naturgy.com/planta-biometano-utiel-primera-inyeccion-comunitat-valenciana/",
+        "httpStatus": 403
+      }
+    },
+    "plant_es_26": {
+      "plantId": "plant_es_26",
+      "effectiveTier": "READY",
+      "contacts": [
+        {
+          "value": "info@tuero.es",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "PLANT_OPERATOR",
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:19.285Z",
+          "sourceUrl": "https://tuero.es/aviso-legal/",
+          "httpStatus": 200,
+          "finalUrl": "https://tuero.es/aviso-legal/",
+          "matchedOnPage": true
+        },
+        {
+          "value": "+34 979 77 09 14",
+          "type": "COMPANY_SWITCHBOARD",
+          "contactScope": "PLANT_OPERATOR",
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:19.285Z",
+          "sourceUrl": "https://tuero.es/aviso-legal/",
+          "httpStatus": 200,
+          "finalUrl": "https://tuero.es/aviso-legal/",
+          "matchedOnPage": true
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "PAGE_NOT_FOUND",
+          "checkedAt": "2026-09-26T18:10:19.285Z",
+          "sourceUrl": "https://tuero.es/planta-biogas-venta-de-banos/",
+          "httpStatus": 404,
+          "finalUrl": "https://tuero.es/planta-biogas-venta-de-banos/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.285Z",
+        "sourceUrl": "https://tuero.es/aviso-legal/",
+        "httpStatus": 200,
+        "finalUrl": "https://tuero.es/aviso-legal/",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.285Z",
+        "sourceUrl": "https://ec.europa.eu/taxation_customs/vies/rest-api/ms/ES/vat/B49197551",
+        "viesValid": true,
+        "httpStatus": 200
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.285Z",
+        "sourceUrl": "https://tuero.es",
+        "httpStatus": 200,
+        "finalUrl": "https://tuero.es/"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.285Z",
+        "sourceUrl": "https://tuero.es/lineas-de-negocio/",
+        "httpStatus": 200,
+        "finalUrl": "https://tuero.es/lineas-de-negocio/",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.285Z",
+        "sourceUrl": "https://tuero.es",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:19.285Z",
+        "sourceUrl": "https://tuero.es/aviso-legal/",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    },
+    "plant_es_3": {
+      "plantId": "plant_es_3",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "+34 900 101 311",
+          "type": "COMPANY_SWITCHBOARD",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "PAGE_NOT_FOUND",
+          "checkedAt": "2026-09-26T18:10:19.285Z",
+          "sourceUrl": "https://www.axpo.com/es/es/sobre-nosotros/contacto.html",
+          "httpStatus": 404,
+          "finalUrl": "https://www.axpo.com/es/es/sobre-nosotros/contacto.html",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "PAGE_NOT_FOUND",
+          "checkedAt": "2026-09-26T18:10:19.285Z",
+          "sourceUrl": "https://www.axpo.com/es/es/acerca-de-axpo/noticias-y-prensa/axpo-inicia-la-produccion-de-biometano-en-granja-torre-santamaria.html",
+          "httpStatus": 404,
+          "finalUrl": "https://www.axpo.com/es/es/acerca-de-axpo/noticias-y-prensa/axpo-inicia-la-produccion-de-biometano-en-granja-torre-santamaria.html"
+        }
+      ],
+      "legalEntity": {
+        "status": "PAGE_NOT_FOUND",
+        "checkedAt": "2026-09-26T18:10:19.285Z",
+        "sourceUrl": "https://www.boe.es/borme/dias/2021/03/12/pdfs/BORME-A-2021-49-25.pdf",
+        "httpStatus": 404
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.285Z",
+        "sourceUrl": "https://ec.europa.eu/taxation_customs/vies/rest-api/ms/ES/vat/B25719485",
+        "viesValid": true,
+        "httpStatus": 200
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.285Z",
+        "sourceUrl": "https://www.axpo.com/es/es.html",
+        "httpStatus": 200,
+        "finalUrl": "https://www.axpo.com/es/es.html"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.285Z",
+        "sourceUrl": "https://www.axpo.com/es/es/prensa/prensa/2023/noguera-renovables--la-planta-de-biometano-torre-santamaria--mej.html",
+        "httpStatus": 200,
+        "finalUrl": "https://www.axpo.com/es/es/prensa/prensa/2023/noguera-renovables--la-planta-de-biometano-torre-santamaria--mej.html",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "PAGE_NOT_FOUND",
+        "checkedAt": "2026-09-26T18:10:19.285Z",
+        "sourceUrl": "https://www.axpo.com/es/es/acerca-de-axpo/noticias-y-prensa/axpo-inicia-la-produccion-de-biometano-en-granja-torre-santamaria.html",
+        "httpStatus": 404
+      },
+      "siteAddress": {
+        "status": "PAGE_NOT_FOUND",
+        "checkedAt": "2026-09-26T18:10:19.285Z",
+        "sourceUrl": "https://www.axpo.com/es/es/acerca-de-axpo/noticias-y-prensa/axpo-inicia-la-produccion-de-biometano-en-granja-torre-santamaria.html",
+        "httpStatus": 404
+      }
+    },
+    "plant_es_4": {
+      "plantId": "plant_es_4",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "innovacion@naturgy.com",
+          "type": "SALES_OR_ENERGY_EMAIL",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "DNS_FAIL",
+          "checkedAt": "2026-09-26T18:10:19.286Z",
+          "sourceUrl": "https://www.naturgy.es/aviso-legal",
+          "error": "Email domain naturgy.com DNS failed",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "ERROR",
+          "checkedAt": "2026-09-26T18:10:19.286Z",
+          "sourceUrl": "https://www.naturgy.com/primer-proyecto-inyeccion-biometano-vertedero-elena/",
+          "httpStatus": 403,
+          "finalUrl": "https://www.naturgy.com/primer-proyecto-inyeccion-biometano-vertedero-elena/"
+        }
+      ],
+      "legalEntity": {
+        "status": "PAGE_NOT_FOUND",
+        "checkedAt": "2026-09-26T18:10:19.286Z",
+        "sourceUrl": "https://www.boe.es/borme/dias/2019/06/18/pdfs/BORME-A-2019-115-28.pdf",
+        "httpStatus": 404
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.286Z",
+        "sourceUrl": "https://ec.europa.eu/taxation_customs/vies/rest-api/ms/ES/vat/B88263249",
+        "viesValid": true,
+        "httpStatus": 200
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.286Z",
+        "sourceUrl": "https://www.naturgy.es",
+        "httpStatus": 200,
+        "finalUrl": "https://www.naturgy.es/hogar"
+      },
+      "plantLink": {
+        "status": "BLOCKED",
+        "checkedAt": "2026-09-26T18:10:19.286Z",
+        "sourceUrl": "https://www.naturgy.com/primer-proyecto-inyeccion-biometano-vertedero-elena/",
+        "httpStatus": 403
+      },
+      "parentGroup": {
+        "status": "PAGE_NOT_FOUND",
+        "checkedAt": "2026-09-26T18:10:19.286Z",
+        "sourceUrl": "https://www.naturgy.es/aviso-legal",
+        "httpStatus": 404
+      },
+      "siteAddress": {
+        "status": "ERROR",
+        "checkedAt": "2026-09-26T18:10:19.286Z",
+        "sourceUrl": "https://www.naturgy.com/primer-proyecto-inyeccion-biometano-vertedero-elena/",
+        "httpStatus": 403
+      }
+    },
+    "plant_es_5": {
+      "plantId": "plant_es_5",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "dpo.es@prezero.com",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "GENERAL_OR_PRESS",
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:19.286Z",
+          "sourceUrl": "https://prezero.com/es/aviso-legal",
+          "httpStatus": 200,
+          "finalUrl": "https://prezero.com/es/aviso-legal",
+          "matchedOnPage": true
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "PAGE_NOT_FOUND",
+          "checkedAt": "2026-09-26T18:10:19.286Z",
+          "sourceUrl": "https://prezero.es/prezero-y-waga-energy-ponen-en-marcha-el-mayor-proyecto-de-inyeccion-de-biometano-a-partir-de-biogas-de-vertedero-de-espana/",
+          "httpStatus": 404,
+          "finalUrl": "https://prezero.com/es/prezero-y-waga-energy-ponen-en-marcha-el-mayor-proyecto-de-inyeccion-de-biometano-a-partir-de-biogas-de-vertedero-de-espana"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.286Z",
+        "sourceUrl": "https://prezero.es/aviso-legal/",
+        "httpStatus": 200,
+        "finalUrl": "https://prezero.com/es/aviso-legal",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.286Z",
+        "sourceUrl": "https://ec.europa.eu/taxation_customs/vies/rest-api/ms/ES/vat/A82741067",
+        "viesValid": true,
+        "httpStatus": 200
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.286Z",
+        "sourceUrl": "https://prezero.com",
+        "httpStatus": 200,
+        "finalUrl": "https://prezero.com/"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.286Z",
+        "sourceUrl": "https://prezero.com/es/prensa/noticias/prezero-waga-energy-y-nedgia-ponen-en-marcha-el-mayor-proyecto-de-inyeccion-de-biometano-en-la-red-de-distribucion-a-partir-de-los-residuos-de-un",
+        "httpStatus": 200,
+        "finalUrl": "https://prezero.com/es/prensa/noticias/prezero-waga-energy-y-nedgia-ponen-en-marcha-el-mayor-proyecto-de-inyeccion-de-biometano-en-la-red-de-distribucion-a-partir-de-los-residuos-de-un",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "PAGE_NOT_FOUND",
+        "checkedAt": "2026-09-26T18:10:19.286Z",
+        "sourceUrl": "https://prezero.es/quienes-somos/",
+        "httpStatus": 404
+      },
+      "siteAddress": {
+        "status": "PAGE_NOT_FOUND",
+        "checkedAt": "2026-09-26T18:10:19.286Z",
+        "sourceUrl": "https://prezero.es/prezero-y-waga-energy-ponen-en-marcha-el-mayor-proyecto-de-inyeccion-de-biometano-a-partir-de-biogas-de-vertedero-de-espana/",
+        "httpStatus": 404
+      }
+    },
+    "plant_es_6": {
+      "plantId": "plant_es_6",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "info@trargisa.cat",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "GENERAL_OR_PRESS",
+          "status": "ERROR",
+          "checkedAt": "2026-09-26T18:10:19.287Z",
+          "sourceUrl": "https://trargisa.cat/contacte/",
+          "httpStatus": 0,
+          "finalUrl": "https://trargisa.cat/contacte/",
+          "error": "fetch failed",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "ERROR",
+          "checkedAt": "2026-09-26T18:10:19.287Z",
+          "sourceUrl": "https://trargisa.cat/projecte-bioenergy/",
+          "httpStatus": 0,
+          "finalUrl": "https://trargisa.cat/projecte-bioenergy/"
+        }
+      ],
+      "legalEntity": {
+        "status": "ERROR",
+        "checkedAt": "2026-09-26T18:10:19.287Z",
+        "sourceUrl": "https://trargisa.cat/avis-legal/",
+        "httpStatus": 0,
+        "error": "fetch failed"
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.287Z",
+        "sourceUrl": "https://ec.europa.eu/taxation_customs/vies/rest-api/ms/ES/vat/A17068511",
+        "viesValid": true,
+        "httpStatus": 200
+      },
+      "website": {
+        "status": "ERROR",
+        "checkedAt": "2026-09-26T18:10:19.287Z",
+        "sourceUrl": "https://trargisa.cat",
+        "httpStatus": 0,
+        "error": "fetch failed"
+      },
+      "plantLink": {
+        "status": "ERROR",
+        "checkedAt": "2026-09-26T18:10:19.287Z",
+        "sourceUrl": "https://trargisa.cat/projecte-bioenergy/",
+        "httpStatus": 0,
+        "error": "fetch failed"
+      },
+      "parentGroup": {
+        "status": "ERROR",
+        "checkedAt": "2026-09-26T18:10:19.287Z",
+        "sourceUrl": "https://trargisa.cat/qui-som/",
+        "httpStatus": 0
+      },
+      "siteAddress": {
+        "status": "ERROR",
+        "checkedAt": "2026-09-26T18:10:19.287Z",
+        "sourceUrl": "https://trargisa.cat/contacte/",
+        "httpStatus": 0
+      }
+    },
+    "plant_es_7": {
+      "plantId": "plant_es_7",
+      "effectiveTier": "READY",
+      "contacts": [
+        {
+          "value": "cresidusvo@cresidusvo.cat",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "PLANT_OPERATOR",
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:19.288Z",
+          "sourceUrl": "https://cresidusvo.cat/contacte/",
+          "httpStatus": 200,
+          "finalUrl": "https://cresidusvo.cat/contacte/",
+          "matchedOnPage": true
+        },
+        {
+          "value": "+34 938 600 000",
+          "type": "COMPANY_SWITCHBOARD",
+          "contactScope": "PLANT_OPERATOR",
+          "status": "NOT_ON_PAGE",
+          "checkedAt": "2026-09-26T18:10:19.288Z",
+          "sourceUrl": "https://cresidusvo.cat/contacte/",
+          "httpStatus": 200,
+          "finalUrl": "https://cresidusvo.cat/contacte/",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "DNS_FAIL",
+          "checkedAt": "2026-09-26T18:10:19.288Z",
+          "sourceUrl": "https://www.cvr.cat/projecte-biovo/",
+          "httpStatus": 0,
+          "finalUrl": "https://www.cvr.cat/projecte-biovo/"
+        }
+      ],
+      "legalEntity": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.288Z",
+        "sourceUrl": "https://cresidusvo.cat",
+        "httpStatus": 200,
+        "finalUrl": "https://cresidusvo.cat/",
+        "matchedOnPage": true
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.288Z",
+        "sourceUrl": "https://ec.europa.eu/taxation_customs/vies/rest-api/ms/ES/vat/P5809509B",
+        "viesValid": true,
+        "httpStatus": 200
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.288Z",
+        "sourceUrl": "https://cresidusvo.cat",
+        "httpStatus": 200,
+        "finalUrl": "https://cresidusvo.cat/"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.288Z",
+        "sourceUrl": "https://biovo.cat",
+        "httpStatus": 200,
+        "finalUrl": "https://biovo.cat/",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "DNS_FAIL",
+        "checkedAt": "2026-09-26T18:10:19.288Z",
+        "sourceUrl": "https://www.cvr.cat/projecte-biovo/"
+      },
+      "siteAddress": {
+        "status": "DNS_FAIL",
+        "checkedAt": "2026-09-26T18:10:19.288Z",
+        "sourceUrl": "https://www.cvr.cat/avs-legal/"
+      }
+    },
+    "plant_es_8": {
+      "plantId": "plant_es_8",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "info@ence.es",
+          "type": "SALES_OR_ENERGY_EMAIL",
+          "contactScope": "PARENT_COMMERCIAL",
+          "status": "VERIFIED",
+          "checkedAt": "2026-09-26T18:10:19.288Z",
+          "sourceUrl": "https://ence.es/aviso-legal/",
+          "httpStatus": 200,
+          "finalUrl": "https://ence.es/aviso-legal/",
+          "matchedOnPage": true
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "PAGE_NOT_FOUND",
+          "checkedAt": "2026-09-26T18:10:19.288Z",
+          "sourceUrl": "https://ence.es/ence-adquiere-biometagas-la-galera/",
+          "httpStatus": 404,
+          "finalUrl": "https://ence.es/ence-adquiere-biometagas-la-galera/"
+        }
+      ],
+      "legalEntity": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:19.288Z",
+        "sourceUrl": "https://ence.es/ence-adquiere-su-primera-planta-de-biometano-e-impulsa-la-creacion-de-una-gran-plataforma-en-espana/",
+        "httpStatus": 200,
+        "finalUrl": "https://ence.es/ence-adquiere-su-primera-planta-de-biometano-e-impulsa-la-creacion-de-una-gran-plataforma-en-espana/",
+        "matchedOnPage": false
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.288Z",
+        "sourceUrl": "https://ec.europa.eu/taxation_customs/vies/rest-api/ms/ES/vat/B43990449",
+        "viesValid": true,
+        "httpStatus": 200
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.288Z",
+        "sourceUrl": "https://ence.es",
+        "httpStatus": 200,
+        "finalUrl": "https://ence.es/"
+      },
+      "plantLink": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.288Z",
+        "sourceUrl": "https://ence.es/ence-adquiere-su-primera-planta-de-biometano-e-impulsa-la-creacion-de-una-gran-plataforma-en-espana/",
+        "httpStatus": 200,
+        "finalUrl": "https://ence.es/ence-adquiere-su-primera-planta-de-biometano-e-impulsa-la-creacion-de-una-gran-plataforma-en-espana/",
+        "matchedOnPage": true
+      },
+      "parentGroup": {
+        "status": "PAGE_NOT_FOUND",
+        "checkedAt": "2026-09-26T18:10:19.288Z",
+        "sourceUrl": "https://ence.es/ence-adquiere-biometagas-la-galera/",
+        "httpStatus": 404
+      },
+      "siteAddress": {
+        "status": "DNS_FAIL",
+        "checkedAt": "2026-09-26T18:10:19.288Z",
+        "sourceUrl": "https://biometagaslagalera.com/aviso-legal/"
+      }
+    },
+    "plant_es_9": {
+      "plantId": "plant_es_9",
+      "effectiveTier": "ENTITY_ONLY",
+      "contacts": [
+        {
+          "value": "valdemingomez@madrid.es",
+          "type": "GENERIC_EMAIL",
+          "contactScope": "GENERAL_OR_PRESS",
+          "status": "NOT_ON_PAGE",
+          "checkedAt": "2026-09-26T18:10:19.290Z",
+          "sourceUrl": "https://www.madrid.es/valdemingomez",
+          "httpStatus": 200,
+          "finalUrl": "https://www.madrid.es/portales/munimadrid/es/Inicio/Medio-ambiente/Parque-Tecnologico-Valdemingomez/?vgnextfmt=default&vgnextchannel=7898f0586ef35710VgnVCM1000001d4a900aRCRD",
+          "matchedOnPage": false
+        }
+      ],
+      "injectionOrOfftakeNotes": [
+        {
+          "status": "PAGE_NOT_FOUND",
+          "checkedAt": "2026-09-26T18:10:19.290Z",
+          "sourceUrl": "https://www.madrid.es/portales/munimadrid/es/Inicio/Medio-ambiente/Residuos-y-limpieza/Valdemingomez/Planta-de-Tratamiento-de-Biogas/",
+          "httpStatus": 404,
+          "finalUrl": "https://www.madrid.es/portales/munimadrid/es/Inicio/Medio-ambiente/Residuos-y-limpieza/Valdemingomez/Planta-de-Tratamiento-de-Biogas/"
+        }
+      ],
+      "legalEntity": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:19.290Z",
+        "sourceUrl": "https://www.madrid.es/valdemingomez",
+        "httpStatus": 200,
+        "finalUrl": "https://www.madrid.es/portales/munimadrid/es/Inicio/Medio-ambiente/Parque-Tecnologico-Valdemingomez/?vgnextfmt=default&vgnextchannel=7898f0586ef35710VgnVCM1000001d4a900aRCRD",
+        "matchedOnPage": false
+      },
+      "registrationId": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.290Z",
+        "sourceUrl": "https://ec.europa.eu/taxation_customs/vies/rest-api/ms/ES/vat/P2807900B",
+        "viesValid": true,
+        "httpStatus": 200
+      },
+      "website": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.290Z",
+        "sourceUrl": "https://www.madrid.es/valdemingomez",
+        "httpStatus": 200,
+        "finalUrl": "https://www.madrid.es/portales/munimadrid/es/Inicio/Medio-ambiente/Parque-Tecnologico-Valdemingomez/?vgnextfmt=default&vgnextchannel=7898f0586ef35710VgnVCM1000001d4a900aRCRD"
+      },
+      "plantLink": {
+        "status": "PAGE_NOT_FOUND",
+        "checkedAt": "2026-09-26T18:10:19.290Z",
+        "sourceUrl": "https://www.madrid.es/portales/munimadrid/es/Inicio/Medio-ambiente/Residuos-y-limpieza/Valdemingomez/Planta-de-Tratamiento-de-Biogas/",
+        "httpStatus": 404
+      },
+      "parentGroup": {
+        "status": "VERIFIED",
+        "checkedAt": "2026-09-26T18:10:19.290Z",
+        "sourceUrl": "https://www.madrid.es/valdemingomez",
+        "httpStatus": 200
+      },
+      "siteAddress": {
+        "status": "NOT_ON_PAGE",
+        "checkedAt": "2026-09-26T18:10:19.290Z",
+        "sourceUrl": "https://www.madrid.es/valdemingomez",
+        "httpStatus": 200,
+        "matchedOnPage": false
+      }
+    }
+  }
+}

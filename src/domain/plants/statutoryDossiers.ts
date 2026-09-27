@@ -5,6 +5,7 @@ import {
   PlantContactQuality,
   RegistrationCheck,
   RegisterMatch,
+  PlantResearch,
 } from './types';
 
 /**
@@ -1485,7 +1486,16 @@ export type DossierInput = Pick<BiomethanePlant, 'id' | 'name' | 'countryCode'> 
     contactQuality?: PlantContactQuality;
     registrationCheck?: RegistrationCheck | null;
     registerMatch?: RegisterMatch | null;
+    research?: PlantResearch | null;
   };
+
+/** Returns true if the register source is an official statutory gazette/register rather than a 3rd party directory. */
+export function isOfficialRegister(source: string | null | undefined): boolean {
+  if (!source) return false;
+  const s = source.toLowerCase();
+  if (/einforma|infocif|librebor|empresia|axesor|kompass/i.test(s)) return false;
+  return /registro\s*mercantil|borme|vies|boe|mastr|sirene|companies\s*house|datacvr|cvr|kvk|gse|official\s*register|gazette/i.test(s);
+}
 
 function getStatutoryRegisterType(countryCode: string): VerifiedPlantDossier['statutoryRegister'] {
   switch (countryCode.toUpperCase()) {
@@ -1594,7 +1604,17 @@ function buildDossier(
 ): VerifiedPlantDossier {
   const country = (plant.countryCode || 'EU').toUpperCase();
   const confirmed = research.key ? REGISTER_CONFIRMED[research.key] : undefined;
-  const entity = confirmed?.officialLegalEntity ?? knownEntityName(plant) ?? research.notes?.officialLegalEntity ?? null;
+  const researchConfirmedEntity = Boolean(
+    plant.research?.registrationId?.value &&
+    plant.research?.registerSource &&
+    isOfficialRegister(plant.research.registerSource) &&
+    !/einforma|infocif|librebor|empresia|axesor|kompass/i.test(plant.research.registrationId.sourceUrl || '')
+  );
+  const entity = confirmed?.officialLegalEntity 
+    ?? plant.research?.legalEntity?.value 
+    ?? knownEntityName(plant) 
+    ?? research.notes?.officialLegalEntity 
+    ?? null;
   const regId = confirmed?.statutoryRegistrationId ?? confirmedRegistrationId(plant);
   const registerConfirmed = Boolean(confirmed) || plant.registrationCheck?.status === 'CONFIRMED';
 
@@ -1627,14 +1647,15 @@ function buildDossier(
 
   return {
     verificationStatus: registerConfirmed ? 'REGISTER_CONFIRMED' : 'UNVERIFIED',
+    researchConfirmedEntity,
     statutoryRegister: research.notes?.statutoryRegister ?? getStatutoryRegisterType(country),
     statutoryRegistrationId: regId,
     officialLegalEntity: entity,
     legalForm: research.notes?.legalForm,
-    registeredOfficeAddress: confirmed?.registeredOfficeAddress ?? 'Not verified — see register',
-    parentGroup: research.notes?.parentGroup ?? research.group?.name,
+    registeredOfficeAddress: confirmed?.registeredOfficeAddress ?? plant.research?.siteAddress?.value ?? 'Not verified — see register',
+    parentGroup: plant.research?.parentGroup?.value ?? research.notes?.parentGroup ?? research.group?.name,
     groupTradingDeskLocation: research.notes?.groupTradingDeskLocation ?? research.group?.groupDeskLocation,
-    verifiedWebsiteUrl: research.notes?.verifiedWebsiteUrl ?? research.group?.websiteUrl
+    verifiedWebsiteUrl: plant.research?.website?.value ?? research.notes?.verifiedWebsiteUrl ?? research.group?.websiteUrl
       ?? (plant.corporateWebsite?.startsWith('http') ? plant.corporateWebsite : null),
     linkedinCompanyUrl: linkedinCompany,
     linkedinSearchUrl: linkedinSearch,
