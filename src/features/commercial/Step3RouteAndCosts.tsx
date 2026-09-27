@@ -51,39 +51,69 @@ export function Step3RouteAndCosts({
     : [opportunity.originCountry, opportunity.targetCountry];
 
   return (
-    <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <div className="max-w-5xl mx-auto py-6 px-4">
       {/* Step Header */}
-      <div className="text-center mb-6">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-50 dark:bg-cyan-950/40 border border-cyan-300 dark:border-cyan-500/40 text-cyan-700 dark:text-cyan-300 text-xs font-semibold mb-3">
-          Step 3 of 4: Route Planning &amp; Cost Breakdown
+      <div className="mb-5">
+        <div
+          style={{
+            borderRadius: 'var(--radius-control)',
+            backgroundColor: 'var(--color-track)',
+            borderColor: 'var(--color-line)',
+            color: 'var(--color-text)',
+          }}
+          className="inline-flex items-center gap-2 px-3 py-1 border text-xs font-medium mb-2.5"
+        >
+          <span style={{ backgroundColor: 'var(--color-accent)' }} className="w-2 h-2 rounded-full" />
+          Step 3 of 4: Route planning &amp; cost breakdown
         </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-zinc-100 mb-2.5">
-          Route Map &amp; Commercial Pricing Engine
+        <h1 style={{ color: 'var(--color-text)' }} className="text-xl sm:text-2xl font-semibold mb-1.5">
+          Route map &amp; commercial pricing engine
         </h1>
-        <p className="text-base text-slate-600 dark:text-zinc-400 max-w-2xl mx-auto font-normal">
+        <p style={{ color: 'var(--color-muted)' }} className="text-xs sm:text-sm font-normal max-w-2xl">
           We mapped the transit corridor and priced every component: sourcing, grid tariffs, transit, certification, and certificate monetization.
         </p>
       </div>
 
       {/* Main Grid: Map on Left, Financial Waterfall on Right */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6 items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-5 items-stretch">
         {/* Left Column: Visual Map (5 cols) */}
         <div className="lg:col-span-5 flex flex-col gap-3">
-          <div className="bg-white dark:bg-[#0e1118] border border-slate-200 dark:border-[#1e2433] rounded-2xl p-5 flex-1 flex flex-col shadow-xs dark:shadow-xl">
-            <div className="flex items-center justify-between mb-3.5">
+          <div
+            style={{
+              backgroundColor: 'var(--color-surface)',
+              borderColor: 'var(--color-line)',
+              borderRadius: 'var(--radius-card)',
+            }}
+            className="border p-4 flex-1 flex flex-col shadow-xs"
+          >
+            <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <Navigation className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-zinc-200">
-                  Visual Transit Corridor
+                <Navigation className="w-4 h-4" style={{ color: 'var(--color-accent)' }} />
+                <span style={{ color: 'var(--color-text)' }} className="text-xs font-semibold">
+                  Visual transit corridor
                 </span>
               </div>
-              <span className="text-xs text-cyan-800 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-950/40 px-2.5 py-0.5 rounded-md border border-cyan-300 dark:border-cyan-500/40 font-semibold">
+              <span
+                style={{
+                  borderRadius: 'var(--radius-control)',
+                  backgroundColor: 'var(--color-track)',
+                  borderColor: 'var(--color-line)',
+                  color: 'var(--color-text)',
+                }}
+                className="text-xs border px-2 py-0.5 font-medium"
+              >
                 {opportunity.originCountry} → {opportunity.targetCountry}
               </span>
             </div>
 
             {/* Map Component Container */}
-            <div className="w-full h-[320px] rounded-xl overflow-hidden border border-slate-200 dark:border-[#1e2433]">
+            <div
+              style={{
+                borderRadius: 'var(--radius-control)',
+                borderColor: 'var(--color-line)',
+              }}
+              className="w-full h-[320px] overflow-hidden border"
+            >
               <CorridorMiniMap
                 originCountry={opportunity.originCountry}
                 targetCountry={opportunity.targetCountry}
@@ -97,16 +127,30 @@ export function Step3RouteAndCosts({
             </div>
 
             {/* Route Stats */}
-            <div className="mt-3.5 grid grid-cols-2 gap-2.5 text-slate-600 dark:text-zinc-400 text-xs">
-              <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#08090d] border border-slate-200 dark:border-[#1e2433]">
-                <span className="text-[10px] uppercase text-slate-500 dark:text-zinc-500 font-semibold block">Origin Plant</span>
-                <span className="font-semibold text-slate-800 dark:text-zinc-200 truncate block mt-0.5">
+            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+              <div
+                style={{
+                  backgroundColor: 'var(--color-bg)',
+                  borderColor: 'var(--color-line)',
+                  borderRadius: 'var(--radius-control)',
+                }}
+                className="p-2.5 border"
+              >
+                <span style={{ color: 'var(--color-muted)' }} className="text-[10px] block">Origin plant</span>
+                <span style={{ color: 'var(--color-text)' }} className="font-medium truncate block mt-0.5">
                   {opportunity.originPlantName || opportunity.originCountry}
                 </span>
               </div>
-              <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#08090d] border border-slate-200 dark:border-[#1e2433]">
-                <span className="text-[10px] uppercase text-slate-500 dark:text-zinc-500 font-semibold block">Buyer Hub</span>
-                <span className="font-semibold text-slate-800 dark:text-zinc-200 truncate block mt-0.5">
+              <div
+                style={{
+                  backgroundColor: 'var(--color-bg)',
+                  borderColor: 'var(--color-line)',
+                  borderRadius: 'var(--radius-control)',
+                }}
+                className="p-2.5 border"
+              >
+                <span style={{ color: 'var(--color-muted)' }} className="text-[10px] block">Buyer hub</span>
+                <span style={{ color: 'var(--color-text)' }} className="font-medium truncate block mt-0.5">
                   {opportunity.targetMarketName}
                 </span>
               </div>
@@ -116,130 +160,194 @@ export function Step3RouteAndCosts({
 
         {/* Right Column: Financial Waterfall (7 cols) */}
         <div className="lg:col-span-7 flex flex-col">
-          <div className="bg-white dark:bg-[#0e1118] border border-slate-200 dark:border-[#1e2433] rounded-2xl p-6 shadow-xs dark:shadow-xl flex-1 flex flex-col">
+          <div
+            style={{
+              backgroundColor: 'var(--color-surface)',
+              borderColor: 'var(--color-line)',
+              borderRadius: 'var(--radius-card)',
+            }}
+            className="border p-5 shadow-xs flex-1 flex flex-col"
+          >
             {/* Waterfall Header */}
-            <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-200 dark:border-[#1e2433]">
+            <div
+              style={{ borderColor: 'var(--color-line)' }}
+              className="flex items-center justify-between pb-3 mb-3 border-b"
+            >
               <div className="flex items-center gap-2">
-                <Calculator className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-zinc-200">
-                  Full Cost Breakdown &amp; Revenue Waterfall
+                <Calculator className="w-4 h-4" style={{ color: 'var(--color-accent)' }} />
+                <span style={{ color: 'var(--color-text)' }} className="text-xs font-semibold">
+                  Full cost breakdown &amp; revenue waterfall
                 </span>
               </div>
 
-              <div className={`px-3 py-1.5 rounded-xl border flex items-center gap-1.5 ${
-                isProfitable
-                  ? 'bg-emerald-50 dark:bg-emerald-950/80 border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300'
-                  : 'bg-red-50 dark:bg-red-950/80 border-red-300 dark:border-red-700 text-red-800 dark:text-red-300'
-              }`}>
+              {/* Spread badge: blue for positive, red for negative */}
+              <div
+                style={{
+                  borderRadius: 'var(--radius-control)',
+                  backgroundColor: isProfitable ? 'var(--color-status-info-bg)' : 'var(--color-status-fail-bg)',
+                  borderColor: isProfitable ? 'var(--color-status-info-border)' : 'var(--color-status-fail-border)',
+                  color: isProfitable ? 'var(--color-pnl-pos)' : 'var(--color-pnl-neg)',
+                }}
+                className="px-2.5 py-1 border flex items-center gap-1.5"
+              >
                 {isProfitable ? (
-                  <ArrowUpRight className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <ArrowUpRight className="w-3.5 h-3.5" />
                 ) : (
-                  <ArrowDownRight className="w-4 h-4 text-red-600 dark:text-red-400" />
+                  <ArrowDownRight className="w-3.5 h-3.5" />
                 )}
-                <span className="text-xs font-bold font-mono">
+                <span className="text-xs font-bold tabular-nums">
                   {isProfitable ? '+' : ''}€{netMarginEurPerMwh.toFixed(2)} / MWh
                 </span>
               </div>
             </div>
 
             {/* Line Items */}
-            <div className="space-y-3 text-xs flex-1">
+            <div className="space-y-2.5 text-xs flex-1">
               {/* Cost Section */}
-              <div className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-zinc-400">
-                1. Delivered Costs (What you pay)
+              <div style={{ color: 'var(--color-muted)' }} className="text-[11px] font-medium">
+                1. Delivered costs (what you pay)
               </div>
 
               {/* Plant Cost */}
-              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-[#08090d] border border-slate-200 dark:border-[#1e2433]">
+              <div
+                style={{
+                  backgroundColor: 'var(--color-bg)',
+                  borderColor: 'var(--color-line)',
+                  borderRadius: 'var(--radius-control)',
+                }}
+                className="flex items-center justify-between p-2.5 border"
+              >
                 <div>
-                  <span className="text-slate-800 dark:text-zinc-200 font-semibold block">Plant Gate Sourcing Cost</span>
-                  <span className="text-xs text-slate-500 dark:text-zinc-400 block">{opportunity.feedstockName} substrate</span>
+                  <span style={{ color: 'var(--color-text)' }} className="font-medium block">Plant gate sourcing cost</span>
+                  <span style={{ color: 'var(--color-muted)' }} className="text-[11px] block">{opportunity.feedstockName} substrate</span>
                 </div>
                 <div className="text-right">
-                  <span className="font-bold font-mono text-slate-900 dark:text-zinc-100">€{plantGateEur.toFixed(2)}/MWh</span>
-                  <span className="text-xs text-slate-500 dark:text-zinc-400 block font-mono">Total: €{Math.round(plantGateEur * vol).toLocaleString()}</span>
+                  <span style={{ color: 'var(--color-text)' }} className="font-semibold tabular-nums">€{plantGateEur.toFixed(2)}/MWh</span>
+                  <span style={{ color: 'var(--color-muted)' }} className="text-[11px] block tabular-nums">Total: €{Math.round(plantGateEur * vol).toLocaleString()}</span>
                 </div>
               </div>
 
               {/* Grid Logistics */}
-              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-[#08090d] border border-slate-200 dark:border-[#1e2433]">
+              <div
+                style={{
+                  backgroundColor: 'var(--color-bg)',
+                  borderColor: 'var(--color-line)',
+                  borderRadius: 'var(--radius-control)',
+                }}
+                className="flex items-center justify-between p-2.5 border"
+              >
                 <div>
-                  <span className="text-slate-800 dark:text-zinc-200 font-semibold block">Grid Entry/Exit &amp; Corridor Tariffs</span>
-                  <span className="text-xs text-slate-500 dark:text-zinc-400 block">{opportunity.logisticsDistanceKm ? `${Math.round(opportunity.logisticsDistanceKm)} km corridor` : 'Direct grid'}</span>
+                  <span style={{ color: 'var(--color-text)' }} className="font-medium block">Grid entry/exit &amp; corridor tariffs</span>
+                  <span style={{ color: 'var(--color-muted)' }} className="text-[11px] block">{opportunity.logisticsDistanceKm ? `${Math.round(opportunity.logisticsDistanceKm)} km corridor` : 'Direct grid'}</span>
                 </div>
                 <div className="text-right">
-                  <span className="font-bold font-mono text-amber-600 dark:text-amber-300">€{gridLogisticsEur.toFixed(2)}/MWh</span>
-                  <span className="text-xs text-slate-500 dark:text-zinc-400 block font-mono">Total: €{Math.round(gridLogisticsEur * vol).toLocaleString()}</span>
+                  <span style={{ color: 'var(--color-pnl-neg)' }} className="font-semibold tabular-nums">€{gridLogisticsEur.toFixed(2)}/MWh</span>
+                  <span style={{ color: 'var(--color-muted)' }} className="text-[11px] block tabular-nums">Total: €{Math.round(gridLogisticsEur * vol).toLocaleString()}</span>
                 </div>
               </div>
 
               {/* Certification */}
-              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-[#08090d] border border-slate-200 dark:border-[#1e2433]">
+              <div
+                style={{
+                  backgroundColor: 'var(--color-bg)',
+                  borderColor: 'var(--color-line)',
+                  borderRadius: 'var(--radius-control)',
+                }}
+                className="flex items-center justify-between p-2.5 border"
+              >
                 <div>
-                  <span className="text-slate-800 dark:text-zinc-200 font-semibold block">Mass Balance &amp; Proof of Sustainability</span>
-                  <span className="text-xs text-slate-500 dark:text-zinc-400 block">RED III compliance verification</span>
+                  <span style={{ color: 'var(--color-text)' }} className="font-medium block">Mass balance &amp; proof of sustainability</span>
+                  <span style={{ color: 'var(--color-muted)' }} className="text-[11px] block">RED III compliance verification</span>
                 </div>
                 <div className="text-right">
-                  <span className="font-bold font-mono text-slate-700 dark:text-zinc-300">€{certificationEur.toFixed(2)}/MWh</span>
-                  <span className="text-xs text-slate-500 dark:text-zinc-400 block font-mono">Total: €{Math.round(certificationEur * vol).toLocaleString()}</span>
+                  <span style={{ color: 'var(--color-text)' }} className="font-semibold tabular-nums">€{certificationEur.toFixed(2)}/MWh</span>
+                  <span style={{ color: 'var(--color-muted)' }} className="text-[11px] block tabular-nums">Total: €{Math.round(certificationEur * vol).toLocaleString()}</span>
                 </div>
               </div>
 
               {/* Cost Subtotal */}
-              <div className="flex justify-between items-center py-2 px-3 border-t border-slate-200 dark:border-[#1e2433] font-semibold">
-                <span className="text-slate-700 dark:text-zinc-300">Total Delivered Cost:</span>
-                <span className="text-red-600 dark:text-red-300 font-mono">€{totalDeliveredCostEur.toFixed(2)}/MWh (€{Math.round(totalDealCostEur).toLocaleString()})</span>
+              <div
+                style={{ borderColor: 'var(--color-line)' }}
+                className="flex justify-between items-center py-1.5 px-2 border-t font-medium text-xs"
+              >
+                <span style={{ color: 'var(--color-muted)' }}>Total delivered cost:</span>
+                <span style={{ color: 'var(--color-pnl-neg)' }} className="font-semibold tabular-nums">€{totalDeliveredCostEur.toFixed(2)}/MWh (€{Math.round(totalDealCostEur).toLocaleString()})</span>
               </div>
 
               {/* Revenue Section */}
-              <div className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-zinc-400 pt-1">
-                2. Offtake Revenue (What you receive)
+              <div style={{ color: 'var(--color-muted)' }} className="text-[11px] font-medium pt-1">
+                2. Realizable revenue (what you earn)
               </div>
 
-              {/* Gas Commodity */}
-              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-[#08090d] border border-slate-200 dark:border-[#1e2433]">
+              {/* Gas Index */}
+              <div
+                style={{
+                  backgroundColor: 'var(--color-bg)',
+                  borderColor: 'var(--color-line)',
+                  borderRadius: 'var(--radius-control)',
+                }}
+                className="flex items-center justify-between p-2.5 border"
+              >
                 <div>
-                  <span className="text-slate-800 dark:text-zinc-200 font-semibold block">Wholesale Gas Offtake (TTF Index)</span>
-                  <span className="text-xs text-slate-500 dark:text-zinc-400 block">Natural gas commodity molecule</span>
+                  <span style={{ color: 'var(--color-text)' }} className="font-medium block">Wholesale gas index (TTF prompt)</span>
+                  <span style={{ color: 'var(--color-muted)' }} className="text-[11px] block">Standard physical gas molecule value</span>
                 </div>
                 <div className="text-right">
-                  <span className="font-bold font-mono text-slate-900 dark:text-zinc-100">€{gasIndexEur.toFixed(2)}/MWh</span>
-                  <span className="text-xs text-slate-500 dark:text-zinc-400 block font-mono">Total: €{Math.round(gasIndexEur * vol).toLocaleString()}</span>
+                  <span style={{ color: 'var(--color-text)' }} className="font-semibold tabular-nums">€{gasIndexEur.toFixed(2)}/MWh</span>
+                  <span style={{ color: 'var(--color-muted)' }} className="text-[11px] block tabular-nums">Total: €{Math.round(gasIndexEur * vol).toLocaleString()}</span>
                 </div>
               </div>
 
-              {/* Certificate Monetization */}
-              <div className="flex items-center justify-between p-3 rounded-xl bg-cyan-50/70 dark:bg-cyan-950/40 border border-cyan-200 dark:border-cyan-500/40">
+              {/* Green Premium */}
+              <div
+                style={{
+                  backgroundColor: 'var(--color-bg)',
+                  borderColor: 'var(--color-line)',
+                  borderRadius: 'var(--radius-control)',
+                }}
+                className="flex items-center justify-between p-2.5 border"
+              >
                 <div>
-                  <span className="text-cyan-900 dark:text-cyan-200 font-semibold block">{opportunity.targetMarketName} Certificate Monetization</span>
-                  <span className="text-xs text-cyan-700 dark:text-cyan-400 block">GHG quota abatement value</span>
+                  <span style={{ color: 'var(--color-text)' }} className="font-medium block">Compliance certificate premium</span>
+                  <span style={{ color: 'var(--color-muted)' }} className="text-[11px] block">{opportunity.targetMarketName} green value stack</span>
                 </div>
                 <div className="text-right">
-                  <span className="font-bold font-mono text-cyan-800 dark:text-cyan-300">€{certificateValueEur.toFixed(2)}/MWh</span>
-                  <span className="text-xs text-cyan-700 dark:text-cyan-400 block font-mono">Total: €{Math.round(certificateValueEur * vol).toLocaleString()}</span>
+                  <span style={{ color: 'var(--color-pnl-pos)' }} className="font-semibold tabular-nums">€{certificateValueEur.toFixed(2)}/MWh</span>
+                  <span style={{ color: 'var(--color-muted)' }} className="text-[11px] block tabular-nums">Total: €{Math.round(certificateValueEur * vol).toLocaleString()}</span>
                 </div>
               </div>
 
               {/* Total Revenue Subtotal */}
-              <div className="flex justify-between items-center py-2 px-3 border-t border-slate-200 dark:border-[#1e2433] font-semibold">
-                <span className="text-slate-700 dark:text-zinc-300">Total Realizable Revenue:</span>
-                <span className="text-cyan-700 dark:text-cyan-300 font-mono">€{totalGrossRevenueEur.toFixed(2)}/MWh (€{Math.round(totalDealRevenueEur).toLocaleString()})</span>
+              <div
+                style={{ borderColor: 'var(--color-line)' }}
+                className="flex justify-between items-center py-1.5 px-2 border-t font-medium text-xs"
+              >
+                <span style={{ color: 'var(--color-muted)' }}>Total realizable revenue:</span>
+                <span style={{ color: 'var(--color-text)' }} className="font-semibold tabular-nums">€{totalGrossRevenueEur.toFixed(2)}/MWh (€{Math.round(totalDealRevenueEur).toLocaleString()})</span>
               </div>
             </div>
 
-            {/* Total Deal Profit Box */}
-            <div className="mt-4 p-4 rounded-xl bg-slate-50 dark:bg-[#08090d] border border-slate-200 dark:border-[#1e2433] flex items-center justify-between">
+            {/* Total Deal Profit Box - blue for positive */}
+            <div
+              style={{
+                backgroundColor: 'var(--color-track)',
+                borderColor: 'var(--color-line)',
+                borderRadius: 'var(--radius-control)',
+              }}
+              className="mt-3.5 p-3 border flex items-center justify-between"
+            >
               <div>
-                <span className="text-xs uppercase text-slate-500 dark:text-zinc-400 font-bold block">
-                  Total Order Net Profit ({vol.toLocaleString()} MWh):
+                <span style={{ color: 'var(--color-muted)' }} className="text-[11px] font-medium block">
+                  Total order net profit ({vol.toLocaleString()} MWh):
                 </span>
-                <span className="text-xs text-slate-600 dark:text-zinc-400">
-                  Volume: {vol.toLocaleString()} MWh · Margin: <strong className="font-mono">€{netMarginEurPerMwh.toFixed(2)}/MWh</strong>
+                <span style={{ color: 'var(--color-muted)' }} className="text-xs">
+                  Volume: {vol.toLocaleString()} MWh · Margin: <strong style={{ color: 'var(--color-text)' }} className="tabular-nums">€{netMarginEurPerMwh.toFixed(2)}/MWh</strong>
                 </span>
               </div>
-              <div className={`text-2xl md:text-3xl font-bold font-mono ${
-                isProfitable ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
-              }`}>
+              <div
+                style={{ color: isProfitable ? 'var(--color-pnl-pos)' : 'var(--color-pnl-neg)' }}
+                className="text-xl sm:text-2xl font-bold tabular-nums"
+              >
                 {isProfitable ? '+' : ''}€{Math.round(totalDealProfitEur).toLocaleString()}
               </div>
             </div>
@@ -248,23 +356,37 @@ export function Step3RouteAndCosts({
       </div>
 
       {/* Navigation Buttons */}
-      <div className="flex items-center justify-between pt-5 border-t border-slate-200 dark:border-[#1e2433]">
+      <div
+        style={{ borderColor: 'var(--color-line)' }}
+        className="flex items-center justify-between pt-4 border-t"
+      >
         <button
           type="button"
           onClick={onBack}
-          className="px-5 py-3 rounded-xl bg-white dark:bg-[#0e1118] hover:bg-slate-50 dark:hover:bg-[#141824] border border-slate-200 dark:border-[#2b3347] text-slate-700 dark:text-zinc-300 text-xs font-semibold transition-colors flex items-center gap-2 cursor-pointer"
+          style={{
+            backgroundColor: 'var(--color-surface)',
+            borderColor: 'var(--color-line)',
+            borderRadius: 'var(--radius-control)',
+            color: 'var(--color-text)',
+          }}
+          className="px-4 py-2 border text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer hover:bg-[var(--color-track)]"
         >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back to Sourced Plants</span>
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Back to sourced plants</span>
         </button>
 
         <button
           type="button"
           onClick={onNext}
-          className="px-8 py-3.5 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white dark:bg-cyan-500 dark:hover:bg-cyan-400 dark:text-stone-950 text-sm font-bold tracking-wide transition-all shadow-md hover:shadow-lg flex items-center gap-2 cursor-pointer"
+          style={{
+            backgroundColor: 'var(--color-accent)',
+            borderRadius: 'var(--radius-control)',
+            color: '#ffffff',
+          }}
+          className="px-6 py-2.5 text-xs font-semibold transition-all shadow-xs flex items-center gap-2 cursor-pointer hover:opacity-90"
         >
-          <span>Review Final Deal Summary</span>
-          <ArrowRight className="w-4 h-4" />
+          <span>Review final deal summary</span>
+          <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
     </div>

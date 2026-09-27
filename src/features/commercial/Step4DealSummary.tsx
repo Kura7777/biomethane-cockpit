@@ -131,30 +131,59 @@ Date: ${dateStr}
   };
 
   return (
-    <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <div className="max-w-5xl mx-auto py-6 px-4">
       {/* Step Header */}
-      <div className="text-center mb-6">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-300 text-xs font-semibold mb-3">
-          <CheckCircle2 className="w-4 h-4" />
-          Step 4 of 4: Commercial Deal Structured
+      <div className="mb-5">
+        <div
+          style={{
+            borderRadius: 'var(--radius-control)',
+            backgroundColor: 'var(--color-status-pass-bg)',
+            borderColor: 'var(--color-status-pass-border)',
+            color: 'var(--color-status-pass-ink)',
+          }}
+          className="inline-flex items-center gap-2 px-3 py-1 border text-xs font-medium mb-2.5"
+        >
+          <CheckCircle2 className="w-3.5 h-3.5" />
+          Step 4 of 4: Commercial deal structured
         </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-zinc-100 mb-2.5">
-          Finalized Transaction Term Sheet
+        <h1 style={{ color: 'var(--color-text)' }} className="text-xl sm:text-2xl font-semibold mb-1.5">
+          Finalized transaction term sheet
         </h1>
-        <p className="text-base text-slate-600 dark:text-zinc-400 max-w-2xl mx-auto font-normal">
+        <p style={{ color: 'var(--color-muted)' }} className="text-xs sm:text-sm font-normal max-w-2xl">
           Deal economics verified, RED III compliance passed, and mass-balance route locked in.
         </p>
       </div>
 
       {/* Main Container */}
-      <div className="bg-white dark:bg-[#0e1118] border border-slate-200 dark:border-[#1e2433] rounded-2xl overflow-hidden shadow-sm dark:shadow-xl mb-6">
+      <div
+        style={{
+          backgroundColor: 'var(--color-surface)',
+          borderColor: 'var(--color-line)',
+          borderRadius: 'var(--radius-card)',
+        }}
+        className="border overflow-hidden shadow-xs mb-5"
+      >
         {/* Deal Ref & Action Bar */}
-        <div className="p-4 sm:p-5 bg-slate-50 dark:bg-[#08090d] border-b border-slate-200 dark:border-[#1e2433] flex flex-wrap items-center justify-between gap-3">
+        <div
+          style={{
+            backgroundColor: 'var(--color-bg)',
+            borderColor: 'var(--color-line)',
+          }}
+          className="p-3.5 sm:p-4 border-b flex flex-wrap items-center justify-between gap-3"
+        >
           <div className="flex items-center gap-2.5">
-            <span className="text-xs font-bold text-slate-700 dark:text-zinc-300">
-              Reference: <span className="font-mono text-cyan-700 dark:text-cyan-400 font-semibold">{dealRef}</span>
+            <span style={{ color: 'var(--color-muted)' }} className="text-xs font-medium">
+              Reference: <span style={{ color: 'var(--color-text)' }} className="font-mono font-semibold">{dealRef}</span>
             </span>
-            <span className="text-[10px] bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 px-2.5 py-0.5 rounded-md font-semibold">
+            <span
+              style={{
+                borderRadius: 'var(--radius-control)',
+                backgroundColor: 'var(--color-status-pass-bg)',
+                borderColor: 'var(--color-status-pass-border)',
+                color: 'var(--color-status-pass-ink)',
+              }}
+              className="text-[10px] border px-2 py-0.5 font-medium"
+            >
               EXECUTION READY
             </span>
           </div>
@@ -163,128 +192,201 @@ Date: ${dateStr}
             <button
               type="button"
               onClick={handleCopy}
-              className="px-3.5 py-2 rounded-xl bg-white dark:bg-[#0e1118] hover:bg-slate-100 dark:hover:bg-[#141824] border border-slate-200 dark:border-[#2b3347] text-slate-800 dark:text-zinc-200 text-xs font-semibold transition-colors flex items-center gap-2 cursor-pointer shadow-2xs"
+              style={{
+                backgroundColor: 'var(--color-surface)',
+                borderColor: 'var(--color-line)',
+                borderRadius: 'var(--radius-control)',
+                color: 'var(--color-text)',
+              }}
+              className="px-3 py-1.5 border text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer hover:bg-[var(--color-track)]"
             >
-              {copied ? <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-4 h-4 text-slate-400 dark:text-zinc-400" />}
-              <span>{copied ? 'Copied Term Sheet' : 'Copy Term Sheet'}</span>
+              {copied ? <Check className="w-3.5 h-3.5" style={{ color: 'var(--color-status-pass-ink)' }} /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copied ? 'Copied term sheet' : 'Copy term sheet'}</span>
             </button>
           </div>
         </div>
 
         {/* Top Highlight Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-200 dark:divide-stone-800 border-b border-slate-200 dark:border-[#1e2433] bg-slate-50/50 dark:bg-[#08090d]">
-          <div className="p-6">
-            <span className="text-xs text-slate-500 dark:text-zinc-400 uppercase tracking-wider block font-bold">
-              Order Volume &amp; Tenor
+        <div
+          style={{ borderColor: 'var(--color-line)' }}
+          className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-[var(--color-line)] border-b"
+        >
+          <div className="p-4 sm:p-5">
+            <span style={{ color: 'var(--color-muted)' }} className="text-xs font-medium block">
+              Order volume &amp; tenor
             </span>
-            <span className="text-2xl font-bold font-mono text-slate-900 dark:text-zinc-100 block mt-1.5">
+            <span style={{ color: 'var(--color-text)' }} className="text-xl sm:text-2xl font-bold tabular-nums block mt-1">
               {vol.toLocaleString()} MWh
             </span>
-            <span className="text-xs text-cyan-700 dark:text-cyan-400 block mt-0.5 font-medium">
-              {periodLabel} Delivery (2026)
+            <span style={{ color: 'var(--color-muted)' }} className="text-xs block mt-0.5">
+              {periodLabel} delivery (2026)
             </span>
           </div>
 
-          <div className="p-6">
-            <span className="text-xs text-slate-500 dark:text-zinc-400 uppercase tracking-wider block font-bold">
-              Delivered Production Cost
+          <div className="p-4 sm:p-5">
+            <span style={{ color: 'var(--color-muted)' }} className="text-xs font-medium block">
+              Delivered production cost
             </span>
-            <span className="text-2xl font-bold font-mono text-red-600 dark:text-red-300 block mt-1.5">
+            <span style={{ color: 'var(--color-pnl-neg)' }} className="text-xl sm:text-2xl font-bold tabular-nums block mt-1">
               €{totalDeliveredCostEur.toFixed(2)} / MWh
             </span>
-            <span className="text-xs text-slate-500 dark:text-zinc-400 block mt-0.5 font-mono">
+            <span style={{ color: 'var(--color-muted)' }} className="text-xs block mt-0.5 tabular-nums">
               Total: €{Math.round(totalDealCostEur).toLocaleString()}
             </span>
           </div>
 
-          <div className="p-6 bg-emerald-50/70 dark:bg-emerald-950/20">
-            <span className="text-xs text-emerald-700 dark:text-emerald-400 uppercase tracking-wider block font-bold">
-              Total Net Deal Profit
+          {/* Net profit: blue token */}
+          <div
+            style={{
+              backgroundColor: isProfitable ? 'var(--color-status-info-bg)' : 'var(--color-status-fail-bg)',
+            }}
+            className="p-4 sm:p-5"
+          >
+            <span
+              style={{ color: isProfitable ? 'var(--color-pnl-pos)' : 'var(--color-pnl-neg)' }}
+              className="text-xs font-medium block"
+            >
+              Total net deal profit
             </span>
-            <span className="text-3xl font-extrabold font-mono text-emerald-600 dark:text-emerald-300 block mt-1">
+            <span
+              style={{ color: isProfitable ? 'var(--color-pnl-pos)' : 'var(--color-pnl-neg)' }}
+              className="text-2xl sm:text-3xl font-bold tabular-nums block mt-1"
+            >
               {isProfitable ? '+' : ''}€{Math.round(totalDealProfitEur).toLocaleString()}
             </span>
-            <span className="text-xs text-emerald-700 dark:text-emerald-400 block mt-0.5 font-medium">
-              Spread: <strong className="font-mono">€{netMarginEurPerMwh.toFixed(2)} / MWh</strong>
+            <span
+              style={{ color: isProfitable ? 'var(--color-pnl-pos)' : 'var(--color-pnl-neg)' }}
+              className="text-xs block mt-0.5 opacity-90"
+            >
+              Spread: <strong className="tabular-nums">€{netMarginEurPerMwh.toFixed(2)} / MWh</strong>
             </span>
           </div>
         </div>
 
         {/* Details Breakdown */}
-        <div className="p-6 sm:p-8 space-y-6">
+        <div className="p-5 sm:p-6 space-y-5">
           {/* Specifications */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-            <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#08090d] border border-slate-200 dark:border-[#1e2433]">
-              <span className="text-[10px] uppercase text-slate-500 dark:text-zinc-500 font-bold block mb-1">Source Plant</span>
-              <span className="font-bold text-slate-900 dark:text-zinc-200 text-sm block">{opportunity.originPlantName || `${opportunity.originCountry} Facility`}</span>
-              <span className="text-slate-600 dark:text-zinc-400 mt-1 block">Origin: {opportunity.originCountryName} ({opportunity.originCountry})</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div
+              style={{
+                backgroundColor: 'var(--color-bg)',
+                borderColor: 'var(--color-line)',
+                borderRadius: 'var(--radius-control)',
+              }}
+              className="p-3 border"
+            >
+              <span style={{ color: 'var(--color-muted)' }} className="text-[10px] block mb-0.5">Source plant</span>
+              <span style={{ color: 'var(--color-text)' }} className="font-semibold text-xs sm:text-sm block">{opportunity.originPlantName || `${opportunity.originCountry} Facility`}</span>
+              <span style={{ color: 'var(--color-muted)' }} className="mt-0.5 block text-[11px]">Origin: {opportunity.originCountryName} ({opportunity.originCountry})</span>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#08090d] border border-slate-200 dark:border-[#1e2433]">
-              <span className="text-[10px] uppercase text-slate-500 dark:text-zinc-500 font-bold block mb-1">Buyer Market</span>
-              <span className="font-bold text-slate-900 dark:text-zinc-200 text-sm block">{opportunity.targetMarketName}</span>
-              <span className="text-slate-600 dark:text-zinc-400 mt-1 block">Destination: {opportunity.targetCountry}</span>
+            <div
+              style={{
+                backgroundColor: 'var(--color-bg)',
+                borderColor: 'var(--color-line)',
+                borderRadius: 'var(--radius-control)',
+              }}
+              className="p-3 border"
+            >
+              <span style={{ color: 'var(--color-muted)' }} className="text-[10px] block mb-0.5">Buyer market</span>
+              <span style={{ color: 'var(--color-text)' }} className="font-semibold text-xs sm:text-sm block">{opportunity.targetMarketName}</span>
+              <span style={{ color: 'var(--color-muted)' }} className="mt-0.5 block text-[11px]">Destination: {opportunity.targetCountry}</span>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#08090d] border border-slate-200 dark:border-[#1e2433]">
-              <span className="text-[10px] uppercase text-slate-500 dark:text-zinc-500 font-bold block mb-1">Feedstock &amp; Carbon Intensity</span>
-              <span className="font-bold text-slate-900 dark:text-zinc-200 text-sm block">{opportunity.feedstockName}</span>
-              <span className="text-cyan-700 dark:text-cyan-400 mt-1 block font-semibold">CI: {opportunity.carbonIntensity} gCO₂e/MJ (RED III Compliant)</span>
+            <div
+              style={{
+                backgroundColor: 'var(--color-bg)',
+                borderColor: 'var(--color-line)',
+                borderRadius: 'var(--radius-control)',
+              }}
+              className="p-3 border"
+            >
+              <span style={{ color: 'var(--color-muted)' }} className="text-[10px] block mb-0.5">Feedstock &amp; carbon intensity</span>
+              <span style={{ color: 'var(--color-text)' }} className="font-semibold text-xs sm:text-sm block">{opportunity.feedstockName}</span>
+              <span style={{ color: 'var(--color-text)' }} className="mt-0.5 block text-[11px] font-medium">CI: {opportunity.carbonIntensity} gCO₂e/MJ (RED III compliant)</span>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#08090d] border border-slate-200 dark:border-[#1e2433]">
-              <span className="text-[10px] uppercase text-slate-500 dark:text-zinc-500 font-bold block mb-1">Logistics &amp; Chain of Custody</span>
-              <span className="font-bold text-slate-900 dark:text-zinc-200 text-sm block">Pipeline Grid Injection</span>
-              <span className="text-slate-600 dark:text-zinc-400 mt-1 block">Mass Balance via Union Database (UDB)</span>
+            <div
+              style={{
+                backgroundColor: 'var(--color-bg)',
+                borderColor: 'var(--color-line)',
+                borderRadius: 'var(--radius-control)',
+              }}
+              className="p-3 border"
+            >
+              <span style={{ color: 'var(--color-muted)' }} className="text-[10px] block mb-0.5">Logistics &amp; chain of custody</span>
+              <span style={{ color: 'var(--color-text)' }} className="font-semibold text-xs sm:text-sm block">Pipeline grid injection</span>
+              <span style={{ color: 'var(--color-muted)' }} className="mt-0.5 block text-[11px]">Mass balance via Union Database (UDB)</span>
             </div>
           </div>
 
           {/* Pricing Ledger Table */}
-          <div className="rounded-xl border border-slate-200 dark:border-[#1e2433] bg-white dark:bg-[#08090d] overflow-hidden text-xs shadow-2xs">
-            <div className="p-3.5 bg-slate-100 dark:bg-[#0e1118] border-b border-slate-200 dark:border-[#1e2433] font-bold uppercase text-[11px] text-slate-800 dark:text-zinc-300">
-              Complete Accounting Ledger
+          <div
+            style={{
+              backgroundColor: 'var(--color-surface)',
+              borderColor: 'var(--color-line)',
+              borderRadius: 'var(--radius-control)',
+            }}
+            className="border overflow-hidden text-xs shadow-2xs"
+          >
+            <div
+              style={{
+                backgroundColor: 'var(--color-track)',
+                borderColor: 'var(--color-line)',
+                color: 'var(--color-text)',
+              }}
+              className="p-3 border-b font-semibold text-xs"
+            >
+              Complete accounting ledger
             </div>
             <table className="w-full text-left">
-              <tbody className="divide-y divide-slate-200 dark:divide-stone-800/60 text-slate-700 dark:text-zinc-300">
+              <tbody style={{ color: 'var(--color-text)' }} className="divide-y divide-[var(--color-line)]">
                 <tr>
-                  <td className="p-3.5 text-slate-600 dark:text-zinc-400 font-medium">1. Plant Gate Sourcing Cost</td>
-                  <td className="p-3.5 text-right font-semibold font-mono text-slate-900 dark:text-zinc-200">€{plantGateEur.toFixed(2)}/MWh</td>
-                  <td className="p-3.5 text-right font-mono text-slate-600 dark:text-zinc-400">€{Math.round(plantGateEur * vol).toLocaleString()}</td>
-                </tr>
-                <tr>
-                  <td className="p-3.5 text-slate-600 dark:text-zinc-400 font-medium">2. Grid Entry/Exit &amp; Transit Tariffs</td>
-                  <td className="p-3.5 text-right font-semibold font-mono text-amber-600 dark:text-amber-300">€{gridLogisticsEur.toFixed(2)}/MWh</td>
-                  <td className="p-3.5 text-right font-mono text-slate-600 dark:text-zinc-400">€{Math.round(gridLogisticsEur * vol).toLocaleString()}</td>
+                  <td style={{ color: 'var(--color-muted)' }} className="p-3 font-normal">1. Plant gate sourcing cost</td>
+                  <td className="p-3 text-right font-medium tabular-nums">€{plantGateEur.toFixed(2)}/MWh</td>
+                  <td style={{ color: 'var(--color-muted)' }} className="p-3 text-right tabular-nums">€{Math.round(plantGateEur * vol).toLocaleString()}</td>
                 </tr>
                 <tr>
-                  <td className="p-3.5 text-slate-600 dark:text-zinc-400 font-medium">3. Mass Balance &amp; Proof of Sustainability</td>
-                  <td className="p-3.5 text-right font-semibold font-mono text-slate-700 dark:text-zinc-300">€{certificationEur.toFixed(2)}/MWh</td>
-                  <td className="p-3.5 text-right font-mono text-slate-600 dark:text-zinc-400">€{Math.round(certificationEur * vol).toLocaleString()}</td>
-                </tr>
-                <tr className="bg-slate-100/70 dark:bg-[#0e1118] font-semibold text-slate-900 dark:text-zinc-100">
-                  <td className="p-3.5 font-bold">Total Delivered Cost (Debits)</td>
-                  <td className="p-3.5 text-right font-mono text-red-600 dark:text-red-300">€{totalDeliveredCostEur.toFixed(2)}/MWh</td>
-                  <td className="p-3.5 text-right font-mono text-red-600 dark:text-red-300">€{Math.round(totalDealCostEur).toLocaleString()}</td>
+                  <td style={{ color: 'var(--color-muted)' }} className="p-3 font-normal">2. Grid entry/exit &amp; transit tariffs</td>
+                  <td style={{ color: 'var(--color-pnl-neg)' }} className="p-3 text-right font-medium tabular-nums">€{gridLogisticsEur.toFixed(2)}/MWh</td>
+                  <td style={{ color: 'var(--color-muted)' }} className="p-3 text-right tabular-nums">€{Math.round(gridLogisticsEur * vol).toLocaleString()}</td>
                 </tr>
                 <tr>
-                  <td className="p-3.5 text-slate-600 dark:text-zinc-400 font-medium">4. Wholesale Gas Offtake (TTF Index)</td>
-                  <td className="p-3.5 text-right font-semibold font-mono text-slate-900 dark:text-zinc-200">€{gasIndexEur.toFixed(2)}/MWh</td>
-                  <td className="p-3.5 text-right font-mono text-slate-600 dark:text-zinc-400">€{Math.round(gasIndexEur * vol).toLocaleString()}</td>
+                  <td style={{ color: 'var(--color-muted)' }} className="p-3 font-normal">3. Mass balance &amp; proof of sustainability</td>
+                  <td className="p-3 text-right font-medium tabular-nums">€{certificationEur.toFixed(2)}/MWh</td>
+                  <td style={{ color: 'var(--color-muted)' }} className="p-3 text-right tabular-nums">€{Math.round(certificationEur * vol).toLocaleString()}</td>
+                </tr>
+                <tr style={{ backgroundColor: 'var(--color-bg)' }} className="font-semibold">
+                  <td className="p-3">Total delivered cost (debits)</td>
+                  <td style={{ color: 'var(--color-pnl-neg)' }} className="p-3 text-right tabular-nums">€{totalDeliveredCostEur.toFixed(2)}/MWh</td>
+                  <td style={{ color: 'var(--color-pnl-neg)' }} className="p-3 text-right tabular-nums">€{Math.round(totalDealCostEur).toLocaleString()}</td>
                 </tr>
                 <tr>
-                  <td className="p-3.5 text-slate-600 dark:text-zinc-400 font-medium">5. {opportunity.targetMarketName} Certificate Premium</td>
-                  <td className="p-3.5 text-right font-bold font-mono text-cyan-700 dark:text-cyan-300">€{certificateValueEur.toFixed(2)}/MWh</td>
-                  <td className="p-3.5 text-right font-mono text-cyan-700 dark:text-cyan-300">€{Math.round(certificateValueEur * vol).toLocaleString()}</td>
+                  <td style={{ color: 'var(--color-muted)' }} className="p-3 font-normal">4. Wholesale gas offtake (TTF index)</td>
+                  <td className="p-3 text-right font-medium tabular-nums">€{gasIndexEur.toFixed(2)}/MWh</td>
+                  <td style={{ color: 'var(--color-muted)' }} className="p-3 text-right tabular-nums">€{Math.round(gasIndexEur * vol).toLocaleString()}</td>
                 </tr>
-                <tr className="bg-slate-100/70 dark:bg-[#0e1118] font-semibold text-slate-900 dark:text-zinc-100">
-                  <td className="p-3.5 font-bold">Total Realizable Revenue (Credits)</td>
-                  <td className="p-3.5 text-right font-mono text-cyan-700 dark:text-cyan-300">€{totalGrossRevenueEur.toFixed(2)}/MWh</td>
-                  <td className="p-3.5 text-right font-mono text-cyan-700 dark:text-cyan-300">€{Math.round(totalDealRevenueEur).toLocaleString()}</td>
+                <tr>
+                  <td style={{ color: 'var(--color-muted)' }} className="p-3 font-normal">5. {opportunity.targetMarketName} certificate premium</td>
+                  <td style={{ color: 'var(--color-pnl-pos)' }} className="p-3 text-right font-medium tabular-nums">€{certificateValueEur.toFixed(2)}/MWh</td>
+                  <td style={{ color: 'var(--color-pnl-pos)' }} className="p-3 text-right tabular-nums">€{Math.round(certificateValueEur * vol).toLocaleString()}</td>
                 </tr>
-                <tr className="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 font-bold text-sm">
-                  <td className="p-4 pl-4">NET COMMERCIAL DEAL SPREAD</td>
-                  <td className="p-4 text-right font-mono">€{netMarginEurPerMwh.toFixed(2)}/MWh</td>
-                  <td className="p-4 text-right pr-4 font-mono">€{Math.round(totalDealProfitEur).toLocaleString()}</td>
+                <tr style={{ backgroundColor: 'var(--color-bg)' }} className="font-semibold">
+                  <td className="p-3">Total realizable revenue (credits)</td>
+                  <td style={{ color: 'var(--color-text)' }} className="p-3 text-right tabular-nums">€{totalGrossRevenueEur.toFixed(2)}/MWh</td>
+                  <td style={{ color: 'var(--color-text)' }} className="p-3 text-right tabular-nums">€{Math.round(totalDealRevenueEur).toLocaleString()}</td>
+                </tr>
+                {/* Net spread: blue token */}
+                <tr
+                  style={{
+                    backgroundColor: isProfitable ? 'var(--color-status-info-bg)' : 'var(--color-status-fail-bg)',
+                    color: isProfitable ? 'var(--color-pnl-pos)' : 'var(--color-pnl-neg)',
+                  }}
+                  className="font-bold text-xs sm:text-sm"
+                >
+                  <td className="p-3 pl-3">Net commercial deal spread</td>
+                  <td className="p-3 text-right tabular-nums">€{netMarginEurPerMwh.toFixed(2)}/MWh</td>
+                  <td className="p-3 text-right pr-3 tabular-nums">€{Math.round(totalDealProfitEur).toLocaleString()}</td>
                 </tr>
               </tbody>
             </table>
@@ -293,42 +395,68 @@ Date: ${dateStr}
       </div>
 
       {/* Navigation & Reset Actions */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pt-5 border-t border-slate-200 dark:border-[#1e2433]">
+      <div
+        style={{ borderColor: 'var(--color-line)' }}
+        className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t"
+      >
         <button
           type="button"
           onClick={onBack}
-          className="px-5 py-3 rounded-xl bg-white dark:bg-[#0e1118] hover:bg-slate-50 dark:hover:bg-[#141824] border border-slate-200 dark:border-[#2b3347] text-slate-700 dark:text-zinc-300 text-xs font-semibold transition-colors flex items-center gap-2 cursor-pointer"
+          style={{
+            backgroundColor: 'var(--color-surface)',
+            borderColor: 'var(--color-line)',
+            borderRadius: 'var(--radius-control)',
+            color: 'var(--color-text)',
+          }}
+          className="px-4 py-2 border text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer hover:bg-[var(--color-track)]"
         >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back to Route &amp; Costs</span>
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Back to route &amp; costs</span>
         </button>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 flex-wrap">
           <button
             type="button"
             onClick={onReset}
-            className="px-4 py-3 rounded-xl bg-white dark:bg-[#0e1118] hover:bg-slate-50 dark:hover:bg-[#141824] border border-slate-200 dark:border-[#2b3347] text-slate-700 dark:text-zinc-300 text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer shadow-2xs"
+            style={{
+              backgroundColor: 'var(--color-surface)',
+              borderColor: 'var(--color-line)',
+              borderRadius: 'var(--radius-control)',
+              color: 'var(--color-text)',
+            }}
+            className="px-3.5 py-2 border text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs hover:bg-[var(--color-track)]"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            <span>New Order</span>
+            <span>New order</span>
           </button>
 
           <button
             type="button"
             onClick={handleVerifyStatutoryCompliance}
-            className="px-4 py-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 dark:hover:bg-amber-900/40 border border-amber-300 dark:border-amber-700/50 text-amber-800 dark:text-amber-300 text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-2xs"
+            style={{
+              backgroundColor: 'var(--color-track)',
+              borderColor: 'var(--color-line)',
+              borderRadius: 'var(--radius-control)',
+              color: 'var(--color-text)',
+            }}
+            className="px-3.5 py-2 border text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs hover:opacity-80"
             title="Verify statutory compliance and 6-gate clearance before offtake finalization"
           >
-            <Scale className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-            <span>Verify Statutory Compliance</span>
+            <Scale className="w-3.5 h-3.5" />
+            <span>Verify statutory compliance</span>
           </button>
 
           <button
             type="button"
             onClick={handleOpenTradeBuilder}
-            className="px-7 py-3.5 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white dark:bg-cyan-500 dark:hover:bg-cyan-400 dark:text-stone-950 text-sm font-bold tracking-wide transition-all shadow-md hover:shadow-lg flex items-center gap-2 cursor-pointer"
+            style={{
+              backgroundColor: 'var(--color-accent)',
+              borderRadius: 'var(--radius-control)',
+              color: '#ffffff',
+            }}
+            className="px-6 py-2.5 text-xs font-semibold transition-all shadow-xs hover:opacity-90 flex items-center gap-2 cursor-pointer"
           >
-            <Zap className="w-4 h-4 fill-white dark:fill-stone-950" />
+            <Zap className="w-3.5 h-3.5" />
             <span>Open in Trade Builder</span>
           </button>
         </div>

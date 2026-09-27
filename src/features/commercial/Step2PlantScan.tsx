@@ -122,33 +122,51 @@ export function Step2PlantScan({
   };
 
   return (
-    <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <div className="max-w-5xl mx-auto py-6 px-4">
       {/* Step Header */}
-      <div className="text-center mb-6">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-50 dark:bg-cyan-950/40 border border-cyan-300 dark:border-cyan-500/40 text-cyan-700 dark:text-cyan-300 text-xs font-semibold mb-3">
-          Step 2 of 4: Physical Supply Origination
+      <div className="mb-5">
+        <div
+          style={{
+            borderRadius: 'var(--radius-control)',
+            backgroundColor: 'var(--color-track)',
+            borderColor: 'var(--color-line)',
+            color: 'var(--color-text)',
+          }}
+          className="inline-flex items-center gap-2 px-3 py-1 border text-xs font-medium mb-2.5"
+        >
+          <span style={{ backgroundColor: 'var(--color-accent)' }} className="w-2 h-2 rounded-full" />
+          Step 2 of 4: Physical supply origination
         </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-zinc-100 mb-2.5">
-          Select Source Biomethane Facility
+        <h1 style={{ color: 'var(--color-text)' }} className="text-xl sm:text-2xl font-semibold mb-1.5">
+          Select source biomethane facility
         </h1>
-        <p className="text-base text-slate-600 dark:text-zinc-400 max-w-2xl mx-auto font-normal">
+        <p style={{ color: 'var(--color-muted)' }} className="text-xs sm:text-sm font-normal max-w-2xl">
           Scanned 1,975+ European plants. Filter by origin country, inspect verified capacity and gate prices, and select a production asset:
         </p>
       </div>
 
       {/* Country Filter Bar */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-4 no-scrollbar">
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-3.5 no-scrollbar">
         <button
           type="button"
           onClick={() => setSelectedCountry('ALL')}
-          className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
-            selectedCountry === 'ALL'
-              ? 'bg-cyan-600 text-white dark:bg-cyan-500 dark:text-stone-950 shadow-xs font-bold'
-              : 'bg-white dark:bg-[#0e1118] text-slate-700 dark:text-zinc-400 border border-slate-200 dark:border-[#1e2433] hover:border-slate-300 dark:hover:border-[#2b3347] hover:text-slate-900 dark:hover:text-zinc-200'
-          }`}
+          style={{
+            borderRadius: 'var(--radius-control)',
+            backgroundColor: selectedCountry === 'ALL' ? 'var(--color-text)' : 'var(--color-surface)',
+            color: selectedCountry === 'ALL' ? 'var(--color-bg)' : 'var(--color-text)',
+            borderColor: 'var(--color-line)',
+          }}
+          className="px-3 py-1.5 border text-xs font-medium transition-all shrink-0 cursor-pointer flex items-center gap-1.5 shadow-2xs"
         >
-          <span>All Origins</span>
-          <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${selectedCountry === 'ALL' ? 'bg-white/20 dark:bg-black/20 text-white dark:text-stone-950' : 'bg-slate-100 dark:bg-[#141824] text-slate-600 dark:text-zinc-400'}`}>
+          <span>All origins</span>
+          <span
+            style={{
+              borderRadius: 'var(--radius-control)',
+              backgroundColor: selectedCountry === 'ALL' ? 'rgba(255,255,255,0.2)' : 'var(--color-track)',
+              color: selectedCountry === 'ALL' ? 'inherit' : 'var(--color-muted)',
+            }}
+            className="px-1.5 py-0.5 text-[10px] font-semibold tabular-nums"
+          >
             {opportunities.length}
           </span>
         </button>
@@ -158,14 +176,23 @@ export function Step2PlantScan({
             key={c.code}
             type="button"
             onClick={() => setSelectedCountry(c.code)}
-            className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
-              selectedCountry === c.code
-                ? 'bg-cyan-600 text-white dark:bg-cyan-500 dark:text-stone-950 shadow-xs font-bold'
-                : 'bg-white dark:bg-[#0e1118] text-slate-700 dark:text-zinc-400 border border-slate-200 dark:border-[#1e2433] hover:border-slate-300 dark:hover:border-[#2b3347] hover:text-slate-900 dark:hover:text-zinc-200'
-            }`}
+            style={{
+              borderRadius: 'var(--radius-control)',
+              backgroundColor: selectedCountry === c.code ? 'var(--color-text)' : 'var(--color-surface)',
+              color: selectedCountry === c.code ? 'var(--color-bg)' : 'var(--color-text)',
+              borderColor: 'var(--color-line)',
+            }}
+            className="px-3 py-1.5 border text-xs font-medium transition-all shrink-0 cursor-pointer flex items-center gap-1.5 shadow-2xs"
           >
             <span>{c.flag} {c.code}</span>
-            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${selectedCountry === c.code ? 'bg-white/20 dark:bg-black/20 text-white dark:text-stone-950' : 'bg-slate-100 dark:bg-[#141824] text-slate-600 dark:text-zinc-400'}`}>
+            <span
+              style={{
+                borderRadius: 'var(--radius-control)',
+                backgroundColor: selectedCountry === c.code ? 'rgba(255,255,255,0.2)' : 'var(--color-track)',
+                color: selectedCountry === c.code ? 'inherit' : 'var(--color-muted)',
+              }}
+              className="px-1.5 py-0.5 text-[10px] font-semibold tabular-nums"
+            >
               {c.count}
             </span>
           </button>
@@ -173,54 +200,91 @@ export function Step2PlantScan({
       </div>
 
       {/* Filter and Sort Control Bar */}
-      <div className="bg-white dark:bg-[#0e1118] border border-slate-200 dark:border-[#1e2433] rounded-2xl p-4 mb-4 flex flex-wrap items-center justify-between gap-3 shadow-xs dark:shadow-md">
+      <div
+        style={{
+          backgroundColor: 'var(--color-surface)',
+          borderColor: 'var(--color-line)',
+          borderRadius: 'var(--radius-card)',
+        }}
+        className="border p-3.5 mb-3.5 flex flex-wrap items-center justify-between gap-3 shadow-xs"
+      >
         <div className="flex items-center gap-2">
-          <Building2 className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-zinc-200">
-            {sortedOpps.length} Facilities Available
+          <Building2 className="w-4 h-4" style={{ color: 'var(--color-accent)' }} />
+          <span style={{ color: 'var(--color-text)' }} className="text-xs font-semibold">
+            {sortedOpps.length} facilities available
           </span>
           {selectedCountry !== 'ALL' && (
-            <span className="text-xs bg-cyan-50 dark:bg-cyan-950 text-cyan-700 dark:text-cyan-300 border border-cyan-300 dark:border-cyan-800 px-2 py-0.5 rounded-md font-semibold">
+            <span
+              style={{
+                borderRadius: 'var(--radius-control)',
+                backgroundColor: 'var(--color-track)',
+                borderColor: 'var(--color-line)',
+                color: 'var(--color-text)',
+              }}
+              className="text-xs border px-2 py-0.5 font-medium"
+            >
               Filter: {selectedCountry}
             </span>
           )}
         </div>
 
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-2.5 flex-wrap">
           {/* Search Box */}
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400 dark:text-zinc-500" />
+            <Search className="w-3.5 h-3.5 absolute left-3 top-2.5" style={{ color: 'var(--color-muted)' }} />
             <input
               type="text"
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               placeholder="Search plant, operator, city..."
-              className="bg-slate-50 dark:bg-[#08090d] border border-slate-300 dark:border-[#2b3347] rounded-xl pl-9 pr-3 py-2 text-xs font-medium text-slate-900 dark:text-zinc-200 placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-hidden focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-500 w-56 sm:w-68"
+              style={{
+                backgroundColor: 'var(--color-bg)',
+                borderColor: 'var(--color-line)',
+                borderRadius: 'var(--radius-control)',
+                color: 'var(--color-text)',
+              }}
+              className="border pl-8 pr-3 py-1.5 text-xs font-medium focus:outline-hidden w-52 sm:w-64"
             />
           </div>
 
           {/* Sort Selector */}
-          <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-[#08090d] border border-slate-300 dark:border-[#2b3347] rounded-xl px-3 py-1.5">
-            <ArrowUpDown className="w-3.5 h-3.5 text-slate-500 dark:text-zinc-400" />
+          <div
+            style={{
+              backgroundColor: 'var(--color-bg)',
+              borderColor: 'var(--color-line)',
+              borderRadius: 'var(--radius-control)',
+            }}
+            className="flex items-center gap-1.5 border px-2.5 py-1.5"
+          >
+            <ArrowUpDown className="w-3.5 h-3.5" style={{ color: 'var(--color-muted)' }} />
             <select
               value={sortBy}
               onChange={e => setSortBy(e.target.value as PlantSortOption)}
-              className="bg-transparent text-xs font-medium text-slate-800 dark:text-zinc-300 focus:outline-hidden cursor-pointer"
+              style={{ color: 'var(--color-text)' }}
+              className="bg-transparent text-xs font-medium focus:outline-hidden cursor-pointer"
             >
-              <option value="MARGIN_DESC" className="bg-white dark:bg-[#08090d] text-slate-900 dark:text-zinc-100">Max Deal Margin</option>
-              <option value="PRICE_ASC" className="bg-white dark:bg-[#08090d] text-slate-900 dark:text-zinc-100">Lowest Gate Price</option>
-              <option value="CAPACITY_DESC" className="bg-white dark:bg-[#08090d] text-slate-900 dark:text-zinc-100">Largest Capacity (GWh)</option>
-              <option value="DISTANCE_ASC" className="bg-white dark:bg-[#08090d] text-slate-900 dark:text-zinc-100">Shortest Distance</option>
+              <option value="MARGIN_DESC">Max deal margin</option>
+              <option value="PRICE_ASC">Lowest gate price</option>
+              <option value="CAPACITY_DESC">Largest capacity (GWh)</option>
+              <option value="DISTANCE_ASC">Shortest distance</option>
             </select>
           </div>
         </div>
       </div>
 
       {/* Plant Grid / List */}
-      <div className="space-y-3 mb-6 max-h-[550px] overflow-y-auto pr-1">
+      <div className="space-y-2.5 mb-5 max-h-[550px] overflow-y-auto pr-1">
         {sortedOpps.length === 0 ? (
-          <div className="bg-white dark:bg-[#0e1118] border border-slate-200 dark:border-[#1e2433] rounded-2xl p-10 text-center text-slate-500 dark:text-zinc-500 text-sm">
-            <Building2 className="w-8 h-8 text-slate-400 dark:text-zinc-600 mx-auto mb-2" />
+          <div
+            style={{
+              backgroundColor: 'var(--color-surface)',
+              borderColor: 'var(--color-line)',
+              borderRadius: 'var(--radius-card)',
+              color: 'var(--color-muted)',
+            }}
+            className="border p-8 text-center text-xs"
+          >
+            <Building2 className="w-7 h-7 mx-auto mb-2 opacity-50" />
             No plants matched the current filter. Try selecting another origin country or clearing search.
           </div>
         ) : (
@@ -234,56 +298,80 @@ export function Step2PlantScan({
               <div
                 key={opp.id}
                 onClick={() => onSelectOpp(opp)}
-                className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4 ${
-                  isSelected
-                    ? 'bg-cyan-50/90 dark:bg-cyan-950/40 border-cyan-500 dark:border-cyan-500/60 ring-1 ring-cyan-500/50 shadow-md'
-                    : 'bg-white dark:bg-[#0e1118] border-slate-200 dark:border-[#1e2433] hover:border-slate-300 dark:hover:border-[#2b3347] hover:bg-slate-50 dark:hover:bg-[#141824]'
-                }`}
+                style={{
+                  backgroundColor: isSelected ? 'var(--color-selected-row, rgba(31, 95, 173, 0.08))' : 'var(--color-surface)',
+                  borderColor: isSelected ? 'var(--color-pnl-pos)' : 'var(--color-line)',
+                  borderRadius: 'var(--radius-card)',
+                }}
+                className="p-3.5 border transition-all cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-2xs hover:border-[var(--color-muted)]"
               >
                 {/* Left: Plant Info */}
-                <div className="flex items-start gap-3.5">
-                  <div className="w-11 h-11 rounded-xl bg-slate-100 dark:bg-[#08090d] border border-slate-200 dark:border-[#1e2433] flex items-center justify-center text-2xl shrink-0 shadow-2xs">
+                <div className="flex items-start gap-3">
+                  <div
+                    style={{
+                      borderRadius: 'var(--radius-control)',
+                      backgroundColor: 'var(--color-bg)',
+                      borderColor: 'var(--color-line)',
+                    }}
+                    className="w-10 h-10 border flex items-center justify-center text-xl shrink-0"
+                  >
                     {opp.originFlag || getCountryFlag(opp.originCountry)}
                   </div>
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-bold text-slate-900 dark:text-zinc-100 text-sm">
+                      <h3 style={{ color: 'var(--color-text)' }} className="font-semibold text-xs sm:text-sm">
                         {opp.originPlantName || `${opp.originCountry} Biomethane Facility`}
                       </h3>
                       {opp.isDirectPlantSource && (
-                        <span className="text-[10px] bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-700/60 px-2 py-0.5 rounded-md font-semibold">
-                          VERIFIED ASSET
+                        <span
+                          style={{
+                            borderRadius: 'var(--radius-control)',
+                            backgroundColor: 'var(--color-status-pass-bg)',
+                            borderColor: 'var(--color-status-pass-border)',
+                            color: 'var(--color-status-pass-ink)',
+                          }}
+                          className="text-[10px] border px-1.5 py-0.5 font-medium"
+                        >
+                          Verified asset
                         </span>
                       )}
-                      <span className="inline-flex items-center gap-1 text-[10px] text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800/80 px-2 py-0.5 rounded-md font-semibold">
+                      <span
+                        style={{
+                          borderRadius: 'var(--radius-control)',
+                          backgroundColor: 'var(--color-status-pass-bg)',
+                          borderColor: 'var(--color-status-pass-border)',
+                          color: 'var(--color-status-pass-ink)',
+                        }}
+                        className="inline-flex items-center gap-1 text-[10px] border px-1.5 py-0.5 font-medium"
+                      >
                         <ShieldCheck className="w-3 h-3" />
-                        RED III Pass
+                        RED III pass
                       </span>
                     </div>
 
-                    <div className="text-xs text-slate-600 dark:text-zinc-400 flex items-center gap-2 flex-wrap mt-1">
-                      <span className="text-slate-800 dark:text-zinc-300 font-semibold">{opp.originCountryName} ({opp.originCountry})</span>
-                      <span className="text-slate-400 dark:text-zinc-600">•</span>
-                      <span className="text-slate-700 dark:text-zinc-300">{opp.feedstockName}</span>
-                      <span className="text-slate-400 dark:text-zinc-600">•</span>
-                      <span className="text-cyan-700 dark:text-cyan-400 font-semibold">CI: {opp.carbonIntensity} gCO₂e/MJ</span>
+                    <div style={{ color: 'var(--color-muted)' }} className="text-[11px] flex items-center gap-2 flex-wrap mt-1">
+                      <span style={{ color: 'var(--color-text)' }} className="font-medium">{opp.originCountryName} ({opp.originCountry})</span>
+                      <span>•</span>
+                      <span>{opp.feedstockName}</span>
+                      <span>•</span>
+                      <span style={{ color: 'var(--color-text)' }} className="font-medium">CI: {opp.carbonIntensity} gCO₂e/MJ</span>
                       {opp.plantAnnualGWh ? (
                         <>
-                          <span className="text-slate-400 dark:text-zinc-600">•</span>
-                          <span className="text-amber-600 dark:text-amber-300 font-semibold">{opp.plantAnnualGWh} GWh/yr</span>
+                          <span>•</span>
+                          <span className="font-medium tabular-nums">{opp.plantAnnualGWh} GWh/yr</span>
                         </>
                       ) : null}
                       {opp.logisticsDistanceKm ? (
                         <>
-                          <span className="text-slate-400 dark:text-zinc-600">•</span>
-                          <span className="text-slate-500 dark:text-zinc-400">{Math.round(opp.logisticsDistanceKm)} km transit</span>
+                          <span>•</span>
+                          <span className="tabular-nums">{Math.round(opp.logisticsDistanceKm)} km transit</span>
                         </>
                       ) : null}
                     </div>
 
                     {opp.legalEntityName && (
-                      <div className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
-                        Operator: <span className="text-slate-700 dark:text-zinc-300 font-medium">{opp.legalEntityName}</span>
+                      <div style={{ color: 'var(--color-muted)' }} className="text-[11px] mt-0.5">
+                        Operator: <span style={{ color: 'var(--color-text)' }} className="font-medium">{opp.legalEntityName}</span>
                         {opp.networkOperator ? ` · Grid: ${opp.networkOperator}` : ''}
                       </div>
                     )}
@@ -291,27 +379,33 @@ export function Step2PlantScan({
                 </div>
 
                 {/* Right: Pricing, Trade Builder Shortcut & Select */}
-                <div className="flex items-center gap-4 justify-between md:justify-end border-t md:border-t-0 pt-3 md:pt-0 border-slate-100 dark:border-[#1e2433] shrink-0">
+                <div
+                  style={{ borderColor: 'var(--color-line)' }}
+                  className="flex items-center gap-3.5 justify-between md:justify-end border-t md:border-t-0 pt-2.5 md:pt-0 shrink-0"
+                >
                   {/* Gate Price */}
                   <div className="text-left md:text-right">
-                    <span className="text-[10px] uppercase text-slate-500 dark:text-zinc-400 font-semibold tracking-wider block">
-                      Plant Gate
+                    <span style={{ color: 'var(--color-muted)' }} className="text-[10px] block">
+                      Plant gate
                     </span>
-                    <span className="text-sm font-bold font-mono text-slate-900 dark:text-zinc-100">
+                    <span style={{ color: 'var(--color-text)' }} className="text-xs font-semibold tabular-nums">
                       €{plantGatePrice.toFixed(2)}
                     </span>
-                    <span className="text-[10px] text-slate-500 dark:text-zinc-400 ml-0.5">/MWh</span>
+                    <span style={{ color: 'var(--color-muted)' }} className="text-[10px] ml-0.5">/MWh</span>
                   </div>
 
-                  {/* Estimated Margin */}
+                  {/* Estimated Margin - blue for positive, red for negative */}
                   <div className="text-left md:text-right">
-                    <span className="text-[10px] uppercase text-slate-500 dark:text-zinc-400 font-semibold tracking-wider block">
-                      Est. Spread
+                    <span style={{ color: 'var(--color-muted)' }} className="text-[10px] block">
+                      Est. spread
                     </span>
-                    <span className={`text-sm font-bold font-mono ${isProfitable ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                    <span
+                      style={{ color: isProfitable ? 'var(--color-pnl-pos)' : 'var(--color-pnl-neg)' }}
+                      className="text-xs font-bold tabular-nums"
+                    >
                       {isProfitable ? '+' : ''}€{netMargin.toFixed(2)}
                     </span>
-                    <span className="text-[10px] text-slate-500 dark:text-zinc-400 ml-0.5">/MWh</span>
+                    <span style={{ color: 'var(--color-muted)' }} className="text-[10px] ml-0.5">/MWh</span>
                   </div>
 
                   {/* Quick Direct Trade Action */}
@@ -319,18 +413,28 @@ export function Step2PlantScan({
                     type="button"
                     onClick={(e) => handleQuickTrade(opp, e)}
                     title="Structure immediately in Trade Builder"
-                    className="p-2.5 rounded-xl bg-slate-100 hover:bg-cyan-600 hover:text-white dark:bg-[#08090d] dark:hover:bg-cyan-500 dark:hover:text-stone-950 text-cyan-700 dark:text-cyan-400 border border-cyan-200 dark:border-cyan-500/30 transition-all cursor-pointer hidden sm:flex items-center justify-center"
+                    style={{
+                      borderRadius: 'var(--radius-control)',
+                      backgroundColor: 'var(--color-track)',
+                      borderColor: 'var(--color-line)',
+                      color: 'var(--color-text)',
+                    }}
+                    className="p-2 border transition-all cursor-pointer hidden sm:flex items-center justify-center hover:opacity-80"
                   >
-                    <Zap className="w-4 h-4" />
+                    <Zap className="w-3.5 h-3.5" />
                   </button>
 
                   {/* Radio / Selection Indicator */}
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center border transition-all ${
-                    isSelected
-                      ? 'bg-cyan-600 border-cyan-600 text-white dark:bg-cyan-500 dark:border-teal-400 dark:text-stone-950'
-                      : 'border-slate-300 dark:border-[#2b3347] bg-slate-50 dark:bg-[#08090d]'
-                  }`}>
-                    {isSelected && <Check className="w-4 h-4 stroke-[3]" />}
+                  <div
+                    style={{
+                      borderRadius: '50%',
+                      backgroundColor: isSelected ? 'var(--color-pnl-pos)' : 'var(--color-bg)',
+                      borderColor: isSelected ? 'var(--color-pnl-pos)' : 'var(--color-line)',
+                      color: '#ffffff',
+                    }}
+                    className="w-6 h-6 flex items-center justify-center border transition-all"
+                  >
+                    {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                   </div>
                 </div>
               </div>
@@ -340,28 +444,39 @@ export function Step2PlantScan({
       </div>
 
       {/* Navigation Buttons */}
-      <div className="flex items-center justify-between pt-5 border-t border-slate-200 dark:border-[#1e2433]">
+      <div
+        style={{ borderColor: 'var(--color-line)' }}
+        className="flex items-center justify-between pt-4 border-t"
+      >
         <button
           type="button"
           onClick={onBack}
-          className="px-5 py-3 rounded-xl bg-white dark:bg-[#0e1118] hover:bg-slate-50 dark:hover:bg-[#141824] border border-slate-200 dark:border-[#2b3347] text-slate-700 dark:text-zinc-300 text-xs font-semibold transition-colors flex items-center gap-2 cursor-pointer"
+          style={{
+            backgroundColor: 'var(--color-surface)',
+            borderColor: 'var(--color-line)',
+            borderRadius: 'var(--radius-control)',
+            color: 'var(--color-text)',
+          }}
+          className="px-4 py-2 border text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer hover:bg-[var(--color-track)]"
         >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Edit Order</span>
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Edit order</span>
         </button>
 
         <button
           type="button"
           disabled={!selectedOpp}
           onClick={onNext}
-          className={`px-8 py-3.5 rounded-xl text-sm font-bold tracking-wide transition-all shadow-md flex items-center gap-2 ${
-            selectedOpp
-              ? 'bg-cyan-600 hover:bg-cyan-700 text-white dark:bg-cyan-500 dark:hover:bg-cyan-400 dark:text-stone-950 cursor-pointer hover:shadow-lg'
-              : 'bg-slate-200 dark:bg-[#141824] text-slate-400 dark:text-zinc-500 cursor-not-allowed'
-          }`}
+          style={{
+            backgroundColor: selectedOpp ? 'var(--color-accent)' : 'var(--color-track)',
+            borderRadius: 'var(--radius-control)',
+            color: selectedOpp ? '#ffffff' : 'var(--color-muted)',
+            cursor: selectedOpp ? 'pointer' : 'not-allowed',
+          }}
+          className="px-6 py-2.5 text-xs font-semibold transition-all shadow-xs flex items-center gap-2 hover:opacity-90"
         >
-          <span>Plan Route &amp; Calculate Costs</span>
-          <ArrowRight className="w-4 h-4" />
+          <span>Plan route &amp; calculate costs</span>
+          <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
     </div>
