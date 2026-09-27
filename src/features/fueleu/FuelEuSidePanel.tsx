@@ -111,8 +111,8 @@ export function FuelEuSidePanel({ row, onClose, onBuildTermSheet, onAddToPool }:
       <div className="fe-aside-section">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
           <div>
-            <div style={{ fontSize: '16px', fontWeight: 600 }}>{name}</div>
-            <div style={{ color: 'var(--fe-muted)', fontSize: '12px', marginTop: '4px' }}>{meta}</div>
+            <div className="fe-panel-title" style={name.length > 40 ? { fontSize: '18px' } : undefined}>{name}</div>
+            <div className="fe-panel-meta" style={{ marginTop: '4px' }}>{meta}</div>
           </div>
           <button type="button" aria-label="Close panel" onClick={onClose} className="fe-icon-btn fe-icon-btn-sm">
             <X size={14} />
@@ -120,18 +120,18 @@ export function FuelEuSidePanel({ row, onClose, onBuildTermSheet, onAddToPool }:
         </div>
         <div className="fe-aside-stats">
           <div>
-            <div style={{ color: 'var(--fe-muted)', fontSize: '12px' }}>2026 balance</div>
-            <div className="num" style={{ fontSize: '15px', fontWeight: 500, color: isSurplus ? 'var(--fe-surplus)' : 'var(--fe-deficit)' }}>
+            <div className="fe-panel-stat-label">2026 balance</div>
+            <div className="fe-panel-stat-value num" style={{ color: isSurplus ? 'var(--fe-surplus)' : 'var(--fe-deficit)' }}>
               {isSurplus ? '+' : '−'}{(Math.abs(balanceTco2e) / 1000).toFixed(1)} kt
             </div>
           </div>
           <div>
-            <div style={{ color: 'var(--fe-muted)', fontSize: '12px' }}>Penalty</div>
-            <div className="num" style={{ fontSize: '15px', fontWeight: 500 }}>€{(penaltyEur / 1e6).toFixed(1)}M</div>
+            <div className="fe-panel-stat-label">Penalty</div>
+            <div className="fe-panel-stat-value num">€{(penaltyEur / 1e6).toFixed(1)}M</div>
           </div>
           <div>
-            <div style={{ color: 'var(--fe-muted)', fontSize: '12px' }}>{isSurplus ? 'Surplus value' : 'Pool cost'}</div>
-            <div className="num" style={{ fontSize: '15px', fontWeight: 500 }}>
+            <div className="fe-panel-stat-label">{isSurplus ? 'Surplus value' : 'Pool cost'}</div>
+            <div className="fe-panel-stat-value num">
               €{((isSurplus ? surplusValueEur : poolCostEur) / 1e6).toFixed(1)}M
             </div>
           </div>
@@ -140,13 +140,13 @@ export function FuelEuSidePanel({ row, onClose, onBuildTermSheet, onAddToPool }:
 
       <div className="fe-aside-body">
         <div className="fe-aside-section">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ fontWeight: 500 }}>Do-nothing penalty path</div>
-            <div className="fe-seg" role="group" aria-label="2025 compliance assumption" style={{ height: '26px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+            <div className="fe-panel-section-heading">Do-nothing penalty path</div>
+            <div className="fe-seg" role="group" aria-label="2025 compliance assumption" style={{ height: '28px' }}>
               <button
                 type="button"
                 className={assume2025NonCompliant ? 'active' : ''}
-                style={{ padding: '0 8px', fontSize: '12px' }}
+                style={{ padding: '0 10px', fontSize: 'var(--fe-fs-caption)' }}
                 onClick={() => setAssume2025NonCompliant(true)}
                 title="Treat 2025 as the ship's first non-compliant reporting period"
               >
@@ -155,7 +155,7 @@ export function FuelEuSidePanel({ row, onClose, onBuildTermSheet, onAddToPool }:
               <button
                 type="button"
                 className={!assume2025NonCompliant ? 'active' : ''}
-                style={{ padding: '0 8px', fontSize: '12px' }}
+                style={{ padding: '0 10px', fontSize: 'var(--fe-fs-caption)' }}
                 onClick={() => setAssume2025NonCompliant(false)}
                 title="Treat 2025 as settled/compliant"
               >
@@ -163,39 +163,41 @@ export function FuelEuSidePanel({ row, onClose, onBuildTermSheet, onAddToPool }:
               </button>
             </div>
           </div>
-          <FuelEuProjectionChart groupPoints={groupPoints} multiplierSeries={multiplierSeries} title="" width={380} height={150} variant="panel" />
+          {/* Chart scales with the panel's own width — viewBox 400x200 (2:1) at width:100%, CSS
+           *  aspect-ratio keeps its rendered height ~half the panel's inner width, clamped 200-300px. */}
+          <FuelEuProjectionChart groupPoints={groupPoints} multiplierSeries={multiplierSeries} title="" width={400} height={200} variant="panel" />
         </div>
 
         <div className="fe-aside-section">
-          <div style={{ fontWeight: 500 }}>DoC holders</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '160px', overflowY: 'auto' }}>
+          <div className="fe-panel-section-heading">DoC holders</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '200px', overflowY: 'auto' }}>
             {docHolders.map(m => (
-              <div key={m.company_imo} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+              <div key={m.company_imo} className="fe-panel-row" style={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.parent_name}</span>
-                <span className="num" style={{ color: 'var(--fe-muted)' }}>{m.vessels_in_scope} vessels</span>
+                <span className="num" style={{ color: 'var(--fe-muted)', flexShrink: 0 }}>{m.vessels_in_scope} vessels</span>
               </div>
             ))}
           </div>
         </div>
 
         <div className="fe-aside-section" style={{ flexGrow: 1 }}>
-          <div style={{ fontWeight: 500 }}>Contacts</div>
+          <div className="fe-panel-section-heading">Contacts</div>
           {group.contacts.length === 0 ? (
-            <div style={{ color: 'var(--fe-muted)', fontSize: '12px', lineHeight: 1.5 }}>No verified contact on file.</div>
+            <div className="fe-panel-row" style={{ color: 'var(--fe-muted)', lineHeight: 1.5 }}>No verified contact on file.</div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {group.contacts.map((c, i) => (
-                <div key={i} style={{ fontSize: '12px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px' }}>
+                <div key={i} className="fe-panel-row" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
                     <span style={{ fontWeight: 500 }}>{c.name || c.kind}</span>
-                    <a href={c.sourceUrl} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: 'var(--fe-accent)' }}>
+                    <a href={c.sourceUrl} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: 'var(--fe-accent)', fontSize: 'var(--fe-fs-caption)', flexShrink: 0 }}>
                       <ExternalLink size={10} /> source
                     </a>
                   </div>
-                  {c.role && <div style={{ color: 'var(--fe-muted)', fontSize: '11px' }}>{c.role}</div>}
+                  {c.role && <div style={{ color: 'var(--fe-muted)', fontSize: 'var(--fe-fs-caption)' }}>{c.role}</div>}
                   {c.email && <div>{c.email}</div>}
                   {c.phone && <div>{c.phone}</div>}
-                  <div style={{ color: 'var(--fe-muted)', fontSize: '10.5px', marginTop: '2px' }}>checked {c.checkedAt}</div>
+                  <div style={{ color: 'var(--fe-muted)', fontSize: 'var(--fe-fs-caption)' }}>checked {c.checkedAt}</div>
                 </div>
               ))}
             </div>

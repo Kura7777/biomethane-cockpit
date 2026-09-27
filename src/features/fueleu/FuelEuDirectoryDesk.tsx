@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Search, ArrowUp, ArrowDown, ArrowUpDown, Download } from 'lucide-react';
+import { Search, ArrowUp, ArrowDown, ArrowUpDown, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { FUEL_EU_SHIPPING_GROUPS, FuelEuShippingGroup } from '../../domain/fueleu/groups';
 import { FUEL_EU_SHIPPING_COUNTERPARTIES } from '../../domain/fueleu/shippingTargetsData';
 import { ShippingCounterparty, GroupEntityType } from '../../domain/fueleu/types';
@@ -16,6 +16,9 @@ interface NormalizedRow {
   key: string;
   name: string;
   meta: string;
+  /** "· N entities" — split from `meta` so it can be dropped at narrow widths (CSS) instead of
+   *  letting the whole meta line ellipsis mid-word. Only set for group rows. */
+  metaCount?: string;
   vessels: number;
   co2Tco2e: number;
   balanceTco2e: number;
@@ -120,7 +123,8 @@ export function FuelEuDirectoryDesk({
         return {
           key: `group:${g.id}`,
           name: g.name,
-          meta: `${entityTypeLabel(g.entityType)} · ${dominantSegment(members).replace(/ ship$/i, '')} · ${g.memberCompanyCount} entities`,
+          meta: `${entityTypeLabel(g.entityType)} · ${dominantSegment(members).replace(/ ship$/i, '')}`,
+          metaCount: `· ${g.memberCompanyCount} entities`,
           vessels: g.vessels,
           co2Tco2e: g.inScopeCo2Tco2e,
           balanceTco2e: g.sumOfCompanyBalances2026,
@@ -254,7 +258,7 @@ export function FuelEuDirectoryDesk({
     const escapeVal = (v: string) => `"${v.replace(/"/g, '""')}"`;
     const rows = sortedRows.map(r => [
       escapeVal(r.name),
-      escapeVal(r.meta),
+      escapeVal(r.meta + (r.metaCount ? ` ${r.metaCount}` : '')),
       r.vessels,
       Math.round(r.co2Tco2e),
       Math.round(r.balanceTco2e),
@@ -293,7 +297,8 @@ export function FuelEuDirectoryDesk({
 
   return (
     <div className="fe-body">
-      <section className="fe-main">
+      <div className="fe-directory-grid">
+      <div className="fe-table-col">
         <div className="fe-toolbar">
           <label className="fe-search">
             <Search size={14} />
@@ -391,7 +396,7 @@ export function FuelEuDirectoryDesk({
         </div>
 
         <div className="fe-table-wrap">
-          <div className="fe-thead-row" style={{ gridTemplateColumns: '2.2fr 0.7fr 1fr 1.7fr 1fr 1fr 1fr' }}>
+          <div className="fe-thead-row fe-table-cols">
             <div>
               <button type="button" onClick={() => handleSort('name')}>
                 <span>{viewMode === 'GROUPS' ? 'Group' : 'Company'}</span> {sortIcon('name')}
@@ -429,12 +434,12 @@ export function FuelEuDirectoryDesk({
             </div>
           </div>
 
-          <div className="fe-tbody" role="listbox" aria-label={`${viewMode === 'GROUPS' ? 'Group' : 'Company'} directory`}>
+          <div role="listbox" aria-label={`${viewMode === 'GROUPS' ? 'Group' : 'Company'} directory`}>
             {pageRows.length === 0 ? (
               <div style={{ padding: '36px 16px', textAlign: 'center', color: 'var(--fe-muted)' }}>No rows match the current search &amp; filters.</div>
             ) : (
               pageRows.map(r => {
-                const barWidth = scaleDivergingBarWidth(r.balanceTco2e, pageMaxMagnitude, 52);
+                const barWidth = scaleDivergingBarWidth(r.balanceTco2e, pageMaxMagnitude, 72);
                 const isSelected = r.key === selectedKey;
                 return (
                   <button
@@ -442,13 +447,15 @@ export function FuelEuDirectoryDesk({
                     type="button"
                     role="option"
                     aria-selected={isSelected}
-                    className={`fe-row ${isSelected ? 'selected' : ''}`}
-                    style={{ gridTemplateColumns: '2.2fr 0.7fr 1fr 1.7fr 1fr 1fr 1fr', display: 'grid' }}
+                    className={`fe-row fe-table-cols ${isSelected ? 'selected' : ''}`}
                     onClick={() => setSelectedKey(r.key)}
                   >
                     <div style={{ minWidth: 0 }}>
                       <div className="fe-row-name">{r.name}</div>
-                      <div className="fe-row-meta">{r.meta}</div>
+                      <div className="fe-row-meta">
+                        {r.meta}
+                        {r.metaCount && <span className="fe-row-meta-count"> {r.metaCount}</span>}
+                      </div>
                     </div>
                     <div className="num" style={{ textAlign: 'right' }}>{r.vessels.toLocaleString()}</div>
                     <div className="num" style={{ textAlign: 'right' }}>{Math.round(r.co2Tco2e / 1000).toLocaleString()}</div>
@@ -486,23 +493,24 @@ export function FuelEuDirectoryDesk({
           <div className="fe-tfoot">
             <span className="num">
               {pageRows.length} of {sortedRows.length.toLocaleString()} {viewMode.toLowerCase()} · sorted by {sortLabel[sortField]}
-              {totalPages > 1 && ` · page ${validPage}/${totalPages}`}
             </span>
-            <span>Penalty: Annex IV, first year · Pool cost at €{offer.toFixed(2)} offer · indicative</span>
+            <div className="fe-tfoot-right">
+              <span>Penalty: Annex IV, first year · Pool cost at €{offer.toFixed(2)} offer · indicative</span>
+              {totalPages > 1 && (
+                <nav className="fe-pagination" aria-label="Table pages">
+                  <button type="button" aria-label="Previous page" disabled={validPage <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>
+                    <ChevronLeft size={14} />
+                  </button>
+                  <span className="fe-pagination-label num">{validPage} / {totalPages}</span>
+                  <button type="button" aria-label="Next page" disabled={validPage >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}>
+                    <ChevronRight size={14} />
+                  </button>
+                </nav>
+              )}
+            </div>
           </div>
         </div>
-
-        {totalPages > 1 && (
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', paddingTop: '8px' }}>
-            <button type="button" className="fe-toggle-btn" disabled={validPage <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>
-              Prev
-            </button>
-            <button type="button" className="fe-toggle-btn" disabled={validPage >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}>
-              Next
-            </button>
-          </div>
-        )}
-      </section>
+      </div>
 
       {selectedRow && (
         <FuelEuSidePanel
@@ -512,6 +520,7 @@ export function FuelEuDirectoryDesk({
           onAddToPool={onAddToPool}
         />
       )}
+      </div>
     </div>
   );
 }

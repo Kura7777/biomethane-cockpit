@@ -150,7 +150,11 @@ export function FuelEuProjectionChart({ fleetInput, groupPoints, multiplierSerie
         aria-label={ariaLabel}
         width="100%"
         viewBox={`0 0 ${width} ${height}`}
-        style={{ display: 'block', maxWidth: `${width}px` }}
+        style={
+          isPanel
+            ? { display: 'block', width: '100%', aspectRatio: `${width} / ${height}`, minHeight: '200px', maxHeight: '300px' }
+            : { display: 'block', maxWidth: `${width}px` }
+        }
       >
         {isPanel ? (
           <>
@@ -158,10 +162,10 @@ export function FuelEuProjectionChart({ fleetInput, groupPoints, multiplierSerie
             <line x1={margin.left} y1={margin.top + innerH} x2={margin.left + innerW} y2={margin.top + innerH} stroke="var(--color-divider)" strokeWidth={1} />
             <line x1={margin.left} y1={yPenaltyScale(scaleTop / 2)} x2={margin.left + innerW} y2={yPenaltyScale(scaleTop / 2)} stroke="var(--color-divider)" strokeDasharray="2,4" />
             <line x1={margin.left} y1={yPenaltyScale(scaleTop)} x2={margin.left + innerW} y2={yPenaltyScale(scaleTop)} stroke="var(--color-divider)" strokeDasharray="2,4" />
-            <text x={margin.left} y={yPenaltyScale(scaleTop / 2) - 3} textAnchor="start" fontSize="9.5" fill="var(--color-muted)">
+            <text x={margin.left} y={yPenaltyScale(scaleTop / 2) - 3} textAnchor="start" fontSize="12" fill="var(--color-muted)">
               {formatCompactEur(scaleTop / 2)}
             </text>
-            <text x={margin.left} y={yPenaltyScale(scaleTop) - 3} textAnchor="start" fontSize="9.5" fill="var(--color-muted)">
+            <text x={margin.left} y={yPenaltyScale(scaleTop) - 3} textAnchor="start" fontSize="12" fill="var(--color-muted)">
               {formatCompactEur(scaleTop)}
             </text>
 
@@ -169,34 +173,46 @@ export function FuelEuProjectionChart({ fleetInput, groupPoints, multiplierSerie
             <path d={areaPath} fill="var(--color-status-neg-bg, rgba(220,38,38,0.12))" stroke="none" />
             <path d={linePath} fill="none" stroke="var(--color-status-neg-text)" strokeWidth={2} strokeLinejoin="round" />
 
+            {/* Single subtle dashed separator where the x-axis stops being consecutive years
+             *  (2029→2030) — signals the non-linear axis without the busy double-diagonal glyphs
+             *  the old design had at every gap. */}
+            {points.length > 4 && (
+              <line
+                x1={(xPositions[3] + xPositions[4]) / 2}
+                x2={(xPositions[3] + xPositions[4]) / 2}
+                y1={margin.top}
+                y2={margin.top + innerH}
+                stroke="var(--color-divider)"
+                strokeDasharray="2,3"
+              />
+            )}
+
             {points.map((p, i) => {
               const isLast = i === points.length - 1;
               const seriesMultiplier = multiplierSeries?.find(sp => sp.year === p.year)?.multiplier;
               const mult = 'multiplier' in p ? (p as StaticFleetProjectionPoint).multiplier : seriesMultiplier;
               const tooltip = `${p.year}: penalty €${Math.round(p.penaltyEur).toLocaleString()} · balance ${Math.round(p.complianceBalanceTco2e).toLocaleString()} tCO2e${mult !== undefined ? ` · Art. 23(2) multiplier ×${mult.toFixed(2)}` : ''}`;
+              // Keep the end-value label at least 8px clear of the top gridline's label so the two
+              // never collide when the last point sits close to the scale's top.
+              const topGridlineLabelY = yPenaltyScale(scaleTop) - 3;
+              const peakLabelY = Math.max(penaltyPoints[i].y - 8, topGridlineLabelY + 8);
               return (
                 <g key={p.year}>
                   <title>{tooltip}</title>
                   <circle cx={xPositions[i]} cy={penaltyPoints[i].y} r={isLast ? 3.8 : 3.2} fill="var(--color-status-neg-text)" />
                   {isLast && (
-                    <text x={xPositions[i] - 8} y={penaltyPoints[i].y - 8} textAnchor="end" fontSize="11" fontWeight={600} fill="var(--color-text)">
+                    <text x={xPositions[i] - 8} y={peakLabelY} textAnchor="end" fontSize="13" fontWeight={600} fill="var(--color-text)">
                       {formatCompactEur(p.penaltyEur)}
                     </text>
                   )}
                   {mult !== undefined && mult > 0 && p.year === 2030 && (
-                    <text x={xPositions[i]} y={penaltyPoints[i].y - 10} textAnchor="middle" fontSize="9.5" fill="var(--color-muted)">
+                    <text x={xPositions[i]} y={penaltyPoints[i].y - 10} textAnchor="middle" fontSize="12" fill="var(--color-muted)">
                       ×{mult.toFixed(1)}
                     </text>
                   )}
-                  <text x={xPositions[i]} y={margin.top + innerH + 15} textAnchor="middle" fontSize="9.5" fontWeight={700} fill="var(--color-text)">
+                  <text x={xPositions[i]} y={margin.top + innerH + 15} textAnchor="middle" fontSize="12" fontWeight={700} fill="var(--color-text)">
                     {yearTickLabel(p.year, i)}
                   </text>
-                  {GAP_AFTER_INDICES.has(i) && i < points.length - 1 && (
-                    <g transform={`translate(${(xPositions[i] + xPositions[i + 1]) / 2}, ${margin.top + innerH / 2})`}>
-                      <line x1={-4} y1={-8} x2={4} y2={8} stroke="var(--color-muted)" strokeWidth={1.5} />
-                      <line x1={-4} y1={8} x2={4} y2={24} stroke="var(--color-muted)" strokeWidth={1.5} />
-                    </g>
-                  )}
                 </g>
               );
             })}

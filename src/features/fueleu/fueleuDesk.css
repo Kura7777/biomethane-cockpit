@@ -53,14 +53,51 @@
   --font-heading: 'IBM Plex Sans', system-ui, sans-serif;
   --font-heading-weight: 600;
 
+  /* Type scale — one place. Every font-size on this screen should reference one of these. */
+  --fe-fs-caption: 12px;   /* footnotes, captions — minimum anywhere on this screen */
+  --fe-fs-meta: 13px;      /* secondary/meta lines, tabs, pill sub-labels */
+  --fe-fs-base: 14px;      /* body copy, table cells */
+  --fe-fs-kpi-label: 13px;
+  --fe-fs-kpi-value: 28px;
+  --fe-fs-panel-meta: 13px;
+  --fe-fs-panel-title: 20px;
+  --fe-fs-panel-stat-label: 12px;
+  --fe-fs-panel-stat-value: 20px;
+  --fe-fs-section-heading: 14px;
+  --fe-fs-h1: 24px;
+
+  /* Page container: content across header/tabs/KPIs/directory shares this width so their edges
+   * align, even at very wide (2560px+) viewports — see .fe-container. */
+  --fe-page-max-width: 1840px;
+  --fe-page-gutter: 32px;
+  /* Sticky side panel's max-height budget: viewport minus the app shell's 52px header + 28px
+   * footer (the two chrome bars outside this screen — see src/app/Layout.tsx), minus the panel's
+   * own 16px sticky offset top and bottom. Verified in-browser via the scroll screenshot. */
+  --fe-chrome-offset: 112px;
+
   font-family: 'IBM Plex Sans', system-ui, sans-serif;
   background: var(--fe-bg);
   color: var(--fe-ink);
-  font-size: 13px;
+  font-size: var(--fe-fs-base);
+  line-height: 1.45;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  min-height: 0;
+  min-height: 100%;
+  flex-shrink: 0; /* flex item of <main>: grow with content so the background paints the full scroll height */
+}
+
+.fe-container {
+  max-width: var(--fe-page-max-width);
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding-left: var(--fe-page-gutter);
+  padding-right: var(--fe-page-gutter);
+}
+@media (max-width: 1440px) {
+  .fueleu-desk {
+    --fe-page-gutter: 24px;
+  }
 }
 
 html.dark .fueleu-desk {
@@ -101,25 +138,31 @@ html.dark .fueleu-desk {
 }
 
 /* ── Layout shells ─────────────────────────────────────────────────────── */
+/* Header/tabs/KPI row/directory all extend .fe-container so their content edges align down the
+ * page at every viewport width (max-width 1840px, centred, 32px gutters / 24px below 1440px). */
 .fe-header {
+  max-width: var(--fe-page-max-width);
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding: 24px var(--fe-page-gutter) 16px;
   flex-shrink: 0;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  padding: 18px 24px 14px;
   gap: 16px;
   flex-wrap: wrap;
 }
 .fe-h1 {
   margin: 0;
-  font-size: 22px;
+  font-size: var(--fe-fs-h1);
   font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--fe-ink);
 }
 .fe-context {
   color: var(--fe-muted);
-  font-size: 13px;
+  font-size: var(--fe-fs-meta);
   margin-top: 4px;
 }
 .fe-header-actions {
@@ -175,10 +218,14 @@ html.dark .fueleu-desk {
 
 /* Tabs — underline style */
 .fe-tabs {
+  max-width: var(--fe-page-max-width);
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
   flex-shrink: 0;
   display: flex;
   gap: 24px;
-  padding: 0 24px;
+  padding: 0 var(--fe-page-gutter);
   border-bottom: 1px solid var(--fe-line);
 }
 .fe-tab {
@@ -187,7 +234,7 @@ html.dark .fueleu-desk {
   border: none;
   border-bottom: 2px solid transparent;
   font: inherit;
-  font-size: 13px;
+  font-size: var(--fe-fs-base);
   color: var(--fe-muted);
   cursor: pointer;
   display: flex;
@@ -202,48 +249,60 @@ html.dark .fueleu-desk {
 
 /* KPI tiles */
 .fe-kpis {
+  max-width: var(--fe-page-max-width);
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
   flex-shrink: 0;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-  padding: 16px 24px;
+  align-items: stretch;
+  gap: 16px;
+  padding: 24px var(--fe-page-gutter);
 }
 .fe-kpi-card {
-  padding: 14px 16px;
+  padding: 20px;
   border: 1px solid var(--fe-line) !important;
-  border-radius: 10px !important;
+  border-radius: 12px !important;
   background: var(--fe-surface);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
 }
-.fe-kpi-label { color: var(--fe-muted); font-size: 12px; }
-.fe-kpi-value { font-size: 24px; font-weight: 500; letter-spacing: -0.01em; color: var(--fe-ink); }
-.fe-kpi-value .unit { font-size: 14px; color: var(--fe-muted); font-weight: 400; }
-.fe-kpi-sub { color: var(--fe-muted); font-size: 12px; }
+.fe-kpi-label { color: var(--fe-muted); font-size: var(--fe-fs-kpi-label); }
+.fe-kpi-value { font-size: var(--fe-fs-kpi-value); font-weight: 500; letter-spacing: -0.01em; color: var(--fe-ink); }
+.fe-kpi-value .unit { font-size: var(--fe-fs-base); color: var(--fe-muted); font-weight: 400; }
+.fe-kpi-sub { color: var(--fe-muted); font-size: var(--fe-fs-caption); margin-top: auto; }
 .fe-kpi-bar-track {
   height: 6px;
   border-radius: 3px !important;
   background: var(--fe-track);
   display: flex;
+  margin-top: auto;
 }
 .fe-kpi-bar-fill { border-radius: 3px !important; background: var(--fe-surplus); }
 
-/* Main content: table + side panel */
+/* Main content: table + side panel. This screen has exactly ONE scroll region — the app shell's
+ * <main id="main-content"> (see src/app/Layout.tsx) — so nothing here sets its own height/overflow
+ * to create a second (or third) scrollbar; the table's rows flow to their natural height (bounded
+ * by pagination, not a fixed box) and the page just gets taller/scrolls. The side panel opts back
+ * into a small internal scroll for its own body only, via position: sticky (see .fe-aside). */
 .fe-body {
-  flex-grow: 1;
-  min-height: 0;
-  display: flex;
-  padding: 0 0 0 24px;
+  max-width: var(--fe-page-max-width);
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding: 16px var(--fe-page-gutter) 32px;
 }
-.fe-main {
-  flex-grow: 1;
+.fe-directory-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(440px, 30%, 600px);
+  gap: 24px;
+  align-items: start;
+}
+.fe-table-col {
   min-width: 0;
-  display: flex;
-  flex-direction: column;
-  padding-right: 20px;
-  min-height: 0;
 }
 .fe-toolbar {
   display: flex;
@@ -330,25 +389,38 @@ html.dark .fueleu-desk {
   border-color: var(--fe-ink) !important;
 }
 
-/* Table */
+/* Table — fixed/min column tracks (not free fr stretch) so extra width at wide viewports goes to
+ * the Group column, not into dead gaps between columns. Rows flow to their natural height; there
+ * is no inner scroll here (see the comment above .fe-body) — pagination (50/page) bounds the
+ * row count instead. */
+.fe-table-cols {
+  grid-template-columns: minmax(260px, 2.2fr) 88px 120px 220px minmax(110px, 1fr) minmax(110px, 1fr) minmax(110px, 1fr);
+}
+/* Below ~1680px there isn't room for all 7 columns beside a 440px+ sticky panel without either
+ * clipping a column (bad — see the 1440 regression this fixes) or overflowing horizontally. Drop
+ * Pool cost only (it's one tap away in the side panel) and tighten the remaining tracks so the
+ * table never clips or needs its own horizontal scrollbar down to 1440px wide. */
+@media (max-width: 1680px) {
+  .fe-table-cols {
+    grid-template-columns: minmax(200px, 2fr) 72px 96px 190px minmax(96px, 1fr) minmax(96px, 1fr);
+  }
+  .fe-table-cols > :nth-child(6) {
+    display: none;
+  }
+}
 .fe-table-wrap {
   border: 1px solid var(--fe-line) !important;
-  border-radius: 10px !important;
+  border-radius: 12px !important;
   background: var(--fe-surface);
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  flex-grow: 1;
 }
 .fe-thead-row {
   display: grid;
   gap: 16px;
-  padding: 10px 16px;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--fe-line);
   color: var(--fe-muted);
-  font-size: 12px;
-  flex-shrink: 0;
+  font-size: var(--fe-fs-caption);
 }
 .fe-thead-row button {
   background: none;
@@ -362,16 +434,11 @@ html.dark .fueleu-desk {
   padding: 0;
 }
 .fe-thead-row button:hover { color: var(--fe-ink); }
-.fe-tbody {
-  overflow-y: auto;
-  flex-grow: 1;
-  min-height: 0;
-}
 .fe-row {
   display: grid;
   gap: 16px;
   align-items: center;
-  height: 54px;
+  height: 56px;
   padding: 0 16px;
   border-bottom: 1px solid var(--fe-line);
   cursor: pointer;
@@ -382,6 +449,7 @@ html.dark .fueleu-desk {
   border-right: 0;
   border-top: 0;
   font: inherit;
+  font-size: var(--fe-fs-base);
   color: inherit;
 }
 .fe-row:hover { background: var(--fe-track); }
@@ -390,34 +458,77 @@ html.dark .fueleu-desk {
   box-shadow: inset 2px 0 0 var(--fe-ink);
 }
 .fe-row-name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.fe-row-meta { color: var(--fe-muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fe-row-meta { color: var(--fe-muted); font-size: var(--fe-fs-caption); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* The "· N entities" suffix is the first thing to go under 1680px — better to drop it cleanly than
+ * let the whole meta line ellipsis mid-word (e.g. "11 en..."). */
+@media (max-width: 1680px) {
+  .fe-row-meta-count { display: none; }
+}
 .fe-bar-track {
   width: 72px;
   height: 6px;
   border-radius: 3px !important;
   background: var(--fe-track);
   display: flex;
+  flex-shrink: 0;
 }
 .fe-bar-fill { border-radius: 3px !important; }
 .fe-tfoot {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  padding: 10px 16px;
+  padding: 12px 16px;
   color: var(--fe-muted);
-  font-size: 12px;
+  font-size: var(--fe-fs-caption);
   border-top: 1px solid var(--fe-line);
-  flex-shrink: 0;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 16px;
+}
+.fe-tfoot-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.fe-pagination {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.fe-pagination button {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--fe-line) !important;
+  border-radius: 6px !important;
+  background: var(--fe-surface);
+  color: var(--fe-ink);
+  cursor: pointer;
+}
+.fe-pagination button:hover:not(:disabled) { background: var(--fe-track); }
+.fe-pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+.fe-pagination .fe-pagination-label {
+  min-width: 64px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 
-/* Side panel — header stats stay fixed, the middle sections scroll, and the action footer stays
- * pinned at the bottom so Contacts/DoC holders never hide behind it (see .fe-aside-body). */
+/* Side panel — a sticky card that scrolls WITH the page (not a fixed-height flush sidebar): its
+ * top stays aligned with the toolbar's top (grid `align-items: start`) until the page scrolls past
+ * it, then it sticks 16px from the top of the app shell's scroll container (<main id="main-content">
+ * in src/app/Layout.tsx — 52px header + 28px footer outside this screen, hence --fe-chrome-offset).
+ * Its own header stats stay fixed, the middle sections (chart/DoC holders/contacts) scroll in
+ * .fe-aside-body, and the action footer stays pinned at the card's bottom. */
 .fe-aside {
-  width: 420px;
-  flex-shrink: 0;
+  position: sticky;
+  top: 16px;
+  max-height: calc(100vh - var(--fe-chrome-offset));
   box-sizing: border-box;
-  border-left: 1px solid var(--fe-line);
+  border: 1px solid var(--fe-line) !important;
+  border-radius: 12px !important;
   background: var(--fe-surface);
   display: flex;
   flex-direction: column;
@@ -430,22 +541,36 @@ html.dark .fueleu-desk {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
 }
+.fe-aside-body:hover {
+  scrollbar-color: var(--fe-line) transparent;
+}
+.fe-aside-body::-webkit-scrollbar { width: 6px; }
+.fe-aside-body::-webkit-scrollbar-thumb { background: transparent; border-radius: 3px; }
+.fe-aside-body:hover::-webkit-scrollbar-thumb { background: var(--fe-line); }
 .fe-aside-section {
-  padding: 16px 20px;
+  padding: 24px;
   border-bottom: 1px solid var(--fe-line);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   flex-shrink: 0;
 }
 .fe-aside-stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: 24px;
 }
+.fe-panel-title { font-size: var(--fe-fs-panel-title); font-weight: 600; }
+.fe-panel-meta { font-size: var(--fe-fs-panel-meta); color: var(--fe-muted); }
+.fe-panel-stat-label { font-size: var(--fe-fs-panel-stat-label); color: var(--fe-muted); }
+.fe-panel-stat-value { font-size: var(--fe-fs-panel-stat-value); font-weight: 500; }
+.fe-panel-section-heading { font-size: var(--fe-fs-section-heading); font-weight: 600; }
+.fe-panel-row { font-size: var(--fe-fs-base); }
 .fe-aside-footer {
-  padding: 14px 20px;
+  padding: 16px 24px;
   border-top: 1px solid var(--fe-line);
   display: flex;
   gap: 8px;
@@ -506,6 +631,9 @@ html.dark .fueleu-desk {
 .fe-popover a { color: var(--fe-accent); }
 
 @media (max-width: 1100px) {
-  .fe-aside { width: 340px; }
   .fe-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* Below 1100px there isn't room for a 440px+ sticky column beside the table — stack the panel
+   * under the table instead of squeezing the grid. */
+  .fe-directory-grid { grid-template-columns: 1fr; }
+  .fe-aside { position: static; max-height: none; }
 }
