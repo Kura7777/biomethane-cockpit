@@ -23,8 +23,8 @@ export function SettingsScreen() {
         {/* Page Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '16px', borderBottom: '2px solid var(--color-divider)' }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }} className="font-heading">
-              Desk Settings
+            <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 800 }} className="font-heading">
+              Desk settings
             </h1>
             <p style={{ margin: '4px 0 0', fontSize: '12px' }} className="mut">
               Desk trading defaults, pricing side mode, and state import / export.
@@ -34,27 +34,27 @@ export function SettingsScreen() {
             type="button"
             onClick={handleSaveSettings}
             className="btn btn-primary"
-            style={{ fontSize: '12px', padding: '6px 14px' }}
+            style={{ fontSize: '12px', padding: '6px 14px', borderRadius: 'var(--radius-control)' }}
           >
             {saveSuccess ? '✓ Settings Saved' : 'Save Changes'}
           </button>
         </div>
 
         {/* SECTION 2: DESK TRADING DEFAULTS */}
-        <div style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-divider)', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-panel)', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ width: '8px', height: '8px', backgroundColor: '#10b981', flex: 'none' }} />
-            <h2 style={{ margin: 0, fontSize: '14px', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase' }} className="font-heading">
-              Trading Desk Parameters &amp; Defaults
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--color-status-pass-text, #15803d)', flex: 'none' }} />
+            <h2 style={{ margin: 0, fontSize: '14px', fontWeight: 800 }} className="font-heading">
+              Trading desk parameters &amp; defaults
             </h2>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-            <div style={{ backgroundColor: 'var(--color-bg)', border: '1px solid var(--color-divider)', padding: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div style={{ backgroundColor: 'var(--color-bg)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-control)', padding: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <span className="eyebrow">
                 Pricing Side Mode
               </span>
-              <span className="num" style={{ fontSize: '14px', fontWeight: 800, textTransform: 'uppercase', color: 'var(--color-accent-700)', marginTop: '4px' }}>
+              <span className="num" style={{ fontSize: '14px', fontWeight: 800, textTransform: 'uppercase', color: 'var(--color-accent)', marginTop: '4px' }}>
                 {state.marks.pricingSides.certificateSide.toUpperCase()} SIDE
               </span>
               <span style={{ fontSize: '11px' }} className="mut">
@@ -62,7 +62,7 @@ export function SettingsScreen() {
               </span>
             </div>
 
-            <div style={{ backgroundColor: 'var(--color-bg)', border: '1px solid var(--color-divider)', padding: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div style={{ backgroundColor: 'var(--color-bg)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-control)', padding: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <span className="eyebrow">
                 Active Benchmark Origin
               </span>
@@ -74,7 +74,7 @@ export function SettingsScreen() {
               </span>
             </div>
 
-            <div style={{ backgroundColor: 'var(--color-bg)', border: '1px solid var(--color-divider)', padding: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div style={{ backgroundColor: 'var(--color-bg)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-control)', padding: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <span className="eyebrow">
                 Regulatory Framework
               </span>
@@ -89,9 +89,9 @@ export function SettingsScreen() {
         </div>
 
         {/* SECTION 3: SYSTEM DIAGNOSTICS & EXPORTS */}
-        <div style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-divider)', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <h2 style={{ margin: 0, fontSize: '14px', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase' }} className="font-heading">
-            Data Snapshots &amp; Maintenance
+        <div style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-panel)', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <h2 style={{ margin: 0, fontSize: '14px', fontWeight: 800 }} className="font-heading">
+            Data snapshots &amp; maintenance
           </h2>
           
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '8px' }}>

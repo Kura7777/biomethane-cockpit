@@ -52,8 +52,8 @@ export function AssumptionsScreen() {
       <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap', paddingBottom: '14px', borderBottom: '2px solid var(--color-divider)' }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }} className="font-heading">
-              Commercial Assumptions
+            <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 800 }} className="font-heading">
+              Commercial assumptions
             </h1>
             <p style={{ margin: '4px 0 0', fontSize: '12px', maxWidth: '720px' }} className="mut">
               Every commercial judgement the screens rely on, with where it came from. Statutory values and live
@@ -68,19 +68,19 @@ export function AssumptionsScreen() {
               placeholder="Filter…"
               value={query}
               onChange={e => setQuery(e.target.value)}
-              style={{ fontSize: '12px', width: '200px' }}
+              style={{ fontSize: '12px', width: '200px', borderRadius: 'var(--radius-control)' }}
             />
             {confirmReset ? (
               <>
                 <button
                   type="button"
                   className="btn btn-primary"
-                  style={{ fontSize: '12px' }}
+                  style={{ fontSize: '12px', borderRadius: 'var(--radius-control)' }}
                   onClick={() => { resetAllAssumptions(); setConfirmReset(false); }}
                 >
                   Confirm reset {overriddenCount}
                 </button>
-                <button type="button" className="btn btn-secondary" style={{ fontSize: '12px' }} onClick={() => setConfirmReset(false)}>
+                <button type="button" className="btn btn-secondary" style={{ fontSize: '12px', borderRadius: 'var(--radius-control)' }} onClick={() => setConfirmReset(false)}>
                   Cancel
                 </button>
               </>
@@ -88,7 +88,7 @@ export function AssumptionsScreen() {
               <button
                 type="button"
                 className="btn btn-secondary"
-                style={{ fontSize: '12px' }}
+                style={{ fontSize: '12px', borderRadius: 'var(--radius-control)' }}
                 disabled={overriddenCount === 0}
                 onClick={() => setConfirmReset(true)}
               >
@@ -102,9 +102,9 @@ export function AssumptionsScreen() {
           const rows = visible.filter(d => d.category === cat);
           if (rows.length === 0) return null;
           return (
-            <section key={cat} style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-divider)' }}>
+            <section key={cat} style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-panel)', overflow: 'hidden' }}>
               <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-divider)' }}>
-                <h2 style={{ margin: 0, fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                <h2 style={{ margin: 0, fontSize: '13px', fontWeight: 800 }}>
                   {CATEGORY_LABEL[cat].title}
                 </h2>
                 <div className="mut" style={{ fontSize: '11px', marginTop: '2px' }}>{CATEGORY_LABEL[cat].blurb}</div>

@@ -225,7 +225,7 @@ export function DataConnectorsScreen() {
               style={{
                 width: '100%',
                 padding: '12px',
-                borderRadius: '6px',
+                borderRadius: 'var(--radius-control)',
                 border: '1px solid var(--color-divider)',
                 backgroundColor: 'var(--color-bg)',
                 color: 'var(--color-text)',
@@ -237,16 +237,16 @@ export function DataConnectorsScreen() {
           </div>
 
           {parsedRun && parsedRun.quotes.length > 0 && (
-            <div style={{ maxHeight: '180px', overflowY: 'auto', border: '1px solid var(--color-divider)', borderRadius: '6px', backgroundColor: 'var(--color-bg)', padding: '10px' }}>
+            <div style={{ maxHeight: '180px', overflowY: 'auto', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-control)', backgroundColor: 'var(--color-bg)', padding: '10px' }}>
               <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-text-secondary)', marginBottom: '8px', display: 'flex', justifyContent: 'space-between' }}>
                 <span>PARSED QUOTES ({parsedRun.quotes.length}) · DETECTED SOURCE: {parsedRun.inferredSource}</span>
                 <span>{parsedRun.skippedLines.length} SKIPPED</span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 {parsedRun.quotes.map((q, idx) => (
-                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '4px 8px', backgroundColor: 'var(--color-surface)', borderRadius: '4px', border: '1px solid var(--color-divider)' }}>
+                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '4px 8px', backgroundColor: 'var(--color-surface)', borderRadius: 'var(--radius-control)', border: '1px solid var(--color-divider)' }}>
                     <span>
-                      <strong>[{q.country}]</strong> {q.feedstock} ({q.vintage}) · <span style={{ color: q.productClass === 'BUNDLED_COMPLIANCE' ? '#16a34a' : '#2563eb' }}>{q.productClass}</span>
+                      <strong>[{q.country}]</strong> {q.feedstock} ({q.vintage}) · <span style={{ color: q.productClass === 'BUNDLED_COMPLIANCE' ? 'var(--color-status-pass-text, #15803d)' : 'var(--color-accent)' }}>{q.productClass}</span>
                     </span>
                     <span style={{ fontFamily: 'monospace', fontWeight: 700 }}>
                       {q.bidPrice ? `Bid: ${q.bidPrice}` : ''} {q.offerPrice ? `Ask: ${q.offerPrice}` : ''}
@@ -286,7 +286,7 @@ export function DataConnectorsScreen() {
               style={{ 
                 backgroundColor: 'var(--color-surface)', 
                 border: '1px solid var(--color-divider)', 
-                borderRadius: '10px', 
+                borderRadius: 'var(--radius-panel)', 
                 padding: '20px',
                 display: 'flex',
                 flexDirection: 'column',
@@ -303,10 +303,10 @@ export function DataConnectorsScreen() {
                       fontWeight: 800, 
                       letterSpacing: '0.05em', 
                       textTransform: 'uppercase',
-                      color: c.category === 'PRICING' ? '#2563eb' : c.category === 'GRID_FLOW' ? '#059669' : '#9333ea',
+                      color: c.category === 'PRICING' ? 'var(--color-accent)' : c.category === 'GRID_FLOW' ? 'var(--color-status-pass-text, #15803d)' : '#9333ea',
                       backgroundColor: 'rgba(0,0,0,0.04)',
                       padding: '3px 8px',
-                      borderRadius: '4px',
+                      borderRadius: 'var(--radius-control)',
                     }}>
                       {c.provider}
                     </span>
