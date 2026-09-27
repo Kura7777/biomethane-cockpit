@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { CheckCircle2, XCircle, Info } from 'lucide-react';
 import { FUEL_EU_SHIPPING_GROUPS } from '../../domain/fueleu/groups';
 import { buildPoolBook, PoolSurplusParty, PoolDeficitParty } from '../../domain/fueleu/poolMatching';
@@ -10,8 +10,25 @@ const MONO_FONT = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liber
 
 const TOP_N_OPTIONS = [5, 10, 20, 50] as const;
 
-export function PoolMatchingTab() {
-  const [topDeficitCount, setTopDeficitCount] = useState<(typeof TOP_N_OPTIONS)[number]>(10);
+export interface PoolMatchingTabProps {
+  /** Group id to highlight and, if it's a deficit group, ensure is included in the top-N slice
+   *  (used by the Directory side panel's "Add to pool" action). */
+  highlightGroupId?: string | null;
+}
+
+export function PoolMatchingTab({ highlightGroupId }: PoolMatchingTabProps = {}) {
+  const [topDeficitCount, setTopDeficitCount] = useState<number>(10);
+
+  useEffect(() => {
+    if (!highlightGroupId) return;
+    const sorted = [...FUEL_EU_SHIPPING_GROUPS]
+      .filter(g => g.sumOfCompanyBalances2026 < 0)
+      .sort((a, b) => a.sumOfCompanyBalances2026 - b.sumOfCompanyBalances2026);
+    const rank = sorted.findIndex(g => g.id === highlightGroupId);
+    if (rank >= 0) {
+      setTopDeficitCount(prev => Math.max(prev, rank + 1));
+    }
+  }, [highlightGroupId]);
 
   const offer = getAssumption('fueleu.poolBuyPriceEurPerTco2e');
   const bid = fuelEuPoolBidPriceEurPerTco2e();
@@ -78,6 +95,7 @@ export function PoolMatchingTab() {
         </div>
         <span style={{ fontSize: '10.5px', color: 'var(--color-muted)' }}>
           ({allDeficitParties.length} deficit groups total · {surplusParties.length} surplus groups available)
+          {!(TOP_N_OPTIONS as readonly number[]).includes(topDeficitCount) && ` · Top ${topDeficitCount} (custom, includes highlighted group)`}
         </span>
       </div>
 
@@ -163,7 +181,7 @@ export function PoolMatchingTab() {
                   .filter(a => a.matchedTco2e > 0)
                   .sort((a, b) => b.matchedTco2e - a.matchedTco2e)
                   .map(a => (
-                    <tr key={a.id}>
+                    <tr key={a.id} className={a.id === highlightGroupId ? 'selrow' : undefined}>
                       <td style={{ padding: '5px 10px', fontSize: '11px' }}>{a.name}</td>
                       <td className="num font-mono" style={{ textAlign: 'right', padding: '5px 10px', fontSize: '11px' }}>{Math.round(a.surplusTco2e).toLocaleString()}</td>
                       <td className="num font-mono" style={{ textAlign: 'right', padding: '5px 10px', fontSize: '11px', fontWeight: 700, color: 'var(--color-status-pos-text)' }}>{Math.round(a.matchedTco2e).toLocaleString()}</td>
@@ -193,7 +211,7 @@ export function PoolMatchingTab() {
               </thead>
               <tbody>
                 {book.deficitAllocations.map(a => (
-                  <tr key={a.id}>
+                  <tr key={a.id} className={a.id === highlightGroupId ? 'selrow' : undefined}>
                     <td style={{ padding: '5px 10px', fontSize: '11px' }}>{a.name}</td>
                     <td className="num font-mono" style={{ textAlign: 'right', padding: '5px 10px', fontSize: '11px' }}>{Math.round(a.deficitTco2e).toLocaleString()}</td>
                     <td className="num font-mono" style={{ textAlign: 'right', padding: '5px 10px', fontSize: '11px' }}>€{Math.round(a.costAtOfferEur).toLocaleString()}</td>

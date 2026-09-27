@@ -1,0 +1,511 @@
+/* Font loaded via <link> in index.html (IBM Plex Sans/Mono) — matches the app's existing pattern
+ * for its Archivo font, so this scoped stylesheet doesn't duplicate a render-blocking @import. */
+
+/*
+ * FuelEU Maritime desk — scoped design tokens & primitives for the redesigned screen.
+ * Mirrors the approved mockup's light/dark palettes (Main.dc.html). Scoped to `.fueleu-desk` so
+ * it never touches the rest of the app's chrome (nav/footer) or other screens.
+ *
+ * Re-uses the app's existing `--color-*` custom properties for anything the mockup doesn't call
+ * out on its own (e.g. `.chip`, `.btn`, `.input`, `.seg`, `.table` from src/index.css already read
+ * `var(--color-surface)` etc, so overriding those variables in this scope re-skins those shared
+ * primitives to the FuelEU palette without editing every consumer file).
+ */
+.fueleu-desk {
+  /* FuelEU-native token names, per the approved mockup (light values) */
+  --fe-bg: #f6f6f3;
+  --fe-surface: #ffffff;
+  --fe-ink: #15171c;
+  --fe-muted: #5e6470;
+  --fe-line: #e4e4df;
+  --fe-track: #eeeeea;
+  --fe-deficit: #b03a2e;
+  --fe-deficit-soft: rgba(176, 58, 46, 0.10);
+  --fe-surplus: #1f5fad;
+  --fe-warn: #c27a12;
+  --fe-accent: #c9321f;
+  --fe-sel: #f4f6fa;
+
+  /* Re-skin the app's shared design-system variables to the FuelEU palette within this scope */
+  --color-bg: var(--fe-bg);
+  --color-surface: var(--fe-surface);
+  --color-panel: var(--fe-surface);
+  --color-panel-header: var(--fe-bg);
+  --color-subtier: var(--fe-track);
+  --color-text: var(--fe-ink);
+  --color-muted: var(--fe-muted);
+  --color-dim: var(--fe-muted);
+  --color-divider: var(--fe-line);
+  --color-border: var(--fe-line);
+  --color-accent: var(--fe-accent);
+
+  --color-status-pos-text: var(--fe-surplus);
+  --color-status-pos-bg: rgba(31, 95, 173, 0.08);
+  --color-status-pos-border: var(--fe-surplus);
+  --color-status-neg-text: var(--fe-deficit);
+  --color-status-neg-bg: var(--fe-deficit-soft);
+  --color-status-neg-border: var(--fe-deficit);
+  --color-status-warn-text: var(--fe-warn);
+  --color-status-warn-bg: rgba(194, 122, 18, 0.10);
+  --color-status-warn-border: var(--fe-warn);
+
+  --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-heading: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-heading-weight: 600;
+
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  background: var(--fe-bg);
+  color: var(--fe-ink);
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+html.dark .fueleu-desk {
+  --fe-bg: #0e1014;
+  --fe-surface: #15181e;
+  --fe-ink: #ecedef;
+  --fe-muted: #9aa1ad;
+  --fe-line: #262a31;
+  --fe-track: #262a31;
+  --fe-deficit: #f08a7c;
+  --fe-deficit-soft: rgba(240, 138, 124, 0.14);
+  --fe-surplus: #7fb0f0;
+  --fe-warn: #e0a43a;
+  --fe-accent: #c9321f;
+  --fe-sel: #1b2029;
+
+  --color-status-pos-bg: rgba(127, 176, 240, 0.12);
+  --color-status-neg-bg: var(--fe-deficit-soft);
+  --color-status-warn-bg: rgba(224, 164, 58, 0.14);
+}
+
+/* The approved mockup sets every figure (table cells, KPI values, header pills, panel stats) in
+ * IBM Plex Sans with tabular-nums — Plex Mono is reserved for the app's own TTF ticker/codes
+ * outside this screen. Reused components (LngVesselBookTable, PoolMatchingTab, ...) still apply
+ * a `font-mono` class alongside `num`; within `.fueleu-desk` that's overridden back to Sans here
+ * so every number on this screen reads consistently. */
+.fueleu-desk .num,
+.fueleu-desk .font-mono,
+.fueleu-desk td.num,
+.fueleu-desk .fe-num {
+  font-variant-numeric: tabular-nums;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+}
+
+.fueleu-desk :focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--fe-ink) 40%, transparent);
+  outline-offset: 2px;
+}
+
+/* ── Layout shells ─────────────────────────────────────────────────────── */
+.fe-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 18px 24px 14px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.fe-h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--fe-ink);
+}
+.fe-context {
+  color: var(--fe-muted);
+  font-size: 13px;
+  margin-top: 4px;
+}
+.fe-header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.fe-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--fe-line) !important;
+  border-radius: 8px !important;
+  background: var(--fe-surface);
+  white-space: nowrap;
+}
+.fe-pill .fe-pill-label { color: var(--fe-muted); font-size: 12px; }
+.fe-pill .fe-pill-value { font-weight: 500; font-size: 12.5px; color: var(--fe-ink); }
+.fe-pill .fe-pill-sub { color: var(--fe-muted); font-size: 11.5px; }
+.fe-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 3px !important;
+  display: inline-block;
+  background: var(--fe-muted);
+}
+.fe-dot.warn { background: var(--fe-warn); }
+
+.fe-icon-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--fe-line) !important;
+  border-radius: 8px !important;
+  background: var(--fe-surface);
+  color: var(--fe-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.fe-icon-btn:hover { background: var(--fe-track); color: var(--fe-ink); }
+.fe-icon-btn-sm {
+  width: 28px !important;
+  height: 28px !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+}
+
+/* Tabs — underline style */
+.fe-tabs {
+  flex-shrink: 0;
+  display: flex;
+  gap: 24px;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--fe-line);
+}
+.fe-tab {
+  padding: 10px 0;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font: inherit;
+  font-size: 13px;
+  color: var(--fe-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.fe-tab.active {
+  color: var(--fe-ink);
+  font-weight: 500;
+  border-bottom-color: var(--fe-ink);
+}
+
+/* KPI tiles */
+.fe-kpis {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  padding: 16px 24px;
+}
+.fe-kpi-card {
+  padding: 14px 16px;
+  border: 1px solid var(--fe-line) !important;
+  border-radius: 10px !important;
+  background: var(--fe-surface);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.fe-kpi-label { color: var(--fe-muted); font-size: 12px; }
+.fe-kpi-value { font-size: 24px; font-weight: 500; letter-spacing: -0.01em; color: var(--fe-ink); }
+.fe-kpi-value .unit { font-size: 14px; color: var(--fe-muted); font-weight: 400; }
+.fe-kpi-sub { color: var(--fe-muted); font-size: 12px; }
+.fe-kpi-bar-track {
+  height: 6px;
+  border-radius: 3px !important;
+  background: var(--fe-track);
+  display: flex;
+}
+.fe-kpi-bar-fill { border-radius: 3px !important; background: var(--fe-surplus); }
+
+/* Main content: table + side panel */
+.fe-body {
+  flex-grow: 1;
+  min-height: 0;
+  display: flex;
+  padding: 0 0 0 24px;
+}
+.fe-main {
+  flex-grow: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding-right: 20px;
+  min-height: 0;
+}
+.fe-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 12px;
+  flex-wrap: wrap;
+}
+.fe-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  width: 260px;
+  padding: 0 10px;
+  border: 1px solid var(--fe-line) !important;
+  border-radius: 8px !important;
+  background: var(--fe-surface);
+  color: var(--fe-muted);
+}
+.fe-search input {
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--fe-ink);
+  font: inherit;
+  width: 100%;
+}
+.fe-seg {
+  display: flex;
+  height: 32px;
+  border: 1px solid var(--fe-line) !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+}
+.fe-seg button {
+  padding: 0 12px;
+  border: 0;
+  background: var(--fe-surface);
+  color: var(--fe-muted);
+  font: inherit;
+  cursor: pointer;
+}
+.fe-seg button.active {
+  background: var(--fe-ink);
+  color: var(--fe-bg);
+  font-weight: 500;
+}
+.fe-filter-btn {
+  height: 32px;
+  padding: 0 12px;
+  border: 1px dashed var(--fe-line) !important;
+  border-radius: 8px !important;
+  background: transparent;
+  color: var(--fe-muted);
+  font: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.fe-filter-btn.active {
+  border-style: solid !important;
+  color: var(--fe-ink);
+  background: var(--fe-surface);
+}
+.fe-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--fe-line) !important;
+  border-radius: 8px !important;
+  background: var(--fe-surface);
+  color: var(--fe-ink);
+  font: inherit;
+  cursor: pointer;
+}
+.fe-toggle-btn.active {
+  background: var(--fe-ink);
+  color: var(--fe-bg);
+  border-color: var(--fe-ink) !important;
+}
+
+/* Table */
+.fe-table-wrap {
+  border: 1px solid var(--fe-line) !important;
+  border-radius: 10px !important;
+  background: var(--fe-surface);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex-grow: 1;
+}
+.fe-thead-row {
+  display: grid;
+  gap: 16px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--fe-line);
+  color: var(--fe-muted);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.fe-thead-row button {
+  background: none;
+  border: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+}
+.fe-thead-row button:hover { color: var(--fe-ink); }
+.fe-tbody {
+  overflow-y: auto;
+  flex-grow: 1;
+  min-height: 0;
+}
+.fe-row {
+  display: grid;
+  gap: 16px;
+  align-items: center;
+  height: 54px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--fe-line);
+  cursor: pointer;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+  font: inherit;
+  color: inherit;
+}
+.fe-row:hover { background: var(--fe-track); }
+.fe-row.selected {
+  background: var(--fe-sel);
+  box-shadow: inset 2px 0 0 var(--fe-ink);
+}
+.fe-row-name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fe-row-meta { color: var(--fe-muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fe-bar-track {
+  width: 72px;
+  height: 6px;
+  border-radius: 3px !important;
+  background: var(--fe-track);
+  display: flex;
+}
+.fe-bar-fill { border-radius: 3px !important; }
+.fe-tfoot {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 16px;
+  color: var(--fe-muted);
+  font-size: 12px;
+  border-top: 1px solid var(--fe-line);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Side panel — header stats stay fixed, the middle sections scroll, and the action footer stays
+ * pinned at the bottom so Contacts/DoC holders never hide behind it (see .fe-aside-body). */
+.fe-aside {
+  width: 420px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  border-left: 1px solid var(--fe-line);
+  background: var(--fe-surface);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+.fe-aside-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.fe-aside-section {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--fe-line);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.fe-aside-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.fe-aside-footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--fe-line);
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+  background: var(--fe-surface);
+}
+.fe-btn-primary {
+  flex-grow: 1;
+  height: 36px;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: var(--fe-accent);
+  color: #ffffff;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+.fe-btn-secondary {
+  flex-grow: 1;
+  height: 36px;
+  border: 1px solid var(--fe-line) !important;
+  border-radius: 8px !important;
+  background: transparent;
+  color: var(--fe-ink);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+.fe-btn-secondary:hover { background: var(--fe-track); }
+
+/* Popover (info button) */
+.fe-popover {
+  position: absolute;
+  z-index: 80;
+  top: calc(100% + 6px);
+  right: 0;
+  width: 380px;
+  max-height: 420px;
+  overflow-y: auto;
+  background: var(--fe-surface);
+  border: 1px solid var(--fe-line) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
+  padding: 14px 16px;
+  font-size: 12px;
+  color: var(--fe-ink);
+  line-height: 1.5;
+}
+.fe-popover h4 {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fe-muted);
+}
+.fe-popover section + section { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--fe-line); }
+.fe-popover a { color: var(--fe-accent); }
+
+@media (max-width: 1100px) {
+  .fe-aside { width: 340px; }
+  .fe-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

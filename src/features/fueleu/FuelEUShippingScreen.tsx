@@ -1,25 +1,15 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { CounterpartyDirectoryTable } from './CounterpartyDirectoryTable';
-import { VesselArchetypeCalculator } from './VesselArchetypeCalculator';
-import { DualCommercialPathwaySimulator } from './DualCommercialPathwaySimulator';
+import './fueleuDesk.css';
+import { FuelEuHeader } from './FuelEuHeader';
+import { FuelEuKpiTiles } from './FuelEuKpiTiles';
+import { FuelEuDirectoryDesk } from './FuelEuDirectoryDesk';
+import { FuelEuToolsTab } from './FuelEuToolsTab';
 import { LngVesselBookTable } from './LngVesselBookTable';
 import { PoolMatchingTab } from './PoolMatchingTab';
-import { PoolPriceMark } from './PoolPriceMark';
 import { ShippingExposureStep } from './dealflow/ShippingExposureStep';
 import { ShippingBunkerPricingStep } from './dealflow/ShippingBunkerPricingStep';
 import { ShippingTermSheetStep } from './dealflow/ShippingTermSheetStep';
-import {
-  Ship,
-  Sliders,
-  Scale,
-  BookOpen,
-  ShieldCheck,
-  ArrowLeft,
-  Check,
-  Flame,
-  Fuel,
-  Users,
-} from 'lucide-react';
+import { ArrowLeft, Check, BookOpen } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FUEL_EU_SHIPPING_COUNTERPARTIES } from '../../domain/fueleu/shippingTargetsData';
 import { FUEL_EU_LNG_SHIPS } from '../../domain/fueleu/lngShipsData';
@@ -31,12 +21,9 @@ import {
   DEFAULT_VLSFO_PRICE_USD_PER_TONNE,
   EUA_BENCHMARK_EUR_PER_TONNE,
   FUELEU_ACTIVE_PERIOD,
-  FUELEU_POOLING_BORROWING_DATABASE_DEADLINE,
-  FUELEU_DOCUMENT_OF_COMPLIANCE_AND_PENALTY_DEADLINE,
 } from '../../domain/fueleu/calculator';
-import { daysUntil } from '../../domain/fueleu/uiHelpers';
 
-type ActiveTab = 'DIRECTORY' | 'CALCULATOR' | 'PATHWAYS' | 'LNG_BOOK' | 'POOL_MATCHING';
+type ActiveTab = 'DIRECTORY' | 'LNG_BOOK' | 'POOL_MATCHING' | 'TOOLS';
 
 const DEAL_STEPS = [
   { step: 1, title: '1. Select Counterparty', desc: `${FUEL_EU_SHIPPING_COUNTERPARTIES.length.toLocaleString('en-US')} shipping groups` },
@@ -49,19 +36,15 @@ export function FuelEUShippingScreen() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const totalGroups = FUEL_EU_SHIPPING_COUNTERPARTIES.length;
-  const totalVessels = FUEL_EU_SHIPPING_COUNTERPARTIES.reduce((acc, c) => acc + c.vessels_in_scope, 0);
-
   // Tab State derived directly from searchParams
   const tabParam = searchParams.get('tab')?.toUpperCase();
   const activeTab: ActiveTab =
-    (tabParam === 'CALCULATOR' || tabParam === 'PATHWAYS' || tabParam === 'LNG_BOOK' || tabParam === 'POOL_MATCHING')
-      ? tabParam
+    tabParam === 'LNG_BOOK' || tabParam === 'POOL_MATCHING' || tabParam === 'TOOLS' || tabParam === 'CALCULATOR' || tabParam === 'PATHWAYS'
+      ? (tabParam === 'CALCULATOR' || tabParam === 'PATHWAYS' ? 'TOOLS' : (tabParam as ActiveTab))
       : 'DIRECTORY';
 
-  const poolingDeadlineDays = daysUntil(FUELEU_POOLING_BORROWING_DATABASE_DEADLINE);
-  const poolingDeadlineLabel = new Date(`${FUELEU_POOLING_BORROWING_DATABASE_DEADLINE}T00:00:00Z`).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-  const penaltyDeadlineLabel = new Date(`${FUELEU_DOCUMENT_OF_COMPLIANCE_AND_PENALTY_DEADLINE}T00:00:00Z`).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  // Group id to highlight in Pool matching when arriving via "Add to pool"
+  const [highlightGroupId, setHighlightGroupId] = useState<string | null>(null);
 
   // 4-Screen Deal Flow State derived from searchParams for seamless browser back/forward and deep linking
   const companyParam = searchParams.get('company');
@@ -113,7 +96,6 @@ export function FuelEUShippingScreen() {
         next.delete('tab');
       } else {
         next.set('tab', tab.toLowerCase());
-        // If moving to calculator or pathways, clear dealflow step params
         next.delete('company');
         next.delete('step');
       }
@@ -132,9 +114,13 @@ export function FuelEUShippingScreen() {
     });
   };
 
+  const handleAddToPool = (groupId: string) => {
+    setHighlightGroupId(groupId);
+    handleSelectTab('POOL_MATCHING');
+  };
+
   const handleNavigateStep = (step: 1 | 2 | 3 | 4) => {
     if (step === 1) {
-      // Returning to directory clears company and step to prevent sticky header conflict
       setSearchParams(prev => {
         const next = new URLSearchParams(prev);
         next.delete('company');
@@ -171,148 +157,9 @@ export function FuelEUShippingScreen() {
 
   const isInDealFlow = Boolean(selectedCounterparty && currentStep > 1);
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' }}>
-      {/* 1. When NOT in deal flow: Show standard Screen Title & Desk Tabs */}
-      {!isInDealFlow && (
-        <>
-          {/* Screen Title & Statutory Gating Bar */}
-          <div
-            style={{
-              padding: '12px 18px',
-              borderBottom: '1px solid var(--color-divider)',
-              backgroundColor: 'var(--color-surface)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '12px',
-            }}
-          >
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
-                <h3 className="ptitle" style={{ margin: 0, fontSize: '18px', letterSpacing: '-0.01em' }}>
-                  FuelEU Maritime Compliance Desk
-                </h3>
-                <span
-                  style={{
-                    fontSize: '10px',
-                    fontFamily: 'monospace',
-                    fontWeight: 600,
-                    letterSpacing: '0.04em',
-                    padding: '2px 7px',
-                    border: '1px solid var(--color-divider)',
-                    backgroundColor: 'var(--color-subtier)',
-                    color: 'var(--color-muted)',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '5px',
-                  }}
-                >
-                  <span style={{ width: '6px', height: '6px', backgroundColor: '#10b981', display: 'inline-block' }} />
-                  REGULATION (EU) 2023/1805
-                </span>
-                <span
-                  style={{
-                    fontSize: '10px',
-                    fontFamily: 'monospace',
-                    fontWeight: 600,
-                    letterSpacing: '0.04em',
-                    padding: '2px 7px',
-                    border: '1px solid var(--color-divider)',
-                    backgroundColor: 'var(--color-subtier)',
-                    color: 'var(--color-muted)',
-                  }}
-                >
-                  SOURCE: EU MRV 2024 (THETIS-MRV)
-                </span>
-              </div>
-              <div className="subttl" style={{ fontSize: '12px' }}>
-                Pan-European compliance ledger · {totalGroups.toLocaleString()} shipping groups · {totalVessels.toLocaleString()} commercial vessels · Bio-LNG bunkering (Art. 4, Annex I-II) &amp; Article 21 pooling
-              </div>
-              <div
-                className="subttl num"
-                style={{ fontSize: '11px', marginTop: '4px', fontFamily: 'monospace' }}
-                title="Regulation (EU) 2023/1805, Art. 20(3) / Art. 21(8): pooling and borrowing must be recorded in the FuelEU database by 30 April of the verification period. Art. 22(1)-(2) / Art. 23(2): any FuelEU penalty is due by 30 June of the verification period."
-              >
-                Reporting period {FUELEU_ACTIVE_PERIOD} · Pooling &amp; borrowing must be recorded in the FuelEU database by {poolingDeadlineLabel} ({poolingDeadlineDays >= 0 ? `${poolingDeadlineDays}d` : 'overdue'}) · Penalty due {penaltyDeadlineLabel}
-              </div>
-            </div>
-
-            {/* Action / Reference Links */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <PoolPriceMark variant="inline" />
-              <button
-                type="button"
-                onClick={() => navigate('/citations')}
-                className="btn btn-secondary"
-                style={{ fontSize: '11px', padding: '0 10px', height: '28px', display: 'flex', alignItems: 'center', gap: '5px' }}
-              >
-                <BookOpen size={12} style={{ color: 'var(--color-accent)' }} /> Citations &amp; Legal Basis
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate('/data-sources')}
-                className="btn btn-secondary"
-                style={{ fontSize: '11px', padding: '0 10px', height: '28px', display: 'flex', alignItems: 'center', gap: '5px' }}
-              >
-                <ShieldCheck size={12} style={{ color: 'var(--color-status-pos-text)' }} /> EU MRV Provenance
-              </button>
-            </div>
-          </div>
-
-          {/* Institutional Desk Navigation Tabs */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'stretch',
-              borderBottom: '1px solid var(--color-divider)',
-              backgroundColor: 'var(--color-panel-header)',
-              padding: '0 18px',
-              gap: '2px',
-            }}
-          >
-            {[
-              { id: 'DIRECTORY' as const, label: `Deal Flow & Directory (${totalGroups.toLocaleString()})`, icon: Ship },
-              { id: 'CALCULATOR' as const, label: 'Vessel Archetypes', icon: Sliders },
-              { id: 'PATHWAYS' as const, label: 'Commercial Pathways (Art. 21)', icon: Scale },
-              { id: 'LNG_BOOK' as const, label: `LNG vessel book (${FUEL_EU_LNG_SHIPS.length})`, icon: Fuel },
-              { id: 'POOL_MATCHING' as const, label: 'Pool Matching (Art. 21)', icon: Users },
-            ].map((tab) => {
-              const isActive = activeTab === tab.id;
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => handleSelectTab(tab.id)}
-                  style={{
-                    height: '36px',
-                    padding: '0 16px',
-                    border: 'none',
-                    borderBottom: isActive ? '2px solid var(--color-accent)' : '2px solid transparent',
-                    backgroundColor: isActive ? 'var(--color-surface)' : 'transparent',
-                    color: isActive ? 'var(--color-text)' : 'var(--color-muted)',
-                    fontWeight: isActive ? 700 : 500,
-                    fontSize: '12px',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '7px',
-                    transition: 'all 150ms ease',
-                  }}
-                >
-                  <Icon size={13} style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-muted)' }} />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </>
-      )}
-
-      {/* 2. When IN deal flow (Steps 2..4): Show a single, sleek, unified Bloomberg Deal Flow Command Bar */}
-      {isInDealFlow && selectedCounterparty && (
+  if (isInDealFlow && selectedCounterparty) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' }}>
         <div
           style={{
             padding: '8px 18px',
@@ -325,22 +172,12 @@ export function FuelEUShippingScreen() {
             flexWrap: 'nowrap',
           }}
         >
-          {/* Left: Quick Back to Directory & Active Target ID */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
             <button
               type="button"
               onClick={() => handleNavigateStep(1)}
               className="btn btn-secondary"
-              style={{
-                fontSize: '11px',
-                height: '28px',
-                padding: '0 10px',
-                fontWeight: 600,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '5px',
-                cursor: 'pointer',
-              }}
+              style={{ fontSize: '11px', height: '28px', padding: '0 10px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}
               title={`Return to ${FUEL_EU_SHIPPING_COUNTERPARTIES.length.toLocaleString('en-US')} Counterparties Directory`}
             >
               <ArrowLeft size={13} style={{ color: 'var(--color-accent)' }} />
@@ -382,28 +219,16 @@ export function FuelEUShippingScreen() {
             </div>
           </div>
 
-          {/* Center: Sleek 4-Step Stepper Flow */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
             {DEAL_STEPS.map((s, idx) => {
               const isDone = currentStep > s.step;
               const isCurrent = currentStep === s.step;
-
               return (
                 <React.Fragment key={s.step}>
                   <button
                     type="button"
                     onClick={() => handleNavigateStep(s.step as any)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      padding: '2px 4px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '7px',
-                      opacity: isCurrent || isDone ? 1 : 0.45,
-                      transition: 'opacity 150ms ease',
-                    }}
+                    style={{ background: 'none', border: 'none', padding: '2px 4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px', opacity: isCurrent || isDone ? 1 : 0.45, transition: 'opacity 150ms ease' }}
                   >
                     <div
                       style={{
@@ -416,72 +241,32 @@ export function FuelEUShippingScreen() {
                         fontSize: '10.5px',
                         fontWeight: 700,
                         fontFamily: 'monospace',
-                        backgroundColor: isCurrent
-                          ? 'var(--color-accent)'
-                          : isDone
-                          ? 'var(--color-status-pos-bg, rgba(16, 185, 129, 0.15))'
-                          : 'var(--color-subtier)',
-                        color: isCurrent
-                          ? '#000000'
-                          : isDone
-                          ? 'var(--color-status-pos-text)'
-                          : 'var(--color-muted)',
-                        border: isCurrent
-                          ? '1px solid var(--color-accent)'
-                          : isDone
-                          ? '1px solid var(--color-status-pos-border, #10b981)'
-                          : '1px solid var(--color-divider)',
+                        backgroundColor: isCurrent ? 'var(--color-accent)' : isDone ? 'var(--color-status-pos-bg, rgba(16, 185, 129, 0.15))' : 'var(--color-subtier)',
+                        color: isCurrent ? '#000000' : isDone ? 'var(--color-status-pos-text)' : 'var(--color-muted)',
+                        border: isCurrent ? '1px solid var(--color-accent)' : isDone ? '1px solid var(--color-status-pos-border, #10b981)' : '1px solid var(--color-divider)',
                       }}
                     >
                       {isDone ? <Check size={12} strokeWidth={3} /> : s.step}
                     </div>
-                    <span
-                      style={{
-                        fontSize: '11.5px',
-                        fontWeight: isCurrent ? 700 : 500,
-                        color: isCurrent ? 'var(--color-text)' : 'var(--color-muted)',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
+                    <span style={{ fontSize: '11.5px', fontWeight: isCurrent ? 700 : 500, color: isCurrent ? 'var(--color-text)' : 'var(--color-muted)', whiteSpace: 'nowrap' }}>
                       {s.title}
                     </span>
                   </button>
-
                   {idx < DEAL_STEPS.length - 1 && (
-                    <div
-                      style={{
-                        width: '24px',
-                        height: '1px',
-                        backgroundColor: currentStep > s.step ? 'var(--color-accent)' : 'var(--color-divider)',
-                        flexShrink: 0,
-                      }}
-                    />
+                    <div style={{ width: '24px', height: '1px', backgroundColor: currentStep > s.step ? 'var(--color-accent)' : 'var(--color-divider)', flexShrink: 0 }} />
                   )}
                 </React.Fragment>
               );
             })}
           </div>
 
-          {/* Right: Key Liability Badge & Legal Reference */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '2px 8px',
-                border: '1px solid var(--color-divider)',
-                backgroundColor: 'var(--color-subtier)',
-                fontSize: '11px',
-                fontFamily: 'monospace',
-              }}
-            >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '2px 8px', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-subtier)', fontSize: '11px', fontFamily: 'monospace' }}>
               <span style={{ color: 'var(--color-muted)' }}>{FUELEU_ACTIVE_PERIOD} Risk:</span>
               <span style={{ fontWeight: 700, color: 'var(--color-status-neg-text)' }}>
                 €{(selectedCounterparty.combined_regulatory_exposure_2026_eur / 1e6).toFixed(2)}M
               </span>
             </div>
-
             <button
               type="button"
               onClick={() => navigate('/citations')}
@@ -493,71 +278,91 @@ export function FuelEUShippingScreen() {
             </button>
           </div>
         </div>
+
+        <div style={{ flex: 1, minHeight: 0 }}>
+          {currentStep === 2 && (
+            <ShippingExposureStep counterparty={selectedCounterparty} onBack={() => handleNavigateStep(1)} onNext={() => handleNavigateStep(3)} />
+          )}
+          {currentStep === 3 && (
+            <ShippingBunkerPricingStep
+              counterparty={selectedCounterparty}
+              pathway={pathway}
+              setPathway={setPathway}
+              ttfGasIndex={ttfGasIndex}
+              setTtfGasIndex={setTtfGasIndex}
+              liquefactionFee={liquefactionFee}
+              setLiquefactionFee={setLiquefactionFee}
+              greenPremium={greenPremium}
+              setGreenPremium={setGreenPremium}
+              euaPrice={euaPrice}
+              setEuaPrice={setEuaPrice}
+              vlsfoPrice={vlsfoPrice}
+              setVlsfoPrice={setVlsfoPrice}
+              onBack={() => handleNavigateStep(2)}
+              onNext={() => handleNavigateStep(4)}
+            />
+          )}
+          {currentStep === 4 && (
+            <ShippingTermSheetStep
+              counterparty={selectedCounterparty}
+              pathway={pathway}
+              ttfGasIndex={ttfGasIndex}
+              liquefactionFee={liquefactionFee}
+              greenPremium={greenPremium}
+              euaPrice={euaPrice}
+              vlsfoPrice={vlsfoPrice}
+              onBack={() => handleNavigateStep(3)}
+              onReset={handleResetDeal}
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fueleu-desk">
+      <FuelEuHeader />
+
+      <div className="fe-tabs" role="tablist" aria-label="FuelEU Maritime sections">
+        <button type="button" role="tab" aria-selected={activeTab === 'DIRECTORY'} className={`fe-tab ${activeTab === 'DIRECTORY' ? 'active' : ''}`} onClick={() => handleSelectTab('DIRECTORY')}>
+          Directory
+        </button>
+        <button type="button" role="tab" aria-selected={activeTab === 'LNG_BOOK'} className={`fe-tab ${activeTab === 'LNG_BOOK' ? 'active' : ''}`} onClick={() => handleSelectTab('LNG_BOOK')}>
+          LNG vessel book <span className="num">{FUEL_EU_LNG_SHIPS.length}</span>
+        </button>
+        <button type="button" role="tab" aria-selected={activeTab === 'POOL_MATCHING'} className={`fe-tab ${activeTab === 'POOL_MATCHING' ? 'active' : ''}`} onClick={() => handleSelectTab('POOL_MATCHING')}>
+          Pool matching
+        </button>
+        <button type="button" role="tab" aria-selected={activeTab === 'TOOLS'} className={`fe-tab ${activeTab === 'TOOLS' ? 'active' : ''}`} onClick={() => handleSelectTab('TOOLS')}>
+          Tools
+        </button>
+      </div>
+
+      {activeTab === 'DIRECTORY' && (
+        <>
+          <FuelEuKpiTiles />
+          <FuelEuDirectoryDesk onBuildTermSheet={handleSelectCounterparty} onAddToPool={handleAddToPool} />
+        </>
       )}
 
-      {/* Main Tab Body */}
-      <div style={{ flex: 1, minHeight: 0 }}>
-        {activeTab === 'DIRECTORY' && (
-          <div className="flex flex-col min-h-full">
-            {/* Active Step Content */}
-            <div className="flex-1">
-              {currentStep === 1 && (
-                <CounterpartyDirectoryTable
-                  onSelectCounterparty={handleSelectCounterparty}
-                  selectedCounterparty={selectedCounterparty}
-                />
-              )}
+      {activeTab === 'LNG_BOOK' && (
+        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '0 24px 24px' }}>
+          <LngVesselBookTable />
+        </div>
+      )}
 
-              {currentStep === 2 && selectedCounterparty && (
-                <ShippingExposureStep
-                  counterparty={selectedCounterparty}
-                  onBack={() => handleNavigateStep(1)}
-                  onNext={() => handleNavigateStep(3)}
-                />
-              )}
+      {activeTab === 'POOL_MATCHING' && (
+        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '0 24px 24px' }}>
+          <PoolMatchingTab highlightGroupId={highlightGroupId} />
+        </div>
+      )}
 
-              {currentStep === 3 && selectedCounterparty && (
-                <ShippingBunkerPricingStep
-                  counterparty={selectedCounterparty}
-                  pathway={pathway}
-                  setPathway={setPathway}
-                  ttfGasIndex={ttfGasIndex}
-                  setTtfGasIndex={setTtfGasIndex}
-                  liquefactionFee={liquefactionFee}
-                  setLiquefactionFee={setLiquefactionFee}
-                  greenPremium={greenPremium}
-                  setGreenPremium={setGreenPremium}
-                  euaPrice={euaPrice}
-                  setEuaPrice={setEuaPrice}
-                  vlsfoPrice={vlsfoPrice}
-                  setVlsfoPrice={setVlsfoPrice}
-                  onBack={() => handleNavigateStep(2)}
-                  onNext={() => handleNavigateStep(4)}
-                />
-              )}
-
-              {currentStep === 4 && selectedCounterparty && (
-                <ShippingTermSheetStep
-                  counterparty={selectedCounterparty}
-                  pathway={pathway}
-                  ttfGasIndex={ttfGasIndex}
-                  liquefactionFee={liquefactionFee}
-                  greenPremium={greenPremium}
-                  euaPrice={euaPrice}
-                  vlsfoPrice={vlsfoPrice}
-                  onBack={() => handleNavigateStep(3)}
-                  onReset={handleResetDeal}
-                />
-              )}
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'CALCULATOR' && <VesselArchetypeCalculator />}
-        {activeTab === 'PATHWAYS' && <DualCommercialPathwaySimulator />}
-        {activeTab === 'LNG_BOOK' && <LngVesselBookTable />}
-        {activeTab === 'POOL_MATCHING' && <PoolMatchingTab />}
-      </div>
+      {activeTab === 'TOOLS' && (
+        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+          <FuelEuToolsTab />
+        </div>
+      )}
     </div>
   );
 }

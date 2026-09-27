@@ -88,3 +88,103 @@ export function buildAreaPath(points: ChartPoint[], baselineY: number): string {
 export function formatEurCompact(value: number, decimals: number = 2): string {
   return `€${value.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
 }
+
+// ── FuelEU desk redesign: pure aggregation/formatting helpers ──────────────
+// Kept dependency-free (no React, no DOM) so they're directly unit-testable and reusable by both
+// the KPI tiles and the directory table's diverging balance bars.
+
+export interface FuelEuBalanceLike {
+  sumOfCompanyBalances2026: number;
+  sumOfCompanyPenalties2026: number;
+}
+
+export interface FuelEuKpiSummary {
+  /** Sum of every negative 2026 balance across deficit groups, tCO2e (negative or zero). */
+  deficitTco2e: number;
+  /** Sum of statutory penalties for groups in deficit, EUR. */
+  deficitPenaltyEur: number;
+  /** Count of groups with a negative 2026 balance. */
+  deficitGroupCount: number;
+  /** Sum of every positive 2026 balance across surplus groups, tCO2e (positive or zero). */
+  surplusTco2e: number;
+  /** Count of groups with a positive 2026 balance. */
+  surplusGroupCount: number;
+  /** Surplus / |deficit| as a percentage (0 if there is no deficit to cover). */
+  surplusCoverPct: number;
+}
+
+/** Aggregates the four Directory-tab KPI tiles from a list of groups' 2026 balances/penalties. */
+export function computeFuelEuKpis(groups: FuelEuBalanceLike[]): FuelEuKpiSummary {
+  let deficitTco2e = 0;
+  let deficitPenaltyEur = 0;
+  let deficitGroupCount = 0;
+  let surplusTco2e = 0;
+  let surplusGroupCount = 0;
+
+  for (const g of groups) {
+    if (g.sumOfCompanyBalances2026 < 0) {
+      deficitTco2e += g.sumOfCompanyBalances2026;
+      deficitPenaltyEur += g.sumOfCompanyPenalties2026;
+      deficitGroupCount += 1;
+    } else if (g.sumOfCompanyBalances2026 > 0) {
+      surplusTco2e += g.sumOfCompanyBalances2026;
+      surplusGroupCount += 1;
+    }
+  }
+
+  const absDeficit = Math.abs(deficitTco2e);
+  const surplusCoverPct = absDeficit > 0 ? (surplusTco2e / absDeficit) * 100 : 0;
+
+  return { deficitTco2e, deficitPenaltyEur, deficitGroupCount, surplusTco2e, surplusGroupCount, surplusCoverPct };
+}
+
+export interface FuelEuGhgieLike {
+  total_energy_mwh: number;
+  actual_ghgie: number;
+}
+
+/** Energy-weighted average achieved GHG intensity (gCO2e/MJ) across a fleet/dataset. Returns 0 for an empty or zero-energy input rather than NaN. */
+export function computeFleetWeightedGhgie(rows: FuelEuGhgieLike[]): number {
+  let totalEnergyMwh = 0;
+  let weightedSum = 0;
+  for (const r of rows) {
+    if (r.total_energy_mwh <= 0) continue;
+    totalEnergyMwh += r.total_energy_mwh;
+    weightedSum += r.total_energy_mwh * r.actual_ghgie;
+  }
+  return totalEnergyMwh > 0 ? weightedSum / totalEnergyMwh : 0;
+}
+
+/**
+ * Scales a magnitude onto a diverging bar's pixel width, capped to `maxWidthPx`, relative to the
+ * largest magnitude in the current page/view (`maxMagnitude`). Returns 0 for a non-positive
+ * `maxMagnitude` rather than dividing by zero.
+ */
+export function scaleDivergingBarWidth(magnitude: number, maxMagnitude: number, maxWidthPx: number = 72): number {
+  if (maxMagnitude <= 0) return 0;
+  const clamped = Math.max(0, Math.min(Math.abs(magnitude), maxMagnitude));
+  return (clamped / maxMagnitude) * maxWidthPx;
+}
+
+export type SortDirection = 'asc' | 'desc';
+
+/**
+ * Generic, stable-ish comparator-based sorter for table rows: sorts a copy of `rows` by the value
+ * `getValue` returns (numbers compared numerically, everything else via string localeCompare).
+ * Does not mutate `rows`.
+ */
+export function sortRows<T>(rows: T[], getValue: (row: T) => number | string, direction: SortDirection): T[] {
+  const copy = [...rows];
+  copy.sort((a, b) => {
+    const av = getValue(a);
+    const bv = getValue(b);
+    let cmp: number;
+    if (typeof av === 'number' && typeof bv === 'number') {
+      cmp = av - bv;
+    } else {
+      cmp = String(av).localeCompare(String(bv));
+    }
+    return direction === 'asc' ? cmp : -cmp;
+  });
+  return copy;
+}

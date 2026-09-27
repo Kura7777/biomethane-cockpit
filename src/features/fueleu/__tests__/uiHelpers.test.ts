@@ -10,6 +10,10 @@ import {
   buildLinePath,
   buildAreaPath,
   formatEurCompact,
+  computeFuelEuKpis,
+  computeFleetWeightedGhgie,
+  scaleDivergingBarWidth,
+  sortRows,
 } from '../../../domain/fueleu/uiHelpers';
 
 describe('daysBetweenIsoDates', () => {
@@ -102,5 +106,100 @@ describe('formatEurCompact', () => {
 
   it('respects a custom decimal count', () => {
     expect(formatEurCompact(108.6, 0)).toBe('€109');
+  });
+});
+
+describe('computeFuelEuKpis', () => {
+  it('separates deficit and surplus groups and sums their balances/penalties', () => {
+    const kpis = computeFuelEuKpis([
+      { sumOfCompanyBalances2026: -100, sumOfCompanyPenalties2026: 1000 },
+      { sumOfCompanyBalances2026: -50, sumOfCompanyPenalties2026: 500 },
+      { sumOfCompanyBalances2026: 30, sumOfCompanyPenalties2026: 0 },
+      { sumOfCompanyBalances2026: 0, sumOfCompanyPenalties2026: 0 },
+    ]);
+    expect(kpis.deficitTco2e).toBe(-150);
+    expect(kpis.deficitPenaltyEur).toBe(1500);
+    expect(kpis.deficitGroupCount).toBe(2);
+    expect(kpis.surplusTco2e).toBe(30);
+    expect(kpis.surplusGroupCount).toBe(1);
+    expect(kpis.surplusCoverPct).toBeCloseTo(20, 5); // 30 / 150 * 100
+  });
+
+  it('returns 0% cover when there is no deficit', () => {
+    const kpis = computeFuelEuKpis([{ sumOfCompanyBalances2026: 10, sumOfCompanyPenalties2026: 0 }]);
+    expect(kpis.surplusCoverPct).toBe(0);
+  });
+
+  it('handles an empty list without dividing by zero', () => {
+    const kpis = computeFuelEuKpis([]);
+    expect(kpis).toEqual({
+      deficitTco2e: 0,
+      deficitPenaltyEur: 0,
+      deficitGroupCount: 0,
+      surplusTco2e: 0,
+      surplusGroupCount: 0,
+      surplusCoverPct: 0,
+    });
+  });
+});
+
+describe('computeFleetWeightedGhgie', () => {
+  it('energy-weights achieved GHGIE across rows', () => {
+    const ghgie = computeFleetWeightedGhgie([
+      { total_energy_mwh: 100, actual_ghgie: 90 },
+      { total_energy_mwh: 300, actual_ghgie: 100 },
+    ]);
+    // (100*90 + 300*100) / 400 = 97.5
+    expect(ghgie).toBeCloseTo(97.5, 6);
+  });
+
+  it('ignores zero/negative-energy rows', () => {
+    const ghgie = computeFleetWeightedGhgie([
+      { total_energy_mwh: 0, actual_ghgie: 999 },
+      { total_energy_mwh: 100, actual_ghgie: 90 },
+    ]);
+    expect(ghgie).toBe(90);
+  });
+
+  it('returns 0 for an empty or all-zero-energy input', () => {
+    expect(computeFleetWeightedGhgie([])).toBe(0);
+    expect(computeFleetWeightedGhgie([{ total_energy_mwh: 0, actual_ghgie: 90 }])).toBe(0);
+  });
+});
+
+describe('scaleDivergingBarWidth', () => {
+  it('scales magnitude proportionally to the page max, capped to maxWidthPx', () => {
+    expect(scaleDivergingBarWidth(237.7, 237.7, 72)).toBeCloseTo(72, 6);
+    expect(scaleDivergingBarWidth(118.85, 237.7, 72)).toBeCloseTo(36, 6);
+    expect(scaleDivergingBarWidth(0, 237.7, 72)).toBe(0);
+  });
+
+  it('uses the absolute value of a negative magnitude', () => {
+    expect(scaleDivergingBarWidth(-118.85, 237.7, 72)).toBeCloseTo(36, 6);
+  });
+
+  it('clamps a magnitude larger than the max to maxWidthPx', () => {
+    expect(scaleDivergingBarWidth(500, 237.7, 72)).toBeCloseTo(72, 6);
+  });
+
+  it('returns 0 when maxMagnitude is 0', () => {
+    expect(scaleDivergingBarWidth(50, 0, 72)).toBe(0);
+  });
+});
+
+describe('sortRows', () => {
+  it('sorts numerically ascending and descending without mutating the input', () => {
+    const rows = [{ v: 3 }, { v: 1 }, { v: 2 }];
+    const asc = sortRows(rows, r => r.v, 'asc');
+    const desc = sortRows(rows, r => r.v, 'desc');
+    expect(asc.map(r => r.v)).toEqual([1, 2, 3]);
+    expect(desc.map(r => r.v)).toEqual([3, 2, 1]);
+    expect(rows.map(r => r.v)).toEqual([3, 1, 2]); // original untouched
+  });
+
+  it('sorts strings via localeCompare', () => {
+    const rows = [{ name: 'CMA CGM' }, { name: 'A.P. Moller-Maersk' }, { name: 'MSC' }];
+    const asc = sortRows(rows, r => r.name, 'asc');
+    expect(asc.map(r => r.name)).toEqual(['A.P. Moller-Maersk', 'CMA CGM', 'MSC']);
   });
 });
