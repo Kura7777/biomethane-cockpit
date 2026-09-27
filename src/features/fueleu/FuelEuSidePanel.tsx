@@ -107,8 +107,8 @@ export function FuelEuSidePanel({ row, onClose, onBuildTermSheet, onAddToPool }:
   };
 
   return (
-    <aside className="fe-aside">
-      <div className="fe-aside-section">
+    <aside className="fe-aside ds-aside">
+      <div className="fe-aside-section ds-aside-section">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
           <div>
             <div className="fe-panel-title" style={name.length > 40 ? { fontSize: '18px' } : undefined}>{name}</div>
@@ -138,7 +138,7 @@ export function FuelEuSidePanel({ row, onClose, onBuildTermSheet, onAddToPool }:
         </div>
       </div>
 
-      <div className="fe-aside-body">
+      <div className="fe-aside-body ds-aside-body">
         <div className="fe-aside-section">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
             <div className="fe-panel-section-heading">Do-nothing penalty path</div>
@@ -205,7 +205,7 @@ export function FuelEuSidePanel({ row, onClose, onBuildTermSheet, onAddToPool }:
         </div>
       </div>
 
-      <div className="fe-aside-footer">
+      <div className="fe-aside-footer ds-aside-footer">
         <button type="button" className="fe-btn-primary" onClick={handleBuildTermSheet}>
           Build term sheet
         </button>

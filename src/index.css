@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./shared/ui/desk.css";
 
 @theme {
   --color-bg: #f6f6f3;

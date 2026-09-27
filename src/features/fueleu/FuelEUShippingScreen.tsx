@@ -14,6 +14,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FUEL_EU_SHIPPING_COUNTERPARTIES } from '../../domain/fueleu/shippingTargetsData';
 import { FUEL_EU_LNG_SHIPS } from '../../domain/fueleu/lngShipsData';
 import { ShippingCounterparty } from '../../domain/fueleu/types';
+import { Tabs } from '../../shared/ui/Tabs';
 import {
   DEFAULT_TTF_GAS_INDEX_EUR_MWH,
   DEFAULT_LIQUEFACTION_FEE_EUR_MWH,
@@ -324,20 +325,18 @@ export function FuelEUShippingScreen() {
     <div className="fueleu-desk">
       <FuelEuHeader />
 
-      <div className="fe-tabs" role="tablist" aria-label="FuelEU Maritime sections">
-        <button type="button" role="tab" aria-selected={activeTab === 'DIRECTORY'} className={`fe-tab ${activeTab === 'DIRECTORY' ? 'active' : ''}`} onClick={() => handleSelectTab('DIRECTORY')}>
-          Directory
-        </button>
-        <button type="button" role="tab" aria-selected={activeTab === 'LNG_BOOK'} className={`fe-tab ${activeTab === 'LNG_BOOK' ? 'active' : ''}`} onClick={() => handleSelectTab('LNG_BOOK')}>
-          LNG vessel book <span className="num">{FUEL_EU_LNG_SHIPS.length}</span>
-        </button>
-        <button type="button" role="tab" aria-selected={activeTab === 'POOL_MATCHING'} className={`fe-tab ${activeTab === 'POOL_MATCHING' ? 'active' : ''}`} onClick={() => handleSelectTab('POOL_MATCHING')}>
-          Pool matching
-        </button>
-        <button type="button" role="tab" aria-selected={activeTab === 'TOOLS'} className={`fe-tab ${activeTab === 'TOOLS' ? 'active' : ''}`} onClick={() => handleSelectTab('TOOLS')}>
-          Tools
-        </button>
-      </div>
+      <Tabs<ActiveTab>
+        className="fe-tabs"
+        activeTab={activeTab}
+        onChange={handleSelectTab}
+        ariaLabel="FuelEU Maritime sections"
+        tabs={[
+          { id: 'DIRECTORY', label: 'Directory' },
+          { id: 'LNG_BOOK', label: 'LNG vessel book', badge: FUEL_EU_LNG_SHIPS.length },
+          { id: 'POOL_MATCHING', label: 'Pool matching' },
+          { id: 'TOOLS', label: 'Tools' },
+        ]}
+      />
 
       {activeTab === 'DIRECTORY' && (
         <>

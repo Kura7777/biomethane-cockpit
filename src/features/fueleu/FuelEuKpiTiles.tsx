@@ -4,6 +4,7 @@ import { FUEL_EU_SHIPPING_COUNTERPARTIES } from '../../domain/fueleu/shippingTar
 import { getAssumption } from '../../domain/assumptions/registry';
 import { FUELEU_STATUTORY_PENALTY_PER_TONNE, FUELEU_PENALTY_VLSFO_MJ_PER_TONNE, FUELEU_ACTIVE_PERIOD } from '../../domain/fueleu/calculator';
 import { computeFuelEuKpis, computeFleetWeightedGhgie } from '../../domain/fueleu/uiHelpers';
+import { KpiRow, KpiTile } from '../../shared/ui/KpiTile';
 
 /**
  * The four Directory-tab KPI tiles, computed from real dataset totals (no ETS — ETS stays in the
@@ -22,42 +23,37 @@ export function FuelEuKpiTiles() {
   const surplusKt = kpis.surplusTco2e / 1000;
 
   return (
-    <div className="fe-kpis">
-      <div className="fe-kpi-card">
-        <div className="fe-kpi-label">Deficit to cover · {FUELEU_ACTIVE_PERIOD}</div>
-        <div className="fe-kpi-value num">
-          {deficitKt.toLocaleString('en-US', { maximumFractionDigits: 0 })} <span className="unit">ktCO₂e</span>
-        </div>
-        <div className="fe-kpi-sub num">
-          €{(kpis.deficitPenaltyEur / 1e9).toFixed(2)}bn penalty-equivalent · {kpis.deficitGroupCount.toLocaleString()} groups
-        </div>
-      </div>
+    <KpiRow className="fe-kpis">
+      <KpiTile
+        className="fe-kpi-card"
+        label={`Deficit to cover · ${FUELEU_ACTIVE_PERIOD}`}
+        value={deficitKt.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+        unit="ktCO₂e"
+        sub={`€${(kpis.deficitPenaltyEur / 1e9).toFixed(2)}bn penalty-equivalent · ${kpis.deficitGroupCount.toLocaleString()} groups`}
+      />
 
-      <div className="fe-kpi-card">
-        <div className="fe-kpi-label">Surplus in market</div>
-        <div className="fe-kpi-value num">
-          {surplusKt.toLocaleString('en-US', { maximumFractionDigits: 0 })} <span className="unit">ktCO₂e</span>
-        </div>
-        <div className="fe-kpi-sub num">{kpis.surplusGroupCount.toLocaleString()} groups</div>
-      </div>
+      <KpiTile
+        className="fe-kpi-card"
+        label="Surplus in market"
+        value={surplusKt.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+        unit="ktCO₂e"
+        sub={`${kpis.surplusGroupCount.toLocaleString()} groups`}
+      />
 
-      <div className="fe-kpi-card">
-        <div className="fe-kpi-label">Surplus cover</div>
-        <div className="fe-kpi-value num">{kpis.surplusCoverPct.toFixed(1)}%</div>
-        <div className="fe-kpi-bar-track">
-          <div className="fe-kpi-bar-fill" style={{ width: `${Math.min(100, kpis.surplusCoverPct)}%` }} />
-        </div>
-      </div>
+      <KpiTile
+        className="fe-kpi-card"
+        label="Surplus cover"
+        value={`${kpis.surplusCoverPct.toFixed(1)}%`}
+        barPercent={kpis.surplusCoverPct}
+      />
 
-      <div className="fe-kpi-card">
-        <div className="fe-kpi-label">Pool saving vs penalty</div>
-        <div className="fe-kpi-value num">
-          €{Math.round(poolSavingEurPerTco2e).toLocaleString()} <span className="unit">/tCO₂e</span>
-        </div>
-        <div className="fe-kpi-sub num">
-          €{Math.round(penaltyRateEurPerTco2e).toLocaleString()} penalty rate vs €{offer.toFixed(2)} offer
-        </div>
-      </div>
-    </div>
+      <KpiTile
+        className="fe-kpi-card"
+        label="Pool saving vs penalty"
+        value={`€${Math.round(poolSavingEurPerTco2e).toLocaleString()}`}
+        unit="/tCO₂e"
+        sub={`€${Math.round(penaltyRateEurPerTco2e).toLocaleString()} penalty rate vs €${offer.toFixed(2)} offer`}
+      />
+    </KpiRow>
   );
 }
