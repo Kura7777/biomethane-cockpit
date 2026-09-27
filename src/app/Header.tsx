@@ -1,5 +1,7 @@
 import React from 'react';
 import { useLocation, useNavigate, NavLink } from 'react-router-dom';
+import { Scale, Moon, Sun, Search } from 'lucide-react';
+import './header.css';
 import { WORKSPACE_TABS } from './navConfig';
 import { useAppState } from '../store/context';
 import { useTheme } from '../store/theme';
@@ -29,121 +31,73 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
   const gasIndexBadge = deriveSourceBadge(state.marks.gasIndex.provenance, SIMULATED_SOURCE_NAME);
   const isSimulatedGasIndex = gasIndexBadge.variant === 'WARNING';
 
+  /** The workspace tabs, split into their four groups (pricing | supply | deals | compliance). */
+  const GROUP_STARTS = new Set([1, 4, 6]);
+
   return (
-    <header
-      style={{
-        height: '52px',
-        flex: 'none',
-        display: 'flex',
-        alignItems: 'stretch',
-        borderBottom: '1px solid var(--color-header-divider)',
-        backgroundColor: 'var(--color-header-bg)',
-        color: 'var(--color-header-text)',
-      }}
-      className="select-none z-50"
-    >
-      {/* Brand block */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          padding: '0 18px',
-          borderRight: '1px solid var(--color-header-divider)',
-          cursor: 'pointer',
-          flexShrink: 0,
-        }}
-        onClick={() => navigate('/sourcing')}
-      >
-        <div style={{ width: '10px', height: '10px', backgroundColor: 'var(--color-accent)', flex: 'none', borderRadius: '2px' }} />
-        <span
-          style={{
-            fontFamily: 'var(--font-heading)',
-            fontWeight: 600,
-            fontSize: '15px',
-            whiteSpace: 'nowrap',
-            color: '#ffffff',
-            letterSpacing: '-0.01em',
-          }}
-        >
-          Biomethane Desk
-        </span>
-      </div>
+    <header className="app-header select-none z-50">
+      {/* Row 1: brand, market reference, desk actions */}
+      <div className="app-header-top">
+        <button type="button" className="app-brand" onClick={() => navigate('/sourcing')}>
+          <span className="app-brand-mark" aria-hidden="true" />
+          <span>Biomethane Desk</span>
+        </button>
 
-      {/* Market Reference Ticker: TTF M+1 & Side */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          padding: '0 16px',
-          borderRight: '1px solid var(--color-header-divider)',
-          backgroundColor: 'rgba(255, 255, 255, 0.02)',
-          flexShrink: 0,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-          <span className="eyebrow" style={{ color: 'var(--color-header-muted)' }}>
-            TTF M+1
-          </span>
-          <span
-            className="num"
-            style={{ fontSize: '14px', fontWeight: 600, color: isSimulatedGasIndex ? '#fbbf24' : '#ffffff' }}
-            title={isSimulatedGasIndex ? 'Simulated — not a live market feed. See Marks screen.' : undefined}
-          >
-            {gasIndexPrice !== null && gasIndexPrice !== undefined ? `€${gasIndexPrice.toFixed(2)}` : '—'}
-          </span>
-          {isSimulatedGasIndex && (
+        {/* Market Reference Ticker: TTF M+1 & Side */}
+        <div className="app-ticker">
+          <span className="app-ticker-item">
+            <span className="app-ticker-label">TTF M+1</span>
             <span
-              style={{
-                fontSize: '12px',
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                padding: '1px 5px',
-                borderRadius: 'var(--radius-bar)',
-                backgroundColor: 'rgba(251, 191, 36, 0.18)',
-                color: '#fbbf24',
-              }}
+              className={`app-ticker-price num ${isSimulatedGasIndex ? 'simulated' : ''}`}
+              title={isSimulatedGasIndex ? 'Simulated — not a live market feed. See Marks screen.' : undefined}
             >
-              Simulated
+              {gasIndexPrice !== null && gasIndexPrice !== undefined ? `€${gasIndexPrice.toFixed(2)}` : '—'}
             </span>
-          )}
+            {isSimulatedGasIndex && <span className="app-badge warn">Simulated</span>}
+          </span>
+          <span className="app-ticker-item">
+            <span className="app-ticker-label">Side</span>
+            <span className="app-badge side">{pricingSide}</span>
+          </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-          <span className="eyebrow" style={{ color: 'var(--color-header-muted)' }}>
-            Side
-          </span>
-          <span
-            style={{
-              fontSize: '12px',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: '0.06em',
-              padding: '1px 6px',
-              borderRadius: 'var(--radius-bar)',
-              backgroundColor: 'rgba(255, 255, 255, 0.08)',
-              color: 'var(--color-accent)',
-            }}
+        {/* Desk actions */}
+        <div className="app-header-actions">
+          <button
+            type="button"
+            className="app-header-btn auditor"
+            onClick={onOpenAuditor}
+            title="Open Statutory Compliance Auditor & Knowledge Vault (Alt+A)"
           >
-            {pricingSide}
+            <Scale size={14} />
+            <span>Auditor</span>
+            <span className="app-kbd num">Alt+A</span>
+          </button>
+
+          <button type="button" className="app-header-btn" onClick={onOpenSearch}>
+            <Search size={14} />
+            Command <span className="app-kbd num">⌘K</span>
+          </button>
+
+          <button
+            type="button"
+            className="app-header-btn"
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+          >
+            {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
+            {theme === 'dark' ? 'Light' : 'Dark'}
+          </button>
+
+          <span className="app-user">
+            <span className="app-user-dot" aria-hidden="true" />
+            Trader · A. Vos
           </span>
         </div>
       </div>
 
-      {/* Nav tabs */}
-      <nav
-        style={{
-          display: 'flex',
-          alignItems: 'stretch',
-          overflowX: 'auto',
-          flexShrink: 1,
-          minWidth: 0,
-        }}
-        className="noscroll"
-        aria-label="Workspaces"
-      >
+      {/* Row 2: every workspace, full width */}
+      <nav className="app-header-nav noscroll" aria-label="Workspaces">
         {WORKSPACE_TABS.map((tab, idx) => {
           const isActive =
             (tab.to === '/sourcing' && (location.pathname === '/' || location.pathname.startsWith('/sourcing'))) ||
@@ -153,24 +107,9 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
             location.pathname === tab.to ||
             location.pathname.startsWith(tab.to + '/');
 
-          const hasDividerBefore = idx === 2 || idx === 4 || idx === 6;
-
           return (
             <React.Fragment key={tab.to}>
-              {hasDividerBefore && (
-                <div
-                  style={{
-                    width: '1px',
-                    height: '18px',
-                    alignSelf: 'center',
-                    backgroundColor: 'var(--color-header-divider, rgba(255,255,255,0.12))',
-                    margin: '0 2px',
-                    opacity: 0.6,
-                    flexShrink: 0,
-                  }}
-                  aria-hidden="true"
-                />
-              )}
+              {GROUP_STARTS.has(idx) && <span className="app-nav-divider" aria-hidden="true" />}
               <NavLink
                 to={tab.to}
                 className={`navtab ${isActive ? 'active' : ''}`}
@@ -183,97 +122,6 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
           );
         })}
       </nav>
-
-      {/* Right cluster */}
-      <div
-        style={{
-          marginLeft: 'auto',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          padding: '0 16px',
-          borderLeft: '1px solid var(--color-header-divider)',
-          flexShrink: 0,
-        }}
-      >
-        <button
-          type="button"
-          className="btn"
-          style={{
-            padding: '4px 10px',
-            fontSize: '12px',
-            height: '28px',
-            borderRadius: 'var(--radius-control)',
-            backgroundColor: 'rgba(16, 185, 129, 0.15)',
-            borderColor: '#059669',
-            color: '#34d399',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '5px'
-          }}
-          onClick={onOpenAuditor}
-          title="Open Statutory Compliance Auditor & Knowledge Vault (Alt+A)"
-        >
-          <span>⚖ Auditor</span>
-          <span className="num" style={{ fontWeight: 400, opacity: 0.75, fontSize: '12px' }}>Alt+A</span>
-        </button>
-
-        <button
-          type="button"
-          className="btn"
-          style={{
-            padding: '4px 10px',
-            fontSize: '12px',
-            height: '28px',
-            borderRadius: 'var(--radius-control)',
-            backgroundColor: 'var(--color-header-surface)',
-            borderColor: 'var(--color-header-divider)',
-            color: '#ffffff',
-          }}
-          onClick={onOpenSearch}
-        >
-          Command <span className="num" style={{ fontWeight: 400, opacity: 0.7, marginLeft: '4px' }}>⌘K</span>
-        </button>
-
-        <button
-          type="button"
-          className="btn"
-          style={{
-            padding: '4px 10px',
-            fontSize: '12px',
-            height: '28px',
-            borderRadius: 'var(--radius-control)',
-            backgroundColor: 'var(--color-header-surface)',
-            borderColor: 'var(--color-header-divider)',
-            color: '#ffffff',
-          }}
-          onClick={toggleTheme}
-        >
-          {theme === 'dark' ? 'Light' : 'Dark'}
-        </button>
-
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            paddingLeft: '12px',
-            borderLeft: '1px solid var(--color-header-divider)',
-          }}
-        >
-          <span style={{ width: '6px', height: '6px', backgroundColor: '#10b981', flex: 'none', borderRadius: '50%' }} />
-          <span
-            style={{
-              fontSize: '13px',
-              fontWeight: 500,
-              whiteSpace: 'nowrap',
-              color: '#ffffff',
-            }}
-          >
-            Trader · A. Vos
-          </span>
-        </div>
-      </div>
     </header>
   );
 }
