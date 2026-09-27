@@ -31,41 +31,27 @@ export function AssumptionsStrip({ keys, title = 'Assumptions used' }: Assumptio
   const defs = keys.map(k => getAssumptionDefinition(k)).filter((d): d is NonNullable<typeof d> => !!d);
 
   return (
-    <div
-      style={{
-        padding: '10px 12px',
-        backgroundColor: 'var(--color-subtier)',
-        border: '1px solid var(--color-divider)',
-        fontSize: '11px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '6px',
-      }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+    <div className="ds-assumptions">
+      <div className="ds-assumptions-head">
         <span className="eyebrow">{title}</span>
-        <Link to="/assumptions" style={{ fontSize: '11px', color: 'var(--color-accent)' }}>
+        <Link to="/assumptions" className="ds-assumptions-link">
           All assumptions →
         </Link>
       </div>
       {defs.map(d => {
         const overridden = isOverridden(d.key);
         return (
-          <div
-            key={d.key}
-            style={{ display: 'grid', gridTemplateColumns: 'minmax(160px, 1fr) auto', gap: '8px', alignItems: 'center' }}
-            title={d.source}
-          >
-            <div style={{ minWidth: 0 }}>
-              <div style={{ color: 'var(--color-text)', fontWeight: 600 }}>{d.label}</div>
-              <div className="mut" style={{ fontSize: '10px' }}>
+          <div key={d.key} className="ds-assumptions-row" title={d.source}>
+            <div className="ds-assumptions-text">
+              <div className="ds-assumptions-label">{d.label}</div>
+              <div className="ds-assumptions-source">
                 {BASIS_LABEL[d.basis]} · {d.source}
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}>
+            <div className="ds-assumptions-control">
               <input
                 type="number"
-                className="input num"
+                className={`input num ${overridden ? 'overridden' : ''}`}
                 aria-label={d.label}
                 value={getAssumption(d.key)}
                 step="any"
@@ -75,19 +61,12 @@ export function AssumptionsStrip({ keys, title = 'Assumptions used' }: Assumptio
                   const v = e.target.valueAsNumber;
                   if (Number.isFinite(v)) setAssumption(d.key, v);
                 }}
-                style={{
-                  width: '84px',
-                  fontSize: '11px',
-                  padding: '2px 6px',
-                  borderColor: overridden ? 'var(--color-accent)' : undefined,
-                }}
               />
               <span className="mut">{d.unit}</span>
               {overridden && (
                 <button
                   type="button"
-                  className="chip"
-                  style={{ fontSize: '10px', padding: '1px 6px', cursor: 'pointer' }}
+                  className="chip ds-assumptions-reset"
                   onClick={() => resetAssumption(d.key)}
                   title={`Reset to default (${d.defaultValue} ${d.unit})`}
                 >

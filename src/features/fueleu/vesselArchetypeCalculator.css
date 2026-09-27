@@ -1,0 +1,465 @@
+/* Tools tab — Vessel archetypes calculator. Scoped under .fueleu-desk tokens.
+ * One spacing rhythm: 24px between blocks, 20px card padding, 16px inside cards, 8px within a field. */
+
+/* ── Tools tab shell (tool switch + active tool share the page gutter) ── */
+.fe-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-top: 20px;
+  padding-bottom: 32px;
+}
+
+.fe-tools .fe-seg {
+  align-self: flex-start;
+}
+
+/* ── Calculator layout ── */
+.fva {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.fva-card {
+  border: 1px solid var(--fe-line);
+  border-radius: var(--radius-card);
+  background: var(--fe-surface);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.fva-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  min-height: 32px;
+}
+
+.fva-card-head.ruled {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--fe-line);
+}
+
+.fva-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: var(--fe-fs-section-heading);
+  font-weight: 600;
+  color: var(--fe-ink);
+}
+
+.fva-title svg {
+  flex-shrink: 0;
+  color: var(--fe-accent);
+}
+
+.fva-title.pos svg {
+  color: var(--fe-surplus);
+}
+
+.fva-meta {
+  font-size: var(--fe-fs-caption);
+  color: var(--fe-muted);
+}
+
+.fva-small-btn {
+  height: 32px;
+  font-size: var(--fe-fs-meta);
+}
+
+/* ── Archetype presets ── */
+.fva-presets {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+
+@media (max-width: 1280px) {
+  .fva-presets {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 800px) {
+  .fva-presets {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.fva-preset.btn {
+  height: auto;
+  min-height: 76px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 6px;
+  text-align: left;
+  min-width: 0;
+}
+
+.fva-preset-text {
+  min-width: 0;
+}
+
+/* Names wrap (two lines at most) rather than truncating; segment lines truncate */
+.fva-preset-name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.3;
+}
+
+.fva-preset-segment {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.fva-preset-name {
+  font-size: var(--fe-fs-meta);
+  font-weight: 600;
+}
+
+.fva-preset-segment {
+  font-size: var(--fe-fs-caption);
+  font-weight: 400;
+  color: var(--fe-muted);
+}
+
+.fva-preset-size {
+  font-size: var(--fe-fs-caption);
+  font-weight: 600;
+  color: var(--fe-accent);
+}
+
+.fva-preset.btn-primary .fva-preset-segment {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.fva-preset.btn-primary .fva-preset-size {
+  color: #ffffff;
+}
+
+.fva-context {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--fe-line);
+  font-size: var(--fe-fs-meta);
+  color: var(--fe-muted);
+}
+
+.fva-context strong {
+  color: var(--fe-ink);
+  font-weight: 600;
+}
+
+/* ── Two-column body: inputs | results ── */
+.fva-main {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .fva-main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.fva-results {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+/* ── Inputs ── */
+.fva-inputs {
+  gap: 20px;
+}
+
+.fva-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fva-field-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.fva-label {
+  font-size: var(--fe-fs-meta);
+  color: var(--fe-muted);
+}
+
+.fva-label.pos {
+  font-weight: 600;
+  color: var(--fe-surplus);
+}
+
+.fva-num-input.input {
+  width: 120px;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.fva-num-input.pos {
+  color: var(--fe-surplus);
+  font-weight: 600;
+}
+
+.fva-ci-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.fva-ci-input .input {
+  width: 88px;
+  text-align: right;
+  font-weight: 600;
+}
+
+.fva-range {
+  width: 100%;
+  margin: 0;
+  cursor: pointer;
+}
+
+.fva-hint {
+  font-size: var(--fe-fs-caption);
+  color: var(--fe-muted);
+  line-height: 1.4;
+}
+
+.fva-subpanel {
+  border: 1px solid var(--fe-line);
+  border-radius: var(--radius-control);
+  background: var(--color-panel-header);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fva-settings {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  padding-top: 20px;
+  border-top: 1px solid var(--fe-line);
+}
+
+.fva-settings .fva-field.full {
+  grid-column: 1 / -1;
+}
+
+/* ── Compliance audit ── */
+.fva-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid var(--fe-line);
+  border-radius: var(--radius-control);
+  overflow: hidden;
+}
+
+@media (max-width: 1440px) {
+  .fva-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .fva-kpi:nth-child(2) {
+    border-right: 0;
+  }
+  .fva-kpi:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--fe-line);
+  }
+}
+
+.fva-kpi {
+  padding: 16px;
+  border-right: 1px solid var(--fe-line);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.fva-kpi:last-child {
+  border-right: 0;
+}
+
+.fva-kpi-label {
+  font-size: var(--fe-fs-kpi-label);
+  color: var(--fe-muted);
+}
+
+.fva-kpi-value {
+  font-size: var(--fe-fs-panel-stat-value);
+  font-weight: 500;
+  color: var(--fe-ink);
+  white-space: nowrap;
+}
+
+.fva-kpi-sub {
+  font-size: var(--fe-fs-caption);
+  color: var(--fe-muted);
+}
+
+.fva-pos {
+  color: var(--fe-surplus);
+}
+
+.fva-neg {
+  color: var(--fe-deficit);
+}
+
+.fva-warn {
+  color: var(--fe-warn);
+}
+
+.fva-banner {
+  border: 1px solid var(--fe-line);
+  border-radius: var(--radius-control);
+  background: var(--color-panel-header);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.fva-banner-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fe-fs-meta);
+  font-weight: 600;
+}
+
+.fva-banner-label svg {
+  flex-shrink: 0;
+  color: var(--fe-accent);
+}
+
+.fva-banner-value {
+  text-align: right;
+}
+
+.fva-banner-value > div:first-child {
+  font-size: var(--fe-fs-base);
+  font-weight: 600;
+  color: var(--fe-accent);
+}
+
+/* ── Commercial pathways ── */
+.fva-pathways {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 24px;
+  row-gap: 16px;
+}
+
+/* Each pathway card spans the same four rows (head, description, figures, action) via subgrid,
+ * so the two cards' rows line up whatever wraps inside either one */
+.fva-pathway.fva-card {
+  display: grid;
+  grid-row: span 4;
+  grid-template-rows: subgrid;
+  align-items: start;
+}
+
+.fva-pathway .fva-card-head {
+  align-self: stretch;
+  align-items: flex-start;
+}
+
+.fva-pathway .fva-cta.btn {
+  margin-top: 0;
+  align-self: end;
+}
+
+@media (max-width: 1100px) {
+  .fva-pathways {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 24px;
+  }
+  .fva-pathway.fva-card {
+    display: flex;
+    grid-row: auto;
+    align-items: stretch;
+  }
+  .fva-pathway .fva-cta.btn {
+    margin-top: auto;
+  }
+}
+
+.fva-desc {
+  margin: 0;
+  font-size: var(--fe-fs-meta);
+  color: var(--fe-muted);
+  line-height: 1.5;
+}
+
+.fva-kv {
+  border: 1px solid var(--fe-line);
+  border-radius: var(--radius-control);
+  background: var(--color-panel-header);
+  padding: 4px 12px;
+  display: flex;
+  flex-direction: column;
+  font-size: var(--fe-fs-meta);
+}
+
+.fva-kv-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.fva-kv-row + .fva-kv-row {
+  border-top: 1px solid var(--fe-line);
+}
+
+.fva-kv-row .muted {
+  color: var(--fe-muted);
+}
+
+.fva-kv-row.pos {
+  color: var(--fe-surplus);
+  font-weight: 600;
+}
+
+.fva-kv-row.accent {
+  color: var(--fe-accent);
+  font-weight: 600;
+}
+
+/* CTA pinned to the card bottom so both pathway cards end on the same line */
+.fva-cta.btn {
+  width: 100%;
+  margin-top: auto;
+}

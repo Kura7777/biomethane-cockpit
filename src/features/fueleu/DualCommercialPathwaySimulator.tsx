@@ -127,7 +127,7 @@ ESTIMATED PENALTY EXPOSURE (DEFAULT INACTION, ART. 23(2)): €${Math.round(statu
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', padding: '16px 18px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
       {/* Overview Header Banner */}
       <div
         style={{
