@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { gotoScreen, collectPageErrors, appErrors, expectNoErrorBoundary } from './helpers';
 
 test.describe('Global Shell, Theme Toggle & Command Palette', () => {
-  test('renders header metrics, live TTF index, and brand navigation', async ({ page }) => {
+  test('renders the header and brand navigation', async ({ page }) => {
     const errors = collectPageErrors(page);
 
     await gotoScreen(page, '/trade');
@@ -12,8 +12,6 @@ test.describe('Global Shell, Theme Toggle & Command Palette', () => {
     const header = page.locator('header');
     await expect(header).toBeVisible();
     await expect(header).toContainText(/Biomethane Desk/i);
-    await expect(header).toContainText(/TTF M\+1/i);
-    await expect(header).toContainText(/Side/i);
     await expect(header).toContainText(/Trader · A\. Vos/i);
 
     // Clicking brand logo navigates to /sourcing

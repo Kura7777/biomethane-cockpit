@@ -50,7 +50,7 @@
   /* Sticky side panel's max-height budget: viewport minus the app shell's 88px two-row header + 28px
    * footer (the two chrome bars outside this screen — see src/app/Layout.tsx), minus the panel's
    * own 16px sticky offset top and bottom. Verified in-browser via the scroll screenshot. */
-  --fe-chrome-offset: 148px;
+  --fe-chrome-offset: 112px;
 
   font-family: 'IBM Plex Sans', system-ui, sans-serif;
   background: var(--fe-bg);
@@ -481,7 +481,7 @@ html.dark .fueleu-desk {
 /* Side panel — a sticky card that scrolls WITH the page (not a fixed-height flush sidebar): its
  * top stays aligned with the toolbar's top (grid `align-items: start`) until the page scrolls past
  * it, then it sticks 16px from the top of the app shell's scroll container (<main id="main-content">
- * in src/app/Layout.tsx — 88px header + 28px footer outside this screen, hence --fe-chrome-offset).
+ * in src/app/Layout.tsx — 52px header + 28px footer outside this screen, hence --fe-chrome-offset).
  * Its own header stats stay fixed, the middle sections (chart/DoC holders/contacts) scroll in
  * .fe-aside-body, and the action footer stays pinned at the card's bottom. */
 .fe-aside {

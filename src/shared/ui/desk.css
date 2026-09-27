@@ -7,7 +7,7 @@
 :root {
   --ds-page-max-width: 1840px;
   --ds-page-gutter: 32px;
-  --ds-chrome-offset: 148px; /* 88px two-row header + 28px footer + 32px sticky insets */
+  --ds-chrome-offset: 112px; /* 52px header + 28px footer + 32px sticky insets */
 }
 
 @media (max-width: 1440px) {
