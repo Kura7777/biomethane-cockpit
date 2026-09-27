@@ -175,9 +175,10 @@ describe('Empirical Adversarial Stress & Fuzz Suite (Milestone 1 & 3 Verificatio
 
     it('computes accurately for extreme negative CI (-150 gCO2e/MJ)', () => {
       const res = computeFuelEUDeficitClosureValue(-150, 1, 89.34, 91.16);
-      // Annex IV marginal: (2400/41000) × (ship − WtW_bio) × target / ship² × 3600, WtW_bio = CI + 9.3121 slip (Otto SS)
-      // (2400/41000) × (91.16 − (−150 + 9.3121)) × 89.34 / 91.16² × 3600 ≈ 525.26
-      expect(res.valueEurPerMWh).toBeCloseTo(525.26, 1);
+      // Annex IV marginal: (2400/41000) × (ship − WtW_bio) × target / ship² × 3600
+      // WtW_bio(-150, Otto SS) = (-150 − 2.750/0.050) + ((1-0.017)×2.78278+0.017×25)/0.050 = -141.7905
+      // (2400/41000) × (91.16 − (−141.7905)) × 89.34 / 91.16² × 3600 ≈ 527.75
+      expect(res.valueEurPerMWh).toBeCloseTo(527.75, 1);
       expect(Number.isFinite(res.valueEurPerMWh)).toBe(true);
       expect(Number.isNaN(res.valueEurPerMWh)).toBe(false);
     });
@@ -198,9 +199,10 @@ describe('Empirical Adversarial Stress & Fuzz Suite (Milestone 1 & 3 Verificatio
       const yr2025 = computeFuelEUDeficitClosureValue(-100, 1, FUELEU_TARGET_CI_2025, 91.16);
       const yr2030 = computeFuelEUDeficitClosureValue(-100, 1, FUELEU_TARGET_CI_2030, 91.16);
       expect(yr2030.valueEurPerMWh).toBeLessThan(yr2025.valueEurPerMWh);
-      // Annex IV marginal: (2400/41000) × (ship − WtW_bio) × target / ship² × 3600, WtW_bio = CI + 9.3121 slip (Otto SS)
-      // 2030: (2400/41000) × (91.16 + 90.6879) × 85.6904 / 91.16² × 3600 ≈ 395.15
-      expect(yr2030.valueEurPerMWh).toBeCloseTo(395.15, 1);
+      // Annex IV marginal: (2400/41000) × (ship − WtW_bio) × target / ship² × 3600
+      // WtW_bio(-100, Otto SS) = -91.7905 (Annex II note + Annex I slip/N2O)
+      // 2030: (2400/41000) × (91.16 + 91.7905) × 85.6904 / 91.16² × 3600 ≈ 397.55
+      expect(yr2030.valueEurPerMWh).toBeCloseTo(397.55, 1);
     });
 
   });

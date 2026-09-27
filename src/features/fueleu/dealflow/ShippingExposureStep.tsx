@@ -25,6 +25,7 @@ import {
   UserCheck,
 } from 'lucide-react';
 import { showToast } from '../../../app/DeskToastContainer';
+import { getAssumption } from '../../../domain/assumptions/registry';
 
 const MONO_FONT = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
 
@@ -46,16 +47,9 @@ export function ShippingExposureStep({
   const absDeficit = Math.abs(counterparty.compliance_balance_2025_tco2e);
   const isDualFuel = counterparty.fleetCapability === 'DUAL_FUEL_LNG';
 
-  // Derive high-confidence desk contact email
-  const contactEmail = useMemo(() => {
-    const dept = counterparty.targetDepartment.toLowerCase();
-    const prefix = dept.includes('bunker')
-      ? 'bunkering'
-      : dept.includes('decarbon')
-      ? 'sustainability'
-      : 'commercial';
-    return `${prefix}@${counterparty.contactDomain}`;
-  }, [counterparty.targetDepartment, counterparty.contactDomain]);
+  // Only render contacts on file — never construct an email/phone/domain from other fields.
+  const primaryContact = counterparty.contacts?.[0];
+  const contactEmail = primaryContact?.email;
 
   // Structured Crisp Bulleted Pitch Points
   const pitchBulletPoints = useMemo(() => {
@@ -63,15 +57,15 @@ export function ShippingExposureStep({
       return [
         {
           title: 'Fleet Compliance Position',
-          detail: `${counterparty.parent_name} operates an audited EU MRV fleet of ${counterparty.vessels_in_scope} vessels generating a premier +${(counterparty.compliance_balance_2025_tco2e / 1000).toFixed(1)} kt FuelEU surplus in 2025.`,
+          detail: `${counterparty.parent_name} operates an EU MRV fleet (Source: EU MRV 2024, THETIS-MRV public report; fuel split estimated) of ${counterparty.vessels_in_scope} vessels generating a premier +${(counterparty.compliance_balance_2025_tco2e / 1000).toFixed(1)} kt FuelEU surplus in 2025.`,
         },
         {
           title: 'Article 21 Surplus Monetisation',
-          detail: `Our desk can broker your surplus into deficit carrier pools at institutional spreads (€435/tCO2e), capturing €${(counterparty.client_savings_pooling_eur / 1e6).toFixed(1)}M in non-dilutive trading liquidity.`,
+          detail: `Our desk can broker your surplus into deficit carrier pools at the desk pool bid (€${getAssumption('fueleu.poolSellPriceEurPerTco2e').toFixed(0)}/tCO2e, indicative — desk assumption, not a statutory rate), capturing €${(counterparty.client_savings_pooling_eur / 1e6).toFixed(1)}M in non-dilutive trading liquidity.`,
         },
         {
           title: 'Execution & Settlement',
-          detail: `Zero operational disruption; instantaneous bilateral registry transfer recorded directly in EU Thetis MRV without modifying fleet schedules.`,
+          detail: `Zero operational disruption; bilateral registry transfer recorded via the FuelEU database (Art. 19, Art. 21) without modifying fleet schedules.`,
         },
       ];
     }
@@ -90,8 +84,8 @@ export function ShippingExposureStep({
           detail: `Bunkering ${(counterparty.bio_lng_required_neg100_t).toLocaleString()} tonnes of -100 CI manure Bio-LNG delivers 0.000 tCO2/t EU ETS zero-rating and captures +€${(counterparty.client_savings_physical_eur / counterparty.bio_lng_required_neg100_t).toFixed(2)}/t in net client arbitrage.`,
         },
         {
-          title: 'Audited Financial Uplift',
-          detail: `Delivers up to €${(counterparty.client_savings_physical_eur / 1e6).toFixed(1)}M in audited net client compliance savings vs conventional VLSFO alternative compliance parity.`,
+          title: 'Estimated Financial Uplift',
+          detail: `Delivers up to €${(counterparty.client_savings_physical_eur / 1e6).toFixed(1)}M in estimated net client compliance savings vs conventional VLSFO alternative compliance parity (indicative — desk assumptions).`,
         },
       ];
     }
@@ -102,11 +96,11 @@ export function ShippingExposureStep({
       },
       {
         title: 'Article 21 Compliance Pooling Solution',
-        detail: `No engine modifications or dry-docking required. Our desk structures paper Article 21 compliance pooling backed by certified drop-in biofuels to neutralise your ${(absDeficit / 1000).toFixed(1)} kt deficit.`,
+        detail: `No engine modifications or dry-docking required. Our desk structures paper Article 21 compliance pooling backed by RED-certified drop-in biofuels to neutralise your ${(absDeficit / 1000).toFixed(1)} kt deficit.`,
       },
       {
-        title: 'Guaranteed Client Savings',
-        detail: `Transfers statutory liability into our desk compliance pool at a fixed clearing spread, generating €${(counterparty.client_savings_pooling_eur / 1e6).toFixed(1)}M in net savings vs statutory penalties.`,
+        title: 'Indicative Client Savings',
+        detail: `Transfers statutory liability into our desk compliance pool at the desk pool offer (€${getAssumption('fueleu.poolBuyPriceEurPerTco2e').toFixed(0)}/tCO2e, indicative), generating an estimated €${(counterparty.client_savings_pooling_eur / 1e6).toFixed(1)}M in net savings vs statutory penalties.`,
       },
     ];
   }, [counterparty, isSurplus, isDualFuel, absDeficit]);
@@ -188,14 +182,14 @@ export function ShippingExposureStep({
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--color-muted)', flexWrap: 'wrap' }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
               <MapPin size={12} style={{ color: 'var(--color-muted)' }} />
-              {counterparty.headquarters}
+              {counterparty.headquarters || '—'}
             </span>
             <span>·</span>
             <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>{counterparty.segment}</span>
             <span>·</span>
-            <span>Calling: {CALLING_REGIONS[counterparty.callingRegion]?.label || counterparty.callingRegion}</span>
+            <span>Calling: {(counterparty.callingRegion && CALLING_REGIONS[counterparty.callingRegion]?.label) || counterparty.callingRegion || '—'}</span>
             <span>·</span>
-            <span>Hubs: {counterparty.primary_bunkering_hubs}</span>
+            <span>Hubs: {counterparty.primary_bunkering_hubs || '—'}</span>
           </div>
         </div>
 
@@ -407,7 +401,7 @@ export function ShippingExposureStep({
             }}
           >
             <ShieldCheck size={12} style={{ color: 'var(--color-status-pos-text)' }} />
-            <span>Audited under EU Regulation 2023/1805 &amp; Thetis MRV</span>
+            <span>Source: EU MRV 2024 (THETIS-MRV public report); fuel split estimated</span>
           </div>
         </div>
 
@@ -449,7 +443,7 @@ export function ShippingExposureStep({
                   color: 'var(--color-accent)',
                 }}
               >
-                VERIFIED CRM
+                {counterparty.contacts?.length ? 'SOURCED CONTACT' : 'NO CONTACT ON FILE'}
               </span>
             </div>
 
@@ -464,19 +458,25 @@ export function ShippingExposureStep({
                 }}
               >
                 <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--color-text)', marginBottom: '2px' }}>
-                  {counterparty.key_executive}
+                  {primaryContact?.name || counterparty.key_executive || '—'}
                 </div>
                 <div style={{ fontSize: '11.5px', fontWeight: 600, color: 'var(--color-accent)' }}>
-                  {counterparty.keyContactRole}
+                  {primaryContact?.role || counterparty.keyContactRole || '—'}
                 </div>
                 <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '2px' }}>
-                  {counterparty.targetDepartment}
+                  {counterparty.targetDepartment || '—'}
                 </div>
               </div>
 
-              {/* Actionable Contact Rows */}
+              {/* Actionable Contact Rows — only contacts on file are rendered; nothing here is constructed */}
+              {!primaryContact && !counterparty.switchboardPhone && !counterparty.hqAddress && !counterparty.contactDomain ? (
+                <div style={{ padding: '10px', fontSize: '11.5px', color: 'var(--color-muted)', border: '1px dashed var(--color-divider)' }}>
+                  No verified contact on file.
+                </div>
+              ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '11.5px' }}>
                 {/* Email */}
+                {contactEmail && (
                 <div
                   style={{
                     display: 'flex',
@@ -516,8 +516,10 @@ export function ShippingExposureStep({
                     <span>{copiedField === 'Email' ? 'Copied' : 'Copy'}</span>
                   </button>
                 </div>
+                )}
 
                 {/* Phone */}
+                {(primaryContact?.phone || counterparty.switchboardPhone) && (
                 <div
                   style={{
                     display: 'flex',
@@ -531,7 +533,7 @@ export function ShippingExposureStep({
                   <div style={{ display: 'flex', alignItems: 'center', gap: '7px', minWidth: 0 }}>
                     <Phone size={13} style={{ color: 'var(--color-status-pos-text)', flexShrink: 0 }} />
                     <a
-                      href={`tel:${counterparty.switchboardPhone}`}
+                      href={`tel:${primaryContact?.phone || counterparty.switchboardPhone}`}
                       style={{
                         fontFamily: MONO_FONT,
                         fontSize: '11px',
@@ -543,12 +545,12 @@ export function ShippingExposureStep({
                       }}
                       title="Call commercial office"
                     >
-                      {counterparty.switchboardPhone}
+                      {primaryContact?.phone || counterparty.switchboardPhone}
                     </a>
                   </div>
                   <button
                     type="button"
-                    onClick={() => handleCopyField(counterparty.switchboardPhone, 'Phone')}
+                    onClick={() => handleCopyField(primaryContact?.phone || counterparty.switchboardPhone || '', 'Phone')}
                     className="btn btn-secondary"
                     style={{ height: '22px', padding: '0 6px', fontSize: '10px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
                     title="Copy phone number"
@@ -557,8 +559,10 @@ export function ShippingExposureStep({
                     <span>{copiedField === 'Phone' ? 'Copied' : 'Copy'}</span>
                   </button>
                 </div>
+                )}
 
                 {/* HQ Address */}
+                {counterparty.hqAddress && (
                 <div
                   style={{
                     display: 'flex',
@@ -575,8 +579,10 @@ export function ShippingExposureStep({
                     <div>{counterparty.headquarters}</div>
                   </div>
                 </div>
+                )}
 
                 {/* Corporate Website */}
+                {counterparty.contactDomain && (
                 <div
                   style={{
                     display: 'flex',
@@ -602,9 +608,11 @@ export function ShippingExposureStep({
                     Visit ↗
                   </a>
                 </div>
+                )}
+              </div>
+              )}
               </div>
             </div>
-          </div>
 
           <div
             style={{

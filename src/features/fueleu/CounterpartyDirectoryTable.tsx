@@ -8,6 +8,7 @@ import {
   getStrategyTierBadgeClass,
 } from '../../domain/fueleu/types';
 import { FUEL_EU_SHIPPING_COUNTERPARTIES } from '../../domain/fueleu/shippingTargetsData';
+import { FUELEU_VLSFO_WTW, FUELEU_LFO_WTW } from '../../domain/fueleu/calculator';
 import {
   Search,
   Filter,
@@ -115,7 +116,7 @@ export function CounterpartyDirectoryTable({
   const bunkerHubs = useMemo(() => {
     const hubSet = new Set<string>();
     FUEL_EU_SHIPPING_COUNTERPARTIES.forEach(c => {
-      c.primary_bunkering_hubs.split(',').forEach(h => {
+      (c.primary_bunkering_hubs || '').split(',').forEach(h => {
         const trimmed = h.trim();
         if (trimmed) hubSet.add(trimmed);
       });
@@ -130,21 +131,21 @@ export function CounterpartyDirectoryTable({
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchesName = c.parent_name.toLowerCase().includes(q);
-        const matchesHq = c.headquarters.toLowerCase().includes(q);
+        const matchesHq = (c.headquarters || '').toLowerCase().includes(q);
         const matchesAddress = (c.hqAddress || '').toLowerCase().includes(q);
         const matchesDomain = (c.contactDomain || '').toLowerCase().includes(q);
-        const matchesExec = c.key_executive.toLowerCase().includes(q);
-        const matchesHubs = c.primary_bunkering_hubs.toLowerCase().includes(q);
+        const matchesExec = (c.key_executive || '').toLowerCase().includes(q);
+        const matchesHubs = (c.primary_bunkering_hubs || '').toLowerCase().includes(q);
         const matchesStrategy = c.strategy_tier.toLowerCase().includes(q);
         const matchesRole = (c.keyContactRole || '').toLowerCase().includes(q);
         const matchesDept = (c.targetDepartment || '').toLowerCase().includes(q);
         const matchesRegionCode = (c.callingRegion || '').toLowerCase().includes(q);
-        const matchesRegion = (CALLING_REGIONS[c.callingRegion]?.label || '').toLowerCase().includes(q) ||
-                              (CALLING_REGIONS[c.callingRegion]?.portsDescription || '').toLowerCase().includes(q) ||
+        const matchesRegion = ((c.callingRegion && CALLING_REGIONS[c.callingRegion]?.label) || '').toLowerCase().includes(q) ||
+                              ((c.callingRegion && CALLING_REGIONS[c.callingRegion]?.portsDescription) || '').toLowerCase().includes(q) ||
                               matchesRegionCode;
         const matchesLaneCode = (c.tradeLane || '').toLowerCase().includes(q);
-        const matchesLane = (TRADE_LANES[c.tradeLane]?.label || '').toLowerCase().includes(q) ||
-                            (TRADE_LANES[c.tradeLane]?.corridorDescription || '').toLowerCase().includes(q) ||
+        const matchesLane = ((c.tradeLane && TRADE_LANES[c.tradeLane]?.label) || '').toLowerCase().includes(q) ||
+                            ((c.tradeLane && TRADE_LANES[c.tradeLane]?.corridorDescription) || '').toLowerCase().includes(q) ||
                             matchesLaneCode;
         // Rank search (e.g. "#1", "rank 1", or exact rank number)
         const cleanQuery = q.trim();
@@ -181,7 +182,7 @@ export function CounterpartyDirectoryTable({
 
       // Bunker Hub (exact token match)
       if (selectedHub !== 'ALL') {
-        const hubs = c.primary_bunkering_hubs.split(',').map(h => h.trim());
+        const hubs = (c.primary_bunkering_hubs || '').split(',').map(h => h.trim());
         if (!hubs.includes(selectedHub)) {
           return false;
         }
@@ -395,9 +396,9 @@ export function CounterpartyDirectoryTable({
       c.lng_vessels_in_scope,
       c.conventional_vessels_in_scope,
       escapeVal(c.callingRegion),
-      escapeVal(CALLING_REGIONS[c.callingRegion]?.portsDescription || c.callingRegion),
+      escapeVal((c.callingRegion && CALLING_REGIONS[c.callingRegion]?.portsDescription) || c.callingRegion),
       escapeVal(c.tradeLane),
-      escapeVal(TRADE_LANES[c.tradeLane]?.corridorDescription || c.tradeLane),
+      escapeVal((c.tradeLane && TRADE_LANES[c.tradeLane]?.corridorDescription) || c.tradeLane),
       escapeVal(c.primary_bunkering_hubs),
       c.vessels_in_scope,
       escapeVal(c.strategy_tier),
@@ -465,7 +466,7 @@ export function CounterpartyDirectoryTable({
     const rows = sortedCounterparties.map(c => [
       c.rank,
       `"${c.parent_name.replace(/"/g, '""')}"`,
-      `"${c.headquarters.replace(/"/g, '""')}"`,
+      `"${(c.headquarters || '').replace(/"/g, '""')}"`,
       `"${c.segment.replace(/"/g, '""')}"`,
       `"${c.fleetCapability}"`,
       c.lng_vessels_in_scope,
@@ -487,8 +488,8 @@ export function CounterpartyDirectoryTable({
       c.bio_lng_required_neg100_mwh,
       c.client_savings_physical_eur,
       c.desk_margin_physical_eur,
-      `"${c.key_executive.replace(/"/g, '""')}"`,
-      `"${c.primary_bunkering_hubs.replace(/"/g, '""')}"`,
+      `"${(c.key_executive || '').replace(/"/g, '""')}"`,
+      `"${(c.primary_bunkering_hubs || '').replace(/"/g, '""')}"`,
     ]);
 
     const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
@@ -503,9 +504,22 @@ export function CounterpartyDirectoryTable({
     showToast(`Exported ${sortedCounterparties.length} shipping counterparties to CSV`, 'SUCCESS');
   };
 
+  const vlsfoLfoDeltaGCo2eMj = (FUELEU_VLSFO_WTW - FUELEU_LFO_WTW).toFixed(2);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-      {/* Refined Institutional Metric Ledger Strip */}
+      <div
+        style={{
+          padding: '4px 18px',
+          fontSize: '10px',
+          color: 'var(--color-muted)',
+          borderBottom: '1px solid var(--color-divider)',
+          backgroundColor: 'var(--color-surface)',
+        }}
+      >
+        Assumption: VLSFO treated as Annex II HFO class (ISO 8217 RME&ndash;RMK); if RMA&ndash;RMD (LFO class) the intensity is ~{vlsfoLfoDeltaGCo2eMj} g/MJ lower.
+      </div>
+      {/* Metric Ledger Strip */}
       <div
         style={{
           display: 'grid',
@@ -532,7 +546,7 @@ export function CounterpartyDirectoryTable({
                 border: '1px solid var(--color-divider)',
               }}
             >
-              EU MRV AUDITED
+              SOURCE: EU MRV 2024 (THETIS-MRV)
             </span>
           </div>
           <div className="num font-mono" style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-status-info-text, #0284c7)', lineHeight: 1.15, fontFamily: MONO_FONT }}>
@@ -631,7 +645,7 @@ export function CounterpartyDirectoryTable({
         </div>
       </div>
 
-      {/* Unified Single-Row Institutional Filter Bar */}
+      {/* Unified Single-Row Filter Bar */}
       <div
         style={{
           padding: '8px 18px',
@@ -871,7 +885,7 @@ export function CounterpartyDirectoryTable({
           )}
         </div>
 
-        {/* Right Side: Active count summary & Institutional Export Buttons */}
+        {/* Right Side: Active count summary & Export Buttons */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
           <span style={{ fontSize: '11px', color: 'var(--color-muted)', marginRight: '4px' }}>
             Showing <strong>{pageSize === 'ALL' ? filteredCounterparties.length : `${startIndex + 1}–${Math.min(startIndex + pageSize, totalItems)}`}</strong> of <strong>{totalItems}</strong> groups
@@ -1080,7 +1094,7 @@ export function CounterpartyDirectoryTable({
                         {c.parent_name}
                       </div>
                       <div className="subttl" style={{ fontSize: '10.5px', marginTop: '1px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '360px' }}>
-                        {c.headquarters} · <span style={{ color: 'var(--color-muted)' }}>{c.segment}</span> · {CALLING_REGIONS[c.callingRegion]?.label || c.callingRegion}
+                        {c.headquarters || '—'} · <span style={{ color: 'var(--color-muted)' }}>{c.segment}</span> · {(c.callingRegion && CALLING_REGIONS[c.callingRegion]?.label) || c.callingRegion || '—'}
                       </div>
                     </td>
 
@@ -1193,7 +1207,7 @@ export function CounterpartyDirectoryTable({
                 €{aggregateMetrics.clientSavingsM}M
               </td>
               <td style={{ textAlign: 'right', padding: '7px 16px', fontSize: '10.5px', color: 'var(--color-muted)' }}>
-                Audited MRV
+                Source: EU MRV
               </td>
             </tr>
           </tfoot>

@@ -206,7 +206,7 @@ export function ShippingBunkerPricingStep({
           <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
             {isSurplus ? (
               <>
-                Monetising <strong style={{ color: 'var(--color-status-pos-text)' }}>+{(counterparty.compliance_balance_2025_tco2e / 1000).toFixed(1)} kt FuelEU surplus</strong> via Article 21 pooling · Thetis-MRV registry transfer across <strong style={{ color: 'var(--color-accent)' }}>{counterparty.primary_bunkering_hubs}</strong>
+                Monetising <strong style={{ color: 'var(--color-status-pos-text)' }}>+{(counterparty.compliance_balance_2025_tco2e / 1000).toFixed(1)} kt FuelEU surplus</strong> via Article 21 pooling · FuelEU database (Art. 19) registry transfer across <strong style={{ color: 'var(--color-accent)' }}>{counterparty.primary_bunkering_hubs}</strong>
               </>
             ) : (
               <>
@@ -275,7 +275,7 @@ export function ShippingBunkerPricingStep({
               </div>
               <div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-zinc-100">
-                  Physical Cryogenic Bio-LNG (Article 20)
+                  Physical Bio-LNG Bunkering (Art. 4, Annex I-II)
                 </h3>
                 <span className="text-[11px] text-slate-500 dark:text-zinc-400 font-mono">
                   Direct Bunkering (DES / TTS)
@@ -284,7 +284,7 @@ export function ShippingBunkerPricingStep({
             </div>
 
             <p className="text-xs text-slate-600 dark:text-zinc-300 leading-relaxed mb-3">
-              Delivered physical molecule with certified ISCC EU RED III proof of sustainability (-100 CI manure substrate). Delivers 0.000 tCO₂/t EU ETS zero-rating and 100% FuelEU penalty elimination.
+              Delivered physical molecule with ISCC EU RED-certified proof of sustainability (Directive (EU) 2018/2001, as amended by (EU) 2023/2413; -100 CI manure substrate). Delivers 0.000 tCO₂/t EU ETS zero-rating (subject to RED certification) and eliminates the FuelEU penalty at this compliance balance.
             </p>
 
             <div className="flex items-center gap-3 text-[11px] font-mono text-cyan-700 dark:text-cyan-300">
@@ -329,13 +329,13 @@ export function ShippingBunkerPricingStep({
             </div>
 
             <p className="text-xs text-slate-600 dark:text-zinc-300 leading-relaxed mb-3">
-              Zero engine modifications or physical bunkering required. Reallocates compliance surplus from our institutional pool directly into the client’s Thetis-MRV account at a guaranteed spread discount.
+              Zero engine modifications or physical bunkering required. Reallocates compliance surplus from our desk pool directly into the client's compliance balance via the FuelEU database (Art. 19, Art. 21) at an indicative desk spread.
             </p>
 
             <div className="flex items-center gap-3 text-[11px] font-mono text-cyan-700 dark:text-cyan-300">
               <span>✓ Zero Capex / Retrofit</span>
               <span>✓ Paper Transfer</span>
-              <span>✓ Guaranteed Spread</span>
+              <span>✓ Indicative Spread</span>
             </div>
           </div>
         </div>
@@ -547,7 +547,7 @@ export function ShippingBunkerPricingStep({
                 <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '2px' }}>
                   {pathway === 'PHYSICAL'
                     ? `Saves client €${Math.round(clientSavingsEur).toLocaleString()} vs paying €2,400/t VLSFO-eq penalty`
-                    : `Monetises paper compliance spread at institutional clearing price`}
+                    : `Monetises paper compliance spread at the desk clearing price (indicative)`}
                 </div>
               </div>
 

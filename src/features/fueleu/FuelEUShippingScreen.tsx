@@ -29,7 +29,7 @@ import {
 type ActiveTab = 'DIRECTORY' | 'CALCULATOR' | 'PATHWAYS';
 
 const DEAL_STEPS = [
-  { step: 1, title: '1. Select Counterparty', desc: '1,850 shipping groups' },
+  { step: 1, title: '1. Select Counterparty', desc: `${FUEL_EU_SHIPPING_COUNTERPARTIES.length.toLocaleString('en-US')} shipping groups` },
   { step: 2, title: '2. Exposure & Contacts', desc: 'Statutory risk & CRM' },
   { step: 3, title: '3. Price Solution', desc: 'Bio-LNG & pooling margins' },
   { step: 4, title: '4. Term Sheet & Trade', desc: 'OTC deal execution' },
@@ -207,11 +207,11 @@ export function FuelEUShippingScreen() {
                     color: 'var(--color-muted)',
                   }}
                 >
-                  EMSA THETIS-MRV AUDITED
+                  SOURCE: EU MRV 2024 (THETIS-MRV)
                 </span>
               </div>
               <div className="subttl" style={{ fontSize: '12px' }}>
-                Pan-European compliance ledger · {totalGroups.toLocaleString()} shipping groups · {totalVessels.toLocaleString()} commercial vessels · Article 20 physical Bio-LNG &amp; Article 21 pooling
+                Pan-European compliance ledger · {totalGroups.toLocaleString()} shipping groups · {totalVessels.toLocaleString()} commercial vessels · Bio-LNG bunkering (Art. 4, Annex I-II) &amp; Article 21 pooling
               </div>
             </div>
 
@@ -314,10 +314,10 @@ export function FuelEUShippingScreen() {
                 gap: '5px',
                 cursor: 'pointer',
               }}
-              title="Return to 1,850 Counterparties Directory"
+              title={`Return to ${FUEL_EU_SHIPPING_COUNTERPARTIES.length.toLocaleString('en-US')} Counterparties Directory`}
             >
               <ArrowLeft size={13} style={{ color: 'var(--color-accent)' }} />
-              <span>Directory (1,850)</span>
+              <span>Directory ({FUEL_EU_SHIPPING_COUNTERPARTIES.length.toLocaleString('en-US')})</span>
             </button>
 
             <div style={{ width: '1px', height: '18px', backgroundColor: 'var(--color-divider)' }} />

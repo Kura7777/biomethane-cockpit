@@ -70,8 +70,9 @@ describe('PHASE 5 — NUMERICAL INTEGRITY & HAND RECOMPUTATION AUDIT', () => {
     expect(rtfoCert?.valueEurPerMWh).toBeCloseTo(42.48, 2);
 
     // 6. EUR_PER_TCO2E_DEFICIT (FUELEU): Modelled deficit closure value (Annex IV marginal, VLSFO ship 91.7442)
+    // WtW_bio(-50, Otto SS) = -41.7905 (Annex II note + Annex I slip/N2O)
     const fuelEUCert = computeCertificateValue(getMarketById('FUELEU')!, consignmentNeg50, testMarks, 'bid');
-    expect(fuelEUCert?.valueEurPerMWh).toBeCloseTo(296.21, 2);
+    expect(fuelEUCert?.valueEurPerMWh).toBeCloseTo(298.67, 2);
   });
 
   // 3. HHV <-> LHV Round-Trip Exactness
@@ -121,7 +122,7 @@ describe('PHASE 5 — NUMERICAL INTEGRITY & HAND RECOMPUTATION AUDIT', () => {
     const yr3 = computeFuelEUDeficitClosureValue(-50, 3);
     const yr4 = computeFuelEUDeficitClosureValue(-50, 4);
 
-    expect(yr1.valueEurPerMWh).toBeCloseTo(296.21, 2);
+    expect(yr1.valueEurPerMWh).toBeCloseTo(298.67, 2);
     expect(yr2.valueEurPerMWh).toBeCloseTo(yr1.valueEurPerMWh * 1.1, 2); // +10%
     expect(yr3.valueEurPerMWh).toBeCloseTo(yr1.valueEurPerMWh * 1.2, 2); // +20%
     expect(yr4.valueEurPerMWh).toBeCloseTo(yr1.valueEurPerMWh * 1.3, 2); // +30%

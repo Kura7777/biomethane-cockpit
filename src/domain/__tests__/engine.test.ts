@@ -263,8 +263,9 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
 
     it('anchors: FuelEU manure CI -100 year 1 deficit closure value', () => {
       const res = computeFuelEUDeficitClosureValue(-100, 1, 89.34, 91.16);
-      // Annex IV marginal: (2400/41000) × (ship − WtW_bio) × target / ship² × 3600, WtW_bio = CI + 9.3121 slip (Otto SS)
-      expect(res.valueEurPerMWh).toBeCloseTo(411.98, 1);
+      // Annex IV marginal: (2400/41000) × (ship − WtW_bio) × target / ship² × 3600
+      // WtW_bio(-100, Otto SS) = -91.7905 (Annex II note + Annex I slip/N2O)
+      expect(res.valueEurPerMWh).toBeCloseTo(414.48, 1);
     });
 
     it('guards against division by zero when shipActualCI <= 0 in FuelEU calculation', () => {
@@ -754,9 +755,9 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
       // 2. UK RTFO mass constant
       expect(RTFO_KG_PER_MWH).toBeCloseTo(72.0, 1);
 
-      // 3. FuelEU manure CI -100, yr 1, default VLSFO ship (Annex II WtW 91.7442) ≈ €408.04/MWh
+      // 3. FuelEU manure CI -100, yr 1, default VLSFO ship (Annex II WtW 91.7442) ≈ €410.51/MWh
       const fuelEuModel = computeFuelEUDeficitClosureValue(-100, 1);
-      expect(fuelEuModel.valueEurPerMWh).toBeCloseTo(408.04, 1);
+      expect(fuelEuModel.valueEurPerMWh).toBeCloseTo(410.51, 1);
 
       // 4. FR_CPB capped at €100/MWh
       const frMarket = getMarketById('FR_CPB')!;

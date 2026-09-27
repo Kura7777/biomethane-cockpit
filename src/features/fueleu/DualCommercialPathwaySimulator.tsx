@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { buildDealUrl } from '../../domain/trade/dealParams';
-import { FUELEU_TARGET_2025, FUELEU_TARGET_2030 } from '../../domain/fueleu/calculator';
+import {
+  FUELEU_TARGET_2025,
+  FUELEU_TARGET_2030,
+  FUELEU_VLSFO_WTW,
+  fossilLngWtw,
+  penaltyEur,
+  closeDeficitWithBioLng,
+  DEFAULT_LNG_ENGINE,
+} from '../../domain/fueleu/calculator';
+import { LngEngineType } from '../../domain/fueleu/types';
 import {
   Scale,
   Zap,
@@ -30,23 +39,33 @@ export function DualCommercialPathwaySimulator() {
   const [bioLngCi, setBioLngCi] = useState<number>(-100);
   const [targetYear, setTargetYear] = useState<2025 | 2030>(2025);
   const [consecutiveYears, setConsecutiveYears] = useState<number>(1);
+  // Fleet actual GHG intensity (gCO2e/MJ) — the ship's own weighted-average WtW, drives the
+  // statutory penalty (Annex IV Part B uses GHGIE_actual, not the fixed reference value).
+  const [fleetActualGhgie, setFleetActualGhgie] = useState<number>(91.68);
+  const [isLngCapable, setIsLngCapable] = useState<boolean>(false);
+  const [lngEngine, setLngEngine] = useState<LngEngineType>(DEFAULT_LNG_ENGINE);
   const [copied, setCopied] = useState<boolean>(false);
   useAssumptionsVersion();
 
-  // Economic formulas
-  // Penalty: €2,400 / tonne VLSFO-eq
-  // 1 tonne VLSFO = 41,000 MJ = 11.38889 MWh
-  // 1 tCO2e deficit at 91.16 g/MJ = 1e6 g / (91.16 * 41,000) = 0.26755 tonnes VLSFO-eq
-  // Penalty per tCO2e = 0.26755 * €2,400 = €642.13 / tCO2e
-  const penaltyMultiplier = 1 + (consecutiveYears - 1) / 10;
-  const statutoryPenaltyEur = simulatedDeficitTco2e * 64213 * penaltyMultiplier / 100;
+  // Economic formulas — shared with the vessel calculator engine (calculator.ts) so both screens
+  // agree on the same deficit/GHGIE/displacement:
+  // Penalty: Annex IV Part B — |CB| / (GHGIE_actual × 41,000 MJ/t) × €2,400 × [1 + (n−1)/10]
+  const statutoryPenaltyEur = penaltyEur(simulatedDeficitTco2e, fleetActualGhgie, consecutiveYears);
 
-  // Pathway 1: Physical Bio-LNG Bunkering (Article 20)
-  // Requisite Bio-LNG energy: 1 tCO2e / (Target - CI)
+  // Pathway 1: Physical Bio-LNG Bunkering — Bio-LNG displaces the fuel a real fleet would
+  // otherwise burn: fossil LNG for an LNG-capable fleet, VLSFO otherwise.
   const targetGhgie = targetYear === 2030 ? FUELEU_TARGET_2030 : FUELEU_TARGET_2025;
-  const deltaCi = targetGhgie - bioLngCi;
-  const requiredBioLngMwh = (simulatedDeficitTco2e * 1000000 / deltaCi) / 3600;
-  const requiredBioLngTonnes = (simulatedDeficitTco2e * 1000000 / deltaCi) / 49100;
+  const displacedIntensity = isLngCapable ? fossilLngWtw(lngEngine) : FUELEU_VLSFO_WTW;
+  const closure = closeDeficitWithBioLng({
+    deficitTco2e: simulatedDeficitTco2e,
+    displacedIntensity,
+    bioLngCi,
+    lngEngine,
+  });
+  const requiredBioLngMwh = closure.mwh;
+  const requiredBioLngTonnes = closure.tonnes;
+
+  const effectivePenaltyRatePerTco2e = simulatedDeficitTco2e > 0 ? statutoryPenaltyEur / simulatedDeficitTco2e : 0;
 
   const bioLngPremium = getAssumption('fueleu.bioLngPremiumEurPerMwh');
   const physicalBioLngPremiumCost = requiredBioLngMwh * bioLngPremium;
@@ -77,30 +96,28 @@ export function DualCommercialPathwaySimulator() {
 
   const handleCopyBriefing = () => {
     const text = `================================================================================
-INSTITUTIONAL BRIEFING: DUAL COMMERCIAL PATHWAYS UNDER FUELEU MARITIME
-REGULATION (EU) 2023/1805 (ARTICLE 20 vs ARTICLE 21)
+DUAL COMMERCIAL PATHWAYS UNDER FUELEU MARITIME — INDICATIVE ESTIMATE (DESK ASSUMPTIONS)
+REGULATION (EU) 2023/1805 (BIO-LNG BUNKERING: ART. 4, ANNEX I-II vs ARTICLE 21 POOLING)
 ================================================================================
 SIMULATED DEFICIT: ${simulatedDeficitTco2e.toLocaleString()} tCO2e
 TARGET COMPLIANCE YEAR: ${targetYear} (Target GHGIE: ${targetGhgie.toFixed(2)} gCO2e/MJ)
-STATUTORY PENALTY EXPOSURE (DEFAULT INACTION): €${Math.round(statutoryPenaltyEur).toLocaleString()}
+ESTIMATED PENALTY EXPOSURE (DEFAULT INACTION, ART. 23(2)): €${Math.round(statutoryPenaltyEur).toLocaleString()}
 
-1. PATHWAY A: PHYSICAL BIO-LNG BUNKERING (ARTICLE 20)
+1. PATHWAY A: PHYSICAL BIO-LNG BUNKERING (ART. 4, ANNEX I-II)
 --------------------------------------------------------------------------------
-- Supply: ISCC EU Mass Balance Certified Bio-LNG (CI = ${bioLngCi} gCO2e/MJ)
+- Supply: ISCC EU Mass Balance RED-certified Bio-LNG (CI = ${bioLngCi} gCO2e/MJ)
 - Volume: ${Math.round(requiredBioLngTonnes).toLocaleString()} tonnes (${Math.round(requiredBioLngMwh).toLocaleString()} MWh)
 - Bunkering Hubs: Rotterdam, Antwerp, Zeebrugge, Marseille, Barcelona
-- Statutory Penalty Avoided: €${Math.round(statutoryPenaltyEur).toLocaleString()}
+- Estimated Penalty Avoided: €${Math.round(statutoryPenaltyEur).toLocaleString()}
 - Total Fuel Premium Cost: €${Math.round(physicalBioLngPremiumCost).toLocaleString()}
-- Client Net Savings: €${Math.round(physicalClientSavingsEur).toLocaleString()} (${((physicalClientSavingsEur / statutoryPenaltyEur) * 100).toFixed(1)}% savings)
-- Desk Trading Margin: €${Math.round(physicalDeskMarginEur).toLocaleString()}
+- Client Net Savings (estimated): €${Math.round(physicalClientSavingsEur).toLocaleString()} (${((physicalClientSavingsEur / statutoryPenaltyEur) * 100).toFixed(1)}% savings)
 
 2. PATHWAY B: ARTICLE 21 COMPLIANCE POOLING
 --------------------------------------------------------------------------------
-- Mechanism: Bilateral compliance pool transfer with over-compliant carriers (CMA CGM, ZIM, Ferry lines)
-- Pool Rate to Client: €${poolOffer.toFixed(2)} / tCO2e (vs statutory €642.13 / tCO2e at 91.16 g/MJ)
+- Mechanism: Bilateral compliance pool transfer with over-compliant carriers, recorded via the FuelEU database (Art. 19)
+- Pool Rate to Client (desk offer, indicative): €${poolOffer.toFixed(2)} / tCO2e (vs estimated penalty rate €${effectivePenaltyRatePerTco2e.toFixed(2)} / tCO2e at ${fleetActualGhgie.toFixed(2)} g/MJ)
 - Cost to Client: €${Math.round(poolingCostToClientEur).toLocaleString()}
-- Client Net Savings: €${Math.round(poolingClientSavingsEur).toLocaleString()} (${((poolingClientSavingsEur / statutoryPenaltyEur) * 100).toFixed(1)}% savings)
-- Desk Pool Arrangement Margin: €${Math.round(poolingDeskMarginEur).toLocaleString()}
+- Client Net Savings (estimated): €${Math.round(poolingClientSavingsEur).toLocaleString()} (${((poolingClientSavingsEur / statutoryPenaltyEur) * 100).toFixed(1)}% savings)
 - Physical Bunker Requirement: ZERO (pure financial/registry compliance)
 ================================================================================`;
     navigator.clipboard.writeText(text);
@@ -136,7 +153,10 @@ STATUTORY PENALTY EXPOSURE (DEFAULT INACTION): €${Math.round(statutoryPenaltyE
             Dual Commercial Compliance Pathways: Physical Bunkering vs. Article 21 Pooling
           </h2>
           <div className="subttl" style={{ maxWidth: '800px' }}>
-            Shipping operators facing FuelEU Maritime non-compliance fines have two statutory routes to eliminate exposure: physically bunkering negative-CI Bio-LNG (Article 20) or purchasing pooled compliance surplus from over-compliant fleets (Article 21).
+            Shipping operators facing FuelEU Maritime non-compliance fines have two routes to reduce exposure: physically bunkering negative-CI Bio-LNG (Art. 4, Annex I-II) or purchasing pooled compliance surplus from over-compliant fleets (Article 21). Indicative estimate — desk assumptions.
+          </div>
+          <div className="subttl" style={{ maxWidth: '800px', fontStyle: 'italic', marginTop: '2px' }}>
+            Desk margin figures below are internal — not for client distribution.
           </div>
         </div>
 
@@ -256,7 +276,7 @@ STATUTORY PENALTY EXPOSURE (DEFAULT INACTION): €${Math.round(statutoryPenaltyE
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
               <span className="mut">Escalation Vintage:</span>
-              <span className="num" style={{ fontWeight: 600 }}>Year {consecutiveYears} ({(penaltyMultiplier * 100).toFixed(0)}%)</span>
+              <span className="num" style={{ fontWeight: 600 }}>Year {consecutiveYears} ({((1 + (consecutiveYears - 1) / 10) * 100).toFixed(0)}%)</span>
             </div>
             <select
               value={consecutiveYears}
@@ -269,6 +289,61 @@ STATUTORY PENALTY EXPOSURE (DEFAULT INACTION): €${Math.round(statutoryPenaltyE
               <option value={3}>Year 3 (+20% escalation)</option>
               <option value={4}>Year 4+ (+30% escalation)</option>
             </select>
+          </div>
+
+          {/* Fleet Actual GHG Intensity */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
+              <span className="mut">Fleet Actual GHG Intensity:</span>
+              <input
+                type="number"
+                step="0.01"
+                value={fleetActualGhgie}
+                onChange={(e) => setFleetActualGhgie(Math.max(0.01, Number(e.target.value) || 0))}
+                className="input num"
+                style={{ width: '80px', height: '26px', fontSize: '12px', textAlign: 'right' }}
+              />
+            </div>
+            <span className="subttl num" style={{ fontSize: '10px' }}>gCO₂e/MJ (Annex IV Part B uses the fleet's own achieved intensity)</span>
+          </div>
+
+          {/* LNG-Capable Fleet Toggle */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
+              <span className="mut">LNG-Capable Fleet:</span>
+              <span className="num" style={{ fontWeight: 600 }}>{isLngCapable ? 'Yes' : 'No'}</span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
+              <button
+                type="button"
+                onClick={() => setIsLngCapable(false)}
+                className={`btn ${!isLngCapable ? 'btn-primary' : 'btn-secondary'}`}
+                style={{ height: '28px', fontSize: '11px', padding: '0' }}
+              >
+                VLSFO Fleet
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsLngCapable(true)}
+                className={`btn ${isLngCapable ? 'btn-primary' : 'btn-secondary'}`}
+                style={{ height: '28px', fontSize: '11px', padding: '0' }}
+              >
+                LNG Fleet
+              </button>
+            </div>
+            {isLngCapable && (
+              <select
+                value={lngEngine}
+                onChange={(e) => setLngEngine(e.target.value as LngEngineType)}
+                className="input"
+                style={{ height: '28px', fontSize: '11px', padding: '0 6px', marginTop: '2px' }}
+              >
+                <option value="LNG_OTTO_SS">Otto slow-speed (1.7% slip)</option>
+                <option value="LNG_OTTO_MS">Otto medium-speed (3.1% slip)</option>
+                <option value="LNG_DIESEL_SS">Diesel slow-speed (0.2% slip)</option>
+                <option value="LBSI">Lean-burn spark-ignited (2.6% slip)</option>
+              </select>
+            )}
           </div>
         </div>
       </div>
@@ -294,7 +369,7 @@ STATUTORY PENALTY EXPOSURE (DEFAULT INACTION): €${Math.round(statutoryPenaltyE
               <span className="chip chip-neg">Default</span>
             </div>
             <div className="subttl" style={{ margin: '8px 0 12px' }}>
-              Paying statutory financial penalty directly to the administering Member State registry via Thetis-MRV.
+              Paying the FuelEU penalty directly to the administering State (Art. 23(2)).
             </div>
 
             <div style={{ border: '1px solid var(--color-divider)', padding: '10px', backgroundColor: 'var(--color-panel-header)', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px' }}>
@@ -304,7 +379,7 @@ STATUTORY PENALTY EXPOSURE (DEFAULT INACTION): €${Math.round(statutoryPenaltyE
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span className="mut">Effective CI Cost:</span>
-                <span className="num">€642.13 / tCO₂e</span>
+                <span className="num">€{effectivePenaltyRatePerTco2e.toFixed(2)} / tCO₂e</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '4px', borderTop: '1px solid var(--color-divider)', fontWeight: 700, color: 'var(--color-status-neg-text)' }}>
                 <span>Total Cash Penalty:</span>
@@ -315,7 +390,7 @@ STATUTORY PENALTY EXPOSURE (DEFAULT INACTION): €${Math.round(statutoryPenaltyE
                 <span className="num" style={{ color: 'var(--color-status-neg-text)' }}>€0 (100% loss)</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span className="mut">Desk Margin:</span>
+                <span className="mut">Desk Margin (internal):</span>
                 <span className="num">€0</span>
               </div>
             </div>
@@ -342,7 +417,7 @@ STATUTORY PENALTY EXPOSURE (DEFAULT INACTION): €${Math.round(statutoryPenaltyE
               <span style={{ fontWeight: 700, fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-accent)' }}>
                 <Zap size={14} /> Pathway 1: Physical Bio-LNG
               </span>
-              <span className="chip chip-info">Article 20</span>
+              <span className="chip chip-info">Art. 4, Annex I-II</span>
             </div>
             <div className="subttl" style={{ margin: '8px 0 12px' }}>
               Physical drop-in bunkering of Danish/Dutch manure Bio-LNG (CI = {bioLngCi} g/MJ) at Rotterdam or Antwerp.
@@ -362,7 +437,7 @@ STATUTORY PENALTY EXPOSURE (DEFAULT INACTION): €${Math.round(statutoryPenaltyE
                 <span className="num">€{Math.round(physicalClientSavingsEur).toLocaleString()}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--color-accent)', fontWeight: 600 }}>
-                <span>Desk Trading Margin:</span>
+                <span>Desk Trading Margin (internal):</span>
                 <span className="num">€{Math.round(physicalDeskMarginEur).toLocaleString()}</span>
               </div>
             </div>
@@ -397,7 +472,7 @@ STATUTORY PENALTY EXPOSURE (DEFAULT INACTION): €${Math.round(statutoryPenaltyE
               <span className="chip chip-pos">Article 21</span>
             </div>
             <div className="subttl" style={{ margin: '8px 0 12px' }}>
-              Bilateral compliance pool matching deficit vessels with over-compliant LNG fleets in Thetis-MRV.
+              Bilateral compliance pool matching deficit vessels with over-compliant LNG fleets, recorded via the FuelEU database (Art. 19).
             </div>
 
             <div style={{ border: '1px solid var(--color-divider)', padding: '10px', backgroundColor: 'var(--color-panel-header)', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px' }}>
@@ -414,7 +489,7 @@ STATUTORY PENALTY EXPOSURE (DEFAULT INACTION): €${Math.round(statutoryPenaltyE
                 <span className="num">€{Math.round(poolingClientSavingsEur).toLocaleString()}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--color-accent)', fontWeight: 600 }}>
-                <span>Desk Arrangement Fee:</span>
+                <span>Desk Arrangement Fee (internal):</span>
                 <span className="num">€{Math.round(poolingDeskMarginEur).toLocaleString()}</span>
               </div>
             </div>

@@ -103,13 +103,18 @@ export interface MarineBunkerQuotationInput {
   ttfGasIndexEurMwh?: number;
   liquefactionFeeEurMwh?: number;
   greenPremiumEurMwh?: number;
+  /** @deprecated No longer used in the quote: only LNG-capable ships can burn Bio-LNG, so the
+   *  counterfactual is fossil LNG on the same engine, not VLSFO. Kept optional so existing
+   *  callers still compile. */
   vlsfoPriceUsdPerTonne?: number;
   euaPriceEurPerTonne?: number;
   eurUsdRate?: number;
   bioLngVolumeTonnes?: number;
   bioLngCi?: number;
-  targetYear?: 2025 | 2026 | 2030;
-  /** Pool / surplus transfer price for FuelEU compliance balance (€/tCO₂e). Defaults to the FuelEU benchmark mid. */
+  targetYear?: number;
+  /** Consecutive non-compliance escalation year for the fossil-LNG deficit penalty (Art. 23(2)). */
+  consecutiveYearsNonCompliant?: number;
+  /** Pool / surplus transfer price for FuelEU compliance balance (€/tCO₂e). Defaults to the desk bid (fueleu.poolSellPriceEurPerTco2e). */
   fuelEuSurplusPriceEurPerTco2e?: number;
   /** Engine class burning the Bio-LNG (Annex II methane slip). Defaults to DEFAULT_LNG_ENGINE. */
   lngEngineType?: LngEngineType;
@@ -119,24 +124,24 @@ export interface MarineBunkerQuotationResult {
   allInBioLngPriceEurMwh: number;
   allInBioLngPriceEurPerTonne: number;
   allInBioLngPriceUsdPerTonne: number;
+  /** MWh of energy in 1 tonne of Bio-LNG (Annex II col. 3 → RED Annex III LHV, 50 MJ/kg). */
   mwhPerTonneBioLng: number;
-  equivalentVlsfoTonnes: number;
-  vlsfoCostUsd: number;
-  vlsfoCostEur: number;
-  vlsfoEtsLiabilityEur: number;
-  vlsfoEtsLiabilityUsd: number;
-  vlsfoFuelEuPenaltyEur: number;
-  vlsfoFuelEuPenaltyUsd: number;
+  /** Tonnes of fossil LNG carrying the same energy as 1 tonne of Bio-LNG (only LNG-capable ships can burn Bio-LNG). */
+  equivalentFossilLngTonnes: number;
+  fossilLngCostEur: number;
+  fossilLngCostUsd: number;
+  fossilLngEtsLiabilityEur: number;
+  fossilLngEtsLiabilityUsd: number;
+  /** Signed FuelEU compliance balance value of burning fossil LNG instead (+ = surplus credit, − = deficit penalty). */
+  fossilLngFuelEuBalanceEur: number;
+  fossilLngFuelEuBalanceUsd: number;
   totalConventionalAlternativeCostEur: number;
   totalConventionalAlternativeCostUsd: number;
-  fuelEuFleetPenaltyAvoidedEurPerTonne: number;
   /** Compliance surplus one tonne of Bio-LNG generates vs the FuelEU target intensity (tCO₂e). */
   fuelEuSurplusTco2ePerTonne: number;
   fuelEuSurplusPriceEurPerTco2e: number;
   /** Surplus monetised at the pool price (€/t Bio-LNG). */
   fuelEuSurplusValueEurPerTonne: number;
-  etsAvoidedEurPerTonne: number;
-  totalRegulatoryValueEurPerTonne: number;
   netSavingsPerTonneBioLngEur: number;
   netSavingsPerTonneBioLngUsd: number;
   dealVolumeTonnes?: number;
@@ -148,10 +153,30 @@ export interface MarineBunkerQuotationResult {
   totalEtsAvoidedTco2?: number;
 }
 
+/** Provenance for the EU MRV (THETIS-MRV) dataset a ShippingCounterparty row was derived from. */
+export interface FuelEuDatasetSource {
+  dataset: string;
+  reportingPeriod: number;
+  version: number;
+  url: string;
+  sha256: string;
+}
+
+/** A verified human contact for a counterparty. Empty until manually researched/confirmed — never invented. */
+export interface ShippingContact {
+  name: string;
+  role: string;
+  email?: string;
+  phone?: string;
+  sourceUrl: string;
+  checkedAt: string;
+}
+
 export interface ShippingCounterparty {
   rank: number;
   parent_name: string;
-  headquarters: string;
+  /** Not present in EU MRV data. Left undefined rather than invented. */
+  headquarters?: string;
   segment: string;
   vessels_in_scope: number;
   strategy_tier: string;
@@ -172,16 +197,18 @@ export interface ShippingCounterparty {
   desk_margin_physical_eur: number;
   client_savings_pooling_eur: number;
   desk_margin_pooling_eur: number;
-  key_executive: string;
-  primary_bunkering_hubs: string;
-  // Institutional Outreach & Route Dossier
-  callingRegion: CallingRegion;
-  tradeLane: TradeLane;
-  targetDepartment: string;
-  keyContactRole: string;
-  hqAddress: string;
-  switchboardPhone: string;
-  contactDomain: string;
+  /** Not present in EU MRV data. Left undefined rather than invented. */
+  key_executive?: string;
+  /** Not present in EU MRV data. Left undefined rather than invented. */
+  primary_bunkering_hubs?: string;
+  // Institutional Outreach & Route Dossier — none of these are in EU MRV data and must not be invented.
+  callingRegion?: CallingRegion;
+  tradeLane?: TradeLane;
+  targetDepartment?: string;
+  keyContactRole?: string;
+  hqAddress?: string;
+  switchboardPhone?: string;
+  contactDomain?: string;
   outreachPitch: string;
   // Fleet Capability & Joint Regulatory Exposure (FuelEU + EU ETS Directive 2023/959)
   fleetCapability: FleetCapability;
@@ -191,6 +218,16 @@ export interface ShippingCounterparty {
   ets_exposure_2025_eur: number;
   ets_exposure_2026_eur: number;
   combined_regulatory_exposure_2025_eur: number;
+  // EU MRV (THETIS-MRV) provenance — every row is traceable back to the source dataset/ships.
+  company_imo: string;
+  ship_imos: string[];
+  source: FuelEuDatasetSource;
+  fuelSplitMethod: string;
+  lngShipCount: number;
+  otherFuelSuspectedShips: number;
+  partialReportShips: number;
+  /** Verified human contacts. Empty for every row until manually researched — never invented. */
+  contacts: ShippingContact[];
 }
 
 export interface VesselArchetype {
@@ -206,6 +243,8 @@ export interface VesselArchetype {
   defaultBioLngCi: number;
   typicalVoyageProfile: string;
   keyPorts: string[];
+  /** Default share of annual energy on voyages to/from third-country ports (Art. 2(1)(d)), 0..1. */
+  defaultShareThirdCountryVoyages: number;
 }
 
 /** FuelEU Annex II LNG engine classes (default methane slip differs by class). */
@@ -217,9 +256,13 @@ export interface VesselCalculationInput {
   lngTonnes: number;
   bioLngTonnes: number;
   bioLngCi: number;
-  targetYear: 2025 | 2030;
+  targetYear: number;
   consecutiveYearsNonCompliant: number; // 1, 2, 3, 4+
   lngEngineType?: LngEngineType;        // defaults to DEFAULT_LNG_ENGINE
+  /** Share (0..1) of annual energy on voyages to/from third-country ports, Art. 2(1)(a)-(d).
+   *  Intra-EU voyages and at-berth energy count 100%; third-country voyages count 50%.
+   *  Default 0 = all fuel tonnes supplied are already in scope. */
+  shareThirdCountryVoyages?: number;
 }
 
 export interface VesselCalculationResult {

@@ -670,8 +670,9 @@ describe('E2E Trading Workflows & Multi-Tier Regulatory Stress Suite (Milestone 
 
       // FuelEU deficit-closure netback
       const netback = computeNetback(market, consignment, testBaseMarks, standardFixedCosts, 'bid');
-      // €220/tCO₂e bid × (89.3368 − (−100 + 9.3121 slip)) × 3600 / 10⁶ tCO₂e/MWh = €142.58/MWh
-      expect(netback.certificateValue?.valueEurPerMWh).toBeCloseTo(142.58, 2);
+      // WtW_bio(-100, Otto SS) = -91.7905 (Annex II note + Annex I slip/N2O)
+      // €220/tCO₂e bid × (89.3368 − (−91.7905)) × 3600 / 10⁶ tCO₂e/MWh = €143.45/MWh
+      expect(netback.certificateValue?.valueEurPerMWh).toBeCloseTo(143.45, 2);
       expect(netback.netNetback).toBeGreaterThan(100.00);
 
       // Logistics: Option C Bio-LNG cryogenic road tanker to Hamburg

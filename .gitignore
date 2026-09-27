@@ -19,9 +19,10 @@ dist-ssr
 .env.*
 !.env.example
 data/*
-!data/fueleu_shipping_crm_targets.*
+!data/fueleu_mrv_2024_companies.json
 !data/registration_checks/
 !data/registration_matches/
+!data/plant_research/
 scratch/
 *.secret.json
 
@@ -68,3 +69,5 @@ __pycache__/
 *.pyc
 data/.fr_siren_cache.json
 scripts/.siren_cache.json
+scripts/.source_check_cache.json
+data/raw/

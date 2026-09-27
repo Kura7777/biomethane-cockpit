@@ -116,12 +116,9 @@ export function ShippingCounterpartyModal({ counterparty, onClose }: ShippingCou
     return counterparty.penalty_2025_y1_eur + liveEtsExposure2025Eur;
   }, [counterparty.penalty_2025_y1_eur, liveEtsExposure2025Eur]);
 
-  // Derive high-confidence desk contact email
-  const contactEmail = useMemo(() => {
-    const dept = counterparty.targetDepartment.toLowerCase();
-    const prefix = dept.includes('bunker') ? 'bunkering' : dept.includes('decarbon') ? 'sustainability' : 'commercial';
-    return `${prefix}@${counterparty.contactDomain}`;
-  }, [counterparty.targetDepartment, counterparty.contactDomain]);
+  // Only a contact on file is rendered — never construct an email/phone/domain from other fields.
+  const primaryContact = counterparty.contacts?.[0];
+  const contactEmail = primaryContact?.email || 'No verified contact on file';
 
   // Structured Crisp Bulleted Pitch Points
   const pitchBulletPoints = useMemo(() => {
@@ -129,15 +126,15 @@ export function ShippingCounterpartyModal({ counterparty, onClose }: ShippingCou
       return [
         {
           title: 'Fleet Compliance Position',
-          detail: `${counterparty.parent_name} operates an audited EU MRV fleet of ${counterparty.vessels_in_scope} vessels generating a premier +${(counterparty.compliance_balance_2025_tco2e / 1000).toFixed(1)} kt FuelEU surplus in 2025.`,
+          detail: `${counterparty.parent_name} operates an EU MRV fleet (Source: EU MRV 2024, THETIS-MRV public report; fuel split estimated) of ${counterparty.vessels_in_scope} vessels generating a premier +${(counterparty.compliance_balance_2025_tco2e / 1000).toFixed(1)} kt FuelEU surplus in 2025.`,
         },
         {
           title: 'Article 21 Surplus Monetisation',
-          detail: `Our desk can broker your surplus into deficit carrier pools at the desk pool bid (€${getAssumption('fueleu.poolSellPriceEurPerTco2e').toFixed(0)}/tCO2e, indicative), capturing €${(counterparty.client_savings_pooling_eur / 1e6).toFixed(1)}M in non-dilutive trading liquidity.`,
+          detail: `Our desk can broker your surplus into deficit carrier pools at the desk pool bid (€${getAssumption('fueleu.poolSellPriceEurPerTco2e').toFixed(0)}/tCO2e, indicative — desk assumption, not a statutory rate), capturing €${(counterparty.client_savings_pooling_eur / 1e6).toFixed(1)}M in non-dilutive trading liquidity.`,
         },
         {
           title: 'Execution & Settlement',
-          detail: `Zero operational disruption; instantaneous bilateral registry transfer recorded directly in EU Thetis MRV without modifying fleet schedules.`,
+          detail: `Zero operational disruption; bilateral registry transfer recorded via the FuelEU database (Art. 19, Art. 21) without modifying fleet schedules.`,
         },
       ];
     }
@@ -145,7 +142,7 @@ export function ShippingCounterpartyModal({ counterparty, onClose }: ShippingCou
       return [
         {
           title: 'Dual-Fuel Propulsion Leverage',
-          detail: `${counterparty.parent_name}'s fleet features ${counterparty.lng_vessels_in_scope} cryogenic Dual-Fuel LNG vessels calling European hubs (${counterparty.primary_bunkering_hubs}), ready for immediate physical Bio-LNG bunkering.`,
+          detail: `${counterparty.parent_name}'s fleet features ${counterparty.lng_vessels_in_scope} cryogenic Dual-Fuel LNG vessels calling European hubs (${counterparty.primary_bunkering_hubs || 'unspecified hubs'}), ready for immediate physical Bio-LNG bunkering.`,
         },
         {
           title: 'Statutory Exposure Neutralisation',
@@ -156,8 +153,8 @@ export function ShippingCounterpartyModal({ counterparty, onClose }: ShippingCou
           detail: `Bunkering ${(counterparty.bio_lng_required_neg100_t).toLocaleString()} tonnes of -100 CI manure Bio-LNG delivers 0.000 tCO2/t EU ETS zero-rating and captures +€${marineQuote.netSavingsPerTonneBioLngEur.toFixed(2)}/t in net client arbitrage.`,
         },
         {
-          title: 'Financial Uplift',
-          detail: `Delivers up to €${((marineQuote.totalClientSavingsEur || counterparty.client_savings_physical_eur) / 1e6).toFixed(1)}M in audited net client compliance savings vs conventional VLSFO alternative compliance parity.`,
+          title: 'Estimated Financial Uplift',
+          detail: `Delivers up to €${((marineQuote.totalClientSavingsEur || counterparty.client_savings_physical_eur) / 1e6).toFixed(1)}M in estimated net client compliance savings vs conventional VLSFO alternative compliance parity (indicative — desk assumptions).`,
         },
       ];
     }
@@ -168,11 +165,11 @@ export function ShippingCounterpartyModal({ counterparty, onClose }: ShippingCou
       },
       {
         title: 'Article 21 Compliance Pooling Solution',
-        detail: `No engine modifications or dry-docking required. Our desk structures paper Article 21 compliance pooling backed by certified drop-in biofuels to neutralise your ${(absDeficit / 1000).toFixed(1)} kt deficit.`,
+        detail: `No engine modifications or dry-docking required. Our desk structures paper Article 21 compliance pooling backed by RED-certified drop-in biofuels to neutralise your ${(absDeficit / 1000).toFixed(1)} kt deficit.`,
       },
       {
-        title: 'Guaranteed Client Savings',
-        detail: `Transfers statutory liability into our desk compliance pool at a fixed clearing spread, generating €${(counterparty.client_savings_pooling_eur / 1e6).toFixed(1)}M in net savings vs statutory penalties.`,
+        title: 'Indicative Client Savings',
+        detail: `Transfers statutory liability into our desk compliance pool at the desk pool offer (€${getAssumption('fueleu.poolBuyPriceEurPerTco2e').toFixed(0)}/tCO2e, indicative), generating an estimated €${(counterparty.client_savings_pooling_eur / 1e6).toFixed(1)}M in net savings vs statutory penalties.`,
       },
     ];
   }, [counterparty, isSurplus, isDualFuel, liveCombinedExposure2025Eur, liveEtsExposure2025Eur, marineQuote, absDeficit]);
@@ -235,28 +232,28 @@ export function ShippingCounterpartyModal({ counterparty, onClose }: ShippingCou
 
   const generateTermSheetText = () => {
     return `================================================================================
-INSTITUTIONAL OTC MARINE BIO-LNG TERM SHEET & DEAL NOTE
+OTC MARINE BIO-LNG TERM SHEET & DEAL NOTE (INDICATIVE — SUBJECT TO CONTRACT)
 REGULATION (EU) 2023/1805 (FUELEU) & DIRECTIVE (EU) 2023/959 (EU ETS)
 ================================================================================
 DATE: ${new Date().toISOString().split('T')[0]}
 PORTFOLIO COMPLIANCE RANK: #${counterparty.rank}
 STRATEGIC TIER: ${counterparty.strategy_tier}
 COUNTERPARTY: ${counterparty.parent_name}
-HEADQUARTERS: ${counterparty.headquarters}
-COMMERCIAL HQ ADDRESS: ${counterparty.hqAddress}
-KEY EXECUTIVE: ${counterparty.key_executive}
-TARGET DEPARTMENT: ${counterparty.targetDepartment}
-CONTACT ROLE: ${counterparty.keyContactRole}
-SWITCHBOARD PHONE: ${counterparty.switchboardPhone}
+HEADQUARTERS: ${counterparty.headquarters || '—'}
+COMMERCIAL HQ ADDRESS: ${counterparty.hqAddress || '—'}
+KEY EXECUTIVE: ${primaryContact?.name || counterparty.key_executive || 'No verified contact on file'}
+TARGET DEPARTMENT: ${counterparty.targetDepartment || '—'}
+CONTACT ROLE: ${primaryContact?.role || counterparty.keyContactRole || '—'}
+SWITCHBOARD PHONE: ${primaryContact?.phone || counterparty.switchboardPhone || 'No verified contact on file'}
 COMMERCIAL EMAIL: ${contactEmail}
-CORPORATE DOMAIN: ${counterparty.contactDomain}
+CORPORATE DOMAIN: ${counterparty.contactDomain || '—'}
 FLEET SEGMENT: ${counterparty.segment} (${counterparty.vessels_in_scope} vessels in EU MRV scope)
 PROPULSION CAPABILITY: ${isDualFuel ? `DUAL-FUEL CRYOGENIC LNG READY (${counterparty.lng_vessels_in_scope} LNG vessels / ${counterparty.conventional_vessels_in_scope} conventional)` : `CONVENTIONAL PROPULSION ONLY (${counterparty.conventional_vessels_in_scope} 2-stroke diesel vessels)`}
-PRIMARY BUNKERING PORTS: ${counterparty.primary_bunkering_hubs}
-CALLING CORRIDOR: ${CALLING_REGIONS[counterparty.callingRegion]?.label || counterparty.callingRegion}
-TRADE LANE: ${TRADE_LANES[counterparty.tradeLane]?.label || counterparty.tradeLane}
+PRIMARY BUNKERING PORTS: ${counterparty.primary_bunkering_hubs || '—'}
+CALLING CORRIDOR: ${(counterparty.callingRegion && CALLING_REGIONS[counterparty.callingRegion]?.label) || counterparty.callingRegion || 'EUR'}
+TRADE LANE: ${(counterparty.tradeLane && TRADE_LANES[counterparty.tradeLane]?.label) || counterparty.tradeLane || 'GLOBAL_CONTAINER'}
 
-1. AUDITED BASELINE FLEET EXPOSURE (EU MRV DIRECTIVE)
+1. BASELINE FLEET EXPOSURE (SOURCE: EU MRV 2024, THETIS-MRV PUBLIC REPORT; FUEL SPLIT ESTIMATED)
 --------------------------------------------------------------------------------
 - Annual Fuel Burn in EU Scope:
     * VLSFO: ${counterparty.vlsfo_tonnes.toLocaleString()} tonnes
@@ -265,21 +262,21 @@ TRADE LANE: ${TRADE_LANES[counterparty.tradeLane]?.label || counterparty.tradeLa
 - Fleet Energy Consumption: ${(counterparty.total_energy_mwh / 1000).toFixed(1)} GWh
 - Actual Achieved GHG Intensity: ${counterparty.actual_ghgie.toFixed(2)} gCO2e/MJ
 - 2025 FuelEU Target (2% reduction): 89.34 gCO2e/MJ
-- Statutory Compliance Balance 2025: ${counterparty.compliance_balance_2025_tco2e > 0 ? '+' : ''}${counterparty.compliance_balance_2025_tco2e.toLocaleString()} tCO2e
-- FuelEU Statutory Penalty Exposure: €${counterparty.penalty_2025_y1_eur.toLocaleString()} (Yr 2: €${counterparty.penalty_2025_y2_eur.toLocaleString()})
+- Estimated Compliance Balance 2025: ${counterparty.compliance_balance_2025_tco2e > 0 ? '+' : ''}${counterparty.compliance_balance_2025_tco2e.toLocaleString()} tCO2e
+- Indicative FuelEU Penalty Exposure (Art. 23(2)): €${counterparty.penalty_2025_y1_eur.toLocaleString()} (Yr 2 multiplier 1+(n-1)/10: €${counterparty.penalty_2025_y2_eur.toLocaleString()})
 - EU ETS 2025 Gross Carbon Liability (70% Phase-In @ €${euaPrice.toFixed(2)}/t EUA): €${liveEtsExposure2025Eur.toLocaleString()} (${counterparty.ets_exposure_2025_tco2.toLocaleString()} tCO2)
 - EU ETS 2026 Full Enforcement (100% Phase-In): €${liveEtsExposure2026Eur.toLocaleString()}
-- COMBINED 2025 STATUTORY EXPOSURE: €${liveCombinedExposure2025Eur.toLocaleString()}
+- COMBINED 2025 ESTIMATED EXPOSURE: €${liveCombinedExposure2025Eur.toLocaleString()}
 
-2. INSTITUTIONAL MARINE BUNKER PRICING ENGINE (€/t & $/t)
+2. MARINE BUNKER PRICING ENGINE (€/t & $/t) — Indicative estimate, desk assumptions
 --------------------------------------------------------------------------------
 - TTF Natural Gas Front-Month Index: €${ttfGasIndex.toFixed(2)} / MWh
 - Liquefaction & Terminalization Fee: €${liquefactionFee.toFixed(2)} / MWh
-- Green Bio-LNG Premium (RED III Certified): €${greenPremium.toFixed(2)} / MWh
+- Green Bio-LNG Premium (RED Certified — Directive (EU) 2018/2001, as amended by (EU) 2023/2413): €${greenPremium.toFixed(2)} / MWh
 - All-In Delivered Bio-LNG Price: €${marineQuote.allInBioLngPriceEurMwh.toFixed(2)} / MWh
     * Equivalent Metric Tonne Price (EUR): €${marineQuote.allInBioLngPriceEurPerTonne.toLocaleString()} / tonne Bio-LNG
     * Equivalent Metric Tonne Price (USD): $${marineQuote.allInBioLngPriceUsdPerTonne.toLocaleString()} / tonne Bio-LNG
-- Benchmark Conventional Alternative (${marineQuote.equivalentVlsfoTonnes.toFixed(4)}t VLSFO @ $${vlsfoPrice.toFixed(2)}/t + FuelEU Deficit + EU ETS):
+- Benchmark Conventional Alternative (${marineQuote.equivalentFossilLngTonnes.toFixed(4)}t fossil LNG @ €${(ttfGasIndex + liquefactionFee).toFixed(2)}/MWh + FuelEU Deficit + EU ETS):
     * Alternative Compliance Cost (EUR): €${marineQuote.totalConventionalAlternativeCostEur.toFixed(2)} / t Bio-LNG eq
     * Alternative Compliance Cost (USD): $${marineQuote.totalConventionalAlternativeCostUsd.toFixed(2)} / t Bio-LNG eq
 - FuelEU Compliance Surplus (Pooling, Art. 21): ${marineQuote.fuelEuSurplusTco2ePerTonne.toFixed(4)} tCO2e/t x €${marineQuote.fuelEuSurplusPriceEurPerTco2e.toFixed(2)}/tCO2e = €${marineQuote.fuelEuSurplusValueEurPerTonne.toFixed(2)} / tonne Bio-LNG
@@ -288,11 +285,10 @@ TRADE LANE: ${TRADE_LANES[counterparty.tradeLane]?.label || counterparty.tradeLa
 3. STRUCTURED TRANSACTION SCHEDULE (DEFICIT NEUTRALISATION)
 --------------------------------------------------------------------------------
 - Manure Bio-LNG Volume (-100 CI): ${counterparty.bio_lng_required_neg100_t.toLocaleString()} tonnes (${counterparty.bio_lng_required_neg100_mwh.toLocaleString()} MWh)
-- Delivery Terms: DES (Delivered Ex-Ship) / TTS (Truck-to-Ship) at ${counterparty.primary_bunkering_hubs}
+- Delivery Terms: DES (Delivered Ex-Ship) / TTS (Truck-to-Ship) at ${counterparty.primary_bunkering_hubs || '—'}
 - Total Delivered Invoice (EUR): €${(marineQuote.totalBioLngInvoiceEur || 0).toLocaleString()}
 - Total Delivered Invoice (USD): $${(marineQuote.totalBioLngInvoiceUsd || 0).toLocaleString()}
 - Net Client Statutory Savings: €${(marineQuote.totalClientSavingsEur || counterparty.client_savings_physical_eur).toLocaleString()}
-- Desk Structuring Margin: €${counterparty.desk_margin_physical_eur.toLocaleString()}
 
 4. COMMERCIAL STRATEGY & TAILORED OUTREACH TALKING POINTS
 --------------------------------------------------------------------------------
@@ -300,9 +296,9 @@ ${fullPitchText}
 
 5. STATUTORY VERIFICATION & GOVERNING LAW
 --------------------------------------------------------------------------------
-- Certification: ISCC EU / REDcert-EU Mass Balance under RED III (Directive (EU) 2018/2001)
-- EU ETS Zero-Rating: Verified under Regulation (EU) 2015/757 & Directive (EU) 2023/959
-- FuelEU Maritime Compliance: Full Article 20 Bunkering / Article 21 Pooling Validation
+- Certification: ISCC EU / REDcert-EU Mass Balance under RED (Directive (EU) 2018/2001, as amended by (EU) 2023/2413)
+- EU ETS: sustainable biomass CO2 zero-rated under Directive 2003/87/EC (MRR (EU) 2018/2066) — subject to RED sustainability certification of the supplied fuel
+- FuelEU Maritime Compliance: Bio-LNG bunkering (Art. 4, Annex I-II) / Article 21 Pooling
 - Governing Contract: BIMCO Bunker Terms 2018 or supplier standard terms (to be agreed)
 - Jurisdiction: Rotterdam, The Netherlands (POB / Rotterdam District Court Arbitration)
 ================================================================================`;
@@ -623,13 +619,13 @@ ${fullPitchText}
             lineHeight: 1.4,
           }}
         >
-          <strong style={{ color: 'var(--color-accent)' }}>Double Statutory Zero-Rating:</strong> Certified RED III Bio-LNG carries a verified emissions factor of <strong>0.000 tCO2/t</strong> under EU ETS (Directive 2023/959) and <strong>-100 gCO2e/MJ</strong> under FuelEU Maritime (Regulation 2023/1805). Bunkering certified Bio-LNG simultaneously eliminates both compliance liabilities.
+          <strong style={{ color: 'var(--color-accent)' }}>Double Zero-Rating (subject to RED certification):</strong> RED-certified Bio-LNG (Directive (EU) 2018/2001, as amended by (EU) 2023/2413) carries an emissions factor of <strong>0.000 tCO2/t</strong> under EU ETS (Directive 2003/87/EC, MRR (EU) 2018/2066) and <strong>-100 gCO2e/MJ</strong> under FuelEU Maritime (Regulation 2023/1805). Bunkering RED-certified Bio-LNG simultaneously eliminates both compliance liabilities.
         </div>
       </div>
 
-      {/* 3. Audited MRV Fleet Energy Breakdown & Institutional CRM Dossier */}
+      {/* 3. MRV Fleet Energy Breakdown & CRM Dossier */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '10px' }}>
-        {/* Panel A: Audited MRV Fleet Profile */}
+        {/* Panel A: MRV Fleet Profile */}
         <div
           style={{
             padding: '12px',
@@ -643,7 +639,7 @@ ${fullPitchText}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span className="eyebrow" style={{ fontWeight: 700, fontSize: '10.5px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Ship size={12} style={{ color: 'var(--color-accent)' }} /> Audited MRV Fleet Profile
+              <Ship size={12} style={{ color: 'var(--color-accent)' }} /> MRV Fleet Profile
             </span>
             <span className="chip" style={{ fontSize: '9px' }}>Reg 2015/757</span>
           </div>
@@ -694,9 +690,9 @@ ${fullPitchText}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span className="eyebrow" style={{ fontWeight: 700, fontSize: '10.5px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Building2 size={12} style={{ color: 'var(--color-accent)' }} /> Institutional Contact Dossier
+              <Building2 size={12} style={{ color: 'var(--color-accent)' }} /> Contact Dossier
             </span>
-            <span className="chip chip-info" style={{ fontSize: '9px' }}>CRM Verified</span>
+            <span className="chip chip-info" style={{ fontSize: '9px' }}>{counterparty.contacts?.length ? 'Sourced contact' : 'No contact on file'}</span>
           </div>
 
           {/* Executive & Department */}
@@ -713,14 +709,14 @@ ${fullPitchText}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11.5px', fontWeight: 700 }}>
-                <User size={12} style={{ color: 'var(--color-accent)' }} /> {counterparty.key_executive}
+                <User size={12} style={{ color: 'var(--color-accent)' }} /> {primaryContact?.name || counterparty.key_executive || 'No verified contact on file'}
               </div>
               <span className="chip" style={{ fontSize: '9px', padding: '1px 4px' }}>
-                {counterparty.keyContactRole}
+                {primaryContact?.role || counterparty.keyContactRole || '—'}
               </span>
             </div>
             <div style={{ fontSize: '10.5px', color: 'var(--color-muted)', paddingLeft: '17px' }}>
-              Target Unit: <strong style={{ color: 'var(--color-text)' }}>{counterparty.targetDepartment}</strong>
+              Target Unit: <strong style={{ color: 'var(--color-text)' }}>{counterparty.targetDepartment || '—'}</strong>
             </div>
           </div>
 
@@ -739,19 +735,25 @@ ${fullPitchText}
                 fontSize: '10.5px',
               }}
             >
+              {(primaryContact?.phone || counterparty.switchboardPhone) ? (
               <a
-                href={`tel:${counterparty.switchboardPhone}`}
+                href={`tel:${primaryContact?.phone || counterparty.switchboardPhone}`}
                 style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--color-text)', textDecoration: 'none', overflow: 'hidden' }}
                 title="Click to call switchboard"
               >
                 <Phone size={11} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
                 <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                  {counterparty.switchboardPhone}
+                  {primaryContact?.phone || counterparty.switchboardPhone}
                 </span>
               </a>
+              ) : (
+                <span style={{ color: 'var(--color-muted)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <Phone size={11} style={{ flexShrink: 0 }} /> No verified contact on file
+                </span>
+              )}
               <button
                 type="button"
-                onClick={() => handleCopyField(counterparty.switchboardPhone, 'Phone')}
+                onClick={() => handleCopyField(primaryContact?.phone || counterparty.switchboardPhone || '', 'Phone')}
                 style={{ background: 'none', border: 'none', padding: '2px', cursor: 'pointer', color: 'var(--color-muted)' }}
                 title="Copy phone"
               >
@@ -772,19 +774,25 @@ ${fullPitchText}
                 fontSize: '10.5px',
               }}
             >
+              {primaryContact?.email ? (
               <a
-                href={`mailto:${contactEmail}`}
+                href={`mailto:${primaryContact.email}`}
                 style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--color-text)', textDecoration: 'none', overflow: 'hidden' }}
-                title={`Send email to ${contactEmail}`}
+                title={`Send email to ${primaryContact.email}`}
               >
                 <Mail size={11} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
                 <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                  {contactEmail}
+                  {primaryContact.email}
                 </span>
               </a>
+              ) : (
+                <span style={{ color: 'var(--color-muted)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <Mail size={11} style={{ flexShrink: 0 }} /> No verified contact on file
+                </span>
+              )}
               <button
                 type="button"
-                onClick={() => handleCopyField(contactEmail, 'Email')}
+                onClick={() => handleCopyField(primaryContact?.email || '', 'Email')}
                 style={{ background: 'none', border: 'none', padding: '2px', cursor: 'pointer', color: 'var(--color-muted)' }}
                 title="Copy email"
               >
@@ -805,6 +813,7 @@ ${fullPitchText}
                 fontSize: '10.5px',
               }}
             >
+              {counterparty.contactDomain ? (
               <a
                 href={`https://${counterparty.contactDomain}`}
                 target="_blank"
@@ -817,9 +826,14 @@ ${fullPitchText}
                   {counterparty.contactDomain}
                 </span>
               </a>
+              ) : (
+                <span style={{ color: 'var(--color-muted)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <Globe size={11} style={{ flexShrink: 0 }} /> No verified domain on file
+                </span>
+              )}
               <button
                 type="button"
-                onClick={() => handleCopyField(counterparty.contactDomain, 'Domain')}
+                onClick={() => handleCopyField(counterparty.contactDomain || '', 'Domain')}
                 style={{ background: 'none', border: 'none', padding: '2px', cursor: 'pointer', color: 'var(--color-muted)' }}
                 title="Copy domain"
               >
@@ -842,13 +856,13 @@ ${fullPitchText}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '5px', overflow: 'hidden' }}>
                 <MapPin size={11} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
-                <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }} title={counterparty.hqAddress}>
-                  {counterparty.headquarters}
+                <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }} title={counterparty.hqAddress || '—'}>
+                  {counterparty.headquarters || '—'}
                 </span>
               </div>
               <button
                 type="button"
-                onClick={() => handleCopyField(`${counterparty.headquarters}, ${counterparty.hqAddress}`, 'Address')}
+                onClick={() => handleCopyField(`${counterparty.headquarters || ''}, ${counterparty.hqAddress || ''}`, 'Address')}
                 style={{ background: 'none', border: 'none', padding: '2px', cursor: 'pointer', color: 'var(--color-muted)' }}
                 title="Copy HQ address"
               >
@@ -872,10 +886,10 @@ ${fullPitchText}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
               <Compass size={11} style={{ color: 'var(--color-accent)' }} />
-              <span><strong>Trade Lane:</strong> {TRADE_LANES[counterparty.tradeLane]?.label || counterparty.tradeLane}</span>
+              <span><strong>Trade Lane:</strong> {(counterparty.tradeLane && TRADE_LANES[counterparty.tradeLane]?.label) || counterparty.tradeLane || 'GLOBAL_CONTAINER'}</span>
             </div>
             <span className="chip" style={{ fontSize: '9px', padding: '1px 5px' }}>
-              {CALLING_REGIONS[counterparty.callingRegion]?.label || counterparty.callingRegion}
+              {(counterparty.callingRegion && CALLING_REGIONS[counterparty.callingRegion]?.label) || counterparty.callingRegion || 'EUR'}
             </span>
           </div>
         </div>
@@ -902,7 +916,7 @@ ${fullPitchText}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Sliders size={15} style={{ color: 'var(--color-accent)' }} />
             <span className="eyebrow" style={{ fontWeight: 800, fontSize: '11.5px', color: 'var(--color-text)' }}>
-              Institutional Marine Bunker Pricing Engine (€/t &amp; $/t)
+              Marine Bunker Pricing Engine (€/t &amp; $/t) — Indicative
             </span>
             <span className="chip" style={{ fontSize: '9px' }}>
               1 t Bio-LNG = {marineQuote.mwhPerTonneBioLng.toFixed(2)} MWh · FX €/$: 1.08
@@ -1091,9 +1105,9 @@ ${fullPitchText}
             <>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ fontSize: '11.5px', color: 'var(--color-muted)' }}>
-                  Direct physical cryogenic bunkering into {counterparty.lng_vessels_in_scope} dual-fuel vessels via STS bunker barge or TTS truck in {counterparty.primary_bunkering_hubs}.
+                  Direct physical cryogenic bunkering into {counterparty.lng_vessels_in_scope} dual-fuel vessels via STS bunker barge or TTS truck in {counterparty.primary_bunkering_hubs || '—'}.
                 </div>
-                <span className="chip chip-info" style={{ fontSize: '9.5px' }}>Article 20 Compliance</span>
+                <span className="chip chip-info" style={{ fontSize: '9.5px' }}>Art. 4, Annex I-II</span>
               </div>
 
               <div
@@ -1115,7 +1129,7 @@ ${fullPitchText}
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span className="mut">Audited Substrate &amp; CI:</span>
+                  <span className="mut">Substrate &amp; CI:</span>
                   <span style={{ fontWeight: 600, color: '#059669' }}>Agricultural Manure Substrate (-100 CI Benchmark)</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -1129,7 +1143,7 @@ ${fullPitchText}
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--color-accent)', fontWeight: 700 }}>Desk Trading Margin:</span>
+                  <span style={{ color: 'var(--color-accent)', fontWeight: 700 }}>Desk Trading Margin (internal):</span>
                   <span className="num" style={{ color: 'var(--color-accent)', fontWeight: 800 }}>€{(counterparty.desk_margin_physical_eur / 1e6).toFixed(2)}M</span>
                 </div>
               </div>
@@ -1180,7 +1194,7 @@ ${fullPitchText}
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span className="mut">Execution Mechanism:</span>
-                  <span style={{ fontWeight: 600 }}>Thetis MRV / FuelEU Registry Balance Transfer</span>
+                  <span style={{ fontWeight: 600 }}>FuelEU database (Art. 19, Art. 21) Balance Transfer</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '4px', borderTop: '1px solid var(--color-divider)' }}>
                   <span style={{ color: 'var(--color-status-pos-text)', fontWeight: 700 }}>
@@ -1191,7 +1205,7 @@ ${fullPitchText}
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--color-accent)', fontWeight: 700 }}>Desk Arrangement Fee:</span>
+                  <span style={{ color: 'var(--color-accent)', fontWeight: 700 }}>Desk Arrangement Fee (internal):</span>
                   <span className="num" style={{ color: 'var(--color-accent)', fontWeight: 800 }}>€{(counterparty.desk_margin_pooling_eur / 1e6).toFixed(2)}M</span>
                 </div>
               </div>
@@ -1312,13 +1326,13 @@ ${fullPitchText}
                 </span>
               </div>
               <div className="subttl" style={{ marginTop: '3px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                <span><strong>HQ:</strong> {counterparty.headquarters}</span>
+                <span><strong>HQ:</strong> {counterparty.headquarters || '—'}</span>
                 <span>•</span>
                 <span><strong>EU MRV Fleet:</strong> {counterparty.vessels_in_scope} vessels</span>
                 <span>•</span>
-                <span><strong>Corridor:</strong> {CALLING_REGIONS[counterparty.callingRegion]?.label || counterparty.callingRegion}</span>
+                <span><strong>Corridor:</strong> {(counterparty.callingRegion && CALLING_REGIONS[counterparty.callingRegion]?.label) || counterparty.callingRegion || 'EUR'}</span>
                 <span>•</span>
-                <span><strong>Primary Ports:</strong> {counterparty.primary_bunkering_hubs}</span>
+                <span><strong>Primary Ports:</strong> {counterparty.primary_bunkering_hubs || '—'}</span>
               </div>
             </div>
           </div>

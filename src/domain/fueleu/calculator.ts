@@ -45,7 +45,14 @@ export function getFuelEUTargetIntensity(year: number): number {
 
 /**
  * Annex II default fuel factors. lcv in MJ/g; wtt in gCO2e/MJ; Cf in g/g fuel.
- * VLSFO (0.5% S, typically ISO 8217 RMG) falls in the HFO class (RME–RMK).
+ * VLSFO (0.5% S, typically ISO 8217 RME–RMK) falls in the HFO class. VLSFO sold as ISO 8217 RMD 80
+ * is LFO-class instead (see FUELEU_LFO_WTW below) — the desk assumes HFO class unless told otherwise.
+ *
+ * Bio-LNG (row "BIO-LNG" in Annex II) takes its LCV/col.3 value "as set out in Annex III of
+ * Directive (EU) 2018/2001": biomethane 50 MJ/kg = 0.050 MJ/g. Its combustion factors (Cf_CO2,
+ * Cf_CH4, Cf_N2O) are the same physical combustion products as fossil LNG — only the well-to-tank
+ * term (wttGPerMj) differs, and is supplied per-shipment from the RED lifecycle value E
+ * (see bioLngFuelEUIntensity), so the wttGPerMj entry here is a placeholder.
  */
 export interface FuelEUFuelFactors {
   lcvMjPerG: number;
@@ -54,11 +61,14 @@ export interface FuelEUFuelFactors {
   cfCh4: number;
   cfN2o: number;
 }
-export const FUELEU_ANNEX_II: Record<'HFO' | 'LFO' | 'MGO' | 'LNG', FuelEUFuelFactors> = {
+export const FUELEU_ANNEX_II: Record<'HFO' | 'LFO' | 'MGO' | 'LNG' | 'BIO_LNG', FuelEUFuelFactors> = {
   HFO: { lcvMjPerG: 0.0405, wttGPerMj: 13.5, cfCo2: 3.114, cfCh4: 0.00005, cfN2o: 0.00018 },
   LFO: { lcvMjPerG: 0.041, wttGPerMj: 13.2, cfCo2: 3.151, cfCh4: 0.00005, cfN2o: 0.00018 },
   MGO: { lcvMjPerG: 0.0427, wttGPerMj: 14.4, cfCo2: 3.206, cfCh4: 0.00005, cfN2o: 0.00018 },
   LNG: { lcvMjPerG: 0.0491, wttGPerMj: 18.5, cfCo2: 2.750, cfCh4: 0, cfN2o: 0.00011 },
+  // Annex II col. 3 → RED Annex III (Directive (EU) 2018/2001) biomethane LCV = 50 MJ/kg = 0.050 MJ/g.
+  // Combustion factors: same molecule/engine as fossil LNG (Cf_CO2 2.750, Cf_CH4 0, Cf_N2O 0.00011).
+  BIO_LNG: { lcvMjPerG: 0.050, wttGPerMj: 0, cfCo2: 2.750, cfCh4: 0, cfN2o: 0.00011 },
 };
 /** Annex I global warming potentials (100-year). */
 export const FUELEU_GWP_CH4 = 25;
@@ -77,23 +87,25 @@ export const DEFAULT_LNG_ENGINE: LngEngineType = 'LNG_OTTO_SS';
 /**
  * Well-to-wake GHG intensity per Annex I:
  *   WtW = WtT + [(1 − Cslip)·(CfCO2 + CfCH4·GWP_CH4 + CfN2O·GWP_N2O) + Cslip·GWP_CH4] / LCV
- * For sustainable biofuels the combustion CO2 is biogenic (CfCO2 = 0) and WtT is the RED
- * lifecycle value — but CH4 slip and N2O are still counted.
+ * `wttGPerMj` defaults to the fuel's own Annex II well-to-tank value, but can be overridden
+ * (e.g. Bio-LNG's per-shipment RED lifecycle value, already adjusted per the Annex II note —
+ * see bioLngFuelEUIntensity).
  */
 export function fuelEuWtwIntensity(
   f: FuelEUFuelFactors,
   slipPct: number = 0,
-  opts: { biogenic?: boolean; wttGPerMj?: number } = {}
+  opts: { wttGPerMj?: number } = {}
 ): number {
   const slip = slipPct / 100;
-  const cfCo2 = opts.biogenic ? 0 : f.cfCo2;
-  const combustion = cfCo2 + f.cfCh4 * FUELEU_GWP_CH4 + f.cfN2o * FUELEU_GWP_N2O;
+  const combustion = f.cfCo2 + f.cfCh4 * FUELEU_GWP_CH4 + f.cfN2o * FUELEU_GWP_N2O;
   const ttw = ((1 - slip) * combustion + slip * FUELEU_GWP_CH4) / f.lcvMjPerG;
   return (opts.wttGPerMj ?? f.wttGPerMj) + ttw;
 }
 
 export const FUELEU_VLSFO_WTW = fuelEuWtwIntensity(FUELEU_ANNEX_II.HFO); // ≈ 91.74 gCO2e/MJ
 export const FUELEU_MGO_WTW = fuelEuWtwIntensity(FUELEU_ANNEX_II.MGO);   // ≈ 90.77 gCO2e/MJ
+/** VLSFO sold as ISO 8217 RMD 80 is LFO-class, not HFO-class (Annex II row LFO). */
+export const FUELEU_LFO_WTW = fuelEuWtwIntensity(FUELEU_ANNEX_II.LFO);  // ≈ 91.39 gCO2e/MJ
 
 /** Fossil LNG well-to-wake intensity for an engine class (Otto SS ≈ 82.87 gCO2e/MJ). */
 export function fossilLngWtw(engine: LngEngineType = DEFAULT_LNG_ENGINE): number {
@@ -101,11 +113,22 @@ export function fossilLngWtw(engine: LngEngineType = DEFAULT_LNG_ENGINE): number
 }
 
 /**
- * FuelEU intensity of Bio-LNG with RED lifecycle CI `redCi` (e.g. −100 for manure), including
- * the engine's tank-to-wake CH4 slip and N2O (Otto SS: −100 → ≈ −90.69 gCO2e/MJ).
+ * FuelEU well-to-wake intensity of Bio-LNG with RED lifecycle value `redCi` (e.g. −100 for
+ * manure), including the engine's tank-to-wake CH4 slip and N2O.
+ *
+ * Regulation (EU) 2023/1805, Annex II explanatory note on column 4 (reg1805.txt l.1099):
+ * "the default values of E [RED lifecycle GHG intensity] need to be adjusted by subtracting the
+ * ratio of the emission factor for CO2 ... and the [LCV]" — i.e. WtT = E − Cf_CO2/LCV. The
+ * combustion (TtW) term of Annex I Eq. (1) is otherwise unchanged: Cf_CO2 stays inside the
+ * (1 − Cslip) bracket, so unslipped Bio-LNG still emits its physical CO2 (it isn't zeroed) while
+ * the WtT credit already accounts for it being biogenic.
+ * ESSF SAPS WS1 FuelEU calculation methodologies (worked example, p.78):
+ * https://www.intercargo.org/wp-content/uploads/2025/05/2025-May-ESSF-SAPS-WS1-FuelEU-calculation-methodologies.pdf
  */
 export function bioLngFuelEUIntensity(redCi: number, engine: LngEngineType = DEFAULT_LNG_ENGINE): number {
-  return fuelEuWtwIntensity(FUELEU_ANNEX_II.LNG, FUELEU_LNG_SLIP_PCT[engine], { biogenic: true, wttGPerMj: redCi });
+  const f = FUELEU_ANNEX_II.BIO_LNG;
+  const adjustedWtt = redCi - f.cfCo2 / f.lcvMjPerG; // Annex II note: E − Cf_CO2/LCV
+  return fuelEuWtwIntensity(f, FUELEU_LNG_SLIP_PCT[engine], { wttGPerMj: adjustedWtt });
 }
 
 /** @deprecated Use FUELEU_MGO_WTW. */
@@ -119,8 +142,20 @@ export const FUELEU_PENALTY_VLSFO_MJ_PER_TONNE = 41000;
 export const LHV_VLSFO_MJ_PER_TONNE = FUELEU_ANNEX_II.HFO.lcvMjPerG * 1_000_000; // 40,500 (HFO class)
 export const LHV_MGO_MJ_PER_TONNE = FUELEU_ANNEX_II.MGO.lcvMjPerG * 1_000_000;   // 42,700
 export const LHV_LNG_MJ_PER_TONNE = FUELEU_ANNEX_II.LNG.lcvMjPerG * 1_000_000;   // 49,100
-export const LHV_BIO_LNG_MJ_PER_TONNE = LHV_LNG_MJ_PER_TONNE;
+/** Annex II col. 3 → RED Annex III biomethane LCV: 50 MJ/kg = 50,000 MJ/t. */
+export const LHV_BIO_LNG_MJ_PER_TONNE = 50_000;
 export const MJ_PER_MWH = 3600;
+
+/**
+ * Art. 2(1): FuelEU Maritime scope counts intra-EU voyages and at-berth energy at 100%, and
+ * voyages to/from a third-country port at 50% (energy is split 50/50 between the EU and
+ * third-country legs). `shareThirdCountryVoyages` is the fraction (0..1) of a fleet's annual
+ * energy consumed on such voyages; the rest is already 100% in scope (intra-EU + at-berth).
+ */
+export function fuelEuInScopeFactor(shareThirdCountryVoyages: number): number {
+  const share = Math.min(1, Math.max(0, shareThirdCountryVoyages || 0));
+  return 1 - 0.5 * share;
+}
 
 /**
  * EU ETS Maritime Physical & Regulatory Constants
@@ -132,19 +167,46 @@ export const EU_ETS_EMISSION_FACTOR_LNG = 2.750;   // tCO2 / tonne fuel
 export const EU_ETS_EMISSION_FACTOR_BIO_LNG = 0.000; // Zero-rated under RED III & EU ETS MRV
 export const EU_ETS_PHASE_IN_2025 = 0.70;         // 70% phase-in in 2025
 export const EU_ETS_PHASE_IN_2026 = 1.00;         // 100% full enforcement in 2026
-export const EUA_BENCHMARK_EUR_PER_TONNE = 70.00; // €70.00 / tCO2
+/** Desk default EUA price — sourced from the EU_ETS1 mark (EUROPEAN_MARKET_BENCHMARKS), mid side. */
+export const EUA_BENCHMARK_EUR_PER_TONNE = getAssumption('fueleu.euaPriceEurPerTco2e');
+
+/**
+ * From 1 January 2026, CH4 and N2O emissions from shipping enter the EU ETS alongside CO2
+ * (Directive 2003/87/EC as amended by Directive (EU) 2023/959, Art. 3ga referencing the MRV
+ * Regulation (EU) 2015/757 as amended by Commission Delegated Regulation (EU) 2023/2776).
+ * GWP-100 values: N2O = 298 tCO2(e)/tN2O is directly confirmed in the EU ETS Monitoring &
+ * Reporting Regulation (Commission Implementing Regulation (EU) 2018/2066, Annex VI, Table 6:
+ * "N2O: 298 t CO2(e) / t N2O" — https://www.legislation.gov.uk/eur/2018/2066/annex/VI), which is
+ * the IPCC AR4 GWP-100 set (the same one FuelEU Annex I uses: 25/298, not the AR5 28/265 pair).
+ * CH4 = 25 tCO2(e)/tCH4 is NOT independently quoted in the fetched text of that table (only N2O,
+ * CF4 and C2F6 appear there) — UNVERIFIED for CH4 specifically. Since the N2O figure confirms the
+ * table uses the AR4 GWP set, and FuelEU's own Annex I CH4 GWP is 25 (AR4), this implementation
+ * uses 25/298 (FUELEU_GWP_CH4 / FUELEU_GWP_N2O) rather than guess a different, unconfirmed pair.
+ * Slipped LNG mass is assumed to escape uncombusted as CH4 (consistent with Annex I's Csf_CH4 = 1
+ * treatment of slip); N2O is assigned to the combusted (non-slipped) fuel mass.
+ */
+export function lngEtsNonCo2Co2eTonnes(tonnes: number, engine: LngEngineType = DEFAULT_LNG_ENGINE): number {
+  const s = FUELEU_LNG_SLIP_PCT[engine] / 100;
+  const safeTonnes = Math.max(0, tonnes);
+  const ch4Co2e = safeTonnes * s * FUELEU_GWP_CH4;
+  const n2oCo2e = safeTonnes * (1 - s) * FUELEU_ANNEX_II.LNG.cfN2o * FUELEU_GWP_N2O;
+  return ch4Co2e + n2oCo2e;
+}
 
 /**
  * Institutional Marine Bunker Quotation Constants
  */
-export const LHV_BIO_LNG_GJ_PER_TONNE = LHV_BIO_LNG_MJ_PER_TONNE / 1000;          // 49.1 GJ/t Bio-LNG
-export const MWH_PER_TONNE_BIO_LNG = LHV_BIO_LNG_MJ_PER_TONNE / MJ_PER_MWH;       // 13.6389 MWh/t
-/** FuelEU compliance-balance pool price default: FUELEU benchmark mid (EUROPEAN_MARKET_BENCHMARKS). */
-export const FUELEU_SURPLUS_BENCHMARK_EUR_PER_TCO2E = 285.0;
-export const EUR_USD_DEFAULT_FX = 1.08;           // Institutional standard FX benchmark
-export const DEFAULT_TTF_GAS_INDEX_EUR_MWH = 36.0;
-export const DEFAULT_LIQUEFACTION_FEE_EUR_MWH = 14.0;
-export const DEFAULT_GREEN_PREMIUM_EUR_MWH = 22.0;
+export const LHV_BIO_LNG_GJ_PER_TONNE = LHV_BIO_LNG_MJ_PER_TONNE / 1000;          // 50 GJ/t Bio-LNG
+export const MWH_PER_TONNE_BIO_LNG = LHV_BIO_LNG_MJ_PER_TONNE / MJ_PER_MWH;       // 13.8889 MWh/t
+export const EUR_USD_DEFAULT_FX = getAssumption('fueleu.eurUsdFxRate');
+export const DEFAULT_TTF_GAS_INDEX_EUR_MWH = getAssumption('fueleu.ttfGasIndexEurPerMwh');
+export const DEFAULT_LIQUEFACTION_FEE_EUR_MWH = getAssumption('fueleu.liquefactionFeeEurPerMwh');
+export const DEFAULT_GREEN_PREMIUM_EUR_MWH = getAssumption('fueleu.greenPremiumEurPerMwh');
+/**
+ * @deprecated No longer used by calculateMarineBunkerQuotation: only LNG-capable ships can burn
+ * Bio-LNG, so the quote's counterfactual is fossil LNG on the same engine, not VLSFO. Kept as a
+ * plain constant so existing UI state (a VLSFO price slider) still compiles.
+ */
 export const DEFAULT_VLSFO_PRICE_USD_PER_TONNE = 600.0;
 
 export const VESSEL_ARCHETYPES: VesselArchetype[] = [
@@ -161,6 +223,7 @@ export const VESSEL_ARCHETYPES: VesselArchetype[] = [
     defaultBioLngCi: -100,
     typicalVoyageProfile: 'Shanghai/Singapore -> Suez -> Rotterdam -> Hamburg -> Felixstowe',
     keyPorts: ['Rotterdam', 'Hamburg', 'Antwerp', 'Felixstowe'],
+    defaultShareThirdCountryVoyages: 0.5,
   },
   {
     id: 'post_panamax_15k',
@@ -175,6 +238,7 @@ export const VESSEL_ARCHETYPES: VesselArchetype[] = [
     defaultBioLngCi: -100,
     typicalVoyageProfile: 'US East Coast / Med -> Piraeus -> Valencia -> Algeciras',
     keyPorts: ['Valencia', 'Algeciras', 'Piraeus', 'Genoa'],
+    defaultShareThirdCountryVoyages: 0.5,
   },
   {
     id: 'suezmax_160k',
@@ -189,6 +253,7 @@ export const VESSEL_ARCHETYPES: VesselArchetype[] = [
     defaultBioLngCi: -100,
     typicalVoyageProfile: 'West Africa / US Gulf -> Rotterdam (Maasvlakte) / Trieste / Fos',
     keyPorts: ['Rotterdam', 'Trieste', 'Fos-sur-Mer', 'Wilhelmshaven'],
+    defaultShareThirdCountryVoyages: 0.5,
   },
   {
     id: 'capesize_180k',
@@ -203,6 +268,7 @@ export const VESSEL_ARCHETYPES: VesselArchetype[] = [
     defaultBioLngCi: -100,
     typicalVoyageProfile: 'Brazil (Tubarao) / Australia -> Rotterdam (EMO) / Dunkirk / Taranto',
     keyPorts: ['Rotterdam', 'Dunkirk', 'Taranto', 'Ijmuiden'],
+    defaultShareThirdCountryVoyages: 0.5,
   },
   {
     id: 'ropax_ferry',
@@ -217,6 +283,7 @@ export const VESSEL_ARCHETYPES: VesselArchetype[] = [
     defaultBioLngCi: -100,
     typicalVoyageProfile: 'Tallinn-Helsinki / Dover-Calais / Holyhead-Dublin / Travemünde-Helsinki',
     keyPorts: ['Tallinn', 'Helsinki', 'Dover', 'Calais', 'Rostock'],
+    defaultShareThirdCountryVoyages: 0.0,
   },
   {
     id: 'pctc_7k',
@@ -231,6 +298,7 @@ export const VESSEL_ARCHETYPES: VesselArchetype[] = [
     defaultBioLngCi: -100,
     typicalVoyageProfile: 'East Asia -> Suez -> Zeebrugge -> Bremerhaven -> Southampton',
     keyPorts: ['Zeebrugge', 'Bremerhaven', 'Southampton', 'Barcelona'],
+    defaultShareThirdCountryVoyages: 0.5,
   },
   {
     id: 'dual_fuel_lng_15k',
@@ -245,8 +313,47 @@ export const VESSEL_ARCHETYPES: VesselArchetype[] = [
     defaultBioLngCi: -100,
     typicalVoyageProfile: 'Asia-North Europe loop with regular LNG bunkering in Rotterdam / Marseille',
     keyPorts: ['Rotterdam', 'Marseille', 'Hamburg', 'Valencia'],
+    defaultShareThirdCountryVoyages: 0.5,
   },
 ];
+
+/**
+ * Annex IV Part B statutory penalty with the Art. 23(2) consecutive-year multiplier:
+ *   penalty = |CB| / (GHGIE_actual × 41,000 MJ/t) × €2,400 × [1 + (n − 1)/10]
+ * `deficitTco2e` may be passed as a negative deficit or its magnitude — only the magnitude is used.
+ */
+export function penaltyEur(deficitTco2e: number, actualGhgie: number, consecutiveYears: number = 1): number {
+  if (actualGhgie <= 0) return 0;
+  const years = Math.max(1, consecutiveYears);
+  const multiplier = 1 + (years - 1) / 10;
+  const absDeficitGrams = Math.abs(deficitTco2e) * 1_000_000;
+  const vlsfoEqTonnes = absDeficitGrams / (actualGhgie * FUELEU_PENALTY_VLSFO_MJ_PER_TONNE);
+  return vlsfoEqTonnes * FUELEU_STATUTORY_PENALTY_PER_TONNE * multiplier;
+}
+
+/**
+ * Bio-LNG energy/tonnage needed to close a FuelEU compliance deficit by displacing a fuel of
+ * `displacedIntensity` (fossil LNG on LNG-capable fleets, VLSFO otherwise) with Bio-LNG of RED CI
+ * `bioLngCi`, voyage energy unchanged. Each MJ displaced improves the balance by
+ * (displacedIntensity − bioWtW), so energy = |deficit| × 1e6 / (displacedIntensity − bioWtW).
+ */
+export function closeDeficitWithBioLng(params: {
+  deficitTco2e: number;
+  displacedIntensity: number;
+  bioLngCi: number;
+  lngEngine?: LngEngineType;
+}): { energyMj: number; mwh: number; tonnes: number } {
+  const engine = params.lngEngine ?? DEFAULT_LNG_ENGINE;
+  const bioWtw = bioLngFuelEUIntensity(params.bioLngCi, engine);
+  const deltaCi = params.displacedIntensity - bioWtw;
+  const absDeficitGrams = Math.abs(params.deficitTco2e) * 1_000_000;
+  const energyMj = deltaCi > 0 ? absDeficitGrams / deltaCi : 0;
+  return {
+    energyMj,
+    mwh: energyMj / MJ_PER_MWH,
+    tonnes: energyMj / LHV_BIO_LNG_MJ_PER_TONNE,
+  };
+}
 
 /**
  * Calculates FuelEU compliance balance, statutory penalty, and commercial pathway figures.
@@ -262,11 +369,13 @@ export function calculateVesselExposure(input: VesselCalculationInput): VesselCa
     consecutiveYearsNonCompliant,
   } = input;
   const lngEngine = input.lngEngineType ?? DEFAULT_LNG_ENGINE;
+  // Art. 2(1): third-country voyage energy counts 50%; intra-EU/at-berth counts 100%.
+  const scopeFactor = fuelEuInScopeFactor(input.shareThirdCountryVoyages ?? 0);
 
-  const vlsfoMj = Math.max(0, vlsfoTonnes) * LHV_VLSFO_MJ_PER_TONNE;
-  const mgoMj = Math.max(0, mgoTonnes) * LHV_MGO_MJ_PER_TONNE;
-  const lngMj = Math.max(0, lngTonnes) * LHV_LNG_MJ_PER_TONNE;
-  const bioLngMj = Math.max(0, bioLngTonnes) * LHV_BIO_LNG_MJ_PER_TONNE;
+  const vlsfoMj = Math.max(0, vlsfoTonnes) * scopeFactor * LHV_VLSFO_MJ_PER_TONNE;
+  const mgoMj = Math.max(0, mgoTonnes) * scopeFactor * LHV_MGO_MJ_PER_TONNE;
+  const lngMj = Math.max(0, lngTonnes) * scopeFactor * LHV_LNG_MJ_PER_TONNE;
+  const bioLngMj = Math.max(0, bioLngTonnes) * scopeFactor * LHV_BIO_LNG_MJ_PER_TONNE;
 
   const totalEnergyMj = vlsfoMj + mgoMj + lngMj + bioLngMj;
   const totalEnergyMwh = totalEnergyMj / MJ_PER_MWH;
@@ -308,10 +417,8 @@ export function calculateVesselExposure(input: VesselCalculationInput): VesselCa
   const complianceBalanceTco2e = ((targetGhgie - weightedGhgie) * totalEnergyMj) / 1000000;
   const isOverCompliant = complianceBalanceTco2e >= 0;
 
-  // Escalation multiplier for consecutive non-compliant years (Regulation (EU) 2023/1805 Annex IV)
+  // Escalation multiplier years for consecutive non-compliance (Regulation (EU) 2023/1805 Art. 23(2))
   const years = Math.max(1, consecutiveYearsNonCompliant);
-  const penaltyMultiplierY1 = 1 + (years - 1) / 10;
-  const penaltyMultiplierY2 = 1 + years / 10;
 
   let statutoryPenaltyY1Eur = 0;
   let statutoryPenaltyY2Eur = 0;
@@ -325,28 +432,31 @@ export function calculateVesselExposure(input: VesselCalculationInput): VesselCa
   let poolingArrangementMarginEur = 0;
 
   if (!isOverCompliant) {
-    const absDeficitGrams = Math.abs(complianceBalanceTco2e) * 1000000;
-    // Annex IV: penalty = |CB| / (GHGIE_actual × 41,000 MJ/t) × €2,400
-    const vlsfoEqTonnes = absDeficitGrams / (weightedGhgie * FUELEU_PENALTY_VLSFO_MJ_PER_TONNE);
-
-    statutoryPenaltyY1Eur = vlsfoEqTonnes * FUELEU_STATUTORY_PENALTY_PER_TONNE * penaltyMultiplierY1;
-    statutoryPenaltyY2Eur = vlsfoEqTonnes * FUELEU_STATUTORY_PENALTY_PER_TONNE * penaltyMultiplierY2;
+    statutoryPenaltyY1Eur = penaltyEur(complianceBalanceTco2e, weightedGhgie, years);
+    statutoryPenaltyY2Eur = penaltyEur(complianceBalanceTco2e, weightedGhgie, years + 1);
 
     // Bio-LNG required to bring the compliance balance to exactly 0. Bio-LNG *displaces* fuel
     // on the same voyages (energy unchanged): fossil LNG on LNG-capable fleets, otherwise VLSFO
     // (a notional figure — conventional-only fleets cannot burn LNG and close via pooling).
-    // Each MJ displaced improves the balance by (displaced WtW − Bio-LNG WtW).
     const displacedIntensity = lngMj > 0 ? fossilLngIntensity : FUELEU_VLSFO_WTW;
-    const deltaCiNeg100 = displacedIntensity - bioLngFuelEUIntensity(-100, lngEngine);
-    const requiredBioEnergyMj = absDeficitGrams / deltaCiNeg100;
-    bioLngRequiredNeg100Tonnes = requiredBioEnergyMj / LHV_BIO_LNG_MJ_PER_TONNE;
-    bioLngRequiredNeg100Mwh = requiredBioEnergyMj / MJ_PER_MWH;
+    const neg100 = closeDeficitWithBioLng({
+      deficitTco2e: complianceBalanceTco2e,
+      displacedIntensity,
+      bioLngCi: -100,
+      lngEngine,
+    });
+    bioLngRequiredNeg100Tonnes = neg100.tonnes;
+    bioLngRequiredNeg100Mwh = neg100.mwh;
 
     // Bio-LNG at CI 0 required to bring compliance balance to exactly 0 (food waste / energy crops with CCS)
-    const deltaCiZero = displacedIntensity - bioLngFuelEUIntensity(0, lngEngine);
-    const requiredBioEnergyMjZero = absDeficitGrams / deltaCiZero;
-    bioLngRequiredZeroCiTonnes = requiredBioEnergyMjZero / LHV_BIO_LNG_MJ_PER_TONNE;
-    bioLngRequiredZeroCiMwh = requiredBioEnergyMjZero / MJ_PER_MWH;
+    const zero = closeDeficitWithBioLng({
+      deficitTco2e: complianceBalanceTco2e,
+      displacedIntensity,
+      bioLngCi: 0,
+      lngEngine,
+    });
+    bioLngRequiredZeroCiTonnes = zero.tonnes;
+    bioLngRequiredZeroCiMwh = zero.mwh;
 
     // Pathway 1: physical Bio-LNG bunkering (premium and desk margin: commercial assumptions register)
     const bioLngPremiumCost = bioLngRequiredNeg100Mwh * getAssumption('fueleu.bioLngPremiumEurPerMwh');
@@ -391,7 +501,8 @@ export function calculateEuEtsExposure(
   mgoTonnes: number,
   lngTonnes: number,
   euaPriceEur: number = EUA_BENCHMARK_EUR_PER_TONNE,
-  fueleuPenaltyEur: number = 0
+  fueleuPenaltyEur: number = 0,
+  lngEngineType: LngEngineType = DEFAULT_LNG_ENGINE
 ): JointRegulatoryExposure {
   const totalGrossCo2Tonnes = Number(
     (
@@ -401,10 +512,13 @@ export function calculateEuEtsExposure(
     ).toFixed(1)
   );
 
+  // 2025: CO2 only, 70% phase-in.
   const etsExposure2025Tco2 = Number((totalGrossCo2Tonnes * EU_ETS_PHASE_IN_2025).toFixed(1));
   const etsExposure2025Eur = Math.round(etsExposure2025Tco2 * euaPriceEur);
 
-  const etsExposure2026Tco2 = Number((totalGrossCo2Tonnes * EU_ETS_PHASE_IN_2026).toFixed(1));
+  // From 2026: 100% phase-in, plus LNG CH4 slip and N2O enter the EU ETS (see lngEtsNonCo2Co2eTonnes).
+  const lngNonCo2Tco2e = lngEtsNonCo2Co2eTonnes(Math.max(0, lngTonnes), lngEngineType);
+  const etsExposure2026Tco2 = Number((totalGrossCo2Tonnes * EU_ETS_PHASE_IN_2026 + lngNonCo2Tco2e).toFixed(1));
   const etsExposure2026Eur = Math.round(etsExposure2026Tco2 * euaPriceEur);
 
   const etsSavingsFromBioLngEur = Number(
@@ -469,9 +583,14 @@ export function calculateFleetCapability(
 
 /**
  * Institutional Marine Bunker Quotation Engine (€/t and $/t)
- * Models:
- * TTF Gas Index + Liquefaction & Terminalization Fee + Green Bio-LNG Premium
- * vs Alternative Conventional Compliance (VLSFO + FuelEU Deficit Penalty + EU ETS Allowance Cost)
+ * Models: TTF Gas Index + Liquefaction & Terminalization Fee + Green Bio-LNG Premium
+ * vs the Alternative Conventional Compliance route.
+ *
+ * Only LNG-capable ships can burn Bio-LNG, so their real alternative to bunkering Bio-LNG is
+ * bunkering fossil LNG on the same engine (not VLSFO) — fossil LNG fuel cost (TTF + liquefaction,
+ * no green premium) + EU ETS liability (Annex II Cf_CO2, plus CH4/N2O from 2026) + FuelEU
+ * compliance balance (Annex IV penalty if a deficit, pool-bid credit if a surplus — fossil LNG is
+ * usually already below the target).
  */
 export function calculateMarineBunkerQuotation(
   input: MarineBunkerQuotationInput = {}
@@ -479,71 +598,74 @@ export function calculateMarineBunkerQuotation(
   const ttfGasIndex = input.ttfGasIndexEurMwh !== undefined ? input.ttfGasIndexEurMwh : DEFAULT_TTF_GAS_INDEX_EUR_MWH;
   const liquefactionFee = input.liquefactionFeeEurMwh !== undefined ? input.liquefactionFeeEurMwh : DEFAULT_LIQUEFACTION_FEE_EUR_MWH;
   const greenPremium = input.greenPremiumEurMwh !== undefined ? input.greenPremiumEurMwh : DEFAULT_GREEN_PREMIUM_EUR_MWH;
-  const vlsfoPriceUsd = input.vlsfoPriceUsdPerTonne !== undefined ? input.vlsfoPriceUsdPerTonne : DEFAULT_VLSFO_PRICE_USD_PER_TONNE;
   const euaPriceEur = input.euaPriceEurPerTonne !== undefined ? input.euaPriceEurPerTonne : EUA_BENCHMARK_EUR_PER_TONNE;
   const eurUsdRate = input.eurUsdRate !== undefined ? input.eurUsdRate : EUR_USD_DEFAULT_FX;
   const bioLngCi = input.bioLngCi !== undefined ? input.bioLngCi : -100;
   const targetYear = input.targetYear !== undefined ? input.targetYear : 2025;
   const lngEngine = input.lngEngineType ?? DEFAULT_LNG_ENGINE;
+  const consecutiveYears = input.consecutiveYearsNonCompliant ?? 1;
+  // Surplus/deficit compliance balance is valued at the desk bid (the price a surplus holder is
+  // actually paid), not a fixed benchmark — Regulation (EU) 2023/1805 sets no statutory price.
   const surplusPriceEur = input.fuelEuSurplusPriceEurPerTco2e !== undefined
     ? input.fuelEuSurplusPriceEurPerTco2e
-    : FUELEU_SURPLUS_BENCHMARK_EUR_PER_TCO2E;
+    : getAssumption('fueleu.poolSellPriceEurPerTco2e');
 
   const targetGhgie = getFuelEUTargetIntensity(targetYear);
+  const fossilLngIntensity = fossilLngWtw(lngEngine);
+  const bioLngIntensity = bioLngFuelEUIntensity(bioLngCi, lngEngine);
 
-  // Bio-LNG Delivered Quote: €72/MWh benchmark x 13.6389 MWh/t (49.1 GJ/t LHV)
+  // Bio-LNG Delivered Quote: e.g. €72/MWh benchmark x 13.8889 MWh/t (50 GJ/t LHV) = €1,000.00/t
   const allInBioLngPriceEurMwh = Number((ttfGasIndex + liquefactionFee + greenPremium).toFixed(2));
   const allInBioLngPriceEurPerTonne = Number((allInBioLngPriceEurMwh * MWH_PER_TONNE_BIO_LNG).toFixed(2));
   const allInBioLngPriceUsdPerTonne = Number((allInBioLngPriceEurPerTonne * eurUsdRate).toFixed(2));
 
-  // Conventional Comparison (VLSFO baseline)
-  // 1 metric tonne Bio-LNG (49,100 MJ) delivers propulsion energy equivalent to ~1.1976 tonnes VLSFO
-  const equivalentVlsfoTonnes = Number((LHV_BIO_LNG_MJ_PER_TONNE / LHV_VLSFO_MJ_PER_TONNE).toFixed(4));
-  const vlsfoCostUsd = Number((equivalentVlsfoTonnes * vlsfoPriceUsd).toFixed(2));
-  const vlsfoCostEur = Number((vlsfoCostUsd / eurUsdRate).toFixed(2));
+  // Fossil-LNG counterfactual, scaled to the same energy as 1 tonne of Bio-LNG (50,000 MJ).
+  const equivalentFossilLngTonnes = Number((LHV_BIO_LNG_MJ_PER_TONNE / LHV_LNG_MJ_PER_TONNE).toFixed(4));
+  const fossilLngPriceEurPerMwh = ttfGasIndex + liquefactionFee; // no green premium on fossil gas
+  const fossilLngCostEur = Number((fossilLngPriceEurPerMwh * MWH_PER_TONNE_BIO_LNG).toFixed(2));
+  const fossilLngCostUsd = Number((fossilLngCostEur * eurUsdRate).toFixed(2));
 
-  // EU ETS Liability incurred by burning the VLSFO-equivalent tonnage (2025 at 70% phase-in)
-  const vlsfoCo2Tonnes = equivalentVlsfoTonnes * EU_ETS_EMISSION_FACTOR_VLSFO;
-  // Directive (EU) 2023/959: 70% of 2025 emissions, 100% from 2026 onwards
+  // EU ETS liability on the fossil-LNG-equivalent tonnage: Annex II Cf_CO2, phase-in, plus
+  // CH4 slip + N2O CO2e from 2026 (Directive (EU) 2023/959).
   const phaseInRate = targetYear >= 2026 ? EU_ETS_PHASE_IN_2026 : EU_ETS_PHASE_IN_2025;
-  const vlsfoEtsLiabilityEur = Number((vlsfoCo2Tonnes * phaseInRate * euaPriceEur).toFixed(2));
-  const vlsfoEtsLiabilityUsd = Number((vlsfoEtsLiabilityEur * eurUsdRate).toFixed(2));
+  const fossilLngCo2Tonnes = equivalentFossilLngTonnes * EU_ETS_EMISSION_FACTOR_LNG;
+  let fossilLngEtsTco2e = fossilLngCo2Tonnes * phaseInRate;
+  if (targetYear >= 2026) {
+    fossilLngEtsTco2e += lngEtsNonCo2Co2eTonnes(equivalentFossilLngTonnes, lngEngine);
+  }
+  const fossilLngEtsLiabilityEur = Number((fossilLngEtsTco2e * euaPriceEur).toFixed(2));
+  const fossilLngEtsLiabilityUsd = Number((fossilLngEtsLiabilityEur * eurUsdRate).toFixed(2));
 
-  // FuelEU statutory penalty on the conventional alternative (Reg. (EU) 2023/1805 Annex IV):
-  // burning 49,100 MJ of VLSFO at 91.16 g/MJ against the target leaves a deficit of
-  // (91.16 - target) x 49,100 g, penalised at EUR 2,400 per tonne VLSFO-eq of that energy gap.
-  const vlsfoDeficitGrams = Math.max(0, FUELEU_VLSFO_WTW - targetGhgie) * LHV_BIO_LNG_MJ_PER_TONNE;
-  const vlsfoFuelEuPenaltyEur = Number(
-    ((vlsfoDeficitGrams / (FUELEU_VLSFO_WTW * FUELEU_PENALTY_VLSFO_MJ_PER_TONNE)) * FUELEU_STATUTORY_PENALTY_PER_TONNE).toFixed(2)
+  // FuelEU compliance balance of burning fossil LNG instead, on the same energy basis:
+  // positive = surplus (credited at the desk bid), negative = deficit (Annex IV penalty).
+  const fossilLngBalanceTco2e = ((targetGhgie - fossilLngIntensity) * LHV_BIO_LNG_MJ_PER_TONNE) / 1_000_000;
+  const fossilLngFuelEuBalanceEur = Number(
+    (fossilLngBalanceTco2e >= 0
+      ? fossilLngBalanceTco2e * surplusPriceEur
+      : -penaltyEur(fossilLngBalanceTco2e, fossilLngIntensity, consecutiveYears)
+    ).toFixed(2)
   );
-  const vlsfoFuelEuPenaltyUsd = Number((vlsfoFuelEuPenaltyEur * eurUsdRate).toFixed(2));
+  const fossilLngFuelEuBalanceUsd = Number((fossilLngFuelEuBalanceEur * eurUsdRate).toFixed(2));
 
-  // Bio-LNG compliance surplus vs the target (CI-dependent), monetised at the pool price.
+  // Bio-LNG's own compliance surplus vs the target (CI-dependent), monetised at the desk bid.
   // Above-target Bio-LNG generates no surplus.
   const fuelEuSurplusTco2ePerTonne = Number(
-    ((Math.max(0, targetGhgie - bioLngFuelEUIntensity(bioLngCi, lngEngine)) * LHV_BIO_LNG_MJ_PER_TONNE) / 1_000_000).toFixed(4)
+    ((Math.max(0, targetGhgie - bioLngIntensity) * LHV_BIO_LNG_MJ_PER_TONNE) / 1_000_000).toFixed(4)
   );
   const fuelEuSurplusValueEurPerTonne = Number((fuelEuSurplusTco2ePerTonne * surplusPriceEur).toFixed(2));
   const fuelEuSurplusValueUsdPerTonne = Number((fuelEuSurplusValueEurPerTonne * eurUsdRate).toFixed(2));
 
-  // Total Conventional Alternative Cost (VLSFO fuel + ETS liability + FuelEU penalty)
+  // Total Conventional (fossil-LNG) Alternative Cost: fuel + ETS − FuelEU balance (a surplus
+  // credit reduces the cost of choosing fossil LNG; a deficit penalty increases it).
   const totalConventionalAlternativeCostEur = Number(
-    (vlsfoCostEur + vlsfoEtsLiabilityEur + vlsfoFuelEuPenaltyEur).toFixed(2)
+    (fossilLngCostEur + fossilLngEtsLiabilityEur - fossilLngFuelEuBalanceEur).toFixed(2)
   );
   const totalConventionalAlternativeCostUsd = Number(
-    (vlsfoCostUsd + vlsfoEtsLiabilityUsd + vlsfoFuelEuPenaltyUsd).toFixed(2)
-  );
-
-  // Regulatory value created per tonne: avoided FuelEU penalty + monetised surplus + avoided EU ETS liability
-  const fuelEuFleetPenaltyAvoidedEurPerTonne = vlsfoFuelEuPenaltyEur;
-  const etsAvoidedEurPerTonne = vlsfoEtsLiabilityEur;
-  const totalRegulatoryValueEurPerTonne = Number(
-    (fuelEuFleetPenaltyAvoidedEurPerTonne + fuelEuSurplusValueEurPerTonne + etsAvoidedEurPerTonne).toFixed(2)
+    (fossilLngCostUsd + fossilLngEtsLiabilityUsd - fossilLngFuelEuBalanceUsd).toFixed(2)
   );
 
   // Net Client Advantage / Savings per tonne Bio-LNG:
-  // Evaluated against conventional alternative: (Delivered VLSFO-equivalent compliance cost) - (All-in delivered Bio-LNG price)
-  // = (VLSFO fuel + ETS + FuelEU penalty) - (All-in Bio-LNG price - FuelEU surplus value)
+  // (fossil-LNG fuel + ETS − fossil-LNG FuelEU balance) − (Bio-LNG price − Bio-LNG surplus value)
   const netSavingsPerTonneBioLngEur = Number(
     (totalConventionalAlternativeCostEur - allInBioLngPriceEurPerTonne + fuelEuSurplusValueEurPerTonne).toFixed(2)
   );
@@ -556,21 +678,18 @@ export function calculateMarineBunkerQuotation(
     allInBioLngPriceEurPerTonne,
     allInBioLngPriceUsdPerTonne,
     mwhPerTonneBioLng: MWH_PER_TONNE_BIO_LNG,
-    equivalentVlsfoTonnes,
-    vlsfoCostUsd,
-    vlsfoCostEur,
-    vlsfoEtsLiabilityEur,
-    vlsfoEtsLiabilityUsd,
-    vlsfoFuelEuPenaltyEur,
-    vlsfoFuelEuPenaltyUsd,
+    equivalentFossilLngTonnes,
+    fossilLngCostEur,
+    fossilLngCostUsd,
+    fossilLngEtsLiabilityEur,
+    fossilLngEtsLiabilityUsd,
+    fossilLngFuelEuBalanceEur,
+    fossilLngFuelEuBalanceUsd,
     totalConventionalAlternativeCostEur,
     totalConventionalAlternativeCostUsd,
-    fuelEuFleetPenaltyAvoidedEurPerTonne,
     fuelEuSurplusTco2ePerTonne,
     fuelEuSurplusPriceEurPerTco2e: surplusPriceEur,
     fuelEuSurplusValueEurPerTonne,
-    etsAvoidedEurPerTonne,
-    totalRegulatoryValueEurPerTonne,
     netSavingsPerTonneBioLngEur,
     netSavingsPerTonneBioLngUsd,
   };
@@ -583,7 +702,7 @@ export function calculateMarineBunkerQuotation(
     result.totalBioLngInvoiceUsd = Math.round(vol * allInBioLngPriceUsdPerTonne);
     result.totalClientSavingsEur = Math.round(vol * netSavingsPerTonneBioLngEur);
     result.totalClientSavingsUsd = Math.round(vol * netSavingsPerTonneBioLngUsd);
-    result.totalEtsAvoidedTco2 = Math.round(vol * vlsfoCo2Tonnes * phaseInRate);
+    result.totalEtsAvoidedTco2 = Math.round(vol * fossilLngEtsTco2e);
   }
 
   return result;

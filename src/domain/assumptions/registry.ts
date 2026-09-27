@@ -38,6 +38,11 @@ const fueleuMarkSource = fueleuMark
   ? `FuelEU mark in Pricing Desk (${fueleuMark.sourceName}, observed ${fueleuMark.observedAt})`
   : 'FuelEU mark in Pricing Desk';
 
+const euEts1Mark = EUROPEAN_MARKET_BENCHMARKS.find(b => b.marketId === 'EU_ETS1');
+const euEts1MarkSource = euEts1Mark
+  ? `EU ETS1 mark in Pricing Desk (${euEts1Mark.sourceName}, observed ${euEts1Mark.observedAt})`
+  : 'EU ETS1 mark in Pricing Desk';
+
 const FARMGATE_DEFAULTS: Record<string, { name: string; premium: number; fixed: number }> = {
   DK: { name: 'Denmark', premium: 26.0, fixed: 58.5 },
   DE: { name: 'Germany', premium: 48.0, fixed: 88.0 },
@@ -98,6 +103,61 @@ export const ASSUMPTION_DEFINITIONS: AssumptionDefinition[] = [
     basis: 'MARKET_MARK',
     source: `${fueleuMarkSource} — bid side.`,
     usedIn: 'FuelEU calculators: surplus monetisation; desk margin = offer − bid',
+    min: 0,
+  },
+  {
+    key: 'fueleu.euaPriceEurPerTco2e',
+    category: 'FUELEU',
+    label: 'EU ETS allowance (EUA) price for maritime CO₂e liability',
+    unit: '€/tCO₂e',
+    defaultValue: euEts1Mark?.midPrice ?? 70,
+    basis: 'MARKET_MARK',
+    source: `${euEts1MarkSource} — mid.`,
+    usedIn: 'FuelEU/EU ETS calculators: EU ETS liability on fossil fuel burn',
+    min: 0,
+  },
+  {
+    key: 'fueleu.eurUsdFxRate',
+    category: 'FUELEU',
+    label: 'EUR/USD FX rate for marine bunker quotations',
+    unit: 'USD per EUR',
+    defaultValue: 1.08,
+    basis: 'DESK_ESTIMATE',
+    source: 'unsourced desk default — update',
+    usedIn: 'Marine bunker quotation: EUR→USD conversion of the delivered quote',
+    min: 0,
+  },
+  {
+    key: 'fueleu.ttfGasIndexEurPerMwh',
+    category: 'FUELEU',
+    label: 'TTF natural gas front-month index',
+    unit: '€/MWh',
+    defaultValue: 36,
+    basis: 'DESK_ESTIMATE',
+    source: 'unsourced desk default — update',
+    usedIn: 'Marine bunker quotation: Bio-LNG and fossil-LNG price stack',
+    min: 0,
+  },
+  {
+    key: 'fueleu.liquefactionFeeEurPerMwh',
+    category: 'FUELEU',
+    label: 'Small-scale liquefaction, bunkering barge & terminal fee',
+    unit: '€/MWh',
+    defaultValue: 14,
+    basis: 'DESK_ESTIMATE',
+    source: 'unsourced desk default — update',
+    usedIn: 'Marine bunker quotation: Bio-LNG and fossil-LNG price stack',
+    min: 0,
+  },
+  {
+    key: 'fueleu.greenPremiumEurPerMwh',
+    category: 'FUELEU',
+    label: 'Green Bio-LNG environmental premium (RED III certification spread)',
+    unit: '€/MWh',
+    defaultValue: 22,
+    basis: 'DESK_ESTIMATE',
+    source: 'unsourced desk default — update',
+    usedIn: 'Marine bunker quotation: Bio-LNG delivered price stack',
     min: 0,
   },
 

@@ -52,8 +52,11 @@ export function VesselArchetypeCalculator() {
   const [lngTonnes, setLngTonnes] = useState<number>(0);
   const [bioLngTonnes, setBioLngTonnes] = useState<number>(0);
   const [bioLngCi, setBioLngCi] = useState<number>(-100);
-  const [targetYear, setTargetYear] = useState<2025 | 2030>(2025);
+  const [targetYear, setTargetYear] = useState<number>(2025);
   const [consecutiveYears, setConsecutiveYears] = useState<number>(1);
+  const [shareThirdCountryVoyages, setShareThirdCountryVoyages] = useState<number>(
+    VESSEL_ARCHETYPES[0].defaultShareThirdCountryVoyages
+  );
   const [copied, setCopied] = useState<boolean>(false);
 
   // Active archetype object
@@ -69,6 +72,7 @@ export function VesselArchetypeCalculator() {
     setLngTonnes(archetype.defaultLngTonnes);
     setBioLngTonnes(archetype.defaultBioLngTonnes);
     setBioLngCi(archetype.defaultBioLngCi);
+    setShareThirdCountryVoyages(archetype.defaultShareThirdCountryVoyages);
   };
 
   const assumptionsVersion = useAssumptionsVersion();
@@ -83,9 +87,10 @@ export function VesselArchetypeCalculator() {
       bioLngCi,
       targetYear,
       consecutiveYearsNonCompliant: consecutiveYears,
+      shareThirdCountryVoyages,
     };
     return calculateVesselExposure(input);
-  }, [vlsfoTonnes, mgoTonnes, lngTonnes, bioLngTonnes, bioLngCi, targetYear, consecutiveYears, assumptionsVersion]);
+  }, [vlsfoTonnes, mgoTonnes, lngTonnes, bioLngTonnes, bioLngCi, targetYear, consecutiveYears, shareThirdCountryVoyages, assumptionsVersion]);
 
   // 1-Click trade builder
   const handleTradeBuilder = () => {
@@ -126,16 +131,16 @@ CALCULATED COMPLIANCE METRICS:
 - Weighted Achieved GHGIE: ${calculationResult.weightedGhgie.toFixed(2)} gCO2e/MJ
 - Compliance Balance: ${calculationResult.complianceBalanceTco2e > 0 ? '+' : ''}${calculationResult.complianceBalanceTco2e.toFixed(1)} tCO2e (${calculationResult.isOverCompliant ? 'SURPLUS' : 'DEFICIT'})
 - Statutory Penalty (Year 1): €${Math.round(calculationResult.statutoryPenaltyY1Eur).toLocaleString()}
-- Statutory Penalty (Year 2 with multiplier): €${Math.round(calculationResult.statutoryPenaltyY2Eur).toLocaleString()}
+- Statutory Penalty (Next consecutive year, ×${(1 + consecutiveYears / 10).toFixed(1)}): €${Math.round(calculationResult.statutoryPenaltyY2Eur).toLocaleString()}
 - Required Bio-LNG (CI -100 to neutralise): ${calculationResult.bioLngRequiredNeg100Tonnes.toFixed(1)} tonnes (${Math.round(calculationResult.bioLngRequiredNeg100Mwh).toLocaleString()} MWh)
 
 DUAL COMMERCIAL COMPLIANCE PATHWAYS:
 * Pathway A (Physical Bio-LNG):
   - Client Savings: €${Math.round(calculationResult.physicalSavingsEur).toLocaleString()}
-  - Desk Margin: €${Math.round(calculationResult.physicalTradingMarginEur).toLocaleString()}
+  - Desk Margin (internal): €${Math.round(calculationResult.physicalTradingMarginEur).toLocaleString()}
 * Pathway B (Article 21 Pooling):
   - Client Savings: €${Math.round(calculationResult.poolingSavingsEur).toLocaleString()}
-  - Desk Margin: €${Math.round(calculationResult.poolingArrangementMarginEur).toLocaleString()}
+  - Desk Margin (internal): €${Math.round(calculationResult.poolingArrangementMarginEur).toLocaleString()}
 ================================================================================`;
     navigator.clipboard.writeText(summary);
     setCopied(true);
@@ -353,7 +358,7 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
               </div>
             </div>
             <span className="subttl" style={{ fontSize: '10px' }}>
-              Default -100 gCO₂e/MJ reflects audited manure biomethane
+              Default -100 gCO₂e/MJ reflects manure biomethane (RED-certified mass balance CI)
             </span>
           </div>
 
@@ -363,12 +368,14 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
               <span className="eyebrow" style={{ fontSize: '10px' }}>Compliance Year</span>
               <select
                 value={targetYear}
-                onChange={(e) => setTargetYear(Number(e.target.value) as 2025 | 2030)}
+                onChange={(e) => setTargetYear(Number(e.target.value))}
                 className="input"
                 style={{ height: '30px', fontSize: '11px', padding: '0 6px' }}
               >
                 <option value={2025}>2025 (89.34 g/MJ, -2%)</option>
                 <option value={2030}>2030 (85.69 g/MJ, -6%)</option>
+                <option value={2035}>2035 (77.94 g/MJ, -14.5%)</option>
+                <option value={2040}>2040 (62.90 g/MJ, -31%)</option>
               </select>
             </div>
 
@@ -385,6 +392,25 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
                 <option value={3}>Year 3 (1.20×)</option>
                 <option value={4}>Year 4+ (1.30×)</option>
               </select>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', gridColumn: '1 / -1' }}>
+              <span className="eyebrow" style={{ fontSize: '10px' }}>
+                Energy on voyages to/from third-country ports (%) — Art. 2(1)(d)
+              </span>
+              <input
+                type="number"
+                min={0}
+                max={100}
+                step={1}
+                value={Math.round(shareThirdCountryVoyages * 100)}
+                onChange={(e) => setShareThirdCountryVoyages(Math.min(100, Math.max(0, Number(e.target.value) || 0)) / 100)}
+                className="input num"
+                style={{ height: '30px', fontSize: '11px', padding: '0 6px' }}
+              />
+              <span className="subttl" style={{ fontSize: '10px' }}>
+                Counted at 50% in scope; intra-EU voyages and at-berth energy count 100%.
+              </span>
             </div>
           </div>
         </div>
@@ -502,7 +528,7 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
                   <span style={{ fontWeight: 700, fontSize: '12px', display: 'flex', alignItems: 'center', gap: '5px' }}>
                     <Zap size={13} style={{ color: 'var(--color-accent)' }} /> Pathway 1: Physical Bio-LNG
                   </span>
-                  <span className="chip chip-info">Article 20</span>
+                  <span className="chip chip-info">Art. 4, Annex I-II</span>
                 </div>
                 <div className="subttl" style={{ marginBottom: '10px' }}>
                   Physical bunkering in ARA or Med hubs. Eliminates statutory fine with negative CI fuel.
@@ -518,7 +544,7 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
                     <span className="num" style={{ color: 'var(--color-status-pos-text)', fontWeight: 700 }}>€{Math.round(calculationResult.physicalSavingsEur).toLocaleString()}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>Desk Margin:</span>
+                    <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>Desk Margin (internal):</span>
                     <span className="num" style={{ color: 'var(--color-accent)', fontWeight: 700 }}>€{Math.round(calculationResult.physicalTradingMarginEur).toLocaleString()}</span>
                   </div>
                 </div>

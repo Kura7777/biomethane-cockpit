@@ -115,12 +115,17 @@ describe('Audit remediation — netback mathematics', () => {
   });
 
   it('P0-3: FuelEU desk mark in €/tCO₂e is converted to €/MWh through the target-intensity surplus', () => {
-    // Surplus vs target uses the Bio-LNG FuelEU intensity: RED CI + Annex I slip/N2O (Otto SS 9.3121 g/MJ)
+    // Surplus vs target uses the Bio-LNG FuelEU intensity: Annex II note (E − Cf_CO2/LCV) + Annex I
+    // slip/N2O (Otto SS). bioLngFuelEUIntensity is linear in E, so bioLngFuelEUIntensity(-100) =
+    // -100 + bioLngFuelEUIntensity(0) regardless of the formula's constant offset.
+    // bioLngFuelEUIntensity(-100, Otto SS) = -91.79055; target 89.3368:
+    // (89.3368 − (−91.79055)) × 3600 / 1e6 = 0.6520584 tCO2e/MWh × €270 (bid) = €176.06/MWh
     const cv = computeCertificateValue(getMarketById('FUELEU')!, { ...manure, carbonIntensity: -100 }, marks, 'bid')!;
-    expect(cv.valueEurPerMWh).toBeCloseTo((270 * (89.3368 - (-100 + bioLngFuelEUIntensity(0))) * 3600) / 1e6, 4); // €174.98/MWh
-    expect(cv.valueEurPerMWh).toBeCloseTo(174.984, 3);
+    expect(cv.valueEurPerMWh).toBeCloseTo((270 * (89.3368 - (-100 + bioLngFuelEUIntensity(0))) * 3600) / 1e6, 4);
+    expect(cv.valueEurPerMWh).toBeCloseTo(176.056, 3);
+    // bioLngFuelEUIntensity(0, Otto SS) = 8.20945; (89.3368 − 8.20945) × 3600/1e6 = 0.2920584 × €270 = €78.86/MWh
     const cvZero = computeCertificateValue(getMarketById('FUELEU')!, { ...manure, carbonIntensity: 0 }, marks, 'bid')!;
-    expect(cvZero.valueEurPerMWh).toBeCloseTo(77.784, 3);
+    expect(cvZero.valueEurPerMWh).toBeCloseTo(78.856, 3);
   });
 
   it('P0-3: FuelEU fuel above the target intensity earns no compliance value from a desk mark', () => {
@@ -295,9 +300,13 @@ describe('Audit remediation (round 2) — FuelEU Annex I/II well-to-wake physics
     expect(fossilLngWtw('LNG_DIESEL_SS')).toBeCloseTo(76.081, 2);
   });
 
-  it('Bio-LNG carries its engine CH4 slip and N2O even though combustion CO2 is biogenic', () => {
-    expect(bioLngFuelEUIntensity(-100, 'LNG_OTTO_SS')).toBeCloseTo(-90.6879, 3);
-    expect(bioLngFuelEUIntensity(-100, 'LNG_DIESEL_SS')).toBeCloseTo(-100 + 1.6845, 3);
+  it('Bio-LNG carries the Annex II note WtT adjustment plus its engine CH4 slip and N2O', () => {
+    // Annex II note on col.4: WtT = E − Cf_CO2/LCV = -100 − 2.750/0.050 = -155; TtW keeps Cf_CO2
+    // inside the (1−Cslip) bracket. Otto SS (1.7% slip): TtW = ((1-0.017)×2.78278+0.017×25)/0.050
+    // = 63.2095; total = -155 + 63.2095 = -91.7905.
+    expect(bioLngFuelEUIntensity(-100, 'LNG_OTTO_SS')).toBeCloseTo(-91.7905, 3);
+    // Diesel SS (0.2% slip): TtW = ((1-0.002)×2.78278+0.002×25)/0.050 = 56.5443; total = -98.4557
+    expect(bioLngFuelEUIntensity(-100, 'LNG_DIESEL_SS')).toBeCloseTo(-98.4557, 3);
     expect(bioLngFuelEUIntensity(-100, 'LNG_OTTO_MS')).toBeGreaterThan(bioLngFuelEUIntensity(-100, 'LNG_OTTO_SS'));
   });
 
@@ -353,27 +362,28 @@ describe('Audit remediation — FuelEU & curve units', () => {
     }
   });
 
-  it('P2: EU ETS maritime phase-in is 100% for every year from 2026', () => {
+  it('P2: EU ETS maritime phase-in is 100% for every year from 2026 (CO2 portion)', () => {
     const q26 = calculateMarineBunkerQuotation({ targetYear: 2026 });
     const q30 = calculateMarineBunkerQuotation({ targetYear: 2030 });
     const q25 = calculateMarineBunkerQuotation({ targetYear: 2025 });
-    expect(q26.vlsfoEtsLiabilityEur).toBeCloseTo(q30.vlsfoEtsLiabilityEur, 2);
-    expect(q26.vlsfoEtsLiabilityEur / q25.vlsfoEtsLiabilityEur).toBeCloseTo(EU_ETS_PHASE_IN_2026 / 0.7, 2);
+    // 2026 and 2030 both include the CH4/N2O add-on, so their ETS liability matches exactly.
+    expect(q26.fossilLngEtsLiabilityEur).toBeCloseTo(q30.fossilLngEtsLiabilityEur, 2);
+    // 2025 is CO2-only at 70%; 2026+ is CO2 at 100% plus CH4/N2O, so the ratio exceeds the plain
+    // phase-in ratio (EU_ETS_PHASE_IN_2026 / 0.7).
+    expect(q26.fossilLngEtsLiabilityEur / q25.fossilLngEtsLiabilityEur).toBeGreaterThan(EU_ETS_PHASE_IN_2026 / 0.7);
   });
 
-  it('P1-3: bunker quote uses the 49.1 GJ/t Bio-LNG LHV and is sensitive to Bio-LNG CI', () => {
+  it('P1-3: bunker quote uses the 50 GJ/t Bio-LNG LHV (Annex II col.3 → RED Annex III) and is sensitive to Bio-LNG CI', () => {
     const neg100 = calculateMarineBunkerQuotation({ bioLngCi: -100 });
     const plus50 = calculateMarineBunkerQuotation({ bioLngCi: 50 });
     const aboveTarget = calculateMarineBunkerQuotation({ bioLngCi: 95 });
-    expect(neg100.mwhPerTonneBioLng).toBeCloseTo(49100 / 3600, 6);
-    expect(neg100.equivalentVlsfoTonnes).toBeCloseTo(49100 / 40500, 4); // Annex II HFO-class LCV
+    expect(neg100.mwhPerTonneBioLng).toBeCloseTo(50000 / 3600, 6);
+    expect(neg100.equivalentFossilLngTonnes).toBeCloseTo(50000 / 49100, 4); // same-energy fossil LNG tonnage
     expect(neg100.fuelEuSurplusValueEurPerTonne).toBeGreaterThan(plus50.fuelEuSurplusValueEurPerTonne);
     expect(aboveTarget.fuelEuSurplusTco2ePerTonne).toBe(0);
-    // Statutory penalty on the displaced VLSFO is independent of the Bio-LNG CI
-    expect(neg100.vlsfoFuelEuPenaltyEur).toBe(plus50.vlsfoFuelEuPenaltyEur);
-    // 2030 vs 2025 VLSFO deficit ratio: (91.7442 − 85.6904) / (91.7442 − 89.3368) = 2.5146
-    const y2030 = calculateMarineBunkerQuotation({ targetYear: 2030 });
-    expect(y2030.vlsfoFuelEuPenaltyEur / neg100.vlsfoFuelEuPenaltyEur).toBeCloseTo(2.5146, 3);
+    // The fossil-LNG counterfactual's FuelEU balance and ETS liability don't depend on the Bio-LNG CI
+    expect(neg100.fossilLngFuelEuBalanceEur).toBe(plus50.fossilLngFuelEuBalanceEur);
+    expect(neg100.fossilLngEtsLiabilityEur).toBe(plus50.fossilLngEtsLiabilityEur);
   });
 
   it('P0-3 (curves): forward curve units match the registry desk-mark units', () => {
