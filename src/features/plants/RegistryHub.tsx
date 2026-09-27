@@ -339,7 +339,7 @@ export function RegistryHub() {
         <div>
           <div className="eyebrow">Balance of Trade Structure</div>
           <div className="big num">
-            <span style={{ color: 'var(--color-status-pos-text)' }}>{overviewMetrics.netExportersCount}</span>
+            <span style={{ color: 'var(--color-accent)' }}>{overviewMetrics.netExportersCount}</span>
             <span style={{ fontSize: '16px', color: 'var(--color-dim)', margin: '0 4px' }}>/</span>
             <span style={{ color: 'var(--color-status-warn-text)' }}>{overviewMetrics.netImportersCount}</span>
             <span style={{ fontSize: '12px', fontWeight: 400, marginLeft: '6px' }} className="dim">Exp/Imp</span>
@@ -382,9 +382,9 @@ export function RegistryHub() {
             className={`chip ${activeHubView === 'TELEMETRY' ? 'chip-a' : ''} cursor-pointer`}
             style={{ padding: '6px 12px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '6px' }}
           >
-            <Radio style={{ width: '13px', height: '13px', color: 'var(--color-status-pos-text)' }} />
+            <Radio style={{ width: '13px', height: '13px', color: 'var(--color-status-pass-text, #15803d)' }} />
             <span>Live Flow Telemetry &amp; TSO Feeds</span>
-            <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--color-status-pos-text)', display: 'inline-block' }} />
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--color-status-pass-text, #15803d)', display: 'inline-block' }} />
           </button>
 
           <button
