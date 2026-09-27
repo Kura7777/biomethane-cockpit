@@ -490,3 +490,152 @@ html.dark .tb-range {
   font-weight: 500;
   color: var(--color-accent);
 }
+
+.tb-muted {
+  color: var(--color-muted);
+}
+
+.tb-panel-title.warn svg {
+  color: var(--color-status-warn-text);
+}
+
+.tb-full {
+  width: 100%;
+}
+
+/* ── Economics ── */
+.tb-hero {
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.tb-hero .unit {
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--color-muted);
+}
+
+.tb-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+.tb-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 20px;
+  min-width: 0;
+}
+
+.tb-metric + .tb-metric {
+  border-left: 1px solid var(--color-divider);
+}
+
+.tb-metric-value {
+  font-size: 20px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .tb-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .tb-metric:nth-child(3) {
+    border-left: 0;
+  }
+  .tb-metric:nth-child(n + 3) {
+    border-top: 1px solid var(--color-divider);
+  }
+}
+
+.tb-kv-row.total {
+  font-size: 14px;
+}
+
+.tb-kv-row.total > :first-child {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.tb-kv-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tb-kv-stack.end {
+  align-items: flex-end;
+}
+
+.tb-kv-strong {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.tb-kv-sub {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--color-muted);
+}
+
+.tb-waterfall {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tb-waterfall-row {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr) 80px;
+  align-items: center;
+  gap: 16px;
+}
+
+.tb-waterfall-label {
+  font-size: 13px;
+  color: var(--color-muted);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.tb-waterfall-track {
+  height: 12px;
+  border-radius: var(--radius-bar);
+  background: var(--color-subtier);
+  overflow: hidden;
+}
+
+.tb-waterfall-bar {
+  height: 100%;
+  border-radius: var(--radius-bar);
+  background: var(--color-text);
+}
+
+.tb-waterfall-bar.sub {
+  background: var(--color-muted);
+}
+
+/* Red means negative on this desk, so the (positive) net and margin bars use the positive blue */
+.tb-waterfall-bar.net {
+  background: var(--color-status-pos-text);
+}
+
+.tb-waterfall-bar.margin {
+  background: color-mix(in srgb, var(--color-status-pos-text) 55%, transparent);
+}
+
+.tb-waterfall-value {
+  font-size: 13px;
+  font-weight: 600;
+  text-align: right;
+}
