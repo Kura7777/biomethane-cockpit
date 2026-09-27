@@ -17,12 +17,12 @@ export function KpiTile({ label, value, unit, sub, barPercent, className = '', s
       <div className="ds-kpi-value num">
         {value} {unit && <span className="unit">{unit}</span>}
       </div>
-      {sub && <div className="ds-kpi-sub num">{sub}</div>}
       {barPercent !== undefined && (
         <div className="ds-kpi-bar-track">
           <div className="ds-kpi-bar-fill" style={{ width: `${Math.min(100, Math.max(0, barPercent))}%` }} />
         </div>
       )}
+      {sub && <div className="ds-kpi-sub num">{sub}</div>}
     </div>
   );
 }

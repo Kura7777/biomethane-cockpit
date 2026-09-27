@@ -9,8 +9,14 @@
 }
 
 .plants-body {
-  padding-top: 20px;
+  padding-top: 24px;
   padding-bottom: 32px;
+}
+
+/* Body padding already spaces the row from the tabs; keep 24px above and below it */
+.plants-body > .plants-kpis {
+  padding-top: 0;
+  padding-bottom: 24px;
 }
 
 .plants-export-btn {
@@ -316,6 +322,10 @@
   margin-top: auto;
 }
 
+.plants-kpi-stack + .ds-kpi-sub {
+  margin-top: 0;
+}
+
 .plants-kpi-stack-lead {
   height: 6px;
   background: var(--color-status-warn-text);
@@ -365,11 +375,17 @@
   flex-shrink: 0;
 }
 
+/* Values stay right-aligned when they wrap, like the single-line rows */
+.plants-panel-row > :last-child {
+  text-align: right;
+}
+
 .plants-panel-row-value {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 6px;
-  text-align: right;
 }
 
 .plants-panel-note {

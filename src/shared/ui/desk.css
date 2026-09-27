@@ -27,6 +27,14 @@
   padding-right: var(--ds-page-gutter);
 }
 
+/* A shell already applies the gutter; blocks nested in it must not add it again */
+.ds-page-shell > .ds-header,
+.ds-page-shell > .ds-kpis,
+.ds-page-shell > .ds-tabs {
+  padding-left: 0;
+  padding-right: 0;
+}
+
 /* ── Page Header ── */
 .ds-header {
   max-width: var(--ds-page-max-width);
@@ -232,6 +240,11 @@
   background: var(--color-subtier);
   display: flex;
   margin-top: auto;
+}
+
+/* Bar then caption, pinned to the card bottom, so captions share a baseline across a row */
+.ds-kpi-bar-track + .ds-kpi-sub {
+  margin-top: 0;
 }
 
 .ds-kpi-bar-fill {
@@ -490,6 +503,12 @@
   font-weight: 500;
   color: var(--color-text);
   font-variant-numeric: tabular-nums;
+}
+
+.ds-panel-stat-value .unit {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--color-muted);
 }
 
 .ds-panel-section-heading {
