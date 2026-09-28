@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   Anchor,
   Flame,
+  Briefcase,
   SlidersHorizontal,
 } from 'lucide-react';
 
@@ -40,6 +41,7 @@ export const SIDEBAR_ITEMS: NavItem[] = [
   { to: '/trade', label: 'Trade Builder', keyHint: '4', icon: Zap },
   { to: '/fueleu-shipping', label: 'FuelEU Maritime', keyHint: 'M', icon: Anchor },
   { to: '/ets2', label: 'EU ETS2', keyHint: 'E', icon: Flame },
+  { to: '/corporate', label: 'Corporate orders', keyHint: 'Q', icon: Briefcase },
   { to: '/pricing', label: 'Pricing Desk', keyHint: '5', icon: FileSpreadsheet },
   { to: '/connectors', label: 'Data Connectors', keyHint: 'K', icon: Zap },
   { to: '/data-sources', label: 'Data Sources', keyHint: '7', icon: Database },
@@ -52,6 +54,7 @@ export const SIDEBAR_ITEMS: NavItem[] = [
 export const WORKSPACE_TABS: NavItem[] = [
   // --- Group 1: Market Intelligence & Pricing ---
   { to: '/pricing', label: 'Pricing desk', keyHint: '1', icon: FileSpreadsheet },
+  { to: '/corporate', label: 'Corporate orders', keyHint: 'Q', icon: Briefcase },
 
   // --- Group 2: Physical Supply & Infrastructure ---
   { to: '/sourcing', label: 'Origination', keyHint: '2', icon: Compass },

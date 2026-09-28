@@ -1,7 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { useAppState } from '../../store/context';
 import { PageShell, PageHeader, Card, KpiRow, KpiTile, Tabs } from '../../shared/ui';
-import { ETS2_SEED_COMPANIES, applyEts2CompanyImport, Ets2Company } from '../../domain/ets2/companies';
+import { ETS2_SEED_COMPANIES, CLEAN_HEAT_PROGRAM_LEADS, applyEts2CompanyImport, Ets2Company } from '../../domain/ets2/companies';
+
+const BASE_COMPANIES: Ets2Company[] = [...ETS2_SEED_COMPANIES, ...CLEAN_HEAT_PROGRAM_LEADS];
 import { Ets2DirectoryTab } from './Ets2DirectoryTab';
 import { computeEts2Exposure, GasVolumeBasis } from '../../domain/ets2/calculator';
 import {
@@ -126,11 +128,11 @@ export function Ets2Screen() {
   const [companyDraft, setCompanyDraft] = useState('');
   const [companyErrors, setCompanyErrors] = useState<string[]>([]);
   const companies: Ets2Company[] = useMemo(() => {
-    if (!companyImportText.trim()) return ETS2_SEED_COMPANIES;
-    return applyEts2CompanyImport(ETS2_SEED_COMPANIES, companyImportText).companies;
+    if (!companyImportText.trim()) return BASE_COMPANIES;
+    return applyEts2CompanyImport(BASE_COMPANIES, companyImportText).companies;
   }, [companyImportText]);
   const handleCompanyImport = () => {
-    const res = applyEts2CompanyImport(ETS2_SEED_COMPANIES, companyDraft);
+    const res = applyEts2CompanyImport(BASE_COMPANIES, companyDraft);
     setCompanyErrors(res.errors);
     if (res.applied > 0) {
       // Keep earlier imports: store the combined list of imported rows.

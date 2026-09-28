@@ -52,6 +52,7 @@ const DataSourcesScreen = lazyWithRetry(() => import('../features/provenance/Dat
 const DataConnectorsScreen = lazyWithRetry(() => import('../features/settings/DataConnectorsScreen').then(m => ({ default: m.DataConnectorsScreen })));
 const SettingsScreen = lazyWithRetry(() => import('../features/settings/SettingsScreen').then(m => ({ default: m.SettingsScreen })));
 const AssumptionsScreen = lazyWithRetry(() => import('../features/settings/AssumptionsScreen').then(m => ({ default: m.AssumptionsScreen })));
+const CorporateOrderScreen = lazyWithRetry(() => import('../features/corporate/CorporateOrderScreen').then(m => ({ default: m.CorporateOrderScreen })));
 const Ets2Screen = lazyWithRetry(() => import('../features/ets2/Ets2Screen').then(m => ({ default: m.Ets2Screen })));
 const FuelEUShippingScreen = lazyWithRetry(() => import('../features/fueleu/FuelEUShippingScreen').then(m => ({ default: m.FuelEUShippingScreen })));
 
@@ -96,6 +97,7 @@ function AppContent() {
 
             {/* EU ETS2 exposure desk */}
             <Route path="/ets2" element={<Ets2Screen />} />
+            <Route path="/corporate" element={<CorporateOrderScreen />} />
 
             {/* Supporting Tools & Desks */}
             <Route path="/trade" element={<TradeBuilderScreen />} />

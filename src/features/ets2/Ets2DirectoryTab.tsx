@@ -56,7 +56,10 @@ export function Ets2DirectoryTab(props: {
   const [search, setSearch] = useState('');
   const [statuses, setStatuses] = useState<Record<string, OutreachStatus>>(readStatuses);
 
-  const countryName = useMemo(() => new Map(countries.map(c => [c.iso, c.name])), [countries]);
+  const countryName = useMemo(
+    () => new Map<string, string>([['GB', 'United Kingdom (HQ)'], ...countries.map(c => [c.iso, c.name] as [string, string])]),
+    [countries]
+  );
   const exposures = useMemo(
     () => computeCompanyExposure(companies, countries, ets2PriceEurPerT),
     [companies, countries, ets2PriceEurPerT]
@@ -175,7 +178,7 @@ export function Ets2DirectoryTab(props: {
                     <td>
                       <div style={{ fontWeight: 600 }}>{c.name}</div>
                       <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
-                        {c.role === 'REGULATED_SUPPLIER' ? 'Regulated supplier' : 'Exposed end user'} · {c.confidence.toLowerCase()} confidence
+                        {c.role === 'REGULATED_SUPPLIER' ? 'Regulated supplier' : `Exposed end user${c.sector ? ` · ${c.sector}` : ''}`} · {c.confidence.toLowerCase()} confidence
                       </div>
                     </td>
                     <td>{countryName.get(c.countryIso) ?? c.countryIso}</td>
@@ -187,6 +190,7 @@ export function Ets2DirectoryTab(props: {
                     </td>
                     <td className="num" style={{ textAlign: 'right' }}>{r.ets2CostEurM === null ? '—' : Math.round(r.ets2CostEurM).toLocaleString('en-GB')}</td>
                     <td style={{ fontSize: '12px', maxWidth: '260px' }}>
+                      {c.notes && <div style={{ fontStyle: 'italic', marginBottom: '2px' }}>{c.notes}</div>}
                       {c.evidence.map(e => (
                         <div key={e.url}>
                           <a href={e.url} target="_blank" rel="noreferrer" title={e.note}>{e.note || e.url}</a>

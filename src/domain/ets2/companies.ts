@@ -49,6 +49,8 @@ export interface Ets2Company {
   gasVolumeTWh: number | null;
   gasVolumeBasis: GasVolumeBasis;
   confidence: Ets2Confidence;
+  /** End-user sector, for exposed end users (e.g. "Pharmaceuticals"). */
+  sector?: string;
   evidence: Ets2Evidence[];
   contacts: Ets2Contact[];
   notes: string | null;
@@ -168,6 +170,49 @@ export const ETS2_SEED_COMPANIES: Ets2Company[] = [
       },
     ])
   ),
+];
+
+const CLEAN_HEAT_SOURCE: Pick<Ets2Evidence, 'type' | 'url' | 'checkedAt'> = {
+  type: 'SECONDARY_SOURCE',
+  url: 'https://sustainabilitymag.com/news/who-are-the-pharma-firms-joining-the-clean-heat-program',
+  checkedAt: CHECKED,
+};
+const CLEAN_HEAT_PARTNER: Ets2Evidence = {
+  type: 'SECONDARY_SOURCE',
+  url: 'https://www.contractpharma.com/breaking-news/sanofi-ucb-opella-join-clean-heat-program/',
+  note: 'Clean Heat Program (ERM / Secaro): 3Degrees signed as partner for short- and long-term biomethane procurement in the EU and US.',
+  checkedAt: CHECKED,
+};
+
+function endUser(id: string, name: string, countryIso: string, sector: string, note: string, notes: string): Ets2Company {
+  return {
+    id,
+    name,
+    countryIso,
+    role: 'EXPOSED_END_USER',
+    marketSharePct: null,
+    shareBasis: null,
+    gasVolumeTWh: null,
+    gasVolumeBasis: 'GCV',
+    confidence: 'HIGH',
+    sector,
+    evidence: [{ ...CLEAN_HEAT_SOURCE, note }, CLEAN_HEAT_PARTNER],
+    contacts: [],
+    notes,
+  };
+}
+
+/**
+ * Warm leads: founding members of the Clean Heat Program, which replaces fossil process heat at
+ * pharma manufacturing sites and has 3Degrees as a biomethane procurement partner. They are
+ * programme members, not confirmed 3Degrees clients. Country is headquarters; ETS2 applies to
+ * their EU sites only (the UK is outside ETS2).
+ */
+export const CLEAN_HEAT_PROGRAM_LEADS: Ets2Company[] = [
+  endUser('gb-astrazeneca', 'AstraZeneca', 'GB', 'Pharmaceuticals', 'Founding member of the Clean Heat Program (joined December 2025).', 'UK HQ — target its EU manufacturing sites. Warm lead via the Clean Heat Program.'),
+  endUser('fr-sanofi', 'Sanofi', 'FR', 'Pharmaceuticals', 'Founding member of the Clean Heat Program alongside UCB and Opella.', 'Warm lead via the Clean Heat Program.'),
+  endUser('be-ucb', 'UCB', 'BE', 'Pharmaceuticals', 'Founding member of the Clean Heat Program alongside Sanofi and Opella.', 'Warm lead via the Clean Heat Program.'),
+  endUser('fr-opella', 'Opella', 'FR', 'Consumer healthcare', 'Founding member of the Clean Heat Program alongside Sanofi and UCB.', 'Warm lead via the Clean Heat Program.'),
 ];
 
 /** Where each country publishes (or will publish) the list of ETS2 regulated entities. */
