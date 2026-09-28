@@ -21,6 +21,7 @@ import { ArbitrageOpportunity } from '../../domain/arbitrage/types';
 import { PlantSourcingDrawer } from '../plants/PlantSourcingDrawer';
 import { 
   evaluatePlantCommercialStrategies, 
+  strategyOptionsFromMarks,
   PlantStrategyMatrix, 
   StrategyEvaluation,
   resolveAuditedCarbonIntensity
@@ -327,29 +328,8 @@ export function SourcingOriginationDesk() {
 
   // Multi-strategy valuation evaluation for the selected plant
   const plantValuation: PlantStrategyMatrix = useMemo(() => {
-    const ttfMid = state.marks.gasIndex.mid ?? state.marks.gasIndex.offer ?? state.marks.gasIndex.bid ?? 35;
-    const thgEntry = state.marks.marks['DE_THG'];
-    const thgMid = thgEntry?.mid ?? thgEntry?.offer ?? thgEntry?.bid ?? 125;
-    // NL HBe-A (ERE) mark for Dutch transport strategy
-    const nlEreEntry = state.marks.marks['NL_ERE'];
-    const dutchHbeA = nlEreEntry?.mid ?? nlEreEntry?.offer ?? nlEreEntry?.bid;
-    // EU ETS EUA mark (used for industrial scope 1 zero-rating strategy)
-    const euEtsEntry = state.marks.marks['EU_ETS_EUA'];
-    const euEtsEua = euEtsEntry?.mid ?? euEtsEntry?.offer ?? euEtsEntry?.bid;
-    // UK RTFO dRTFC mark (cert leg for UK transport strategy)
-    const ukRtfoEntry = state.marks.marks['UK_RTFO'];
-    const ukRtfoCert = ukRtfoEntry?.mid ?? ukRtfoEntry?.offer ?? ukRtfoEntry?.bid;
-    // Voluntary GO premium (DE_GO / EU_GO mark)
-    const deGoEntry = state.marks.marks['DE_GO'];
-    const volGoPremium = deGoEntry?.mid ?? deGoEntry?.offer ?? deGoEntry?.bid;
-    return evaluatePlantCommercialStrategies(selectedPlant, {
-      ttfDayAheadEurMwh: ttfMid,
-      germanThgQuoteEurPerTonne: thgMid,
-      dutchHbeAEurMwh: dutchHbeA,
-      euEtsEuaEurPerTonne: euEtsEua,
-      ukRtfoCertValueEurMwh: ukRtfoCert,
-      voluntaryGoPremiumEurMwh: volGoPremium,
-    });
+    // Marks are converted to each strategy's units (€/MWh for NL ERE and UK RTFO) in the domain.
+    return evaluatePlantCommercialStrategies(selectedPlant, strategyOptionsFromMarks(selectedPlant, state.marks));
   }, [selectedPlant, state.marks]);
   
   const activeStrategy: StrategyEvaluation = useMemo(() => {

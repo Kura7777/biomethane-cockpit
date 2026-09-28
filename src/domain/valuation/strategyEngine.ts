@@ -6,6 +6,11 @@ import {
   GHG_THRESHOLDS_TRANSPORT,
   MJ_PER_MWH,
 } from '../markets/constants';
+import { MarksState } from '../netback/types';
+import { Consignment } from '../consignment/types';
+import { FEEDSTOCK_REGISTRY } from '../consignment/feedstocks';
+import { getMarketById } from '../markets/registry';
+import { selectMarkPrice, computeCertificateValue } from '../netback/engine';
 import {
   computeFuelEUDeficitClosureValue,
   FUELEU_TARGET_CI_2025,
@@ -96,6 +101,8 @@ export interface PlantStrategyMatrix {
   winningStrategy: StrategyEvaluation;
   /** True when carbonIntensity was estimated from feedstock text — no verified audit on file. Disclose to trader. */
   ciIsEstimated: boolean;
+  /** False when no eligible strategy makes a positive desk margin at the given marks: nothing should be pitched. */
+  hasProfitableStrategy: boolean;
   commercialPitchSummary: {
     headline: string;
     pitchScript: string;
@@ -295,8 +302,8 @@ export function evaluatePlantCommercialStrategies(
       plantSubsidyHurdleEurMwh: plantSubsidyHurdle,
       recommendedBidToProducerEurMwh: producerOffer,
       producerIncentiveDeltaEurMwh: producerIncentive,
-      netDeskMarginEurPerMWh: Math.max(0.50, traderMarginEurPerMWh),
-      annualDeskPnLEur: Math.max(15000, annualPnL),
+      netDeskMarginEurPerMWh: traderMarginEurPerMWh,
+      annualDeskPnLEur: annualPnL,
       twoLegFormula: {
         physicalLegFormula: 'NO PHYSICAL GAS DELIVERY TO BUYER (Unbundled Book & Claim · Producer Injects Locally)',
         certLegFormula: `Single-Leg GoO Certificate Transfer: €${voluntaryGoPremium.toFixed(2)}/MWh Fixed Attribute Premium`,
@@ -639,8 +646,8 @@ export function evaluatePlantCommercialStrategies(
       plantSubsidyHurdleEurMwh: plantSubsidyHurdle,
       recommendedBidToProducerEurMwh: producerBid,
       producerIncentiveDeltaEurMwh: producerDelta,
-      netDeskMarginEurPerMWh: Math.max(1.50, traderMarginEurPerMWh),
-      annualDeskPnLEur: Math.max(25000, Math.round(traderMarginEurPerMWh * annualMWh)),
+      netDeskMarginEurPerMWh: traderMarginEurPerMWh,
+      annualDeskPnLEur: Math.round(traderMarginEurPerMWh * annualMWh),
       twoLegFormula: {
         physicalLegFormula: '0.99 × ICIS Heren Day-Ahead TTF bid at VTP',
         certLegFormula: `Avoided EUA Allowance (0.202 × €${euEtsEuaPrice.toFixed(0)}) + Green Margin: €${(avoidedEuaPerMwh + 4.00).toFixed(2)}/MWh`,
@@ -707,12 +714,18 @@ export function evaluatePlantCommercialStrategies(
     ? eligibleStrategies.reduce((prev, current) => (current.annualDeskPnLEur > prev.annualDeskPnLEur ? current : prev))
     : evaluations[0];
 
+  const hasProfitableStrategy = winningStrategy.isEligible && winningStrategy.annualDeskPnLEur > 0;
+
   // Commercial Pitch Script for the Trader
-  const headline = winningStrategy.subsidyAction === 'SUPPORT_SWITCH_OFF'
+  const headline = !hasProfitableStrategy
+    ? `No profitable strategy at current marks — best eligible route (${winningStrategy.strategyName}) does not beat the ${domesticBaseline.schemeName} hurdle`
+    : winningStrategy.subsidyAction === 'SUPPORT_SWITCH_OFF'
     ? `Support-Switch Arbitrage: Beat ${domesticBaseline.schemeName} by +€${winningStrategy.producerIncentiveDeltaEurMwh.toFixed(2)}/MWh`
     : `Supported Retained Arbitrage: Monetize Green Premium via ${winningStrategy.strategyName}`;
 
-  const pitchScript = winningStrategy.subsidyAction === 'SUPPORT_SWITCH_OFF'
+  const pitchScript = !hasProfitableStrategy
+    ? `No offer to make at current marks. The best eligible route nets €${winningStrategy.netDeliveredEurMwh.toFixed(2)}/MWh against a ${domesticBaseline.schemeName} hurdle of ~€${plantSubsidyHurdle.toFixed(2)}/MWh, leaving no desk margin. Revisit when marks move or with a verified CI.`
+    : winningStrategy.subsidyAction === 'SUPPORT_SWITCH_OFF'
     ? `Hi [Plant Manager], we are offering a guaranteed fixed offtake contract for ${annualGWh} GWh. Instead of relying on your domestic ${domesticBaseline.schemeName} (~€${plantSubsidyHurdle.toFixed(2)}/MWh), our two-leg pricing structure pays you €${winningStrategy.recommendedBidToProducerEurMwh.toFixed(2)}/MWh (a +€${winningStrategy.producerIncentiveDeltaEurMwh.toFixed(2)}/MWh premium, generating +€${Math.round(winningStrategy.producerIncentiveDeltaEurMwh * annualMWh).toLocaleString()} extra annual cashflow) with indexation to TTF Day-Ahead.`
     : `Hi [Plant Manager], keep 100% of your current government ${domesticBaseline.schemeName} subsidy (~€${plantSubsidyHurdle.toFixed(2)}/MWh). We will structure your Guarantees of Origin (GoOs) into the voluntary corporate Scope 1 market, generating an immediate risk-free cash premium of +€${winningStrategy.recommendedBidToProducerEurMwh.toFixed(2)}/MWh bonus cashflow.`;
 
@@ -743,6 +756,7 @@ export function evaluatePlantCommercialStrategies(
     evaluations,
     winningStrategy,
     ciIsEstimated,
+    hasProfitableStrategy,
     commercialPitchSummary: {
       headline,
       pitchScript,
@@ -751,5 +765,70 @@ export function evaluatePlantCommercialStrategies(
         : `€${winningStrategy.recommendedBidToProducerEurMwh.toFixed(2)}/MWh all-in (${winningStrategy.twoLegFormula.physicalLegFormula} + ${winningStrategy.twoLegFormula.certLegFormula})`,
       eexTtfShortHedgeMWh: winningStrategy.deliveryModel === 'UNBUNDLED_CERTIFICATE_ONLY' ? 0 : annualMWh,
     },
+  };
+}
+
+
+/** Maps a plant's free-text feedstock to a FEEDSTOCK_REGISTRY key, so certificate pricing can classify it. */
+export function plantFeedstockKey(plant: BiomethanePlant): string {
+  const canonical = plant.canonicalFeedstockKey ?? '';
+  if (canonical && FEEDSTOCK_REGISTRY[canonical]) return canonical;
+  const desc = `${plant.primaryFeedstockCategory ?? ''} ${plant.feedstockDetails ?? ''}`.toLowerCase();
+  if (/manure|slurry|gülle|dairy|swine|pig|bovine/.test(desc)) return 'manure';
+  if (/food|biowaste|forsu/.test(desc)) return 'food_waste';
+  if (/sewage|sludge/.test(desc)) return 'sewage_sludge';
+  if (/landfill/.test(desc)) return 'landfill_gas';
+  if (/crop|maize|silage|rye/.test(desc)) return 'energy_crops';
+  if (/industrial/.test(desc)) return 'industrial_bio_waste';
+  return 'agricultural_residues';
+}
+
+/** The plant as a consignment, for pricing its certificate legs through computeCertificateValue. */
+export function plantAsConsignment(plant: BiomethanePlant): Consignment {
+  const key = plantFeedstockKey(plant);
+  const info = FEEDSTOCK_REGISTRY[key];
+  const iso = (plant.countryCode || '').toUpperCase();
+  const isGb = iso === 'GB' || iso === 'UK';
+  return {
+    id: `plant-${plant.id}`,
+    name: plant.name,
+    originCountry: iso,
+    originCountryName: plant.country,
+    feedstock: key,
+    feedstockName: info?.name ?? key,
+    annexClassification: info?.annexClassification ?? 'OTHER',
+    carbonIntensity: resolveAuditedCarbonIntensity(plant).ci,
+    commissioningDateRange: 'POST_2021_TO_2025',
+    certificationScheme: 'ISCC_EU',
+    chainOfCustody: 'MASS_BALANCE',
+    injectionCountry: iso,
+    injectionIsEU: !isGb,
+    udbStatus: isGb ? 'NOT_RECORDED' : 'RECORDED',
+    posStatus: 'ISSUED',
+    volumeMWh: null,
+  };
+}
+
+/**
+ * Reads the desk marks into the units evaluatePlantCommercialStrategies expects.
+ * NL ERE (€/kgCO₂e) and UK RTFO (£/RTFC) are converted to €/MWh for this plant through
+ * computeCertificateValue, the single pricing authority; ETS reads the EU_ETS1 EUA mark.
+ * A missing mark stays null.
+ */
+export function strategyOptionsFromMarks(plant: BiomethanePlant, marks: MarksState): ValuationOptions {
+  const mid = (id: string) => selectMarkPrice(marks.marks[id], 'mid');
+  const consignment = plantAsConsignment(plant);
+  const certEurPerMWh = (marketId: string) => {
+    const market = getMarketById(marketId);
+    if (!market) return null;
+    return computeCertificateValue(market, consignment, marks, 'mid')?.valueEurPerMWh ?? null;
+  };
+  return {
+    ttfDayAheadEurMwh: selectMarkPrice(marks.gasIndex, 'mid'),
+    germanThgQuoteEurPerTonne: mid('DE_THG'),
+    dutchHbeAEurMwh: certEurPerMWh('NL_ERE'),
+    euEtsEuaEurPerTonne: mid('EU_ETS1'),
+    ukRtfoCertValueEurMwh: certEurPerMWh('UK_RTFO'),
+    voluntaryGoPremiumEurMwh: mid('DE_GO'),
   };
 }
