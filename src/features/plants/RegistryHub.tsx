@@ -591,7 +591,7 @@ export function RegistryHub() {
                 <div className="mut" style={{ fontSize: '12.5px' }}>Loading…</div>
               ) : energinet.source === 'UNAVAILABLE' ? (
                 <div className="rh-unavailable">
-                  Energinet data temporarily unavailable (rate-limited). {energinet.unavailableReason}
+                  {energinet.unavailableReason}
                 </div>
               ) : (
                 <>
