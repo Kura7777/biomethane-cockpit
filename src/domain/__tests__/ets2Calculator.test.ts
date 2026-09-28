@@ -97,3 +97,49 @@ describe('ETS2 country exposure', () => {
     expect(rows[2].rank).toBeNull();
   });
 });
+
+import { ETS2_SEED_COMPANIES, applyEts2CompanyImport, computeCompanyExposure } from '../ets2/companies';
+
+describe('ETS2 company directory', () => {
+  it('sources every seeded company and invents no volumes', () => {
+    expect(ETS2_SEED_COMPANIES.length).toBeGreaterThan(0);
+    for (const c of ETS2_SEED_COMPANIES) {
+      expect(c.evidence.length, c.name).toBeGreaterThan(0);
+      expect(c.evidence.every(e => e.url.startsWith('https://')), c.name).toBe(true);
+      expect(c.gasVolumeTWh, c.name).toBeNull();
+    }
+    expect(new Set(ETS2_SEED_COMPANIES.map(c => c.id)).size).toBe(ETS2_SEED_COMPANIES.length);
+  });
+
+  it('leaves exposure blank until the country volume is loaded', () => {
+    const rows = computeCompanyExposure(ETS2_SEED_COMPANIES, ETS2_COUNTRIES, 50);
+    expect(rows.every(r => r.ets2CostEurM === null)).toBe(true);
+  });
+
+  it('estimates exposure as market share of the national building-gas volume', () => {
+    const { countries } = applyEts2CountryImport(
+      ETS2_COUNTRIES,
+      JSON.stringify([{ iso: 'IT', gasBuildingsTWh: 100, gasVolumeBasis: 'NCV', gasSourceUrl: 'https://example.org/it' }])
+    );
+    const edison = computeCompanyExposure(ETS2_SEED_COMPANIES, countries, 50).find(r => r.company.id === 'it-edison')!;
+    expect(edison.volumeMethod).toBe('SHARE_OF_NATIONAL');
+    expect(edison.volumeTWh).toBeCloseTo(16.8, 6);
+    expect(edison.ets2CostEurM).toBeCloseTo(16.8 * ETS_NATURAL_GAS_TCO2_PER_MWH * 50, 6);
+  });
+
+  it('prefers a disclosed company volume over the share estimate', () => {
+    const { companies } = applyEts2CompanyImport(
+      ETS2_SEED_COMPANIES,
+      JSON.stringify([{ id: 'it-edison', name: 'Edison', countryIso: 'IT', gasVolumeTWh: 40, gasVolumeBasis: 'NCV', evidenceUrl: 'https://example.org/edison' }])
+    );
+    const edison = computeCompanyExposure(companies, ETS2_COUNTRIES, 50).find(r => r.company.id === 'it-edison')!;
+    expect(edison.volumeMethod).toBe('DISCLOSED');
+    expect(edison.volumeTWh).toBe(40);
+  });
+
+  it('rejects imported companies without evidence', () => {
+    const res = applyEts2CompanyImport(ETS2_SEED_COMPANIES, JSON.stringify([{ name: 'Acme Gas', countryIso: 'NL' }]));
+    expect(res.applied).toBe(0);
+    expect(res.errors[0]).toMatch(/evidence/);
+  });
+});

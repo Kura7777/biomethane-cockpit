@@ -1,0 +1,319 @@
+import { ETS_NATURAL_GAS_TCO2_PER_MWH } from '../netback/engine';
+import { toNcvMWh, GasVolumeBasis } from './calculator';
+import { Ets2CountryProfile } from './countries';
+
+/**
+ * ETS2 company directory — who is exposed, per company and country.
+ *
+ * Under ETS2 the regulated entity is the fuel supplier that releases gas for consumption
+ * (Directive 2003/87/EC Art. 3(ae), as amended by 2023/959). Suppliers buy allowances and pass
+ * the cost on, so they are the first buyers of zero-rated biomethane; their commercial and
+ * small-industry customers are the second.
+ *
+ * Every company here carries at least one source. Market shares are only filled where a regulator
+ * report (or a report quoting one) states them. Rows can be added by importing JSON.
+ */
+
+export type Ets2CompanyRole = 'REGULATED_SUPPLIER' | 'EXPOSED_END_USER';
+export type Ets2EvidenceType = 'PERMIT_REGISTER' | 'NATIONAL_ETS_REGISTER' | 'REGULATOR_MARKET_REPORT' | 'COMPANY_DISCLOSURE' | 'SECONDARY_SOURCE';
+export type Ets2Confidence = 'HIGH' | 'MEDIUM' | 'LOW';
+export type Ets2ContactKind = 'SWITCHBOARD' | 'GENERAL_EMAIL' | 'B2B_SALES' | 'SUSTAINABILITY' | 'PRESS' | 'PERSON';
+
+export interface Ets2Evidence {
+  type: Ets2EvidenceType;
+  url: string;
+  /** What the source says, verbatim or closely summarised. */
+  note: string;
+  checkedAt: string;
+}
+
+export interface Ets2Contact {
+  kind: Ets2ContactKind;
+  name?: string;
+  role?: string;
+  email?: string;
+  phone?: string;
+  sourceUrl: string;
+}
+
+export interface Ets2Company {
+  id: string;
+  name: string;
+  countryIso: string;
+  role: Ets2CompanyRole;
+  /** Market share in percent, as the source states it. */
+  marketSharePct: number | null;
+  /** What the share is a share of (e.g. "final retail gas sales, 2025"). */
+  shareBasis: string | null;
+  /** Company-disclosed or register-reported gas volume, TWh/yr. */
+  gasVolumeTWh: number | null;
+  gasVolumeBasis: GasVolumeBasis;
+  confidence: Ets2Confidence;
+  evidence: Ets2Evidence[];
+  contacts: Ets2Contact[];
+  notes: string | null;
+}
+
+const CHECKED = '2026-09-28';
+
+const ARERA_2025: Pick<Ets2Evidence, 'type' | 'url' | 'checkedAt'> = {
+  type: 'REGULATOR_MARKET_REPORT',
+  url: 'https://www.borsaitaliana.it/borsa/notizie/radiocor/economia/dettaglio/gas-arera-concentrazione-del-mercato-invariata-gruppo-edison-resta-primo-nRC_01072026_1658_590156299.html',
+  checkedAt: CHECKED,
+};
+
+const CNMC_Q1_2026: Pick<Ets2Evidence, 'type' | 'url' | 'checkedAt'> = {
+  type: 'REGULATOR_MARKET_REPORT',
+  url: 'https://www.cnmc.es/sites/default/files/6807815.pdf',
+  checkedAt: CHECKED,
+};
+
+function supplier(
+  id: string,
+  name: string,
+  countryIso: string,
+  marketSharePct: number | null,
+  shareBasis: string | null,
+  confidence: Ets2Confidence,
+  evidence: Ets2Evidence[],
+  notes: string | null = null
+): Ets2Company {
+  return {
+    id,
+    name,
+    countryIso,
+    role: 'REGULATED_SUPPLIER',
+    marketSharePct,
+    shareBasis,
+    gasVolumeTWh: null,
+    gasVolumeBasis: 'GCV',
+    confidence,
+    evidence,
+    contacts: [],
+    notes,
+  };
+}
+
+/** Seed list: the largest gas suppliers in the most exposed markets, with sources. */
+export const ETS2_SEED_COMPANIES: Ets2Company[] = [
+  // ── Italy (ARERA Annual Report 2025, via Radiocor 1 Jul 2026) ──
+  supplier('it-edison', 'Edison', 'IT', 16.8, 'final retail gas sales, 2025', 'HIGH', [
+    { ...ARERA_2025, note: 'ARERA 2025: Edison group first, share up from 15.5% to 16.8%.' },
+  ]),
+  supplier('it-eni', 'Eni (Plenitude)', 'IT', 12.7, 'final retail gas sales, 2025', 'HIGH', [
+    { ...ARERA_2025, note: 'ARERA 2025: Eni group second, share up from 12% to 12.7%.' },
+  ]),
+  supplier('it-enel', 'Enel', 'IT', 9.7, 'final retail gas sales, 2025', 'HIGH', [
+    { ...ARERA_2025, note: 'ARERA 2025: Enel group third, share down from 11.1% to 9.7%.' },
+  ]),
+  // ── Spain (CNMC quarterly retail supervision bulletin, Q1 2026) ──
+  supplier('es-naturgy', 'Naturgy', 'ES', 29.4, 'retail gas sales, Q1 2026', 'HIGH', [
+    { ...CNMC_Q1_2026, note: 'CNMC: largest sales in Q1 2026 — Naturgy 29.4%.' },
+  ]),
+  supplier('es-repsol', 'Repsol', 'ES', 11.3, 'retail gas sales, Q1 2026', 'HIGH', [
+    { ...CNMC_Q1_2026, note: 'CNMC: Repsol 11.3% of Q1 2026 sales.' },
+  ]),
+  supplier('es-endesa', 'Endesa', 'ES', 10.6, 'retail gas sales, Q1 2026', 'HIGH', [
+    { ...CNMC_Q1_2026, note: 'CNMC: Endesa 10.6% of Q1 2026 sales.' },
+  ]),
+  supplier('es-iberdrola', 'Iberdrola', 'ES', 8.5, 'retail gas sales, Q1 2026', 'HIGH', [
+    { ...CNMC_Q1_2026, note: 'CNMC: Iberdrola 8.5% of Q1 2026 sales.' },
+  ]),
+  supplier('es-moeve', 'Moeve (formerly Cepsa)', 'ES', 5.2, 'retail gas sales, Q1 2026', 'HIGH', [
+    { ...CNMC_Q1_2026, note: 'CNMC: Moeve 5.2% of Q1 2026 sales.' },
+  ]),
+  // ── Poland ──
+  supplier('pl-orlen', 'ORLEN (PGNiG Obrót Detaliczny)', 'PL', 97, 'gas sales to households, 2024', 'MEDIUM', [
+    {
+      type: 'SECONDARY_SOURCE',
+      url: 'https://www.oxfordenergy.org/wpcms/wp-content/uploads/2025/10/Insight-172-State-Control-and-Market-Expansion-Can-Polands-Gas-Market-Develop-Without-Liberalisation.pdf',
+      note: 'OIES Insight 172: Orlen nearly 97% of household gas sales in 2024; 85% of sales to distribution-connected final customers.',
+      checkedAt: CHECKED,
+    },
+  ]),
+  // ── Hungary ──
+  supplier('hu-mvm-next', 'MVM Next', 'HU', null, null, 'MEDIUM', [
+    {
+      type: 'SECONDARY_SOURCE',
+      url: 'https://ceenergynews.com/electricity/mvm-becomes-the-only-universal-provider-for-hungarys-gas-and-electricity-market/',
+      note: 'MVM became the only universal-service provider for households in Hungary\'s gas and electricity market.',
+      checkedAt: CHECKED,
+    },
+  ], 'Sole household universal-service supplier; share not stated as a single figure.'),
+  // ── Belgium ──
+  supplier('be-engie', 'ENGIE (Belgium)', 'BE', null, null, 'MEDIUM', [
+    {
+      type: 'SECONDARY_SOURCE',
+      url: 'https://www.statista.com/statistics/752904/leading-natural-gas-suppliers-in-flanders-belgium-by-market-share/',
+      note: 'Largest natural gas supplier in Flanders as of June 2025 (regional regulators publish shares by region).',
+      checkedAt: CHECKED,
+    },
+  ]),
+  supplier('be-luminus', 'Luminus', 'BE', null, null, 'MEDIUM', [
+    {
+      type: 'SECONDARY_SOURCE',
+      url: 'https://www.statista.com/statistics/752904/leading-natural-gas-suppliers-in-flanders-belgium-by-market-share/',
+      note: 'Second-largest natural gas supplier in Flanders as of June 2025.',
+      checkedAt: CHECKED,
+    },
+  ]),
+  // ── Netherlands ──
+  ...(['Eneco', 'Essent', 'Vattenfall'] as const).map(name =>
+    supplier(`nl-${name.toLowerCase()}`, name, 'NL', null, null, 'LOW', [
+      {
+        type: 'SECONDARY_SOURCE',
+        url: 'https://www.sciencedirect.com/science/article/pii/S0301421518308061',
+        note: 'Named as the large incumbents dominating Dutch retail energy; gas shares not published by ACM.',
+        checkedAt: CHECKED,
+      },
+    ])
+  ),
+];
+
+/** Where each country publishes (or will publish) the list of ETS2 regulated entities. */
+export const ETS2_REGULATED_ENTITY_LISTS: Record<string, { label: string; url: string }> = {
+  EU: {
+    label: 'EU Transaction Log — ETS2 entity data from 2026/27',
+    url: 'https://climate.ec.europa.eu/areas-action/carbon-markets/eu-emissions-trading-system-eu-ets/union-registry_en',
+  },
+  IE: {
+    label: 'EPA — current ETS2 greenhouse gas emissions permits',
+    url: 'https://www.epa.ie/our-services/licensing/climate-change/eu-emissions-trading-system-/eu-emissions-trading-system-2-ets2/current-ets2-greenhouse-gas-emissions-permits/',
+  },
+  DE: {
+    label: 'DEHSt — BEHG responsible parties (published in the Bundesanzeiger)',
+    url: 'https://www.dehst.de/EN/Topics/nEHS/EU-ETS-2/reporting-phase-2024-2026/eu-ets2_node.html',
+  },
+  BE: {
+    label: 'Belgian Climate Registry — ETS2 (regional competent authorities)',
+    url: 'https://www.climateregistry.be/en/registry/ETS2.htm',
+  },
+  EE: {
+    label: 'Keskkonnaamet — ETS2 regulated entities',
+    url: 'https://www.keskkonnaamet.ee/en/new-european-union-emissions-trading-system-eu-ets2-buildings-road-transport-and-additional-sectors',
+  },
+  SE: {
+    label: 'Energimyndigheten — EU ETS2',
+    url: 'https://www.energimyndigheten.se/en/climate/the-eu-emissions-trading-system-eu-ets/information-about-the-eu-ets-and-how-emissions-trading-works/the-eu-ets/eu-ets2/',
+  },
+};
+
+export interface Ets2CompanyExposure {
+  company: Ets2Company;
+  /** Gas volume used for the estimate, TWh, and how it was obtained. */
+  volumeTWh: number | null;
+  volumeMethod: 'DISCLOSED' | 'SHARE_OF_NATIONAL' | null;
+  emissionsMtCo2: number | null;
+  ets2CostEurM: number | null;
+}
+
+const MWH_PER_TWH = 1_000_000;
+const TONNES_PER_MT = 1_000_000;
+const EUR_PER_EUR_M = 1_000_000;
+const PERCENT = 100;
+
+/**
+ * Estimated ETS2 allowance bill per company. Uses the company's own volume where known;
+ * otherwise its market share applied to the country's imported building-gas volume, which is
+ * an approximation (shares are usually of all retail sales, not buildings alone).
+ */
+export function computeCompanyExposure(
+  companies: Ets2Company[],
+  countries: Ets2CountryProfile[],
+  ets2PriceEurPerT: number | null
+): Ets2CompanyExposure[] {
+  const byIso = new Map(countries.map(c => [c.iso, c]));
+  return companies.map(company => {
+    let volumeTWh: number | null = null;
+    let basis: GasVolumeBasis = company.gasVolumeBasis;
+    let volumeMethod: Ets2CompanyExposure['volumeMethod'] = null;
+    if (company.gasVolumeTWh !== null) {
+      volumeTWh = company.gasVolumeTWh;
+      volumeMethod = 'DISCLOSED';
+    } else {
+      const country = byIso.get(company.countryIso);
+      if (company.marketSharePct !== null && country && country.gasBuildingsTWh !== null) {
+        volumeTWh = (country.gasBuildingsTWh * company.marketSharePct) / PERCENT;
+        basis = country.gasVolumeBasis;
+        volumeMethod = 'SHARE_OF_NATIONAL';
+      }
+    }
+    if (volumeTWh === null) {
+      return { company, volumeTWh: null, volumeMethod: null, emissionsMtCo2: null, ets2CostEurM: null };
+    }
+    const tonnes = toNcvMWh(volumeTWh * MWH_PER_TWH, basis) * ETS_NATURAL_GAS_TCO2_PER_MWH;
+    return {
+      company,
+      volumeTWh,
+      volumeMethod,
+      emissionsMtCo2: tonnes / TONNES_PER_MT,
+      ets2CostEurM: ets2PriceEurPerT === null ? null : (tonnes * ets2PriceEurPerT) / EUR_PER_EUR_M,
+    };
+  });
+}
+
+export interface Ets2CompanyImportResult {
+  companies: Ets2Company[];
+  applied: number;
+  errors: string[];
+}
+
+function slug(text: string): string {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+/**
+ * Merges imported company rows into the seed list (same id or same name+country replaces).
+ * Each row needs a name, an ISO country and at least one evidence URL.
+ */
+export function applyEts2CompanyImport(base: Ets2Company[], json: string): Ets2CompanyImportResult {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(json);
+  } catch {
+    return { companies: base, applied: 0, errors: ['Not valid JSON.'] };
+  }
+  if (!Array.isArray(parsed)) {
+    return { companies: base, applied: 0, errors: ['Expected a JSON array of company rows.'] };
+  }
+  const errors: string[] = [];
+  const merged = new Map(base.map(c => [c.id, c]));
+  let applied = 0;
+  parsed.forEach((raw, i) => {
+    const r = raw as Partial<Ets2Company> & { evidenceUrl?: string; evidenceNote?: string };
+    const name = typeof r.name === 'string' ? r.name.trim() : '';
+    const iso = typeof r.countryIso === 'string' ? r.countryIso.toUpperCase() : '';
+    const evidence: Ets2Evidence[] = Array.isArray(r.evidence)
+      ? r.evidence.filter(e => e && typeof e.url === 'string' && e.url)
+      : r.evidenceUrl
+      ? [{ type: 'SECONDARY_SOURCE', url: r.evidenceUrl, note: r.evidenceNote ?? '', checkedAt: CHECKED }]
+      : [];
+    if (!name || iso.length !== 2) {
+      errors.push(`Row ${i + 1}: name and two-letter countryIso are required.`);
+      return;
+    }
+    if (evidence.length === 0) {
+      errors.push(`Row ${i + 1} (${name}): at least one evidence URL is required.`);
+      return;
+    }
+    const id = r.id ?? `${iso.toLowerCase()}-${slug(name)}`;
+    const existing = merged.get(id) ?? [...merged.values()].find(c => c.countryIso === iso && c.name.toLowerCase() === name.toLowerCase());
+    const company: Ets2Company = {
+      id: existing?.id ?? id,
+      name,
+      countryIso: iso,
+      role: r.role === 'EXPOSED_END_USER' ? 'EXPOSED_END_USER' : 'REGULATED_SUPPLIER',
+      marketSharePct: typeof r.marketSharePct === 'number' ? r.marketSharePct : existing?.marketSharePct ?? null,
+      shareBasis: r.shareBasis ?? existing?.shareBasis ?? null,
+      gasVolumeTWh: typeof r.gasVolumeTWh === 'number' ? r.gasVolumeTWh : existing?.gasVolumeTWh ?? null,
+      gasVolumeBasis: r.gasVolumeBasis === 'NCV' ? 'NCV' : 'GCV',
+      confidence: r.confidence === 'HIGH' || r.confidence === 'LOW' ? r.confidence : 'MEDIUM',
+      evidence,
+      contacts: Array.isArray(r.contacts) ? r.contacts.filter(c => c && typeof c.sourceUrl === 'string') : existing?.contacts ?? [],
+      notes: r.notes ?? existing?.notes ?? null,
+    };
+    merged.set(company.id, company);
+    applied++;
+  });
+  return { companies: [...merged.values()], applied, errors };
+}

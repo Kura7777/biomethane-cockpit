@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { useAppState } from '../../store/context';
-import { PageShell, PageHeader, Card, KpiRow, KpiTile } from '../../shared/ui';
+import { PageShell, PageHeader, Card, KpiRow, KpiTile, Tabs } from '../../shared/ui';
+import { ETS2_SEED_COMPANIES, applyEts2CompanyImport, Ets2Company } from '../../domain/ets2/companies';
+import { Ets2DirectoryTab } from './Ets2DirectoryTab';
 import { computeEts2Exposure, GasVolumeBasis } from '../../domain/ets2/calculator';
 import {
   ETS2_COUNTRIES,
@@ -10,21 +12,24 @@ import {
 } from '../../domain/ets2/countries';
 
 const IMPORT_STORAGE_KEY = 'biomethane_ets2_country_import_v1';
+const COMPANY_IMPORT_STORAGE_KEY = 'biomethane_ets2_company_import_v1';
+
+type Ets2Tab = 'DIRECTORY' | 'CALCULATOR' | 'COUNTRIES';
 
 /** Directive 2023/959 Art. 30h price-control trigger, in 2020 prices (a soft trigger, not a cap). */
 const PRICE_CONTROL_TRIGGER_EUR_2020 = 45;
 
-function readStoredImport(): string {
+function readStoredImport(key: string = IMPORT_STORAGE_KEY): string {
   try {
-    return localStorage.getItem(IMPORT_STORAGE_KEY) ?? '';
+    return localStorage.getItem(key) ?? '';
   } catch {
     return '';
   }
 }
 
-function writeStoredImport(json: string): void {
+function writeStoredImport(json: string, key: string = IMPORT_STORAGE_KEY): void {
   try {
-    localStorage.setItem(IMPORT_STORAGE_KEY, json);
+    localStorage.setItem(key, json);
   } catch {
     // Storage unavailable (private window): the import still applies for this session.
   }
@@ -96,7 +101,8 @@ export function Ets2Screen() {
     [gasMWh, basis, priceValue, existingPrice, passThroughPct, bioSharePct, premium]
   );
 
-  const [importText, setImportText] = useState(readStoredImport);
+  const [tab, setTab] = useState<Ets2Tab>('DIRECTORY');
+  const [importText, setImportText] = useState(() => readStoredImport());
   const [importErrors, setImportErrors] = useState<string[]>([]);
   const countries: Ets2CountryProfile[] = useMemo(() => {
     if (!importText.trim()) return ETS2_COUNTRIES;
@@ -116,12 +122,171 @@ export function Ets2Screen() {
     }
   };
 
+  const [companyImportText, setCompanyImportText] = useState(() => readStoredImport(COMPANY_IMPORT_STORAGE_KEY));
+  const [companyDraft, setCompanyDraft] = useState('');
+  const [companyErrors, setCompanyErrors] = useState<string[]>([]);
+  const companies: Ets2Company[] = useMemo(() => {
+    if (!companyImportText.trim()) return ETS2_SEED_COMPANIES;
+    return applyEts2CompanyImport(ETS2_SEED_COMPANIES, companyImportText).companies;
+  }, [companyImportText]);
+  const handleCompanyImport = () => {
+    const res = applyEts2CompanyImport(ETS2_SEED_COMPANIES, companyDraft);
+    setCompanyErrors(res.errors);
+    if (res.applied > 0) {
+      // Keep earlier imports: store the combined list of imported rows.
+      const previous = (() => {
+        try { return companyImportText.trim() ? (JSON.parse(companyImportText) as unknown[]) : []; } catch { return []; }
+      })();
+      const combined = JSON.stringify([...previous, ...(JSON.parse(companyDraft) as unknown[])]);
+      setCompanyImportText(combined);
+      writeStoredImport(combined, COMPANY_IMPORT_STORAGE_KEY);
+      setCompanyDraft('');
+    }
+  };
+
+  const companyImportPanel = (
+    <Card title="Add companies (JSON)" meta="From your research — every row needs a source URL">
+      <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: 0 }}>
+        Paste an array of rows: {'{ "name": "…", "countryIso": "IT", "role": "REGULATED_SUPPLIER", "marketSharePct": 16.8, "shareBasis": "retail gas sales 2025", "gasVolumeTWh": null, "confidence": "HIGH", "evidence": [{ "type": "REGULATOR_MARKET_REPORT", "url": "https://…", "note": "…", "checkedAt": "2026-09-28" }], "contacts": [{ "kind": "B2B_SALES", "email": "…", "sourceUrl": "https://…" }] }'}
+      </p>
+      <textarea
+        className="input num"
+        style={{ width: '100%', minHeight: '120px', fontFamily: 'var(--font-mono, monospace)' }}
+        value={companyDraft}
+        onChange={e => setCompanyDraft(e.target.value)}
+        aria-label="Company data JSON"
+      />
+      <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+        <button type="button" className="btn btn-primary" onClick={handleCompanyImport} disabled={!companyDraft.trim()}>Add</button>
+        {companyImportText && (
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={() => { setCompanyImportText(''); writeStoredImport('', COMPANY_IMPORT_STORAGE_KEY); setCompanyErrors([]); }}
+          >
+            Remove imported companies
+          </button>
+        )}
+      </div>
+      {companyErrors.length > 0 && (
+        <ul style={{ color: 'var(--color-neg, #c0392b)', fontSize: '12px' }}>
+          {companyErrors.map(e => <li key={e}>{e}</li>)}
+        </ul>
+      )}
+    </Card>
+  );
+
+  const countryCard = (
+          <Card
+            title="Country exposure"
+            meta={`${loadedCount} of ${countries.length} EU countries with sourced gas data · ranked by ETS2 cost on building gas${priceValue === null ? ' (set a price)' : ` at €${priceValue}/t`}`}
+          >
+            <div style={{ overflowX: 'auto' }}>
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Country</th>
+                    <th style={{ textAlign: 'right' }}>Building gas (TWh)</th>
+                    <th style={{ textAlign: 'right' }}>MtCO₂</th>
+                    <th style={{ textAlign: 'right' }}>ETS2 cost (€m)</th>
+                    <th style={{ textAlign: 'right' }}>vs today (€m)</th>
+                    <th>Existing carbon price</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {exposureRows.map(r => (
+                    <tr key={r.profile.iso}>
+                      <td className="num">{r.rank ?? ''}</td>
+                      <td>{r.profile.name}</td>
+                      <td className="num" style={{ textAlign: 'right' }}>
+                        {r.profile.gasBuildingsTWh === null ? '—' : r.profile.gasBuildingsTWh.toFixed(1)}
+                        {r.profile.gasDataYear ? <span style={{ color: 'var(--color-text-muted)' }}> ({r.profile.gasDataYear})</span> : null}
+                      </td>
+                      <td className="num" style={{ textAlign: 'right' }}>{r.emissionsMtCo2 === null ? '—' : r.emissionsMtCo2.toFixed(1)}</td>
+                      <td className="num" style={{ textAlign: 'right' }}>{r.ets2CostEurM === null ? '—' : Math.round(r.ets2CostEurM).toLocaleString('en-GB')}</td>
+                      <td className="num" style={{ textAlign: 'right' }}>{r.incrementalCostEurM === null ? '—' : Math.round(r.incrementalCostEurM).toLocaleString('en-GB')}</td>
+                      <td>
+                        {r.profile.existingCarbonPricing.source ? (
+                          <a href={r.profile.existingCarbonPricing.source.url} target="_blank" rel="noreferrer" title={r.profile.existingCarbonPricing.source.note}>
+                            {r.profile.existingCarbonPricing.label}
+                          </a>
+                        ) : (
+                          <span style={{ color: 'var(--color-text-muted)' }}>{r.profile.existingCarbonPricing.label}</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <details style={{ marginTop: '12px' }}>
+              <summary className="eyebrow" style={{ cursor: 'pointer' }}>Import sourced country data (JSON)</summary>
+              <p style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                Paste an array of rows: {'{ "iso": "IT", "gasBuildingsTWh": 0, "gasVolumeBasis": "GCV", "gasDataYear": 2024, "gasSourceUrl": "https://…", "existingCarbonPriceEurPerT": null }'}.
+                Rows without a source URL are rejected.
+              </p>
+              <textarea
+                className="input num"
+                style={{ width: '100%', minHeight: '120px', fontFamily: 'var(--font-mono, monospace)' }}
+                value={draftImport}
+                onChange={e => setDraftImport(e.target.value)}
+                aria-label="Country data JSON"
+              />
+              <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                <button type="button" className="btn btn-primary" onClick={handleImport} disabled={!draftImport.trim()}>Load</button>
+                {importText && (
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    onClick={() => { setImportText(''); writeStoredImport(''); setImportErrors([]); }}
+                  >
+                    Clear imported data
+                  </button>
+                )}
+              </div>
+              {importErrors.length > 0 && (
+                <ul style={{ color: 'var(--color-neg, #c0392b)', fontSize: '12px' }}>
+                  {importErrors.map(e => <li key={e}>{e}</li>)}
+                </ul>
+              )}
+            </details>
+          </Card>
+  );
+
   return (
     <PageShell style={{ overflowY: 'auto' }}>
       <PageHeader
         title="EU ETS2 exposure"
-        context="Carbon cost on gas for buildings and small industry from 1 Jan 2028 (Directive 2023/959), and what switching to biomethane saves."
+        context="Carbon cost on gas for buildings and small industry from 1 Jan 2028 (Directive 2023/959): who is exposed, and what switching to biomethane saves them."
       />
+      <div style={{ padding: '0 16px' }}>
+        <Tabs<Ets2Tab>
+          ariaLabel="ETS2 sections"
+          activeTab={tab}
+          onChange={setTab}
+          tabs={[
+            { id: 'DIRECTORY', label: 'Companies', badge: companies.length },
+            { id: 'CALCULATOR', label: 'Calculator' },
+            { id: 'COUNTRIES', label: 'Countries', badge: loadedCount || undefined },
+          ]}
+        />
+      </div>
+
+      {tab === 'DIRECTORY' && (
+        <Ets2DirectoryTab
+          companies={companies}
+          countries={countries}
+          ets2PriceEurPerT={priceValue}
+          onOpenInCalculator={mwh => { setGasMWh(String(mwh)); setTab('CALCULATOR'); }}
+          importPanel={companyImportPanel}
+        />
+      )}
+
+      {tab === 'COUNTRIES' && <div style={{ padding: '16px' }}>{countryCard}</div>}
+
+      {tab === 'CALCULATOR' && (
 
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(260px, 340px) minmax(0, 1fr)', gap: '16px', padding: '16px' }}>
         <Card title="Client inputs" meta="Every number is yours — nothing is defaulted">
@@ -228,84 +393,9 @@ export function Ets2Screen() {
             </>
           )}
 
-          <Card
-            title="Country exposure"
-            meta={`${loadedCount} of ${countries.length} EU countries with sourced gas data · ranked by ETS2 cost on building gas${priceValue === null ? ' (set a price)' : ` at €${priceValue}/t`}`}
-          >
-            <div style={{ overflowX: 'auto' }}>
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Country</th>
-                    <th style={{ textAlign: 'right' }}>Building gas (TWh)</th>
-                    <th style={{ textAlign: 'right' }}>MtCO₂</th>
-                    <th style={{ textAlign: 'right' }}>ETS2 cost (€m)</th>
-                    <th style={{ textAlign: 'right' }}>vs today (€m)</th>
-                    <th>Existing carbon price</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {exposureRows.map(r => (
-                    <tr key={r.profile.iso}>
-                      <td className="num">{r.rank ?? ''}</td>
-                      <td>{r.profile.name}</td>
-                      <td className="num" style={{ textAlign: 'right' }}>
-                        {r.profile.gasBuildingsTWh === null ? '—' : r.profile.gasBuildingsTWh.toFixed(1)}
-                        {r.profile.gasDataYear ? <span style={{ color: 'var(--color-text-muted)' }}> ({r.profile.gasDataYear})</span> : null}
-                      </td>
-                      <td className="num" style={{ textAlign: 'right' }}>{r.emissionsMtCo2 === null ? '—' : r.emissionsMtCo2.toFixed(1)}</td>
-                      <td className="num" style={{ textAlign: 'right' }}>{r.ets2CostEurM === null ? '—' : Math.round(r.ets2CostEurM).toLocaleString('en-GB')}</td>
-                      <td className="num" style={{ textAlign: 'right' }}>{r.incrementalCostEurM === null ? '—' : Math.round(r.incrementalCostEurM).toLocaleString('en-GB')}</td>
-                      <td>
-                        {r.profile.existingCarbonPricing.source ? (
-                          <a href={r.profile.existingCarbonPricing.source.url} target="_blank" rel="noreferrer" title={r.profile.existingCarbonPricing.source.note}>
-                            {r.profile.existingCarbonPricing.label}
-                          </a>
-                        ) : (
-                          <span style={{ color: 'var(--color-text-muted)' }}>{r.profile.existingCarbonPricing.label}</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <details style={{ marginTop: '12px' }}>
-              <summary className="eyebrow" style={{ cursor: 'pointer' }}>Import sourced country data (JSON)</summary>
-              <p style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
-                Paste an array of rows: {'{ "iso": "IT", "gasBuildingsTWh": 0, "gasVolumeBasis": "GCV", "gasDataYear": 2024, "gasSourceUrl": "https://…", "existingCarbonPriceEurPerT": null }'}.
-                Rows without a source URL are rejected.
-              </p>
-              <textarea
-                className="input num"
-                style={{ width: '100%', minHeight: '120px', fontFamily: 'var(--font-mono, monospace)' }}
-                value={draftImport}
-                onChange={e => setDraftImport(e.target.value)}
-                aria-label="Country data JSON"
-              />
-              <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                <button type="button" className="btn btn-primary" onClick={handleImport} disabled={!draftImport.trim()}>Load</button>
-                {importText && (
-                  <button
-                    type="button"
-                    className="btn btn-ghost"
-                    onClick={() => { setImportText(''); writeStoredImport(''); setImportErrors([]); }}
-                  >
-                    Clear imported data
-                  </button>
-                )}
-              </div>
-              {importErrors.length > 0 && (
-                <ul style={{ color: 'var(--color-neg, #c0392b)', fontSize: '12px' }}>
-                  {importErrors.map(e => <li key={e}>{e}</li>)}
-                </ul>
-              )}
-            </details>
-          </Card>
         </div>
       </div>
+      )}
     </PageShell>
   );
 }
