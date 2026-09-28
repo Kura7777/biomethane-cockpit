@@ -368,10 +368,10 @@ describe('E2E Trading Workflows & Multi-Tier Regulatory Stress Suite (Milestone 
         const itCert = computeCertificateValue(itMarket, consignment, testBaseMarks, 'bid');
         expect(itCert?.valueEurPerMWh).toBeCloseTo(61.91, 1);
 
-        // 5. GBP_PER_DRTFC (UK_RTFO): Waste 2x -> 144.0 dRTFC/MWh. At £0.25, FX €1.18 -> €42.48/MWh
+        // 5. UK_RTFO: 72 kg/MWh × 1.9 RTFC/kg (DfT) × 2 (waste) = 273.6 RTFC/MWh. At £0.25, FX €1.18 -> €80.71/MWh
         const ukMarket = getMarketById('UK_RTFO')!;
         const ukCert = computeCertificateValue(ukMarket, consignment, testBaseMarks, 'bid');
-        expect(ukCert?.valueEurPerMWh).toBeCloseTo(42.48, 1);
+        expect(ukCert?.valueEurPerMWh).toBeCloseTo(80.71, 1);
       });
     });
 
@@ -868,10 +868,10 @@ describe('E2E Trading Workflows & Multi-Tier Regulatory Stress Suite (Milestone 
       expect(ukAssessment.overallVerdict).toBe('ELIGIBLE');
 
       const ukNetback = computeNetback(ukMarket, consignment, testBaseMarks, standardFixedCosts, 'bid');
-      // £0.25 * €1.18/£ * 144.0 RTFC/MWh = €42.48/MWh
-      expect(ukNetback.certificateValue?.valueEurPerMWh).toBeCloseTo(42.48, 1);
-      // Remediated Task 2.2: Manure AD biomethane earns double-counted standard RTFCs (144.0 RTFC/MWh), not development fuel (dRTFC)
-      expect(ukNetback.certificateValue?.statusNote).toContain('144.0 RTFC/MWh');
+      // £0.25 * €1.18/£ * 273.6 RTFC/MWh (1.9 RTFC/kg × 2 waste) = €80.71/MWh
+      expect(ukNetback.certificateValue?.valueEurPerMWh).toBeCloseTo(80.71, 1);
+      // Remediated Task 2.2: Manure AD biomethane earns double-counted standard RTFCs (273.6 RTFC/MWh = 72 kg × 1.9 RTFC/kg × 2), not development fuel (dRTFC)
+      expect(ukNetback.certificateValue?.statusNote).toContain('273.6 RTFC/MWh');
     });
 
     it('Scenario F: Full compliance dossier generation and PRA licensing guard check', () => {

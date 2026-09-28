@@ -39,6 +39,20 @@ export const FUELEU_TARGET_CI_2030 = FUELEU_TARGET_2030;      // 6% reduction st
  */
 export const BIOMETHANE_KWH_PER_KG = 13.88889;
 export const RTFO_KG_PER_MWH = 1000 / BIOMETHANE_KWH_PER_KG; // ≈ 72.00 kg/MWh
+/**
+ * RTFCs awarded per kg of biomethane: gases earn RTFCs in proportion to energy content per kg.
+ * DfT, Renewable fuel statistics: notes and definitions — "biomethane receive 1.9 RTFCs/kg";
+ * fuel from certain wastes or residues earns "double the RTFCs per litre/kg supplied".
+ * https://www.gov.uk/government/publications/renewable-fuel-statistics-information/renewable-fuel-statistics-notes-and-definitions
+ */
+export const RTFC_PER_KG_BIOMETHANE = 1.9;
+/**
+ * EU ETS: sustainable biomethane is zero-rated, so each MWh displaces the natural-gas emission factor,
+ * independent of the biomethane's own CI (eligibility is a pass/fail sustainability gate, not a scale).
+ * MRR (EU) 2018/2066 Annex VI: natural gas 56.1 tCO2/TJ → 56.1 × 0.0036 TJ/MWh = 0.20196 tCO2/MWh.
+ */
+export const ETS_NATURAL_GAS_TCO2_PER_MWH = 56.1 * 0.0036;
+const ETS_ZERO_RATING_MARKETS = new Set(['EU_ETS1', 'EU_ETS2', 'VOL_EU_ETS']);
 
 /**
  * Convert carbon intensity to tonnes CO₂e avoided per MWh.
@@ -206,7 +220,15 @@ export function computeCertificateValue(
 
   switch (market.unitOfAccount) {
     case 'EUR_PER_TCO2E': {
-      // Germany THG, EU ETS1
+      if (ETS_ZERO_RATING_MARKETS.has(market.id)) {
+        // EU ETS zero-rating: avoided allowances = natural-gas emission factor; the CI does not scale it.
+        const co2 = ETS_NATURAL_GAS_TCO2_PER_MWH;
+        valueEurPerMWh = mark * co2;
+        unitConversion = `Zero-rated biomass: avoided natural gas 56.1 tCO₂/TJ × 0.0036 TJ/MWh = ${co2.toFixed(5)} tCO₂/MWh (MRR 2018/2066 Annex VI)`;
+        calculation = `${co2.toFixed(5)} tCO₂/MWh × €${mark.toFixed(2)}/tCO₂ (${pricingSide}) = €${valueEurPerMWh.toFixed(2)}/MWh`;
+        break;
+      }
+      // Germany THG
       const co2e = tCO2ePerMWh(ci);
       valueEurPerMWh = mark * co2e;
       unitConversion = `(${CI_COMPARATOR_ROAD_TRANSPORT} − (${ci})) × ${MJ_PER_MWH} / 1,000,000 = ${co2e.toFixed(4)} tCO₂e/MWh`;
@@ -291,7 +313,7 @@ export function computeCertificateValue(
         consignment.annexClassification === 'IX_A' ||
         consignment.annexClassification === 'IX_B'
       );
-      const rtfcPerMWh = isDoubleCounting ? RTFO_KG_PER_MWH * 2 : RTFO_KG_PER_MWH; // ≈ 144.0 vs 72.0
+      const rtfcPerMWh = RTFO_KG_PER_MWH * RTFC_PER_KG_BIOMETHANE * (isDoubleCounting ? 2 : 1); // ≈ 273.6 vs 136.8
       // The RTFO buy-out price is a hard ceiling on RTFC value, exactly like the CPB penalty.
       const effectiveMarkGbp = Math.min(mark, UK_RTFC_BUYOUT_GBP);
       if (mark > UK_RTFC_BUYOUT_GBP) {
@@ -301,7 +323,7 @@ export function computeCertificateValue(
       const markEurPerRtfc = effectiveMarkGbp * fxRate;
       valueEurPerMWh = markEurPerRtfc * rtfcPerMWh;
 
-      unitConversion = `UK RTFO Order 2007: 1 MWh ÷ 13.889 kWh/kg = ${RTFO_KG_PER_MWH.toFixed(1)} kg/MWh → ${rtfcPerMWh.toFixed(1)} RTFC/MWh (${isDoubleCounting ? '2× Double Counting (Waste/Residue)' : '1× Standard'}) | £1 = €${fxRate.toFixed(4)}`;
+      unitConversion = `UK RTFO Order 2007: 1 MWh ÷ 13.889 kWh/kg = ${RTFO_KG_PER_MWH.toFixed(1)} kg/MWh × ${RTFC_PER_KG_BIOMETHANE} RTFC/kg → ${rtfcPerMWh.toFixed(1)} RTFC/MWh (${isDoubleCounting ? '2× Double Counting (Waste/Residue)' : '1× Standard'}) | £1 = €${fxRate.toFixed(4)}`;
       calculation = `£${effectiveMarkGbp.toFixed(3)}/RTFC${capped ? ` (mark £${mark.toFixed(3)} capped at buy-out)` : ''} × €${fxRate.toFixed(4)}/£ × ${rtfcPerMWh.toFixed(1)} RTFC/MWh = €${valueEurPerMWh.toFixed(2)}/MWh`;
       statusNote = `Derived from biomethane energy content (${rtfcPerMWh.toFixed(1)} RTFC/MWh). ${isDoubleCounting ? '2× double-counted standard RTFC (waste/residue).' : '1× standard RTFC.'} Non-EU grid injection boundary applies.`;
       break;
@@ -806,6 +828,7 @@ export function computeNetback(
     clearingPriceWarning,
     theoreticalNetback,
     netbackCappedAt,
+    bundleReferenceEurPerMwh: bundleBenchmark,
   };
 }
 

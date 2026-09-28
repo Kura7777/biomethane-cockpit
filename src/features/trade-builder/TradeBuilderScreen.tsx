@@ -491,7 +491,7 @@ export function TradeBuilderScreen() {
         if (a.overallVerdict === 'HARD_BLOCK') return null;
         const nb = computeNetback(m, consignment, state.marks, state.costs, state.marks.pricingSides);
         if (nb.netNetback === null) return null;
-        return { marketId: m.id, marketName: m.name, netNetback: nb.netNetback, verdict: a.overallVerdict } as BestRouteEntry;
+        return { marketId: m.id, marketName: m.name, netNetback: nb.netNetback, verdict: a.overallVerdict, bundleChecked: nb.bundleReferenceEurPerMwh != null } as BestRouteEntry;
       })
       .filter((r): r is BestRouteEntry => r !== null)
       .sort((a, b) => (b.netNetback ?? -Infinity) - (a.netNetback ?? -Infinity))

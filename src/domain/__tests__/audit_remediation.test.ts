@@ -158,7 +158,8 @@ describe('Audit remediation — netback mathematics', () => {
     const gb: Consignment = { ...manure, originCountry: 'GB', injectionCountry: 'GB', injectionIsEU: false };
     const cv = computeCertificateValue(getMarketById('UK_RTFO')!, gb, marks, 'bid')!;
     expect(cv.capped).toBe(true);
-    expect(cv.valueEurPerMWh).toBeCloseTo(0.5 * 1.17 * 144, 1);
+    // 72 kg/MWh × 1.9 RTFC/kg (DfT) × 2 (waste) = 273.6 RTFC/MWh at the £0.50 buy-out
+    expect(cv.valueEurPerMWh).toBeCloseTo(0.5 * 1.17 * 273.6, 1);
   });
 });
 

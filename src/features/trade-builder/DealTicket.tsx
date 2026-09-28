@@ -11,6 +11,8 @@ export interface BestRouteEntry {
   marketName: string;
   netNetback: number | null;
   verdict: string;
+  /** False when the market has no traded-bundle reference, so the netback is the uncapped model. */
+  bundleChecked?: boolean;
 }
 
 export interface SensitivityDeltas {
@@ -255,6 +257,9 @@ export function DealTicket({
                   <div className="tt-best-route-label">
                     {(r.verdict === 'UNRESOLVED' || r.verdict === 'CONDITIONAL') && <span className="tt-dot warn" aria-hidden="true" />}
                     <span>{r.marketName}</span>
+                    {r.bundleChecked === false && (
+                      <span className="tt-chip muted" title="No traded-bundle price for this market, so this is the modelled value and may exceed what the market pays. Enter an observed bundle price to compare like for like.">Modelled</span>
+                    )}
                   </div>
                   <span className="tt-best-route-value">
                     {r.netNetback != null ? `${r.netNetback >= 0 ? '+' : '−'}€${Math.abs(r.netNetback).toFixed(2)}` : '—'}
@@ -264,6 +269,9 @@ export function DealTicket({
                   </button>
                 </div>
               ))}
+              {bestRoutes.some(r => r.bundleChecked === false) && (
+                <div className="tt-headroom-text mut">Modelled routes have no traded-bundle check; the current route {netback.netbackCappedAt != null ? 'is capped at its bundle price' : 'is compared at model value'}.</div>
+              )}
             </div>
           )}
         </div>

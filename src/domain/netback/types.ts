@@ -118,6 +118,8 @@ export interface NetbackResult {
   theoreticalNetback?: number | null;
   /** Bundle price the netback was capped at, or null when the modelled netback was below it. */
   netbackCappedAt?: number | null;
+  /** Traded-bundle reference checked against (observed on the deal, or desk reference); null when the market has none. */
+  bundleReferenceEurPerMwh?: number | null;
 }
 
 export interface GasIndexMark {

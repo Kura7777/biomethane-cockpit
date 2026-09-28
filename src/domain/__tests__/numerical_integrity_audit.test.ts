@@ -64,10 +64,10 @@ describe('PHASE 5 — NUMERICAL INTEGRITY & HAND RECOMPUTATION AUDIT', () => {
     const itCert = computeCertificateValue(getMarketById('IT_CIC')!, consignmentNeg50, testMarks, 'bid');
     expect(itCert?.valueEurPerMWh).toBeCloseTo(51.59, 2);
 
-    // 5. GBP_PER_DRTFC (UK_RTFO): 72 kg/MWh * 2 = 144 dRTFC * £0.25 = £36.00 * 1.18 = €42.48
+    // 5. UK_RTFO: 72 kg/MWh * 1.9 RTFC/kg (DfT) * 2 (waste) = 273.6 RTFC * £0.25 = £68.40 * 1.18 = €80.71
     const gbConsignment = { ...consignmentNeg50, originCountry: 'GB', injectionCountry: 'GB', injectionIsEU: false };
     const rtfoCert = computeCertificateValue(getMarketById('UK_RTFO')!, gbConsignment, testMarks, 'bid');
-    expect(rtfoCert?.valueEurPerMWh).toBeCloseTo(42.48, 2);
+    expect(rtfoCert?.valueEurPerMWh).toBeCloseTo(80.712, 2);
 
     // 6. EUR_PER_TCO2E_DEFICIT (FUELEU): Modelled deficit closure value (Annex IV marginal, VLSFO ship 91.7442)
     // WtW_bio(-50, Otto SS) = -41.7905 (Annex II note + Annex I slip/N2O)

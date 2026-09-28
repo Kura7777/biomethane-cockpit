@@ -197,6 +197,11 @@ describe('ARCHITECTURE — no fabricated values', () => {
    */
   const ALLOWED_COEFFICIENTS: { file: string; coefficient: string; because: string }[] = [
     {
+      file: 'domain/netback/engine.ts',
+      coefficient: '0.0036',
+      because: 'EU ETS: MRR 2018/2066 Annex VI natural gas 56.1 tCO2/TJ × 0.0036 TJ/MWh (exact unit conversion).',
+    },
+    {
       file: 'domain/logistics/engine.ts',
       coefficient: '0.0035',
       because: 'Documented pipeline shrinkage curve per 500 km.',
