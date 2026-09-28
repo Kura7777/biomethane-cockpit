@@ -5,6 +5,11 @@ import { markAgeDays, isMarkStale, daysUntil } from '../../domain/fueleu/uiHelpe
 import { FUELEU_ACTIVE_PERIOD, FUELEU_POOLING_BORROWING_DATABASE_DEADLINE } from '../../domain/fueleu/calculator';
 import { FuelEuInfoPopover } from './FuelEuInfoPopover';
 import { HeaderPill } from '../../shared/ui/PageHeader';
+import { latestTradeVwap, markDivergencePct } from '../../domain/markets/fueleuPoolIndexHistory';
+
+/** Above this absolute divergence between the desk mark and the latest BetterSea traded VWAP,
+ *  the header flags that the mark is diverging from executed trades. */
+const DIVERGENCE_WARN_THRESHOLD = 0.10;
 
 const fueleuMark = EUROPEAN_MARKET_BENCHMARKS.find(m => m.marketId === 'FUELEU');
 
@@ -26,6 +31,13 @@ export function FuelEuHeader() {
   const ageDays = observedAt ? markAgeDays(observedAt) : null;
   const stale = observedAt ? isMarkStale(observedAt) : false;
 
+  const betterSea = latestTradeVwap();
+  const divergencePct = markDivergencePct(offer);
+  const diverges = divergencePct !== null && Math.abs(divergencePct) > DIVERGENCE_WARN_THRESHOLD;
+  const betterSeaMonthLabel = betterSea
+    ? new Date(`${betterSea.period}-01T00:00:00Z`).toLocaleDateString('en-GB', { month: 'short' })
+    : null;
+
   return (
     <header className="fe-header ds-header">
       <div>
@@ -45,7 +57,11 @@ export function FuelEuHeader() {
 
         <div
           className="fe-pill ds-pill"
-          title={`Offer €${offer.toFixed(2)}/tCO2e (OceanScore FuelEU Pool-Price Index (OPX), offer-side index) · Bid €${bid.toFixed(2)}/tCO2e (desk estimate = offer − desk spread, no public bid print exists). Mark age: ${ageDays ?? '—'} day(s).`}
+          title={`Offer €${offer.toFixed(2)}/tCO2e (OceanScore FuelEU Pool-Price Index (OPX), offer-side index) · Bid €${bid.toFixed(2)}/tCO2e (desk estimate = offer − desk spread, no public bid print exists). Mark age: ${ageDays ?? '—'} day(s).${
+            betterSea && betterSea.vwap !== undefined
+              ? ` BetterSea FuelEU Surplus Index (executed trades) ${betterSeaMonthLabel}: €${betterSea.vwap.toFixed(2)} VWAP.`
+              : ''
+          }`}
         >
           <span className="fe-pill-label ds-pill-label">Pool mark</span>
           <span className="fe-pill-value ds-pill-value num" style={{ color: stale ? 'var(--fe-warn)' : undefined }}>
@@ -54,6 +70,20 @@ export function FuelEuHeader() {
           <span className="fe-pill-sub ds-pill-sub num">
             €{bid.toFixed(2)} bid · {ageDays ?? '—'}d old{stale ? ' · stale' : ''}
           </span>
+          {betterSea && betterSea.vwap !== undefined && (
+            <span className="fe-pill-sub ds-pill-sub num" style={{ fontSize: '10.5px' }}>
+              BetterSea trades {betterSeaMonthLabel}: €{betterSea.vwap.toFixed(2)} (VWAP)
+            </span>
+          )}
+          {diverges && (
+            <span
+              className="num"
+              style={{ display: 'block', fontSize: '10.5px', color: 'var(--color-status-warn-text, #d97706)', fontWeight: 600 }}
+              title={`Desk mark €${offer.toFixed(2)} differs from the latest BetterSea traded VWAP (€${betterSea?.vwap?.toFixed(2)}) by ${(divergencePct! * 100).toFixed(1)}%.`}
+            >
+              ⚠ Mark diverges from traded prices
+            </span>
+          )}
         </div>
 
         <FuelEuInfoPopover />

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { FUELEU_VLSFO_WTW, FUELEU_LFO_WTW } from '../../domain/fueleu/calculator';
+import { latestTradeVwap, latestOfferIndex } from '../../domain/markets/fueleuPoolIndexHistory';
 
 /**
  * The ⓘ "Sources and assumptions" popover. Holds everything the previous header/page layout
@@ -37,6 +38,8 @@ export function FuelEuInfoPopover() {
   }, [open]);
 
   const vlsfoLfoDeltaGCo2eMj = (FUELEU_VLSFO_WTW - FUELEU_LFO_WTW).toFixed(2);
+  const betterSea = latestTradeVwap();
+  const oceanScore = latestOfferIndex();
 
   return (
     <div style={{ position: 'relative' }}>
@@ -68,6 +71,13 @@ export function FuelEuInfoPopover() {
               <button type="button" className="fe-btn-secondary" style={{ flexGrow: 0, height: '28px', fontSize: '11.5px', padding: '0 10px' }} onClick={() => navigate('/data-sources')}>
                 EU MRV provenance
               </button>
+            </div>
+          </section>
+          <section>
+            <h4>Pool price cross-check</h4>
+            <div>
+              Desk offer is priced off OceanScore OPX (offer-side index of posted surplus offers){oceanScore ? `, €${oceanScore.offerIndex?.toFixed(2)} as of ${oceanScore.period}` : ''}. Cross-checked
+              against the BetterSea FuelEU Surplus Index, built from executed trades{betterSea ? `: €${betterSea.vwap?.toFixed(2)} VWAP for ${betterSea.period}` : ''}. Two independent sources, shown separately — see the Pool matching tab for the full history.
             </div>
           </section>
           <section>
