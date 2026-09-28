@@ -93,12 +93,12 @@ Yield Factors: 72.0 kg biomethane per MWh. 1 dRTFC per kg standard, 2 dRTFC per 
     title: 'Union Database (UDB) & Registry State Machine',
     sourceFile: '03_UDB_and_European_Registry_Architecture.md',
     category: 'UDB_REGISTRY',
-    content: `Under RED III Article 31a and Implementing Regulation (EU) 2022/996, gaseous transport fuels in interconnected pipeline grids must maintain a mass balance chain of custody in the UDB.
-Consignment Title Transfer Lifecycle:
+    content: `Under RED III Article 31a, RED II Article 28(2)&(4), and Implementing Regulation (EU) 2022/996 Art. 18, gaseous transport fuels in interconnected pipeline grids are meant to maintain a mass balance chain of custody in the UDB. The UDB gas module is NOT YET LIVE for economic operators: its launch has been postponed to the end of 2026 (European Biogas Association), roughly two years past the statutory 21 November 2024 deadline. There is no "escrow" mechanism in any sourced UDB documentation; the real UDB gas feature is a self-declared, monthly-batch Proof of Sustainability (PoS) record with a "Transfer Gas PoS" in-grid reallocation feature, distinct from Guarantee of Origin (GO) trading (RED Art. 19, AIB EECS Gas Scheme, ERGaR Certificate of Origin scheme). Until the UDB gas module launches, cross-border compliance traceability continues to run through national registries and voluntary sustainability schemes (ISCC EU, REDcert EU, Nabisy, etc.).
+Consignment Title Transfer Lifecycle (this desk's own trade-simulation model, not a documented UDB state machine):
 1. DRAFT: Initial transaction prepared.
 2. SUBMITTED: Registered with origin registry and sent to UDB.
-3. ESCROW_LOCKED: Gas volume and green attributes locked in origin account to prevent double-spending.
-4. TRANSFERRED: Recipient registry confirms credit to buyer account.
+3. PENDING_UDB_LAUNCH: Boundary and protocol checks pass, but the UDB gas module is not yet live so nothing can be formally recorded yet.
+4. TRANSFERRED: Recipient registry confirms credit to buyer account (once the UDB gas module is live).
 5. BLOCKED: Transfer blocked if cross-border mass balance boundary is broken (e.g. UK injection to EU destination without dedicated interconnection).`
   },
   {

@@ -109,7 +109,7 @@ Structure your assessment with:
 1. Executive Statutory Verdict (APPROVED, REJECTED, or CONDITIONAL_PASS)
 2. Exhaustive 6-Gate Compliance Matrix with Pass/Fail status and exact legal citations
 3. Feedstock Lifecycle & Methane Avoidance (e_am) analysis
-4. Cross-Border Gas Grid Logistics & UDB Title Escrow Risk
+4. Cross-Border Gas Grid Logistics & Union Database (UDB) Recording Risk (note: the UDB gas module is not yet live — launch postponed to end-2026 per EBA)
 5. Recommended EFET Schedule & Term Sheet Protective Clauses`;
   }
 
@@ -440,9 +440,9 @@ ${isApproved
 - **Achieved GHG Savings:** **${ghgSavingsPct}%** (Mandatory statutory threshold: **65%**, requiring CI ≤ 32.9 gCO₂eq/MJ).
 - **Substrate Classification:** Animal manure qualifies under **Annex IX Part A (Item 17)**. Under German 38. BImSchV, the negative CI credit derived from avoided open storage methane emissions ($e_{am} = -45\\text{ to }-100\\text{ gCO}_2\\text{e/MJ}$) is legally decoupled from the administrative 2× double-counting multiplier.
 
-#### 3. Registry & UDB Title Transfer Logistics
+#### 3. Registry & UDB Recording Logistics
 - Gas grid injection in **${trade.originCountry}** connects to the interconnected European transmission pipeline network.
-- Consignment must clear the 4-stage title transfer lifecycle in the **Union Database (UDB)**: \`DRAFT\` → \`SUBMITTED\` → \`ESCROW_LOCKED\` → \`TRANSFERRED\`.
+- The **Union Database (UDB)** gas module is **not yet live** (launch postponed to end-2026 per the European Biogas Association); this desk's internal trade tracker models a lifecycle of \`DRAFT\` → \`SUBMITTED\` → \`PENDING_UDB_LAUNCH\` → \`TRANSFERRED\`, but no consignment can be formally recorded in the UDB until it launches. In the meantime, cross-border compliance traceability runs through national registries and ERGaR/AIB GO routes.
 
 #### 4. Recommended EFET Contractual Protective Clauses
 1. **Proof of Sustainability (PoS) Delivery Schedule:** Mandate electronic delivery of valid PoS within 10 business days following injection month.
@@ -472,7 +472,7 @@ ${isApproved
       ? [
           'Execute EFET Biomethane Schedule with 3-day PoS cure notice',
           'Lock electronic transfer schedule in origin registry to prevent domestic cancellation',
-          'Monitor UDB escrow state before commercial invoice generation'
+          'Monitor UDB launch status (postponed to end-2026 per EBA) before relying on it for commercial invoice generation'
         ]
       : [
           'Re-route volume to Voluntary Scope 1 or UK RGGO registry',
