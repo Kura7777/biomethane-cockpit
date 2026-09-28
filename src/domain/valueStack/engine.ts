@@ -181,15 +181,23 @@ export function computeValueStack(inputs: ValueStackInputs, marks: MarksState): 
         legalBasis: 'MRR (EU) 2018/2066 Art. 38–39 & Annex VI',
       });
       if (inputs.smallSiteShare === null) missingInputs.push('share at small sites (< 20 MW), 0 if none');
-      if (inputs.ets2PassThrough === null) missingInputs.push('ETS2 pass-through');
+      // With no small sites the pass-through cannot matter, so it is only asked for when some gas goes to them.
+      const noSmallSites = inputs.smallSiteShare === 0;
+      if (inputs.ets2PassThrough === null && !noSmallSites) missingInputs.push('ETS2 pass-through');
       const ets2 = priced('EU_ETS2', ci, marks);
-      const factor = inputs.smallSiteShare === null || inputs.ets2PassThrough === null ? null : inputs.smallSiteShare * inputs.ets2PassThrough;
+      const factor = noSmallSites
+        ? 0
+        : inputs.smallSiteShare === null || inputs.ets2PassThrough === null ? null : inputs.smallSiteShare * inputs.ets2PassThrough;
       add({
         regime: 'ETS2 at the group\'s small sites (via supplier)',
         whatItDoes: 'Sites under 20 MW are outside ETS1; from 2028 their supplier\'s ETS2 cost falls if it zero-rates the biomethane and passes the saving on.',
         status: 'FROM_2028',
         eurPerMWh: ets2.value === null || factor === null ? null : ets2.value * HHV_TO_LHV_FACTOR * factor,
-        workings: factor === null ? 'Enter the small-site share and pass-through.' : `${ets2.workings} × ${HHV_TO_LHV_FACTOR} × small-site share ${(inputs.smallSiteShare! * 100).toFixed(0)}% × pass-through ${(inputs.ets2PassThrough! * 100).toFixed(0)}%`,
+        workings: factor === null
+          ? 'Enter the small-site share and pass-through.'
+          : noSmallSites
+          ? 'No gas burned at small sites, so nothing falls under ETS2.'
+          : `${ets2.workings} × ${HHV_TO_LHV_FACTOR} × small-site share ${(inputs.smallSiteShare! * 100).toFixed(0)}% × pass-through ${(inputs.ets2PassThrough! * 100).toFixed(0)}%`,
         evidenceNeeded: 'Supply contract clause: supplier accounts the biomethane as zero-rated under ETS2 and passes the saving through.',
         legalBasis: 'Directive 2003/87/EC Chapter IVa & Annex III (as amended by 2023/959)',
       });

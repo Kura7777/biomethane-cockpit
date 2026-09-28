@@ -57,6 +57,15 @@ describe('value stack', () => {
     expect(row(none, 'ETS2 at').eurPerMWh).toBe(0);
   });
 
+  it('ETS1 site with no small sites: pass-through is not needed and the stack prices', () => {
+    const r = computeValueStack(base({ client: 'ETS1_SITE', deliveryYear: 2028, smallSiteShare: 0, ets2PassThrough: null }), marks);
+    expect(r.missingInputs).toEqual([]);
+    expect(row(r, 'ETS2 at').eurPerMWh).toBe(0);
+    expect(r.stackEurPerMWh).toBeCloseTo(70 * ETS_NATURAL_GAS_TCO2_PER_MWH * HHV_TO_LHV_FACTOR, 6);
+    const some = computeValueStack(base({ client: 'ETS1_SITE', smallSiteShare: 0.1, ets2PassThrough: null }), marks);
+    expect(some.missingInputs).toContain('ETS2 pass-through');
+  });
+
   it('ETS2 supplier: allowance saving from 2028 plus the green tariff', () => {
     const r = computeValueStack(base({ client: 'ETS2_SUPPLIER', deliveryYear: 2028, greenTariffPremiumEurPerMWh: 4 }), marks);
     expect(r.stackEurPerMWh).toBeCloseTo(50 * ETS_NATURAL_GAS_TCO2_PER_MWH * HHV_TO_LHV_FACTOR + 4, 6);

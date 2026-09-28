@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAppState } from '../../store/context';
 import { PageShell, PageHeader, Card, KpiRow, KpiTile } from '../../shared/ui';
 import { computeValueStack, ClientType, StackStatus } from '../../domain/valueStack/engine';
@@ -47,15 +48,20 @@ function Field(props: { label: string; value: string; onChange: (v: string) => v
 
 export function ValueStackScreen() {
   const { state } = useAppState();
-  const [client, setClient] = useState<ClientType>('SHIP_OPERATOR');
-  const [volume, setVolume] = useState('');
-  const [ci, setCi] = useState('');
-  const [year, setYear] = useState('');
-  const [intraEu, setIntraEu] = useState('');
-  const [smallSites, setSmallSites] = useState('');
-  const [passThrough, setPassThrough] = useState('');
-  const [tariff, setTariff] = useState('');
-  const [offer, setOffer] = useState('');
+  // A client profile can open this screen pre-filled: /value-stack?client=…&volume=…&ci=…&year=…&for=…
+  const [params] = useSearchParams();
+  const p = (k: string) => params.get(k) ?? '';
+  const initialClient = (Object.keys(CLIENT_LABEL) as ClientType[]).find(c => c === params.get('client')) ?? 'SHIP_OPERATOR';
+  const forCompany = params.get('for');
+  const [client, setClient] = useState<ClientType>(initialClient);
+  const [volume, setVolume] = useState(p('volume'));
+  const [ci, setCi] = useState(p('ci'));
+  const [year, setYear] = useState(p('year'));
+  const [intraEu, setIntraEu] = useState(p('intraEu'));
+  const [smallSites, setSmallSites] = useState(p('smallSites'));
+  const [passThrough, setPassThrough] = useState(p('passThrough'));
+  const [tariff, setTariff] = useState(p('tariff'));
+  const [offer, setOffer] = useState(p('offer'));
 
   const result = useMemo(
     () =>
@@ -79,7 +85,7 @@ export function ValueStackScreen() {
   return (
     <PageShell style={{ overflowY: 'auto' }}>
       <PageHeader
-        title="Value stack"
+        title={forCompany ? `Value stack — ${forCompany}` : 'Value stack'}
         context="Every regime in which one MWh of biomethane, burned by one client, cuts a cost or supports a claim — and where stacking would become double counting."
       />
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(260px, 340px) minmax(0, 1fr)', gap: '16px', padding: '16px' }}>

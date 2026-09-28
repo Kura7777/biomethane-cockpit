@@ -15,6 +15,7 @@ import {
   Flame,
   Briefcase,
   Layers,
+  Users,
   SlidersHorizontal,
 } from 'lucide-react';
 
@@ -42,6 +43,7 @@ export const SIDEBAR_ITEMS: NavItem[] = [
   { to: '/trade', label: 'Trade Builder', keyHint: '4', icon: Zap },
   { to: '/fueleu-shipping', label: 'FuelEU Maritime', keyHint: 'M', icon: Anchor },
   { to: '/ets2', label: 'EU ETS', keyHint: 'E', icon: Flame },
+  { to: '/clients', label: 'Clients', keyHint: 'L', icon: Users },
   { to: '/corporate', label: 'Corporate orders', keyHint: 'Q', icon: Briefcase },
   { to: '/value-stack', label: 'Value stack', keyHint: 'V', icon: Layers },
   { to: '/pricing', label: 'Pricing Desk', keyHint: '5', icon: FileSpreadsheet },
@@ -56,6 +58,7 @@ export const SIDEBAR_ITEMS: NavItem[] = [
 export const WORKSPACE_TABS: NavItem[] = [
   // --- Group 1: Market Intelligence & Pricing ---
   { to: '/pricing', label: 'Pricing desk', keyHint: '1', icon: FileSpreadsheet },
+  { to: '/clients', label: 'Clients', keyHint: 'L', icon: Users },
   { to: '/corporate', label: 'Corporate orders', keyHint: 'Q', icon: Briefcase },
   { to: '/value-stack', label: 'Value stack', keyHint: 'V', icon: Layers },
 
