@@ -45,6 +45,15 @@ export class DeskSyncEngine {
   public initWebSocket(customUrl?: string): void {
     if (typeof window === 'undefined' || typeof WebSocket === 'undefined') return;
 
+    // The /ws/sync server only exists inside the local Vite dev server (see
+    // src/server/wsServer.ts, attached by src/server/vitePlugin.ts). A production build
+    // (e.g. on Vercel) has no such endpoint, so connecting there just logs a failed
+    // WebSocket connection on every page with no reconnect ever succeeding. Restrict the
+    // real connection attempt to dev, unless the caller passes an explicit custom URL
+    // (e.g. a future hosted sync server, or a test).
+    const isDev = typeof import.meta !== 'undefined' && !!(import.meta as any).env?.DEV;
+    if (!customUrl && !this.wsUrl && !isDev) return;
+
     try {
       if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
         return;
