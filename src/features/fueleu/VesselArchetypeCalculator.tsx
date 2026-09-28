@@ -30,9 +30,11 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { showToast } from '../../app/DeskToastContainer';
+import { getAssumption } from '../../domain/assumptions/registry';
 import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
 import { AssumptionsStrip } from '../../shared/components/AssumptionsStrip';
 import { FlowSteps } from '../../shared/ui/FlowSteps';
+import { DualCommercialPathwayInitial } from './DualCommercialPathwaySimulator';
 import './vesselArchetypeCalculator.css';
 
 const FUELEU_PATHWAY_ASSUMPTIONS = [
@@ -58,10 +60,15 @@ const ESCALATION_LABELS: Record<number, string> = {
   4: 'Year 4+ (1.30×)',
 };
 
+export interface VesselArchetypeCalculatorProps {
+  /** Hands off this vessel's exposure to the Commercial pathways flow. Only offered in deficit. */
+  onComparePathways?: (initial: DualCommercialPathwayInitial) => void;
+}
+
 /** Single-vessel FuelEU exposure calculator as a vertical four-step flow: pick a vessel, enter its
  *  fuel burn, set the regulatory year, then read the result and the two commercial pathways.
  *  Finished steps fold to a one-line summary with an Edit link; only the active step is open. */
-export function VesselArchetypeCalculator() {
+export function VesselArchetypeCalculator({ onComparePathways }: VesselArchetypeCalculatorProps = {}) {
   const navigate = useNavigate();
 
   // Selected preset archetype
@@ -114,6 +121,31 @@ export function VesselArchetypeCalculator() {
     };
     return calculateVesselExposure(input);
   }, [vlsfoTonnes, mgoTonnes, lngTonnes, bioLngTonnes, bioLngCi, targetYear, consecutiveYears, shareThirdCountryVoyages, assumptionsVersion]);
+
+  // Client-facing cost of each of the three deficit-close options, for the summary rail's
+  // side-by-side comparison. Bio-LNG's client cost is the fuel premium only (not its full
+  // trading margin); pooling's client cost is what they pay the desk at the register offer.
+  const railOptions = useMemo(() => {
+    const payPenaltyEur = calculationResult.statutoryPenaltyY1Eur;
+    const bioLngPremiumEur = calculationResult.bioLngRequiredNeg100Mwh * getAssumption('fueleu.bioLngPremiumEurPerMwh');
+    const poolCostEur = Math.abs(calculationResult.complianceBalanceTco2e) * getAssumption('fueleu.poolBuyPriceEurPerTco2e');
+    const cheapest = Math.min(payPenaltyEur, bioLngPremiumEur, poolCostEur);
+    return { payPenaltyEur, bioLngPremiumEur, poolCostEur, cheapest };
+  }, [calculationResult, assumptionsVersion]);
+
+  // "Compare pathways for this vessel" hand-off: carries this vessel's deficit, achieved GHGIE,
+  // LNG capability (inferred from the fuel burn entered), compliance year and escalation across
+  // to the Commercial pathways flow.
+  const handleComparePathways = () => {
+    if (!onComparePathways) return;
+    onComparePathways({
+      deficitTco2e: Math.max(1000, Math.round(Math.abs(calculationResult.complianceBalanceTco2e))),
+      fleetActualGhgie: calculationResult.weightedGhgie,
+      isLngCapable: lngTonnes > 0 || bioLngTonnes > 0,
+      targetYear,
+      consecutiveYears,
+    });
+  };
 
   // 1-Click trade builder
   const handleTradeBuilder = () => {
@@ -580,21 +612,101 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
               <button type="button" className="btn btn-secondary" onClick={() => goToStep(1)}>
                 <RotateCcw size={14} /> Start with another vessel
               </button>
+              {!isSurplus && onComparePathways && (
+                <button type="button" className="btn btn-secondary" onClick={handleComparePathways}>
+                  Compare pathways for this vessel <ArrowRight size={14} />
+                </button>
+              )}
             </div>
           </>
         );
     }
   };
 
+  const rail = (
+    <aside className="fva-rail ds-aside" data-testid="vessel-rail">
+      <div className="ds-aside-body">
+        <div className="ds-aside-section">
+          <div className="ds-panel-section-heading">Compliance balance</div>
+          <div className={`ds-panel-stat-value num ${isSurplus ? 'fva-pos' : 'fva-neg'}`}>
+            {calculationResult.complianceBalanceTco2e > 0 ? '+' : ''}
+            {calculationResult.complianceBalanceTco2e.toFixed(1)} <span className="unit">tCO₂e</span>
+          </div>
+        </div>
+
+        <div className="ds-aside-section">
+          <div className="ds-panel-section-heading">Statutory penalty</div>
+          <dl className="fva-kv">
+            <div className="fva-kv-row neg">
+              <span>Year 1:</span>
+              <span className="num">€{Math.round(calculationResult.statutoryPenaltyY1Eur).toLocaleString()}</span>
+            </div>
+            <div className="fva-kv-row neg">
+              <span>With escalation:</span>
+              <span className="num">€{Math.round(calculationResult.statutoryPenaltyY2Eur).toLocaleString()}</span>
+            </div>
+          </dl>
+        </div>
+
+        {!isSurplus && (
+          <div className="ds-aside-section">
+            <div className="ds-panel-section-heading">Bio-LNG needed</div>
+            <div className="fva-kv-row">
+              <span className="muted">To neutralise:</span>
+              <span className="num">
+                {calculationResult.bioLngRequiredNeg100Tonnes.toFixed(1)} t
+                ({Math.round(calculationResult.bioLngRequiredNeg100Mwh).toLocaleString()} MWh)
+              </span>
+            </div>
+          </div>
+        )}
+
+        {!isSurplus && (
+          <div className="ds-aside-section">
+            <div className="ds-panel-section-heading">Client options</div>
+            <div className="fva-rail-options">
+              <div className={`fva-rail-option ${railOptions.payPenaltyEur === railOptions.cheapest ? 'cheapest' : ''}`}>
+                <span className="fva-rail-option-label">Pay penalty</span>
+                <span className="num">€{Math.round(railOptions.payPenaltyEur).toLocaleString()}</span>
+              </div>
+              <div className={`fva-rail-option ${railOptions.bioLngPremiumEur === railOptions.cheapest ? 'cheapest' : ''}`}>
+                <span className="fva-rail-option-label">Bio-LNG</span>
+                <span className="num">€{Math.round(railOptions.bioLngPremiumEur).toLocaleString()}</span>
+              </div>
+              <div className={`fva-rail-option ${railOptions.poolCostEur === railOptions.cheapest ? 'cheapest' : ''}`}>
+                <span className="fva-rail-option-label">Pool</span>
+                <span className="num">€{Math.round(railOptions.poolCostEur).toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="ds-aside-footer fva-rail-footer">
+        <button type="button" className="btn btn-primary" onClick={handleTradeBuilder} disabled={isSurplus}>
+          <Zap size={14} /> Build term sheet
+        </button>
+        {!isSurplus && onComparePathways && (
+          <button type="button" className="btn btn-secondary" onClick={handleComparePathways}>
+            Compare pathways for this vessel
+          </button>
+        )}
+      </div>
+    </aside>
+  );
+
   return (
-    <div className="fva">
-      <FlowSteps
-        steps={CALC_STEPS.map(({ id, label }) => ({ id, label, summary: stepSummary[id] }))}
-        current={step}
-        onSelect={goToStep}
-        renderBody={renderBody}
-        ariaLabel="Vessel calculator steps"
-      />
+    <div className="fva-layout">
+      <div className="fva">
+        <FlowSteps
+          steps={CALC_STEPS.map(({ id, label }) => ({ id, label, summary: stepSummary[id] }))}
+          current={step}
+          onSelect={goToStep}
+          renderBody={renderBody}
+          ariaLabel="Vessel calculator steps"
+        />
+      </div>
+      {rail}
     </div>
   );
 }

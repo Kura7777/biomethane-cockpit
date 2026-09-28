@@ -21,6 +21,75 @@
   max-width: var(--ds-flow-max-width);
 }
 
+/* ── Live summary rail (≥1600px): sticky answer beside the form, same pattern as the Trade
+ * builder's deal ticket (.tb-deal-layout / .tb-ticket-rail). Below 1600px the rail is hidden
+ * and the flow keeps its normal single-column width. ── */
+.fva-layout {
+  width: 100%;
+}
+
+.fva-rail {
+  display: none;
+}
+
+@media (min-width: 1600px) {
+  .fva-layout {
+    display: grid;
+    grid-template-columns: minmax(0, var(--ds-flow-max-width)) clamp(320px, 24%, 420px);
+    justify-content: start;
+    gap: 24px;
+    align-items: start;
+    max-width: none;
+    padding-right: 24px;
+    box-sizing: border-box;
+  }
+
+  .fva-rail {
+    display: block;
+    min-width: 0;
+  }
+}
+
+.fva-rail-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fva-rail-footer .btn {
+  width: 100%;
+}
+
+.fva-rail-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fva-rail-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-control, 6px);
+  font-size: 13px;
+}
+
+.fva-rail-option-label {
+  color: var(--color-muted);
+}
+
+.fva-rail-option.cheapest {
+  border-color: var(--color-status-pos-text, var(--color-accent));
+  background: var(--color-status-pos-bg, transparent);
+}
+
+.fva-rail-option.cheapest .fva-rail-option-label {
+  color: var(--color-status-pos-text, var(--color-text));
+  font-weight: 600;
+}
+
 .fva-section-head {
   display: flex;
   align-items: baseline;
