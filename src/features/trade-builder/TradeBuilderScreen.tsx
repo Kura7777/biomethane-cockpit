@@ -533,6 +533,17 @@ export function TradeBuilderScreen() {
     }
   };
 
+  // Same gate data step 3 ("Market & 6-gate audit") uses — never recompute eligibility separately.
+  const failingGates = assessment.gates.filter(g => g.verdict !== 'PASS');
+  const blockedBadgeLabel = failingGates.length === 0
+    ? 'Blocked'
+    : failingGates.length === 1
+      ? `Blocked · ${failingGates[0].gateLabel}`
+      : `Blocked · ${failingGates.length} gates`;
+  const blockedBadgeTitle = failingGates
+    .map(g => `${g.gateLabel}: ${g.reason}`)
+    .join('\n');
+
   const stepSummary: Record<DealStep, string> = {
     1: `${currentOriginObj.flag} ${currentOriginObj.name} · ${currentFeedstockObj.label} · ${currentSchemeObj.label} · ${currentCustodyObj.label} · CI ${ci} g/MJ`,
     2: `${volumeMwh.toLocaleString()} MWh · ${complianceYear} compliance · ${formatShortDate(deliveryStartDate)} – ${formatShortDate(deliveryEndDate)} · ${deliveryProfile.replace(/_/g, ' ').toLowerCase()}`,
@@ -669,25 +680,39 @@ export function TradeBuilderScreen() {
               </strong>
             </div>
 
-            <span
-              style={{
-                fontSize: '12px',
-                fontWeight: 600,
-                padding: '3px 8px',
-                borderRadius: 'var(--radius-bar)',
-                border: assessment.overallVerdict === 'ELIGIBLE'
-                  ? '1px solid var(--color-status-pass-border)'
-                  : '1px solid var(--color-status-neg-border)',
-                backgroundColor: assessment.overallVerdict === 'ELIGIBLE'
-                  ? 'var(--color-status-pass-bg)'
-                  : 'var(--color-status-neg-bg)',
-                color: assessment.overallVerdict === 'ELIGIBLE'
-                  ? 'var(--color-status-pass-text)'
-                  : 'var(--color-status-neg-text)',
-              }}
-            >
-              {assessment.overallVerdict === 'ELIGIBLE' ? '● 6/6 GATES PASS' : '● BLOCKED'}
-            </span>
+            {assessment.overallVerdict === 'ELIGIBLE' ? (
+              <span
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  padding: '3px 8px',
+                  borderRadius: 'var(--radius-bar)',
+                  border: '1px solid var(--color-status-pass-border)',
+                  backgroundColor: 'var(--color-status-pass-bg)',
+                  color: 'var(--color-status-pass-text)',
+                }}
+              >
+                ● 6/6 GATES PASS
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => handleStepChange(3)}
+                title={blockedBadgeTitle}
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  padding: '3px 8px',
+                  borderRadius: 'var(--radius-bar)',
+                  border: '1px solid var(--color-status-neg-border)',
+                  backgroundColor: 'var(--color-status-neg-bg)',
+                  color: 'var(--color-status-neg-text)',
+                  cursor: 'pointer',
+                }}
+              >
+                ● {blockedBadgeLabel}
+              </button>
+            )}
 
             {/* View Mode Toggle */}
             <div style={{ display: 'flex', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-control)', overflow: 'hidden' }}>
