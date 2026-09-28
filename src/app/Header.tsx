@@ -1,10 +1,8 @@
-import React from 'react';
 import { useLocation, useNavigate, NavLink } from 'react-router-dom';
+import { Scale, Moon, Sun, Search, Flame } from 'lucide-react';
+import './header.css';
 import { WORKSPACE_TABS } from './navConfig';
-import { useAppState } from '../store/context';
 import { useTheme } from '../store/theme';
-import { deriveSourceBadge } from '../domain/markets/types';
-import { SIMULATED_SOURCE_NAME } from '../domain/marks/simulate';
 
 /** HH:MM:SS in the viewer's local time. Exported so it can be unit tested without rendering. */
 export function formatClock(date: Date): string {
@@ -21,130 +19,21 @@ interface HeaderProps {
 export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { state } = useAppState();
   const { theme, toggleTheme } = useTheme();
 
-  const gasIndexPrice = state.marks.gasIndex.mid ?? state.marks.gasIndex.offer ?? state.marks.gasIndex.bid;
-  const pricingSide = state.marks.pricingSides?.certificateSide || 'mid';
-  const gasIndexBadge = deriveSourceBadge(state.marks.gasIndex.provenance, SIMULATED_SOURCE_NAME);
-  const isSimulatedGasIndex = gasIndexBadge.variant === 'WARNING';
-
   return (
-    <header
-      style={{
-        height: '52px',
-        flex: 'none',
-        display: 'flex',
-        alignItems: 'stretch',
-        borderBottom: '1px solid var(--color-header-divider)',
-        backgroundColor: 'var(--color-header-bg)',
-        color: 'var(--color-header-text)',
-      }}
-      className="select-none z-50"
-    >
-      {/* Brand block */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          padding: '0 18px',
-          borderRight: '1px solid var(--color-header-divider)',
-          cursor: 'pointer',
-          flexShrink: 0,
-        }}
-        onClick={() => navigate('/sourcing')}
-      >
-        <div style={{ width: '10px', height: '10px', backgroundColor: 'var(--color-accent)', flex: 'none', borderRadius: '2px' }} />
-        <span
-          style={{
-            fontFamily: 'var(--font-heading)',
-            fontWeight: 600,
-            fontSize: '15px',
-            whiteSpace: 'nowrap',
-            color: '#ffffff',
-            letterSpacing: '-0.01em',
-          }}
-        >
-          Biomethane Desk
+    <header className="app-header select-none z-50">
+      <button type="button" className="app-brand" onClick={() => navigate('/sourcing')}>
+        <span className="app-brand-mark" aria-hidden="true">
+          <Flame size={13} strokeWidth={2.25} />
         </span>
-      </div>
+        <span>Biomethane Desk</span>
+      </button>
 
-      {/* Market Reference Ticker: TTF M+1 & Side */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          padding: '0 16px',
-          borderRight: '1px solid var(--color-header-divider)',
-          backgroundColor: 'rgba(255, 255, 255, 0.02)',
-          flexShrink: 0,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-          <span className="eyebrow" style={{ color: 'var(--color-header-muted)' }}>
-            TTF M+1
-          </span>
-          <span
-            className="num"
-            style={{ fontSize: '14px', fontWeight: 600, color: isSimulatedGasIndex ? '#fbbf24' : '#ffffff' }}
-            title={isSimulatedGasIndex ? 'Simulated — not a live market feed. See Marks screen.' : undefined}
-          >
-            {gasIndexPrice !== null && gasIndexPrice !== undefined ? `€${gasIndexPrice.toFixed(2)}` : '—'}
-          </span>
-          {isSimulatedGasIndex && (
-            <span
-              style={{
-                fontSize: '12px',
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                padding: '1px 5px',
-                borderRadius: 'var(--radius-bar)',
-                backgroundColor: 'rgba(251, 191, 36, 0.18)',
-                color: '#fbbf24',
-              }}
-            >
-              Simulated
-            </span>
-          )}
-        </div>
+      <span className="app-header-sep" aria-hidden="true" />
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-          <span className="eyebrow" style={{ color: 'var(--color-header-muted)' }}>
-            Side
-          </span>
-          <span
-            style={{
-              fontSize: '12px',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: '0.06em',
-              padding: '1px 6px',
-              borderRadius: 'var(--radius-bar)',
-              backgroundColor: 'rgba(255, 255, 255, 0.08)',
-              color: 'var(--color-accent)',
-            }}
-          >
-            {pricingSide}
-          </span>
-        </div>
-      </div>
-
-      {/* Nav tabs */}
-      <nav
-        style={{
-          display: 'flex',
-          alignItems: 'stretch',
-          overflowX: 'auto',
-          flexShrink: 1,
-          minWidth: 0,
-        }}
-        className="noscroll"
-        aria-label="Workspaces"
-      >
-        {WORKSPACE_TABS.map((tab, idx) => {
+      <nav className="app-header-nav noscroll" aria-label="Workspaces">
+        {WORKSPACE_TABS.map(tab => {
           const isActive =
             (tab.to === '/sourcing' && (location.pathname === '/' || location.pathname.startsWith('/sourcing'))) ||
             (tab.to === '/pricing' && (location.pathname.startsWith('/pricing') || location.pathname.startsWith('/marks'))) ||
@@ -153,126 +42,52 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
             location.pathname === tab.to ||
             location.pathname.startsWith(tab.to + '/');
 
-          const hasDividerBefore = idx === 2 || idx === 4 || idx === 6;
-
           return (
-            <React.Fragment key={tab.to}>
-              {hasDividerBefore && (
-                <div
-                  style={{
-                    width: '1px',
-                    height: '18px',
-                    alignSelf: 'center',
-                    backgroundColor: 'var(--color-header-divider, rgba(255,255,255,0.12))',
-                    margin: '0 2px',
-                    opacity: 0.6,
-                    flexShrink: 0,
-                  }}
-                  aria-hidden="true"
-                />
-              )}
-              <NavLink
-                to={tab.to}
-                className={`navtab ${isActive ? 'active' : ''}`}
-                data-on={isActive ? '1' : '0'}
-                aria-current={isActive ? 'page' : undefined}
-              >
-                {tab.label}
-              </NavLink>
-            </React.Fragment>
+            <NavLink
+              key={tab.to}
+              to={tab.to}
+              className={`app-tab ${isActive ? 'active' : ''}`}
+              aria-current={isActive ? 'page' : undefined}
+            >
+              {tab.label}
+            </NavLink>
           );
         })}
       </nav>
 
-      {/* Right cluster */}
-      <div
-        style={{
-          marginLeft: 'auto',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          padding: '0 16px',
-          borderLeft: '1px solid var(--color-header-divider)',
-          flexShrink: 0,
-        }}
-      >
+      <div className="app-header-actions">
+        <button type="button" className="app-search" onClick={onOpenSearch} aria-label="Search commands (⌘K)" title="Search commands (⌘K)">
+          <Search size={14} aria-hidden="true" />
+          <span className="app-search-text">Search commands…</span>
+          <kbd className="app-kbd">⌘K</kbd>
+        </button>
+
         <button
           type="button"
-          className="btn"
-          style={{
-            padding: '4px 10px',
-            fontSize: '12px',
-            height: '28px',
-            borderRadius: 'var(--radius-control)',
-            backgroundColor: 'rgba(16, 185, 129, 0.15)',
-            borderColor: '#059669',
-            color: '#34d399',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '5px'
-          }}
+          className="app-icon-btn app-icon-btn-label"
           onClick={onOpenAuditor}
-          title="Open Statutory Compliance Auditor & Knowledge Vault (Alt+A)"
+          title="Statutory compliance auditor (Alt+A)"
         >
-          <span>⚖ Auditor</span>
-          <span className="num" style={{ fontWeight: 400, opacity: 0.75, fontSize: '12px' }}>Alt+A</span>
+          <Scale size={15} aria-hidden="true" />
+          <span className="app-icon-btn-text">Auditor</span>
         </button>
 
         <button
           type="button"
-          className="btn"
-          style={{
-            padding: '4px 10px',
-            fontSize: '12px',
-            height: '28px',
-            borderRadius: 'var(--radius-control)',
-            backgroundColor: 'var(--color-header-surface)',
-            borderColor: 'var(--color-header-divider)',
-            color: '#ffffff',
-          }}
-          onClick={onOpenSearch}
-        >
-          Command <span className="num" style={{ fontWeight: 400, opacity: 0.7, marginLeft: '4px' }}>⌘K</span>
-        </button>
-
-        <button
-          type="button"
-          className="btn"
-          style={{
-            padding: '4px 10px',
-            fontSize: '12px',
-            height: '28px',
-            borderRadius: 'var(--radius-control)',
-            backgroundColor: 'var(--color-header-surface)',
-            borderColor: 'var(--color-header-divider)',
-            color: '#ffffff',
-          }}
+          className="app-icon-btn"
           onClick={toggleTheme}
+          title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
         >
-          {theme === 'dark' ? 'Light' : 'Dark'}
+          {theme === 'dark' ? <Sun size={15} aria-hidden="true" /> : <Moon size={15} aria-hidden="true" />}
+          <span className="sr-only">{theme === 'dark' ? 'Light' : 'Dark'}</span>
         </button>
 
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            paddingLeft: '12px',
-            borderLeft: '1px solid var(--color-header-divider)',
-          }}
-        >
-          <span style={{ width: '6px', height: '6px', backgroundColor: '#10b981', flex: 'none', borderRadius: '50%' }} />
-          <span
-            style={{
-              fontSize: '13px',
-              fontWeight: 500,
-              whiteSpace: 'nowrap',
-              color: '#ffffff',
-            }}
-          >
-            Trader · A. Vos
+        <span className="app-user" title="Trader · A. Vos">
+          <span className="app-avatar" aria-hidden="true">AV</span>
+          <span className="app-user-name">
+            <span className="app-user-role">Trader · </span>A. Vos
           </span>
-        </div>
+        </span>
       </div>
     </header>
   );

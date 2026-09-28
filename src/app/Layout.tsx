@@ -139,7 +139,7 @@ export function Layout() {
         minWidth: '1180px',
       }}
     >
-      {/* 52px Header */}
+      {/* Two-row header (88px) */}
       <Header 
         onOpenSearch={() => setIsPaletteOpen(true)} 
         onOpenAuditor={() => {

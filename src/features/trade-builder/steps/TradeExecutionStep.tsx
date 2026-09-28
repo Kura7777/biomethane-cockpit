@@ -5,7 +5,6 @@ import { DocumentTab } from '../LegalPackageModal';
 import { getVtpForMarket } from '../TradeBuilderScreen';
 import { generateStatutoryAuditMemoPdf } from '../../../domain/trade/legalPackage';
 import {
-  ArrowLeft,
   RotateCcw,
   FileText,
   Download,
@@ -21,8 +20,6 @@ import {
 } from 'lucide-react';
 import { showToast } from '../../../app/DeskToastContainer';
 
-const MONO_FONT = 'var(--font-mono, "IBM Plex Mono", monospace)';
-
 interface TradeExecutionStepProps {
   currentTradeAssessment: TradeAssessment;
   selectedMarket: Market;
@@ -36,7 +33,6 @@ interface TradeExecutionStepProps {
   onSaveDossier: () => void;
   onExportPdf: () => void;
   onExportTermSheetPdf: () => void;
-  onBack: () => void;
   onReset: () => void;
 }
 
@@ -53,7 +49,6 @@ export function TradeExecutionStep({
   onSaveDossier,
   onExportPdf,
   onExportTermSheetPdf,
-  onBack,
   onReset,
 }: TradeExecutionStepProps) {
   const [copiedSummary, setCopiedSummary] = useState(false);
@@ -101,395 +96,166 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
     }
   };
 
+  const gatesClear = currentTradeAssessment.eligibility.gates.filter(g => g.verdict === 'PASS').length;
+  const verdictClass = isEligible ? 'pos' : 'neg';
+
+  const documents: { tab: DocumentTab; label: string; icon: React.ReactNode; testId: string }[] = [
+    { tab: 'TERM_SHEET', label: '1. Commercial Term Sheet', icon: <FileText size={14} />, testId: 'term-sheet-btn' },
+    { tab: 'EFET_ANNEX', label: '2. EFET Biomethane Annex', icon: <Scale size={14} />, testId: 'efet-annex-btn' },
+    { tab: 'ETRM_TICKET', label: '3. ETRM Deal Ticket (CSV)', icon: <Database size={14} />, testId: 'etrm-ticket-btn' },
+    { tab: 'UDB_XML', label: '4. UDB XML Nomination', icon: <Database size={14} />, testId: 'udb-xml-btn' },
+    { tab: 'AUDIT_MEMO', label: '5. Statutory Compliance Audit Memo (CCO Clearance)', icon: <ShieldCheck size={14} />, testId: 'audit-memo-deal-btn' },
+  ];
+
   return (
-    <div className="w-full max-w-[1600px] mx-auto p-4 sm:p-5 space-y-4">
-      {/* 2-Column Workstation Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
-        
-        {/* Left Column: Deal Terms Note & Quick Export Actions */}
-        <div className="space-y-4">
-          
-          {/* Deal Note Header Card */}
-          <div
-            style={{
-              border: '1px solid var(--color-divider)',
-              backgroundColor: 'var(--color-surface)',
-              overflow: 'hidden',
-            }}
-          >
-            <div
-              style={{
-                padding: '10px 16px',
-                borderBottom: '1px solid var(--color-divider)',
-                backgroundColor: 'var(--color-panel-header)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '8px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span
-                  style={{
-                    fontFamily: MONO_FONT,
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    color: 'var(--color-accent)',
-                    padding: '2px 8px',
-                    border: '1px solid var(--color-divider)',
-                    backgroundColor: 'var(--color-subtier)',
-                    borderRadius: 'var(--radius-control)',
-                  }}
-                >
-                  {currentTradeAssessment.id}
-                </span>
-                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)' }}>
-                  Institutional Deal Confirmation Note
-                </span>
-              </div>
+    <div className="tb-form">
+      {/* Deal Note */}
+      <div className="tb-form-row">
+        <span className="tb-form-label">Deal note</span>
+        <div className="tb-form-control">
+          <span className="tb-form-value">
+            <span className="tb-id">{currentTradeAssessment.id}</span> Institutional Deal Confirmation Note{' '}
+            <span className={`tb-badge ${verdictClass}`}>{isEligible ? 'STATUTORY AUDIT PASSED' : 'COMPLIANCE BLOCKED'}</span>
+          </span>
 
-              <span
-                style={{
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  padding: '2px 8px',
-                  borderRadius: 'var(--radius-control)',
-                  border: isEligible
-                    ? '1px solid rgba(16, 185, 129, 0.4)'
-                    : '1px solid rgba(239, 68, 68, 0.4)',
-                  backgroundColor: isEligible
-                    ? 'rgba(16, 185, 129, 0.12)'
-                    : 'rgba(239, 68, 68, 0.12)',
-                  color: isEligible ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)',
-                }}
-              >
-                {isEligible ? 'STATUTORY AUDIT PASSED' : 'COMPLIANCE BLOCKED'}
-              </span>
-            </div>
-
-            {/* Structured Deal Note Details */}
-            <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px' }}>
-              <div
-                style={{
-                  border: '1px solid var(--color-divider)',
-                  backgroundColor: 'var(--color-subtier)',
-                  borderRadius: 'var(--radius-control)',
-                  padding: '12px 14px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '6px',
-                }}
-                className="tabular-nums"
-              >
-                <div>• Asset / Consignment: <strong style={{ color: 'var(--color-text)' }}>{consignment.name}</strong></div>
-                <div>• Origin Country: <strong style={{ color: 'var(--color-text)' }}>{consignment.originCountry} ({consignment.originCountryName})</strong></div>
-                <div>• Target Market: <strong style={{ color: 'var(--color-accent)' }}>{selectedMarket.name} ({selectedMarket.country})</strong></div>
-                <div>• Contract Volume: <strong style={{ color: 'var(--color-text)' }}>{volumeMwh.toLocaleString()} MWh</strong></div>
-                <div>• Certified Feedstock: <strong style={{ color: 'var(--color-text)' }}>{consignment.feedstock}</strong> ({consignment.annexClassification})</div>
-                <div>• Carbon Intensity: <strong style={{ color: 'var(--color-text)' }}>{consignment.carbonIntensity} gCO₂e/MJ</strong></div>
-                <div>• Wholesale Net Netback: <strong style={{ color: 'var(--color-status-pos-text)' }}>€{netNetbackVal.toFixed(2)} / MWh</strong></div>
-                <div>• Trader Desk Margin: <strong style={{ color: 'var(--color-accent)' }}>€{deskMarginEurMwh} / MWh</strong></div>
-                <div>• Annual Desk P&amp;L: <strong style={{ color: 'var(--color-status-pos-text)' }}>€{annualPnl.toLocaleString()}</strong></div>
-                <div>• Physical VTP Delivery: <strong style={{ color: 'var(--color-text)' }}>{getVtpForMarket(selectedMarket.country)}</strong></div>
-                <div>• Governing Standard: <strong style={{ color: 'var(--color-text)' }}>EFET 2026 Biomethane Annex / RED III Art. 30</strong></div>
-              </div>
-
-              {/* Action Buttons */}
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '4px' }}>
-                <button
-                  type="button"
-                  onClick={handleCopyDealSummary}
-                  className="btn btn-secondary"
-                >
-                  {copiedSummary ? <Check size={13} style={{ color: 'var(--color-status-pos-text)' }} /> : <Copy size={13} />}
-                  <span>{copiedSummary ? 'Copied to Clipboard!' : 'Copy Deal Summary'}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={onExportTermSheetPdf}
-                  className="btn btn-secondary"
-                  data-testid="download-termsheet-pdf-btn"
-                >
-                  <Download size={13} />
-                  <span>Download Term Sheet (PDF)</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={onExportPdf}
-                  className="btn btn-secondary"
-                  data-testid="download-efet-pdf-btn"
-                >
-                  <Download size={13} />
-                  <span>Download EFET Annex (PDF)</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column: Complete 5-Piece Deal Package & Review */}
-        <div className="space-y-4">
-          
-          {/* Chief Compliance Officer Pre-Trade Clearance Card */}
-          <div
-            style={{
-              border: isEligible ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(239, 68, 68, 0.4)',
-              backgroundColor: isEligible ? 'rgba(16, 185, 129, 0.04)' : 'rgba(239, 68, 68, 0.04)',
-              padding: '16px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <ShieldCheck size={18} style={{ color: isEligible ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)' }} />
-                <div>
-                  <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: 'var(--color-text)' }}>
-                    Chief Compliance Officer Pre-Trade Clearance
-                  </h4>
-                  <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '2px' }}>
-                    Institutional 6-gate statutory audit trail under RED III Directive &amp; national registry rules.
-                  </div>
-                </div>
-              </div>
-
-              <span
-                style={{
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  padding: '2px 8px',
-                  borderRadius: 'var(--radius-control)',
-                  backgroundColor: isEligible ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-                  color: isEligible ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)',
-                  border: `1px solid ${isEligible ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}`,
-                }}
-              >
-                {currentTradeAssessment.eligibility.overallVerdict} ({currentTradeAssessment.eligibility.gates.filter(g => g.verdict === 'PASS').length}/6 GATES CLEAR)
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 text-xs" style={{ color: 'var(--color-muted)' }}>
-              <div>• Origin Facility: <strong style={{ color: 'var(--color-text)' }}>{consignment.name || 'Biomethane Asset'} ({consignment.originCountry})</strong></div>
-              <div>• Compliance Sink: <strong style={{ color: 'var(--color-text)' }}>{selectedMarket.name}</strong></div>
-              <div>• Certified CI: <strong style={{ color: 'var(--color-text)' }}>{consignment.carbonIntensity} gCO₂e/MJ</strong></div>
-              <div>• Mass Balance: <strong style={{ color: 'var(--color-status-pos-text)' }}>UDB Single Interconnected Area</strong></div>
-            </div>
-
-            <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-              <button
-                type="button"
-                onClick={() => {
-                  window.dispatchEvent(new CustomEvent('open-compliance-auditor', {
-                    detail: {
-                      originCountry: consignment.originCountry,
-                      targetMarketId: selectedMarket.id,
-                      targetMarketName: selectedMarket.name,
-                      annualVolumeMWh: volumeMwh,
-                      carbonIntensity: consignment.carbonIntensity,
-                      feedstockCategory: consignment.feedstock,
-                      deliveredValueEurMwh: netNetbackVal,
-                      initialTab: 'GATE_BREAKDOWN'
-                    }
-                  }));
-                }}
-                className="btn btn-secondary flex-1"
-              >
-                <Scale size={13} style={{ color: 'var(--color-accent)' }} />
-                <span>⚖ Run Full Statutory Audit</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleDownloadAuditMemo}
-                className="btn btn-secondary flex-1"
-                title="Download 2-page institutional statutory compliance memorandum PDF"
-              >
-                <Download size={13} style={{ color: 'var(--color-accent)' }} />
-                <span>📥 Download Audit Memo (PDF)</span>
-              </button>
-            </div>
+          {/* Structured Deal Note Details */}
+          <div className="tb-kv">
+            <div className="tb-kv-row"><span>Asset / Consignment</span><span>{consignment.name}</span></div>
+            <div className="tb-kv-row"><span>Origin Country</span><span>{consignment.originCountry} ({consignment.originCountryName})</span></div>
+            <div className="tb-kv-row"><span>Target Market</span><span>{selectedMarket.name} ({selectedMarket.country})</span></div>
+            <div className="tb-kv-row"><span>Contract Volume</span><span>{volumeMwh.toLocaleString()} MWh</span></div>
+            <div className="tb-kv-row"><span>Certified Feedstock</span><span>{consignment.feedstock} ({consignment.annexClassification})</span></div>
+            <div className="tb-kv-row"><span>Carbon Intensity</span><span>{consignment.carbonIntensity} gCO₂e/MJ</span></div>
+            <div className="tb-kv-row"><span>Wholesale Net Netback</span><span className={netNetbackVal >= 0 ? 'tb-pos' : 'tb-neg'}>€{netNetbackVal.toFixed(2)} / MWh</span></div>
+            <div className="tb-kv-row"><span>Trader Desk Margin</span><span className={annualPnl >= 0 ? 'tb-pos' : 'tb-neg'}>€{deskMarginEurMwh} / MWh</span></div>
+            <div className="tb-kv-row"><span>Annual Desk P&amp;L</span><span className={annualPnl >= 0 ? 'tb-pos' : 'tb-neg'}>€{annualPnl.toLocaleString()}</span></div>
+            <div className="tb-kv-row"><span>Physical VTP Delivery</span><span>{getVtpForMarket(selectedMarket.country)}</span></div>
+            <div className="tb-kv-row"><span>Governing Standard</span><span>EFET 2026 Biomethane Annex / RED III Art. 30</span></div>
           </div>
 
-          {/* Main Deal Package Trigger Card */}
-          <div
-            style={{
-              border: '1px solid var(--color-divider)',
-              backgroundColor: 'var(--color-surface)',
-              borderRadius: 'var(--radius-card)',
-              padding: '16px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Package size={18} style={{ color: 'var(--color-accent)' }} />
-              <div>
-                <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: 'var(--color-text)' }}>
-                  Institutional 5-Document Deal Package
-                </h4>
-                <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '2px' }}>
-                  Full ETRM-compliant documentation suite for counterparty execution and audit trails.
-                </div>
-              </div>
-            </div>
-
-            {/* Primary Review Trigger */}
-            <button
-              type="button"
-              onClick={() => onOpenDocReview('TERM_SHEET')}
-              className="btn btn-primary"
-              style={{ padding: '10px 16px', fontSize: '13px', fontWeight: 600 }}
-              data-testid="review-deal-package-btn"
-            >
-              <Package size={15} />
-              <span>Review Complete Deal Package (In-Browser Preview)</span>
+          {/* Action Buttons */}
+          <div className="tb-row-start">
+            <button type="button" onClick={handleCopyDealSummary} className="btn btn-secondary">
+              {copiedSummary ? <Check size={14} className="tb-pos" /> : <Copy size={14} />}
+              <span>{copiedSummary ? 'Copied to Clipboard!' : 'Copy Deal Summary'}</span>
             </button>
-
-            {/* 5 Document Tiles */}
-            <div className="grid grid-cols-2 gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => onOpenDocReview('TERM_SHEET')}
-                className="btn btn-secondary"
-                style={{ padding: '8px 12px', fontSize: '12px', justifyContent: 'flex-start' }}
-                data-testid="term-sheet-btn"
-              >
-                <FileText size={14} style={{ color: 'var(--color-accent)' }} />
-                <span>1. Commercial Term Sheet</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => onOpenDocReview('EFET_ANNEX')}
-                className="btn btn-secondary"
-                style={{ padding: '8px 12px', fontSize: '12px', justifyContent: 'flex-start' }}
-                data-testid="efet-annex-btn"
-              >
-                <Scale size={14} style={{ color: 'var(--color-accent)' }} />
-                <span>2. EFET Biomethane Annex</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => onOpenDocReview('ETRM_TICKET')}
-                className="btn btn-secondary"
-                style={{ padding: '8px 12px', fontSize: '12px', justifyContent: 'flex-start' }}
-                data-testid="etrm-ticket-btn"
-              >
-                <Database size={14} style={{ color: 'var(--color-accent)' }} />
-                <span>3. ETRM Deal Ticket (CSV)</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => onOpenDocReview('UDB_XML')}
-                className="btn btn-secondary"
-                style={{ padding: '8px 12px', fontSize: '12px', justifyContent: 'flex-start' }}
-                data-testid="udb-xml-btn"
-              >
-                <Database size={14} style={{ color: 'var(--color-accent)' }} />
-                <span>4. UDB XML Nomination</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => onOpenDocReview('AUDIT_MEMO')}
-                className="btn btn-secondary"
-                style={{ padding: '8px 12px', fontSize: '12px', justifyContent: 'flex-start', gridColumn: 'span 2' }}
-                data-testid="audit-memo-deal-btn"
-              >
-                <ShieldCheck size={14} style={{ color: 'var(--color-accent)' }} />
-                <span>5. Statutory Compliance Audit Memo (CCO Clearance)</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Logistics & Dossier Persistence */}
-          <div
-            style={{
-              border: '1px solid var(--color-divider)',
-              backgroundColor: 'var(--color-surface)',
-              borderRadius: 'var(--radius-card)',
-              padding: '14px 16px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '10px',
-            }}
-          >
-            <button
-              type="button"
-              onClick={onSaveDossier}
-              className="btn btn-primary"
-              style={{ fontSize: '13px', fontWeight: 600 }}
-              data-testid="save-dossier-btn"
-            >
-              <FolderDown size={14} />
-              <span>Save Dossier with Statutory Citations</span>
+            <button type="button" onClick={onExportTermSheetPdf} className="btn btn-secondary" data-testid="download-termsheet-pdf-btn">
+              <Download size={14} />
+              <span>Download Term Sheet (PDF)</span>
             </button>
-
-            <button
-              type="button"
-              onClick={onOpenLogistics}
-              className="btn btn-secondary"
-              style={{ fontSize: '12px', fontWeight: 500 }}
-              data-testid="delivery-playbook-btn"
-            >
-              <MapPin size={13} />
-              <span>View TSO Pipeline Logistics Route (Dijkstra)</span>
+            <button type="button" onClick={onExportPdf} className="btn btn-secondary" data-testid="download-efet-pdf-btn">
+              <Download size={14} />
+              <span>Download EFET Annex (PDF)</span>
             </button>
-
-            <div style={{ fontSize: '12px', color: 'var(--color-muted)', textAlign: 'center', marginTop: '2px' }}>
-              Institutional audit trail · EFET 2026 Annex compliant · Union Database mass-balance validated
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Bottom Dock Navigation Bar */}
-      <div
-        style={{
-          border: '1px solid var(--color-divider)',
-          backgroundColor: 'var(--color-surface)',
-          borderRadius: 'var(--radius-card)',
-          padding: '10px 16px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '12px',
-        }}
-      >
-        <button
-          type="button"
-          onClick={onBack}
-          className="btn btn-secondary"
-        >
-          <ArrowLeft size={13} />
-          <span>Back: Economics &amp; Risk</span>
-        </button>
+      {/* Chief Compliance Officer Pre-Trade Clearance */}
+      <div className="tb-form-row">
+        <span className="tb-form-label">Compliance clearance</span>
+        <div className="tb-form-control">
+          <span className={`tb-form-value ${verdictClass === 'pos' ? 'tb-pos' : 'tb-neg'}`}>
+            <ShieldCheck size={16} />
+            <span className={`tb-badge ${verdictClass}`}>
+              {currentTradeAssessment.eligibility.overallVerdict} ({gatesClear}/6 GATES CLEAR)
+            </span>
+          </span>
+          <p className="tb-hint">Chief Compliance Officer Pre-Trade Clearance · Institutional 6-gate statutory audit trail under RED III Directive &amp; national registry rules.</p>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <button
-            type="button"
-            onClick={onReset}
-            className="btn btn-secondary"
-          >
-            <RotateCcw size={12} />
-            <span>Start New Deal (Clear)</span>
-          </button>
+          <dl className="tb-facts-list">
+            <div><dt>Origin Facility</dt><dd>{consignment.name || 'Biomethane Asset'} ({consignment.originCountry})</dd></div>
+            <div><dt>Compliance Sink</dt><dd>{selectedMarket.name}</dd></div>
+            <div><dt>Certified CI</dt><dd>{consignment.carbonIntensity} gCO₂e/MJ</dd></div>
+            <div><dt>Mass Balance</dt><dd>UDB Single Interconnected Area</dd></div>
+          </dl>
 
-          <button
-            type="button"
-            onClick={() => onOpenDocReview('TERM_SHEET')}
-            className="btn btn-primary"
-          >
-            <Package size={13} />
-            <span>Review Full Legal Package (4 Docs) →</span>
-          </button>
+          <div className="tb-row-start">
+            <button
+              type="button"
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent('open-compliance-auditor', {
+                  detail: {
+                    originCountry: consignment.originCountry,
+                    targetMarketId: selectedMarket.id,
+                    targetMarketName: selectedMarket.name,
+                    annualVolumeMWh: volumeMwh,
+                    carbonIntensity: consignment.carbonIntensity,
+                    feedstockCategory: consignment.feedstock,
+                    deliveredValueEurMwh: netNetbackVal,
+                    initialTab: 'GATE_BREAKDOWN'
+                  }
+                }));
+              }}
+              className="btn btn-secondary"
+            >
+              <Scale size={14} />
+              <span>Run Full Statutory Audit</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleDownloadAuditMemo}
+              className="btn btn-secondary"
+              title="Download 2-page institutional statutory compliance memorandum PDF"
+            >
+              <Download size={14} />
+              <span>Download Audit Memo (PDF)</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Deal Package */}
+      <div className="tb-form-row">
+        <span className="tb-form-label">Deal package</span>
+        <div className="tb-form-control">
+          <div className="tb-row">
+            <span className="tb-form-value">Institutional 5-Document Deal Package</span>
+            <button
+              type="button"
+              onClick={() => onOpenDocReview('TERM_SHEET')}
+              className="btn btn-primary"
+              data-testid="review-deal-package-btn"
+            >
+              <Package size={14} />
+              <span>Review Complete Deal Package (In-Browser Preview)</span>
+            </button>
+          </div>
+          <p className="tb-hint">Full ETRM-compliant documentation suite for counterparty execution and audit trails.</p>
+
+          {/* 5 Documents */}
+          <ul className="tb-docs">
+            {documents.map(d => (
+              <li key={d.tab}>
+                <button type="button" onClick={() => onOpenDocReview(d.tab)} className="tb-doc" data-testid={d.testId}>
+                  <span className="tb-doc-icon">{d.icon}</span>
+                  <span>{d.label}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      {/* Dossier, logistics and reset */}
+      <div className="tb-form-row">
+        <span className="tb-form-label">Finish</span>
+        <div className="tb-form-control">
+          <div className="tb-row-start">
+            <button type="button" onClick={onSaveDossier} className="btn btn-secondary" data-testid="save-dossier-btn">
+              <FolderDown size={14} />
+              <span>Save Dossier with Statutory Citations</span>
+            </button>
+            <button type="button" onClick={onOpenLogistics} className="btn btn-secondary" data-testid="delivery-playbook-btn">
+              <MapPin size={14} />
+              <span>View TSO Pipeline Logistics Route (Dijkstra)</span>
+            </button>
+            <button type="button" onClick={onReset} className="btn btn-secondary">
+              <RotateCcw size={14} />
+              <span>Start New Deal (Clear)</span>
+            </button>
+          </div>
+          <p className="tb-hint">Institutional audit trail · EFET 2026 Annex compliant · Union Database mass-balance validated</p>
         </div>
       </div>
     </div>

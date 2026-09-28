@@ -5,7 +5,7 @@ import { BiomethanePlant } from '../../../domain/plants/types';
 import { DealParams } from '../../../domain/trade/dealParams';
 import { getCountryFeedstockCI } from '../../../domain/consignment/feedstocks';
 import { getVtpForMarket } from '../TradeBuilderScreen';
-import { ArrowRight, FileText, Lock, Calendar } from 'lucide-react';
+import { Lock, FileUp, Scale, AlertTriangle } from 'lucide-react';
 
 const MONO_FONT = 'var(--font-mono, "IBM Plex Mono", monospace)';
 
@@ -87,7 +87,8 @@ interface TradeConsignmentStepProps {
   deal: Partial<DealParams>;
   linkedPlant: BiomethanePlant | null | undefined;
   onOpenPoS: () => void;
-  onNext: () => void;
+  /** PRODUCT: origin, feedstock, certification, CI and PoS ingestion. SCHEDULE: volume and delivery schedule. */
+  section: 'PRODUCT' | 'SCHEDULE';
 }
 
 export function TradeConsignmentStep({
@@ -140,388 +141,128 @@ export function TradeConsignmentStep({
   deal,
   linkedPlant,
   onOpenPoS,
-  onNext,
+  section,
 }: TradeConsignmentStepProps) {
   const monthlyRateMwh = Math.round(volumeMwh / 12);
   const dailyRateMwh = Number((volumeMwh / 365).toFixed(1));
 
+  const openAuditor = (detail: Record<string, unknown>) => {
+    window.dispatchEvent(new CustomEvent('open-compliance-auditor', {
+      detail: {
+        originCountry: origin,
+        targetMarketId: selectedMarket?.id || 'DE_THG',
+        carbonIntensity: ci,
+        annualVolumeMWh: volumeMwh,
+        initialTab: 'GATE_BREAKDOWN',
+        ...detail,
+      },
+    }));
+  };
+
+  /** 'FLAT_MONTHLY' → 'Flat monthly' */
+  const profileLabel = (dp: string) => {
+    const words = dp.replace(/_/g, ' ').toLowerCase();
+    return words.charAt(0).toUpperCase() + words.slice(1);
+  };
+
+  const ciTierLabel: Record<'conservative' | 'base' | 'optimistic', string> = {
+    conservative: 'Conservative',
+    base: 'Base',
+    optimistic: 'Optimistic',
+  };
+
   return (
-    <div className="w-full max-w-[1600px] mx-auto p-4 sm:p-5 space-y-4">
-      {/* Upstream FuelEU Maritime Physical Gas Hedge Context Banner */}
-      {(deal.marketId === 'FUELEU' || (deal.counterparty && deal.feedstock === 'manure')) && (
-        <div
-          style={{
-            border: '1px solid rgba(14, 165, 233, 0.4)',
-            backgroundColor: 'rgba(14, 165, 233, 0.08)',
-            padding: '12px 16px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '12px',
-            flexWrap: 'wrap',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div
-              style={{
-                width: '34px',
-                height: '34px',
-                backgroundColor: 'rgba(14, 165, 233, 0.2)',
-                border: '1px solid rgba(14, 165, 233, 0.5)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#38bdf8',
-                fontSize: '15px',
-                flexShrink: 0,
-              }}
-            >
-              ⚓
-            </div>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                <span
-                  style={{
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    padding: '2px 8px',
-                    borderRadius: 'var(--radius-control)',
-                    backgroundColor: 'rgba(14, 165, 233, 0.15)',
-                    color: 'var(--color-accent)',
-                    border: '1px solid rgba(14, 165, 233, 0.3)',
-                  }}
-                >
-                  FuelEU Maritime Upstream Sourcing Hedge
+    <div className="tb-form">
+      {section === 'PRODUCT' && (
+        <>
+          {/* Upstream FuelEU Maritime hedge context (deal handed over from FuelEU) */}
+          {(deal.marketId === 'FUELEU' || (deal.counterparty && deal.feedstock === 'manure')) && (
+            <div className="tb-form-row">
+              <span className="tb-form-label">Counterparty</span>
+              <div className="tb-form-control">
+                <span className="tb-form-value">
+                  {deal.counterparty || 'Maritime Fleet Buyer'}{' '}
+                  <span className="tb-badge info">FuelEU Maritime Upstream Sourcing Hedge</span>
                 </span>
-                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)' }}>
-                  Marine Counterparty: {deal.counterparty || 'Maritime Fleet Buyer'}
-                </span>
-                <span className="tabular-nums" style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
-                  ({volumeMwh.toLocaleString()} MWh physical biomethane requirement)
-                </span>
-              </div>
-              <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '3px' }}>
-                Sourcing pipeline biomethane on the European gas grid via RED III Mass Balance to feed cryogenic Bio-LNG liquefaction at European bunkering terminals.
-              </div>
-            </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <span
-              className="tabular-nums"
-              style={{
-                fontSize: '12px',
-                fontWeight: 600,
-                color: 'var(--color-status-pos-text)',
-                backgroundColor: 'rgba(16, 185, 129, 0.12)',
-                border: '1px solid rgba(16, 185, 129, 0.3)',
-                borderRadius: 'var(--radius-control)',
-                padding: '4px 10px',
-              }}
-            >
-              -100 gCO₂e/MJ Manure · 100% RED III Compliant
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* 2-Column Workstation Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
-        
-        {/* Left Column: Asset Sourcing, PoS & Schedule */}
-        <div className="space-y-4">
-          
-          {/* PoS Certificate Ingestion Card */}
-          <div
-            style={{
-              border: '1px solid var(--color-divider)',
-              backgroundColor: 'var(--color-surface)',
-              borderRadius: 'var(--radius-card)',
-              padding: '14px 16px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '12px',
-              flexWrap: 'wrap',
-            }}
-          >
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, fontSize: '13px' }}>
-                <FileText size={15} style={{ color: 'var(--color-accent)' }} />
-                <span>Audited Proof of Sustainability (PoS)</span>
-              </div>
-              <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '2px' }}>
-                Auto-extract audited substrate mix, certified CI, and registration ID from ISCC EU or REDcert-EU
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={onOpenPoS}
-              className="btn btn-secondary"
-              style={{
-                borderColor: 'var(--color-accent)',
-                color: 'var(--color-accent)',
-                fontWeight: 600,
-              }}
-              data-testid="pos-uploader-btn"
-            >
-              <span>📄</span>
-              <span>Ingest PoS PDF / XML</span>
-            </button>
-          </div>
-
-          {/* Physical Asset Sourcing Locked Card (if passed) */}
-          {(deal.plantName || linkedPlant) && (
-            <div
-              style={{
-                border: '1px solid var(--color-divider)',
-                borderLeft: '4px solid var(--color-accent)',
-                backgroundColor: 'var(--color-surface)',
-                borderRadius: 'var(--radius-card)',
-                padding: '14px 16px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '18px' }}>{currentOriginObj.flag}</span>
-                  <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text)' }}>
-                    {deal.plantName || linkedPlant?.name}
-                  </span>
-                </div>
-                <span
-                  style={{
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    padding: '2px 8px',
-                    borderRadius: 'var(--radius-control)',
-                    border: '1px solid rgba(16, 185, 129, 0.4)',
-                    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-                    color: 'var(--color-status-pos-text)',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                  }}
-                >
-                  <Lock size={10} />
-                  <span>AUDITED ASSET LOCKED</span>
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs" style={{ color: 'var(--color-muted)', lineHeight: 1.5 }}>
-                <div>
-                  <strong style={{ color: 'var(--color-text)' }}>Operating Entity:</strong>{' '}
-                  {deal.legalEntityName || linkedPlant?.legalEntityName || linkedPlant?.operator || 'Operating Entity'}
-                </div>
-                <div>
-                  <strong style={{ color: 'var(--color-text)' }}>Grid Injection TSO:</strong>{' '}
-                  {deal.networkOperator || linkedPlant?.networkOperator || `${currentOriginObj.name} Gas Grid`}
-                </div>
-                {(deal.plantAnnualGWh || linkedPlant?.annualEnergyGWh) && (
-                  <div className="tabular-nums">
-                    <strong style={{ color: 'var(--color-text)' }}>Facility Capacity:</strong>{' '}
-                    {deal.plantAnnualGWh || linkedPlant?.annualEnergyGWh} GWh/y
-                  </div>
-                )}
-                {linkedPlant?.upgradingTechnology && (
-                  <div>
-                    <strong style={{ color: 'var(--color-text)' }}>Upgrading Technology:</strong>{' '}
-                    {linkedPlant.upgradingTechnology}
-                  </div>
-                )}
-                {linkedPlant?.feedstockDetails && (
-                  <div className="sm:col-span-2">
-                    <strong style={{ color: 'var(--color-text)' }}>Audited Substrates:</strong>{' '}
-                    {linkedPlant.feedstockDetails}
-                  </div>
-                )}
-                {(deal.contactEmail || linkedPlant?.contactEmail) && (
-                  <div className="sm:col-span-2" style={{ fontSize: '12px' }}>
-                    <strong style={{ color: 'var(--color-text)' }}>Desk Contact:</strong>{' '}
-                    {deal.contactEmail || linkedPlant?.contactEmail}{' '}
-                    {deal.contactPhone || linkedPlant?.contactPhone ? `· ${deal.contactPhone || linkedPlant?.contactPhone}` : ''}
-                  </div>
-                )}
+                <p className="tb-hint tb-num">
+                  {volumeMwh.toLocaleString()} MWh physical biomethane requirement · -100 gCO₂e/MJ Manure · 100% RED III Compliant. Sourcing pipeline biomethane on the European gas grid via RED III Mass Balance to feed cryogenic Bio-LNG liquefaction at European bunkering terminals.
+                </p>
               </div>
             </div>
           )}
 
-          {/* Production & Delivery Schedule */}
-          <div
-            style={{
-              border: '1px solid var(--color-divider)',
-              backgroundColor: 'var(--color-surface)',
-              borderRadius: 'var(--radius-card)',
-              overflow: 'hidden',
-            }}
-          >
-            <div
-              style={{
-                padding: '9px 14px',
-                borderBottom: '1px solid var(--color-divider)',
-                backgroundColor: 'var(--color-panel-header)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Calendar size={13} style={{ color: 'var(--color-accent)' }} />
-                <span style={{ fontSize: '13px', fontWeight: 600 }}>
-                  Production &amp; Delivery Schedule
-                </span>
-              </div>
-              <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
-                EFET biomethane schedule
-              </span>
-            </div>
-
-            <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {/* Compliance Year */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '12px', fontWeight: 600 }}>Compliance Target Year</span>
-                <div style={{ display: 'flex', gap: '4px' }}>
-                  {[2025, 2026, 2027].map(yr => (
-                    <button
-                      key={yr}
-                      type="button"
-                      className={`chip ${complianceYear === yr ? 'chip-a' : ''}`}
-                      onClick={() => handleComplianceYearChange(yr)}
-                    >
-                      {yr}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Vintage Presets */}
-              <div>
-                <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>Production Vintage (Gas Grid Injection)</span>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
-                  {[
-                    { key: 'CAL_YEAR', label: `Cal-${complianceYear}` },
-                    { key: 'Q1', label: `Q1-${complianceYear}` },
-                    { key: 'Q2', label: `Q2-${complianceYear}` },
-                    { key: 'Q3', label: `Q3-${complianceYear}` },
-                    { key: 'Q4', label: `Q4-${complianceYear}` },
-                    { key: 'PROMPT', label: 'Prompt Month' },
-                    { key: 'CUSTOM', label: 'Custom' },
-                  ].map(p => (
-                    <button
-                      key={p.key}
-                      type="button"
-                      className={`chip ${vintagePreset === p.key ? 'chip-a' : ''}`}
-                      onClick={() => handleVintagePreset(p.key)}
-                    >
-                      {p.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Date Pickers */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label style={{ fontSize: '12px', color: 'var(--color-muted)', display: 'block', marginBottom: '3px' }}>
-                    Injection Start Date
-                  </label>
-                  <input
-                    type="date"
-                    className="input tabular-nums"
-                    value={prodStartDate}
-                    onChange={e => setProdStartDate(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label style={{ fontSize: '12px', color: 'var(--color-muted)', display: 'block', marginBottom: '3px' }}>
-                    Injection End Date
-                  </label>
-                  <input
-                    type="date"
-                    className="input tabular-nums"
-                    value={prodEndDate}
-                    onChange={e => setProdEndDate(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              {/* Delivery Profile */}
-              <div>
-                <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>Delivery Rate Profile</span>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
-                  {(['FLAT_MONTHLY', 'SEASONAL_WINTER', 'PROMPT_SPOT', 'CUSTOM'] as DeliveryProfile[]).map(dp => (
-                    <button
-                      key={dp}
-                      type="button"
-                      className={`chip ${deliveryProfile === dp ? 'chip-a' : ''}`}
-                      onClick={() => setDeliveryProfile(dp)}
-                    >
-                      {dp.replace('_', ' ')}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Grid Delivery Point & Statutory Deadline Card */}
-              <div
-                style={{
-                  padding: '10px 12px',
-                  backgroundColor: 'var(--color-panel-header)',
-                  border: '1px solid var(--color-divider)',
-                  borderRadius: 'var(--radius-control)',
-                  fontSize: '12px',
-                  lineHeight: 1.5,
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
-                  <span style={{ color: 'var(--color-muted)' }}>Grid Delivery Point (VTP):</span>
-                  <strong style={{ color: 'var(--color-text)' }}>
-                    {getVtpForMarket(selectedMarket.country)}
-                  </strong>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
-                  <span style={{ color: 'var(--color-muted)' }}>Registry Surrender Deadline:</span>
-                  <strong className="tabular-nums" style={{ color: 'var(--color-accent)' }}>
-                    {statutorySurrenderDeadline}
-                  </strong>
-                </div>
-                <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '4px' }}>
-                  UDB Mass Balance Rule: Certificates must be balanced and surrendered within 12 months of injection month end (RED III Art. 30).
-                </div>
+          {/* PoS Certificate Ingestion */}
+          <div className="tb-form-row">
+            <span className="tb-form-label">Proof of Sustainability</span>
+            <div className="tb-form-control">
+              <div className="tb-row-start">
+                <button type="button" onClick={onOpenPoS} className="btn btn-secondary" data-testid="pos-uploader-btn">
+                  <FileUp size={14} />
+                  <span>Ingest PoS PDF / XML</span>
+                </button>
+                <span className="tb-hint">Auto-extract audited substrate mix, certified CI, and registration ID from ISCC EU or REDcert-EU</span>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Right Column: Specification & Volume Allocation */}
-        <div className="space-y-4">
-          
-          {/* Origin Country Selector */}
-          <div
-            style={{
-              border: '1px solid var(--color-divider)',
-              backgroundColor: 'var(--color-surface)',
-              overflow: 'hidden',
-            }}
-          >
-            <div
-              style={{
-                padding: '9px 14px',
-                borderBottom: '1px solid var(--color-divider)',
-                backgroundColor: 'var(--color-panel-header)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <span style={{ fontSize: '13px', fontWeight: 600 }}>
-                Origin Country &amp; Grid Injection Zone
-              </span>
-              <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
-                {currentOriginObj.code} · {currentOriginObj.name}
-              </span>
+          {/* Physical Asset Sourcing Locked (if passed) */}
+          {(deal.plantName || linkedPlant) && (
+            <div className="tb-form-row">
+              <span className="tb-form-label">Asset</span>
+              <div className="tb-form-control">
+                <span className="tb-form-value">
+                  {currentOriginObj.flag} {deal.plantName || linkedPlant?.name}{' '}
+                  <span className="tb-badge pos">
+                    <Lock size={11} />
+                    <span>AUDITED ASSET LOCKED</span>
+                  </span>
+                </span>
+                <dl className="tb-facts-list">
+                  <div>
+                    <dt>Operating Entity</dt>
+                    <dd>{deal.legalEntityName || linkedPlant?.legalEntityName || linkedPlant?.operator || 'Operating Entity'}</dd>
+                  </div>
+                  <div>
+                    <dt>Grid Injection TSO</dt>
+                    <dd>{deal.networkOperator || linkedPlant?.networkOperator || `${currentOriginObj.name} Gas Grid`}</dd>
+                  </div>
+                  {(deal.plantAnnualGWh || linkedPlant?.annualEnergyGWh) && (
+                    <div>
+                      <dt>Facility Capacity</dt>
+                      <dd className="tb-num">{deal.plantAnnualGWh || linkedPlant?.annualEnergyGWh} GWh/y</dd>
+                    </div>
+                  )}
+                  {linkedPlant?.upgradingTechnology && (
+                    <div>
+                      <dt>Upgrading Technology</dt>
+                      <dd>{linkedPlant.upgradingTechnology}</dd>
+                    </div>
+                  )}
+                  {linkedPlant?.feedstockDetails && (
+                    <div>
+                      <dt>Audited Substrates</dt>
+                      <dd>{linkedPlant.feedstockDetails}</dd>
+                    </div>
+                  )}
+                  {(deal.contactEmail || linkedPlant?.contactEmail) && (
+                    <div>
+                      <dt>Desk Contact</dt>
+                      <dd>
+                        {deal.contactEmail || linkedPlant?.contactEmail}{' '}
+                        {deal.contactPhone || linkedPlant?.contactPhone ? `· ${deal.contactPhone || linkedPlant?.contactPhone}` : ''}
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+              </div>
             </div>
+          )}
 
-            <div style={{ padding: '14px' }}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '8px' }}>
+          {/* Origin Country Selector */}
+          <div className="tb-form-row">
+            <span className="tb-form-label">Origin</span>
+            <div className="tb-form-control">
+              <div className="tb-chips">
                 {origins.map(o => (
                   <button
                     key={o.code}
@@ -534,141 +275,30 @@ export function TradeConsignmentStep({
                   </button>
                 ))}
               </div>
-              <p style={{ fontSize: '12px', lineHeight: 1.5, margin: '6px 0 0', color: 'var(--color-muted)' }}>
-                {currentOriginObj.desc}
-              </p>
+              <p className="tb-hint">{currentOriginObj.desc}</p>
 
               {(origin === 'GB' || currentOriginObj.isolated) && (
-                <div
-                  style={{
-                    marginTop: '10px',
-                    padding: '8px 12px',
-                    backgroundColor: 'rgba(239, 68, 68, 0.12)',
-                    border: '1px solid rgba(239, 68, 68, 0.4)',
-                    borderRadius: 'var(--radius-control)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '8px',
-                    flexWrap: 'wrap'
-                  }}
-                >
-                  <div style={{ fontSize: '12px', color: 'var(--color-status-neg-text)', fontWeight: 600 }}>
-                    🛑 Non-EU Gas Grid — Physical grid disconnected from EU UDB single mass balance area.
-                  </div>
+                <div className="tb-alert neg">
+                  <span className="tb-alert-text">
+                    <AlertTriangle size={14} /> Non-EU Gas Grid — Physical grid disconnected from EU UDB single mass balance area.
+                  </span>
                   <button
                     type="button"
-                    onClick={() => {
-                      window.dispatchEvent(new CustomEvent('open-compliance-auditor', {
-                        detail: {
-                          originCountry: origin,
-                          targetMarketId: selectedMarket?.id || 'DE_THG',
-                          feedstockCategory: currentFeedstockObj.label,
-                          carbonIntensity: ci,
-                          annualVolumeMWh: volumeMwh,
-                          initialTab: 'GATE_BREAKDOWN',
-                          focusedGateIndex: 1
-                        }
-                      }));
-                    }}
+                    onClick={() => openAuditor({ feedstockCategory: currentFeedstockObj.label, focusedGateIndex: 1 })}
                     className="btn btn-secondary"
-                    style={{ fontSize: '12px', padding: '2px 8px', color: 'var(--color-status-neg-text)', borderColor: 'var(--color-status-neg-border)', fontWeight: 600 }}
                   >
-                    ⚖ Audit UDB Cross-Border Ingestion
+                    <Scale size={13} /> Audit UDB Cross-Border Ingestion
                   </button>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Volume Allocation */}
-          <div
-            style={{
-              border: '1px solid var(--color-divider)',
-              backgroundColor: 'var(--color-surface)',
-              borderRadius: 'var(--radius-card)',
-              padding: '14px 16px',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <span style={{ fontSize: '13px', fontWeight: 600 }}>
-                Contract Traded Volume
-              </span>
-              <span className="tabular-nums" style={{ fontWeight: 600, fontSize: '16px', color: 'var(--color-accent)' }}>
-                {volumeMwh.toLocaleString()} MWh
-              </span>
-            </div>
-
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <input
-                type="number"
-                min="100"
-                step="500"
-                className="input tabular-nums"
-                style={{ fontWeight: 600, fontSize: '14px', flex: 1 }}
-                value={volumeMwh}
-                onChange={e => setVolumeMwh(Math.max(0, Number(e.target.value) || 0))}
-              />
-              <div style={{ display: 'flex', gap: '3px' }}>
-                {[5000, 10000, 25000, 50000].map(v => (
-                  <button
-                    key={v}
-                    type="button"
-                    className="chip tabular-nums"
-                    onClick={() => setVolumeMwh(v)}
-                  >
-                    {(v / 1000).toFixed(0)}k
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Run-rate breakdown */}
-            <div className="tabular-nums" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--color-muted)', marginTop: '8px' }}>
-              <span>Delivery Run-rate:</span>
-              <span>~{monthlyRateMwh.toLocaleString()} MWh/mo · {dailyRateMwh.toLocaleString()} MWh/d</span>
-            </div>
-
-            {plantTotalMWh !== null && (
-              <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--color-divider)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
-                  <span style={{ color: 'var(--color-muted)' }}>Facility Capacity Utilisation:</span>
-                  <span className="tabular-nums" style={{ fontWeight: 600, color: isOversubscribed ? 'var(--color-status-neg-text)' : 'var(--color-text)' }}>
-                    {plantCommittedPct}% ({volumeMwh.toLocaleString()} / {plantTotalMWh.toLocaleString()} MWh)
-                  </span>
-                </div>
-                <div style={{ height: '4px', backgroundColor: 'var(--color-divider)', borderRadius: 'var(--radius-bar)', position: 'relative' }}>
-                  <div
-                    style={{
-                      height: '100%',
-                      width: `${Math.min(100, plantCommittedPct || 0)}%`,
-                      borderRadius: 'var(--radius-bar)',
-                      backgroundColor: isOversubscribed ? 'var(--color-status-neg-text)' : 'var(--color-accent)',
-                    }}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Feedstock, Certification & Chain of Custody */}
-          <div
-            style={{
-              border: '1px solid var(--color-divider)',
-              backgroundColor: 'var(--color-surface)',
-              borderRadius: 'var(--radius-card)',
-              padding: '14px 16px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '14px',
-            }}
-          >
-            {/* Feedstock */}
-            <div>
-              <span style={{ fontSize: '13px', fontWeight: 600 }}>
-                Primary Feedstock Substrate
-              </span>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
+          {/* Feedstock */}
+          <div className="tb-form-row">
+            <span className="tb-form-label">Feedstock</span>
+            <div className="tb-form-control">
+              <div className="tb-chips">
                 {feedstocks.map(f => (
                   <button
                     key={f.key}
@@ -685,124 +315,87 @@ export function TradeConsignmentStep({
                   </button>
                 ))}
               </div>
-              <p style={{ fontSize: '12px', lineHeight: 1.5, margin: '6px 0 0', color: 'var(--color-muted)' }}>
-                {currentFeedstockObj.hint}
-              </p>
+              <p className="tb-hint">{currentFeedstockObj.hint}</p>
 
               {feedstockKey === 'energy_crops' && (
-                <div
-                  style={{
-                    marginTop: '10px',
-                    padding: '8px 12px',
-                    backgroundColor: 'rgba(245, 158, 11, 0.12)',
-                    border: '1px solid rgba(245, 158, 11, 0.4)',
-                    borderRadius: 'var(--radius-control)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '8px',
-                    flexWrap: 'wrap'
-                  }}
-                >
-                  <div style={{ fontSize: '12px', color: 'var(--color-status-warn-text)', fontWeight: 600 }}>
-                    ⚠ Food/Crop Cap — Energy crops are subject to statutory transport caps under RED III Art. 26.
-                  </div>
+                <div className="tb-alert warn">
+                  <span className="tb-alert-text">
+                    <AlertTriangle size={14} /> Food/Crop Cap — Energy crops are subject to statutory transport caps under RED III Art. 26.
+                  </span>
                   <button
                     type="button"
-                    onClick={() => {
-                      window.dispatchEvent(new CustomEvent('open-compliance-auditor', {
-                        detail: {
-                          originCountry: origin,
-                          targetMarketId: selectedMarket?.id || 'DE_THG',
-                          feedstockCategory: 'ENERGY_CROPS',
-                          carbonIntensity: ci,
-                          annualVolumeMWh: volumeMwh,
-                          initialTab: 'GATE_BREAKDOWN',
-                          focusedGateIndex: 3
-                        }
-                      }));
-                    }}
+                    onClick={() => openAuditor({ feedstockCategory: 'ENERGY_CROPS', focusedGateIndex: 3 })}
                     className="btn btn-secondary"
-                    style={{ fontSize: '12px', padding: '2px 8px', color: 'var(--color-status-warn-text)', borderColor: 'var(--color-status-warn-border)', fontWeight: 600 }}
                   >
-                    ⚖ Audit Quota Eligibility
+                    <Scale size={13} /> Audit Quota Eligibility
                   </button>
                 </div>
               )}
             </div>
+          </div>
 
-            {/* Scheme & Custody row */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3" style={{ borderTop: '1px solid var(--color-divider)' }}>
-              <div>
-                <span style={{ fontSize: '13px', fontWeight: 600 }}>
-                  Certification Scheme
-                </span>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
-                  {schemes.map(s => (
-                    <button
-                      key={s.scheme}
-                      type="button"
-                      className={`chip ${s.scheme === scheme ? 'chip-a' : ''}`}
-                      onClick={() => setScheme(s.scheme)}
-                    >
-                      {s.label}
-                    </button>
-                  ))}
-                </div>
-                <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '4px' }}>
-                  {currentSchemeObj.hint}
-                </div>
+          {/* Certification Scheme */}
+          <div className="tb-form-row">
+            <span className="tb-form-label">Certification</span>
+            <div className="tb-form-control">
+              <div className="tb-chips">
+                {schemes.map(sc => (
+                  <button
+                    key={sc.scheme}
+                    type="button"
+                    className={`chip ${sc.scheme === scheme ? 'chip-a' : ''}`}
+                    onClick={() => setScheme(sc.scheme)}
+                  >
+                    {sc.label}
+                  </button>
+                ))}
               </div>
-
-              <div>
-                <span style={{ fontSize: '13px', fontWeight: 600 }}>
-                  Chain of Custody
-                </span>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
-                  {custodies.map(c => (
-                    <button
-                      key={c.custody}
-                      type="button"
-                      className={`chip ${c.custody === chainOfCustody ? 'chip-a' : ''}`}
-                      onClick={() => setChainOfCustody(c.custody)}
-                    >
-                      {c.label}
-                    </button>
-                  ))}
-                </div>
-                <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '4px' }}>
-                  {currentCustodyObj.hint}
-                </div>
-              </div>
+              <p className="tb-hint">{currentSchemeObj.hint}</p>
             </div>
           </div>
 
-          {/* Carbon Intensity & Benchmark Slider */}
-          <div
-            style={{
-              border: '1px solid var(--color-divider)',
-              backgroundColor: 'var(--color-surface)',
-              borderRadius: 'var(--radius-card)',
-              padding: '14px 16px',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '13px', fontWeight: 600 }}>
-                  Carbon Intensity (CI)
-                </span>
-                {ciProvenance === 'pos' ? (
-                  <span className="chip chip-pos" title="CI taken from the uploaded Proof of Sustainability. Check it against the certificate before confirming.">PoS CI</span>
-                ) : ciProvenance === 'estimated' ? (
-                  <span className="chip chip-warn" title="Feedstock default or benchmark CI, not from an audited PoS. Treat as indicative until the producer's PoS is received.">Estimated CI</span>
-                ) : null}
-                <div style={{ display: 'flex', gap: '2px' }}>
+          {/* Chain of Custody */}
+          <div className="tb-form-row">
+            <span className="tb-form-label">Chain of custody</span>
+            <div className="tb-form-control">
+              <div className="tb-chips">
+                {custodies.map(c => (
+                  <button
+                    key={c.custody}
+                    type="button"
+                    className={`chip ${c.custody === chainOfCustody ? 'chip-a' : ''}`}
+                    onClick={() => setChainOfCustody(c.custody)}
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+              <p className="tb-hint">{currentCustodyObj.hint}</p>
+            </div>
+          </div>
+
+          {/* Carbon Intensity */}
+          <div className="tb-form-row">
+            <span className="tb-form-label">Carbon intensity</span>
+            <div className="tb-form-control">
+              <div className="tb-row">
+                <div className="tb-row-start">
+                  <span className="tb-value">
+                    {ci >= 0 ? `+${ci}` : `−${Math.abs(ci)}`}{' '}
+                    <span className="unit">gCO₂e/MJ</span>
+                  </span>
+                  {ciProvenance === 'pos' ? (
+                    <span className="chip chip-pos" title="CI taken from the uploaded Proof of Sustainability. Check it against the certificate before confirming.">PoS CI</span>
+                  ) : ciProvenance === 'estimated' ? (
+                    <span className="chip chip-warn" title="Feedstock default or benchmark CI, not from an audited PoS. Treat as indicative until the producer's PoS is received.">Estimated CI</span>
+                  ) : null}
+                </div>
+                <div className="seg" role="group" aria-label="CI benchmark tier">
                   {(['conservative', 'base', 'optimistic'] as const).map(t => (
                     <button
                       key={t}
                       type="button"
-                      className={`chip ${ciTier === t ? 'chip-a' : ''}`}
-                      style={{ padding: '1px 6px', textTransform: 'capitalize' }}
+                      className={`seg-opt ${ciTier === t ? 'active' : ''}`}
                       onClick={() => {
                         setCiTier(t);
                         const benchmark = getCountryFeedstockCI(origin, feedstockKey, t);
@@ -810,114 +403,214 @@ export function TradeConsignmentStep({
                         onCiSourceChange('estimate');
                       }}
                     >
-                      {t.slice(0, 4)}
+                      {ciTierLabel[t]}
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                <span className="tabular-nums" style={{ fontWeight: 600, fontSize: '20px', color: 'var(--color-text)' }}>
-                  {ci >= 0 ? `+${ci}` : `−${Math.abs(ci)}`}
-                </span>
-                <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>gCO₂e/MJ</span>
+              <input
+                type="range"
+                min="-150"
+                max="50"
+                step="1"
+                value={ci}
+                onChange={e => { setCi(Number(e.target.value)); onCiSourceChange('manual'); }}
+                className="tb-range"
+                aria-label="Adjust carbon intensity"
+              />
+              <div className="tb-scale">
+                <span>−150 (Deep negative manure)</span>
+                <span>0 (Neutral)</span>
+                <span>+50 (Crop)</span>
               </div>
-            </div>
 
-            {/* Range Slider */}
-            <input
-              type="range"
-              min="-150"
-              max="50"
-              step="1"
-              value={ci}
-              onChange={e => { setCi(Number(e.target.value)); onCiSourceChange('manual'); }}
-              style={{ width: '100%', cursor: 'pointer' }}
-              aria-label="Adjust carbon intensity"
-            />
-            <div className="tabular-nums" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--color-muted)', marginTop: '2px' }}>
-              <span>−150 (Deep negative manure)</span>
-              <span>0 (Neutral)</span>
-              <span>+50 (Crop)</span>
-            </div>
+              <p className="tb-hint">
+                GHG Savings vs RED III Comparator:{' '}
+                <strong className={`tb-num ${ghgSavingPct >= 65 ? 'tb-pos' : 'tb-neg'}`}>
+                  {ghgSavingPct}% {ghgSavingPct >= 65 ? '(>= 65% Compliant)' : '(< 65% Non-compliant)'}
+                </strong>
+              </p>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', paddingTop: '8px', borderTop: '1px solid var(--color-divider)' }}>
-              <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>GHG Savings vs RED III Comparator:</span>
-              <span className="tabular-nums" style={{ fontWeight: 600, fontSize: '14px', color: ghgSavingPct >= 65 ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)' }}>
-                {ghgSavingPct}% {ghgSavingPct >= 65 ? '(>= 65% Compliant)' : '(< 65% Non-compliant)'}
-              </span>
-            </div>
-
-            {ghgSavingPct < 65 && (
-              <div
-                style={{
-                  marginTop: '10px',
-                  padding: '8px 12px',
-                  backgroundColor: 'rgba(239, 68, 68, 0.12)',
-                  border: '1px solid rgba(239, 68, 68, 0.4)',
-                  borderRadius: 'var(--radius-control)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '8px',
-                  flexWrap: 'wrap'
-                }}
-              >
-                <div style={{ fontSize: '12px', color: 'var(--color-status-neg-text)', fontWeight: 600 }}>
-                  ⚠ RED III 65% Violation — Achieved {ghgSavingPct}% vs 65% minimum required (CI must be ≤ 32.9 gCO₂e/MJ).
+              {ghgSavingPct < 65 && (
+                <div className="tb-alert neg">
+                  <span className="tb-alert-text">
+                    <AlertTriangle size={14} /> RED III 65% Violation — Achieved {ghgSavingPct}% vs 65% minimum required (CI must be ≤ 32.9 gCO₂e/MJ).
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => openAuditor({ feedstockCategory: currentFeedstockObj.label, focusedGateIndex: 4 })}
+                    className="btn btn-secondary"
+                  >
+                    <Scale size={13} /> Audit Statutory Impact &amp; Remediation
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    window.dispatchEvent(new CustomEvent('open-compliance-auditor', {
-                      detail: {
-                        originCountry: origin,
-                        targetMarketId: selectedMarket?.id || 'DE_THG',
-                        feedstockCategory: currentFeedstockObj.label,
-                        carbonIntensity: ci,
-                        annualVolumeMWh: volumeMwh,
-                        initialTab: 'GATE_BREAKDOWN',
-                        focusedGateIndex: 4
-                      }
-                    }));
-                  }}
-                  className="btn btn-secondary"
-                  style={{ fontSize: '12px', padding: '2px 8px', color: 'var(--color-status-neg-text)', borderColor: 'var(--color-status-neg-border)', fontWeight: 600 }}
-                >
-                  ⚖ Audit Statutory Impact &amp; Remediation
-                </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
-      </div>
+        </>
+      )}
 
-      {/* Bottom Dock Navigation Bar */}
-      <div
-        style={{
-          border: '1px solid var(--color-divider)',
-          backgroundColor: 'var(--color-surface)',
-          borderRadius: 'var(--radius-card)',
-          padding: '10px 16px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '12px',
-        }}
-      >
-        <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
-          Step 1 of 4 · Consignment &amp; physical asset sourcing
-        </div>
+      {section === 'SCHEDULE' && (
+        <>
+          {/* Volume Allocation */}
+          <div className="tb-form-row">
+            <span className="tb-form-label">Volume</span>
+            <div className="tb-form-control">
+              <div className="tb-row-start">
+                <input
+                  type="number"
+                  min="100"
+                  step="500"
+                  className="input tb-num tb-volume-input"
+                  value={volumeMwh}
+                  onChange={e => setVolumeMwh(Math.max(0, Number(e.target.value) || 0))}
+                  aria-label="Contract traded volume (MWh)"
+                />
+                <span className="tb-label">MWh</span>
+                <div className="tb-chips">
+                  {[5000, 10000, 25000, 50000].map(v => (
+                    <button
+                      key={v}
+                      type="button"
+                      className={`chip tb-num ${volumeMwh === v ? 'chip-a' : ''}`}
+                      onClick={() => setVolumeMwh(v)}
+                    >
+                      {(v / 1000).toFixed(0)}k
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <p className="tb-hint tb-num">
+                Delivery Run-rate: ~{monthlyRateMwh.toLocaleString()} MWh/mo · {dailyRateMwh.toLocaleString()} MWh/d
+              </p>
 
-        <button
-          type="button"
-          onClick={onNext}
-          className="btn btn-primary"
-        >
-          <span>Next: Target Market &amp; 6-Gate Audit</span>
-          <ArrowRight size={13} />
-        </button>
-      </div>
+              {plantTotalMWh !== null && (
+                <div className="tb-section">
+                  <p className={`tb-hint tb-num ${isOversubscribed ? 'tb-neg' : ''}`}>
+                    Facility Capacity Utilisation: {plantCommittedPct}% ({volumeMwh.toLocaleString()} / {plantTotalMWh.toLocaleString()} MWh)
+                  </p>
+                  <div className="tb-meter">
+                    <div
+                      className={`tb-meter-fill ${isOversubscribed ? 'neg' : ''}`}
+                      style={{ width: `${Math.min(100, plantCommittedPct || 0)}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Compliance Year */}
+          <div className="tb-form-row">
+            <span className="tb-form-label">Compliance year</span>
+            <div className="tb-form-control">
+              <div className="seg tb-seg-start" role="group" aria-label="Compliance target year">
+                {[2025, 2026, 2027].map(yr => (
+                  <button
+                    key={yr}
+                    type="button"
+                    className={`seg-opt tb-num ${complianceYear === yr ? 'active' : ''}`}
+                    onClick={() => handleComplianceYearChange(yr)}
+                  >
+                    {yr}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Vintage Presets */}
+          <div className="tb-form-row">
+            <span className="tb-form-label">Production vintage</span>
+            <div className="tb-form-control">
+              <div className="tb-chips">
+                {[
+                  { key: 'CAL_YEAR', label: `Cal-${complianceYear}` },
+                  { key: 'Q1', label: `Q1-${complianceYear}` },
+                  { key: 'Q2', label: `Q2-${complianceYear}` },
+                  { key: 'Q3', label: `Q3-${complianceYear}` },
+                  { key: 'Q4', label: `Q4-${complianceYear}` },
+                  { key: 'PROMPT', label: 'Prompt Month' },
+                  { key: 'CUSTOM', label: 'Custom' },
+                ].map(pr => (
+                  <button
+                    key={pr.key}
+                    type="button"
+                    className={`chip ${vintagePreset === pr.key ? 'chip-a' : ''}`}
+                    onClick={() => handleVintagePreset(pr.key)}
+                  >
+                    {pr.label}
+                  </button>
+                ))}
+              </div>
+              <p className="tb-hint">Gas grid injection window</p>
+            </div>
+          </div>
+
+          {/* Date Pickers */}
+          <div className="tb-form-row">
+            <span className="tb-form-label">Injection dates</span>
+            <div className="tb-form-control">
+              <div className="tb-row-start">
+                <input
+                  type="date"
+                  className="input tb-num tb-date-input"
+                  value={prodStartDate}
+                  onChange={e => setProdStartDate(e.target.value)}
+                  aria-label="Injection start date"
+                />
+                <span className="tb-label">to</span>
+                <input
+                  type="date"
+                  className="input tb-num tb-date-input"
+                  value={prodEndDate}
+                  onChange={e => setProdEndDate(e.target.value)}
+                  aria-label="Injection end date"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Delivery Profile */}
+          <div className="tb-form-row">
+            <span className="tb-form-label">Delivery profile</span>
+            <div className="tb-form-control">
+              <div className="tb-chips">
+                {(['FLAT_MONTHLY', 'SEASONAL_WINTER', 'PROMPT_SPOT', 'CUSTOM'] as DeliveryProfile[]).map(dp => (
+                  <button
+                    key={dp}
+                    type="button"
+                    className={`chip ${deliveryProfile === dp ? 'chip-a' : ''}`}
+                    onClick={() => setDeliveryProfile(dp)}
+                  >
+                    {profileLabel(dp)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Grid Delivery Point & Statutory Deadline */}
+          <div className="tb-form-row">
+            <span className="tb-form-label">Delivery point</span>
+            <div className="tb-form-control">
+              <span className="tb-form-value">{getVtpForMarket(selectedMarket.country)}</span>
+              <p className="tb-hint">EFET biomethane schedule · Grid Delivery Point (VTP)</p>
+            </div>
+          </div>
+
+          <div className="tb-form-row">
+            <span className="tb-form-label">Surrender deadline</span>
+            <div className="tb-form-control">
+              <span className="tb-form-value tb-num">{statutorySurrenderDeadline}</span>
+              <p className="tb-hint">
+                UDB Mass Balance Rule: Certificates must be balanced and surrendered within 12 months of injection month end (RED III Art. 30).
+              </p>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

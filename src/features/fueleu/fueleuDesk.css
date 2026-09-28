@@ -47,7 +47,7 @@
    * align, even at very wide (2560px+) viewports — see .fe-container. */
   --fe-page-max-width: 1840px;
   --fe-page-gutter: 32px;
-  /* Sticky side panel's max-height budget: viewport minus the app shell's 52px header + 28px
+  /* Sticky side panel's max-height budget: viewport minus the app shell's 88px two-row header + 28px
    * footer (the two chrome bars outside this screen — see src/app/Layout.tsx), minus the panel's
    * own 16px sticky offset top and bottom. Verified in-browser via the scroll screenshot. */
   --fe-chrome-offset: 112px;

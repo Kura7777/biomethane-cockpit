@@ -7,7 +7,7 @@
 :root {
   --ds-page-max-width: 1840px;
   --ds-page-gutter: 32px;
-  --ds-chrome-offset: 112px;
+  --ds-chrome-offset: 112px; /* 52px header + 28px footer + 32px sticky insets */
 }
 
 @media (max-width: 1440px) {
@@ -604,4 +604,247 @@
   background: var(--color-text);
   color: var(--color-bg);
   border-color: var(--color-text);
+}
+
+/* ── Assumptions strip (shared/components/AssumptionsStrip) ── */
+.ds-assumptions {
+  padding: 16px;
+  background: var(--color-subtier);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-card);
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ds-assumptions-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ds-assumptions-link {
+  font-size: 12px;
+  color: var(--color-accent);
+}
+
+.ds-assumptions-row {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.ds-assumptions-row + .ds-assumptions-row {
+  padding-top: 12px;
+  border-top: 1px solid var(--color-divider);
+}
+
+.ds-assumptions-text {
+  min-width: 0;
+}
+
+.ds-assumptions-label {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.ds-assumptions-source {
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-muted);
+}
+
+.ds-assumptions-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.ds-assumptions-control .input {
+  width: 96px;
+  text-align: right;
+}
+
+.ds-assumptions-control .input.overridden {
+  border-color: var(--color-accent);
+}
+
+.ds-assumptions-reset {
+  cursor: pointer;
+}
+
+/* ── Vertical step flow (shared/ui/FlowSteps) ──
+ * Numbered markers on a rail, the active step open, finished steps folded to a one-line
+ * summary. Wrap in .ds-flow-column so every step shares one width and nothing resizes. */
+:root {
+  --ds-flow-max-width: 1120px;
+  --ds-flow-marker: 36px;
+  --ds-flow-rail-gap: 20px;
+}
+
+.ds-flow-column {
+  width: 100%;
+  max-width: var(--ds-flow-max-width);
+}
+
+.ds-flow {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ds-flow-step {
+  display: grid;
+  grid-template-columns: var(--ds-flow-marker) minmax(0, 1fr);
+  column-gap: var(--ds-flow-rail-gap);
+}
+
+/* Marker column: the numbered box, then the rail line down to the next step */
+.ds-flow-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ds-flow-marker {
+  width: var(--ds-flow-marker);
+  height: var(--ds-flow-marker);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-divider);
+  background: var(--color-surface);
+  color: var(--color-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.ds-flow-line {
+  flex: 1;
+  width: 1px;
+  min-height: 12px;
+  margin: 6px 0;
+  background: var(--color-divider);
+}
+
+.ds-flow-step:last-child .ds-flow-line {
+  display: none;
+}
+
+.ds-flow-step.current .ds-flow-marker {
+  border-color: var(--color-text);
+  color: var(--color-text);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-text) 10%, transparent);
+}
+
+.ds-flow-step.done .ds-flow-marker {
+  border-color: var(--color-text);
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+.ds-flow-step.done .ds-flow-line,
+.ds-flow-step.current .ds-flow-line {
+  background: color-mix(in srgb, var(--color-text) 35%, transparent);
+}
+
+/* Content column */
+.ds-flow-main {
+  min-width: 0;
+  padding-bottom: 20px;
+}
+
+.ds-flow-step.current .ds-flow-main {
+  padding-bottom: 32px;
+}
+
+.ds-flow-step:last-child .ds-flow-main {
+  padding-bottom: 0;
+}
+
+.ds-flow-head {
+  min-height: var(--ds-flow-marker);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.ds-flow-name {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font: inherit;
+}
+
+.ds-flow-title {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+
+.ds-flow-title:disabled {
+  cursor: default;
+}
+
+.ds-flow-label {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.ds-flow-step.todo .ds-flow-label {
+  color: var(--color-muted);
+  font-weight: 500;
+}
+
+.ds-flow-summary {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 14px;
+  color: var(--color-muted);
+}
+
+.ds-flow-edit {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-accent);
+  cursor: pointer;
+}
+
+.ds-flow-edit:hover {
+  text-decoration: underline;
+}
+
+.ds-flow-body {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
