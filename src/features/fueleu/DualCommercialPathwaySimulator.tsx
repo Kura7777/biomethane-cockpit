@@ -2,14 +2,19 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { buildDealUrl } from '../../domain/trade/dealParams';
 import {
-  FUELEU_TARGET_2025,
-  FUELEU_TARGET_2030,
   FUELEU_VLSFO_WTW,
   fossilLngWtw,
   penaltyEur,
   closeDeficitWithBioLng,
   DEFAULT_LNG_ENGINE,
 } from '../../domain/fueleu/calculator';
+import {
+  FUELEU_ACTIVE_PERIOD,
+  getFuelEUTargetIntensity,
+  COMPLIANCE_PERIOD_YEARS,
+  COMPLIANCE_YEAR_SHORT_LABELS,
+  COMPLIANCE_YEAR_PCT_LABELS,
+} from './complianceYears';
 import { LngEngineType } from '../../domain/fueleu/types';
 import { Zap, ShieldCheck, ArrowRight, FileText, Check, Flame } from 'lucide-react';
 import { showToast } from '../../app/DeskToastContainer';
@@ -34,21 +39,37 @@ const LNG_ENGINE_LABELS: Record<LngEngineType, string> = {
   LBSI: 'Lean-burn spark-ignited (2.6% slip)',
 };
 
+/** Prefill for a hand-off from the Vessel archetypes flow: "Compare pathways for this vessel"
+ *  carries the vessel's own deficit, GHGIE, LNG capability, compliance year and escalation. */
+export interface DualCommercialPathwayInitial {
+  deficitTco2e: number;
+  fleetActualGhgie: number;
+  isLngCapable: boolean;
+  targetYear: number;
+  consecutiveYears: number;
+}
+
+export interface DualCommercialPathwaySimulatorProps {
+  initial?: DualCommercialPathwayInitial;
+}
+
 /** FuelEU commercial pathways as a vertical three-step flow: size the fleet deficit, set the
  *  fuel and fleet, then compare inaction, physical Bio-LNG and Article 21 pooling side by side. */
-export function DualCommercialPathwaySimulator() {
+export function DualCommercialPathwaySimulator({ initial }: DualCommercialPathwaySimulatorProps = {}) {
   const navigate = useNavigate();
-  const [step, setStep] = useState<PathwayStep>(1);
+  // A hand-off from the Vessel archetypes flow already has everything decided — open straight
+  // on the comparison step instead of making the trader click back through it.
+  const [step, setStep] = useState<PathwayStep>(initial ? 3 : 1);
 
   // Deficit volume slider in tCO2e
-  const [simulatedDeficitTco2e, setSimulatedDeficitTco2e] = useState<number>(25000);
+  const [simulatedDeficitTco2e, setSimulatedDeficitTco2e] = useState<number>(initial?.deficitTco2e ?? 25000);
   const [bioLngCi, setBioLngCi] = useState<number>(-100);
-  const [targetYear, setTargetYear] = useState<2025 | 2030>(2025);
-  const [consecutiveYears, setConsecutiveYears] = useState<number>(1);
+  const [targetYear, setTargetYear] = useState<number>(initial?.targetYear ?? FUELEU_ACTIVE_PERIOD);
+  const [consecutiveYears, setConsecutiveYears] = useState<number>(initial?.consecutiveYears ?? 1);
   // Fleet actual GHG intensity (gCO2e/MJ) — the ship's own weighted-average WtW, drives the
   // statutory penalty (Annex IV Part B uses GHGIE_actual, not the fixed reference value).
-  const [fleetActualGhgie, setFleetActualGhgie] = useState<number>(91.68);
-  const [isLngCapable, setIsLngCapable] = useState<boolean>(false);
+  const [fleetActualGhgie, setFleetActualGhgie] = useState<number>(initial?.fleetActualGhgie ?? 91.68);
+  const [isLngCapable, setIsLngCapable] = useState<boolean>(initial?.isLngCapable ?? false);
   const [lngEngine, setLngEngine] = useState<LngEngineType>(DEFAULT_LNG_ENGINE);
   const [copied, setCopied] = useState<boolean>(false);
   useAssumptionsVersion();
@@ -60,7 +81,7 @@ export function DualCommercialPathwaySimulator() {
 
   // Pathway 1: Physical Bio-LNG Bunkering — Bio-LNG displaces the fuel a real fleet would
   // otherwise burn: fossil LNG for an LNG-capable fleet, VLSFO otherwise.
-  const targetGhgie = targetYear === 2030 ? FUELEU_TARGET_2030 : FUELEU_TARGET_2025;
+  const targetGhgie = getFuelEUTargetIntensity(targetYear);
   const displacedIntensity = isLngCapable ? fossilLngWtw(lngEngine) : FUELEU_VLSFO_WTW;
   const closure = closeDeficitWithBioLng({
     deficitTco2e: simulatedDeficitTco2e,
@@ -133,7 +154,7 @@ ESTIMATED PENALTY EXPOSURE (DEFAULT INACTION, ART. 23(2)): €${Math.round(statu
   };
 
   const stepSummary: Record<PathwayStep, string> = {
-    1: `${simulatedDeficitTco2e.toLocaleString()} tCO₂e · ${targetYear} target (${targetYear === 2025 ? '-2%' : '-6%'}) · ${ESCALATION_LABELS[consecutiveYears]} · fleet ${fleetActualGhgie.toFixed(2)} g/MJ`,
+    1: `${simulatedDeficitTco2e.toLocaleString()} tCO₂e · ${COMPLIANCE_YEAR_SHORT_LABELS[targetYear] ?? targetYear} target (${COMPLIANCE_YEAR_PCT_LABELS[targetYear] ?? ''}) · ${ESCALATION_LABELS[consecutiveYears]} · fleet ${fleetActualGhgie.toFixed(2)} g/MJ`,
     2: `Bio-LNG CI ${bioLngCi} g/MJ · ${isLngCapable ? `LNG fleet, ${LNG_ENGINE_LABELS[lngEngine]}` : 'VLSFO fleet'}`,
     3: '',
   };
@@ -159,13 +180,13 @@ ESTIMATED PENALTY EXPOSURE (DEFAULT INACTION, ART. 23(2)): €${Math.round(statu
         return (
           <>
             <div className="fva-section-head">
-              <span>Configure Fleet Deficit Block</span>
+              <span>Fleet deficit</span>
             </div>
 
             {/* Deficit Volume Slider */}
             <div className="fva-field">
               <div className="fva-field-row">
-                <span className="fva-label">Fleet Deficit Volume (tCO₂e):</span>
+                <span className="fva-label">Fleet deficit volume (tCO₂e):</span>
                 <input
                   type="number"
                   min={1000}
@@ -196,22 +217,19 @@ ESTIMATED PENALTY EXPOSURE (DEFAULT INACTION, ART. 23(2)): €${Math.round(statu
 
             <div className="fva-settings">
               {/* Target Compliance Year */}
-              <div className="fva-field">
-                <span className="fva-label">Target Year</span>
-                <div className="fe-seg fva-seg" role="group" aria-label="Target year">
-                  <button type="button" className={targetYear === 2025 ? 'active' : ''} onClick={() => setTargetYear(2025)}>
-                    2025 (89.34)
-                  </button>
-                  <button type="button" className={targetYear === 2030 ? 'active' : ''} onClick={() => setTargetYear(2030)}>
-                    2030 (85.69)
-                  </button>
-                </div>
-                <span className="fva-hint num">Target GHGIE {targetGhgie.toFixed(2)} g/MJ ({targetYear === 2025 ? '-2%' : '-6%'})</span>
-              </div>
+              <label className="fva-field">
+                <span className="fva-label">Compliance year</span>
+                <select value={targetYear} onChange={(e) => setTargetYear(Number(e.target.value))} className="input">
+                  {COMPLIANCE_PERIOD_YEARS.map((year) => (
+                    <option key={year} value={year}>{COMPLIANCE_YEAR_SHORT_LABELS[year]} ({getFuelEUTargetIntensity(year).toFixed(2)})</option>
+                  ))}
+                </select>
+                <span className="fva-hint num">Target GHGIE {targetGhgie.toFixed(2)} g/MJ ({COMPLIANCE_YEAR_PCT_LABELS[targetYear] ?? ''})</span>
+              </label>
 
               {/* Consecutive Years Multiplier */}
               <label className="fva-field">
-                <span className="fva-label">Escalation Vintage</span>
+                <span className="fva-label">Escalation vintage</span>
                 <select value={consecutiveYears} onChange={(e) => setConsecutiveYears(Number(e.target.value))} className="input">
                   {Object.entries(ESCALATION_LABELS).map(([years, label]) => (
                     <option key={years} value={years}>{label}</option>
@@ -222,7 +240,7 @@ ESTIMATED PENALTY EXPOSURE (DEFAULT INACTION, ART. 23(2)): €${Math.round(statu
 
               {/* Fleet Actual GHG Intensity */}
               <label className="fva-field full">
-                <span className="fva-label">Fleet Actual GHG Intensity (gCO₂e/MJ)</span>
+                <span className="fva-label">Fleet actual GHG intensity (gCO₂e/MJ)</span>
                 <input
                   type="number"
                   step="0.01"
@@ -245,7 +263,7 @@ ESTIMATED PENALTY EXPOSURE (DEFAULT INACTION, ART. 23(2)): €${Math.round(statu
             <div className="fva-subpanel">
               <div className="fva-field">
                 <div className="fva-field-row">
-                  <span className="fva-label pos">Bio-LNG Substrate CI (g/MJ):</span>
+                  <span className="fva-label pos">Bio-LNG substrate CI (g/MJ):</span>
                   <div className="fva-ci-input">
                     <input
                       type="number"
@@ -280,13 +298,13 @@ ESTIMATED PENALTY EXPOSURE (DEFAULT INACTION, ART. 23(2)): €${Math.round(statu
             {/* LNG-Capable Fleet Toggle */}
             <div className="fva-settings">
               <div className="fva-field">
-                <span className="fva-label">LNG-Capable Fleet</span>
+                <span className="fva-label">LNG-capable fleet</span>
                 <div className="fe-seg fva-seg" role="group" aria-label="Fleet fuel">
                   <button type="button" className={!isLngCapable ? 'active' : ''} onClick={() => setIsLngCapable(false)}>
-                    VLSFO Fleet
+                    VLSFO fleet
                   </button>
                   <button type="button" className={isLngCapable ? 'active' : ''} onClick={() => setIsLngCapable(true)}>
-                    LNG Fleet
+                    LNG fleet
                   </button>
                 </div>
                 <span className="fva-hint">Bio-LNG displaces {isLngCapable ? 'fossil LNG' : 'VLSFO'} ({displacedIntensity.toFixed(2)} g/MJ WtW)</span>

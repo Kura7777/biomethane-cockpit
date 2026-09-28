@@ -3,14 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import {
   VESSEL_ARCHETYPES,
   calculateVesselExposure,
-  FUELEU_TARGET_2025,
-  FUELEU_TARGET_2030,
   FUELEU_VLSFO_WTW,
   FUELEU_MGO_WTW,
   fossilLngWtw,
   LHV_VLSFO_MJ_PER_TONNE,
   LHV_MGO_MJ_PER_TONNE,
 } from '../../domain/fueleu/calculator';
+import { FUELEU_ACTIVE_PERIOD, COMPLIANCE_YEAR_PERIOD_LABELS } from './complianceYears';
 import { VesselArchetype, VesselCalculationInput } from '../../domain/fueleu/types';
 import { buildDealUrl } from '../../domain/trade/dealParams';
 import {
@@ -52,13 +51,6 @@ const CALC_STEPS: { id: CalcStep; label: string }[] = [
   { id: 4, label: 'Summary' },
 ];
 
-const COMPLIANCE_YEAR_LABELS: Record<number, string> = {
-  2025: '2025 (89.34 g/MJ, -2%)',
-  2030: '2030 (85.69 g/MJ, -6%)',
-  2035: '2035 (77.94 g/MJ, -14.5%)',
-  2040: '2040 (62.90 g/MJ, -31%)',
-};
-
 const ESCALATION_LABELS: Record<number, string> = {
   1: 'Year 1 (1.00×)',
   2: 'Year 2 (1.10×)',
@@ -81,7 +73,7 @@ export function VesselArchetypeCalculator() {
   const [lngTonnes, setLngTonnes] = useState<number>(0);
   const [bioLngTonnes, setBioLngTonnes] = useState<number>(0);
   const [bioLngCi, setBioLngCi] = useState<number>(-100);
-  const [targetYear, setTargetYear] = useState<number>(2025);
+  const [targetYear, setTargetYear] = useState<number>(FUELEU_ACTIVE_PERIOD);
   const [consecutiveYears, setConsecutiveYears] = useState<number>(1);
   const [shareThirdCountryVoyages, setShareThirdCountryVoyages] = useState<number>(
     VESSEL_ARCHETYPES[0].defaultShareThirdCountryVoyages
@@ -220,8 +212,8 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
         return (
           <>
             <div className="fva-section-head">
-              <span>Select Vessel Archetype Preset</span>
-              <span>7 Calibrated Ships · Regulation (EU) 2023/1805 Benchmark</span>
+              <span>Choose a vessel</span>
+              <span>7 vessel archetypes · illustrative fuel profiles</span>
             </div>
 
             <div className="fva-vessels" role="radiogroup" aria-label="Vessel archetype">
@@ -274,7 +266,7 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
           <>
             <div className="fva-section-head">
               <span>
-                Annual Fuel Burn Parameters · defaults from <span className="fva-ink">{activeArchetype.name}</span>
+                Fuel burn parameters · defaults from <span className="fva-ink">{activeArchetype.name}</span>
               </span>
               <button type="button" onClick={() => handleSelectArchetype(activeArchetype)} className="btn btn-secondary fva-small-btn">
                 <RotateCcw size={13} /> Reset
@@ -284,7 +276,7 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
             {/* VLSFO Tonnes Slider & Input */}
             <div className="fva-field">
               <div className="fva-field-row">
-                <span className="fva-label">VLSFO Consumption (tonnes):</span>
+                <span className="fva-label">VLSFO consumption (tonnes):</span>
                 <input
                   type="number"
                   value={vlsfoTonnes}
@@ -309,7 +301,7 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
             {/* MGO Tonnes Slider & Input */}
             <div className="fva-field">
               <div className="fva-field-row">
-                <span className="fva-label">MGO / MDO Consumption (tonnes):</span>
+                <span className="fva-label">MGO / MDO consumption (tonnes):</span>
                 <input
                   type="number"
                   value={mgoTonnes}
@@ -334,7 +326,7 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
             {/* Fossil LNG Tonnes Slider & Input */}
             <div className="fva-field">
               <div className="fva-field-row">
-                <span className="fva-label">Fossil LNG Consumption (tonnes):</span>
+                <span className="fva-label">Fossil LNG consumption (tonnes):</span>
                 <input
                   type="number"
                   value={lngTonnes}
@@ -360,7 +352,7 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
             <div className="fva-subpanel">
               <div className="fva-field">
                 <div className="fva-field-row">
-                  <span className="fva-label pos">Bio-LNG Blend (tonnes):</span>
+                  <span className="fva-label pos">Bio-LNG blend (tonnes):</span>
                   <input
                     type="number"
                     value={bioLngTonnes}
@@ -384,7 +376,7 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
               {/* Bio-LNG Carbon Intensity */}
               <div className="fva-field">
                 <div className="fva-field-row">
-                  <span className="fva-label">Bio-LNG Substrate Carbon Intensity:</span>
+                  <span className="fva-label">Bio-LNG substrate carbon intensity:</span>
                   <div className="fva-ci-input">
                     <input
                       type="number"
@@ -409,16 +401,16 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
           <>
             <div className="fva-settings">
               <label className="fva-field">
-                <span className="fva-label">Compliance Year</span>
+                <span className="fva-label">Compliance year</span>
                 <select value={targetYear} onChange={(e) => setTargetYear(Number(e.target.value))} className="input">
-                  {Object.entries(COMPLIANCE_YEAR_LABELS).map(([year, label]) => (
+                  {Object.entries(COMPLIANCE_YEAR_PERIOD_LABELS).map(([year, label]) => (
                     <option key={year} value={year}>{label}</option>
                   ))}
                 </select>
               </label>
 
               <label className="fva-field">
-                <span className="fva-label">Escalation Multiplier</span>
+                <span className="fva-label">Escalation multiplier</span>
                 <select value={consecutiveYears} onChange={(e) => setConsecutiveYears(Number(e.target.value))} className="input">
                   {Object.entries(ESCALATION_LABELS).map(([years, label]) => (
                     <option key={years} value={years}>{label}</option>
@@ -452,7 +444,7 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
             <section className="fva-card">
               <div className="fva-card-head">
                 <h3 className="fva-title">
-                  <Anchor size={16} /> Compliance Audit &amp; Statutory Exposure
+                  <Anchor size={16} /> Compliance audit &amp; statutory exposure
                 </h3>
                 <span className={`chip ${isSurplus ? 'chip-pos' : 'chip-neg'}`}>
                   {isSurplus ? 'OVER-COMPLIANT (SURPLUS)' : 'NON-COMPLIANT (DEFICIT)'}
