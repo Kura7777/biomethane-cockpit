@@ -640,10 +640,14 @@ html.dark .tb-range {
 @media (min-width: 1600px) {
   .tb-deal-layout {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) clamp(340px, 24%, 440px);
+    /* Ticket sits right next to the form (not pushed to the screen edge), with a right gutter. */
+    grid-template-columns: minmax(0, var(--ds-flow-max-width)) clamp(340px, 24%, 440px);
+    justify-content: start;
     gap: 32px;
     align-items: start;
     max-width: none;
+    padding-right: 24px;
+    box-sizing: border-box;
   }
 
   /* The form column keeps its usual fixed width and stays left-aligned within the grid track */
@@ -654,10 +658,15 @@ html.dark .tb-range {
   .tb-ticket-rail {
     display: block;
     min-width: 0;
+    margin-left: 24px; /* breathing room from the form column, whose width fills its track */
   }
 }
 
 /* ── Deal ticket rail content ── */
+.tt-aside-body {
+  padding: 20px 24px;
+  gap: 16px;
+}
 .tt-header-row {
   display: flex;
   align-items: center;

@@ -19,6 +19,8 @@ export interface DealTicketProps {
   ci: number;
   /** Same provenance classification the CI chip in step 1 uses; null reads as "Manual". */
   ciProvenance: 'pos' | 'estimated' | null;
+  /** True only when the trader moved the CI slider; otherwise a null provenance is the screen default. */
+  ciIsManual: boolean;
   isTtfSimulated: boolean;
   onBuildDealPackage: () => void;
 }
@@ -39,6 +41,7 @@ export function DealTicket({
   overallVerdict,
   ci,
   ciProvenance,
+  ciIsManual,
   isTtfSimulated,
   onBuildDealPackage,
 }: DealTicketProps) {
@@ -48,7 +51,7 @@ export function DealTicket({
   const gatesClear = gates.length - failingGates.length;
   const isBlocked = overallVerdict !== 'ELIGIBLE';
 
-  const ciLabel = ciProvenance === 'pos' ? 'PoS CI' : ciProvenance === 'estimated' ? 'Estimated CI' : 'Manual';
+  const ciLabel = ciProvenance === 'pos' ? 'PoS CI' : ciProvenance === 'estimated' ? 'Estimated CI' : ciIsManual ? 'Manual' : 'Default';
   const ciLabelClass = ciProvenance === 'pos' ? 'info' : ciProvenance === 'estimated' ? 'warn' : 'muted';
 
   const blockedTitle = failingGates.map(g => `${g.gateLabel}: ${g.reason}`).join('\n');
@@ -60,7 +63,6 @@ export function DealTicket({
           <span className="tt-id" style={{ fontFamily: MONO_FONT }}>{dealId}</span>
         </div>
         <div className="tt-route">
-          <span>{originFlag}</span>
           <span>{originCode} → {marketLabel}</span>
         </div>
       </div>

@@ -913,6 +913,7 @@ export function TradeBuilderScreen() {
 
         <div className="tb-ticket-rail">
           <DealTicket
+            ciIsManual={ciSource === 'manual'}
             dealId={currentTradeAssessment.id}
             originFlag={currentOriginObj.flag}
             originCode={origin}
