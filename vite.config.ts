@@ -23,6 +23,6 @@ export default defineConfig({
     apiServerPlugin(),
   ],
   test: {
-    exclude: ['**/node_modules/**', '**/e2e/**', '**/dist/**'],
+    exclude: ['**/node_modules/**', '**/e2e/**', '**/dist/**', '**/.claude/**'], // .claude/worktrees holds other agents' repo copies
   },
 });
