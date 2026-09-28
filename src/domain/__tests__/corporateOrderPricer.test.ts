@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest';
 import { priceCorporateOrder, buildSupplyBook, CorporateOrderSpec } from '../corporate/orderPricer';
 import { BrokerOrderEntry } from '../markets/brokerRuns';
 import { MarksState } from '../netback/types';
-import { BIOMETHANE_COMPETITORS } from '../competitors/registry';
 import { CLEAN_HEAT_PROGRAM_LEADS } from '../ets2/companies';
 
 const marks = (gbpEur: number | null): MarksState => ({
@@ -88,9 +87,8 @@ describe('corporate order pricer', () => {
   });
 });
 
-describe('sourced market maps', () => {
-  it('sources every competitor and every Clean Heat Program lead', () => {
-    for (const c of BIOMETHANE_COMPETITORS) expect(c.sources.length, c.name).toBeGreaterThan(0);
+describe('Clean Heat Program leads', () => {
+  it('sources every lead', () => {
     for (const l of CLEAN_HEAT_PROGRAM_LEADS) {
       expect(l.role).toBe('EXPOSED_END_USER');
       expect(l.evidence.length, l.name).toBeGreaterThan(0);

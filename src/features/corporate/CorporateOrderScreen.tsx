@@ -7,7 +7,6 @@ import {
   ProductForm,
   ClaimPurpose,
 } from '../../domain/corporate/orderPricer';
-import { BIOMETHANE_COMPETITORS, ARENA_LABEL } from '../../domain/competitors/registry';
 import { showToast } from '../../app/DeskToastContainer';
 
 const COUNTRIES = ['DE', 'NL', 'FR', 'DK', 'UK', 'AIB'];
@@ -250,23 +249,6 @@ export function CorporateOrderScreen() {
             )}
           </Card>
 
-          <Card title="Who else will quote this" meta="Competitors that are often also counterparties">
-            <div style={{ overflowX: 'auto' }}>
-              <table className="table">
-                <thead><tr><th>Company</th><th>Model</th><th>Arenas</th><th>Source</th></tr></thead>
-                <tbody>
-                  {BIOMETHANE_COMPETITORS.map(c => (
-                    <tr key={c.id}>
-                      <td style={{ fontWeight: 600 }}>{c.name}{c.alsoCounterparty ? <div style={{ fontSize: '11px', fontWeight: 400, color: 'var(--color-text-muted)' }}>also a counterparty</div> : null}</td>
-                      <td style={{ fontSize: '12px', maxWidth: '360px' }}>{c.model}</td>
-                      <td style={{ fontSize: '12px' }}>{c.arenas.map(a => ARENA_LABEL[a]).join(', ')}</td>
-                      <td style={{ fontSize: '12px' }}>{c.sources.map(s => <div key={s.url}><a href={s.url} target="_blank" rel="noreferrer" title={s.note}>source</a></div>)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
         </div>
       </div>
     </PageShell>
