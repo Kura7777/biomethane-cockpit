@@ -12,6 +12,7 @@ import {
   Scale,
   ShieldCheck,
   Anchor,
+  Flame,
   SlidersHorizontal,
 } from 'lucide-react';
 
@@ -38,6 +39,7 @@ export const SIDEBAR_ITEMS: NavItem[] = [
   { to: '/map', label: 'Logistics Map', keyHint: '3', icon: Globe },
   { to: '/trade', label: 'Trade Builder', keyHint: '4', icon: Zap },
   { to: '/fueleu-shipping', label: 'FuelEU Maritime', keyHint: 'M', icon: Anchor },
+  { to: '/ets2', label: 'EU ETS2', keyHint: 'E', icon: Flame },
   { to: '/pricing', label: 'Pricing Desk', keyHint: '5', icon: FileSpreadsheet },
   { to: '/connectors', label: 'Data Connectors', keyHint: 'K', icon: Zap },
   { to: '/data-sources', label: 'Data Sources', keyHint: '7', icon: Database },
@@ -59,6 +61,7 @@ export const WORKSPACE_TABS: NavItem[] = [
   // --- Group 3: Deal Execution & Maritime ---
   { to: '/trade', label: 'Trade builder', keyHint: '5', icon: Zap },
   { to: '/fueleu-shipping', label: 'FuelEU Maritime', keyHint: 'M', icon: Anchor },
+  { to: '/ets2', label: 'EU ETS2', keyHint: 'E', icon: Flame },
 
   // --- Group 4: Compliance, Audit & Governance ---
   { to: '/registries', label: 'Registries', keyHint: 'G', icon: ShieldCheck },

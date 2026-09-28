@@ -52,6 +52,7 @@ const DataSourcesScreen = lazyWithRetry(() => import('../features/provenance/Dat
 const DataConnectorsScreen = lazyWithRetry(() => import('../features/settings/DataConnectorsScreen').then(m => ({ default: m.DataConnectorsScreen })));
 const SettingsScreen = lazyWithRetry(() => import('../features/settings/SettingsScreen').then(m => ({ default: m.SettingsScreen })));
 const AssumptionsScreen = lazyWithRetry(() => import('../features/settings/AssumptionsScreen').then(m => ({ default: m.AssumptionsScreen })));
+const Ets2Screen = lazyWithRetry(() => import('../features/ets2/Ets2Screen').then(m => ({ default: m.Ets2Screen })));
 const FuelEUShippingScreen = lazyWithRetry(() => import('../features/fueleu/FuelEUShippingScreen').then(m => ({ default: m.FuelEUShippingScreen })));
 
 import { ThemeProvider } from '../store/theme';
@@ -92,6 +93,9 @@ function AppContent() {
             <Route path="/fueleu-shipping" element={<FuelEUShippingScreen />} />
             <Route path="/fueleu" element={<Navigate to="/fueleu-shipping" replace />} />
             <Route path="/shipping" element={<Navigate to="/fueleu-shipping" replace />} />
+
+            {/* EU ETS2 exposure desk */}
+            <Route path="/ets2" element={<Ets2Screen />} />
 
             {/* Supporting Tools & Desks */}
             <Route path="/trade" element={<TradeBuilderScreen />} />
