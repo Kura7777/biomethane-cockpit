@@ -105,7 +105,8 @@ export async function queryAuditor(
 
 TASK FOR CHIEF REGULATORY OFFICER:
 Perform a deep, forensic statutory compliance audit on this deal.
-Structure your assessment with:
+Start your answer with exactly one line of the form "VERDICT: APPROVED", "VERDICT: REJECTED" or "VERDICT: CONDITIONAL_PASS".
+Then structure your assessment with:
 1. Executive Statutory Verdict (APPROVED, REJECTED, or CONDITIONAL_PASS)
 2. Exhaustive 6-Gate Compliance Matrix with Pass/Fail status and exact legal citations
 3. Feedstock Lifecycle & Methane Avoidance (e_am) analysis
@@ -159,15 +160,7 @@ Structure your assessment with:
 
       const quoteProofs = extractQuoteProofsFromText(candidateText);
 
-      let verdict: AuditorResponse['verdict'] = 'INFO';
-      const lower = candidateText.toLowerCase();
-      if (lower.includes('verdict: approved') || lower.includes('approved')) {
-        verdict = 'APPROVED';
-      } else if (lower.includes('verdict: rejected') || lower.includes('rejected') || lower.includes('blocked')) {
-        verdict = 'REJECTED';
-      } else if (lower.includes('conditional')) {
-        verdict = 'CONDITIONAL_PASS';
-      }
+      const verdict = parseAuditorVerdict(candidateText);
 
       return {
         verdict,
@@ -188,6 +181,23 @@ Structure your assessment with:
   // Fall back to exhaustive deterministic audit with clear notice
   console.warn('Gemini API call failed, falling back to exhaustive deterministic audit:', lastError);
   return runExhaustiveDeterministicAudit(prompt, tradeContext, lastError || 'Unknown API connection error');
+}
+
+/**
+ * Reads the model's verdict from its explicit "VERDICT: …" line only. Free text such as
+ * "this cannot be approved" must never become APPROVED, so a missing or ambiguous verdict is
+ * INFO (unknown) — callers treat INFO as not cleared.
+ */
+export function parseAuditorVerdict(text: string): AuditorResponse['verdict'] {
+  const found = new Set<AuditorResponse['verdict']>();
+  const pattern = /^[\W\d]*(?:executive\s+statutory\s+)?verdict\W*\s*(approved|rejected|conditional[_\s-]?pass)\b/gim;
+  let m: RegExpExecArray | null;
+  while ((m = pattern.exec(text)) !== null) {
+    const v = m[1].toLowerCase();
+    found.add(v === 'approved' ? 'APPROVED' : v === 'rejected' ? 'REJECTED' : 'CONDITIONAL_PASS');
+  }
+  // Conflicting verdict lines are ambiguous: do not pick one.
+  return found.size === 1 ? [...found][0] : 'INFO';
 }
 
 function extractGateChecks(text: string): GateAuditCheck[] {
