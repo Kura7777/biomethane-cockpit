@@ -54,8 +54,9 @@ export interface FuelEuPoolIndexChartProps {
  * line rather than being bridged. Reuses the inline-SVG conventions of FuelEuProjectionChart:
  * design tokens, 12px ticks, dotted gridlines.
  */
-export function FuelEuPoolIndexChart({ width = 560, height = 220 }: FuelEuPoolIndexChartProps) {
-  const margin = { top: 20, right: 16, bottom: 30, left: 44 };
+export function FuelEuPoolIndexChart({ width = 960, height = 260 }: FuelEuPoolIndexChartProps) {
+  // Top margin holds the deadline label above the plot; right margin holds the desk-mark label beside its line.
+  const margin = { top: 32, right: 132, bottom: 30, left: 44 };
   const innerW = width - margin.left - margin.right;
   const innerH = height - margin.top - margin.bottom;
 
@@ -136,7 +137,7 @@ export function FuelEuPoolIndexChart({ width = 560, height = 220 }: FuelEuPoolIn
         </line>
         <text
           x={xPositions[DEADLINE_MONTH_INDEX] + 4}
-          y={margin.top + 10}
+          y={margin.top - 10}
           fontSize="12"
           fill="var(--color-status-warn-text, #d97706)"
         >
@@ -155,18 +156,18 @@ export function FuelEuPoolIndexChart({ width = 560, height = 220 }: FuelEuPoolIn
         >
           <title>{`Current desk mark: €${currentMark.toFixed(2)}/tCO2e`}</title>
         </line>
-        <text x={margin.left + innerW} y={yScale(currentMark) - 4} textAnchor="end" fontSize="12" fontWeight={600} fill="var(--color-text)">
+        <text x={margin.left + innerW + 8} y={yScale(currentMark) + 4} textAnchor="start" fontSize="12" fontWeight={600} fill="var(--color-text)">
           Desk mark €{currentMark.toFixed(2)}
         </text>
 
         {/* OceanScore OPX — offer-side, dashed */}
         {oceanScoreSegments.map((segment, si) => (
-          <path key={`os-${si}`} d={segmentPath(segment)} fill="none" stroke="var(--color-status-neg-text)" strokeWidth={2} strokeDasharray="5,3" />
+          <path key={`os-${si}`} d={segmentPath(segment)} fill="none" stroke="var(--color-muted)" strokeWidth={2} strokeDasharray="5,3" />
         ))}
         {oceanScorePoints.map(p => (
           <g key={`os-pt-${p.label}`}>
             <title>{`OceanScore OPX ${p.label}: €${p.value.toFixed(2)} (offer-side index) — ${p.url}`}</title>
-            <circle cx={xPositions[p.index]} cy={yScale(p.value)} r={3} fill="var(--color-status-neg-text)" />
+            <circle cx={xPositions[p.index]} cy={yScale(p.value)} r={3} fill="var(--color-muted)" />
           </g>
         ))}
 
@@ -192,7 +193,7 @@ export function FuelEuPoolIndexChart({ width = 560, height = 220 }: FuelEuPoolIn
       {/* Legend */}
       <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', fontSize: '12px', color: 'var(--color-muted)' }}>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-          <svg width="16" height="8"><line x1="0" y1="4" x2="16" y2="4" stroke="var(--color-status-neg-text)" strokeWidth={2} strokeDasharray="5,3" /></svg>
+          <svg width="16" height="8"><line x1="0" y1="4" x2="16" y2="4" stroke="var(--color-muted)" strokeWidth={2} strokeDasharray="5,3" /></svg>
           OceanScore OPX (offer-side)
         </span>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
