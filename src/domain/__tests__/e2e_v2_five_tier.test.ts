@@ -434,6 +434,7 @@ describe('Biomethane Trading Platform — Registry, Netback & Workflow Verificat
       const deepNegConsignment: Consignment = {
         ...fixtureDanishManureConsignment,
         carbonIntensity: -150.0,
+        observedBundlePriceEurPerMwh: 1e9, // no bundle cap: tests the uncapped model
       };
 
       // Formula: (94 - (-150)) * 3600 / 1e6 = 244 * 0.0036 = 0.8784 tCO2e/MWh

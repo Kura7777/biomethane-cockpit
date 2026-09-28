@@ -646,6 +646,71 @@ export function computeNetback(
     }
   }
 
+  // ── Realisable cap (desk policy, 28 Sept 2026) ──────────────────────────────────────────
+  // The modelled netback values the certificate at the full quota mark, but obligated blenders keep
+  // 30–45% of that spread, so the desk can only sell at the traded bundle price. Where a bundle
+  // reference exists (an observed price on the deal, else the DE THG desk references in the
+  // assumptions register), the headline netback, producer payable, margin and P&L are all taken at
+  // min(modelled, bundle). The uncapped figure is kept as `theoreticalNetback`.
+  const bundleIsObserved = consignment.observedBundlePriceEurPerMwh != null;
+  const bundleBenchmark = consignment.observedBundlePriceEurPerMwh ?? (
+    market.id === 'DE_THG' && consignment.carbonIntensity <= -80 ? getAssumption('risk.deThgBundleRefNeg80EurPerMwh') :
+    market.id === 'DE_THG' && consignment.carbonIntensity <= 0 ? getAssumption('risk.deThgBundleRefNeg0EurPerMwh') :
+    null
+  );
+  const priceAt = (netback: number) => {
+    let payable: number | null = null;
+    let margin: number | null = null;
+    let spread: number | null = null;
+    if (pricingMode === 'INDEX_LINKED') {
+      const share = costs.producerPricing?.indexLinkedShare ?? null;
+      if (share !== null) {
+        payable = Number((netback * share).toFixed(2));
+        margin = Number((netback - payable).toFixed(2));
+      }
+    } else if (pricingMode === 'FIXED_PRICE') {
+      const fixedPrice = costs.producerPricing?.fixedPriceEurPerMwh ?? null;
+      if (fixedPrice !== null) {
+        payable = fixedPrice;
+        margin = Number((netback - fixedPrice).toFixed(2));
+        spread = margin;
+      }
+    }
+    const vol = consignment.volumeMWh;
+    return {
+      producerPayable: payable,
+      deskMargin: margin,
+      grossValueSpread: spread,
+      marginPercent: computeMarginPercent(margin, netback),
+      deskPnL: margin !== null && vol !== null ? margin * vol : null,
+      grossSpreadPnL: spread !== null && vol !== null ? spread * vol : null,
+    };
+  };
+  const theoreticalNetback = netNetback;
+  let netbackCappedAt: number | null = null;
+  if (bundleBenchmark !== null && netNetback !== null && netNetback > bundleBenchmark) {
+    netbackCappedAt = bundleBenchmark;
+    netNetback = Number(bundleBenchmark.toFixed(2));
+    const p = priceAt(netNetback);
+    producerPayable = p.producerPayable;
+    deskMargin = p.deskMargin;
+    grossValueSpread = p.grossValueSpread;
+    marginPercent = p.marginPercent;
+    deskPnL = p.deskPnL;
+    grossSpreadPnL = p.grossSpreadPnL;
+    // Once capped, the bid/offer side choice no longer moves the price: cap both legs.
+    sides.atChosenSides = netNetback;
+    if (sides.atMid !== null) sides.atMid = Math.min(sides.atMid, netNetback);
+    sides.crossingCost = sides.atMid !== null ? Number((sides.atMid - netNetback).toFixed(2)) : null;
+  }
+  if (bundleBenchmark !== null && uncertaintyBranches) {
+    uncertaintyBranches = uncertaintyBranches.map(b => {
+      if (b.netNetback === null || b.netNetback <= bundleBenchmark) return b;
+      const capped = Number(bundleBenchmark.toFixed(2));
+      return { ...b, netNetback: capped, ...priceAt(capped) };
+    });
+  }
+
   let valuationRange: ValuationRange | null = null;
   if (uncertaintyBranches && uncertaintyBranches.length >= 2) {
     const branchNetbacks = uncertaintyBranches
@@ -707,13 +772,9 @@ export function computeNetback(
   };
 
   let clearingPriceWarning: string | null = null;
-  const bundleBenchmark = consignment.observedBundlePriceEurPerMwh ?? (
-    market.id === 'DE_THG' && consignment.carbonIntensity <= -80 ? getAssumption('risk.deThgBundleRefNeg80EurPerMwh') :
-    market.id === 'DE_THG' && consignment.carbonIntensity <= 0 ? getAssumption('risk.deThgBundleRefNeg0EurPerMwh') :
-    null
-  );
-  if (bundleBenchmark !== null && netNetback !== null && netNetback > bundleBenchmark) {
-    clearingPriceWarning = `Modelled netback (€${netNetback.toFixed(2)}/MWh) exceeds observed traded bundle price benchmark (€${bundleBenchmark.toFixed(2)}/MWh) — theoretical quota avoidance ceiling is not fully captured by desk (obligated blenders retain 30–45% of statutory spread).`;
+  if (netbackCappedAt !== null && theoreticalNetback !== null) {
+    const ref = bundleIsObserved ? 'observed traded bundle price' : 'traded bundle reference (desk estimate, Assumptions)';
+    clearingPriceWarning = `Netback capped at the ${ref} of €${netbackCappedAt.toFixed(2)}/MWh. Modelled netback (€${theoreticalNetback.toFixed(2)}/MWh) exceeds observed traded bundle price levels: it assumes the full quota value, but obligated blenders retain 30–45% of the statutory spread. Producer payable, margin and P&L use the capped figure.`;
   }
 
   return {
@@ -743,6 +804,8 @@ export function computeNetback(
     provenance: certVal?.provenance ?? null,
     principalRisk,
     clearingPriceWarning,
+    theoreticalNetback,
+    netbackCappedAt,
   };
 }
 

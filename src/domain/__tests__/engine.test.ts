@@ -450,7 +450,7 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
     });
 
     it('Both German double-counting branches carry their own producerPayable and deskMargin', () => {
-      const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
+      const consignment = { ...REFERENCE_CONSIGNMENTS.DANISH_MANURE, observedBundlePriceEurPerMwh: 1e9 }; // no bundle cap: tests the uncapped model
       const deMarket = getMarketById('DE_THG')!;
       const costs: CostInputs = {
         transferCosts: 0,
@@ -1134,7 +1134,7 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
       });
 
       it('crossingCost = atMid − atChosenSides, never negative', () => {
-        const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
+        const consignment = { ...REFERENCE_CONSIGNMENTS.DANISH_MANURE, observedBundlePriceEurPerMwh: 1e9 }; // no bundle cap: tests the uncapped model
         const deMarket = getMarketById('DE_THG')!;
         const costs: CostInputs = {
           transferCosts: 1.0,

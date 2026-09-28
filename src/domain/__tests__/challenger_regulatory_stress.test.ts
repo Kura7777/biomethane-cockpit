@@ -394,6 +394,7 @@ describe('Empirical Challenger 2 — Regulatory Boundary Conditions & Mathematic
       const testManureConsignment: Consignment = {
         ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
         carbonIntensity: -100, // 0.6984 tCO2e/MWh
+        observedBundlePriceEurPerMwh: 1e9, // no bundle cap: tests the uncapped model
         deliveryPeriod: {
           type: 'CALENDAR',
           startDate: '2026-01-01',

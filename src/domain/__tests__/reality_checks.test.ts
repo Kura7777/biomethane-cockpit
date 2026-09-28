@@ -148,7 +148,10 @@ describe('Reality Checks & Institutional Ground-Truth Suite (Task 2.5)', () => {
       };
 
       const result = computeNetback(market, consignment, sampleMarks, sampleCosts, 'bid');
-      expect(result.netNetback).toBeGreaterThan(145.0);
+      // The model exceeds the bundle, so pricing is capped at it and the uncapped figure is kept.
+      expect(result.theoreticalNetback!).toBeGreaterThan(145.0);
+      expect(result.netNetback).toBe(145.0);
+      expect(result.netbackCappedAt).toBe(145.0);
       expect(result.clearingPriceWarning).toBeDefined();
       expect(result.clearingPriceWarning).toContain('exceeds observed traded bundle price');
     });
@@ -165,7 +168,9 @@ describe('Reality Checks & Institutional Ground-Truth Suite (Task 2.5)', () => {
       const costs = result.totalCosts ?? 0;
       const expectedNetback = Number((cert + mol - costs).toFixed(2));
 
-      expect(result.netNetback).toBeCloseTo(expectedNetback, 2);
+      // Closure holds for the modelled netback; the priced netback may be capped at the bundle reference.
+      expect(result.theoreticalNetback).toBeCloseTo(expectedNetback, 2);
+      expect(result.netNetback!).toBeLessThanOrEqual(result.theoreticalNetback!);
     });
 
     it('verifies Desk Margin equals Net Netback − Producer Payable', () => {

@@ -342,7 +342,7 @@ describe('Empirical Adversarial Stress & Fuzz Suite (Milestone 1 & 3 Verificatio
         pricingSides: { certificateSide: 'bid', moleculeSide: 'bid' },
       };
 
-      const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
+      const consignment = { ...REFERENCE_CONSIGNMENTS.DANISH_MANURE, observedBundlePriceEurPerMwh: 1e9 }; // no bundle cap: tests the uncapped model
       const deMarket = getMarketById('DE_THG')!;
       const nb = computeNetback(deMarket, consignment, negGasMarks, zeroCosts, 'bid');
 

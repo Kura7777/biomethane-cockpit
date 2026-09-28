@@ -37,8 +37,8 @@ function SimulatedTag() {
       className="chip"
       title={SIMULATED_TTF_TITLE}
       style={{
-        fontSize: '11px',
-        fontWeight: 700,
+        fontSize: '12px',
+        fontWeight: 600,
         padding: '1px 6px',
         marginLeft: '6px',
         borderRadius: 'var(--radius-bar)',
@@ -88,6 +88,12 @@ export function TradeEconomicsStep({
               {currentSide.toUpperCase()} · {selectedMarket.unitLabel}
             </span>
           </div>
+          {netback.netbackCappedAt != null && netback.theoreticalNetback != null && (
+            <p className="tb-hint">
+              Realisable, capped at the traded bundle price. Modelled ceiling{' '}
+              <span className="tb-num">{signed(netback.theoreticalNetback)} / MWh</span> assumes the full quota value.
+            </p>
+          )}
           <p className="tb-hint">
             Net Netback (Delivered Parity) · All-in wholesale netback after certificate monetization, gas index value, TSO transit tariffs, and registry surrender fees.
           </p>
@@ -151,6 +157,12 @@ export function TradeEconomicsStep({
               <span>TSO gas transit tariffs ({origin} → {selectedMarket.country})</span>
               <span className="tb-neg">−€{(costs?.logistics ?? 0).toFixed(2)} / MWh</span>
             </div>
+            {netback.netbackCappedAt != null && netback.theoreticalNetback != null && (
+              <div className="tb-kv-row">
+                <span title="The market pays the traded bundle price, not the full modelled quota value">Bundle cap (not captured)</span>
+                <span className="tb-neg">−€{(netback.theoreticalNetback - netNetbackVal).toFixed(2)} / MWh</span>
+              </div>
+            )}
             {netback.producerPayable !== null && (
               <div className="tb-kv-row">
                 <span>Producer payable (offtake floor)</span>

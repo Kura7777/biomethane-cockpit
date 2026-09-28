@@ -93,7 +93,7 @@ describe('Audit remediation — statutory gating', () => {
 
 describe('Audit remediation — netback mathematics', () => {
   it('P0-2: DE_THG CY2025 desk P&L and pricing sides are stated on the doubled certificate value', () => {
-    const nb = computeNetback(getMarketById('DE_THG')!, withYear(manure, 2025), marks, fixedCosts);
+    const nb = computeNetback(getMarketById('DE_THG')!, { ...withYear(manure, 2025), observedBundlePriceEurPerMwh: 1e9 /* no bundle cap: tests the uncapped model */ }, marks, fixedCosts);
     // 280 × 0.6984 = 195.55 → × 2 = 391.10; netback = 391.10 + 30 − 6 = 415.10
     expect(nb.certificateValue?.valueEurPerMWh).toBeCloseTo(391.1, 2);
     expect(nb.netNetback).toBeCloseTo(415.1, 2);

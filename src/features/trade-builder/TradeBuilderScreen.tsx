@@ -469,6 +469,8 @@ export function TradeBuilderScreen() {
     { label: 'Certification', val: `−${certCost.toFixed(2)}`, num: certCost, kind: 'sub' },
     { label: `Transit ${origin} → ${selectedMarket.country}`, val: `−${transitCost.toFixed(2)}`, num: transitCost, kind: 'sub' },
     ...(otherCost > 0 ? [{ label: 'Other costs', val: `−${otherCost.toFixed(2)}`, num: otherCost, kind: 'sub' as const }] : []),
+    // Realisable cap: the market pays the traded bundle, not the full modelled value.
+    ...(netback.netbackCappedAt != null && netback.theoreticalNetback != null ? [{ label: 'Bundle cap (not captured)', val: `−${(netback.theoreticalNetback - netNetbackVal).toFixed(2)}`, num: netback.theoreticalNetback - netNetbackVal, kind: 'sub' as const }] : []),
     { label: 'Net netback', val: `${netNetbackVal >= 0 ? '+' : '−'}${Math.abs(netNetbackVal).toFixed(2)}`, num: Math.abs(netNetbackVal), kind: 'net' },
     ...(producerPayable !== null ? [
       { label: 'Producer payable', val: `−${producerPayable.toFixed(2)}`, num: producerPayable, kind: 'sub' as const },

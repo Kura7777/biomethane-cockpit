@@ -114,6 +114,10 @@ export interface NetbackResult {
   provenance?: MarkProvenance | null;
   principalRisk?: PrincipalRiskMetrics | null;
   clearingPriceWarning?: string | null;
+  /** Modelled netback before the realisable (bundle) cap; equals netNetback when no cap applied. */
+  theoreticalNetback?: number | null;
+  /** Bundle price the netback was capped at, or null when the modelled netback was below it. */
+  netbackCappedAt?: number | null;
 }
 
 export interface GasIndexMark {
