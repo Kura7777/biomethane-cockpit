@@ -54,3 +54,23 @@ describe('ETS1 industrial sites (EUTL)', () => {
     expect(biomethaneMWhToAbate(ETS_NATURAL_GAS_TCO2_PER_MWH * 1000)).toBeCloseTo(1000, 6);
   });
 });
+
+import { EEA_VERIFIED_2023_BY_COUNTRY } from './fixtures/eeaVerified2023';
+
+describe('ETS1 site data reconciles with the official EEA country totals (2023)', () => {
+  const byCountry: Record<string, number> = {};
+  for (const s of ETS1_SITES) byCountry[s.country] = (byCountry[s.country] ?? 0) + s.verifiedLatestTco2;
+
+  it('matches the EU-wide total within 0.5%', () => {
+    const official = Object.values(EEA_VERIFIED_2023_BY_COUNTRY).reduce((a, b) => a + b, 0);
+    const app = Object.values(byCountry).reduce((a, b) => a + b, 0);
+    expect(Math.abs(app - official) / official).toBeLessThan(0.005);
+  });
+
+  it('matches every country within 2% (registry corrections between extractions)', () => {
+    for (const [cc, official] of Object.entries(EEA_VERIFIED_2023_BY_COUNTRY)) {
+      const app = byCountry[cc] ?? 0;
+      expect(Math.abs(app - official) / official, cc).toBeLessThan(0.02);
+    }
+  });
+});
