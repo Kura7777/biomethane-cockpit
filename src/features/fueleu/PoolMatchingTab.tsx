@@ -79,6 +79,12 @@ export function PoolMatchingTab({ highlightGroupId }: PoolMatchingTabProps = {})
         <PoolPriceMark variant="block" />
       </div>
 
+      <div style={{ padding: '6px 18px', borderBottom: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)' }}>
+        <div style={{ fontSize: '12px', color: 'var(--color-muted)', lineHeight: 1.5 }}>
+          Large blocks: August 2026 volume-weighted month-end €83.13 vs €114.42 unweighted. Bids for large volumes may need to sit below the desk bid.
+        </div>
+      </div>
+
       <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)' }}>
         <FuelEuPoolIndexChart />
       </div>
