@@ -69,25 +69,42 @@ export function TradeMarketAuditStep({
       <div className="tb-form-row">
         <span className="tb-form-label">Market</span>
         <div className="tb-form-control">
-          {marketGroups.map(group => (
-            <div key={group.title} className="tb-section">
-              <span className="tb-caption">{group.title}</span>
-              <div className="tb-chips">
-                {group.markets.map(m => (
-                  <button
-                    key={m.id}
-                    type="button"
-                    className={`chip ${m.id === marketId ? 'chip-a' : ''}`}
-                    onClick={() => setMarketId(m.id)}
-                  >
-                    <span>{group.prefix ?? m.country}</span>
-                    <span>·</span>
-                    <span>{m.shortName}</span>
-                  </button>
-                ))}
+          {marketGroups.map(group => {
+            // The group heading already gives the jurisdiction/prefix context, so chips show
+            // just the market's short name with its leading country code stripped (e.g.
+            // "DE THG" -> "THG") — unless two markets in the group would then read the same,
+            // in which case only those keep a muted country-code prefix to disambiguate.
+            const displayName = (m: Market) => (
+              m.shortName.startsWith(`${m.country} `) ? m.shortName.slice(m.country.length + 1) : m.shortName
+            );
+            const displayNameCounts = new Map<string, number>();
+            group.markets.forEach(m => {
+              const name = displayName(m);
+              displayNameCounts.set(name, (displayNameCounts.get(name) || 0) + 1);
+            });
+            return (
+              <div key={group.title} className="tb-section">
+                <span className="tb-caption">{group.title}</span>
+                <div className="tb-chips">
+                  {group.markets.map(m => {
+                    const name = displayName(m);
+                    const needsPrefix = (displayNameCounts.get(name) || 0) > 1;
+                    return (
+                      <button
+                        key={m.id}
+                        type="button"
+                        className={`chip ${m.id === marketId ? 'chip-a' : ''}`}
+                        onClick={() => setMarketId(m.id)}
+                      >
+                        {needsPrefix && <span className="mut">{m.country}·</span>}
+                        <span>{name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
           <p className="tb-hint">16 statutory jurisdictions</p>
         </div>
       </div>
