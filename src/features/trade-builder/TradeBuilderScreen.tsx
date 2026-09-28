@@ -6,7 +6,9 @@ import { Consignment, CertificationScheme, ChainOfCustody, AnnexClassification, 
 import { TradeAssessment } from '../../domain/trade/types';
 import { useAppState } from '../../store/context';
 import { evaluateEligibility } from '../../domain/eligibility/engine';
-import { computeNetback } from '../../domain/netback/engine';
+import { computeNetback, selectMarkPrice } from '../../domain/netback/engine';
+import { ProducerPricing } from '../../domain/netback/types';
+import { certificateMarkSlope } from '../../domain/netback/headroom';
 import { parseDealParams } from '../../domain/trade/dealParams';
 import { LogisticsModal } from '../logistics/LogisticsModal';
 import { LegalPackageModal, DocumentTab } from './LegalPackageModal';
@@ -26,7 +28,8 @@ import { ListOrdered, LayoutGrid, CheckCircle2, XCircle, AlertTriangle, ArrowRig
 import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
 import { AssumptionsStrip } from '../../shared/components/AssumptionsStrip';
 import { FlowSteps } from '../../shared/ui/FlowSteps';
-import { DealTicket } from './DealTicket';
+import { DealTicket, BestRouteEntry, SensitivityDeltas } from './DealTicket';
+import { computeGateBadge, computeBreakEvenMark, isLinearMarkUnit } from './ticketMath';
 import './tradeBuilder.css';
 
 type DealStep = 1 | 2 | 3 | 4 | 5;
@@ -422,6 +425,102 @@ export function TradeBuilderScreen() {
     );
   }, [consignment, selectedMarket, state.marks, state.costs, assumptionsVersion]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Deal ticket: headroom (bundle-capped markets) — the mark at which the modelled netback
+  // would fall to the realisable cap, for certificate markets whose value is linear in the mark.
+  const currentMark = selectMarkPrice(state.marks.marks[selectedMarket.id], state.marks.pricingSides.certificateSide);
+  const certK = isLinearMarkUnit(selectedMarket.unitOfAccount) ? certificateMarkSlope(netback, currentMark) : null;
+  const breakEvenMark = netback.netbackCappedAt != null
+    ? computeBreakEvenMark(currentMark, certK, netback.theoreticalNetback ?? null, netback.netbackCappedAt)
+    : null;
+
+  // Deal ticket: sensitivities — only modelled when the market isn't bundle-capped (headroom
+  // text takes over there instead). Re-runs the existing engine with bumped inputs; no new
+  // pricing formulas live here.
+  const ticketSensitivities: SensitivityDeltas | null = useMemo(() => {
+    if (netback.netbackCappedAt != null) return null;
+    const base = netback.netNetback;
+    if (base === null) return null;
+
+    const bumpMark = (pct: number) => {
+      const orig = state.marks.marks[selectedMarket.id];
+      if (!orig) return null;
+      const bumped = {
+        ...orig,
+        bid: orig.bid != null ? orig.bid * (1 + pct) : orig.bid,
+        offer: orig.offer != null ? orig.offer * (1 + pct) : orig.offer,
+        mid: orig.mid != null ? orig.mid * (1 + pct) : orig.mid,
+      };
+      const bumpedMarks = { ...state.marks, marks: { ...state.marks.marks, [selectedMarket.id]: bumped } };
+      return computeNetback(selectedMarket, consignment, bumpedMarks, state.costs, state.marks.pricingSides).netNetback;
+    };
+    const bumpTtf = (delta: number) => {
+      const gi = state.marks.gasIndex;
+      const bumped = {
+        ...gi,
+        bid: gi.bid != null ? gi.bid + delta : gi.bid,
+        offer: gi.offer != null ? gi.offer + delta : gi.offer,
+        mid: gi.mid != null ? gi.mid + delta : gi.mid,
+      };
+      const bumpedMarks = { ...state.marks, gasIndex: bumped };
+      return computeNetback(selectedMarket, consignment, bumpedMarks, state.costs, state.marks.pricingSides).netNetback;
+    };
+    const bumpCi = (delta: number) => {
+      const bumpedConsignment = { ...consignment, carbonIntensity: consignment.carbonIntensity + delta };
+      return computeNetback(selectedMarket, bumpedConsignment, state.marks, state.costs, state.marks.pricingSides).netNetback;
+    };
+    const delta = (v: number | null) => (v === null ? null : Number((v - base).toFixed(2)));
+
+    return {
+      markUp: delta(bumpMark(0.10)),
+      markDown: delta(bumpMark(-0.10)),
+      ttfUp: delta(bumpTtf(2)),
+      ttfDown: delta(bumpTtf(-2)),
+      ciUp: delta(bumpCi(10)),
+      ciDown: delta(bumpCi(-10)),
+    };
+  }, [netback, consignment, selectedMarket, state.marks, state.costs]);
+
+  // Deal ticket: best route — realisable netback in every other active market, using the same
+  // engine and eligibility function this screen already uses, excluding hard blocks.
+  const bestRoutes: BestRouteEntry[] = useMemo(() => {
+    const t0 = process.env.NODE_ENV !== 'production' ? performance.now() : 0;
+    const results = MARKETS
+      .filter(m => m.status === 'ACTIVE' && m.id !== selectedMarket.id)
+      .map(m => {
+        const a = evaluateEligibility(consignment, m);
+        if (a.overallVerdict === 'HARD_BLOCK') return null;
+        const nb = computeNetback(m, consignment, state.marks, state.costs, state.marks.pricingSides);
+        if (nb.netNetback === null) return null;
+        return { marketId: m.id, marketName: m.name, netNetback: nb.netNetback, verdict: a.overallVerdict } as BestRouteEntry;
+      })
+      .filter((r): r is BestRouteEntry => r !== null)
+      .sort((a, b) => (b.netNetback ?? -Infinity) - (a.netNetback ?? -Infinity))
+      .slice(0, 3);
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console
+      console.log(`[DealTicket] best-route recompute: ${(performance.now() - t0).toFixed(1)}ms`);
+    }
+    return results;
+  }, [consignment, selectedMarket, state.marks, state.costs]);
+
+  const handleProducerPricingChange = (patch: Partial<ProducerPricing>) => {
+    const current = state.costs.producerPricing;
+    dispatch({
+      type: 'SET_COSTS',
+      costs: {
+        producerPricing: {
+          mode: current?.mode ?? 'INDEX_LINKED',
+          fixedPriceEurPerMwh: current?.fixedPriceEurPerMwh ?? null,
+          indexLinkedShare: current?.indexLinkedShare ?? null,
+          source: current?.source ?? null,
+          lastVerified: current?.lastVerified ?? null,
+          confidence: current?.confidence ?? 'UNVERIFIED',
+          ...patch,
+        },
+      },
+    });
+  };
+
   // GHG savings % uses correct comparator per market sector:
   // Heat/Industrial (EU_ETS, DE_GO, NL_GO, FR_GO, VOL_SCOPE1) → 80 gCO₂e/MJ comparator (RED III Art. 29(10) heat)
   // Transport/Maritime/RTFO → 94 gCO₂e/MJ comparator (RED III Art. 29(10) transport)
@@ -544,11 +643,7 @@ export function TradeBuilderScreen() {
 
   // Same gate data step 3 ("Market & 6-gate audit") uses — never recompute eligibility separately.
   const failingGates = assessment.gates.filter(g => g.verdict !== 'PASS');
-  const blockedBadgeLabel = failingGates.length === 0
-    ? 'Blocked'
-    : failingGates.length === 1
-      ? `Blocked · ${failingGates[0].gateLabel}`
-      : `Blocked · ${failingGates.length} gates`;
+  const headerGateBadge = computeGateBadge(assessment.gates, assessment.overallVerdict);
   const blockedBadgeTitle = failingGates
     .map(g => `${g.gateLabel}: ${g.reason}`)
     .join('\n');
@@ -701,7 +796,7 @@ export function TradeBuilderScreen() {
               </strong>
             </div>
 
-            {assessment.overallVerdict === 'ELIGIBLE' ? (
+            {headerGateBadge.tone === 'pos' ? (
               <span
                 style={{
                   fontSize: '12px',
@@ -713,7 +808,7 @@ export function TradeBuilderScreen() {
                   color: 'var(--color-status-pass-text)',
                 }}
               >
-                ● 6/6 GATES PASS
+                ● {headerGateBadge.label.toUpperCase()}
               </span>
             ) : (
               <button
@@ -725,13 +820,13 @@ export function TradeBuilderScreen() {
                   fontWeight: 600,
                   padding: '3px 8px',
                   borderRadius: 'var(--radius-bar)',
-                  border: '1px solid var(--color-status-neg-border)',
-                  backgroundColor: 'var(--color-status-neg-bg)',
-                  color: 'var(--color-status-neg-text)',
+                  border: `1px solid ${headerGateBadge.tone === 'neg' ? 'var(--color-status-neg-border)' : 'var(--color-status-warn-border)'}`,
+                  backgroundColor: headerGateBadge.tone === 'neg' ? 'var(--color-status-neg-bg)' : 'var(--color-status-warn-bg)',
+                  color: headerGateBadge.tone === 'neg' ? 'var(--color-status-neg-text)' : 'var(--color-status-warn-text)',
                   cursor: 'pointer',
                 }}
               >
-                ● {blockedBadgeLabel}
+                ● {headerGateBadge.label}
               </button>
             )}
 
@@ -917,17 +1012,30 @@ export function TradeBuilderScreen() {
             dealId={currentTradeAssessment.id}
             originFlag={currentOriginObj.flag}
             originCode={origin}
+            originName={currentOriginObj.name}
             marketLabel={ticketMarketLabel}
             netback={netback}
             volumeMwh={volumeMwh}
             annualPnl={annualPnl}
-            grossTotal={grossTotal}
             gates={assessment.gates}
             overallVerdict={assessment.overallVerdict}
             ci={ci}
             ciProvenance={ciProvenance}
             isTtfSimulated={isTtfSimulated}
             onBuildDealPackage={() => handleStepChange(5)}
+            onGoToGate={() => handleStepChange(3)}
+            feedstockLabel={currentFeedstockObj.label}
+            schemeLabel={currentSchemeObj.label}
+            custodyLabel={currentCustodyObj.label}
+            vintageLabel={vintagePreset === 'CAL_YEAR' ? `CAL ${complianceYear}` : `${vintagePreset} ${complianceYear}`}
+            producerPricing={state.costs.producerPricing ?? null}
+            onProducerPricingChange={handleProducerPricingChange}
+            marketUnitLabel={selectedMarket.unitLabel}
+            breakEvenMark={breakEvenMark}
+            currentMark={currentMark}
+            sensitivities={ticketSensitivities}
+            bestRoutes={bestRoutes}
+            onSwitchMarket={setMarketId}
           />
         </div>
         </div>
