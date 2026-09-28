@@ -1,1900 +1,659 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ChevronDown, ChevronRight, ExternalLink, X } from 'lucide-react';
 import {
-  REGISTRY_METADATA_TABLE,
-  BASELINE_INJECTION_BATCHES,
-  BASELINE_BALANCE_OF_TRADE,
-  verifyRegistryTransfer,
-  advanceTitleTransferStatus,
-  parseRegistryFile,
-  RegistryImportResult,
-  fetchEnerginetBiomethaneInjections,
-  EnerginetLiveFlowData,
-  fetchPanEuropeanTsoTelemetry,
-  TsoNetworkMetrics,
-  RegistryId,
-  InjectionBatch,
-  CrossBorderTransferRequest,
-  CertificateTransferProtocol,
-  UDBTitleTransferStatus,
-  RegistryTransferVerification,
-} from '../../domain/registries';
+  REGISTRY_DIRECTORY,
+  RegistryDirectoryEntry,
+  TriState,
+  getRegistryByCountry,
+} from '../../domain/registries/registryDirectory';
 import {
-  ArrowLeftRight,
-  ShieldCheck,
-  Building2,
-  Scale,
-  CheckCircle2,
-  XCircle,
-  AlertTriangle,
-  RefreshCw,
-  Send,
-  Lock,
-  Upload,
-  Database,
-  Activity,
-  FileSpreadsheet,
-  Check,
-  Zap,
-  Radio,
-  Clock,
-  Globe2,
-} from 'lucide-react';
-import { showToast } from '../../app/DeskToastContainer';
+  fetchEnerginetDailyBiogas,
+  EnerginetBiogasResult,
+} from '../../domain/registries/energinetApi';
+import {
+  fetchOdreAnnualProduction,
+  OdreAnnualProductionData,
+} from '../../domain/registries/tsoFlowApi';
+import { KpiRow, KpiTile } from '../../shared/ui/KpiTile';
+import './registries.css';
+
+// ---------------------------------------------------------------------------
+// Sourced reference data (scratch/registry_research/*.md, accessed 2026-09-28)
+// ---------------------------------------------------------------------------
+
+const UDB_SOURCE_URL = 'https://www.europeanbiogas.eu/publication/union-database-leaflet/';
+const ERGAR_STATS_URL = 'https://www.ergar.org/ergar-schemes/coo-scheme-statistics/';
+const EBA_STAT_REPORT_URL = 'https://www.europeanbiogas.eu/news/eba-statistical-report-2025/';
+
+interface ProductionStatRow {
+  countryCode: string;
+  countryName: string;
+  latestYear: string;
+  figure: string;
+  source: string;
+  sourceUrl: string;
+}
+
+// From scratch/registry_research/production_stats.md — only figures with a direct source pull.
+const PRODUCTION_STATS: ProductionStatRow[] = [
+  {
+    countryCode: 'EU',
+    countryName: 'EU-27 (biomethane only)',
+    latestYear: '~2024/2025',
+    figure: '4.3 bcm (of 5.2 bcm biomethane across wider Europe)',
+    source: 'European Biogas Association, 15th Statistical Report (Dec 2025)',
+    sourceUrl: EBA_STAT_REPORT_URL,
+  },
+  {
+    countryCode: 'DE',
+    countryName: 'Germany',
+    latestYear: '2023',
+    figure: '~10.4 TWh',
+    source: "dena Biomethane Industry Barometer 2023 (2024: 1.4 bcm injected ≈ 14.8–15.4 TWh, converted)",
+    sourceUrl: EBA_STAT_REPORT_URL,
+  },
+  {
+    countryCode: 'NL',
+    countryName: 'Netherlands',
+    latestYear: '2024',
+    figure: '294 million m³ ≈ 3.1–3.2 TWh (converted)',
+    source: 'IEA Bioenergy Netherlands country report / Biomassa Feiten',
+    sourceUrl: EBA_STAT_REPORT_URL,
+  },
+  {
+    countryCode: 'ES',
+    countryName: 'Spain',
+    latestYear: 'end-2024',
+    figure: '~1.86 TWh (42 plants); 2021 baseline was 0.25 TWh',
+    source: 'Enaгás/Sedigas-adjacent industry coverage; RSC journal (2021 baseline)',
+    sourceUrl: EBA_STAT_REPORT_URL,
+  },
+  {
+    countryCode: 'FR',
+    countryName: 'France',
+    latestYear: '2023',
+    figure: '7,907,571 GOs issued (≈7.9 TWh, +18% YoY)',
+    source: 'GRDF/EEX RGO 2023 activity report',
+    sourceUrl: EBA_STAT_REPORT_URL,
+  },
+  {
+    countryCode: 'DK',
+    countryName: 'Denmark',
+    latestYear: '2023',
+    figure: '~40% of the Danish gas system is biomethane (no absolute TWh sourced)',
+    source: 'Energinet / IEA Bioenergy Denmark country report',
+    sourceUrl: EBA_STAT_REPORT_URL,
+  },
+  {
+    countryCode: 'PL',
+    countryName: 'Poland',
+    latestYear: '2025',
+    figure: 'First industrial-scale grid-connected plant, 9 September 2025 — no meaningful national total yet',
+    source: 'gasworld.com; Baker McKenzie insight',
+    sourceUrl: EBA_STAT_REPORT_URL,
+  },
+  {
+    countryCode: 'PT',
+    countryName: 'Portugal',
+    latestYear: '2022',
+    figure: 'Joined biomethane-producing countries in 2022 — no country-level TWh sourced',
+    source: 'European Biogas Association Statistical Report 2025',
+    sourceUrl: EBA_STAT_REPORT_URL,
+  },
+  {
+    countryCode: 'LT',
+    countryName: 'Lithuania',
+    latestYear: '2023',
+    figure: 'Joined biomethane-producing countries in 2023 — no country-level TWh sourced',
+    source: 'European Biogas Association Statistical Report 2025',
+    sourceUrl: EBA_STAT_REPORT_URL,
+  },
+];
+
+const UNVERIFIED_PRODUCTION_COUNTRIES = 'Italy, UK, Austria, Belgium, Sweden, Switzerland, Finland, Norway, Czechia, Ireland, Hungary, Estonia, Latvia, Slovakia';
+
+const CORRECTIONS_TEXT: string[] = [
+  "Spain: the old figures showed a 1.1 TWh gross export (58% of issuance) with no confirmed ERGaR activity for Spain and a market that only reached ~1.86 TWh of production by end-2024 (from 0.25 TWh biomethane in 2021) — that export figure has no supporting source and is very likely fabricated.",
+  'Poland: the old figures showed ~0.95 TWh issuance and 0.2 TWh of exports for a country whose first industrial-scale grid-connected plant went live on 9 September 2025 — not credible on this timeline.',
+  'Portugal and Lithuania: the old figures showed the highest (64.0%) and third-highest (60.71%) export shares of all 22 countries, for markets that only started producing biomethane in 2022 and 2023 respectively — treat as unverified/likely overstated.',
+  'France: the old figures implied broad cross-border capability (ERGaR + UDB direct transfer), but a GRDF/Cegibat explainer states French GOs are usable only in France — "there is no European market for guarantees of origin" for French-origin gas.',
+  'ERGaR-wide: total confirmed ERGaR cross-border activity is on the order of ~4 TWh/year (2025); the old per-country export figures (e.g. Denmark alone at 5.6 TWh) were an order of magnitude larger than the entire confirmed EU-wide ERGaR flow — an internal-consistency red flag independent of any single-country critique.',
+];
+
+// Compliance markets named in the research (udb_process.md / registries.md) — kept short and honest;
+// not every market referenced elsewhere in the app has a sourced entry here.
+interface ComplianceMarket {
+  id: string;
+  label: string;
+  countryCode: string;
+}
+
+const COMPLIANCE_MARKETS: ComplianceMarket[] = [
+  { id: 'DE_THG', label: 'Germany — THG-Quote', countryCode: 'DE' },
+  { id: 'FR_TIRUERT', label: 'France — TIRUERT', countryCode: 'FR' },
+  { id: 'IT_CIC', label: 'Italy — CIC', countryCode: 'IT' },
+  { id: 'UK_RTFO', label: 'United Kingdom — RTFO', countryCode: 'GB' },
+];
+
+// A handful of specific bilateral/known routes called out explicitly in the research.
+const KNOWN_BILATERAL: { from: string; to: string; note: string; since: string }[] = [
+  { from: 'DK', to: 'DE', note: 'Bilateral agreement between Energinet and dena', since: '1 October 2017' },
+  { from: 'AT', to: 'DE', note: 'Bilateral agreement between AGCS and dena — first of its kind in Europe', since: '2016' },
+];
+
+function triLabel(v: TriState): string {
+  if (v === true) return 'Yes';
+  if (v === false) return 'No';
+  return 'Unverified';
+}
+
+function triChipClass(v: TriState): string {
+  if (v === true) return 'chip-pass';
+  if (v === false) return 'chip-neutral';
+  return 'chip-warn';
+}
+
+function verificationChipClass(level: RegistryDirectoryEntry['verificationLevel']): string {
+  if (level === 'VERIFIED') return 'chip-pass';
+  if (level === 'PARTIAL') return 'chip-warn';
+  return 'chip-neutral';
+}
+
+// ---------------------------------------------------------------------------
+// Route checker logic
+// ---------------------------------------------------------------------------
+
+interface RouteEvaluation {
+  supported: boolean;
+  headline: string;
+  routeLines: string[];
+  blockerLines: string[];
+  sourceUrls: { label: string; url: string }[];
+}
+
+function evaluateRoute(origin: RegistryDirectoryEntry, destinationCode: string, destIsMarket: boolean, destMarket?: ComplianceMarket, destRegistry?: RegistryDirectoryEntry): RouteEvaluation {
+  const routeLines: string[] = [];
+  const blockerLines: string[] = [];
+  const sourceUrls: { label: string; url: string }[] = [{ label: 'ERGaR CoO scheme statistics', url: ERGAR_STATS_URL }];
+
+  // Known named blockers, regardless of destination
+  if (origin.countryCode === 'IT') {
+    blockerLines.push('Italian plants receiving production incentives (e.g. DM 2022) are blocked from cross-border GO export on Certigy — only non-incentivised plants can export.');
+  }
+  if (origin.countryCode === 'FR') {
+    blockerLines.push('French GOs are reported as usable only in France (GRDF/Cegibat): "there is no European market for guarantees of origin" for French-origin gas.');
+  }
+
+  const bilateral = KNOWN_BILATERAL.find(b => b.from === origin.countryCode && (destIsMarket ? destMarket?.countryCode === b.to : destinationCode === b.to));
+  if (bilateral) {
+    routeLines.push(`Bilateral route: ${bilateral.note}, in place since ${bilateral.since}.`);
+  }
+
+  if (!destIsMarket && destRegistry) {
+    // Registry-to-registry: check ERGaR / AIB overlap
+    if (origin.ergar === true && destRegistry.ergar === true) {
+      routeLines.push(`ERGaR Certificate of Origin (CoO) scheme: both ${origin.countryName} and ${destRegistry.countryName} are confirmed ERGaR participants in this research.`);
+    } else if (origin.ergar === true || destRegistry.ergar === true) {
+      routeLines.push('ERGaR CoO scheme: only one side of this pair is a confirmed ERGaR participant in this research — a direct transfer between these two specific registries was not itemised.');
+    }
+    if (origin.aibGasScheme === true && destRegistry.aibGasScheme === true) {
+      routeLines.push(`AIB EECS Gas Scheme hub: both ${origin.countryName} and ${destRegistry.countryName} are confirmed AIB Gas Scheme Group members, so GO transfer via the hub is structurally supported (specific transaction volumes for this exact pair were not itemised in this research).`);
+    }
+  } else if (destIsMarket && destMarket) {
+    // Registry-to-compliance-market: the GO/PoS distinction from udb_process.md
+    routeLines.push(
+      `The Guarantee of Origin (GO) issued by ${origin.registryName} is a disclosure instrument (RED Art. 19), not a compliance instrument. Counting toward ${destMarket.label} requires a valid Proof of Sustainability (PoS) chain — via the Union Database (not yet live; launch postponed to end-2026 per EBA) or the relevant national/voluntary sustainability scheme recognised by that compliance market. This research does not confirm whether ${origin.countryName}-origin gas is recognised by ${destMarket.label} at the certificate level.`
+    );
+    sourceUrls.push({ label: 'UDB vs GO vs PoS distinction (udb_process.md)', url: UDB_SOURCE_URL });
+  }
+
+  const supported = routeLines.length > 0;
+  const headline = supported
+    ? `Our sources support a route from ${origin.countryName} to ${destIsMarket ? destMarket?.label : destRegistry?.countryName}.`
+    : 'Not supported by our sources — check with the registry.';
+
+  return { supported, headline, routeLines, blockerLines, sourceUrls };
+}
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
+type TabId = 'directory' | 'routes' | 'production' | 'live';
 
 export function RegistryHub() {
-  // Navigation View State
-  const [activeHubView, setActiveHubView] = useState<'OVERVIEW' | 'TELEMETRY' | 'INGESTION' | 'LEDGER' | 'SIMULATOR'>('OVERVIEW');
+  const [activeTab, setActiveTab] = useState<TabId>('directory');
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const [correctionsOpen, setCorrectionsOpen] = useState(false);
 
-  // Custom Ingested Batches & Ingestion State
-  const [customBatches, setCustomBatches] = useState<InjectionBatch[]>([]);
-  const [lastIngestResult, setLastIngestResult] = useState<RegistryImportResult | null>(null);
-  const [isSyncingEnerginet, setIsSyncingEnerginet] = useState(false);
-  const [energinetLiveStats, setEnerginetLiveStats] = useState<EnerginetLiveFlowData | null>(null);
+  const [routeOrigin, setRouteOrigin] = useState<string>('DK');
+  const [routeDestIsMarket, setRouteDestIsMarket] = useState(false);
+  const [routeDest, setRouteDest] = useState<string>('DE');
 
-  // Live Flow Telemetry State
-  const [tsoMetrics, setTsoMetrics] = useState<TsoNetworkMetrics | null>(null);
-  const [isSyncingAllTso, setIsSyncingAllTso] = useState(false);
-  const [autoPollInterval, setAutoPollInterval] = useState<number>(30); // in seconds, 0 = Off
-  const [telemetrySearch, setTelemetrySearch] = useState('');
-  const [telemetryCountryFilter, setTelemetryCountryFilter] = useState('ALL');
-  const [telemetryGridFilter, setTelemetryGridFilter] = useState('ALL');
-  const [lastTelemetrySync, setLastTelemetrySync] = useState<string>('');
+  const [energinet, setEnerginet] = useState<EnerginetBiogasResult | null>(null);
+  const [odre, setOdre] = useState<OdreAnnualProductionData | null>(null);
 
-  // State for flow ledger filters
-  const [selectedRegistryFilter, setSelectedRegistryFilter] = useState<string>('ALL');
-  const [selectedFeedstockFilter, setSelectedFeedstockFilter] = useState<string>('ALL');
-  const [selectedGridFilter] = useState<string>('ALL');
-  const [selectedUdbFilter] = useState<string>('ALL');
-  const [searchBatchQuery, setSearchBatchQuery] = useState<string>('');
-
-  // Selected batch for detail modal
-  const [selectedBatch, setSelectedBatch] = useState<InjectionBatch | null>(null);
-
-  // Transfer Simulator State
-  const [sourceRegistry, setSourceRegistry] = useState<RegistryId>('ENERGINET');
-  const [targetRegistry, setTargetRegistry] = useState<RegistryId>('DENA');
-  const [transferProtocol, setTransferProtocol] = useState<CertificateTransferProtocol>('ERGAR_COO');
-  const [selectedBatchIds, setSelectedBatchIds] = useState<string[]>(['BATCH-DK-2026-001']);
-  const [customTransferVolume, setCustomTransferVolume] = useState<number>(48500);
-  const [udbRequired, setUdbRequired] = useState<boolean>(true);
-  const [bilateralTreatySimulated, setBilateralTreatySimulated] = useState<boolean>(false);
-  const [simulatorUdbState, setSimulatorUdbState] = useState<UDBTitleTransferStatus>('ESCROW_LOCKED');
-  const [transferSuccessMessage, setTransferSuccessMessage] = useState<string | null>(null);
-
-  const allRegistriesList = useMemo(() => Object.values(REGISTRY_METADATA_TABLE), []);
-
-  // Fetch Live TSO Telemetry
-  const syncTelemetryData = async () => {
-    setIsSyncingAllTso(true);
-    try {
-      const data = await fetchPanEuropeanTsoTelemetry();
-      setTsoMetrics(data);
-      setLastTelemetrySync(new Date().toLocaleTimeString());
-    } finally {
-      setIsSyncingAllTso(false);
-    }
-  };
-
-  // Initial Telemetry Fetch & Auto-poll
+  // Fetch lazily, only once, when this tab mounts — never on app-wide page load.
   useEffect(() => {
-    syncTelemetryData();
+    let cancelled = false;
+    fetchEnerginetDailyBiogas().then(r => { if (!cancelled) setEnerginet(r); });
+    fetchOdreAnnualProduction().then(r => { if (!cancelled) setOdre(r); });
+    return () => { cancelled = true; };
   }, []);
 
-  useEffect(() => {
-    if (autoPollInterval <= 0) return;
-    const interval = setInterval(() => {
-      syncTelemetryData();
-    }, autoPollInterval * 1000);
-    return () => clearInterval(interval);
-  }, [autoPollInterval]);
+  const selectedEntry = selectedCountry ? getRegistryByCountry(selectedCountry) : undefined;
 
-  // Overview metrics calculations
-  const overviewMetrics = useMemo(() => {
-    const totalIssuance = BASELINE_BALANCE_OF_TRADE.reduce((acc, r) => acc + r.totalIssuanceMWh, 0);
-    const totalDomestic = BASELINE_BALANCE_OF_TRADE.reduce((acc, r) => acc + r.domesticConsumptionMWh, 0);
-    const totalCancellations = BASELINE_BALANCE_OF_TRADE.reduce((acc, r) => acc + r.totalCancellationsMWh, 0);
-    const totalEscrow = BASELINE_BALANCE_OF_TRADE.reduce((acc, r) => acc + r.activeEscrowMWh, 0);
-    const netExporters = BASELINE_BALANCE_OF_TRADE.filter(r => r.tradeRole === 'NET_EXPORTER').length;
-    const netImporters = BASELINE_BALANCE_OF_TRADE.filter(r => r.tradeRole === 'NET_IMPORTER').length;
+  const sortedDirectory = useMemo(
+    () => [...REGISTRY_DIRECTORY].sort((a, b) => a.countryName.localeCompare(b.countryName)),
+    []
+  );
 
-    return {
-      totalIssuanceTWh: (totalIssuance / 1000000).toFixed(2),
-      totalDomesticTWh: (totalDomestic / 1000000).toFixed(2),
-      totalCancellationsTWh: (totalCancellations / 1000000).toFixed(2),
-      totalEscrowTWh: (totalEscrow / 1000000).toFixed(2),
-      netExportersCount: netExporters,
-      netImportersCount: netImporters,
-      totalRegistriesCount: BASELINE_BALANCE_OF_TRADE.length,
-    };
-  }, []);
-
-  const allBatches = useMemo(() => [...customBatches, ...BASELINE_INJECTION_BATCHES], [customBatches]);
-
-  const handleSyncEnerginet = async () => {
-    setIsSyncingEnerginet(true);
-    try {
-      const data = await fetchEnerginetBiomethaneInjections();
-      setEnerginetLiveStats(data);
-      if (data.batches.length > 0) {
-        setCustomBatches(prev => [...data.batches, ...prev]);
-      }
-      showToast(`Energinet sync complete · ${data.activeInjectionPoints} TSO points updated`);
-    } finally {
-      setIsSyncingEnerginet(false);
+  const routeResult = useMemo(() => {
+    const origin = getRegistryByCountry(routeOrigin);
+    if (!origin) return null;
+    if (routeDestIsMarket) {
+      const market = COMPLIANCE_MARKETS.find(m => m.id === routeDest);
+      if (!market) return null;
+      return evaluateRoute(origin, routeDest, true, market, undefined);
     }
-  };
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const content = event.target?.result as string;
-      if (!content) return;
-      const result = parseRegistryFile(content, file.name);
-      setLastIngestResult(result);
-      if (result.success && result.batches.length > 0) {
-        setCustomBatches(prev => [...result.batches, ...prev]);
-        showToast(`Imported ${result.importedCount} batches (${(result.totalVolumeMWh / 1000).toFixed(1)}k MWh)`);
-      }
-    };
-    reader.readAsText(file);
-  };
-
-  const handleSeedDenaSample = () => {
-    const sampleCsv = `batchId;plantName;country;volumeMWh;feedstock;ci;scheme\n` +
-      `DE-DENA-2026-881;Bioenergie Güstrow GmbH;DE;28400;Agricultural Manure;-98.5;ISCC EU\n` +
-      `DE-DENA-2026-882;Könnern Biomethane Hub;DE;15200;Organic Waste Slurry;18.2;REDcert EU\n` +
-      `DE-DENA-2026-883;EnviTec Biogas Zörbig;DE;19800;Swine Slurry & Manure;-104.1;ISCC EU`;
-    const res = parseRegistryFile(sampleCsv, 'dena_Biogasregister_Export_Aug2026.csv', 'DENA');
-    setLastIngestResult(res);
-    setCustomBatches(prev => [...res.batches, ...prev]);
-    showToast('Loaded 3 sample dena batches (63.4k MWh)');
-  };
-
-  const handleSeedVertiCerSample = () => {
-    const sampleCsv = `batchId,plantName,country,volumeMWh,feedstock,ci,scheme\n` +
-      `NL-VERT-2026-441,Attero Wijster Bio-Upgrading,NL,24000,Source-Separated Bio-Waste,14.5,ISCC EU\n` +
-      `NL-VERT-2026-442,Suiker Unie Vierverlaten,NL,16500,Sugar Beet Pulp Residue,21.0,ISCC EU`;
-    const res = parseRegistryFile(sampleCsv, 'VertiCer_Export_Declaration_Q3.csv', 'VERTICER');
-    setLastIngestResult(res);
-    setCustomBatches(prev => [...res.batches, ...prev]);
-    showToast('Loaded 2 sample VertiCer batches (40.5k MWh)');
-  };
-
-  // Filtered batches for Ledger
-  const filteredBatches = useMemo(() => {
-    return allBatches.filter(b => {
-      if (selectedRegistryFilter !== 'ALL' && b.registryId !== selectedRegistryFilter) return false;
-      if (selectedFeedstockFilter !== 'ALL') {
-        if (selectedFeedstockFilter === 'MANURE' && !b.feedstockCategory.toLowerCase().includes('manure') && !b.feedstockCategory.toLowerCase().includes('slurry')) return false;
-        if (selectedFeedstockFilter === 'BIOWASTE' && !b.feedstockCategory.toLowerCase().includes('waste') && !b.feedstockCategory.toLowerCase().includes('ofmsw')) return false;
-        if (selectedFeedstockFilter === 'AGRO' && !b.feedstockCategory.toLowerCase().includes('residue') && !b.feedstockCategory.toLowerCase().includes('slurry') && !b.feedstockCategory.toLowerCase().includes('pulp') && !b.feedstockCategory.toLowerCase().includes('cive')) return false;
-        if (selectedFeedstockFilter === 'CROP' && b.annexClassification !== 'CROP') return false;
-      }
-      if (selectedGridFilter !== 'ALL' && b.gridInterconnectionStatus !== selectedGridFilter) return false;
-      if (selectedUdbFilter === 'RECORDED' && !b.udbRegistrationId) return false;
-      if (selectedUdbFilter === 'NOT_RECORDED' && b.udbRegistrationId) return false;
-      if (searchBatchQuery.trim()) {
-        const q = searchBatchQuery.toLowerCase();
-        return (
-          b.id.toLowerCase().includes(q) ||
-          b.plantName.toLowerCase().includes(q) ||
-          b.feedstockDetails.toLowerCase().includes(q) ||
-          b.sustainabilityProofId.toLowerCase().includes(q) ||
-          (b.udbRegistrationId && b.udbRegistrationId.toLowerCase().includes(q))
-        );
-      }
-      return true;
-    });
-  }, [allBatches, selectedRegistryFilter, selectedFeedstockFilter, selectedGridFilter, selectedUdbFilter, searchBatchQuery]);
-
-  // Filtered Telemetry Points
-  const filteredTelemetryPoints = useMemo(() => {
-    if (!tsoMetrics) return [];
-    return tsoMetrics.points.filter(p => {
-      if (telemetryCountryFilter !== 'ALL' && p.countryCode !== telemetryCountryFilter) return false;
-      if (telemetryGridFilter !== 'ALL' && p.gridType !== telemetryGridFilter) return false;
-      if (telemetrySearch.trim()) {
-        const q = telemetrySearch.toLowerCase();
-        return (
-          p.nodeName.toLowerCase().includes(q) ||
-          p.tsoName.toLowerCase().includes(q) ||
-          p.tsoCode.toLowerCase().includes(q) ||
-          p.feedstockCategory.toLowerCase().includes(q)
-        );
-      }
-      return true;
-    });
-  }, [tsoMetrics, telemetryCountryFilter, telemetryGridFilter, telemetrySearch]);
-
-  // Real-time verification calculation for Transfer Simulator
-  const liveVerification: RegistryTransferVerification = useMemo(() => {
-    const req: CrossBorderTransferRequest = {
-      id: `SIM-REQ-${Date.now()}`,
-      sourceRegistry,
-      sourceAccountId: `ACC-${sourceRegistry}-01`,
-      targetRegistry,
-      targetAccountId: `ACC-${targetRegistry}-01`,
-      targetMarketId: `${targetRegistry}_QUOTA`,
-      batchIds: selectedBatchIds,
-      totalVolumeMWh: customTransferVolume,
-      transferProtocol,
-      udbTitleTransferRequired: udbRequired,
-      bilateralTreatyActive: bilateralTreatySimulated,
-      requestedAt: new Date().toISOString(),
-    };
-
-    const sourceBatches = BASELINE_INJECTION_BATCHES.filter(b => b.registryId === sourceRegistry);
-    return verifyRegistryTransfer(req, sourceBatches);
-  }, [sourceRegistry, targetRegistry, transferProtocol, selectedBatchIds, customTransferVolume, udbRequired, bilateralTreatySimulated]);
-
-  // Handle batch toggle in simulator
-  const toggleBatchSelection = (bId: string, vol: number) => {
-    if (selectedBatchIds.includes(bId)) {
-      const next = selectedBatchIds.filter(id => id !== bId);
-      setSelectedBatchIds(next);
-      setCustomTransferVolume(prev => Math.max(0, prev - vol));
-    } else {
-      setSelectedBatchIds([...selectedBatchIds, bId]);
-      setCustomTransferVolume(prev => prev + vol);
-    }
-  };
-
-  // Handle state advance in simulator
-  const handleAdvanceSimulatorState = (action: 'SUBMIT' | 'LOCK_ESCROW' | 'TRANSFER_TITLE' | 'RESET') => {
-    const nextState = advanceTitleTransferStatus(simulatorUdbState, action);
-    setSimulatorUdbState(nextState);
-    if (action === 'TRANSFER_TITLE') {
-      const msg = `Title Transferred successfully · ${customTransferVolume.toLocaleString()} MWh settled via ${transferProtocol}`;
-      setTransferSuccessMessage(msg);
-      showToast(msg);
-    } else {
-      setTransferSuccessMessage(null);
-    }
-  };
+    const destRegistry = getRegistryByCountry(routeDest);
+    if (!destRegistry || destRegistry.countryCode === origin.countryCode) return null;
+    return evaluateRoute(origin, routeDest, false, undefined, destRegistry);
+  }, [routeOrigin, routeDest, routeDestIsMarket]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
-      
-      {/* 1. TOP OVERVIEW METRICS STRIP */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'flex-end',
-          gap: '20px',
-          padding: '16px 18px',
-          borderBottom: '2px solid var(--color-divider)',
-          backgroundColor: 'var(--color-surface)',
-          flexWrap: 'wrap',
-        }}
-      >
+    <div className="rh-screen">
+      <div className="ds-header" style={{ padding: '24px 0 8px' }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <ShieldCheck style={{ width: '18px', height: '18px', color: 'var(--color-accent)' }} aria-hidden="true" />
-            <h3 className="ptitle">European Registry &amp; Balance of Trade Hub</h3>
-            <span className="chip chip-a">RED III Art. 31a / Reg (EU) 2024/2792</span>
-          </div>
-          <div className="subttl" style={{ marginTop: '4px' }}>
-            22 national mass balance registries · Single Area Direct transfers, ERGaR CoO, and Third-Country bilateral gateways
-          </div>
-        </div>
-
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '14px', fontSize: '12px' }} className="mut">
-          <span>Pan-EU Network: <strong style={{ color: 'var(--color-text)' }} className="num">{overviewMetrics.totalRegistriesCount} National Registries</strong></span>
-          <span>·</span>
-          <span>Interconnected EU Single Area: <strong style={{ color: 'var(--color-text)' }} className="num">19 Hubs</strong></span>
-          <span>·</span>
-          <span>Third-Country Gated: <strong style={{ color: 'var(--color-status-warn-text)' }} className="num">3 (UK / CH / NO)</strong></span>
+          <div className="eyebrow">Registries &amp; compliance</div>
+          <h1 className="ds-h1">Registries &amp; cross-border routes</h1>
         </div>
       </div>
 
-      {/* 4 Metric Cards Strip */}
-      <div className="cellrow" style={{ gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}>
-        <div>
-          <div className="eyebrow">Total Pan-EU Registry Issuance</div>
-          <div className="big num">
-            {overviewMetrics.totalIssuanceTWh} <span style={{ fontSize: '14px', fontWeight: 400 }} className="dim">TWh/y</span>
-          </div>
-          <div className="subttl">22 Jurisdictions Verified</div>
-        </div>
-
-        <div>
-          <div className="eyebrow">Domestic Grid Consumption</div>
-          <div className="big num">
-            {overviewMetrics.totalDomesticTWh} <span style={{ fontSize: '14px', fontWeight: 400 }} className="dim">TWh/y</span>
-          </div>
-          <div className="subttl">Mass Balance Settled</div>
-        </div>
-
-        <div>
-          <div className="eyebrow">Active Cancellations &amp; Surrenders</div>
-          <div className="big num">
-            {overviewMetrics.totalCancellationsTWh} <span style={{ fontSize: '14px', fontWeight: 400 }} className="dim">TWh</span>
-          </div>
-          <div className="subttl">Compliance &amp; Voluntary Surrender</div>
-        </div>
-
-        <div>
-          <div className="eyebrow">Balance of Trade Structure</div>
-          <div className="big num">
-            <span style={{ color: 'var(--color-accent)' }}>{overviewMetrics.netExportersCount}</span>
-            <span style={{ fontSize: '16px', color: 'var(--color-dim)', margin: '0 4px' }}>/</span>
-            <span style={{ color: 'var(--color-status-warn-text)' }}>{overviewMetrics.netImportersCount}</span>
-            <span style={{ fontSize: '12px', fontWeight: 400, marginLeft: '6px' }} className="dim">Exp/Imp</span>
-          </div>
-          <div className="subttl">{overviewMetrics.totalEscrowTWh} TWh Active Escrow</div>
-        </div>
+      <div className="rh-context">
+        A <strong>Guarantee of Origin (GO)</strong> is a disclosure instrument (RED Art. 19): it shows a buyer that gas was
+        renewable, and it moves through national registries, the AIB EECS Gas Scheme hub, or the ERGaR Certificate of
+        Origin (CoO) scheme. A <strong>Proof of Sustainability (PoS)</strong> is a compliance instrument: it proves a
+        consignment meets RED sustainability/GHG-saving criteria so it can count toward binding targets (e.g. Germany's
+        THG-Quote, France's TIRUERT, Italy's CIC, the UK's RTFO). A GO alone does not grant compliance eligibility, and
+        the two are not interchangeable.
       </div>
 
-      {/* 2. REGISTRY HUB SUB-NAVIGATION TABS */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '8px 18px',
-          borderBottom: '1px solid var(--color-divider)',
-          backgroundColor: 'var(--color-panel-header)',
-          flexWrap: 'wrap',
-          gap: '10px',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }} role="tablist">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeHubView === 'OVERVIEW'}
-            onClick={() => setActiveHubView('OVERVIEW')}
-            className={`chip ${activeHubView === 'OVERVIEW' ? 'chip-a' : ''} cursor-pointer`}
-            style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
-          >
-            <Scale style={{ width: '13px', height: '13px' }} />
-            <span>Balance of Trade Matrix ({BASELINE_BALANCE_OF_TRADE.length})</span>
-          </button>
-
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeHubView === 'TELEMETRY'}
-            onClick={() => setActiveHubView('TELEMETRY')}
-            className={`chip ${activeHubView === 'TELEMETRY' ? 'chip-a' : ''} cursor-pointer`}
-            style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
-          >
-            <Radio style={{ width: '13px', height: '13px', color: 'var(--color-status-pass-text, #15803d)' }} />
-            <span>Live Flow Telemetry &amp; TSO Feeds</span>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--color-status-pass-text, #15803d)', display: 'inline-block' }} />
-          </button>
-
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeHubView === 'INGESTION'}
-            onClick={() => setActiveHubView('INGESTION')}
-            className={`chip ${activeHubView === 'INGESTION' ? 'chip-a' : ''} cursor-pointer`}
-            style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
-          >
-            <Upload style={{ width: '13px', height: '13px' }} />
-            <span>Ingestion &amp; Statements</span>
-            {customBatches.length > 0 && (
-              <span className="chip chip-pos" style={{ padding: '1px 4px', fontSize: '12px', fontWeight: 700 }}>
-                +{customBatches.length}
-              </span>
-            )}
-          </button>
-
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeHubView === 'LEDGER'}
-            onClick={() => setActiveHubView('LEDGER')}
-            className={`chip ${activeHubView === 'LEDGER' ? 'chip-a' : ''} cursor-pointer`}
-            style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
-          >
-            <Database style={{ width: '13px', height: '13px' }} />
-            <span>Batch Flow Ledger ({allBatches.length})</span>
-          </button>
-
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeHubView === 'SIMULATOR'}
-            onClick={() => setActiveHubView('SIMULATOR')}
-            className={`chip ${activeHubView === 'SIMULATOR' ? 'chip-a' : ''} cursor-pointer`}
-            style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
-          >
-            <ArrowLeftRight style={{ width: '13px', height: '13px' }} />
-            <span>Title Transfer Simulator</span>
-          </button>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' }} className="mut">
-          <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--color-status-pos-text)', display: 'inline-block' }} />
-          <span>Live TSO Telemetry: <strong style={{ color: 'var(--color-text)' }} className="num">{tsoMetrics ? `${tsoMetrics.connectedTsoCount} Systems Online` : 'Connecting...'}</strong></span>
-        </div>
+      <div className="rh-notice">
+        <span>
+          <strong>Union Database (UDB) for gas is not live yet:</strong> launch postponed to end-2026 (European Biogas
+          Association). Until then, cross-border compliance relies on national registries and ERGaR/AIB GO routes.{' '}
+          <a href={UDB_SOURCE_URL} target="_blank" rel="noreferrer">Source <ExternalLink size={11} style={{ display: 'inline', verticalAlign: '-1px' }} /></a>
+        </span>
       </div>
 
-      {/* VIEW: LIVE FLOW TELEMETRY & MULTI-TSO FEEDS */}
-      {activeHubView === 'TELEMETRY' && (
-        <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {/* Top Telemetry Controls & Live Velocity HUD */}
-          <div
-            style={{
-              backgroundColor: 'var(--color-surface)',
-              border: '1px solid var(--color-divider)',
-              padding: '16px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '14px',
-            }}
+      <KpiRow columns={4}>
+        <KpiTile
+          label="ERGaR hub volume, Q1 2026"
+          value="1.383"
+          unit="TWh"
+          sub={<>796 transfers · <a href={ERGAR_STATS_URL} target="_blank" rel="noreferrer" style={{ color: 'inherit' }}>ERGaR CoO statistics, accessed 2026-09-28</a></>}
+        />
+        <KpiTile
+          label="Main importers, Q1 2026"
+          value="DE ~2/3"
+          sub={<>CH (Pronovo) ~1/3 · <a href={ERGAR_STATS_URL} target="_blank" rel="noreferrer" style={{ color: 'inherit' }}>ERGaR CoO statistics</a></>}
+        />
+        <KpiTile
+          label="Main exporters, Q1 2026"
+          value="UK (GGCS)"
+          sub={<>slightly ahead of DK, then NL and DE · <a href={ERGAR_STATS_URL} target="_blank" rel="noreferrer" style={{ color: 'inherit' }}>ERGaR CoO statistics</a></>}
+        />
+        <KpiTile
+          label="Denmark biomethane injection"
+          value={energinet?.latestGwhPerDay != null ? energinet.latestGwhPerDay.toFixed(1) : '—'}
+          unit="GWh/day"
+          sub={
+            energinet == null
+              ? 'Loading…'
+              : energinet.source === 'UNAVAILABLE'
+                ? 'Energinet data temporarily unavailable (rate-limited)'
+                : `${energinet.days[0]?.gasDay ?? ''} · ${energinet.source === 'CACHED' ? `cached ${energinet.cacheAgeMinutes ?? 0}m ago` : 'live'} · Energinet Gasflow API`
+          }
+        />
+      </KpiRow>
+
+      <div className="rh-tabs">
+        {(
+          [
+            ['directory', 'Registry directory'],
+            ['routes', 'Route checker'],
+            ['production', 'Production statistics'],
+            ['live', 'Live data'],
+          ] as [TabId, string][]
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            className={`btn rh-tab ${activeTab === id ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => setActiveTab(id)}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Radio style={{ width: '16px', height: '16px', color: 'var(--color-status-pos-text)' }} />
-                <h4 className="ptitle" style={{ fontSize: '15px' }}>
-                  Pan-European Real-Time TSO Flow Telemetry
-                </h4>
-                <span className="chip chip-pos" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <span style={{ width: '5px', height: '5px', backgroundColor: 'var(--color-status-pos-text)', display: 'inline-block' }} />
-                  REST / SCADA Synchronised
-                </span>
-              </div>
+            {label}
+          </button>
+        ))}
+      </div>
 
-              {/* Sync Controls & Auto-Poll */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '4px 8px',
-                    border: '1px solid var(--color-divider)',
-                    backgroundColor: 'var(--color-panel-header)',
-                    fontSize: '12px',
-                  }}
-                >
-                  <Clock style={{ width: '12px', height: '12px', color: 'var(--color-dim)' }} />
-                  <span className="eyebrow" style={{ margin: 0 }}>Auto-Poll:</span>
-                  <select
-                    value={autoPollInterval}
-                    onChange={e => setAutoPollInterval(Number(e.target.value))}
-                    aria-label="Auto-poll interval"
-                    className="input"
-                    style={{ minHeight: '26px', padding: '2px 6px', fontSize: '12px', border: 'none', backgroundColor: 'transparent', fontWeight: 600 }}
-                  >
-                    <option value={15}>15s</option>
-                    <option value={30}>30s</option>
-                    <option value={60}>60s</option>
-                    <option value={0}>Manual / Off</option>
-                  </select>
-                </div>
-
+      {activeTab === 'directory' && (
+        <div className="rh-section rh-grid">
+          <div className="ds-table-wrap">
+            <div className="ds-thead-row rh-directory-cols">
+              <div>Country</div>
+              <div>Registry</div>
+              <div>Issues</div>
+              <div>AIB</div>
+              <div>ERGaR</div>
+              <div>UDB</div>
+              <div>Cross-border route</div>
+              <div>Verification</div>
+            </div>
+            <div role="listbox" aria-label="Registry directory">
+              {sortedDirectory.map(entry => (
                 <button
+                  key={entry.countryCode}
                   type="button"
-                  onClick={syncTelemetryData}
-                  disabled={isSyncingAllTso}
-                  className="btn btn-primary"
-                  style={{ height: '32px', fontSize: '12px', padding: '4px 12px' }}
+                  role="option"
+                  aria-selected={selectedCountry === entry.countryCode}
+                  className={`ds-row rh-directory-cols ${selectedCountry === entry.countryCode ? 'selected' : ''}`}
+                  onClick={() => setSelectedCountry(entry.countryCode)}
                 >
-                  <RefreshCw className={`w-3.5 h-3.5 ${isSyncingAllTso ? 'animate-spin' : ''}`} />
-                  <span>{isSyncingAllTso ? 'Syncing TSOs…' : 'Sync All TSOs'}</span>
+                  <div className="num" style={{ fontWeight: 600 }}>{entry.countryCode}</div>
+                  <div className="rh-cell-ellipsis" title={entry.registryName}>{entry.registryName}</div>
+                  <div>{entry.issues.replace('_AND_', ' + ')}</div>
+                  <div><span className={`chip ${triChipClass(entry.aibGasScheme)}`}>{triLabel(entry.aibGasScheme)}</span></div>
+                  <div><span className={`chip ${triChipClass(entry.ergar)}`}>{triLabel(entry.ergar)}</span></div>
+                  <div><span className="chip chip-neutral">Not live</span></div>
+                  <div className="rh-cell-ellipsis" title={entry.crossBorderRoutes[0] || 'None confirmed'}>
+                    {entry.crossBorderRoutes[0] || 'None confirmed'}
+                  </div>
+                  <div><span className={`chip ${verificationChipClass(entry.verificationLevel)}`}>{entry.verificationLevel}</span></div>
                 </button>
-              </div>
-            </div>
-
-            {/* 4 Live Velocity Gauges */}
-            <div className="cellrow" style={{ gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', border: '1px solid var(--color-divider)' }}>
-              <div>
-                <div className="eyebrow">Pan-EU Injection Velocity</div>
-                <div className="big num" style={{ color: 'var(--color-status-pos-text)' }}>
-                  {tsoMetrics ? `${tsoMetrics.currentFlowVelocityMWhHour.toLocaleString()} MWh/h` : '4,850 MWh/h'}
-                </div>
-                <div className="subttl">
-                  {tsoMetrics ? `≈ ${tsoMetrics.currentFlowVelocityNm3Hour.toLocaleString()} Nm³/h` : '≈ 458,000 Nm³/h'}
-                </div>
-              </div>
-
-              <div>
-                <div className="eyebrow">Total Daily Injection Run-Rate</div>
-                <div className="big num">
-                  {tsoMetrics ? `${tsoMetrics.totalDailyFlowMWh.toLocaleString()} MWh/d` : '116,400 MWh/d'}
-                </div>
-                <div className="subttl">Extrapolated 42.5 TWh/year</div>
-              </div>
-
-              <div>
-                <div className="eyebrow">Monitored Injection Nodes</div>
-                <div className="big num">
-                  {tsoMetrics ? `${tsoMetrics.activeInjectionPoints} Points` : '1,975 Points'}
-                </div>
-                <div className="subttl">
-                  {tsoMetrics?.connectedTsoCount || 8} TSO Systems Connected
-                </div>
-              </div>
-
-              <div>
-                <div className="eyebrow">Telemetry Latency &amp; Health</div>
-                <div className="big num" style={{ color: 'var(--color-status-pos-text)' }}>
-                  ⚡ {tsoMetrics?.averageLatencyMs || 38} ms
-                </div>
-                <div className="subttl">
-                  Last Sync: {lastTelemetrySync || 'Just now'}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Connected TSO Telemetry Cards Strip */}
-          {tsoMetrics && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '12px' }}>
-              {tsoMetrics.feeds.map(feed => (
-                <div
-                  key={feed.tsoCode}
-                  style={{
-                    backgroundColor: 'var(--color-surface)',
-                    border: '1px solid var(--color-divider)',
-                    padding: '12px 14px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                      <span className="eyebrow" style={{ margin: 0, fontWeight: 700 }}>{feed.countryCode} · {feed.tsoCode}</span>
-                      <span className="chip chip-pos" style={{ fontSize: '12px', padding: '1px 4px' }}>
-                        {feed.status === 'ONLINE' ? 'LIVE' : 'SYNCED'}
-                      </span>
-                    </div>
-                    <div style={{ fontSize: '13px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {feed.tsoName}
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      marginTop: '10px',
-                      paddingTop: '8px',
-                      borderTop: '1px solid var(--color-divider)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      fontSize: '12px',
-                    }}
-                  >
-                    <span className="dim">{feed.activeNodes} Nodes</span>
-                    <span className="num" style={{ fontWeight: 700, color: 'var(--color-status-pos-text)' }}>
-                      {feed.hourlyFlowMWh.toLocaleString()} MWh/h
-                    </span>
-                  </div>
-                </div>
               ))}
             </div>
-          )}
-
-          {/* Real-time Injection Flow Feed Table */}
-          <div
-            style={{
-              backgroundColor: 'var(--color-surface)',
-              border: '1px solid var(--color-divider)',
-              padding: '14px 16px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '12px',
-                borderBottom: '1px solid var(--color-divider)',
-                paddingBottom: '10px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Activity style={{ width: '16px', height: '16px', color: 'var(--color-accent)' }} />
-                <h4 className="ptitle" style={{ fontSize: '14px' }}>
-                  Live Flow Telemetry Stream ({filteredTelemetryPoints.length} Streams)
-                </h4>
-              </div>
-
-              {/* Filters */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                <input
-                  type="text"
-                  placeholder="Filter node, TSO, feedstock…"
-                  aria-label="Filter telemetry points"
-                  value={telemetrySearch}
-                  onChange={e => setTelemetrySearch(e.target.value)}
-                  className="input"
-                  style={{ minHeight: '30px', padding: '4px 8px', fontSize: '12px', width: '210px' }}
-                />
-
-                <select
-                  value={telemetryCountryFilter}
-                  onChange={e => setTelemetryCountryFilter(e.target.value)}
-                  aria-label="Filter telemetry by country"
-                  className="input"
-                  style={{ minHeight: '30px', padding: '4px 8px', fontSize: '12px', width: '140px' }}
-                >
-                  <option value="ALL">All Countries</option>
-                  <option value="DK">DK (Denmark)</option>
-                  <option value="FR">FR (France)</option>
-                  <option value="DE">DE (Germany)</option>
-                  <option value="NL">NL (Netherlands)</option>
-                  <option value="ES">ES (Spain)</option>
-                  <option value="IT">IT (Italy)</option>
-                  <option value="BE">BE (Belgium)</option>
-                  <option value="SE">SE (Sweden)</option>
-                  <option value="PL">PL (Poland)</option>
-                  <option value="AT">AT (Austria)</option>
-                  <option value="GB">GB (United Kingdom)</option>
-                </select>
-
-                <select
-                  value={telemetryGridFilter}
-                  onChange={e => setTelemetryGridFilter(e.target.value)}
-                  aria-label="Filter telemetry by grid type"
-                  className="input"
-                  style={{ minHeight: '30px', padding: '4px 8px', fontSize: '12px', width: '170px' }}
-                >
-                  <option value="ALL">All Grid Types</option>
-                  <option value="TSO_TRANSMISSION">TSO Transmission</option>
-                  <option value="CROSS_BORDER_IP">Cross-Border IP</option>
-                  <option value="DSO_DISTRIBUTION">DSO Distribution</option>
-                </select>
-              </div>
-            </div>
-
-            <div style={{ overflowX: 'auto' }}>
-              <table className="table" aria-label="Live Flow Telemetry Stream Table">
-                <thead>
-                  <tr>
-                    <th>Node / Injection Point</th>
-                    <th>Country &amp; TSO</th>
-                    <th>Grid Type</th>
-                    <th style={{ textAlign: 'right' }}>Flow (MWh/h)</th>
-                    <th style={{ textAlign: 'right' }}>Flow (Nm³/h)</th>
-                    <th>Feedstock Substrate</th>
-                    <th style={{ textAlign: 'right' }}>Verified CI</th>
-                    <th>Data Source</th>
-                    <th style={{ textAlign: 'center' }}>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredTelemetryPoints.map(point => (
-                    <tr key={point.id}>
-                      <td style={{ fontWeight: 600 }}>
-                        {point.nodeName}
-                      </td>
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span className="num" style={{ fontWeight: 700 }}>{point.countryCode}</span>
-                          <span className="dim" style={{ fontSize: '12px' }}>{point.tsoName}</span>
-                        </div>
-                      </td>
-                      <td>
-                        <span className={`chip ${
-                          point.gridType === 'CROSS_BORDER_IP'
-                            ? 'chip-warn'
-                            : point.gridType === 'TSO_TRANSMISSION'
-                            ? 'chip-a'
-                            : ''
-                        }`}>
-                          {point.gridType === 'CROSS_BORDER_IP' ? 'CROSS-BORDER IP' : point.gridType === 'TSO_TRANSMISSION' ? 'TSO HIGH-PRESSURE' : 'DSO'}
-                        </span>
-                      </td>
-                      <td style={{ textAlign: 'right' }} className="num font-bold">
-                        <span style={{ color: 'var(--color-status-pos-text)', fontWeight: 700 }}>
-                          {point.flowRateMWhPerHour.toLocaleString()}
-                        </span>
-                      </td>
-                      <td style={{ textAlign: 'right' }} className="num dim">
-                        {point.flowRateNm3PerHour.toLocaleString()}
-                      </td>
-                      <td style={{ maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {point.feedstockCategory}
-                      </td>
-                      <td style={{ textAlign: 'right' }} className="num">
-                        <span style={{ fontWeight: 600, color: point.verifiedCI < 0 ? 'var(--color-status-pos-text)' : 'var(--color-text)' }}>
-                          {point.verifiedCI > 0 ? `+${point.verifiedCI}` : point.verifiedCI} <span style={{ fontSize: '12px' }} className="dim">g/MJ</span>
-                        </span>
-                      </td>
-                      <td style={{ fontSize: '12px' }} className="dim">
-                        {point.source}
-                      </td>
-                      <td style={{ textAlign: 'center' }}>
-                        <span className="chip chip-pos" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                          <span style={{ width: '4px', height: '4px', backgroundColor: 'var(--color-status-pos-text)', display: 'inline-block' }} />
-                          LIVE
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
           </div>
-        </div>
-      )}
 
-      {/* VIEW: LIVE INGESTION & DATA FEEDS */}
-      {activeHubView === 'INGESTION' && (
-        <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {/* Top Live Feeds Strip */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '16px' }}>
-            {/* Live Energinet Open Data Card */}
-            <div
-              style={{
-                backgroundColor: 'var(--color-surface)',
-                border: '1px solid var(--color-divider)',
-                padding: '16px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-              }}
-            >
-              <div>
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ fontSize: '24px' }}>🇩🇰</span>
+          <aside className="ds-aside">
+            {!selectedEntry ? (
+              <div className="ds-aside-section">
+                <div className="ds-panel-section-heading">Registry detail</div>
+                <div className="mut" style={{ fontSize: '12.5px' }}>Click a row to see its full sourced entry, including sources and notes.</div>
+              </div>
+            ) : (
+              <>
+                <div className="ds-aside-section">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
                     <div>
-                      <h4 className="ptitle" style={{ fontSize: '15px' }}>
-                        Denmark Energinet Gas DataHub API
-                      </h4>
-                      <div className="subttl" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
-                        <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--color-status-pos-text)', display: 'inline-block' }} />
-                        <span>Open Public REST Endpoint Connected</span>
-                      </div>
+                      <div className="ds-panel-title">{selectedEntry.registryName}</div>
+                      <div className="ds-panel-meta">{selectedEntry.countryName} ({selectedEntry.countryCode}) · {selectedEntry.operator}</div>
                     </div>
+                    <button type="button" className="ds-icon-btn ds-icon-btn-sm" aria-label="Close panel" onClick={() => setSelectedCountry(null)}>
+                      <X size={14} />
+                    </button>
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={handleSyncEnerginet}
-                    disabled={isSyncingEnerginet}
-                    className="btn btn-primary"
-                    style={{ fontSize: '12px', padding: '6px 12px', height: '32px' }}
-                  >
-                    <RefreshCw className={`w-3.5 h-3.5 ${isSyncingEnerginet ? 'animate-spin' : ''}`} />
-                    <span>{isSyncingEnerginet ? 'Polling API…' : 'Poll Live Injections'}</span>
-                  </button>
-                </div>
-
-                <div
-                  className="cellrow"
-                  style={{
-                    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-                    border: '1px solid var(--color-divider)',
-                    marginTop: '14px',
-                  }}
-                >
-                  <div>
-                    <div className="eyebrow">Daily Injections</div>
-                    <div className="big num" style={{ fontSize: '20px' }}>
-                      {energinetLiveStats ? `${energinetLiveStats.totalDailyInjectionMWh.toLocaleString()}` : '62,450'} <span style={{ fontSize: '12px' }} className="dim">MWh/d</span>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="eyebrow">Active Entry Nodes</div>
-                    <div className="big num" style={{ fontSize: '20px' }}>
-                      {energinetLiveStats ? `${energinetLiveStats.activeInjectionPoints}` : '52'} <span style={{ fontSize: '12px' }} className="dim">TSO Points</span>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="eyebrow">Last Sync</div>
-                    <div className="big num" style={{ fontSize: '16px', marginTop: '6px' }}>
-                      {energinetLiveStats ? energinetLiveStats.timestamp.slice(11, 19) + ' UTC' : 'Ready to Poll'}
-                    </div>
+                  <div style={{ marginTop: '10px' }}>
+                    <span className={`chip ${verificationChipClass(selectedEntry.verificationLevel)}`}>{selectedEntry.verificationLevel}</span>{' '}
+                    <a href={selectedEntry.officialUrl} target="_blank" rel="noreferrer" className="chip chip-neutral" style={{ textDecoration: 'none' }}>
+                      Official / reference link <ExternalLink size={11} style={{ display: 'inline', verticalAlign: '-1px', marginLeft: '2px' }} />
+                    </a>
                   </div>
                 </div>
-              </div>
+                <div className="ds-aside-body">
+                  <div className="ds-aside-section">
+                    <div className="ds-panel-section-heading">Facts</div>
+                    <div style={{ fontSize: '12.5px', lineHeight: 1.7 }}>
+                      <div>Issues: <strong>{selectedEntry.issues.replace('_AND_', ' + ')}</strong></div>
+                      <div>AIB EECS Gas Scheme: <span className={`chip ${triChipClass(selectedEntry.aibGasScheme)}`}>{triLabel(selectedEntry.aibGasScheme)}</span></div>
+                      <div>ERGaR CoO scheme: <span className={`chip ${triChipClass(selectedEntry.ergar)}`}>{triLabel(selectedEntry.ergar)}</span></div>
+                      <div>UDB status: <span className="chip chip-neutral">Not live — postponed to end-2026 (EBA)</span></div>
+                    </div>
+                  </div>
+                  <div className="ds-aside-section">
+                    <div className="ds-panel-section-heading">Cross-border routes</div>
+                    {selectedEntry.crossBorderRoutes.length === 0 ? (
+                      <div className="mut" style={{ fontSize: '12.5px' }}>None confirmed in this research.</div>
+                    ) : (
+                      <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '12.5px', lineHeight: 1.7 }}>
+                        {selectedEntry.crossBorderRoutes.map((r, i) => <li key={i}>{r}</li>)}
+                      </ul>
+                    )}
+                  </div>
+                  <div className="ds-aside-section">
+                    <div className="ds-panel-section-heading">Compliance market(s) fed</div>
+                    <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '12.5px', lineHeight: 1.7 }}>
+                      {selectedEntry.complianceMarketsFed.map((m, i) => <li key={i}>{m}</li>)}
+                    </ul>
+                  </div>
+                  <div className="ds-aside-section">
+                    <div className="ds-panel-section-heading">Notes</div>
+                    <div style={{ fontSize: '12.5px', lineHeight: 1.7 }}>{selectedEntry.notes}</div>
+                  </div>
+                  <div className="ds-aside-section" style={{ flexGrow: 1 }}>
+                    <div className="ds-panel-section-heading">Sources</div>
+                    <div className="rh-source-list">
+                      {selectedEntry.sources.map((s, i) => (
+                        <div key={i} className="rh-source-row">
+                          <div>{s.claim}</div>
+                          <a href={s.url} target="_blank" rel="noreferrer">{s.url}</a>
+                          <div className="mut">Accessed {s.accessed}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </aside>
+        </div>
+      )}
 
-              <div
-                style={{
-                  marginTop: '14px',
-                  paddingTop: '10px',
-                  borderTop: '1px solid var(--color-divider)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  fontSize: '12px',
-                }}
-                className="dim"
-              >
-                <span>Source: api.energidataservice.dk/dataset/Gasflow</span>
-                <span className="chip chip-a" style={{ fontSize: '12px' }}>RED III Annex IX-A Manure</span>
-              </div>
+      {activeTab === 'routes' && (
+        <div className="rh-section">
+          <div className="rh-section-title">Route checker</div>
+          <div className="rh-section-sub">
+            Pick an origin registry and a destination (another registry, or a compliance market). This shows only what
+            our sources support — known blockers included — never an invented route or state.
+          </div>
+
+          <div className="rh-route-form">
+            <div className="rh-route-field">
+              <label htmlFor="rh-origin">Origin registry</label>
+              <select id="rh-origin" className="input" value={routeOrigin} onChange={e => setRouteOrigin(e.target.value)}>
+                {sortedDirectory.map(r => <option key={r.countryCode} value={r.countryCode}>{r.countryName} — {r.registryName}</option>)}
+              </select>
             </div>
-
-            {/* Universal CSV / XML File Dropzone Card */}
-            <div
-              style={{
-                backgroundColor: 'var(--color-surface)',
-                border: '1px solid var(--color-divider)',
-                padding: '16px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-              }}
-            >
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                  <FileSpreadsheet style={{ width: '18px', height: '18px', color: 'var(--color-accent)' }} />
-                  <h4 className="ptitle" style={{ fontSize: '15px' }}>
-                    Universal Registry File Dropzone
-                  </h4>
-                </div>
-                <p className="subttl" style={{ marginBottom: '12px' }}>
-                  Upload official monthly statements, account exports, or transfer declarations from all 22 European registries.
-                </p>
-
-                <div
-                  style={{
-                    position: 'relative',
-                    border: '2px dashed var(--color-divider)',
-                    padding: '16px',
-                    textAlign: 'center',
-                    backgroundColor: 'var(--color-panel-header)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <input
-                    type="file"
-                    accept=".csv,.json,.xml,.txt"
-                    onChange={handleFileUpload}
-                    style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%' }}
-                  />
-                  <Upload style={{ width: '22px', height: '22px', color: 'var(--color-accent)', margin: '0 auto 6px' }} />
-                  <div style={{ fontWeight: 600, fontSize: '13px' }}>
-                    Drag &amp; drop registry export or click to browse
-                  </div>
-                  <div className="dim" style={{ fontSize: '12px', marginTop: '2px' }}>
-                    Supports .CSV, .JSON, .XML (All 22 Pan-European Registries)
-                  </div>
-                </div>
-              </div>
-
-              {/* Sample 1-Click Loaders */}
-              <div
-                style={{
-                  marginTop: '14px',
-                  paddingTop: '10px',
-                  borderTop: '1px solid var(--color-divider)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  fontSize: '12px',
+            <div className="rh-route-field">
+              <label htmlFor="rh-dest-type">Destination type</label>
+              <select
+                id="rh-dest-type"
+                className="input"
+                value={routeDestIsMarket ? 'MARKET' : 'REGISTRY'}
+                onChange={e => {
+                  const isMarket = e.target.value === 'MARKET';
+                  setRouteDestIsMarket(isMarket);
+                  setRouteDest(isMarket ? COMPLIANCE_MARKETS[0].id : 'DE');
                 }}
               >
-                <span className="dim">Quick Test Seeders:</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <button
-                    type="button"
-                    onClick={handleSeedDenaSample}
-                    className="btn btn-secondary"
-                    style={{ fontSize: '12px', padding: '4px 8px', height: '28px' }}
-                  >
-                    🇩🇪 Seed dena Monthly (63.4k MWh)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSeedVertiCerSample}
-                    className="btn btn-secondary"
-                    style={{ fontSize: '12px', padding: '4px 8px', height: '28px' }}
-                  >
-                    🇳🇱 Seed VertiCer Export (40.5k MWh)
-                  </button>
-                </div>
-              </div>
+                <option value="REGISTRY">Registry</option>
+                <option value="MARKET">Compliance market</option>
+              </select>
+            </div>
+            <div className="rh-route-field">
+              <label htmlFor="rh-dest">Destination</label>
+              <select id="rh-dest" className="input" value={routeDest} onChange={e => setRouteDest(e.target.value)}>
+                {routeDestIsMarket
+                  ? COMPLIANCE_MARKETS.map(m => <option key={m.id} value={m.id}>{m.label}</option>)
+                  : sortedDirectory.filter(r => r.countryCode !== routeOrigin).map(r => <option key={r.countryCode} value={r.countryCode}>{r.countryName} — {r.registryName}</option>)
+                }
+              </select>
             </div>
           </div>
 
-          {/* Last Ingestion Result Breakdown */}
-          {lastIngestResult && (
-            <div
-              style={{
-                backgroundColor: 'var(--color-surface)',
-                border: '1px solid var(--color-divider)',
-                padding: '16px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '12px',
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  borderBottom: '1px solid var(--color-divider)',
-                  paddingBottom: '10px',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Check style={{ width: '16px', height: '16px', color: 'var(--color-status-pos-text)' }} />
-                  <h4 className="ptitle" style={{ fontSize: '14px', color: 'var(--color-status-pos-text)' }}>
-                    Ingestion Successful: {lastIngestResult.sourceFileName}
-                  </h4>
-                  <span className="chip chip-a">
-                    {lastIngestResult.registryName}
-                  </span>
-                </div>
+          {routeResult && (
+            <div className={`rh-route-result ${routeResult.supported ? 'supported' : ''} ${routeResult.blockerLines.length > 0 ? 'blocked' : ''}`}>
+              <div className="rh-route-headline">{routeResult.headline}</div>
 
-                <button
-                  type="button"
-                  onClick={() => setActiveHubView('LEDGER')}
-                  className="btn btn-ghost"
-                  style={{ fontSize: '12px' }}
-                >
-                  <span>View in Batch Ledger →</span>
-                </button>
-              </div>
+              {routeResult.routeLines.length > 0 && (
+                <ul className="rh-route-list">
+                  {routeResult.routeLines.map((r, i) => <li key={i}>{r}</li>)}
+                </ul>
+              )}
 
-              <div className="cellrow" style={{ gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', border: '1px solid var(--color-divider)' }}>
-                <div>
-                  <div className="eyebrow">Total Volume Ingested</div>
-                  <div className="big num">
-                    {lastIngestResult.totalVolumeMWh.toLocaleString()} <span style={{ fontSize: '13px' }} className="dim">MWh</span>
+              {routeResult.blockerLines.length > 0 && (
+                <>
+                  <div style={{ fontSize: '13px', fontWeight: 600, margin: '10px 0 6px', color: 'var(--color-status-neg-text)' }}>Known blockers</div>
+                  <ul className="rh-route-list">
+                    {routeResult.blockerLines.map((b, i) => <li key={i}>{b}</li>)}
+                  </ul>
+                </>
+              )}
+
+              <div className="rh-source-list" style={{ marginTop: '10px' }}>
+                {routeResult.sourceUrls.map((s, i) => (
+                  <div key={i} className="rh-source-row" style={{ borderBottom: 'none', paddingBottom: 0 }}>
+                    <a href={s.url} target="_blank" rel="noreferrer">{s.label}</a>
                   </div>
-                </div>
-
-                <div>
-                  <div className="eyebrow">Annex IX-A Advanced</div>
-                  <div className="big num" style={{ color: 'var(--color-status-pos-text)' }}>
-                    {lastIngestResult.summary.annexIxAVolumeMWh.toLocaleString()} <span style={{ fontSize: '13px' }} className="dim">MWh</span>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="eyebrow">Weighted Average CI</div>
-                  <div className="big num" style={{ color: lastIngestResult.summary.averageCI <= 0 ? 'var(--color-status-pos-text)' : 'var(--color-text)' }}>
-                    {lastIngestResult.summary.averageCI > 0 ? `+${lastIngestResult.summary.averageCI}` : lastIngestResult.summary.averageCI} <span style={{ fontSize: '13px' }} className="dim">gCO₂e/MJ</span>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="eyebrow">Verified Batches</div>
-                  <div className="big num">
-                    {lastIngestResult.importedCount} <span style={{ fontSize: '13px' }} className="dim">Consignments</span>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           )}
         </div>
       )}
 
-      {/* VIEW: BALANCE OF TRADE & PAN-EUROPEAN MATRIX & SIMULATOR */}
-      {(activeHubView === 'OVERVIEW' || activeHubView === 'SIMULATOR') && (
-        <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          
-          {/* Top: 2-column Grid with Balance of Trade + Simulator */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.3fr) minmax(0, 1fr)', gap: '16px' }}>
-            
-            {/* 2A. Balance of Trade Matrix */}
-            <div
-              style={{
-                backgroundColor: 'var(--color-surface)',
-                border: '1px solid var(--color-divider)',
-                padding: '14px 16px',
-                display: 'flex',
-                flexDirection: 'column',
-                minWidth: 0,
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  borderBottom: '1px solid var(--color-divider)',
-                  paddingBottom: '10px',
-                  marginBottom: '10px',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Scale style={{ width: '16px', height: '16px', color: 'var(--color-accent)' }} aria-hidden="true" />
-                  <h4 className="ptitle" style={{ fontSize: '14px' }}>
-                    European Balance of Trade Matrix ({BASELINE_BALANCE_OF_TRADE.length} Jurisdictions)
-                  </h4>
-                </div>
-                <span className="dim" style={{ fontSize: '12px' }}>
-                  Audited Annual Trade Balances
-                </span>
-              </div>
-
-              <div style={{ overflowX: 'auto', maxHeight: '440px', overflowY: 'auto' }}>
-                <table className="table" aria-label="European Balance of Trade Table">
-                  <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
-                    <tr>
-                      <th>Registry / Country</th>
-                      <th>Trade Role</th>
-                      <th style={{ textAlign: 'right' }}>Issuance (TWh)</th>
-                      <th style={{ textAlign: 'right' }}>Domestic (TWh)</th>
-                      <th style={{ textAlign: 'right' }}>Exports (TWh)</th>
-                      <th style={{ textAlign: 'right' }}>Imports (TWh)</th>
-                      <th style={{ textAlign: 'right' }}>Net Balance</th>
-                      <th>Export Share</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {BASELINE_BALANCE_OF_TRADE.map(bot => {
-                      const issuanceTWh = (bot.totalIssuanceMWh / 1000000).toFixed(2);
-                      const domesticTWh = (bot.domesticConsumptionMWh / 1000000).toFixed(2);
-                      const exportTWh = (bot.grossExportMWh / 1000000).toFixed(2);
-                      const importTWh = (bot.grossImportMWh / 1000000).toFixed(2);
-                      const netTWh = (bot.netTradeBalanceMWh / 1000000).toFixed(2);
-                      const isPositive = bot.netTradeBalanceMWh > 0;
-                      const isNegative = bot.netTradeBalanceMWh < 0;
-
-                      return (
-                        <tr key={bot.registryId}>
-                          <td>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span className="num" style={{ fontWeight: 700, width: '24px' }}>
-                                {bot.countryCode}
-                              </span>
-                              <div>
-                                <div style={{ fontWeight: 600 }}>{bot.registryName}</div>
-                                <div className="dim" style={{ fontSize: '12px' }}>{REGISTRY_METADATA_TABLE[bot.registryId]?.hubConnection || 'Gas Hub'}</div>
-                              </div>
-                            </div>
-                          </td>
-
-                          <td>
-                            {bot.tradeRole === 'NET_EXPORTER' && (
-                              <span className="chip chip-pos">
-                                NET EXPORTER
-                              </span>
-                            )}
-                            {bot.tradeRole === 'NET_IMPORTER' && (
-                              <span className="chip chip-warn">
-                                NET IMPORTER
-                              </span>
-                            )}
-                            {bot.tradeRole === 'BALANCED_DOMESTIC' && (
-                              <span className="chip">
-                                BALANCED
-                              </span>
-                            )}
-                          </td>
-
-                          <td style={{ textAlign: 'right' }} className="num">
-                            {issuanceTWh}
-                          </td>
-
-                          <td style={{ textAlign: 'right' }} className="num dim">
-                            {domesticTWh}
-                          </td>
-
-                          <td style={{ textAlign: 'right', color: 'var(--color-status-pos-text)', fontWeight: 600 }} className="num">
-                            {exportTWh}
-                          </td>
-
-                          <td style={{ textAlign: 'right', color: 'var(--color-status-warn-text)', fontWeight: 600 }} className="num">
-                            {importTWh}
-                          </td>
-
-                          <td style={{ textAlign: 'right' }} className="num font-bold">
-                            <span style={{ color: isPositive ? 'var(--color-status-pos-text)' : isNegative ? 'var(--color-status-warn-text)' : 'inherit' }}>
-                              {isPositive ? `+${netTWh}` : netTWh} TWh
-                            </span>
-                          </td>
-
-                          <td>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <div style={{ width: '48px', height: '6px', backgroundColor: 'var(--color-subtier)', overflow: 'hidden' }}>
-                                <div
-                                  style={{
-                                    height: '100%',
-                                    backgroundColor: isPositive ? 'var(--color-status-pos-text)' : 'var(--color-accent)',
-                                    width: `${Math.min(100, Math.max(0, bot.exportSharePercent))}%`,
-                                  }}
-                                />
-                              </div>
-                              <span className="num dim" style={{ fontSize: '12px' }}>
-                                {bot.exportSharePercent.toFixed(1)}%
-                              </span>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* 2B. Cross-Border Title Transfer Verifier & Simulator */}
-            <div
-              style={{
-                backgroundColor: 'var(--color-surface)',
-                border: '1px solid var(--color-divider)',
-                padding: '14px 16px',
-                display: 'flex',
-                flexDirection: 'column',
-                minWidth: 0,
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  borderBottom: '1px solid var(--color-divider)',
-                  paddingBottom: '10px',
-                  marginBottom: '10px',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <ArrowLeftRight style={{ width: '16px', height: '16px', color: 'var(--color-accent)' }} aria-hidden="true" />
-                  <h4 className="ptitle" style={{ fontSize: '14px' }}>
-                    Cross-Border Transfer &amp; UDB Verifier
-                  </h4>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleAdvanceSimulatorState('RESET')}
-                  aria-label="Reset simulation"
-                  className="btn btn-secondary"
-                  style={{ fontSize: '12px', padding: '3px 8px', height: '26px' }}
-                >
-                  <RefreshCw style={{ width: '12px', height: '12px' }} aria-hidden="true" /> Reset
-                </button>
-              </div>
-
-              {/* Form Controls */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', fontSize: '12px' }}>
-                {/* Source Registry */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <label htmlFor="source-registry-select" className="eyebrow" style={{ margin: 0 }}>
-                    Source Registry (Origin)
-                  </label>
-                  <select
-                    id="source-registry-select"
-                    value={sourceRegistry}
-                    onChange={e => setSourceRegistry(e.target.value as RegistryId)}
-                    className="input"
-                    style={{ minHeight: '32px', padding: '4px 8px', fontSize: '12px' }}
-                  >
-                    {allRegistriesList.map(r => (
-                      <option key={r.id} value={r.id}>
-                        {r.name} ({r.countryCode} - {r.countryName})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Target Registry */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <label htmlFor="target-registry-select" className="eyebrow" style={{ margin: 0 }}>
-                    Target Registry (Destination)
-                  </label>
-                  <select
-                    id="target-registry-select"
-                    value={targetRegistry}
-                    onChange={e => setTargetRegistry(e.target.value as RegistryId)}
-                    className="input"
-                    style={{ minHeight: '32px', padding: '4px 8px', fontSize: '12px' }}
-                  >
-                    {allRegistriesList.map(r => (
-                      <option key={r.id} value={r.id}>
-                        {r.name} ({r.countryCode} Quota / Hub)
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Transfer Protocol */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <label htmlFor="transfer-protocol-select" className="eyebrow" style={{ margin: 0 }}>
-                    Transfer Protocol
-                  </label>
-                  <select
-                    id="transfer-protocol-select"
-                    value={transferProtocol}
-                    onChange={e => setTransferProtocol(e.target.value as CertificateTransferProtocol)}
-                    className="input"
-                    style={{ minHeight: '32px', padding: '4px 8px', fontSize: '12px' }}
-                  >
-                    <option value="ERGAR_COO">ERGaR CoO (Certificate of Origin)</option>
-                    <option value="UDB_DIRECT_TRANSFER">UDB Single Area Direct Transfer</option>
-                    <option value="AIB_EECS_GAS">AIB EECS Gas Scheme</option>
-                    <option value="BILATERAL_RECOGNITION">Bilateral Recognition (RED III Art. 31a)</option>
-                    <option value="DOMESTIC_ONLY">Domestic Only (No cross-border)</option>
-                  </select>
-                </div>
-
-                {/* Transfer Volume */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <label htmlFor="transfer-volume-input" className="eyebrow" style={{ margin: 0 }}>
-                    Transfer Volume (MWh)
-                  </label>
-                  <input
-                    id="transfer-volume-input"
-                    type="number"
-                    value={customTransferVolume}
-                    onChange={e => setCustomTransferVolume(Number(e.target.value))}
-                    className="input num"
-                    style={{ minHeight: '32px', padding: '4px 8px', fontSize: '12px', fontWeight: 600 }}
-                  />
-                </div>
-              </div>
-
-              {/* Scenario Toggles */}
-              <div
-                style={{
-                  marginTop: '10px',
-                  paddingTop: '8px',
-                  borderTop: '1px solid var(--color-divider)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  fontSize: '12px',
-                }}
-              >
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={udbRequired}
-                    onChange={e => setUdbRequired(e.target.checked)}
-                    style={{ accentColor: 'var(--color-accent)' }}
-                  />
-                  <span>UDB Title Transfer Escrow Required</span>
-                </label>
-
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={bilateralTreatySimulated}
-                    onChange={e => setBilateralTreatySimulated(e.target.checked)}
-                    style={{ accentColor: 'var(--color-accent)' }}
-                  />
-                  <span>Simulate Non-EU Bilateral Treaty</span>
-                </label>
-              </div>
-
-              {/* Real-time Verification Output Box */}
-              <div
-                style={{
-                  marginTop: '10px',
-                  padding: '12px',
-                  backgroundColor: 'var(--color-panel-header)',
-                  border: '1px solid var(--color-divider)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    {liveVerification.isCompatible ? (
-                      <CheckCircle2 style={{ width: '16px', height: '16px', color: 'var(--color-status-pos-text)' }} aria-hidden="true" />
-                    ) : (
-                      <XCircle style={{ width: '16px', height: '16px', color: 'var(--color-status-neg-text)' }} aria-hidden="true" />
-                    )}
-                    <span style={{ fontWeight: 700, fontSize: '12px', color: liveVerification.isCompatible ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)' }}>
-                      {liveVerification.isCompatible ? 'TRANSFER COMPATIBLE' : 'TRANSFER BLOCKED'}
-                    </span>
-                  </div>
-
-                  {/* UDB Status Chip */}
-                  <span className={`chip ${
-                    liveVerification.udbTitleTransferStatus === 'ESCROW_LOCKED'
-                      ? 'chip-warn'
-                      : liveVerification.udbTitleTransferStatus === 'TITLE_TRANSFERRED'
-                      ? 'chip-pos'
-                      : liveVerification.udbTitleTransferStatus.startsWith('REJECTED')
-                      ? 'chip-neg'
-                      : ''
-                  }`}>
-                    {simulatorUdbState !== 'DRAFT' && liveVerification.isCompatible ? simulatorUdbState : liveVerification.udbTitleTransferStatus}
-                  </span>
-                </div>
-
-                {/* Blocking reasons or notes */}
-                {liveVerification.blockingReasons.length > 0 ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    {liveVerification.blockingReasons.map((reason, idx) => (
-                      <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', color: 'var(--color-status-neg-text)', fontSize: '12px' }}>
-                        <AlertTriangle style={{ width: '13px', height: '13px', flexShrink: 0, marginTop: '2px' }} aria-hidden="true" />
-                        <span>{reason}</span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    {liveVerification.auditNotes.map((note, idx) => (
-                      <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', color: 'var(--color-status-pos-text)', fontSize: '12px' }}>
-                        <CheckCircle2 style={{ width: '13px', height: '13px', flexShrink: 0, marginTop: '2px' }} aria-hidden="true" />
-                        <span>{note}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Statutory Citations */}
-                <div
-                  style={{
-                    paddingTop: '8px',
-                    borderTop: '1px solid var(--color-divider)',
-                    fontSize: '12px',
-                  }}
-                  className="dim"
-                >
-                  <span style={{ fontWeight: 600 }}>Legal Citations:</span> {liveVerification.statutoryCitations.join(' · ')}
-                </div>
-
-                {/* Action Buttons for Title Transfer Advancement */}
-                {liveVerification.isCompatible && (
-                  <div
-                    style={{
-                      paddingTop: '8px',
-                      borderTop: '1px solid var(--color-divider)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}
-                  >
-                    <span style={{ fontSize: '12px' }} className="mut">
-                      State: <strong style={{ color: 'var(--color-text)' }}>{simulatorUdbState}</strong>
-                    </span>
-
-                    <div style={{ display: 'flex', gap: '6px' }}>
-                      {simulatorUdbState === 'DRAFT' && (
-                        <button
-                          type="button"
-                          onClick={() => handleAdvanceSimulatorState('SUBMIT')}
-                          className="btn btn-secondary"
-                          style={{ fontSize: '12px', padding: '3px 8px', height: '26px' }}
-                        >
-                          Submit Transfer
-                        </button>
-                      )}
-
-                      {(simulatorUdbState === 'DRAFT' || simulatorUdbState === 'SUBMITTED') && (
-                        <button
-                          type="button"
-                          onClick={() => handleAdvanceSimulatorState('LOCK_ESCROW')}
-                          className="btn btn-secondary"
-                          style={{ fontSize: '12px', padding: '3px 8px', height: '26px' }}
-                        >
-                          <Lock style={{ width: '12px', height: '12px' }} aria-hidden="true" /> Lock Escrow
-                        </button>
-                      )}
-
-                      {simulatorUdbState === 'ESCROW_LOCKED' && (
-                        <button
-                          type="button"
-                          onClick={() => handleAdvanceSimulatorState('TRANSFER_TITLE')}
-                          className="btn btn-primary"
-                          style={{ fontSize: '12px', padding: '3px 10px', height: '26px' }}
-                        >
-                          <Send style={{ width: '12px', height: '12px' }} aria-hidden="true" /> Transfer Title
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {transferSuccessMessage && (
-                  <div
-                    style={{
-                      padding: '6px 10px',
-                      backgroundColor: 'var(--color-status-pos-bg)',
-                      border: '1px solid var(--color-status-pos-border)',
-                      color: 'var(--color-status-pos-text)',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                    }}
-                  >
-                    {transferSuccessMessage}
-                  </div>
-                )}
-              </div>
-            </div>
+      {activeTab === 'production' && (
+        <div className="rh-section">
+          <div className="rh-section-title">Production statistics</div>
+          <div className="rh-section-sub">
+            Only figures directly pulled from a source in this research. Countries not listed ({UNVERIFIED_PRODUCTION_COUNTRIES})
+            have no independently-sourced production total in this research.
           </div>
 
-          {/* Bottom Section: Pan-European Registry Network Matrix (All 22 Countries) */}
-          <div
-            style={{
-              backgroundColor: 'var(--color-surface)',
-              border: '1px solid var(--color-divider)',
-              padding: '14px 16px',
-              display: 'flex',
-              flexDirection: 'column',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                borderBottom: '1px solid var(--color-divider)',
-                paddingBottom: '10px',
-                marginBottom: '10px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Globe2 style={{ width: '16px', height: '16px', color: 'var(--color-accent)' }} />
-                <h4 className="ptitle" style={{ fontSize: '14px' }}>
-                  Pan-European Registry Network &amp; Direct Statutory Matrix (22 Jurisdictions)
-                </h4>
-              </div>
-              <span className="dim" style={{ fontSize: '12px' }}>
-                UDB Interoperability &amp; Regulatory Mandates
-              </span>
-            </div>
-
-            <div style={{ overflowX: 'auto', maxHeight: '380px', overflowY: 'auto' }}>
-              <table className="table" aria-label="Pan-European Registry Network Matrix">
-                <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
-                  <tr>
-                    <th>Country &amp; Registry</th>
-                    <th>Statutory Operator</th>
-                    <th>Trading Hub</th>
-                    <th>Statutory Legal Basis</th>
-                    <th>Protocols</th>
-                    <th style={{ textAlign: 'center' }}>UDB Status</th>
-                    <th style={{ textAlign: 'center' }}>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {allRegistriesList.map(meta => (
-                    <tr key={meta.id}>
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span className="num" style={{ fontWeight: 700, width: '24px', color: 'var(--color-accent)' }}>
-                            {meta.countryCode}
-                          </span>
-                          <div>
-                            <div style={{ fontWeight: 600 }}>{meta.name}</div>
-                            <div className="dim" style={{ fontSize: '12px' }}>{meta.countryName}</div>
-                          </div>
-                        </div>
-                      </td>
-
-                      <td style={{ fontSize: '12px' }}>
-                        {meta.operator}
-                      </td>
-
-                      <td className="dim" style={{ fontSize: '12px' }}>
-                        {meta.hubConnection}
-                      </td>
-
-                      <td className="dim" style={{ fontSize: '12px', maxWidth: '240px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={meta.statutoryLegalBasis}>
-                        {meta.statutoryLegalBasis}
-                      </td>
-
-                      <td>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                          {meta.primaryProtocols.map(p => (
-                            <span key={p} className="chip" style={{ fontSize: '12px', padding: '1px 4px' }}>
-                              {p.replace('_TRANSFER', '').replace('_RECOGNITION', '')}
-                            </span>
-                          ))}
-                        </div>
-                      </td>
-
-                      <td style={{ textAlign: 'center' }}>
-                        {meta.udbDirectIntegration ? (
-                          <span className="chip chip-pos">
-                            EU DIRECT (Art. 31a)
-                          </span>
-                        ) : (
-                          <span className="chip chip-warn">
-                            THIRD COUNTRY (Gated)
-                          </span>
-                        )}
-                      </td>
-
-                      <td style={{ textAlign: 'center' }}>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSourceRegistry(meta.id);
-                            setActiveHubView('SIMULATOR');
-                          }}
-                          className="btn btn-secondary"
-                          style={{ fontSize: '12px', padding: '3px 8px', height: '26px' }}
-                        >
-                          Simulate
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-        </div>
-      )}
-
-      {/* 3. BOTTOM SECTION: REGISTRY FLOW LEDGER & BATCH EXPLORER */}
-      {(activeHubView === 'OVERVIEW' || activeHubView === 'LEDGER') && (
-        <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', flex: 1, minHeight: '300px', gap: '12px' }}>
-          {/* Ledger Header & Filter Toolbar */}
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '12px',
-              borderBottom: '1px solid var(--color-divider)',
-              paddingBottom: '10px',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Building2 style={{ width: '16px', height: '16px', color: 'var(--color-accent)' }} aria-hidden="true" />
-              <h4 className="ptitle" style={{ fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span>European Registry Injection Flow Ledger</span>
-                <span className="chip chip-a" style={{ fontWeight: 700 }}>
-                  {filteredBatches.length} Batches
-                </span>
-              </h4>
-            </div>
-
-            {/* Quick Live Feed Sync Button & Filters */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
-              {/* Live Energinet Sync Button */}
-              <button
-                type="button"
-                onClick={handleSyncEnerginet}
-                disabled={isSyncingEnerginet}
-                className="btn btn-primary"
-                style={{ fontSize: '12px', padding: '4px 10px', height: '30px' }}
-                title="Fetch live hourly injection telemetry from Energinet DataHub API"
-              >
-                <Zap className={`w-3.5 h-3.5 ${isSyncingEnerginet ? 'animate-bounce' : ''}`} />
-                <span>{isSyncingEnerginet ? 'Syncing...' : '⚡ Sync Live Energinet'}</span>
-              </button>
-
-              {/* Search */}
-              <input
-                type="text"
-                placeholder="Filter batch, plant, proof ID…"
-                aria-label="Filter injection batches"
-                value={searchBatchQuery}
-                onChange={e => setSearchBatchQuery(e.target.value)}
-                className="input"
-                style={{ minHeight: '30px', padding: '4px 8px', fontSize: '12px', width: '190px' }}
-              />
-
-              {/* Registry Filter */}
-              <select
-                aria-label="Filter by registry"
-                value={selectedRegistryFilter}
-                onChange={e => setSelectedRegistryFilter(e.target.value)}
-                className="input"
-                style={{ minHeight: '30px', padding: '4px 8px', fontSize: '12px', width: '150px' }}
-              >
-                <option value="ALL">All 22 Registries</option>
-                {allRegistriesList.map(r => (
-                  <option key={r.id} value={r.id}>
-                    {r.name} ({r.countryCode})
-                  </option>
-                ))}
-              </select>
-
-              {/* Feedstock Filter */}
-              <select
-                aria-label="Filter by feedstock"
-                value={selectedFeedstockFilter}
-                onChange={e => setSelectedFeedstockFilter(e.target.value)}
-                className="input"
-                style={{ minHeight: '30px', padding: '4px 8px', fontSize: '12px', width: '170px' }}
-              >
-                <option value="ALL">All Feedstocks</option>
-                <option value="MANURE">Manure &amp; Slurry (IX-A)</option>
-                <option value="BIOWASTE">Municipal Organic / OFMSW (IX-A)</option>
-                <option value="AGRO">Agro Residues, Pulp &amp; CIVE (IX-A)</option>
-                <option value="CROP">Energy Crops (Crop)</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Ledger Table */}
-          <div style={{ overflowX: 'auto', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)' }}>
-            <table className="table" aria-label="Registry Injection Flow Ledger">
-              <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
+          <div className="ds-table-wrap">
+            <table className="table" style={{ margin: 0 }}>
+              <thead>
                 <tr>
-                  <th>Batch ID</th>
-                  <th>Metering Date / UTC</th>
-                  <th>Origin &amp; Facility</th>
-                  <th>Registry &amp; Grid Point</th>
-                  <th style={{ textAlign: 'right' }}>Volume (MWh)</th>
-                  <th style={{ textAlign: 'right' }}>Volume (Nm³)</th>
-                  <th>Feedstock &amp; Annex</th>
-                  <th style={{ textAlign: 'right' }}>Verified CI</th>
-                  <th>Sustainability Proof</th>
-                  <th>UDB Registration</th>
-                  <th style={{ textAlign: 'center' }}>Action</th>
+                  <th>Country</th>
+                  <th>Latest year</th>
+                  <th>Figure</th>
+                  <th>Source</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredBatches.map(batch => {
-                  const isSelected = selectedBatchIds.includes(batch.id);
-                  const isNegativeCI = batch.verifiedCI < 0;
-                  const isLive = batch.id.startsWith('ENERGINET-LIVE');
-
-                  return (
-                    <tr
-                      key={batch.id}
-                      onClick={() => setSelectedBatch(batch)}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      {/* Batch ID */}
-                      <td style={{ fontWeight: 700 }} className="num">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          {isLive && <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--color-status-pos-text)', display: 'inline-block' }} title="Live Hourly Data" />}
-                          <span>{batch.id}</span>
-                        </div>
-                      </td>
-
-                      {/* Metering Date / Timestamp */}
-                      <td className="num dim" style={{ whiteSpace: 'nowrap', fontSize: '12px' }}>
-                        {batch.meteringPeriod?.startDate || '2026-08-18'}
-                      </td>
-
-                      {/* Origin & Facility */}
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span className="num dim" style={{ fontWeight: 700, width: '20px' }}>
-                            {batch.originCountry}
-                          </span>
-                          <div style={{ fontWeight: 600, maxWidth: '170px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {batch.plantName}
-                          </div>
-                        </div>
-                      </td>
-
-                      {/* Registry & Grid Point */}
-                      <td>
-                        <div style={{ fontWeight: 600 }}>{batch.registryId}</div>
-                        <div className="dim" style={{ fontSize: '12px' }}>{batch.injectionPointId}</div>
-                      </td>
-
-                      {/* Volume MWh */}
-                      <td style={{ textAlign: 'right', fontWeight: 700 }} className="num">
-                        {batch.volumeMWh.toLocaleString()}
-                      </td>
-
-                      {/* Volume Nm3 */}
-                      <td style={{ textAlign: 'right' }} className="num dim">
-                        {batch.volumeNm3.toLocaleString()}
-                      </td>
-
-                      {/* Feedstock & Annex */}
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <span style={{ maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '12px' }}>
-                            {batch.feedstockCategory}
-                          </span>
-                          <span className={`chip ${batch.annexClassification === 'IX_A' ? 'chip-a' : ''}`} style={{ fontSize: '12px', padding: '1px 3px' }}>
-                            {batch.annexClassification}
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* Verified CI */}
-                      <td style={{ textAlign: 'right' }} className="num font-bold">
-                        <span style={{ color: isNegativeCI ? 'var(--color-status-pos-text)' : 'inherit' }}>
-                          {batch.verifiedCI.toFixed(1)} <span className="dim" style={{ fontSize: '12px', fontWeight: 400 }}>g/MJ</span>
-                        </span>
-                      </td>
-
-                      {/* Sustainability Proof */}
-                      <td>
-                        <div className="dim" style={{ fontSize: '12px', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {batch.sustainabilityProofId}
-                        </div>
-                        <div className="dim" style={{ fontSize: '12px' }}>{batch.certificationScheme}</div>
-                      </td>
-
-                      {/* UDB Registration */}
-                      <td>
-                        {batch.udbRegistrationId ? (
-                          <div className="chip chip-pos" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                            <CheckCircle2 style={{ width: '12px', height: '12px' }} aria-hidden="true" />
-                            <span>{batch.udbRegistrationId}</span>
-                          </div>
-                        ) : (
-                          <div className="chip chip-neg" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                            <XCircle style={{ width: '12px', height: '12px' }} aria-hidden="true" />
-                            <span>NON-EU / EXCLUDED</span>
-                          </div>
-                        )}
-                      </td>
-
-                      {/* Action */}
-                      <td style={{ textAlign: 'center' }} onClick={e => e.stopPropagation()}>
-                        <button
-                          type="button"
-                          aria-label={`Select batch ${batch.id} for transfer`}
-                          onClick={() => toggleBatchSelection(batch.id, batch.volumeMWh)}
-                          className={`btn ${isSelected ? 'btn-primary' : 'btn-secondary'}`}
-                          style={{ fontSize: '12px', padding: '3px 8px', height: '26px' }}
-                        >
-                          {isSelected ? 'SELECTED' : 'SELECT'}
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
+                {PRODUCTION_STATS.map(row => (
+                  <tr key={row.countryCode}>
+                    <td className="num" style={{ fontWeight: 600 }}>{row.countryCode}</td>
+                    <td className="num">{row.latestYear}</td>
+                    <td>{row.figure}</td>
+                    <td>
+                      <a href={row.sourceUrl} target="_blank" rel="noreferrer" style={{ fontSize: '12.5px' }}>{row.source}</a>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
-        </div>
-      )}
 
-      {/* BATCH DETAIL MODAL */}
-      {selectedBatch && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Registry facility detail"
-          className="scrim"
-          style={{ alignItems: 'center', justifyContent: 'center', padding: '24px' }}
-          onClick={() => setSelectedBatch(null)}
-        >
-          <div
-            className="panel"
-            style={{ width: '100%', maxWidth: '640px' }}
-            onClick={e => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div
-              style={{
-                padding: '14px 18px',
-                backgroundColor: 'var(--color-panel-header)',
-                borderBottom: '1px solid var(--color-divider)',
-                display: 'flex',
-                alignItems: 'flex-start',
-                justifyContent: 'space-between',
-                gap: '16px',
-              }}
-            >
-              <div>
-                <h3 className="ptitle" style={{ fontSize: '16px' }}>
-                  {selectedBatch.id} · {selectedBatch.plantName}
-                </h3>
-                <div className="dim" style={{ fontSize: '12px', marginTop: '2px' }}>
-                  {selectedBatch.originCountry} · {selectedBatch.registryId} · INJECTION RECORD
-                </div>
+          <div style={{ marginTop: '12px' }}>
+            <button type="button" className="rh-collapsible-toggle" onClick={() => setCorrectionsOpen(v => !v)}>
+              {correctionsOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+              Corrections vs. the previous (fabricated) app figures
+            </button>
+            {correctionsOpen && (
+              <div className="rh-collapsible-body">
+                <div>The old Registries tab carried a <code>BASELINE_BALANCE_OF_TRADE</code> table of import/export figures with no supporting source. Specific issues found:</div>
+                <ul>
+                  {CORRECTIONS_TEXT.map((c, i) => <li key={i}>{c}</li>)}
+                </ul>
               </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className={`chip ${selectedBatch.status === 'ISSUED' ? 'chip-pos' : ''}`}>
-                  {selectedBatch.status}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setSelectedBatch(null)}
-                  aria-label="Close batch detail"
-                  className="btn btn-secondary"
-                  style={{ padding: '2px 8px', height: '26px', fontSize: '12px' }}
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-
-            {/* Details Grid */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
-                gap: '1px',
-                backgroundColor: 'var(--color-divider)',
-              }}
-            >
-              <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 16px' }}>
-                <div className="eyebrow">Volume MWh</div>
-                <div className="big num" style={{ fontSize: '18px', marginTop: '2px' }}>
-                  {selectedBatch.volumeMWh.toLocaleString()} MWh
-                </div>
-              </div>
-
-              <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 16px' }}>
-                <div className="eyebrow">Volume Nm³ / GCV</div>
-                <div className="num" style={{ fontSize: '15px', fontWeight: 600, marginTop: '4px' }}>
-                  {selectedBatch.volumeNm3.toLocaleString()} Nm³ @ {selectedBatch.grossCalorificValueKwhNm3} kWh/Nm³
-                </div>
-              </div>
-
-              <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 16px' }}>
-                <div className="eyebrow">Verified Carbon Intensity</div>
-                <div className="big num" style={{ fontSize: '18px', color: 'var(--color-status-pos-text)', marginTop: '2px' }}>
-                  {selectedBatch.verifiedCI.toFixed(1)} gCO₂e/MJ
-                </div>
-              </div>
-
-              <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 16px' }}>
-                <div className="eyebrow">Annex Classification</div>
-                <div style={{ fontSize: '14px', fontWeight: 600, marginTop: '4px' }}>
-                  Annex {selectedBatch.annexClassification} (RED III)
-                </div>
-              </div>
-
-              <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 16px', gridColumn: 'span 2' }}>
-                <div className="eyebrow">Feedstock Composition</div>
-                <div style={{ fontSize: '13px', fontWeight: 500, marginTop: '4px' }}>
-                  {selectedBatch.feedstockDetails}
-                </div>
-              </div>
-
-              <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 16px' }}>
-                <div className="eyebrow">Sustainability Proof ID</div>
-                <div className="dim" style={{ fontSize: '12px', marginTop: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {selectedBatch.sustainabilityProofId} ({selectedBatch.certificationScheme})
-                </div>
-              </div>
-
-              <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 16px' }}>
-                <div className="eyebrow">UDB Registration ID</div>
-                <div style={{ fontSize: '12px', marginTop: '4px' }}>
-                  {selectedBatch.udbRegistrationId || 'N/A — Non-EU / Excluded Grid'}
-                </div>
-              </div>
-            </div>
-
-            {/* Modal Footer Note */}
-            <div
-              style={{
-                padding: '12px 18px',
-                backgroundColor: 'var(--color-panel-header)',
-                borderTop: '1px solid var(--color-divider)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <div className="dim" style={{ fontSize: '12px' }}>
-                Metering Period: {selectedBatch.meteringPeriod.startDate} → {selectedBatch.meteringPeriod.endDate}
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  toggleBatchSelection(selectedBatch.id, selectedBatch.volumeMWh);
-                  setSelectedBatch(null);
-                }}
-                className={`btn ${selectedBatchIds.includes(selectedBatch.id) ? 'btn-secondary' : 'btn-primary'}`}
-                style={{ fontSize: '12px', padding: '6px 14px' }}
-              >
-                {selectedBatchIds.includes(selectedBatch.id) ? 'Deselect from Transfer' : 'Add to Transfer Simulator'}
-              </button>
-            </div>
+            )}
           </div>
         </div>
       )}
 
+      {activeTab === 'live' && (
+        <div className="rh-section">
+          <div className="rh-section-title">Live data</div>
+          <div className="rh-section-sub">Honest about what each source actually is — no invented telemetry.</div>
+
+          <div className="rh-live-columns">
+            <div className="rh-live-card">
+              <div className="rh-live-card-head">
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: '13px' }}>Denmark — daily biomethane injection (Energinet)</div>
+                  <div className="mut" style={{ fontSize: '12px' }}>Real, live, national daily aggregate (KWhFromBiogas) — not per-plant telemetry.</div>
+                </div>
+              </div>
+
+              {!energinet ? (
+                <div className="mut" style={{ fontSize: '12.5px' }}>Loading…</div>
+              ) : energinet.source === 'UNAVAILABLE' ? (
+                <div className="rh-unavailable">
+                  Energinet data temporarily unavailable (rate-limited). {energinet.unavailableReason}
+                </div>
+              ) : (
+                <>
+                  <div style={{ fontSize: '12.5px', marginBottom: '10px' }} className="mut">
+                    {energinet.source === 'CACHED' ? `Cached ${energinet.cacheAgeMinutes ?? 0} minute(s) ago` : 'Live'} ·
+                    Annualised run-rate from latest day: <span className="num">{energinet.annualisedRunRateTWh?.toFixed(2)}</span> TWh/yr
+                  </div>
+                  <div className="rh-daily-list">
+                    {energinet.days.slice(0, 14).map(d => {
+                      const max = Math.max(...energinet.days.map(x => x.gwhFromBiogas), 1);
+                      const pct = Math.max(2, (d.gwhFromBiogas / max) * 100);
+                      return (
+                        <div key={d.gasDay} className="rh-daily-row">
+                          <span className="num">{d.gasDay}</span>
+                          <span className="rh-daily-bar-track"><span className="rh-daily-bar-fill" style={{ width: `${pct}%` }} /></span>
+                          <span className="num">{d.gwhFromBiogas.toFixed(1)} GWh</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+              <div style={{ marginTop: '10px' }}>
+                <a href="https://api.energidataservice.dk/dataset/Gasflow" target="_blank" rel="noreferrer" style={{ fontSize: '12px' }}>api.energidataservice.dk/dataset/Gasflow</a>
+              </div>
+            </div>
+
+            <div className="rh-live-card">
+              <div className="rh-live-card-head">
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: '13px' }}>France — per-site biomethane capacity (ODRE)</div>
+                  <div className="mut" style={{ fontSize: '12px' }}>Published data, updated monthly — not real-time.</div>
+                </div>
+              </div>
+
+              {!odre ? (
+                <div className="mut" style={{ fontSize: '12.5px' }}>Loading…</div>
+              ) : odre.source === 'UNAVAILABLE' ? (
+                <div className="rh-unavailable">ODRE data temporarily unavailable. {odre.unavailableReason}</div>
+              ) : (
+                <>
+                  <div style={{ fontSize: '12.5px', marginBottom: '10px' }} className="mut">
+                    {odre.source === 'CACHED' ? `Cached ${odre.cacheAgeMinutes ?? 0} minute(s) ago` : 'Live'} ·
+                    <span className="num"> {odre.siteCount}</span> sites, <span className="num">{odre.totalCapacityGwhYear.toLocaleString()}</span> GWh/yr modelled from annual capacity
+                  </div>
+                  <div className="rh-daily-list">
+                    {odre.points.slice(0, 14).map(p => (
+                      <div key={p.id} className="rh-daily-row">
+                        <span className="rh-cell-ellipsis" style={{ maxWidth: '60%' }}>{p.nodeName}</span>
+                        <span className="num">{((p.flowRateNm3PerHour * 10.5 * 8760) / 1_000_000).toFixed(1)} GWh/yr</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+              <div style={{ marginTop: '10px' }}>
+                <a href="https://odre.opendatasoft.com" target="_blank" rel="noreferrer" style={{ fontSize: '12px' }}>odre.opendatasoft.com</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
