@@ -5,6 +5,7 @@ import { ETS2_SEED_COMPANIES, CLEAN_HEAT_PROGRAM_LEADS, applyEts2CompanyImport, 
 
 const BASE_COMPANIES: Ets2Company[] = [...ETS2_SEED_COMPANIES, ...CLEAN_HEAT_PROGRAM_LEADS];
 import { Ets2DirectoryTab } from './Ets2DirectoryTab';
+import { Ets1SitesTab } from './Ets1SitesTab';
 import { computeEts2Exposure, GasVolumeBasis } from '../../domain/ets2/calculator';
 import {
   ETS2_COUNTRIES,
@@ -16,7 +17,7 @@ import {
 const IMPORT_STORAGE_KEY = 'biomethane_ets2_country_import_v1';
 const COMPANY_IMPORT_STORAGE_KEY = 'biomethane_ets2_company_import_v1';
 
-type Ets2Tab = 'DIRECTORY' | 'CALCULATOR' | 'COUNTRIES';
+type Ets2Tab = 'ETS1_SITES' | 'DIRECTORY' | 'CALCULATOR' | 'COUNTRIES';
 
 /** Directive 2023/959 Art. 30h price-control trigger, in 2020 prices (a soft trigger, not a cap). */
 const PRICE_CONTROL_TRIGGER_EUR_2020 = 45;
@@ -103,7 +104,7 @@ export function Ets2Screen() {
     [gasMWh, basis, priceValue, existingPrice, passThroughPct, bioSharePct, premium]
   );
 
-  const [tab, setTab] = useState<Ets2Tab>('DIRECTORY');
+  const [tab, setTab] = useState<Ets2Tab>('ETS1_SITES');
   const [importText, setImportText] = useState(() => readStoredImport());
   const [importErrors, setImportErrors] = useState<string[]>([]);
   const countries: Ets2CountryProfile[] = useMemo(() => {
@@ -260,8 +261,8 @@ export function Ets2Screen() {
   return (
     <PageShell style={{ overflowY: 'auto' }}>
       <PageHeader
-        title="EU ETS2 exposure"
-        context="Carbon cost on gas for buildings and small industry from 1 Jan 2028 (Directive 2023/959): who is exposed, and what switching to biomethane saves them."
+        title="EU ETS exposure"
+        context="Who pays for carbon on gas — industrial sites under ETS1 today, gas suppliers under ETS2 from 1 Jan 2028 — and what switching to biomethane saves them."
       />
       <div style={{ padding: '0 16px' }}>
         <Tabs<Ets2Tab>
@@ -269,12 +270,15 @@ export function Ets2Screen() {
           activeTab={tab}
           onChange={setTab}
           tabs={[
-            { id: 'DIRECTORY', label: 'Companies', badge: companies.length },
-            { id: 'CALCULATOR', label: 'Calculator' },
-            { id: 'COUNTRIES', label: 'Countries', badge: loadedCount || undefined },
+            { id: 'ETS1_SITES', label: 'ETS1 industrial sites' },
+            { id: 'DIRECTORY', label: 'ETS2 gas suppliers', badge: companies.length },
+            { id: 'CALCULATOR', label: 'ETS2 calculator' },
+            { id: 'COUNTRIES', label: 'ETS2 countries', badge: loadedCount || undefined },
           ]}
         />
       </div>
+
+      {tab === 'ETS1_SITES' && <Ets1SitesTab />}
 
       {tab === 'DIRECTORY' && (
         <Ets2DirectoryTab
