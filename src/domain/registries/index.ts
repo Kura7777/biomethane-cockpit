@@ -1,4 +1,5 @@
 export * from './types';
+export * from './registryDirectory';
 export * from './baselineData';
 export * from './udbVerification';
 export * from './connectors';
