@@ -111,29 +111,29 @@ export function TradeEconomicsStep({
         <div className="tb-form-control">
           <div className="tb-kv">
             <div className="tb-kv-row">
-              <span>1. Environmental Certificate Premium:</span>
+              <span>Environmental certificate premium</span>
               <span className="tb-pos">+€{(netback.certificateValue?.valueEurPerMWh ?? 0).toFixed(2)} / MWh</span>
             </div>
             <div className="tb-kv-row">
-              <span>2. Wholesale Gas Molecule Value:</span>
+              <span>Wholesale gas molecule value</span>
               <span>+€{(netback.moleculeValue ?? 0).toFixed(2)} / MWh</span>
             </div>
             <div className="tb-kv-row">
-              <span>3. Transfer, Registry &amp; Certification:</span>
+              <span>Transfer, registry &amp; certification</span>
               <span className="tb-neg">−€{((costs?.transferCosts ?? 0) + (costs?.certificationCosts ?? 0)).toFixed(2)} / MWh</span>
             </div>
             <div className="tb-kv-row">
-              <span>4. TSO Gas Transit Tariffs ({origin} → {selectedMarket.country}):</span>
+              <span>TSO gas transit tariffs ({origin} → {selectedMarket.country})</span>
               <span className="tb-neg">−€{(costs?.logistics ?? 0).toFixed(2)} / MWh</span>
             </div>
             {netback.producerPayable !== null && (
               <div className="tb-kv-row">
-                <span>5. Producer Payable (Offtake Floor):</span>
+                <span>Producer payable (offtake floor)</span>
                 <span className="tb-neg">−€{netback.producerPayable.toFixed(2)} / MWh</span>
               </div>
             )}
             <div className="tb-kv-row total">
-              <span>Net Trader Desk Spread:</span>
+              <span>Net trader desk spread</span>
               <span className={isPositivePnl ? 'tb-pos' : 'tb-neg'}>€{deskMarginEurMwh} / MWh</span>
             </div>
           </div>
