@@ -650,6 +650,14 @@ export function calculateMarineBunkerQuotation(
   const fossilLngEtsLiabilityEur = Number((fossilLngEtsTco2e * euaPriceEur).toFixed(2));
   const fossilLngEtsLiabilityUsd = Number((fossilLngEtsLiabilityEur * eurUsdRate).toFixed(2));
 
+  // Bio-LNG: CO2 from sustainable biomass is zero-rated under the EU ETS, but methane slip and N2O are
+  // not (they are not biogenic CO2). From 2026 they are surrendered exactly as for fossil LNG in the same
+  // engine. Commission maritime ETS FAQ: zero-rating covers "emissions resulting from the combustion of
+  // sustainable biomass"; CH4/N2O enter the ETS from 2026.
+  const bioLngEtsTco2e = targetYear >= 2026 ? lngEtsNonCo2Co2eTonnes(1, lngEngine) : 0;
+  const bioLngEtsLiabilityEur = Number((bioLngEtsTco2e * euaPriceEur).toFixed(2));
+  const bioLngEtsLiabilityUsd = Number((bioLngEtsLiabilityEur * eurUsdRate).toFixed(2));
+
   // FuelEU compliance balance of burning fossil LNG instead, on the same energy basis:
   // positive = surplus (credited at the desk bid), negative = deficit (Annex IV penalty).
   const fossilLngBalanceTco2e = ((targetGhgie - fossilLngIntensity) * LHV_BIO_LNG_MJ_PER_TONNE) / 1_000_000;
@@ -681,10 +689,10 @@ export function calculateMarineBunkerQuotation(
   // Net Client Advantage / Savings per tonne Bio-LNG:
   // (fossil-LNG fuel + ETS − fossil-LNG FuelEU balance) − (Bio-LNG price − Bio-LNG surplus value)
   const netSavingsPerTonneBioLngEur = Number(
-    (totalConventionalAlternativeCostEur - allInBioLngPriceEurPerTonne + fuelEuSurplusValueEurPerTonne).toFixed(2)
+    (totalConventionalAlternativeCostEur - allInBioLngPriceEurPerTonne - bioLngEtsLiabilityEur + fuelEuSurplusValueEurPerTonne).toFixed(2)
   );
   const netSavingsPerTonneBioLngUsd = Number(
-    (totalConventionalAlternativeCostUsd - allInBioLngPriceUsdPerTonne + fuelEuSurplusValueUsdPerTonne).toFixed(2)
+    (totalConventionalAlternativeCostUsd - allInBioLngPriceUsdPerTonne - bioLngEtsLiabilityUsd + fuelEuSurplusValueUsdPerTonne).toFixed(2)
   );
 
   const result: MarineBunkerQuotationResult = {
@@ -697,6 +705,8 @@ export function calculateMarineBunkerQuotation(
     fossilLngCostUsd,
     fossilLngEtsLiabilityEur,
     fossilLngEtsLiabilityUsd,
+    bioLngEtsLiabilityEur,
+    bioLngEtsLiabilityUsd,
     fossilLngFuelEuBalanceEur,
     fossilLngFuelEuBalanceUsd,
     totalConventionalAlternativeCostEur,
@@ -716,7 +726,7 @@ export function calculateMarineBunkerQuotation(
     result.totalBioLngInvoiceUsd = Math.round(vol * allInBioLngPriceUsdPerTonne);
     result.totalClientSavingsEur = Math.round(vol * netSavingsPerTonneBioLngEur);
     result.totalClientSavingsUsd = Math.round(vol * netSavingsPerTonneBioLngUsd);
-    result.totalEtsAvoidedTco2 = Math.round(vol * fossilLngEtsTco2e);
+    result.totalEtsAvoidedTco2 = Math.round(vol * (fossilLngEtsTco2e - bioLngEtsTco2e));
   }
 
   return result;

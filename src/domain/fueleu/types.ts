@@ -132,6 +132,9 @@ export interface MarineBunkerQuotationResult {
   fossilLngCostUsd: number;
   fossilLngEtsLiabilityEur: number;
   fossilLngEtsLiabilityUsd: number;
+  /** ETS on Bio-LNG's own methane slip and N2O (2026+); its CO2 is zero-rated. */
+  bioLngEtsLiabilityEur: number;
+  bioLngEtsLiabilityUsd: number;
   /** Signed FuelEU compliance balance value of burning fossil LNG instead (+ = surplus credit, − = deficit penalty). */
   fossilLngFuelEuBalanceEur: number;
   fossilLngFuelEuBalanceUsd: number;
