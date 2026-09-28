@@ -1148,7 +1148,6 @@ export function TradeBuilderScreen() {
                   className={`chip ${o.code === origin ? 'chip-a' : ''} ${o.isolated ? 'dim' : ''}`}
                   onClick={() => setOrigin(o.code)}
                 >
-                  <span style={{ marginRight: '3px', fontSize: '12px' }}>{o.flag}</span>
                   {o.code}
                 </button>
               ))}

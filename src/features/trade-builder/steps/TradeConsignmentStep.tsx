@@ -270,7 +270,6 @@ export function TradeConsignmentStep({
                     className={`chip ${o.code === origin ? 'chip-a' : ''}`}
                     onClick={() => setOrigin(o.code)}
                   >
-                    <span>{o.flag}</span>
                     <span>{o.code}</span>
                   </button>
                 ))}
