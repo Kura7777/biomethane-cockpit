@@ -1,6 +1,7 @@
 import { ETS_NATURAL_GAS_TCO2_PER_MWH } from '../netback/engine';
 import { toNcvMWh, GasVolumeBasis } from './calculator';
 import { Ets2CountryProfile } from './countries';
+import { ETS2_SUPPLIER_RESEARCH, DEHST_NEHS_COMPLIANCE_LIST } from './supplierResearch';
 
 /**
  * ETS2 company directory — who is exposed, per company and country.
@@ -58,119 +59,11 @@ export interface Ets2Company {
 
 const CHECKED = '2026-09-28';
 
-const ARERA_2025: Pick<Ets2Evidence, 'type' | 'url' | 'checkedAt'> = {
-  type: 'REGULATOR_MARKET_REPORT',
-  url: 'https://www.borsaitaliana.it/borsa/notizie/radiocor/economia/dettaglio/gas-arera-concentrazione-del-mercato-invariata-gruppo-edison-resta-primo-nRC_01072026_1658_590156299.html',
-  checkedAt: CHECKED,
-};
-
-const CNMC_Q1_2026: Pick<Ets2Evidence, 'type' | 'url' | 'checkedAt'> = {
-  type: 'REGULATOR_MARKET_REPORT',
-  url: 'https://www.cnmc.es/sites/default/files/6807815.pdf',
-  checkedAt: CHECKED,
-};
-
-function supplier(
-  id: string,
-  name: string,
-  countryIso: string,
-  marketSharePct: number | null,
-  shareBasis: string | null,
-  confidence: Ets2Confidence,
-  evidence: Ets2Evidence[],
-  notes: string | null = null
-): Ets2Company {
-  return {
-    id,
-    name,
-    countryIso,
-    role: 'REGULATED_SUPPLIER',
-    marketSharePct,
-    shareBasis,
-    gasVolumeTWh: null,
-    gasVolumeBasis: 'GCV',
-    confidence,
-    evidence,
-    contacts: [],
-    notes,
-  };
-}
-
-/** Seed list: the largest gas suppliers in the most exposed markets, with sources. */
-export const ETS2_SEED_COMPANIES: Ets2Company[] = [
-  // ── Italy (ARERA Annual Report 2025, via Radiocor 1 Jul 2026) ──
-  supplier('it-edison', 'Edison', 'IT', 16.8, 'final retail gas sales, 2025', 'HIGH', [
-    { ...ARERA_2025, note: 'ARERA 2025: Edison group first, share up from 15.5% to 16.8%.' },
-  ]),
-  supplier('it-eni', 'Eni (Plenitude)', 'IT', 12.7, 'final retail gas sales, 2025', 'HIGH', [
-    { ...ARERA_2025, note: 'ARERA 2025: Eni group second, share up from 12% to 12.7%.' },
-  ]),
-  supplier('it-enel', 'Enel', 'IT', 9.7, 'final retail gas sales, 2025', 'HIGH', [
-    { ...ARERA_2025, note: 'ARERA 2025: Enel group third, share down from 11.1% to 9.7%.' },
-  ]),
-  // ── Spain (CNMC quarterly retail supervision bulletin, Q1 2026) ──
-  supplier('es-naturgy', 'Naturgy', 'ES', 29.4, 'retail gas sales, Q1 2026', 'HIGH', [
-    { ...CNMC_Q1_2026, note: 'CNMC: largest sales in Q1 2026 — Naturgy 29.4%.' },
-  ]),
-  supplier('es-repsol', 'Repsol', 'ES', 11.3, 'retail gas sales, Q1 2026', 'HIGH', [
-    { ...CNMC_Q1_2026, note: 'CNMC: Repsol 11.3% of Q1 2026 sales.' },
-  ]),
-  supplier('es-endesa', 'Endesa', 'ES', 10.6, 'retail gas sales, Q1 2026', 'HIGH', [
-    { ...CNMC_Q1_2026, note: 'CNMC: Endesa 10.6% of Q1 2026 sales.' },
-  ]),
-  supplier('es-iberdrola', 'Iberdrola', 'ES', 8.5, 'retail gas sales, Q1 2026', 'HIGH', [
-    { ...CNMC_Q1_2026, note: 'CNMC: Iberdrola 8.5% of Q1 2026 sales.' },
-  ]),
-  supplier('es-moeve', 'Moeve (formerly Cepsa)', 'ES', 5.2, 'retail gas sales, Q1 2026', 'HIGH', [
-    { ...CNMC_Q1_2026, note: 'CNMC: Moeve 5.2% of Q1 2026 sales.' },
-  ]),
-  // ── Poland ──
-  supplier('pl-orlen', 'ORLEN (PGNiG Obrót Detaliczny)', 'PL', 97, 'gas sales to households, 2024', 'MEDIUM', [
-    {
-      type: 'SECONDARY_SOURCE',
-      url: 'https://www.oxfordenergy.org/wpcms/wp-content/uploads/2025/10/Insight-172-State-Control-and-Market-Expansion-Can-Polands-Gas-Market-Develop-Without-Liberalisation.pdf',
-      note: 'OIES Insight 172: Orlen nearly 97% of household gas sales in 2024; 85% of sales to distribution-connected final customers.',
-      checkedAt: CHECKED,
-    },
-  ]),
-  // ── Hungary ──
-  supplier('hu-mvm-next', 'MVM Next', 'HU', null, null, 'MEDIUM', [
-    {
-      type: 'SECONDARY_SOURCE',
-      url: 'https://ceenergynews.com/electricity/mvm-becomes-the-only-universal-provider-for-hungarys-gas-and-electricity-market/',
-      note: 'MVM became the only universal-service provider for households in Hungary\'s gas and electricity market.',
-      checkedAt: CHECKED,
-    },
-  ], 'Sole household universal-service supplier; share not stated as a single figure.'),
-  // ── Belgium ──
-  supplier('be-engie', 'ENGIE (Belgium)', 'BE', null, null, 'MEDIUM', [
-    {
-      type: 'SECONDARY_SOURCE',
-      url: 'https://www.statista.com/statistics/752904/leading-natural-gas-suppliers-in-flanders-belgium-by-market-share/',
-      note: 'Largest natural gas supplier in Flanders as of June 2025 (regional regulators publish shares by region).',
-      checkedAt: CHECKED,
-    },
-  ]),
-  supplier('be-luminus', 'Luminus', 'BE', null, null, 'MEDIUM', [
-    {
-      type: 'SECONDARY_SOURCE',
-      url: 'https://www.statista.com/statistics/752904/leading-natural-gas-suppliers-in-flanders-belgium-by-market-share/',
-      note: 'Second-largest natural gas supplier in Flanders as of June 2025.',
-      checkedAt: CHECKED,
-    },
-  ]),
-  // ── Netherlands ──
-  ...(['Eneco', 'Essent', 'Vattenfall'] as const).map(name =>
-    supplier(`nl-${name.toLowerCase()}`, name, 'NL', null, null, 'LOW', [
-      {
-        type: 'SECONDARY_SOURCE',
-        url: 'https://www.sciencedirect.com/science/article/pii/S0301421518308061',
-        note: 'Named as the large incumbents dominating Dutch retail energy; gas shares not published by ACM.',
-        checkedAt: CHECKED,
-      },
-    ])
-  ),
-];
+/**
+ * Seed list of ETS2 regulated gas suppliers across 11 countries (curated desk research, see
+ * supplierResearch.ts for the curation rules and every source).
+ */
+export const ETS2_SEED_COMPANIES: Ets2Company[] = ETS2_SUPPLIER_RESEARCH;
 
 const CLEAN_HEAT_SOURCE: Pick<Ets2Evidence, 'type' | 'url' | 'checkedAt'> = {
   type: 'SECONDARY_SOURCE',
@@ -226,8 +119,8 @@ export const ETS2_REGULATED_ENTITY_LISTS: Record<string, { label: string; url: s
     url: 'https://www.epa.ie/our-services/licensing/climate-change/eu-emissions-trading-system-/eu-emissions-trading-system-2-ets2/current-ets2-greenhouse-gas-emissions-permits/',
   },
   DE: {
-    label: 'DEHSt — BEHG responsible parties (published in the Bundesanzeiger)',
-    url: 'https://www.dehst.de/EN/Topics/nEHS/EU-ETS-2/reporting-phase-2024-2026/eu-ets2_node.html',
+    label: 'DEHSt nEHS register — public compliance list of all 1,966 BEHG responsible parties (CSV/XLSX export); most move into EU ETS2',
+    url: DEHST_NEHS_COMPLIANCE_LIST,
   },
   BE: {
     label: 'Belgian Climate Registry — ETS2 (regional competent authorities)',

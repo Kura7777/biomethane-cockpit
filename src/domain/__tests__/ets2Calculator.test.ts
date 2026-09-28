@@ -101,19 +101,31 @@ describe('ETS2 country exposure', () => {
 import { ETS2_SEED_COMPANIES, applyEts2CompanyImport, computeCompanyExposure } from '../ets2/companies';
 
 describe('ETS2 company directory', () => {
-  it('sources every seeded company and invents no volumes', () => {
-    expect(ETS2_SEED_COMPANIES.length).toBeGreaterThan(0);
+  it('sources every seeded company, and only disclosed volumes carry a volume', () => {
+    expect(ETS2_SEED_COMPANIES.length).toBeGreaterThan(40);
     for (const c of ETS2_SEED_COMPANIES) {
       expect(c.evidence.length, c.name).toBeGreaterThan(0);
       expect(c.evidence.every(e => e.url.startsWith('https://')), c.name).toBe(true);
-      expect(c.gasVolumeTWh, c.name).toBeNull();
+      if (c.gasVolumeTWh !== null) {
+        expect(c.evidence.some(e => e.type === 'COMPANY_DISCLOSURE' || e.type === 'REGULATOR_MARKET_REPORT' || e.type === 'SECONDARY_SOURCE'), c.name).toBe(true);
+      }
+      if (c.marketSharePct !== null) expect(c.shareBasis, c.name).not.toBeNull();
     }
     expect(new Set(ETS2_SEED_COMPANIES.map(c => c.id)).size).toBe(ETS2_SEED_COMPANIES.length);
   });
 
-  it('leaves exposure blank until the country volume is loaded', () => {
+  it('does not use a customer-count share as a volume share', () => {
+    const total = ETS2_SEED_COMPANIES.find(c => c.id === 'es-totalenergies')!;
+    expect(total.marketSharePct).toBeNull();
+  });
+
+  it('uses disclosed volumes directly and leaves share-only companies blank until the country volume is loaded', () => {
     const rows = computeCompanyExposure(ETS2_SEED_COMPANIES, ETS2_COUNTRIES, 50);
-    expect(rows.every(r => r.ets2CostEurM === null)).toBe(true);
+    const engie = rows.find(r => r.company.id === 'fr-engie')!;
+    expect(engie.volumeMethod).toBe('DISCLOSED');
+    expect(engie.ets2CostEurM).toBeCloseTo(120 * 0.901 * ETS_NATURAL_GAS_TCO2_PER_MWH * 50, 6);
+    const edison = rows.find(r => r.company.id === 'it-edison')!;
+    expect(edison.ets2CostEurM).toBeNull();
   });
 
   it('estimates exposure as market share of the national building-gas volume', () => {

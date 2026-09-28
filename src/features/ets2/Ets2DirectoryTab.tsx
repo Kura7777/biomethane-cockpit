@@ -37,6 +37,15 @@ function writeStatuses(statuses: Record<string, OutreachStatus>): void {
   }
 }
 
+/** Short link label: the source's host, e.g. "cre.fr". */
+function sourceLabel(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '');
+  } catch {
+    return 'source';
+  }
+}
+
 function csvCell(value: string | number | null): string {
   if (value === null) return '';
   const text = String(value);
@@ -141,6 +150,7 @@ export function Ets2DirectoryTab(props: {
           Gas suppliers are the ETS2 regulated entities: they buy allowances from 2028 and pass the cost on, so they are the first buyers of zero-rated biomethane.
           Estimated cost uses the company's own volume where known, otherwise its market share of the country's building-gas volume (Countries tab), at the scenario price
           {ets2PriceEurPerT === null ? ' (set a price in the calculator)' : ` of €${ets2PriceEurPerT}/t`}.
+          {' '}* = disclosed portfolio volume across all segments; it can include EU ETS1 industrial sites, so the ETS2 cost is an upper bound.
         </p>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
           <input className="input" style={{ flex: '2 1 220px', width: 'auto' }} placeholder="Search company" aria-label="Search company" value={search} onChange={e => setSearch(e.target.value)} />
@@ -177,6 +187,14 @@ export function Ets2DirectoryTab(props: {
                   <tr key={c.id}>
                     <td>
                       <div style={{ fontWeight: 600 }}>{c.name}</div>
+                      {c.notes && (
+                        <div
+                          title={c.notes}
+                          style={{ fontSize: '11px', color: 'var(--color-text-muted)', maxWidth: '320px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                        >
+                          {c.notes}
+                        </div>
+                      )}
                       <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
                         {c.role === 'REGULATED_SUPPLIER' ? 'Regulated supplier' : `Exposed end user${c.sector ? ` · ${c.sector}` : ''}`} · {c.confidence.toLowerCase()} confidence
                       </div>
@@ -185,19 +203,18 @@ export function Ets2DirectoryTab(props: {
                     <td className="num" style={{ textAlign: 'right' }} title={c.shareBasis ?? undefined}>
                       {c.marketSharePct === null ? '—' : `${c.marketSharePct}%`}
                     </td>
-                    <td className="num" style={{ textAlign: 'right' }} title={r.volumeMethod === 'SHARE_OF_NATIONAL' ? 'Share × national building gas (approximation)' : undefined}>
-                      {r.volumeTWh === null ? '—' : `${r.volumeMethod === 'SHARE_OF_NATIONAL' ? '≈' : ''}${r.volumeTWh.toFixed(1)}`}
+                    <td className="num" style={{ textAlign: 'right' }} title={r.volumeMethod === 'SHARE_OF_NATIONAL' ? 'Share × national building gas (approximation)' : r.volumeMethod === 'DISCLOSED' ? 'Disclosed portfolio volume, all segments — may include EU ETS1 sites, so ETS2 cost is overstated' : undefined}>
+                      {r.volumeTWh === null ? '—' : `${r.volumeMethod === 'SHARE_OF_NATIONAL' ? '≈' : ''}${r.volumeTWh.toFixed(1)}${r.volumeMethod === 'DISCLOSED' ? '*' : ''}`}
                     </td>
                     <td className="num" style={{ textAlign: 'right' }}>{r.ets2CostEurM === null ? '—' : Math.round(r.ets2CostEurM).toLocaleString('en-GB')}</td>
-                    <td style={{ fontSize: '12px', maxWidth: '260px' }}>
-                      {c.notes && <div style={{ fontStyle: 'italic', marginBottom: '2px' }}>{c.notes}</div>}
+                    <td style={{ fontSize: '12px', maxWidth: '200px' }}>
                       {c.evidence.map(e => (
-                        <div key={e.url}>
-                          <a href={e.url} target="_blank" rel="noreferrer" title={e.note}>{e.note || e.url}</a>
-                        </div>
+                        <a key={e.url + e.note} href={e.url} target="_blank" rel="noreferrer" title={e.note} style={{ display: 'block', maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {sourceLabel(e.url)}
+                        </a>
                       ))}
                     </td>
-                    <td style={{ fontSize: '12px' }}>
+                    <td style={{ fontSize: '12px', maxWidth: '240px' }}>
                       {firstContact ? (
                         <a href={firstContact.sourceUrl} target="_blank" rel="noreferrer">
                           {[firstContact.name, firstContact.role, firstContact.email, firstContact.phone].filter(Boolean).join(' · ') || firstContact.kind}
@@ -209,6 +226,7 @@ export function Ets2DirectoryTab(props: {
                     <td>
                       <select
                         className="input"
+                        style={{ minWidth: '140px' }}
                         aria-label={`Outreach status for ${c.name}`}
                         value={statuses[c.id] ?? 'NOT_CONTACTED'}
                         onChange={e => setStatus(c.id, e.target.value as OutreachStatus)}
