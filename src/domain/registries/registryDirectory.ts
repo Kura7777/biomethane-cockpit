@@ -111,7 +111,7 @@ export const REGISTRY_DIRECTORY: RegistryDirectoryEntry[] = [
   {
     countryCode: 'DK',
     countryName: 'Denmark',
-    registryName: "Energinet's Guarantee of Origin register (branding as \"Biometangasregister\" is unverified; the term \"G-Rex\" also appears in one ERGaR source)",
+    registryName: 'Energinet Guarantee of Origin register', // branding ('Biometangasregister' / 'G-Rex') unverified, see notes
     operator: 'Energinet Gas TSO A/S',
     officialUrl: 'https://energinet.dk',
     issues: 'GO',
