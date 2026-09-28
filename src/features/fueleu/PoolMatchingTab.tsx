@@ -5,6 +5,7 @@ import { buildPoolBook, PoolSurplusParty, PoolDeficitParty } from '../../domain/
 import { getAssumption, fuelEuPoolBidPriceEurPerTco2e } from '../../domain/assumptions/registry';
 import { FUELEU_POOLING_BORROWING_DATABASE_DEADLINE } from '../../domain/fueleu/calculator';
 import { PoolPriceMark } from './PoolPriceMark';
+import { FuelEuPoolIndexChart } from './FuelEuPoolIndexChart';
 
 const MONO_FONT = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
 
@@ -76,6 +77,10 @@ export function PoolMatchingTab({ highlightGroupId }: PoolMatchingTabProps = {})
           Article 21 group-level pool sizing (indicative). Greedy largest-surplus-to-largest-deficit matching, priced at the live desk offer/bid. Every figure on this tab is <strong>indicative</strong> — not a filed pool.
         </div>
         <PoolPriceMark variant="block" />
+      </div>
+
+      <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)' }}>
+        <FuelEuPoolIndexChart />
       </div>
 
       <div style={{ padding: '8px 18px', borderBottom: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
