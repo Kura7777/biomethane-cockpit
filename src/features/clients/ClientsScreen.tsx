@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppState } from '../../store/context';
 import { PageShell, PageHeader, Card, KpiRow, KpiTile } from '../../shared/ui';
 import {
@@ -8,19 +8,29 @@ import {
   CompanyProfile,
   CompanyLink,
   MarketKey,
+  MARKET_KEYS,
   MARKET_LABEL,
+  DEFAULT_ETS2_COMPANIES,
 } from '../../domain/companies/directory';
-import { SECTOR_LABEL, biomethaneMWhToAbate, ETS1_LATEST_YEAR } from '../../domain/ets1/sites';
+import {
+  computeRegulationExposure,
+  computeOpportunities,
+  RegulationExposure,
+  Opportunity,
+} from '../../domain/companies/opportunities';
+import { SECTOR_LABEL, ETS1_LATEST_YEAR } from '../../domain/ets1/sites';
+import { applyEts2CompanyImport } from '../../domain/ets2/companies';
+import { ETS2_COUNTRIES, applyEts2CountryImport } from '../../domain/ets2/countries';
 import { selectMarkPrice } from '../../domain/netback/engine';
-import { HHV_TO_LHV_FACTOR } from '../../domain/offtake/engine';
 import { normalizeCompanyName } from '../../domain/companies/normalize';
 
 const LINKS_KEY = 'biomethane_company_links_v1';
 const STATUS_KEY = 'biomethane_client_status_v1';
+/** Read-only: the trader's ETS2 imports, made on the EU ETS screen. */
+const ETS2_COUNTRY_IMPORT_KEY = 'biomethane_ets2_country_import_v1';
+const ETS2_COMPANY_IMPORT_KEY = 'biomethane_ets2_company_import_v1';
 const PAGE = 100;
 const EUR_PER_EUR_M = 1_000_000;
-/** The ETS1 value-stack preset sizes a first deal at 10% of emissions at high/medium-fit sites. */
-const ETS1_FIRST_DEAL_SHARE = 10 / 100;
 
 type Status = 'NOT_CONTACTED' | 'CONTACTED' | 'MEETING' | 'PIPELINE' | 'NOT_A_FIT';
 const STATUS_LABEL: Record<Status, string> = {
@@ -31,12 +41,22 @@ const STATUS_LABEL: Record<Status, string> = {
   NOT_A_FIT: 'Not a fit',
 };
 
+type SortKey = 'name' | 'regs' | 'fueleu' | 'maritime' | 'ets1' | 'ets2' | 'total';
+
 function readJson<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(key);
     return raw ? (JSON.parse(raw) as T) : fallback;
   } catch {
     return fallback;
+  }
+}
+
+function readText(key: string): string {
+  try {
+    return localStorage.getItem(key) ?? '';
+  } catch {
+    return '';
   }
 }
 
@@ -49,54 +69,121 @@ function writeJson(key: string, value: unknown): void {
 }
 
 function eurM(v: number | null): string {
-  return v === null ? '—' : `€${(v / EUR_PER_EUR_M).toLocaleString('en-GB', { maximumFractionDigits: 1 })}m`;
+  if (v === null) return '—';
+  const m = v / EUR_PER_EUR_M;
+  return `€${m.toLocaleString('en-GB', { maximumFractionDigits: m < 10 ? 1 : 0 })}m`;
+}
+
+function eur(v: number | null, digits = 0): string {
+  return v === null ? '—' : `€${v.toLocaleString('en-GB', { minimumFractionDigits: digits, maximumFractionDigits: digits })}`;
+}
+
+function mwh(v: number | null): string {
+  return v === null ? '—' : `${Math.round(v).toLocaleString('en-GB')} MWh`;
+}
+
+function ets2Cell(x: RegulationExposure): string {
+  switch (x.ets2Standing) {
+    case 'QUANTIFIED': return eurM(x.ets2CostEur);
+    case 'SUPPLIER_VOLUME_UNKNOWN': return 'Supplier';
+    case 'END_USER': return 'End user';
+    default: return '—';
+  }
 }
 
 interface Row {
   profile: CompanyProfile;
-  fuelEuPenaltyEur: number | null;
-  ets1BillEur: number | null;
-  totalEur: number | null;
+  exposure: RegulationExposure;
+  best: Opportunity | null;
+}
+
+function sortValue(r: Row, key: SortKey): number | null {
+  switch (key) {
+    case 'regs': return r.profile.markets.length;
+    case 'fueleu': return r.exposure.fuelEuPenaltyEur;
+    case 'maritime': return r.exposure.etsMaritimeEur;
+    case 'ets1': return r.exposure.ets1BillEur;
+    // Unquantified ETS2 exposure still ranks above none.
+    case 'ets2': return r.exposure.ets2CostEur ?? (r.exposure.ets2Standing === 'NONE' ? null : 0);
+    case 'total': return r.exposure.costAtStakeNowEur;
+    default: return null;
+  }
+}
+
+function csvCell(v: string | number | null): string {
+  const s = v === null ? '' : String(v);
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
 export function ClientsScreen() {
   const { state } = useAppState();
   const navigate = useNavigate();
+  const [params, setParams] = useSearchParams();
   const eua = selectMarkPrice(state.marks.marks['EU_ETS1'], 'mid');
+  const ets2Price = selectMarkPrice(state.marks.marks['EU_ETS2'], 'mid');
+  const year = new Date().getFullYear();
 
   const [links, setLinks] = useState<CompanyLink[]>(() => readJson<CompanyLink[]>(LINKS_KEY, []));
   const [statuses, setStatuses] = useState<Record<string, Status>>(() => readJson<Record<string, Status>>(STATUS_KEY, {}));
-  const directory = useMemo(() => buildCompanyDirectory(links), [links]);
+  const ets2Countries = useMemo(() => {
+    const text = readText(ETS2_COUNTRY_IMPORT_KEY);
+    return text.trim() ? applyEts2CountryImport(ETS2_COUNTRIES, text).countries : ETS2_COUNTRIES;
+  }, []);
+  const ets2Companies = useMemo(() => {
+    const text = readText(ETS2_COMPANY_IMPORT_KEY);
+    return text.trim() ? applyEts2CompanyImport(DEFAULT_ETS2_COMPANIES, text).companies : DEFAULT_ETS2_COMPANIES;
+  }, []);
+  const directory = useMemo(() => buildCompanyDirectory(links, ets2Companies), [links, ets2Companies]);
+
+  const rows: Row[] = useMemo(
+    () => directory.map(profile => ({
+      profile,
+      exposure: computeRegulationExposure(profile, state.marks, ets2Countries),
+      best: computeOpportunities(profile, state.marks, ets2Countries, year)[0] ?? null,
+    })),
+    [directory, state.marks, ets2Countries, year]
+  );
 
   const [search, setSearch] = useState('');
   const [markets, setMarkets] = useState<MarketKey[]>([]);
+  const [country, setCountry] = useState('ALL');
   const [multiOnly, setMultiOnly] = useState(false);
+  const [sort, setSort] = useState<{ key: SortKey; desc: boolean }>({ key: 'total', desc: true });
   const [shown, setShown] = useState(PAGE);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const rows: Row[] = useMemo(() => {
-    return directory.map(profile => {
-      const pen = profile.fueleu.length ? profile.fueleu.reduce((s, f) => s + f.penalty2026Eur, 0) : null;
-      const t = profile.ets1.reduce((s, c) => s + c.verifiedLatestTco2, 0);
-      const bill = profile.ets1.length && eua !== null ? t * eua : null;
-      const parts = [pen, bill].filter((x): x is number => x !== null);
-      return { profile, fuelEuPenaltyEur: pen, ets1BillEur: bill, totalEur: parts.length ? parts.reduce((a, b) => a + b, 0) : null };
-    });
-  }, [directory, eua]);
+  const countries = useMemo(() => [...new Set(directory.flatMap(p => p.countries))].sort(), [directory]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return rows
+    const out = rows
       .filter(r => !q || r.profile.names.some(n => n.toLowerCase().includes(q)))
       .filter(r => markets.every(m => r.profile.markets.includes(m)))
-      .filter(r => !multiOnly || r.profile.markets.length > 1)
-      .sort((a, b) => (b.profile.markets.length - a.profile.markets.length) || ((b.totalEur ?? -1) - (a.totalEur ?? -1)));
-  }, [rows, search, markets, multiOnly]);
+      .filter(r => country === 'ALL' || r.profile.countries.includes(country))
+      .filter(r => !multiOnly || r.profile.markets.length > 1);
+    const dir = sort.desc ? -1 : 1;
+    return out.sort((a, b) => {
+      if (sort.key === 'name') return a.profile.name.localeCompare(b.profile.name) * dir;
+      const va = sortValue(a, sort.key);
+      const vb = sortValue(b, sort.key);
+      // Blanks always sink, whichever way the column is sorted.
+      if (va === null || vb === null) return va === vb ? 0 : va === null ? 1 : -1;
+      if (va !== vb) return va < vb ? -dir : dir;
+      const ta = a.exposure.costAtStakeNowEur;
+      const tb = b.exposure.costAtStakeNowEur;
+      return ta === tb ? 0 : ta === null ? 1 : tb === null ? -1 : ta < tb ? 1 : -1;
+    });
+  }, [rows, search, markets, country, multiOnly, sort]);
 
-  const selected = selectedId ? directory.find(p => p.id === selectedId || p.names.some(n => n === selectedId)) ?? null : null;
-  const related = useMemo(() => (selected ? suggestRelated(selected, directory) : []), [selected, directory]);
+  const selectedId = params.get('company');
+  const selectedRow = selectedId ? rows.find(r => r.profile.id === selectedId) ?? null : null;
+  const related = useMemo(() => (selectedRow ? suggestRelated(selectedRow.profile, directory) : []), [selectedRow, directory]);
 
-  const toggleMarket = (m: MarketKey) => setMarkets(prev => (prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m]));
+  useEffect(() => {
+    document.querySelector('.page-shell, main')?.scrollTo?.({ top: 0 });
+  }, [selectedId]);
+
+  const select = (id: string | null) => setParams(id ? { company: id } : {});
+  const toggleMarket = (m: MarketKey) => { setMarkets(prev => (prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m])); setShown(PAGE); };
   const setStatus = (id: string, s: Status) => {
     const next = { ...statuses, [id]: s };
     setStatuses(next);
@@ -107,71 +194,148 @@ export function ClientsScreen() {
     setLinks(next);
     writeJson(LINKS_KEY, next);
   };
-  const unlinkAll = (id: string) => {
+  const unlinkAll = (profile: CompanyProfile) => {
     // Profile ids are normalised names, so every id merged into this profile is one of its names normalised.
-    const idsInProfile = new Set([id, ...(selected?.names ?? []).map(normalizeCompanyName)]);
+    const idsInProfile = new Set([profile.id, ...profile.names.map(normalizeCompanyName)]);
     const next = links.filter(l => !idsInProfile.has(l.a) && !idsInProfile.has(l.b));
     setLinks(next);
     writeJson(LINKS_KEY, next);
   };
-
-  const openStack = (params: Record<string, string>) => {
-    const qs = new URLSearchParams({ ...params, for: selected?.name ?? '' }).toString();
-    navigate(`/value-stack?${qs}`);
+  const openAction = (o: Opportunity, company: string) => {
+    if (!o.action) return;
+    const { route, params: q } = o.action;
+    const qs = new URLSearchParams(route === '/value-stack' ? { ...q, for: company } : q).toString();
+    navigate(qs ? `${route}?${qs}` : route);
   };
 
-  const multiCount = directory.filter(p => p.markets.length > 1).length;
+  const exportCsv = () => {
+    const header = ['Company', 'Countries', 'Regulations', 'FuelEU 2026 penalty €', 'EU ETS maritime 2026 €', `EU ETS1 bill € (${ETS1_LATEST_YEAR} emissions)`, 'EU ETS2 from 2028 €', 'EU ETS2 role', 'Cost at stake now €', 'Best play', 'Status'];
+    const lines = filtered.map(r => [
+      r.profile.name,
+      r.profile.countries.join(' '),
+      r.profile.markets.map(m => MARKET_LABEL[m]).join('; '),
+      r.exposure.fuelEuPenaltyEur === null ? null : Math.round(r.exposure.fuelEuPenaltyEur),
+      r.exposure.etsMaritimeEur === null ? null : Math.round(r.exposure.etsMaritimeEur),
+      r.exposure.ets1BillEur === null ? null : Math.round(r.exposure.ets1BillEur),
+      r.exposure.ets2CostEur === null ? null : Math.round(r.exposure.ets2CostEur),
+      r.exposure.ets2Standing === 'NONE' ? null : r.exposure.ets2Standing,
+      r.exposure.costAtStakeNowEur === null ? null : Math.round(r.exposure.costAtStakeNowEur),
+      r.best?.title ?? null,
+      STATUS_LABEL[statuses[r.profile.id] ?? 'NOT_CONTACTED'],
+    ].map(csvCell).join(','));
+    const blob = new Blob([[header.map(csvCell).join(','), ...lines].join('\n')], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'company-exposure.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
+  if (selectedRow) {
+    return (
+      <PageShell style={{ overflowY: 'auto' }}>
+        <CompanyPage
+          row={selectedRow}
+          related={related}
+          eua={eua}
+          ets2Price={ets2Price}
+          year={year}
+          marks={state.marks}
+          ets2Countries={ets2Countries}
+          status={statuses[selectedRow.profile.id] ?? 'NOT_CONTACTED'}
+          onStatus={s => setStatus(selectedRow.profile.id, s)}
+          onBack={() => select(null)}
+          onLink={other => link(selectedRow.profile.id, other.id)}
+          onUnlink={() => unlinkAll(selectedRow.profile)}
+          hasLinks={links.some(l => l.a === selectedRow.profile.id || l.b === selectedRow.profile.id)}
+          onSelect={select}
+          onAction={o => openAction(o, selectedRow.profile.name)}
+        />
+      </PageShell>
+    );
+  }
+
+  const multiCount = rows.filter(r => r.profile.markets.length > 1).length;
+  const stakeShown = filtered.reduce((s, r) => s + (r.exposure.costAtStakeNowEur ?? 0), 0);
+  const th = (key: SortKey, label: string, title: string, right = true) => (
+    <th
+      style={{ textAlign: right ? 'right' : 'left', cursor: 'pointer', whiteSpace: 'nowrap', ...(key === 'name' ? stickyCell(true) : {}) }}
+      title={title}
+      aria-sort={sort.key === key ? (sort.desc ? 'descending' : 'ascending') : 'none'}
+      onClick={() => setSort(prev => ({ key, desc: prev.key === key ? !prev.desc : key !== 'name' }))}
+    >
+      {label}{sort.key === key ? (sort.desc ? ' ↓' : ' ↑') : ''}
+    </th>
+  );
 
   return (
     <PageShell style={{ overflowY: 'auto' }}>
       <PageHeader
         title="Clients"
-        context="Every company the desk knows, merged across FuelEU, EU ETS1 and EU ETS2 — its exposure in each market, and a value stack in one click."
+        context="Every company the desk knows, one row each, with its exposure under every regulation. Tap a company to see what you can sell it."
       />
       <div style={{ padding: '0 16px' }}>
         <KpiRow columns={4}>
-          <KpiTile label="Companies" value={directory.length.toLocaleString('en-GB')} />
-          <KpiTile label="In more than one market" value={multiCount.toLocaleString('en-GB')} sub="Link related records to find more" />
-          <KpiTile label="Linked by you" value={links.length.toLocaleString('en-GB')} />
-          <KpiTile label="EUA price used" value={eua === null ? '—' : `€${eua}`} unit="/t" sub="Desk EU_ETS1 mark" />
+          <KpiTile label="Companies shown" value={filtered.length.toLocaleString('en-GB')} sub={`of ${rows.length.toLocaleString('en-GB')}`} />
+          <KpiTile label="Exposed to 2+ regulations" value={multiCount.toLocaleString('en-GB')} sub="Link related records to find more" />
+          <KpiTile label="Cost at stake now (shown)" value={eurM(stakeShown)} unit="/yr" sub="FuelEU + ETS maritime + ETS1" />
+          <KpiTile label="Prices used" value={eua === null ? '—' : `€${eua}`} unit="/t EUA" sub={`ETS2 €${ets2Price ?? '—'}/t · desk marks`} />
         </KpiRow>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.1fr) minmax(360px, 1fr)', gap: '16px', padding: '16px', alignItems: 'start' }}>
-        <Card title="Directory" meta={`${filtered.length.toLocaleString('en-GB')} companies`}>
+      <div style={{ padding: '16px' }}>
+        <Card title="Company × regulation" meta="Annual € exposure at desk marks · tap a header to sort · tap a company to open it">
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px', alignItems: 'center' }}>
-            <input className="input" style={{ flex: '2 1 220px', width: 'auto' }} placeholder="Search any company name" aria-label="Search companies" value={search} onChange={e => { setSearch(e.target.value); setShown(PAGE); }} />
-            {(Object.keys(MARKET_LABEL) as MarketKey[]).map(m => (
-              <button key={m} type="button" className={`btn ${markets.includes(m) ? 'btn-primary' : 'btn-ghost'}`} onClick={() => { toggleMarket(m); setShown(PAGE); }}>
+            <input className="input" style={{ flex: '1 1 220px', width: 'auto' }} placeholder="Search any company name" aria-label="Search companies" value={search} onChange={e => { setSearch(e.target.value); setShown(PAGE); }} />
+            <select className="input" style={{ width: 'auto' }} aria-label="Country" value={country} onChange={e => { setCountry(e.target.value); setShown(PAGE); }}>
+              <option value="ALL">All countries</option>
+              {countries.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <button type="button" className="btn btn-ghost" onClick={exportCsv}>Export CSV</button>
+          </div>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '12px', alignItems: 'center' }}>
+            <span className="eyebrow">Exposed to</span>
+            {MARKET_KEYS.map(m => (
+              <button key={m} type="button" className={`btn ${markets.includes(m) ? 'btn-primary' : 'btn-ghost'}`} aria-pressed={markets.includes(m)} onClick={() => toggleMarket(m)}>
                 {MARKET_LABEL[m]}
               </button>
             ))}
             <label style={{ display: 'flex', gap: '6px', alignItems: 'center', fontSize: '12px' }}>
-              <input type="checkbox" checked={multiOnly} onChange={e => setMultiOnly(e.target.checked)} /> Multi-market only
+              <input type="checkbox" checked={multiOnly} onChange={e => { setMultiOnly(e.target.checked); setShown(PAGE); }} /> 2+ regulations
             </label>
           </div>
-          <div style={{ overflowX: 'auto' }}>
-            <table className="table">
+          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <table className="table" style={{ minWidth: '1040px' }}>
               <thead>
                 <tr>
-                  <th>Company</th>
-                  <th>Markets</th>
-                  <th style={{ textAlign: 'right' }} title="FuelEU 2026 penalty estimate">FuelEU</th>
-                  <th style={{ textAlign: 'right' }} title={`ETS1 allowance bill on ${ETS1_LATEST_YEAR} verified emissions at the desk EUA price`}>ETS1</th>
+                  {th('name', 'Company', 'Sort by name', false)}
+                  {th('fueleu', 'FuelEU', 'FuelEU Maritime: 2026 penalty if nothing is done (EU MRV 2024 as proxy)')}
+                  {th('maritime', 'ETS maritime', 'EU ETS maritime: 2026 allowance cost, 100% phase-in, at the desk EUA')}
+                  {th('ets1', 'ETS1', `EU ETS1 installations: allowance bill on ${ETS1_LATEST_YEAR} verified emissions at the desk EUA`)}
+                  {th('ets2', 'ETS2 (2028+)', 'EU ETS2: supplier allowance bill from 2028 where volume is known; otherwise its role')}
+                  {th('total', 'At stake now', 'FuelEU + ETS maritime + ETS1, per year')}
+                  <th style={{ minWidth: '170px' }}>Best play</th>
                   <th>Status</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.slice(0, shown).map(r => (
-                  <tr key={r.profile.id} data-click="1" className={selected?.id === r.profile.id ? 'selrow' : ''} onClick={() => setSelectedId(r.profile.id)} style={{ cursor: 'pointer' }}>
-                    <td>
+                  <tr key={r.profile.id} data-click="1" onClick={() => select(r.profile.id)} style={{ cursor: 'pointer' }}>
+                    <td style={{ ...stickyCell(false), maxWidth: '240px' }}>
                       <div style={{ fontWeight: 600 }}>{r.profile.name}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{r.profile.countries.slice(0, 6).join(' ')}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                        {[r.profile.countries.slice(0, 5).join(' '), `${r.profile.markets.length} reg.`].filter(Boolean).join(' · ')}
+                      </div>
                     </td>
-                    <td style={{ fontSize: '12px' }}>{r.profile.markets.map(m => MARKET_LABEL[m]).join(' · ')}</td>
-                    <td className="num" style={{ textAlign: 'right' }}>{eurM(r.fuelEuPenaltyEur)}</td>
-                    <td className="num" style={{ textAlign: 'right' }}>{eurM(r.ets1BillEur)}</td>
-                    <td style={{ fontSize: '12px' }}>{STATUS_LABEL[statuses[r.profile.id] ?? 'NOT_CONTACTED']}</td>
+                    <Money v={r.exposure.fuelEuPenaltyEur} />
+                    <Money v={r.exposure.etsMaritimeEur} />
+                    <Money v={r.exposure.ets1BillEur} />
+                    <td className="num" style={{ textAlign: 'right', color: r.exposure.ets2Standing === 'QUANTIFIED' || r.exposure.ets2Standing === 'NONE' ? undefined : 'var(--color-text-muted)', fontSize: r.exposure.ets2Standing === 'QUANTIFIED' ? undefined : '12px' }}>
+                      {ets2Cell(r.exposure)}
+                    </td>
+                    <td className="num" style={{ textAlign: 'right', fontWeight: 600 }}>{eurM(r.exposure.costAtStakeNowEur)}</td>
+                    <td style={{ fontSize: '12px' }}>{r.best?.title ?? '—'}</td>
+                    <td style={{ fontSize: '12px', whiteSpace: 'nowrap' }}>{STATUS_LABEL[statuses[r.profile.id] ?? 'NOT_CONTACTED']}</td>
                   </tr>
                 ))}
               </tbody>
@@ -179,162 +343,169 @@ export function ClientsScreen() {
           </div>
           {filtered.length > shown && (
             <button type="button" className="btn btn-ghost" style={{ marginTop: '10px' }} onClick={() => setShown(n => n + PAGE)}>
-              Show more ({filtered.length - shown} remaining)
+              Show more ({(filtered.length - shown).toLocaleString('en-GB')} remaining)
             </button>
           )}
         </Card>
-
-        {selected ? (
-          <ClientProfile
-            profile={selected}
-            related={related}
-            eua={eua}
-            status={statuses[selected.id] ?? 'NOT_CONTACTED'}
-            onStatus={s => setStatus(selected.id, s)}
-            onLink={other => link(selected.id, other.id)}
-            onUnlink={() => unlinkAll(selected.id)}
-            hasLinks={links.some(l => l.a === selected.id || l.b === selected.id)}
-            onSelect={id => setSelectedId(id)}
-            onOpenStack={openStack}
-          />
-        ) : (
-          <Card title="Client profile">
-            <p style={{ margin: 0, color: 'var(--color-text-muted)' }}>Select a company to see its exposure in every market and open its value stack.</p>
-          </Card>
-        )}
       </div>
     </PageShell>
   );
 }
 
-function ClientProfile(props: {
-  profile: CompanyProfile;
+/** The company column stays in view while the regulation columns scroll sideways (phones). */
+function stickyCell(header: boolean): React.CSSProperties {
+  return { position: 'sticky', left: 0, zIndex: header ? 2 : 1, background: header ? 'var(--color-panel-header)' : 'var(--color-surface)', boxShadow: '1px 0 0 var(--color-divider)' };
+}
+
+function Money({ v }: { v: number | null }) {
+  return <td className="num" style={{ textAlign: 'right', color: v === null ? 'var(--color-text-muted)' : undefined }}>{eurM(v)}</td>;
+}
+
+const TIMING_LABEL: Record<Opportunity['timing'], string> = { NOW: 'Now', FROM_2028: 'From 2028' };
+
+function CompanyPage(props: {
+  row: Row;
   related: CompanyProfile[];
   eua: number | null;
+  ets2Price: number | null;
+  year: number;
+  marks: Parameters<typeof computeOpportunities>[1];
+  ets2Countries: Parameters<typeof computeOpportunities>[2];
   status: Status;
   onStatus: (s: Status) => void;
+  onBack: () => void;
   onLink: (other: CompanyProfile) => void;
   onUnlink: () => void;
   hasLinks: boolean;
   onSelect: (id: string) => void;
-  onOpenStack: (params: Record<string, string>) => void;
+  onAction: (o: Opportunity) => void;
 }) {
-  const { profile: p, eua } = props;
-  const currentYear = String(new Date().getFullYear());
+  const { row: { profile: p, exposure: x }, eua } = props;
+  const opportunities = useMemo(
+    () => computeOpportunities(p, props.marks, props.ets2Countries, props.year),
+    [p, props.marks, props.ets2Countries, props.year]
+  );
 
-  const fuelEu = p.fueleu.length
-    ? {
-        vessels: p.fueleu.reduce((s, f) => s + f.group.vessels, 0),
-        lngShips: p.fueleu.reduce((s, f) => s + f.group.lngShipCount, 0),
-        deficit: p.fueleu.reduce((s, f) => s + f.deficit2026Tco2e, 0),
-        penalty: p.fueleu.reduce((s, f) => s + f.penalty2026Eur, 0),
-        bioLng: p.fueleu.reduce((s, f) => s + f.bioLngToCloseMWh, 0),
-        etsCo2: p.fueleu.reduce((s, f) => s + f.etsCo2Tco2, 0),
-      }
-    : null;
-
+  const vessels = p.fueleu.reduce((s, f) => s + f.group.vessels, 0);
+  const lngShips = p.fueleu.reduce((s, f) => s + f.group.lngShipCount, 0);
+  const deficit = p.fueleu.reduce((s, f) => s + f.deficit2026Tco2e, 0);
+  const maritimeT = p.fueleu.reduce((s, f) => s + f.etsCo2Tco2, 0);
   const sites = p.ets1.flatMap(c => c.sites).sort((a, b) => b.verifiedLatestTco2 - a.verifiedLatestTco2);
-  const ets1T = sites.reduce((s, x) => s + x.verifiedLatestTco2, 0);
+  const ets1T = sites.reduce((s, v) => s + v.verifiedLatestTco2, 0);
   const ets1FitT = p.ets1.reduce((s, c) => s + c.fitVerifiedLatestTco2, 0);
-  // Preset volume for the value stack: biomethane (invoice GCV MWh) that cuts 10% of fit-site emissions.
-  const ets1PresetMWh = ets1FitT > 0 ? Math.round(biomethaneMWhToAbate(ets1FitT * ETS1_FIRST_DEAL_SHARE) / HHV_TO_LHV_FACTOR) : null;
+  const has = (m: MarketKey) => p.markets.includes(m);
+
+  const regRows: { key: MarketKey; cost: string; basis: string }[] = [
+    { key: 'FUELEU', cost: has('FUELEU') ? `${eurM(x.fuelEuPenaltyEur)}/yr` : '', basis: has('FUELEU') ? `${vessels} ships (${lngShips} LNG-capable); 2026 deficit ${Math.round(deficit).toLocaleString('en-GB')} tCO₂e; penalty €2,400/t VLSFO-eq. EU MRV 2024 as proxy.` : '' },
+    { key: 'ETS_MARITIME', cost: has('ETS_MARITIME') ? `${eurM(x.etsMaritimeEur)}/yr` : '', basis: has('ETS_MARITIME') ? `${Math.round(maritimeT).toLocaleString('en-GB')} tCO₂e in scope (100% intra-EU, 50% in/out of the EU), 100% phase-in from 2026, at €${eua ?? '—'}/t.` : '' },
+    { key: 'ETS1', cost: has('ETS1') ? `${eurM(x.ets1BillEur)}/yr` : '', basis: has('ETS1') ? `${sites.length} installation${sites.length > 1 ? 's' : ''}, ${Math.round(ets1T).toLocaleString('en-GB')} tCO₂ verified ${ETS1_LATEST_YEAR} (${Math.round(ets1FitT).toLocaleString('en-GB')} t at high/medium-fit sites), at €${eua ?? '—'}/t. EUTL.` : '' },
+    { key: 'ETS2', cost: has('ETS2') ? (x.ets2Standing === 'QUANTIFIED' ? `${eurM(x.ets2CostEur)}/yr from 2028` : x.ets2Standing === 'END_USER' ? 'Via its gas supplier' : 'Volume unknown') : '', basis: has('ETS2') ? p.ets2.map(e => `${e.countryIso}: ${e.role === 'REGULATED_SUPPLIER' ? 'regulated gas supplier' : `exposed end user${e.sector ? ` (${e.sector})` : ''}`}${e.marketSharePct !== null ? `, ${e.marketSharePct}% share` : ''}${e.gasVolumeTWh !== null ? `, ${e.gasVolumeTWh} TWh disclosed` : ''}`).join('; ') + `. ETS2 at €${props.ets2Price ?? '—'}/t.` : '' },
+  ];
 
   const contacts = [
     ...p.fueleu.flatMap(f => f.group.contacts.map(c => ({ label: [c.name, c.role, c.email, c.phone].filter(Boolean).join(' · '), url: c.sourceUrl }))),
     ...p.ets2.flatMap(e => e.contacts.map(c => ({ label: [c.name, c.role, c.email, c.phone].filter(Boolean).join(' · '), url: c.sourceUrl }))),
   ];
 
-  const kv = (k: string, v: React.ReactNode) => (
-    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', fontSize: '13px' }}>
-      <span style={{ color: 'var(--color-text-muted)' }}>{k}</span>
-      <span className="num" style={{ textAlign: 'right' }}>{v}</span>
-    </div>
-  );
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '1100px' }}>
+      <div>
+        <button type="button" className="btn btn-ghost" onClick={props.onBack}>← All companies</button>
+      </div>
       <Card
         title={p.name}
-        meta={`${p.markets.map(m => MARKET_LABEL[m]).join(' · ')}${p.countries.length ? ` · ${p.countries.join(' ')}` : ''}`}
+        meta={[p.countries.join(' '), p.markets.map(m => MARKET_LABEL[m]).join(' · ')].filter(Boolean).join(' · ')}
         actions={
           <select className="input" style={{ minWidth: '140px' }} aria-label="Client status" value={props.status} onChange={e => props.onStatus(e.target.value as Status)}>
             {(Object.keys(STATUS_LABEL) as Status[]).map(s => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
           </select>
         }
       >
+        <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', fontSize: '13px' }}>
+          <span><span className="eyebrow">At stake now </span><strong className="num">{eurM(x.costAtStakeNowEur)}/yr</strong></span>
+          {x.ets2Standing === 'QUANTIFIED' && <span><span className="eyebrow">ETS2 from 2028 </span><strong className="num">{eurM(x.ets2CostEur)}/yr</strong></span>}
+        </div>
         {p.names.length > 1 && (
-          <div title={p.names.join('; ')} style={{ fontSize: '12px', color: 'var(--color-text-muted)', maxHeight: '48px', overflow: 'hidden' }}>
+          <div title={p.names.join('; ')} style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '6px', maxHeight: '48px', overflow: 'hidden' }}>
             Also appears as: {p.names.filter(n => n !== p.name).join('; ')}
           </div>
         )}
       </Card>
 
-      {fuelEu && (
-        <Card title="FuelEU Maritime" meta="EU MRV 2024 data used as a proxy for 2026 — estimates">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            {kv('Ships in scope', `${fuelEu.vessels} (${fuelEu.lngShips} LNG-capable)`)}
-            {kv('2026 deficit (members in deficit)', `${Math.round(fuelEu.deficit).toLocaleString('en-GB')} tCO₂e`)}
-            {kv('2026 penalty if nothing is done', eurM(fuelEu.penalty))}
-            {kv('Bio-LNG (−100 CI) to close it', `${Math.round(fuelEu.bioLng).toLocaleString('en-GB')} MWh`)}
-            {kv('EU ETS in-scope CO₂ (2026)', `${Math.round(fuelEu.etsCo2).toLocaleString('en-GB')} t`)}
-          </div>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            style={{ marginTop: '10px' }}
-            onClick={() => props.onOpenStack({ client: 'SHIP_OPERATOR', volume: String(Math.round(fuelEu.bioLng)), ci: '-100', year: currentYear })}
-          >
-            Value stack: close the FuelEU deficit
-          </button>
-        </Card>
-      )}
+      <Card title="Exposure by regulation" meta="Every regulation the app covers — blank means not in our data for this company">
+        <div style={{ overflowX: 'auto' }}>
+          <table className="table">
+            <thead>
+              <tr><th>Regulation</th><th>Exposed</th><th style={{ textAlign: 'right' }}>Cost</th><th>Basis</th></tr>
+            </thead>
+            <tbody>
+              {regRows.map(r => (
+                <tr key={r.key} style={{ opacity: has(r.key) ? 1 : 0.55 }}>
+                  <td style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{MARKET_LABEL[r.key]}</td>
+                  <td>{has(r.key) ? 'Yes' : 'Not in data'}</td>
+                  <td className="num" style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>{r.cost}</td>
+                  <td style={{ fontSize: '12px' }}>{r.basis}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
 
-      {p.ets1.length > 0 && (
-        <Card title="EU ETS1 industrial sites" meta={`${sites.length} site${sites.length > 1 ? 's' : ''} · verified ${ETS1_LATEST_YEAR}`}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            {kv('Verified emissions', `${Math.round(ets1T).toLocaleString('en-GB')} tCO₂`)}
-            {kv('At high/medium biomethane-fit sites', `${Math.round(ets1FitT).toLocaleString('en-GB')} tCO₂`)}
-            {kv('Allowance bill', eua === null ? '—' : `${eurM(ets1T * eua)}/yr at €${eua}/t`)}
-          </div>
-          <ul style={{ margin: '8px 0 0', paddingLeft: '18px', fontSize: '12px' }}>
-            {sites.slice(0, 6).map(s => (
+      <Card title="What you can do for them" meta="Ranked by value to the client at desk marks">
+        {opportunities.length === 0 ? (
+          <p style={{ margin: 0, color: 'var(--color-text-muted)' }}>No compliance play from the data on file.</p>
+        ) : (
+          <ol style={{ margin: 0, paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {opportunities.map(o => (
+              <li key={o.id}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+                  <div style={{ fontWeight: 700 }}>{o.title}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{o.regulation === 'VOLUNTARY' ? 'Voluntary' : MARKET_LABEL[o.regulation]} · {TIMING_LABEL[o.timing]}</div>
+                </div>
+                <div style={{ fontSize: '13px', marginTop: '2px' }}><strong>Sell:</strong> {o.product}</div>
+                <div style={{ fontSize: '13px' }}><strong>Why it works:</strong> {o.why}</div>
+                <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', fontSize: '13px', margin: '6px 0' }}>
+                  {o.volumeMWh !== null && <span><span className="eyebrow">Volume </span><span className="num">{mwh(o.volumeMWh)}/yr</span></span>}
+                  {o.valueEur !== null && <span><span className="eyebrow">Value to client </span><strong className="num">{eur(o.valueEur)}/yr</strong></span>}
+                  {o.valueEurPerMWh !== null && <span><span className="eyebrow">Per MWh </span><span className="num">{eur(o.valueEurPerMWh, 2)}</span></span>}
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{o.valueBasis}</div>
+                <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Evidence: {o.evidenceNeeded} · {o.legalBasis}</div>
+                {o.caveats.length > 0 && (
+                  <ul style={{ margin: '4px 0 0', paddingLeft: '16px', fontSize: '12px' }}>
+                    {o.caveats.map(c => <li key={c}>{c}</li>)}
+                  </ul>
+                )}
+                {o.action && (
+                  <button type="button" className="btn btn-secondary" style={{ marginTop: '8px' }} onClick={() => props.onAction(o)}>{o.action.label}</button>
+                )}
+              </li>
+            ))}
+          </ol>
+        )}
+      </Card>
+
+      {sites.length > 0 && (
+        <Card title="ETS1 installations" meta={`${sites.length} site${sites.length > 1 ? 's' : ''} · verified ${ETS1_LATEST_YEAR}`}>
+          <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12px' }}>
+            {sites.slice(0, 10).map(s => (
               <li key={s.id}>{s.name} ({[s.city, s.country].filter(Boolean).join(', ')}) — {SECTOR_LABEL[s.sector]}, {Math.round(s.verifiedLatestTco2).toLocaleString('en-GB')} t</li>
             ))}
-            {sites.length > 6 && <li>…and {sites.length - 6} more</li>}
+            {sites.length > 10 && <li>…and {sites.length - 10} more</li>}
           </ul>
-          {ets1PresetMWh !== null && (
-            <button
-              type="button"
-              className="btn btn-secondary"
-              style={{ marginTop: '10px' }}
-              onClick={() => props.onOpenStack({ client: 'ETS1_SITE', volume: String(ets1PresetMWh), ci: '-100', year: currentYear, smallSites: '0' })}
-            >
-              Value stack: cut 10% of fit-site emissions
-            </button>
-          )}
         </Card>
       )}
 
       {p.ets2.length > 0 && (
-        <Card title="EU ETS2" meta="Regulated gas supplier or exposed end user — from desk research">
+        <Card title="ETS2 sources" meta="Desk research">
           {p.ets2.map(e => (
             <div key={e.id} style={{ fontSize: '13px', marginBottom: '8px' }}>
-              <div style={{ fontWeight: 600 }}>{e.name} ({e.countryIso}) — {e.role === 'REGULATED_SUPPLIER' ? 'regulated supplier' : `exposed end user${e.sector ? `, ${e.sector}` : ''}`}</div>
-              <div style={{ color: 'var(--color-text-muted)' }}>
-                {e.marketSharePct !== null ? `${e.marketSharePct}% — ${e.shareBasis}` : e.gasVolumeTWh !== null ? `${e.gasVolumeTWh} TWh disclosed (all segments)` : e.shareBasis ?? ''}
-              </div>
+              <div style={{ fontWeight: 600 }}>{e.name} ({e.countryIso})</div>
+              <div style={{ color: 'var(--color-text-muted)' }}>{e.shareBasis ?? e.notes ?? ''}</div>
               <div>{e.evidence.map(ev => <a key={ev.url + ev.note} href={ev.url} target="_blank" rel="noreferrer" title={ev.note} style={{ marginRight: '8px' }}>source</a>)}</div>
             </div>
           ))}
-          {p.ets2.some(e => e.role === 'REGULATED_SUPPLIER') && (
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => props.onOpenStack({ client: 'ETS2_SUPPLIER', year: '2028', ci: '-100' })}
-            >
-              Value stack: ETS2 supplier
-            </button>
-          )}
         </Card>
       )}
 

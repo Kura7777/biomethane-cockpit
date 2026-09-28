@@ -50,6 +50,7 @@ describe('company directory', () => {
       expect(p.markets.includes('FUELEU')).toBe(p.fueleu.length > 0);
       expect(p.markets.includes('ETS1')).toBe(p.ets1.length > 0);
       expect(p.markets.includes('ETS2')).toBe(p.ets2.length > 0);
+      expect(p.markets.includes('ETS_MARITIME')).toBe(p.fueleu.some(f => f.etsCo2Tco2 > 0));
     }
   });
 
@@ -60,7 +61,7 @@ describe('company directory', () => {
 
   it('joins a shipping group with its ETS1 sites (Cementos Tudela Veguín)', () => {
     const ctv = directory.find(p => p.id === 'cementos tudela veguin');
-    expect(ctv?.markets).toEqual(['FUELEU', 'ETS1']);
+    expect(ctv?.markets).toEqual(['FUELEU', 'ETS_MARITIME', 'ETS1']);
   });
 
   it('merges profiles only when the trader links them, and the link is reversible', () => {

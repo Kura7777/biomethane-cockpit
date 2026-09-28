@@ -14,11 +14,15 @@ import { normalizeCompanyName, leadingToken } from './normalize';
  * Anything looser is offered as a suggestion; the trader confirms links, which are passed in.
  */
 
-export type MarketKey = 'FUELEU' | 'ETS1' | 'ETS2';
+/** One key per regulation a company can be exposed to. */
+export type MarketKey = 'FUELEU' | 'ETS_MARITIME' | 'ETS1' | 'ETS2';
+
+export const MARKET_KEYS: MarketKey[] = ['FUELEU', 'ETS_MARITIME', 'ETS1', 'ETS2'];
 
 export const MARKET_LABEL: Record<MarketKey, string> = {
   FUELEU: 'FuelEU Maritime',
-  ETS1: 'EU ETS1 sites',
+  ETS_MARITIME: 'EU ETS maritime',
+  ETS1: 'EU ETS1 installations',
   ETS2: 'EU ETS2',
 };
 
@@ -84,8 +88,11 @@ function ets1Records(): SourceRecord[] {
   }));
 }
 
-function ets2Records(): SourceRecord[] {
-  return [...ETS2_SEED_COMPANIES, ...CLEAN_HEAT_PROGRAM_LEADS].map(c => ({
+/** The ETS2 companies the desk knows before any trader import. */
+export const DEFAULT_ETS2_COMPANIES: Ets2Company[] = [...ETS2_SEED_COMPANIES, ...CLEAN_HEAT_PROGRAM_LEADS];
+
+function ets2Records(companies: Ets2Company[]): SourceRecord[] {
+  return companies.map(c => ({
     name: c.name,
     aliases: [],
     countries: [c.countryIso],
@@ -119,9 +126,10 @@ export interface CompanyLink {
 }
 
 /**
- * Builds the directory. `links` are trader-confirmed pairs of profile ids to treat as one company.
+ * Builds the directory. `links` are trader-confirmed pairs of profile ids to treat as one company;
+ * `ets2Companies` defaults to the seed research and may include the trader's own imports.
  */
-export function buildCompanyDirectory(links: CompanyLink[] = []): CompanyProfile[] {
+export function buildCompanyDirectory(links: CompanyLink[] = [], ets2Companies: Ets2Company[] = DEFAULT_ETS2_COMPANIES): CompanyProfile[] {
   const profiles = new Map<string, CompanyProfile>();
   const aliasIndex = new Map<string, string>();
 
@@ -148,7 +156,7 @@ export function buildCompanyDirectory(links: CompanyLink[] = []): CompanyProfile
   // ETS1 first, so its operator names become aliases the other datasets can match onto.
   for (const r of ets1Records()) place(r);
   for (const r of fuelEuRecords()) place(r);
-  for (const r of ets2Records()) place(r);
+  for (const r of ets2Records(ets2Companies)) place(r);
 
   // Apply trader-confirmed links.
   const ids = [...profiles.keys()];
@@ -172,11 +180,14 @@ export function buildCompanyDirectory(links: CompanyLink[] = []): CompanyProfile
 
   const out = [...merged.values()];
   for (const p of out) {
-    p.markets = [
-      ...(p.fueleu.length ? (['FUELEU'] as MarketKey[]) : []),
-      ...(p.ets1.length ? (['ETS1'] as MarketKey[]) : []),
-      ...(p.ets2.length ? (['ETS2'] as MarketKey[]) : []),
-    ];
+    // Ships reporting under EU MRV with CO₂ in ETS scope face both FuelEU and EU ETS maritime.
+    const present: Record<MarketKey, boolean> = {
+      FUELEU: p.fueleu.length > 0,
+      ETS_MARITIME: p.fueleu.some(f => f.etsCo2Tco2 > 0),
+      ETS1: p.ets1.length > 0,
+      ETS2: p.ets2.length > 0,
+    };
+    p.markets = MARKET_KEYS.filter(k => present[k]);
   }
   return out;
 }
