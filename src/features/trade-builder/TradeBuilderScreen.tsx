@@ -26,6 +26,7 @@ import { ListOrdered, LayoutGrid, CheckCircle2, XCircle, AlertTriangle, ArrowRig
 import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
 import { AssumptionsStrip } from '../../shared/components/AssumptionsStrip';
 import { FlowSteps } from '../../shared/ui/FlowSteps';
+import { DealTicket } from './DealTicket';
 import './tradeBuilder.css';
 
 type DealStep = 1 | 2 | 3 | 4 | 5;
@@ -568,6 +569,18 @@ export function TradeBuilderScreen() {
     </div>
   );
 
+  // Same CI-source classification the step 1 chip uses (deal.ciIsEstimated / linkedPlant / ciSource) —
+  // the ticket reuses it rather than deriving its own.
+  const ciProvenance: 'pos' | 'estimated' | null =
+    ciSource === 'pos' ? 'pos' : ciSource !== 'manual' && (ciSource === 'estimate' || deal.ciIsEstimated || linkedPlant) ? 'estimated' : null;
+
+  // "Origin → market" label for the deal ticket header, e.g. "DK → Germany THG" — country prefix
+  // stripped from the market short name the same way the market directory chips do.
+  const marketShortNameNoPrefix = selectedMarket.shortName.startsWith(`${selectedMarket.country} `)
+    ? selectedMarket.shortName.slice(selectedMarket.country.length + 1)
+    : selectedMarket.shortName;
+  const ticketMarketLabel = `${selectedMarket.countryName} ${marketShortNameNoPrefix}`;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' }}>
       {/* Top Deal Command Header & Stepper Bar */}
@@ -772,6 +785,7 @@ export function TradeBuilderScreen() {
       </div>
 
       {flowMode === 'STEPPER' ? (
+        <div className="tb-deal-layout">
         <div className="ds-flow-column tb-flow">
           <FlowSteps
             steps={DEAL_STEPS.map(({ id, label }) => ({ id, label, summary: stepSummary[id] }))}
@@ -811,7 +825,7 @@ export function TradeBuilderScreen() {
                         plantTotalMWh={plantTotalMWh}
                         plantCommittedMwh={plantCommittedMwh}
                         availablePlantCapacity={availablePlantCapacity}
-                        ciProvenance={ciSource === 'pos' ? 'pos' : ciSource !== 'manual' && (ciSource === 'estimate' || deal.ciIsEstimated || linkedPlant) ? 'estimated' : null}
+                        ciProvenance={ciProvenance}
                         onCiSourceChange={setCiSource}
                         isOversubscribed={isOversubscribed}
                         plantCommittedPct={plantCommittedPct}
@@ -895,6 +909,26 @@ export function TradeBuilderScreen() {
               }
             }}
           />
+        </div>
+
+        <div className="tb-ticket-rail">
+          <DealTicket
+            dealId={currentTradeAssessment.id}
+            originFlag={currentOriginObj.flag}
+            originCode={origin}
+            marketLabel={ticketMarketLabel}
+            netback={netback}
+            volumeMwh={volumeMwh}
+            annualPnl={annualPnl}
+            grossTotal={grossTotal}
+            gates={assessment.gates}
+            overallVerdict={assessment.overallVerdict}
+            ci={ci}
+            ciProvenance={ciProvenance}
+            isTtfSimulated={isTtfSimulated}
+            onBuildDealPackage={() => handleStepChange(5)}
+          />
+        </div>
         </div>
       ) : (
         /* Legacy 3-Column Desk Grid */

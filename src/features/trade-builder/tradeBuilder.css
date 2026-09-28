@@ -625,3 +625,182 @@ html.dark .tb-range {
 .tb-form-control > .tb-section + .tb-section {
   margin-top: 6px;
 }
+
+/* ── Deal flow wide-screen layout: form + sticky deal ticket rail ──
+ * Below 1600px the rail is not rendered visibly and the form keeps its normal single-column
+ * width; the header strip already carries netback/P&L/status at that width. */
+.tb-deal-layout {
+  width: 100%;
+}
+
+.tb-ticket-rail {
+  display: none;
+}
+
+@media (min-width: 1600px) {
+  .tb-deal-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(340px, 24%, 440px);
+    gap: 32px;
+    align-items: start;
+    max-width: none;
+  }
+
+  /* The form column keeps its usual fixed width and stays left-aligned within the grid track */
+  .tb-deal-layout > .ds-flow-column {
+    max-width: var(--ds-flow-max-width);
+  }
+
+  .tb-ticket-rail {
+    display: block;
+    min-width: 0;
+  }
+}
+
+/* ── Deal ticket rail content ── */
+.tt-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tt-id {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-accent);
+  padding: 2px 6px;
+  border: 1px solid var(--color-divider);
+  background: var(--color-subtier);
+}
+
+.tt-route {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.tt-headline {
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.tt-headline .unit {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--color-muted);
+}
+
+.tt-capped {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--color-muted);
+}
+
+.tt-figures {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px 0;
+}
+
+.tt-figure-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.tt-figure-row dt {
+  color: var(--color-muted);
+}
+
+.tt-figure-row dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.tt-status {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tt-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.tt-status-label {
+  color: var(--color-muted);
+}
+
+.tt-status-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.tt-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: var(--radius-control);
+  border: 1px solid;
+  font-size: 13px;
+  font-weight: 600;
+  width: fit-content;
+}
+
+.tt-badge.pos {
+  color: var(--color-status-pos-text);
+  background: var(--color-status-pos-bg);
+  border-color: color-mix(in srgb, var(--color-status-pos-text) 35%, transparent);
+}
+
+.tt-badge.neg {
+  color: var(--color-status-neg-text);
+  background: var(--color-status-neg-bg);
+  border-color: color-mix(in srgb, var(--color-status-neg-text) 35%, transparent);
+}
+
+.tt-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: var(--radius-control);
+  border: 1px solid;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tt-chip.info {
+  color: var(--color-status-info-text);
+  background: var(--color-status-info-bg);
+  border-color: color-mix(in srgb, var(--color-status-info-text) 35%, transparent);
+}
+
+.tt-chip.warn {
+  color: var(--color-status-warn-text);
+  background: var(--color-status-warn-bg);
+  border-color: color-mix(in srgb, var(--color-status-warn-text) 35%, transparent);
+}
+
+.tt-chip.muted {
+  color: var(--color-muted);
+  background: var(--color-subtier);
+  border-color: var(--color-divider);
+}
