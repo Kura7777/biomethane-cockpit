@@ -191,11 +191,12 @@ ESTIMATED PENALTY EXPOSURE (DEFAULT INACTION, ART. 23(2)): €${Math.round(statu
                 <span className="fva-label">Fleet deficit volume (tCO₂e):</span>
                 <input
                   type="number"
-                  min={1000}
-                  max={200000}
-                  step={1000}
+                  min={1}
+                  step={1}
                   value={simulatedDeficitTco2e}
-                  onChange={(e) => setSimulatedDeficitTco2e(Math.min(200000, Math.max(1000, Number(e.target.value) || 1000)))}
+                  // Typed values are taken exactly (no clamp): a real vessel or group deficit can sit
+                  // below 1,000 t or above the slider's 200,000 t range. Only the slider is range-limited.
+                  onChange={(e) => setSimulatedDeficitTco2e(Math.max(1, Math.round(Number(e.target.value)) || 1))}
                   className="input num fva-num-input"
                   aria-label="Fleet deficit volume (tCO2e)"
                 />
@@ -205,7 +206,7 @@ ESTIMATED PENALTY EXPOSURE (DEFAULT INACTION, ART. 23(2)): €${Math.round(statu
                 min="1000"
                 max="200000"
                 step="1000"
-                value={simulatedDeficitTco2e}
+                value={Math.min(200000, Math.max(1000, simulatedDeficitTco2e))}
                 onChange={(e) => setSimulatedDeficitTco2e(Number(e.target.value))}
                 className="fva-range"
                 aria-label="Fleet deficit volume slider"

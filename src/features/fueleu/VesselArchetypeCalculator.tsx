@@ -129,9 +129,11 @@ export function VesselArchetypeCalculator({ onComparePathways }: VesselArchetype
     const payPenaltyEur = calculationResult.statutoryPenaltyY1Eur;
     const bioLngPremiumEur = calculationResult.bioLngRequiredNeg100Mwh * getAssumption('fueleu.bioLngPremiumEurPerMwh');
     const poolCostEur = Math.abs(calculationResult.complianceBalanceTco2e) * getAssumption('fueleu.poolBuyPriceEurPerTco2e');
-    const cheapest = Math.min(payPenaltyEur, bioLngPremiumEur, poolCostEur);
-    return { payPenaltyEur, bioLngPremiumEur, poolCostEur, cheapest };
-  }, [calculationResult, assumptionsVersion]);
+    // Bio-LNG is only a physical option for a vessel with an LNG-capable engine (dual-fuel/LNG).
+    const bioLngAvailable = lngTonnes > 0 || bioLngTonnes > 0;
+    const cheapest = Math.min(payPenaltyEur, poolCostEur, bioLngAvailable ? bioLngPremiumEur : Infinity);
+    return { payPenaltyEur, bioLngPremiumEur, poolCostEur, cheapest, bioLngAvailable };
+  }, [calculationResult, assumptionsVersion, lngTonnes, bioLngTonnes]);
 
   // "Compare pathways for this vessel" hand-off: carries this vessel's deficit, achieved GHGIE,
   // LNG capability (inferred from the fuel burn entered), compliance year and escalation across
@@ -139,7 +141,7 @@ export function VesselArchetypeCalculator({ onComparePathways }: VesselArchetype
   const handleComparePathways = () => {
     if (!onComparePathways) return;
     onComparePathways({
-      deficitTco2e: Math.max(1000, Math.round(Math.abs(calculationResult.complianceBalanceTco2e))),
+      deficitTco2e: Math.max(1, Math.round(Math.abs(calculationResult.complianceBalanceTco2e))), // exact, never padded up
       fleetActualGhgie: calculationResult.weightedGhgie,
       isLngCapable: lngTonnes > 0 || bioLngTonnes > 0,
       targetYear,
@@ -546,6 +548,9 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
                   <span className="chip chip-info">Art. 4, Annex I-II</span>
                 </div>
                 <p className="fva-desc">Physical bunkering in ARA or Med hubs. Eliminates statutory fine with negative CI fuel.</p>
+                {!(lngTonnes > 0 || bioLngTonnes > 0) && (
+                  <p className="fva-desc"><strong>Not available for this vessel:</strong> it burns VLSFO/MGO only, and Bio-LNG needs an LNG-capable (dual-fuel) engine. Figures below are illustrative for an LNG-capable sister vessel.</p>
+                )}
 
                 <div className="fva-kv">
                   <div className="fva-kv-row">
@@ -669,10 +674,17 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
                 <span className="fva-rail-option-label">Pay penalty</span>
                 <span className="num">€{Math.round(railOptions.payPenaltyEur).toLocaleString()}</span>
               </div>
-              <div className={`fva-rail-option ${railOptions.bioLngPremiumEur === railOptions.cheapest ? 'cheapest' : ''}`}>
-                <span className="fva-rail-option-label">Bio-LNG</span>
-                <span className="num">€{Math.round(railOptions.bioLngPremiumEur).toLocaleString()}</span>
-              </div>
+              {railOptions.bioLngAvailable ? (
+                <div className={`fva-rail-option ${railOptions.bioLngPremiumEur === railOptions.cheapest ? 'cheapest' : ''}`}>
+                  <span className="fva-rail-option-label">Bio-LNG</span>
+                  <span className="num">€{Math.round(railOptions.bioLngPremiumEur).toLocaleString()}</span>
+                </div>
+              ) : (
+                <div className="fva-rail-option" title="This vessel burns VLSFO/MGO only; Bio-LNG needs an LNG-capable (dual-fuel) engine.">
+                  <span className="fva-rail-option-label muted">Bio-LNG</span>
+                  <span className="muted">Needs LNG engine</span>
+                </div>
+              )}
               <div className={`fva-rail-option ${railOptions.poolCostEur === railOptions.cheapest ? 'cheapest' : ''}`}>
                 <span className="fva-rail-option-label">Pool</span>
                 <span className="num">€{Math.round(railOptions.poolCostEur).toLocaleString()}</span>
