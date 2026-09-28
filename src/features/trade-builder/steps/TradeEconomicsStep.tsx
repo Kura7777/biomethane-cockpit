@@ -26,6 +26,30 @@ interface TradeEconomicsStepProps {
   deskMarginEurMwh: string;
   annualPnl: number;
   origin: string;
+  isTtfSimulated?: boolean;
+}
+
+const SIMULATED_TTF_TITLE = 'TTF mark is simulated. Set a real mark on the Assumptions or Pricing desk screen.';
+
+function SimulatedTag() {
+  return (
+    <span
+      className="chip"
+      title={SIMULATED_TTF_TITLE}
+      style={{
+        fontSize: '11px',
+        fontWeight: 700,
+        padding: '1px 6px',
+        marginLeft: '6px',
+        borderRadius: 'var(--radius-bar)',
+        border: '1px solid var(--color-status-warn-border)',
+        backgroundColor: 'var(--color-status-warn-bg)',
+        color: 'var(--color-status-warn-ink)',
+      }}
+    >
+      Simulated
+    </span>
+  );
 }
 
 export function TradeEconomicsStep({
@@ -41,6 +65,7 @@ export function TradeEconomicsStep({
   deskMarginEurMwh,
   annualPnl,
   origin,
+  isTtfSimulated,
 }: TradeEconomicsStepProps) {
   const isPositivePnl = (netback.deskMargin ?? 0) >= 0;
 
@@ -115,7 +140,7 @@ export function TradeEconomicsStep({
               <span className="tb-pos">+€{(netback.certificateValue?.valueEurPerMWh ?? 0).toFixed(2)} / MWh</span>
             </div>
             <div className="tb-kv-row">
-              <span>Wholesale gas molecule value</span>
+              <span>Wholesale gas molecule value{isTtfSimulated && <SimulatedTag />}</span>
               <span>+€{(netback.moleculeValue ?? 0).toFixed(2)} / MWh</span>
             </div>
             <div className="tb-kv-row">
@@ -150,7 +175,10 @@ export function TradeEconomicsStep({
               const barPct = Math.min(100, (w.num / waterfallMax) * 100);
               return (
                 <div key={wIdx} className="tb-waterfall-row">
-                  <span className="tb-waterfall-label" title={w.label}>{w.label}</span>
+                  <span className="tb-waterfall-label" title={w.label}>
+                    {w.label}
+                    {isTtfSimulated && w.label.startsWith('Molecule value') && <SimulatedTag />}
+                  </span>
                   <div className="tb-waterfall-track">
                     <div className={`tb-waterfall-bar ${w.kind}`} style={{ width: `${barPct}%` }} />
                   </div>

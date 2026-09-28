@@ -14,6 +14,7 @@ import { showToast } from '../../app/DeskToastContainer';
 import { generateEfetBiomethaneAnnexPdf, generateCommercialTermSheetPdf, downloadDealFile } from '../../domain/trade/legalPackage';
 import { PoSUploaderModal } from './PoSUploaderModal';
 import { ParsedPoSCertificate } from '../../domain/consignment/posParser';
+import { SIMULATED_SOURCE_NAME } from '../../domain/marks/simulate';
 
 import { PRODUCING_ORIGINS } from '../../domain/arbitrage/origins';
 import { BIOMETHANE_PLANTS } from '../../domain/plants/registry';
@@ -448,6 +449,11 @@ export function TradeBuilderScreen() {
 
   const vtpLabel = getVtpForMarket(selectedMarket.country);
 
+  // The TTF/gas index mark that feeds the molecule value leg — same provenance check the
+  // Marks screen and header use to raise the "running on simulated marks" signal.
+  const gasIndexProvenance = state.marks.gasIndex.provenance;
+  const isTtfSimulated = gasIndexProvenance?.sourceName === SIMULATED_SOURCE_NAME || gasIndexProvenance?.sourceType === 'ESTIMATE';
+
   const waterfallMax = Math.max(
     certVal, 
     molVal, 
@@ -861,6 +867,7 @@ export function TradeBuilderScreen() {
                         deskMarginEurMwh={deskMarginEurMwh}
                         annualPnl={annualPnl}
                         origin={origin}
+                        isTtfSimulated={isTtfSimulated}
                       />
                       {nextAction(4)}
                     </>
