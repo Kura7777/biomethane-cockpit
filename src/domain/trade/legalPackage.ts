@@ -1100,7 +1100,7 @@ export function generateUdbNominationXmlPayload(assessment: TradeAssessment, opt
      enter the transfer in the Union Database. Bracketed fields must be completed from source documents. -->
 <udbTransferWorksheet xmlns="urn:biomethane-desk:udb-worksheet:v2" generated="${now}">
   <reference>${escapeXml(assessment.id)}</reference>
-  <legalBasis>Directive (EU) 2023/2413 Art. 31a; Implementing Regulation (EU) 2024/2792</legalBasis>
+  <legalBasis>Directive (EU) 2023/2413 Art. 31a (Union Database gas module not yet live — launch postponed to end-2026 per EBA); Implementing Regulation (EU) 2022/996 Art. 18</legalBasis>
   <transferringOperator name="${escapeXml(sender)}" udbOperatorId="[FROM UDB ACCOUNT]"/>
   <receivingOperator name="${escapeXml(recipient)}" udbOperatorId="[FROM UDB ACCOUNT]"/>
   <originFacility>

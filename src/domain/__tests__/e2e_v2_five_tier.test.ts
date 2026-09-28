@@ -395,7 +395,7 @@ describe('Biomethane Trading Platform — Registry, Netback & Workflow Verificat
         const verification = verifyRegistryTransfer(req, [dkBatch]);
         expect(verification.isCompatible).toBe(true);
         expect(verification.blockingReasons).toHaveLength(0);
-        expect(verification.udbTitleTransferStatus).toBe('ESCROW_LOCKED');
+        expect(verification.udbTitleTransferStatus).toBe('PENDING_UDB_LAUNCH');
         expect(verification.verifiedVolumeMWh).toBe(dkBatch.volumeMWh);
         expect(verification.statutoryCitations).toContain(CITATIONS.RED_III_ART_31A);
       });
@@ -405,8 +405,8 @@ describe('Biomethane Trading Platform — Registry, Netback & Workflow Verificat
         status = advanceTitleTransferStatus(status, 'SUBMIT');
         expect(status).toBe('SUBMITTED');
 
-        status = advanceTitleTransferStatus(status, 'LOCK_ESCROW');
-        expect(status).toBe('ESCROW_LOCKED');
+        status = advanceTitleTransferStatus(status, 'MARK_PENDING_LAUNCH');
+        expect(status).toBe('PENDING_UDB_LAUNCH');
 
         status = advanceTitleTransferStatus(status, 'TRANSFER_TITLE');
         expect(status).toBe('TITLE_TRANSFERRED');

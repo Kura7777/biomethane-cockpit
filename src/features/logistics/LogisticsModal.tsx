@@ -74,7 +74,7 @@ export function LogisticsModal({
       ],
       forList: ['Cheapest all-in route', 'No capacity booking on PRISMA', 'Settles inside one compliance day'],
       againstList: ['Contested in some member states', 'Requires both registries live on UDB'],
-      legal: 'Reg. (EU) 2024/2792 Art. 14 · RED III Art. 30(1)',
+      legal: 'RED III Art. 31a (UDB not live — launch postponed to end-2026, EBA) · RED III Art. 30(1)',
     },
     {
       tag: 'Option B',

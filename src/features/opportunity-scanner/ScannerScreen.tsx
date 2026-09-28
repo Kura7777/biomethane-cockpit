@@ -1110,7 +1110,7 @@ export function ScannerScreen() {
                 {highestBlocked?.blockingReason || 'Grid-injected volume cannot evidence UDB ingestion, so the dRTFC route hard-blocks at gate 2.'} Remedy is {highestBlocked?.remedy || 'physical bio-LNG delivery under mass balance.'}
               </p>
               <div style={{ fontSize: '13px', marginTop: '8px', color: 'var(--color-accent-700)' }}>
-                RED III Art. 28(2) · Reg. (EU) 2024/2792
+                RED III Art. 28(2) · Art. 31a (UDB not live)
               </div>
               <div style={{ marginTop: 'auto', paddingTop: '10px' }}>
                 <button

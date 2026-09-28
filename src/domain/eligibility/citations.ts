@@ -16,11 +16,11 @@ export const CITATIONS: Record<string, LegalCitation> = {
     verifiedDate: '2026-08-16',
   },
   UDB_IMPLEMENTING_REG: {
-    shortName: 'Regulation (EU) 2024/2792',
-    fullReference: 'Commission Implementing Regulation (EU) 2024/2792 on UDB operation',
-    establishes: 'Implementation rules for the Union Database and gas grid mass balance',
-    sourceUrl: 'https://eur-lex.europa.eu/eli/reg_impl/2024/2792/oj',
-    verifiedDate: '2026-08-16',
+    shortName: 'UDB not yet live (EBA, end-2026)',
+    fullReference: 'Union Database rules under RED II Art. 28(2)&(4), RED III Art. 31a, and Implementing Regulation (EU) 2022/996 Art. 18; gas module launch postponed to end of 2026 per European Biogas Association',
+    establishes: 'The Union Database (UDB) gas module is not yet operational for economic operators; cross-border compliance traceability continues to run through national registries and voluntary sustainability schemes in the meantime',
+    sourceUrl: 'https://www.europeanbiogas.eu/publication/union-database-leaflet/',
+    verifiedDate: '2026-09-28',
   },
   RED_III_CHAIN_OF_CUSTODY: {
     shortName: 'RED III Art. 30(1)-(2)',

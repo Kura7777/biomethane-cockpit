@@ -25,7 +25,7 @@ export const LEGAL_CITATIONS: LegalCitation[] = [
       'Article 29(10)(d): Greenhouse gas emissions savings from biofuels, bioliquids and biomass fuels shall be at least 70% for electricity, heating and cooling production from biomass fuels used in installations starting operation from 1 January 2021 to 31 December 2025, and at least 80% for installations starting operation from 1 January 2026.',
       'Article 31a(1): The Commission shall ensure that a Union database is established to enable the tracing of liquid and gaseous transport fuels that are eligible for being counted towards the numerator referred to in point (b) of Article 27(1).'
     ],
-    crossReferences: ['Regulation (EU) 2024/2792 (UDB Implementing Regulation)', 'RED II Directive (EU) 2018/2001'],
+    crossReferences: ['Implementing Regulation (EU) 2022/996 (UDB data rules, Art. 18)', 'RED II Directive (EU) 2018/2001 Art. 28(2)&(4)'],
     officialUrl: 'https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32023L2413',
     officialUrlLabel: 'EUR-Lex Official Portal (Directive 2023/2413)',
     additionalLinks: [
@@ -63,30 +63,30 @@ export const LEGAL_CITATIONS: LegalCitation[] = [
   },
   {
     id: 'eu-udb-regulation',
-    code: 'UDB_REG_2024_2792',
-    shortTitle: 'Union Database (UDB) Regulation (EU) 2024/2792',
-    officialTitle: 'Commission Implementing Regulation (EU) 2024/2792 on rules for the verification of sustainability and greenhouse gas emissions saving criteria and low indirect land-use change-risk criteria',
+    code: 'UDB_NOT_YET_LIVE',
+    shortTitle: 'Union Database (UDB) for gas — not yet live',
+    officialTitle: 'Union database for the traceability of liquid and gaseous renewable and recycled carbon fuels, established under Directive (EU) 2023/2413 (RED III) Article 31a, Directive (EU) 2018/2001 (RED II) Article 28(2)&(4), and Implementing Regulation (EU) 2022/996 Article 18',
     jurisdiction: 'EU',
     jurisdictionName: 'European Union (Pan-EU)',
     category: 'EU_REGULATION',
-    status: 'IN_FORCE',
-    effectiveDate: '15 November 2024 (Gas grid tracking operational 2025/2026)',
-    primaryArticle: 'Articles 14, 15, 16 & Annex III',
-    summary: 'Defines the mandatory European Union Database (UDB) traceability infrastructure. Establishes the single interconnected EU gas transmission system as a single mass balance unit, mandating digital transaction logging from producer injection to end-user withdrawal.',
+    status: 'RESTRICTED',
+    effectiveDate: 'Statutory deadline 21 November 2024 (RED III Art. 31a(1)); gas module NOT YET LIVE — launch postponed to end of 2026 (European Biogas Association)',
+    primaryArticle: 'RED III Art. 31a; RED II Art. 28(2)&(4); Implementing Regulation (EU) 2022/996 Art. 18',
+    summary: 'The mandatory EU Union Database (UDB) traceability infrastructure for liquid and gaseous renewable fuels, including biomethane. For gas, it is a self-declared, monthly-batch Proof of Sustainability (PoS) system covering injection, in-grid "Transfer Gas PoS" reallocation, and exit-point withdrawal — not a real-time telemetry feed. As of this research the UDB gas module is NOT live for economic operators; the go-live has slipped roughly two years past its statutory deadline.',
     applicableMarkets: ['DE_THG', 'NL_ERE', 'FR_CPB', 'FR_TIRUERT', 'IT_CIC', 'DK_INJECTION'],
     complianceGate: 'UDB Gate & MASS_BALANCE Gate',
-    penaltiesOrCaps: 'Disqualification of consignment from counting toward RED III quotas; cannot issue tradeable certificates.',
-    deskRuleSummary: 'Biomethane injected into non-EU grids (e.g. Great Britain National Gas network) cannot be registered in the UDB for interconnected EU compliance without a ratified bilateral mutual recognition treaty under RED III Art. 31a. UK grid gas is legally blocked from EU UDB transfers.',
+    penaltiesOrCaps: 'Until the UDB gas module is live, cross-border compliance traceability continues to run through national registries and voluntary sustainability schemes (ISCC EU, REDcert EU, Nabisy, etc.), not the UDB.',
+    deskRuleSummary: 'UDB does not replace AIB or ERGaR for Guarantee of Origin (GO) trading — GOs are a separate, RED Art. 19 disclosure instrument. Biomethane injected into non-EU grids (e.g. Great Britain) cannot be registered in the UDB for EU compliance without a ratified bilateral mutual recognition treaty under RED III Art. 31a, once the module is live.',
     keyStatutoryExcerpts: [
-      'Article 14(2): Economic operators shall enter into the Union database data on transactions relating to consignments of gaseous fuels injected into the interconnected natural gas transmission and distribution system in the Union.',
-      'Article 15(4): Consignments entering the Union from an interconnected third-country gas system may be entered into the Union database only where a mutual recognition agreement is in force between the Union and the third country pursuant to Article 31a of Directive (EU) 2018/2001.'
+      'RED III Art. 31a(1) (paraphrased from secondary sources): by 21 November 2024 a Union database is established to enable the traceability of renewable liquid and gaseous fuels and recycled carbon fuels.',
+      'European Biogas Association, "Your short guide to the Union Database": expected launch now pushed to the end of 2026.'
     ],
-    crossReferences: ['RED III Article 31a', 'ERGaR Scheme Documentation'],
-    officialUrl: 'https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R2792',
-    officialUrlLabel: 'EUR-Lex Official Portal (Regulation 2024/2792)',
+    crossReferences: ['RED III Article 31a', 'RED II Article 28(2)&(4)', 'Implementing Regulation (EU) 2022/996', 'ERGaR Scheme Documentation', 'AIB EECS Gas Scheme'],
+    officialUrl: 'https://energy.ec.europa.eu/topics/renewable-energy/bioenergy/biofuels/union-database-liquid-and-gaseous-renewable-and-recycled-carbon-fuels_en',
+    officialUrlLabel: 'European Commission — Union Database for liquid and gaseous renewable and recycled carbon fuels',
     additionalLinks: [
-      { label: 'European Commission Union Database Platform', url: 'https://energy.ec.europa.eu/topics/renewable-energy/bioenergy/union-database_en' },
-      { label: 'UDB Wiki & Gas System Guidelines', url: 'https://ec.europa.eu/energy/udb_en' }
+      { label: 'European Biogas Association — Union Database leaflet (launch delay to end-2026)', url: 'https://www.europeanbiogas.eu/publication/union-database-leaflet/' },
+      { label: 'EUR-Lex — Implementing Regulation (EU) 2022/996', url: 'https://eur-lex.europa.eu/eli/reg_impl/2022/996/2025-02-24/eng' }
     ]
   },
   {
