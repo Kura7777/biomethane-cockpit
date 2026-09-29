@@ -134,7 +134,7 @@ export function CommandPalette({ isOpen, onClose, onOpenPlaybook, onOpenImporter
 
   return (
     <div
-      className="scrim"
+      className="scrim m-dialog-scrim"
       style={{
         alignItems: 'flex-start',
         justifyContent: 'center',
@@ -146,7 +146,7 @@ export function CommandPalette({ isOpen, onClose, onOpenPlaybook, onOpenImporter
       onClick={onClose}
     >
       <div
-        className="panel"
+        className="panel m-dialog"
         style={{
           width: 'min(620px, 100%)',
           maxHeight: '60vh',
@@ -154,6 +154,7 @@ export function CommandPalette({ isOpen, onClose, onOpenPlaybook, onOpenImporter
         onClick={e => e.stopPropagation()}
       >
         <div
+          className="m-dialog-header"
           style={{
             padding: '12px 16px',
             borderBottom: '2px solid var(--color-divider)',
@@ -186,7 +187,7 @@ export function CommandPalette({ isOpen, onClose, onOpenPlaybook, onOpenImporter
             Esc to close
           </span>
         </div>
-        <div ref={listRef} className="noscroll" style={{ overflowY: 'auto' }}>
+        <div ref={listRef} className="noscroll m-dialog-body" style={{ overflowY: 'auto' }}>
           {filteredItems.length === 0 ? (
             <div style={{ padding: '24px 16px', textAlign: 'center', fontSize: '13px' }} className="mut">
               No matching commands or screens for &quot;{query}&quot;

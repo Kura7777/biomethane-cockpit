@@ -1,0 +1,404 @@
+/*
+ * Mobile globals & utilities. Everything here is gated behind the 767.98px breakpoint
+ * (Tailwind's `max-md:`) unless noted, so desktop (>=1024px) stays pixel-identical.
+ * Feature agents building mobile card/table variants should reach for the utility
+ * classes at the bottom before writing new CSS.
+ */
+
+@media (max-width: 767.98px) {
+  :root {
+    /* Page gutter shrinks on phones; every ds-* layout class already reads this var. */
+    --ds-page-gutter: 16px;
+    /* 48px mobile header + safe-area-inset-top, no footer, no 28px status bar. */
+    --ds-chrome-offset: calc(48px + env(safe-area-inset-top) + 16px);
+  }
+
+  html {
+    /* Stops iOS auto-bumping text size on rotate, which otherwise fights our own scale. */
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* iOS zooms the viewport on focusing any input under 16px; keep the visual size the same
+     by trimming padding/height instead of shrinking the font. !important is deliberate here:
+     this has to win over any feature-authored input styling (src/features/**, out of scope
+     for this pass) that hardcodes a smaller font-size, wherever it sits in load order. */
+  input, select, textarea, .input {
+    font-size: 16px !important;
+  }
+  textarea.input {
+    padding: 8px 10px;
+  }
+
+  /* ── Desk layout classes made mobile-sane ── */
+  .ds-kpis {
+    /* Overrides whatever ds-kpis-cols-N class the caller passed (see KpiTile.tsx / desk.css):
+       same specificity, but this rule loads after desk.css, so it wins on cascade order. */
+    --ds-kpis-columns: 2;
+    gap: 10px;
+    padding: 16px var(--ds-page-gutter);
+  }
+
+  .ds-kpi-card {
+    padding: 14px;
+  }
+
+  .ds-kpi-value {
+    font-size: 22px;
+  }
+
+  .ds-header {
+    padding: 16px var(--ds-page-gutter) 12px;
+    align-items: flex-start;
+  }
+
+  .ds-h1 {
+    font-size: 20px;
+  }
+
+  .ds-header-actions {
+    width: 100%;
+  }
+
+  .ds-tabs {
+    padding: 0 var(--ds-page-gutter);
+    gap: 16px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+    /* Fade edges via mask (not a matched background color) so it reads correctly regardless
+       of what the tabs sit on, in either theme. */
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 20px, #000 calc(100% - 20px), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, #000 20px, #000 calc(100% - 20px), transparent 100%);
+  }
+  .ds-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .ds-tab {
+    white-space: nowrap;
+  }
+
+  /* Two-column page grids (aside + main) collapse to a single stacked column; the aside loses
+     its sticky/scroll behaviour and just flows with the page. */
+  .ds-aside {
+    position: static;
+    top: auto;
+    max-height: none;
+    width: 100%;
+  }
+  .ds-aside-body {
+    overflow-y: visible;
+  }
+
+  .ds-card-body {
+    padding: 14px;
+  }
+  .ds-card-header {
+    padding: 12px 14px;
+  }
+
+  /* Tables tighten up; wrap in .table-scroll (below) when a table is wider than the gutter. */
+  .table th,
+  .table td {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .ds-row {
+    height: auto;
+    min-height: 56px;
+    padding: 10px 14px;
+  }
+
+  .ds-thead-row {
+    padding: 10px 14px;
+  }
+}
+
+/* ── Coarse pointer: touch targets, regardless of viewport width ── */
+@media (pointer: coarse) {
+  .btn,
+  .seg > *,
+  .seg-opt,
+  .chip[role="button"],
+  .chip[data-click="1"],
+  .ds-tab {
+    min-height: 44px;
+  }
+
+  .btn,
+  .seg-opt,
+  a,
+  button {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* ── Utilities for feature agents ── */
+
+/* Hide an element on mobile (<768px) only. */
+.m-hide {
+  display: initial;
+}
+@media (max-width: 767.98px) {
+  .m-hide {
+    display: none !important;
+  }
+}
+
+/* Show an element only on mobile (<768px); hidden at >=768px. */
+.m-only {
+  display: none;
+}
+@media (max-width: 767.98px) {
+  .m-only {
+    display: initial;
+  }
+}
+
+/* Force any grid/flex container to a single column on mobile. */
+@media (max-width: 767.98px) {
+  .m-stack {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: none !important;
+  }
+}
+
+/* Horizontally scrollable table wrapper with momentum scroll, a sticky first column, and a
+   right-edge fade shadow (the background-attachment: local trick — two backgrounds scroll
+   with the content, two stay fixed to the edges, so the shadow only shows when there's more
+   to scroll to). Works in both themes because it reads var(--color-surface)/var(--color-bg). */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background:
+    linear-gradient(to right, var(--color-surface) 30%, rgba(255, 255, 255, 0)),
+    linear-gradient(to right, rgba(255, 255, 255, 0), var(--color-surface) 70%) 100% 0,
+    linear-gradient(to right, rgba(15, 23, 42, 0.12), rgba(15, 23, 42, 0)),
+    linear-gradient(to left, rgba(15, 23, 42, 0.12), rgba(15, 23, 42, 0)) 100% 0;
+  background-repeat: no-repeat;
+  background-color: var(--color-surface);
+  background-size: 40px 100%, 40px 100%, 12px 100%, 12px 100%;
+  background-attachment: local, local, scroll, scroll;
+}
+
+.table-scroll table th:first-child,
+.table-scroll table td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background-color: var(--color-surface);
+}
+
+.table-scroll table th:first-child {
+  background-color: var(--color-panel-header);
+}
+
+/* Existing modals on mobile: put .m-dialog on the dialog panel (with or without .panel) and it goes
+   edge-to-edge. The !important wins over the inline width/height/radius most of these modals set,
+   so the desktop inline sizing can stay where it is. Optional children: .m-dialog-header (sticky,
+   clears the status bar) and .m-dialog-body (the scrolling part). Put .m-dialog-scrim on the
+   overlay if it pads or centres the panel. */
+@media (max-width: 767.98px) {
+  .m-dialog-scrim {
+    padding: 0 !important;
+    align-items: stretch !important;
+    justify-content: stretch !important;
+  }
+  .m-dialog {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    display: flex;
+    flex-direction: column;
+    transform: none !important;
+  }
+  .m-dialog > .m-dialog-header {
+    flex: none;
+    padding-top: calc(env(safe-area-inset-top) + 12px);
+  }
+  .m-dialog > .m-dialog-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: calc(env(safe-area-inset-bottom) + 16px);
+  }
+  /* Command palette results: 48px rows once the dialog is full screen. */
+  .m-dialog .plist {
+    min-height: 48px;
+  }
+}
+
+/* Sticky bottom action bar inside #main-content, mobile only (the tab bar below main already
+   clears the home indicator, so no safe-area padding here). On desktop it is a plain block. */
+@media (max-width: 767.98px) {
+  .m-sticky-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 12px var(--ds-page-gutter, 16px);
+    border-top: 1px solid var(--color-divider);
+    background: var(--color-surface);
+    box-shadow: 0 -6px 16px rgba(0, 0, 0, 0.06);
+  }
+  .m-sticky-actions > * {
+    flex: 1;
+    min-height: 44px;
+  }
+}
+
+/* Cancel a parent's gutter padding so content can run edge-to-edge on mobile. */
+@media (max-width: 767.98px) {
+  .m-full-bleed {
+    margin-left: calc(var(--ds-page-gutter, 16px) * -1);
+    margin-right: calc(var(--ds-page-gutter, 16px) * -1);
+  }
+}
+
+/* ── MobileCardList (shared/ui/MobileCardList.tsx) ──
+ * The standard mobile stand-in for a wide table row. New component, so styled once here
+ * rather than gated behind a breakpoint — feature agents choose when to render it. */
+.mc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mc-empty {
+  padding: 24px 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+.mc-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  background: var(--color-surface);
+  border: 1px solid var(--color-divider);
+  border-radius: 12px;
+  padding: 14px;
+  cursor: default;
+}
+
+.mc-card--clickable {
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.mc-card--clickable:active {
+  background: var(--color-subtier);
+}
+
+.mc-card--selected {
+  border-color: var(--color-accent);
+  box-shadow: inset 0 0 0 1px var(--color-accent);
+}
+
+.mc-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.mc-card-heading {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.mc-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mc-card-subtitle {
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--color-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mc-card-badges {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.mc-card-metric-wrap {
+  flex: none;
+  text-align: right;
+}
+
+.mc-card-metric {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.mc-card-metric-label {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--color-muted);
+}
+
+.mc-card-chevron {
+  flex: none;
+  align-self: center;
+  font-size: 18px;
+  color: var(--color-muted);
+}
+
+.mc-card-fields {
+  margin: 12px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-divider);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 12px;
+}
+
+.mc-card-field--span2 {
+  grid-column: 1 / -1;
+}
+
+.mc-card-field dt {
+  margin: 0 0 2px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.mc-card-field dd {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text);
+}
+
+.mc-tone-pos { color: var(--color-status-pos-text); }
+.mc-tone-neg { color: var(--color-status-neg-text); }
+.mc-tone-warn { color: var(--color-status-warn-text); }
+.mc-tone-muted { color: var(--color-muted); }
+
+/* ── Tablet (768–1023.98px): remove the desktop-only shell minimum width; nothing else forced. */

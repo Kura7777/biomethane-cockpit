@@ -65,6 +65,9 @@ export async function gotoScreen(page: Page, path: string) {
   await page.goto(routeUrl(path));
   await expect(page.getByText('Loading module...')).toHaveCount(0, { timeout: 15_000 });
   await expect(page.locator('#main-content')).toBeVisible({ timeout: 15_000 });
+  // The shell stays up while a screen's lazy chunk loads (Layout.tsx's Suspense), so wait for
+  // that screen-level fallback too. The biggest data chunks take a while on a cold cache.
+  await expect(page.getByTestId('screen-loading')).toHaveCount(0, { timeout: 45_000 });
 }
 
 /** Assert the screen rendered rather than crashing into the ErrorBoundary. */
@@ -83,5 +86,46 @@ export async function clearDeskState(page: Page) {
     } catch {
       /* storage unavailable — the app falls back to defaults, which is what we want */
     }
+  });
+}
+
+/**
+ * Every real (non-redirect) route in src/app/App.tsx, for the mobile shell/overflow/
+ * screenshot sweep in e2e/mobile.spec.ts. ROUTES above predates several screens (the
+ * FuelEU desk, the origination pipeline, connectors, assumptions...) and also carries
+ * a couple of pure `<Navigate>` aliases (/risk, /value-stack) that render nothing of
+ * their own — this list is the routing table's actual surface area, aliases included,
+ * redirects excluded.
+ */
+export const MOBILE_ROUTES: { path: string; name: string }[] = [
+  { path: '/', name: 'Sourcing desk (landing)' },
+  { path: '/sourcing', name: 'Sourcing desk' },
+  { path: '/commercial', name: 'Commercial sourcing alias' },
+  { path: '/desk', name: 'Sourcing & origination desk' },
+  { path: '/scanner', name: 'Opportunity scanner' },
+  { path: '/map', name: 'Compliance & logistics map' },
+  { path: '/pricing', name: 'Pricing desk alias' },
+  { path: '/marks', name: 'Marks & broker run' },
+  { path: '/plants', name: 'Plants registry' },
+  { path: '/plants/pipeline', name: 'Origination pipeline (plants alias)' },
+  { path: '/origination', name: 'Origination pipeline' },
+  { path: '/registries', name: 'Registries hub' },
+  { path: '/data-sources', name: 'Data sources & provenance' },
+  { path: '/provenance', name: 'Provenance alias' },
+  { path: '/fueleu-shipping', name: 'FuelEU Maritime desk' },
+  { path: '/ets2', name: 'EU ETS exposure' },
+  { path: '/corporate', name: 'Corporate orders' },
+  { path: '/clients', name: 'Clients directory' },
+  { path: '/trade', name: 'Trade builder' },
+  { path: '/citations', name: 'Statutory citations' },
+  { path: '/connectors', name: 'Data connectors' },
+  { path: '/settings', name: 'Desk settings' },
+  { path: '/assumptions', name: 'Assumptions' },
+];
+
+/** Wait for network activity to settle after a navigation or interaction. */
+export async function waitForIdle(page: Page) {
+  await page.waitForLoadState('networkidle').catch(() => {
+    /* long-lived polling connections can keep this from ever firing; best-effort only */
   });
 }

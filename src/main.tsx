@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './app/App'
+import { registerPWA } from './app/pwa'
 import './index.css'
 
 // Automatically reload the page when a new deployment rotates chunk hashes
@@ -14,4 +15,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <App />
   </React.StrictMode>,
 )
+
+registerPWA()
 

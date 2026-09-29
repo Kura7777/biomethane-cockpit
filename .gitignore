@@ -11,6 +11,9 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+.dist-*
+.pw-*
+dev-dist
 *.local
 *.local.json
 
@@ -63,6 +66,7 @@ NotebookLM_Sources/
 /*.json
 !package*.json
 !tsconfig*.json
+!vercel.json
 !src/**
 
 # Playwright

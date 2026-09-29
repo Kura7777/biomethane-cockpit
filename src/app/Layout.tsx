@@ -1,18 +1,26 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { Suspense, useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Outlet, useNavigate, useLocation, NavLink } from 'react-router-dom';
 import { ErrorBoundary } from '../shared/components/ErrorBoundary';
 import { CommandPalette } from '../shared/components/CommandPalette';
 import { Header } from './Header';
+import { MobileTabBar } from './MobileTabBar';
 import { DeskToastContainer, showToast } from './DeskToastContainer';
 import { useAppState, downloadDeskBackup, readBackupFile } from '../store/context';
 import { SIMULATED_SOURCE_NAME } from '../domain/marks/simulate';
 import { ComplianceAuditModal } from '../features/auditor/ComplianceAuditModal';
 import { AuditorModalTab, normalizeAuditorTab, normalizeTradeAuditContext, TradeAuditContext } from '../domain/auditor/types';
+import { useIsMobile } from '../shared/hooks/useMediaQuery';
+// Side-effect import: registers the beforeinstallprompt/appinstalled listeners at startup so
+// they're captured even before the mobile Desk sheet (the only current caller) ever mounts.
+import './installPrompt';
+
+const DATA_SOURCE_TEXT = 'GIE / EBA European Biomethane Map 2026 · 1,975 facilities · RED III consolidated to August 2026';
 
 export function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { state, dispatch, isSaving } = useAppState();
+  const isMobile = useIsMobile();
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   const [isAuditorOpen, setIsAuditorOpen] = useState(false);
   const [activeAuditDeal, setActiveAuditDeal] = useState<TradeAuditContext | undefined>(undefined);
@@ -20,28 +28,43 @@ export function Layout() {
   const [auditorFocusedGate, setAuditorFocusedGate] = useState<number | undefined>(undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleBackup = () => {
+  const handleBackup = useCallback(() => {
     try {
       const filename = downloadDeskBackup(state);
       showToast(`✓ Desk backup saved to drive · ${filename}`);
     } catch (err) {
       showToast('Failed to create desk backup');
     }
-  };
+  }, [state]);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  // Shared by the footer's hidden file input (desktop) and DeskSheet's "Restore from backup"
+  // row (mobile) — the read/migrate/dispatch/toast flow lives here once, not in both places.
+  const handleRestoreFile = useCallback(async (file: File) => {
     try {
       const imported = await readBackupFile(file);
       dispatch({ type: 'IMPORT_STATE', state: imported });
       showToast('✓ Desk state successfully restored from backup!');
     } catch (err: any) {
       showToast(`Restore failed: ${err?.message || 'Invalid backup file'}`);
-    } finally {
-      if (fileInputRef.current) fileInputRef.current.value = '';
     }
+  }, [dispatch]);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await handleRestoreFile(file);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
+
+  const handleOpenAuditor = useCallback(() => {
+    const globalDeal = (window as any).__ACTIVE_TRADE_BUILDER_DEAL__;
+    if (globalDeal) {
+      setActiveAuditDeal(normalizeTradeAuditContext(globalDeal));
+    }
+    setAuditorInitialTab('GATE_BREAKDOWN');
+    setAuditorFocusedGate(undefined);
+    setIsAuditorOpen(true);
+  }, []);
 
   // Count simulated marks
   const simulatedCount = useMemo(() => {
@@ -127,30 +150,11 @@ export function Layout() {
   }, []);
 
   return (
-    <div
-      style={{
-        height: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        backgroundColor: 'var(--color-bg)',
-        color: 'var(--color-text)',
-        fontFamily: 'var(--font-body)',
-        overflow: 'hidden',
-        minWidth: '1180px',
-      }}
-    >
+    <div className="app-shell">
       {/* Two-row header (88px) */}
-      <Header 
-        onOpenSearch={() => setIsPaletteOpen(true)} 
-        onOpenAuditor={() => {
-          const globalDeal = (window as any).__ACTIVE_TRADE_BUILDER_DEAL__;
-          if (globalDeal) {
-            setActiveAuditDeal(normalizeTradeAuditContext(globalDeal));
-          }
-          setAuditorInitialTab('GATE_BREAKDOWN');
-          setAuditorFocusedGate(undefined);
-          setIsAuditorOpen(true);
-        }} 
+      <Header
+        onOpenSearch={() => setIsPaletteOpen(true)}
+        onOpenAuditor={handleOpenAuditor}
       />
 
       {/* Main Viewport */}
@@ -162,16 +166,23 @@ export function Layout() {
           overflowY: 'auto',
           display: 'flex',
           flexDirection: 'column',
+          overscrollBehavior: 'contain',
         }}
         className="noscroll"
       >
         <ErrorBoundary>
-          <Outlet />
+          {/* Screens are lazy chunks. Suspending here keeps the header and tab bar on screen while
+              one loads; the Suspense in App.tsx only covers the shell's own first load. */}
+          <Suspense fallback={<ScreenLoading />}>
+            <Outlet />
+          </Suspense>
         </ErrorBoundary>
       </main>
 
-      {/* 28px Status Bar & Tools Footer */}
+      {/* 28px Status Bar & Tools Footer (desktop only — the mobile shell uses the Desk sheet instead) */}
+      {!isMobile && (
       <footer
+        className="app-footer mut"
         style={{
           height: '28px',
           flex: 'none',
@@ -183,11 +194,10 @@ export function Layout() {
           fontSize: '12px',
           backgroundColor: 'var(--color-bg)',
         }}
-        className="mut"
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span>
-            GIE / EBA European Biomethane Map 2026 · 1,975 facilities · RED III consolidated to August 2026
+            {DATA_SOURCE_TEXT}
           </span>
           {simulatedCount > 0 && (
             <span style={{ color: 'var(--color-accent)' }}>
@@ -281,6 +291,21 @@ export function Layout() {
           <span>Keys 1–7 screens · ⌘K command</span>
         </div>
       </footer>
+      )}
+
+      {/* Mobile bottom tab bar — last flex child, sits under #main-content in normal flow
+          (not position:fixed). Replaces the desktop footer + header's search/Auditor/user block. */}
+      {isMobile && (
+        <MobileTabBar
+          onOpenPalette={() => setIsPaletteOpen(true)}
+          onOpenAuditor={handleOpenAuditor}
+          onBackup={handleBackup}
+          onRestoreFile={handleRestoreFile}
+          isSaving={isSaving}
+          simulatedCount={simulatedCount}
+          dataSourceText={DATA_SOURCE_TEXT}
+        />
+      )}
 
       {/* Global Command Palette Modal */}
       <CommandPalette isOpen={isPaletteOpen} onClose={() => setIsPaletteOpen(false)} />
@@ -299,6 +324,14 @@ export function Layout() {
 
       {/* Global Toast Container */}
       <DeskToastContainer />
+    </div>
+  );
+}
+
+function ScreenLoading() {
+  return (
+    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh' }} aria-busy="true" data-testid="screen-loading">
+      <div className="skel" style={{ width: '120px', height: '14px' }} />
     </div>
   );
 }

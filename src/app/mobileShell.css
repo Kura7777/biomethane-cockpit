@@ -1,0 +1,219 @@
+/*
+ * Mobile shell: bottom tab bar + the two sheets it opens (NavSheet, DeskSheet).
+ * These components only render when useIsMobile() is true, so no breakpoint gating is
+ * needed here — desktop never mounts them.
+ */
+
+/* ── MobileTabBar ── */
+.mobile-tabbar {
+  flex: none;
+  display: flex;
+  align-items: stretch;
+  height: 56px;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--color-header-bg);
+  border-top: 1px solid var(--color-header-divider);
+}
+
+.mobile-tab {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: var(--color-header-muted);
+  cursor: pointer;
+}
+
+.mobile-tab.active {
+  color: var(--color-header-text);
+}
+
+.mobile-tab.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 14px;
+  right: 14px;
+  height: 2px;
+  border-radius: 0 0 2px 2px;
+  background: var(--color-accent);
+}
+
+.mobile-tab-label {
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* ── NavSheet: echoes the desktop .app-menu dropdown, sized for touch ── */
+.nav-sheet-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nav-sheet-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-height: 56px;
+  padding: 10px 8px;
+  border-radius: var(--radius-control);
+  text-decoration: none;
+  color: var(--color-text);
+}
+
+.nav-sheet-item:active {
+  background: var(--color-subtier);
+}
+
+.nav-sheet-item.active {
+  background: var(--color-subtier);
+  box-shadow: inset 3px 0 0 var(--color-accent);
+}
+
+.nav-sheet-icon {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-top: 2px;
+  border-radius: var(--radius-control);
+  background: var(--color-subtier);
+  color: var(--color-muted);
+}
+
+.nav-sheet-item.active .nav-sheet-icon {
+  color: var(--color-accent);
+}
+
+.nav-sheet-icon-svg {
+  width: 17px;
+  height: 17px;
+}
+
+.nav-sheet-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 2px;
+}
+
+.nav-sheet-label {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.nav-sheet-desc {
+  font-size: 12.5px;
+  color: var(--color-muted);
+}
+
+/* ── DeskSheet ── */
+.desk-sheet-group {
+  border: 1px solid var(--color-divider);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.desk-sheet-group-title {
+  padding: 10px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  background: var(--color-panel-header);
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.desk-sheet-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 14px;
+  border: 0;
+  border-bottom: 1px solid var(--color-divider);
+  background: var(--color-surface);
+  font: inherit;
+  font-size: 14px;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.desk-sheet-row:last-child {
+  border-bottom: 0;
+}
+
+.desk-sheet-row:active {
+  background: var(--color-subtier);
+}
+
+.desk-sheet-row--static {
+  cursor: default;
+}
+
+.desk-sheet-row--static:active {
+  background: var(--color-surface);
+}
+
+.desk-sheet-row-icon {
+  flex: none;
+  color: var(--color-muted);
+}
+
+.desk-sheet-row-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.desk-sheet-row-value {
+  flex: none;
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+.desk-sheet-row-chevron {
+  flex: none;
+  color: var(--color-muted);
+}
+
+.desk-sheet-save-dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  transition: background-color 200ms ease;
+}
+
+.desk-sheet-footer-info {
+  padding: 12px 4px 4px;
+  font-size: 12px;
+  color: var(--color-muted);
+}
+
+.desk-sheet-footer-accent {
+  color: var(--color-accent);
+}
+
+.desk-sheet-footer-user {
+  margin-top: 6px;
+  font-weight: 500;
+  color: var(--color-text);
+}

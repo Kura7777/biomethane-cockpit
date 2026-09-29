@@ -34,9 +34,11 @@ export interface KpiRowProps {
 }
 
 export function KpiRow({ children, columns = 4, className = '' }: KpiRowProps) {
-  const gridStyle = columns ? { gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` } : undefined;
+  // Column count is a class (ds-kpis-cols-N → --ds-kpis-columns in desk.css), not an inline
+  // style, so mobile.css's 2-column override can win purely on cascade order.
+  const colsClass = columns ? `ds-kpis-cols-${columns}` : '';
   return (
-    <div className={`ds-kpis ${className}`} style={gridStyle}>
+    <div className={`ds-kpis ${colsClass} ${className}`}>
       {children}
     </div>
   );

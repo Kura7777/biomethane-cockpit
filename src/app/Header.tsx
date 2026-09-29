@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, NavLink } from 'react-router-dom';
 import { Scale, Moon, Sun, Search, Flame, ChevronDown } from 'lucide-react';
 import './header.css';
-import { NAV_GROUPS, isNavItemActive } from './navConfig';
+import { NAV_GROUPS, isNavItemActive, getPageTitle } from './navConfig';
 import { useTheme } from '../store/theme';
 
 /** HH:MM:SS in the viewer's local time. Exported so it can be unit tested without rendering. */
@@ -42,14 +42,33 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
     };
   }, [openGroup]);
 
+  // Mobile header shows "<group label> · <item label>" instead of the desktop workspace tabs,
+  // e.g. "Supply · Plants". Falls back to getPageTitle for routes outside the NAV_GROUPS (rare).
+  let mobileGroupLabel: string | null = null;
+  let mobileItemLabel: string | null = null;
+  for (const group of NAV_GROUPS) {
+    const item = group.items.find(i => isNavItemActive(i.to, location.pathname));
+    if (item) {
+      mobileGroupLabel = group.label;
+      mobileItemLabel = item.label;
+      break;
+    }
+  }
+  if (!mobileItemLabel) mobileItemLabel = getPageTitle(location.pathname);
+
   return (
     <header className="app-header select-none z-50">
       <button type="button" className="app-brand" onClick={() => navigate('/sourcing')}>
         <span className="app-brand-mark" aria-hidden="true">
           <Flame size={13} strokeWidth={2.25} />
         </span>
-        <span>Biomethane Desk</span>
+        <span className="app-brand-text">Biomethane Desk</span>
       </button>
+
+      <span className="app-header-location" aria-hidden="false">
+        {mobileGroupLabel && <span className="app-header-location-group">{mobileGroupLabel}</span>}
+        <span className="app-header-location-item">{mobileItemLabel}</span>
+      </span>
 
       <span className="app-header-sep" aria-hidden="true" />
 
@@ -114,6 +133,16 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
 
         <button
           type="button"
+          className="app-icon-btn app-mobile-search-btn"
+          onClick={onOpenSearch}
+          aria-label="Search commands"
+          title="Search commands"
+        >
+          <Search size={17} aria-hidden="true" />
+        </button>
+
+        <button
+          type="button"
           className="app-icon-btn app-icon-btn-label"
           onClick={onOpenAuditor}
           title="Statutory compliance auditor (Alt+A)"
@@ -124,7 +153,7 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
 
         <button
           type="button"
-          className="app-icon-btn"
+          className="app-icon-btn app-theme-toggle"
           onClick={toggleTheme}
           title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
         >

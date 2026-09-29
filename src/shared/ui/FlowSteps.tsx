@@ -1,5 +1,6 @@
 import React, { ReactNode, useEffect, useRef } from 'react';
 import { Check, Pencil } from 'lucide-react';
+import { useIsMobile } from '../hooks/useMediaQuery';
 
 export interface FlowStep<T extends number = number> {
   id: T;
@@ -21,6 +22,7 @@ export interface FlowStepsProps<T extends number = number> {
  *  folded to a one-line summary with an Edit link. Every step is clickable. Wrap it in
  *  .ds-flow-column so every step shares one fixed width. Styles: ds-flow-* in desk.css. */
 export function FlowSteps<T extends number = number>({ steps, current, onSelect, renderBody, ariaLabel }: FlowStepsProps<T>) {
+  const isMobile = useIsMobile();
   const stepRefs = useRef(new Map<T, HTMLLIElement>());
   const hasMounted = useRef(false);
 
@@ -37,6 +39,32 @@ export function FlowSteps<T extends number = number>({ steps, current, onSelect,
   }, [current]);
 
   const currentIndex = steps.findIndex(s => s.id === current);
+
+  // Mobile: the vertical rail with folded/expanded steps doesn't fit a phone width well, so it
+  // collapses to a "Step N of M · Label" line and a thin progress bar; only the current step's
+  // body renders below it. Desktop (>=768px) keeps the full rail unchanged.
+  if (isMobile) {
+    const total = steps.length;
+    const step = steps[currentIndex];
+    const percent = total > 0 ? ((currentIndex + 1) / total) * 100 : 0;
+    return (
+      <div className="ds-flow-mobile" aria-label={ariaLabel}>
+        <div className="ds-flow-mobile-head">
+          <span className="ds-flow-mobile-step num">Step {currentIndex + 1} of {total}</span>
+          {step && (
+            <>
+              <span className="ds-flow-mobile-sep" aria-hidden="true">·</span>
+              <span className="ds-flow-mobile-label">{step.label}</span>
+            </>
+          )}
+        </div>
+        <div className="ds-flow-mobile-track">
+          <div className="ds-flow-mobile-fill" style={{ width: `${percent}%` }} />
+        </div>
+        <div className="ds-flow-mobile-body">{step && renderBody(step.id)}</div>
+      </div>
+    );
+  }
 
   return (
     <ol className="ds-flow" aria-label={ariaLabel}>

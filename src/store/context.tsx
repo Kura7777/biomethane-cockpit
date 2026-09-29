@@ -622,23 +622,32 @@ export function importState(json: string): AppState {
 }
 
 /**
- * Downloads a complete, timestamped desk backup (.json) directly to the user's hard drive / OneDrive.
+ * Builds the same timestamped desk backup (.json) File that downloadDeskBackup() writes to
+ * disk — shared so callers that hand the backup to navigator.share() (the mobile Desk sheet)
+ * and callers that download it directly use one filename/payload convention.
  */
-export function downloadDeskBackup(state: AppState): string {
+export function buildDeskBackupFile(state: AppState): File {
   const now = new Date();
   const dateStr = now.toISOString().slice(0, 10);
   const timeStr = `${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
   const fileName = `Biomethane_Desk_Backup_${dateStr}_${timeStr}.json`;
-  const blob = new Blob([exportState(state)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
+  return new File([exportState(state)], fileName, { type: 'application/json' });
+}
+
+/**
+ * Downloads a complete, timestamped desk backup (.json) directly to the user's hard drive / OneDrive.
+ */
+export function downloadDeskBackup(state: AppState): string {
+  const file = buildDeskBackupFile(state);
+  const url = URL.createObjectURL(file);
   const a = document.createElement('a');
   a.href = url;
-  a.download = fileName;
+  a.download = file.name;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  return fileName;
+  return file.name;
 }
 
 /**
