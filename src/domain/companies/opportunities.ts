@@ -5,7 +5,7 @@ import { HHV_TO_LHV_FACTOR } from '../offtake/engine';
 import { biomethaneMWhToAbate } from '../ets1/sites';
 import { computeCompanyExposure } from '../ets2/companies';
 import { Ets2CountryProfile } from '../ets2/countries';
-import { computeValueStack, ETS2_START_YEAR } from '../valueStack/engine';
+import { computeValueStack, ETS2_START_YEAR, ValueStackInputs, ValueStackResult, StackRow } from '../valueStack/engine';
 import { CompanyProfile, MarketKey } from './directory';
 
 /**
@@ -93,6 +93,8 @@ export interface Opportunity {
   volumeMWh: number | null;
   /** € per year the client avoids at desk marks, when it can be sized. */
   valueEur: number | null;
+  /** What valueEur measures, e.g. "Penalty avoided" — distinct from the stack's market value. */
+  valueLabel: string;
   /** € per MWh the client avoids, when only a unit value can be given. */
   valueEurPerMWh: number | null;
   /** How the value was worked out. */
@@ -100,8 +102,85 @@ export interface Opportunity {
   evidenceNeeded: string;
   legalBasis: string;
   caveats: string[];
-  /** Where to price it next, with pre-filled parameters. */
+  /** The value stack for this play — every regime the same MWh counts in — when the client burns the biomethane itself. */
+  stack: StackSpec | null;
+  /** Another screen that takes the play further (FuelEU pools, corporate pricing). */
   action: { label: string; route: string; params: Record<string, string> } | null;
+}
+
+/**
+ * A play's value stack: the engine inputs, and a summary for tables. A stack "is available" when
+ * at least two regimes the desk can price in € reward the same MWh at the same client (e.g. FuelEU
+ * and the EU ETS for a ship burning bio-LNG). One priced regime plus reporting claims is not a
+ * stack; neither is a company active in two markets, whose plays use different MWh.
+ */
+export interface StackSpec {
+  inputs: ValueStackInputs;
+  /** Regimes priced in € for the same MWh. */
+  pricedRegimes: string[];
+  /** Regimes that support a claim but carry no direct € value. */
+  claims: string[];
+  /** €/MWh of the priced regimes; low and high differ only where an input is still open (ships' intra-EU share). */
+  eurPerMWhLow: number | null;
+  eurPerMWhHigh: number | null;
+  isStack: boolean;
+}
+
+function counted(r: StackRow, year: number | null): boolean {
+  return r.status === 'COUNTS' || (r.status === 'FROM_2028' && year !== null && year >= ETS2_START_YEAR);
+}
+
+function pricedEur(result: ValueStackResult, year: number | null): number | null {
+  const rows = result.rows.filter(r => counted(r, year) && r.eurPerMWh !== null);
+  return rows.length ? rows.reduce((a, r) => a + (r.eurPerMWh as number), 0) : null;
+}
+
+/**
+ * Summarises the stack for given inputs. Where a ship's intra-EU share is not known yet, the EU ETS
+ * row is bounded by the two extremes (all voyages in/out of the EU: 50% coverage; all intra-EU: 100%).
+ */
+export function stackSpecFor(inputs: ValueStackInputs, marks: MarksState): StackSpec {
+  const openShare = inputs.client === 'SHIP_OPERATOR' && inputs.intraEuShare === null;
+  const low = computeValueStack(openShare ? { ...inputs, intraEuShare: 0 } : inputs, marks);
+  const high = openShare ? computeValueStack({ ...inputs, intraEuShare: 1 }, marks) : low;
+  const year = inputs.deliveryYear;
+  const pricedRegimes = low.rows.filter(r => counted(r, year) && r.eurPerMWh !== null).map(r => r.regime);
+  return {
+    inputs,
+    pricedRegimes,
+    claims: low.rows.filter(r => r.status === 'CLAIM').map(r => r.regime),
+    eurPerMWhLow: pricedEur(low, year),
+    eurPerMWhHigh: pricedEur(high, year),
+    isStack: pricedRegimes.length >= 2,
+  };
+}
+
+const BASE_INPUTS: Omit<ValueStackInputs, 'client'> = {
+  volumeMWh: null,
+  carbonIntensity: -100,
+  deliveryYear: null,
+  intraEuShare: null,
+  smallSiteShare: null,
+  ets2PassThrough: null,
+  greenTariffPremiumEurPerMWh: null,
+  offerPremiumEurPerMWh: null,
+};
+
+/** Stack for an ETS1 group's first deal: 10% of emissions at its high/medium-fit sites, all at ETS1 installations. */
+export function ets1StackSpec(fitVerifiedTco2: number, marks: MarksState, year: number): StackSpec | null {
+  if (fitVerifiedTco2 <= 0) return null;
+  const volumeMWh = Math.round(biomethaneMWhToAbate(fitVerifiedTco2 * ETS1_FIRST_DEAL_SHARE) / HHV_TO_LHV_FACTOR);
+  return stackSpecFor({ ...BASE_INPUTS, client: 'ETS1_SITE', volumeMWh, deliveryYear: year, smallSiteShare: 0 }, marks);
+}
+
+/** Stack for an ETS2 regulated supplier from 2028, on its known volume where there is one. */
+export function ets2SupplierStackSpec(volumeMWh: number | null, marks: MarksState): StackSpec {
+  return stackSpecFor({ ...BASE_INPUTS, client: 'ETS2_SUPPLIER', volumeMWh, deliveryYear: ETS2_START_YEAR }, marks);
+}
+
+/** Stack for a ship operator burning bio-LNG (FuelEU + EU ETS maritime). */
+export function shipStackSpec(volumeMWh: number | null, marks: MarksState, year: number): StackSpec {
+  return stackSpecFor({ ...BASE_INPUTS, client: 'SHIP_OPERATOR', volumeMWh, deliveryYear: year }, marks);
 }
 
 function shippingOpportunities(p: CompanyProfile, marks: MarksState, year: number): Opportunity[] {
@@ -132,15 +211,17 @@ function shippingOpportunities(p: CompanyProfile, marks: MarksState, year: numbe
         timing: 'NOW',
         volumeMWh: physicalMWh,
         valueEur: (penalty * physicalMWh) / needMWh,
+        valueLabel: 'Penalty avoided',
         valueEurPerMWh: null,
-        valueBasis: 'FuelEU penalty avoided, pro rata to the deficit closed. The EU ETS maritime saving comes on top — open the value stack and enter the intra-EU share.',
+        valueBasis: 'FuelEU penalty avoided, pro rata to the deficit closed. The value stack below prices the same MWh at market (what buying the compliance would cost) and adds the EU ETS maritime saving.',
         evidenceNeeded: 'PoS with RED III actual value, bunker delivery notes, verifier acceptance in the FuelEU report.',
         legalBasis: 'Regulation (EU) 2023/1805 Art. 4 & Annex I; Directive 2003/87/EC Art. 3ga & MRR Annex VI (zero-rating)',
         caveats: [
           ...(physicalMWh < needMWh ? [`Capped at the LNG the group burned in 2024 (${Math.round(lngBurnMWh).toLocaleString('en-GB')} MWh); the rest needs pooling.`] : []),
           ...bearerCaveat,
         ],
-        action: { label: 'Price it in the value stack', route: '/value-stack', params: { client: 'SHIP_OPERATOR', volume: String(Math.round(physicalMWh)), ci: '-100', year: String(year) } },
+        stack: shipStackSpec(Math.round(physicalMWh), marks, year),
+        action: null,
       });
     }
     if (poolMWh > 0) {
@@ -155,11 +236,13 @@ function shippingOpportunities(p: CompanyProfile, marks: MarksState, year: numbe
         timing: 'NOW',
         volumeMWh: poolMWh,
         valueEur: (penalty * poolMWh) / needMWh,
+        valueLabel: 'Penalty avoided',
         valueEurPerMWh: null,
         valueBasis: 'FuelEU penalty avoided, pro rata; the client pays the pool price out of this.',
         evidenceNeeded: 'Pool registered in FuelEU Database before 30 April; verified surplus of the pooling ships.',
         legalBasis: 'Regulation (EU) 2023/1805 Art. 21 (pooling)',
         caveats: ['Pooling moves the FuelEU balance only: no EU ETS saving for this client.', ...bearerCaveat],
+        stack: null,
         action: { label: 'Open FuelEU desk', route: '/fueleu-shipping', params: {} },
       });
     }
@@ -173,12 +256,14 @@ function shippingOpportunities(p: CompanyProfile, marks: MarksState, year: numbe
       timing: 'NOW',
       volumeMWh: null,
       valueEur: null,
+      valueLabel: 'Value to client',
       valueEurPerMWh: null,
-      valueBasis: 'Depends on volume and the intra-EU share — price it in the value stack.',
+      valueBasis: 'Depends on volume and the intra-EU share — see the value stack below.',
       evidenceNeeded: 'PoS, bunker delivery notes, verifier acceptance.',
       legalBasis: 'Directive 2003/87/EC Art. 3ga; Regulation (EU) 2023/1805 Art. 20–21',
       caveats: bearerCaveat,
-      action: { label: 'Price it in the value stack', route: '/value-stack', params: { client: 'SHIP_OPERATOR', ci: '-100', year: String(year) } },
+      stack: shipStackSpec(null, marks, year),
+      action: null,
     });
   } else if (p.fueleu.some(f => f.group.surplusMemberCount > 0)) {
     out.push({
@@ -190,11 +275,13 @@ function shippingOpportunities(p: CompanyProfile, marks: MarksState, year: numbe
       timing: 'NOW',
       volumeMWh: null,
       valueEur: null,
+      valueLabel: 'Value to client',
       valueEurPerMWh: null,
       valueBasis: 'Supply side — value sits with the buyers you pool it to.',
       evidenceNeeded: 'Verified FuelEU report showing the surplus.',
       legalBasis: 'Regulation (EU) 2023/1805 Art. 21',
       caveats: [],
+      stack: null,
       action: { label: 'Open FuelEU desk', route: '/fueleu-shipping', params: {} },
     });
   }
@@ -214,11 +301,13 @@ function ets1Opportunities(p: CompanyProfile, marks: MarksState, year: number): 
       timing: 'NOW',
       volumeMWh: null,
       valueEur: null,
+      valueLabel: 'Value to client',
       valueEurPerMWh: null,
       valueBasis: 'Needs the sites\' gas consumption before it can be sized.',
       evidenceNeeded: 'Site fuel mix from the monitoring plan or the client.',
       legalBasis: 'MRR (EU) 2018/2066 Art. 38–39',
       caveats: ['Low-priority lead unless the client confirms material gas burn.'],
+      stack: null,
       action: null,
     }];
   }
@@ -235,6 +324,7 @@ function ets1Opportunities(p: CompanyProfile, marks: MarksState, year: number): 
     { client: 'ETS1_SITE', volumeMWh, carbonIntensity: -100, deliveryYear: year, intraEuShare: null, smallSiteShare: 0, ets2PassThrough: null, greenTariffPremiumEurPerMWh: null, offerPremiumEurPerMWh: null },
     marks
   );
+  const spec = ets1StackSpec(fitT, marks, year);
   return [{
     id: 'ets1-biomethane',
     regulation: 'ETS1',
@@ -244,6 +334,7 @@ function ets1Opportunities(p: CompanyProfile, marks: MarksState, year: number): 
     timing: 'NOW',
     volumeMWh,
     valueEur: stack.stackAnnualEur,
+    valueLabel: 'Allowances saved',
     valueEurPerMWh: stack.stackEurPerMWh,
     valueBasis: `A first deal cutting 10% of emissions at its high/medium-fit sites, valued at the desk EUA mark by the value-stack engine.`,
     evidenceNeeded: 'RED III sustainability evidence via the Union Database (PoS assigned to the site); accepted by the site\'s verifier.',
@@ -258,7 +349,8 @@ function ets1Opportunities(p: CompanyProfile, marks: MarksState, year: number): 
       ...(processHeatT > 0 ? [`Process-heat sites (the strongest fit): ${Math.round(processHeatT).toLocaleString('en-GB')} tCO₂.`] : []),
       'Sites below 20 MW rated thermal input fall under ETS2 instead — check before sizing.',
     ],
-    action: { label: 'Price it in the value stack', route: '/value-stack', params: { client: 'ETS1_SITE', volume: String(volumeMWh), ci: '-100', year: String(year), smallSites: '0' } },
+    stack: spec,
+    action: null,
   }];
 }
 
@@ -284,12 +376,14 @@ function ets2Opportunities(p: CompanyProfile, marks: MarksState, ets2Countries: 
       timing: 'FROM_2028',
       volumeMWh: null,
       valueEur: null,
+      valueLabel: 'Allowances saved',
       valueEurPerMWh: stack.rows.find(r => r.status === 'FROM_2028')?.eurPerMWh ?? null,
       valueBasis: 'Allowance cost avoided per MWh at the desk ETS2 mark (value-stack engine), before any green-tariff premium.',
       evidenceNeeded: 'Sustainability evidence accepted by the national ETS2 authority; supply contract zero-rating clause.',
       legalBasis: 'Directive 2003/87/EC Chapter IVa & Annex III (as amended by 2023/959)',
       caveats: pricedToday.map(c => `${c.name}: already priced today under ${c.existingCarbonPricing.label} — a sale can start now; verify its zero-rating rules.`),
-      action: { label: 'Price it in the value stack', route: '/value-stack', params: { client: 'ETS2_SUPPLIER', ci: '-100', year: String(ETS2_START_YEAR) } },
+      stack: ets2SupplierStackSpec(null, marks),
+      action: null,
     });
   }
   if (endUsers.length) {
@@ -302,11 +396,13 @@ function ets2Opportunities(p: CompanyProfile, marks: MarksState, ets2Countries: 
       timing: 'NOW',
       volumeMWh: null,
       valueEur: null,
+      valueLabel: 'Value to client',
       valueEurPerMWh: null,
       valueBasis: 'Voluntary purchase — price it as a corporate order.',
       evidenceNeeded: 'GOs cancelled in the client\'s name for the same MWh as the PoS.',
       legalBasis: 'GHG Protocol Scope 1; ESRS E1; RED III Art. 19',
       caveats: [],
+      stack: null,
       action: { label: 'Price a corporate order', route: '/corporate', params: {} },
     });
   }

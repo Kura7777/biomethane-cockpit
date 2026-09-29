@@ -54,7 +54,6 @@ const SettingsScreen = lazyWithRetry(() => import('../features/settings/Settings
 const AssumptionsScreen = lazyWithRetry(() => import('../features/settings/AssumptionsScreen').then(m => ({ default: m.AssumptionsScreen })));
 const CorporateOrderScreen = lazyWithRetry(() => import('../features/corporate/CorporateOrderScreen').then(m => ({ default: m.CorporateOrderScreen })));
 const ClientsScreen = lazyWithRetry(() => import('../features/clients/ClientsScreen').then(m => ({ default: m.ClientsScreen })));
-const ValueStackScreen = lazyWithRetry(() => import('../features/value-stack/ValueStackScreen').then(m => ({ default: m.ValueStackScreen })));
 const Ets2Screen = lazyWithRetry(() => import('../features/ets2/Ets2Screen').then(m => ({ default: m.Ets2Screen })));
 const FuelEUShippingScreen = lazyWithRetry(() => import('../features/fueleu/FuelEUShippingScreen').then(m => ({ default: m.FuelEUShippingScreen })));
 
@@ -100,7 +99,8 @@ function AppContent() {
             {/* EU ETS2 exposure desk */}
             <Route path="/ets2" element={<Ets2Screen />} />
             <Route path="/corporate" element={<CorporateOrderScreen />} />
-            <Route path="/value-stack" element={<ValueStackScreen />} />
+            {/* The value stack now lives inside each company (Clients, EU ETS); old links land on Clients. */}
+            <Route path="/value-stack" element={<Navigate to="/clients" replace />} />
             <Route path="/clients" element={<ClientsScreen />} />
 
             {/* Supporting Tools & Desks */}

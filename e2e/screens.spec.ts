@@ -46,7 +46,7 @@ test.describe('Screen Rendering & Route Health', () => {
     const groups: Record<string, string[]> = {
       Demand: ['Clients', 'EU ETS', 'FuelEU Maritime', 'Corporate orders'],
       Supply: ['Origination', 'Plants', 'Map', 'Registries'],
-      Pricing: ['Pricing desk', 'Value stack', 'Trade builder'],
+      Pricing: ['Pricing desk', 'Trade builder'],
       Reference: ['Citations', 'Sources', 'Assumptions'],
     };
 

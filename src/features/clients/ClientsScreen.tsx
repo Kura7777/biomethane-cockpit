@@ -23,6 +23,8 @@ import { applyEts2CompanyImport } from '../../domain/ets2/companies';
 import { ETS2_COUNTRIES, applyEts2CountryImport } from '../../domain/ets2/countries';
 import { selectMarkPrice } from '../../domain/netback/engine';
 import { normalizeCompanyName } from '../../domain/companies/normalize';
+import { StackSpec } from '../../domain/companies/opportunities';
+import { ValueStackCard, StackBadge } from '../value-stack/ValueStackCard';
 
 const LINKS_KEY = 'biomethane_company_links_v1';
 const STATUS_KEY = 'biomethane_client_status_v1';
@@ -95,6 +97,9 @@ interface Row {
   profile: CompanyProfile;
   exposure: RegulationExposure;
   best: Opportunity | null;
+  /** The first play whose value stack pays in 2+ regimes on the same MWh. */
+  stack: StackSpec | null;
+  stackTitle: string | null;
 }
 
 function sortValue(r: Row, key: SortKey): number | null {
@@ -136,11 +141,16 @@ export function ClientsScreen() {
   const directory = useMemo(() => buildCompanyDirectory(links, ets2Companies), [links, ets2Companies]);
 
   const rows: Row[] = useMemo(
-    () => directory.map(profile => ({
-      profile,
-      exposure: computeRegulationExposure(profile, state.marks, ets2Countries),
-      best: computeOpportunities(profile, state.marks, ets2Countries, year)[0] ?? null,
-    })),
+    () => directory.map(profile => {
+      const ops = computeOpportunities(profile, state.marks, ets2Countries, year);
+      return {
+        profile,
+        exposure: computeRegulationExposure(profile, state.marks, ets2Countries),
+        best: ops[0] ?? null,
+        stack: ops.find(o => o.stack?.isStack)?.stack ?? null,
+        stackTitle: ops.find(o => o.stack?.isStack)?.title ?? null,
+      };
+    }),
     [directory, state.marks, ets2Countries, year]
   );
 
@@ -148,6 +158,7 @@ export function ClientsScreen() {
   const [markets, setMarkets] = useState<MarketKey[]>([]);
   const [country, setCountry] = useState('ALL');
   const [multiOnly, setMultiOnly] = useState(false);
+  const [stackOnly, setStackOnly] = useState(false);
   const [sort, setSort] = useState<{ key: SortKey; desc: boolean }>({ key: 'total', desc: true });
   const [shown, setShown] = useState(PAGE);
 
@@ -159,7 +170,8 @@ export function ClientsScreen() {
       .filter(r => !q || r.profile.names.some(n => n.toLowerCase().includes(q)))
       .filter(r => markets.every(m => r.profile.markets.includes(m)))
       .filter(r => country === 'ALL' || r.profile.countries.includes(country))
-      .filter(r => !multiOnly || r.profile.markets.length > 1);
+      .filter(r => !multiOnly || r.profile.markets.length > 1)
+      .filter(r => !stackOnly || r.stack !== null);
     const dir = sort.desc ? -1 : 1;
     return out.sort((a, b) => {
       if (sort.key === 'name') return a.profile.name.localeCompare(b.profile.name) * dir;
@@ -172,7 +184,7 @@ export function ClientsScreen() {
       const tb = b.exposure.costAtStakeNowEur;
       return ta === tb ? 0 : ta === null ? 1 : tb === null ? -1 : ta < tb ? 1 : -1;
     });
-  }, [rows, search, markets, country, multiOnly, sort]);
+  }, [rows, search, markets, country, multiOnly, stackOnly, sort]);
 
   const selectedId = params.get('company');
   const selectedRow = selectedId ? rows.find(r => r.profile.id === selectedId) ?? null : null;
@@ -204,12 +216,12 @@ export function ClientsScreen() {
   const openAction = (o: Opportunity, company: string) => {
     if (!o.action) return;
     const { route, params: q } = o.action;
-    const qs = new URLSearchParams(route === '/value-stack' ? { ...q, for: company } : q).toString();
+    const qs = new URLSearchParams(q).toString();
     navigate(qs ? `${route}?${qs}` : route);
   };
 
   const exportCsv = () => {
-    const header = ['Company', 'Countries', 'Regulations', 'FuelEU 2026 penalty €', 'EU ETS maritime 2026 €', `EU ETS1 bill € (${ETS1_LATEST_YEAR} emissions)`, 'EU ETS2 from 2028 €', 'EU ETS2 role', 'Cost at stake now €', 'Best play', 'Status'];
+    const header = ['Company', 'Countries', 'Regulations', 'FuelEU 2026 penalty €', 'EU ETS maritime 2026 €', `EU ETS1 bill € (${ETS1_LATEST_YEAR} emissions)`, 'EU ETS2 from 2028 €', 'EU ETS2 role', 'Cost at stake now €', 'Best play', 'Value stack', 'Status'];
     const lines = filtered.map(r => [
       r.profile.name,
       r.profile.countries.join(' '),
@@ -221,6 +233,7 @@ export function ClientsScreen() {
       r.exposure.ets2Standing === 'NONE' ? null : r.exposure.ets2Standing,
       r.exposure.costAtStakeNowEur === null ? null : Math.round(r.exposure.costAtStakeNowEur),
       r.best?.title ?? null,
+      r.stack ? r.stack.pricedRegimes.join(' + ') : null,
       STATUS_LABEL[statuses[r.profile.id] ?? 'NOT_CONTACTED'],
     ].map(csvCell).join(','));
     const blob = new Blob([[header.map(csvCell).join(','), ...lines].join('\n')], { type: 'text/csv' });
@@ -256,7 +269,7 @@ export function ClientsScreen() {
     );
   }
 
-  const multiCount = rows.filter(r => r.profile.markets.length > 1).length;
+  const stackCount = rows.filter(r => r.stack !== null).length;
   const stakeShown = filtered.reduce((s, r) => s + (r.exposure.costAtStakeNowEur ?? 0), 0);
   const th = (key: SortKey, label: string, title: string, right = true) => (
     <th
@@ -278,7 +291,7 @@ export function ClientsScreen() {
       <div style={{ padding: '0 16px' }}>
         <KpiRow columns={4}>
           <KpiTile label="Companies shown" value={filtered.length.toLocaleString('en-GB')} sub={`of ${rows.length.toLocaleString('en-GB')}`} />
-          <KpiTile label="Exposed to 2+ regulations" value={multiCount.toLocaleString('en-GB')} sub="Link related records to find more" />
+          <KpiTile label="Value stack available" value={stackCount.toLocaleString('en-GB')} sub="2+ regimes pay on the same MWh" />
           <KpiTile label="Cost at stake now (shown)" value={eurM(stakeShown)} unit="/yr" sub="FuelEU + ETS maritime + ETS1" />
           <KpiTile label="Prices used" value={eua === null ? '—' : `€${eua}`} unit="/t EUA" sub={`ETS2 €${ets2Price ?? '—'}/t · desk marks`} />
         </KpiRow>
@@ -303,6 +316,9 @@ export function ClientsScreen() {
             ))}
             <label style={{ display: 'flex', gap: '6px', alignItems: 'center', fontSize: '12px' }}>
               <input type="checkbox" checked={multiOnly} onChange={e => { setMultiOnly(e.target.checked); setShown(PAGE); }} /> 2+ regulations
+            </label>
+            <label style={{ display: 'flex', gap: '6px', alignItems: 'center', fontSize: '12px' }}>
+              <input type="checkbox" checked={stackOnly} onChange={e => { setStackOnly(e.target.checked); setShown(PAGE); }} /> Value stack available
             </label>
           </div>
           <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
@@ -335,7 +351,15 @@ export function ClientsScreen() {
                       {ets2Cell(r.exposure)}
                     </td>
                     <td className="num" style={{ textAlign: 'right', fontWeight: 600 }}>{eurM(r.exposure.costAtStakeNowEur)}</td>
-                    <td style={{ fontSize: '12px' }}>{r.best?.title ?? '—'}</td>
+                    <td style={{ fontSize: '12px' }}>
+                      <div>{r.best?.title ?? '—'}</div>
+                      {r.stack && (
+                        <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginTop: 2 }}>
+                          <StackBadge spec={r.stack} />
+                          {r.stackTitle !== r.best?.title && <span style={{ color: 'var(--color-text-muted)' }}>via {r.stackTitle}</span>}
+                        </div>
+                      )}
+                    </td>
                     <td style={{ fontSize: '12px', whiteSpace: 'nowrap' }}>{STATUS_LABEL[statuses[r.profile.id] ?? 'NOT_CONTACTED']}</td>
                   </tr>
                 ))}
@@ -468,7 +492,7 @@ function CompanyPage(props: {
                 <div style={{ fontSize: '13px' }}><strong>Why it works:</strong> {o.why}</div>
                 <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', fontSize: '13px', margin: '6px 0' }}>
                   {o.volumeMWh !== null && <span><span className="eyebrow">Volume </span><span className="num">{mwh(o.volumeMWh)}/yr</span></span>}
-                  {o.valueEur !== null && <span><span className="eyebrow">Value to client </span><strong className="num">{eur(o.valueEur)}/yr</strong></span>}
+                  {o.valueEur !== null && <span><span className="eyebrow">{o.valueLabel} </span><strong className="num">{eur(o.valueEur)}/yr</strong></span>}
                   {o.valueEurPerMWh !== null && <span><span className="eyebrow">Per MWh </span><span className="num">{eur(o.valueEurPerMWh, 2)}</span></span>}
                 </div>
                 <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{o.valueBasis}</div>
@@ -477,6 +501,11 @@ function CompanyPage(props: {
                   <ul style={{ margin: '4px 0 0', paddingLeft: '16px', fontSize: '12px' }}>
                     {o.caveats.map(c => <li key={c}>{c}</li>)}
                   </ul>
+                )}
+                {o.stack && (
+                  <div style={{ marginTop: '10px' }}>
+                    <ValueStackCard key={`${p.id}-${o.id}`} spec={o.stack} marks={props.marks} heading={o.stack.isStack ? `Value stack · ${o.stack.pricedRegimes.join(' + ')}` : 'Value stack'} />
+                  </div>
                 )}
                 {o.action && (
                   <button type="button" className="btn btn-secondary" style={{ marginTop: '8px' }} onClick={() => props.onAction(o)}>{o.action.label}</button>

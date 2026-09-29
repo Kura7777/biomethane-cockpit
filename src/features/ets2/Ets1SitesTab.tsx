@@ -21,6 +21,11 @@ import {
 import { selectMarkPrice, ETS_NATURAL_GAS_TCO2_PER_MWH } from '../../domain/netback/engine';
 import { HHV_TO_LHV_FACTOR } from '../../domain/offtake/engine';
 import { normalizeCompanyName } from '../../domain/companies/normalize';
+import { CompanyProfile, MARKET_LABEL } from '../../domain/companies/directory';
+import { ets1StackSpec } from '../../domain/companies/opportunities';
+import { MarksState } from '../../domain/netback/types';
+import { ValueStackCard, StackBadge } from '../value-stack/ValueStackCard';
+import { companyLookup, stackedPlay } from '../value-stack/companyLookup';
 import { showToast } from '../../app/DeskToastContainer';
 import {
   OutreachStatus,
@@ -110,11 +115,21 @@ export function Ets1SitesTab() {
 
   // Allowances avoided per MWh from the pricing authority, at the scenario EUA (NCV basis), and per
   // MWh as invoiced (GCV) — the basis Clients and the value stack quote.
-  const avoidedNcv = useMemo(() => {
-    if (eua === null) return null;
+  // The desk marks with this tab's scenario EUA, so the table and the value stack price alike.
+  const scenarioMarks: MarksState = useMemo(() => {
+    if (eua === null) return state.marks;
     const mark = { marketId: 'EU_ETS1', bid: eua, offer: eua, mid: eua, updatedAt: null, source: 'ETS1 tab scenario' };
-    return ets1AvoidedValuePerMWh({ ...state.marks, marks: { ...state.marks.marks, EU_ETS1: mark } });
+    return { ...state.marks, marks: { ...state.marks.marks, EU_ETS1: mark } };
   }, [eua, state.marks]);
+  const avoidedNcv = useMemo(() => (eua === null ? null : ets1AvoidedValuePerMWh(scenarioMarks)), [eua, scenarioMarks]);
+  const year = new Date().getFullYear();
+  const lookup = useMemo(() => companyLookup(), []);
+  const stackCache = useMemo(() => new Map<string, ReturnType<typeof stackedPlay>>(), [scenarioMarks]);
+  const stackFor = (p: CompanyProfile | undefined) => {
+    if (!p || p.markets.length < 2) return null;
+    if (!stackCache.has(p.id)) stackCache.set(p.id, stackedPlay(p, scenarioMarks, year));
+    return stackCache.get(p.id) ?? null;
+  };
   const avoidedInvoice = avoidedNcv === null ? null : avoidedNcv * HHV_TO_LHV_FACTOR;
 
   const firstDeal = (fitT: number) => {
@@ -201,11 +216,9 @@ export function Ets1SitesTab() {
     showToast(`Exported ${rowCount.toLocaleString('en-GB')} rows`);
   };
 
-  const openClient = (c: Ets1Company) => navigate(`/clients?company=${encodeURIComponent(normalizeCompanyName(c.name))}`);
-  const openStack = (c: Ets1Company) => {
-    const d = firstDeal(c.fitVerifiedLatestTco2);
-    const qs = new URLSearchParams({ client: 'ETS1_SITE', volume: String(Math.round(d.invoiceMWh)), ci: '-100', year: String(new Date().getFullYear()), smallSites: '0', for: c.name });
-    navigate(`/value-stack?${qs.toString()}`);
+  const openClient = (c: Ets1Company) => {
+    const id = lookup.byEts1Key.get(c.key)?.id ?? normalizeCompanyName(c.name);
+    navigate(`/clients?company=${encodeURIComponent(id)}`);
   };
 
   const pageRows = (view === 'COMPANIES' ? sortedCompanies : sortedSites).slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -298,11 +311,20 @@ export function Ets1SitesTab() {
             {view === 'COMPANIES'
               ? (pageRows as Ets1Company[]).map(c => {
                   const d = firstDeal(c.fitVerifiedLatestTco2);
+                  const prof = lookup.byEts1Key.get(c.key);
+                  const also = (prof?.markets ?? []).filter(m => m !== 'ETS1');
+                  const stacked = stackFor(prof);
                   return (
                     <button key={c.key} type="button" className={`ds-row ets-cols-companies ${selectedKey === c.key ? 'selected' : ''}`} onClick={() => setSelectedKey(c.key)}>
                       <div style={{ minWidth: 0 }}>
-                        <div className="ds-row-name">{c.name}</div>
-                        <div className="ds-row-meta">{companyMeta(c)}</div>
+                        <div className="ds-row-name">
+                          {c.name}
+                          {stacked && <> <StackBadge spec={stacked.spec} /></>}
+                        </div>
+                        <div className="ds-row-meta">
+                          {companyMeta(c)}
+                          {also.length > 0 && <span title={`Also exposed to ${also.map(m => MARKET_LABEL[m]).join(', ')}`}> · also {also.map(m => MARKET_LABEL[m]).join(', ')}</span>}
+                        </div>
                       </div>
                       <FitBadge fit={c.fit} />
                       <BarCell value={c.verifiedLatestTco2} max={scaleMax}>{tonnes(c.verifiedLatestTco2)}</BarCell>
@@ -346,13 +368,16 @@ export function Ets1SitesTab() {
         {selected ? (
           <CompanyPanel
             company={selected}
+            profile={lookup.byEts1Key.get(selected.key)}
+            marks={scenarioMarks}
+            year={year}
+            stacked={stackFor(lookup.byEts1Key.get(selected.key))}
             eua={eua}
             deal={firstDeal(selected.fitVerifiedLatestTco2)}
             status={statuses[selected.key] ?? 'NOT_CONTACTED'}
             onStatus={s => setStatus(selected.key, s)}
             onClose={() => setSelectedKey(null)}
             onClient={() => openClient(selected)}
-            onStack={() => openStack(selected)}
           />
         ) : (
           <SidePanel>
@@ -388,25 +413,25 @@ export function Ets1SitesTab() {
 
 function CompanyPanel(props: {
   company: Ets1Company;
+  profile: CompanyProfile | undefined;
+  marks: MarksState;
+  year: number;
+  stacked: ReturnType<typeof stackedPlay>;
   eua: number | null;
   deal: { invoiceMWh: number; saving: number | null };
   status: OutreachStatus;
   onStatus: (s: OutreachStatus) => void;
   onClose: () => void;
   onClient: () => void;
-  onStack: () => void;
 }) {
   const { company: c, eua, deal } = props;
   const sites = [...c.sites].sort((a, b) => b.verifiedLatestTco2 - a.verifiedLatestTco2);
   const notes = fitNotes(c);
+  const spec = useMemo(() => ets1StackSpec(c.fitVerifiedLatestTco2, props.marks, props.year), [c, props.marks, props.year]);
+  const also = (props.profile?.markets ?? []).filter(m => m !== 'ETS1');
   return (
     <SidePanel
-      footer={
-        <>
-          <button type="button" className="ets-btn grow" onClick={props.onClient}>Client profile</button>
-          <button type="button" className="ets-btn primary grow" onClick={props.onStack} disabled={c.fitVerifiedLatestTco2 <= 0}>Price in value stack</button>
-        </>
-      }
+      footer={<button type="button" className="ets-btn primary grow" onClick={props.onClient}>Open client profile</button>}
     >
       <PanelSection>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
@@ -440,7 +465,22 @@ function CompanyPanel(props: {
           </div>
         )}
         {notes.map(n => <div key={n.text} className={`ets-note ${n.tone === 'info' ? 'info' : ''}`}>{n.text}</div>)}
+        {also.length > 0 && (
+          <div className="ds-panel-meta">
+            Also exposed to <strong style={{ color: 'var(--color-text)' }}>{also.map(m => MARKET_LABEL[m]).join(', ')}</strong> — separate plays on different MWh; see the client profile.
+          </div>
+        )}
       </PanelSection>
+      {spec && (
+        <PanelSection>
+          <ValueStackCard key={`${c.key}-ets1`} spec={spec} marks={props.marks} heading="Value stack · first ETS1 deal" volumeHint="10% of emissions at high/medium-fit sites, as invoiced (GCV)" />
+        </PanelSection>
+      )}
+      {props.stacked && (
+        <PanelSection>
+          <ValueStackCard key={`${c.key}-stack`} spec={props.stacked.spec} marks={props.marks} heading={`Value stack · ${props.stacked.title}`} />
+        </PanelSection>
+      )}
       <PanelSection>
         <div className="ds-panel-section-heading">Installations <span className="ets-muted" style={{ fontWeight: 400 }}>· {sites.length}</span></div>
         <ul className="ets-list">

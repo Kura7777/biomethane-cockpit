@@ -120,3 +120,39 @@ describe('opportunities — oil & gas caveat', () => {
     expect(op.caveats.join(' ')).toMatch(/offshore/);
   });
 });
+
+describe('value stack per play', () => {
+  it('a ship burning bio-LNG stacks FuelEU and EU ETS maritime on the same MWh, as a range until the intra-EU share is known', async () => {
+    const { shipStackSpec } = await import('../companies/opportunities');
+    const spec = shipStackSpec(10_000, marks, YEAR);
+    expect(spec.isStack).toBe(true);
+    expect(spec.pricedRegimes).toEqual(['FuelEU Maritime', 'EU ETS (maritime)']);
+    // ETS maritime covers 50% of extra-EU voyages, 100% of intra-EU ones.
+    const ets = 70 * ETS_NATURAL_GAS_TCO2_PER_MWH;
+    expect((spec.eurPerMWhHigh as number) - (spec.eurPerMWhLow as number)).toBeCloseTo(ets / 2, 6);
+  });
+
+  it('an ETS1 group is one priced regime plus claims — not badged as a stack', async () => {
+    const { ets1StackSpec } = await import('../companies/opportunities');
+    const spec = ets1StackSpec(100_000, marks, YEAR)!;
+    expect(spec.isStack).toBe(false);
+    expect(spec.pricedRegimes).toEqual(['EU ETS1 (installation)']);
+    expect(spec.claims.length).toBeGreaterThan(0);
+    expect(spec.eurPerMWhLow).toBeCloseTo(70 * ETS_NATURAL_GAS_TCO2_PER_MWH * HHV_TO_LHV_FACTOR, 6);
+  });
+
+  it('the ETS1 play carries its stack, and no play links to the retired value-stack screen', () => {
+    const edison = directory.find(p => p.id === 'edison')!;
+    const ops = computeOpportunities(edison, marks, ETS2_COUNTRIES, YEAR);
+    expect(ops.find(o => o.id === 'ets1-biomethane')?.stack).not.toBeNull();
+    for (const p of directory.filter(q => q.markets.length > 1).slice(0, 200)) {
+      for (const o of computeOpportunities(p, marks, ETS2_COUNTRIES, YEAR)) expect(o.action?.route).not.toBe('/value-stack');
+    }
+  });
+
+  it('only plays where the client burns the biomethane itself get a stack (not pooling, not sourcing)', () => {
+    const pooled = directory.find(q => q.fueleu.length && sum(q, f => f.deficit2026Tco2e) > 0 && sum(q, f => f.group.lngShipCount) === 0 && !q.ets1.length && !q.ets2.length)!;
+    const ops = computeOpportunities(pooled, marks, ETS2_COUNTRIES, YEAR);
+    expect(ops.every(o => o.stack === null)).toBe(true);
+  });
+});

@@ -14,7 +14,6 @@ import {
   Anchor,
   Flame,
   Briefcase,
-  Layers,
   Users,
   SlidersHorizontal,
 } from 'lucide-react';
@@ -45,7 +44,6 @@ export const SIDEBAR_ITEMS: NavItem[] = [
   { to: '/ets2', label: 'EU ETS', keyHint: 'E', icon: Flame },
   { to: '/clients', label: 'Clients', keyHint: 'L', icon: Users },
   { to: '/corporate', label: 'Corporate orders', keyHint: 'Q', icon: Briefcase },
-  { to: '/value-stack', label: 'Value stack', keyHint: 'V', icon: Layers },
   { to: '/pricing', label: 'Pricing Desk', keyHint: '5', icon: FileSpreadsheet },
   { to: '/connectors', label: 'Data Connectors', keyHint: 'K', icon: Zap },
   { to: '/data-sources', label: 'Data Sources', keyHint: '7', icon: Database },
@@ -71,7 +69,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: 'Demand',
     blurb: 'Who is exposed to which regulation, and what to sell them',
     items: [
-      { to: '/clients', label: 'Clients', keyHint: '', icon: Users, description: 'Every company × regulation, with the plays for each' },
+      { to: '/clients', label: 'Clients', keyHint: '', icon: Users, description: 'Every company × regulation, its plays and value stacks' },
       { to: '/ets2', label: 'EU ETS', keyHint: '', icon: Flame, description: 'ETS1 industrial sites, ETS2 gas suppliers and calculator' },
       { to: '/fueleu-shipping', label: 'FuelEU Maritime', keyHint: '', icon: Anchor, description: 'Shipping groups, deficits and pooling' },
       { to: '/corporate', label: 'Corporate orders', keyHint: '', icon: Briefcase, description: 'Price a voluntary GO / PoS request' },
@@ -94,7 +92,6 @@ export const NAV_GROUPS: NavGroup[] = [
     blurb: 'What a deal is worth',
     items: [
       { to: '/pricing', label: 'Pricing desk', keyHint: '5', icon: FileSpreadsheet, description: 'Marks and broker runs' },
-      { to: '/value-stack', label: 'Value stack', keyHint: '', icon: Layers, description: 'Every regime one MWh counts in, per client' },
       { to: '/trade', label: 'Trade builder', keyHint: '4', icon: Zap, description: 'Build and audit a deal' },
     ],
   },

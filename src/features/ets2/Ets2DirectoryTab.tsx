@@ -5,6 +5,13 @@ import { KpiRow, KpiTile, DataTable, TablePagination, SidePanel, PanelSection } 
 import { Ets2CountryProfile } from '../../domain/ets2/countries';
 import { Ets2Company, Ets2CompanyExposure, ETS2_REGULATED_ENTITY_LISTS, computeCompanyExposure } from '../../domain/ets2/companies';
 import { normalizeCompanyName } from '../../domain/companies/normalize';
+import { MARKET_LABEL } from '../../domain/companies/directory';
+import { ets2SupplierStackSpec } from '../../domain/companies/opportunities';
+import { ETS2_START_YEAR } from '../../domain/valueStack/engine';
+import { MarksState } from '../../domain/netback/types';
+import { useAppState } from '../../store/context';
+import { ValueStackCard, StackBadge } from '../value-stack/ValueStackCard';
+import { companyLookup, stackedPlay } from '../value-stack/companyLookup';
 import { showToast } from '../../app/DeskToastContainer';
 import {
   OutreachStatus,
@@ -54,6 +61,15 @@ export function Ets2DirectoryTab(props: {
 }) {
   const { companies, countries, ets2PriceEurPerT } = props;
   const navigate = useNavigate();
+  const { state } = useAppState();
+  // Desk marks with the calculator's ETS2 scenario price, so the table and the value stack agree.
+  const scenarioMarks: MarksState = useMemo(() => {
+    if (ets2PriceEurPerT === null) return state.marks;
+    const mark = { marketId: 'EU_ETS2', bid: ets2PriceEurPerT, offer: ets2PriceEurPerT, mid: ets2PriceEurPerT, updatedAt: null, source: 'ETS2 scenario' };
+    return { ...state.marks, marks: { ...state.marks.marks, EU_ETS2: mark } };
+  }, [ets2PriceEurPerT, state.marks]);
+  const lookup = useMemo(() => companyLookup(), []);
+  const year = new Date().getFullYear();
   const [countryFilter, setCountryFilter] = useState('ALL');
   const [roleFilter, setRoleFilter] = useState<RoleFilter>('ALL');
   const [search, setSearch] = useState('');
@@ -193,11 +209,17 @@ export function Ets2DirectoryTab(props: {
             )}
             {pageRows.map(r => {
               const c = r.company;
+              const prof = lookup.byEts2Id.get(c.id);
+              const also = (prof?.markets ?? []).filter(m => m !== 'ETS2');
+              const stacked = prof ? stackedPlay(prof, scenarioMarks, year) : null;
               return (
                 <button key={c.id} type="button" className={`ds-row ets-cols-suppliers ${selectedId === c.id ? 'selected' : ''}`} onClick={() => setSelectedId(c.id)}>
                   <div style={{ minWidth: 0 }}>
-                    <div className="ds-row-name">{c.name}</div>
-                    <div className="ds-row-meta">{roleText(c)} · {c.confidence.toLowerCase()} confidence</div>
+                    <div className="ds-row-name">{c.name}{stacked && <> <StackBadge spec={stacked.spec} /></>}</div>
+                    <div className="ds-row-meta">
+                      {roleText(c)} · {c.confidence.toLowerCase()} confidence
+                      {also.length > 0 && <span> · also {also.map(m => MARKET_LABEL[m]).join(', ')}</span>}
+                    </div>
                   </div>
                   <span className="ds-row-meta" style={{ color: 'var(--color-text)' }}>{countryName.get(c.countryIso) ?? c.countryIso}</span>
                   {c.marketSharePct === null ? <span className="ets-muted">—</span> : (
@@ -244,7 +266,9 @@ export function Ets2DirectoryTab(props: {
             onStatus={s => setStatus(selected.company.id, s)}
             onClose={() => setSelectedId(null)}
             onCalculate={selected.volumeTWh === null ? null : () => props.onOpenInCalculator(Math.round((selected.volumeTWh as number) * MWH_PER_TWH))}
-            onClient={() => navigate(`/clients?company=${encodeURIComponent(normalizeCompanyName(selected.company.name))}`)}
+            onClient={() => navigate(`/clients?company=${encodeURIComponent(lookup.byEts2Id.get(selected.company.id)?.id ?? normalizeCompanyName(selected.company.name))}`)}
+            marks={scenarioMarks}
+            also={(lookup.byEts2Id.get(selected.company.id)?.markets ?? []).filter(m => m !== 'ETS2').map(m => MARKET_LABEL[m])}
           />
         ) : (
           <SidePanel>
@@ -286,9 +310,16 @@ function SupplierPanel(props: {
   onClose: () => void;
   onCalculate: (() => void) | null;
   onClient: () => void;
+  marks: MarksState;
+  also: string[];
 }) {
   const { exposure: r } = props;
   const c = r.company;
+  const spec = useMemo(
+    // No default volume: the supplier's whole book is not a deal size — the trader enters the tranche.
+    () => (c.role === 'REGULATED_SUPPLIER' ? ets2SupplierStackSpec(null, props.marks) : null),
+    [c.role, props.marks]
+  );
   return (
     <SidePanel
       footer={
@@ -329,7 +360,15 @@ function SupplierPanel(props: {
         {r.volumeMethod === 'SHARE_OF_NATIONAL' && <div className="ets-note info">Approximation: market share × the country's building gas. Shares are usually of all retail sales, not buildings alone.</div>}
         {r.volumeTWh === null && <div className="ets-note info">No volume yet: load the country's building gas on the ETS2 countries tab, or add the company's own figure.</div>}
         {c.notes && <div className="ds-panel-meta">{c.notes}</div>}
+        {props.also.length > 0 && (
+          <div className="ds-panel-meta">Also exposed to <strong style={{ color: 'var(--color-text)' }}>{props.also.join(', ')}</strong> — see the client profile.</div>
+        )}
       </PanelSection>
+      {spec && (
+        <PanelSection>
+          <ValueStackCard key={c.id} spec={spec} marks={props.marks} heading={`Value stack · zero-rated gas from ${ETS2_START_YEAR}`} volumeHint="The tranche you would supply, MWh/yr (as invoiced)" />
+        </PanelSection>
+      )}
       <PanelSection>
         <div className="ds-panel-section-heading">Sources <span className="ets-muted" style={{ fontWeight: 400 }}>· {c.evidence.length}</span></div>
         <ul className="ets-list">
