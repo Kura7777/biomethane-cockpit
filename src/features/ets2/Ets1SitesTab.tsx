@@ -1,5 +1,7 @@
-import React, { useMemo, useState } from 'react';
-import { Card, KpiRow, KpiTile } from '../../shared/ui';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Search } from 'lucide-react';
+import { KpiRow, KpiTile, DataTable, TablePagination, SidePanel, PanelSection } from '../../shared/ui';
 import { useAppState } from '../../store/context';
 import {
   ETS1_SITES,
@@ -7,288 +9,456 @@ import {
   ETS1_PREVIOUS_YEAR,
   ETS1_SOURCE_URL,
   SECTOR_LABEL,
+  SECTOR_FIT,
   Ets1Sector,
+  Ets1Company,
+  Ets1Site,
   BiomethaneFit,
   groupSitesByCompany,
   ets1AvoidedValuePerMWh,
   biomethaneMWhToAbate,
 } from '../../domain/ets1/sites';
-import { selectMarkPrice } from '../../domain/netback/engine';
+import { selectMarkPrice, ETS_NATURAL_GAS_TCO2_PER_MWH } from '../../domain/netback/engine';
+import { HHV_TO_LHV_FACTOR } from '../../domain/offtake/engine';
+import { normalizeCompanyName } from '../../domain/companies/normalize';
 import { showToast } from '../../app/DeskToastContainer';
+import {
+  OutreachStatus,
+  STATUS_LABEL,
+  readStatuses,
+  writeStatuses,
+  StatusDot,
+  StatusSelect,
+  FitBadge,
+  BarCell,
+  Segmented,
+  SortHeader,
+  SortDir,
+  eurM,
+  eur,
+  tonnes,
+  csvCell,
+  downloadCsv,
+  parseNumber,
+} from './etsUi';
 
 type View = 'COMPANIES' | 'SITES';
-type Status = 'NOT_CONTACTED' | 'CONTACTED' | 'MEETING' | 'PIPELINE' | 'NOT_A_FIT';
+type FitFilter = 'HIGH' | 'HIGH_MEDIUM' | 'ALL';
+type SortKey = 'name' | 'tco2' | 'deal' | 'change';
 
-const STATUS_LABEL: Record<Status, string> = {
-  NOT_CONTACTED: 'Not contacted',
-  CONTACTED: 'Contacted',
-  MEETING: 'Meeting held',
-  PIPELINE: 'In pipeline',
-  NOT_A_FIT: 'Not a fit',
-};
 const STATUS_KEY = 'biomethane_ets1_outreach_v1';
-const PAGE = 100;
-/** Share of a company's fit emissions used for the "what a first deal looks like" column. */
-const FIRST_DEAL_SHARE_PCT = 10;
+const PAGE_SIZE = 50;
+/** A first deal is sized at 10% of emissions at high/medium-fit sites (same as Clients). */
+const FIRST_DEAL_SHARE = 10 / 100;
 const PERCENT = 100;
 const MWH_PER_GWH = 1000;
-const EUR_PER_EUR_M = 1_000_000;
+const TONNES_PER_MT = 1_000_000;
 
-const FIT_LABEL: Record<BiomethaneFit, string> = { HIGH: 'High', MEDIUM: 'Medium', LOW: 'Low' };
+const FIT_FILTER_OK: Record<FitFilter, (f: BiomethaneFit) => boolean> = {
+  HIGH: f => f === 'HIGH',
+  HIGH_MEDIUM: f => f !== 'LOW',
+  ALL: () => true,
+};
 
-function readStatuses(): Record<string, Status> {
-  try {
-    const raw = localStorage.getItem(STATUS_KEY);
-    return raw ? (JSON.parse(raw) as Record<string, Status>) : {};
-  } catch {
-    return {};
+function companyMeta(c: Ets1Company): string {
+  const sectors = c.sectors.map(s => SECTOR_LABEL[s]);
+  const sectorText = sectors.length > 1 ? `${sectors[0]} +${sectors.length - 1}` : sectors[0] ?? '';
+  return [c.countries.slice(0, 4).join(' '), sectorText, `${c.sites.length} site${c.sites.length > 1 ? 's' : ''}`].filter(Boolean).join(' · ');
+}
+
+/** Why this company's grade should or should not be trusted, from its own sites. */
+function fitNotes(c: Ets1Company): { tone: 'warn' | 'info'; text: string }[] {
+  const notes: { tone: 'warn' | 'info'; text: string }[] = [];
+  const fitSites = c.sites.filter(s => s.fit !== 'LOW');
+  const fitT = fitSites.reduce((a, s) => a + s.verifiedLatestTco2, 0);
+  // "Mostly" = more than half of the emissions at fit sites.
+  const mostly = (pred: (s: Ets1Site) => boolean) => fitSites.filter(pred).reduce((a, s) => a + s.verifiedLatestTco2, 0) * 2 > fitT && fitT > 0;
+  if (mostly(s => s.sector === 'POWER_HEAT')) {
+    notes.push({ tone: 'warn', text: 'Mostly power and heat plants. The EU registry does not record fuel, and coal- or lignite-fired units cannot take biomethane — confirm which units burn natural gas.' });
   }
-}
-
-function writeStatuses(s: Record<string, Status>): void {
-  try {
-    localStorage.setItem(STATUS_KEY, JSON.stringify(s));
-  } catch {
-    // Storage unavailable: statuses last for this session only.
+  if (mostly(s => s.sector === 'REFINING_OIL_GAS')) {
+    notes.push({ tone: 'warn', text: 'Mostly refining and oil & gas sites. These often burn their own fuel gas, and offshore platforms have no grid connection — only grid-fed onshore units qualify.' });
   }
-}
-
-function num(text: string): number | null {
-  if (text.trim() === '') return null;
-  const n = Number(text.replace(/,/g, ''));
-  return Number.isFinite(n) ? n : null;
-}
-
-function kt(t: number): string {
-  return Math.round(t).toLocaleString('en-GB');
-}
-
-function csvCell(v: string | number | null): string {
-  if (v === null) return '';
-  const t = String(v);
-  return /[",\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t;
+  if (c.sites.some(s => s.sectorBasis === 'OPERATOR_CODE' || s.sectorBasis === 'SITE_NAME')) {
+    notes.push({ tone: 'info', text: 'Some sites have no industry code in the registry; their sector was taken from the operator\'s other sites or the site name.' });
+  }
+  if (c.sites.some(s => s.sector === 'UNCLASSIFIED')) {
+    notes.push({ tone: 'info', text: 'Some sites could not be classified (no industry code, no clue in the name).' });
+  }
+  if (c.fit === 'LOW') {
+    notes.push({ tone: 'info', text: 'Low fit: emissions are mostly process CO₂ or non-gas fuels. Biomethane only replaces the natural gas share — ask for the site fuel mix first.' });
+  }
+  return notes;
 }
 
 export function Ets1SitesTab() {
   const { state } = useAppState();
+  const navigate = useNavigate();
   const deskEua = selectMarkPrice(state.marks.marks['EU_ETS1'], 'mid');
   const [euaText, setEuaText] = useState(deskEua !== null ? String(deskEua) : '');
-  const eua = num(euaText);
+  const eua = parseNumber(euaText);
 
   const [view, setView] = useState<View>('COMPANIES');
+  const [fit, setFit] = useState<FitFilter>('HIGH');
   const [country, setCountry] = useState('ALL');
   const [sector, setSector] = useState<'ALL' | Ets1Sector>('ALL');
-  const [fit, setFit] = useState<'ALL' | BiomethaneFit | 'HIGH_MEDIUM'>('HIGH');
   const [search, setSearch] = useState('');
-  const [minKt, setMinKt] = useState('');
-  const [shown, setShown] = useState(PAGE);
-  const [statuses, setStatuses] = useState<Record<string, Status>>(readStatuses);
+  const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: 'tco2', dir: 'desc' });
+  const [page, setPage] = useState(1);
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [statuses, setStatuses] = useState<Record<string, OutreachStatus>>(() => readStatuses(STATUS_KEY));
 
-  // Value per MWh from the pricing authority, at the price in the box (not only the desk mark).
-  const avoidedPerMWh = useMemo(() => {
+  // Allowances avoided per MWh from the pricing authority, at the scenario EUA (NCV basis), and per
+  // MWh as invoiced (GCV) — the basis Clients and the value stack quote.
+  const avoidedNcv = useMemo(() => {
     if (eua === null) return null;
     const mark = { marketId: 'EU_ETS1', bid: eua, offer: eua, mid: eua, updatedAt: null, source: 'ETS1 tab scenario' };
     return ets1AvoidedValuePerMWh({ ...state.marks, marks: { ...state.marks.marks, EU_ETS1: mark } });
   }, [eua, state.marks]);
-
-  const countries = useMemo(() => [...new Set(ETS1_SITES.map(s => s.country))].sort(), []);
-
-  const filteredSites = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    const minT = num(minKt);
-    return ETS1_SITES.filter(s =>
-      (country === 'ALL' || s.country === country) &&
-      (sector === 'ALL' || s.sector === sector) &&
-      (fit === 'ALL' || (fit === 'HIGH_MEDIUM' ? s.fit !== 'LOW' : s.fit === fit)) &&
-      (minT === null || s.verifiedLatestTco2 >= minT * 1000) &&
-      (!q || s.name.toLowerCase().includes(q) || s.operator.toLowerCase().includes(q) || (s.parentCompany ?? '').toLowerCase().includes(q) || s.city.toLowerCase().includes(q))
-    );
-  }, [country, sector, fit, search, minKt]);
-
-  const companies = useMemo(() => groupSitesByCompany(filteredSites), [filteredSites]);
-  const totalT = filteredSites.reduce((sum, s) => sum + s.verifiedLatestTco2, 0);
-
-  const setStatus = (key: string, s: Status) => {
-    const next = { ...statuses, [key]: s };
-    setStatuses(next);
-    writeStatuses(next);
-  };
+  const avoidedInvoice = avoidedNcv === null ? null : avoidedNcv * HHV_TO_LHV_FACTOR;
 
   const firstDeal = (fitT: number) => {
-    const t = (fitT * FIRST_DEAL_SHARE_PCT) / PERCENT;
-    const mwh = biomethaneMWhToAbate(t);
-    return { gwh: mwh / MWH_PER_GWH, saving: avoidedPerMWh === null ? null : mwh * avoidedPerMWh };
+    const ncvMWh = biomethaneMWhToAbate(fitT * FIRST_DEAL_SHARE);
+    return { invoiceMWh: ncvMWh / HHV_TO_LHV_FACTOR, saving: avoidedNcv === null ? null : ncvMWh * avoidedNcv };
   };
+
+  const countries = useMemo(() => [...new Set(ETS1_SITES.map(s => s.country))].sort(), []);
+  const allCompanies = useMemo(() => new Map(groupSitesByCompany(ETS1_SITES).map(c => [c.key, c])), []);
+
+  const q = search.trim().toLowerCase();
+  const matchesText = (s: Ets1Site) =>
+    !q || s.name.toLowerCase().includes(q) || s.operator.toLowerCase().includes(q) || (s.parentCompany ?? '').toLowerCase().includes(q) || s.city.toLowerCase().includes(q);
+
+  // Everything except the sector filter — the sector breakdown is drawn from this.
+  const baseSites = useMemo(
+    () => ETS1_SITES.filter(s => FIT_FILTER_OK[fit](s.fit) && (country === 'ALL' || s.country === country) && matchesText(s)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [fit, country, q]
+  );
+  const sites = useMemo(() => baseSites.filter(s => sector === 'ALL' || s.sector === sector), [baseSites, sector]);
+  const companies = useMemo(() => groupSitesByCompany(sites), [sites]);
+
+  useEffect(() => setPage(1), [view, fit, country, sector, q, sort]);
+
+  const totalT = sites.reduce((a, s) => a + s.verifiedLatestTco2, 0);
+  const prevT = sites.reduce((a, s) => a + (s.verifiedPreviousTco2 ?? s.verifiedLatestTco2), 0);
+  const changePct = prevT > 0 ? ((totalT - prevT) / prevT) * PERCENT : null;
+
+  const sortedCompanies = useMemo(() => {
+    const dir = sort.dir === 'desc' ? -1 : 1;
+    const val = (c: Ets1Company): number | string =>
+      sort.key === 'name' ? c.name.toLowerCase() : sort.key === 'deal' ? c.fitVerifiedLatestTco2 : c.verifiedLatestTco2;
+    return [...companies].sort((a, b) => (val(a) < val(b) ? -dir : val(a) > val(b) ? dir : 0));
+  }, [companies, sort]);
+
+  const sortedSites = useMemo(() => {
+    const dir = sort.dir === 'desc' ? -1 : 1;
+    const change = (s: Ets1Site) => (s.verifiedPreviousTco2 ? (s.verifiedLatestTco2 - s.verifiedPreviousTco2) / s.verifiedPreviousTco2 : 0);
+    const val = (s: Ets1Site): number | string =>
+      sort.key === 'name' ? s.name.toLowerCase() : sort.key === 'change' ? change(s) : s.verifiedLatestTco2;
+    return [...sites].sort((a, b) => (val(a) < val(b) ? -dir : val(a) > val(b) ? dir : 0));
+  }, [sites, sort]);
+
+  const rowCount = view === 'COMPANIES' ? sortedCompanies.length : sortedSites.length;
+  const scaleMax = view === 'COMPANIES' ? Math.max(0, ...companies.map(c => c.verifiedLatestTco2)) : Math.max(0, ...sites.map(s => s.verifiedLatestTco2));
+
+  const onSort = (key: SortKey) => setSort(prev => ({ key, dir: prev.key === key ? (prev.dir === 'desc' ? 'asc' : 'desc') : key === 'name' ? 'asc' : 'desc' }));
+
+  const setStatus = (key: string, s: OutreachStatus) => {
+    const next = { ...statuses, [key]: s };
+    setStatuses(next);
+    writeStatuses(STATUS_KEY, next);
+  };
+
+  const sectorRows = useMemo(() => {
+    const m = new Map<Ets1Sector, number>();
+    for (const s of baseSites) m.set(s.sector, (m.get(s.sector) ?? 0) + s.verifiedLatestTco2);
+    return [...m.entries()].sort((a, b) => b[1] - a[1]);
+  }, [baseSites]);
+  const sectorMax = sectorRows[0]?.[1] ?? 0;
+
+  const selected = selectedKey ? allCompanies.get(selectedKey) ?? null : null;
 
   const exportCsv = () => {
     const lines: string[] = [];
     if (view === 'COMPANIES') {
-      lines.push(['Company', 'Operators', 'Countries', 'Sectors', 'Biomethane fit', 'Sites', `Verified ${ETS1_LATEST_YEAR} tCO2`, 'Fit-site tCO2', `Allowance cost €m at €${eua ?? ''}/t`, 'Status'].join(','));
-      for (const c of companies) {
+      lines.push(['Company', 'Operators', 'Countries', 'Sectors', 'Biomethane fit', 'Sites', `Verified ${ETS1_LATEST_YEAR} tCO2`, 'Fit-site tCO2', `Allowance bill € at €${eua ?? ''}/t`, 'First deal MWh (invoiced)', 'First deal saving €', 'Status'].map(csvCell).join(','));
+      for (const c of sortedCompanies) {
+        const d = firstDeal(c.fitVerifiedLatestTco2);
         lines.push([
-          c.name, c.operators.join('; '), c.countries.join(' '), c.sectors.map(s => SECTOR_LABEL[s]).join('; '), FIT_LABEL[c.fit], c.sites.length,
-          Math.round(c.verifiedLatestTco2), Math.round(c.fitVerifiedLatestTco2),
-          eua === null ? null : Math.round((c.verifiedLatestTco2 * eua) / EUR_PER_EUR_M), STATUS_LABEL[statuses[c.key] ?? 'NOT_CONTACTED'],
+          c.name, c.operators.join('; '), c.countries.join(' '), c.sectors.map(s => SECTOR_LABEL[s]).join('; '), c.fit, c.sites.length,
+          Math.round(c.verifiedLatestTco2), Math.round(c.fitVerifiedLatestTco2), eua === null ? null : Math.round(c.verifiedLatestTco2 * eua),
+          Math.round(d.invoiceMWh), d.saving === null ? null : Math.round(d.saving), STATUS_LABEL[statuses[c.key] ?? 'NOT_CONTACTED'],
         ].map(csvCell).join(','));
       }
     } else {
-      lines.push(['Site', 'Operator', 'Parent', 'City', 'Country', 'Sector', 'Fit', 'NACE', `Verified ${ETS1_LATEST_YEAR} tCO2`, `Verified ${ETS1_PREVIOUS_YEAR} tCO2`, 'EUTL id'].join(','));
-      for (const s of filteredSites) {
-        lines.push([s.name, s.operator, s.parentCompany, s.city, s.country, SECTOR_LABEL[s.sector], FIT_LABEL[s.fit], s.nace, s.verifiedLatestTco2, s.verifiedPreviousTco2, s.id].map(csvCell).join(','));
+      lines.push(['Site', 'Operator', 'Parent', 'City', 'Country', 'Sector', 'Sector basis', 'Fit', 'NACE', `Verified ${ETS1_LATEST_YEAR} tCO2`, `Verified ${ETS1_PREVIOUS_YEAR} tCO2`, 'EUTL id'].map(csvCell).join(','));
+      for (const s of sortedSites) {
+        lines.push([s.name, s.operator, s.parentCompany, s.city, s.country, SECTOR_LABEL[s.sector], s.sectorBasis, s.fit, s.nace, s.verifiedLatestTco2, s.verifiedPreviousTco2, s.id].map(csvCell).join(','));
       }
     }
-    const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = view === 'COMPANIES' ? 'ets1-companies.csv' : 'ets1-sites.csv';
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast(`Exported ${view === 'COMPANIES' ? companies.length : filteredSites.length} rows`);
+    downloadCsv(view === 'COMPANIES' ? 'ets1-companies.csv' : 'ets1-sites.csv', lines);
+    showToast(`Exported ${rowCount.toLocaleString('en-GB')} rows`);
   };
 
-  const selectStyle: React.CSSProperties = { flex: '1 1 160px', width: 'auto' };
+  const openClient = (c: Ets1Company) => navigate(`/clients?company=${encodeURIComponent(normalizeCompanyName(c.name))}`);
+  const openStack = (c: Ets1Company) => {
+    const d = firstDeal(c.fitVerifiedLatestTco2);
+    const qs = new URLSearchParams({ client: 'ETS1_SITE', volume: String(Math.round(d.invoiceMWh)), ci: '-100', year: String(new Date().getFullYear()), smallSites: '0', for: c.name });
+    navigate(`/value-stack?${qs.toString()}`);
+  };
+
+  const pageRows = (view === 'COMPANIES' ? sortedCompanies : sortedSites).slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px' }}>
+    <>
       <KpiRow columns={4}>
-        <KpiTile label="Companies" value={companies.length.toLocaleString('en-GB')} sub={`${filteredSites.length.toLocaleString('en-GB')} sites`} />
-        <KpiTile label={`Verified emissions ${ETS1_LATEST_YEAR}`} value={`${(totalT / 1_000_000).toFixed(1)}`} unit="MtCO₂" />
-        <KpiTile label="Allowance bill" value={eua === null ? '—' : `€${Math.round((totalT * eua) / EUR_PER_EUR_M).toLocaleString('en-GB')}m`} unit="/yr" sub={eua === null ? 'Set an EUA price' : `at €${eua}/t`} />
-        <KpiTile label="Biomethane saves" value={avoidedPerMWh === null ? '—' : `€${avoidedPerMWh.toFixed(2)}`} unit="/MWh" sub="Allowances avoided per MWh replacing gas" />
+        <KpiTile label="Companies" value={companies.length.toLocaleString('en-GB')} sub={`${sites.length.toLocaleString('en-GB')} installations in view`} />
+        <KpiTile
+          label={`Verified emissions ${ETS1_LATEST_YEAR}`}
+          value={(totalT / TONNES_PER_MT).toLocaleString('en-GB', { maximumFractionDigits: 1 })}
+          unit="MtCO₂"
+          sub={changePct === null ? undefined : `${changePct > 0 ? '+' : ''}${changePct.toFixed(1)}% vs ${ETS1_PREVIOUS_YEAR}`}
+        />
+        <KpiTile
+          label="Allowance bill"
+          value={eua === null ? '—' : eurM(totalT * eua)}
+          unit="/yr"
+          sub={
+            <label className="ets-inline-price" title="Scenario EUA price for this tab (desk mark by default)">
+              at €<input inputMode="decimal" aria-label="EUA price" value={euaText} onChange={e => setEuaText(e.target.value)} />/t EUA
+              {deskEua !== null && parseNumber(euaText) !== deskEua && (
+                <button type="button" onClick={() => setEuaText(String(deskEua))}>reset</button>
+              )}
+            </label>
+          }
+        />
+        <KpiTile
+          label="Biomethane saves"
+          value={avoidedInvoice === null ? '—' : eur(avoidedInvoice, 2)}
+          unit="/MWh"
+          sub={avoidedNcv === null ? 'Set an EUA price' : `as invoiced · ${eur(avoidedNcv, 2)} per MWh NCV · ${ETS_NATURAL_GAS_TCO2_PER_MWH.toFixed(3)} t/MWh`}
+        />
       </KpiRow>
 
-      <Card
-        title="EU ETS1 industrial sites"
-        meta={`Every stationary installation with verified emissions in ${ETS1_LATEST_YEAR} (EU Transaction Log)`}
-        actions={<button type="button" className="btn btn-secondary" onClick={exportCsv}>Export CSV</button>}
-      >
-        <p style={{ margin: '0 0 12px', fontSize: '12px', color: 'var(--color-text-muted)' }}>
-          Sites buy allowances for their own emissions. RED III-compliant biomethane, mass-balanced and evidenced through the Union Database, counts as zero emissions, so each MWh that replaces gas avoids 0.202 t.
-          Verified emissions cover <strong>all fuels and process emissions</strong>: the registry does not say how much gas a site burns. The biomethane-fit grade is a sector heuristic (high: food, pharma, paper, glass and ceramics, light industry; medium: chemicals, power and heat, refining — power sites include coal plants the registry cannot tell apart; low: cement, lime, metals).
-          Source: <a href={ETS1_SOURCE_URL} target="_blank" rel="noreferrer">EUETS.INFO release of the EUTL (Aug 2024)</a>.
-        </p>
-
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
-          <div className="seg" role="group" aria-label="View">
-            {(['COMPANIES', 'SITES'] as View[]).map(v => (
-              <button key={v} type="button" className={`seg-opt ${view === v ? 'active' : ''}`} onClick={() => { setView(v); setShown(PAGE); }}>
-                {v === 'COMPANIES' ? 'By company' : 'By site'}
-              </button>
-            ))}
+      <div className="ets-body ets-grid">
+        <div style={{ minWidth: 0 }}>
+          <div className="ds-toolbar">
+            <label className="ds-search" style={{ width: 220 }}>
+              <Search size={14} aria-hidden="true" />
+              <input placeholder="Company, site or city" aria-label="Search sites" value={search} onChange={e => setSearch(e.target.value)} />
+            </label>
+            <Segmented<View> label="View" value={view} onChange={v => { setView(v); setSort({ key: 'tco2', dir: 'desc' }); }} options={[{ id: 'COMPANIES', label: 'Companies' }, { id: 'SITES', label: 'Sites' }]} />
+            <Segmented<FitFilter>
+              label="Biomethane fit"
+              value={fit}
+              onChange={setFit}
+              options={[{ id: 'HIGH', label: 'High fit' }, { id: 'HIGH_MEDIUM', label: 'High + medium' }, { id: 'ALL', label: 'All' }]}
+            />
+            <select className={`ets-select ${country !== 'ALL' ? 'set' : ''}`} aria-label="Country" value={country} onChange={e => setCountry(e.target.value)}>
+              <option value="ALL">All countries</option>
+              {countries.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <select className={`ets-select ${sector !== 'ALL' ? 'set' : ''}`} aria-label="Sector" value={sector} onChange={e => setSector(e.target.value as typeof sector)}>
+              <option value="ALL">All sectors</option>
+              {(Object.keys(SECTOR_LABEL) as Ets1Sector[]).map(s => <option key={s} value={s}>{SECTOR_LABEL[s]}</option>)}
+            </select>
+            <span className="ets-spacer" />
+            <button type="button" className="ets-btn" onClick={exportCsv}>Export</button>
           </div>
-          <input className="input" style={{ flex: '2 1 220px', width: 'auto' }} placeholder="Search company, site or city" aria-label="Search sites" value={search} onChange={e => { setSearch(e.target.value); setShown(PAGE); }} />
-          <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span className="eyebrow">EUA €/t</span>
-            <input className="input num" style={{ width: '90px' }} inputMode="decimal" aria-label="EUA price" value={euaText} onChange={e => setEuaText(e.target.value)} />
-          </label>
-        </div>
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
-          <select className="input" style={selectStyle} aria-label="Country" value={country} onChange={e => { setCountry(e.target.value); setShown(PAGE); }}>
-            <option value="ALL">All countries</option>
-            {countries.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-          <select className="input" style={selectStyle} aria-label="Sector" value={sector} onChange={e => { setSector(e.target.value as typeof sector); setShown(PAGE); }}>
-            <option value="ALL">All sectors</option>
-            {(Object.keys(SECTOR_LABEL) as Ets1Sector[]).map(s => <option key={s} value={s}>{SECTOR_LABEL[s]}</option>)}
-          </select>
-          <select className="input" style={selectStyle} aria-label="Biomethane fit" value={fit} onChange={e => { setFit(e.target.value as typeof fit); setShown(PAGE); }}>
-            <option value="HIGH">Fit: high only</option>
-            <option value="HIGH_MEDIUM">Fit: high & medium (adds power, chemicals, refining)</option>
-            <option value="MEDIUM">Fit: medium only</option>
-            <option value="LOW">Fit: low only</option>
-            <option value="ALL">Fit: all</option>
-          </select>
-          <input className="input num" style={{ flex: '1 1 140px', width: 'auto' }} placeholder="Min kt CO₂ per site" aria-label="Minimum emissions" value={minKt} onChange={e => { setMinKt(e.target.value); setShown(PAGE); }} />
-        </div>
 
-        <div style={{ overflowX: 'auto' }}>
-          {view === 'COMPANIES' ? (
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Company</th>
-                  <th>Countries</th>
-                  <th>Sectors</th>
-                  <th>Fit</th>
-                  <th style={{ textAlign: 'right' }}>Sites</th>
-                  <th style={{ textAlign: 'right' }}>tCO₂ {ETS1_LATEST_YEAR}</th>
-                  <th style={{ textAlign: 'right' }}>Allowance bill €m/yr</th>
-                  <th style={{ textAlign: 'right' }} title={`Biomethane to cut ${FIRST_DEAL_SHARE_PCT}% of emissions at high/medium-fit sites, and the allowances it saves`}>{FIRST_DEAL_SHARE_PCT}% cut: GWh · saving</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {companies.slice(0, shown).map(c => {
-                  const deal = firstDeal(c.fitVerifiedLatestTco2);
+          <DataTable>
+            {view === 'COMPANIES' ? (
+              <div className="ds-thead-row ets-cols-companies">
+                <SortHeader<SortKey> id="name" label="Company" sort={sort} onSort={onSort} />
+                <span>Fit</span>
+                <SortHeader<SortKey> id="tco2" label={`Verified ${ETS1_LATEST_YEAR}`} sort={sort} onSort={onSort} right title="Verified emissions, all fuels and processes" />
+                <span className="ets-right" title={eua === null ? undefined : `At €${eua}/t`}>Allowance bill</span>
+                <SortHeader<SortKey> id="deal" label="First deal saving" sort={sort} onSort={onSort} right title="Biomethane to cut 10% of emissions at high/medium-fit sites, and the allowances it saves" />
+                <span>Status</span>
+              </div>
+            ) : (
+              <div className="ds-thead-row ets-cols-sites">
+                <SortHeader<SortKey> id="name" label="Installation" sort={sort} onSort={onSort} />
+                <span>Sector</span>
+                <span>Fit</span>
+                <SortHeader<SortKey> id="tco2" label={`Verified ${ETS1_LATEST_YEAR}`} sort={sort} onSort={onSort} right />
+                <SortHeader<SortKey> id="change" label={`vs ${ETS1_PREVIOUS_YEAR}`} sort={sort} onSort={onSort} right />
+                <span className="ets-right">Allowance bill</span>
+              </div>
+            )}
+
+            {rowCount === 0 && (
+              <div className="ets-empty" style={{ margin: 16 }}>
+                <strong>No installations match</strong>
+                Widen the fit filter or clear the search.
+              </div>
+            )}
+
+            {view === 'COMPANIES'
+              ? (pageRows as Ets1Company[]).map(c => {
+                  const d = firstDeal(c.fitVerifiedLatestTco2);
                   return (
-                    <tr key={c.key}>
-                      <td>
-                        <div style={{ fontWeight: 600 }}>{c.name}</div>
-                        {c.operators.length > 0 && (c.operators.length > 1 || c.operators[0] !== c.name) && (
-                          <div title={c.operators.join('; ')} style={{ fontSize: '11px', color: 'var(--color-text-muted)', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {c.operators.length} operator{c.operators.length > 1 ? 's' : ''}: {c.operators.join('; ')}
-                          </div>
-                        )}
-                      </td>
-                      <td style={{ fontSize: '12px' }}>{c.countries.join(' ')}</td>
-                      <td style={{ fontSize: '12px', maxWidth: '200px' }}>{c.sectors.map(s => SECTOR_LABEL[s]).join(', ')}</td>
-                      <td>{FIT_LABEL[c.fit]}</td>
-                      <td className="num" style={{ textAlign: 'right' }}>{c.sites.length}</td>
-                      <td className="num" style={{ textAlign: 'right' }}>{kt(c.verifiedLatestTco2)}</td>
-                      <td className="num" style={{ textAlign: 'right' }}>{eua === null ? '—' : ((c.verifiedLatestTco2 * eua) / EUR_PER_EUR_M).toFixed(1)}</td>
-                      <td className="num" style={{ textAlign: 'right' }}>
-                        {c.fitVerifiedLatestTco2 > 0 ? `${deal.gwh.toFixed(1)} · ${deal.saving === null ? '—' : `€${Math.round(deal.saving).toLocaleString('en-GB')}`}` : '—'}
-                      </td>
-                      <td>
-                        <select className="input" style={{ minWidth: '140px' }} aria-label={`Outreach status for ${c.name}`} value={statuses[c.key] ?? 'NOT_CONTACTED'} onChange={e => setStatus(c.key, e.target.value as Status)}>
-                          {(Object.keys(STATUS_LABEL) as Status[]).map(s => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
-                        </select>
-                      </td>
-                    </tr>
+                    <button key={c.key} type="button" className={`ds-row ets-cols-companies ${selectedKey === c.key ? 'selected' : ''}`} onClick={() => setSelectedKey(c.key)}>
+                      <div style={{ minWidth: 0 }}>
+                        <div className="ds-row-name">{c.name}</div>
+                        <div className="ds-row-meta">{companyMeta(c)}</div>
+                      </div>
+                      <FitBadge fit={c.fit} />
+                      <BarCell value={c.verifiedLatestTco2} max={scaleMax}>{tonnes(c.verifiedLatestTco2)}</BarCell>
+                      <span className="ets-cell-num">{eua === null ? '—' : eurM(c.verifiedLatestTco2 * eua)}</span>
+                      <span className="ets-cell-num">
+                        {c.fitVerifiedLatestTco2 > 0 ? eurM(d.saving) : '—'}
+                        {c.fitVerifiedLatestTco2 > 0 && <span className="ets-cell-sub">{(d.invoiceMWh / MWH_PER_GWH).toLocaleString('en-GB', { maximumFractionDigits: 0 })} GWh</span>}
+                      </span>
+                      <StatusDot status={statuses[c.key] ?? 'NOT_CONTACTED'} />
+                    </button>
+                  );
+                })
+              : (pageRows as Ets1Site[]).map(s => {
+                  const key = (s.parentCompany ?? s.operator).trim().toLowerCase();
+                  const change = s.verifiedPreviousTco2 ? ((s.verifiedLatestTco2 - s.verifiedPreviousTco2) / s.verifiedPreviousTco2) * PERCENT : null;
+                  return (
+                    <button key={s.id} type="button" className={`ds-row ets-cols-sites ${selectedKey === key ? 'selected' : ''}`} onClick={() => setSelectedKey(key)}>
+                      <div style={{ minWidth: 0 }}>
+                        <div className="ds-row-name">{s.name}</div>
+                        <div className="ds-row-meta">{[s.parentCompany ?? s.operator, [s.city, s.country].filter(Boolean).join(', ')].join(' · ')}</div>
+                      </div>
+                      <span className="ets-tag" title={s.sectorBasis === 'SITE_CODE' ? `NACE ${s.nace || '—'}` : s.sectorBasis === 'OPERATOR_CODE' ? 'From the operator\'s other sites' : s.sectorBasis === 'SITE_NAME' ? 'From the site name' : 'No industry code'}>
+                        {SECTOR_LABEL[s.sector]}
+                      </span>
+                      <FitBadge fit={s.fit} />
+                      <BarCell value={s.verifiedLatestTco2} max={scaleMax}>{tonnes(s.verifiedLatestTco2)}</BarCell>
+                      <span className={`ets-cell-num ets-change ${change === null ? '' : change > 0 ? 'up' : 'down'}`}>
+                        {change === null ? '—' : `${change > 0 ? '+' : ''}${change.toFixed(0)}%`}
+                      </span>
+                      <span className="ets-cell-num">{eua === null ? '—' : eurM(s.verifiedLatestTco2 * eua)}</span>
+                    </button>
                   );
                 })}
-              </tbody>
-            </table>
-          ) : (
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Site</th>
-                  <th>Operator</th>
-                  <th>Location</th>
-                  <th>Sector</th>
-                  <th>Fit</th>
-                  <th style={{ textAlign: 'right' }}>tCO₂ {ETS1_LATEST_YEAR}</th>
-                  <th style={{ textAlign: 'right' }}>tCO₂ {ETS1_PREVIOUS_YEAR}</th>
-                  <th style={{ textAlign: 'right' }}>Allowance bill €k/yr</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredSites.slice(0, shown).map(s => (
-                  <tr key={s.id}>
-                    <td><div style={{ fontWeight: 600 }}>{s.name}</div><div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{s.id} · NACE {s.nace || '—'}</div></td>
-                    <td style={{ fontSize: '12px' }}>{s.operator}{s.parentCompany ? <div style={{ color: 'var(--color-text-muted)' }}>{s.parentCompany}</div> : null}</td>
-                    <td style={{ fontSize: '12px' }}>{[s.city, s.country].filter(Boolean).join(', ')}</td>
-                    <td style={{ fontSize: '12px' }}>{SECTOR_LABEL[s.sector]}</td>
-                    <td>{FIT_LABEL[s.fit]}</td>
-                    <td className="num" style={{ textAlign: 'right' }}>{kt(s.verifiedLatestTco2)}</td>
-                    <td className="num" style={{ textAlign: 'right' }}>{s.verifiedPreviousTco2 === null ? '—' : kt(s.verifiedPreviousTco2)}</td>
-                    <td className="num" style={{ textAlign: 'right' }}>{eua === null ? '—' : Math.round((s.verifiedLatestTco2 * eua) / 1000).toLocaleString('en-GB')}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+
+            {rowCount > 0 && (
+              <TablePagination totalCount={rowCount} currentPage={page} pageSize={PAGE_SIZE} onPageChange={setPage} entityLabel={view === 'COMPANIES' ? 'companies' : 'installations'} />
+            )}
+          </DataTable>
         </div>
-        {(view === 'COMPANIES' ? companies.length : filteredSites.length) > shown && (
-          <div style={{ marginTop: '12px' }}>
-            <button type="button" className="btn btn-ghost" onClick={() => setShown(n => n + PAGE)}>
-              Show more ({(view === 'COMPANIES' ? companies.length : filteredSites.length) - shown} remaining)
-            </button>
+
+        {selected ? (
+          <CompanyPanel
+            company={selected}
+            eua={eua}
+            deal={firstDeal(selected.fitVerifiedLatestTco2)}
+            status={statuses[selected.key] ?? 'NOT_CONTACTED'}
+            onStatus={s => setStatus(selected.key, s)}
+            onClose={() => setSelectedKey(null)}
+            onClient={() => openClient(selected)}
+            onStack={() => openStack(selected)}
+          />
+        ) : (
+          <SidePanel>
+            <PanelSection>
+              <div className="ds-panel-section-heading">Where the emissions are</div>
+              <div className="ds-panel-meta">Verified {ETS1_LATEST_YEAR} emissions by sector, for the filters above. Click a sector to filter.</div>
+              <div className="ets-sectors">
+                {sectorRows.map(([s, t]) => (
+                  <button key={s} type="button" className={`ets-sector ${sector === s ? 'active' : ''}`} onClick={() => setSector(sector === s ? 'ALL' : s)} aria-pressed={sector === s}>
+                    <span className="label"><span>{SECTOR_LABEL[s]}</span><FitBadge fit={SECTOR_FIT[s]} /></span>
+                    <span className="value">{tonnes(t)}</span>
+                    <span className="track" aria-hidden="true"><span className={SECTOR_FIT[s].toLowerCase()} style={{ width: `${sectorMax > 0 ? Math.max(2, (t / sectorMax) * 100) : 0}%` }} /></span>
+                  </button>
+                ))}
+              </div>
+            </PanelSection>
+            <PanelSection>
+              <div className="ds-panel-section-heading">How to read this</div>
+              <div className="ets-note info">
+                Installations buy allowances for their own emissions. RED III biomethane, evidenced through the Union Database, counts as zero emissions, so each MWh replacing natural gas avoids {ETS_NATURAL_GAS_TCO2_PER_MWH.toFixed(3)} t of allowances (MRR Annex VI).
+              </div>
+              <div className="ds-panel-meta">
+                Verified emissions cover all fuels and process CO₂ — the registry does not say how much gas a site burns. The fit grade is a sector rule of thumb: high for food, pharma, paper, glass and light industry; medium for chemicals, power & heat and refining; low for cement, lime and metals.
+                {' '}Source: <a href={ETS1_SOURCE_URL} target="_blank" rel="noreferrer">EUTL via EUETS.INFO</a>.
+              </div>
+            </PanelSection>
+          </SidePanel>
+        )}
+      </div>
+    </>
+  );
+}
+
+function CompanyPanel(props: {
+  company: Ets1Company;
+  eua: number | null;
+  deal: { invoiceMWh: number; saving: number | null };
+  status: OutreachStatus;
+  onStatus: (s: OutreachStatus) => void;
+  onClose: () => void;
+  onClient: () => void;
+  onStack: () => void;
+}) {
+  const { company: c, eua, deal } = props;
+  const sites = [...c.sites].sort((a, b) => b.verifiedLatestTco2 - a.verifiedLatestTco2);
+  const notes = fitNotes(c);
+  return (
+    <SidePanel
+      footer={
+        <>
+          <button type="button" className="ets-btn grow" onClick={props.onClient}>Client profile</button>
+          <button type="button" className="ets-btn primary grow" onClick={props.onStack} disabled={c.fitVerifiedLatestTco2 <= 0}>Price in value stack</button>
+        </>
+      }
+    >
+      <PanelSection>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
+          <div style={{ minWidth: 0 }}>
+            <div className="ds-panel-title" style={{ lineHeight: 1.25 }}>{c.name}</div>
+            <div className="ds-panel-meta" style={{ marginTop: 4 }}>{companyMeta(c)}</div>
+          </div>
+          <button type="button" className="ds-icon-btn ds-icon-btn-sm" aria-label="Close" onClick={props.onClose}>✕</button>
+        </div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <FitBadge fit={c.fit} />
+          <StatusSelect value={props.status} onChange={props.onStatus} label={`Outreach status for ${c.name}`} />
+        </div>
+        <div className="ets-stats">
+          <div>
+            <div className="ds-panel-stat-label">Verified {ETS1_LATEST_YEAR}</div>
+            <div className="ds-panel-stat-value">{tonnes(c.verifiedLatestTco2)}</div>
+          </div>
+          <div>
+            <div className="ds-panel-stat-label">Allowance bill</div>
+            <div className="ds-panel-stat-value">{eua === null ? '—' : eurM(c.verifiedLatestTco2 * eua)}<span className="unit"> /yr</span></div>
+          </div>
+          <div>
+            <div className="ds-panel-stat-label">First deal saves</div>
+            <div className="ds-panel-stat-value" style={{ color: 'var(--color-status-pos-text)' }}>{c.fitVerifiedLatestTco2 > 0 ? eurM(deal.saving) : '—'}<span className="unit"> /yr</span></div>
+          </div>
+        </div>
+        {c.fitVerifiedLatestTco2 > 0 && (
+          <div className="ds-panel-meta">
+            First deal: {Math.round(deal.invoiceMWh).toLocaleString('en-GB')} MWh/yr of biomethane (as invoiced), cutting 10% of the {tonnes(c.fitVerifiedLatestTco2)} at its high/medium-fit sites.
           </div>
         )}
-      </Card>
-    </div>
+        {notes.map(n => <div key={n.text} className={`ets-note ${n.tone === 'info' ? 'info' : ''}`}>{n.text}</div>)}
+      </PanelSection>
+      <PanelSection>
+        <div className="ds-panel-section-heading">Installations <span className="ets-muted" style={{ fontWeight: 400 }}>· {sites.length}</span></div>
+        <ul className="ets-list">
+          {sites.slice(0, 12).map(s => (
+            <li key={s.id}>
+              <span className="name" title={s.name}>{s.name}</span>
+              <span className="num">{tonnes(s.verifiedLatestTco2)}</span>
+              <span className="meta">{[s.city, s.country].filter(Boolean).join(', ')} · {SECTOR_LABEL[s.sector]} · <FitBadgeInline fit={s.fit} /></span>
+            </li>
+          ))}
+        </ul>
+        {sites.length > 12 && <div className="ds-panel-meta">…and {sites.length - 12} more in the Sites view or the CSV export.</div>}
+        {c.operators.length > 1 && <div className="ds-panel-meta">Operators: {c.operators.join('; ')}</div>}
+      </PanelSection>
+    </SidePanel>
   );
+}
+
+function FitBadgeInline({ fit }: { fit: BiomethaneFit }) {
+  return <span style={{ color: fit === 'HIGH' ? 'var(--color-status-pos-text)' : fit === 'MEDIUM' ? 'var(--color-status-warn-text)' : undefined }}>{fit.toLowerCase()} fit</span>;
 }

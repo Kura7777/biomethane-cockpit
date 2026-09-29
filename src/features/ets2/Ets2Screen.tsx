@@ -1,18 +1,17 @@
 import React, { useMemo, useState } from 'react';
 import { useAppState } from '../../store/context';
-import { PageShell, PageHeader, Card, KpiRow, KpiTile, Tabs } from '../../shared/ui';
+import { PageShell, PageHeader, HeaderPill, KpiTile, Tabs, DataTable } from '../../shared/ui';
 import { ETS2_SEED_COMPANIES, CLEAN_HEAT_PROGRAM_LEADS, applyEts2CompanyImport, Ets2Company } from '../../domain/ets2/companies';
-
-const BASE_COMPANIES: Ets2Company[] = [...ETS2_SEED_COMPANIES, ...CLEAN_HEAT_PROGRAM_LEADS];
 import { Ets2DirectoryTab } from './Ets2DirectoryTab';
 import { Ets1SitesTab } from './Ets1SitesTab';
 import { computeEts2Exposure, GasVolumeBasis } from '../../domain/ets2/calculator';
-import {
-  ETS2_COUNTRIES,
-  applyEts2CountryImport,
-  rankEts2CountryExposure,
-  Ets2CountryProfile,
-} from '../../domain/ets2/countries';
+import { ETS2_COUNTRIES, applyEts2CountryImport, rankEts2CountryExposure, Ets2CountryProfile } from '../../domain/ets2/countries';
+import { selectMarkPrice } from '../../domain/netback/engine';
+import { ETS2_START_YEAR } from '../../domain/valueStack/engine';
+import { Segmented, BarCell, eur, eurM, tonnes, parseNumber } from './etsUi';
+import './ets.css';
+
+const BASE_COMPANIES: Ets2Company[] = [...ETS2_SEED_COMPANIES, ...CLEAN_HEAT_PROGRAM_LEADS];
 
 const IMPORT_STORAGE_KEY = 'biomethane_ets2_country_import_v1';
 const COMPANY_IMPORT_STORAGE_KEY = 'biomethane_ets2_company_import_v1';
@@ -21,6 +20,13 @@ type Ets2Tab = 'ETS1_SITES' | 'DIRECTORY' | 'CALCULATOR' | 'COUNTRIES';
 
 /** Directive 2023/959 Art. 30h price-control trigger, in 2020 prices (a soft trigger, not a cap). */
 const PRICE_CONTROL_TRIGGER_EUR_2020 = 45;
+const MS_PER_DAY = 86_400_000;
+const EUR_COMPACT_FROM = 1_000_000;
+
+/** Whole euros below €1m, €m / €bn above, so large results fit a KPI card (exact figures stay in the workings). */
+function eurCompact(v: number | null): string {
+  return v !== null && Math.abs(v) >= EUR_COMPACT_FROM ? eurM(v) : eur(v);
+}
 
 function readStoredImport(key: string = IMPORT_STORAGE_KEY): string {
   try {
@@ -38,47 +44,31 @@ function writeStoredImport(json: string, key: string = IMPORT_STORAGE_KEY): void
   }
 }
 
-function parseNumber(text: string): number | null {
-  if (text.trim() === '') return null;
-  const n = Number(text.replace(/,/g, ''));
-  return Number.isFinite(n) ? n : null;
-}
-
 /** A percentage box as a 0–1 share; blank stays missing. */
 function parseShare(text: string): number | null {
   const pct = parseNumber(text);
   return pct === null ? null : pct / 100;
 }
 
-function eur(value: number | null, digits = 0): string {
-  if (value === null) return '—';
-  return `€${value.toLocaleString('en-GB', { minimumFractionDigits: digits, maximumFractionDigits: digits })}`;
-}
-
-function NumberField(props: { label: string; value: string; onChange: (v: string) => void; unit?: string; hint?: string }) {
+function Field(props: { label: string; value: string; onChange: (v: string) => void; unit?: string; hint?: React.ReactNode }) {
   return (
-    <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-      <span className="eyebrow">{props.label}</span>
-      <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-        <input
-          className="input num"
-          inputMode="decimal"
-          style={{ width: '100%' }}
-          value={props.value}
-          onChange={e => props.onChange(e.target.value)}
-          aria-label={props.label}
-        />
-        {props.unit && <span style={{ color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>{props.unit}</span>}
+    <label>
+      <span className="lbl">{props.label}</span>
+      <span className="ets-input">
+        <input inputMode="decimal" value={props.value} onChange={e => props.onChange(e.target.value)} aria-label={props.label} />
+        {props.unit && <span className="unit">{props.unit}</span>}
       </span>
-      {props.hint && <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{props.hint}</span>}
+      {props.hint && <span className="hint">{props.hint}</span>}
     </label>
   );
 }
 
 export function Ets2Screen() {
   const { state } = useAppState();
-  const deskMark = state.marks.marks['EU_ETS2'];
-  const deskMid = deskMark?.mid ?? null;
+  const deskEts2 = state.marks.marks['EU_ETS2'];
+  const deskMid = deskEts2?.mid ?? null;
+  const eua = selectMarkPrice(state.marks.marks['EU_ETS1'], 'mid');
+  const daysToEts2 = Math.ceil((Date.UTC(ETS2_START_YEAR, 0, 1) - Date.now()) / MS_PER_DAY);
 
   const [gasMWh, setGasMWh] = useState('');
   const [basis, setBasis] = useState<GasVolumeBasis>('GCV');
@@ -148,138 +138,213 @@ export function Ets2Screen() {
   };
 
   const companyImportPanel = (
-    <Card title="Add companies (JSON)" meta="From your research — every row needs a source URL">
-      <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: 0 }}>
-        Paste an array of rows: {'{ "name": "…", "countryIso": "IT", "role": "REGULATED_SUPPLIER", "marketSharePct": 16.8, "shareBasis": "retail gas sales 2025", "gasVolumeTWh": null, "confidence": "HIGH", "evidence": [{ "type": "REGULATOR_MARKET_REPORT", "url": "https://…", "note": "…", "checkedAt": "2026-09-28" }], "contacts": [{ "kind": "B2B_SALES", "email": "…", "sourceUrl": "https://…" }] }'}
-      </p>
-      <textarea
-        className="input num"
-        style={{ width: '100%', minHeight: '120px', fontFamily: 'var(--font-mono, monospace)' }}
-        value={companyDraft}
-        onChange={e => setCompanyDraft(e.target.value)}
-        aria-label="Company data JSON"
-      />
-      <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-        <button type="button" className="btn btn-primary" onClick={handleCompanyImport} disabled={!companyDraft.trim()}>Add</button>
-        {companyImportText && (
-          <button
-            type="button"
-            className="btn btn-ghost"
-            onClick={() => { setCompanyImportText(''); writeStoredImport('', COMPANY_IMPORT_STORAGE_KEY); setCompanyErrors([]); }}
-          >
-            Remove imported companies
-          </button>
-        )}
+    <details className="ets-details">
+      <summary>Add companies from your research <span className="meta">JSON · every row needs a source URL</span></summary>
+      <div className="inner">
+        <div className="ets-code">
+          {'[{ "name": "…", "countryIso": "IT", "role": "REGULATED_SUPPLIER", "marketSharePct": 16.8, "shareBasis": "retail gas sales 2025", "gasVolumeTWh": null, "confidence": "HIGH", "evidence": [{ "type": "REGULATOR_MARKET_REPORT", "url": "https://…", "note": "…", "checkedAt": "2026-09-28" }], "contacts": [{ "kind": "B2B_SALES", "email": "…", "sourceUrl": "https://…" }] }]'}
+        </div>
+        <textarea className="ets-textarea" value={companyDraft} onChange={e => setCompanyDraft(e.target.value)} aria-label="Company data JSON" />
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button type="button" className="ets-btn primary" onClick={handleCompanyImport} disabled={!companyDraft.trim()}>Add companies</button>
+          {companyImportText && (
+            <button type="button" className="ets-btn" onClick={() => { setCompanyImportText(''); writeStoredImport('', COMPANY_IMPORT_STORAGE_KEY); setCompanyErrors([]); }}>
+              Remove imported companies
+            </button>
+          )}
+        </div>
+        {companyErrors.length > 0 && <ul className="ets-errors">{companyErrors.map(e => <li key={e}>{e}</li>)}</ul>}
       </div>
-      {companyErrors.length > 0 && (
-        <ul style={{ color: 'var(--color-neg, #c0392b)', fontSize: '12px' }}>
-          {companyErrors.map(e => <li key={e}>{e}</li>)}
-        </ul>
-      )}
-    </Card>
+    </details>
   );
 
-  const countryCard = (
-          <Card
-            title="Country exposure"
-            meta={`${loadedCount} of ${countries.length} EU countries with sourced gas data · ranked by ETS2 cost on building gas${priceValue === null ? ' (set a price)' : ` at €${priceValue}/t`}`}
-          >
-            <div style={{ overflowX: 'auto' }}>
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Country</th>
-                    <th style={{ textAlign: 'right' }}>Building gas (TWh)</th>
-                    <th style={{ textAlign: 'right' }}>MtCO₂</th>
-                    <th style={{ textAlign: 'right' }}>ETS2 cost (€m)</th>
-                    <th style={{ textAlign: 'right' }}>vs today (€m)</th>
-                    <th>Existing carbon price</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {exposureRows.map(r => (
-                    <tr key={r.profile.iso}>
-                      <td className="num">{r.rank ?? ''}</td>
-                      <td>{r.profile.name}</td>
-                      <td className="num" style={{ textAlign: 'right' }}>
-                        {r.profile.gasBuildingsTWh === null ? '—' : r.profile.gasBuildingsTWh.toFixed(1)}
-                        {r.profile.gasDataYear ? <span style={{ color: 'var(--color-text-muted)' }}> ({r.profile.gasDataYear})</span> : null}
-                      </td>
-                      <td className="num" style={{ textAlign: 'right' }}>{r.emissionsMtCo2 === null ? '—' : r.emissionsMtCo2.toFixed(1)}</td>
-                      <td className="num" style={{ textAlign: 'right' }}>{r.ets2CostEurM === null ? '—' : Math.round(r.ets2CostEurM).toLocaleString('en-GB')}</td>
-                      <td className="num" style={{ textAlign: 'right' }}>{r.incrementalCostEurM === null ? '—' : Math.round(r.incrementalCostEurM).toLocaleString('en-GB')}</td>
-                      <td>
-                        {r.profile.existingCarbonPricing.source ? (
-                          <a href={r.profile.existingCarbonPricing.source.url} target="_blank" rel="noreferrer" title={r.profile.existingCarbonPricing.source.note}>
-                            {r.profile.existingCarbonPricing.label}
-                          </a>
-                        ) : (
-                          <span style={{ color: 'var(--color-text-muted)' }}>{r.profile.existingCarbonPricing.label}</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+  const maxCountryCost = Math.max(0, ...exposureRows.map(r => r.ets2CostEurM ?? 0));
 
-            <details style={{ marginTop: '12px' }}>
-              <summary className="eyebrow" style={{ cursor: 'pointer' }}>Import sourced country data (JSON)</summary>
-              <p style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
-                Paste an array of rows: {'{ "iso": "IT", "gasBuildingsTWh": 0, "gasVolumeBasis": "GCV", "gasDataYear": 2024, "gasSourceUrl": "https://…", "existingCarbonPriceEurPerT": null }'}.
-                Rows without a source URL are rejected.
-              </p>
-              <textarea
-                className="input num"
-                style={{ width: '100%', minHeight: '120px', fontFamily: 'var(--font-mono, monospace)' }}
-                value={draftImport}
-                onChange={e => setDraftImport(e.target.value)}
-                aria-label="Country data JSON"
-              />
-              <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                <button type="button" className="btn btn-primary" onClick={handleImport} disabled={!draftImport.trim()}>Load</button>
-                {importText && (
-                  <button
-                    type="button"
-                    className="btn btn-ghost"
-                    onClick={() => { setImportText(''); writeStoredImport(''); setImportErrors([]); }}
-                  >
-                    Clear imported data
-                  </button>
-                )}
-              </div>
-              {importErrors.length > 0 && (
-                <ul style={{ color: 'var(--color-neg, #c0392b)', fontSize: '12px' }}>
-                  {importErrors.map(e => <li key={e}>{e}</li>)}
-                </ul>
+  const countryImport = (
+    <details className="ets-details" open={loadedCount === 0}>
+      <summary>Load sourced country gas data <span className="meta">JSON · rows without a source URL are rejected</span></summary>
+      <div className="inner">
+        <div className="ets-code">{'[{ "iso": "IT", "gasBuildingsTWh": 0, "gasVolumeBasis": "GCV", "gasDataYear": 2024, "gasSourceUrl": "https://…", "existingCarbonPriceEurPerT": null }]'}</div>
+        <textarea className="ets-textarea" value={draftImport} onChange={e => setDraftImport(e.target.value)} aria-label="Country data JSON" />
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button type="button" className="ets-btn primary" onClick={handleImport} disabled={!draftImport.trim()}>Load data</button>
+          {importText && (
+            <button type="button" className="ets-btn" onClick={() => { setImportText(''); writeStoredImport(''); setImportErrors([]); }}>Clear imported data</button>
+          )}
+        </div>
+        {importErrors.length > 0 && <ul className="ets-errors">{importErrors.map(e => <li key={e}>{e}</li>)}</ul>}
+      </div>
+    </details>
+  );
+
+  const countriesTab = (
+    <div className="ets-body">
+      {loadedCount === 0 && (
+        <>
+          <div className="ets-empty" style={{ marginBottom: 16 }}>
+            <strong>No country gas data loaded yet</strong>
+            The ranking needs each country's gas use in buildings (households + services), from Eurostat's energy balances, with a source link per row. Load it below and every country — and every supplier's ETS2 cost on the gas suppliers tab — fills in.
+          </div>
+          <div style={{ marginBottom: 24 }}>{countryImport}</div>
+        </>
+      )}
+      <DataTable>
+        <div className="ds-thead-row ets-cols-countries">
+          <span>#</span>
+          <span>Country</span>
+          <span>ETS2 cost on building gas</span>
+          <span className="ets-right">Gas, TWh</span>
+          <span className="ets-right">MtCO₂</span>
+          <span className="ets-right">vs today</span>
+          <span>Carbon price today</span>
+        </div>
+        {exposureRows.map(r => (
+          <div key={r.profile.iso} className="ds-row ets-row-static ets-row-compact ets-cols-countries" style={{ opacity: r.rank === null ? 0.6 : 1 }}>
+            <span className="ets-muted num">{r.rank ?? ''}</span>
+            <span className="ds-row-name">{r.profile.name}</span>
+            {r.ets2CostEurM === null ? <span className="ets-muted" style={{ fontSize: 12 }}>—</span> : (
+              <BarCell value={r.ets2CostEurM} max={maxCountryCost}>€{Math.round(r.ets2CostEurM).toLocaleString('en-GB')}m</BarCell>
+            )}
+            <span className="ets-cell-num">
+              {r.profile.gasBuildingsTWh === null ? '—' : r.profile.gasBuildingsTWh.toFixed(1)}
+              {r.profile.gasDataYear ? <span className="ets-cell-sub">{r.profile.gasDataYear}</span> : null}
+            </span>
+            <span className="ets-cell-num">{r.emissionsMtCo2 === null ? '—' : r.emissionsMtCo2.toFixed(1)}</span>
+            <span className="ets-cell-num">{r.incrementalCostEurM === null ? '—' : `€${Math.round(r.incrementalCostEurM).toLocaleString('en-GB')}m`}</span>
+            <span style={{ fontSize: 12, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {r.profile.existingCarbonPricing.source ? (
+                <a href={r.profile.existingCarbonPricing.source.url} target="_blank" rel="noreferrer" title={r.profile.existingCarbonPricing.source.note} className="ets-link">
+                  {r.profile.existingCarbonPricing.label}
+                </a>
+              ) : (
+                <span className="ets-muted">{r.profile.existingCarbonPricing.label}</span>
               )}
-            </details>
-          </Card>
+            </span>
+          </div>
+        ))}
+        <div className="ds-tfoot">
+          <span>{loadedCount} of {countries.length} countries with sourced gas data · ranked by ETS2 cost{priceValue === null ? ' (set a price in the calculator)' : ` at €${priceValue}/t`}</span>
+        </div>
+      </DataTable>
+
+      {loadedCount > 0 && <div className="ets-section-gap">{countryImport}</div>}
+    </div>
+  );
+
+  const calculatorTab = (
+    <div className="ets-body ets-calc">
+      <div className="ds-card">
+        <div className="ds-card-header">
+          <div>
+            <div className="ds-card-title">Client inputs</div>
+            <div className="ds-card-meta">Every number is yours — nothing is defaulted</div>
+          </div>
+        </div>
+        <div className="ds-card-body ets-form">
+          <Field label="Annual gas use" value={gasMWh} onChange={setGasMWh} unit="MWh" />
+          <label>
+            <span className="lbl">Volume basis</span>
+            <Segmented<GasVolumeBasis> label="Volume basis" value={basis} onChange={setBasis} options={[{ id: 'GCV', label: 'As invoiced (GCV)' }, { id: 'NCV', label: 'NCV' }]} />
+          </label>
+          <Field
+            label="ETS2 price scenario"
+            value={price}
+            onChange={setPrice}
+            unit="€/tCO₂"
+            hint={`Price control releases extra allowances above €${PRICE_CONTROL_TRIGGER_EUR_2020}/t in 2020 prices (Art. 30h).`}
+          />
+          <div className="ets-chips">
+            {deskMid !== null && <button type="button" className="ets-chip" onClick={() => setPrice(String(deskMid))}>Desk mark €{deskMid.toFixed(2)}</button>}
+            <button type="button" className="ets-chip" onClick={() => setPrice(String(PRICE_CONTROL_TRIGGER_EUR_2020))}>€{PRICE_CONTROL_TRIGGER_EUR_2020} trigger (2020 €)</button>
+          </div>
+          <Field label="Carbon price already paid" value={existingPrice} onChange={setExistingPrice} unit="€/tCO₂" hint="e.g. Germany's BEHG. Leave blank if none." />
+          <Field label="Supplier pass-through" value={passThroughPct} onChange={setPassThroughPct} unit="%" hint="Share of the supplier's allowance cost on the client's bill." />
+          <Field label="Share switched to biomethane" value={bioSharePct} onChange={setBioSharePct} unit="%" />
+          <Field label="Biomethane premium quote" value={premium} onChange={setPremium} unit="€/MWh" hint="RED III-compliant, mass-balanced biomethane over the fossil gas it replaces." />
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 0 }}>
+        {result.emissionsTco2 === null ? (
+          <div className="ets-empty">
+            <strong>Enter the client's gas use to see its ETS2 exposure</strong>
+            Still needed: {result.missingInputs.filter(m => m !== 'biomethane premium quote').join(', ')}. Pick a supplier on the ETS2 gas suppliers tab to fill the volume in one click.
+          </div>
+        ) : (
+          <>
+            <div className="ets-results-kpis">
+              <KpiTile label="Emissions" value={tonnes(result.emissionsTco2)} unit="CO₂/yr" />
+              <KpiTile label="Client ETS2 cost" value={eurCompact(result.clientEts2CostEur)} unit="/yr" sub={`Supplier cost ${eurCompact(result.supplierAllowanceCostEur)}`} />
+              <KpiTile
+                label="Change vs today"
+                value={eurCompact(result.incrementalCostEur)}
+                unit="/yr"
+                sub={result.existingCarbonCostEur === null ? 'No existing carbon price entered' : `Pays ${eurCompact(result.existingCarbonCostEur)} today`}
+              />
+              <KpiTile className="ets-kpi-accent" label="Break-even premium" value={eur(result.breakevenPremiumEurPerMWh, 2)} unit="/MWh" sub="Biomethane pays for itself below this" />
+            </div>
+            <div className="ets-results-kpis">
+              <KpiTile label="Biomethane volume" value={result.biomethaneMWh === null ? '—' : Math.round(result.biomethaneMWh).toLocaleString('en-GB')} unit="MWh/yr" />
+              <KpiTile label="ETS2 cost avoided" value={eurCompact(result.avoidedCostEur)} unit="/yr" />
+              <KpiTile
+                className={result.netSavingEur !== null && result.netSavingEur > 0 ? 'ets-kpi-accent' : undefined}
+                label="Net saving on ETS2 alone"
+                value={eurCompact(result.netSavingEur)}
+                unit="/yr"
+                sub={result.netSavingEur === null ? 'Enter a premium quote' : `Premium paid ${eurCompact(result.biomethanePremiumCostEur)}`}
+              />
+            </div>
+            <div className="ds-card">
+              <div className="ds-card-header"><div className="ds-card-title">Workings</div></div>
+              <div className="ds-card-body">
+                <ol className="ets-workings">{result.workings.map(w => <li key={w}>{w}</li>)}</ol>
+                <div className="ds-panel-meta" style={{ marginTop: 12 }}>
+                  The ETS2 saving comes on top of any voluntary claim (Scope 1 reporting, product footprint). Zero-rating needs RED III sustainability evidence through the Union Database.
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
   );
 
   return (
     <PageShell style={{ overflowY: 'auto' }}>
       <PageHeader
-        title="EU ETS exposure"
-        context="Who pays for carbon on gas — industrial sites under ETS1 today, gas suppliers under ETS2 from 1 Jan 2028 — and what switching to biomethane saves them."
+        title="EU ETS"
+        context="Installations under ETS1 today · gas suppliers under ETS2 from 1 Jan 2028 · Directive 2003/87/EC"
+        actions={
+          <>
+            <HeaderPill label="EUA" value={eua === null ? '—' : `€${eua.toFixed(2)}`} sub="desk mark" title="EU_ETS1 desk mark, mid" />
+            <HeaderPill
+              label="ETS2"
+              value={deskMid === null ? '—' : `€${deskMid.toFixed(2)}`}
+              sub={deskEts2?.source ? deskEts2.source.toLowerCase() : 'desk mark'}
+              title="EU_ETS2 desk mark, mid — no ETS2 market trades yet"
+            />
+            <HeaderPill
+              label="ETS2 starts"
+              value={`1 Jan ${ETS2_START_YEAR}`}
+              sub={daysToEts2 > 0 ? `${daysToEts2.toLocaleString('en-GB')} days` : 'in force'}
+              warn={daysToEts2 > 0 && daysToEts2 <= 180}
+            />
+          </>
+        }
       />
-      <div style={{ padding: '0 16px' }}>
-        <Tabs<Ets2Tab>
-          ariaLabel="ETS2 sections"
-          activeTab={tab}
-          onChange={setTab}
-          tabs={[
-            { id: 'ETS1_SITES', label: 'ETS1 industrial sites' },
-            { id: 'DIRECTORY', label: 'ETS2 gas suppliers', badge: companies.length },
-            { id: 'CALCULATOR', label: 'ETS2 calculator' },
-            { id: 'COUNTRIES', label: 'ETS2 countries', badge: loadedCount || undefined },
-          ]}
-        />
-      </div>
+      <Tabs<Ets2Tab>
+        ariaLabel="EU ETS sections"
+        activeTab={tab}
+        onChange={setTab}
+        tabs={[
+          { id: 'ETS1_SITES', label: 'ETS1 installations' },
+          { id: 'DIRECTORY', label: 'ETS2 gas suppliers', badge: companies.length },
+          { id: 'CALCULATOR', label: 'ETS2 calculator' },
+          { id: 'COUNTRIES', label: 'ETS2 countries', badge: loadedCount ? `${loadedCount}/${countries.length}` : undefined },
+        ]}
+      />
 
       {tab === 'ETS1_SITES' && <Ets1SitesTab />}
-
       {tab === 'DIRECTORY' && (
         <Ets2DirectoryTab
           companies={companies}
@@ -289,119 +354,8 @@ export function Ets2Screen() {
           importPanel={companyImportPanel}
         />
       )}
-
-      {tab === 'COUNTRIES' && <div style={{ padding: '16px' }}>{countryCard}</div>}
-
-      {tab === 'CALCULATOR' && (
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(260px, 340px) minmax(0, 1fr)', gap: '16px', padding: '16px' }}>
-        <Card title="Client inputs" meta="Every number is yours — nothing is defaulted">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <NumberField label="Annual gas use" value={gasMWh} onChange={setGasMWh} unit="MWh" />
-            <div className="seg" role="group" aria-label="Volume basis">
-              {(['GCV', 'NCV'] as GasVolumeBasis[]).map(b => (
-                <button key={b} type="button" className={`seg-opt ${basis === b ? 'active' : ''}`} onClick={() => setBasis(b)}>
-                  {b === 'GCV' ? 'Invoice (GCV)' : 'NCV'}
-                </button>
-              ))}
-            </div>
-            <NumberField
-              label="ETS2 price scenario"
-              value={price}
-              onChange={setPrice}
-              unit="€/tCO₂"
-              hint={
-                deskMid !== null
-                  ? `Desk mark €${deskMid.toFixed(2)} (${deskMark?.source ?? 'desk'}). Price control releases extra allowances above €${PRICE_CONTROL_TRIGGER_EUR_2020}/t in 2020 prices.`
-                  : `No desk mark. Price control releases extra allowances above €${PRICE_CONTROL_TRIGGER_EUR_2020}/t in 2020 prices.`
-              }
-            />
-            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-              {deskMid !== null && (
-                <button type="button" className="btn btn-ghost" onClick={() => setPrice(String(deskMid))}>Desk mark</button>
-              )}
-              <button type="button" className="btn btn-ghost" onClick={() => setPrice(String(PRICE_CONTROL_TRIGGER_EUR_2020))}>
-                €{PRICE_CONTROL_TRIGGER_EUR_2020} trigger (2020 €)
-              </button>
-            </div>
-            <NumberField
-              label="Carbon price already paid"
-              value={existingPrice}
-              onChange={setExistingPrice}
-              unit="€/tCO₂"
-              hint="e.g. German BEHG. Leave blank if none."
-            />
-            <NumberField
-              label="Supplier pass-through"
-              value={passThroughPct}
-              onChange={setPassThroughPct}
-              unit="%"
-              hint="Share of the supplier's allowance cost on the client's bill."
-            />
-            <NumberField label="Share switched to biomethane" value={bioSharePct} onChange={setBioSharePct} unit="%" />
-            <NumberField
-              label="Biomethane premium quote"
-              value={premium}
-              onChange={setPremium}
-              unit="€/MWh"
-              hint="RED III-compliant, mass-balanced (UDB) biomethane over the fossil gas it replaces."
-            />
-          </div>
-        </Card>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', minWidth: 0 }}>
-          {result.emissionsTco2 === null ? (
-            <Card title="Result">
-              <p style={{ margin: 0, color: 'var(--color-text-muted)' }}>
-                Enter {result.missingInputs.filter(m => m !== 'biomethane premium quote').join(' and ')} to see the exposure.
-              </p>
-            </Card>
-          ) : (
-            <>
-              <KpiRow columns={4}>
-                <KpiTile
-                  label="Emissions"
-                  value={result.emissionsTco2 === null ? '—' : Math.round(result.emissionsTco2).toLocaleString('en-GB')}
-                  unit="tCO₂/yr"
-                />
-                <KpiTile label="Client ETS2 cost" value={eur(result.clientEts2CostEur)} unit="/yr" sub={`Supplier cost ${eur(result.supplierAllowanceCostEur)}`} />
-                <KpiTile
-                  label="Change vs today"
-                  value={eur(result.incrementalCostEur)}
-                  unit="/yr"
-                  sub={result.existingCarbonCostEur === null ? 'No existing carbon price entered' : `Pays ${eur(result.existingCarbonCostEur)} today`}
-                />
-                <KpiTile
-                  label="Break-even premium"
-                  value={eur(result.breakevenPremiumEurPerMWh, 2)}
-                  unit="/MWh"
-                  sub="Biomethane pays for itself below this"
-                />
-              </KpiRow>
-              <KpiRow columns={3}>
-                <KpiTile label="Biomethane volume" value={result.biomethaneMWh === null ? '—' : Math.round(result.biomethaneMWh).toLocaleString('en-GB')} unit="MWh/yr" />
-                <KpiTile label="ETS2 cost avoided" value={eur(result.avoidedCostEur)} unit="/yr" />
-                <KpiTile
-                  label="Net saving on ETS2 alone"
-                  value={eur(result.netSavingEur)}
-                  unit="/yr"
-                  sub={result.netSavingEur === null ? 'Enter a premium quote' : `Premium paid ${eur(result.biomethanePremiumCostEur)}`}
-                />
-              </KpiRow>
-              <Card title="Workings">
-                <ol style={{ margin: 0, paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '4px' }} className="num">
-                  {result.workings.map(w => <li key={w}>{w}</li>)}
-                </ol>
-                <p style={{ margin: '10px 0 0', fontSize: '12px', color: 'var(--color-text-muted)' }}>
-                  ETS2 saving is on top of any voluntary claim value (Scope 1 reporting, product footprint). Zero-rating needs RED III sustainability evidence through the Union Database.
-                </p>
-              </Card>
-            </>
-          )}
-
-        </div>
-      </div>
-      )}
+      {tab === 'CALCULATOR' && calculatorTab}
+      {tab === 'COUNTRIES' && countriesTab}
     </PageShell>
   );
 }

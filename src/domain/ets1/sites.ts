@@ -34,7 +34,9 @@ export type Ets1Sector =
   | 'POWER_HEAT'
   | 'CEMENT_LIME'
   | 'METALS'
-  | 'OTHER_INDUSTRY';
+  | 'WASTE_ENERGY'
+  | 'OTHER_INDUSTRY'
+  | 'UNCLASSIFIED';
 
 export type BiomethaneFit = 'HIGH' | 'MEDIUM' | 'LOW';
 
@@ -48,7 +50,9 @@ export const SECTOR_LABEL: Record<Ets1Sector, string> = {
   POWER_HEAT: 'Power & district heat',
   CEMENT_LIME: 'Cement & lime',
   METALS: 'Metals',
+  WASTE_ENERGY: 'Waste treatment & energy from waste',
   OTHER_INDUSTRY: 'Other industry & services',
+  UNCLASSIFIED: 'Unclassified (no industry code)',
 };
 
 /**
@@ -66,8 +70,12 @@ export const SECTOR_FIT: Record<Ets1Sector, BiomethaneFit> = {
   CHEMICALS: 'MEDIUM',
   POWER_HEAT: 'MEDIUM',
   REFINING_OIL_GAS: 'MEDIUM',
+  // No industry code and no clue in the name: never graded high.
+  UNCLASSIFIED: 'MEDIUM',
   CEMENT_LIME: 'LOW',
   METALS: 'LOW',
+  // Incinerators burn waste, not gas: biomethane only displaces support firing.
+  WASTE_ENERGY: 'LOW',
 };
 
 // EUTL activity codes (Annex I, 2013+ numbering, and 2005–12 numbering).
@@ -85,7 +93,9 @@ export function classifySector(activityId: number | null, nace: string): Ets1Sec
   if (METAL_ACTIVITIES.has(act) || division === '24') return 'METALS';
   if (division === '10' || division === '11' || division === '12') return 'FOOD_BEVERAGE';
   if (division === '21') return 'PHARMA';
-  if (REFINING_ACTIVITIES.has(act) || division === '19' || division === '06' || division === '09') return 'REFINING_OIL_GAS';
+  // Gas pipelines (49.5) and oil / LNG terminals and storage (52.1, 52.2) are oil & gas infrastructure.
+  if (REFINING_ACTIVITIES.has(act) || division === '19' || division === '06' || division === '09' || nace.startsWith('49.5') || nace.startsWith('52.1') || nace.startsWith('52.2')) return 'REFINING_OIL_GAS';
+  if (division === '38') return 'WASTE_ENERGY';
   if (PAPER_ACTIVITIES.has(act) || division === '17') return 'PAPER';
   if (GLASS_CERAMIC_ACTIVITIES.has(act) || division === '23') return 'GLASS_CERAMICS';
   if (CHEMICAL_ACTIVITIES.has(act) || division === '20') return 'CHEMICALS';
@@ -103,6 +113,8 @@ export interface Ets1Site {
   activityId: number | null;
   nace: string;
   sector: Ets1Sector;
+  /** How the sector was found: the site's own NACE code, the operator's other sites, the site name, or not at all. */
+  sectorBasis: SectorBasis;
   fit: BiomethaneFit;
   verifiedLatestTco2: number;
   verifiedPreviousTco2: number | null;
@@ -119,9 +131,63 @@ export function isPlaceholderParent(parent: string): boolean {
   return core.length <= 2 && /^[A-Za-z0-9]*$/.test(core);
 }
 
+export type SectorBasis = 'SITE_CODE' | 'OPERATOR_CODE' | 'SITE_NAME' | 'NONE';
+
+/**
+ * Power and heat plants named in the registry's languages. Used only when a site has no NACE code
+ * and a generic combustion activity, where the classifier would otherwise call it "other industry".
+ */
+const POWER_HEAT_NAME = new RegExp(
+  [
+    'elektrowni', 'elektrociep', 'ciep[lł]owni', 'kraftwerk', 'heizwerk', 'kraftw[aä]rme', '\\bkwk\\b', '\\bbhkw\\b',
+    'centrale [eé]lectrique', 'centrale thermique', 'centrale termoelettrica', 'termoelettric', 'central t[eé]rmica',
+    'ciclo combinado', 'cogenera', 'teplárn', 'tepl[aá]re[nň]', 'elektr[aá]r', 'power station', 'power plant',
+    '\\bchp\\b', 'fjernvarme', 'fj[aä]rrv[aä]rme', 'kaukol[aä]mp', 'voimalaito', 'l[aä]mp[oö]keskus', 'v[aä]rmeverk',
+    'kraftv[aä]rmeverk', 'warmtekracht', 'thermal power', 'district heat',
+    '\\bgud\\b', 'termoficare', 'er[őo]m[űu]', 'kombin[aá]lt ciklus', 'kogenerac', 'j[eė]gain', '\\bpower\\b',
+  ].join('|'),
+  'i'
+);
+
+type RawRow = (typeof ETS1_INSTALLATION_ROWS)[number];
+
+/** For each operator, the sector carrying most emissions among its sites that do have a NACE code. */
+function operatorSectors(rows: readonly RawRow[]): Map<string, Ets1Sector> {
+  const byOperator = new Map<string, Map<Ets1Sector, number>>();
+  for (const [, , operator, , , , activityId, nace, latest] of rows) {
+    if (!nace) continue;
+    const sector = classifySector(activityId, nace);
+    const m = byOperator.get(operator) ?? new Map<Ets1Sector, number>();
+    m.set(sector, (m.get(sector) ?? 0) + latest);
+    byOperator.set(operator, m);
+  }
+  const out = new Map<string, Ets1Sector>();
+  for (const [operator, m] of byOperator) {
+    const best = [...m.entries()].sort((a, b) => b[1] - a[1])[0];
+    if (best) out.set(operator, best[0]);
+  }
+  return out;
+}
+
+const OPERATOR_SECTOR = operatorSectors(ETS1_INSTALLATION_ROWS);
+
+/**
+ * Sector for one site. The site's own codes win; when it has no NACE code and only a generic
+ * combustion activity, the operator's other sites decide, then the site name, else it is left
+ * unclassified rather than guessed as "other industry" (which would grade it a high fit).
+ */
+export function resolveSector(activityId: number | null, nace: string, operator: string, name: string): { sector: Ets1Sector; basis: SectorBasis } {
+  const own = classifySector(activityId, nace);
+  if (nace || own !== 'OTHER_INDUSTRY') return { sector: own, basis: 'SITE_CODE' };
+  const inherited = OPERATOR_SECTOR.get(operator);
+  if (inherited) return { sector: inherited, basis: 'OPERATOR_CODE' };
+  if (POWER_HEAT_NAME.test(name) || POWER_HEAT_NAME.test(operator)) return { sector: 'POWER_HEAT', basis: 'SITE_NAME' };
+  return { sector: 'UNCLASSIFIED', basis: 'NONE' };
+}
+
 export const ETS1_SITES: Ets1Site[] = ETS1_INSTALLATION_ROWS.map(
   ([id, name, operator, parent, country, city, activityId, nace, latest, previous]) => {
-    const sector = classifySector(activityId, nace);
+    const { sector, basis } = resolveSector(activityId, nace, operator, name);
     return {
       id,
       name,
@@ -132,6 +198,7 @@ export const ETS1_SITES: Ets1Site[] = ETS1_INSTALLATION_ROWS.map(
       activityId,
       nace,
       sector,
+      sectorBasis: basis,
       fit: SECTOR_FIT[sector],
       verifiedLatestTco2: latest,
       verifiedPreviousTco2: previous,

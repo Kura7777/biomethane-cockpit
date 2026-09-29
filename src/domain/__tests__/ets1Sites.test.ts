@@ -84,3 +84,20 @@ describe('ETS1 placeholder parents', () => {
     for (const junk of ['xx', 'n.a.', 'na', 'nn', '/', '0']) expect(names).not.toContain(junk);
   });
 });
+
+describe('ETS1 sector resolution for sites without an industry code', () => {
+  it('never grades a site high fit just because its NACE code is missing', async () => {
+    const { ETS1_SITES } = await import('../ets1/sites');
+    const find = (n: string) => ETS1_SITES.find(s => s.name.includes(n))!;
+    // Coal / gas power blocks inherit the operator's power code; a steelworks unit inherits metals.
+    expect(find('Kozienice - blok').sector).toBe('POWER_HEAT');
+    expect(find('Steel Košice, s.r.o.-FE').sector).toBe('METALS');
+    expect(find('Saint Avold Kernaman').sector).toBe('POWER_HEAT');
+    expect(find('GuD Herne').sector).toBe('POWER_HEAT');
+    for (const s of ETS1_SITES.filter(x => !x.nace && x.activityId === 20)) {
+      // "Other industry" only when the operator's own coded sites say so — never as a default.
+      expect(s.sectorBasis).not.toBe('SITE_CODE');
+      if (s.sector === 'OTHER_INDUSTRY') expect(s.sectorBasis).toBe('OPERATOR_CODE');
+    }
+  });
+});

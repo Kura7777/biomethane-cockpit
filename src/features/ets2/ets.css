@@ -1,0 +1,465 @@
+/*
+ * EU ETS screen — the few pieces the shared desk system (src/shared/ui/desk.css) does not have:
+ * grid column templates for each table, fit and status badges, inline bars, a segmented control,
+ * compact selects and the sector breakdown. Everything reads the app's --color-* tokens, so light
+ * and dark themes follow automatically.
+ */
+
+.ets-body {
+  padding: 8px 0 40px;
+}
+
+.ets-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(380px, 28%, 520px);
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 1180px) {
+  .ets-grid { grid-template-columns: 1fr; }
+  .ets-grid .ds-aside { position: static; max-height: none; }
+}
+
+/* ── Toolbar controls ── */
+.ets-seg {
+  display: inline-flex;
+  height: 32px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-control);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.ets-seg button {
+  padding: 0 12px;
+  border: 0;
+  background: var(--color-surface);
+  color: var(--color-muted);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ets-seg button + button { border-left: 1px solid var(--color-divider); }
+.ets-seg button:hover:not(.active) { color: var(--color-text); background: var(--color-subtier); }
+.ets-seg button.active {
+  background: var(--color-text);
+  color: var(--color-bg);
+  font-weight: 500;
+}
+
+.ets-select {
+  height: 32px;
+  padding: 0 28px 0 10px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  max-width: 180px;
+}
+.ets-select.set { border-color: var(--color-text); }
+
+.ets-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 4px 0 10px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  font-size: 12px;
+  color: var(--color-muted);
+}
+.ets-field input {
+  width: 64px;
+  height: 26px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.ets-spacer { flex: 1 1 auto; }
+
+.ets-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ets-btn:hover { background: var(--color-subtier); }
+.ets-btn.primary {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: #fff;
+  font-weight: 500;
+}
+.ets-btn.primary:hover { filter: brightness(1.05); }
+.ets-btn.grow { flex: 1 1 0; justify-content: center; height: 36px; }
+
+/* ── Table column templates ── */
+.ets-cols-companies { grid-template-columns: minmax(220px, 2.4fr) 88px minmax(150px, 1.2fr) 110px minmax(120px, 1fr) 118px; }
+.ets-cols-sites { grid-template-columns: minmax(220px, 2.4fr) minmax(120px, 1fr) 88px minmax(150px, 1.2fr) 90px 100px; }
+.ets-cols-suppliers { grid-template-columns: minmax(220px, 2.4fr) 130px minmax(120px, 1fr) 90px 110px 118px; }
+.ets-cols-countries { grid-template-columns: 40px minmax(160px, 1.4fr) minmax(150px, 1.4fr) 90px 110px 110px minmax(160px, 1.4fr); }
+
+.ets-thead-sort { justify-self: end; }
+.ets-right { text-align: right; justify-self: end; }
+.ets-row-static { cursor: default; }
+.ets-row-static:hover { background: transparent; }
+
+.ets-cell-num {
+  justify-self: end;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ets-cell-sub {
+  display: block;
+  font-size: 12px;
+  color: var(--color-muted);
+  text-align: right;
+}
+.ets-muted { color: var(--color-muted); }
+
+/* Inline bar with its value: bars share one scale per table. */
+.ets-barcell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.ets-bar {
+  flex: 1 1 auto;
+  height: 6px;
+  min-width: 40px;
+  max-width: 120px;
+  border-radius: var(--radius-bar);
+  background: var(--color-subtier);
+  overflow: hidden;
+}
+.ets-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-bar);
+  background: var(--color-text);
+  opacity: 0.55;
+}
+.ets-barcell .ets-cell-num { min-width: 64px; text-align: right; }
+
+/* ── Badges ── */
+.ets-fit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+.ets-fit::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.ets-fit.high { color: var(--color-status-pos-text); background: var(--color-status-pos-bg); border-color: var(--color-status-pos-border); }
+.ets-fit.medium { color: var(--color-status-warn-text); background: var(--color-status-warn-bg); border-color: var(--color-status-warn-border); }
+.ets-fit.low { color: var(--color-muted); background: var(--color-subtier); }
+
+.ets-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--color-muted);
+  white-space: nowrap;
+}
+.ets-status::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-divider);
+}
+.ets-status.contacted { color: var(--color-text); }
+.ets-status.contacted::before { background: var(--color-muted); }
+.ets-status.meeting { color: var(--color-text); }
+.ets-status.meeting::before { background: var(--color-status-warn-text); }
+.ets-status.pipeline { color: var(--color-status-pos-text); }
+.ets-status.pipeline::before { background: var(--color-status-pos-text); }
+.ets-status.not_a_fit { text-decoration: line-through; }
+
+.ets-tag {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 20px;
+  justify-self: start;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 6px;
+  background: var(--color-subtier);
+  color: var(--color-muted);
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+
+.ets-change.up { color: var(--color-status-neg-text); }
+.ets-change.down { color: var(--color-status-pos-text); }
+
+/* ── Side panel content ── */
+.ets-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.ets-note {
+  padding: 10px 12px;
+  border-radius: var(--radius-control);
+  background: var(--color-status-warn-bg);
+  border: 1px solid var(--color-status-warn-border);
+  color: var(--color-text);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.ets-note.info {
+  background: var(--color-subtier);
+  border-color: var(--color-divider);
+}
+.ets-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+.ets-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-divider);
+  font-size: 13px;
+}
+.ets-list li:last-child { border-bottom: 0; }
+.ets-list .name { font-weight: 500; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ets-list .meta { grid-column: 1 / -1; font-size: 12px; color: var(--color-muted); }
+.ets-list a { color: var(--color-accent); text-decoration: none; }
+.ets-list a:hover { text-decoration: underline; }
+
+/* Sector breakdown: one clickable row per sector, bar scaled to the largest. */
+.ets-sectors { display: flex; flex-direction: column; gap: 2px; }
+.ets-sector {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 72px;
+  gap: 6px 12px;
+  align-items: center;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+.ets-sector:hover { background: var(--color-subtier); }
+.ets-sector.active { background: var(--color-subtier); box-shadow: inset 2px 0 0 var(--color-accent); }
+.ets-sector .label { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.ets-sector .label span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ets-sector .value { text-align: right; font-variant-numeric: tabular-nums; color: var(--color-muted); }
+.ets-sector .track { grid-column: 1 / -1; height: 4px; border-radius: 2px; background: var(--color-subtier); overflow: hidden; }
+.ets-sector .track > span { display: block; height: 100%; border-radius: 2px; }
+.ets-sector .track > span.high { background: var(--color-status-pos-text); }
+.ets-sector .track > span.medium { background: var(--color-status-warn-text); }
+.ets-sector .track > span.low { background: var(--color-muted); }
+
+/* ── Calculator ── */
+.ets-calc {
+  display: grid;
+  grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 1100px) { .ets-calc { grid-template-columns: 1fr; } }
+.ets-form { display: flex; flex-direction: column; gap: 16px; }
+.ets-form label { display: flex; flex-direction: column; gap: 6px; }
+.ets-form .lbl { font-size: 12px; font-weight: 500; color: var(--color-muted); }
+.ets-form .hint { font-size: 12px; color: var(--color-muted); line-height: 1.4; }
+.ets-input {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+.ets-input:focus-within { border-color: var(--color-text); }
+.ets-input input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  padding: 0 10px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.ets-input .unit {
+  padding: 0 10px;
+  color: var(--color-muted);
+  font-size: 12px;
+  border-left: 1px solid var(--color-divider);
+  height: 100%;
+  display: flex;
+  align-items: center;
+  background: var(--color-panel-header);
+}
+.ets-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.ets-chip {
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid var(--color-divider);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.ets-chip:hover { color: var(--color-text); border-color: var(--color-text); }
+
+.ets-results-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+.ets-kpi-accent .ds-kpi-value { color: var(--color-status-pos-text); }
+
+.ets-workings {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ets-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 28px;
+  border: 1px dashed var(--color-divider);
+  border-radius: var(--radius-card);
+  color: var(--color-muted);
+  font-size: 13px;
+}
+.ets-empty strong { color: var(--color-text); font-size: 15px; font-weight: 600; }
+
+/* Collapsible admin sections (imports, official lists). */
+.ets-details {
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+.ets-details + .ets-details { margin-top: 12px; }
+.ets-details > summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+.ets-details > summary::-webkit-details-marker { display: none; }
+.ets-details > summary .meta { font-size: 12px; font-weight: 400; color: var(--color-muted); }
+.ets-details > summary::after { content: '▾'; color: var(--color-muted); font-size: 12px; }
+.ets-details[open] > summary::after { content: '▴'; }
+.ets-details > .inner {
+  padding: 0 20px 20px;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ets-textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 10px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-control);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  box-sizing: border-box;
+}
+.ets-code { font-family: var(--font-mono, monospace); font-size: 11.5px; color: var(--color-muted); word-break: break-all; }
+.ets-errors { margin: 0; padding-left: 18px; color: var(--color-status-neg-text); font-size: 12px; }
+
+.ets-section-gap { margin-top: 24px; }
+
+/* Scenario price typed straight into the KPI card that uses it. */
+.ets-inline-price { display: inline-flex; align-items: center; gap: 2px; }
+.ets-inline-price input {
+  width: 48px;
+  height: 22px;
+  padding: 0 4px;
+  border: 1px solid var(--color-divider);
+  border-radius: 6px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.ets-inline-price input:focus { outline: 0; border-color: var(--color-text); }
+.ets-inline-price button {
+  margin-left: 6px;
+  border: 0;
+  background: none;
+  color: var(--color-accent);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.ets-row-compact { height: 44px; }
+
+.ets-link { color: var(--color-text); text-decoration: underline dotted; text-underline-offset: 3px; }
+.ets-link:hover { color: var(--color-accent); }
