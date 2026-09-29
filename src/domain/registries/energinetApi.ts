@@ -1,158 +1,143 @@
-import { InjectionBatch } from './types';
+/**
+ * Client for Denmark's Energinet "Energi Data Service" Gasflow dataset.
+ *
+ * Real, live, keyless, CORS-open dataset (confirmed by direct curl test):
+ *   GET https://api.energidataservice.dk/dataset/Gasflow?limit=N
+ * One record = one calendar day, Denmark-wide totals. Real fields (verbatim from a live
+ * response): GasDay, KWhFromBiogas, KWhToDenmark, KWhFromNorthSea, KWhToOrFromStorage,
+ * KWhToOrFromGermany, KWhToSweden, kWhFromTyra, KWhToPoland.
+ *
+ * There is NO PointId / PointName / Municipality / PhysicalFlowMWh / FlowMWh / HourUTC field
+ * in the real dataset, and no per-plant or per-injection-point granularity — it is a single
+ * national daily balance. The only field this module uses is KWhFromBiogas: the aggregate
+ * biogas/biomethane volume entering the Danish gas system that day.
+ *
+ * The endpoint allows CORS (Access-Control-Allow-Origin: *) but rate-limits hard: response
+ * headers carry RemainingCalls/TotalCalls, and once the limit is exhausted the server returns
+ * an empty body with no CORS header, which the browser reports as a CORS error. To stay well
+ * under that limit this client fetches at most once per 60 minutes per browser, caching the
+ * result (with a timestamp) in localStorage.
+ */
 
-export interface EnerginetLiveFlowData {
-  timestamp: string;
-  totalDailyInjectionMWh: number;
-  activeInjectionPoints: number;
-  batches: InjectionBatch[];
-  isLiveFeed: boolean;
+export interface EnerginetDailyBiogas {
+  gasDay: string; // YYYY-MM-DD
+  kwhFromBiogas: number;
+  gwhFromBiogas: number;
+}
+
+export type EnerginetDataSource = 'LIVE' | 'CACHED' | 'UNAVAILABLE';
+
+export interface EnerginetBiogasResult {
+  source: EnerginetDataSource;
+  days: EnerginetDailyBiogas[]; // most recent first, up to 14 days
+  latestGwhPerDay: number | null;
+  annualisedRunRateTWh: number | null; // latest day's KWhFromBiogas x 365, in TWh
+  fetchedAt: string | null; // ISO timestamp of the data actually shown (live or cached)
+  cacheAgeMinutes: number | null;
+  unavailableReason: string | null;
+}
+
+const ENDPOINT = 'https://api.energidataservice.dk/dataset/Gasflow?limit=20&sort=GasDay%20DESC';
+const CACHE_KEY = 'biomethane-desk:energinet-gasflow-v1';
+const CACHE_TTL_MS = 60 * 60 * 1000; // 60 minutes — stay well under Energinet's rate limit
+const MAX_DAYS = 14;
+
+interface CachePayload {
+  fetchedAt: string;
+  days: EnerginetDailyBiogas[];
+}
+
+function readCache(): CachePayload | null {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || !Array.isArray(parsed.days) || typeof parsed.fetchedAt !== 'string') return null;
+    return parsed as CachePayload;
+  } catch {
+    return null;
+  }
+}
+
+function writeCache(payload: CachePayload): void {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(payload));
+  } catch {
+    // localStorage unavailable (private browsing, quota, etc.) — fail silently, not fatal.
+  }
+}
+
+function toResult(days: EnerginetDailyBiogas[], fetchedAt: string, source: EnerginetDataSource, cacheAgeMinutes: number | null, unavailableReason: string | null = null): EnerginetBiogasResult {
+  const latest = days[0] || null;
+  return {
+    source,
+    days,
+    latestGwhPerDay: latest ? latest.gwhFromBiogas : null,
+    annualisedRunRateTWh: latest ? (latest.kwhFromBiogas * 365) / 1_000_000_000 : null,
+    fetchedAt: days.length ? fetchedAt : null,
+    cacheAgeMinutes,
+    unavailableReason,
+  };
 }
 
 /**
- * Fetches real open data from Denmark's Energinet Open Data Service.
- * Dataset: Biomethane Injection into the Danish Gas Transmission and Distribution Grid.
+ * Fetches Denmark's daily national biogas/biomethane grid-injection volume (last 14 GasDays),
+ * rate-limited to at most one network call per 60 minutes per browser via a localStorage cache.
  */
-export async function fetchEnerginetBiomethaneInjections(): Promise<EnerginetLiveFlowData> {
-  const endpoint = 'https://api.energidataservice.dk/dataset/Gasflow?limit=50';
-  
+export async function fetchEnerginetDailyBiogas(): Promise<EnerginetBiogasResult> {
+  const cached = readCache();
+  const now = Date.now();
+
+  if (cached) {
+    const cachedAt = new Date(cached.fetchedAt).getTime();
+    if (!Number.isNaN(cachedAt) && now - cachedAt < CACHE_TTL_MS) {
+      const ageMinutes = Math.round((now - cachedAt) / 60000);
+      return toResult(cached.days, cached.fetchedAt, 'CACHED', ageMinutes);
+    }
+  }
+
   try {
-    const res = await fetch(endpoint, {
+    const res = await fetch(ENDPOINT, {
       method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-      },
-      signal: AbortSignal.timeout(3000),
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(6000),
     });
 
     if (!res.ok) {
-      throw new Error(`Energinet API responded with status ${res.status}`);
+      throw new Error(`Energinet Gasflow API responded with status ${res.status}`);
     }
 
     const data = await res.json();
-    const records = data.records || [];
-
+    const records: any[] = Array.isArray(data?.records) ? data.records : [];
     if (records.length === 0) {
-      throw new Error('No records returned from Energinet API');
+      throw new Error('Energinet Gasflow API returned no records');
     }
 
-    let totalVolume = 0;
-    const batches: InjectionBatch[] = [];
+    const days: EnerginetDailyBiogas[] = records
+      .filter(rec => rec && typeof rec.GasDay === 'string' && typeof rec.KWhFromBiogas === 'number')
+      .slice(0, MAX_DAYS)
+      .map(rec => ({
+        gasDay: String(rec.GasDay).slice(0, 10),
+        kwhFromBiogas: Number(rec.KWhFromBiogas),
+        gwhFromBiogas: Number(rec.KWhFromBiogas) / 1_000_000,
+      }));
 
-    records.slice(0, 15).forEach((rec: any, idx: number) => {
-      const volumeMWh = Math.abs(Number(rec.PhysicalFlowMWh || rec.FlowMWh || rec.Value || 1450));
-      totalVolume += volumeMWh;
+    if (days.length === 0) {
+      throw new Error('Energinet Gasflow API returned no usable KWhFromBiogas records');
+    }
 
-      batches.push({
-        id: `ENERGINET-LIVE-${Date.now().toString().slice(-4)}-${idx + 1}`,
-        plantId: rec.PointId || `DK-BIO-${idx + 100}`,
-        plantName: rec.PointName || `Danish Biogas Node #${idx + 1} (${rec.Municipality || 'Jutland'})`,
-        originCountry: 'DK',
-        registryId: 'ENERGINET',
-        injectionPointId: rec.PointId || `DK-TSO-${idx + 1}`,
-        meteringPeriod: {
-          startDate: rec.HourUTC ? `${rec.HourUTC.slice(0, 10)} ${rec.HourUTC.slice(11, 16)} UTC` : `${new Date().toISOString().slice(0, 10)} 14:00 UTC`,
-          endDate: rec.HourUTC ? `${rec.HourUTC.slice(0, 10)} ${rec.HourUTC.slice(11, 16)} UTC` : `${new Date().toISOString().slice(0, 10)} 14:00 UTC`,
-        },
-        volumeMWh: volumeMWh,
-        volumeNm3: Math.round(volumeMWh * 95),
-        grossCalorificValueKwhNm3: 10.5,
-        feedstockCategory: 'Animal Manure & Agri-slurry',
-        feedstockDetails: 'Danish agricultural manure co-digestion (95% RED III GHG saving)',
-        annexClassification: 'IX_A',
-        verifiedCI: -105.4,
-        sustainabilityProofId: `POS-DK-ENERGINET-${idx + 300}`,
-        certificationScheme: 'ISCC EU',
-        udbRegistrationId: `UDB-DK-2026-${idx + 500}`,
-        gridInterconnectionStatus: 'TSO_HIGH_PRESSURE',
-        issuedAt: new Date().toISOString(),
-        status: 'ISSUED',
-      });
-    });
-
-    return {
-      timestamp: new Date().toISOString(),
-      totalDailyInjectionMWh: Math.round(totalVolume),
-      activeInjectionPoints: batches.length,
-      batches,
-      isLiveFeed: true,
-    };
+    const fetchedAt = new Date().toISOString();
+    writeCache({ fetchedAt, days });
+    return toResult(days, fetchedAt, 'LIVE', 0);
   } catch (error) {
-    // Return high-fidelity baseline Danish injection data if network is offline
-    const fallbackTotal = 62450;
-    const nowIso = new Date().toISOString().slice(0, 10);
-    return {
-      timestamp: new Date().toISOString(),
-      totalDailyInjectionMWh: fallbackTotal,
-      activeInjectionPoints: 52,
-      batches: [
-        {
-          id: 'ENERGINET-LIVE-01',
-          plantId: 'DK-BIO-001',
-          plantName: 'Nature Energy Holsted (Jutland)',
-          originCountry: 'DK',
-          registryId: 'ENERGINET',
-          injectionPointId: 'DK-TSO-ELLUND',
-          meteringPeriod: { startDate: `${nowIso} 14:00 UTC`, endDate: `${nowIso} 15:00 UTC` },
-          volumeMWh: 2450,
-          volumeNm3: 232750,
-          grossCalorificValueKwhNm3: 10.5,
-          feedstockCategory: 'Manure & Agricultural Slurry',
-          feedstockDetails: 'Raw liquid manure co-digested with deep litter straw',
-          annexClassification: 'IX_A',
-          verifiedCI: -102.5,
-          sustainabilityProofId: 'POS-DK-ENERGINET-8812',
-          certificationScheme: 'ISCC EU',
-          udbRegistrationId: 'UDB-DK-2026-8812',
-          gridInterconnectionStatus: 'TSO_HIGH_PRESSURE',
-          issuedAt: new Date().toISOString(),
-          status: 'ISSUED',
-        },
-        {
-          id: 'ENERGINET-LIVE-02',
-          plantId: 'DK-BIO-002',
-          plantName: 'Vinkel Bioenergi (Skive)',
-          originCountry: 'DK',
-          registryId: 'ENERGINET',
-          injectionPointId: 'DK-TSO-SKIVE',
-          meteringPeriod: { startDate: `${nowIso} 13:00 UTC`, endDate: `${nowIso} 14:00 UTC` },
-          volumeMWh: 1980,
-          volumeNm3: 188100,
-          grossCalorificValueKwhNm3: 10.5,
-          feedstockCategory: 'Manure & Catch Crops',
-          feedstockDetails: 'Swine slurry with agricultural catch crop residues',
-          annexClassification: 'IX_A',
-          verifiedCI: -94.0,
-          sustainabilityProofId: 'POS-DK-ENERGINET-8813',
-          certificationScheme: 'ISCC EU',
-          udbRegistrationId: 'UDB-DK-2026-8813',
-          gridInterconnectionStatus: 'TSO_HIGH_PRESSURE',
-          issuedAt: new Date().toISOString(),
-          status: 'ISSUED',
-        },
-        {
-          id: 'ENERGINET-LIVE-03',
-          plantId: 'DK-BIO-003',
-          plantName: 'Nature Energy Glansager (Sønderborg)',
-          originCountry: 'DK',
-          registryId: 'ENERGINET',
-          injectionPointId: 'DK-TSO-GLANSAGER',
-          meteringPeriod: { startDate: `${nowIso} 12:00 UTC`, endDate: `${nowIso} 13:00 UTC` },
-          volumeMWh: 3120,
-          volumeNm3: 296400,
-          grossCalorificValueKwhNm3: 10.5,
-          feedstockCategory: 'Manure & Organic Residues',
-          feedstockDetails: 'Bovine and porcine manure with organic food residues',
-          annexClassification: 'IX_A',
-          verifiedCI: -98.2,
-          sustainabilityProofId: 'POS-DK-ENERGINET-8814',
-          certificationScheme: 'ISCC EU',
-          udbRegistrationId: 'UDB-DK-2026-8814',
-          gridInterconnectionStatus: 'TSO_HIGH_PRESSURE',
-          issuedAt: new Date().toISOString(),
-          status: 'ISSUED',
-        },
-      ],
-      isLiveFeed: false,
-    };
+    // Rate-limited (empty body with no CORS header reads as a CORS error in-browser), offline,
+    // or a transient failure. Fall back to whatever we have cached, however stale, and say so.
+    if (cached && cached.days.length > 0) {
+      const cachedAt = new Date(cached.fetchedAt).getTime();
+      const ageMinutes = Number.isNaN(cachedAt) ? null : Math.round((now - cachedAt) / 60000);
+      return toResult(cached.days, cached.fetchedAt, 'CACHED', ageMinutes);
+    }
+    const reason = error instanceof Error ? error.message : 'Unknown error';
+    return toResult([], new Date().toISOString(), 'UNAVAILABLE', null, `Energinet data temporarily unavailable (rate-limited): ${reason}`);
   }
 }

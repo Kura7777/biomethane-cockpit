@@ -1,10 +1,15 @@
 /**
- * Pure domain definitions for European Biomethane Registries, Inter-Registry Transfer Protocols,
- * and Union Database (UDB) Title Transfer Mechanics.
+ * Pure domain definitions for a European Biomethane registry cross-border TRADE SIMULATOR
+ * (synthetic batches/accounts for desk training/testing — not live registry data).
+ * For real, sourced facts about each national registry see `registryDirectory.ts`.
  *
  * Statutory References:
  * - Directive (EU) 2023/2413 (RED III) Article 30 & 31a
- * - Commission Implementing Regulation (EU) 2024/2792 (Union Database Rules)
+ * - Directive (EU) 2018/2001 (RED II) Article 28(2)&(4)
+ * - Commission Implementing Regulation (EU) 2022/996 Article 18 (Union Database data rules)
+ * - The UDB gas module is NOT YET LIVE: launch postponed to end of 2026 (European Biogas Association).
+ *   There is no "escrow" mechanism in any sourced UDB documentation — the real UDB feature is a
+ *   self-declared, monthly-batch "Transfer Gas PoS" reallocation, once the module launches.
  * - German §37a BImSchG / 38. BImSchV (dena Biogasregister)
  * - Dutch Wet milieubeheer / Regeling energie vervoer (VertiCer / NEa REV)
  * - Spanish Real Decreto 376/2022 (Enagás GTS)
@@ -47,7 +52,7 @@ export type UDBTitleTransferStatus =
   | 'NOT_APPLICABLE'
   | 'DRAFT'
   | 'SUBMITTED'
-  | 'ESCROW_LOCKED'
+  | 'PENDING_UDB_LAUNCH' // boundary/protocol checks pass, but the UDB gas module itself is not yet live (see header note)
   | 'TITLE_TRANSFERRED'
   | 'REJECTED_BOUNDARY_VIOLATION'
   | 'REJECTED_DISCREPANCY';
@@ -84,6 +89,7 @@ export interface RegistryMetadata {
   primaryProtocols: CertificateTransferProtocol[];
   hubConnection: string;
   statutoryLegalBasis: string;
+  /** Always false today: the UDB gas module is not live for any registry (launch postponed to end-2026, per EBA). */
   udbDirectIntegration: boolean;
 }
 
@@ -121,7 +127,6 @@ export interface RegistryAccount {
   accountHolderName: string;
   currentBalanceMWh: number;
   availableForExportMWh: number;
-  reservedEscrowMWh: number;
   activeBatchesCount: number;
 }
 
@@ -160,7 +165,6 @@ export interface BalanceOfTradeSummary {
   grossExportMWh: number;
   grossImportMWh: number;
   netTradeBalanceMWh: number; // positive = net exporter, negative = net importer
-  activeEscrowMWh: number;
   totalCancellationsMWh: number;
   tradeRole: TradeRole;
   exportSharePercent: number; // percentage of issuance exported

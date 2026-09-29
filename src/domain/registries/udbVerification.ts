@@ -58,16 +58,18 @@ export const REGISTRY_SUPPORTED_PROTOCOLS: Record<
 };
 
 export const CITATIONS = {
-  RED_III_ART_31A: 'Directive (EU) 2023/2413 (RED III) Article 31a — Union Database for Renewable Fuels',
+  RED_III_ART_31A: 'Directive (EU) 2023/2413 (RED III) Article 31a — Union Database for Renewable Fuels (gas module not yet live; launch postponed to end-2026 per EBA)',
   RED_III_ART_30: 'Directive (EU) 2023/2413 (RED III) Article 30 — Verification of Compliance with Sustainability Criteria',
-  UDB_REG_2024_2792_ART15: 'Commission Implementing Regulation (EU) 2024/2792 Article 15(4) — Single Mass Balance Gas Perimeter & Third-Country Rules',
-  UDB_REG_2024_2792_ART16: 'Commission Implementing Regulation (EU) 2024/2792 Article 16 — Title Transfer & Escrow in the Union Database',
+  UDB_IMPL_REG_2022_996: 'Commission Implementing Regulation (EU) 2022/996 Article 18 — Union Database data rules, alongside RED II Art. 28(2)&(4) and RED III Art. 31a',
+  UDB_NOT_LIVE: 'European Biogas Association, "Your short guide to the Union Database" — UDB gas module launch postponed to end of 2026; not live for economic operators as of this research',
 };
 
 /**
  * Validates whether a cross-border certificate transfer complies with
- * EU RED III Art. 31a, Commission Implementing Regulation (EU) 2024/2792,
- * and inter-registry interoperability agreements.
+ * EU RED III Art. 31a / RED II Art. 28(2)&(4) / Implementing Regulation (EU) 2022/996,
+ * and inter-registry interoperability agreements. NOTE: the UDB gas module is not yet live
+ * (launch postponed to end-2026 per EBA) — this is a desk trade-simulation sandbox, not a
+ * live UDB connection.
  */
 export function verifyRegistryTransfer(
   req: CrossBorderTransferRequest,
@@ -75,7 +77,7 @@ export function verifyRegistryTransfer(
 ): RegistryTransferVerification {
   const blockingReasons: string[] = [];
   const auditNotes: string[] = [];
-  const statutoryCitations: string[] = [CITATIONS.RED_III_ART_31A, CITATIONS.UDB_REG_2024_2792_ART15];
+  const statutoryCitations: string[] = [CITATIONS.RED_III_ART_31A, CITATIONS.UDB_NOT_LIVE];
 
   const isSourceEU = EU_REGISTRY_SET.has(req.sourceRegistry);
   const isTargetEU = EU_REGISTRY_SET.has(req.targetRegistry);
@@ -85,7 +87,7 @@ export function verifyRegistryTransfer(
     auditNotes.push(`Domestic intra-registry transfer within ${req.sourceRegistry}.`);
   }
 
-  // 2. Third-Country / Non-EU Grid Perimeter Enforcement (RED III Art. 31a & Reg 2024/2792 Art. 15(4))
+  // 2. Third-Country / Non-EU Grid Perimeter Enforcement (RED III Art. 31a)
   if (!isSourceEU && isTargetEU) {
     if (req.bilateralTreatyActive) {
       auditNotes.push(
@@ -93,7 +95,7 @@ export function verifyRegistryTransfer(
       );
     } else {
       blockingReasons.push(
-        `Consignment origin gas is injected into a non-EU transmission grid (${req.sourceRegistry}). Under RED III Art. 31a and Commission Implementing Regulation (EU) 2024/2792 Art. 15(4), non-EU grid-injected biomethane cannot participate in EU Union Database mass balance transfers without an enacted bilateral treaty.`
+        `Consignment origin gas is injected into a non-EU transmission grid (${req.sourceRegistry}). Under RED III Art. 31a, non-EU grid-injected biomethane cannot participate in EU Union Database mass balance transfers without an enacted bilateral treaty.`
       );
     }
   }
@@ -150,7 +152,7 @@ export function verifyRegistryTransfer(
       // Check UDB registration
       if (req.udbTitleTransferRequired && !batch.udbRegistrationId && isSourceEU) {
         auditNotes.push(
-          `Batch ${bId} lacks confirmed UDB registration ID. UDB escrow lock requires provisional title recording.`
+          `Batch ${bId} lacks a UDB registration ID. The UDB gas module is not yet live (launch postponed to end-2026 per EBA), so no batch can be formally recorded yet in any case.`
         );
       }
 
@@ -178,10 +180,10 @@ export function verifyRegistryTransfer(
   } else if (blockingReasons.length > 0) {
     udbTitleTransferStatus = 'REJECTED_DISCREPANCY';
   } else if (req.udbTitleTransferRequired) {
-    statutoryCitations.push(CITATIONS.UDB_REG_2024_2792_ART16);
-    udbTitleTransferStatus = 'ESCROW_LOCKED';
+    statutoryCitations.push(CITATIONS.UDB_IMPL_REG_2022_996);
+    udbTitleTransferStatus = 'PENDING_UDB_LAUNCH';
     auditNotes.push(
-      'UDB title transfer escrow lock active per Commission Implementing Regulation (EU) 2024/2792 Art. 16.'
+      'Boundary and protocol checks pass. The UDB gas module is not yet live (launch postponed to end-2026 per EBA) so this batch cannot be formally recorded in the UDB yet; in the meantime, cross-border compliance relies on national registries and ERGaR/AIB routes.'
     );
   } else {
     udbTitleTransferStatus = 'NOT_APPLICABLE';
@@ -206,7 +208,7 @@ export function verifyRegistryTransfer(
  */
 export function advanceTitleTransferStatus(
   current: UDBTitleTransferStatus,
-  action: 'SUBMIT' | 'LOCK_ESCROW' | 'TRANSFER_TITLE' | 'FAIL_BOUNDARY' | 'FAIL_DISCREPANCY' | 'RESET'
+  action: 'SUBMIT' | 'MARK_PENDING_LAUNCH' | 'TRANSFER_TITLE' | 'FAIL_BOUNDARY' | 'FAIL_DISCREPANCY' | 'RESET'
 ): UDBTitleTransferStatus {
   switch (action) {
     case 'RESET':
@@ -217,10 +219,10 @@ export function advanceTitleTransferStatus(
       return 'REJECTED_DISCREPANCY';
     case 'SUBMIT':
       return current === 'DRAFT' ? 'SUBMITTED' : current;
-    case 'LOCK_ESCROW':
-      return current === 'SUBMITTED' || current === 'DRAFT' ? 'ESCROW_LOCKED' : current;
+    case 'MARK_PENDING_LAUNCH':
+      return current === 'SUBMITTED' || current === 'DRAFT' ? 'PENDING_UDB_LAUNCH' : current;
     case 'TRANSFER_TITLE':
-      return current === 'ESCROW_LOCKED' ? 'TITLE_TRANSFERRED' : current;
+      return current === 'PENDING_UDB_LAUNCH' ? 'TITLE_TRANSFERRED' : current;
     default:
       return current;
   }

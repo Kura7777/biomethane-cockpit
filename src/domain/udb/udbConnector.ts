@@ -12,10 +12,10 @@ export const EU_INTERCONNECTED_GAS_GRID_COUNTRIES: ReadonlySet<string> = new Set
 ]);
 
 export const STATUTORY_UDB_CITATIONS = {
-  RED_III_ART_31A: 'Directive (EU) 2023/2413 (RED III) Article 31a — Union Database for Renewable Fuels',
+  RED_III_ART_31A: 'Directive (EU) 2023/2413 (RED III) Article 31a — Union Database for Renewable Fuels (statutory deadline 21 Nov 2024; gas module launch postponed to end-2026 per EBA)',
   RED_III_ART_30: 'Directive (EU) 2023/2413 (RED III) Article 30 — Verification of Compliance with Sustainability Criteria',
-  UDB_REG_2024_2792_ART15: 'Commission Implementing Regulation (EU) 2024/2792 Article 15(4) — Single Mass Balance Gas Transmission Grid Perimeter',
-  UDB_REG_2024_2792_ART16: 'Commission Implementing Regulation (EU) 2024/2792 Article 16 — Title Transfer & Escrow in the Union Database',
+  UDB_IMPL_REG_2022_996: 'Commission Implementing Regulation (EU) 2022/996 Article 18 — Union Database rules referenced by the UDB FAQ (RedCert), alongside RED II Art. 28(2)&(4) and RED III Art. 31a',
+  UDB_NOT_LIVE: 'European Biogas Association, "Your short guide to the Union Database" — UDB gas module launch postponed to end of 2026; not live for economic operators as of this research',
 };
 
 /**
@@ -130,7 +130,7 @@ export function verifyAndMintUdbPoS(
   const auditNotes: string[] = [];
   const statutoryCitations: string[] = [
     STATUTORY_UDB_CITATIONS.RED_III_ART_31A,
-    STATUTORY_UDB_CITATIONS.UDB_REG_2024_2792_ART15,
+    STATUTORY_UDB_CITATIONS.UDB_NOT_LIVE,
   ];
 
   // 1. Economic Operator Registration Validation
@@ -166,7 +166,7 @@ export function verifyAndMintUdbPoS(
   if (isGbInjection && isTargetEUMarket) {
     if (!req.bilateralTreatyActive) {
       blockingReasons.push(
-        `Physical Grid Boundary Invariant Violation: Consignment gas is injected into the Great Britain (GB) transmission grid. Under RED III Article 31a and Commission Implementing Regulation (EU) 2024/2792 Article 15(4), non-EU grid-injected biomethane cannot clear EU Union Database mass balance into EU compliance destinations without an enacted bilateral treaty.`
+        `Physical Grid Boundary Invariant Violation: Consignment gas is injected into the Great Britain (GB) transmission grid. The Union Database traces gas injected into the single interconnected EU gas transmission and distribution system (RED III Article 31a); non-EU grid-injected biomethane cannot clear into EU compliance destinations without an enacted bilateral treaty.`
       );
     } else {
       auditNotes.push(
@@ -177,7 +177,7 @@ export function verifyAndMintUdbPoS(
 
   if (!isOriginEU && isTargetEUMarket && !isGbInjection && !req.bilateralTreatyActive) {
     blockingReasons.push(
-      `Origin country ${req.originCountry} is outside the single interconnected European gas transmission perimeter (Reg 2024/2792 Art. 15(4)).`
+      `Origin country ${req.originCountry} is outside the single interconnected European gas transmission perimeter (RED III Art. 31a).`
     );
   }
 
@@ -224,9 +224,9 @@ export function verifyAndMintUdbPoS(
   const isValid = verificationStatus === 'VERIFIED_COMPLIANT';
 
   if (isValid) {
-    statutoryCitations.push(STATUTORY_UDB_CITATIONS.UDB_REG_2024_2792_ART16);
+    statutoryCitations.push(STATUTORY_UDB_CITATIONS.UDB_IMPL_REG_2022_996);
     auditNotes.push(
-      `UDB Article 31a mass-balance verified. Title locked in escrow with SHA-256 seal [${sha256ProofHash.slice(0, 12)}...].`
+      `Boundary and GHG threshold rules pass under RED III Article 31a. The UDB gas module itself is not yet live (launch postponed to end-2026 per EBA); this consignment would be recordable once it launches, hashed and sealed for audit with SHA-256 [${sha256ProofHash.slice(0, 12)}...].`
     );
   }
 
@@ -234,7 +234,7 @@ export function verifyAndMintUdbPoS(
     posId,
     dealId: req.dealId,
     verificationStatus,
-    escrowStatus: isValid ? 'ESCROW_LOCKED' : 'BLOCKED',
+    udbStatus: isValid ? 'PENDING_UDB_LAUNCH' : 'BLOCKED',
     sha256ProofHash,
     canonicalPayload,
     mintedAt: new Date().toISOString(),

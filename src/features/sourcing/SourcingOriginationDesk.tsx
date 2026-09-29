@@ -2419,7 +2419,7 @@ export function SourcingOriginationDesk() {
           </div>
         </div>
         <span style={{ marginLeft: 'auto', fontSize: '12px', whiteSpace: 'nowrap' }} className="mut">
-          RED III Art. 28(2) · Reg. (EU) 2024/2792
+          RED III Art. 28(2) · Art. 31a (UDB not live)
         </span>
       </div>
       {/* 360 Sourcing Drawer */}

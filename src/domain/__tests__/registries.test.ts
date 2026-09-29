@@ -17,10 +17,8 @@ import {
   InjectionBatch,
   RegistryId,
   parseRegistryFile,
-  fetchEnerginetBiomethaneInjections,
-  fetchOdreBiomethaneInjections,
-  fetchEntsogCrossBorderFlows,
-  fetchPanEuropeanTsoTelemetry,
+  fetchEnerginetDailyBiogas,
+  fetchOdreAnnualProduction,
 } from '../registries';
 
 describe('European Registry Domain & Pan-European 22-Country Baseline Datasets', () => {
@@ -78,7 +76,6 @@ describe('European Registry Domain & Pan-European 22-Country Baseline Datasets',
     for (const id of expectedEURegistries) {
       expect(EU_REGISTRY_SET.has(id)).toBe(true);
       expect(REGISTRY_METADATA_TABLE[id].isEUSingleArea).toBe(true);
-      expect(REGISTRY_METADATA_TABLE[id].udbDirectIntegration).toBe(true);
     }
 
     // 3 Non-EU / Third-country Registries
@@ -86,6 +83,11 @@ describe('European Registry Domain & Pan-European 22-Country Baseline Datasets',
     for (const id of nonEURegistries) {
       expect(EU_REGISTRY_SET.has(id)).toBe(false);
       expect(REGISTRY_METADATA_TABLE[id].isEUSingleArea).toBe(false);
+    }
+  });
+
+  it('no registry claims UDB direct integration — the UDB gas module is not live for anyone (launch postponed to end-2026, EBA)', () => {
+    for (const id of all22RegistryIds) {
       expect(REGISTRY_METADATA_TABLE[id].udbDirectIntegration).toBe(false);
     }
   });
@@ -222,45 +224,32 @@ describe('Registry Connectors & Adapter Implementations (22 Registries)', () => 
   });
 });
 
-describe('Live Flow Monitoring & Multi-TSO API Telemetry', () => {
-  it('fetches Energinet biomethane injection telemetry with fallback', async () => {
-    const result = await fetchEnerginetBiomethaneInjections();
+describe('Live data: Energinet (Denmark, daily national aggregate) & ODRE (France, annual per-site)', () => {
+  it('fetches Energinet daily national biogas injection, or reports it honestly as unavailable', async () => {
+    const result = await fetchEnerginetDailyBiogas();
     expect(result).toBeDefined();
-    expect(result.totalDailyInjectionMWh).toBeGreaterThan(0);
-    expect(result.activeInjectionPoints).toBeGreaterThan(0);
-    expect(result.batches.length).toBeGreaterThan(0);
-    expect(typeof result.isLiveFeed).toBe('boolean');
+    expect(['LIVE', 'CACHED', 'UNAVAILABLE']).toContain(result.source);
+    if (result.source === 'UNAVAILABLE') {
+      expect(result.unavailableReason).toBeTruthy();
+      expect(result.days.length).toBe(0);
+    } else {
+      expect(result.days.length).toBeGreaterThan(0);
+      expect(result.days[0].gwhFromBiogas).toBeGreaterThan(0);
+      expect(result.latestGwhPerDay).toBeGreaterThan(0);
+    }
   });
 
-  it('fetches ODRE France biomethane injection telemetry with fallback', async () => {
-    const result = await fetchOdreBiomethaneInjections();
+  it('fetches ODRE France annual per-site production, or reports it honestly as unavailable', async () => {
+    const result = await fetchOdreAnnualProduction();
     expect(result).toBeDefined();
-    expect(result.totalCapacityNm3h).toBeGreaterThan(0);
-    expect(result.totalCapacityMWhDay).toBeGreaterThan(0);
-    expect(result.points.length).toBeGreaterThan(0);
-    expect(result.points[0].countryCode).toBe('FR');
-  });
-
-  it('fetches ENTSOG cross-border interconnection physical flows', async () => {
-    const points = await fetchEntsogCrossBorderFlows();
-    expect(points.length).toBeGreaterThanOrEqual(5);
-
-    const ellund = points.find(p => p.nodeName.includes('Ellund'));
-    expect(ellund).toBeDefined();
-    expect(ellund?.gridType).toBe('CROSS_BORDER_IP');
-    expect(ellund?.flowRateMWhPerHour).toBeGreaterThan(0);
-  });
-
-  it('aggregates Pan-European Multi-TSO telemetry into unified metrics bundle', async () => {
-    const telemetry = await fetchPanEuropeanTsoTelemetry();
-    expect(telemetry).toBeDefined();
-    expect(telemetry.totalDailyFlowMWh).toBeGreaterThan(10000);
-    expect(telemetry.currentFlowVelocityMWhHour).toBeGreaterThan(1000);
-    expect(telemetry.currentFlowVelocityNm3Hour).toBeGreaterThan(50000);
-    expect(telemetry.connectedTsoCount).toBeGreaterThanOrEqual(6);
-    expect(telemetry.feeds.length).toBeGreaterThanOrEqual(6);
-    expect(telemetry.points.length).toBeGreaterThanOrEqual(10);
-    expect(telemetry.averageLatencyMs).toBeGreaterThan(0);
+    expect(['LIVE', 'CACHED', 'UNAVAILABLE']).toContain(result.source);
+    if (result.source === 'UNAVAILABLE') {
+      expect(result.unavailableReason).toBeTruthy();
+    } else {
+      expect(result.siteCount).toBeGreaterThan(0);
+      expect(result.points[0].countryCode).toBe('FR');
+      expect(result.points[0].isLive).toBe(false); // published annual data, never labelled live
+    }
   });
 });
 
@@ -286,7 +275,7 @@ describe('Deterministic UDB Verification & Cross-Border Rules', () => {
     const verification = verifyRegistryTransfer(req, sourceBatches);
     expect(verification.isCompatible).toBe(true);
     expect(verification.blockingReasons).toHaveLength(0);
-    expect(verification.udbTitleTransferStatus).toBe('ESCROW_LOCKED');
+    expect(verification.udbTitleTransferStatus).toBe('PENDING_UDB_LAUNCH');
     expect(verification.statutoryCitations.length).toBeGreaterThan(0);
   });
 
@@ -383,8 +372,8 @@ describe('Deterministic UDB Verification & Cross-Border Rules', () => {
     let state = advanceTitleTransferStatus('DRAFT', 'SUBMIT');
     expect(state).toBe('SUBMITTED');
 
-    state = advanceTitleTransferStatus(state, 'LOCK_ESCROW');
-    expect(state).toBe('ESCROW_LOCKED');
+    state = advanceTitleTransferStatus(state, 'MARK_PENDING_LAUNCH');
+    expect(state).toBe('PENDING_UDB_LAUNCH');
 
     state = advanceTitleTransferStatus(state, 'TRANSFER_TITLE');
     expect(state).toBe('TITLE_TRANSFERRED');

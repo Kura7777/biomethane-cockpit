@@ -40,9 +40,9 @@ describe('EU Union Database (UDB) Sandbox Connector & PoS Verification', () => {
     expect(res.status).toBe('VERIFIED_COMPLIANT');
     expect(res.posCertificate).toBeDefined();
     expect(res.posCertificate?.sha256ProofHash).toHaveLength(64);
-    expect(res.posCertificate?.escrowStatus).toBe('ESCROW_LOCKED');
+    expect(res.posCertificate?.udbStatus).toBe('PENDING_UDB_LAUNCH');
     expect(res.statutoryCitations).toContain(STATUTORY_UDB_CITATIONS.RED_III_ART_31A);
-    expect(res.statutoryCitations).toContain(STATUTORY_UDB_CITATIONS.UDB_REG_2024_2792_ART15);
+    expect(res.statutoryCitations).toContain(STATUTORY_UDB_CITATIONS.UDB_NOT_LIVE);
 
     // Cryptographic authentication test
     const auth = verifyExistingPoSCertificate(res.posCertificate!);
@@ -72,7 +72,7 @@ describe('EU Union Database (UDB) Sandbox Connector & PoS Verification', () => {
 
     expect(res.isValid).toBe(false);
     expect(res.status).toBe('REJECTED_BOUNDARY_VIOLATION');
-    expect(res.posCertificate?.escrowStatus).toBe('BLOCKED');
+    expect(res.posCertificate?.udbStatus).toBe('BLOCKED');
     expect(res.blockingReasons.some(r => r.includes('Great Britain (GB) transmission grid'))).toBe(true);
   });
 

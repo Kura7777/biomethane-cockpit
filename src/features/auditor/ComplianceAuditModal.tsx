@@ -562,7 +562,7 @@ ${auditResult.recommendations.map(r => `• ${r}`).join('\n')}`.trim();
                       ? 'All statutory gates cleared. Consignment satisfies RED III mass balance, GHG savings, and target market requirements.'
                       : auditResult.verdict === 'REJECTED'
                       ? 'Hard regulatory block. This transaction cannot clear statutory surrender in the target compliance registry.'
-                      : 'Conditional pass. Transaction is subject to statutory price caps or specific registry escrow conditions.'}
+                      : 'Conditional pass. Transaction is subject to statutory price caps or specific registry recording conditions.'}
                   </div>
                 </div>
               ) : isLoading ? (

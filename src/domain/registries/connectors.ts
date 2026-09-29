@@ -84,7 +84,6 @@ export class BaseRegistryConnectorAdapter implements IRegistryConnector {
           grossExportMWh: 0,
           grossImportMWh: 0,
           netTradeBalanceMWh: 0,
-          activeEscrowMWh: 0,
           totalCancellationsMWh: 0,
           tradeRole: 'BALANCED_DOMESTIC',
           exportSharePercent: 0,

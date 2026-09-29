@@ -5,10 +5,17 @@ export type UdbVerificationStatus =
   | 'REJECTED_HASH_MISMATCH'
   | 'PENDING_REGISTRATION';
 
-export type UdbEscrowStatus =
+/**
+ * The UDB gas module is not yet live (launch postponed to end-2026, per EBA).
+ * There is no "escrow" or "title transfer" concept in the sourced UDB documentation;
+ * the real UDB mechanism is a self-declared, monthly-batch Proof of Sustainability (PoS)
+ * record with a "Transfer Gas PoS" reallocation feature. This status reflects that reality:
+ * a boundary-compliant consignment is only PENDING_UDB_LAUNCH (i.e. would be recordable once
+ * the module goes live), not "locked in escrow".
+ */
+export type UdbRecordingStatus =
   | 'DRAFT'
-  | 'ESCROW_LOCKED'
-  | 'TITLE_TRANSFERRED'
+  | 'PENDING_UDB_LAUNCH'
   | 'CANCELLED'
   | 'BLOCKED';
 
@@ -44,7 +51,7 @@ export interface ProofOfSustainabilityCertificate {
   posId: string;
   dealId: string;
   verificationStatus: UdbVerificationStatus;
-  escrowStatus: UdbEscrowStatus;
+  udbStatus: UdbRecordingStatus;
   sha256ProofHash: string;
   canonicalPayload: string;
   mintedAt: string;

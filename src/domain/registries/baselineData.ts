@@ -18,7 +18,7 @@ export const REGISTRY_METADATA_TABLE: Record<RegistryId, RegistryMetadata> = {
     primaryProtocols: ['ERGAR_COO', 'UDB_DIRECT_TRANSFER', 'AIB_EECS_GAS'],
     hubConnection: 'Trading Hub Europe (THE)',
     statutoryLegalBasis: '§37a BImSchG / 38. BImSchV & Biokraft-NachV',
-    udbDirectIntegration: true,
+    udbDirectIntegration: false,
   },
   VERTICER: {
     id: 'VERTICER',
@@ -30,7 +30,7 @@ export const REGISTRY_METADATA_TABLE: Record<RegistryId, RegistryMetadata> = {
     primaryProtocols: ['ERGAR_COO', 'UDB_DIRECT_TRANSFER', 'AIB_EECS_GAS'],
     hubConnection: 'Title Transfer Facility (TTF)',
     statutoryLegalBasis: 'Wet milieubeheer / Regeling energie vervoer (ERE)',
-    udbDirectIntegration: true,
+    udbDirectIntegration: false,
   },
   ENERGINET: {
     id: 'ENERGINET',
@@ -42,7 +42,7 @@ export const REGISTRY_METADATA_TABLE: Record<RegistryId, RegistryMetadata> = {
     primaryProtocols: ['ERGAR_COO', 'AIB_EECS_GAS', 'UDB_DIRECT_TRANSFER'],
     hubConnection: 'Danish Gas System / Ellund & Dragør IPs',
     statutoryLegalBasis: 'Danish Natural Gas Supply Act & VE-Direktiv',
-    udbDirectIntegration: true,
+    udbDirectIntegration: false,
   },
   ENAGAS: {
     id: 'ENAGAS',
@@ -54,7 +54,7 @@ export const REGISTRY_METADATA_TABLE: Record<RegistryId, RegistryMetadata> = {
     primaryProtocols: ['ERGAR_COO', 'AIB_EECS_GAS', 'UDB_DIRECT_TRANSFER'],
     hubConnection: 'Punto Virtual de Balance (PVB)',
     statutoryLegalBasis: 'Real Decreto 376/2022 & Circular 1/2022 CNMC',
-    udbDirectIntegration: true,
+    udbDirectIntegration: false,
   },
   GSE: {
     id: 'GSE',
@@ -66,7 +66,7 @@ export const REGISTRY_METADATA_TABLE: Record<RegistryId, RegistryMetadata> = {
     primaryProtocols: ['AIB_EECS_GAS', 'UDB_DIRECT_TRANSFER', 'BILATERAL_RECOGNITION'],
     hubConnection: 'Punto di Scambio Virtuale (PSV)',
     statutoryLegalBasis: 'D.M. 02/03/2018 & PNRR D.M. 15/09/2022',
-    udbDirectIntegration: true,
+    udbDirectIntegration: false,
   },
   EEX: {
     id: 'EEX',
@@ -78,7 +78,7 @@ export const REGISTRY_METADATA_TABLE: Record<RegistryId, RegistryMetadata> = {
     primaryProtocols: ['ERGAR_COO', 'UDB_DIRECT_TRANSFER'],
     hubConnection: 'Point d’Échange de Gaz (PEG)',
     statutoryLegalBasis: 'Code de l’énergie Art. L.446-24 / TIRUERT',
-    udbDirectIntegration: true,
+    udbDirectIntegration: false,
   },
   AGCS: {
     id: 'AGCS',
@@ -90,7 +90,7 @@ export const REGISTRY_METADATA_TABLE: Record<RegistryId, RegistryMetadata> = {
     primaryProtocols: ['ERGAR_COO', 'AIB_EECS_GAS', 'UDB_DIRECT_TRANSFER'],
     hubConnection: 'Central European Gas Hub (CEGH)',
     statutoryLegalBasis: 'Erneuerbaren-Ausbau-Gesetz (EAG)',
-    udbDirectIntegration: true,
+    udbDirectIntegration: false,
   },
   GGCS_UK: {
     id: 'GGCS_UK',
@@ -114,7 +114,7 @@ export const REGISTRY_METADATA_TABLE: Record<RegistryId, RegistryMetadata> = {
     primaryProtocols: ['ERGAR_COO', 'AIB_EECS_GAS', 'UDB_DIRECT_TRANSFER'],
     hubConnection: 'Zeebrugge Trading Point (ZTP)',
     statutoryLegalBasis: 'Energiedecreet & Décret wallon relatif à l’organisation du marché du gaz',
-    udbDirectIntegration: true,
+    udbDirectIntegration: false,
   },
   ENERGISVERIGE_SE: {
     id: 'ENERGISVERIGE_SE',
@@ -126,7 +126,7 @@ export const REGISTRY_METADATA_TABLE: Record<RegistryId, RegistryMetadata> = {
     primaryProtocols: ['ERGAR_COO', 'AIB_EECS_GAS', 'UDB_DIRECT_TRANSFER'],
     hubConnection: 'Swedish Gas Network (Västgas)',
     statutoryLegalBasis: 'Lag (1994:1776) om skatt på energi / HBG System',
-    udbDirectIntegration: true,
+    udbDirectIntegration: false,
   },
   PRONOVO_CH: {
     id: 'PRONOVO_CH',
@@ -150,7 +150,7 @@ export const REGISTRY_METADATA_TABLE: Record<RegistryId, RegistryMetadata> = {
     primaryProtocols: ['ERGAR_COO', 'AIB_EECS_GAS', 'UDB_DIRECT_TRANSFER'],
     hubConnection: 'Finnish Gas Hub (Balticconnector)',
     statutoryLegalBasis: 'Jakeluvelvoitelaki (446/2007) & Laki biopolttoaineista (393/2013)',
-    udbDirectIntegration: true,
+    udbDirectIntegration: false,
   },
   GASSCO_NO: {
     id: 'GASSCO_NO',
@@ -174,7 +174,7 @@ export const REGISTRY_METADATA_TABLE: Record<RegistryId, RegistryMetadata> = {
     primaryProtocols: ['ERGAR_COO', 'AIB_EECS_GAS', 'UDB_DIRECT_TRANSFER'],
     hubConnection: 'Polish Power Exchange (TGE / Gas Hub)',
     statutoryLegalBasis: 'Ustawa o odnawialnych źródłach energii (Dz.U. 2023 poz. 1436)',
-    udbDirectIntegration: true,
+    udbDirectIntegration: false,
   },
   OTE_CZ: {
     id: 'OTE_CZ',
@@ -186,7 +186,7 @@ export const REGISTRY_METADATA_TABLE: Record<RegistryId, RegistryMetadata> = {
     primaryProtocols: ['ERGAR_COO', 'AIB_EECS_GAS', 'UDB_DIRECT_TRANSFER'],
     hubConnection: 'Czech Gas Hub (OTE Virtual Point)',
     statutoryLegalBasis: 'Zákon č. 165/2012 Sb., o podporovaných zdrojích energie',
-    udbDirectIntegration: true,
+    udbDirectIntegration: false,
   },
   REN_PT: {
     id: 'REN_PT',
@@ -198,7 +198,7 @@ export const REGISTRY_METADATA_TABLE: Record<RegistryId, RegistryMetadata> = {
     primaryProtocols: ['ERGAR_COO', 'AIB_EECS_GAS', 'UDB_DIRECT_TRANSFER'],
     hubConnection: 'MIBGAS PT (Mercado Ibérico de Gás)',
     statutoryLegalBasis: 'Decreto-Lei n.º 84/2022 & Regulamento n.º 849/2022 ERSE',
-    udbDirectIntegration: true,
+    udbDirectIntegration: false,
   },
   GNI_IE: {
     id: 'GNI_IE',
@@ -210,7 +210,7 @@ export const REGISTRY_METADATA_TABLE: Record<RegistryId, RegistryMetadata> = {
     primaryProtocols: ['ERGAR_COO', 'AIB_EECS_GAS', 'UDB_DIRECT_TRANSFER'],
     hubConnection: 'Irish Balancing Point (IBP)',
     statutoryLegalBasis: 'National Oil Reserves Agency Act 2007 (Part 5A) & Renewable Transport Fuel Obligation',
-    udbDirectIntegration: true,
+    udbDirectIntegration: false,
   },
   MEKH_HU: {
     id: 'MEKH_HU',
@@ -222,7 +222,7 @@ export const REGISTRY_METADATA_TABLE: Record<RegistryId, RegistryMetadata> = {
     primaryProtocols: ['ERGAR_COO', 'AIB_EECS_GAS', 'UDB_DIRECT_TRANSFER'],
     hubConnection: 'Central Eastern European Gas Exchange (CEEGEX)',
     statutoryLegalBasis: '2007. évi LXXXVI. törvény a földgázellátásról (GET)',
-    udbDirectIntegration: true,
+    udbDirectIntegration: false,
   },
   ELERING_EE: {
     id: 'ELERING_EE',
@@ -234,7 +234,7 @@ export const REGISTRY_METADATA_TABLE: Record<RegistryId, RegistryMetadata> = {
     primaryProtocols: ['ERGAR_COO', 'AIB_EECS_GAS', 'UDB_DIRECT_TRANSFER'],
     hubConnection: 'Baltic Gas Hub (Estonia-Latvia Interconnection)',
     statutoryLegalBasis: 'Vedelkütuse seadus § 2¹ & Maagaasiseadus',
-    udbDirectIntegration: true,
+    udbDirectIntegration: false,
   },
   CONEXUS_LV: {
     id: 'CONEXUS_LV',
@@ -246,7 +246,7 @@ export const REGISTRY_METADATA_TABLE: Record<RegistryId, RegistryMetadata> = {
     primaryProtocols: ['ERGAR_COO', 'AIB_EECS_GAS', 'UDB_DIRECT_TRANSFER'],
     hubConnection: 'Inčukalns Underground Gas Storage / Baltic Hub',
     statutoryLegalBasis: 'Enerģētikas likums 42. pants & Ministru kabineta noteikumi',
-    udbDirectIntegration: true,
+    udbDirectIntegration: false,
   },
   AMBERGRID_LT: {
     id: 'AMBERGRID_LT',
@@ -258,7 +258,7 @@ export const REGISTRY_METADATA_TABLE: Record<RegistryId, RegistryMetadata> = {
     primaryProtocols: ['ERGAR_COO', 'AIB_EECS_GAS', 'UDB_DIRECT_TRANSFER'],
     hubConnection: 'Lithuanian Gas Hub (GIPL / Klaipėda)',
     statutoryLegalBasis: 'Lietuvos Respublikos atsinaujinančių išteklių energetikos įstatymas',
-    udbDirectIntegration: true,
+    udbDirectIntegration: false,
   },
   OKTE_SK: {
     id: 'OKTE_SK',
@@ -270,7 +270,7 @@ export const REGISTRY_METADATA_TABLE: Record<RegistryId, RegistryMetadata> = {
     primaryProtocols: ['ERGAR_COO', 'AIB_EECS_GAS', 'UDB_DIRECT_TRANSFER'],
     hubConnection: 'Slovakian Gas Hub (Baumgarten Entry / Veľké Kapušany)',
     statutoryLegalBasis: 'Zákon č. 309/2009 Z. z. o podpore obnoviteľných zdrojov energie',
-    udbDirectIntegration: true,
+    udbDirectIntegration: false,
   },
 };
 
@@ -923,7 +923,6 @@ export const BASELINE_ACCOUNTS: RegistryAccount[] = [
     accountHolderName: 'Continental Gas Desk GmbH',
     currentBalanceMWh: 125000,
     availableForExportMWh: 35000,
-    reservedEscrowMWh: 12000,
     activeBatchesCount: 2,
   },
   {
@@ -934,7 +933,6 @@ export const BASELINE_ACCOUNTS: RegistryAccount[] = [
     accountHolderName: 'Nordic Renewable Commodities A/S',
     currentBalanceMWh: 210000,
     availableForExportMWh: 175000,
-    reservedEscrowMWh: 25000,
     activeBatchesCount: 3,
   },
   {
@@ -945,7 +943,6 @@ export const BASELINE_ACCOUNTS: RegistryAccount[] = [
     accountHolderName: 'Low Carbon Commodities B.V.',
     currentBalanceMWh: 83000,
     availableForExportMWh: 18000,
-    reservedEscrowMWh: 8500,
     activeBatchesCount: 2,
   },
   {
@@ -956,7 +953,6 @@ export const BASELINE_ACCOUNTS: RegistryAccount[] = [
     accountHolderName: 'Iberian Renewable Gas Trading S.L.',
     currentBalanceMWh: 58000,
     availableForExportMWh: 45000,
-    reservedEscrowMWh: 6000,
     activeBatchesCount: 1,
   },
   {
@@ -967,7 +963,6 @@ export const BASELINE_ACCOUNTS: RegistryAccount[] = [
     accountHolderName: 'Trans-Alpine Gas Desk S.r.l.',
     currentBalanceMWh: 93000,
     availableForExportMWh: 40000,
-    reservedEscrowMWh: 15000,
     activeBatchesCount: 1,
   },
   {
@@ -978,7 +973,6 @@ export const BASELINE_ACCOUNTS: RegistryAccount[] = [
     accountHolderName: 'Hexagone Biométhane SAS',
     currentBalanceMWh: 58000,
     availableForExportMWh: 12000,
-    reservedEscrowMWh: 4000,
     activeBatchesCount: 1,
   },
   {
@@ -989,7 +983,6 @@ export const BASELINE_ACCOUNTS: RegistryAccount[] = [
     accountHolderName: 'Alps-Danube Energy Trading GmbH',
     currentBalanceMWh: 34000,
     availableForExportMWh: 14000,
-    reservedEscrowMWh: 3000,
     activeBatchesCount: 1,
   },
   {
@@ -1000,7 +993,6 @@ export const BASELINE_ACCOUNTS: RegistryAccount[] = [
     accountHolderName: 'UK Renewable Fuels Desk Ltd',
     currentBalanceMWh: 57000,
     availableForExportMWh: 57000,
-    reservedEscrowMWh: 0,
     activeBatchesCount: 2,
   },
   {
@@ -1011,7 +1003,6 @@ export const BASELINE_ACCOUNTS: RegistryAccount[] = [
     accountHolderName: 'Belgian Green Gas Trader NV',
     currentBalanceMWh: 32000,
     availableForExportMWh: 12000,
-    reservedEscrowMWh: 2500,
     activeBatchesCount: 1,
   },
   {
@@ -1022,7 +1013,6 @@ export const BASELINE_ACCOUNTS: RegistryAccount[] = [
     accountHolderName: 'Scandic Biogas Trading AB',
     currentBalanceMWh: 45000,
     availableForExportMWh: 22000,
-    reservedEscrowMWh: 4000,
     activeBatchesCount: 1,
   },
   {
@@ -1033,7 +1023,6 @@ export const BASELINE_ACCOUNTS: RegistryAccount[] = [
     accountHolderName: 'Helvetia Renewable Gas AG',
     currentBalanceMWh: 18000,
     availableForExportMWh: 0,
-    reservedEscrowMWh: 0,
     activeBatchesCount: 1,
   },
   {
@@ -1044,7 +1033,6 @@ export const BASELINE_ACCOUNTS: RegistryAccount[] = [
     accountHolderName: 'Fennoscandia Biomethane Oy',
     currentBalanceMWh: 24000,
     availableForExportMWh: 14000,
-    reservedEscrowMWh: 2000,
     activeBatchesCount: 1,
   },
   {
@@ -1055,7 +1043,6 @@ export const BASELINE_ACCOUNTS: RegistryAccount[] = [
     accountHolderName: 'Norsk Biogass Trading AS',
     currentBalanceMWh: 14000,
     availableForExportMWh: 0,
-    reservedEscrowMWh: 0,
     activeBatchesCount: 1,
   },
   {
@@ -1066,7 +1053,6 @@ export const BASELINE_ACCOUNTS: RegistryAccount[] = [
     accountHolderName: 'Polski Biometan Sp. z o.o.',
     currentBalanceMWh: 38000,
     availableForExportMWh: 22000,
-    reservedEscrowMWh: 3500,
     activeBatchesCount: 1,
   },
   {
@@ -1077,7 +1063,6 @@ export const BASELINE_ACCOUNTS: RegistryAccount[] = [
     accountHolderName: 'Bohemia Green Gas s.r.o.',
     currentBalanceMWh: 26000,
     availableForExportMWh: 12000,
-    reservedEscrowMWh: 2000,
     activeBatchesCount: 1,
   },
   {
@@ -1088,7 +1073,6 @@ export const BASELINE_ACCOUNTS: RegistryAccount[] = [
     accountHolderName: 'Lusitânia Biogás Trading Lda',
     currentBalanceMWh: 16000,
     availableForExportMWh: 9000,
-    reservedEscrowMWh: 1500,
     activeBatchesCount: 1,
   },
   {
@@ -1099,7 +1083,6 @@ export const BASELINE_ACCOUNTS: RegistryAccount[] = [
     accountHolderName: 'Celtic Green Gas Trading Ltd',
     currentBalanceMWh: 19000,
     availableForExportMWh: 6000,
-    reservedEscrowMWh: 1000,
     activeBatchesCount: 1,
   },
   {
@@ -1110,7 +1093,6 @@ export const BASELINE_ACCOUNTS: RegistryAccount[] = [
     accountHolderName: 'Danubian Biomethane Kft.',
     currentBalanceMWh: 17000,
     availableForExportMWh: 8000,
-    reservedEscrowMWh: 1200,
     activeBatchesCount: 1,
   },
   {
@@ -1121,7 +1103,6 @@ export const BASELINE_ACCOUNTS: RegistryAccount[] = [
     accountHolderName: 'Baltic Biomethane OÜ',
     currentBalanceMWh: 12000,
     availableForExportMWh: 7500,
-    reservedEscrowMWh: 1000,
     activeBatchesCount: 1,
   },
   {
@@ -1132,7 +1113,6 @@ export const BASELINE_ACCOUNTS: RegistryAccount[] = [
     accountHolderName: 'Latvija Bio-Trading SIA',
     currentBalanceMWh: 9500,
     availableForExportMWh: 5000,
-    reservedEscrowMWh: 800,
     activeBatchesCount: 1,
   },
   {
@@ -1143,7 +1123,6 @@ export const BASELINE_ACCOUNTS: RegistryAccount[] = [
     accountHolderName: 'Lietuva Green Gas UAB',
     currentBalanceMWh: 14000,
     availableForExportMWh: 8000,
-    reservedEscrowMWh: 1200,
     activeBatchesCount: 1,
   },
   {
@@ -1154,7 +1133,6 @@ export const BASELINE_ACCOUNTS: RegistryAccount[] = [
     accountHolderName: 'Slovakia Biogas Trading s.r.o.',
     currentBalanceMWh: 11000,
     availableForExportMWh: 5500,
-    reservedEscrowMWh: 900,
     activeBatchesCount: 1,
   },
 ];
@@ -1169,7 +1147,6 @@ export const BASELINE_BALANCE_OF_TRADE: BalanceOfTradeSummary[] = [
     grossExportMWh: 5600000,
     grossImportMWh: 0,
     netTradeBalanceMWh: 5600000,
-    activeEscrowMWh: 240000,
     totalCancellationsMWh: 1200000,
     tradeRole: 'NET_EXPORTER',
     exportSharePercent: 82.35,
@@ -1183,7 +1160,6 @@ export const BASELINE_BALANCE_OF_TRADE: BalanceOfTradeSummary[] = [
     grossExportMWh: 600000,
     grossImportMWh: 3400000,
     netTradeBalanceMWh: -2800000,
-    activeEscrowMWh: 450000,
     totalCancellationsMWh: 14600000,
     tradeRole: 'NET_IMPORTER',
     exportSharePercent: 5.08,
@@ -1197,7 +1173,6 @@ export const BASELINE_BALANCE_OF_TRADE: BalanceOfTradeSummary[] = [
     grossExportMWh: 300000,
     grossImportMWh: 1600000,
     netTradeBalanceMWh: -1300000,
-    activeEscrowMWh: 120000,
     totalCancellationsMWh: 4500000,
     tradeRole: 'NET_IMPORTER',
     exportSharePercent: 9.38,
@@ -1211,7 +1186,6 @@ export const BASELINE_BALANCE_OF_TRADE: BalanceOfTradeSummary[] = [
     grossExportMWh: 1100000,
     grossImportMWh: 0,
     netTradeBalanceMWh: 1100000,
-    activeEscrowMWh: 95000,
     totalCancellationsMWh: 800000,
     tradeRole: 'NET_EXPORTER',
     exportSharePercent: 57.89,
@@ -1225,7 +1199,6 @@ export const BASELINE_BALANCE_OF_TRADE: BalanceOfTradeSummary[] = [
     grossExportMWh: 600000,
     grossImportMWh: 150000,
     netTradeBalanceMWh: 450000,
-    activeEscrowMWh: 85000,
     totalCancellationsMWh: 4200000,
     tradeRole: 'BALANCED_DOMESTIC',
     exportSharePercent: 12.5,
@@ -1239,7 +1212,6 @@ export const BASELINE_BALANCE_OF_TRADE: BalanceOfTradeSummary[] = [
     grossExportMWh: 700000,
     grossImportMWh: 100000,
     netTradeBalanceMWh: 600000,
-    activeEscrowMWh: 160000,
     totalCancellationsMWh: 9800000,
     tradeRole: 'BALANCED_DOMESTIC',
     exportSharePercent: 6.73,
@@ -1253,7 +1225,6 @@ export const BASELINE_BALANCE_OF_TRADE: BalanceOfTradeSummary[] = [
     grossExportMWh: 250000,
     grossImportMWh: 150000,
     netTradeBalanceMWh: 100000,
-    activeEscrowMWh: 40000,
     totalCancellationsMWh: 1100000,
     tradeRole: 'BALANCED_DOMESTIC',
     exportSharePercent: 20.83,
@@ -1267,7 +1238,6 @@ export const BASELINE_BALANCE_OF_TRADE: BalanceOfTradeSummary[] = [
     grossExportMWh: 0,
     grossImportMWh: 0,
     netTradeBalanceMWh: 0,
-    activeEscrowMWh: 0,
     totalCancellationsMWh: 6100000,
     tradeRole: 'BALANCED_DOMESTIC',
     exportSharePercent: 0.0,
@@ -1281,7 +1251,6 @@ export const BASELINE_BALANCE_OF_TRADE: BalanceOfTradeSummary[] = [
     grossExportMWh: 100000,
     grossImportMWh: 650000,
     netTradeBalanceMWh: -550000,
-    activeEscrowMWh: 28000,
     totalCancellationsMWh: 1400000,
     tradeRole: 'NET_IMPORTER',
     exportSharePercent: 11.76,
@@ -1295,7 +1264,6 @@ export const BASELINE_BALANCE_OF_TRADE: BalanceOfTradeSummary[] = [
     grossExportMWh: 150000,
     grossImportMWh: 850000,
     netTradeBalanceMWh: -700000,
-    activeEscrowMWh: 35000,
     totalCancellationsMWh: 2800000,
     tradeRole: 'NET_IMPORTER',
     exportSharePercent: 7.14,
@@ -1309,7 +1277,6 @@ export const BASELINE_BALANCE_OF_TRADE: BalanceOfTradeSummary[] = [
     grossExportMWh: 0,
     grossImportMWh: 0,
     netTradeBalanceMWh: 0,
-    activeEscrowMWh: 0,
     totalCancellationsMWh: 400000,
     tradeRole: 'BALANCED_DOMESTIC',
     exportSharePercent: 0.0,
@@ -1323,7 +1290,6 @@ export const BASELINE_BALANCE_OF_TRADE: BalanceOfTradeSummary[] = [
     grossExportMWh: 80000,
     grossImportMWh: 30000,
     netTradeBalanceMWh: 50000,
-    activeEscrowMWh: 12000,
     totalCancellationsMWh: 500000,
     tradeRole: 'BALANCED_DOMESTIC',
     exportSharePercent: 14.55,
@@ -1337,7 +1303,6 @@ export const BASELINE_BALANCE_OF_TRADE: BalanceOfTradeSummary[] = [
     grossExportMWh: 0,
     grossImportMWh: 0,
     netTradeBalanceMWh: 0,
-    activeEscrowMWh: 0,
     totalCancellationsMWh: 200000,
     tradeRole: 'BALANCED_DOMESTIC',
     exportSharePercent: 0.0,
@@ -1351,7 +1316,6 @@ export const BASELINE_BALANCE_OF_TRADE: BalanceOfTradeSummary[] = [
     grossExportMWh: 200000,
     grossImportMWh: 50000,
     netTradeBalanceMWh: 150000,
-    activeEscrowMWh: 30000,
     totalCancellationsMWh: 800000,
     tradeRole: 'NET_EXPORTER',
     exportSharePercent: 21.05,
@@ -1365,7 +1329,6 @@ export const BASELINE_BALANCE_OF_TRADE: BalanceOfTradeSummary[] = [
     grossExportMWh: 90000,
     grossImportMWh: 40000,
     netTradeBalanceMWh: 50000,
-    activeEscrowMWh: 15000,
     totalCancellationsMWh: 400000,
     tradeRole: 'BALANCED_DOMESTIC',
     exportSharePercent: 20.0,
@@ -1379,7 +1342,6 @@ export const BASELINE_BALANCE_OF_TRADE: BalanceOfTradeSummary[] = [
     grossExportMWh: 160000,
     grossImportMWh: 10000,
     netTradeBalanceMWh: 150000,
-    activeEscrowMWh: 12000,
     totalCancellationsMWh: 100000,
     tradeRole: 'NET_EXPORTER',
     exportSharePercent: 64.0,
@@ -1393,7 +1355,6 @@ export const BASELINE_BALANCE_OF_TRADE: BalanceOfTradeSummary[] = [
     grossExportMWh: 60000,
     grossImportMWh: 10000,
     netTradeBalanceMWh: 50000,
-    activeEscrowMWh: 8000,
     totalCancellationsMWh: 250000,
     tradeRole: 'BALANCED_DOMESTIC',
     exportSharePercent: 20.0,
@@ -1407,7 +1368,6 @@ export const BASELINE_BALANCE_OF_TRADE: BalanceOfTradeSummary[] = [
     grossExportMWh: 80000,
     grossImportMWh: 30000,
     netTradeBalanceMWh: 50000,
-    activeEscrowMWh: 10000,
     totalCancellationsMWh: 300000,
     tradeRole: 'BALANCED_DOMESTIC',
     exportSharePercent: 22.86,
@@ -1421,7 +1381,6 @@ export const BASELINE_BALANCE_OF_TRADE: BalanceOfTradeSummary[] = [
     grossExportMWh: 140000,
     grossImportMWh: 10000,
     netTradeBalanceMWh: 130000,
-    activeEscrowMWh: 9000,
     totalCancellationsMWh: 90000,
     tradeRole: 'NET_EXPORTER',
     exportSharePercent: 63.64,
@@ -1435,7 +1394,6 @@ export const BASELINE_BALANCE_OF_TRADE: BalanceOfTradeSummary[] = [
     grossExportMWh: 110000,
     grossImportMWh: 10000,
     netTradeBalanceMWh: 100000,
-    activeEscrowMWh: 7000,
     totalCancellationsMWh: 80000,
     tradeRole: 'NET_EXPORTER',
     exportSharePercent: 61.11,
@@ -1449,7 +1407,6 @@ export const BASELINE_BALANCE_OF_TRADE: BalanceOfTradeSummary[] = [
     grossExportMWh: 170000,
     grossImportMWh: 10000,
     netTradeBalanceMWh: 160000,
-    activeEscrowMWh: 11000,
     totalCancellationsMWh: 120000,
     tradeRole: 'NET_EXPORTER',
     exportSharePercent: 60.71,
@@ -1463,7 +1420,6 @@ export const BASELINE_BALANCE_OF_TRADE: BalanceOfTradeSummary[] = [
     grossExportMWh: 60000,
     grossImportMWh: 20000,
     netTradeBalanceMWh: 40000,
-    activeEscrowMWh: 8500,
     totalCancellationsMWh: 220000,
     tradeRole: 'BALANCED_DOMESTIC',
     exportSharePercent: 23.08,
@@ -1623,7 +1579,7 @@ export const PROTOCOL_INTEROPERABILITY_MATRIX: ProtocolInteroperability[] = [
     targetRegistry: 'DENA',
     supportedProtocols: ['BILATERAL_RECOGNITION', 'DOMESTIC_ONLY'],
     isDirectUdbEligible: false,
-    notes: 'BLOCKED per Reg (EU) 2024/2792 Art. 15(4) unless UK-EU bilateral treaty is enacted.',
+    notes: 'BLOCKED under RED III Art. 31a unless a UK-EU bilateral treaty is enacted (the UDB gas module itself is not yet live in any case — launch postponed to end-2026 per EBA).',
   },
   {
     sourceRegistry: 'GGCS_UK',
