@@ -78,6 +78,17 @@ export const ETS2_START_YEAR = 2028;
 /** Directive 2003/87/EC Art. 3ga (as amended by 2023/959): 50% of emissions from voyages in/out of the EU. */
 const EXTRA_EU_VOYAGE_COVERAGE = 50 / 100;
 const RED3_TRANSPORT_MAX_CI = 32.9;
+/**
+ * Directive 2003/87/EC Art. 3gb (as amended by 2023/959): shipping companies surrender allowances
+ * for 40% of 2024 emissions, 70% of 2025 emissions and 100% from 2026.
+ */
+export function maritimeEtsPhaseIn(year: number | null): number | null {
+  if (year === null) return null;
+  if (year < 2024) return 0;
+  if (year === 2024) return 40 / 100;
+  if (year === 2025) return 70 / 100;
+  return 1;
+}
 
 function consignmentFor(ci: number): Consignment {
   // Annex IX-A manure is the typical low-CI biomethane; the classification only matters for
@@ -137,13 +148,19 @@ export function computeValueStack(inputs: ValueStackInputs, marks: MarksState): 
       });
       if (inputs.intraEuShare === null) missingInputs.push('share burned on intra-EU voyages');
       const ets = priced('EU_ETS1', ci, marks);
-      const coverage = inputs.intraEuShare === null ? null : inputs.intraEuShare + (1 - inputs.intraEuShare) * EXTRA_EU_VOYAGE_COVERAGE;
+      const voyageCoverage = inputs.intraEuShare === null ? null : inputs.intraEuShare + (1 - inputs.intraEuShare) * EXTRA_EU_VOYAGE_COVERAGE;
+      const phaseIn = maritimeEtsPhaseIn(inputs.deliveryYear);
+      const coverage = voyageCoverage === null || phaseIn === null ? null : voyageCoverage * phaseIn;
       add({
         regime: 'EU ETS (maritime)',
         whatItDoes: 'Sustainable bio-LNG is zero-rated for CO₂, so the ship surrenders fewer allowances for the fossil LNG it replaces.',
         status: 'COUNTS',
         eurPerMWh: ets.value === null || coverage === null ? null : ets.value * coverage,
-        workings: coverage === null ? 'Enter the intra-EU share to apply voyage coverage.' : `${ets.workings} × coverage ${(coverage * 100).toFixed(0)}% (100% intra-EU, 50% of voyages in/out of the EU)`,
+        workings: voyageCoverage === null
+          ? 'Enter the intra-EU share to apply voyage coverage.'
+          : phaseIn === null
+          ? 'Enter the delivery year to apply the maritime phase-in.'
+          : `${ets.workings} × voyage coverage ${(voyageCoverage * 100).toFixed(0)}% (100% intra-EU, 50% of voyages in/out of the EU) × phase-in ${(phaseIn * 100).toFixed(0)}% (${inputs.deliveryYear})`,
         evidenceNeeded: 'Same PoS as FuelEU, reported in the ship\'s MRV emissions report. CH₄ slip is still counted from 2026.',
         legalBasis: 'Directive 2003/87/EC Art. 3ga & 14; MRV Regulation (EU) 2015/757 as amended',
       });

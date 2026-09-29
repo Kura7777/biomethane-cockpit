@@ -20,6 +20,12 @@ export const ROUTES: { path: string; name: string }[] = [
   { path: '/risk', name: 'Portfolio risk' },
   { path: '/citations', name: 'Statutory citations' },
   { path: '/settings', name: 'Desk settings' },
+  { path: '/ets2', name: 'EU ETS exposure' },
+  { path: '/corporate', name: 'Corporate orders' },
+  { path: '/value-stack', name: 'Value stack' },
+  { path: '/value-stack?client=ETS1_SITE&volume=10000&ci=-100&year=2026&smallSites=0&for=Test', name: 'Value stack (pre-filled)' },
+  { path: '/clients', name: 'Clients directory' },
+  { path: '/clients?company=edison', name: 'Client company page' },
 ];
 
 /**

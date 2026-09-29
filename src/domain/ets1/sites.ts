@@ -108,6 +108,17 @@ export interface Ets1Site {
   verifiedPreviousTco2: number | null;
 }
 
+/**
+ * The EUTL parent-company field sometimes holds a placeholder ("xx", "n.a.", "/", "0") rather than
+ * a name. Grouping on it would lump unrelated operators into one fake company, so a parent that is
+ * at most two Latin letters/digits once punctuation is removed counts as no parent. Names in other
+ * scripts (Greek, Korean) are real and kept.
+ */
+export function isPlaceholderParent(parent: string): boolean {
+  const core = parent.replace(/[^\p{L}\p{N}]/gu, '');
+  return core.length <= 2 && /^[A-Za-z0-9]*$/.test(core);
+}
+
 export const ETS1_SITES: Ets1Site[] = ETS1_INSTALLATION_ROWS.map(
   ([id, name, operator, parent, country, city, activityId, nace, latest, previous]) => {
     const sector = classifySector(activityId, nace);
@@ -115,7 +126,7 @@ export const ETS1_SITES: Ets1Site[] = ETS1_INSTALLATION_ROWS.map(
       id,
       name,
       operator,
-      parentCompany: parent || null,
+      parentCompany: parent && !isPlaceholderParent(parent) ? parent : null,
       country,
       city,
       activityId,

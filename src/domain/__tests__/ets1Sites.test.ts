@@ -74,3 +74,13 @@ describe('ETS1 site data reconciles with the official EEA country totals (2023)'
     }
   });
 });
+
+describe('ETS1 placeholder parents', () => {
+  it('treats placeholder parent names as no parent, so unrelated operators are not grouped', async () => {
+    const { isPlaceholderParent, ETS1_SITES, groupSitesByCompany } = await import('../ets1/sites');
+    for (const p of ['xx', 'XX', 'n.a.', 'na', '/', '0', 'no']) expect(isPlaceholderParent(p)).toBe(true);
+    for (const p of ['RWE AG', 'ΔΕΗ', '현대자동차', 'ENI', 'CEZ']) expect(isPlaceholderParent(p)).toBe(false);
+    const names = groupSitesByCompany(ETS1_SITES).map(c => c.name.trim().toLowerCase());
+    for (const junk of ['xx', 'n.a.', 'na', 'nn', '/', '0']) expect(names).not.toContain(junk);
+  });
+});

@@ -179,7 +179,7 @@ export function ClientsScreen() {
   const related = useMemo(() => (selectedRow ? suggestRelated(selectedRow.profile, directory) : []), [selectedRow, directory]);
 
   useEffect(() => {
-    document.querySelector('.page-shell, main')?.scrollTo?.({ top: 0 });
+    document.querySelectorAll('.ds-page-shell, main').forEach(el => el.scrollTo?.({ top: 0 }));
   }, [selectedId]);
 
   const select = (id: string | null) => setParams(id ? { company: id } : {});
@@ -228,7 +228,8 @@ export function ClientsScreen() {
     a.href = URL.createObjectURL(blob);
     a.download = 'company-exposure.csv';
     a.click();
-    URL.revokeObjectURL(a.href);
+    // Revoke after the click has been handled, or some browsers cancel the download.
+    setTimeout(() => URL.revokeObjectURL(a.href), 0);
   };
 
   if (selectedRow) {

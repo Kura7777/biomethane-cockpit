@@ -66,6 +66,13 @@ describe('value stack', () => {
     expect(some.missingInputs).toContain('ETS2 pass-through');
   });
 
+  it('ship: EU ETS maritime applies the 40% / 70% / 100% phase-in by delivery year', () => {
+    const ets = (y: number) => row(computeValueStack(base({ deliveryYear: y, intraEuShare: 1 }), marks), 'EU ETS (maritime)').eurPerMWh as number;
+    expect(ets(2025) / ets(2026)).toBeCloseTo(0.7, 9);
+    expect(ets(2024) / ets(2026)).toBeCloseTo(0.4, 9);
+    expect(ets(2030)).toBeCloseTo(ets(2026), 9);
+  });
+
   it('ETS2 supplier: allowance saving from 2028 plus the green tariff', () => {
     const r = computeValueStack(base({ client: 'ETS2_SUPPLIER', deliveryYear: 2028, greenTariffPremiumEurPerMWh: 4 }), marks);
     expect(r.stackEurPerMWh).toBeCloseTo(50 * ETS_NATURAL_GAS_TCO2_PER_MWH * HHV_TO_LHV_FACTOR + 4, 6);
