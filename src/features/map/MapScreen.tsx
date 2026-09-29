@@ -10,6 +10,9 @@ import {
 } from 'react-simple-maps';
 import { ArrowLeftRight } from 'lucide-react';
 import geoData from '../../assets/countries-50m.json';
+import { useIsMobile } from '../../shared/hooks/useMediaQuery';
+import { Sheet } from '../../shared/ui';
+import './map.css';
 import { LogisticsModal } from '../logistics/LogisticsModal';
 import { buildDealUrl } from '../../domain/trade/dealParams';
 import { calculateLogisticsRoute, calculateDijkstraCorridor } from '../../domain/logistics/engine';
@@ -66,6 +69,8 @@ const STATUS_CONFIG = {
 
 export function MapScreen() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  const [panelOpen, setPanelOpen] = useState(false);
   const [origin, setOrigin] = useState<string>('Denmark');
   const [target, setTarget] = useState<string>('Germany');
   const [selectedCountryName, setSelectedCountryName] = useState<string>('Germany');
@@ -125,6 +130,502 @@ export function MapScreen() {
   const sortedCountries = useMemo(() => {
     return Object.entries(COUNTRIES).sort((a, b) => a[0].localeCompare(b[0]));
   }, []);
+
+  const labelPx = isMobile ? '13px' : '12px';
+
+  const mapSvg = (
+          <ComposableMap
+            projection="geoMercator"
+            width={isMobile ? 420 : 800}
+            height={600}
+            projectionConfig={{
+              scale: isMobile ? 560 : 680,
+              center: [12, 54],
+            }}
+            style={{ width: '100%', height: '100%' }}
+          >
+            <ZoomableGroup zoom={zoomLevel / 3.6} center={mapCenter}>
+              <Geographies geography={geoData}>
+                {({ geographies }) =>
+                  geographies.map(geo => {
+                    const name = geo.properties.name;
+                    const cMeta = COUNTRIES[name];
+                    const status = cMeta ? cMeta.status : 'NONE';
+                    const fill = STATUS_CONFIG[status].fill;
+                    const isOrigin = name === origin;
+                    const isTarget = name === target;
+                    const isHovered = hoveredCountry?.name === name || (isMobile && name === selectedCountryName);
+
+                    let stroke = 'var(--color-bg)';
+                    let strokeWidth = 0.6;
+                    if (isOrigin) {
+                      stroke = 'var(--color-text)';
+                      strokeWidth = 2.2;
+                    } else if (isTarget) {
+                      stroke = 'var(--color-accent)';
+                      strokeWidth = 2.2;
+                    } else if (isHovered) {
+                      stroke = 'var(--color-text)';
+                      strokeWidth = 1.2;
+                    }
+
+                    return (
+                      <Geography
+                        key={geo.rsmKey}
+                        geography={geo}
+                        onClick={() => handleCountryClick(name)}
+                        onMouseEnter={() => {
+                          if (cMeta) setHoveredCountry(cMeta);
+                        }}
+                        onMouseLeave={() => setHoveredCountry(null)}
+                        style={{
+                          default: { fill, stroke, strokeWidth, outline: 'none', cursor: cMeta ? 'pointer' : 'default' },
+                          hover: { fill, stroke, strokeWidth: 1.5, outline: 'none', cursor: cMeta ? 'pointer' : 'default' },
+                          pressed: { fill, stroke, strokeWidth, outline: 'none' },
+                        }}
+                      />
+                    );
+                  })
+                }
+              </Geographies>
+
+              {/* Active Logistics Corridor Line */}
+              {originMeta && targetMeta && originMeta.iso !== targetMeta.iso && (
+                <>
+                  <Line
+                    from={originMeta.center}
+                    to={targetMeta.center}
+                    stroke="var(--color-bg)"
+                    strokeWidth={5.5}
+                    strokeOpacity={0.85}
+                  />
+                  <Line
+                    from={originMeta.center}
+                    to={targetMeta.center}
+                    stroke="var(--color-accent)"
+                    strokeWidth={2.2}
+                    strokeDasharray="6 5"
+                    className="flow"
+                  />
+                  <Marker coordinates={originMeta.center}>
+                    <circle r={4} fill="var(--color-text)" />
+                  </Marker>
+                  <Marker coordinates={targetMeta.center}>
+                    <circle r={4.6} fill="var(--color-accent)" />
+                  </Marker>
+                </>
+              )}
+
+              {/* Country ISO and Plant Labels */}
+              {Object.entries(COUNTRIES).map(([name, cMeta]) => (
+                <Marker key={cMeta.iso} coordinates={cMeta.center}>
+                  <text
+                    textAnchor="middle"
+                    y={-2}
+                    style={{
+                      fontFamily: 'var(--font-heading)',
+                      fontWeight: 800,
+                      fontSize: labelPx,
+                      fill: 'var(--color-text)',
+                      paintOrder: 'stroke',
+                      stroke: 'var(--color-bg)',
+                      strokeWidth: '2.5px',
+                      strokeLinejoin: 'round',
+                      pointerEvents: 'none',
+                      userSelect: 'none',
+                    }}
+                  >
+                    {cMeta.iso}
+                  </text>
+                  <text
+                    textAnchor="middle"
+                    y={12}
+                    className="num"
+                    style={{
+                      fontFamily: 'var(--font-body)',
+                      fontWeight: 600,
+                      fontSize: labelPx,
+                      fill: 'color-mix(in srgb, var(--color-text) 70%, transparent)',
+                      paintOrder: 'stroke',
+                      stroke: 'var(--color-bg)',
+                      strokeWidth: '2px',
+                      pointerEvents: 'none',
+                      userSelect: 'none',
+                    }}
+                  >
+                    {cMeta.plants}
+                  </text>
+                </Marker>
+              ))}
+            </ZoomableGroup>
+          </ComposableMap>
+  );
+
+  const corridorStrip = (
+        <div className="map-strip" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', borderTop: '2px solid var(--color-divider)', backgroundColor: 'var(--color-surface)' }}>
+          <div style={{ padding: '12px 18px', borderRight: '1px solid var(--color-divider)' }}>
+            <div className="eyebrow">Active corridor</div>
+            <div style={{ fontSize: '17px', fontWeight: 800, marginTop: '2px' }}>
+              {originMeta.iso} ({originMeta.name}) ➔ {targetMeta.iso} ({targetMeta.name})
+            </div>
+            <div style={{ fontSize: '12px' }} className="mut">
+              {dijkstraPath.segments.length > 0
+                ? `${dijkstraPath.path.join(' → ')} (${dijkstraPath.distanceKm} km · ${dijkstraPath.segments.length} hops)`
+                : 'Direct / Single-area corridor'}
+            </div>
+          </div>
+          <div style={{ padding: '12px 18px', borderRight: '1px solid var(--color-divider)' }}>
+            <div className="eyebrow">Transit tariff</div>
+            <div className="num" style={{ fontSize: '17px', fontWeight: 800, marginTop: '2px' }}>
+              {corridorCalculation.physicalRoute.totalPhysicalTariffEurMwh !== null
+                ? `€${corridorCalculation.physicalRoute.totalPhysicalTariffEurMwh.toFixed(2)} / MWh`
+                : '€1.80 / MWh'}
+            </div>
+            <div style={{ fontSize: '12px' }} className="mut">
+              {corridorCalculation.modes.physicalPipeline.regulatoryFeasibility === 'HIGH'
+                ? 'Single-zone / interconnected transit'
+                : 'Multi-zone transit · PRISMA booking required'}
+            </div>
+          </div>
+          <div style={{ padding: '12px 18px' }}>
+            <div className="eyebrow">Basis to TTF</div>
+            <div className="num" style={{ fontSize: '17px', fontWeight: 800, marginTop: '2px' }}>
+              +€0.65 / MWh
+            </div>
+            <div style={{ fontSize: '12px' }} className="mut">
+              Target hub premium, M+1
+            </div>
+          </div>
+        </div>
+  );
+
+  const railBody = (
+    <>
+        <div style={{ padding: '16px 18px', borderBottom: '2px solid var(--color-divider)' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+            <span className="eyebrow">Jurisdiction</span>
+            <span className={`chip ${selectedMeta.status === 'ACTIVE' ? 'chip-a' : ''}`}>
+              {STATUS_CONFIG[selectedMeta.status].label}
+            </span>
+          </div>
+          <h4 style={{ margin: '6px 0 2px', fontSize: '20px', fontWeight: 800 }}>{selectedMeta.name}</h4>
+          <div style={{ fontSize: '12px' }} className="mut">
+            {selectedMeta.legal}
+          </div>
+
+          {/* Prominent One-Click Assignment Buttons */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '14px' }}>
+            <button
+              type="button"
+              className={`btn ${origin === selectedMeta.name ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ fontSize: '12px', padding: '6px 8px' }}
+              onClick={() => setOrigin(selectedMeta.name)}
+            >
+              {origin === selectedMeta.name ? '✓ Origin (Active)' : 'Set as Origin'}
+            </button>
+            <button
+              type="button"
+              className={`btn ${target === selectedMeta.name ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ fontSize: '12px', padding: '6px 8px' }}
+              onClick={() => setTarget(selectedMeta.name)}
+            >
+              {target === selectedMeta.name ? '✓ Target (Active)' : 'Set as Target'}
+            </button>
+          </div>
+        </div>
+
+        {/* 2x2 Stat Grid */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '1px',
+            backgroundColor: 'var(--color-divider)',
+          }}
+        >
+          <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 16px' }}>
+            <div className="eyebrow">Active plants</div>
+            <div className="num" style={{ fontSize: '19px', fontWeight: 800 }}>{selectedMeta.plants}</div>
+          </div>
+          <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 16px' }}>
+            <div className="eyebrow">Installed</div>
+            <div className="num" style={{ fontSize: '19px', fontWeight: 800 }}>{selectedMeta.twh} TWh</div>
+          </div>
+          <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 16px' }}>
+            <div className="eyebrow">Avg plant size</div>
+            <div className="num" style={{ fontSize: '19px', fontWeight: 800 }}>
+              {((selectedMeta.twh * 1000) / Math.max(1, selectedMeta.plants)).toFixed(1)} GWh
+            </div>
+          </div>
+          <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 16px' }}>
+            <div className="eyebrow">Grid connected</div>
+            <div className="num" style={{ fontSize: '19px', fontWeight: 800 }}>96%</div>
+          </div>
+        </div>
+
+        {/* Delivery Options */}
+        <div
+          style={{
+            padding: '14px 18px',
+            borderTop: '1px solid var(--color-divider)',
+            borderBottom: '1px solid var(--color-divider)',
+          }}
+        >
+          <div className="eyebrow" style={{ marginBottom: '8px' }}>
+            Delivery options · {originMeta.iso} → {selectedMeta.iso}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 600 }}>
+                <span>A · Virtual UDB swap</span>
+                <span className="num">
+                  €{corridorCalculation.modes.virtualSwap.totalCostEurMwh !== null
+                    ? corridorCalculation.modes.virtualSwap.totalCostEurMwh.toFixed(2)
+                    : '1.80'}
+                </span>
+              </div>
+              <div style={{ fontSize: '12px' }} className="mut">
+                {corridorCalculation.modes.virtualSwap.regulatoryFeasibility === 'CONTESTED'
+                  ? 'Recommended · contested in some member states'
+                  : 'Single mass balance zone transfer'}
+              </div>
+            </div>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 600 }}>
+                <span>B · Continuous grid path</span>
+                <span className="num">
+                  €{corridorCalculation.modes.physicalPipeline.totalCostEurMwh !== null
+                    ? corridorCalculation.modes.physicalPipeline.totalCostEurMwh.toFixed(2)
+                    : '3.20'}
+                </span>
+              </div>
+              <div style={{ fontSize: '12px' }} className="mut">
+                Multi-zone transit · PRISMA capacity required
+              </div>
+            </div>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 600 }}>
+                <span>C · Physical bio-LNG</span>
+                <span className="num" style={{ color: corridorCalculation.modes.bioLng.totalCostEurMwh !== null ? 'var(--color-text)' : 'var(--color-accent-700)' }}>
+                  {corridorCalculation.modes.bioLng.totalCostEurMwh !== null
+                    ? `€${corridorCalculation.modes.bioLng.totalCostEurMwh.toFixed(2)}`
+                    : 'Tariff incomplete'}
+                </span>
+              </div>
+              <div style={{ fontSize: '12px' }} className="mut">
+                Liquefaction leg unverified — never summed around a null tariff
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ padding: '14px 18px' }}>
+          <p style={{ fontSize: '12px', lineHeight: 1.55, margin: 0 }} className="mut">
+            {selectedMeta.iso === 'DE'
+              ? 'Largest compliance market in Europe. Double counting is unresolved for the 2026 compliance year, so every German netback is carried as a dual branch until the cabinet draft settles.'
+              : selectedMeta.iso === 'GB'
+              ? 'Non-EU territory. RTFO certificates require Great Britain grid injection; non-UK injected biomethane cannot evidence UDB ingestion into EU without physical segregation.'
+              : `Active regulatory mechanism for ${selectedMeta.name}. Consignments must evidence mass balance custody and statutory scheme certification.`}
+          </p>
+        </div>
+    </>
+  );
+
+  const railButtons = (
+    <>
+          <button
+            type="button"
+            className="btn btn-primary btn-block"
+            style={{ marginTop: 0 }}
+            onClick={handleSimulateTrade}
+          >
+            Simulate in trade builder
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary btn-block"
+            style={{ marginTop: 0 }}
+            onClick={() => setIsLogisticsOpen(true)}
+          >
+            Open delivery playbook
+          </button>
+    </>
+  );
+
+  const openPlaybook = () => {
+    setPanelOpen(false);
+    setIsLogisticsOpen(true);
+  };
+
+  if (isMobile) {
+    const transitFigure =
+      corridorCalculation.physicalRoute.totalPhysicalTariffEurMwh !== null
+        ? `€${corridorCalculation.physicalRoute.totalPhysicalTariffEurMwh.toFixed(2)}`
+        : '€1.80';
+    return (
+      <div className="map-m-root">
+        {/* Compact control row: title + Trade CTA, then Origin / swap / Target */}
+        <div className="map-m-controls">
+          <div className="map-m-titlerow">
+            <h3 className="ptitle" style={{ fontSize: '16px' }}>Compliance &amp; logistics map</h3>
+            <button type="button" className="btn btn-primary map-m-trade" onClick={handleSimulateTrade}>
+              Trade →
+            </button>
+          </div>
+          <div className="map-m-selects">
+            <label className="map-m-field">
+              <span className="eyebrow" style={{ color: 'var(--color-text)', fontWeight: 800 }}>Origin</span>
+              <select value={origin} onChange={e => setOrigin(e.target.value)} className="input" aria-label="Origin country">
+                {sortedCountries.map(([name, c]) => (
+                  <option key={c.iso} value={name}>{c.iso} · {c.name} ({c.plants}p)</option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              className="btn btn-secondary map-m-swap"
+              aria-label="Swap corridor direction"
+              onClick={handleSwapCorridor}
+            >
+              <ArrowLeftRight style={{ width: '16px', height: '16px' }} />
+            </button>
+            <label className="map-m-field">
+              <span className="eyebrow" style={{ color: 'var(--color-accent)', fontWeight: 800 }}>Target</span>
+              <select
+                value={target}
+                onChange={e => setTarget(e.target.value)}
+                className="input"
+                aria-label="Target country"
+                style={{ borderColor: 'var(--color-accent)' }}
+              >
+                {sortedCountries.map(([name, c]) => (
+                  <option key={c.iso} value={name}>{c.iso} · {c.name} ({c.status})</option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </div>
+
+        {/* Full-bleed map */}
+        <div className="map-m-canvas">
+          {mapSvg}
+
+          <div className="map-m-mode" role="group" aria-label="Map click mode">
+            <button
+              type="button"
+              className={`btn ${mode === 'ORIGIN' ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setMode('ORIGIN')}
+            >
+              Set Origin
+            </button>
+            <button
+              type="button"
+              className={`btn ${mode === 'TARGET' ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setMode('TARGET')}
+            >
+              Set Target
+            </button>
+          </div>
+
+          <div className="map-m-zoom">
+            <button type="button" className="btn btn-secondary" aria-label="Zoom in" onClick={() => setZoomLevel(z => Math.min(z + 1, 8))}>+</button>
+            <button type="button" className="btn btn-secondary" aria-label="Zoom out" onClick={() => setZoomLevel(z => Math.max(z - 1, 1))}>−</button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              aria-label="Reset view"
+              style={{ fontSize: '12px' }}
+              onClick={() => {
+                setZoomLevel(3.6);
+                setMapCenter([12, 53]);
+              }}
+            >
+              RST
+            </button>
+          </div>
+        </div>
+
+        {/* Peek bar: tap to expand the full jurisdiction / corridor panel */}
+        <button
+          type="button"
+          className="map-m-peek"
+          onClick={() => setPanelOpen(true)}
+          aria-label={`Open details for ${selectedMeta.name}`}
+          data-testid="map-peek"
+        >
+          <span className="map-m-peek-handle" aria-hidden="true" />
+          <span className="map-m-peek-top">
+            <span className="map-m-peek-name">{selectedMeta.name}</span>
+            <span className={`chip ${selectedMeta.status === 'ACTIVE' ? 'chip-a' : ''}`}>
+              {STATUS_CONFIG[selectedMeta.status].label}
+            </span>
+          </span>
+          <span className="map-m-peek-legal">{selectedMeta.legal}</span>
+          <span className="map-m-peek-figs">
+            <span>
+              <span className="eyebrow">Plants</span>
+              <span className="num map-m-fig">{selectedMeta.plants}</span>
+            </span>
+            <span>
+              <span className="eyebrow">Installed</span>
+              <span className="num map-m-fig">{selectedMeta.twh} TWh</span>
+            </span>
+            <span>
+              <span className="eyebrow">{originMeta.iso} → {targetMeta.iso}</span>
+              <span className="num map-m-fig">{transitFigure}/MWh</span>
+            </span>
+          </span>
+        </button>
+
+        <Sheet
+          open={panelOpen}
+          onClose={() => setPanelOpen(false)}
+          title={`${originMeta.iso} → ${targetMeta.iso} corridor`}
+          subtitle={`Selected: ${selectedMeta.name}`}
+          variant="bottom"
+          testId="map-panel-sheet"
+          footer={
+            <div className="map-m-actions">
+              <button type="button" className="btn btn-primary btn-block" style={{ marginTop: 0 }} onClick={handleSimulateTrade}>
+                Simulate in trade builder
+              </button>
+              <button type="button" className="btn btn-secondary btn-block" style={{ marginTop: 0 }} onClick={openPlaybook}>
+                Open delivery playbook
+              </button>
+            </div>
+          }
+        >
+          <div className="map-m-sheet">
+            {corridorStrip}
+            {railBody}
+            <div className="map-m-legend">
+              <div className="eyebrow" style={{ marginBottom: '8px' }}>Compliance status</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {(['ACTIVE', 'EMERGING', 'FUTURE_2028', 'RESTRICTED'] as const).map(s => (
+                  <div key={s} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
+                    <span style={{ width: '10px', height: '10px', flex: 'none', backgroundColor: STATUS_CONFIG[s].swatch }} />
+                    <span style={{ flex: 1 }}>{STATUS_CONFIG[s].label}</span>
+                    <span className="num mut">{statusCounts[s]}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mut" style={{ fontSize: '12px', marginTop: '10px' }}>
+                30 European jurisdictions · Interactive cross-border routing &amp; transmission tariffs
+              </div>
+            </div>
+          </div>
+        </Sheet>
+
+        <LogisticsModal
+          isOpen={isLogisticsOpen}
+          onClose={() => setIsLogisticsOpen(false)}
+          originCountry={originMeta.iso}
+          targetCountry={selectedMeta.iso}
+        />
+      </div>
+    );
+  }
+
 
   return (
     <div
@@ -269,129 +770,7 @@ export function MapScreen() {
 
         {/* Map Container */}
         <div style={{ flex: 1, position: 'relative', minHeight: '440px', overflow: 'hidden', backgroundColor: 'var(--color-bg)' }}>
-          <ComposableMap
-            projection="geoMercator"
-            projectionConfig={{
-              scale: 680,
-              center: [12, 54],
-            }}
-            style={{ width: '100%', height: '100%' }}
-          >
-            <ZoomableGroup zoom={zoomLevel / 3.6} center={mapCenter}>
-              <Geographies geography={geoData}>
-                {({ geographies }) =>
-                  geographies.map(geo => {
-                    const name = geo.properties.name;
-                    const cMeta = COUNTRIES[name];
-                    const status = cMeta ? cMeta.status : 'NONE';
-                    const fill = STATUS_CONFIG[status].fill;
-                    const isOrigin = name === origin;
-                    const isTarget = name === target;
-                    const isHovered = hoveredCountry?.name === name;
-
-                    let stroke = 'var(--color-bg)';
-                    let strokeWidth = 0.6;
-                    if (isOrigin) {
-                      stroke = 'var(--color-text)';
-                      strokeWidth = 2.2;
-                    } else if (isTarget) {
-                      stroke = 'var(--color-accent)';
-                      strokeWidth = 2.2;
-                    } else if (isHovered) {
-                      stroke = 'var(--color-text)';
-                      strokeWidth = 1.2;
-                    }
-
-                    return (
-                      <Geography
-                        key={geo.rsmKey}
-                        geography={geo}
-                        onClick={() => handleCountryClick(name)}
-                        onMouseEnter={() => {
-                          if (cMeta) setHoveredCountry(cMeta);
-                        }}
-                        onMouseLeave={() => setHoveredCountry(null)}
-                        style={{
-                          default: { fill, stroke, strokeWidth, outline: 'none', cursor: cMeta ? 'pointer' : 'default' },
-                          hover: { fill, stroke, strokeWidth: 1.5, outline: 'none', cursor: cMeta ? 'pointer' : 'default' },
-                          pressed: { fill, stroke, strokeWidth, outline: 'none' },
-                        }}
-                      />
-                    );
-                  })
-                }
-              </Geographies>
-
-              {/* Active Logistics Corridor Line */}
-              {originMeta && targetMeta && originMeta.iso !== targetMeta.iso && (
-                <>
-                  <Line
-                    from={originMeta.center}
-                    to={targetMeta.center}
-                    stroke="var(--color-bg)"
-                    strokeWidth={5.5}
-                    strokeOpacity={0.85}
-                  />
-                  <Line
-                    from={originMeta.center}
-                    to={targetMeta.center}
-                    stroke="var(--color-accent)"
-                    strokeWidth={2.2}
-                    strokeDasharray="6 5"
-                    className="flow"
-                  />
-                  <Marker coordinates={originMeta.center}>
-                    <circle r={4} fill="var(--color-text)" />
-                  </Marker>
-                  <Marker coordinates={targetMeta.center}>
-                    <circle r={4.6} fill="var(--color-accent)" />
-                  </Marker>
-                </>
-              )}
-
-              {/* Country ISO and Plant Labels */}
-              {Object.entries(COUNTRIES).map(([name, cMeta]) => (
-                <Marker key={cMeta.iso} coordinates={cMeta.center}>
-                  <text
-                    textAnchor="middle"
-                    y={-2}
-                    style={{
-                      fontFamily: 'var(--font-heading)',
-                      fontWeight: 800,
-                      fontSize: '12px',
-                      fill: 'var(--color-text)',
-                      paintOrder: 'stroke',
-                      stroke: 'var(--color-bg)',
-                      strokeWidth: '2.5px',
-                      strokeLinejoin: 'round',
-                      pointerEvents: 'none',
-                      userSelect: 'none',
-                    }}
-                  >
-                    {cMeta.iso}
-                  </text>
-                  <text
-                    textAnchor="middle"
-                    y={12}
-                    className="num"
-                    style={{
-                      fontFamily: 'var(--font-body)',
-                      fontWeight: 600,
-                      fontSize: '12px',
-                      fill: 'color-mix(in srgb, var(--color-text) 70%, transparent)',
-                      paintOrder: 'stroke',
-                      stroke: 'var(--color-bg)',
-                      strokeWidth: '2px',
-                      pointerEvents: 'none',
-                      userSelect: 'none',
-                    }}
-                  >
-                    {cMeta.plants}
-                  </text>
-                </Marker>
-              ))}
-            </ZoomableGroup>
-          </ComposableMap>
+        {mapSvg}
 
           {/* Overlay: Top-Left Legend & Click-Mode Switcher */}
           <div
@@ -525,42 +904,7 @@ export function MapScreen() {
           )}
         </div>
 
-        {/* Bottom 3-Cell Corridor Strip */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', borderTop: '2px solid var(--color-divider)', backgroundColor: 'var(--color-surface)' }}>
-          <div style={{ padding: '12px 18px', borderRight: '1px solid var(--color-divider)' }}>
-            <div className="eyebrow">Active corridor</div>
-            <div style={{ fontSize: '17px', fontWeight: 800, marginTop: '2px' }}>
-              {originMeta.iso} ({originMeta.name}) ➔ {targetMeta.iso} ({targetMeta.name})
-            </div>
-            <div style={{ fontSize: '12px' }} className="mut">
-              {dijkstraPath.segments.length > 0
-                ? `${dijkstraPath.path.join(' → ')} (${dijkstraPath.distanceKm} km · ${dijkstraPath.segments.length} hops)`
-                : 'Direct / Single-area corridor'}
-            </div>
-          </div>
-          <div style={{ padding: '12px 18px', borderRight: '1px solid var(--color-divider)' }}>
-            <div className="eyebrow">Transit tariff</div>
-            <div className="num" style={{ fontSize: '17px', fontWeight: 800, marginTop: '2px' }}>
-              {corridorCalculation.physicalRoute.totalPhysicalTariffEurMwh !== null
-                ? `€${corridorCalculation.physicalRoute.totalPhysicalTariffEurMwh.toFixed(2)} / MWh`
-                : '€1.80 / MWh'}
-            </div>
-            <div style={{ fontSize: '12px' }} className="mut">
-              {corridorCalculation.modes.physicalPipeline.regulatoryFeasibility === 'HIGH'
-                ? 'Single-zone / interconnected transit'
-                : 'Multi-zone transit · PRISMA booking required'}
-            </div>
-          </div>
-          <div style={{ padding: '12px 18px' }}>
-            <div className="eyebrow">Basis to TTF</div>
-            <div className="num" style={{ fontSize: '17px', fontWeight: 800, marginTop: '2px' }}>
-              +€0.65 / MWh
-            </div>
-            <div style={{ fontSize: '12px' }} className="mut">
-              Target hub premium, M+1
-            </div>
-          </div>
-        </div>
+        {corridorStrip}
       </div>
 
       {/* ─── Right Rail: Selected Jurisdiction ─── */}
@@ -572,135 +916,7 @@ export function MapScreen() {
           borderLeft: '1px solid var(--color-divider)',
         }}
       >
-        <div style={{ padding: '16px 18px', borderBottom: '2px solid var(--color-divider)' }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-            <span className="eyebrow">Jurisdiction</span>
-            <span className={`chip ${selectedMeta.status === 'ACTIVE' ? 'chip-a' : ''}`}>
-              {STATUS_CONFIG[selectedMeta.status].label}
-            </span>
-          </div>
-          <h4 style={{ margin: '6px 0 2px', fontSize: '20px', fontWeight: 800 }}>{selectedMeta.name}</h4>
-          <div style={{ fontSize: '12px' }} className="mut">
-            {selectedMeta.legal}
-          </div>
-
-          {/* Prominent One-Click Assignment Buttons */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '14px' }}>
-            <button
-              type="button"
-              className={`btn ${origin === selectedMeta.name ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ fontSize: '12px', padding: '6px 8px' }}
-              onClick={() => setOrigin(selectedMeta.name)}
-            >
-              {origin === selectedMeta.name ? '✓ Origin (Active)' : 'Set as Origin'}
-            </button>
-            <button
-              type="button"
-              className={`btn ${target === selectedMeta.name ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ fontSize: '12px', padding: '6px 8px' }}
-              onClick={() => setTarget(selectedMeta.name)}
-            >
-              {target === selectedMeta.name ? '✓ Target (Active)' : 'Set as Target'}
-            </button>
-          </div>
-        </div>
-
-        {/* 2x2 Stat Grid */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '1px',
-            backgroundColor: 'var(--color-divider)',
-          }}
-        >
-          <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 16px' }}>
-            <div className="eyebrow">Active plants</div>
-            <div className="num" style={{ fontSize: '19px', fontWeight: 800 }}>{selectedMeta.plants}</div>
-          </div>
-          <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 16px' }}>
-            <div className="eyebrow">Installed</div>
-            <div className="num" style={{ fontSize: '19px', fontWeight: 800 }}>{selectedMeta.twh} TWh</div>
-          </div>
-          <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 16px' }}>
-            <div className="eyebrow">Avg plant size</div>
-            <div className="num" style={{ fontSize: '19px', fontWeight: 800 }}>
-              {((selectedMeta.twh * 1000) / Math.max(1, selectedMeta.plants)).toFixed(1)} GWh
-            </div>
-          </div>
-          <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 16px' }}>
-            <div className="eyebrow">Grid connected</div>
-            <div className="num" style={{ fontSize: '19px', fontWeight: 800 }}>96%</div>
-          </div>
-        </div>
-
-        {/* Delivery Options */}
-        <div
-          style={{
-            padding: '14px 18px',
-            borderTop: '1px solid var(--color-divider)',
-            borderBottom: '1px solid var(--color-divider)',
-          }}
-        >
-          <div className="eyebrow" style={{ marginBottom: '8px' }}>
-            Delivery options · {originMeta.iso} → {selectedMeta.iso}
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 600 }}>
-                <span>A · Virtual UDB swap</span>
-                <span className="num">
-                  €{corridorCalculation.modes.virtualSwap.totalCostEurMwh !== null
-                    ? corridorCalculation.modes.virtualSwap.totalCostEurMwh.toFixed(2)
-                    : '1.80'}
-                </span>
-              </div>
-              <div style={{ fontSize: '12px' }} className="mut">
-                {corridorCalculation.modes.virtualSwap.regulatoryFeasibility === 'CONTESTED'
-                  ? 'Recommended · contested in some member states'
-                  : 'Single mass balance zone transfer'}
-              </div>
-            </div>
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 600 }}>
-                <span>B · Continuous grid path</span>
-                <span className="num">
-                  €{corridorCalculation.modes.physicalPipeline.totalCostEurMwh !== null
-                    ? corridorCalculation.modes.physicalPipeline.totalCostEurMwh.toFixed(2)
-                    : '3.20'}
-                </span>
-              </div>
-              <div style={{ fontSize: '12px' }} className="mut">
-                Multi-zone transit · PRISMA capacity required
-              </div>
-            </div>
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 600 }}>
-                <span>C · Physical bio-LNG</span>
-                <span className="num" style={{ color: corridorCalculation.modes.bioLng.totalCostEurMwh !== null ? 'var(--color-text)' : 'var(--color-accent-700)' }}>
-                  {corridorCalculation.modes.bioLng.totalCostEurMwh !== null
-                    ? `€${corridorCalculation.modes.bioLng.totalCostEurMwh.toFixed(2)}`
-                    : 'Tariff incomplete'}
-                </span>
-              </div>
-              <div style={{ fontSize: '12px' }} className="mut">
-                Liquefaction leg unverified — never summed around a null tariff
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div style={{ padding: '14px 18px' }}>
-          <p style={{ fontSize: '12px', lineHeight: 1.55, margin: 0 }} className="mut">
-            {selectedMeta.iso === 'DE'
-              ? 'Largest compliance market in Europe. Double counting is unresolved for the 2026 compliance year, so every German netback is carried as a dual branch until the cabinet draft settles.'
-              : selectedMeta.iso === 'GB'
-              ? 'Non-EU territory. RTFO certificates require Great Britain grid injection; non-UK injected biomethane cannot evidence UDB ingestion into EU without physical segregation.'
-              : `Active regulatory mechanism for ${selectedMeta.name}. Consignments must evidence mass balance custody and statutory scheme certification.`}
-          </p>
-        </div>
-
-        {/* Actions */}
+        {railBody}
         <div
           style={{
             marginTop: 'auto',
@@ -711,22 +927,7 @@ export function MapScreen() {
             gap: '8px',
           }}
         >
-          <button
-            type="button"
-            className="btn btn-primary btn-block"
-            style={{ marginTop: 0 }}
-            onClick={handleSimulateTrade}
-          >
-            Simulate in trade builder
-          </button>
-          <button
-            type="button"
-            className="btn btn-secondary btn-block"
-            style={{ marginTop: 0 }}
-            onClick={() => setIsLogisticsOpen(true)}
-          >
-            Open delivery playbook
-          </button>
+          {railButtons}
         </div>
       </div>
 

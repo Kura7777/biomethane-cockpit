@@ -1,0 +1,210 @@
+/* Map screen: mobile treatment. Everything here is gated to <768px so desktop stays untouched. */
+
+@media (max-width: 767.98px) {
+  .map-m-root {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background: var(--color-bg);
+  }
+
+  /* ── Compact control row ── */
+  .map-m-controls {
+    flex: none;
+    padding: 8px var(--ds-page-gutter) 10px;
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-divider);
+  }
+  .map-m-titlerow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 44px;
+  }
+  .map-m-titlerow .ptitle {
+    margin: 0;
+    min-width: 0;
+  }
+  .map-m-trade {
+    min-height: 44px;
+    padding: 0 16px;
+    flex: none;
+  }
+  .map-m-selects {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 44px minmax(0, 1fr);
+    align-items: end;
+    gap: 8px;
+  }
+  .map-m-field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .map-m-field select {
+    width: 0;
+    min-width: 100%;
+    max-width: 100%;
+    height: 44px;
+    min-height: 44px;
+    padding: 0 8px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+  }
+  .map-m-swap {
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+  }
+
+  /* ── Full-bleed map canvas fills whatever is left between controls and peek bar ── */
+  .map-m-canvas {
+    flex: 1 1 0;
+    min-height: 0;
+    position: relative;
+    overflow: hidden;
+    contain: paint;
+    background: var(--color-bg);
+  }
+  .map-m-canvas > svg {
+    display: block;
+    overflow: hidden;
+    touch-action: none;
+  }
+
+  .map-m-mode {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    background: color-mix(in srgb, var(--color-surface) 94%, transparent);
+    border: 1px solid var(--color-divider);
+    border-radius: var(--radius-panel);
+    box-shadow: var(--shadow-card);
+  }
+  .map-m-mode .btn {
+    min-height: 44px;
+    padding: 0 12px;
+    font-size: 13px;
+  }
+
+  .map-m-zoom {
+    position: absolute;
+    right: 8px;
+    bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--radius-control);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+  }
+  .map-m-zoom .btn {
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    font-size: 20px;
+    font-weight: 800;
+    border-radius: 0;
+  }
+  .map-m-zoom .btn + .btn {
+    border-top: 0;
+  }
+
+  /* ── Peek bar ── */
+  .map-m-peek {
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    width: 100%;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+    padding: 6px var(--ds-page-gutter) 12px;
+    background: var(--color-surface);
+    border: 0;
+    border-top: 2px solid var(--color-divider);
+    box-shadow: 0 -6px 16px rgba(0, 0, 0, 0.06);
+    cursor: pointer;
+  }
+  .map-m-peek-handle {
+    align-self: center;
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--color-divider);
+    margin-bottom: 6px;
+  }
+  .map-m-peek-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: space-between;
+  }
+  .map-m-peek-name {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 18px;
+    min-width: 0;
+  }
+  .map-m-peek-legal {
+    font-size: 12px;
+    color: var(--color-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .map-m-peek-figs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, auto));
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 6px;
+  }
+  .map-m-peek-figs > span {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .map-m-fig {
+    font-size: 16px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  /* ── Expanded sheet content ── */
+  .map-m-sheet {
+    margin: -16px -20px 0;
+  }
+  .map-strip {
+    grid-template-columns: minmax(0, 1fr) !important;
+    border-top: 0 !important;
+  }
+  .map-strip > div {
+    border-right: 0 !important;
+    border-bottom: 1px solid var(--color-divider);
+    padding: 12px var(--ds-page-gutter) !important;
+  }
+  .map-m-legend {
+    padding: 14px var(--ds-page-gutter) 8px;
+    border-top: 1px solid var(--color-divider);
+  }
+  .map-m-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+  .map-m-actions .btn {
+    min-height: 44px;
+  }
+}

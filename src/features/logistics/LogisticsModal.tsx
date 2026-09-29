@@ -2,6 +2,7 @@ import React, { useMemo, useEffect, useState } from 'react';
 import { calculateLogisticsRoute } from '../../domain/logistics/engine';
 import { useAppState } from '../../store/context';
 import { HUB_BASIS_SPREADS, INTERCONNECTION_POINTS, CAM_NC_DURATION_MULTIPLIERS, NATIONAL_BIOMETHANE_INJECTION_INCENTIVES } from '../../domain/logistics/corridors';
+import './logistics.css';
 import { ModeCostBreakdown, CapacityDuration } from '../../domain/logistics/types';
 
 interface LogisticsModalProps {
@@ -120,7 +121,7 @@ export function LogisticsModal({
 
   return (
     <div
-      className="scrim noscroll"
+      className="scrim noscroll m-dialog-scrim"
       style={{
         alignItems: 'flex-start',
         justifyContent: 'center',
@@ -133,7 +134,7 @@ export function LogisticsModal({
       onClick={onClose}
     >
       <div
-        className="panel"
+        className="panel m-dialog"
         style={{
           width: 'min(1120px, 100%)',
           backgroundColor: 'var(--color-bg)',
@@ -143,6 +144,7 @@ export function LogisticsModal({
       >
         {/* Header */}
         <div
+          className="m-dialog-header lm-header"
           style={{
             display: 'flex',
             alignItems: 'flex-start',
@@ -171,7 +173,7 @@ export function LogisticsModal({
           </div>
           <button
             type="button"
-            className="btn btn-secondary"
+            className="btn btn-secondary lm-close"
             style={{
               marginLeft: 'auto',
               padding: '4px 10px',
@@ -184,8 +186,10 @@ export function LogisticsModal({
           </button>
         </div>
 
+        <div className="m-dialog-body">
         {/* ENTSOG CAM NC Capacity Booking Duration Bar */}
         <div
+          className="lm-duration"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -206,13 +210,14 @@ export function LogisticsModal({
             </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <div className="lm-duration-btns" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             {(Object.keys(CAM_NC_DURATION_MULTIPLIERS) as CapacityDuration[]).map(dur => {
               const cfg = CAM_NC_DURATION_MULTIPLIERS[dur];
               const isSelected = selectedDuration === dur;
               return (
                 <button
                   key={dur}
+                  className="lm-duration-btn"
                   type="button"
                   onClick={() => setSelectedDuration(dur)}
                   style={{
@@ -237,6 +242,7 @@ export function LogisticsModal({
 
         {/* Three mode columns */}
         <div
+          className="m-stack"
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
@@ -341,6 +347,7 @@ export function LogisticsModal({
 
         {/* Bottom split: Execution steps & Hub basis */}
         <div
+          className="m-stack lm-bottom"
           style={{
             display: 'grid',
             gridTemplateColumns: 'minmax(0, 1.1fr) minmax(0, 1fr)',
@@ -348,7 +355,7 @@ export function LogisticsModal({
           }}
         >
           {/* Execution steps */}
-          <div style={{ padding: '16px 20px', borderRight: '1px solid var(--color-divider)' }}>
+          <div className="lm-exec" style={{ padding: '16px 20px', borderRight: '1px solid var(--color-divider)' }}>
             <div className="eyebrow">Execution steps</div>
             <div style={{ marginTop: '12px' }}>
               {execution.map((e, eIdx) => (
@@ -437,7 +444,7 @@ export function LogisticsModal({
                   border: '1px solid color-mix(in srgb, var(--color-pnl-pos) 30%, transparent)',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div className="lm-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-pnl-pos)' }}>
                     {originCountry} Grid Injection Credit ({injectionIncentive.statutoryBasis})
                   </span>
@@ -467,7 +474,7 @@ export function LogisticsModal({
                     <div style={{ fontSize: '11px', marginTop: '2px' }} className="mut">
                       {tsoLeg.fromTso} ➔ {tsoLeg.toTso}
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px', fontSize: '12px' }}>
+                    <div className="lm-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px', fontSize: '12px' }}>
                       <span style={{ color: 'var(--color-text-secondary)' }}>
                         Base: {tsoLeg.baseTotalTariffEurMwh !== null ? `€${tsoLeg.baseTotalTariffEurMwh.toFixed(2)}/MWh` : 'Unverified'} (Exit €{tsoLeg.exitTariffEurMwh ?? '—'} + Entry €{tsoLeg.entryTariffEurMwh ?? '—'})
                       </span>
@@ -484,7 +491,7 @@ export function LogisticsModal({
               )}
             </div>
 
-            <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
+            <div className="m-stack" style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
               {onApplyCosts && (
                 <>
                   <button
@@ -526,6 +533,7 @@ export function LogisticsModal({
               Tariffs reflect ENTSOG CAM NC Commission Regulation (EU) 2017/459 &amp; TAR NC (EU) 2017/460 regulated multipliers on PRISMA.
             </p>
           </div>
+        </div>
         </div>
       </div>
     </div>

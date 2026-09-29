@@ -2,6 +2,7 @@ import React, { useId } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { EUROPEAN_HUBS } from './mapData';
 import { Maximize2, Activity, Zap, CheckCircle2, ShieldCheck, ArrowRight } from 'lucide-react';
+import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 import { getCountryFlag } from '../commercial/PlantScannerTable';
 
 interface CorridorMiniMapProps {
@@ -25,6 +26,18 @@ export function CorridorMiniMap({
   deliveryMode = 'PIPELINE_GRID'
 }: CorridorMiniMapProps) {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  // Mobile draws on a 360x250 canvas (about 1:1 at phone width) so labels stay >=11px rendered.
+  const VW = isMobile ? 360 : 600;
+  const VH = isMobile ? 250 : 180;
+  const originX = isMobile ? 76 : 90;
+  const targetX = isMobile ? 284 : 510;
+  const midX = VW / 2;
+  const cy0 = isMobile ? 120 : 90;
+  const flowPath = `M ${originX} ${cy0} Q ${isMobile ? originX + (midX - originX) * 0.75 : 250} ${cy0 - 40}, ${midX} ${cy0} T ${targetX} ${cy0}`;
+  const badgeW = isMobile ? 156 : 190;
+  const badgeH = isMobile ? 56 : 44;
+  const badgeY = isMobile ? -84 : -58;
   const patternId = useId();
 
   const originHub = EUROPEAN_HUBS.find(h => h.iso === originCountry);
@@ -56,13 +69,13 @@ export function CorridorMiniMap({
       `}</style>
 
       {/* Header Overlay: Route Title & Telemetry */}
-      <div className="flex items-center justify-between px-3 py-2 bg-[var(--color-panel-header)] border-b border-[var(--color-divider)] z-10">
-        <div className="flex items-center gap-2 min-w-0">
+      <div className="flex items-center justify-between max-md:flex-wrap max-md:gap-2 px-3 py-2 bg-[var(--color-panel-header)] border-b border-[var(--color-divider)] z-10">
+        <div className="flex items-center gap-2 min-w-0 max-md:flex-wrap max-md:flex-1">
           <div className="w-2 h-2 rounded-full bg-cyan-400 animate-ping shrink-0" />
           <span className="font-mono text-xs font-bold text-zinc-400">
             Pipeline Corridor Topology
           </span>
-          <span className="font-mono text-xs font-bold text-cyan-300 truncate">
+          <span className="font-mono text-xs font-bold text-cyan-300 max-md:whitespace-normal md:truncate max-md:break-words">
             {routeNodesLabel}
           </span>
           <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-cyan-950/80 text-cyan-300 border border-cyan-700/50 shrink-0 font-semibold">
@@ -74,7 +87,7 @@ export function CorridorMiniMap({
           type="button"
           onClick={() => navigate(`/map?origin=${originCountry}&target=${targetCountry}`)}
           title="Open Full Continental Logistics Map"
-          className="flex items-center gap-1 bg-[var(--color-surface)] hover:bg-[var(--color-subtier)] border border-[var(--color-divider)] hover:border-cyan-500/50 px-2 py-0.5 rounded text-zinc-300 hover:text-cyan-300 transition-colors font-mono text-xs cursor-pointer shrink-0 ml-2"
+          className="flex items-center gap-1 bg-[var(--color-surface)] hover:bg-[var(--color-subtier)] border border-[var(--color-divider)] hover:border-cyan-500/50 px-2 py-0.5 rounded text-zinc-300 hover:text-cyan-300 transition-colors font-mono text-xs cursor-pointer shrink-0 ml-2 max-md:min-h-11 max-md:min-w-11 max-md:justify-center"
         >
           <Maximize2 className="w-3 h-3 text-cyan-400" />
           <span className="hidden sm:inline">Inspect Map</span>
@@ -84,7 +97,7 @@ export function CorridorMiniMap({
       {/* SVG Vector Topology Canvas */}
       <div className="relative flex-1 min-h-0 w-full overflow-hidden flex items-center justify-center p-2">
         <svg
-          viewBox="0 0 600 180"
+          viewBox={`0 0 ${VW} ${VH}`}
           preserveAspectRatio="xMidYMid meet"
           className="w-full h-full"
         >
@@ -110,11 +123,11 @@ export function CorridorMiniMap({
           </defs>
 
           {/* Grid Background */}
-          <rect width="600" height="180" fill={`url(#${patternId})`} />
+          <rect width={VW} height={VH} fill={`url(#${patternId})`} />
 
           {/* Pipeline Conduit Shadow */}
           <path
-            d="M 90 90 Q 250 50, 300 90 T 510 90"
+            d={flowPath}
             fill="none"
             stroke="var(--color-bg)"
             strokeWidth="14"
@@ -123,7 +136,7 @@ export function CorridorMiniMap({
 
           {/* Outer High-Pressure Conduit Pipe */}
           <path
-            d="M 90 90 Q 250 50, 300 90 T 510 90"
+            d={flowPath}
             fill="none"
             stroke="var(--color-divider)"
             strokeWidth="8"
@@ -132,7 +145,7 @@ export function CorridorMiniMap({
 
           {/* Active Flow Glow Line */}
           <path
-            d="M 90 90 Q 250 50, 300 90 T 510 90"
+            d={flowPath}
             fill="none"
             stroke={`url(#grad-${patternId})`}
             strokeWidth="3"
@@ -143,7 +156,7 @@ export function CorridorMiniMap({
 
           {/* Animated High-Velocity Flow Dots */}
           <path
-            d="M 90 90 Q 250 50, 300 90 T 510 90"
+            d={flowPath}
             fill="none"
             stroke="var(--chart-1)"
             strokeWidth="2.5"
@@ -152,7 +165,7 @@ export function CorridorMiniMap({
           />
 
           {/* Distance Telemetry Pill on Pipeline (Clean dynamic positioning without node collisions) */}
-          <g transform={`translate(300, ${intermediateHubs.length > 0 ? 134 : 76})`}>
+          <g transform={`translate(${midX}, ${intermediateHubs.length > 0 ? cy0 + 44 : cy0 - 14})`}>
             <rect
               x="-65"
               y="-12"
@@ -178,9 +191,11 @@ export function CorridorMiniMap({
 
           {/* Intermediate Compression Hubs (if multi-hop) */}
           {intermediateHubs.map((hubName, idx) => {
-            const step = (380 - 220) / (intermediateHubs.length + 1);
-            const cx = 220 + (idx + 1) * step;
-            const cy = 76;
+            const spanA = isMobile ? originX + 60 : 220;
+            const spanB = isMobile ? targetX - 60 : 380;
+            const step = (spanB - spanA) / (intermediateHubs.length + 1);
+            const cx = spanA + (idx + 1) * step;
+            const cy = cy0 - 14;
             return (
               <g key={idx} transform={`translate(${cx}, ${cy})`}>
                 <circle r="7" fill="var(--color-bg)" stroke="var(--chart-1)" strokeWidth="2" />
@@ -211,7 +226,7 @@ export function CorridorMiniMap({
           })}
 
           {/* ORIGIN FACILITY NODE (Left) */}
-          <g transform="translate(90, 90)">
+          <g transform={`translate(${originX}, ${cy0})`}>
             {/* Outer Pulse Rings */}
             <circle r="24" fill="var(--chart-6)" opacity="0.08" />
             <circle r="16" fill="var(--chart-6)" opacity="0.15" />
@@ -219,9 +234,9 @@ export function CorridorMiniMap({
             <circle r="4" fill="var(--chart-6)" />
 
             {/* Flag & ISO Badge */}
-            <foreignObject x="-95" y="-58" width="190" height="44">
+            <foreignObject x={-badgeW / 2} y={badgeY} width={badgeW} height={badgeH}>
               <div className="flex flex-col items-center">
-                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[var(--color-bg)]/95 border border-emerald-500/50 shadow-md font-mono text-xs text-emerald-300 font-bold whitespace-nowrap">
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[var(--color-bg)]/95 border border-emerald-500/50 shadow-md font-mono text-xs text-emerald-300 font-bold max-md:whitespace-normal max-md:text-center whitespace-nowrap">
                   <span>{getCountryFlag(originCountry)}</span>
                   <span>{originCountry} · {plantName ? 'Facility' : 'Origin Hub'}</span>
                 </div>
@@ -253,7 +268,7 @@ export function CorridorMiniMap({
           </g>
 
           {/* TARGET DESTINATION NODE (Right) */}
-          <g transform="translate(510, 90)">
+          <g transform={`translate(${targetX}, ${cy0})`}>
             {/* Outer Pulse Rings */}
             <circle r="24" fill="var(--chart-1)" opacity="0.08" />
             <circle r="16" fill="var(--chart-1)" opacity="0.15" />
@@ -261,9 +276,9 @@ export function CorridorMiniMap({
             <circle r="4" fill="var(--chart-1)" />
 
             {/* Flag & Market Badge */}
-            <foreignObject x="-95" y="-58" width="190" height="44">
+            <foreignObject x={-badgeW / 2} y={badgeY} width={badgeW} height={badgeH}>
               <div className="flex flex-col items-center">
-                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[var(--color-bg)]/95 border border-cyan-500/50 shadow-md font-mono text-xs text-cyan-300 font-bold whitespace-nowrap">
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[var(--color-bg)]/95 border border-cyan-500/50 shadow-md font-mono text-xs text-cyan-300 font-bold max-md:whitespace-normal max-md:text-center whitespace-nowrap">
                   <span>{getCountryFlag(targetCountry)}</span>
                   <span>{targetCountry} · Compliance Hub</span>
                 </div>
@@ -297,7 +312,7 @@ export function CorridorMiniMap({
       </div>
 
       {/* Bottom Telemetry HUD Ribbon */}
-      <div className="flex items-center justify-between px-3 py-1.5 bg-[var(--color-panel-header)] border-t border-[var(--color-divider)] text-zinc-300 font-mono text-xs z-10">
+      <div className="flex items-center justify-between max-md:flex-col max-md:items-start max-md:gap-1 px-3 py-1.5 bg-[var(--color-panel-header)] border-t border-[var(--color-divider)] text-zinc-300 font-mono text-xs z-10">
         <div className="flex items-center gap-2">
           <span className="flex items-center gap-1 text-cyan-300 font-semibold text-xs">
             <Zap className="w-3 h-3 text-cyan-400" />
