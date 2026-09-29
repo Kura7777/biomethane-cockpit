@@ -39,29 +39,30 @@ test.describe('Screen Rendering & Route Health', () => {
     await expect(page.locator('#main-content')).toBeVisible();
   });
 
-  test('the shell nav tabs reach all primary workspaces', async ({ page }) => {
+  test('every workspace is reachable from its header menu group', async ({ page }) => {
     const errors = collectPageErrors(page);
     await gotoScreen(page, '/');
 
-    const navLabels = [
-      'Origination',
-      'Scanner',
-      'Trade builder',
-      'Pricing desk',
-      'Plants',
-      'Registries',
-      'Map',
-      'Citations',
-      'Sources',
-    ];
+    const groups: Record<string, string[]> = {
+      Demand: ['Clients', 'EU ETS', 'FuelEU Maritime', 'Corporate orders'],
+      Supply: ['Origination', 'Plants', 'Map', 'Registries'],
+      Pricing: ['Pricing desk', 'Value stack', 'Trade builder'],
+      Reference: ['Citations', 'Sources', 'Assumptions'],
+    };
 
-    for (const label of navLabels) {
-      const link = page.getByRole('link', { name: new RegExp(`^${label}$`, 'i') }).first();
-      await expect(link).toBeVisible();
-      await link.click();
-      await expect(page.getByText('Loading module...')).toHaveCount(0, { timeout: 15_000 });
-      await expectNoErrorBoundary(page);
-      await expect(page.locator('#main-content')).toBeVisible();
+    const nav = page.getByRole('navigation', { name: 'Workspaces' });
+    for (const [group, labels] of Object.entries(groups)) {
+      for (const label of labels) {
+        await nav.getByRole('button', { name: new RegExp(`^${group}`) }).click();
+        const link = nav.getByRole('link', { name: new RegExp(`^${label}\\b`) }).first();
+        await expect(link).toBeVisible();
+        await link.click();
+        await expect(page.getByText('Loading module...')).toHaveCount(0, { timeout: 15_000 });
+        await expectNoErrorBoundary(page);
+        await expect(page.locator('#main-content')).toBeVisible();
+        // The group button now names the page you are on.
+        await expect(nav.getByRole('button', { name: new RegExp(`^${group}`) })).toContainText(label);
+      }
     }
 
     expect(appErrors(errors)).toEqual([]);

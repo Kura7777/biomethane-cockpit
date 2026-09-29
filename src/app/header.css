@@ -185,7 +185,114 @@
   align-items: center;
   gap: 2px;
   margin-left: -12px;
-  overflow-x: auto;
+  /* Visible, not auto: the group menus drop below the header. */
+  overflow: visible;
+}
+
+/* ── Workspace groups: one button per group, its pages in a drop-down menu ── */
+.app-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.app-group-btn {
+  gap: 6px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.app-group-btn.open {
+  background: var(--color-header-hover);
+  color: var(--color-header-text);
+}
+
+.app-group-current {
+  color: var(--color-header-text);
+  font-weight: 400;
+}
+
+.app-group-chevron {
+  opacity: 0.7;
+  transition: transform 150ms ease;
+}
+
+.app-group-btn.open .app-group-chevron {
+  transform: rotate(180deg);
+}
+
+.app-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  z-index: 60;
+  min-width: 300px;
+  padding: 6px;
+  border: 1px solid var(--color-header-divider);
+  border-radius: 10px;
+  background: var(--color-header-bg);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+
+.app-menu-blurb {
+  padding: 6px 10px 8px;
+  font-size: 12px;
+  color: var(--color-header-muted);
+}
+
+.app-menu-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-control);
+  text-decoration: none;
+  color: var(--color-header-text);
+}
+
+.app-menu-item:hover,
+.app-menu-item:focus-visible {
+  background: var(--color-header-hover);
+  outline: none;
+}
+
+.app-menu-item.active {
+  box-shadow: inset 2px 0 0 var(--color-accent);
+}
+
+.app-menu-icon {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  color: var(--color-header-muted);
+}
+
+.app-menu-icon-svg {
+  width: 15px;
+  height: 15px;
+}
+
+.app-menu-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.app-menu-label {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.app-menu-desc {
+  font-size: 12px;
+  color: var(--color-header-muted);
 }
 
 .app-tab {

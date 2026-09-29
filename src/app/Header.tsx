@@ -1,7 +1,8 @@
+import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, NavLink } from 'react-router-dom';
-import { Scale, Moon, Sun, Search, Flame } from 'lucide-react';
+import { Scale, Moon, Sun, Search, Flame, ChevronDown } from 'lucide-react';
 import './header.css';
-import { WORKSPACE_TABS } from './navConfig';
+import { NAV_GROUPS, isNavItemActive } from './navConfig';
 import { useTheme } from '../store/theme';
 
 /** HH:MM:SS in the viewer's local time. Exported so it can be unit tested without rendering. */
@@ -20,6 +21,26 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
+  const navRef = useRef<HTMLElement>(null);
+
+  // Close the open menu on navigation, outside click or Escape.
+  useEffect(() => setOpenGroup(null), [location.pathname]);
+  useEffect(() => {
+    if (openGroup === null) return;
+    const onDown = (e: MouseEvent) => {
+      if (navRef.current && !navRef.current.contains(e.target as Node)) setOpenGroup(null);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpenGroup(null);
+    };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [openGroup]);
 
   return (
     <header className="app-header select-none z-50">
@@ -32,25 +53,54 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
 
       <span className="app-header-sep" aria-hidden="true" />
 
-      <nav className="app-header-nav noscroll" aria-label="Workspaces">
-        {WORKSPACE_TABS.map(tab => {
-          const isActive =
-            (tab.to === '/sourcing' && (location.pathname === '/' || location.pathname.startsWith('/sourcing'))) ||
-            (tab.to === '/pricing' && (location.pathname.startsWith('/pricing') || location.pathname.startsWith('/marks'))) ||
-            (tab.to === '/risk' && location.pathname.startsWith('/risk')) ||
-            (tab.to === '/data-sources' && (location.pathname.startsWith('/data-sources') || location.pathname.startsWith('/sources') || location.pathname.startsWith('/provenance'))) ||
-            location.pathname === tab.to ||
-            location.pathname.startsWith(tab.to + '/');
-
+      <nav className="app-header-nav" aria-label="Workspaces" ref={navRef}>
+        {NAV_GROUPS.map(group => {
+          const current = group.items.find(item => isNavItemActive(item.to, location.pathname));
+          const open = openGroup === group.id;
           return (
-            <NavLink
-              key={tab.to}
-              to={tab.to}
-              className={`app-tab ${isActive ? 'active' : ''}`}
-              aria-current={isActive ? 'page' : undefined}
+            <div
+              key={group.id}
+              className="app-group"
+              // Once a menu is open, moving across the bar switches menus (menubar convention).
+              onMouseEnter={() => { if (openGroup !== null && openGroup !== group.id) setOpenGroup(group.id); }}
             >
-              {tab.label}
-            </NavLink>
+              <button
+                type="button"
+                className={`app-tab app-group-btn ${current ? 'active' : ''} ${open ? 'open' : ''}`}
+                aria-haspopup="true"
+                aria-expanded={open}
+                aria-controls={`nav-menu-${group.id}`}
+                onClick={() => setOpenGroup(open ? null : group.id)}
+              >
+                <span>{group.label}</span>
+                {current && <span className="app-group-current">· {current.label}</span>}
+                <ChevronDown size={13} aria-hidden="true" className="app-group-chevron" />
+              </button>
+              {open && (
+                <div className="app-menu" id={`nav-menu-${group.id}`}>
+                  <div className="app-menu-blurb">{group.blurb}</div>
+                  {group.items.map(item => {
+                    const Icon = item.icon;
+                    const active = isNavItemActive(item.to, location.pathname);
+                    return (
+                      <NavLink
+                        key={item.to}
+                        to={item.to}
+                        className={`app-menu-item ${active ? 'active' : ''}`}
+                        aria-current={active ? 'page' : undefined}
+                        onClick={() => setOpenGroup(null)}
+                      >
+                        {Icon && <span className="app-menu-icon" aria-hidden="true"><Icon className="app-menu-icon-svg" /></span>}
+                        <span className="app-menu-text">
+                          <span className="app-menu-label">{item.label}</span>
+                          {item.description && <span className="app-menu-desc">{item.description}</span>}
+                        </span>
+                      </NavLink>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           );
         })}
       </nav>
