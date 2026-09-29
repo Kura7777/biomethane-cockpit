@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { useAppState } from '../../store/context';
-import { PageShell, PageHeader, Card, KpiRow, KpiTile } from '../../shared/ui';
+import { PageShell, PageHeader, Card, KpiRow, KpiTile, MobileCardList } from '../../shared/ui';
+import { useIsMobile } from '../../shared/hooks/useMediaQuery';
+import './corporate.css';
 import {
   priceCorporateOrder,
   CorporateOrderSpec,
@@ -46,6 +48,7 @@ function Field(props: { label: string; children: React.ReactNode; hint?: string 
 
 export function CorporateOrderScreen() {
   const { state } = useAppState();
+  const isMobile = useIsMobile();
 
   const [client, setClient] = useState('');
   const [volume, setVolume] = useState('');
@@ -101,7 +104,7 @@ export function CorporateOrderScreen() {
         title="Corporate orders"
         context="Price a client's biomethane request against the broker book: cheapest-to-deliver, what each requirement costs, and whether compliance buyers would pay more for the same material."
       />
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(260px, 340px) minmax(0, 1fr)', gap: '16px', padding: '16px' }}>
+      <div className="corp-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(260px, 340px) minmax(0, 1fr)', gap: '16px', padding: '16px' }}>
         <Card title="Client request" meta="Nothing is defaulted — blank means not required or not yet set">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <Field label="Client">
@@ -123,7 +126,7 @@ export function CorporateOrderScreen() {
             <Field label="Registry countries" hint="None selected = any.">
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                 {COUNTRIES.map(c => (
-                  <button key={c} type="button" className={`btn ${countries.includes(c) ? 'btn-primary' : 'btn-ghost'}`} onClick={() => toggleCountry(c)}>
+                  <button key={c} type="button" className={`corp-country-btn btn ${countries.includes(c) ? 'btn-primary' : 'btn-ghost'}`} onClick={() => toggleCountry(c)}>
                     {c}
                   </button>
                 ))}
@@ -135,10 +138,10 @@ export function CorporateOrderScreen() {
             <Field label="Max CI (gCO₂e/MJ)">
               <input className="input num" inputMode="decimal" value={maxCi} onChange={e => setMaxCi(e.target.value)} aria-label="Max CI" />
             </Field>
-            <label style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <label className="corp-check" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
               <input type="checkbox" checked={unsubsidised} onChange={e => setUnsubsidised(e.target.checked)} /> Unsubsidised only
             </label>
-            <label style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <label className="corp-check" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
               <input type="checkbox" checked={excludeCrops} onChange={e => setExcludeCrops(e.target.checked)} /> Exclude crop feedstock
             </label>
             <Field label="Transfer & cancellation cost (€/MWh)">
@@ -176,6 +179,7 @@ export function CorporateOrderScreen() {
           )}
 
           <Card title="What each requirement costs" meta="Cheapest-to-deliver as requirements are added — the conversation to have with the client">
+            <div className={isMobile ? 'table-scroll' : undefined}>
             <table className="table">
               <thead>
                 <tr><th>Requirement</th><th style={{ textAlign: 'right' }}>Matching offers</th><th style={{ textAlign: 'right' }}>CTD €/MWh</th><th style={{ textAlign: 'right' }}>Adds</th></tr>
@@ -191,11 +195,31 @@ export function CorporateOrderScreen() {
                 ))}
               </tbody>
             </table>
+            </div>
           </Card>
 
           <Card title="Supply stack" meta="Broker-book offers that meet every requirement, cheapest first">
             {quote.ctd.eligible.length === 0 ? (
               <p style={{ margin: 0, color: 'var(--color-text-muted)' }}>No matching offers.</p>
+            ) : isMobile ? (
+              <MobileCardList
+                testId="corp-supply-cards"
+                items={quote.ctd.eligible}
+                getKey={l => l.entry.id}
+                title={l => `${l.entry.country} · ${l.entry.feedstock}`}
+                subtitle={l => `Vintage ${l.entry.vintage} · ${l.entry.certified}`}
+                metric={l => `${l.offerEurPerMWh.toFixed(2)}${l.entry.currency === 'GBP' ? ' (£ conv.)' : ''}`}
+                metricLabel={() => 'Offer €/MWh'}
+                fields={l => {
+                  const taken = quote.ctd.filled.find(f => f.line === l)?.takenMWh;
+                  return [
+                    { label: 'CI', value: l.entry.ciScore, mono: true },
+                    { label: 'Subsidy', value: l.entry.subsidized },
+                    { label: 'Offer MWh', value: l.offerVolumeMWh === null ? '—' : l.offerVolumeMWh.toLocaleString('en-GB'), mono: true },
+                    { label: 'Taken', value: taken ? taken.toLocaleString('en-GB') : '—', mono: true },
+                  ];
+                }}
+              />
             ) : (
               <div style={{ overflowX: 'auto' }}>
                 <table className="table">
@@ -251,6 +275,18 @@ export function CorporateOrderScreen() {
 
         </div>
       </div>
+      {isMobile && (
+        <div className="m-sticky-actions corp-quote-bar" data-testid="corp-quote-bar">
+          <div className="corp-quote-fig">
+            <span className="eyebrow">Offer to client</span>
+            <span className="corp-quote-val">{eur(quote.offerEurPerMWh)}<span style={{ fontSize: '12px', fontWeight: 500 }}>/MWh</span></span>
+          </div>
+          <div className="corp-quote-fig" style={{ textAlign: 'right' }}>
+            <span className="eyebrow">Annual value</span>
+            <span className="corp-quote-val">{eur(quote.annualValueEur, 0)}</span>
+          </div>
+        </div>
+      )}
     </PageShell>
   );
 }

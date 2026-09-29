@@ -1,0 +1,12 @@
+/* Corporate orders: mobile layout. Desktop keeps the inline two-column grid untouched. */
+@media (max-width: 767.98px) {
+  .corp-grid { grid-template-columns: minmax(0, 1fr) !important; }
+  .corp-check { min-height: 44px; }
+  .corp-check input[type='checkbox'] { width: 20px; height: 20px; flex: none; }
+  .corp-country-btn { min-height: 44px; min-width: 52px; }
+  .corp-quote-bar { align-items: center; justify-content: space-between; gap: 12px; }
+  .corp-quote-bar > * { flex: none; min-height: 0; }
+  .corp-quote-fig { display: flex; flex-direction: column; min-width: 0; }
+  .corp-quote-fig .eyebrow { font-size: 11px; }
+  .corp-quote-val { font-family: var(--font-mono, 'IBM Plex Mono', monospace); font-variant-numeric: tabular-nums; font-weight: 800; font-size: 18px; }
+}

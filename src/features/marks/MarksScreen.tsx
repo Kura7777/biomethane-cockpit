@@ -9,6 +9,8 @@ import { INITIAL_BROKER_QUOTES, BrokerMarketQuote, ProvenanceTier } from '../../
 import { PageShell } from '../../shared/ui/PageShell';
 import './marks.css';
 import { KpiRow, KpiTile } from '../../shared/ui/KpiTile';
+import { useIsMobile } from '../../shared/hooks/useMediaQuery';
+import { Sheet, MobileCardList } from '../../shared/ui';
 import {
   Download,
   Search,
@@ -28,6 +30,9 @@ import {
 export function MarksScreen() {
   const { state, dispatch } = useAppState();
   const [isImporterOpen, setIsImporterOpen] = useState(false);
+  const isMobile = useIsMobile();
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // Master Quotes State: Contains all 63 Pan-European market quotes in the exact order book format
   const [quotes, setQuotes] = useState<BrokerMarketQuote[]>(INITIAL_BROKER_QUOTES);
@@ -198,6 +203,36 @@ export function MarksScreen() {
   const chipClassForVariant = (v: ReturnType<typeof deriveSourceBadge>['variant']) =>
     v === 'POSITIVE' ? 'chip chip-pos' : v === 'WARNING' ? 'chip chip-warn' : v === 'INFO' ? 'chip chip-info' : 'chip chip-neutral';
 
+  const provenanceBadge = (tier: ProvenanceTier | undefined) => {
+    if (tier === 'BROKER_RUN') return { badgeClass: 'chip-info', badgeLabel: '📑 Broker' };
+    if (tier === 'WEB_INDEX') return { badgeClass: 'chip-info', badgeLabel: '🌐 Web Index' };
+    if (tier === 'STATUTORY_DIRECTIVE') return { badgeClass: 'chip-warn', badgeLabel: '⚖️ Statutory' };
+    return { badgeClass: 'chip-neutral', badgeLabel: '🔬 Modelled' };
+  };
+  const editingQuote = editingId ? quotes.find(q => q.id === editingId) ?? null : null;
+  const activeFilterCount =
+    (bookFilter !== 'ALL' ? 1 : 0) + (provenanceFilter !== 'ALL' ? 1 : 0) + (selectedCountryGroup !== 'ALL' ? 1 : 0);
+
+  const editField = (
+    label: string,
+    field: 'bidPrice' | 'offerPrice' | 'bidVolume' | 'offerVolume',
+    q: BrokerMarketQuote,
+    aria: string,
+  ) => (
+    <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      <span className="eyebrow">{label}</span>
+      <input
+        type="text"
+        value={q[field]}
+        onChange={e => handleCellEdit(q.id, field, e.target.value)}
+        placeholder="—"
+        aria-label={`${aria} for ${q.country} ${q.feedstock}`}
+        className="input num"
+        style={{ width: '100%', textAlign: 'right', minHeight: '44px', fontWeight: 700 }}
+      />
+    </label>
+  );
+
   return (
     <PageShell>
       {/* Top Header Bar */}
@@ -226,7 +261,7 @@ export function MarksScreen() {
         </div>
 
         {/* Action Buttons */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+        <div className="marks-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <button
             type="button"
             className="btn btn-primary"
@@ -319,6 +354,39 @@ export function MarksScreen() {
 
       {/* Main Order Book Container */}
       <div style={{ padding: '16px 18px 24px' }}>
+        {isMobile ? (
+          <div className="marks-mobile-controls">
+            <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
+              <Search className="w-3.5 h-3.5 text-slate-400" style={{ position: 'absolute', left: '12px', top: '15px' }} />
+              <input
+                type="text"
+                placeholder="Filter country, feedstock, CI, source..."
+                aria-label="Filter quotes"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{
+                  width: '100%',
+                  minHeight: '44px',
+                  padding: '4px 8px 4px 34px',
+                  border: '1px solid var(--color-divider)',
+                  backgroundColor: 'var(--color-surface)',
+                  color: 'var(--color-text)',
+                }}
+              />
+            </div>
+            <button
+              type="button"
+              className={`btn ${activeFilterCount > 0 ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ minHeight: '44px', display: 'flex', alignItems: 'center', gap: '6px' }}
+              onClick={() => setFiltersOpen(true)}
+              data-testid="marks-filters-open"
+            >
+              <Filter className="w-3.5 h-3.5" />
+              Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
+            </button>
+          </div>
+        ) : (
+          <>
         {/* Controls Bar */}
         <div
           style={{
@@ -439,6 +507,44 @@ export function MarksScreen() {
           ))}
         </div>
 
+          </>
+        )}
+
+        {isMobile ? (
+          <MobileCardList
+            testId="marks-cards"
+            items={filteredQuotes}
+            getKey={q => q.id}
+            title={q => (
+              <span style={{ fontWeight: q.highlight ? 700 : 600 }}>
+                {q.country} {q.class} · {q.feedstock}
+              </span>
+            )}
+            subtitle={q => `Vintage ${q.vintage} · ${q.certified}`}
+            metric={q => `${q.bidPrice || '—'} / ${q.offerPrice || '—'}`}
+            metricLabel={() => 'Bid / Offer'}
+            badges={q => {
+              const { badgeClass, badgeLabel } = provenanceBadge(q.provenanceTier);
+              return (
+                <>
+                  {q.highlight && <span className="chip chip-warn">★ FOCUS</span>}
+                  <span className={`chip ${q.productClass === 'GO_VOLUNTARY' ? 'chip-info' : 'chip-neutral'}`}>{q.class}</span>
+                  <span className={`chip ${badgeClass}`}>{badgeLabel}</span>
+                </>
+              );
+            }}
+            fields={q => [
+              { label: 'Bid vol', value: q.bidVolume || '—', mono: true },
+              { label: 'Offer vol', value: q.offerVolume || '—', mono: true },
+              { label: 'CI score', value: q.ciScore || '—', mono: true },
+              { label: 'Subsidy', value: q.subsidized, tone: q.subsidized === 'Unsubsidised' ? 'pos' : 'muted' },
+              { label: 'Price derived from', value: q.derivedFrom || '—', span: 2 },
+            ]}
+            onSelect={q => setEditingId(q.id)}
+            empty="No quotes match these filters."
+          />
+        ) : (
+          <>
         {/* Master Clean Institutional Table */}
         <div style={{ overflowX: 'auto', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-panel)' }}>
           <table className="table" style={{ margin: 0 }}>
@@ -635,6 +741,9 @@ export function MarksScreen() {
           </table>
         </div>
 
+          </>
+        )}
+
         {/* Footer Notes */}
         <div
           style={{
@@ -659,6 +768,110 @@ export function MarksScreen() {
           </span>
         </div>
       </div>
+
+      {isMobile && (
+        <Sheet
+          open={filtersOpen}
+          onClose={() => setFiltersOpen(false)}
+          title="Filters"
+          subtitle={`${filteredQuotes.length} of ${quotes.length} quotes`}
+          testId="marks-filters-sheet"
+          footer={
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                style={{ flex: 1, minHeight: '44px' }}
+                onClick={() => { setBookFilter('ALL'); setProvenanceFilter('ALL'); setSelectedCountryGroup('ALL'); }}
+              >
+                Reset
+              </button>
+              <button type="button" className="btn btn-primary" style={{ flex: 1, minHeight: '44px' }} onClick={() => setFiltersOpen(false)}>
+                Show {filteredQuotes.length} quotes
+              </button>
+            </div>
+          }
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            <div>
+              <div className="eyebrow" style={{ marginBottom: '6px' }}>Book</div>
+              <div className="marks-chip-grid">
+                <button type="button" className={`btn ${bookFilter === 'ALL' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setBookFilter('ALL')}>
+                  All Book ({quotes.length})
+                </button>
+                <button type="button" className={`btn ${bookFilter === 'COMPLIANCE' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setBookFilter('COMPLIANCE')}>
+                  🏛️ Compliance Quotas ({quotes.filter(q => q.productClass === 'BUNDLED_COMPLIANCE').length})
+                </button>
+                <button type="button" className={`btn ${bookFilter === 'VOLUNTARY' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setBookFilter('VOLUNTARY')}>
+                  🌱 Voluntary GOs ({quotes.filter(q => q.productClass === 'GO_VOLUNTARY').length})
+                </button>
+              </div>
+            </div>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <span className="eyebrow">Source</span>
+              <select
+                value={provenanceFilter}
+                onChange={e => setProvenanceFilter(e.target.value as any)}
+                style={{ minHeight: '44px', padding: '4px 8px', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
+                aria-label="Filter quotes by data provenance tier"
+              >
+                <option value="ALL">All Sources ({quotes.length})</option>
+                <option value="BROKER_RUN">📑 Broker Run ({provenanceCounts.BROKER_RUN})</option>
+                <option value="WEB_INDEX">🌐 Web / Exchange Index ({provenanceCounts.WEB_INDEX})</option>
+                <option value="STATUTORY_DIRECTIVE">⚖️ Statutory Directive ({provenanceCounts.STATUTORY_DIRECTIVE})</option>
+                <option value="MODELLED_SIMULATED">🔬 Modelled Cost-Plus ({provenanceCounts.MODELLED_SIMULATED})</option>
+              </select>
+            </label>
+            <div>
+              <div className="eyebrow" style={{ marginBottom: '6px' }}>Countries</div>
+              <div className="marks-chip-grid">
+                {countryPills.map(p => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => setSelectedCountryGroup(p.id)}
+                    className={`btn ${selectedCountryGroup === p.id ? 'btn-primary' : 'btn-secondary'}`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Sheet>
+      )}
+
+      {isMobile && (
+        <Sheet
+          open={editingQuote !== null}
+          onClose={() => setEditingId(null)}
+          title={editingQuote ? `${editingQuote.country} ${editingQuote.class} · ${editingQuote.feedstock}` : ''}
+          subtitle={editingQuote ? `Vintage ${editingQuote.vintage} · ${editingQuote.certified}` : undefined}
+          testId="marks-edit-sheet"
+          footer={
+            <button type="button" className="btn btn-primary" style={{ width: '100%', minHeight: '44px' }} onClick={() => setEditingId(null)}>
+              Done
+            </button>
+          }
+        >
+          {editingQuote && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div className="marks-edit-grid">
+                {editField('Bid price', 'bidPrice', editingQuote, 'Bid price')}
+                {editField('Offer price', 'offerPrice', editingQuote, 'Offer price')}
+                {editField('Bid volume', 'bidVolume', editingQuote, 'Bid volume')}
+                {editField('Offer volume', 'offerVolume', editingQuote, 'Offer volume')}
+              </div>
+              <div style={{ fontSize: '12px' }} className="mut">
+                <span className={`chip ${provenanceBadge(editingQuote.provenanceTier).badgeClass}`} style={{ marginRight: '6px' }}>
+                  {provenanceBadge(editingQuote.provenanceTier).badgeLabel}
+                </span>
+                {editingQuote.derivedFrom}
+              </div>
+            </div>
+          )}
+        </Sheet>
+      )}
 
       {/* Broker Run Importer Modal */}
       <BrokerRunImporterModal

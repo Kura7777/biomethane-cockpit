@@ -102,7 +102,7 @@ export function BrokerRunImporterModal({ isOpen, onClose, onCommitted, onFail }:
 
   return (
     <div
-      className="scrim"
+      className="scrim m-dialog-scrim"
       style={{
         alignItems: 'center',
         justifyContent: 'center',
@@ -114,7 +114,7 @@ export function BrokerRunImporterModal({ isOpen, onClose, onCommitted, onFail }:
       onClick={onClose}
     >
       <div
-        className="panel"
+        className="panel m-dialog"
         style={{
           width: 'min(720px, 100%)',
           backgroundColor: 'var(--color-bg)',
@@ -125,6 +125,7 @@ export function BrokerRunImporterModal({ isOpen, onClose, onCommitted, onFail }:
       >
         {/* Header */}
         <div
+          className="m-dialog-header"
           style={{
             display: 'flex',
             alignItems: 'flex-start',
@@ -158,7 +159,7 @@ export function BrokerRunImporterModal({ isOpen, onClose, onCommitted, onFail }:
         </div>
 
         {/* Content */}
-        <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <div className="m-dialog-body" style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div className="field">
             <label htmlFor="brokerRun">Broker run text</label>
             <textarea
@@ -171,6 +172,7 @@ export function BrokerRunImporterModal({ isOpen, onClose, onCommitted, onFail }:
           </div>
 
           <div
+            className="brk-stats"
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
@@ -204,7 +206,7 @@ export function BrokerRunImporterModal({ isOpen, onClose, onCommitted, onFail }:
             Unmatched market codes are never guessed — they are reported and skipped, so a mistyped line cannot silently overwrite a desk mark.
           </p>
 
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+          <div className="brk-actions" style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
             <button
               type="button"
               className="btn btn-secondary"

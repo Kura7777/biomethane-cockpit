@@ -13,3 +13,24 @@
 @media (max-width: 1680px) {
   .marks-col-subsidized { display: none; }
 }
+
+/* Mobile pricing desk: compact action row, search + Filters, filter/edit sheet layouts. */
+.marks-mobile-controls { display: none; }
+@media (max-width: 767.98px) {
+  .marks-mobile-controls { display: flex; gap: 8px; margin-bottom: 12px; }
+  .marks-actions { width: 100%; }
+  .marks-actions > .btn { flex: 1 1 100%; min-height: 44px; justify-content: center; }
+  .marks-chip-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .marks-chip-grid > .btn { min-height: 44px; }
+  .marks-edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+}
+
+/* Broker run importer on mobile (dialog itself goes full-screen via .m-dialog). */
+@media (max-width: 767.98px) {
+  .m-dialog .m-dialog-header .btn { min-height: 44px; }
+  .brk-stats { grid-template-columns: 1fr 1fr !important; }
+  .brk-stats > div:last-child { grid-column: 1 / -1; }
+  .brk-actions { flex-direction: column-reverse; }
+  .brk-actions > .btn { min-height: 44px; width: 100%; }
+  .m-dialog textarea#brokerRun { min-height: 220px !important; width: 100%; }
+}
