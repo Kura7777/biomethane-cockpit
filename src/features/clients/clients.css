@@ -74,3 +74,4 @@
   .cl-play:last-child { border-bottom: 0; }
   .cl-reg-basis { border-top-style: dashed; }
 }
+.cl-note { font-size: 12px; color: var(--color-text-muted); margin: 0 0 10px; line-height: 1.5; }

@@ -161,11 +161,9 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
           <span className="sr-only">{theme === 'dark' ? 'Light' : 'Dark'}</span>
         </button>
 
-        <span className="app-user" title="Trader · A. Vos">
-          <span className="app-avatar" aria-hidden="true">AV</span>
-          <span className="app-user-name">
-            <span className="app-user-role">Trader · </span>A. Vos
-          </span>
+        <span className="app-user" title="Trader">
+          <span className="app-avatar" aria-hidden="true">T</span>
+          <span className="app-user-name">Trader</span>
         </span>
       </div>
     </header>

@@ -158,7 +158,7 @@ export function DeskSheet({
           {dataSourceText}
           {simulatedCount > 0 && <span className="desk-sheet-footer-accent"> · {simulatedCount} simulated</span>}
         </div>
-        <div className="desk-sheet-footer-user">Trader · A. Vos</div>
+        <div className="desk-sheet-footer-user">Trader</div>
       </div>
     </Sheet>
   );

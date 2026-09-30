@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { MarksState } from '../../domain/netback/types';
 import { computeValueStack, StackRow, StackStatus, ETS2_START_YEAR } from '../../domain/valueStack/engine';
 import { StackSpec } from '../../domain/companies/opportunities';
+import { formatEur } from '../../domain/companies/money';
 import './valueStack.css';
 
 /**
@@ -32,13 +33,7 @@ function eurMWh(v: number | null): string {
   return v === null ? '—' : `€${v.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-function eurYr(v: number | null): string {
-  if (v === null) return '—';
-  const abs = Math.abs(v);
-  if (abs >= 1_000_000) return `€${(v / 1_000_000).toLocaleString('en-GB', { maximumFractionDigits: abs >= 100_000_000 ? 0 : 1 })}m`;
-  if (abs >= 1_000) return `€${Math.round(v / 1_000).toLocaleString('en-GB')}k`;
-  return `€${Math.round(v).toLocaleString('en-GB')}`;
-}
+const eurYr = formatEur;
 
 function range(lo: number | null, hi: number | null, fmt: (v: number | null) => string): string {
   if (lo === null || hi === null) return fmt(hi ?? lo);
