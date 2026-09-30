@@ -3,6 +3,7 @@ import { getAssumption, fuelEuPoolBidPriceEurPerTco2e } from '../../domain/assum
 import { EUROPEAN_MARKET_BENCHMARKS } from '../../domain/markets/marketBenchmarks';
 import { markAgeDays, isMarkStale, daysUntil } from '../../domain/fueleu/uiHelpers';
 import { FUELEU_ACTIVE_PERIOD, FUELEU_POOLING_BORROWING_DATABASE_DEADLINE } from '../../domain/fueleu/calculator';
+import { MRV_REPORTING_YEAR } from '../../domain/fueleu/mrvVintage';
 import { FuelEuInfoPopover } from './FuelEuInfoPopover';
 import { HeaderPill } from '../../shared/ui/PageHeader';
 import { latestTradeVwap, markDivergencePct } from '../../domain/markets/fueleuPoolIndexHistory';
@@ -43,7 +44,7 @@ export function FuelEuHeader() {
       <div>
         <h1 className="fe-h1 ds-h1">FuelEU Maritime</h1>
         <div className="fe-context ds-context">
-          {FUELEU_ACTIVE_PERIOD} reporting period · Reg. (EU) 2023/1805 · EU MRV 2024 activity, fuel split estimated
+          {FUELEU_ACTIVE_PERIOD} reporting period · Reg. (EU) 2023/1805 · EU MRV {MRV_REPORTING_YEAR} activity, fuel split estimated
         </div>
       </div>
       <div className="fe-header-actions ds-header-actions">

@@ -1,6 +1,6 @@
 /**
  * Builds src/domain/fueleu/shippingTargetsData.ts from the real, sourced EU MRV (THETIS-MRV)
- * 2024 dataset (data/fueleu_mrv_2024_companies.json), using the app's own calculator
+ * 2025 dataset (data/fueleu_mrv_2025_companies.json), using the app's own calculator
  * (src/domain/fueleu/calculator.ts) for every derived compliance/penalty/Bio-LNG field, so the
  * dataset can never drift from the engine.
  *
@@ -8,14 +8,14 @@
  * scripts/build_full_registry.cjs), which built the same fields from fabricated company data
  * (data/fueleu_shipping_crm_targets.json/.csv). Those files and scripts have been deleted.
  *
- * IMPORTANT — 2024 data as a proxy for 2026: FuelEU Maritime compliance years begin in 2025, but
- * the EU MRV public register's most recent complete reporting year is 2024. Every fuel tonnage,
- * CO2 figure, and fleet composition below is 2024 MRV-reported activity, used as the best
- * available proxy for a ship's/company's 2026 (this desk's FUELEU_ACTIVE_PERIOD) and 2030 profile.
+ * IMPORTANT — 2025 data as a proxy for 2026: FuelEU Maritime compliance years begin in 2025, and
+ * the EU MRV public register's most recent complete reporting year is 2025 (v58, published Sep 2026).
+ * Every fuel tonnage, CO2 figure, and fleet composition below is 2025 MRV-reported activity, used as
+ * the best available proxy for a ship's/company's 2026 (this desk's FUELEU_ACTIVE_PERIOD) and 2030 profile.
  * This is flagged in `source` and in each row's `outreachPitch`.
  *
  * ETS fields (2026): 100% phase-in of the MRV-reported `ets_co2_t` (THETIS-MRV column 37: "CO2
- * emissions to be reported under Directive 2003/87/EC" — real, ship-verified 2024 ETS-scope CO2,
+ * emissions to be reported under Directive 2003/87/EC" — real, ship-verified 2025 ETS-scope CO2,
  * not a figure recomputed from the ESTIMATED HFO/MGO/LNG fuel split), plus an estimated CH4 CO2e
  * add-on: ch4_t * (ets_co2_t / total_co2_t) * 25 — i.e. the company's reported CH4 mass (col. for
  * tank-to-wake CH4), pro-rated to the ETS-reportable share of its total CO2, at GWP-100 = 25
@@ -27,6 +27,11 @@
  * Groups: each row is annotated with its commercial group (data/fueleu_group_map.json, built by
  * scripts/build_fueleu_group_map.py) and a segment-typical fuel-cost-bearer. If the group-map file
  * is missing, the script still runs — every row falls back to an UNKNOWN single-company group.
+ *
+ * Output format: the data module stores one compact positional tuple per company plus lookup
+ * tables (see src/domain/fueleu/shippingTargetsCodec.ts for the layout and decoder); tonnes are
+ * rounded with slimTonnes(). All derived fields below are computed from FULL-precision MRV tonnes
+ * first and only then rounded for storage, so penalties/balances are unaffected by the rounding.
  *
  * Run: npx tsx scripts/build_fueleu_shipping_targets.ts
  */
@@ -41,12 +46,20 @@ import {
   FUELEU_GWP_CH4,
 } from '../src/domain/fueleu/calculator';
 import { getAssumption, fuelEuPoolBidPriceEurPerTco2e } from '../src/domain/assumptions/registry';
-import type { ShippingCounterparty, FuelEuDatasetSource, GroupEntityType, FuelCostBearer, FuelCostBearerType, GroupContact } from '../src/domain/fueleu/types';
+import type { ShippingCounterparty, FuelEuDatasetSource, GroupEntityType, FuelCostBearer, FuelCostBearerType, GroupContact, FleetCapability } from '../src/domain/fueleu/types';
+import {
+  COL,
+  TIER_LABEL,
+  buildOutreachPitch,
+  decodeShippingTargets,
+  slimTonnes,
+  type ShippingTargetsPack,
+} from '../src/domain/fueleu/shippingTargetsCodec';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const REPO_ROOT = path.join(__dirname, '..');
-const MRV_JSON_PATH = path.join(REPO_ROOT, 'data', 'fueleu_mrv_2024_companies.json');
+const MRV_JSON_PATH = path.join(REPO_ROOT, 'data', 'fueleu_mrv_2025_companies.json');
 const GROUP_MAP_PATH = path.join(REPO_ROOT, 'data', 'fueleu_group_map.json');
 const GROUP_CONTACTS_PATH = path.join(REPO_ROOT, 'data', 'fueleu_group_contacts.json');
 const OUT_PATH = path.join(REPO_ROOT, 'src', 'domain', 'fueleu', 'shippingTargetsData.ts');
@@ -98,13 +111,6 @@ interface GroupMapFile {
 }
 
 const round = (x: number, dp: number) => Number(x.toFixed(dp));
-
-const TIER_LABEL = {
-  1: 'Tier 1: Mega-Deficit (>€10M / year)',
-  2: 'Tier 2: Mid-Tier Compliance Buyer (€2M – €10M / year)',
-  3: 'Tier 3: Regional & Feeder Deficit (<€2M / year)',
-  4: 'Tier 4: Over-Compliant Article 21 Surplus Seller',
-} as const;
 
 /** Same thresholds as the retired scripts/regenerate_fueleu_compliance.ts tierFor(). */
 function tierFor(penalty: number, surplus: boolean): 1 | 2 | 3 | 4 {
@@ -273,7 +279,7 @@ const built: Built[] = eligible.map((c): Built => {
   const surplus = r26.isOverCompliant;
   const tier = tierFor(penalty2026Y1, surplus);
 
-  const bioLngRequiredNeg100T = round(r26.bioLngRequiredNeg100Tonnes, 1);
+  const bioLngRequiredNeg100T = r26.bioLngRequiredNeg100Tonnes; // full precision; slimTonnes() rounds it once when encoding
   const bioLngRequiredNeg100Mwh = Math.round(r26.bioLngRequiredNeg100Mwh);
   const clientSavingsPhysical = Math.round(r26.physicalSavingsEur);
   const deskMarginPhysical = Math.round(r26.physicalTradingMarginEur);
@@ -284,23 +290,20 @@ const built: Built[] = eligible.map((c): Built => {
   const group = lookupGroup(c.company_imo, c.parent_name);
   const fuelCostBearer = lookupFuelCostBearer(c.segment);
 
-  let outreachPitch: string;
-  if (surplus) {
-    const surplusKt = (complianceBalance2026 / 1000).toFixed(1);
-    outreachPitch =
-      `Indicative estimate from EU MRV 2024 (fuel split estimated): ${c.parent_name}'s ${c.vessels_in_scope} EU-scope ` +
-      `vessels run at ${r26.weightedGhgie.toFixed(2)} gCO2e/MJ against the 89.34 g/MJ 2026 FuelEU Maritime limit, a ` +
-      `+${surplusKt} kt compliance surplus. Our desk can monetise this Article 21 surplus into deficit fleets at the ` +
-      `register bid (€${poolSellPrice.toFixed(2)}/tCO2e), an indicative €${(clientSavingsPooling / 1e6).toFixed(2)}M of commercial value.`;
-  } else {
-    const deficitKt = (Math.abs(complianceBalance2026) / 1000).toFixed(1);
-    outreachPitch =
-      `Indicative estimate from EU MRV 2024 (fuel split estimated): ${c.parent_name}'s ${c.vessels_in_scope} EU-scope ` +
-      `vessels run at ${r26.weightedGhgie.toFixed(2)} gCO2e/MJ against the 89.34 g/MJ 2026 FuelEU Maritime limit, a ` +
-      `${deficitKt} kt deficit and an indicative €${(penalty2026Y1 / 1e6).toFixed(2)}M Annex IV penalty exposure. ` +
-      `Closing it would require an estimated ${(bioLngRequiredNeg100Mwh / 1000).toFixed(1)} GWh of -100 CI Bio-LNG, or an ` +
-      `Article 21 pool allocation at the register offer (€${poolBuyPrice.toFixed(2)}/tCO2e), an indicative up to €${(clientSavingsPhysical / 1e6).toFixed(2)}M in net compliance savings.`;
-  }
+  const outreachPitch = buildOutreachPitch({
+    name: c.parent_name,
+    reportingPeriod: raw.source.reportingPeriod,
+    vessels: c.vessels_in_scope,
+    ghgie: round(r26.weightedGhgie, 2),
+    balance2026: complianceBalance2026,
+    penalty2026Y1: penalty2026Y1,
+    bioNeg100Mwh: bioLngRequiredNeg100Mwh,
+    savePhys: clientSavingsPhysical,
+    savePool: clientSavingsPooling,
+    surplus,
+    poolBuyPrice,
+    poolSellPrice,
+  });
 
   const row: Built = {
     rank: 0, // assigned after sort
@@ -320,7 +323,7 @@ const built: Built[] = eligible.map((c): Built => {
     penalty_2030_y1_eur: Math.round(r30.statutoryPenaltyY1Eur),
     bio_lng_required_neg100_t: bioLngRequiredNeg100T,
     bio_lng_required_neg100_mwh: bioLngRequiredNeg100Mwh,
-    bio_lng_required_zero_t: round(r26.bioLngRequiredZeroCiTonnes, 1),
+    bio_lng_required_zero_t: r26.bioLngRequiredZeroCiTonnes,
     client_savings_physical_eur: clientSavingsPhysical,
     desk_margin_physical_eur: deskMarginPhysical,
     client_savings_pooling_eur: clientSavingsPooling,
@@ -360,40 +363,169 @@ built.sort((a, b) => {
 });
 built.forEach((r, i) => { r.rank = i + 1; });
 
-// ---------------- Write TS file (compact JSON-in-TS, one row per line to keep file size sane) ----------------
+// ---------------- Write TS file (compact tuples + lookup tables; decoded by shippingTargetsCodec) ----------------
 const totalVessels = built.reduce((acc, c) => acc + c.vessels_in_scope, 0);
 const totalEnergyMwh = built.reduce((acc, c) => acc + c.total_energy_mwh, 0);
 const totalEnergyTwh = round(totalEnergyMwh / 1e6, 1);
 
+const segments: string[] = [];
+const fleetCapabilities: FleetCapability[] = [];
+const groupTable: [string, string, GroupEntityType, string][] = [];
+const bearerTable: FuelCostBearer[] = [];
+const indexOf = <T>(table: T[], value: T, same: (a: T, b: T) => boolean): number => {
+  const i = table.findIndex(t => same(t, value));
+  if (i >= 0) return i;
+  table.push(value);
+  return table.length - 1;
+};
+
+const fuelSplitMethods = new Set(built.map(r => r.fuelSplitMethod));
+if (fuelSplitMethods.size !== 1) throw new Error(`Expected one fuelSplitMethod, got ${[...fuelSplitMethods].join(', ')}`);
+
+const tierIndexOf = (label: string): number => {
+  const entry = Object.entries(TIER_LABEL).find(([, l]) => l === label);
+  if (!entry) throw new Error(`Unknown tier label ${label}`);
+  return Number(entry[0]);
+};
+
+const encodedRows: (string | number)[][] = built.map(r => {
+  if (r.conventional_vessels_in_scope !== r.vessels_in_scope - r.lng_vessels_in_scope) {
+    throw new Error(`conventional vessels not derivable for ${r.parent_name}`);
+  }
+  if (r.combined_regulatory_exposure_2026_eur !== r.penalty_2026_y1_eur + r.ets_exposure_2026_eur) {
+    throw new Error(`combined exposure not derivable for ${r.parent_name}`);
+  }
+  const tuple: (string | number)[] = [];
+  tuple[COL.name] = r.parent_name;
+  tuple[COL.segment] = indexOf(segments, r.segment, (a, b) => a === b);
+  tuple[COL.vessels] = r.vessels_in_scope;
+  tuple[COL.tier] = tierIndexOf(r.strategy_tier);
+  tuple[COL.vlsfo] = slimTonnes(r.vlsfo_tonnes);
+  tuple[COL.mgo] = slimTonnes(r.mgo_tonnes);
+  tuple[COL.lng] = slimTonnes(r.lng_tonnes);
+  tuple[COL.energyMwh] = r.total_energy_mwh;
+  tuple[COL.ghgie] = r.actual_ghgie;
+  tuple[COL.bal2026] = r.compliance_balance_2026_tco2e;
+  tuple[COL.pen2026Y1] = r.penalty_2026_y1_eur;
+  tuple[COL.pen2026Y2] = r.penalty_2026_y2_eur;
+  tuple[COL.bal2030] = r.compliance_balance_2030_tco2e;
+  tuple[COL.pen2030Y1] = r.penalty_2030_y1_eur;
+  tuple[COL.bioNeg100T] = slimTonnes(r.bio_lng_required_neg100_t);
+  tuple[COL.bioNeg100Mwh] = r.bio_lng_required_neg100_mwh;
+  tuple[COL.bioZeroT] = slimTonnes(r.bio_lng_required_zero_t);
+  tuple[COL.savePhys] = r.client_savings_physical_eur;
+  tuple[COL.marginPhys] = r.desk_margin_physical_eur;
+  tuple[COL.savePool] = r.client_savings_pooling_eur;
+  tuple[COL.marginPool] = r.desk_margin_pooling_eur;
+  tuple[COL.fleetCap] = indexOf(fleetCapabilities, r.fleetCapability, (a, b) => a === b);
+  tuple[COL.lngVessels] = r.lng_vessels_in_scope;
+  tuple[COL.etsTco2] = Math.round(r.ets_exposure_2026_tco2);
+  tuple[COL.etsEur] = r.ets_exposure_2026_eur;
+  tuple[COL.companyImo] = r.company_imo;
+  tuple[COL.shipImos] = r.ship_imos.join(' ');
+  tuple[COL.lngShipCount] = r.lngShipCount;
+  tuple[COL.otherFuel] = r.otherFuelSuspectedShips;
+  tuple[COL.partial] = r.partialReportShips;
+  tuple[COL.group] = indexOf(
+    groupTable,
+    [r.group_id, r.group_name, r.entityType, r.parent_group_id] as [string, string, GroupEntityType, string],
+    (a, b) => a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[3] === b[3],
+  );
+  tuple[COL.bearer] = indexOf(bearerTable, r.fuelCostBearer, (a, b) => a.typicalBearer === b.typicalBearer && a.note === b.note);
+  return tuple;
+});
+
+const pack: ShippingTargetsPack = {
+  source: datasetSource,
+  fuelSplitMethod: built[0].fuelSplitMethod,
+  poolBuyPriceEurPerTco2e: poolBuyPrice,
+  poolSellPriceEurPerTco2e: poolSellPrice,
+  segments,
+  fleetCapabilities,
+  groups: groupTable,
+  bearers: bearerTable,
+  rows: encodedRows,
+};
+
+// Self-check: the decoder must rebuild every row exactly (string/enum/integer fields identical,
+// including the outreach pitch text; only the rounded tonnage/CO2 fields may differ).
+{
+  const decoded = decodeShippingTargets(pack);
+  const exact = [
+    'rank', 'parent_name', 'segment', 'vessels_in_scope', 'strategy_tier', 'total_energy_mwh', 'actual_ghgie',
+    'compliance_balance_2026_tco2e', 'penalty_2026_y1_eur', 'penalty_2026_y2_eur', 'compliance_balance_2030_tco2e',
+    'penalty_2030_y1_eur', 'bio_lng_required_neg100_mwh', 'client_savings_physical_eur', 'desk_margin_physical_eur',
+    'client_savings_pooling_eur', 'desk_margin_pooling_eur', 'outreachPitch', 'fleetCapability', 'lng_vessels_in_scope',
+    'conventional_vessels_in_scope', 'ets_exposure_2026_eur', 'combined_regulatory_exposure_2026_eur', 'company_imo',
+    'fuelSplitMethod', 'lngShipCount', 'otherFuelSuspectedShips', 'partialReportShips', 'group_id', 'group_name',
+    'entityType', 'parent_group_id',
+  ] as const;
+  decoded.forEach((d, i) => {
+    const b = built[i];
+    for (const k of exact) {
+      if (d[k] !== b[k]) throw new Error(`Codec mismatch on row ${i + 1} (${b.parent_name}) field ${k}: ${String(d[k])} vs ${String(b[k])}`);
+    }
+    if (JSON.stringify(d.ship_imos) !== JSON.stringify(b.ship_imos)) throw new Error(`Codec mismatch on ship_imos row ${i + 1}`);
+    if (JSON.stringify(d.fuelCostBearer) !== JSON.stringify(b.fuelCostBearer)) throw new Error(`Codec mismatch on fuelCostBearer row ${i + 1}`);
+  });
+}
+
 const lines: string[] = [];
-lines.push("import { ShippingCounterparty } from './types';");
+lines.push("import { decodeShippingTargets, type ShippingTargetsPack } from './shippingTargetsCodec';");
+lines.push("import type { ShippingCounterparty } from './types';");
 lines.push('');
 lines.push('/**');
-lines.push(' * Generated by scripts/build_fueleu_shipping_targets.ts from data/fueleu_mrv_2024_companies.json');
-lines.push(' * (EU MRV / THETIS-MRV public emission report, reporting year 2024, version ' + raw.source.version + ').');
+lines.push(' * Generated by scripts/build_fueleu_shipping_targets.ts from data/fueleu_mrv_2025_companies.json');
+lines.push(' * (EU MRV / THETIS-MRV public emission report, reporting year ' + raw.source.reportingPeriod + ', version ' + raw.source.version + ').');
 lines.push(' * DO NOT hand-edit — regenerate instead. See that script for methodology notes.');
 lines.push(' *');
-lines.push(' * 2024 MRV data is used as the best available proxy for each company\'s 2026/2030 activity');
-lines.push(' * (FuelEU Maritime\'s active compliance period for this desk is 2026; MRV\'s latest complete');
-lines.push(' * year is 2024). Fuel-type split (VLSFO/MGO/LNG) is ESTIMATED from aggregate CO2/CH4 (see');
+lines.push(' * Stored as compact positional rows + lookup tables and expanded to full ShippingCounterparty');
+lines.push(' * objects by decodeShippingTargets (column layout: COL in shippingTargetsCodec.ts). Tonnage fields');
+lines.push(' * are rounded (whole tonnes from 1,000 t, one decimal below); every euro/balance/penalty field was');
+lines.push(' * computed from full-precision MRV tonnes before rounding.');
+lines.push(' *');
+lines.push(" * 2025 MRV data is used as the best available proxy for each company's 2026/2030 activity");
+lines.push(" * (FuelEU Maritime's active compliance period for this desk is 2026; MRV's latest complete");
+lines.push(' * year is 2025). Fuel-type split (VLSFO/MGO/LNG) is ESTIMATED from aggregate CO2/CH4 (see');
 lines.push(' * fuelSplitMethod per row). ETS fields use the MRV-reported, ship-verified ets_co2_t (col. 37)');
 lines.push(' * at 100% 2026 phase-in, plus an estimated CH4 CO2e add-on (N2O omitted; see script header).');
 lines.push(' */');
 lines.push(`export const TOTAL_MARKET_VESSELS_IN_SCOPE = ${totalVessels};`);
 lines.push(`export const TOTAL_MARKET_ENERGY_TWH = ${totalEnergyTwh};`);
 lines.push('');
-// Cast (not a `: ShippingCounterparty[]` variable annotation) — with ~3,500 object-literal rows,
-// full per-element contextual/excess-property checking against the interface makes tsc's array
-// literal union inference blow up ("union type too complex to represent"). The cast still checks
-// structural compatibility but skips that per-element combinatorial pass.
-lines.push('export const FUEL_EU_SHIPPING_COUNTERPARTIES = [');
-for (const row of built) {
-  lines.push(JSON.stringify(row) + ',');
-}
-lines.push('] as unknown as ShippingCounterparty[];');
+lines.push('const PACK: ShippingTargetsPack = {');
+lines.push(`  source: ${JSON.stringify(pack.source)},`);
+lines.push(`  fuelSplitMethod: ${JSON.stringify(pack.fuelSplitMethod)},`);
+lines.push(`  poolBuyPriceEurPerTco2e: ${pack.poolBuyPriceEurPerTco2e},`);
+lines.push(`  poolSellPriceEurPerTco2e: ${pack.poolSellPriceEurPerTco2e},`);
+lines.push(`  segments: ${JSON.stringify(pack.segments)},`);
+lines.push(`  fleetCapabilities: ${JSON.stringify(pack.fleetCapabilities)},`);
+lines.push(`  groups: ${JSON.stringify(pack.groups)},`);
+lines.push(`  bearers: ${JSON.stringify(pack.bearers)},`);
+lines.push('  rows: [');
+for (const row of pack.rows) lines.push(JSON.stringify(row) + ',');
+lines.push('  ],');
+lines.push('};');
+lines.push('');
+lines.push('export const FUEL_EU_SHIPPING_COUNTERPARTIES: ShippingCounterparty[] = decodeShippingTargets(PACK);');
 lines.push('');
 
 fs.writeFileSync(OUT_PATH, lines.join('\n'), 'utf8');
+
+// Tiny vintage module so UI labels can cite the data year without importing the ~1 MB dataset.
+fs.writeFileSync(
+  path.join(REPO_ROOT, 'src', 'domain', 'fueleu', 'mrvVintage.ts'),
+  [
+    '/**',
+    ' * Generated by scripts/build_fueleu_shipping_targets.ts. DO NOT hand-edit.',
+    ' * EU MRV (THETIS-MRV) publication the FuelEU / ETS-maritime shipping data was built from.',
+    ' */',
+    `export const MRV_REPORTING_YEAR = ${raw.source.reportingPeriod};`,
+    `export const MRV_PUBLICATION_VERSION = ${raw.source.version};`,
+    '',
+  ].join('\n'),
+  'utf8',
+);
 
 // ---------------- Console summary ----------------
 const mrvInScopeCo2Sum = eligible.reduce((acc, c) => acc + c.in_scope_co2_t, 0);

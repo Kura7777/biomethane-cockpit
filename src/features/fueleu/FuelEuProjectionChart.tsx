@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { projectStaticFleet, StaticFleetProjectionPoint, StaticFleetGroupProjectionPoint } from '../../domain/fueleu/calculator';
+import { MRV_REPORTING_YEAR } from '../../domain/fueleu/mrvVintage';
 import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 import { buildLinearScale, buildOrdinalPositions, buildLinePath, buildAreaPath } from '../../domain/fueleu/uiHelpers';
 
@@ -399,7 +400,7 @@ export function FuelEuProjectionChart({ fleetInput, groupPoints, multiplierSerie
       </table>
 
       <div className="subttl" style={{ fontSize: '9.5px', lineHeight: 1.4 }}>
-        Static fleet · EU MRV 2024 activity held constant · no Bio-LNG, no pooling · Art. 23(2) multiplier applies per ship — company/group view assumes uniform status.
+        Static fleet · EU MRV {MRV_REPORTING_YEAR} activity held constant · no Bio-LNG, no pooling · Art. 23(2) multiplier applies per ship — company/group view assumes uniform status.
       </div>
     </div>
   );

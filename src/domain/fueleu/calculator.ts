@@ -749,7 +749,7 @@ export const STATIC_FLEET_PROJECTION_YEARS = [2026, 2027, 2028, 2029, 2030, 2035
 
 /**
  * Projects a fleet's FuelEU compliance position across statutory milestone years, holding fleet
- * activity constant at the fleet's (2024 MRV) fuel tonnages — no Bio-LNG blending, no Article 21
+ * activity constant at the fleet's (latest EU MRV publication) fuel tonnages — no Bio-LNG blending, no Article 21
  * pooling: "what happens if nothing changes."
  *
  * Escalation follows Art. 23(2): penalty multiplier = 1 + (n − 1)/10, where n is the number of
