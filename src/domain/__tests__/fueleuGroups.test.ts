@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { FUEL_EU_SHIPPING_GROUPS, getGroupById } from '../fueleu/groups';
 import { FUEL_EU_SHIPPING_COUNTERPARTIES } from '../fueleu/shippingTargetsData';
 import { FUEL_EU_LNG_SHIPS } from '../fueleu/lngShipsData';
+import mrvShips from '../../../data/fueleu_mrv_2025_ships.json';
 
 describe('FUEL_EU_SHIPPING_GROUPS — commercial group roll-up', () => {
   it('every dataset row is accounted for in exactly one group, with matching member counts', () => {
@@ -52,8 +53,10 @@ describe('FUEL_EU_SHIPPING_GROUPS — commercial group roll-up', () => {
 });
 
 describe('FUEL_EU_LNG_SHIPS — LNG vessel book', () => {
-  it('has 479 rows (the isLng-flagged ships in the EU MRV 2024 ship-level extract)', () => {
-    expect(FUEL_EU_LNG_SHIPS.length).toBe(479);
+  it('has one row per isLng-flagged ship in the EU MRV 2025 ship-level extract (737 in v58; 479 in 2024 v244)', () => {
+    const lngInExtract = (mrvShips as { ships: { isLng: boolean }[] }).ships.filter(s => s.isLng).length;
+    expect(lngInExtract).toBe(737);
+    expect(FUEL_EU_LNG_SHIPS.length).toBe(lngInExtract);
   });
 
   it('every row has finite, non-negative Bio-LNG-need and extra-surplus figures', () => {

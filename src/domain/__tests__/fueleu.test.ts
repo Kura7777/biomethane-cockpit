@@ -19,11 +19,12 @@ import {
   fossilLngWtw,
 } from '../fueleu';
 import { buildDealUrl } from '../trade/dealParams';
-import mrvData from '../../../data/fueleu_mrv_2024_companies.json';
+import mrvData from '../../../data/fueleu_mrv_2025_companies.json';
+import { slimTonnes } from '../fueleu/shippingTargetsCodec';
 
 const FORBIDDEN_PITCH_WORDS = ['435', 'audited', 'verified', 'guaranteed', 'Article 20'];
 
-describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2024)', () => {
+describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2025)', () => {
   it('loads a non-empty, real EU MRV-derived shipping dataset with non-null metrics and zero NaNs', () => {
     expect(FUEL_EU_SHIPPING_COUNTERPARTIES.length).toBeGreaterThan(1000);
 
@@ -67,11 +68,24 @@ describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2024)', () => {
   });
 
   it('dataset compliance fields match the calculator for every counterparty (anti-drift)', () => {
+    // The shipped tonnage columns are rounded (slimTonnes) to keep the bundle small, but every
+    // derived field was computed from the full-precision MRV tonnes. So the calculator is re-run
+    // on the source JSON tonnes, and the shipped tonnes are checked against their rounded form.
+    const srcByImo = new Map<string, { vlsfo_tonnes: number; mgo_tonnes: number; lng_tonnes: number }>();
+    for (const co of (mrvData as { companies: { company_imo: string; vlsfo_tonnes: number; mgo_tonnes: number; lng_tonnes: number }[] }).companies) {
+      const t = (co.company_imo || '').trim();
+      srcByImo.set(/^\d{1,7}$/.test(t) ? t.padStart(7, '0') : t, co);
+    }
     for (const c of FUEL_EU_SHIPPING_COUNTERPARTIES) {
+      const src = srcByImo.get(c.company_imo)!;
+      expect(src, c.parent_name).toBeDefined();
+      expect(c.vlsfo_tonnes, c.parent_name).toBe(slimTonnes(src.vlsfo_tonnes));
+      expect(c.mgo_tonnes, c.parent_name).toBe(slimTonnes(src.mgo_tonnes));
+      expect(c.lng_tonnes, c.parent_name).toBe(slimTonnes(src.lng_tonnes));
       const base = {
-        vlsfoTonnes: c.vlsfo_tonnes,
-        mgoTonnes: c.mgo_tonnes,
-        lngTonnes: c.lng_tonnes,
+        vlsfoTonnes: src.vlsfo_tonnes,
+        mgoTonnes: src.mgo_tonnes,
+        lngTonnes: src.lng_tonnes,
         bioLngTonnes: 0,
         bioLngCi: -100,
         consecutiveYearsNonCompliant: 1,
@@ -87,9 +101,9 @@ describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2024)', () => {
       expect(c.penalty_2026_y2_eur, c.parent_name).toBe(Math.round(r25.statutoryPenaltyY2Eur));
       expect(c.compliance_balance_2030_tco2e, c.parent_name).toBe(Number(r30.complianceBalanceTco2e.toFixed(1)) || 0);
       expect(c.penalty_2030_y1_eur, c.parent_name).toBe(Math.round(r30.statutoryPenaltyY1Eur));
-      expect(c.bio_lng_required_neg100_t, c.parent_name).toBe(Number(r25.bioLngRequiredNeg100Tonnes.toFixed(1)));
+      expect(c.bio_lng_required_neg100_t, c.parent_name).toBe(slimTonnes(r25.bioLngRequiredNeg100Tonnes));
       expect(c.bio_lng_required_neg100_mwh, c.parent_name).toBe(Math.round(r25.bioLngRequiredNeg100Mwh));
-      expect(c.bio_lng_required_zero_t, c.parent_name).toBe(Number(r25.bioLngRequiredZeroCiTonnes.toFixed(1)));
+      expect(c.bio_lng_required_zero_t, c.parent_name).toBe(slimTonnes(r25.bioLngRequiredZeroCiTonnes));
       expect(c.client_savings_physical_eur, c.parent_name).toBe(Math.round(r25.physicalSavingsEur));
       expect(c.desk_margin_physical_eur, c.parent_name).toBe(Math.round(r25.physicalTradingMarginEur));
       expect(c.client_savings_pooling_eur, c.parent_name).toBe(Math.round(r25.poolingSavingsEur));
@@ -109,7 +123,8 @@ describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2024)', () => {
       expect(c.ship_imos.length, c.parent_name).toBeGreaterThan(0);
       expect(c.source).toBeDefined();
       expect(c.source.dataset).toContain('MRV');
-      expect(c.source.reportingPeriod).toBe(2024);
+      expect(c.source.reportingPeriod).toBe(2025);
+      expect(c.source.version).toBe(58);
       expect(c.source.sha256).toBeTruthy();
       expect(c.fuelSplitMethod).toBeTruthy();
       expect(Number.isFinite(c.lngShipCount)).toBe(true);
@@ -139,7 +154,7 @@ describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2024)', () => {
     for (const c of FUEL_EU_SHIPPING_COUNTERPARTIES) {
       expect(c.outreachPitch).toBeTruthy();
       expect(c.outreachPitch.length).toBeGreaterThan(50);
-      expect(c.outreachPitch).toContain('EU MRV 2024');
+      expect(c.outreachPitch).toContain('EU MRV 2025');
       expect(c.outreachPitch.toLowerCase()).toContain('indicative estimate');
       expect(c.outreachPitch.includes('FuelEU') || c.outreachPitch.includes('Bio-LNG') || c.outreachPitch.includes('Article 21')).toBe(true);
       for (const word of FORBIDDEN_PITCH_WORDS) {
