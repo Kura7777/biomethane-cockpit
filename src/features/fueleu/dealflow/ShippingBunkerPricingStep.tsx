@@ -260,7 +260,7 @@ export function ShippingBunkerPricingStep({
             }`}
           >
             {isDualFuel && (
-              <span className="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+              <span className="absolute max-md:static max-md:inline-block max-md:mb-2 top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
                 RECOMMENDED
               </span>
             )}
@@ -305,7 +305,7 @@ export function ShippingBunkerPricingStep({
             }`}
           >
             {!isDualFuel && (
-              <span className="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+              <span className="absolute max-md:static max-md:inline-block max-md:mb-2 top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
                 RECOMMENDED
               </span>
             )}
@@ -601,6 +601,7 @@ export function ShippingBunkerPricingStep({
 
       {/* Bottom Dock Navigation Bar */}
       <div
+        className="fe-dock m-sticky-actions"
         style={{
           border: '1px solid var(--color-divider)',
           backgroundColor: 'var(--color-surface)',

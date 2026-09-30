@@ -6,6 +6,8 @@ import { getAssumption, fuelEuPoolBidPriceEurPerTco2e } from '../../domain/assum
 import { FUELEU_POOLING_BORROWING_DATABASE_DEADLINE } from '../../domain/fueleu/calculator';
 import { PoolPriceMark } from './PoolPriceMark';
 import { FuelEuPoolIndexChart } from './FuelEuPoolIndexChart';
+import { useIsMobile } from '../../shared/hooks/useMediaQuery';
+import { MobileCardList } from '../../shared/ui';
 
 const MONO_FONT = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
 
@@ -18,6 +20,7 @@ export interface PoolMatchingTabProps {
 }
 
 export function PoolMatchingTab({ highlightGroupId }: PoolMatchingTabProps = {}) {
+  const isMobile = useIsMobile();
   const [topDeficitCount, setTopDeficitCount] = useState<number>(10);
 
   useEffect(() => {
@@ -91,7 +94,7 @@ export function PoolMatchingTab({ highlightGroupId }: PoolMatchingTabProps = {})
 
       <div style={{ padding: '8px 18px', borderBottom: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
         <span style={{ fontSize: '11px', color: 'var(--color-muted)', fontWeight: 600 }}>Top deficit groups to include:</span>
-        <div className="seg" role="group" aria-label="Number of deficit groups to include">
+        <div className="seg fe-topn" role="group" aria-label="Number of deficit groups to include">
           {TOP_N_OPTIONS.map(n => (
             <button
               key={n}
@@ -111,7 +114,7 @@ export function PoolMatchingTab({ highlightGroupId }: PoolMatchingTabProps = {})
       </div>
 
       {/* Pool validity + summary strip */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', borderBottom: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)' }}>
+      <div className="fe-pool-summary" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', borderBottom: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)' }}>
         <div style={{ padding: '10px 18px', borderRight: '1px solid var(--color-divider)' }}>
           <span className="eyebrow" style={{ fontSize: '10px' }}>MATCHED VOLUME</span>
           <div className="num font-mono" style={{ fontSize: '19px', fontWeight: 800, marginTop: '2px' }}>
@@ -171,12 +174,29 @@ export function PoolMatchingTab({ highlightGroupId }: PoolMatchingTabProps = {})
       </div>
 
       {/* Two-column seller/buyer ledger */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0 }}>
+      <div className="fe-pool-ledger" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0 }}>
         {/* Sellers (surplus groups) */}
         <div style={{ borderRight: '1px solid var(--color-divider)' }}>
           <div style={{ padding: '8px 18px', borderBottom: '1px solid var(--color-divider)', backgroundColor: 'var(--color-panel-header)', fontWeight: 700, fontSize: '11px' }}>
             SURPLUS GROUPS (SELLERS) — proceeds at bid €{bid.toFixed(2)}/tCO2e, indicative
           </div>
+          {isMobile ? (
+            <div className="fe-pool-cards">
+              <MobileCardList
+                testId="fe-pool-sellers"
+                items={[...book.surplusAllocations].filter(a => a.matchedTco2e > 0).sort((a, b) => b.matchedTco2e - a.matchedTco2e)}
+                getKey={a => a.id}
+                selectedKey={highlightGroupId}
+                title={a => a.name}
+                metric={a => `€${Math.round(a.proceedsAtBidEur).toLocaleString()}`}
+                metricLabel={() => 'Proceeds'}
+                fields={a => [
+                  { label: 'Surplus (tCO2e)', value: Math.round(a.surplusTco2e).toLocaleString(), mono: true },
+                  { label: 'Matched (tCO2e)', value: Math.round(a.matchedTco2e).toLocaleString(), mono: true, tone: 'pos' },
+                ]}
+              />
+            </div>
+          ) : (
           <div style={{ overflowX: 'auto' }}>
             <table className="table" style={{ width: '100%', margin: 0 }}>
               <thead>
@@ -202,6 +222,7 @@ export function PoolMatchingTab({ highlightGroupId }: PoolMatchingTabProps = {})
               </tbody>
             </table>
           </div>
+          )}
         </div>
 
         {/* Buyers (deficit groups) */}
@@ -209,6 +230,29 @@ export function PoolMatchingTab({ highlightGroupId }: PoolMatchingTabProps = {})
           <div style={{ padding: '8px 18px', borderBottom: '1px solid var(--color-divider)', backgroundColor: 'var(--color-panel-header)', fontWeight: 700, fontSize: '11px' }}>
             DEFICIT GROUPS (BUYERS) — cost at offer €{offer.toFixed(2)}/tCO2e vs Annex IV penalty, indicative
           </div>
+          {isMobile ? (
+            <div className="fe-pool-cards">
+              <MobileCardList
+                testId="fe-pool-buyers"
+                items={book.deficitAllocations}
+                getKey={a => a.id}
+                selectedKey={highlightGroupId}
+                title={a => a.name}
+                metric={a => `${a.savingEur >= 0 ? '+' : ''}€${Math.round(a.savingEur).toLocaleString()}`}
+                metricLabel={() => 'Saving'}
+                fields={a => [
+                  { label: 'Deficit (tCO2e)', value: Math.round(a.deficitTco2e).toLocaleString(), mono: true },
+                  { label: 'Cost @ offer', value: `€${Math.round(a.costAtOfferEur).toLocaleString()}`, mono: true },
+                  { label: 'Annex IV penalty', value: `€${Math.round(a.annexIvPenaltyEur).toLocaleString()}`, mono: true, tone: 'warn', span: 2 },
+                ]}
+              />
+              {book.unmatchedDeficitTco2e > 0 && (
+                <div className="fe-pool-unmatched">
+                  {Math.round(book.unmatchedDeficitTco2e).toLocaleString()} tCO2e of deficit remains unmatched at this surplus pool size — indicative.
+                </div>
+              )}
+            </div>
+          ) : (
           <div style={{ overflowX: 'auto' }}>
             <table className="table" style={{ width: '100%', margin: 0 }}>
               <thead>
@@ -242,6 +286,7 @@ export function PoolMatchingTab({ highlightGroupId }: PoolMatchingTabProps = {})
               </tbody>
             </table>
           </div>
+          )}
         </div>
       </div>
     </div>

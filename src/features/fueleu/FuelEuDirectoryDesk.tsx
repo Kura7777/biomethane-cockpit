@@ -7,6 +7,9 @@ import { getAssumption, fuelEuPoolBidPriceEurPerTco2e } from '../../domain/assum
 import { sortRows, scaleDivergingBarWidth, SortDirection } from '../../domain/fueleu/uiHelpers';
 import { FuelEuSidePanel, FuelEuDirectoryRow } from './FuelEuSidePanel';
 import { showToast } from '../../app/DeskToastContainer';
+import { useIsMobile } from '../../shared/hooks/useMediaQuery';
+import { Sheet, MobileCardList } from '../../shared/ui';
+import { SlidersHorizontal } from 'lucide-react';
 
 type ViewMode = 'GROUPS' | 'COMPANIES';
 
@@ -74,6 +77,8 @@ export function FuelEuDirectoryDesk({
   onBuildTermSheet: (company: ShippingCounterparty) => void;
   onAddToPool: (groupId: string) => void;
 }) {
+  const isMobile = useIsMobile();
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('GROUPS');
   const [search, setSearch] = useState('');
   const [segmentFilter, setSegmentFilter] = useState<string>('ALL');
@@ -218,6 +223,8 @@ export function FuelEuDirectoryDesk({
 
   // Default selection: first row, and keep selection valid as filters change.
   useEffect(() => {
+    // Mobile: a row opens a full-screen sheet, so nothing is pre-selected (it would pop open on load).
+    if (isMobile) return;
     if (pageRows.length === 0) {
       if (selectedKey !== null) setSelectedKey(null);
       return;
@@ -225,7 +232,7 @@ export function FuelEuDirectoryDesk({
     if (!pageRows.some(r => r.key === selectedKey)) {
       setSelectedKey(pageRows[0].key);
     }
-  }, [pageRows, selectedKey]);
+  }, [pageRows, selectedKey, isMobile]);
 
   useEffect(() => {
     function handleEsc(e: KeyboardEvent) {
@@ -295,10 +302,142 @@ export function FuelEuDirectoryDesk({
     members: r.members,
   });
 
+  const activeFilterCount =
+    (segmentFilter !== 'ALL' ? 1 : 0) + (entityTypeFilter !== 'ALL' ? 1 : 0) + (lngOnly ? 1 : 0);
+
+  const mobileToolbar = (
+    <>
+      <div className="fe-m-toolbar">
+        <label className="fe-search">
+          <Search size={16} />
+          <input
+            type="search"
+            placeholder="Search groups, DoC holders, IMO"
+            aria-label="Search"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </label>
+        <div className="fe-m-toolbar-row">
+          <div className="fe-seg" role="group" aria-label="Directory view">
+            <button type="button" className={viewMode === 'GROUPS' ? 'active' : ''} onClick={() => setViewMode('GROUPS')}>
+              Groups
+            </button>
+            <button type="button" className={viewMode === 'COMPANIES' ? 'active' : ''} onClick={() => setViewMode('COMPANIES')}>
+              Companies
+            </button>
+          </div>
+          <button
+            type="button"
+            className={`fe-toggle-btn fe-m-filters-btn ${activeFilterCount > 0 ? 'active' : ''}`}
+            onClick={() => setFiltersOpen(true)}
+            data-testid="fe-filters-btn"
+          >
+            <SlidersHorizontal size={14} /> <span>Filters &amp; sort{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}</span>
+          </button>
+        </div>
+      </div>
+      <Sheet
+        open={filtersOpen}
+        onClose={() => setFiltersOpen(false)}
+        title="Filters & sort"
+        variant="bottom"
+        testId="fe-filters-sheet"
+        footer={
+          <div className="fe-scope fe-m-footer">
+            <button
+              type="button"
+              className="fe-btn-secondary"
+              onClick={() => { setSegmentFilter('ALL'); setEntityTypeFilter('ALL'); setLngOnly(false); }}
+            >
+              Reset
+            </button>
+            <button type="button" className="fe-btn-primary" onClick={() => setFiltersOpen(false)}>
+              Show {sortedRows.length.toLocaleString()} {viewMode.toLowerCase()}
+            </button>
+          </div>
+        }
+      >
+        <div className="fe-scope fe-m-filters">
+          <label className="fe-m-field">
+            <span>Segment</span>
+            <select value={segmentFilter} onChange={e => setSegmentFilter(e.target.value)}>
+              <option value="ALL">All segments</option>
+              {segments.map(seg => (
+                <option key={seg} value={seg}>{seg}</option>
+              ))}
+            </select>
+          </label>
+          <label className="fe-m-field">
+            <span>Entity type</span>
+            <select value={entityTypeFilter} onChange={e => setEntityTypeFilter(e.target.value as GroupEntityType | 'ALL')}>
+              <option value="ALL">All entity types</option>
+              {ENTITY_TYPE_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </label>
+          <button type="button" className={`fe-toggle-btn ${lngOnly ? 'active' : ''}`} aria-pressed={lngOnly} onClick={() => setLngOnly(v => !v)}>
+            LNG-capable
+          </button>
+          <div className="fe-m-field">
+            <span>Sort by</span>
+            <div className="fe-m-sort">
+              <select value={sortField} aria-label="Sort by" onChange={e => { setSortField(e.target.value as SortField); setSortDirection(e.target.value === 'name' ? 'asc' : 'desc'); }}>
+                {(Object.keys(sortLabel) as SortField[]).map(f => (
+                  <option key={f} value={f}>{sortLabel[f]}</option>
+                ))}
+              </select>
+              <button
+                type="button"
+                className="fe-toggle-btn"
+                aria-label={sortDirection === 'asc' ? 'Ascending, tap for descending' : 'Descending, tap for ascending'}
+                onClick={() => setSortDirection(d => (d === 'asc' ? 'desc' : 'asc'))}
+              >
+                {sortDirection === 'asc' ? <ArrowUp size={16} /> : <ArrowDown size={16} />}
+              </button>
+            </div>
+          </div>
+          <button type="button" className="fe-toggle-btn" onClick={handleExport}>
+            <Download size={14} /> <span>Export CSV</span>
+          </button>
+        </div>
+      </Sheet>
+    </>
+  );
+
+  const mobileCards = (
+    <MobileCardList
+      testId="fe-directory-cards"
+      items={pageRows}
+      getKey={r => r.key}
+      onSelect={r => setSelectedKey(r.key)}
+      title={r => r.name}
+      subtitle={r => (
+        <>
+          {r.meta}
+          {r.metaCount ? ` ${r.metaCount}` : ''}
+        </>
+      )}
+      metric={r => `€${(r.penaltyEur / 1e6).toFixed(1)}M`}
+      metricLabel={() => 'Penalty'}
+      fields={r => [
+        { label: '2026 balance', value: `${r.isSurplus ? '+' : '−'}${(Math.abs(r.balanceTco2e) / 1000).toFixed(1)} kt`, mono: true, tone: r.isSurplus ? 'pos' : 'neg' },
+        { label: r.isSurplus ? 'Surplus value' : 'Saving', value: `€${(r.savingEur / 1e6).toFixed(1)}M`, mono: true },
+        { label: 'Vessels', value: r.vessels.toLocaleString(), mono: true },
+        { label: 'In-scope CO₂ (kt)', value: Math.round(r.co2Tco2e / 1000).toLocaleString(), mono: true },
+        { label: 'Pool cost', value: r.poolCostEur !== null ? `€${(r.poolCostEur / 1e6).toFixed(1)}M` : '—', mono: true, tone: 'muted' },
+      ]}
+      empty="No rows match the current search & filters."
+    />
+  );
+
   return (
     <div className="fe-body">
       <div className="fe-directory-grid">
       <div className="fe-table-col">
+        {isMobile && mobileToolbar}
+        {!isMobile && (
         <div className="fe-toolbar">
           <label className="fe-search">
             <Search size={14} />
@@ -394,8 +533,13 @@ export function FuelEuDirectoryDesk({
             <Download size={12} /> <span>Export</span>
           </button>
         </div>
+        )}
 
         <div className="fe-table-wrap">
+          {isMobile ? (
+            mobileCards
+          ) : (
+          <>
           <div className="fe-thead-row fe-table-cols">
             <div>
               <button type="button" onClick={() => handleSort('name')}>
@@ -489,6 +633,8 @@ export function FuelEuDirectoryDesk({
               })
             )}
           </div>
+          </>
+          )}
 
           <div className="fe-tfoot">
             <span className="num">
@@ -512,13 +658,34 @@ export function FuelEuDirectoryDesk({
         </div>
       </div>
 
-      {selectedRow && (
+      {selectedRow && !isMobile && (
         <FuelEuSidePanel
           row={buildRowForPanel(selectedRow)}
           onClose={() => setSelectedKey(null)}
           onBuildTermSheet={onBuildTermSheet}
           onAddToPool={onAddToPool}
         />
+      )}
+      {isMobile && (
+        <Sheet
+          open={selectedRow !== null}
+          onClose={() => setSelectedKey(null)}
+          title={selectedRow?.name}
+          variant="full"
+          testId="fe-panel-sheet"
+        >
+          {selectedRow && (
+            <div className="fe-scope">
+              <FuelEuSidePanel
+                embedded
+                row={buildRowForPanel(selectedRow)}
+                onClose={() => setSelectedKey(null)}
+                onBuildTermSheet={onBuildTermSheet}
+                onAddToPool={onAddToPool}
+              />
+            </div>
+          )}
+        </Sheet>
       )}
       </div>
     </div>

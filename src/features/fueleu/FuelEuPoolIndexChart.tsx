@@ -1,7 +1,8 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { getAssumption } from '../../domain/assumptions/registry';
 import { FUELEU_POOL_INDEX_HISTORY } from '../../domain/markets/fueleuPoolIndexHistory';
 import { buildLinearScale, buildOrdinalPositions } from '../../domain/fueleu/uiHelpers';
+import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 
 /** Fixed Mar–Sep 2026 axis, per the approved chart spec — the desk's tracked window. */
 const MONTHS: { label: string; key: string }[] = [
@@ -54,9 +55,14 @@ export interface FuelEuPoolIndexChartProps {
  * line rather than being bridged. Reuses the inline-SVG conventions of FuelEuProjectionChart:
  * design tokens, 12px ticks, dotted gridlines.
  */
-export function FuelEuPoolIndexChart({ width = 960, height = 260 }: FuelEuPoolIndexChartProps) {
+export function FuelEuPoolIndexChart({ width: widthProp = 960, height: heightProp = 260 }: FuelEuPoolIndexChartProps) {
+  const isMobile = useIsMobile();
+  // Mobile: narrower viewBox so the 12px+ labels stay legible at phone width; taps replace <title> hovers.
+  const width = isMobile ? 360 : widthProp;
+  const height = isMobile ? 250 : heightProp;
+  const [readout, setReadout] = useState<{ key: string; text: string } | null>(null);
   // Top margin holds the deadline label above the plot; right margin holds the desk-mark label beside its line.
-  const margin = { top: 32, right: 132, bottom: 30, left: 44 };
+  const margin = isMobile ? { top: 30, right: 14, bottom: 30, left: 46 } : { top: 32, right: 132, bottom: 30, left: 44 };
   const innerW = width - margin.left - margin.right;
   const innerH = height - margin.top - margin.bottom;
 
@@ -108,12 +114,12 @@ export function FuelEuPoolIndexChart({ width = 960, height = 260 }: FuelEuPoolIn
         FuelEU surplus price, compliance year 2026
       </span>
 
-      <svg role="img" aria-label={ariaLabel} width="100%" viewBox={`0 0 ${width} ${height}`} style={{ display: 'block', maxWidth: `${width}px` }}>
+      <svg role="img" aria-label={ariaLabel} width="100%" viewBox={`0 0 ${width} ${height}`} style={{ display: 'block', maxWidth: `${width}px` }} data-testid={isMobile ? 'fe-pool-chart-mobile' : undefined}>
         {/* Dotted gridlines */}
         {yTicks.map(t => (
           <g key={t}>
             <line x1={margin.left} x2={margin.left + innerW} y1={yScale(t)} y2={yScale(t)} stroke="var(--color-divider)" strokeDasharray="1,3" />
-            <text x={margin.left - 6} y={yScale(t) + 4} textAnchor="end" fontSize="12" fill="var(--color-muted)">
+            <text x={margin.left - 6} y={yScale(t) + 4} textAnchor="end" fontSize={isMobile ? 13 : 12} fill="var(--color-muted)">
               €{t}
             </text>
           </g>
@@ -138,10 +144,10 @@ export function FuelEuPoolIndexChart({ width = 960, height = 260 }: FuelEuPoolIn
         <text
           x={xPositions[DEADLINE_MONTH_INDEX] + 4}
           y={margin.top - 10}
-          fontSize="12"
+          fontSize={isMobile ? 13 : 12}
           fill="var(--color-status-warn-text, #d97706)"
         >
-          30 Apr · CY2025 deadline
+          {isMobile ? '30 Apr · CY2025' : '30 Apr · CY2025 deadline'}
         </text>
 
         {/* Current desk mark reference line */}
@@ -156,9 +162,25 @@ export function FuelEuPoolIndexChart({ width = 960, height = 260 }: FuelEuPoolIn
         >
           <title>{`Current desk mark: €${currentMark.toFixed(2)}/tCO2e`}</title>
         </line>
-        <text x={margin.left + innerW + 8} y={yScale(currentMark) + 4} textAnchor="start" fontSize="12" fontWeight={600} fill="var(--color-text)">
-          Desk mark €{currentMark.toFixed(2)}
-        </text>
+        {isMobile ? (
+          <text
+            x={xPositions[DEADLINE_MONTH_INDEX] + 8}
+            y={yScale(currentMark) - 6}
+            textAnchor="start"
+            fontSize={13}
+            fontWeight={600}
+            fill="var(--color-text)"
+            stroke="var(--color-surface)"
+            strokeWidth={3}
+            paintOrder="stroke"
+          >
+            Desk mark €{currentMark.toFixed(2)}
+          </text>
+        ) : (
+          <text x={margin.left + innerW + 8} y={yScale(currentMark) + 4} textAnchor="start" fontSize="12" fontWeight={600} fill="var(--color-text)">
+            Desk mark €{currentMark.toFixed(2)}
+          </text>
+        )}
 
         {/* OceanScore OPX — offer-side, dashed */}
         {oceanScoreSegments.map((segment, si) => (
@@ -167,7 +189,17 @@ export function FuelEuPoolIndexChart({ width = 960, height = 260 }: FuelEuPoolIn
         {oceanScorePoints.map(p => (
           <g key={`os-pt-${p.label}`}>
             <title>{`OceanScore OPX ${p.label}: €${p.value.toFixed(2)} (offer-side index) — ${p.url}`}</title>
-            <circle cx={xPositions[p.index]} cy={yScale(p.value)} r={3} fill="var(--color-muted)" />
+            <circle cx={xPositions[p.index]} cy={yScale(p.value)} r={readout?.key === `os-${p.label}` ? 5 : 3} fill="var(--color-muted)" />
+            {isMobile && (
+              <circle
+                cx={xPositions[p.index]}
+                cy={yScale(p.value)}
+                r={16}
+                fill="transparent"
+                style={{ cursor: 'pointer' }}
+                onClick={() => setReadout({ key: `os-${p.label}`, text: `OceanScore OPX ${p.label}: €${p.value.toFixed(2)} (offer-side index)` })}
+              />
+            )}
           </g>
         ))}
 
@@ -178,17 +210,33 @@ export function FuelEuPoolIndexChart({ width = 960, height = 260 }: FuelEuPoolIn
         {betterSeaPoints.map(p => (
           <g key={`bs-pt-${p.label}`}>
             <title>{`BetterSea ${p.label}: €${p.value.toFixed(2)} (executed trades) — ${p.url}`}</title>
-            <circle cx={xPositions[p.index]} cy={yScale(p.value)} r={3} fill="var(--color-status-pos-text)" />
+            <circle cx={xPositions[p.index]} cy={yScale(p.value)} r={readout?.key === `bs-${p.label}` ? 5 : 3} fill="var(--color-status-pos-text)" />
+            {isMobile && (
+              <circle
+                cx={xPositions[p.index]}
+                cy={yScale(p.value)}
+                r={16}
+                fill="transparent"
+                style={{ cursor: 'pointer' }}
+                onClick={() => setReadout({ key: `bs-${p.label}`, text: `BetterSea ${p.label}: €${p.value.toFixed(2)} (executed trades)` })}
+              />
+            )}
           </g>
         ))}
 
         {/* X-axis month labels */}
         {MONTHS.map((m, i) => (
-          <text key={m.key} x={xPositions[i]} y={margin.top + innerH + 18} textAnchor="middle" fontSize="12" fill="var(--color-muted)">
+          <text key={m.key} x={xPositions[i]} y={margin.top + innerH + 18} textAnchor="middle" fontSize={isMobile ? 13 : 12} fill="var(--color-muted)">
             {m.label}
           </text>
         ))}
       </svg>
+
+      {isMobile && (
+        <div className="fe-chart-readout" role="status" aria-live="polite">
+          {readout ? readout.text : 'Tap a point for its value.'}
+        </div>
+      )}
 
       {/* Legend */}
       <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', fontSize: '12px', color: 'var(--color-muted)' }}>

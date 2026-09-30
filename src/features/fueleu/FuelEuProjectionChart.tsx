@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { projectStaticFleet, StaticFleetProjectionPoint, StaticFleetGroupProjectionPoint } from '../../domain/fueleu/calculator';
+import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 import { buildLinearScale, buildOrdinalPositions, buildLinePath, buildAreaPath } from '../../domain/fueleu/uiHelpers';
 
 const MONO_FONT = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
@@ -71,7 +72,12 @@ export interface FuelEuProjectionChartProps {
  * ordinal (evenly spaced) with an explicit visual gap marker where the calendar-year spacing is
  * uneven (2030→2035→2040).
  */
-export function FuelEuProjectionChart({ fleetInput, groupPoints, multiplierSeries, title, width = 560, height = 220, variant = 'full' }: FuelEuProjectionChartProps) {
+export function FuelEuProjectionChart({ fleetInput, groupPoints, multiplierSeries, title, width: widthProp = 560, height: heightProp = 220, variant = 'full' }: FuelEuProjectionChartProps) {
+  const isMobile = useIsMobile();
+  // Mobile: a ~360px-wide viewBox so text renders at its authored size instead of being scaled down.
+  const width = isMobile ? 360 : widthProp;
+  const height = isMobile ? (variant === 'panel' ? 210 : 250) : heightProp;
+  const [selIdx, setSelIdx] = useState<number | null>(null);
   const [assume2025NonCompliant, setAssume2025NonCompliant] = useState(true);
 
   const points: ProjectionPoint[] = useMemo(() => {
@@ -83,7 +89,13 @@ export function FuelEuProjectionChart({ fleetInput, groupPoints, multiplierSerie
   }, [fleetInput, groupPoints, assume2025NonCompliant]);
 
   const isPanel = variant === 'panel';
-  const margin = isPanel ? { top: 20, right: 14, bottom: 28, left: 14 } : { top: 18, right: 52, bottom: 34, left: 62 };
+  const margin = isPanel
+    ? { top: 20, right: 14, bottom: 28, left: 14 }
+    : isMobile
+      ? { top: 18, right: 46, bottom: 30, left: 54 }
+      : { top: 18, right: 52, bottom: 34, left: 62 };
+  // Axis text size for the 'full' variant (desktop keeps its authored 9px).
+  const axisFs = isMobile ? 11 : 9;
   const innerW = width - margin.left - margin.right;
   const innerH = height - margin.top - margin.bottom;
 
@@ -114,7 +126,7 @@ export function FuelEuProjectionChart({ fleetInput, groupPoints, multiplierSerie
     : 'FuelEU static-fleet projection: no data.';
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', position: isMobile ? 'relative' : undefined, overflow: isMobile ? 'hidden' : undefined }}>
       {title !== '' && (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
         <span className="eyebrow" style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--color-text)' }}>
@@ -152,7 +164,7 @@ export function FuelEuProjectionChart({ fleetInput, groupPoints, multiplierSerie
         viewBox={`0 0 ${width} ${height}`}
         style={
           isPanel
-            ? { display: 'block', width: '100%', aspectRatio: `${width} / ${height}`, minHeight: '200px', maxHeight: '300px' }
+            ? { display: 'block', width: '100%', aspectRatio: `${width} / ${height}`, minHeight: isMobile ? undefined : '200px', maxHeight: '300px' }
             : { display: 'block', maxWidth: `${width}px` }
         }
       >
@@ -199,7 +211,17 @@ export function FuelEuProjectionChart({ fleetInput, groupPoints, multiplierSerie
               return (
                 <g key={p.year}>
                   <title>{tooltip}</title>
-                  <circle cx={xPositions[i]} cy={penaltyPoints[i].y} r={isLast ? 3.8 : 3.2} fill="var(--color-status-neg-text)" />
+                  {isMobile && (
+                    <rect
+                      x={xPositions[i] - Math.max(12, (innerW / Math.max(1, points.length - 1)) / 2)}
+                      y={margin.top}
+                      width={Math.max(24, innerW / Math.max(1, points.length - 1))}
+                      height={innerH}
+                      fill="transparent"
+                      onClick={() => setSelIdx(i)}
+                    />
+                  )}
+                  <circle cx={xPositions[i]} cy={penaltyPoints[i].y} r={selIdx === i ? 5 : isLast ? 3.8 : 3.2} fill="var(--color-status-neg-text)" />
                   {isLast && (
                     <text x={xPositions[i] - 8} y={peakLabelY} textAnchor="end" fontSize="13" fontWeight={600} fill="var(--color-text)">
                       {formatCompactEur(p.penaltyEur)}
@@ -225,24 +247,24 @@ export function FuelEuProjectionChart({ fleetInput, groupPoints, multiplierSerie
             <line x1={margin.left + innerW} y1={margin.top} x2={margin.left + innerW} y2={margin.top + innerH} stroke="var(--color-divider)" strokeWidth={1} strokeDasharray="2,2" />
 
             {/* Axis labels (compact form so long values never overflow the SVG viewBox) */}
-            <text x={margin.left - 6} y={margin.top + 4} textAnchor="end" fontSize="9" fill="var(--color-status-neg-text)" fontFamily={MONO_FONT}>
+            <text x={margin.left - 6} y={margin.top + 4} textAnchor="end" fontSize={axisFs} fill="var(--color-status-neg-text)" fontFamily={MONO_FONT}>
               {formatCompactEur(maxPenalty)}
             </text>
-            <text x={margin.left - 6} y={margin.top + innerH} textAnchor="end" fontSize="9" fill="var(--color-muted)" fontFamily={MONO_FONT}>
+            <text x={margin.left - 6} y={margin.top + innerH} textAnchor="end" fontSize={axisFs} fill="var(--color-muted)" fontFamily={MONO_FONT}>
               €0
             </text>
-            <text x={margin.left + innerW + 6} y={margin.top + 4} textAnchor="start" fontSize="9" fill="var(--color-status-pos-text)" fontFamily={MONO_FONT}>
+            <text x={margin.left + innerW + 6} y={margin.top + 4} textAnchor="start" fontSize={axisFs} fill="var(--color-status-pos-text)" fontFamily={MONO_FONT}>
               {formatCompactTonnes(maxBalance)}
             </text>
-            <text x={margin.left + innerW + 6} y={margin.top + innerH} textAnchor="start" fontSize="9" fill="var(--color-status-neg-text)" fontFamily={MONO_FONT}>
+            <text x={margin.left + innerW + 6} y={margin.top + innerH} textAnchor="start" fontSize={axisFs} fill="var(--color-status-neg-text)" fontFamily={MONO_FONT}>
               {formatCompactTonnes(minBalance)}
             </text>
-            <text x={-(margin.top + innerH / 2)} y={14} transform="rotate(-90)" textAnchor="middle" fontSize="9" fill="var(--color-status-neg-text)" fontFamily={MONO_FONT}>
+            {!isMobile && <text x={-(margin.top + innerH / 2)} y={14} transform="rotate(-90)" textAnchor="middle" fontSize={axisFs} fill="var(--color-status-neg-text)" fontFamily={MONO_FONT}>
               Penalty (€)
-            </text>
-            <text x={-(margin.top + innerH / 2)} y={width - 8} transform="rotate(-90)" textAnchor="middle" fontSize="9" fill="var(--color-status-pos-text, #059669)" fontFamily={MONO_FONT}>
+            </text>}
+            {!isMobile && <text x={-(margin.top + innerH / 2)} y={width - 8} transform="rotate(-90)" textAnchor="middle" fontSize={axisFs} fill="var(--color-status-pos-text, #059669)" fontFamily={MONO_FONT}>
               Compliance balance (tCO2e)
-            </text>
+            </text>}
 
             {/* Penalty area + line */}
             <path d={areaPath} fill="var(--color-status-neg-bg, rgba(220,38,38,0.12))" stroke="none" />
@@ -271,14 +293,24 @@ export function FuelEuProjectionChart({ fleetInput, groupPoints, multiplierSerie
               return (
                 <g key={p.year}>
                   <title>{tooltip}</title>
-                  <circle cx={xPositions[i]} cy={penaltyPoints[i].y} r={i === points.length - 1 ? 3.8 : 3.2} fill="var(--color-status-neg-text)" />
+                  {isMobile && (
+                    <rect
+                      x={xPositions[i] - Math.max(12, (innerW / Math.max(1, points.length - 1)) / 2)}
+                      y={margin.top}
+                      width={Math.max(24, innerW / Math.max(1, points.length - 1))}
+                      height={innerH}
+                      fill="transparent"
+                      onClick={() => setSelIdx(i)}
+                    />
+                  )}
+                  <circle cx={xPositions[i]} cy={penaltyPoints[i].y} r={selIdx === i ? 5 : i === points.length - 1 ? 3.8 : 3.2} fill="var(--color-status-neg-text)" />
                   <circle cx={xPositions[i]} cy={balancePoints[i].y} r={2.6} fill="var(--color-status-pos-text, #059669)" />
                   {i === points.length - 1 && (
                     <text
                       x={xPositions[i] - 8}
                       y={penaltyPoints[i].y - 6}
                       textAnchor="end"
-                      fontSize="11"
+                      fontSize={isMobile ? 12 : 11}
                       fontWeight={600}
                       fill="var(--color-text)"
                       fontFamily={MONO_FONT}
@@ -287,15 +319,15 @@ export function FuelEuProjectionChart({ fleetInput, groupPoints, multiplierSerie
                     </text>
                   )}
                   {mult !== undefined && p.year === 2030 && (
-                    <text x={xPositions[i]} y={penaltyPoints[i].y - 10} textAnchor="middle" fontSize="9.5" fill="var(--color-muted)" fontFamily={MONO_FONT}>
+                    <text x={xPositions[i]} y={penaltyPoints[i].y - 10} textAnchor="middle" fontSize={isMobile ? 11 : 9.5} fill="var(--color-muted)" fontFamily={MONO_FONT}>
                       ×{mult.toFixed(1)}
                     </text>
                   )}
-                  <text x={xPositions[i]} y={margin.top + innerH + 16} textAnchor="middle" fontSize="9.5" fontWeight={700} fill="var(--color-text)" fontFamily={MONO_FONT}>
-                    {p.year}
+                  <text x={xPositions[i]} y={margin.top + innerH + 16} textAnchor="middle" fontSize={isMobile ? 11 : 9.5} fontWeight={700} fill="var(--color-text)" fontFamily={MONO_FONT}>
+                    {isMobile ? yearTickLabel(p.year, i) : p.year}
                   </text>
-                  {n !== undefined && (
-                    <text x={xPositions[i]} y={margin.top + innerH + 27} textAnchor="middle" fontSize="8" fill="var(--color-muted)" fontFamily={MONO_FONT}>
+                  {n !== undefined && !isMobile && (
+                    <text x={xPositions[i]} y={margin.top + innerH + 27} textAnchor="middle" fontSize={8} fill="var(--color-muted)" fontFamily={MONO_FONT}>
                       n={n}
                     </text>
                   )}
@@ -311,6 +343,27 @@ export function FuelEuProjectionChart({ fleetInput, groupPoints, multiplierSerie
           </>
         )}
       </svg>
+
+      {isMobile && (
+        <div className="fe-chart-readout" role="status" aria-live="polite" data-testid="fe-projection-readout">
+          {selIdx !== null && points[selIdx] ? (
+            <>
+              <strong>{points[selIdx].year}</strong>
+              {`: penalty €${Math.round(points[selIdx].penaltyEur).toLocaleString()} · balance ${Math.round(points[selIdx].complianceBalanceTco2e).toLocaleString()} tCO2e`}
+              {'consecutiveN' in points[selIdx] && ` · n=${(points[selIdx] as StaticFleetProjectionPoint).consecutiveN}`}
+              {'multiplier' in points[selIdx] && ` · Art. 23(2) multiplier ×${(points[selIdx] as StaticFleetProjectionPoint).multiplier.toFixed(2)}`}
+            </>
+          ) : (
+            'Tap a year for penalty and balance.'
+          )}
+        </div>
+      )}
+      {isMobile && !isPanel && (
+        <div className="fe-chart-legend" aria-hidden="true">
+          <span><i style={{ background: 'var(--color-status-neg-text)' }} />Penalty (€, left axis)</span>
+          <span><i style={{ background: 'var(--color-status-pos-text, #059669)' }} />Compliance balance (tCO2e, right axis)</span>
+        </div>
+      )}
 
       {/* Visually-hidden accessible data table */}
       <table

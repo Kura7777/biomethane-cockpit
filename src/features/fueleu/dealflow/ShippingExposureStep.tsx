@@ -756,6 +756,7 @@ export function ShippingExposureStep({
 
       {/* Bottom Dock Navigation Bar */}
       <div
+        className="fe-dock m-sticky-actions"
         style={{
           border: '1px solid var(--color-divider)',
           backgroundColor: 'var(--color-surface)',

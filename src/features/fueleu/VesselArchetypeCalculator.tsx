@@ -222,7 +222,7 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
   };
 
   const stepActions = (current: CalcStep) => (
-    <div className="fva-step-actions">
+    <div className="fva-step-actions m-sticky-actions">
       <button type="button" className="btn btn-primary" onClick={() => goToStep((current + 1) as CalcStep)}>
         {nextLabel[current]} <ArrowRight size={14} />
       </button>
@@ -276,11 +276,11 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
                       <div className="fva-vessel-name" title={archetype.name}>{archetype.name.split(' (')[0]}</div>
                       <div className="fva-vessel-segment">{archetype.segment}</div>
                     </span>
-                    <span className="fva-vessel-cell num">{archetype.dwtOrTeu.split(' / ')[0]}</span>
-                    <span className="fva-vessel-cell fva-num-col fva-vessel-optional num">{archetype.defaultVlsfoTonnes.toLocaleString()} t</span>
-                    <span className="fva-vessel-cell fva-num-col fva-vessel-optional num">{archetype.defaultMgoTonnes.toLocaleString()} t</span>
-                    <span className="fva-vessel-cell fva-num-col fva-vessel-optional num">{archetype.defaultLngTonnes.toLocaleString()} t</span>
-                    <span className="fva-vessel-cell fva-num-col num">{Math.round(archetype.defaultShareThirdCountryVoyages * 100)}%</span>
+                    <span className="fva-vessel-cell num" data-label="Size">{archetype.dwtOrTeu.split(' / ')[0]}</span>
+                    <span className="fva-vessel-cell fva-num-col fva-vessel-optional num" data-label="VLSFO">{archetype.defaultVlsfoTonnes.toLocaleString()} t</span>
+                    <span className="fva-vessel-cell fva-num-col fva-vessel-optional num" data-label="MGO">{archetype.defaultMgoTonnes.toLocaleString()} t</span>
+                    <span className="fva-vessel-cell fva-num-col fva-vessel-optional num" data-label="LNG">{archetype.defaultLngTonnes.toLocaleString()} t</span>
+                    <span className="fva-vessel-cell fva-num-col num" data-label="Third-country">{Math.round(archetype.defaultShareThirdCountryVoyages * 100)}%</span>
                   </button>
                 );
               })}
@@ -613,7 +613,7 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
             {/* Pathway pricing assumptions (shared by both pathways) */}
             <AssumptionsStrip keys={FUELEU_PATHWAY_ASSUMPTIONS} />
 
-            <div className="fva-step-actions">
+            <div className="fva-step-actions m-sticky-actions">
               <button type="button" className="btn btn-secondary" onClick={() => goToStep(1)}>
                 <RotateCcw size={14} /> Start with another vessel
               </button>

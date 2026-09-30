@@ -653,3 +653,47 @@ html.dark .fva-range {
     row-gap: 16px;
   }
 }
+
+/* ── Mobile (<768px) ── */
+@media (max-width: 767.98px) {
+  .fva-vessel-headrow { display: none; }
+  .fva-vessel-cols.fva-vessel-row {
+    grid-template-columns: 24px repeat(3, minmax(0, 1fr));
+    column-gap: 8px;
+    row-gap: 6px;
+    padding: 12px;
+    align-items: start;
+  }
+  .fva-vessel-row .fva-radio { grid-row: 1; margin-top: 2px; }
+  .fva-vessel-row .fva-vessel-text { grid-column: 2 / -1; }
+  .fva-vessel-row .fva-vessel-name { white-space: normal; }
+  .fva-vessel-row .fva-vessel-optional { display: block; }
+  .fva-vessel-row .fva-vessel-cell { grid-column: auto; text-align: left; white-space: normal; }
+  .fva-vessel-row .fva-vessel-cell[data-label='Size'],
+  .fva-vessel-row .fva-vessel-cell[data-label='LNG'] { grid-column: 2; }
+  .fva-vessel-row .fva-vessel-cell[data-label='Third-country'] { grid-column: 3 / span 2; }
+  .fva-vessel-row .fva-vessel-cell::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--fe-muted);
+  }
+  .fva-settings { grid-template-columns: minmax(0, 1fr); }
+  .fva-card { padding: 16px; }
+  .fva-field-row { flex-wrap: wrap; }
+  .fva-num-input.input { min-height: 44px; }
+  .fva-range { min-height: 32px; }
+  .fva-step-actions.m-sticky-actions { flex-direction: column-reverse; align-items: stretch; gap: 8px; margin-left: calc(var(--ds-page-gutter, 16px) * -1); margin-right: calc(var(--ds-page-gutter, 16px) * -1); }
+  .fva-step-actions .btn { width: 100%; justify-content: center; min-height: 44px; }
+  .fva-estimate { justify-content: center; }
+  .fva-step-actions.m-sticky-actions > * { flex: none; }
+  .fueleu-desk .fe-tools .fe-seg { align-self: stretch; }
+  .fva-seg button, .fe-tools .fe-seg button { white-space: normal; }
+  .fva-kpi { padding: 12px; }
+}
+
+@media (max-width: 767.98px) {
+  .fva-step-actions.m-sticky-actions > .fva-estimate { min-height: 0; align-items: center; padding: 0; }
+}

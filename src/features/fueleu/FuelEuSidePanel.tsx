@@ -20,6 +20,8 @@ export interface FuelEuSidePanelProps {
   onClose: () => void;
   onBuildTermSheet: (company: ShippingCounterparty) => void;
   onAddToPool: (groupId: string) => void;
+  /** Mobile: rendered inside a full-screen Sheet, which supplies the title and close button. */
+  embedded?: boolean;
 }
 
 function entityTypeLabel(entityType: FuelEuShippingGroup['entityType']): string {
@@ -50,7 +52,7 @@ function dominantSegment(members: ShippingCounterparty[]): string {
 }
 
 /** 420px right-hand side panel: selected row detail, do-nothing penalty path chart, DoC holders, contacts, footer actions. */
-export function FuelEuSidePanel({ row, onClose, onBuildTermSheet, onAddToPool }: FuelEuSidePanelProps) {
+export function FuelEuSidePanel({ row, onClose, onBuildTermSheet, onAddToPool, embedded = false }: FuelEuSidePanelProps) {
   const [assume2025NonCompliant, setAssume2025NonCompliant] = useState(true);
 
   const { group, company, members } = row;
@@ -107,8 +109,10 @@ export function FuelEuSidePanel({ row, onClose, onBuildTermSheet, onAddToPool }:
   };
 
   return (
-    <aside className="fe-aside ds-aside">
+    <aside className={embedded ? 'fe-aside-embedded' : 'fe-aside ds-aside'}>
       <div className="fe-aside-section ds-aside-section">
+        {embedded && <div className="fe-panel-meta">{meta}</div>}
+        {!embedded && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
           <div>
             <div className="fe-panel-title" style={name.length > 40 ? { fontSize: '18px' } : undefined}>{name}</div>
@@ -118,6 +122,7 @@ export function FuelEuSidePanel({ row, onClose, onBuildTermSheet, onAddToPool }:
             <X size={14} />
           </button>
         </div>
+        )}
         <div className="fe-aside-stats">
           <div>
             <div className="fe-panel-stat-label">2026 balance</div>
@@ -138,7 +143,7 @@ export function FuelEuSidePanel({ row, onClose, onBuildTermSheet, onAddToPool }:
         </div>
       </div>
 
-      <div className="fe-aside-body ds-aside-body">
+      <div className={embedded ? 'fe-aside-body-embedded' : 'fe-aside-body ds-aside-body'}>
         <div className="fe-aside-section">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
             <div className="fe-panel-section-heading">Do-nothing penalty path</div>
@@ -205,7 +210,7 @@ export function FuelEuSidePanel({ row, onClose, onBuildTermSheet, onAddToPool }:
         </div>
       </div>
 
-      <div className="fe-aside-footer ds-aside-footer">
+      <div className={embedded ? 'fe-aside-footer fe-aside-footer-embedded' : 'fe-aside-footer ds-aside-footer'}>
         <button type="button" className="fe-btn-primary" onClick={handleBuildTermSheet}>
           Build term sheet
         </button>

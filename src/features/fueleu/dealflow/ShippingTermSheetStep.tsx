@@ -662,6 +662,7 @@ European Biomethane & Marine Fuels Trading Desk`
 
       {/* Bottom Dock Navigation Bar */}
       <div
+        className="fe-dock fe-dock-multi"
         style={{
           border: '1px solid var(--color-divider)',
           backgroundColor: 'var(--color-surface)',

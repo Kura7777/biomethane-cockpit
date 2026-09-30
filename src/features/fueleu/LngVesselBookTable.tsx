@@ -3,13 +3,31 @@ import { ArrowUpDown, ArrowUp, ArrowDown, Flame } from 'lucide-react';
 import { FUEL_EU_LNG_SHIPS, LngShipRow } from '../../domain/fueleu/lngShipsData';
 import { FUEL_EU_SHIPPING_GROUPS } from '../../domain/fueleu/groups';
 import { fuelEuPoolBidPriceEurPerTco2e } from '../../domain/assumptions/registry';
+import { useIsMobile } from '../../shared/hooks/useMediaQuery';
+import { MobileCardList } from '../../shared/ui';
 
 const MONO_FONT = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
 
 type SortField = 'name' | 'imo' | 'shipType' | 'group_id' | 'in_scope_lng_t' | 'ghgie' | 'balance2026Tco2e' | 'extraSurplusValueEurAtBid' | 'bioLngNeededTonnes';
 type SortDirection = 'asc' | 'desc';
 
+const MOBILE_PAGE = 40;
+
+const SORT_LABELS: Record<SortField, string> = {
+  name: 'Ship',
+  imo: 'IMO',
+  shipType: 'Type',
+  group_id: 'Group',
+  in_scope_lng_t: 'In-scope LNG (t)',
+  ghgie: 'GHGIE',
+  balance2026Tco2e: '2026 balance',
+  extraSurplusValueEurAtBid: 'Extra surplus (€)',
+  bioLngNeededTonnes: 'Bio-LNG to close (t)',
+};
+
 export function LngVesselBookTable() {
+  const isMobile = useIsMobile();
+  const [shown, setShown] = useState(MOBILE_PAGE);
   const [sortField, setSortField] = useState<SortField>('extraSurplusValueEurAtBid');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [groupFilter, setGroupFilter] = useState<string>('ALL');
@@ -107,7 +125,7 @@ export function LngVesselBookTable() {
       </div>
 
       {/* Aggregate ledger strip */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', borderBottom: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)' }}>
+      <div className="fe-lng-agg" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', borderBottom: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)' }}>
         <div style={{ padding: '10px 18px', borderRight: '1px solid var(--color-divider)' }}>
           <span className="eyebrow" style={{ fontSize: '10px' }}>LNG SHIPS IN VIEW</span>
           <div className="num font-mono" style={{ fontSize: '20px', fontWeight: 800, marginTop: '2px' }}>{rows.length.toLocaleString()}</div>
@@ -137,7 +155,7 @@ export function LngVesselBookTable() {
       </div>
 
       {/* Filters */}
-      <div style={{ padding: '8px 18px', borderBottom: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+      <div className="fe-lng-filters" style={{ padding: '8px 18px', borderBottom: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
         <select
           value={groupFilter}
           onChange={(e) => setGroupFilter(e.target.value)}
@@ -158,11 +176,68 @@ export function LngVesselBookTable() {
         >
           Deficit ships only ({FUEL_EU_LNG_SHIPS.filter(r => r.balance2026Tco2e < 0).length})
         </button>
+        {isMobile && (
+          <div className="fe-lng-sort">
+            <select
+              value={sortField}
+              onChange={e => { setShown(MOBILE_PAGE); handleSort(e.target.value as SortField); }}
+              className="input"
+              aria-label="Sort ships by"
+            >
+              {(Object.keys(SORT_LABELS) as SortField[]).map(f => (
+                <option key={f} value={f}>Sort: {SORT_LABELS[f]}</option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className="chip"
+              aria-label={sortDirection === 'asc' ? 'Ascending, tap for descending' : 'Descending, tap for ascending'}
+              onClick={() => setSortDirection(d => (d === 'asc' ? 'desc' : 'asc'))}
+            >
+              {sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
+            </button>
+          </div>
+        )}
         <span style={{ fontSize: '11px', color: 'var(--color-muted)', marginLeft: 'auto' }}>
           Showing <strong>{rows.length}</strong> of {FUEL_EU_LNG_SHIPS.length} LNG-capable ships
         </span>
       </div>
 
+      {isMobile ? (
+        <div className="fe-lng-cards">
+          <MobileCardList
+            testId="fe-lng-cards"
+            items={rows.slice(0, shown)}
+            getKey={r => `${r.imo}-${r.company_imo}-${rows.indexOf(r)}`}
+            title={r => (
+              <>
+                <Flame size={12} style={{ color: '#059669', marginRight: '4px', verticalAlign: 'middle' }} />
+                {r.name}
+              </>
+            )}
+            subtitle={r => `${r.shipType} · ${groupNameById.get(r.group_id) || r.group_id}`}
+            metric={r => `${r.balance2026Tco2e < 0 ? '' : '+'}${r.balance2026Tco2e.toLocaleString()}`}
+            metricLabel={() => '2026 balance (tCO2e)'}
+            fields={r => {
+              const isDeficit = r.balance2026Tco2e < 0;
+              return [
+                { label: 'IMO', value: r.imo, mono: true },
+                { label: 'In-scope LNG (t)', value: r.in_scope_lng_t.toLocaleString(), mono: true },
+                { label: 'GHGIE', value: r.ghgie.toFixed(2), mono: true },
+                { label: 'Extra surplus (t)', value: `+${r.extraSurplusIfFullBioLngTco2e.toLocaleString()}`, mono: true, tone: 'pos' },
+                { label: 'Extra surplus (€)', value: `€${r.extraSurplusValueEurAtBid.toLocaleString()}`, mono: true, tone: 'pos' },
+                { label: 'Bio-LNG to close (t)', value: isDeficit ? r.bioLngNeededTonnes.toLocaleString() : '—', mono: true, tone: isDeficit ? 'warn' : 'muted' },
+              ];
+            }}
+            empty="No LNG ships match the current filters."
+          />
+          {rows.length > shown && (
+            <button type="button" className="btn btn-secondary fe-lng-more" onClick={() => setShown(n => n + MOBILE_PAGE)}>
+              Show more ({rows.length - shown} remaining)
+            </button>
+          )}
+        </div>
+      ) : (
       <div style={{ overflowX: 'auto', width: '100%' }}>
         <table className="table" style={{ width: '100%', margin: 0 }}>
           <thead>
@@ -217,6 +292,7 @@ export function LngVesselBookTable() {
           </tbody>
         </table>
       </div>
+      )}
     </div>
   );
 }

@@ -15,6 +15,7 @@ import { FUEL_EU_SHIPPING_COUNTERPARTIES } from '../../domain/fueleu/shippingTar
 import { FUEL_EU_LNG_SHIPS } from '../../domain/fueleu/lngShipsData';
 import { ShippingCounterparty } from '../../domain/fueleu/types';
 import { Tabs } from '../../shared/ui/Tabs';
+import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 import {
   DEFAULT_TTF_GAS_INDEX_EUR_MWH,
   DEFAULT_LIQUEFACTION_FEE_EUR_MWH,
@@ -35,6 +36,7 @@ const DEAL_STEPS = [
 
 export function FuelEUShippingScreen() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Tab State derived directly from searchParams
@@ -160,7 +162,67 @@ export function FuelEUShippingScreen() {
 
   if (isInDealFlow && selectedCounterparty) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' }}>
+      <div className="fe-deal" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' }}>
+        {isMobile ? (
+          <div className="fe-m-dealbar" data-testid="fe-deal-bar">
+            <div className="fe-m-dealbar-top">
+              <button
+                type="button"
+                onClick={() => handleNavigateStep(1)}
+                className="fe-m-dealbar-back"
+                aria-label={`Return to ${FUEL_EU_SHIPPING_COUNTERPARTIES.length.toLocaleString('en-US')} Counterparties Directory`}
+              >
+                <ArrowLeft size={16} style={{ color: 'var(--color-accent)' }} />
+                <span>Directory</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/citations')}
+                className="fe-m-dealbar-back"
+                aria-label="View statutory legislation and formulas"
+              >
+                <BookOpen size={15} style={{ color: 'var(--color-accent)' }} />
+                <span>Citations</span>
+              </button>
+            </div>
+            <div className="fe-m-dealbar-company">
+              <span className="fe-m-dealbar-rank">#{selectedCounterparty.rank}</span>
+              <span className="fe-m-dealbar-name">{selectedCounterparty.parent_name}</span>
+            </div>
+            <div className="fe-m-dealbar-meta">
+              <span className="fe-m-dealbar-tag">
+                {selectedCounterparty.fleetCapability === 'DUAL_FUEL_LNG'
+                  ? `Dual-Fuel LNG (${selectedCounterparty.lng_vessels_in_scope}v)`
+                  : `Conventional (${selectedCounterparty.vessels_in_scope}v)`}
+              </span>
+              <span className="fe-m-dealbar-tag">
+                {FUELEU_ACTIVE_PERIOD} Risk:{' '}
+                <strong style={{ color: 'var(--color-status-neg-text)' }}>
+                  €{(selectedCounterparty.combined_regulatory_exposure_2026_eur / 1e6).toFixed(2)}M
+                </strong>
+              </span>
+            </div>
+            <div className="fe-m-stepper" role="group" aria-label="Deal flow steps">
+              <div className="fe-m-stepper-label">
+                Step {currentStep} of {DEAL_STEPS.length} · {DEAL_STEPS[currentStep - 1].title.replace(/^\d+\.\s*/, '')}
+              </div>
+              <div className="fe-m-stepper-bars">
+                {DEAL_STEPS.map(st => (
+                  <button
+                    key={st.step}
+                    type="button"
+                    className={`fe-m-stepper-seg ${currentStep > st.step ? 'done' : ''} ${currentStep === st.step ? 'current' : ''}`}
+                    aria-label={st.title}
+                    aria-current={currentStep === st.step ? 'step' : undefined}
+                    onClick={() => handleNavigateStep(st.step as 1 | 2 | 3 | 4)}
+                  >
+                    <span />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
         <div
           style={{
             padding: '8px 18px',
@@ -279,6 +341,7 @@ export function FuelEUShippingScreen() {
             </button>
           </div>
         </div>
+        )}
 
         <div style={{ flex: 1, minHeight: 0 }}>
           {currentStep === 2 && (
@@ -346,19 +409,19 @@ export function FuelEUShippingScreen() {
       )}
 
       {activeTab === 'LNG_BOOK' && (
-        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '0 24px 24px' }}>
+        <div className="fe-tab-scroll" style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '0 24px 24px' }}>
           <LngVesselBookTable />
         </div>
       )}
 
       {activeTab === 'POOL_MATCHING' && (
-        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '0 24px 24px' }}>
+        <div className="fe-tab-scroll" style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '0 24px 24px' }}>
           <PoolMatchingTab highlightGroupId={highlightGroupId} />
         </div>
       )}
 
       {activeTab === 'TOOLS' && (
-        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+        <div className="fe-tab-scroll" style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
           <FuelEuToolsTab />
         </div>
       )}
