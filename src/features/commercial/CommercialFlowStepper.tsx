@@ -10,6 +10,7 @@ import { Step2PlantScan } from './Step2PlantScan';
 import { Step3RouteAndCosts } from './Step3RouteAndCosts';
 import { Step4DealSummary } from './Step4DealSummary';
 import { calculateLogisticsRoute } from '../../domain/logistics/engine';
+import './commercialMobile.css';
 import { Check, ArrowRight, Sparkles, Building2, TrendingUp, Navigation } from 'lucide-react';
 
 const INITIAL_REQUEST: ClientRequest = {
@@ -118,10 +119,21 @@ export function CommercialFlowStepper() {
   };
 
   return (
-    <div className="flex-1 flex flex-col overflow-y-auto bg-slate-100 dark:bg-[#08090d] text-slate-900 dark:text-zinc-100 min-h-screen">
+    <div className="cf-root flex-1 flex flex-col overflow-y-auto max-md:overflow-y-visible max-md:min-h-0 bg-slate-100 [.dark_&]:bg-[#08090d] text-slate-900 [.dark_&]:text-zinc-100 min-h-screen">
       {/* Sleek Step Progress Indicator Bar */}
-      <div className="bg-white dark:bg-[#0e1118] border-b border-slate-200 dark:border-[#1e2433] px-4 py-3.5 sticky top-0 z-30 shadow-xs">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
+      <div className="bg-white [.dark_&]:bg-[#0e1118] border-b border-slate-200 [.dark_&]:border-[#1e2433] px-4 py-3.5 sticky top-0 z-30 shadow-xs">
+        {/* Mobile: compact "Step N of 4 · Name" line with a progress bar (same pattern as FlowSteps) */}
+        <div className="md:hidden" data-testid="cf-mobile-progress">
+          <div className="ds-flow-mobile-head">
+            <span className="ds-flow-mobile-step num">Step {currentStep} of {STEPS.length}</span>
+            <span className="ds-flow-mobile-sep" aria-hidden="true">·</span>
+            <span className="ds-flow-mobile-label">{STEPS[currentStep - 1].title.replace(/^\d\.\s*/, '')}</span>
+          </div>
+          <div className="ds-flow-mobile-track">
+            <div className="ds-flow-mobile-fill" style={{ width: `${(currentStep / STEPS.length) * 100}%` }} />
+          </div>
+        </div>
+        <div className="max-w-6xl mx-auto flex items-center justify-between max-md:hidden">
           {STEPS.map((s, idx) => {
             const isDone = currentStep > s.step;
             const isCurrent = currentStep === s.step;
@@ -142,7 +154,7 @@ export function CommercialFlowStepper() {
                   <div
                     className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-all shrink-0 ${
                       isDone
-                        ? 'bg-[var(--color-status-pos-text)] text-white dark:text-stone-950'
+                        ? 'bg-[var(--color-status-pos-text)] text-white [.dark_&]:text-stone-950'
                         : isCurrent
                         ? 'bg-[var(--color-text)] text-[var(--color-bg)] border-2 border-[var(--color-text)]'
                         : 'bg-[var(--color-subtier)] text-[var(--color-muted)] border border-[var(--color-divider)]'

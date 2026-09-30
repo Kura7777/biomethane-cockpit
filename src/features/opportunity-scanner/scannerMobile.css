@@ -1,0 +1,112 @@
+/* /scanner phone treatment. Phone-only classes (.sc-gates, .sc-sheet-*, .sc-toggle ...) are only
+   rendered on mobile; everything touching desktop markup is behind the mobile breakpoint. */
+
+.sc-gates { display: inline-flex; gap: 3px; }
+.sc-gate {
+  width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+}
+.sc-bar { position: relative; height: 14px; background-color: color-mix(in srgb, var(--color-text) 8%, transparent); }
+.sc-bar-fill { position: absolute; top: 3px; bottom: 3px; left: 0; }
+
+.sc-sheet-body { display: flex; flex-direction: column; gap: 14px; padding: 4px 0 8px; }
+.sc-sheet-metric { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.sc-sheet-metric-value { font-size: 26px; font-weight: 600; line-height: 1.1; }
+.sc-sheet-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.sc-sheet-fields { margin-top: 0; padding-top: 12px; }
+.sc-sheet-actions { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.sc-sheet-actions--row { flex-direction: row; }
+.sc-sheet-actions--row > * { flex: 1; }
+.sc-sheet-cta { width: 100%; min-height: 48px; height: auto; font-size: 14px; font-weight: 700; }
+.sc-sheet-audit {
+  color: var(--color-status-neg-text);
+  border-color: rgba(239, 68, 68, 0.4);
+  background-color: rgba(239, 68, 68, 0.05);
+}
+.sc-gate-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.sc-gate-btn {
+  display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 6px 10px;
+  text-align: left; cursor: pointer; font-size: 12px;
+}
+.sc-gate-btn-letter { font-weight: 700; font-size: 14px; flex: none; width: 18px; text-align: center; }
+.sc-gate-btn-title { line-height: 1.2; }
+
+.sc-toggle {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%;
+  min-height: 52px; padding: 0 2px; background: none; border: 0; border-bottom: 1px solid var(--color-divider);
+  color: var(--color-text); font-size: 14px; text-align: left; cursor: pointer;
+}
+.sc-switch {
+  flex: none; width: 44px; height: 26px; border-radius: 13px; background: var(--color-subtier);
+  border: 1px solid var(--color-divider); position: relative; transition: background-color 120ms ease;
+}
+.sc-switch--on { background: var(--color-accent); border-color: var(--color-accent); }
+.sc-switch-knob {
+  position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%;
+  background: #fff; transition: transform 120ms ease; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+.sc-switch--on .sc-switch-knob { transform: translateX(18px); }
+.sc-field { display: flex; flex-direction: column; gap: 6px; }
+.sc-field .input { width: 100%; min-height: 44px; }
+.sc-chip-choice { display: flex; flex-wrap: wrap; gap: 8px; }
+.sc-chip-choice .chip { min-height: 40px; padding: 0 14px; cursor: pointer; }
+
+.sc-mbar { display: none; }
+
+@media (max-width: 767.98px) {
+  .sc-head { padding: 14px var(--ds-page-gutter, 16px) !important; flex-direction: column; align-items: stretch !important; }
+  .sc-head, .sc-head > *, .sc-head-controls, .sc-head-controls > * { min-width: 0; max-width: 100%; }
+  .sc-head-controls { flex-direction: column; align-items: stretch !important; gap: 10px !important; }
+  .sc-book {
+    overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; padding: 4px 8px !important;
+  }
+  .sc-book::-webkit-scrollbar { display: none; }
+  .sc-book > * { flex: none; white-space: nowrap; }
+  .sc-book .btn { min-height: 40px; }
+  .sc-seg { height: auto !important; display: flex; width: 100%; }
+  .sc-seg .seg-opt { flex: 1; min-height: 48px; white-space: normal !important; line-height: 1.2; padding: 6px 8px !important; }
+
+  .sc-mbar {
+    display: flex; gap: 8px; align-items: center; padding: 10px var(--ds-page-gutter, 16px);
+    background: var(--color-bg); border-bottom: 1px solid var(--color-divider);
+  }
+  .sc-msearch { position: relative; flex: 1; min-width: 0; }
+  .sc-msearch svg { position: absolute; left: 12px; top: 14px; color: var(--color-muted); }
+  .sc-msearch input {
+    width: 100%; min-height: 44px; padding: 0 10px 0 36px; border-radius: 6px;
+    border: 1px solid var(--color-divider); background: var(--color-surface); color: var(--color-text);
+  }
+  .sc-filter-btn {
+    flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px;
+    border: 1px solid var(--color-divider); border-radius: 6px; background: var(--color-surface);
+    color: var(--color-text); font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+  .sc-filter-count {
+    min-width: 20px; height: 20px; border-radius: 10px; background: var(--color-accent); color: #fff;
+    font-size: 12px; display: inline-flex; align-items: center; justify-content: center; padding: 0 5px;
+  }
+  .sc-mbar--ladder { justify-content: space-between; }
+  .sc-side { display: flex; border: 1px solid var(--color-divider); border-radius: 6px; overflow: hidden; }
+  .sc-side-opt {
+    min-height: 44px; min-width: 56px; padding: 0 12px; background: var(--color-surface);
+    color: var(--color-text); border: 0; font-size: 14px; cursor: pointer;
+  }
+  .sc-side-opt + .sc-side-opt { border-left: 1px solid var(--color-divider); }
+  .sc-side-opt.active { background: var(--color-text); color: var(--color-bg); font-weight: 700; }
+
+  .sc-summary { flex-direction: column; gap: 4px; padding: 8px var(--ds-page-gutter, 16px) !important; }
+  .sc-tablewrap { padding: 12px var(--ds-page-gutter, 16px) 16px !important; overflow-x: visible !important; }
+
+  .sc-ladder-head { padding: 16px var(--ds-page-gutter, 16px) !important; gap: 14px !important; align-items: stretch !important; }
+  .sc-stats { display: grid !important; grid-template-columns: 1fr 1fr; margin-left: 0 !important; width: 100%; }
+  .sc-stats > div { padding: 10px 12px !important; min-width: 0; }
+  .sc-stats > div:nth-child(3), .sc-stats > div:last-child { grid-column: 1 / -1; }
+  .sc-stats .btn { width: 100%; min-height: 44px; height: auto; }
+
+  .sc-footer3 { grid-template-columns: 1fr !important; }
+  .sc-footer3 > div {
+    border-right: 0 !important; border-bottom: 1px solid var(--color-divider);
+    padding: 14px var(--ds-page-gutter, 16px) !important;
+  }
+  .sc-footer3 .btn { min-height: 44px; height: auto; }
+}

@@ -18,6 +18,17 @@ import { getAssumption } from '../../domain/assumptions/registry';
 import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
 import { AssumptionsStrip } from '../../shared/components/AssumptionsStrip';
 import { PageShell } from '../../shared/ui/PageShell';
+import { useIsMobile } from '../../shared/hooks/useMediaQuery';
+import {
+  PlantOppCards,
+  PlantOppSheet,
+  LadderCards,
+  LadderSheet,
+  LadderRowVM,
+  FilterSheet,
+  ToggleRow,
+  ChipChoice,
+} from './ScannerMobileViews';
 import { 
   Radar, 
   Building2, 
@@ -75,6 +86,11 @@ export interface PlantArbitrageOpportunity {
 export function ScannerScreen() {
   const navigate = useNavigate();
   const { state, dispatch } = useAppState();
+  const isMobile = useIsMobile();
+  // Phone-only detail/filter sheets (desktop keeps inline row actions and filter bars)
+  const [mPlantOppId, setMPlantOppId] = useState<string | null>(null);
+  const [mLadderId, setMLadderId] = useState<string | null>(null);
+  const [mFiltersOpen, setMFiltersOpen] = useState(false);
 
   const [activeTab, setActiveTab] = useState<'ASSET_SCANNER' | 'LADDER'>('LADDER');
   const [bookFilter, setBookFilter] = useState<'ALL' | 'COMPLIANCE' | 'VOLUNTARY'>('ALL');
@@ -360,10 +376,88 @@ export function ScannerScreen() {
     return ['ALL', ...Array.from(set).sort()];
   }, [plantOpportunities]);
 
+  const openAuditor = (targetMarketId: string, focusedGateIndex: number) => {
+    window.dispatchEvent(
+      new CustomEvent('open-compliance-auditor', {
+        detail: {
+          originCountry: consignment.originCountry,
+          targetMarketId,
+          destinationMarket: targetMarketId,
+          feedstockCategory: consignment.feedstock,
+          feedstock: consignment.feedstock,
+          carbonIntensity: consignment.carbonIntensity,
+          ghgIntensity: consignment.carbonIntensity,
+          annualVolumeMWh: consignment.volumeMWh || 10000,
+          volumeMWh: consignment.volumeMWh || 10000,
+          initialTab: 'GATE_BREAKDOWN',
+          focusedGateIndex,
+        },
+      })
+    );
+  };
+
+  // Phone card rows: the same values the desktop ladder rows compute inline
+  const ladderRows: LadderRowVM[] = useMemo(() => {
+    return filteredList.map(item => {
+      const net = item.netNetback ?? 0;
+      const el = eligibilityMap.get(item.marketId);
+      const isHardBlocked = el?.overallVerdict === 'HARD_BLOCK';
+      const mkt = getMarketById(item.marketId);
+      return {
+        marketId: item.marketId,
+        marketName: item.marketName,
+        legalBasis: mkt?.legalBasis || '',
+        country: mkt?.country || '',
+        unitLabel: mkt?.unitLabel || '',
+        gates: el?.gates,
+        net,
+        barWidth: Math.min(100, (Math.abs(net) / 200) * 100),
+        barColor:
+          net < 0 || isHardBlocked
+            ? 'var(--color-accent)'
+            : el?.overallVerdict === 'CONDITIONAL'
+            ? 'var(--color-neutral-500)'
+            : 'var(--color-text)',
+        marginPercent: item.marginPercent,
+        isSim: Boolean(item.isModelled || item.provenance?.sourceType === 'ESTIMATE'),
+        isHardBlocked,
+      };
+    });
+  }, [filteredList, eligibilityMap]);
+
+  const scannerFilterCount = (selectedCountry !== 'ALL' ? 1 : 0) + (minArbitrageSpread > 0 ? 1 : 0) + (sortField !== 'NET_MARGIN' ? 1 : 0);
+  const ladderFilterCount = (positiveOnly ? 1 : 0) + (clearedOnly ? 1 : 0) + (hideStale ? 1 : 0) + (minMargin > 0 ? 1 : 0);
+  const mPlantOpp = mPlantOppId ? filteredPlantOpportunities.find(o => o.plantId === mPlantOppId) ?? null : null;
+  const mLadderRow = mLadderId ? ladderRows.find(r => r.marketId === mLadderId) ?? null : null;
+
+  const openStateAidAudit = (opp: PlantArbitrageOpportunity) => {
+    window.dispatchEvent(
+      new CustomEvent('open-compliance-auditor', {
+        detail: {
+          originCountry: opp.countryCode,
+          targetMarketId: opp.bestMarketId,
+          destinationMarket: opp.bestMarketId,
+          feedstockCategory: opp.feedstockKey,
+          feedstock: opp.feedstockKey,
+          carbonIntensity: opp.carbonIntensity,
+          ghgIntensity: opp.carbonIntensity,
+          annualVolumeMWh: opp.annualMWh,
+          volumeMWh: opp.annualMWh,
+          counterparty: `${opp.plantName} Producer Entity`,
+          plantName: opp.plantName,
+          operatorName: opp.operator,
+          gridOperator: opp.gridOperator,
+          initialTab: 'GATE_BREAKDOWN',
+          focusedGateIndex: 4,
+        },
+      })
+    );
+  };
+
   return (
     <PageShell style={{ display: 'flex', flexDirection: 'column' }}>
       {/* Tab Switcher Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: '2px solid var(--color-divider)', backgroundColor: 'var(--color-surface)', flexWrap: 'wrap', gap: '12px' }}>
+      <div className="sc-head" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: '2px solid var(--color-divider)', backgroundColor: 'var(--color-surface)', flexWrap: 'wrap', gap: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <Radar className="w-6 h-6 text-indigo-500" />
           <div>
@@ -375,9 +469,9 @@ export function ScannerScreen() {
         </div>
 
         {/* Controls: Book Toggle & View Mode Toggle */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+        <div className="sc-head-controls" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
           {/* Dual-Book Pill Selector */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', backgroundColor: 'var(--color-bg)', padding: '3px 8px', borderRadius: '6px', border: '1px solid var(--color-divider)' }}>
+          <div className="sc-book" style={{ display: 'flex', alignItems: 'center', gap: '5px', backgroundColor: 'var(--color-bg)', padding: '3px 8px', borderRadius: '6px', border: '1px solid var(--color-divider)' }}>
             <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text-muted)' }}>
               Book:
             </span>
@@ -408,7 +502,7 @@ export function ScannerScreen() {
           </div>
 
           {/* View Mode Toggle */}
-          <div className="seg" style={{ height: '32px' }}>
+          <div className="seg sc-seg" style={{ height: '32px' }}>
             <button
               type="button"
               className={`seg-opt ${activeTab === 'ASSET_SCANNER' ? 'active' : ''}`}
@@ -437,7 +531,26 @@ export function ScannerScreen() {
            ========================================================================= */
         <div>
           {/* Asset Scanner Controls Bar */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '12px 20px', borderBottom: '1px solid var(--color-divider)', backgroundColor: 'var(--color-bg)', flexWrap: 'wrap' }}>
+          {isMobile && (
+            <div className="sc-mbar">
+              <div className="sc-msearch">
+                <Search className="w-4 h-4" aria-hidden="true" />
+                <input
+                  type="search"
+                  placeholder="Search plant, country, municipality, operator..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  aria-label="Search plants"
+                />
+              </div>
+              <button type="button" className="sc-filter-btn" onClick={() => setMFiltersOpen(true)}>
+                <Filter className="w-4 h-4" aria-hidden="true" />
+                Filters
+                {scannerFilterCount > 0 && <span className="sc-filter-count">{scannerFilterCount}</span>}
+              </button>
+            </div>
+          )}
+          <div className="m-hide" style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '12px 20px', borderBottom: '1px solid var(--color-divider)', backgroundColor: 'var(--color-bg)', flexWrap: 'wrap' }}>
             {/* Search */}
             <div style={{ position: 'relative', minWidth: '240px', flex: 1 }}>
               <Search className="w-4 h-4 text-slate-400" style={{ position: 'absolute', left: '10px', top: '9px' }} />
@@ -504,7 +617,7 @@ export function ScannerScreen() {
           </div>
 
           {/* Arbitrage Summary Stats Bar */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 20px', backgroundColor: 'var(--color-surface)', borderBottom: '1px solid var(--color-divider)', fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+          <div className="sc-summary" style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 20px', backgroundColor: 'var(--color-surface)', borderBottom: '1px solid var(--color-divider)', fontSize: '12px', color: 'var(--color-text-secondary)' }}>
             <span>
               Showing <strong>{filteredPlantOpportunities.length}</strong> actionable plants · TTF Month-Ahead Benchmark: <strong>€{ttfPrice.toFixed(2)}/MWh</strong>
             </span>
@@ -538,7 +651,10 @@ export function ScannerScreen() {
           )}
 
           {/* Multi-Plant Arbitrage Table */}
-          <div style={{ overflowX: 'auto', padding: '16px 20px 20px' }}>
+          <div className="sc-tablewrap" style={{ overflowX: 'auto', padding: '16px 20px 20px' }}>
+            {isMobile ? (
+              <PlantOppCards items={filteredPlantOpportunities.slice(0, 50)} onOpen={o => setMPlantOppId(o.plantId)} />
+            ) : (
             <div style={{ overflowX: 'auto', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-panel)' }}>
               <table className="table" style={{ width: '100%', margin: 0 }}>
                 <thead>
@@ -679,6 +795,7 @@ export function ScannerScreen() {
               </tbody>
             </table>
           </div>
+            )}
         </div>
       </div>
       ) : (
@@ -696,6 +813,7 @@ export function ScannerScreen() {
               borderBottom: '2px solid var(--color-divider)',
               flexWrap: 'wrap',
             }}
+            className="sc-ladder-head"
           >
             <div>
               <div className="eyebrow">Active Reference Consignment</div>
@@ -705,7 +823,7 @@ export function ScannerScreen() {
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '1px', backgroundColor: 'var(--color-divider)', marginLeft: 'auto' }}>
+            <div className="sc-stats" style={{ display: 'flex', gap: '1px', backgroundColor: 'var(--color-divider)', marginLeft: 'auto' }}>
               <div style={{ backgroundColor: 'var(--color-bg)', padding: '8px 16px' }}>
                 <div className="eyebrow">All-in delivered</div>
                 <div className="num" style={{ fontSize: '19px', fontWeight: 800 }}>
@@ -738,7 +856,30 @@ export function ScannerScreen() {
           </div>
 
           {/* Filter bar */}
+          {isMobile && (
+            <div className="sc-mbar sc-mbar--ladder">
+              <button type="button" className="sc-filter-btn" onClick={() => setMFiltersOpen(true)}>
+                <Filter className="w-4 h-4" aria-hidden="true" />
+                Filters
+                {ladderFilterCount > 0 && <span className="sc-filter-count">{ladderFilterCount}</span>}
+              </button>
+              <div className="sc-side" role="group" aria-label="Pricing side">
+                {(['bid', 'mid', 'offer'] as const).map(side => (
+                  <button
+                    key={side}
+                    type="button"
+                    className={`sc-side-opt ${currentSide === side ? 'active' : ''}`}
+                    aria-pressed={currentSide === side}
+                    onClick={() => dispatch({ type: 'SET_PRICING_SIDE', side })}
+                  >
+                    {side === 'bid' ? 'Bid' : side === 'mid' ? 'Mid' : 'Offer'}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <div
+            className="m-hide"
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -852,7 +993,10 @@ export function ScannerScreen() {
           </div>
 
           {/* Ladder Table */}
-          <div style={{ padding: '0 20px 20px' }}>
+          <div className="sc-tablewrap" style={{ padding: '0 20px 20px' }}>
+            {isMobile ? (
+              <LadderCards rows={ladderRows} selectedId={selectedMarketId} onOpen={r => { setSelectedMarketId(r.marketId); setMLadderId(r.marketId); }} />
+            ) : (
             <table className="table">
               <thead>
                 <tr>
@@ -1032,10 +1176,12 @@ export function ScannerScreen() {
                 })}
               </tbody>
             </table>
+            )}
           </div>
 
           {/* Three-column Ruled Footer */}
           <div
+            className="sc-footer3"
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
@@ -1159,6 +1305,97 @@ export function ScannerScreen() {
             </div>
           </div>
         </div>
+      )}
+
+      {isMobile && (
+        <>
+          <PlantOppSheet
+            opp={mPlantOpp}
+            onClose={() => setMPlantOppId(null)}
+            onStructure={opp => handleStructurePlantTrade(opp)}
+            onAudit={openStateAidAudit}
+          />
+          <LadderSheet
+            row={mLadderRow}
+            onClose={() => setMLadderId(null)}
+            onGate={(row, i) => openAuditor(row.marketId, i)}
+            onWhyBlocked={row => {
+              const el = eligibilityMap.get(row.marketId);
+              const idx = el?.gates.findIndex(g => g.verdict === 'HARD_BLOCK' || g.verdict === 'CONDITIONAL');
+              openAuditor(row.marketId, idx !== undefined && idx !== -1 ? idx : 0);
+            }}
+            onPlaybook={() => {
+              setMLadderId(null);
+              setIsLogisticsOpen(true);
+            }}
+            onStructure={() => {
+              setMLadderId(null);
+              handleStructureTrade();
+            }}
+          />
+          <FilterSheet
+            open={mFiltersOpen}
+            onClose={() => setMFiltersOpen(false)}
+            title="Filters"
+            onReset={
+              activeTab === 'ASSET_SCANNER'
+                ? () => {
+                    setSelectedCountry('ALL');
+                    setMinArbitrageSpread(0);
+                    setSortField('NET_MARGIN');
+                  }
+                : () => {
+                    setPositiveOnly(false);
+                    setClearedOnly(false);
+                    setHideStale(false);
+                    setMinMargin(0);
+                  }
+            }
+          >
+            {activeTab === 'ASSET_SCANNER' ? (
+              <>
+                <div className="sc-field">
+                  <label className="eyebrow" htmlFor="sc-m-origin">Origin</label>
+                  <select id="sc-m-origin" className="input" value={selectedCountry} onChange={e => setSelectedCountry(e.target.value)}>
+                    {availableCountries.map(c => (
+                      <option key={c} value={c}>{c === 'ALL' ? 'All European Origins' : c}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="sc-field">
+                  <span className="eyebrow">Min Spread</span>
+                  <ChipChoice
+                    options={[0, 10, 25, 50].map(s => ({ key: s, label: s === 0 ? 'All' : `≥€${s}/MWh` }))}
+                    value={minArbitrageSpread}
+                    onChange={setMinArbitrageSpread}
+                  />
+                </div>
+                <div className="sc-field">
+                  <label className="eyebrow" htmlFor="sc-m-sort">Sort by</label>
+                  <select id="sc-m-sort" className="input" value={sortField} onChange={e => setSortField(e.target.value as any)}>
+                    <option value="NET_MARGIN">Highest Net Spread (€/MWh)</option>
+                    <option value="ANNUAL_PNL">Largest Annual Gross Profit (€)</option>
+                    <option value="VOLUME">Plant Volume Capacity (GWh)</option>
+                  </select>
+                </div>
+              </>
+            ) : (
+              <>
+                <ToggleRow label="Positive netback only" on={positiveOnly} onToggle={() => setPositiveOnly(p => !p)} />
+                <ToggleRow label="All six gates clear" on={clearedOnly} onToggle={() => setClearedOnly(p => !p)} />
+                <ToggleRow label="Hide marks older than 30d" on={hideStale} onToggle={() => setHideStale(p => !p)} />
+                <div className="sc-field">
+                  <span className="eyebrow">Min Margin</span>
+                  <ChipChoice
+                    options={[0, 15, 25, 40].map(m => ({ key: m, label: m === 0 ? 'All' : `≥€${m}` }))}
+                    value={minMargin}
+                    onChange={setMinMargin}
+                  />
+                </div>
+              </>
+            )}
+          </FilterSheet>
+        </>
       )}
 
       {/* Logistics Delivery Playbook Modal */}

@@ -67,7 +67,7 @@ export function Step1OrderIntake({ request, onChange, onNext }: Step1OrderIntake
   };
 
   return (
-    <div className="max-w-5xl mx-auto py-6 px-4">
+    <div className="cf-step max-w-5xl mx-auto py-6 px-4">
       {/* Step Header */}
       <div className="mb-6">
         <div
@@ -77,7 +77,7 @@ export function Step1OrderIntake({ request, onChange, onNext }: Step1OrderIntake
             borderColor: 'var(--color-line)',
             color: 'var(--color-text)',
           }}
-          className="inline-flex items-center gap-2 px-3 py-1 border text-xs font-medium mb-2.5"
+          className="cf-pill inline-flex items-center gap-2 px-3 py-1 border text-xs font-medium mb-2.5"
         >
           <span style={{ backgroundColor: 'var(--color-accent)' }} className="w-2 h-2 rounded-full" />
           Step 1 of 4: Order intake
@@ -111,7 +111,7 @@ export function Step1OrderIntake({ request, onChange, onNext }: Step1OrderIntake
             Click to auto-populate standard industry trade requests
           </span>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+        <div className="cf-presets grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
           <button
             type="button"
             onClick={() => applyPreset('DE_THG')}
@@ -301,7 +301,7 @@ export function Step1OrderIntake({ request, onChange, onNext }: Step1OrderIntake
               />
               <span
                 style={{ color: 'var(--color-muted)' }}
-                className="absolute right-3 top-2 text-[11px] font-medium"
+                className="cf-unit absolute right-3 top-2 text-[11px] font-medium"
               >
                 MWh
               </span>
@@ -381,7 +381,7 @@ export function Step1OrderIntake({ request, onChange, onNext }: Step1OrderIntake
         {/* Action Button & Configuration Summary Bar */}
         <div
           style={{ borderColor: 'var(--color-line)' }}
-          className="pt-4 border-t flex flex-col sm:flex-row items-center justify-between gap-3"
+          className="m-sticky-actions cf-actions cf-actions-col pt-4 border-t flex flex-col sm:flex-row items-center justify-between gap-3"
         >
           <div style={{ color: 'var(--color-muted)' }} className="flex items-center gap-1.5 text-xs">
             <CheckCircle2 className="w-4 h-4 shrink-0" style={{ color: 'var(--color-status-pass-ink)' }} />

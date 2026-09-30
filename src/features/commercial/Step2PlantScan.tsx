@@ -122,7 +122,7 @@ export function Step2PlantScan({
   };
 
   return (
-    <div className="max-w-5xl mx-auto py-6 px-4">
+    <div className="cf-step max-w-5xl mx-auto py-6 px-4">
       {/* Step Header */}
       <div className="mb-5">
         <div
@@ -132,7 +132,7 @@ export function Step2PlantScan({
             borderColor: 'var(--color-line)',
             color: 'var(--color-text)',
           }}
-          className="inline-flex items-center gap-2 px-3 py-1 border text-xs font-medium mb-2.5"
+          className="cf-pill inline-flex items-center gap-2 px-3 py-1 border text-xs font-medium mb-2.5"
         >
           <span style={{ backgroundColor: 'var(--color-accent)' }} className="w-2 h-2 rounded-full" />
           Step 2 of 4: Physical supply origination
@@ -156,7 +156,7 @@ export function Step2PlantScan({
             color: selectedCountry === 'ALL' ? 'var(--color-bg)' : 'var(--color-text)',
             borderColor: 'var(--color-line)',
           }}
-          className="px-3 py-1.5 border text-xs font-medium transition-all shrink-0 cursor-pointer flex items-center gap-1.5 shadow-2xs"
+          className="cf-country-chip px-3 py-1.5 border text-xs font-medium transition-all shrink-0 cursor-pointer flex items-center gap-1.5 shadow-2xs"
         >
           <span>All origins</span>
           <span
@@ -182,7 +182,7 @@ export function Step2PlantScan({
               color: selectedCountry === c.code ? 'var(--color-bg)' : 'var(--color-text)',
               borderColor: 'var(--color-line)',
             }}
-            className="px-3 py-1.5 border text-xs font-medium transition-all shrink-0 cursor-pointer flex items-center gap-1.5 shadow-2xs"
+            className="cf-country-chip px-3 py-1.5 border text-xs font-medium transition-all shrink-0 cursor-pointer flex items-center gap-1.5 shadow-2xs"
           >
             <span>{c.flag} {c.code}</span>
             <span
@@ -206,7 +206,7 @@ export function Step2PlantScan({
           borderColor: 'var(--color-line)',
           borderRadius: 'var(--radius-card)',
         }}
-        className="border p-3.5 mb-3.5 flex flex-wrap items-center justify-between gap-3 shadow-xs"
+        className="cf-filterbar border p-3.5 mb-3.5 flex flex-wrap items-center justify-between gap-3 shadow-xs"
       >
         <div className="flex items-center gap-2">
           <Building2 className="w-4 h-4" style={{ color: 'var(--color-accent)' }} />
@@ -228,9 +228,9 @@ export function Step2PlantScan({
           )}
         </div>
 
-        <div className="flex items-center gap-2.5 flex-wrap">
+        <div className="cf-filter-controls flex items-center gap-2.5 flex-wrap">
           {/* Search Box */}
-          <div className="relative">
+          <div className="cf-search relative">
             <Search className="w-3.5 h-3.5 absolute left-3 top-2.5" style={{ color: 'var(--color-muted)' }} />
             <input
               type="text"
@@ -254,7 +254,7 @@ export function Step2PlantScan({
               borderColor: 'var(--color-line)',
               borderRadius: 'var(--radius-control)',
             }}
-            className="flex items-center gap-1.5 border px-2.5 py-1.5"
+            className="cf-sort flex items-center gap-1.5 border px-2.5 py-1.5"
           >
             <ArrowUpDown className="w-3.5 h-3.5" style={{ color: 'var(--color-muted)' }} />
             <select
@@ -273,7 +273,7 @@ export function Step2PlantScan({
       </div>
 
       {/* Plant Grid / List */}
-      <div className="space-y-2.5 mb-5 max-h-[550px] overflow-y-auto pr-1">
+      <div className="space-y-2.5 mb-5 max-h-[550px] overflow-y-auto pr-1 max-md:max-h-none max-md:overflow-visible max-md:pr-0">
         {sortedOpps.length === 0 ? (
           <div
             style={{
@@ -419,7 +419,7 @@ export function Step2PlantScan({
                       borderColor: 'var(--color-line)',
                       color: 'var(--color-text)',
                     }}
-                    className="p-2 border transition-all cursor-pointer hidden sm:flex items-center justify-center hover:opacity-80"
+                    className="p-2 border transition-all cursor-pointer cf-quick hidden sm:flex max-md:flex items-center justify-center hover:opacity-80"
                   >
                     <Zap className="w-3.5 h-3.5" />
                   </button>
@@ -446,7 +446,7 @@ export function Step2PlantScan({
       {/* Navigation Buttons */}
       <div
         style={{ borderColor: 'var(--color-line)' }}
-        className="flex items-center justify-between pt-4 border-t"
+        className="m-sticky-actions cf-actions flex items-center justify-between pt-4 border-t"
       >
         <button
           type="button"

@@ -51,7 +51,7 @@ export function Step3RouteAndCosts({
     : [opportunity.originCountry, opportunity.targetCountry];
 
   return (
-    <div className="max-w-5xl mx-auto py-6 px-4">
+    <div className="cf-step max-w-5xl mx-auto py-6 px-4">
       {/* Step Header */}
       <div className="mb-5">
         <div
@@ -61,7 +61,7 @@ export function Step3RouteAndCosts({
             borderColor: 'var(--color-line)',
             color: 'var(--color-text)',
           }}
-          className="inline-flex items-center gap-2 px-3 py-1 border text-xs font-medium mb-2.5"
+          className="cf-pill inline-flex items-center gap-2 px-3 py-1 border text-xs font-medium mb-2.5"
         >
           <span style={{ backgroundColor: 'var(--color-accent)' }} className="w-2 h-2 rounded-full" />
           Step 3 of 4: Route planning &amp; cost breakdown
@@ -171,7 +171,7 @@ export function Step3RouteAndCosts({
             {/* Waterfall Header */}
             <div
               style={{ borderColor: 'var(--color-line)' }}
-              className="flex items-center justify-between pb-3 mb-3 border-b"
+              className="cf-wfhead flex items-center justify-between pb-3 mb-3 border-b"
             >
               <div className="flex items-center gap-2">
                 <Calculator className="w-4 h-4" style={{ color: 'var(--color-accent)' }} />
@@ -358,7 +358,7 @@ export function Step3RouteAndCosts({
       {/* Navigation Buttons */}
       <div
         style={{ borderColor: 'var(--color-line)' }}
-        className="flex items-center justify-between pt-4 border-t"
+        className="m-sticky-actions cf-actions flex items-center justify-between pt-4 border-t"
       >
         <button
           type="button"

@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { ArbitrageOpportunity } from '../../domain/arbitrage/types';
 import { PRODUCING_ORIGINS } from '../../domain/arbitrage/origins';
+import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 
 interface CorridorMatrixProps {
   tradeableRoutes: ArbitrageOpportunity[];
@@ -24,6 +25,7 @@ export function CorridorMatrix({
   onSelectRoute,
   onSelectCorridor,
 }: CorridorMatrixProps) {
+  const isMobile = useIsMobile();
   const allOrigins = useMemo(() => {
     return Object.values(PRODUCING_ORIGINS).sort((a, b) => a.countryName.localeCompare(b.countryName));
   }, []);
@@ -72,7 +74,7 @@ export function CorridorMatrix({
           </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12px' }} className="eyebrow">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12px' }} className="eyebrow cm-legend">
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             <span style={{ width: '10px', height: '10px', backgroundColor: 'var(--color-status-pos-border)' }} />
             <span>&gt; €30/MWh</span>
@@ -92,11 +94,11 @@ export function CorridorMatrix({
         </div>
       </div>
 
-      <div style={{ overflowX: 'auto' }}>
+      <div style={{ overflowX: 'auto' }} className={isMobile ? 'table-scroll' : undefined}>
         <table className="table" style={{ fontSize: '12px' }}>
           <thead>
             <tr>
-              <th style={{ width: '180px', textAlign: 'left' }}>Origin Country</th>
+              <th className="cm-origin" style={{ width: '180px', textAlign: 'left' }}>Origin Country</th>
               {PRIMARY_MARKETS.map(m => (
                 <th key={m.id} style={{ textAlign: 'center', minWidth: '120px' }}>
                   <div>{m.label}</div>
@@ -108,7 +110,7 @@ export function CorridorMatrix({
           <tbody>
             {allOrigins.map(origin => (
               <tr key={origin.countryCode}>
-                <td style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>
+                <td className="cm-origin-cell" style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>
                   <span style={{ marginRight: '6px', fontSize: '14px' }}>{origin.flag}</span>
                   <span>{origin.countryName}</span>
                 </td>

@@ -27,6 +27,19 @@ import {
   resolveAuditedCarbonIntensity
 } from '../../domain/valuation/strategyEngine';
 import { getDefaultMarketForOrigin } from '../trade-builder/TradeBuilderScreen';
+import { useIsMobile } from '../../shared/hooks/useMediaQuery';
+import {
+  StrategyCards,
+  CorridorCards,
+  CorridorSheet,
+  PlantCards,
+  PlantSheet,
+  MarketCards,
+  MarketSheet,
+  PickerCards,
+  InlineSearchSheet,
+  MarketRowVM,
+} from './SourcingMobileViews';
 
 export function getPlantCanonicalFeedstock(plant?: BiomethanePlant | null, fallback: string = 'manure'): string {
   if (!plant) return fallback;
@@ -71,7 +84,7 @@ const FEEDSTOCK_OPTIONS = [
 
 type SourcingTab = 'STRATEGIES' | 'CORRIDORS' | 'PLANTS' | 'MARKETS' | 'HEATMAP';
 
-interface OriginCorridorRow {
+export interface OriginCorridorRow {
   originCode: string;
   originName: string;
   originFlag: string;
@@ -133,6 +146,11 @@ const FLAGSHIP_PRESETS = [
 export function SourcingOriginationDesk() {
   const navigate = useNavigate();
   const { state, dispatch } = useAppState();
+  const isMobile = useIsMobile();
+  // Phone-only detail sheets (the desktop rows carry inline actions instead)
+  const [mPlantSheet, setMPlantSheet] = useState<{ plant: BiomethanePlant; marketId: string; originCode: string; tso?: string } | null>(null);
+  const [mMarketSheet, setMMarketSheet] = useState<MarketRowVM | null>(null);
+  const [rfqOpen, setRfqOpen] = useState(false); // phone: the consignment bar folds to a one-line summary
 
   // Primary RFQ / Sourcing intent state
   const [selectedMarketSelect, setSelectedMarketSelect] = useState<string>('DE_THG');
@@ -569,7 +587,7 @@ export function SourcingOriginationDesk() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
       {/* 1. Ledger Metric Strip */}
-      <div className="cellrow" style={{ gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}>
+      <div className="cellrow sd-kpis" style={{ gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}>
         <div>
           <div className="eyebrow">Audited facilities</div>
           <div className="big num">1,975</div>
@@ -598,6 +616,7 @@ export function SourcingOriginationDesk() {
 
       {/* 2. Sub-View Navigation Tabs */}
       <div
+        className="sd-tabsbar"
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -609,7 +628,7 @@ export function SourcingOriginationDesk() {
           gap: '10px',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }} role="tablist">
+        <div className="sd-tablist" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }} role="tablist">
           <button
             type="button"
             role="tab"
@@ -678,7 +697,7 @@ export function SourcingOriginationDesk() {
           </button>
         </div>
 
-        <div style={{ display: 'flex', gap: '14px', fontSize: '12px' }} className="eyebrow">
+        <div style={{ display: 'flex', gap: '14px', fontSize: '12px' }} className="eyebrow sd-legend">
           <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             <span style={{ width: '8px', height: '8px', backgroundColor: 'var(--color-text)' }} />
             Eligible
@@ -695,8 +714,25 @@ export function SourcingOriginationDesk() {
       </div>
 
       {/* 3. Manual Consignment & RFQ Bar (Only shown for screening tabs, hidden in Asset Deal Calculator) */}
+      {activeTab !== 'STRATEGIES' && isMobile && (
+        <button
+          type="button"
+          className="sd-rfq-toggle"
+          aria-expanded={rfqOpen}
+          onClick={() => setRfqOpen(o => !o)}
+        >
+          <span className="sd-rfq-toggle-text">
+            <span className="eyebrow">Consignment</span>
+            <span className="sd-rfq-toggle-summary">
+              {targetMarket.name} · {numericQty.toLocaleString()} MWh · {FEEDSTOCK_OPTIONS.find(o => o.key === feedstockSelect)?.label ?? feedstockSelect} · {ciInput} CI
+            </span>
+          </span>
+          <span className="sd-rfq-toggle-action">{rfqOpen ? 'Done' : 'Edit'}</span>
+        </button>
+      )}
       {activeTab !== 'STRATEGIES' && (
         <div
+          className={`sd-rfq${isMobile && !rfqOpen ? ' sd-rfq-collapsed' : ''}`}
           style={{
             display: 'flex',
             alignItems: 'flex-end',
@@ -801,14 +837,14 @@ export function SourcingOriginationDesk() {
 
           <button
             type="button"
-            className="btn btn-primary"
+            className="btn btn-primary sd-rfq-scan"
             style={{ height: '36px', whiteSpace: 'nowrap' }}
             onClick={handleScan}
           >
             Scan European plants
           </button>
 
-          <div style={{ marginLeft: 'auto', textAlign: 'right', fontSize: '12px' }} className="mut">
+          <div style={{ marginLeft: 'auto', textAlign: 'right', fontSize: '12px' }} className="mut sd-rfq-note">
             <div>Audited census · 1,975 facilities · Dijkstra corridor network</div>
             <div>Target: <strong style={{ fontWeight: 600, color: 'var(--color-text)' }}>{targetMarket.name}</strong> · {matchedFeedstockPlants.length} plants matching substrate</div>
           </div>
@@ -816,7 +852,7 @@ export function SourcingOriginationDesk() {
       )}
 
       {/* 4. Tab Content */}
-      <div style={{ padding: '0 18px 18px', flex: 1 }}>
+      <div className="sd-tabbody" style={{ padding: '0 18px 18px', flex: 1 }}>
         {/* TAB 0: Asset Deal Evaluator & Multi-Strategy Opportunity Engine */}
         {activeTab === 'STRATEGIES' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', paddingTop: '12px' }}>
@@ -834,8 +870,8 @@ export function SourcingOriginationDesk() {
               }}
             >
               {/* Top Controls Row */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div className="sd-asset-top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                <div className="sd-asset-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span>🏢</span> FACILITY UNDER VALUATION:
                   </span>
@@ -845,9 +881,9 @@ export function SourcingOriginationDesk() {
                 </div>
 
                 {/* Quick Switcher Controls & Action Buttons */}
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div className="sd-asset-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                   {/* Inline Fast Search Input with Autocomplete */}
-                  <div style={{ position: 'relative', minWidth: '260px' }}>
+                  <div className="sd-inline-search" style={{ position: 'relative', minWidth: '260px' }}>
                     <input
                       type="text"
                       className="input"
@@ -861,6 +897,8 @@ export function SourcingOriginationDesk() {
                       onFocus={() => {
                         if (inlineSearchQuery.trim()) setIsInlineDropdownOpen(true);
                       }}
+                      readOnly={isMobile}
+                      onClick={isMobile ? () => setIsInlineDropdownOpen(true) : undefined}
                     />
                     <span style={{ position: 'absolute', left: '9px', top: '50%', transform: 'translateY(-50%)', fontSize: '12px', color: 'var(--color-dim)', pointerEvents: 'none' }}>
                       🔍
@@ -879,7 +917,7 @@ export function SourcingOriginationDesk() {
                     )}
 
                     {/* Autocomplete Dropdown List */}
-                    {isInlineDropdownOpen && inlineSearchResults.length > 0 && (
+                    {!isMobile && isInlineDropdownOpen && inlineSearchResults.length > 0 && (
                       <div
                         style={{
                           position: 'absolute',
@@ -999,6 +1037,7 @@ export function SourcingOriginationDesk() {
 
               {/* Plant Detail Hero Display Banner */}
               <div
+                className="sd-hero"
                 style={{
                   display: 'grid',
                   gridTemplateColumns: 'minmax(240px, 1.4fr) repeat(4, minmax(130px, 1fr))',
@@ -1125,6 +1164,7 @@ export function SourcingOriginationDesk() {
             {/* ─── Searchable Plant Picker Overlay Modal ─── */}
             {isPlantPickerOpen && (
               <div
+                className="m-dialog-scrim"
                 style={{
                   position: 'fixed',
                   inset: 0,
@@ -1140,6 +1180,8 @@ export function SourcingOriginationDesk() {
                 onClick={() => setIsPlantPickerOpen(false)}
               >
                 <div
+                  className="m-dialog"
+                  data-testid="sd-plant-picker"
                   style={{
                     backgroundColor: 'var(--color-surface)',
                     width: '100%',
@@ -1155,7 +1197,7 @@ export function SourcingOriginationDesk() {
                   onClick={e => e.stopPropagation()}
                 >
                   {/* Modal Header */}
-                  <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-divider)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--color-panel-header)' }}>
+                  <div className="m-dialog-header sd-pk-head" style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-divider)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--color-panel-header)' }}>
                     <div>
                       <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span>🏢</span> European Biomethane Facility Census Directory
@@ -1175,14 +1217,14 @@ export function SourcingOriginationDesk() {
                   </div>
 
                   {/* Search Bar & Multi-Facet Filters */}
-                  <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface-sunken)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div className="sd-pk-filters" style={{ padding: '14px 20px', borderBottom: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface-sunken)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {/* Search Input & Sort Controls */}
-                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <div className="sd-pk-search" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                       <div style={{ position: 'relative', flex: 1 }}>
                         <input
                           type="text"
                           className="input"
-                          autoFocus
+                          autoFocus={!isMobile}
                           style={{ width: '100%', height: '38px', fontSize: '13px', paddingLeft: '12px' }}
                           placeholder="Search facility name, legal entity, municipality, SIREN, TSO/DSO operator..."
                           value={plantFilterQuery}
@@ -1200,7 +1242,7 @@ export function SourcingOriginationDesk() {
                       </div>
 
                       {/* Sort Dropdown */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                      <div className="sd-pk-sort" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                         <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-dim)' }}>Sort:</span>
                         <select
                           className="input"
@@ -1270,7 +1312,7 @@ export function SourcingOriginationDesk() {
                       </div>
 
                       {/* Scale / Capacity Filter */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <div className="sd-pk-scale noscroll" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                         <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-dim)', whiteSpace: 'nowrap' }}>
                           Scale:
                         </span>
@@ -1295,7 +1337,7 @@ export function SourcingOriginationDesk() {
                   </div>
 
                   {/* Results List */}
-                  <div style={{ flex: 1, overflowY: 'auto', padding: '12px 20px', display: 'flex', flexDirection: 'column', gap: '6px' }} className="noscroll">
+                  <div style={{ flex: 1, overflowY: 'auto', padding: '12px 20px', display: 'flex', flexDirection: 'column', gap: '6px' }} className="noscroll m-dialog-body sd-pk-results">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', fontWeight: 700, color: 'var(--color-dim)', marginBottom: '4px' }}>
                       <span>SHOWING {availablePlants.length} MATCHING FACILITIES</span>
                       <span>(Total Indexed: {BIOMETHANE_PLANTS.length.toLocaleString()})</span>
@@ -1305,6 +1347,17 @@ export function SourcingOriginationDesk() {
                       <div style={{ padding: '36px', textAlign: 'center', color: 'var(--color-dim)' }}>
                         No biomethane facilities match the current search or filters. Try adjusting your query or resetting filters.
                       </div>
+                    ) : isMobile ? (
+                      <PickerCards
+                        plants={availablePlants.slice(0, 100)}
+                        selectedId={selectedPlant.id}
+                        onPick={p => {
+                          setSelectedPlant(p);
+                          setSelectedStrategyId(null);
+                          setIsPlantPickerOpen(false);
+                          showToast(`Loaded ${p.name} (${p.country})`);
+                        }}
+                      />
                     ) : (
                       availablePlants.slice(0, 100).map(p => {
                         const isSelected = p.id === selectedPlant.id;
@@ -1392,7 +1445,7 @@ export function SourcingOriginationDesk() {
 
             {/* 2. Plant Identity & Grid Connection Ribbon */}
             <div
-              className="cellrow"
+              className="cellrow sd-ribbon"
               style={{
                 gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
                 border: '1px solid var(--color-divider)',
@@ -1460,12 +1513,12 @@ export function SourcingOriginationDesk() {
 
             {/* 3. Pan-European Commercial Strategy Blotter Table */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div className="sd-blotter-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                <div className="sd-blotter-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <h4 className="ptitle" style={{ fontSize: '14px' }}>Pan-European Commercial Strategy Blotter</h4>
                   <span className="dim" style={{ fontSize: '12px' }}>— All 6 compliance &amp; voluntary routes evaluated side-by-side for {plantValuation.plant.name}</span>
                 </div>
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <div className="sd-blotter-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                   <button
                     type="button"
                     className="btn btn-primary"
@@ -1490,11 +1543,19 @@ export function SourcingOriginationDesk() {
                     📋 Copy Pitch Script
                   </button>
                   <span className="dim" style={{ fontSize: '12px' }}>
-                    Click row to inspect bilateral contract specifications &amp; hedging ticket
+                    {isMobile ? 'Tap a route to inspect bilateral contract specifications & hedging ticket' : 'Click row to inspect bilateral contract specifications & hedging ticket'}
                   </span>
                 </div>
               </div>
 
+              {isMobile ? (
+                <StrategyCards
+                  evaluations={plantValuation.evaluations}
+                  winningId={plantValuation.winningStrategy.strategyId}
+                  activeId={activeStrategy.strategyId}
+                  onSelect={id => setSelectedStrategyId(id)}
+                />
+              ) : (
               <div style={{ overflowX: 'auto', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)', borderRadius: 'var(--radius-panel)' }}>
                 <table className="table" style={{ fontSize: '12px', margin: 0 }}>
                   <thead>
@@ -1664,6 +1725,7 @@ export function SourcingOriginationDesk() {
                   </tbody>
                 </table>
               </div>
+              )}
             </div>
 
             {/* 5. Selected Strategy Contract Structure & EEX Hedging Dossier */}
@@ -1678,8 +1740,8 @@ export function SourcingOriginationDesk() {
                 gap: '12px',
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-divider)', paddingBottom: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div className="sd-dossier-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-divider)', paddingBottom: '8px' }}>
+                <div className="sd-dossier-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span className="eyebrow" style={{ fontWeight: 800, color: 'var(--color-text)' }}>
                     CONTRACT SPECIFICATIONS &amp; HEDGING DOSSIER:
                   </span>
@@ -1703,7 +1765,7 @@ export function SourcingOriginationDesk() {
                 )}
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <div className="sd-dossier-cols" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                 {activeStrategy.deliveryModel === 'UNBUNDLED_CERTIFICATE_ONLY' ? (
                   <>
                     {/* Left Column: Unbundled Book & Claim Certificate Structure */}
@@ -1775,7 +1837,7 @@ export function SourcingOriginationDesk() {
                         </div>
                       </div>
 
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', fontSize: '12px' }}>
+                      <div className="sd-stat3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', fontSize: '12px' }}>
                         <div style={{ padding: '6px 8px', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)', borderRadius: 'var(--radius-control)' }}>
                           <div className="eyebrow" style={{ fontSize: '12px' }}>Certificate Volume</div>
                           <div className="num" style={{ fontWeight: 700, marginTop: '2px' }}>{plantValuation.plant.annualVolumeMWh.toLocaleString()} GoOs</div>
@@ -1869,7 +1931,7 @@ export function SourcingOriginationDesk() {
                         </div>
                       </div>
 
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', fontSize: '12px' }}>
+                      <div className="sd-stat3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', fontSize: '12px' }}>
                         <div style={{ padding: '6px 8px', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)', borderRadius: 'var(--radius-control)' }}>
                           <div className="eyebrow" style={{ fontSize: '12px' }}>Hourly Volume</div>
                           <div className="num" style={{ fontWeight: 700, marginTop: '2px' }}>{plantValuation.plant.hourlyCapacityMWh} MWh/h</div>
@@ -1890,19 +1952,44 @@ export function SourcingOriginationDesk() {
                 )}
               </div>
             </div>
+            {isMobile && activeStrategy.isEligible && (
+              <div className="m-sticky-actions sd-cta" data-testid="sd-strategy-cta">
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => handleStructureDealForStrategy(activeStrategy)}
+                >
+                  Structure {activeStrategy.strategyName} →
+                </button>
+              </div>
+            )}
           </div>
         )}
 
         {/* TAB 1: European Sourcing Corridors */}
         {activeTab === 'CORRIDORS' && (
           <div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', padding: '14px 0 8px' }}>
+            <div className="sd-tabhead" style={{ display: 'flex', alignItems: 'baseline', gap: '12px', padding: '14px 0 8px' }}>
               <h3 className="ptitle">Origin Supply Corridors → {targetMarket.name}</h3>
               <span className="subttl num">
                 {corridorRows.length} origins evaluated · {numericQty.toLocaleString()} MWh · {FEEDSTOCK_REGISTRY[feedstockSelect]?.name} ({numericCI} CI)
               </span>
             </div>
 
+            {isMobile ? (
+              isLoading ? (
+                <div className="mut" style={{ padding: '24px 0', textAlign: 'center', fontSize: '13px' }}>Scanning corridors…</div>
+              ) : (
+                <CorridorCards
+                  rows={corridorRows}
+                  selectedId={selectedRowId}
+                  onOpen={row => {
+                    setSelectedRowId(row.originCode);
+                    setExpandedOrigin(row.originCode);
+                  }}
+                />
+              )
+            ) : (
             <table className="table" style={{ fontSize: '12px' }}>
               <thead>
                 <tr>
@@ -2142,19 +2229,20 @@ export function SourcingOriginationDesk() {
                 )}
               </tbody>
             </table>
+            )}
           </div>
         )}
 
         {/* TAB 2: Matched Producer Plants Directory */}
         {activeTab === 'PLANTS' && (
           <div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', padding: '14px 0 8px', flexWrap: 'wrap' }}>
+            <div className="sd-tabhead" style={{ display: 'flex', alignItems: 'baseline', gap: '12px', padding: '14px 0 8px', flexWrap: 'wrap' }}>
               <h3 className="ptitle">Audited Producer Facilities (1,975 Census)</h3>
               <span className="subttl num">
                 {filteredPlantsList.length} matching facilities · {FEEDSTOCK_REGISTRY[feedstockSelect]?.name}
               </span>
 
-              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div className="sd-plant-filters" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <input
                   type="text"
                   placeholder="Search plant, operator, or grid node..."
@@ -2180,6 +2268,18 @@ export function SourcingOriginationDesk() {
               </div>
             </div>
 
+            {isMobile ? (
+              <PlantCards
+                plants={filteredPlantsList.slice(0, 30)}
+                onOpen={plant =>
+                  setMPlantSheet({
+                    plant,
+                    marketId: selectedMarketSelect === 'ALL' ? getDefaultMarketForOrigin(plant.countryCode) : selectedMarketSelect,
+                    originCode: plant.countryCode,
+                  })
+                }
+              />
+            ) : (
             <table className="table" style={{ fontSize: '12px' }}>
               <thead>
                 <tr>
@@ -2238,17 +2338,49 @@ export function SourcingOriginationDesk() {
                 ))}
               </tbody>
             </table>
+            )}
           </div>
         )}
 
         {/* TAB 3: Destination Market Ranking */}
         {activeTab === 'MARKETS' && (
           <div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '14px', padding: '14px 0 8px' }}>
+            <div className="sd-tabhead" style={{ display: 'flex', alignItems: 'baseline', gap: '14px', padding: '14px 0 8px' }}>
               <h3 className="ptitle">Destination Market Arbitrage Matrix</h3>
               <span className="subttl num">All-in delivered basis, {currentSide}</span>
             </div>
 
+            {isMobile ? (
+              <MarketCards
+                selectedId={selectedRowId}
+                onOpen={m => {
+                  setSelectedRowId(m.marketId);
+                  setMMarketSheet(m);
+                }}
+                items={rankedList.map(item => {
+                  const net = item.netNetback ?? 0;
+                  const el = eligibilityMap.get(item.marketId);
+                  const isBlocked = el?.overallVerdict === 'HARD_BLOCK';
+                  const mkt = getMarketById(item.marketId);
+                  return {
+                    marketId: item.marketId,
+                    marketName: item.marketName,
+                    registry: mkt?.registry || mkt?.legalBasis || '',
+                    gates: el?.gates,
+                    net,
+                    barWidth: Math.min(100, (Math.abs(net) / maxAbs) * 100),
+                    barColor:
+                      net < 0 || isBlocked
+                        ? 'var(--color-accent)'
+                        : el?.overallVerdict === 'CONDITIONAL'
+                        ? 'var(--color-neutral-500)'
+                        : 'var(--color-text)',
+                    marginPercent: item.marginPercent,
+                    isSim: Boolean(item.isModelled || item.provenance?.sourceType === 'ESTIMATE'),
+                  } as MarketRowVM;
+                })}
+              />
+            ) : (
             <table className="table" style={{ fontSize: '13px' }}>
               <thead>
                 <tr>
@@ -2361,6 +2493,7 @@ export function SourcingOriginationDesk() {
                 })}
               </tbody>
             </table>
+            )}
           </div>
         )}
 
@@ -2385,6 +2518,7 @@ export function SourcingOriginationDesk() {
 
       {/* 5. Blocked Statutory Banner */}
       <div
+        className="sd-blocked"
         style={{
           marginTop: 'auto',
           display: 'flex',
@@ -2422,6 +2556,52 @@ export function SourcingOriginationDesk() {
           RED III Art. 28(2) · Art. 31a (UDB not live)
         </span>
       </div>
+      {isMobile && (
+        <>
+          <CorridorSheet
+            row={activeTab === 'CORRIDORS' ? corridorRows.find(r => r.originCode === expandedOrigin) ?? null : null}
+            feedstockName={FEEDSTOCK_REGISTRY[feedstockSelect]?.name}
+            onClose={() => setExpandedOrigin(null)}
+            onStructure={row => handleStructureDeal(row.targetMarketId, row.originCode, row.matchingPlants[0] || undefined)}
+            onOpenPlant={(plant, row) =>
+              setMPlantSheet({ plant, marketId: row.targetMarketId, originCode: row.originCode, tso: row.primaryRegistry })
+            }
+          />
+          <PlantSheet
+            plant={mPlantSheet?.plant ?? null}
+            tso={mPlantSheet?.tso}
+            onClose={() => setMPlantSheet(null)}
+            onSource={plant => {
+              if (mPlantSheet) handleStructureDeal(mPlantSheet.marketId, mPlantSheet.originCode, plant);
+            }}
+          />
+          <MarketSheet
+            market={mMarketSheet}
+            onClose={() => setMMarketSheet(null)}
+            onStructure={m => handleStructureDeal(m.marketId, 'DK')}
+          />
+          <InlineSearchSheet
+            open={isInlineDropdownOpen}
+            onClose={() => setIsInlineDropdownOpen(false)}
+            query={inlineSearchQuery}
+            onQuery={setInlineSearchQuery}
+            results={inlineSearchResults}
+            selectedId={selectedPlant.id}
+            onPick={p => {
+              setSelectedPlant(p);
+              setSelectedStrategyId(null);
+              setIsInlineDropdownOpen(false);
+              setInlineSearchQuery('');
+              showToast(`Loaded ${p.name} (${p.country})`);
+            }}
+            onViewAll={() => {
+              setPlantFilterQuery(inlineSearchQuery);
+              setIsInlineDropdownOpen(false);
+              setIsPlantPickerOpen(true);
+            }}
+          />
+        </>
+      )}
       {/* 360 Sourcing Drawer */}
       {isPlantDrawerOpen && selectedPlant && (
         <PlantSourcingDrawer

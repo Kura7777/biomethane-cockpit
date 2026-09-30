@@ -131,7 +131,7 @@ Date: ${dateStr}
   };
 
   return (
-    <div className="max-w-5xl mx-auto py-6 px-4">
+    <div className="cf-step max-w-5xl mx-auto py-6 px-4">
       {/* Step Header */}
       <div className="mb-5">
         <div
@@ -141,7 +141,7 @@ Date: ${dateStr}
             borderColor: 'var(--color-status-pass-border)',
             color: 'var(--color-status-pass-ink)',
           }}
-          className="inline-flex items-center gap-2 px-3 py-1 border text-xs font-medium mb-2.5"
+          className="cf-pill inline-flex items-center gap-2 px-3 py-1 border text-xs font-medium mb-2.5"
         >
           <CheckCircle2 className="w-3.5 h-3.5" />
           Step 4 of 4: Commercial deal structured
@@ -397,7 +397,7 @@ Date: ${dateStr}
       {/* Navigation & Reset Actions */}
       <div
         style={{ borderColor: 'var(--color-line)' }}
-        className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t"
+        className="m-sticky-actions cf-actions cf-actions-4 flex flex-wrap items-center justify-between gap-3 pt-4 border-t"
       >
         <button
           type="button"
