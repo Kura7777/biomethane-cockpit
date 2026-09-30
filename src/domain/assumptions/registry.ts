@@ -425,6 +425,18 @@ export const ASSUMPTION_DEFINITIONS: AssumptionDefinition[] = [
     usedIn: 'Trade builder: warning when modelled netback exceeds what the market pays',
     min: 0,
   },
+  {
+    key: 'clients.firstDealShare',
+    category: 'SCANNER',
+    label: 'First ETS1 deal: share of a company biomethane potential',
+    unit: '%',
+    defaultValue: 10,
+    basis: 'DESK_ESTIMATE',
+    source: 'Desk heuristic for how much of a company ETS1 potential to open with. Not a market observation.',
+    usedIn: 'Clients: the first-deal volume suggested on an ETS1 play (the value of the play is the full potential)',
+    min: 1,
+    max: 100,
+  },
 ];
 
 const DEFINITIONS_BY_KEY = new Map(ASSUMPTION_DEFINITIONS.map(d => [d.key, d]));

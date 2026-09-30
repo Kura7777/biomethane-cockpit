@@ -24,7 +24,7 @@ import { selectMarkPrice, ETS_NATURAL_GAS_TCO2_PER_MWH } from '../../domain/netb
 import { HHV_TO_LHV_FACTOR } from '../../domain/offtake/engine';
 import { normalizeCompanyName } from '../../domain/companies/normalize';
 import { CompanyProfile, MARKET_LABEL } from '../../domain/companies/directory';
-import { ets1StackSpec } from '../../domain/companies/opportunities';
+import { ets1StackSpec, ets1FirstDealShare } from '../../domain/companies/opportunities';
 import { MarksState } from '../../domain/netback/types';
 import { ValueStackCard, StackBadge } from '../value-stack/ValueStackCard';
 import { companyLookup, stackedPlay } from '../value-stack/companyLookup';
@@ -55,8 +55,6 @@ type SortKey = 'name' | 'tco2' | 'deal' | 'change';
 
 const STATUS_KEY = 'biomethane_ets1_outreach_v1';
 const PAGE_SIZE = 50;
-/** A first deal is sized at 10% of emissions at high/medium-fit sites (same as Clients). */
-const FIRST_DEAL_SHARE = 10 / 100;
 const PERCENT = 100;
 const MWH_PER_GWH = 1000;
 const TONNES_PER_MT = 1_000_000;
@@ -145,14 +143,14 @@ export function Ets1SitesTab() {
   const lookup = useMemo(() => companyLookup(), []);
   const stackCache = useMemo(() => new Map<string, ReturnType<typeof stackedPlay>>(), [scenarioMarks]);
   const stackFor = (p: CompanyProfile | undefined) => {
-    if (!p || p.markets.length < 2) return null;
-    if (!stackCache.has(p.id)) stackCache.set(p.id, stackedPlay(p, scenarioMarks, year));
+    if (!p) return null;
+    if (!stackCache.has(p.id)) stackCache.set(p.id, stackedPlay(p, scenarioMarks, year, lookup.ets2Countries));
     return stackCache.get(p.id) ?? null;
   };
   const avoidedInvoice = avoidedNcv === null ? null : avoidedNcv * HHV_TO_LHV_FACTOR;
 
   const firstDeal = (fitT: number) => {
-    const ncvMWh = biomethaneMWhToAbate(fitT * FIRST_DEAL_SHARE);
+    const ncvMWh = biomethaneMWhToAbate(fitT * ets1FirstDealShare());
     return { invoiceMWh: ncvMWh / HHV_TO_LHV_FACTOR, saving: avoidedNcv === null ? null : ncvMWh * avoidedNcv };
   };
 
@@ -565,7 +563,7 @@ function CompanyPanel(props: {
   const isMobile = useIsMobile();
   const sites = [...c.sites].sort((a, b) => b.verifiedLatestTco2 - a.verifiedLatestTco2);
   const notes = fitNotes(c);
-  const spec = useMemo(() => ets1StackSpec(c.fitVerifiedLatestTco2, props.marks, props.year), [c, props.marks, props.year]);
+  const spec = useMemo(() => ets1StackSpec(c.fitVerifiedLatestTco2, props.marks, props.year, ets1FirstDealShare()), [c, props.marks, props.year]);
   const also = (props.profile?.markets ?? []).filter(m => m !== 'ETS1');
   const footer = <button type="button" className="ets-btn primary grow" onClick={props.onClient}>Open client profile</button>;
   const body = (

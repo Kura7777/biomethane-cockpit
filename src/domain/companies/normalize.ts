@@ -61,3 +61,19 @@ export function leadingToken(name: string): string | null {
   const tokens = normalizeCompanyName(name).split(' ');
   return tokens.find(t => t.length >= 4 && !LEGAL_FORM_SET.has(t) && !/^\d+$/.test(t)) ?? null;
 }
+
+/**
+ * Search key: case-, accent- and diacritic-insensitive, so "orsted" finds "Ørsted A/S" and
+ * "wartsila" finds "Wärtsilä". Keeps punctuation and legal forms, unlike normalizeCompanyName.
+ */
+export function searchFold(text: string): string {
+  return text
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/ß/g, 'ss')
+    .replace(/ł/g, 'l')
+    .replace(/ø/g, 'o')
+    .replace(/æ/g, 'ae')
+    .replace(/đ/g, 'd');
+}

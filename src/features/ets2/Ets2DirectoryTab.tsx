@@ -229,7 +229,7 @@ export function Ets2DirectoryTab(props: {
             metricLabel={() => 'ETS2 cost'}
             badges={r => {
               const prof = lookup.byEts2Id.get(r.company.id);
-              const stacked = prof ? stackedPlay(prof, scenarioMarks, year) : null;
+              const stacked = prof ? stackedPlay(prof, scenarioMarks, year, countries) : null;
               return (
                 <>
                   {stacked && <StackBadge spec={stacked.spec} />}
@@ -296,7 +296,7 @@ export function Ets2DirectoryTab(props: {
               const c = r.company;
               const prof = lookup.byEts2Id.get(c.id);
               const also = (prof?.markets ?? []).filter(m => m !== 'ETS2');
-              const stacked = prof ? stackedPlay(prof, scenarioMarks, year) : null;
+              const stacked = prof ? stackedPlay(prof, scenarioMarks, year, countries) : null;
               return (
                 <button key={c.id} type="button" className={`ds-row ets-cols-suppliers ${selectedId === c.id ? 'selected' : ''}`} onClick={() => setSelectedId(c.id)}>
                   <div style={{ minWidth: 0 }}>

@@ -37,8 +37,13 @@ export interface FuelEuExposure {
 }
 
 export interface CompanyProfile {
-  /** Stable id: the normalised name of the first record that created it. */
+  /**
+   * Stable id. Unlinked: the normalised name of the first record that created it. Linked: the
+   * lexicographically smallest id among the merged profiles, so it never depends on link order.
+   */
   id: string;
+  /** Every pre-link profile id merged into this one (including its own), sorted. */
+  memberIds: string[];
   name: string;
   /** Every name the company appears under across datasets. */
   names: string[];
@@ -100,22 +105,32 @@ function ets2Records(companies: Ets2Company[]): SourceRecord[] {
   }));
 }
 
-/** Union-find over profile ids, for trader-confirmed links. */
-function makeUnion(ids: string[]) {
-  const parent = new Map(ids.map(id => [id, id]));
+/** Union-find over strings; the root is always the smallest member, so results never depend on call order. */
+function makeUnion() {
+  const parent = new Map<string, string>();
   const find = (x: string): string => {
     let r = x;
-    while (parent.get(r) !== r) r = parent.get(r) as string;
-    parent.set(x, r);
+    while (parent.has(r) && parent.get(r) !== r) r = parent.get(r) as string;
+    let c = x;
+    while (c !== r) {
+      const next = parent.get(c) as string;
+      parent.set(c, r);
+      c = next;
+    }
     return r;
   };
   return {
     find,
+    has: (x: string) => parent.has(x),
+    add: (x: string) => { if (!parent.has(x)) parent.set(x, x); },
     union: (a: string, b: string) => {
-      if (!parent.has(a) || !parent.has(b)) return;
+      if (!parent.has(a)) parent.set(a, a);
+      if (!parent.has(b)) parent.set(b, b);
       const ra = find(a);
       const rb = find(b);
-      if (ra !== rb) parent.set(rb, ra);
+      if (ra === rb) return;
+      if (ra < rb) parent.set(rb, ra);
+      else parent.set(ra, rb);
     },
   };
 }
@@ -125,60 +140,107 @@ export interface CompanyLink {
   b: string;
 }
 
+interface Prepared {
+  rec: SourceRecord;
+  name: string;
+  key: string;
+}
+
+/**
+ * Groups records that are the same company by name, independent of processing order. An ETS1
+ * operator name merges into the group that lists it. If another record already carries that name, the
+ * two merge only when one group lists it and it shares the group's brand (first word); a name listed
+ * by several groups is ambiguous and merges nothing. Returns the group structure for the record keys.
+ */
+function groupByName(items: Prepared[]) {
+  const uf = makeUnion();
+  const ownKeys = new Set(items.map(i => i.key));
+  const claims = new Map<string, Set<string>>();
+  for (const it of items) {
+    uf.add(it.key);
+    for (const n of it.rec.aliases) {
+      const k = normalizeCompanyName(n);
+      if (!k || k === it.key) continue;
+      if (!claims.has(k)) claims.set(k, new Set());
+      (claims.get(k) as Set<string>).add(it.key);
+    }
+  }
+  const brand = (k: string) => k.split(' ')[0];
+  for (const [alias, owners] of claims) {
+    const sorted = [...owners].sort();
+    if (!ownKeys.has(alias)) {
+      // Only a name: it belongs to the (smallest) group that lists it.
+      uf.union(sorted[0], alias);
+    } else if (sorted.length === 1 && brand(sorted[0]) === brand(alias)) {
+      // A company of its own that one group lists as an operator under the same brand
+      // ("ThyssenKrupp Steel Europe" under "thyssenkrupp"): one row. A different brand
+      // ("E.ON" listed by a small utility) is left alone rather than swallowed.
+      uf.union(sorted[0], alias);
+    }
+  }
+  return uf;
+}
+
 /**
  * Builds the directory. `links` are trader-confirmed pairs of profile ids to treat as one company;
  * `ets2Companies` defaults to the seed research and may include the trader's own imports.
  */
 export function buildCompanyDirectory(links: CompanyLink[] = [], ets2Companies: Ets2Company[] = DEFAULT_ETS2_COMPANIES): CompanyProfile[] {
-  const profiles = new Map<string, CompanyProfile>();
-  const aliasIndex = new Map<string, string>();
-
-  const place = (rec: SourceRecord) => {
+  // ETS1 first, so its operator names become aliases the other datasets can match onto.
+  const items: Prepared[] = [...ets1Records(), ...fuelEuRecords(), ...ets2Records(ets2Companies)].flatMap(rec => {
     // A record whose name is only punctuation (the EUTL has a parent called "/") is keyed on its first alias.
     const name = [rec.name, ...rec.aliases].find(n => normalizeCompanyName(n) !== '') ?? '';
     const key = normalizeCompanyName(name);
-    if (!key) return;
-    const target = aliasIndex.get(key) ?? key;
-    let p = profiles.get(target);
+    return key ? [{ rec, name, key }] : [];
+  });
+  const groups = groupByName(items);
+
+  // A group is named and identified by its first record in placement order (ETS1 by emissions, then
+  // FuelEU, then ETS2): fixed by the data, never by which links the trader has made.
+  const base = new Map<string, CompanyProfile>();
+  for (const { rec, name, key } of items) {
+    const root = groups.find(key);
+    let p = base.get(root);
     if (!p) {
-      p = { id: target, name, names: [], countries: [], fueleu: [], ets1: [], ets2: [], markets: [] };
-      profiles.set(target, p);
+      p = { id: key, memberIds: [key], name, names: [], countries: [], fueleu: [], ets1: [], ets2: [], markets: [] };
+      base.set(root, p);
     }
-    for (const n of [rec.name, ...rec.aliases]) {
-      if (n && !p.names.includes(n)) p.names.push(n);
-      const nk = normalizeCompanyName(n);
-      if (nk && !aliasIndex.has(nk)) aliasIndex.set(nk, target);
-    }
+    for (const n of [rec.name, ...rec.aliases]) if (n && !p.names.includes(n)) p.names.push(n);
     for (const c of rec.countries) if (c && !p.countries.includes(c)) p.countries.push(c);
     rec.add(p);
-  };
-
-  // ETS1 first, so its operator names become aliases the other datasets can match onto.
-  for (const r of ets1Records()) place(r);
-  for (const r of fuelEuRecords()) place(r);
-  for (const r of ets2Records(ets2Companies)) place(r);
-
-  // Apply trader-confirmed links.
-  const ids = [...profiles.keys()];
-  const uf = makeUnion(ids);
-  for (const l of links) uf.union(l.a, l.b);
-  const merged = new Map<string, CompanyProfile>();
-  for (const id of ids) {
-    const root = uf.find(id);
-    const src = profiles.get(id) as CompanyProfile;
-    const dst = merged.get(root);
-    if (!dst) {
-      merged.set(root, { ...src, id: root, names: [...src.names], countries: [...src.countries], fueleu: [...src.fueleu], ets1: [...src.ets1], ets2: [...src.ets2] });
-      continue;
-    }
-    for (const n of src.names) if (!dst.names.includes(n)) dst.names.push(n);
-    for (const c of src.countries) if (!dst.countries.includes(c)) dst.countries.push(c);
-    dst.fueleu.push(...src.fueleu);
-    dst.ets1.push(...src.ets1);
-    dst.ets2.push(...src.ets2);
   }
 
-  const out = [...merged.values()];
+  // Apply trader-confirmed links: the merged profile's id is the smallest member id.
+  const profiles = [...base.values()];
+  const byId = new Map(profiles.map(p => [p.id, p]));
+  const linkUf = makeUnion();
+  for (const p of profiles) linkUf.add(p.id);
+  for (const l of links) if (byId.has(l.a) && byId.has(l.b)) linkUf.union(l.a, l.b);
+  const members = new Map<string, CompanyProfile[]>();
+  for (const p of profiles) {
+    const root = linkUf.find(p.id);
+    if (!members.has(root)) members.set(root, []);
+    (members.get(root) as CompanyProfile[]).push(p);
+  }
+  const out: CompanyProfile[] = [];
+  for (const [root, group] of members) {
+    if (group.length === 1) {
+      out.push(group[0]);
+      continue;
+    }
+    group.sort((x, y) => (x.id < y.id ? -1 : x.id > y.id ? 1 : 0));
+    const head = group[0]; // its id is the root
+    const merged: CompanyProfile = { ...head, id: root, memberIds: group.map(g => g.id), names: [], countries: [], fueleu: [], ets1: [], ets2: [] };
+    for (const g of group) {
+      for (const n of g.names) if (!merged.names.includes(n)) merged.names.push(n);
+      for (const c of g.countries) if (!merged.countries.includes(c)) merged.countries.push(c);
+      merged.fueleu.push(...g.fueleu);
+      merged.ets1.push(...g.ets1);
+      merged.ets2.push(...g.ets2);
+    }
+    out.push(merged);
+  }
+
   for (const p of out) {
     // Ships reporting under EU MRV with CO₂ in ETS scope face both FuelEU and EU ETS maritime.
     const present: Record<MarketKey, boolean> = {
@@ -190,6 +252,21 @@ export function buildCompanyDirectory(links: CompanyLink[] = [], ets2Companies: 
     p.markets = MARKET_KEYS.filter(k => present[k]);
   }
   return out;
+}
+
+/** The three sectors a company can sit in: FuelEU and EU ETS maritime are one (shipping). */
+export type SectorKey = 'SHIPPING' | 'ETS1' | 'ETS2';
+
+export const SECTOR_KEYS: SectorKey[] = ['SHIPPING', 'ETS1', 'ETS2'];
+
+export const SECTOR_NAME: Record<SectorKey, string> = {
+  SHIPPING: 'Shipping',
+  ETS1: 'ETS1 installations',
+  ETS2: 'ETS2',
+};
+
+export function sectorsOf(p: Pick<CompanyProfile, 'markets'>): SectorKey[] {
+  return SECTOR_KEYS.filter(s => (s === 'SHIPPING' ? p.markets.includes('FUELEU') || p.markets.includes('ETS_MARITIME') : p.markets.includes(s)));
 }
 
 /**
