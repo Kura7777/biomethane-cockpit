@@ -9,6 +9,8 @@ import {
   setAssumption,
 } from '../../domain/assumptions/registry';
 import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
+import { useIsMobile } from '../../shared/hooks/useMediaQuery';
+import './mobileSettings.css';
 import { BASIS_LABEL } from '../../shared/components/AssumptionsStrip';
 
 const CATEGORY_LABEL: Record<AssumptionCategory, { title: string; blurb: string }> = {
@@ -34,6 +36,7 @@ const CATEGORIES: AssumptionCategory[] = ['FUELEU', 'FARMGATE', 'SCANNER', 'RISK
 
 export function AssumptionsScreen() {
   useAssumptionsVersion();
+  const isMobile = useIsMobile();
   const [query, setQuery] = useState('');
   const [confirmReset, setConfirmReset] = useState(false);
 
@@ -48,7 +51,7 @@ export function AssumptionsScreen() {
   }, [query]);
 
   return (
-    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', backgroundColor: 'var(--color-bg)', padding: '24px' }}>
+    <div className="set-page" style={{ flex: 1, minHeight: 0, overflowY: 'auto', backgroundColor: 'var(--color-bg)', padding: '24px' }}>
       <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap', paddingBottom: '14px', borderBottom: '2px solid var(--color-divider)' }}>
           <div>
@@ -61,7 +64,7 @@ export function AssumptionsScreen() {
               away across the app and are saved in this browser only.
             </p>
           </div>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <div className="set-asm-controls" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <input
               type="search"
               className="input"
@@ -109,6 +112,48 @@ export function AssumptionsScreen() {
                 </h2>
                 <div className="mut" style={{ fontSize: '11px', marginTop: '2px' }}>{CATEGORY_LABEL[cat].blurb}</div>
               </div>
+              {isMobile ? (
+                <div className="asm-cards" data-testid="assumptions-cards">
+                  {rows.map(d => {
+                    const overridden = isOverridden(d.key);
+                    return (
+                      <div className="asm-card" key={d.key}>
+                        <div style={{ fontWeight: 600, fontSize: '14px' }}>{d.label}</div>
+                        <div className="mut" style={{ fontSize: '12px', marginTop: '2px' }}>{d.usedIn}</div>
+                        <div className="asm-card-value">
+                          <input
+                            type="number"
+                            className="input num"
+                            aria-label={d.label}
+                            value={getAssumption(d.key)}
+                            step="any"
+                            min={d.min}
+                            max={d.max}
+                            onChange={e => {
+                              const v = e.target.valueAsNumber;
+                              if (Number.isFinite(v)) setAssumption(d.key, v);
+                            }}
+                            style={{ borderColor: overridden ? 'var(--color-accent)' : undefined }}
+                          />
+                          <span className="mut">{d.unit}</span>
+                          <span className={`chip ${d.basis === 'MARKET_MARK' ? 'chip-pos' : ''}`} style={{ marginLeft: 'auto' }}>
+                            {BASIS_LABEL[d.basis]}
+                          </span>
+                        </div>
+                        {overridden && (
+                          <div className="asm-card-reset">
+                            <span className="mut">default {d.defaultValue}</span>
+                            <button type="button" onClick={() => resetAssumption(d.key)}>
+                              Reset
+                            </button>
+                          </div>
+                        )}
+                        <div className="mut" style={{ fontSize: '12px', marginTop: '8px' }}>Source: {d.source}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
               <div style={{ overflowX: 'auto' }}>
                 <table className="table" style={{ width: '100%', fontSize: '12px' }}>
                   <thead>
@@ -169,6 +214,7 @@ export function AssumptionsScreen() {
                   </tbody>
                 </table>
               </div>
+              )}
             </section>
           );
         })}

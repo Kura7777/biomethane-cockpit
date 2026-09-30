@@ -21,6 +21,7 @@ import { Consignment } from '../../domain/consignment/types';
 import { GateName } from '../../domain/eligibility/types';
 import { showToast } from '../../app/DeskToastContainer';
 import { MARKETS } from '../../domain/markets/registry';
+import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 import './auditorModal.css';
 
 const STATUTORY_GATE_NAMES: GateName[] = [
@@ -64,6 +65,7 @@ export function ComplianceAuditModal({
   focusedGateIndex,
 }: ComplianceAuditModalProps) {
   const { state } = useAppState();
+  const isMobile = useIsMobile();
 
   const [activeTab, setActiveTab] = useState<AuditorModalTab>(normalizeAuditorTab(initialTab));
   const [apiKeyInput, setApiKeyInput] = useState('');
@@ -404,18 +406,18 @@ ${auditResult.recommendations.map(r => `• ${r}`).join('\n')}`.trim();
 
   return (
     <div
-      className="amc-overlay"
+      className="amc-overlay m-dialog-scrim"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label="Statutory Compliance Audit Modal"
     >
       <div
-        className="amc-modal"
+        className="amc-modal m-dialog"
         onClick={e => e.stopPropagation()}
       >
         {/* Header Bar */}
-        <div className="amc-header">
+        <div className="amc-header m-dialog-header">
           <div className="amc-header-left">
             <span className="amc-header-icon">⚖</span>
             <div>
@@ -437,7 +439,7 @@ ${auditResult.recommendations.map(r => `• ${r}`).join('\n')}`.trim();
               type="button"
               onClick={handleCopySummary}
               disabled={!auditResult}
-              className="amc-btn"
+              className="amc-btn m-hide"
               title="Copy structured compliance summary note"
             >
               <span>{copiedType === 'SUMMARY' ? '✓' : '📋'}</span>
@@ -447,7 +449,7 @@ ${auditResult.recommendations.map(r => `• ${r}`).join('\n')}`.trim();
             <button
               type="button"
               onClick={handleExportPdf}
-              className="amc-btn amc-btn-primary"
+              className="amc-btn amc-btn-primary m-hide"
               title="Export 2-page institutional statutory compliance memorandum PDF"
             >
               <span>📥</span>
@@ -458,6 +460,7 @@ ${auditResult.recommendations.map(r => `• ${r}`).join('\n')}`.trim();
               type="button"
               onClick={onClose}
               className="amc-btn-icon"
+              aria-label="Close"
               title="Close modal (Esc)"
             >
               ✕
@@ -538,7 +541,7 @@ ${auditResult.recommendations.map(r => `• ${r}`).join('\n')}`.trim();
         </div>
 
         {/* Modal Main Scrollable Content */}
-        <div className="amc-content">
+        <div className="amc-content m-dialog-body">
 
           {/* ══════════════════════════════════════════════════════════════════
              TAB 1: 6-GATE STATUTORY BREAKDOWN
@@ -848,6 +851,24 @@ ${auditResult.recommendations.map(r => `• ${r}`).join('\n')}`.trim();
           )}
 
         </div>
+
+        {isMobile && (
+          <div className="amc-m-footer">
+            <button
+              type="button"
+              onClick={handleCopySummary}
+              disabled={!auditResult}
+              className="amc-btn"
+            >
+              <span>{copiedType === 'SUMMARY' ? '✓' : '📋'}</span>
+              <span>{copiedType === 'SUMMARY' ? 'Copied' : 'Copy Compliance Summary'}</span>
+            </button>
+            <button type="button" onClick={handleExportPdf} className="amc-btn amc-btn-primary">
+              <span>📥</span>
+              <span>Export Audit Memo (PDF)</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

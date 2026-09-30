@@ -378,3 +378,86 @@
 .dc-save-btn {
   padding: 6px 16px;
 }
+
+/* ── Mobile ── */
+@media (max-width: 767.98px) {
+  .dc-body {
+    gap: 20px;
+    padding-top: 16px;
+    padding-bottom: 32px;
+  }
+  .dc-banner {
+    padding-top: 16px;
+  }
+  .dc-title {
+    font-size: 20px;
+  }
+  .dc-banner-chips {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+  .dc-stat-chip {
+    padding: 10px 14px;
+  }
+  .dc-otc-header-left {
+    align-items: flex-start;
+  }
+  .dc-otc-apply-btn {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+  }
+  .dc-otc-grid.has-quotes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .dc-quote-row {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .dc-cat-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .dc-cat-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .dc-cat-tab {
+    flex: none;
+    min-height: 44px;
+    padding: 0 16px;
+    white-space: nowrap;
+  }
+  .dc-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .dc-card {
+    padding: 16px;
+    min-width: 0;
+  }
+  .dc-mode-pill {
+    min-height: 44px;
+    padding: 0 12px;
+    flex: none;
+  }
+  .dc-input {
+    min-height: 44px;
+  }
+  .dc-field-toggle {
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+    margin: -8px -12px -8px 0;
+  }
+  .dc-card-actions .btn {
+    min-height: 44px;
+  }
+  .dc-status-error {
+    align-items: flex-start;
+    overflow-wrap: anywhere;
+  }
+}

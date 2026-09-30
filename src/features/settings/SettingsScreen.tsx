@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAppState } from '../../store/context';
 import { PRODUCING_ORIGINS } from '../../domain/arbitrage/origins';
 import { showToast } from '../../app/DeskToastContainer';
+import './mobileSettings.css';
 
 export function SettingsScreen() {
   const { state } = useAppState();
@@ -17,11 +18,11 @@ export function SettingsScreen() {
   const originName = PRODUCING_ORIGINS[originCode]?.countryName || 'Denmark';
 
   return (
-    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', backgroundColor: 'var(--color-bg)', padding: '24px' }}>
+    <div className="set-page" style={{ flex: 1, minHeight: 0, overflowY: 'auto', backgroundColor: 'var(--color-bg)', padding: '24px' }}>
       <div style={{ maxWidth: '880px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
         
         {/* Page Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '16px', borderBottom: '2px solid var(--color-divider)' }}>
+        <div className="set-head" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '16px', borderBottom: '2px solid var(--color-divider)' }}>
           <div>
             <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 800 }} className="font-heading">
               Desk settings
@@ -49,7 +50,7 @@ export function SettingsScreen() {
             </h2>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+          <div className="set-grid3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
             <div style={{ backgroundColor: 'var(--color-bg)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-control)', padding: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <span className="eyebrow">
                 Pricing Side Mode
@@ -94,7 +95,7 @@ export function SettingsScreen() {
             Data snapshots &amp; maintenance
           </h2>
           
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '8px' }}>
+          <div className="set-export-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '8px' }}>
             <div>
               <div style={{ fontSize: '13px', fontWeight: 600 }}>Export Desk Snapshot</div>
               <div style={{ fontSize: '11px' }} className="mut">Download current marks and custom costs as JSON</div>

@@ -1,4 +1,7 @@
 import React, { useState, useMemo } from 'react';
+import { MobileCardList } from '../../shared/ui';
+import { useIsMobile } from '../../shared/hooks/useMediaQuery';
+import './dataSources.css';
 import { DATA_SOURCES_DIRECTORY, DataSourceRecord, ProvenanceTier } from '../../domain/provenance/dataSourcesDirectory';
 
 type CategoryFilter = 'All' | 'Plants' | 'Pricing' | 'Registries' | 'Logistics';
@@ -41,6 +44,7 @@ function getTierDisplay(tier: ProvenanceTier): { label: string; isAccent: boolea
 
 export function DataSourcesScreen() {
   const [filter, setFilter] = useState<CategoryFilter>('All');
+  const isMobile = useIsMobile();
 
   const filteredSources = useMemo(() => {
     return DATA_SOURCES_DIRECTORY.filter(s => {
@@ -57,6 +61,7 @@ export function DataSourcesScreen() {
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
       {/* Header */}
       <div
+        className="ds-src-head"
         style={{
           display: 'flex',
           alignItems: 'flex-end',
@@ -72,7 +77,7 @@ export function DataSourcesScreen() {
           </div>
         </div>
 
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: '4px' }}>
+        <div className="ds-src-chips" style={{ marginLeft: 'auto', display: 'flex', gap: '4px' }}>
           {(['All', 'Plants', 'Pricing', 'Registries', 'Logistics'] as const).map(cat => (
             <button
               key={cat}
@@ -87,7 +92,28 @@ export function DataSourcesScreen() {
       </div>
 
       {/* Table Container */}
-      <div style={{ padding: '16px 18px' }}>
+      <div className="ds-src-body" style={{ padding: '16px 18px' }}>
+        {isMobile ? (
+          <MobileCardList
+            testId="data-sources-cards"
+            items={filteredSources}
+            getKey={s => s.id}
+            title={s => s.name}
+            subtitle={s => s.legalBasis || s.sourceDocumentOrUrl}
+            badges={s => {
+              const tierInfo = getTierDisplay(s.provenanceTier);
+              return (
+                <span className={`chip ${tierInfo.isAccent ? 'chip-a' : ''}`}>{tierInfo.label}</span>
+              );
+            }}
+            fields={s => [
+              { label: 'Authority', value: s.authority, span: 2 },
+              { label: 'Category', value: s.categoryLabel },
+              { label: 'Cadence', value: formatCadence(s.updateFrequency) },
+              { label: 'Coverage', value: s.coverageCount, mono: true },
+            ]}
+          />
+        ) : (
         <div style={{ overflowX: 'auto', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-panel)' }}>
           <table className="table" style={{ fontSize: '13px', margin: 0 }}>
             <thead>
@@ -126,6 +152,7 @@ export function DataSourcesScreen() {
             </tbody>
           </table>
         </div>
+        )}
       </div>
     </div>
   );

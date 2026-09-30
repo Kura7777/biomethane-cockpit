@@ -1,0 +1,127 @@
+/* Citations: mobile list + full sheet. Desktop 3-pane grid is untouched (inline on PageShell). */
+@media (max-width: 767.98px) {
+  .cit-mobile {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .cit-m-top {
+    padding: 12px 0;
+    border-bottom: 2px solid var(--color-divider);
+  }
+  .cit-m-list {
+    display: flex;
+    flex-direction: column;
+  }
+  .cit-m-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 56px;
+    padding: 10px 0;
+    border: 0;
+    border-bottom: 1px solid var(--color-divider);
+    background: transparent;
+    color: var(--color-text);
+    text-align: left;
+    cursor: pointer;
+  }
+  .cit-m-row:active {
+    background: var(--color-surface);
+  }
+  .cit-m-juris {
+    width: 28px;
+    flex: none;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .cit-m-name {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .cit-m-short {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  .cit-m-official {
+    font-size: 12px;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .cit-m-chev {
+    flex: none;
+    font-size: 20px;
+    color: var(--color-muted);
+  }
+  .cit-m-empty {
+    padding: 24px 0;
+    text-align: center;
+    color: var(--color-muted);
+    font-size: 13px;
+  }
+
+  .cit-m-sheet {
+    margin: 0 calc(var(--ds-page-gutter, 16px) * -1);
+  }
+  .cit-doc-head {
+    padding: 16px var(--ds-page-gutter, 16px) !important;
+  }
+  .cit-doc-title {
+    font-size: 24px !important;
+    overflow-wrap: anywhere;
+  }
+  .cit-doc-actions {
+    flex-wrap: wrap;
+  }
+  .cit-doc-actions .btn {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .cit-doc-body {
+    padding: 16px var(--ds-page-gutter, 16px) !important;
+  }
+  .cit-excerpt {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 4px !important;
+  }
+  .cit-gates {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .cit-m-toc {
+    margin: 0 var(--ds-page-gutter, 16px) 24px;
+    border: 1px solid var(--color-divider);
+    border-radius: var(--radius-panel);
+    background: var(--color-surface);
+  }
+  .cit-m-toc summary {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+  }
+  .cit-m-toc-list {
+    padding: 0 16px 12px;
+  }
+  .cit-m-toc-list button {
+    min-height: 44px;
+    font-size: 13px;
+  }
+}
+@media (max-width: 767.98px) {
+  .cit-m-toc-list .eyebrow {
+    display: none;
+  }
+}

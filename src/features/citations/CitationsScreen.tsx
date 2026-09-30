@@ -3,6 +3,9 @@ import { LEGAL_CITATIONS, getCitationById, searchCitations } from '../../domain/
 import { LegalCitation } from '../../domain/citations/types';
 import { showToast } from '../../app/DeskToastContainer';
 import { PageShell } from '../../shared/ui/PageShell';
+import { Sheet } from '../../shared/ui';
+import { useIsMobile } from '../../shared/hooks/useMediaQuery';
+import './citations.css';
 
 export function CitationsScreen() {
   const [selectedCitationId, setSelectedCitationId] = useState<string>('RED_III_DIR_2023_2413');
@@ -31,6 +34,253 @@ export function CitationsScreen() {
       el.scrollIntoView({ behavior: 'smooth' });
     }
   };
+
+  const isMobile = useIsMobile();
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  const docDetail = (
+    <>
+    {/* Document Header */}
+    <div className="cit-doc-head" style={{ padding: '20px 24px', borderBottom: '2px solid var(--color-divider)' }}>
+      <div className="eyebrow">
+        {activeDoc.jurisdictionName} · {activeDoc.status.replace(/_/g, ' ').toLowerCase()} · Consolidated to August 2026
+      </div>
+      <h3 className="font-heading cit-doc-title" style={{ fontSize: '30px', margin: '8px 0 6px', fontWeight: 800 }}>
+        {activeDoc.shortTitle}
+      </h3>
+      <div style={{ fontSize: '13px' }} className="mut">
+        {activeDoc.officialTitle} · {activeDoc.primaryArticle}
+      </div>
+      <div className="cit-doc-actions" style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+        <button
+          type="button"
+          className="btn btn-secondary"
+          style={{ padding: '5px 10px', fontSize: '12px' }}
+          onClick={handleCopyCitation}
+        >
+          Copy citation
+        </button>
+        {activeDoc.officialUrl && (
+          <a
+            href={activeDoc.officialUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-secondary"
+            style={{ padding: '5px 10px', fontSize: '12px', textDecoration: 'none' }}
+          >
+            Open Official Source ↗
+          </a>
+        )}
+      </div>
+    </div>
+
+    {/* Document Content */}
+    <div className="cit-doc-body" style={{ padding: '20px 24px', maxWidth: '760px' }}>
+      {/* Section 1: Executive Overview */}
+      <section id="summary" style={{ marginBottom: '24px' }}>
+        <h4 style={{ fontSize: '19px', margin: '0 0 8px', fontWeight: 800 }} className="font-heading">
+          Executive Overview &amp; Scope
+        </h4>
+        <p style={{ fontSize: '14px', lineHeight: 1.6, margin: '0 0 14px' }}>
+          {activeDoc.summary}
+        </p>
+      </section>
+
+      <div style={{ height: '2px', background: 'var(--color-divider)', margin: '0 0 18px' }}></div>
+
+      {/* Section 2: Golden Trading Desk Rule */}
+      <section id="trading-rule" style={{ marginBottom: '24px' }}>
+        <h4 style={{ fontSize: '19px', margin: '0 0 8px', fontWeight: 800 }} className="font-heading">
+          Golden trading desk rule
+        </h4>
+        <p style={{ fontSize: '14px', lineHeight: 1.6, margin: '0 0 18px' }}>
+          {activeDoc.deskRuleSummary}
+        </p>
+      </section>
+
+      <div style={{ height: '2px', background: 'var(--color-divider)', margin: '0 0 18px' }}></div>
+
+      {/* Section 3: Statutory Framework & Excerpts */}
+      <section id="statutory-framework" style={{ marginBottom: '24px' }}>
+        <h4 style={{ fontSize: '19px', margin: '0 0 8px', fontWeight: 800 }} className="font-heading">
+          Statutory framework &amp; provisions
+        </h4>
+        <p style={{ fontSize: '14px', lineHeight: 1.6, margin: '0 0 12px' }} className="mut">
+          Primary articles and binding legislative mandates governing this mechanism:
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', borderTop: '1px solid var(--color-divider)' }}>
+          {activeDoc.keyStatutoryExcerpts && activeDoc.keyStatutoryExcerpts.length > 0 ? (
+            activeDoc.keyStatutoryExcerpts.map((excerpt, idx) => {
+              const parts = excerpt.split(':');
+              const ref = parts.length > 1 ? parts[0] : `Article ${idx + 1}`;
+              const body = parts.length > 1 ? parts.slice(1).join(':') : excerpt;
+              return (
+                <div
+                  key={idx}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '190px minmax(0, 1fr)',
+                    gap: '16px',
+                    padding: '10px 0',
+                    borderBottom: '1px solid var(--color-divider)',
+                  }}
+                >
+                  <span style={{ fontSize: '12px', fontWeight: 600 }}>{ref}</span>
+                  <span style={{ fontSize: '13px', lineHeight: 1.5 }} className="mut">{body}</span>
+                </div>
+              );
+            })
+          ) : (
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '190px minmax(0, 1fr)',
+                gap: '16px',
+                padding: '10px 0',
+                borderBottom: '1px solid var(--color-divider)',
+              }}
+            >
+              <span style={{ fontSize: '12px', fontWeight: 600 }}>{activeDoc.primaryArticle}</span>
+              <span style={{ fontSize: '13px', lineHeight: 1.5 }} className="mut">{activeDoc.officialTitle}</span>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Section 4: Compliance Gates */}
+      <section id="compliance-gates" style={{ marginBottom: '24px' }}>
+        <h4 style={{ fontSize: '19px', margin: '0 0 8px', fontWeight: 800 }} className="font-heading">
+          Compliance gates &amp; audit scope
+        </h4>
+        <div className="cit-gates" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px', background: 'var(--color-divider)', marginTop: '8px', borderRadius: 'var(--radius-control)', overflow: 'hidden' }}>
+          <div style={{ background: 'var(--color-bg)', padding: '12px 16px' }}>
+            <div className="eyebrow">Evaluated Gate</div>
+            <div style={{ fontSize: '14px', fontWeight: 600, marginTop: '2px' }}>{activeDoc.complianceGate}</div>
+          </div>
+          <div style={{ background: 'var(--color-bg)', padding: '12px 16px' }}>
+            <div className="eyebrow">Applicable Markets</div>
+            <div style={{ fontSize: '14px', fontWeight: 600, marginTop: '2px' }}>
+              {activeDoc.applicableMarkets.length > 0 ? activeDoc.applicableMarkets.join(', ') : 'Voluntary / Scope 1'}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Section 5: Penalties & Floor Prices */}
+      {activeDoc.penaltiesOrCaps && (
+        <section id="penalties" style={{ marginBottom: '24px' }}>
+          <h4 style={{ fontSize: '19px', margin: '0 0 8px', fontWeight: 800 }} className="font-heading">
+            Penalties, floor prices &amp; buyout caps
+          </h4>
+          <div style={{ padding: '12px 16px', background: 'var(--color-accent-100)', border: '1px solid var(--color-accent-300)', color: 'var(--color-accent-900)', fontSize: '13px', lineHeight: 1.5, borderRadius: 'var(--radius-control)' }}>
+            {activeDoc.penaltiesOrCaps}
+          </div>
+        </section>
+      )}
+
+      {/* Section 6: Interconnected Markets */}
+      {activeDoc.crossReferences && activeDoc.crossReferences.length > 0 && (
+        <section id="interconnected" style={{ marginBottom: '24px' }}>
+          <h4 style={{ fontSize: '19px', margin: '0 0 8px', fontWeight: 800 }} className="font-heading">
+            Interconnected markets &amp; cross references
+          </h4>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
+            {activeDoc.crossReferences.map((ref, i) => (
+              <span key={i} className="chip">{ref}</span>
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+    </>
+  );
+
+  const tocInner = (
+    <>
+    <div className="eyebrow" style={{ marginBottom: '12px' }}>On this page</div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
+      {[
+        { id: 'summary', label: '1 · Executive Overview & Scope' },
+        { id: 'trading-rule', label: '2 · Golden Trading Desk Rule' },
+        { id: 'statutory-framework', label: '3 · Statutory Framework' },
+        { id: 'compliance-gates', label: '4 · Compliance Gates & Audit Scope' },
+        { id: 'penalties', label: '5 · Penalties & Buyout Caps' },
+        { id: 'interconnected', label: '6 · Interconnected Markets' },
+      ].map(sec => (
+        <button
+          key={sec.id}
+          type="button"
+          onClick={() => scrollToSection(sec.id)}
+          className="text-left cursor-pointer hover:text-text transition-colors select-none"
+          style={{
+            background: 'transparent',
+            border: 'none',
+            padding: '2px 0',
+            fontWeight: activeSection === sec.id ? 600 : 400,
+            color: activeSection === sec.id ? 'var(--color-text)' : 'color-mix(in srgb, var(--color-text) 70%, transparent)',
+          }}
+        >
+          {sec.label}
+        </button>
+      ))}
+    </div>
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <PageShell className="cit-mobile">
+        <div className="cit-m-top">
+          <div className="eyebrow">Statutory register</div>
+          <input
+            className="input"
+            style={{ marginTop: '8px', width: '100%' }}
+            placeholder={`Search ${LEGAL_CITATIONS.length} instruments`}
+            aria-label="Search citations"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+          />
+        </div>
+        <div className="cit-m-list" data-testid="citations-mobile-list">
+          {filteredCitations.length === 0 && <div className="cit-m-empty">No instruments match.</div>}
+          {filteredCitations.map(c => (
+            <button
+              key={c.id}
+              type="button"
+              className="cit-m-row"
+              onClick={() => {
+                setSelectedCitationId(c.id);
+                setSheetOpen(true);
+              }}
+            >
+              <span className="num mut cit-m-juris">{c.jurisdiction}</span>
+              <span className="cit-m-name">
+                <span className="cit-m-short">{c.shortTitle}</span>
+                <span className="cit-m-official mut">{c.primaryArticle}</span>
+              </span>
+              <span className="cit-m-chev" aria-hidden="true">›</span>
+            </button>
+          ))}
+        </div>
+        <Sheet
+          open={sheetOpen}
+          onClose={() => setSheetOpen(false)}
+          variant="full"
+          title={activeDoc.shortTitle}
+          subtitle={activeDoc.jurisdictionName}
+          testId="citation-detail-sheet"
+        >
+          <div className="cit-m-sheet">
+            {docDetail}
+            <details className="cit-m-toc">
+              <summary>On this page</summary>
+              <div className="cit-m-toc-list">{tocInner}</div>
+            </details>
+          </div>
+        </Sheet>
+      </PageShell>
+    );
+  }
 
   return (
     <PageShell
@@ -118,189 +368,12 @@ export function CitationsScreen() {
           overflowY: 'auto',
         }}
       >
-        {/* Document Header */}
-        <div style={{ padding: '20px 24px', borderBottom: '2px solid var(--color-divider)' }}>
-          <div className="eyebrow">
-            {activeDoc.jurisdictionName} · {activeDoc.status.replace(/_/g, ' ').toLowerCase()} · Consolidated to August 2026
-          </div>
-          <h3 style={{ fontSize: '30px', margin: '8px 0 6px', fontWeight: 800 }} className="font-heading">
-            {activeDoc.shortTitle}
-          </h3>
-          <div style={{ fontSize: '13px' }} className="mut">
-            {activeDoc.officialTitle} · {activeDoc.primaryArticle}
-          </div>
-          <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              style={{ padding: '5px 10px', fontSize: '12px' }}
-              onClick={handleCopyCitation}
-            >
-              Copy citation
-            </button>
-            {activeDoc.officialUrl && (
-              <a
-                href={activeDoc.officialUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-secondary"
-                style={{ padding: '5px 10px', fontSize: '12px', textDecoration: 'none' }}
-              >
-                Open Official Source ↗
-              </a>
-            )}
-          </div>
-        </div>
-
-        {/* Document Content */}
-        <div style={{ padding: '20px 24px', maxWidth: '760px' }}>
-          {/* Section 1: Executive Overview */}
-          <section id="summary" style={{ marginBottom: '24px' }}>
-            <h4 style={{ fontSize: '19px', margin: '0 0 8px', fontWeight: 800 }} className="font-heading">
-              Executive Overview &amp; Scope
-            </h4>
-            <p style={{ fontSize: '14px', lineHeight: 1.6, margin: '0 0 14px' }}>
-              {activeDoc.summary}
-            </p>
-          </section>
-
-          <div style={{ height: '2px', background: 'var(--color-divider)', margin: '0 0 18px' }}></div>
-
-          {/* Section 2: Golden Trading Desk Rule */}
-          <section id="trading-rule" style={{ marginBottom: '24px' }}>
-            <h4 style={{ fontSize: '19px', margin: '0 0 8px', fontWeight: 800 }} className="font-heading">
-              Golden trading desk rule
-            </h4>
-            <p style={{ fontSize: '14px', lineHeight: 1.6, margin: '0 0 18px' }}>
-              {activeDoc.deskRuleSummary}
-            </p>
-          </section>
-
-          <div style={{ height: '2px', background: 'var(--color-divider)', margin: '0 0 18px' }}></div>
-
-          {/* Section 3: Statutory Framework & Excerpts */}
-          <section id="statutory-framework" style={{ marginBottom: '24px' }}>
-            <h4 style={{ fontSize: '19px', margin: '0 0 8px', fontWeight: 800 }} className="font-heading">
-              Statutory framework &amp; provisions
-            </h4>
-            <p style={{ fontSize: '14px', lineHeight: 1.6, margin: '0 0 12px' }} className="mut">
-              Primary articles and binding legislative mandates governing this mechanism:
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', borderTop: '1px solid var(--color-divider)' }}>
-              {activeDoc.keyStatutoryExcerpts && activeDoc.keyStatutoryExcerpts.length > 0 ? (
-                activeDoc.keyStatutoryExcerpts.map((excerpt, idx) => {
-                  const parts = excerpt.split(':');
-                  const ref = parts.length > 1 ? parts[0] : `Article ${idx + 1}`;
-                  const body = parts.length > 1 ? parts.slice(1).join(':') : excerpt;
-                  return (
-                    <div
-                      key={idx}
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns: '190px minmax(0, 1fr)',
-                        gap: '16px',
-                        padding: '10px 0',
-                        borderBottom: '1px solid var(--color-divider)',
-                      }}
-                    >
-                      <span style={{ fontSize: '12px', fontWeight: 600 }}>{ref}</span>
-                      <span style={{ fontSize: '13px', lineHeight: 1.5 }} className="mut">{body}</span>
-                    </div>
-                  );
-                })
-              ) : (
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '190px minmax(0, 1fr)',
-                    gap: '16px',
-                    padding: '10px 0',
-                    borderBottom: '1px solid var(--color-divider)',
-                  }}
-                >
-                  <span style={{ fontSize: '12px', fontWeight: 600 }}>{activeDoc.primaryArticle}</span>
-                  <span style={{ fontSize: '13px', lineHeight: 1.5 }} className="mut">{activeDoc.officialTitle}</span>
-                </div>
-              )}
-            </div>
-          </section>
-
-          {/* Section 4: Compliance Gates */}
-          <section id="compliance-gates" style={{ marginBottom: '24px' }}>
-            <h4 style={{ fontSize: '19px', margin: '0 0 8px', fontWeight: 800 }} className="font-heading">
-              Compliance gates &amp; audit scope
-            </h4>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px', background: 'var(--color-divider)', marginTop: '8px', borderRadius: 'var(--radius-control)', overflow: 'hidden' }}>
-              <div style={{ background: 'var(--color-bg)', padding: '12px 16px' }}>
-                <div className="eyebrow">Evaluated Gate</div>
-                <div style={{ fontSize: '14px', fontWeight: 600, marginTop: '2px' }}>{activeDoc.complianceGate}</div>
-              </div>
-              <div style={{ background: 'var(--color-bg)', padding: '12px 16px' }}>
-                <div className="eyebrow">Applicable Markets</div>
-                <div style={{ fontSize: '14px', fontWeight: 600, marginTop: '2px' }}>
-                  {activeDoc.applicableMarkets.length > 0 ? activeDoc.applicableMarkets.join(', ') : 'Voluntary / Scope 1'}
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Section 5: Penalties & Floor Prices */}
-          {activeDoc.penaltiesOrCaps && (
-            <section id="penalties" style={{ marginBottom: '24px' }}>
-              <h4 style={{ fontSize: '19px', margin: '0 0 8px', fontWeight: 800 }} className="font-heading">
-                Penalties, floor prices &amp; buyout caps
-              </h4>
-              <div style={{ padding: '12px 16px', background: 'var(--color-accent-100)', border: '1px solid var(--color-accent-300)', color: 'var(--color-accent-900)', fontSize: '13px', lineHeight: 1.5, borderRadius: 'var(--radius-control)' }}>
-                {activeDoc.penaltiesOrCaps}
-              </div>
-            </section>
-          )}
-
-          {/* Section 6: Interconnected Markets */}
-          {activeDoc.crossReferences && activeDoc.crossReferences.length > 0 && (
-            <section id="interconnected" style={{ marginBottom: '24px' }}>
-              <h4 style={{ fontSize: '19px', margin: '0 0 8px', fontWeight: 800 }} className="font-heading">
-                Interconnected markets &amp; cross references
-              </h4>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
-                {activeDoc.crossReferences.map((ref, i) => (
-                  <span key={i} className="chip">{ref}</span>
-                ))}
-              </div>
-            </section>
-          )}
-        </div>
+        {docDetail}
       </div>
 
       {/* ─── Right: Table of Contents Rail ─── */}
       <div style={{ padding: '16px', background: 'var(--color-surface)', overflowY: 'auto' }}>
-        <div className="eyebrow" style={{ marginBottom: '12px' }}>On this page</div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
-          {[
-            { id: 'summary', label: '1 · Executive Overview & Scope' },
-            { id: 'trading-rule', label: '2 · Golden Trading Desk Rule' },
-            { id: 'statutory-framework', label: '3 · Statutory Framework' },
-            { id: 'compliance-gates', label: '4 · Compliance Gates & Audit Scope' },
-            { id: 'penalties', label: '5 · Penalties & Buyout Caps' },
-            { id: 'interconnected', label: '6 · Interconnected Markets' },
-          ].map(sec => (
-            <button
-              key={sec.id}
-              type="button"
-              onClick={() => scrollToSection(sec.id)}
-              className="text-left cursor-pointer hover:text-text transition-colors select-none"
-              style={{
-                background: 'transparent',
-                border: 'none',
-                padding: '2px 0',
-                fontWeight: activeSection === sec.id ? 600 : 400,
-                color: activeSection === sec.id ? 'var(--color-text)' : 'color-mix(in srgb, var(--color-text) 70%, transparent)',
-              }}
-            >
-              {sec.label}
-            </button>
-          ))}
-        </div>
+        {tocInner}
       </div>
     </PageShell>
   );

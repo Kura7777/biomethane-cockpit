@@ -1,0 +1,30 @@
+@media (max-width: 767.98px) {
+  .ds-src-head {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 12px !important;
+    padding: 16px var(--ds-page-gutter, 16px) 12px !important;
+  }
+  .ds-src-chips {
+    margin-left: 0 !important;
+    overflow-x: auto;
+    gap: 8px !important;
+    padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .ds-src-chips::-webkit-scrollbar {
+    display: none;
+  }
+  .ds-src-chips .chip {
+    min-height: 44px;
+    padding: 0 16px;
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    font-size: 13px;
+  }
+  .ds-src-body {
+    padding: 12px var(--ds-page-gutter, 16px) 24px !important;
+  }
+}
