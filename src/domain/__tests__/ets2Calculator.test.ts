@@ -98,6 +98,7 @@ describe('ETS2 country exposure', () => {
   });
 });
 
+import { ETS2_SEGMENT_SHARES } from '../ets2/segmentShare';
 import { ETS2_SEED_COMPANIES, applyEts2CompanyImport, computeCompanyExposure } from '../ets2/companies';
 
 describe('ETS2 company directory', () => {
@@ -123,7 +124,9 @@ describe('ETS2 company directory', () => {
     const rows = computeCompanyExposure(ETS2_SEED_COMPANIES, ETS2_COUNTRIES, 50);
     const engie = rows.find(r => r.company.id === 'fr-engie')!;
     expect(engie.volumeMethod).toBe('DISCLOSED');
-    expect(engie.ets2CostEurM).toBeCloseTo(120 * 0.901 * ETS_NATURAL_GAS_TCO2_PER_MWH * 50, 6);
+    // Scoped to the ETS2 segment (French share from the CRE segment split).
+    const frShare = ETS2_SEGMENT_SHARES.FR.share;
+    expect(engie.ets2CostEurM).toBeCloseTo(120 * frShare * 0.901 * ETS_NATURAL_GAS_TCO2_PER_MWH * 50, 6);
     const edison = rows.find(r => r.company.id === 'it-edison')!;
     expect(edison.ets2CostEurM).toBeNull();
   });
@@ -146,7 +149,52 @@ describe('ETS2 company directory', () => {
     );
     const edison = computeCompanyExposure(companies, ETS2_COUNTRIES, 50).find(r => r.company.id === 'it-edison')!;
     expect(edison.volumeMethod).toBe('DISCLOSED');
-    expect(edison.volumeTWh).toBe(40);
+    expect(edison.volumeAllSegmentsTWh).toBe(40);
+    expect(edison.volumeTWh).toBeCloseTo(40 * ETS2_SEGMENT_SHARES.IT.share, 6);
+  });
+
+  it('scopes disclosed all-segment supplier volumes to the ETS2 segment and says so', () => {
+    const rows = computeCompanyExposure(ETS2_SEED_COMPANIES, ETS2_COUNTRIES, 50);
+    const engie = rows.find(r => r.company.id === 'fr-engie')!;
+    expect(engie.volumeScope).toBe('ETS2_SEGMENT');
+    expect(engie.ets2ScopeShare).toBe(ETS2_SEGMENT_SHARES.FR.share);
+    expect(engie.volumeAllSegmentsTWh).toBe(120);
+    expect(engie.volumeTWh).toBeCloseTo(120 * ETS2_SEGMENT_SHARES.FR.share, 6);
+    // Unscoped cost would have been 120 TWh at the same price: the scoped bill must be smaller.
+    const unscoped = 120 * 0.901 * ETS_NATURAL_GAS_TCO2_PER_MWH * 50;
+    expect(engie.ets2CostEurM as number).toBeLessThan(unscoped);
+  });
+
+  it('leaves a volume unscoped when no country share is on file, and does not scope end users', () => {
+    const noShare = ETS2_COUNTRIES.map(c => (c.iso === 'FR' ? { ...c, ets2SegmentShare: null } : c));
+    const rows = computeCompanyExposure(ETS2_SEED_COMPANIES, noShare, 50);
+    const engie = rows.find(r => r.company.id === 'fr-engie')!;
+    expect(engie.volumeScope).toBe('ALL_SEGMENTS');
+    expect(engie.ets2ScopeShare).toBeNull();
+    expect(engie.ets2CostEurM).toBeCloseTo(120 * 0.901 * ETS_NATURAL_GAS_TCO2_PER_MWH * 50, 6);
+    const tereos = computeCompanyExposure(ETS2_SEED_COMPANIES, ETS2_COUNTRIES, 50).find(r => r.company.id === 'fr-tereos')!;
+    expect(tereos.volumeScope).toBe('ALL_SEGMENTS');
+  });
+
+  it('marks national-share estimates as ETS2 segment without applying a further share', () => {
+    const { countries } = applyEts2CountryImport(
+      ETS2_COUNTRIES,
+      JSON.stringify([{ iso: 'IT', gasBuildingsTWh: 100, gasVolumeBasis: 'NCV', gasSourceUrl: 'https://example.org/it' }])
+    );
+    const edison = computeCompanyExposure(ETS2_SEED_COMPANIES, countries, 50).find(r => r.company.id === 'it-edison')!;
+    expect(edison.volumeScope).toBe('ETS2_SEGMENT');
+    expect(edison.ets2ScopeShare).toBeNull();
+  });
+
+  it('derives every segment share from its Eurostat inputs and keeps it between 0 and 1', () => {
+    for (const r of Object.values(ETS2_SEGMENT_SHARES)) {
+      expect(r.share, r.iso).toBeGreaterThan(0);
+      expect(r.share, r.iso).toBeLessThan(1);
+      if (!r.override) expect(r.share).toBeCloseTo(r.fcOthGWh / (r.fcGWh + r.tiEhgGWh), 3);
+      expect(r.sourceUrl.startsWith('https://')).toBe(true);
+    }
+    expect(ETS2_SEGMENT_SHARES.DE.share).toBe(0.428);
+    expect(ETS2_SEGMENT_SHARES.FR.share).toBe(0.698);
   });
 
   it('rejects imported companies without evidence', () => {
