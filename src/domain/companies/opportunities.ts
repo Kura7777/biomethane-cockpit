@@ -1,6 +1,6 @@
 import { MarksState } from '../netback/types';
-import { selectMarkPrice } from '../netback/engine';
-import { FUELEU_ANNEX_II } from '../fueleu/calculator';
+import { selectMarkPrice, FUELEU_TARGET_CI_2025 } from '../netback/engine';
+import { FUELEU_ANNEX_II, bioLngFuelEUIntensity, MJ_PER_MWH as FUELEU_MJ_PER_MWH } from '../fueleu/calculator';
 import { HHV_TO_LHV_FACTOR } from '../offtake/engine';
 import { biomethaneMWhToAbate, ets1AvoidedValuePerMWh, Ets1Company, Ets1Sector } from '../ets1/sites';
 import { getAssumption } from '../assumptions/registry';
@@ -52,7 +52,7 @@ export interface RegulationExposure {
   ets2UncoveredCountries: string[];
   /** One line per supplier country: what share of the disclosed volume the ETS2 figure covers, and the source. */
   ets2ScopeLines: string[];
-  /** Cost now, per year: FuelEU compliance cost + ETS maritime + ETS1 (gross). ETS2 starts in 2028 and is kept apart. */
+  /** Cost now, per year: FuelEU compliance cost + ETS maritime + ETS1 (net of free allocation). ETS2 starts in 2028 and is kept apart. */
   costNowEur: number | null;
   /** True when a FuelEU deficit could not be priced (no pool mark), so costNowEur leaves it out. */
   costNowIncomplete: boolean;
@@ -62,6 +62,8 @@ const EUR_PER_EUR_M = 1_000_000;
 const PERCENT = 100;
 const MJ_PER_MWH = 3600;
 const GRAMS_PER_TONNE = 1_000_000;
+/** Carbon intensity the ship plays assume for the bio-LNG, gCO2e/MJ (RED). */
+const BIO_LNG_RED_CI = -100;
 /** FuelEU Annex II LNG lower calorific value, converted to MWh per tonne. */
 const LNG_MWH_PER_TONNE = (FUELEU_ANNEX_II.LNG.lcvMjPerG * GRAMS_PER_TONNE) / MJ_PER_MWH;
 
@@ -295,7 +297,7 @@ export function stackSpecFor(inputs: ValueStackInputs, marks: MarksState): Stack
 
 const BASE_INPUTS: Omit<ValueStackInputs, 'client'> = {
   volumeMWh: null,
-  carbonIntensity: -100,
+  carbonIntensity: BIO_LNG_RED_CI,
   deliveryYear: null,
   intraEuShare: null,
   smallSiteShare: null,
@@ -329,7 +331,12 @@ function shippingOpportunities(p: CompanyProfile, marks: MarksState, year: numbe
   const out: Opportunity[] = [];
   const deficitT = p.fueleu.reduce((s, f) => s + f.deficit2026Tco2e, 0);
   const poolMid = selectMarkPrice(marks.marks['FUELEU'], 'mid');
-  const needMWh = p.fueleu.reduce((s, f) => s + f.bioLngToCloseMWh, 0);
+  // Sized on the same basis the value stack prices it: each MWh of −100 bio-LNG moves the FuelEU balance
+  // by (target − bio-LNG well-to-wake intensity) tCO2e, so closing the deficit is worth exactly
+  // deficit × pool price. (The fleet data's own bio-LNG need uses the ships' fossil intensity instead
+  // and differs by a few per cent.)
+  const surplusTco2ePerMWh = Math.max(0, ((FUELEU_TARGET_CI_2025 - bioLngFuelEUIntensity(BIO_LNG_RED_CI)) * FUELEU_MJ_PER_MWH) / GRAMS_PER_TONNE);
+  const needMWh = surplusTco2ePerMWh > 0 ? deficitT / surplusTco2ePerMWh : 0;
   const lngShips = p.fueleu.reduce((s, f) => s + f.group.lngShipCount, 0);
   const lngBurnMWh = p.fueleu.reduce((s, f) => s + f.group.lngTonnes, 0) * LNG_MWH_PER_TONNE;
   const charterers = p.fueleu.reduce((s, f) => s + f.group.fuelCostBearerMix.TIME_CHARTERER, 0);
@@ -589,8 +596,21 @@ function ets2Opportunities(p: CompanyProfile, marks: MarksState, ets2Countries: 
   return out;
 }
 
+/** MWh of biomethane behind the plays counted in the potential (the sized NOW plays), as invoiced. */
+export function biomethaneVolumeMWh(ops: Opportunity[]): number | null {
+  const sized = ops.filter(o => o.timing === 'NOW' && o.valueEur !== null && o.volumeMWh !== null && o.volumeMWh > 0);
+  return sized.length ? sized.reduce((a, o) => a + (o.volumeMWh as number), 0) : null;
+}
+
+/** Potential-weighted value per MWh across the NOW plays: Σ valueEur / Σ volumeMWh. Null with no sized play. */
+export function biomethaneEurPerMWh(ops: Opportunity[]): number | null {
+  const sized = ops.filter(o => o.timing === 'NOW' && o.valueEur !== null && o.volumeMWh !== null && o.volumeMWh > 0);
+  const vol = sized.reduce((a, o) => a + (o.volumeMWh as number), 0);
+  return vol > 0 ? sized.reduce((a, o) => a + (o.valueEur as number), 0) / vol : null;
+}
+
 /**
- * Biomethane value: the annual € of the biomethane the company could use now, every play at market
+ * Biomethane potential (a ceiling if all the gas it can switch were biomethane, not a deal size): the annual € value of the biomethane the company could use now, every play at market
  * on the same basis. The sum of the NOW plays' values; FROM_2028 plays (ETS2) are not in it.
  */
 export function biomethaneValueEur(ops: Opportunity[]): number | null {

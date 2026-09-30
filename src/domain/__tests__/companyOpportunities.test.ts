@@ -1,14 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import { buildCompanyDirectory, CompanyProfile } from '../companies/directory';
-import { computeRegulationExposure, computeOpportunities, biomethaneValueEur, stackAnnualEur, ets1FirstDealShare, ets1StackSpec, shipStackSpec, ets1NetPosition, ets1AbatableTco2, ets1GasShare } from '../companies/opportunities';
+import { computeRegulationExposure, computeOpportunities, biomethaneValueEur, stackAnnualEur, ets1FirstDealShare, ets1StackSpec, shipStackSpec, ets1NetPosition, ets1AbatableTco2, ets1GasShare, biomethaneVolumeMWh, biomethaneEurPerMWh } from '../companies/opportunities';
 import { computeValueStack } from '../valueStack/engine';
 import { ETS1_LATEST_YEAR } from '../ets1/sites';
 import { gasShareOf, defaultGasShare, ETS1_GAS_SHARE_SECTORS } from '../ets1/gasShare';
 import { ETS2_COUNTRIES } from '../ets2/countries';
-import { ETS_NATURAL_GAS_TCO2_PER_MWH } from '../netback/engine';
+import { ETS_NATURAL_GAS_TCO2_PER_MWH, FUELEU_TARGET_CI_2025 } from '../netback/engine';
 import { HHV_TO_LHV_FACTOR } from '../offtake/engine';
 import { biomethaneMWhToAbate } from '../ets1/sites';
-import { FUELEU_ANNEX_II } from '../fueleu/calculator';
+import { FUELEU_ANNEX_II, bioLngFuelEUIntensity } from '../fueleu/calculator';
 import { MarksState } from '../netback/types';
 
 const mark = (id: string, mid: number) => ({ marketId: id, bid: mid, offer: mid, mid, updatedAt: null, source: 'test' });
@@ -21,6 +21,8 @@ const marks: MarksState = {
 const YEAR = 2026;
 const directory = buildCompanyDirectory();
 const lngMWhPerT = (FUELEU_ANNEX_II.LNG.lcvMjPerG * 1_000_000) / 3600;
+// tCO2e of FuelEU balance one MWh of -100 bio-LNG creates, on the value stack's basis.
+const SURPLUS_PER_MWH = ((FUELEU_TARGET_CI_2025 - bioLngFuelEUIntensity(-100)) * 3600) / 1_000_000;
 const sum = (p: CompanyProfile, f: (x: CompanyProfile['fueleu'][number]) => number) => p.fueleu.reduce((s, x) => s + f(x), 0);
 
 describe('regulation exposure', () => {
@@ -121,7 +123,7 @@ describe('opportunities', () => {
 
   it('shipping with LNG ships: bio-LNG capped at current LNG burn, the rest pooled; values are at market, pool share = deficit share x pool mark', () => {
     const p = directory.find(q => {
-      const need = sum(q, f => f.bioLngToCloseMWh);
+      const need = sum(q, f => f.deficit2026Tco2e) / SURPLUS_PER_MWH;
       const burn = sum(q, f => f.group.lngTonnes) * lngMWhPerT;
       return sum(q, f => f.group.lngShipCount) > 0 && need > burn && burn > 0 && sum(q, f => f.deficit2026Tco2e) > 0;
     });
@@ -129,7 +131,7 @@ describe('opportunities', () => {
     const ops = computeOpportunities(p!, marks, ETS2_COUNTRIES, YEAR);
     const bio = ops.find(o => o.id === 'ship-bio-lng')!;
     const pool = ops.find(o => o.id === 'ship-pool')!;
-    const need = sum(p!, f => f.bioLngToCloseMWh);
+    const need = sum(p!, f => f.deficit2026Tco2e) / SURPLUS_PER_MWH;
     expect(bio.volumeMWh).toBeCloseTo(sum(p!, f => f.group.lngTonnes) * lngMWhPerT, 3);
     expect((bio.volumeMWh ?? 0) + (pool.volumeMWh ?? 0)).toBeCloseTo(need, 3);
     expect(pool.valueEur).toBeCloseTo(((sum(p!, f => f.deficit2026Tco2e) * (pool.volumeMWh ?? 0)) / need) * 250, 3);
@@ -150,6 +152,40 @@ describe('opportunities', () => {
     expect(biomethaneValueEur(ops)).toBeCloseTo(ops.filter(o => o.timing === 'NOW').reduce((a, o) => a + (o.valueEur ?? 0), 0), 6);
     expect(cardPerMWh).toBeGreaterThan(0);
     expect(bio.valueEurHigh ?? bio.valueEur!).toBeGreaterThanOrEqual(bio.valueEur!);
+  });
+
+  it('closing the deficit is worth exactly deficit x pool price: the FuelEU part of the bio-LNG play plus the pool play', () => {
+    const checked: string[] = [];
+    for (const p of directory.filter(q => q.fueleu.length && sum(q, f => f.deficit2026Tco2e) > 0).slice(0, 400)) {
+      const ops = computeOpportunities(p, marks, ETS2_COUNTRIES, YEAR);
+      const bio = ops.find(o => o.id === 'ship-bio-lng');
+      const pool = ops.find(o => o.id === 'ship-pool');
+      let fueleu = pool?.valueEur ?? 0;
+      if (bio) {
+        const rows = computeValueStack(bio.stack!.inputs, marks).rows.filter(r => r.regime === 'FuelEU Maritime');
+        fueleu += (rows[0].eurPerMWh as number) * bio.stack!.inputs.volumeMWh!;
+      }
+      const deficit = sum(p, f => f.deficit2026Tco2e);
+      // The bio-LNG volume is rounded to whole MWh, so allow a few euros of rounding.
+      expect(Math.abs(fueleu - deficit * 250)).toBeLessThan(0.0005 * deficit * 250 + 30 * 250 * SURPLUS_PER_MWH);
+      if (bio) checked.push(p.id);
+    }
+    expect(checked.length).toBeGreaterThan(0);
+  });
+
+  it('EUR per MWh is the potential-weighted value across the NOW plays', () => {
+    const basf = directory.find(p => p.id === 'basf')!;
+    const ops = computeOpportunities(basf, marks, ETS2_COUNTRIES, YEAR);
+    const ets1 = ops.find(o => o.id === 'ets1-biomethane')!;
+    expect(biomethaneVolumeMWh(ops)).toBe(ets1.volumeMWh);
+    expect(biomethaneEurPerMWh(ops)).toBeCloseTo(ets1.valueEur! / ets1.volumeMWh!, 9);
+    // Total value over total volume, not the mean of the per-play rates; FROM_2028 and unsized plays are left out.
+    const play = (timing: string, valueEur: number | null, volumeMWh: number | null) => ({ timing, valueEur, volumeMWh }) as never;
+    const mixed = [play('NOW', 100, 10), play('NOW', 300, 90), play('FROM_2028', 999, 999), play('NOW', null, 5)];
+    expect(biomethaneEurPerMWh(mixed)).toBeCloseTo(4, 9);
+    expect(biomethaneVolumeMWh(mixed)).toBe(100);
+    expect(biomethaneEurPerMWh([])).toBeNull();
+    expect(biomethaneVolumeMWh([])).toBeNull();
   });
 
   it('ETS1: valued at the full fit-site potential (fit tonnes x EUA, NOT netted for free allocation), first deal shown as a volume only', () => {
