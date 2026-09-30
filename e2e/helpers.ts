@@ -68,6 +68,9 @@ export async function gotoScreen(page: Page, path: string) {
   await expect(page.locator('#main-content')).toBeVisible({ timeout: 15_000 });
   // The shell stays up while a screen's lazy chunk loads (Layout.tsx's Suspense), so wait for
   // that screen-level fallback too. The biggest data chunks take a while on a cold cache.
+  // A redirect route (e.g. /value-stack → /clients) only starts the lazy chunk after it navigates,
+  // so let the network settle before checking that the fallback is gone.
+  await page.waitForLoadState('networkidle', { timeout: 45_000 }).catch(() => {});
   await expect(page.getByTestId('screen-loading')).toHaveCount(0, { timeout: 45_000 });
 }
 
