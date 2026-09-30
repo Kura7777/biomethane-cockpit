@@ -126,17 +126,17 @@ export const LEGAL_CITATIONS: LegalCitation[] = [
     jurisdictionName: 'European Union (Pan-EU)',
     category: 'EU_DIRECTIVE',
     status: 'FUTURE_2027_2028',
-    effectiveDate: 'Monitoring starting 2025; Allowance surrendering starting 2027/2028',
+    effectiveDate: 'Monitoring from 2025; ETS2 fully operational from 2028 (delayed from 2027 by Regulation (EU) 2026/667)',
     primaryArticle: 'Chapter IVa (Articles 30a to 30k)',
     summary: 'Establishes a cap-and-trade carbon pricing system covering emissions from fuel combustion in buildings, road transport, and small industrial sectors. Fuel distributors releasing natural gas to consumers must surrender ETS 2 allowances (priced with a soft ceiling at €45/tCO2 in 2020 prices, indexed). Biomethane compliant with RED III sustainability criteria carries an emission factor of ZERO.',
-    applicableMarkets: ['EU_ETS2_2027', 'DE_THG', 'NL_ERE', 'FR_CPB'],
+    applicableMarkets: ['EU_ETS2', 'DE_THG', 'NL_ERE', 'FR_CPB'],
     complianceGate: 'GHG Gate & SCHEME Gate',
     penaltiesOrCaps: 'Excess emissions penalty of €100/tCO2 (indexed to EU HICP) plus obligation to surrender missing allowances.',
-    deskRuleSummary: 'Zero-rating under EU ETS 2 creates an additional floor value for biomethane certificates equal to the prevailing ETS 2 carbon price multiplied by the natural gas combustion factor (approx. 0.202 tCO2/MWh, yielding ~€9.00–€14.00/MWh floor at €45–€70/tCO2).',
+    deskRuleSummary: 'Zero-rating under EU ETS 2 creates an additional floor value for biomethane certificates equal to the prevailing ETS 2 carbon price multiplied by the natural gas combustion factor (approx. 0.202 tCO2/MWh, yielding ~€9.00–€14.00/MWh floor at €45–€70/tCO2). Desk ETS2 mark is a desk estimate, not a market print.',
     keyStatutoryExcerpts: [
-      'Article 30f(1): Regulated entities shall surrender allowances for their verified emissions during the preceding calendar year. Emissions from biofuels, bioliquids and biomass fuels compliant with the sustainability criteria laid down in Article 29 of Directive (EU) 2018/2001 shall be zero-rated.'
+      'Paraphrase, not a verbatim quote: regulated entities surrender allowances for their verified emissions of the preceding year (surrender rule in Article 12 of Directive 2003/87/EC; Chapter IVa sets the ETS2 scope and monitoring). Biomass fuels meeting the Directive (EU) 2018/2001 sustainability criteria carry a zero emission factor under Implementing Regulation (EU) 2018/2066 Art. 38(5). ETS2 start moved to 2028 by Regulation (EU) 2026/667 (OJ 18 March 2026, in force 7 April 2026).'
     ],
-    crossReferences: ['Directive 2003/87/EC', 'Commission Implementing Regulation (EU) 2018/2066 (MRR)'],
+    crossReferences: ['Directive 2003/87/EC', 'Commission Implementing Regulation (EU) 2018/2066 (MRR), Art. 38(5) and 39a', 'Regulation (EU) 2026/667'],
     officialUrl: 'https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32023L0959',
     officialUrlLabel: 'EUR-Lex Official Portal (Directive 2023/959)',
     additionalLinks: [

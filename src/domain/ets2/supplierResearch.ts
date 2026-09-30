@@ -10,10 +10,12 @@ import type { Ets2Company, Ets2Contact, Ets2Evidence } from './companies';
  * - Where a newer regulator figure was already on file (Spain, CNMC Q1 2026) it is kept, and the
  *   research's Q1 2025 figure is recorded as history.
  * - Links truncated in the export were restored only where the full address was independently
- *   seen (ARERA, CNMC, Bundesnetzagentur); the CRE report link could not be restored and points to
- *   the CRE site with the report reference in the note.
+ *   seen (ARERA, CNMC, Bundesnetzagentur, CRE).
  * - Disclosed portfolio volumes (CRE, EnBW) cover all customer segments and may include EU ETS1
- *   industrial sites, so they overstate ETS2 exposure.
+ *   industrial sites. computeCompanyExposure scopes them to the ETS2 segment with a sourced national
+ *   share (segmentShare.ts); where no share is on file they stay unscoped, an upper bound.
+ * - Links checked 2026-09-30. Still unreachable from our network: ppas.cz and ppsd.cz (connection
+ *   refused). 403 to scripts, not verified in a browser: corporate.engie.be, naturgy.com, risco.ro.
  */
 
 const CHECKED = '2026-09-28';
@@ -25,8 +27,8 @@ const ARERA_SHARES = 'https://www.arera.it/dati-e-statistiche/dettaglio/quote-di
 const CNMC_Q1_2026 = 'https://www.cnmc.es/sites/default/files/6807815.pdf';
 const CNMC_Q1_2025 = 'https://cnmc.es/sites/default/files/6073123.pdf';
 const CNMC_Q4_2024 = 'https://www.cnmc.es/sites/default/files/5904506.pdf';
-const CRE = 'https://www.cre.fr/';
-const CRE_NOTE = 'CRE report 2025-08 (16 Oct 2025), p. 6 — annual gas consumption of each supplier\'s portfolio, all segments, 31 Dec 2024 (full link truncated in the research export; find the report on cre.fr)';
+const CRE = 'https://www.cre.fr/fileadmin/Documents/Rapports_et_etudes/2025/Rapport_Fonctionnement_marches_de_detail_2023-2024.pdf';
+const CRE_NOTE = 'CRE report 2025-08 (16 Oct 2025), p. 6 — annual gas consumption of each supplier\'s portfolio, all segments, 31 Dec 2024';
 const BNETZA_2025 = 'https://data.bundesnetzagentur.de/Bundesnetzagentur/SharedDocs/Mediathek/Monitoringberichte/MonitoringberichtEnergie2025.pdf';
 export const DEHST_NEHS_COMPLIANCE_LIST = 'https://nehs-register.dehst.de/coreweb/info/reporting/compliance/list.action';
 const ACM_TOP3 = 'https://www.acm.nl/nl/publicaties/acm-3-grootste-energieleveranciers-hanteren-geen-onredelijke-tarieven';
@@ -113,13 +115,13 @@ export const ETS2_SUPPLIER_RESEARCH: Ets2Company[] = [
       ev('NATIONAL_ETS_REGISTER', DEHST_NEHS_COMPLIANCE_LIST, 'DEHSt nEHS register public compliance list of BEHG responsible parties (1,966 entries, CSV/XLSX export); EnBW\'s entity row not yet checked.'),
       ev('REGULATOR_MARKET_REPORT', BNETZA_2025, 'BNetzA/BKartA Monitoring Report 2025, pp. 36–37: 319 TWh sold to standard-load-profile and 420 TWh to interval-metered customers in 2024.'),
     ],
-    notes: 'Germany already prices carbon under BEHG; most BEHG responsible parties move into EU ETS2 from 2028 emissions. Disclosed volume is all segments and may include ETS1 sites and non-German sales.',
+    notes: 'Germany already prices carbon under BEHG; most BEHG responsible parties move into EU ETS2 from 2028 emissions. Disclosed volume is all segments and may include ETS1 sites and non-German sales; scoped to the ETS2 segment with the German share.',
   }),
   supplier({
     id: 'de-eon', name: 'E.ON (E.ON Energie Deutschland)', countryIso: 'DE', confidence: 'LOW',
     shareBasis: 'Not disclosed at company level for gas',
     evidence: [
-      ev('COMPANY_DISCLOSURE', 'https://www.lobbyregister.bundestag.de/media/ac/a1/gesamt-DE_final.pdf', 'E.ON Integrated Annual Report 2025 (DE) has customer-group sales tables; German gas volume not yet extracted.'),
+      ev('COMPANY_DISCLOSURE', 'https://www.hauptversammlung.de/fileadmin/public/user_upload/EON_GB25.pdf', 'E.ON Integrated Annual Report 2025 (DE) has customer-group sales tables; German gas volume not yet extracted.'),
       ev('NATIONAL_ETS_REGISTER', DEHST_NEHS_COMPLIANCE_LIST, 'DEHSt nEHS compliance list; entity row not yet checked.'),
     ],
     notes: 'Extract the German gas volume from the annual report sales table before outreach.',
@@ -128,7 +130,7 @@ export const ETS2_SUPPLIER_RESEARCH: Ets2Company[] = [
     id: 'de-ewe', name: 'EWE', countryIso: 'DE', confidence: 'LOW',
     shareBasis: 'Not disclosed at company level for gas',
     evidence: [
-      ev('COMPANY_DISCLOSURE', 'https://www.lobbyregister.bundestag.de/media/15/34/Finanzbericht-2025.pdf', 'EWE Finanzbericht 2025: Markt segment revenue €4,628.9m; no gas volume in the pages reviewed.'),
+      ev('COMPANY_DISCLOSURE', 'https://www.lobbyregister.bundestag.de/media/15/34/763767/EWE-Finanzbericht-2025.pdf', 'EWE Finanzbericht 2025: Markt segment revenue €4,628.9m; no gas volume in the pages reviewed.'),
       ev('NATIONAL_ETS_REGISTER', DEHST_NEHS_COMPLIANCE_LIST, 'DEHSt nEHS compliance list; entity row not yet checked.'),
     ],
     notes: 'Large north-German gas retailer.',
@@ -197,7 +199,7 @@ export const ETS2_SUPPLIER_RESEARCH: Ets2Company[] = [
     shareBasis: 'Top 3 (ENGIE Electrabel, Luminus, Eneco Belgium) hold 75.3% of gas customers and 71.9% of gas volume in Flanders, 2025; >88% of volume in Brussels, 78% in Wallonia; individual shares not published',
     evidence: [
       ev('REGULATOR_MARKET_REPORT', VNR_2025, 'Vlaamse Nutsregulator, 7 Jul 2026: top-3 gas share 75.3% of customers, 71.9% of volume (Flanders 2025).'),
-      ev('REGULATOR_MARKET_REPORT', 'https://www.creg.be/nl/consumenten/energiemarkt/energieleveranciers', 'CREG quarterly supplier market-share charts per region.'),
+      ev('REGULATOR_MARKET_REPORT', 'https://www.creg.be/nl/consumenten/energiemarkt/marktaandelen-energieleveranciers', 'CREG quarterly supplier market-share charts per region.'),
     ],
     contacts: [contact({ kind: 'PRESS', name: 'ENGIE Belgium press', role: 'Urgent press, outside office hours', phone: '+32 (0)2 883 02 44', sourceUrl: 'https://corporate.engie.be/en/press/' })],
     notes: 'Market leader in all three regions.',
