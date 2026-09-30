@@ -12,6 +12,7 @@ import { ShippingTermSheetStep } from './dealflow/ShippingTermSheetStep';
 import { ArrowLeft, Check, BookOpen } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FUEL_EU_SHIPPING_COUNTERPARTIES } from '../../domain/fueleu/shippingTargetsData';
+import { FUEL_EU_SHIPPING_GROUPS } from '../../domain/fueleu/groups';
 import { FUEL_EU_LNG_SHIPS } from '../../domain/fueleu/lngShipsData';
 import { ShippingCounterparty } from '../../domain/fueleu/types';
 import { Tabs } from '../../shared/ui/Tabs';
@@ -28,7 +29,7 @@ import {
 type ActiveTab = 'DIRECTORY' | 'LNG_BOOK' | 'POOL_MATCHING' | 'TOOLS';
 
 const DEAL_STEPS = [
-  { step: 1, title: '1. Select Counterparty', desc: `${FUEL_EU_SHIPPING_COUNTERPARTIES.length.toLocaleString('en-US')} shipping groups` },
+  { step: 1, title: '1. Select Counterparty', desc: `${FUEL_EU_SHIPPING_GROUPS.length.toLocaleString('en-US')} groups · ${FUEL_EU_SHIPPING_COUNTERPARTIES.length.toLocaleString('en-US')} companies` },
   { step: 2, title: '2. Exposure & Contacts', desc: 'Statutory risk & CRM' },
   { step: 3, title: '3. Price Solution', desc: 'Bio-LNG & pooling margins' },
   { step: 4, title: '4. Term Sheet & Trade', desc: 'OTC deal execution' },

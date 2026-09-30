@@ -1,6 +1,7 @@
 /**
  * CSV for spreadsheets. Text cells that start with a formula character are neutralised with a
- * leading apostrophe so Excel does not run them; numbers stay numbers. The file starts with a
+ * leading apostrophe so Excel does not run them (a real name such as "-Josef Straub Söhne GmbH" therefore
+ * shows its apostrophe: the OWASP formula-injection guard is deliberate); numbers stay numbers. The file starts with a
  * UTF-8 byte-order mark so Excel reads accented and Greek names correctly.
  */
 

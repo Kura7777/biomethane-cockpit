@@ -148,7 +148,7 @@ describe('opportunities', () => {
     const cardPerMWh = low.rows.filter(r => r.status === 'COUNTS' && r.eurPerMWh !== null).reduce((a, r) => a + (r.eurPerMWh as number), 0);
     expect(bio.valueEur).toBeCloseTo(cardPerMWh * inputs.volumeMWh!, 4);
     expect(stackAnnualEur(bio.stack!).low).toBeCloseTo(bio.valueEur!, 6);
-    // Row = play: the Biomethane value column is the sum of the NOW plays.
+    // Row = play: the Biomethane potential column is the sum of the NOW plays.
     expect(biomethaneValueEur(ops)).toBeCloseTo(ops.filter(o => o.timing === 'NOW').reduce((a, o) => a + (o.valueEur ?? 0), 0), 6);
     expect(cardPerMWh).toBeGreaterThan(0);
     expect(bio.valueEurHigh ?? bio.valueEur!).toBeGreaterThanOrEqual(bio.valueEur!);

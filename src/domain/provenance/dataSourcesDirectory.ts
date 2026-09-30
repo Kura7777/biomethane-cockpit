@@ -1,4 +1,5 @@
 import { MRV_REPORTING_YEAR } from '../fueleu/mrvVintage';
+import { FUEL_EU_SHIPPING_COUNTERPARTIES, TOTAL_MARKET_VESSELS_IN_SCOPE, TOTAL_MARKET_ENERGY_TWH } from '../fueleu/shippingTargetsData';
 export type ProvenanceTier = 
   | 'STATUTORY_DIRECTIVE'
   | 'TSO_OFFICIAL_DATA'
@@ -521,7 +522,7 @@ export const DATA_SOURCES_DIRECTORY: DataSourceRecord[] = [
     sourceDocumentOrUrl: 'Regulation (EU) 2023/1805 (FuelEU Maritime) & Thetis-MRV Annual Fleet Ingestion',
     legalBasis: 'Regulation (EU) 2023/1805 Art. 4, 10, 20, 21 & Annex I, II, IV; Regulation (EU) 2015/757',
     updateFrequency: 'ANNUAL',
-    coverageCount: '3,528 Shipping Companies (14,050 Vessels · 363.3 TWh EU Scope)',
+    coverageCount: `${FUEL_EU_SHIPPING_COUNTERPARTIES.length.toLocaleString('en-US')} Shipping Companies (${TOTAL_MARKET_VESSELS_IN_SCOPE.toLocaleString('en-US')} Vessels · ${TOTAL_MARKET_ENERGY_TWH} TWh EU Scope)`,
     provenanceTier: 'STATUTORY_DIRECTIVE',
     description: `Fleet fuel consumption (VLSFO, MGO, LNG) sourced from the public THETIS-MRV ${MRV_REPORTING_YEAR} emission report (fuel split estimated), actual greenhouse gas intensity (GHGIE), estimated compliance balances, indicative penalty trajectories, and dual commercial abatement structures (physical Bio-LNG bunkering under Art. 4/Annex I-II vs Art. 21 pooling).`,
     fieldsProvided: [

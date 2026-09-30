@@ -75,3 +75,21 @@
   .cl-reg-basis { border-top-style: dashed; }
 }
 .cl-note { font-size: 12px; color: var(--color-text-muted); margin: 0 0 10px; line-height: 1.5; }
+
+/* Sort headers and company names are real buttons so the list works from the keyboard. */
+.cl-th-btn { all: unset; cursor: pointer; display: inline-block; width: 100%; box-sizing: border-box; font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit; }
+.cl-th-btn:focus-visible, .cl-name-btn:focus-visible { outline: 2px solid var(--color-accent, #2563eb); outline-offset: 2px; }
+.cl-name-btn { all: unset; cursor: pointer; font-weight: 600; display: block; max-width: 100%; }
+.cl-empty { margin: 16px 0 4px; color: var(--color-text-muted); font-size: 13px; text-align: center; }
+.cl-legend { margin-top: -4px; }
+
+/* Phone KPI block: a 2x2 grid of small tiles, the rest folded away, so the first company stays on screen. */
+.cl-mkpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.cl-mkpi { display: flex; flex-direction: column; gap: 1px; padding: 8px 10px; border: 1px solid var(--color-divider); border-radius: var(--radius-control); background: var(--color-surface); min-width: 0; }
+.cl-mkpi span { font-size: 11px; color: var(--color-text-muted); }
+.cl-mkpi strong { font-size: 17px; font-weight: 600; line-height: 1.15; white-space: nowrap; }
+.cl-mkpi strong small { font-size: 11px; font-weight: 400; margin-left: 2px; }
+.cl-mkpi em { font-style: normal; font-size: 11px; color: var(--color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cl-mkpi-more { grid-column: 1 / -1; font-size: 12px; color: var(--color-text-muted); }
+.cl-mkpi-more summary { cursor: pointer; padding: 4px 0; }
+.cl-mkpi-more div { padding: 2px 0; }

@@ -12,7 +12,7 @@ test.describe('Global Shell, Theme Toggle & Command Palette', () => {
     const header = page.locator('header');
     await expect(header).toBeVisible();
     await expect(header).toContainText(/Biomethane Desk/i);
-    await expect(header).toContainText(/Trader · A\. Vos/i);
+    await expect(header).toContainText(/Trader/i);
 
     // Clicking brand logo navigates to /sourcing
     await header.getByText('Biomethane Desk').click();

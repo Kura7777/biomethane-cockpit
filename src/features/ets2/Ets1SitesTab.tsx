@@ -214,7 +214,7 @@ export function Ets1SitesTab() {
   const exportCsv = () => {
     const lines: string[] = [];
     if (view === 'COMPANIES') {
-      lines.push(['Company', 'Operators', 'Countries', 'Sectors', 'Biomethane fit', 'Sites', `Verified ${ETS1_LATEST_YEAR} tCO2`, 'Fit-site tCO2', `Allowance bill € at €${eua ?? ''}/t`, 'First deal MWh (invoiced)', 'First deal saving €', 'Status'].map(csvCell).join(','));
+      lines.push(['Company', 'Operators', 'Countries', 'Sectors', 'Biomethane fit', 'Sites', `Verified ${ETS1_LATEST_YEAR} tCO2`, 'Fit-site tCO2', `Gross allowance bill € (before free allocation) at €${eua ?? ''}/t`, 'First deal MWh (invoiced)', 'First deal saving €', 'Status'].map(csvCell).join(','));
       for (const c of sortedCompanies) {
         const d = firstDeal(ets1AbatableTco2(c));
         lines.push([
@@ -251,12 +251,12 @@ export function Ets1SitesTab() {
           sub={changePct === null ? undefined : `${changePct > 0 ? '+' : ''}${changePct.toFixed(1)}% vs ${ETS1_PREVIOUS_YEAR}`}
         />
         <KpiTile
-          label="Allowance bill"
+          label="Gross allowance bill"
           value={eua === null ? '—' : eurM(totalT * eua)}
           unit="/yr"
           sub={
             <label className="ets-inline-price" title="Scenario EUA price for this tab (desk mark by default)">
-              at €<input inputMode="decimal" aria-label="EUA price" value={euaText} onChange={e => setEuaText(e.target.value)} />/t EUA
+              at €<input inputMode="decimal" aria-label="EUA price" value={euaText} onChange={e => setEuaText(e.target.value)} />/t EUA · before free allocation
               {deskEua !== null && parseNumber(euaText) !== deskEua && (
                 <button type="button" onClick={() => setEuaText(String(deskEua))}>reset</button>
               )}
@@ -325,7 +325,7 @@ export function Ets1SitesTab() {
                 return <>{companyMeta(c)}{also.length > 0 && <> · also {also.map(m => MARKET_LABEL[m]).join(', ')}</>}</>;
               }}
               metric={c => (eua === null ? '—' : eurM(c.verifiedLatestTco2 * eua))}
-              metricLabel={() => 'Allowance bill'}
+              metricLabel={() => 'Gross bill'}
               badges={c => {
                 const stacked = stackFor(lookup.byEts1Key.get(c.key));
                 return (
@@ -359,7 +359,7 @@ export function Ets1SitesTab() {
               title={s => s.name}
               subtitle={s => [s.parentCompany ?? s.operator, [s.city, s.country].filter(Boolean).join(', ')].join(' · ')}
               metric={s => (eua === null ? '—' : eurM(s.verifiedLatestTco2 * eua))}
-              metricLabel={() => 'Allowance bill'}
+              metricLabel={() => 'Gross bill'}
               badges={s => (
                 <>
                   <FitBadge fit={s.fit} />
@@ -419,7 +419,7 @@ export function Ets1SitesTab() {
                 <SortHeader<SortKey> id="name" label="Company" sort={sort} onSort={onSort} />
                 <span>Fit</span>
                 <SortHeader<SortKey> id="tco2" label={`Verified ${ETS1_LATEST_YEAR}`} sort={sort} onSort={onSort} right title="Verified emissions, all fuels and processes" />
-                <span className="ets-right" title={eua === null ? undefined : `At €${eua}/t`}>Allowance bill</span>
+                <span className="ets-right" title={eua === null ? undefined : `At €${eua}/t`}>Gross bill</span>
                 <SortHeader<SortKey> id="deal" label="First deal saving" sort={sort} onSort={onSort} right title="Biomethane to cut 10% of emissions at high/medium-fit sites, and the allowances it saves" />
                 <span>Status</span>
               </div>
@@ -430,7 +430,7 @@ export function Ets1SitesTab() {
                 <span>Fit</span>
                 <SortHeader<SortKey> id="tco2" label={`Verified ${ETS1_LATEST_YEAR}`} sort={sort} onSort={onSort} right />
                 <SortHeader<SortKey> id="change" label={`vs ${ETS1_PREVIOUS_YEAR}`} sort={sort} onSort={onSort} right />
-                <span className="ets-right">Allowance bill</span>
+                <span className="ets-right">Gross bill</span>
               </div>
             )}
 
@@ -588,7 +588,7 @@ function CompanyPanel(props: {
             <div className="ds-panel-stat-value">{tonnes(c.verifiedLatestTco2)}</div>
           </div>
           <div>
-            <div className="ds-panel-stat-label">Allowance bill</div>
+            <div className="ds-panel-stat-label">Gross allowance bill</div>
             <div className="ds-panel-stat-value">{eua === null ? '—' : eurM(c.verifiedLatestTco2 * eua)}<span className="unit"> /yr</span></div>
           </div>
           <div>

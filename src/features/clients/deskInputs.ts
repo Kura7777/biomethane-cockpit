@@ -34,12 +34,23 @@ export function writeJson(key: string, value: unknown): void {
 export const readLinks = (): CompanyLink[] => parseLinks(readText(LINKS_KEY));
 export const readStatuses = (): Record<string, Status> => parseStatuses(readText(STATUS_KEY));
 
+/** Imports are pasted by the trader on the EU ETS screen; any stored shape that does not parse falls back to the defaults. */
 export function readEts2Countries(): Ets2CountryProfile[] {
   const text = readText(ETS2_COUNTRY_IMPORT_KEY);
-  return text.trim() ? applyEts2CountryImport(ETS2_COUNTRIES, text).countries : ETS2_COUNTRIES;
+  if (!text.trim()) return ETS2_COUNTRIES;
+  try {
+    return applyEts2CountryImport(ETS2_COUNTRIES, text).countries;
+  } catch {
+    return ETS2_COUNTRIES;
+  }
 }
 
 export function readEts2Companies(): Ets2Company[] {
   const text = readText(ETS2_COMPANY_IMPORT_KEY);
-  return text.trim() ? applyEts2CompanyImport(DEFAULT_ETS2_COMPANIES, text).companies : DEFAULT_ETS2_COMPANIES;
+  if (!text.trim()) return DEFAULT_ETS2_COMPANIES;
+  try {
+    return applyEts2CompanyImport(DEFAULT_ETS2_COMPANIES, text).companies;
+  } catch {
+    return DEFAULT_ETS2_COMPANIES;
+  }
 }

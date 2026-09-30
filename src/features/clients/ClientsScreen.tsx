@@ -21,6 +21,8 @@ import {
   computeRegulationExposure,
   computeOpportunities,
   biomethaneValueEur,
+  biomethaneVolumeMWh,
+  biomethaneEurPerMWh,
   ets1FirstDealShare,
   ETS1_BASIS_LABEL,
   RegulationExposure,
@@ -33,7 +35,7 @@ import { searchFold } from '../../domain/companies/normalize';
 import { formatEur } from '../../domain/companies/money';
 import { SHIPPING_DATA_YEAR as MRV_YEAR } from '../../domain/companies/dataYears';
 import { buildCsv } from '../../domain/companies/csv';
-import { Status, STATUS_LABEL, resolveStatus, withStatus, linksWithout } from '../../domain/companies/clientState';
+import { Status, STATUS_LABEL, resolveStatus, withStatus, linksWithout, isStatus } from '../../domain/companies/clientState';
 import { ValueStackCard, StackBadge } from '../value-stack/ValueStackCard';
 import { LINKS_KEY, STATUS_KEY, readLinks, readStatuses, readEts2Companies, readEts2Countries, writeJson } from './deskInputs';
 
@@ -41,23 +43,31 @@ const PAGE = 100;
 /** Country filter value for companies with no home country in the data (every shipping group). */
 const NO_COUNTRY = '__none__';
 
-type SortKey = 'name' | 'sectors' | 'fueleu' | 'maritime' | 'ets1' | 'ets2' | 'cost' | 'bio';
+type SortKey = 'name' | 'sectors' | 'fueleu' | 'maritime' | 'ets1' | 'ets2' | 'cost' | 'bio' | 'permwh';
 
-/** Mobile sort select: the same keys the desktop headers sort by. */
+/** Mobile sort select: the same keys the desktop headers sort by, both ways. */
+const SORT_LABELS: [SortKey, string][] = [
+  ['bio', 'Biomethane potential'],
+  ['permwh', '€/MWh'],
+  ['cost', 'Cost now'],
+  ['fueleu', 'FuelEU cost'],
+  ['maritime', 'ETS maritime'],
+  ['ets1', 'ETS1'],
+  ['ets2', 'ETS2 (2028+)'],
+  ['sectors', 'Sectors'],
+];
 const SORT_OPTIONS: { value: string; label: string }[] = [
-  { value: 'bio:d', label: 'Biomethane value, high to low' },
-  { value: 'cost:d', label: 'Cost now, high to low' },
+  ...SORT_LABELS.flatMap(([key, label]) => [
+    { value: `${key}:d`, label: `${label}, high to low` },
+    { value: `${key}:a`, label: `${label}, low to high` },
+  ]),
   { value: 'name:a', label: 'Company A–Z' },
   { value: 'name:d', label: 'Company Z–A' },
-  { value: 'fueleu:d', label: 'FuelEU cost, high to low' },
-  { value: 'maritime:d', label: 'ETS maritime, high to low' },
-  { value: 'ets1:d', label: 'ETS1, high to low' },
-  { value: 'ets2:d', label: 'ETS2 (2028+), high to low' },
-  { value: 'sectors:d', label: 'In most sectors' },
 ];
 
 const COLUMN_HELP = {
-  bio: `Biomethane value: the annual value of the biomethane this company could use now, every play at market on the same basis. Ships: FuelEU compliance at the desk pool price plus EU ETS maritime allowances saved (EU MRV ${MRV_YEAR}). ETS1: allowances saved at the desk EUA on the natural-gas share of ${ETS1_LATEST_YEAR} verified emissions at high/medium-fit sites (sector gas share from Eurostat; full potential, not netted for free allocation: each tonne avoided frees an allowance to sell or not buy). ETS2 starts in 2028 and is not included.`,
+  bio: `Biomethane potential: a ceiling, not a deal size. The annual value if all the gas this company can switch were biomethane, every play at market on the same basis. Ships: FuelEU compliance at the desk pool price plus EU ETS maritime allowances saved (EU MRV ${MRV_YEAR}). ETS1: allowances saved at the desk EUA on the natural-gas share of ${ETS1_LATEST_YEAR} verified emissions at high/medium-fit sites (sector gas share from Eurostat; not netted for free allocation: each tonne avoided frees an allowance to sell or not buy). ETS2 starts in 2028 and is not included. Biomethane supply is scarce: use €/MWh to see what a client can pay.`,
+  permwh: 'Potential-weighted value per MWh of biomethane across the plays now: total potential over total MWh. What the client saves per MWh at desk marks, before any premium; ETS1 sites pay about the allowance price times 0.2, ships more (FuelEU plus ETS maritime).',
   cost: `Cost now: what compliance costs this company this year at desk marks. FuelEU: the 2026 deficit bought at the desk pool mark (EU MRV ${MRV_YEAR}) + EU ETS maritime (EU MRV ${MRV_YEAR}, 100% phase-in) + EU ETS1 (${ETS1_LATEST_YEAR} emissions ${ETS1_BASIS_LABEL}; "≤" where some sites have no allocation figure). ETS2 is not included.`,
   fueleu: `FuelEU Maritime: the 2026 deficit (EU MRV ${MRV_YEAR} as proxy) bought at the desk pool mark. "Compliant" means no deficit. The statutory penalty is on the company page.`,
   maritime: `EU ETS maritime: 2026 allowance cost, 100% phase-in, on EU MRV ${MRV_YEAR} emissions at the desk EUA`,
@@ -135,12 +145,17 @@ interface Row {
   best: Opportunity | null;
   /** Annual value of the biomethane it could use now (sum of the NOW plays), €. */
   bioValueEur: number | null;
+  /** MWh of biomethane behind the potential, as invoiced, and the potential-weighted € per MWh. */
+  bioMWh: number | null;
+  eurPerMWh: number | null;
   /** The first play whose value stack pays in 2+ regimes on the same MWh. */
   stack: StackSpec | null;
   stackTitle: string | null;
   sectors: SectorKey[];
   /** Every name, folded for accent- and case-insensitive search. */
   haystack: string;
+  /** Each name folded, so a search that matches only an alias can say so. */
+  folded: string[];
 }
 
 function sortValue(r: Row, key: SortKey): number | null {
@@ -153,8 +168,17 @@ function sortValue(r: Row, key: SortKey): number | null {
     case 'ets2': return r.exposure.ets2CostEur ?? (r.exposure.ets2Standing === 'NONE' ? null : 0);
     case 'cost': return r.exposure.costNowEur;
     case 'bio': return r.bioValueEur;
+    case 'permwh': return r.eurPerMWh;
     default: return null;
   }
+}
+
+/** When the search matches only through a merged alias, the alias to show under the name. */
+function aliasHit(r: Row, q: string): string | null {
+  if (!q) return null;
+  if (r.folded[0]?.includes(q) || searchFold(r.profile.name).includes(q)) return null;
+  const i = r.folded.findIndex(f => f.includes(q));
+  return i >= 0 ? r.profile.names[i] : null;
 }
 
 const sectorLine = (r: Row) => r.sectors.map(k => SECTOR_NAME[k]).join(' · ');
@@ -184,10 +208,13 @@ export function ClientsScreen() {
         exposure: computeRegulationExposure(profile, state.marks, ets2Countries),
         best: ops[0] ?? null,
         bioValueEur: biomethaneValueEur(ops),
+        bioMWh: biomethaneVolumeMWh(ops),
+        eurPerMWh: biomethaneEurPerMWh(ops),
         stack: stacked?.stack ?? null,
         stackTitle: stacked?.title ?? null,
         sectors: sectorsOf(profile),
         haystack: profile.names.map(searchFold).join('\u0001'),
+        folded: profile.names.map(searchFold),
       };
     }),
     [directory, state.marks, ets2Countries, year]
@@ -198,6 +225,7 @@ export function ClientsScreen() {
   const [country, setCountry] = useState('ALL');
   const [multiOnly, setMultiOnly] = useState(false);
   const [stackOnly, setStackOnly] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<'ALL' | Status>('ALL');
   const [sort, setSort] = useState<{ key: SortKey; desc: boolean }>({ key: 'bio', desc: true });
   const [shown, setShown] = useState(PAGE);
 
@@ -210,8 +238,9 @@ export function ClientsScreen() {
       .filter(r => !q || r.haystack.includes(q))
       .filter(r => markets.every(m => r.profile.markets.includes(m)))
       .filter(r => !multiOnly || r.sectors.length > 1)
-      .filter(r => !stackOnly || r.stack !== null);
-  }, [rows, search, markets, multiOnly, stackOnly]);
+      .filter(r => !stackOnly || r.stack !== null)
+      .filter(r => statusFilter === 'ALL' || resolveStatus(statuses, r.profile) === statusFilter);
+  }, [rows, search, markets, multiOnly, stackOnly, statusFilter, statuses]);
 
   const filtered = useMemo(() => {
     const out = beforeCountry.filter(r => (
@@ -274,7 +303,7 @@ export function ClientsScreen() {
   const exportCsv = () => {
     const header = [
       'Company', 'Countries', 'Sectors', 'Regulations',
-      'Biomethane value € (plays now, at desk marks)', 'Best play', 'Cost now €',
+      'Biomethane potential € (a ceiling: plays now, at desk marks)', 'Biomethane potential MWh', 'Potential € per MWh', 'Best play', 'Cost now €',
       'FuelEU cost € (deficit at pool mark)', 'FuelEU 2026 deficit tCO2e', 'FuelEU statutory penalty € (ceiling)',
       `EU ETS maritime € (MRV ${MRV_YEAR})`, `EU ETS1 € (${ETS1_LATEST_YEAR} emissions, ${ETS1_BASIS_LABEL})`, 'EU ETS1 gross tCO2', 'EU ETS1 free allocation tCO2', 'EU ETS1 sites, allocation unknown', 'EU ETS1 sites, prior-year figure',
       'EU ETS2 from 2028 €', 'EU ETS2 status', 'EU ETS2 countries covered', 'Value stack', 'Status',
@@ -286,6 +315,8 @@ export function ClientsScreen() {
       sectorLine(r),
       r.profile.markets.map(m => MARKET_LABEL[m]).join('; '),
       round(r.bioValueEur),
+      round(r.bioMWh),
+      r.eurPerMWh === null ? null : Math.round(r.eurPerMWh * 100) / 100,
       r.best?.title ?? null,
       round(r.exposure.costNowEur),
       round(r.exposure.fuelEuCostEur),
@@ -341,14 +372,23 @@ export function ClientsScreen() {
   const stackCount = filtered.filter(r => r.stack !== null).length;
   const costShown = filtered.reduce((s, r) => s + (r.exposure.costNowEur ?? 0), 0);
   const bioShown = filtered.reduce((s, r) => s + (r.bioValueEur ?? 0), 0);
+  const bioTwh = filtered.reduce((s, r) => s + (r.bioMWh ?? 0), 0) / 1_000_000;
+  const twhText = `${bioTwh.toLocaleString('en-GB', { maximumFractionDigits: bioTwh < 10 ? 1 : 0 })} TWh/yr`;
+  const q = searchFold(search.trim());
   const th = (key: SortKey, label: string, title: string, right = true) => (
     <th
-      style={{ textAlign: right ? 'right' : 'left', cursor: 'pointer', whiteSpace: 'nowrap', ...(key === 'name' ? stickyCell(true) : {}) }}
+      style={{ textAlign: right ? 'right' : 'left', whiteSpace: 'nowrap', ...(key === 'name' ? stickyCell(true) : {}) }}
       title={title}
       aria-sort={sort.key === key ? (sort.desc ? 'descending' : 'ascending') : 'none'}
-      onClick={() => setSort(prev => ({ key, desc: prev.key === key ? !prev.desc : key !== 'name' }))}
     >
-      {label}{sort.key === key ? (sort.desc ? ' ↓' : ' ↑') : ''}
+      <button
+        type="button"
+        className="cl-th-btn"
+        style={{ textAlign: right ? 'right' : 'left' }}
+        onClick={() => setSort(prev => ({ key, desc: prev.key === key ? !prev.desc : key !== 'name' }))}
+      >
+        {label}{sort.key === key ? (sort.desc ? ' ↓' : ' ↑') : ''}
+      </button>
     </th>
   );
   const countryOptions = (
@@ -358,7 +398,15 @@ export function ClientsScreen() {
       {countries.map(c => <option key={c} value={c}>{c}</option>)}
     </>
   );
-  const definition = 'Cost now: what compliance costs this year at desk marks. Biomethane value: what the biomethane it could use is worth at those marks.';
+  const definition = 'Cost now: what compliance costs this year at desk marks. Biomethane potential: a ceiling, what the biomethane it could use would be worth at those marks if all its switchable gas were biomethane. €/MWh: what a client can pay.';
+  const legend = <div className="cl-note cl-legend">≤ upper bound: free allocation unknown for some ETS1 sites · † some sites show the year before (latest not reported yet) · * excludes a FuelEU deficit with no pool mark</div>;
+  const statusSelect = (
+    <>
+      <option value="ALL">Any status</option>
+      {(Object.keys(STATUS_LABEL) as Status[]).map(k => <option key={k} value={k}>{STATUS_LABEL[k]}</option>)}
+    </>
+  );
+  const onStatusFilter = (v: string) => { setStatusFilter(isStatus(v) ? v : 'ALL'); setShown(PAGE); };
   const countryNote = hiddenShipping > 0 ? (
     <div className="cl-note">
       {hiddenShipping.toLocaleString('en-GB')} shipping group{hiddenShipping === 1 ? '' : 's'} not shown: EU MRV gives no home country, so a country filter hides them. Choose &quot;Shipping groups (no home country)&quot; to list them.
@@ -372,18 +420,34 @@ export function ClientsScreen() {
         context="Every company the desk knows, one row each, with its exposure under every regulation. Tap a company to see what you can sell it."
       />
       <div className="cl-kpi-wrap" style={{ padding: '0 16px' }}>
+        {isMobile ? (
+          <div className="cl-mkpis" data-testid="clients-kpis">
+            <div className="cl-mkpi"><span>Companies shown</span><strong className="num">{filtered.length.toLocaleString('en-GB')}</strong><em>match · {listed.toLocaleString('en-GB')} listed</em></div>
+            <div className="cl-mkpi" title={COLUMN_HELP.bio}><span>Biomethane potential</span><strong className="num">{formatEur(bioShown)}<small>/yr</small></strong><em>{twhText} · a ceiling</em></div>
+            <div className="cl-mkpi"><span>Cost now</span><strong className="num">{formatEur(costShown)}<small>/yr</small></strong><em>net of free allocation</em></div>
+            <div className="cl-mkpi"><span>EUA · pool</span><strong className="num">€{price(eua)}</strong><em>pool €{price(poolMid)}/t</em></div>
+            <details className="cl-mkpi-more">
+              <summary>More figures</summary>
+              <div>Value stack available: {stackCount.toLocaleString('en-GB')} (2+ regimes pay on the same MWh)</div>
+              <div>Prices: EUA €{price(eua)} · ETS2 €{price(ets2Price)} · FuelEU pool €{price(poolMid)}/t, desk marks</div>
+              <div>Cost now = FuelEU + ETS maritime + ETS1 ({ETS1_BASIS_LABEL})</div>
+            </details>
+          </div>
+        ) : (
         <KpiRow columns={5}>
           <KpiTile label="Companies shown" value={filtered.length.toLocaleString('en-GB')} sub={`match · ${listed.toLocaleString('en-GB')} listed`} />
           <KpiTile label="Value stack available" value={stackCount.toLocaleString('en-GB')} sub="2+ regimes pay on the same MWh" />
-          <KpiTile label="Biomethane value" value={formatEur(bioShown)} unit="/yr" sub="plays now, all matching companies" />
+          <KpiTile label="Biomethane potential" value={formatEur(bioShown)} unit="/yr" sub={`≈ ${twhText} of biomethane: a ceiling, not a deal size`} />
           <KpiTile label="Cost now" value={formatEur(costShown)} unit="/yr" sub={`FuelEU + ETS maritime + ETS1 (${ETS1_BASIS_LABEL})`} />
           <KpiTile label="Prices used" value={eua === null ? '—' : `€${price(eua)}`} unit="/t EUA" sub={`ETS2 €${price(ets2Price)} · FuelEU pool €${price(poolMid)}/t · desk marks`} />
         </KpiRow>
+        )}
       </div>
 
       <div className="cl-list-wrap" style={{ padding: '16px' }}>
         <Card className="cl-list-card" title="Company × regulation" meta={isMobile ? 'Annual € at desk marks · tap a company to open it' : 'Annual € at desk marks · tap a header to sort · tap a company to open it'}>
           <div className="cl-note">{definition}</div>
+          {legend}
           {isMobile ? (
             <>
           <MobileFilterBar
@@ -391,15 +455,20 @@ export function ClientsScreen() {
             onSearch={v => { setSearch(v); setShown(PAGE); }}
             searchPlaceholder="Search any company name"
             searchLabel="Search companies"
-            activeCount={(country !== 'ALL' ? 1 : 0) + markets.length + (multiOnly ? 1 : 0) + (stackOnly ? 1 : 0)}
+            activeCount={(country !== 'ALL' ? 1 : 0) + markets.length + (multiOnly ? 1 : 0) + (stackOnly ? 1 : 0) + (statusFilter !== 'ALL' ? 1 : 0)}
             sortValue={`${sort.key}:${sort.desc ? 'd' : 'a'}`}
             sortOptions={SORT_OPTIONS}
             onSort={v => { const [key, dir] = v.split(':'); setSort({ key: key as SortKey, desc: dir === 'd' }); }}
-            onReset={() => { setCountry('ALL'); setMarkets([]); setMultiOnly(false); setStackOnly(false); setShown(PAGE); }}
+            onReset={() => { setCountry('ALL'); setMarkets([]); setMultiOnly(false); setStackOnly(false); setStatusFilter('ALL'); setShown(PAGE); }}
           >
             <SheetField label="Country">
               <select aria-label="Country" value={country} onChange={e => { setCountry(e.target.value); setShown(PAGE); }}>
                 {countryOptions}
+              </select>
+            </SheetField>
+            <SheetField label="Status">
+              <select aria-label="Status" value={statusFilter} onChange={e => onStatusFilter(e.target.value)}>
+                {statusSelect}
               </select>
             </SheetField>
             <SheetField label="Exposed to">
@@ -426,9 +495,9 @@ export function ClientsScreen() {
             getKey={r => r.profile.id}
             onSelect={r => select(r.profile.id)}
             title={r => r.profile.name}
-            subtitle={r => [r.profile.countries.slice(0, 5).join(' '), sectorLine(r)].filter(Boolean).join(' · ')}
+            subtitle={r => [r.profile.countries.slice(0, 5).join(' '), sectorLine(r), aliasHit(r, q) ? `matched: ${aliasHit(r, q)}` : ''].filter(Boolean).join(' · ')}
             metric={r => formatEur(r.bioValueEur)}
-            metricLabel={() => 'Biomethane value'}
+            metricLabel={() => 'Biomethane potential'}
             badges={r => (
               <>
                 {r.stack && <StackBadge spec={r.stack} />}
@@ -441,7 +510,8 @@ export function ClientsScreen() {
               const e2 = ets2Cell(r.exposure);
               const e1 = ets1Cell(r.exposure);
               return [
-                { label: 'Cost now', value: cn.text, mono: !cn.muted, tone: cn.muted ? 'muted' : undefined, span: 2 },
+                { label: '€/MWh', value: r.eurPerMWh === null ? '—' : `€${price(r.eurPerMWh)}`, mono: r.eurPerMWh !== null, tone: r.eurPerMWh === null ? 'muted' : undefined },
+                { label: 'Cost now', value: cn.text, mono: !cn.muted, tone: cn.muted ? 'muted' : undefined },
                 { label: 'FuelEU', value: fe.text, mono: !fe.muted, tone: fe.muted ? 'muted' : undefined },
                 { label: 'ETS maritime', value: formatEur(r.exposure.etsMaritimeEur), mono: true, tone: r.exposure.etsMaritimeEur === null ? 'muted' : undefined },
                 { label: `ETS1 (${ETS1_LATEST_YEAR}, net)`, value: e1.text, mono: !e1.muted, tone: e1.muted ? 'muted' : undefined },
@@ -458,6 +528,9 @@ export function ClientsScreen() {
             <input className="input" style={{ flex: '1 1 220px', width: 'auto' }} placeholder="Search any company name" aria-label="Search companies" value={search} onChange={e => { setSearch(e.target.value); setShown(PAGE); }} />
             <select className="input" style={{ width: 'auto' }} aria-label="Country" value={country} onChange={e => { setCountry(e.target.value); setShown(PAGE); }}>
               {countryOptions}
+            </select>
+            <select className="input" style={{ width: 'auto' }} aria-label="Status" value={statusFilter} onChange={e => onStatusFilter(e.target.value)}>
+              {statusSelect}
             </select>
             <button type="button" className="btn btn-ghost" onClick={exportCsv}>Export CSV</button>
           </div>
@@ -477,17 +550,18 @@ export function ClientsScreen() {
           </div>
           {countryNote}
           <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-            <table className="table" style={{ minWidth: '1240px' }}>
+            <table className="table" style={{ minWidth: '1330px' }}>
               <thead>
                 <tr>
                   {th('name', 'Company', 'Sort by name', false)}
-                  {th('bio', 'Biomethane value', COLUMN_HELP.bio)}
+                  {th('bio', 'Biomethane potential', COLUMN_HELP.bio)}
+                  {th('permwh', '€/MWh', COLUMN_HELP.permwh)}
                   {th('cost', 'Cost now', COLUMN_HELP.cost)}
                   {th('fueleu', 'FuelEU', COLUMN_HELP.fueleu)}
                   {th('maritime', 'ETS maritime', COLUMN_HELP.maritime)}
                   {th('ets1', 'ETS1', COLUMN_HELP.ets1)}
                   {th('ets2', 'ETS2 (2028+)', COLUMN_HELP.ets2)}
-                  <th style={{ minWidth: '170px' }} title="The play with the highest annual value on the Biomethane value basis">Best play</th>
+                  <th style={{ minWidth: '170px' }} title="The play with the highest annual value on the Biomethane potential basis">Best play</th>
                   <th>Status</th>
                 </tr>
               </thead>
@@ -500,12 +574,14 @@ export function ClientsScreen() {
                   return (
                   <tr key={r.profile.id} data-click="1" onClick={() => select(r.profile.id)} style={{ cursor: 'pointer' }}>
                     <td style={{ ...stickyCell(false), maxWidth: '240px' }}>
-                      <div style={{ fontWeight: 600 }}>{r.profile.name}</div>
+                      <button type="button" className="cl-name-btn" onClick={e => { e.stopPropagation(); select(r.profile.id); }}>{r.profile.name}</button>
                       <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
                         {[r.profile.countries.slice(0, 5).join(' '), sectorLine(r)].filter(Boolean).join(' · ')}
                       </div>
+                      {aliasHit(r, q) && <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>matched: {aliasHit(r, q)}</div>}
                     </td>
                     <td className="num" style={{ textAlign: 'right', fontWeight: 600, color: r.bioValueEur === null ? 'var(--color-text-muted)' : undefined }}>{formatEur(r.bioValueEur)}</td>
+                    <td className="num" style={{ textAlign: 'right', color: r.eurPerMWh === null ? 'var(--color-text-muted)' : undefined }}>{r.eurPerMWh === null ? '—' : `€${price(r.eurPerMWh)}`}</td>
                     <td className="num" title={cn.title} style={{ textAlign: 'right', color: cn.muted ? 'var(--color-text-muted)' : undefined }}>{cn.text}</td>
                     <td className="num" title={fe.title} style={{ textAlign: 'right', color: fe.muted ? 'var(--color-text-muted)' : undefined, fontSize: fe.text === 'Compliant' ? '12px' : undefined }}>{fe.text}</td>
                     <Money v={r.exposure.etsMaritimeEur} />
@@ -529,6 +605,7 @@ export function ClientsScreen() {
               </tbody>
             </table>
           </div>
+          {filtered.length === 0 && <p className="cl-empty">No companies match. Clear the search or filters.</p>}
             </>
           )}
           {filtered.length > shown && (
@@ -611,7 +688,7 @@ function CompanyPage(props: {
         : '',
     },
     { key: 'ETS_MARITIME', cost: has('ETS_MARITIME') ? `${formatEur(x.etsMaritimeEur)}/yr` : '', basis: has('ETS_MARITIME') ? `${Math.round(maritimeT).toLocaleString('en-GB')} tCO₂e in scope (100% intra-EU, 50% in/out of the EU), 100% phase-in from 2026, at €${price(eua)}/t. EU MRV ${MRV_YEAR}.` : '' },
-    { key: 'ETS1', cost: has('ETS1') ? `${x.ets1AllocUnknownSites > 0 ? '≤' : ''}${formatEur(x.ets1BillEur)}/yr` : '', basis: has('ETS1') ? `${sites.length} installation${sites.length > 1 ? 's' : ''}. Gross ${Math.round(x.ets1Tco2 ?? 0).toLocaleString('en-GB')} tCO₂ verified ${ETS1_LATEST_YEAR}, free allocation ${Math.round(x.ets1FreeAllocTco2 ?? 0).toLocaleString('en-GB')} t, net ${Math.round(x.ets1NetTco2 ?? 0).toLocaleString('en-GB')} t at €${price(eua)}/t (${ETS1_BASIS_LABEL}, at company level).${x.ets1AllocUnknownSites > 0 ? ` Allocation unknown for ${x.ets1AllocUnknownSites} site${x.ets1AllocUnknownSites > 1 ? 's' : ''}: upper bound.` : ''}${x.ets1PriorYearSites > 0 ? ` ${x.ets1PriorYearSites} site${x.ets1PriorYearSites > 1 ? 's' : ''} carry ${ETS1_LATEST_YEAR - 1} figures (${ETS1_LATEST_YEAR} not yet reported).` : ''} ${Math.round(ets1FitT).toLocaleString('en-GB')} t at high/medium-fit sites, of which the gas share (Eurostat, by sector) is the Biomethane value basis, not netted: each tonne avoided frees an allowance. EUTL.` : '' },
+    { key: 'ETS1', cost: has('ETS1') ? `${x.ets1AllocUnknownSites > 0 ? '≤' : ''}${formatEur(x.ets1BillEur)}/yr` : '', basis: has('ETS1') ? `${sites.length} installation${sites.length > 1 ? 's' : ''}. Gross ${Math.round(x.ets1Tco2 ?? 0).toLocaleString('en-GB')} tCO₂ verified ${ETS1_LATEST_YEAR}, free allocation ${Math.round(x.ets1FreeAllocTco2 ?? 0).toLocaleString('en-GB')} t, net ${Math.round(x.ets1NetTco2 ?? 0).toLocaleString('en-GB')} t at €${price(eua)}/t (${ETS1_BASIS_LABEL}, at company level).${x.ets1AllocUnknownSites > 0 ? ` Allocation unknown for ${x.ets1AllocUnknownSites} site${x.ets1AllocUnknownSites > 1 ? 's' : ''}: upper bound.` : ''}${x.ets1PriorYearSites > 0 ? ` ${x.ets1PriorYearSites} site${x.ets1PriorYearSites > 1 ? 's' : ''} carry ${ETS1_LATEST_YEAR - 1} figures (${ETS1_LATEST_YEAR} not yet reported).` : ''} ${Math.round(ets1FitT).toLocaleString('en-GB')} t at high/medium-fit sites, of which the gas share (Eurostat, by sector) is the Biomethane potential basis, not netted: each tonne avoided frees an allowance. EUTL.` : '' },
     { key: 'ETS2', cost: has('ETS2') ? ets2Cost : '', basis: has('ETS2') ? p.ets2.map(e => `${e.countryIso}: ${e.role === 'REGULATED_SUPPLIER' ? 'regulated gas supplier' : `exposed end user${e.sector ? ` (${e.sector})` : ''}`}${e.marketSharePct !== null ? `, ${e.marketSharePct}% share` : ''}${e.gasVolumeTWh !== null ? `, ${e.gasVolumeTWh} TWh disclosed` : ''}`).join('; ') + `. ETS2 at ${props.ets2Price === null ? 'no price' : `€${price(props.ets2Price)}/t`}.${ets2Coverage}${x.ets2ScopeLines.length ? ` Scope: ${x.ets2ScopeLines.join('; ')}.` : ''}` : '' },
   ];
 
@@ -636,22 +713,22 @@ function CompanyPage(props: {
       >
         {isMobile ? (
           <div className="cl-kpis">
-            <div className="cl-kpi"><div className="eyebrow">Biomethane value</div><strong className="num">{formatEur(bioValueEur)}/yr</strong></div>
+            <div className="cl-kpi"><div className="eyebrow">Biomethane potential</div><strong className="num">{formatEur(bioValueEur)}/yr</strong></div>
             <div className="cl-kpi"><div className="eyebrow">Cost now</div><strong className="num">{costNow.text}{costNow.text === 'Compliant' ? '' : '/yr'}</strong></div>
             {x.fuelEuPenaltyEur !== null && x.fuelEuPenaltyEur > 0 && <div className="cl-kpi"><div className="eyebrow">Penalty if nothing is done</div><strong className="num">{formatEur(x.fuelEuPenaltyEur)}/yr</strong></div>}
             {(x.ets2Standing === 'QUANTIFIED' || x.ets2Standing === 'PARTIAL') && <div className="cl-kpi"><div className="eyebrow">ETS2 from 2028{x.ets2Standing === 'PARTIAL' ? ' (partial)' : ''}</div><strong className="num">{formatEur(x.ets2CostEur)}/yr</strong></div>}
           </div>
         ) : (
         <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', fontSize: '13px' }}>
-          <span title={COLUMN_HELP.bio}><span className="eyebrow">Biomethane value </span><strong className="num">{formatEur(bioValueEur)}/yr</strong></span>
+          <span title={COLUMN_HELP.bio}><span className="eyebrow">Biomethane potential </span><strong className="num">{formatEur(bioValueEur)}/yr</strong>{props.row.eurPerMWh !== null && <span className="num"> · €{price(props.row.eurPerMWh)}/MWh</span>}</span>
           <span title={COLUMN_HELP.cost}><span className="eyebrow">Cost now </span><strong className="num">{costNow.text}{costNow.text === 'Compliant' ? '' : '/yr'}</strong></span>
           {x.fuelEuPenaltyEur !== null && x.fuelEuPenaltyEur > 0 && <span title="Annex IV statutory penalty on the 2026 deficit: a ceiling, not what compliance costs"><span className="eyebrow">Penalty if nothing is done </span><strong className="num">{formatEur(x.fuelEuPenaltyEur)}/yr</strong></span>}
           {(x.ets2Standing === 'QUANTIFIED' || x.ets2Standing === 'PARTIAL') && <span><span className="eyebrow">ETS2 from 2028{x.ets2Standing === 'PARTIAL' ? ' (partial)' : ''} </span><strong className="num">{formatEur(x.ets2CostEur)}/yr</strong></span>}
         </div>
         )}
         {p.names.length > 1 && (
-          <div title={p.names.join('; ')} style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '6px', maxHeight: '48px', overflow: 'hidden' }}>
-            Also appears as: {p.names.filter(n => n !== p.name).join('; ')}
+          <div title={p.names.join('; ')} style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '6px', overflowWrap: 'anywhere' }}>
+            Also appears as: {p.names.filter(n => n !== p.name).slice(0, 12).join('; ')}{p.names.length > 13 ? `; and ${p.names.length - 13} more` : ''}
           </div>
         )}
       </Card>
