@@ -1,17 +1,19 @@
 """
 Build a real, sourced FuelEU Maritime company/fuel dataset from the EU MRV
-(THETIS-MRV) public emission report for reporting year 2024 (version 244).
+(THETIS-MRV) public emission report for reporting year 2025 (version 58, published 15 Sep 2026).
 
 Source
 ------
-https://mrv.emsa.europa.eu/api/public-emission-report/reporting-period-document/binary/2024/244
+https://mrv.emsa.europa.eu/api/public-emission-report/reporting-period-document/binary/2025/58
+(file name "2025-v58-15092026-EU MRV Publication of information.xlsx"; v59+ returned HTTP 404
+when checked on 2026-09-30, so v58 is the latest published version)
 
-The workbook has two sheets: "2024 Full ERs" (ships reporting for the full
-calendar year) and "2024 Partial ERs" (ships that changed company / left the
+The workbook has two sheets: "2025 Full ERs" (ships reporting for the full
+calendar year) and "2025 Partial ERs" (ships that changed company / left the
 EU trade / entered it mid-year, so their MRV report covers only part of
-2024). We INCLUDE Partial ERs, because excluding them would silently drop
-real ships and real emissions (they are ~1,000 of ~14,000+ rows, ~5.5 Mt of
-~152 Mt CO2). Ships from the Partial ERs sheet are flagged `partialReport:
+2025). We INCLUDE Partial ERs, because excluding them would silently drop
+real ships and real emissions (2025 v58: ~1,100 of ~15,700 fuel-burning ships, ~5.9 Mt of
+~154 Mt CO2). Ships from the Partial ERs sheet are flagged `partialReport:
 true` on the ship record and rolled into `partialReportShips` at company
 level, so downstream consumers can see/exclude them if a full-year-only view
 is wanted.
@@ -42,8 +44,10 @@ FuelEU / MRV scope reconciliation (see scratch/fueleu_audit/reg1805.txt,
 Art. 2(1), lines 175-200)
 ------------------------------------------------------------------------
 Reg. (EU) 2023/1805 Art. 2(1) applies FuelEU obligations, for ships >5,000 GT
-carrying passengers/cargo commercially (MRV already restricts its scope to
->=5,000 GT ships, so no extra GT filter is applied here), to:
+carrying passengers/cargo commercially (MRV's 2024 publication was restricted to
+>=5,000 GT ships; the 2025 publication ALSO lists offshore vessels and general cargo ships of
+400-5,000 GT (no GT column). Offshore rows are dropped by ship type; small general cargo ships
+cannot be identified and remain, a known upward bias in general-cargo companies), to:
   (a) 100% of energy used at berth in an MS port;
   (b) 100% of energy used on voyages between two MS ports;
   (c) 50% of energy on voyages to/from an outermost-region MS port; and
@@ -88,15 +92,16 @@ default CO2 emission factors (t CO2 / t fuel): HFO 3.114, MGO 3.206,
 LNG 2.750.
 
 Step 1 - identify LNG-fuelled ships. We compute CH4-per-tonne-fuel for every
-ship with fuel > 0 (13,903 ships). The distribution is strongly bimodal: the
+ship with fuel > 0 (15,736 ships in the 2025 v58 file). The distribution is strongly bimodal: the
 bottom ~95% of ships cluster tightly at ~5.0e-5 t CH4 / t fuel (this is the
 IMO default CH4 slip factor baked into conventional liquid-fuel monitoring,
-not real LNG slip), then there is a clean gap, and the top ~3.4% (479 ships)
-sit at >=5.8e-3 t CH4 / t fuel -- two orders of magnitude higher, consistent
+not real LNG slip), then there is a clean gap, and the top ~4.7% (737 ships)
+sit far above (2024: >=5.8e-3 t CH4 / t fuel; in 2025 the gap is thinner, with ~40 ships
+spread between 2.5e-4 and 3e-3 -- low-LNG-share users -- so the threshold is a soft cut) -- two orders of magnitude higher, consistent
 with methane slip from dual-fuel / LNG-fuelled engines. We set the threshold
 at 0.001 t CH4 / t fuel (comfortably inside the gap, well above the
 conventional-fuel cluster and well below the LNG cluster) and flag any ship
-above it as an LNG user (`lngShipCount`). This yields 479 LNG-fuelled ships,
+above it as an LNG user (`lngShipCount`). This yields 737 LNG-fuelled ships in 2025 (479 in 2024),
 consistent with the known size of the world LNG-fuelled fleet trading into
 the EU.
 
@@ -112,7 +117,7 @@ i.e. m=0 when the ship's emission factor matches pure HFO, m=1 when it
 matches pure MGO. mgo_tonnes = m*F, vlsfo_tonnes (used as the "residual fuel
 oil" bucket, not literally VLSFO) = (1-m)*F.
 
-376 of 13,424 non-LNG ships (2.8%) have r outside the plausible fossil-fuel
+404 of 14,991 non-LNG ships (2.7%) have r outside the plausible fossil-fuel
 band [3.10, 3.22] -- some below (biofuel blends, which have lower CO2
 factors under RED II than fossil HFO/MGO; LPG also has a lower factor), some
 above (data/verification rounding, or minor methanol/other alternative fuel
@@ -130,10 +135,10 @@ Usage
 -----
     python scripts/build_fueleu_mrv_dataset.py
 
-Downloads the workbook to data/raw/mrv_2024_v244.xlsx if not already cached
-there (falls back to copying scratch/fueleu_audit/part2/mrv_2024.xlsx if
+Downloads the workbook to data/raw/mrv_2025_v58.xlsx if not already cached
+there (falls back to copying scratch/fueleu_audit/part2/mrv_2025.xlsx if
 present and the download is unavailable), computes and prints sanity checks,
-and writes data/fueleu_mrv_2024_companies.json.
+and writes data/fueleu_mrv_2025_companies.json (+ _ships.json).
 """
 
 from __future__ import annotations
@@ -159,20 +164,20 @@ if sys.stdout.encoding is None or sys.stdout.encoding.lower() != "utf-8":
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RAW_DIR = os.path.join(REPO_ROOT, "data", "raw")
-RAW_XLSX = os.path.join(RAW_DIR, "mrv_2024_v244.xlsx")
-FALLBACK_XLSX = os.path.join(REPO_ROOT, "scratch", "fueleu_audit", "part2", "mrv_2024.xlsx")
-OUTPUT_JSON = os.path.join(REPO_ROOT, "data", "fueleu_mrv_2024_companies.json")
+RAW_XLSX = os.path.join(RAW_DIR, "mrv_2025_v58.xlsx")
+FALLBACK_XLSX = os.path.join(REPO_ROOT, "scratch", "fueleu_audit", "part2", "mrv_2025.xlsx")
+OUTPUT_JSON = os.path.join(REPO_ROOT, "data", "fueleu_mrv_2025_companies.json")
 # Per-ship records (ships with fuel > 0), same source block; one ship per line.
-OUTPUT_SHIPS_JSON = os.path.join(REPO_ROOT, "data", "fueleu_mrv_2024_ships.json")
+OUTPUT_SHIPS_JSON = os.path.join(REPO_ROOT, "data", "fueleu_mrv_2025_ships.json")
 
-SOURCE_URL = "https://mrv.emsa.europa.eu/api/public-emission-report/reporting-period-document/binary/2024/244"
-REPORTING_PERIOD = 2024
-VERSION = 244
+SOURCE_URL = "https://mrv.emsa.europa.eu/api/public-emission-report/reporting-period-document/binary/2025/58"
+REPORTING_PERIOD = 2025
+VERSION = 58
 
 HEADER_ROW = 3  # 1-indexed
 DATA_START_ROW = 4
 
-SHEETS = ["2024 Full ERs", "2024 Partial ERs"]
+SHEETS = ["2025 Full ERs", "2025 Partial ERs"]
 
 # Column header text we expect to find at the documented indexes. We search
 # for these by TEXT across the header row rather than trusting the index, and
@@ -214,6 +219,14 @@ EXPECTED_HEADERS_FULL = {
     38: "Total CH₄ emissions",
     48: "Total N₂O emissions",
 }
+
+# Ship types dropped before aggregation. The 2025 publication is the first to cover offshore
+# vessels (and general cargo ships of 400-5,000 GT); the 2024 file had only 6 such rows. Offshore
+# ships neither carry cargo/passengers commercially (FuelEU Art. 2(1)) nor enter EU ETS maritime
+# until 2027, so they are not part of this desk's 2026 FuelEU/ETS exposure. MRV publishes no
+# gross-tonnage column, so small general cargo ships (400-5,000 GT, outside FuelEU/ETS scope)
+# CANNOT be separated and stay in; see the docstring limitation note.
+OUT_OF_SCOPE_SHIP_TYPES = {"Other ship types (Offshore)"}
 
 CO2_FACTOR_HFO = 3.114
 CO2_FACTOR_MGO = 3.206
@@ -337,11 +350,13 @@ def main():
     lng_ship_examples = []
     reconciliation_residuals = []
     zero_fuel_ships = 0
+    excluded_by_type = {}
+    excluded_co2 = 0.0
 
     for sheet_name in SHEETS:
         ws = wb[sheet_name]
         verify_headers(ws, sheet_name)
-        is_partial = sheet_name == "2024 Partial ERs"
+        is_partial = sheet_name == "2025 Partial ERs"
 
         n_rows = 0
         for row in ws.iter_rows(min_row=DATA_START_ROW, values_only=True):
@@ -352,6 +367,10 @@ def main():
 
             ship_name = row[1]
             ship_type = row[2] or "Unknown"
+            if ship_type in OUT_OF_SCOPE_SHIP_TYPES:
+                excluded_by_type[ship_type] = excluded_by_type.get(ship_type, 0) + 1
+                excluded_co2 += num(row[28])
+                continue
             company_imo = row[8]
             company_name = (row[9] or "").strip() if row[9] else None
 
@@ -514,8 +533,10 @@ def main():
                 "CO2 factors (HFO 3.114, MGO 3.206, LNG 2.750 t CO2/t fuel); ships with "
                 "CH4/fuel > 0.001 t/t are classified as LNG-fuelled and split via the "
                 "CO2/CH4 mass-balance; other ships are split via linear interpolation of "
-                "their CO2/fuel ratio between the HFO and MGO factors. Partial-year MRV "
-                "reports ('2024 Partial ERs') are included and flagged partialReport."
+                "their CO2/fuel ratio between the HFO and MGO factors. Offshore-vessel rows are "
+                "excluded (out of FuelEU/ETS-2026 scope); general cargo ships of 400-5,000 GT "
+                "cannot be separated (no GT column) and remain (limitation). Partial-year MRV "
+                "reports ('2025 Partial ERs') are included and flagged partialReport."
             ),
         },
         "companies": company_list,
@@ -542,12 +563,13 @@ def main():
 
     # ---------------- Sanity checks ----------------
     print("\n================ SANITY CHECKS ================")
+    print(f"Excluded out-of-scope ship types: {excluded_by_type} ({excluded_co2/1e6:.2f} Mt total CO2)")
     print(f"Total ships processed: {total_ships}")
     print(f"Ships with zero reported fuel: {zero_fuel_ships}")
     print(f"Total companies (DoC holders): {len(company_list)}")
     print(f"Sum total CO2 (Full ERs): {total_co2_full/1e6:.2f} Mt")
     print(f"Sum total CO2 (Partial ERs): {total_co2_partial/1e6:.2f} Mt")
-    print(f"Sum total CO2 (Full+Partial): {total_co2_all/1e6:.2f} Mt  (expected approx 152.6 Mt)")
+    print(f"Sum total CO2 (Full+Partial): {total_co2_all/1e6:.2f} Mt  (2024 v244 was ~152.4 Mt)")
     print(f"Sum in-scope CO2: {total_in_scope_co2/1e6:.2f} Mt  (must be < total)")
     print(f"Sum ETS CO2 (col 37): {total_ets_co2/1e6:.2f} Mt")
     print(f"Sum in-scope CO2 vs ETS CO2 ratio: {total_in_scope_co2/total_ets_co2 if total_ets_co2 else float('nan'):.3f}")

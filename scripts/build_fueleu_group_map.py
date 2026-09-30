@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Build a mapping from EU MRV 2024 "DoC holder" companies (ISM Document of
+Build a mapping from EU MRV 2025 "DoC holder" companies (ISM Document of
 Compliance holders, as named in the public MRV report) to the commercial
 shipping group that actually makes FuelEU / EU ETS compliance-purchasing
 decisions.
@@ -17,7 +17,7 @@ Usage:
     python scripts/build_fueleu_group_map.py
 
 Reads:
-    data/fueleu_mrv_2024_companies.json
+    data/fueleu_mrv_2025_companies.json
     data/fueleu_group_map_overrides.json
 
 Writes:
@@ -33,7 +33,7 @@ from pathlib import Path
 from datetime import datetime, timezone
 
 ROOT = Path(__file__).resolve().parent.parent
-COMPANIES_PATH = ROOT / "data" / "fueleu_mrv_2024_companies.json"
+COMPANIES_PATH = ROOT / "data" / "fueleu_mrv_2025_companies.json"
 OVERRIDES_PATH = ROOT / "data" / "fueleu_group_map_overrides.json"
 OUTPUT_PATH = ROOT / "data" / "fueleu_group_map.json"
 
