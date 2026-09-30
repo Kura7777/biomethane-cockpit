@@ -1,4 +1,5 @@
 import { EUROPEAN_MARKET_BENCHMARKS } from '../markets/marketBenchmarks';
+import { ETS2_SEGMENT_SHARES } from '../ets2/segmentShare';
 
 /**
  * Commercial assumptions register.
@@ -56,6 +57,20 @@ const FARMGATE_DEFAULTS: Record<string, { name: string; premium: number; fixed: 
   BE: { name: 'Belgium', premium: 24.0, fixed: 62.0 },
   DEFAULT: { name: 'Other countries', premium: 24.0, fixed: 65.0 },
 };
+
+/** Share of each country's gas demand under ETS2, used to scope supplier volumes (see ets2/segmentShare.ts). */
+const ETS2_SEGMENT_SHARE_ASSUMPTIONS: AssumptionDefinition[] = Object.values(ETS2_SEGMENT_SHARES).map(r => ({
+  key: `ets2.segmentShare.${r.iso}`,
+  category: 'SCANNER',
+  label: `Share of ${r.name} gas demand under ETS2 (buildings, services, small users)`,
+  unit: 'share (0–1)',
+  defaultValue: r.share,
+  basis: 'DESK_ESTIMATE',
+  source: `${r.sourceNote} Source: ${r.sourceUrl}. Retrieved 2026-09-30.`,
+  usedIn: 'Clients page: scopes disclosed all-segment supplier gas volumes to the ETS2 segment (reference value; edit in ets2/segmentShare.ts)',
+  min: 0,
+  max: 1,
+}));
 
 const FARMGATE_SOURCE = 'Desk indicative estimate — no transaction evidence on file. Replace with producer offers as they come in.';
 
@@ -123,7 +138,7 @@ export const ASSUMPTION_DEFINITIONS: AssumptionDefinition[] = [
     unit: '€/tCO₂e',
     defaultValue: euEts1Mark?.midPrice ?? 70,
     basis: 'MARKET_MARK',
-    source: `${euEts1MarkSource} — mid.`,
+    source: `${euEts1MarkSource} — mid. Watch (17 Jul 2026): Commission ETS review proposal COM(2026) 616 (maritime scope to 400 GT, SMAP, slower CBAM free-allocation phase-out to 2038); proposal only, no change to current rules.`,
     usedIn: 'FuelEU/EU ETS calculators: EU ETS liability on fossil fuel burn',
     min: 0,
   },
@@ -348,6 +363,7 @@ export const ASSUMPTION_DEFINITIONS: AssumptionDefinition[] = [
   },
 
   // ── Netback risk suite fallbacks ─────────────────────────────────────────
+  ...ETS2_SEGMENT_SHARE_ASSUMPTIONS,
   {
     key: 'risk.illustrativeVolumeMwh',
     category: 'RISK',

@@ -1,5 +1,6 @@
 import { ETS_NATURAL_GAS_TCO2_PER_MWH } from '../netback/engine';
 import { GasVolumeBasis, toNcvMWh } from './calculator';
+import { ETS2_SEGMENT_SHARES } from './segmentShare';
 
 /**
  * ETS2 country exposure: where the new carbon price bites hardest on gas used in buildings
@@ -36,6 +37,12 @@ export interface Ets2CountryProfile {
   gasVolumeBasis: GasVolumeBasis;
   gasDataYear: number | null;
   gasSource: SourcedNote | null;
+  /**
+   * Share (0–1) of national gas demand under ETS2, used to scope supplier volumes disclosed for all
+   * customer segments. Null where no sourced share is on file.
+   */
+  ets2SegmentShare?: number | null;
+  ets2SegmentShareSource?: SourcedNote | null;
 }
 
 const UNKNOWN_PRICING: ExistingCarbonPricing = {
@@ -70,10 +77,10 @@ const KNOWN_PRICING: Record<string, ExistingCarbonPricing> = {
   SE: {
     kind: 'CARBON_TAX',
     label: 'National carbon tax (may qualify for Art. 30e(3) exemption until 2030)',
-    priceEurPerT: null,
+    priceEurPerT: 133.17,
     source: {
       url: 'https://taxfoundation.org/data/all/eu/carbon-taxes-europe/',
-      note: 'Tax Foundation 2026: SEK 1,520 (about €138) per tonne.',
+      note: 'Tax Foundation: €133.17 per tonne as of 1 April 2026 (no SEK figure published there).',
     },
   },
 };
@@ -95,6 +102,10 @@ export const ETS2_COUNTRIES: Ets2CountryProfile[] = EU27.map(([iso, name]) => ({
   gasVolumeBasis: 'GCV',
   gasDataYear: null,
   gasSource: null,
+  ets2SegmentShare: ETS2_SEGMENT_SHARES[iso]?.share ?? null,
+  ets2SegmentShareSource: ETS2_SEGMENT_SHARES[iso]
+    ? { url: ETS2_SEGMENT_SHARES[iso].sourceUrl, note: ETS2_SEGMENT_SHARES[iso].sourceNote }
+    : null,
 }));
 
 /** One row of an imported dataset. Prices and sources are optional; volume is required. */

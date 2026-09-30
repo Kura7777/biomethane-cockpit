@@ -138,10 +138,16 @@ export const ETS2_REGULATED_ENTITY_LISTS: Record<string, { label: string; url: s
 
 export interface Ets2CompanyExposure {
   company: Ets2Company;
-  /** Gas volume used for the estimate, TWh, and how it was obtained. */
+  /** Gas volume used for the estimate (after scoping), TWh, and how it was obtained. */
   volumeTWh: number | null;
   volumeMethod: 'DISCLOSED' | 'SHARE_OF_NATIONAL' | null;
   emissionsMtCo2: number | null;
+  /** Volume before scoping, TWh (the disclosed or national-share figure). */
+  volumeAllSegmentsTWh: number | null;
+  /** ETS2_SEGMENT: volumeTWh, emissions and cost are scoped to the ETS2-covered segment. */
+  volumeScope: 'ETS2_SEGMENT' | 'ALL_SEGMENTS';
+  /** Share of the all-segment volume applied (0–1); null when no scoping was applied. */
+  ets2ScopeShare: number | null;
   ets2CostEurM: number | null;
 }
 
@@ -154,6 +160,12 @@ const PERCENT = 100;
  * Estimated ETS2 allowance bill per company. Uses the company's own volume where known;
  * otherwise its market share applied to the country's imported building-gas volume, which is
  * an approximation (shares are usually of all retail sales, not buildings alone).
+ *
+ * Disclosed volumes cover all customer segments, including ETS1 industry and power, which are outside
+ * ETS2. Where the country has a sourced ETS2 share of gas demand (see segmentShare.ts) the disclosed
+ * volume is multiplied by it (volumeScope 'ETS2_SEGMENT'); otherwise it stays unscoped ('ALL_SEGMENTS',
+ * an upper bound). National-share volumes are built on buildings gas already, so they are
+ * 'ETS2_SEGMENT' with no share applied (ets2ScopeShare null).
  */
 export function computeCompanyExposure(
   companies: Ets2Company[],
@@ -165,25 +177,41 @@ export function computeCompanyExposure(
     let volumeTWh: number | null = null;
     let basis: GasVolumeBasis = company.gasVolumeBasis;
     let volumeMethod: Ets2CompanyExposure['volumeMethod'] = null;
+    let volumeScope: Ets2CompanyExposure['volumeScope'] = 'ALL_SEGMENTS';
+    let ets2ScopeShare: number | null = null;
+    let volumeAllSegmentsTWh: number | null = null;
     if (company.gasVolumeTWh !== null) {
+      volumeAllSegmentsTWh = company.gasVolumeTWh;
       volumeTWh = company.gasVolumeTWh;
       volumeMethod = 'DISCLOSED';
+      const share = byIso.get(company.countryIso)?.ets2SegmentShare ?? null;
+      // End users are not scoped: their own volume is what it is.
+      if (share !== null && company.role === 'REGULATED_SUPPLIER') {
+        volumeTWh = company.gasVolumeTWh * share;
+        volumeScope = 'ETS2_SEGMENT';
+        ets2ScopeShare = share;
+      }
     } else {
       const country = byIso.get(company.countryIso);
       if (company.marketSharePct !== null && country && country.gasBuildingsTWh !== null) {
         volumeTWh = (country.gasBuildingsTWh * company.marketSharePct) / PERCENT;
         basis = country.gasVolumeBasis;
         volumeMethod = 'SHARE_OF_NATIONAL';
+        volumeAllSegmentsTWh = volumeTWh;
+        volumeScope = 'ETS2_SEGMENT';
       }
     }
     if (volumeTWh === null) {
-      return { company, volumeTWh: null, volumeMethod: null, emissionsMtCo2: null, ets2CostEurM: null };
+      return { company, volumeTWh: null, volumeMethod: null, volumeAllSegmentsTWh: null, volumeScope: 'ALL_SEGMENTS', ets2ScopeShare: null, emissionsMtCo2: null, ets2CostEurM: null };
     }
     const tonnes = toNcvMWh(volumeTWh * MWH_PER_TWH, basis) * ETS_NATURAL_GAS_TCO2_PER_MWH;
     return {
       company,
       volumeTWh,
       volumeMethod,
+      volumeAllSegmentsTWh,
+      volumeScope,
+      ets2ScopeShare,
       emissionsMtCo2: tonnes / TONNES_PER_MT,
       ets2CostEurM: ets2PriceEurPerT === null ? null : (tonnes * ets2PriceEurPerT) / EUR_PER_EUR_M,
     };
