@@ -24,10 +24,12 @@ import { TradeConsignmentStep } from './steps/TradeConsignmentStep';
 import { TradeMarketAuditStep } from './steps/TradeMarketAuditStep';
 import { TradeEconomicsStep, WaterfallRow } from './steps/TradeEconomicsStep';
 import { TradeExecutionStep } from './steps/TradeExecutionStep';
-import { ListOrdered, LayoutGrid, CheckCircle2, XCircle, AlertTriangle, ArrowRight } from 'lucide-react';
+import { ListOrdered, LayoutGrid, CheckCircle2, XCircle, AlertTriangle, ArrowRight, ChevronUp } from 'lucide-react';
 import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
 import { AssumptionsStrip } from '../../shared/components/AssumptionsStrip';
 import { FlowSteps } from '../../shared/ui/FlowSteps';
+import { Sheet } from '../../shared/ui';
+import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 import { DealTicket, BestRouteEntry, SensitivityDeltas } from './DealTicket';
 import { computeGateBadge, computeBreakEvenMark, isLinearMarkUnit } from './ticketMath';
 import './tradeBuilder.css';
@@ -156,6 +158,10 @@ export function TradeBuilderScreen() {
 
   const modeParam = searchParams.get('mode') === 'grid' ? 'GRID' : 'STEPPER';
   const [flowMode, setFlowMode] = useState<'STEPPER' | 'GRID'>(modeParam);
+  const isMobile = useIsMobile();
+  // Mobile always uses the stepper flow (every input lives in its steps); the legacy 3-column grid is desktop-only.
+  const showStepper = flowMode === 'STEPPER' || isMobile;
+  const [isTicketOpen, setIsTicketOpen] = useState(false);
 
   const handleStepChange = (step: DealStep) => {
     setSearchParams(prev => {
@@ -657,7 +663,7 @@ export function TradeBuilderScreen() {
   };
 
   const nextAction = (step: DealStep) => (
-    <div className="tb-step-actions">
+    <div className="tb-step-actions m-sticky-actions">
       <button type="button" className="btn btn-primary" onClick={() => handleStepChange((step + 1) as DealStep)}>
         {DEAL_STEPS[step - 1].next} <ArrowRight size={14} />
       </button>
@@ -675,6 +681,43 @@ export function TradeBuilderScreen() {
     ? selectedMarket.shortName.slice(selectedMarket.country.length + 1)
     : selectedMarket.shortName;
   const ticketMarketLabel = `${selectedMarket.countryName} ${marketShortNameNoPrefix}`;
+
+  // The deal ticket: a sticky rail on wide desktop, a bottom sheet (opened from the summary strip) on mobile.
+  const renderTicket = (closeSheet: boolean) => (
+    <DealTicket
+      ciIsManual={ciSource === 'manual'}
+      dealId={currentTradeAssessment.id}
+      originFlag={currentOriginObj.flag}
+      originCode={origin}
+      originName={currentOriginObj.name}
+      marketLabel={ticketMarketLabel}
+      netback={netback}
+      volumeMwh={volumeMwh}
+      annualPnl={annualPnl}
+      gates={assessment.gates}
+      overallVerdict={assessment.overallVerdict}
+      ci={ci}
+      ciProvenance={ciProvenance}
+      isTtfSimulated={isTtfSimulated}
+      onBuildDealPackage={() => { if (closeSheet) setIsTicketOpen(false); handleStepChange(5); }}
+      onGoToGate={() => { if (closeSheet) setIsTicketOpen(false); handleStepChange(3); }}
+      feedstockLabel={currentFeedstockObj.label}
+      schemeLabel={currentSchemeObj.label}
+      custodyLabel={currentCustodyObj.label}
+      vintageLabel={vintagePreset === 'CAL_YEAR' ? `CAL ${complianceYear}` : `${vintagePreset} ${complianceYear}`}
+      producerPricing={state.costs.producerPricing ?? null}
+      onProducerPricingChange={handleProducerPricingChange}
+      marketUnitLabel={selectedMarket.unitLabel}
+      breakEvenMark={breakEvenMark}
+      currentMark={currentMark}
+      sensitivities={ticketSensitivities}
+      bestRoutes={bestRoutes}
+      onSwitchMarket={setMarketId}
+    />
+  );
+
+  const headlineTone = (netNetbackVal >= 0) ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)';
+  const pnlTone = (netback.deskMargin ?? 0) >= 0 ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' }}>
@@ -757,7 +800,7 @@ export function TradeBuilderScreen() {
           </div>
 
           {/* Quick Metrics & Mode Toggle */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <div className="m-hide" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             <div
               style={{
                 display: 'flex',
@@ -879,7 +922,69 @@ export function TradeBuilderScreen() {
 
       </div>
 
-      {flowMode === 'STEPPER' ? (
+      {/* Mobile: sticky headline strip; opens the live waterfall and deal ticket in a bottom sheet */}
+      {isMobile && showStepper && (
+        <>
+          <button
+            type="button"
+            className="tb-strip"
+            onClick={() => setIsTicketOpen(true)}
+            aria-haspopup="dialog"
+            aria-label="Open deal ticket and waterfall"
+            data-testid="tb-summary-strip"
+          >
+            <span className="tb-strip-cell">
+              <span className="tb-strip-label">Netback</span>
+              <span className="tb-strip-value num" style={{ color: headlineTone }}>
+                {netNetbackVal >= 0 ? `+€${netNetbackVal.toFixed(2)}` : `−€${Math.abs(netNetbackVal).toFixed(2)}`}
+                <span className="tb-strip-unit">/MWh</span>
+              </span>
+            </span>
+            <span className="tb-strip-cell">
+              <span className="tb-strip-label">P&amp;L</span>
+              <span className="tb-strip-value num" style={{ color: pnlTone }}>
+                {netback.deskMargin !== null ? `€${annualPnl.toLocaleString()}` : '—'}
+              </span>
+            </span>
+            <span className="tb-strip-cell tb-strip-gate">
+              <span className="tb-strip-label">Gates</span>
+              <span className={`tb-strip-badge ${headerGateBadge.tone}`}>
+                ● {headerGateBadge.label.split(' · ')[0]}
+              </span>
+            </span>
+            <ChevronUp size={18} className="tb-strip-chevron" aria-hidden="true" />
+          </button>
+          <Sheet
+            open={isTicketOpen}
+            onClose={() => setIsTicketOpen(false)}
+            title="Deal ticket"
+            subtitle={`${currentOriginObj.flag} ${origin} → ${ticketMarketLabel}`}
+            variant="full"
+            testId="tb-ticket-sheet"
+          >
+            <div className="tb-sheet-waterfall">
+              <div className="tt-subhead">Netback waterfall · EUR / MWh</div>
+              <div className="tb-waterfall">
+                {waterfallRows.map((w, wIdx) => {
+                  const barPct = Math.min(100, (w.num / waterfallMax) * 100);
+                  return (
+                    <div key={wIdx} className="tb-waterfall-row">
+                      <span className="tb-waterfall-label">{w.label}</span>
+                      <div className="tb-waterfall-track">
+                        <div className={`tb-waterfall-bar ${w.kind}`} style={{ width: `${barPct}%` }} />
+                      </div>
+                      <span className="tb-waterfall-value tb-num">{w.val}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            {renderTicket(true)}
+          </Sheet>
+        </>
+      )}
+
+      {showStepper ? (
         <div className="tb-deal-layout">
         <div className="ds-flow-column tb-flow">
           <FlowSteps
@@ -1006,38 +1111,11 @@ export function TradeBuilderScreen() {
           />
         </div>
 
+        {isMobile ? null : (
         <div className="tb-ticket-rail">
-          <DealTicket
-            ciIsManual={ciSource === 'manual'}
-            dealId={currentTradeAssessment.id}
-            originFlag={currentOriginObj.flag}
-            originCode={origin}
-            originName={currentOriginObj.name}
-            marketLabel={ticketMarketLabel}
-            netback={netback}
-            volumeMwh={volumeMwh}
-            annualPnl={annualPnl}
-            gates={assessment.gates}
-            overallVerdict={assessment.overallVerdict}
-            ci={ci}
-            ciProvenance={ciProvenance}
-            isTtfSimulated={isTtfSimulated}
-            onBuildDealPackage={() => handleStepChange(5)}
-            onGoToGate={() => handleStepChange(3)}
-            feedstockLabel={currentFeedstockObj.label}
-            schemeLabel={currentSchemeObj.label}
-            custodyLabel={currentCustodyObj.label}
-            vintageLabel={vintagePreset === 'CAL_YEAR' ? `CAL ${complianceYear}` : `${vintagePreset} ${complianceYear}`}
-            producerPricing={state.costs.producerPricing ?? null}
-            onProducerPricingChange={handleProducerPricingChange}
-            marketUnitLabel={selectedMarket.unitLabel}
-            breakEvenMark={breakEvenMark}
-            currentMark={currentMark}
-            sensitivities={ticketSensitivities}
-            bestRoutes={bestRoutes}
-            onSwitchMarket={setMarketId}
-          />
+          {renderTicket(false)}
         </div>
+        )}
         </div>
       ) : (
         /* Legacy 3-Column Desk Grid */

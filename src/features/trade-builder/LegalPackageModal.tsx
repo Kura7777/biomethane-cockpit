@@ -405,7 +405,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
 
   return (
     <div
-      className="scrim noscroll"
+      className="scrim noscroll m-dialog-scrim"
       style={{
         alignItems: 'flex-start',
         justifyContent: 'center',
@@ -418,7 +418,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
       onClick={onClose}
     >
       <div
-        className="panel"
+        className="panel m-dialog lp-modal"
         style={{
           width: 'min(1240px, 100%)',
           backgroundColor: 'var(--color-bg)',
@@ -432,6 +432,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
       >
         {/* ═════════ TOP HEADER BAR ═════════ */}
         <div
+          className="m-dialog-header lp-header"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -446,6 +447,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span
+                className="m-hide"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -475,10 +477,10 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
           </div>
 
           {/* Action Toolbar */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="lp-toolbar" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button
               type="button"
-              className="btn btn-primary"
+              className="btn btn-primary m-hide"
               style={{ padding: '7px 14px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}
               onClick={handleDownloadCompletePackage}
               title="Download all 5 documents at once"
@@ -503,13 +505,14 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
               onClick={onClose}
               title="Close modal (Esc)"
             >
-              Esc ✕
+              <span className="m-hide">Esc </span>✕
             </button>
           </div>
         </div>
 
         {/* ═════════ 5-DOCUMENT REVIEW TABS STRIP ═════════ */}
         <div
+          className="lp-tabs"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -522,7 +525,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
           }}
         >
           {/* Main 5-Document Selector */}
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+          <div className="lp-tabs-chips" style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
             <button
               type="button"
               className={`chip ${activeTab === 'TERM_SHEET' ? 'chip-a' : ''}`}
@@ -623,7 +626,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
         </div>
 
         {/* ═════════ DOCUMENT CONTENT & PREVIEW CANVAS ═════════ */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
+        <div className="m-dialog-body lp-body" style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
 
           {/* ══════════════════════════════════════════════════════════════
               DOCUMENT 1: COMMERCIAL TRANSACTION TERM SHEET (PDF)
@@ -687,6 +690,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
               {/* Sub-view A: Interactive Document Review */}
               {termSheetSubView === 'STRUCTURED' ? (
                 <div
+                  className="lp-paper"
                   style={{
                     backgroundColor: 'var(--color-surface)',
                     border: '2px solid var(--color-divider)',
@@ -925,6 +929,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
               {/* Sub-view A: EFET Structured Clauses */}
               {efetSubView === 'STRUCTURED' ? (
                 <div
+                  className="lp-paper"
                   style={{
                     backgroundColor: 'var(--color-surface)',
                     border: '2px solid var(--color-divider)',
@@ -1635,6 +1640,7 @@ Document fingerprint: ${seal}`.trim();
 
         {/* ═════════ MODAL FOOTER BAR ═════════ */}
         <div
+          className="lp-footer"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -1646,11 +1652,11 @@ Document fingerprint: ${seal}`.trim();
             flexWrap: 'wrap',
           }}
         >
-          <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
+          <div className="lp-footer-note" style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
             Ref: <strong style={{ color: 'var(--color-text)' }}>{assessment.id}</strong> · Volume: <strong style={{ color: 'var(--color-text)' }}>{volumeLabel}</strong> · Desk margin (internal): <strong style={{ color: 'var(--color-accent)' }}>€{deskMargin.toFixed(2)}/MWh</strong>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <div className="lp-footer-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             {signoffRecord ? (
               <span
                 className="chip"
@@ -1729,7 +1735,7 @@ Document fingerprint: ${seal}`.trim();
 
             <button
               type="button"
-              className="btn btn-primary"
+              className="btn btn-primary lp-export-all"
               style={{ padding: '6px 14px', fontSize: '12px', fontWeight: 800 }}
               onClick={handleDownloadCompletePackage}
               title="Download all 5 deal documents at once"

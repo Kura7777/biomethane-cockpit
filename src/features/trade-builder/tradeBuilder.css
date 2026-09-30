@@ -941,3 +941,429 @@ html.dark .tb-range {
   background: var(--color-subtier);
   border-color: var(--color-divider);
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * Mobile (<768px). Desktop is untouched: everything below sits behind the media query,
+ * except the strip/sheet pieces that are only ever rendered on mobile.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Sticky headline strip: netback, P&L, gate status. Tap opens the waterfall + deal ticket sheet. */
+.tb-strip {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 8px var(--ds-page-gutter, 16px);
+  border: 0;
+  border-bottom: 1px solid var(--color-divider);
+  background: var(--color-surface);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  font: inherit;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.tb-strip:active {
+  background: var(--color-subtier);
+}
+
+.tb-strip-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.tb-strip-gate {
+  flex: 1 1 auto;
+  align-items: flex-end;
+}
+
+.tb-strip-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.tb-strip-value {
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.tb-strip-unit {
+  margin-left: 2px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-muted);
+}
+
+.tb-strip-badge {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 2px 8px;
+  border: 1px solid;
+  border-radius: var(--radius-bar);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tb-strip-badge.pos {
+  color: var(--color-status-pos-text);
+  background: var(--color-status-pos-bg);
+  border-color: color-mix(in srgb, var(--color-status-pos-text) 35%, transparent);
+}
+
+.tb-strip-badge.neg {
+  color: var(--color-status-neg-text);
+  background: var(--color-status-neg-bg);
+  border-color: color-mix(in srgb, var(--color-status-neg-text) 35%, transparent);
+}
+
+.tb-strip-badge.warn {
+  color: var(--color-status-warn-text);
+  background: var(--color-status-warn-bg);
+  border-color: color-mix(in srgb, var(--color-status-warn-text) 35%, transparent);
+}
+
+.tb-strip-chevron {
+  flex: none;
+  color: var(--color-muted);
+}
+
+.tb-sheet-waterfall {
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--color-divider);
+}
+
+@media (max-width: 767.98px) {
+  /* The flow column pads itself with content-box sizing on desktop; on a phone that pushes it
+     16px past each edge. */
+  .tb-flow {
+    box-sizing: border-box;
+    padding: 16px var(--ds-page-gutter, 16px) 24px;
+  }
+
+  .tb-form {
+    gap: 24px;
+  }
+
+  /* Next / step actions ride the bottom edge of the scroll area; bleed into the gutter. */
+  .tb-flow .tb-step-actions.m-sticky-actions {
+    margin-left: calc(var(--ds-page-gutter, 16px) * -1);
+    margin-right: calc(var(--ds-page-gutter, 16px) * -1);
+    margin-top: 24px;
+    flex-wrap: nowrap;
+  }
+  .tb-step-actions.m-sticky-actions .btn {
+    justify-content: center;
+  }
+
+  /* Buttons in a row become full-width thumb targets */
+  .tb-row-start,
+  .tb-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .tb-row-start > .btn,
+  .tb-row > .btn {
+    width: 100%;
+    justify-content: center;
+    min-height: 44px;
+    height: auto;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    text-align: center;
+  }
+  .tb-row > .tb-form-value {
+    padding-top: 0;
+  }
+
+  .tb-volume-input.input,
+  .tb-date-input.input {
+    width: 100%;
+  }
+
+  .tb-hero {
+    font-size: 34px;
+  }
+
+  .tb-figures {
+    gap: 14px 16px;
+  }
+  .tb-figures dd {
+    font-size: 18px;
+  }
+
+  .tb-form-value {
+    font-size: 14px;
+  }
+
+  .tb-kv-row {
+    padding: 10px 0;
+  }
+  .tb-kv-row > :last-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .tb-facts-list {
+    gap: 12px;
+  }
+
+  .tb-gate {
+    padding: 14px 4px;
+    min-height: 56px;
+  }
+  .tb-gate-side {
+    max-width: 96px;
+  }
+
+  .tb-docs .tb-doc {
+    min-height: 48px;
+    padding: 10px 4px;
+  }
+
+  .tb-alert {
+    align-items: flex-start;
+  }
+  .tb-alert .btn {
+    min-height: 44px;
+  }
+
+  /* Waterfall: label and value on one line, bar underneath, nothing truncated. */
+  .tb-waterfall {
+    gap: 14px;
+  }
+  .tb-waterfall-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px 12px;
+  }
+  .tb-waterfall-label {
+    grid-column: 1;
+    grid-row: 1;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    font-size: 13px;
+    line-height: 1.35;
+  }
+  .tb-waterfall-value {
+    grid-column: 2;
+    grid-row: 1;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+  .tb-waterfall-track {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    height: 10px;
+  }
+
+  /* Deal ticket inside the sheet: tap-sized controls */
+  .tt-aside-body {
+    padding: 16px;
+    gap: 16px;
+  }
+  .tt-inline-input {
+    width: 84px;
+    min-height: 40px;
+    padding: 4px 8px;
+  }
+  .tt-best-route-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: 6px;
+  }
+  .tt-best-route-row .tt-switch-btn {
+    grid-column: 1 / -1;
+    min-height: 44px;
+    font-size: 13px;
+  }
+  .tt-best-route-label {
+    white-space: normal;
+  }
+  .tt-copy-btn,
+  .tt-linklike {
+    min-height: 44px;
+  }
+  .tt-figure-row dd {
+    white-space: normal;
+  }
+
+  /* ── Legal package modal ── */
+  .lp-modal.m-dialog {
+    background: var(--color-bg);
+  }
+  .lp-header.m-dialog-header {
+    padding: calc(env(safe-area-inset-top) + 12px) 16px 12px !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    flex-wrap: nowrap !important;
+  }
+  .lp-header > div:first-child {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+  .lp-header h3 {
+    font-size: 15px !important;
+  }
+  .lp-toolbar {
+    flex: none;
+  }
+  .lp-toolbar .btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Document tabs: one scrolling row */
+  .lp-tabs {
+    flex: none;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 8px 0 8px 16px !important;
+    gap: 8px !important;
+  }
+  .lp-tabs-chips {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    padding-right: 16px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .lp-tabs-chips::-webkit-scrollbar {
+    display: none;
+  }
+  .lp-tabs-chips .chip {
+    flex: none;
+    white-space: nowrap;
+    min-height: 44px;
+    padding: 0 14px !important;
+  }
+  .lp-tabs > div:last-child {
+    flex-wrap: wrap;
+    padding-right: 16px;
+    min-width: 0;
+  }
+  .lp-tabs code {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+  }
+
+  .lp-body.m-dialog-body {
+    padding: 12px !important;
+  }
+  .lp-body .btn,
+  .lp-body .seg-opt {
+    min-height: 44px;
+  }
+  .lp-body select,
+  .lp-body input {
+    min-height: 44px;
+  }
+
+  /* The A4 paper sheet loses its desktop margins */
+  .lp-paper {
+    padding: 16px !important;
+    gap: 18px !important;
+  }
+  .lp-paper > div[style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  /* Key/value tables: label over value, no horizontal scroll */
+  .lp-body table.table,
+  .lp-body table.table tbody,
+  .lp-body table.table tr,
+  .lp-body table.table td {
+    display: block;
+    width: 100% !important;
+  }
+  .lp-body table.table tr {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--color-divider);
+  }
+  .lp-body table.table td {
+    padding: 0 !important;
+    border: 0 !important;
+    overflow-wrap: anywhere;
+  }
+  .lp-body table.table td:empty {
+    display: none;
+  }
+
+  /* PDF previews: fill the screen height rather than a fixed 620px */
+  .lp-body iframe {
+    min-height: 60vh;
+  }
+
+  .lp-body pre {
+    max-width: 100%;
+  }
+
+  /* Long unbroken strings (document fingerprint, XML/CSV fields) wrap instead of pushing the sheet wide */
+  .lp-body div {
+    overflow-wrap: anywhere;
+    min-width: 0;
+  }
+  .lp-body div[style*="space-between"] {
+    flex-wrap: wrap !important;
+  }
+  .lp-body .chip:not(.lp-tabs-chips .chip) {
+    white-space: normal;
+    max-width: 100%;
+  }
+
+  /* Export bar: the primary export leads and stays pinned; the other downloads scroll sideways */
+  .lp-footer {
+    flex: none;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 10px 0 calc(env(safe-area-inset-bottom) + 10px) !important;
+    gap: 8px !important;
+    box-shadow: 0 -6px 16px rgba(0, 0, 0, 0.08);
+  }
+  .lp-footer-note {
+    padding: 0 16px;
+    min-width: 0;
+  }
+  .lp-footer-actions {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    padding: 0 16px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .lp-footer-actions::-webkit-scrollbar {
+    display: none;
+  }
+  .lp-footer-actions > * {
+    flex: none;
+    white-space: nowrap;
+    min-height: 44px;
+  }
+  .lp-footer-actions > .lp-export-all {
+    order: -1;
+  }
+}

@@ -83,16 +83,16 @@ export function PoSUploaderModal({ isOpen, onClose, onApply }: PoSUploaderModalP
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-xs animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 max-md:p-0 backdrop-blur-xs animate-fade-in"
       data-testid="pos-uploader-modal"
     >
       <div 
-        className="w-full max-w-3xl rounded-xl border border-stone-700 bg-stone-900 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+        className="w-full max-w-3xl rounded-xl border border-stone-700 bg-stone-900 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] max-md:max-w-none max-md:h-full max-md:max-h-none max-md:rounded-none max-md:border-0"
         role="dialog"
         aria-label="Proof of Sustainability Certificate Ingestion"
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-stone-800 px-6 py-4 bg-stone-950/60">
+        <div className="flex items-center justify-between border-b border-stone-800 px-6 py-4 bg-stone-950/60 max-md:px-4 max-md:pt-[calc(env(safe-area-inset-top)+12px)] max-md:gap-3 max-md:items-start">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
               <FileText className="h-5 w-5" />
@@ -110,7 +110,7 @@ export function PoSUploaderModal({ isOpen, onClose, onApply }: PoSUploaderModalP
           <button 
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1.5 text-stone-400 hover:bg-stone-800 hover:text-stone-200 transition-colors"
+            className="rounded-lg p-1.5 text-stone-400 hover:bg-stone-800 hover:text-stone-200 transition-colors max-md:p-3 max-md:-m-1.5 max-md:shrink-0"
             data-testid="modal-close-btn"
           >
             <X className="h-5 w-5" />
@@ -118,7 +118,7 @@ export function PoSUploaderModal({ isOpen, onClose, onApply }: PoSUploaderModalP
         </div>
 
         {/* Content Body */}
-        <div className="p-6 overflow-y-auto space-y-5 flex-1 text-xs">
+        <div className="p-6 max-md:p-4 overflow-y-auto space-y-5 flex-1 min-h-0 text-xs">
           {/* Sample Preset Chips */}
           <div>
             <div className="text-stone-400 mb-2 font-medium flex items-center gap-1.5">
@@ -129,21 +129,21 @@ export function PoSUploaderModal({ isOpen, onClose, onApply }: PoSUploaderModalP
               <button
                 type="button"
                 onClick={() => setInputText(SAMPLE_POS_ISCC_DK)}
-                className="px-2.5 py-1.5 rounded-md bg-stone-800 border border-stone-700 hover:border-emerald-500 text-stone-300 hover:text-white transition-all text-xs flex items-center gap-1.5"
+                className="px-2.5 py-1.5 rounded-md bg-stone-800 border border-stone-700 hover:border-emerald-500 text-stone-300 hover:text-white transition-all text-xs flex items-center gap-1.5 max-md:min-h-11"
               >
                 🇩🇰 ISCC EU (Danish Manure -92.5 CI)
               </button>
               <button
                 type="button"
                 onClick={() => setInputText(SAMPLE_POS_REDCERT_DE)}
-                className="px-2.5 py-1.5 rounded-md bg-stone-800 border border-stone-700 hover:border-emerald-500 text-stone-300 hover:text-white transition-all text-xs flex items-center gap-1.5"
+                className="px-2.5 py-1.5 rounded-md bg-stone-800 border border-stone-700 hover:border-emerald-500 text-stone-300 hover:text-white transition-all text-xs flex items-center gap-1.5 max-md:min-h-11"
               >
                 🇩🇪 REDcert-EU (German Biowaste +14.2 CI)
               </button>
               <button
                 type="button"
                 onClick={() => setInputText(SAMPLE_POS_ISCC_PLUS)}
-                className="px-2.5 py-1.5 rounded-md bg-stone-800 border border-stone-700 hover:border-emerald-500 text-stone-300 hover:text-white transition-all text-xs flex items-center gap-1.5"
+                className="px-2.5 py-1.5 rounded-md bg-stone-800 border border-stone-700 hover:border-emerald-500 text-stone-300 hover:text-white transition-all text-xs flex items-center gap-1.5 max-md:min-h-11"
               >
                 🇳🇱 ISCC PLUS (Voluntary Scope 1)
               </button>
@@ -154,7 +154,7 @@ export function PoSUploaderModal({ isOpen, onClose, onApply }: PoSUploaderModalP
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-stone-300 font-medium">Paste Certificate Text or Drop File:</label>
-              <label className="cursor-pointer text-emerald-400 hover:text-emerald-300 flex items-center gap-1 font-medium">
+              <label className="cursor-pointer text-emerald-400 hover:text-emerald-300 flex items-center gap-1 font-medium max-md:min-h-11">
                 <UploadCloud className="h-3.5 w-3.5" />
                 Upload .txt/.csv file
                 <input type="file" accept=".txt,.csv,.json,.pdf" onChange={handleFileUpload} className="hidden" />
@@ -189,7 +189,7 @@ export function PoSUploaderModal({ isOpen, onClose, onApply }: PoSUploaderModalP
               </div>
 
               {/* Parsed Attributes Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 max-sm:grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="p-2.5 rounded bg-stone-900 border border-stone-800">
                   <div className="text-stone-400 text-xs">Certificate #</div>
                   <div className="font-mono font-semibold text-stone-200 truncate" title={parsed.certificateNumber}>
@@ -249,11 +249,11 @@ export function PoSUploaderModal({ isOpen, onClose, onApply }: PoSUploaderModalP
         </div>
 
         {/* Footer Actions */}
-        <div className="flex items-center justify-between border-t border-stone-800 px-6 py-4 bg-stone-950/60">
+        <div className="flex items-center justify-between border-t border-stone-800 px-6 py-4 bg-stone-950/60 max-md:px-4 max-md:gap-3 max-md:pb-[calc(env(safe-area-inset-bottom)+12px)]">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 font-medium text-xs transition-colors"
+            className="px-4 py-2 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 font-medium text-xs transition-colors max-md:min-h-11"
           >
             Cancel
           </button>
@@ -261,7 +261,7 @@ export function PoSUploaderModal({ isOpen, onClose, onApply }: PoSUploaderModalP
             type="button"
             onClick={handleApply}
             disabled={!parsed || !parsed.isValid}
-            className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:pointer-events-none text-white font-semibold text-xs transition-all flex items-center gap-2 shadow-lg shadow-emerald-950"
+            className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:pointer-events-none text-white font-semibold text-xs transition-all flex items-center gap-2 shadow-lg shadow-emerald-950 max-md:min-h-11 max-md:flex-1 max-md:justify-center"
             data-testid="pos-apply-btn"
           >
             Apply to Trade Builder

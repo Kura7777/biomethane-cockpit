@@ -19,6 +19,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { showToast } from '../../../app/DeskToastContainer';
+import { useIsMobile } from '../../../shared/hooks/useMediaQuery';
 
 interface TradeExecutionStepProps {
   currentTradeAssessment: TradeAssessment;
@@ -52,6 +53,7 @@ export function TradeExecutionStep({
   onReset,
 }: TradeExecutionStepProps) {
   const [copiedSummary, setCopiedSummary] = useState(false);
+  const isMobile = useIsMobile();
   const consignment = currentTradeAssessment.consignment;
   const isEligible = currentTradeAssessment.eligibility.overallVerdict === 'ELIGIBLE';
 
@@ -258,6 +260,20 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
           <p className="tb-hint">Institutional audit trail · EFET 2026 Annex compliant · Union Database mass-balance validated</p>
         </div>
       </div>
+
+      {/* Mobile: thumb-reach shortcuts to the two primary actions (same handlers as the buttons above) */}
+      {isMobile && (
+        <div className="tb-step-actions m-sticky-actions" data-testid="tb-mobile-actions">
+          <button type="button" className="btn btn-secondary" onClick={onSaveDossier}>
+            <FolderDown size={14} />
+            <span>Save dossier</span>
+          </button>
+          <button type="button" className="btn btn-primary" onClick={() => onOpenDocReview('TERM_SHEET')}>
+            <Package size={14} />
+            <span>Review package</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
