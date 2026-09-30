@@ -167,8 +167,8 @@ export interface Ets1Site {
   verifiedPreviousTco2: number | null;
   /**
    * Free allowances allocated for ETS1_LATEST_YEAR, in tCO2e: Art 10a(1) allocation plus the
-   * new-entrant reserve (Art 10a(7)), from the Commission's verified-emissions workbook. Null when
-   * the registry shows no figure (n/a): unknown, not zero. Zero means none allocated.
+   * new-entrant reserve (Art 10a(7)), from the Commission's verified-emissions workbook. The
+   * workbook's n/a means "no allocation has been made", so it is 0; null only for any other gap.
    */
   freeAllocLatestTco2: number | null;
   /**

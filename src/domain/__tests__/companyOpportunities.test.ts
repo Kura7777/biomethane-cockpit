@@ -52,9 +52,10 @@ describe('regulation exposure', () => {
     expect(pos.priorYearSites).toBe(1);
     // Allocation at one site offsets emissions at another, but the net never goes below zero.
     expect(ets1NetPosition([{ sites: [site(100, 5000)] } as never]).netTco2).toBe(0);
-    const withUnknown = directory.find(p => p.ets1.some(c => c.sites.some(v => v.freeAllocLatestTco2 === null)))!;
-    const x = computeRegulationExposure(withUnknown, marks, ETS2_COUNTRIES);
-    expect(x.ets1AllocUnknownSites).toBeGreaterThan(0);
+    // The registry's n/a means no allocation was made (0), so no current company is an upper bound.
+    const withEts1 = directory.filter(p => p.ets1.length);
+    expect(withEts1.every(p => computeRegulationExposure(p, marks, ETS2_COUNTRIES).ets1AllocUnknownSites === 0)).toBe(true);
+    const x = computeRegulationExposure(withEts1[0], marks, ETS2_COUNTRIES);
     expect(x.ets1NetTco2).toBeLessThanOrEqual(x.ets1Tco2 as number);
     const stand = directory.find(p => p.ets1.some(c => c.sites.some(v => v.verifiedLatestIsPriorYear)))!;
     expect(computeRegulationExposure(stand, marks, ETS2_COUNTRIES).ets1PriorYearSites).toBeGreaterThan(0);

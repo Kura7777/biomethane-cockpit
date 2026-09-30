@@ -51,6 +51,11 @@ def num(v):
     return float(v) if isinstance(v, (int, float)) and not isinstance(v, bool) else None
 
 
+def alloc_num(v):
+    """Allocation cell: n/a means no allocation was made (0); other non-numeric values are unknown."""
+    return 0.0 if isinstance(v, str) and v.strip().lower() == 'n/a' else num(v)
+
+
 def read_ve(path: str):
     wb = openpyxl.load_workbook(path, read_only=True)
     extraction = next(iter(wb['Read Me'].iter_rows(values_only=True)))[1]
@@ -127,8 +132,9 @@ def main(ve_path: str, zip_path: str, ops_path: str) -> None:
         # Free allocation, latest year: Art 10a(1) allocation plus the new-entrant reserve
         # (Art 10a(7)). Art 10c (transitional, modernisation of electricity) and the
         # Iceland / FEETS columns are not part of it and are zero for 2025 anyway.
-        # n/a in every summed column means unknown (null), 0 means none allocated.
-        parts = [num(d[f'ALLOCATION_{latest}']), num(d[f'ALLOCATION_RESERVE_{latest}'])]
+        # The workbook's Read Me defines n/a as "No allocation has been made", so n/a counts as 0
+        # (power generation gets none). Only a non-numeric value other than n/a stays unknown (null).
+        parts = [alloc_num(d[f'ALLOCATION_{latest}']), alloc_num(d[f'ALLOCATION_RESERVE_{latest}'])]
         alloc = None if all(p is None for p in parts) else round(sum(p for p in parts if p is not None))
         parent = (inst['parentCompany'] or '').strip() if inst else ''
         if parent == '-':
