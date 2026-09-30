@@ -195,7 +195,7 @@ export function computeValueStack(inputs: ValueStackInputs, marks: MarksState): 
           ? 'Enter the share burned at small sites (0 if none): only gas burned at ETS1 installations earns this saving.'
           : `${ets.workings} × ${HHV_TO_LHV_FACTOR} (invoice GCV → NCV) × ${(largeShare * 100).toFixed(0)}% burned at ETS1 installations`,
         evidenceNeeded: 'RED III sustainability evidence via the Union Database (PoS assigned to the site), purchase records; accepted by the site\'s verifier.',
-        legalBasis: 'MRR (EU) 2018/2066 Art. 38–39 & Annex VI',
+        legalBasis: 'Art. 38(5) and 39a of Implementing Regulation (EU) 2018/2066 & Annex VI',
       });
       if (inputs.smallSiteShare === null) missingInputs.push('share at small sites (< 20 MW), 0 if none');
       // With no small sites the pass-through cannot matter, so it is only asked for when some gas goes to them.

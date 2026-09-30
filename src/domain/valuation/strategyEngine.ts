@@ -25,7 +25,7 @@ import {
 const RED3_TRANSPORT_MAX_CI = CI_COMPARATOR_ROAD_TRANSPORT * (1 - GHG_THRESHOLDS_TRANSPORT.POST_2021_TO_2025);
 
 /**
- * Natural gas combustion CO₂ emission factor for EU ETS MRR Art. 38 zero-rating.
+ * Natural gas combustion CO₂ emission factor for EU ETS MRR (Art. 38(5) and 39a of Implementing Regulation (EU) 2018/2066) zero-rating.
  * Source: IPCC 2006 Guidelines / EU Commission Implementing Regulation (EU) 2018/2066
  */
 const NATURAL_GAS_CO2_G_PER_MWH = 202; // gCO₂/MWh
@@ -607,7 +607,7 @@ export function evaluatePlantCommercialStrategies(
   // STRATEGY 5: EU ETS Industrial Scope 1 Zero-Rating (Corporate Heat/Industry)
   // ==========================================================================
   {
-    // Under EU ETS MRR Art. 38, natural gas combustion emits 0.202 tCO2/MWh.
+    // Under EU ETS MRR (Art. 38(5) and 39a of Implementing Regulation (EU) 2018/2066), natural gas combustion emits 0.202 tCO2/MWh.
     // Burning biomethane saves 0.202 EUAs per MWh. (0.202 = 202 / 1000)
     const avoidedEuaPerMwh = (NATURAL_GAS_CO2_G_PER_MWH * euEtsEuaPrice) / 1000;
     const deliveredValue = Number((ttfDayAhead + avoidedEuaPerMwh + 4.00).toFixed(2));
@@ -634,7 +634,7 @@ export function evaluatePlantCommercialStrategies(
       strategyName: 'EU ETS Industrial Scope 1 Zero-Rating (Chemical/Steel/Glass)',
       category: 'INDUSTRIAL_ETS',
       deliveryModel: 'PHYSICAL_AND_CERTIFICATE',
-      targetMarket: 'EU ETS Heavy Industry (EUA Compliance Offsetting under MRR Art. 38)',
+      targetMarket: 'EU ETS Heavy Industry (EUA Compliance Offsetting under MRR, Art. 38(5) and 39a of Implementing Regulation (EU) 2018/2066)',
       isEligible: meetsRed3Transport,
       ineligibilityReason: !meetsRed3Transport ? 'Fails RED II/III sustainability criteria required for EU ETS zero-rating.' : undefined,
       subsidyAction: 'SUPPORT_SWITCH_OFF',
@@ -656,7 +656,7 @@ export function evaluatePlantCommercialStrategies(
         structuringFeeEurPerMonth: monthlyStructuringFee,
       },
       regulatoryNotes: [
-        'EU ETS Monitoring and Reporting Regulation (MRR Art. 38) allows 0-rating of biomethane emissions.',
+        'EU ETS Monitoring and Reporting Regulation (Art. 38(5) and 39a of Implementing Regulation (EU) 2018/2066) allows 0-rating of biomethane emissions.',
         'Saves 0.202 EU ETS Allowances (EUAs) per MWh of natural gas substituted.',
         'Requires ISCC EU Proof of Sustainability and permanent cancellation of Guarantees of Origin.',
       ],

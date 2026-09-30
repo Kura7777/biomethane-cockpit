@@ -453,6 +453,18 @@ export const ASSUMPTION_DEFINITIONS: AssumptionDefinition[] = [
     min: 1,
     max: 100,
   },
+  {
+    key: 'clients.ets1DataYear',
+    category: 'SCANNER',
+    label: 'EU ETS1 installation data: latest verified-emissions year on file',
+    unit: 'year',
+    defaultValue: 2025,
+    basis: 'MARKET_MARK',
+    source: 'European Commission verified_emissions_2025_en.xlsx (published 9 Apr 2026, extracted 1 Apr 2026): verified emissions and free allocation. Parent company and NACE from the EUETS.INFO May 2024 EUTL release. Sites with no 2025 figure yet carry 2024 (flagged on the company page).',
+    usedIn: 'Clients and the EU ETS installations tab: data vintage label only, not an input to any calculation',
+    min: 2025,
+    max: 2025,
+  },
 ];
 
 const DEFINITIONS_BY_KEY = new Map(ASSUMPTION_DEFINITIONS.map(d => [d.key, d]));

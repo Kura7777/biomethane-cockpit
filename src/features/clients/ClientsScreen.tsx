@@ -31,14 +31,13 @@ import { SECTOR_LABEL, ETS1_LATEST_YEAR } from '../../domain/ets1/sites';
 import { selectMarkPrice } from '../../domain/netback/engine';
 import { searchFold } from '../../domain/companies/normalize';
 import { formatEur } from '../../domain/companies/money';
+import { SHIPPING_DATA_YEAR as MRV_YEAR } from '../../domain/companies/dataYears';
 import { buildCsv } from '../../domain/companies/csv';
 import { Status, STATUS_LABEL, resolveStatus, withStatus, linksWithout } from '../../domain/companies/clientState';
 import { ValueStackCard, StackBadge } from '../value-stack/ValueStackCard';
 import { LINKS_KEY, STATUS_KEY, readLinks, readStatuses, readEts2Companies, readEts2Countries, writeJson } from './deskInputs';
 
 const PAGE = 100;
-/** EU MRV reporting year behind every shipping figure (FuelEU and ETS maritime). */
-const MRV_YEAR = 2024;
 /** Country filter value for companies with no home country in the data (every shipping group). */
 const NO_COUNTRY = '__none__';
 
@@ -58,12 +57,12 @@ const SORT_OPTIONS: { value: string; label: string }[] = [
 ];
 
 const COLUMN_HELP = {
-  bio: `Biomethane value: the annual value of the biomethane this company could use now, every play at market on the same basis. Ships: FuelEU compliance at the desk pool price plus EU ETS maritime allowances saved (EU MRV ${MRV_YEAR}). ETS1: allowances saved at the desk EUA on ${ETS1_LATEST_YEAR} verified emissions at high/medium-fit sites (full potential, ${ETS1_BASIS_LABEL}). ETS2 starts in 2028 and is not included.`,
-  cost: `Cost now: what compliance costs this company this year at desk marks. FuelEU: the 2026 deficit bought at the desk pool mark (EU MRV ${MRV_YEAR}) + EU ETS maritime (EU MRV ${MRV_YEAR}, 100% phase-in) + EU ETS1 (${ETS1_LATEST_YEAR} emissions, ${ETS1_BASIS_LABEL}). ETS2 is not included.`,
+  bio: `Biomethane value: the annual value of the biomethane this company could use now, every play at market on the same basis. Ships: FuelEU compliance at the desk pool price plus EU ETS maritime allowances saved (EU MRV ${MRV_YEAR}). ETS1: allowances saved at the desk EUA on ${ETS1_LATEST_YEAR} verified emissions at high/medium-fit sites (full potential, not netted for free allocation: each tonne avoided frees an allowance to sell or not buy). ETS2 starts in 2028 and is not included.`,
+  cost: `Cost now: what compliance costs this company this year at desk marks. FuelEU: the 2026 deficit bought at the desk pool mark (EU MRV ${MRV_YEAR}) + EU ETS maritime (EU MRV ${MRV_YEAR}, 100% phase-in) + EU ETS1 (${ETS1_LATEST_YEAR} emissions ${ETS1_BASIS_LABEL}; "≤" where some sites have no allocation figure). ETS2 is not included.`,
   fueleu: `FuelEU Maritime: the 2026 deficit (EU MRV ${MRV_YEAR} as proxy) bought at the desk pool mark. "Compliant" means no deficit. The statutory penalty is on the company page.`,
   maritime: `EU ETS maritime: 2026 allowance cost, 100% phase-in, on EU MRV ${MRV_YEAR} emissions at the desk EUA`,
-  ets1: `EU ETS1 installations: allowance bill on ${ETS1_LATEST_YEAR} verified emissions at the desk EUA, ${ETS1_BASIS_LABEL}`,
-  ets2: 'EU ETS2: supplier allowance bill from 2028 at the desk ETS2 mark, where volume is known. "Partial" lists only the countries with a volume; otherwise its role.',
+  ets1: `EU ETS1 installations: allowance bill on ${ETS1_LATEST_YEAR} verified emissions at the desk EUA, ${ETS1_BASIS_LABEL} (company-level: allocation offsets emissions across its sites). "≤" = allocation unknown for some sites, so an upper bound; † = some sites carry the year before (latest year not reported yet).`,
+  ets2: 'EU ETS2: supplier allowance bill from 2028 at the desk ETS2 mark, where volume is known. Hover a figure for its scope: the ETS2-segment share of the disclosed volume, or "all segments" (an upper bound). "Partial" lists only the countries with a volume; otherwise its role.',
 } as const;
 
 function eur(v: number | null, digits = 0): string {
@@ -95,10 +94,25 @@ function fuelEuCell(x: RegulationExposure): Cell {
   }
 }
 
+function ets1Cell(x: RegulationExposure): Cell {
+  if (x.ets1BillEur === null) return { text: '—', muted: true };
+  const notes = [
+    `Net of free allocation: ${Math.round(x.ets1Tco2 ?? 0).toLocaleString('en-GB')} t verified − ${Math.round(x.ets1FreeAllocTco2 ?? 0).toLocaleString('en-GB')} t free = ${Math.round(x.ets1NetTco2 ?? 0).toLocaleString('en-GB')} t at the desk EUA`,
+    ...(x.ets1AllocUnknownSites > 0 ? [`Allocation unknown for ${x.ets1AllocUnknownSites} site${x.ets1AllocUnknownSites > 1 ? 's' : ''}: upper bound`] : []),
+    ...(x.ets1PriorYearSites > 0 ? [`${x.ets1PriorYearSites} site${x.ets1PriorYearSites > 1 ? 's' : ''} show the year before (${ETS1_LATEST_YEAR} not yet reported)`] : []),
+  ];
+  return {
+    text: `${x.ets1AllocUnknownSites > 0 ? '≤' : ''}${formatEur(x.ets1BillEur)}${x.ets1PriorYearSites > 0 ? '†' : ''}`,
+    muted: false,
+    title: notes.join('. '),
+  };
+}
+
 function ets2Cell(x: RegulationExposure): Cell {
+  const scope = x.ets2ScopeLines.length ? ` Scope: ${x.ets2ScopeLines.join('; ')}.` : '';
   switch (x.ets2Standing) {
-    case 'QUANTIFIED': return { text: formatEur(x.ets2CostEur), muted: false };
-    case 'PARTIAL': return { text: `${formatEur(x.ets2CostEur)} partial`, muted: false, title: `Covers ${x.ets2CoveredCountries.join(', ')} only; no volume yet for ${x.ets2UncoveredCountries.join(', ') || 'its other suppliers'}` };
+    case 'QUANTIFIED': return { text: formatEur(x.ets2CostEur), muted: false, title: scope.trim() || undefined };
+    case 'PARTIAL': return { text: `${formatEur(x.ets2CostEur)} partial`, muted: false, title: `Covers ${x.ets2CoveredCountries.join(', ')} only; no volume yet for ${x.ets2UncoveredCountries.join(', ') || 'its other suppliers'}.${scope}` };
     case 'NO_ETS2_PRICE': return { text: 'No ETS2 price', muted: true, title: 'Volume is known but there is no ETS2 mark to price it' };
     case 'SUPPLIER_VOLUME_UNKNOWN': return { text: 'Volume unknown', muted: true };
     case 'END_USER': return { text: 'End user', muted: true };
@@ -109,9 +123,10 @@ function ets2Cell(x: RegulationExposure): Cell {
 function costNowCell(x: RegulationExposure): Cell {
   if (x.costNowEur === 0 && x.fuelEuState === 'COMPLIANT') return { text: 'Compliant', muted: true };
   if (x.costNowEur === null) return { text: '—', muted: true };
+  const upper = x.ets1AllocUnknownSites > 0 ? '≤' : '';
   return x.costNowIncomplete
-    ? { text: `${formatEur(x.costNowEur)}*`, muted: false, title: 'Excludes the FuelEU deficit: no pool mark to price it' }
-    : { text: formatEur(x.costNowEur), muted: false };
+    ? { text: `${upper}${formatEur(x.costNowEur)}*`, muted: false, title: 'Excludes the FuelEU deficit: no pool mark to price it' }
+    : { text: `${upper}${formatEur(x.costNowEur)}`, muted: false, title: upper ? 'ETS1 allocation unknown for some sites: upper bound' : undefined };
 }
 
 interface Row {
@@ -261,7 +276,7 @@ export function ClientsScreen() {
       'Company', 'Countries', 'Sectors', 'Regulations',
       'Biomethane value € (plays now, at desk marks)', 'Best play', 'Cost now €',
       'FuelEU cost € (deficit at pool mark)', 'FuelEU 2026 deficit tCO2e', 'FuelEU statutory penalty € (ceiling)',
-      `EU ETS maritime € (MRV ${MRV_YEAR})`, `EU ETS1 € (${ETS1_LATEST_YEAR} emissions, ${ETS1_BASIS_LABEL})`, 'EU ETS1 tCO2',
+      `EU ETS maritime € (MRV ${MRV_YEAR})`, `EU ETS1 € (${ETS1_LATEST_YEAR} emissions, ${ETS1_BASIS_LABEL})`, 'EU ETS1 gross tCO2', 'EU ETS1 free allocation tCO2', 'EU ETS1 sites, allocation unknown', 'EU ETS1 sites, prior-year figure',
       'EU ETS2 from 2028 €', 'EU ETS2 status', 'EU ETS2 countries covered', 'Value stack', 'Status',
     ];
     const round = (v: number | null) => (v === null ? null : Math.round(v));
@@ -279,6 +294,9 @@ export function ClientsScreen() {
       round(r.exposure.etsMaritimeEur),
       round(r.exposure.ets1BillEur),
       round(r.exposure.ets1Tco2),
+      round(r.exposure.ets1FreeAllocTco2),
+      r.exposure.ets1AllocUnknownSites,
+      r.exposure.ets1PriorYearSites,
       round(r.exposure.ets2CostEur),
       r.exposure.ets2Standing === 'NONE' ? null : r.exposure.ets2Standing,
       r.exposure.ets2CoveredCountries.join(' '),
@@ -421,11 +439,12 @@ export function ClientsScreen() {
               const fe = fuelEuCell(r.exposure);
               const cn = costNowCell(r.exposure);
               const e2 = ets2Cell(r.exposure);
+              const e1 = ets1Cell(r.exposure);
               return [
                 { label: 'Cost now', value: cn.text, mono: !cn.muted, tone: cn.muted ? 'muted' : undefined, span: 2 },
                 { label: 'FuelEU', value: fe.text, mono: !fe.muted, tone: fe.muted ? 'muted' : undefined },
                 { label: 'ETS maritime', value: formatEur(r.exposure.etsMaritimeEur), mono: true, tone: r.exposure.etsMaritimeEur === null ? 'muted' : undefined },
-                { label: `ETS1 (${ETS1_LATEST_YEAR}, gross)`, value: formatEur(r.exposure.ets1BillEur), mono: true, tone: r.exposure.ets1BillEur === null ? 'muted' : undefined },
+                { label: `ETS1 (${ETS1_LATEST_YEAR}, net)`, value: e1.text, mono: !e1.muted, tone: e1.muted ? 'muted' : undefined },
                 { label: 'ETS2 (2028+)', value: e2.text, mono: !e2.muted, tone: e2.muted ? 'muted' : undefined },
                 { label: 'Best play', span: 2, value: r.best?.title ?? '—' },
               ];
@@ -477,6 +496,7 @@ export function ClientsScreen() {
                   const fe = fuelEuCell(r.exposure);
                   const cn = costNowCell(r.exposure);
                   const e2 = ets2Cell(r.exposure);
+                  const e1 = ets1Cell(r.exposure);
                   return (
                   <tr key={r.profile.id} data-click="1" onClick={() => select(r.profile.id)} style={{ cursor: 'pointer' }}>
                     <td style={{ ...stickyCell(false), maxWidth: '240px' }}>
@@ -489,7 +509,7 @@ export function ClientsScreen() {
                     <td className="num" title={cn.title} style={{ textAlign: 'right', color: cn.muted ? 'var(--color-text-muted)' : undefined }}>{cn.text}</td>
                     <td className="num" title={fe.title} style={{ textAlign: 'right', color: fe.muted ? 'var(--color-text-muted)' : undefined, fontSize: fe.text === 'Compliant' ? '12px' : undefined }}>{fe.text}</td>
                     <Money v={r.exposure.etsMaritimeEur} />
-                    <Money v={r.exposure.ets1BillEur} />
+                    <td className="num" title={e1.title} style={{ textAlign: 'right', color: e1.muted ? 'var(--color-text-muted)' : undefined }}>{e1.text}</td>
                     <td className="num" title={e2.title} style={{ textAlign: 'right', color: e2.muted ? 'var(--color-text-muted)' : undefined, fontSize: e2.muted && r.exposure.ets2Standing !== 'NONE' ? '12px' : undefined }}>
                       {e2.text}
                     </td>
@@ -591,8 +611,8 @@ function CompanyPage(props: {
         : '',
     },
     { key: 'ETS_MARITIME', cost: has('ETS_MARITIME') ? `${formatEur(x.etsMaritimeEur)}/yr` : '', basis: has('ETS_MARITIME') ? `${Math.round(maritimeT).toLocaleString('en-GB')} tCO₂e in scope (100% intra-EU, 50% in/out of the EU), 100% phase-in from 2026, at €${price(eua)}/t. EU MRV ${MRV_YEAR}.` : '' },
-    { key: 'ETS1', cost: has('ETS1') ? `${formatEur(x.ets1BillEur)}/yr` : '', basis: has('ETS1') ? `${sites.length} installation${sites.length > 1 ? 's' : ''}, ${Math.round(ets1T).toLocaleString('en-GB')} tCO₂ verified ${ETS1_LATEST_YEAR} (${Math.round(ets1FitT).toLocaleString('en-GB')} t at high/medium-fit sites), at €${price(eua)}/t, ${ETS1_BASIS_LABEL}. EUTL.` : '' },
-    { key: 'ETS2', cost: has('ETS2') ? ets2Cost : '', basis: has('ETS2') ? p.ets2.map(e => `${e.countryIso}: ${e.role === 'REGULATED_SUPPLIER' ? 'regulated gas supplier' : `exposed end user${e.sector ? ` (${e.sector})` : ''}`}${e.marketSharePct !== null ? `, ${e.marketSharePct}% share` : ''}${e.gasVolumeTWh !== null ? `, ${e.gasVolumeTWh} TWh disclosed` : ''}`).join('; ') + `. ETS2 at ${props.ets2Price === null ? 'no price' : `€${price(props.ets2Price)}/t`}.${ets2Coverage}` : '' },
+    { key: 'ETS1', cost: has('ETS1') ? `${x.ets1AllocUnknownSites > 0 ? '≤' : ''}${formatEur(x.ets1BillEur)}/yr` : '', basis: has('ETS1') ? `${sites.length} installation${sites.length > 1 ? 's' : ''}. Gross ${Math.round(x.ets1Tco2 ?? 0).toLocaleString('en-GB')} tCO₂ verified ${ETS1_LATEST_YEAR}, free allocation ${Math.round(x.ets1FreeAllocTco2 ?? 0).toLocaleString('en-GB')} t, net ${Math.round(x.ets1NetTco2 ?? 0).toLocaleString('en-GB')} t at €${price(eua)}/t (${ETS1_BASIS_LABEL}, at company level).${x.ets1AllocUnknownSites > 0 ? ` Allocation unknown for ${x.ets1AllocUnknownSites} site${x.ets1AllocUnknownSites > 1 ? 's' : ''}: upper bound.` : ''}${x.ets1PriorYearSites > 0 ? ` ${x.ets1PriorYearSites} site${x.ets1PriorYearSites > 1 ? 's' : ''} carry ${ETS1_LATEST_YEAR - 1} figures (${ETS1_LATEST_YEAR} not yet reported).` : ''} ${Math.round(ets1FitT).toLocaleString('en-GB')} t at high/medium-fit sites (the Biomethane value basis, not netted: each tonne avoided frees an allowance). EUTL.` : '' },
+    { key: 'ETS2', cost: has('ETS2') ? ets2Cost : '', basis: has('ETS2') ? p.ets2.map(e => `${e.countryIso}: ${e.role === 'REGULATED_SUPPLIER' ? 'regulated gas supplier' : `exposed end user${e.sector ? ` (${e.sector})` : ''}`}${e.marketSharePct !== null ? `, ${e.marketSharePct}% share` : ''}${e.gasVolumeTWh !== null ? `, ${e.gasVolumeTWh} TWh disclosed` : ''}`).join('; ') + `. ETS2 at ${props.ets2Price === null ? 'no price' : `€${price(props.ets2Price)}/t`}.${ets2Coverage}${x.ets2ScopeLines.length ? ` Scope: ${x.ets2ScopeLines.join('; ')}.` : ''}` : '' },
   ];
 
   const contacts = [
@@ -717,7 +737,7 @@ function CompanyPage(props: {
         <Card title="ETS1 installations" meta={`${sites.length} site${sites.length > 1 ? 's' : ''} · verified ${ETS1_LATEST_YEAR}`}>
           <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12px' }}>
             {sites.slice(0, 10).map(s => (
-              <li key={s.id}>{s.name} ({[s.city, s.country].filter(Boolean).join(', ')}) — {SECTOR_LABEL[s.sector]}, {Math.round(s.verifiedLatestTco2).toLocaleString('en-GB')} t</li>
+              <li key={s.id}>{s.name} ({[s.city, s.country].filter(Boolean).join(', ')}) — {SECTOR_LABEL[s.sector]}, {Math.round(s.verifiedLatestTco2).toLocaleString('en-GB')} t{s.verifiedLatestIsPriorYear ? ` (${ETS1_LATEST_YEAR - 1} figure, ${ETS1_LATEST_YEAR} not yet reported)` : ''}</li>
             ))}
             {sites.length > 10 && <li>…and {sites.length - 10} more</li>}
           </ul>

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { buildCompanyDirectory, CompanyProfile } from '../companies/directory';
-import { computeRegulationExposure, computeOpportunities, biomethaneValueEur, stackAnnualEur, ets1FirstDealShare, ets1StackSpec, shipStackSpec } from '../companies/opportunities';
+import { computeRegulationExposure, computeOpportunities, biomethaneValueEur, stackAnnualEur, ets1FirstDealShare, ets1StackSpec, shipStackSpec, ets1NetPosition } from '../companies/opportunities';
 import { computeValueStack } from '../valueStack/engine';
 import { ETS1_LATEST_YEAR } from '../ets1/sites';
 import { ETS2_COUNTRIES } from '../ets2/countries';
@@ -27,15 +27,39 @@ describe('regulation exposure', () => {
     const ctv = directory.find(p => p.id === 'cementos tudela veguin')!;
     const x = computeRegulationExposure(ctv, marks, ETS2_COUNTRIES);
     const maritimeT = sum(ctv, f => f.etsCo2Tco2);
-    const ets1T = ctv.ets1.reduce((s, c) => s + c.verifiedLatestTco2, 0);
+    const sites = ctv.ets1.flatMap(c => c.sites);
+    const ets1Net = Math.max(0, sites.reduce((s, v) => s + v.verifiedLatestTco2, 0) - sites.reduce((s, v) => s + (v.freeAllocLatestTco2 ?? 0), 0));
     const deficit = sum(ctv, f => f.deficit2026Tco2e);
     expect(x.etsMaritimeEur).toBeCloseTo(maritimeT * 70, 6);
-    expect(x.ets1BillEur).toBeCloseTo(ets1T * 70, 6);
+    expect(x.ets1BillEur).toBeCloseTo(ets1Net * 70, 6);
     expect(x.fuelEuCostEur).toBeCloseTo(deficit * 250, 6);
-    expect(x.costNowEur).toBeCloseTo(deficit * 250 + maritimeT * 70 + ets1T * 70, 6);
+    expect(x.costNowEur).toBeCloseTo(deficit * 250 + maritimeT * 70 + ets1Net * 70, 6);
     // The statutory penalty is kept for the detail view but is not part of what compliance costs.
     expect(x.fuelEuPenaltyEur).toBeGreaterThan(x.fuelEuCostEur as number);
     expect(x.ets2Standing).toBe('NONE');
+  });
+
+  it('ETS1 cost is net of free allocation at company level, never negative, and flags unknown allocation and stand-in years', () => {
+    const site = (verified: number, free: number | null, prior = false) => ({ verifiedLatestTco2: verified, freeAllocLatestTco2: free, verifiedLatestIsPriorYear: prior }) as never;
+    const pos = ets1NetPosition([{ sites: [site(1000, 400), site(500, null, true), site(200, 900)] } as never]);
+    expect(pos.grossTco2).toBe(1700);
+    expect(pos.freeAllocTco2).toBe(1300);
+    expect(pos.netTco2).toBe(400);
+    expect(pos.unknownSites).toBe(1);
+    expect(pos.priorYearSites).toBe(1);
+    // Allocation at one site offsets emissions at another, but the net never goes below zero.
+    expect(ets1NetPosition([{ sites: [site(100, 5000)] } as never]).netTco2).toBe(0);
+    const withUnknown = directory.find(p => p.ets1.some(c => c.sites.some(v => v.freeAllocLatestTco2 === null)))!;
+    const x = computeRegulationExposure(withUnknown, marks, ETS2_COUNTRIES);
+    expect(x.ets1AllocUnknownSites).toBeGreaterThan(0);
+    expect(x.ets1NetTco2).toBeLessThanOrEqual(x.ets1Tco2 as number);
+    const stand = directory.find(p => p.ets1.some(c => c.sites.some(v => v.verifiedLatestIsPriorYear)))!;
+    expect(computeRegulationExposure(stand, marks, ETS2_COUNTRIES).ets1PriorYearSites).toBeGreaterThan(0);
+  });
+
+  it('ETS2 scope: says whether the figure is the ETS2 segment or all segments (an upper bound)', () => {
+    const lines = directory.filter(p => p.ets2.length).map(p => computeRegulationExposure(p, marks, ETS2_COUNTRIES).ets2ScopeLines).flat();
+    expect(lines.some(l => /ETS2 segment, \d+% of disclosed volume/.test(l))).toBe(true);
   });
 
   it('a company with no FuelEU deficit is Compliant, not a zero cost; with no pool mark the deficit is unpriced', () => {
@@ -127,8 +151,8 @@ describe('opportunities', () => {
     expect(bio.valueEurHigh ?? bio.valueEur!).toBeGreaterThanOrEqual(bio.valueEur!);
   });
 
-  it('ETS1: valued at the full fit-site potential (fit tonnes x EUA), first deal shown as a volume only', () => {
-    const edison = directory.find(p => p.id === 'edison')!;
+  it('ETS1: valued at the full fit-site potential (fit tonnes x EUA, NOT netted for free allocation), first deal shown as a volume only', () => {
+    const edison = directory.find(p => p.id === 'basf')!;
     const op = computeOpportunities(edison, marks, ETS2_COUNTRIES, YEAR).find(o => o.id === 'ets1-biomethane')!;
     const fitT = edison.ets1.reduce((s, c) => s + c.fitVerifiedLatestTco2, 0);
     const volume = Math.round(biomethaneMWhToAbate(fitT) / HHV_TO_LHV_FACTOR);
@@ -173,11 +197,18 @@ describe('opportunities', () => {
 });
 
 describe('opportunities — fuel caveat', () => {
-  it('flags companies whose fit emissions are mostly power & heat plants (fuel unknown)', () => {
+  it('coal and lignite utilities are low fit, so they are not pitched a biomethane play', () => {
     const pge = directory.find(p => p.id.startsWith('pge polska grupa energetyczna'))!;
-    const op = computeOpportunities(pge, marks, ETS2_COUNTRIES, YEAR).find(o => o.id === 'ets1-biomethane')!;
-    expect(op.title).toMatch(/check fuel/);
-    expect(op.caveats[0]).toMatch(/coal or lignite|Coal- or lignite/);
+    const ops = computeOpportunities(pge, marks, ETS2_COUNTRIES, YEAR);
+    expect(ops.some(o => o.id === 'ets1-biomethane')).toBe(false);
+    expect(ops.find(o => o.id === 'ets1-low-fit')?.valueEur).toBeNull();
+  });
+
+  it('a gas-fired power group is still fit and valued', () => {
+    const naturgy = directory.find(p => /naturgy/i.test(p.name) && p.ets1.some(c => c.fitVerifiedLatestTco2 > 0))!;
+    const op = computeOpportunities(naturgy, marks, ETS2_COUNTRIES, YEAR).find(o => o.id === 'ets1-biomethane')!;
+    expect(op.valueEur).toBeGreaterThan(0);
+    expect(op.caveats.join(' ')).not.toMatch(/lignite/);
   });
 });
 

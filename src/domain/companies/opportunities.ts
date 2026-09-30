@@ -4,6 +4,7 @@ import { FUELEU_ANNEX_II } from '../fueleu/calculator';
 import { HHV_TO_LHV_FACTOR } from '../offtake/engine';
 import { biomethaneMWhToAbate, ets1AvoidedValuePerMWh, Ets1Company } from '../ets1/sites';
 import { getAssumption } from '../assumptions/registry';
+import { SHIPPING_DATA_YEAR } from './dataYears';
 import { computeCompanyExposure } from '../ets2/companies';
 import { Ets2CountryProfile } from '../ets2/countries';
 import { computeValueStack, ETS2_START_YEAR, ValueStackInputs, ValueStackResult, StackRow } from '../valueStack/engine';
@@ -31,16 +32,26 @@ export interface RegulationExposure {
   fuelEuState: FuelEuState;
   /** EU ETS maritime 2026 allowance cost (100% phase-in) at the desk EUA mark, €. */
   etsMaritimeEur: number | null;
-  /** EU ETS1 allowance bill on the latest verified emissions at the desk EUA mark, €. Gross, before free allocation. */
+  /** EU ETS1 allowance bill at the desk EUA mark, €: verified emissions net of free allocation, at company level. */
   ets1BillEur: number | null;
-  /** The tonnes behind ets1BillEur. */
+  /** Verified emissions, gross of free allocation, tCO₂. */
   ets1Tco2: number | null;
+  /** Free allocation across its sites, tCO₂ (sites with no registry figure count as 0). */
+  ets1FreeAllocTco2: number | null;
+  /** The tonnes behind ets1BillEur: max(0, gross − free allocation). */
+  ets1NetTco2: number | null;
+  /** Sites with no free-allocation figure: the net figure is an upper bound while this is above 0. */
+  ets1AllocUnknownSites: number;
+  /** Sites whose latest-year figure is not reported yet, so the year before stands in. */
+  ets1PriorYearSites: number;
   /** EU ETS2 allowance bill from 2028 at the desk ETS2 mark, for the suppliers whose volume is known, €. */
   ets2CostEur: number | null;
   ets2Standing: Ets2Standing;
   /** Supplier countries the ETS2 figure covers, and the ones with no volume yet (a PARTIAL figure). */
   ets2CoveredCountries: string[];
   ets2UncoveredCountries: string[];
+  /** One line per supplier country: what share of the disclosed volume the ETS2 figure covers, and the source. */
+  ets2ScopeLines: string[];
   /** Cost now, per year: FuelEU compliance cost + ETS maritime + ETS1 (gross). ETS2 starts in 2028 and is kept apart. */
   costNowEur: number | null;
   /** True when a FuelEU deficit could not be priced (no pool mark), so costNowEur leaves it out. */
@@ -62,18 +73,33 @@ export function ets1FirstDealShare(): number {
   return getAssumption('clients.firstDealShare') / PERCENT;
 }
 
-/** ETS1 tonnes behind a company's allowance bill. Gross of free allocation today. */
-export function ets1EmissionsTco2(c: Ets1Company): number {
-  return c.verifiedLatestTco2;
+/**
+ * ETS1 emissions net of free allocation, for a whole company. Allowances are fungible within a
+ * group, so allocation at one site offsets emissions at another; it never goes below zero.
+ */
+export function ets1NetPosition(companies: Ets1Company[]): { grossTco2: number; freeAllocTco2: number; netTco2: number; unknownSites: number; priorYearSites: number } {
+  const sites = companies.flatMap(c => c.sites);
+  const grossTco2 = sites.reduce((s, x) => s + x.verifiedLatestTco2, 0);
+  const freeAllocTco2 = sites.reduce((s, x) => s + (x.freeAllocLatestTco2 ?? 0), 0);
+  return {
+    grossTco2,
+    freeAllocTco2,
+    netTco2: Math.max(0, grossTco2 - freeAllocTco2),
+    unknownSites: sites.filter(x => x.freeAllocLatestTco2 === null).length,
+    priorYearSites: sites.filter(x => x.verifiedLatestIsPriorYear).length,
+  };
 }
 
-/** ETS1 tonnes at HIGH/MEDIUM-fit sites: what biomethane could replace. */
+/**
+ * ETS1 tonnes at HIGH/MEDIUM-fit sites: what biomethane could replace. Not netted for free
+ * allocation: each tonne avoided frees an allowance to sell or not buy, whatever the allocation.
+ */
 export function ets1AbatableTco2(c: Ets1Company): number {
   return c.fitVerifiedLatestTco2;
 }
 
-/** How ETS1 tonnes are described wherever they are priced. */
-export const ETS1_BASIS_LABEL = 'gross, before free allocation';
+/** How the ETS1 bill is described wherever it is priced. */
+export const ETS1_BASIS_LABEL = 'net of free allocation';
 
 function sumOrNull(values: (number | null)[]): number | null {
   const present = values.filter((v): v is number => v !== null);
@@ -106,13 +132,14 @@ export function computeRegulationExposure(
   }
   const maritimeT = p.fueleu.reduce((s, f) => s + f.etsCo2Tco2, 0);
   const etsMaritimeEur = maritimeT > 0 && eua !== null ? maritimeT * eua : null;
-  const ets1Tco2 = p.ets1.length ? p.ets1.reduce((s, c) => s + ets1EmissionsTco2(c), 0) : null;
-  const ets1BillEur = ets1Tco2 !== null && eua !== null ? ets1Tco2 * eua : null;
+  const ets1Pos = p.ets1.length ? ets1NetPosition(p.ets1) : null;
+  const ets1BillEur = ets1Pos !== null && eua !== null ? ets1Pos.netTco2 * eua : null;
 
   let ets2CostEur: number | null = null;
   let ets2Standing: Ets2Standing = 'NONE';
   let covered: string[] = [];
   let uncovered: string[] = [];
+  const scopeLines: string[] = [];
   if (p.ets2.length) {
     const suppliers = p.ets2.filter(e => e.role === 'REGULATED_SUPPLIER');
     const exposures = computeCompanyExposure(suppliers, ets2Countries, ets2Price);
@@ -121,6 +148,18 @@ export function computeRegulationExposure(
     ets2CostEur = priced.length ? priced.reduce((s, x) => s + (x.ets2CostEurM as number), 0) * EUR_PER_EUR_M : null;
     covered = [...new Set(priced.map(x => x.company.countryIso))].sort();
     uncovered = [...new Set(exposures.filter(x => x.ets2CostEurM === null).map(x => x.company.countryIso))].filter(c => !covered.includes(c)).sort();
+    const byIso = new Map(ets2Countries.map(c => [c.iso, c]));
+    const seen = new Set<string>();
+    for (const x of exposures) {
+      if (x.volumeTWh === null) continue;
+      const iso = x.company.countryIso;
+      const line = x.volumeScope === 'ETS2_SEGMENT' && x.ets2ScopeShare !== null
+        ? `${iso}: ETS2 segment, ${Math.round(x.ets2ScopeShare * 100)}% of disclosed volume${byIso.get(iso)?.ets2SegmentShareSource?.url ? ` (${byIso.get(iso)?.ets2SegmentShareSource?.url})` : ''}`
+        : x.volumeScope === 'ETS2_SEGMENT'
+          ? `${iso}: ETS2 segment (share of national buildings gas)`
+          : `${iso}: all segments, an upper bound`;
+      if (!seen.has(line)) { seen.add(line); scopeLines.push(line); }
+    }
     if (!suppliers.length) ets2Standing = 'END_USER';
     else if (sized.length && ets2Price === null) ets2Standing = 'NO_ETS2_PRICE';
     else if (!priced.length) ets2Standing = 'SUPPLIER_VOLUME_UNKNOWN';
@@ -134,11 +173,16 @@ export function computeRegulationExposure(
     fuelEuState,
     etsMaritimeEur,
     ets1BillEur,
-    ets1Tco2,
+    ets1Tco2: ets1Pos?.grossTco2 ?? null,
+    ets1FreeAllocTco2: ets1Pos?.freeAllocTco2 ?? null,
+    ets1NetTco2: ets1Pos?.netTco2 ?? null,
+    ets1AllocUnknownSites: ets1Pos?.unknownSites ?? 0,
+    ets1PriorYearSites: ets1Pos?.priorYearSites ?? 0,
     ets2CostEur,
     ets2Standing,
     ets2CoveredCountries: covered,
     ets2UncoveredCountries: uncovered,
+    ets2ScopeLines: scopeLines,
     costNowEur: sumOrNull([fuelEuCostEur, etsMaritimeEur, ets1BillEur]),
     costNowIncomplete: fuelEuState === 'NO_MARK',
   };
@@ -335,7 +379,7 @@ function shippingOpportunities(p: CompanyProfile, marks: MarksState, year: numbe
         evidenceNeeded: 'PoS with RED III actual value, bunker delivery notes, verifier acceptance in the FuelEU report.',
         legalBasis: 'Regulation (EU) 2023/1805 Art. 4 & Annex I; Directive 2003/87/EC Art. 3ga & MRR Annex VI (zero-rating)',
         caveats: [
-          ...(physicalMWh < needMWh ? [`Capped at the LNG the group burned in 2024 (${Math.round(lngBurnMWh).toLocaleString('en-GB')} MWh); the rest needs pooling.`] : []),
+          ...(physicalMWh < needMWh ? [`Capped at the LNG the group burned in ${SHIPPING_DATA_YEAR} (${Math.round(lngBurnMWh).toLocaleString('en-GB')} MWh); the rest needs pooling.`] : []),
           ...bearerCaveat,
         ],
         stack: spec,
@@ -431,7 +475,7 @@ function ets1Opportunities(p: CompanyProfile, marks: MarksState, year: number): 
       valueEurPerMWh: null,
       valueBasis: 'Needs the sites\' gas consumption before it can be sized.',
       evidenceNeeded: 'Site fuel mix from the monitoring plan or the client.',
-      legalBasis: 'MRR (EU) 2018/2066 Art. 38–39',
+      legalBasis: 'Art. 38(5) and 39a of Implementing Regulation (EU) 2018/2066',
       caveats: ['Low-priority lead unless the client confirms material gas burn.'],
       stack: null,
       action: null,
@@ -442,20 +486,18 @@ function ets1Opportunities(p: CompanyProfile, marks: MarksState, year: number): 
   const volumeMWh = Math.round(ncvMWh / HHV_TO_LHV_FACTOR);
   const perNcvMWh = ets1AvoidedValuePerMWh(marks);
   const firstDealMWh = Math.round(volumeMWh * ets1FirstDealShare());
-  // The EUTL records no fuel type: a power or district-heat plant may burn coal or lignite, which
-  // biomethane cannot replace. When such plants carry most of the fit emissions, say so up front.
+  // Site fit already excludes coal, lignite and steel and admits power plants only on gas evidence in
+  // the name, so only refining / oil & gas needs a fuel caveat here.
   const fitSites = p.ets1.flatMap(c => c.sites).filter(s => s.fit !== 'LOW');
-  const powerT = fitSites.filter(s => s.sector === 'POWER_HEAT').reduce((a, s) => a + s.verifiedLatestTco2, 0);
   const processHeatT = fitSites.filter(s => s.fit === 'HIGH').reduce((a, s) => a + s.verifiedLatestTco2, 0);
   const oilGasT = fitSites.filter(s => s.sector === 'REFINING_OIL_GAS').reduce((a, s) => a + s.verifiedLatestTco2, 0);
-  const powerLed = powerT * 2 > fitT;
   const oilGasLed = oilGasT * 2 > fitT;
   const spec = ets1StackSpec(fitT, marks, year);
   const unitValue = spec ? spec.eurPerMWhLow : null;
   return [{
     id: 'ets1-biomethane',
     regulation: 'ETS1',
-    title: powerLed || oilGasLed ? 'Biomethane for ETS1 sites — check fuel' : 'Biomethane for ETS1 sites',
+    title: oilGasLed ? 'Biomethane for ETS1 sites — check fuel' : 'Biomethane for ETS1 sites',
     product: 'Grid biomethane with PoS, delivered to its gas-fired installations',
     why: 'Biomethane meeting RED III criteria counts at zero emissions in the site\'s ETS report, so it buys fewer allowances for every MWh of gas replaced.',
     timing: 'NOW',
@@ -465,13 +507,10 @@ function ets1Opportunities(p: CompanyProfile, marks: MarksState, year: number): 
     valueLabel: 'Allowances saved (full potential)',
     firstDealMWh,
     valueEurPerMWh: unitValue,
-    valueBasis: `Every tonne at its high/medium-fit sites replaced, at the desk EUA mark (${ETS1_BASIS_LABEL}). The full potential, not one deal; a first deal is a share of the volume.`,
+    valueBasis: `Every tonne at its high/medium-fit sites replaced, at the desk EUA mark, not netted for free allocation (each tonne avoided frees an allowance to sell or not buy). The full potential, not one deal; a first deal is a share of the volume.`,
     evidenceNeeded: 'RED III sustainability evidence via the Union Database (PoS assigned to the site); accepted by the site\'s verifier.',
-    legalBasis: 'MRR (EU) 2018/2066 Art. 38–39 & Annex VI',
+    legalBasis: 'Art. 38(5) and 39a of Implementing Regulation (EU) 2018/2066 & Annex VI',
     caveats: [
-      ...(powerLed
-        ? [`Mostly power & heat plants (${Math.round(powerT).toLocaleString('en-GB')} of ${Math.round(fitT).toLocaleString('en-GB')} tCO₂): the EU registry does not say which fuel they burn. Coal- or lignite-fired units cannot take biomethane — confirm the gas-fired units before pitching.`]
-        : []),
       ...(oilGasLed
         ? [`Mostly refining and oil & gas installations (${Math.round(oilGasT).toLocaleString('en-GB')} of ${Math.round(fitT).toLocaleString('en-GB')} tCO₂): these often burn their own fuel gas, and offshore platforms have no grid connection for biomethane — only grid-fed onshore units qualify.`]
         : []),
