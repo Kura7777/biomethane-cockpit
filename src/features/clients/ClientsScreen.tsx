@@ -355,7 +355,7 @@ export function ClientsScreen() {
       />
       <div className="cl-kpi-wrap" style={{ padding: '0 16px' }}>
         <KpiRow columns={5}>
-          <KpiTile label="Companies" value={filtered.length.toLocaleString('en-GB')} sub={`${filtered.length.toLocaleString('en-GB')} match · ${listed.toLocaleString('en-GB')} listed`} />
+          <KpiTile label="Companies shown" value={filtered.length.toLocaleString('en-GB')} sub={`match · ${listed.toLocaleString('en-GB')} listed`} />
           <KpiTile label="Value stack available" value={stackCount.toLocaleString('en-GB')} sub="2+ regimes pay on the same MWh" />
           <KpiTile label="Biomethane value" value={formatEur(bioShown)} unit="/yr" sub="plays now, all matching companies" />
           <KpiTile label="Cost now" value={formatEur(costShown)} unit="/yr" sub={`FuelEU + ETS maritime + ETS1 (${ETS1_BASIS_LABEL})`} />
@@ -688,7 +688,7 @@ function CompanyPage(props: {
                 <div style={{ fontSize: '13px' }}><strong>Why it works:</strong> {o.why}</div>
                 <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', fontSize: '13px', margin: '6px 0' }}>
                   {o.volumeMWh !== null && <span><span className="eyebrow">Volume </span><span className="num">{mwh(o.volumeMWh)}/yr</span></span>}
-                  {o.valueEur !== null && <span><span className="eyebrow">{o.valueLabel} </span><strong className="num">{eur(o.valueEur)}/yr</strong>{o.valueEurHigh !== null && <span className="num"> (up to {eur(o.valueEurHigh)} at 100% intra-EU)</span>}</span>}
+                  {o.valueEur !== null && <span><span className="eyebrow">{o.valueLabel} </span><strong className="num">{formatEur(o.valueEur)}/yr</strong>{o.valueEurHigh !== null && <span className="num"> (up to {formatEur(o.valueEurHigh)} at 100% intra-EU)</span>}</span>}
                   {o.firstDealMWh !== null && <span title="A share of the volume to open with. A desk heuristic (Assumptions: clients.firstDealShare); the value above is the full potential."><span className="eyebrow">First deal </span><span className="num">{mwh(o.firstDealMWh)}/yr ({Math.round(ets1FirstDealShare() * 100)}% of the volume)</span></span>}
                   {o.valueEurPerMWh !== null && <span><span className="eyebrow">Per MWh </span><span className="num">{eur(o.valueEurPerMWh, 2)}</span></span>}
                 </div>
