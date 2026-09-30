@@ -2,6 +2,11 @@
 @import "./shared/ui/desk.css";
 @import "./shared/ui/mobile.css";
 
+/* dark: utilities follow the app's own theme (.dark on <html>, set by src/store/theme.tsx), not the
+   OS setting. Tailwind v4 defaults dark: to prefers-color-scheme, which left screens half-dark whenever
+   the OS and the app theme disagreed. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-bg: #f6f6f3;
   --color-surface: #ffffff;
