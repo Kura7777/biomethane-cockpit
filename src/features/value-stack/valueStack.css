@@ -136,3 +136,32 @@
   color: var(--color-muted);
   background: var(--color-subtier);
 }
+
+/* ── Mobile: full width, legible at 358px ── */
+@media (max-width: 767.98px) {
+  .vs-card { width: 100%; box-sizing: border-box; }
+  .vs-head { flex-wrap: wrap; padding: 12px 14px; }
+  .vs-head > div:first-child { flex: 1 1 100%; min-width: 0; }
+  .vs-total { text-align: left; flex: 1 1 100%; }
+  .vs-inputs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 12px 14px; }
+  .vs-input { min-width: 0; }
+  .vs-input-box { height: 44px; }
+  .vs-input-box input { flex: 1 1 auto; width: 0; min-width: 0; }
+  .vs-input-box em { flex: none; }
+  .vs-rows { padding: 4px 14px; }
+  .vs-row-main {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'r v' 's v';
+    gap: 4px 12px;
+    align-items: start;
+  }
+  .vs-regime { grid-area: r; font-size: 13px; }
+  .vs-status { grid-area: s; justify-self: start; }
+  .vs-val { grid-area: v; font-size: 13px; }
+  .vs-net, .vs-missing { margin-left: 14px; margin-right: 14px; }
+  .vs-details { padding: 6px 14px; }
+  .vs-details summary { min-height: 44px; display: flex; align-items: center; }
+}
+@media (max-width: 767.98px) {
+  .vs-inputs .vs-input:first-child { grid-column: 1 / -1; }
+}

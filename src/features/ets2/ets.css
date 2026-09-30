@@ -463,3 +463,56 @@
 
 .ets-link { color: var(--color-text); text-decoration: underline dotted; text-underline-offset: 3px; }
 .ets-link:hover { color: var(--color-accent); }
+
+/* ── Mobile (<768px) ── */
+.ets-foot-note { margin-top: 12px; font-size: 12px; color: var(--color-muted); line-height: 1.5; }
+
+@media (max-width: 767.98px) {
+  .ets-body { padding: 8px 0 32px; }
+  .ets-grid { gap: 16px; }
+
+  /* Controls: 44px touch targets. */
+  .ets-btn { height: 44px; }
+  .ets-btn.grow { height: 44px; }
+  .ets-btn-tall { width: 100%; justify-content: center; }
+  .ets-seg { height: 44px; max-width: 100%; }
+  .ets-seg button { min-height: 44px; }
+  .ets-select { height: 44px; max-width: none; }
+  .ets-chip { height: 44px; padding: 0 14px; font-size: 13px; }
+  .ets-chips { gap: 8px; }
+  .ets-input { height: 44px; }
+  .ets-input input { font-size: 16px; }
+  .ets-inline-price input { height: 30px; width: 60px; }
+  .ets-inline-price button { min-height: 30px; padding: 0 6px; }
+  .ets-details > summary { min-height: 44px; padding: 10px 14px; flex-wrap: wrap; }
+  .ets-details > .inner { padding: 0 14px 16px; }
+  .ets-details .ets-btn { flex: 1 1 auto; }
+
+  /* Calculator */
+  .ets-calc { gap: 16px; }
+  .ets-results-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .ets-workings { padding-left: 18px; overflow-wrap: anywhere; }
+  .ets-empty { padding: 20px 16px; }
+  .ets-result-bar {
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0;
+    margin-left: calc(var(--ds-page-gutter, 16px) * -1);
+    margin-right: calc(var(--ds-page-gutter, 16px) * -1);
+    grid-column: 1 / -1;
+  }
+  .ets-result-bar > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .ets-result-label { font-size: 11px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; color: var(--color-muted); }
+  .ets-result-bar strong { font-size: 17px; font-weight: 600; white-space: nowrap; }
+  .ets-result-bar small { font-size: 11px; font-weight: 400; color: var(--color-muted); margin-left: 2px; }
+
+  /* Detail sheets (company / supplier) */
+  .ets-sheet-body .ds-aside-section { padding-left: 0; padding-right: 0; }
+  .ets-sheet-body .ets-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ets-sheet-foot { display: flex; gap: 8px; width: 100%; }
+  .ets-list li { overflow-wrap: anywhere; }
+  .ets-list .name { white-space: normal; }
+  .ets-list a { min-height: 44px; display: inline-flex; align-items: center; }
+  .ets-sectors .ets-sector { min-height: 44px; }
+  .ets-link { overflow-wrap: anywhere; }
+}

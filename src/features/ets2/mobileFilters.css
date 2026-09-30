@@ -1,0 +1,105 @@
+/* Mobile filter bar + sheet controls (rendered below 768px only, so unconditional CSS is safe). */
+.mfb { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; min-width: 0; }
+.mfb-row { display: flex; gap: 8px; align-items: stretch; }
+.mfb-search {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-muted);
+}
+.mfb-search input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+}
+.mfb-btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.mfb-btn.active { border-color: var(--color-text); }
+.mfb-count {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--color-accent);
+  color: #fff;
+  font-size: 11px;
+  line-height: 18px;
+  text-align: center;
+}
+.mfb-sort {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+.mfb-sort select {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 44px;
+  padding: 0 10px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+.mfb-sheet { display: flex; flex-direction: column; gap: 18px; padding: 4px 0 8px; }
+.mfb-field { display: flex; flex-direction: column; gap: 8px; }
+.mfb-field-label { font-size: 11px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; color: var(--color-muted); }
+.mfb-field select,
+.mfb-field .input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  box-sizing: border-box;
+}
+.mfb-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.mfb-chips .btn, .mfb-chips .ets-seg button { min-height: 44px; }
+.mfb-check { display: flex; align-items: center; gap: 12px; min-height: 44px; font-size: 14px; }
+.mfb-check input { width: 20px; height: 20px; flex: none; }
+.mfb-foot { display: flex; gap: 8px; }
+.mfb-foot .btn { flex: 1; min-height: 44px; }
+.mfb .ets-seg, .mfb-field .ets-seg { height: 44px; width: 100%; }
+.mfb .ets-seg button, .mfb-field .ets-seg button { flex: 1 1 0; min-width: 0; padding: 0 8px; }
+.mfb-foot { width: 100%; flex: 1 1 auto; }
+.mfb-chips .btn, .mfb-sheet > .btn, .mfb-sheet > .ets-btn {
+  border: 1px solid var(--color-divider);
+}
+.mfb-chips .btn.btn-primary { border-color: var(--color-accent); }
+.mfb-sheet > .btn, .mfb-sheet > .ets-btn { width: 100%; justify-content: center; }

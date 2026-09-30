@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
-import { KpiRow, KpiTile, DataTable, TablePagination, SidePanel, PanelSection } from '../../shared/ui';
+import { KpiRow, KpiTile, DataTable, TablePagination, SidePanel, PanelSection, MobileCardList, Sheet } from '../../shared/ui';
+import { useIsMobile } from '../../shared/hooks/useMediaQuery';
+import { MobileFilterBar, SheetField } from './MobileFilterBar';
 import { Ets2CountryProfile } from '../../domain/ets2/countries';
 import { Ets2Company, Ets2CompanyExposure, ETS2_REGULATED_ENTITY_LISTS, computeCompanyExposure } from '../../domain/ets2/companies';
 import { normalizeCompanyName } from '../../domain/companies/normalize';
@@ -48,6 +50,15 @@ function sourceLabel(url: string): string {
   }
 }
 
+const SORT_OPTIONS = [
+  { value: 'cost:desc', label: 'ETS2 cost, high to low' },
+  { value: 'share:desc', label: 'Market share, high to low' },
+  { value: 'gas:desc', label: 'Gas volume, high to low' },
+  { value: 'name:asc', label: 'Company A–Z' },
+  { value: 'name:desc', label: 'Company Z–A' },
+  { value: 'cost:asc', label: 'ETS2 cost, low to high' },
+];
+
 function roleText(c: Ets2Company): string {
   return c.role === 'REGULATED_SUPPLIER' ? 'Regulated gas supplier' : `Exposed end user${c.sector ? ` · ${c.sector}` : ''}`;
 }
@@ -61,6 +72,7 @@ export function Ets2DirectoryTab(props: {
 }) {
   const { companies, countries, ets2PriceEurPerT } = props;
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const { state } = useAppState();
   // Desk marks with the calculator's ETS2 scenario price, so the table and the value stack agree.
   const scenarioMarks: MarksState = useMemo(() => {
@@ -173,6 +185,79 @@ export function Ets2DirectoryTab(props: {
 
       <div className="ets-body ets-grid">
         <div style={{ minWidth: 0 }}>
+          {isMobile ? (
+            <>
+          <MobileFilterBar
+            search={search}
+            onSearch={setSearch}
+            searchPlaceholder="Search company"
+            searchLabel="Search company"
+            activeCount={(roleFilter !== 'ALL' ? 1 : 0) + (countryFilter !== 'ALL' ? 1 : 0)}
+            sortValue={`${sort.key}:${sort.dir}`}
+            sortOptions={SORT_OPTIONS}
+            onSort={v => { const [key, dir] = v.split(':'); setSort({ key: key as SortKey, dir: dir as SortDir }); }}
+            onReset={() => { setRoleFilter('ALL'); setCountryFilter('ALL'); }}
+          >
+            <SheetField label="Role">
+              <Segmented<RoleFilter>
+                label="Role"
+                value={roleFilter}
+                onChange={setRoleFilter}
+                options={[{ id: 'ALL', label: 'All' }, { id: 'REGULATED_SUPPLIER', label: 'Suppliers' }, { id: 'EXPOSED_END_USER', label: 'End users' }]}
+              />
+            </SheetField>
+            <SheetField label="Country">
+              <select aria-label="Country" value={countryFilter} onChange={e => setCountryFilter(e.target.value)}>
+                <option value="ALL">All countries</option>
+                {countriesInList.map(iso => <option key={iso} value={iso}>{countryName.get(iso) ?? iso}</option>)}
+              </select>
+            </SheetField>
+            <button type="button" className="ets-btn ets-btn-tall" onClick={exportCsv}>Export</button>
+          </MobileFilterBar>
+          <MobileCardList
+            testId="ets2-supplier-cards"
+            items={pageRows}
+            getKey={r => r.company.id}
+            selectedKey={selectedId}
+            onSelect={r => setSelectedId(r.company.id)}
+            title={r => r.company.name}
+            subtitle={r => {
+              const also = (lookup.byEts2Id.get(r.company.id)?.markets ?? []).filter(m => m !== 'ETS2');
+              return <>{roleText(r.company)} · {r.company.confidence.toLowerCase()} confidence{also.length > 0 && <> · also {also.map(m => MARKET_LABEL[m]).join(', ')}</>}</>;
+            }}
+            metric={r => (r.ets2CostEurM === null ? '—' : eurM(r.ets2CostEurM * EUR_PER_EUR_M))}
+            metricLabel={() => 'ETS2 cost'}
+            badges={r => {
+              const prof = lookup.byEts2Id.get(r.company.id);
+              const stacked = prof ? stackedPlay(prof, scenarioMarks, year) : null;
+              return (
+                <>
+                  {stacked && <StackBadge spec={stacked.spec} />}
+                  <StatusDot status={statuses[r.company.id] ?? 'NOT_CONTACTED'} />
+                </>
+              );
+            }}
+            fields={r => [
+              { label: 'Country', value: countryName.get(r.company.countryIso) ?? r.company.countryIso },
+              { label: 'Market share', value: r.company.marketSharePct === null ? '—' : `${r.company.marketSharePct}%`, mono: true, tone: r.company.marketSharePct === null ? 'muted' : undefined },
+              {
+                label: 'Gas, TWh',
+                value: r.volumeTWh === null ? '—' : `${r.volumeMethod === 'SHARE_OF_NATIONAL' ? '≈' : ''}${r.volumeTWh.toFixed(1)}${r.volumeMethod === 'DISCLOSED' ? '*' : ''}`,
+                mono: true,
+                tone: r.volumeTWh === null ? 'muted' : undefined,
+              },
+            ]}
+            empty="No companies match. Clear the search or filters."
+          />
+          {rows.length > 0 && (
+            <DataTable>
+              <TablePagination totalCount={rows.length} currentPage={page} pageSize={PAGE_SIZE} onPageChange={setPage} entityLabel="companies" />
+            </DataTable>
+          )}
+
+            </>
+          ) : (
+            <>
           <div className="ds-toolbar">
             <label className="ds-search" style={{ width: 240 }}>
               <Search size={14} aria-hidden="true" />
@@ -237,6 +322,9 @@ export function Ets2DirectoryTab(props: {
             })}
             {rows.length > 0 && <TablePagination totalCount={rows.length} currentPage={page} pageSize={PAGE_SIZE} onPageChange={setPage} entityLabel="companies" />}
           </DataTable>
+
+            </>
+          )}
 
           <div className="ets-section-gap">
             <details className="ets-details">
@@ -315,21 +403,22 @@ function SupplierPanel(props: {
 }) {
   const { exposure: r } = props;
   const c = r.company;
+  const isMobile = useIsMobile();
   const spec = useMemo(
     // No default volume: the supplier's whole book is not a deal size — the trader enters the tranche.
     () => (c.role === 'REGULATED_SUPPLIER' ? ets2SupplierStackSpec(null, props.marks) : null),
     [c.role, props.marks]
   );
-  return (
-    <SidePanel
-      footer={
-        <>
-          <button type="button" className="ets-btn grow" onClick={props.onClient}>Client profile</button>
-          <button type="button" className="ets-btn primary grow" onClick={props.onCalculate ?? undefined} disabled={!props.onCalculate}>Open in calculator</button>
-        </>
-      }
-    >
+  const footer = (
+    <>
+      <button type="button" className="ets-btn grow" onClick={props.onClient}>Client profile</button>
+      <button type="button" className="ets-btn primary grow" onClick={props.onCalculate ?? undefined} disabled={!props.onCalculate}>Open in calculator</button>
+    </>
+  );
+  const body = (
+    <>
       <PanelSection>
+        {!isMobile && (
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
           <div style={{ minWidth: 0 }}>
             <div className="ds-panel-title" style={{ lineHeight: 1.25 }}>{c.name}</div>
@@ -337,6 +426,7 @@ function SupplierPanel(props: {
           </div>
           <button type="button" className="ds-icon-btn ds-icon-btn-sm" aria-label="Close" onClick={props.onClose}>✕</button>
         </div>
+        )}
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <span className="ets-tag">{c.confidence.toLowerCase()} confidence</span>
           <StatusSelect value={props.status} onChange={props.onStatus} label={`Outreach status for ${c.name}`} />
@@ -397,6 +487,13 @@ function SupplierPanel(props: {
           </ul>
         )}
       </PanelSection>
-    </SidePanel>
+    </>
+  );
+  return isMobile ? (
+    <Sheet open onClose={props.onClose} title={c.name} subtitle={`${props.countryLabel} · ${roleText(c)}`} variant="full" footer={<div className="ets-sheet-foot">{footer}</div>} testId="ets2-supplier-sheet">
+      <div className="ets-sheet-body">{body}</div>
+    </Sheet>
+  ) : (
+    <SidePanel footer={footer}>{body}</SidePanel>
   );
 }

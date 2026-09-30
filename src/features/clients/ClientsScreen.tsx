@@ -1,7 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppState } from '../../store/context';
-import { PageShell, PageHeader, Card, KpiRow, KpiTile } from '../../shared/ui';
+import { PageShell, PageHeader, Card, KpiRow, KpiTile, MobileCardList } from '../../shared/ui';
+import { useIsMobile } from '../../shared/hooks/useMediaQuery';
+import { MobileFilterBar, SheetField } from '../ets2/MobileFilterBar';
+import './clients.css';
 import {
   buildCompanyDirectory,
   suggestRelated,
@@ -44,6 +47,18 @@ const STATUS_LABEL: Record<Status, string> = {
 };
 
 type SortKey = 'name' | 'regs' | 'fueleu' | 'maritime' | 'ets1' | 'ets2' | 'total';
+
+/** Mobile sort select: the same keys the desktop headers sort by. */
+const SORT_OPTIONS: { value: string; label: string }[] = [
+  { value: 'total:d', label: 'At stake now, high to low' },
+  { value: 'name:a', label: 'Company A–Z' },
+  { value: 'name:d', label: 'Company Z–A' },
+  { value: 'fueleu:d', label: 'FuelEU, high to low' },
+  { value: 'maritime:d', label: 'ETS maritime, high to low' },
+  { value: 'ets1:d', label: 'ETS1, high to low' },
+  { value: 'ets2:d', label: 'ETS2 (2028+), high to low' },
+  { value: 'regs:d', label: 'Most regulations' },
+];
 
 function readJson<T>(key: string, fallback: T): T {
   try {
@@ -123,6 +138,7 @@ function csvCell(v: string | number | null): string {
 export function ClientsScreen() {
   const { state } = useAppState();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [params, setParams] = useSearchParams();
   const eua = selectMarkPrice(state.marks.marks['EU_ETS1'], 'mid');
   const ets2Price = selectMarkPrice(state.marks.marks['EU_ETS2'], 'mid');
@@ -288,7 +304,7 @@ export function ClientsScreen() {
         title="Clients"
         context="Every company the desk knows, one row each, with its exposure under every regulation. Tap a company to see what you can sell it."
       />
-      <div style={{ padding: '0 16px' }}>
+      <div className="cl-kpi-wrap" style={{ padding: '0 16px' }}>
         <KpiRow columns={4}>
           <KpiTile label="Companies shown" value={filtered.length.toLocaleString('en-GB')} sub={`of ${rows.length.toLocaleString('en-GB')}`} />
           <KpiTile label="Value stack available" value={stackCount.toLocaleString('en-GB')} sub="2+ regimes pay on the same MWh" />
@@ -297,8 +313,71 @@ export function ClientsScreen() {
         </KpiRow>
       </div>
 
-      <div style={{ padding: '16px' }}>
-        <Card title="Company × regulation" meta="Annual € exposure at desk marks · tap a header to sort · tap a company to open it">
+      <div className="cl-list-wrap" style={{ padding: '16px' }}>
+        <Card className="cl-list-card" title="Company × regulation" meta={isMobile ? 'Annual € exposure at desk marks · tap a company to open it' : 'Annual € exposure at desk marks · tap a header to sort · tap a company to open it'}>
+          {isMobile ? (
+            <>
+          <MobileFilterBar
+            search={search}
+            onSearch={v => { setSearch(v); setShown(PAGE); }}
+            searchPlaceholder="Search any company name"
+            searchLabel="Search companies"
+            activeCount={(country !== 'ALL' ? 1 : 0) + markets.length + (multiOnly ? 1 : 0) + (stackOnly ? 1 : 0)}
+            sortValue={`${sort.key}:${sort.desc ? 'd' : 'a'}`}
+            sortOptions={SORT_OPTIONS}
+            onSort={v => { const [key, dir] = v.split(':'); setSort({ key: key as SortKey, desc: dir === 'd' }); }}
+            onReset={() => { setCountry('ALL'); setMarkets([]); setMultiOnly(false); setStackOnly(false); setShown(PAGE); }}
+          >
+            <SheetField label="Country">
+              <select aria-label="Country" value={country} onChange={e => { setCountry(e.target.value); setShown(PAGE); }}>
+                <option value="ALL">All countries</option>
+                {countries.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </SheetField>
+            <SheetField label="Exposed to">
+              <div className="mfb-chips">
+                {MARKET_KEYS.map(m => (
+                  <button key={m} type="button" className={`btn ${markets.includes(m) ? 'btn-primary' : 'btn-ghost'}`} aria-pressed={markets.includes(m)} onClick={() => toggleMarket(m)}>
+                    {MARKET_LABEL[m]}
+                  </button>
+                ))}
+              </div>
+            </SheetField>
+            <label className="mfb-check">
+              <input type="checkbox" checked={multiOnly} onChange={e => { setMultiOnly(e.target.checked); setShown(PAGE); }} /> 2+ regulations
+            </label>
+            <label className="mfb-check">
+              <input type="checkbox" checked={stackOnly} onChange={e => { setStackOnly(e.target.checked); setShown(PAGE); }} /> Value stack available
+            </label>
+            <button type="button" className="btn btn-ghost" style={{ minHeight: 44 }} onClick={exportCsv}>Export CSV</button>
+          </MobileFilterBar>
+          <MobileCardList
+            testId="clients-cards"
+            items={filtered.slice(0, shown)}
+            getKey={r => r.profile.id}
+            onSelect={r => select(r.profile.id)}
+            title={r => r.profile.name}
+            subtitle={r => [r.profile.countries.slice(0, 5).join(' '), `${r.profile.markets.length} reg.`].filter(Boolean).join(' · ')}
+            metric={r => eurM(r.exposure.costAtStakeNowEur)}
+            metricLabel={() => 'At stake now'}
+            badges={r => (
+              <>
+                {r.stack && <StackBadge spec={r.stack} />}
+                <span className="cl-status">{STATUS_LABEL[statuses[r.profile.id] ?? 'NOT_CONTACTED']}</span>
+              </>
+            )}
+            fields={r => [
+              { label: 'FuelEU', value: eurM(r.exposure.fuelEuPenaltyEur), mono: true, tone: r.exposure.fuelEuPenaltyEur === null ? 'muted' : undefined },
+              { label: 'ETS maritime', value: eurM(r.exposure.etsMaritimeEur), mono: true, tone: r.exposure.etsMaritimeEur === null ? 'muted' : undefined },
+              { label: 'ETS1', value: eurM(r.exposure.ets1BillEur), mono: true, tone: r.exposure.ets1BillEur === null ? 'muted' : undefined },
+              { label: 'ETS2 (2028+)', value: ets2Cell(r.exposure), mono: r.exposure.ets2Standing === 'QUANTIFIED', tone: r.exposure.ets2Standing === 'QUANTIFIED' ? undefined : 'muted' },
+              { label: 'Best play', span: 2, value: r.best?.title ?? '—' },
+            ]}
+            empty="No companies match. Clear the search or filters."
+          />
+            </>
+          ) : (
+            <>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px', alignItems: 'center' }}>
             <input className="input" style={{ flex: '1 1 220px', width: 'auto' }} placeholder="Search any company name" aria-label="Search companies" value={search} onChange={e => { setSearch(e.target.value); setShown(PAGE); }} />
             <select className="input" style={{ width: 'auto' }} aria-label="Country" value={country} onChange={e => { setCountry(e.target.value); setShown(PAGE); }}>
@@ -366,6 +445,8 @@ export function ClientsScreen() {
               </tbody>
             </table>
           </div>
+            </>
+          )}
           {filtered.length > shown && (
             <button type="button" className="btn btn-ghost" style={{ marginTop: '10px' }} onClick={() => setShown(n => n + PAGE)}>
               Show more ({(filtered.length - shown).toLocaleString('en-GB')} remaining)
@@ -406,6 +487,7 @@ function CompanyPage(props: {
   onAction: (o: Opportunity) => void;
 }) {
   const { row: { profile: p, exposure: x }, eua } = props;
+  const isMobile = useIsMobile();
   const opportunities = useMemo(
     () => computeOpportunities(p, props.marks, props.ets2Countries, props.year),
     [p, props.marks, props.ets2Countries, props.year]
@@ -433,7 +515,7 @@ function CompanyPage(props: {
   ];
 
   return (
-    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '1100px' }}>
+    <div className="cl-company" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '1100px' }}>
       <div>
         <button type="button" className="btn btn-ghost" onClick={props.onBack}>← All companies</button>
       </div>
@@ -441,15 +523,22 @@ function CompanyPage(props: {
         title={p.name}
         meta={[p.countries.join(' '), p.markets.map(m => MARKET_LABEL[m]).join(' · ')].filter(Boolean).join(' · ')}
         actions={
-          <select className="input" style={{ minWidth: '140px' }} aria-label="Client status" value={props.status} onChange={e => props.onStatus(e.target.value as Status)}>
+          <select className="input cl-status-select" style={{ minWidth: '140px' }} aria-label="Client status" value={props.status} onChange={e => props.onStatus(e.target.value as Status)}>
             {(Object.keys(STATUS_LABEL) as Status[]).map(s => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
           </select>
         }
       >
+        {isMobile ? (
+          <div className="cl-kpis">
+            <div className="cl-kpi"><div className="eyebrow">At stake now</div><strong className="num">{eurM(x.costAtStakeNowEur)}/yr</strong></div>
+            {x.ets2Standing === 'QUANTIFIED' && <div className="cl-kpi"><div className="eyebrow">ETS2 from 2028</div><strong className="num">{eurM(x.ets2CostEur)}/yr</strong></div>}
+          </div>
+        ) : (
         <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', fontSize: '13px' }}>
           <span><span className="eyebrow">At stake now </span><strong className="num">{eurM(x.costAtStakeNowEur)}/yr</strong></span>
           {x.ets2Standing === 'QUANTIFIED' && <span><span className="eyebrow">ETS2 from 2028 </span><strong className="num">{eurM(x.ets2CostEur)}/yr</strong></span>}
         </div>
+        )}
         {p.names.length > 1 && (
           <div title={p.names.join('; ')} style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '6px', maxHeight: '48px', overflow: 'hidden' }}>
             Also appears as: {p.names.filter(n => n !== p.name).join('; ')}
@@ -458,6 +547,22 @@ function CompanyPage(props: {
       </Card>
 
       <Card title="Exposure by regulation" meta="Every regulation the app covers — blank means not in our data for this company">
+        {isMobile ? (
+          <div className="cl-regs">
+            {regRows.map(r => (
+              <div key={r.key} className="cl-reg" style={{ opacity: has(r.key) ? 1 : 0.55 }}>
+                <div className="cl-reg-top">
+                  <div>
+                    <div style={{ fontWeight: 600 }}>{MARKET_LABEL[r.key]}</div>
+                    <div className="cl-reg-sub">{has(r.key) ? 'Exposed' : 'Not in data'}</div>
+                  </div>
+                  <div className="num cl-reg-cost">{r.cost}</div>
+                </div>
+                {r.basis && <div className="cl-reg-basis">{r.basis}</div>}
+              </div>
+            ))}
+          </div>
+        ) : (
         <div style={{ overflowX: 'auto' }}>
           <table className="table">
             <thead>
@@ -475,15 +580,16 @@ function CompanyPage(props: {
             </tbody>
           </table>
         </div>
+        )}
       </Card>
 
       <Card title="What you can do for them" meta="Ranked by value to the client at desk marks">
         {opportunities.length === 0 ? (
           <p style={{ margin: 0, color: 'var(--color-text-muted)' }}>No compliance play from the data on file.</p>
         ) : (
-          <ol style={{ margin: 0, paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <ol className="cl-plays" style={{ margin: 0, paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {opportunities.map(o => (
-              <li key={o.id}>
+              <li key={o.id} className="cl-play">
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
                   <div style={{ fontWeight: 700 }}>{o.title}</div>
                   <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{o.regulation === 'VOLUNTARY' ? 'Voluntary' : MARKET_LABEL[o.regulation]} · {TIMING_LABEL[o.timing]}</div>

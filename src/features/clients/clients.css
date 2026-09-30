@@ -1,0 +1,56 @@
+/* Clients screen: mobile treatment. Everything here is gated to phones except classes that only
+   render below 768px (cl-kpis, cl-regs), so the desktop layout is untouched. */
+
+.cl-status { font-size: 12px; color: var(--color-muted); display: inline-flex; align-items: center; height: 20px; }
+
+/* Company page summary (mobile-only markup): 2-up KPI tiles. */
+.cl-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.cl-kpi {
+  padding: 12px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-control);
+  background: var(--color-subtier);
+  min-width: 0;
+}
+.cl-kpi strong { display: block; margin-top: 4px; font-size: 18px; font-weight: 600; white-space: nowrap; }
+
+/* Exposure by regulation (mobile-only markup): one stacked card per regulation. */
+.cl-regs { display: flex; flex-direction: column; gap: 8px; }
+.cl-reg { padding: 12px; border: 1px solid var(--color-divider); border-radius: var(--radius-control); background: var(--color-surface); }
+.cl-reg-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.cl-reg-sub { font-size: 12px; color: var(--color-muted); margin-top: 2px; }
+.cl-reg-cost { font-size: 14px; font-weight: 600; text-align: right; min-width: 0; }
+.cl-reg-basis { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--color-divider); font-size: 12px; line-height: 1.5; color: var(--color-muted); }
+
+@media (max-width: 767.98px) {
+  /* The shell already applies the 16px gutter; the desktop wrappers add another 16px each. */
+  .cl-kpi-wrap { padding: 0 !important; }
+  .cl-kpi-wrap .ds-kpis { padding-left: 0; padding-right: 0; }
+  .cl-list-wrap { padding: 16px 0 !important; }
+  .cl-list-card .ds-card-body { padding: 12px; }
+  .cl-company { padding: 8px 0 24px !important; max-width: none !important; }
+  .cl-company .ds-card-header { flex-wrap: wrap; gap: 10px; }
+  .cl-company .ds-card-actions, .cl-status-select { width: 100%; }
+  .cl-status-select { min-height: 44px; }
+  .cl-company a { overflow-wrap: anywhere; }
+  .cl-company li { overflow-wrap: anywhere; }
+
+  /* "What you can do for them": each play is its own stacked card. */
+  .cl-plays { padding-left: 0 !important; list-style: none; gap: 12px !important; }
+  .cl-play {
+    padding: 14px;
+    border: 1px solid var(--color-divider);
+    border-radius: 12px;
+    background: var(--color-surface);
+    min-width: 0;
+  }
+  .cl-play .btn { width: 100%; min-height: 44px; }
+  .cl-company .btn-ghost, .cl-company .btn-secondary { min-height: 44px; }
+}
+.cl-kpi:only-child { grid-column: 1 / -1; }
+@media (max-width: 767.98px) {
+  .cl-company ul[style*="list-style: none"] > li,
+  .cl-company ul[style*="list-style:none"] > li { flex-wrap: wrap; align-items: center; }
+  .cl-company ul[style*="list-style: none"] > li > button:first-child { flex: 1 1 200px; min-width: 0; white-space: normal; }
+  .cl-company ul[style*="list-style: none"] > li > button:last-child { flex: none; white-space: nowrap; }
+}

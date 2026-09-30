@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useAppState } from '../../store/context';
-import { PageShell, PageHeader, HeaderPill, KpiTile, Tabs, DataTable } from '../../shared/ui';
+import { PageShell, PageHeader, HeaderPill, KpiTile, Tabs, DataTable, MobileCardList } from '../../shared/ui';
+import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 import { ETS2_SEED_COMPANIES, CLEAN_HEAT_PROGRAM_LEADS, applyEts2CompanyImport, Ets2Company } from '../../domain/ets2/companies';
 import { Ets2DirectoryTab } from './Ets2DirectoryTab';
 import { Ets1SitesTab } from './Ets1SitesTab';
@@ -65,6 +66,7 @@ function Field(props: { label: string; value: string; onChange: (v: string) => v
 
 export function Ets2Screen() {
   const { state } = useAppState();
+  const isMobile = useIsMobile();
   const deskEts2 = state.marks.marks['EU_ETS2'];
   const deskMid = deskEts2?.mid ?? null;
   const eua = selectMarkPrice(state.marks.marks['EU_ETS1'], 'mid');
@@ -188,6 +190,45 @@ export function Ets2Screen() {
           <div style={{ marginBottom: 24 }}>{countryImport}</div>
         </>
       )}
+      {isMobile ? (
+        <>
+      <MobileCardList
+        testId="ets2-country-cards"
+        items={exposureRows}
+        getKey={r => r.profile.iso}
+        title={r => r.profile.name}
+        subtitle={r => (r.rank === null ? 'No sourced gas data yet' : `Rank ${r.rank}`)}
+        metric={r => (r.ets2CostEurM === null ? '—' : `€${Math.round(r.ets2CostEurM).toLocaleString('en-GB')}m`)}
+        metricLabel={() => 'ETS2 cost on building gas'}
+        fields={r => [
+          {
+            label: 'Gas, TWh',
+            value: r.profile.gasBuildingsTWh === null ? '—' : `${r.profile.gasBuildingsTWh.toFixed(1)}${r.profile.gasDataYear ? ` (${r.profile.gasDataYear})` : ''}`,
+            mono: true,
+            tone: r.profile.gasBuildingsTWh === null ? 'muted' : undefined,
+          },
+          { label: 'MtCO₂', value: r.emissionsMtCo2 === null ? '—' : r.emissionsMtCo2.toFixed(1), mono: true, tone: r.emissionsMtCo2 === null ? 'muted' : undefined },
+          { label: 'vs today', value: r.incrementalCostEurM === null ? '—' : `€${Math.round(r.incrementalCostEurM).toLocaleString('en-GB')}m`, mono: true, tone: r.incrementalCostEurM === null ? 'muted' : undefined },
+          {
+            label: 'Carbon price today',
+            value: r.profile.existingCarbonPricing.source ? (
+              <a href={r.profile.existingCarbonPricing.source.url} target="_blank" rel="noreferrer" title={r.profile.existingCarbonPricing.source.note} className="ets-link">
+                {r.profile.existingCarbonPricing.label}
+              </a>
+            ) : (
+              <span className="ets-muted">{r.profile.existingCarbonPricing.label}</span>
+            ),
+            span: 2,
+          },
+        ]}
+      />
+      <div className="ets-foot-note">
+        {loadedCount} of {countries.length} countries with sourced gas data · ranked by ETS2 cost{priceValue === null ? ' (set a price in the calculator)' : ` at €${priceValue}/t`}
+      </div>
+
+        </>
+      ) : (
+        <>
       <DataTable>
         <div className="ds-thead-row ets-cols-countries">
           <span>#</span>
@@ -226,6 +267,9 @@ export function Ets2Screen() {
           <span>{loadedCount} of {countries.length} countries with sourced gas data · ranked by ETS2 cost{priceValue === null ? ' (set a price in the calculator)' : ` at €${priceValue}/t`}</span>
         </div>
       </DataTable>
+
+        </>
+      )}
 
       {loadedCount > 0 && <div className="ets-section-gap">{countryImport}</div>}
     </div>
@@ -306,6 +350,18 @@ export function Ets2Screen() {
           </>
         )}
       </div>
+      {isMobile && result.emissionsTco2 !== null && (
+        <div className="m-sticky-actions ets-result-bar" data-testid="ets2-result-bar" role="status" aria-label="ETS2 calculator result">
+          <div>
+            <span className="ets-result-label">Client ETS2 cost</span>
+            <strong className="num">{eurCompact(result.clientEts2CostEur)}<small>/yr</small></strong>
+          </div>
+          <div>
+            <span className="ets-result-label">Break-even premium</span>
+            <strong className="num">{eur(result.breakevenPremiumEurPerMWh, 2)}<small>/MWh</small></strong>
+          </div>
+        </div>
+      )}
     </div>
   );
 

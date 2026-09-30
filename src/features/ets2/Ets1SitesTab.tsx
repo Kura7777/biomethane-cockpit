@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
-import { KpiRow, KpiTile, DataTable, TablePagination, SidePanel, PanelSection } from '../../shared/ui';
+import { KpiRow, KpiTile, DataTable, TablePagination, SidePanel, PanelSection, MobileCardList, Sheet } from '../../shared/ui';
+import { useIsMobile } from '../../shared/hooks/useMediaQuery';
+import { MobileFilterBar, SheetField } from './MobileFilterBar';
 import { useAppState } from '../../store/context';
 import {
   ETS1_SITES,
@@ -59,6 +61,22 @@ const PERCENT = 100;
 const MWH_PER_GWH = 1000;
 const TONNES_PER_MT = 1_000_000;
 
+const COMPANY_SORT_OPTIONS = [
+  { value: 'tco2:desc', label: 'Verified emissions, high to low' },
+  { value: 'tco2:asc', label: 'Verified emissions, low to high' },
+  { value: 'deal:desc', label: 'First deal saving, high to low' },
+  { value: 'name:asc', label: 'Company A–Z' },
+  { value: 'name:desc', label: 'Company Z–A' },
+];
+const SITE_SORT_OPTIONS = [
+  { value: 'tco2:desc', label: 'Verified emissions, high to low' },
+  { value: 'tco2:asc', label: 'Verified emissions, low to high' },
+  { value: 'change:desc', label: 'Change vs prior year, rising first' },
+  { value: 'change:asc', label: 'Change vs prior year, falling first' },
+  { value: 'name:asc', label: 'Installation A–Z' },
+  { value: 'name:desc', label: 'Installation Z–A' },
+];
+
 const FIT_FILTER_OK: Record<FitFilter, (f: BiomethaneFit) => boolean> = {
   HIGH: f => f === 'HIGH',
   HIGH_MEDIUM: f => f !== 'LOW',
@@ -99,6 +117,7 @@ function fitNotes(c: Ets1Company): { tone: 'warn' | 'info'; text: string }[] {
 export function Ets1SitesTab() {
   const { state } = useAppState();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const deskEua = selectMarkPrice(state.marks.marks['EU_ETS1'], 'mid');
   const [euaText, setEuaText] = useState(deskEua !== null ? String(deskEua) : '');
   const eua = parseNumber(euaText);
@@ -256,6 +275,122 @@ export function Ets1SitesTab() {
 
       <div className="ets-body ets-grid">
         <div style={{ minWidth: 0 }}>
+          {isMobile ? (
+            <>
+          <MobileFilterBar
+            above={
+              <Segmented<View> label="View" value={view} onChange={v => { setView(v); setSort({ key: 'tco2', dir: 'desc' }); }} options={[{ id: 'COMPANIES', label: 'Companies' }, { id: 'SITES', label: 'Sites' }]} />
+            }
+            search={search}
+            onSearch={setSearch}
+            searchPlaceholder="Company, site or city"
+            searchLabel="Search sites"
+            activeCount={(fit !== 'HIGH' ? 1 : 0) + (country !== 'ALL' ? 1 : 0) + (sector !== 'ALL' ? 1 : 0)}
+            sortValue={`${sort.key}:${sort.dir}`}
+            sortOptions={view === 'COMPANIES' ? COMPANY_SORT_OPTIONS : SITE_SORT_OPTIONS}
+            onSort={v => { const [key, dir] = v.split(':'); setSort({ key: key as SortKey, dir: dir as SortDir }); }}
+            onReset={() => { setFit('HIGH'); setCountry('ALL'); setSector('ALL'); }}
+          >
+            <SheetField label="Biomethane fit">
+              <Segmented<FitFilter>
+                label="Biomethane fit"
+                value={fit}
+                onChange={setFit}
+                options={[{ id: 'HIGH', label: 'High fit' }, { id: 'HIGH_MEDIUM', label: 'High + medium' }, { id: 'ALL', label: 'All' }]}
+              />
+            </SheetField>
+            <SheetField label="Country">
+              <select aria-label="Country" value={country} onChange={e => setCountry(e.target.value)}>
+                <option value="ALL">All countries</option>
+                {countries.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </SheetField>
+            <SheetField label="Sector">
+              <select aria-label="Sector" value={sector} onChange={e => setSector(e.target.value as typeof sector)}>
+                <option value="ALL">All sectors</option>
+                {(Object.keys(SECTOR_LABEL) as Ets1Sector[]).map(s => <option key={s} value={s}>{SECTOR_LABEL[s]}</option>)}
+              </select>
+            </SheetField>
+            <button type="button" className="ets-btn ets-btn-tall" onClick={exportCsv}>Export</button>
+          </MobileFilterBar>
+
+          {view === 'COMPANIES' ? (
+            <MobileCardList
+              testId="ets1-company-cards"
+              items={pageRows as Ets1Company[]}
+              getKey={c => c.key}
+              selectedKey={selectedKey}
+              onSelect={c => setSelectedKey(c.key)}
+              title={c => c.name}
+              subtitle={c => {
+                const also = (lookup.byEts1Key.get(c.key)?.markets ?? []).filter(m => m !== 'ETS1');
+                return <>{companyMeta(c)}{also.length > 0 && <> · also {also.map(m => MARKET_LABEL[m]).join(', ')}</>}</>;
+              }}
+              metric={c => (eua === null ? '—' : eurM(c.verifiedLatestTco2 * eua))}
+              metricLabel={() => 'Allowance bill'}
+              badges={c => {
+                const stacked = stackFor(lookup.byEts1Key.get(c.key));
+                return (
+                  <>
+                    <FitBadge fit={c.fit} />
+                    {stacked && <StackBadge spec={stacked.spec} />}
+                    <StatusDot status={statuses[c.key] ?? 'NOT_CONTACTED'} />
+                  </>
+                );
+              }}
+              fields={c => {
+                const d = firstDeal(c.fitVerifiedLatestTco2);
+                return [
+                  { label: `Verified ${ETS1_LATEST_YEAR}`, value: tonnes(c.verifiedLatestTco2), mono: true },
+                  {
+                    label: 'First deal saving',
+                    value: c.fitVerifiedLatestTco2 > 0 ? `${eurM(d.saving)} · ${(d.invoiceMWh / MWH_PER_GWH).toLocaleString('en-GB', { maximumFractionDigits: 0 })} GWh` : '—',
+                    mono: true,
+                  },
+                ];
+              }}
+              empty="No installations match. Widen the fit filter or clear the search."
+            />
+          ) : (
+            <MobileCardList
+              testId="ets1-site-cards"
+              items={pageRows as Ets1Site[]}
+              getKey={s => s.id}
+              selectedKey={selectedKey}
+              onSelect={s => setSelectedKey((s.parentCompany ?? s.operator).trim().toLowerCase())}
+              title={s => s.name}
+              subtitle={s => [s.parentCompany ?? s.operator, [s.city, s.country].filter(Boolean).join(', ')].join(' · ')}
+              metric={s => (eua === null ? '—' : eurM(s.verifiedLatestTco2 * eua))}
+              metricLabel={() => 'Allowance bill'}
+              badges={s => (
+                <>
+                  <FitBadge fit={s.fit} />
+                  <span className="ets-tag">{SECTOR_LABEL[s.sector]}</span>
+                </>
+              )}
+              fields={s => {
+                const change = s.verifiedPreviousTco2 ? ((s.verifiedLatestTco2 - s.verifiedPreviousTco2) / s.verifiedPreviousTco2) * PERCENT : null;
+                return [
+                  { label: `Verified ${ETS1_LATEST_YEAR}`, value: tonnes(s.verifiedLatestTco2), mono: true },
+                  {
+                    label: `vs ${ETS1_PREVIOUS_YEAR}`,
+                    value: change === null ? '—' : `${change > 0 ? '+' : ''}${change.toFixed(0)}%`,
+                    mono: true,
+                    tone: change === null ? 'muted' : change > 0 ? 'neg' : 'pos',
+                  },
+                ];
+              }}
+              empty="No installations match. Widen the fit filter or clear the search."
+            />
+          )}
+          {rowCount > 0 && (
+            <DataTable>
+              <TablePagination totalCount={rowCount} currentPage={page} pageSize={PAGE_SIZE} onPageChange={setPage} entityLabel={view === 'COMPANIES' ? 'companies' : 'installations'} />
+            </DataTable>
+          )}
+            </>
+          ) : (
+            <>
           <div className="ds-toolbar">
             <label className="ds-search" style={{ width: 220 }}>
               <Search size={14} aria-hidden="true" />
@@ -363,6 +498,8 @@ export function Ets1SitesTab() {
               <TablePagination totalCount={rowCount} currentPage={page} pageSize={PAGE_SIZE} onPageChange={setPage} entityLabel={view === 'COMPANIES' ? 'companies' : 'installations'} />
             )}
           </DataTable>
+            </>
+          )}
         </div>
 
         {selected ? (
@@ -425,15 +562,16 @@ function CompanyPanel(props: {
   onClient: () => void;
 }) {
   const { company: c, eua, deal } = props;
+  const isMobile = useIsMobile();
   const sites = [...c.sites].sort((a, b) => b.verifiedLatestTco2 - a.verifiedLatestTco2);
   const notes = fitNotes(c);
   const spec = useMemo(() => ets1StackSpec(c.fitVerifiedLatestTco2, props.marks, props.year), [c, props.marks, props.year]);
   const also = (props.profile?.markets ?? []).filter(m => m !== 'ETS1');
-  return (
-    <SidePanel
-      footer={<button type="button" className="ets-btn primary grow" onClick={props.onClient}>Open client profile</button>}
-    >
+  const footer = <button type="button" className="ets-btn primary grow" onClick={props.onClient}>Open client profile</button>;
+  const body = (
+    <>
       <PanelSection>
+        {!isMobile && (
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
           <div style={{ minWidth: 0 }}>
             <div className="ds-panel-title" style={{ lineHeight: 1.25 }}>{c.name}</div>
@@ -441,6 +579,7 @@ function CompanyPanel(props: {
           </div>
           <button type="button" className="ds-icon-btn ds-icon-btn-sm" aria-label="Close" onClick={props.onClose}>✕</button>
         </div>
+        )}
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <FitBadge fit={c.fit} />
           <StatusSelect value={props.status} onChange={props.onStatus} label={`Outreach status for ${c.name}`} />
@@ -495,7 +634,14 @@ function CompanyPanel(props: {
         {sites.length > 12 && <div className="ds-panel-meta">…and {sites.length - 12} more in the Sites view or the CSV export.</div>}
         {c.operators.length > 1 && <div className="ds-panel-meta">Operators: {c.operators.join('; ')}</div>}
       </PanelSection>
-    </SidePanel>
+    </>
+  );
+  return isMobile ? (
+    <Sheet open onClose={props.onClose} title={c.name} subtitle={companyMeta(c)} variant="full" footer={<div className="ets-sheet-foot">{footer}</div>} testId="ets1-company-sheet">
+      <div className="ets-sheet-body">{body}</div>
+    </Sheet>
+  ) : (
+    <SidePanel footer={footer}>{body}</SidePanel>
   );
 }
 
