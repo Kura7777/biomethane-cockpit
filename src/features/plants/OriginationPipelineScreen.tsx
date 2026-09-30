@@ -248,7 +248,7 @@ export function OriginationPipelineScreen() {
         <div>
           <div className="opl-title-row" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ fontSize: '24px' }}>⚡</span>
-            <h2 style={{ fontSize: '20px', fontWeight: 700, margin: 0, color: 'var(--color-text-primary)' }}>
+            <h2 className="m-page-title" style={{ fontSize: '20px', fontWeight: 700, margin: 0, color: 'var(--color-text-primary)' }}>
               Pan-European Physical Biomethane Origination Pipeline
             </h2>
             <span style={{ 

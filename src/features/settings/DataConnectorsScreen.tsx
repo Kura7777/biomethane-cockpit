@@ -166,7 +166,7 @@ export function DataConnectorsScreen() {
         <div className="dc-banner">
           <div>
             <div className="eyebrow dc-eyebrow">Institutional Feeds &amp; Registries</div>
-            <h2 className="ptitle dc-title">Data Connectors Hub</h2>
+            <h2 className="ptitle dc-title m-page-title">Data Connectors Hub</h2>
             <div className="subttl dc-subtitle">
               Plug in your trading house API credentials for Argus, ICIS, ENTSOG, the Union Database (UDB), and national registries.
               Toggle between live production feeds and high-fidelity baseline simulations.

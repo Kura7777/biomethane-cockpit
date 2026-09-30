@@ -467,7 +467,7 @@ export function MapScreen() {
         {/* Compact control row: title + Trade CTA, then Origin / swap / Target */}
         <div className="map-m-controls">
           <div className="map-m-titlerow">
-            <h3 className="ptitle" style={{ fontSize: '16px' }}>Compliance &amp; logistics map</h3>
+            <h3 className="ptitle m-page-title" style={{ fontSize: '16px' }}>Compliance &amp; logistics map</h3>
             <button type="button" className="btn btn-primary map-m-trade" onClick={handleSimulateTrade}>
               Trade →
             </button>

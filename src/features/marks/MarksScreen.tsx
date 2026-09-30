@@ -251,7 +251,7 @@ export function MarksScreen() {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <FileSpreadsheet className="w-5 h-5 text-accent" style={{ color: 'var(--color-accent)' }} />
-            <h3 className="ptitle" style={{ margin: 0, fontSize: '18px' }}>
+            <h3 className="ptitle m-page-title" style={{ margin: 0, fontSize: '18px' }}>
               Pricing Desk &amp; Master Order Book
             </h3>
           </div>

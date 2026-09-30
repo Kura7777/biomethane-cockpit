@@ -27,13 +27,13 @@ export function CorridorMiniMap({
 }: CorridorMiniMapProps) {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  // Mobile draws on a 360x250 canvas (about 1:1 at phone width) so labels stay >=11px rendered.
+  // Mobile draws on a 360x188 canvas (about 1:1 at phone width) so labels stay >=11px rendered.
   const VW = isMobile ? 360 : 600;
-  const VH = isMobile ? 250 : 180;
+  const VH = isMobile ? 188 : 180;
   const originX = isMobile ? 76 : 90;
   const targetX = isMobile ? 284 : 510;
   const midX = VW / 2;
-  const cy0 = isMobile ? 120 : 90;
+  const cy0 = isMobile ? 102 : 90;
   const flowPath = `M ${originX} ${cy0} Q ${isMobile ? originX + (midX - originX) * 0.75 : 250} ${cy0 - 40}, ${midX} ${cy0} T ${targetX} ${cy0}`;
   const badgeW = isMobile ? 156 : 190;
   const badgeH = isMobile ? 56 : 44;
@@ -56,7 +56,7 @@ export function CorridorMiniMap({
     .map(iso => EUROPEAN_HUBS.find(h => h.iso === iso)?.name || iso);
 
   return (
-    <div className="relative w-full h-full min-h-[220px] rounded-lg overflow-hidden border border-[var(--color-divider)] bg-[var(--color-bg)] flex flex-col shadow-sm select-none">
+    <div className="relative w-full h-full min-h-[220px] max-md:min-h-0 rounded-lg overflow-hidden border border-[var(--color-divider)] bg-[var(--color-bg)] flex flex-col shadow-sm select-none">
       <style>{`
         @keyframes pipelinePulse {
           0% { stroke-dashoffset: 40; }
@@ -71,14 +71,14 @@ export function CorridorMiniMap({
       {/* Header Overlay: Route Title & Telemetry */}
       <div className="flex items-center justify-between max-md:flex-wrap max-md:gap-2 px-3 py-2 bg-[var(--color-panel-header)] border-b border-[var(--color-divider)] z-10">
         <div className="flex items-center gap-2 min-w-0 max-md:flex-wrap max-md:flex-1">
-          <div className="w-2 h-2 rounded-full bg-cyan-400 animate-ping shrink-0" />
-          <span className="font-mono text-xs font-bold text-zinc-400">
+          <div className="w-2 h-2 rounded-full bg-[var(--chart-1)] animate-ping shrink-0" />
+          <span className="font-mono text-xs font-bold text-[var(--color-muted)]">
             Pipeline Corridor Topology
           </span>
-          <span className="font-mono text-xs font-bold text-cyan-300 max-md:whitespace-normal md:truncate max-md:break-words">
+          <span className="font-mono text-xs font-bold text-[var(--color-status-info-text)] max-md:whitespace-normal md:truncate max-md:break-words">
             {routeNodesLabel}
           </span>
-          <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-cyan-950/80 text-cyan-300 border border-cyan-700/50 shrink-0 font-semibold">
+          <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-[var(--color-status-info-bg)] text-[var(--color-status-info-text)] border border-[var(--color-status-info-border)] shrink-0 font-semibold">
             {hopsCount === 0 ? 'Direct Grid' : `${hopsCount} Transit ${hopsCount === 1 ? 'Hop' : 'Hops'}`}
           </span>
         </div>
@@ -87,9 +87,9 @@ export function CorridorMiniMap({
           type="button"
           onClick={() => navigate(`/map?origin=${originCountry}&target=${targetCountry}`)}
           title="Open Full Continental Logistics Map"
-          className="flex items-center gap-1 bg-[var(--color-surface)] hover:bg-[var(--color-subtier)] border border-[var(--color-divider)] hover:border-cyan-500/50 px-2 py-0.5 rounded text-zinc-300 hover:text-cyan-300 transition-colors font-mono text-xs cursor-pointer shrink-0 ml-2 max-md:min-h-11 max-md:min-w-11 max-md:justify-center"
+          className="flex items-center gap-1 bg-[var(--color-surface)] hover:bg-[var(--color-subtier)] border border-[var(--color-divider)] hover:border-[var(--color-status-info-border)] px-2 py-0.5 rounded text-[var(--color-text)] hover:text-[var(--color-status-info-text)] transition-colors font-mono text-xs cursor-pointer shrink-0 ml-2 max-md:min-h-11 max-md:min-w-11 max-md:justify-center"
         >
-          <Maximize2 className="w-3 h-3 text-cyan-400" />
+          <Maximize2 className="w-3 h-3 text-[var(--color-status-info-text)]" />
           <span className="hidden sm:inline">Inspect Map</span>
         </button>
       </div>
@@ -236,7 +236,7 @@ export function CorridorMiniMap({
             {/* Flag & ISO Badge */}
             <foreignObject x={-badgeW / 2} y={badgeY} width={badgeW} height={badgeH}>
               <div className="flex flex-col items-center">
-                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[var(--color-bg)]/95 border border-emerald-500/50 shadow-md font-mono text-xs text-emerald-300 font-bold max-md:whitespace-normal max-md:text-center whitespace-nowrap">
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[var(--color-bg)]/95 border border-[var(--color-status-pass-border)] shadow-md font-mono text-xs text-[var(--color-status-pass-text)] font-bold max-md:whitespace-normal max-md:text-center whitespace-nowrap">
                   <span>{getCountryFlag(originCountry)}</span>
                   <span>{originCountry} · {plantName ? 'Facility' : 'Origin Hub'}</span>
                 </div>
@@ -278,7 +278,7 @@ export function CorridorMiniMap({
             {/* Flag & Market Badge */}
             <foreignObject x={-badgeW / 2} y={badgeY} width={badgeW} height={badgeH}>
               <div className="flex flex-col items-center">
-                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[var(--color-bg)]/95 border border-cyan-500/50 shadow-md font-mono text-xs text-cyan-300 font-bold max-md:whitespace-normal max-md:text-center whitespace-nowrap">
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[var(--color-bg)]/95 border border-[var(--color-status-info-border)] shadow-md font-mono text-xs text-[var(--color-status-info-text)] font-bold max-md:whitespace-normal max-md:text-center whitespace-nowrap">
                   <span>{getCountryFlag(targetCountry)}</span>
                   <span>{targetCountry} · Compliance Hub</span>
                 </div>
@@ -312,21 +312,21 @@ export function CorridorMiniMap({
       </div>
 
       {/* Bottom Telemetry HUD Ribbon */}
-      <div className="flex items-center justify-between max-md:flex-col max-md:items-start max-md:gap-1 px-3 py-1.5 bg-[var(--color-panel-header)] border-t border-[var(--color-divider)] text-zinc-300 font-mono text-xs z-10">
+      <div className="flex items-center justify-between max-md:flex-col max-md:items-start max-md:gap-1 px-3 py-1.5 bg-[var(--color-panel-header)] border-t border-[var(--color-divider)] text-[var(--color-text)] font-mono text-xs z-10">
         <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1 text-cyan-300 font-semibold text-xs">
-            <Zap className="w-3 h-3 text-cyan-400" />
+          <span className="flex items-center gap-1 text-[var(--color-status-info-text)] font-semibold text-xs">
+            <Zap className="w-3 h-3 text-[var(--color-status-info-text)]" />
             <span>{deliveryMode.replace(/_/g, ' ')}</span>
           </span>
-          <span className="text-zinc-600">|</span>
-          <span className="text-zinc-400 text-xs">
-            Path: <strong className="text-zinc-200 tabular-nums">{distanceKm > 0 ? `${distanceKm.toLocaleString()} km` : 'Direct injection'}</strong>
+          <span className="text-[var(--color-muted)]">|</span>
+          <span className="text-[var(--color-muted)] text-xs">
+            Path: <strong className="text-[var(--color-text)] tabular-nums">{distanceKm > 0 ? `${distanceKm.toLocaleString()} km` : 'Direct injection'}</strong>
           </span>
         </div>
 
         <div className="flex items-center gap-1.5">
-          <span className="text-xs text-zinc-400">Transmission Tariff:</span>
-          <span className="font-bold text-amber-300 tabular-nums text-xs">
+          <span className="text-xs text-[var(--color-muted)]">Transmission Tariff:</span>
+          <span className="font-bold text-[var(--color-status-warn-text)] tabular-nums text-xs">
             €{logisticsCostEur.toFixed(2)}/MWh
           </span>
         </div>

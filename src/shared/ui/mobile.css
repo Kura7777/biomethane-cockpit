@@ -237,16 +237,21 @@
 }
 
 /* Sticky bottom action bar inside #main-content, mobile only (the tab bar below main already
-   clears the home indicator, so no safe-area padding here). On desktop it is a plain block. */
+   clears the home indicator, so no safe-area padding here). On desktop it is a plain block.
+   Full-bleed: a bar inside a padded page wrapper would stop short of the screen edges, so its side
+   margins are calc(50% - 50vw): that reaches both screen edges from any centred parent and is 0
+   when the parent already spans the screen. The bar's own padding clears the notch insets. */
 @media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
   .m-sticky-actions {
     position: sticky;
     bottom: 0;
-    z-index: 5;
+    z-index: 20;
     display: flex;
     gap: 8px;
     margin-top: 16px;
-    padding: 12px var(--ds-page-gutter, 16px);
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    padding: 12px max(var(--ds-page-gutter, 16px), env(safe-area-inset-right)) 12px max(var(--ds-page-gutter, 16px), env(safe-area-inset-left));
     border-top: 1px solid var(--color-divider);
     background: var(--color-surface);
     box-shadow: 0 -6px 16px rgba(0, 0, 0, 0.06);
@@ -402,3 +407,175 @@
 .mc-tone-muted { color: var(--color-muted); }
 
 /* ── Tablet (768–1023.98px): remove the desktop-only shell minimum width; nothing else forced. */
+
+/* ══ Phase 3 polish: compact layout on phones in landscape, iPads in portrait, notch insets ══ */
+
+/* Notch / rounded-corner insets: the scrolling page keeps clear of them. Header, tab bar and
+   sheets handle their own (they paint a background under the inset). */
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
+  #main-content {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* KPI tile label with a chip beside it (pricing desk): put the chip on its own line above the
+     label so the label gets the tile's full width instead of wrapping to one word per line. */
+  .ds-kpi-label > span[style*="space-between"] {
+    flex-direction: column-reverse !important;
+    align-items: flex-start !important;
+    justify-content: flex-end !important;
+    gap: 6px !important;
+  }
+
+  /* Sheets: bottom sheets stay a comfortable width on wide compact screens (iPad portrait,
+     landscape phones) rather than stretching across the whole screen. */
+  .sheet-panel--bottom {
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .sheet-header,
+  .sheet-body {
+    padding-left: max(20px, env(safe-area-inset-left));
+    padding-right: max(20px, env(safe-area-inset-right));
+  }
+  .sheet-footer {
+    padding-left: max(20px, env(safe-area-inset-left));
+    padding-right: max(20px, env(safe-area-inset-right));
+    /* The bottom panel already pads for the home indicator; do not add it twice. */
+    padding-bottom: 12px;
+  }
+  .sheet-panel--full .sheet-footer {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+  .sheet-panel--full .sheet-header {
+    padding-top: calc(12px + env(safe-area-inset-top));
+  }
+}
+
+/* Full-screen sheets on an iPad in portrait: a centred, rounded panel instead of a stretched page. */
+@media (min-width: 700px) and (min-height: 600px) and (max-width: 1023.98px) and (pointer: coarse) {
+  .sheet-panel--full {
+    inset: 4dvh auto 4dvh 50%;
+    width: min(720px, calc(100vw - 48px));
+    height: auto;
+    max-height: none;
+    transform: translateX(-50%);
+    border-radius: 16px;
+    border: 1px solid var(--color-divider);
+  }
+  .sheet-panel--full .sheet-header {
+    padding-top: 12px;
+  }
+  .sheet-panel--full .sheet-footer {
+    padding-bottom: 12px;
+  }
+}
+
+/* Two-column card lists where there is room (iPad portrait, landscape phone). */
+@media (min-width: 700px) and (max-width: 1023.98px), (min-width: 700px) and (max-height: 500px) {
+  .mc-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+  .mc-list > .mc-empty {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Long headline figures (e.g. "U 0.285/dRTFC / 0.225/dRTFC") must not crush the title into a
+   one-letter column. */
+.mc-card-metric-wrap {
+  max-width: 55%;
+}
+.mc-card-metric {
+  overflow-wrap: anywhere;
+}
+
+/* Landscape phone: 390px of height has to go to content. Header 44, icon-only tab bar 48, slim
+   action bars, sheets that keep header and footer on screen. */
+@media (orientation: landscape) and (max-height: 500px) and (pointer: coarse) {
+  :root {
+    --ds-chrome-offset: calc(44px + env(safe-area-inset-top) + 8px);
+  }
+
+  .ds-header {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  .ds-kpis {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  .m-sticky-actions {
+    padding-top: 6px;
+    padding-bottom: 6px;
+    margin-top: 8px;
+  }
+
+  .sheet-panel--bottom {
+    max-height: calc(100dvh - 12px);
+  }
+  /* Footer action stacks become one slim row so the body keeps its height. */
+  .sheet-footer > div[class*="actions"] {
+    flex-direction: row;
+  }
+  .sheet-footer .btn {
+    min-height: 44px;
+  }
+  .sheet-drag-handle-wrap {
+    padding: 4px 0 2px;
+  }
+  .sheet-header {
+    padding-top: 4px;
+    padding-bottom: 8px;
+  }
+  .sheet-body {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+  .sheet-footer {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  .sheet-panel--full .sheet-footer {
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  }
+}
+
+/* Page titles: one size (22px) on the compact layout, whichever class the screen uses. Section
+   titles inside cards stay at 15-16px. */
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
+  .ds-h1,
+  .fe-h1,
+  .m-page-title,
+  #main-content h1 {
+    font-size: 22px !important;
+    line-height: 1.2;
+  }
+}
+
+/* The sheet panel takes programmatic focus (tabIndex -1) for screen readers; it is not a control, so
+   it never shows a ring. */
+.sheet-panel:focus,
+.sheet-panel:focus-visible {
+  outline: none;
+}
+
+/* Keyboard focus: one visible ring on the compact shell's own controls. */
+.mc-card--clickable:focus-visible,
+.mobile-tab:focus-visible,
+.nav-sheet-item:focus-visible,
+.desk-sheet-row:focus-visible,
+.sheet-close:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-card--clickable {
+    transition: none;
+  }
+}

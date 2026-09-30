@@ -71,7 +71,7 @@ export function DataSourcesScreen() {
         }}
       >
         <div>
-          <h3 className="ptitle font-heading font-extrabold text-[20px] m-0">Data sources &amp; provenance</h3>
+          <h3 className="ptitle m-page-title font-heading font-extrabold text-[20px] m-0">Data sources &amp; provenance</h3>
           <div className="subttl text-[12px] mt-1">
             Every figure on the desk resolves to one of these sources, with its authority, cadence and the fields it does not cover
           </div>

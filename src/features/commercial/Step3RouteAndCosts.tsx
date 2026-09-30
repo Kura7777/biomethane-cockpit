@@ -112,7 +112,7 @@ export function Step3RouteAndCosts({
                 borderRadius: 'var(--radius-control)',
                 borderColor: 'var(--color-line)',
               }}
-              className="w-full h-[320px] overflow-hidden border"
+              className="w-full h-[320px] max-md:h-auto overflow-hidden border"
             >
               <CorridorMiniMap
                 originCountry={opportunity.originCountry}

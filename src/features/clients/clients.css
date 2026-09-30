@@ -54,3 +54,23 @@
   .cl-company ul[style*="list-style: none"] > li > button:first-child { flex: 1 1 200px; min-width: 0; white-space: normal; }
   .cl-company ul[style*="list-style: none"] > li > button:last-child { flex: none; white-space: nowrap; }
 }
+
+/* Flatten the nesting on the company page: card > section > row, not card > card > card. The
+   regulation rows and plays become dividers-only sections inside their card, the KPI tiles lose
+   their border, and the card body gives the content its full width back. */
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
+  .cl-company .ds-card-body { padding: 4px 14px 12px; }
+  .cl-kpi { border: 0; }
+  .cl-regs, .cl-company .cl-plays { gap: 0 !important; }
+  .cl-reg,
+  .cl-play {
+    padding: 12px 0;
+    border: 0;
+    border-bottom: 1px solid var(--color-divider);
+    border-radius: 0;
+    background: transparent;
+  }
+  .cl-reg:last-child,
+  .cl-play:last-child { border-bottom: 0; }
+  .cl-reg-basis { border-top-style: dashed; }
+}

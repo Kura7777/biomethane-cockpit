@@ -58,7 +58,9 @@ export function DeskToastContainer() {
     <div
       style={{
         position: 'fixed',
-        bottom: isMobile ? 'calc(56px + env(safe-area-inset-bottom) + 12px)' : '44px',
+        // Compact layout: the toast rides under the header, never over the tab bar or a sticky
+        // action bar's buttons.
+        ...(isMobile ? { top: 'calc(52px + env(safe-area-inset-top))' } : { bottom: '44px' }),
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 1100, // matches --z-toast in index.css

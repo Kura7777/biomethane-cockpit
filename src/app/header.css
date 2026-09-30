@@ -377,8 +377,18 @@
     height: 48px;
     height: calc(48px + env(safe-area-inset-top));
     gap: 8px;
-    padding-left: 14px;
-    padding-right: 6px;
+    padding-left: max(14px, env(safe-area-inset-left));
+    padding-right: max(6px, env(safe-area-inset-right));
+  }
+
+  /* Landscape phone: a slimmer 44px header (the 44px icon buttons still fit). */
+  @media (orientation: landscape) and (max-height: 500px) {
+    .app-header {
+      height: calc(44px + env(safe-area-inset-top));
+    }
+    .app-header-actions .app-icon-btn {
+      height: 44px;
+    }
   }
 
   .app-brand-text,

@@ -237,7 +237,7 @@ export function ShippingBunkerPricingStep({
           padding: '14px 18px',
         }}
       >
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between max-md:flex-wrap max-md:gap-2 max-md:mb-3">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
             <h2 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-zinc-200">
@@ -249,7 +249,7 @@ export function ShippingBunkerPricingStep({
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 max-md:grid-cols-1! gap-4">
           {/* Pathway 1: Physical Cryogenic Bio-LNG */}
           <div
             onClick={() => setPathway('PHYSICAL')}

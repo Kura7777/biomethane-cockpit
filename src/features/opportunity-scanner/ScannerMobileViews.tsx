@@ -245,8 +245,18 @@ function ladderFields(r: LadderRowVM) {
       label: 'Spread vs all-in',
       span: 2 as const,
       value: (
-        <div className="sc-bar">
-          <div className="sc-bar-fill" style={{ width: `${r.barWidth}%`, backgroundColor: r.barColor }} />
+        <div className="sc-spread">
+          <div className="sc-bar" role="img" aria-label="Spread versus all-in, on a scale from 0 to 200 or more euro per MWh">
+            <div className="sc-bar-fill" style={{ width: `${r.barWidth}%`, backgroundColor: r.barColor }} />
+            <span className="sc-bar-tick" style={{ left: '25%' }} />
+            <span className="sc-bar-tick" style={{ left: '50%' }} />
+            <span className="sc-bar-tick" style={{ left: '75%' }} />
+          </div>
+          <div className="sc-bar-scale num" aria-hidden="true">
+            <span>0</span>
+            <span>€100</span>
+            <span>€200+</span>
+          </div>
         </div>
       ),
     },

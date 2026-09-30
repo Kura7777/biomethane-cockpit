@@ -461,7 +461,7 @@ export function ScannerScreen() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <Radar className="w-6 h-6 text-indigo-500" />
           <div>
-            <h3 className="ptitle" style={{ margin: 0, fontSize: '19px' }}>Opportunity & Arbitrage Scanner</h3>
+            <h3 className="ptitle m-page-title" style={{ margin: 0, fontSize: '19px' }}>Opportunity & Arbitrage Scanner</h3>
             <div className="subttl" style={{ fontSize: '12px' }}>
               Real-time cross-border arbitrage matching across 1,975 European production assets and statutory compliance sinks.
             </div>
