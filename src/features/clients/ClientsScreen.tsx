@@ -372,7 +372,7 @@ export function ClientsScreen() {
   const stackCount = filtered.filter(r => r.stack !== null).length;
   const costShown = filtered.reduce((s, r) => s + (r.exposure.costNowEur ?? 0), 0);
   const bioShown = filtered.reduce((s, r) => s + (r.bioValueEur ?? 0), 0);
-  const bioTwh = filtered.reduce((s, r) => s + (r.bioMWh ?? 0), 0) / 1_000_000;
+  const bioTwh = filtered.reduce((s, r) => (r.bioMWh === null ? s : s + r.bioMWh), 0) / 1_000_000;
   const twhText = `${bioTwh.toLocaleString('en-GB', { maximumFractionDigits: bioTwh < 10 ? 1 : 0 })} TWh/yr`;
   const q = searchFold(search.trim());
   const th = (key: SortKey, label: string, title: string, right = true) => (
