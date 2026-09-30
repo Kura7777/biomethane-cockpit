@@ -467,7 +467,7 @@
 /* ── Mobile (<768px) ── */
 .ets-foot-note { margin-top: 12px; font-size: 12px; color: var(--color-muted); line-height: 1.5; }
 
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
   .ets-body { padding: 8px 0 32px; }
   .ets-grid { gap: 16px; }
 

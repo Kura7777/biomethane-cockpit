@@ -138,7 +138,7 @@
 }
 
 /* ── Mobile: full width, legible at 358px ── */
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
   .vs-card { width: 100%; box-sizing: border-box; }
   .vs-head { flex-wrap: wrap; padding: 12px 14px; }
   .vs-head > div:first-child { flex: 1 1 100%; min-width: 0; }
@@ -162,6 +162,6 @@
   .vs-details { padding: 6px 14px; }
   .vs-details summary { min-height: 44px; display: flex; align-items: center; }
 }
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
   .vs-inputs .vs-input:first-child { grid-column: 1 / -1; }
 }

@@ -760,7 +760,7 @@
 }
 
 /* ── Mobile: full-screen dialog (.m-dialog handles inset/size) ── */
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
   .amc-overlay {
     backdrop-filter: none;
   }
@@ -942,7 +942,7 @@
     line-height: 1.2;
   }
 }
-@media (min-width: 768px) {
+@media (min-width: 768px) and (pointer: fine), (min-width: 768px) and (pointer: none), (min-width: 1024px) and (min-height: 500.02px) {
   .amc-m-footer {
     display: none;
   }

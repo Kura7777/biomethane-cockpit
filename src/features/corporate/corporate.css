@@ -1,5 +1,5 @@
 /* Corporate orders: mobile layout. Desktop keeps the inline two-column grid untouched. */
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
   .corp-grid { grid-template-columns: minmax(0, 1fr) !important; }
   .corp-check { min-height: 44px; }
   .corp-check input[type='checkbox'] { width: 20px; height: 20px; flex: none; }

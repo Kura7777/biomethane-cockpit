@@ -1,6 +1,6 @@
 /* Map screen: mobile treatment. Everything here is gated to <768px so desktop stays untouched. */
 
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
   .map-m-root {
     flex: 1;
     min-height: 0;

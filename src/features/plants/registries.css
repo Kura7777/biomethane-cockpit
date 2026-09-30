@@ -268,7 +268,7 @@
 }
 
 /* ── Mobile (<768px) ── */
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
   .rh-screen .ds-header {
     padding: 16px 0 8px !important;
   }

@@ -7,6 +7,10 @@
    the OS and the app theme disagreed. */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* max-md: means "compact layout", the same condition as MOBILE_QUERY: narrower than 768px, or a
+   touch device narrower than 1024px (iPad portrait) or shorter than 500px (phone in landscape). */
+@custom-variant max-md (@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px));
+
 @theme {
   --color-bg: #f6f6f3;
   --color-surface: #ffffff;
@@ -233,13 +237,16 @@
   overflow: hidden;
 }
 
-@media (min-width: 1024px) {
+/* Desktop (mouse, 768px and up; or any device at least 1024 x 500) keeps the desk's minimum width
+   and scrolls sideways below it, as it always has. Phones, phones turned sideways and iPads in
+   portrait get the compact layout instead (see MOBILE_QUERY in src/shared/hooks/useMediaQuery.ts). */
+@media (min-width: 768px) and (pointer: fine), (min-width: 768px) and (pointer: none), (min-width: 1024px) and (min-height: 500.02px) {
   .app-shell {
     min-width: 1180px;
   }
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
   .app-footer {
     display: none;
   }

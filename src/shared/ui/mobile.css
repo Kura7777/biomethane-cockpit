@@ -5,7 +5,7 @@
  * classes at the bottom before writing new CSS.
  */
 
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
   :root {
     /* Page gutter shrinks on phones; every ds-* layout class already reads this var. */
     --ds-page-gutter: 16px;
@@ -140,7 +140,7 @@
 .m-hide {
   display: initial;
 }
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
   .m-hide {
     display: none !important;
   }
@@ -150,14 +150,14 @@
 .m-only {
   display: none;
 }
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
   .m-only {
     display: initial;
   }
 }
 
 /* Force any grid/flex container to a single column on mobile. */
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
   .m-stack {
     display: flex !important;
     flex-direction: column !important;
@@ -200,7 +200,7 @@
    so the desktop inline sizing can stay where it is. Optional children: .m-dialog-header (sticky,
    clears the status bar) and .m-dialog-body (the scrolling part). Put .m-dialog-scrim on the
    overlay if it pads or centres the panel. */
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
   .m-dialog-scrim {
     padding: 0 !important;
     align-items: stretch !important;
@@ -238,7 +238,7 @@
 
 /* Sticky bottom action bar inside #main-content, mobile only (the tab bar below main already
    clears the home indicator, so no safe-area padding here). On desktop it is a plain block. */
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
   .m-sticky-actions {
     position: sticky;
     bottom: 0;
@@ -258,7 +258,7 @@
 }
 
 /* Cancel a parent's gutter padding so content can run edge-to-edge on mobile. */
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
   .m-full-bleed {
     margin-left: calc(var(--ds-page-gutter, 16px) * -1);
     margin-right: calc(var(--ds-page-gutter, 16px) * -1);

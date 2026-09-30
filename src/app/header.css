@@ -372,7 +372,7 @@
   display: none;
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
   .app-header {
     height: 48px;
     height: calc(48px + env(safe-area-inset-top));

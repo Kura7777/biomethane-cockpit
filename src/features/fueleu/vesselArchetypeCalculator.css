@@ -655,7 +655,7 @@ html.dark .fva-range {
 }
 
 /* ── Mobile (<768px) ── */
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
   .fva-vessel-headrow { display: none; }
   .fva-vessel-cols.fva-vessel-row {
     grid-template-columns: 24px repeat(3, minmax(0, 1fr));
@@ -694,6 +694,6 @@ html.dark .fva-range {
   .fva-kpi { padding: 12px; }
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
   .fva-step-actions.m-sticky-actions > .fva-estimate { min-height: 0; align-items: center; padding: 0; }
 }

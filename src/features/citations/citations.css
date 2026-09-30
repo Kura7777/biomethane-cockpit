@@ -1,5 +1,5 @@
 /* Citations: mobile list + full sheet. Desktop 3-pane grid is untouched (inline on PageShell). */
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
   .cit-mobile {
     display: flex;
     flex-direction: column;
@@ -120,7 +120,7 @@
     font-size: 13px;
   }
 }
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
   .cit-m-toc-list .eyebrow {
     display: none;
   }

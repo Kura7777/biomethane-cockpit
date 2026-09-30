@@ -644,7 +644,7 @@ html.dark .fe-scope { --fe-sel: #1b2029; }
 .fe-chart-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--color-muted); }
 .fe-chart-legend i { display: inline-block; width: 12px; height: 3px; margin-right: 6px; vertical-align: middle; }
 
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
   .fueleu-desk { --fe-page-gutter: 16px; }
 
   .fe-header { padding: 16px var(--fe-page-gutter) 12px; align-items: flex-start; }
@@ -771,7 +771,7 @@ html.dark .fe-scope { --fe-sel: #1b2029; }
   .fe-m-stepper-seg.current span { background: var(--color-accent); }
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
   .fe-dock { margin: 0 !important; }
   .fe-dock.m-sticky-actions { padding: 12px 16px !important; align-items: stretch !important; }
   .fe-dock .btn { min-height: 44px; height: auto !important; font-size: 13px !important; justify-content: center; }
@@ -780,7 +780,7 @@ html.dark .fe-scope { --fe-sel: #1b2029; }
   .fe-dock-multi .btn { width: 100%; }
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
   .fe-topn { height: auto !important; flex-wrap: wrap; }
   .fe-topn .seg-opt { height: 44px !important; }
   .fe-tab-scroll [style*="font-size: 9.5px"]:not(.eyebrow),

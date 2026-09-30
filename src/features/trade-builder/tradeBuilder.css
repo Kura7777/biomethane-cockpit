@@ -1050,7 +1050,7 @@ html.dark .tb-range {
   border-bottom: 1px solid var(--color-divider);
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
   /* The flow column pads itself with content-box sizing on desktop; on a phone that pushes it
      16px past each edge. */
   .tb-flow {

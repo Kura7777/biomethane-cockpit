@@ -1,7 +1,12 @@
 import { useCallback, useSyncExternalStore } from 'react';
 
-/** Tailwind's `max-md:` breakpoint (below 768px), used throughout the mobile shell. */
-export const MOBILE_QUERY = '(max-width: 767.98px)';
+/**
+ * The compact (phone) layout: narrower than 768px, or a touch device that is narrower than 1024px
+ * (iPad portrait) or shorter than 500px (a phone turned sideways). Kept in step with the CSS
+ * @media blocks and the max-md: variant in src/index.css.
+ */
+export const MOBILE_QUERY =
+  '(max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px)';
 
 /** Tablet-and-below relaxations (below 1024px). */
 export const TABLET_QUERY = '(max-width: 1023.98px)';

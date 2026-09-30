@@ -53,6 +53,18 @@ export default defineConfig({
       testMatch: /(^|[\\/])mobile[\w.-]*\.spec\.ts$/,
       use: { ...devices['iPhone 14'] },
     },
+    {
+      // A phone turned sideways (844x390, touch) must still get the compact layout.
+      name: 'mobile-landscape',
+      testMatch: /(^|[\\/])mobile[\w.-]*\.spec\.ts$/,
+      use: { ...devices['iPhone 14 landscape'] },
+    },
+    {
+      // iPad portrait (768x1024, touch) also gets the compact layout.
+      name: 'tablet',
+      testMatch: /(^|[\\/])mobile[\w.-]*\.spec\.ts$/,
+      use: { ...devices['iPad Mini'] },
+    },
   ],
 
   ...(externalBaseUrl

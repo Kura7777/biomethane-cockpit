@@ -53,7 +53,7 @@
 
 .sc-mbar { display: none; }
 
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
   .sc-head { padding: 14px var(--ds-page-gutter, 16px) !important; flex-direction: column; align-items: stretch !important; }
   .sc-head, .sc-head > *, .sc-head-controls, .sc-head-controls > * { min-width: 0; max-width: 100%; }
   .sc-head-controls { flex-direction: column; align-items: stretch !important; gap: 10px !important; }
