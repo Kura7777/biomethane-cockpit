@@ -1,4 +1,5 @@
 import { EUROPEAN_MARKET_BENCHMARKS } from '../markets/marketBenchmarks';
+import { ETS1_GAS_SHARE_SECTORS, defaultGasShare } from '../ets1/gasShare';
 import { ETS2_SEGMENT_SHARES } from '../ets2/segmentShare';
 
 /**
@@ -465,6 +466,20 @@ export const ASSUMPTION_DEFINITIONS: AssumptionDefinition[] = [
     min: 2025,
     max: 2025,
   },
+  ...ETS1_GAS_SHARE_SECTORS.map((sector): AssumptionDefinition => ({
+    key: `ets1.gasShare.${sector}`,
+    category: 'SCANNER',
+    label: `Natural-gas share of site CO2, ${sector.toLowerCase().replace(/_/g, ' ')}`,
+    unit: 'share of verified CO2',
+    defaultValue: defaultGasShare(sector),
+    basis: sector === 'POWER_HEAT' ? 'DESK_POLICY' : 'MARKET_MARK',
+    source: sector === 'POWER_HEAT'
+      ? 'Set to 1: a power or heat site is only graded fit when its name shows gas (ets1/sites.ts resolveFit).'
+      : 'Eurostat nrg_bal_c EU27 2024 (TJ, updated 2026-08-27): natural-gas CO2 over all combustible-fuel CO2 for the sector balance row, IPCC 2006 default emission factors. Energy use only. See ets1/gasShare.ts.',
+    usedIn: 'Clients and EU ETS1 sites: the biomethane a site could take is its verified CO2 times this share (not its full tonnage)',
+    min: 0,
+    max: 1,
+  })),
 ];
 
 const DEFINITIONS_BY_KEY = new Map(ASSUMPTION_DEFINITIONS.map(d => [d.key, d]));

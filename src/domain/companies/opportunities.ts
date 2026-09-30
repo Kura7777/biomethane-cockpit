@@ -2,7 +2,7 @@ import { MarksState } from '../netback/types';
 import { selectMarkPrice } from '../netback/engine';
 import { FUELEU_ANNEX_II } from '../fueleu/calculator';
 import { HHV_TO_LHV_FACTOR } from '../offtake/engine';
-import { biomethaneMWhToAbate, ets1AvoidedValuePerMWh, Ets1Company } from '../ets1/sites';
+import { biomethaneMWhToAbate, ets1AvoidedValuePerMWh, Ets1Company, Ets1Sector } from '../ets1/sites';
 import { getAssumption } from '../assumptions/registry';
 import { SHIPPING_DATA_YEAR } from './dataYears';
 import { computeCompanyExposure } from '../ets2/companies';
@@ -90,12 +90,18 @@ export function ets1NetPosition(companies: Ets1Company[]): { grossTco2: number; 
   };
 }
 
+/** Natural-gas share of a sector's combustion CO2 (Eurostat, ets1/gasShare.ts): the part biomethane can replace. */
+export function ets1GasShare(sector: Ets1Sector): number {
+  return getAssumption(`ets1.gasShare.${sector}`);
+}
+
 /**
- * ETS1 tonnes at HIGH/MEDIUM-fit sites: what biomethane could replace. Not netted for free
- * allocation: each tonne avoided frees an allowance to sell or not buy, whatever the allocation.
+ * ETS1 tonnes biomethane could replace: verified emissions at HIGH/MEDIUM-fit sites times the
+ * sector's natural-gas share. Not netted for free allocation: each tonne avoided frees an allowance
+ * to sell or not buy, whatever the allocation.
  */
 export function ets1AbatableTco2(c: Ets1Company): number {
-  return c.fitVerifiedLatestTco2;
+  return c.sites.filter(s => s.fit !== 'LOW').reduce((t, s) => t + s.verifiedLatestTco2 * ets1GasShare(s.sector), 0);
 }
 
 /** How the ETS1 bill is described wherever it is priced. */
@@ -491,7 +497,9 @@ function ets1Opportunities(p: CompanyProfile, marks: MarksState, year: number): 
   const fitSites = p.ets1.flatMap(c => c.sites).filter(s => s.fit !== 'LOW');
   const processHeatT = fitSites.filter(s => s.fit === 'HIGH').reduce((a, s) => a + s.verifiedLatestTco2, 0);
   const oilGasT = fitSites.filter(s => s.sector === 'REFINING_OIL_GAS').reduce((a, s) => a + s.verifiedLatestTco2, 0);
-  const oilGasLed = oilGasT * 2 > fitT;
+  const fitGrossT = p.ets1.reduce((a, c) => a + c.fitVerifiedLatestTco2, 0);
+  const gasSharePct = fitGrossT > 0 ? Math.round((fitT / fitGrossT) * 100) : 0;
+  const oilGasLed = oilGasT * 2 > fitGrossT;
   const spec = ets1StackSpec(fitT, marks, year);
   const unitValue = spec ? spec.eurPerMWhLow : null;
   return [{
@@ -507,12 +515,12 @@ function ets1Opportunities(p: CompanyProfile, marks: MarksState, year: number): 
     valueLabel: 'Allowances saved (full potential)',
     firstDealMWh,
     valueEurPerMWh: unitValue,
-    valueBasis: `Every tonne at its high/medium-fit sites replaced, at the desk EUA mark, not netted for free allocation (each tonne avoided frees an allowance to sell or not buy). The full potential, not one deal; a first deal is a share of the volume.`,
+    valueBasis: `The natural-gas share of the CO₂ at its high/medium-fit sites (gas share ${gasSharePct}% of site emissions, Eurostat energy balances by sector), replaced at the desk EUA mark, not netted for free allocation (each tonne avoided frees an allowance to sell or not buy). The full potential, not one deal; a first deal is a share of the volume.`,
     evidenceNeeded: 'RED III sustainability evidence via the Union Database (PoS assigned to the site); accepted by the site\'s verifier.',
     legalBasis: 'Art. 38(5) and 39a of Implementing Regulation (EU) 2018/2066 & Annex VI',
     caveats: [
       ...(oilGasLed
-        ? [`Mostly refining and oil & gas installations (${Math.round(oilGasT).toLocaleString('en-GB')} of ${Math.round(fitT).toLocaleString('en-GB')} tCO₂): these often burn their own fuel gas, and offshore platforms have no grid connection for biomethane — only grid-fed onshore units qualify.`]
+        ? [`Mostly refining and oil & gas installations (${Math.round(oilGasT).toLocaleString('en-GB')} of ${Math.round(fitGrossT).toLocaleString('en-GB')} tCO₂ at fit sites): these often burn their own fuel gas, and offshore platforms have no grid connection for biomethane — only grid-fed onshore units qualify.`]
         : []),
       ...(processHeatT > 0 ? [`Process-heat sites (the strongest fit): ${Math.round(processHeatT).toLocaleString('en-GB')} tCO₂.`] : []),
       'Sites below 20 MW rated thermal input fall under ETS2 instead — check before sizing.',

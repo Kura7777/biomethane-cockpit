@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { buildCompanyDirectory, CompanyProfile } from '../companies/directory';
-import { computeRegulationExposure, computeOpportunities, biomethaneValueEur, stackAnnualEur, ets1FirstDealShare, ets1StackSpec, shipStackSpec, ets1NetPosition } from '../companies/opportunities';
+import { computeRegulationExposure, computeOpportunities, biomethaneValueEur, stackAnnualEur, ets1FirstDealShare, ets1StackSpec, shipStackSpec, ets1NetPosition, ets1AbatableTco2, ets1GasShare } from '../companies/opportunities';
 import { computeValueStack } from '../valueStack/engine';
 import { ETS1_LATEST_YEAR } from '../ets1/sites';
+import { gasShareOf, defaultGasShare, ETS1_GAS_SHARE_SECTORS } from '../ets1/gasShare';
 import { ETS2_COUNTRIES } from '../ets2/countries';
 import { ETS_NATURAL_GAS_TCO2_PER_MWH } from '../netback/engine';
 import { HHV_TO_LHV_FACTOR } from '../offtake/engine';
@@ -154,7 +155,8 @@ describe('opportunities', () => {
   it('ETS1: valued at the full fit-site potential (fit tonnes x EUA, NOT netted for free allocation), first deal shown as a volume only', () => {
     const edison = directory.find(p => p.id === 'basf')!;
     const op = computeOpportunities(edison, marks, ETS2_COUNTRIES, YEAR).find(o => o.id === 'ets1-biomethane')!;
-    const fitT = edison.ets1.reduce((s, c) => s + c.fitVerifiedLatestTco2, 0);
+    const fitT = edison.ets1.reduce((s, c) => s + ets1AbatableTco2(c), 0);
+    expect(fitT).toBeLessThan(edison.ets1.reduce((s, c) => s + c.fitVerifiedLatestTco2, 0));
     const volume = Math.round(biomethaneMWhToAbate(fitT) / HHV_TO_LHV_FACTOR);
     expect(op.volumeMWh).toBe(volume);
     expect(op.valueEur).toBeCloseTo(fitT * 70, 3);
@@ -209,6 +211,38 @@ describe('opportunities — fuel caveat', () => {
     const op = computeOpportunities(naturgy, marks, ETS2_COUNTRIES, YEAR).find(o => o.id === 'ets1-biomethane')!;
     expect(op.valueEur).toBeGreaterThan(0);
     expect(op.caveats.join(' ')).not.toMatch(/lignite/);
+  });
+});
+
+describe('ETS1 gas share (Eurostat)', () => {
+  it('share maths on a small fixture: gas CO2 over all combustible-fuel CO2, 2 decimals', () => {
+    const fuels = [
+      { siec: 'G3000', name: 'Natural gas', tj: 100, efKgPerTj: 56100 },
+      { siec: 'O4610', name: 'Refinery gas', tj: 200, efKgPerTj: 57600 },
+      { siec: 'O4694', name: 'Petroleum coke', tj: 50, efKgPerTj: 97500 },
+    ];
+    // 5.61 / (5.61 + 11.52 + 4.875) = 0.2549 -> 0.25
+    expect(gasShareOf(fuels)).toBe(0.25);
+    expect(gasShareOf([{ siec: 'G3000', name: 'Natural gas', tj: 10, efKgPerTj: 56100 }])).toBe(1);
+    expect(gasShareOf([])).toBe(0);
+  });
+
+  it('sector shares from the Eurostat table are sensible and registered', () => {
+    expect(defaultGasShare('REFINING_OIL_GAS')).toBeCloseTo(0.19, 2);
+    expect(defaultGasShare('FOOD_BEVERAGE')).toBeGreaterThan(defaultGasShare('REFINING_OIL_GAS'));
+    expect(defaultGasShare('POWER_HEAT')).toBe(1);
+    for (const sec of ETS1_GAS_SHARE_SECTORS) expect(ets1GasShare(sec)).toBe(defaultGasShare(sec));
+  });
+
+  it('ORLEN is valued on its gas share, not its full fit tonnage', () => {
+    const orlen = directory.find(p => /^ORLEN S\.A/.test(p.name) && p.ets1.length)!;
+    const gross = orlen.ets1.reduce((s, c) => s + c.fitVerifiedLatestTco2, 0);
+    const op = computeOpportunities(orlen, marks, ETS2_COUNTRIES, YEAR).find(o => o.id === 'ets1-biomethane')!;
+    const abatable = orlen.ets1.reduce((s, c) => s + ets1AbatableTco2(c), 0);
+    expect(abatable).toBeLessThan(gross * 0.5);
+    expect(op.valueEur).toBeCloseTo(abatable * 70, 3);
+    expect(op.valueEur! / (gross * 70)).toBeCloseTo(abatable / gross, 6);
+    expect(op.valueBasis).toMatch(/gas share \d+% of site emissions/);
   });
 });
 

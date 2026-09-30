@@ -24,7 +24,7 @@ import { selectMarkPrice, ETS_NATURAL_GAS_TCO2_PER_MWH } from '../../domain/netb
 import { HHV_TO_LHV_FACTOR } from '../../domain/offtake/engine';
 import { normalizeCompanyName } from '../../domain/companies/normalize';
 import { CompanyProfile, MARKET_LABEL } from '../../domain/companies/directory';
-import { ets1StackSpec, ets1FirstDealShare } from '../../domain/companies/opportunities';
+import { ets1StackSpec, ets1FirstDealShare, ets1AbatableTco2 } from '../../domain/companies/opportunities';
 import { MarksState } from '../../domain/netback/types';
 import { ValueStackCard, StackBadge } from '../value-stack/ValueStackCard';
 import { companyLookup, stackedPlay } from '../value-stack/companyLookup';
@@ -216,7 +216,7 @@ export function Ets1SitesTab() {
     if (view === 'COMPANIES') {
       lines.push(['Company', 'Operators', 'Countries', 'Sectors', 'Biomethane fit', 'Sites', `Verified ${ETS1_LATEST_YEAR} tCO2`, 'Fit-site tCO2', `Allowance bill € at €${eua ?? ''}/t`, 'First deal MWh (invoiced)', 'First deal saving €', 'Status'].map(csvCell).join(','));
       for (const c of sortedCompanies) {
-        const d = firstDeal(c.fitVerifiedLatestTco2);
+        const d = firstDeal(ets1AbatableTco2(c));
         lines.push([
           c.name, c.operators.join('; '), c.countries.join(' '), c.sectors.map(s => SECTOR_LABEL[s]).join('; '), c.fit, c.sites.length,
           Math.round(c.verifiedLatestTco2), Math.round(c.fitVerifiedLatestTco2), eua === null ? null : Math.round(c.verifiedLatestTco2 * eua),
@@ -337,7 +337,7 @@ export function Ets1SitesTab() {
                 );
               }}
               fields={c => {
-                const d = firstDeal(c.fitVerifiedLatestTco2);
+                const d = firstDeal(ets1AbatableTco2(c));
                 return [
                   { label: `Verified ${ETS1_LATEST_YEAR}`, value: tonnes(c.verifiedLatestTco2), mono: true },
                   {
@@ -443,7 +443,7 @@ export function Ets1SitesTab() {
 
             {view === 'COMPANIES'
               ? (pageRows as Ets1Company[]).map(c => {
-                  const d = firstDeal(c.fitVerifiedLatestTco2);
+                  const d = firstDeal(ets1AbatableTco2(c));
                   const prof = lookup.byEts1Key.get(c.key);
                   const also = (prof?.markets ?? []).filter(m => m !== 'ETS1');
                   const stacked = stackFor(prof);
@@ -508,7 +508,7 @@ export function Ets1SitesTab() {
             year={year}
             stacked={stackFor(lookup.byEts1Key.get(selected.key))}
             eua={eua}
-            deal={firstDeal(selected.fitVerifiedLatestTco2)}
+            deal={firstDeal(ets1AbatableTco2(selected))}
             status={statuses[selected.key] ?? 'NOT_CONTACTED'}
             onStatus={s => setStatus(selected.key, s)}
             onClose={() => setSelectedKey(null)}
@@ -563,7 +563,7 @@ function CompanyPanel(props: {
   const isMobile = useIsMobile();
   const sites = [...c.sites].sort((a, b) => b.verifiedLatestTco2 - a.verifiedLatestTco2);
   const notes = fitNotes(c);
-  const spec = useMemo(() => ets1StackSpec(c.fitVerifiedLatestTco2, props.marks, props.year, ets1FirstDealShare()), [c, props.marks, props.year]);
+  const spec = useMemo(() => ets1StackSpec(ets1AbatableTco2(c), props.marks, props.year, ets1FirstDealShare()), [c, props.marks, props.year]);
   const also = (props.profile?.markets ?? []).filter(m => m !== 'ETS1');
   const footer = <button type="button" className="ets-btn primary grow" onClick={props.onClient}>Open client profile</button>;
   const body = (
@@ -598,7 +598,7 @@ function CompanyPanel(props: {
         </div>
         {c.fitVerifiedLatestTco2 > 0 && (
           <div className="ds-panel-meta">
-            First deal: {Math.round(deal.invoiceMWh).toLocaleString('en-GB')} MWh/yr of biomethane (as invoiced), cutting 10% of the {tonnes(c.fitVerifiedLatestTco2)} at its high/medium-fit sites.
+            First deal: {Math.round(deal.invoiceMWh).toLocaleString('en-GB')} MWh/yr of biomethane (as invoiced), cutting 10% of the {tonnes(ets1AbatableTco2(c))} of gas-burning CO₂ (sector gas share of its high/medium-fit sites, Eurostat).
           </div>
         )}
         {notes.map(n => <div key={n.text} className={`ets-note ${n.tone === 'info' ? 'info' : ''}`}>{n.text}</div>)}
