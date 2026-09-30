@@ -1,4 +1,5 @@
 import { FUELEU_ACTIVE_PERIOD } from '../../../domain/fueleu/calculator';
+import { MRV_REPORTING_YEAR } from '../../../domain/fueleu/mrvVintage';
 import React, { useState, useMemo } from 'react';
 import {
   ShippingCounterparty,
@@ -60,7 +61,7 @@ export function ShippingExposureStep({
       return [
         {
           title: 'Fleet Compliance Position',
-          detail: `${counterparty.parent_name} operates an EU MRV fleet (Source: EU MRV 2024, THETIS-MRV public report; fuel split estimated) of ${counterparty.vessels_in_scope} vessels generating a premier +${(counterparty.compliance_balance_2026_tco2e / 1000).toFixed(1)} kt FuelEU surplus in 2025.`,
+          detail: `${counterparty.parent_name} operates an EU MRV fleet (Source: EU MRV ${MRV_REPORTING_YEAR}, THETIS-MRV public report; fuel split estimated) of ${counterparty.vessels_in_scope} vessels generating a premier +${(counterparty.compliance_balance_2026_tco2e / 1000).toFixed(1)} kt FuelEU surplus in 2025.`,
         },
         {
           title: 'Article 21 Surplus Monetisation',
@@ -404,7 +405,7 @@ export function ShippingExposureStep({
             }}
           >
             <ShieldCheck size={12} style={{ color: 'var(--color-status-pos-text)' }} />
-            <span>Source: EU MRV 2024 (THETIS-MRV public report); fuel split estimated</span>
+            <span>Source: EU MRV {MRV_REPORTING_YEAR} (THETIS-MRV public report); fuel split estimated</span>
           </div>
         </div>
 

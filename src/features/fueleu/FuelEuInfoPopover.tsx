@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { FUELEU_VLSFO_WTW, FUELEU_LFO_WTW } from '../../domain/fueleu/calculator';
+import { MRV_REPORTING_YEAR } from '../../domain/fueleu/mrvVintage';
 import { Sheet } from '../../shared/ui';
 import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 import { latestTradeVwap, latestOfferIndex } from '../../domain/markets/fueleuPoolIndexHistory';
@@ -52,7 +53,7 @@ export function FuelEuInfoPopover() {
       </section>
       <section>
         <h4>Data source</h4>
-        <div>EU MRV 2024 activity (THETIS-MRV). Fuel split is estimated — see EU MRV provenance for the method.</div>
+        <div>EU MRV {MRV_REPORTING_YEAR} activity (THETIS-MRV). Fuel split is estimated — see EU MRV provenance for the method.</div>
         <div style={{ marginTop: '6px', display: 'flex', gap: '10px' }}>
           <button type="button" className="fe-btn-secondary" style={{ flexGrow: 0, height: '28px', fontSize: '11.5px', padding: '0 10px' }} onClick={() => navigate('/citations')}>
             Citations &amp; legal basis

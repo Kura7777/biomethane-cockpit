@@ -46,8 +46,8 @@ Art. 2(1), lines 175-200)
 Reg. (EU) 2023/1805 Art. 2(1) applies FuelEU obligations, for ships >5,000 GT
 carrying passengers/cargo commercially (MRV's 2024 publication was restricted to
 >=5,000 GT ships; the 2025 publication ALSO lists offshore vessels and general cargo ships of
-400-5,000 GT (no GT column). Offshore rows are dropped by ship type; small general cargo ships
-cannot be identified and remain, a known upward bias in general-cargo companies), to:
+400-5,000 GT (no GT column). Offshore rows are dropped by ship type; general cargo ships are kept only if their IMO is
+in the 2024 publication -- see GT_FILTER_SHIP_TYPES), to:
   (a) 100% of energy used at berth in an MS port;
   (b) 100% of energy used on voyages between two MS ports;
   (c) 50% of energy on voyages to/from an outermost-region MS port; and
@@ -228,6 +228,16 @@ EXPECTED_HEADERS_FULL = {
 # CANNOT be separated and stay in; see the docstring limitation note.
 OUT_OF_SCOPE_SHIP_TYPES = {"Other ship types (Offshore)"}
 
+# Size filter for types whose 2025 coverage was extended down to 400 GT. The 2025 workbook has no
+# gross-tonnage column and no other size/scope flag (checked all 113 columns: technical-efficiency
+# EEDI/EEXI/EIV text, monitoring-method A-D flags and ice class do not separate ships by GT), so:
+# keep a ship of these types ONLY if its IMO also appears in the 2024 publication (v244), which
+# covered ships >= 5,000 GT only. This slightly understates (2025 newbuilds >= 5,000 GT are dropped),
+# the safe direction. Only "General cargo ship" jumped for this reason (1,343 -> 2,984 ships);
+# other type counts moved by < 10%. The 2024 IMO list is data/fueleu_mrv_2024_imos.json.
+GT_FILTER_SHIP_TYPES = {"General cargo ship"}
+IMOS_2024_JSON = os.path.join(REPO_ROOT, "data", "fueleu_mrv_2024_imos.json")
+
 CO2_FACTOR_HFO = 3.114
 CO2_FACTOR_MGO = 3.206
 CO2_FACTOR_LNG = 2.750
@@ -321,6 +331,10 @@ def main():
         if sheet_name not in wb.sheetnames:
             raise RuntimeError(f"Expected sheet {sheet_name!r} not found; sheets present: {wb.sheetnames}")
 
+    with open(IMOS_2024_JSON, encoding="utf-8") as fh:
+        imos_2024 = set(json.load(fh)["imos"])
+    gt_filtered = defaultdict(lambda: [0, 0.0])  # type -> [ships dropped, total CO2 dropped]
+
     companies = defaultdict(lambda: {
         "company_imo": None,
         "parent_name": None,
@@ -370,6 +384,10 @@ def main():
             if ship_type in OUT_OF_SCOPE_SHIP_TYPES:
                 excluded_by_type[ship_type] = excluded_by_type.get(ship_type, 0) + 1
                 excluded_co2 += num(row[28])
+                continue
+            if ship_type in GT_FILTER_SHIP_TYPES and str(ship_imo) not in imos_2024:
+                gt_filtered[ship_type][0] += 1
+                gt_filtered[ship_type][1] += num(row[28])
                 continue
             company_imo = row[8]
             company_name = (row[9] or "").strip() if row[9] else None
@@ -534,8 +552,8 @@ def main():
                 "CH4/fuel > 0.001 t/t are classified as LNG-fuelled and split via the "
                 "CO2/CH4 mass-balance; other ships are split via linear interpolation of "
                 "their CO2/fuel ratio between the HFO and MGO factors. Offshore-vessel rows are "
-                "excluded (out of FuelEU/ETS-2026 scope); general cargo ships of 400-5,000 GT "
-                "cannot be separated (no GT column) and remain (limitation). Partial-year MRV "
+                "excluded (out of FuelEU/ETS-2026 scope); general cargo ships are kept only if their IMO is in the 2024 "
+                "publication (>= 5,000 GT; heuristic, no GT column in 2025). Partial-year MRV "
                 "reports ('2025 Partial ERs') are included and flagged partialReport."
             ),
         },
@@ -564,6 +582,7 @@ def main():
     # ---------------- Sanity checks ----------------
     print("\n================ SANITY CHECKS ================")
     print(f"Excluded out-of-scope ship types: {excluded_by_type} ({excluded_co2/1e6:.2f} Mt total CO2)")
+    print(f"Dropped as not in the 2024 (>=5,000 GT) list: { {k: (v[0], round(v[1]/1e6, 2)) for k, v in gt_filtered.items()} } (ships, Mt CO2)")
     print(f"Total ships processed: {total_ships}")
     print(f"Ships with zero reported fuel: {zero_fuel_ships}")
     print(f"Total companies (DoC holders): {len(company_list)}")

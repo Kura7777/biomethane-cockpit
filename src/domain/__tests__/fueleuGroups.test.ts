@@ -53,9 +53,9 @@ describe('FUEL_EU_SHIPPING_GROUPS — commercial group roll-up', () => {
 });
 
 describe('FUEL_EU_LNG_SHIPS — LNG vessel book', () => {
-  it('has one row per isLng-flagged ship in the EU MRV 2025 ship-level extract (737 in v58; 479 in 2024 v244)', () => {
+  it('has one row per isLng-flagged ship in the EU MRV 2025 ship-level extract (736 after the general-cargo size filter; 737 before it; 479 in 2024 v244)', () => {
     const lngInExtract = (mrvShips as { ships: { isLng: boolean }[] }).ships.filter(s => s.isLng).length;
-    expect(lngInExtract).toBe(737);
+    expect(lngInExtract).toBe(736);
     expect(FUEL_EU_LNG_SHIPS.length).toBe(lngInExtract);
   });
 

@@ -1,4 +1,5 @@
 import { FUELEU_ACTIVE_PERIOD } from '../../../domain/fueleu/calculator';
+import { MRV_REPORTING_YEAR } from '../../../domain/fueleu/mrvVintage';
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -127,7 +128,7 @@ PRIMARY BUNKERING HUBS: ${counterparty.primary_bunkering_hubs || '—'}
 CALLING CORRIDOR: ${(counterparty.callingRegion && CALLING_REGIONS[counterparty.callingRegion]?.label) || counterparty.callingRegion || 'EUR'}
 TRADE LANE: ${(counterparty.tradeLane && TRADE_LANES[counterparty.tradeLane]?.label) || counterparty.tradeLane || 'GLOBAL_CONTAINER'}
 
-1. BASELINE FLEET EXPOSURE (SOURCE: EU MRV 2024, THETIS-MRV PUBLIC REPORT; FUEL SPLIT ESTIMATED)
+1. BASELINE FLEET EXPOSURE (SOURCE: EU MRV ${MRV_REPORTING_YEAR}, THETIS-MRV PUBLIC REPORT; FUEL SPLIT ESTIMATED)
 --------------------------------------------------------------------------------
 - Fleet Energy Consumption in EU Scope: ${(counterparty.total_energy_mwh / 1000).toFixed(1)} GWh
 - Fleet Fuel Burn: ${counterparty.vlsfo_tonnes.toLocaleString()}t VLSFO / ${counterparty.mgo_tonnes.toLocaleString()}t MGO / ${counterparty.lng_tonnes.toLocaleString()}t LNG
@@ -521,7 +522,7 @@ European Biomethane & Marine Fuels Trading Desk`
                 color: 'var(--color-text)',
               }}
             >
-              <span>1. BASELINE FLEET EXPOSURE (SOURCE: EU MRV 2024, THETIS-MRV)</span>
+              <span>1. BASELINE FLEET EXPOSURE (SOURCE: EU MRV {MRV_REPORTING_YEAR}, THETIS-MRV)</span>
               <span style={{ fontSize: '10px', color: 'var(--color-accent)', fontWeight: 600 }}>FUEL SPLIT ESTIMATED</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
