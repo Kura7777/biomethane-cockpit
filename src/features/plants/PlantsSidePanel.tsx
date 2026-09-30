@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Maximize2, Minimize2, X } from 'lucide-react';
 import { BiomethanePlant, CountryMacroStat } from '../../domain/plants/types';
+import { Sheet } from '../../shared/ui';
+import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 
 const DATA_QUALITY_LABELS: Record<string, string> = {
   approximateCoordinates: 'Approximate location',
@@ -28,6 +30,9 @@ export interface PlantsSidePanelProps {
   onClose: () => void;
   onPriceDeal: (plant: BiomethanePlant) => void;
   onOpenDossier: (plant: BiomethanePlant) => void;
+  /** Mobile only: whether the detail sheet is open (the list is full width, detail is a sheet). */
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
 /** Sticky right-hand panel: selected plant detail with a "price a deal" / "full dossier" footer,
@@ -42,7 +47,10 @@ export function PlantsSidePanel({
   onClose,
   onPriceDeal,
   onOpenDossier,
+  mobileOpen = false,
+  onMobileClose,
 }: PlantsSidePanelProps) {
+  const isMobile = useIsMobile();
   const [expanded, setExpanded] = useState(false);
   const expandedRef = useRef<HTMLElement>(null);
 
@@ -60,6 +68,8 @@ export function PlantsSidePanel({
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [expanded]);
+
+  if (isMobile && !plant) return null;
 
   if (!plant) {
     return (
@@ -111,17 +121,29 @@ export function PlantsSidePanel({
   }
   flags.push('CI is feedstock default');
 
-  const renderPanel = (isExpanded: boolean) => (
+  const footerButtonsInner = (
+    <>
+      <button type="button" className="btn btn-primary plants-panel-btn" onClick={() => onPriceDeal(plant)}>
+        Price a deal
+      </button>
+      <button type="button" className="btn btn-secondary plants-panel-btn" onClick={() => onOpenDossier(plant)}>
+        Full dossier
+      </button>
+    </>
+  );
+  const footerButtons = <div className="ds-aside-footer">{footerButtonsInner}</div>;
+
+  const renderPanel = (isExpanded: boolean, inSheet = false) => (
     <aside
       ref={isExpanded ? expandedRef : undefined}
-      className={`ds-aside plants-aside ${isExpanded ? 'plants-aside-expanded' : ''}`}
+      className={`ds-aside plants-aside ${isExpanded ? 'plants-aside-expanded' : ''} ${inSheet ? 'plants-aside-sheet' : ''}`}
       role={isExpanded ? 'dialog' : undefined}
       aria-modal={isExpanded ? true : undefined}
       aria-label={isExpanded ? `${plant.name} details` : undefined}
       tabIndex={isExpanded ? -1 : undefined}
     >
       <div className="ds-aside-section">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+        {!inSheet && <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
           <div>
             <div className="ds-panel-title">{plant.name}</div>
             <div className="ds-panel-meta plants-panel-meta">
@@ -144,7 +166,7 @@ export function PlantsSidePanel({
               <X size={14} />
             </button>
           </div>
-        </div>
+        </div>}
 
         <div className="plants-panel-stats">
           <div>
@@ -224,16 +246,25 @@ export function PlantsSidePanel({
         </div>
       </div>
 
-      <div className="ds-aside-footer">
-        <button type="button" className="btn btn-primary plants-panel-btn" onClick={() => onPriceDeal(plant)}>
-          Price a deal
-        </button>
-        <button type="button" className="btn btn-secondary plants-panel-btn" onClick={() => onOpenDossier(plant)}>
-          Full dossier
-        </button>
-      </div>
+      {!inSheet && footerButtons}
     </aside>
   );
+
+  if (isMobile) {
+    return (
+      <Sheet
+        open={mobileOpen}
+        onClose={() => onMobileClose?.()}
+        variant="full"
+        title={plant.name}
+        subtitle={[plant.countryCode, plant.region, plant.commissioningYear ? `Active since ${plant.commissioningYear}` : null].filter(Boolean).join(' · ')}
+        footer={<div className="plants-sheet-footer">{footerButtonsInner}</div>}
+        testId="plant-detail-sheet"
+      >
+        {renderPanel(false, true)}
+      </Sheet>
+    );
+  }
 
   return (
     <>

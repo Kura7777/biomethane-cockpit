@@ -617,3 +617,217 @@
     border-right: 0;
   }
 }
+
+/* ── Mobile (<768px). Desktop rules above are untouched. ── */
+.plants-toolbar-mobile {
+  display: none;
+}
+
+@media (max-width: 767.98px) {
+  .plants-body {
+    padding-top: 12px;
+    padding-bottom: 24px;
+  }
+  .plants-body > .plants-kpis {
+    padding-bottom: 12px;
+  }
+  .plants-export-btn {
+    min-height: 44px;
+  }
+  .plants-toolbar-desktop {
+    display: none !important;
+  }
+  .plants-toolbar-mobile {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    padding-bottom: 12px;
+  }
+  .plants-toolbar-mobile .ds-search {
+    width: auto;
+    min-width: 0;
+    height: 44px;
+  }
+  .plants-toolbar-mobile .ds-search input {
+    min-width: 0;
+    width: 100%;
+  }
+  .plants-filters-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0 14px;
+  }
+  .plants-filters-btn.active {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+  .plants-filter-badge {
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: var(--color-accent);
+    color: #fff;
+    font-size: 11px;
+    line-height: 18px;
+    text-align: center;
+  }
+  .plants-sort-select {
+    grid-column: 1 / -1;
+    width: 100%;
+    height: 40px;
+  }
+  .plants-active-chips .plants-filter-chip button,
+  .plants-clear-all {
+    min-height: 32px;
+    min-width: 32px;
+  }
+  .plants-protocol-line {
+    padding-bottom: 12px;
+    line-height: 1.5;
+  }
+  .plants-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .plants-table-wrap {
+    border: 0;
+    background: transparent;
+    border-radius: 0;
+    overflow: visible;
+  }
+  .plants-table-wrap .ds-tfoot {
+    border: 1px solid var(--color-divider);
+    border-radius: var(--radius-card);
+    margin-top: 12px;
+    gap: 8px 12px;
+  }
+  .plants-table-wrap .ds-pagination button {
+    width: 44px;
+    height: 44px;
+  }
+  .plants-page-select {
+    min-height: 40px;
+  }
+
+  /* Filter sheet */
+  .plants-filter-sheet {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 4px 0 8px;
+  }
+  .plants-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+  .plants-filter-group .plants-popover-heading,
+  .plants-filter-more .plants-popover-heading {
+    padding: 0 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 11px;
+  }
+  .plants-filter-group .input,
+  .plants-filter-more .input {
+    width: 100%;
+    min-height: 44px;
+  }
+  .plants-filter-group .seg {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    width: 100%;
+    height: auto;
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+  .plants-filter-group .seg-opt {
+    min-height: 40px;
+    padding: 0 14px;
+    border: 1px solid var(--color-divider);
+    border-radius: 20px;
+  }
+  .plants-filter-group .seg-opt.active {
+    border-color: var(--color-accent);
+  }
+  .plants-filter-more {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .plants-filter-more .plants-popover-heading {
+    margin-top: 10px;
+  }
+  .plants-filter-more .plants-popover-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .plants-filter-more .plants-popover-row button {
+    min-height: 40px;
+    padding: 0 12px;
+    font: inherit;
+    font-size: 13px;
+    color: var(--color-text);
+    background: var(--color-surface);
+    border: 1px solid var(--color-divider);
+    border-radius: 20px;
+  }
+
+  /* Detail sheet: the aside content flows in the sheet body */
+  .plants-aside.plants-aside-sheet {
+    position: static;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    max-height: none;
+    overflow: visible;
+    margin: 0;
+  }
+  .plants-aside-sheet .ds-aside-section {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .plants-aside-sheet .ds-aside-section:first-child {
+    padding-top: 4px;
+  }
+  .plants-kpis .ds-kpi-card {
+    padding: 12px;
+    gap: 4px;
+  }
+  .plants-kpis .ds-kpi-label {
+    font-size: 12px;
+  }
+  .plants-kpis .ds-kpi-value {
+    font-size: 20px;
+  }
+  .plants-kpis .ds-kpi-sub {
+    font-size: 11.5px;
+    line-height: 1.35;
+  }
+  .plants-aside-sheet .plants-panel-stats {
+    gap: 8px;
+  }
+  .plants-aside-sheet .ds-panel-stat-value {
+    font-size: 16px;
+  }
+  .plants-aside-sheet .plants-panel-row {
+    gap: 12px;
+  }
+  .plants-sheet-footer {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+  }
+  .plants-sheet-footer .plants-panel-btn {
+    flex: 1;
+    min-height: 44px;
+  }
+}

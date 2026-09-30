@@ -6,6 +6,8 @@ import { hasApproximateCoordinates } from '../../domain/plants/registry';
 import { evaluatePlantContactQuality } from '../../domain/plants/contactQuality';
 import { showToast } from '../../app/DeskToastContainer';
 import { useTheme } from '../../store/theme';
+import { useIsMobile } from '../../shared/hooks/useMediaQuery';
+import './plantsMobile.css';
 import { 
   ExternalLink, 
   Mail, 
@@ -113,13 +115,16 @@ export function PlantSourcingDrawer({ plant, onClose }: PlantSourcingDrawerProps
   const [overrideEmail, setOverrideEmail] = useState('');
   const [overridePhone, setOverridePhone] = useState('');
   const [overrideNotes, setOverrideNotes] = useState('');
-  const [isExpanded, setIsExpanded] = useState<boolean>(() => {
+  const isMobile = useIsMobile();
+  const [isExpandedStored, setIsExpanded] = useState<boolean>(() => {
     try {
       return localStorage.getItem('plant_drawer_expanded') === 'true';
     } catch {
       return false;
     }
   });
+  // On phones the drawer is always full-screen, so the "expanded" layout variants never apply.
+  const isExpanded = isExpandedStored && !isMobile;
 
   const toggleExpanded = () => {
     setIsExpanded(prev => {
@@ -375,7 +380,8 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
   };
 
   return (
-    <div 
+    <div
+      className="psd-scrim"
       style={{
         position: 'fixed',
         inset: 0,
@@ -388,7 +394,8 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
       }}
       onClick={onClose}
     >
-      <div 
+      <div
+        className="psd-panel"
         style={{
           width: '100%',
           maxWidth: isExpanded ? '100vw' : '640px',
@@ -404,8 +411,16 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
         }}
         onClick={e => e.stopPropagation()}
       >
+        <div className="psd-mobile-bar">
+          <div className="psd-mobile-bar-title">{plant.name}</div>
+          <button type="button" className="psd-mobile-bar-close" onClick={onClose} aria-label="Close" data-testid="plant-drawer-close">
+            <X size={20} />
+          </button>
+        </div>
+
         {/* Header / Executive Plant Summary Hero */}
-        <div 
+        <div
+          className="psd-header"
           style={{
             padding: isExpanded ? '18px 28px 14px 28px' : '16px 20px 12px 20px',
             backgroundColor: t.bgHeader,
@@ -451,7 +466,7 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                 )}
               </div>
 
-              <h2 style={{ fontSize: isExpanded ? '22px' : '18px', fontWeight: 800, margin: 0, color: t.textMain, letterSpacing: '-0.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <h2 className="psd-title" style={{ fontSize: isExpanded ? '22px' : '18px', fontWeight: 800, margin: 0, color: t.textMain, letterSpacing: '-0.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {plant.name}
               </h2>
               <p style={{ fontSize: '12px', color: t.textMuted, margin: '3px 0 0 0', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
@@ -462,10 +477,11 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
             </div>
 
             {/* Panel Controls */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+            <div className="psd-controls" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
               <button
                 type="button"
                 onClick={toggleExpanded}
+                className="psd-expand-btn"
                 style={{
                   background: t.btnBg,
                   border: `1px solid ${t.btnBorder}`,
@@ -507,7 +523,7 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
           </div>
 
           {/* Trader Core Summary Numbers (Open, borderless typography) */}
-          <div style={{
+          <div className="psd-numbers" style={{
             display: 'flex',
             alignItems: 'center',
             gap: isExpanded ? '24px' : '14px',
@@ -570,7 +586,7 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
           </div>
 
           {/* Primary Desk Action Toolbar */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', paddingTop: '2px' }}>
+          <div className="psd-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', paddingTop: '2px' }}>
             <button
               type="button"
               onClick={handleLaunchTrade}
@@ -683,7 +699,7 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
         </div>
 
         {/* Clean Underline Tab Navigation */}
-        <div style={{
+        <div className="psd-tabs" style={{
           display: 'flex',
           alignItems: 'center',
           padding: isExpanded ? '0 28px' : '0 20px',
@@ -749,7 +765,7 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
             margin: '0 auto',
             boxSizing: 'border-box'
           }} 
-          className="noscroll"
+          className="noscroll psd-body"
         >
 
           {/* Inline Trader Desk Override Edit Form */}
@@ -769,7 +785,7 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
               </div>
 
               <form onSubmit={handleSaveOverride} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div className="psd-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '11px', color: t.textMuted, marginBottom: '4px' }}>
                       Signatory / Contact Name *
@@ -797,7 +813,7 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div className="psd-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '11px', color: t.textMuted, marginBottom: '4px' }}>
                       Direct Email
@@ -1967,6 +1983,7 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
           <button
             type="button"
             onClick={toggleExpanded}
+            className="psd-expand-btn"
             style={{
               padding: '6px 12px',
               backgroundColor: t.btnBg,

@@ -18,11 +18,14 @@ import {
   ArrowUp,
   ArrowDown,
   ArrowUpDown,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { showToast } from '../../app/DeskToastContainer';
 import { PageShell } from '../../shared/ui/PageShell';
 import { PageHeader, HeaderPill } from '../../shared/ui/PageHeader';
 import { Tabs } from '../../shared/ui/Tabs';
+import { Sheet, MobileCardList } from '../../shared/ui';
+import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 import './plants.css';
 
 type SortField = 'name' | 'operator' | 'annualEnergyGWh' | 'ci';
@@ -97,6 +100,36 @@ function feedstockMatch(p: BiomethanePlant, selected: string): boolean {
   return true;
 }
 
+const SCALE_OPTIONS = [
+  { v: 'ALL', l: 'All capacity scales' },
+  { v: 'UTILITY', l: 'Utility scale (> 50 GWh/y)' },
+  { v: 'MEDIUM', l: 'Medium scale (20–50 GWh/y)' },
+  { v: 'DISTRIBUTED', l: 'Distributed (< 20 GWh/y)' },
+];
+
+const CONTACT_OPTIONS = [
+  { v: 'ALL', l: 'All contact tiers' },
+  { v: 'UNVERIFIED_LEAD', l: 'Unverified lead' },
+  { v: 'INDIRECT', l: 'Indirect / shared switchboard' },
+  { v: 'UNDELIVERABLE', l: 'Synthetic address (do not use)' },
+  { v: 'GDPR_RISK', l: 'GDPR risk (personal mailbox)' },
+  { v: 'WITH_EMAIL', l: 'Has email address' },
+  { v: 'WITH_PHONE', l: 'Has telephone' },
+  { v: 'WITH_WEBSITE', l: 'Corporate website' },
+  { v: 'NO_CONTACT', l: 'No contact published' },
+];
+
+const SORT_OPTIONS: { v: string; l: string; field: SortField; dir: SortDirection }[] = [
+  { v: 'annualEnergyGWh:desc', l: 'Output, high to low', field: 'annualEnergyGWh', dir: 'desc' },
+  { v: 'annualEnergyGWh:asc', l: 'Output, low to high', field: 'annualEnergyGWh', dir: 'asc' },
+  { v: 'name:asc', l: 'Plant, A to Z', field: 'name', dir: 'asc' },
+  { v: 'name:desc', l: 'Plant, Z to A', field: 'name', dir: 'desc' },
+  { v: 'operator:asc', l: 'Operator, A to Z', field: 'operator', dir: 'asc' },
+  { v: 'operator:desc', l: 'Operator, Z to A', field: 'operator', dir: 'desc' },
+  { v: 'ci:asc', l: 'CI, lowest first', field: 'ci', dir: 'asc' },
+  { v: 'ci:desc', l: 'CI, highest first', field: 'ci', dir: 'desc' },
+];
+
 function contactStatus(plant: BiomethanePlant): { dot: 'amber' | 'grey' | 'red'; label: string } {
   const label = plant.contactQuality?.confidenceLabel || '';
   if (label.startsWith('Unverified Lead')) return { dot: 'amber', label: 'Unverified lead' };
@@ -107,6 +140,9 @@ function contactStatus(plant: BiomethanePlant): { dot: 'amber' | 'grey' | 'red';
 
 export function PlantsScreen() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>('CENSUS');
 
   // ─── Filter State ───
@@ -471,6 +507,117 @@ export function PlantsScreen() {
     );
   };
 
+  const moreFields = (
+    <>
+      <div className="plants-popover-heading">Saved views</div>
+      <div className="plants-popover-row">
+        <button type="button" onClick={() => { resetAllFilters(); setOpenPopover(null); }}>All facilities</button>
+        <button type="button" onClick={() => { resetAllFilters(); setSelectedFeedstock('MANURE'); setOpenPopover(null); }}>Negative-CI manure</button>
+        <button type="button" onClick={() => { resetAllFilters(); setSelectedScale('UTILITY'); setOpenPopover(null); }}>Utility scale (&gt;50 GWh)</button>
+        <button type="button" onClick={() => { resetAllFilters(); setSelectedContact('UNVERIFIED_LEAD'); setOpenPopover(null); }}>Unverified leads</button>
+        <button type="button" onClick={() => { resetAllFilters(); setSelectedContact('UNDELIVERABLE'); setOpenPopover(null); }}>Dead domains</button>
+      </div>
+      <div className="plants-popover-heading">Carbon intensity range</div>
+      <select className="input" value={selectedCiRange} onChange={e => setSelectedCiRange(e.target.value)}>
+        <option value="ALL">All carbon intensities</option>
+        <option value="DEEP_NEGATIVE">Deep negative (&lt; -50 g/MJ)</option>
+        <option value="SUB_ZERO">Sub-zero (&lt; 0 g/MJ)</option>
+        <option value="LOW_POSITIVE">Low positive (0–25 g/MJ)</option>
+        <option value="STANDARD">Standard (&gt; 25 g/MJ)</option>
+      </select>
+      <div className="plants-popover-heading">Upgrading technology</div>
+      <select className="input" value={selectedTech} onChange={e => setSelectedTech(e.target.value)}>
+        <option value="ALL">All upgrading tech</option>
+        <option value="MEMBRANE">Membrane separation</option>
+        <option value="AMINE">Amine / chemical scrubbing</option>
+        <option value="WATER_SCRUBBING">Water scrubbing</option>
+        <option value="PSA">Pressure swing adsorption (PSA)</option>
+        <option value="CRYOGENIC">Cryogenic separation (WAGABOX)</option>
+      </select>
+      <div className="plants-popover-heading">Grid tier</div>
+      <select className="input" value={selectedGrid} onChange={e => setSelectedGrid(e.target.value)}>
+        <option value="ALL">All grid tiers</option>
+        <option value="TSO">Transmission (GRTgaz, Terega, Snam…)</option>
+        <option value="DSO">Distribution (GRDF, Fluvius, Enexis…)</option>
+        <option value="OFF_GRID">Dedicated / off-grid (Bio-LNG)</option>
+      </select>
+      <div className="plants-popover-heading">Statutory market</div>
+      <select className="input" value={selectedMarket} onChange={e => setSelectedMarket(e.target.value)}>
+        <option value="ALL">All markets</option>
+        <option value="DE_THG">DE — THG-Quote</option>
+        <option value="UK_RTFO">UK — RTFO</option>
+        <option value="IT_CIC">IT — CIC</option>
+        <option value="FR_CPB">FR — CPB</option>
+        <option value="NL_ERE">NL — ERE</option>
+        <option value="UK_RGGO">UK — RGGO</option>
+      </select>
+    </>
+  );
+
+  const activeFilterCount = [selectedCountry, selectedFeedstock, selectedCiRange, selectedScale, selectedTech, selectedGrid, selectedContact, selectedMarket].filter(v => v !== 'ALL').length;
+
+  const countrySelect = (
+    <select className="input plants-country-select" aria-label="Country" value={selectedCountry} onChange={e => setSelectedCountry(e.target.value)}>
+      <option value="ALL">All countries ({COMBINED_BIOMETHANE_PLANTS.length})</option>
+      {countryOptions.map(([code, meta]) => (
+        <option key={code} value={code}>
+          {meta.flag} {meta.name} ({code} · {meta.count})
+        </option>
+      ))}
+    </select>
+  );
+
+  const feedstockSeg = (
+    <div className="seg" role="group" aria-label="Feedstock">
+      {FEEDSTOCK_OPTIONS.map(opt => (
+        <button key={opt.value} type="button" className={`seg-opt ${selectedFeedstock === opt.value ? 'active' : ''}`} onClick={() => setSelectedFeedstock(opt.value)}>
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  );
+
+  const mobileFilterSheet = (
+    <Sheet
+      open={filtersOpen}
+      onClose={() => setFiltersOpen(false)}
+      variant="bottom"
+      title="Filters"
+      subtitle={`${sortedPlants.length.toLocaleString()} facilities match`}
+      testId="plants-filters-sheet"
+      footer={
+        <div className="plants-sheet-footer">
+          <button type="button" className="btn btn-secondary plants-panel-btn" disabled={!isFiltered} onClick={resetAllFilters}>Clear all</button>
+          <button type="button" className="btn btn-primary plants-panel-btn" onClick={() => setFiltersOpen(false)}>Show {sortedPlants.length.toLocaleString()}</button>
+        </div>
+      }
+    >
+      <div className="plants-filter-sheet">
+        <div className="plants-filter-group">
+          <div className="plants-popover-heading">Country</div>
+          {countrySelect}
+        </div>
+        <div className="plants-filter-group">
+          <div className="plants-popover-heading">Feedstock</div>
+          {feedstockSeg}
+        </div>
+        <div className="plants-filter-group">
+          <div className="plants-popover-heading">Scale</div>
+          <select className="input" aria-label="Scale" value={selectedScale} onChange={e => setSelectedScale(e.target.value)}>
+            {SCALE_OPTIONS.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
+          </select>
+        </div>
+        <div className="plants-filter-group">
+          <div className="plants-popover-heading">Contact status</div>
+          <select className="input" aria-label="Contact status" value={selectedContact} onChange={e => setSelectedContact(e.target.value)}>
+            {CONTACT_OPTIONS.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
+          </select>
+        </div>
+        <div className="plants-filter-more">{moreFields}</div>
+      </div>
+    </Sheet>
+  );
+
   return (
     <div className="plants-screen">
       <PageShell>
@@ -512,7 +659,36 @@ export function PlantsScreen() {
         <PageShell className="plants-body">
           <PlantsKpiTiles plants={filteredPlants} />
 
-          <div className="plants-toolbar">
+          <div className="plants-toolbar-mobile">
+            <label className="ds-search">
+              <Search size={14} />
+              <input
+                type="search"
+                placeholder="Plant, operator, city, TSO"
+                aria-label="Filter facility name"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+              />
+            </label>
+            <button type="button" className={`btn btn-secondary plants-filters-btn ${activeFilterCount > 0 ? 'active' : ''}`} onClick={() => setFiltersOpen(true)} data-testid="plants-filters-btn">
+              <SlidersHorizontal size={14} /> Filters
+              {activeFilterCount > 0 && <span className="plants-filter-badge num">{activeFilterCount}</span>}
+            </button>
+            <select
+              className="input plants-sort-select"
+              aria-label="Sort plants"
+              value={`${sortField}:${sortDirection}`}
+              onChange={e => {
+                const o = SORT_OPTIONS.find(x => x.v === e.target.value);
+                if (o) { setSortField(o.field); setSortDirection(o.dir); }
+              }}
+            >
+              {SORT_OPTIONS.map(o => <option key={o.v} value={o.v}>Sort: {o.l}</option>)}
+            </select>
+          </div>
+          {mobileFilterSheet}
+
+          <div className="plants-toolbar plants-toolbar-desktop">
             <label className="ds-search">
               <Search size={14} />
               <input
@@ -562,12 +738,7 @@ export function PlantsScreen() {
               </button>
               {openPopover === 'SCALE' && (
                 <div className="plants-popover" role="menu">
-                  {[
-                    { v: 'ALL', l: 'All capacity scales' },
-                    { v: 'UTILITY', l: 'Utility scale (> 50 GWh/y)' },
-                    { v: 'MEDIUM', l: 'Medium scale (20–50 GWh/y)' },
-                    { v: 'DISTRIBUTED', l: 'Distributed (< 20 GWh/y)' },
-                  ].map(o => (
+                  {SCALE_OPTIONS.map(o => (
                     <button key={o.v} type="button" className={selectedScale === o.v ? 'active' : ''} onClick={() => { setSelectedScale(o.v); setOpenPopover(null); }}>
                       {o.l}
                     </button>
@@ -584,17 +755,7 @@ export function PlantsScreen() {
               </button>
               {openPopover === 'CONTACT' && (
                 <div className="plants-popover" role="menu">
-                  {[
-                    { v: 'ALL', l: 'All contact tiers' },
-                    { v: 'UNVERIFIED_LEAD', l: 'Unverified lead' },
-                    { v: 'INDIRECT', l: 'Indirect / shared switchboard' },
-                    { v: 'UNDELIVERABLE', l: 'Synthetic address (do not use)' },
-                    { v: 'GDPR_RISK', l: 'GDPR risk (personal mailbox)' },
-                    { v: 'WITH_EMAIL', l: 'Has email address' },
-                    { v: 'WITH_PHONE', l: 'Has telephone' },
-                    { v: 'WITH_WEBSITE', l: 'Corporate website' },
-                    { v: 'NO_CONTACT', l: 'No contact published' },
-                  ].map(o => (
+                  {CONTACT_OPTIONS.map(o => (
                     <button key={o.v} type="button" className={selectedContact === o.v ? 'active' : ''} onClick={() => { setSelectedContact(o.v); setOpenPopover(null); }}>
                       {o.l}
                     </button>
@@ -611,48 +772,7 @@ export function PlantsScreen() {
               </button>
               {openPopover === 'MORE' && (
                 <div className="plants-popover plants-popover-wide" role="menu">
-                  <div className="plants-popover-heading">Saved views</div>
-                  <div className="plants-popover-row">
-                    <button type="button" onClick={() => { resetAllFilters(); setOpenPopover(null); }}>All facilities</button>
-                    <button type="button" onClick={() => { resetAllFilters(); setSelectedFeedstock('MANURE'); setOpenPopover(null); }}>Negative-CI manure</button>
-                    <button type="button" onClick={() => { resetAllFilters(); setSelectedScale('UTILITY'); setOpenPopover(null); }}>Utility scale (&gt;50 GWh)</button>
-                    <button type="button" onClick={() => { resetAllFilters(); setSelectedContact('UNVERIFIED_LEAD'); setOpenPopover(null); }}>Unverified leads</button>
-                    <button type="button" onClick={() => { resetAllFilters(); setSelectedContact('UNDELIVERABLE'); setOpenPopover(null); }}>Dead domains</button>
-                  </div>
-                  <div className="plants-popover-heading">Carbon intensity range</div>
-                  <select className="input" value={selectedCiRange} onChange={e => setSelectedCiRange(e.target.value)}>
-                    <option value="ALL">All carbon intensities</option>
-                    <option value="DEEP_NEGATIVE">Deep negative (&lt; -50 g/MJ)</option>
-                    <option value="SUB_ZERO">Sub-zero (&lt; 0 g/MJ)</option>
-                    <option value="LOW_POSITIVE">Low positive (0–25 g/MJ)</option>
-                    <option value="STANDARD">Standard (&gt; 25 g/MJ)</option>
-                  </select>
-                  <div className="plants-popover-heading">Upgrading technology</div>
-                  <select className="input" value={selectedTech} onChange={e => setSelectedTech(e.target.value)}>
-                    <option value="ALL">All upgrading tech</option>
-                    <option value="MEMBRANE">Membrane separation</option>
-                    <option value="AMINE">Amine / chemical scrubbing</option>
-                    <option value="WATER_SCRUBBING">Water scrubbing</option>
-                    <option value="PSA">Pressure swing adsorption (PSA)</option>
-                    <option value="CRYOGENIC">Cryogenic separation (WAGABOX)</option>
-                  </select>
-                  <div className="plants-popover-heading">Grid tier</div>
-                  <select className="input" value={selectedGrid} onChange={e => setSelectedGrid(e.target.value)}>
-                    <option value="ALL">All grid tiers</option>
-                    <option value="TSO">Transmission (GRTgaz, Terega, Snam…)</option>
-                    <option value="DSO">Distribution (GRDF, Fluvius, Enexis…)</option>
-                    <option value="OFF_GRID">Dedicated / off-grid (Bio-LNG)</option>
-                  </select>
-                  <div className="plants-popover-heading">Statutory market</div>
-                  <select className="input" value={selectedMarket} onChange={e => setSelectedMarket(e.target.value)}>
-                    <option value="ALL">All markets</option>
-                    <option value="DE_THG">DE — THG-Quote</option>
-                    <option value="UK_RTFO">UK — RTFO</option>
-                    <option value="IT_CIC">IT — CIC</option>
-                    <option value="FR_CPB">FR — CPB</option>
-                    <option value="NL_ERE">NL — ERE</option>
-                    <option value="UK_RGGO">UK — RGGO</option>
-                  </select>
+                  {moreFields}
                 </div>
               )}
             </div>
@@ -728,6 +848,47 @@ export function PlantsScreen() {
                 </div>
               ) : (
                 <div className="ds-table-wrap plants-table-wrap">
+                  {isMobile ? (
+                    <MobileCardList
+                      testId="plants-cards"
+                      items={paginatedPlants}
+                      getKey={p => p.id}
+                      title={p => p.name}
+                      subtitle={p => (
+                        <>
+                          <span className="num plants-iso-tag">{p.countryCode}</span>
+                          {p.region && <> · {p.region}</>} · {p.legalEntityName || p.operator || '—'}
+                        </>
+                      )}
+                      metric={p => (p.annualEnergyGWh ? p.annualEnergyGWh.toFixed(1) : '—')}
+                      metricLabel={() => 'GWh/y'}
+                      fields={p => {
+                        const status = contactStatus(p);
+                        return [
+                          { label: 'Feedstock', value: p.primaryFeedstockCategory || 'Agricultural / Waste' },
+                          { label: 'CI', value: renderCiChip(p.verifiedCarbonIntensity) },
+                          {
+                            label: 'Contact',
+                            value: (
+                              <span className="plants-contact-status">
+                                <span className={`plants-dot plants-dot-${status.dot}`} />
+                                {status.label}
+                              </span>
+                            ),
+                          },
+                          {
+                            label: 'Grid',
+                            value: `${p.networkOperator || '—'} · ${p.gridConnectionType?.includes('Transmission') ? 'TSO' : 'DSO'}`,
+                          },
+                        ];
+                      }}
+                      onSelect={p => {
+                        setSelectedPlantId(p.id);
+                        setMobileDetailOpen(true);
+                      }}
+                    />
+                  ) : (
+                  <>
                   <div className="ds-thead-row plants-table-cols">
                     <div>
                       <button type="button" onClick={() => handleSort('name')}>
@@ -799,6 +960,8 @@ export function PlantsScreen() {
                       );
                     })}
                   </div>
+                  </>
+                  )}
 
                   <div className="ds-tfoot">
                     <div>
@@ -850,6 +1013,8 @@ export function PlantsScreen() {
               onClose={() => setSelectedPlantId(null)}
               onPriceDeal={handlePriceDeal}
               onOpenDossier={setDossierPlant}
+              mobileOpen={mobileDetailOpen}
+              onMobileClose={() => setMobileDetailOpen(false)}
             />
           </div>
         </PageShell>

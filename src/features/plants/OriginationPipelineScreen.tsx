@@ -6,10 +6,41 @@ import { buildDealUrl } from '../../domain/trade/dealParams';
 import { PlantSourcingDrawer } from './PlantSourcingDrawer';
 import { AlertOctagon, AlertTriangle, Mail } from 'lucide-react';
 import { PageShell } from '../../shared/ui/PageShell';
+import { MobileCardList } from '../../shared/ui';
+import './plantsMobile.css';
+import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 
+
+function mobileContactBadge(p: BiomethanePlant) {
+  const base = { fontSize: 12, padding: '2px 8px', borderRadius: 4, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 } as const;
+  const c = p.contactQuality?.confidence;
+  return (
+    <>
+      {c === 'UNDELIVERABLE' ? (
+        <span style={{ ...base, backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+          <AlertOctagon size={11} /> Bounce
+        </span>
+      ) : c === 'INDIRECT' ? (
+        <span style={{ ...base, backgroundColor: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+          <AlertTriangle size={11} /> Indirect
+        </span>
+      ) : c === 'UNVERIFIED_LEAD' ? (
+        <span style={{ ...base, backgroundColor: 'rgba(14, 165, 233, 0.15)', color: '#0ea5e9', border: '1px solid rgba(14, 165, 233, 0.3)' }}>
+          <Mail size={11} /> Lead
+        </span>
+      ) : (
+        <span style={{ fontSize: 12, color: 'var(--color-text-tertiary)' }}>No Contact</span>
+      )}
+      {p.contactQuality?.isPersonalEmail && (
+        <span style={{ ...base, backgroundColor: 'rgba(234, 88, 12, 0.2)', color: '#ea580c', fontWeight: 800 }}>GDPR</span>
+      )}
+    </>
+  );
+}
 
 export function OriginationPipelineScreen() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   // Filters
   const [selectedCountry, setSelectedCountry] = useState<string>('ALL');
@@ -211,11 +242,11 @@ export function OriginationPipelineScreen() {
 
 
   return (
-    <PageShell style={{ padding: '24px 0', display: 'flex', flexDirection: 'column', gap: '20px', minHeight: '100%' }}>
+    <PageShell className="opl-root" style={{ padding: '24px 0', display: 'flex', flexDirection: 'column', gap: '20px', minHeight: '100%' }}>
       {/* Header & Strategic Context */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+      <div className="opl-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div className="opl-title-row" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ fontSize: '24px' }}>⚡</span>
             <h2 style={{ fontSize: '20px', fontWeight: 700, margin: 0, color: 'var(--color-text-primary)' }}>
               Pan-European Physical Biomethane Origination Pipeline
@@ -237,7 +268,7 @@ export function OriginationPipelineScreen() {
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div className="opl-header-actions" style={{ display: 'flex', gap: '10px' }}>
           <button
             onClick={exportCsv}
             className="btn-primary"
@@ -260,7 +291,7 @@ export function OriginationPipelineScreen() {
       </div>
 
       {/* Country Selector Pills Bar */}
-      <div style={{ 
+      <div className="opl-pills" style={{ 
         display: 'flex', 
         gap: '8px', 
         overflowX: 'auto', 
@@ -333,7 +364,7 @@ export function OriginationPipelineScreen() {
       </div>
 
       {/* KPI Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+      <div className="opl-kpis" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
         <div style={{ padding: '14px 18px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px' }}>
           <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', fontWeight: 600 }}>Active Assets Monitored</div>
           <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--color-text-primary)', marginTop: '4px' }}>
@@ -364,7 +395,7 @@ export function OriginationPipelineScreen() {
       </div>
 
       {/* Filter Control Bar */}
-      <div style={{ 
+      <div className="opl-filters" style={{ 
         display: 'flex', 
         gap: '14px', 
         alignItems: 'center', 
@@ -443,6 +474,77 @@ export function OriginationPipelineScreen() {
       </div>
 
       {/* Main Table */}
+      {isMobile ? (
+        <MobileCardList
+          testId="pipeline-cards"
+          items={filteredPipeline.slice(0, 100)}
+          getKey={p => p.id}
+          title={p => (
+            <>
+              <span aria-hidden="true">{p.countryFlag || '🌍'}</span> {p.name}
+            </>
+          )}
+          subtitle={p => (
+            <>
+              <span className="font-mono">{p.id}</span>
+              {p.commissioningYear && <span> • Comm. {p.commissioningYear}</span>}
+            </>
+          )}
+          metric={p => (p.annualEnergyGWh ? `${p.annualEnergyGWh} GWh/y` : '—')}
+          metricLabel={p => (p.capacityNm3h ? `${p.capacityNm3h.toLocaleString()} Nm³/h` : '')}
+          badges={p => mobileContactBadge(p)}
+          fields={p => {
+            const isManure = (p.primaryFeedstockCategory || '').toLowerCase().includes('manure') || (p.feedstockDetails || '').toLowerCase().includes('manure');
+            const ciVal = p.verifiedCarbonIntensity ?? (isManure ? -78 : 16);
+            return [
+              {
+                label: 'Operating entity & registration',
+                span: 2,
+                value: (
+                  <>
+                    <div>{p.verifiedDossier?.officialLegalEntity || 'Operator not identified'}</div>
+                    <div className="font-mono" style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
+                      {p.companyRegistrationId || 'Registration ID not verified'}
+                    </div>
+                  </>
+                ),
+              },
+              { label: 'Feedstock', value: p.primaryFeedstockCategory || 'Agri Waste' },
+              { label: 'CI', value: `${ciVal} gCO₂e/MJ`, mono: true, tone: ciVal < 0 ? 'pos' : undefined },
+              {
+                label: 'TSO / DSO grid',
+                span: 2,
+                value: `${p.networkOperator || 'National Gas Grid'} · ${p.gridConnectionType || 'Distribution Grid Injection'}`,
+              },
+              ...(p.contactEmail
+                ? [{
+                    label: 'Contact email',
+                    span: 2 as const,
+                    value: (
+                      <span style={{ wordBreak: 'break-all', textDecoration: p.contactQuality?.confidence === 'UNDELIVERABLE' ? 'line-through' : 'none' }}>
+                        {p.contactEmail}
+                      </span>
+                    ),
+                  }]
+                : []),
+              {
+                label: 'Actions',
+                span: 2,
+                value: (
+                  <div className="opl-card-actions">
+                    <button type="button" className="btn btn-secondary" onClick={() => setSelectedPlantForDrawer(p)}>Outreach</button>
+                    <button type="button" className="btn btn-primary" onClick={() => handleStructureOfftake(p)}>Trade ⚡</button>
+                    <button type="button" className="btn btn-secondary" aria-label="Copy lead brief to clipboard" onClick={() => handleCopyLead(p)}>
+                      {copyFeedback === p.id ? '✓' : '📋'}
+                    </button>
+                  </div>
+                ),
+              },
+            ];
+          }}
+          empty="No facilities match these filters."
+        />
+      ) : (
       <div style={{ overflowX: 'auto', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
           <thead>
@@ -701,6 +803,7 @@ export function OriginationPipelineScreen() {
           </tbody>
         </table>
       </div>
+      )}
 
       {filteredPipeline.length > 100 && (
         <div style={{ textAlign: 'center', fontSize: '12px', color: 'var(--color-text-secondary)', padding: '8px 0' }}>

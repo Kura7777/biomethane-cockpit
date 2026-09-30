@@ -266,3 +266,127 @@
   border-radius: var(--radius-bar);
   background: var(--color-status-pos-text);
 }
+
+/* ── Mobile (<768px) ── */
+@media (max-width: 767.98px) {
+  .rh-screen .ds-header {
+    padding: 16px 0 8px !important;
+  }
+  .rh-screen .ds-kpis {
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 0;
+  }
+  .rh-screen .ds-kpi-card {
+    padding: 12px;
+    gap: 4px;
+  }
+  .rh-screen .ds-kpi-label {
+    font-size: 12px;
+  }
+  .rh-screen .ds-kpi-value {
+    font-size: 20px;
+  }
+  .rh-screen .ds-kpi-sub {
+    font-size: 11.5px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+  .rh-context {
+    margin: 4px 0 14px;
+    font-size: 12.5px;
+  }
+  .rh-notice {
+    margin-bottom: 14px;
+    padding: 12px;
+  }
+  .rh-screen > * {
+    flex-shrink: 0;
+  }
+  .rh-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin: 0 calc(var(--ds-page-gutter) * -1) 16px;
+    padding: 0 var(--ds-page-gutter);
+    scrollbar-width: none;
+  }
+  .rh-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .rh-tab {
+    flex: none;
+    min-height: 44px;
+    white-space: nowrap;
+  }
+  .rh-section .ds-table-wrap {
+    border: 0;
+    background: transparent;
+    overflow: visible;
+  }
+  .rh-route-form {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .rh-route-field {
+    min-width: 0;
+  }
+  .rh-route-field .input {
+    min-height: 44px;
+    width: 100%;
+    min-width: 0;
+  }
+  .rh-route-result,
+  .rh-live-card {
+    padding: 14px;
+  }
+  .rh-live-columns {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .rh-daily-row .rh-cell-ellipsis {
+    white-space: normal;
+    max-width: none !important;
+    min-width: 0;
+    flex: 1;
+  }
+  .rh-daily-row {
+    gap: 8px;
+  }
+  .rh-collapsible-toggle {
+    min-height: 44px;
+    text-align: left;
+  }
+  .rh-aside.ds-aside {
+    position: static;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    max-height: none;
+    overflow: visible;
+  }
+  .rh-aside .ds-aside-section {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  /* The sheet header already carries the title and the close button. */
+  .rh-aside .ds-icon-btn {
+    display: none;
+  }
+  .rh-aside .ds-panel-title,
+  .rh-aside .ds-panel-meta {
+    display: none;
+  }
+  .rh-aside > .ds-aside-section:first-child {
+    padding-top: 0;
+  }
+  .rh-aside > .ds-aside-section:first-child > div:first-child {
+    display: none;
+  }
+  .rh-aside > .ds-aside-section:first-child > div:last-child {
+    margin-top: 0 !important;
+  }
+  .rh-aside .chip {
+    white-space: normal;
+  }
+}

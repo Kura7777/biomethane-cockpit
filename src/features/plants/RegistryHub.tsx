@@ -15,6 +15,8 @@ import {
   OdreAnnualProductionData,
 } from '../../domain/registries/tsoFlowApi';
 import { KpiRow, KpiTile } from '../../shared/ui/KpiTile';
+import { Sheet, MobileCardList } from '../../shared/ui';
+import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 import './registries.css';
 
 // ---------------------------------------------------------------------------
@@ -222,6 +224,7 @@ function evaluateRoute(origin: RegistryDirectoryEntry, destinationCode: string, 
 type TabId = 'directory' | 'routes' | 'production' | 'live';
 
 export function RegistryHub() {
+  const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState<TabId>('directory');
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [correctionsOpen, setCorrectionsOpen] = useState(false);
@@ -260,6 +263,80 @@ export function RegistryHub() {
     if (!destRegistry || destRegistry.countryCode === origin.countryCode) return null;
     return evaluateRoute(origin, routeDest, false, undefined, destRegistry);
   }, [routeOrigin, routeDest, routeDestIsMarket]);
+
+  const asideEl = (
+  <aside className="ds-aside rh-aside">
+    {!selectedEntry ? (
+      <div className="ds-aside-section">
+        <div className="ds-panel-section-heading">Registry detail</div>
+        <div className="mut" style={{ fontSize: '12.5px' }}>Click a row to see its full sourced entry, including sources and notes.</div>
+      </div>
+    ) : (
+      <>
+        <div className="ds-aside-section">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
+            <div>
+              <div className="ds-panel-title">{selectedEntry.registryName}</div>
+              <div className="ds-panel-meta">{selectedEntry.countryName} ({selectedEntry.countryCode}) · {selectedEntry.operator}</div>
+            </div>
+            <button type="button" className="ds-icon-btn ds-icon-btn-sm" aria-label="Close panel" onClick={() => setSelectedCountry(null)}>
+              <X size={14} />
+            </button>
+          </div>
+          <div style={{ marginTop: '10px' }}>
+            <span className={`chip ${verificationChipClass(selectedEntry.verificationLevel)}`}>{selectedEntry.verificationLevel}</span>{' '}
+            <a href={selectedEntry.officialUrl} target="_blank" rel="noreferrer" className="chip chip-neutral" style={{ textDecoration: 'none' }}>
+              Official / reference link <ExternalLink size={11} style={{ display: 'inline', verticalAlign: '-1px', marginLeft: '2px' }} />
+            </a>
+          </div>
+        </div>
+        <div className="ds-aside-body">
+          <div className="ds-aside-section">
+            <div className="ds-panel-section-heading">Facts</div>
+            <div style={{ fontSize: '12.5px', lineHeight: 1.7 }}>
+              <div>Issues: <strong>{selectedEntry.issues.replace('_AND_', ' + ')}</strong></div>
+              <div>AIB EECS Gas Scheme: <span className={`chip ${triChipClass(selectedEntry.aibGasScheme)}`}>{triLabel(selectedEntry.aibGasScheme)}</span></div>
+              <div>ERGaR CoO scheme: <span className={`chip ${triChipClass(selectedEntry.ergar)}`}>{triLabel(selectedEntry.ergar)}</span></div>
+              <div>UDB status: <span className="chip chip-neutral">Not live — postponed to end-2026 (EBA)</span></div>
+            </div>
+          </div>
+          <div className="ds-aside-section">
+            <div className="ds-panel-section-heading">Cross-border routes</div>
+            {selectedEntry.crossBorderRoutes.length === 0 ? (
+              <div className="mut" style={{ fontSize: '12.5px' }}>None confirmed in this research.</div>
+            ) : (
+              <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '12.5px', lineHeight: 1.7 }}>
+                {selectedEntry.crossBorderRoutes.map((r, i) => <li key={i}>{r}</li>)}
+              </ul>
+            )}
+          </div>
+          <div className="ds-aside-section">
+            <div className="ds-panel-section-heading">Compliance market(s) fed</div>
+            <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '12.5px', lineHeight: 1.7 }}>
+              {selectedEntry.complianceMarketsFed.map((m, i) => <li key={i}>{m}</li>)}
+            </ul>
+          </div>
+          <div className="ds-aside-section">
+            <div className="ds-panel-section-heading">Notes</div>
+            <div style={{ fontSize: '12.5px', lineHeight: 1.7 }}>{selectedEntry.notes}</div>
+          </div>
+          <div className="ds-aside-section" style={{ flexGrow: 1 }}>
+            <div className="ds-panel-section-heading">Sources</div>
+            <div className="rh-source-list">
+              {selectedEntry.sources.map((s, i) => (
+                <div key={i} className="rh-source-row">
+                  <div>{s.claim}</div>
+                  <a href={s.url} target="_blank" rel="noreferrer">{s.url}</a>
+                  <div className="mut">Accessed {s.accessed}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </>
+    )}
+  </aside>
+  );
 
   return (
     <div className="rh-screen">
@@ -331,7 +408,10 @@ export function RegistryHub() {
             key={id}
             type="button"
             className={`btn rh-tab ${activeTab === id ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setActiveTab(id)}
+            onClick={e => {
+              setActiveTab(id);
+              if (isMobile) e.currentTarget.scrollIntoView({ inline: 'center', block: 'nearest' });
+            }}
           >
             {label}
           </button>
@@ -341,6 +421,29 @@ export function RegistryHub() {
       {activeTab === 'directory' && (
         <div className="rh-section rh-grid">
           <div className="ds-table-wrap">
+            {isMobile ? (
+              <MobileCardList
+                testId="registry-cards"
+                items={sortedDirectory}
+                getKey={e => e.countryCode}
+                title={e => e.registryName}
+                subtitle={e => (
+                  <>
+                    <span className="num" style={{ fontWeight: 600 }}>{e.countryCode}</span> · {e.countryName}
+                  </>
+                )}
+                badges={e => <span className={`chip ${verificationChipClass(e.verificationLevel)}`}>{e.verificationLevel}</span>}
+                fields={e => [
+                  { label: 'Issues', value: e.issues.replace('_AND_', ' + ') },
+                  { label: 'UDB', value: <span className="chip chip-neutral">Not live</span> },
+                  { label: 'AIB', value: <span className={`chip ${triChipClass(e.aibGasScheme)}`}>{triLabel(e.aibGasScheme)}</span> },
+                  { label: 'ERGaR', value: <span className={`chip ${triChipClass(e.ergar)}`}>{triLabel(e.ergar)}</span> },
+                  { label: 'Cross-border route', span: 2, value: e.crossBorderRoutes[0] || 'None confirmed' },
+                ]}
+                onSelect={e => setSelectedCountry(e.countryCode)}
+              />
+            ) : (
+            <>
             <div className="ds-thead-row rh-directory-cols">
               <div>Country</div>
               <div>Registry</div>
@@ -374,79 +477,24 @@ export function RegistryHub() {
                 </button>
               ))}
             </div>
+            </>
+            )}
           </div>
 
-          <aside className="ds-aside">
-            {!selectedEntry ? (
-              <div className="ds-aside-section">
-                <div className="ds-panel-section-heading">Registry detail</div>
-                <div className="mut" style={{ fontSize: '12.5px' }}>Click a row to see its full sourced entry, including sources and notes.</div>
-              </div>
-            ) : (
-              <>
-                <div className="ds-aside-section">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
-                    <div>
-                      <div className="ds-panel-title">{selectedEntry.registryName}</div>
-                      <div className="ds-panel-meta">{selectedEntry.countryName} ({selectedEntry.countryCode}) · {selectedEntry.operator}</div>
-                    </div>
-                    <button type="button" className="ds-icon-btn ds-icon-btn-sm" aria-label="Close panel" onClick={() => setSelectedCountry(null)}>
-                      <X size={14} />
-                    </button>
-                  </div>
-                  <div style={{ marginTop: '10px' }}>
-                    <span className={`chip ${verificationChipClass(selectedEntry.verificationLevel)}`}>{selectedEntry.verificationLevel}</span>{' '}
-                    <a href={selectedEntry.officialUrl} target="_blank" rel="noreferrer" className="chip chip-neutral" style={{ textDecoration: 'none' }}>
-                      Official / reference link <ExternalLink size={11} style={{ display: 'inline', verticalAlign: '-1px', marginLeft: '2px' }} />
-                    </a>
-                  </div>
-                </div>
-                <div className="ds-aside-body">
-                  <div className="ds-aside-section">
-                    <div className="ds-panel-section-heading">Facts</div>
-                    <div style={{ fontSize: '12.5px', lineHeight: 1.7 }}>
-                      <div>Issues: <strong>{selectedEntry.issues.replace('_AND_', ' + ')}</strong></div>
-                      <div>AIB EECS Gas Scheme: <span className={`chip ${triChipClass(selectedEntry.aibGasScheme)}`}>{triLabel(selectedEntry.aibGasScheme)}</span></div>
-                      <div>ERGaR CoO scheme: <span className={`chip ${triChipClass(selectedEntry.ergar)}`}>{triLabel(selectedEntry.ergar)}</span></div>
-                      <div>UDB status: <span className="chip chip-neutral">Not live — postponed to end-2026 (EBA)</span></div>
-                    </div>
-                  </div>
-                  <div className="ds-aside-section">
-                    <div className="ds-panel-section-heading">Cross-border routes</div>
-                    {selectedEntry.crossBorderRoutes.length === 0 ? (
-                      <div className="mut" style={{ fontSize: '12.5px' }}>None confirmed in this research.</div>
-                    ) : (
-                      <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '12.5px', lineHeight: 1.7 }}>
-                        {selectedEntry.crossBorderRoutes.map((r, i) => <li key={i}>{r}</li>)}
-                      </ul>
-                    )}
-                  </div>
-                  <div className="ds-aside-section">
-                    <div className="ds-panel-section-heading">Compliance market(s) fed</div>
-                    <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '12.5px', lineHeight: 1.7 }}>
-                      {selectedEntry.complianceMarketsFed.map((m, i) => <li key={i}>{m}</li>)}
-                    </ul>
-                  </div>
-                  <div className="ds-aside-section">
-                    <div className="ds-panel-section-heading">Notes</div>
-                    <div style={{ fontSize: '12.5px', lineHeight: 1.7 }}>{selectedEntry.notes}</div>
-                  </div>
-                  <div className="ds-aside-section" style={{ flexGrow: 1 }}>
-                    <div className="ds-panel-section-heading">Sources</div>
-                    <div className="rh-source-list">
-                      {selectedEntry.sources.map((s, i) => (
-                        <div key={i} className="rh-source-row">
-                          <div>{s.claim}</div>
-                          <a href={s.url} target="_blank" rel="noreferrer">{s.url}</a>
-                          <div className="mut">Accessed {s.accessed}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-          </aside>
+          {isMobile ? (
+            <Sheet
+              open={!!selectedEntry}
+              onClose={() => setSelectedCountry(null)}
+              variant="full"
+              title={selectedEntry?.registryName}
+              subtitle={selectedEntry ? `${selectedEntry.countryName} (${selectedEntry.countryCode}) · ${selectedEntry.operator}` : undefined}
+              testId="registry-detail-sheet"
+            >
+              {selectedEntry && asideEl}
+            </Sheet>
+          ) : (
+            asideEl
+          )}
         </div>
       )}
 
@@ -531,6 +579,19 @@ export function RegistryHub() {
             have no independently-sourced production total in this research.
           </div>
 
+          {isMobile ? (
+            <MobileCardList
+              testId="production-cards"
+              items={PRODUCTION_STATS}
+              getKey={r => r.countryCode}
+              title={r => r.countryName}
+              subtitle={r => <span className="num">{r.countryCode} · {r.latestYear}</span>}
+              fields={r => [
+                { label: 'Figure', span: 2, value: r.figure },
+                { label: 'Source', span: 2, value: <a href={r.sourceUrl} target="_blank" rel="noreferrer" style={{ fontSize: '12.5px', color: 'var(--color-accent-700)' }}>{r.source}</a> },
+              ]}
+            />
+          ) : (
           <div className="ds-table-wrap">
             <table className="table" style={{ margin: 0 }}>
               <thead>
@@ -555,6 +616,7 @@ export function RegistryHub() {
               </tbody>
             </table>
           </div>
+          )}
 
           <div style={{ marginTop: '12px' }}>
             <button type="button" className="rh-collapsible-toggle" onClick={() => setCorrectionsOpen(v => !v)}>

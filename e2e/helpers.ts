@@ -50,6 +50,7 @@ const IGNORABLE = [
   /\[vite\]/i,
   /Clipboard/i,
   /CORS policy/i,
+  /Access-Control-Allow-Origin/i, // WebKit wording of the same CORS error
   /Failed to load resource/i,
   /ERR_FAILED/i,
   /api\.energidataservice\.dk/i,
