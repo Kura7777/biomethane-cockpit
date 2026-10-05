@@ -228,7 +228,7 @@ export function MarketLadder({ opportunity, volumeMwh }: MarketLadderProps) {
                         {fmtNet(net)}
                         {row.cappedAt !== null && (
                           <span className="block text-[10px] font-medium" style={{ color: 'var(--color-status-warn-text)' }}>
-                            capped at €{row.cappedAt}
+                            capped at €{row.cappedAt} (desk assumption, not the mark)
                           </span>
                         )}
                       </td>
