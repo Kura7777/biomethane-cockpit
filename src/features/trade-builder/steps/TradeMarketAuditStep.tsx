@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { Market } from '../../../domain/markets/types';
 import { MARKETS, isVoluntaryMarket } from '../../../domain/markets/registry';
 import { EligibilityAssessment } from '../../../domain/eligibility/types';
-import { ShieldCheck, AlertTriangle, XCircle, CheckCircle2, Scale, BookOpen, Package, ChevronRight } from 'lucide-react';
+import { ShieldCheck, AlertTriangle, XCircle, CheckCircle2, Scale, BookOpen, Package, ChevronRight, MapPin } from 'lucide-react';
 
 interface TradeMarketAuditStepProps {
   marketId: string;
@@ -180,6 +180,12 @@ export function TradeMarketAuditStep({
               const gatePass = g.verdict === 'PASS';
               const gateBlock = g.verdict === 'HARD_BLOCK';
               const gateClass = gatePass ? 'pos' : gateBlock ? 'neg' : 'warn';
+              const isCorridorGate = g.gate === 'REGISTRY_TRANSFER' || g.gate === 'CROSS_BORDER_POS';
+              const showCorridorLink = isCorridorGate && (g.verdict === 'HARD_BLOCK' || g.verdict === 'CONDITIONAL');
+              const corridorFilter = g.gate === 'REGISTRY_TRANSFER' ? 'GO' : 'POS';
+              const targetCountry = selectedMarket.country;
+              const corridorUrl = `#/map?origin=${encodeURIComponent(origin)}&target=${encodeURIComponent(targetCountry)}&filter=${corridorFilter}`;
+
               return (
                 <li key={gIdx}>
                   <button
@@ -213,6 +219,27 @@ export function TradeMarketAuditStep({
                       )}
                     </span>
                   </button>
+                  {showCorridorLink && (
+                    <div className="tb-corridor-link-wrap" style={{ padding: '4px 12px 8px 44px' }}>
+                      <a
+                        href={corridorUrl}
+                        className="tb-corridor-map-link"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          color: 'var(--color-accent-700, #0284c7)',
+                          textDecoration: 'none',
+                        }}
+                      >
+                        <MapPin size={12} />
+                        <span>See corridor on map</span>
+                        <ChevronRight size={12} />
+                      </a>
+                    </div>
+                  )}
                 </li>
               );
             })}
