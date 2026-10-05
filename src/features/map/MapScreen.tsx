@@ -71,7 +71,7 @@ const COUNTRIES: Record<string, CountryMeta> = {
 };
 
 /** Default map centre [lon, lat]: midpoint of the 28 jurisdictions (Ireland/Portugal to Finland). */
-const MAP_HOME: [number, number] = [10.5, 53];
+const MAP_HOME: [number, number] = [15.6, 50.4];
 
 const STATUS_CONFIG = {
   ACTIVE: { label: 'Active market', fill: 'color-mix(in srgb, var(--color-text) 72%, var(--color-bg))', swatch: 'var(--color-text)' },
