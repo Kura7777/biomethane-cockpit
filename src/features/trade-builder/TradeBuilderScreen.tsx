@@ -18,6 +18,7 @@ import { generateEfetBiomethaneAnnexPdf, generateCommercialTermSheetPdf, downloa
 import { PoSUploaderModal } from './PoSUploaderModal';
 import { ParsedPoSCertificate } from '../../domain/consignment/posParser';
 import { SIMULATED_SOURCE_NAME } from '../../domain/marks/simulate';
+import { deriveSourceBadge } from '../../domain/markets/types';
 
 import { PRODUCING_ORIGINS } from '../../domain/arbitrage/origins';
 import { BIOMETHANE_PLANTS } from '../../domain/plants/registry';
@@ -549,6 +550,12 @@ export function TradeBuilderScreen() {
   // The TTF/gas index mark that feeds the molecule value leg — same provenance check the
   // Marks screen and header use to raise the "running on simulated marks" signal.
   const gasIndexProvenance = state.marks.gasIndex.provenance;
+  // Source and observation date of the selected market's own mark, so the ticket shows what it prices from.
+  const marketMarkProvenance = state.marks.marks[selectedMarket.id]?.provenance;
+  const marketMarkBadge = deriveSourceBadge(marketMarkProvenance, SIMULATED_SOURCE_NAME);
+  const markSourceLabel = marketMarkProvenance?.sourceType
+    ? `${marketMarkBadge.label}${marketMarkProvenance.observedAt ? ` · observed ${marketMarkProvenance.observedAt.slice(0, 10)}` : ''}`
+    : null;
   const isTtfSimulated = gasIndexProvenance?.sourceName === SIMULATED_SOURCE_NAME || gasIndexProvenance?.sourceType === 'ESTIMATE';
 
   const waterfallMax = Math.max(
@@ -696,6 +703,7 @@ export function TradeBuilderScreen() {
       ci={ci}
       ciProvenance={ciProvenance}
       isTtfSimulated={isTtfSimulated}
+      markSourceLabel={markSourceLabel}
       onBuildDealPackage={() => { if (closeSheet) setIsTicketOpen(false); handleStepChange(5); }}
       onGoToGate={() => { if (closeSheet) setIsTicketOpen(false); handleStepChange(3); }}
       feedstockLabel={currentFeedstockObj.label}

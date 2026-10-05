@@ -43,6 +43,8 @@ export interface DealTicketProps {
   /** True only when the trader moved the CI slider; otherwise a null provenance is the screen default. */
   ciIsManual: boolean;
   isTtfSimulated: boolean;
+  /** Where this market's mark came from, e.g. "Broker · Broker run · observed 18 Aug 2026". */
+  markSourceLabel?: string | null;
   onBuildDealPackage: () => void;
   /** Opens step 3 (Market & gate audit) so the trader can act on a failing gate. */
   onGoToGate: () => void;
@@ -94,6 +96,7 @@ export function DealTicket({
   ciProvenance,
   ciIsManual,
   isTtfSimulated,
+  markSourceLabel,
   onBuildDealPackage,
   onGoToGate,
   feedstockLabel,
@@ -316,6 +319,12 @@ export function DealTicket({
               <span className={`tt-chip ${ciLabelClass}`}>{ciLabel}</span>
             </span>
           </div>
+          {markSourceLabel && (
+            <div className="tt-status-row">
+              <span className="tt-status-label">Mark</span>
+              <span className="tt-status-value" data-testid="ticket-mark-source">{markSourceLabel}</span>
+            </div>
+          )}
           {isTtfSimulated && (
             <div className="tt-status-row">
               <span className="tt-chip warn">TTF simulated</span>
