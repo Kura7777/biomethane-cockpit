@@ -214,17 +214,17 @@ const FILTER_CONFIG: Record<RouteFilter, { label: string; shortLabel: string; de
   ALL: {
     label: 'All Commercial Trades',
     shortLabel: 'All Trades',
-    desc: 'Showing all trade opportunities: electronic certificate exports and physical quota deliveries.',
+    desc: 'GO = certificate only, moved registry to registry. PoS = physical gas plus sustainability proof, for the destination\'s transport quota.',
   },
   GO: {
-    label: 'Certificates Only (Book & Claim / GO)',
-    shortLabel: 'Certificates Only (GO)',
-    desc: 'Electronic transfer of green gas certificates between registries (Scope 1 / voluntary) without moving physical gas.',
+    label: 'Certificates (Book & Claim / GO)',
+    shortLabel: 'Certificates (GO)',
+    desc: 'Certificate only, transferred registry to registry (Scope 1 / voluntary). The gas does not move and no GHG threshold applies.',
   },
   POS: {
-    label: 'Physical Gas + Quotas (Mass Balance / PoS)',
-    shortLabel: 'Physical Quotas (PoS)',
-    desc: 'Physical grid injection & mass-balance delivery into national transport compliance quotas (e.g. THG, RTFO, POZE).',
+    label: 'Compliance quota (Mass Balance / PoS)',
+    shortLabel: 'Compliance quota (PoS)',
+    desc: 'Physical gas injected into a connected grid under mass balance, with a PoS in the sustainability database, for the destination\'s transport quota (e.g. THG, RTFO, POZE).',
   },
 };
 
@@ -302,7 +302,7 @@ function getTradePlaybook(originIso: string, targetIso: string, r: CertificateRo
   if (!goPossible && posPossible) {
     return {
       archetype: 'POS_ONLY',
-      badge: 'Physical Quota Only (Mass Balance)',
+      badge: 'Compliance Quota Only (PoS / Mass Balance)',
       chipClass: 'chip-pass',
       isTradeable: true,
       structureTitle: 'Physical Gas Delivery + Sustainability Proof (PoS)',
@@ -936,7 +936,7 @@ export function MapScreen() {
           )}
           {tradeableBreakdown.posOnly > 0 && (
             <span className="chip chip-pass" style={{ fontSize: '11px', padding: '1px 6px' }}>
-              {tradeableBreakdown.posOnly} Physical Quota Only
+              {tradeableBreakdown.posOnly} Compliance Quota Only
             </span>
           )}
         </div>
