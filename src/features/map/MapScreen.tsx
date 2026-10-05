@@ -376,6 +376,16 @@ export function MapScreen() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isSummaryOpen]);
 
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  useEffect(() => {
+    if (!isDetailOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsDetailOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isDetailOpen]);
+
   const originMeta = COUNTRIES[origin] || COUNTRIES['Denmark'];
   const targetMeta = COUNTRIES[target] || COUNTRIES['Germany'];
   const selectedMeta = COUNTRIES[selectedCountryName] || COUNTRIES['Germany'];
@@ -840,7 +850,7 @@ export function MapScreen() {
       </div>
       {view === 'SELL' && (
         <>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '8px' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '4px', marginTop: '8px' }}>
             <span className="eyebrow" style={{ marginRight: '4px', fontSize: '11px' }}>Trade mode:</span>
             {(['ALL', 'GO', 'POS'] as const).map(f => (
               <button
@@ -1790,8 +1800,12 @@ export function MapScreen() {
               position: 'absolute',
               top: '12px',
               left: '12px',
-              minWidth: '210px',
-              maxWidth: '260px',
+              width: '300px',
+              minWidth: '240px',
+              maxWidth: '560px',
+              maxHeight: 'calc(100% - 24px)',
+              overflow: 'auto',
+              resize: 'horizontal',
               backgroundColor: 'color-mix(in srgb, var(--color-surface) 96%, transparent)',
               border: '1px solid var(--color-divider)',
               borderRadius: 'var(--radius-panel)',
@@ -1930,6 +1944,15 @@ export function MapScreen() {
           borderLeft: '1px solid var(--color-divider)',
         }}
       >
+        <button
+          type="button"
+          className="btn btn-secondary"
+          style={{ margin: '10px 18px 0', padding: '4px 10px', fontSize: '12px', alignSelf: 'flex-end' }}
+          onClick={() => setIsDetailOpen(true)}
+          data-testid="map-detail-expand"
+        >
+          Expand full screen ⤢
+        </button>
         {railBody}
         <div
           style={{
@@ -1944,6 +1967,46 @@ export function MapScreen() {
           {railButtons}
         </div>
       </div>
+
+      {/* Full-screen jurisdiction detail (desktop) */}
+      {isDetailOpen && !isMobile && (
+        <div
+          className="map-route-summary-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${selectedMeta.name} full detail`}
+          data-testid="map-detail-fullscreen"
+          onClick={e => {
+            if (e.target === e.currentTarget) setIsDetailOpen(false);
+          }}
+        >
+          <div
+            className="map-route-summary-modal"
+            style={{ width: 'min(1180px, 96vw)', maxWidth: '96vw', height: '92vh', maxHeight: '92vh' }}
+          >
+            <div className="map-modal-header">
+              <div className="map-modal-title-row">
+                <h2 className="map-modal-title">
+                  {originMeta.iso} → {selectedMeta.iso}: {selectedMeta.name} detail
+                </h2>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  style={{ width: '32px', height: '32px', padding: 0 }}
+                  onClick={() => setIsDetailOpen(false)}
+                  aria-label="Close full-screen detail"
+                >
+                  <X style={{ width: '18px', height: '18px' }} />
+                </button>
+              </div>
+            </div>
+            <div className="map-detail-cols" style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '16px 20px' }}>
+              {railBody}
+              <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: '8px' }}>{railButtons}</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Logistics Modal */}
       <LogisticsModal

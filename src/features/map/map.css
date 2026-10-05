@@ -412,3 +412,16 @@
   }
 }
 
+
+/* Full-screen jurisdiction detail: two readable columns */
+.map-detail-cols {
+  column-count: 2;
+  column-gap: 24px;
+}
+.map-detail-cols > * {
+  break-inside: avoid;
+}
+@media (max-width: 1000px) {
+  .map-detail-cols { column-count: 1; }
+}
+
