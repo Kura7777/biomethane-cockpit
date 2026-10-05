@@ -1671,10 +1671,10 @@ export function MapScreen() {
             padding: '12px 18px',
             borderBottom: '2px solid var(--color-divider)',
             backgroundColor: 'var(--color-surface)',
-            flexWrap: 'wrap',
+            flexWrap: 'nowrap',
           }}
         >
-          <div>
+          <div style={{ flex: '1 1 0', minWidth: 0 }}>
             <h3 className="ptitle" style={{ fontSize: '18px' }}>Compliance &amp; logistics map</h3>
             <div className="subttl" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', columnGap: '14px', rowGap: '2px' }}>
               <span>30 European jurisdictions · Interactive cross-border routing &amp; transmission tariffs</span>
@@ -1698,6 +1698,7 @@ export function MapScreen() {
           {/* Quick Origin / Target Selector Bar */}
           <div
             style={{
+              flexShrink: 0,
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
