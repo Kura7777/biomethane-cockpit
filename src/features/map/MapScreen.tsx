@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ComposableMap,
@@ -8,7 +8,7 @@ import {
   Line,
   Marker,
 } from 'react-simple-maps';
-import { ArrowLeftRight } from 'lucide-react';
+import { ArrowLeftRight, X, ChevronDown, ChevronRight, Copy, Check } from 'lucide-react';
 import geoData from '../../assets/countries-50m.json';
 import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 import { Sheet } from '../../shared/ui';
@@ -17,7 +17,7 @@ import { LogisticsModal } from '../logistics/LogisticsModal';
 import { buildDealUrl } from '../../domain/trade/dealParams';
 import { calculateLogisticsRoute, calculateDijkstraCorridor } from '../../domain/logistics/engine';
 import { getDefaultMarketForOrigin } from '../trade-builder/TradeBuilderScreen';
-import { getPosRoute } from '../../domain/routes';
+import { getGoRoute, getPosRoute } from '../../domain/routes';
 import {
   getCertificateRoute,
   getCertificateRoutesFrom,
@@ -77,74 +77,123 @@ const STATUS_CONFIG = {
   NONE: { label: 'No mechanism', fill: 'color-mix(in srgb, var(--color-text) 7%, var(--color-bg))', swatch: 'color-mix(in srgb, var(--color-text) 12%, var(--color-bg))' },
 };
 
-type MapView = 'ROUTES' | 'POS' | 'COMPLIANCE';
+type MapView = 'SELL' | 'COMPLIANCE';
+type RouteFilter = 'ALL' | 'GO' | 'POS';
+type SellCategory = 'SELL_NOW' | 'CHECK_FIRST' | 'CLOSED' | 'NO_DATA';
 
-const POS_FILL = {
-  POSSIBLE: 'var(--color-accent)',
-  CONDITIONAL: 'color-mix(in srgb, var(--color-accent) 60%, var(--color-bg))',
-  OPEN: 'color-mix(in srgb, var(--color-accent) 25%, var(--color-bg))',
-  NOT_POSSIBLE: 'color-mix(in srgb, var(--color-text) 16%, var(--color-bg))',
+const SELL_FILL: Record<SellCategory, string> = {
+  SELL_NOW: 'color-mix(in srgb, var(--color-status-pass-text) 72%, var(--color-bg))',
+  CHECK_FIRST: 'color-mix(in srgb, var(--color-status-warn-text) 72%, var(--color-bg))',
+  CLOSED: 'color-mix(in srgb, var(--color-text) 14%, var(--color-bg))',
   NO_DATA: STATUS_CONFIG.NONE.fill,
 };
 
-type PosKey = keyof typeof POS_FILL;
-
-function posKeyOf(r: CertificateRoute | undefined): PosKey {
-  const p = r?.pos;
-  if (!p) return 'NO_DATA';
-  if (p.status === 'POSSIBLE') return p.conditions ? 'CONDITIONAL' : 'POSSIBLE';
-  return p.status;
-}
-
-const POS_LEGEND: { key: PosKey; label: string; swatch: string }[] = [
-  { key: 'POSSIBLE', label: 'Possible', swatch: POS_FILL.POSSIBLE },
-  { key: 'CONDITIONAL', label: 'Possible · conditions', swatch: POS_FILL.CONDITIONAL },
-  { key: 'OPEN', label: 'Awaiting authority answer', swatch: POS_FILL.OPEN },
-  { key: 'NOT_POSSIBLE', label: 'Not possible', swatch: POS_FILL.NOT_POSSIBLE },
+const SELL_LEGEND: { key: 'ORIGIN' | SellCategory; label: string; swatch: string }[] = [
+  { key: 'ORIGIN', label: 'Selected origin', swatch: 'var(--color-text)' },
+  { key: 'SELL_NOW', label: 'Sell now', swatch: 'var(--color-status-pass-text)' },
+  { key: 'CHECK_FIRST', label: 'Check first', swatch: 'var(--color-status-warn-text)' },
+  { key: 'CLOSED', label: 'Closed', swatch: 'color-mix(in srgb, var(--color-text) 25%, var(--color-bg))' },
   { key: 'NO_DATA', label: 'Not researched', swatch: STATUS_CONFIG.NONE.swatch },
 ];
 
-const POS_STATUS_TEXT: Record<PosKey, string> = {
-  POSSIBLE: 'Possible',
-  CONDITIONAL: 'Possible · conditions',
-  OPEN: 'Awaiting authority answer',
-  NOT_POSSIBLE: 'Not possible',
-  NO_DATA: 'Not researched',
-};
-
-const GRADE_TEXT: Record<string, string> = {
-  OBSERVED: 'observed trades',
-  PUBLISHED: 'registry-published',
+const EVIDENCE_GRADE_TEXT: Record<string, string> = {
+  OBSERVED: 'proven by real trades',
+  PUBLISHED: "registry's published list",
   RULE: 'hub rules',
 };
 const AUDIT_REF = 'Audited 4 Oct 2026 — sources in docs/research/route-audit-2026-10-04.';
-
-const ROUTE_FILL: Record<CertRouteStatus, string> = {
-  POSSIBLE_OBSERVED: 'var(--color-accent)',
-  POSSIBLE_PUBLISHED: 'var(--color-accent)',
-  POSSIBLE_RULE: 'var(--color-accent)',
-  POSSIBLE_CONDITIONAL: 'color-mix(in srgb, var(--color-accent) 60%, var(--color-bg))',
-  AWAITING_REGISTRY: 'color-mix(in srgb, var(--color-accent) 25%, var(--color-bg))',
-  NOT_POSSIBLE: 'color-mix(in srgb, var(--color-text) 16%, var(--color-bg))',
-  NO_DATA: STATUS_CONFIG.NONE.fill,
-};
-
-const ROUTE_LEGEND: { key: string; label: string; statuses: CertRouteStatus[]; swatch: string }[] = [
-  { key: 'observed', label: 'Possible · observed trades', statuses: ['POSSIBLE_OBSERVED'], swatch: ROUTE_FILL.POSSIBLE_OBSERVED },
-  { key: 'published', label: 'Possible · registry-published', statuses: ['POSSIBLE_PUBLISHED'], swatch: ROUTE_FILL.POSSIBLE_PUBLISHED },
-  { key: 'rule', label: 'Possible · hub rules', statuses: ['POSSIBLE_RULE'], swatch: ROUTE_FILL.POSSIBLE_RULE },
-  { key: 'conditional', label: 'Possible · conditions apply', statuses: ['POSSIBLE_CONDITIONAL'], swatch: ROUTE_FILL.POSSIBLE_CONDITIONAL },
-  { key: 'awaiting', label: 'Awaiting registry answer', statuses: ['AWAITING_REGISTRY'], swatch: ROUTE_FILL.AWAITING_REGISTRY },
-  { key: 'none', label: 'Not possible', statuses: ['NOT_POSSIBLE'], swatch: ROUTE_FILL.NOT_POSSIBLE },
-  { key: 'nodata', label: 'Not researched', statuses: ['NO_DATA'], swatch: STATUS_CONFIG.NONE.swatch },
-];
-
-const NO_USE_TEXT = 'Use of imported GOs not found in research';
 const ROUTES_HINT = 'Click a country to see where its certificates can go.';
 
 function firstSentence(text: string): string {
   const i = text.search(/\.(\s|$)/);
   return i === -1 ? text : text.slice(0, i + 1);
+}
+
+function classifyRoute(r: CertificateRoute | undefined, filter: RouteFilter): SellCategory {
+  if (!r) return 'NO_DATA';
+  const goPossible = POSSIBLE_STATUSES.includes(r.status);
+  const posPossible = r.pos?.status === 'POSSIBLE';
+
+  if (filter === 'GO') {
+    if (goPossible) return 'SELL_NOW';
+    if (r.status === 'AWAITING_REGISTRY' || (r.status === 'NOT_POSSIBLE' && Boolean(r.workaround))) {
+      return 'CHECK_FIRST';
+    }
+    if (r.status === 'NO_DATA') return 'NO_DATA';
+    return 'CLOSED';
+  }
+
+  if (filter === 'POS') {
+    if (!r.pos) return 'NO_DATA';
+    if (r.pos.status === 'POSSIBLE') return 'SELL_NOW';
+    if (r.pos.status === 'OPEN') return 'CHECK_FIRST';
+    return 'CLOSED';
+  }
+
+  // ALL (default)
+  if (goPossible || posPossible) return 'SELL_NOW';
+  if (
+    (r.status === 'NOT_POSSIBLE' && Boolean(r.workaround)) ||
+    r.status === 'AWAITING_REGISTRY' ||
+    r.pos?.status === 'OPEN'
+  ) {
+    return 'CHECK_FIRST';
+  }
+  const hasAudit = r.status !== 'NO_DATA' || Boolean(r.pos);
+  if (hasAudit) return 'CLOSED';
+  return 'NO_DATA';
+}
+
+function getPlainLanguageHow(r: CertificateRoute, category: SellCategory): string {
+  const goPossible = POSSIBLE_STATUSES.includes(r.status);
+  const posPossible = r.pos?.status === 'POSSIBLE';
+
+  if (category === 'SELL_NOW') {
+    if (goPossible && posPossible) {
+      const hubs = r.hubs.length > 0 ? r.hubs.map(h => (h === 'AIB' ? 'AIB' : 'ERGaR')).join(' + ') : 'registry';
+      const scheme = r.pos?.schemeName || 'compliance scheme';
+      return `GO via ${hubs} · PoS into ${scheme}`;
+    }
+    if (goPossible) {
+      const hubs = r.hubs.length > 0 ? r.hubs.map(h => (h === 'AIB' ? 'AIB' : 'ERGaR')).join(' + ') : 'registry';
+      return `GO via ${hubs}`;
+    }
+    if (posPossible) {
+      return `PoS into ${r.pos?.schemeName || 'compliance scheme'}`;
+    }
+    return 'Sell now';
+  }
+
+  if (category === 'CHECK_FIRST') {
+    if (r.workaround) {
+      return 'Ex-domain cancellation — check recognition';
+    }
+    if (r.status === 'AWAITING_REGISTRY') {
+      return `Awaiting registry answer${r.openQuestionId ? ` (${r.openQuestionId})` : ''}`;
+    }
+    if (r.pos?.status === 'OPEN') {
+      return `PoS under review (${r.pos?.schemeName || 'scheme'})`;
+    }
+    return firstSentence(r.reason);
+  }
+
+  if (category === 'CLOSED') {
+    if (r.target === 'NL') {
+      return 'ERE accepts only Dutch-produced gas';
+    }
+    if (r.target === 'IT' && (r.pos?.reason.includes('Italian network') || r.pos?.reason.includes('DM 2 marzo'))) {
+      return 'CIC requires Italian network injection';
+    }
+    if (r.target === 'FR' && (r.pos?.reason.includes('TIRUERT') || r.pos?.reason.includes('3492'))) {
+      return 'TIRUERT excludes biomethane for 2026';
+    }
+    if (r.pos && r.pos.status === 'NOT_POSSIBLE' && r.pos.reason) {
+      return firstSentence(r.pos.reason);
+    }
+    return firstSentence(r.reason);
+  }
+
+  return 'Not researched';
 }
 
 export function MapScreen() {
@@ -155,11 +204,26 @@ export function MapScreen() {
   const [target, setTarget] = useState<string>('Germany');
   const [selectedCountryName, setSelectedCountryName] = useState<string>('Germany');
   const [mode, setMode] = useState<'ORIGIN' | 'TARGET'>('TARGET');
-  const [view, setView] = useState<MapView>('ROUTES');
+  const [view, setView] = useState<MapView>('SELL');
+  const [filter, setFilter] = useState<RouteFilter>('ALL');
+  const [isSummaryOpen, setIsSummaryOpen] = useState(false);
+  const [summarySearch, setSummarySearch] = useState('');
+  const [isCaveatOpen, setIsCaveatOpen] = useState(false);
+  const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
+  const [copied, setCopied] = useState(false);
   const [hoveredCountry, setHoveredCountry] = useState<CountryMeta | null>(null);
   const [isLogisticsOpen, setIsLogisticsOpen] = useState(false);
   const [zoomLevel, setZoomLevel] = useState<number>(3.6);
   const [mapCenter, setMapCenter] = useState<[number, number]>([12, 53]);
+
+  useEffect(() => {
+    if (!isSummaryOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsSummaryOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isSummaryOpen]);
 
   const originMeta = COUNTRIES[origin] || COUNTRIES['Denmark'];
   const targetMeta = COUNTRIES[target] || COUNTRIES['Germany'];
@@ -191,36 +255,116 @@ export function MapScreen() {
     certRoutes.forEach(r => { m[r.target] = calculateDijkstraCorridor(originMeta.iso, r.target).segments.length > 0; });
     return m;
   }, [certRoutes, originMeta.iso]);
-  const routeCounts = useMemo(() => {
-    const out: Record<string, number> = {};
-    ROUTE_LEGEND.forEach(l => { out[l.key] = certRoutes.filter(r => l.statuses.includes(r.status)).length; });
-    return out;
-  }, [certRoutes]);
-  const routeGroups = useMemo(() => {
-    const by = (st: CertRouteStatus[]) => certRoutes.filter(r => st.includes(r.status));
-    return {
-      live: by(POSSIBLE_STATUSES),
-      pending: by(['AWAITING_REGISTRY']),
-      none: by(['NOT_POSSIBLE']),
-      noData: by(['NO_DATA']),
+
+  const categoryCounts = useMemo(() => {
+    const counts: Record<SellCategory, number> = { SELL_NOW: 0, CHECK_FIRST: 0, CLOSED: 0, NO_DATA: 0 };
+    certRoutes.forEach(r => {
+      const cat = classifyRoute(r, filter);
+      counts[cat]++;
+    });
+    return counts;
+  }, [certRoutes, filter]);
+
+  const topRoutes = useMemo(() => {
+    const sellNow = certRoutes.filter(r => classifyRoute(r, filter) === 'SELL_NOW');
+    const sorted = [...sellNow].sort((a, b) => {
+      const aBoth = POSSIBLE_STATUSES.includes(a.status) && a.pos?.status === 'POSSIBLE';
+      const bBoth = POSSIBLE_STATUSES.includes(b.status) && b.pos?.status === 'POSSIBLE';
+      if (aBoth && !bBoth) return -1;
+      if (!aBoth && bBoth) return 1;
+      const aName = nameByIso[a.target] || a.target;
+      const bName = nameByIso[b.target] || b.target;
+      return aName.localeCompare(bName);
+    });
+    return sorted.slice(0, 3).map(r => {
+      const name = nameByIso[r.target] || r.target;
+      const goOk = POSSIBLE_STATUSES.includes(r.status);
+      const posOk = r.pos?.status === 'POSSIBLE';
+      let badge = 'GO';
+      if (goOk && posOk) badge = 'GO + PoS';
+      else if (posOk) badge = 'PoS';
+      return { iso: r.target, name, badge };
+    });
+  }, [certRoutes, filter, nameByIso]);
+
+  const filteredCertRoutes = useMemo(() => {
+    const q = summarySearch.trim().toLowerCase();
+    let list = certRoutes;
+    if (q) {
+      list = list.filter(r => {
+        const name = (nameByIso[r.target] || r.target).toLowerCase();
+        return name.includes(q) || r.target.toLowerCase().includes(q);
+      });
+    }
+    return list;
+  }, [certRoutes, summarySearch, nameByIso]);
+
+  const summaryGroups = useMemo(() => {
+    const sellNow: CertificateRoute[] = [];
+    const checkFirst: CertificateRoute[] = [];
+    const closed: CertificateRoute[] = [];
+    const noData: CertificateRoute[] = [];
+
+    filteredCertRoutes.forEach(r => {
+      const cat = classifyRoute(r, filter);
+      if (cat === 'SELL_NOW') sellNow.push(r);
+      else if (cat === 'CHECK_FIRST') checkFirst.push(r);
+      else if (cat === 'CLOSED') closed.push(r);
+      else noData.push(r);
+    });
+
+    const sortFn = (a: CertificateRoute, b: CertificateRoute) => {
+      const aName = nameByIso[a.target] || a.target;
+      const bName = nameByIso[b.target] || b.target;
+      return aName.localeCompare(bName);
     };
-  }, [certRoutes]);
-  const posCounts = useMemo(() => {
-    const out: Record<string, number> = {};
-    POS_LEGEND.forEach(l => { out[l.key] = certRoutes.filter(r => posKeyOf(r) === l.key).length; });
-    return out;
-  }, [certRoutes]);
-  const posGroups = useMemo(() => {
-    const by = (k: PosKey[]) => certRoutes.filter(r => k.includes(posKeyOf(r)));
-    return { possible: by(['POSSIBLE', 'CONDITIONAL']), open: by(['OPEN']), none: by(['NOT_POSSIBLE']), noData: by(['NO_DATA']) };
-  }, [certRoutes]);
-  const posSchemeNames = (r: CertificateRoute): string[] => {
-    if (!r.pos) return [];
-    const res = getPosRoute(r.origin, r.target);
-    const names = res.schemes.filter(x => x.status === r.pos!.status).map(x => x.schemeName);
-    if (names.length === 0 && r.pos.schemeName) names.push(r.pos.schemeName);
-    return Array.from(new Set(names));
+
+    return {
+      sellNow: sellNow.sort(sortFn),
+      checkFirst: checkFirst.sort(sortFn),
+      closed: closed.sort(sortFn),
+      noData: noData.sort(sortFn),
+    };
+  }, [filteredCertRoutes, filter, nameByIso]);
+
+  const handleCopyList = async () => {
+    const groups: Record<'SELL_NOW' | 'CHECK_FIRST' | 'CLOSED', string[]> = {
+      SELL_NOW: [],
+      CHECK_FIRST: [],
+      CLOSED: [],
+    };
+    certRoutes.forEach(r => {
+      const cat = classifyRoute(r, filter);
+      if (cat === 'SELL_NOW' || cat === 'CHECK_FIRST' || cat === 'CLOSED') {
+        const name = nameByIso[r.target] || r.target;
+        const how = getPlainLanguageHow(r, cat);
+        groups[cat].push(`- ${name}: ${how}`);
+      }
+    });
+
+    const lines = [
+      `Where can ${originMeta.name} biomethane be sold? (Filter: ${filter})`,
+      '',
+      `Sell now (${groups.SELL_NOW.length}):`,
+      ...(groups.SELL_NOW.length > 0 ? groups.SELL_NOW : ['- None']),
+      '',
+      `Check first (${groups.CHECK_FIRST.length}):`,
+      ...(groups.CHECK_FIRST.length > 0 ? groups.CHECK_FIRST : ['- None']),
+      '',
+      `Closed (${groups.CLOSED.length}):`,
+      ...(groups.CLOSED.length > 0 ? groups.CLOSED : ['- None']),
+      '',
+      AUDIT_REF,
+    ];
+    try {
+      await navigator.clipboard.writeText(lines.join('\n'));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // ignore
+    }
   };
+
   const posOpenId = (r: CertificateRoute): string | null => {
     if (!r.pos || r.pos.status !== 'OPEN') return null;
     return getPosRoute(r.origin, r.target).schemes.find(x => x.status === 'OPEN' && x.openQuestionId)?.openQuestionId ?? null;
@@ -292,18 +436,12 @@ export function MapScreen() {
                     const cMeta = COUNTRIES[name];
                     const status = cMeta ? cMeta.status : 'NONE';
                     let fill = STATUS_CONFIG[status].fill;
-                    if (view === 'ROUTES') {
+                    if (view === 'SELL') {
                       fill = !cMeta
                         ? STATUS_CONFIG.NONE.fill
                         : name === origin
                         ? 'var(--color-text)'
-                        : ROUTE_FILL[routeByIso[cMeta.iso]?.status ?? 'NO_DATA'];
-                    } else if (view === 'POS') {
-                      fill = !cMeta
-                        ? STATUS_CONFIG.NONE.fill
-                        : name === origin
-                        ? 'var(--color-text)'
-                        : POS_FILL[posKeyOf(routeByIso[cMeta.iso])];
+                        : SELL_FILL[classifyRoute(routeByIso[cMeta.iso], filter)];
                     }
                     const isOrigin = name === origin;
                     const isTarget = name === target;
@@ -445,18 +583,48 @@ export function MapScreen() {
           </div>
           <div style={{ padding: '12px 18px' }}>
             <div className="eyebrow">Certificate route</div>
-            <div style={{ fontSize: '17px', fontWeight: 800, marginTop: '2px' }}>
-              {CERT_ROUTE_LABELS[currentRoute.status]}
-            </div>
-            <div style={{ fontSize: '12px' }} className="mut">
-              {currentRoute.hubs.length > 0
-                ? currentRoute.hubs.map(h => (h === 'AIB' ? 'AIB' : 'ERGaR')).join(' + ')
-                : firstSentence(currentRoute.reason)}
-            </div>
-            <div style={{ fontSize: '12px', overflowWrap: 'anywhere' }} className="mut">
-              PoS: {POS_STATUS_TEXT[posKeyOf(currentRoute)]}
-              {currentRoute.pos?.schemeName ? ` · ${currentRoute.pos.schemeName}` : ''}
-            </div>
+            {view === 'SELL' ? (
+              <>
+                <div style={{ fontSize: '17px', fontWeight: 800, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span
+                    className="map-status-dot"
+                    style={{
+                      backgroundColor:
+                        classifyRoute(currentRoute, filter) === 'SELL_NOW'
+                          ? 'var(--color-status-pass-text)'
+                          : classifyRoute(currentRoute, filter) === 'CHECK_FIRST'
+                          ? 'var(--color-status-warn-text)'
+                          : 'color-mix(in srgb, var(--color-text) 30%, var(--color-bg))',
+                    }}
+                  />
+                  {classifyRoute(currentRoute, filter) === 'SELL_NOW'
+                    ? 'Sell now'
+                    : classifyRoute(currentRoute, filter) === 'CHECK_FIRST'
+                    ? 'Check first'
+                    : classifyRoute(currentRoute, filter) === 'CLOSED'
+                    ? 'Closed'
+                    : 'Not researched'}
+                </div>
+                <div style={{ fontSize: '12px' }} className="mut">
+                  {getPlainLanguageHow(currentRoute, classifyRoute(currentRoute, filter))}
+                </div>
+              </>
+            ) : (
+              <>
+                <div style={{ fontSize: '17px', fontWeight: 800, marginTop: '2px' }}>
+                  {CERT_ROUTE_LABELS[currentRoute.status]}
+                </div>
+                <div style={{ fontSize: '12px' }} className="mut">
+                  {currentRoute.hubs.length > 0
+                    ? currentRoute.hubs.map(h => (h === 'AIB' ? 'AIB' : 'ERGaR')).join(' + ')
+                    : firstSentence(currentRoute.reason)}
+                </div>
+                <div style={{ fontSize: '12px', overflowWrap: 'anywhere' }} className="mut">
+                  PoS: {currentRoute.pos ? currentRoute.pos.status : 'NO_DATA'}
+                  {currentRoute.pos?.schemeName ? ` · ${currentRoute.pos.schemeName}` : ''}
+                </div>
+              </>
+            )}
           </div>
         </div>
   );
@@ -465,40 +633,57 @@ export function MapScreen() {
     <div role="group" aria-label="Map view">
       <div className="eyebrow">Map view</div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
-        {([['ROUTES', 'GO routes'], ['POS', 'PoS routes'], ['COMPLIANCE', 'Compliance status']] as const).map(([v, label]) => (
-          <button
-            key={v}
-            type="button"
-            className={`btn ${view === v ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ padding: touch ? '0 8px' : '3px 8px', fontSize: '12px', flex: '1 1 auto', whiteSpace: 'nowrap', minHeight: touch ? '44px' : undefined }}
-            aria-pressed={view === v}
-            onClick={() => setView(v)}
-          >
-            {label}
-          </button>
-        ))}
+        <button
+          type="button"
+          className={`btn ${view === 'SELL' ? 'btn-primary' : 'btn-secondary'}`}
+          style={{ padding: touch ? '0 8px' : '3px 8px', fontSize: '12px', flex: '1 1 auto', whiteSpace: 'nowrap', minHeight: touch ? '44px' : undefined }}
+          aria-pressed={view === 'SELL'}
+          onClick={() => setView('SELL')}
+        >
+          Where can I sell?
+        </button>
+        <button
+          type="button"
+          className={`btn ${view === 'COMPLIANCE' ? 'btn-primary' : 'btn-secondary'}`}
+          style={{ padding: touch ? '0 8px' : '3px 8px', fontSize: '12px', flex: '1 1 auto', whiteSpace: 'nowrap', minHeight: touch ? '44px' : undefined }}
+          aria-pressed={view === 'COMPLIANCE'}
+          onClick={() => setView('COMPLIANCE')}
+        >
+          Compliance status
+        </button>
       </div>
+      {view === 'SELL' && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '8px' }}>
+          <span className="eyebrow" style={{ marginRight: '4px', fontSize: '11px' }}>Filter:</span>
+          {(['ALL', 'GO', 'POS'] as const).map(f => (
+            <button
+              key={f}
+              type="button"
+              className={`btn ${filter === f ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ padding: touch ? '0 6px' : '2px 6px', fontSize: '11px', minHeight: touch ? '36px' : undefined }}
+              aria-pressed={filter === f}
+              onClick={() => setFilter(f)}
+            >
+              {f === 'ALL' ? 'All' : f === 'GO' ? 'GO only' : 'PoS only'}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 
   const legendList = (fontPx: number, swatchPx: number, gap: number) =>
-    view === 'POS' ? (
+    view === 'SELL' ? (
       <div style={{ display: 'flex', flexDirection: 'column', gap: `${gap}px` }}>
-        {POS_LEGEND.map(l => (
+        {SELL_LEGEND.map(l => (
           <div key={l.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: `${fontPx}px` }}>
             <span style={{ width: `${swatchPx}px`, height: `${swatchPx}px`, flex: 'none', backgroundColor: l.swatch, border: '1px solid var(--color-divider)' }} />
             <span style={{ flex: 1 }}>{l.label}</span>
-            <span className="num mut" style={{ fontSize: '12px' }}>{posCounts[l.key]}</span>
-          </div>
-        ))}
-      </div>
-    ) : view === 'ROUTES' ? (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: `${gap}px` }}>
-        {ROUTE_LEGEND.map(l => (
-          <div key={l.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: `${fontPx}px` }}>
-            <span style={{ width: `${swatchPx}px`, height: `${swatchPx}px`, flex: 'none', backgroundColor: l.swatch, border: '1px solid var(--color-divider)' }} />
-            <span style={{ flex: 1 }}>{l.label}</span>
-            <span className="num mut" style={{ fontSize: '12px' }}>{routeCounts[l.key]}</span>
+            {l.key !== 'ORIGIN' ? (
+              <span className="num mut" style={{ fontSize: '12px' }}>{categoryCounts[l.key]}</span>
+            ) : (
+              <span className="num mut" style={{ fontSize: '12px' }}>{originMeta.iso}</span>
+            )}
           </div>
         ))}
       </div>
@@ -514,168 +699,273 @@ export function MapScreen() {
       </div>
     );
 
-  const renderRouteRow = (r: CertificateRoute) => {
-    const name = nameByIso[r.target];
-    const isTarget = r.target === targetMeta.iso;
-    return (
-      <button
-        key={r.target}
-        type="button"
-        onClick={() => setTarget(name)}
-        aria-pressed={isTarget}
-        style={{
-          display: 'block',
-          width: '100%',
-          textAlign: 'left',
-          padding: '8px 18px 8px 15px',
-          border: 0,
-          borderBottom: '1px solid var(--color-divider)',
-          borderLeft: `3px solid ${isTarget ? 'var(--color-accent)' : 'transparent'}`,
-          backgroundColor: isTarget ? 'color-mix(in srgb, var(--color-accent) 10%, var(--color-surface))' : 'transparent',
-          color: 'var(--color-text)',
-          font: 'inherit',
-          cursor: 'pointer',
-        }}
-      >
-        <span style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-          <span style={{ fontWeight: 700, fontSize: '13px', flex: 1, minWidth: 0 }}>{name}</span>
-          {r.hubs.map(h => (
-            <span key={h} className="chip">{h === 'AIB' ? 'AIB' : 'ERGaR'}</span>
-          ))}
-          <span className="mut" style={{ fontSize: '12px' }}>{hasPipeline[r.target] ? 'pipeline path' : 'no pipeline path'}</span>
-        </span>
-        <span className="mut" style={{ display: 'block', fontSize: '12px', marginTop: '2px', overflowWrap: 'anywhere' }}>{r.reason}</span>
-        {r.grade && r.status !== 'NO_DATA' && r.status !== 'NOT_POSSIBLE' && r.status !== 'AWAITING_REGISTRY' && (
-          <span className="mut" style={{ display: 'block', fontSize: '12px', marginTop: '2px' }}>Evidence: {GRADE_TEXT[r.grade] ?? r.grade}</span>
-        )}
-        {r.conditions.length > 0 && (
-          <span style={{ display: 'block', fontSize: '12px', marginTop: '2px', overflowWrap: 'anywhere' }}>
-            <strong>Conditions: </strong>{r.conditions.join('; ')}
-          </span>
-        )}
-        {r.workaround && (
-          <span style={{ display: 'block', fontSize: '12px', marginTop: '2px', overflowWrap: 'anywhere' }}>
-            <strong>Workaround (ex-domain): </strong>{r.workaround}
-          </span>
-        )}
-        {r.status === 'AWAITING_REGISTRY' && r.openQuestionId && (
-          <span className="mut" style={{ display: 'block', fontSize: '12px', marginTop: '2px' }}>Open question {r.openQuestionId}</span>
-        )}
-        {isTarget && (
-          <span style={{ display: 'block', fontSize: '12px', marginTop: '4px', overflowWrap: 'anywhere' }}>
-            <strong>At {name}: </strong>
-            {r.destinationUse ?? NO_USE_TEXT}
-          </span>
-        )}
-      </button>
-    );
-  };
-
-  const routeGroup = (title: string, rows: CertificateRoute[]) =>
-    rows.length === 0 ? null : (
-      <div key={title}>
-        <div className="eyebrow" style={{ padding: '8px 18px 4px' }}>{title} · {rows.length}</div>
-        {rows.map(renderRouteRow)}
-      </div>
-    );
-
   const originCaveat = ORIGIN_CAVEATS[originMeta.iso];
 
-  const renderPosRow = (r: CertificateRoute) => {
-    const name = nameByIso[r.target];
-    const isTarget = r.target === targetMeta.iso;
-    const k = posKeyOf(r);
-    const oq = posOpenId(r);
-    return (
-      <button
-        key={r.target}
-        type="button"
-        onClick={() => setTarget(name)}
-        aria-pressed={isTarget}
-        style={{
-          display: 'block',
-          width: '100%',
-          textAlign: 'left',
-          padding: '8px 18px 8px 15px',
-          border: 0,
-          borderBottom: '1px solid var(--color-divider)',
-          borderLeft: `3px solid ${isTarget ? 'var(--color-accent)' : 'transparent'}`,
-          backgroundColor: isTarget ? 'color-mix(in srgb, var(--color-accent) 10%, var(--color-surface))' : 'transparent',
-          color: 'var(--color-text)',
-          font: 'inherit',
-          cursor: 'pointer',
-        }}
-      >
-        <span style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-          <span style={{ fontWeight: 700, fontSize: '13px', flex: 1, minWidth: 0 }}>{name}</span>
-          {posSchemeNames(r).map(n => (
-            <span key={n} className="chip" style={{ maxWidth: '100%', minWidth: 0, whiteSpace: 'normal', height: 'auto', lineHeight: 1.35, textAlign: 'left', overflowWrap: 'anywhere' }}>{n}</span>
-          ))}
-          <span className="mut" style={{ fontSize: '12px' }}>{POS_STATUS_TEXT[k]}</span>
+  const summaryCard = (
+    <div className="map-summary-card" data-testid="map-summary-card">
+      <div className="eyebrow" style={{ fontWeight: 800 }}>
+        {originMeta.name.toUpperCase()} · {originMeta.plants} plants · {originMeta.twh} TWh
+      </div>
+      <div className="map-summary-dots">
+        <span className="map-summary-dot-item">
+          <span className="map-status-dot" style={{ backgroundColor: 'var(--color-status-pass-text)' }} />
+          Sell now <span className="num">{categoryCounts.SELL_NOW}</span>
         </span>
-        <span className="mut" style={{ display: 'block', fontSize: '12px', marginTop: '2px', overflowWrap: 'anywhere' }}>{r.pos?.reason}</span>
-        {r.pos?.conditions && (
-          <span style={{ display: 'block', fontSize: '12px', marginTop: '2px', overflowWrap: 'anywhere' }}>
-            <strong>Conditions: </strong>{r.pos.conditions}
-          </span>
-        )}
-        {oq && (
-          <span className="mut" style={{ display: 'block', fontSize: '12px', marginTop: '2px' }}>Open question {oq}</span>
-        )}
+        <span className="map-summary-dot-item">
+          <span className="map-status-dot" style={{ backgroundColor: 'var(--color-status-warn-text)' }} />
+          Check first <span className="num">{categoryCounts.CHECK_FIRST}</span>
+        </span>
+        <span className="map-summary-dot-item">
+          <span className="map-status-dot" style={{ backgroundColor: 'color-mix(in srgb, var(--color-text) 30%, var(--color-bg))' }} />
+          Closed <span className="num">{categoryCounts.CLOSED}</span>
+        </span>
+      </div>
+      {topRoutes.length > 0 && (
+        <div className="mut" style={{ fontSize: '12px', lineHeight: 1.45, marginBottom: '12px' }}>
+          <strong>Top routes: </strong>
+          {topRoutes.map((tr, idx) => (
+            <span key={tr.iso}>
+              {idx > 0 && ' · '}
+              {tr.name} ({tr.badge})
+            </span>
+          ))}
+        </div>
+      )}
+      <button
+        type="button"
+        className="btn btn-secondary btn-block"
+        style={{ fontSize: '13px', fontWeight: 700, padding: '7px 12px' }}
+        onClick={() => setIsSummaryOpen(true)}
+        data-testid="open-route-summary-btn"
+      >
+        Open full route summary ⤢
       </button>
-    );
-  };
-
-  const posGroup = (title: string, rows: CertificateRoute[]) =>
-    rows.length === 0 ? null : (
-      <div key={title}>
-        <div className="eyebrow" style={{ padding: '8px 18px 4px' }}>{title} · {rows.length}</div>
-        {rows.map(renderPosRow)}
-      </div>
-    );
-
-  const posSection = (
-    <div style={{ borderBottom: '2px solid var(--color-divider)' }}>
-      <div style={{ padding: '14px 18px 6px' }}>
-        <div className="eyebrow">Where {originMeta.name} biomethane can be delivered (PoS / mass balance)</div>
-      </div>
-      <div style={isMobile ? undefined : { maxHeight: '360px', overflowY: 'auto' }} data-testid="map-pos-list">
-        {posGroup('Possible', posGroups.possible)}
-        {posGroup('Awaiting authority answer', posGroups.open)}
-        {posGroup('Not possible', posGroups.none)}
-        {posGroups.noData.length > 0 && (
-          <div className="mut" style={{ fontSize: '12px', padding: '8px 18px' }}>
-            Not researched: {posGroups.noData.map(r => r.target).join(', ')}
-          </div>
-        )}
-      </div>
-      <p className="mut" style={{ fontSize: '12px', lineHeight: 1.5, margin: 0, padding: '8px 18px 14px' }}>
-        PoS = physical biomethane delivered by mass balance into a national compliance scheme. {AUDIT_REF}
-      </p>
     </div>
   );
 
-  const routesSection = (
-    <div style={{ borderBottom: '2px solid var(--color-divider)' }}>
-      <div style={{ padding: '14px 18px 6px' }}>
-        <div className="eyebrow">Where {originMeta.name} certificates can go</div>
-        {originCaveat && (
-          <p className="mut" style={{ fontSize: '12px', lineHeight: 1.5, margin: '6px 0 0' }}>{originCaveat.text}</p>
-        )}
-      </div>
-      <div style={isMobile ? undefined : { maxHeight: '360px', overflowY: 'auto' }} data-testid="map-route-list">
-        {routeGroup('Live', routeGroups.live)}
-        {routeGroup('Pending / restricted', routeGroups.pending)}
-        {routeGroup('No route', routeGroups.none)}
-        {routeGroups.noData.length > 0 && (
-          <div className="mut" style={{ fontSize: '12px', padding: '8px 18px' }}>
-            Not researched: {routeGroups.noData.map(r => r.target).join(', ')}
+  const renderSummaryRow = (r: CertificateRoute, cat: SellCategory) => {
+    const name = nameByIso[r.target] || r.target;
+    const isExpanded = Boolean(expandedRows[r.target]);
+    const how = getPlainLanguageHow(r, cat);
+    const hasCond = r.conditions.length > 0 || Boolean(r.pos?.conditions);
+    const oq = r.openQuestionId || posOpenId(r);
+    const hasOq = cat === 'CHECK_FIRST' && Boolean(oq);
+
+    const goDetails = getGoRoute(r.origin, r.target);
+    const posDetails = getPosRoute(r.origin, r.target);
+
+    const allSources = [
+      ...(goDetails.sources || []),
+      ...(posDetails.schemes?.flatMap(s => s.sources || []) || []),
+    ];
+    const uniqueSources = allSources.filter((s, idx, arr) => arr.findIndex(x => x.url === s.url) === idx);
+
+    return (
+      <div key={r.target} className="map-route-row-item">
+        <button
+          type="button"
+          className="map-route-row-btn"
+          onClick={() => setExpandedRows(prev => ({ ...prev, [r.target]: !prev[r.target] }))}
+          aria-expanded={isExpanded}
+        >
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', minWidth: 0, flex: '1 1 auto', flexWrap: 'wrap' }}>
+            <span style={{ fontWeight: 700, fontSize: '14px' }}>{name}</span>
+            <span className="mut" style={{ fontSize: '12px' }}>{how}</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+            {hasCond && <span className="chip" style={{ fontSize: '11px', padding: '1px 6px' }}>conditions</span>}
+            {hasOq && <span className="chip" style={{ fontSize: '11px', padding: '1px 6px' }}>✉ question ready</span>}
+            {isExpanded ? <ChevronDown style={{ width: '16px', height: '16px' }} /> : <ChevronRight style={{ width: '16px', height: '16px' }} />}
+          </div>
+        </button>
+
+        {isExpanded && (
+          <div className="map-route-expanded-card" data-testid={`expanded-${r.target}`}>
+            <div>
+              <div className="eyebrow" style={{ marginBottom: '3px' }}>GO (Book &amp; Claim)</div>
+              <div><strong>Status:</strong> {CERT_ROUTE_LABELS[r.status]} · <strong>Via:</strong> {goDetails.via && goDetails.via !== 'NONE' ? (goDetails.via === 'ERGAR' ? 'ERGaR' : goDetails.via) : '—'} · <strong>Evidence:</strong> {EVIDENCE_GRADE_TEXT[goDetails.grade] || goDetails.grade}</div>
+              <div className="mut" style={{ marginTop: '2px' }}>{goDetails.reason}</div>
+              {goDetails.conditions && goDetails.conditions.length > 0 && (
+                <div style={{ marginTop: '3px' }}><strong>Conditions:</strong> {goDetails.conditions.join('; ')}</div>
+              )}
+              {goDetails.workaround && (
+                <div style={{ marginTop: '3px' }}><strong>Workaround (ex-domain):</strong> {goDetails.workaround}</div>
+              )}
+            </div>
+
+            <div style={{ borderTop: '1px solid var(--color-divider)', paddingTop: '8px' }}>
+              <div className="eyebrow" style={{ marginBottom: '3px' }}>PoS (Mass Balance Quota)</div>
+              <div><strong>Status:</strong> {posDetails.status}</div>
+              {posDetails.schemes.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
+                  {posDetails.schemes.map(s => (
+                    <div key={s.schemeId} style={{ paddingLeft: '8px', borderLeft: '2px solid var(--color-divider)' }}>
+                      <div><strong>{s.schemeName}</strong> ({s.status}){s.legalBasis ? ` · ${s.legalBasis}` : ''}</div>
+                      <div className="mut">{s.reason}</div>
+                      {s.conditions && <div><strong>Conditions:</strong> {s.conditions}</div>}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="mut">{r.pos?.reason || 'No specific national schemes found.'}</div>
+              )}
+            </div>
+
+            {oq && (
+              <div style={{ borderTop: '1px solid var(--color-divider)', paddingTop: '8px' }}>
+                <span className="eyebrow">Open question</span>
+                <div style={{ fontWeight: 600, marginTop: '2px' }}>{oq}</div>
+              </div>
+            )}
+
+            {uniqueSources.length > 0 && (
+              <div style={{ borderTop: '1px solid var(--color-divider)', paddingTop: '8px' }}>
+                <div className="eyebrow" style={{ marginBottom: '4px' }}>Sources &amp; citations</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  {uniqueSources.map((s, idx) => (
+                    <a
+                      key={idx}
+                      href={s.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ fontSize: '12px', color: 'var(--color-accent)', textDecoration: 'underline', overflowWrap: 'anywhere' }}
+                    >
+                      {s.claim} ↗
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
-      <p className="mut" style={{ fontSize: '12px', lineHeight: 1.5, margin: 0, padding: '8px 18px 14px' }}>
-        GO = Guarantee of Origin transfer between registries. {AUDIT_REF}
-      </p>
+    );
+  };
+
+  const routeSummaryContent = (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
+      {originCaveat && (
+        <div style={{ marginBottom: '12px' }}>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            style={{ fontSize: '12px', padding: '4px 8px' }}
+            onClick={() => setIsCaveatOpen(o => !o)}
+            aria-expanded={isCaveatOpen}
+          >
+            ⓘ Notes on {originMeta.name} {isCaveatOpen ? '▴' : '▾'}
+          </button>
+          {isCaveatOpen && (
+            <div
+              style={{
+                marginTop: '6px',
+                padding: '10px 12px',
+                backgroundColor: 'var(--color-bg)',
+                border: '1px solid var(--color-divider)',
+                borderRadius: 'var(--radius-control)',
+                fontSize: '12px',
+                lineHeight: 1.5,
+              }}
+            >
+              {originCaveat.text}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Filter and search controls bar */}
+      <div className="map-modal-controls-row" style={{ marginTop: 0, marginBottom: '14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+          <span className="eyebrow">Filter:</span>
+          {(['ALL', 'GO', 'POS'] as const).map(f => (
+            <button
+              key={f}
+              type="button"
+              className={`btn ${filter === f ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ padding: '3px 8px', fontSize: '12px' }}
+              onClick={() => setFilter(f)}
+              aria-pressed={filter === f}
+            >
+              {f === 'ALL' ? 'All' : f === 'GO' ? 'GO only' : 'PoS only'}
+            </button>
+          ))}
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <input
+            type="search"
+            placeholder="Search destination..."
+            value={summarySearch}
+            onChange={e => setSummarySearch(e.target.value)}
+            className="input"
+            style={{ height: '30px', minHeight: '30px', fontSize: '12px', padding: '2px 8px', width: '180px' }}
+            aria-label="Filter destinations by country name"
+          />
+          <button
+            type="button"
+            className="btn btn-secondary"
+            style={{ height: '30px', minHeight: '30px', fontSize: '12px', padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+            onClick={handleCopyList}
+            title="Copy list to clipboard"
+          >
+            {copied ? <Check style={{ width: '14px', height: '14px' }} /> : <Copy style={{ width: '14px', height: '14px' }} />}
+            {copied ? 'Copied' : 'Copy list'}
+          </button>
+        </div>
+      </div>
+
+      {/* Scrollable list of sections */}
+      <div className="map-modal-body" style={{ padding: 0 }}>
+        {/* Sell now section */}
+        <div style={{ marginBottom: '16px' }}>
+          <div className="eyebrow" style={{ padding: '6px 0', borderBottom: '2px solid var(--color-status-pass-text)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span className="map-status-dot" style={{ backgroundColor: 'var(--color-status-pass-text)' }} />
+            Sell now · {summaryGroups.sellNow.length}
+          </div>
+          {summaryGroups.sellNow.length > 0 ? (
+            summaryGroups.sellNow.map(r => renderSummaryRow(r, 'SELL_NOW'))
+          ) : (
+            <div className="mut" style={{ fontSize: '12px', padding: '8px 10px' }}>No routes in this category.</div>
+          )}
+        </div>
+
+        {/* Check first section */}
+        <div style={{ marginBottom: '16px' }}>
+          <div className="eyebrow" style={{ padding: '6px 0', borderBottom: '2px solid var(--color-status-warn-text)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span className="map-status-dot" style={{ backgroundColor: 'var(--color-status-warn-text)' }} />
+            Check first · {summaryGroups.checkFirst.length}
+          </div>
+          {summaryGroups.checkFirst.length > 0 ? (
+            summaryGroups.checkFirst.map(r => renderSummaryRow(r, 'CHECK_FIRST'))
+          ) : (
+            <div className="mut" style={{ fontSize: '12px', padding: '8px 10px' }}>No routes in this category.</div>
+          )}
+        </div>
+
+        {/* Closed section */}
+        <div style={{ marginBottom: '16px' }}>
+          <div className="eyebrow" style={{ padding: '6px 0', borderBottom: '2px solid var(--color-divider)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span className="map-status-dot" style={{ backgroundColor: 'color-mix(in srgb, var(--color-text) 30%, var(--color-bg))' }} />
+            Closed · {summaryGroups.closed.length}
+          </div>
+          {summaryGroups.closed.length > 0 ? (
+            summaryGroups.closed.map(r => renderSummaryRow(r, 'CLOSED'))
+          ) : (
+            <div className="mut" style={{ fontSize: '12px', padding: '8px 10px' }}>No routes in this category.</div>
+          )}
+        </div>
+
+        {summaryGroups.noData.length > 0 && (
+          <div className="mut" style={{ fontSize: '12px', padding: '10px 0' }}>
+            Not researched: {summaryGroups.noData.map(r => nameByIso[r.target] || r.target).join(', ')}
+          </div>
+        )}
+      </div>
+
+      {/* Sticky footer */}
+      <div className="map-modal-footer" style={{ padding: '10px 0 0' }}>
+        {AUDIT_REF}
+      </div>
     </div>
   );
 
@@ -714,8 +1004,7 @@ export function MapScreen() {
           </div>
         </div>
 
-        {view === 'ROUTES' && routesSection}
-        {view === 'POS' && posSection}
+        {view === 'SELL' && summaryCard}
 
         {/* 2x2 Stat Grid */}
         <div
@@ -987,12 +1276,27 @@ export function MapScreen() {
             {railBody}
             <div className="map-m-legend">
               {viewToggle(true)}
-              <div className="eyebrow" style={{ margin: '14px 0 8px' }}>{view === 'ROUTES' ? 'GO routes' : view === 'POS' ? 'PoS routes' : 'Compliance status'}</div>
+              <div className="eyebrow" style={{ margin: '14px 0 8px' }}>
+                {view === 'SELL' ? `Where can I sell? (${originMeta.iso})` : 'Compliance status'}
+              </div>
               {legendList(13, 10, 6)}
               <div className="mut" style={{ fontSize: '12px', marginTop: '10px' }}>
                 30 European jurisdictions · Interactive cross-border routing &amp; transmission tariffs
               </div>
             </div>
+          </div>
+        </Sheet>
+
+        <Sheet
+          open={isSummaryOpen}
+          onClose={() => setIsSummaryOpen(false)}
+          title={`Where can ${originMeta.name} biomethane be sold?`}
+          subtitle={`Sell now ${categoryCounts.SELL_NOW} · Check first ${categoryCounts.CHECK_FIRST} · Closed ${categoryCounts.CLOSED}`}
+          variant="bottom"
+          testId="mobile-route-summary-sheet"
+        >
+          <div style={{ padding: '0 4px 16px', minHeight: 0 }}>
+            {routeSummaryContent}
           </div>
         </Sheet>
 
@@ -1199,7 +1503,7 @@ export function MapScreen() {
 
             <div style={{ borderTop: '1px solid var(--color-divider)', marginTop: '8px', paddingTop: '8px' }}>
               <div className="eyebrow" style={{ marginBottom: '5px' }}>
-                {view === 'ROUTES' ? `GO routes from ${originMeta.iso}` : view === 'POS' ? `PoS routes from ${originMeta.iso}` : 'Compliance status'}
+                {view === 'SELL' ? `Where can I sell? (${originMeta.iso})` : 'Compliance status'}
               </div>
               {legendList(12, 9, 4)}
             </div>
@@ -1265,34 +1569,47 @@ export function MapScreen() {
                 padding: '10px 12px',
               }}
             >
-              <div className="eyebrow">{view === 'ROUTES' ? 'Certificate route' : view === 'POS' ? 'PoS route' : STATUS_CONFIG[hoveredCountry.status].label}</div>
+              <div className="eyebrow">{view === 'SELL' ? 'Where can I sell?' : STATUS_CONFIG[hoveredCountry.status].label}</div>
               <div style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '17px', marginTop: '4px' }}>
                 {hoveredCountry.name}
               </div>
               <div style={{ fontSize: '12px', marginTop: '2px' }} className="mut">
                 {hoveredCountry.legal}
               </div>
-              {view === 'ROUTES' && (
+              {view === 'SELL' && (
                 <div style={{ marginTop: '6px', fontSize: '12px' }}>
                   {hoveredCountry.iso === originMeta.iso ? (
-                    <strong>Origin</strong>
+                    <strong>Selected origin</strong>
                   ) : (
-                    <>
-                      <strong>{CERT_ROUTE_LABELS[routeByIso[hoveredCountry.iso]?.status ?? 'NO_DATA']}</strong>
-                      <div className="mut">{routeByIso[hoveredCountry.iso]?.reason}</div>
-                    </>
-                  )}
-                </div>
-              )}
-              {view === 'POS' && (
-                <div style={{ marginTop: '6px', fontSize: '12px' }}>
-                  {hoveredCountry.iso === originMeta.iso ? (
-                    <strong>Origin</strong>
-                  ) : (
-                    <>
-                      <strong>{POS_STATUS_TEXT[posKeyOf(routeByIso[hoveredCountry.iso])]}</strong>
-                      <div className="mut">{routeByIso[hoveredCountry.iso]?.pos?.reason ?? routeByIso[hoveredCountry.iso]?.reason}</div>
-                    </>
+                    (() => {
+                      const r = routeByIso[hoveredCountry.iso];
+                      const cat = classifyRoute(r, filter);
+                      const label =
+                        cat === 'SELL_NOW'
+                          ? 'Sell now'
+                          : cat === 'CHECK_FIRST'
+                          ? 'Check first'
+                          : cat === 'CLOSED'
+                          ? 'Closed'
+                          : 'Not researched';
+                      const dotBg =
+                        cat === 'SELL_NOW'
+                          ? 'var(--color-status-pass-text)'
+                          : cat === 'CHECK_FIRST'
+                          ? 'var(--color-status-warn-text)'
+                          : 'color-mix(in srgb, var(--color-text) 30%, var(--color-bg))';
+                      return (
+                        <>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span className="map-status-dot" style={{ backgroundColor: dotBg }} />
+                            <strong>{label}</strong>
+                          </div>
+                          <div className="mut" style={{ marginTop: '2px', overflowWrap: 'anywhere' }}>
+                            {r ? getPlainLanguageHow(r, cat) : 'No route data'}
+                          </div>
+                        </>
+                      );
+                    })()
                   )}
                 </div>
               )}
@@ -1344,6 +1661,57 @@ export function MapScreen() {
         originCountry={originMeta.iso}
         targetCountry={selectedMeta.iso}
       />
+
+      {/* Route Summary Modal (Desktop) */}
+      {isSummaryOpen && !isMobile && (
+        <div
+          className="map-route-summary-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="map-summary-title"
+          onClick={e => {
+            if (e.target === e.currentTarget) setIsSummaryOpen(false);
+          }}
+        >
+          <div className="map-route-summary-modal">
+            <div className="map-modal-header">
+              <div className="map-modal-title-row">
+                <div>
+                  <h2 id="map-summary-title" className="map-modal-title">
+                    Where can {originMeta.name} biomethane be sold?
+                  </h2>
+                  <div className="map-summary-dots" style={{ margin: '4px 0 0' }}>
+                    <span className="map-summary-dot-item">
+                      <span className="map-status-dot" style={{ backgroundColor: 'var(--color-status-pass-text)' }} />
+                      Sell now <span className="num">{categoryCounts.SELL_NOW}</span>
+                    </span>
+                    <span className="map-summary-dot-item">
+                      <span className="map-status-dot" style={{ backgroundColor: 'var(--color-status-warn-text)' }} />
+                      Check first <span className="num">{categoryCounts.CHECK_FIRST}</span>
+                    </span>
+                    <span className="map-summary-dot-item">
+                      <span className="map-status-dot" style={{ backgroundColor: 'color-mix(in srgb, var(--color-text) 30%, var(--color-bg))' }} />
+                      Closed <span className="num">{categoryCounts.CLOSED}</span>
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  style={{ width: '32px', height: '32px', padding: 0 }}
+                  onClick={() => setIsSummaryOpen(false)}
+                  aria-label="Close route summary"
+                >
+                  <X style={{ width: '18px', height: '18px' }} />
+                </button>
+              </div>
+            </div>
+            <div style={{ flex: 1, padding: '16px 20px', overflowY: 'hidden', minHeight: 0 }}>
+              {routeSummaryContent}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
