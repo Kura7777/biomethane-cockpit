@@ -9,6 +9,7 @@ import {
   ProductForm,
   ClaimPurpose,
 } from '../../domain/corporate/orderPricer';
+import { toSupplyEntries } from '../../domain/markets/brokerRun.seed';
 import { showToast } from '../../app/DeskToastContainer';
 
 const COUNTRIES = ['DE', 'NL', 'FR', 'DK', 'UK', 'AIB'];
@@ -73,10 +74,14 @@ export function CorporateOrderScreen() {
     claim,
   };
 
+  const entries = useMemo(() => {
+    return toSupplyEntries(state.pricingBook || []);
+  }, [state.pricingBook]);
+
   const quote = useMemo(
-    () => priceCorporateOrder(spec, { transferCostEurPerMWh: num(transfer), marginEurPerMWh: num(margin) }, state.marks),
+    () => priceCorporateOrder(spec, { transferCostEurPerMWh: num(transfer), marginEurPerMWh: num(margin) }, state.marks, entries),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [volume, form, countries, vintage, maxCi, unsubsidised, excludeCrops, claim, transfer, margin, state.marks]
+    [volume, form, countries, vintage, maxCi, unsubsidised, excludeCrops, claim, transfer, margin, state.marks, entries]
   );
 
   const toggleCountry = (c: string) =>

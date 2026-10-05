@@ -10,6 +10,8 @@ import { Consignment } from '../consignment/types';
 import { MarkEntry } from '../markets/types';
 import { REFERENCE_CONSIGNMENTS } from '../consignment/feedstocks';
 
+import { BASELINE_RUN_META } from '../markets/brokerRun.seed';
+
 export function createEmptyDeskState(): AppState {
   const emptyMarksRecord: Record<string, MarkEntry> = {};
   MARKETS.filter(m => m.status === 'ACTIVE').forEach(m => {
@@ -31,7 +33,10 @@ export function createEmptyDeskState(): AppState {
   });
 
   return {
-    schemaVersion: 8,
+    schemaVersion: 10,
+    pricingBook: [],
+    pricingRunMeta: BASELINE_RUN_META,
+    referenceRowIds: {},
     marks: {
       marks: emptyMarksRecord,
       gasIndex: {

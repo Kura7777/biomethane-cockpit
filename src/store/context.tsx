@@ -6,13 +6,30 @@ import { PriceSide, MarkEntry, MarkProvenance, getMarkStaleness } from '../domai
 import { MARKETS } from '../domain/markets/registry';
 import { REFERENCE_CONSIGNMENTS } from '../domain/consignment/feedstocks';
 import { simulateDesk } from '../domain/marks/simulate';
+import {
+  PricingBookEntry,
+  BrokerRunMeta,
+  INITIAL_PRICING_BOOK,
+  BASELINE_RUN_META,
+} from '../domain/markets/brokerRun.seed';
+import {
+  applyMarkUpdates,
+  seedMarksFromPricingBook,
+  isSimulatedMark,
+  rowFeedsMarket,
+  rowHasPrice,
+  resolveMarketForQuote,
+  createMarkUpdateFromRow,
+  MarkUpdate,
+} from '../domain/marks/applyMarks';
 
-export const CURRENT_SCHEMA_VERSION = 9;
-const STORAGE_KEY = 'biomethane-desk-state-v9';
+export const CURRENT_SCHEMA_VERSION = 10;
+const STORAGE_KEY = 'biomethane-desk-state-v10';
 
 // Newest first — the first key that yields a readable payload wins.
 const KNOWN_STORAGE_KEYS = [
   STORAGE_KEY,
+  'biomethane-desk-state-v9',
   'biomethane-desk-state-v8',
   'biomethane-desk-state-v7',
   'biomethane-desk-state-v6',
@@ -31,6 +48,9 @@ const QUARANTINE_KEY_PREFIX = 'biomethane-desk-state-unreadable:';
 export interface AppState {
   schemaVersion: number;
   marks: MarksState;
+  pricingBook: PricingBookEntry[];
+  pricingRunMeta: BrokerRunMeta;
+  referenceRowIds: Record<string, string>;
   consignments: Consignment[];
   activeConsignmentId: string | null;
   costs: CostInputs;
@@ -54,7 +74,11 @@ export type AppAction =
   | { type: 'SELECT_MARKET'; id: string | null }
   | { type: 'IMPORT_STATE'; state: AppState }
   | { type: 'SIMULATE_DESK' }
-  | { type: 'RESET' };
+  | { type: 'RESET' }
+  | { type: 'UPDATE_PRICING_BOOK_CELL'; id: string; field: 'bidPrice' | 'offerPrice' | 'bidVolume' | 'offerVolume'; value: string }
+  | { type: 'SET_PRICING_RUN_DATE'; runId: string; receivedOn: string }
+  | { type: 'SET_MARKET_REFERENCE_ROW'; marketId: string; rowId: string }
+  | { type: 'ADD_PRICING_RUN'; runMeta: BrokerRunMeta; rows: PricingBookEntry[] };
 
 interface RawLegacyMarks {
   marks?: Record<string, {
@@ -320,6 +344,29 @@ export function migrateState(raw: unknown): AppState {
     }
   }
 
+  if (stateVersion < 10) {
+    // Schema v10 migration: order book lives in store and seeds market marks
+    if (!migrated.pricingBook || !Array.isArray(migrated.pricingBook) || migrated.pricingBook.length === 0) {
+      migrated.pricingBook = INITIAL_PRICING_BOOK;
+    }
+    if (!migrated.pricingRunMeta) {
+      migrated.pricingRunMeta = BASELINE_RUN_META;
+    }
+    if (!migrated.referenceRowIds) {
+      migrated.referenceRowIds = {};
+    }
+
+    // Seed broker marks for markets with broker rows, respecting precedence rules
+    // (any non-simulated manual marks the user had entered in prior sessions are preserved)
+    const { nextMarks, referenceRowIds } = seedMarksFromPricingBook(
+      migrated.marks,
+      migrated.pricingBook,
+      migrated.pricingRunMeta.receivedOn
+    );
+    migrated.marks = nextMarks;
+    migrated.referenceRowIds = { ...referenceRowIds, ...(migrated.referenceRowIds || {}) };
+  }
+
   migrated.schemaVersion = CURRENT_SCHEMA_VERSION;
 
   // Ensure all active markets exist in marks dictionary
@@ -361,24 +408,21 @@ export function migrateState(raw: unknown): AppState {
 /**
  * The state a brand-new desk starts from.
  *
- * Marks and costs are seeded from simulateDesk() rather than left null. An empty
- * desk is philosophically pure — nothing is priced that nobody quoted — but it
- * renders every screen in the app as em-dashes and 'Unset', which reads as broken
- * rather than as principled, and the only way out was a low-contrast button most
- * people never found.
- *
- * The honesty requirement is met a different way: every seeded entry is stamped
- * sourceType 'ESTIMATE' / sourceName SIMULATED_SOURCE_NAME, sorts to the bottom of
- * MARK_SOURCE_RELIABILITY, and raises a persistent banner in the shell. Nothing here
- * claims to be an observed price. Real marks entered on the Marks screen overwrite
- * these and clear the banner for that mark.
+ * Marks and costs are seeded from simulateDesk() and then seeded with real
+ * broker marks for markets that have broker indication rows in the master pricing book.
  */
 export function createDefaultState(): AppState {
-  const { marks, costs } = simulateDesk();
+  const { marks: simMarks, costs } = simulateDesk();
+  const pricingBook = INITIAL_PRICING_BOOK;
+  const pricingRunMeta = BASELINE_RUN_META;
+  const { nextMarks, referenceRowIds } = seedMarksFromPricingBook(simMarks, pricingBook, pricingRunMeta.receivedOn);
 
   return {
     schemaVersion: CURRENT_SCHEMA_VERSION,
-    marks,
+    marks: nextMarks,
+    pricingBook,
+    pricingRunMeta,
+    referenceRowIds,
     consignments: [
       REFERENCE_CONSIGNMENTS.DANISH_MANURE,
       REFERENCE_CONSIGNMENTS.UK_FOOD_WASTE,
@@ -436,62 +480,44 @@ function getInitialState(): AppState {
 }
 
 // Reducer
-function appReducer(state: AppState, action: AppAction): AppState {
+export function appReducer(state: AppState, action: AppAction): AppState {
   const now = new Date().toISOString();
 
   switch (action.type) {
     case 'SET_MARK': {
-      const existing = state.marks.marks[action.marketId];
-      const updatedTimestamp = action.updatedAt ?? (action.bid !== null || action.offer !== null || action.mid !== null ? now : null);
-      const updatedEntry: MarkEntry = {
+      const nextMarks = applyMarkUpdates(state.marks, [{
         marketId: action.marketId,
         bid: action.bid,
         offer: action.offer,
         mid: action.mid,
-        updatedAt: updatedTimestamp,
-        source: action.source ?? existing?.source ?? null,
-        provenance: action.provenance !== undefined ? action.provenance : (existing?.provenance ?? {
-          sourceType: null,
-          sourceName: null,
+        source: action.source ?? 'Desk · manual',
+        updatedAt: action.updatedAt ?? now,
+        provenance: action.provenance !== undefined ? action.provenance : {
+          sourceType: 'BROKER_INDICATION',
+          sourceName: action.source ?? 'Desk · manual',
           sourceUrl: null,
-          observedAt: updatedTimestamp,
-          note: null,
-        }),
-      };
-
-      return {
-        ...state,
-        marks: {
-          ...state.marks,
-          marks: {
-            ...state.marks.marks,
-            [action.marketId]: updatedEntry,
-          },
+          observedAt: action.updatedAt ?? now,
+          note: 'Desk override',
         },
-      };
+      }]);
+      return { ...state, marks: nextMarks };
     }
     case 'SET_GAS_INDEX': {
-      const hasValue = action.bid !== null || action.offer !== null || action.mid !== null;
-      const gasUpdatedAt = action.updatedAt ?? (hasValue ? now : null);
-      return {
-        ...state,
-        marks: {
-          ...state.marks,
-          gasIndex: {
-            bid: action.bid,
-            offer: action.offer,
-            mid: action.mid,
-            updatedAt: gasUpdatedAt,
-            provenance: action.provenance !== undefined ? action.provenance : (state.marks.gasIndex.provenance ?? {
-              sourceType: null,
-              sourceName: null,
-              sourceUrl: null,
-              observedAt: gasUpdatedAt,
-              note: null,
-            }),
-          },
+      const nextMarks = applyMarkUpdates(state.marks, [{
+        marketId: 'GAS_TTF',
+        bid: action.bid,
+        offer: action.offer,
+        mid: action.mid,
+        updatedAt: action.updatedAt ?? now,
+        provenance: action.provenance !== undefined ? action.provenance : {
+          sourceType: 'BROKER_INDICATION',
+          sourceName: 'Desk · manual',
+          sourceUrl: null,
+          observedAt: action.updatedAt ?? now,
+          note: 'Desk TTF gas index override',
         },
-      };
+      }]);
+      return { ...state, marks: nextMarks };
     }
     case 'SET_FX': {
       const fxUpdatedAt = action.updatedAt ?? (action.value !== null ? now : null);
@@ -558,8 +584,182 @@ function appReducer(state: AppState, action: AppAction): AppState {
     case 'IMPORT_STATE':
       return migrateState(action.state);
     case 'SIMULATE_DESK': {
-      const { marks, costs } = simulateDesk();
-      return { ...state, marks: { ...marks, pricingSides: state.marks.pricingSides }, costs };
+      const { marks: simMarks, costs } = simulateDesk();
+      const simUpdates: MarkUpdate[] = Object.values(simMarks.marks).map(m => ({
+        marketId: m.marketId,
+        bid: m.bid,
+        offer: m.offer,
+        mid: m.mid,
+        source: m.source,
+        updatedAt: m.updatedAt,
+        provenance: m.provenance,
+      }));
+      simUpdates.push({
+        marketId: 'GAS_TTF',
+        bid: simMarks.gasIndex.bid,
+        offer: simMarks.gasIndex.offer,
+        mid: simMarks.gasIndex.mid,
+        updatedAt: simMarks.gasIndex.updatedAt,
+        provenance: simMarks.gasIndex.provenance,
+      });
+      const nextMarks = applyMarkUpdates(state.marks, simUpdates);
+      return {
+        ...state,
+        marks: {
+          ...nextMarks,
+          // FX is not a broker price; refresh it only while it is still simulated.
+          fx: isSimulatedMark({ provenance: state.marks.fx.provenance, source: null, bid: 0 }) ? simMarks.fx : state.marks.fx,
+          pricingSides: state.marks.pricingSides,
+        },
+        costs,
+      };
+    }
+    case 'UPDATE_PRICING_BOOK_CELL': {
+      const nextPricingBook = state.pricingBook.map(row => {
+        if (row.id !== action.id) return row;
+        const editedRow: PricingBookEntry = {
+          ...row,
+          [action.field]: action.value,
+          editedAt: now,
+          source: 'Desk · manual',
+        };
+
+        if (action.field === 'bidPrice' || action.field === 'offerPrice') {
+          const clean = action.value.replace(/[^0-9.-]/g, '');
+          const numVal = clean ? parseFloat(clean) : null;
+          const fx = state.marks.fx.gbpEur;
+          const toEur = (v: number | null): number | null =>
+            v === null ? null : row.currency === 'EUR' ? v : (fx !== null ? Number((v * fx).toFixed(2)) : null);
+          if (action.field === 'bidPrice') {
+            editedRow.bidPriceNumeric = numVal;
+            editedRow.numericBidEurMwh = toEur(numVal);
+          } else {
+            editedRow.offerPriceNumeric = numVal;
+            editedRow.numericOfferEurMwh = toEur(numVal);
+          }
+        } else if (action.field === 'bidVolume' || action.field === 'offerVolume') {
+          const m = action.value.match(/(\d+(?:\.\d+)?)\s*GWh/i);
+          const vol = m ? parseFloat(m[1]) : (parseFloat(action.value) || null);
+          if (action.field === 'bidVolume') {
+            editedRow.bidVolumeGWh = vol;
+            editedRow.bidVolumeText = action.value;
+          } else {
+            editedRow.offerVolumeGWh = vol;
+            editedRow.offerVolumeText = action.value;
+          }
+        }
+
+        return editedRow;
+      });
+
+      let nextMarks = state.marks;
+      let nextRefIds = state.referenceRowIds;
+
+      const editedRow = nextPricingBook.find(r => r.id === action.id);
+      if (editedRow && (action.field === 'bidPrice' || action.field === 'offerPrice')) {
+        const updatedMarketId = resolveMarketForQuote(editedRow);
+        if (updatedMarketId && rowFeedsMarket(editedRow, updatedMarketId)) {
+          const currentRefId = state.referenceRowIds?.[updatedMarketId];
+          const isRef = !currentRefId || currentRefId === action.id;
+
+          if (isRef) {
+            nextRefIds = { ...state.referenceRowIds, [updatedMarketId]: action.id };
+            const update = createMarkUpdateFromRow(editedRow, updatedMarketId, state.pricingRunMeta?.receivedOn);
+            update.source = 'Desk · manual';
+            if (update.provenance) {
+              update.provenance.sourceName = 'Desk · manual';
+              update.provenance.observedAt = now;
+              update.provenance.note = `Manual edit on row ${editedRow.id}`;
+            }
+            nextMarks = applyMarkUpdates(state.marks, [update]);
+          }
+        }
+      }
+
+      return {
+        ...state,
+        pricingBook: nextPricingBook,
+        marks: nextMarks,
+        referenceRowIds: nextRefIds,
+      };
+    }
+    case 'SET_PRICING_RUN_DATE': {
+      const nextRunMeta: BrokerRunMeta = {
+        ...state.pricingRunMeta,
+        receivedOn: action.receivedOn,
+        receivedOnIsApproximate: false,
+      };
+      const nextBook = state.pricingBook.map(row => {
+        if (row.runId === action.runId) {
+          return { ...row, observedAt: action.receivedOn };
+        }
+        return row;
+      });
+
+      // Re-date only the marks that are still this run's broker quote. A mark the trader has since
+      // overwritten by hand (sourceName 'Desk · manual') keeps its own observation time.
+      const updates: MarkUpdate[] = [];
+      for (const [mId, rowId] of Object.entries(state.referenceRowIds || {})) {
+        const row = nextBook.find(r => r.id === rowId);
+        const current = state.marks.marks[mId];
+        if (row && row.runId === action.runId && current?.provenance?.sourceName === 'Broker run') {
+          updates.push({
+            marketId: mId,
+            correction: true,
+            provenance: { ...current.provenance, observedAt: action.receivedOn },
+          });
+        }
+      }
+      const nextMarks = applyMarkUpdates(state.marks, updates);
+      return {
+        ...state,
+        pricingRunMeta: nextRunMeta,
+        pricingBook: nextBook,
+        marks: nextMarks,
+      };
+    }
+    case 'SET_MARKET_REFERENCE_ROW': {
+      const row = state.pricingBook.find(r => r.id === action.rowId);
+      if (!row || !rowFeedsMarket(row, action.marketId) || !rowHasPrice(row)) return state;
+      const update = createMarkUpdateFromRow(row, action.marketId, state.pricingRunMeta?.receivedOn);
+      const nextMarks = applyMarkUpdates(state.marks, [update]);
+      return {
+        ...state,
+        marks: nextMarks,
+        referenceRowIds: {
+          ...state.referenceRowIds,
+          [action.marketId]: action.rowId,
+        },
+      };
+    }
+    case 'ADD_PRICING_RUN': {
+      const nextBook = [...state.pricingBook, ...action.rows];
+      const updates: MarkUpdate[] = [];
+      const nextRefIds = { ...state.referenceRowIds };
+      const candidates: { mId: string; rowId: string; update: MarkUpdate }[] = [];
+      for (const row of action.rows) {
+        const mId = resolveMarketForQuote(row);
+        if (mId && rowFeedsMarket(row, mId) && (row.bidPriceNumeric !== null || row.offerPriceNumeric !== null)) {
+          const update = createMarkUpdateFromRow(row, mId, action.runMeta.receivedOn);
+          updates.push(update);
+          candidates.push({ mId, rowId: row.id, update });
+        }
+      }
+      const nextMarks = applyMarkUpdates(state.marks, updates);
+      // Only move the reference star when the mark actually took this row's quote
+      // (an older run date never displaces a newer mark).
+      for (const { mId, rowId, update } of candidates) {
+        const m = nextMarks.marks[mId];
+        if (m && m.provenance?.observedAt === update.provenance?.observedAt && m.bid === update.bid && m.offer === update.offer) {
+          nextRefIds[mId] = rowId;
+        }
+      }
+      return {
+        ...state,
+        pricingBook: nextBook,
+        marks: nextMarks,
+        referenceRowIds: nextRefIds,
+      };
     }
     case 'RESET':
       return createDefaultState();
