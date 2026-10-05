@@ -19,6 +19,8 @@ import { buildDealUrl } from '../../domain/trade/dealParams';
 import { calculateLogisticsRoute, calculateDijkstraCorridor } from '../../domain/logistics/engine';
 import { getDefaultMarketForOrigin } from '../trade-builder/TradeBuilderScreen';
 import { getGoRoute, getPosRoute } from '../../domain/routes';
+import { POS_SCHEMES } from '../../domain/routes/routeMatrix.generated';
+import { MARKETS } from '../../domain/markets/registry';
 import {
   getCertificateRoute,
   getCertificateRoutesFrom,
@@ -32,52 +34,51 @@ import { ORIGIN_CAVEATS } from '../../domain/registries/hubConnectivity';
 interface CountryMeta {
   iso: string;
   name: string;
-  status: 'ACTIVE' | 'EMERGING' | 'FUTURE_2028' | 'RESTRICTED' | 'NONE';
+  status: 'ACTIVE' | 'EMERGING' | 'FUTURE_2028' | 'NONE';
   legal: string;
   plants: number;
   twh: number;
   center: [number, number]; // [lon, lat]
 }
 
-const COUNTRIES: Record<string, CountryMeta> = {
-  'Germany': { iso: 'DE', name: 'Germany', status: 'ACTIVE', legal: '§37a BImSchG · 38. BImSchV', plants: 242, twh: 11.8, center: [10.45, 51.16] },
-  'Netherlands': { iso: 'NL', name: 'Netherlands', status: 'ACTIVE', legal: 'Wet milieubeheer · Regeling energie vervoer', plants: 82, twh: 3.2, center: [5.29, 52.13] },
-  'France': { iso: 'FR', name: 'France', status: 'ACTIVE', legal: 'Code de l’énergie L.446-24 · Art. 266 quindecies', plants: 652, twh: 10.4, center: [2.21, 46.22] },
-  'Italy': { iso: 'IT', name: 'Italy', status: 'ACTIVE', legal: 'DM 2 March 2018 · DM 15 Sept 2022', plants: 135, twh: 4.8, center: [12.56, 41.87] },
-  'Denmark': { iso: 'DK', name: 'Denmark', status: 'ACTIVE', legal: 'VE-loven §§ 43a–43f', plants: 64, twh: 5.6, center: [9.50, 56.26] },
-  'Austria': { iso: 'AT', name: 'Austria', status: 'ACTIVE', legal: 'Erneuerbaren-Gase-Gesetz', plants: 16, twh: 0.45, center: [14.55, 47.51] },
-  'Sweden': { iso: 'SE', name: 'Sweden', status: 'ACTIVE', legal: 'Lag (1994:1776) om skatt på energi', plants: 72, twh: 2.1, center: [18.64, 60.12] },
-  'Finland': { iso: 'FI', name: 'Finland', status: 'ACTIVE', legal: 'Jakeluvelvoitelaki (446/2007)', plants: 26, twh: 0.55, center: [25.74, 61.92] },
-  'Belgium': { iso: 'BE', name: 'Belgium', status: 'ACTIVE', legal: 'Energiedecreet · Décret wallon gaz', plants: 12, twh: 0.38, center: [4.46, 50.50] },
-  'Spain': { iso: 'ES', name: 'Spain', status: 'ACTIVE', legal: 'Real Decreto 376/2022', plants: 38, twh: 0.9, center: [-3.74, 40.46] },
-  'Poland': { iso: 'PL', name: 'Poland', status: 'EMERGING', legal: 'Ustawa o OZE Art. 70a–70z', plants: 14, twh: 0.3, center: [19.14, 51.91] },
-  'Czechia': { iso: 'CZ', name: 'Czechia', status: 'EMERGING', legal: 'Zákon o POZE 165/2012 §§ 24–27', plants: 11, twh: 0.2, center: [15.47, 49.81] },
-  'Portugal': { iso: 'PT', name: 'Portugal', status: 'EMERGING', legal: 'Decreto-Lei 84/2022', plants: 4, twh: 0.05, center: [-8.22, 39.39] },
-  'Ireland': { iso: 'IE', name: 'Ireland', status: 'EMERGING', legal: 'NORA Act Part 5A', plants: 6, twh: 0.1, center: [-8.24, 53.41] },
-  'Greece': { iso: 'GR', name: 'Greece', status: 'EMERGING', legal: 'Law 4951/2022 Art. 80–92', plants: 3, twh: 0.04, center: [21.82, 39.07] },
-  'Romania': { iso: 'RO', name: 'Romania', status: 'EMERGING', legal: 'Legea 220/2008 · ANRE norms', plants: 2, twh: 0.03, center: [24.96, 45.94] },
-  'Hungary': { iso: 'HU', name: 'Hungary', status: 'EMERGING', legal: 'Földgáztörvény 82–85. §', plants: 5, twh: 0.08, center: [19.50, 47.16] },
-  'Estonia': { iso: 'EE', name: 'Estonia', status: 'EMERGING', legal: 'Vedelkütuse seadus § 2¹', plants: 8, twh: 0.15, center: [25.01, 58.59] },
-  'Lithuania': { iso: 'LT', name: 'Lithuania', status: 'EMERGING', legal: 'Renewable Energy Law Art. 38–41', plants: 4, twh: 0.06, center: [23.88, 55.16] },
-  'Latvia': { iso: 'LV', name: 'Latvia', status: 'EMERGING', legal: 'Enerģētikas likums 42. pants', plants: 3, twh: 0.04, center: [24.60, 56.87] },
-  'Switzerland': { iso: 'CH', name: 'Switzerland', status: 'EMERGING', legal: 'MinStG Art. 2a · 12b — grid-isolated', plants: 35, twh: 0.4, center: [8.22, 46.81] },
-  'Norway': { iso: 'NO', name: 'Norway', status: 'EMERGING', legal: 'Produktforskriften kap. 3 — grid-isolated', plants: 12, twh: 0.2, center: [8.46, 60.47] },
-  'United Kingdom': { iso: 'GB', name: 'United Kingdom', status: 'RESTRICTED', legal: 'RTFO — grid injection cannot evidence UDB ingestion', plants: 108, twh: 6.1, center: [-3.43, 55.37] },
-  'Slovakia': { iso: 'SK', name: 'Slovakia', status: 'FUTURE_2028', legal: 'ETS2 · Directive (EU) 2023/959', plants: 2, twh: 0.03, center: [19.69, 48.66] },
-  'Slovenia': { iso: 'SI', name: 'Slovenia', status: 'FUTURE_2028', legal: 'ETS2 · Directive (EU) 2023/959', plants: 1, twh: 0.01, center: [14.99, 46.15] },
-  'Croatia': { iso: 'HR', name: 'Croatia', status: 'FUTURE_2028', legal: 'ETS2 · Directive (EU) 2023/959', plants: 1, twh: 0.01, center: [15.20, 45.10] },
-  'Bulgaria': { iso: 'BG', name: 'Bulgaria', status: 'FUTURE_2028', legal: 'ETS2 · Directive (EU) 2023/959', plants: 1, twh: 0.01, center: [25.48, 42.73] },
-  'Luxembourg': { iso: 'LU', name: 'Luxembourg', status: 'FUTURE_2028', legal: 'ETS2 · Directive (EU) 2023/959', plants: 2, twh: 0.02, center: [6.12, 49.81] },
+export const COUNTRIES: Record<string, CountryMeta> = {
+  'Germany': { iso: 'DE', name: 'Germany', status: 'ACTIVE', legal: '§ 37a BImSchG; 38. BImSchV', plants: 242, twh: 11.8, center: [10.45, 51.16] },
+  'Netherlands': { iso: 'NL', name: 'Netherlands', status: 'ACTIVE', legal: 'Regeling energie vervoer artikel 7', plants: 82, twh: 3.2, center: [5.29, 52.13] },
+  'France': { iso: 'FR', name: 'France', status: 'ACTIVE', legal: "Code de l'énergie Art. L.446-24; Décret 2022-640 (CPB); Code des douanes Art. 266 quindecies (TIRUERT)", plants: 652, twh: 10.4, center: [2.21, 46.22] },
+  'Italy': { iso: 'IT', name: 'Italy', status: 'ACTIVE', legal: 'DM 2 marzo 2018 art. 5 & art. 12; DM 16 marzo 2023 n. 107', plants: 135, twh: 4.8, center: [12.56, 41.87] },
+  'Denmark': { iso: 'DK', name: 'Denmark', status: 'ACTIVE', legal: 'Bekendtgørelse om biobrændstoffer m.v. (BEK nr 1243 af 20/11/2024)', plants: 64, twh: 5.6, center: [9.50, 56.26] },
+  'Austria': { iso: 'AT', name: 'Austria', status: 'ACTIVE', legal: 'KOG § 10 · EAG § 86', plants: 16, twh: 0.45, center: [14.55, 47.51] },
+  'Sweden': { iso: 'SE', name: 'Sweden', status: 'ACTIVE', legal: 'Lag (1994:1776) om skatt på energi 7 kap. 4 §; Lag (2010:598)', plants: 72, twh: 2.1, center: [18.64, 60.12] },
+  'Finland': { iso: 'FI', name: 'Finland', status: 'ACTIVE', legal: 'Laki biopolttoaineiden käytön edistämisestä liikenteessä (446/2007) 4 §; Laki 393/2013', plants: 26, twh: 0.55, center: [25.74, 61.92] },
+  'Belgium': { iso: 'BE', name: 'Belgium', status: 'ACTIVE', legal: 'Energiedecreet Art. 7.1.1 et seq.', plants: 12, twh: 0.38, center: [4.46, 50.50] },
+  'Spain': { iso: 'ES', name: 'Spain', status: 'ACTIVE', legal: 'Real Decreto 376/2022; Circular 1/2024 CNMC; Orden TED/1027/2023', plants: 24, twh: 0.85, center: [-3.74, 40.46] },
+  'Poland': { iso: 'PL', name: 'Poland', status: 'EMERGING', legal: 'Ustawa o biokomponentach i biopaliwach ciekłych art. 23 & 28c(2)', plants: 8, twh: 0.32, center: [19.14, 51.91] },
+  'Czechia': { iso: 'CZ', name: 'Czechia', status: 'EMERGING', legal: 'Zákon č. 165/2012 Sb. (POZE) § 24-27; Vyhláška 110/2022 Sb.', plants: 11, twh: 0.42, center: [15.47, 49.81] },
+  'Portugal': { iso: 'PT', name: 'Portugal', status: 'EMERGING', legal: 'Decreto-Lei n.º 84/2022 arts. 8, 10, 40-41', plants: 4, twh: 0.14, center: [-8.22, 39.39] },
+  'Ireland': { iso: 'IE', name: 'Ireland', status: 'EMERGING', legal: 'SI 33/2010; GNI Renewable Gas Registry pilot', plants: 5, twh: 0.18, center: [-8.24, 53.41] },
+  'Greece': { iso: 'GR', name: 'Greece', status: 'EMERGING', legal: 'Law 5215/2025; Law 3468/2006 art. 32H', plants: 2, twh: 0.05, center: [21.82, 39.07] },
+  'Romania': { iso: 'RO', name: 'Romania', status: 'EMERGING', legal: 'Law 220/2008; OUG 9/2026', plants: 3, twh: 0.09, center: [24.96, 45.94] },
+  'Hungary': { iso: 'HU', name: 'Hungary', status: 'EMERGING', legal: '2010. évi CXVII. tv. (Büat.); 821/2021. (XII. 28.) Korm. rendelet', plants: 5, twh: 0.16, center: [19.50, 47.16] },
+  'Estonia': { iso: 'EE', name: 'Estonia', status: 'EMERGING', legal: 'Atmospheric Air Protection Act (VÕKS) § 122-123; Liquid Fuel Act § 2-1', plants: 7, twh: 0.28, center: [25.01, 58.59] },
+  'Lithuania': { iso: 'LT', name: 'Lithuania', status: 'EMERGING', legal: 'Order 1-158 pt 32-33; Law on Alternative Fuels art. 21', plants: 6, twh: 0.22, center: [23.88, 55.16] },
+  'Latvia': { iso: 'LV', name: 'Latvia', status: 'EMERGING', legal: 'Transporta enerģijas likums; MK noteikumi Nr. 336963', plants: 4, twh: 0.15, center: [24.60, 56.87] },
+  'Switzerland': { iso: 'CH', name: 'Switzerland', status: 'EMERGING', legal: 'Mineralölsteuergesetz (MinStG) Art. 2a · 12b; MinStV Art. 19b', plants: 41, twh: 0.52, center: [8.22, 46.81] },
+  'Norway': { iso: 'NO', name: 'Norway', status: 'EMERGING', legal: 'Produktforskriften kapittel 3', plants: 10, twh: 0.4, center: [8.46, 60.47] },
+  'United Kingdom': { iso: 'GB', name: 'United Kingdom', status: 'ACTIVE', legal: 'RTFO Order 2007; DfT RTFO Biomethane Guidance Dec 2024 §3.17 & §2.13', plants: 124, twh: 6.2, center: [-3.43, 55.37] },
+  'Slovakia': { iso: 'SK', name: 'Slovakia', status: 'FUTURE_2028', legal: 'Act No. 309/2009 Coll. §14a-14b; SPP-d Domain Protocol E.10.7', plants: 4, twh: 0.12, center: [19.69, 48.66] },
+  'Slovenia': { iso: 'SI', name: 'Slovenia', status: 'FUTURE_2028', legal: 'Uredba o obnovljivih virih energije v prometu (Ur. l. RS 208/2021) art. 4(2)', plants: 2, twh: 0.05, center: [14.99, 46.15] },
+  'Croatia': { iso: 'HR', name: 'Croatia', status: 'FUTURE_2028', legal: 'Zakon o biogorivima za prijevoz (NN 65/2009...52/2021)', plants: 3, twh: 0.08, center: [15.20, 45.10] },
+  'Bulgaria': { iso: 'BG', name: 'Bulgaria', status: 'FUTURE_2028', legal: 'ZEVI Art. 47-50', plants: 2, twh: 0.06, center: [25.48, 42.73] },
+  'Luxembourg': { iso: 'LU', name: 'Luxembourg', status: 'FUTURE_2028', legal: "Loi d'accise 17 Dec 2010 art. 1; RGD 3 Feb 2023", plants: 2, twh: 0.02, center: [6.12, 49.81] },
 };
 
 /** Default map centre [lon, lat]: midpoint of the 28 jurisdictions (Ireland/Portugal to Finland). */
 const MAP_HOME: [number, number] = [15.6, 50.4];
 
-const STATUS_CONFIG = {
+export const STATUS_CONFIG = {
   ACTIVE: { label: 'Active market', fill: 'color-mix(in srgb, var(--color-text) 72%, var(--color-bg))', swatch: 'var(--color-text)' },
   EMERGING: { label: 'Emerging', fill: 'color-mix(in srgb, var(--color-text) 38%, var(--color-bg))', swatch: 'var(--color-neutral-500)' },
-  FUTURE_2028: { label: 'Future 2028 · ETS2', fill: 'color-mix(in srgb, var(--color-text) 16%, var(--color-bg))', swatch: 'var(--color-neutral-300)' },
-  RESTRICTED: { label: 'Restricted · UDB gap', fill: 'var(--color-accent)', swatch: 'var(--color-accent)' },
+  FUTURE_2028: { label: 'No national biomethane scheme yet', fill: 'color-mix(in srgb, var(--color-text) 16%, var(--color-bg))', swatch: 'var(--color-neutral-300)' },
   NONE: { label: 'No mechanism', fill: 'color-mix(in srgb, var(--color-text) 7%, var(--color-bg))', swatch: 'color-mix(in srgb, var(--color-text) 12%, var(--color-bg))' },
 };
 
@@ -200,7 +201,7 @@ function getPlainLanguageHow(r: CertificateRoute, category: SellCategory): strin
   return 'Not researched';
 }
 
-const FILTER_CONFIG: Record<RouteFilter, { label: string; shortLabel: string; desc: string }> = {
+export const FILTER_CONFIG: Record<RouteFilter, { label: string; shortLabel: string; desc: string }> = {
   ALL: {
     label: 'All Commercial Trades',
     shortLabel: 'All Trades',
@@ -209,7 +210,7 @@ const FILTER_CONFIG: Record<RouteFilter, { label: string; shortLabel: string; de
   GO: {
     label: 'Certificates (Book & Claim / GO)',
     shortLabel: 'Certificates (GO)',
-    desc: 'Certificate only. Moves registry to registry (GO registry) for Scope 1 / voluntary claims. The gas does not move and no GHG threshold applies.',
+    desc: 'Certificate only, moved registry to registry; the gas does not move. Used for voluntary green-gas claims and supplier tariffs. Not valid evidence under EU ETS (needs a PoS via UDB); Scope 1 recognition depends on the buyer\'s reporting framework.',
   },
   POS: {
     label: 'Compliance quota (Mass Balance / PoS)',
@@ -234,7 +235,7 @@ export interface TradePlaybookDetails {
   defaultCoc: 'BOOK_AND_CLAIM' | 'MASS_BALANCE';
 }
 
-function getTradePlaybook(originIso: string, targetIso: string, r: CertificateRoute | undefined): TradePlaybookDetails {
+export function getTradePlaybook(originIso: string, targetIso: string, r: CertificateRoute | undefined): TradePlaybookDetails {
   if (!r) {
     return {
       archetype: 'NO_DATA',
@@ -253,21 +254,40 @@ function getTradePlaybook(originIso: string, targetIso: string, r: CertificateRo
 
   const goPossible = POSSIBLE_STATUSES.includes(r.status);
   const posPossible = r.pos?.status === 'POSSIBLE';
-  const posSchemes = r.pos?.schemeName || 'National Transport Scheme';
+  const posRoute = getPosRoute(originIso, targetIso);
+  const possibleSchemes = (posRoute.schemes || []).filter(s => s.status === 'POSSIBLE');
+  const posSchemes = possibleSchemes.length > 0
+    ? possibleSchemes.map(s => s.schemeName).join(' / ')
+    : (r.pos?.schemeName || 'National Transport Scheme');
+
+  const requiresCapacityBooking = possibleSchemes.some(s =>
+    /capacit(y|ies)|book|nominat/i.test(`${s.conditions || ''} ${s.reason || ''}`)
+  );
+  const bookingScheme = possibleSchemes.find(s =>
+    /capacit(y|ies)|book|nominat/i.test(`${s.conditions || ''} ${s.reason || ''}`)
+  )?.schemeName;
+
+  const posExecutionDesc = requiresCapacityBooking
+    ? `Required by ${bookingScheme || posSchemes}: book and nominate capacity. Mass balance through the interconnected grid, recorded in the UDB.`
+    : 'Mass balance through the interconnected grid, recorded in the UDB. Physical capacity booking only if the destination scheme requires it.';
 
   if (goPossible && posPossible) {
     const hubs = r.hubs.length > 0 ? r.hubs.join(' / ') : 'Registry Hub';
+    const bothExecutionDesc = requiresCapacityBooking
+      ? `Per MWh, choose one: sell the GO on its own via ${hubs}, or deliver the gas with a PoS into ${posSchemes} (Required by ${bookingScheme || posSchemes}: book and nominate capacity). Never both on the same MWh — that is double counting.`
+      : `Per MWh, choose one: sell the GO on its own via ${hubs}, or deliver the gas with a PoS into ${posSchemes} (mass balance through the interconnected grid, recorded in the UDB; physical capacity booking only if the destination scheme requires it). Never both on the same MWh — that is double counting.`;
+
     return {
       archetype: 'BOTH',
       badge: 'Both: Certificates + Physical PoS',
       chipClass: 'chip-pass',
       isTradeable: true,
       structureTitle: 'Dual Option: Book & Claim or Mass Balance',
-      structureDesc: 'Sell green certificates independently, or deliver physical gas with sustainability proof (PoS) into the national quota.',
-      schemeTitle: `${posSchemes} / Corporate Scope 1`,
-      schemeDesc: `Eligible for compliance tickets in ${targetIso} or corporate green gas claims.`,
-      executionTitle: `Electronic Transfer (${hubs}) or Gas Grid transit`,
-      executionDesc: `GOs clear via ${hubs}. Physical gas injects into interconnected ENTSOG grid with mass balance proof.`,
+      structureDesc: `Per MWh, choose one: sell the GO on its own, or deliver the gas with a PoS into ${posSchemes}. Never both on the same MWh — that is double counting.`,
+      schemeTitle: `${posSchemes} / Voluntary claims / green-gas tariffs`,
+      schemeDesc: `Eligible for compliance quota in ${targetIso} or voluntary green gas claims (not valid evidence under EU ETS; Scope 1 depends on buyer framework).`,
+      executionTitle: `Electronic Transfer (${hubs}) or Interconnected Grid Delivery`,
+      executionDesc: bothExecutionDesc,
       defaultCoc: 'MASS_BALANCE',
     };
   }
@@ -281,8 +301,8 @@ function getTradePlaybook(originIso: string, targetIso: string, r: CertificateRo
       isTradeable: true,
       structureTitle: 'Book & Claim Electronic Transfer (GOs)',
       structureDesc: 'Certificates can be sold and transferred electronically without moving physical gas or booking pipeline capacity.',
-      schemeTitle: 'Voluntary Scope 1 / Green Gas Tariffs',
-      schemeDesc: `Accepted in ${targetIso} for corporate emission accounting or voluntary consumer green gas.`,
+      schemeTitle: 'Voluntary claims / green-gas tariffs',
+      schemeDesc: `Accepted in ${targetIso} for voluntary consumer green gas or corporate reporting (Scope 1 recognition depends on the buyer's reporting framework; not valid under EU ETS).`,
       executionTitle: `Registry Account Transfer via ${hubs}`,
       executionDesc: `Initiate electronic cancellation or transfer in national registry to ${targetIso} counterpart.`,
       defaultCoc: 'BOOK_AND_CLAIM',
@@ -290,6 +310,10 @@ function getTradePlaybook(originIso: string, targetIso: string, r: CertificateRo
   }
 
   if (!goPossible && posPossible) {
+    const schemeDetailDesc = possibleSchemes.length > 0
+      ? possibleSchemes.map(s => `${s.schemeName}${s.legalBasis ? ` (${s.legalBasis})` : ''}${s.conditions && s.conditions !== 'None' ? ` — Conditions: ${s.conditions}` : ''}`).join('; ')
+      : `${posSchemes} in ${targetIso}`;
+
     return {
       archetype: 'POS_ONLY',
       badge: 'Compliance Quota Only (PoS / Mass Balance)',
@@ -298,9 +322,9 @@ function getTradePlaybook(originIso: string, targetIso: string, r: CertificateRo
       structureTitle: 'Physical Gas Delivery + Sustainability Proof (PoS)',
       structureDesc: 'Physical biomethane delivered via interconnected gas grid. Certificates remain bound to the gas parcel.',
       schemeTitle: `${posSchemes} Compliance`,
-      schemeDesc: `Mandatory transport quota target in ${targetIso} (§47d / RTFO / THG-Quote). High commercial green premium.`,
-      executionTitle: 'Continuous Gas Grid Path + Mass Balance Cert',
-      executionDesc: `Inject in ${originIso}, book transit to ${targetIso}, and submit validated Proof of Sustainability (PoS).`,
+      schemeDesc: schemeDetailDesc,
+      executionTitle: 'Interconnected Grid Delivery + PoS',
+      executionDesc: posExecutionDesc,
       defaultCoc: 'MASS_BALANCE',
     };
   }
@@ -425,7 +449,7 @@ export function MapScreen() {
   const selectedMeta = COUNTRIES[selectedCountryName] || COUNTRIES['Germany'];
 
   const statusCounts = useMemo(() => {
-    const counts = { ACTIVE: 0, EMERGING: 0, FUTURE_2028: 0, RESTRICTED: 0, NONE: 0 };
+    const counts = { ACTIVE: 0, EMERGING: 0, FUTURE_2028: 0, NONE: 0 };
     Object.values(COUNTRIES).forEach(c => {
       counts[c.status]++;
     });
@@ -823,17 +847,27 @@ export function MapScreen() {
             </div>
           </div>
           <div style={{ padding: '12px 18px', borderRight: '1px solid var(--color-divider)' }}>
-            <div className="eyebrow">Transit tariff</div>
-            <div className="num" style={{ fontSize: '17px', fontWeight: 800, marginTop: '2px' }}>
+            <div className="eyebrow">Physical transit (only if booked)</div>
+            <div className="num" style={{ fontSize: '17px', fontWeight: 800, marginTop: '2px', color: corridorCalculation.physicalRoute.totalPhysicalTariffEurMwh !== null ? 'var(--color-text)' : 'var(--color-accent-700)' }}>
               {corridorCalculation.physicalRoute.totalPhysicalTariffEurMwh !== null
                 ? `€${corridorCalculation.physicalRoute.totalPhysicalTariffEurMwh.toFixed(2)} / MWh`
-                : '€1.80 / MWh'}
+                : 'Unverified'}
             </div>
-            <div style={{ fontSize: '12px' }} className="mut">
-              {corridorCalculation.modes.physicalPipeline.regulatoryFeasibility === 'HIGH'
-                ? 'Single-zone / interconnected transit'
-                : 'Multi-zone transit · PRISMA booking required'}
-            </div>
+            {(() => {
+              const activePosRoute = getPosRoute(originMeta.iso, targetMeta.iso);
+              const activePossible = (activePosRoute.schemes || []).filter(s => s.status === 'POSSIBLE');
+              const reqBooking = activePossible.some(s => /capacit(y|ies)|book|nominat/i.test(`${s.conditions || ''} ${s.reason || ''}`));
+              const bkScheme = activePossible.find(s => /capacit(y|ies)|book|nominat/i.test(`${s.conditions || ''} ${s.reason || ''}`))?.schemeName;
+              return (
+                <div style={{ fontSize: '12px' }} className="mut">
+                  {reqBooking
+                    ? `Capacity booking required by ${bkScheme || 'scheme'}`
+                    : corridorCalculation.modes.physicalPipeline.regulatoryFeasibility === 'HIGH'
+                    ? 'Single-zone / interconnected transit'
+                    : 'Multi-zone transit · physical capacity booking only if required'}
+                </div>
+              );
+            })()}
           </div>
           <div style={{ padding: '12px 18px' }}>
             <div className="eyebrow">{view === 'SELL' ? 'Trade Playbook' : 'Certificate route'}</div>
@@ -939,16 +973,23 @@ export function MapScreen() {
             )}
           </div>
         ))}
+        <div className="mut" style={{ fontSize: `${fontPx - 1}px`, marginTop: '4px', borderTop: '1px solid var(--color-divider)', paddingTop: '4px' }}>
+          Number = biomethane plants (desk estimate)
+        </div>
       </div>
     ) : (
       <div style={{ display: 'flex', flexDirection: 'column', gap: `${gap}px` }}>
-        {(['ACTIVE', 'EMERGING', 'FUTURE_2028', 'RESTRICTED'] as const).map(st => (
+        {(['ACTIVE', 'EMERGING', 'FUTURE_2028'] as const).map(st => (
           <div key={st} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: `${fontPx}px` }}>
             <span style={{ width: `${swatchPx}px`, height: `${swatchPx}px`, flex: 'none', backgroundColor: STATUS_CONFIG[st].swatch }} />
             <span style={{ flex: 1 }}>{STATUS_CONFIG[st].label}</span>
             <span className="num mut" style={{ fontSize: '12px' }}>{statusCounts[st]}</span>
           </div>
         ))}
+        <div className="mut" style={{ fontSize: `${fontPx - 1}px`, marginTop: '4px', borderTop: '1px solid var(--color-divider)', paddingTop: '4px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <div>Number = biomethane plants (desk estimate)</div>
+          <div>EU ETS2 applies EU-wide from 2028</div>
+        </div>
       </div>
     );
 
@@ -1395,33 +1436,32 @@ export function MapScreen() {
           )
         )}
 
-        {/* 2x2 Stat Grid */}
+        {/* Stat Grid */}
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
+            gridTemplateColumns: 'repeat(3, 1fr)',
             gap: '1px',
             backgroundColor: 'var(--color-divider)',
           }}
         >
-          <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 16px' }}>
+          <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 14px' }}>
             <div className="eyebrow">Active plants</div>
-            <div className="num" style={{ fontSize: '19px', fontWeight: 800 }}>{selectedMeta.plants}</div>
+            <div className="num" style={{ fontSize: '18px', fontWeight: 800 }}>{selectedMeta.plants}</div>
           </div>
-          <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 16px' }}>
-            <div className="eyebrow">Installed</div>
-            <div className="num" style={{ fontSize: '19px', fontWeight: 800 }}>{selectedMeta.twh} TWh</div>
+          <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 14px' }}>
+            <div className="eyebrow">Production · TWh/yr</div>
+            <div className="num" style={{ fontSize: '18px', fontWeight: 800 }}>{selectedMeta.twh} TWh</div>
           </div>
-          <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 16px' }}>
+          <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 14px' }}>
             <div className="eyebrow">Avg plant size</div>
-            <div className="num" style={{ fontSize: '19px', fontWeight: 800 }}>
+            <div className="num" style={{ fontSize: '18px', fontWeight: 800 }}>
               {((selectedMeta.twh * 1000) / Math.max(1, selectedMeta.plants)).toFixed(1)} GWh
             </div>
           </div>
-          <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px 16px' }}>
-            <div className="eyebrow">Grid connected</div>
-            <div className="num" style={{ fontSize: '19px', fontWeight: 800 }}>96%</div>
-          </div>
+        </div>
+        <div style={{ padding: '6px 16px 8px', fontSize: '11px', backgroundColor: 'var(--color-surface)' }} className="mut">
+          Desk estimates — source not yet verified
         </div>
 
         {/* Delivery Options */}
@@ -1439,10 +1479,10 @@ export function MapScreen() {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 600 }}>
                 <span>A · Virtual UDB swap</span>
-                <span className="num">
-                  €{corridorCalculation.modes.virtualSwap.totalCostEurMwh !== null
-                    ? corridorCalculation.modes.virtualSwap.totalCostEurMwh.toFixed(2)
-                    : '1.80'}
+                <span className="num" style={{ color: corridorCalculation.modes.virtualSwap.totalCostEurMwh !== null ? 'var(--color-text)' : 'var(--color-accent-700)' }}>
+                  {corridorCalculation.modes.virtualSwap.totalCostEurMwh !== null
+                    ? `€${corridorCalculation.modes.virtualSwap.totalCostEurMwh.toFixed(2)}`
+                    : 'Unverified'}
                 </span>
               </div>
               <div style={{ fontSize: '12px' }} className="mut">
@@ -1454,14 +1494,22 @@ export function MapScreen() {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 600 }}>
                 <span>B · Continuous grid path</span>
-                <span className="num">
-                  €{corridorCalculation.modes.physicalPipeline.totalCostEurMwh !== null
-                    ? corridorCalculation.modes.physicalPipeline.totalCostEurMwh.toFixed(2)
-                    : '3.20'}
+                <span className="num" style={{ color: corridorCalculation.modes.physicalPipeline.totalCostEurMwh !== null ? 'var(--color-text)' : 'var(--color-accent-700)' }}>
+                  {corridorCalculation.modes.physicalPipeline.totalCostEurMwh !== null
+                    ? `€${corridorCalculation.modes.physicalPipeline.totalCostEurMwh.toFixed(2)}`
+                    : 'Unverified'}
                 </span>
               </div>
               <div style={{ fontSize: '12px' }} className="mut">
-                Multi-zone transit · PRISMA capacity required
+                {(() => {
+                  const selPosRoute = getPosRoute(originMeta.iso, selectedMeta.iso);
+                  const selPossible = (selPosRoute.schemes || []).filter(s => s.status === 'POSSIBLE');
+                  const reqBk = selPossible.some(s => /capacit(y|ies)|book|nominat/i.test(`${s.conditions || ''} ${s.reason || ''}`));
+                  const bkName = selPossible.find(s => /capacit(y|ies)|book|nominat/i.test(`${s.conditions || ''} ${s.reason || ''}`))?.schemeName;
+                  return reqBk
+                    ? `Multi-zone transit · capacity booking required by ${bkName || 'scheme'}`
+                    : 'Interconnected grid path · physical capacity booking only if required';
+                })()}
               </div>
             </div>
             <div>
@@ -1481,13 +1529,46 @@ export function MapScreen() {
         </div>
 
         <div style={{ padding: '14px 18px' }}>
-          <p style={{ fontSize: '12px', lineHeight: 1.55, margin: 0 }} className="mut">
-            {selectedMeta.iso === 'DE'
-              ? 'Largest compliance market in Europe. Double counting for advanced biofuels is abolished for 2026+ compliance under the Zweites Gesetz zur Weiterentwicklung der THG-Quote (Bundestag Drucksache 21/5530; promulgation date not yet confirmed); single counting (1×) applies.'
-              : selectedMeta.iso === 'GB'
-              ? 'Non-EU territory. RTFO certificates require Great Britain grid injection; non-UK injected biomethane cannot evidence UDB ingestion into EU without physical segregation.'
-              : `Active regulatory mechanism for ${selectedMeta.name}. Consignments must evidence mass balance custody and statutory scheme certification.`}
-          </p>
+          <div className="eyebrow" style={{ marginBottom: '8px' }}>
+            Audited compliance schemes · {selectedMeta.name} ({selectedMeta.iso})
+          </div>
+          {(() => {
+            const countrySchemes = Object.values(POS_SCHEMES).filter(s => s.country === selectedMeta.iso);
+            if (countrySchemes.length === 0) {
+              return (
+                <p style={{ fontSize: '12px', lineHeight: 1.55, margin: 0 }} className="mut">
+                  No audited compliance scheme for {selectedMeta.name}.
+                </p>
+              );
+            }
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {countrySchemes.map(s => (
+                  <div key={s.id} style={{ fontSize: '12px', lineHeight: 1.45, paddingBottom: '8px', borderBottom: '1px solid var(--color-divider)' }}>
+                    <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                      <span>{s.name}</span>
+                      <span className={`chip ${s.acceptsForeign === 'YES' ? 'chip-pass' : s.acceptsForeign === 'NO' ? '' : 'chip-warn'}`} style={{ fontSize: '10px', padding: '1px 5px' }}>
+                        Foreign gas: {s.acceptsForeign}
+                      </span>
+                    </div>
+                    {s.legalBasis && (
+                      <div className="mut" style={{ fontSize: '11px', marginTop: '2px' }}>
+                        <strong>Basis:</strong> {s.legalBasis}
+                      </div>
+                    )}
+                    {s.conditions && s.conditions !== 'None' && (
+                      <div style={{ fontSize: '11px', marginTop: '2px' }}>
+                        <strong>Conditions:</strong> {s.conditions}
+                      </div>
+                    )}
+                    <div className="mut" style={{ fontSize: '11px', marginTop: '2px' }}>
+                      {firstSentence(s.reason)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
         </div>
     </>
   );
@@ -1522,7 +1603,7 @@ export function MapScreen() {
     const transitFigure =
       corridorCalculation.physicalRoute.totalPhysicalTariffEurMwh !== null
         ? `€${corridorCalculation.physicalRoute.totalPhysicalTariffEurMwh.toFixed(2)}`
-        : '€1.80';
+        : 'Unverified';
     return (
       <div className="map-m-root">
         {/* Compact control row: title + Trade CTA, then Origin / swap / Target */}
@@ -1622,12 +1703,12 @@ export function MapScreen() {
               <span className="num map-m-fig">{selectedMeta.plants}</span>
             </span>
             <span>
-              <span className="eyebrow">Installed</span>
+              <span className="eyebrow">Production · TWh/yr</span>
               <span className="num map-m-fig">{selectedMeta.twh} TWh</span>
             </span>
             <span>
               <span className="eyebrow">{originMeta.iso} → {targetMeta.iso}</span>
-              <span className="num map-m-fig">{transitFigure}/MWh</span>
+              <span className="num map-m-fig">{transitFigure === 'Unverified' ? 'Unverified' : `${transitFigure}/MWh`}</span>
             </span>
           </span>
         </button>
@@ -1738,10 +1819,6 @@ export function MapScreen() {
                   <span style={{ width: '9px', height: '9px', backgroundColor: 'var(--color-neutral-500)' }} />
                   Emerging · {statusCounts.EMERGING}
                 </span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ width: '9px', height: '9px', backgroundColor: 'var(--color-accent)' }} />
-                  Restricted · {statusCounts.RESTRICTED}
-                </span>
               </span>
             </div>
           </div>
@@ -1766,6 +1843,7 @@ export function MapScreen() {
                 value={origin}
                 onChange={e => setOrigin(e.target.value)}
                 className="input"
+                aria-label="Origin country"
                 style={{
                   height: '28px',
                   minHeight: '28px',
@@ -1803,6 +1881,7 @@ export function MapScreen() {
                 value={target}
                 onChange={e => setTarget(e.target.value)}
                 className="input"
+                aria-label="Target country"
                 style={{
                   height: '28px',
                   minHeight: '28px',
