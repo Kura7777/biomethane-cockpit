@@ -14,6 +14,10 @@ import './mobileSettings.css';
 import { BASIS_LABEL } from '../../shared/components/AssumptionsStrip';
 
 const CATEGORY_LABEL: Record<AssumptionCategory, { title: string; blurb: string }> = {
+  DEAL: {
+    title: 'Deal defaults',
+    blurb: 'Shared volume fallback when a facility publishes no annual output.',
+  },
   FUELEU: {
     title: 'FuelEU Maritime pathways',
     blurb: 'Bio-LNG and pooling economics in the vessel calculator and pathway simulator.',
@@ -32,7 +36,7 @@ const CATEGORY_LABEL: Record<AssumptionCategory, { title: string; blurb: string 
   },
 };
 
-const CATEGORIES: AssumptionCategory[] = ['FUELEU', 'FARMGATE', 'SCANNER', 'RISK'];
+const CATEGORIES: AssumptionCategory[] = ['DEAL', 'FUELEU', 'FARMGATE', 'SCANNER', 'RISK'];
 
 export function AssumptionsScreen() {
   useAssumptionsVersion();

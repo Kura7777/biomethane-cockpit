@@ -6,6 +6,7 @@ import {
 } from '../../domain/plants/registry';
 import { BiomethanePlant } from '../../domain/plants/types';
 import { buildDealUrl } from '../../domain/trade/dealParams';
+import { plantDealParams } from '../../domain/trade/dealDefaults';
 import { OriginationPipelineScreen } from './OriginationPipelineScreen';
 import { PlantSourcingDrawer } from './PlantSourcingDrawer';
 import { PlantsKpiTiles } from './PlantsKpiTiles';
@@ -62,7 +63,7 @@ function feedstockMatch(p: BiomethanePlant, selected: string): boolean {
       feedStr.includes('forsu') ||
       feedStr.includes('bio-waste') ||
       feedStr.includes('biowaste') ||
-      feedStr.includes('organic_waste') ||
+      feedStr.includes('organic') ||
       feedStr.includes('co-product')
     );
   }
@@ -422,25 +423,9 @@ export function PlantsScreen() {
   // 1-Click Launch into Trade Builder ("Price a deal")
   const handlePriceDeal = useCallback(
     (plant: BiomethanePlant) => {
-      const defaultMarket = plant.countryCode === 'GB' ? 'UK_RTFO' : plant.countryCode === 'FR' ? 'FR_CPB' : plant.countryCode === 'IT' ? 'IT_CIC' : 'DE_THG';
-      const volumeMWh = plant.annualEnergyGWh ? Math.round(plant.annualEnergyGWh * 1000) : 20000;
-      const feedStr = `${plant.primaryFeedstockCategory || ''} ${plant.feedstockDetails || ''}`.toLowerCase();
-      const feedKey = feedStr.includes('manure') || feedStr.includes('slurry') ? 'manure' : feedStr.includes('crop') ? 'energy_crops' : 'organic_waste';
-      const ciVal = plant.verifiedCarbonIntensity ?? (feedKey === 'manure' ? -78 : feedKey === 'energy_crops' ? 39 : 16);
-
       const dealUrl = buildDealUrl({
-        marketId: defaultMarket,
-        originCountry: plant.countryCode,
-        feedstock: feedKey,
-        ci: ciVal,
-        ciIsEstimated: true, // census CI is a feedstock default, not an audited PoS value
-        volume: volumeMWh,
-        plantId: plant.id,
-        plantName: plant.name,
-        plantCapacityNm3h: plant.capacityNm3h ?? undefined,
-        plantAnnualGWh: plant.annualEnergyGWh ?? undefined,
+        ...plantDealParams(plant),
         legalEntityName: plant.legalEntityName || plant.operator || undefined,
-        networkOperator: plant.networkOperator || undefined,
         contactEmail: plant.contactEmail || undefined,
         contactPhone: plant.contactPhone || undefined,
       });

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArbitrageOpportunity } from '../../domain/arbitrage/types';
 import { BiomethanePlant } from '../../domain/plants/types';
 import { buildDealUrl } from '../../domain/trade/dealParams';
+import { defaultVolumeMwh } from '../../domain/trade/dealDefaults';
 import { 
   Building2, 
   ArrowRight, 
@@ -153,13 +154,14 @@ export function PlantScannerTable({
     const networkOperator = (opp.networkOperator ?? matched?.networkOperator) ?? undefined;
     const contactEmail = (opp.contactEmail ?? matched?.contactEmail) ?? undefined;
     const contactPhone = (opp.contactPhone ?? matched?.contactPhone) ?? undefined;
-    const plantVolume = plantAnnualGWh ? Math.round(plantAnnualGWh * 1000) : undefined;
+    const plantVolume = plantAnnualGWh ? Math.round(plantAnnualGWh * 1000) : defaultVolumeMwh();
 
     navigate(buildDealUrl({
       marketId: opp.targetMarketId,
       originCountry: opp.originCountry,
       feedstock: opp.feedstockKey,
       ci: opp.carbonIntensity,
+      ciIsEstimated: true,
       volume: plantVolume,
       plantId: opp.originPlantId ?? matched?.id,
       plantName: opp.originPlantName,

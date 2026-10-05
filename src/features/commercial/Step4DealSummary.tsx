@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ClientRequest } from '../../domain/arbitrage/types';
 import { SourcedOpportunity } from './PlantScannerTable';
 import { buildDealUrl } from '../../domain/trade/dealParams';
+import { defaultVolumeMwh } from '../../domain/trade/dealDefaults';
 import { 
   CheckCircle2, 
   Copy, 
@@ -88,12 +89,13 @@ Date: ${dateStr}
   const navigate = useNavigate();
 
   const handleOpenTradeBuilder = () => {
-    const plantVolume = opportunity.plantAnnualGWh ? Math.round(opportunity.plantAnnualGWh * 1000) : vol;
+    const plantVolume = opportunity.plantAnnualGWh ? Math.round(opportunity.plantAnnualGWh * 1000) : (vol || defaultVolumeMwh());
     navigate(buildDealUrl({
       marketId: opportunity.targetMarketId,
       originCountry: opportunity.originCountry,
       feedstock: opportunity.feedstockKey,
       ci: opportunity.carbonIntensity,
+      ciIsEstimated: true,
       volume: plantVolume,
       plantId: opportunity.originPlantId,
       plantName: opportunity.originPlantName,
@@ -106,7 +108,7 @@ Date: ${dateStr}
   };
 
   const handleVerifyStatutoryCompliance = () => {
-    const plantVolume = opportunity.plantAnnualGWh ? Math.round(opportunity.plantAnnualGWh * 1000) : vol;
+    const plantVolume = opportunity.plantAnnualGWh ? Math.round(opportunity.plantAnnualGWh * 1000) : (vol || defaultVolumeMwh());
     window.dispatchEvent(
       new CustomEvent('open-compliance-auditor', {
         detail: {

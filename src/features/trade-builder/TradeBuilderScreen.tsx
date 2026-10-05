@@ -10,6 +10,7 @@ import { computeNetback, selectMarkPrice } from '../../domain/netback/engine';
 import { ProducerPricing } from '../../domain/netback/types';
 import { certificateMarkSlope } from '../../domain/netback/headroom';
 import { parseDealParams } from '../../domain/trade/dealParams';
+import { defaultMarketForOrigin } from '../../domain/trade/dealDefaults';
 import { LogisticsModal } from '../logistics/LogisticsModal';
 import { LegalPackageModal, DocumentTab } from './LegalPackageModal';
 import { showToast } from '../../app/DeskToastContainer';
@@ -132,20 +133,10 @@ export const CUSTODIES: { custody: ChainOfCustody; label: string; hint: string }
 
 /**
  * Per-origin statutory default market routing.
- * GEMINI.md invariant: UK→UK_RTFO, FR→FR_CPB, IT→IT_CIC, AT/DE/DK/NL→DE_THG
+ * Delegates to centralized defaultMarketForOrigin in dealDefaults.ts.
  */
 export function getDefaultMarketForOrigin(originIso?: string): string {
-  switch ((originIso || '').toUpperCase()) {
-    case 'GB': return 'UK_RTFO';
-    case 'FR': return 'FR_CPB';
-    case 'IT': return 'IT_CIC';
-    case 'AT':
-    case 'DE':
-    case 'DK':
-    case 'NL':
-    default:
-      return 'DE_THG';
-  }
+  return defaultMarketForOrigin(originIso);
 }
 
 export function TradeBuilderScreen() {

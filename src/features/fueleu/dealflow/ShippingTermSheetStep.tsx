@@ -11,6 +11,7 @@ import {
   calculateMarineBunkerQuotation,
 } from '../../../domain/fueleu/calculator';
 import { buildDealUrl } from '../../../domain/trade/dealParams';
+import { defaultCi, defaultVolumeMwh } from '../../../domain/trade/dealDefaults';
 import {
   FileText,
   Copy,
@@ -286,13 +287,14 @@ European Biomethane & Marine Fuels Trading Desk`
   const handleExecuteTrade = () => {
     const volumeMwh = Math.max(
       1000,
-      Math.round(counterparty.bio_lng_required_neg100_mwh || 10000)
+      Math.round(counterparty.bio_lng_required_neg100_mwh || defaultVolumeMwh())
     );
     const url = buildDealUrl({
       marketId: 'FUELEU',
       originCountry: 'NL',
       feedstock: 'manure',
-      ci: -100,
+      ci: defaultCi('NL', 'manure').ci,
+      ciIsEstimated: true,
       volume: volumeMwh,
       counterparty: counterparty.parent_name,
       legalEntityName: counterparty.parent_name,
@@ -306,7 +308,7 @@ European Biomethane & Marine Fuels Trading Desk`
   const handleAuditFuelEuCompliance = () => {
     const volumeMwh = Math.max(
       1000,
-      Math.round(counterparty.bio_lng_required_neg100_mwh || 10000)
+      Math.round(counterparty.bio_lng_required_neg100_mwh || defaultVolumeMwh())
     );
     window.dispatchEvent(
       new CustomEvent('open-compliance-auditor', {
@@ -314,8 +316,8 @@ European Biomethane & Marine Fuels Trading Desk`
           originCountry: 'NL',
           destinationMarket: 'MARITIME_FUELEU',
           feedstock: 'manure',
-          carbonIntensity: -100,
-                                      ghgIntensity: -100,
+          carbonIntensity: defaultCi('NL', 'manure').ci,
+          ghgIntensity: defaultCi('NL', 'manure').ci,
           annualVolumeMWh: volumeMwh,
                                       volumeMWh: volumeMwh,
           counterparty: counterparty.parent_name,

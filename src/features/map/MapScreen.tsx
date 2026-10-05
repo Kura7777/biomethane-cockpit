@@ -17,7 +17,7 @@ import './map.css';
 import { LogisticsModal } from '../logistics/LogisticsModal';
 import { buildDealUrl } from '../../domain/trade/dealParams';
 import { calculateLogisticsRoute, calculateDijkstraCorridor } from '../../domain/logistics/engine';
-import { getMarketForRoute, getMarketAndCocForRoute } from '../../domain/routes/destinationMarket';
+import { getMarketForRoute, getMarketAndCocForRoute } from '../../domain/trade/dealDefaults';
 import { getGoRoute, getPosRoute } from '../../domain/routes';
 import { POS_SCHEMES } from '../../domain/routes/routeMatrix.generated';
 import { MARKETS } from '../../domain/markets/registry';
@@ -1935,7 +1935,7 @@ export function MapScreen() {
                   padding: '2px 8px',
                   fontSize: '12px',
                   fontWeight: 600,
-                  width: '140px',
+                  width: '210px',
                   cursor: 'pointer',
                 }}
               >
@@ -1977,7 +1977,7 @@ export function MapScreen() {
                   padding: '2px 8px',
                   fontSize: '12px',
                   fontWeight: 600,
-                  width: '140px',
+                  width: '210px',
                   borderColor: 'var(--color-accent)',
                   cursor: 'pointer',
                 }}

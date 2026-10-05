@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BiomethanePlant } from '../../domain/plants/types';
 import { buildDealUrl } from '../../domain/trade/dealParams';
+import { plantDealParams, feedstockKeyForPlant, defaultMarketForOrigin, plantCi } from '../../domain/trade/dealDefaults';
 import { hasApproximateCoordinates } from '../../domain/plants/registry';
 import { evaluatePlantContactQuality } from '../../domain/plants/contactQuality';
 import { showToast } from '../../app/DeskToastContainer';
@@ -182,47 +183,11 @@ export function PlantSourcingDrawer({ plant, onClose }: PlantSourcingDrawerProps
     setTimeout(() => setCopiedKey(null), 2000);
   };
 
-  // Determine optimal default market routing based on country
-  const getDefaultMarket = (iso: string): string => {
-    switch (iso) {
-      case 'GB':
-      case 'UK':
-        return 'UK_RTFO';
-      case 'DE':
-      case 'AT':
-      case 'DK':
-      case 'NL':
-      case 'BE':
-        return 'DE_THG';
-      case 'IT':
-        return 'IT_CIC';
-      case 'FR':
-        return 'FR_CPB';
-      default:
-        return 'DE_THG';
-    }
-  };
-
-  // Map feedstock to a FEEDSTOCK_REGISTRY key. Mixed organics map to food_waste — the plant
-  // dataset's `organic_waste` is not a registry key, and emitting it made the Trade Builder
-  // relabel the deal as manure and drop UK RTFO waste double counting.
-  const getFeedstockKey = (cat?: string | null, det?: string | null): string => {
-    if (plant.canonicalFeedstockKey) {
-      return plant.canonicalFeedstockKey === 'organic_waste' ? 'food_waste' : plant.canonicalFeedstockKey;
-    }
-    const s = `${cat || ''} ${det || ''}`.toLowerCase();
-    if (s.includes('manure') || s.includes('slurry') || s.includes('gülle') || s.includes('mist') || s.includes('lisier') || s.includes('effluent')) return 'manure';
-    if (s.includes('sewage') || s.includes('sludge') || s.includes('kläre') || s.includes('step') || s.includes('boue')) return 'sewage_sludge';
-    if (s.includes('landfill') || s.includes('deponie') || s.includes('isdnd')) return 'landfill_gas';
-    if (s.includes('crop') || s.includes('maize') || s.includes('mais') || s.includes('grass') || s.includes('cive')) return 'energy_crops';
-    return 'food_waste';
-  };
-
-  const feedstockKey = getFeedstockKey(plant.primaryFeedstockCategory, plant.feedstockDetails);
-  const defaultMarket = getDefaultMarket(plant.countryCode);
+  const feedstockKey = feedstockKeyForPlant(plant);
+  const defaultMarket = defaultMarketForOrigin(plant.countryCode);
   // Audited annual energy only — never a generic placeholder volume.
   const volumeMWh = plant.annualEnergyGWh ? Math.round(plant.annualEnergyGWh * 1000) : undefined;
-  const ciValue = plant.verifiedCarbonIntensity ?? (feedstockKey === 'manure' ? -78 : feedstockKey === 'energy_crops' ? 39 : 16);
+  const ciValue = plantCi(plant).ci;
 
   const formatExternalUrl = (url?: string | null) => {
     if (!url) return '';
@@ -276,18 +241,8 @@ export function PlantSourcingDrawer({ plant, onClose }: PlantSourcingDrawerProps
     const verifiedPhone = deskOverride?.directPhone || undefined;
 
     const dealUrl = buildDealUrl({
-      marketId: defaultMarket,
-      originCountry: plant.countryCode,
-      feedstock: feedstockKey,
-      ci: ciValue,
-      ciIsEstimated: !plant.verifiedCarbonIntensity,
-      volume: volumeMWh,
-      plantId: plant.id,
-      plantName: plant.name,
-      plantCapacityNm3h: plant.capacityNm3h ?? undefined,
-      plantAnnualGWh: plant.annualEnergyGWh ?? undefined,
+      ...plantDealParams(plant),
       legalEntityName: verifiedLegal,
-      networkOperator: plant.networkOperator || undefined,
       contactEmail: verifiedEmail,
       contactPhone: verifiedPhone,
     });

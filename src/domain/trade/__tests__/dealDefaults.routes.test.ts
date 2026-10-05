@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { getMarketForRoute, getMarketAndCocForRoute, POS_SCHEME_TO_MARKET_ID } from '../destinationMarket';
+import { getMarketForRoute, getMarketAndCocForRoute, POS_SCHEME_TO_MARKET_ID } from '../dealDefaults';
 import { getCertificateRoute } from '../../registries/certificateRoutes';
 import { MARKETS } from '../../markets/registry';
 
-describe('destinationMarket', () => {
+describe('dealDefaults.routes', () => {
   it('maps all defined POS_SCHEME_TO_MARKET_ID entries to existing markets in MARKETS', () => {
     const marketIds = new Set(MARKETS.map(m => m.id));
     for (const [schemeId, marketId] of Object.entries(POS_SCHEME_TO_MARKET_ID)) {

@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SourcedOpportunity, getCountryFlag } from './PlantScannerTable';
 import { buildDealUrl } from '../../domain/trade/dealParams';
+import { defaultVolumeMwh } from '../../domain/trade/dealDefaults';
 import { 
   Building2, 
   ArrowRight, 
@@ -104,12 +105,13 @@ export function Step2PlantScan({
 
   const handleQuickTrade = (opp: SourcedOpportunity, e: React.MouseEvent) => {
     e.stopPropagation();
-    const plantVolume = opp.plantAnnualGWh ? Math.round(opp.plantAnnualGWh * 1000) : undefined;
+    const plantVolume = opp.plantAnnualGWh ? Math.round(opp.plantAnnualGWh * 1000) : defaultVolumeMwh();
     navigate(buildDealUrl({
       marketId: opp.targetMarketId,
       originCountry: opp.originCountry,
       feedstock: opp.feedstockKey,
       ci: opp.carbonIntensity,
+      ciIsEstimated: true,
       volume: plantVolume,
       plantId: opp.originPlantId,
       plantName: opp.originPlantName,

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { COMBINED_BIOMETHANE_PLANTS } from '../../domain/plants/registry';
 import { BiomethanePlant } from '../../domain/plants/types';
 import { buildDealUrl } from '../../domain/trade/dealParams';
+import { plantDealParams, plantCi } from '../../domain/trade/dealDefaults';
 import { PlantSourcingDrawer } from './PlantSourcingDrawer';
 import { AlertOctagon, AlertTriangle, Mail } from 'lucide-react';
 import { PageShell } from '../../shared/ui/PageShell';
@@ -196,34 +197,9 @@ export function OriginationPipelineScreen() {
 
   // 1-Click Deal Structuring via buildDealUrl
   const handleStructureOfftake = (plant: BiomethanePlant) => {
-    const volumeMWh = plant.annualEnergyGWh ? Math.round(plant.annualEnergyGWh * 1000) : 20000;
-    const s = `${plant.primaryFeedstockCategory || ''} ${plant.feedstockDetails || ''}`.toLowerCase();
-    let feedstockId = 'organic_waste';
-    if (s.includes('manure') || s.includes('slurry') || s.includes('gülle') || s.includes('lisier')) feedstockId = 'manure';
-    else if (s.includes('crop') || s.includes('maize') || s.includes('cive')) feedstockId = 'energy_crops';
-    else if (s.includes('sewage') || s.includes('sludge') || s.includes('step')) feedstockId = 'sewage_sludge';
-    else if (s.includes('landfill') || s.includes('isdnd')) feedstockId = 'landfill_gas';
-
-    const defaultMarket = plant.countryCode === 'GB' || plant.countryCode === 'UK' ? 'UK_RTFO' 
-      : plant.countryCode === 'FR' ? 'FR_CPB' 
-      : plant.countryCode === 'IT' ? 'IT_CIC' 
-      : 'DE_THG';
-
-    const defaultCi = feedstockId === 'manure' ? -78 : feedstockId === 'organic_waste' ? 16 : 39;
-
     const url = buildDealUrl({
-      plantId: plant.id,
-      plantName: plant.name,
-      originCountry: plant.countryCode,
-      volume: volumeMWh,
-      feedstock: feedstockId,
-      ci: plant.verifiedCarbonIntensity ?? defaultCi,
-      ciIsEstimated: true, // census CI is a feedstock default, not an audited PoS value
-      marketId: defaultMarket,
+      ...plantDealParams(plant),
       legalEntityName: plant.legalEntityName || plant.operator || undefined,
-      networkOperator: plant.networkOperator || undefined,
-      plantCapacityNm3h: plant.capacityNm3h || undefined,
-      plantAnnualGWh: plant.annualEnergyGWh || undefined,
       contactEmail: plant.contactEmail || undefined,
       contactPhone: plant.contactPhone || undefined,
       scheme: (plant.certificationScheme as any) || 'ISCC_EU',
@@ -382,7 +358,7 @@ export function OriginationPipelineScreen() {
         <div style={{ padding: '14px 18px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-panel)' }}>
           <div style={{ fontSize: '12px', color: 'var(--color-pnl-pos, var(--color-accent))', fontWeight: 600 }}>High-Margin Manure / Deep Negative CI</div>
           <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--color-pnl-pos, var(--color-accent))', marginTop: '4px' }}>
-            {stats.manureCount} sites <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)', fontWeight: 400 }}>(-78 to -84 gCO₂e/MJ)</span>
+            {stats.manureCount} sites <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)', fontWeight: 400 }}>(deep negative CI)</span>
           </div>
         </div>
 
@@ -494,8 +470,7 @@ export function OriginationPipelineScreen() {
           metricLabel={p => (p.capacityNm3h ? `${p.capacityNm3h.toLocaleString()} Nm³/h` : '')}
           badges={p => mobileContactBadge(p)}
           fields={p => {
-            const isManure = (p.primaryFeedstockCategory || '').toLowerCase().includes('manure') || (p.feedstockDetails || '').toLowerCase().includes('manure');
-            const ciVal = p.verifiedCarbonIntensity ?? (isManure ? -78 : 16);
+            const ciVal = plantCi(p).ci;
             return [
               {
                 label: 'Operating entity & registration',
@@ -560,8 +535,7 @@ export function OriginationPipelineScreen() {
           </thead>
           <tbody>
             {filteredPipeline.slice(0, 100).map(p => {
-              const isManure = (p.primaryFeedstockCategory || '').toLowerCase().includes('manure') || (p.feedstockDetails || '').toLowerCase().includes('manure');
-              const ciVal = p.verifiedCarbonIntensity ?? (isManure ? -78 : 16);
+              const ciVal = plantCi(p).ci;
 
               return (
                 <tr

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { buildDealUrl } from '../../domain/trade/dealParams';
+import { defaultVolumeMwh } from '../../domain/trade/dealDefaults';
 import {
   FUELEU_VLSFO_WTW,
   fossilLngWtw,
@@ -115,9 +116,8 @@ export function DualCommercialPathwaySimulator({ initial }: DualCommercialPathwa
       originCountry: 'NL',
       feedstock: 'manure',
       ci: bioLngCi,
-      volume: Math.max(1000, Math.round(requiredBioLngMwh)),
-      counterparty: 'FuelEU Maritime Offtake Facility',
-      legalEntityName: 'FuelEU Maritime Fleet Operator',
+      ciIsEstimated: true,
+      volume: Math.max(1000, Math.round(requiredBioLngMwh || defaultVolumeMwh())),
       complianceYear: targetYear,
     });
     navigate(url);

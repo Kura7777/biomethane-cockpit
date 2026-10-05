@@ -13,7 +13,7 @@ import { ETS2_SEGMENT_SHARES } from '../ets2/segmentShare';
  * never silently changed: a reset always returns to the value and source shown here.
  */
 
-export type AssumptionCategory = 'FUELEU' | 'FARMGATE' | 'SCANNER' | 'RISK';
+export type AssumptionCategory = 'FUELEU' | 'FARMGATE' | 'SCANNER' | 'RISK' | 'DEAL';
 
 /** How much weight the default can bear. */
 export type AssumptionBasis =
@@ -76,6 +76,19 @@ const ETS2_SEGMENT_SHARE_ASSUMPTIONS: AssumptionDefinition[] = Object.values(ETS
 const FARMGATE_SOURCE = 'Desk indicative estimate — no transaction evidence on file. Replace with producer offers as they come in.';
 
 export const ASSUMPTION_DEFINITIONS: AssumptionDefinition[] = [
+  // ── Deal defaults ──────────────────────────────────────────────────────────
+  {
+    key: 'deal.defaultVolumeMwh',
+    category: 'DEAL',
+    label: 'Default deal volume fallback',
+    unit: 'MWh',
+    defaultValue: 20000,
+    basis: 'DESK_POLICY',
+    source: 'Desk placeholder used when a plant publishes no annual output. Not a market fact.',
+    usedIn: 'Plants, Origination, Plant drawer, FuelEU: default trade volume when plant has no annual output',
+    min: 100,
+  },
+
   // ── FuelEU Maritime pathway economics ────────────────────────────────────
   {
     key: 'fueleu.bioLngPremiumEurPerMwh',

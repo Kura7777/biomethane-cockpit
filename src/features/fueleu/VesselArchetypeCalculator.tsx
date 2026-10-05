@@ -12,6 +12,7 @@ import {
 import { FUELEU_ACTIVE_PERIOD, COMPLIANCE_YEAR_PERIOD_LABELS } from './complianceYears';
 import { VesselArchetype, VesselCalculationInput } from '../../domain/fueleu/types';
 import { buildDealUrl } from '../../domain/trade/dealParams';
+import { defaultVolumeMwh } from '../../domain/trade/dealDefaults';
 import {
   Ship,
   Zap,
@@ -151,12 +152,13 @@ export function VesselArchetypeCalculator({ onComparePathways }: VesselArchetype
 
   // 1-Click trade builder
   const handleTradeBuilder = () => {
-    const volumeMwh = Math.max(1000, Math.round(calculationResult.bioLngRequiredNeg100Mwh || 10000));
+    const volumeMwh = Math.max(1000, Math.round(calculationResult.bioLngRequiredNeg100Mwh || defaultVolumeMwh()));
     const url = buildDealUrl({
       marketId: 'FUELEU',
       originCountry: 'NL',
       feedstock: 'manure',
       ci: bioLngCi,
+      ciIsEstimated: true,
       volume: volumeMwh,
       counterparty: `${activeArchetype.name} Offtake`,
       legalEntityName: `${activeArchetype.name} Offtake`,
