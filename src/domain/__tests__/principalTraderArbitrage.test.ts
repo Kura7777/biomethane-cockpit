@@ -123,10 +123,6 @@ FR GO Mix 2026 Non-subsidised: €20.50 Offer (10 GWh)
       // Statutory ceiling for DE_THG (€450/tCO2e)
       expect(risk.statutoryCeilingEurMwh).toBeGreaterThan(250);
       expect(risk.replacementCostExposureEur).toBeGreaterThan(0);
-
-      // German 2026 double-counting cliff impact on -100 CI manure
-      expect(risk.germanCliffImpactEurMwh).toBeGreaterThan(0);
-      expect(risk.germanCliffNotionalEur).toBeGreaterThan(0);
     });
   });
 

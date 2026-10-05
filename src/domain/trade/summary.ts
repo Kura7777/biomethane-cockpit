@@ -140,14 +140,14 @@ export function generateTradeSummary(assessment: TradeAssessment): string {
       lines.push('  Notional Delta:       Volume not specified');
     }
     lines.push(`  Underlying Driver:    ${vr.driver}`);
-    lines.push(`  Breakdown:            Conservative (1×): €${vr.low.toFixed(2)}/MWh │ Upside (2×): €${vr.high.toFixed(2)}/MWh`);
+    lines.push(`  Breakdown:            Conservative: €${vr.low.toFixed(2)}/MWh │ Upside: €${vr.high.toFixed(2)}/MWh`);
     lines.push('─────────────────────────────────────────────────────────────');
   }
 
-  // Germany double counting branches
+  // Regulatory uncertainty branches (if any)
   if (nb.uncertaintyBranches && nb.uncertaintyBranches.length > 0) {
     lines.push('');
-    lines.push('UNCERTAINTY SENSITIVITY (German THG §37a BImSchG Double Counting):');
+    lines.push('UNCERTAINTY SENSITIVITY:');
     for (const b of nb.uncertaintyBranches) {
       lines.push(`  ${b.branchLabel.toUpperCase()}:`);
       lines.push(`    Certificate Value:  €${b.certificateValue.valueEurPerMWh?.toFixed(2) ?? 'N/A'}/MWh`);
@@ -160,7 +160,7 @@ export function generateTradeSummary(assessment: TradeAssessment): string {
       }
     }
     if (c.carbonIntensity < 0 || c.feedstock.includes('manure')) {
-      lines.push(`  Note: Feedstock negative CI (${c.carbonIntensity} gCO₂e/MJ) reflects avoided methane emissions under RED III Annex V and is unaffected by double counting policy changes.`);
+      lines.push(`  Note: Feedstock negative CI (${c.carbonIntensity} gCO₂e/MJ) reflects avoided methane emissions under RED III Annex V and is unaffected by quota multiplier changes.`);
     } else {
       lines.push(`  Note: Feedstock carbon intensity (${c.carbonIntensity} gCO₂e/MJ) is calculated under RED III Annex V.`);
     }

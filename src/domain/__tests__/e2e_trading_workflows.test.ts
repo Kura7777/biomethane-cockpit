@@ -309,19 +309,20 @@ describe('E2E Trading Workflows & Multi-Tier Regulatory Stress Suite (Milestone 
         expect(preGate.verdict).toBe('PASS');
         expect(preGate.reason).toContain('<= 2025');
 
-        // >= 2026 -> UNRESOLVED with dual branch note
+        // >= 2026 -> PASS citing Bundestag Drucksache 21/5530
         const cPost2026: Consignment = {
           ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
           deliveryPeriod: { type: 'CALENDAR', startDate: '2026-01-01', endDate: '2026-12-31', complianceYear: 2026 },
         };
         const postGate = evaluateEligibility(cPost2026, deMarket).gates.find(g => g.gate === 'MARKET_SPECIFIC')!;
-        expect(postGate.verdict).toBe('UNRESOLVED');
-        expect(postGate.reason).toContain('>= 2026');
+        expect(postGate.verdict).toBe('PASS');
+        expect(postGate.reason).toContain('Bundestag Drucksache 21/5530');
 
-        // Unset -> UNRESOLVED
+        // Unset -> PASS (assumed 2026+)
         const cUnset: Consignment = { ...REFERENCE_CONSIGNMENTS.DANISH_MANURE, deliveryPeriod: null };
         const unsetGate = evaluateEligibility(cUnset, deMarket).gates.find(g => g.gate === 'MARKET_SPECIFIC')!;
-        expect(unsetGate.verdict).toBe('UNRESOLVED');
+        expect(unsetGate.verdict).toBe('PASS');
+        expect(unsetGate.reason).toContain('assumed 2026+');
       });
 
       it('evaluates EU ETS2 postponement to 2028', () => {
@@ -734,25 +735,18 @@ describe('E2E Trading Workflows & Multi-Tier Regulatory Stress Suite (Milestone 
 
       const market = getMarketById('DE_THG')!;
       const assessment = evaluateEligibility(consignment, market);
-      // For 2026 Germany, eligibility is UNRESOLVED due to draft double counting removal
-      expect(assessment.overallVerdict).toBe('UNRESOLVED');
+      // For 2026 Germany, market-specific gate passes under Bundestag Drucksache 21/5530
+      expect(assessment.gates.find(g => g.gate === 'MARKET_SPECIFIC')?.verdict).toBe('PASS');
+      expect(assessment.overallVerdict).toBe('CONDITIONAL');
 
       const netback = computeNetback(market, consignment, testBaseMarks, standardIndexLinkedCosts, 'bid');
-      expect(netback.uncertaintyBranches).toBeDefined();
-      expect(netback.uncertaintyBranches?.length).toBe(2);
+      // Under settled 2026+ regime, single counting (1x) applies with no branches or valuation range
+      expect(netback.uncertaintyBranches).toBeNull();
+      expect(netback.valuationRange).toBeNull();
 
-      // Branch 1: Single counting (1x)
-      const b1 = netback.uncertaintyBranches![0];
+      // Certificate value at 1x:
       // tCO2e = (94 - 20) * 3600 / 1e6 = 0.2664 tCO2e/MWh. At €290 -> €77.26/MWh cert value
-      expect(b1.certificateValue.valueEurPerMWh).toBeCloseTo(77.26, 1);
-
-      // Branch 2: Double counting (2x)
-      const b2 = netback.uncertaintyBranches![1];
-      expect(b2.certificateValue.valueEurPerMWh).toBeCloseTo(77.26 * 2, 1);
-
-      // Valuation Range
-      expect(netback.valuationRange).toBeDefined();
-      expect(netback.valuationRange?.deltaPerMwh).toBeGreaterThan(50.00);
+      expect(netback.certificateValue?.valueEurPerMWh).toBeCloseTo(77.26, 1);
 
       // Logistics Option A: Virtual Swap from Swedegas to THE
       const logistics = calculateLogisticsRoute('SE', 'DE', 28.50);

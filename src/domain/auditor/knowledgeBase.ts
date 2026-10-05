@@ -45,7 +45,7 @@ EU ETS Maritime (Directive 2023/959): RED III compliant Bio-LNG has an emission 
     category: 'NATIONAL_QUOTA',
     content: `Under § 37a BImSchG and 38. BImSchV, fuel suppliers in Germany must meet an escalating greenhouse gas reduction quota (THG-Quote).
 Manure Methane Avoidance Bonus (e_am): Liquid manure codigested in closed storage receives an avoided methane emissions credit of -45 gCO2eq/MJ, yielding deep negative CI values (-80 to -100 gCO2eq/MJ).
-Legal Decoupling of e_am and 2x Multiplier: e_am is a physical lifecycle science credit under RED III Annex V/VI. The 2x double-counting multiplier is an administrative policy mechanism under § 37a BImSchG for Annex IX-A feedstocks. The 2x multiplier applies to the total resulting GHG avoidance (which includes e_am). If Germany repeals double-counting to 1x single counting, the physical e_am credit remains 100% intact.
+Legal Decoupling of e_am and Single Counting: e_am is a physical lifecycle science credit under RED III Annex V/VI. Double counting for advanced biofuels is abolished from compliance year 2026 under the Zweites Gesetz zur Weiterentwicklung der THG-Quote (Bundestag Drucksache 21/5530; promulgation date not yet confirmed), establishing 1× single counting as settled law. The physical e_am credit remains 100% intact.
 BLE Nabisy Registration: To surrender biomethane certificates for THG compliance, the consignment Proof of Sustainability (PoS) must be registered with the BLE Nabisy system. Non-EU injected gas cannot clear into Nabisy without physical segregation.`
   },
   {

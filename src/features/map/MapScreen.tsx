@@ -1094,7 +1094,7 @@ export function MapScreen() {
         <div style={{ padding: '14px 18px' }}>
           <p style={{ fontSize: '12px', lineHeight: 1.55, margin: 0 }} className="mut">
             {selectedMeta.iso === 'DE'
-              ? 'Largest compliance market in Europe. Double counting is unresolved for the 2026 compliance year, so every German netback is carried as a dual branch until the cabinet draft settles.'
+              ? 'Largest compliance market in Europe. Double counting for advanced biofuels is abolished for 2026+ compliance under the Zweites Gesetz zur Weiterentwicklung der THG-Quote (Bundestag Drucksache 21/5530; promulgation date not yet confirmed); single counting (1×) applies.'
               : selectedMeta.iso === 'GB'
               ? 'Non-EU territory. RTFO certificates require Great Britain grid injection; non-UK injected biomethane cannot evidence UDB ingestion into EU without physical segregation.'
               : `Active regulatory mechanism for ${selectedMeta.name}. Consignments must evidence mass balance custody and statutory scheme certification.`}

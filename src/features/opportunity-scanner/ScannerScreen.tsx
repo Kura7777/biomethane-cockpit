@@ -1207,21 +1207,17 @@ export function ScannerScreen() {
               borderTop: '2px solid var(--color-divider)',
             }}
           >
-            {/* Germany dual branch */}
+            {/* Germany single counting */}
             <div style={{ padding: '14px 20px', borderRight: '1px solid var(--color-divider)' }}>
-              <div className="eyebrow">Germany · dual branch</div>
+              <div className="eyebrow">Germany · 2026+ regime</div>
               <div style={{ display: 'flex', gap: '24px', marginTop: '8px' }}>
                 <div>
-                  <div style={{ fontSize: '13px' }} className="mut">1× single</div>
+                  <div style={{ fontSize: '13px' }} className="mut">1× single counting</div>
                   <div className="num" style={{ fontSize: '22px', fontWeight: 800 }}>+€72.07</div>
-                </div>
-                <div>
-                  <div style={{ fontSize: '13px' }} className="mut">2× retained</div>
-                  <div className="num" style={{ fontSize: '22px', fontWeight: 800 }}>+€225.22</div>
                 </div>
               </div>
               <p style={{ fontSize: '12px', lineHeight: 1.5, margin: '9px 0 0' }} className="mut">
-                Double counting is a policy multiplier being removed for the 2026 compliance year. Manure&apos;s negative CI belongs to the GHG calculation and is unaffected.
+                Double counting for advanced biofuels is abolished for 2026+ compliance (Bundestag Drucksache 21/5530; promulgation date not yet confirmed). Single counting (1×) is settled law; negative CI is unaffected.
               </p>
             </div>
 

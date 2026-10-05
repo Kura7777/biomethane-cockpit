@@ -1,18 +1,5 @@
 import { Market, Uncertainty } from './types';
 
-const deDoubleCounting: Uncertainty = {
-  id: 'DE_DOUBLE_COUNTING',
-  title: 'Double counting of advanced biofuels in Germany',
-  description: 'Double counting eliminated for advanced biofuels from 2026 compliance year (§37a BImSchG). Active 2026+ compliance defaults to single counting (1×).',
-  branches: [
-    { id: 'DC_OFF', label: 'Without double counting (1×)', description: 'Single counting only (1× multiplier) — mandatory for 2026+ compliance', multiplier: 1 },
-    { id: 'DC_ON', label: 'With double counting (2×) [Historical pre-2026]', description: 'Double counting multiplier for pre-2026 compliance vintages (2×)', multiplier: 2, historical: true },
-  ],
-  persistentNote: 'IMPORTANT DISTINCTION: Double counting is a POLICY MULTIPLIER — it is being removed. Manure\'s negative carbon intensity is a property of the GHG CALCULATION (avoided methane emissions from conventional manure management) — it is unaffected by changes to double counting.',
-  source: '§37a BImSchG, 38. BImSchV; Cabinet draft 10 December 2025',
-  lastUpdated: '2026-09-06',
-};
-
 export const MARKETS: Market[] = [
   // -------------------------------------------------------------
   // 1. ACTIVE TIER-1 COMPLIANCE MARKETS (Primary Trading Pools)
@@ -28,15 +15,15 @@ export const MARKETS: Market[] = [
     liquidityTier: 'TIER_1_CORE',
     unitOfAccount: 'EUR_PER_TCO2E',
     unitLabel: '€/tCO₂e',
-    notes: 'Largest compliance market in Europe. ~240 plants, ~11.5 TWh/yr. Double counting status unresolved for 2026.',
-    legalBasis: '§37a BImSchG, 38. BImSchV',
+    notes: 'Largest compliance market in Europe. ~240 plants, ~11.5 TWh/yr. Double counting eliminated from 2026 compliance year under the Zweites Gesetz zur Weiterentwicklung der THG-Quote (Bundestag Drucksache 21/5530; promulgation date not yet confirmed).',
+    legalBasis: '§37a BImSchG, 38. BImSchV, Zweites Gesetz zur Weiterentwicklung der THG-Quote (Drs 21/5530)',
     registry: 'dena Biogasregister / UBA',
     ceilingEurMwh: null,
     requiresMassBalance: true,
     requiresUDB: true,
     acceptsBookAndClaim: false,
     isEUScope: false,
-    uncertainties: [deDoubleCounting],
+    uncertainties: [],
     quotaTrajectory: [
       { year: 2026, obligationPct: 10.5, basis: '% GHG intensity reduction (§37a BImSchG)' },
       { year: 2027, obligationPct: 12.0, basis: '% GHG intensity reduction' },

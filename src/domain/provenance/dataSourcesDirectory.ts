@@ -224,6 +224,27 @@ export const DATA_SOURCES_DIRECTORY: DataSourceRecord[] = [
     fieldsUnverified: [],
     docUrl: 'https://www.legislation.gov.uk/uksi/2007/3072/contents'
   },
+  {
+    id: 'de_drs_21_5530',
+    name: 'Zweites Gesetz zur Weiterentwicklung der THG-Quote (Bundestag Drucksache 21/5530)',
+    category: 'FEEDSTOCKS_CARBON_INTENSITY',
+    categoryLabel: 'Feedstocks & Carbon Intensity',
+    authority: 'Deutscher Bundestag & Bundesrat',
+    authorityType: 'NATIONAL_REGULATOR',
+    sourceDocumentOrUrl: 'Bundestag Drucksache 21/5530 (Beschlussempfehlung und Bericht des Ausschusses für Klimaschutz und Energie)',
+    legalBasis: '§ 37a BImSchG / Zweites Gesetz zur Weiterentwicklung der Treibhausgasquote',
+    updateFrequency: 'STATUTORY_FIXED',
+    coverageCount: 'German THG-Quote 2026+ Quotas and Multiplier Rules',
+    provenanceTier: 'STATUTORY_DIRECTIVE',
+    description: 'Statutory basis establishing the abolition of double counting for advanced biofuels for compliance year 2026 onwards ("Die Quote für fortschrittliche Biokraftstoffe wird angehoben, die Doppelanrechnung entfällt"). Adopted by the Bundestag 23.04.2026; Bundesrat 08.05.2026 (promulgation date not yet confirmed).',
+    fieldsProvided: [
+      'Abolition of double counting for advanced biofuels (1× single counting baseline)',
+      'Advanced biofuel statutory sub-quota trajectory',
+      'Retention of physical negative carbon intensity accounting'
+    ],
+    fieldsUnverified: [],
+    docUrl: 'https://dserver.bundestag.de/btd/21/055/2105530.pdf'
+  },
 
   // --------------------------------------------------------------------------
   // 3. MARKET PRICING & BENCHMARK MARKS

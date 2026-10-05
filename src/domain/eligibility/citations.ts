@@ -85,6 +85,13 @@ export const CITATIONS: Record<string, LegalCitation> = {
     sourceUrl: 'https://www.gesetze-im-internet.de/bimschv_38/',
     verifiedDate: '2026-08-16',
   },
+  DE_DRS_21_5530: {
+    shortName: 'Drs 21/5530',
+    fullReference: 'Bundestag Drucksache 21/5530 (Zweites Gesetz zur Weiterentwicklung der THG-Quote; adopted 23.04.2026, Bundesrat 08.05.2026; promulgation date not yet confirmed)',
+    establishes: 'Abolition of double counting for advanced biofuels for 2026+ compliance (Quote wird angehoben, Doppelanrechnung entfällt)',
+    sourceUrl: 'https://dserver.bundestag.de/btd/21/055/2105530.pdf',
+    verifiedDate: '2026-10-04',
+  },
   NL_ERE: {
     shortName: 'NL Regeling energie vervoer',
     fullReference: 'Wet milieubeheer, Regeling energie vervoer (Staatscourant 2025/2026)',

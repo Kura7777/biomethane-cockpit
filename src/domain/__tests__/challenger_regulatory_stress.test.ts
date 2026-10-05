@@ -389,7 +389,7 @@ describe('Empirical Challenger 2 — Regulatory Boundary Conditions & Mathematic
       expect(tCO2ePerMWh(20)).toBeCloseTo((74 * 3600) / 1_000_000, 6);    // 0.2664
     });
 
-    it('Calculates baseline 1x certificate value and 2x double counting branch for DE_THG compliance >= 2026', () => {
+    it('Calculates settled 1x single counting for DE_THG compliance >= 2026 (Bundestag Drucksache 21/5530)', () => {
       const deMarket = getMarketById('DE_THG')!;
       const testManureConsignment: Consignment = {
         ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
@@ -412,27 +412,12 @@ describe('Empirical Challenger 2 — Regulatory Boundary Conditions & Mathematic
 
       const nb = computeNetback(deMarket, testManureConsignment, testMarks, zeroCosts, 'bid');
 
-      // Baseline cert value: 0.6984 * 300 = 209.52 EUR/MWh
+      // Baseline cert value: 0.6984 * 300 = 209.52 EUR/MWh (1x single counting)
       expect(nb.certificateValue?.valueEurPerMWh).toBe(209.52);
 
-      // Uncertainty branches must be present
-      expect(nb.uncertaintyBranches).toBeDefined();
-      expect(nb.uncertaintyBranches?.length).toBe(2);
-
-      const branch1x = nb.uncertaintyBranches![0];
-      const branch2x = nb.uncertaintyBranches![1];
-
-      expect(branch1x.branchId).toBe('DC_OFF');
-      expect(branch1x.certificateValue?.valueEurPerMWh).toBe(209.52);
-
-      expect(branch2x.branchId).toBe('DC_ON');
-      expect(branch2x.certificateValue?.valueEurPerMWh).toBe(419.04); // Exactly 209.52 * 2
-
-      // Valuation range
-      expect(nb.valuationRange).toBeDefined();
-      expect(nb.valuationRange?.low).toBe(209.52 + (testMarks.gasIndex.bid ?? 0));
-      expect(nb.valuationRange?.high).toBe(419.04 + (testMarks.gasIndex.bid ?? 0));
-      expect(nb.valuationRange?.deltaPerMwh).toBe(209.52);
+      // Uncertainty branches and valuation range are null under settled 2026+ regime
+      expect(nb.uncertaintyBranches).toBeNull();
+      expect(nb.valuationRange).toBeNull();
     });
 
     it('Applies single 2x multiplier directly when complianceYear <= 2025 (pre-2026 regime)', () => {

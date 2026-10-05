@@ -154,7 +154,7 @@ export const VERIFIED_COMMERCIAL_PLANTS: BiomethanePlant[] = [
     upgradingTechnology: 'Amine chemical wash (Schmack Carbotech)',
     gridConnectionType: 'Transmission (TSO)',
     networkOperator: 'ONTRAS Gastransport GmbH',
-    certificationAndRegistry: 'ISCC EU / dena Biogasregister (Annex IX-A Double Counting)',
+    certificationAndRegistry: 'ISCC EU / dena Biogasregister (Annex IX-A Advanced Biomethane)',
     primaryOfftake: 'Bio-CNG transport fuel & German THG quota surrender',
     coordinates: [14.285, 53.064],
   },

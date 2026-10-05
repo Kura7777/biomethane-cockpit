@@ -28,8 +28,6 @@ export interface PrincipalRiskMetrics {
   basisRiskNotionalEur: number;               // Volume * basis differential (€)
   replacementCostExposureEur: number;         // Volume * max(0, statutoryCeiling - contractPrice)
   statutoryCeilingEurMwh: number | null;      // Legal penalty cap (e.g. €100 CPB, ~€314 THG)
-  germanCliffImpactEurMwh?: number | null;    // Impact if German 2026 double counting is removed
-  germanCliffNotionalEur?: number | null;     // Total portfolio value at risk under German 2026 cliff
 }
 
 export interface FuelEUOptions {
@@ -79,11 +77,11 @@ export interface NetbackBranch {
 }
 
 export interface ValuationRange {
-  low: number;                  // conservative branch (e.g. DC_OFF)
-  high: number;                 // upside branch (e.g. DC_ON)
+  low: number;                  // conservative branch
+  high: number;                 // upside branch
   deltaPerMwh: number;          // high − low
   deltaNotional: number | null; // deltaPerMwh × volumeMWh (null if volume is null)
-  driver: string;               // human description, e.g. "German THG double-counting eligibility (§37a BImSchG)"
+  driver: string;               // human description of regulatory driver
   gateId: string;               // 'MARKET_SPECIFIC'
 }
 

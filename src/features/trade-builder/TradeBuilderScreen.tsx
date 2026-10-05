@@ -657,7 +657,13 @@ export function TradeBuilderScreen() {
   const stepSummary: Record<DealStep, string> = {
     1: `${currentOriginObj.flag} ${currentOriginObj.name} · ${currentFeedstockObj.label} · ${currentSchemeObj.label} · ${currentCustodyObj.label} · CI ${ci} g/MJ`,
     2: `${volumeMwh.toLocaleString()} MWh · ${complianceYear} compliance · ${formatShortDate(deliveryStartDate)} – ${formatShortDate(deliveryEndDate)} · ${deliveryProfile.replace(/_/g, ' ').toLowerCase()}`,
-    3: `${selectedMarket.name} · ${assessment.overallVerdict === 'ELIGIBLE' ? `${assessment.gates.length}/${assessment.gates.length} gates pass` : 'blocked'}`,
+    3: `${selectedMarket.name} · ${
+      assessment.overallVerdict === 'ELIGIBLE'
+        ? `${assessment.gates.length}/${assessment.gates.length} gates pass`
+        : assessment.overallVerdict === 'HARD_BLOCK'
+          ? 'blocked'
+          : `${assessment.overallVerdict === 'CONDITIONAL' ? 'conditional' : assessment.overallVerdict === 'UNRESOLVED' ? 'unresolved' : 'unknown'} · ${assessment.gates.filter(g => g.verdict === 'PASS').length}/${assessment.gates.length} gates pass`
+    }`,
     4: `Net netback ${netNetbackVal >= 0 ? '+' : '−'}€${Math.abs(netNetbackVal).toFixed(2)}/MWh · P&L ${netback.deskMargin !== null ? `€${annualPnl.toLocaleString()}` : '—'}`,
     5: '',
   };
@@ -1761,7 +1767,7 @@ export function TradeBuilderScreen() {
                 : assessment.overallVerdict === 'CONDITIONAL'
                 ? 'Conditional'
                 : assessment.overallVerdict === 'UNRESOLVED'
-                ? 'Unresolved · Dual Branch'
+                ? 'Unresolved'
                 : 'Blocked'}
             </span>
           </div>
@@ -1809,7 +1815,7 @@ export function TradeBuilderScreen() {
                       : isBlock
                       ? 'Blocked'
                       : isUnresolved
-                      ? 'Unresolved · Dual Branch'
+                      ? 'Unresolved'
                       : 'Conditional'}
                   </span>
                 </div>
@@ -1985,15 +1991,6 @@ export function TradeBuilderScreen() {
                 </span>
               </div>
 
-              {/* German 2026 Cliff Impact (if applicable) */}
-              {netback.principalRisk.germanCliffImpactEurMwh !== null && netback.principalRisk.germanCliffImpactEurMwh !== undefined && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--color-status-warn-bg)', border: '1px solid var(--color-status-warn-border)', padding: '6px 8px', borderRadius: 'var(--radius-control)' }}>
-                  <span style={{ color: 'var(--color-status-warn-ink)', fontWeight: 600 }}>German 2026 Double-Counting Cliff:</span>
-                  <span className="num" style={{ fontWeight: 800, color: 'var(--color-pnl-neg)' }}>
-                    −€{netback.principalRisk.germanCliffImpactEurMwh.toFixed(2)}/MWh (−€{netback.principalRisk.germanCliffNotionalEur?.toLocaleString()})
-                  </span>
-                </div>
-              )}
               <AssumptionsStrip title="Risk suite assumptions" keys={RISK_SUITE_ASSUMPTIONS} />
             </div>
           </div>

@@ -78,19 +78,19 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
       expect(udbGate?.remedy).toContain('RTFO');
     });
 
-    it('§E2: Danish manure, EU grid, ISCC EU, mass balance, UDB recorded ➔ DE_THG is UNRESOLVED (never ELIGIBLE) with dual branches', () => {
+    it('§E2: Danish manure, EU grid, ISCC EU, mass balance, UDB recorded ➔ DE_THG passes market-specific gate at 1× single counting (Drs 21/5530)', () => {
       const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
       const deMarket = getMarketById('DE_THG')!;
 
       const assessment = evaluateEligibility(consignment, deMarket);
-      expect(assessment.overallVerdict).toBe('UNRESOLVED');
-      expect(assessment.overallVerdict).not.toBe('ELIGIBLE');
+      const marketSpecificGate = assessment.gates.find(g => g.gate === 'MARKET_SPECIFIC');
+      expect(marketSpecificGate?.verdict).toBe('PASS');
+      expect(marketSpecificGate?.reason).toContain('Drucksache 21/5530');
+      expect(assessment.overallVerdict).toBe('CONDITIONAL');
 
       const netback = computeNetback(deMarket, consignment, sampleMarks, emptyCosts, 'bid');
-      expect(netback.uncertaintyBranches).toBeDefined();
-      expect(netback.uncertaintyBranches?.length).toBe(2);
-      expect(netback.uncertaintyBranches![0].branchLabel.toLowerCase()).toContain('single counting');
-      expect(netback.uncertaintyBranches![1].branchLabel.toLowerCase()).toContain('double counting');
+      expect(netback.uncertaintyBranches).toBeNull();
+      expect(netback.certificateValue?.statusNote).toContain('Compliance year not set — assumed 2026+ (single counting)');
     });
 
     it('§E3: Danish manure ➔ FR_CPB and NL_ERE are HARD_BLOCK at CROSS_BORDER_POS (CPB: French-injected gas only; Regeling energie vervoer Art. 7: Dutch-produced green gas only)', () => {
@@ -449,7 +449,7 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
       expect(nb.grossSpreadPnL).toBeCloseTo(nb.grossValueSpread! * 10000, 2);
     });
 
-    it('Both German double-counting branches carry their own producerPayable and deskMargin', () => {
+    it('German THG with unset compliance year produces single counting with assumed 2026+ regime', () => {
       const consignment = { ...REFERENCE_CONSIGNMENTS.DANISH_MANURE, observedBundlePriceEurPerMwh: 1e9 }; // no bundle cap: tests the uncapped model
       const deMarket = getMarketById('DE_THG')!;
       const costs: CostInputs = {
@@ -467,12 +467,11 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
         },
       };
       const nb = computeNetback(deMarket, consignment, sampleMarks, costs, 'bid');
-      expect(nb.uncertaintyBranches).toBeDefined();
-      expect(nb.uncertaintyBranches![0].producerPayable).not.toBeNull();
-      expect(nb.uncertaintyBranches![0].deskMargin).not.toBeNull();
-      expect(nb.uncertaintyBranches![1].producerPayable).not.toBeNull();
-      expect(nb.uncertaintyBranches![1].deskMargin).not.toBeNull();
-      expect(nb.uncertaintyBranches![1].deskMargin!).toBeGreaterThan(nb.uncertaintyBranches![0].deskMargin!);
+      expect(nb.uncertaintyBranches).toBeNull();
+      expect(nb.valuationRange).toBeNull();
+      expect(nb.producerPayable).not.toBeNull();
+      expect(nb.deskMargin).not.toBeNull();
+      expect(nb.certificateValue?.statusNote).toContain('assumed 2026+ (single counting)');
     });
 
   });
@@ -812,7 +811,8 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
         },
       };
       const deNetback = computeNetback(deMarket, REFERENCE_CONSIGNMENTS.DANISH_MANURE, deMarks, deCosts, 'bid');
-      expect(deNetback.uncertaintyBranches).toHaveLength(2);
+      expect(deNetback.uncertaintyBranches).toBeNull();
+      expect(deNetback.netNetback).not.toBeNull();
 
       // 6. UK food waste + UK grid + ISCC EU -> DE_THG blocked at UDB gate
       const ukConsignment = REFERENCE_CONSIGNMENTS.UK_FOOD_WASTE;
@@ -1264,7 +1264,7 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
         expect(netback.uncertaintyBranches).toBeNull();
       });
 
-      it('complianceYear 2027 → DE gate UNRESOLVED with both branches', () => {
+      it('complianceYear 2027 → DE gate PASS with single branch at 1× (Drs 21/5530)', () => {
         const consignment: Consignment = {
           ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
           deliveryPeriod: {
@@ -1277,17 +1277,14 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
         const deMarket = getMarketById('DE_THG')!;
         const elig = evaluateEligibility(consignment, deMarket);
         const deGate = elig.gates.find(g => g.gate === 'MARKET_SPECIFIC');
-        expect(deGate?.verdict).toBe('UNRESOLVED');
-        expect(deGate?.reason).toContain('For compliance year 2027 (>= 2026)');
+        expect(deGate?.verdict).toBe('PASS');
+        expect(deGate?.reason).toContain('Drucksache 21/5530');
 
         const netback = computeNetback(deMarket, consignment, sampleMarks, emptyCosts, 'bid');
-        expect(netback.uncertaintyBranches).toBeDefined();
-        expect(netback.uncertaintyBranches?.length).toBe(2);
-        expect(netback.uncertaintyBranches![0].branchId).toBe('DC_OFF');
-        expect(netback.uncertaintyBranches![1].branchId).toBe('DC_ON');
+        expect(netback.uncertaintyBranches).toBeNull();
       });
 
-      it('complianceYear null → UNRESOLVED, reason states year unset', () => {
+      it('complianceYear null → PASS, assumed 2026+ single counting', () => {
         const consignment: Consignment = {
           ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
           deliveryPeriod: {
@@ -1300,12 +1297,97 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
         const deMarket = getMarketById('DE_THG')!;
         const elig = evaluateEligibility(consignment, deMarket);
         const deGate = elig.gates.find(g => g.gate === 'MARKET_SPECIFIC');
-        expect(deGate?.verdict).toBe('UNRESOLVED');
-        expect(deGate?.reason).toContain('Compliance year is unset on this consignment');
+        expect(deGate?.verdict).toBe('PASS');
+        expect(deGate?.reason).toContain('assumed 2026+ (single counting)');
 
         const netback = computeNetback(deMarket, consignment, sampleMarks, emptyCosts, 'bid');
         expect(netback.missingInputs).toContain('deliveryPeriod');
-        expect(netback.uncertaintyBranches).toBeDefined();
+        expect(netback.uncertaintyBranches).toBeNull();
+      });
+
+      describe('Bundestag Drs 21/5530 Settled Single Counting Verification', () => {
+        it('DE_THG 2026 has a single branch at 1×, with no DC_ON', () => {
+          const consignment2026: Consignment = {
+            ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
+            deliveryPeriod: {
+              type: 'CALENDAR',
+              startDate: '2026-01-01',
+              endDate: '2026-12-31',
+              complianceYear: 2026,
+            },
+          };
+          const deMarket = getMarketById('DE_THG')!;
+          const netback = computeNetback(deMarket, consignment2026, sampleMarks, emptyCosts, 'bid');
+          expect(netback.uncertaintyBranches).toBeNull();
+          expect(netback.valuationRange).toBeNull();
+          expect(netback.certificateValue?.valueEurPerMWh).toBeCloseTo(290 * tCO2ePerMWh(-100), 2);
+        });
+
+        it('DE_THG 2025 still has 2× double counting', () => {
+          const consignment2025: Consignment = {
+            ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
+            deliveryPeriod: {
+              type: 'CALENDAR',
+              startDate: '2025-01-01',
+              endDate: '2025-12-31',
+              complianceYear: 2025,
+            },
+          };
+          const deMarket = getMarketById('DE_THG')!;
+          const netback = computeNetback(deMarket, consignment2025, sampleMarks, emptyCosts, 'bid');
+          expect(netback.uncertaintyBranches).toBeNull();
+          expect(netback.certificateValue?.valueEurPerMWh).toBeCloseTo(290 * tCO2ePerMWh(-100) * 2, 1);
+          expect(netback.certificateValue?.calculation).toContain('× 2 (double counting');
+        });
+
+        it('the unset year behaves as 2026+ (single counting)', () => {
+          const consignmentUnset: Consignment = {
+            ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
+            deliveryPeriod: null,
+          };
+          const deMarket = getMarketById('DE_THG')!;
+          const netback = computeNetback(deMarket, consignmentUnset, sampleMarks, emptyCosts, 'bid');
+          expect(netback.uncertaintyBranches).toBeNull();
+          expect(netback.valuationRange).toBeNull();
+          expect(netback.certificateValue?.valueEurPerMWh).toBeCloseTo(290 * tCO2ePerMWh(-100), 2);
+          expect(netback.certificateValue?.statusNote).toBe('Compliance year not set — assumed 2026+ (single counting).');
+        });
+
+        it('the German market-specific gate for 2026 does not return UNRESOLVED and cites Drs 21/5530', () => {
+          const consignment2026: Consignment = {
+            ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
+            deliveryPeriod: {
+              type: 'CALENDAR',
+              startDate: '2026-01-01',
+              endDate: '2026-12-31',
+              complianceYear: 2026,
+            },
+          };
+          const deMarket = getMarketById('DE_THG')!;
+          const assessment = evaluateEligibility(consignment2026, deMarket);
+          const deGate = assessment.gates.find(g => g.gate === 'MARKET_SPECIFIC')!;
+          expect(deGate.verdict).toBe('PASS');
+          expect(deGate.verdict).not.toBe('UNRESOLVED');
+          expect(deGate.reason).toContain('Drucksache 21/5530');
+          expect(deGate.citations.some(c => c.shortName === 'Drs 21/5530')).toBe(true);
+        });
+
+        it('UK RTFO waste 2× is unchanged', () => {
+          const rtfoMarket = getMarketById('UK_RTFO')!;
+          const manureConsignment: Consignment = {
+            ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
+            deliveryPeriod: {
+              type: 'CALENDAR',
+              startDate: '2026-01-01',
+              endDate: '2026-12-31',
+              complianceYear: 2026,
+            },
+          };
+          const netback = computeNetback(rtfoMarket, manureConsignment, sampleMarks, emptyCosts, 'bid');
+          expect(netback.certificateValue?.unitConversion).toContain('2× Double Counting');
+          expect(netback.certificateValue?.statusNote).toContain('2× double-counted');
+          expect(netback.certificateValue?.valueEurPerMWh).toBeGreaterThan(0);
+        });
       });
 
       it('EU_ETS2 with complianceYear 2028 → no longer blocked on the year alone', () => {
@@ -1404,8 +1486,8 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
       });
     });
 
-    describe('Deal Ticket Phase 3: Promote regulatory uncertainty to headline valuation range', () => {
-      it('German consignment with complianceYear >= 2026 populates valuationRange with correct low, high, deltaPerMwh, deltaNotional', () => {
+    describe('Deal Ticket Phase 3: Regulatory uncertainty valuation range', () => {
+      it('German consignment with complianceYear >= 2026 has valuationRange === null under settled 2026+ regime', () => {
         const consignment: Consignment = {
           ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
           volumeMWh: 10000,
@@ -1419,17 +1501,8 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
         const deMarket = getMarketById('DE_THG')!;
         const netback = computeNetback(deMarket, consignment, sampleMarks, emptyCosts, 'bid');
 
-        expect(netback.valuationRange).toBeDefined();
-        expect(netback.valuationRange).not.toBeNull();
-        expect(netback.valuationRange?.low).toBe(netback.uncertaintyBranches![0].netNetback);
-        expect(netback.valuationRange?.high).toBe(netback.uncertaintyBranches![1].netNetback);
-        expect(netback.valuationRange?.deltaPerMwh).toBe(
-          Number((netback.valuationRange!.high - netback.valuationRange!.low).toFixed(2))
-        );
-        expect(netback.valuationRange?.deltaNotional).toBe(
-          Number((netback.valuationRange!.deltaPerMwh * 10000).toFixed(2))
-        );
-        expect(netback.valuationRange?.driver).toContain('German THG double-counting eligibility');
+        expect(netback.valuationRange).toBeNull();
+        expect(netback.uncertaintyBranches).toBeNull();
       });
 
       it('Non-German market or complianceYear <= 2025 has valuationRange === null', () => {
@@ -1453,31 +1526,6 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
         expect(frNetback.valuationRange).toBeNull();
       });
 
-      it('deltaNotional is null when volume is null, correct number when volume is set', () => {
-        const consignmentNoVol: Consignment = {
-          ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
-          volumeMWh: null,
-          deliveryPeriod: {
-            type: 'CALENDAR',
-            startDate: '2027-01-01',
-            endDate: '2027-12-31',
-            complianceYear: 2027,
-          },
-        };
-        const deMarket = getMarketById('DE_THG')!;
-        const resNoVol = computeNetback(deMarket, consignmentNoVol, sampleMarks, emptyCosts, 'bid');
-        expect(resNoVol.valuationRange?.deltaNotional).toBeNull();
-
-        const consignmentWithVol: Consignment = {
-          ...consignmentNoVol,
-          volumeMWh: 5000,
-        };
-        const resWithVol = computeNetback(deMarket, consignmentWithVol, sampleMarks, emptyCosts, 'bid');
-        expect(resWithVol.valuationRange?.deltaNotional).toBe(
-          Number((resWithVol.valuationRange!.deltaPerMwh * 5000).toFixed(2))
-        );
-      });
-
       it('summary dossier includes REGULATORY RISK SPREAD when valuationRange is present', () => {
         const consignment: Consignment = {
           ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
@@ -1491,7 +1539,18 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
         };
         const deMarket = getMarketById('DE_THG')!;
         const elig = evaluateEligibility(consignment, deMarket);
-        const netback = computeNetback(deMarket, consignment, sampleMarks, emptyCosts, 'bid');
+        const baseNetback = computeNetback(deMarket, consignment, sampleMarks, emptyCosts, 'bid');
+        const netback = {
+          ...baseNetback,
+          valuationRange: {
+            low: 150.0,
+            high: 200.0,
+            deltaPerMwh: 50.0,
+            deltaNotional: 500000.0,
+            driver: 'Regulatory policy spread',
+            gateId: 'MARKET_SPECIFIC',
+          },
+        };
         const assessment: TradeAssessment = {
           id: 'test-assessment-range',
           createdAt: '2026-08-16T10:00:00Z',
@@ -1507,7 +1566,7 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
 
         const summary = generateTradeSummary(assessment);
         expect(summary).toContain('REGULATORY RISK SPREAD (HEADLINE VALUATION RANGE):');
-        expect(summary).toContain('Underlying Driver:    German THG double-counting eligibility');
+        expect(summary).toContain('Underlying Driver:    Regulatory policy spread');
       });
     });
 

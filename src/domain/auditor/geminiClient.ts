@@ -76,7 +76,7 @@ CRITICAL OPERATING INVARIANTS:
    - Gate 1: Certification Scheme (ISCC EU / REDcert EU vs ISCC PLUS)
    - Gate 2: UDB Mass Balance & Grid Injection (EU interconnected grid vs UK/CH boundary under RED III Art 31a)
    - Gate 3: Chain of Custody (Mass Balance mandatory under Art 30(1); Book & Claim prohibited)
-   - Gate 4: Feedstock Annex IX Classification (Annex IX-A advanced double-counting vs Annex IX-B vs Energy crops food/feed cap)
+   - Gate 4: Feedstock Annex IX Classification (Annex IX-A advanced feedstocks vs Annex IX-B vs Energy crops food/feed cap)
    - Gate 5: RED III GHG Savings Threshold (>= 65% for transport, CI <= 32.9 gCO2e/MJ vs 94.0 comparator)
    - Gate 6: Target Market Statutory Gating & Ceilings (French CPB €100 ceiling, German 38. BImSchV Nabisy, Italian CIC, UK RTFO)
    - Gate 7 (Guarantee of Origin markets only): Registry Transfer. GO transfers depend on registry hub connectivity (AIB gas hub vs ERGaR) and must never be assumed; see the cross-border GO dossier. Hub connectivity does not govern Proof of Sustainability / mass-balance compliance trades.
@@ -354,8 +354,8 @@ function runExhaustiveDeterministicAudit(
     checks.push({
       gateName: '4. Feedstock Annex IX Gate',
       status: 'PASS',
-      details: 'Annex IX Part A (Item 17: Animal manure & slurry). Qualifies for double-counting certificate multipliers in DE, NL, and UK transport markets.',
-      citation: 'RED III Directive Annex IX Part A & 38. BImSchV § 37a'
+      details: 'Annex IX Part A (Item 17: Animal manure & slurry). Qualifies as advanced feedstock in compliance transport markets (single counting in DE from 2026 under Drs 21/5530; 2× in UK RTFO).',
+      citation: 'RED III Directive Annex IX Part A, 38. BImSchV & Bundestag Drs 21/5530'
     });
   } else {
     checks.push({
@@ -425,8 +425,8 @@ function runExhaustiveDeterministicAudit(
     checks.push({
       gateName: '6. German 38. BImSchV & Nabisy Registration',
       status: 'PASS',
-      details: 'Eligible for German THG quota surrender. Manure methane avoidance credit (e_am) decoupled from 2x double counting policy multiplier under 38. BImSchV.',
-      citation: '38. BImSchV & BImSchG § 37a'
+      details: 'Eligible for German THG quota surrender. Single counting (1×) applies under Bundestag Drucksache 21/5530 (promulgation date not yet confirmed). Manure methane avoidance credit (e_am) remains 100% intact.',
+      citation: '38. BImSchV, BImSchG § 37a & Bundestag Drs 21/5530'
     });
   } else {
     checks.push({
@@ -474,7 +474,7 @@ ${isApproved
 #### 2. Carbon Intensity & Avoided Methane Dynamics
 - **Fossil Fuel Baseline:** 94.0 gCO₂eq/MJ
 - **Achieved GHG Savings:** **${ghgSavingsPct}%** (Mandatory statutory threshold: **65%**, requiring CI ≤ 32.9 gCO₂eq/MJ).
-- **Substrate Classification:** Animal manure qualifies under **Annex IX Part A (Item 17)**. Under German 38. BImSchV, the negative CI credit derived from avoided open storage methane emissions ($e_{am} = -45\\text{ to }-100\\text{ gCO}_2\\text{e/MJ}$) is legally decoupled from the administrative 2× double-counting multiplier.
+- **Substrate Classification:** Animal manure qualifies under **Annex IX Part A (Item 17)**. Under German 38. BImSchV and the Zweites Gesetz zur Weiterentwicklung der THG-Quote (Bundestag Drucksache 21/5530; promulgation date not yet confirmed), single counting (1×) applies for 2026+ compliance, while the negative CI credit derived from avoided open storage methane emissions ($e_{am} = -45\\text{ to }-100\\text{ gCO}_2\\text{e/MJ}$) is legally decoupled and remains 100% intact.
 
 #### 3. Registry & UDB Recording Logistics
 - Gas grid injection in **${trade.originCountry}** connects to the interconnected European transmission pipeline network.
@@ -483,7 +483,7 @@ ${isApproved
 #### 4. Recommended EFET Contractual Protective Clauses
 1. **Proof of Sustainability (PoS) Delivery Schedule:** Mandate electronic delivery of valid PoS within 10 business days following injection month.
 2. **Cure Period & TTF Fallback:** Include a 3-business-day cure notice for delayed PoS. If seller fails to deliver RED III-compliant PoS, buyer retains contractual right to re-price molecule to standard TTF Day-Ahead spot price without paying the green certificate premium.
-3. **Regulatory Change Protection:** Ensure clause covering potential national repeal of 2× double-counting multipliers without indemnification penalty.`;
+3. **Regulatory Change Protection:** Ensure clause covering statutory amendments or national quota mandate adjustments without indemnification penalty.`;
 
   return {
     verdict,

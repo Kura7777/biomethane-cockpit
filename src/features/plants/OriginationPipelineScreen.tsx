@@ -380,7 +380,7 @@ export function OriginationPipelineScreen() {
         </div>
 
         <div style={{ padding: '14px 18px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-panel)' }}>
-          <div style={{ fontSize: '12px', color: 'var(--color-pnl-pos, var(--color-accent))', fontWeight: 600 }}>High-Margin Manure / Double-Counting</div>
+          <div style={{ fontSize: '12px', color: 'var(--color-pnl-pos, var(--color-accent))', fontWeight: 600 }}>High-Margin Manure / Deep Negative CI</div>
           <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--color-pnl-pos, var(--color-accent))', marginTop: '4px' }}>
             {stats.manureCount} sites <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)', fontWeight: 400 }}>(-78 to -84 gCO₂e/MJ)</span>
           </div>

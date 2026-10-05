@@ -450,12 +450,11 @@ describe('Biomethane Trading Platform — Registry, Netback & Workflow Verificat
         'bid'
       );
 
-      // Certificate value for DC_OFF: 280.0 * 0.8784 = 245.952 -> 245.95 €/MWh
-      // For DC_ON: 245.952 * 2 = 491.904 -> 491.90 €/MWh
+      // Certificate value for single counting (assumed 2026+): 280.0 * 0.8784 = 245.952 -> 245.95 €/MWh
+      // No DC_ON branch or valuation range under settled Drs 21/5530
       expect(netback.certificateValue?.valueEurPerMWh).toBeCloseTo(245.95, 1);
-      // Valuation range reflects full net netback: High (DC_ON: 491.90 + 29.50 - 4.00 = 517.40), Low (DC_OFF: 271.45)
-      expect(netback.valuationRange?.high).toBeCloseTo(517.40, 1);
-      expect(netback.valuationRange?.deltaPerMwh).toBeCloseTo(245.95, 1);
+      expect(netback.valuationRange).toBeNull();
+      expect(netback.uncertaintyBranches).toBeNull();
     });
 
     it('2.2 handles high positive carbon intensity (+85 gCO2e/MJ) with minimal GHG savings', () => {

@@ -231,20 +231,6 @@ export function TradeEconomicsStep({
               </div>
             </div>
 
-            {/* German 2026 Cliff Impact (if applicable) */}
-            {netback.principalRisk.germanCliffImpactEurMwh !== null && netback.principalRisk.germanCliffImpactEurMwh !== undefined && (
-              <div className="tb-alert neg tb-alert-block">
-                <span className="tb-row tb-full">
-                  <span className="tb-alert-text">
-                    <AlertTriangle size={14} /> German 2026 Double-Counting Cliff:
-                  </span>
-                  <span className="tb-num">−€{netback.principalRisk.germanCliffImpactEurMwh.toFixed(2)}/MWh</span>
-                </span>
-                <p className="tb-alert-body">
-                  Statutory sunset on manure multiplier eliminates −€{netback.principalRisk.germanCliffNotionalEur?.toLocaleString()} of quota value post-2026.
-                </p>
-              </div>
-            )}
             <p className="tb-hint">Principal Trader Risk Suite · cross-border hedging</p>
             <AssumptionsStrip title="Risk suite assumptions" keys={RISK_SUITE_ASSUMPTIONS} />
           </div>

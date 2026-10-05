@@ -13,7 +13,6 @@ import {
 } from './types';
 
 export const DEFAULT_WHAT_IF_SCENARIO: RegulatoryWhatIfScenario = {
-  deDoubleCounting: 'DC_OFF',
   ukUdbRecognition: false,
   fuelEUEscalationYears: 1,
   frCpbPenaltyCap: 100,
@@ -91,10 +90,6 @@ export function scanEuropeanArbitrage(
 
       let destinationNetback = netbackRes.netNetback;
 
-      // If German THG with scenario override
-      if (market.id === 'DE_THG' && scenario.deDoubleCounting === 'DC_ON' && netbackRes.uncertaintyBranches) {
-        destinationNetback = netbackRes.uncertaintyBranches[1].netNetback;
-      }
 
       let deskNetMargin: number | null = null;
       let producerPayable: number | null = null;

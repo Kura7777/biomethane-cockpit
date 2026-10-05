@@ -122,7 +122,7 @@ describe('PHASE 3 — CROSS-SCREEN CONSISTENCY & PARAMETER HANDOFF AUDIT', () =>
     expect(parsed.deliveryPeriod).toBe('Cal-2026');
   });
 
-  it('3. German Dual-Branch Valuation Range: consistency between Trade Builder and Dossier', () => {
+  it('3. German Single-Branch Valuation: consistency between Trade Builder and Dossier for 2027', () => {
     const deMarket = getMarketById('DE_THG')!;
     const post2026Consignment: Consignment = {
       ...testConsignment,
@@ -130,16 +130,14 @@ describe('PHASE 3 — CROSS-SCREEN CONSISTENCY & PARAMETER HANDOFF AUDIT', () =>
         type: 'CALENDAR',
         startDate: '2027-01-01',
         endDate: '2027-12-31',
-        complianceYear: 2027, // Triggers dual-branch range
+        complianceYear: 2027,
       }
     };
 
     const deNetback = computeNetback(deMarket, post2026Consignment, marks, costs, marks.pricingSides);
-    expect(deNetback.uncertaintyBranches).not.toBeNull();
-    expect(deNetback.uncertaintyBranches?.length).toBe(2);
-
-    const lowBranch = deNetback.uncertaintyBranches![0]; // DC_OFF
-    const highBranch = deNetback.uncertaintyBranches![1]; // DC_ON
+    expect(deNetback.uncertaintyBranches).toBeNull();
+    expect(deNetback.valuationRange).toBeNull();
+    expect(deNetback.netNetback).not.toBeNull();
 
     const deAssessment: TradeAssessment = {
       id: 'de_test_assessment',
@@ -156,8 +154,7 @@ describe('PHASE 3 — CROSS-SCREEN CONSISTENCY & PARAMETER HANDOFF AUDIT', () =>
 
     const deDossier = generateTradeSummary(deAssessment);
 
-    // Verify both branch figures appear in the dossier
-    expect(deDossier).toContain(`€${(lowBranch.netNetback as number).toFixed(2)}/MWh`);
-    expect(deDossier).toContain(`€${(highBranch.netNetback as number).toFixed(2)}/MWh`);
+    // Verify netback figure appears in the dossier
+    expect(deDossier).toContain(`€${(deNetback.netNetback as number).toFixed(2)}/MWh`);
   });
 });

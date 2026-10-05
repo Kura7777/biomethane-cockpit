@@ -106,12 +106,13 @@ describe('Audit remediation — netback mathematics', () => {
     expect(nb.sides!.crossingCost!).toBeGreaterThan(0);
   });
 
-  it('P0-2: e_am is decoupled from the multiplier — DC_OFF keeps the full negative-CI value', () => {
-    const nb = computeNetback(getMarketById('DE_THG')!, withYear(manure, 2026), marks, fixedCosts);
-    const dcOff = nb.uncertaintyBranches!.find(b => b.branchId === 'DC_OFF')!;
-    const dcOn = nb.uncertaintyBranches!.find(b => b.branchId === 'DC_ON')!;
-    expect(dcOff.certificateValue!.valueEurPerMWh).toBeCloseTo(280 * (94 + 100) * 0.0036, 1);
-    expect(dcOn.certificateValue!.valueEurPerMWh).toBeCloseTo(dcOff.certificateValue!.valueEurPerMWh! * 2, 2);
+  it('P0-2: e_am is decoupled from the multiplier — 2026+ settled single counting vs 2025 2x multiplier', () => {
+    const nb2026 = computeNetback(getMarketById('DE_THG')!, withYear(manure, 2026), marks, fixedCosts);
+    expect(nb2026.uncertaintyBranches).toBeNull();
+    expect(nb2026.certificateValue!.valueEurPerMWh).toBeCloseTo(280 * (94 + 100) * 0.0036, 1);
+
+    const nb2025 = computeNetback(getMarketById('DE_THG')!, { ...withYear(manure, 2025), observedBundlePriceEurPerMwh: 1e9 }, marks, fixedCosts);
+    expect(nb2025.certificateValue!.valueEurPerMWh).toBeCloseTo(280 * (94 + 100) * 0.0036 * 2, 1);
   });
 
   it('P0-3: FuelEU desk mark in €/tCO₂e is converted to €/MWh through the target-intensity surplus', () => {

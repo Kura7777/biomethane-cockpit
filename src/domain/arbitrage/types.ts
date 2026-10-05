@@ -93,7 +93,7 @@ export interface ArbitrageMatrixCell {
 }
 
 export interface RegulatoryWhatIfScenario {
-  deDoubleCounting: 'DC_OFF' | 'DC_ON';
+  deDoubleCounting?: string; // Retired; 2026+ is single counting only (Bundestag Drs 21/5530)
   ukUdbRecognition: boolean;
   fuelEUEscalationYears: 1 | 2 | 3 | 4;
   frCpbPenaltyCap: number; // default 100

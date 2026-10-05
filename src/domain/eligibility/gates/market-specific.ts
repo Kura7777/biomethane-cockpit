@@ -79,11 +79,11 @@ export function evaluateMarketSpecificGate(consignment: Consignment, market: Mar
         return {
           gate: GATE,
           gateLabel: GATE_LABEL,
-          verdict: 'UNRESOLVED',
-          reason: `For compliance year ${complianceYear} (>= 2026), double counting of advanced biofuels is eliminated in the Cabinet draft (10 December 2025). Whether biomethane specifically retains double counting is unresolved. Both scenarios must be modelled.\n\n⚠ IMPORTANT DISTINCTION:\n• Double counting is a POLICY MULTIPLIER — it is being removed.\n• Manure's negative carbon intensity is a property of the GHG CALCULATION (avoided methane emissions from conventional manure management) — it is UNAFFECTED by changes to double counting.`,
-          remedy: 'Model both branches (with and without double counting). Monitor the legislative process for the final BImSchV amendment.',
-          citations: [CITATIONS.DE_BIMSCHG, CITATIONS.DE_38_BIMSCHV],
-          confidence: 'MEDIUM',
+          verdict: 'PASS',
+          reason: `For compliance year ${complianceYear} (>= 2026), double counting for advanced biofuels is abolished under the Zweites Gesetz zur Weiterentwicklung der THG-Quote (Bundestag Drucksache 21/5530, adopted 23.04.2026; Bundesrat 08.05.2026; promulgation date not yet confirmed: "Die Quote für fortschrittliche Biokraftstoffe wird angehoben, die Doppelanrechnung entfällt"). Single counting (1×) applies cleanly.`,
+          remedy: null,
+          citations: [CITATIONS.DE_BIMSCHG, CITATIONS.DE_DRS_21_5530],
+          confidence: 'HIGH',
         };
       }
 
@@ -91,11 +91,11 @@ export function evaluateMarketSpecificGate(consignment: Consignment, market: Mar
       return {
         gate: GATE,
         gateLabel: GATE_LABEL,
-        verdict: 'UNRESOLVED',
-        reason: 'Compliance year is unset on this consignment. Because German THG quota double-counting rules differ across compliance years (retained <= 2025, eliminated >= 2026 in draft legislation), the specific rule cannot be applied until a compliance year is selected. Both branches must be modelled under regulatory uncertainty.',
-        remedy: 'Set the delivery period / compliance year on the consignment to determine whether double counting applies.',
-        citations: [CITATIONS.DE_BIMSCHG, CITATIONS.DE_38_BIMSCHV],
-        confidence: 'MEDIUM',
+        verdict: 'PASS',
+        reason: 'Compliance year not set — assumed 2026+ (single counting). Double counting for advanced biofuels is abolished under the Zweites Gesetz zur Weiterentwicklung der THG-Quote (Bundestag Drucksache 21/5530, adopted 23.04.2026; Bundesrat 08.05.2026; promulgation date not yet confirmed). Single counting (1×) applies.',
+        remedy: null,
+        citations: [CITATIONS.DE_BIMSCHG, CITATIONS.DE_DRS_21_5530],
+        confidence: 'HIGH',
       };
     }
 

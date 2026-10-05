@@ -537,10 +537,10 @@ export function computeNetback(
 
   const isComplete = missingInputs.length === 0 && certVal?.valueEurPerMWh != null;
 
-  // Germany THG uncertainty branches:
-  // - If complianceYear <= 2025: double counting applies cleanly (single branch, no uncertainty branches)
-  // - If complianceYear >= 2026 or null: UNRESOLVED dual branches (DC_OFF 1x vs DC_ON 2x)
-  let uncertaintyBranches: NetbackBranch[] | null = null;
+  // Germany THG branches:
+  // - If complianceYear <= 2025: double counting applies cleanly (historical 2x multiplier)
+  // - If complianceYear >= 2026 or null: settled single counting (1x multiplier) under the
+  //   Zweites Gesetz zur Weiterentwicklung der THG-Quote (Bundestag Drucksache 21/5530).
   const complianceYear = consignment.deliveryPeriod?.complianceYear ?? null;
 
   if (market.id === 'DE_THG' && certVal?.valueEurPerMWh != null) {
@@ -584,87 +584,13 @@ export function computeNetback(
         sides.atMid = dcAtMid;
         sides.crossingCost = dcAtMid !== null ? Number((dcAtMid - netNetback).toFixed(2)) : null;
       }
-      uncertaintyBranches = null;
     } else {
-      const dcOffNetback = netNetback;
-      const dcOffSpread = grossValueSpread;
-      const dcOffProducerPayable = producerPayable;
-      const dcOffDeskMargin = deskMargin;
-
-      // DC_ON: certificate value doubled (2x)
-      const dcOnCertVal = certVal.valueEurPerMWh * 2;
-      const dcOnNetback = dcOnCertVal + (molVal ?? 0) - (totalCosts ?? 0);
-      let dcOnProducerPayable: number | null = null;
-      let dcOnDeskMargin: number | null = null;
-      let dcOnSpread: number | null = null;
-
-      if (pricingMode === 'INDEX_LINKED') {
-        const share = costs.producerPricing?.indexLinkedShare ?? null;
-        if (share !== null && dcOnNetback !== null) {
-          dcOnProducerPayable = Number((dcOnNetback * share).toFixed(2));
-          dcOnDeskMargin = Number((dcOnNetback - dcOnProducerPayable).toFixed(2));
-          dcOnSpread = null;
-        }
-      } else if (pricingMode === 'FIXED_PRICE') {
-        const fixedPrice = costs.producerPricing?.fixedPriceEurPerMwh ?? null;
-        if (fixedPrice !== null && dcOnNetback !== null) {
-          dcOnProducerPayable = fixedPrice;
-          dcOnDeskMargin = Number((dcOnNetback - fixedPrice).toFixed(2));
-          dcOnSpread = dcOnDeskMargin;
-        }
+      // Compliance year >= 2026 or unset: single counting (1×) is settled law under
+      // the Zweites Gesetz zur Weiterentwicklung der THG-Quote (Bundestag Drucksache 21/5530).
+      // No DC_ON branch, no valuation range.
+      if (complianceYear === null) {
+        certVal.statusNote = 'Compliance year not set — assumed 2026+ (single counting).';
       }
-
-      const dcOnMarginPct = computeMarginPercent(dcOnDeskMargin, dcOnNetback);
-
-      const dcOnDeskPnL = dcOnDeskMargin !== null && consignment.volumeMWh !== null ? dcOnDeskMargin * consignment.volumeMWh : null;
-      const dcOnGrossSpreadPnL = dcOnSpread !== null && consignment.volumeMWh !== null ? dcOnSpread * consignment.volumeMWh : null;
-
-      // DC_ON crossing cost:
-      const dcOnAtChosen = dcOnNetback;
-      const dcOnAtMid = midCertVal?.valueEurPerMWh != null ? midCertVal.valueEurPerMWh * 2 + (midMolVal ?? 0) - (totalCosts ?? 0) : null;
-      const dcOnCrossingCost = (dcOnAtChosen !== null && dcOnAtMid !== null) ? Number((dcOnAtMid - dcOnAtChosen).toFixed(2)) : null;
-
-      uncertaintyBranches = [
-        {
-          branchId: 'DC_OFF',
-          branchLabel: 'Without double counting (1× single counting)',
-          certificateValue: certVal,
-          netNetback: dcOffNetback,
-          grossValueSpread: dcOffSpread,
-          producerPayable: dcOffProducerPayable,
-          deskMargin: dcOffDeskMargin,
-          marginPercent: marginPercent,
-          grossSpreadPnL,
-          deskPnL,
-          isComplete,
-          missingInputs,
-          sides,
-        },
-        {
-          branchId: 'DC_ON',
-          branchLabel: 'If double counting is retained (2×)',
-          certificateValue: {
-            ...certVal,
-            valueEurPerMWh: dcOnCertVal,
-            calculation: `${certVal.calculation} × 2 (double counting) = €${dcOnCertVal.toFixed(2)}/MWh`,
-            statusNote: 'CAUTION: This branch doubles the certificate value (€/MWh) as a proxy for 2× quota volume credit. In practice, if double counting is retained, the market price per tCO₂e may be lower due to increased effective supply. This branch represents an upper-bound scenario.',
-          },
-          netNetback: dcOnNetback,
-          grossValueSpread: dcOnSpread,
-          producerPayable: dcOnProducerPayable,
-          deskMargin: dcOnDeskMargin,
-          marginPercent: dcOnMarginPct,
-          grossSpreadPnL: dcOnGrossSpreadPnL,
-          deskPnL: dcOnDeskPnL,
-          isComplete,
-          missingInputs,
-          sides: {
-            atChosenSides: dcOnAtChosen,
-            atMid: dcOnAtMid,
-            crossingCost: dcOnCrossingCost,
-          },
-        },
-      ];
     }
   }
 
@@ -725,40 +651,10 @@ export function computeNetback(
     if (sides.atMid !== null) sides.atMid = Math.min(sides.atMid, netNetback);
     sides.crossingCost = sides.atMid !== null ? Number((sides.atMid - netNetback).toFixed(2)) : null;
   }
-  if (bundleBenchmark !== null && uncertaintyBranches) {
-    uncertaintyBranches = uncertaintyBranches.map(b => {
-      if (b.netNetback === null || b.netNetback <= bundleBenchmark) return b;
-      const capped = Number(bundleBenchmark.toFixed(2));
-      return { ...b, netNetback: capped, ...priceAt(capped) };
-    });
-  }
+  const uncertaintyBranches: NetbackBranch[] | null = null;
+  const valuationRange: ValuationRange | null = null;
 
-  let valuationRange: ValuationRange | null = null;
-  if (uncertaintyBranches && uncertaintyBranches.length >= 2) {
-    const branchNetbacks = uncertaintyBranches
-      .map(b => b.netNetback)
-      .filter((n): n is number => n !== null);
-
-    if (branchNetbacks.length >= 2) {
-      const low = Math.min(...branchNetbacks);
-      const high = Math.max(...branchNetbacks);
-      const deltaPerMwh = Number((high - low).toFixed(2));
-      const deltaNotional = consignment.volumeMWh !== null 
-        ? Number((deltaPerMwh * consignment.volumeMWh).toFixed(2)) 
-        : null;
-
-      valuationRange = {
-        low,
-        high,
-        deltaPerMwh,
-        deltaNotional,
-        driver: 'German THG double-counting eligibility (§37a BImSchG)',
-        gateId: 'MARKET_SPECIFIC',
-      };
-    }
-  }
-
-  // Principal Risk Suite: Basis Risk, Statutory Replacement Exposure, and 2026 Cliff
+  // Principal Risk Suite: Basis Risk and Statutory Replacement Exposure
   const originHub = HUB_BASIS_SPREADS[consignment.originCountry] || { basisSpreadToTtfEurMwh: 0.0 };
   const targetHub = HUB_BASIS_SPREADS[market.country] || { basisSpreadToTtfEurMwh: 0.0 };
   const basisDifferentialEurMwh = Number((targetHub.basisSpreadToTtfEurMwh - originHub.basisSpreadToTtfEurMwh).toFixed(2));
@@ -777,20 +673,11 @@ export function computeNetback(
   const effectiveProcurement = producerPayable ?? (molVal ? molVal + getAssumption('risk.fallbackProcurementPremiumEurPerMwh') : getAssumption('risk.fallbackProcurementEurPerMwh'));
   const replacementCostExposureEur = Math.round(Math.max(0, effectiveCeiling - effectiveProcurement) * dealVolume);
 
-  let germanCliffImpactEurMwh: number | null = null;
-  let germanCliffNotionalEur: number | null = null;
-  if (market.id === 'DE_THG' && (consignment.annexClassification === 'IX_A' || consignment.annexClassification === 'IX_B')) {
-    germanCliffImpactEurMwh = certVal?.valueEurPerMWh != null ? Number(certVal.valueEurPerMWh.toFixed(2)) : null;
-    germanCliffNotionalEur = germanCliffImpactEurMwh ? Math.round(germanCliffImpactEurMwh * dealVolume) : null;
-  }
-
   const principalRisk: PrincipalRiskMetrics = {
     basisDifferentialEurMwh,
     basisRiskNotionalEur,
     replacementCostExposureEur,
     statutoryCeilingEurMwh,
-    germanCliffImpactEurMwh,
-    germanCliffNotionalEur,
   };
 
   let clearingPriceWarning: string | null = null;
