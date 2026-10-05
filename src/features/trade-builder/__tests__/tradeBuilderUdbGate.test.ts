@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { evaluateUDBGate } from '../../../domain/eligibility/gates/udb';
 import { getMarketById } from '../../../domain/markets/registry';
-import { Consignment } from '../../../domain/consignment/types';
+import { Consignment, UDBStatus, PoSStatus } from '../../../domain/consignment/types';
 
 describe('Trade Builder — UDB Gate and Consignment Input Assumptions', () => {
   const deMarket = getMarketById('DE_THG')!;
