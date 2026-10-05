@@ -11,7 +11,7 @@ import {
   calculateMarineBunkerQuotation,
 } from '../../../domain/fueleu/calculator';
 import { buildDealUrl } from '../../../domain/trade/dealParams';
-import { defaultCi, defaultVolumeMwh } from '../../../domain/trade/dealDefaults';
+import { defaultVolumeMwh } from '../../../domain/trade/dealDefaults';
 import {
   FileText,
   Copy,
@@ -293,7 +293,8 @@ European Biomethane & Marine Fuels Trading Desk`
       marketId: 'FUELEU',
       originCountry: 'NL',
       feedstock: 'manure',
-      ci: defaultCi('NL', 'manure').ci,
+      // Volume is sized at -100 gCO2e/MJ (bio_lng_required_neg100_mwh); the CI must match it.
+      ci: -100,
       ciIsEstimated: true,
       volume: volumeMwh,
       counterparty: counterparty.parent_name,
@@ -316,8 +317,8 @@ European Biomethane & Marine Fuels Trading Desk`
           originCountry: 'NL',
           destinationMarket: 'MARITIME_FUELEU',
           feedstock: 'manure',
-          carbonIntensity: defaultCi('NL', 'manure').ci,
-          ghgIntensity: defaultCi('NL', 'manure').ci,
+          carbonIntensity: -100,
+          ghgIntensity: -100,
           annualVolumeMWh: volumeMwh,
                                       volumeMWh: volumeMwh,
           counterparty: counterparty.parent_name,
