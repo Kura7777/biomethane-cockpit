@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ComposableMap,
   Geographies,
@@ -17,7 +17,7 @@ import './map.css';
 import { LogisticsModal } from '../logistics/LogisticsModal';
 import { buildDealUrl } from '../../domain/trade/dealParams';
 import { calculateLogisticsRoute, calculateDijkstraCorridor } from '../../domain/logistics/engine';
-import { getDefaultMarketForOrigin } from '../trade-builder/TradeBuilderScreen';
+import { getMarketForRoute, getMarketAndCocForRoute } from '../../domain/routes/destinationMarket';
 import { getGoRoute, getPosRoute } from '../../domain/routes';
 import { POS_SCHEMES } from '../../domain/routes/routeMatrix.generated';
 import { MARKETS } from '../../domain/markets/registry';
@@ -219,6 +219,29 @@ export const FILTER_CONFIG: Record<RouteFilter, { label: string; shortLabel: str
   },
 };
 
+export const ISO_TO_NAME: Record<string, string> = {};
+for (const [cName, meta] of Object.entries(COUNTRIES)) {
+  ISO_TO_NAME[meta.iso.toUpperCase()] = cName;
+}
+ISO_TO_NAME['UK'] = 'United Kingdom';
+
+export function resolveCorridorParams(params: URLSearchParams): { origin: string; target: string; filter: RouteFilter } {
+  const rawOrigin = params.get('origin')?.toUpperCase();
+  const rawTarget = params.get('target')?.toUpperCase();
+  const rawFilter = params.get('filter')?.toUpperCase();
+
+  const originName = (rawOrigin && ISO_TO_NAME[rawOrigin]) ? ISO_TO_NAME[rawOrigin] : 'Denmark';
+  let targetName = (rawTarget && ISO_TO_NAME[rawTarget]) ? ISO_TO_NAME[rawTarget] : (originName === 'Germany' ? 'Denmark' : 'Germany');
+
+  if (targetName === originName) {
+    targetName = originName === 'Germany' ? 'Denmark' : 'Germany';
+  }
+
+  const filterVal: RouteFilter = (rawFilter === 'GO' || rawFilter === 'POS' || rawFilter === 'ALL') ? rawFilter : 'ALL';
+
+  return { origin: originName, target: targetName, filter: filterVal };
+}
+
 export type TradeArchetype = 'BOTH' | 'CERT_ONLY' | 'POS_ONLY' | 'CHECK_FIRST' | 'CLOSED' | 'NO_DATA';
 
 export interface TradePlaybookDetails {
@@ -362,14 +385,37 @@ export function getTradePlaybook(originIso: string, targetIso: string, r: Certif
 
 export function MapScreen() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialParams = useMemo(() => resolveCorridorParams(searchParams), []);
   const isMobile = useIsMobile();
   const [panelOpen, setPanelOpen] = useState(false);
-  const [origin, setOrigin] = useState<string>('Denmark');
-  const [target, setTarget] = useState<string>('Germany');
-  const [selectedCountryName, setSelectedCountryName] = useState<string>('Germany');
+  const [origin, setOrigin] = useState<string>(initialParams.origin);
+  const [target, setTarget] = useState<string>(initialParams.target);
+  const [selectedCountryName, setSelectedCountryName] = useState<string>(initialParams.target);
   const [mode, setMode] = useState<'ORIGIN' | 'TARGET'>('TARGET');
   const [view, setView] = useState<MapView>('SELL');
-  const [filter, setFilter] = useState<RouteFilter>('ALL');
+  const [filter, setFilter] = useState<RouteFilter>(initialParams.filter);
+
+  // Keep URL query params synchronized with corridor selection
+  useEffect(() => {
+    const originIso = COUNTRIES[origin]?.iso || 'DK';
+    const targetIso = COUNTRIES[target]?.iso || 'DE';
+    const urlOrigin = searchParams.get('origin')?.toUpperCase();
+    const urlTarget = searchParams.get('target')?.toUpperCase();
+    const urlFilter = searchParams.get('filter')?.toUpperCase();
+
+    if (urlOrigin !== originIso || urlTarget !== targetIso || urlFilter !== filter) {
+      setSearchParams({ origin: originIso, target: targetIso, filter }, { replace: true });
+    }
+  }, [origin, target, filter, searchParams, setSearchParams]);
+
+  // Synchronize state when deep link or URL changes externally
+  useEffect(() => {
+    const resolved = resolveCorridorParams(searchParams);
+    if (resolved.origin !== origin) setOrigin(resolved.origin);
+    if (resolved.target !== target) setTarget(resolved.target);
+    if (resolved.filter !== filter) setFilter(resolved.filter);
+  }, [searchParams]);
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
   const [summarySearch, setSummarySearch] = useState('');
   const [isCaveatOpen, setIsCaveatOpen] = useState(false);
@@ -573,7 +619,7 @@ export function MapScreen() {
       `Closed / domestic only (${groups.CLOSED.length}):`,
       ...(groups.CLOSED.length > 0 ? groups.CLOSED : ['- None']),
       '',
-      AUDIT_REF,
+      'Route audit: 4 Oct 2026',
     ];
     try {
       await navigator.clipboard.writeText(lines.join('\n'));
@@ -673,10 +719,14 @@ export function MapScreen() {
     setSelectedCountryName(prevTarget);
   };
 
+  const currentTradeTarget = useMemo(() => getMarketAndCocForRoute(currentRoute), [currentRoute]);
+
   const handleSimulateTrade = () => {
+    if (!currentTradeTarget) return;
     navigate(buildDealUrl({
       originCountry: originMeta.iso,
-      marketId: getDefaultMarketForOrigin(targetMeta.iso),
+      marketId: currentTradeTarget.marketId,
+      coc: currentTradeTarget.coc,
     }));
   };
 
@@ -1081,29 +1131,29 @@ export function MapScreen() {
     <div className="map-playbook-card" data-testid="trade-playbook-card">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '8px' }}>
         <span className="eyebrow" style={{ color: 'var(--color-accent)', fontWeight: 800 }}>Trade Execution Playbook</span>
-        <span className={`chip ${selectedPlaybook.chipClass}`} style={{ fontSize: '11px', fontWeight: 700 }}>
-          {selectedPlaybook.badge}
+        <span className={`chip ${currentPlaybook.chipClass}`} style={{ fontSize: '11px', fontWeight: 700 }}>
+          {currentPlaybook.badge}
         </span>
       </div>
 
       <div style={{ fontSize: '15px', fontWeight: 800, marginBottom: '6px', lineHeight: 1.3 }}>
-        {originMeta.iso} ➔ {selectedMeta.iso}: {selectedPlaybook.structureTitle}
+        {originMeta.iso} ➔ {targetMeta.iso}: {currentPlaybook.structureTitle}
       </div>
 
       <div style={{ fontSize: '12px', lineHeight: 1.45, color: 'var(--color-text)', marginBottom: '10px' }}>
-        {selectedPlaybook.structureDesc}
+        {currentPlaybook.structureDesc}
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '10px 12px', backgroundColor: 'var(--color-bg)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-control)', marginBottom: '12px' }}>
         <div>
           <div className="eyebrow" style={{ fontSize: '10px', marginBottom: '2px' }}>Statutory Scheme &amp; Destination</div>
-          <div style={{ fontWeight: 700, fontSize: '12px' }}>{selectedPlaybook.schemeTitle}</div>
-          <div className="mut" style={{ fontSize: '11px', marginTop: '1px', lineHeight: 1.4 }}>{selectedPlaybook.schemeDesc}</div>
+          <div style={{ fontWeight: 700, fontSize: '12px' }}>{currentPlaybook.schemeTitle}</div>
+          <div className="mut" style={{ fontSize: '11px', marginTop: '1px', lineHeight: 1.4 }}>{currentPlaybook.schemeDesc}</div>
         </div>
         <div style={{ borderTop: '1px solid var(--color-divider)', paddingTop: '6px' }}>
           <div className="eyebrow" style={{ fontSize: '10px', marginBottom: '2px' }}>How to Execute</div>
-          <div style={{ fontWeight: 700, fontSize: '12px' }}>{selectedPlaybook.executionTitle}</div>
-          <div className="mut" style={{ fontSize: '11px', marginTop: '1px', lineHeight: 1.4 }}>{selectedPlaybook.executionDesc}</div>
+          <div style={{ fontWeight: 700, fontSize: '12px' }}>{currentPlaybook.executionTitle}</div>
+          <div className="mut" style={{ fontSize: '11px', marginTop: '1px', lineHeight: 1.4 }}>{currentPlaybook.executionDesc}</div>
         </div>
       </div>
 
@@ -1111,14 +1161,11 @@ export function MapScreen() {
         type="button"
         className="btn btn-primary btn-block"
         style={{ fontSize: '13px', fontWeight: 700, padding: '8px 12px' }}
-        onClick={() => {
-          navigate(buildDealUrl({
-            originCountry: originMeta.iso,
-            marketId: getDefaultMarketForOrigin(selectedMeta.iso),
-          }));
-        }}
+        onClick={handleSimulateTrade}
+        disabled={!currentTradeTarget}
+        title={!currentTradeTarget ? 'No tradeable market mapped for this route' : undefined}
       >
-        Simulate {originMeta.iso} ➔ {selectedMeta.iso} in Trade Builder ➔
+        Simulate {originMeta.iso} ➔ {targetMeta.iso} in Trade Builder ➔
       </button>
     </div>
   );
@@ -1165,24 +1212,30 @@ export function MapScreen() {
             </div>
           </button>
 
-          {playbook.isTradeable && (
-            <button
-              type="button"
-              className="btn btn-primary"
-              style={{ fontSize: '11px', padding: '0 8px', height: '26px', minHeight: '26px', flex: '0 0 auto', whiteSpace: 'nowrap' }}
-              onClick={e => {
-                e.stopPropagation();
-                setIsSummaryOpen(false);
-                navigate(buildDealUrl({
-                  originCountry: originMeta.iso,
-                  marketId: getDefaultMarketForOrigin(r.target),
-                }));
-              }}
-              title={`Simulate ${originMeta.iso} ➔ ${r.target} in Trade Builder`}
-            >
-              Trade ➔
-            </button>
-          )}
+          {playbook.isTradeable && (() => {
+            const rowTarget = getMarketAndCocForRoute(r);
+            return (
+              <button
+                type="button"
+                className="btn btn-primary"
+                style={{ fontSize: '11px', padding: '0 8px', height: '26px', minHeight: '26px', flex: '0 0 auto', whiteSpace: 'nowrap' }}
+                onClick={e => {
+                  e.stopPropagation();
+                  if (!rowTarget) return;
+                  setIsSummaryOpen(false);
+                  navigate(buildDealUrl({
+                    originCountry: originMeta.iso,
+                    marketId: rowTarget.marketId,
+                    coc: rowTarget.coc,
+                  }));
+                }}
+                disabled={!rowTarget}
+                title={rowTarget ? `Simulate ${originMeta.iso} ➔ ${r.target} in Trade Builder` : 'No tradeable market mapped for this route'}
+              >
+                Trade ➔
+              </button>
+            );
+          })()}
         </div>
 
         {isExpanded && (
@@ -1410,7 +1463,7 @@ export function MapScreen() {
               type="button"
               className={`btn ${origin === selectedMeta.name ? 'btn-primary' : 'btn-secondary'}`}
               style={{ fontSize: '12px', padding: '6px 8px' }}
-              onClick={() => setOrigin(selectedMeta.name)}
+              onClick={() => setOriginFromMenu(selectedMeta.name)}
             >
               {origin === selectedMeta.name ? '✓ Origin (Active)' : 'Set as Origin'}
             </button>
@@ -1418,7 +1471,7 @@ export function MapScreen() {
               type="button"
               className={`btn ${target === selectedMeta.name ? 'btn-primary' : 'btn-secondary'}`}
               style={{ fontSize: '12px', padding: '6px 8px' }}
-              onClick={() => setTarget(selectedMeta.name)}
+              onClick={() => setTargetFromMenu(selectedMeta.name)}
             >
               {target === selectedMeta.name ? '✓ Target (Active)' : 'Set as Target'}
             </button>
@@ -1426,7 +1479,7 @@ export function MapScreen() {
         </div>
 
         {view === 'SELL' && (
-          selectedMeta.iso !== originMeta.iso ? (
+          originMeta.iso !== targetMeta.iso ? (
             <>
               {playbookCard}
               {summaryCard}
@@ -1580,6 +1633,8 @@ export function MapScreen() {
             className="btn btn-primary btn-block"
             style={{ marginTop: 0 }}
             onClick={handleSimulateTrade}
+            disabled={!currentTradeTarget}
+            title={!currentTradeTarget ? 'No tradeable market mapped for this route' : undefined}
           >
             Simulate in trade builder
           </button>
@@ -1610,14 +1665,29 @@ export function MapScreen() {
         <div className="map-m-controls">
           <div className="map-m-titlerow">
             <h3 className="ptitle m-page-title" style={{ fontSize: '16px' }}>Compliance &amp; logistics map</h3>
-            <button type="button" className="btn btn-primary map-m-trade" onClick={handleSimulateTrade}>
+            <button
+              type="button"
+              className="btn btn-primary map-m-trade"
+              onClick={handleSimulateTrade}
+              disabled={!currentTradeTarget}
+              title={!currentTradeTarget ? 'No tradeable market mapped for this route' : undefined}
+            >
               Trade →
             </button>
           </div>
           <div className="map-m-selects">
             <label className="map-m-field">
               <span className="eyebrow" style={{ color: 'var(--color-text)', fontWeight: 800 }}>Origin</span>
-              <select value={origin} onChange={e => setOrigin(e.target.value)} className="input" aria-label="Origin country">
+              <select
+                value={origin}
+                onChange={e => {
+                  const val = e.target.value;
+                  if (val === target) setOriginFromMenu(val);
+                  else setOrigin(val);
+                }}
+                className="input"
+                aria-label="Origin country"
+              >
                 {sortedCountries.map(([name, c]) => (
                   <option key={c.iso} value={name}>{c.iso} · {c.name} ({c.plants}p)</option>
                 ))}
@@ -1635,7 +1705,11 @@ export function MapScreen() {
               <span className="eyebrow" style={{ color: 'var(--color-accent)', fontWeight: 800 }}>Target</span>
               <select
                 value={target}
-                onChange={e => setTarget(e.target.value)}
+                onChange={e => {
+                  const val = e.target.value;
+                  if (val === origin) setTargetFromMenu(val);
+                  else setTarget(val);
+                }}
                 className="input"
                 aria-label="Target country"
                 style={{ borderColor: 'var(--color-accent)' }}
@@ -1722,7 +1796,14 @@ export function MapScreen() {
           testId="map-panel-sheet"
           footer={
             <div className="map-m-actions">
-              <button type="button" className="btn btn-primary btn-block" style={{ marginTop: 0 }} onClick={handleSimulateTrade}>
+              <button
+                type="button"
+                className="btn btn-primary btn-block"
+                style={{ marginTop: 0 }}
+                onClick={handleSimulateTrade}
+                disabled={!currentTradeTarget}
+                title={!currentTradeTarget ? 'No tradeable market mapped for this route' : undefined}
+              >
                 Simulate in trade builder
               </button>
               <button type="button" className="btn btn-secondary btn-block" style={{ marginTop: 0 }} onClick={openPlaybook}>
@@ -1741,7 +1822,7 @@ export function MapScreen() {
               </div>
               {legendList(13, 10, 6)}
               <div className="mut" style={{ fontSize: '12px', marginTop: '10px' }}>
-                30 European jurisdictions · Interactive cross-border routing &amp; transmission tariffs
+                {Object.keys(COUNTRIES).length} European jurisdictions · Interactive cross-border routing &amp; transmission tariffs
               </div>
             </div>
           </div>
@@ -1764,7 +1845,7 @@ export function MapScreen() {
           isOpen={isLogisticsOpen}
           onClose={() => setIsLogisticsOpen(false)}
           originCountry={originMeta.iso}
-          targetCountry={selectedMeta.iso}
+          targetCountry={targetMeta.iso}
         />
       </div>
     );
@@ -1810,15 +1891,15 @@ export function MapScreen() {
           <div style={{ flex: '1 1 0', minWidth: 0, display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', columnGap: '18px', rowGap: '2px' }}>
             <h3 className="ptitle" style={{ fontSize: '18px', margin: 0 }}>Compliance &amp; logistics map</h3>
             <div className="subttl" style={{ display: 'flex', alignItems: 'center', margin: 0 }}>
-              <span style={{ display: 'inline-flex', gap: '12px' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ width: '9px', height: '9px', backgroundColor: 'var(--color-text)' }} />
-                  Active · {statusCounts.ACTIVE}
-                </span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ width: '9px', height: '9px', backgroundColor: 'var(--color-neutral-500)' }} />
-                  Emerging · {statusCounts.EMERGING}
-                </span>
+              <span style={{ display: 'inline-flex', gap: '12px', flexWrap: 'wrap' }}>
+                {(['ACTIVE', 'EMERGING', 'FUTURE_2028', 'NONE'] as const)
+                  .filter(st => statusCounts[st] > 0)
+                  .map(st => (
+                    <span key={st} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ width: '9px', height: '9px', backgroundColor: STATUS_CONFIG[st].swatch }} />
+                      {STATUS_CONFIG[st].label} · {statusCounts[st]}
+                    </span>
+                  ))}
               </span>
             </div>
           </div>
@@ -1841,7 +1922,11 @@ export function MapScreen() {
               <span className="eyebrow" style={{ color: 'var(--color-text)', fontWeight: 800 }}>Origin</span>
               <select
                 value={origin}
-                onChange={e => setOrigin(e.target.value)}
+                onChange={e => {
+                  const val = e.target.value;
+                  if (val === target) setOriginFromMenu(val);
+                  else setOrigin(val);
+                }}
                 className="input"
                 aria-label="Origin country"
                 style={{
@@ -1879,7 +1964,11 @@ export function MapScreen() {
               <span className="eyebrow" style={{ color: 'var(--color-accent)', fontWeight: 800 }}>Target</span>
               <select
                 value={target}
-                onChange={e => setTarget(e.target.value)}
+                onChange={e => {
+                  const val = e.target.value;
+                  if (val === origin) setTargetFromMenu(val);
+                  else setTarget(val);
+                }}
                 className="input"
                 aria-label="Target country"
                 style={{
@@ -1907,6 +1996,8 @@ export function MapScreen() {
               className="btn btn-primary"
               style={{ height: '28px', minHeight: '28px', fontSize: '12px', padding: '0 10px', marginLeft: '4px' }}
               onClick={handleSimulateTrade}
+              disabled={!currentTradeTarget}
+              title={!currentTradeTarget ? 'No tradeable market mapped for this route' : undefined}
             >
               Trade →
             </button>
@@ -1926,14 +2017,25 @@ export function MapScreen() {
               fn();
               setCtxMenu(null);
             };
-            const items: { label: string; onClick: () => void; disabled?: boolean }[] = [
+            const ctxRoute = getCertificateRoute(originMeta.iso, c.iso);
+            const ctxTradeTarget = getMarketAndCocForRoute(ctxRoute);
+            const items: { label: string; onClick: () => void; disabled?: boolean; title?: string }[] = [
               { label: isO ? 'Origin (current)' : 'Set as origin', onClick: run(() => setOriginFromMenu(ctxMenu.name)), disabled: isO },
               { label: isT ? 'Target (current)' : 'Set as target', onClick: run(() => setTargetFromMenu(ctxMenu.name)), disabled: isT },
               { label: 'Show country details', onClick: run(() => setSelectedCountryName(ctxMenu.name)) },
               {
                 label: `Simulate ${originMeta.iso} → ${c.iso} in Trade Builder`,
-                onClick: run(() => navigate(buildDealUrl({ originCountry: originMeta.iso, marketId: getDefaultMarketForOrigin(c.iso) }))),
-                disabled: isO,
+                onClick: run(() => {
+                  if (ctxTradeTarget) {
+                    navigate(buildDealUrl({
+                      originCountry: originMeta.iso,
+                      marketId: ctxTradeTarget.marketId,
+                      coc: ctxTradeTarget.coc,
+                    }));
+                  }
+                }),
+                disabled: isO || !ctxTradeTarget,
+                title: !ctxTradeTarget ? 'No tradeable market mapped for this route' : undefined,
               },
               { label: 'Zoom to country', onClick: run(() => { setMapCenter(c.center); setZoomLevel(z => Math.max(z, 6)); }) },
             ];
@@ -1971,6 +2073,7 @@ export function MapScreen() {
                     className="map-ctx-item"
                     disabled={it.disabled}
                     onClick={it.onClick}
+                    title={it.title}
                   >
                     {it.label}
                   </button>
@@ -2208,7 +2311,7 @@ export function MapScreen() {
         isOpen={isLogisticsOpen}
         onClose={() => setIsLogisticsOpen(false)}
         originCountry={originMeta.iso}
-        targetCountry={selectedMeta.iso}
+        targetCountry={targetMeta.iso}
       />
 
       {/* Route Summary Modal (Desktop) */}
