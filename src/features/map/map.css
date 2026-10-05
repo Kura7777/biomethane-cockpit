@@ -425,3 +425,26 @@
   .map-detail-cols { column-count: 1; }
 }
 
+
+/* Right-click country menu (desktop) */
+.map-ctx-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 7px 10px;
+  font-size: 13px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+}
+.map-ctx-item:hover:not(:disabled),
+.map-ctx-item:focus-visible {
+  background: color-mix(in srgb, var(--color-text) 8%, transparent);
+  outline: none;
+}
+.map-ctx-item:disabled {
+  color: var(--color-neutral-500);
+  cursor: default;
+}

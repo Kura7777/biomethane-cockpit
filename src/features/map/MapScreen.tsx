@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
   ComposableMap,
@@ -366,6 +367,25 @@ export function MapScreen() {
   const [zoomLevel, setZoomLevel] = useState<number>(3.6);
   const [controlsOpen, setControlsOpen] = useState(false);
   const [mapCenter, setMapCenter] = useState<[number, number]>([12, 53]);
+  const [ctxMenu, setCtxMenu] = useState<{ name: string; x: number; y: number } | null>(null);
+
+  useEffect(() => {
+    if (!ctxMenu) return;
+    const close = () => setCtxMenu(null);
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') close();
+    };
+    window.addEventListener('mousedown', close);
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('resize', close);
+    window.addEventListener('wheel', close, { passive: true });
+    return () => {
+      window.removeEventListener('mousedown', close);
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('resize', close);
+      window.removeEventListener('wheel', close);
+    };
+  }, [ctxMenu]);
 
   useEffect(() => {
     if (!isSummaryOpen) return;
@@ -594,6 +614,19 @@ export function MapScreen() {
     }
   };
 
+  // Right-click menu: picking the other end of the corridor swaps the pair instead of making origin == target.
+  const setOriginFromMenu = (cName: string) => {
+    if (cName === target) setTarget(origin);
+    setOrigin(cName);
+    setSelectedCountryName(cName);
+  };
+
+  const setTargetFromMenu = (cName: string) => {
+    if (cName === origin) setOrigin(target);
+    setTarget(cName);
+    setSelectedCountryName(cName);
+  };
+
   const handleSwapCorridor = () => {
     const prevOrigin = origin;
     const prevTarget = target;
@@ -667,6 +700,11 @@ export function MapScreen() {
                         key={geo.rsmKey}
                         geography={geo}
                         onClick={() => handleCountryClick(name)}
+                        onContextMenu={e => {
+                          if (!cMeta || isMobile) return;
+                          e.preventDefault();
+                          setCtxMenu({ name, x: e.clientX, y: e.clientY });
+                        }}
                         onMouseEnter={() => {
                           if (cMeta) setHoveredCountry(cMeta);
                         }}
@@ -1786,6 +1824,69 @@ export function MapScreen() {
         {/* Map Container */}
         <div style={{ flex: 1, position: 'relative', minHeight: '440px', overflow: 'hidden', backgroundColor: 'var(--color-bg)' }}>
         {mapSvg}
+        {ctxMenu && COUNTRIES[ctxMenu.name] && createPortal(
+          (() => {
+            const c = COUNTRIES[ctxMenu.name];
+            const isO = ctxMenu.name === origin;
+            const isT = ctxMenu.name === target;
+            const run = (fn: () => void) => () => {
+              fn();
+              setCtxMenu(null);
+            };
+            const items: { label: string; onClick: () => void; disabled?: boolean }[] = [
+              { label: isO ? 'Origin (current)' : 'Set as origin', onClick: run(() => setOriginFromMenu(ctxMenu.name)), disabled: isO },
+              { label: isT ? 'Target (current)' : 'Set as target', onClick: run(() => setTargetFromMenu(ctxMenu.name)), disabled: isT },
+              { label: 'Show country details', onClick: run(() => setSelectedCountryName(ctxMenu.name)) },
+              {
+                label: `Simulate ${originMeta.iso} → ${c.iso} in Trade Builder`,
+                onClick: run(() => navigate(buildDealUrl({ originCountry: originMeta.iso, marketId: getDefaultMarketForOrigin(c.iso) }))),
+                disabled: isO,
+              },
+              { label: 'Zoom to country', onClick: run(() => { setMapCenter(c.center); setZoomLevel(z => Math.max(z, 6)); }) },
+            ];
+            const W = 260;
+            const H = 36 + items.length * 32;
+            const left = Math.min(ctxMenu.x, window.innerWidth - W - 8);
+            const top = Math.min(ctxMenu.y, window.innerHeight - H - 8);
+            return (
+              <div
+                role="menu"
+                aria-label={`${c.name} actions`}
+                onMouseDown={e => e.stopPropagation()}
+                onContextMenu={e => e.preventDefault()}
+                style={{
+                  position: 'fixed',
+                  left,
+                  top,
+                  width: W,
+                  zIndex: 2000,
+                  backgroundColor: 'var(--color-surface)',
+                  border: '1px solid var(--color-divider)',
+                  borderRadius: 'var(--radius-control)',
+                  boxShadow: 'var(--shadow-card)',
+                  padding: '4px',
+                }}
+              >
+                <div className="eyebrow" style={{ padding: '6px 10px 4px' }}>
+                  {c.iso} · {c.name} · {STATUS_CONFIG[c.status].label}
+                </div>
+                {items.map(it => (
+                  <button
+                    key={it.label}
+                    type="button"
+                    role="menuitem"
+                    className="map-ctx-item"
+                    disabled={it.disabled}
+                    onClick={it.onClick}
+                  >
+                    {it.label}
+                  </button>
+                ))}
+              </div>
+            );
+          })(),
+          document.body,
+        )}
 
         {/* Overlay: Top-Right Zoom Buttons */}
         <div style={{ position: 'absolute', top: '12px', right: '12px', display: 'flex', flexDirection: 'column', borderRadius: 'var(--radius-control)', overflow: 'hidden', boxShadow: 'var(--shadow-card)', zIndex: 10 }}>
