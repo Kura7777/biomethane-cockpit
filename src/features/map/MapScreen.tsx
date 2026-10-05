@@ -214,17 +214,17 @@ const FILTER_CONFIG: Record<RouteFilter, { label: string; shortLabel: string; de
   ALL: {
     label: 'All Commercial Trades',
     shortLabel: 'All Trades',
-    desc: 'GO = certificate only, moved registry to registry. PoS = physical gas plus sustainability proof, for the destination\'s transport quota.',
+    desc: 'GO = certificate only, moved between GO registries; the gas does not move. PoS = physical gas under mass balance, with the PoS moved through the sustainability database (UDB / Nabisy), for the destination\'s transport quota.',
   },
   GO: {
     label: 'Certificates (Book & Claim / GO)',
     shortLabel: 'Certificates (GO)',
-    desc: 'Certificate only, transferred registry to registry (Scope 1 / voluntary). The gas does not move and no GHG threshold applies.',
+    desc: 'Certificate only. Moves registry to registry (GO registry) for Scope 1 / voluntary claims. The gas does not move and no GHG threshold applies.',
   },
   POS: {
     label: 'Compliance quota (Mass Balance / PoS)',
     shortLabel: 'Compliance quota (PoS)',
-    desc: 'Physical gas injected into a connected grid under mass balance, with a PoS in the sustainability database, for the destination\'s transport quota (e.g. THG, RTFO, POZE).',
+    desc: 'Physical gas under mass balance. The PoS moves through the sustainability database (UDB / Nabisy), not the GO registry. Counts toward the destination\'s transport quota (e.g. THG, RTFO, POZE).',
   },
 };
 
@@ -1676,8 +1676,22 @@ export function MapScreen() {
         >
           <div>
             <h3 className="ptitle" style={{ fontSize: '18px' }}>Compliance &amp; logistics map</h3>
-            <div className="subttl">
-              30 European jurisdictions · Interactive cross-border routing &amp; transmission tariffs
+            <div className="subttl" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', columnGap: '14px', rowGap: '2px' }}>
+              <span>30 European jurisdictions · Interactive cross-border routing &amp; transmission tariffs</span>
+              <span style={{ display: 'inline-flex', gap: '12px' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ width: '9px', height: '9px', backgroundColor: 'var(--color-text)' }} />
+                  Active · {statusCounts.ACTIVE}
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ width: '9px', height: '9px', backgroundColor: 'var(--color-neutral-500)' }} />
+                  Emerging · {statusCounts.EMERGING}
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ width: '9px', height: '9px', backgroundColor: 'var(--color-accent)' }} />
+                  Restricted · {statusCounts.RESTRICTED}
+                </span>
+              </span>
             </div>
           </div>
 
@@ -1767,20 +1781,6 @@ export function MapScreen() {
             </button>
           </div>
 
-          <div style={{ display: 'flex', gap: '14px' }} className="eyebrow">
-            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ width: '9px', height: '9px', backgroundColor: 'var(--color-text)' }} />
-              Active · {statusCounts.ACTIVE}
-            </span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ width: '9px', height: '9px', backgroundColor: 'var(--color-neutral-500)' }} />
-              Emerging · {statusCounts.EMERGING}
-            </span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ width: '9px', height: '9px', backgroundColor: 'var(--color-accent)' }} />
-              Restricted · {statusCounts.RESTRICTED}
-            </span>
-          </div>
         </div>
 
         {/* Map Container */}
