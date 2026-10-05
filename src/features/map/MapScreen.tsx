@@ -4,6 +4,7 @@ import {
   ComposableMap,
   Geographies,
   Geography,
+  ZoomableGroup,
   Line,
   Marker,
 } from 'react-simple-maps';
@@ -362,6 +363,9 @@ export function MapScreen() {
   const [copied, setCopied] = useState(false);
   const [hoveredCountry, setHoveredCountry] = useState<CountryMeta | null>(null);
   const [isLogisticsOpen, setIsLogisticsOpen] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState<number>(3.6);
+  const [controlsOpen, setControlsOpen] = useState(false);
+  const [mapCenter, setMapCenter] = useState<[number, number]>([12, 53]);
 
   useEffect(() => {
     if (!isSummaryOpen) return;
@@ -606,18 +610,20 @@ export function MapScreen() {
             projection="geoMercator"
             width={isMobile ? 420 : 800}
             height={600}
-            projectionConfig={EUROPE_PROJECTION[isMobile ? 'mobile' : 'desktop']}
-            preserveAspectRatio="xMidYMid meet"
+            projectionConfig={{
+              scale: isMobile ? 560 : 680,
+              center: [12, 54],
+            }}
             style={
               isMobile
                 ? { width: '100%', height: '100%' }
                 : { position: 'absolute', inset: 0, width: '100%', height: '100%' }
             }
           >
-            <g>
+            <ZoomableGroup zoom={zoomLevel / 3.6} center={mapCenter}>
               <Geographies geography={geoData}>
                 {({ geographies }) =>
-                  geographies.filter(geo => EUROPE_NAMES.has(geo.properties.name)).map(geo => {
+                  geographies.filter(geo => geo.properties.name !== 'Russia').map(geo => {
                     const name = geo.properties.name;
                     const cMeta = COUNTRIES[name];
                     const status = cMeta ? cMeta.status : 'NONE';
@@ -737,7 +743,7 @@ export function MapScreen() {
                 </Marker>
                 );
               })}
-            </g>
+            </ZoomableGroup>
           </ComposableMap>
   );
 
@@ -1503,6 +1509,12 @@ export function MapScreen() {
         <div className="map-m-canvas">
           {mapSvg}
 
+          <div className="map-m-zoom">
+            <button type="button" className="btn btn-secondary" aria-label="Zoom in" onClick={() => setZoomLevel(z => Math.min(z + 1, 8))}>+</button>
+            <button type="button" className="btn btn-secondary" aria-label="Zoom out" onClick={() => setZoomLevel(z => Math.max(z - 1, 1))}>−</button>
+            <button type="button" className="btn btn-secondary" aria-label="Reset view" style={{ fontSize: '12px' }} onClick={() => { setZoomLevel(3.6); setMapCenter([12, 53]); }}>RST</button>
+          </div>
+
           {view !== 'COMPLIANCE' ? (
             <div className="map-m-mode map-m-hint">{ROUTES_HINT}</div>
           ) : (
@@ -1632,7 +1644,11 @@ export function MapScreen() {
           display: 'flex',
           flexDirection: 'column',
           minWidth: 0,
-          position: 'relative',
+          position: 'sticky',
+          top: 0,
+          alignSelf: 'start',
+          height: 'calc(100dvh - 84px)',
+          minHeight: '560px',
         }}
       >
         {/* Top Header & Fast Corridor Selectors Bar */}
@@ -1761,6 +1777,13 @@ export function MapScreen() {
         <div style={{ flex: 1, position: 'relative', minHeight: '440px', overflow: 'hidden', backgroundColor: 'var(--color-bg)' }}>
         {mapSvg}
 
+        {/* Overlay: Top-Right Zoom Buttons */}
+        <div style={{ position: 'absolute', top: '12px', right: '12px', display: 'flex', flexDirection: 'column', borderRadius: 'var(--radius-control)', overflow: 'hidden', boxShadow: 'var(--shadow-card)', zIndex: 10 }}>
+          <button type="button" className="btn btn-secondary" style={{ width: '28px', height: '28px', padding: 0, fontSize: '14px', fontWeight: 800, borderRadius: 0 }} aria-label="Zoom in" onClick={() => setZoomLevel(z => Math.min(z + 1, 8))}>+</button>
+          <button type="button" className="btn btn-secondary" style={{ width: '28px', height: '28px', padding: 0, fontSize: '14px', fontWeight: 800, borderTop: 0, borderRadius: 0 }} aria-label="Zoom out" onClick={() => setZoomLevel(z => Math.max(z - 1, 1))}>−</button>
+          <button type="button" className="btn btn-secondary" style={{ width: '28px', height: '28px', padding: 0, fontSize: '12px', borderTop: 0, borderRadius: 0 }} aria-label="Reset view" onClick={() => { setZoomLevel(3.6); setMapCenter([12, 53]); }}>RST</button>
+        </div>
+
           {/* Overlay: Top-Left Legend & Click-Mode Switcher */}
           <div
             style={{
@@ -1768,6 +1791,7 @@ export function MapScreen() {
               top: '12px',
               left: '12px',
               minWidth: '210px',
+              maxWidth: '260px',
               backgroundColor: 'color-mix(in srgb, var(--color-surface) 96%, transparent)',
               border: '1px solid var(--color-divider)',
               borderRadius: 'var(--radius-panel)',
@@ -1775,38 +1799,51 @@ export function MapScreen() {
               padding: '10px 12px',
             }}
           >
-            {viewToggle(false)}
+            <button
+              type="button"
+              className="btn btn-secondary"
+              style={{ padding: '3px 8px', fontSize: '12px', width: '100%', marginBottom: '8px' }}
+              aria-expanded={controlsOpen}
+              onClick={() => setControlsOpen(o => !o)}
+            >
+              {controlsOpen ? 'Hide map options ▴' : 'Map options (view · trade mode) ▾'}
+            </button>
+            {controlsOpen && (
+              <>
+                {viewToggle(false)}
 
-            {view === 'COMPLIANCE' ? (
-              <div style={{ borderTop: '1px solid var(--color-divider)', marginTop: '8px', paddingTop: '8px' }}>
-                <div className="eyebrow">Map Click Mode</div>
-                <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
-                  <button
-                    type="button"
-                    className={`btn ${mode === 'ORIGIN' ? 'btn-primary' : 'btn-secondary'}`}
-                    style={{ padding: '3px 8px', fontSize: '12px', flex: 1 }}
-                    onClick={() => setMode('ORIGIN')}
-                  >
-                    Set Origin
-                  </button>
-                  <button
-                    type="button"
-                    className={`btn ${mode === 'TARGET' ? 'btn-primary' : 'btn-secondary'}`}
-                    style={{ padding: '3px 8px', fontSize: '12px', flex: 1 }}
-                    onClick={() => setMode('TARGET')}
-                  >
-                    Set Target
-                  </button>
-                </div>
-                <div style={{ fontSize: '12px', marginTop: '6px' }} className="mut">
-                  Clicking a country sets it as <strong>{mode === 'ORIGIN' ? 'Origin' : 'Target'}</strong>.
-                </div>
-              </div>
-            ) : (
-              <div style={{ fontSize: '12px', marginTop: '8px' }} className="mut">{ROUTES_HINT}</div>
+                {view === 'COMPLIANCE' ? (
+                  <div style={{ borderTop: '1px solid var(--color-divider)', marginTop: '8px', paddingTop: '8px' }}>
+                    <div className="eyebrow">Map Click Mode</div>
+                    <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
+                      <button
+                        type="button"
+                        className={`btn ${mode === 'ORIGIN' ? 'btn-primary' : 'btn-secondary'}`}
+                        style={{ padding: '3px 8px', fontSize: '12px', flex: 1 }}
+                        onClick={() => setMode('ORIGIN')}
+                      >
+                        Set Origin
+                      </button>
+                      <button
+                        type="button"
+                        className={`btn ${mode === 'TARGET' ? 'btn-primary' : 'btn-secondary'}`}
+                        style={{ padding: '3px 8px', fontSize: '12px', flex: 1 }}
+                        onClick={() => setMode('TARGET')}
+                      >
+                        Set Target
+                      </button>
+                    </div>
+                    <div style={{ fontSize: '12px', marginTop: '6px' }} className="mut">
+                      Clicking a country sets it as <strong>{mode === 'ORIGIN' ? 'Origin' : 'Target'}</strong>.
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '12px', marginTop: '8px' }} className="mut">{ROUTES_HINT}</div>
+                )}
+              </>
             )}
 
-            <div style={{ borderTop: '1px solid var(--color-divider)', marginTop: '8px', paddingTop: '8px' }}>
+            <div style={{ borderTop: controlsOpen ? '1px solid var(--color-divider)' : 0, marginTop: controlsOpen ? '8px' : 0, paddingTop: controlsOpen ? '8px' : 0 }}>
               <div className="eyebrow" style={{ marginBottom: '5px' }}>
                 {view === 'SELL' ? `Trade Opportunities (${originMeta.iso})` : 'Compliance status'}
               </div>

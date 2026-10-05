@@ -78,6 +78,30 @@
     touch-action: none;
   }
 
+  .map-m-zoom {
+    position: absolute;
+    right: 8px;
+    bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--radius-control);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    z-index: 10;
+  }
+  .map-m-zoom .btn {
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    font-size: 20px;
+    font-weight: 800;
+    border-radius: 0;
+  }
+  .map-m-zoom .btn + .btn {
+    border-top: 0;
+  }
+
   .map-m-mode {
     position: absolute;
     top: 8px;
