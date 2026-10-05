@@ -209,6 +209,16 @@ describe('Audit remediation — asset master integrity', () => {
     expect(findPlantsForOrigination('XX', 'manure')).toEqual([]);
   });
 
+  it('matches Danish manure plants in Origination regardless of canonicalFeedstockKey casing', () => {
+    const dkPlants = findPlantsForOrigination('DK', 'manure');
+    expect(dkPlants.length).toBeGreaterThan(0);
+    expect(dkPlants.every(p => p.countryCode === 'DK')).toBe(true);
+    expect(dkPlants.every(p => (p.canonicalFeedstockKey || '').toLowerCase() === 'manure')).toBe(true);
+    for (let i = 1; i < dkPlants.length; i++) {
+      expect((dkPlants[i - 1].annualEnergyGWh ?? 0)).toBeGreaterThanOrEqual(dkPlants[i].annualEnergyGWh ?? 0);
+    }
+  });
+
   it('P1-7: centroid placeholder coordinates are never surfaced as audited plant locations', () => {
     const counts = new Map<string, number>();
     for (const p of BIOMETHANE_PLANTS) {

@@ -722,10 +722,12 @@ const PLANT_FEEDSTOCK_ALIASES: Record<string, string[]> = {
 export function findPlantsForOrigination(countryIso: string, feedstockKey: string): BiomethanePlant[] {
   const iso = countryIso.toUpperCase();
   const isoSet = iso === 'GB' || iso === 'UK' ? ['GB', 'UK'] : [iso];
-  const acceptedKeys = PLANT_FEEDSTOCK_ALIASES[feedstockKey] ?? [feedstockKey];
+  const normalizedKey = feedstockKey.toLowerCase();
+  const rawAccepted = PLANT_FEEDSTOCK_ALIASES[normalizedKey] ?? [normalizedKey];
+  const acceptedKeys = new Set(rawAccepted.map(k => k.toLowerCase()));
   return BIOMETHANE_PLANTS
     .filter(p => isoSet.includes((p.countryCode || '').toUpperCase()))
-    .filter(p => p.canonicalFeedstockKey != null && acceptedKeys.includes(p.canonicalFeedstockKey))
+    .filter(p => p.canonicalFeedstockKey != null && acceptedKeys.has(p.canonicalFeedstockKey.toLowerCase()))
     .filter(p => !p.dataQuality?.duplicateOf) // repeated rows would double-count the same asset
     .sort((a, b) => (b.annualEnergyGWh || 0) - (a.annualEnergyGWh || 0));
 }
