@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { REGISTRY_DIRECTORY, getRegistryByCountry } from '../registries/registryDirectory';
+import { HUB_MEMBERSHIP } from '../registries/hubConnectivity';
 
 describe('Registry directory — pinning key sourced facts (registries.md, accessed 2026-09-28)', () => {
   it('has exactly one entry per country, each with a resolvable country code', () => {
@@ -53,13 +54,27 @@ describe('Registry directory — pinning key sourced facts (registries.md, acces
     expect(sweden.operator).not.toMatch(/^Energigas Sverige$/);
   });
 
-  it('never fills gaps: unverified facts are stored as the literal string "unverified", not true/false', () => {
-    const spain = getRegistryByCountry('ES')!;
-    expect(spain.ergar).toBe('unverified');
+  it('Spain: not an ERGaR participant (research 2026-10-04)', () => {
+    expect(getRegistryByCountry('ES')!.ergar).toBe(false);
+  });
 
-    const norway = getRegistryByCountry('NO')!;
-    expect(norway.aibGasScheme).toBe(false); // confirmed absent from the AIB list
-    expect(norway.ergar).toBe('unverified'); // no dedicated search performed
+  it('hub flags are tri-state, and a false ERGaR flag carries an ergar.org source (except PL)', () => {
+    for (const e of REGISTRY_DIRECTORY) {
+      expect([true, false, 'unverified']).toContain(e.aibGasScheme);
+      expect([true, false, 'unverified']).toContain(e.ergar);
+      if (e.ergar === false && e.countryCode in HUB_MEMBERSHIP && e.countryCode !== 'PL') {
+        expect(e.sources.some(s => s.url.includes('ergar.org')), e.countryCode).toBe(true);
+      }
+    }
+  });
+
+  it('directory hub flags agree with HUB_MEMBERSHIP', () => {
+    for (const e of REGISTRY_DIRECTORY) {
+      const m = HUB_MEMBERSHIP[e.countryCode];
+      if (!m) continue;
+      expect(e.ergar, `${e.countryCode} ergar`).toBe(m.ergar);
+      expect(e.aibGasScheme, `${e.countryCode} aib`).toBe(m.aib === 'CONNECTED');
+    }
   });
 
   it('Poland is marked as an immature market with no confirmed cross-border routes', () => {

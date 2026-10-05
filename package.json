@@ -7,6 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
+    "routes:generate": "node scripts/route-audit/generate.mjs",
+    "routes:spot-checks": "node scripts/route-audit/spot-checks.mjs",
+    "routes:check-quotes": "node scripts/route-audit/check-quotes.mjs",
     "test": "vitest run",
     "test:e2e": "playwright test",
     "test:all": "vitest run && playwright test"

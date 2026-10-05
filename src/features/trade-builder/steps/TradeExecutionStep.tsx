@@ -71,7 +71,7 @@ Net Netback: €${netNetbackVal.toFixed(2)} / MWh
 Trader Desk Margin: €${deskMarginEurMwh} / MWh
 Annual Gross P&L: €${annualPnl.toLocaleString()}
 Delivery Point (VTP): ${getVtpForMarket(selectedMarket.country)}
-Compliance Verdict: ${currentTradeAssessment.eligibility.overallVerdict} (${currentTradeAssessment.eligibility.gates.filter(g => g.verdict === 'PASS').length}/6 gates pass)
+Compliance Verdict: ${currentTradeAssessment.eligibility.overallVerdict} (${currentTradeAssessment.eligibility.gates.filter(g => g.verdict === 'PASS').length}/${currentTradeAssessment.eligibility.gates.length} gates pass)
 Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
 
     try {
@@ -160,7 +160,7 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
           <span className={`tb-form-value ${verdictClass === 'pos' ? 'tb-pos' : 'tb-neg'}`}>
             <ShieldCheck size={16} />
             <span className={`tb-badge ${verdictClass}`}>
-              {currentTradeAssessment.eligibility.overallVerdict} ({gatesClear}/6 GATES CLEAR)
+              {currentTradeAssessment.eligibility.overallVerdict} ({gatesClear}/{currentTradeAssessment.eligibility.gates.length} GATES CLEAR)
             </span>
           </span>
           <p className="tb-hint">Chief Compliance Officer Pre-Trade Clearance · Institutional 6-gate statutory audit trail under RED III Directive &amp; national registry rules.</p>

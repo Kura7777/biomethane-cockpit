@@ -17,6 +17,16 @@ import { LogisticsModal } from '../logistics/LogisticsModal';
 import { buildDealUrl } from '../../domain/trade/dealParams';
 import { calculateLogisticsRoute, calculateDijkstraCorridor } from '../../domain/logistics/engine';
 import { getDefaultMarketForOrigin } from '../trade-builder/TradeBuilderScreen';
+import { getPosRoute } from '../../domain/routes';
+import {
+  getCertificateRoute,
+  getCertificateRoutesFrom,
+  CERT_ROUTE_LABELS,
+  POSSIBLE_STATUSES,
+  type CertRouteStatus,
+  type CertificateRoute,
+} from '../../domain/registries/certificateRoutes';
+import { ORIGIN_CAVEATS } from '../../domain/registries/hubConnectivity';
 
 interface CountryMeta {
   iso: string;
@@ -67,6 +77,76 @@ const STATUS_CONFIG = {
   NONE: { label: 'No mechanism', fill: 'color-mix(in srgb, var(--color-text) 7%, var(--color-bg))', swatch: 'color-mix(in srgb, var(--color-text) 12%, var(--color-bg))' },
 };
 
+type MapView = 'ROUTES' | 'POS' | 'COMPLIANCE';
+
+const POS_FILL = {
+  POSSIBLE: 'var(--color-accent)',
+  CONDITIONAL: 'color-mix(in srgb, var(--color-accent) 60%, var(--color-bg))',
+  OPEN: 'color-mix(in srgb, var(--color-accent) 25%, var(--color-bg))',
+  NOT_POSSIBLE: 'color-mix(in srgb, var(--color-text) 16%, var(--color-bg))',
+  NO_DATA: STATUS_CONFIG.NONE.fill,
+};
+
+type PosKey = keyof typeof POS_FILL;
+
+function posKeyOf(r: CertificateRoute | undefined): PosKey {
+  const p = r?.pos;
+  if (!p) return 'NO_DATA';
+  if (p.status === 'POSSIBLE') return p.conditions ? 'CONDITIONAL' : 'POSSIBLE';
+  return p.status;
+}
+
+const POS_LEGEND: { key: PosKey; label: string; swatch: string }[] = [
+  { key: 'POSSIBLE', label: 'Possible', swatch: POS_FILL.POSSIBLE },
+  { key: 'CONDITIONAL', label: 'Possible · conditions', swatch: POS_FILL.CONDITIONAL },
+  { key: 'OPEN', label: 'Awaiting authority answer', swatch: POS_FILL.OPEN },
+  { key: 'NOT_POSSIBLE', label: 'Not possible', swatch: POS_FILL.NOT_POSSIBLE },
+  { key: 'NO_DATA', label: 'Not researched', swatch: STATUS_CONFIG.NONE.swatch },
+];
+
+const POS_STATUS_TEXT: Record<PosKey, string> = {
+  POSSIBLE: 'Possible',
+  CONDITIONAL: 'Possible · conditions',
+  OPEN: 'Awaiting authority answer',
+  NOT_POSSIBLE: 'Not possible',
+  NO_DATA: 'Not researched',
+};
+
+const GRADE_TEXT: Record<string, string> = {
+  OBSERVED: 'observed trades',
+  PUBLISHED: 'registry-published',
+  RULE: 'hub rules',
+};
+const AUDIT_REF = 'Audited 4 Oct 2026 — sources in docs/research/route-audit-2026-10-04.';
+
+const ROUTE_FILL: Record<CertRouteStatus, string> = {
+  POSSIBLE_OBSERVED: 'var(--color-accent)',
+  POSSIBLE_PUBLISHED: 'var(--color-accent)',
+  POSSIBLE_RULE: 'var(--color-accent)',
+  POSSIBLE_CONDITIONAL: 'color-mix(in srgb, var(--color-accent) 60%, var(--color-bg))',
+  AWAITING_REGISTRY: 'color-mix(in srgb, var(--color-accent) 25%, var(--color-bg))',
+  NOT_POSSIBLE: 'color-mix(in srgb, var(--color-text) 16%, var(--color-bg))',
+  NO_DATA: STATUS_CONFIG.NONE.fill,
+};
+
+const ROUTE_LEGEND: { key: string; label: string; statuses: CertRouteStatus[]; swatch: string }[] = [
+  { key: 'observed', label: 'Possible · observed trades', statuses: ['POSSIBLE_OBSERVED'], swatch: ROUTE_FILL.POSSIBLE_OBSERVED },
+  { key: 'published', label: 'Possible · registry-published', statuses: ['POSSIBLE_PUBLISHED'], swatch: ROUTE_FILL.POSSIBLE_PUBLISHED },
+  { key: 'rule', label: 'Possible · hub rules', statuses: ['POSSIBLE_RULE'], swatch: ROUTE_FILL.POSSIBLE_RULE },
+  { key: 'conditional', label: 'Possible · conditions apply', statuses: ['POSSIBLE_CONDITIONAL'], swatch: ROUTE_FILL.POSSIBLE_CONDITIONAL },
+  { key: 'awaiting', label: 'Awaiting registry answer', statuses: ['AWAITING_REGISTRY'], swatch: ROUTE_FILL.AWAITING_REGISTRY },
+  { key: 'none', label: 'Not possible', statuses: ['NOT_POSSIBLE'], swatch: ROUTE_FILL.NOT_POSSIBLE },
+  { key: 'nodata', label: 'Not researched', statuses: ['NO_DATA'], swatch: STATUS_CONFIG.NONE.swatch },
+];
+
+const NO_USE_TEXT = 'Use of imported GOs not found in research';
+const ROUTES_HINT = 'Click a country to see where its certificates can go.';
+
+function firstSentence(text: string): string {
+  const i = text.search(/\.(\s|$)/);
+  return i === -1 ? text : text.slice(0, i + 1);
+}
+
 export function MapScreen() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -75,6 +155,7 @@ export function MapScreen() {
   const [target, setTarget] = useState<string>('Germany');
   const [selectedCountryName, setSelectedCountryName] = useState<string>('Germany');
   const [mode, setMode] = useState<'ORIGIN' | 'TARGET'>('TARGET');
+  const [view, setView] = useState<MapView>('ROUTES');
   const [hoveredCountry, setHoveredCountry] = useState<CountryMeta | null>(null);
   const [isLogisticsOpen, setIsLogisticsOpen] = useState(false);
   const [zoomLevel, setZoomLevel] = useState<number>(3.6);
@@ -92,6 +173,60 @@ export function MapScreen() {
     return counts;
   }, []);
 
+  const allIsos = useMemo(() => Object.values(COUNTRIES).map(c => c.iso), []);
+  const nameByIso = useMemo(() => {
+    const m: Record<string, string> = {};
+    Object.values(COUNTRIES).forEach(c => { m[c.iso] = c.name; });
+    return m;
+  }, []);
+
+  const certRoutes = useMemo(() => getCertificateRoutesFrom(originMeta.iso, allIsos), [originMeta.iso, allIsos]);
+  const routeByIso = useMemo(() => {
+    const m: Record<string, CertificateRoute> = {};
+    certRoutes.forEach(r => { m[r.target] = r; });
+    return m;
+  }, [certRoutes]);
+  const hasPipeline = useMemo(() => {
+    const m: Record<string, boolean> = {};
+    certRoutes.forEach(r => { m[r.target] = calculateDijkstraCorridor(originMeta.iso, r.target).segments.length > 0; });
+    return m;
+  }, [certRoutes, originMeta.iso]);
+  const routeCounts = useMemo(() => {
+    const out: Record<string, number> = {};
+    ROUTE_LEGEND.forEach(l => { out[l.key] = certRoutes.filter(r => l.statuses.includes(r.status)).length; });
+    return out;
+  }, [certRoutes]);
+  const routeGroups = useMemo(() => {
+    const by = (st: CertRouteStatus[]) => certRoutes.filter(r => st.includes(r.status));
+    return {
+      live: by(POSSIBLE_STATUSES),
+      pending: by(['AWAITING_REGISTRY']),
+      none: by(['NOT_POSSIBLE']),
+      noData: by(['NO_DATA']),
+    };
+  }, [certRoutes]);
+  const posCounts = useMemo(() => {
+    const out: Record<string, number> = {};
+    POS_LEGEND.forEach(l => { out[l.key] = certRoutes.filter(r => posKeyOf(r) === l.key).length; });
+    return out;
+  }, [certRoutes]);
+  const posGroups = useMemo(() => {
+    const by = (k: PosKey[]) => certRoutes.filter(r => k.includes(posKeyOf(r)));
+    return { possible: by(['POSSIBLE', 'CONDITIONAL']), open: by(['OPEN']), none: by(['NOT_POSSIBLE']), noData: by(['NO_DATA']) };
+  }, [certRoutes]);
+  const posSchemeNames = (r: CertificateRoute): string[] => {
+    if (!r.pos) return [];
+    const res = getPosRoute(r.origin, r.target);
+    const names = res.schemes.filter(x => x.status === r.pos!.status).map(x => x.schemeName);
+    if (names.length === 0 && r.pos.schemeName) names.push(r.pos.schemeName);
+    return Array.from(new Set(names));
+  };
+  const posOpenId = (r: CertificateRoute): string | null => {
+    if (!r.pos || r.pos.status !== 'OPEN') return null;
+    return getPosRoute(r.origin, r.target).schemes.find(x => x.status === 'OPEN' && x.openQuestionId)?.openQuestionId ?? null;
+  };
+  const currentRoute = useMemo(() => getCertificateRoute(originMeta.iso, targetMeta.iso), [originMeta.iso, targetMeta.iso]);
+
   const corridorCalculation = useMemo(() => {
     return calculateLogisticsRoute(originMeta.iso, targetMeta.iso);
   }, [originMeta.iso, targetMeta.iso]);
@@ -105,6 +240,11 @@ export function MapScreen() {
     if (!cMeta) return;
 
     setSelectedCountryName(cName);
+    if (view !== 'COMPLIANCE') {
+      if (cName === target) setTarget(origin);
+      setOrigin(cName);
+      return;
+    }
     if (mode === 'ORIGIN') {
       if (cName !== target) setOrigin(cName);
     } else {
@@ -151,7 +291,20 @@ export function MapScreen() {
                     const name = geo.properties.name;
                     const cMeta = COUNTRIES[name];
                     const status = cMeta ? cMeta.status : 'NONE';
-                    const fill = STATUS_CONFIG[status].fill;
+                    let fill = STATUS_CONFIG[status].fill;
+                    if (view === 'ROUTES') {
+                      fill = !cMeta
+                        ? STATUS_CONFIG.NONE.fill
+                        : name === origin
+                        ? 'var(--color-text)'
+                        : ROUTE_FILL[routeByIso[cMeta.iso]?.status ?? 'NO_DATA'];
+                    } else if (view === 'POS') {
+                      fill = !cMeta
+                        ? STATUS_CONFIG.NONE.fill
+                        : name === origin
+                        ? 'var(--color-text)'
+                        : POS_FILL[posKeyOf(routeByIso[cMeta.iso])];
+                    }
                     const isOrigin = name === origin;
                     const isTarget = name === target;
                     const isHovered = hoveredCountry?.name === name || (isMobile && name === selectedCountryName);
@@ -217,7 +370,9 @@ export function MapScreen() {
               )}
 
               {/* Country ISO and Plant Labels */}
-              {Object.entries(COUNTRIES).map(([name, cMeta]) => (
+              {Object.entries(COUNTRIES).map(([name, cMeta]) => {
+                const onOriginFill = view !== 'COMPLIANCE' && name === origin;
+                return (
                 <Marker key={cMeta.iso} coordinates={cMeta.center}>
                   <text
                     textAnchor="middle"
@@ -226,9 +381,9 @@ export function MapScreen() {
                       fontFamily: 'var(--font-heading)',
                       fontWeight: 800,
                       fontSize: labelPx,
-                      fill: 'var(--color-text)',
+                      fill: onOriginFill ? 'var(--color-bg)' : 'var(--color-text)',
                       paintOrder: 'stroke',
-                      stroke: 'var(--color-bg)',
+                      stroke: onOriginFill ? 'var(--color-text)' : 'var(--color-bg)',
                       strokeWidth: '2.5px',
                       strokeLinejoin: 'round',
                       pointerEvents: 'none',
@@ -245,9 +400,9 @@ export function MapScreen() {
                       fontFamily: 'var(--font-body)',
                       fontWeight: 600,
                       fontSize: labelPx,
-                      fill: 'color-mix(in srgb, var(--color-text) 70%, transparent)',
+                      fill: onOriginFill ? 'var(--color-bg)' : 'color-mix(in srgb, var(--color-text) 70%, transparent)',
                       paintOrder: 'stroke',
-                      stroke: 'var(--color-bg)',
+                      stroke: onOriginFill ? 'var(--color-text)' : 'var(--color-bg)',
                       strokeWidth: '2px',
                       pointerEvents: 'none',
                       userSelect: 'none',
@@ -256,7 +411,8 @@ export function MapScreen() {
                     {cMeta.plants}
                   </text>
                 </Marker>
-              ))}
+                );
+              })}
             </ZoomableGroup>
           </ComposableMap>
   );
@@ -288,15 +444,239 @@ export function MapScreen() {
             </div>
           </div>
           <div style={{ padding: '12px 18px' }}>
-            <div className="eyebrow">Basis to TTF</div>
-            <div className="num" style={{ fontSize: '17px', fontWeight: 800, marginTop: '2px' }}>
-              +€0.65 / MWh
+            <div className="eyebrow">Certificate route</div>
+            <div style={{ fontSize: '17px', fontWeight: 800, marginTop: '2px' }}>
+              {CERT_ROUTE_LABELS[currentRoute.status]}
             </div>
             <div style={{ fontSize: '12px' }} className="mut">
-              Target hub premium, M+1
+              {currentRoute.hubs.length > 0
+                ? currentRoute.hubs.map(h => (h === 'AIB' ? 'AIB' : 'ERGaR')).join(' + ')
+                : firstSentence(currentRoute.reason)}
+            </div>
+            <div style={{ fontSize: '12px', overflowWrap: 'anywhere' }} className="mut">
+              PoS: {POS_STATUS_TEXT[posKeyOf(currentRoute)]}
+              {currentRoute.pos?.schemeName ? ` · ${currentRoute.pos.schemeName}` : ''}
             </div>
           </div>
         </div>
+  );
+
+  const viewToggle = (touch: boolean) => (
+    <div role="group" aria-label="Map view">
+      <div className="eyebrow">Map view</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+        {([['ROUTES', 'GO routes'], ['POS', 'PoS routes'], ['COMPLIANCE', 'Compliance status']] as const).map(([v, label]) => (
+          <button
+            key={v}
+            type="button"
+            className={`btn ${view === v ? 'btn-primary' : 'btn-secondary'}`}
+            style={{ padding: touch ? '0 8px' : '3px 8px', fontSize: '12px', flex: '1 1 auto', whiteSpace: 'nowrap', minHeight: touch ? '44px' : undefined }}
+            aria-pressed={view === v}
+            onClick={() => setView(v)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  const legendList = (fontPx: number, swatchPx: number, gap: number) =>
+    view === 'POS' ? (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: `${gap}px` }}>
+        {POS_LEGEND.map(l => (
+          <div key={l.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: `${fontPx}px` }}>
+            <span style={{ width: `${swatchPx}px`, height: `${swatchPx}px`, flex: 'none', backgroundColor: l.swatch, border: '1px solid var(--color-divider)' }} />
+            <span style={{ flex: 1 }}>{l.label}</span>
+            <span className="num mut" style={{ fontSize: '12px' }}>{posCounts[l.key]}</span>
+          </div>
+        ))}
+      </div>
+    ) : view === 'ROUTES' ? (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: `${gap}px` }}>
+        {ROUTE_LEGEND.map(l => (
+          <div key={l.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: `${fontPx}px` }}>
+            <span style={{ width: `${swatchPx}px`, height: `${swatchPx}px`, flex: 'none', backgroundColor: l.swatch, border: '1px solid var(--color-divider)' }} />
+            <span style={{ flex: 1 }}>{l.label}</span>
+            <span className="num mut" style={{ fontSize: '12px' }}>{routeCounts[l.key]}</span>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: `${gap}px` }}>
+        {(['ACTIVE', 'EMERGING', 'FUTURE_2028', 'RESTRICTED'] as const).map(st => (
+          <div key={st} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: `${fontPx}px` }}>
+            <span style={{ width: `${swatchPx}px`, height: `${swatchPx}px`, flex: 'none', backgroundColor: STATUS_CONFIG[st].swatch }} />
+            <span style={{ flex: 1 }}>{STATUS_CONFIG[st].label}</span>
+            <span className="num mut" style={{ fontSize: '12px' }}>{statusCounts[st]}</span>
+          </div>
+        ))}
+      </div>
+    );
+
+  const renderRouteRow = (r: CertificateRoute) => {
+    const name = nameByIso[r.target];
+    const isTarget = r.target === targetMeta.iso;
+    return (
+      <button
+        key={r.target}
+        type="button"
+        onClick={() => setTarget(name)}
+        aria-pressed={isTarget}
+        style={{
+          display: 'block',
+          width: '100%',
+          textAlign: 'left',
+          padding: '8px 18px 8px 15px',
+          border: 0,
+          borderBottom: '1px solid var(--color-divider)',
+          borderLeft: `3px solid ${isTarget ? 'var(--color-accent)' : 'transparent'}`,
+          backgroundColor: isTarget ? 'color-mix(in srgb, var(--color-accent) 10%, var(--color-surface))' : 'transparent',
+          color: 'var(--color-text)',
+          font: 'inherit',
+          cursor: 'pointer',
+        }}
+      >
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+          <span style={{ fontWeight: 700, fontSize: '13px', flex: 1, minWidth: 0 }}>{name}</span>
+          {r.hubs.map(h => (
+            <span key={h} className="chip">{h === 'AIB' ? 'AIB' : 'ERGaR'}</span>
+          ))}
+          <span className="mut" style={{ fontSize: '12px' }}>{hasPipeline[r.target] ? 'pipeline path' : 'no pipeline path'}</span>
+        </span>
+        <span className="mut" style={{ display: 'block', fontSize: '12px', marginTop: '2px', overflowWrap: 'anywhere' }}>{r.reason}</span>
+        {r.grade && r.status !== 'NO_DATA' && r.status !== 'NOT_POSSIBLE' && r.status !== 'AWAITING_REGISTRY' && (
+          <span className="mut" style={{ display: 'block', fontSize: '12px', marginTop: '2px' }}>Evidence: {GRADE_TEXT[r.grade] ?? r.grade}</span>
+        )}
+        {r.conditions.length > 0 && (
+          <span style={{ display: 'block', fontSize: '12px', marginTop: '2px', overflowWrap: 'anywhere' }}>
+            <strong>Conditions: </strong>{r.conditions.join('; ')}
+          </span>
+        )}
+        {r.workaround && (
+          <span style={{ display: 'block', fontSize: '12px', marginTop: '2px', overflowWrap: 'anywhere' }}>
+            <strong>Workaround (ex-domain): </strong>{r.workaround}
+          </span>
+        )}
+        {r.status === 'AWAITING_REGISTRY' && r.openQuestionId && (
+          <span className="mut" style={{ display: 'block', fontSize: '12px', marginTop: '2px' }}>Open question {r.openQuestionId}</span>
+        )}
+        {isTarget && (
+          <span style={{ display: 'block', fontSize: '12px', marginTop: '4px', overflowWrap: 'anywhere' }}>
+            <strong>At {name}: </strong>
+            {r.destinationUse ?? NO_USE_TEXT}
+          </span>
+        )}
+      </button>
+    );
+  };
+
+  const routeGroup = (title: string, rows: CertificateRoute[]) =>
+    rows.length === 0 ? null : (
+      <div key={title}>
+        <div className="eyebrow" style={{ padding: '8px 18px 4px' }}>{title} · {rows.length}</div>
+        {rows.map(renderRouteRow)}
+      </div>
+    );
+
+  const originCaveat = ORIGIN_CAVEATS[originMeta.iso];
+
+  const renderPosRow = (r: CertificateRoute) => {
+    const name = nameByIso[r.target];
+    const isTarget = r.target === targetMeta.iso;
+    const k = posKeyOf(r);
+    const oq = posOpenId(r);
+    return (
+      <button
+        key={r.target}
+        type="button"
+        onClick={() => setTarget(name)}
+        aria-pressed={isTarget}
+        style={{
+          display: 'block',
+          width: '100%',
+          textAlign: 'left',
+          padding: '8px 18px 8px 15px',
+          border: 0,
+          borderBottom: '1px solid var(--color-divider)',
+          borderLeft: `3px solid ${isTarget ? 'var(--color-accent)' : 'transparent'}`,
+          backgroundColor: isTarget ? 'color-mix(in srgb, var(--color-accent) 10%, var(--color-surface))' : 'transparent',
+          color: 'var(--color-text)',
+          font: 'inherit',
+          cursor: 'pointer',
+        }}
+      >
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+          <span style={{ fontWeight: 700, fontSize: '13px', flex: 1, minWidth: 0 }}>{name}</span>
+          {posSchemeNames(r).map(n => (
+            <span key={n} className="chip" style={{ maxWidth: '100%', minWidth: 0, whiteSpace: 'normal', height: 'auto', lineHeight: 1.35, textAlign: 'left', overflowWrap: 'anywhere' }}>{n}</span>
+          ))}
+          <span className="mut" style={{ fontSize: '12px' }}>{POS_STATUS_TEXT[k]}</span>
+        </span>
+        <span className="mut" style={{ display: 'block', fontSize: '12px', marginTop: '2px', overflowWrap: 'anywhere' }}>{r.pos?.reason}</span>
+        {r.pos?.conditions && (
+          <span style={{ display: 'block', fontSize: '12px', marginTop: '2px', overflowWrap: 'anywhere' }}>
+            <strong>Conditions: </strong>{r.pos.conditions}
+          </span>
+        )}
+        {oq && (
+          <span className="mut" style={{ display: 'block', fontSize: '12px', marginTop: '2px' }}>Open question {oq}</span>
+        )}
+      </button>
+    );
+  };
+
+  const posGroup = (title: string, rows: CertificateRoute[]) =>
+    rows.length === 0 ? null : (
+      <div key={title}>
+        <div className="eyebrow" style={{ padding: '8px 18px 4px' }}>{title} · {rows.length}</div>
+        {rows.map(renderPosRow)}
+      </div>
+    );
+
+  const posSection = (
+    <div style={{ borderBottom: '2px solid var(--color-divider)' }}>
+      <div style={{ padding: '14px 18px 6px' }}>
+        <div className="eyebrow">Where {originMeta.name} biomethane can be delivered (PoS / mass balance)</div>
+      </div>
+      <div style={isMobile ? undefined : { maxHeight: '360px', overflowY: 'auto' }} data-testid="map-pos-list">
+        {posGroup('Possible', posGroups.possible)}
+        {posGroup('Awaiting authority answer', posGroups.open)}
+        {posGroup('Not possible', posGroups.none)}
+        {posGroups.noData.length > 0 && (
+          <div className="mut" style={{ fontSize: '12px', padding: '8px 18px' }}>
+            Not researched: {posGroups.noData.map(r => r.target).join(', ')}
+          </div>
+        )}
+      </div>
+      <p className="mut" style={{ fontSize: '12px', lineHeight: 1.5, margin: 0, padding: '8px 18px 14px' }}>
+        PoS = physical biomethane delivered by mass balance into a national compliance scheme. {AUDIT_REF}
+      </p>
+    </div>
+  );
+
+  const routesSection = (
+    <div style={{ borderBottom: '2px solid var(--color-divider)' }}>
+      <div style={{ padding: '14px 18px 6px' }}>
+        <div className="eyebrow">Where {originMeta.name} certificates can go</div>
+        {originCaveat && (
+          <p className="mut" style={{ fontSize: '12px', lineHeight: 1.5, margin: '6px 0 0' }}>{originCaveat.text}</p>
+        )}
+      </div>
+      <div style={isMobile ? undefined : { maxHeight: '360px', overflowY: 'auto' }} data-testid="map-route-list">
+        {routeGroup('Live', routeGroups.live)}
+        {routeGroup('Pending / restricted', routeGroups.pending)}
+        {routeGroup('No route', routeGroups.none)}
+        {routeGroups.noData.length > 0 && (
+          <div className="mut" style={{ fontSize: '12px', padding: '8px 18px' }}>
+            Not researched: {routeGroups.noData.map(r => r.target).join(', ')}
+          </div>
+        )}
+      </div>
+      <p className="mut" style={{ fontSize: '12px', lineHeight: 1.5, margin: 0, padding: '8px 18px 14px' }}>
+        GO = Guarantee of Origin transfer between registries. {AUDIT_REF}
+      </p>
+    </div>
   );
 
   const railBody = (
@@ -333,6 +713,9 @@ export function MapScreen() {
             </button>
           </div>
         </div>
+
+        {view === 'ROUTES' && routesSection}
+        {view === 'POS' && posSection}
 
         {/* 2x2 Stat Grid */}
         <div
@@ -510,22 +893,26 @@ export function MapScreen() {
         <div className="map-m-canvas">
           {mapSvg}
 
-          <div className="map-m-mode" role="group" aria-label="Map click mode">
-            <button
-              type="button"
-              className={`btn ${mode === 'ORIGIN' ? 'btn-primary' : 'btn-secondary'}`}
-              onClick={() => setMode('ORIGIN')}
-            >
-              Set Origin
-            </button>
-            <button
-              type="button"
-              className={`btn ${mode === 'TARGET' ? 'btn-primary' : 'btn-secondary'}`}
-              onClick={() => setMode('TARGET')}
-            >
-              Set Target
-            </button>
-          </div>
+          {view !== 'COMPLIANCE' ? (
+            <div className="map-m-mode map-m-hint">{ROUTES_HINT}</div>
+          ) : (
+            <div className="map-m-mode" role="group" aria-label="Map click mode">
+              <button
+                type="button"
+                className={`btn ${mode === 'ORIGIN' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setMode('ORIGIN')}
+              >
+                Set Origin
+              </button>
+              <button
+                type="button"
+                className={`btn ${mode === 'TARGET' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setMode('TARGET')}
+              >
+                Set Target
+              </button>
+            </div>
+          )}
 
           <div className="map-m-zoom">
             <button type="button" className="btn btn-secondary" aria-label="Zoom in" onClick={() => setZoomLevel(z => Math.min(z + 1, 8))}>+</button>
@@ -599,16 +986,9 @@ export function MapScreen() {
             {corridorStrip}
             {railBody}
             <div className="map-m-legend">
-              <div className="eyebrow" style={{ marginBottom: '8px' }}>Compliance status</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                {(['ACTIVE', 'EMERGING', 'FUTURE_2028', 'RESTRICTED'] as const).map(s => (
-                  <div key={s} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
-                    <span style={{ width: '10px', height: '10px', flex: 'none', backgroundColor: STATUS_CONFIG[s].swatch }} />
-                    <span style={{ flex: 1 }}>{STATUS_CONFIG[s].label}</span>
-                    <span className="num mut">{statusCounts[s]}</span>
-                  </div>
-                ))}
-              </div>
+              {viewToggle(true)}
+              <div className="eyebrow" style={{ margin: '14px 0 8px' }}>{view === 'ROUTES' ? 'GO routes' : view === 'POS' ? 'PoS routes' : 'Compliance status'}</div>
+              {legendList(13, 10, 6)}
               <div className="mut" style={{ fontSize: '12px', marginTop: '10px' }}>
                 30 European jurisdictions · Interactive cross-border routing &amp; transmission tariffs
               </div>
@@ -786,40 +1166,42 @@ export function MapScreen() {
               padding: '10px 12px',
             }}
           >
-            <div className="eyebrow">Map Click Mode</div>
-            <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
-              <button
-                type="button"
-                className={`btn ${mode === 'ORIGIN' ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ padding: '3px 8px', fontSize: '12px', flex: 1 }}
-                onClick={() => setMode('ORIGIN')}
-              >
-                Set Origin
-              </button>
-              <button
-                type="button"
-                className={`btn ${mode === 'TARGET' ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ padding: '3px 8px', fontSize: '12px', flex: 1 }}
-                onClick={() => setMode('TARGET')}
-              >
-                Set Target
-              </button>
-            </div>
-            <div style={{ fontSize: '12px', marginTop: '6px' }} className="mut">
-              Clicking a country sets it as <strong>{mode === 'ORIGIN' ? 'Origin' : 'Target'}</strong>.
-            </div>
+            {viewToggle(false)}
+
+            {view === 'COMPLIANCE' ? (
+              <div style={{ borderTop: '1px solid var(--color-divider)', marginTop: '8px', paddingTop: '8px' }}>
+                <div className="eyebrow">Map Click Mode</div>
+                <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
+                  <button
+                    type="button"
+                    className={`btn ${mode === 'ORIGIN' ? 'btn-primary' : 'btn-secondary'}`}
+                    style={{ padding: '3px 8px', fontSize: '12px', flex: 1 }}
+                    onClick={() => setMode('ORIGIN')}
+                  >
+                    Set Origin
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn ${mode === 'TARGET' ? 'btn-primary' : 'btn-secondary'}`}
+                    style={{ padding: '3px 8px', fontSize: '12px', flex: 1 }}
+                    onClick={() => setMode('TARGET')}
+                  >
+                    Set Target
+                  </button>
+                </div>
+                <div style={{ fontSize: '12px', marginTop: '6px' }} className="mut">
+                  Clicking a country sets it as <strong>{mode === 'ORIGIN' ? 'Origin' : 'Target'}</strong>.
+                </div>
+              </div>
+            ) : (
+              <div style={{ fontSize: '12px', marginTop: '8px' }} className="mut">{ROUTES_HINT}</div>
+            )}
 
             <div style={{ borderTop: '1px solid var(--color-divider)', marginTop: '8px', paddingTop: '8px' }}>
-              <div className="eyebrow" style={{ marginBottom: '5px' }}>Compliance status</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                {(['ACTIVE', 'EMERGING', 'FUTURE_2028', 'RESTRICTED'] as const).map(s => (
-                  <div key={s} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' }}>
-                    <span style={{ width: '9px', height: '9px', flex: 'none', backgroundColor: STATUS_CONFIG[s].swatch }} />
-                    <span style={{ flex: 1 }}>{STATUS_CONFIG[s].label}</span>
-                    <span className="num mut" style={{ fontSize: '12px' }}>{statusCounts[s]}</span>
-                  </div>
-                ))}
+              <div className="eyebrow" style={{ marginBottom: '5px' }}>
+                {view === 'ROUTES' ? `GO routes from ${originMeta.iso}` : view === 'POS' ? `PoS routes from ${originMeta.iso}` : 'Compliance status'}
               </div>
+              {legendList(12, 9, 4)}
             </div>
           </div>
 
@@ -883,13 +1265,37 @@ export function MapScreen() {
                 padding: '10px 12px',
               }}
             >
-              <div className="eyebrow">{STATUS_CONFIG[hoveredCountry.status].label}</div>
+              <div className="eyebrow">{view === 'ROUTES' ? 'Certificate route' : view === 'POS' ? 'PoS route' : STATUS_CONFIG[hoveredCountry.status].label}</div>
               <div style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '17px', marginTop: '4px' }}>
                 {hoveredCountry.name}
               </div>
               <div style={{ fontSize: '12px', marginTop: '2px' }} className="mut">
                 {hoveredCountry.legal}
               </div>
+              {view === 'ROUTES' && (
+                <div style={{ marginTop: '6px', fontSize: '12px' }}>
+                  {hoveredCountry.iso === originMeta.iso ? (
+                    <strong>Origin</strong>
+                  ) : (
+                    <>
+                      <strong>{CERT_ROUTE_LABELS[routeByIso[hoveredCountry.iso]?.status ?? 'NO_DATA']}</strong>
+                      <div className="mut">{routeByIso[hoveredCountry.iso]?.reason}</div>
+                    </>
+                  )}
+                </div>
+              )}
+              {view === 'POS' && (
+                <div style={{ marginTop: '6px', fontSize: '12px' }}>
+                  {hoveredCountry.iso === originMeta.iso ? (
+                    <strong>Origin</strong>
+                  ) : (
+                    <>
+                      <strong>{POS_STATUS_TEXT[posKeyOf(routeByIso[hoveredCountry.iso])]}</strong>
+                      <div className="mut">{routeByIso[hoveredCountry.iso]?.pos?.reason ?? routeByIso[hoveredCountry.iso]?.reason}</div>
+                    </>
+                  )}
+                </div>
+              )}
               <div style={{ display: 'flex', gap: '18px', marginTop: '8px' }}>
                 <div>
                   <div className="eyebrow">Plants</div>

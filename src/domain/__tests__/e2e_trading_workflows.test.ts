@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { isGoTransferMarket } from '../eligibility/gates/registry-transfer';
 import { evaluateEligibility, evaluateAllMarkets } from '../eligibility/engine';
 import { 
   computeCertificateValue, 
@@ -609,7 +610,15 @@ describe('E2E Trading Workflows & Multi-Tier Regulatory Stress Suite (Milestone 
             // INVARIANT 1: Assessment must have a defined overallVerdict
             expect(assessment.overallVerdict).toBeDefined();
             expect(['ELIGIBLE', 'CONDITIONAL', 'HARD_BLOCK', 'UNRESOLVED', 'UNKNOWN']).toContain(assessment.overallVerdict);
-            expect(assessment.gates.length).toBe(6);
+            // Extra gates: REGISTRY_TRANSFER (GO markets) or CROSS_BORDER_POS (audited compliance schemes, cross-border only)
+            const posGates = assessment.gates.filter(g => g.gate === 'CROSS_BORDER_POS').length;
+            if (isGoTransferMarket(market)) {
+              expect(assessment.gates.length).toBe(7);
+              expect(posGates).toBe(0);
+            } else {
+              expect(assessment.gates.length).toBe(6 + posGates);
+              expect(posGates).toBeLessThanOrEqual(1);
+            }
 
             // INVARIANT 2: Non-EU grid injection (GB, CH) MUST be HARD_BLOCK for any market requiring UDB
             if (!origin.isEU && market.requiresUDB) {
@@ -775,7 +784,9 @@ describe('E2E Trading Workflows & Multi-Tier Regulatory Stress Suite (Milestone 
 
       const market = getMarketById('FR_CPB')!;
       const assessment = evaluateEligibility(consignment, market);
-      expect(assessment.overallVerdict).toBe('ELIGIBLE');
+      // Audit 2026-10-04: CPB are earned only by biomethane injected in France, so NL-injected gas is blocked
+      expect(assessment.overallVerdict).toBe('HARD_BLOCK');
+      expect(assessment.blockingGate).toBe('CROSS_BORDER_POS');
 
       // Test with broker mark above €100 cap
       const highCpbMarks: MarksState = {

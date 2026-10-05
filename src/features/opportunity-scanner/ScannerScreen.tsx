@@ -6,6 +6,7 @@ import { Consignment } from '../../domain/consignment/types';
 import { REFERENCE_CONSIGNMENTS } from '../../domain/consignment/feedstocks';
 import { useAppState } from '../../store/context';
 import { evaluateEligibility } from '../../domain/eligibility/engine';
+import { evaluateRegistryTransferGate, isGoTransferMarket } from '../../domain/eligibility/gates/registry-transfer';
 import { computeAllNetbacks, computeCertificateValue } from '../../domain/netback/engine';
 import { rankNetbacks, getHighestBlockedOpportunity } from '../../domain/netback/ranking';
 import { EligibilityAssessment, GateResult } from '../../domain/eligibility/types';
@@ -276,7 +277,25 @@ export function ScannerScreen() {
       }
 
       if (bestMarketNetNetback === -999) {
-        bestMarketId = bookFilter === 'COMPLIANCE' ? 'DE_THG' : 'AIB_GO';
+        if (bookFilter === 'COMPLIANCE') {
+          bestMarketId = 'DE_THG';
+        } else {
+          // Voluntary book: the fallback must be reachable. Prefer the plant's domestic GO market
+          // (GOs stay in the home registry), then AIB_GO only if the origin registry can reach it.
+          const domesticGo = MARKETS.find(m => m.acceptsBookAndClaim && isGoTransferMarket(m) && m.country === countryCode);
+          const aibMarket = getMarketById('AIB_GO');
+          const aibGate = aibMarket ? evaluateRegistryTransferGate(plantConsignment, aibMarket) : null;
+          if (domesticGo) {
+            bestMarketId = domesticGo.id;
+          } else if (aibMarket && aibGate && aibGate.verdict !== 'HARD_BLOCK') {
+            bestMarketId = 'AIB_GO';
+          } else {
+            // No domestic GO market and no AIB route: the row type has no honest "blocked" display
+            // (it would still show a margin), so skip the plant rather than claim a route that
+            // does not exist.
+            continue;
+          }
+        }
         bestMarketNetNetback = ttfPrice + getAssumption('scanner.noRoutePremiumEurPerMwh');
         bestVerdict = 'CONDITIONAL';
       }
@@ -923,7 +942,7 @@ export function ScannerScreen() {
                   flex: 'none',
                 }}
               />
-              All six gates clear
+              All gates clear
             </label>
 
             <label
@@ -1382,7 +1401,7 @@ export function ScannerScreen() {
             ) : (
               <>
                 <ToggleRow label="Positive netback only" on={positiveOnly} onToggle={() => setPositiveOnly(p => !p)} />
-                <ToggleRow label="All six gates clear" on={clearedOnly} onToggle={() => setClearedOnly(p => !p)} />
+                <ToggleRow label="All gates clear" on={clearedOnly} onToggle={() => setClearedOnly(p => !p)} />
                 <ToggleRow label="Hide marks older than 30d" on={hideStale} onToggle={() => setHideStale(p => !p)} />
                 <div className="sc-field">
                   <span className="eyebrow">Min Margin</span>

@@ -7,6 +7,8 @@ import { evaluateChainOfCustodyGate } from './gates/chain-of-custody';
 import { evaluateFeedstockGate } from './gates/feedstock';
 import { evaluateGHGThresholdGate } from './gates/ghg-threshold';
 import { evaluateMarketSpecificGate } from './gates/market-specific';
+import { evaluateRegistryTransferGate } from './gates/registry-transfer';
+import { evaluateCrossBorderPosGate } from './gates/cross-border-pos';
 
 export function evaluateEligibility(
   consignment: Consignment,
@@ -21,6 +23,12 @@ export function evaluateEligibility(
     evaluateGHGThresholdGate(consignment, market),
     evaluateMarketSpecificGate(consignment, market),
   ];
+
+  // GO (book-and-claim) markets also depend on registry hub connectivity
+  const registryGate = evaluateRegistryTransferGate(consignment, market);
+  if (registryGate) gates.push(registryGate);
+  const posGate = evaluateCrossBorderPosGate(consignment, market);
+  if (posGate) gates.push(posGate);
 
   // Determine overall verdict (priority: HARD_BLOCK > UNRESOLVED > UNKNOWN > CONDITIONAL > ELIGIBLE)
   let overallVerdict: OverallVerdict = 'ELIGIBLE';

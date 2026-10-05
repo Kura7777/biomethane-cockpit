@@ -93,7 +93,7 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
       expect(netback.uncertaintyBranches![1].branchLabel.toLowerCase()).toContain('double counting');
     });
 
-    it('§E3: Danish manure ➔ FR_CPB and NL_ERE are ELIGIBLE or CONDITIONAL, never blocked', () => {
+    it('§E3: Danish manure ➔ FR_CPB and NL_ERE are HARD_BLOCK at CROSS_BORDER_POS (CPB: French-injected gas only; Regeling energie vervoer Art. 7: Dutch-produced green gas only)', () => {
       const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
       const frMarket = getMarketById('FR_CPB')!;
       const nlMarket = getMarketById('NL_ERE')!;
@@ -101,10 +101,10 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
       const frAssessment = evaluateEligibility(consignment, frMarket);
       const nlAssessment = evaluateEligibility(consignment, nlMarket);
 
-      expect(['ELIGIBLE', 'CONDITIONAL']).toContain(frAssessment.overallVerdict);
-      expect(['ELIGIBLE', 'CONDITIONAL']).toContain(nlAssessment.overallVerdict);
-      expect(frAssessment.overallVerdict).not.toBe('HARD_BLOCK');
-      expect(nlAssessment.overallVerdict).not.toBe('HARD_BLOCK');
+      expect(frAssessment.overallVerdict).toBe('HARD_BLOCK');
+      expect(frAssessment.blockingGate).toBe('CROSS_BORDER_POS');
+      expect(nlAssessment.overallVerdict).toBe('HARD_BLOCK');
+      expect(nlAssessment.blockingGate).toBe('CROSS_BORDER_POS');
     });
 
     it('§E4: ISCC PLUS consignment ➔ all compliance markets blocked at scheme gate, voluntary passes', () => {

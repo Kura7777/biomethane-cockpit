@@ -40,8 +40,8 @@ type DealStep = 1 | 2 | 3 | 4 | 5;
  *  being sold) and volume & schedule (how much, when), so no step carries more than a few panels. */
 const DEAL_STEPS: { id: DealStep; label: string; next: string }[] = [
   { id: 1, label: 'Product', next: 'Next: Volume & schedule' },
-  { id: 2, label: 'Volume & schedule', next: 'Next: Market & 6-gate audit' },
-  { id: 3, label: 'Market & 6-gate audit', next: 'Next: Economics & waterfall' },
+  { id: 2, label: 'Volume & schedule', next: 'Next: Market & gate audit' },
+  { id: 3, label: 'Market & gate audit', next: 'Next: Economics & waterfall' },
   { id: 4, label: 'Economics & waterfall', next: 'Next: Deal package' },
   { id: 5, label: 'Deal package & execution', next: '' },
 ];
@@ -624,7 +624,7 @@ export function TradeBuilderScreen() {
       type: 'SAVE_ASSESSMENT',
       assessment: currentTradeAssessment,
     });
-    showToast(`Dossier saved with six-gate citations · REF ${currentTradeAssessment.id}`);
+    showToast(`Dossier saved with gate citations · REF ${currentTradeAssessment.id}`);
   };
 
   const handleExportPdf = () => {
@@ -647,7 +647,7 @@ export function TradeBuilderScreen() {
     }
   };
 
-  // Same gate data step 3 ("Market & 6-gate audit") uses — never recompute eligibility separately.
+  // Same gate data step 3 ("Market & gate audit") uses — never recompute eligibility separately.
   const failingGates = assessment.gates.filter(g => g.verdict !== 'PASS');
   const headerGateBadge = computeGateBadge(assessment.gates, assessment.overallVerdict);
   const blockedBadgeTitle = failingGates
@@ -657,7 +657,7 @@ export function TradeBuilderScreen() {
   const stepSummary: Record<DealStep, string> = {
     1: `${currentOriginObj.flag} ${currentOriginObj.name} · ${currentFeedstockObj.label} · ${currentSchemeObj.label} · ${currentCustodyObj.label} · CI ${ci} g/MJ`,
     2: `${volumeMwh.toLocaleString()} MWh · ${complianceYear} compliance · ${formatShortDate(deliveryStartDate)} – ${formatShortDate(deliveryEndDate)} · ${deliveryProfile.replace(/_/g, ' ').toLowerCase()}`,
-    3: `${selectedMarket.name} · ${assessment.overallVerdict === 'ELIGIBLE' ? '6/6 gates pass' : 'blocked'}`,
+    3: `${selectedMarket.name} · ${assessment.overallVerdict === 'ELIGIBLE' ? `${assessment.gates.length}/${assessment.gates.length} gates pass` : 'blocked'}`,
     4: `Net netback ${netNetbackVal >= 0 ? '+' : '−'}€${Math.abs(netNetbackVal).toFixed(2)}/MWh · P&L ${netback.deskMargin !== null ? `€${annualPnl.toLocaleString()}` : '—'}`,
     5: '',
   };
@@ -1793,7 +1793,7 @@ export function TradeBuilderScreen() {
 
         <div style={{ padding: '6px 18px 18px' }} className="noscroll">
           <div className="eyebrow" style={{ margin: '10px 0 4px' }}>
-            Six-gate audit · {assessment.gates.filter(g => g.verdict === 'PASS').length} of 6 clear
+            Gate audit · {assessment.gates.filter(g => g.verdict === 'PASS').length} of {assessment.gates.length} clear
           </div>
           {assessment.gates.map((g, gIdx) => {
             const isPass = g.verdict === 'PASS';

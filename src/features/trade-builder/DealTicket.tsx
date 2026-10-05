@@ -44,7 +44,7 @@ export interface DealTicketProps {
   ciIsManual: boolean;
   isTtfSimulated: boolean;
   onBuildDealPackage: () => void;
-  /** Opens step 3 (Market & 6-gate audit) so the trader can act on a failing gate. */
+  /** Opens step 3 (Market & gate audit) so the trader can act on a failing gate. */
   onGoToGate: () => void;
 
   // Producer quote

@@ -3,16 +3,19 @@
  * built ONLY from `scratch/registry_research/registries.md` (accessed 2026-09-28) and
  * `scratch/registry_research/udb_process.md` (for the UDB status note).
  *
- * Two cross-border systems matter and are NOT the same thing:
- * - AIB EECS Gas Scheme (aib-net.org) — a Guarantee of Origin (GO) trading hub. 15 confirmed
- *   members as of this research: E-Control (AT), Brugel (BE-Brussels), OTE (CZ), Elering (EE),
- *   Gasgrid (FI), EEX (FR), MEKH (HU), GSE (IT), Conexus (LV), VertiCer (NL), REN (PT),
- *   Enagás GTS (ES), Swedish Energy Agency (SE), Pronovo (CH), Amber Grid (LT).
- *   Source: https://www.aib-net.org/facts/aib-member-countries-regions/aib-members
+ * Two cross-border systems matter and are NOT the same thing. Hub picture as of 2026-10-04
+ * (docs/research/registry-hub-connectivity-2026-10-04.md; supersedes the 2026-09-28 lists):
+ * - AIB EECS Gas Scheme (aib-net.org) — a Guarantee of Origin (GO) trading hub. 16 gas-connected
+ *   registries: E-Control (AT), Brugel (BE-Brussels), OTE (CZ), Elering (EE), Gasgrid (FI), EEX (FR),
+ *   MEKH (HU), GSE (IT), Conexus (LV), Amber Grid (LT), VertiCer (NL), REN (PT), SPP-distribúcia (SK),
+ *   Enagás GTS (ES), Energimyndigheten (SE), Pronovo (CH, gas imports only).
+ *   Energinet (DK) is an AIB Gas Scheme applicant since 17 Jun 2026 (connected for electricity only).
+ *   Source: https://www.aib-net.org/registries
  * - ERGaR Certificate of Origin (CoO) Scheme (ergar.org) — a separate, overlapping cross-border
- *   GO-transfer scheme. Confirmed active participants: Energinet (DK), dena (DE), GGCS (GB),
- *   VertiCer (NL), AGCS (AT), Amber Grid (LT), SPPD/OKTE (SK).
- *   Source: https://www.ergar.org/ergar-schemes/coo-scheme-statistics/
+ *   GO-transfer scheme. 7 listed system participants: AGCS (AT), Energinet (DK), dena (DE),
+ *   SPP-distribúcia (SK), Pronovo (CH), GGCS (GB), Amber Grid (LT). VertiCer (NL) exited the
+ *   ERGaR CoO scheme on 1 July 2026 (exports permitted via AIB Hub only). Each registry chooses whom it accepts.
+ *   Source: https://www.ergar.org/ergar-schemes/ergar-coo-scheme/
  *
  * Where the research says a fact is UNVERIFIED, this file stores 'unverified' rather than
  * guessing true/false. Nothing here should be read as "the app's own live data" — it is a
@@ -48,6 +51,8 @@ export interface RegistryDirectoryEntry {
 }
 
 const ACCESSED = '2026-09-28';
+const HUB_ACCESSED = '2026-10-04';
+const ERGAR_COO_URL = 'https://www.ergar.org/ergar-schemes/ergar-coo-scheme/';
 const AIB_LIST_URL = 'https://www.aib-net.org/facts/aib-member-countries-regions/aib-members';
 const ERGAR_STATS_URL = 'https://www.ergar.org/ergar-schemes/coo-scheme-statistics/';
 const UDB_LEAFLET_URL = 'https://www.europeanbiogas.eu/publication/union-database-leaflet/';
@@ -70,13 +75,13 @@ export const REGISTRY_DIRECTORY: RegistryDirectoryEntry[] = [
     ergar: true,
     udbStatus: 'NOT_LIVE_EXPECTED_END_2026',
     crossBorderRoutes: [
-      'ERGaR CoO scheme — dena is ERGaR\'s largest import destination (approximately two-thirds of Q1 2026 ERGaR volumes)',
-      'Bilateral agreement with Austria (AGCS) since 2016 — first of its kind in Europe',
-      'Bilateral agreement with Denmark (Energinet) since 1 October 2017',
+      'ERGaR CoO scheme — dena receives imports via ERGaR from GB, AT, DK, SK, LT (transfers with NL terminated 1 Jul 2026; bilateral agreements with AT/DK superseded by ERGaR)',
+      'Bilateral agreement with Austria (AGCS) since 2016 — first of its kind in Europe (superseded by ERGaR)',
+      'Bilateral agreement with Denmark (Energinet) since 1 October 2017 (superseded by ERGaR)',
     ],
     complianceMarketsFed: ['German THG-Quote (via the separate Nabisy system operated by BLE, not dena itself)'],
     notes:
-      "dena Biogasregister is NOT a member of AIB's 15-member Gas Scheme Group, contradicting any claim that dena participates via AIB_EECS_GAS. UBA operates a separate register, the Gas-HKR, described as \"new and still under development\" — distinct from dena's register. Germany's PoS/sustainability role for compliance runs via Nabisy (operated by BLE), a different body than dena.",
+      "dena Biogasregister is NOT a member of AIB's 15-member Gas Scheme Group, contradicting any claim that dena participates via AIB_EECS_GAS. VertiCer (Netherlands) exited ERGaR on 1 July 2026, terminating NL->DE transfers. UBA operates a separate register, the Gas-HKR, described as \"new and still under development\" — distinct from dena's register. Germany's PoS/sustainability role for compliance runs via Nabisy (operated by BLE), a different body than dena.",
     sources: [
       { claim: 'dena absent from AIB Gas Scheme Group 15-member list', url: AIB_LIST_URL, accessed: ACCESSED },
       { claim: 'dena is ERGaR\'s largest CoO import destination (~2/3 of Q1 2026 volumes)', url: ERGAR_STATS_URL, accessed: ACCESSED },
@@ -92,19 +97,20 @@ export const REGISTRY_DIRECTORY: RegistryDirectoryEntry[] = [
     officialUrl: 'https://www.verticer.eu/',
     issues: 'GO',
     aibGasScheme: true,
-    ergar: true,
+    ergar: false,
     udbStatus: 'NOT_LIVE_EXPECTED_END_2026',
     crossBorderRoutes: [
       'AIB EECS Gas Scheme hub (confirmed member; AIB publishes a dedicated EECS Domain Protocol for VertiCer, dated 2025-06-12)',
-      'ERGaR CoO scheme — named as an exporter of smaller Netherlands-origin volumes',
+      'ERGaR CoO scheme — exited on 1 July 2026; exports to dena (Germany) and other ERGaR members terminated; exports permitted via AIB Hub only',
     ],
     complianceMarketsFed: ['Dutch renewable-transport obligation (HBE/ERE) — national scheme details not independently verified in this research'],
     notes:
-      'NEa (Nederlandse Emissieautoriteit) handles RFNBO/transport-fuel delivery registration separately; whether NEa is as tightly coupled to VertiCer as sometimes implied is unverified. This is the most strongly corroborated registry entry in the research: operator, AIB membership, and ERGaR participation are all independently confirmed.',
+      'NEa (Nederlandse Emissieautoriteit) handles RFNBO/transport-fuel delivery registration separately. VertiCer is a confirmed member of the AIB Gas Scheme Group. VertiCer officially exited the ERGaR CoO scheme on 1 July 2026 following Dutch government policy; from that date, gas GO exports are permitted solely via the AIB Hub to EU-designated issuing bodies, terminating electronic transfers to Germany (dena).',
     sources: [
       { claim: 'VertiCer is the Dutch GO-issuing body (CertiQ/Vertogas merger, 1 Jan 2023)', url: 'https://www.verticer.eu/', accessed: ACCESSED },
       { claim: 'VertiCer confirmed AIB Gas Scheme Group member', url: AIB_LIST_URL, accessed: ACCESSED },
-      { claim: 'VertiCer named as an ERGaR CoO exporter', url: ERGAR_STATS_URL, accessed: ACCESSED },
+      { claim: 'VertiCer absent from ERGaR CoO system participants list (exited 1 July 2026)', url: ERGAR_COO_URL, accessed: HUB_ACCESSED },
+      { claim: 'VertiCer exited ERGaR on 1 July 2026; exports permitted via AIB Hub only, terminating transfers to dena', url: 'https://verticer.eu/en/frequently-asked-questions/traders/', accessed: HUB_ACCESSED },
     ],
     verificationLevel: 'VERIFIED',
   },
@@ -119,14 +125,15 @@ export const REGISTRY_DIRECTORY: RegistryDirectoryEntry[] = [
     ergar: true,
     udbStatus: 'NOT_LIVE_EXPECTED_END_2026',
     crossBorderRoutes: [
-      'ERGaR CoO scheme to Germany — historically the largest exporter; the UK/GGCS surpassed Denmark as largest exporter in Q1 2026',
-      'Bilateral agreement with Germany (dena) since 1 October 2017',
+      'AIB EECS Gas Scheme: applicant since 17 Jun 2026 (AIB-connected for electricity only) — no gas routes via AIB yet',
+      'ERGaR CoO scheme: active bilateral lanes to Germany (dena), Slovakia (SPP-d), Lithuania (Amber Grid), and Switzerland (Pronovo); lanes to AT, GB, NL closed',
+      'Bilateral agreement with Germany (dena) since 1 October 2017 (superseded by ERGaR)',
     ],
     complianceMarketsFed: ['Not independently verified in this research'],
     notes:
-      'Energinet does not appear in the 15-member AIB Gas Scheme Group list captured in this research — treat any AIB_EECS_GAS claim for Energinet as unsupported. The exact registry brand name ("Biometangasregister") is unverified; the operator (Energinet Gas TSO) is confirmed.',
+      'Energinet is an AIB Gas Scheme applicant since 17 Jun 2026 and is AIB-connected for electricity only; no gas connection date is published, so aibGasScheme stays false. The exact registry brand name ("Biometangasregister") is unverified; the operator (Energinet Gas TSO) is confirmed. Energinet permits ex-domain cancellations for deliveries outside ERGaR.',
     sources: [
-      { claim: 'Energinet absent from AIB Gas Scheme Group 15-member list', url: AIB_LIST_URL, accessed: ACCESSED },
+      { claim: 'Energinet is an AIB Gas Scheme applicant since 17 Jun 2026 (electricity-only connection today)', url: 'https://www.aib-net.org/news-events/news', accessed: HUB_ACCESSED },
       { claim: 'Denmark historically the largest ERGaR CoO exporter; overtaken by UK/GGCS in Q1 2026', url: ERGAR_STATS_URL, accessed: ACCESSED },
       UDB_SOURCE,
     ],
@@ -140,15 +147,16 @@ export const REGISTRY_DIRECTORY: RegistryDirectoryEntry[] = [
     officialUrl: 'https://goodnewenergy.enagas.es',
     issues: 'GO',
     aibGasScheme: true,
-    ergar: 'unverified',
+    ergar: false,
     udbStatus: 'NOT_LIVE_EXPECTED_END_2026',
     crossBorderRoutes: ['AIB EECS Gas Scheme hub (confirmed member "Enagas GTS, S.A.U.")'],
     complianceMarketsFed: ['Not independently verified in this research'],
     notes:
-      "Spain did not appear among the ERGaR CoO scheme importer/exporter names captured in this research (Germany, Switzerland, Slovakia, Denmark, UK and Netherlands were named; Spain was not) — treat ERGaR participation as unverified, not confirmed. Spain's cross-border grid interconnection into France (VIP Pirineos) is historically constrained and used predominantly for physical natural gas rather than biomethane certificate flows.",
+      "Spain did not appear among the ERGaR CoO scheme importer/exporter names captured in this research (Germany, Switzerland, Slovakia, Denmark, UK and Netherlands were named; Spain was not) — the 2026-10-04 ERGaR participant list confirms Enagás is not a participant. Spain's cross-border grid interconnection into France (VIP Pirineos) is historically constrained and used predominantly for physical natural gas rather than biomethane certificate flows.",
     sources: [
       { claim: 'Enagás GTS confirmed AIB Gas Scheme Group member', url: AIB_LIST_URL, accessed: ACCESSED },
       { claim: 'Spain not named among ERGaR CoO importers/exporters in this research', url: ERGAR_STATS_URL, accessed: ACCESSED },
+      { claim: 'Enagás GTS not among ERGaR CoO system participants', url: ERGAR_COO_URL, accessed: HUB_ACCESSED },
     ],
     verificationLevel: 'PARTIAL',
   },
@@ -160,7 +168,7 @@ export const REGISTRY_DIRECTORY: RegistryDirectoryEntry[] = [
     officialUrl: 'https://www.gse.it',
     issues: 'GO_AND_POS',
     aibGasScheme: true,
-    ergar: 'unverified',
+    ergar: false,
     udbStatus: 'NOT_LIVE_EXPECTED_END_2026',
     crossBorderRoutes: [
       'AIB EECS Gas Scheme hub (confirmed member "GSE (Italy)")',
@@ -172,6 +180,7 @@ export const REGISTRY_DIRECTORY: RegistryDirectoryEntry[] = [
     sources: [
       { claim: 'GSE confirmed AIB Gas Scheme Group member', url: AIB_LIST_URL, accessed: ACCESSED },
       { claim: 'Incentivised Italian plants blocked from cross-border GO export absent DM 2022 exemption', url: 'https://www.gse.it', accessed: ACCESSED },
+      { claim: 'GSE not among ERGaR CoO system participants', url: ERGAR_COO_URL, accessed: HUB_ACCESSED },
     ],
     verificationLevel: 'PARTIAL',
   },
@@ -183,7 +192,7 @@ export const REGISTRY_DIRECTORY: RegistryDirectoryEntry[] = [
     officialUrl: 'https://cegibat.grdf.fr/actualites/garanties-origine-tracabilite-biomethane',
     issues: 'GO',
     aibGasScheme: true,
-    ergar: 'unverified',
+    ergar: false,
     udbStatus: 'NOT_LIVE_EXPECTED_END_2026',
     crossBorderRoutes: [
       'AIB EECS Gas Scheme hub (confirmed member "EEX")',
@@ -195,6 +204,7 @@ export const REGISTRY_DIRECTORY: RegistryDirectoryEntry[] = [
     sources: [
       { claim: 'French GOs usable only in France; no European GO market for French-origin gas', url: 'https://cegibat.grdf.fr/actualites/garanties-origine-tracabilite-biomethane', accessed: ACCESSED },
       { claim: 'EEX confirmed AIB Gas Scheme Group member', url: AIB_LIST_URL, accessed: ACCESSED },
+      { claim: 'EEX not among ERGaR CoO system participants', url: ERGAR_COO_URL, accessed: HUB_ACCESSED },
     ],
     verificationLevel: 'PARTIAL',
   },
@@ -251,7 +261,7 @@ export const REGISTRY_DIRECTORY: RegistryDirectoryEntry[] = [
     officialUrl: AIB_LIST_URL,
     issues: 'GO',
     aibGasScheme: true,
-    ergar: 'unverified',
+    ergar: false,
     udbStatus: 'NOT_LIVE_EXPECTED_END_2026',
     crossBorderRoutes: [
       'AIB EECS Gas Scheme hub (confirmed member "Brugel", Belgium-Brussels)',
@@ -261,6 +271,7 @@ export const REGISTRY_DIRECTORY: RegistryDirectoryEntry[] = [
     notes: 'Belgium reportedly operates four regional GO registries reflecting its federal energy-regulation structure — the detail is consistent with Belgium\'s known structure but not independently itemised in this research.',
     sources: [
       { claim: 'Brugel confirmed AIB Gas Scheme Group member (Belgium-Brussels)', url: AIB_LIST_URL, accessed: ACCESSED },
+      { claim: 'Brugel not among ERGaR CoO system participants', url: ERGAR_COO_URL, accessed: HUB_ACCESSED },
     ],
     verificationLevel: 'PARTIAL',
   },
@@ -272,14 +283,16 @@ export const REGISTRY_DIRECTORY: RegistryDirectoryEntry[] = [
     officialUrl: AIB_LIST_URL,
     issues: 'GO',
     aibGasScheme: true,
-    ergar: 'unverified',
+    ergar: false,
     udbStatus: 'NOT_LIVE_EXPECTED_END_2026',
-    crossBorderRoutes: ['AIB EECS Gas Scheme hub (confirmed member "Swedish Energy Agency")'],
+    crossBorderRoutes: ['AIB EECS Gas Scheme hub (listed as gas-connected in the AIB registries table, accessed 2026-10-04)'],
     complianceMarketsFed: ['Not independently verified in this research'],
     notes:
-      'New regulation aligning the Swedish GO system with the latest RED revision and CEN-EN 16325 entered into force on 1 February 2026. Any claim naming "Energigas Sverige / Nordion Energi (Swedegas)" as the GO-issuing authority is a naming error — Energigas Sverige is a trade association, and the confirmed AIB Issuing Body is the Swedish Energy Agency.',
+      'Gas-connected per the AIB registries table (June 2026 press said the connection was still pending; the AIB table supersedes it). New regulation aligning the Swedish GO system with the latest RED revision and CEN-EN 16325 entered into force on 1 February 2026. Any claim naming "Energigas Sverige / Nordion Energi (Swedegas)" as the GO-issuing authority is a naming error — Energigas Sverige is a trade association, and the confirmed AIB Issuing Body is the Swedish Energy Agency.',
     sources: [
       { claim: 'Swedish Energy Agency confirmed AIB Gas Scheme Group Issuing Body for Sweden', url: AIB_LIST_URL, accessed: ACCESSED },
+      { claim: 'Energimyndigheten listed as Electricity + Gas on AIB registries table', url: 'https://www.aib-net.org/registries', accessed: HUB_ACCESSED },
+      { claim: 'Energimyndigheten not among ERGaR CoO system participants', url: ERGAR_COO_URL, accessed: HUB_ACCESSED },
     ],
     verificationLevel: 'PARTIAL',
   },
@@ -296,12 +309,14 @@ export const REGISTRY_DIRECTORY: RegistryDirectoryEntry[] = [
     crossBorderRoutes: [
       'AIB EECS Gas Scheme hub (confirmed member)',
       'ERGaR CoO scheme — the second-largest import destination in Q1 2026 (roughly one-third of transfers, after dena)',
+      'Pronovo is connected to AIB for gas imports only (no gas exports via AIB)',
     ],
     complianceMarketsFed: ['Not independently verified in this research — Switzerland is outside the EU so not directly subject to RED PoS/UDB mechanics'],
-    notes: 'Pronovo is NOT domestic-only: it is ERGaR\'s second-largest import destination as of Q1 2026, contradicting any DOMESTIC_ONLY classification.',
+    notes: 'Gas GOs reach Pronovo via AIB (imports only) and via ERGaR. Pronovo is NOT domestic-only: it is ERGaR\'s second-largest import destination as of Q1 2026, contradicting any DOMESTIC_ONLY classification.',
     sources: [
       { claim: 'Pronovo is the second-largest ERGaR CoO import destination in Q1 2026 (~1/3 of transfers)', url: ERGAR_STATS_URL, accessed: ACCESSED },
       { claim: 'Pronovo confirmed AIB Gas Scheme Group member', url: AIB_LIST_URL, accessed: ACCESSED },
+      { claim: 'Pronovo: Gas (imports only) on AIB', url: 'https://www.aib-net.org/registries', accessed: HUB_ACCESSED },
     ],
     verificationLevel: 'PARTIAL',
   },
@@ -313,12 +328,15 @@ export const REGISTRY_DIRECTORY: RegistryDirectoryEntry[] = [
     officialUrl: AIB_LIST_URL,
     issues: 'GO',
     aibGasScheme: true,
-    ergar: 'unverified',
+    ergar: false,
     udbStatus: 'NOT_LIVE_EXPECTED_END_2026',
     crossBorderRoutes: ['AIB EECS Gas Scheme hub (confirmed member "Gasgrid")'],
     complianceMarketsFed: ['Not independently verified in this research'],
     notes: 'Other operational details were not independently checked in this research beyond AIB list confirmation.',
-    sources: [{ claim: 'Gasgrid confirmed AIB Gas Scheme Group member', url: AIB_LIST_URL, accessed: ACCESSED }],
+    sources: [
+      { claim: 'Gasgrid confirmed AIB Gas Scheme Group member', url: AIB_LIST_URL, accessed: ACCESSED },
+      { claim: 'Gasgrid Finland not among ERGaR CoO system participants', url: ERGAR_COO_URL, accessed: HUB_ACCESSED },
+    ],
     verificationLevel: 'PARTIAL',
   },
   {
@@ -329,12 +347,15 @@ export const REGISTRY_DIRECTORY: RegistryDirectoryEntry[] = [
     officialUrl: AIB_LIST_URL,
     issues: 'OTHER',
     aibGasScheme: false,
-    ergar: 'unverified',
+    ergar: false,
     udbStatus: 'NOT_LIVE_EXPECTED_END_2026',
     crossBorderRoutes: [],
     complianceMarketsFed: ['Not independently verified in this research'],
     notes: 'Norway is EEA, not EU. Not in the confirmed 15-member AIB list; no dedicated search was performed for Norway in this research, so most detail here is UNVERIFIED.',
-    sources: [{ claim: 'Norway absent from AIB Gas Scheme Group 15-member list', url: AIB_LIST_URL, accessed: ACCESSED }],
+    sources: [
+      { claim: 'Norway absent from AIB Gas Scheme Group 15-member list', url: AIB_LIST_URL, accessed: ACCESSED },
+      { claim: 'Norway (no registry confirmed) not among ERGaR CoO system participants', url: ERGAR_COO_URL, accessed: HUB_ACCESSED },
+    ],
     verificationLevel: 'UNVERIFIED',
   },
   {
@@ -365,12 +386,15 @@ export const REGISTRY_DIRECTORY: RegistryDirectoryEntry[] = [
     officialUrl: AIB_LIST_URL,
     issues: 'GO',
     aibGasScheme: true,
-    ergar: 'unverified',
+    ergar: false,
     udbStatus: 'NOT_LIVE_EXPECTED_END_2026',
     crossBorderRoutes: ['AIB EECS Gas Scheme hub (confirmed member "OTE")'],
     complianceMarketsFed: ['Not independently verified in this research'],
     notes: 'No dedicated search was performed for Czechia beyond AIB list confirmation in this research.',
-    sources: [{ claim: 'OTE confirmed AIB Gas Scheme Group member for Czechia', url: AIB_LIST_URL, accessed: ACCESSED }],
+    sources: [
+      { claim: 'OTE confirmed AIB Gas Scheme Group member for Czechia', url: AIB_LIST_URL, accessed: ACCESSED },
+      { claim: 'OTE not among ERGaR CoO system participants', url: ERGAR_COO_URL, accessed: HUB_ACCESSED },
+    ],
     verificationLevel: 'PARTIAL',
   },
   {
@@ -381,7 +405,7 @@ export const REGISTRY_DIRECTORY: RegistryDirectoryEntry[] = [
     officialUrl: AIB_LIST_URL,
     issues: 'GO',
     aibGasScheme: true,
-    ergar: 'unverified',
+    ergar: false,
     udbStatus: 'NOT_LIVE_EXPECTED_END_2026',
     crossBorderRoutes: ['AIB EECS Gas Scheme hub (confirmed member "REN")'],
     complianceMarketsFed: ['Not independently verified in this research'],
@@ -390,6 +414,7 @@ export const REGISTRY_DIRECTORY: RegistryDirectoryEntry[] = [
     sources: [
       { claim: 'Portugal joined biomethane-producing countries in 2022', url: 'https://www.europeanbiogas.eu/news/eba-statistical-report-2025/', accessed: ACCESSED },
       { claim: 'REN confirmed AIB Gas Scheme Group member for Portugal', url: AIB_LIST_URL, accessed: ACCESSED },
+      { claim: 'REN not among ERGaR CoO system participants', url: ERGAR_COO_URL, accessed: HUB_ACCESSED },
     ],
     verificationLevel: 'PARTIAL',
   },
@@ -401,7 +426,7 @@ export const REGISTRY_DIRECTORY: RegistryDirectoryEntry[] = [
     officialUrl: 'https://www.gasnetworks.ie/network/biomethane/registry',
     issues: 'GO',
     aibGasScheme: false,
-    ergar: 'unverified',
+    ergar: false,
     udbStatus: 'NOT_LIVE_EXPECTED_END_2026',
     crossBorderRoutes: [],
     complianceMarketsFed: ['Not independently verified in this research'],
@@ -409,6 +434,7 @@ export const REGISTRY_DIRECTORY: RegistryDirectoryEntry[] = [
     sources: [
       { claim: 'GNI absent from AIB Gas Scheme Group 15-member list', url: AIB_LIST_URL, accessed: ACCESSED },
       { claim: 'GNI renewable-gas registry page exists', url: 'https://www.gasnetworks.ie/network/biomethane/registry', accessed: ACCESSED },
+      { claim: 'Gas Networks Ireland not among ERGaR CoO system participants', url: ERGAR_COO_URL, accessed: HUB_ACCESSED },
     ],
     verificationLevel: 'UNVERIFIED',
   },
@@ -420,12 +446,15 @@ export const REGISTRY_DIRECTORY: RegistryDirectoryEntry[] = [
     officialUrl: AIB_LIST_URL,
     issues: 'GO',
     aibGasScheme: true,
-    ergar: 'unverified',
+    ergar: false,
     udbStatus: 'NOT_LIVE_EXPECTED_END_2026',
     crossBorderRoutes: ['AIB EECS Gas Scheme hub (confirmed member "MEKH")'],
     complianceMarketsFed: ['Not independently verified in this research'],
     notes: 'No dedicated search was performed for Hungary beyond AIB list confirmation in this research.',
-    sources: [{ claim: 'MEKH confirmed AIB Gas Scheme Group member for Hungary', url: AIB_LIST_URL, accessed: ACCESSED }],
+    sources: [
+      { claim: 'MEKH confirmed AIB Gas Scheme Group member for Hungary', url: AIB_LIST_URL, accessed: ACCESSED },
+      { claim: 'MEKH not among ERGaR CoO system participants', url: ERGAR_COO_URL, accessed: HUB_ACCESSED },
+    ],
     verificationLevel: 'PARTIAL',
   },
   {
@@ -436,12 +465,15 @@ export const REGISTRY_DIRECTORY: RegistryDirectoryEntry[] = [
     officialUrl: AIB_LIST_URL,
     issues: 'GO',
     aibGasScheme: true,
-    ergar: 'unverified',
+    ergar: false,
     udbStatus: 'NOT_LIVE_EXPECTED_END_2026',
     crossBorderRoutes: ['AIB EECS Gas Scheme hub (confirmed member "Elering")'],
     complianceMarketsFed: ['Not independently verified in this research'],
     notes: 'No dedicated search was performed for Estonia beyond AIB list confirmation in this research.',
-    sources: [{ claim: 'Elering confirmed AIB Gas Scheme Group member for Estonia', url: AIB_LIST_URL, accessed: ACCESSED }],
+    sources: [
+      { claim: 'Elering confirmed AIB Gas Scheme Group member for Estonia', url: AIB_LIST_URL, accessed: ACCESSED },
+      { claim: 'Elering not among ERGaR CoO system participants', url: ERGAR_COO_URL, accessed: HUB_ACCESSED },
+    ],
     verificationLevel: 'PARTIAL',
   },
   {
@@ -452,12 +484,15 @@ export const REGISTRY_DIRECTORY: RegistryDirectoryEntry[] = [
     officialUrl: AIB_LIST_URL,
     issues: 'GO',
     aibGasScheme: true,
-    ergar: 'unverified',
+    ergar: false,
     udbStatus: 'NOT_LIVE_EXPECTED_END_2026',
     crossBorderRoutes: ['AIB EECS Gas Scheme hub (confirmed member "Conexus")'],
     complianceMarketsFed: ['Not independently verified in this research'],
     notes: 'No dedicated search was performed for Latvia beyond AIB list confirmation in this research.',
-    sources: [{ claim: 'Conexus confirmed AIB Gas Scheme Group member for Latvia', url: AIB_LIST_URL, accessed: ACCESSED }],
+    sources: [
+      { claim: 'Conexus confirmed AIB Gas Scheme Group member for Latvia', url: AIB_LIST_URL, accessed: ACCESSED },
+      { claim: 'Conexus not among ERGaR CoO system participants', url: ERGAR_COO_URL, accessed: HUB_ACCESSED },
+    ],
     verificationLevel: 'PARTIAL',
   },
   {

@@ -116,7 +116,7 @@ export function TradeMarketAuditStep({
           <span className="tb-form-value">
             {selectedMarket.name}{' '}
             <span className={`tb-badge ${verdictClass}`}>
-              {isPass ? 'ELIGIBLE (6/6 PASS)' : isBlock ? 'HARD BLOCKED' : isConditional ? 'CONDITIONAL' : 'UNRESOLVED'}
+              {isPass ? `ELIGIBLE (${assessment.gates.length}/${assessment.gates.length} PASS)` : isBlock ? 'HARD BLOCKED' : isConditional ? 'CONDITIONAL' : 'UNRESOLVED'}
             </span>
           </span>
           <dl className="tb-facts-list">
@@ -156,13 +156,13 @@ export function TradeMarketAuditStep({
         </div>
       </div>
 
-      {/* Six-Gate Statutory Regulatory Audit */}
+      {/* Statutory Regulatory Audit */}
       <div className="tb-form-row">
-        <span className="tb-form-label">Six-gate audit</span>
+        <span className="tb-form-label">Gate audit</span>
         <div className="tb-form-control">
           <div className="tb-row">
             <span className={`tb-form-value tb-num ${isPass ? 'tb-pos' : 'tb-neg'}`}>
-              <ShieldCheck size={16} /> {gatesClear} of 6 gates clear
+              <ShieldCheck size={16} /> {gatesClear} of {assessment.gates.length} gates clear
             </span>
             <button
               type="button"
@@ -173,7 +173,7 @@ export function TradeMarketAuditStep({
               <Scale size={13} /> Run Forensic Statutory Audit
             </button>
           </div>
-          <p className="tb-hint">RED III Six-Gate Regulatory Audit · select a gate to audit it</p>
+          <p className="tb-hint">RED III Regulatory Audit · select a gate to audit it</p>
 
           <ol className="tb-gates">
             {assessment.gates.map((g, gIdx) => {

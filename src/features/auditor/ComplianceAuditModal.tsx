@@ -344,7 +344,7 @@ export function ComplianceAuditModal({
         blockingGate: null,
         summary: auditResult?.headline || 'Compliance Audit Evaluation',
         gates: (auditResult?.checks || []).map((c, i) => ({
-          gate: STATUTORY_GATE_NAMES[i] || 'MARKET_SPECIFIC',
+          gate: c.gateName.startsWith('7.') ? 'REGISTRY_TRANSFER' : STATUTORY_GATE_NAMES[i] || 'MARKET_SPECIFIC',
           gateLabel: c.gateName,
           verdict: c.status === 'PASS' ? 'PASS' : c.status === 'FAIL' ? 'HARD_BLOCK' : 'CONDITIONAL',
           reason: c.details,
@@ -579,7 +579,7 @@ ${auditResult.recommendations.map(r => `• ${r}`).join('\n')}`.trim();
                 <div className="amc-card">
                   <div className="amc-card-head">
                     <div className="amc-card-eyebrow">
-                      RED III &amp; National Directives Six-Gate Breakdown
+                      RED III &amp; National Directives Gate Breakdown
                     </div>
                     <div className="amc-card-count">
                       {auditResult.checks.filter(c => c.status === 'PASS').length} of {auditResult.checks.length} Gates Clear

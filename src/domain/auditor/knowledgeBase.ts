@@ -110,6 +110,20 @@ Consignment Title Transfer Lifecycle (this desk's own trade-simulation model, no
 Physical Gas Delivery: Settled at Virtual Trading Point (VTP) based on wholesale Day-Ahead index (e.g. TTF).
 Sustainability Proof Default: If the seller delivers gas molecules to the grid but fails to deliver valid Proof of Sustainability (PoS) meeting audited RED III criteria (>= 65% GHG savings), the buyer has the contractual right to re-price the trade down to standard TTF natural gas price without paying the green certificate premium.
 Cure Period & Indemnity: Seller has 3 business days to cure delayed PoS delivery. Failure to cure grants buyer right to claim replacement certificate cover costs in open market. Termination Event triggered after 10 business days.`
+  },
+  {
+    id: 'go_hub_connectivity',
+    title: 'Cross-border GO transfers: AIB vs ERGaR hubs (research 4 Oct 2026)',
+    sourceFile: 'docs/research/registry-hub-connectivity-2026-10-04.md',
+    category: 'UDB_REGISTRY',
+    content: `A biomethane Guarantee of Origin (GO) moves between registries only if both sit on the same hub and accept each other. Never assume a GO route.
+AIB gas hub, gas-connected registries: AT E-Control, BE Brugel (Brussels), CZ OTE, EE Elering, FI Gasgrid, FR EEX, HU MEKH, IT GSE, LV Conexus, LT Amber Grid, NL VertiCer, PT REN, SK SPP-distribuacia, ES Enagas GTS, SE Energimyndigheten, CH Pronovo. Pronovo (CH) is gas imports only on AIB, no exports.
+Energinet (DK) is on ERGaR only; it has been an AIB Gas Scheme applicant since 17 Jun 2026 with no connection date published (AIB-connected for electricity only).
+dena (DE) is ERGaR-only and not on the AIB gas hub. GGCS (GB) is ERGaR-only.
+ERGaR CoO participants: AT AGCS, DK Energinet, DE dena, SK SPP-distribuacia, CH Pronovo, GB GGCS, LT Amber Grid, plus NL VertiCer (active per ERGaR statistics). Each ERGaR registry chooses whom it accepts. dena's published partner list is NL, GB, AT, DK and SK only.
+Ex-domain cancellation (workaround without a shared hub): not allowed in ES, IT, NL and SE; CZ only under exceptional circumstances confirmed by state stakeholders; FR only with a signed agreement with the other issuing body. So there is no practical GO path from DK to ES, FR or CZ today, and none from ES or CZ to DE.
+Italy: GOs from supported transport/other-use plants cannot be exported. GB to DE: non-EU quantities need extra mass-balance proof at dena.
+GO hub connectivity does not govern Proof of Sustainability / mass-balance compliance trades (DE THG, NL ERE, FR CPB, etc.): those move on mass balance, not through GO registries.`
   }
 ];
 

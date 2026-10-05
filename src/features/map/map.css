@@ -96,6 +96,14 @@
     font-size: 13px;
   }
 
+  .map-m-hint {
+    max-width: calc(100% - 72px);
+    padding: 8px 10px;
+    font-size: 13px;
+    line-height: 1.35;
+    color: var(--color-text);
+  }
+
   .map-m-zoom {
     position: absolute;
     right: 8px;

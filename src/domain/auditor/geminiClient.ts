@@ -1,4 +1,7 @@
 import { getFullKnowledgeContext } from './knowledgeBase';
+import { getMarketById } from '../markets/registry';
+import { evaluateRegistryTransferGate } from '../eligibility/gates/registry-transfer';
+import type { Consignment } from '../consignment/types';
 import { extractQuoteProofsFromText } from './verifier';
 import { TradeAuditContext, AuditorResponse, GateAuditCheck, normalizeTradeAuditContext } from './types';
 
@@ -76,6 +79,7 @@ CRITICAL OPERATING INVARIANTS:
    - Gate 4: Feedstock Annex IX Classification (Annex IX-A advanced double-counting vs Annex IX-B vs Energy crops food/feed cap)
    - Gate 5: RED III GHG Savings Threshold (>= 65% for transport, CI <= 32.9 gCO2e/MJ vs 94.0 comparator)
    - Gate 6: Target Market Statutory Gating & Ceilings (French CPB €100 ceiling, German 38. BImSchV Nabisy, Italian CIC, UK RTFO)
+   - Gate 7 (Guarantee of Origin markets only): Registry Transfer. GO transfers depend on registry hub connectivity (AIB gas hub vs ERGaR) and must never be assumed; see the cross-border GO dossier. Hub connectivity does not govern Proof of Sustainability / mass-balance compliance trades.
 4. CONTRACTUAL REMEDIES: Explicitly advise on EFET Biomethane Master Agreement terms, Proof of Sustainability (PoS) late delivery cure periods (3 business days), and repricing down to standard TTF Day-Ahead if CI fails audit.`;
 
 export async function queryAuditor(
@@ -108,7 +112,7 @@ Perform a deep, forensic statutory compliance audit on this deal.
 Start your answer with exactly one line of the form "VERDICT: APPROVED", "VERDICT: REJECTED" or "VERDICT: CONDITIONAL_PASS".
 Then structure your assessment with:
 1. Executive Statutory Verdict (APPROVED, REJECTED, or CONDITIONAL_PASS)
-2. Exhaustive 6-Gate Compliance Matrix with Pass/Fail status and exact legal citations
+2. Exhaustive Gate Compliance Matrix (6 statutory gates, plus the Registry Transfer gate for Guarantee of Origin markets) with Pass/Fail status and exact legal citations
 3. Feedstock Lifecycle & Methane Avoidance (e_am) analysis
 4. Cross-Border Gas Grid Logistics & Union Database (UDB) Recording Risk (note: the UDB gas module is not yet live — launch postponed to end-2026 per EBA)
 5. Recommended EFET Schedule & Term Sheet Protective Clauses`;
@@ -238,7 +242,7 @@ function extractRecommendations(text: string): string[] {
 }
 
 /**
- * Exhaustive 6-Gate Deterministic Engine
+ * Exhaustive Deterministic Engine (6 statutory gates + Registry Transfer for GO markets)
  * Evaluates all statutory gates with full depth and legal citations.
  */
 function runExhaustiveDeterministicAudit(
@@ -301,14 +305,15 @@ function runExhaustiveDeterministicAudit(
     checks.push({
       gateName: '2. Union Database (UDB) Gate',
       status: 'PASS',
-      details: `Origin grid (${trade.originCountry}) is interconnected to single European gas transmission system. Eligible for electronic UDB title transfer.`,
+      details: `Origin grid (${trade.originCountry}) is interconnected to the single European gas system; mass balance is possible. The UDB gas module is not yet live (end-2026), so recording runs via national registries meanwhile.`,
       citation: 'RED III Art. 31a & UDB Reg (EU) 2022/996'
     });
   }
 
   // Gate 3: Chain of Custody Gate
   const custody = (trade.chainOfCustody || 'MASS_BALANCE').toUpperCase();
-  const isVol = ['UK_RGGO', 'DE_GO', 'NL_GO', 'FR_GO', 'VOL_SCOPE1'].includes(trade.targetMarketId);
+  // Book-and-claim markets per the market registry (GO markets incl. DK_GO, ES_GDO, PT_EEGO, AIB_GO).
+  const isVol = getMarketById(trade.targetMarketId)?.acceptsBookAndClaim === true;
   if (!isVol && custody.includes('BOOK')) {
     isApproved = false;
     checks.push({
@@ -430,6 +435,27 @@ function runExhaustiveDeterministicAudit(
       details: `Compliant with national quota administration rules for ${trade.targetMarketId}.`,
       citation: 'National Energy Acts & Directives'
     });
+  }
+
+  // Gate 7: Registry Transfer (GO markets only; compliance PoS trades do not move through GO hubs)
+  const goMarket = getMarketById(trade.targetMarketId);
+  if (goMarket) {
+    const registryGate = evaluateRegistryTransferGate(
+      { originCountry: trade.originCountry, injectionCountry: trade.originCountry } as Consignment,
+      goMarket
+    );
+    if (registryGate) {
+      const status: GateAuditCheck['status'] =
+        registryGate.verdict === 'PASS' ? 'PASS' : registryGate.verdict === 'HARD_BLOCK' ? 'FAIL' : 'FLAG';
+      if (status === 'FAIL') isApproved = false;
+      if (status === 'FLAG') isConditional = true;
+      checks.push({
+        gateName: '7. Registry Transfer Gate',
+        status,
+        details: `${status === 'FAIL' ? 'HARD BLOCK: ' : ''}${registryGate.reason}${registryGate.remedy && status !== 'PASS' ? ' ' + registryGate.remedy : ''}`,
+        citation: registryGate.citations[0]?.sourceUrl ?? 'AIB / ERGaR registry hub connectivity (research 4 Oct 2026)'
+      });
+    }
   }
 
   const verdict: AuditorResponse['verdict'] = !isApproved ? 'REJECTED' : isConditional ? 'CONDITIONAL_PASS' : 'APPROVED';

@@ -1,0 +1,88 @@
+import { describe, it, expect } from 'vitest';
+import { evaluateEligibility } from '../eligibility/engine';
+import { getMarketById } from '../markets/registry';
+import { REFERENCE_CONSIGNMENTS } from '../consignment/feedstocks';
+import type { Consignment } from '../consignment/types';
+
+function consignmentFrom(iso: string, custody: Consignment['chainOfCustody'] = 'BOOK_AND_CLAIM'): Consignment {
+  return {
+    ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
+    id: `rt_${iso}`,
+    originCountry: iso,
+    injectionCountry: iso,
+    chainOfCustody: custody,
+  };
+}
+
+function gateFor(origin: string, marketId: string) {
+  const a = evaluateEligibility(consignmentFrom(origin), getMarketById(marketId)!);
+  return { a, gate: a.gates.find(g => g.gate === 'REGISTRY_TRANSFER') };
+}
+
+describe('REGISTRY_TRANSFER gate (GO markets)', () => {
+  it('DK -> DK_GO is domestic PASS', () => {
+    const { gate } = gateFor('DK', 'DK_GO');
+    expect(gate?.verdict).toBe('PASS');
+    expect(gate?.reason).toContain('Domestic');
+  });
+  it('DK -> DE_GO passes (dena lists Energinet on ERGaR)', () => {
+    expect(gateFor('DK', 'DE_GO').gate?.verdict).toBe('PASS');
+  });
+  it.each(['ES_GDO', 'FR_GO', 'AIB_GO'])('DK -> %s is HARD_BLOCK at REGISTRY_TRANSFER', id => {
+    const { a, gate } = gateFor('DK', id);
+    expect(gate?.verdict).toBe('HARD_BLOCK');
+    expect(gate?.remedy).toBeTruthy();
+    expect(gate?.citations.length).toBeGreaterThan(0);
+    expect(gate?.citations[0].sourceUrl).toMatch(/^https?:\/\//);
+    expect(a.overallVerdict).toBe('HARD_BLOCK');
+  });
+  it('ES -> DE_GO and CZ -> DE_GO are HARD_BLOCK (AIB-only vs ERGaR-only, no ex-domain path)', () => {
+    expect(gateFor('ES', 'DE_GO').gate?.verdict).toBe('HARD_BLOCK');
+    expect(gateFor('CZ', 'DE_GO').gate?.verdict).toBe('HARD_BLOCK');
+  });
+  it('ES -> FR_GO is CONDITIONAL on the French ETS tag; CZ -> ES_GDO passes (observed AIB transfers)', () => {
+    const fr = gateFor('ES', 'FR_GO').gate;
+    expect(fr?.verdict).toBe('CONDITIONAL');
+    expect(fr?.remedy).toContain('ETS');
+    expect(gateFor('CZ', 'ES_GDO').gate?.verdict).toBe('PASS');
+  });
+  it('AT -> NL_GO is CONDITIONAL: Austrian origin only exports GOs from unsupported production', () => {
+    const { gate } = gateFor('AT', 'NL_GO');
+    expect(gate?.verdict).toBe('CONDITIONAL');
+    expect(`${gate?.remedy} ${gate?.reason}`).toMatch(/unsupported (Austrian )?production/i);
+  });
+  it('GB -> DE_GO passes (GGCS Guidance Document 7: "you can export RGGOs from GGCS to DENA")', () => {
+    const { gate } = gateFor('GB', 'DE_GO');
+    expect(gate?.verdict).toBe('PASS');
+    expect(gate?.citations[0].sourceUrl).toMatch(/^https?:\/\//);
+  });
+  it('AIB_GO accepts AIB-connected origins and blocks non-AIB ones', () => {
+    expect(gateFor('CZ', 'AIB_GO').gate?.verdict).toBe('PASS');
+    expect(gateFor('PL', 'AIB_GO').gate?.verdict).toBe('HARD_BLOCK');
+  });
+  it('VOL_SCOPE1: hub origin passes, no-hub origin is CONDITIONAL, unresearched is UNRESOLVED', () => {
+    expect(gateFor('DK', 'VOL_SCOPE1').gate?.verdict).toBe('PASS');
+    expect(gateFor('PL', 'VOL_SCOPE1').gate?.verdict).toBe('CONDITIONAL');
+    expect(gateFor('GR', 'VOL_SCOPE1').gate?.verdict).toBe('UNRESOLVED');
+  });
+  it('VOL_EU_ETS is not a GO transfer market', () => {
+    expect(gateFor('DK', 'VOL_EU_ETS').gate).toBeUndefined();
+  });
+});
+
+describe('REGISTRY_TRANSFER gate does not apply to compliance (PoS / mass balance) markets', () => {
+  it.each(['DE_THG', 'NL_ERE', 'FR_CPB', 'IT_CIC'])('DK -> %s has no REGISTRY_TRANSFER gate', id => {
+    const a = evaluateEligibility(consignmentFrom('DK', 'MASS_BALANCE'), getMarketById(id)!);
+    expect(a.gates.some(g => g.gate === 'REGISTRY_TRANSFER')).toBe(false);
+  });
+  it.each(['DE_THG', 'NL_ERE', 'IT_CIC'])('DK -> %s carries 7 gates (6 + CROSS_BORDER_POS)', id => {
+    const a = evaluateEligibility(consignmentFrom('DK', 'MASS_BALANCE'), getMarketById(id)!);
+    expect(a.gates).toHaveLength(7);
+    expect(a.gates.some(g => g.gate === 'CROSS_BORDER_POS')).toBe(true);
+  });
+  it('DK -> FR_CPB is an audited scheme (French-injected gas only): CROSS_BORDER_POS applies, 7 gates', () => {
+    const a = evaluateEligibility(consignmentFrom('DK', 'MASS_BALANCE'), getMarketById('FR_CPB')!);
+    expect(a.gates.some(g => g.gate === 'CROSS_BORDER_POS')).toBe(true);
+    expect(a.gates).toHaveLength(7);
+  });
+});

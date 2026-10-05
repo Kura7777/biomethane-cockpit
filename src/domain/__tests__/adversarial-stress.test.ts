@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { isGoTransferMarket } from '../eligibility/gates/registry-transfer';
 import { 
   computeCertificateValue, 
   computeNetback, 
@@ -511,7 +512,15 @@ describe('Empirical Adversarial Stress & Fuzz Suite (Milestone 1 & 3 Verificatio
 
         for (const a of assessments) {
           expect(['ELIGIBLE', 'CONDITIONAL', 'UNRESOLVED', 'UNKNOWN', 'HARD_BLOCK']).toContain(a.overallVerdict);
-          expect(a.gates.length).toBe(6);
+          // Extra gates: REGISTRY_TRANSFER (GO markets) or CROSS_BORDER_POS (audited compliance schemes, cross-border only)
+          const posGates = a.gates.filter(g => g.gate === 'CROSS_BORDER_POS').length;
+          if (isGoTransferMarket(MARKETS.find(m => m.id === a.marketId)!)) {
+            expect(a.gates.length).toBe(7);
+            expect(posGates).toBe(0);
+          } else {
+            expect(a.gates.length).toBe(6 + posGates);
+            expect(posGates).toBeLessThanOrEqual(1);
+          }
           expect(a.summary.length).toBeGreaterThan(5);
 
           // Invariant: if any gate is HARD_BLOCK, overallVerdict must be HARD_BLOCK

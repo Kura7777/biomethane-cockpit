@@ -1,5 +1,7 @@
 export * from './types';
 export * from './registryDirectory';
+export * from './hubConnectivity';
+export * from './certificateRoutes';
 export * from './baselineData';
 export * from './udbVerification';
 export * from './connectors';

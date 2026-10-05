@@ -4,7 +4,9 @@ export type GateName =
   | 'CHAIN_OF_CUSTODY'
   | 'FEEDSTOCK_CATEGORY'
   | 'GHG_THRESHOLD'
-  | 'MARKET_SPECIFIC';
+  | 'MARKET_SPECIFIC'
+  | 'REGISTRY_TRANSFER'
+  | 'CROSS_BORDER_POS';
 
 export type GateVerdict = 'PASS' | 'HARD_BLOCK' | 'CONDITIONAL' | 'UNRESOLVED' | 'UNKNOWN';
 
