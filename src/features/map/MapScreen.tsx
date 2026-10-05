@@ -719,7 +719,7 @@ export function MapScreen() {
     setSelectedCountryName(prevTarget);
   };
 
-  const currentTradeTarget = useMemo(() => getMarketAndCocForRoute(currentRoute), [currentRoute]);
+  const currentTradeTarget = useMemo(() => getMarketAndCocForRoute(currentRoute, filter), [currentRoute, filter]);
 
   const handleSimulateTrade = () => {
     if (!currentTradeTarget) return;
@@ -1213,7 +1213,7 @@ export function MapScreen() {
           </button>
 
           {playbook.isTradeable && (() => {
-            const rowTarget = getMarketAndCocForRoute(r);
+            const rowTarget = getMarketAndCocForRoute(r, filter);
             return (
               <button
                 type="button"
@@ -2018,7 +2018,7 @@ export function MapScreen() {
               setCtxMenu(null);
             };
             const ctxRoute = getCertificateRoute(originMeta.iso, c.iso);
-            const ctxTradeTarget = getMarketAndCocForRoute(ctxRoute);
+            const ctxTradeTarget = getMarketAndCocForRoute(ctxRoute, filter);
             const items: { label: string; onClick: () => void; disabled?: boolean; title?: string }[] = [
               { label: isO ? 'Origin (current)' : 'Set as origin', onClick: run(() => setOriginFromMenu(ctxMenu.name)), disabled: isO },
               { label: isT ? 'Target (current)' : 'Set as target', onClick: run(() => setTargetFromMenu(ctxMenu.name)), disabled: isT },

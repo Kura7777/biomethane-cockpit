@@ -64,4 +64,16 @@ describe('destinationMarket', () => {
     expect(getMarketForRoute(route)).toBeNull();
     expect(getMarketAndCocForRoute(route)).toBeNull();
   });
+
+  it('GO filter never hands a GO view to a PoS market (DK -> DE)', () => {
+    const route = getCertificateRoute('DK', 'DE');
+    expect(getMarketAndCocForRoute(route, 'GO')).toEqual({ marketId: 'DE_GO', coc: 'BOOK_AND_CLAIM' });
+    expect(getMarketAndCocForRoute(route, 'POS')).toEqual({ marketId: 'DE_THG', coc: 'MASS_BALANCE' });
+  });
+
+  it('PoS filter never falls back to a GO market (GB -> DE)', () => {
+    const route = getCertificateRoute('GB', 'DE');
+    expect(getMarketAndCocForRoute(route, 'POS')).toBeNull();
+    expect(getMarketAndCocForRoute(route, 'GO')?.coc).toBe('BOOK_AND_CLAIM');
+  });
 });

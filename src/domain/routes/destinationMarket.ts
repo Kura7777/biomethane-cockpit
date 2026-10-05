@@ -35,6 +35,9 @@ export const DESTINATION_GO_MARKETS: Record<string, string> = {
   PT: 'PT_EEGO',
 };
 
+/** Which certificate the map is showing: GO only, PoS only, or both (PoS preferred). */
+export type RouteCertFilter = 'ALL' | 'GO' | 'POS';
+
 export interface RouteTradeTarget {
   marketId: string;
   coc: ChainOfCustody;
@@ -44,13 +47,18 @@ export interface RouteTradeTarget {
  * Resolves the statutory market ID and chain of custody for a given corridor.
  * - PoS / compliance market -> MASS_BALANCE
  * - GO / book-and-claim market -> BOOK_AND_CLAIM
+ * `filter` follows the map's GO / PoS toggle: 'GO' never returns a PoS market,
+ * 'POS' never returns a GO market, 'ALL' prefers PoS.
  */
-export function getMarketAndCocForRoute(route: CertificateRoute | null | undefined): RouteTradeTarget | null {
+export function getMarketAndCocForRoute(
+  route: CertificateRoute | null | undefined,
+  filter: RouteCertFilter = 'ALL',
+): RouteTradeTarget | null {
   if (!route) return null;
 
   // 1. If the PoS route is POSSIBLE: map the possible schemeId to a MARKETS id
   const posDetails = getPosRoute(route.origin, route.target);
-  const possibleScheme = posDetails.schemes.find(s => s.status === 'POSSIBLE');
+  const possibleScheme = filter === 'GO' ? undefined : posDetails.schemes.find(s => s.status === 'POSSIBLE');
 
   if (possibleScheme) {
     const marketId = POS_SCHEME_TO_MARKET_ID[possibleScheme.schemeId];
@@ -64,10 +72,11 @@ export function getMarketAndCocForRoute(route: CertificateRoute | null | undefin
 
   // 2. Else if the GO route is possible: return destination's GO market or AIB_GO
   const isGoPossible =
+    filter !== 'POS' && (
     route.status === 'POSSIBLE_OBSERVED' ||
     route.status === 'POSSIBLE_PUBLISHED' ||
     route.status === 'POSSIBLE_RULE' ||
-    route.status === 'POSSIBLE_CONDITIONAL';
+    route.status === 'POSSIBLE_CONDITIONAL');
 
   if (isGoPossible) {
     const targetIso = (route.target || '').toUpperCase();
@@ -94,6 +103,9 @@ export function getMarketAndCocForRoute(route: CertificateRoute | null | undefin
 /**
  * Convenience getter returning just the marketId or null.
  */
-export function getMarketForRoute(route: CertificateRoute | null | undefined): string | null {
-  return getMarketAndCocForRoute(route)?.marketId ?? null;
+export function getMarketForRoute(
+  route: CertificateRoute | null | undefined,
+  filter: RouteCertFilter = 'ALL',
+): string | null {
+  return getMarketAndCocForRoute(route, filter)?.marketId ?? null;
 }
