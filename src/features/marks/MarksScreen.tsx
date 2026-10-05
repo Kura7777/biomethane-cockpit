@@ -3,9 +3,11 @@ import { MARKETS, isVoluntaryMarket } from '../../domain/markets/registry';
 import { Market, deriveSourceBadge } from '../../domain/markets/types';
 import { useAppState } from '../../store/context';
 import { SIMULATED_SOURCE_NAME } from '../../domain/marks/simulate';
+import { isSimulatedMark, resolveMarketForQuote, rowFeedsMarket, rowHasPrice } from '../../domain/marks/applyMarks';
 import { BrokerRunImporterModal } from './BrokerRunImporterModal';
 import { showToast } from '../../app/DeskToastContainer';
-import { INITIAL_BROKER_QUOTES, BrokerMarketQuote, ProvenanceTier } from '../../domain/markets/brokerMarketData';
+import { PricingBookEntry } from '../../domain/markets/brokerRun.seed';
+import { ProvenanceTier } from '../../domain/markets/brokerMarketData';
 import { PageShell } from '../../shared/ui/PageShell';
 import './marks.css';
 import { KpiRow, KpiTile } from '../../shared/ui/KpiTile';
@@ -24,18 +26,39 @@ import {
   Filter,
   ExternalLink,
   Info,
-  Sparkles
+  Sparkles,
+  Calendar,
+  Star,
 } from 'lucide-react';
+
+function formatAge(dateStr?: string | null): string {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '—';
+  // Compute difference in days from current local date
+  const now = new Date();
+  const diffDays = Math.max(0, Math.floor((now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24)));
+  return diffDays === 0 ? 'today' : `${diffDays} d old`;
+}
+
+function formatRunDate(iso?: string | null): string {
+  if (!iso) return '—';
+  const d = new Date(`${iso}T00:00:00Z`);
+  if (isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+}
 
 export function MarksScreen() {
   const { state, dispatch } = useAppState();
   const [isImporterOpen, setIsImporterOpen] = useState(false);
+  const [isDateModalOpen, setIsDateModalOpen] = useState(false);
+  const [dateInputValue, setDateInputValue] = useState(state.pricingRunMeta?.receivedOn || '2026-08-18');
   const isMobile = useIsMobile();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // Master Quotes State: Contains all 63 Pan-European market quotes in the exact order book format
-  const [quotes, setQuotes] = useState<BrokerMarketQuote[]>(INITIAL_BROKER_QUOTES);
+  // Master Quotes State comes directly from app state (persisted in store)
+  const quotes: PricingBookEntry[] = state.pricingBook || [];
 
   // Filter states
   const [bookFilter, setBookFilter] = useState<'ALL' | 'COMPLIANCE' | 'VOLUNTARY'>('ALL');
@@ -67,52 +90,14 @@ export function MarksScreen() {
     { label: 'EU (2)', id: 'EU' },
   ];
 
-  // Handle cell edit
+  // Handle cell edit - dispatched to central store seam
   const handleCellEdit = (id: string, field: 'bidPrice' | 'offerPrice' | 'bidVolume' | 'offerVolume', val: string) => {
-    setQuotes(prev => prev.map(q => {
-      if (q.id !== id) return q;
-      const updated = { ...q, [field]: val };
-
-      // If this quote maps to a master market, also synchronize into state.marks.marks
-      const numericVal = parseFloat(val.replace(/[^0-9.-]+/g, ''));
-      if (!isNaN(numericVal) && (field === 'bidPrice' || field === 'offerPrice')) {
-        const now = new Date().toISOString();
-        const marketId = q.country === 'UK' && q.class === 'RTFO' ? 'UK_RTFO'
-          : q.country === 'UK' && q.class === 'RGGO' ? 'UK_RGGO'
-          : q.country === 'DE' && q.class === 'THG' ? 'DE_THG'
-          : q.country === 'DE' && q.class === 'GO' ? 'DE_GO'
-          : q.country === 'NL' && q.class === 'ERE' ? 'NL_ERE'
-          : q.country === 'NL' && q.class === 'GO' ? 'NL_GO'
-          : q.country === 'FR' && q.class === 'CPB' ? 'FR_CPB'
-          : q.country === 'FR' && q.class === 'GO' ? 'FR_GO'
-          : q.country === 'IT' && q.class === 'CIC' ? 'IT_CIC'
-          : q.country === 'ES' && q.class === 'GdO' ? 'ES_GDO'
-          : q.country === 'DK' && q.class === 'GO' ? 'DK_GO'
-          : q.country === 'AIB' ? 'AIB_GO'
-          : null;
-
-        if (marketId) {
-          dispatch({
-            type: 'SET_MARK',
-            marketId,
-            bid: field === 'bidPrice' ? numericVal : null,
-            offer: field === 'offerPrice' ? numericVal : null,
-            mid: numericVal,
-            updatedAt: now,
-            source: 'DESK · MANUAL',
-            provenance: {
-              sourceType: 'BROKER_INDICATION',
-              sourceName: q.derivedFrom || 'Desk Trader Override',
-              sourceUrl: null,
-              observedAt: now,
-              note: `Direct desk edit of ${q.country} ${q.class}`,
-            },
-          });
-        }
-      }
-
-      return updated;
-    }));
+    dispatch({
+      type: 'UPDATE_PRICING_BOOK_CELL',
+      id,
+      field,
+      value: val,
+    });
   };
 
   // Filter logic
@@ -153,7 +138,7 @@ export function MarksScreen() {
     });
   }, [quotes, bookFilter, selectedCountryGroup, provenanceFilter, searchQuery]);
 
-  // Provenance breakdown counts
+  // Provenance counts for quotes in book
   const provenanceCounts = useMemo(() => {
     const counts: Record<ProvenanceTier, number> = {
       BROKER_RUN: 0,
@@ -167,6 +152,27 @@ export function MarksScreen() {
     });
     return counts;
   }, [quotes]);
+
+  // Marks by source (Broker / Manual / Simulated)
+  const markSourceCounts = useMemo(() => {
+    let broker = 0;
+    let manual = 0;
+    let simulated = 0;
+
+    Object.values(state.marks.marks).forEach(m => {
+      if (isSimulatedMark(m)) {
+        simulated++;
+      } else if (m.source?.toLowerCase().includes('manual') || m.provenance?.sourceName?.toLowerCase().includes('manual')) {
+        manual++;
+      } else if (m.provenance?.sourceType === 'BROKER_INDICATION' || m.source?.toLowerCase().includes('broker')) {
+        broker++;
+      } else {
+        broker++;
+      }
+    });
+
+    return { broker, manual, simulated };
+  }, [state.marks.marks]);
 
   const handleExportCsv = () => {
     const headers = ['Country', 'Class', 'Feedstock', 'Vintage', 'Certified', 'Subsidized', 'CI Score', 'BID Price', 'OFFER Price', 'BID Volume', 'OFFER Volume', 'Price Derived From', 'Provenance Tier'];
@@ -203,12 +209,21 @@ export function MarksScreen() {
   const chipClassForVariant = (v: ReturnType<typeof deriveSourceBadge>['variant']) =>
     v === 'POSITIVE' ? 'chip chip-pos' : v === 'WARNING' ? 'chip chip-warn' : v === 'INFO' ? 'chip chip-info' : 'chip chip-neutral';
 
-  const provenanceBadge = (tier: ProvenanceTier | undefined) => {
-    if (tier === 'BROKER_RUN') return { badgeClass: 'chip-info', badgeLabel: '📑 Broker' };
-    if (tier === 'WEB_INDEX') return { badgeClass: 'chip-info', badgeLabel: '🌐 Web Index' };
-    if (tier === 'STATUTORY_DIRECTIVE') return { badgeClass: 'chip-warn', badgeLabel: '⚖️ Statutory' };
-    return { badgeClass: 'chip-neutral', badgeLabel: '🔬 Modelled' };
+  const provenanceBadge = (q: PricingBookEntry) => {
+    const age = formatAge(q.observedAt);
+    if (q.provenanceTier === 'BROKER_RUN') {
+      return { badgeClass: 'chip-info', badgeLabel: `📑 Broker · ${age}` };
+    }
+    const ageSuffix = q.observedAt ? ` · ${age}` : '';
+    if (q.provenanceTier === 'WEB_INDEX') {
+      return { badgeClass: 'chip-neutral', badgeLabel: `🌐 Research (unverified)${ageSuffix}` };
+    }
+    if (q.provenanceTier === 'STATUTORY_DIRECTIVE') {
+      return { badgeClass: 'chip-warn', badgeLabel: `⚖️ Statutory${ageSuffix}` };
+    }
+    return { badgeClass: 'chip-neutral', badgeLabel: `🔬 Modelled${ageSuffix}` };
   };
+
   const editingQuote = editingId ? quotes.find(q => q.id === editingId) ?? null : null;
   const activeFilterCount =
     (bookFilter !== 'ALL' ? 1 : 0) + (provenanceFilter !== 'ALL' ? 1 : 0) + (selectedCountryGroup !== 'ALL' ? 1 : 0);
@@ -216,22 +231,34 @@ export function MarksScreen() {
   const editField = (
     label: string,
     field: 'bidPrice' | 'offerPrice' | 'bidVolume' | 'offerVolume',
-    q: BrokerMarketQuote,
+    q: PricingBookEntry,
     aria: string,
-  ) => (
-    <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-      <span className="eyebrow">{label}</span>
-      <input
-        type="text"
-        value={q[field]}
-        onChange={e => handleCellEdit(q.id, field, e.target.value)}
-        placeholder="—"
-        aria-label={`${aria} for ${q.country} ${q.feedstock}`}
-        className="input num"
-        style={{ width: '100%', textAlign: 'right', minHeight: '44px', fontWeight: 700 }}
-      />
-    </label>
-  );
+  ) => {
+    const isVolField = field === 'bidVolume' || field === 'offerVolume';
+    const isReferenceOnly = !q.isTradeable && isVolField;
+
+    return (
+      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <span className="eyebrow">{label}</span>
+        <input
+          type="text"
+          value={isReferenceOnly ? '—' : q[field]}
+          disabled={isReferenceOnly}
+          onChange={e => handleCellEdit(q.id, field, e.target.value)}
+          placeholder="—"
+          aria-label={`${aria} for ${q.country} ${q.feedstock}`}
+          className="input num"
+          style={{
+            width: '100%',
+            textAlign: 'right',
+            minHeight: '44px',
+            fontWeight: 700,
+            opacity: isReferenceOnly ? 0.5 : 1,
+          }}
+        />
+      </label>
+    );
+  };
 
   return (
     <PageShell>
@@ -299,7 +326,7 @@ export function MarksScreen() {
           label={
             <span style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px' }}>
               <span>TTF M+1 base natural gas</span>
-              <span className={chipClassForVariant(gasIndexBadge.variant)}>{gasIndexBadge.label}</span>
+              <span className={chipClassForVariant(gasIndexBadge.variant)}>{gasIndexBadge.label}{state.marks.gasIndex.provenance?.observedAt ? ` · ${formatAge(state.marks.gasIndex.provenance.observedAt)}` : ''}</span>
             </span>
           }
           value={gasIndexPrice !== null && gasIndexPrice !== undefined ? `€${gasIndexPrice.toFixed(2)}` : 'unrecorded'}
@@ -315,7 +342,7 @@ export function MarksScreen() {
           label={
             <span style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px' }}>
               <span>GBP / EUR fix</span>
-              <span className={chipClassForVariant(fxBadge.variant)}>{fxBadge.label}</span>
+              <span className={chipClassForVariant(fxBadge.variant)}>{fxBadge.label}{state.marks.fx.provenance?.observedAt ? ` · ${formatAge(state.marks.fx.provenance.observedAt)}` : ''}</span>
             </span>
           }
           value={gbpRate !== null && gbpRate !== undefined ? gbpRate.toFixed(4) : 'unrecorded'}
@@ -330,25 +357,50 @@ export function MarksScreen() {
             </span>
           }
           value={`${filteredQuotes.length} / ${quotes.length}`}
-          sub="All 38 European hubs & registries priced"
+          sub={`${provenanceCounts.BROKER_RUN} broker rows · ${quotes.length - provenanceCounts.BROKER_RUN} reference rows (not tradeable)`}
         />
 
         <KpiTile
           label={
             <span style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px' }}>
               <span>Provenance breakdown</span>
-              <span className="chip">{quotes.length} total</span>
+              <span className="chip">{Object.keys(state.marks.marks).length} markets</span>
             </span>
           }
           value={
             <span style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', fontSize: '13px' }}>
-              <span className="chip chip-info">{provenanceCounts.BROKER_RUN} broker</span>
-              <span className="chip chip-info">{provenanceCounts.WEB_INDEX} web/index</span>
-              <span className="chip chip-warn">{provenanceCounts.STATUTORY_DIRECTIVE} statutory</span>
-              <span className="chip chip-neutral">{provenanceCounts.MODELLED_SIMULATED} modelled</span>
+              <span className="chip chip-info">{markSourceCounts.broker} broker</span>
+              <span className="chip chip-pos">{markSourceCounts.manual} manual</span>
+              <span className="chip chip-warn">{markSourceCounts.simulated} simulated</span>
             </span>
           }
-          sub="Every quote declares verified source origin"
+          sub={
+            <span style={{ display: 'inline-block', lineHeight: 1.4 }}>
+              Broker quotes: run received {state.pricingRunMeta?.receivedOnIsApproximate === false ? '' : '≈ '}{formatRunDate(state.pricingRunMeta?.receivedOn || '2026-08-18')}{' '}
+              <button
+                type="button"
+                onClick={() => {
+                  setDateInputValue(state.pricingRunMeta?.receivedOn || '2026-08-18');
+                  setIsDateModalOpen(true);
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  color: 'var(--color-accent)',
+                  textDecoration: 'underline',
+                  cursor: 'pointer',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                }}
+                title="Edit the observation date for this broker run"
+                data-testid="edit-run-date-btn"
+              >
+                (edit)
+              </button>
+              . Other rows are research or modelled, not tradeable prices.
+            </span>
+          }
         />
       </KpiRow>
 
@@ -449,24 +501,25 @@ export function MarksScreen() {
                 aria-label="Filter quotes by data provenance tier"
               >
                 <option value="ALL">All Sources ({quotes.length})</option>
-                <option value="BROKER_RUN">📑 Broker Run ({provenanceCounts.BROKER_RUN})</option>
-                <option value="WEB_INDEX">🌐 Web / Exchange Index ({provenanceCounts.WEB_INDEX})</option>
-                <option value="STATUTORY_DIRECTIVE">⚖️ Statutory Directive ({provenanceCounts.STATUTORY_DIRECTIVE})</option>
-                <option value="MODELLED_SIMULATED">🔬 Modelled Cost-Plus ({provenanceCounts.MODELLED_SIMULATED})</option>
+                <option value="BROKER_RUN">📑 Bilateral Broker Runs ({provenanceCounts.BROKER_RUN})</option>
+                <option value="WEB_INDEX">🌐 Research / Web Indexes ({provenanceCounts.WEB_INDEX})</option>
+                <option value="STATUTORY_DIRECTIVE">⚖️ Statutory Directives ({provenanceCounts.STATUTORY_DIRECTIVE})</option>
+                <option value="MODELLED_SIMULATED">🔬 Modelled Benchmarks ({provenanceCounts.MODELLED_SIMULATED})</option>
               </select>
             </div>
 
-            {/* Text Search Box */}
-            <div style={{ position: 'relative', width: '230px' }}>
-              <Search className="w-3.5 h-3.5 text-slate-400" style={{ position: 'absolute', left: '8px', top: '7px' }} />
+            {/* Quick Text Search */}
+            <div style={{ position: 'relative', width: '220px' }}>
+              <Search className="w-3.5 h-3.5 text-slate-400" style={{ position: 'absolute', left: '8px', top: '9px' }} />
               <input
                 type="text"
                 placeholder="Filter country, feedstock, CI, source..."
+                aria-label="Filter quotes"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '4px 8px 4px 28px',
+                  padding: '4px 8px 4px 26px',
                   fontSize: '12px',
                   border: '1px solid var(--color-divider)',
                   backgroundColor: 'var(--color-surface)',
@@ -477,22 +530,10 @@ export function MarksScreen() {
           </div>
         </div>
 
-        {/* Country Quick Filter Pills */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            marginBottom: '14px',
-            flexWrap: 'wrap',
-            padding: '6px 10px',
-            backgroundColor: 'var(--color-surface)',
-            border: '1px solid var(--color-divider)',
-            borderRadius: 'var(--radius-control)',
-          }}
-        >
+        {/* Regional Hub Country Filters */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '12px', flexWrap: 'wrap' }}>
           <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', marginRight: '4px' }}>
-            Countries:
+            Hub:
           </span>
           {countryPills.map(p => (
             <button
@@ -524,22 +565,54 @@ export function MarksScreen() {
             metric={q => `${q.bidPrice || '—'} / ${q.offerPrice || '—'}`}
             metricLabel={() => 'Bid / Offer'}
             badges={q => {
-              const { badgeClass, badgeLabel } = provenanceBadge(q.provenanceTier);
+              const { badgeClass, badgeLabel } = provenanceBadge(q);
+              const marketId = resolveMarketForQuote(q);
+              const isReference = marketId && state.referenceRowIds?.[marketId] === q.id;
+
               return (
                 <>
-                  {q.highlight && <span className="chip chip-warn">★ FOCUS</span>}
+                  {isReference && <span className="chip chip-warn">★ MARK</span>}
+                  {q.highlight && !isReference && <span className="chip chip-warn">★ FOCUS</span>}
                   <span className={`chip ${q.productClass === 'GO_VOLUNTARY' ? 'chip-info' : 'chip-neutral'}`}>{q.class}</span>
                   <span className={`chip ${badgeClass}`}>{badgeLabel}</span>
                 </>
               );
             }}
-            fields={q => [
-              { label: 'Bid vol', value: q.bidVolume || '—', mono: true },
-              { label: 'Offer vol', value: q.offerVolume || '—', mono: true },
-              { label: 'CI score', value: q.ciScore || '—', mono: true },
-              { label: 'Subsidy', value: q.subsidized, tone: q.subsidized === 'Unsubsidised' ? 'pos' : 'muted' },
-              { label: 'Price derived from', value: q.derivedFrom || '—', span: 2 },
-            ]}
+            fields={q => {
+              const marketId = resolveMarketForQuote(q);
+              const isReference = marketId && state.referenceRowIds?.[marketId] === q.id;
+
+              const f: import('../../shared/ui').MobileCardField[] = [
+                { label: 'Bid vol', value: q.isTradeable ? (q.bidVolume || '—') : '—', mono: true },
+                { label: 'Offer vol', value: q.isTradeable ? (q.offerVolume || '—') : '—', mono: true },
+                { label: 'CI score', value: q.ciScore || '—', mono: true },
+                { label: 'Subsidy', value: q.subsidized, tone: q.subsidized === 'Unsubsidised' ? 'pos' : 'muted' },
+                { label: 'Price derived from', value: q.derivedFrom || '—', span: 2 },
+              ];
+
+              if (marketId && q.provenanceTier === 'BROKER_RUN' && rowFeedsMarket(q, marketId) && rowHasPrice(q) && !isReference) {
+                f.push({
+                  label: 'Action',
+                  value: (
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      style={{ fontSize: '11px', padding: '2px 8px' }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        dispatch({ type: 'SET_MARKET_REFERENCE_ROW', marketId, rowId: q.id });
+                        showToast(`Set as ${marketId} reference mark`);
+                      }}
+                    >
+                      Use as mark
+                    </button>
+                  ),
+                  span: 2,
+                });
+              }
+
+              return f;
+            }}
             onSelect={q => setEditingId(q.id)}
             empty="No quotes match these filters."
           />
@@ -552,7 +625,7 @@ export function MarksScreen() {
               <tr>
                 <th style={{ width: '55px', textAlign: 'center' }}>Country</th>
                 <th style={{ width: '75px', textAlign: 'center' }}>Class</th>
-                <th style={{ minWidth: '220px' }}>Feedstock &amp; Specification</th>
+                <th style={{ minWidth: '200px' }}>Feedstock &amp; Specification</th>
                 <th style={{ width: '75px', textAlign: 'center' }}>Vintage</th>
                 <th style={{ width: '112px', textAlign: 'center' }}>Certified</th>
                 <th className="marks-col-subsidized" style={{ width: '95px', textAlign: 'center' }}>Subsidized</th>
@@ -562,31 +635,23 @@ export function MarksScreen() {
                 <th style={{ width: '95px', textAlign: 'right' }}>BID Vol</th>
                 <th style={{ width: '95px', textAlign: 'right' }}>OFFER Vol</th>
                 <th className="marks-col-source">Price Derived From</th>
+                <th style={{ width: '112px', textAlign: 'center' }}>Mark</th>
               </tr>
             </thead>
             <tbody>
               {filteredQuotes.map(q => {
                 const isFocus = Boolean(q.highlight);
-
-                // Provenance badge styling
-                let badgeClass = 'chip-neutral';
-                let badgeLabel = '🔬 Modelled';
-                if (q.provenanceTier === 'BROKER_RUN') {
-                  badgeClass = 'chip-info';
-                  badgeLabel = '📑 Broker';
-                } else if (q.provenanceTier === 'WEB_INDEX') {
-                  badgeClass = 'chip-info';
-                  badgeLabel = '🌐 Web Index';
-                } else if (q.provenanceTier === 'STATUTORY_DIRECTIVE') {
-                  badgeClass = 'chip-warn';
-                  badgeLabel = '⚖️ Statutory';
-                }
+                const { badgeClass, badgeLabel } = provenanceBadge(q);
+                const marketId = resolveMarketForQuote(q);
+                const isCurrentRef = Boolean(marketId && state.referenceRowIds?.[marketId] === q.id);
+                const isReferenceOnly = !q.isTradeable;
 
                 return (
                   <tr
                     key={q.id}
                     style={{
                       transition: 'background-color 120ms ease',
+                      backgroundColor: isCurrentRef ? 'var(--color-surface-selected, rgba(234, 179, 8, 0.04))' : undefined,
                     }}
                   >
                     {/* Country */}
@@ -604,12 +669,17 @@ export function MarksScreen() {
                     {/* Feedstock & Specification with Focus Tag */}
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        {isFocus && (
-                          <span className="chip chip-warn" style={{ fontSize: '12px', padding: '1px 5px', fontWeight: 700 }}>
+                        {isCurrentRef && (
+                          <span className="chip chip-warn" style={{ fontSize: '11px', padding: '1px 5px', fontWeight: 700 }} title="Active reference mark for deal engines">
+                            ★ MARK
+                          </span>
+                        )}
+                        {isFocus && !isCurrentRef && (
+                          <span className="chip chip-warn" style={{ fontSize: '11px', padding: '1px 5px', fontWeight: 700 }}>
                             ★ FOCUS
                           </span>
                         )}
-                        <span style={{ fontWeight: isFocus ? 700 : 500 }}>
+                        <span style={{ fontWeight: isCurrentRef || isFocus ? 700 : 500 }}>
                           {q.feedstock}
                         </span>
                       </div>
@@ -681,58 +751,90 @@ export function MarksScreen() {
                       />
                     </td>
 
-                    {/* BID Volume (Editable) */}
+                    {/* BID Volume (Editable for tradeable broker rows; blank for reference rows) */}
                     <td>
-                      <input
-                        type="text"
-                        value={q.bidVolume}
-                        onChange={e => handleCellEdit(q.id, 'bidVolume', e.target.value)}
-                        placeholder="—"
-                        aria-label={`Bid volume for ${q.country} ${q.feedstock}`}
-                        className="input num"
-                        style={{
-                          width: '100%', minWidth: '76px',
-                          textAlign: 'right',
-                          minHeight: '26px',
-                          padding: '2px 6px',
-                          fontSize: '12px',
-                          borderRadius: 'var(--radius-control)',
-                          backgroundColor: 'var(--color-bg)',
-                        }}
-                      />
+                      {isReferenceOnly ? (
+                        <div style={{ textAlign: 'right', color: 'var(--color-muted)', padding: '2px 6px' }}>—</div>
+                      ) : (
+                        <input
+                          type="text"
+                          value={q.bidVolume}
+                          onChange={e => handleCellEdit(q.id, 'bidVolume', e.target.value)}
+                          placeholder="—"
+                          aria-label={`Bid volume for ${q.country} ${q.feedstock}`}
+                          className="input num"
+                          style={{
+                            width: '100%', minWidth: '76px',
+                            textAlign: 'right',
+                            minHeight: '26px',
+                            padding: '2px 6px',
+                            fontSize: '12px',
+                            borderRadius: 'var(--radius-control)',
+                            backgroundColor: 'var(--color-bg)',
+                          }}
+                        />
+                      )}
                     </td>
 
-                    {/* OFFER Volume (Editable) */}
+                    {/* OFFER Volume (Editable for tradeable broker rows; blank for reference rows) */}
                     <td>
-                      <input
-                        type="text"
-                        value={q.offerVolume}
-                        onChange={e => handleCellEdit(q.id, 'offerVolume', e.target.value)}
-                        placeholder="—"
-                        aria-label={`Offer volume for ${q.country} ${q.feedstock}`}
-                        className="input num"
-                        style={{
-                          width: '100%', minWidth: '76px',
-                          textAlign: 'right',
-                          minHeight: '26px',
-                          padding: '2px 6px',
-                          fontSize: '12px',
-                          borderRadius: 'var(--radius-control)',
-                          backgroundColor: 'var(--color-bg)',
-                        }}
-                      />
+                      {isReferenceOnly ? (
+                        <div style={{ textAlign: 'right', color: 'var(--color-muted)', padding: '2px 6px' }}>—</div>
+                      ) : (
+                        <input
+                          type="text"
+                          value={q.offerVolume}
+                          onChange={e => handleCellEdit(q.id, 'offerVolume', e.target.value)}
+                          placeholder="—"
+                          aria-label={`Offer volume for ${q.country} ${q.feedstock}`}
+                          className="input num"
+                          style={{
+                            width: '100%', minWidth: '76px',
+                            textAlign: 'right',
+                            minHeight: '26px',
+                            padding: '2px 6px',
+                            fontSize: '12px',
+                            borderRadius: 'var(--radius-control)',
+                            backgroundColor: 'var(--color-bg)',
+                          }}
+                        />
+                      )}
                     </td>
 
                     {/* Price Derived From (Explicit Data Source Citation) */}
                     <td className="marks-col-source">
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span className={`chip ${badgeClass}`} style={{ fontSize: '12px', padding: '1px 5px', flexShrink: 0 }}>
+                        <span className={`chip ${badgeClass}`} style={{ fontSize: '11px', padding: '1px 5px', flexShrink: 0 }}>
                           {badgeLabel}
                         </span>
                         <span style={{ fontSize: '12px', color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={q.derivedFrom}>
                           {q.derivedFrom}
                         </span>
                       </div>
+                    </td>
+
+                    {/* Mark Reference Action */}
+                    <td style={{ textAlign: 'center' }}>
+                      {isCurrentRef ? (
+                        <span className="chip chip-warn" style={{ fontSize: '11px', fontWeight: 700 }} title="Currently feeding deal engines">
+                          ★ Ref
+                        </span>
+                      ) : marketId && q.provenanceTier === 'BROKER_RUN' && rowFeedsMarket(q, marketId) && rowHasPrice(q) ? (
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          style={{ fontSize: '11px', padding: '1px 6px', minHeight: '22px', whiteSpace: 'nowrap' }}
+                          onClick={() => {
+                            dispatch({ type: 'SET_MARKET_REFERENCE_ROW', marketId, rowId: q.id });
+                            showToast(`Set as ${marketId} reference mark`);
+                          }}
+                          title={`Set as reference mark for ${marketId}`}
+                        >
+                          Use as mark
+                        </button>
+                      ) : (
+                        <span style={{ color: 'var(--color-muted)' }}>—</span>
+                      )}
                     </td>
                   </tr>
                 );
@@ -782,55 +884,85 @@ export function MarksScreen() {
                 type="button"
                 className="btn btn-secondary"
                 style={{ flex: 1, minHeight: '44px' }}
-                onClick={() => { setBookFilter('ALL'); setProvenanceFilter('ALL'); setSelectedCountryGroup('ALL'); }}
+                onClick={() => {
+                  setBookFilter('ALL');
+                  setSelectedCountryGroup('ALL');
+                  setProvenanceFilter('ALL');
+                  setSearchQuery('');
+                  setFiltersOpen(false);
+                }}
               >
                 Reset
               </button>
-              <button type="button" className="btn btn-primary" style={{ flex: 1, minHeight: '44px' }} onClick={() => setFiltersOpen(false)}>
-                Show {filteredQuotes.length} quotes
+              <button
+                type="button"
+                className="btn btn-primary"
+                style={{ flex: 1, minHeight: '44px' }}
+                onClick={() => setFiltersOpen(false)}
+              >
+                Done
               </button>
             </div>
           }
         >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <div>
               <div className="eyebrow" style={{ marginBottom: '6px' }}>Book</div>
-              <div className="marks-chip-grid">
-                <button type="button" className={`btn ${bookFilter === 'ALL' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setBookFilter('ALL')}>
-                  All Book ({quotes.length})
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  className={`btn ${bookFilter === 'ALL' ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ minHeight: '38px', flex: 1 }}
+                  onClick={() => setBookFilter('ALL')}
+                >
+                  All ({quotes.length})
                 </button>
-                <button type="button" className={`btn ${bookFilter === 'COMPLIANCE' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setBookFilter('COMPLIANCE')}>
-                  🏛️ Compliance Quotas ({quotes.filter(q => q.productClass === 'BUNDLED_COMPLIANCE').length})
+                <button
+                  type="button"
+                  className={`btn ${bookFilter === 'COMPLIANCE' ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ minHeight: '38px', flex: 1 }}
+                  onClick={() => setBookFilter('COMPLIANCE')}
+                >
+                  Compliance
                 </button>
-                <button type="button" className={`btn ${bookFilter === 'VOLUNTARY' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setBookFilter('VOLUNTARY')}>
-                  🌱 Voluntary GOs ({quotes.filter(q => q.productClass === 'GO_VOLUNTARY').length})
+                <button
+                  type="button"
+                  className={`btn ${bookFilter === 'VOLUNTARY' ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ minHeight: '38px', flex: 1 }}
+                  onClick={() => setBookFilter('VOLUNTARY')}
+                >
+                  Voluntary
                 </button>
               </div>
             </div>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <span className="eyebrow">Source</span>
+
+            <div>
+              <div className="eyebrow" style={{ marginBottom: '6px' }}>Source Provenance</div>
               <select
                 value={provenanceFilter}
                 onChange={e => setProvenanceFilter(e.target.value as any)}
-                style={{ minHeight: '44px', padding: '4px 8px', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
+                className="input"
+                style={{ width: '100%', minHeight: '44px' }}
                 aria-label="Filter quotes by data provenance tier"
               >
                 <option value="ALL">All Sources ({quotes.length})</option>
-                <option value="BROKER_RUN">📑 Broker Run ({provenanceCounts.BROKER_RUN})</option>
-                <option value="WEB_INDEX">🌐 Web / Exchange Index ({provenanceCounts.WEB_INDEX})</option>
-                <option value="STATUTORY_DIRECTIVE">⚖️ Statutory Directive ({provenanceCounts.STATUTORY_DIRECTIVE})</option>
-                <option value="MODELLED_SIMULATED">🔬 Modelled Cost-Plus ({provenanceCounts.MODELLED_SIMULATED})</option>
+                <option value="BROKER_RUN">📑 Bilateral Broker Runs ({provenanceCounts.BROKER_RUN})</option>
+                <option value="WEB_INDEX">🌐 Research / Web Indexes ({provenanceCounts.WEB_INDEX})</option>
+                <option value="STATUTORY_DIRECTIVE">⚖️ Statutory Directives ({provenanceCounts.STATUTORY_DIRECTIVE})</option>
+                <option value="MODELLED_SIMULATED">🔬 Modelled Benchmarks ({provenanceCounts.MODELLED_SIMULATED})</option>
               </select>
-            </label>
+            </div>
+
             <div>
-              <div className="eyebrow" style={{ marginBottom: '6px' }}>Countries</div>
-              <div className="marks-chip-grid">
+              <div className="eyebrow" style={{ marginBottom: '6px' }}>Hub / Country</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '6px' }}>
                 {countryPills.map(p => (
                   <button
                     key={p.id}
                     type="button"
                     onClick={() => setSelectedCountryGroup(p.id)}
                     className={`btn ${selectedCountryGroup === p.id ? 'btn-primary' : 'btn-secondary'}`}
+                    style={{ minHeight: '38px', fontSize: '12px' }}
                   >
                     {p.label}
                   </button>
@@ -841,42 +973,139 @@ export function MarksScreen() {
         </Sheet>
       )}
 
-      {isMobile && (
+      {isMobile && editingQuote && (
         <Sheet
-          open={editingQuote !== null}
+          open={Boolean(editingQuote)}
           onClose={() => setEditingId(null)}
-          title={editingQuote ? `${editingQuote.country} ${editingQuote.class} · ${editingQuote.feedstock}` : ''}
-          subtitle={editingQuote ? `Vintage ${editingQuote.vintage} · ${editingQuote.certified}` : undefined}
+          title={`${editingQuote.country} ${editingQuote.class}`}
+          subtitle={`${editingQuote.feedstock} · Vintage ${editingQuote.vintage}`}
           testId="marks-edit-sheet"
           footer={
-            <button type="button" className="btn btn-primary" style={{ width: '100%', minHeight: '44px' }} onClick={() => setEditingId(null)}>
-              Done
-            </button>
+            <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+              {(() => {
+                const mId = resolveMarketForQuote(editingQuote);
+                const isRef = mId && state.referenceRowIds?.[mId] === editingQuote.id;
+                if (mId && editingQuote.provenanceTier === 'BROKER_RUN' && rowFeedsMarket(editingQuote, mId) && rowHasPrice(editingQuote) && !isRef) {
+                  return (
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      style={{ flex: 1, minHeight: '44px' }}
+                      onClick={() => {
+                        dispatch({ type: 'SET_MARKET_REFERENCE_ROW', marketId: mId, rowId: editingQuote.id });
+                        showToast(`Set as ${mId} reference mark`);
+                      }}
+                    >
+                      Use as mark
+                    </button>
+                  );
+                }
+                return null;
+              })()}
+              <button
+                type="button"
+                className="btn btn-primary"
+                style={{ flex: 1, minHeight: '44px' }}
+                onClick={() => setEditingId(null)}
+              >
+                Done
+              </button>
+            </div>
           }
         >
-          {editingQuote && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div className="marks-edit-grid">
-                {editField('Bid price', 'bidPrice', editingQuote, 'Bid price')}
-                {editField('Offer price', 'offerPrice', editingQuote, 'Offer price')}
-                {editField('Bid volume', 'bidVolume', editingQuote, 'Bid volume')}
-                {editField('Offer volume', 'offerVolume', editingQuote, 'Offer volume')}
-              </div>
-              <div style={{ fontSize: '12px' }} className="mut">
-                <span className={`chip ${provenanceBadge(editingQuote.provenanceTier).badgeClass}`} style={{ marginRight: '6px' }}>
-                  {provenanceBadge(editingQuote.provenanceTier).badgeLabel}
-                </span>
-                {editingQuote.derivedFrom}
-              </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              {editField('BID Price', 'bidPrice', editingQuote, 'Bid price')}
+              {editField('OFFER Price', 'offerPrice', editingQuote, 'Offer price')}
             </div>
-          )}
+            {editingQuote.isTradeable && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                {editField('BID Volume', 'bidVolume', editingQuote, 'Bid volume')}
+                {editField('OFFER Volume', 'offerVolume', editingQuote, 'Offer volume')}
+              </div>
+            )}
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '6px' }}>
+              <span className="chip chip-info">{editingQuote.certified}</span>
+              <span className={`chip ${editingQuote.subsidized === 'Unsubsidised' ? 'chip-pos' : 'chip-neutral'}`}>{editingQuote.subsidized}</span>
+              <span className="chip chip-neutral">{editingQuote.ciScore || 'CI: —'}</span>
+            </div>
+            <div style={{ fontSize: '12px', marginTop: '4px' }} className="mut">
+              <strong>Source:</strong> {editingQuote.derivedFrom}
+            </div>
+          </div>
         </Sheet>
       )}
 
-      {/* Broker Run Importer Modal */}
+      {/* Date Edit Modal */}
+      {isDateModalOpen && (
+        <div
+          className="scrim m-dialog-scrim"
+          style={{ alignItems: 'center', justifyContent: 'center', padding: '24px' }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Edit broker run date"
+          onClick={() => setIsDateModalOpen(false)}
+        >
+          <div
+            className="panel m-dialog"
+            style={{ width: 'min(420px, 100%)', backgroundColor: 'var(--color-bg)', borderRadius: 'var(--radius-panel)', overflow: 'hidden' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ padding: '14px 18px', backgroundColor: 'var(--color-surface)', borderBottom: '1px solid var(--color-divider)' }}>
+              <h5 style={{ margin: 0, fontSize: '16px', fontWeight: 800 }}>Edit Broker Run Date</h5>
+              <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '2px' }}>
+                Updates observedAt for quotes in the baseline broker run
+              </div>
+            </div>
+            <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <span className="eyebrow">Run Received Date (ISO YYYY-MM-DD)</span>
+                <input
+                  type="date"
+                  value={dateInputValue}
+                  onChange={e => setDateInputValue(e.target.value)}
+                  className="input"
+                  style={{ minHeight: '38px', borderRadius: 'var(--radius-control)' }}
+                />
+              </label>
+              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '6px' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setIsDateModalOpen(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => {
+                    if (dateInputValue) {
+                      dispatch({
+                        type: 'SET_PRICING_RUN_DATE',
+                        runId: state.pricingRunMeta?.runId || 'broker-run-2026-08-18',
+                        receivedOn: dateInputValue,
+                      });
+                      setIsDateModalOpen(false);
+                      showToast(`Broker run date updated to ${dateInputValue}`);
+                    }
+                  }}
+                >
+                  Save Date
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 1-Click Paste Broker Run Modal */}
       <BrokerRunImporterModal
         isOpen={isImporterOpen}
         onClose={() => setIsImporterOpen(false)}
+        onCommitted={(count) => {
+          showToast(`Successfully imported ${count} market quotes`);
+        }}
       />
     </PageShell>
   );
