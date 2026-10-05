@@ -4,7 +4,6 @@ import {
   ComposableMap,
   Geographies,
   Geography,
-  ZoomableGroup,
   Line,
   Marker,
 } from 'react-simple-maps';
@@ -67,6 +66,20 @@ const COUNTRIES: Record<string, CountryMeta> = {
   'Croatia': { iso: 'HR', name: 'Croatia', status: 'FUTURE_2028', legal: 'ETS2 · Directive (EU) 2023/959', plants: 1, twh: 0.01, center: [15.20, 45.10] },
   'Bulgaria': { iso: 'BG', name: 'Bulgaria', status: 'FUTURE_2028', legal: 'ETS2 · Directive (EU) 2023/959', plants: 1, twh: 0.01, center: [25.48, 42.73] },
   'Luxembourg': { iso: 'LU', name: 'Luxembourg', status: 'FUTURE_2028', legal: 'ETS2 · Directive (EU) 2023/959', plants: 2, twh: 0.02, center: [6.12, 49.81] },
+};
+
+/** Europe-only map: our 28 jurisdictions plus neighbouring European countries as grey context. */
+const EUROPE_CONTEXT = [
+  'Iceland', 'Ukraine', 'Belarus', 'Moldova', 'Serbia', 'Bosnia and Herz.', 'Montenegro', 'Albania',
+  'Macedonia', 'Kosovo', 'Russia', 'Andorra', 'Monaco', 'San Marino', 'Vatican', 'Liechtenstein',
+  'Malta', 'Cyprus', 'N. Cyprus', 'Faeroe Is.', 'Isle of Man', 'Jersey', 'Guernsey', 'Åland',
+];
+const EUROPE_NAMES: ReadonlySet<string> = new Set([...Object.keys(COUNTRIES), ...EUROPE_CONTEXT]);
+
+/** Fixed framing: the whole of Europe (Portugal to Finland, Crete to the North Cape) fits the frame — no pan or zoom. */
+const EUROPE_PROJECTION = {
+  desktop: { scale: 505, center: [10, 57.3] as [number, number] },
+  mobile: { scale: 470, center: [13, 55.5] as [number, number] },
 };
 
 const STATUS_CONFIG = {
@@ -213,8 +226,6 @@ export function MapScreen() {
   const [copied, setCopied] = useState(false);
   const [hoveredCountry, setHoveredCountry] = useState<CountryMeta | null>(null);
   const [isLogisticsOpen, setIsLogisticsOpen] = useState(false);
-  const [zoomLevel, setZoomLevel] = useState<number>(3.6);
-  const [mapCenter, setMapCenter] = useState<[number, number]>([12, 53]);
 
   useEffect(() => {
     if (!isSummaryOpen) return;
@@ -422,16 +433,18 @@ export function MapScreen() {
             projection="geoMercator"
             width={isMobile ? 420 : 800}
             height={600}
-            projectionConfig={{
-              scale: isMobile ? 560 : 680,
-              center: [12, 54],
-            }}
-            style={{ width: '100%', height: '100%' }}
+            projectionConfig={EUROPE_PROJECTION[isMobile ? 'mobile' : 'desktop']}
+            preserveAspectRatio="xMidYMid meet"
+            style={
+              isMobile
+                ? { width: '100%', height: '100%' }
+                : { position: 'absolute', inset: 0, width: '100%', height: '100%' }
+            }
           >
-            <ZoomableGroup zoom={zoomLevel / 3.6} center={mapCenter}>
+            <g>
               <Geographies geography={geoData}>
                 {({ geographies }) =>
-                  geographies.map(geo => {
+                  geographies.filter(geo => EUROPE_NAMES.has(geo.properties.name)).map(geo => {
                     const name = geo.properties.name;
                     const cMeta = COUNTRIES[name];
                     const status = cMeta ? cMeta.status : 'NONE';
@@ -551,7 +564,7 @@ export function MapScreen() {
                 </Marker>
                 );
               })}
-            </ZoomableGroup>
+            </g>
           </ComposableMap>
   );
 
@@ -1203,22 +1216,6 @@ export function MapScreen() {
             </div>
           )}
 
-          <div className="map-m-zoom">
-            <button type="button" className="btn btn-secondary" aria-label="Zoom in" onClick={() => setZoomLevel(z => Math.min(z + 1, 8))}>+</button>
-            <button type="button" className="btn btn-secondary" aria-label="Zoom out" onClick={() => setZoomLevel(z => Math.max(z - 1, 1))}>−</button>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              aria-label="Reset view"
-              style={{ fontSize: '12px' }}
-              onClick={() => {
-                setZoomLevel(3.6);
-                setMapCenter([12, 53]);
-              }}
-            >
-              RST
-            </button>
-          </div>
         </div>
 
         {/* Peek bar: tap to expand the full jurisdiction / corridor panel */}
@@ -1509,50 +1506,6 @@ export function MapScreen() {
             </div>
           </div>
 
-          {/* Overlay: Top-Right Zoom Buttons */}
-          <div
-            style={{
-              position: 'absolute',
-              top: '12px',
-              right: '12px',
-              display: 'flex',
-              flexDirection: 'column',
-              borderRadius: 'var(--radius-control)',
-              overflow: 'hidden',
-              boxShadow: 'var(--shadow-card)',
-            }}
-          >
-            <button
-              type="button"
-              className="btn btn-secondary"
-              style={{ width: '28px', height: '28px', padding: 0, fontSize: '14px', fontWeight: 800, borderRadius: 0 }}
-              aria-label="Zoom in"
-              onClick={() => setZoomLevel(z => Math.min(z + 1, 8))}
-            >
-              +
-            </button>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              style={{ width: '28px', height: '28px', padding: 0, fontSize: '14px', fontWeight: 800, borderTop: 0, borderRadius: 0 }}
-              aria-label="Zoom out"
-              onClick={() => setZoomLevel(z => Math.max(z - 1, 1))}
-            >
-              −
-            </button>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              style={{ width: '28px', height: '28px', padding: 0, fontSize: '12px', borderTop: 0, borderRadius: 0 }}
-              aria-label="Reset view"
-              onClick={() => {
-                setZoomLevel(3.6);
-                setMapCenter([12, 53]);
-              }}
-            >
-              RST
-            </button>
-          </div>
 
           {/* Overlay: Bottom-Right Hover Card */}
           {hoveredCountry && (
