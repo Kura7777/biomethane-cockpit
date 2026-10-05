@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -70,19 +70,8 @@ const COUNTRIES: Record<string, CountryMeta> = {
   'Luxembourg': { iso: 'LU', name: 'Luxembourg', status: 'FUTURE_2028', legal: 'ETS2 · Directive (EU) 2023/959', plants: 2, twh: 0.02, center: [6.12, 49.81] },
 };
 
-/** Europe-only map: our 28 jurisdictions plus neighbouring European countries as grey context. Excludes Russia. */
-const EUROPE_CONTEXT = [
-  'Iceland', 'Ukraine', 'Belarus', 'Moldova', 'Serbia', 'Bosnia and Herz.', 'Montenegro', 'Albania',
-  'Macedonia', 'Kosovo', 'Andorra', 'Monaco', 'San Marino', 'Vatican', 'Liechtenstein',
-  'Malta', 'Cyprus', 'N. Cyprus', 'Faeroe Is.', 'Isle of Man', 'Jersey', 'Guernsey', 'Åland',
-];
-const EUROPE_NAMES: ReadonlySet<string> = new Set([...Object.keys(COUNTRIES), ...EUROPE_CONTEXT]);
-
-/** Fixed framing: the whole of Europe (Portugal/Spain to Finland, Italy/Greece to Scandinavia) fits the frame cleanly without Russia. */
-const EUROPE_PROJECTION = {
-  desktop: { scale: 520, center: [9.5, 48.0] as [number, number] },
-  mobile: { scale: 440, center: [10, 50.0] as [number, number] },
-};
+/** Default map centre [lon, lat]: midpoint of the 28 jurisdictions (Ireland/Portugal to Finland). */
+const MAP_HOME: [number, number] = [10.5, 53];
 
 const STATUS_CONFIG = {
   ACTIVE: { label: 'Active market', fill: 'color-mix(in srgb, var(--color-text) 72%, var(--color-bg))', swatch: 'var(--color-text)' },
@@ -366,7 +355,32 @@ export function MapScreen() {
   const [isLogisticsOpen, setIsLogisticsOpen] = useState(false);
   const [zoomLevel, setZoomLevel] = useState<number>(3.6);
   const [controlsOpen, setControlsOpen] = useState(false);
-  const [mapCenter, setMapCenter] = useState<[number, number]>([12, 53]);
+  const [mapCenter, setMapCenter] = useState<[number, number]>(MAP_HOME);
+  const mapBoxRef = useRef<HTMLDivElement>(null);
+  const optionsPanelRef = useRef<HTMLDivElement>(null);
+  const [panelOffsetDeg, setPanelOffsetDeg] = useState(0);
+
+  // The options panel overlays the left of the map; shift the view so the map is centred in the
+  // uncovered area. Converts half the panel's footprint (px) to degrees of longitude (Mercator is
+  // linear in longitude) using the SVG's meet-fit scale, projection scale 680 and current zoom.
+  useEffect(() => {
+    if (isMobile) { setPanelOffsetDeg(0); return; }
+    const box = mapBoxRef.current;
+    const panel = optionsPanelRef.current;
+    if (!box || !panel || typeof ResizeObserver === 'undefined') return;
+    const update = () => {
+      const fit = Math.min(box.clientWidth / 800, box.clientHeight / 600);
+      if (!fit) return;
+      const coveredPx = panel.offsetLeft + panel.offsetWidth;
+      const pxPerDeg = fit * 680 * (Math.PI / 180) * (zoomLevel / 3.6);
+      setPanelOffsetDeg(coveredPx / 2 / pxPerDeg);
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(box);
+    ro.observe(panel);
+    return () => ro.disconnect();
+  }, [isMobile, zoomLevel]);
   const [ctxMenu, setCtxMenu] = useState<{ name: string; x: number; y: number } | null>(null);
 
   useEffect(() => {
@@ -663,10 +677,10 @@ export function MapScreen() {
                 : { position: 'absolute', inset: 0, width: '100%', height: '100%' }
             }
           >
-            <ZoomableGroup zoom={zoomLevel / 3.6} center={mapCenter}>
+            <ZoomableGroup zoom={zoomLevel / 3.6} center={[mapCenter[0] - panelOffsetDeg, mapCenter[1]]}>
               <Geographies geography={geoData}>
                 {({ geographies }) =>
-                  geographies.filter(geo => geo.properties.name !== 'Russia').map(geo => {
+                  geographies.filter(geo => COUNTRIES[geo.properties.name]).map(geo => {
                     const name = geo.properties.name;
                     const cMeta = COUNTRIES[name];
                     const status = cMeta ? cMeta.status : 'NONE';
@@ -1560,7 +1574,7 @@ export function MapScreen() {
           <div className="map-m-zoom">
             <button type="button" className="btn btn-secondary" aria-label="Zoom in" onClick={() => setZoomLevel(z => Math.min(z + 1, 8))}>+</button>
             <button type="button" className="btn btn-secondary" aria-label="Zoom out" onClick={() => setZoomLevel(z => Math.max(z - 1, 1))}>−</button>
-            <button type="button" className="btn btn-secondary" aria-label="Reset view" style={{ fontSize: '12px' }} onClick={() => { setZoomLevel(3.6); setMapCenter([12, 53]); }}>RST</button>
+            <button type="button" className="btn btn-secondary" aria-label="Reset view" style={{ fontSize: '12px' }} onClick={() => { setZoomLevel(3.6); setMapCenter(MAP_HOME); }}>RST</button>
           </div>
 
           {view !== 'COMPLIANCE' ? (
@@ -1822,7 +1836,7 @@ export function MapScreen() {
         </div>
 
         {/* Map Container */}
-        <div style={{ flex: 1, position: 'relative', minHeight: '440px', overflow: 'hidden', backgroundColor: 'var(--color-bg)' }}>
+        <div ref={mapBoxRef} style={{ flex: 1, position: 'relative', minHeight: '440px', overflow: 'hidden', backgroundColor: 'var(--color-bg)' }}>
         {mapSvg}
         {ctxMenu && COUNTRIES[ctxMenu.name] && createPortal(
           (() => {
@@ -1892,11 +1906,12 @@ export function MapScreen() {
         <div style={{ position: 'absolute', top: '12px', right: '12px', display: 'flex', flexDirection: 'column', borderRadius: 'var(--radius-control)', overflow: 'hidden', boxShadow: 'var(--shadow-card)', zIndex: 10 }}>
           <button type="button" className="btn btn-secondary" style={{ width: '28px', height: '28px', padding: 0, fontSize: '14px', fontWeight: 800, borderRadius: 0 }} aria-label="Zoom in" onClick={() => setZoomLevel(z => Math.min(z + 1, 8))}>+</button>
           <button type="button" className="btn btn-secondary" style={{ width: '28px', height: '28px', padding: 0, fontSize: '14px', fontWeight: 800, borderTop: 0, borderRadius: 0 }} aria-label="Zoom out" onClick={() => setZoomLevel(z => Math.max(z - 1, 1))}>−</button>
-          <button type="button" className="btn btn-secondary" style={{ width: '28px', height: '28px', padding: 0, fontSize: '12px', borderTop: 0, borderRadius: 0 }} aria-label="Reset view" onClick={() => { setZoomLevel(3.6); setMapCenter([12, 53]); }}>RST</button>
+          <button type="button" className="btn btn-secondary" style={{ width: '28px', height: '28px', padding: 0, fontSize: '12px', borderTop: 0, borderRadius: 0 }} aria-label="Reset view" onClick={() => { setZoomLevel(3.6); setMapCenter(MAP_HOME); }}>RST</button>
         </div>
 
           {/* Overlay: Top-Left Legend & Click-Mode Switcher */}
           <div
+            ref={optionsPanelRef}
             style={{
               position: 'absolute',
               top: '12px',
