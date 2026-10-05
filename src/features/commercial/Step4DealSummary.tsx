@@ -1,9 +1,20 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAppState } from '../../store/context';
 import { ClientRequest } from '../../domain/arbitrage/types';
 import { SourcedOpportunity } from './PlantScannerTable';
 import { buildDealUrl } from '../../domain/trade/dealParams';
 import { defaultVolumeMwh } from '../../domain/trade/dealDefaults';
+import {
+  computeOriginationBreakdown,
+  fmtEurPerMwh,
+  fmtEurTotal,
+  ttfMarkLine,
+  type PriceSource,
+} from '../../domain/arbitrage/originationBreakdown';
+import { originationRouteStatus } from '../../domain/arbitrage/routeStatus';
+import { SourceChip } from '../../shared/ui/SourceChip';
+import { RouteStatusBadge } from './RouteStatusBadge';
 import { 
   CheckCircle2, 
   Copy, 
@@ -35,49 +46,66 @@ export function Step4DealSummary({
   onReset
 }: Step4DealSummaryProps) {
   const [copied, setCopied] = useState(false);
-  const vol = request.volumeMwh || 10000;
-  const plantGateEur = opportunity.producerPayableEurPerMWh ?? 0;
-  const gridLogisticsEur = opportunity.transitCostEurPerMWh ?? 0;
-  const certificationEur = 1.20;
-
-  const totalDeliveredCostEur = plantGateEur + gridLogisticsEur + certificationEur;
-  const totalGrossRevenueEur = opportunity.totalTerminalValueStackEurPerMWh ?? (totalDeliveredCostEur + (opportunity.deskNetMarginEurPerMWh ?? 0));
-  const gasIndexEur = 32.50;
-  const certificateValueEur = Math.max(0, totalGrossRevenueEur - gasIndexEur);
-  const netMarginEurPerMwh = opportunity.deskNetMarginEurPerMWh ?? (totalGrossRevenueEur - totalDeliveredCostEur);
-  const totalDealProfitEur = opportunity.totalDealProfitEur ?? (netMarginEurPerMwh * vol);
-  const totalDealCostEur = totalDeliveredCostEur * vol;
-  const totalDealRevenueEur = totalGrossRevenueEur * vol;
-  const isProfitable = netMarginEurPerMwh > 0;
+  const { state } = useAppState();
+  const vol = request.volumeMwh || defaultVolumeMwh();
+  const b = computeOriginationBreakdown({
+    opportunity,
+    volumeMwh: vol,
+    marks: state.marks,
+    costs: state.costs,
+  });
+  const {
+    plantGateEur,
+    gridLogisticsEur,
+    certificationEur,
+    totalDeliveredCostEur,
+    grossRevenueEur: totalGrossRevenueEur,
+    gasIndexEur,
+    certificateValueEur,
+    netMarginEurPerMwh,
+    totalDealProfitEur,
+    totalDealCostEur,
+    totalDealRevenueEur,
+    isProfitable,
+  } = b;
+  const routeStatus = originationRouteStatus(opportunity.overallVerdict);
+  const sourceChip = (src: PriceSource | null) =>
+    src ? <SourceChip badge={src.badge} suffix={src.asOf ? `mark ${src.asOf}` : 'no date on record'} /> : null;
+  const indicativeLine = `Indicative: ${ttfMarkLine(b)}`;
+  const certSourceText = b.certificationSource ? ` [${b.certificationSource.badge.label}]` : '';
+  const gasSourceText = b.gasIndexSource ? ` [${b.gasIndexSource.badge.label}, ${b.gasIndexSource.asOf ?? 'no date'}]` : '';
 
   const dealRef = `BIO-${opportunity.originCountry}-${opportunity.targetCountry}-${Date.now().toString().slice(-6)}`;
   const dateStr = new Date().toISOString().slice(0, 10);
   const periodLabel = request.delivery.type || 'FRONT_MONTH';
 
-  const formattedSummary = `[BIOMETHANE COMMERCIAL DEAL SUMMARY]
+  const formattedSummary = `[BIOMETHANE INDICATIVE TERM SHEET]
 Deal Ref: ${dealRef}
 Date: ${dateStr}
+${indicativeLine}
+Route status: ${routeStatus === 'TRADEABLE' ? 'Tradeable (all eligibility gates cleared)' : routeStatus === 'REVIEW' ? 'REVIEW NEEDED (open eligibility conditions: ' + opportunity.eligibility.summary + ')' : 'Blocked'}
 
 1. SOURCING & ROUTE
 • Origin Plant: ${opportunity.originPlantName || `${opportunity.originCountry} Sourced Plant`} (${opportunity.originCountry})
 • Buyer Hub: ${opportunity.targetMarketName} (${opportunity.targetCountry})
 • Substrate: ${opportunity.feedstockName} (CI: ${opportunity.carbonIntensity} gCO₂e/MJ)
 • Volume: ${vol.toLocaleString()} MWh (${periodLabel} Delivery)
-• Mode: Pipeline Grid Injection (RED III Mass Balance)
+• Mode: Pipeline Grid Injection (Mass Balance)
 
 2. COMMERCIAL PRICING & MARGINS
-• Plant Gate Sourcing Price: €${plantGateEur.toFixed(2)} / MWh (€${Math.round(plantGateEur * vol).toLocaleString()})
-• Grid & Transit Logistics: €${gridLogisticsEur.toFixed(2)} / MWh (€${Math.round(gridLogisticsEur * vol).toLocaleString()})
-• Mass Balance Proof: €${certificationEur.toFixed(2)} / MWh (€${Math.round(certificationEur * vol).toLocaleString()})
-• Total Delivered Cost: €${totalDeliveredCostEur.toFixed(2)} / MWh (€${Math.round(totalDealCostEur).toLocaleString()})
+• Plant Gate Sourcing Price: ${fmtEurPerMwh(plantGateEur)} (${fmtEurTotal(plantGateEur * vol)})
+• Grid & Transit Logistics: ${fmtEurPerMwh(gridLogisticsEur)} (${fmtEurTotal(gridLogisticsEur * vol)})
+• Mass Balance Proof: ${certificationEur === null ? 'Not set (excluded from delivered cost)' : `${fmtEurPerMwh(certificationEur)} (${fmtEurTotal(certificationEur * vol)})${certSourceText}`}
+• Total Delivered Cost${b.deliveredCostExclCertification ? ' (excl. certification)' : ''}: ${fmtEurPerMwh(totalDeliveredCostEur)} (${fmtEurTotal(totalDealCostEur)})
 
-• Wholesale Gas Offtake (TTF): €${gasIndexEur.toFixed(2)} / MWh (€${Math.round(gasIndexEur * vol).toLocaleString()})
-• Green Certificate Premium: €${certificateValueEur.toFixed(2)} / MWh (€${Math.round(certificateValueEur * vol).toLocaleString()})
-• Total Realizable Revenue: €${totalGrossRevenueEur.toFixed(2)} / MWh (€${Math.round(totalDealRevenueEur).toLocaleString()})
+• Wholesale Gas Offtake (TTF ${b.gasIndexSide}): ${gasIndexEur === null ? 'No TTF mark' : `${fmtEurPerMwh(gasIndexEur)} (${fmtEurTotal(gasIndexEur * vol)})${gasSourceText}`}
+• Green Certificate Premium: ${certificateValueEur === null ? '—' : `${fmtEurPerMwh(certificateValueEur)} (${fmtEurTotal(certificateValueEur * vol)})`}
+• Total Realizable Revenue: ${fmtEurPerMwh(totalGrossRevenueEur)} (${fmtEurTotal(totalDealRevenueEur)})${b.revenueCeilingApplied ? `
+• Capped at €${b.revenueCeilingApplied.ceilingEurPerMwh}/MWh (desk assumption)` : ''}
 
 3. NET COMMERCIAL SPREAD
-• Net Margin: €${netMarginEurPerMwh.toFixed(2)} / MWh
-• TOTAL NET DEAL PROFIT: €${Math.round(totalDealProfitEur).toLocaleString()}
+• Net Margin: ${fmtEurPerMwh(netMarginEurPerMwh)}${b.marginSplit === 'DESK_POLICY' ? ' (desk-policy split)' : ''}
+• INDICATIVE NET DEAL PROFIT: ${fmtEurTotal(totalDealProfitEur)}
 `.trim();
 
   const handleCopy = () => {
@@ -146,13 +174,13 @@ Date: ${dateStr}
           className="cf-pill inline-flex items-center gap-2 px-3 py-1 border text-xs font-medium mb-2.5"
         >
           <CheckCircle2 className="w-3.5 h-3.5" />
-          Step 4 of 4: Commercial deal structured
+          Step 4 of 4: Indicative deal structured
         </div>
         <h1 style={{ color: 'var(--color-text)' }} className="text-xl sm:text-2xl font-semibold mb-1.5">
-          Finalized transaction term sheet
+          Indicative term sheet
         </h1>
         <p style={{ color: 'var(--color-muted)' }} className="text-xs sm:text-sm font-normal max-w-2xl">
-          Deal economics verified, RED III compliance passed, and mass-balance route locked in.
+          Economics are indicative and priced off the desk's marks, each tagged with its source and date. Nothing here is a firm price or a cleared route.
         </p>
       </div>
 
@@ -177,17 +205,8 @@ Date: ${dateStr}
             <span style={{ color: 'var(--color-muted)' }} className="text-xs font-medium">
               Reference: <span style={{ color: 'var(--color-text)' }} className="font-mono font-semibold">{dealRef}</span>
             </span>
-            <span
-              style={{
-                borderRadius: 'var(--radius-control)',
-                backgroundColor: 'var(--color-status-pass-bg)',
-                borderColor: 'var(--color-status-pass-border)',
-                color: 'var(--color-status-pass-ink)',
-              }}
-              className="text-[10px] border px-2 py-0.5 font-medium"
-            >
-              EXECUTION READY
-            </span>
+            <RouteStatusBadge verdict={opportunity.overallVerdict} detail={opportunity.eligibility.summary} />
+            <span className="chip chip-neutral" data-testid="indicative-chip">Indicative</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -206,6 +225,16 @@ Date: ${dateStr}
               <span>{copied ? 'Copied term sheet' : 'Copy term sheet'}</span>
             </button>
           </div>
+        </div>
+
+        <div
+          style={{ borderColor: 'var(--color-line)', color: 'var(--color-muted)' }}
+          className="px-4 sm:px-5 py-2 border-b text-xs flex items-center gap-2 flex-wrap"
+          data-testid="indicative-line"
+        >
+          <span className="font-medium">{indicativeLine}</span>
+          {b.gasIndexSource && <SourceChip badge={b.gasIndexSource.badge} />}
+          <Link to="/pricing" style={{ color: 'var(--color-accent)' }} className="font-medium hover:underline">Change in Pricing desk →</Link>
         </div>
 
         {/* Top Highlight Cards */}
@@ -230,10 +259,10 @@ Date: ${dateStr}
               Delivered production cost
             </span>
             <span style={{ color: 'var(--color-pnl-neg)' }} className="text-xl sm:text-2xl font-bold tabular-nums block mt-1">
-              €{totalDeliveredCostEur.toFixed(2)} / MWh
+              {fmtEurPerMwh(totalDeliveredCostEur)}
             </span>
             <span style={{ color: 'var(--color-muted)' }} className="text-xs block mt-0.5 tabular-nums">
-              Total: €{Math.round(totalDealCostEur).toLocaleString()}
+              Total: {fmtEurTotal(totalDealCostEur)}{b.deliveredCostExclCertification ? ' (excl. certification)' : ''}
             </span>
           </div>
 
@@ -248,19 +277,19 @@ Date: ${dateStr}
               style={{ color: isProfitable ? 'var(--color-pnl-pos)' : 'var(--color-pnl-neg)' }}
               className="text-xs font-medium block"
             >
-              Total net deal profit
+              Indicative net deal profit
             </span>
             <span
               style={{ color: isProfitable ? 'var(--color-pnl-pos)' : 'var(--color-pnl-neg)' }}
               className="text-2xl sm:text-3xl font-bold tabular-nums block mt-1"
             >
-              {isProfitable ? '+' : ''}€{Math.round(totalDealProfitEur).toLocaleString()}
+              {isProfitable ? '+' : ''}{fmtEurTotal(totalDealProfitEur)}
             </span>
             <span
               style={{ color: isProfitable ? 'var(--color-pnl-pos)' : 'var(--color-pnl-neg)' }}
               className="text-xs block mt-0.5 opacity-90"
             >
-              Spread: <strong className="tabular-nums">€{netMarginEurPerMwh.toFixed(2)} / MWh</strong>
+              Spread: <strong className="tabular-nums">{fmtEurPerMwh(netMarginEurPerMwh)}</strong>
             </span>
           </div>
         </div>
@@ -305,7 +334,7 @@ Date: ${dateStr}
             >
               <span style={{ color: 'var(--color-muted)' }} className="text-[10px] block mb-0.5">Feedstock &amp; carbon intensity</span>
               <span style={{ color: 'var(--color-text)' }} className="font-semibold text-xs sm:text-sm block">{opportunity.feedstockName}</span>
-              <span style={{ color: 'var(--color-text)' }} className="mt-0.5 block text-[11px] font-medium">CI: {opportunity.carbonIntensity} gCO₂e/MJ (RED III compliant)</span>
+              <span style={{ color: 'var(--color-text)' }} className="mt-0.5 block text-[11px] font-medium">CI: {opportunity.carbonIntensity} gCO₂e/MJ</span>
             </div>
 
             <div
@@ -345,39 +374,52 @@ Date: ${dateStr}
               <tbody style={{ color: 'var(--color-text)' }} className="divide-y divide-[var(--color-line)]">
                 <tr>
                   <td style={{ color: 'var(--color-muted)' }} className="p-3 font-normal">1. Plant gate sourcing cost</td>
-                  <td className="p-3 text-right font-medium tabular-nums">€{plantGateEur.toFixed(2)}/MWh</td>
-                  <td style={{ color: 'var(--color-muted)' }} className="p-3 text-right tabular-nums">€{Math.round(plantGateEur * vol).toLocaleString()}</td>
+                  <td className="p-3 text-right font-medium tabular-nums">{fmtEurPerMwh(plantGateEur)}</td>
+                  <td style={{ color: 'var(--color-muted)' }} className="p-3 text-right tabular-nums">{fmtEurTotal(plantGateEur * vol)}</td>
                 </tr>
                 <tr>
                   <td style={{ color: 'var(--color-muted)' }} className="p-3 font-normal">2. Grid entry/exit &amp; transit tariffs</td>
-                  <td style={{ color: 'var(--color-pnl-neg)' }} className="p-3 text-right font-medium tabular-nums">€{gridLogisticsEur.toFixed(2)}/MWh</td>
-                  <td style={{ color: 'var(--color-muted)' }} className="p-3 text-right tabular-nums">€{Math.round(gridLogisticsEur * vol).toLocaleString()}</td>
+                  <td style={{ color: 'var(--color-pnl-neg)' }} className="p-3 text-right font-medium tabular-nums">{fmtEurPerMwh(gridLogisticsEur)}</td>
+                  <td style={{ color: 'var(--color-muted)' }} className="p-3 text-right tabular-nums">{fmtEurTotal(gridLogisticsEur * vol)}</td>
                 </tr>
                 <tr>
-                  <td style={{ color: 'var(--color-muted)' }} className="p-3 font-normal">3. Mass balance &amp; proof of sustainability</td>
-                  <td className="p-3 text-right font-medium tabular-nums">€{certificationEur.toFixed(2)}/MWh</td>
-                  <td style={{ color: 'var(--color-muted)' }} className="p-3 text-right tabular-nums">€{Math.round(certificationEur * vol).toLocaleString()}</td>
+                  <td style={{ color: 'var(--color-muted)' }} className="p-3 font-normal">
+                    3. Mass balance &amp; proof of sustainability{' '}
+                    {sourceChip(b.certificationSource)}
+                  </td>
+                  <td className="p-3 text-right font-medium tabular-nums">{certificationEur === null ? 'Not set' : fmtEurPerMwh(certificationEur)}</td>
+                  <td style={{ color: 'var(--color-muted)' }} className="p-3 text-right tabular-nums">{certificationEur === null ? '—' : fmtEurTotal(certificationEur * vol)}</td>
                 </tr>
                 <tr style={{ backgroundColor: 'var(--color-bg)' }} className="font-semibold">
-                  <td className="p-3">Total delivered cost (debits)</td>
-                  <td style={{ color: 'var(--color-pnl-neg)' }} className="p-3 text-right tabular-nums">€{totalDeliveredCostEur.toFixed(2)}/MWh</td>
-                  <td style={{ color: 'var(--color-pnl-neg)' }} className="p-3 text-right tabular-nums">€{Math.round(totalDealCostEur).toLocaleString()}</td>
+                  <td className="p-3">Total delivered cost (debits){b.deliveredCostExclCertification ? ' (excl. certification)' : ''}</td>
+                  <td style={{ color: 'var(--color-pnl-neg)' }} className="p-3 text-right tabular-nums">{fmtEurPerMwh(totalDeliveredCostEur)}</td>
+                  <td style={{ color: 'var(--color-pnl-neg)' }} className="p-3 text-right tabular-nums">{fmtEurTotal(totalDealCostEur)}</td>
                 </tr>
                 <tr>
-                  <td style={{ color: 'var(--color-muted)' }} className="p-3 font-normal">4. Wholesale gas offtake (TTF index)</td>
-                  <td className="p-3 text-right font-medium tabular-nums">€{gasIndexEur.toFixed(2)}/MWh</td>
-                  <td style={{ color: 'var(--color-muted)' }} className="p-3 text-right tabular-nums">€{Math.round(gasIndexEur * vol).toLocaleString()}</td>
+                  <td style={{ color: 'var(--color-muted)' }} className="p-3 font-normal">
+                    4. Wholesale gas offtake (TTF index, {b.gasIndexSide}){' '}
+                    {gasIndexEur === null ? <span style={{ color: 'var(--color-pnl-neg)' }}>No TTF mark</span> : sourceChip(b.gasIndexSource)}
+                  </td>
+                  <td className="p-3 text-right font-medium tabular-nums">{fmtEurPerMwh(gasIndexEur)}</td>
+                  <td style={{ color: 'var(--color-muted)' }} className="p-3 text-right tabular-nums">{gasIndexEur === null ? '—' : fmtEurTotal(gasIndexEur * vol)}</td>
                 </tr>
                 <tr>
                   <td style={{ color: 'var(--color-muted)' }} className="p-3 font-normal">5. {opportunity.targetMarketName} certificate premium</td>
-                  <td style={{ color: 'var(--color-pnl-pos)' }} className="p-3 text-right font-medium tabular-nums">€{certificateValueEur.toFixed(2)}/MWh</td>
-                  <td style={{ color: 'var(--color-pnl-pos)' }} className="p-3 text-right tabular-nums">€{Math.round(certificateValueEur * vol).toLocaleString()}</td>
+                  <td style={{ color: 'var(--color-pnl-pos)' }} className="p-3 text-right font-medium tabular-nums">{fmtEurPerMwh(certificateValueEur)}</td>
+                  <td style={{ color: 'var(--color-pnl-pos)' }} className="p-3 text-right tabular-nums">{certificateValueEur === null ? '—' : fmtEurTotal(certificateValueEur * vol)}</td>
                 </tr>
                 <tr style={{ backgroundColor: 'var(--color-bg)' }} className="font-semibold">
                   <td className="p-3">Total realizable revenue (credits)</td>
-                  <td style={{ color: 'var(--color-text)' }} className="p-3 text-right tabular-nums">€{totalGrossRevenueEur.toFixed(2)}/MWh</td>
-                  <td style={{ color: 'var(--color-text)' }} className="p-3 text-right tabular-nums">€{Math.round(totalDealRevenueEur).toLocaleString()}</td>
+                  <td style={{ color: 'var(--color-text)' }} className="p-3 text-right tabular-nums">{fmtEurPerMwh(totalGrossRevenueEur)}</td>
+                  <td style={{ color: 'var(--color-text)' }} className="p-3 text-right tabular-nums">{fmtEurTotal(totalDealRevenueEur)}</td>
                 </tr>
+                {b.revenueCeilingApplied && (
+                  <tr>
+                    <td colSpan={3} style={{ color: 'var(--color-status-warn-text)' }} className="p-3 text-[11px] font-medium">
+                      Capped at €{b.revenueCeilingApplied.ceilingEurPerMwh}/MWh (desk assumption); market netback was {fmtEurPerMwh(b.revenueCeilingApplied.uncappedEurPerMwh)}.
+                    </td>
+                  </tr>
+                )}
                 {/* Net spread: blue token */}
                 <tr
                   style={{
@@ -386,9 +428,9 @@ Date: ${dateStr}
                   }}
                   className="font-bold text-xs sm:text-sm"
                 >
-                  <td className="p-3 pl-3">Net commercial deal spread</td>
-                  <td className="p-3 text-right tabular-nums">€{netMarginEurPerMwh.toFixed(2)}/MWh</td>
-                  <td className="p-3 text-right pr-3 tabular-nums">€{Math.round(totalDealProfitEur).toLocaleString()}</td>
+                  <td className="p-3 pl-3">Net commercial deal spread (indicative)</td>
+                  <td className="p-3 text-right tabular-nums">{fmtEurPerMwh(netMarginEurPerMwh)}</td>
+                  <td className="p-3 text-right pr-3 tabular-nums">{fmtEurTotal(totalDealProfitEur)}</td>
                 </tr>
               </tbody>
             </table>

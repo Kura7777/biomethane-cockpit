@@ -8,3 +8,4 @@ export * from './SidePanel';
 export * from './FlowSteps';
 export * from './Sheet';
 export * from './MobileCardList';
+export * from './SourceChip';

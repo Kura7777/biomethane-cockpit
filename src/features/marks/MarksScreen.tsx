@@ -3,6 +3,7 @@ import { MARKETS, isVoluntaryMarket } from '../../domain/markets/registry';
 import { Market, deriveSourceBadge } from '../../domain/markets/types';
 import { useAppState } from '../../store/context';
 import { SIMULATED_SOURCE_NAME } from '../../domain/marks/simulate';
+import { SourceChip } from '../../shared/ui/SourceChip';
 import { isSimulatedMark, resolveMarketForQuote, rowFeedsMarket, rowHasPrice } from '../../domain/marks/applyMarks';
 import { BrokerRunImporterModal } from './BrokerRunImporterModal';
 import { showToast } from '../../app/DeskToastContainer';
@@ -206,8 +207,6 @@ export function MarksScreen() {
   const gbpRate = state.marks.fx.gbpEur;
   const gasIndexBadge = deriveSourceBadge(state.marks.gasIndex.provenance, SIMULATED_SOURCE_NAME);
   const fxBadge = deriveSourceBadge(state.marks.fx.provenance, SIMULATED_SOURCE_NAME);
-  const chipClassForVariant = (v: ReturnType<typeof deriveSourceBadge>['variant']) =>
-    v === 'POSITIVE' ? 'chip chip-pos' : v === 'WARNING' ? 'chip chip-warn' : v === 'INFO' ? 'chip chip-info' : 'chip chip-neutral';
 
   const provenanceBadge = (q: PricingBookEntry) => {
     const age = formatAge(q.observedAt);
@@ -326,7 +325,7 @@ export function MarksScreen() {
           label={
             <span style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px' }}>
               <span>TTF M+1 base natural gas</span>
-              <span className={chipClassForVariant(gasIndexBadge.variant)}>{gasIndexBadge.label}{state.marks.gasIndex.provenance?.observedAt ? ` · ${formatAge(state.marks.gasIndex.provenance.observedAt)}` : ''}</span>
+              <SourceChip badge={gasIndexBadge} suffix={state.marks.gasIndex.provenance?.observedAt ? formatAge(state.marks.gasIndex.provenance.observedAt) : null} />
             </span>
           }
           value={gasIndexPrice !== null && gasIndexPrice !== undefined ? `€${gasIndexPrice.toFixed(2)}` : 'unrecorded'}
@@ -342,7 +341,7 @@ export function MarksScreen() {
           label={
             <span style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px' }}>
               <span>GBP / EUR fix</span>
-              <span className={chipClassForVariant(fxBadge.variant)}>{fxBadge.label}{state.marks.fx.provenance?.observedAt ? ` · ${formatAge(state.marks.fx.provenance.observedAt)}` : ''}</span>
+              <SourceChip badge={fxBadge} suffix={state.marks.fx.provenance?.observedAt ? formatAge(state.marks.fx.provenance.observedAt) : null} />
             </span>
           }
           value={gbpRate !== null && gbpRate !== undefined ? gbpRate.toFixed(4) : 'unrecorded'}

@@ -4,6 +4,7 @@ import { ArbitrageOpportunity } from '../../domain/arbitrage/types';
 import { BiomethanePlant } from '../../domain/plants/types';
 import { buildDealUrl } from '../../domain/trade/dealParams';
 import { defaultVolumeMwh } from '../../domain/trade/dealDefaults';
+import { RouteStatusBadge } from './RouteStatusBadge';
 import { 
   Building2, 
   ArrowRight, 
@@ -189,7 +190,7 @@ export function PlantScannerTable({
                 Institutional Sourcing &amp; Netback Data Grid
               </span>
               <span className="ps-count-badge text-[12px] px-2 py-0.2 rounded font-bold">
-                {sortedOpps.length} Eligible Routes
+                {sortedOpps.length} Routes
               </span>
             </div>
             <p className="ps-subtitle text-[12px]">
@@ -456,6 +457,7 @@ export function PlantScannerTable({
                           <span className="ps-market-name font-bold truncate">
                             {opp.targetMarketName}
                           </span>
+                          <RouteStatusBadge verdict={opp.overallVerdict} detail={opp.eligibility.summary} />
                         </div>
                         <div className="ps-cell-meta text-[12px] mt-0.5 truncate">
                           {opp.targetMarketId} · Quota Compliance

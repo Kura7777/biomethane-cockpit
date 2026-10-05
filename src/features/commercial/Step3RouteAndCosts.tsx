@@ -1,5 +1,16 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+import { useAppState } from '../../store/context';
 import { ClientRequest } from '../../domain/arbitrage/types';
+import { defaultVolumeMwh } from '../../domain/trade/dealDefaults';
+import {
+  computeOriginationBreakdown,
+  fmtEurPerMwh,
+  fmtEurTotal,
+  type PriceSource,
+} from '../../domain/arbitrage/originationBreakdown';
+import { SourceChip } from '../../shared/ui/SourceChip';
+import { RouteStatusBadge } from './RouteStatusBadge';
 import { SourcedOpportunity } from './PlantScannerTable';
 import { CorridorMiniMap } from '../map/CorridorMiniMap';
 import { 
@@ -28,23 +39,30 @@ export function Step3RouteAndCosts({
   onBack,
   onNext
 }: Step3RouteAndCostsProps) {
-  const vol = request.volumeMwh || 10000;
-  const plantGateEur = opportunity.producerPayableEurPerMWh ?? 0;
-  const gridLogisticsEur = opportunity.transitCostEurPerMWh ?? 0;
-  const certificationEur = 1.20; // Mass balance + PoS audit proof standard
-  const totalDeliveredCostEur = plantGateEur + gridLogisticsEur + certificationEur;
-
-  // Terminal Revenue Stack (Gas Index + Compliance Certificate Value)
-  const totalGrossRevenueEur = opportunity.totalTerminalValueStackEurPerMWh ?? (totalDeliveredCostEur + (opportunity.deskNetMarginEurPerMWh ?? 0));
-  const gasIndexEur = 32.50; // TTF baseline
-  const certificateValueEur = Math.max(0, totalGrossRevenueEur - gasIndexEur);
-
-  // Net Profit
-  const netMarginEurPerMwh = opportunity.deskNetMarginEurPerMWh ?? (totalGrossRevenueEur - totalDeliveredCostEur);
-  const totalDealProfitEur = opportunity.totalDealProfitEur ?? (netMarginEurPerMwh * vol);
-  const totalDealCostEur = totalDeliveredCostEur * vol;
-  const totalDealRevenueEur = totalGrossRevenueEur * vol;
-  const isProfitable = netMarginEurPerMwh > 0;
+  const { state } = useAppState();
+  const vol = request.volumeMwh || defaultVolumeMwh();
+  const b = computeOriginationBreakdown({
+    opportunity,
+    volumeMwh: vol,
+    marks: state.marks,
+    costs: state.costs,
+  });
+  const {
+    plantGateEur,
+    gridLogisticsEur,
+    certificationEur,
+    totalDeliveredCostEur,
+    grossRevenueEur: totalGrossRevenueEur,
+    gasIndexEur,
+    certificateValueEur,
+    netMarginEurPerMwh,
+    totalDealProfitEur,
+    totalDealCostEur,
+    totalDealRevenueEur,
+    isProfitable,
+  } = b;
+  const sourceChip = (src: PriceSource | null) =>
+    src ? <SourceChip badge={src.badge} suffix={src.asOf ? `mark ${src.asOf}` : 'no date on record'} /> : null;
 
   const transitSteps = opportunity.originCountry === opportunity.targetCountry
     ? [opportunity.originCountry]
@@ -126,6 +144,11 @@ export function Step3RouteAndCosts({
               />
             </div>
 
+            <div className="mt-3 flex items-center gap-2 flex-wrap text-xs">
+              <RouteStatusBadge verdict={opportunity.overallVerdict} detail={opportunity.eligibility.summary} />
+              <span style={{ color: 'var(--color-muted)' }} className="text-[11px]">{opportunity.eligibility.summary}</span>
+            </div>
+
             {/* Route Stats */}
             <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
               <div
@@ -196,7 +219,7 @@ export function Step3RouteAndCosts({
                   <ArrowDownRight className="w-3.5 h-3.5" />
                 )}
                 <span className="text-xs font-bold tabular-nums">
-                  {isProfitable ? '+' : ''}€{netMarginEurPerMwh.toFixed(2)} / MWh
+                  {isProfitable ? '+' : ''}{fmtEurPerMwh(netMarginEurPerMwh)}
                 </span>
               </div>
             </div>
@@ -257,11 +280,19 @@ export function Step3RouteAndCosts({
               >
                 <div>
                   <span style={{ color: 'var(--color-text)' }} className="font-medium block">Mass balance &amp; proof of sustainability</span>
-                  <span style={{ color: 'var(--color-muted)' }} className="text-[11px] block">RED III compliance verification</span>
+                  <span style={{ color: 'var(--color-muted)' }} className="text-[11px] block">Certification cost input</span>
+                  <span className="text-[11px] flex items-center gap-1.5 flex-wrap mt-1" data-testid="cert-source">
+                    {certificationEur === null ? (
+                      <span style={{ color: 'var(--color-pnl-neg)' }} className="font-medium">Not set. Left out of delivered cost.</span>
+                    ) : (
+                      sourceChip(b.certificationSource)
+                    )}
+                    <Link to="/pricing" style={{ color: 'var(--color-accent)' }} className="font-medium hover:underline">Change in Pricing desk →</Link>
+                  </span>
                 </div>
                 <div className="text-right">
-                  <span style={{ color: 'var(--color-text)' }} className="font-semibold tabular-nums">€{certificationEur.toFixed(2)}/MWh</span>
-                  <span style={{ color: 'var(--color-muted)' }} className="text-[11px] block tabular-nums">Total: €{Math.round(certificationEur * vol).toLocaleString()}</span>
+                  <span style={{ color: 'var(--color-text)' }} className="font-semibold tabular-nums">{certificationEur === null ? 'Not set' : fmtEurPerMwh(certificationEur)}</span>
+                  <span style={{ color: 'var(--color-muted)' }} className="text-[11px] block tabular-nums">Total: {certificationEur === null ? '—' : fmtEurTotal(certificationEur * vol)}</span>
                 </div>
               </div>
 
@@ -270,8 +301,8 @@ export function Step3RouteAndCosts({
                 style={{ borderColor: 'var(--color-line)' }}
                 className="flex justify-between items-center py-1.5 px-2 border-t font-medium text-xs"
               >
-                <span style={{ color: 'var(--color-muted)' }}>Total delivered cost:</span>
-                <span style={{ color: 'var(--color-pnl-neg)' }} className="font-semibold tabular-nums">€{totalDeliveredCostEur.toFixed(2)}/MWh (€{Math.round(totalDealCostEur).toLocaleString()})</span>
+                <span style={{ color: 'var(--color-muted)' }}>Total delivered cost{b.deliveredCostExclCertification ? ' (excl. certification)' : ''}:</span>
+                <span style={{ color: 'var(--color-pnl-neg)' }} className="font-semibold tabular-nums">{fmtEurPerMwh(totalDeliveredCostEur)} ({fmtEurTotal(totalDealCostEur)})</span>
               </div>
 
               {/* Revenue Section */}
@@ -289,12 +320,20 @@ export function Step3RouteAndCosts({
                 className="flex items-center justify-between p-2.5 border"
               >
                 <div>
-                  <span style={{ color: 'var(--color-text)' }} className="font-medium block">Wholesale gas index (TTF prompt)</span>
+                  <span style={{ color: 'var(--color-text)' }} className="font-medium block">Wholesale gas index (TTF prompt, {b.gasIndexSide})</span>
                   <span style={{ color: 'var(--color-muted)' }} className="text-[11px] block">Standard physical gas molecule value</span>
+                  <span className="text-[11px] flex items-center gap-1.5 flex-wrap mt-1" data-testid="ttf-source">
+                    {gasIndexEur === null ? (
+                      <span style={{ color: 'var(--color-pnl-neg)' }} className="font-medium">No TTF mark. Load simulated marks or set one in Pricing.</span>
+                    ) : (
+                      sourceChip(b.gasIndexSource)
+                    )}
+                    <Link to="/pricing" style={{ color: 'var(--color-accent)' }} className="font-medium hover:underline">Change in Pricing desk →</Link>
+                  </span>
                 </div>
                 <div className="text-right">
-                  <span style={{ color: 'var(--color-text)' }} className="font-semibold tabular-nums">€{gasIndexEur.toFixed(2)}/MWh</span>
-                  <span style={{ color: 'var(--color-muted)' }} className="text-[11px] block tabular-nums">Total: €{Math.round(gasIndexEur * vol).toLocaleString()}</span>
+                  <span style={{ color: 'var(--color-text)' }} className="font-semibold tabular-nums">{fmtEurPerMwh(gasIndexEur)}</span>
+                  <span style={{ color: 'var(--color-muted)' }} className="text-[11px] block tabular-nums">Total: {gasIndexEur === null ? '—' : fmtEurTotal(gasIndexEur * vol)}</span>
                 </div>
               </div>
 
@@ -309,11 +348,11 @@ export function Step3RouteAndCosts({
               >
                 <div>
                   <span style={{ color: 'var(--color-text)' }} className="font-medium block">Compliance certificate premium</span>
-                  <span style={{ color: 'var(--color-muted)' }} className="text-[11px] block">{opportunity.targetMarketName} green value stack</span>
+                  <span style={{ color: 'var(--color-muted)' }} className="text-[11px] block">{opportunity.targetMarketName} green value stack{certificateValueEur === null ? ' (needs a TTF mark to split out)' : ''}</span>
                 </div>
                 <div className="text-right">
-                  <span style={{ color: 'var(--color-pnl-pos)' }} className="font-semibold tabular-nums">€{certificateValueEur.toFixed(2)}/MWh</span>
-                  <span style={{ color: 'var(--color-muted)' }} className="text-[11px] block tabular-nums">Total: €{Math.round(certificateValueEur * vol).toLocaleString()}</span>
+                  <span style={{ color: 'var(--color-pnl-pos)' }} className="font-semibold tabular-nums">{fmtEurPerMwh(certificateValueEur)}</span>
+                  <span style={{ color: 'var(--color-muted)' }} className="text-[11px] block tabular-nums">Total: {certificateValueEur === null ? '—' : fmtEurTotal(certificateValueEur * vol)}</span>
                 </div>
               </div>
 
@@ -323,8 +362,18 @@ export function Step3RouteAndCosts({
                 className="flex justify-between items-center py-1.5 px-2 border-t font-medium text-xs"
               >
                 <span style={{ color: 'var(--color-muted)' }}>Total realizable revenue:</span>
-                <span style={{ color: 'var(--color-text)' }} className="font-semibold tabular-nums">€{totalGrossRevenueEur.toFixed(2)}/MWh (€{Math.round(totalDealRevenueEur).toLocaleString()})</span>
+                <span style={{ color: 'var(--color-text)' }} className="font-semibold tabular-nums">{fmtEurPerMwh(totalGrossRevenueEur)} ({fmtEurTotal(totalDealRevenueEur)})</span>
               </div>
+              {b.revenueCeilingApplied && (
+                <div
+                  data-testid="ceiling-note"
+                  style={{ color: 'var(--color-status-warn-text)' }}
+                  className="px-2 text-[11px] font-medium"
+                >
+                  Capped at €{b.revenueCeilingApplied.ceilingEurPerMwh}/MWh (desk assumption). The market netback was {fmtEurPerMwh(b.revenueCeilingApplied.uncappedEurPerMwh)}.{' '}
+                  <Link to="/assumptions" className="underline">Change in Assumptions</Link>
+                </div>
+              )}
             </div>
 
             {/* Total Deal Profit Box - blue for positive */}
@@ -341,14 +390,20 @@ export function Step3RouteAndCosts({
                   Total order net profit ({vol.toLocaleString()} MWh):
                 </span>
                 <span style={{ color: 'var(--color-muted)' }} className="text-xs">
-                  Volume: {vol.toLocaleString()} MWh · Margin: <strong style={{ color: 'var(--color-text)' }} className="tabular-nums">€{netMarginEurPerMwh.toFixed(2)}/MWh</strong>
+                  Volume: {vol.toLocaleString()} MWh · Margin: <strong style={{ color: 'var(--color-text)' }} className="tabular-nums">{fmtEurPerMwh(netMarginEurPerMwh)}</strong>
+                </span>
+                <span style={{ color: 'var(--color-muted)' }} className="text-[11px] block mt-0.5" data-testid="margin-split-note">
+                  {b.marginSplit === 'DESK_POLICY'
+                    ? 'Margin is a desk-policy split (no producer share set), not a market price.'
+                    : 'Margin is the desk share left after the producer share set in Trade Builder.'}{' '}
+                  <Link to="/assumptions" className="underline">Assumptions</Link>
                 </span>
               </div>
               <div
                 style={{ color: isProfitable ? 'var(--color-pnl-pos)' : 'var(--color-pnl-neg)' }}
                 className="text-xl sm:text-2xl font-bold tabular-nums"
               >
-                {isProfitable ? '+' : ''}€{Math.round(totalDealProfitEur).toLocaleString()}
+                {isProfitable ? '+' : ''}{fmtEurTotal(totalDealProfitEur)}
               </div>
             </div>
           </div>

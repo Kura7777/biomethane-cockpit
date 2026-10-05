@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { SourcedOpportunity, getCountryFlag } from './PlantScannerTable';
 import { buildDealUrl } from '../../domain/trade/dealParams';
 import { defaultVolumeMwh } from '../../domain/trade/dealDefaults';
+import { RouteStatusBadge } from './RouteStatusBadge';
 import { 
   Building2, 
   ArrowRight, 
@@ -337,18 +338,7 @@ export function Step2PlantScan({
                           Verified asset
                         </span>
                       )}
-                      <span
-                        style={{
-                          borderRadius: 'var(--radius-control)',
-                          backgroundColor: 'var(--color-status-pass-bg)',
-                          borderColor: 'var(--color-status-pass-border)',
-                          color: 'var(--color-status-pass-ink)',
-                        }}
-                        className="inline-flex items-center gap-1 text-[10px] border px-1.5 py-0.5 font-medium"
-                      >
-                        <ShieldCheck className="w-3 h-3" />
-                        RED III pass
-                      </span>
+                      <RouteStatusBadge verdict={opp.overallVerdict} detail={opp.eligibility.summary} />
                     </div>
 
                     <div style={{ color: 'var(--color-muted)' }} className="text-[11px] flex items-center gap-2 flex-wrap mt-1">

@@ -38,6 +38,8 @@ export interface ArbitrageOpportunity {
   deskNetMarginEurPerMWh: number | null;           // Realistic trading desk margin (€1.50-€8.00/MWh)
   marginPercent: number | null;                    // deskNetMargin / totalValue * 100
   totalDealProfitEur: number | null;               // deskNetMargin * volume (e.g. €35,000 on 10,000 MWh)
+  /** Set when a desk-assumption ceiling capped the revenue before the margin split (see origination.deThgBundleCeilingEurPerMwh). */
+  revenueCeilingApplied?: { ceilingEurPerMwh: number; uncappedEurPerMwh: number } | null;
   
   // Regulatory
   eligibility: EligibilityAssessment;

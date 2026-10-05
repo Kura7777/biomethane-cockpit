@@ -96,6 +96,7 @@ export function scanEuropeanArbitrage(
       let marginAllocationType: 'TRANSPORT_COMPLIANCE' | 'MARITIME_INSETTING' | 'WHOLESALE_BASE' = 'TRANSPORT_COMPLIANCE';
       let marginPct: number | null = null;
       let totalDealProfit: number | null = null;
+      let revenueCeilingApplied: ArbitrageOpportunity['revenueCeilingApplied'] = null;
 
       if (destinationNetback !== null) {
         const producerShare = costs.producerPricing?.mode === 'INDEX_LINKED'
@@ -112,6 +113,7 @@ export function scanEuropeanArbitrage(
         deskNetMargin = commercialAllocation.deskNetMarginEurPerMWh;
         producerPayable = commercialAllocation.producerProcurementEurPerMWh;
         marginAllocationType = commercialAllocation.marginAllocationType;
+        revenueCeilingApplied = commercialAllocation.revenueCeilingApplied;
 
         if (deskNetMargin !== null && destinationNetback !== 0) {
           marginPct = (deskNetMargin / Math.abs(destinationNetback)) * 100;
@@ -208,6 +210,7 @@ export function scanEuropeanArbitrage(
         deskNetMarginEurPerMWh: deskNetMargin,
         marginPercent: marginPct,
         totalDealProfitEur: totalDealProfit,
+        revenueCeilingApplied,
         eligibility,
         overallVerdict: eligibility.overallVerdict,
         isTradeable,

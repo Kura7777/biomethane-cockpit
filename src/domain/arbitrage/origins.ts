@@ -1,4 +1,5 @@
 import { OriginProfile } from './types';
+import { getAssumption } from '../assumptions/registry';
 
 export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
   DK: {
@@ -372,6 +373,13 @@ export function getRouteTransitTariff(originCode: string, targetCountry: string)
  * Exposes modelled intermediary margin based on an explicit producer share percentage,
  * or defaults to the differentiated origin plant-gate cost benchmark.
  * Does not clamp to 0 so negative netbacks and loss-making routes are truthfully represented.
+ *
+ * Nothing is hidden here. Every judgement is a named assumption in the register:
+ *  - origination.deThgBundleCeilingEurPerMwh: DE_THG revenue above it is capped (0 = off).
+ *    `revenueCeilingApplied` is set when the cap binds so a screen can say so.
+ *  - origination.deskTakeDivisor / FloorEurPerMwh / CapEurPerMwh: the desk-policy split used
+ *    on the plant-gate branch (no producer share given).
+ * A producer share the caller passes is used exactly as given.
  */
 export function calculateRealisticCommercialDeskMargin(
   marketId: string,
@@ -383,6 +391,10 @@ export function calculateRealisticCommercialDeskMargin(
   deskNetMarginEurPerMWh: number | null;
   producerProcurementEurPerMWh: number | null;
   marginAllocationType: 'TRANSPORT_COMPLIANCE' | 'MARITIME_INSETTING' | 'WHOLESALE_BASE';
+  /** Revenue actually used after any ceiling (equals destinationNetback when no cap bound). */
+  effectiveRevenueEurPerMWh: number;
+  /** The ceiling that bound, or null when the netback was used uncapped. */
+  revenueCeilingApplied: { ceilingEurPerMwh: number; uncappedEurPerMwh: number } | null;
 } {
   let allocationType: 'TRANSPORT_COMPLIANCE' | 'MARITIME_INSETTING' | 'WHOLESALE_BASE' = 'TRANSPORT_COMPLIANCE';
 
@@ -392,32 +404,32 @@ export function calculateRealisticCommercialDeskMargin(
     allocationType = 'WHOLESALE_BASE';
   }
 
-  // Cap destination netback at realistic physical traded bundle clearing ceiling if statutory netback exceeds it.
-  // In DE_THG, deep-negative CI manure trades at ~€145-147/MWh all-in, not the theoretical €162-194 statutory penalty ceiling.
-  const effectiveRevenue = (marketId === 'DE_THG' && destinationNetback > 147.0)
-    ? 147.0
-    : destinationNetback;
+  // DE THG bundle ceiling: a visible desk assumption (0 = off), not a hidden rule.
+  const ceiling = marketId === 'DE_THG' ? getAssumption('origination.deThgBundleCeilingEurPerMwh') : 0;
+  const ceilingBinds = ceiling > 0 && destinationNetback > ceiling;
+  const effectiveRevenue = ceilingBinds ? ceiling : destinationNetback;
+  const revenueCeilingApplied = ceilingBinds
+    ? { ceilingEurPerMwh: ceiling, uncappedEurPerMwh: destinationNetback }
+    : null;
 
   // Net stack after transit tariff (unclamped so loss-making routes are visible)
   const netStackAfterTransit = effectiveRevenue - transitTariff;
-  
+
   let deskNetMargin: number | null = null;
   let producerProcurement: number | null = null;
 
-  // Normalize producer share if it was set to an unrealistic uncalibrated ratio (< 0.85)
-  const effectiveSharePct = (producerSharePct !== null && producerSharePct < 0.85)
-    ? 0.970
-    : producerSharePct;
-
-  if (effectiveSharePct !== null) {
-    deskNetMargin = Number((netStackAfterTransit * (1 - effectiveSharePct)).toFixed(2));
-    producerProcurement = Number((netStackAfterTransit * effectiveSharePct).toFixed(2));
+  if (producerSharePct !== null) {
+    deskNetMargin = Number((netStackAfterTransit * (1 - producerSharePct)).toFixed(2));
+    producerProcurement = Number((netStackAfterTransit * producerSharePct).toFixed(2));
   } else if (originPlantGateCost !== null) {
-    // Commercial origination: producer captures their plant-gate cost plus ~92% of the green compliance premium,
-    // leaving a realistic €2.50 to €6.00/MWh origination desk margin.
+    // Desk-policy split (assumptions: origination.deskTake*): the producer keeps the plant-gate
+    // cost plus the rest of the green spread; the desk takes spread / divisor, between floor and cap.
     const greenSpread = netStackAfterTransit - originPlantGateCost;
     if (greenSpread > 0) {
-      const deskTake = Math.min(6.50, Math.max(2.50, Number((greenSpread / 15).toFixed(2))));
+      const divisor = getAssumption('origination.deskTakeDivisor');
+      const floor = getAssumption('origination.deskTakeFloorEurPerMwh');
+      const cap = getAssumption('origination.deskTakeCapEurPerMwh');
+      const deskTake = Math.min(cap, Math.max(floor, Number((greenSpread / divisor).toFixed(2))));
       deskNetMargin = deskTake;
       producerProcurement = Number((netStackAfterTransit - deskNetMargin).toFixed(2));
     } else {
@@ -430,5 +442,7 @@ export function calculateRealisticCommercialDeskMargin(
     deskNetMarginEurPerMWh: deskNetMargin,
     producerProcurementEurPerMWh: producerProcurement,
     marginAllocationType: allocationType,
+    effectiveRevenueEurPerMWh: effectiveRevenue,
+    revenueCeilingApplied,
   };
 }

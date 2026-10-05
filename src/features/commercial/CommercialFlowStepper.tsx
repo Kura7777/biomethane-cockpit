@@ -38,7 +38,7 @@ const STEPS = [
   { step: 1, title: '1. Order Intake', desc: 'Enter order specs' },
   { step: 2, title: '2. Sourced Plants', desc: 'Scan 1,975+ facilities' },
   { step: 3, title: '3. Route & Costs', desc: 'Corridor map & pricing' },
-  { step: 4, title: '4. Deal Summary', desc: 'Finalized term sheet' },
+  { step: 4, title: '4. Deal Summary', desc: 'Indicative term sheet' },
 ];
 
 export function CommercialFlowStepper() {
