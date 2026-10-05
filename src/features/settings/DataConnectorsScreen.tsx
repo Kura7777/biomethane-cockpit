@@ -143,7 +143,7 @@ export function DataConnectorsScreen() {
             sourceType: 'BROKER_INDICATION',
             sourceName: parsedRun.inferredSource,
             sourceUrl: null,
-            observedAt: now,
+            observedAt: parsedRun.extractedDate ?? now,
             note: 'Imported from OTC broker text run',
           },
           updatedAt: now,
