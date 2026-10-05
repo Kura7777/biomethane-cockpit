@@ -68,18 +68,18 @@ const COUNTRIES: Record<string, CountryMeta> = {
   'Luxembourg': { iso: 'LU', name: 'Luxembourg', status: 'FUTURE_2028', legal: 'ETS2 · Directive (EU) 2023/959', plants: 2, twh: 0.02, center: [6.12, 49.81] },
 };
 
-/** Europe-only map: our 28 jurisdictions plus neighbouring European countries as grey context. */
+/** Europe-only map: our 28 jurisdictions plus neighbouring European countries as grey context. Excludes Russia. */
 const EUROPE_CONTEXT = [
   'Iceland', 'Ukraine', 'Belarus', 'Moldova', 'Serbia', 'Bosnia and Herz.', 'Montenegro', 'Albania',
-  'Macedonia', 'Kosovo', 'Russia', 'Andorra', 'Monaco', 'San Marino', 'Vatican', 'Liechtenstein',
+  'Macedonia', 'Kosovo', 'Andorra', 'Monaco', 'San Marino', 'Vatican', 'Liechtenstein',
   'Malta', 'Cyprus', 'N. Cyprus', 'Faeroe Is.', 'Isle of Man', 'Jersey', 'Guernsey', 'Åland',
 ];
 const EUROPE_NAMES: ReadonlySet<string> = new Set([...Object.keys(COUNTRIES), ...EUROPE_CONTEXT]);
 
-/** Fixed framing: the whole of Europe (Portugal to Finland, Crete to the North Cape) fits the frame — no pan or zoom. */
+/** Fixed framing: the whole of Europe (Portugal/Spain to Finland, Italy/Greece to Scandinavia) fits the frame cleanly without Russia. */
 const EUROPE_PROJECTION = {
-  desktop: { scale: 505, center: [10, 57.3] as [number, number] },
-  mobile: { scale: 470, center: [13, 55.5] as [number, number] },
+  desktop: { scale: 520, center: [9.5, 48.0] as [number, number] },
+  mobile: { scale: 440, center: [10, 50.0] as [number, number] },
 };
 
 const STATUS_CONFIG = {
