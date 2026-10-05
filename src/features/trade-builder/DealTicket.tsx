@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { NetbackResult, ProducerPricing } from '../../domain/netback/types';
 import { GateResult } from '../../domain/eligibility/types';
+import { UDBStatus, PoSStatus } from '../../domain/consignment/types';
 import { showToast } from '../../app/DeskToastContainer';
 import { computeGateBadge } from './ticketMath';
 
@@ -37,6 +38,8 @@ export interface DealTicketProps {
   annualPnl: number;
   gates: GateResult[];
   overallVerdict: string;
+  udbStatus: UDBStatus;
+  posStatus: PoSStatus;
   ci: number;
   /** Same provenance classification the CI chip in step 1 uses; null reads as "Manual". */
   ciProvenance: 'pos' | 'estimated' | null;
@@ -92,6 +95,8 @@ export function DealTicket({
   annualPnl,
   gates,
   overallVerdict,
+  udbStatus,
+  posStatus,
   ci,
   ciProvenance,
   ciIsManual,
@@ -330,6 +335,20 @@ export function DealTicket({
               <span className="tt-chip warn">TTF simulated</span>
             </div>
           )}
+          <div className="tt-status-row" style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+            <span
+              className={`tt-chip ${udbStatus === 'RECORDED' ? 'info' : udbStatus === 'PENDING' ? 'warn' : 'muted'}`}
+              data-testid="ticket-udb-chip"
+            >
+              {udbStatus === 'RECORDED' ? 'UDB: Confirmed' : udbStatus === 'PENDING' ? 'UDB: Assumed' : 'UDB: Not recorded'}
+            </span>
+            <span
+              className={`tt-chip ${posStatus === 'ISSUED' ? 'info' : posStatus === 'PENDING' ? 'warn' : 'muted'}`}
+              data-testid="ticket-pos-chip"
+            >
+              {posStatus === 'ISSUED' ? 'PoS: Confirmed' : posStatus === 'PENDING' ? 'PoS: Assumed' : 'PoS: Not available'}
+            </span>
+          </div>
         </div>
       </div>
 

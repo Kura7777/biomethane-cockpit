@@ -213,7 +213,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
   const totalDelivered = gasPrice + certVal;
   const deskMargin = nb.deskMargin ?? 0;
   const pricingLines = describePricing(assessment, deskRole);
-  const attributeLabel = environmentalAttributeLabel(MARKETS.find(m => m.id === assessment.targetMarketId), assessment.targetMarketId);
+  const attributeLabel = environmentalAttributeLabel(MARKETS.find(m => m.id === assessment.targetMarketId), assessment.targetMarketId, c.udbStatus);
   const dp = c.deliveryPeriod;
   const deliveryPeriodLabel = dp?.startDate && dp?.endDate ? `${dp.startDate} to ${dp.endDate}` : TBA;
   const deliveryPointLabel = dp?.deliveryPointVtp || `${c.injectionCountry} virtual trading point ${TBA}`;
@@ -1369,7 +1369,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                     <div style={{ padding: '14px', backgroundColor: 'var(--color-subtier)', border: '1px solid var(--color-divider)' }}>
                       <div className="eyebrow" style={{ marginBottom: '8px' }}>Proof of Sustainability (PoS)</div>
                       <div style={{ fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <div>PoS number: <strong>[ISSUED BY CERTIFICATION SCHEME]</strong> (status {c.posStatus})</div>
+                        <div>PoS number: <strong>{c.posStatus === 'ISSUED' ? '[ISSUED BY CERTIFICATION SCHEME]' : c.posStatus === 'PENDING' ? '[TO BE CONFIRMED BY SELLER]' : '[NOT AVAILABLE]'}</strong> ({c.posStatus === 'PENDING' ? 'PoS issuance: to be confirmed by Seller' : `status ${c.posStatus}`})</div>
                         <div>Scheme: <strong>{c.certificationScheme}</strong></div>
                         <div>Classification: <strong>{annexClassificationLabel(c.annexClassification)}</strong></div>
                         <div>Carbon Intensity: <strong style={{ color: 'var(--color-accent)' }}>{c.carbonIntensity} gCO₂e/MJ</strong></div>
@@ -1383,7 +1383,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
                         <div>Energy Quantity: <strong>{volumeLabel}</strong></div>
                         <div>Destination: <strong>{assessment.targetMarketName}</strong></div>
                         <div>Delivery period: <strong>{deliveryPeriodLabel}</strong></div>
-                        <div>UDB status: <strong>{c.udbStatus}</strong></div>
+                        <div>UDB status: <strong>{c.udbStatus === 'PENDING' ? 'UDB recording: to be confirmed by Seller' : c.udbStatus}</strong></div>
                       </div>
                     </div>
 

@@ -3,7 +3,7 @@ import { TradeAssessment } from './types';
 import { MARKETS, isVoluntaryMarket } from '../markets/registry';
 import { Market } from '../markets/types';
 import { LegalCitation, OverallVerdict } from '../eligibility/types';
-import { AnnexClassification, ChainOfCustody } from '../consignment/types';
+import { AnnexClassification, ChainOfCustody, UDBStatus } from '../consignment/types';
 
 /**
  * Deal documentation generators.
@@ -220,10 +220,12 @@ export function chainOfCustodyLabel(coc: ChainOfCustody): string {
   }
 }
 
-export function environmentalAttributeLabel(market: Market | undefined, marketId: string): string {
+export function environmentalAttributeLabel(market: Market | undefined, marketId: string, udbStatus?: UDBStatus): string {
   if (market?.isGuaranteeOfOrigin || isVoluntaryMarket(marketId)) return 'Guarantees of Origin (GO)';
   if (marketId === 'UK_RTFO') return 'Renewable Transport Fuel Certificates (RTFCs) under the UK RTFO';
   if (marketId === 'FUELEU') return 'Proof of Sustainability supporting FuelEU Maritime compliance';
+  if (udbStatus === 'PENDING') return 'Proof of Sustainability (PoS) — UDB recording: to be confirmed by Seller';
+  if (udbStatus === 'NOT_RECORDED') return 'Proof of Sustainability (PoS) — not recorded in UDB';
   return 'Proof of Sustainability (PoS) recorded in the Union Database';
 }
 
@@ -374,7 +376,7 @@ export function generateEfetBiomethaneAnnexPdf(
   const profileDesc = profile === 'FLAT_MONTHLY' ? 'Flat monthly' : profile === 'FLAT_DAILY' ? 'Flat daily' : profile === 'BULLET' ? 'Bullet' : TBA;
   y = drawRows(doc, isVoluntary ? [
     ['Structure:', 'Certificate only — no physical gas delivered to Buyer.'],
-    ['Quantity:', `${fmtMwh(c.volumeMWh)} of ${environmentalAttributeLabel(market, assessment.targetMarketId)}`],
+    ['Quantity:', `${fmtMwh(c.volumeMWh)} of ${environmentalAttributeLabel(market, assessment.targetMarketId, c.udbStatus)}`],
     ['Transfer Mechanism:', `Transfer and cancellation on ${market?.registry || TBA}`],
   ] : [
     ['Commodity:', 'Biomethane meeting EN 16723-1 and the injection specification of the delivery grid.'],
@@ -393,7 +395,7 @@ export function generateEfetBiomethaneAnnexPdf(
   doc.setFontSize(7.5);
   y = drawRows(doc, [
     ['Price:', describePricing(assessment, parties.deskRole).join(' ')],
-    ['Environmental Attribute:', environmentalAttributeLabel(market, assessment.targetMarketId)],
+    ['Environmental Attribute:', environmentalAttributeLabel(market, assessment.targetMarketId, c.udbStatus)],
     ['Contract Carbon Intensity:', `${c.carbonIntensity} gCO₂e/MJ, to be evidenced by PoS issued under ${c.certificationScheme.replace(/_/g, ' ')}`],
     ['Carbon Intensity Adjustment:', `P_adj = P_base + α × (CI_contract − CI_delivered); α = ${TBA}; floor/cap ${TBA}`],
     ['Production Vintage:', `${orTba(dp?.productionStartDate)} to ${orTba(dp?.productionEndDate)} · Compliance year ${orTba(dp?.complianceYear)}`],
@@ -521,7 +523,7 @@ export function generateFpMLDealPayload(assessment: TradeAssessment, options: Le
   <environmentalLeg>
     <payerPartyReference href="${payer}"/>
     <receiverPartyReference href="${receiver}"/>
-    <attributeType>${escapeXml(environmentalAttributeLabel(market, assessment.targetMarketId))}</attributeType>
+    <attributeType>${escapeXml(environmentalAttributeLabel(market, assessment.targetMarketId, c.udbStatus))}</attributeType>
     <targetMarket>${escapeXml(assessment.targetMarketId)}</targetMarket>
     <legalBasis>${escapeXml(market?.legalBasis ?? '')}</legalBasis>
     <registry>${escapeXml(market?.registry ?? '')}</registry>
@@ -645,7 +647,7 @@ export function generateEtrmJsonPayload(assessment: TradeAssessment, options: Le
     legB_environmentalAttribute: {
       targetMarketId: assessment.targetMarketId,
       targetMarketName: assessment.targetMarketName,
-      attributeType: environmentalAttributeLabel(market, assessment.targetMarketId),
+      attributeType: environmentalAttributeLabel(market, assessment.targetMarketId, c.udbStatus),
       contractCiGco2ePerMj: c.carbonIntensity,
       fossilComparatorGco2ePerMj: 94.0, // RED III transport comparator
       attributeValueEurMwh: nb.certificateValue?.valueEurPerMWh ?? null,
@@ -726,7 +728,7 @@ export function generateCommercialTermSheetPdf(
   const profile = dp?.deliveryProfile;
   const profileDesc = profile === 'FLAT_MONTHLY' ? 'flat monthly' : profile === 'FLAT_DAILY' ? 'flat daily' : profile === 'BULLET' ? 'bullet' : TBA;
   y = drawRows(doc, isVoluntary ? [
-    ['Product:', `${environmentalAttributeLabel(market, assessment.targetMarketId)} — unbundled, no physical gas delivery`],
+    ['Product:', `${environmentalAttributeLabel(market, assessment.targetMarketId, c.udbStatus)} — unbundled, no physical gas delivery`],
     ['Quantity:', fmtMwh(c.volumeMWh)],
     ['Origin Facility:', `${c.originPlantName || c.name || TBA} (${c.originCountry})`],
     ['Feedstock:', `${c.feedstockName} — ${annexClassificationLabel(c.annexClassification)}`],
@@ -1110,7 +1112,7 @@ export function generateUdbNominationXmlPayload(assessment: TradeAssessment, opt
     <injectionPointEic>[FROM TSO / DSO]</injectionPointEic>
   </originFacility>
   <proofOfSustainability>
-    <posNumber>[ISSUED BY CERTIFICATION SCHEME]</posNumber>
+    <posNumber>${c.posStatus === 'ISSUED' ? '[ISSUED BY CERTIFICATION SCHEME]' : c.posStatus === 'PENDING' ? '[TO BE CONFIRMED BY SELLER]' : '[NOT AVAILABLE]'}</posNumber>
     <certificationScheme>${escapeXml(c.certificationScheme)}</certificationScheme>
     <feedstock classification="${escapeXml(c.annexClassification)}">${escapeXml(c.feedstockName)}</feedstock>
     <ghgIntensity unit="gCO2e/MJ">${c.carbonIntensity}</ghgIntensity>
@@ -1118,6 +1120,7 @@ export function generateUdbNominationXmlPayload(assessment: TradeAssessment, opt
   </proofOfSustainability>
   <quantity unit="MWh">${c.volumeMWh ?? '[TO BE AGREED]'}</quantity>
   <targetMarket>${escapeXml(assessment.targetMarketId)}</targetMarket>
+  <udbStatus>${c.udbStatus === 'PENDING' ? 'UDB recording: to be confirmed by Seller' : c.udbStatus}</udbStatus>
   <documentFingerprint algorithm="SHA-256">${seal}</documentFingerprint>
 </udbTransferWorksheet>`;
 }

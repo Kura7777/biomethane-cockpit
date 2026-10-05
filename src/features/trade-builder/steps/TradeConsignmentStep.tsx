@@ -1,5 +1,5 @@
 import React from 'react';
-import { CertificationScheme, ChainOfCustody, DeliveryProfile } from '../../../domain/consignment/types';
+import { CertificationScheme, ChainOfCustody, DeliveryProfile, UDBStatus, PoSStatus } from '../../../domain/consignment/types';
 import { Market } from '../../../domain/markets/types';
 import { BiomethanePlant } from '../../../domain/plants/types';
 import { DealParams } from '../../../domain/trade/dealParams';
@@ -36,6 +36,28 @@ export interface CustodyOption {
   hint: string;
 }
 
+export interface UdbOption {
+  status: UDBStatus;
+  label: string;
+}
+
+export interface PosOption {
+  status: PoSStatus;
+  label: string;
+}
+
+export const UDB_OPTIONS: UdbOption[] = [
+  { status: 'RECORDED', label: 'Recorded (confirmed)' },
+  { status: 'PENDING', label: 'Assumed, confirm with seller' },
+  { status: 'NOT_RECORDED', label: 'Not recorded' },
+];
+
+export const POS_OPTIONS: PosOption[] = [
+  { status: 'ISSUED', label: 'Issued (confirmed)' },
+  { status: 'PENDING', label: 'Assumed, confirm with seller' },
+  { status: 'NOT_AVAILABLE', label: 'Not available' },
+];
+
 interface TradeConsignmentStepProps {
   origin: string;
   setOrigin: (origin: string) => void;
@@ -53,6 +75,10 @@ interface TradeConsignmentStepProps {
   setChainOfCustody: (coc: ChainOfCustody) => void;
   custodies: CustodyOption[];
   currentCustodyObj: CustodyOption;
+  udbStatus: UDBStatus;
+  setUdbStatus: (status: UDBStatus) => void;
+  posStatus: PoSStatus;
+  setPosStatus: (status: PoSStatus) => void;
   ci: number;
   setCi: (ci: number) => void;
   ciTier: 'conservative' | 'base' | 'optimistic';
@@ -108,6 +134,10 @@ export function TradeConsignmentStep({
   setChainOfCustody,
   custodies,
   currentCustodyObj,
+  udbStatus,
+  setUdbStatus,
+  posStatus,
+  setPosStatus,
   ci,
   setCi,
   ciTier,
@@ -370,6 +400,68 @@ export function TradeConsignmentStep({
                 ))}
               </div>
               <p className="tb-hint">{currentCustodyObj.hint}</p>
+            </div>
+          </div>
+
+          {/* Union Database Status */}
+          <div className="tb-form-row">
+            <span className="tb-form-label">UDB status</span>
+            <div className="tb-form-control">
+              <div className="tb-chips">
+                {UDB_OPTIONS.map(opt => {
+                  const isNonEu = origin === 'GB' || origin === 'CH' || origin === 'NO';
+                  const isSelected = isNonEu ? opt.status === 'NOT_RECORDED' : opt.status === udbStatus;
+                  return (
+                    <button
+                      key={opt.status}
+                      type="button"
+                      disabled={isNonEu}
+                      className={`chip ${isSelected ? 'chip-a' : ''}`}
+                      onClick={() => !isNonEu && setUdbStatus(opt.status)}
+                      title={isNonEu ? 'These grids are outside the EU, so the volume cannot be recorded in the UDB' : undefined}
+                      data-testid={`udb-status-${opt.status.toLowerCase()}`}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="tb-hint">
+                {origin === 'GB' || origin === 'CH' || origin === 'NO'
+                  ? 'These grids are outside the EU, so the volume cannot be recorded in the UDB.'
+                  : udbStatus === 'RECORDED'
+                    ? 'Confirmed recorded in the Union Database (RED III single mass balance area).'
+                    : udbStatus === 'PENDING'
+                      ? 'Assumed, confirm with seller before clearing into EU compliance markets.'
+                      : 'Volume not recorded in the Union Database.'}
+              </p>
+            </div>
+          </div>
+
+          {/* Proof of Sustainability Status */}
+          <div className="tb-form-row">
+            <span className="tb-form-label">PoS status</span>
+            <div className="tb-form-control">
+              <div className="tb-chips">
+                {POS_OPTIONS.map(opt => (
+                  <button
+                    key={opt.status}
+                    type="button"
+                    className={`chip ${opt.status === posStatus ? 'chip-a' : ''}`}
+                    onClick={() => setPosStatus(opt.status)}
+                    data-testid={`pos-status-${opt.status.toLowerCase()}`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+              <p className="tb-hint">
+                {posStatus === 'ISSUED'
+                  ? 'Proof of Sustainability (PoS) confirmed issued under certification scheme.'
+                  : posStatus === 'PENDING'
+                    ? 'Assumed PoS issued upon delivery — confirm issuance with seller.'
+                    : 'Proof of Sustainability not available.'}
+              </p>
             </div>
           </div>
 

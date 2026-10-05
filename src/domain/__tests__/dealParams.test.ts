@@ -123,3 +123,32 @@ describe('dealParams — the fields that used to be dropped', () => {
     expect(parsed[field]).toBe(FULL[field]);
   });
 });
+
+describe('dealParams — UDB and PoS status parameter round-trip', () => {
+  it('round-trips udb and pos statuses losslessly', () => {
+    const parsed = roundTrip({ udb: 'RECORDED', pos: 'ISSUED' });
+    expect(parsed.udb).toBe('RECORDED');
+    expect(parsed.pos).toBe('ISSUED');
+
+    const parsedPending = roundTrip({ udb: 'PENDING', pos: 'PENDING' });
+    expect(parsedPending.udb).toBe('PENDING');
+    expect(parsedPending.pos).toBe('PENDING');
+
+    const parsedNotRecorded = roundTrip({ udb: 'NOT_RECORDED', pos: 'NOT_AVAILABLE' });
+    expect(parsedNotRecorded.udb).toBe('NOT_RECORDED');
+    expect(parsedNotRecorded.pos).toBe('NOT_AVAILABLE');
+  });
+
+  it('accepts udbStatus and posStatus aliases', () => {
+    const parsed = parseDealParams(new URLSearchParams('udbStatus=RECORDED&posStatus=ISSUED'));
+    expect(parsed.udb).toBe('RECORDED');
+    expect(parsed.pos).toBe('ISSUED');
+  });
+
+  it('drops invalid udb and pos values so consuming screens fall back to defaults', () => {
+    const parsed = parseDealParams(new URLSearchParams('udb=INVALID_STATUS&pos=UNKNOWN'));
+    expect(parsed.udb).toBeUndefined();
+    expect(parsed.pos).toBeUndefined();
+  });
+});
+

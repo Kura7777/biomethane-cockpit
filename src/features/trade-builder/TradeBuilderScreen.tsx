@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MARKETS, getMarketById, isVoluntaryMarket } from '../../domain/markets/registry';
 import { FEEDSTOCK_REGISTRY, REFERENCE_CONSIGNMENTS, getCountryFeedstockCI } from '../../domain/consignment/feedstocks';
-import { Consignment, CertificationScheme, ChainOfCustody, AnnexClassification, DeliveryProfile } from '../../domain/consignment/types';
+import { Consignment, CertificationScheme, ChainOfCustody, AnnexClassification, DeliveryProfile, UDBStatus, PoSStatus } from '../../domain/consignment/types';
 import { TradeAssessment } from '../../domain/trade/types';
 import { useAppState } from '../../store/context';
 import { evaluateEligibility } from '../../domain/eligibility/engine';
@@ -22,7 +22,7 @@ import { deriveSourceBadge } from '../../domain/markets/types';
 
 import { PRODUCING_ORIGINS } from '../../domain/arbitrage/origins';
 import { BIOMETHANE_PLANTS } from '../../domain/plants/registry';
-import { TradeConsignmentStep } from './steps/TradeConsignmentStep';
+import { TradeConsignmentStep, UDB_OPTIONS, POS_OPTIONS } from './steps/TradeConsignmentStep';
 import { TradeMarketAuditStep } from './steps/TradeMarketAuditStep';
 import { TradeEconomicsStep, WaterfallRow } from './steps/TradeEconomicsStep';
 import { TradeExecutionStep } from './steps/TradeExecutionStep';
@@ -181,6 +181,8 @@ export function TradeBuilderScreen() {
     setFeedstockKey('manure');
     setScheme('ISCC_EU');
     setChainOfCustody('MASS_BALANCE');
+    setUdbStatus('PENDING');
+    setPosStatus('PENDING');
     setCi(-100);
     setCiSource('deal');
     setCiTier('base');
@@ -208,6 +210,8 @@ export function TradeBuilderScreen() {
   const [feedstockKey, setFeedstockKey] = useState<string>(deal.feedstock || 'manure');
   const [scheme, setScheme] = useState<CertificationScheme>((deal.scheme as CertificationScheme) || 'ISCC_EU');
   const [chainOfCustody, setChainOfCustody] = useState<ChainOfCustody>((deal.coc as ChainOfCustody) || 'MASS_BALANCE');
+  const [udbStatus, setUdbStatus] = useState<UDBStatus>(deal.udb || 'PENDING');
+  const [posStatus, setPosStatus] = useState<PoSStatus>(deal.pos || 'PENDING');
   const [ci, setCi] = useState<number>(deal.ci !== null && deal.ci !== undefined ? deal.ci : -100);
   // Where the CI on screen came from: the deal link, a feedstock/benchmark estimate, an uploaded PoS, or a manual slider edit.
   // Plant CIs in the census are feedstock defaults, so a plant-linked CI is never shown as verified.
@@ -276,6 +280,8 @@ export function TradeBuilderScreen() {
     }
     if (deal.scheme) setScheme(deal.scheme as CertificationScheme);
     if (deal.coc) setChainOfCustody(deal.coc as ChainOfCustody);
+    if (deal.udb) setUdbStatus(deal.udb);
+    if (deal.pos) setPosStatus(deal.pos);
     if (deal.plantCommittedVolume !== undefined) setPlantCommittedMwh(deal.plantCommittedVolume);
     if (deal.complianceYear) setComplianceYear(deal.complianceYear);
     if (deal.productionStartDate) setProdStartDate(deal.productionStartDate);
@@ -342,6 +348,9 @@ export function TradeBuilderScreen() {
   const isOversubscribed = availablePlantCapacity !== null && volumeMwh > availablePlantCapacity;
   const plantCommittedPct = plantTotalMWh !== null && plantTotalMWh > 0 ? Math.min(100, Math.round(((volumeMwh + plantCommittedMwh) / plantTotalMWh) * 100)) : null;
 
+  const isNonEuOrigin = origin === 'GB' || origin === 'CH' || origin === 'NO';
+  const effectiveUdbStatus: UDBStatus = isNonEuOrigin ? 'NOT_RECORDED' : udbStatus;
+
   const consignment: Consignment = useMemo(() => {
     const originObj = ORIGINS.find(o => o.code === origin) || ORIGINS[0];
     const regFeedstock = FEEDSTOCK_REGISTRY[feedstockKey];
@@ -366,8 +375,8 @@ export function TradeBuilderScreen() {
       chainOfCustody,
       injectionCountry: origin,
       injectionIsEU: origin !== 'GB' && origin !== 'CH' && origin !== 'NO',
-      udbStatus: origin === 'GB' || origin === 'CH' || origin === 'NO' ? 'NOT_RECORDED' : 'RECORDED',
-      posStatus: 'ISSUED',
+      udbStatus: effectiveUdbStatus,
+      posStatus,
       volumeMWh: volumeMwh,
       deliveryPeriod: {
         type: vintagePreset === 'CUSTOM' ? 'CUSTOM' : vintagePreset.startsWith('Q') ? 'QUARTER' : 'CALENDAR',
@@ -389,6 +398,8 @@ export function TradeBuilderScreen() {
     feedstockKey,
     scheme,
     chainOfCustody,
+    effectiveUdbStatus,
+    posStatus,
     ci,
     volumeMwh,
     deliveryStartDate,
@@ -700,6 +711,8 @@ export function TradeBuilderScreen() {
       annualPnl={annualPnl}
       gates={assessment.gates}
       overallVerdict={assessment.overallVerdict}
+      udbStatus={effectiveUdbStatus}
+      posStatus={posStatus}
       ci={ci}
       ciProvenance={ciProvenance}
       isTtfSimulated={isTtfSimulated}
@@ -1020,6 +1033,10 @@ export function TradeBuilderScreen() {
                         setChainOfCustody={setChainOfCustody}
                         custodies={CUSTODIES}
                         currentCustodyObj={currentCustodyObj}
+                        udbStatus={effectiveUdbStatus}
+                        setUdbStatus={setUdbStatus}
+                        posStatus={posStatus}
+                        setPosStatus={setPosStatus}
                         ci={ci}
                         setCi={setCi}
                         ciTier={ciTier}
@@ -1453,6 +1470,63 @@ export function TradeBuilderScreen() {
             </div>
             <p style={{ fontSize: '12px', lineHeight: 1.5, margin: '8px 0 0' }} className="mut">
               {currentCustodyObj.hint}
+            </p>
+          </div>
+
+          {/* UDB Status */}
+          <div>
+            <div className="eyebrow">UDB status</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '7px' }}>
+              {UDB_OPTIONS.map(opt => {
+                const isSelected = isNonEuOrigin ? opt.status === 'NOT_RECORDED' : opt.status === udbStatus;
+                return (
+                  <button
+                    key={opt.status}
+                    type="button"
+                    disabled={isNonEuOrigin}
+                    className={`chip ${isSelected ? 'chip-a' : ''}`}
+                    onClick={() => !isNonEuOrigin && setUdbStatus(opt.status)}
+                    title={isNonEuOrigin ? 'These grids are outside the EU, so the volume cannot be recorded in the UDB' : undefined}
+                    data-testid={`grid-udb-status-${opt.status.toLowerCase()}`}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+            <p style={{ fontSize: '12px', lineHeight: 1.5, margin: '8px 0 0' }} className="mut">
+              {isNonEuOrigin
+                ? 'These grids are outside the EU, so the volume cannot be recorded in the UDB.'
+                : udbStatus === 'RECORDED'
+                  ? 'Confirmed recorded in the Union Database.'
+                  : udbStatus === 'PENDING'
+                    ? 'Assumed, confirm with seller before clearing into EU compliance markets.'
+                    : 'Volume not recorded in the Union Database.'}
+            </p>
+          </div>
+
+          {/* PoS Status */}
+          <div>
+            <div className="eyebrow">PoS status</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '7px' }}>
+              {POS_OPTIONS.map(opt => (
+                <button
+                  key={opt.status}
+                  type="button"
+                  className={`chip ${opt.status === posStatus ? 'chip-a' : ''}`}
+                  onClick={() => setPosStatus(opt.status)}
+                  data-testid={`grid-pos-status-${opt.status.toLowerCase()}`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            <p style={{ fontSize: '12px', lineHeight: 1.5, margin: '8px 0 0' }} className="mut">
+              {posStatus === 'ISSUED'
+                ? 'Proof of Sustainability (PoS) confirmed issued under certification scheme.'
+                : posStatus === 'PENDING'
+                  ? 'Assumed PoS issued upon delivery — confirm issuance with seller.'
+                  : 'Proof of Sustainability not available.'}
             </p>
           </div>
 

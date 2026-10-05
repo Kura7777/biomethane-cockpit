@@ -1,4 +1,4 @@
-import { CertificationScheme, ChainOfCustody } from '../consignment/types';
+import { CertificationScheme, ChainOfCustody, UDBStatus, PoSStatus } from '../consignment/types';
 
 /**
  * The deal-parameter contract between screens.
@@ -27,6 +27,8 @@ export interface DealParams {
   volume: number;
   scheme?: CertificationScheme;
   coc?: ChainOfCustody;
+  udb?: UDBStatus;
+  pos?: PoSStatus;
   counterparty?: string;
   deliveryPeriod?: string;
   complianceYear?: number;
@@ -57,6 +59,8 @@ const ALIASES: Record<keyof DealParams, string[]> = {
   volume: ['volume'],
   scheme: ['scheme'],
   coc: ['coc'],
+  udb: ['udb', 'udbStatus'],
+  pos: ['pos', 'posStatus'],
   counterparty: ['counterparty'],
   deliveryPeriod: ['deliveryPeriod'],
   complianceYear: ['complianceYear', 'year'],
@@ -121,6 +125,9 @@ export function buildDealUrl(params: Partial<DealParams>): string {
  * dropped rather than returned as NaN — an absent value is honest, whereas a NaN
  * propagates into computeNetback and surfaces as a NaN price on the screen.
  */
+const VALID_UDB_STATUSES: readonly string[] = ['RECORDED', 'PENDING', 'NOT_RECORDED'];
+const VALID_POS_STATUSES: readonly string[] = ['ISSUED', 'PENDING', 'NOT_AVAILABLE'];
+
 export function parseDealParams(searchParams: URLSearchParams): Partial<DealParams> {
   const parsed: Partial<DealParams> = {};
 
@@ -147,6 +154,10 @@ export function parseDealParams(searchParams: URLSearchParams): Partial<DealPara
       parsed[key] = Object.is(numeric, -0) ? 0 : numeric;
     } else if (isBooleanKey(key)) {
       parsed[key] = raw === 'true' || raw === '1';
+    } else if (key === 'udb') {
+      if (VALID_UDB_STATUSES.includes(raw)) parsed.udb = raw as UDBStatus;
+    } else if (key === 'pos') {
+      if (VALID_POS_STATUSES.includes(raw)) parsed.pos = raw as PoSStatus;
     } else {
       // The string fields are unions (scheme, coc) or free text. Validating the
       // unions is the consuming screen's job — it owns the registries that say
