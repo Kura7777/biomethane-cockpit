@@ -139,3 +139,51 @@ describe('calc fix 2: pasted £ broker runs are not converted to €', () => {
   });
 });
 
+describe('calc fix 3: all-in markets do not add gas twice', () => {
+  it('does not add TTF gas index to CH_VSG, HU_MEKH, RO_TRANSGAZ netback', () => {
+    const chMarket = getMarketById('CH_VSG')!;
+    const huMarket = getMarketById('HU_MEKH')!;
+    const roMarket = getMarketById('RO_TRANSGAZ')!;
+    const marks = marksWith({
+      CH_VSG: { marketId: 'CH_VSG', bid: 94, offer: 102, mid: 98, updatedAt: NOW, source: 'Fixture' },
+      HU_MEKH: { marketId: 'HU_MEKH', bid: 59, offer: 65, mid: 62, updatedAt: NOW, source: 'Fixture' },
+      RO_TRANSGAZ: { marketId: 'RO_TRANSGAZ', bid: 55, offer: 61, mid: 58, updatedAt: NOW, source: 'Fixture' },
+    });
+    // certVal = 94, TTF = 30, costs = 3.
+    // Correct netNetback = 94 - 3 = 91.
+    const chNb = computeNetback(chMarket, REFERENCE_CONSIGNMENTS.UK_FOOD_WASTE, marks, costs);
+    expect(chNb.netNetback).toBe(91);
+    expect(chNb.certificateValue?.calculation).toContain('bundled physical gas');
+
+    // HU_MEKH: bid 59 - 3 = 56
+    const huNb = computeNetback(huMarket, REFERENCE_CONSIGNMENTS.UK_FOOD_WASTE, marks, costs);
+    expect(huNb.netNetback).toBe(56);
+    expect(huNb.certificateValue?.calculation).toContain('bundled physical gas');
+
+    // RO_TRANSGAZ: bid 55 - 3 = 52
+    const roNb = computeNetback(roMarket, REFERENCE_CONSIGNMENTS.UK_FOOD_WASTE, marks, costs);
+    expect(roNb.netNetback).toBe(52);
+    expect(roNb.certificateValue?.calculation).toContain('bundled physical gas');
+  });
+
+  it('Origination breakdown does not subtract TTF from all-in market revenue', () => {
+    const b = computeOriginationBreakdown({
+      opportunity: {
+        targetMarketId: 'CH_VSG',
+        producerPayableEurPerMWh: 80,
+        transitCostEurPerMWh: 0,
+        totalTerminalValueStackEurPerMWh: 91,
+        deskNetMarginEurPerMWh: 11,
+        totalDealProfitEur: 220000,
+      },
+      volumeMwh: 20000,
+      marks: marksWith({}),
+      costs,
+    });
+    expect(b.grossRevenueEur).toBe(91);
+    expect(b.certificateValueEur).toBe(91);
+    expect(b.gasIndexEur).toBeNull();
+  });
+});
+
+

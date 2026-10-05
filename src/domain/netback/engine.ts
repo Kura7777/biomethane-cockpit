@@ -81,6 +81,17 @@ function computeMarginPercent(deskMargin: number | null, netNetback: number | nu
   return (deskMargin / Math.abs(netNetback)) * 100;
 }
 
+/**
+ * Markets whose marks represent bundled physical gas (molecule + environmental attributes)
+ * rather than a standalone certificate or quota ticket. The netback engine must NOT add the TTF gas
+ * index on top of these prices, as that would double-count the gas molecule.
+ */
+export const ALL_IN_MARKETS = new Set<string>(['CH_VSG', 'HU_MEKH', 'RO_TRANSGAZ']);
+
+export function isAllInMarket(marketId: string): boolean {
+  return ALL_IN_MARKETS.has(marketId);
+}
+
 export interface MarkSideSelection {
   price: number | null;
   sideRequested: PriceSide;
@@ -300,7 +311,11 @@ function computeCertificateValueCore(
     case 'EUR_PER_MWH': {
       // France CPB (with €100 cap), Austria EGG, Sweden Tax, Finland, Belgium, Denmark, Spain, Poland, Voluntary
       valueEurPerMWh = mark;
-      calculation = `Direct market mark (${pricingSide}): €${mark.toFixed(2)}/MWh`;
+      if (isAllInMarket(market.id)) {
+        calculation = `Direct all-in physical gas mark (${pricingSide}): €${mark.toFixed(2)}/MWh (bundled physical gas — molecule included, no TTF added)`;
+      } else {
+        calculation = `Direct market mark (${pricingSide}): €${mark.toFixed(2)}/MWh`;
+      }
       if (market.id === 'FR_CPB' && valueEurPerMWh > FR_CPB_CEILING_EUR_MWH) {
         valueEurPerMWh = FR_CPB_CEILING_EUR_MWH;
         capped = true;
@@ -461,11 +476,12 @@ export function computeNetback(
     }
   }
 
+  const isAllIn = isAllInMarket(market.id);
   const missingInputs: string[] = [];
 
   // Molecule value (TTF index) at chosen molecule side
   const molVal = selectMarkPrice(marks.gasIndex, pricingSides.moleculeSide);
-  if (molVal === null) missingInputs.push('gasIndex (TTF)');
+  if (molVal === null && !isAllIn) missingInputs.push('gasIndex (TTF)');
 
   // Track cost completeness
   if (costs.transferCosts === null) missingInputs.push('transferCosts');
@@ -481,7 +497,7 @@ export function computeNetback(
   // If cert value is present, compute available arithmetic while flagging incomplete inputs.
   let netNetback: number | null = null;
   if (certVal?.valueEurPerMWh != null && !isNaN(certVal.valueEurPerMWh)) {
-    const safeMol = (molVal !== null && !isNaN(molVal)) ? molVal : 0;
+    const safeMol = isAllIn ? 0 : ((molVal !== null && !isNaN(molVal)) ? molVal : 0);
     const safeCosts = (totalCosts !== null && !isNaN(totalCosts)) ? totalCosts : 0;
     netNetback = Number((certVal.valueEurPerMWh + safeMol - safeCosts).toFixed(2));
   }
@@ -499,7 +515,8 @@ export function computeNetback(
   const midMolVal = selectMarkPrice(marks.gasIndex, 'mid');
   let atMid: number | null = null;
   if (midCertVal?.valueEurPerMWh != null) {
-    atMid = midCertVal.valueEurPerMWh + (midMolVal ?? 0) - (totalCosts ?? 0);
+    const safeMidMol = isAllIn ? 0 : (midMolVal ?? 0);
+    atMid = midCertVal.valueEurPerMWh + safeMidMol - (totalCosts ?? 0);
   }
 
   const atChosenSides = netNetback;
@@ -516,7 +533,9 @@ export function computeNetback(
   };
 
   let statusNote: string | null = certVal?.statusNote ?? null;
-  if (molVal === null) {
+  if (isAllIn) {
+    statusNote = (statusNote ? `${statusNote} ` : '') + 'All-in physical gas mark (bundled physical gas — TTF molecule included in quote).';
+  } else if (molVal === null) {
     statusNote = (statusNote ? `${statusNote} ` : '') + '⚠ Molecule value (TTF) not set — netback excludes gas index component (~€28/MWh).';
   }
 

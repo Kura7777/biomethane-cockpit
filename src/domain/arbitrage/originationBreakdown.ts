@@ -1,5 +1,5 @@
 import type { CostInputs, GasIndexMark, MarksState } from '../netback/types';
-import { selectMarkPrice } from '../netback/engine';
+import { selectMarkPrice, isAllInMarket } from '../netback/engine';
 import { SIMULATED_SOURCE_NAME } from '../marks/simulate';
 import { priceSourceForMark, type PriceSource } from '../marks/markSource';
 import { markSideWarning } from '../netback/sideFallback';
@@ -16,6 +16,7 @@ export type { PriceSource };
  */
 
 export interface BreakdownOpportunity {
+  targetMarketId?: string;
   producerPayableEurPerMWh: ArbitrageOpportunity['producerPayableEurPerMWh'];
   transitCostEurPerMWh: ArbitrageOpportunity['transitCostEurPerMWh'];
   totalTerminalValueStackEurPerMWh: ArbitrageOpportunity['totalTerminalValueStackEurPerMWh'];
@@ -136,12 +137,16 @@ export function computeOriginationBreakdown(input: OriginationBreakdownInput): O
       }
     : null;
 
+  const isAllIn = opp.targetMarketId ? isAllInMarket(opp.targetMarketId) : false;
+
   const grossRevenueEur = brokerBundle
     ? brokerBundle.certificateEurPerMwh + (gasIndexEur ?? 0)
     : opp.totalTerminalValueStackEurPerMWh;
   const certificateValueEur = brokerBundle
     ? brokerBundle.certificateEurPerMwh
-    : gasIndexEur !== null && grossRevenueEur !== null ? grossRevenueEur - gasIndexEur : null;
+    : isAllIn
+      ? grossRevenueEur
+      : (gasIndexEur !== null && grossRevenueEur !== null ? grossRevenueEur - gasIndexEur : null);
 
   const netMarginEurPerMwh =
     opp.deskNetMarginEurPerMWh ?? (grossRevenueEur !== null ? grossRevenueEur - totalDeliveredCostEur : null);
@@ -161,11 +166,11 @@ export function computeOriginationBreakdown(input: OriginationBreakdownInput): O
       !brokerBundle && ref && ref.kind !== 'BROKER_CERTIFICATE' && opp.netbackCappedAt !== null && opp.netbackCappedAt !== undefined
         ? { capEurPerMwh: opp.netbackCappedAt, theoreticalEurPerMwh: opp.theoreticalNetbackEurPerMWh ?? null, kind: ref.kind }
         : null,
-    gasIndexEur,
+    gasIndexEur: isAllIn ? null : gasIndexEur,
     gasIndexSide: moleculeSide,
-    gasIndexSource: gasIndexEur === null ? null : gasIndexSource(gasIndex),
+    gasIndexSource: (isAllIn || gasIndexEur === null) ? null : gasIndexSource(gasIndex),
     certificateValueEur,
-    revenueExclMolecule: gasIndexEur === null,
+    revenueExclMolecule: isAllIn ? false : gasIndexEur === null,
     marginSplit:
       costs.producerPricing?.mode === 'INDEX_LINKED' && costs.producerPricing.indexLinkedShare !== null
         ? 'PRODUCER_SHARE'
