@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { Maximize2, Minimize2, X } from 'lucide-react';
 import { BiomethanePlant, CountryMacroStat } from '../../domain/plants/types';
@@ -50,6 +51,7 @@ export function PlantsSidePanel({
   mobileOpen = false,
   onMobileClose,
 }: PlantsSidePanelProps) {
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [expanded, setExpanded] = useState(false);
   const expandedRef = useRef<HTMLElement>(null);
@@ -128,6 +130,14 @@ export function PlantsSidePanel({
       </button>
       <button type="button" className="btn btn-secondary plants-panel-btn" onClick={() => onOpenDossier(plant)}>
         Full dossier
+      </button>
+      <button
+        type="button"
+        className="btn btn-secondary plants-panel-btn"
+        onClick={() => navigate(`/map?origin=${encodeURIComponent(plant.countryCode)}`)}
+        title={`View cross-border corridors for ${plant.countryCode}`}
+      >
+        Where can this gas go?
       </button>
     </>
   );

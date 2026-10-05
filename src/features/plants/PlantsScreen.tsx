@@ -865,6 +865,33 @@ export function PlantsScreen() {
                             label: 'Grid',
                             value: `${p.networkOperator || '—'} · ${p.gridConnectionType?.includes('Transmission') ? 'TSO' : 'DSO'}`,
                           },
+                          {
+                            label: 'Corridor',
+                            span: 2,
+                            value: (
+                              <button
+                                type="button"
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  navigate(`/map?origin=${encodeURIComponent(p.countryCode)}`);
+                                }}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  fontSize: '11px',
+                                  fontWeight: 600,
+                                  color: 'var(--color-accent-700, #0284c7)',
+                                  background: 'none',
+                                  border: 'none',
+                                  padding: 0,
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                <span>Where can this gas go? →</span>
+                              </button>
+                            ),
+                          },
                         ];
                       }}
                       onSelect={p => {
@@ -915,9 +942,33 @@ export function PlantsScreen() {
                         >
                           <div style={{ minWidth: 0 }}>
                             <div className="ds-row-name">{p.name}</div>
-                            <div className="ds-row-meta">
+                            <div className="ds-row-meta" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                               <span className="num plants-iso-tag">{p.countryCode}</span>
                               {p.region && <> · {p.region}</>}
+                              <button
+                                type="button"
+                                className="plants-corridor-link"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/map?origin=${encodeURIComponent(p.countryCode)}`);
+                                }}
+                                title={`Where can this gas go? (View ${p.countryCode} corridors)`}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '2px',
+                                  padding: '1px 5px',
+                                  fontSize: '10px',
+                                  fontWeight: 600,
+                                  color: 'var(--color-accent-700, #0284c7)',
+                                  backgroundColor: 'var(--color-accent-50, rgba(2, 132, 199, 0.08))',
+                                  border: '1px solid var(--color-accent-200, rgba(2, 132, 199, 0.2))',
+                                  borderRadius: '3px',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                Where can this gas go? →
+                              </button>
                             </div>
                           </div>
                           <div className="plants-operator-cell" title={p.legalEntityName || p.operator || ''}>

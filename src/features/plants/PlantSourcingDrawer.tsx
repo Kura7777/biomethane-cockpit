@@ -586,6 +586,31 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
               <span>Facility Diligence</span>
             </button>
 
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                navigate(`/map?origin=${encodeURIComponent(plant.countryCode)}`);
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '7px 12px',
+                backgroundColor: isDark ? 'rgba(59, 130, 246, 0.12)' : 'rgba(59, 130, 246, 0.08)',
+                color: isDark ? '#60a5fa' : '#2563eb',
+                fontWeight: 600,
+                fontSize: '12px',
+                borderRadius: '6px',
+                border: `1px solid ${isDark ? 'rgba(59, 130, 246, 0.35)' : 'rgba(37, 99, 235, 0.3)'}`,
+                cursor: 'pointer'
+              }}
+              title={`View cross-border corridors for ${plant.countryCode}`}
+            >
+              <MapPin size={14} />
+              <span>Where can this gas go?</span>
+            </button>
+
             <a
               href={linkedinSearchUrl}
               target="_blank"
