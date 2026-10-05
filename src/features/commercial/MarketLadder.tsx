@@ -14,6 +14,7 @@ import {
 import { deriveSourceBadge, getMarkAgeDays } from '../../domain/markets/types';
 import { SIMULATED_SOURCE_NAME } from '../../domain/marks/simulate';
 import { buildMarketLadder, type MarketLadderRow } from '../../domain/arbitrage/marketLadder';
+import { markSideWarning } from '../../domain/netback/sideFallback';
 import { originationRouteStatus } from '../../domain/arbitrage/routeStatus';
 import { RouteVerdictCard } from '../map/RouteVerdictCard';
 import { RouteStatusBadge } from './RouteStatusBadge';
@@ -117,6 +118,9 @@ export function MarketLadder({ opportunity, volumeMwh, complianceYear = null }: 
         <>
           <RouteStatusBadge verdict={r.verdict} detail={r.eligibilitySummary} />
           {r.held && <span className="chip chip-neutral">{heldLabel(r.held)}</span>}
+          {markSideWarning(r.sideRequested, r.sideUsed) && (
+            <span className="chip chip-warn" data-testid={`side-warning-${r.marketId}`}>{markSideWarning(r.sideRequested, r.sideUsed)}</span>
+          )}
         </>
       ),
       barWidth: Math.min(100, (Math.abs(net) / 200) * 100),
@@ -242,6 +246,15 @@ export function MarketLadder({ opportunity, volumeMwh, complianceYear = null }: 
                             data-testid={`held-${row.marketId}`}
                           >
                             {heldLabel(row.held)}
+                          </span>
+                        )}
+                        {markSideWarning(row.sideRequested, row.sideUsed) && (
+                          <span
+                            className="block text-[10px] font-medium"
+                            style={{ color: 'var(--color-status-warn-text)' }}
+                            data-testid={`side-warning-${row.marketId}`}
+                          >
+                            {markSideWarning(row.sideRequested, row.sideUsed)}
                           </span>
                         )}
                       </td>

@@ -2,6 +2,7 @@ import type { CostInputs, GasIndexMark, MarksState } from '../netback/types';
 import { selectMarkPrice } from '../netback/engine';
 import { SIMULATED_SOURCE_NAME } from '../marks/simulate';
 import { priceSourceForMark, type PriceSource } from '../marks/markSource';
+import { markSideWarning } from '../netback/sideFallback';
 
 import type { ArbitrageOpportunity } from './types';
 
@@ -23,6 +24,8 @@ export interface BreakdownOpportunity {
   bundleReference?: ArbitrageOpportunity['bundleReference'];
   netbackCappedAt?: ArbitrageOpportunity['netbackCappedAt'];
   theoreticalNetbackEurPerMWh?: ArbitrageOpportunity['theoreticalNetbackEurPerMWh'];
+  certSideRequested?: ArbitrageOpportunity['certSideRequested'];
+  certSideUsed?: ArbitrageOpportunity['certSideUsed'];
 }
 
 export interface OriginationBreakdownInput {
@@ -84,6 +87,8 @@ export interface OriginationBreakdown {
   totalDealRevenueEur: number | null;
   isProfitable: boolean;
   volumeMwh: number;
+  /** "No bid quoted, priced off the offer" when the certificate side asked for was not quoted; null otherwise. */
+  sideWarning: string | null;
 }
 
 /** Source of the gas index mark, tagged exactly as the Pricing desk tags it. */
@@ -171,6 +176,7 @@ export function computeOriginationBreakdown(input: OriginationBreakdownInput): O
     totalDealRevenueEur: grossRevenueEur !== null ? grossRevenueEur * vol : null,
     isProfitable: (netMarginEurPerMwh ?? 0) > 0,
     volumeMwh: vol,
+    sideWarning: markSideWarning(opp.certSideRequested, opp.certSideUsed),
   };
 }
 

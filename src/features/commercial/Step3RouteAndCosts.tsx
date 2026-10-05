@@ -342,6 +342,9 @@ export function Step3RouteAndCosts({
                 <div>
                   <span style={{ color: 'var(--color-text)' }} className="font-medium block">{b.brokerBundle ? 'Certificate (broker bundle, certificate only)' : 'Compliance certificate premium'}</span>
                   <span style={{ color: 'var(--color-muted)' }} className="text-[11px] block">{opportunity.targetMarketName} {b.brokerBundle ? `${b.brokerBundle.year ?? ''} bid; the gas index comes on top` : `green value stack${certificateValueEur === null ? ' (needs a TTF mark to split out)' : ''}`}</span>
+                  {b.sideWarning && (
+                    <span className="chip chip-warn mt-1 inline-block" data-testid="cert-side-warning">{b.sideWarning}</span>
+                  )}
                   {b.brokerBundle && (
                     <span className="text-[11px] flex items-center gap-1.5 flex-wrap mt-1" data-testid="cert-bundle-source">
                       {sourceChip(b.brokerBundle.source)}

@@ -80,6 +80,8 @@ describe('Hybrid Legal Package & ETRM Export Engine', () => {
       missingInputs: [],
       uncertaintyBranches: null,
       markSideUsed: 'bid',
+      sideRequested: 'bid',
+      sideUsed: 'bid',
     },
     marks: {
       marks: {

@@ -81,17 +81,44 @@ function computeMarginPercent(deskMargin: number | null, netNetback: number | nu
   return (deskMargin / Math.abs(netNetback)) * 100;
 }
 
+export interface MarkSideSelection {
+  price: number | null;
+  sideRequested: PriceSide;
+  /** The side the price actually came from; null when there is no price at all. */
+  sideUsed: PriceSide | null;
+}
+
 /**
- * Select price mark based on specified pricing side
+ * Select the price for a pricing side and say which side it really came from.
+ * Where the requested side is not quoted the price falls back (bid: mid, then offer; offer: mid,
+ * then bid) so screens still show a number, but `sideUsed` records the fallback: callers must
+ * surface it (see markSideWarning). It is never silent.
+ */
+export function selectMarkSide(
+  markObj: { bid: number | null; offer: number | null; mid: number | null } | undefined,
+  side: PriceSide = 'bid'
+): MarkSideSelection {
+  const none: MarkSideSelection = { price: null, sideRequested: side, sideUsed: null };
+  if (!markObj) return none;
+  const pick = (candidates: Array<[PriceSide, number | null]>): MarkSideSelection => {
+    for (const [s, v] of candidates) if (v !== null) return { price: v, sideRequested: side, sideUsed: s };
+    return none;
+  };
+  if (side === 'bid') return pick([['bid', markObj.bid], ['mid', markObj.mid], ['offer', markObj.offer]]);
+  if (side === 'offer') return pick([['offer', markObj.offer], ['mid', markObj.mid], ['bid', markObj.bid]]);
+  if (markObj.mid !== null) return { price: markObj.mid, sideRequested: side, sideUsed: 'mid' };
+  if (markObj.bid !== null && markObj.offer !== null) return { price: (markObj.bid + markObj.offer) / 2, sideRequested: side, sideUsed: 'mid' };
+  return pick([['bid', markObj.bid], ['offer', markObj.offer]]);
+}
+
+/**
+ * Select price mark based on specified pricing side. See selectMarkSide for which side was used.
  */
 export function selectMarkPrice(
   markObj: { bid: number | null; offer: number | null; mid: number | null } | undefined,
   side: PriceSide = 'bid'
 ): number | null {
-  if (!markObj) return null;
-  if (side === 'bid') return markObj.bid ?? markObj.mid ?? markObj.offer;
-  if (side === 'offer') return markObj.offer ?? markObj.mid ?? markObj.bid;
-  return markObj.mid ?? (markObj.bid !== null && markObj.offer !== null ? (markObj.bid + markObj.offer) / 2 : markObj.bid ?? markObj.offer);
+  return selectMarkSide(markObj, side).price;
 }
 
 /**
@@ -150,6 +177,23 @@ export function computeFuelEUDeficitClosureValue(
  * Returns null if no mark is set — NEVER returns zero.
  */
 export function computeCertificateValue(
+  market: Market, 
+  consignment: Consignment, 
+  marks: MarksState,
+  side?: PriceSide,
+  fuelEUOptions?: FuelEUOptions
+): CertificateValueResult | null {
+  const result = computeCertificateValueCore(market, consignment, marks, side, fuelEUOptions);
+  if (!result) return result;
+  // Record which side the mark really came from (a modelled value with no mark has no side).
+  const sideRequested = side ?? marks.pricingSides.certificateSide;
+  const sel = selectMarkSide(marks.marks[market.id], sideRequested);
+  result.sideRequested = sideRequested;
+  result.sideUsed = result.isModelled && sel.price === null ? null : sel.sideUsed;
+  return result;
+}
+
+function computeCertificateValueCore(
   market: Market, 
   consignment: Consignment, 
   marks: MarksState,
@@ -738,6 +782,9 @@ export function computeNetback(
     valuationRange,
     statusNote,
     markSideUsed: pricingSides.certificateSide,
+    sideRequested: pricingSides.certificateSide,
+    sideUsed: certVal?.sideUsed ?? null,
+    moleculeSideUsed: selectMarkSide(marks.gasIndex, pricingSides.moleculeSide).sideUsed,
     pricingSides,
     sides,
     isModelled: certVal?.isModelled ?? false,

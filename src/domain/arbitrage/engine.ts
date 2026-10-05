@@ -255,6 +255,8 @@ export function scanEuropeanArbitrage(
         bundleReference: netbackRes.bundleReference ?? null,
         netbackCappedAt: netbackRes.netbackCappedAt ?? null,
         theoreticalNetbackEurPerMWh: netbackRes.theoreticalNetback ?? null,
+        certSideRequested: netbackRes.sideRequested,
+        certSideUsed: netbackRes.sideUsed,
         eligibility,
         overallVerdict: eligibility.overallVerdict,
         isTradeable,

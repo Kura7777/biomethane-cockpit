@@ -58,6 +58,10 @@ export interface CertificateValueResult {
   markAgeDays?: number | null;      // Staleness age in days
   isModelled?: boolean;             // true if value is derived from regulatory model (e.g. FuelEU penalty avoidance) rather than market mark
   provenance?: MarkProvenance | null;
+  /** The pricing side the desk asked for. */
+  sideRequested?: PriceSide;
+  /** The side the mark really came from. Differs from sideRequested when that side is not quoted. null for a modelled value with no mark. */
+  sideUsed?: PriceSide | null;
 }
 
 export interface NetbackBranch {
@@ -105,7 +109,13 @@ export interface NetbackResult {
   uncertaintyBranches: NetbackBranch[] | null;  // For Germany: both DC branches
   valuationRange?: ValuationRange | null;       // Headline valuation range under regulatory uncertainty
   statusNote?: string | null;       // Any cautionary status notice (e.g. UNVERIFIED)
-  markSideUsed: PriceSide;          // 'bid' | 'mid' | 'offer' (primary/certificate side)
+  markSideUsed: PriceSide;          // The certificate side REQUESTED. Use sideUsed for the side the price actually came from.
+  /** Certificate side the desk asked for (same as markSideUsed). */
+  sideRequested: PriceSide;
+  /** Certificate side the price actually came from; differs from sideRequested when that side is not quoted (see markSideWarning). null when there is no mark. */
+  sideUsed: PriceSide | null;
+  /** Molecule (TTF) side the price actually came from; null when there is no gas mark. */
+  moleculeSideUsed?: PriceSide | null;
   pricingSides?: PricingSides;      // Explicit per-leg pricing sides used
   sides?: NetbackSides;             // atChosenSides, atMid, and crossingCost
   isModelled?: boolean;             // true if value is purely modelled (e.g. unquoted FuelEU)

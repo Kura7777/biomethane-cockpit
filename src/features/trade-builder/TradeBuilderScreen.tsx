@@ -9,6 +9,7 @@ import { evaluateEligibility } from '../../domain/eligibility/engine';
 import { computeNetback, selectMarkPrice } from '../../domain/netback/engine';
 import { ProducerPricing } from '../../domain/netback/types';
 import { certificateMarkSlope } from '../../domain/netback/headroom';
+import { markSideWarning } from '../../domain/netback/sideFallback';
 import { parseDealParams } from '../../domain/trade/dealParams';
 import { defaultMarketForOrigin } from '../../domain/trade/dealDefaults';
 import { LogisticsModal } from '../logistics/LogisticsModal';
@@ -1955,6 +1956,14 @@ export function TradeBuilderScreen() {
           <div style={{ fontSize: '12px' }} className="mut">
             per MWh · {currentSide} · {selectedMarket.unitLabel} unit of account
           </div>
+          {markSideWarning(netback.sideRequested, netback.sideUsed) && (
+            <div
+              data-testid="netback-side-warning"
+              style={{ marginTop: '8px', padding: '6px 10px', backgroundColor: 'color-mix(in srgb, var(--color-amber-500) 15%, transparent)', border: '1px solid var(--color-amber-500)', fontSize: '12px', color: 'var(--color-amber-400)', lineHeight: 1.4 }}
+            >
+              ⚠️ {markSideWarning(netback.sideRequested, netback.sideUsed)}
+            </div>
+          )}
           {netback.clearingPriceWarning && (
             <div style={{ marginTop: '8px', padding: '6px 10px', backgroundColor: 'color-mix(in srgb, var(--color-amber-500) 15%, transparent)', border: '1px solid var(--color-amber-500)', fontSize: '12px', color: 'var(--color-amber-400)', lineHeight: 1.4 }}>
               ⚠️ {netback.clearingPriceWarning}

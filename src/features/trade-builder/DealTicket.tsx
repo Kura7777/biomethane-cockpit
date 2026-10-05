@@ -4,6 +4,7 @@ import { GateResult } from '../../domain/eligibility/types';
 import { UDBStatus, PoSStatus } from '../../domain/consignment/types';
 import { showToast } from '../../app/DeskToastContainer';
 import { computeGateBadge } from './ticketMath';
+import { markSideWarning } from '../../domain/netback/sideFallback';
 
 const MONO_FONT = 'var(--font-mono, "IBM Plex Mono", monospace)';
 
@@ -328,6 +329,11 @@ export function DealTicket({
             <div className="tt-status-row">
               <span className="tt-status-label">Mark</span>
               <span className="tt-status-value" data-testid="ticket-mark-source">{markSourceLabel}</span>
+            </div>
+          )}
+          {markSideWarning(netback.sideRequested, netback.sideUsed) && (
+            <div className="tt-status-row">
+              <span className="tt-chip warn" data-testid="ticket-side-warning">{markSideWarning(netback.sideRequested, netback.sideUsed)}</span>
             </div>
           )}
           {isTtfSimulated && (

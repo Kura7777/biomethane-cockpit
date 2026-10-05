@@ -100,7 +100,8 @@ Route status: ${routeStatus === 'TRADEABLE' ? 'Tradeable (all eligibility gates 
 
 • Wholesale Gas Offtake (TTF ${b.gasIndexSide}): ${gasIndexEur === null ? 'No TTF mark' : `${fmtEurPerMwh(gasIndexEur)} (${fmtEurTotal(gasIndexEur * vol)})${gasSourceText}`}
 • ${b.brokerBundle ? `Certificate (broker bundle, certificate only; ${b.brokerBundle.source.badge.label}, ${b.brokerBundle.source.asOf ?? 'no date'})` : 'Green Certificate Premium'}: ${certificateValueEur === null ? '—' : `${fmtEurPerMwh(certificateValueEur)} (${fmtEurTotal(certificateValueEur * vol)})`}
-• Total Realizable Revenue${b.revenueExclMolecule ? ' (excl. gas: no TTF mark)' : ''}: ${fmtEurPerMwh(totalGrossRevenueEur)} (${fmtEurTotal(totalDealRevenueEur)})${b.brokerBundle ? `
+${b.sideWarning ? `• WARNING: ${b.sideWarning}
+` : ''}• Total Realizable Revenue${b.revenueExclMolecule ? ' (excl. gas: no TTF mark)' : ''}: ${fmtEurPerMwh(totalGrossRevenueEur)} (${fmtEurTotal(totalDealRevenueEur)})${b.brokerBundle ? `
 • Broker bundle: certificate only, gas index (TTF) added on top` : ''}${b.netbackCapped ? `
 • Held to €${b.netbackCapped.capEurPerMwh}/MWh (${b.netbackCapped.kind === 'OBSERVED_ALL_IN' ? 'observed all-in price on the deal' : 'unsourced desk estimate, not a market price'})` : ''}
 
@@ -393,6 +394,9 @@ Route status: ${routeStatus === 'TRADEABLE' ? 'Tradeable (all eligibility gates 
                   <td style={{ color: 'var(--color-muted)' }} className="p-3 font-normal">
                     5. {opportunity.targetMarketName} {b.brokerBundle ? 'certificate (broker bundle, certificate only)' : 'certificate premium'}{' '}
                     {b.brokerBundle && sourceChip(b.brokerBundle.source)}
+                    {b.sideWarning && (
+                      <span className="chip chip-warn ml-1.5" data-testid="cert-side-warning">{b.sideWarning}</span>
+                    )}
                   </td>
                   <td style={{ color: 'var(--color-pnl-pos)' }} className="p-3 text-right font-medium tabular-nums">{fmtEurPerMwh(certificateValueEur)}</td>
                   <td style={{ color: 'var(--color-pnl-pos)' }} className="p-3 text-right tabular-nums">{certificateValueEur === null ? '—' : fmtEurTotal(certificateValueEur * vol)}</td>

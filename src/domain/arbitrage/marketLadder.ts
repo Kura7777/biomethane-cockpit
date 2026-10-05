@@ -1,5 +1,5 @@
 import { MARKETS } from '../markets/registry';
-import type { MarkProvenance } from '../markets/types';
+import type { MarkProvenance, PriceSide } from '../markets/types';
 import { FEEDSTOCK_REGISTRY } from '../consignment/feedstocks';
 import type { CertificationScheme, ChainOfCustody, Consignment } from '../consignment/types';
 import type { BundleReference, CostInputs, MarksState } from '../netback/types';
@@ -56,6 +56,9 @@ export interface MarketLadderRow {
   held: { kind: BundleReference['kind']; valueEurPerMwh: number; year: number | null } | null;
   /** Where the number on this row came from. For a held broker bundle that is the bundle mark, else the market's mark. */
   sourceProvenance: MarkProvenance | null;
+  /** Certificate side asked for, and the side the price really came from (differs when that side is not quoted). */
+  sideRequested: PriceSide;
+  sideUsed: PriceSide | null;
   /** The market this route was originally built for. */
   isChosen: boolean;
   missingInputs: string[];
@@ -130,6 +133,8 @@ export function buildMarketLadder(
         nb.netbackCappedAt != null && nb.bundleReference?.kind === 'BROKER_CERTIFICATE'
           ? nb.bundleReference.provenance
           : nb.provenance ?? mark?.provenance ?? null,
+      sideRequested: nb.sideRequested,
+      sideUsed: nb.sideUsed,
       isChosen: nb.marketId === opp.targetMarketId,
       missingInputs: nb.missingInputs,
     };

@@ -1,6 +1,7 @@
 import { Consignment, CertificationScheme, ChainOfCustody, DeliveryPeriod } from '../consignment/types';
 import { Market } from '../markets/types';
 import { NetbackResult, BundleReference } from '../netback/types';
+import type { PriceSide } from '../markets/types';
 import { EligibilityAssessment, OverallVerdict } from '../eligibility/types';
 
 export interface OriginProfile {
@@ -44,6 +45,9 @@ export interface ArbitrageOpportunity {
   netbackCappedAt?: number | null;
   /** The modelled netback before that cap, when it was capped. */
   theoreticalNetbackEurPerMWh?: number | null;
+  /** Certificate side the desk asked for, and the side the price really came from. They differ when that side is not quoted. */
+  certSideRequested?: PriceSide;
+  certSideUsed?: PriceSide | null;
   
   // Regulatory
   eligibility: EligibilityAssessment;
