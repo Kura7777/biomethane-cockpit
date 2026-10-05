@@ -1,0 +1,143 @@
+import { getPosRoute } from '../../domain/routes';
+import { POSSIBLE_STATUSES, type CertificateRoute } from '../../domain/registries/certificateRoutes';
+
+export type TradeArchetype = 'BOTH' | 'CERT_ONLY' | 'POS_ONLY' | 'CHECK_FIRST' | 'CLOSED' | 'NO_DATA';
+
+export interface TradePlaybookDetails {
+  archetype: TradeArchetype;
+  badge: string;
+  chipClass: string;
+  isTradeable: boolean;
+  structureTitle: string;
+  structureDesc: string;
+  schemeTitle: string;
+  schemeDesc: string;
+  executionTitle: string;
+  executionDesc: string;
+  defaultCoc: 'BOOK_AND_CLAIM' | 'MASS_BALANCE';
+}
+
+export function getTradePlaybook(originIso: string, targetIso: string, r: CertificateRoute | undefined): TradePlaybookDetails {
+  if (!r) {
+    return {
+      archetype: 'NO_DATA',
+      badge: 'Unresearched',
+      chipClass: '',
+      isTradeable: false,
+      structureTitle: 'No verified corridor data',
+      structureDesc: `No audited regulatory records found for ${originIso} ➔ ${targetIso}.`,
+      schemeTitle: 'None',
+      schemeDesc: 'National schemes unconfirmed.',
+      executionTitle: 'Not Available',
+      executionDesc: 'Corridor data unavailable.',
+      defaultCoc: 'BOOK_AND_CLAIM',
+    };
+  }
+
+  const goPossible = POSSIBLE_STATUSES.includes(r.status);
+  const posPossible = r.pos?.status === 'POSSIBLE';
+  const posRoute = getPosRoute(originIso, targetIso);
+  const possibleSchemes = (posRoute.schemes || []).filter(s => s.status === 'POSSIBLE');
+  const posSchemes = possibleSchemes.length > 0
+    ? possibleSchemes.map(s => s.schemeName).join(' / ')
+    : (r.pos?.schemeName || 'National Transport Scheme');
+
+  const requiresCapacityBooking = possibleSchemes.some(s =>
+    /capacit(y|ies)|book|nominat/i.test(`${s.conditions || ''} ${s.reason || ''}`)
+  );
+  const bookingScheme = possibleSchemes.find(s =>
+    /capacit(y|ies)|book|nominat/i.test(`${s.conditions || ''} ${s.reason || ''}`)
+  )?.schemeName;
+
+  const posExecutionDesc = requiresCapacityBooking
+    ? `Required by ${bookingScheme || posSchemes}: book and nominate capacity. Mass balance through the interconnected grid, recorded in the UDB.`
+    : 'Mass balance through the interconnected grid, recorded in the UDB. Physical capacity booking only if the destination scheme requires it.';
+
+  if (goPossible && posPossible) {
+    const hubs = r.hubs.length > 0 ? r.hubs.join(' / ') : 'Registry Hub';
+    const bothExecutionDesc = requiresCapacityBooking
+      ? `Per MWh, choose one: sell the GO on its own via ${hubs}, or deliver the gas with a PoS into ${posSchemes} (Required by ${bookingScheme || posSchemes}: book and nominate capacity). Never both on the same MWh — that is double counting.`
+      : `Per MWh, choose one: sell the GO on its own via ${hubs}, or deliver the gas with a PoS into ${posSchemes} (mass balance through the interconnected grid, recorded in the UDB; physical capacity booking only if the destination scheme requires it). Never both on the same MWh — that is double counting.`;
+
+    return {
+      archetype: 'BOTH',
+      badge: 'Both: Certificates + Physical PoS',
+      chipClass: 'chip-pass',
+      isTradeable: true,
+      structureTitle: 'Dual Option: Book & Claim or Mass Balance',
+      structureDesc: `Per MWh, choose one: sell the GO on its own, or deliver the gas with a PoS into ${posSchemes}. Never both on the same MWh — that is double counting.`,
+      schemeTitle: `${posSchemes} / Voluntary claims / green-gas tariffs`,
+      schemeDesc: `Eligible for compliance quota in ${targetIso} or voluntary green gas claims (not valid evidence under EU ETS; Scope 1 depends on buyer framework).`,
+      executionTitle: `Electronic Transfer (${hubs}) or Interconnected Grid Delivery`,
+      executionDesc: bothExecutionDesc,
+      defaultCoc: 'MASS_BALANCE',
+    };
+  }
+
+  if (goPossible && !posPossible) {
+    const hubs = r.hubs.length > 0 ? r.hubs.join(' / ') : 'Registry Hub';
+    return {
+      archetype: 'CERT_ONLY',
+      badge: 'Certificates Only (Book & Claim)',
+      chipClass: 'chip-pass',
+      isTradeable: true,
+      structureTitle: 'Book & Claim Electronic Transfer (GOs)',
+      structureDesc: 'Certificates can be sold and transferred electronically without moving physical gas or booking pipeline capacity.',
+      schemeTitle: 'Voluntary claims / green-gas tariffs',
+      schemeDesc: `Accepted in ${targetIso} for voluntary consumer green gas or corporate reporting (Scope 1 recognition depends on the buyer's reporting framework; not valid under EU ETS).`,
+      executionTitle: `Registry Account Transfer via ${hubs}`,
+      executionDesc: `Initiate electronic cancellation or transfer in national registry to ${targetIso} counterpart.`,
+      defaultCoc: 'BOOK_AND_CLAIM',
+    };
+  }
+
+  if (!goPossible && posPossible) {
+    const schemeDetailDesc = possibleSchemes.length > 0
+      ? possibleSchemes.map(s => `${s.schemeName}${s.legalBasis ? ` (${s.legalBasis})` : ''}${s.conditions && s.conditions !== 'None' ? ` — Conditions: ${s.conditions}` : ''}`).join('; ')
+      : `${posSchemes} in ${targetIso}`;
+
+    return {
+      archetype: 'POS_ONLY',
+      badge: 'Compliance Quota Only (PoS / Mass Balance)',
+      chipClass: 'chip-pass',
+      isTradeable: true,
+      structureTitle: 'Physical Gas Delivery + Sustainability Proof (PoS)',
+      structureDesc: 'Physical biomethane delivered via interconnected gas grid. Certificates remain bound to the gas parcel.',
+      schemeTitle: `${posSchemes} Compliance`,
+      schemeDesc: schemeDetailDesc,
+      executionTitle: 'Interconnected Grid Delivery + PoS',
+      executionDesc: posExecutionDesc,
+      defaultCoc: 'MASS_BALANCE',
+    };
+  }
+
+  if (r.workaround || r.status === 'AWAITING_REGISTRY' || r.pos?.status === 'OPEN') {
+    return {
+      archetype: 'CHECK_FIRST',
+      badge: 'Requires Workaround / Review',
+      chipClass: 'chip-warn',
+      isTradeable: false,
+      structureTitle: 'Conditional Transfer / Ex-Domain Cancellation',
+      structureDesc: r.workaround || 'Standard electronic transfer not established; requires manual counterparty confirmation.',
+      schemeTitle: posSchemes,
+      schemeDesc: r.pos?.reason || r.reason,
+      executionTitle: 'Ex-Domain Cancellation or Bilateral Contract',
+      executionDesc: 'Cancel certificate in origin registry explicitly for beneficiary in destination, subject to local regulator acceptance.',
+      defaultCoc: 'BOOK_AND_CLAIM',
+    };
+  }
+
+  return {
+    archetype: 'CLOSED',
+    badge: 'Domestic Market Only / Closed',
+    chipClass: '',
+    isTradeable: false,
+    structureTitle: 'Foreign Imports Excluded by Law',
+    structureDesc: r.pos?.reason || r.reason || 'Domestic regulations prohibit imported biomethane from claiming national subsidies.',
+    schemeTitle: posSchemes,
+    schemeDesc: r.pos?.reason || 'Restricted to domestic grid injection.',
+    executionTitle: 'No Statutory Corridor Available',
+    executionDesc: 'Trade cannot be settled under current legal framework.',
+    defaultCoc: 'BOOK_AND_CLAIM',
+  };
+}

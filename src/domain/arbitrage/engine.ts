@@ -19,6 +19,51 @@ export const DEFAULT_WHAT_IF_SCENARIO: RegulatoryWhatIfScenario = {
 };
 
 /**
+ * The consignment the scan evaluates for one origin and feedstock. Exported so Origination's
+ * market ladder evaluates exactly the same consignment as the route list it sits beside.
+ */
+export function buildArbitrageConsignment(args: {
+  originCountry: string;
+  originCountryName: string;
+  feedstockKey: string;
+  feedstockName: string;
+  annexClassification: Consignment['annexClassification'];
+  carbonIntensity: number;
+  scheme: CertificationScheme;
+  chainOfCustody: ChainOfCustody;
+  isEUGrid: boolean;
+  volumeMWh: number;
+}): Consignment {
+  return {
+    id: `arb_${args.originCountry}_${args.feedstockKey}`,
+    name: `${args.originCountryName} ${args.feedstockName}`,
+    originCountry: args.originCountry,
+    originCountryName: args.originCountryName,
+    feedstock: args.feedstockKey,
+    feedstockName: args.feedstockName,
+    annexClassification: args.annexClassification,
+    carbonIntensity: args.carbonIntensity,
+    commissioningDateRange: 'POST_2021_TO_2025',
+    certificationScheme: args.scheme,
+    chainOfCustody: args.chainOfCustody,
+    injectionCountry: args.originCountry,
+    injectionIsEU: args.isEUGrid,
+    udbStatus: args.isEUGrid ? 'RECORDED' : 'NOT_RECORDED',
+    posStatus: 'ISSUED',
+    volumeMWh: args.volumeMWh,
+  };
+}
+
+/** Whether an origin injects into the EU-interconnected grid (UK only under the what-if UDB scenario). */
+export function originIsEuGrid(
+  origin: { countryCode: string; gridZone: string },
+  scenario: RegulatoryWhatIfScenario = DEFAULT_WHAT_IF_SCENARIO
+): boolean {
+  if (origin.countryCode === 'GB' && scenario.ukUdbRecognition) return true;
+  return origin.gridZone === 'EU_INTERCONNECTED';
+}
+
+/**
  * Scan and compute all cross-border arbitrage opportunities across Europe
  * with realistic commercial trading desk margin allocation.
  */
@@ -48,29 +93,20 @@ export function scanEuropeanArbitrage(
   const originEntries = Object.values(PRODUCING_ORIGINS);
 
   for (const origin of originEntries) {
-    let isEUGrid = origin.gridZone === 'EU_INTERCONNECTED';
-    if (origin.countryCode === 'GB' && scenario.ukUdbRecognition) {
-      isEUGrid = true; // What-If simulated agreement
-    }
+    const isEUGrid = originIsEuGrid(origin, scenario); // UK counts as EU only under the what-if UDB agreement
 
-    const consignment: Consignment = {
-      id: `arb_${origin.countryCode}_${selectedFeedstockKey}`,
-      name: `${origin.countryName} ${feedstockInfo.name}`,
+    const consignment: Consignment = buildArbitrageConsignment({
       originCountry: origin.countryCode,
       originCountryName: origin.countryName,
-      feedstock: selectedFeedstockKey,
+      feedstockKey: selectedFeedstockKey,
       feedstockName: feedstockInfo.name,
       annexClassification: feedstockInfo.annexClassification,
       carbonIntensity: ci,
-      commissioningDateRange: 'POST_2021_TO_2025',
-      certificationScheme: scheme,
-      chainOfCustody: chainOfCustody,
-      injectionCountry: origin.countryCode,
-      injectionIsEU: isEUGrid,
-      udbStatus: isEUGrid ? 'RECORDED' : 'NOT_RECORDED',
-      posStatus: 'ISSUED',
+      scheme,
+      chainOfCustody,
+      isEUGrid,
       volumeMWh,
-    };
+    });
 
     for (const market of activeMarkets) {
       const customMarks: MarksState = {
@@ -211,6 +247,8 @@ export function scanEuropeanArbitrage(
         marginPercent: marginPct,
         totalDealProfitEur: totalDealProfit,
         revenueCeilingApplied,
+        netbackCappedAt: netbackRes.netbackCappedAt ?? null,
+        theoreticalNetbackEurPerMWh: netbackRes.theoreticalNetback ?? null,
         eligibility,
         overallVerdict: eligibility.overallVerdict,
         isTradeable,

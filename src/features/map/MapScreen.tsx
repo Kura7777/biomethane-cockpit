@@ -15,10 +15,11 @@ import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 import { Sheet } from '../../shared/ui';
 import './map.css';
 import { LogisticsModal } from '../logistics/LogisticsModal';
+import { RouteVerdictCard, posOpenId } from './RouteVerdictCard';
 import { buildDealUrl } from '../../domain/trade/dealParams';
 import { calculateLogisticsRoute, calculateDijkstraCorridor } from '../../domain/logistics/engine';
 import { getMarketForRoute, getMarketAndCocForRoute } from '../../domain/trade/dealDefaults';
-import { getGoRoute, getPosRoute } from '../../domain/routes';
+import { getPosRoute } from '../../domain/routes';
 import { POS_SCHEMES } from '../../domain/routes/routeMatrix.generated';
 import { MARKETS } from '../../domain/markets/registry';
 import {
@@ -101,11 +102,6 @@ const SELL_LEGEND: { key: 'ORIGIN' | SellCategory; label: string; swatch: string
   { key: 'NO_DATA', label: 'Not researched', swatch: STATUS_CONFIG.NONE.swatch },
 ];
 
-const EVIDENCE_GRADE_TEXT: Record<string, string> = {
-  OBSERVED: 'proven by real trades',
-  PUBLISHED: "registry's published list",
-  RULE: 'hub rules',
-};
 const AUDIT_REF = 'Audited 4 Oct 2026 — sources in docs/research/route-audit-2026-10-04.';
 const ROUTES_HINT = 'Click any destination country to inspect trade opportunities & execution playbook.';
 
@@ -242,146 +238,9 @@ export function resolveCorridorParams(params: URLSearchParams): { origin: string
   return { origin: originName, target: targetName, filter: filterVal };
 }
 
-export type TradeArchetype = 'BOTH' | 'CERT_ONLY' | 'POS_ONLY' | 'CHECK_FIRST' | 'CLOSED' | 'NO_DATA';
-
-export interface TradePlaybookDetails {
-  archetype: TradeArchetype;
-  badge: string;
-  chipClass: string;
-  isTradeable: boolean;
-  structureTitle: string;
-  structureDesc: string;
-  schemeTitle: string;
-  schemeDesc: string;
-  executionTitle: string;
-  executionDesc: string;
-  defaultCoc: 'BOOK_AND_CLAIM' | 'MASS_BALANCE';
-}
-
-export function getTradePlaybook(originIso: string, targetIso: string, r: CertificateRoute | undefined): TradePlaybookDetails {
-  if (!r) {
-    return {
-      archetype: 'NO_DATA',
-      badge: 'Unresearched',
-      chipClass: '',
-      isTradeable: false,
-      structureTitle: 'No verified corridor data',
-      structureDesc: `No audited regulatory records found for ${originIso} ➔ ${targetIso}.`,
-      schemeTitle: 'None',
-      schemeDesc: 'National schemes unconfirmed.',
-      executionTitle: 'Not Available',
-      executionDesc: 'Corridor data unavailable.',
-      defaultCoc: 'BOOK_AND_CLAIM',
-    };
-  }
-
-  const goPossible = POSSIBLE_STATUSES.includes(r.status);
-  const posPossible = r.pos?.status === 'POSSIBLE';
-  const posRoute = getPosRoute(originIso, targetIso);
-  const possibleSchemes = (posRoute.schemes || []).filter(s => s.status === 'POSSIBLE');
-  const posSchemes = possibleSchemes.length > 0
-    ? possibleSchemes.map(s => s.schemeName).join(' / ')
-    : (r.pos?.schemeName || 'National Transport Scheme');
-
-  const requiresCapacityBooking = possibleSchemes.some(s =>
-    /capacit(y|ies)|book|nominat/i.test(`${s.conditions || ''} ${s.reason || ''}`)
-  );
-  const bookingScheme = possibleSchemes.find(s =>
-    /capacit(y|ies)|book|nominat/i.test(`${s.conditions || ''} ${s.reason || ''}`)
-  )?.schemeName;
-
-  const posExecutionDesc = requiresCapacityBooking
-    ? `Required by ${bookingScheme || posSchemes}: book and nominate capacity. Mass balance through the interconnected grid, recorded in the UDB.`
-    : 'Mass balance through the interconnected grid, recorded in the UDB. Physical capacity booking only if the destination scheme requires it.';
-
-  if (goPossible && posPossible) {
-    const hubs = r.hubs.length > 0 ? r.hubs.join(' / ') : 'Registry Hub';
-    const bothExecutionDesc = requiresCapacityBooking
-      ? `Per MWh, choose one: sell the GO on its own via ${hubs}, or deliver the gas with a PoS into ${posSchemes} (Required by ${bookingScheme || posSchemes}: book and nominate capacity). Never both on the same MWh — that is double counting.`
-      : `Per MWh, choose one: sell the GO on its own via ${hubs}, or deliver the gas with a PoS into ${posSchemes} (mass balance through the interconnected grid, recorded in the UDB; physical capacity booking only if the destination scheme requires it). Never both on the same MWh — that is double counting.`;
-
-    return {
-      archetype: 'BOTH',
-      badge: 'Both: Certificates + Physical PoS',
-      chipClass: 'chip-pass',
-      isTradeable: true,
-      structureTitle: 'Dual Option: Book & Claim or Mass Balance',
-      structureDesc: `Per MWh, choose one: sell the GO on its own, or deliver the gas with a PoS into ${posSchemes}. Never both on the same MWh — that is double counting.`,
-      schemeTitle: `${posSchemes} / Voluntary claims / green-gas tariffs`,
-      schemeDesc: `Eligible for compliance quota in ${targetIso} or voluntary green gas claims (not valid evidence under EU ETS; Scope 1 depends on buyer framework).`,
-      executionTitle: `Electronic Transfer (${hubs}) or Interconnected Grid Delivery`,
-      executionDesc: bothExecutionDesc,
-      defaultCoc: 'MASS_BALANCE',
-    };
-  }
-
-  if (goPossible && !posPossible) {
-    const hubs = r.hubs.length > 0 ? r.hubs.join(' / ') : 'Registry Hub';
-    return {
-      archetype: 'CERT_ONLY',
-      badge: 'Certificates Only (Book & Claim)',
-      chipClass: 'chip-pass',
-      isTradeable: true,
-      structureTitle: 'Book & Claim Electronic Transfer (GOs)',
-      structureDesc: 'Certificates can be sold and transferred electronically without moving physical gas or booking pipeline capacity.',
-      schemeTitle: 'Voluntary claims / green-gas tariffs',
-      schemeDesc: `Accepted in ${targetIso} for voluntary consumer green gas or corporate reporting (Scope 1 recognition depends on the buyer's reporting framework; not valid under EU ETS).`,
-      executionTitle: `Registry Account Transfer via ${hubs}`,
-      executionDesc: `Initiate electronic cancellation or transfer in national registry to ${targetIso} counterpart.`,
-      defaultCoc: 'BOOK_AND_CLAIM',
-    };
-  }
-
-  if (!goPossible && posPossible) {
-    const schemeDetailDesc = possibleSchemes.length > 0
-      ? possibleSchemes.map(s => `${s.schemeName}${s.legalBasis ? ` (${s.legalBasis})` : ''}${s.conditions && s.conditions !== 'None' ? ` — Conditions: ${s.conditions}` : ''}`).join('; ')
-      : `${posSchemes} in ${targetIso}`;
-
-    return {
-      archetype: 'POS_ONLY',
-      badge: 'Compliance Quota Only (PoS / Mass Balance)',
-      chipClass: 'chip-pass',
-      isTradeable: true,
-      structureTitle: 'Physical Gas Delivery + Sustainability Proof (PoS)',
-      structureDesc: 'Physical biomethane delivered via interconnected gas grid. Certificates remain bound to the gas parcel.',
-      schemeTitle: `${posSchemes} Compliance`,
-      schemeDesc: schemeDetailDesc,
-      executionTitle: 'Interconnected Grid Delivery + PoS',
-      executionDesc: posExecutionDesc,
-      defaultCoc: 'MASS_BALANCE',
-    };
-  }
-
-  if (r.workaround || r.status === 'AWAITING_REGISTRY' || r.pos?.status === 'OPEN') {
-    return {
-      archetype: 'CHECK_FIRST',
-      badge: 'Requires Workaround / Review',
-      chipClass: 'chip-warn',
-      isTradeable: false,
-      structureTitle: 'Conditional Transfer / Ex-Domain Cancellation',
-      structureDesc: r.workaround || 'Standard electronic transfer not established; requires manual counterparty confirmation.',
-      schemeTitle: posSchemes,
-      schemeDesc: r.pos?.reason || r.reason,
-      executionTitle: 'Ex-Domain Cancellation or Bilateral Contract',
-      executionDesc: 'Cancel certificate in origin registry explicitly for beneficiary in destination, subject to local regulator acceptance.',
-      defaultCoc: 'BOOK_AND_CLAIM',
-    };
-  }
-
-  return {
-    archetype: 'CLOSED',
-    badge: 'Domestic Market Only / Closed',
-    chipClass: '',
-    isTradeable: false,
-    structureTitle: 'Foreign Imports Excluded by Law',
-    structureDesc: r.pos?.reason || r.reason || 'Domestic regulations prohibit imported biomethane from claiming national subsidies.',
-    schemeTitle: posSchemes,
-    schemeDesc: r.pos?.reason || 'Restricted to domestic grid injection.',
-    executionTitle: 'No Statutory Corridor Available',
-    executionDesc: 'Trade cannot be settled under current legal framework.',
-    defaultCoc: 'BOOK_AND_CLAIM',
-  };
-}
+export { getTradePlaybook } from './tradePlaybook';
+export type { TradeArchetype, TradePlaybookDetails } from './tradePlaybook';
+import { getTradePlaybook } from './tradePlaybook';
 
 export function MapScreen() {
   const navigate = useNavigate();
@@ -647,10 +506,6 @@ export function MapScreen() {
     return { both, certOnly, posOnly };
   }, [certRoutes, filter]);
 
-  const posOpenId = (r: CertificateRoute): string | null => {
-    if (!r.pos || r.pos.status !== 'OPEN') return null;
-    return getPosRoute(r.origin, r.target).schemes.find(x => x.status === 'OPEN' && x.openQuestionId)?.openQuestionId ?? null;
-  };
   const currentRoute = useMemo(() => getCertificateRoute(originMeta.iso, targetMeta.iso), [originMeta.iso, targetMeta.iso]);
 
   const selectedRoute = useMemo(() => {
@@ -1179,15 +1034,6 @@ export function MapScreen() {
     const hasOq = cat === 'CHECK_FIRST' && Boolean(oq);
 
     const playbook = getTradePlaybook(originMeta.iso, r.target, r);
-    const goDetails = getGoRoute(r.origin, r.target);
-    const posDetails = getPosRoute(r.origin, r.target);
-
-    const allSources = [
-      ...(goDetails.sources || []),
-      ...(posDetails.schemes?.flatMap(s => s.sources || []) || []),
-    ];
-    const uniqueSources = allSources.filter((s, idx, arr) => arr.findIndex(x => x.url === s.url) === idx);
-
     return (
       <div key={r.target} className="map-route-row-item">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '4px 6px', width: '100%', boxSizing: 'border-box' }}>
@@ -1238,76 +1084,7 @@ export function MapScreen() {
           })()}
         </div>
 
-        {isExpanded && (
-          <div className="map-route-expanded-card" data-testid={`expanded-${r.target}`}>
-            <div style={{ padding: '8px 10px', backgroundColor: 'color-mix(in srgb, var(--color-surface) 60%, transparent)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-control)' }}>
-              <div className="eyebrow" style={{ color: 'var(--color-accent)', fontWeight: 800, marginBottom: '2px' }}>
-                Commercial Trade Playbook: {playbook.structureTitle}
-              </div>
-              <div style={{ fontSize: '12px', lineHeight: 1.45, marginBottom: '6px' }}>{playbook.structureDesc}</div>
-              <div style={{ fontSize: '11px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                <div><strong>Scheme:</strong> {playbook.schemeTitle} — {playbook.schemeDesc}</div>
-                <div><strong>Execution:</strong> {playbook.executionTitle} — {playbook.executionDesc}</div>
-              </div>
-            </div>
-
-            <div>
-              <div className="eyebrow" style={{ marginBottom: '3px' }}>GO (Book &amp; Claim)</div>
-              <div><strong>Status:</strong> {CERT_ROUTE_LABELS[r.status]} · <strong>Via:</strong> {goDetails.via && goDetails.via !== 'NONE' ? (goDetails.via === 'ERGAR' ? 'ERGaR' : goDetails.via) : '—'} · <strong>Evidence:</strong> {EVIDENCE_GRADE_TEXT[goDetails.grade] || goDetails.grade}</div>
-              <div className="mut" style={{ marginTop: '2px' }}>{goDetails.reason}</div>
-              {goDetails.conditions && goDetails.conditions.length > 0 && (
-                <div style={{ marginTop: '3px' }}><strong>Conditions:</strong> {goDetails.conditions.join('; ')}</div>
-              )}
-              {goDetails.workaround && (
-                <div style={{ marginTop: '3px' }}><strong>Workaround (ex-domain):</strong> {goDetails.workaround}</div>
-              )}
-            </div>
-
-            <div style={{ borderTop: '1px solid var(--color-divider)', paddingTop: '8px' }}>
-              <div className="eyebrow" style={{ marginBottom: '3px' }}>PoS (Mass Balance Quota)</div>
-              <div><strong>Status:</strong> {posDetails.status}</div>
-              {posDetails.schemes.length > 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
-                  {posDetails.schemes.map(s => (
-                    <div key={s.schemeId} style={{ paddingLeft: '8px', borderLeft: '2px solid var(--color-divider)' }}>
-                      <div><strong>{s.schemeName}</strong> ({s.status}){s.legalBasis ? ` · ${s.legalBasis}` : ''}</div>
-                      <div className="mut">{s.reason}</div>
-                      {s.conditions && <div><strong>Conditions:</strong> {s.conditions}</div>}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="mut">{r.pos?.reason || 'No specific national schemes found.'}</div>
-              )}
-            </div>
-
-            {oq && (
-              <div style={{ borderTop: '1px solid var(--color-divider)', paddingTop: '8px' }}>
-                <span className="eyebrow">Open question</span>
-                <div style={{ fontWeight: 600, marginTop: '2px' }}>{oq}</div>
-              </div>
-            )}
-
-            {uniqueSources.length > 0 && (
-              <div style={{ borderTop: '1px solid var(--color-divider)', paddingTop: '8px' }}>
-                <div className="eyebrow" style={{ marginBottom: '4px' }}>Sources &amp; citations</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  {uniqueSources.map((s, idx) => (
-                    <a
-                      key={idx}
-                      href={s.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ fontSize: '12px', color: 'var(--color-accent)', textDecoration: 'underline', overflowWrap: 'anywhere' }}
-                    >
-                      {s.claim} ↗
-                    </a>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+        {isExpanded && <RouteVerdictCard origin={r.origin} target={r.target} />}
       </div>
     );
   };

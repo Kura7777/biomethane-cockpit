@@ -19,6 +19,8 @@ export interface BreakdownOpportunity {
   deskNetMarginEurPerMWh: ArbitrageOpportunity['deskNetMarginEurPerMWh'];
   totalDealProfitEur: ArbitrageOpportunity['totalDealProfitEur'];
   revenueCeilingApplied?: ArbitrageOpportunity['revenueCeilingApplied'];
+  netbackCappedAt?: ArbitrageOpportunity['netbackCappedAt'];
+  theoreticalNetbackEurPerMWh?: ArbitrageOpportunity['theoreticalNetbackEurPerMWh'];
 }
 
 export interface OriginationBreakdownInput {
@@ -49,10 +51,14 @@ export interface OriginationBreakdown {
   /** Revenue per MWh after any desk-assumption ceiling (the number the margin split used). */
   grossRevenueEur: number | null;
   revenueCeilingApplied: { ceilingEurPerMwh: number; uncappedEurPerMwh: number } | null;
+  /** The netback engine already capped the revenue at a bundle reference (desk assumption unless a bundle price was observed). */
+  netbackCapped: { capEurPerMwh: number; theoreticalEurPerMwh: number | null } | null;
   /** TTF at the engine's molecule side; null when no gas index mark is loaded. */
   gasIndexEur: number | null;
   gasIndexSide: 'bid' | 'offer' | 'mid';
   gasIndexSource: PriceSource | null;
+  /** True when there is no TTF mark: the netback engine then values the gas molecule at nothing, so revenue excludes it. */
+  revenueExclMolecule: boolean;
   /** Gross revenue minus the TTF mark; null when either is missing. Never floored at 0. */
   certificateValueEur: number | null;
 
@@ -135,10 +141,15 @@ export function computeOriginationBreakdown(input: OriginationBreakdownInput): O
     deliveredCostExclCertification: certificationEur === null,
     grossRevenueEur,
     revenueCeilingApplied,
+    netbackCapped:
+      opp.netbackCappedAt !== null && opp.netbackCappedAt !== undefined
+        ? { capEurPerMwh: opp.netbackCappedAt, theoreticalEurPerMwh: opp.theoreticalNetbackEurPerMWh ?? null }
+        : null,
     gasIndexEur,
     gasIndexSide: moleculeSide,
     gasIndexSource: gasIndexEur === null ? null : gasIndexSource(gasIndex),
     certificateValueEur,
+    revenueExclMolecule: gasIndexEur === null,
     marginSplit:
       costs.producerPricing?.mode === 'INDEX_LINKED' && costs.producerPricing.indexLinkedShare !== null
         ? 'PRODUCER_SHARE'

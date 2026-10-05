@@ -40,6 +40,10 @@ export interface ArbitrageOpportunity {
   totalDealProfitEur: number | null;               // deskNetMargin * volume (e.g. €35,000 on 10,000 MWh)
   /** Set when a desk-assumption ceiling capped the revenue before the margin split (see origination.deThgBundleCeilingEurPerMwh). */
   revenueCeilingApplied?: { ceilingEurPerMwh: number; uncappedEurPerMwh: number } | null;
+  /** Set when the netback engine capped the modelled netback at a traded-bundle reference (risk.deThgBundleRef* assumptions, or an observed bundle price). */
+  netbackCappedAt?: number | null;
+  /** The modelled netback before that cap, when it was capped. */
+  theoreticalNetbackEurPerMWh?: number | null;
   
   // Regulatory
   eligibility: EligibilityAssessment;

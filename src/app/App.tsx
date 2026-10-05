@@ -39,8 +39,6 @@ function lazyWithRetry<T extends React.ComponentType<any>>(
 }
 
 const CommercialFlowStepper = lazyWithRetry(() => import('../features/commercial/CommercialFlowStepper').then(m => ({ default: m.CommercialFlowStepper })));
-const SourcingOriginationDesk = lazyWithRetry(() => import('../features/sourcing/SourcingOriginationDesk').then(m => ({ default: m.SourcingOriginationDesk })));
-const ScannerScreen = lazyWithRetry(() => import('../features/opportunity-scanner/ScannerScreen').then(m => ({ default: m.ScannerScreen })));
 const MapScreen = lazyWithRetry(() => import('../features/map/MapScreen').then(m => ({ default: m.MapScreen })));
 const MarksScreen = lazyWithRetry(() => import('../features/marks/MarksScreen').then(m => ({ default: m.MarksScreen })));
 const TradeBuilderScreen = lazyWithRetry(() => import('../features/trade-builder/TradeBuilderScreen').then(m => ({ default: m.TradeBuilderScreen })));
@@ -78,8 +76,8 @@ function AppContent() {
             <Route path="/" element={<CommercialFlowStepper />} />
             <Route path="/sourcing" element={<CommercialFlowStepper />} />
             <Route path="/commercial" element={<CommercialFlowStepper />} />
-            <Route path="/desk" element={<SourcingOriginationDesk />} />
-            <Route path="/scanner" element={<ScannerScreen />} />
+            <Route path="/desk" element={<Navigate to="/sourcing" replace />} />
+            <Route path="/scanner" element={<Navigate to="/sourcing" replace />} />
             <Route path="/map" element={<MapScreen />} />
             <Route path="/pricing" element={<MarksScreen />} />
             <Route path="/marks" element={<MarksScreen />} />

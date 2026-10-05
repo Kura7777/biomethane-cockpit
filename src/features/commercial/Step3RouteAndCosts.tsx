@@ -12,7 +12,8 @@ import {
 import { SourceChip } from '../../shared/ui/SourceChip';
 import { RouteStatusBadge } from './RouteStatusBadge';
 import { SourcedOpportunity } from './PlantScannerTable';
-import { CorridorMiniMap } from '../map/CorridorMiniMap';
+import { RouteVerdictCard } from '../map/RouteVerdictCard';
+import { MarketLadder } from './MarketLadder';
 import { 
   ArrowLeft, 
   ArrowRight, 
@@ -85,10 +86,10 @@ export function Step3RouteAndCosts({
           Step 3 of 4: Route planning &amp; cost breakdown
         </div>
         <h1 style={{ color: 'var(--color-text)' }} className="text-xl sm:text-2xl font-semibold mb-1.5">
-          Route map &amp; commercial pricing engine
+          Route verdict &amp; cost breakdown
         </h1>
         <p style={{ color: 'var(--color-muted)' }} className="text-xs sm:text-sm font-normal max-w-2xl">
-          We mapped the transit corridor and priced every component: sourcing, grid tariffs, transit, certification, and certificate monetization.
+          Every price below comes from the Pricing desk marks or your cost inputs and shows where it came from. Routes marked Review needed have an open eligibility condition.
         </p>
       </div>
 
@@ -108,7 +109,7 @@ export function Step3RouteAndCosts({
               <div className="flex items-center gap-2">
                 <Navigation className="w-4 h-4" style={{ color: 'var(--color-accent)' }} />
                 <span style={{ color: 'var(--color-text)' }} className="text-xs font-semibold">
-                  Visual transit corridor
+                  Route verdict (certificates and mass balance)
                 </span>
               </div>
               <span
@@ -124,29 +125,21 @@ export function Step3RouteAndCosts({
               </span>
             </div>
 
-            {/* Map Component Container */}
-            <div
-              style={{
-                borderRadius: 'var(--radius-control)',
-                borderColor: 'var(--color-line)',
-              }}
-              className="w-full h-[320px] max-md:h-auto overflow-hidden border"
-            >
-              <CorridorMiniMap
-                originCountry={opportunity.originCountry}
-                targetCountry={opportunity.targetCountry}
-                plantName={opportunity.originPlantName}
-                plantCoords={opportunity.originPlantCoords}
-                transitSteps={transitSteps}
-                distanceKm={opportunity.logisticsDistanceKm}
-                logisticsCostEur={opportunity.transitCostEurPerMWh}
-                deliveryMode={opportunity.deliveryMode}
-              />
-            </div>
+            {/* Route verdict: the same card the map and the market ladder show */}
+            <RouteVerdictCard
+              origin={opportunity.originCountry}
+              target={opportunity.targetCountry}
+              showMapLink
+            />
 
             <div className="mt-3 flex items-center gap-2 flex-wrap text-xs">
               <RouteStatusBadge verdict={opportunity.overallVerdict} detail={opportunity.eligibility.summary} />
               <span style={{ color: 'var(--color-muted)' }} className="text-[11px]">{opportunity.eligibility.summary}</span>
+            </div>
+
+            <div style={{ color: 'var(--color-muted)' }} className="mt-2 text-[11px]" data-testid="corridor-line">
+              Corridor {transitSteps.join(' → ')} · {transitSteps.length - 1 > 0 ? `${transitSteps.length - 1} hop${transitSteps.length - 1 === 1 ? '' : 's'}` : 'direct grid'}
+              {opportunity.logisticsDistanceKm ? ` · ${Math.round(opportunity.logisticsDistanceKm)} km` : ''}
             </div>
 
             {/* Route Stats */}
@@ -361,16 +354,26 @@ export function Step3RouteAndCosts({
                 style={{ borderColor: 'var(--color-line)' }}
                 className="flex justify-between items-center py-1.5 px-2 border-t font-medium text-xs"
               >
-                <span style={{ color: 'var(--color-muted)' }}>Total realizable revenue:</span>
+                <span style={{ color: 'var(--color-muted)' }}>Total realizable revenue{b.revenueExclMolecule ? ' (excl. gas: no TTF mark)' : ''}:</span>
                 <span style={{ color: 'var(--color-text)' }} className="font-semibold tabular-nums">{fmtEurPerMwh(totalGrossRevenueEur)} ({fmtEurTotal(totalDealRevenueEur)})</span>
               </div>
-              {b.revenueCeilingApplied && (
+              {(b.revenueCeilingApplied || b.netbackCapped) && (
                 <div
                   data-testid="ceiling-note"
                   style={{ color: 'var(--color-status-warn-text)' }}
                   className="px-2 text-[11px] font-medium"
                 >
-                  Capped at €{b.revenueCeilingApplied.ceilingEurPerMwh}/MWh (desk assumption). The market netback was {fmtEurPerMwh(b.revenueCeilingApplied.uncappedEurPerMwh)}.{' '}
+                  {b.netbackCapped && (
+                    <>
+                      Capped at €{b.netbackCapped.capEurPerMwh}/MWh (desk assumption: DE THG traded-bundle reference).
+                      {b.netbackCapped.theoreticalEurPerMwh !== null ? ` Modelled netback before the cap: ${fmtEurPerMwh(b.netbackCapped.theoreticalEurPerMwh)}.` : ''}{' '}
+                    </>
+                  )}
+                  {b.revenueCeilingApplied && (
+                    <>
+                      Capped at €{b.revenueCeilingApplied.ceilingEurPerMwh}/MWh (desk assumption). The market netback was {fmtEurPerMwh(b.revenueCeilingApplied.uncappedEurPerMwh)}.{' '}
+                    </>
+                  )}
                   <Link to="/assumptions" className="underline">Change in Assumptions</Link>
                 </div>
               )}
@@ -401,7 +404,7 @@ export function Step3RouteAndCosts({
               </div>
               <div
                 style={{ color: isProfitable ? 'var(--color-pnl-pos)' : 'var(--color-pnl-neg)' }}
-                className="text-xl sm:text-2xl font-bold tabular-nums"
+                className="text-xl sm:text-2xl font-bold tabular-nums whitespace-nowrap"
               >
                 {isProfitable ? '+' : ''}{fmtEurTotal(totalDealProfitEur)}
               </div>
@@ -409,6 +412,8 @@ export function Step3RouteAndCosts({
           </div>
         </div>
       </div>
+
+      <MarketLadder opportunity={opportunity} volumeMwh={vol} />
 
       {/* Navigation Buttons */}
       <div

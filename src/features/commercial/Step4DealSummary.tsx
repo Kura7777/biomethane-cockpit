@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAppState } from '../../store/context';
 import { ClientRequest } from '../../domain/arbitrage/types';
 import { SourcedOpportunity } from './PlantScannerTable';
-import { buildDealUrl } from '../../domain/trade/dealParams';
+import { buildOpportunityDealUrl } from './dealUrl';
 import { defaultVolumeMwh } from '../../domain/trade/dealDefaults';
 import {
   computeOriginationBreakdown,
@@ -100,7 +100,8 @@ Route status: ${routeStatus === 'TRADEABLE' ? 'Tradeable (all eligibility gates 
 
 • Wholesale Gas Offtake (TTF ${b.gasIndexSide}): ${gasIndexEur === null ? 'No TTF mark' : `${fmtEurPerMwh(gasIndexEur)} (${fmtEurTotal(gasIndexEur * vol)})${gasSourceText}`}
 • Green Certificate Premium: ${certificateValueEur === null ? '—' : `${fmtEurPerMwh(certificateValueEur)} (${fmtEurTotal(certificateValueEur * vol)})`}
-• Total Realizable Revenue: ${fmtEurPerMwh(totalGrossRevenueEur)} (${fmtEurTotal(totalDealRevenueEur)})${b.revenueCeilingApplied ? `
+• Total Realizable Revenue${b.revenueExclMolecule ? ' (excl. gas: no TTF mark)' : ''}: ${fmtEurPerMwh(totalGrossRevenueEur)} (${fmtEurTotal(totalDealRevenueEur)})${b.netbackCapped ? `
+• Capped at €${b.netbackCapped.capEurPerMwh}/MWh (desk assumption: DE THG traded-bundle reference)` : ''}${b.revenueCeilingApplied ? `
 • Capped at €${b.revenueCeilingApplied.ceilingEurPerMwh}/MWh (desk assumption)` : ''}
 
 3. NET COMMERCIAL SPREAD
@@ -117,22 +118,7 @@ Route status: ${routeStatus === 'TRADEABLE' ? 'Tradeable (all eligibility gates 
   const navigate = useNavigate();
 
   const handleOpenTradeBuilder = () => {
-    const plantVolume = opportunity.plantAnnualGWh ? Math.round(opportunity.plantAnnualGWh * 1000) : (vol || defaultVolumeMwh());
-    navigate(buildDealUrl({
-      marketId: opportunity.targetMarketId,
-      originCountry: opportunity.originCountry,
-      feedstock: opportunity.feedstockKey,
-      ci: opportunity.carbonIntensity,
-      ciIsEstimated: true,
-      volume: plantVolume,
-      plantId: opportunity.originPlantId,
-      plantName: opportunity.originPlantName,
-      plantCapacityNm3h: opportunity.plantCapacityNm3h ?? undefined,
-      plantAnnualGWh: opportunity.plantAnnualGWh ?? undefined,
-      legalEntityName: opportunity.legalEntityName ?? undefined,
-      networkOperator: opportunity.networkOperator ?? undefined,
-      counterparty: opportunity.legalEntityName || opportunity.originPlantName || 'European Biomethane Producer',
-    }));
+    navigate(buildOpportunityDealUrl(opportunity, opportunity.targetMarketId, vol));
   };
 
   const handleVerifyStatutoryCompliance = () => {
@@ -281,7 +267,7 @@ Route status: ${routeStatus === 'TRADEABLE' ? 'Tradeable (all eligibility gates 
             </span>
             <span
               style={{ color: isProfitable ? 'var(--color-pnl-pos)' : 'var(--color-pnl-neg)' }}
-              className="text-2xl sm:text-3xl font-bold tabular-nums block mt-1"
+              className="text-2xl sm:text-3xl font-bold tabular-nums block mt-1 whitespace-nowrap"
             >
               {isProfitable ? '+' : ''}{fmtEurTotal(totalDealProfitEur)}
             </span>
@@ -409,10 +395,17 @@ Route status: ${routeStatus === 'TRADEABLE' ? 'Tradeable (all eligibility gates 
                   <td style={{ color: 'var(--color-pnl-pos)' }} className="p-3 text-right tabular-nums">{certificateValueEur === null ? '—' : fmtEurTotal(certificateValueEur * vol)}</td>
                 </tr>
                 <tr style={{ backgroundColor: 'var(--color-bg)' }} className="font-semibold">
-                  <td className="p-3">Total realizable revenue (credits)</td>
+                  <td className="p-3">Total realizable revenue (credits){b.revenueExclMolecule ? ' (excl. gas: no TTF mark)' : ''}</td>
                   <td style={{ color: 'var(--color-text)' }} className="p-3 text-right tabular-nums">{fmtEurPerMwh(totalGrossRevenueEur)}</td>
                   <td style={{ color: 'var(--color-text)' }} className="p-3 text-right tabular-nums">{fmtEurTotal(totalDealRevenueEur)}</td>
                 </tr>
+                {b.netbackCapped && (
+                  <tr>
+                    <td colSpan={3} style={{ color: 'var(--color-status-warn-text)' }} className="p-3 text-[11px] font-medium">
+                      Capped at €{b.netbackCapped.capEurPerMwh}/MWh (desk assumption: DE THG traded-bundle reference).{b.netbackCapped.theoreticalEurPerMwh !== null ? ` Modelled netback before the cap: ${fmtEurPerMwh(b.netbackCapped.theoreticalEurPerMwh)}.` : ''}
+                    </td>
+                  </tr>
+                )}
                 {b.revenueCeilingApplied && (
                   <tr>
                     <td colSpan={3} style={{ color: 'var(--color-status-warn-text)' }} className="p-3 text-[11px] font-medium">
