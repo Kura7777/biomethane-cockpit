@@ -341,9 +341,17 @@ export function createMarkUpdateFromRow(row: PricingBookEntry, marketId: string,
   // the row's own EUR/MWh figure (numeric*EurMwh); a GBP-denominated market takes the quoted GBP price.
   const unit = MARKETS.find(m => m.id === marketId)?.unitOfAccount ?? '';
   const needsEur = row.currency === 'GBP' && !unit.startsWith('GBP');
-  const bid = (needsEur ? row.numericBidEurMwh : row.bidPriceNumeric) ?? null;
-  const offer = (needsEur ? row.numericOfferEurMwh : row.offerPriceNumeric) ?? null;
-  const mid = bid !== null && offer !== null ? Number(((bid + offer) / 2).toFixed(6)) : null;
+  const hasEur = (row.numericBidEurMwh !== null && row.numericBidEurMwh !== undefined) ||
+                 (row.numericOfferEurMwh !== null && row.numericOfferEurMwh !== undefined);
+  const bid = needsEur
+    ? (hasEur ? (row.numericBidEurMwh ?? null) : undefined)
+    : (row.bidPriceNumeric ?? null);
+  const offer = needsEur
+    ? (hasEur ? (row.numericOfferEurMwh ?? null) : undefined)
+    : (row.offerPriceNumeric ?? null);
+  const mid = bid !== undefined && offer !== undefined && bid !== null && offer !== null
+    ? Number(((bid + offer) / 2).toFixed(6))
+    : (bid === undefined && offer === undefined ? undefined : null);
 
   return {
     marketId,
@@ -433,7 +441,10 @@ export function seedMarksFromPricingBook(
       referenceRowIds[marketId] = ref.id;
       const existing = currentMarks.marks[marketId];
       if (!existing || isSimulatedMark(existing)) {
-        updates.push(createMarkUpdateFromRow(ref, marketId, runDate));
+        const update = createMarkUpdateFromRow(ref, marketId, runDate);
+        if (update.bid !== undefined || update.offer !== undefined) {
+          updates.push(update);
+        }
       }
     }
   }

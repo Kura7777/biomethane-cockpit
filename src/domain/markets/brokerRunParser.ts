@@ -361,7 +361,8 @@ export function resolveMarketId(productStr: string): { marketId: string | null; 
 export function parseBrokerRunText(
   rawText: string,
   defaultBroker: string = 'Argus Media',
-  defaultDate?: string
+  defaultDate?: string,
+  gbpEurFx?: number
 ): BrokerParseResult {
   const lines = rawText
     .split(/\r?\n/)
@@ -563,7 +564,7 @@ export function parseBrokerRunText(
   const validCount = marks.filter(m => m.isValid).length;
 
   // Free-form pass (WhatsApp / email style lines) feeds `quotes`; the structured pass above feeds `marks`.
-  const freeform = parseFreeformQuotes(rawText);
+  const freeform = parseFreeformQuotes(rawText, gbpEurFx);
   quotes.push(...freeform.quotes);
 
   return {
@@ -587,7 +588,7 @@ export function parseBrokerRunText(
  * screen. Produces order-book style quotes. Nothing is invented: a field the line does not state
  * (vintage, CI, volume) is left blank / "—" rather than defaulted.
  */
-export function parseFreeformQuotes(rawText: string): {
+export function parseFreeformQuotes(rawText: string, gbpEurFx?: number): {
   quotes: BrokerMarketQuote[];
   skippedLines: string[];
   inferredSource: FreeformSource;
@@ -609,7 +610,7 @@ export function parseFreeformQuotes(rawText: string): {
       skippedLines.push(line);
       continue;
     }
-    const quote = parseSingleBrokerLine(line, `parsed_${Date.now()}_${++idx}`);
+    const quote = parseSingleBrokerLine(line, `parsed_${Date.now()}_${++idx}`, gbpEurFx);
     if (quote) quotes.push(quote);
     else skippedLines.push(line);
   }
@@ -619,7 +620,7 @@ export function parseFreeformQuotes(rawText: string): {
 /**
  * Regex parser for a single line from a broker run.
  */
-function parseSingleBrokerLine(line: string, id: string): BrokerMarketQuote | null {
+function parseSingleBrokerLine(line: string, id: string, gbpEurFx?: number): BrokerMarketQuote | null {
   // Normalize symbols
   const clean = line.replace(/[\t]+/g, ' ').replace(/\s{2,}/g, ' ');
 
@@ -786,8 +787,16 @@ function parseSingleBrokerLine(line: string, id: string): BrokerMarketQuote | nu
     bidVolume,
     offerVolume,
     currency,
-    numericBidEurMwh: numericBid,
-    numericOfferEurMwh: numericOffer,
+    numericBidEurMwh: currency === 'EUR'
+      ? numericBid
+      : (currency === 'GBP' && gbpEurFx && numericBid !== null
+        ? Number((numericBid * gbpEurFx).toFixed(2))
+        : null),
+    numericOfferEurMwh: currency === 'EUR'
+      ? numericOffer
+      : (currency === 'GBP' && gbpEurFx && numericOffer !== null
+        ? Number((numericOffer * gbpEurFx).toFixed(2))
+        : null),
     highlight: isHighValue,
     derivedFrom: 'Imported OTC Broker Sheet / Bilateral Run',
     provenanceTier: 'BROKER_RUN',
