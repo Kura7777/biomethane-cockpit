@@ -16,6 +16,7 @@ import {
   Briefcase,
   Users,
   SlidersHorizontal,
+  ShieldAlert,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -48,6 +49,7 @@ export const SIDEBAR_ITEMS: NavItem[] = [
   { to: '/connectors', label: 'Data Connectors', keyHint: 'K', icon: Zap },
   { to: '/data-sources', label: 'Data Sources', keyHint: '7', icon: Database },
   { to: '/assumptions', label: 'Assumptions', keyHint: 'A', icon: SlidersHorizontal },
+  { to: '/regulation-check', label: 'Regulation check', keyHint: '', icon: ShieldAlert },
 ];
 
 export interface NavGroup {
@@ -103,6 +105,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { to: '/citations', label: 'Citations', keyHint: 'C', icon: Scale, description: 'Statutory citations' },
       { to: '/data-sources', label: 'Sources', keyHint: '7', icon: Database, description: 'Data sources and provenance' },
       { to: '/assumptions', label: 'Assumptions', keyHint: '', icon: SlidersHorizontal, description: 'Every assumption the desk uses' },
+      { to: '/regulation-check', label: 'Regulation check', keyHint: '', icon: ShieldAlert, description: 'Weekly check that the app\'s rules still match the law' },
     ],
   },
 ];
@@ -116,6 +119,7 @@ export function isNavItemActive(to: string, pathname: string): boolean {
   if (to === '/pricing') return pathname.startsWith('/pricing') || pathname.startsWith('/marks');
   if (to === '/data-sources') return pathname.startsWith('/data-sources') || pathname.startsWith('/sources') || pathname.startsWith('/provenance');
   if (to === '/fueleu-shipping') return pathname.startsWith('/fueleu') || pathname.startsWith('/shipping');
+  if (to === '/regulation-check') return pathname.startsWith('/regulation-check');
   return pathname === to || pathname.startsWith(to + '/');
 }
 

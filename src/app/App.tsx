@@ -56,6 +56,7 @@ const CorporateOrderScreen = lazyWithRetry(() => import('../features/corporate/C
 const ClientsScreen = lazyWithRetry(() => import('../features/clients/ClientsScreen').then(m => ({ default: m.ClientsScreen })));
 const Ets2Screen = lazyWithRetry(() => import('../features/ets2/Ets2Screen').then(m => ({ default: m.Ets2Screen })));
 const FuelEUShippingScreen = lazyWithRetry(() => import('../features/fueleu/FuelEUShippingScreen').then(m => ({ default: m.FuelEUShippingScreen })));
+const RegulationCheckScreen = lazyWithRetry(() => import('../features/regcheck/RegulationCheckScreen').then(m => ({ default: m.RegulationCheckScreen })));
 
 import { ThemeProvider } from '../store/theme';
 
@@ -111,6 +112,7 @@ function AppContent() {
             <Route path="/connectors" element={<DataConnectorsScreen />} />
             <Route path="/settings" element={<SettingsScreen />} />
             <Route path="/assumptions" element={<AssumptionsScreen />} />
+            <Route path="/regulation-check" element={<RegulationCheckScreen />} />
 
             {/* Fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />

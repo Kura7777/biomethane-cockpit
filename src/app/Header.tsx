@@ -4,6 +4,7 @@ import { Scale, Moon, Sun, Search, Flame, ChevronDown } from 'lucide-react';
 import './header.css';
 import { NAV_GROUPS, isNavItemActive, getPageTitle } from './navConfig';
 import { useTheme } from '../store/theme';
+import { getLastRegcheckReport, isRegcheckStale } from '../domain/regcheck/storage';
 
 /** HH:MM:SS in the viewer's local time. Exported so it can be unit tested without rendering. */
 export function formatClock(date: Date): string {
@@ -56,6 +57,8 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
   }
   if (!mobileItemLabel) mobileItemLabel = getPageTitle(location.pathname);
 
+  const regcheckStale = isRegcheckStale(getLastRegcheckReport());
+
   return (
     <header className="app-header select-none z-50">
       <button type="button" className="app-brand" onClick={() => navigate('/sourcing')}>
@@ -92,6 +95,20 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
                 onClick={() => setOpenGroup(open ? null : group.id)}
               >
                 <span>{group.label}</span>
+                {group.id === 'reference' && regcheckStale && (
+                  <span
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: '50%',
+                      backgroundColor: 'var(--color-status-warn-border, #f59e0b)',
+                      display: 'inline-block',
+                      marginLeft: 4,
+                      verticalAlign: 'middle',
+                    }}
+                    title="Regulation check needs attention"
+                  />
+                )}
                 {current && <span className="app-group-current">· {current.label}</span>}
                 <ChevronDown size={13} aria-hidden="true" className="app-group-chevron" />
               </button>
@@ -111,7 +128,23 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
                       >
                         {Icon && <span className="app-menu-icon" aria-hidden="true"><Icon className="app-menu-icon-svg" /></span>}
                         <span className="app-menu-text">
-                          <span className="app-menu-label">{item.label}</span>
+                          <span className="app-menu-label">
+                            {item.label}
+                            {item.to === '/regulation-check' && regcheckStale && (
+                              <span
+                                style={{
+                                  width: 6,
+                                  height: 6,
+                                  borderRadius: '50%',
+                                  backgroundColor: 'var(--color-status-warn-border, #f59e0b)',
+                                  display: 'inline-block',
+                                  marginLeft: 6,
+                                  verticalAlign: 'middle',
+                                }}
+                                title="Regulation check is older than 7 days or has never been run"
+                              />
+                            )}
+                          </span>
                           {item.description && <span className="app-menu-desc">{item.description}</span>}
                         </span>
                       </NavLink>
