@@ -21,6 +21,7 @@ import {
 import { buildDealUrl } from '../trade/dealParams';
 import mrvData from '../../../data/fueleu_mrv_2025_companies.json';
 import { slimTonnes } from '../fueleu/shippingTargetsCodec';
+import { TEST_QUOTE_MARKET_INPUTS, TEST_POOL } from './fixtures/fueleuPrices';
 
 const FORBIDDEN_PITCH_WORDS = ['435', 'audited', 'verified', 'guaranteed', 'Article 20'];
 
@@ -91,7 +92,7 @@ describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2025)', () => {
         consecutiveYearsNonCompliant: 1,
         shareThirdCountryVoyages: 0,
       };
-      const r25 = calculateVesselExposure({ ...base, targetYear: 2025 });
+      const r25 = calculateVesselExposure({ ...base, targetYear: 2025, poolPrices: TEST_POOL });
       const r30 = calculateVesselExposure({ ...base, targetYear: 2030 });
 
       expect(c.total_energy_mwh, c.parent_name).toBe(Math.round(r25.totalEnergyMwh));
@@ -106,8 +107,8 @@ describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2025)', () => {
       expect(c.bio_lng_required_zero_t, c.parent_name).toBe(slimTonnes(r25.bioLngRequiredZeroCiTonnes));
       expect(c.client_savings_physical_eur, c.parent_name).toBe(Math.round(r25.physicalSavingsEur));
       expect(c.desk_margin_physical_eur, c.parent_name).toBe(Math.round(r25.physicalTradingMarginEur));
-      expect(c.client_savings_pooling_eur, c.parent_name).toBe(Math.round(r25.poolingSavingsEur));
-      expect(c.desk_margin_pooling_eur, c.parent_name).toBe(Math.round(r25.poolingArrangementMarginEur));
+      expect(c.client_savings_pooling_eur, c.parent_name).toBe(Math.round(r25.poolingSavingsEur!));
+      expect(c.desk_margin_pooling_eur, c.parent_name).toBe(Math.round(r25.poolingArrangementMarginEur!));
 
       const fleet = calculateFleetCapability(c.vessels_in_scope, c.vlsfo_tonnes, c.mgo_tonnes, c.lng_tonnes);
       expect(c.fleetCapability, c.parent_name).toBe(fleet.fleetCapability);
@@ -215,6 +216,7 @@ describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2025)', () => {
       bioLngCi: -100,
       targetYear: 2025,
       consecutiveYearsNonCompliant: 1,
+      poolPrices: TEST_POOL,
     });
 
     expect(result.isOverCompliant).toBe(false);
@@ -226,7 +228,7 @@ describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2025)', () => {
     expect(result.bioLngRequiredNeg100Tonnes).toBeGreaterThan(0);
     expect(result.physicalSavingsEur).toBeGreaterThan(0);
     expect(result.physicalTradingMarginEur).toBeGreaterThan(0);
-    expect(result.poolingSavingsEur).toBeGreaterThan(0);
+    expect(result.poolingSavingsEur!).toBeGreaterThan(0);
   });
 
   it('computes vessel exposure correctly for a Dual-Fuel LNG vessel', () => {
@@ -238,6 +240,7 @@ describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2025)', () => {
       bioLngCi: -100,
       targetYear: 2025,
       consecutiveYearsNonCompliant: 1,
+      poolPrices: TEST_POOL,
     });
 
     expect(result.isOverCompliant).toBe(true);
@@ -245,7 +248,7 @@ describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2025)', () => {
     expect(result.statutoryPenaltyY1Eur).toBe(0);
     expect(result.bioLngRequiredNeg100Tonnes).toBe(0);
     // Over-compliant vessels can monetize surplus through Article 21 pooling
-    expect(result.poolingSavingsEur).toBeGreaterThan(0);
+    expect(result.poolingSavingsEur!).toBeGreaterThan(0);
   });
 
   it('applies escalation multiplier for consecutive non-compliance years', () => {
@@ -563,6 +566,7 @@ describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2025)', () => {
       expect(cp.combined_regulatory_exposure_2026_eur).toBe(combinedRisk);
 
       const quote = calculateMarineBunkerQuotation({
+        ...TEST_QUOTE_MARKET_INPUTS,
         ttfGasIndexEurMwh: 36.0,
         liquefactionFeeEurMwh: 14.0,
         greenPremiumEurMwh: 22.0,
@@ -743,10 +747,10 @@ describe('September 2026 audit remediation — Bio-LNG methodology, scope, ETS 2
     expect(r.bioLngRequiredNeg100Mwh).toBeCloseTo(closure.mwh, 6);
   });
 
-  it('quote surplus and fossil-LNG balance are valued at the desk bid register assumption, not a fixed benchmark', () => {
-    const quoteAtDefault = calculateMarineBunkerQuotation({ bioLngCi: -100 });
-    const quoteAtCustomBid = calculateMarineBunkerQuotation({ bioLngCi: -100, fuelEuSurplusPriceEurPerTco2e: 100 });
-    expect(quoteAtDefault.fuelEuSurplusPriceEurPerTco2e).toBe(98.6); // fueleu.poolSellPriceEurPerTco2e desk bid (offer 108.60 - spread 10)
+  it('quote surplus and fossil-LNG balance are valued at the surplus price passed in (the desk bid from the FUELEU mark), not a fixed benchmark', () => {
+    const quoteAtDefault = calculateMarineBunkerQuotation({ ...TEST_QUOTE_MARKET_INPUTS, bioLngCi: -100 });
+    const quoteAtCustomBid = calculateMarineBunkerQuotation({ ...TEST_QUOTE_MARKET_INPUTS, bioLngCi: -100, fuelEuSurplusPriceEurPerTco2e: 100 });
+    expect(quoteAtDefault.fuelEuSurplusPriceEurPerTco2e).toBe(98.6); // desk bid passed in (offer 108.60 - spread 10)
     expect(quoteAtCustomBid.fuelEuSurplusPriceEurPerTco2e).toBe(100);
     expect(quoteAtCustomBid.fuelEuSurplusValueEurPerTonne).toBeCloseTo(
       quoteAtDefault.fuelEuSurplusValueEurPerTonne * (100 / 98.6),
@@ -755,8 +759,8 @@ describe('September 2026 audit remediation — Bio-LNG methodology, scope, ETS 2
   });
 
   it('fossil LNG is the bunker-quote counterfactual, not VLSFO: quote reacts to the LNG engine class', () => {
-    const ss = calculateMarineBunkerQuotation({ bioLngCi: -100, lngEngineType: 'LNG_OTTO_SS' });
-    const ms = calculateMarineBunkerQuotation({ bioLngCi: -100, lngEngineType: 'LNG_OTTO_MS' });
+    const ss = calculateMarineBunkerQuotation({ ...TEST_QUOTE_MARKET_INPUTS, bioLngCi: -100, lngEngineType: 'LNG_OTTO_SS' });
+    const ms = calculateMarineBunkerQuotation({ ...TEST_QUOTE_MARKET_INPUTS, bioLngCi: -100, lngEngineType: 'LNG_OTTO_MS' });
     // Higher-slip Otto MS fossil LNG is a worse (higher WtW) counterfactual, so its own FuelEU
     // surplus credit is smaller — reducing the net savings relative to Otto SS.
     expect(fossilLngWtw('LNG_OTTO_MS')).toBeGreaterThan(fossilLngWtw('LNG_OTTO_SS'));

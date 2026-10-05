@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
 import { FUEL_EU_SHIPPING_GROUPS } from '../../domain/fueleu/groups';
 import { FUEL_EU_SHIPPING_COUNTERPARTIES } from '../../domain/fueleu/shippingTargetsData';
-import { getAssumption } from '../../domain/assumptions/registry';
+import { NO_POOL_MARK } from '../../domain/fueleu/marketPrices';
+import { useFuelEuPrices } from './useFuelEuPrices';
 import { FUELEU_STATUTORY_PENALTY_PER_TONNE, FUELEU_PENALTY_VLSFO_MJ_PER_TONNE, FUELEU_ACTIVE_PERIOD } from '../../domain/fueleu/calculator';
 import { computeFuelEuKpis, computeFleetWeightedGhgie } from '../../domain/fueleu/uiHelpers';
 import { KpiRow, KpiTile } from '../../shared/ui/KpiTile';
@@ -13,11 +14,11 @@ import { KpiRow, KpiTile } from '../../shared/ui/KpiTile';
 export function FuelEuKpiTiles() {
   const kpis = useMemo(() => computeFuelEuKpis(FUEL_EU_SHIPPING_GROUPS), []);
   const fleetGhgie = useMemo(() => computeFleetWeightedGhgie(FUEL_EU_SHIPPING_COUNTERPARTIES), []);
-  const offer = getAssumption('fueleu.poolBuyPriceEurPerTco2e');
+  const offer = useFuelEuPrices().pool?.offerEurPerTco2e ?? null;
 
   // Annex IV Part B statutory penalty rate at n=1 (first-year multiplier): €/tCO2e = 2,400e6 / (fleet GHGIE × 41,000)
   const penaltyRateEurPerTco2e = fleetGhgie > 0 ? (FUELEU_STATUTORY_PENALTY_PER_TONNE * 1_000_000) / (fleetGhgie * FUELEU_PENALTY_VLSFO_MJ_PER_TONNE) : 0;
-  const poolSavingEurPerTco2e = penaltyRateEurPerTco2e - offer;
+  const poolSavingEurPerTco2e = offer === null ? null : penaltyRateEurPerTco2e - offer;
 
   const deficitKt = Math.abs(kpis.deficitTco2e) / 1000;
   const surplusKt = kpis.surplusTco2e / 1000;
@@ -50,9 +51,9 @@ export function FuelEuKpiTiles() {
       <KpiTile
         className="fe-kpi-card"
         label="Pool saving vs penalty"
-        value={`€${Math.round(poolSavingEurPerTco2e).toLocaleString()}`}
+        value={poolSavingEurPerTco2e === null ? '—' : `€${Math.round(poolSavingEurPerTco2e).toLocaleString()}`}
         unit="/tCO₂e"
-        sub={`€${Math.round(penaltyRateEurPerTco2e).toLocaleString()} penalty rate vs €${offer.toFixed(2)} offer`}
+        sub={offer === null ? NO_POOL_MARK : `€${Math.round(penaltyRateEurPerTco2e).toLocaleString()} penalty rate vs €${offer.toFixed(2)} offer (FUELEU mark)`}
       />
     </KpiRow>
   );

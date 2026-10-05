@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { getAssumption } from '../../domain/assumptions/registry';
+import { useFuelEuPrices } from './useFuelEuPrices';
 import { FUELEU_POOL_INDEX_HISTORY } from '../../domain/markets/fueleuPoolIndexHistory';
 import { buildLinearScale, buildOrdinalPositions } from '../../domain/fueleu/uiHelpers';
 import { useIsMobile } from '../../shared/hooks/useMediaQuery';
@@ -66,7 +66,7 @@ export function FuelEuPoolIndexChart({ width: widthProp = 960, height: heightPro
   const innerW = width - margin.left - margin.right;
   const innerH = height - margin.top - margin.bottom;
 
-  const currentMark = getAssumption('fueleu.poolBuyPriceEurPerTco2e');
+  const currentMark = useFuelEuPrices().pool?.offerEurPerTco2e ?? null;
 
   const monthIndex = (period: string): number => MONTHS.findIndex(m => period.startsWith(m.key));
 
@@ -91,7 +91,7 @@ export function FuelEuPoolIndexChart({ width: widthProp = 960, height: heightPro
     []
   );
 
-  const allValues = [...oceanScorePoints.map(p => p.value), ...betterSeaPoints.map(p => p.value), currentMark];
+  const allValues = [...oceanScorePoints.map(p => p.value), ...betterSeaPoints.map(p => p.value), ...(currentMark === null ? [] : [currentMark])];
   const minValue = Math.min(...allValues);
   const maxValue = Math.max(...allValues);
   const pad = (maxValue - minValue) / 10 || 10;
@@ -106,7 +106,7 @@ export function FuelEuPoolIndexChart({ width: widthProp = 960, height: heightPro
 
   const yTicks = [minValue - pad < 0 ? 0 : Math.round(minValue - pad), Math.round((minValue + maxValue) / 2), Math.round(maxValue + pad)];
 
-  const ariaLabel = `FuelEU surplus price, compliance year 2026: OceanScore OPX offer index and BetterSea FuelEU Surplus Index trade VWAP, March to September 2026. Current desk mark €${currentMark.toFixed(2)}.`;
+  const ariaLabel = `FuelEU surplus price, compliance year 2026: OceanScore OPX offer index and BetterSea FuelEU Surplus Index trade VWAP, March to September 2026. ${currentMark === null ? 'No FuelEU pool mark is loaded.' : `Current desk mark €${currentMark.toFixed(2)}.`}`;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -150,7 +150,8 @@ export function FuelEuPoolIndexChart({ width: widthProp = 960, height: heightPro
           {isMobile ? '30 Apr · CY2025' : '30 Apr · CY2025 deadline'}
         </text>
 
-        {/* Current desk mark reference line */}
+        {/* Current desk mark reference line (the FUELEU mark; omitted when none is loaded) */}
+        {currentMark !== null && (<>
         <line
           x1={margin.left}
           x2={margin.left + innerW}
@@ -181,6 +182,7 @@ export function FuelEuPoolIndexChart({ width: widthProp = 960, height: heightPro
             Desk mark €{currentMark.toFixed(2)}
           </text>
         )}
+        </>)}
 
         {/* OceanScore OPX — offer-side, dashed */}
         {oceanScoreSegments.map((segment, si) => (

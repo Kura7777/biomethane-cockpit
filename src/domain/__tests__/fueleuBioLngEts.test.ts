@@ -1,10 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { calculateMarineBunkerQuotation, lngEtsNonCo2Co2eTonnes } from '../fueleu/calculator';
+import { TEST_QUOTE_MARKET_INPUTS } from './fixtures/fueleuPrices';
 
 // EU ETS zero-rates only the CO2 from sustainable biomass; methane slip and N2O are surrendered for
 // Bio-LNG exactly as for fossil LNG in the same engine, from 2026.
 describe('Bio-LNG bunker quote: ETS on methane slip', () => {
-  const base = { bioLngCi: -100, lngEngineType: 'LNG_OTTO_MS' as const, euaPriceEurPerTonne: 70, bioLngVolumeTonnes: 1000 };
+  const base = { ...TEST_QUOTE_MARKET_INPUTS, bioLngCi: -100, lngEngineType: 'LNG_OTTO_MS' as const, euaPriceEurPerTonne: 70, bioLngVolumeTonnes: 1000 };
 
   it('charges Bio-LNG ETS on its own slip and N2O from 2026', () => {
     const q = calculateMarineBunkerQuotation({ ...base, targetYear: 2026 });

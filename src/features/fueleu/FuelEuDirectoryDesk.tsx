@@ -3,7 +3,8 @@ import { Search, ArrowUp, ArrowDown, ArrowUpDown, Download, ChevronLeft, Chevron
 import { FUEL_EU_SHIPPING_GROUPS, FuelEuShippingGroup } from '../../domain/fueleu/groups';
 import { FUEL_EU_SHIPPING_COUNTERPARTIES } from '../../domain/fueleu/shippingTargetsData';
 import { ShippingCounterparty, GroupEntityType } from '../../domain/fueleu/types';
-import { getAssumption, fuelEuPoolBidPriceEurPerTco2e } from '../../domain/assumptions/registry';
+import { NO_POOL_MARK } from '../../domain/fueleu/marketPrices';
+import { useFuelEuPrices } from './useFuelEuPrices';
 import { sortRows, scaleDivergingBarWidth, SortDirection } from '../../domain/fueleu/uiHelpers';
 import { FuelEuSidePanel, FuelEuDirectoryRow } from './FuelEuSidePanel';
 import { showToast } from '../../app/DeskToastContainer';
@@ -28,7 +29,8 @@ interface NormalizedRow {
   penaltyEur: number;
   isSurplus: boolean;
   poolCostEur: number | null;
-  savingEur: number;
+  /** Saving (deficit) or surplus value (surplus) at the FUELEU mark; null when no pool mark is loaded. */
+  savingEur: number | null;
   group: FuelEuShippingGroup;
   company: ShippingCounterparty | null;
   members: ShippingCounterparty[];
@@ -115,16 +117,20 @@ export function FuelEuDirectoryDesk({
 
   const segments = useMemo(() => Array.from(new Set(FUEL_EU_SHIPPING_COUNTERPARTIES.map(c => c.segment))).sort(), []);
 
-  const offer = getAssumption('fueleu.poolBuyPriceEurPerTco2e');
-  const bid = fuelEuPoolBidPriceEurPerTco2e();
+  const pool = useFuelEuPrices().pool;
+  const offer = pool?.offerEurPerTco2e ?? null;
+  const bid = pool?.bidEurPerTco2e ?? null;
 
   const allRows: NormalizedRow[] = useMemo(() => {
     if (viewMode === 'GROUPS') {
       return FUEL_EU_SHIPPING_GROUPS.map(g => {
         const members = membersByGroup.get(g.id) || [];
         const isSurplus = g.sumOfCompanyBalances2026 >= 0;
-        const poolCostEur = isSurplus ? null : Math.abs(g.sumOfCompanyBalances2026) * offer;
-        const savingEur = isSurplus ? Math.abs(g.sumOfCompanyBalances2026) * bid : g.sumOfCompanyPenalties2026 - (poolCostEur ?? 0);
+        const poolCostEur = isSurplus || offer === null ? null : Math.abs(g.sumOfCompanyBalances2026) * offer;
+        const savingEur =
+          offer === null || bid === null
+            ? null
+            : isSurplus ? Math.abs(g.sumOfCompanyBalances2026) * bid : g.sumOfCompanyPenalties2026 - (poolCostEur ?? 0);
         return {
           key: `group:${g.id}`,
           name: g.name,
@@ -149,8 +155,11 @@ export function FuelEuDirectoryDesk({
     return FUEL_EU_SHIPPING_COUNTERPARTIES.map(c => {
       const group = FUEL_EU_SHIPPING_GROUPS.find(g => g.id === c.group_id);
       const isSurplus = c.compliance_balance_2026_tco2e >= 0;
-      const poolCostEur = isSurplus ? null : Math.abs(c.compliance_balance_2026_tco2e) * offer;
-      const savingEur = isSurplus ? Math.abs(c.compliance_balance_2026_tco2e) * bid : c.penalty_2026_y1_eur - (poolCostEur ?? 0);
+      const poolCostEur = isSurplus || offer === null ? null : Math.abs(c.compliance_balance_2026_tco2e) * offer;
+      const savingEur =
+        offer === null || bid === null
+          ? null
+          : isSurplus ? Math.abs(c.compliance_balance_2026_tco2e) * bid : c.penalty_2026_y1_eur - (poolCostEur ?? 0);
       return {
         key: `company:${c.company_imo}`,
         name: c.parent_name,
@@ -203,7 +212,7 @@ export function FuelEuDirectoryDesk({
         case 'poolCostEur':
           return r.poolCostEur ?? 0;
         case 'savingEur':
-          return r.savingEur;
+          return r.savingEur ?? 0;
         default:
           return 0;
       }
@@ -271,7 +280,7 @@ export function FuelEuDirectoryDesk({
       Math.round(r.balanceTco2e),
       Math.round(r.penaltyEur),
       r.poolCostEur !== null ? Math.round(r.poolCostEur) : '',
-      Math.round(r.savingEur),
+      r.savingEur !== null ? Math.round(r.savingEur) : '',
     ]);
     const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -423,7 +432,7 @@ export function FuelEuDirectoryDesk({
       metricLabel={() => 'Penalty'}
       fields={r => [
         { label: '2026 balance', value: `${r.isSurplus ? '+' : '−'}${(Math.abs(r.balanceTco2e) / 1000).toFixed(1)} kt`, mono: true, tone: r.isSurplus ? 'pos' : 'neg' },
-        { label: r.isSurplus ? 'Surplus value' : 'Saving', value: `€${(r.savingEur / 1e6).toFixed(1)}M`, mono: true },
+        { label: r.isSurplus ? 'Surplus value' : 'Saving', value: r.savingEur === null ? '—' : `€${(r.savingEur / 1e6).toFixed(1)}M`, mono: true },
         { label: 'Vessels', value: r.vessels.toLocaleString(), mono: true },
         { label: 'In-scope CO₂ (kt)', value: Math.round(r.co2Tco2e / 1000).toLocaleString(), mono: true },
         { label: 'Pool cost', value: r.poolCostEur !== null ? `€${(r.poolCostEur / 1e6).toFixed(1)}M` : '—', mono: true, tone: 'muted' },
@@ -622,7 +631,9 @@ export function FuelEuDirectoryDesk({
                       {r.poolCostEur !== null ? `€${(r.poolCostEur / 1e6).toFixed(1)}M` : '—'}
                     </div>
                     <div className="num" style={{ textAlign: 'right', fontWeight: 500, whiteSpace: 'nowrap' }}>
-                      {r.isSurplus ? (
+                      {r.savingEur === null ? (
+                        <span title={NO_POOL_MARK}>—</span>
+                      ) : r.isSurplus ? (
                         <span title="Surplus value at bid">Surplus €{(r.savingEur / 1e6).toFixed(1)}M</span>
                       ) : (
                         `€${(r.savingEur / 1e6).toFixed(1)}M`
@@ -641,7 +652,7 @@ export function FuelEuDirectoryDesk({
               {pageRows.length} of {sortedRows.length.toLocaleString()} {viewMode.toLowerCase()} · sorted by {sortLabel[sortField]}
             </span>
             <div className="fe-tfoot-right">
-              <span>Penalty: Annex IV, first year · Pool cost at €{offer.toFixed(2)} offer · indicative</span>
+              <span>Penalty: Annex IV, first year · {offer === null ? NO_POOL_MARK : `Pool cost at €${offer.toFixed(2)} offer (FUELEU mark)`} · indicative</span>
               {totalPages > 1 && (
                 <nav className="fe-pagination" aria-label="Table pages">
                   <button type="button" aria-label="Previous page" disabled={validPage <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>

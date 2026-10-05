@@ -3,12 +3,12 @@ import React, { useMemo } from 'react';
 import { ShippingCounterparty } from '../../../domain/fueleu/types';
 import {
   calculateMarineBunkerQuotation,
-  DEFAULT_TTF_GAS_INDEX_EUR_MWH,
   DEFAULT_LIQUEFACTION_FEE_EUR_MWH,
   DEFAULT_GREEN_PREMIUM_EUR_MWH,
   DEFAULT_VLSFO_PRICE_USD_PER_TONNE,
-  EUA_BENCHMARK_EUR_PER_TONNE,
 } from '../../../domain/fueleu/calculator';
+import type { FuelEuMarketPrices, FuelEuPoolPrices } from '../../../domain/fueleu/marketPrices';
+import { SourceChip } from '../../../shared/ui/SourceChip';
 import {
   Sliders,
   Flame,
@@ -26,8 +26,8 @@ import {
   CheckCircle2,
   Ship,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { showToast } from '../../../app/DeskToastContainer';
-import { getAssumption, fuelEuPoolBidPriceEurPerTco2e } from '../../../domain/assumptions/registry';
 
 const MONO_FONT = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
 
@@ -36,15 +36,21 @@ interface ShippingBunkerPricingStepProps {
   pathway: 'PHYSICAL' | 'POOLING';
   setPathway: (pathway: 'PHYSICAL' | 'POOLING') => void;
   ttfGasIndex: number;
-  setTtfGasIndex: (val: number) => void;
+  /** Sets a what-if TTF for this deal (null goes back to the Pricing desk mark). */
+  setTtfGasIndex: (val: number | null) => void;
   liquefactionFee: number;
   setLiquefactionFee: (val: number) => void;
   greenPremium: number;
   setGreenPremium: (val: number) => void;
   euaPrice: number;
-  setEuaPrice: (val: number) => void;
+  /** Sets a what-if EUA price for this deal (null goes back to the Pricing desk mark). */
+  setEuaPrice: (val: number | null) => void;
   vlsfoPrice: number;
   setVlsfoPrice: (val: number) => void;
+  /** FUELEU mark prices (offer, bid, spread): the pool clearing price shown below. */
+  pool: FuelEuPoolPrices;
+  /** Where the TTF and EUA marks came from, for the source tags. */
+  marketPrices: FuelEuMarketPrices;
   onBack: () => void;
   onNext: () => void;
 }
@@ -63,6 +69,8 @@ export function ShippingBunkerPricingStep({
   setEuaPrice,
   vlsfoPrice,
   setVlsfoPrice,
+  pool,
+  marketPrices,
   onBack,
   onNext,
 }: ShippingBunkerPricingStepProps) {
@@ -81,16 +89,17 @@ export function ShippingBunkerPricingStep({
       bioLngVolumeTonnes: counterparty.bio_lng_required_neg100_t,
       bioLngCi: -100,
       targetYear: FUELEU_ACTIVE_PERIOD,
+      fuelEuSurplusPriceEurPerTco2e: pool.bidEurPerTco2e,
     });
-  }, [ttfGasIndex, liquefactionFee, greenPremium, euaPrice, vlsfoPrice, counterparty.bio_lng_required_neg100_t]);
+  }, [ttfGasIndex, liquefactionFee, greenPremium, euaPrice, vlsfoPrice, counterparty.bio_lng_required_neg100_t, pool.bidEurPerTco2e]);
 
   const handleResetDefaults = () => {
-    setTtfGasIndex(DEFAULT_TTF_GAS_INDEX_EUR_MWH);
+    setTtfGasIndex(null);
     setLiquefactionFee(DEFAULT_LIQUEFACTION_FEE_EUR_MWH);
     setGreenPremium(DEFAULT_GREEN_PREMIUM_EUR_MWH);
-    setEuaPrice(EUA_BENCHMARK_EUR_PER_TONNE);
+    setEuaPrice(null);
     setVlsfoPrice(DEFAULT_VLSFO_PRICE_USD_PER_TONNE);
-    showToast('Pricing parameters reset to benchmark defaults', 'INFO');
+    showToast('Pricing parameters reset: TTF and EUA back to the Pricing desk marks', 'INFO');
   };
 
   // Stepper helper
@@ -379,6 +388,20 @@ export function ShippingBunkerPricingStep({
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div
+                data-testid="fueleu-market-sources"
+                style={{ fontSize: '11px', color: 'var(--color-muted)', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}
+              >
+                <span>TTF</span>
+                {marketPrices.ttfSource && <SourceChip badge={marketPrices.ttfSource.badge} suffix={marketPrices.ttfSource.asOf ? `mark ${marketPrices.ttfSource.asOf}` : null} />}
+                <span>· EUA</span>
+                {marketPrices.euaSource && <SourceChip badge={marketPrices.euaSource.badge} suffix={marketPrices.euaSource.asOf ? `mark ${marketPrices.euaSource.asOf}` : null} />}
+                <span>· FuelEU pool</span>
+                {marketPrices.poolSource && <SourceChip badge={marketPrices.poolSource.badge} suffix={marketPrices.poolSource.asOf ? `mark ${marketPrices.poolSource.asOf}` : null} />}
+                <Link to="/pricing" style={{ color: 'var(--color-accent)', fontWeight: 600 }}>Change in Pricing desk →</Link>
+                <span>The TTF slider is a what-if for this deal only; Reset returns it to the mark.</span>
+              </div>
+
               {renderParamSlider(
                 'TTF Natural Gas Front-Month Index',
                 'Dutch Title Transfer Facility wholesale benchmark',
@@ -592,7 +615,7 @@ export function ShippingBunkerPricingStep({
             <span>
               {pathway === 'PHYSICAL'
                 ? `Total Delivered Invoice: €${(marineQuote.totalBioLngInvoiceEur || 0).toLocaleString()}`
-                : `Pool Transaction Volume: €${Math.round(Math.abs(counterparty.compliance_balance_2026_tco2e) * (counterparty.compliance_balance_2026_tco2e >= 0 ? fuelEuPoolBidPriceEurPerTco2e() : getAssumption('fueleu.poolBuyPriceEurPerTco2e'))).toLocaleString()}`}
+                : `Pool Transaction Volume: €${Math.round(Math.abs(counterparty.compliance_balance_2026_tco2e) * (counterparty.compliance_balance_2026_tco2e >= 0 ? pool.bidEurPerTco2e : pool.offerEurPerTco2e)).toLocaleString()}`}
             </span>
             <span>FX Benchmark: 1.08 EUR/USD</span>
           </div>

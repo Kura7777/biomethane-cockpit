@@ -2,7 +2,8 @@ import React, { useMemo, useState } from 'react';
 import { ArrowUpDown, ArrowUp, ArrowDown, Flame } from 'lucide-react';
 import { FUEL_EU_LNG_SHIPS, LngShipRow } from '../../domain/fueleu/lngShipsData';
 import { FUEL_EU_SHIPPING_GROUPS } from '../../domain/fueleu/groups';
-import { fuelEuPoolBidPriceEurPerTco2e } from '../../domain/assumptions/registry';
+import { NO_POOL_MARK } from '../../domain/fueleu/marketPrices';
+import { useFuelEuPrices } from './useFuelEuPrices';
 import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 import { MobileCardList } from '../../shared/ui';
 
@@ -33,7 +34,10 @@ export function LngVesselBookTable() {
   const [groupFilter, setGroupFilter] = useState<string>('ALL');
   const [deficitOnly, setDeficitOnly] = useState(false);
 
-  const bid = fuelEuPoolBidPriceEurPerTco2e();
+  // Euro values are the tCO2e figure times the live desk bid from the FUELEU mark; the dataset's
+  // baked-in euro column was priced at a fixed bid and is no longer shown.
+  const bid = useFuelEuPrices().pool?.bidEurPerTco2e ?? null;
+  const valueAtBid = (tco2e: number): string => (bid === null ? '—' : `€${Math.round(tco2e * bid).toLocaleString()}`);
 
   const groupOptions = useMemo(() => {
     const ids = new Set(FUEL_EU_LNG_SHIPS.map(s => s.group_id));
@@ -74,16 +78,14 @@ export function LngVesselBookTable() {
     let surplusCount = 0;
     let deficitCount = 0;
     let totalExtraSurplusTco2e = 0;
-    let totalExtraSurplusValueEur = 0;
     let totalBioLngNeededT = 0;
     for (const r of rows) {
       if (r.balance2026Tco2e >= 0) surplusCount++;
       else deficitCount++;
       totalExtraSurplusTco2e += r.extraSurplusIfFullBioLngTco2e;
-      totalExtraSurplusValueEur += r.extraSurplusValueEurAtBid;
       totalBioLngNeededT += r.bioLngNeededTonnes;
     }
-    return { surplusCount, deficitCount, totalExtraSurplusTco2e, totalExtraSurplusValueEur, totalBioLngNeededT };
+    return { surplusCount, deficitCount, totalExtraSurplusTco2e, totalBioLngNeededT };
   }, [rows]);
 
   const sortIcon = (field: SortField) =>
@@ -141,9 +143,9 @@ export function LngVesselBookTable() {
         <div style={{ padding: '10px 18px', borderRight: '1px solid var(--color-divider)' }}>
           <span className="eyebrow" style={{ fontSize: '10px' }}>VALUE AT LIVE BID</span>
           <div className="num font-mono" style={{ fontSize: '20px', fontWeight: 800, marginTop: '2px', color: 'var(--color-status-pos-text)' }}>
-            €{(aggregates.totalExtraSurplusValueEur / 1e6).toFixed(1)}M
+            {bid === null ? '—' : `€${((aggregates.totalExtraSurplusTco2e * bid) / 1e6).toFixed(1)}M`}
           </div>
-          <div className="subttl" style={{ fontSize: '10.5px', marginTop: '2px' }}>€{bid.toFixed(2)}/tCO2e desk bid — indicative</div>
+          <div className="subttl" style={{ fontSize: '10.5px', marginTop: '2px' }}>{bid === null ? NO_POOL_MARK : `€${bid.toFixed(2)}/tCO2e desk bid (FUELEU mark) — indicative`}</div>
         </div>
         <div style={{ padding: '10px 18px' }}>
           <span className="eyebrow" style={{ fontSize: '10px' }}>BIO-LNG NEEDED TO CLOSE DEFICITS</span>
@@ -225,7 +227,7 @@ export function LngVesselBookTable() {
                 { label: 'In-scope LNG (t)', value: r.in_scope_lng_t.toLocaleString(), mono: true },
                 { label: 'GHGIE', value: r.ghgie.toFixed(2), mono: true },
                 { label: 'Extra surplus (t)', value: `+${r.extraSurplusIfFullBioLngTco2e.toLocaleString()}`, mono: true, tone: 'pos' },
-                { label: 'Extra surplus (€)', value: `€${r.extraSurplusValueEurAtBid.toLocaleString()}`, mono: true, tone: 'pos' },
+                { label: 'Extra surplus (€)', value: valueAtBid(r.extraSurplusIfFullBioLngTco2e), mono: true, tone: 'pos' },
                 { label: 'Bio-LNG to close (t)', value: isDeficit ? r.bioLngNeededTonnes.toLocaleString() : '—', mono: true, tone: isDeficit ? 'warn' : 'muted' },
               ];
             }}
@@ -281,7 +283,7 @@ export function LngVesselBookTable() {
                     +{r.extraSurplusIfFullBioLngTco2e.toLocaleString()}
                   </td>
                   <td className="num font-mono" style={{ textAlign: 'right', padding: '6px 8px', fontSize: '11.5px', fontWeight: 700, color: 'var(--color-status-pos-text)' }}>
-                    €{r.extraSurplusValueEurAtBid.toLocaleString()}
+                    {valueAtBid(r.extraSurplusIfFullBioLngTco2e)}
                   </td>
                   <td className="num font-mono" style={{ textAlign: 'right', padding: '6px 8px', fontSize: '11.5px', color: isDeficit ? 'var(--color-status-warn-text, #d97706)' : 'var(--color-muted)' }}>
                     {isDeficit ? r.bioLngNeededTonnes.toLocaleString() : '—'}

@@ -19,7 +19,9 @@ import {
 import { LngEngineType } from '../../domain/fueleu/types';
 import { Zap, ShieldCheck, ArrowRight, FileText, Check, Flame } from 'lucide-react';
 import { showToast } from '../../app/DeskToastContainer';
-import { getAssumption, fuelEuPoolSpreadEurPerTco2e, fuelEuPoolBidPriceEurPerTco2e } from '../../domain/assumptions/registry';
+import { getAssumption } from '../../domain/assumptions/registry';
+import { NO_POOL_MARK } from '../../domain/fueleu/marketPrices';
+import { useFuelEuPrices } from './useFuelEuPrices';
 import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
 import { AssumptionsStrip } from '../../shared/components/AssumptionsStrip';
 import { FlowSteps } from '../../shared/ui/FlowSteps';
@@ -104,11 +106,14 @@ export function DualCommercialPathwaySimulator({ initial }: DualCommercialPathwa
 
   // Pathway 2: Article 21 Compliance Pooling
   // Client pays the desk offer; the surplus holder receives the bid; the desk keeps the spread
-  const poolOffer = getAssumption('fueleu.poolBuyPriceEurPerTco2e');
-  const poolingCostToClientEur = simulatedDeficitTco2e * poolOffer;
-  const poolingClientSavingsEur = Math.max(0, statutoryPenaltyEur - poolingCostToClientEur);
-  const poolingProviderRevenueEur = simulatedDeficitTco2e * fuelEuPoolBidPriceEurPerTco2e();
-  const poolingDeskMarginEur = simulatedDeficitTco2e * fuelEuPoolSpreadEurPerTco2e();
+  // The pool prices are the FUELEU mark from the Pricing desk; with no mark the pooling figures are "—".
+  const pool = useFuelEuPrices().pool;
+  const poolOffer = pool ? pool.offerEurPerTco2e : null;
+  const poolingCostToClientEur = poolOffer === null ? null : simulatedDeficitTco2e * poolOffer;
+  const poolingClientSavingsEur = poolingCostToClientEur === null ? null : Math.max(0, statutoryPenaltyEur - poolingCostToClientEur);
+  const poolingDeskMarginEur = pool ? simulatedDeficitTco2e * pool.spreadEurPerTco2e : null;
+  const eur0 = (v: number | null): string => (v === null ? `— (${NO_POOL_MARK})` : `€${Math.round(v).toLocaleString()}`);
+  const eurShort = (v: number | null): string => (v === null ? '—' : `€${Math.round(v).toLocaleString()}`);
 
   const handleStructureTrade = () => {
     const url = buildDealUrl({
@@ -144,9 +149,9 @@ ESTIMATED PENALTY EXPOSURE (DEFAULT INACTION, ART. 23(2)): €${Math.round(statu
 2. PATHWAY B: ARTICLE 21 COMPLIANCE POOLING
 --------------------------------------------------------------------------------
 - Mechanism: Bilateral compliance pool transfer with over-compliant carriers, recorded via the FuelEU database (Art. 19)
-- Pool Rate to Client (desk offer, indicative): €${poolOffer.toFixed(2)} / tCO2e (vs estimated penalty rate €${effectivePenaltyRatePerTco2e.toFixed(2)} / tCO2e at ${fleetActualGhgie.toFixed(2)} g/MJ)
-- Cost to Client: €${Math.round(poolingCostToClientEur).toLocaleString()}
-- Client Net Savings (estimated): €${Math.round(poolingClientSavingsEur).toLocaleString()} (${((poolingClientSavingsEur / statutoryPenaltyEur) * 100).toFixed(1)}% savings)
+- Pool Rate to Client (desk offer from the FUELEU mark, indicative): ${poolOffer === null ? NO_POOL_MARK : `€${poolOffer.toFixed(2)}`} / tCO2e (vs estimated penalty rate €${effectivePenaltyRatePerTco2e.toFixed(2)} / tCO2e at ${fleetActualGhgie.toFixed(2)} g/MJ)
+- Cost to Client: ${eur0(poolingCostToClientEur)}
+- Client Net Savings (estimated): ${eur0(poolingClientSavingsEur)}${poolingClientSavingsEur === null ? '' : ` (${((poolingClientSavingsEur / statutoryPenaltyEur) * 100).toFixed(1)}% savings)`}
 - Physical Bunker Requirement: ZERO (pure financial/registry compliance)
 ================================================================================`;
     navigator.clipboard.writeText(text);
@@ -439,26 +444,26 @@ ESTIMATED PENALTY EXPOSURE (DEFAULT INACTION, ART. 23(2)): €${Math.round(statu
                 <div className="fva-kv">
                   <div className="fva-kv-row">
                     <span className="muted">Pool Clearing Rate:</span>
-                    <span className="num">€{poolOffer.toFixed(2)} / tCO₂e</span>
+                    <span className="num">{poolOffer === null ? NO_POOL_MARK : `€${poolOffer.toFixed(2)} / tCO₂e`}</span>
                   </div>
                   <div className="fva-kv-row">
                     <span className="muted">Cost to Client:</span>
-                    <span className="num">€{Math.round(poolingCostToClientEur).toLocaleString()}</span>
+                    <span className="num">{eurShort(poolingCostToClientEur)}</span>
                   </div>
                   <div className="fva-kv-row pos">
                     <span>Client Net Savings:</span>
-                    <span className="num">€{Math.round(poolingClientSavingsEur).toLocaleString()}</span>
+                    <span className="num">{eurShort(poolingClientSavingsEur)}</span>
                   </div>
                   <div className="fva-kv-row accent">
                     <span>Desk Arrangement Fee (internal):</span>
-                    <span className="num">€{Math.round(poolingDeskMarginEur).toLocaleString()}</span>
+                    <span className="num">{eurShort(poolingDeskMarginEur)}</span>
                   </div>
                 </div>
               </section>
             </div>
 
             <AssumptionsStrip
-              keys={['fueleu.bioLngPremiumEurPerMwh', 'fueleu.physicalDeskMarginEurPerMwh', 'fueleu.poolBuyPriceEurPerTco2e', 'fueleu.poolSellPriceEurPerTco2e']}
+              keys={['fueleu.bioLngPremiumEurPerMwh', 'fueleu.physicalDeskMarginEurPerMwh', 'fueleu.poolDeskSpreadEurPerTco2e']}
             />
           </>
         );
@@ -471,7 +476,7 @@ ESTIMATED PENALTY EXPOSURE (DEFAULT INACTION, ART. 23(2)): €${Math.round(statu
     { id: 3, label: 'Compare pathways' },
   ];
 
-  const betterClientOutcomeEur = Math.max(physicalClientSavingsEur, poolingClientSavingsEur);
+  const betterClientOutcomeEur = Math.max(physicalClientSavingsEur, poolingClientSavingsEur ?? 0);
 
   const rail = (
     <aside className="fva-rail ds-aside" data-testid="pathways-rail">
@@ -496,11 +501,11 @@ ESTIMATED PENALTY EXPOSURE (DEFAULT INACTION, ART. 23(2)): €${Math.round(statu
             </div>
             <div className={`fva-rail-option ${poolingClientSavingsEur === betterClientOutcomeEur ? 'cheapest' : ''}`}>
               <span className="fva-rail-option-label">Pooling — client saving</span>
-              <span className="num">€{Math.round(poolingClientSavingsEur).toLocaleString()}</span>
+              <span className="num" title={poolingClientSavingsEur === null ? NO_POOL_MARK : undefined}>{eurShort(poolingClientSavingsEur)}</span>
             </div>
             <div className="fva-rail-option">
               <span className="fva-rail-option-label">Pooling — desk margin</span>
-              <span className="num">€{Math.round(poolingDeskMarginEur).toLocaleString()}</span>
+              <span className="num" title={poolingDeskMarginEur === null ? NO_POOL_MARK : undefined}>{eurShort(poolingDeskMarginEur)}</span>
             </div>
           </div>
         </div>

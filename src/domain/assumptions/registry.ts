@@ -40,11 +40,6 @@ const fueleuMarkSource = fueleuMark
   ? `FuelEU mark in Pricing Desk (${fueleuMark.sourceName}, observed ${fueleuMark.observedAt})`
   : 'FuelEU mark in Pricing Desk';
 
-const euEts1Mark = EUROPEAN_MARKET_BENCHMARKS.find(b => b.marketId === 'EU_ETS1');
-const euEts1MarkSource = euEts1Mark
-  ? `EU ETS1 mark in Pricing Desk (${euEts1Mark.sourceName}, observed ${euEts1Mark.observedAt})`
-  : 'EU ETS1 mark in Pricing Desk';
-
 const FARMGATE_DEFAULTS: Record<string, { name: string; premium: number; fixed: number }> = {
   DK: { name: 'Denmark', premium: 26.0, fixed: 58.5 },
   DE: { name: 'Germany', premium: 48.0, fixed: 88.0 },
@@ -124,17 +119,6 @@ export const ASSUMPTION_DEFINITIONS: AssumptionDefinition[] = [
     min: 0,
   },
   {
-    key: 'fueleu.poolBuyPriceEurPerTco2e',
-    category: 'FUELEU',
-    label: 'Pool price charged to a deficit client (desk offer)',
-    unit: '€/tCO₂e',
-    defaultValue: fueleuMark?.offerPrice ?? 109,
-    basis: 'MARKET_MARK',
-    source: `${fueleuMarkSource} — offer side.`,
-    usedIn: 'FuelEU calculators: client saving on the pooling route; desk margin = offer − bid',
-    min: 0,
-  },
-  {
     key: 'fueleu.poolSellPriceEurPerTco2e',
     category: 'FUELEU',
     label: 'Pool price paid to a surplus holder (desk bid = mark offer − desk spread)',
@@ -146,17 +130,6 @@ export const ASSUMPTION_DEFINITIONS: AssumptionDefinition[] = [
     min: 0,
   },
   {
-    key: 'fueleu.euaPriceEurPerTco2e',
-    category: 'FUELEU',
-    label: 'EU ETS allowance (EUA) price for maritime CO₂e liability',
-    unit: '€/tCO₂e',
-    defaultValue: euEts1Mark?.midPrice ?? 70,
-    basis: 'MARKET_MARK',
-    source: `${euEts1MarkSource} — mid. Watch (17 Jul 2026): Commission ETS review proposal COM(2026) 616 (maritime scope to 400 GT, SMAP, slower CBAM free-allocation phase-out to 2038); proposal only, no change to current rules.`,
-    usedIn: 'FuelEU/EU ETS calculators: EU ETS liability on fossil fuel burn',
-    min: 0,
-  },
-  {
     key: 'fueleu.eurUsdFxRate',
     category: 'FUELEU',
     label: 'EUR/USD FX rate for marine bunker quotations',
@@ -165,17 +138,6 @@ export const ASSUMPTION_DEFINITIONS: AssumptionDefinition[] = [
     basis: 'DESK_ESTIMATE',
     source: 'unsourced desk default — update',
     usedIn: 'Marine bunker quotation: EUR→USD conversion of the delivered quote',
-    min: 0,
-  },
-  {
-    key: 'fueleu.ttfGasIndexEurPerMwh',
-    category: 'FUELEU',
-    label: 'TTF natural gas front-month index',
-    unit: '€/MWh',
-    defaultValue: 36,
-    basis: 'DESK_ESTIMATE',
-    source: 'unsourced desk default — update',
-    usedIn: 'Marine bunker quotation: Bio-LNG and fossil-LNG price stack',
     min: 0,
   },
   {
@@ -627,16 +589,17 @@ export function getAssumptionsVersion(): number {
 }
 
 /**
- * Live desk bid: the mark offer minus the desk spread, unless the user has explicitly overridden
- * fueleu.poolSellPriceEurPerTco2e directly — so moving fueleu.poolDeskSpreadEurPerTco2e moves the
- * bid without a separate edit, but an explicit bid override still pins the value.
+ * Desk bid for a given pool offer (the FuelEU mark offer, passed in by the caller from the marks
+ * store): the offer less the desk spread, unless the user has explicitly overridden
+ * fueleu.poolSellPriceEurPerTco2e directly, in which case that pinned value is used. Moving
+ * fueleu.poolDeskSpreadEurPerTco2e therefore moves the bid without a separate edit.
  */
-export function fuelEuPoolBidPriceEurPerTco2e(): number {
+export function fuelEuPoolBidPriceEurPerTco2e(offerEurPerTco2e: number): number {
   if (isOverridden('fueleu.poolSellPriceEurPerTco2e')) return getAssumption('fueleu.poolSellPriceEurPerTco2e');
-  return getAssumption('fueleu.poolBuyPriceEurPerTco2e') - getAssumption('fueleu.poolDeskSpreadEurPerTco2e');
+  return offerEurPerTco2e - getAssumption('fueleu.poolDeskSpreadEurPerTco2e');
 }
 
 /** Desk pooling margin per tCO2e: the spread between what deficit clients pay and surplus holders receive. */
-export function fuelEuPoolSpreadEurPerTco2e(): number {
-  return Math.max(0, getAssumption('fueleu.poolBuyPriceEurPerTco2e') - fuelEuPoolBidPriceEurPerTco2e());
+export function fuelEuPoolSpreadEurPerTco2e(offerEurPerTco2e: number): number {
+  return Math.max(0, offerEurPerTco2e - fuelEuPoolBidPriceEurPerTco2e(offerEurPerTco2e));
 }

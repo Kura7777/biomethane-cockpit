@@ -317,7 +317,7 @@ export function Step3RouteAndCosts({
                   <span style={{ color: 'var(--color-muted)' }} className="text-[11px] block">Standard physical gas molecule value</span>
                   <span className="text-[11px] flex items-center gap-1.5 flex-wrap mt-1" data-testid="ttf-source">
                     {gasIndexEur === null ? (
-                      <span style={{ color: 'var(--color-pnl-neg)' }} className="font-medium">No TTF mark. Load simulated marks or set one in Pricing.</span>
+                      <span style={{ color: 'var(--color-pnl-neg)' }} className="font-medium">No TTF mark — load simulated marks or set one in Pricing</span>
                     ) : (
                       sourceChip(b.gasIndexSource)
                     )}

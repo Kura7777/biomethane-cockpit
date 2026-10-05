@@ -8,7 +8,7 @@ import {
   MarineBunkerQuotationResult,
   LngEngineType,
 } from './types';
-import { getAssumption, fuelEuPoolSpreadEurPerTco2e, fuelEuPoolBidPriceEurPerTco2e } from '../assumptions/registry';
+import { getAssumption } from '../assumptions/registry';
 
 /**
  * FuelEU Maritime Physical & Regulatory Constants
@@ -181,8 +181,6 @@ export const EU_ETS_EMISSION_FACTOR_LNG = 2.750;   // tCO2 / tonne fuel
 export const EU_ETS_EMISSION_FACTOR_BIO_LNG = 0.000; // Zero-rated under RED III & EU ETS MRV
 export const EU_ETS_PHASE_IN_2025 = 0.70;         // 70% phase-in in 2025
 export const EU_ETS_PHASE_IN_2026 = 1.00;         // 100% full enforcement in 2026
-/** Desk default EUA price — sourced from the EU_ETS1 mark (EUROPEAN_MARKET_BENCHMARKS), mid side. */
-export const EUA_BENCHMARK_EUR_PER_TONNE = getAssumption('fueleu.euaPriceEurPerTco2e');
 
 /**
  * From 1 January 2026, CH4 and N2O emissions from shipping enter the EU ETS alongside CO2
@@ -213,7 +211,6 @@ export function lngEtsNonCo2Co2eTonnes(tonnes: number, engine: LngEngineType = D
 export const LHV_BIO_LNG_GJ_PER_TONNE = LHV_BIO_LNG_MJ_PER_TONNE / 1000;          // 50 GJ/t Bio-LNG
 export const MWH_PER_TONNE_BIO_LNG = LHV_BIO_LNG_MJ_PER_TONNE / MJ_PER_MWH;       // 13.8889 MWh/t
 export const EUR_USD_DEFAULT_FX = getAssumption('fueleu.eurUsdFxRate');
-export const DEFAULT_TTF_GAS_INDEX_EUR_MWH = getAssumption('fueleu.ttfGasIndexEurPerMwh');
 export const DEFAULT_LIQUEFACTION_FEE_EUR_MWH = getAssumption('fueleu.liquefactionFeeEurPerMwh');
 export const DEFAULT_GREEN_PREMIUM_EUR_MWH = getAssumption('fueleu.greenPremiumEurPerMwh');
 /**
@@ -442,8 +439,9 @@ export function calculateVesselExposure(input: VesselCalculationInput): VesselCa
   let bioLngRequiredZeroCiMwh = 0;
   let physicalSavingsEur = 0;
   let physicalTradingMarginEur = 0;
-  let poolingSavingsEur = 0;
-  let poolingArrangementMarginEur = 0;
+  let poolingSavingsEur: number | null = 0;
+  let poolingArrangementMarginEur: number | null = 0;
+  const poolPrices = input.poolPrices ?? null;
 
   if (!isOverCompliant) {
     statutoryPenaltyY1Eur = penaltyEur(complianceBalanceTco2e, weightedGhgie, years);
@@ -478,13 +476,24 @@ export function calculateVesselExposure(input: VesselCalculationInput): VesselCa
     physicalTradingMarginEur = bioLngRequiredNeg100Mwh * getAssumption('fueleu.physicalDeskMarginEurPerMwh');
 
     // Pathway 2: Article 21 pooling — client pays the desk offer; desk keeps the offer − bid spread
-    const poolDeficitCost = Math.abs(complianceBalanceTco2e) * getAssumption('fueleu.poolBuyPriceEurPerTco2e');
-    poolingSavingsEur = Math.max(0, statutoryPenaltyY1Eur - poolDeficitCost);
-    poolingArrangementMarginEur = Math.abs(complianceBalanceTco2e) * fuelEuPoolSpreadEurPerTco2e();
+    // The pool prices come from the FUELEU mark, passed in by the caller. No mark, no figure.
+    if (poolPrices) {
+      const poolDeficitCost = Math.abs(complianceBalanceTco2e) * poolPrices.offerEurPerTco2e;
+      poolingSavingsEur = Math.max(0, statutoryPenaltyY1Eur - poolDeficitCost);
+      poolingArrangementMarginEur = Math.abs(complianceBalanceTco2e) * poolPrices.spreadEurPerTco2e;
+    } else {
+      poolingSavingsEur = null;
+      poolingArrangementMarginEur = null;
+    }
   } else {
     // Over-compliant fleet: surplus can be sold into a pool at the pool bid
-    poolingSavingsEur = complianceBalanceTco2e * fuelEuPoolBidPriceEurPerTco2e();
-    poolingArrangementMarginEur = complianceBalanceTco2e * fuelEuPoolSpreadEurPerTco2e();
+    if (poolPrices) {
+      poolingSavingsEur = complianceBalanceTco2e * poolPrices.bidEurPerTco2e;
+      poolingArrangementMarginEur = complianceBalanceTco2e * poolPrices.spreadEurPerTco2e;
+    } else {
+      poolingSavingsEur = null;
+      poolingArrangementMarginEur = null;
+    }
   }
 
   return {
@@ -514,7 +523,7 @@ export function calculateEuEtsExposure(
   vlsfoTonnes: number,
   mgoTonnes: number,
   lngTonnes: number,
-  euaPriceEur: number = EUA_BENCHMARK_EUR_PER_TONNE,
+  euaPriceEur: number,
   fueleuPenaltyEur: number = 0,
   lngEngineType: LngEngineType = DEFAULT_LNG_ENGINE
 ): JointRegulatoryExposure {
@@ -607,12 +616,12 @@ export function calculateFleetCapability(
  * usually already below the target).
  */
 export function calculateMarineBunkerQuotation(
-  input: MarineBunkerQuotationInput = {}
+  input: MarineBunkerQuotationInput
 ): MarineBunkerQuotationResult {
-  const ttfGasIndex = input.ttfGasIndexEurMwh !== undefined ? input.ttfGasIndexEurMwh : DEFAULT_TTF_GAS_INDEX_EUR_MWH;
+  const ttfGasIndex = input.ttfGasIndexEurMwh;
   const liquefactionFee = input.liquefactionFeeEurMwh !== undefined ? input.liquefactionFeeEurMwh : DEFAULT_LIQUEFACTION_FEE_EUR_MWH;
   const greenPremium = input.greenPremiumEurMwh !== undefined ? input.greenPremiumEurMwh : DEFAULT_GREEN_PREMIUM_EUR_MWH;
-  const euaPriceEur = input.euaPriceEurPerTonne !== undefined ? input.euaPriceEurPerTonne : EUA_BENCHMARK_EUR_PER_TONNE;
+  const euaPriceEur = input.euaPriceEurPerTonne;
   const eurUsdRate = input.eurUsdRate !== undefined ? input.eurUsdRate : EUR_USD_DEFAULT_FX;
   const bioLngCi = input.bioLngCi !== undefined ? input.bioLngCi : -100;
   const targetYear = input.targetYear !== undefined ? input.targetYear : 2025;
@@ -620,9 +629,7 @@ export function calculateMarineBunkerQuotation(
   const consecutiveYears = input.consecutiveYearsNonCompliant ?? 1;
   // Surplus/deficit compliance balance is valued at the desk bid (the price a surplus holder is
   // actually paid), not a fixed benchmark — Regulation (EU) 2023/1805 sets no statutory price.
-  const surplusPriceEur = input.fuelEuSurplusPriceEurPerTco2e !== undefined
-    ? input.fuelEuSurplusPriceEurPerTco2e
-    : fuelEuPoolBidPriceEurPerTco2e();
+  const surplusPriceEur = input.fuelEuSurplusPriceEurPerTco2e;
 
   const targetGhgie = getFuelEUTargetIntensity(targetYear);
   const fossilLngIntensity = fossilLngWtw(lngEngine);

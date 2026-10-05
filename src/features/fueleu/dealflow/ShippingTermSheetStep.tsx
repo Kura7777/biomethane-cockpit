@@ -28,7 +28,7 @@ import {
   Mail,
 } from 'lucide-react';
 import { showToast } from '../../../app/DeskToastContainer';
-import { getAssumption, fuelEuPoolBidPriceEurPerTco2e } from '../../../domain/assumptions/registry';
+import type { FuelEuMarketPrices, FuelEuPoolPrices } from '../../../domain/fueleu/marketPrices';
 
 const MONO_FONT = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
 
@@ -40,6 +40,10 @@ interface ShippingTermSheetStepProps {
   greenPremium: number;
   euaPrice: number;
   vlsfoPrice: number;
+  /** FUELEU mark prices (offer, bid, spread). */
+  pool: FuelEuPoolPrices;
+  /** Where the TTF, EUA and pool marks came from, printed on the term sheet. */
+  marketPrices: FuelEuMarketPrices;
   onBack: () => void;
   onReset: () => void;
 }
@@ -52,6 +56,8 @@ export function ShippingTermSheetStep({
   greenPremium,
   euaPrice,
   vlsfoPrice,
+  pool,
+  marketPrices,
   onBack,
   onReset,
 }: ShippingTermSheetStepProps) {
@@ -73,8 +79,9 @@ export function ShippingTermSheetStep({
       bioLngVolumeTonnes: counterparty.bio_lng_required_neg100_t,
       bioLngCi: -100,
       targetYear: FUELEU_ACTIVE_PERIOD,
+      fuelEuSurplusPriceEurPerTco2e: pool.bidEurPerTco2e,
     });
-  }, [ttfGasIndex, liquefactionFee, greenPremium, euaPrice, vlsfoPrice, counterparty.bio_lng_required_neg100_t]);
+  }, [ttfGasIndex, liquefactionFee, greenPremium, euaPrice, vlsfoPrice, counterparty.bio_lng_required_neg100_t, pool.bidEurPerTco2e]);
 
   const dealRef = useMemo(() => {
     const region = counterparty.callingRegion || 'EUR';
@@ -86,9 +93,14 @@ export function ShippingTermSheetStep({
   const primaryContact = counterparty.contacts?.[0];
   const contactEmail = primaryContact?.email || 'No verified contact on file';
 
-  const poolClearingPriceEurPerTco2e = isSurplus
-    ? fuelEuPoolBidPriceEurPerTco2e()
-    : getAssumption('fueleu.poolBuyPriceEurPerTco2e');
+  const poolClearingPriceEurPerTco2e = isSurplus ? pool.bidEurPerTco2e : pool.offerEurPerTco2e;
+  const markTag = (label: string, src: { badge: { label: string }; asOf: string | null } | null) =>
+    src ? `${label}: ${src.badge.label}${src.asOf ? `, mark ${src.asOf}` : ', no date on record'}` : `${label}: no mark`;
+  const marketSourceLine = [
+    markTag('TTF', marketPrices.ttfSource),
+    markTag('EUA', marketPrices.euaSource),
+    markTag('FuelEU pool', marketPrices.poolSource),
+  ].join(' | ');
 
   const effectiveClientSavingsEur = useMemo(() => {
     if (pathway === 'PHYSICAL') {
@@ -165,6 +177,7 @@ ${
 - Total Delivered Invoice (USD): $${(marineQuote.totalBioLngInvoiceUsd || 0).toLocaleString()}`
     : `- Article 21 Compliance Allocation: ${Math.abs(counterparty.compliance_balance_2026_tco2e).toLocaleString()} tCO2e (${isSurplus ? 'Surplus Monetisation' : 'Deficit Clearing'})
 - Delivery Terms: Bilateral transfer recorded via the FuelEU database (Art. 19, Art. 21)
+- Market inputs (Pricing desk marks): ${marketSourceLine}
 - Desk Pool Clearing Price (indicative, ${isSurplus ? 'bid' : 'offer'} side): €${poolClearingPriceEurPerTco2e.toFixed(2)} / tCO2e non-dilutive pool clearing
 - Total Compliance Allocation Value: €${Math.round(Math.abs(counterparty.compliance_balance_2026_tco2e) * poolClearingPriceEurPerTco2e).toLocaleString()}`
 }

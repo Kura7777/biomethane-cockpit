@@ -29,6 +29,7 @@ import {
   calculateVesselExposure,
 } from '../fueleu/calculator';
 import { generateForwardCurves, MARKET_METADATA } from '../curves/engine';
+import { TEST_QUOTE_MARKET_INPUTS, TEST_POOL } from './fixtures/fueleuPrices';
 
 /**
  * Regression suite for the September 2026 quantitative & statutory audit.
@@ -365,9 +366,9 @@ describe('Audit remediation — FuelEU & curve units', () => {
   });
 
   it('P2: EU ETS maritime phase-in is 100% for every year from 2026 (CO2 portion)', () => {
-    const q26 = calculateMarineBunkerQuotation({ targetYear: 2026 });
-    const q30 = calculateMarineBunkerQuotation({ targetYear: 2030 });
-    const q25 = calculateMarineBunkerQuotation({ targetYear: 2025 });
+    const q26 = calculateMarineBunkerQuotation({ ...TEST_QUOTE_MARKET_INPUTS, targetYear: 2026 });
+    const q30 = calculateMarineBunkerQuotation({ ...TEST_QUOTE_MARKET_INPUTS, targetYear: 2030 });
+    const q25 = calculateMarineBunkerQuotation({ ...TEST_QUOTE_MARKET_INPUTS, targetYear: 2025 });
     // 2026 and 2030 both include the CH4/N2O add-on, so their ETS liability matches exactly.
     expect(q26.fossilLngEtsLiabilityEur).toBeCloseTo(q30.fossilLngEtsLiabilityEur, 2);
     // 2025 is CO2-only at 70%; 2026+ is CO2 at 100% plus CH4/N2O, so the ratio exceeds the plain
@@ -376,9 +377,9 @@ describe('Audit remediation — FuelEU & curve units', () => {
   });
 
   it('P1-3: bunker quote uses the 50 GJ/t Bio-LNG LHV (Annex II col.3 → RED Annex III) and is sensitive to Bio-LNG CI', () => {
-    const neg100 = calculateMarineBunkerQuotation({ bioLngCi: -100 });
-    const plus50 = calculateMarineBunkerQuotation({ bioLngCi: 50 });
-    const aboveTarget = calculateMarineBunkerQuotation({ bioLngCi: 95 });
+    const neg100 = calculateMarineBunkerQuotation({ ...TEST_QUOTE_MARKET_INPUTS, bioLngCi: -100 });
+    const plus50 = calculateMarineBunkerQuotation({ ...TEST_QUOTE_MARKET_INPUTS, bioLngCi: 50 });
+    const aboveTarget = calculateMarineBunkerQuotation({ ...TEST_QUOTE_MARKET_INPUTS, bioLngCi: 95 });
     expect(neg100.mwhPerTonneBioLng).toBeCloseTo(50000 / 3600, 6);
     expect(neg100.equivalentFossilLngTonnes).toBeCloseTo(50000 / 49100, 4); // same-energy fossil LNG tonnage
     expect(neg100.fuelEuSurplusValueEurPerTonne).toBeGreaterThan(plus50.fuelEuSurplusValueEurPerTonne);

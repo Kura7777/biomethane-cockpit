@@ -9,10 +9,17 @@ import {
   subscribeAssumptions,
   getAssumptionsVersion,
   fuelEuPoolSpreadEurPerTco2e,
+  fuelEuPoolBidPriceEurPerTco2e,
 } from '../assumptions/registry';
 import { calculateVesselExposure } from '../fueleu/calculator';
 import { estimateFarmgateProcurementCost } from '../sourcing/benchmarks';
 import { getBenchmarkForMarket } from '../markets/marketBenchmarks';
+
+const poolPricesAt = (offer: number) => ({
+  offerEurPerTco2e: offer,
+  bidEurPerTco2e: fuelEuPoolBidPriceEurPerTco2e(offer),
+  spreadEurPerTco2e: fuelEuPoolSpreadEurPerTco2e(offer),
+});
 
 const deficitVessel = {
   vlsfoTonnes: 20000,
@@ -39,29 +46,45 @@ describe('Commercial assumptions register', () => {
     }
   });
 
-  it('FuelEU pool prices default to the FuelEU mark bid/offer, so the desk margin is the quoted spread', () => {
+  it('FuelEU pool offer is the FUELEU mark offer; the bid is that offer less the desk spread', () => {
     const mark = getBenchmarkForMarket('FUELEU')!;
-    expect(getAssumption('fueleu.poolBuyPriceEurPerTco2e')).toBe(mark.offerPrice);
-    expect(getAssumption('fueleu.poolSellPriceEurPerTco2e')).toBe(mark.bidPrice);
-    expect(fuelEuPoolSpreadEurPerTco2e()).toBe(mark.offerPrice - mark.bidPrice);
+    expect(fuelEuPoolBidPriceEurPerTco2e(mark.offerPrice)).toBe(mark.offerPrice - getAssumption('fueleu.poolDeskSpreadEurPerTco2e'));
+    expect(fuelEuPoolSpreadEurPerTco2e(mark.offerPrice)).toBe(getAssumption('fueleu.poolDeskSpreadEurPerTco2e'));
+    // Moving the spread moves the bid; an explicit bid override pins it.
+    setAssumption('fueleu.poolDeskSpreadEurPerTco2e', 15);
+    expect(fuelEuPoolBidPriceEurPerTco2e(mark.offerPrice)).toBe(mark.offerPrice - 15);
+    setAssumption('fueleu.poolSellPriceEurPerTco2e', 90);
+    expect(fuelEuPoolBidPriceEurPerTco2e(mark.offerPrice)).toBe(90);
   });
 
-  it('an override flows into the vessel calculator and a reset restores it', () => {
-    const base = calculateVesselExposure(deficitVessel);
-    const deficit = Math.abs(base.complianceBalanceTco2e);
-    expect(base.poolingSavingsEur).toBeCloseTo(base.statutoryPenaltyY1Eur - deficit * getAssumption('fueleu.poolBuyPriceEurPerTco2e'), 2);
+  it('the three FuelEU market prices are no longer assumptions: they come from the marks store', () => {
+    const keys = new Set(ASSUMPTION_DEFINITIONS.map(d => d.key));
+    expect(keys.has('fueleu.ttfGasIndexEurPerMwh')).toBe(false);
+    expect(keys.has('fueleu.euaPriceEurPerTco2e')).toBe(false);
+    expect(keys.has('fueleu.poolBuyPriceEurPerTco2e')).toBe(false);
+    // Desk judgements stay in the register.
+    expect(keys.has('fueleu.poolDeskSpreadEurPerTco2e')).toBe(true);
+    expect(keys.has('fueleu.bioLngPremiumEurPerMwh')).toBe(true);
+  });
 
-    setAssumption('fueleu.poolBuyPriceEurPerTco2e', 400);
-    expect(isOverridden('fueleu.poolBuyPriceEurPerTco2e')).toBe(true);
-    const bumped = calculateVesselExposure(deficitVessel);
-    expect(bumped.poolingSavingsEur).toBeCloseTo(base.statutoryPenaltyY1Eur - deficit * 400, 2);
+  it('a pool-price change flows into the vessel calculator; with no pool prices the pooling figures are null', () => {
+    const offer = 108.6;
+    const base = calculateVesselExposure({ ...deficitVessel, poolPrices: poolPricesAt(offer) });
+    const deficit = Math.abs(base.complianceBalanceTco2e);
+    expect(base.poolingSavingsEur!).toBeCloseTo(base.statutoryPenaltyY1Eur - deficit * offer, 2);
+
+    const bumped = calculateVesselExposure({ ...deficitVessel, poolPrices: poolPricesAt(400) });
+    expect(bumped.poolingSavingsEur!).toBeCloseTo(Math.max(0, base.statutoryPenaltyY1Eur - deficit * 400), 2);
 
     setAssumption('fueleu.bioLngPremiumEurPerMwh', 80);
-    const physical = calculateVesselExposure(deficitVessel);
+    const physical = calculateVesselExposure({ ...deficitVessel, poolPrices: poolPricesAt(offer) });
     expect(physical.physicalSavingsEur).toBeCloseTo(Math.max(0, base.statutoryPenaltyY1Eur - base.bioLngRequiredNeg100Mwh * 80), 2);
 
-    resetAssumption('fueleu.poolBuyPriceEurPerTco2e');
-    expect(calculateVesselExposure(deficitVessel).poolingSavingsEur).toBeCloseTo(base.poolingSavingsEur, 6);
+    const noMark = calculateVesselExposure(deficitVessel);
+    expect(noMark.poolingSavingsEur).toBeNull();
+    expect(noMark.poolingArrangementMarginEur).toBeNull();
+    // Everything that does not depend on the pool is unchanged.
+    expect(noMark.statutoryPenaltyY1Eur).toBe(base.statutoryPenaltyY1Eur);
   });
 
   it('farm-gate estimates read the register', () => {

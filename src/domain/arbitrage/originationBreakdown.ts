@@ -1,9 +1,11 @@
 import type { CostInputs, GasIndexMark, MarksState } from '../netback/types';
-import type { MarkProvenance, SourceBadge } from '../markets/types';
-import { deriveSourceBadge } from '../markets/types';
 import { selectMarkPrice } from '../netback/engine';
 import { SIMULATED_SOURCE_NAME } from '../marks/simulate';
+import { priceSourceForMark, type PriceSource } from '../marks/markSource';
+
 import type { ArbitrageOpportunity } from './types';
+
+export type { PriceSource };
 
 /**
  * One derivation of the Origination cost / revenue breakdown, used by Step 3 and Step 4 so the
@@ -30,12 +32,6 @@ export interface OriginationBreakdownInput {
   marks: Pick<MarksState, 'gasIndex' | 'pricingSides'>;
   /** state.costs: certificationCosts is €/MWh or null when not set. */
   costs: Pick<CostInputs, 'certificationCosts' | 'producerPricing'>;
-}
-
-export interface PriceSource {
-  badge: SourceBadge;
-  /** ISO date (yyyy-mm-dd) the price was observed or last set, or null when none is on record. */
-  asOf: string | null;
 }
 
 export interface OriginationBreakdown {
@@ -77,19 +73,9 @@ export interface OriginationBreakdown {
   volumeMwh: number;
 }
 
-function isoDate(value: string | null | undefined): string | null {
-  if (!value) return null;
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
-}
-
 /** Source of the gas index mark, tagged exactly as the Pricing desk tags it. */
 export function gasIndexSource(gasIndex: GasIndexMark): PriceSource {
-  const prov: MarkProvenance | null | undefined = gasIndex.provenance;
-  return {
-    badge: deriveSourceBadge(prov, SIMULATED_SOURCE_NAME),
-    asOf: isoDate(prov?.observedAt ?? gasIndex.updatedAt),
-  };
+  return priceSourceForMark(gasIndex.provenance, gasIndex.updatedAt);
 }
 
 /**

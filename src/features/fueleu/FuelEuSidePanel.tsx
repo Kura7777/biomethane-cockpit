@@ -3,7 +3,8 @@ import { X, ExternalLink } from 'lucide-react';
 import { FuelEuShippingGroup } from '../../domain/fueleu/groups';
 import { ShippingCounterparty } from '../../domain/fueleu/types';
 import { projectStaticFleetForCounterparties, projectStaticFleet } from '../../domain/fueleu/calculator';
-import { getAssumption, fuelEuPoolBidPriceEurPerTco2e } from '../../domain/assumptions/registry';
+import { NO_POOL_MARK } from '../../domain/fueleu/marketPrices';
+import { useFuelEuPrices } from './useFuelEuPrices';
 import { FuelEuProjectionChart } from './FuelEuProjectionChart';
 
 export interface FuelEuDirectoryRow {
@@ -67,10 +68,10 @@ export function FuelEuSidePanel({ row, onClose, onBuildTermSheet, onAddToPool, e
   const balanceTco2e = row.kind === 'COMPANY' && company ? company.compliance_balance_2026_tco2e : group.sumOfCompanyBalances2026;
   const penaltyEur = row.kind === 'COMPANY' && company ? company.penalty_2026_y1_eur : group.sumOfCompanyPenalties2026;
 
-  const offer = getAssumption('fueleu.poolBuyPriceEurPerTco2e');
-  const bid = fuelEuPoolBidPriceEurPerTco2e();
-  const poolCostEur = Math.abs(balanceTco2e) * offer;
-  const surplusValueEur = Math.abs(balanceTco2e) * bid;
+  const pool = useFuelEuPrices().pool;
+  const poolCostEur = pool ? Math.abs(balanceTco2e) * pool.offerEurPerTco2e : null;
+  const surplusValueEur = pool ? Math.abs(balanceTco2e) * pool.bidEurPerTco2e : null;
+  const poolValueEur = isSurplus ? surplusValueEur : poolCostEur;
 
   const projectionMembers = row.kind === 'COMPANY' && company ? [company] : members;
   const groupPoints = useMemo(
@@ -136,8 +137,8 @@ export function FuelEuSidePanel({ row, onClose, onBuildTermSheet, onAddToPool, e
           </div>
           <div>
             <div className="fe-panel-stat-label">{isSurplus ? 'Surplus value' : 'Pool cost'}</div>
-            <div className="fe-panel-stat-value num">
-              €{((isSurplus ? surplusValueEur : poolCostEur) / 1e6).toFixed(1)}M
+            <div className="fe-panel-stat-value num" title={poolValueEur === null ? NO_POOL_MARK : undefined}>
+              {poolValueEur === null ? '—' : `€${(poolValueEur / 1e6).toFixed(1)}M`}
             </div>
           </div>
         </div>

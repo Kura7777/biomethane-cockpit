@@ -27,7 +27,7 @@ import {
   UserCheck,
 } from 'lucide-react';
 import { showToast } from '../../../app/DeskToastContainer';
-import { getAssumption, fuelEuPoolBidPriceEurPerTco2e } from '../../../domain/assumptions/registry';
+import { useFuelEuPrices } from '../useFuelEuPrices';
 import { FuelEuProjectionChart } from '../FuelEuProjectionChart';
 import { PoolPriceMark } from '../PoolPriceMark';
 
@@ -55,6 +55,11 @@ export function ShippingExposureStep({
   const primaryContact = counterparty.contacts?.[0];
   const contactEmail = primaryContact?.email;
 
+  // Pool prices come from the FUELEU mark; with no mark the pitch says so instead of quoting a number.
+  const pool = useFuelEuPrices().pool;
+  const poolBidText = pool ? `€${pool.bidEurPerTco2e.toFixed(0)}/tCO2e` : 'no FuelEU pool mark loaded; set it in Pricing';
+  const poolOfferText = pool ? `€${pool.offerEurPerTco2e.toFixed(0)}/tCO2e` : 'no FuelEU pool mark loaded; set it in Pricing';
+
   // Structured Crisp Bulleted Pitch Points
   const pitchBulletPoints = useMemo(() => {
     if (isSurplus) {
@@ -65,7 +70,7 @@ export function ShippingExposureStep({
         },
         {
           title: 'Article 21 Surplus Monetisation',
-          detail: `Our desk can broker your surplus into deficit carrier pools at the desk pool bid (€${fuelEuPoolBidPriceEurPerTco2e().toFixed(0)}/tCO2e, indicative — desk assumption, not a statutory rate), capturing €${(counterparty.client_savings_pooling_eur / 1e6).toFixed(1)}M in non-dilutive trading liquidity.`,
+          detail: `Our desk can broker your surplus into deficit carrier pools at the desk pool bid (${poolBidText}, indicative — desk assumption, not a statutory rate), capturing €${(counterparty.client_savings_pooling_eur / 1e6).toFixed(1)}M in non-dilutive trading liquidity.`,
         },
         {
           title: 'Execution & Settlement',
@@ -104,10 +109,10 @@ export function ShippingExposureStep({
       },
       {
         title: 'Indicative Client Savings',
-        detail: `Transfers statutory liability into our desk compliance pool at the desk pool offer (€${getAssumption('fueleu.poolBuyPriceEurPerTco2e').toFixed(0)}/tCO2e, indicative), generating an estimated €${(counterparty.client_savings_pooling_eur / 1e6).toFixed(1)}M in net savings vs statutory penalties.`,
+        detail: `Transfers statutory liability into our desk compliance pool at the desk pool offer (${poolOfferText}, indicative), generating an estimated €${(counterparty.client_savings_pooling_eur / 1e6).toFixed(1)}M in net savings vs statutory penalties.`,
       },
     ];
-  }, [counterparty, isSurplus, isDualFuel, absDeficit]);
+  }, [counterparty, isSurplus, isDualFuel, absDeficit, poolBidText, poolOfferText]);
 
   // Full Tailored Sales Pitch (for 1-click clipboard copy)
   const fullPitchText = useMemo(() => {

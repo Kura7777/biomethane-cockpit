@@ -10,7 +10,7 @@ import { ShippingExposureStep } from './dealflow/ShippingExposureStep';
 import { ShippingBunkerPricingStep } from './dealflow/ShippingBunkerPricingStep';
 import { ShippingTermSheetStep } from './dealflow/ShippingTermSheetStep';
 import { ArrowLeft, Check, BookOpen } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { FUEL_EU_SHIPPING_COUNTERPARTIES } from '../../domain/fueleu/shippingTargetsData';
 import { FUEL_EU_SHIPPING_GROUPS } from '../../domain/fueleu/groups';
 import { FUEL_EU_LNG_SHIPS } from '../../domain/fueleu/lngShipsData';
@@ -18,13 +18,13 @@ import { ShippingCounterparty } from '../../domain/fueleu/types';
 import { Tabs } from '../../shared/ui/Tabs';
 import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 import {
-  DEFAULT_TTF_GAS_INDEX_EUR_MWH,
   DEFAULT_LIQUEFACTION_FEE_EUR_MWH,
   DEFAULT_GREEN_PREMIUM_EUR_MWH,
   DEFAULT_VLSFO_PRICE_USD_PER_TONNE,
-  EUA_BENCHMARK_EUR_PER_TONNE,
   FUELEU_ACTIVE_PERIOD,
 } from '../../domain/fueleu/calculator';
+import { NO_TTF_MARK, NO_EUA_MARK, NO_POOL_MARK } from '../../domain/fueleu/marketPrices';
+import { useFuelEuPrices } from './useFuelEuPrices';
 
 type ActiveTab = 'DIRECTORY' | 'LNG_BOOK' | 'POOL_MATCHING' | 'TOOLS';
 
@@ -80,10 +80,20 @@ export function FuelEUShippingScreen() {
 
   // Pricing Engine State
   const [pathway, setPathway] = useState<'PHYSICAL' | 'POOLING'>('PHYSICAL');
-  const [ttfGasIndex, setTtfGasIndex] = useState<number>(DEFAULT_TTF_GAS_INDEX_EUR_MWH);
+  // TTF, EUA and the pool prices come from the Pricing desk marks. The two sliders are per-deal
+  // what-ifs: an override replaces the mark for this deal only, and null goes back to the mark.
+  const marketPrices = useFuelEuPrices();
+  const [ttfOverride, setTtfOverride] = useState<number | null>(null);
+  const [euaOverride, setEuaOverride] = useState<number | null>(null);
+  const ttfGasIndex: number | null = ttfOverride ?? marketPrices.ttfEurPerMwh;
+  const euaPrice: number | null = euaOverride ?? marketPrices.euaEurPerTco2e;
+  const pricingMarksMissing = [
+    ttfGasIndex === null ? NO_TTF_MARK : null,
+    euaPrice === null ? NO_EUA_MARK : null,
+    marketPrices.pool === null ? NO_POOL_MARK : null,
+  ].filter((m): m is string => m !== null);
   const [liquefactionFee, setLiquefactionFee] = useState<number>(DEFAULT_LIQUEFACTION_FEE_EUR_MWH);
   const [greenPremium, setGreenPremium] = useState<number>(DEFAULT_GREEN_PREMIUM_EUR_MWH);
-  const [euaPrice, setEuaPrice] = useState<number>(EUA_BENCHMARK_EUR_PER_TONNE);
   const [vlsfoPrice, setVlsfoPrice] = useState<number>(DEFAULT_VLSFO_PRICE_USD_PER_TONNE);
 
   // Calibrate pathway when selected counterparty changes
@@ -146,10 +156,10 @@ export function FuelEUShippingScreen() {
 
   const handleResetDeal = () => {
     setPathway('PHYSICAL');
-    setTtfGasIndex(DEFAULT_TTF_GAS_INDEX_EUR_MWH);
+    setTtfOverride(null);
     setLiquefactionFee(DEFAULT_LIQUEFACTION_FEE_EUR_MWH);
     setGreenPremium(DEFAULT_GREEN_PREMIUM_EUR_MWH);
-    setEuaPrice(EUA_BENCHMARK_EUR_PER_TONNE);
+    setEuaOverride(null);
     setVlsfoPrice(DEFAULT_VLSFO_PRICE_USD_PER_TONNE);
     setSearchParams(prev => {
       const next = new URLSearchParams(prev);
@@ -348,26 +358,38 @@ export function FuelEUShippingScreen() {
           {currentStep === 2 && (
             <ShippingExposureStep counterparty={selectedCounterparty} onBack={() => handleNavigateStep(1)} onNext={() => handleNavigateStep(3)} />
           )}
-          {currentStep === 3 && (
+          {(currentStep === 3 || currentStep === 4) && pricingMarksMissing.length > 0 && (
+            <div data-testid="fueleu-marks-missing" style={{ padding: '24px', maxWidth: 720, fontSize: '13px', lineHeight: 1.5 }}>
+              <div style={{ fontWeight: 700, marginBottom: 6 }}>This quote needs market marks that are not loaded.</div>
+              <ul style={{ margin: '0 0 12px 18px' }}>
+                {pricingMarksMissing.map(m => <li key={m}>{m}</li>)}
+              </ul>
+              <Link to="/pricing" className="btn btn-primary" style={{ marginRight: 8 }}>Open the Pricing desk</Link>
+              <button type="button" className="btn btn-secondary" onClick={() => handleNavigateStep(2)}>Back</button>
+            </div>
+          )}
+          {currentStep === 3 && pricingMarksMissing.length === 0 && ttfGasIndex !== null && euaPrice !== null && marketPrices.pool !== null && (
             <ShippingBunkerPricingStep
               counterparty={selectedCounterparty}
               pathway={pathway}
               setPathway={setPathway}
               ttfGasIndex={ttfGasIndex}
-              setTtfGasIndex={setTtfGasIndex}
+              setTtfGasIndex={setTtfOverride}
               liquefactionFee={liquefactionFee}
               setLiquefactionFee={setLiquefactionFee}
               greenPremium={greenPremium}
               setGreenPremium={setGreenPremium}
               euaPrice={euaPrice}
-              setEuaPrice={setEuaPrice}
+              setEuaPrice={setEuaOverride}
               vlsfoPrice={vlsfoPrice}
               setVlsfoPrice={setVlsfoPrice}
+              pool={marketPrices.pool}
+              marketPrices={marketPrices}
               onBack={() => handleNavigateStep(2)}
               onNext={() => handleNavigateStep(4)}
             />
           )}
-          {currentStep === 4 && (
+          {currentStep === 4 && pricingMarksMissing.length === 0 && ttfGasIndex !== null && euaPrice !== null && marketPrices.pool !== null && (
             <ShippingTermSheetStep
               counterparty={selectedCounterparty}
               pathway={pathway}
@@ -376,6 +398,8 @@ export function FuelEUShippingScreen() {
               greenPremium={greenPremium}
               euaPrice={euaPrice}
               vlsfoPrice={vlsfoPrice}
+              pool={marketPrices.pool}
+              marketPrices={marketPrices}
               onBack={() => handleNavigateStep(3)}
               onReset={handleResetDeal}
             />

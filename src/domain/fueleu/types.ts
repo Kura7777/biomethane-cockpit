@@ -100,22 +100,24 @@ export interface JointRegulatoryExposure {
 }
 
 export interface MarineBunkerQuotationInput {
-  ttfGasIndexEurMwh?: number;
+  /** TTF gas index (EUR/MWh) from the marks store. Required: there is no default. */
+  ttfGasIndexEurMwh: number;
   liquefactionFeeEurMwh?: number;
   greenPremiumEurMwh?: number;
   /** @deprecated No longer used in the quote: only LNG-capable ships can burn Bio-LNG, so the
    *  counterfactual is fossil LNG on the same engine, not VLSFO. Kept optional so existing
    *  callers still compile. */
   vlsfoPriceUsdPerTonne?: number;
-  euaPriceEurPerTonne?: number;
+  /** EU ETS allowance price (EUR/tCO2e) from the EU_ETS1 mark. Required: there is no default. */
+  euaPriceEurPerTonne: number;
   eurUsdRate?: number;
   bioLngVolumeTonnes?: number;
   bioLngCi?: number;
   targetYear?: number;
   /** Consecutive non-compliance escalation year for the fossil-LNG deficit penalty (Art. 23(2)). */
   consecutiveYearsNonCompliant?: number;
-  /** Pool / surplus transfer price for FuelEU compliance balance (€/tCO₂e). Defaults to the desk bid (fueleu.poolSellPriceEurPerTco2e). */
-  fuelEuSurplusPriceEurPerTco2e?: number;
+  /** Pool / surplus transfer price for FuelEU compliance balance (EUR/tCO2e): the desk bid derived from the FUELEU mark. Required: there is no default. */
+  fuelEuSurplusPriceEurPerTco2e: number;
   /** Engine class burning the Bio-LNG (Annex II methane slip). Defaults to DEFAULT_LNG_ENGINE. */
   lngEngineType?: LngEngineType;
 }
@@ -291,6 +293,16 @@ export interface VesselArchetype {
 /** FuelEU Annex II LNG engine classes (default methane slip differs by class). */
 export type LngEngineType = 'LNG_OTTO_MS' | 'LNG_OTTO_SS' | 'LNG_DIESEL_SS' | 'LBSI';
 
+/** FuelEU pool prices, taken by the caller from the FUELEU mark (see marketPrices.ts). */
+export interface FuelEuPoolPrices {
+  /** Price a deficit client pays the desk (mark offer). */
+  offerEurPerTco2e: number;
+  /** Price the desk pays a surplus holder (mark offer less the desk spread, or the explicit override). */
+  bidEurPerTco2e: number;
+  /** Desk pooling margin per tCO2e: offer less bid, never negative. */
+  spreadEurPerTco2e: number;
+}
+
 export interface VesselCalculationInput {
   vlsfoTonnes: number;
   mgoTonnes: number;
@@ -304,6 +316,8 @@ export interface VesselCalculationInput {
    *  Intra-EU voyages and at-berth energy count 100%; third-country voyages count 50%.
    *  Default 0 = all fuel tonnes supplied are already in scope. */
   shareThirdCountryVoyages?: number;
+  /** Pool prices from the FuelEU mark. When omitted (no mark loaded) the pooling figures come back null, never a default. */
+  poolPrices?: FuelEuPoolPrices | null;
 }
 
 export interface VesselCalculationResult {
@@ -321,6 +335,8 @@ export interface VesselCalculationResult {
   bioLngRequiredZeroCiMwh: number;
   physicalSavingsEur: number;
   physicalTradingMarginEur: number;
-  poolingSavingsEur: number;
-  poolingArrangementMarginEur: number;
+  /** Client saving on the pooling route (deficit) or surplus value at the desk bid. null when no FuelEU pool mark was supplied. */
+  poolingSavingsEur: number | null;
+  /** Desk margin on pooling. null when no FuelEU pool mark was supplied. */
+  poolingArrangementMarginEur: number | null;
 }

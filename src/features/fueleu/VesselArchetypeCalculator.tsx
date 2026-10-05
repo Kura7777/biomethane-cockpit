@@ -36,13 +36,14 @@ import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion'
 import { AssumptionsStrip } from '../../shared/components/AssumptionsStrip';
 import { FlowSteps } from '../../shared/ui/FlowSteps';
 import { DualCommercialPathwayInitial } from './DualCommercialPathwaySimulator';
+import { NO_POOL_MARK } from '../../domain/fueleu/marketPrices';
+import { useFuelEuPrices } from './useFuelEuPrices';
 import './vesselArchetypeCalculator.css';
 
 const FUELEU_PATHWAY_ASSUMPTIONS = [
   'fueleu.bioLngPremiumEurPerMwh',
   'fueleu.physicalDeskMarginEurPerMwh',
-  'fueleu.poolBuyPriceEurPerTco2e',
-  'fueleu.poolSellPriceEurPerTco2e',
+  'fueleu.poolDeskSpreadEurPerTco2e',
 ];
 
 type CalcStep = 1 | 2 | 3 | 4;
@@ -107,6 +108,9 @@ export function VesselArchetypeCalculator({ onComparePathways }: VesselArchetype
   };
 
   const assumptionsVersion = useAssumptionsVersion();
+  // Pool prices: the FUELEU mark from the Pricing desk. With no mark the pooling figures are "—".
+  const pool = useFuelEuPrices().pool;
+  const eur0 = (v: number | null): string => (v === null ? `— (${NO_POOL_MARK})` : `€${Math.round(v).toLocaleString()}`);
 
   // Perform live exposure calculation
   const calculationResult = useMemo(() => {
@@ -119,9 +123,10 @@ export function VesselArchetypeCalculator({ onComparePathways }: VesselArchetype
       targetYear,
       consecutiveYearsNonCompliant: consecutiveYears,
       shareThirdCountryVoyages,
+      poolPrices: pool,
     };
     return calculateVesselExposure(input);
-  }, [vlsfoTonnes, mgoTonnes, lngTonnes, bioLngTonnes, bioLngCi, targetYear, consecutiveYears, shareThirdCountryVoyages, assumptionsVersion]);
+  }, [vlsfoTonnes, mgoTonnes, lngTonnes, bioLngTonnes, bioLngCi, targetYear, consecutiveYears, shareThirdCountryVoyages, assumptionsVersion, pool]);
 
   // Client-facing cost of each of the three deficit-close options, for the summary rail's
   // side-by-side comparison. Bio-LNG's client cost is the fuel premium only (not its full
@@ -129,12 +134,12 @@ export function VesselArchetypeCalculator({ onComparePathways }: VesselArchetype
   const railOptions = useMemo(() => {
     const payPenaltyEur = calculationResult.statutoryPenaltyY1Eur;
     const bioLngPremiumEur = calculationResult.bioLngRequiredNeg100Mwh * getAssumption('fueleu.bioLngPremiumEurPerMwh');
-    const poolCostEur = Math.abs(calculationResult.complianceBalanceTco2e) * getAssumption('fueleu.poolBuyPriceEurPerTco2e');
+    const poolCostEur = pool ? Math.abs(calculationResult.complianceBalanceTco2e) * pool.offerEurPerTco2e : null;
     // Bio-LNG is only a physical option for a vessel with an LNG-capable engine (dual-fuel/LNG).
     const bioLngAvailable = lngTonnes > 0 || bioLngTonnes > 0;
-    const cheapest = Math.min(payPenaltyEur, poolCostEur, bioLngAvailable ? bioLngPremiumEur : Infinity);
+    const cheapest = Math.min(payPenaltyEur, poolCostEur ?? Infinity, bioLngAvailable ? bioLngPremiumEur : Infinity);
     return { payPenaltyEur, bioLngPremiumEur, poolCostEur, cheapest, bioLngAvailable };
-  }, [calculationResult, assumptionsVersion, lngTonnes, bioLngTonnes]);
+  }, [calculationResult, assumptionsVersion, lngTonnes, bioLngTonnes, pool]);
 
   // "Compare pathways for this vessel" hand-off: carries this vessel's deficit, achieved GHGIE,
   // LNG capability (inferred from the fuel burn entered), compliance year and escalation across
@@ -198,8 +203,8 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
   - Client Savings: €${Math.round(calculationResult.physicalSavingsEur).toLocaleString()}
   - Desk Margin (internal): €${Math.round(calculationResult.physicalTradingMarginEur).toLocaleString()}
 * Pathway B (Article 21 Pooling):
-  - Client Savings: €${Math.round(calculationResult.poolingSavingsEur).toLocaleString()}
-  - Desk Margin (internal): €${Math.round(calculationResult.poolingArrangementMarginEur).toLocaleString()}
+  - Client Savings: ${eur0(calculationResult.poolingSavingsEur)}
+  - Desk Margin (internal): ${eur0(calculationResult.poolingArrangementMarginEur)}
 ================================================================================`;
     navigator.clipboard.writeText(summary);
     setCopied(true);
@@ -597,11 +602,11 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
                   </div>
                   <div className="fva-kv-row pos">
                     <span>{isSurplus ? 'Pool Revenue:' : 'Client Net Savings:'}</span>
-                    <span className="num">€{Math.round(calculationResult.poolingSavingsEur).toLocaleString()}</span>
+                    <span className="num" title={calculationResult.poolingSavingsEur === null ? NO_POOL_MARK : undefined}>{calculationResult.poolingSavingsEur === null ? '—' : `€${Math.round(calculationResult.poolingSavingsEur).toLocaleString()}`}</span>
                   </div>
                   <div className="fva-kv-row accent">
                     <span>Desk Arrangement Fee:</span>
-                    <span className="num">€{Math.round(calculationResult.poolingArrangementMarginEur).toLocaleString()}</span>
+                    <span className="num" title={calculationResult.poolingArrangementMarginEur === null ? NO_POOL_MARK : undefined}>{calculationResult.poolingArrangementMarginEur === null ? '—' : `€${Math.round(calculationResult.poolingArrangementMarginEur).toLocaleString()}`}</span>
                   </div>
                 </div>
 
@@ -689,7 +694,7 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
               )}
               <div className={`fva-rail-option ${railOptions.poolCostEur === railOptions.cheapest ? 'cheapest' : ''}`}>
                 <span className="fva-rail-option-label">Pool</span>
-                <span className="num">€{Math.round(railOptions.poolCostEur).toLocaleString()}</span>
+                <span className="num" title={railOptions.poolCostEur === null ? NO_POOL_MARK : undefined}>{railOptions.poolCostEur === null ? '—' : `€${Math.round(railOptions.poolCostEur).toLocaleString()}`}</span>
               </div>
             </div>
           </div>

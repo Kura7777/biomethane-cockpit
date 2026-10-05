@@ -2,7 +2,9 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { CheckCircle2, XCircle, Info } from 'lucide-react';
 import { FUEL_EU_SHIPPING_GROUPS } from '../../domain/fueleu/groups';
 import { buildPoolBook, PoolSurplusParty, PoolDeficitParty } from '../../domain/fueleu/poolMatching';
-import { getAssumption, fuelEuPoolBidPriceEurPerTco2e } from '../../domain/assumptions/registry';
+import { Link } from 'react-router-dom';
+import { NO_POOL_MARK, type FuelEuPoolPrices } from '../../domain/fueleu/marketPrices';
+import { useFuelEuPrices } from './useFuelEuPrices';
 import { FUELEU_POOLING_BORROWING_DATABASE_DEADLINE } from '../../domain/fueleu/calculator';
 import { PoolPriceMark } from './PoolPriceMark';
 import { FuelEuPoolIndexChart } from './FuelEuPoolIndexChart';
@@ -19,7 +21,21 @@ export interface PoolMatchingTabProps {
   highlightGroupId?: string | null;
 }
 
-export function PoolMatchingTab({ highlightGroupId }: PoolMatchingTabProps = {}) {
+/** Pool matching is priced entirely off the FUELEU mark; with no mark there is nothing to match at. */
+export function PoolMatchingTab(props: PoolMatchingTabProps = {}) {
+  const pool = useFuelEuPrices().pool;
+  if (!pool) {
+    return (
+      <div className="fe-empty" data-testid="pool-mark-missing" style={{ padding: '24px', fontSize: '13px' }}>
+        <strong>{NO_POOL_MARK}.</strong> Pool matching prices every party at the FuelEU pool offer and bid.{' '}
+        <Link to="/pricing" style={{ color: 'var(--color-accent)' }}>Open the Pricing desk →</Link>
+      </div>
+    );
+  }
+  return <PoolMatchingTabInner {...props} pool={pool} />;
+}
+
+function PoolMatchingTabInner({ highlightGroupId, pool }: PoolMatchingTabProps & { pool: FuelEuPoolPrices }) {
   const isMobile = useIsMobile();
   const [topDeficitCount, setTopDeficitCount] = useState<number>(10);
 
@@ -34,8 +50,8 @@ export function PoolMatchingTab({ highlightGroupId }: PoolMatchingTabProps = {})
     }
   }, [highlightGroupId]);
 
-  const offer = getAssumption('fueleu.poolBuyPriceEurPerTco2e');
-  const bid = fuelEuPoolBidPriceEurPerTco2e();
+  const offer = pool.offerEurPerTco2e;
+  const bid = pool.bidEurPerTco2e;
 
   const surplusParties: PoolSurplusParty[] = useMemo(
     () =>
