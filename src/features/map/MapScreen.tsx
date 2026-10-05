@@ -103,9 +103,9 @@ const SELL_FILL: Record<SellCategory, string> = {
 
 const SELL_LEGEND: { key: 'ORIGIN' | SellCategory; label: string; swatch: string }[] = [
   { key: 'ORIGIN', label: 'Selected origin', swatch: 'var(--color-text)' },
-  { key: 'SELL_NOW', label: 'Sell now', swatch: 'var(--color-status-pass-text)' },
-  { key: 'CHECK_FIRST', label: 'Check first', swatch: 'var(--color-status-warn-text)' },
-  { key: 'CLOSED', label: 'Closed', swatch: 'color-mix(in srgb, var(--color-text) 25%, var(--color-bg))' },
+  { key: 'SELL_NOW', label: 'Ready to trade', swatch: 'var(--color-status-pass-text)' },
+  { key: 'CHECK_FIRST', label: 'Review needed / workaround', swatch: 'var(--color-status-warn-text)' },
+  { key: 'CLOSED', label: 'Closed / domestic only', swatch: 'color-mix(in srgb, var(--color-text) 25%, var(--color-bg))' },
   { key: 'NO_DATA', label: 'Not researched', swatch: STATUS_CONFIG.NONE.swatch },
 ];
 
@@ -115,7 +115,7 @@ const EVIDENCE_GRADE_TEXT: Record<string, string> = {
   RULE: 'hub rules',
 };
 const AUDIT_REF = 'Audited 4 Oct 2026 — sources in docs/research/route-audit-2026-10-04.';
-const ROUTES_HINT = 'Click a country to see where its certificates can go.';
+const ROUTES_HINT = 'Click any destination country to inspect trade opportunities & execution playbook.';
 
 function firstSentence(text: string): string {
   const i = text.search(/\.(\s|$)/);
@@ -207,6 +207,142 @@ function getPlainLanguageHow(r: CertificateRoute, category: SellCategory): strin
   }
 
   return 'Not researched';
+}
+
+const FILTER_CONFIG: Record<RouteFilter, { label: string; shortLabel: string; desc: string }> = {
+  ALL: {
+    label: 'All Commercial Trades',
+    shortLabel: 'All Trades',
+    desc: 'Showing all trade opportunities: electronic certificate exports and physical quota deliveries.',
+  },
+  GO: {
+    label: 'Certificates Only (Book & Claim / GO)',
+    shortLabel: 'Certificates Only (GO)',
+    desc: 'Electronic transfer of green gas certificates between registries (Scope 1 / voluntary) without moving physical gas.',
+  },
+  POS: {
+    label: 'Physical Gas + Quotas (Mass Balance / PoS)',
+    shortLabel: 'Physical Quotas (PoS)',
+    desc: 'Physical grid injection & mass-balance delivery into national transport compliance quotas (e.g. THG, RTFO, POZE).',
+  },
+};
+
+export type TradeArchetype = 'BOTH' | 'CERT_ONLY' | 'POS_ONLY' | 'CHECK_FIRST' | 'CLOSED' | 'NO_DATA';
+
+export interface TradePlaybookDetails {
+  archetype: TradeArchetype;
+  badge: string;
+  chipClass: string;
+  isTradeable: boolean;
+  structureTitle: string;
+  structureDesc: string;
+  schemeTitle: string;
+  schemeDesc: string;
+  executionTitle: string;
+  executionDesc: string;
+  defaultCoc: 'BOOK_AND_CLAIM' | 'MASS_BALANCE';
+}
+
+function getTradePlaybook(originIso: string, targetIso: string, r: CertificateRoute | undefined): TradePlaybookDetails {
+  if (!r) {
+    return {
+      archetype: 'NO_DATA',
+      badge: 'Unresearched',
+      chipClass: '',
+      isTradeable: false,
+      structureTitle: 'No verified corridor data',
+      structureDesc: `No audited regulatory records found for ${originIso} ➔ ${targetIso}.`,
+      schemeTitle: 'None',
+      schemeDesc: 'National schemes unconfirmed.',
+      executionTitle: 'Not Available',
+      executionDesc: 'Corridor data unavailable.',
+      defaultCoc: 'BOOK_AND_CLAIM',
+    };
+  }
+
+  const goPossible = POSSIBLE_STATUSES.includes(r.status);
+  const posPossible = r.pos?.status === 'POSSIBLE';
+  const posSchemes = r.pos?.schemeName || 'National Transport Scheme';
+
+  if (goPossible && posPossible) {
+    const hubs = r.hubs.length > 0 ? r.hubs.join(' / ') : 'Registry Hub';
+    return {
+      archetype: 'BOTH',
+      badge: 'Both: Certificates + Physical PoS',
+      chipClass: 'chip-pass',
+      isTradeable: true,
+      structureTitle: 'Dual Option: Book & Claim or Mass Balance',
+      structureDesc: 'Sell green certificates independently, or deliver physical gas with sustainability proof (PoS) into the national quota.',
+      schemeTitle: `${posSchemes} / Corporate Scope 1`,
+      schemeDesc: `Eligible for compliance tickets in ${targetIso} or corporate green gas claims.`,
+      executionTitle: `Electronic Transfer (${hubs}) or Gas Grid transit`,
+      executionDesc: `GOs clear via ${hubs}. Physical gas injects into interconnected ENTSOG grid with mass balance proof.`,
+      defaultCoc: 'MASS_BALANCE',
+    };
+  }
+
+  if (goPossible && !posPossible) {
+    const hubs = r.hubs.length > 0 ? r.hubs.join(' / ') : 'Registry Hub';
+    return {
+      archetype: 'CERT_ONLY',
+      badge: 'Certificates Only (Book & Claim)',
+      chipClass: 'chip-pass',
+      isTradeable: true,
+      structureTitle: 'Book & Claim Electronic Transfer (GOs)',
+      structureDesc: 'Certificates can be sold and transferred electronically without moving physical gas or booking pipeline capacity.',
+      schemeTitle: 'Voluntary Scope 1 / Green Gas Tariffs',
+      schemeDesc: `Accepted in ${targetIso} for corporate emission accounting or voluntary consumer green gas.`,
+      executionTitle: `Registry Account Transfer via ${hubs}`,
+      executionDesc: `Initiate electronic cancellation or transfer in national registry to ${targetIso} counterpart.`,
+      defaultCoc: 'BOOK_AND_CLAIM',
+    };
+  }
+
+  if (!goPossible && posPossible) {
+    return {
+      archetype: 'POS_ONLY',
+      badge: 'Physical Quota Only (Mass Balance)',
+      chipClass: 'chip-pass',
+      isTradeable: true,
+      structureTitle: 'Physical Gas Delivery + Sustainability Proof (PoS)',
+      structureDesc: 'Physical biomethane delivered via interconnected gas grid. Certificates remain bound to the gas parcel.',
+      schemeTitle: `${posSchemes} Compliance`,
+      schemeDesc: `Mandatory transport quota target in ${targetIso} (§47d / RTFO / THG-Quote). High commercial green premium.`,
+      executionTitle: 'Continuous Gas Grid Path + Mass Balance Cert',
+      executionDesc: `Inject in ${originIso}, book transit to ${targetIso}, and submit validated Proof of Sustainability (PoS).`,
+      defaultCoc: 'MASS_BALANCE',
+    };
+  }
+
+  if (r.workaround || r.status === 'AWAITING_REGISTRY' || r.pos?.status === 'OPEN') {
+    return {
+      archetype: 'CHECK_FIRST',
+      badge: 'Requires Workaround / Review',
+      chipClass: 'chip-warn',
+      isTradeable: false,
+      structureTitle: 'Conditional Transfer / Ex-Domain Cancellation',
+      structureDesc: r.workaround || 'Standard electronic transfer not established; requires manual counterparty confirmation.',
+      schemeTitle: posSchemes,
+      schemeDesc: r.pos?.reason || r.reason,
+      executionTitle: 'Ex-Domain Cancellation or Bilateral Contract',
+      executionDesc: 'Cancel certificate in origin registry explicitly for beneficiary in destination, subject to local regulator acceptance.',
+      defaultCoc: 'BOOK_AND_CLAIM',
+    };
+  }
+
+  return {
+    archetype: 'CLOSED',
+    badge: 'Domestic Market Only / Closed',
+    chipClass: '',
+    isTradeable: false,
+    structureTitle: 'Foreign Imports Excluded by Law',
+    structureDesc: r.pos?.reason || r.reason || 'Domestic regulations prohibit imported biomethane from claiming national subsidies.',
+    schemeTitle: posSchemes,
+    schemeDesc: r.pos?.reason || 'Restricted to domestic grid injection.',
+    executionTitle: 'No Statutory Corridor Available',
+    executionDesc: 'Trade cannot be settled under current legal framework.',
+    defaultCoc: 'BOOK_AND_CLAIM',
+  };
 }
 
 export function MapScreen() {
@@ -354,15 +490,15 @@ export function MapScreen() {
     });
 
     const lines = [
-      `Where can ${originMeta.name} biomethane be sold? (Filter: ${filter})`,
+      `Where can ${originMeta.name} biomethane be sold? (Filter: ${FILTER_CONFIG[filter].shortLabel})`,
       '',
-      `Sell now (${groups.SELL_NOW.length}):`,
+      `Ready to trade (${groups.SELL_NOW.length}):`,
       ...(groups.SELL_NOW.length > 0 ? groups.SELL_NOW : ['- None']),
       '',
-      `Check first (${groups.CHECK_FIRST.length}):`,
+      `Review needed / workaround (${groups.CHECK_FIRST.length}):`,
       ...(groups.CHECK_FIRST.length > 0 ? groups.CHECK_FIRST : ['- None']),
       '',
-      `Closed (${groups.CLOSED.length}):`,
+      `Closed / domestic only (${groups.CLOSED.length}):`,
       ...(groups.CLOSED.length > 0 ? groups.CLOSED : ['- None']),
       '',
       AUDIT_REF,
@@ -376,11 +512,40 @@ export function MapScreen() {
     }
   };
 
+  const tradeableBreakdown = useMemo(() => {
+    let both = 0;
+    let certOnly = 0;
+    let posOnly = 0;
+    certRoutes.forEach(r => {
+      const cat = classifyRoute(r, filter);
+      if (cat === 'SELL_NOW') {
+        const goPossible = POSSIBLE_STATUSES.includes(r.status);
+        const posPossible = r.pos?.status === 'POSSIBLE';
+        if (goPossible && posPossible) both++;
+        else if (goPossible) certOnly++;
+        else if (posPossible) posOnly++;
+      }
+    });
+    return { both, certOnly, posOnly };
+  }, [certRoutes, filter]);
+
   const posOpenId = (r: CertificateRoute): string | null => {
     if (!r.pos || r.pos.status !== 'OPEN') return null;
     return getPosRoute(r.origin, r.target).schemes.find(x => x.status === 'OPEN' && x.openQuestionId)?.openQuestionId ?? null;
   };
   const currentRoute = useMemo(() => getCertificateRoute(originMeta.iso, targetMeta.iso), [originMeta.iso, targetMeta.iso]);
+
+  const selectedRoute = useMemo(() => {
+    return getCertificateRoute(originMeta.iso, selectedMeta.iso);
+  }, [originMeta.iso, selectedMeta.iso]);
+
+  const selectedPlaybook = useMemo(() => {
+    return getTradePlaybook(originMeta.iso, selectedMeta.iso, selectedRoute);
+  }, [originMeta.iso, selectedMeta.iso, selectedRoute]);
+
+  const currentPlaybook = useMemo(() => {
+    return getTradePlaybook(originMeta.iso, targetMeta.iso, currentRoute);
+  }, [originMeta.iso, targetMeta.iso, currentRoute]);
 
   const corridorCalculation = useMemo(() => {
     return calculateLogisticsRoute(originMeta.iso, targetMeta.iso);
@@ -395,15 +560,23 @@ export function MapScreen() {
     if (!cMeta) return;
 
     setSelectedCountryName(cName);
-    if (view !== 'COMPLIANCE') {
-      if (cName === target) setTarget(origin);
-      setOrigin(cName);
+    if (view === 'SELL') {
+      if (cName === origin) {
+        return;
+      }
+      setTarget(cName);
+      if (isMobile) {
+        setPanelOpen(true);
+      }
       return;
     }
     if (mode === 'ORIGIN') {
       if (cName !== target) setOrigin(cName);
     } else {
       if (cName !== origin) setTarget(cName);
+    }
+    if (isMobile) {
+      setPanelOpen(true);
     }
   };
 
@@ -595,10 +768,10 @@ export function MapScreen() {
             </div>
           </div>
           <div style={{ padding: '12px 18px' }}>
-            <div className="eyebrow">Certificate route</div>
+            <div className="eyebrow">{view === 'SELL' ? 'Trade Playbook' : 'Certificate route'}</div>
             {view === 'SELL' ? (
               <>
-                <div style={{ fontSize: '17px', fontWeight: 800, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ fontSize: '15px', fontWeight: 800, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span
                     className="map-status-dot"
                     style={{
@@ -610,16 +783,10 @@ export function MapScreen() {
                           : 'color-mix(in srgb, var(--color-text) 30%, var(--color-bg))',
                     }}
                   />
-                  {classifyRoute(currentRoute, filter) === 'SELL_NOW'
-                    ? 'Sell now'
-                    : classifyRoute(currentRoute, filter) === 'CHECK_FIRST'
-                    ? 'Check first'
-                    : classifyRoute(currentRoute, filter) === 'CLOSED'
-                    ? 'Closed'
-                    : 'Not researched'}
+                  {currentPlaybook.badge}
                 </div>
                 <div style={{ fontSize: '12px' }} className="mut">
-                  {getPlainLanguageHow(currentRoute, classifyRoute(currentRoute, filter))}
+                  {currentPlaybook.structureTitle}
                 </div>
               </>
             ) : (
@@ -653,7 +820,7 @@ export function MapScreen() {
           aria-pressed={view === 'SELL'}
           onClick={() => setView('SELL')}
         >
-          Where can I sell?
+          Trade Opportunities
         </button>
         <button
           type="button"
@@ -666,21 +833,26 @@ export function MapScreen() {
         </button>
       </div>
       {view === 'SELL' && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '8px' }}>
-          <span className="eyebrow" style={{ marginRight: '4px', fontSize: '11px' }}>Filter:</span>
-          {(['ALL', 'GO', 'POS'] as const).map(f => (
-            <button
-              key={f}
-              type="button"
-              className={`btn ${filter === f ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ padding: touch ? '0 6px' : '2px 6px', fontSize: '11px', minHeight: touch ? '36px' : undefined }}
-              aria-pressed={filter === f}
-              onClick={() => setFilter(f)}
-            >
-              {f === 'ALL' ? 'All' : f === 'GO' ? 'GO only' : 'PoS only'}
-            </button>
-          ))}
-        </div>
+        <>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '8px' }}>
+            <span className="eyebrow" style={{ marginRight: '4px', fontSize: '11px' }}>Trade mode:</span>
+            {(['ALL', 'GO', 'POS'] as const).map(f => (
+              <button
+                key={f}
+                type="button"
+                className={`btn ${filter === f ? 'btn-primary' : 'btn-secondary'}`}
+                style={{ padding: touch ? '0 6px' : '2px 6px', fontSize: '11px', minHeight: touch ? '36px' : undefined }}
+                aria-pressed={filter === f}
+                onClick={() => setFilter(f)}
+              >
+                {FILTER_CONFIG[f].shortLabel}
+              </button>
+            ))}
+          </div>
+          <div className="map-filter-banner" style={{ marginTop: '8px' }}>
+            <strong style={{ color: 'var(--color-text)' }}>{FILTER_CONFIG[filter].shortLabel}:</strong> {FILTER_CONFIG[filter].desc}
+          </div>
+        </>
       )}
     </div>
   );
@@ -722,24 +894,64 @@ export function MapScreen() {
       <div className="map-summary-dots">
         <span className="map-summary-dot-item">
           <span className="map-status-dot" style={{ backgroundColor: 'var(--color-status-pass-text)' }} />
-          Sell now <span className="num">{categoryCounts.SELL_NOW}</span>
+          Ready to trade <span className="num">{categoryCounts.SELL_NOW}</span>
         </span>
         <span className="map-summary-dot-item">
           <span className="map-status-dot" style={{ backgroundColor: 'var(--color-status-warn-text)' }} />
-          Check first <span className="num">{categoryCounts.CHECK_FIRST}</span>
+          Review needed <span className="num">{categoryCounts.CHECK_FIRST}</span>
         </span>
         <span className="map-summary-dot-item">
           <span className="map-status-dot" style={{ backgroundColor: 'color-mix(in srgb, var(--color-text) 30%, var(--color-bg))' }} />
           Closed <span className="num">{categoryCounts.CLOSED}</span>
         </span>
       </div>
+
+      {tradeableBreakdown.both + tradeableBreakdown.certOnly + tradeableBreakdown.posOnly > 0 && (
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
+          {tradeableBreakdown.both > 0 && (
+            <span className="chip chip-pass" style={{ fontSize: '11px', padding: '1px 6px' }}>
+              {tradeableBreakdown.both} Dual Option (GO + PoS)
+            </span>
+          )}
+          {tradeableBreakdown.certOnly > 0 && (
+            <span className="chip chip-pass" style={{ fontSize: '11px', padding: '1px 6px' }}>
+              {tradeableBreakdown.certOnly} Certificates Only
+            </span>
+          )}
+          {tradeableBreakdown.posOnly > 0 && (
+            <span className="chip chip-pass" style={{ fontSize: '11px', padding: '1px 6px' }}>
+              {tradeableBreakdown.posOnly} Physical Quota Only
+            </span>
+          )}
+        </div>
+      )}
+
       {topRoutes.length > 0 && (
         <div className="mut" style={{ fontSize: '12px', lineHeight: 1.45, marginBottom: '12px' }}>
           <strong>Top routes: </strong>
           {topRoutes.map((tr, idx) => (
             <span key={tr.iso}>
               {idx > 0 && ' · '}
-              {tr.name} ({tr.badge})
+              <button
+                type="button"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  color: 'var(--color-accent)',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  textDecoration: 'underline',
+                  font: 'inherit',
+                }}
+                onClick={() => {
+                  setSelectedCountryName(tr.name);
+                  setTarget(tr.name);
+                }}
+                title={`Inspect ${originMeta.iso} ➔ ${tr.iso}`}
+              >
+                {tr.name} ({tr.badge})
+              </button>
             </span>
           ))}
         </div>
@@ -751,7 +963,53 @@ export function MapScreen() {
         onClick={() => setIsSummaryOpen(true)}
         data-testid="open-route-summary-btn"
       >
-        Open full route summary ⤢
+        Open full trade summary ⤢
+      </button>
+    </div>
+  );
+
+  const playbookCard = (
+    <div className="map-playbook-card" data-testid="trade-playbook-card">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '8px' }}>
+        <span className="eyebrow" style={{ color: 'var(--color-accent)', fontWeight: 800 }}>Trade Execution Playbook</span>
+        <span className={`chip ${selectedPlaybook.chipClass}`} style={{ fontSize: '11px', fontWeight: 700 }}>
+          {selectedPlaybook.badge}
+        </span>
+      </div>
+
+      <div style={{ fontSize: '15px', fontWeight: 800, marginBottom: '6px', lineHeight: 1.3 }}>
+        {originMeta.iso} ➔ {selectedMeta.iso}: {selectedPlaybook.structureTitle}
+      </div>
+
+      <div style={{ fontSize: '12px', lineHeight: 1.45, color: 'var(--color-text)', marginBottom: '10px' }}>
+        {selectedPlaybook.structureDesc}
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '10px 12px', backgroundColor: 'var(--color-bg)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-control)', marginBottom: '12px' }}>
+        <div>
+          <div className="eyebrow" style={{ fontSize: '10px', marginBottom: '2px' }}>Statutory Scheme &amp; Destination</div>
+          <div style={{ fontWeight: 700, fontSize: '12px' }}>{selectedPlaybook.schemeTitle}</div>
+          <div className="mut" style={{ fontSize: '11px', marginTop: '1px', lineHeight: 1.4 }}>{selectedPlaybook.schemeDesc}</div>
+        </div>
+        <div style={{ borderTop: '1px solid var(--color-divider)', paddingTop: '6px' }}>
+          <div className="eyebrow" style={{ fontSize: '10px', marginBottom: '2px' }}>How to Execute</div>
+          <div style={{ fontWeight: 700, fontSize: '12px' }}>{selectedPlaybook.executionTitle}</div>
+          <div className="mut" style={{ fontSize: '11px', marginTop: '1px', lineHeight: 1.4 }}>{selectedPlaybook.executionDesc}</div>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        className="btn btn-primary btn-block"
+        style={{ fontSize: '13px', fontWeight: 700, padding: '8px 12px' }}
+        onClick={() => {
+          navigate(buildDealUrl({
+            originCountry: originMeta.iso,
+            marketId: getDefaultMarketForOrigin(selectedMeta.iso),
+          }));
+        }}
+      >
+        Simulate {originMeta.iso} ➔ {selectedMeta.iso} in Trade Builder ➔
       </button>
     </div>
   );
@@ -764,6 +1022,7 @@ export function MapScreen() {
     const oq = r.openQuestionId || posOpenId(r);
     const hasOq = cat === 'CHECK_FIRST' && Boolean(oq);
 
+    const playbook = getTradePlaybook(originMeta.iso, r.target, r);
     const goDetails = getGoRoute(r.origin, r.target);
     const posDetails = getPosRoute(r.origin, r.target);
 
@@ -775,25 +1034,61 @@ export function MapScreen() {
 
     return (
       <div key={r.target} className="map-route-row-item">
-        <button
-          type="button"
-          className="map-route-row-btn"
-          onClick={() => setExpandedRows(prev => ({ ...prev, [r.target]: !prev[r.target] }))}
-          aria-expanded={isExpanded}
-        >
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', minWidth: 0, flex: '1 1 auto', flexWrap: 'wrap' }}>
-            <span style={{ fontWeight: 700, fontSize: '14px' }}>{name}</span>
-            <span className="mut" style={{ fontSize: '12px' }}>{how}</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-            {hasCond && <span className="chip" style={{ fontSize: '11px', padding: '1px 6px' }}>conditions</span>}
-            {hasOq && <span className="chip" style={{ fontSize: '11px', padding: '1px 6px' }}>✉ question ready</span>}
-            {isExpanded ? <ChevronDown style={{ width: '16px', height: '16px' }} /> : <ChevronRight style={{ width: '16px', height: '16px' }} />}
-          </div>
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '4px 6px', width: '100%', boxSizing: 'border-box' }}>
+          <button
+            type="button"
+            className="map-route-row-btn"
+            style={{ padding: '4px 0' }}
+            onClick={() => setExpandedRows(prev => ({ ...prev, [r.target]: !prev[r.target] }))}
+            aria-expanded={isExpanded}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0, flex: '1 1 auto', flexWrap: 'wrap' }}>
+              <span style={{ fontWeight: 700, fontSize: '13px' }}>{name}</span>
+              <span className={`chip ${playbook.chipClass}`} style={{ fontSize: '10px', padding: '1px 5px' }}>
+                {playbook.badge}
+              </span>
+              <span className="mut" style={{ fontSize: '11px' }}>{how}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0, marginLeft: '6px' }}>
+              {hasCond && <span className="chip" style={{ fontSize: '10px', padding: '1px 5px' }}>conditions</span>}
+              {hasOq && <span className="chip" style={{ fontSize: '10px', padding: '1px 5px' }}>✉ question</span>}
+              {isExpanded ? <ChevronDown style={{ width: '15px', height: '15px' }} /> : <ChevronRight style={{ width: '15px', height: '15px' }} />}
+            </div>
+          </button>
+
+          {playbook.isTradeable && (
+            <button
+              type="button"
+              className="btn btn-primary"
+              style={{ fontSize: '11px', padding: '0 8px', height: '26px', minHeight: '26px', flex: '0 0 auto', whiteSpace: 'nowrap' }}
+              onClick={e => {
+                e.stopPropagation();
+                setIsSummaryOpen(false);
+                navigate(buildDealUrl({
+                  originCountry: originMeta.iso,
+                  marketId: getDefaultMarketForOrigin(r.target),
+                }));
+              }}
+              title={`Simulate ${originMeta.iso} ➔ ${r.target} in Trade Builder`}
+            >
+              Trade ➔
+            </button>
+          )}
+        </div>
 
         {isExpanded && (
           <div className="map-route-expanded-card" data-testid={`expanded-${r.target}`}>
+            <div style={{ padding: '8px 10px', backgroundColor: 'color-mix(in srgb, var(--color-surface) 60%, transparent)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-control)' }}>
+              <div className="eyebrow" style={{ color: 'var(--color-accent)', fontWeight: 800, marginBottom: '2px' }}>
+                Commercial Trade Playbook: {playbook.structureTitle}
+              </div>
+              <div style={{ fontSize: '12px', lineHeight: 1.45, marginBottom: '6px' }}>{playbook.structureDesc}</div>
+              <div style={{ fontSize: '11px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                <div><strong>Scheme:</strong> {playbook.schemeTitle} — {playbook.schemeDesc}</div>
+                <div><strong>Execution:</strong> {playbook.executionTitle} — {playbook.executionDesc}</div>
+              </div>
+            </div>
+
             <div>
               <div className="eyebrow" style={{ marginBottom: '3px' }}>GO (Book &amp; Claim)</div>
               <div><strong>Status:</strong> {CERT_ROUTE_LABELS[r.status]} · <strong>Via:</strong> {goDetails.via && goDetails.via !== 'NONE' ? (goDetails.via === 'ERGAR' ? 'ERGaR' : goDetails.via) : '—'} · <strong>Evidence:</strong> {EVIDENCE_GRADE_TEXT[goDetails.grade] || goDetails.grade}</div>
@@ -887,7 +1182,7 @@ export function MapScreen() {
       )}
 
       {/* Filter and search controls bar */}
-      <div className="map-modal-controls-row" style={{ marginTop: 0, marginBottom: '14px' }}>
+      <div className="map-modal-controls-row" style={{ marginTop: 0, marginBottom: '10px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
           <span className="eyebrow">Filter:</span>
           {(['ALL', 'GO', 'POS'] as const).map(f => (
@@ -899,7 +1194,7 @@ export function MapScreen() {
               onClick={() => setFilter(f)}
               aria-pressed={filter === f}
             >
-              {f === 'ALL' ? 'All' : f === 'GO' ? 'GO only' : 'PoS only'}
+              {FILTER_CONFIG[f].shortLabel}
             </button>
           ))}
         </div>
@@ -927,13 +1222,17 @@ export function MapScreen() {
         </div>
       </div>
 
+      <div className="map-filter-banner" style={{ marginBottom: '12px' }}>
+        <strong style={{ color: 'var(--color-text)' }}>{FILTER_CONFIG[filter].shortLabel}:</strong> {FILTER_CONFIG[filter].desc}
+      </div>
+
       {/* Scrollable list of sections */}
       <div className="map-modal-body" style={{ padding: 0 }}>
-        {/* Sell now section */}
+        {/* Ready to trade section */}
         <div style={{ marginBottom: '16px' }}>
           <div className="eyebrow" style={{ padding: '6px 0', borderBottom: '2px solid var(--color-status-pass-text)', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span className="map-status-dot" style={{ backgroundColor: 'var(--color-status-pass-text)' }} />
-            Sell now · {summaryGroups.sellNow.length}
+            Ready to trade · {summaryGroups.sellNow.length}
           </div>
           {summaryGroups.sellNow.length > 0 ? (
             summaryGroups.sellNow.map(r => renderSummaryRow(r, 'SELL_NOW'))
@@ -942,11 +1241,11 @@ export function MapScreen() {
           )}
         </div>
 
-        {/* Check first section */}
+        {/* Review needed section */}
         <div style={{ marginBottom: '16px' }}>
           <div className="eyebrow" style={{ padding: '6px 0', borderBottom: '2px solid var(--color-status-warn-text)', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span className="map-status-dot" style={{ backgroundColor: 'var(--color-status-warn-text)' }} />
-            Check first · {summaryGroups.checkFirst.length}
+            Review needed / workaround · {summaryGroups.checkFirst.length}
           </div>
           {summaryGroups.checkFirst.length > 0 ? (
             summaryGroups.checkFirst.map(r => renderSummaryRow(r, 'CHECK_FIRST'))
@@ -959,7 +1258,7 @@ export function MapScreen() {
         <div style={{ marginBottom: '16px' }}>
           <div className="eyebrow" style={{ padding: '6px 0', borderBottom: '2px solid var(--color-divider)', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span className="map-status-dot" style={{ backgroundColor: 'color-mix(in srgb, var(--color-text) 30%, var(--color-bg))' }} />
-            Closed · {summaryGroups.closed.length}
+            Closed / domestic only · {summaryGroups.closed.length}
           </div>
           {summaryGroups.closed.length > 0 ? (
             summaryGroups.closed.map(r => renderSummaryRow(r, 'CLOSED'))
@@ -1017,7 +1316,16 @@ export function MapScreen() {
           </div>
         </div>
 
-        {view === 'SELL' && summaryCard}
+        {view === 'SELL' && (
+          selectedMeta.iso !== originMeta.iso ? (
+            <>
+              {playbookCard}
+              {summaryCard}
+            </>
+          ) : (
+            summaryCard
+          )
+        )}
 
         {/* 2x2 Stat Grid */}
         <div
@@ -1274,7 +1582,7 @@ export function MapScreen() {
             <div className="map-m-legend">
               {viewToggle(true)}
               <div className="eyebrow" style={{ margin: '14px 0 8px' }}>
-                {view === 'SELL' ? `Where can I sell? (${originMeta.iso})` : 'Compliance status'}
+                {view === 'SELL' ? `Trade Opportunities (${originMeta.iso})` : 'Compliance status'}
               </div>
               {legendList(13, 10, 6)}
               <div className="mut" style={{ fontSize: '12px', marginTop: '10px' }}>
@@ -1287,8 +1595,8 @@ export function MapScreen() {
         <Sheet
           open={isSummaryOpen}
           onClose={() => setIsSummaryOpen(false)}
-          title={`Where can ${originMeta.name} biomethane be sold?`}
-          subtitle={`Sell now ${categoryCounts.SELL_NOW} · Check first ${categoryCounts.CHECK_FIRST} · Closed ${categoryCounts.CLOSED}`}
+          title={`Commercial Trade Summary: ${originMeta.name} (${originMeta.iso})`}
+          subtitle={`Ready to trade ${categoryCounts.SELL_NOW} · Review needed ${categoryCounts.CHECK_FIRST} · Closed ${categoryCounts.CLOSED}`}
           variant="bottom"
           testId="mobile-route-summary-sheet"
         >
@@ -1500,7 +1808,7 @@ export function MapScreen() {
 
             <div style={{ borderTop: '1px solid var(--color-divider)', marginTop: '8px', paddingTop: '8px' }}>
               <div className="eyebrow" style={{ marginBottom: '5px' }}>
-                {view === 'SELL' ? `Where can I sell? (${originMeta.iso})` : 'Compliance status'}
+                {view === 'SELL' ? `Trade Opportunities (${originMeta.iso})` : 'Compliance status'}
               </div>
               {legendList(12, 9, 4)}
             </div>
@@ -1514,7 +1822,7 @@ export function MapScreen() {
                 position: 'absolute',
                 bottom: '12px',
                 right: '12px',
-                width: '236px',
+                width: '248px',
                 backgroundColor: 'color-mix(in srgb, var(--color-surface) 96%, transparent)',
                 border: '1px solid var(--color-divider)',
                 borderRadius: 'var(--radius-panel)',
@@ -1522,7 +1830,7 @@ export function MapScreen() {
                 padding: '10px 12px',
               }}
             >
-              <div className="eyebrow">{view === 'SELL' ? 'Where can I sell?' : STATUS_CONFIG[hoveredCountry.status].label}</div>
+              <div className="eyebrow">{view === 'SELL' ? 'Trade Opportunities' : STATUS_CONFIG[hoveredCountry.status].label}</div>
               <div style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '17px', marginTop: '4px' }}>
                 {hoveredCountry.name}
               </div>
@@ -1537,14 +1845,7 @@ export function MapScreen() {
                     (() => {
                       const r = routeByIso[hoveredCountry.iso];
                       const cat = classifyRoute(r, filter);
-                      const label =
-                        cat === 'SELL_NOW'
-                          ? 'Sell now'
-                          : cat === 'CHECK_FIRST'
-                          ? 'Check first'
-                          : cat === 'CLOSED'
-                          ? 'Closed'
-                          : 'Not researched';
+                      const pb = getTradePlaybook(originMeta.iso, hoveredCountry.iso, r);
                       const dotBg =
                         cat === 'SELL_NOW'
                           ? 'var(--color-status-pass-text)'
@@ -1555,10 +1856,10 @@ export function MapScreen() {
                         <>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <span className="map-status-dot" style={{ backgroundColor: dotBg }} />
-                            <strong>{label}</strong>
+                            <strong>{pb.badge}</strong>
                           </div>
                           <div className="mut" style={{ marginTop: '2px', overflowWrap: 'anywhere' }}>
-                            {r ? getPlainLanguageHow(r, cat) : 'No route data'}
+                            {pb.structureTitle}
                           </div>
                         </>
                       );
@@ -1631,16 +1932,16 @@ export function MapScreen() {
               <div className="map-modal-title-row">
                 <div>
                   <h2 id="map-summary-title" className="map-modal-title">
-                    Where can {originMeta.name} biomethane be sold?
+                    Commercial Trade Summary: {originMeta.name} ({originMeta.iso})
                   </h2>
                   <div className="map-summary-dots" style={{ margin: '4px 0 0' }}>
                     <span className="map-summary-dot-item">
                       <span className="map-status-dot" style={{ backgroundColor: 'var(--color-status-pass-text)' }} />
-                      Sell now <span className="num">{categoryCounts.SELL_NOW}</span>
+                      Ready to trade <span className="num">{categoryCounts.SELL_NOW}</span>
                     </span>
                     <span className="map-summary-dot-item">
                       <span className="map-status-dot" style={{ backgroundColor: 'var(--color-status-warn-text)' }} />
-                      Check first <span className="num">{categoryCounts.CHECK_FIRST}</span>
+                      Review needed <span className="num">{categoryCounts.CHECK_FIRST}</span>
                     </span>
                     <span className="map-summary-dot-item">
                       <span className="map-status-dot" style={{ backgroundColor: 'color-mix(in srgb, var(--color-text) 30%, var(--color-bg))' }} />

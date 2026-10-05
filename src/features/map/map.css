@@ -202,6 +202,23 @@
   border-bottom: 2px solid var(--color-divider);
 }
 
+/* ─── Trade Execution Playbook Card in Right Rail ─── */
+.map-playbook-card {
+  padding: 14px 18px;
+  background-color: var(--color-surface);
+  border-bottom: 2px solid var(--color-divider);
+}
+
+.map-filter-banner {
+  padding: 6px 10px;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-control);
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--color-muted);
+}
+
 .map-summary-dots {
   display: flex;
   align-items: center;
@@ -316,12 +333,13 @@
 }
 
 .map-route-row-btn {
-  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 9px 10px;
+  gap: 8px;
+  padding: 8px 6px;
   background: transparent;
   border: 0;
   border-radius: var(--radius-control);
