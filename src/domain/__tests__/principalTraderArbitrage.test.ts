@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { parseBrokerRunText } from '../markets/brokerRunParser';
-import { estimateFarmgateProcurementCost, REGIONAL_FARMGATE_BENCHMARKS } from '../sourcing/benchmarks';
 import { 
   generateCommercialTermSheetPdf, 
   generateEtrmCsvPayload, 
@@ -66,30 +65,6 @@ FR GO Mix 2026 Non-subsidised: €20.50 Offer (10 GWh)
       const result = parseBrokerRunText('   \n  \n');
       expect(result.quotes).toEqual([]);
       expect(result.parsedQuoteCount).toBe(0);
-    });
-  });
-
-  describe('2. Regional Farmgate Procurement Benchmarks', () => {
-    it('accurately derives Danish manure procurement benchmark linked to TTF plus premium', () => {
-      const ttf = 34.0;
-      const dk = estimateFarmgateProcurementCost('DK', 'manure', -100, ttf);
-      expect(dk.mode).toBe('TTF_PLUS_PREMIUM');
-      // Premium includes super-green quality bonus
-      expect(dk.estimatedCostEurMwh).toBeGreaterThan(ttf);
-      expect(dk.isRestrictedSubsidy).toBe(false);
-    });
-
-    it('flags French Obligation d’Achat subsidy warning where GOs are owned by state auction', () => {
-      const fr = estimateFarmgateProcurementCost('FR', 'agricultural_residues', 16, 32.50);
-      expect(fr.mode).toBe('FIXED_FARMGATE');
-      expect(fr.isRestrictedSubsidy).toBe(true);
-      expect(REGIONAL_FARMGATE_BENCHMARKS.FR.subsidyWarning).toContain('Obligation d’Achat');
-    });
-
-    it('calculates German fixed farmgate benchmark for post-EEG assets', () => {
-      const de = estimateFarmgateProcurementCost('DE', 'manure', -85, 32.50);
-      expect(de.estimatedCostEurMwh).toBe(88.00);
-      expect(de.mode).toBe('FIXED_FARMGATE');
     });
   });
 

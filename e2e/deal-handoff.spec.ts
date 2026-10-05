@@ -21,7 +21,7 @@ test.describe('Deal Handoff & Query Parameter Survival', () => {
     await expectNoErrorBoundary(page);
 
     // Origin
-    expect(await isChipActive(page, /🇸🇪/), 'Origin SE was not selected').toBe(true);
+    expect(await isChipActive(page, /^SE$/), 'Origin SE was not selected').toBe(true);
 
     // Feedstock
     expect(await isChipActive(page, /Food waste/i), 'Feedstock Food waste was not selected').toBe(true);
@@ -32,13 +32,13 @@ test.describe('Deal Handoff & Query Parameter Survival', () => {
     // Chain of Custody
     expect(await isChipActive(page, /Book & claim/i), 'Chain of custody Book & claim was not selected').toBe(true);
 
-    // Target Market
-    expect(await isChipActive(page, /NL ERE/i), 'Market NL ERE was not selected').toBe(true);
+    // Target Market in deal header
+    await expect(page.locator('#main-content')).toContainText(/NL_ERE/);
 
     // Volume & CI
-    const main = page.locator('#main-content');
-    await expect(main).toContainText('60,000 MWh');
-    await expect(main).toContainText('−25');
+    await page.getByRole('button', { name: /Volume & schedule/i }).first().click();
+    expect(await page.locator('input[type="number"]').first().inputValue()).toBe('60000');
+    await expect(page.locator('#main-content')).toContainText('−25');
 
     expect(appErrors(errors)).toEqual([]);
   });
@@ -49,7 +49,7 @@ test.describe('Deal Handoff & Query Parameter Survival', () => {
 
     expect(await isChipActive(page, /ISCC EU/i)).toBe(true);
     expect(await isChipActive(page, /Mass balance/i)).toBe(true);
-    expect(await isChipActive(page, /🇩🇰/)).toBe(true);
+    expect(await isChipActive(page, /^DK$/)).toBe(true);
   });
 
   test('an unknown market keeps safe fallback and does not crash', async ({ page }) => {
@@ -65,37 +65,5 @@ test.describe('Deal Handoff & Query Parameter Survival', () => {
     await gotoScreen(page, '/trade?marketId=DE_THG&volume=invalid_volume&ci=invalid_ci');
     await expectNoErrorBoundary(page);
     await expect(page.locator('#main-content')).not.toContainText('NaN');
-  });
-
-  test('the scanner hands its selected market and consignment to the builder', async ({ page }) => {
-    const errors = collectPageErrors(page);
-    await gotoScreen(page, '/scanner');
-
-    const structureBtn = page.locator('[data-testid="structure-trade-btn"]').or(page.getByRole('button', { name: /structure in trade builder/i })).first();
-    await expect(structureBtn).toBeVisible({ timeout: 10_000 });
-    await structureBtn.click();
-
-    await expect(page).toHaveURL(/#\/trade\?/);
-    await expect(page.getByText('Loading module...')).toHaveCount(0, { timeout: 15_000 });
-    await expectNoErrorBoundary(page);
-
-    await expect(page.locator('#main-content')).toContainText(/Destination & legal validation/i);
-    expect(appErrors(errors)).toEqual([]);
-  });
-
-  test('the sourcing desk double click hands consignment to the builder', async ({ page }) => {
-    const errors = collectPageErrors(page);
-    await gotoScreen(page, '/sourcing');
-
-    const firstRow = page.locator('table tbody tr[data-click="1"]').first();
-    await expect(firstRow).toBeVisible({ timeout: 10_000 });
-    await firstRow.dblclick();
-
-    await expect(page).toHaveURL(/#\/trade\?/);
-    await expect(page.getByText('Loading module...')).toHaveCount(0, { timeout: 15_000 });
-    await expectNoErrorBoundary(page);
-
-    await expect(page.locator('#main-content')).toContainText(/Net netback/i);
-    expect(appErrors(errors)).toEqual([]);
   });
 });

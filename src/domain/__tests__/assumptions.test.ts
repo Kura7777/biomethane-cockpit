@@ -12,7 +12,6 @@ import {
   fuelEuPoolBidPriceEurPerTco2e,
 } from '../assumptions/registry';
 import { calculateVesselExposure } from '../fueleu/calculator';
-import { estimateFarmgateProcurementCost } from '../sourcing/benchmarks';
 import { getBenchmarkForMarket } from '../markets/marketBenchmarks';
 
 const poolPricesAt = (offer: number) => ({
@@ -87,29 +86,18 @@ describe('Commercial assumptions register', () => {
     expect(noMark.statutoryPenaltyY1Eur).toBe(base.statutoryPenaltyY1Eur);
   });
 
-  it('farm-gate estimates read the register', () => {
-    const before = estimateFarmgateProcurementCost('DE', 'manure', -85, 30);
-    expect(before.estimatedCostEurMwh).toBe(getAssumption('farmgate.DE.fixedPriceEurPerMwh'));
-    setAssumption('farmgate.DE.fixedPriceEurPerMwh', 95);
-    expect(estimateFarmgateProcurementCost('DE', 'manure', -85, 30).estimatedCostEurMwh).toBe(95);
-
-    // Unknown country falls back to the DEFAULT row
-    setAssumption('farmgate.DEFAULT.premiumEurPerMwh', 30);
-    expect(estimateFarmgateProcurementCost('PL', 'food_waste', 14, 30).estimatedCostEurMwh).toBe(60);
-  });
-
   it('clamps to documented bounds, drops overrides equal to the default, and notifies subscribers', () => {
     let calls = 0;
     const unsubscribe = subscribeAssumptions(() => calls++);
     const v0 = getAssumptionsVersion();
 
-    setAssumption('scanner.loadHoursPerYear', 99999);
-    expect(getAssumption('scanner.loadHoursPerYear')).toBe(8784);
+    setAssumption('clients.firstDealShare', 99999);
+    expect(getAssumption('clients.firstDealShare')).toBe(100);
     setAssumption('fueleu.bioLngPremiumEurPerMwh', -5);
     expect(getAssumption('fueleu.bioLngPremiumEurPerMwh')).toBe(0);
 
-    setAssumption('scanner.loadHoursPerYear', 8000);
-    expect(isOverridden('scanner.loadHoursPerYear')).toBe(false);
+    setAssumption('clients.firstDealShare', 10);
+    expect(isOverridden('clients.firstDealShare')).toBe(false);
 
     expect(calls).toBe(3);
     expect(getAssumptionsVersion()).toBe(v0 + 3);

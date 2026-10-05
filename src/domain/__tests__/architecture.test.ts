@@ -207,11 +207,6 @@ describe('ARCHITECTURE — no fabricated values', () => {
       because: 'Documented pipeline shrinkage curve per 500 km.',
     },
     {
-      file: 'features/opportunity-scanner/ScannerScreen.tsx',
-      coefficient: '0.0036',
-      because: 'Exact unit conversion gCO2e/MJ -> tCO2e/MWh (3600 MJ/MWh / 1e6 g/t).',
-    },
-    {
       file: 'features/trade-builder/TradeBuilderScreen.tsx',
       coefficient: '0.0036',
       because: 'Exact unit conversion gCO2e/MJ -> tCO2e/MWh (3600 MJ/MWh / 1e6 g/t).',
