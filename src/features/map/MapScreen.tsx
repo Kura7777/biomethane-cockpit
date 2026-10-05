@@ -1668,16 +1668,15 @@ export function MapScreen() {
             alignItems: 'center',
             justifyContent: 'space-between',
             gap: '16px',
-            padding: '12px 18px',
+            padding: '6px 18px',
             borderBottom: '2px solid var(--color-divider)',
             backgroundColor: 'var(--color-surface)',
             flexWrap: 'nowrap',
           }}
         >
-          <div style={{ flex: '1 1 0', minWidth: 0 }}>
-            <h3 className="ptitle" style={{ fontSize: '18px' }}>Compliance &amp; logistics map</h3>
-            <div className="subttl" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', columnGap: '14px', rowGap: '2px' }}>
-              <span>30 European jurisdictions · Interactive cross-border routing &amp; transmission tariffs</span>
+          <div style={{ flex: '1 1 0', minWidth: 0, display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', columnGap: '18px', rowGap: '2px' }}>
+            <h3 className="ptitle" style={{ fontSize: '18px', margin: 0 }}>Compliance &amp; logistics map</h3>
+            <div className="subttl" style={{ display: 'flex', alignItems: 'center', margin: 0 }}>
               <span style={{ display: 'inline-flex', gap: '12px' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <span style={{ width: '9px', height: '9px', backgroundColor: 'var(--color-text)' }} />
@@ -1703,7 +1702,7 @@ export function MapScreen() {
               alignItems: 'center',
               gap: '8px',
               backgroundColor: 'var(--color-bg)',
-              padding: '6px 10px',
+              padding: '4px 8px',
               border: '1px solid var(--color-divider)',
               borderRadius: 'var(--radius-control)',
             }}
