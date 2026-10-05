@@ -11,6 +11,7 @@ import {
   BrokerRunMeta,
   INITIAL_PRICING_BOOK,
   BASELINE_RUN_META,
+  NON_BROKER_SEED_ROW_IDS,
 } from '../domain/markets/brokerRun.seed';
 import { DE_THG_BUNDLE_MARK_PREFIX } from '../domain/markets/deThgBundle';
 import {
@@ -25,7 +26,7 @@ import {
   MarkUpdate,
 } from '../domain/marks/applyMarks';
 
-export const CURRENT_SCHEMA_VERSION = 11;
+export const CURRENT_SCHEMA_VERSION = 12;
 const STORAGE_KEY = 'biomethane-desk-state-v10';
 
 // Newest first — the first key that yields a readable payload wins.
@@ -377,6 +378,33 @@ export function migrateState(raw: unknown): AppState {
       migrated.pricingBook,
       migrated.pricingRunMeta?.receivedOn
     ).nextMarks;
+  }
+
+  if (stateVersion < 12 && migrated.pricingBook) {
+    // Schema v12 migration: only the broker sheet's rows carry the Broker tag. The seed rows that were
+    // wrongly tagged with the broker run id (RTFO, ERE, DE THG) become desk estimates; rows the trader
+    // has edited are left alone, and a mark still fed by one of them goes back to a simulated mark.
+    const seedById = new Map(INITIAL_PRICING_BOOK.map(r => [r.id, r]));
+    const retagged = new Set<string>();
+    migrated.pricingBook = migrated.pricingBook.map((r: PricingBookEntry) => {
+      if (NON_BROKER_SEED_ROW_IDS.includes(r.id) && r.provenanceTier === 'BROKER_RUN' && !r.editedAt) {
+        retagged.add(r.id);
+        return seedById.get(r.id) ?? r;
+      }
+      return r;
+    });
+    if (migrated.marks?.marks && migrated.referenceRowIds) {
+      const sim = simulateDesk().marks.marks;
+      const nextRefs = { ...migrated.referenceRowIds };
+      for (const [mId, rowId] of Object.entries(migrated.referenceRowIds)) {
+        const mark = migrated.marks.marks[mId];
+        if (retagged.has(rowId as string) && mark?.provenance?.sourceName === 'Broker run' && sim[mId]) {
+          migrated.marks.marks[mId] = sim[mId];
+          delete nextRefs[mId];
+        }
+      }
+      migrated.referenceRowIds = nextRefs;
+    }
   }
 
   migrated.schemaVersion = CURRENT_SCHEMA_VERSION;

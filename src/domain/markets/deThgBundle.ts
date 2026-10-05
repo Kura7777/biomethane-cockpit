@@ -14,6 +14,10 @@ export const DE_THG_BUNDLE_MAX_CI = -80;
 
 export const DE_THG_BUNDLE_MARK_PREFIX = 'DE_THG_BUNDLE_';
 
+export function isDeThgBundleMarkId(id: string): boolean {
+  return id.startsWith(DE_THG_BUNDLE_MARK_PREFIX);
+}
+
 export function deThgBundleMarkId(year: number): string {
   return `${DE_THG_BUNDLE_MARK_PREFIX}${year}`;
 }

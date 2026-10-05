@@ -12,6 +12,7 @@ import {
 import {
   INITIAL_PRICING_BOOK,
   BASELINE_RUN_META,
+  NON_BROKER_SEED_ROW_IDS,
   PricingBookEntry,
   toSupplyEntries,
 } from '../../markets/brokerRun.seed';
@@ -191,7 +192,7 @@ describe('Pricing Desk & Ingress Seam Unit Tests (Phase 1b)', () => {
   });
 
   describe('Order Book Seeding & Canonical Market Mapping', () => {
-    it('seeds marks for the 8 markets that have a priced, same-product broker row', () => {
+    it('seeds marks for the 5 markets that have a priced, same-product row on the broker sheet', () => {
       const baseMarks = createEmptyDeskState().marks;
       const { nextMarks: seededMarks, referenceRowIds } = seedMarksFromPricingBook(
         baseMarks,
@@ -199,14 +200,12 @@ describe('Pricing Desk & Ingress Seam Unit Tests (Phase 1b)', () => {
         BASELINE_RUN_META.receivedOn
       );
 
+      // Only the broker sheet's own rows (UK RGGO, FR/NL/DE/DK GO) carry the Broker tag.
       const targetMarkets = [
         'UK_RGGO',
-        'UK_RTFO',
         'FR_GO',
         'NL_GO',
-        'NL_ERE',
         'DE_GO',
-        'DE_THG',
         'DK_GO',
       ];
 
@@ -220,9 +219,11 @@ describe('Pricing Desk & Ingress Seam Unit Tests (Phase 1b)', () => {
 
       // Check reference row assignments
       expect(referenceRowIds['UK_RGGO']).toBe('uk_1');
-      expect(referenceRowIds['UK_RTFO']).toBe('uk_rtfo');
-      expect(referenceRowIds['DE_THG']).toBe('de_thg_1');
-      expect(referenceRowIds['NL_ERE']).toBe('nl_ere');
+      // The RTFO, ERE and DE THG seed rows are not on the broker sheet: desk estimates, no broker mark.
+      for (const mId of ['UK_RTFO', 'NL_ERE', 'DE_THG']) {
+        expect(referenceRowIds[mId], mId).toBeUndefined();
+        expect(isSimulatedMark(seededMarks.marks[mId]), mId).toBe(true);
+      }
       expect(referenceRowIds['DE_GO']).toBe('de_2');
       expect(referenceRowIds['FR_GO']).toBe('fr_5');
       expect(referenceRowIds['NL_GO']).toBe('nl_2');
@@ -279,7 +280,7 @@ describe('Pricing Desk & Ingress Seam Unit Tests (Phase 1b)', () => {
 
       const nextState = migrateState(v9State);
 
-      expect(nextState.schemaVersion).toBe(11);
+      expect(nextState.schemaVersion).toBe(12);
       expect(nextState.pricingBook).toBeDefined();
       expect(nextState.pricingBook.length).toBe(INITIAL_PRICING_BOOK.length);
       expect(nextState.pricingRunMeta).toEqual(BASELINE_RUN_META);
@@ -304,24 +305,24 @@ describe('Pricing Desk & Ingress Seam Unit Tests (Phase 1b)', () => {
         referenceRowIds,
       };
 
-      // Reference row for DE_THG is de_thg_1
-      expect(state.referenceRowIds['DE_THG']).toBe('de_thg_1');
+      // Reference row for DE_GO is de_2 (bid 35, offer 44)
+      expect(state.referenceRowIds['DE_GO']).toBe('de_2');
 
-      // Edit bid on de_thg_1
+      // Edit bid on de_2
       const updatedState = appReducer(state, {
         type: 'UPDATE_PRICING_BOOK_CELL',
-        id: 'de_thg_1',
+        id: 'de_2',
         field: 'bidPrice',
-        value: '€295.00',
+        value: '€36.00',
       });
 
-      const updatedRow = updatedState.pricingBook.find(r => r.id === 'de_thg_1');
-      expect(updatedRow?.bidPriceNumeric).toBe(295);
+      const updatedRow = updatedState.pricingBook.find(r => r.id === 'de_2');
+      expect(updatedRow?.bidPriceNumeric).toBe(36);
 
-      // The mark for DE_THG must reflect the new bid and recomputed mid (295 + 290) / 2 = 292.5
-      expect(updatedState.marks.marks['DE_THG'].bid).toBe(295);
-      expect(updatedState.marks.marks['DE_THG'].offer).toBe(290);
-      expect(updatedState.marks.marks['DE_THG'].mid).toBe(292.5);
+      // The mark for DE_GO must reflect the new bid and recomputed mid (36 + 44) / 2 = 40
+      expect(updatedState.marks.marks['DE_GO'].bid).toBe(36);
+      expect(updatedState.marks.marks['DE_GO'].offer).toBe(44);
+      expect(updatedState.marks.marks['DE_GO'].mid).toBe(40);
     });
 
     it('SIMULATE_DESK does not overwrite broker marks', () => {
@@ -340,17 +341,17 @@ describe('Pricing Desk & Ingress Seam Unit Tests (Phase 1b)', () => {
         referenceRowIds,
       };
 
-      // Verify DE_THG is broker-quoted
-      expect(state.marks.marks['DE_THG'].bid).toBe(280);
-      expect(state.marks.marks['DE_THG'].source).toBe('Broker run');
+      // Verify DE_GO is broker-quoted
+      expect(state.marks.marks['DE_GO'].bid).toBe(35);
+      expect(state.marks.marks['DE_GO'].source).toBe('Broker run');
 
       // Dispatch SIMULATE_DESK
       const simulatedState = appReducer(state, { type: 'SIMULATE_DESK' });
 
       // Broker mark must remain intact
-      expect(simulatedState.marks.marks['DE_THG'].bid).toBe(280);
-      expect(simulatedState.marks.marks['DE_THG'].offer).toBe(290);
-      expect(simulatedState.marks.marks['DE_THG'].source).toBe('Broker run');
+      expect(simulatedState.marks.marks['DE_GO'].bid).toBe(35);
+      expect(simulatedState.marks.marks['DE_GO'].offer).toBe(44);
+      expect(simulatedState.marks.marks['DE_GO'].source).toBe('Broker run');
 
       // Simulated markets (e.g. unseeded compliance/voluntary like PL_GO or CH_GO) may update;
       // every mark that was broker-seeded (market marks and DE THG bundle marks) keeps its broker mark.
@@ -387,7 +388,9 @@ describe('Pricing Desk & Ingress Seam Unit Tests (Phase 1b)', () => {
       expect(updatedState.pricingRunMeta.receivedOn).toBe(newDate);
       const brokerRows = updatedState.pricingBook.filter(r => r.runId === BASELINE_RUN_META.runId);
       expect(brokerRows.every(r => r.observedAt === newDate)).toBe(true);
-      expect(updatedState.marks.marks['DE_THG'].provenance?.observedAt).toBe(newDate);
+      expect(updatedState.marks.marks['DE_GO'].provenance?.observedAt).toBe(newDate);
+      // The DE THG bundle marks carry the same run, so they are re-dated too.
+      expect(updatedState.marks.marks['DE_THG_BUNDLE_2026'].provenance?.observedAt).toBe(newDate);
     });
 
     it('ADD_PRICING_RUN stamps observedAt with detected or entered date and updates marks', () => {
@@ -527,7 +530,9 @@ describe('Pricing Desk & Ingress Seam Unit Tests (Phase 1b)', () => {
       const next = migrateState(v9);
       expect(next.marks.marks['DE_THG'].mid).toBe(302);
       expect(next.marks.marks['DE_THG'].bid).toBe(301);
-      expect(next.marks.marks['NL_ERE'].source).toBe('Broker run');
+      expect(next.marks.marks['DE_GO'].source).toBe('Broker run');
+      // NL ERE is a desk-estimate row, so it is not seeded as a broker mark.
+      expect(isSimulatedMark(next.marks.marks['NL_ERE'])).toBe(true);
       expect(next.pricingBook.length).toBe(69);
     });
 
@@ -543,22 +548,22 @@ describe('Pricing Desk & Ingress Seam Unit Tests (Phase 1b)', () => {
       expect(sim2.marks['PL_OZE'].bid).toBe(3);
 
       const older = applyMarkUpdates(base, [{
-        marketId: 'DE_THG', bid: 1, offer: 2,
+        marketId: 'DE_GO', bid: 1, offer: 2,
         provenance: { sourceType: 'BROKER_INDICATION', sourceName: 'Old', sourceUrl: null, observedAt: '2026-01-01', note: null },
       }]);
-      expect(older.marks['DE_THG'].bid).toBe(280);
+      expect(older.marks['DE_GO'].bid).toBe(35);
 
       const corrected = applyMarkUpdates(base, [{
-        marketId: 'DE_THG', correction: true,
-        provenance: { ...base.marks['DE_THG'].provenance!, observedAt: '2026-08-01' },
+        marketId: 'DE_GO', correction: true,
+        provenance: { ...base.marks['DE_GO'].provenance!, observedAt: '2026-08-01' },
       }]);
-      expect(corrected.marks['DE_THG'].provenance?.observedAt).toBe('2026-08-01');
-      expect(corrected.marks['DE_THG'].bid).toBe(280);
+      expect(corrected.marks['DE_GO'].provenance?.observedAt).toBe('2026-08-01');
+      expect(corrected.marks['DE_GO'].bid).toBe(35);
 
       const stillReal = applyMarkUpdates(base, [{
-        marketId: 'DE_THG', bid: 9, offer: 9, correction: true, source: SIMULATED_SOURCE_NAME, provenance: simProv('2026-12-01'),
+        marketId: 'DE_GO', bid: 9, offer: 9, correction: true, source: SIMULATED_SOURCE_NAME, provenance: simProv('2026-12-01'),
       }]);
-      expect(stillReal.marks['DE_THG'].bid).toBe(280);
+      expect(stillReal.marks['DE_GO'].bid).toBe(35);
     });
 
     it('a one-sided broker quote gives mid: null', () => {
@@ -600,29 +605,29 @@ describe('Pricing Desk & Ingress Seam Unit Tests (Phase 1b)', () => {
 
     it('editing the run date re-dates broker marks but not a mark the trader overwrote by hand', () => {
       const state = seededState();
-      const manual = appReducer(state, { type: 'UPDATE_PRICING_BOOK_CELL', id: 'de_thg_1', field: 'bidPrice', value: '295' });
-      expect(manual.marks.marks['DE_THG'].source).toBe('Desk · manual');
-      const manualObserved = manual.marks.marks['DE_THG'].provenance?.observedAt;
+      const manual = appReducer(state, { type: 'UPDATE_PRICING_BOOK_CELL', id: 'de_2', field: 'bidPrice', value: '36' });
+      expect(manual.marks.marks['DE_GO'].source).toBe('Desk · manual');
+      const manualObserved = manual.marks.marks['DE_GO'].provenance?.observedAt;
       const redated = appReducer(manual, { type: 'SET_PRICING_RUN_DATE', runId: BASELINE_RUN_META.runId, receivedOn: '2026-08-10' });
-      expect(redated.marks.marks['NL_ERE'].provenance?.observedAt).toBe('2026-08-10');
-      expect(redated.marks.marks['DE_THG'].provenance?.observedAt).toBe(manualObserved);
+      expect(redated.marks.marks['NL_GO'].provenance?.observedAt).toBe('2026-08-10');
+      expect(redated.marks.marks['DE_GO'].provenance?.observedAt).toBe(manualObserved);
       expect(redated.pricingRunMeta.receivedOnIsApproximate).toBe(false);
-      const row = manual.pricingBook.find(r => r.id === 'de_thg_1')!;
+      const row = manual.pricingBook.find(r => r.id === 'de_2')!;
       expect(row.editedAt).toBeTruthy();
       expect(row.source).toBe('Desk · manual');
     });
 
     it('SIMULATE_DESK never overwrites a manual edit either', () => {
       const state = seededState();
-      const manual = appReducer(state, { type: 'UPDATE_PRICING_BOOK_CELL', id: 'de_thg_1', field: 'offerPrice', value: '299' });
+      const manual = appReducer(state, { type: 'UPDATE_PRICING_BOOK_CELL', id: 'de_2', field: 'offerPrice', value: '45' });
       const sim = appReducer(manual, { type: 'SIMULATE_DESK' });
-      expect(sim.marks.marks['DE_THG'].offer).toBe(299);
-      expect(sim.marks.marks['DE_THG'].source).toBe('Desk · manual');
+      expect(sim.marks.marks['DE_GO'].offer).toBe(45);
+      expect(sim.marks.marks['DE_GO'].source).toBe('Desk · manual');
     });
 
     it('reference (non-broker) rows have blank volumes and are not tradeable; broker rows keep theirs', () => {
       const ref = INITIAL_PRICING_BOOK.filter(r => r.provenanceTier !== 'BROKER_RUN');
-      expect(ref.length).toBe(29);
+      expect(ref.length).toBe(33); // 29 reference rows + the 4 seed rows that were wrongly tagged Broker
       for (const r of ref) {
         expect(r.isTradeable, r.id).toBe(false);
         expect(r.bidVolume, r.id).toBe('');
@@ -631,8 +636,30 @@ describe('Pricing Desk & Ingress Seam Unit Tests (Phase 1b)', () => {
         expect(r.offerVolumeGWh, r.id).toBeNull();
       }
       const broker = INITIAL_PRICING_BOOK.filter(r => r.provenanceTier === 'BROKER_RUN');
-      expect(broker.length).toBe(40);
+      expect(broker.length).toBe(36);
       expect(broker.every(r => r.isTradeable && r.runId === BASELINE_RUN_META.runId && r.observedAt === '2026-08-18')).toBe(true);
+    });
+
+    it('only the broker sheet rows carry the Broker tag: RTFO, ERE and DE THG rows are desk estimates with unchanged prices', () => {
+      const expected: Record<string, [number, number]> = {
+        uk_rtfo: [0.205, 0.225],
+        nl_ere: [0.33, 0.35],
+        de_thg_1: [280, 290],
+        de_thg_2: [125, 135],
+      };
+      for (const [id, [bid, offer]] of Object.entries(expected)) {
+        const r = INITIAL_PRICING_BOOK.find(x => x.id === id)!;
+        expect(r.provenanceTier, id).toBe('MODELLED_SIMULATED');
+        expect(r.runId ?? null, id).toBeNull();
+        expect(r.derivedFrom, id).toBe('Desk estimate \u2014 not from the broker run; replace with a sourced price');
+        expect(r.bidPriceNumeric, id).toBe(bid);
+        expect(r.offerPriceNumeric, id).toBe(offer);
+        expect(NON_BROKER_SEED_ROW_IDS).toContain(id);
+      }
+      for (const r of INITIAL_PRICING_BOOK.filter(x => x.provenanceTier === 'BROKER_RUN')) {
+        expect(['UK', 'FR', 'NL', 'DE', 'DK', 'AIB'], r.id).toContain(r.country);
+        expect(['RGGO', 'GO', 'THG_BUNDLED'], r.id).toContain(r.class);
+      }
     });
 
     it('no quote value changed in the merge: seed matches both source datasets', () => {

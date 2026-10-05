@@ -94,6 +94,13 @@ export function toSupplyEntries(book: PricingBookEntry[]): BrokerOrderEntry[] {
     .map(toBrokerOrderEntry);
 }
 
+/**
+ * The seed rows that carried the broker run id but are NOT on the broker sheet (the sheet covers only
+ * UK RGGO, FR/NL/DE/DK GO and AIB GO rows). They are desk estimates and are tagged as such; their
+ * numbers are unchanged.
+ */
+export const NON_BROKER_SEED_ROW_IDS: readonly string[] = ['uk_rtfo', 'nl_ere', 'de_thg_1', 'de_thg_2'];
+
 export const INITIAL_PRICING_BOOK: PricingBookEntry[] = [
   {
     "id": "uk_1",
@@ -494,7 +501,7 @@ export const INITIAL_PRICING_BOOK: PricingBookEntry[] = [
   {
     "id": "uk_rtfo",
     "baselineId": null,
-    "runId": "broker-run-2026-08-18",
+    "runId": null,
     "country": "UK",
     "class": "RTFO",
     "productClass": "BUNDLED_COMPLIANCE",
@@ -511,21 +518,21 @@ export const INITIAL_PRICING_BOOK: PricingBookEntry[] = [
     "offerPriceNumeric": 0.225,
     "bidText": null,
     "offerText": null,
-    "bidVolume": "15GWh",
-    "offerVolume": "25GWh",
+    "bidVolume": "",
+    "offerVolume": "",
     "bidVolumeGWh": null,
     "offerVolumeGWh": null,
-    "bidVolumeText": "15GWh",
-    "offerVolumeText": "25GWh",
+    "bidVolumeText": null,
+    "offerVolumeText": null,
     "numericBidEurMwh": null,
     "numericOfferEurMwh": null,
     "highlight": false,
     "isHighInterest": false,
-    "derivedFrom": "Argus Biofuels / Marex RTFO Development Fuel Run (~€38/MWh eq)",
-    "provenanceTier": "BROKER_RUN",
-    "observedAt": "2026-08-18",
-    "isTradeable": true,
-    "isReferenceRow": false
+    "derivedFrom": "Desk estimate — not from the broker run; replace with a sourced price",
+    "provenanceTier": "MODELLED_SIMULATED",
+    "observedAt": null,
+    "isTradeable": false,
+    "isReferenceRow": true
   },
   {
     "id": "fr_1",
@@ -998,7 +1005,7 @@ export const INITIAL_PRICING_BOOK: PricingBookEntry[] = [
   {
     "id": "nl_ere",
     "baselineId": null,
-    "runId": "broker-run-2026-08-18",
+    "runId": null,
     "country": "NL",
     "class": "ERE",
     "productClass": "BUNDLED_COMPLIANCE",
@@ -1015,21 +1022,21 @@ export const INITIAL_PRICING_BOOK: PricingBookEntry[] = [
     "offerPriceNumeric": 0.35,
     "bidText": null,
     "offerText": null,
-    "bidVolume": "20GWh",
-    "offerVolume": "30GWh",
+    "bidVolume": "",
+    "offerVolume": "",
     "bidVolumeGWh": null,
     "offerVolumeGWh": null,
-    "bidVolumeText": "20GWh",
-    "offerVolumeText": "30GWh",
+    "bidVolumeText": null,
+    "offerVolumeText": null,
     "numericBidEurMwh": null,
     "numericOfferEurMwh": null,
-    "highlight": true,
-    "isHighInterest": true,
-    "derivedFrom": "ACT Commodities / STX REV 2026 Delivery Quote",
-    "provenanceTier": "BROKER_RUN",
-    "observedAt": "2026-08-18",
-    "isTradeable": true,
-    "isReferenceRow": false
+    "highlight": false,
+    "isHighInterest": false,
+    "derivedFrom": "Desk estimate — not from the broker run; replace with a sourced price",
+    "provenanceTier": "MODELLED_SIMULATED",
+    "observedAt": null,
+    "isTradeable": false,
+    "isReferenceRow": true
   },
   {
     "id": "de_1",
@@ -1142,7 +1149,7 @@ export const INITIAL_PRICING_BOOK: PricingBookEntry[] = [
   {
     "id": "de_thg_1",
     "baselineId": null,
-    "runId": "broker-run-2026-08-18",
+    "runId": null,
     "country": "DE",
     "class": "THG",
     "productClass": "BUNDLED_COMPLIANCE",
@@ -1159,26 +1166,26 @@ export const INITIAL_PRICING_BOOK: PricingBookEntry[] = [
     "offerPriceNumeric": 290,
     "bidText": null,
     "offerText": null,
-    "bidVolume": "20GWh",
-    "offerVolume": "30GWh",
+    "bidVolume": "",
+    "offerVolume": "",
     "bidVolumeGWh": null,
     "offerVolumeGWh": null,
-    "bidVolumeText": "20GWh",
-    "offerVolumeText": "30GWh",
+    "bidVolumeText": null,
+    "offerVolumeText": null,
     "numericBidEurMwh": null,
     "numericOfferEurMwh": null,
-    "highlight": true,
-    "isHighInterest": true,
-    "derivedFrom": "STX / Marex German Quota Run (§38 BImSchV)",
-    "provenanceTier": "BROKER_RUN",
-    "observedAt": "2026-08-18",
-    "isTradeable": true,
-    "isReferenceRow": false
+    "highlight": false,
+    "isHighInterest": false,
+    "derivedFrom": "Desk estimate — not from the broker run; replace with a sourced price",
+    "provenanceTier": "MODELLED_SIMULATED",
+    "observedAt": null,
+    "isTradeable": false,
+    "isReferenceRow": true
   },
   {
     "id": "de_thg_2",
     "baselineId": null,
-    "runId": "broker-run-2026-08-18",
+    "runId": null,
     "country": "DE",
     "class": "THG",
     "productClass": "BUNDLED_COMPLIANCE",
@@ -1195,21 +1202,21 @@ export const INITIAL_PRICING_BOOK: PricingBookEntry[] = [
     "offerPriceNumeric": 135,
     "bidText": null,
     "offerText": null,
-    "bidVolume": "10GWh",
-    "offerVolume": "15GWh",
+    "bidVolume": "",
+    "offerVolume": "",
     "bidVolumeGWh": null,
     "offerVolumeGWh": null,
-    "bidVolumeText": "10GWh",
-    "offerVolumeText": "15GWh",
+    "bidVolumeText": null,
+    "offerVolumeText": null,
     "numericBidEurMwh": null,
     "numericOfferEurMwh": null,
     "highlight": false,
     "isHighInterest": false,
-    "derivedFrom": "dena Biogasregister Market Assessment",
-    "provenanceTier": "BROKER_RUN",
-    "observedAt": "2026-08-18",
-    "isTradeable": true,
-    "isReferenceRow": false
+    "derivedFrom": "Desk estimate — not from the broker run; replace with a sourced price",
+    "provenanceTier": "MODELLED_SIMULATED",
+    "observedAt": null,
+    "isTradeable": false,
+    "isReferenceRow": true
   },
   {
     "id": "dk_1",

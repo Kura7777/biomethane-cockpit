@@ -4,6 +4,7 @@ import { Market, deriveSourceBadge } from '../../domain/markets/types';
 import { useAppState } from '../../store/context';
 import { SIMULATED_SOURCE_NAME } from '../../domain/marks/simulate';
 import { SourceChip } from '../../shared/ui/SourceChip';
+import { isDeThgBundleMarkId } from '../../domain/markets/deThgBundle';
 import { isSimulatedMark, resolveMarketForQuote, rowFeedsMarket, rowHasPrice } from '../../domain/marks/applyMarks';
 import { BrokerRunImporterModal } from './BrokerRunImporterModal';
 import { showToast } from '../../app/DeskToastContainer';
@@ -160,7 +161,8 @@ export function MarksScreen() {
     let manual = 0;
     let simulated = 0;
 
-    Object.values(state.marks.marks).forEach(m => {
+    // The DE THG bundle marks are quotes feeding the netback, not markets, so they are not counted here.
+    Object.entries(state.marks.marks).filter(([id]) => !isDeThgBundleMarkId(id)).map(([, m]) => m).forEach(m => {
       if (isSimulatedMark(m)) {
         simulated++;
       } else if (m.source?.toLowerCase().includes('manual') || m.provenance?.sourceName?.toLowerCase().includes('manual')) {
@@ -363,7 +365,7 @@ export function MarksScreen() {
           label={
             <span style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px' }}>
               <span>Provenance breakdown</span>
-              <span className="chip">{Object.keys(state.marks.marks).length} markets</span>
+              <span className="chip">{Object.keys(state.marks.marks).filter(id => !isDeThgBundleMarkId(id)).length} markets</span>
             </span>
           }
           value={
