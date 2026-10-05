@@ -7,43 +7,18 @@ import {
   type BreakdownOpportunity,
 } from '../arbitrage/originationBreakdown';
 import { originationRouteStatus } from '../arbitrage/routeStatus';
-import { resetAllAssumptions, setAssumption, getAssumption } from '../assumptions/registry';
+import { resetAllAssumptions, setAssumption, ASSUMPTION_DEFINITIONS } from '../assumptions/registry';
 import { SIMULATED_SOURCE_NAME } from '../marks/simulate';
 import type { GasIndexMark, PricingSides } from '../netback/types';
 
 afterEach(() => resetAllAssumptions());
 
 describe('Origination margin allocator has no hidden rules', () => {
-  it('DE_THG revenue of 160 is capped only through the visible assumption (default 147)', () => {
-    expect(getAssumption('origination.deThgBundleCeilingEurPerMwh')).toBe(147);
+  it('the allocator takes the netback as given: no hidden DE THG ceiling', () => {
     const r = calculateRealisticCommercialDeskMargin('DE_THG', 160, 2.0, 0.9);
-    expect(r.effectiveRevenueEurPerMWh).toBe(147);
-    expect(r.revenueCeilingApplied).toEqual({ ceilingEurPerMwh: 147, uncappedEurPerMwh: 160 });
-    expect(r.deskNetMarginEurPerMWh).toBe(14.5); // (147 - 2) * 0.10
-    expect(r.producerProcurementEurPerMWh).toBe(130.5); // (147 - 2) * 0.90
-  });
-
-  it('is not capped when the assumption is 0 (off)', () => {
-    setAssumption('origination.deThgBundleCeilingEurPerMwh', 0);
-    const r = calculateRealisticCommercialDeskMargin('DE_THG', 160, 2.0, 0.9);
-    expect(r.revenueCeilingApplied).toBeNull();
-    expect(r.effectiveRevenueEurPerMWh).toBe(160);
-    expect(r.deskNetMarginEurPerMWh).toBe(15.8); // (160 - 2) * 0.10
+    expect(r.deskNetMarginEurPerMWh).toBe(15.8); // (160 - 2) * 0.10, not capped at 147
     expect(r.producerProcurementEurPerMWh).toBe(142.2);
-  });
-
-  it('follows a changed ceiling and never caps other markets', () => {
-    setAssumption('origination.deThgBundleCeilingEurPerMwh', 150);
-    const capped = calculateRealisticCommercialDeskMargin('DE_THG', 160, 2.0, 0.9);
-    expect(capped.revenueCeilingApplied?.ceilingEurPerMwh).toBe(150);
-    const other = calculateRealisticCommercialDeskMargin('FR_CPB', 160, 2.0, 0.9);
-    expect(other.revenueCeilingApplied).toBeNull();
-    expect(other.effectiveRevenueEurPerMWh).toBe(160);
-  });
-
-  it('does not cap a netback at or below the ceiling', () => {
-    const r = calculateRealisticCommercialDeskMargin('DE_THG', 147, 2.0, 0.9);
-    expect(r.revenueCeilingApplied).toBeNull();
+    expect(ASSUMPTION_DEFINITIONS.some(d => d.key === 'origination.deThgBundleCeilingEurPerMwh')).toBe(false);
   });
 
   it('uses a producer share below 0.85 exactly as given (no silent reset to 0.970)', () => {
@@ -99,7 +74,6 @@ describe('computeOriginationBreakdown reads prices from marks and costs only', (
     totalTerminalValueStackEurPerMWh: 110,
     deskNetMarginEurPerMWh: 8.2,
     totalDealProfitEur: 164000,
-    revenueCeilingApplied: null,
   };
   const simCosts = {
     certificationCosts: 0.5 as number | null,
@@ -172,20 +146,50 @@ describe('computeOriginationBreakdown reads prices from marks and costs only', (
     expect(b.deliveredCostExclCertification).toBe(true);
   });
 
-  it('uses the capped revenue when a ceiling bound, so the stack reconciles with the margin split', () => {
+  it('with a broker bundle: certificate is the broker price, TTF is its own line on top, revenue is the sum', () => {
     const b = computeOriginationBreakdown({
       opportunity: {
         ...opp,
-        totalTerminalValueStackEurPerMWh: 160,
-        revenueCeilingApplied: { ceilingEurPerMwh: 147, uncappedEurPerMwh: 160 },
+        totalTerminalValueStackEurPerMWh: 174.55,
+        netbackCappedAt: 174.55,
+        theoreticalNetbackEurPerMWh: 223.1,
+        bundleReference: {
+          kind: 'BROKER_CERTIFICATE',
+          valueEurPerMwh: 147,
+          year: 2026,
+          provenance: { sourceType: 'BROKER_INDICATION', sourceName: 'Broker run', sourceUrl: null, observedAt: '2026-08-18', note: null },
+        },
       },
       volumeMwh: 20000,
       marks: { gasIndex: simGas, pricingSides: sides },
       costs: simCosts,
     });
-    expect(b.grossRevenueEur).toBe(147);
-    expect(b.revenueCeilingApplied?.uncappedEurPerMwh).toBe(160);
-    expect(b.certificateValueEur).toBeCloseTo(147 - 29.75, 5);
+    expect(b.brokerBundle?.certificateEurPerMwh).toBe(147);
+    expect(b.brokerBundle?.source.badge.label).toBe('Broker \u00b7 Broker run');
+    expect(b.brokerBundle?.source.asOf).toBe('2026-08-18');
+    expect(b.certificateValueEur).toBe(147);
+    expect(b.gasIndexEur).toBe(29.75);
+    expect(b.grossRevenueEur).toBeCloseTo(176.75, 5); // certificate + TTF, not 147 - TTF
+    expect(b.gasIndexSource?.badge.label).toBe('Simulated');
+    expect(b.netbackCapped).toBeNull();
+  });
+
+  it('an unsourced desk all-in ceiling is reported as held, not as a broker bundle', () => {
+    const b = computeOriginationBreakdown({
+      opportunity: {
+        ...opp,
+        totalTerminalValueStackEurPerMWh: 120,
+        netbackCappedAt: 120,
+        theoreticalNetbackEurPerMWh: 150,
+        bundleReference: { kind: 'DESK_ESTIMATE_ALL_IN', valueEurPerMwh: 120, year: null, provenance: null },
+      },
+      volumeMwh: 1000,
+      marks: { gasIndex: simGas, pricingSides: sides },
+      costs: simCosts,
+    });
+    expect(b.brokerBundle).toBeNull();
+    expect(b.netbackCapped).toEqual({ capEurPerMwh: 120, theoreticalEurPerMwh: 150, kind: 'DESK_ESTIMATE_ALL_IN' });
+    expect(b.grossRevenueEur).toBe(120);
   });
 
   it('tags a non-simulated cost bundle as Manual and a broker TTF as Broker', () => {

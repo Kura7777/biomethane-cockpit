@@ -19,6 +19,7 @@ import { MarkEntry, MarkProvenance } from '../markets/types';
 import { SIMULATED_SOURCE_NAME } from './simulate';
 import { PricingBookEntry } from '../markets/brokerRun.seed';
 import { isVoluntaryMarket, MARKETS } from '../markets/registry';
+import { DE_THG_BUNDLE_MAX_CI, bundleYearFromVintage, deThgBundleMarkId } from '../markets/deThgBundle';
 
 export interface MarkUpdate {
   marketId: string;
@@ -362,6 +363,49 @@ export function createMarkUpdateFromRow(row: PricingBookEntry, marketId: string,
 }
 
 /**
+ * The DE THG manure + physical gas bundle quotes, as marks (one per delivery year, key
+ * DE_THG_BUNDLE_<year>, EUR/MWh). The broker sheet quotes certificates only ("index gas price/swap
+ * to be added on top"), so each mark is the certificate price and the gas index is added by the
+ * netback engine. Only broker-run rows with a price and CI at or below -80 qualify; H226 gives 2026,
+ * H127 gives 2027. Returned as updates so they go through applyMarkUpdates like every other mark.
+ */
+export function deThgBundleMarkUpdates(rows: PricingBookEntry[], runDate: string = '2026-08-18'): MarkUpdate[] {
+  const byYear = new Map<number, PricingBookEntry[]>();
+  for (const r of rows) {
+    if (r.provenanceTier !== 'BROKER_RUN') continue;
+    if (r.country.toUpperCase() !== 'DE' || r.class.toUpperCase() !== 'THG_BUNDLED') continue;
+    if (r.ciNumeric === null || r.ciNumeric === undefined || r.ciNumeric > DE_THG_BUNDLE_MAX_CI) continue;
+    if (!rowHasPrice(r)) continue;
+    const year = bundleYearFromVintage(r.vintage);
+    if (year === null) continue;
+    byYear.set(year, [...(byYear.get(year) ?? []), r]);
+  }
+  const updates: MarkUpdate[] = [];
+  for (const [year, group] of byYear) {
+    const ref = findDefaultReferenceRow(group, String(year));
+    if (!ref) continue;
+    const bid = ref.bidPriceNumeric ?? null;
+    const offer = ref.offerPriceNumeric ?? null;
+    updates.push({
+      marketId: deThgBundleMarkId(year),
+      bid,
+      offer,
+      mid: bid !== null && offer !== null ? Number(((bid + offer) / 2).toFixed(6)) : null,
+      source: 'Broker run',
+      updatedAt: new Date().toISOString(),
+      provenance: {
+        sourceType: 'BROKER_INDICATION',
+        sourceName: 'Broker run',
+        sourceUrl: null,
+        observedAt: ref.observedAt || runDate,
+        note: `Certificate-only bundle: ${ref.country} ${ref.feedstock} (${ref.vintage}, CI ${ref.ciScore}); gas index is added on top. Run ${ref.runId}.`,
+      },
+    });
+  }
+  return updates;
+}
+
+/**
  * Seeds marks for all markets that have broker quotes in the pricing book.
  */
 export function seedMarksFromPricingBook(
@@ -393,6 +437,8 @@ export function seedMarksFromPricingBook(
       }
     }
   }
+
+  updates.push(...deThgBundleMarkUpdates(brokerRows, runDate));
 
   const nextMarks = applyMarkUpdates(currentMarks, updates);
   return { nextMarks, referenceRowIds };

@@ -1,6 +1,6 @@
 import { Consignment, CertificationScheme, ChainOfCustody, DeliveryPeriod } from '../consignment/types';
 import { Market } from '../markets/types';
-import { NetbackResult } from '../netback/types';
+import { NetbackResult, BundleReference } from '../netback/types';
 import { EligibilityAssessment, OverallVerdict } from '../eligibility/types';
 
 export interface OriginProfile {
@@ -38,8 +38,8 @@ export interface ArbitrageOpportunity {
   deskNetMarginEurPerMWh: number | null;           // Realistic trading desk margin (€1.50-€8.00/MWh)
   marginPercent: number | null;                    // deskNetMargin / totalValue * 100
   totalDealProfitEur: number | null;               // deskNetMargin * volume (e.g. €35,000 on 10,000 MWh)
-  /** Set when a desk-assumption ceiling capped the revenue before the margin split (see origination.deThgBundleCeilingEurPerMwh). */
-  revenueCeilingApplied?: { ceilingEurPerMwh: number; uncappedEurPerMwh: number } | null;
+  /** The traded-bundle reference the netback was checked against (broker certificate price, observed price or desk estimate). */
+  bundleReference?: BundleReference | null;
   /** Set when the netback engine capped the modelled netback at a traded-bundle reference (risk.deThgBundleRef* assumptions, or an observed bundle price). */
   netbackCappedAt?: number | null;
   /** The modelled netback before that cap, when it was capped. */

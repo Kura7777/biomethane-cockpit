@@ -249,9 +249,8 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
       const margin90 = calculateRealisticCommercialDeskMargin('DE_THG', 100, 2.0, 0.90);
       expect(margin90.deskNetMarginEurPerMWh).toBe(9.80); // (100 - 2) * 0.10
       expect(margin90.producerProcurementEurPerMWh).toBe(88.20); // (100 - 2) * 0.90
-      // Phase 2: the allocator no longer has hidden rules. 100 is under the visible DE THG ceiling, so nothing is capped here
-      // (the cap, the share-as-given rule and the desk-take assumptions are tested in originationHonesty.test.ts).
-      expect(margin90.revenueCeilingApplied).toBeNull();
+      // Phase 2: the allocator has no hidden rules (no DE THG ceiling, share used as given, desk take from assumptions);
+      // those are tested in originationHonesty.test.ts. The traded-price ceiling lives in the netback engine (deThgBundle.test.ts).
 
       // Unclamped loss-making route
       const lossMargin = calculateRealisticCommercialDeskMargin('DE_THG', -10, 2.0, 0.90);

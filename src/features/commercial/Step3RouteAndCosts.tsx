@@ -340,8 +340,14 @@ export function Step3RouteAndCosts({
                 className="flex items-center justify-between p-2.5 border"
               >
                 <div>
-                  <span style={{ color: 'var(--color-text)' }} className="font-medium block">Compliance certificate premium</span>
-                  <span style={{ color: 'var(--color-muted)' }} className="text-[11px] block">{opportunity.targetMarketName} green value stack{certificateValueEur === null ? ' (needs a TTF mark to split out)' : ''}</span>
+                  <span style={{ color: 'var(--color-text)' }} className="font-medium block">{b.brokerBundle ? 'Certificate (broker bundle, certificate only)' : 'Compliance certificate premium'}</span>
+                  <span style={{ color: 'var(--color-muted)' }} className="text-[11px] block">{opportunity.targetMarketName} {b.brokerBundle ? `${b.brokerBundle.year ?? ''} bid; the gas index comes on top` : `green value stack${certificateValueEur === null ? ' (needs a TTF mark to split out)' : ''}`}</span>
+                  {b.brokerBundle && (
+                    <span className="text-[11px] flex items-center gap-1.5 flex-wrap mt-1" data-testid="cert-bundle-source">
+                      {sourceChip(b.brokerBundle.source)}
+                      <Link to="/pricing" style={{ color: 'var(--color-accent)' }} className="font-medium hover:underline">Change in Pricing desk →</Link>
+                    </span>
+                  )}
                 </div>
                 <div className="text-right">
                   <span style={{ color: 'var(--color-pnl-pos)' }} className="font-semibold tabular-nums">{fmtEurPerMwh(certificateValueEur)}</span>
@@ -357,23 +363,20 @@ export function Step3RouteAndCosts({
                 <span style={{ color: 'var(--color-muted)' }}>Total realizable revenue{b.revenueExclMolecule ? ' (excl. gas: no TTF mark)' : ''}:</span>
                 <span style={{ color: 'var(--color-text)' }} className="font-semibold tabular-nums">{fmtEurPerMwh(totalGrossRevenueEur)} ({fmtEurTotal(totalDealRevenueEur)})</span>
               </div>
-              {(b.revenueCeilingApplied || b.netbackCapped) && (
+              {b.brokerBundle && (
+                <div data-testid="bundle-note" style={{ color: 'var(--color-muted)' }} className="px-2 text-[11px] font-medium">
+                  Broker bundle: {fmtEurPerMwh(b.brokerBundle.certificateEurPerMwh)} certificate + {b.gasIndexEur === null ? 'no TTF mark' : `${fmtEurPerMwh(b.gasIndexEur)} TTF`}.
+                  {b.brokerBundle.modelledNetbackEurPerMwh !== null ? ` The modelled quota value (netback ${fmtEurPerMwh(b.brokerBundle.modelledNetbackEurPerMwh)}) is not what a buyer pays.` : ''}
+                </div>
+              )}
+              {b.netbackCapped && (
                 <div
                   data-testid="ceiling-note"
                   style={{ color: 'var(--color-status-warn-text)' }}
                   className="px-2 text-[11px] font-medium"
                 >
-                  {b.netbackCapped && (
-                    <>
-                      Capped at €{b.netbackCapped.capEurPerMwh}/MWh (desk assumption: DE THG traded-bundle reference).
-                      {b.netbackCapped.theoreticalEurPerMwh !== null ? ` Modelled netback before the cap: ${fmtEurPerMwh(b.netbackCapped.theoreticalEurPerMwh)}.` : ''}{' '}
-                    </>
-                  )}
-                  {b.revenueCeilingApplied && (
-                    <>
-                      Capped at €{b.revenueCeilingApplied.ceilingEurPerMwh}/MWh (desk assumption). The market netback was {fmtEurPerMwh(b.revenueCeilingApplied.uncappedEurPerMwh)}.{' '}
-                    </>
-                  )}
+                  Held to €{b.netbackCapped.capEurPerMwh}/MWh ({b.netbackCapped.kind === 'OBSERVED_ALL_IN' ? 'observed all-in price on the deal' : 'unsourced desk estimate, not a market price'}).
+                  {b.netbackCapped.theoreticalEurPerMwh !== null ? ` Modelled netback: ${fmtEurPerMwh(b.netbackCapped.theoreticalEurPerMwh)}.` : ''}{' '}
                   <Link to="/assumptions" className="underline">Change in Assumptions</Link>
                 </div>
               )}
@@ -413,7 +416,7 @@ export function Step3RouteAndCosts({
         </div>
       </div>
 
-      <MarketLadder opportunity={opportunity} volumeMwh={vol} />
+      <MarketLadder opportunity={opportunity} volumeMwh={vol} complianceYear={request.delivery?.complianceYear ?? null} />
 
       {/* Navigation Buttons */}
       <div

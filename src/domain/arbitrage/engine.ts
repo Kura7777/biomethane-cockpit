@@ -33,6 +33,8 @@ export function buildArbitrageConsignment(args: {
   chainOfCustody: ChainOfCustody;
   isEUGrid: boolean;
   volumeMWh: number;
+  /** The year the certificate is surrendered against; selects the broker bundle mark for DE THG. */
+  complianceYear?: number | null;
 }): Consignment {
   return {
     id: `arb_${args.originCountry}_${args.feedstockKey}`,
@@ -51,6 +53,10 @@ export function buildArbitrageConsignment(args: {
     udbStatus: args.isEUGrid ? 'RECORDED' : 'NOT_RECORDED',
     posStatus: 'ISSUED',
     volumeMWh: args.volumeMWh,
+    deliveryPeriod:
+      args.complianceYear == null
+        ? undefined
+        : { type: null, startDate: null, endDate: null, complianceYear: args.complianceYear },
   };
 }
 
@@ -75,7 +81,8 @@ export function scanEuropeanArbitrage(
   scheme: CertificationScheme = 'ISCC_EU',
   chainOfCustody: ChainOfCustody = 'MASS_BALANCE',
   scenario: RegulatoryWhatIfScenario = DEFAULT_WHAT_IF_SCENARIO,
-  volumeMWh: number = 10000
+  volumeMWh: number = 10000,
+  complianceYear: number | null = null
 ): {
   topOpportunities: ArbitrageOpportunity[];
   matrixCells: ArbitrageMatrixCell[];
@@ -106,6 +113,7 @@ export function scanEuropeanArbitrage(
       chainOfCustody,
       isEUGrid,
       volumeMWh,
+      complianceYear,
     });
 
     for (const market of activeMarkets) {
@@ -132,7 +140,6 @@ export function scanEuropeanArbitrage(
       let marginAllocationType: 'TRANSPORT_COMPLIANCE' | 'MARITIME_INSETTING' | 'WHOLESALE_BASE' = 'TRANSPORT_COMPLIANCE';
       let marginPct: number | null = null;
       let totalDealProfit: number | null = null;
-      let revenueCeilingApplied: ArbitrageOpportunity['revenueCeilingApplied'] = null;
 
       if (destinationNetback !== null) {
         const producerShare = costs.producerPricing?.mode === 'INDEX_LINKED'
@@ -149,7 +156,6 @@ export function scanEuropeanArbitrage(
         deskNetMargin = commercialAllocation.deskNetMarginEurPerMWh;
         producerPayable = commercialAllocation.producerProcurementEurPerMWh;
         marginAllocationType = commercialAllocation.marginAllocationType;
-        revenueCeilingApplied = commercialAllocation.revenueCeilingApplied;
 
         if (deskNetMargin !== null && destinationNetback !== 0) {
           marginPct = (deskNetMargin / Math.abs(destinationNetback)) * 100;
@@ -246,7 +252,7 @@ export function scanEuropeanArbitrage(
         deskNetMarginEurPerMWh: deskNetMargin,
         marginPercent: marginPct,
         totalDealProfitEur: totalDealProfit,
-        revenueCeilingApplied,
+        bundleReference: netbackRes.bundleReference ?? null,
         netbackCappedAt: netbackRes.netbackCappedAt ?? null,
         theoreticalNetbackEurPerMWh: netbackRes.theoreticalNetback ?? null,
         eligibility,

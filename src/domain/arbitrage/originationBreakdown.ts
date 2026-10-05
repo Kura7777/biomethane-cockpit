@@ -20,7 +20,7 @@ export interface BreakdownOpportunity {
   totalTerminalValueStackEurPerMWh: ArbitrageOpportunity['totalTerminalValueStackEurPerMWh'];
   deskNetMarginEurPerMWh: ArbitrageOpportunity['deskNetMarginEurPerMWh'];
   totalDealProfitEur: ArbitrageOpportunity['totalDealProfitEur'];
-  revenueCeilingApplied?: ArbitrageOpportunity['revenueCeilingApplied'];
+  bundleReference?: ArbitrageOpportunity['bundleReference'];
   netbackCappedAt?: ArbitrageOpportunity['netbackCappedAt'];
   theoreticalNetbackEurPerMWh?: ArbitrageOpportunity['theoreticalNetbackEurPerMWh'];
 }
@@ -44,11 +44,24 @@ export interface OriginationBreakdown {
   /** True when certification is not in the delivered cost total. */
   deliveredCostExclCertification: boolean;
 
-  /** Revenue per MWh after any desk-assumption ceiling (the number the margin split used). */
+  /** Market revenue per MWh. With a broker bundle: the broker certificate price plus the gas index. */
   grossRevenueEur: number | null;
-  revenueCeilingApplied: { ceilingEurPerMwh: number; uncappedEurPerMwh: number } | null;
-  /** The netback engine already capped the revenue at a bundle reference (desk assumption unless a bundle price was observed). */
-  netbackCapped: { capEurPerMwh: number; theoreticalEurPerMwh: number | null } | null;
+  /**
+   * Set when the certificate is the broker's certificate-only bundle price (DE THG manure). The
+   * certificate line is then that mark, with its own source tag, and TTF is added on top.
+   */
+  brokerBundle: {
+    certificateEurPerMwh: number;
+    year: number | null;
+    source: PriceSource;
+    /** Netback (after costs) the modelled quota value would have given, for context. */
+    modelledNetbackEurPerMwh: number | null;
+  } | null;
+  /**
+   * Set when the netback was held to an observed or unsourced desk all-in price (not a broker price).
+   * Never set for a broker bundle.
+   */
+  netbackCapped: { capEurPerMwh: number; theoreticalEurPerMwh: number | null; kind: 'OBSERVED_ALL_IN' | 'DESK_ESTIMATE_ALL_IN' } | null;
   /** TTF at the engine's molecule side; null when no gas index mark is loaded. */
   gasIndexEur: number | null;
   gasIndexSide: 'bid' | 'offer' | 'mid';
@@ -104,14 +117,26 @@ export function computeOriginationBreakdown(input: OriginationBreakdownInput): O
   const certificationEur = costs.certificationCosts;
   const totalDeliveredCostEur = plantGateEur + gridLogisticsEur + (certificationEur ?? 0);
 
-  const revenueCeilingApplied = opp.revenueCeilingApplied ?? null;
-  const grossRevenueEur = revenueCeilingApplied
-    ? revenueCeilingApplied.ceilingEurPerMwh
-    : opp.totalTerminalValueStackEurPerMWh;
-
   const gasIndexEur = selectMarkPrice(gasIndex, moleculeSide);
-  const certificateValueEur =
-    gasIndexEur !== null && grossRevenueEur !== null ? grossRevenueEur - gasIndexEur : null;
+
+  // A broker bundle quote is for certificates only; the gas index comes on top (broker run footnote).
+  const ref = opp.bundleReference ?? null;
+  const bundleBinds = ref?.kind === 'BROKER_CERTIFICATE' && opp.netbackCappedAt !== null && opp.netbackCappedAt !== undefined;
+  const brokerBundle = ref && bundleBinds
+    ? {
+        certificateEurPerMwh: ref.valueEurPerMwh,
+        year: ref.year,
+        source: priceSourceForMark(ref.provenance, null),
+        modelledNetbackEurPerMwh: opp.theoreticalNetbackEurPerMWh ?? null,
+      }
+    : null;
+
+  const grossRevenueEur = brokerBundle
+    ? brokerBundle.certificateEurPerMwh + (gasIndexEur ?? 0)
+    : opp.totalTerminalValueStackEurPerMWh;
+  const certificateValueEur = brokerBundle
+    ? brokerBundle.certificateEurPerMwh
+    : gasIndexEur !== null && grossRevenueEur !== null ? grossRevenueEur - gasIndexEur : null;
 
   const netMarginEurPerMwh =
     opp.deskNetMarginEurPerMWh ?? (grossRevenueEur !== null ? grossRevenueEur - totalDeliveredCostEur : null);
@@ -126,10 +151,10 @@ export function computeOriginationBreakdown(input: OriginationBreakdownInput): O
     totalDeliveredCostEur,
     deliveredCostExclCertification: certificationEur === null,
     grossRevenueEur,
-    revenueCeilingApplied,
+    brokerBundle,
     netbackCapped:
-      opp.netbackCappedAt !== null && opp.netbackCappedAt !== undefined
-        ? { capEurPerMwh: opp.netbackCappedAt, theoreticalEurPerMwh: opp.theoreticalNetbackEurPerMWh ?? null }
+      !brokerBundle && ref && ref.kind !== 'BROKER_CERTIFICATE' && opp.netbackCappedAt !== null && opp.netbackCappedAt !== undefined
+        ? { capEurPerMwh: opp.netbackCappedAt, theoreticalEurPerMwh: opp.theoreticalNetbackEurPerMWh ?? null, kind: ref.kind }
         : null,
     gasIndexEur,
     gasIndexSide: moleculeSide,

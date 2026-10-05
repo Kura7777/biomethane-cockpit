@@ -25,6 +25,15 @@ const TOP_N = 8;
 interface MarketLadderProps {
   opportunity: SourcedOpportunity;
   volumeMwh: number;
+  /** The order's compliance year; selects the broker bundle mark for DE THG. */
+  complianceYear?: number | null;
+}
+
+/** How a held row is explained: a broker bundle is certificate-only (gas on top), the others are all-in ceilings. */
+function heldLabel(h: { kind: string; valueEurPerMwh: number }): string {
+  if (h.kind === 'BROKER_CERTIFICATE') return `broker bundle €${h.valueEurPerMwh} cert + TTF`;
+  if (h.kind === 'OBSERVED_ALL_IN') return `held to €${h.valueEurPerMwh} (observed on the deal)`;
+  return `held to €${h.valueEurPerMwh} (unsourced desk estimate)`;
 }
 
 function ageText(days: number | null): string | undefined {
@@ -37,7 +46,7 @@ function ageText(days: number | null): string | undefined {
  * first. Every netback comes from state.marks and state.costs; a market with a missing mark is
  * listed at the bottom as "missing mark" and never ranked.
  */
-export function MarketLadder({ opportunity, volumeMwh }: MarketLadderProps) {
+export function MarketLadder({ opportunity, volumeMwh, complianceYear = null }: MarketLadderProps) {
   const { state } = useAppState();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -46,8 +55,8 @@ export function MarketLadder({ opportunity, volumeMwh }: MarketLadderProps) {
   const [sheetId, setSheetId] = useState<string | null>(null);
 
   const ladder = useMemo(
-    () => buildMarketLadder(opportunity, volumeMwh, state.marks, state.costs),
-    [opportunity, volumeMwh, state.marks, state.costs]
+    () => buildMarketLadder({ ...opportunity, complianceYear }, volumeMwh, state.marks, state.costs),
+    [opportunity, volumeMwh, complianceYear, state.marks, state.costs]
   );
 
   const visible = useMemo(() => {
@@ -59,10 +68,10 @@ export function MarketLadder({ opportunity, volumeMwh }: MarketLadderProps) {
   }, [ladder.ranked, showAll]);
 
   const sourceFor = (row: MarketLadderRow) => {
-    const badge = row.isModelled && !row.provenance
+    const badge = row.isModelled && !row.sourceProvenance
       ? { label: 'Modelled', variant: 'NEUTRAL' as const }
-      : deriveSourceBadge(row.provenance, SIMULATED_SOURCE_NAME);
-    const age = ageText(getMarkAgeDays(state.marks.marks[row.marketId]));
+      : deriveSourceBadge(row.sourceProvenance, SIMULATED_SOURCE_NAME);
+    const age = ageText(getMarkAgeDays({ provenance: row.sourceProvenance, updatedAt: row.markUpdatedAt }));
     return { badge, age };
   };
 
@@ -107,7 +116,7 @@ export function MarketLadder({ opportunity, volumeMwh }: MarketLadderProps) {
       extraBadges: (
         <>
           <RouteStatusBadge verdict={r.verdict} detail={r.eligibilitySummary} />
-          {r.cappedAt !== null && <span className="chip chip-warn">Capped €{r.cappedAt}</span>}
+          {r.held && <span className="chip chip-neutral">{heldLabel(r.held)}</span>}
         </>
       ),
       barWidth: Math.min(100, (Math.abs(net) / 200) * 100),
@@ -226,9 +235,13 @@ export function MarketLadder({ opportunity, volumeMwh }: MarketLadderProps) {
                       </td>
                       <td className="py-2 pr-3 text-right tabular-nums font-bold" style={{ color: net < 0 ? 'var(--color-pnl-neg)' : 'var(--color-text)' }}>
                         {fmtNet(net)}
-                        {row.cappedAt !== null && (
-                          <span className="block text-[10px] font-medium" style={{ color: 'var(--color-status-warn-text)' }}>
-                            capped at €{row.cappedAt} (desk assumption, not the mark)
+                        {row.held && (
+                          <span
+                            className="block text-[10px] font-medium"
+                            style={{ color: row.held.kind === 'BROKER_CERTIFICATE' ? 'var(--color-muted)' : 'var(--color-status-warn-text)' }}
+                            data-testid={`held-${row.marketId}`}
+                          >
+                            {heldLabel(row.held)}
                           </span>
                         )}
                       </td>

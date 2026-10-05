@@ -12,9 +12,11 @@ import {
   INITIAL_PRICING_BOOK,
   BASELINE_RUN_META,
 } from '../domain/markets/brokerRun.seed';
+import { DE_THG_BUNDLE_MARK_PREFIX } from '../domain/markets/deThgBundle';
 import {
   applyMarkUpdates,
   seedMarksFromPricingBook,
+  deThgBundleMarkUpdates,
   isSimulatedMark,
   rowFeedsMarket,
   rowHasPrice,
@@ -23,7 +25,7 @@ import {
   MarkUpdate,
 } from '../domain/marks/applyMarks';
 
-export const CURRENT_SCHEMA_VERSION = 10;
+export const CURRENT_SCHEMA_VERSION = 11;
 const STORAGE_KEY = 'biomethane-desk-state-v10';
 
 // Newest first — the first key that yields a readable payload wins.
@@ -365,6 +367,16 @@ export function migrateState(raw: unknown): AppState {
     );
     migrated.marks = nextMarks;
     migrated.referenceRowIds = { ...referenceRowIds, ...(migrated.referenceRowIds || {}) };
+  }
+
+  if (stateVersion < 11 && migrated.marks && migrated.pricingBook) {
+    // Schema v11 migration: the DE THG manure bundle quotes become marks (certificate-only, EUR/MWh),
+    // seeded from the order book already in this state.
+    migrated.marks = seedMarksFromPricingBook(
+      migrated.marks,
+      migrated.pricingBook,
+      migrated.pricingRunMeta?.receivedOn
+    ).nextMarks;
   }
 
   migrated.schemaVersion = CURRENT_SCHEMA_VERSION;
@@ -710,6 +722,16 @@ export function appReducer(state: AppState, action: AppAction): AppState {
           });
         }
       }
+      // The DE THG bundle marks carry the run id in their note; re-date those that are still this run's quote.
+      for (const [mId, entry] of Object.entries(state.marks.marks)) {
+        if (
+          mId.startsWith(DE_THG_BUNDLE_MARK_PREFIX) &&
+          entry.provenance?.sourceName === 'Broker run' &&
+          entry.provenance.note?.includes(`Run ${action.runId}.`)
+        ) {
+          updates.push({ marketId: mId, correction: true, provenance: { ...entry.provenance, observedAt: action.receivedOn } });
+        }
+      }
       const nextMarks = applyMarkUpdates(state.marks, updates);
       return {
         ...state,
@@ -745,6 +767,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
           candidates.push({ mId, rowId: row.id, update });
         }
       }
+      updates.push(...deThgBundleMarkUpdates(action.rows, action.runMeta.receivedOn));
       const nextMarks = applyMarkUpdates(state.marks, updates);
       // Only move the reference star when the mark actually took this row's quote
       // (an older run date never displaces a newer mark).

@@ -116,8 +116,28 @@ export interface NetbackResult {
   theoreticalNetback?: number | null;
   /** Bundle price the netback was capped at, or null when the modelled netback was below it. */
   netbackCappedAt?: number | null;
-  /** Traded-bundle reference checked against (observed on the deal, or desk reference); null when the market has none. */
+  /** Traded-bundle reference checked against; null when the market has none. For a BROKER_CERTIFICATE reference this is the certificate-only price (gas index comes on top). */
   bundleReferenceEurPerMwh?: number | null;
+  /** What the bundle reference is and where it came from. */
+  bundleReference?: BundleReference | null;
+}
+
+export type BundleReferenceKind =
+  /** Broker certificate-only bundle price (a mark); the gas index is added on top. */
+  | 'BROKER_CERTIFICATE'
+  /** All-in clearing price the trader observed on the deal. */
+  | 'OBSERVED_ALL_IN'
+  /** Unsourced desk estimate of an all-in clearing price (assumptions register). */
+  | 'DESK_ESTIMATE_ALL_IN';
+
+export interface BundleReference {
+  kind: BundleReferenceKind;
+  /** The reference price, EUR/MWh (certificate-only for BROKER_CERTIFICATE, all-in otherwise). */
+  valueEurPerMwh: number;
+  /** Delivery year the broker mark is for (BROKER_CERTIFICATE only). */
+  year: number | null;
+  /** Provenance of the broker mark (BROKER_CERTIFICATE only). */
+  provenance: MarkProvenance | null;
 }
 
 export interface GasIndexMark {

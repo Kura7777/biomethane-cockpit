@@ -2,7 +2,7 @@ import { MARKETS } from '../markets/registry';
 import type { MarkProvenance } from '../markets/types';
 import { FEEDSTOCK_REGISTRY } from '../consignment/feedstocks';
 import type { CertificationScheme, ChainOfCustody, Consignment } from '../consignment/types';
-import type { CostInputs, MarksState } from '../netback/types';
+import type { BundleReference, CostInputs, MarksState } from '../netback/types';
 import { computeAllNetbacks } from '../netback/engine';
 import { rankNetbacks } from '../netback/ranking';
 import { evaluateEligibility } from '../eligibility/engine';
@@ -27,6 +27,8 @@ export interface LadderOpportunity {
   chainOfCustody: ChainOfCustody;
   /** The market the route was built for; flagged on its ladder row. */
   targetMarketId: string;
+  /** Year the certificate is surrendered against; picks the broker bundle mark for DE THG. */
+  complianceYear?: number | null;
 }
 
 export interface MarketLadderRow {
@@ -47,8 +49,13 @@ export interface MarketLadderRow {
   /** Where the market's own mark came from (null when the market has no mark entry). */
   provenance: MarkProvenance | null;
   markUpdatedAt: string | null;
-  /** Bundle reference the netback engine capped this market at, when it did. */
-  cappedAt: number | null;
+  /**
+   * Set when the netback was held to a traded-bundle reference. For a broker bundle the value is the
+   * certificate-only price and the gas index is on top; for the others it is an all-in ceiling.
+   */
+  held: { kind: BundleReference['kind']; valueEurPerMwh: number; year: number | null } | null;
+  /** Where the number on this row came from. For a held broker bundle that is the bundle mark, else the market's mark. */
+  sourceProvenance: MarkProvenance | null;
   /** The market this route was originally built for. */
   isChosen: boolean;
   missingInputs: string[];
@@ -76,6 +83,7 @@ export function buildLadderConsignment(opp: LadderOpportunity, volumeMWh: number
     chainOfCustody: opp.chainOfCustody,
     isEUGrid: origin ? originIsEuGrid(origin) : false,
     volumeMWh,
+    complianceYear: opp.complianceYear ?? null,
   });
 }
 
@@ -114,7 +122,14 @@ export function buildMarketLadder(
       isModelled: Boolean(nb.isModelled),
       provenance: nb.provenance ?? mark?.provenance ?? null,
       markUpdatedAt: mark?.updatedAt ?? null,
-      cappedAt: nb.netbackCappedAt ?? null,
+      held:
+        nb.netbackCappedAt != null && nb.bundleReference
+          ? { kind: nb.bundleReference.kind, valueEurPerMwh: nb.bundleReference.valueEurPerMwh, year: nb.bundleReference.year }
+          : null,
+      sourceProvenance:
+        nb.netbackCappedAt != null && nb.bundleReference?.kind === 'BROKER_CERTIFICATE'
+          ? nb.bundleReference.provenance
+          : nb.provenance ?? mark?.provenance ?? null,
       isChosen: nb.marketId === opp.targetMarketId,
       missingInputs: nb.missingInputs,
     };

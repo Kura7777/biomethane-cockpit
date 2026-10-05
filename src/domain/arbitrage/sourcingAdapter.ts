@@ -61,7 +61,8 @@ export function searchSourcingRoutes(
         scheme,
         effectiveChainOfCustody,
         scenario,
-        volumeForScan
+        volumeForScan,
+        req.delivery?.complianceYear ?? null
       );
 
       for (const opp of scanResult.allOpportunities) {

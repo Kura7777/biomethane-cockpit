@@ -9,7 +9,7 @@ import {
 } from '../markets/constants';
 import { Market, PriceSide, getMarkAgeDays } from '../markets/types';
 import { Consignment } from '../consignment/types';
-import { CostInputs, CertificateValueResult, NetbackResult, NetbackBranch, MarksState, FuelEUOptions, PricingSides, NetbackSides, ValuationRange, PrincipalRiskMetrics } from './types';
+import { BundleReference, CostInputs, CertificateValueResult, NetbackResult, NetbackBranch, MarksState, FuelEUOptions, PricingSides, NetbackSides, ValuationRange, PrincipalRiskMetrics } from './types';
 import { EligibilityAssessment } from '../eligibility/types';
 import { HUB_BASIS_SPREADS } from '../logistics/corridors';
 
@@ -22,6 +22,7 @@ import {
   FUELEU_PENALTY_VLSFO_MJ_PER_TONNE,
 } from '../fueleu/calculator';
 import { getAssumption } from '../assumptions/registry';
+import { DE_THG_BUNDLE_MAX_CI, selectDeThgBundleReference } from '../markets/deThgBundle';
 
 /**
  * FuelEU Maritime Reference Constants (Regulation (EU) 2023/1805)
@@ -594,18 +595,42 @@ export function computeNetback(
     }
   }
 
-  // ── Realisable cap (desk policy, 28 Sept 2026) ──────────────────────────────────────────
+  // ── Realisable bundle (what the desk can actually sell at) ──────────────────────────────
   // The modelled netback values the certificate at the full quota mark, but obligated blenders keep
-  // 30–45% of that spread, so the desk can only sell at the traded bundle price. Where a bundle
-  // reference exists (an observed price on the deal, else the DE THG desk references in the
-  // assumptions register), the headline netback, producer payable, margin and P&L are all taken at
-  // min(modelled, bundle). The uncapped figure is kept as `theoreticalNetback`.
-  const bundleIsObserved = consignment.observedBundlePriceEurPerMwh != null;
-  const bundleBenchmark = consignment.observedBundlePriceEurPerMwh ?? (
-    market.id === 'DE_THG' && consignment.carbonIntensity <= -80 ? getAssumption('risk.deThgBundleRefNeg80EurPerMwh') :
-    market.id === 'DE_THG' && consignment.carbonIntensity <= 0 ? getAssumption('risk.deThgBundleRefNeg0EurPerMwh') :
-    null
-  );
+  // 30–45% of that spread, so the desk can only sell at the traded bundle price. Where a reference
+  // exists the headline netback, producer payable, margin and P&L are all taken at
+  // min(modelled, reference). The uncapped figure is kept as `theoreticalNetback`.
+  //  - DE THG, CI <= -80: the broker's certificate-only bundle price (a mark, bid side, for the deal's
+  //    compliance year). The broker quotes certificates only, "index gas price to be added on top",
+  //    so the cap is the broker certificate plus the gas index, less the costs deducted above.
+  //  - An observed all-in price on the deal overrides any reference (unchanged).
+  //  - DE THG, -80 < CI <= 0: no broker row exists; an unsourced desk estimate (risk.deThgBundleRefNeg0)
+  //    of an all-in clearing price. Used only as a ceiling on the netback, never as a quoted price.
+  const moleculeOnTop = molVal !== null && !isNaN(molVal) ? molVal : 0;
+  const costsDeducted = totalCosts !== null && !isNaN(totalCosts) ? totalCosts : 0;
+  let bundleBenchmark: number | null = null; // netback-level ceiling (net of the costs deducted above)
+  let bundleReference: BundleReference | null = null;
+  let bundleMarkMissing = false; // CI <= -80 on DE THG but no broker mark for the deal's year
+  if (consignment.observedBundlePriceEurPerMwh != null) {
+    bundleBenchmark = consignment.observedBundlePriceEurPerMwh;
+    bundleReference = { kind: 'OBSERVED_ALL_IN', valueEurPerMwh: bundleBenchmark, year: null, provenance: null };
+  } else if (market.id === 'DE_THG' && consignment.carbonIntensity <= DE_THG_BUNDLE_MAX_CI) {
+    const ref = selectDeThgBundleReference(marks.marks, consignment.deliveryPeriod?.complianceYear ?? null);
+    if (ref) {
+      bundleBenchmark = ref.certificateEurPerMwh + moleculeOnTop - costsDeducted;
+      bundleReference = {
+        kind: 'BROKER_CERTIFICATE',
+        valueEurPerMwh: ref.certificateEurPerMwh,
+        year: ref.year,
+        provenance: ref.provenance,
+      };
+    } else {
+      bundleMarkMissing = true;
+    }
+  } else if (market.id === 'DE_THG' && consignment.carbonIntensity <= 0) {
+    bundleBenchmark = getAssumption('risk.deThgBundleRefNeg0EurPerMwh');
+    bundleReference = { kind: 'DESK_ESTIMATE_ALL_IN', valueEurPerMwh: bundleBenchmark, year: null, provenance: null };
+  }
   const priceAt = (netback: number) => {
     let payable: number | null = null;
     let margin: number | null = null;
@@ -681,9 +706,15 @@ export function computeNetback(
   };
 
   let clearingPriceWarning: string | null = null;
-  if (netbackCappedAt !== null && theoreticalNetback !== null) {
-    const ref = bundleIsObserved ? 'observed traded bundle price' : 'traded bundle reference (desk estimate, Assumptions)';
-    clearingPriceWarning = `Netback capped at the ${ref} of €${netbackCappedAt.toFixed(2)}/MWh. Modelled netback (€${theoreticalNetback.toFixed(2)}/MWh) exceeds observed traded bundle price levels: it assumes the full quota value, but obligated blenders retain 30–45% of the statutory spread. Producer payable, margin and P&L use the capped figure.`;
+  if (netbackCappedAt !== null && theoreticalNetback !== null && bundleReference) {
+    if (bundleReference.kind === 'BROKER_CERTIFICATE') {
+      clearingPriceWarning = `Certificate valued at the broker bundle price of €${bundleReference.valueEurPerMwh.toFixed(2)}/MWh (certificate only, ${bundleReference.year}); gas index is added on top. Netback €${netbackCappedAt.toFixed(2)}/MWh after costs. The modelled quota value (netback €${theoreticalNetback.toFixed(2)}/MWh) is not what a buyer pays: obligated blenders retain 30–45% of the statutory spread. Producer payable, margin and P&L use the broker bundle figure.`;
+    } else {
+      const ref = bundleReference.kind === 'OBSERVED_ALL_IN' ? 'observed traded bundle price' : 'traded bundle reference (unsourced desk estimate, Assumptions)';
+      clearingPriceWarning = `Netback capped at the ${ref} of €${netbackCappedAt.toFixed(2)}/MWh. Modelled netback (€${theoreticalNetback.toFixed(2)}/MWh) exceeds observed traded bundle price levels: it assumes the full quota value, but obligated blenders retain 30–45% of the statutory spread. Producer payable, margin and P&L use the capped figure.`;
+    }
+  } else if (bundleMarkMissing) {
+    clearingPriceWarning = `No broker bundle mark for compliance year ${consignment.deliveryPeriod?.complianceYear ?? 'unset'}: the DE THG netback is the modelled quota value, with no traded-price check. Add the broker bundle quote in Pricing.`;
   }
 
   return {
@@ -715,7 +746,8 @@ export function computeNetback(
     clearingPriceWarning,
     theoreticalNetback,
     netbackCappedAt,
-    bundleReferenceEurPerMwh: bundleBenchmark,
+    bundleReferenceEurPerMwh: bundleReference?.valueEurPerMwh ?? null,
+    bundleReference,
   };
 }
 

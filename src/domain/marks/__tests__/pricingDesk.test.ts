@@ -279,7 +279,7 @@ describe('Pricing Desk & Ingress Seam Unit Tests (Phase 1b)', () => {
 
       const nextState = migrateState(v9State);
 
-      expect(nextState.schemaVersion).toBe(10);
+      expect(nextState.schemaVersion).toBe(11);
       expect(nextState.pricingBook).toBeDefined();
       expect(nextState.pricingBook.length).toBe(INITIAL_PRICING_BOOK.length);
       expect(nextState.pricingRunMeta).toEqual(BASELINE_RUN_META);
@@ -352,10 +352,13 @@ describe('Pricing Desk & Ingress Seam Unit Tests (Phase 1b)', () => {
       expect(simulatedState.marks.marks['DE_THG'].offer).toBe(290);
       expect(simulatedState.marks.marks['DE_THG'].source).toBe('Broker run');
 
-      // Simulated markets (e.g. unseeded compliance/voluntary like PL_GO or CH_GO) may update
+      // Simulated markets (e.g. unseeded compliance/voluntary like PL_GO or CH_GO) may update;
+      // every mark that was broker-seeded (market marks and DE THG bundle marks) keeps its broker mark.
+      const brokerBefore = Object.values(state.marks.marks).filter(m => !isSimulatedMark(m)).length;
       const simulatedMarketsCount = Object.values(simulatedState.marks.marks).filter(m => isSimulatedMark(m)).length;
       const totalMarks = Object.keys(simulatedState.marks.marks).length;
-      expect(simulatedMarketsCount).toBe(totalMarks - 8); // 8 broker-seeded markets keep their broker mark
+      expect(brokerBefore).toBeGreaterThan(0);
+      expect(simulatedMarketsCount).toBe(totalMarks - brokerBefore);
     });
 
     it('SET_PRICING_RUN_DATE updates run date across broker rows and updates mark timestamps', () => {

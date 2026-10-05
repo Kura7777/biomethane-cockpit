@@ -374,12 +374,10 @@ export function getRouteTransitTariff(originCode: string, targetCountry: string)
  * or defaults to the differentiated origin plant-gate cost benchmark.
  * Does not clamp to 0 so negative netbacks and loss-making routes are truthfully represented.
  *
- * Nothing is hidden here. Every judgement is a named assumption in the register:
- *  - origination.deThgBundleCeilingEurPerMwh: DE_THG revenue above it is capped (0 = off).
- *    `revenueCeilingApplied` is set when the cap binds so a screen can say so.
- *  - origination.deskTakeDivisor / FloorEurPerMwh / CapEurPerMwh: the desk-policy split used
- *    on the plant-gate branch (no producer share given).
- * A producer share the caller passes is used exactly as given.
+ * Nothing is hidden here. The desk-policy split used on the plant-gate branch (no producer share
+ * given) is the named assumptions origination.deskTakeDivisor / FloorEurPerMwh / CapEurPerMwh.
+ * A producer share the caller passes is used exactly as given. Revenue is taken as passed in: any
+ * traded-price ceiling is applied by the netback engine from the broker bundle mark, not here.
  */
 export function calculateRealisticCommercialDeskMargin(
   marketId: string,
@@ -391,10 +389,6 @@ export function calculateRealisticCommercialDeskMargin(
   deskNetMarginEurPerMWh: number | null;
   producerProcurementEurPerMWh: number | null;
   marginAllocationType: 'TRANSPORT_COMPLIANCE' | 'MARITIME_INSETTING' | 'WHOLESALE_BASE';
-  /** Revenue actually used after any ceiling (equals destinationNetback when no cap bound). */
-  effectiveRevenueEurPerMWh: number;
-  /** The ceiling that bound, or null when the netback was used uncapped. */
-  revenueCeilingApplied: { ceilingEurPerMwh: number; uncappedEurPerMwh: number } | null;
 } {
   let allocationType: 'TRANSPORT_COMPLIANCE' | 'MARITIME_INSETTING' | 'WHOLESALE_BASE' = 'TRANSPORT_COMPLIANCE';
 
@@ -404,16 +398,8 @@ export function calculateRealisticCommercialDeskMargin(
     allocationType = 'WHOLESALE_BASE';
   }
 
-  // DE THG bundle ceiling: a visible desk assumption (0 = off), not a hidden rule.
-  const ceiling = marketId === 'DE_THG' ? getAssumption('origination.deThgBundleCeilingEurPerMwh') : 0;
-  const ceilingBinds = ceiling > 0 && destinationNetback > ceiling;
-  const effectiveRevenue = ceilingBinds ? ceiling : destinationNetback;
-  const revenueCeilingApplied = ceilingBinds
-    ? { ceilingEurPerMwh: ceiling, uncappedEurPerMwh: destinationNetback }
-    : null;
-
   // Net stack after transit tariff (unclamped so loss-making routes are visible)
-  const netStackAfterTransit = effectiveRevenue - transitTariff;
+  const netStackAfterTransit = destinationNetback - transitTariff;
 
   let deskNetMargin: number | null = null;
   let producerProcurement: number | null = null;
@@ -442,7 +428,5 @@ export function calculateRealisticCommercialDeskMargin(
     deskNetMarginEurPerMWh: deskNetMargin,
     producerProcurementEurPerMWh: producerProcurement,
     marginAllocationType: allocationType,
-    effectiveRevenueEurPerMWh: effectiveRevenue,
-    revenueCeilingApplied,
   };
 }
