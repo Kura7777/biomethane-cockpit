@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect, useState, ReactNode } from 'react';
 import { Consignment } from '../domain/consignment/types';
 import { MarksState, CostInputs, PricingSides } from '../domain/netback/types';
-import { TradeAssessment } from '../domain/trade/types';
+import { TradeAssessment, AssessmentStatus } from '../domain/trade/types';
 import { PriceSide, MarkEntry, MarkProvenance, getMarkStaleness } from '../domain/markets/types';
 import { MARKETS } from '../domain/markets/registry';
 import { REFERENCE_CONSIGNMENTS } from '../domain/consignment/feedstocks';
@@ -26,7 +26,7 @@ import {
   MarkUpdate,
 } from '../domain/marks/applyMarks';
 
-export const CURRENT_SCHEMA_VERSION = 12;
+export const CURRENT_SCHEMA_VERSION = 13;
 const STORAGE_KEY = 'biomethane-desk-state-v10';
 
 // Newest first — the first key that yields a readable payload wins.
@@ -74,6 +74,8 @@ export type AppAction =
   | { type: 'SET_COSTS'; costs: Partial<CostInputs> }
   | { type: 'SAVE_ASSESSMENT'; assessment: TradeAssessment }
   | { type: 'DELETE_ASSESSMENT'; id: string }
+  | { type: 'SET_ASSESSMENT_STATUS'; id: string; status: AssessmentStatus; note?: string }
+  | { type: 'UPDATE_ASSESSMENT_NOTES'; id: string; notes: string }
   | { type: 'SELECT_MARKET'; id: string | null }
   | { type: 'IMPORT_STATE'; state: AppState }
   | { type: 'SIMULATE_DESK' }
@@ -407,6 +409,20 @@ export function migrateState(raw: unknown): AppState {
     }
   }
 
+  if (stateVersion < 13 && Array.isArray(migrated.savedAssessments)) {
+    // Schema v13 migration: the blotter needs a status on every saved deal. Deals saved before
+    // the blotter existed carry none — they read as INDICATIVE, the status a fresh save starts at.
+    migrated.savedAssessments = migrated.savedAssessments.map(a => {
+      if (a.status) return a;
+      const at = a.createdAt || new Date().toISOString();
+      return {
+        ...a,
+        status: 'INDICATIVE' as const,
+        statusHistory: a.statusHistory?.length ? a.statusHistory : [{ status: 'INDICATIVE' as const, at }],
+      };
+    });
+  }
+
   migrated.schemaVersion = CURRENT_SCHEMA_VERSION;
 
   // Ensure all active markets exist in marks dictionary
@@ -619,6 +635,28 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       };
     case 'DELETE_ASSESSMENT':
       return { ...state, savedAssessments: state.savedAssessments.filter(a => a.id !== action.id) };
+    case 'SET_ASSESSMENT_STATUS': {
+      const at = new Date().toISOString();
+      return {
+        ...state,
+        savedAssessments: state.savedAssessments.map(a =>
+          a.id === action.id
+            ? {
+                ...a,
+                status: action.status,
+                statusHistory: [...(a.statusHistory ?? []), { status: action.status, at, note: action.note }],
+              }
+            : a
+        ),
+      };
+    }
+    case 'UPDATE_ASSESSMENT_NOTES':
+      return {
+        ...state,
+        savedAssessments: state.savedAssessments.map(a =>
+          a.id === action.id ? { ...a, userNotes: action.notes } : a
+        ),
+      };
     case 'SELECT_MARKET':
       return { ...state, selectedMarketId: action.id };
     case 'IMPORT_STATE':
