@@ -293,3 +293,45 @@ describe('ARCHITECTURE — no fabricated values', () => {
     ).toEqual([]);
   });
 });
+
+describe('ARCHITECTURE — no new hard-coded price', () => {
+  /**
+   * Known-safe money-shaped declarations. Add an entry here only when you can name why the value
+   * is not a desk judgement that belongs on the Pricing desk → Costs or Assumptions tab — a
+   * statutory figure with a citation, or explicitly synthetic test data.
+   */
+  const ALLOWED_MONEY_DECLARATIONS: { file: string; token: string; because: string }[] = [
+    { file: 'domain/regulatory/constants.ts', token: 'EUR_MWH', because: 'Statutory constant catalogue — restates a cited legal figure, not a desk judgement.' },
+    { file: 'domain/regulatory/constants.ts', token: 'RED3_TRANSPORT_MAX_CI', because: 'RED III statutory GHG-saving threshold, cited.' },
+    { file: 'domain/markets/constants.ts', token: 'EUR_MWH', because: 'Statutory ceiling/penalty constants, cited in the Assumptions tab Regulatory section.' },
+    { file: 'domain/markets/constants.ts', token: 'PENALTY_EUR_PER_TCO2E', because: 'Statutory penalty, cited.' },
+    { file: 'domain/markets/constants.ts', token: 'BUYOUT_GBP', because: 'Statutory buy-out price, cited.' },
+    { file: 'domain/fueleu/calculator.ts', token: 'PENALTY_PER_TONNE', because: 'FuelEU Annex IV statutory penalty, cited.' },
+    { file: 'domain/marks/simulate.ts', token: '', because: 'Synthetic test data — every value here is explicitly SIMULATED, never a real price.' },
+    { file: 'features/ets2/Ets2Screen.tsx', token: 'PRICE_CONTROL_TRIGGER_EUR_2020', because: 'Directive 2023/959 Art. 30h statutory price-control trigger, cited in the code comment above it — not a desk judgement, out of scope for this job.' },
+  ];
+
+  function isAllowedMoneyDeclaration(hit: Hit): boolean {
+    return ALLOWED_MONEY_DECLARATIONS.some(a => hit.file === a.file && hit.text.includes(a.token));
+  }
+
+  it('declares no new money-shaped constant as a bare numeric literal', () => {
+    // Variable/field names following this codebase's own unit-suffix convention
+    // (xxxEurMwh, xxxEurPerMwh, xxxEurPerTco2e, xxxPriceUsd, xxxPenaltyEur, xxxCeilingEur, …)
+    // assigned directly to a nonzero numeric literal, outside domain/marks/simulate.ts (which is
+    // explicitly synthetic) and the regulatory/markets constant catalogues (which legitimately
+    // restate a cited statute). A zero-initialised accumulator (`let totalEurMwh = 0`) is not a
+    // price and is not flagged.
+    const MONEY_DECLARATION = /\b(?:const|let)\s+\w*(?:EUR\w*MWH|EUR\w*TCO2E|EUR\w*RTFC|USD\w*TONNE|GBP\w*RTFC|GBP\w*TONNE|PENALTY\w*EUR\w*|CEILING\w*EUR\w*|PRICE\w*EUR\w*|PRICE\w*USD\w*|PRICE\w*GBP\w*|COST\w*EUR\w*MWH|FEE\w*EUR\w*MWH)\w*\s*[:=]\s*-?[1-9]\d*(?:\.\d+)?\b/i;
+    const files = OUTSIDE_TESTS.filter(
+      f => !f.path.includes('.generated.') && (f.path.startsWith('domain/') || f.path.startsWith('features/'))
+    );
+    const hits = findLines(files, MONEY_DECLARATION).filter(h => !isAllowedMoneyDeclaration(h));
+    expect(
+      hits,
+      `A new price, cost or fee belongs on the Pricing desk (#/pricing — Market prices, Costs or ` +
+        `Assumptions tab), not a bare literal in code. Add it there, or to ALLOWED_MONEY_DECLARATIONS ` +
+        `above with a reason if it genuinely is not a desk judgement.${report(hits)}`
+    ).toEqual([]);
+  });
+});
