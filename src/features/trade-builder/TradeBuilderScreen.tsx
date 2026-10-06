@@ -771,6 +771,7 @@ export function TradeBuilderScreen() {
       marketLabel={ticketMarketLabel}
       netback={netback}
       volumeMwh={volumeMwh}
+      volumeIsEstimated={deal.volumeIsEstimated}
       annualPnl={annualPnl}
       gates={assessment.gates}
       overallVerdict={assessment.overallVerdict}
