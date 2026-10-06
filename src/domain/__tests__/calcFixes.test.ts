@@ -249,6 +249,60 @@ describe('calc fix 4 & 5: Origination and Trade Builder reconciliation', () => {
     expect(diff).toBe(b.netMarginEurPerMwh);
   });
 
+  it('calc fix 7: Trade Builder and Origination price the DK->DE corridor leg identically', async () => {
+    const { createDefaultState } = await import('../../store/context');
+    const { getMarketById } = await import('../markets/registry');
+    const { searchSourcingRoutes } = await import('../arbitrage/sourcingAdapter');
+    const { DEFAULT_WHAT_IF_SCENARIO } = await import('../arbitrage/engine');
+    const { computeOriginationBreakdown } = await import('../arbitrage/originationBreakdown');
+    const { getRouteTransitTariff } = await import('../arbitrage/origins');
+
+    const state = createDefaultState();
+    const market = getMarketById('DE_THG')!;
+    const dkConsignment = {
+      ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
+      volumeMWh: 20000,
+    };
+
+    // Trade Builder path, fixed: the same route-cost shape Origination's engine builds —
+    // corridor transit tariff, and no transfer/other costs modelled in the corridor leg.
+    const corridorTariff = getRouteTransitTariff('DK', market.country);
+    const tbRouteCosts = { ...state.costs, logistics: corridorTariff, transferCosts: 0, otherCosts: 0 };
+    const tbNetback = computeNetback(market, dkConsignment, state.marks, tbRouteCosts, state.marks.pricingSides);
+
+    // Origination path.
+    const searchRes = searchSourcingRoutes(
+      {
+        feedstockKey: 'manure',
+        targetMarketId: 'DE_THG',
+        scheme: 'ISCC_EU',
+        chainOfCustody: 'MASS_BALANCE',
+        delivery: { type: 'MONTH', startDate: '2026-09-01', endDate: '2026-09-30', complianceYear: 2026 },
+        volumeMwh: 20000,
+        constraints: { maxCarbonIntensity: null, maxDeliveredCostEurMwh: null, physicalDeliveryRequired: false },
+        counterparty: null,
+        notes: null,
+      },
+      state.marks,
+      state.costs,
+      DEFAULT_WHAT_IF_SCENARIO
+    );
+    const dkOpp = searchRes.tradeable.find(o => o.originCountry === 'DK' && o.targetMarketId === 'DE_THG')!;
+    const b = computeOriginationBreakdown({
+      opportunity: dkOpp,
+      volumeMwh: 20000,
+      marks: state.marks,
+      costs: state.costs,
+    });
+
+    // netNetback is the realisable (bundle-capped, when a broker reference binds) figure —
+    // the same quantity Origination surfaces as the opportunity's producer payable and margin.
+    expect(tbNetback.netNetback).toBe(dkOpp.netbackCappedAt ?? dkOpp.theoreticalNetbackEurPerMWh);
+    expect(tbNetback.producerPayable).toBe(dkOpp.producerPayableEurPerMWh);
+    expect(tbNetback.deskMargin).toBe(dkOpp.deskNetMarginEurPerMWh);
+    expect(tbNetback.deskMargin).toBe(b.netMarginEurPerMwh);
+  });
+
   it('Step 4 term sheet identity: revenue - costs === desk margin to the cent across markets', async () => {
     const { createDefaultState } = await import('../../store/context');
     const { searchSourcingRoutes } = await import('../arbitrage/sourcingAdapter');

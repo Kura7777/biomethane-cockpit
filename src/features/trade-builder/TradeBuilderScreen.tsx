@@ -7,7 +7,7 @@ import { TradeAssessment } from '../../domain/trade/types';
 import { useAppState } from '../../store/context';
 import { evaluateEligibility } from '../../domain/eligibility/engine';
 import { computeNetback, selectMarkPrice } from '../../domain/netback/engine';
-import { ProducerPricing } from '../../domain/netback/types';
+import { ProducerPricing, CostInputs } from '../../domain/netback/types';
 import { certificateMarkSlope } from '../../domain/netback/headroom';
 import { markSideWarning } from '../../domain/netback/sideFallback';
 import { parseDealParams } from '../../domain/trade/dealParams';
@@ -21,7 +21,7 @@ import { ParsedPoSCertificate } from '../../domain/consignment/posParser';
 import { SIMULATED_SOURCE_NAME } from '../../domain/marks/simulate';
 import { deriveSourceBadge } from '../../domain/markets/types';
 
-import { PRODUCING_ORIGINS } from '../../domain/arbitrage/origins';
+import { PRODUCING_ORIGINS, getRouteTransitTariff } from '../../domain/arbitrage/origins';
 import { BIOMETHANE_PLANTS } from '../../domain/plants/registry';
 import { TradeConsignmentStep, UDB_OPTIONS, POS_OPTIONS } from './steps/TradeConsignmentStep';
 import { TradeMarketAuditStep } from './steps/TradeMarketAuditStep';
@@ -423,6 +423,28 @@ export function TradeBuilderScreen() {
     return evaluateEligibility(consignment, selectedMarket);
   }, [consignment, selectedMarket]);
 
+  // Corridor transit tariff: the same `getRouteTransitTariff` rule and route-cost shape
+  // Origination's engine uses (src/domain/arbitrage/engine.ts's `routeCosts`), so the two
+  // screens price the same origin→market leg identically — including that Origination's
+  // corridor scan doesn't model transfer or other costs, only producer payable, transit and
+  // certification. Falls back to the desk's generic logistics cost when the corridor has no tariff.
+  const costsForMarket = React.useCallback(
+    (market: typeof selectedMarket): { costs: CostInputs; isCorridor: boolean; corridorTariff: number | null } => {
+      const corridorTariff = origin && market.country ? getRouteTransitTariff(origin, market.country) : null;
+      if (corridorTariff != null) {
+        return {
+          costs: { ...state.costs, logistics: corridorTariff, transferCosts: 0, otherCosts: 0 },
+          isCorridor: true,
+          corridorTariff,
+        };
+      }
+      return { costs: state.costs, isCorridor: false, corridorTariff: null };
+    },
+    [origin, state.costs]
+  );
+  const routeCostInfo = useMemo(() => costsForMarket(selectedMarket), [costsForMarket, selectedMarket]);
+  const routeCosts = routeCostInfo.costs;
+
   // Netback calculation (recomputes when a commercial assumption changes)
   const assumptionsVersion = useAssumptionsVersion();
   const netback = useMemo(() => {
@@ -430,10 +452,10 @@ export function TradeBuilderScreen() {
       selectedMarket,
       consignment,
       state.marks,
-      state.costs,
+      routeCosts,
       state.marks.pricingSides
     );
-  }, [consignment, selectedMarket, state.marks, state.costs, assumptionsVersion]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [consignment, selectedMarket, state.marks, routeCosts, assumptionsVersion]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Deal ticket: headroom (bundle-capped markets) — the mark at which the modelled netback
   // would fall to the realisable cap, for certificate markets whose value is linear in the mark.
@@ -461,7 +483,7 @@ export function TradeBuilderScreen() {
         mid: orig.mid != null ? orig.mid * (1 + pct) : orig.mid,
       };
       const bumpedMarks = { ...state.marks, marks: { ...state.marks.marks, [selectedMarket.id]: bumped } };
-      return computeNetback(selectedMarket, consignment, bumpedMarks, state.costs, state.marks.pricingSides).netNetback;
+      return computeNetback(selectedMarket, consignment, bumpedMarks, routeCosts, state.marks.pricingSides).netNetback;
     };
     const bumpTtf = (delta: number) => {
       const gi = state.marks.gasIndex;
@@ -472,11 +494,11 @@ export function TradeBuilderScreen() {
         mid: gi.mid != null ? gi.mid + delta : gi.mid,
       };
       const bumpedMarks = { ...state.marks, gasIndex: bumped };
-      return computeNetback(selectedMarket, consignment, bumpedMarks, state.costs, state.marks.pricingSides).netNetback;
+      return computeNetback(selectedMarket, consignment, bumpedMarks, routeCosts, state.marks.pricingSides).netNetback;
     };
     const bumpCi = (delta: number) => {
       const bumpedConsignment = { ...consignment, carbonIntensity: consignment.carbonIntensity + delta };
-      return computeNetback(selectedMarket, bumpedConsignment, state.marks, state.costs, state.marks.pricingSides).netNetback;
+      return computeNetback(selectedMarket, bumpedConsignment, state.marks, routeCosts, state.marks.pricingSides).netNetback;
     };
     const delta = (v: number | null) => (v === null ? null : Number((v - base).toFixed(2)));
 
@@ -488,10 +510,11 @@ export function TradeBuilderScreen() {
       ciUp: delta(bumpCi(10)),
       ciDown: delta(bumpCi(-10)),
     };
-  }, [netback, consignment, selectedMarket, state.marks, state.costs]);
+  }, [netback, consignment, selectedMarket, state.marks, routeCosts]);
 
   // Deal ticket: best route — realisable netback in every other active market, using the same
-  // engine and eligibility function this screen already uses, excluding hard blocks.
+  // engine and eligibility function this screen already uses, excluding hard blocks. Each
+  // candidate market prices its own origin→market corridor leg, same as Origination's scan.
   const bestRoutes: BestRouteEntry[] = useMemo(() => {
     const t0 = process.env.NODE_ENV !== 'production' ? performance.now() : 0;
     const results = MARKETS
@@ -499,7 +522,7 @@ export function TradeBuilderScreen() {
       .map(m => {
         const a = evaluateEligibility(consignment, m);
         if (a.overallVerdict === 'HARD_BLOCK') return null;
-        const nb = computeNetback(m, consignment, state.marks, state.costs, state.marks.pricingSides);
+        const nb = computeNetback(m, consignment, state.marks, costsForMarket(m).costs, state.marks.pricingSides);
         if (nb.netNetback === null) return null;
         return { marketId: m.id, marketName: m.name, netNetback: nb.netNetback, verdict: a.overallVerdict, bundleChecked: nb.bundleReferenceEurPerMwh != null } as BestRouteEntry;
       })
@@ -511,7 +534,7 @@ export function TradeBuilderScreen() {
       console.log(`[DealTicket] best-route recompute: ${(performance.now() - t0).toFixed(1)}ms`);
     }
     return results;
-  }, [consignment, selectedMarket, state.marks, state.costs]);
+  }, [consignment, selectedMarket, state.marks, state.costs, origin]);
 
   const handleProducerPricingChange = (patch: Partial<ProducerPricing>) => {
     const current = state.costs.producerPricing;
@@ -549,10 +572,13 @@ export function TradeBuilderScreen() {
   // Waterfall rows: Leg 1 value stack to Net Netback, then Producer Payable to Desk Margin
   const certVal = netback.certificateValue?.valueEurPerMWh ?? 0;
   const molVal = netback.moleculeValue ?? (state.marks.gasIndex.mid ?? 0);
-  const transferCost = state.costs.transferCosts ?? 0;
+  const transferCost = routeCosts.transferCosts ?? 0;
   const certCost = state.costs.certificationCosts ?? 0;
-  const transitCost = state.costs.logistics ?? 0;
-  const otherCost = state.costs.otherCosts ?? 0;
+  const transitCost = routeCosts.logistics ?? 0;
+  const transitLabel = routeCostInfo.isCorridor
+    ? `Corridor transit ${origin}→${selectedMarket.country} €${transitCost.toFixed(2)}/MWh`
+    : 'generic logistics cost (no corridor tariff)';
+  const otherCost = routeCosts.otherCosts ?? 0;
   const netNetbackVal = netback.netNetback ?? 0;
   const producerPayable = netback.producerPayable;
   const deskMarginVal = netback.deskMargin;
@@ -583,7 +609,7 @@ export function TradeBuilderScreen() {
     { label: `Molecule value (${vtpLabel})`, val: `+${molVal.toFixed(2)}`, num: molVal, kind: 'add' },
     { label: 'Transfer & registry', val: `−${transferCost.toFixed(2)}`, num: transferCost, kind: 'sub' },
     { label: 'Certification', val: `−${certCost.toFixed(2)}`, num: certCost, kind: 'sub' },
-    { label: `Transit ${origin} → ${selectedMarket.country}`, val: `−${transitCost.toFixed(2)}`, num: transitCost, kind: 'sub' },
+    { label: transitLabel, val: `−${transitCost.toFixed(2)}`, num: transitCost, kind: 'sub' },
     ...(otherCost > 0 ? [{ label: 'Other costs', val: `−${otherCost.toFixed(2)}`, num: otherCost, kind: 'sub' as const }] : []),
     // Realisable cap: the market pays the traded bundle, not the full modelled value.
     ...(netback.netbackCappedAt != null && netback.theoreticalNetback != null ? [{ label: 'Bundle cap (not captured)', val: `−${(netback.theoreticalNetback - netNetbackVal).toFixed(2)}`, num: netback.theoreticalNetback - netNetbackVal, kind: 'sub' as const }] : []),
@@ -608,9 +634,9 @@ export function TradeBuilderScreen() {
     eligibility: assessment,
     netback,
     marks: state.marks,
-    costs: state.costs,
+    costs: routeCosts,
     userNotes: deal.plantName ? `Physical asset sourcing from ${deal.plantName}` : 'Trade Builder Assessment',
-  }), [origin, deal, selectedMarket, consignment, assessment, netback, state.marks, state.costs]);
+  }), [origin, deal, selectedMarket, consignment, assessment, netback, state.marks, routeCosts]);
 
   // Continuously sync active trade builder deal state to global window for the Auditor
   useEffect(() => {
@@ -1095,7 +1121,7 @@ export function TradeBuilderScreen() {
                     <>
                       <TradeEconomicsStep
                         netback={netback}
-                        costs={state.costs}
+                        costs={routeCosts}
                         selectedMarket={selectedMarket}
                         currentSide={currentSide}
                         netNetbackVal={netNetbackVal}
@@ -1107,6 +1133,7 @@ export function TradeBuilderScreen() {
                         annualPnl={annualPnl}
                         origin={origin}
                         isTtfSimulated={isTtfSimulated}
+                        transitLabel={transitLabel}
                       />
                       {nextAction(4)}
                     </>

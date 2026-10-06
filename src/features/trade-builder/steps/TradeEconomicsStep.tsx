@@ -27,6 +27,9 @@ interface TradeEconomicsStepProps {
   annualPnl: number;
   origin: string;
   isTtfSimulated?: boolean;
+  /** "Corridor transit DK→DE €1.80/MWh" (Origination's getRouteTransitTariff rule), or the
+   *  fallback wording when no corridor tariff applies. */
+  transitLabel: string;
 }
 
 const SIMULATED_TTF_TITLE = 'TTF mark is simulated. Set a real mark on the Assumptions or Pricing desk screen.';
@@ -66,6 +69,7 @@ export function TradeEconomicsStep({
   annualPnl,
   origin,
   isTtfSimulated,
+  transitLabel,
 }: TradeEconomicsStepProps) {
   const isPositivePnl = (netback.deskMargin ?? 0) >= 0;
 
@@ -154,7 +158,7 @@ export function TradeEconomicsStep({
               <span className="tb-neg">−€{((costs?.transferCosts ?? 0) + (costs?.certificationCosts ?? 0)).toFixed(2)} / MWh</span>
             </div>
             <div className="tb-kv-row">
-              <span>TSO gas transit tariffs ({origin} → {selectedMarket.country})</span>
+              <span>{transitLabel}</span>
               <span className="tb-neg">−€{(costs?.logistics ?? 0).toFixed(2)} / MWh</span>
             </div>
             {netback.netbackCappedAt != null && netback.theoreticalNetback != null && (
