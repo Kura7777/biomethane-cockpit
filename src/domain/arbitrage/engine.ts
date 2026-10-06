@@ -6,10 +6,11 @@ import { MarksState, CostInputs } from '../netback/types';
 import { computeNetback, isAllInMarket } from '../netback/engine';
 import { evaluateEligibility } from '../eligibility/engine';
 import { PRODUCING_ORIGINS, getRouteTransitTariff } from './origins';
-import { 
-  ArbitrageOpportunity, 
-  ArbitrageMatrixCell, 
-  RegulatoryWhatIfScenario 
+import { getAssumption } from '../assumptions/registry';
+import {
+  ArbitrageOpportunity,
+  ArbitrageMatrixCell,
+  RegulatoryWhatIfScenario
 } from './types';
 
 export const DEFAULT_WHAT_IF_SCENARIO: RegulatoryWhatIfScenario = {
@@ -90,7 +91,7 @@ export function scanEuropeanArbitrage(
   allOpportunities: ArbitrageOpportunity[];
 } {
   const feedstockInfo = FEEDSTOCK_REGISTRY[selectedFeedstockKey] || FEEDSTOCK_REGISTRY.manure;
-  const ci = ciOverride ?? feedstockInfo.defaultCI;
+  const ci = ciOverride ?? getAssumption(`feedstock.defaultCi.${feedstockInfo.id}`);
   const activeMarkets = MARKETS.filter(m => m.status === 'ACTIVE');
 
   const opportunities: ArbitrageOpportunity[] = [];

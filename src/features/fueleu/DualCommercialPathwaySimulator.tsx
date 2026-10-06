@@ -36,8 +36,6 @@ const ESCALATION_LABELS: Record<number, string> = {
   4: 'Year 4+ (+30% escalation)',
 };
 
-const DEFAULT_FLEET_GHGIE = 91.68;
-
 const LNG_ENGINE_LABELS: Record<LngEngineType, string> = {
   LNG_OTTO_SS: 'Otto slow-speed (1.7% slip)',
   LNG_OTTO_MS: 'Otto medium-speed (3.1% slip)',
@@ -74,7 +72,7 @@ export function DualCommercialPathwaySimulator({ initial }: DualCommercialPathwa
   const [consecutiveYears, setConsecutiveYears] = useState<number>(initial?.consecutiveYears ?? 1);
   // Fleet actual GHG intensity (gCO2e/MJ) — the ship's own weighted-average WtW, drives the
   // statutory penalty (Annex IV Part B uses GHGIE_actual, not the fixed reference value).
-  const [fleetActualGhgie, setFleetActualGhgie] = useState<number>(initial ? initial.fleetActualGhgie : DEFAULT_FLEET_GHGIE);
+  const [fleetActualGhgie, setFleetActualGhgie] = useState<number>(initial ? initial.fleetActualGhgie : getAssumption('fueleu.defaultFleetGhgieGPerMj'));
   const [isLngCapable, setIsLngCapable] = useState<boolean>(initial?.isLngCapable ?? false);
   const [lngEngine, setLngEngine] = useState<LngEngineType>(DEFAULT_LNG_ENGINE);
   const [copied, setCopied] = useState<boolean>(false);

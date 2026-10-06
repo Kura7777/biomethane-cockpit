@@ -113,13 +113,18 @@ export const ORIGINS = Object.values(PRODUCING_ORIGINS).map(p => ({
   desc: ORIGIN_DESCRIPTIONS[p.countryCode] || `${p.countryName} · ${p.activePlants} producing facilities · ${p.primaryRegistry} registry.${p.gridZone === 'NON_EU_ISOLATED' ? ' Grid-isolated; cannot evidence UDB ingestion into EU compliance destinations.' : ' EU-interconnected gas grid, UDB ingestion is evidenceable.'}`,
 }));
 
+/**
+ * defaultCI reads from FEEDSTOCK_REGISTRY (domain/consignment/feedstocks.ts) rather than a
+ * second hard-coded literal per key — price-inventory.md flagged these as a duplicate that had
+ * silently diverged in other apps. Confirmed identical to the registry for all six keys here.
+ */
 export const FEEDSTOCKS: { key: string; label: string; defaultCI: number; hint: string }[] = [
-  { key: 'manure', label: 'Manure & slurry', defaultCI: -100, hint: 'Annex IX Part A. The negative carbon intensity comes from avoided methane in conventional manure management, not from the upgrading process.' },
-  { key: 'agricultural_residues', label: 'Agricultural residues', defaultCI: 18, hint: 'Annex IX Part A. High-margin non-food residue with RED III compliance across all EU transport routes.' },
-  { key: 'food_waste', label: 'Food waste', defaultCI: 20, hint: 'Annex IX Part A. Municipal or commercial source-separated organic waste.' },
-  { key: 'sewage_sludge', label: 'Sewage sludge', defaultCI: 25, hint: 'Annex IX Part A. Wastewater treatment substrate.' },
-  { key: 'landfill_gas', label: 'Landfill gas', defaultCI: 12, hint: 'Captured landfill methane. Verify Annex IX treatment with the target Member State before booking.' },
-  { key: 'energy_crops', label: 'Energy crops', defaultCI: 40, hint: 'Non-Annex IX. Excluded from RED III transport quota but eligible for voluntary GO and UK RGGO transfers.' },
+  { key: 'manure', label: 'Manure & slurry', defaultCI: FEEDSTOCK_REGISTRY.manure.defaultCI, hint: 'Annex IX Part A. The negative carbon intensity comes from avoided methane in conventional manure management, not from the upgrading process.' },
+  { key: 'agricultural_residues', label: 'Agricultural residues', defaultCI: FEEDSTOCK_REGISTRY.agricultural_residues.defaultCI, hint: 'Annex IX Part A. High-margin non-food residue with RED III compliance across all EU transport routes.' },
+  { key: 'food_waste', label: 'Food waste', defaultCI: FEEDSTOCK_REGISTRY.food_waste.defaultCI, hint: 'Annex IX Part A. Municipal or commercial source-separated organic waste.' },
+  { key: 'sewage_sludge', label: 'Sewage sludge', defaultCI: FEEDSTOCK_REGISTRY.sewage_sludge.defaultCI, hint: 'Annex IX Part A. Wastewater treatment substrate.' },
+  { key: 'landfill_gas', label: 'Landfill gas', defaultCI: FEEDSTOCK_REGISTRY.landfill_gas.defaultCI, hint: 'Captured landfill methane. Verify Annex IX treatment with the target Member State before booking.' },
+  { key: 'energy_crops', label: 'Energy crops', defaultCI: FEEDSTOCK_REGISTRY.energy_crops.defaultCI, hint: 'Non-Annex IX. Excluded from RED III transport quota but eligible for voluntary GO and UK RGGO transfers.' },
 ];
 
 export const SCHEMES: { scheme: CertificationScheme; label: string; hint: string }[] = [

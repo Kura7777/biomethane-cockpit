@@ -1,6 +1,7 @@
 import { EUROPEAN_MARKET_BENCHMARKS } from '../markets/marketBenchmarks';
 import { ETS1_GAS_SHARE_SECTORS, defaultGasShare } from '../ets1/gasShare';
 import { ETS2_SEGMENT_SHARES } from '../ets2/segmentShare';
+import { FEEDSTOCK_REGISTRY } from '../consignment/feedstocks';
 
 /**
  * Commercial assumptions register.
@@ -13,7 +14,7 @@ import { ETS2_SEGMENT_SHARES } from '../ets2/segmentShare';
  * never silently changed: a reset always returns to the value and source shown here.
  */
 
-export type AssumptionCategory = 'FUELEU' | 'DEMAND' | 'RISK' | 'DEAL' | 'LOGISTICS';
+export type AssumptionCategory = 'FUELEU' | 'DEMAND' | 'RISK' | 'DEAL' | 'LOGISTICS' | 'FEEDSTOCK';
 
 /** How much weight the default can bear. */
 export type AssumptionBasis =
@@ -39,6 +40,22 @@ const fueleuMark = EUROPEAN_MARKET_BENCHMARKS.find(b => b.marketId === 'FUELEU')
 const fueleuMarkSource = fueleuMark
   ? `FuelEU mark in Pricing Desk (${fueleuMark.sourceName}, observed ${fueleuMark.observedAt})`
   : 'FuelEU mark in Pricing Desk';
+
+/** Default CI per feedstock when the desk hasn't entered one (see consignment/feedstocks.ts). The
+ * underlying FEEDSTOCK_REGISTRY literal is untouched (other code and tests read it directly);
+ * this generates one named, overridable assumption per feedstock from the same values. */
+const FEEDSTOCK_DEFAULT_CI_ASSUMPTIONS: AssumptionDefinition[] = Object.values(FEEDSTOCK_REGISTRY).map(f => ({
+  key: `feedstock.defaultCi.${f.id}`,
+  category: 'FEEDSTOCK',
+  label: `Default CI: ${f.name}`,
+  unit: 'gCO₂e/MJ',
+  defaultValue: f.defaultCI,
+  basis: 'DESK_ESTIMATE',
+  source: `Desk judgement per feedstock (${f.citation} is cited for Annex classification only, not this number).`,
+  usedIn: 'Default CI fed into every certificate valuation (tCO2ePerMWh) when the desk has not entered a CI (arbitrage engine, origination search)',
+  min: -200,
+  max: 200,
+}));
 
 /** Share of each country's gas demand under ETS2, used to scope supplier volumes (see ets2/segmentShare.ts). */
 const ETS2_SEGMENT_SHARE_ASSUMPTIONS: AssumptionDefinition[] = Object.values(ETS2_SEGMENT_SHARES).map(r => ({
@@ -133,6 +150,27 @@ export const ASSUMPTION_DEFINITIONS: AssumptionDefinition[] = [
     basis: 'DESK_ESTIMATE',
     source: 'unsourced desk default — update',
     usedIn: 'Marine bunker quotation: Bio-LNG and fossil-LNG price stack',
+    min: 0,
+  },
+  {
+    key: 'fueleu.defaultFleetGhgieGPerMj',
+    category: 'FUELEU',
+    label: 'Default fleet actual GHG intensity (GHGIE) prefill',
+    unit: 'gCO₂e/MJ',
+    defaultValue: 91.68,
+    basis: 'DESK_ESTIMATE',
+    source: 'Unsourced desk default. Known inconsistency, flagged rather than silently "fixed": diverges from the computed FUELEU_VLSFO_WTW (~91.74 gCO2e/MJ) and FUELEU_REFERENCE_INTENSITY (91.16 gCO2e/MJ) used elsewhere in the FuelEU calculator.',
+    usedIn: 'Dual commercial pathway simulator: prefilled "fleet actual GHGIE" input (the user can edit it per vessel)',
+  },
+  {
+    key: 'fueleu.defaultVlsfoPriceUsdPerTonne',
+    category: 'FUELEU',
+    label: 'Default VLSFO bunker price prefill',
+    unit: '$/tonne',
+    defaultValue: 600.0,
+    basis: 'DESK_ESTIMATE',
+    source: 'Unsourced desk default (marked deprecated in its own code comment) — not a bunker price feed.',
+    usedIn: 'Marine bunker quotation screens: prefilled VLSFO price the trader overwrites with a live quote',
     min: 0,
   },
   {
@@ -349,6 +387,8 @@ export const ASSUMPTION_DEFINITIONS: AssumptionDefinition[] = [
     usedIn: 'Map delivery options, Option C (bio-LNG): destination terminal leg',
     min: 0,
   },
+  // ── Feedstock default CI ──────────────────────────────────────────────────
+  ...FEEDSTOCK_DEFAULT_CI_ASSUMPTIONS,
   ...ETS1_GAS_SHARE_SECTORS.map((sector): AssumptionDefinition => ({
     key: `ets1.gasShare.${sector}`,
     category: 'DEMAND',

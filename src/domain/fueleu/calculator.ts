@@ -218,7 +218,7 @@ export const DEFAULT_GREEN_PREMIUM_EUR_MWH = getAssumption('fueleu.greenPremiumE
  * Bio-LNG, so the quote's counterfactual is fossil LNG on the same engine, not VLSFO. Kept as a
  * plain constant so existing UI state (a VLSFO price slider) still compiles.
  */
-export const DEFAULT_VLSFO_PRICE_USD_PER_TONNE = 600.0;
+export const DEFAULT_VLSFO_PRICE_USD_PER_TONNE = getAssumption('fueleu.defaultVlsfoPriceUsdPerTonne');
 
 export const VESSEL_ARCHETYPES: VesselArchetype[] = [
   {

@@ -13,6 +13,7 @@ import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion'
 import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 import './mobileSettings.css';
 import { BASIS_LABEL } from '../../shared/components/AssumptionsStrip';
+import { REGULATORY_CONSTANT_ROWS } from '../../domain/regulatory/constants';
 
 const CATEGORY_LABEL: Record<AssumptionCategory, { title: string; blurb: string }> = {
   DEAL: {
@@ -35,9 +36,13 @@ const CATEGORY_LABEL: Record<AssumptionCategory, { title: string; blurb: string 
     title: 'Delivery & logistics estimates',
     blurb: 'Desk estimates for delivery options on the map until a route is quoted.',
   },
+  FEEDSTOCK: {
+    title: 'Feedstock default CI',
+    blurb: 'Default carbon intensity per feedstock, used when the desk has not entered one for a consignment.',
+  },
 };
 
-const CATEGORIES: AssumptionCategory[] = ['DEAL', 'FUELEU', 'DEMAND', 'RISK', 'LOGISTICS'];
+const CATEGORIES: AssumptionCategory[] = ['DEAL', 'FUELEU', 'DEMAND', 'RISK', 'LOGISTICS', 'FEEDSTOCK'];
 
 export function AssumptionsScreen() {
   useAssumptionsVersion();
@@ -229,6 +234,38 @@ export function AssumptionsScreen() {
             </section>
           );
         })}
+
+        <section style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-panel)', overflow: 'hidden' }}>
+          <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-divider)' }}>
+            <h2 style={{ margin: 0, fontSize: '13px', fontWeight: 800 }}>Regulatory constants</h2>
+            <div className="mut" style={{ fontSize: '11px', marginTop: '2px' }}>
+              Statutory numbers, read-only — these are law, not desk judgement. Change them in{' '}
+              <code>src/domain/regulatory/constants.ts</code> and their cited source, never here.
+            </div>
+          </div>
+          <div style={{ overflowX: 'auto' }}>
+            <table className="table" style={{ width: '100%', fontSize: '12px' }}>
+              <thead>
+                <tr>
+                  <th style={{ textAlign: 'left' }}>Constant</th>
+                  <th style={{ textAlign: 'right', width: '140px' }}>Value</th>
+                  <th style={{ textAlign: 'left' }}>Citation</th>
+                  <th style={{ textAlign: 'left' }}>Used for</th>
+                </tr>
+              </thead>
+              <tbody>
+                {REGULATORY_CONSTANT_ROWS.map(r => (
+                  <tr key={r.key}>
+                    <td style={{ fontWeight: 600 }}>{r.label}</td>
+                    <td className="num" style={{ textAlign: 'right' }}>{r.value} <span className="mut">{r.unit}</span></td>
+                    <td className="mut" style={{ fontSize: '11px' }}>{r.citation ?? 'citation missing'}</td>
+                    <td className="mut" style={{ fontSize: '11px' }}>{r.usedIn}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
       </div>
     </div>
   );
