@@ -78,6 +78,7 @@ export function createEmptyDeskState(): AppState {
       otherCosts: null,
       producerPricing: null,
     },
+    costsSource: {},
     savedAssessments: [],
     selectedMarketId: null,
   };

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { NetbackResult, ProducerPricing } from '../../domain/netback/types';
 import { GateResult } from '../../domain/eligibility/types';
 import { UDBStatus, PoSStatus } from '../../domain/consignment/types';
@@ -184,6 +185,10 @@ export function DealTicket({
 
         <div className="tt-section">
           <div className="tt-subhead">Producer bid</div>
+          <p className="mut" style={{ margin: '0 0 6px', fontSize: '11px' }}>
+            Per-deal override of the desk default on{' '}
+            <Link to="/pricing?tab=costs" className="underline">Pricing desk → Costs</Link>.
+          </p>
           <dl className="tt-figures">
             <div className="tt-figure-row">
               <dt>Payable</dt>

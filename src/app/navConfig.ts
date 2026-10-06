@@ -15,7 +15,6 @@ import {
   Flame,
   Briefcase,
   Users,
-  SlidersHorizontal,
   ShieldAlert,
 } from 'lucide-react';
 
@@ -49,7 +48,6 @@ export const SIDEBAR_ITEMS: NavItem[] = [
   { to: '/deals', label: 'Deal Blotter', keyHint: '', icon: BookOpen },
   { to: '/connectors', label: 'Data Connectors', keyHint: 'K', icon: Zap },
   { to: '/data-sources', label: 'Data Sources', keyHint: '7', icon: Database },
-  { to: '/assumptions', label: 'Assumptions', keyHint: 'A', icon: SlidersHorizontal },
   { to: '/regulation-check', label: 'Regulation check', keyHint: '', icon: ShieldAlert },
 ];
 
@@ -94,7 +92,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: 'Pricing',
     blurb: 'What a deal is worth',
     items: [
-      { to: '/pricing', label: 'Pricing desk', keyHint: '5', icon: FileSpreadsheet, description: 'Marks and broker runs' },
+      { to: '/pricing', label: 'Pricing desk', keyHint: '5', icon: FileSpreadsheet, description: 'Market prices, costs and desk assumptions' },
       { to: '/trade', label: 'Trade builder', keyHint: '4', icon: Zap, description: 'Build and audit a deal' },
       { to: '/deals', label: 'Deal blotter', keyHint: '', icon: BookOpen, description: 'Saved deals and their status' },
     ],
@@ -106,7 +104,6 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { to: '/citations', label: 'Citations', keyHint: 'C', icon: Scale, description: 'Statutory citations' },
       { to: '/data-sources', label: 'Sources', keyHint: '7', icon: Database, description: 'Data sources and provenance' },
-      { to: '/assumptions', label: 'Assumptions', keyHint: '', icon: SlidersHorizontal, description: 'Every assumption the desk uses' },
       { to: '/regulation-check', label: 'Regulation check', keyHint: '', icon: ShieldAlert, description: 'Weekly check that the app\'s rules still match the law' },
     ],
   },

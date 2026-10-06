@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Market } from '../../../domain/markets/types';
 import { NetbackResult, CostInputs } from '../../../domain/netback/types';
 import { AlertTriangle } from 'lucide-react';
@@ -144,6 +145,10 @@ export function TradeEconomicsStep({
       <div className="tb-form-row">
         <span className="tb-form-label">Pricing formation</span>
         <div className="tb-form-control">
+          <p className="tb-hint" style={{ marginTop: 0 }}>
+            Costs below are desk-wide — set once for every deal.{' '}
+            <Link to="/pricing?tab=costs" className="underline">Edit in Pricing desk → Costs</Link>
+          </p>
           <div className="tb-kv">
             <div className="tb-kv-row">
               <span>Environmental certificate premium</span>

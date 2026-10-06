@@ -478,7 +478,7 @@ export function Step3RouteAndCosts({
                 >
                   Held to €{b.netbackCapped.capEurPerMwh}/MWh ({b.netbackCapped.kind === 'OBSERVED_ALL_IN' ? 'observed all-in price on the deal' : 'unsourced desk estimate, not a market price'}).
                   {b.netbackCapped.theoreticalEurPerMwh !== null ? ` Modelled netback: ${fmtEurPerMwh(b.netbackCapped.theoreticalEurPerMwh)}.` : ''}{' '}
-                  <Link to="/assumptions" className="underline">Change in Assumptions</Link>
+                  <Link to="/pricing?tab=assumptions" className="underline">Change in Assumptions</Link>
                 </div>
               )}
             </div>
@@ -503,7 +503,7 @@ export function Step3RouteAndCosts({
                   {b.marginSplit === 'DESK_POLICY'
                     ? 'Margin is a desk-policy split (no producer share set), not a market price.'
                     : 'Margin is the desk share left after the producer share set in Trade Builder.'}{' '}
-                  <Link to="/assumptions" className="underline">Assumptions</Link>
+                  <Link to="/pricing?tab=assumptions" className="underline">Assumptions</Link>
                 </span>
               </div>
               <div

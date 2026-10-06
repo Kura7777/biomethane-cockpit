@@ -26,7 +26,7 @@ import {
   MarkUpdate,
 } from '../domain/marks/applyMarks';
 
-export const CURRENT_SCHEMA_VERSION = 13;
+export const CURRENT_SCHEMA_VERSION = 14;
 const STORAGE_KEY = 'biomethane-desk-state-v10';
 
 // Newest first — the first key that yields a readable payload wins.
@@ -47,6 +47,9 @@ const KNOWN_STORAGE_KEYS = [
 // hand-keyed and exist nowhere else, so a failed migration must never be the end of the data.
 const QUARANTINE_KEY_PREFIX = 'biomethane-desk-state-unreadable:';
 
+/** Where a scalar CostInputs field's current value came from, for the Pricing desk → Costs tab. */
+export type CostFieldSource = 'SIMULATED' | 'MANUAL';
+
 // State shape
 export interface AppState {
   schemaVersion: number;
@@ -57,6 +60,8 @@ export interface AppState {
   consignments: Consignment[];
   activeConsignmentId: string | null;
   costs: CostInputs;
+  /** Per-field provenance for state.costs (producerPricing carries its own `source` instead). */
+  costsSource: Record<string, CostFieldSource>;
   savedAssessments: TradeAssessment[];
   selectedMarketId: string | null;
 }
@@ -409,6 +414,23 @@ export function migrateState(raw: unknown): AppState {
     }
   }
 
+  if (stateVersion < 14) {
+    // Schema v14 migration: the Pricing desk → Costs tab tags every cost field Simulated or
+    // Manual. A desk that already existed before this field can't have that provenance
+    // reconstructed, so every pre-existing cost is tagged Manual — the honest default for a
+    // value we can no longer prove came from the simulator.
+    if (!migrated.costsSource) {
+      migrated.costsSource = {
+        transferCosts: 'MANUAL',
+        certificationCosts: 'MANUAL',
+        logistics: 'MANUAL',
+        otherCosts: 'MANUAL',
+        greenAlpha: 'MANUAL',
+        sdeCorrectionBaselineEurMwh: 'MANUAL',
+      };
+    }
+  }
+
   if (stateVersion < 13 && Array.isArray(migrated.savedAssessments)) {
     // Schema v13 migration: the blotter needs a status on every saved deal. Deals saved before
     // the blotter existed carry none — they read as INDICATIVE, the status a fresh save starts at.
@@ -486,6 +508,14 @@ export function createDefaultState(): AppState {
     ],
     activeConsignmentId: REFERENCE_CONSIGNMENTS.DANISH_MANURE.id,
     costs,
+    costsSource: {
+      transferCosts: 'SIMULATED',
+      certificationCosts: 'SIMULATED',
+      logistics: 'SIMULATED',
+      otherCosts: 'MANUAL',
+      greenAlpha: 'MANUAL',
+      sdeCorrectionBaselineEurMwh: 'MANUAL',
+    },
     savedAssessments: [],
     selectedMarketId: 'DE_THG',
   };
@@ -623,8 +653,19 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, consignments: state.consignments.map(c => c.id === action.consignment.id ? action.consignment : c) };
     case 'SET_ACTIVE_CONSIGNMENT':
       return { ...state, activeConsignmentId: action.id };
-    case 'SET_COSTS':
-      return { ...state, costs: { ...state.costs, ...action.costs } };
+    case 'SET_COSTS': {
+      // Every scalar field the desk touches through this action becomes Manual — only the
+      // simulator's own seed (createDefaultState) ever sets a field Simulated.
+      const touchedSource: Record<string, CostFieldSource> = {};
+      for (const key of Object.keys(action.costs)) {
+        if (key !== 'producerPricing') touchedSource[key] = 'MANUAL';
+      }
+      return {
+        ...state,
+        costs: { ...state.costs, ...action.costs },
+        costsSource: { ...state.costsSource, ...touchedSource },
+      };
+    }
     case 'SAVE_ASSESSMENT':
       return {
         ...state,
@@ -690,6 +731,14 @@ export function appReducer(state: AppState, action: AppAction): AppState {
           pricingSides: state.marks.pricingSides,
         },
         costs,
+        costsSource: {
+          transferCosts: 'SIMULATED',
+          certificationCosts: 'SIMULATED',
+          logistics: 'SIMULATED',
+          otherCosts: 'MANUAL',
+          greenAlpha: 'MANUAL',
+          sdeCorrectionBaselineEurMwh: 'MANUAL',
+        },
       };
     }
     case 'UPDATE_PRICING_BOOK_CELL': {

@@ -69,8 +69,10 @@ export function AssumptionsScreen() {
               away across the app and are saved in this browser only.
             </p>
             <p style={{ margin: '4px 0 0', fontSize: '12px', maxWidth: '720px' }} className="mut">
-              Market prices are not set here. They come from the Pricing desk (marks), with a link to{' '}
-              <Link to="/pricing">#/pricing</Link>. This page holds desk judgements only.
+              Market prices and desk costs are not set here — see the{' '}
+              <Link to="/pricing?tab=prices">Market prices</Link> and{' '}
+              <Link to="/pricing?tab=costs">Costs</Link> tabs on this same Pricing desk screen. This tab holds
+              desk judgements only.
             </p>
           </div>
           <div className="set-asm-controls" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>

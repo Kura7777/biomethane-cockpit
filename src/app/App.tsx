@@ -40,7 +40,7 @@ function lazyWithRetry<T extends React.ComponentType<any>>(
 
 const CommercialFlowStepper = lazyWithRetry(() => import('../features/commercial/CommercialFlowStepper').then(m => ({ default: m.CommercialFlowStepper })));
 const MapScreen = lazyWithRetry(() => import('../features/map/MapScreen').then(m => ({ default: m.MapScreen })));
-const MarksScreen = lazyWithRetry(() => import('../features/marks/MarksScreen').then(m => ({ default: m.MarksScreen })));
+const PricingScreen = lazyWithRetry(() => import('../features/pricing/PricingScreen').then(m => ({ default: m.PricingScreen })));
 const TradeBuilderScreen = lazyWithRetry(() => import('../features/trade-builder/TradeBuilderScreen').then(m => ({ default: m.TradeBuilderScreen })));
 const PlantsScreen = lazyWithRetry(() => import('../features/plants/PlantsScreen').then(m => ({ default: m.PlantsScreen })));
 const OriginationPipelineScreen = lazyWithRetry(() => import('../features/plants/OriginationPipelineScreen').then(m => ({ default: m.OriginationPipelineScreen })));
@@ -49,7 +49,6 @@ const CitationsScreen = lazyWithRetry(() => import('../features/citations/Citati
 const DataSourcesScreen = lazyWithRetry(() => import('../features/provenance/DataSourcesScreen').then(m => ({ default: m.DataSourcesScreen })));
 const DataConnectorsScreen = lazyWithRetry(() => import('../features/settings/DataConnectorsScreen').then(m => ({ default: m.DataConnectorsScreen })));
 const SettingsScreen = lazyWithRetry(() => import('../features/settings/SettingsScreen').then(m => ({ default: m.SettingsScreen })));
-const AssumptionsScreen = lazyWithRetry(() => import('../features/settings/AssumptionsScreen').then(m => ({ default: m.AssumptionsScreen })));
 const CorporateOrderScreen = lazyWithRetry(() => import('../features/corporate/CorporateOrderScreen').then(m => ({ default: m.CorporateOrderScreen })));
 const ClientsScreen = lazyWithRetry(() => import('../features/clients/ClientsScreen').then(m => ({ default: m.ClientsScreen })));
 const Ets2Screen = lazyWithRetry(() => import('../features/ets2/Ets2Screen').then(m => ({ default: m.Ets2Screen })));
@@ -80,8 +79,8 @@ function AppContent() {
             <Route path="/desk" element={<Navigate to="/sourcing" replace />} />
             <Route path="/scanner" element={<Navigate to="/sourcing" replace />} />
             <Route path="/map" element={<MapScreen />} />
-            <Route path="/pricing" element={<MarksScreen />} />
-            <Route path="/marks" element={<MarksScreen />} />
+            <Route path="/pricing" element={<PricingScreen />} />
+            <Route path="/marks" element={<PricingScreen />} />
 
             {/* Plants & Registries Pages */}
             <Route path="/plants" element={<PlantsScreen />} />
@@ -111,7 +110,8 @@ function AppContent() {
             <Route path="/citations" element={<CitationsScreen />} />
             <Route path="/connectors" element={<DataConnectorsScreen />} />
             <Route path="/settings" element={<SettingsScreen />} />
-            <Route path="/assumptions" element={<AssumptionsScreen />} />
+            {/* Kept for old bookmarks — the Assumptions screen now lives inside the Pricing desk. */}
+            <Route path="/assumptions" element={<Navigate to="/pricing?tab=assumptions" replace />} />
             <Route path="/regulation-check" element={<RegulationCheckScreen />} />
 
             {/* Fallback */}

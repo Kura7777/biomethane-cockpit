@@ -34,7 +34,7 @@ export function AssumptionsStrip({ keys, title = 'Assumptions used' }: Assumptio
     <div className="ds-assumptions">
       <div className="ds-assumptions-head">
         <span className="eyebrow">{title}</span>
-        <Link to="/assumptions" className="ds-assumptions-link">
+        <Link to="/pricing?tab=assumptions" className="ds-assumptions-link">
           All assumptions →
         </Link>
       </div>
