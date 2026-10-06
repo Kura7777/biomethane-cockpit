@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../../store/context';
 import { PageShell, PageHeader, Card, KpiRow, KpiTile, MobileCardList } from '../../shared/ui';
 import { useIsMobile } from '../../shared/hooks/useMediaQuery';
@@ -11,6 +12,7 @@ import {
 } from '../../domain/corporate/orderPricer';
 import { toSupplyEntries } from '../../domain/markets/brokerRun.seed';
 import { showToast } from '../../app/DeskToastContainer';
+import { corporateHandoffUrls } from './handoff';
 
 const COUNTRIES = ['DE', 'NL', 'FR', 'DK', 'UK', 'AIB'];
 
@@ -49,6 +51,7 @@ function Field(props: { label: string; children: React.ReactNode; hint?: string 
 
 export function CorporateOrderScreen() {
   const { state } = useAppState();
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
 
   const [client, setClient] = useState('');
@@ -86,6 +89,14 @@ export function CorporateOrderScreen() {
 
   const toggleCountry = (c: string) =>
     setCountries(prev => (prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]));
+
+  const { sourceItUrl, tradeBuilderUrl, goMarketId } = corporateHandoffUrls({
+    countries,
+    form,
+    volumeMWh: spec.volumeMWh,
+    maxCi: spec.maxCi,
+    client,
+  });
 
   const quoteText = useMemo(() => {
     if (quote.offerEurPerMWh === null || spec.volumeMWh === null) return '';
@@ -276,6 +287,19 @@ export function CorporateOrderScreen() {
             ) : (
               <p style={{ margin: 0, color: 'var(--color-text-muted)' }}>Complete the request, costs and margin to draft a quote.</p>
             )}
+          </Card>
+
+          <Card title="Hand off this order" meta={goMarketId ? undefined : 'Pick exactly one registry country to also open it in the Trade Builder'}>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <button type="button" className="btn btn-secondary" onClick={() => navigate(sourceItUrl)} data-testid="corp-source-it">
+                Source it
+              </button>
+              {tradeBuilderUrl && (
+                <button type="button" className="btn btn-primary" onClick={() => navigate(tradeBuilderUrl)} data-testid="corp-build-trade-builder">
+                  Build in Trade Builder
+                </button>
+              )}
+            </div>
           </Card>
 
         </div>
