@@ -1,5 +1,4 @@
 import { OriginProfile } from './types';
-import { getAssumption } from '../assumptions/registry';
 
 export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
   DK: {
@@ -382,9 +381,9 @@ export function getRouteTransitTariff(originCode: string, targetCountry: string)
 export function calculateRealisticCommercialDeskMargin(
   marketId: string,
   destinationNetback: number,
-  transitTariff: number,
+  _transitTariff: number,
   producerSharePct: number | null = null,
-  originPlantGateCost: number | null = null
+  _originPlantGateCost: number | null = null
 ): {
   deskNetMarginEurPerMWh: number | null;
   producerProcurementEurPerMWh: number | null;
@@ -398,30 +397,13 @@ export function calculateRealisticCommercialDeskMargin(
     allocationType = 'WHOLESALE_BASE';
   }
 
-  // Net stack after transit tariff (unclamped so loss-making routes are visible)
-  const netStackAfterTransit = destinationNetback - transitTariff;
-
+  // destinationNetback is already the net netback (all logistics and tariffs deducted once).
   let deskNetMargin: number | null = null;
   let producerProcurement: number | null = null;
 
   if (producerSharePct !== null) {
-    deskNetMargin = Number((netStackAfterTransit * (1 - producerSharePct)).toFixed(2));
-    producerProcurement = Number((netStackAfterTransit * producerSharePct).toFixed(2));
-  } else if (originPlantGateCost !== null) {
-    // Desk-policy split (assumptions: origination.deskTake*): the producer keeps the plant-gate
-    // cost plus the rest of the green spread; the desk takes spread / divisor, between floor and cap.
-    const greenSpread = netStackAfterTransit - originPlantGateCost;
-    if (greenSpread > 0) {
-      const divisor = getAssumption('origination.deskTakeDivisor');
-      const floor = getAssumption('origination.deskTakeFloorEurPerMwh');
-      const cap = getAssumption('origination.deskTakeCapEurPerMwh');
-      const deskTake = Math.min(cap, Math.max(floor, Number((greenSpread / divisor).toFixed(2))));
-      deskNetMargin = deskTake;
-      producerProcurement = Number((netStackAfterTransit - deskNetMargin).toFixed(2));
-    } else {
-      producerProcurement = Number(originPlantGateCost.toFixed(2));
-      deskNetMargin = Number((netStackAfterTransit - originPlantGateCost).toFixed(2));
-    }
+    producerProcurement = Number((destinationNetback * producerSharePct).toFixed(2));
+    deskNetMargin = Number((destinationNetback - producerProcurement).toFixed(2));
   }
 
   return {

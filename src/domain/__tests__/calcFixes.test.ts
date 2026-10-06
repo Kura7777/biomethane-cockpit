@@ -186,4 +186,108 @@ describe('calc fix 3: all-in markets do not add gas twice', () => {
   });
 });
 
+describe('calc fix 4 & 5: Origination and Trade Builder reconciliation', () => {
+  it('inspects DK manure -> DE_THG at 20,000 MWh', async () => {
+    const { createDefaultState } = await import('../../store/context');
+    const { getMarketById } = await import('../markets/registry');
+    const { searchSourcingRoutes } = await import('../arbitrage/sourcingAdapter');
+    const { DEFAULT_WHAT_IF_SCENARIO } = await import('../arbitrage/engine');
+    const { computeOriginationBreakdown } = await import('../arbitrage/originationBreakdown');
+
+    const state = createDefaultState();
+    const market = getMarketById('DE_THG')!;
+    const dkConsignment = {
+      ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
+      volumeMWh: 20000,
+    };
+    const tbNetback = computeNetback(market, dkConsignment, state.marks, state.costs, state.marks.pricingSides);
+
+    console.log('Trade Builder Netback:', {
+      certVal: tbNetback.certificateValue?.valueEurPerMWh,
+      safeMol: tbNetback.moleculeValue,
+      totalCosts: tbNetback.totalCosts,
+      netNetback: tbNetback.netNetback,
+      producerPayable: tbNetback.producerPayable,
+      deskMargin: tbNetback.deskMargin,
+      cappedAt: tbNetback.netbackCappedAt,
+    });
+
+    const searchRes = searchSourcingRoutes(
+      {
+        feedstockKey: 'manure',
+        targetMarketId: 'DE_THG',
+        scheme: 'ISCC_EU',
+        chainOfCustody: 'MASS_BALANCE',
+        delivery: { type: 'MONTH', startDate: '2026-09-01', endDate: '2026-09-30', complianceYear: 2026 },
+        volumeMwh: 20000,
+        constraints: { maxCarbonIntensity: null, maxDeliveredCostEurMwh: null, physicalDeliveryRequired: false },
+        counterparty: null,
+        notes: null,
+      },
+      state.marks,
+      state.costs,
+      DEFAULT_WHAT_IF_SCENARIO
+    );
+
+    const dkOpp = searchRes.tradeable.find(o => o.originCountry === 'DK' && o.targetMarketId === 'DE_THG')!;
+    console.log('Origination Opp:', {
+      totalTerminalValueStackEurPerMWh: dkOpp?.totalTerminalValueStackEurPerMWh,
+      producerPayableEurPerMWh: dkOpp?.producerPayableEurPerMWh,
+      transitCostEurPerMWh: dkOpp?.transitCostEurPerMWh,
+      deskNetMarginEurPerMWh: dkOpp?.deskNetMarginEurPerMWh,
+      netbackCappedAt: dkOpp?.netbackCappedAt,
+    });
+
+    const b = computeOriginationBreakdown({
+      opportunity: dkOpp,
+      volumeMwh: 20000,
+      marks: state.marks,
+      costs: state.costs,
+    });
+    expect(b.grossRevenueEur).not.toBeNull();
+    const diff = Number((b.grossRevenueEur! - b.totalDeliveredCostEur).toFixed(2));
+    expect(diff).toBe(b.netMarginEurPerMwh);
+  });
+
+  it('Step 4 term sheet identity: revenue - costs === desk margin to the cent across markets', async () => {
+    const { createDefaultState } = await import('../../store/context');
+    const { searchSourcingRoutes } = await import('../arbitrage/sourcingAdapter');
+    const { DEFAULT_WHAT_IF_SCENARIO } = await import('../arbitrage/engine');
+    const { computeOriginationBreakdown } = await import('../arbitrage/originationBreakdown');
+
+    const state = createDefaultState();
+    const searchRes = searchSourcingRoutes(
+      {
+        feedstockKey: 'ANY',
+        targetMarketId: 'ANY',
+        scheme: 'ISCC_EU',
+        chainOfCustody: 'MASS_BALANCE',
+        delivery: { type: 'MONTH', startDate: '2026-09-01', endDate: '2026-09-30', complianceYear: 2026 },
+        volumeMwh: 10000,
+        constraints: { maxCarbonIntensity: null, maxDeliveredCostEurMwh: null, physicalDeliveryRequired: false },
+        counterparty: null,
+        notes: null,
+      },
+      state.marks,
+      state.costs,
+      DEFAULT_WHAT_IF_SCENARIO
+    );
+
+    expect(searchRes.tradeable.length).toBeGreaterThan(0);
+    for (const opp of searchRes.tradeable) {
+      const b = computeOriginationBreakdown({
+        opportunity: opp,
+        volumeMwh: 10000,
+        marks: state.marks,
+        costs: state.costs,
+      });
+      if (b.grossRevenueEur !== null && b.netMarginEurPerMwh !== null) {
+        const revenueMinusCosts = Number((b.grossRevenueEur - b.totalDeliveredCostEur).toFixed(2));
+        expect(revenueMinusCosts).toBe(b.netMarginEurPerMwh);
+      }
+    }
+  });
+});
+
+
 

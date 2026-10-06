@@ -121,7 +121,7 @@ export function computeOriginationBreakdown(input: OriginationBreakdownInput): O
   const plantGateEur = opp.producerPayableEurPerMWh ?? 0;
   const gridLogisticsEur = opp.transitCostEurPerMWh ?? 0;
   const certificationEur = costs.certificationCosts;
-  const totalDeliveredCostEur = plantGateEur + gridLogisticsEur + (certificationEur ?? 0);
+  const totalDeliveredCostEur = Number((plantGateEur + gridLogisticsEur + (certificationEur ?? 0)).toFixed(2));
 
   const gasIndexEur = selectMarkPrice(gasIndex, moleculeSide);
 

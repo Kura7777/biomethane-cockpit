@@ -16,40 +16,25 @@ afterEach(() => resetAllAssumptions());
 describe('Origination margin allocator has no hidden rules', () => {
   it('the allocator takes the netback as given: no hidden DE THG ceiling', () => {
     const r = calculateRealisticCommercialDeskMargin('DE_THG', 160, 2.0, 0.9);
-    expect(r.deskNetMarginEurPerMWh).toBe(15.8); // (160 - 2) * 0.10, not capped at 147
-    expect(r.producerProcurementEurPerMWh).toBe(142.2);
+    expect(r.deskNetMarginEurPerMWh).toBe(16.0); // (160 - 144), transit not double deducted
+    expect(r.producerProcurementEurPerMWh).toBe(144.0);
     expect(ASSUMPTION_DEFINITIONS.some(d => d.key === 'origination.deThgBundleCeilingEurPerMwh')).toBe(false);
   });
 
   it('uses a producer share below 0.85 exactly as given (no silent reset to 0.970)', () => {
     const r = calculateRealisticCommercialDeskMargin('DE_THG', 100, 2.0, 0.5);
-    expect(r.deskNetMarginEurPerMWh).toBe(49); // (100 - 2) * 0.5
-    expect(r.producerProcurementEurPerMWh).toBe(49);
+    expect(r.deskNetMarginEurPerMWh).toBe(50); // 100 * 0.5
+    expect(r.producerProcurementEurPerMWh).toBe(50);
     const r2 = calculateRealisticCommercialDeskMargin('DE_THG', 100, 2.0, 0.8);
-    expect(r2.deskNetMarginEurPerMWh).toBe(19.6);
+    expect(r2.deskNetMarginEurPerMWh).toBe(20);
+    expect(r2.producerProcurementEurPerMWh).toBe(80);
   });
 
-  it('desk take comes from the assumptions: spread / divisor, between floor and cap', () => {
-    // netback 100, transit 2, plant gate 60 -> green spread 38; 38 / 15 = 2.53
+  it('returns null when no producer share is set (origination.deskTake* assumptions removed)', () => {
     const base = calculateRealisticCommercialDeskMargin('DE_THG', 100, 2.0, null, 60);
-    expect(base.deskNetMarginEurPerMWh).toBe(2.53);
-    expect(base.producerProcurementEurPerMWh).toBe(95.47);
-
-    setAssumption('origination.deskTakeDivisor', 10);
-    expect(calculateRealisticCommercialDeskMargin('DE_THG', 100, 2.0, null, 60).deskNetMarginEurPerMWh).toBe(3.8);
-
-    setAssumption('origination.deskTakeCapEurPerMwh', 3);
-    expect(calculateRealisticCommercialDeskMargin('DE_THG', 100, 2.0, null, 60).deskNetMarginEurPerMWh).toBe(3);
-
-    resetAllAssumptions();
-    setAssumption('origination.deskTakeFloorEurPerMwh', 4);
-    expect(calculateRealisticCommercialDeskMargin('DE_THG', 100, 2.0, null, 60).deskNetMarginEurPerMWh).toBe(4);
-  });
-
-  it('a loss-making plant-gate route shows the loss, not the floor', () => {
-    const r = calculateRealisticCommercialDeskMargin('DE_THG', 50, 2.0, null, 60);
-    expect(r.producerProcurementEurPerMWh).toBe(60);
-    expect(r.deskNetMarginEurPerMWh).toBe(-12);
+    expect(base.deskNetMarginEurPerMWh).toBeNull();
+    expect(base.producerProcurementEurPerMWh).toBeNull();
+    expect(ASSUMPTION_DEFINITIONS.some(d => d.key.startsWith('origination.deskTake'))).toBe(false);
   });
 });
 

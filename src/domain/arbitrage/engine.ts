@@ -3,9 +3,9 @@ import { getMarkAgeDays } from '../markets/types';
 import { Consignment, CertificationScheme, ChainOfCustody } from '../consignment/types';
 import { FEEDSTOCK_REGISTRY } from '../consignment/feedstocks';
 import { MarksState, CostInputs } from '../netback/types';
-import { computeNetback } from '../netback/engine';
+import { computeNetback, isAllInMarket } from '../netback/engine';
 import { evaluateEligibility } from '../eligibility/engine';
-import { PRODUCING_ORIGINS, getRouteTransitTariff, calculateRealisticCommercialDeskMargin } from './origins';
+import { PRODUCING_ORIGINS, getRouteTransitTariff } from './origins';
 import { 
   ArbitrageOpportunity, 
   ArbitrageMatrixCell, 
@@ -126,44 +126,35 @@ export function scanEuropeanArbitrage(
       };
 
       const eligibility = evaluateEligibility(consignment, market);
-      const netbackRes = computeNetback(market, consignment, customMarks, costs, marks.pricingSides);
-      
       const transitCost = getRouteTransitTariff(origin.countryCode, market.country);
+      const routeCosts: CostInputs = {
+        ...costs,
+        logistics: transitCost,
+        transferCosts: 0,
+        otherCosts: 0,
+      };
+      const netbackRes = computeNetback(market, consignment, customMarks, routeCosts, marks.pricingSides);
+
       const isTradeable = eligibility.overallVerdict === 'ELIGIBLE' || eligibility.overallVerdict === 'CONDITIONAL' || eligibility.overallVerdict === 'UNRESOLVED';
       const isBlocked = eligibility.overallVerdict === 'HARD_BLOCK' || eligibility.overallVerdict === 'UNKNOWN';
 
+      const certValEur = netbackRes.certificateValue?.valueEurPerMWh ?? null;
+      const molValEur = isAllInMarket(market.id) ? 0 : (netbackRes.moleculeValue ?? 0);
+      const grossRevenue = netbackRes.netbackCappedAt !== null && netbackRes.netbackCappedAt !== undefined
+        ? Number((netbackRes.netbackCappedAt + (netbackRes.totalCosts ?? 0)).toFixed(2))
+        : (certValEur !== null ? Number((certValEur + molValEur).toFixed(2)) : null);
+
       let destinationNetback = netbackRes.netNetback;
-
-
-      let deskNetMargin: number | null = null;
-      let producerPayable: number | null = null;
+      let deskNetMargin = netbackRes.deskMargin;
+      let producerPayable = netbackRes.producerPayable;
       let marginAllocationType: 'TRANSPORT_COMPLIANCE' | 'MARITIME_INSETTING' | 'WHOLESALE_BASE' = 'TRANSPORT_COMPLIANCE';
-      let marginPct: number | null = null;
-      let totalDealProfit: number | null = null;
-
-      if (destinationNetback !== null) {
-        const producerShare = costs.producerPricing?.mode === 'INDEX_LINKED'
-          ? (costs.producerPricing.indexLinkedShare ?? null)
-          : null;
-
-        const commercialAllocation = calculateRealisticCommercialDeskMargin(
-          market.id,
-          destinationNetback,
-          transitCost,
-          producerShare,
-          origin.plantGateCostBenchmarkEurMwh ?? null
-        );
-        deskNetMargin = commercialAllocation.deskNetMarginEurPerMWh;
-        producerPayable = commercialAllocation.producerProcurementEurPerMWh;
-        marginAllocationType = commercialAllocation.marginAllocationType;
-
-        if (deskNetMargin !== null && destinationNetback !== 0) {
-          marginPct = (deskNetMargin / Math.abs(destinationNetback)) * 100;
-        }
-        if (deskNetMargin !== null) {
-          totalDealProfit = deskNetMargin * volumeMWh;
-        }
+      if (market.id === 'FUELEU') {
+        marginAllocationType = 'MARITIME_INSETTING';
+      } else if (market.id === 'VOL_SCOPE1' || market.id === 'DK_GO' || market.id === 'EU_ETS1') {
+        marginAllocationType = 'WHOLESALE_BASE';
       }
+      let marginPct = netbackRes.marginPercent;
+      let totalDealProfit = deskNetMargin !== null ? deskNetMargin * volumeMWh : null;
 
       // Generate human rationale
       let rationale = `${origin.flag} ${origin.countryName} ➔ ${market.country} ${market.name}: `;
@@ -246,7 +237,7 @@ export function scanEuropeanArbitrage(
         carbonIntensity: ci,
         certificationScheme: scheme,
         chainOfCustody,
-        totalTerminalValueStackEurPerMWh: destinationNetback,
+        totalTerminalValueStackEurPerMWh: grossRevenue,
         producerPayableEurPerMWh: producerPayable,
         transitCostEurPerMWh: transitCost,
         deskNetMarginEurPerMWh: deskNetMargin,
