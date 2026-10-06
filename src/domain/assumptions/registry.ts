@@ -407,6 +407,12 @@ export const ASSUMPTION_DEFINITIONS: AssumptionDefinition[] = [
 
 const DEFINITIONS_BY_KEY = new Map(ASSUMPTION_DEFINITIONS.map(d => [d.key, d]));
 
+/** The desk's default CI for a feedstock (Pricing desk → Assumptions), or null for an unknown key. */
+export function feedstockDefaultCi(feedstockKey: string): number | null {
+  const f = FEEDSTOCK_REGISTRY[feedstockKey];
+  return f ? getAssumption(`feedstock.defaultCi.${f.id}`) : null;
+}
+
 export function getAssumptionDefinition(key: string): AssumptionDefinition | undefined {
   return DEFINITIONS_BY_KEY.get(key);
 }

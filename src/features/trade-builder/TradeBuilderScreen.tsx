@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MARKETS, getMarketById, isVoluntaryMarket } from '../../domain/markets/registry';
 import { FEEDSTOCK_REGISTRY, REFERENCE_CONSIGNMENTS, getCountryFeedstockCI } from '../../domain/consignment/feedstocks';
+import { feedstockDefaultCi } from '../../domain/assumptions/registry';
 import { Consignment, CertificationScheme, ChainOfCustody, AnnexClassification, DeliveryProfile, UDBStatus, PoSStatus } from '../../domain/consignment/types';
 import { TradeAssessment } from '../../domain/trade/types';
 import { useAppState } from '../../store/context';
@@ -1492,7 +1493,7 @@ export function TradeBuilderScreen() {
                   className={`chip ${f.key === feedstockKey ? 'chip-a' : ''}`}
                   onClick={() => {
                     setFeedstockKey(f.key);
-                    setCi(f.defaultCI);
+                    setCi(feedstockDefaultCi(f.key) ?? f.defaultCI);
                     setCiSource('estimate');
                   }}
                 >

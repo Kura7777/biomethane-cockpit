@@ -1,6 +1,7 @@
 import React from 'react';
 import { MARKETS } from '../../domain/markets/registry';
 import { FEEDSTOCK_REGISTRY } from '../../domain/consignment/feedstocks';
+import { feedstockDefaultCi } from '../../domain/assumptions/registry';
 import { ClientRequest } from '../../domain/arbitrage/types';
 import {
   Building2,
@@ -369,7 +370,7 @@ export function Step1OrderIntake({ request, onChange, onNext }: Step1OrderIntake
               <option value="ANY">🌱 Any Annex IX Feedstock</option>
               {Object.entries(FEEDSTOCK_REGISTRY).map(([k, f]) => (
                 <option key={k} value={k}>
-                  {f.name} (Default CI: {f.defaultCI} gCO₂e/MJ)
+                  {f.name} (Default CI: {feedstockDefaultCi(k) ?? f.defaultCI} gCO₂e/MJ)
                 </option>
               ))}
             </select>
