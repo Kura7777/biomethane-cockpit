@@ -3,7 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { COMBINED_BIOMETHANE_PLANTS } from '../../domain/plants/registry';
 import { BiomethanePlant } from '../../domain/plants/types';
 import { buildDealUrl } from '../../domain/trade/dealParams';
-import { plantDealParams, plantCi } from '../../domain/trade/dealDefaults';
+import { plantDealParams, plantCi, feedstockKeyForPlant, defaultMarketForOrigin, defaultVolumeMwh } from '../../domain/trade/dealDefaults';
+import { FEEDSTOCK_REGISTRY } from '../../domain/consignment/feedstocks';
+import { buildMarketLadder } from '../../domain/arbitrage/marketLadder';
+import { deriveSourceBadge, getMarkAgeDays } from '../../domain/markets/types';
+import { SIMULATED_SOURCE_NAME } from '../../domain/marks/simulate';
+import { useAppState } from '../../store/context';
+import { SourceChip } from '../../shared/ui/SourceChip';
 import { PlantSourcingDrawer } from './PlantSourcingDrawer';
 import { AlertOctagon, AlertTriangle, Mail } from 'lucide-react';
 import { PageShell } from '../../shared/ui/PageShell';
@@ -42,6 +48,7 @@ function mobileContactBadge(p: BiomethanePlant) {
 export function OriginationPipelineScreen() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { state } = useAppState();
 
   // Filters
   const [selectedCountry, setSelectedCountry] = useState<string>('ALL');
@@ -130,6 +137,61 @@ export function OriginationPipelineScreen() {
       manureCount,
     };
   }, [selectedCountry]);
+
+  // Indicative netback yield: best eligible market for each displayed plant, priced from the
+  // marks store via the same market-ladder engine Origination's commercial ladder uses. Bounded
+  // to the plants actually rendered (the table itself caps display at 100) so this stays cheap.
+  const netbackYield = useMemo(() => {
+    const sample = filteredPipeline.slice(0, 100);
+    let min: number | null = null;
+    let max: number | null = null;
+    let minCertOnly = false;
+    let maxCertOnly = false;
+    let bestProvenance = null as ReturnType<typeof buildMarketLadder>['ranked'][number]['sourceProvenance'];
+    let bestUpdatedAt: string | null = null;
+
+    for (const p of sample) {
+      const feedstockKey = feedstockKeyForPlant(p);
+      const feedstockInfo = FEEDSTOCK_REGISTRY[feedstockKey] || FEEDSTOCK_REGISTRY.manure;
+      const ladder = buildMarketLadder(
+        {
+          originCountry: p.countryCode || '',
+          originCountryName: p.country || p.countryCode || '',
+          feedstockKey,
+          feedstockName: feedstockInfo.name,
+          carbonIntensity: plantCi(p).ci,
+          certificationScheme: (p.certificationScheme as any) || 'ISCC_EU',
+          chainOfCustody: 'MASS_BALANCE',
+          targetMarketId: defaultMarketForOrigin(p.countryCode),
+        },
+        defaultVolumeMwh(p),
+        state.marks,
+        state.costs
+      );
+      const best = ladder.ranked[0];
+      if (!best || best.netNetback === null) continue;
+      const isCertOnly = best.held?.kind === 'BROKER_CERTIFICATE';
+
+      if (min === null || best.netNetback < min) {
+        min = best.netNetback;
+        minCertOnly = isCertOnly;
+      }
+      if (max === null || best.netNetback > max) {
+        max = best.netNetback;
+        maxCertOnly = isCertOnly;
+        bestProvenance = best.sourceProvenance;
+        bestUpdatedAt = best.markUpdatedAt;
+      }
+    }
+
+    if (min === null || max === null) return null;
+
+    const basisLabel = minCertOnly === maxCertOnly
+      ? (minCertOnly ? 'Certificate-only' : 'All-in')
+      : 'Mixed basis';
+
+    return { min, max, basisLabel, provenance: bestProvenance, updatedAt: bestUpdatedAt };
+  }, [filteredPipeline, state.marks, state.costs]);
 
   // CSV Export with Institutional Contact Confidence & Statutory Registry
   const exportCsv = () => {
@@ -236,7 +298,7 @@ export function OriginationPipelineScreen() {
               borderRadius: 'var(--radius-control)',
               border: '1px solid var(--color-accent)'
             }}>
-              1,975 AUDITED FACILITIES
+              {COMBINED_BIOMETHANE_PLANTS.length.toLocaleString()} AUDITED FACILITIES
             </span>
           </div>
           <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: 'var(--color-text-secondary)', maxWidth: '950px', lineHeight: 1.5 }}>
@@ -362,12 +424,21 @@ export function OriginationPipelineScreen() {
           </div>
         </div>
 
-        <div style={{ padding: '14px 18px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-panel)' }}>
-          <div style={{ fontSize: '12px', color: 'var(--color-muted)', fontWeight: 600 }}>Indicative Netback Yield</div>
-          <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--color-pnl-pos, var(--color-accent))', marginTop: '4px' }}>
-            €118 – €152 <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)', fontWeight: 400 }}>/MWh (All-in)</span>
+        {netbackYield && (
+          <div style={{ padding: '14px 18px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-panel)' }}>
+            <div style={{ fontSize: '12px', color: 'var(--color-muted)', fontWeight: 600 }}>Indicative Netback Yield</div>
+            <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--color-pnl-pos, var(--color-accent))', marginTop: '4px' }}>
+              €{netbackYield.min.toFixed(0)} – €{netbackYield.max.toFixed(0)} <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)', fontWeight: 400 }}>/MWh ({netbackYield.basisLabel})</span>
+            </div>
+            <div style={{ marginTop: '6px' }}>
+              <SourceChip
+                badge={deriveSourceBadge(netbackYield.provenance, SIMULATED_SOURCE_NAME)}
+                suffix={netbackYield.updatedAt ? `mark ${netbackYield.updatedAt.slice(0, 10)}` : undefined}
+                title="Best eligible market, net of costs, for each plant shown below"
+              />
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Filter Control Bar */}
