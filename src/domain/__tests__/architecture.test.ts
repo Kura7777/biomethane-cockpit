@@ -332,3 +332,40 @@ describe('ARCHITECTURE — no new hard-coded price', () => {
     ).toEqual([]);
   });
 });
+
+describe('ARCHITECTURE — cost tables stay on the assumptions register', () => {
+  /**
+   * getRouteTransitTariff, HUB_BASIS_SPREADS and INTERCONNECTION_POINTS entry/exit tariffs were
+   * all hard-coded literals until the pricing-hub-2 job moved them onto the assumptions register
+   * (cost.transit.*, cost.hubBasis.*, cost.ip.*). This guards against them quietly coming back —
+   * either as a bare `return 0.50` in getRouteTransitTariff, or as a second definition of either
+   * table outside corridorsData.ts (the one file allowed to hold these as literals, since it
+   * supplies the registry's defaultValue).
+   */
+  const files = OUTSIDE_TESTS.filter(f => f.path !== 'domain/logistics/corridorsData.ts');
+
+  it('defines HUB_BASIS_SPREADS and INTERCONNECTION_POINTS nowhere but corridorsData.ts', () => {
+    const hits = findLines(files, /\bexport\s+const\s+(HUB_BASIS_SPREADS|INTERCONNECTION_POINTS)\s*[:=]/);
+    expect(
+      hits,
+      `These tables are defined once, in domain/logistics/corridorsData.ts, and read through ` +
+        `hubBasisSpread()/resolvedIpTariffs() everywhere else.${report(hits)}`
+    ).toEqual([]);
+  });
+
+  it('returns getRouteTransitTariff tariffs only through getAssumption, never a bare literal', () => {
+    const origins = files.find(f => f.path === 'domain/arbitrage/origins.ts');
+    const hits: Hit[] = [];
+    const fnMatch = origins?.text.match(/export function getRouteTransitTariff\b[\s\S]*?\n\}/);
+    fnMatch?.[0].split('\n').forEach((line, i) => {
+      if (/return\s+-?\d+(\.\d+)?\s*;/.test(line)) {
+        hits.push({ file: origins!.path, line: i + 1, text: line.trim() });
+      }
+    });
+    expect(
+      hits,
+      `getRouteTransitTariff must read each tier from the assumptions register ` +
+        `(cost.transit.*) via getAssumption(), not return a bare number.${report(hits)}`
+    ).toEqual([]);
+  });
+});
