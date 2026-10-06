@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   ASSUMPTION_DEFINITIONS,
   AssumptionCategory,
@@ -22,21 +23,21 @@ const CATEGORY_LABEL: Record<AssumptionCategory, { title: string; blurb: string 
     title: 'FuelEU Maritime pathways',
     blurb: 'Bio-LNG and pooling economics in the vessel calculator and pathway simulator.',
   },
-  FARMGATE: {
-    title: 'Farm-gate procurement',
-    blurb: 'Estimated producer cost by country, used by the opportunity scanner until a producer quotes.',
-  },
-  SCANNER: {
-    title: 'Plant opportunity scanner',
-    blurb: 'Defaults applied to plants whose volume, CI or route is not on record.',
+  DEMAND: {
+    title: 'Demand sizing (Clients, ETS1, ETS2)',
+    blurb: 'Desk heuristics for sizing disclosed supplier gas demand on Clients, the ETS1 gas-share estimate and the ETS2 segment shares.',
   },
   RISK: {
     title: 'Trade Builder risk suite',
-    blurb: 'Fallbacks used for risk notionals and the bundle-price reality check.',
+    blurb: 'Fallbacks used for risk notionals and the DE THG estimate for CI between −80 and 0.',
+  },
+  LOGISTICS: {
+    title: 'Delivery & logistics estimates',
+    blurb: 'Desk estimates for delivery options on the map until a route is quoted.',
   },
 };
 
-const CATEGORIES: AssumptionCategory[] = ['DEAL', 'FUELEU', 'FARMGATE', 'SCANNER', 'RISK'];
+const CATEGORIES: AssumptionCategory[] = ['DEAL', 'FUELEU', 'DEMAND', 'RISK', 'LOGISTICS'];
 
 export function AssumptionsScreen() {
   useAssumptionsVersion();
@@ -66,6 +67,10 @@ export function AssumptionsScreen() {
               Every commercial judgement the screens rely on, with where it came from. Statutory values and live
               marks are not here — they are sourced on the Citations and Pricing Desk pages. Changes apply straight
               away across the app and are saved in this browser only.
+            </p>
+            <p style={{ margin: '4px 0 0', fontSize: '12px', maxWidth: '720px' }} className="mut">
+              Market prices are not set here. They come from the Pricing desk (marks), with a link to{' '}
+              <Link to="/pricing">#/pricing</Link>. This page holds desk judgements only.
             </p>
           </div>
           <div className="set-asm-controls" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>

@@ -13,7 +13,7 @@ import { ETS2_SEGMENT_SHARES } from '../ets2/segmentShare';
  * never silently changed: a reset always returns to the value and source shown here.
  */
 
-export type AssumptionCategory = 'FUELEU' | 'FARMGATE' | 'SCANNER' | 'RISK' | 'DEAL' | 'LOGISTICS';
+export type AssumptionCategory = 'FUELEU' | 'DEMAND' | 'RISK' | 'DEAL' | 'LOGISTICS';
 
 /** How much weight the default can bear. */
 export type AssumptionBasis =
@@ -43,7 +43,7 @@ const fueleuMarkSource = fueleuMark
 /** Share of each country's gas demand under ETS2, used to scope supplier volumes (see ets2/segmentShare.ts). */
 const ETS2_SEGMENT_SHARE_ASSUMPTIONS: AssumptionDefinition[] = Object.values(ETS2_SEGMENT_SHARES).map(r => ({
   key: `ets2.segmentShare.${r.iso}`,
-  category: 'SCANNER',
+  category: 'DEMAND',
   label: `Share of ${r.name} gas demand under ETS2 (buildings, services, small users)`,
   unit: 'share (0–1)',
   defaultValue: r.share,
@@ -217,7 +217,7 @@ export const ASSUMPTION_DEFINITIONS: AssumptionDefinition[] = [
   },
   {
     key: 'clients.firstDealShare',
-    category: 'SCANNER',
+    category: 'DEMAND',
     label: 'First ETS1 deal: share of a company biomethane potential',
     unit: '%',
     defaultValue: 10,
@@ -226,18 +226,6 @@ export const ASSUMPTION_DEFINITIONS: AssumptionDefinition[] = [
     usedIn: 'Clients: the first-deal volume suggested on an ETS1 play (the value of the play is the full potential)',
     min: 1,
     max: 100,
-  },
-  {
-    key: 'clients.ets1DataYear',
-    category: 'SCANNER',
-    label: 'EU ETS1 installation data: latest verified-emissions year on file',
-    unit: 'year',
-    defaultValue: 2025,
-    basis: 'MARKET_MARK',
-    source: 'European Commission verified_emissions_2025_en.xlsx (published 9 Apr 2026, extracted 1 Apr 2026): verified emissions and free allocation. Parent company and NACE from the EUETS.INFO May 2024 EUTL release. Sites with no 2025 figure yet carry 2024 (flagged on the company page).',
-    usedIn: 'Clients and the EU ETS installations tab: data vintage label only, not an input to any calculation',
-    min: 2025,
-    max: 2025,
   },
   // ── Map delivery-option costs (indicative, not quoted) ───────────────────
   {
@@ -363,7 +351,7 @@ export const ASSUMPTION_DEFINITIONS: AssumptionDefinition[] = [
   },
   ...ETS1_GAS_SHARE_SECTORS.map((sector): AssumptionDefinition => ({
     key: `ets1.gasShare.${sector}`,
-    category: 'SCANNER',
+    category: 'DEMAND',
     label: `Natural-gas share of site CO2, ${sector.toLowerCase().replace(/_/g, ' ')}`,
     unit: 'share of verified CO2',
     defaultValue: defaultGasShare(sector),
@@ -393,7 +381,8 @@ let overrides: Record<string, number> = loadOverrides();
 let version = 0;
 const listeners = new Set<() => void>();
 
-function loadOverrides(): Record<string, number> {
+/** Exported for tests: confirms a stale override key (e.g. a deleted assumption) is dropped on load rather than crashing. */
+export function loadOverrides(): Record<string, number> {
   try {
     if (typeof localStorage === 'undefined') return {};
     const raw = localStorage.getItem(STORAGE_KEY);

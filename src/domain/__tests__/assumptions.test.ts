@@ -10,6 +10,7 @@ import {
   getAssumptionsVersion,
   fuelEuPoolSpreadEurPerTco2e,
   fuelEuPoolBidPriceEurPerTco2e,
+  loadOverrides,
 } from '../assumptions/registry';
 import { calculateVesselExposure } from '../fueleu/calculator';
 import { getBenchmarkForMarket } from '../markets/marketBenchmarks';
@@ -107,5 +108,36 @@ describe('Commercial assumptions register', () => {
   it('rejects unknown keys rather than silently returning a number', () => {
     expect(() => getAssumption('fueleu.madeUp')).toThrow();
     expect(() => setAssumption('fueleu.madeUp', 1)).toThrow();
+  });
+
+  it('drops a stale override key (a deleted assumption, e.g. from the retired scanner/farm-gate categories) instead of crashing', () => {
+    // This test runs under the node test environment, which has no global localStorage;
+    // stub a minimal in-memory one for the duration of the test.
+    const store = new Map<string, string>();
+    const stub = {
+      getItem: (k: string) => (store.has(k) ? store.get(k)! : null),
+      setItem: (k: string, v: string) => store.set(k, v),
+      removeItem: (k: string) => store.delete(k),
+    };
+    const previous = (globalThis as { localStorage?: unknown }).localStorage;
+    (globalThis as { localStorage?: unknown }).localStorage = stub;
+    try {
+      stub.setItem(
+        'biomethane-desk.assumptions.v1',
+        JSON.stringify({
+          'origination.deskTake': 5,
+          'scanner.someRetiredKey': 1,
+          'farmgate.someRetiredKey': 2,
+          'clients.firstDealShare': 20, // a live key — kept
+        })
+      );
+      const loaded = loadOverrides();
+      expect(loaded).toEqual({ 'clients.firstDealShare': 20 });
+      expect(loaded['origination.deskTake']).toBeUndefined();
+      expect(loaded['scanner.someRetiredKey']).toBeUndefined();
+      expect(loaded['farmgate.someRetiredKey']).toBeUndefined();
+    } finally {
+      (globalThis as { localStorage?: unknown }).localStorage = previous;
+    }
   });
 });
