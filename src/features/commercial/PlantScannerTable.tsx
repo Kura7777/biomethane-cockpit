@@ -37,6 +37,8 @@ export interface SourcedOpportunity extends ArbitrageOpportunity {
   contactEmail?: string | null;
   contactPhone?: string | null;
   transitSteps?: string[];
+  /** True when the desk's Step 1 CI override replaced this plant's own carbon intensity. */
+  ciIsOverridden?: boolean;
 }
 
 export function getCountryFlag(iso: string): string {

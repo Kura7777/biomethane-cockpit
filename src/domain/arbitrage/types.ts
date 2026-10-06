@@ -78,6 +78,8 @@ export interface ClientRequest {
   };
   counterparty: string | null;
   notes: string | null;
+  /** Desk-entered assumption: replaces each plant's own CI for every route in Steps 2-4. Empty/null/undefined means use each plant's own CI. */
+  ciOverride?: number | null;
 }
 
 export interface SourcingSearchResult {

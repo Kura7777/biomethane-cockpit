@@ -179,7 +179,7 @@ export function MarketLadder({ opportunity, volumeMwh, complianceYear = null }: 
         </span>
       </div>
       <p style={{ color: 'var(--color-muted)' }} className="text-[11px] mb-3 max-w-3xl">
-        This route ({opportunity.originCountry}, {opportunity.feedstockName}, CI {opportunity.carbonIntensity}) priced into every active market, best netback first.
+        This route ({opportunity.originCountry}, {opportunity.feedstockName}, CI {opportunity.carbonIntensity}{opportunity.ciIsOverridden ? ' (your assumption)' : ''}) priced into every active market, best netback first.
         Netbacks use the Pricing desk marks and your cost inputs; each market shows where its mark came from.{' '}
         <Link to="/pricing" style={{ color: 'var(--color-accent)' }} className="font-medium hover:underline">Change in Pricing desk →</Link>
       </p>

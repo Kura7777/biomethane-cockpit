@@ -346,7 +346,9 @@ export function Step2PlantScan({
                       <span>•</span>
                       <span>{opp.feedstockName}</span>
                       <span>•</span>
-                      <span style={{ color: 'var(--color-text)' }} className="font-medium">CI: {opp.carbonIntensity} gCO₂e/MJ</span>
+                      <span style={{ color: 'var(--color-text)' }} className="font-medium">
+                        CI: {opp.carbonIntensity} gCO₂e/MJ{opp.ciIsOverridden ? ' (your assumption)' : ''}
+                      </span>
                       {opp.plantAnnualGWh ? (
                         <>
                           <span>•</span>

@@ -91,7 +91,7 @@ Route status: ${routeStatus === 'TRADEABLE' ? 'Tradeable (all eligibility gates 
 1. SOURCING & ROUTE
 • Origin Plant: ${opportunity.originPlantName || `${opportunity.originCountry} Sourced Plant`} (${opportunity.originCountry})
 • Buyer Hub: ${opportunity.targetMarketName} (${opportunity.targetCountry})
-• Substrate: ${opportunity.feedstockName} (CI: ${opportunity.carbonIntensity} gCO₂e/MJ)
+• Substrate: ${opportunity.feedstockName} (CI: ${opportunity.carbonIntensity} gCO₂e/MJ${opportunity.ciIsOverridden ? ', your assumption' : ''})
 • Volume: ${vol.toLocaleString()} MWh (${periodLabel} Delivery)
 • Mode: Pipeline Grid Injection (Mass Balance)
 
@@ -326,7 +326,9 @@ ${b.sideWarning ? `• WARNING: ${b.sideWarning}
             >
               <span style={{ color: 'var(--color-muted)' }} className="text-[10px] block mb-0.5">Feedstock &amp; carbon intensity</span>
               <span style={{ color: 'var(--color-text)' }} className="font-semibold text-xs sm:text-sm block">{opportunity.feedstockName}</span>
-              <span style={{ color: 'var(--color-text)' }} className="mt-0.5 block text-[11px] font-medium">CI: {opportunity.carbonIntensity} gCO₂e/MJ</span>
+              <span style={{ color: 'var(--color-text)' }} className="mt-0.5 block text-[11px] font-medium">
+                CI: {opportunity.carbonIntensity} gCO₂e/MJ{opportunity.ciIsOverridden ? ' (your assumption)' : ''}
+              </span>
             </div>
 
             <div

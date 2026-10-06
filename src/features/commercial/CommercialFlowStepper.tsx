@@ -32,6 +32,7 @@ const INITIAL_REQUEST: ClientRequest = {
   },
   counterparty: null,
   notes: null,
+  ciOverride: null,
 };
 
 const STEPS = [
@@ -101,8 +102,13 @@ export function CommercialFlowStepper() {
       }
     }
 
+    const ciOverride = request.ciOverride;
+    if (ciOverride !== null && ciOverride !== undefined && !Number.isNaN(ciOverride)) {
+      return plantOpps.map(opp => ({ ...opp, carbonIntensity: ciOverride, ciIsOverridden: true }));
+    }
+
     return plantOpps;
-  }, [searchResult.tradeable]);
+  }, [searchResult.tradeable, request.ciOverride]);
 
   // Automatically select top plant if none chosen
   const activeOpp = useMemo(() => {

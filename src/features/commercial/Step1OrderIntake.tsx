@@ -378,6 +378,35 @@ export function Step1OrderIntake({ request, onChange, onNext }: Step1OrderIntake
           </div>
         </div>
 
+        {/* CI override */}
+        <div>
+          <label
+            style={{ color: 'var(--color-text)' }}
+            className="block text-xs font-medium mb-1.5"
+          >
+            5. Assume plant CI (g CO₂e/MJ) — optional
+          </label>
+          <input
+            type="number"
+            value={request.ciOverride ?? ''}
+            onChange={e => onChange({ ciOverride: e.target.value === '' ? null : Number(e.target.value) })}
+            style={{
+              backgroundColor: 'var(--color-bg)',
+              borderColor: 'var(--color-line)',
+              borderRadius: 'var(--radius-control)',
+              color: 'var(--color-text)',
+            }}
+            className="w-full max-w-xs border px-3 py-2 text-xs font-medium focus:outline-hidden tabular-nums"
+            placeholder="each plant's own CI"
+            data-testid="ci-override-input"
+          />
+          <span style={{ color: 'var(--color-muted)' }} className="text-[11px] mt-1 block">
+            {request.ciOverride !== null && request.ciOverride !== undefined
+              ? `Replaces every plant's own CI with ${request.ciOverride} (your assumption) for this order.`
+              : 'Leave empty to use each plant’s own carbon intensity, as today.'}
+          </span>
+        </div>
+
         {/* Action Button & Configuration Summary Bar */}
         <div
           style={{ borderColor: 'var(--color-line)' }}
