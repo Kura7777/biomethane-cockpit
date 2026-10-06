@@ -130,8 +130,6 @@ export function scanEuropeanArbitrage(
       const routeCosts: CostInputs = {
         ...costs,
         logistics: transitCost,
-        transferCosts: 0,
-        otherCosts: 0,
       };
       const netbackRes = computeNetback(market, consignment, customMarks, routeCosts, marks.pricingSides);
 

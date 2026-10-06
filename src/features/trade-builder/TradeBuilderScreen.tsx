@@ -423,17 +423,17 @@ export function TradeBuilderScreen() {
     return evaluateEligibility(consignment, selectedMarket);
   }, [consignment, selectedMarket]);
 
-  // Corridor transit tariff: the same `getRouteTransitTariff` rule and route-cost shape
-  // Origination's engine uses (src/domain/arbitrage/engine.ts's `routeCosts`), so the two
-  // screens price the same origin→market leg identically — including that Origination's
-  // corridor scan doesn't model transfer or other costs, only producer payable, transit and
-  // certification. Falls back to the desk's generic logistics cost when the corridor has no tariff.
+  // Corridor transit tariff: the same `getRouteTransitTariff` rule Origination's engine uses
+  // (src/domain/arbitrage/engine.ts's `routeCosts`), so the two screens price the same
+  // origin→market leg identically. Only `logistics` is replaced — transfer and other costs
+  // are real desk costs and stay as entered. Falls back to the desk's generic logistics cost
+  // when the corridor has no tariff.
   const costsForMarket = React.useCallback(
     (market: typeof selectedMarket): { costs: CostInputs; isCorridor: boolean; corridorTariff: number | null } => {
       const corridorTariff = origin && market.country ? getRouteTransitTariff(origin, market.country) : null;
       if (corridorTariff != null) {
         return {
-          costs: { ...state.costs, logistics: corridorTariff, transferCosts: 0, otherCosts: 0 },
+          costs: { ...state.costs, logistics: corridorTariff },
           isCorridor: true,
           corridorTariff,
         };

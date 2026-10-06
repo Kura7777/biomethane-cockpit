@@ -257,17 +257,20 @@ describe('calc fix 4 & 5: Origination and Trade Builder reconciliation', () => {
     const { computeOriginationBreakdown } = await import('../arbitrage/originationBreakdown');
     const { getRouteTransitTariff } = await import('../arbitrage/origins');
 
-    const state = createDefaultState();
+    // A fixed, non-zero registry transfer fee: the test must fail if either screen drops it.
+    const baseState = createDefaultState();
+    const state = { ...baseState, costs: { ...baseState.costs, transferCosts: 1.20 } };
     const market = getMarketById('DE_THG')!;
     const dkConsignment = {
       ...REFERENCE_CONSIGNMENTS.DANISH_MANURE,
       volumeMWh: 20000,
     };
 
-    // Trade Builder path, fixed: the same route-cost shape Origination's engine builds —
-    // corridor transit tariff, and no transfer/other costs modelled in the corridor leg.
+    // Trade Builder path, fixed: only `logistics` is replaced by the corridor transit tariff.
+    // transferCosts (the registry transfer fee) and otherCosts are kept as entered — they are
+    // real desk costs, not folded into the corridor leg.
     const corridorTariff = getRouteTransitTariff('DK', market.country);
-    const tbRouteCosts = { ...state.costs, logistics: corridorTariff, transferCosts: 0, otherCosts: 0 };
+    const tbRouteCosts = { ...state.costs, logistics: corridorTariff };
     const tbNetback = computeNetback(market, dkConsignment, state.marks, tbRouteCosts, state.marks.pricingSides);
 
     // Origination path.
@@ -295,9 +298,16 @@ describe('calc fix 4 & 5: Origination and Trade Builder reconciliation', () => {
       costs: state.costs,
     });
 
+    // The registry transfer fee is a real cost on both screens — neither one drops it.
+    expect(tbRouteCosts.transferCosts).toBe(1.20);
+    expect(b.transferEur).toBe(1.20);
+    expect(tbNetback.totalCosts).not.toBeNull();
+
     // netNetback is the realisable (bundle-capped, when a broker reference binds) figure —
     // the same quantity Origination surfaces as the opportunity's producer payable and margin.
-    expect(tbNetback.netNetback).toBe(dkOpp.netbackCappedAt ?? dkOpp.theoreticalNetbackEurPerMWh);
+    // dkOpp.netbackCappedAt is the unrounded bundle benchmark (netback.engine.ts stores it
+    // before the toFixed(2) that produces netNetback), so compare to 2dp rather than bit-exact.
+    expect(tbNetback.netNetback).toBeCloseTo(dkOpp.netbackCappedAt ?? dkOpp.theoreticalNetbackEurPerMWh!, 2);
     expect(tbNetback.producerPayable).toBe(dkOpp.producerPayableEurPerMWh);
     expect(tbNetback.deskMargin).toBe(dkOpp.deskNetMarginEurPerMWh);
     expect(tbNetback.deskMargin).toBe(b.netMarginEurPerMwh);

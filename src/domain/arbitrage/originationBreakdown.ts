@@ -34,13 +34,21 @@ export interface OriginationBreakdownInput {
   volumeMwh: number;
   /** state.marks: the gas index and the pricing side the netback engine used for the molecule. */
   marks: Pick<MarksState, 'gasIndex' | 'pricingSides'>;
-  /** state.costs: certificationCosts is €/MWh or null when not set. */
-  costs: Pick<CostInputs, 'certificationCosts' | 'producerPricing'>;
+  /** state.costs: certificationCosts/transferCosts/otherCosts are €/MWh or null when not set. */
+  costs: Pick<CostInputs, 'certificationCosts' | 'transferCosts' | 'otherCosts' | 'producerPricing'>;
 }
 
 export interface OriginationBreakdown {
   plantGateEur: number;
   gridLogisticsEur: number;
+  /** Registry transfer fee (GO transfer / ERGaR / cancellation) — a real cost of every
+   *  cross-border deal, not folded into the corridor transit tariff. null = not set; then it
+   *  is excluded from the delivered cost total. */
+  transferEur: number | null;
+  transferSource: PriceSource | null;
+  /** null = not set; then it is excluded from the delivered cost total. */
+  otherCostsEur: number | null;
+  otherCostsSource: PriceSource | null;
   /** null = not set; then it is excluded from the delivered cost total. */
   certificationEur: number | null;
   certificationSource: PriceSource | null;
@@ -98,10 +106,11 @@ export function gasIndexSource(gasIndex: GasIndexMark): PriceSource {
 }
 
 /**
- * Source of the certification cost. Cost inputs carry no per-field provenance, so the best
- * available evidence is the cost bundle's own source: the simulator stamps it SIMULATED.
- * Anything else was typed in by the desk. Editing a single simulated cost does not yet record
- * that it changed, so the tag is conservative only in the simulated direction.
+ * Source of a cost-bundle figure (certification, registry transfer, other costs). Cost inputs
+ * carry no per-field provenance, so the best available evidence is the cost bundle's own
+ * source: the simulator stamps it SIMULATED. Anything else was typed in by the desk. Editing a
+ * single simulated cost does not yet record that it changed, so the tag is conservative only in
+ * the simulated direction.
  */
 export function certificationSource(costs: Pick<CostInputs, 'producerPricing'>): PriceSource {
   const simulated = costs.producerPricing?.source === SIMULATED_SOURCE_NAME;
@@ -120,8 +129,12 @@ export function computeOriginationBreakdown(input: OriginationBreakdownInput): O
 
   const plantGateEur = opp.producerPayableEurPerMWh ?? 0;
   const gridLogisticsEur = opp.transitCostEurPerMWh ?? 0;
+  const transferEur = costs.transferCosts;
+  const otherCostsEur = costs.otherCosts;
   const certificationEur = costs.certificationCosts;
-  const totalDeliveredCostEur = Number((plantGateEur + gridLogisticsEur + (certificationEur ?? 0)).toFixed(2));
+  const totalDeliveredCostEur = Number(
+    (plantGateEur + gridLogisticsEur + (transferEur ?? 0) + (otherCostsEur ?? 0) + (certificationEur ?? 0)).toFixed(2)
+  );
 
   const gasIndexEur = selectMarkPrice(gasIndex, moleculeSide);
 
@@ -156,6 +169,10 @@ export function computeOriginationBreakdown(input: OriginationBreakdownInput): O
   return {
     plantGateEur,
     gridLogisticsEur,
+    transferEur,
+    transferSource: transferEur === null ? null : certificationSource(costs),
+    otherCostsEur,
+    otherCostsSource: otherCostsEur === null ? null : certificationSource(costs),
     certificationEur,
     certificationSource: certificationEur === null ? null : certificationSource(costs),
     totalDeliveredCostEur,

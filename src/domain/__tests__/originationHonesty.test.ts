@@ -62,6 +62,8 @@ describe('computeOriginationBreakdown reads prices from marks and costs only', (
   };
   const simCosts = {
     certificationCosts: 0.5 as number | null,
+    transferCosts: 1.2 as number | null,
+    otherCosts: null as number | null,
     producerPricing: {
       mode: 'INDEX_LINKED' as const,
       fixedPriceEurPerMwh: null,
@@ -85,7 +87,10 @@ describe('computeOriginationBreakdown reads prices from marks and costs only', (
     expect(b.gasIndexSource?.asOf).toBe('2026-10-05');
     expect(b.certificationEur).toBe(0.5);
     expect(b.certificationSource?.badge.label).toBe('Simulated');
-    expect(b.totalDeliveredCostEur).toBeCloseTo(102.3, 5);
+    expect(b.transferEur).toBe(1.2);
+    expect(b.transferSource?.badge.label).toBe('Simulated');
+    // plantGate 100 + transit 1.8 + transfer 1.2 + certification 0.5
+    expect(b.totalDeliveredCostEur).toBeCloseTo(103.5, 5);
     expect(b.deliveredCostExclCertification).toBe(false);
     expect(ttfMarkLine(b)).toBe('TTF mark as of 2026-10-05 (Simulated)');
   });
@@ -127,7 +132,8 @@ describe('computeOriginationBreakdown reads prices from marks and costs only', (
     });
     expect(b.certificationEur).toBeNull();
     expect(b.certificationSource).toBeNull();
-    expect(b.totalDeliveredCostEur).toBeCloseTo(101.8, 5);
+    // plantGate 100 + transit 1.8 + transfer 1.2, certification excluded
+    expect(b.totalDeliveredCostEur).toBeCloseTo(103.0, 5);
     expect(b.deliveredCostExclCertification).toBe(true);
   });
 

@@ -57,6 +57,8 @@ export function Step4DealSummary({
   const {
     plantGateEur,
     gridLogisticsEur,
+    transferEur,
+    otherCostsEur,
     certificationEur,
     totalDeliveredCostEur,
     grossRevenueEur: totalGrossRevenueEur,
@@ -73,6 +75,7 @@ export function Step4DealSummary({
     src ? <SourceChip badge={src.badge} suffix={src.asOf ? `mark ${src.asOf}` : 'no date on record'} /> : null;
   const indicativeLine = `Indicative: ${ttfMarkLine(b)}`;
   const certSourceText = b.certificationSource ? ` [${b.certificationSource.badge.label}]` : '';
+  const transferSourceText = b.transferSource ? ` [${b.transferSource.badge.label}]` : '';
   const gasSourceText = b.gasIndexSource ? ` [${b.gasIndexSource.badge.label}, ${b.gasIndexSource.asOf ?? 'no date'}]` : '';
 
   const dealRef = `BIO-${opportunity.originCountry}-${opportunity.targetCountry}-${Date.now().toString().slice(-6)}`;
@@ -95,7 +98,9 @@ Route status: ${routeStatus === 'TRADEABLE' ? 'Tradeable (all eligibility gates 
 2. COMMERCIAL PRICING & MARGINS
 • Plant Gate Sourcing Price: ${fmtEurPerMwh(plantGateEur)} (${fmtEurTotal(plantGateEur * vol)})
 • Grid & Transit Logistics: ${fmtEurPerMwh(gridLogisticsEur)} (${fmtEurTotal(gridLogisticsEur * vol)})
-• Mass Balance Proof: ${certificationEur === null ? 'Not set (excluded from delivered cost)' : `${fmtEurPerMwh(certificationEur)} (${fmtEurTotal(certificationEur * vol)})${certSourceText}`}
+• Registry Transfer: ${transferEur === null ? 'Not set (excluded from delivered cost)' : `${fmtEurPerMwh(transferEur)} (${fmtEurTotal(transferEur * vol)})${transferSourceText}`}
+${otherCostsEur !== null ? `• Other Costs: ${fmtEurPerMwh(otherCostsEur)} (${fmtEurTotal(otherCostsEur * vol)})
+` : ''}• Mass Balance Proof: ${certificationEur === null ? 'Not set (excluded from delivered cost)' : `${fmtEurPerMwh(certificationEur)} (${fmtEurTotal(certificationEur * vol)})${certSourceText}`}
 • Total Delivered Cost${b.deliveredCostExclCertification ? ' (excl. certification)' : ''}: ${fmtEurPerMwh(totalDeliveredCostEur)} (${fmtEurTotal(totalDealCostEur)})
 
 • Wholesale Gas Offtake (TTF ${b.gasIndexSide}): ${gasIndexEur === null ? 'No TTF mark' : `${fmtEurPerMwh(gasIndexEur)} (${fmtEurTotal(gasIndexEur * vol)})${gasSourceText}`}
@@ -371,7 +376,25 @@ ${b.sideWarning ? `• WARNING: ${b.sideWarning}
                 </tr>
                 <tr>
                   <td style={{ color: 'var(--color-muted)' }} className="p-3 font-normal">
-                    3. Mass balance &amp; proof of sustainability{' '}
+                    3. Registry transfer (GO transfer / ERGaR / cancellation){' '}
+                    {transferEur === null ? null : sourceChip(b.transferSource)}
+                  </td>
+                  <td className="p-3 text-right font-medium tabular-nums">{transferEur === null ? 'Not set' : fmtEurPerMwh(transferEur)}</td>
+                  <td style={{ color: 'var(--color-muted)' }} className="p-3 text-right tabular-nums">{transferEur === null ? '—' : fmtEurTotal(transferEur * vol)}</td>
+                </tr>
+                {otherCostsEur !== null && (
+                  <tr>
+                    <td style={{ color: 'var(--color-muted)' }} className="p-3 font-normal">
+                      Other costs{' '}
+                      {sourceChip(b.otherCostsSource)}
+                    </td>
+                    <td className="p-3 text-right font-medium tabular-nums">{fmtEurPerMwh(otherCostsEur)}</td>
+                    <td style={{ color: 'var(--color-muted)' }} className="p-3 text-right tabular-nums">{fmtEurTotal(otherCostsEur * vol)}</td>
+                  </tr>
+                )}
+                <tr>
+                  <td style={{ color: 'var(--color-muted)' }} className="p-3 font-normal">
+                    4. Mass balance &amp; proof of sustainability{' '}
                     {sourceChip(b.certificationSource)}
                   </td>
                   <td className="p-3 text-right font-medium tabular-nums">{certificationEur === null ? 'Not set' : fmtEurPerMwh(certificationEur)}</td>
@@ -384,7 +407,7 @@ ${b.sideWarning ? `• WARNING: ${b.sideWarning}
                 </tr>
                 <tr>
                   <td style={{ color: 'var(--color-muted)' }} className="p-3 font-normal">
-                    4. Wholesale gas offtake (TTF index, {b.gasIndexSide}){' '}
+                    5. Wholesale gas offtake (TTF index, {b.gasIndexSide}){' '}
                     {gasIndexEur === null ? <span style={{ color: 'var(--color-pnl-neg)' }}>No TTF mark</span> : sourceChip(b.gasIndexSource)}
                   </td>
                   <td className="p-3 text-right font-medium tabular-nums">{fmtEurPerMwh(gasIndexEur)}</td>
@@ -392,7 +415,7 @@ ${b.sideWarning ? `• WARNING: ${b.sideWarning}
                 </tr>
                 <tr>
                   <td style={{ color: 'var(--color-muted)' }} className="p-3 font-normal">
-                    5. {opportunity.targetMarketName} {b.brokerBundle ? 'certificate (broker bundle, certificate only)' : 'certificate premium'}{' '}
+                    6. {opportunity.targetMarketName} {b.brokerBundle ? 'certificate (broker bundle, certificate only)' : 'certificate premium'}{' '}
                     {b.brokerBundle && sourceChip(b.brokerBundle.source)}
                     {b.sideWarning && (
                       <span className="chip chip-warn ml-1.5" data-testid="cert-side-warning">{b.sideWarning}</span>

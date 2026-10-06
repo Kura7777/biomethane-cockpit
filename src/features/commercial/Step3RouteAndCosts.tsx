@@ -51,6 +51,8 @@ export function Step3RouteAndCosts({
   const {
     plantGateEur,
     gridLogisticsEur,
+    transferEur,
+    otherCostsEur,
     certificationEur,
     totalDeliveredCostEur,
     grossRevenueEur: totalGrossRevenueEur,
@@ -261,6 +263,57 @@ export function Step3RouteAndCosts({
                   <span style={{ color: 'var(--color-muted)' }} className="text-[11px] block tabular-nums">Total: €{Math.round(gridLogisticsEur * vol).toLocaleString()}</span>
                 </div>
               </div>
+
+              {/* Registry transfer */}
+              <div
+                style={{
+                  backgroundColor: 'var(--color-bg)',
+                  borderColor: 'var(--color-line)',
+                  borderRadius: 'var(--radius-control)',
+                }}
+                className="flex items-center justify-between p-2.5 border"
+              >
+                <div>
+                  <span style={{ color: 'var(--color-text)' }} className="font-medium block">Registry transfer</span>
+                  <span style={{ color: 'var(--color-muted)' }} className="text-[11px] block">GO transfer / ERGaR / cancellation fee</span>
+                  <span className="text-[11px] flex items-center gap-1.5 flex-wrap mt-1" data-testid="transfer-source">
+                    {transferEur === null ? (
+                      <span style={{ color: 'var(--color-pnl-neg)' }} className="font-medium">Not set. Left out of delivered cost.</span>
+                    ) : (
+                      sourceChip(b.transferSource)
+                    )}
+                    <Link to="/pricing" style={{ color: 'var(--color-accent)' }} className="font-medium hover:underline">Change in Pricing desk →</Link>
+                  </span>
+                </div>
+                <div className="text-right">
+                  <span style={{ color: 'var(--color-pnl-neg)' }} className="font-semibold tabular-nums">{transferEur === null ? 'Not set' : fmtEurPerMwh(transferEur)}</span>
+                  <span style={{ color: 'var(--color-muted)' }} className="text-[11px] block tabular-nums">Total: {transferEur === null ? '—' : fmtEurTotal(transferEur * vol)}</span>
+                </div>
+              </div>
+
+              {/* Other costs (only shown when set) */}
+              {otherCostsEur !== null && (
+                <div
+                  style={{
+                    backgroundColor: 'var(--color-bg)',
+                    borderColor: 'var(--color-line)',
+                    borderRadius: 'var(--radius-control)',
+                  }}
+                  className="flex items-center justify-between p-2.5 border"
+                >
+                  <div>
+                    <span style={{ color: 'var(--color-text)' }} className="font-medium block">Other costs</span>
+                    <span className="text-[11px] flex items-center gap-1.5 flex-wrap mt-1">
+                      {sourceChip(b.otherCostsSource)}
+                      <Link to="/pricing" style={{ color: 'var(--color-accent)' }} className="font-medium hover:underline">Change in Pricing desk →</Link>
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span style={{ color: 'var(--color-pnl-neg)' }} className="font-semibold tabular-nums">{fmtEurPerMwh(otherCostsEur)}</span>
+                    <span style={{ color: 'var(--color-muted)' }} className="text-[11px] block tabular-nums">Total: {fmtEurTotal(otherCostsEur * vol)}</span>
+                  </div>
+                </div>
+              )}
 
               {/* Certification */}
               <div
