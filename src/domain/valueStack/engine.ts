@@ -117,7 +117,8 @@ function consignmentFor(ci: number): Consignment {
 function priced(marketId: string, ci: number, marks: MarksState): { value: number | null; workings: string } {
   const market = getMarketById(marketId);
   if (!market) return { value: null, workings: `Market ${marketId} not in the registry.` };
-  const r = computeCertificateValue(market, consignmentFor(ci), marks, 'mid');
+  const certSide = marks.pricingSides?.certificateSide ?? 'mid';
+  const r = computeCertificateValue(market, consignmentFor(ci), marks, certSide);
   if (!r || r.valueEurPerMWh === null) return { value: null, workings: `No ${market.shortName} mark on the desk.` };
   return { value: r.valueEurPerMWh, workings: `${r.calculation}${r.statusNote ? ` — ${r.statusNote}` : ''}` };
 }
