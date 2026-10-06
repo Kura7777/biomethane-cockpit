@@ -3,36 +3,45 @@
  * engines use, with its legal citation, for the Assumptions tab's read-only "Regulatory
  * constants" section (Pricing desk → Assumptions).
  *
- * Values that already lived in a working engine module (markets/constants.ts,
- * fueleu/calculator.ts, logistics/corridors.ts) are re-exported here rather than
- * duplicated, so there is exactly one number for each — this module is the catalogue,
- * the original file stays the import every engine already uses. RED3_TRANSPORT_MAX_CI was
- * the one true duplicate (defined twice, byte-for-byte) and is defined here for real, with
- * both former call sites importing it.
+ * Defined for real here — engines import these directly from this module. markets/constants.ts
+ * and fueleu/calculator.ts re-export them (rather than redefining) for any caller still using
+ * their historical import path. CAM_NC_DURATION_MULTIPLIERS and NATIONAL_BIOMETHANE_INJECTION_
+ * INCENTIVES stay defined in logistics/corridors.ts (map/logistics domain, not a cross-cutting
+ * statutory penalty) and are only re-exported here for the Assumptions tab table.
  */
-import {
-  FR_CPB_CEILING_EUR_MWH,
-  DE_THG_PENALTY_EUR_PER_TCO2E,
-  UK_RTFC_BUYOUT_GBP,
-} from '../markets/constants';
-import {
-  FUELEU_STATUTORY_PENALTY_PER_TONNE,
-  FUELEU_PENALTY_VLSFO_MJ_PER_TONNE,
-} from '../fueleu/calculator';
 import {
   CAM_NC_DURATION_MULTIPLIERS,
   NATIONAL_BIOMETHANE_INJECTION_INCENTIVES,
 } from '../logistics/corridors';
 
 export {
-  FR_CPB_CEILING_EUR_MWH,
-  DE_THG_PENALTY_EUR_PER_TCO2E,
-  UK_RTFC_BUYOUT_GBP,
-  FUELEU_STATUTORY_PENALTY_PER_TONNE,
-  FUELEU_PENALTY_VLSFO_MJ_PER_TONNE,
   CAM_NC_DURATION_MULTIPLIERS,
   NATIONAL_BIOMETHANE_INJECTION_INCENTIVES,
 };
+
+/**
+ * France CPB Ceiling Price in EUR/MWh
+ * Source: Code de l'énergie, Art. L.446-24
+ */
+export const FR_CPB_CEILING_EUR_MWH = 100;
+
+/**
+ * German THG-Quote non-compliance penalty (€/tCO2e shortfall)
+ * Source: §37c(2) BImSchG — €600/tCO2e since compliance year 2022
+ */
+export const DE_THG_PENALTY_EUR_PER_TCO2E = 600;
+
+/**
+ * UK RTFO buy-out price per RTFC (£) — no obligated supplier rationally pays more
+ * Source: Renewable Transport Fuel Obligations Order 2007 (SI 2007/3072), Art. 17
+ */
+export const UK_RTFC_BUYOUT_GBP = 0.50;
+
+/** FuelEU Annex IV statutory penalty, €/tonne VLSFO equivalent. Source: Regulation (EU) 2023/1805, Annex IV. */
+export const FUELEU_STATUTORY_PENALTY_PER_TONNE = 2400;
+
+/** FuelEU Annex IV VLSFO energy content, MJ/tonne. Source: Regulation (EU) 2023/1805, Annex IV. */
+export const FUELEU_PENALTY_VLSFO_MJ_PER_TONNE = 41000;
 
 /** RED III Art. 29(10): 65% GHG saving vs. the 94 gCO2e/MJ transport comparator. Defined once; both
  * domain/corporate/orderPricer.ts and domain/valueStack/engine.ts import it from here. */

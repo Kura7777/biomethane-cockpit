@@ -3,7 +3,8 @@ import { FUEL_EU_SHIPPING_GROUPS } from '../../domain/fueleu/groups';
 import { FUEL_EU_SHIPPING_COUNTERPARTIES } from '../../domain/fueleu/shippingTargetsData';
 import { NO_POOL_MARK } from '../../domain/fueleu/marketPrices';
 import { useFuelEuPrices } from './useFuelEuPrices';
-import { FUELEU_STATUTORY_PENALTY_PER_TONNE, FUELEU_PENALTY_VLSFO_MJ_PER_TONNE, FUELEU_ACTIVE_PERIOD } from '../../domain/fueleu/calculator';
+import { FUELEU_ACTIVE_PERIOD } from '../../domain/fueleu/calculator';
+import { FUELEU_STATUTORY_PENALTY_PER_TONNE, FUELEU_PENALTY_VLSFO_MJ_PER_TONNE } from '../../domain/regulatory/constants';
 import { computeFuelEuKpis, computeFleetWeightedGhgie } from '../../domain/fueleu/uiHelpers';
 import { KpiRow, KpiTile } from '../../shared/ui/KpiTile';
 

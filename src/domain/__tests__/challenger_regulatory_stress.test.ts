@@ -14,7 +14,8 @@ import { getMarketById, MARKETS } from '../markets/registry';
 import { Consignment } from '../consignment/types';
 import { MarksState, CostInputs } from '../netback/types';
 import { REFERENCE_CONSIGNMENTS } from '../consignment/feedstocks';
-import { CI_COMPARATOR_ROAD_TRANSPORT, FR_CPB_CEILING_EUR_MWH } from '../markets/constants';
+import { CI_COMPARATOR_ROAD_TRANSPORT } from '../markets/constants';
+import { FR_CPB_CEILING_EUR_MWH } from '../regulatory/constants';
 
 const zeroCosts: CostInputs = {
   transferCosts: 0,

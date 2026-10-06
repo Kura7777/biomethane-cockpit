@@ -1,5 +1,5 @@
 import { MarksState } from '../netback/types';
-import { FR_CPB_CEILING_EUR_MWH } from '../markets/constants';
+import { FR_CPB_CEILING_EUR_MWH } from '../regulatory/constants';
 import {
   ForwardTenor,
   CurveMarketType,

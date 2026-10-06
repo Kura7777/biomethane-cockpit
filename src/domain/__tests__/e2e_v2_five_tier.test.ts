@@ -35,10 +35,10 @@ import { MARKETS, getMarketById } from '../markets/registry';
 import {
   CI_COMPARATOR_ROAD_TRANSPORT,
   CI_COMPARATOR_HEAT,
-  FR_CPB_CEILING_EUR_MWH,
   MWH_PER_CIC_ADVANCED,
   MWH_PER_CIC_CONVENTIONAL,
 } from '../markets/constants';
+import { FR_CPB_CEILING_EUR_MWH } from '../regulatory/constants';
 import {
   computeNetback,
   computeCertificateValue,

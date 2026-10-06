@@ -24,25 +24,10 @@ export const GCAL_PER_CIC_ADVANCED = 5;
 export const MWH_PER_CIC_CONVENTIONAL = GCAL_PER_CIC_CONVENTIONAL * MWH_PER_GCAL; // 11.63
 export const MWH_PER_CIC_ADVANCED = GCAL_PER_CIC_ADVANCED * MWH_PER_GCAL; // 5.815
 
-// FuelEU Annex IV penalty constants live in src/domain/fueleu/calculator.ts
-// (FUELEU_STATUTORY_PENALTY_PER_TONNE, FUELEU_PENALTY_VLSFO_MJ_PER_TONNE) — single source.
-
-/**
- * France CPB Ceiling Price in EUR/MWh
- */
-export const FR_CPB_CEILING_EUR_MWH = 100;
-
-/**
- * German THG-Quote non-compliance penalty (€/tCO2e shortfall)
- * Source: §37c(2) BImSchG — €600/tCO2e since compliance year 2022
- */
-export const DE_THG_PENALTY_EUR_PER_TCO2E = 600;
-
-/**
- * UK RTFO buy-out price per RTFC (£) — no obligated supplier rationally pays more
- * Source: Renewable Transport Fuel Obligations Order 2007 (SI 2007/3072), Art. 17
- */
-export const UK_RTFC_BUYOUT_GBP = 0.50;
+// FuelEU Annex IV penalty constants and the statutory ceilings below are defined for real in
+// src/domain/regulatory/constants.ts (single source) — re-exported here for callers still
+// using this historical import path.
+export { FR_CPB_CEILING_EUR_MWH, DE_THG_PENALTY_EUR_PER_TCO2E, UK_RTFC_BUYOUT_GBP } from '../regulatory/constants';
 
 /**
  * GHG Saving Thresholds for Transport (by commissioning date)

@@ -9,6 +9,8 @@ import {
   LngEngineType,
 } from './types';
 import { getAssumption } from '../assumptions/registry';
+import { FUELEU_STATUTORY_PENALTY_PER_TONNE, FUELEU_PENALTY_VLSFO_MJ_PER_TONNE } from '../regulatory/constants';
+export { FUELEU_STATUTORY_PENALTY_PER_TONNE, FUELEU_PENALTY_VLSFO_MJ_PER_TONNE };
 
 /**
  * FuelEU Maritime Physical & Regulatory Constants
@@ -149,9 +151,6 @@ export function bioLngFuelEUIntensity(redCi: number, engine: LngEngineType = DEF
 export const FUELEU_BASELINE_MGO_CI = FUELEU_MGO_WTW;
 /** @deprecated Use fossilLngWtw(engine). Default-engine value. */
 export const FUELEU_FOSSIL_LNG_CI = fossilLngWtw();
-export const FUELEU_STATUTORY_PENALTY_PER_TONNE = 2400; // €/tonne VLSFO equivalent
-/** Annex IV fixed energy content of a tonne of VLSFO-equivalent in the penalty formula. */
-export const FUELEU_PENALTY_VLSFO_MJ_PER_TONNE = 41000;
 
 export const LHV_VLSFO_MJ_PER_TONNE = FUELEU_ANNEX_II.HFO.lcvMjPerG * 1_000_000; // 40,500 (HFO class)
 export const LHV_MGO_MJ_PER_TONNE = FUELEU_ANNEX_II.MGO.lcvMjPerG * 1_000_000;   // 42,700

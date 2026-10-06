@@ -1,9 +1,6 @@
-import { 
-  CI_COMPARATOR_ROAD_TRANSPORT, 
-  MJ_PER_MWH, 
-  FR_CPB_CEILING_EUR_MWH,
-  DE_THG_PENALTY_EUR_PER_TCO2E,
-  UK_RTFC_BUYOUT_GBP,
+import {
+  CI_COMPARATOR_ROAD_TRANSPORT,
+  MJ_PER_MWH,
   MWH_PER_CIC_ADVANCED,
   MWH_PER_CIC_CONVENTIONAL,
 } from '../markets/constants';
@@ -12,14 +9,19 @@ import { Consignment } from '../consignment/types';
 import { BundleReference, CostInputs, CertificateValueResult, NetbackResult, NetbackBranch, MarksState, FuelEUOptions, PricingSides, NetbackSides, ValuationRange, PrincipalRiskMetrics } from './types';
 import { EligibilityAssessment } from '../eligibility/types';
 import { hubBasisSpread } from '../logistics/corridors';
+import {
+  FR_CPB_CEILING_EUR_MWH,
+  DE_THG_PENALTY_EUR_PER_TCO2E,
+  UK_RTFC_BUYOUT_GBP,
+  FUELEU_STATUTORY_PENALTY_PER_TONNE,
+  FUELEU_PENALTY_VLSFO_MJ_PER_TONNE,
+} from '../regulatory/constants';
 
 import {
   FUELEU_VLSFO_WTW,
   FUELEU_TARGET_2025,
   FUELEU_TARGET_2030,
   bioLngFuelEUIntensity,
-  FUELEU_STATUTORY_PENALTY_PER_TONNE,
-  FUELEU_PENALTY_VLSFO_MJ_PER_TONNE,
 } from '../fueleu/calculator';
 import { getAssumption } from '../assumptions/registry';
 import { DE_THG_BUNDLE_MAX_CI, selectDeThgBundleReference } from '../markets/deThgBundle';

@@ -20,13 +20,13 @@ import {
   calculateLogisticsRoute 
 } from '../logistics/engine';
 import { MARKETS, getMarketById } from '../markets/registry';
-import { 
-  CI_COMPARATOR_ROAD_TRANSPORT, 
-  CI_COMPARATOR_HEAT, 
-  FR_CPB_CEILING_EUR_MWH,
+import {
+  CI_COMPARATOR_ROAD_TRANSPORT,
+  CI_COMPARATOR_HEAT,
   MWH_PER_CIC_ADVANCED,
   MWH_PER_CIC_CONVENTIONAL,
 } from '../markets/constants';
+import { FR_CPB_CEILING_EUR_MWH } from '../regulatory/constants';
 import { FEEDSTOCK_REGISTRY, REFERENCE_CONSIGNMENTS } from '../consignment/feedstocks';
 import { Consignment, AnnexClassification, CertificationScheme, ChainOfCustody } from '../consignment/types';
 import { MarksState, CostInputs, NetbackResult } from '../netback/types';

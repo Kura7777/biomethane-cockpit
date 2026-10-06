@@ -302,11 +302,8 @@ describe('ARCHITECTURE — no new hard-coded price', () => {
    */
   const ALLOWED_MONEY_DECLARATIONS: { file: string; token: string; because: string }[] = [
     { file: 'domain/regulatory/constants.ts', token: 'EUR_MWH', because: 'Statutory constant catalogue — restates a cited legal figure, not a desk judgement.' },
+    { file: 'domain/regulatory/constants.ts', token: 'PENALTY_EUR_PER_TCO2E', because: 'Statutory penalty, cited — defined here for real; markets/constants.ts only re-exports it.' },
     { file: 'domain/regulatory/constants.ts', token: 'RED3_TRANSPORT_MAX_CI', because: 'RED III statutory GHG-saving threshold, cited.' },
-    { file: 'domain/markets/constants.ts', token: 'EUR_MWH', because: 'Statutory ceiling/penalty constants, cited in the Assumptions tab Regulatory section.' },
-    { file: 'domain/markets/constants.ts', token: 'PENALTY_EUR_PER_TCO2E', because: 'Statutory penalty, cited.' },
-    { file: 'domain/markets/constants.ts', token: 'BUYOUT_GBP', because: 'Statutory buy-out price, cited.' },
-    { file: 'domain/fueleu/calculator.ts', token: 'PENALTY_PER_TONNE', because: 'FuelEU Annex IV statutory penalty, cited.' },
     { file: 'domain/marks/simulate.ts', token: '', because: 'Synthetic test data — every value here is explicitly SIMULATED, never a real price.' },
     { file: 'features/ets2/Ets2Screen.tsx', token: 'PRICE_CONTROL_TRIGGER_EUR_2020', because: 'Directive 2023/959 Art. 30h statutory price-control trigger, cited in the code comment above it — not a desk judgement, out of scope for this job.' },
   ];
