@@ -32,6 +32,8 @@ interface TradeExecutionStepProps {
   onOpenDocReview: (tab: DocumentTab) => void;
   onOpenLogistics: () => void;
   onSaveDossier: () => void;
+  justSaved?: boolean;
+  onViewInBlotter?: () => void;
   onExportPdf: () => void;
   onExportTermSheetPdf: () => void;
   onReset: () => void;
@@ -48,6 +50,8 @@ export function TradeExecutionStep({
   onOpenDocReview,
   onOpenLogistics,
   onSaveDossier,
+  justSaved,
+  onViewInBlotter,
   onExportPdf,
   onExportTermSheetPdf,
   onReset,
@@ -246,8 +250,13 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
           <div className="tb-row-start">
             <button type="button" onClick={onSaveDossier} className="btn btn-secondary" data-testid="save-dossier-btn">
               <FolderDown size={14} />
-              <span>Save Dossier with Statutory Citations</span>
+              <span>Save to blotter</span>
             </button>
+            {justSaved && (
+              <button type="button" onClick={onViewInBlotter} className="btn btn-ghost" data-testid="view-in-blotter-link">
+                <span>View in blotter →</span>
+              </button>
+            )}
             <button type="button" onClick={onOpenLogistics} className="btn btn-secondary" data-testid="delivery-playbook-btn">
               <MapPin size={14} />
               <span>View TSO Pipeline Logistics Route (Dijkstra)</span>
@@ -266,7 +275,7 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
         <div className="tb-step-actions m-sticky-actions" data-testid="tb-mobile-actions">
           <button type="button" className="btn btn-secondary" onClick={onSaveDossier}>
             <FolderDown size={14} />
-            <span>Save dossier</span>
+            <span>Save to blotter</span>
           </button>
           <button type="button" className="btn btn-primary" onClick={() => onOpenDocReview('TERM_SHEET')}>
             <Package size={14} />

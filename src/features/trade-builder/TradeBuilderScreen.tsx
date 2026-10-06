@@ -242,6 +242,9 @@ export function TradeBuilderScreen() {
   const [isLegalPackageOpen, setIsLegalPackageOpen] = useState(false);
   const [isPoSUploaderOpen, setIsPoSUploaderOpen] = useState(false);
   const [legalPackageTab, setLegalPackageTab] = useState<DocumentTab>('TERM_SHEET');
+  // Tracks which deal id was just saved, so the "View in blotter" link shows next to its save
+  // button and clears once the deal underneath it changes.
+  const [justSavedId, setJustSavedId] = useState<string | null>(null);
 
   const handleOpenDocReview = (tab: DocumentTab) => {
     setLegalPackageTab(tab);
@@ -656,11 +659,21 @@ export function TradeBuilderScreen() {
   }, [origin, marketId, feedstockKey, ci, volumeMwh, linkedPlant, deal, selectedMarket, netback, molVal, certVal]);
 
   const handleSaveDossier = () => {
+    // Resaving an edited deal keeps whatever status it already reached in the blotter;
+    // only a brand-new id starts at INDICATIVE.
+    const existing = state.savedAssessments.find(a => a.id === currentTradeAssessment.id);
     dispatch({
       type: 'SAVE_ASSESSMENT',
-      assessment: currentTradeAssessment,
+      assessment: {
+        ...currentTradeAssessment,
+        status: existing?.status ?? 'INDICATIVE',
+        statusHistory: existing?.statusHistory?.length
+          ? existing.statusHistory
+          : [{ status: 'INDICATIVE', at: currentTradeAssessment.createdAt }],
+      },
     });
-    showToast(`Dossier saved with gate citations · REF ${currentTradeAssessment.id}`);
+    showToast(`Saved to blotter · REF ${currentTradeAssessment.id}`);
+    setJustSavedId(currentTradeAssessment.id);
   };
 
   const handleExportPdf = () => {
@@ -1151,6 +1164,8 @@ export function TradeBuilderScreen() {
                       onOpenDocReview={handleOpenDocReview}
                       onOpenLogistics={() => setIsLogisticsOpen(true)}
                       onSaveDossier={handleSaveDossier}
+                      justSaved={justSavedId === currentTradeAssessment.id}
+                      onViewInBlotter={() => navigate('/deals')}
                       onExportPdf={handleExportPdf}
                       onExportTermSheetPdf={handleExportTermSheetPdf}
                       onReset={handleResetDeal}
@@ -2113,12 +2128,23 @@ export function TradeBuilderScreen() {
             style={{ marginTop: 0, padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '13px' }}
             onClick={handleSaveDossier}
             data-testid="save-dossier-btn"
-            title="Saves this trade assessment with full RED III six-gate statutory citations to your persistent Dossier Library"
+            title="Saves this trade assessment, with full RED III six-gate statutory citations, to the deal blotter"
           >
             <span>📁</span>
-            <span>Save Dossier with Statutory Citations</span>
+            <span>Save to blotter</span>
           </button>
-          
+          {justSavedId === currentTradeAssessment.id && (
+            <button
+              type="button"
+              className="btn btn-ghost"
+              style={{ marginTop: 0, padding: '4px 0', fontSize: '12px', alignSelf: 'center' }}
+              onClick={() => navigate('/deals')}
+              data-testid="view-in-blotter-link"
+            >
+              View in blotter →
+            </button>
+          )}
+
           {/* Complete 4-Piece Deal Package In-Browser Review */}
           <button
             type="button"
