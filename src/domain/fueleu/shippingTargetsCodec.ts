@@ -22,12 +22,13 @@ export const TIER_LABEL = {
 export type StrategyTierIndex = keyof typeof TIER_LABEL;
 
 /**
- * Positional layout of one encoded row. Rank is the row's position (1-based); combined exposure is
- * penalty + ETS EUR; conventional vessels are vessels - LNG vessels.
+ * Positional layout of one encoded row. Rank is the row's position (1-based); conventional vessels
+ * are vessels - LNG vessels.
  *
- * No pooling saving/margin columns: those depend on the live FuelEU pool mark (Pricing desk), so
- * they are computed at render time from compliance_balance_2026_tco2e + penalty_2026_y1_eur via
- * poolingEconomicsForBalance() (marketPrices.ts), never stored.
+ * No pooling saving/margin columns, and no EU ETS € column: those depend on a live mark (the
+ * FuelEU pool mark and the EUA mark, both from the Pricing desk), so they are computed at render
+ * time — pooling via poolingEconomicsForBalance(), ETS € via shippingEtsExposureEur() /
+ * shippingCombinedRegulatoryExposureEur() (marketPrices.ts) — never stored.
  */
 export const COL = {
   name: 0,
@@ -52,14 +53,13 @@ export const COL = {
   fleetCap: 19,
   lngVessels: 20,
   etsTco2: 21,
-  etsEur: 22,
-  companyImo: 23,
-  shipImos: 24,
-  lngShipCount: 25,
-  otherFuel: 26,
-  partial: 27,
-  group: 28,
-  bearer: 29,
+  companyImo: 22,
+  shipImos: 23,
+  lngShipCount: 24,
+  otherFuel: 25,
+  partial: 26,
+  group: 27,
+  bearer: 28,
 } as const;
 
 /** Tonnes at whole-tonne precision once they reach 1,000 t; one decimal below that so small fleets are not distorted. */
@@ -124,7 +124,6 @@ export function decodeShippingTargets(pack: ShippingTargetsPack): ShippingCounte
     const vessels = r[COL.vessels] as number;
     const lngVessels = r[COL.lngVessels] as number;
     const pen26 = r[COL.pen2026Y1] as number;
-    const etsEur = r[COL.etsEur] as number;
     const name = r[COL.name] as string;
     const bal26 = r[COL.bal2026] as number;
     const ghgie = r[COL.ghgie] as number;
@@ -166,8 +165,6 @@ export function decodeShippingTargets(pack: ShippingTargetsPack): ShippingCounte
       lng_vessels_in_scope: lngVessels,
       conventional_vessels_in_scope: vessels - lngVessels,
       ets_exposure_2026_tco2: r[COL.etsTco2] as number,
-      ets_exposure_2026_eur: etsEur,
-      combined_regulatory_exposure_2026_eur: pen26 + etsEur,
       company_imo: r[COL.companyImo] as string,
       ship_imos: (r[COL.shipImos] as string).split(' '),
       source,

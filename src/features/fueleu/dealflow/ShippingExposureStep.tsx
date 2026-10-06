@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 import { showToast } from '../../../app/DeskToastContainer';
 import { useFuelEuPrices } from '../useFuelEuPrices';
-import { poolingEconomicsForBalance } from '../../../domain/fueleu/marketPrices';
+import { poolingEconomicsForBalance, shippingCombinedRegulatoryExposureEur, shippingEtsExposureEur, NO_EUA_MARK } from '../../../domain/fueleu/marketPrices';
 import { FuelEuProjectionChart } from '../FuelEuProjectionChart';
 import { PoolPriceMark } from '../PoolPriceMark';
 
@@ -56,8 +56,10 @@ export function ShippingExposureStep({
   const primaryContact = counterparty.contacts?.[0];
   const contactEmail = primaryContact?.email;
 
-  // Pool prices come from the FUELEU mark; with no mark the pitch says so instead of quoting a number.
-  const pool = useFuelEuPrices().pool;
+  // Pool and EUA prices come from live marks; with no mark the pitch says so instead of quoting a number.
+  const marketPrices = useFuelEuPrices();
+  const pool = marketPrices.pool;
+  const euaPrice = marketPrices.euaEurPerTco2e;
   const poolBidText = pool ? `€${pool.bidEurPerTco2e.toFixed(0)}/tCO2e` : 'no FuelEU pool mark loaded; set it in Pricing';
   const poolOfferText = pool ? `€${pool.offerEurPerTco2e.toFixed(0)}/tCO2e` : 'no FuelEU pool mark loaded; set it in Pricing';
   const poolingSavingsEur = poolingEconomicsForBalance(
@@ -69,6 +71,15 @@ export function ShippingExposureStep({
     poolingSavingsEur === null
       ? 'an indicative saving once a FuelEU pool mark is set in Pricing'
       : `€${(poolingSavingsEur / 1e6).toFixed(1)}M`;
+
+  const etsExposureEur = shippingEtsExposureEur(counterparty.ets_exposure_2026_tco2, euaPrice);
+  const combinedExposureEur = shippingCombinedRegulatoryExposureEur(
+    counterparty.penalty_2026_y1_eur,
+    counterparty.ets_exposure_2026_tco2,
+    euaPrice
+  );
+  const etsExposureText = etsExposureEur === null ? NO_EUA_MARK : `€${(etsExposureEur / 1e6).toFixed(1)}M`;
+  const combinedExposureText = combinedExposureEur === null ? NO_EUA_MARK : `€${(combinedExposureEur / 1e6).toFixed(1)}M`;
 
   // Structured Crisp Bulleted Pitch Points
   const pitchBulletPoints = useMemo(() => {
@@ -96,7 +107,7 @@ export function ShippingExposureStep({
         },
         {
           title: 'Statutory Exposure Neutralisation',
-          detail: `Combined ${FUELEU_ACTIVE_PERIOD} exposure of €${(counterparty.combined_regulatory_exposure_2026_eur / 1e6).toFixed(1)}M (€${(counterparty.penalty_2026_y1_eur / 1e6).toFixed(1)}M FuelEU penalty + €${(counterparty.ets_exposure_2026_eur / 1e6).toFixed(1)}M EU ETS liability) is fully wiped out.`,
+          detail: `Combined ${FUELEU_ACTIVE_PERIOD} exposure of ${combinedExposureText} (€${(counterparty.penalty_2026_y1_eur / 1e6).toFixed(1)}M FuelEU penalty + ${etsExposureText} EU ETS liability) is fully wiped out.`,
         },
         {
           title: 'Double Statutory Exemption (RED III + EU ETS)',
@@ -111,7 +122,7 @@ export function ShippingExposureStep({
     return [
       {
         title: 'Conventional Fleet Exposure',
-        detail: `${counterparty.parent_name}'s fleet of ${counterparty.vessels_in_scope} conventional 2-stroke diesel vessels incurs €${(counterparty.combined_regulatory_exposure_2026_eur / 1e6).toFixed(1)}M in joint ${FUELEU_ACTIVE_PERIOD} regulatory exposure (€${(counterparty.penalty_2026_y1_eur / 1e6).toFixed(1)}M FuelEU + €${(counterparty.ets_exposure_2026_eur / 1e6).toFixed(1)}M EU ETS).`,
+        detail: `${counterparty.parent_name}'s fleet of ${counterparty.vessels_in_scope} conventional 2-stroke diesel vessels incurs ${combinedExposureText} in joint ${FUELEU_ACTIVE_PERIOD} regulatory exposure (€${(counterparty.penalty_2026_y1_eur / 1e6).toFixed(1)}M FuelEU + ${etsExposureText} EU ETS).`,
       },
       {
         title: 'Article 21 Compliance Pooling Solution',
@@ -122,7 +133,7 @@ export function ShippingExposureStep({
         detail: `Transfers statutory liability into our desk compliance pool at the desk pool offer (${poolOfferText}, indicative), generating ${poolingSavingsText} in net savings vs statutory penalties.`,
       },
     ];
-  }, [counterparty, isSurplus, isDualFuel, absDeficit, poolBidText, poolOfferText, poolingSavingsText]);
+  }, [counterparty, isSurplus, isDualFuel, absDeficit, poolBidText, poolOfferText, poolingSavingsText, combinedExposureText, etsExposureText]);
 
   // Full Tailored Sales Pitch (for 1-click clipboard copy)
   const fullPitchText = useMemo(() => {
@@ -262,7 +273,7 @@ export function ShippingExposureStep({
           >
             <span style={{ fontSize: '10.5px', color: 'var(--color-muted)' }}>Combined {FUELEU_ACTIVE_PERIOD}:</span>
             <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--color-status-neg-text)' }}>
-              €{(counterparty.combined_regulatory_exposure_2026_eur / 1e6).toFixed(2)}M
+              {combinedExposureEur === null ? NO_EUA_MARK : `€${(combinedExposureEur / 1e6).toFixed(2)}M`}
             </span>
           </div>
         </div>
@@ -334,7 +345,7 @@ export function ShippingExposureStep({
                     letterSpacing: '-0.02em',
                   }}
                 >
-                  €{(counterparty.combined_regulatory_exposure_2026_eur / 1e6).toFixed(2)}M
+                  {combinedExposureEur === null ? NO_EUA_MARK : `€${(combinedExposureEur / 1e6).toFixed(2)}M`}
                 </div>
                 <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '2px' }}>
                   FuelEU Maritime statutory penalty + EU ETS 70% phase-in liability
@@ -377,30 +388,11 @@ export function ShippingExposureStep({
                   <div>
                     <div style={{ fontWeight: 600, color: 'var(--color-text)' }}>EU ETS Maritime Liability</div>
                     <div style={{ fontSize: '10.5px', color: 'var(--color-muted)' }}>
-                      {counterparty.ets_exposure_2026_tco2.toLocaleString()} tCO₂ (70% phase-in @ €70/t)
+                      {counterparty.ets_exposure_2026_tco2.toLocaleString()} tCO₂{euaPrice !== null ? ` @ €${euaPrice.toFixed(2)}/t (live EUA mark)` : ''}
                     </div>
                   </div>
                   <div style={{ fontFamily: MONO_FONT, fontWeight: 700, fontSize: '12.5px', color: 'var(--color-status-warn-text, #d97706)' }}>
-                    €{(counterparty.ets_exposure_2026_eur / 1e6).toFixed(2)}M
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '8px 10px',
-                    border: '1px solid var(--color-divider)',
-                    backgroundColor: 'var(--color-subtier)',
-                  }}
-                >
-                  <div>
-                    <div style={{ fontWeight: 600, color: 'var(--color-text)' }}>2026 Full ETS Enforcement</div>
-                    <div style={{ fontSize: '10.5px', color: 'var(--color-muted)' }}>100% phase-in rate liability</div>
-                  </div>
-                  <div style={{ fontFamily: MONO_FONT, fontWeight: 600, fontSize: '12px', color: 'var(--color-muted)' }}>
-                    €{((counterparty.ets_exposure_2026_eur / 0.70) / 1e6).toFixed(2)}M
+                    {etsExposureText}
                   </div>
                 </div>
               </div>

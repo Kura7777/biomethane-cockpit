@@ -235,8 +235,8 @@ export interface ShippingCounterparty {
   conventional_vessels_in_scope: number;
   /** MRV-reported ets_co2_t (100% 2026 phase-in) plus an estimated CH4 CO2e add-on (see generator; N2O omitted). */
   ets_exposure_2026_tco2: number;
-  ets_exposure_2026_eur: number;
-  combined_regulatory_exposure_2026_eur: number;
+  // No stored € figure: the EU ETS liability is priced at render time from the live EUA mark via
+  // shippingEtsExposureEur() / shippingCombinedRegulatoryExposureEur() (marketPrices.ts).
   // EU MRV (THETIS-MRV) provenance — every row is traceable back to the source dataset/ships.
   company_imo: string;
   ship_imos: string[];

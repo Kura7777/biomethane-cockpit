@@ -21,8 +21,8 @@ import {
 import { buildDealUrl } from '../trade/dealParams';
 import mrvData from '../../../data/fueleu_mrv_2025_companies.json';
 import { slimTonnes } from '../fueleu/shippingTargetsCodec';
-import { poolingEconomicsForBalance } from '../fueleu/marketPrices';
-import { TEST_QUOTE_MARKET_INPUTS, TEST_POOL } from './fixtures/fueleuPrices';
+import { poolingEconomicsForBalance, shippingEtsExposureEur, shippingCombinedRegulatoryExposureEur } from '../fueleu/marketPrices';
+import { TEST_QUOTE_MARKET_INPUTS, TEST_POOL, TEST_EUA_EUR_PER_TCO2E } from './fixtures/fueleuPrices';
 
 const FORBIDDEN_PITCH_WORDS = ['435', 'audited', 'verified', 'guaranteed', 'Article 20'];
 
@@ -47,10 +47,11 @@ describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2025)', () => {
       expect(['DUAL_FUEL_LNG', 'CONVENTIONAL_ONLY']).toContain(c.fleetCapability);
       expect(c.lng_vessels_in_scope + c.conventional_vessels_in_scope).toBe(c.vessels_in_scope);
       expect(Number.isFinite(c.ets_exposure_2026_tco2)).toBe(true);
-      expect(Number.isFinite(c.ets_exposure_2026_eur)).toBe(true);
-      expect(Number.isFinite(c.ets_exposure_2026_eur)).toBe(true);
-      expect(Number.isFinite(c.combined_regulatory_exposure_2026_eur)).toBe(true);
-      expect(c.combined_regulatory_exposure_2026_eur).toBe(c.penalty_2026_y1_eur + c.ets_exposure_2026_eur);
+      const etsEur = shippingEtsExposureEur(c.ets_exposure_2026_tco2, TEST_EUA_EUR_PER_TCO2E)!;
+      const combinedEur = shippingCombinedRegulatoryExposureEur(c.penalty_2026_y1_eur, c.ets_exposure_2026_tco2, TEST_EUA_EUR_PER_TCO2E)!;
+      expect(Number.isFinite(etsEur)).toBe(true);
+      expect(Number.isFinite(combinedEur)).toBe(true);
+      expect(combinedEur).toBe(c.penalty_2026_y1_eur + etsEur);
     }
   });
 
@@ -534,15 +535,16 @@ describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2025)', () => {
     // ETS fields are computed from the MRV-reported ets_co2_t, not the estimated fuel split, so
     // they need not track the VLSFO/MGO/LNG-based totalGrossCo2Tonnes formula above exactly.
     for (const c of FUEL_EU_SHIPPING_COUNTERPARTIES) {
-      expect(c.ets_exposure_2026_eur).toBeGreaterThanOrEqual(0);
-      expect(c.ets_exposure_2026_eur).toBeGreaterThanOrEqual(c.ets_exposure_2026_eur);
-      expect(c.combined_regulatory_exposure_2026_eur).toBe(c.penalty_2026_y1_eur + c.ets_exposure_2026_eur);
+      const etsEur = shippingEtsExposureEur(c.ets_exposure_2026_tco2, TEST_EUA_EUR_PER_TCO2E)!;
+      const combinedEur = shippingCombinedRegulatoryExposureEur(c.penalty_2026_y1_eur, c.ets_exposure_2026_tco2, TEST_EUA_EUR_PER_TCO2E)!;
+      expect(etsEur).toBeGreaterThanOrEqual(0);
+      expect(combinedEur).toBe(c.penalty_2026_y1_eur + etsEur);
 
       if (c.compliance_balance_2026_tco2e > 0) {
         expect(c.penalty_2026_y1_eur).toBe(0);
-        expect(c.combined_regulatory_exposure_2026_eur).toBe(c.ets_exposure_2026_eur);
+        expect(combinedEur).toBe(etsEur);
       } else {
-        expect(c.combined_regulatory_exposure_2026_eur).toBeGreaterThanOrEqual(c.penalty_2026_y1_eur);
+        expect(combinedEur).toBeGreaterThanOrEqual(c.penalty_2026_y1_eur);
       }
     }
   });
@@ -591,8 +593,9 @@ describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2025)', () => {
 
     for (const cp of [dualFuelTarget!, conventionalTarget!]) {
       const isDualFuel = cp.fleetCapability === 'DUAL_FUEL_LNG';
-      const combinedRisk = cp.penalty_2026_y1_eur + cp.ets_exposure_2026_eur;
-      expect(cp.combined_regulatory_exposure_2026_eur).toBe(combinedRisk);
+      const etsEur = shippingEtsExposureEur(cp.ets_exposure_2026_tco2, TEST_EUA_EUR_PER_TCO2E)!;
+      const combinedRisk = cp.penalty_2026_y1_eur + etsEur;
+      expect(shippingCombinedRegulatoryExposureEur(cp.penalty_2026_y1_eur, cp.ets_exposure_2026_tco2, TEST_EUA_EUR_PER_TCO2E)).toBe(combinedRisk);
 
       const quote = calculateMarineBunkerQuotation({
         ...TEST_QUOTE_MARKET_INPUTS,

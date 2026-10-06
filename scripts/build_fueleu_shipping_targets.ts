@@ -45,7 +45,6 @@ import {
   FUELEU_GWP_CH4,
 } from '../src/domain/fueleu/calculator';
 import { getAssumption } from '../src/domain/assumptions/registry';
-import { getBenchmarkForMarket } from '../src/domain/markets/marketBenchmarks';
 import type { ShippingCounterparty, FuelEuDatasetSource, GroupEntityType, FuelCostBearer, FuelCostBearerType, GroupContact, FleetCapability } from '../src/domain/fueleu/types';
 import {
   COL,
@@ -129,12 +128,6 @@ const datasetSource: FuelEuDatasetSource = {
   url: raw.source.url,
   sha256: raw.source.sha256,
 };
-
-// EUA price: like the FuelEU pool price, this is a market mark (EU_ETS1), not a desk assumption.
-// The dataset is generated offline (no marks store to read), so it uses the EU_ETS1 benchmark mid
-// as its one-time snapshot — the same approach scripts/build_fueleu_shipping_targets.ts already
-// takes for every other mark-sourced input it cannot read live.
-const euaPrice = getBenchmarkForMarket('EU_ETS1')!.midPrice;
 
 // ---------------- Group map (optional — the script must not fail if it's absent) ----------------
 let groupMap: GroupMapFile | null = null;
@@ -273,10 +266,8 @@ const built: Built[] = eligible.map((c): Built => {
   const etsCo2Share = c.total_co2_t > 0 ? c.ets_co2_t / c.total_co2_t : 0;
   const ch4EtsCo2eTonnes = c.ch4_t * etsCo2Share * FUELEU_GWP_CH4;
   const etsExposure2026Tco2 = round(c.ets_co2_t * EU_ETS_PHASE_IN_2026 + ch4EtsCo2eTonnes, 1);
-  const etsExposure2026Eur = Math.round(etsExposure2026Tco2 * euaPrice);
 
   const penalty2026Y1 = Math.round(r26.statutoryPenaltyY1Eur);
-  const combinedExposure2026 = penalty2026Y1 + etsExposure2026Eur;
 
   const surplus = r26.isOverCompliant;
   const tier = tierFor(penalty2026Y1, surplus);
@@ -328,8 +319,6 @@ const built: Built[] = eligible.map((c): Built => {
     lng_vessels_in_scope: fleet.lngVesselsInScope,
     conventional_vessels_in_scope: fleet.conventionalVesselsInScope,
     ets_exposure_2026_tco2: etsExposure2026Tco2,
-    ets_exposure_2026_eur: etsExposure2026Eur,
-    combined_regulatory_exposure_2026_eur: combinedExposure2026,
     company_imo: c.company_imo,
     ship_imos: c.ship_imos,
     source: datasetSource,
@@ -387,9 +376,6 @@ const encodedRows: (string | number)[][] = built.map(r => {
   if (r.conventional_vessels_in_scope !== r.vessels_in_scope - r.lng_vessels_in_scope) {
     throw new Error(`conventional vessels not derivable for ${r.parent_name}`);
   }
-  if (r.combined_regulatory_exposure_2026_eur !== r.penalty_2026_y1_eur + r.ets_exposure_2026_eur) {
-    throw new Error(`combined exposure not derivable for ${r.parent_name}`);
-  }
   const tuple: (string | number)[] = [];
   tuple[COL.name] = r.parent_name;
   tuple[COL.segment] = indexOf(segments, r.segment, (a, b) => a === b);
@@ -413,7 +399,6 @@ const encodedRows: (string | number)[][] = built.map(r => {
   tuple[COL.fleetCap] = indexOf(fleetCapabilities, r.fleetCapability, (a, b) => a === b);
   tuple[COL.lngVessels] = r.lng_vessels_in_scope;
   tuple[COL.etsTco2] = Math.round(r.ets_exposure_2026_tco2);
-  tuple[COL.etsEur] = r.ets_exposure_2026_eur;
   tuple[COL.companyImo] = r.company_imo;
   tuple[COL.shipImos] = r.ship_imos.join(' ');
   tuple[COL.lngShipCount] = r.lngShipCount;
@@ -447,7 +432,7 @@ const pack: ShippingTargetsPack = {
     'compliance_balance_2026_tco2e', 'penalty_2026_y1_eur', 'penalty_2026_y2_eur', 'compliance_balance_2030_tco2e',
     'penalty_2030_y1_eur', 'bio_lng_required_neg100_mwh', 'client_savings_physical_eur', 'desk_margin_physical_eur',
     'outreachPitch', 'fleetCapability', 'lng_vessels_in_scope',
-    'conventional_vessels_in_scope', 'ets_exposure_2026_eur', 'combined_regulatory_exposure_2026_eur', 'company_imo',
+    'conventional_vessels_in_scope', 'company_imo',
     'fuelSplitMethod', 'lngShipCount', 'otherFuelSuspectedShips', 'partialReportShips', 'group_id', 'group_name',
     'entityType', 'parent_group_id',
   ] as const;

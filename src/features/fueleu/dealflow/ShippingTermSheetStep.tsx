@@ -29,7 +29,7 @@ import {
   Mail,
 } from 'lucide-react';
 import { showToast } from '../../../app/DeskToastContainer';
-import { poolingEconomicsForBalance, type FuelEuMarketPrices, type FuelEuPoolPrices } from '../../../domain/fueleu/marketPrices';
+import { poolingEconomicsForBalance, shippingEtsExposureEur, shippingCombinedRegulatoryExposureEur, type FuelEuMarketPrices, type FuelEuPoolPrices } from '../../../domain/fueleu/marketPrices';
 
 const MONO_FONT = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
 
@@ -69,6 +69,15 @@ export function ShippingTermSheetStep({
 
   const isSurplus = counterparty.compliance_balance_2026_tco2e > 0;
   const isDualFuel = counterparty.fleetCapability === 'DUAL_FUEL_LNG';
+
+  // EU ETS € liability priced at render time from the live EUA mark (euaPrice is non-null here —
+  // the parent gates this step on marketPrices.euaEurPerTco2e !== null).
+  const etsExposureEur = shippingEtsExposureEur(counterparty.ets_exposure_2026_tco2, euaPrice)!;
+  const combinedExposureEur = shippingCombinedRegulatoryExposureEur(
+    counterparty.penalty_2026_y1_eur,
+    counterparty.ets_exposure_2026_tco2,
+    euaPrice
+  )!;
 
   const marineQuote = useMemo(() => {
     return calculateMarineBunkerQuotation({
@@ -155,8 +164,8 @@ TRADE LANE: ${(counterparty.tradeLane && TRADE_LANES[counterparty.tradeLane]?.la
 - ${FUELEU_ACTIVE_PERIOD} FuelEU Target (2.00% reduction): 89.34 gCO2e/MJ
 - Estimated Compliance Balance ${FUELEU_ACTIVE_PERIOD}: ${counterparty.compliance_balance_2026_tco2e > 0 ? '+' : ''}${counterparty.compliance_balance_2026_tco2e.toLocaleString()} tCO2e
 - Indicative FuelEU ${FUELEU_ACTIVE_PERIOD} Penalty (Art. 23(2)): €${counterparty.penalty_2026_y1_eur.toLocaleString()} (if repeated next year, ×1.1 per Art. 23(2): €${counterparty.penalty_2026_y2_eur.toLocaleString()})
-- EU ETS ${FUELEU_ACTIVE_PERIOD} Carbon Liability (100% phase-in, CO2 + LNG CH4 @ €${euaPrice.toFixed(2)}/t): €${counterparty.ets_exposure_2026_eur.toLocaleString()} (${counterparty.ets_exposure_2026_tco2.toLocaleString()} tCO2e)
-- COMBINED ${FUELEU_ACTIVE_PERIOD} ESTIMATED EXPOSURE: €${counterparty.combined_regulatory_exposure_2026_eur.toLocaleString()}
+- EU ETS ${FUELEU_ACTIVE_PERIOD} Carbon Liability (100% phase-in, CO2 + LNG CH4 @ €${euaPrice.toFixed(2)}/t): €${etsExposureEur.toLocaleString()} (${counterparty.ets_exposure_2026_tco2.toLocaleString()} tCO2e)
+- COMBINED ${FUELEU_ACTIVE_PERIOD} ESTIMATED EXPOSURE: €${combinedExposureEur.toLocaleString()}
 
 2. MARINE BUNKER PRICING ENGINE (€/t & $/t) — Indicative estimate, desk assumptions
 --------------------------------------------------------------------------------
@@ -280,7 +289,7 @@ Please find below our indicative OTC marine fuel quotation (desk assumptions —
 1. COUNTERPARTY & EXPOSURE PROFILE
 - Counterparty: ${counterparty.parent_name} (#${counterparty.rank})
 - Fleet in EU MRV Scope: ${counterparty.vessels_in_scope} vessels (${counterparty.segment})
-- ${FUELEU_ACTIVE_PERIOD} Estimated Exposure: €${(counterparty.combined_regulatory_exposure_2026_eur / 1e6).toFixed(2)}M (indicative FuelEU penalty + EU ETS 70% liability)
+- ${FUELEU_ACTIVE_PERIOD} Estimated Exposure: €${(combinedExposureEur / 1e6).toFixed(2)}M (indicative FuelEU penalty + EU ETS 70% liability)
 - Primary Bunkering Corridor: ${counterparty.primary_bunkering_hubs || '—'}
 
 2. COMMERCIAL PROPOSAL (${pathway === 'PHYSICAL' ? 'Bio-LNG bunkering (Art. 4, Annex I-II)' : 'Article 21 Compliance Pooling'})
@@ -568,8 +577,8 @@ European Biomethane & Marine Fuels Trading Desk`
               <div>• FuelEU Target: <strong style={{ color: 'var(--color-text)' }}>89.34 gCO2e/MJ</strong> (Actual: {counterparty.actual_ghgie.toFixed(2)})</div>
               <div>• Vessels in Scope: <strong style={{ color: 'var(--color-text)' }}>{counterparty.vessels_in_scope}</strong> ({isDualFuel ? `${counterparty.lng_vessels_in_scope} LNG-ready` : 'Conventional'})</div>
               <div>• {FUELEU_ACTIVE_PERIOD} FuelEU Penalty: <strong style={{ color: 'var(--color-status-neg-text)' }}>€{(counterparty.penalty_2026_y1_eur / 1e6).toFixed(2)}M</strong></div>
-              <div>• {FUELEU_ACTIVE_PERIOD} EU ETS Liability (100%): <strong style={{ color: 'var(--color-warning)' }}>€{(counterparty.ets_exposure_2026_eur / 1e6).toFixed(2)}M</strong></div>
-              <div>• Combined {FUELEU_ACTIVE_PERIOD} Exposure: <strong style={{ color: 'var(--color-status-neg-text)' }}>€{(counterparty.combined_regulatory_exposure_2026_eur / 1e6).toFixed(2)}M</strong></div>
+              <div>• {FUELEU_ACTIVE_PERIOD} EU ETS Liability (100%): <strong style={{ color: 'var(--color-warning)' }}>€{(etsExposureEur / 1e6).toFixed(2)}M</strong></div>
+              <div>• Combined {FUELEU_ACTIVE_PERIOD} Exposure: <strong style={{ color: 'var(--color-status-neg-text)' }}>€{(combinedExposureEur / 1e6).toFixed(2)}M</strong></div>
             </div>
           </div>
 

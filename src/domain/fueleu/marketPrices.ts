@@ -59,6 +59,24 @@ export const NO_TTF_MARK = 'No TTF mark — set it in Pricing';
 export const NO_EUA_MARK = 'No EUA mark — set it in Pricing';
 export const NO_POOL_MARK = 'No FuelEU pool mark — set it in Pricing';
 
+/**
+ * A shipping counterparty's EU ETS Maritime € liability, priced at render time from the live EUA
+ * mark (never baked into the generated dataset — see shippingTargetsCodec.ts). Null with no mark.
+ */
+export function shippingEtsExposureEur(etsExposureTco2: number, euaEurPerTco2e: number | null): number | null {
+  return euaEurPerTco2e === null ? null : Math.round(etsExposureTco2 * euaEurPerTco2e);
+}
+
+/** FuelEU penalty + the live-priced EU ETS liability. Null with no EUA mark. */
+export function shippingCombinedRegulatoryExposureEur(
+  penaltyEur: number,
+  etsExposureTco2: number,
+  euaEurPerTco2e: number | null
+): number | null {
+  const etsEur = shippingEtsExposureEur(etsExposureTco2, euaEurPerTco2e);
+  return etsEur === null ? null : penaltyEur + etsEur;
+}
+
 export interface PoolingEconomics {
   /** Saving (deficit route) or surplus monetisation value (surplus route) at the live FUELEU mark. Null with no mark. */
   savingsEur: number | null;

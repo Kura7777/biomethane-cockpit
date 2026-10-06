@@ -23,7 +23,7 @@ import {
   DEFAULT_VLSFO_PRICE_USD_PER_TONNE,
   FUELEU_ACTIVE_PERIOD,
 } from '../../domain/fueleu/calculator';
-import { NO_TTF_MARK, NO_EUA_MARK, NO_POOL_MARK } from '../../domain/fueleu/marketPrices';
+import { NO_TTF_MARK, NO_EUA_MARK, NO_POOL_MARK, shippingCombinedRegulatoryExposureEur } from '../../domain/fueleu/marketPrices';
 import { useFuelEuPrices } from './useFuelEuPrices';
 
 type ActiveTab = 'DIRECTORY' | 'LNG_BOOK' | 'POOL_MATCHING' | 'TOOLS';
@@ -87,6 +87,10 @@ export function FuelEUShippingScreen() {
   const [euaOverride, setEuaOverride] = useState<number | null>(null);
   const ttfGasIndex: number | null = ttfOverride ?? marketPrices.ttfEurPerMwh;
   const euaPrice: number | null = euaOverride ?? marketPrices.euaEurPerTco2e;
+  const selectedCombinedExposureEur = selectedCounterparty
+    ? shippingCombinedRegulatoryExposureEur(selectedCounterparty.penalty_2026_y1_eur, selectedCounterparty.ets_exposure_2026_tco2, euaPrice)
+    : null;
+  const selectedCombinedExposureText = selectedCombinedExposureEur === null ? NO_EUA_MARK : `€${(selectedCombinedExposureEur / 1e6).toFixed(2)}M`;
   const pricingMarksMissing = [
     ttfGasIndex === null ? NO_TTF_MARK : null,
     euaPrice === null ? NO_EUA_MARK : null,
@@ -209,7 +213,7 @@ export function FuelEUShippingScreen() {
               <span className="fe-m-dealbar-tag">
                 {FUELEU_ACTIVE_PERIOD} Risk:{' '}
                 <strong style={{ color: 'var(--color-status-neg-text)' }}>
-                  €{(selectedCounterparty.combined_regulatory_exposure_2026_eur / 1e6).toFixed(2)}M
+                  {selectedCombinedExposureText}
                 </strong>
               </span>
             </div>
@@ -338,7 +342,7 @@ export function FuelEUShippingScreen() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '2px 8px', border: '1px solid var(--color-divider)', backgroundColor: 'var(--color-subtier)', fontSize: '11px', fontFamily: 'monospace' }}>
               <span style={{ color: 'var(--color-muted)' }}>{FUELEU_ACTIVE_PERIOD} Risk:</span>
               <span style={{ fontWeight: 700, color: 'var(--color-status-neg-text)' }}>
-                €{(selectedCounterparty.combined_regulatory_exposure_2026_eur / 1e6).toFixed(2)}M
+                {selectedCombinedExposureText}
               </span>
             </div>
             <button
