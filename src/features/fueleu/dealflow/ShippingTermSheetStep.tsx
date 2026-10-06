@@ -11,7 +11,8 @@ import {
   calculateMarineBunkerQuotation,
 } from '../../../domain/fueleu/calculator';
 import { buildDealUrl } from '../../../domain/trade/dealParams';
-import { defaultVolumeMwh } from '../../../domain/trade/dealDefaults';
+import { defaultVolumeMwh, FUELEU_BIO_LNG_DEFAULT_ORIGIN } from '../../../domain/trade/dealDefaults';
+import { buildOriginationUrl } from '../../commercial/originationUrl';
 import {
   FileText,
   Copy,
@@ -309,10 +310,10 @@ European Biomethane & Marine Fuels Trading Desk`
     );
     const url = buildDealUrl({
       marketId: 'FUELEU',
-      originCountry: 'NL',
-      feedstock: 'manure',
+      originCountry: FUELEU_BIO_LNG_DEFAULT_ORIGIN.originCountry,
+      feedstock: FUELEU_BIO_LNG_DEFAULT_ORIGIN.feedstock,
       // Volume is sized at -100 gCO2e/MJ (bio_lng_required_neg100_mwh); the CI must match it.
-      ci: -100,
+      ci: FUELEU_BIO_LNG_DEFAULT_ORIGIN.ci,
       ciIsEstimated: true,
       volume: volumeMwh,
       counterparty: counterparty.parent_name,
@@ -322,6 +323,12 @@ European Biomethane & Marine Fuels Trading Desk`
       contactPhone: primaryContact?.phone || counterparty.switchboardPhone,
     });
     navigate(url);
+  };
+
+  // "Find a plant": send this counterparty's bio-LNG need into Origination instead of assuming NL/manure.
+  const handleFindPlant = () => {
+    const volumeMwh = Math.max(1000, Math.round(counterparty.bio_lng_required_neg100_mwh || defaultVolumeMwh()));
+    navigate(buildOriginationUrl({ market: 'FUELEU', mwh: volumeMwh, buyer: counterparty.parent_name }));
   };
 
   const handleAuditFuelEuCompliance = () => {
@@ -482,6 +489,16 @@ European Biomethane & Marine Fuels Trading Desk`
           >
             <ExternalLink size={12} />
             <span>Hedge Upstream Gas ↗</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleFindPlant}
+            className="btn btn-secondary"
+            style={{ height: '32px', padding: '0 12px', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+            title="Find a sourcing plant for this counterparty's bio-LNG volume in Origination"
+          >
+            <span>Find a plant</span>
           </button>
         </div>
       </div>
@@ -737,6 +754,16 @@ European Biomethane & Marine Fuels Trading Desk`
           >
             <ExternalLink size={12} />
             <span>Hedge Upstream Gas ↗</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleFindPlant}
+            className="btn btn-secondary"
+            style={{ height: '32px', padding: '0 12px', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+            title="Find a sourcing plant for this counterparty's bio-LNG volume in Origination"
+          >
+            <span>Find a plant</span>
           </button>
 
           <button

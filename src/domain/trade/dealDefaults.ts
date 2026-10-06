@@ -80,6 +80,17 @@ export function defaultVolumeMwh(
 }
 
 /**
+ * The bio-LNG the FuelEU deal flow and calculators size deals against: −100 gCO₂e/MJ manure
+ * biomethane sourced from NL/DK (the desk's standing bio-LNG corridor). One place holds it so the
+ * Trade Builder links it builds don't each hardcode the same three literals.
+ */
+export const FUELEU_BIO_LNG_DEFAULT_ORIGIN = {
+  originCountry: 'NL',
+  feedstock: 'manure',
+  ci: -100,
+} as const;
+
+/**
  * Per-origin statutory default market routing.
  * GEMINI.md invariant: UK/GB→UK_RTFO, FR→FR_CPB, IT→IT_CIC, AT/DE/DK/NL/BE/other→DE_THG
  */

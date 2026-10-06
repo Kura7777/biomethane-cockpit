@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { buildDealUrl } from '../../domain/trade/dealParams';
-import { defaultVolumeMwh } from '../../domain/trade/dealDefaults';
+import { defaultVolumeMwh, FUELEU_BIO_LNG_DEFAULT_ORIGIN } from '../../domain/trade/dealDefaults';
+import { buildOriginationUrl } from '../commercial/originationUrl';
 import {
   FUELEU_VLSFO_WTW,
   fossilLngWtw,
@@ -118,14 +119,20 @@ export function DualCommercialPathwaySimulator({ initial }: DualCommercialPathwa
   const handleStructureTrade = () => {
     const url = buildDealUrl({
       marketId: 'FUELEU',
-      originCountry: 'NL',
-      feedstock: 'manure',
+      originCountry: FUELEU_BIO_LNG_DEFAULT_ORIGIN.originCountry,
+      feedstock: FUELEU_BIO_LNG_DEFAULT_ORIGIN.feedstock,
       ci: bioLngCi,
       ciIsEstimated: true,
       volume: Math.max(1000, Math.round(requiredBioLngMwh || defaultVolumeMwh())),
       complianceYear: targetYear,
     });
     navigate(url);
+  };
+
+  // "Find a plant": this simulator has no counterparty of its own, so only market and volume hand off.
+  const handleFindPlant = () => {
+    const volumeMwh = Math.max(1000, Math.round(requiredBioLngMwh || defaultVolumeMwh()));
+    navigate(buildOriginationUrl({ market: 'FUELEU', mwh: volumeMwh }));
   };
 
   const handleCopyBriefing = () => {
@@ -400,6 +407,9 @@ ESTIMATED PENALTY EXPOSURE (DEFAULT INACTION, ART. 23(2)): €${Math.round(statu
                 <button type="button" onClick={handleStructureTrade} className="btn btn-primary fva-cta">
                   <Zap size={14} /> Structure Bio-LNG Supply in Trade Builder
                 </button>
+                <button type="button" onClick={handleFindPlant} className="btn btn-secondary fva-cta">
+                  Find a plant
+                </button>
                 </div>
 
                 <div className="fva-kv">
@@ -514,6 +524,9 @@ ESTIMATED PENALTY EXPOSURE (DEFAULT INACTION, ART. 23(2)): €${Math.round(statu
       <div className="ds-aside-footer fva-rail-footer">
         <button type="button" className="btn btn-primary" onClick={handleStructureTrade}>
           <Zap size={14} /> Structure trade
+        </button>
+        <button type="button" className="btn btn-secondary" onClick={handleFindPlant}>
+          Find a plant
         </button>
       </div>
     </aside>

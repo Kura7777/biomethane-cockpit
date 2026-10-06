@@ -12,7 +12,8 @@ import {
 import { FUELEU_ACTIVE_PERIOD, COMPLIANCE_YEAR_PERIOD_LABELS } from './complianceYears';
 import { VesselArchetype, VesselCalculationInput } from '../../domain/fueleu/types';
 import { buildDealUrl } from '../../domain/trade/dealParams';
-import { defaultVolumeMwh } from '../../domain/trade/dealDefaults';
+import { defaultVolumeMwh, FUELEU_BIO_LNG_DEFAULT_ORIGIN } from '../../domain/trade/dealDefaults';
+import { buildOriginationUrl } from '../commercial/originationUrl';
 import {
   Ship,
   Zap,
@@ -160,8 +161,8 @@ export function VesselArchetypeCalculator({ onComparePathways }: VesselArchetype
     const volumeMwh = Math.max(1000, Math.round(calculationResult.bioLngRequiredNeg100Mwh || defaultVolumeMwh()));
     const url = buildDealUrl({
       marketId: 'FUELEU',
-      originCountry: 'NL',
-      feedstock: 'manure',
+      originCountry: FUELEU_BIO_LNG_DEFAULT_ORIGIN.originCountry,
+      feedstock: FUELEU_BIO_LNG_DEFAULT_ORIGIN.feedstock,
       ci: bioLngCi,
       ciIsEstimated: true,
       volume: volumeMwh,
@@ -170,6 +171,12 @@ export function VesselArchetypeCalculator({ onComparePathways }: VesselArchetype
       complianceYear: targetYear,
     });
     navigate(url);
+  };
+
+  // "Find a plant": sends this vessel's bio-LNG need into Origination instead of assuming NL/manure.
+  const handleFindPlant = () => {
+    const volumeMwh = Math.max(1000, Math.round(calculationResult.bioLngRequiredNeg100Mwh || defaultVolumeMwh()));
+    navigate(buildOriginationUrl({ market: 'FUELEU', mwh: volumeMwh, buyer: `${activeArchetype.name} Offtake` }));
   };
 
   // Export audit summary to clipboard
@@ -705,6 +712,11 @@ DUAL COMMERCIAL COMPLIANCE PATHWAYS:
         <button type="button" className="btn btn-primary" onClick={handleTradeBuilder} disabled={isSurplus}>
           <Zap size={14} /> Build term sheet
         </button>
+        {!isSurplus && (
+          <button type="button" className="btn btn-secondary" onClick={handleFindPlant}>
+            Find a plant
+          </button>
+        )}
         {!isSurplus && onComparePathways && (
           <button type="button" className="btn btn-secondary" onClick={handleComparePathways}>
             Compare pathways for this vessel
