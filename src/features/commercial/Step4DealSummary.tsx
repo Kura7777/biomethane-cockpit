@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppState } from '../../store/context';
 import { ClientRequest } from '../../domain/arbitrage/types';
@@ -15,6 +15,7 @@ import {
 import { originationRouteStatus } from '../../domain/arbitrage/routeStatus';
 import { SourceChip } from '../../shared/ui/SourceChip';
 import { RouteStatusBadge } from './RouteStatusBadge';
+import { currentRouteVerdict } from './Step3RouteAndCosts';
 import { 
   CheckCircle2, 
   Copy, 
@@ -70,7 +71,15 @@ export function Step4DealSummary({
     totalDealRevenueEur,
     isProfitable,
   } = b;
-  const routeStatus = originationRouteStatus(opportunity.overallVerdict);
+  // See currentRouteVerdict (Step3RouteAndCosts): the term sheet badge must clear on the same CI
+  // the breakdown above already prices with, not the stale snapshot from the scan.
+  const routeVerdict = useMemo(
+    () => currentRouteVerdict(opportunity, request.delivery?.complianceYear, vol),
+    [opportunity, request.delivery?.complianceYear, vol]
+  );
+  const badgeVerdict = routeVerdict.overallVerdict;
+  const badgeDetail = routeVerdict.summary;
+  const routeStatus = originationRouteStatus(badgeVerdict);
   const sourceChip = (src: PriceSource | null) =>
     src ? <SourceChip badge={src.badge} suffix={src.asOf ? `mark ${src.asOf}` : 'no date on record'} /> : null;
   const indicativeLine = `Indicative: ${ttfMarkLine(b)}`;
@@ -86,7 +95,7 @@ export function Step4DealSummary({
 Deal Ref: ${dealRef}
 Date: ${dateStr}
 ${indicativeLine}
-Route status: ${routeStatus === 'TRADEABLE' ? 'Tradeable (all eligibility gates cleared)' : routeStatus === 'REVIEW' ? 'REVIEW NEEDED (open eligibility conditions: ' + opportunity.eligibility.summary + ')' : 'Blocked'}
+Route status: ${routeStatus === 'TRADEABLE' ? 'Tradeable (all eligibility gates cleared)' : routeStatus === 'REVIEW' ? 'REVIEW NEEDED (open eligibility conditions: ' + badgeDetail + ')' : 'Blocked'}
 
 1. SOURCING & ROUTE${request.counterparty ? `
 • Buyer: ${request.counterparty}` : ''}
@@ -198,7 +207,7 @@ ${b.sideWarning ? `• WARNING: ${b.sideWarning}
             <span style={{ color: 'var(--color-muted)' }} className="text-xs font-medium">
               Reference: <span style={{ color: 'var(--color-text)' }} className="font-mono font-semibold">{dealRef}</span>
             </span>
-            <RouteStatusBadge verdict={opportunity.overallVerdict} detail={opportunity.eligibility.summary} />
+            <RouteStatusBadge verdict={badgeVerdict} detail={badgeDetail} />
             <span className="chip chip-neutral" data-testid="indicative-chip">Indicative</span>
           </div>
 
