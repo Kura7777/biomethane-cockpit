@@ -3,9 +3,139 @@ import { useAppState } from '../../store/context';
 import { ProducerPricing } from '../../domain/netback/types';
 import { SIMULATED_SOURCE_NAME } from '../../domain/marks/simulate';
 import { CostFieldSource } from '../../store/context';
+import { getAssumption, setAssumption, resetAssumption, isOverridden } from '../../domain/assumptions/registry';
+import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
+import { HUB_BASIS_SPREADS, INTERCONNECTION_POINTS } from '../../domain/logistics/corridors';
+
+/** Compact editable cell bound directly to an assumption key — shared shape for every cost table row. */
+function AssumptionCell({ assumptionKey }: { assumptionKey: string }) {
+  const overridden = isOverridden(assumptionKey);
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+      <input
+        type="number"
+        className="input num"
+        aria-label={assumptionKey}
+        value={getAssumption(assumptionKey)}
+        step="any"
+        onChange={e => {
+          const v = e.target.valueAsNumber;
+          if (Number.isFinite(v)) setAssumption(assumptionKey, v);
+        }}
+        style={{ width: '70px', fontSize: '12px', padding: '2px 4px', textAlign: 'right', borderColor: overridden ? 'var(--color-accent)' : undefined }}
+      />
+      {overridden && (
+        <button
+          type="button"
+          onClick={() => resetAssumption(assumptionKey)}
+          title="Reset to default"
+          style={{ background: 'none', border: 'none', padding: 0, color: 'var(--color-accent)', cursor: 'pointer', fontSize: '10px' }}
+        >
+          ↺
+        </button>
+      )}
+    </span>
+  );
+}
+
+const TRANSIT_TARIFF_ROWS: { key: string; label: string }[] = [
+  { key: 'cost.transit.domestic', label: 'Domestic (same country)' },
+  { key: 'cost.transit.crossBorderSingle', label: 'Single cross-border hop' },
+  { key: 'cost.transit.euPooling', label: 'EU-wide pooling / marine bunkering' },
+  { key: 'cost.transit.multiZone', label: 'Multi-zone transit' },
+];
+
+const VERIFIED_IP_ROWS = INTERCONNECTION_POINTS.filter(
+  ip => ip.entryTariffEurMwh !== null && ip.exitTariffEurMwh !== null
+);
+
+function CostTablesSection() {
+  useAssumptionsVersion();
+  return (
+    <section style={{ marginTop: '18px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-panel)', overflow: 'hidden' }}>
+      <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-divider)' }}>
+        <h3 style={{ margin: 0, fontSize: '13px', fontWeight: 800 }}>Cost tables</h3>
+        <div className="mut" style={{ fontSize: '11px', marginTop: '2px' }}>
+          Transit tariffs, hub basis spreads and interconnection point tariffs used by the arbitrage scan,
+          the Trade Builder and the logistics engine. Edit any cell; it applies everywhere immediately.
+        </div>
+      </div>
+
+      <div style={{ padding: '12px 16px' }}>
+        <div className="eyebrow" style={{ marginBottom: '6px' }}>Cross-border transit tariff ladder (€/MWh)</div>
+        <div style={{ overflowX: 'auto', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-control)', marginBottom: '16px' }}>
+          <table className="table" style={{ margin: 0, width: '100%', fontSize: '12px' }}>
+            <thead>
+              <tr>
+                <th style={{ textAlign: 'left' }}>Route class</th>
+                <th style={{ textAlign: 'right', width: '110px' }}>Tariff</th>
+              </tr>
+            </thead>
+            <tbody>
+              {TRANSIT_TARIFF_ROWS.map(r => (
+                <tr key={r.key}>
+                  <td>{r.label}</td>
+                  <td style={{ textAlign: 'right' }}><AssumptionCell assumptionKey={r.key} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="eyebrow" style={{ marginBottom: '6px' }}>Hub basis spread to TTF (€/MWh)</div>
+        <div style={{ overflowX: 'auto', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-control)', marginBottom: '16px' }}>
+          <table className="table" style={{ margin: 0, width: '100%', fontSize: '12px' }}>
+            <thead>
+              <tr>
+                <th style={{ textAlign: 'left' }}>Country</th>
+                <th style={{ textAlign: 'left' }}>Hub</th>
+                <th style={{ textAlign: 'right', width: '110px' }}>Spread</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(HUB_BASIS_SPREADS).map(([country, hub]) => (
+                <tr key={country}>
+                  <td style={{ fontWeight: 600 }}>{country}</td>
+                  <td className="mut" style={{ fontSize: '11px' }}>{hub.hubName}</td>
+                  <td style={{ textAlign: 'right' }}><AssumptionCell assumptionKey={`cost.hubBasis.${country}`} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="eyebrow" style={{ marginBottom: '6px' }}>Interconnection point tariffs (€/MWh, verified points only)</div>
+        <div style={{ overflowX: 'auto', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-control)' }}>
+          <table className="table" style={{ margin: 0, width: '100%', fontSize: '12px' }}>
+            <thead>
+              <tr>
+                <th style={{ textAlign: 'left' }}>Interconnection point</th>
+                <th style={{ textAlign: 'right', width: '100px' }}>Entry</th>
+                <th style={{ textAlign: 'right', width: '100px' }}>Exit</th>
+                <th style={{ textAlign: 'right', width: '90px' }}>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {VERIFIED_IP_ROWS.map(ip => (
+                <tr key={ip.id}>
+                  <td>{ip.name} <span className="mut" style={{ fontSize: '10.5px' }}>({ip.fromCountry}→{ip.toCountry})</span></td>
+                  <td style={{ textAlign: 'right' }}><AssumptionCell assumptionKey={`cost.ip.${ip.id}.entry`} /></td>
+                  <td style={{ textAlign: 'right' }}><AssumptionCell assumptionKey={`cost.ip.${ip.id}.exit`} /></td>
+                  <td className="num" style={{ textAlign: 'right' }}>
+                    {(getAssumption(`cost.ip.${ip.id}.entry`) + getAssumption(`cost.ip.${ip.id}.exit`)).toFixed(2)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 interface ScalarCostField {
-  key: 'transferCosts' | 'certificationCosts' | 'logistics' | 'otherCosts' | 'greenAlpha' | 'sdeCorrectionBaselineEurMwh';
+  key: 'transferCosts' | 'certificationCosts' | 'logistics' | 'otherCosts' | 'greenAlpha';
   label: string;
   unit: string;
   usedFor: string;
@@ -52,13 +182,6 @@ const SCALAR_FIELDS: ScalarCostField[] = [
     unit: '×',
     usedFor: 'Netback engine: dynamic sensitivity multiplier on the certificate value (default 1.0 = no adjustment). Statutory ceilings (e.g. French CPB) still apply after it.',
     min: 0,
-    step: '0.01',
-  },
-  {
-    key: 'sdeCorrectionBaselineEurMwh',
-    label: 'Dutch SDE++ correction baseline',
-    unit: '€/MWh',
-    usedFor: 'Not currently read by any engine — the field exists on CostInputs but nothing consumes it yet.',
     step: '0.01',
   },
 ];
@@ -116,9 +239,8 @@ export function CostsScreen() {
       <div style={{ marginBottom: '14px' }}>
         <h2 style={{ margin: 0, fontSize: '15px', fontWeight: 800 }}>Deal costs</h2>
         <p className="mut" style={{ margin: '4px 0 0', fontSize: '12px', maxWidth: '720px' }}>
-          Every field on <code>state.costs</code>, used by the netback engine on every deal. Changes apply
-          immediately everywhere a deal is priced — Origination, the Trade Builder and the blotter all read
-          from here through the same <code>SET_COSTS</code> action.
+          These costs are deducted on every deal: Origination, the Trade Builder and the blotter all use them.
+          Changes apply straight away everywhere a deal is priced.
         </p>
       </div>
 
@@ -162,6 +284,8 @@ export function CostsScreen() {
           </tbody>
         </table>
       </div>
+
+      <CostTablesSection />
 
       <section style={{ marginTop: '18px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-panel)', overflow: 'hidden' }}>
         <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-divider)' }}>

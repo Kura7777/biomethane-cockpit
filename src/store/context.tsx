@@ -426,7 +426,6 @@ export function migrateState(raw: unknown): AppState {
         logistics: 'MANUAL',
         otherCosts: 'MANUAL',
         greenAlpha: 'MANUAL',
-        sdeCorrectionBaselineEurMwh: 'MANUAL',
       };
     }
   }
@@ -514,7 +513,6 @@ export function createDefaultState(): AppState {
       logistics: 'SIMULATED',
       otherCosts: 'MANUAL',
       greenAlpha: 'MANUAL',
-      sdeCorrectionBaselineEurMwh: 'MANUAL',
     },
     savedAssessments: [],
     selectedMarketId: 'DE_THG',
@@ -737,7 +735,6 @@ export function appReducer(state: AppState, action: AppAction): AppState {
           logistics: 'SIMULATED',
           otherCosts: 'MANUAL',
           greenAlpha: 'MANUAL',
-          sdeCorrectionBaselineEurMwh: 'MANUAL',
         },
       };
     }

@@ -20,7 +20,6 @@ export interface CostInputs {
   otherCosts: number | null;        // €/MWh
   producerPricing?: ProducerPricing | null;
   greenAlpha?: number | null;       // Dynamic alpha multiplier for Leg B green attribute (default 1.0)
-  sdeCorrectionBaselineEurMwh?: number | null; // Dutch SDE++ correction amount baseline
 }
 
 export interface PrincipalRiskMetrics {
