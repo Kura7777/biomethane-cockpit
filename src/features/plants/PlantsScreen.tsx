@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   COMBINED_BIOMETHANE_PLANTS,
   COUNTRY_MACRO_STATS,
@@ -141,6 +141,7 @@ function contactStatus(plant: BiomethanePlant): { dot: 'amber' | 'grey' | 'red';
 
 export function PlantsScreen() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const isMobile = useIsMobile();
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -186,6 +187,26 @@ export function PlantsScreen() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  // #/plants?plant=<id> opens that plant's Producer 360 drawer directly.
+  useEffect(() => {
+    const plantId = searchParams.get('plant');
+    if (!plantId) return;
+    const found = COMBINED_BIOMETHANE_PLANTS.find(p => p.id === plantId);
+    if (found) {
+      setSelectedPlantId(found.id);
+      setDossierPlant(found);
+    }
+  }, [searchParams]);
+
+  const closeDossier = useCallback(() => {
+    setDossierPlant(null);
+    if (searchParams.get('plant')) {
+      const next = new URLSearchParams(searchParams);
+      next.delete('plant');
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   // Reset page when filters change
   useEffect(() => {
@@ -1056,7 +1077,7 @@ export function PlantsScreen() {
         </PageShell>
       )}
 
-      {dossierPlant && <PlantSourcingDrawer plant={dossierPlant} onClose={() => setDossierPlant(null)} />}
+      {dossierPlant && <PlantSourcingDrawer plant={dossierPlant} onClose={closeDossier} />}
     </div>
   );
 }

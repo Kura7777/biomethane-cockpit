@@ -301,6 +301,16 @@ ${b.sideWarning ? `• WARNING: ${b.sideWarning}
               <span style={{ color: 'var(--color-muted)' }} className="text-[10px] block mb-0.5">Source plant</span>
               <span style={{ color: 'var(--color-text)' }} className="font-semibold text-xs sm:text-sm block">{opportunity.originPlantName || `${opportunity.originCountry} Facility`}</span>
               <span style={{ color: 'var(--color-muted)' }} className="mt-0.5 block text-[11px]">Origin: {opportunity.originCountryName} ({opportunity.originCountry})</span>
+              {opportunity.originPlantId && (
+                <Link
+                  to={`/plants?plant=${encodeURIComponent(opportunity.originPlantId)}`}
+                  style={{ color: 'var(--color-accent)' }}
+                  className="mt-1 inline-block text-[11px] font-medium hover:underline"
+                  data-testid="producer-360-link"
+                >
+                  Producer 360 →
+                </Link>
+              )}
             </div>
 
             <div

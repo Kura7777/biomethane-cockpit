@@ -18,7 +18,8 @@ import {
   Flame,
   ArrowUpDown,
   Filter,
-  CheckCircle2
+  CheckCircle2,
+  User
 } from 'lucide-react';
 
 interface Step2PlantScanProps {
@@ -488,6 +489,28 @@ export function Step2PlantScan({
                     </span>
                     <span style={{ color: 'var(--color-muted)' }} className="text-[10px] ml-0.5">/MWh</span>
                   </div>
+
+                  {/* Producer 360 */}
+                  {opp.originPlantId && (
+                    <button
+                      type="button"
+                      onClick={e => {
+                        e.stopPropagation();
+                        navigate(`/plants?plant=${encodeURIComponent(opp.originPlantId!)}`);
+                      }}
+                      title="Producer 360: open this plant's dossier"
+                      style={{
+                        borderRadius: 'var(--radius-control)',
+                        backgroundColor: 'var(--color-track)',
+                        borderColor: 'var(--color-line)',
+                        color: 'var(--color-text)',
+                      }}
+                      className="p-2 border transition-all cursor-pointer hidden sm:flex max-md:flex items-center justify-center hover:opacity-80"
+                      data-testid="producer-360-link"
+                    >
+                      <User className="w-3.5 h-3.5" />
+                    </button>
+                  )}
 
                   {/* Quick Direct Trade Action */}
                   <button
