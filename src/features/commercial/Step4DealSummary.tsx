@@ -88,7 +88,8 @@ Date: ${dateStr}
 ${indicativeLine}
 Route status: ${routeStatus === 'TRADEABLE' ? 'Tradeable (all eligibility gates cleared)' : routeStatus === 'REVIEW' ? 'REVIEW NEEDED (open eligibility conditions: ' + opportunity.eligibility.summary + ')' : 'Blocked'}
 
-1. SOURCING & ROUTE
+1. SOURCING & ROUTE${request.counterparty ? `
+• Buyer: ${request.counterparty}` : ''}
 • Origin Plant: ${opportunity.originPlantName || `${opportunity.originCountry} Sourced Plant`} (${opportunity.originCountry})
 • Buyer Hub: ${opportunity.targetMarketName} (${opportunity.targetCountry})
 • Substrate: ${opportunity.feedstockName} (CI: ${opportunity.carbonIntensity} gCO₂e/MJ${opportunity.ciIsOverridden ? ', your assumption' : ''})
@@ -324,6 +325,9 @@ ${b.sideWarning ? `• WARNING: ${b.sideWarning}
               <span style={{ color: 'var(--color-muted)' }} className="text-[10px] block mb-0.5">Buyer market</span>
               <span style={{ color: 'var(--color-text)' }} className="font-semibold text-xs sm:text-sm block">{opportunity.targetMarketName}</span>
               <span style={{ color: 'var(--color-muted)' }} className="mt-0.5 block text-[11px]">Destination: {opportunity.targetCountry}</span>
+              {request.counterparty && (
+                <span style={{ color: 'var(--color-muted)' }} className="mt-0.5 block text-[11px]" data-testid="step4-buyer-name">Buyer: {request.counterparty}</span>
+              )}
             </div>
 
             <div

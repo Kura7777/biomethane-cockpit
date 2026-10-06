@@ -88,6 +88,21 @@ export function Step1OrderIntake({ request, onChange, onNext }: Step1OrderIntake
         <p style={{ color: 'var(--color-muted)' }} className="text-xs sm:text-sm font-normal max-w-2xl">
           Enter buyer specifications to scan 1,975+ European biomethane production plants, compute real-time margins, and structure your deal.
         </p>
+        {request.counterparty && (
+          <div
+            style={{
+              borderRadius: 'var(--radius-control)',
+              backgroundColor: 'var(--color-track)',
+              borderColor: 'var(--color-line)',
+              color: 'var(--color-text)',
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-1 border text-xs font-medium mt-2"
+            data-testid="step1-buyer-chip"
+          >
+            <Building2 className="w-3 h-3" style={{ color: 'var(--color-accent)' }} />
+            Buyer: {request.counterparty}
+          </div>
+        )}
       </div>
 
       {/* Quick RFQ Presets */}

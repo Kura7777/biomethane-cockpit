@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAppState } from '../../store/context';
 import { ClientRequest } from '../../domain/arbitrage/types';
 import { searchSourcingRoutes } from '../../domain/arbitrage/sourcingAdapter';
@@ -10,6 +11,9 @@ import { Step2PlantScan } from './Step2PlantScan';
 import { Step3RouteAndCosts } from './Step3RouteAndCosts';
 import { Step4DealSummary } from './Step4DealSummary';
 import { calculateLogisticsRoute } from '../../domain/logistics/engine';
+import { parseOriginationUrl, OriginationUrlParams } from './originationUrl';
+import { MARKETS } from '../../domain/markets/registry';
+import { FEEDSTOCK_REGISTRY } from '../../domain/consignment/feedstocks';
 import './commercialMobile.css';
 import { Check, ArrowRight, Sparkles, Building2, TrendingUp, Navigation } from 'lucide-react';
 
@@ -35,6 +39,33 @@ const INITIAL_REQUEST: ClientRequest = {
   ciOverride: null,
 };
 
+/**
+ * Builds Step 1's starting request from a hand-off (Corporate, Clients, ETS1/2, FuelEU). Any field
+ * the hand-off didn't carry, or carried a value the registries don't recognise, falls back to
+ * `INITIAL_REQUEST` — never a fabricated default of its own.
+ */
+export function buildInitialRequestFromParams(params: OriginationUrlParams): ClientRequest {
+  const request: ClientRequest = { ...INITIAL_REQUEST, constraints: { ...INITIAL_REQUEST.constraints } };
+
+  if (params.market && MARKETS.some(m => m.id === params.market)) {
+    request.targetMarketId = params.market;
+  }
+  if (params.feedstock && params.feedstock in FEEDSTOCK_REGISTRY) {
+    request.feedstockKey = params.feedstock;
+  }
+  if (params.mwh !== undefined) {
+    request.volumeMwh = params.mwh;
+  }
+  if (params.maxCi !== undefined) {
+    request.constraints.maxCarbonIntensity = params.maxCi;
+  }
+  if (params.buyer) {
+    request.counterparty = params.buyer;
+  }
+
+  return request;
+}
+
 /** Pure helper behind the Step 1 CI override: replaces every opportunity's own CI when set. */
 export function applyCiOverride(opps: SourcedOpportunity[], ciOverride: number | null | undefined): SourcedOpportunity[] {
   if (ciOverride === null || ciOverride === undefined || Number.isNaN(ciOverride)) return opps;
@@ -50,8 +81,9 @@ const STEPS = [
 
 export function CommercialFlowStepper() {
   const { state } = useAppState();
+  const [searchParams] = useSearchParams();
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
-  const [request, setRequest] = useState<ClientRequest>(INITIAL_REQUEST);
+  const [request, setRequest] = useState<ClientRequest>(() => buildInitialRequestFromParams(parseOriginationUrl(searchParams)));
   const [selectedOpp, setSelectedOpp] = useState<SourcedOpportunity | null>(null);
 
   // Scan opportunities in real-time
