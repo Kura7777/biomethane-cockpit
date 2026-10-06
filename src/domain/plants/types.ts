@@ -126,6 +126,7 @@ export interface SourceCheckDetail {
   finalUrl?: string;
   error?: string;
   viesValid?: boolean;
+  companyStatus?: string;
 }
 
 export interface SourcedValue<T = string> {

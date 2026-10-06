@@ -313,16 +313,27 @@ describe('Plant Research Infrastructure & Data Integrity', () => {
       }
     });
 
-    it('has effective tiers matching verification (4 READY, 28 ENTITY_ONLY, 8 UNRESOLVED)', () => {
+    it('has effective tiers matching verification (1 READY, 31 ENTITY_ONLY, 8 UNRESOLVED)', () => {
       const ready = Object.values(PLANT_RESEARCH).filter(p => p.plantId.startsWith('plant_uk_') && p.effectiveTier === 'READY');
       const entityOnly = Object.values(PLANT_RESEARCH).filter(p => p.plantId.startsWith('plant_uk_') && p.effectiveTier === 'ENTITY_ONLY');
       const unresolved = Object.values(PLANT_RESEARCH).filter(p => p.plantId.startsWith('plant_uk_') && p.effectiveTier === 'UNRESOLVED');
 
-      expect(ready).toHaveLength(4);
-      expect(entityOnly).toHaveLength(28);
+      expect(ready).toHaveLength(1);
+      expect(entityOnly).toHaveLength(31);
       expect(unresolved).toHaveLength(8);
 
       expect(unresolved.map(p => p.plantId)).toContain('plant_uk_45');
+
+      // Geography mismatch check: plant_uk_70 London vs Hatfield Woodhouse Doncaster
+      const uk70 = PLANT_RESEARCH['plant_uk_70'];
+      expect(uk70).toBeDefined();
+      expect(uk70.effectiveTier).toBe('ENTITY_ONLY');
+      expect(uk70.openQuestions.some(q => q.startsWith('GEOGRAPHY_MISMATCH:'))).toBe(true);
+
+      // Company status check: plant_uk_44 BrewDog PLC In Administration
+      const uk44 = PLANT_RESEARCH['plant_uk_44'];
+      expect(uk44).toBeDefined();
+      expect(uk44.openQuestions.some(q => q.toLowerCase().startsWith('company status:'))).toBe(true);
     });
 
     it('attaches research to top UK plants via dataQuality without modifying verificationStatus', () => {
@@ -417,6 +428,11 @@ describe('Plant Research Infrastructure & Data Integrity', () => {
       expect(
         computeEffectiveTier(failed, failed, verified, [{ contactScope: 'PARENT_COMMERCIAL' }])
       ).toBe('UNRESOLVED');
+
+      // Case 8: Geography mismatch caps READY at ENTITY_ONLY
+      expect(
+        computeEffectiveTier(verified, verified, verified, [{ contactScope: 'PARENT_COMMERCIAL' }], true)
+      ).toBe('ENTITY_ONLY');
     });
 
     it('regenerating plantResearch produces identical output (determinism)', () => {

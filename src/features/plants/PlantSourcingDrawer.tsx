@@ -512,7 +512,7 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
             <div style={{ height: '22px', width: '1px', backgroundColor: t.border }} />
 
             <div>
-              <span style={{ fontSize: '10px', color: t.textMuted, display: 'block', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Audited CI</span>
+              <span style={{ fontSize: '10px', color: t.textMuted, display: 'block', textTransform: 'uppercase', letterSpacing: '0.04em' }}>CI (feedstock default)</span>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '3px' }}>
                 <strong style={{ fontSize: '15px', fontWeight: 800, color: ciValue < 0 ? (isDark ? '#34d399' : '#059669') : (isDark ? '#fbbf24' : '#d97706') }}>
                   {ciValue}
@@ -1232,11 +1232,34 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                               </span>
                             )}
                           </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px', flexWrap: 'wrap' }}>
                             <strong style={{ color: t.textMain }}>{plant.research.legalEntity.value}</strong>
                             <a href={plant.research.legalEntity.sourceUrl} target="_blank" rel="noopener noreferrer" title={`Source: ${plant.research.legalEntity.sourceUrl} (${plant.research.legalEntity.retrievedAt})`} style={{ color: isDark ? '#38bdf8' : '#0284c7' }}>
                               <ExternalLink size={12} />
                             </a>
+                            {(() => {
+                              const statusQ = plant.research.openQuestions?.find(q => q.toLowerCase().startsWith('company status:'));
+                              const chStatus = plant.research.registrationId?.check?.companyStatus ||
+                                (statusQ ? statusQ.match(/company status:\s*([^—\-]+)/i)?.[1]?.trim() : null);
+                              if (!chStatus || chStatus.toLowerCase() === 'active') return null;
+                              return (
+                                <span style={{
+                                  fontSize: '10px',
+                                  fontWeight: 700,
+                                  padding: '1px 6px',
+                                  borderRadius: '3px',
+                                  backgroundColor: isDark ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.12)',
+                                  color: isDark ? '#f87171' : '#dc2626',
+                                  border: `1px solid ${isDark ? 'rgba(239, 68, 68, 0.35)' : 'rgba(239, 68, 68, 0.25)'}`,
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px'
+                                }} title={`Companies House status: ${chStatus} — counterparty risk`}>
+                                  <AlertTriangle size={11} />
+                                  <span>{chStatus}</span>
+                                </span>
+                              );
+                            })()}
                           </div>
                           {plant.research.legalEntity.note && (
                             <span style={{ fontSize: '10px', color: t.textMuted, display: 'block', marginTop: '1px' }}>{plant.research.legalEntity.note}</span>
@@ -1815,9 +1838,9 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: `1px solid ${t.borderLight}` }}>
-                    <span style={{ color: t.textMuted }}>Audited Carbon Intensity:</span>
+                    <span style={{ color: t.textMuted }}>Carbon Intensity:</span>
                     <strong style={{ color: ciValue < 0 ? (isDark ? '#34d399' : '#059669') : (isDark ? '#fbbf24' : '#d97706') }}>
-                      {ciValue} gCO₂e/MJ {plant.verifiedCarbonIntensity ? '(Audited)' : '(RED III Annex IX Default)'}
+                      {ciValue} gCO₂e/MJ (feedstock default)
                     </strong>
                   </div>
 

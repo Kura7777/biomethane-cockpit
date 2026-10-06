@@ -28,6 +28,11 @@ import {
   ResearchContact,
 } from '../src/domain/plants/types';
 import { RAW_BIOMETHANE_PLANTS } from '../src/domain/plants/plantsData';
+import { normalizePlantRegistry } from '../src/domain/plants/dataQuality';
+import { regenerate } from './lib/plantResearchWriter';
+
+const NORMALIZED_PLANTS = normalizePlantRegistry(RAW_BIOMETHANE_PLANTS);
+const NORMALIZED_PLANTS_BY_ID = new Map(NORMALIZED_PLANTS.map(p => [p.id, p]));
 
 // Allow intermediate cert bundles common on Spanish regional govt & corporate sites
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
@@ -419,6 +424,64 @@ export function extractPlantSiteTokens(plant: PlantResearch): string[] {
   return Array.from(tokens).filter(t => t.length >= 3);
 }
 
+/**
+ * Computes the great-circle distance between two coordinates in kilometres using the Haversine formula.
+ */
+export function haversineDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Earth's mean radius in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+/**
+ * Extracts a concise locality string (town/district, county) from a site address.
+ */
+export function extractLocality(siteAddress?: string | null): string {
+  if (!siteAddress) return '';
+  const parts = siteAddress.split(',').map(s => s.trim()).filter(Boolean);
+  const nonPostcode = parts.filter(p =>
+    !/^[A-Z]{1,2}[0-9][A-Z0-9]?\s*[0-9][A-Z]{2}$/i.test(p) &&
+    !/^\d{5}$/.test(p) &&
+    !/^(uk|united kingdom|spain|españa)$/i.test(p)
+  );
+  if (nonPostcode.length === 0) return parts[0] || '';
+  if (nonPostcode.length >= 2) {
+    return `${nonPostcode[0]}, ${nonPostcode[1]}`;
+  }
+  return nonPostcode[0];
+}
+
+/**
+ * Checks whether an approximate plant's researched site address matches the official census name.
+ */
+export function checkLocalityMatchesCensus(censusName: string, siteAddress?: string | null): boolean {
+  if (!siteAddress) return false;
+  const normAddress = siteAddress.toLowerCase();
+
+  const stopWords = new Set([
+    'the', 'and', 'near', 'area', 'biometano', 'biogas', 'plant', 'facility',
+    'edar', 'ctr', 'bioenergía', 'bioenergia', 'planta', 'de', 'del', 'en',
+    'la', 'las', 'los', 'ad'
+  ]);
+  const cleanTokens = censusName
+    .replace(/[/(),.-]/g, ' ')
+    .split(/\s+/)
+    .map(t => t.trim().toLowerCase())
+    .filter(t => t.length >= 3 && !stopWords.has(t));
+
+  if (cleanTokens.length === 0) {
+    return true;
+  }
+
+  return cleanTokens.some(token => normAddress.includes(token));
+}
+
 // --- Rate Limiter & Disk Cache ---
 
 export class VerifierEngine {
@@ -729,7 +792,8 @@ export function computeEffectiveTier(
   legalEntityCheck?: SourceCheckDetail | null,
   registrationIdCheck?: SourceCheckDetail | null,
   plantLinkCheck?: SourceCheckDetail | null,
-  verifiedContacts: { contactScope?: ContactScope }[] = []
+  verifiedContacts: { contactScope?: ContactScope }[] = [],
+  hasGeographyMismatch = false
 ): OutreachTier {
   // A failed registrationId must stop the record counting as a verified entity
   if (registrationIdCheck && registrationIdCheck.status !== 'VERIFIED') {
@@ -748,7 +812,8 @@ export function computeEffectiveTier(
   // - legalEntity VERIFIED
   // - plantLink VERIFIED
   // - at least one verified contact with scope PLANT_OPERATOR or PARENT_COMMERCIAL
-  if (isLegalEntityVerified && isPlantLinkVerified && hasCommercialOrOperatorContact) {
+  // - no geography mismatch
+  if (isLegalEntityVerified && isPlantLinkVerified && hasCommercialOrOperatorContact && !hasGeographyMismatch) {
     return 'READY';
   }
 
@@ -849,6 +914,7 @@ export async function verifyPlantRecord(
               sourceUrl: srcUrl,
               httpStatus: 200,
               matchedOnPage: true,
+              companyStatus: chRes.companyStatus,
             };
           } else {
             record.registrationId = {
@@ -857,8 +923,18 @@ export async function verifyPlantRecord(
               sourceUrl: srcUrl,
               httpStatus: 200,
               matchedOnPage: false,
+              companyStatus: chRes.companyStatus,
               error: `Companies House: "${chRes.registeredName}" (status: ${chRes.companyStatus})`,
             };
+          }
+
+          // If Companies House status isn't "Active" (e.g. BrewDog PLC — In Administration), add open question
+          if (chRes.companyStatus && chRes.companyStatus.toLowerCase() !== 'active') {
+            const statusQ = `Company status: ${chRes.companyStatus} — assess counterparty risk`;
+            plant.openQuestions = plant.openQuestions || [];
+            if (!plant.openQuestions.some(q => q.toLowerCase().startsWith('company status:'))) {
+              plant.openQuestions.unshift(statusQ);
+            }
           }
         } else if (chRes.companyStatus === 'PAGE_NOT_FOUND') {
           record.registrationId = {
@@ -1081,12 +1157,49 @@ export async function verifyPlantRecord(
     });
   }
 
+  // 9. Geography check:
+  // If plant's census coordinates are not a placeholder (!approximateCoordinates) and research.siteCoordinates is set, compute distance.
+  // Over 25 km, or research.siteAddress locality ≠ census name when coordinates are approximate
+  // -> add open question "GEOGRAPHY_MISMATCH: census says <name>, research says <locality> — confirm this is the same plant"
+  // and cap effectiveTier at ENTITY_ONLY.
+  const normPlant = NORMALIZED_PLANTS_BY_ID.get(plant.plantId);
+  const censusName = normPlant?.name || '';
+  const isApproximate = normPlant?.dataQuality?.approximateCoordinates ?? true;
+  let hasGeographyMismatch = false;
+  let mismatchLocality = '';
+
+  if (!isApproximate && normPlant?.coordinates && plant.siteCoordinates?.value) {
+    const dist = haversineDistanceKm(
+      normPlant.coordinates[0], normPlant.coordinates[1],
+      plant.siteCoordinates.value[0], plant.siteCoordinates.value[1]
+    );
+    if (dist > 25) {
+      hasGeographyMismatch = true;
+      mismatchLocality = extractLocality(plant.siteAddress?.value) || `${plant.siteCoordinates.value[0].toFixed(3)}, ${plant.siteCoordinates.value[1].toFixed(3)}`;
+    }
+  } else if (isApproximate && plant.siteAddress?.value) {
+    const matchesLocality = checkLocalityMatchesCensus(censusName, plant.siteAddress.value);
+    if (!matchesLocality) {
+      hasGeographyMismatch = true;
+      mismatchLocality = extractLocality(plant.siteAddress.value);
+    }
+  }
+
+  if (hasGeographyMismatch) {
+    const geoQ = `GEOGRAPHY_MISMATCH: census says ${censusName}, research says ${mismatchLocality} — confirm this is the same plant`;
+    plant.openQuestions = plant.openQuestions || [];
+    if (!plant.openQuestions.some(q => q.startsWith('GEOGRAPHY_MISMATCH:'))) {
+      plant.openQuestions.unshift(geoQ);
+    }
+  }
+
   // Derive effective tier
   record.effectiveTier = computeEffectiveTier(
     record.legalEntity,
     record.registrationId,
     record.plantLink,
-    verifiedContacts
+    verifiedContacts,
+    hasGeographyMismatch
   );
 
   return record;
@@ -1173,8 +1286,15 @@ export async function verifyCountry(countryCode: string): Promise<CountryVerific
     plants: plantRecords,
   };
 
+  // Persist updated openQuestions to country data file
+  fs.writeFileSync(filePath, JSON.stringify(countryData, null, 2) + '\n', 'utf8');
+
   const outPath = path.join(DATA_DIR, `${cc}.verification.json`);
   fs.writeFileSync(outPath, JSON.stringify(verificationFile, null, 2) + '\n', 'utf8');
+
+  // Regenerate plantResearch.generated.ts with updated checks & questions
+  regenerate();
+
   console.log(`\nVerification complete for ${countryCode.toUpperCase()}:`);
   console.log(`  Effective Tiers: ${JSON.stringify(tierCounts)}`);
   console.log(`  Status Counts:   ${JSON.stringify(statusCounts)}`);

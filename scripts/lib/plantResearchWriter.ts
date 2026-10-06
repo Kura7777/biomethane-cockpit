@@ -240,6 +240,7 @@ export function regenerate(): void {
             httpStatus: vr.registrationId.httpStatus,
             finalUrl: vr.registrationId.finalUrl,
             viesValid: vr.registrationId.viesValid,
+            companyStatus: vr.registrationId.companyStatus,
             error: vr.registrationId.error,
           };
         }

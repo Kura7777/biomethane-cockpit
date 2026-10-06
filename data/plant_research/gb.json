@@ -657,7 +657,9 @@
           "retrievedAt": "2026-09-26T18:00:00Z"
         }
       ],
-      "openQuestions": [],
+      "openQuestions": [
+        "GEOGRAPHY_MISMATCH: census says Coventry, research says Coleshill Sewage Treatment Works, Marconi Way — confirm this is the same plant"
+      ],
       "researchedAt": "2026-09-26T21:00:00Z"
     },
     {
@@ -924,7 +926,9 @@
           "retrievedAt": "2026-09-26T21:00:00Z"
         }
       ],
-      "openQuestions": [],
+      "openQuestions": [
+        "GEOGRAPHY_MISMATCH: census says Driffield, research says Roundhill Sewage Treatment Works, Kinver — confirm this is the same plant"
+      ],
       "researchedAt": "2026-09-26T21:00:00Z"
     },
     {
@@ -1138,7 +1142,9 @@
           "retrievedAt": "2026-09-26T18:00:00Z"
         }
       ],
-      "openQuestions": [],
+      "openQuestions": [
+        "Company status: In Administration — assess counterparty risk"
+      ],
       "researchedAt": "2026-09-26T21:00:00Z"
     },
     {
@@ -1399,7 +1405,9 @@
           "retrievedAt": "2026-09-26T21:00:00Z"
         }
       ],
-      "openQuestions": [],
+      "openQuestions": [
+        "GEOGRAPHY_MISMATCH: census says Grantham, research says Coleshill / Minworth STW, West Midlands — confirm this is the same plant"
+      ],
       "researchedAt": "2026-09-26T21:00:00Z"
     },
     {
@@ -1665,7 +1673,9 @@
           "retrievedAt": "2026-09-26T18:00:00Z"
         }
       ],
-      "openQuestions": [],
+      "openQuestions": [
+        "GEOGRAPHY_MISMATCH: census says London, research says Hatfield Woodhouse, Doncaster — confirm this is the same plant"
+      ],
       "researchedAt": "2026-09-26T21:00:00Z"
     },
     {
@@ -2104,7 +2114,9 @@
           "retrievedAt": "2026-09-26T21:00:00Z"
         }
       ],
-      "openQuestions": [],
+      "openQuestions": [
+        "GEOGRAPHY_MISMATCH: census says Plaxton Bridge, research says Emerald Biogas Energy Park, Newton Aycliffe — confirm this is the same plant"
+      ],
       "researchedAt": "2026-09-26T21:00:00Z"
     },
     {
@@ -2169,7 +2181,9 @@
           "retrievedAt": "2026-09-26T21:00:00Z"
         }
       ],
-      "openQuestions": [],
+      "openQuestions": [
+        "GEOGRAPHY_MISMATCH: census says Pontefract, research says Raynham Farm Estate, Fakenham — confirm this is the same plant"
+      ],
       "researchedAt": "2026-09-26T21:00:00Z"
     }
   ]
