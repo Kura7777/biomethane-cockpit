@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildOriginationUrl, parseOriginationUrl } from '../originationUrl';
 import { buildInitialRequestFromParams } from '../CommercialFlowStepper';
+import { buyerMaxCiLabel } from '../Step1OrderIntake';
 
 describe('originationUrl round-trip', () => {
   it('parses back exactly what it built', () => {
@@ -43,5 +44,16 @@ describe('buildInitialRequestFromParams', () => {
     const request = buildInitialRequestFromParams({ market: 'NOT_A_MARKET', feedstock: 'not_a_feedstock' });
     expect(request.targetMarketId).toBe('DE_THG');
     expect(request.feedstockKey).toBe('manure');
+  });
+
+  it('carries a hand-off maxCi through to Step 1\'s "Buyer max CI" chip text', () => {
+    const request = buildInitialRequestFromParams({ maxCi: 25 });
+    expect(buyerMaxCiLabel(request.constraints.maxCarbonIntensity)).toBe('Buyer max CI: 25 g CO₂e/MJ');
+  });
+});
+
+describe('buyerMaxCiLabel', () => {
+  it('shows nothing when no buyer max CI was carried in', () => {
+    expect(buyerMaxCiLabel(null)).toBeNull();
   });
 });

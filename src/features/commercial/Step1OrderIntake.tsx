@@ -2,20 +2,26 @@ import React from 'react';
 import { MARKETS } from '../../domain/markets/registry';
 import { FEEDSTOCK_REGISTRY } from '../../domain/consignment/feedstocks';
 import { ClientRequest } from '../../domain/arbitrage/types';
-import { 
-  Building2, 
-  ArrowRight, 
-  Sparkles, 
-  Layers, 
+import {
+  Building2,
+  ArrowRight,
+  Sparkles,
+  Layers,
   CheckCircle2,
   Calendar,
-  DollarSign
+  DollarSign,
+  Leaf
 } from 'lucide-react';
 
 interface Step1OrderIntakeProps {
   request: ClientRequest;
   onChange: (updated: Partial<ClientRequest>) => void;
   onNext: () => void;
+}
+
+/** The Step 1 chip text for a buyer's CI ceiling carried in from the hand-off link. Null when unset. */
+export function buyerMaxCiLabel(maxCarbonIntensity: number | null): string | null {
+  return maxCarbonIntensity === null ? null : `Buyer max CI: ${maxCarbonIntensity} g CO₂e/MJ`;
 }
 
 export function Step1OrderIntake({ request, onChange, onNext }: Step1OrderIntakeProps) {
@@ -101,6 +107,21 @@ export function Step1OrderIntake({ request, onChange, onNext }: Step1OrderIntake
           >
             <Building2 className="w-3 h-3" style={{ color: 'var(--color-accent)' }} />
             Buyer: {request.counterparty}
+          </div>
+        )}
+        {request.constraints.maxCarbonIntensity !== null && (
+          <div
+            style={{
+              borderRadius: 'var(--radius-control)',
+              backgroundColor: 'var(--color-track)',
+              borderColor: 'var(--color-line)',
+              color: 'var(--color-text)',
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-1 border text-xs font-medium mt-2 ml-2"
+            data-testid="step1-max-ci-chip"
+          >
+            <Leaf className="w-3 h-3" style={{ color: 'var(--color-accent)' }} />
+            {buyerMaxCiLabel(request.constraints.maxCarbonIntensity)}
           </div>
         )}
       </div>
