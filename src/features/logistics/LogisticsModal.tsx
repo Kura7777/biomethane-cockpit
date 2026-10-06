@@ -1,7 +1,7 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { calculateLogisticsRoute } from '../../domain/logistics/engine';
 import { useAppState } from '../../store/context';
-import { HUB_BASIS_SPREADS, INTERCONNECTION_POINTS, CAM_NC_DURATION_MULTIPLIERS, NATIONAL_BIOMETHANE_INJECTION_INCENTIVES } from '../../domain/logistics/corridors';
+import { HUB_BASIS_SPREADS, INTERCONNECTION_POINTS, CAM_NC_DURATION_MULTIPLIERS, NATIONAL_BIOMETHANE_INJECTION_INCENTIVES, hubBasisSpread } from '../../domain/logistics/corridors';
 import './logistics.css';
 import { ModeCostBreakdown, CapacityDuration } from '../../domain/logistics/types';
 
@@ -42,7 +42,7 @@ export function LogisticsModal({
 
   const originHub = HUB_BASIS_SPREADS[originCountry] || { hubName: `${originCountry} Hub`, operator: 'National TSO', basisSpreadToTtfEurMwh: 0.50 };
   const targetHub = HUB_BASIS_SPREADS[targetCountry] || { hubName: `${targetCountry} Hub`, operator: 'National TSO', basisSpreadToTtfEurMwh: 0.00 };
-  const basisSpreadDiff = targetHub.basisSpreadToTtfEurMwh - originHub.basisSpreadToTtfEurMwh;
+  const basisSpreadDiff = hubBasisSpread(targetCountry, 0.00) - hubBasisSpread(originCountry, 0.50);
 
   const durationConfig = CAM_NC_DURATION_MULTIPLIERS[selectedDuration];
   const injectionIncentive = NATIONAL_BIOMETHANE_INJECTION_INCENTIVES[originCountry];

@@ -1,7 +1,8 @@
 import { EUROPEAN_MARKET_BENCHMARKS } from '../markets/marketBenchmarks';
 import { ETS1_GAS_SHARE_SECTORS, defaultGasShare } from '../ets1/gasShare';
 import { ETS2_SEGMENT_SHARES } from '../ets2/segmentShare';
-import { FEEDSTOCK_REGISTRY } from '../consignment/feedstocks';
+import { FEEDSTOCK_REGISTRY, COUNTRY_FEEDSTOCK_CI_PROFILES, DEFAULT_FEEDSTOCK_CI_PROFILE } from '../consignment/feedstockData';
+import { HUB_BASIS_SPREADS, INTERCONNECTION_POINTS } from '../logistics/corridorsData';
 
 /**
  * Commercial assumptions register.
@@ -14,7 +15,7 @@ import { FEEDSTOCK_REGISTRY } from '../consignment/feedstocks';
  * never silently changed: a reset always returns to the value and source shown here.
  */
 
-export type AssumptionCategory = 'FUELEU' | 'DEMAND' | 'RISK' | 'DEAL' | 'LOGISTICS' | 'FEEDSTOCK';
+export type AssumptionCategory = 'FUELEU' | 'DEMAND' | 'RISK' | 'DEAL' | 'LOGISTICS' | 'FEEDSTOCK' | 'COST' | 'CI_TIER';
 
 /** How much weight the default can bear. */
 export type AssumptionBasis =
@@ -57,6 +58,85 @@ const FEEDSTOCK_DEFAULT_CI_ASSUMPTIONS: AssumptionDefinition[] = Object.values(F
   max: 200,
 }));
 
+/** One assumption per hub basis spread to TTF (see logistics/corridors.ts HUB_BASIS_SPREADS). The
+ * underlying literal keeps its hub name/operator metadata; only the spread number is overridable. */
+const HUB_BASIS_SPREAD_ASSUMPTIONS: AssumptionDefinition[] = Object.entries(HUB_BASIS_SPREADS).map(([country, hub]) => ({
+  key: `cost.hubBasis.${country}`,
+  category: 'COST',
+  label: `Hub basis spread to TTF: ${hub.hubName} (${country})`,
+  unit: '€/MWh',
+  defaultValue: hub.basisSpreadToTtfEurMwh,
+  basis: 'DESK_ESTIMATE',
+  source: `Desk estimate for ${hub.hubName}, operated by ${hub.operator}, relative to the TTF benchmark.`,
+  usedIn: 'Netback engine and logistics engine (hubBasisSpread helper): basis differential between origin and target hub',
+  min: -20,
+  max: 20,
+}));
+
+/** One assumption per interconnection point entry/exit tariff leg that is verified (see
+ * logistics/corridors.ts INTERCONNECTION_POINTS). Points with no verified tariff (null) stay
+ * null/unverified and are not registered here — there is nothing to make editable. */
+const VERIFIED_INTERCONNECTION_POINTS = INTERCONNECTION_POINTS.filter(
+  ip => ip.entryTariffEurMwh !== null && ip.exitTariffEurMwh !== null
+);
+const INTERCONNECTION_TARIFF_ASSUMPTIONS: AssumptionDefinition[] = VERIFIED_INTERCONNECTION_POINTS.flatMap(ip => [
+  {
+    key: `cost.ip.${ip.id}.entry`,
+    category: 'COST' as const,
+    label: `${ip.name}: entry tariff`,
+    unit: '€/MWh',
+    defaultValue: ip.entryTariffEurMwh as number,
+    basis: 'DESK_ESTIMATE' as const,
+    source: `${ip.source}${ip.lastVerified ? ` (verified ${ip.lastVerified})` : ''}.`,
+    usedIn: 'Logistics engine and route window: physical transmission tariff for this interconnection leg (entry + exit = total)',
+    min: 0,
+  },
+  {
+    key: `cost.ip.${ip.id}.exit`,
+    category: 'COST' as const,
+    label: `${ip.name}: exit tariff`,
+    unit: '€/MWh',
+    defaultValue: ip.exitTariffEurMwh as number,
+    basis: 'DESK_ESTIMATE' as const,
+    source: `${ip.source}${ip.lastVerified ? ` (verified ${ip.lastVerified})` : ''}.`,
+    usedIn: 'Logistics engine and route window: physical transmission tariff for this interconnection leg (entry + exit = total)',
+    min: 0,
+  },
+]);
+
+/** One assumption per country×feedstock CI tier (optimistic/base/conservative). The underlying
+ * COUNTRY_FEEDSTOCK_CI_PROFILES / DEFAULT_FEEDSTOCK_CI_PROFILE literals are untouched (they still
+ * supply the range bounds and the set of known country/feedstock rows); getCountryFeedstockCI
+ * reads the tier value through this assumption instead of the literal. */
+const CI_TIERS: Array<'optimistic' | 'base' | 'conservative'> = ['optimistic', 'base', 'conservative'];
+function ciTierAssumption(scope: string, country: string | null, feedstockKey: string, tier: 'optimistic' | 'base' | 'conservative', value: number, range: [number, number]): AssumptionDefinition {
+  const feedstockName = FEEDSTOCK_REGISTRY[feedstockKey]?.name ?? feedstockKey;
+  return {
+    key: `ci.tier.${scope}.${feedstockKey}.${tier}`,
+    category: 'CI_TIER',
+    label: `${country ? `${country} ` : 'Default '}${feedstockName} CI — ${tier}`,
+    unit: 'gCO₂e/MJ',
+    defaultValue: value,
+    basis: 'DESK_ESTIMATE',
+    source: country
+      ? `Desk judgement, country-specific tier for ${country} (see consignment/feedstocks.ts COUNTRY_FEEDSTOCK_CI_PROFILES).`
+      : 'Desk judgement, fallback tier used when the origin country has no specific profile (see consignment/feedstocks.ts DEFAULT_FEEDSTOCK_CI_PROFILE).',
+    usedIn: 'getCountryFeedstockCI: Trade Builder CI stepper tier picker (optimistic/base/conservative) by origin country and feedstock',
+    min: range[0],
+    max: range[1],
+  };
+}
+const COUNTRY_FEEDSTOCK_CI_ASSUMPTIONS: AssumptionDefinition[] = [
+  ...Object.entries(COUNTRY_FEEDSTOCK_CI_PROFILES).flatMap(([country, feedstocks]) =>
+    Object.entries(feedstocks).flatMap(([feedstockKey, t]) =>
+      CI_TIERS.map(tier => ciTierAssumption(country, country, feedstockKey, tier, t[tier], t.range))
+    )
+  ),
+  ...Object.entries(DEFAULT_FEEDSTOCK_CI_PROFILE).flatMap(([feedstockKey, t]) =>
+    CI_TIERS.map(tier => ciTierAssumption('DEFAULT', null, feedstockKey, tier, t[tier], t.range))
+  ),
+];
+
 /** Share of each country's gas demand under ETS2, used to scope supplier volumes (see ets2/segmentShare.ts). */
 const ETS2_SEGMENT_SHARE_ASSUMPTIONS: AssumptionDefinition[] = Object.values(ETS2_SEGMENT_SHARES).map(r => ({
   key: `ets2.segmentShare.${r.iso}`,
@@ -72,6 +152,55 @@ const ETS2_SEGMENT_SHARE_ASSUMPTIONS: AssumptionDefinition[] = Object.values(ETS
 }));
 
 export const ASSUMPTION_DEFINITIONS: AssumptionDefinition[] = [
+  // ── Cost tables: cross-border transit tariff ladder ──────────────────────
+  {
+    key: 'cost.transit.domestic',
+    category: 'COST',
+    label: 'Transit tariff: domestic (same country)',
+    unit: '€/MWh',
+    defaultValue: 0.50,
+    basis: 'DESK_ESTIMATE',
+    source: 'Desk estimate — local domestic grid injection/withdrawal.',
+    usedIn: 'Origination arbitrage scan and the Trade Builder (getRouteTransitTariff): transit cost when origin and target country are the same',
+    min: 0,
+  },
+  {
+    key: 'cost.transit.crossBorderSingle',
+    category: 'COST',
+    label: 'Transit tariff: single cross-border hop',
+    unit: '€/MWh',
+    defaultValue: 1.80,
+    basis: 'DESK_ESTIMATE',
+    source: 'Desk estimate — single cross-border transit between adjacent grid zones.',
+    usedIn: 'Origination arbitrage scan and the Trade Builder (getRouteTransitTariff): transit cost on an adjacent-country route',
+    min: 0,
+  },
+  {
+    key: 'cost.transit.euPooling',
+    category: 'COST',
+    label: 'Transit tariff: EU-wide pooling / marine bunkering',
+    unit: '€/MWh',
+    defaultValue: 2.50,
+    basis: 'DESK_ESTIMATE',
+    source: 'Desk estimate — marine bunkering / EU-wide pooling.',
+    usedIn: 'Origination arbitrage scan and the Trade Builder (getRouteTransitTariff): transit cost when the target is the EU pool',
+    min: 0,
+  },
+  {
+    key: 'cost.transit.multiZone',
+    category: 'COST',
+    label: 'Transit tariff: multi-zone transit',
+    unit: '€/MWh',
+    defaultValue: 3.20,
+    basis: 'DESK_ESTIMATE',
+    source: 'Desk estimate — multi-zone transit between non-adjacent countries.',
+    usedIn: 'Origination arbitrage scan and the Trade Builder (getRouteTransitTariff): transit cost on a non-adjacent, non-pooled route',
+    min: 0,
+  },
+  ...HUB_BASIS_SPREAD_ASSUMPTIONS,
+  ...INTERCONNECTION_TARIFF_ASSUMPTIONS,
+  ...COUNTRY_FEEDSTOCK_CI_ASSUMPTIONS,
+
   // ── Deal defaults ──────────────────────────────────────────────────────────
   {
     key: 'deal.defaultVolumeMwh',

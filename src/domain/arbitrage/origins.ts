@@ -1,4 +1,5 @@
 import { OriginProfile } from './types';
+import { getAssumption } from '../assumptions/registry';
 
 export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
   DK: {
@@ -288,7 +289,7 @@ export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
  */
 export function getRouteTransitTariff(originCode: string, targetCountry: string): number {
   if (originCode === targetCountry) {
-    return 0.50; // Local domestic grid injection/withdrawal
+    return getAssumption('cost.transit.domestic'); // Local domestic grid injection/withdrawal
   }
 
   const adjacentPairs = new Set([
@@ -301,14 +302,14 @@ export function getRouteTransitTariff(originCode: string, targetCountry: string)
 
   const pairKey = `${originCode}-${targetCountry}`;
   if (adjacentPairs.has(pairKey)) {
-    return 1.80; // Single cross-border transit
+    return getAssumption('cost.transit.crossBorderSingle'); // Single cross-border transit
   }
 
   if (targetCountry === 'EU') {
-    return 2.50; // Marine bunkering / EU-wide pooling
+    return getAssumption('cost.transit.euPooling'); // Marine bunkering / EU-wide pooling
   }
 
-  return 3.20; // Multi-zone transit
+  return getAssumption('cost.transit.multiZone'); // Multi-zone transit
 }
 
 /**

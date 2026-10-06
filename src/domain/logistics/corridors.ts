@@ -1,4 +1,8 @@
 import { InterconnectionPoint, CapacityDuration } from './types';
+import { getAssumption } from '../assumptions/registry';
+import { INTERCONNECTION_POINTS, HUB_BASIS_SPREADS } from './corridorsData';
+
+export { INTERCONNECTION_POINTS, HUB_BASIS_SPREADS };
 
 /**
  * ENTSOG CAM NC (Commission Regulation (EU) 2017/459) Standard Capacity Duration Multipliers
@@ -79,330 +83,36 @@ export const NATIONAL_BIOMETHANE_INJECTION_INCENTIVES: Record<string, {
 };
 
 /**
- * European Gas Interconnection Points (IPs) Grid Topology
- * All capacity booking tariffs default to null until verified by desk/clearing platforms (PRISMA/RBP/GSA).
+ * Current hub basis spread to TTF for a country (desk assumption, read at call time), or
+ * `fallback` when the country has no entry in HUB_BASIS_SPREADS.
  */
-export const INTERCONNECTION_POINTS: InterconnectionPoint[] = [
-  // Sweden <-> Denmark
-  {
-    id: 'IP_DRAGOR',
-    name: 'Dragør / Dragor IP',
-    fromCountry: 'SE',
-    toCountry: 'DK',
-    fromTso: 'Swedegas (Nordion Energi)',
-    toTso: 'Energinet',
-    entryTariffEurMwh: null,
-    exitTariffEurMwh: null,
-    totalTariffEurMwh: null,
-    capacityPlatform: 'UNVERIFIED',
-    confidence: 'UNVERIFIED',
-    source: 'Swedegas / Energinet border point (Unverified tariff)',
-    lastVerified: null,
-    notes: 'Subsea pipeline connecting Sweden transmission grid with Danish transmission network.',
-  },
-  {
-    id: 'IP_DRAGOR_REV',
-    name: 'Dragør / Dragor IP (Reverse)',
-    fromCountry: 'DK',
-    toCountry: 'SE',
-    fromTso: 'Energinet',
-    toTso: 'Swedegas',
-    entryTariffEurMwh: null,
-    exitTariffEurMwh: null,
-    totalTariffEurMwh: null,
-    capacityPlatform: 'UNVERIFIED',
-    confidence: 'UNVERIFIED',
-    source: 'Energinet / Swedegas border point (Unverified tariff)',
-    lastVerified: null,
-  },
-
-  // Denmark <-> Germany
-  {
-    id: 'IP_ELLUND',
-    name: 'Ellund / VIP DK-DE',
-    fromCountry: 'DK',
-    toCountry: 'DE',
-    fromTso: 'Energinet',
-    toTso: 'Gasunie Deutschland / Open Grid Europe (THE)',
-    entryTariffEurMwh: 0.25,
-    exitTariffEurMwh: 0.30,
-    totalTariffEurMwh: 0.55,
-    capacityPlatform: 'PRISMA',
-    confidence: 'VERIFIED',
-    source: 'Energinet & Gasunie Deutschland PRISMA Clearing (Tariff Year 2025/2026)',
-    lastVerified: '2026-08-16',
-    notes: 'Jutland border connecting Danish transmission grid with Trading Hub Europe (THE). Verified continuous capacity booking.',
-  },
-  {
-    id: 'IP_ELLUND_REV',
-    name: 'Ellund / VIP DK-DE (Reverse)',
-    fromCountry: 'DE',
-    toCountry: 'DK',
-    fromTso: 'Gasunie Deutschland (THE)',
-    toTso: 'Energinet',
-    entryTariffEurMwh: 0.30,
-    exitTariffEurMwh: 0.25,
-    totalTariffEurMwh: 0.55,
-    capacityPlatform: 'PRISMA',
-    confidence: 'VERIFIED',
-    source: 'Gasunie Deutschland / Energinet PRISMA Clearing',
-    lastVerified: '2026-08-16',
-  },
-
-  // Germany <-> France
-  {
-    id: 'VIP_FRANCE_GERMANY',
-    name: 'VIP France-Germany (Obergailbach / Medelsheim)',
-    fromCountry: 'DE',
-    toCountry: 'FR',
-    fromTso: 'Open Grid Europe / GRTgaz Deutschland',
-    toTso: 'GRTgaz (PEG)',
-    entryTariffEurMwh: 0.15,
-    exitTariffEurMwh: 0.20,
-    totalTariffEurMwh: 0.35,
-    capacityPlatform: 'PRISMA',
-    confidence: 'VERIFIED',
-    source: 'Open Grid Europe & GRTgaz PRISMA Clearing (Tariff Year 2025/2026)',
-    lastVerified: '2026-08-16',
-    notes: 'Major border point between Trading Hub Europe (THE) and French Point d’Échange de Gaz (PEG).',
-  },
-  {
-    id: 'VIP_FRANCE_GERMANY_REV',
-    name: 'VIP France-Germany (Reverse)',
-    fromCountry: 'FR',
-    toCountry: 'DE',
-    fromTso: 'GRTgaz (PEG)',
-    toTso: 'Open Grid Europe (THE)',
-    entryTariffEurMwh: 0.20,
-    exitTariffEurMwh: 0.15,
-    totalTariffEurMwh: 0.35,
-    capacityPlatform: 'PRISMA',
-    confidence: 'VERIFIED',
-    source: 'GRTgaz / OGE PRISMA Clearing',
-    lastVerified: '2026-08-16',
-  },
-
-  // France <-> Spain
-  {
-    id: 'VIP_PIRINEOS',
-    name: 'VIP Pirineos (Larrau & Biriatou)',
-    fromCountry: 'FR',
-    toCountry: 'ES',
-    fromTso: 'Teréga / GRTgaz',
-    toTso: 'Enagás GTS (PVB)',
-    entryTariffEurMwh: null,
-    exitTariffEurMwh: null,
-    totalTariffEurMwh: null,
-    capacityPlatform: 'UNVERIFIED',
-    confidence: 'UNVERIFIED',
-    source: 'Teréga / Enagás border point (Unverified tariff)',
-    lastVerified: null,
-    notes: 'Pyrenean border interconnection into the Spanish Iberian system (PVB).',
-  },
-  {
-    id: 'VIP_PIRINEOS_REV',
-    name: 'VIP Pirineos (Reverse)',
-    fromCountry: 'ES',
-    toCountry: 'FR',
-    fromTso: 'Enagás GTS',
-    toTso: 'Teréga',
-    entryTariffEurMwh: null,
-    exitTariffEurMwh: null,
-    totalTariffEurMwh: null,
-    capacityPlatform: 'UNVERIFIED',
-    confidence: 'UNVERIFIED',
-    source: 'Enagás / Teréga border point (Unverified tariff)',
-    lastVerified: null,
-  },
-
-  // Netherlands <-> Germany
-  {
-    id: 'VIP_TTF_THE',
-    name: 'VIP TTF-THE (Oude Statenzijl / Vlieghuis)',
-    fromCountry: 'NL',
-    toCountry: 'DE',
-    fromTso: 'Gasunie Transport Services (GTS)',
-    toTso: 'Gasunie Deutschland / OGE / Thyssengas',
-    entryTariffEurMwh: 0.10,
-    exitTariffEurMwh: 0.15,
-    totalTariffEurMwh: 0.25,
-    capacityPlatform: 'PRISMA',
-    confidence: 'VERIFIED',
-    source: 'GTS & OGE PRISMA Clearing (Tariff Year 2025/2026)',
-    lastVerified: '2026-08-16',
-    notes: 'Primary Dutch TTF to German THE grid cross-border corridor.',
-  },
-  {
-    id: 'VIP_TTF_THE_REV',
-    name: 'VIP TTF-THE (Reverse)',
-    fromCountry: 'DE',
-    toCountry: 'NL',
-    fromTso: 'Gasunie Deutschland (THE)',
-    toTso: 'Gasunie Transport Services (TTF)',
-    entryTariffEurMwh: 0.15,
-    exitTariffEurMwh: 0.10,
-    totalTariffEurMwh: 0.25,
-    capacityPlatform: 'PRISMA',
-    confidence: 'VERIFIED',
-    source: 'Gasunie Deutschland / GTS PRISMA Clearing',
-    lastVerified: '2026-08-16',
-  },
-
-  // Belgium <-> Germany
-  {
-    id: 'VIP_BELGIUM_GERMANY',
-    name: 'VIP Eynatten / Raeren (VIP BE-DE)',
-    fromCountry: 'BE',
-    toCountry: 'DE',
-    fromTso: 'Fluxys Belgium (ZTP)',
-    toTso: 'Open Grid Europe (THE)',
-    entryTariffEurMwh: 0.13,
-    exitTariffEurMwh: 0.15,
-    totalTariffEurMwh: 0.28,
-    capacityPlatform: 'PRISMA',
-    confidence: 'VERIFIED',
-    source: 'Fluxys Belgium & OGE PRISMA Clearing (Tariff Year 2025/2026)',
-    lastVerified: '2026-08-16',
-    notes: 'Interconnection connecting Belgian ZTP network with German THE.',
-  },
-  {
-    id: 'VIP_BELGIUM_GERMANY_REV',
-    name: 'VIP Eynatten / Raeren (Reverse)',
-    fromCountry: 'DE',
-    toCountry: 'BE',
-    fromTso: 'Open Grid Europe (THE)',
-    toTso: 'Fluxys Belgium (ZTP)',
-    entryTariffEurMwh: 0.15,
-    exitTariffEurMwh: 0.13,
-    totalTariffEurMwh: 0.28,
-    capacityPlatform: 'PRISMA',
-    confidence: 'VERIFIED',
-    source: 'OGE & Fluxys Belgium PRISMA Clearing',
-    lastVerified: '2026-08-16',
-  },
-
-  // Netherlands <-> Belgium
-  {
-    id: 'VIP_BENE',
-    name: "VIP BENE (Zandvliet / 's-Gravenvoeren)",
-    fromCountry: 'NL',
-    toCountry: 'BE',
-    fromTso: 'Gasunie Transport Services (GTS)',
-    toTso: 'Fluxys Belgium (ZTP)',
-    entryTariffEurMwh: null,
-    exitTariffEurMwh: null,
-    totalTariffEurMwh: null,
-    capacityPlatform: 'UNVERIFIED',
-    confidence: 'UNVERIFIED',
-    source: 'GTS / Fluxys border point (Unverified tariff)',
-    lastVerified: null,
-  },
-
-  // Belgium <-> France
-  {
-    id: 'VIP_BELFRANCE',
-    name: 'VIP France-Belgium (Taisnières / Alveringem)',
-    fromCountry: 'BE',
-    toCountry: 'FR',
-    fromTso: 'Fluxys Belgium',
-    toTso: 'GRTgaz',
-    entryTariffEurMwh: null,
-    exitTariffEurMwh: null,
-    totalTariffEurMwh: null,
-    capacityPlatform: 'UNVERIFIED',
-    confidence: 'UNVERIFIED',
-    source: 'Fluxys / GRTgaz border point (Unverified tariff)',
-    lastVerified: null,
-  },
-
-  // Germany <-> Austria
-  {
-    id: 'VIP_GERMANY_AUSTRIA',
-    name: 'VIP Germany-Austria (Oberkappel / Überackern)',
-    fromCountry: 'DE',
-    toCountry: 'AT',
-    fromTso: 'Bayernets / Open Grid Europe',
-    toTso: 'Gas Connect Austria (CEGH)',
-    entryTariffEurMwh: 0.12,
-    exitTariffEurMwh: 0.18,
-    totalTariffEurMwh: 0.30,
-    capacityPlatform: 'PRISMA',
-    confidence: 'VERIFIED',
-    source: 'bayernets & Gas Connect Austria PRISMA Clearing (Tariff Year 2025/2026)',
-    lastVerified: '2026-08-16',
-    notes: 'Major interconnection between THE and Central European Gas Hub (CEGH).',
-  },
-  {
-    id: 'VIP_GERMANY_AUSTRIA_REV',
-    name: 'VIP Germany-Austria (Reverse)',
-    fromCountry: 'AT',
-    toCountry: 'DE',
-    fromTso: 'Gas Connect Austria (CEGH)',
-    toTso: 'Bayernets / Open Grid Europe (THE)',
-    entryTariffEurMwh: 0.18,
-    exitTariffEurMwh: 0.12,
-    totalTariffEurMwh: 0.30,
-    capacityPlatform: 'PRISMA',
-    confidence: 'VERIFIED',
-    source: 'Gas Connect Austria & bayernets PRISMA Clearing',
-    lastVerified: '2026-08-16',
-  },
-
-  // Austria <-> Italy
-  {
-    id: 'IP_ARNOLDSTEIN',
-    name: 'Arnoldstein / Tarvisio IP',
-    fromCountry: 'AT',
-    toCountry: 'IT',
-    fromTso: 'Trans Austria Gasleitung (TAG)',
-    toTso: 'SNAM Rete Gas (PSV)',
-    entryTariffEurMwh: null,
-    exitTariffEurMwh: null,
-    totalTariffEurMwh: null,
-    capacityPlatform: 'UNVERIFIED',
-    confidence: 'UNVERIFIED',
-    source: 'TAG / SNAM border point (Unverified tariff)',
-    lastVerified: null,
-  },
-
-  // Germany <-> Poland
-  {
-    id: 'IP_MALLNOW',
-    name: 'GCP GAZ-SYSTEM / ONTRAS (Mallnow)',
-    fromCountry: 'DE',
-    toCountry: 'PL',
-    fromTso: 'ONTRAS Gastransport / Gascade',
-    toTso: 'GAZ-SYSTEM',
-    entryTariffEurMwh: null,
-    exitTariffEurMwh: null,
-    totalTariffEurMwh: null,
-    capacityPlatform: 'UNVERIFIED',
-    confidence: 'UNVERIFIED',
-    source: 'ONTRAS / GAZ-SYSTEM border point (Unverified tariff)',
-    lastVerified: null,
-  },
-];
+export function hubBasisSpread(country: string, fallback: number = 0): number {
+  const hub = HUB_BASIS_SPREADS[country];
+  if (!hub) return fallback;
+  return getAssumption(`cost.hubBasis.${country}`);
+}
 
 /**
- * European Gas Hub Basis Spreads (relative to TTF benchmark, in €/MWh)
+ * Current entry/exit/total tariff for an interconnection point (desk assumption, read at call
+ * time). Points with no verified tariff stay null — never fabricated. Total is always entry +
+ * exit (every verified point in INTERCONNECTION_POINTS satisfies that exactly).
  */
-export const HUB_BASIS_SPREADS: Record<string, { hubName: string; operator: string; basisSpreadToTtfEurMwh: number }> = {
-  NL: { hubName: 'TTF (Title Transfer Facility)', operator: 'Gasunie Transport Services', basisSpreadToTtfEurMwh: 0.00 },
-  DE: { hubName: 'THE (Trading Hub Europe)', operator: 'Trading Hub Europe GmbH', basisSpreadToTtfEurMwh: +0.45 },
-  DK: { hubName: 'ETF / Danish Hub', operator: 'Energinet', basisSpreadToTtfEurMwh: +0.35 },
-  SE: { hubName: 'Swedegas VTP', operator: 'Nordion Energi', basisSpreadToTtfEurMwh: +1.10 },
-  FR: { hubName: 'PEG (Point d’Échange de Gaz)', operator: 'GRTgaz / EEX', basisSpreadToTtfEurMwh: +0.80 },
-  ES: { hubName: 'PVB (Punto Virtual de Balance)', operator: 'MIBGAS / Enagás', basisSpreadToTtfEurMwh: +1.35 },
-  IT: { hubName: 'PSV (Punto di Scambio Virtuale)', operator: 'SNAM / GME', basisSpreadToTtfEurMwh: +1.60 },
-  BE: { hubName: 'ZTP (Zeebrugge Trading Point)', operator: 'Fluxys', basisSpreadToTtfEurMwh: +0.25 },
-  AT: { hubName: 'CEGH (Central European Gas Hub)', operator: 'OMV / CEGH', basisSpreadToTtfEurMwh: +1.20 },
-  PL: { hubName: 'TGE Gas Hub', operator: 'Polish Power Exchange (TGE)', basisSpreadToTtfEurMwh: +1.40 },
-  CZ: { hubName: 'OTE Gas Hub', operator: 'OTE a.s.', basisSpreadToTtfEurMwh: +0.90 },
-  FI: { hubName: 'Gasgrid VTP', operator: 'Gasgrid Finland', basisSpreadToTtfEurMwh: +2.10 },
-  UK: { hubName: 'NBP (National Balancing Point)', operator: 'National Gas', basisSpreadToTtfEurMwh: -0.60 },
-  CH: { hubName: 'Swiss Hub', operator: 'Swissgas / VSG', basisSpreadToTtfEurMwh: +2.50 },
-  NO: { hubName: 'Gassco Exit Hub', operator: 'Gassco', basisSpreadToTtfEurMwh: -0.20 },
-};
+export function resolvedIpTariffs(ip: InterconnectionPoint): {
+  entryTariffEurMwh: number | null;
+  exitTariffEurMwh: number | null;
+  totalTariffEurMwh: number | null;
+} {
+  if (ip.entryTariffEurMwh === null || ip.exitTariffEurMwh === null) {
+    return { entryTariffEurMwh: null, exitTariffEurMwh: null, totalTariffEurMwh: null };
+  }
+  const entryTariffEurMwh = getAssumption(`cost.ip.${ip.id}.entry`);
+  const exitTariffEurMwh = getAssumption(`cost.ip.${ip.id}.exit`);
+  return {
+    entryTariffEurMwh,
+    exitTariffEurMwh,
+    totalTariffEurMwh: Number((entryTariffEurMwh + exitTariffEurMwh).toFixed(2)),
+  };
+}
 
 /**
  * Distance Matrix between European Trading Hubs (in km, approximate pipeline/road routing)

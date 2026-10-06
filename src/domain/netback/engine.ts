@@ -11,7 +11,7 @@ import { Market, PriceSide, getMarkAgeDays } from '../markets/types';
 import { Consignment } from '../consignment/types';
 import { BundleReference, CostInputs, CertificateValueResult, NetbackResult, NetbackBranch, MarksState, FuelEUOptions, PricingSides, NetbackSides, ValuationRange, PrincipalRiskMetrics } from './types';
 import { EligibilityAssessment } from '../eligibility/types';
-import { HUB_BASIS_SPREADS } from '../logistics/corridors';
+import { hubBasisSpread } from '../logistics/corridors';
 
 import {
   FUELEU_VLSFO_WTW,
@@ -743,9 +743,7 @@ export function computeNetback(
   const valuationRange: ValuationRange | null = null;
 
   // Principal Risk Suite: Basis Risk and Statutory Replacement Exposure
-  const originHub = HUB_BASIS_SPREADS[consignment.originCountry] || { basisSpreadToTtfEurMwh: 0.0 };
-  const targetHub = HUB_BASIS_SPREADS[market.country] || { basisSpreadToTtfEurMwh: 0.0 };
-  const basisDifferentialEurMwh = Number((targetHub.basisSpreadToTtfEurMwh - originHub.basisSpreadToTtfEurMwh).toFixed(2));
+  const basisDifferentialEurMwh = Number((hubBasisSpread(market.country) - hubBasisSpread(consignment.originCountry)).toFixed(2));
   const dealVolume = consignment.volumeMWh ?? getAssumption('risk.illustrativeVolumeMwh');
   const basisRiskNotionalEur = Math.round(Math.abs(basisDifferentialEurMwh) * dealVolume);
 

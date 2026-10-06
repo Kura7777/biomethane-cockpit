@@ -1,5 +1,5 @@
 import { DeliveryMode, LogisticsAssessment, ModeCostBreakdown, InterconnectionPoint, CapacityDuration, TsoTariffComponent } from './types';
-import { INTERCONNECTION_POINTS, HUB_BASIS_SPREADS, HUB_DISTANCES_KM, PIPELINE_SEGMENT_DISTANCES, CAM_NC_DURATION_MULTIPLIERS, NATIONAL_BIOMETHANE_INJECTION_INCENTIVES } from './corridors';
+import { INTERCONNECTION_POINTS, HUB_BASIS_SPREADS, HUB_DISTANCES_KM, PIPELINE_SEGMENT_DISTANCES, CAM_NC_DURATION_MULTIPLIERS, NATIONAL_BIOMETHANE_INJECTION_INCENTIVES, hubBasisSpread, resolvedIpTariffs } from './corridors';
 import { MARKETS } from '../markets/registry';
 import { COUNTRY_NAMES } from '../markets/constants';
 import { getAssumption } from '../assumptions/registry';
@@ -191,24 +191,25 @@ export function resolveInterconnectionPoints(
     const override = tariffOverrides?.[matchedIp?.id ?? `IP_${from}_${to}`] || tariffOverrides?.[`${from}_${to}`];
 
     if (matchedIp) {
+      const resolved = resolvedIpTariffs(matchedIp);
       if (override) {
         const total = override.totalTariffEurMwh !== undefined
           ? override.totalTariffEurMwh
           : (override.entryTariffEurMwh !== undefined && override.exitTariffEurMwh !== undefined && override.entryTariffEurMwh !== null && override.exitTariffEurMwh !== null)
           ? Number((override.entryTariffEurMwh + override.exitTariffEurMwh).toFixed(2))
-          : matchedIp.totalTariffEurMwh;
+          : resolved.totalTariffEurMwh;
 
         ips.push({
           ...matchedIp,
-          entryTariffEurMwh: override.entryTariffEurMwh ?? matchedIp.entryTariffEurMwh,
-          exitTariffEurMwh: override.exitTariffEurMwh ?? matchedIp.exitTariffEurMwh,
+          entryTariffEurMwh: override.entryTariffEurMwh ?? resolved.entryTariffEurMwh,
+          exitTariffEurMwh: override.exitTariffEurMwh ?? resolved.exitTariffEurMwh,
           totalTariffEurMwh: total,
           capacityPlatform: 'PRISMA',
           confidence: 'VERIFIED',
           source: 'Desk tariff override',
         });
       } else {
-        ips.push(matchedIp);
+        ips.push({ ...matchedIp, ...resolved });
       }
     } else {
       // Unverified border tariff — never fabricate non-existent numbers
@@ -345,7 +346,7 @@ export function calculateLogisticsRoute(
   // Hub Basis Spreads
   const originHub = HUB_BASIS_SPREADS[origin] || { hubName: `${origin} Local Hub`, operator: 'National Grid', basisSpreadToTtfEurMwh: +0.80 };
   const targetHub = HUB_BASIS_SPREADS[target] || { hubName: `${target} Local Hub`, operator: 'National Grid', basisSpreadToTtfEurMwh: +0.80 };
-  const hubBasisSpreadEurMwh = Number((targetHub.basisSpreadToTtfEurMwh - originHub.basisSpreadToTtfEurMwh).toFixed(2));
+  const hubBasisSpreadEurMwh = Number((hubBasisSpread(target, 0.80) - hubBasisSpread(origin, 0.80)).toFixed(2));
 
   // -------------------------------------------------------------
   // MODE 1: Commercial Inter-Hub Swap + UDB PoS Title Transfer
