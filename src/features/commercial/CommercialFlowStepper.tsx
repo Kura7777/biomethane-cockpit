@@ -87,6 +87,7 @@ export function CommercialFlowStepper() {
             networkOperator: p.networkOperator || null,
             contactEmail: p.contactEmail || null,
             contactPhone: p.contactPhone || null,
+            gridConnectionType: p.gridConnectionType || null,
           });
         });
       } else {

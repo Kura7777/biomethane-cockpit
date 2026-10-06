@@ -42,6 +42,24 @@ export function Step2PlantScan({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCountry, setSelectedCountry] = useState<string>('ALL');
   const [sortBy, setSortBy] = useState<PlantSortOption>('MARGIN_DESC');
+  const [feedstockFilter, setFeedstockFilter] = useState<string>('ALL');
+  const [minSizeGWh, setMinSizeGWh] = useState('');
+  const [gridFilter, setGridFilter] = useState<'ALL' | 'GRID' | 'OTHER'>('ALL');
+
+  // Feedstocks present in the current opportunity set
+  const availableFeedstocks = useMemo(() => {
+    const map = new Map<string, string>();
+    opportunities.forEach(opp => {
+      if (opp.feedstockKey) map.set(opp.feedstockKey, opp.feedstockName || opp.feedstockKey);
+    });
+    return Array.from(map.entries()).map(([key, name]) => ({ key, name }));
+  }, [opportunities]);
+
+  const isGridInjecting = (opp: SourcedOpportunity) => {
+    const t = (opp.gridConnectionType || '').toLowerCase();
+    if (!t) return null; // data not available for this plant
+    return !(t.includes('bio-lng') || t.includes('off-grid'));
+  };
 
   // Extract unique countries from available opportunities
   const availableCountries = useMemo(() => {
@@ -81,9 +99,25 @@ export function Step2PlantScan({
           return false;
         }
       }
+      // Feedstock filter
+      if (feedstockFilter !== 'ALL' && opp.feedstockKey !== feedstockFilter) {
+        return false;
+      }
+      // Minimum plant size (GWh/yr)
+      const minSize = minSizeGWh.trim() === '' ? null : Number(minSizeGWh);
+      if (minSize !== null && !Number.isNaN(minSize) && (opp.plantAnnualGWh ?? 0) < minSize) {
+        return false;
+      }
+      // Grid connection filter
+      if (gridFilter !== 'ALL') {
+        const gridInjecting = isGridInjecting(opp);
+        if (gridInjecting === null) return false; // no grid data to filter on
+        if (gridFilter === 'GRID' && !gridInjecting) return false;
+        if (gridFilter === 'OTHER' && gridInjecting) return false;
+      }
       return true;
     });
-  }, [opportunities, selectedCountry, searchTerm]);
+  }, [opportunities, selectedCountry, searchTerm, feedstockFilter, minSizeGWh, gridFilter]);
 
   // Sort filtered opportunities
   const sortedOpps = useMemo(() => {
@@ -272,6 +306,59 @@ export function Step2PlantScan({
               <option value="DISTANCE_ASC">Shortest distance</option>
             </select>
           </div>
+
+          {/* Feedstock filter */}
+          <select
+            value={feedstockFilter}
+            onChange={e => setFeedstockFilter(e.target.value)}
+            style={{
+              backgroundColor: 'var(--color-bg)',
+              borderColor: 'var(--color-line)',
+              borderRadius: 'var(--radius-control)',
+              color: 'var(--color-text)',
+            }}
+            className="border px-2.5 py-1.5 text-xs font-medium focus:outline-hidden cursor-pointer"
+            data-testid="plant-feedstock-filter"
+          >
+            <option value="ALL">All feedstocks</option>
+            {availableFeedstocks.map(f => (
+              <option key={f.key} value={f.key}>{f.name}</option>
+            ))}
+          </select>
+
+          {/* Minimum plant size */}
+          <input
+            type="number"
+            value={minSizeGWh}
+            onChange={e => setMinSizeGWh(e.target.value)}
+            placeholder="Min GWh/yr"
+            style={{
+              backgroundColor: 'var(--color-bg)',
+              borderColor: 'var(--color-line)',
+              borderRadius: 'var(--radius-control)',
+              color: 'var(--color-text)',
+            }}
+            className="border px-2.5 py-1.5 text-xs font-medium focus:outline-hidden w-24"
+            data-testid="plant-min-size-filter"
+          />
+
+          {/* Grid connection filter */}
+          <select
+            value={gridFilter}
+            onChange={e => setGridFilter(e.target.value as 'ALL' | 'GRID' | 'OTHER')}
+            style={{
+              backgroundColor: 'var(--color-bg)',
+              borderColor: 'var(--color-line)',
+              borderRadius: 'var(--radius-control)',
+              color: 'var(--color-text)',
+            }}
+            className="border px-2.5 py-1.5 text-xs font-medium focus:outline-hidden cursor-pointer"
+            data-testid="plant-grid-filter"
+          >
+            <option value="ALL">Any grid connection</option>
+            <option value="GRID">Grid-injecting only</option>
+            <option value="OTHER">Other (off-grid / bio-LNG)</option>
+          </select>
         </div>
       </div>
 
