@@ -17,7 +17,7 @@ import {
   toSupplyEntries,
 } from '../../markets/brokerRun.seed';
 import { MARKETS } from '../../markets/registry';
-import { AppState, appReducer, migrateState } from '../../../store/context';
+import { AppState, appReducer, migrateState, CURRENT_SCHEMA_VERSION } from '../../../store/context';
 import { createEmptyDeskState } from '../../__tests__/empty_desk_audit.test';
 import { priceCorporateOrder, buildSupplyBook, CorporateOrderSpec } from '../../corporate/orderPricer';
 import { BASELINE_BROKER_RUNS } from '../../markets/brokerRuns';
@@ -280,7 +280,7 @@ describe('Pricing Desk & Ingress Seam Unit Tests (Phase 1b)', () => {
 
       const nextState = migrateState(v9State);
 
-      expect(nextState.schemaVersion).toBe(12);
+      expect(nextState.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
       expect(nextState.pricingBook).toBeDefined();
       expect(nextState.pricingBook.length).toBe(INITIAL_PRICING_BOOK.length);
       expect(nextState.pricingRunMeta).toEqual(BASELINE_RUN_META);
