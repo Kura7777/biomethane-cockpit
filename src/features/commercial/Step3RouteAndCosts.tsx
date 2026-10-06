@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppState } from '../../store/context';
 import { ClientRequest } from '../../domain/arbitrage/types';
@@ -12,6 +12,9 @@ import {
 import { SourceChip } from '../../shared/ui/SourceChip';
 import { RouteStatusBadge } from './RouteStatusBadge';
 import { SourcedOpportunity } from './PlantScannerTable';
+import { buildLadderConsignment } from '../../domain/arbitrage/marketLadder';
+import { evaluateEligibility } from '../../domain/eligibility/engine';
+import { MARKETS } from '../../domain/markets/registry';
 import { RouteVerdictCard } from '../map/RouteVerdictCard';
 import { MarketLadder } from './MarketLadder';
 import { 
@@ -26,6 +29,39 @@ import {
   ArrowUpRight,
   ArrowDownRight
 } from 'lucide-react';
+
+/**
+ * The route verdict the top badge shows, recomputed against whatever CI the opportunity currently
+ * carries (the plant's own, or Step 1's "Assume plant CI" override) — the same consignment the
+ * ladder and netback below already price with. `opportunity.overallVerdict`/`eligibility` are a
+ * snapshot from the scan and go stale the moment the override changes the CI.
+ */
+export function currentRouteVerdict(
+  opportunity: SourcedOpportunity,
+  complianceYear: number | null | undefined,
+  volumeMwh: number
+): { overallVerdict: SourcedOpportunity['overallVerdict']; summary: string } {
+  const targetMarket = MARKETS.find(m => m.id === opportunity.targetMarketId);
+  if (!targetMarket) {
+    return { overallVerdict: opportunity.overallVerdict, summary: opportunity.eligibility.summary };
+  }
+  const consignment = buildLadderConsignment(
+    {
+      originCountry: opportunity.originCountry,
+      originCountryName: opportunity.originCountryName,
+      feedstockKey: opportunity.feedstockKey,
+      feedstockName: opportunity.feedstockName,
+      carbonIntensity: opportunity.carbonIntensity,
+      certificationScheme: opportunity.certificationScheme,
+      chainOfCustody: opportunity.chainOfCustody,
+      targetMarketId: opportunity.targetMarketId,
+      complianceYear: complianceYear ?? null,
+    },
+    volumeMwh
+  );
+  const assessment = evaluateEligibility(consignment, targetMarket);
+  return { overallVerdict: assessment.overallVerdict, summary: assessment.summary };
+}
 
 interface Step3RouteAndCostsProps {
   request: ClientRequest;
@@ -66,6 +102,15 @@ export function Step3RouteAndCosts({
   } = b;
   const sourceChip = (src: PriceSource | null) =>
     src ? <SourceChip badge={src.badge} suffix={src.asOf ? `mark ${src.asOf}` : 'no date on record'} /> : null;
+
+  // See currentRouteVerdict: the top badge must clear on the same CI the ladder and netback below
+  // price with, not the stale snapshot from the scan.
+  const routeVerdict = useMemo(
+    () => currentRouteVerdict(opportunity, request.delivery?.complianceYear, vol),
+    [opportunity, request.delivery?.complianceYear, vol]
+  );
+  const badgeVerdict = routeVerdict.overallVerdict;
+  const badgeDetail = routeVerdict.summary;
 
   const transitSteps = opportunity.originCountry === opportunity.targetCountry
     ? [opportunity.originCountry]
@@ -135,8 +180,8 @@ export function Step3RouteAndCosts({
             />
 
             <div className="mt-3 flex items-center gap-2 flex-wrap text-xs">
-              <RouteStatusBadge verdict={opportunity.overallVerdict} detail={opportunity.eligibility.summary} />
-              <span style={{ color: 'var(--color-muted)' }} className="text-[11px]">{opportunity.eligibility.summary}</span>
+              <RouteStatusBadge verdict={badgeVerdict} detail={badgeDetail} />
+              <span style={{ color: 'var(--color-muted)' }} className="text-[11px]">{badgeDetail}</span>
             </div>
 
             <div style={{ color: 'var(--color-muted)' }} className="mt-2 text-[11px]" data-testid="corridor-line">
