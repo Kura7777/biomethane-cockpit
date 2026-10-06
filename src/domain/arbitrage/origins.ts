@@ -10,8 +10,6 @@ export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
     primaryRegistry: 'Energinet',
     gridZone: 'EU_INTERCONNECTED',
     typicalFeedstocks: ['manure', 'straw', 'food_waste'],
-    plantGateCostBenchmarkEurMwh: 76.50,
-    hubBasisSpreadToTtfEurMwh: +0.35,
   },
   DE: {
     countryCode: 'DE',
@@ -22,8 +20,6 @@ export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
     primaryRegistry: 'dena Biogasregister',
     gridZone: 'EU_INTERCONNECTED',
     typicalFeedstocks: ['manure', 'energy_crops', 'food_waste'],
-    plantGateCostBenchmarkEurMwh: 89.00,
-    hubBasisSpreadToTtfEurMwh: -0.20,
   },
   FR: {
     countryCode: 'FR',
@@ -34,8 +30,6 @@ export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
     primaryRegistry: 'GRTgaz / Teréga',
     gridZone: 'EU_INTERCONNECTED',
     typicalFeedstocks: ['energy_crops', 'manure', 'food_waste', 'sewage_sludge'],
-    plantGateCostBenchmarkEurMwh: 86.50,
-    hubBasisSpreadToTtfEurMwh: -0.45,
   },
   NL: {
     countryCode: 'NL',
@@ -46,8 +40,6 @@ export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
     primaryRegistry: 'VertiCer',
     gridZone: 'EU_INTERCONNECTED',
     typicalFeedstocks: ['manure', 'food_waste', 'sewage_sludge'],
-    plantGateCostBenchmarkEurMwh: 94.00,
-    hubBasisSpreadToTtfEurMwh: 0.00,
   },
   ES: {
     countryCode: 'ES',
@@ -58,8 +50,6 @@ export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
     primaryRegistry: 'Enagás GTS (Sistema GdO)',
     gridZone: 'EU_INTERCONNECTED',
     typicalFeedstocks: ['manure', 'food_waste', 'straw'],
-    plantGateCostBenchmarkEurMwh: 74.00,
-    hubBasisSpreadToTtfEurMwh: +1.35,
   },
   IT: {
     countryCode: 'IT',
@@ -70,8 +60,6 @@ export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
     primaryRegistry: 'GSE Biometano',
     gridZone: 'EU_INTERCONNECTED',
     typicalFeedstocks: ['manure', 'food_waste', 'sewage_sludge'],
-    plantGateCostBenchmarkEurMwh: 84.00,
-    hubBasisSpreadToTtfEurMwh: +1.60,
   },
   GB: {
     countryCode: 'GB',
@@ -82,8 +70,6 @@ export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
     primaryRegistry: 'DfT RTFO / GGCS',
     gridZone: 'NON_EU_ISOLATED',
     typicalFeedstocks: ['food_waste', 'manure', 'energy_crops'],
-    plantGateCostBenchmarkEurMwh: 88.00,
-    hubBasisSpreadToTtfEurMwh: -0.60,
   },
   SE: {
     countryCode: 'SE',
@@ -94,8 +80,6 @@ export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
     primaryRegistry: 'Energigas Sverige',
     gridZone: 'EU_INTERCONNECTED',
     typicalFeedstocks: ['sewage_sludge', 'food_waste', 'manure'],
-    plantGateCostBenchmarkEurMwh: 98.00,
-    hubBasisSpreadToTtfEurMwh: +1.10,
   },
   FI: {
     countryCode: 'FI',
@@ -106,8 +90,6 @@ export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
     primaryRegistry: 'Gasgrid Finland',
     gridZone: 'EU_INTERCONNECTED',
     typicalFeedstocks: ['food_waste', 'manure', 'sewage_sludge'],
-    plantGateCostBenchmarkEurMwh: 102.00,
-    hubBasisSpreadToTtfEurMwh: +2.10,
   },
   AT: {
     countryCode: 'AT',
@@ -118,8 +100,6 @@ export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
     primaryRegistry: 'AGCS Biomethan Register',
     gridZone: 'EU_INTERCONNECTED',
     typicalFeedstocks: ['manure', 'energy_crops', 'biowaste'],
-    plantGateCostBenchmarkEurMwh: 91.50,
-    hubBasisSpreadToTtfEurMwh: +1.20,
   },
   CH: {
     countryCode: 'CH',
@@ -130,8 +110,6 @@ export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
     primaryRegistry: 'VSG Clearing',
     gridZone: 'NON_EU_ISOLATED',
     typicalFeedstocks: ['biowaste', 'sewage_sludge'],
-    plantGateCostBenchmarkEurMwh: 110.00,
-    hubBasisSpreadToTtfEurMwh: +2.50,
   },
   NO: {
     countryCode: 'NO',
@@ -142,8 +120,6 @@ export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
     primaryRegistry: 'Gassco',
     gridZone: 'NON_EU_ISOLATED',
     typicalFeedstocks: ['fish_waste', 'manure', 'sewage_sludge'],
-    plantGateCostBenchmarkEurMwh: 85.00,
-    hubBasisSpreadToTtfEurMwh: -0.20,
   },
   PT: {
     countryCode: 'PT',
@@ -154,8 +130,6 @@ export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
     primaryRegistry: 'REN / DGEG',
     gridZone: 'EU_INTERCONNECTED',
     typicalFeedstocks: ['manure', 'food_waste'],
-    plantGateCostBenchmarkEurMwh: 75.00,
-    hubBasisSpreadToTtfEurMwh: +1.40,
   },
   BE: {
     countryCode: 'BE',
@@ -166,8 +140,6 @@ export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
     primaryRegistry: 'Fluxys',
     gridZone: 'EU_INTERCONNECTED',
     typicalFeedstocks: ['manure', 'food_waste', 'energy_crops'],
-    plantGateCostBenchmarkEurMwh: 92.00,
-    hubBasisSpreadToTtfEurMwh: +0.25,
   },
   LT: {
     countryCode: 'LT',
@@ -178,8 +150,6 @@ export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
     primaryRegistry: 'Amber Grid',
     gridZone: 'EU_INTERCONNECTED',
     typicalFeedstocks: ['manure', 'straw', 'food_waste'],
-    plantGateCostBenchmarkEurMwh: 78.00,
-    hubBasisSpreadToTtfEurMwh: +1.50,
   },
   CZ: {
     countryCode: 'CZ',
@@ -190,8 +160,6 @@ export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
     primaryRegistry: 'OTE a.s.',
     gridZone: 'EU_INTERCONNECTED',
     typicalFeedstocks: ['energy_crops', 'manure'],
-    plantGateCostBenchmarkEurMwh: 82.00,
-    hubBasisSpreadToTtfEurMwh: +0.90,
   },
   LV: {
     countryCode: 'LV',
@@ -202,8 +170,6 @@ export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
     primaryRegistry: 'Conexus Baltic Grid',
     gridZone: 'EU_INTERCONNECTED',
     typicalFeedstocks: ['manure', 'energy_crops'],
-    plantGateCostBenchmarkEurMwh: 80.00,
-    hubBasisSpreadToTtfEurMwh: +1.50,
   },
   EE: {
     countryCode: 'EE',
@@ -214,8 +180,6 @@ export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
     primaryRegistry: 'Elering',
     gridZone: 'EU_INTERCONNECTED',
     typicalFeedstocks: ['manure', 'food_waste'],
-    plantGateCostBenchmarkEurMwh: 82.00,
-    hubBasisSpreadToTtfEurMwh: +1.60,
   },
   SK: {
     countryCode: 'SK',
@@ -226,8 +190,6 @@ export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
     primaryRegistry: 'SPP - Distribucia',
     gridZone: 'EU_INTERCONNECTED',
     typicalFeedstocks: ['energy_crops', 'manure'],
-    plantGateCostBenchmarkEurMwh: 83.00,
-    hubBasisSpreadToTtfEurMwh: +1.20,
   },
   LU: {
     countryCode: 'LU',
@@ -238,8 +200,6 @@ export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
     primaryRegistry: 'ILR / Creos',
     gridZone: 'EU_INTERCONNECTED',
     typicalFeedstocks: ['manure', 'food_waste'],
-    plantGateCostBenchmarkEurMwh: 96.00,
-    hubBasisSpreadToTtfEurMwh: +0.60,
   },
   PL: {
     countryCode: 'PL',
@@ -250,8 +210,6 @@ export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
     primaryRegistry: 'KZR INiG / Gaz-System',
     gridZone: 'EU_INTERCONNECTED',
     typicalFeedstocks: ['distillery_waste', 'sugar_beet', 'manure'],
-    plantGateCostBenchmarkEurMwh: 79.50,
-    hubBasisSpreadToTtfEurMwh: +1.40,
   },
   HU: {
     countryCode: 'HU',
@@ -262,8 +220,6 @@ export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
     primaryRegistry: 'MEKH',
     gridZone: 'EU_INTERCONNECTED',
     typicalFeedstocks: ['agricultural_residues', 'manure'],
-    plantGateCostBenchmarkEurMwh: 81.00,
-    hubBasisSpreadToTtfEurMwh: +1.30,
   },
   RO: {
     countryCode: 'RO',
@@ -274,8 +230,6 @@ export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
     primaryRegistry: 'Transgaz',
     gridZone: 'EU_INTERCONNECTED',
     typicalFeedstocks: ['cereal_straw', 'manure'],
-    plantGateCostBenchmarkEurMwh: 77.00,
-    hubBasisSpreadToTtfEurMwh: +1.50,
   },
   IE: {
     countryCode: 'IE',
@@ -286,8 +240,6 @@ export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
     primaryRegistry: 'Gas Networks Ireland',
     gridZone: 'EU_INTERCONNECTED',
     typicalFeedstocks: ['grass_silage', 'cattle_slurry'],
-    plantGateCostBenchmarkEurMwh: 93.00,
-    hubBasisSpreadToTtfEurMwh: -0.30,
   },
   SI: {
     countryCode: 'SI',
@@ -298,8 +250,6 @@ export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
     primaryRegistry: 'Plinovodi',
     gridZone: 'EU_INTERCONNECTED',
     typicalFeedstocks: ['manure', 'silage'],
-    plantGateCostBenchmarkEurMwh: 86.00,
-    hubBasisSpreadToTtfEurMwh: +1.20,
   },
   HR: {
     countryCode: 'HR',
@@ -310,8 +260,6 @@ export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
     primaryRegistry: 'Plinacro',
     gridZone: 'EU_INTERCONNECTED',
     typicalFeedstocks: ['agri_silage', 'waste'],
-    plantGateCostBenchmarkEurMwh: 82.00,
-    hubBasisSpreadToTtfEurMwh: +1.30,
   },
   GR: {
     countryCode: 'GR',
@@ -322,8 +270,6 @@ export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
     primaryRegistry: 'DESFA',
     gridZone: 'EU_INTERCONNECTED',
     typicalFeedstocks: ['olive_waste', 'manure'],
-    plantGateCostBenchmarkEurMwh: 80.00,
-    hubBasisSpreadToTtfEurMwh: +1.50,
   },
   BG: {
     countryCode: 'BG',
@@ -334,8 +280,6 @@ export const PRODUCING_ORIGINS: Record<string, OriginProfile> = {
     primaryRegistry: 'Bulgartransgaz',
     gridZone: 'EU_INTERCONNECTED',
     typicalFeedstocks: ['crop_residues'],
-    plantGateCostBenchmarkEurMwh: 76.00,
-    hubBasisSpreadToTtfEurMwh: +1.60,
   },
 };
 

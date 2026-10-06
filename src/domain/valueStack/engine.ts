@@ -4,6 +4,7 @@ import { Consignment } from '../consignment/types';
 import { FEEDSTOCK_REGISTRY } from '../consignment/feedstocks';
 import { computeCertificateValue } from '../netback/engine';
 import { HHV_TO_LHV_FACTOR } from '../offtake/engine';
+import { RED3_TRANSPORT_MAX_CI } from '../regulatory/constants';
 
 /**
  * Value stack: every regime in which ONE MWh of biomethane, burned by ONE consumer, lowers a
@@ -77,7 +78,6 @@ export interface ValueStackResult {
 export const ETS2_START_YEAR = 2028;
 /** Directive 2003/87/EC Art. 3ga (as amended by 2023/959): 50% of emissions from voyages in/out of the EU. */
 const EXTRA_EU_VOYAGE_COVERAGE = 50 / 100;
-const RED3_TRANSPORT_MAX_CI = 32.9;
 /**
  * Directive 2003/87/EC Art. 3gb (as amended by 2023/959): shipping companies surrender allowances
  * for 40% of 2024 emissions, 70% of 2025 emissions and 100% from 2026.

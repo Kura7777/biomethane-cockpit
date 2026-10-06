@@ -4,6 +4,7 @@ import { getMarketById } from '../markets/registry';
 import { computeCertificateValue, ETS_NATURAL_GAS_TCO2_PER_MWH } from '../netback/engine';
 import { Consignment } from '../consignment/types';
 import { HHV_TO_LHV_FACTOR } from '../offtake/engine';
+import { RED3_TRANSPORT_MAX_CI } from '../regulatory/constants';
 
 /**
  * Corporate order pricer.
@@ -96,8 +97,6 @@ export interface CorporateQuote {
 }
 
 const GWH_TO_MWH = 1000;
-/** RED III Art. 29(10): 65% saving vs the 94 g/MJ comparator. */
-const RED3_TRANSPORT_MAX_CI = 32.9;
 
 function parseVintageYear(vintage: string): number | null {
   const four = vintage.match(/20\d\d/);
