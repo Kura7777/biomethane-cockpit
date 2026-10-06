@@ -348,7 +348,7 @@ export function ShippingExposureStep({
                   {combinedExposureEur === null ? NO_EUA_MARK : `€${(combinedExposureEur / 1e6).toFixed(2)}M`}
                 </div>
                 <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '2px' }}>
-                  FuelEU Maritime statutory penalty + EU ETS 70% phase-in liability
+                  FuelEU Maritime statutory penalty + EU ETS liability (100% phase-in from 2026)
                 </div>
               </div>
 
