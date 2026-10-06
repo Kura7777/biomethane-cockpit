@@ -55,6 +55,7 @@ const ClientsScreen = lazyWithRetry(() => import('../features/clients/ClientsScr
 const Ets2Screen = lazyWithRetry(() => import('../features/ets2/Ets2Screen').then(m => ({ default: m.Ets2Screen })));
 const FuelEUShippingScreen = lazyWithRetry(() => import('../features/fueleu/FuelEUShippingScreen').then(m => ({ default: m.FuelEUShippingScreen })));
 const RegulationCheckScreen = lazyWithRetry(() => import('../features/regcheck/RegulationCheckScreen').then(m => ({ default: m.RegulationCheckScreen })));
+const DealsScreen = lazyWithRetry(() => import('../features/deals/DealsScreen').then(m => ({ default: m.DealsScreen })));
 
 import { ThemeProvider } from '../store/theme';
 
@@ -104,6 +105,7 @@ function AppContent() {
 
             {/* Supporting Tools & Desks */}
             <Route path="/trade" element={<TradeBuilderScreen />} />
+            <Route path="/deals" element={<DealsScreen />} />
             <Route path="/risk" element={<Navigate to="/" replace />} />
             <Route path="/library" element={<Navigate to="/trade" replace />} />
             <Route path="/citations" element={<CitationsScreen />} />

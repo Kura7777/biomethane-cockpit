@@ -46,6 +46,7 @@ export const SIDEBAR_ITEMS: NavItem[] = [
   { to: '/clients', label: 'Clients', keyHint: 'L', icon: Users },
   { to: '/corporate', label: 'Corporate orders', keyHint: 'Q', icon: Briefcase },
   { to: '/pricing', label: 'Pricing Desk', keyHint: '5', icon: FileSpreadsheet },
+  { to: '/deals', label: 'Deal Blotter', keyHint: '', icon: BookOpen },
   { to: '/connectors', label: 'Data Connectors', keyHint: 'K', icon: Zap },
   { to: '/data-sources', label: 'Data Sources', keyHint: '7', icon: Database },
   { to: '/assumptions', label: 'Assumptions', keyHint: 'A', icon: SlidersHorizontal },
@@ -95,6 +96,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { to: '/pricing', label: 'Pricing desk', keyHint: '5', icon: FileSpreadsheet, description: 'Marks and broker runs' },
       { to: '/trade', label: 'Trade builder', keyHint: '4', icon: Zap, description: 'Build and audit a deal' },
+      { to: '/deals', label: 'Deal blotter', keyHint: '', icon: BookOpen, description: 'Saved deals and their status' },
     ],
   },
   {
