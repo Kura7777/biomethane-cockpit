@@ -25,6 +25,7 @@ export interface DealParams {
   ci: number;
   ciIsEstimated?: boolean;
   volume: number;
+  volumeIsEstimated?: boolean;
   scheme?: CertificationScheme;
   coc?: ChainOfCustody;
   udb?: UDBStatus;
@@ -59,6 +60,7 @@ const ALIASES: Record<keyof DealParams, string[]> = {
   ci: ['ci'],
   ciIsEstimated: ['ciIsEstimated', 'estimatedCi'],
   volume: ['volume'],
+  volumeIsEstimated: ['volumeIsEstimated', 'estimatedVolume'],
   scheme: ['scheme'],
   coc: ['coc'],
   udb: ['udb', 'udbStatus'],
@@ -91,7 +93,7 @@ function isNumericKey(key: keyof DealParams): key is NumericKey {
   return (NUMERIC_KEYS as readonly string[]).includes(key);
 }
 
-const BOOLEAN_KEYS = ['ciIsEstimated'] as const;
+const BOOLEAN_KEYS = ['ciIsEstimated', 'volumeIsEstimated'] as const;
 type BooleanKey = (typeof BOOLEAN_KEYS)[number];
 
 function isBooleanKey(key: keyof DealParams): key is BooleanKey {

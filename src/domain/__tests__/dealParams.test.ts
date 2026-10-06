@@ -77,6 +77,19 @@ describe('dealParams — parseDealParams', () => {
     expect(roundTrip(FULL)).toEqual(FULL);
   });
 
+  it('round-trips ciIsEstimated and volumeIsEstimated as booleans', () => {
+    expect(roundTrip({ ...FULL, ciIsEstimated: true, volumeIsEstimated: true })).toEqual({
+      ...FULL,
+      ciIsEstimated: true,
+      volumeIsEstimated: true,
+    });
+  });
+
+  it('accepts the legacy estimatedVolume alias', () => {
+    const parsed = parseDealParams(new URLSearchParams('estimatedVolume=true'));
+    expect(parsed.volumeIsEstimated).toBe(true);
+  });
+
   it('returns only the keys actually present', () => {
     const parsed = parseDealParams(new URLSearchParams('marketId=NL_ERE'));
     expect(parsed).toEqual({ marketId: 'NL_ERE' });

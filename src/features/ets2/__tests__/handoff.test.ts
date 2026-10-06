@@ -50,6 +50,18 @@ describe('buildEts1SiteTradeBuilderUrl', () => {
     const params = new URL(url, 'http://localhost').searchParams;
     expect(params.has('volume')).toBe(false);
   });
+
+  it('marks a derived volume as estimated', () => {
+    const url = buildEts1SiteTradeBuilderUrl(site({ fit: 'HIGH', verifiedLatestTco2: 10000 }));
+    const params = new URL(url, 'http://localhost').searchParams;
+    expect(params.get('volumeIsEstimated')).toBe('true');
+  });
+
+  it('carries no volumeIsEstimated flag when there is no derived volume', () => {
+    const url = buildEts1SiteTradeBuilderUrl(site({ fit: 'LOW', verifiedLatestTco2: 10000 }));
+    const params = new URL(url, 'http://localhost').searchParams;
+    expect(params.has('volumeIsEstimated')).toBe(false);
+  });
 });
 
 describe('buildEts2CorporateOrderUrl', () => {

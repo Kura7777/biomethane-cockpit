@@ -77,6 +77,10 @@ export interface DealTicketProps {
   // Best route
   bestRoutes: BestRouteEntry[];
   onSwitchMarket: (marketId: string) => void;
+
+  /** True when volumeMwh was derived from a site's own emissions (e.g. the ETS1 site hand-off),
+   *  not typed or confirmed by the trader — same provenance idea as ciIsEstimated. */
+  volumeIsEstimated?: boolean;
 }
 
 const fmtDelta = (v: number | null): string => (v == null ? '—' : `${v >= 0 ? '+' : '−'}€${Math.abs(v).toFixed(2)}/MWh`);
@@ -117,6 +121,7 @@ export function DealTicket({
   sensitivities,
   bestRoutes,
   onSwitchMarket,
+  volumeIsEstimated,
 }: DealTicketProps) {
   const [showFullReason, setShowFullReason] = useState(false);
 
@@ -140,7 +145,8 @@ export function DealTicket({
         ? `${(producerPricing.indexLinkedShare * 100).toFixed(1)}% index-linked`
         : 'pricing unset';
     const producerPayableText = netback.producerPayable != null ? netback.producerPayable.toFixed(2) : '—';
-    const line = `${originName} ${feedstockLabel}, CI ${ci} gCO₂e/MJ (${ciLabel}), ${schemeLabel} ${custodyLabel}, ${volumeMwh.toLocaleString()} MWh ${vintageLabel}: €${producerPayableText}/MWh (${mode}). Indicative, subject to contract.`;
+    const volumeText = `${volumeIsEstimated ? '≈ ' : ''}${volumeMwh.toLocaleString()} MWh${volumeIsEstimated ? ' (estimated from site emissions)' : ''}`;
+    const line = `${originName} ${feedstockLabel}, CI ${ci} gCO₂e/MJ (${ciLabel}), ${schemeLabel} ${custodyLabel}, ${volumeText} ${vintageLabel}: €${producerPayableText}/MWh (${mode}). Indicative, subject to contract.`;
     try {
       await navigator.clipboard.writeText(line);
       showToast('Quote copied to clipboard', 'SUCCESS');
@@ -171,6 +177,9 @@ export function DealTicket({
               Capped at bundle · modelled {netback.theoreticalNetback != null ? `€${netback.theoreticalNetback.toFixed(2)}` : '—'}
             </div>
           )}
+          <div className="tt-capped" data-testid="deal-ticket-volume">
+            {volumeIsEstimated ? '≈ ' : ''}{volumeMwh.toLocaleString()} MWh{volumeIsEstimated ? ' (estimated from site emissions)' : ''}
+          </div>
         </div>
 
         <div className="tt-section">

@@ -22,6 +22,7 @@ export function buildEts1SiteTradeBuilderUrl(site: Ets1Site): string {
     coc: 'MASS_BALANCE',
     originCountry: site.country,
     volume,
+    volumeIsEstimated: volume !== undefined ? true : undefined,
   });
 }
 
