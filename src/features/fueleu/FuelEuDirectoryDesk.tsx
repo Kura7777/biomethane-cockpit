@@ -75,14 +75,18 @@ const PAGE_SIZE = 50;
 export function FuelEuDirectoryDesk({
   onBuildTermSheet,
   onAddToPool,
+  initialQuery,
 }: {
   onBuildTermSheet: (company: ShippingCounterparty) => void;
   onAddToPool: (groupId: string) => void;
+  /** A company/group name carried in from a hand-off (e.g. Clients `?company=`): filters the list
+   *  and preselects the row when it names exactly one group. */
+  initialQuery?: string;
 }) {
   const isMobile = useIsMobile();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('GROUPS');
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(initialQuery ?? '');
   const [segmentFilter, setSegmentFilter] = useState<string>('ALL');
   const [entityTypeFilter, setEntityTypeFilter] = useState<GroupEntityType | 'ALL'>('ALL');
   const [lngOnly, setLngOnly] = useState(false);
@@ -104,6 +108,16 @@ export function FuelEuDirectoryDesk({
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
+
+  useEffect(() => {
+    if (!initialQuery) return;
+    setSearch(initialQuery);
+    const q = initialQuery.trim().toLowerCase();
+    if (!q) return;
+    const exact = FUEL_EU_SHIPPING_GROUPS.find(g => g.name.toLowerCase() === q);
+    if (exact) setSelectedKey(`group:${exact.id}`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialQuery]);
 
   const membersByGroup = useMemo(() => {
     const m = new Map<string, ShippingCounterparty[]>();

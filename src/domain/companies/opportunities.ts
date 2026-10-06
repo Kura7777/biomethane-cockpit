@@ -365,7 +365,7 @@ function shippingOpportunities(p: CompanyProfile, marks: MarksState, year: numbe
       legalBasis: 'Regulation (EU) 2023/1805 Art. 21 (pooling)',
       caveats: ['Pooling moves the FuelEU balance only: no EU ETS saving for this client.', ...bearerCaveat],
       stack: null,
-      action: { label: 'Open FuelEU desk', route: '/fueleu-shipping', params: {} },
+      action: { label: 'Open FuelEU desk', route: '/fueleu-shipping', params: { company: p.name } },
     });
   } else if (deficitT > 0) {
     // Bio-LNG is a drop-in for LNG engines, so physical supply is capped by the LNG the group already burns.
@@ -420,7 +420,7 @@ function shippingOpportunities(p: CompanyProfile, marks: MarksState, year: numbe
         legalBasis: 'Regulation (EU) 2023/1805 Art. 21 (pooling)',
         caveats: ['Pooling moves the FuelEU balance only: no EU ETS saving for this client.', ...bearerCaveat],
         stack: null,
-        action: { label: 'Open FuelEU desk', route: '/fueleu-shipping', params: {} },
+        action: { label: 'Open FuelEU desk', route: '/fueleu-shipping', params: { company: p.name } },
       });
     }
   } else if (lngShips > 0) {
@@ -463,7 +463,7 @@ function shippingOpportunities(p: CompanyProfile, marks: MarksState, year: numbe
       legalBasis: 'Regulation (EU) 2023/1805 Art. 21',
       caveats: [],
       stack: null,
-      action: { label: 'Open FuelEU desk', route: '/fueleu-shipping', params: {} },
+      action: { label: 'Open FuelEU desk', route: '/fueleu-shipping', params: { company: p.name } },
     });
   }
   return out;
@@ -590,7 +590,7 @@ function ets2Opportunities(p: CompanyProfile, marks: MarksState, ets2Countries: 
       legalBasis: 'GHG Protocol Scope 1; ESRS E1; RED III Art. 19',
       caveats: [],
       stack: null,
-      action: { label: 'Price a corporate order', route: '/corporate', params: {} },
+      action: { label: 'Price a corporate order', route: '/corporate', params: { client: p.name } },
     });
   }
   return out;

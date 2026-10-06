@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppState } from '../../store/context';
 import { PageShell, PageHeader, Card, KpiRow, KpiTile, MobileCardList } from '../../shared/ui';
 import { useIsMobile } from '../../shared/hooks/useMediaQuery';
@@ -53,9 +53,14 @@ export function CorporateOrderScreen() {
   const { state } = useAppState();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const [searchParams] = useSearchParams();
 
-  const [client, setClient] = useState('');
-  const [volume, setVolume] = useState('');
+  const [client, setClient] = useState(() => searchParams.get('client') ?? '');
+  const [volume, setVolume] = useState(() => {
+    const raw = searchParams.get('mwh');
+    const n = raw === null ? NaN : Number(raw);
+    return Number.isFinite(n) && n > 0 ? raw! : '';
+  });
   const [form, setForm] = useState<ProductForm>('GO_PLUS_POS');
   const [countries, setCountries] = useState<string[]>([]);
   const [vintage, setVintage] = useState('');

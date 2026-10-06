@@ -429,7 +429,11 @@ export function FuelEUShippingScreen() {
       {activeTab === 'DIRECTORY' && (
         <>
           <FuelEuKpiTiles />
-          <FuelEuDirectoryDesk onBuildTermSheet={handleSelectCounterparty} onAddToPool={handleAddToPool} />
+          <FuelEuDirectoryDesk
+            onBuildTermSheet={handleSelectCounterparty}
+            onAddToPool={handleAddToPool}
+            initialQuery={companyParam && !selectedCounterparty ? companyParam : undefined}
+          />
         </>
       )}
 
