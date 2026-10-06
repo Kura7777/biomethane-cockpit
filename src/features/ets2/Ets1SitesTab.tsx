@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { buildEts1SiteTradeBuilderUrl } from './handoff';
 import { Search } from 'lucide-react';
 import { KpiRow, KpiTile, DataTable, TablePagination, SidePanel, PanelSection, MobileCardList, Sheet } from '../../shared/ui';
 import { useIsMobile } from '../../shared/hooks/useMediaQuery';
@@ -625,7 +626,12 @@ function CompanyPanel(props: {
             <li key={s.id}>
               <span className="name" title={s.name}>{s.name}</span>
               <span className="num">{tonnes(s.verifiedLatestTco2)}</span>
-              <span className="meta">{[s.city, s.country].filter(Boolean).join(', ')} · {SECTOR_LABEL[s.sector]} · <FitBadgeInline fit={s.fit} /></span>
+              <span className="meta">
+                {[s.city, s.country].filter(Boolean).join(', ')} · {SECTOR_LABEL[s.sector]} · <FitBadgeInline fit={s.fit} />
+                {s.fit !== 'LOW' && (
+                  <> · <Link to={buildEts1SiteTradeBuilderUrl(s)} data-testid="ets1-site-trade-builder-link">Build in Trade Builder</Link></>
+                )}
+              </span>
             </li>
           ))}
         </ul>

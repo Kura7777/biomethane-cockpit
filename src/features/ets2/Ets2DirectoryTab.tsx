@@ -9,6 +9,7 @@ import { Ets2Company, Ets2CompanyExposure, ETS2_REGULATED_ENTITY_LISTS, computeC
 import { normalizeCompanyName } from '../../domain/companies/normalize';
 import { MARKET_LABEL } from '../../domain/companies/directory';
 import { ets2SupplierStackSpec } from '../../domain/companies/opportunities';
+import { buildEts2CorporateOrderUrl } from './handoff';
 import { ETS2_START_YEAR } from '../../domain/valueStack/engine';
 import { MarksState } from '../../domain/netback/types';
 import { useAppState } from '../../store/context';
@@ -409,9 +410,18 @@ function SupplierPanel(props: {
     () => (c.role === 'REGULATED_SUPPLIER' ? ets2SupplierStackSpec(null, props.marks) : null),
     [c.role, props.marks]
   );
+  const navigate = useNavigate();
   const footer = (
     <>
       <button type="button" className="ets-btn grow" onClick={props.onClient}>Client profile</button>
+      <button
+        type="button"
+        className="ets-btn grow"
+        onClick={() => navigate(buildEts2CorporateOrderUrl(c.name, r.volumeTWh))}
+        data-testid="ets2-corporate-order"
+      >
+        Corporate order
+      </button>
       <button type="button" className="ets-btn primary grow" onClick={props.onCalculate ?? undefined} disabled={!props.onCalculate}>Open in calculator</button>
     </>
   );
