@@ -27,6 +27,33 @@ const STALE_DAYS = 30;
 
 type BookFilter = 'ALL' | 'COMPLIANCE' | 'VOLUNTARY';
 
+export interface LadderFilterState {
+  bookFilter: BookFilter;
+  tradeableOnly: boolean;
+  hideStale: boolean;
+  minMargin: string;
+}
+
+/** Pure predicate behind the Step 3 ladder filters: always keeps the chosen route, otherwise applies book/tradeable/staleness/margin. */
+export function filterLadderRows(rows: MarketLadderRow[], filters: LadderFilterState): MarketLadderRow[] {
+  const { bookFilter, tradeableOnly, hideStale, minMargin } = filters;
+  const minMarginNum = minMargin.trim() === '' ? null : Number(minMargin);
+  return rows.filter(row => {
+    if (row.isChosen) return true;
+    if (bookFilter === 'COMPLIANCE' && isVoluntaryMarket(row.marketId)) return false;
+    if (bookFilter === 'VOLUNTARY' && !isVoluntaryMarket(row.marketId)) return false;
+    if (tradeableOnly && originationRouteStatus(row.verdict) !== 'TRADEABLE') return false;
+    if (hideStale) {
+      const days = getMarkAgeDays({ provenance: row.sourceProvenance, updatedAt: row.markUpdatedAt });
+      if (days !== null && days > STALE_DAYS) return false;
+    }
+    if (minMarginNum !== null && !Number.isNaN(minMarginNum)) {
+      if ((row.deskMarginEurPerMwh ?? -Infinity) < minMarginNum) return false;
+    }
+    return true;
+  });
+}
+
 interface MarketLadderProps {
   opportunity: SourcedOpportunity;
   volumeMwh: number;
@@ -68,23 +95,10 @@ export function MarketLadder({ opportunity, volumeMwh, complianceYear = null }: 
     [opportunity, volumeMwh, complianceYear, state.marks, state.costs]
   );
 
-  const filtered = useMemo(() => {
-    const minMarginNum = minMargin.trim() === '' ? null : Number(minMargin);
-    return ladder.ranked.filter(row => {
-      if (row.isChosen) return true; // the chosen route is always shown
-      if (bookFilter === 'COMPLIANCE' && isVoluntaryMarket(row.marketId)) return false;
-      if (bookFilter === 'VOLUNTARY' && !isVoluntaryMarket(row.marketId)) return false;
-      if (tradeableOnly && originationRouteStatus(row.verdict) !== 'TRADEABLE') return false;
-      if (hideStale) {
-        const days = getMarkAgeDays({ provenance: row.sourceProvenance, updatedAt: row.markUpdatedAt });
-        if (days !== null && days > STALE_DAYS) return false;
-      }
-      if (minMarginNum !== null && !Number.isNaN(minMarginNum)) {
-        if ((row.deskMarginEurPerMwh ?? -Infinity) < minMarginNum) return false;
-      }
-      return true;
-    });
-  }, [ladder.ranked, bookFilter, tradeableOnly, hideStale, minMargin]);
+  const filtered = useMemo(
+    () => filterLadderRows(ladder.ranked, { bookFilter, tradeableOnly, hideStale, minMargin }),
+    [ladder.ranked, bookFilter, tradeableOnly, hideStale, minMargin]
+  );
 
   const visible = useMemo(() => {
     if (showAll) return filtered;

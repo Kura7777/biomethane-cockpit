@@ -35,6 +35,12 @@ const INITIAL_REQUEST: ClientRequest = {
   ciOverride: null,
 };
 
+/** Pure helper behind the Step 1 CI override: replaces every opportunity's own CI when set. */
+export function applyCiOverride(opps: SourcedOpportunity[], ciOverride: number | null | undefined): SourcedOpportunity[] {
+  if (ciOverride === null || ciOverride === undefined || Number.isNaN(ciOverride)) return opps;
+  return opps.map(opp => ({ ...opp, carbonIntensity: ciOverride, ciIsOverridden: true }));
+}
+
 const STEPS = [
   { step: 1, title: '1. Order Intake', desc: 'Enter order specs' },
   { step: 2, title: '2. Sourced Plants', desc: 'Scan 1,975+ facilities' },
@@ -103,12 +109,7 @@ export function CommercialFlowStepper() {
       }
     }
 
-    const ciOverride = request.ciOverride;
-    if (ciOverride !== null && ciOverride !== undefined && !Number.isNaN(ciOverride)) {
-      return plantOpps.map(opp => ({ ...opp, carbonIntensity: ciOverride, ciIsOverridden: true }));
-    }
-
-    return plantOpps;
+    return applyCiOverride(plantOpps, request.ciOverride);
   }, [searchResult.tradeable, request.ciOverride]);
 
   // Automatically select top plant if none chosen
