@@ -92,9 +92,9 @@ export const ACCEPT_FOREIGN_CONFIG: Record<AcceptForeignStatus, { label: string;
   },
   GO_REQUIRED: {
     label: 'Foreign accepted (GO cancelled in national registry)',
-    fill: 'color-mix(in srgb, var(--color-accent) 72%, var(--color-bg))',
-    swatch: 'var(--color-accent)',
-    chipClass: 'chip-a',
+    fill: 'color-mix(in srgb, var(--color-status-info-text) 72%, var(--color-bg))',
+    swatch: 'var(--color-status-info-text)',
+    chipClass: 'chip-info',
   },
   OPEN: {
     label: 'Open / not settled in national law',
@@ -132,17 +132,6 @@ export function getBestAcceptsForeign(countryIso: string): { status: AcceptForei
   schemes.sort((a, b) => ACCEPT_FOREIGN_PRIORITY[b.acceptsForeign] - ACCEPT_FOREIGN_PRIORITY[a.acceptsForeign]);
   return { status: schemes[0].acceptsForeign, schemeName: schemes[0].name };
 }
-
-/**
- * Backward compatibility alias for legacy test assertions.
- * @deprecated Use ACCEPT_FOREIGN_CONFIG instead.
- */
-export const STATUS_CONFIG = {
-  ACTIVE: { label: 'Active market', fill: 'color-mix(in srgb, var(--color-text) 72%, var(--color-bg))', swatch: 'var(--color-text)' },
-  EMERGING: { label: 'Emerging', fill: 'color-mix(in srgb, var(--color-text) 38%, var(--color-bg))', swatch: 'var(--color-neutral-500)' },
-  FUTURE_2028: { label: 'No national biomethane scheme yet', fill: 'color-mix(in srgb, var(--color-text) 16%, var(--color-bg))', swatch: 'var(--color-neutral-300)' },
-  NONE: { label: 'No mechanism', fill: 'color-mix(in srgb, var(--color-text) 7%, var(--color-bg))', swatch: 'color-mix(in srgb, var(--color-text) 12%, var(--color-bg))' },
-};
 
 type MapView = 'SELL' | 'COMPLIANCE';
 type RouteFilter = 'ALL' | 'GO' | 'POS';
@@ -1307,21 +1296,15 @@ export function MapScreen() {
         <div style={{ padding: '16px 18px', borderBottom: '2px solid var(--color-divider)' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px' }}>
             <span className="eyebrow">Jurisdiction</span>
-            {view === 'COMPLIANCE' ? (
-              (() => {
-                const best = countryAcceptsForeign[selectedMeta.iso]?.status || 'NO_SCHEME';
-                const cfg = ACCEPT_FOREIGN_CONFIG[best];
-                return (
-                  <span className={`chip ${cfg.chipClass}`} style={{ fontSize: '11px', padding: '1px 6px' }}>
-                    {best === 'NO_SCHEME' ? 'No scheme' : `Imports: ${best}`}
-                  </span>
-                );
-              })()
-            ) : (
-              <span className={`chip ${selectedMeta.status === 'ACTIVE' ? 'chip-a' : ''}`}>
-                {STATUS_CONFIG[selectedMeta.status].label}
-              </span>
-            )}
+            {(() => {
+              const best = countryAcceptsForeign[selectedMeta.iso]?.status || 'NO_SCHEME';
+              const cfg = ACCEPT_FOREIGN_CONFIG[best];
+              return (
+                <span className={`chip ${cfg.chipClass}`} style={{ fontSize: '11px', padding: '1px 6px' }}>
+                  {best === 'NO_SCHEME' ? 'No scheme' : `Imports: ${best}`}
+                </span>
+              );
+            })()}
           </div>
           <h4 style={{ margin: '6px 0 2px', fontSize: '20px', fontWeight: 800 }}>{selectedMeta.name}</h4>
           <div style={{ fontSize: '12px' }} className="mut">
@@ -1683,21 +1666,15 @@ export function MapScreen() {
           <span className="map-m-peek-handle" aria-hidden="true" />
           <span className="map-m-peek-top">
             <span className="map-m-peek-name">{selectedMeta.name}</span>
-            {view === 'COMPLIANCE' ? (
-              (() => {
-                const best = countryAcceptsForeign[selectedMeta.iso]?.status || 'NO_SCHEME';
-                const cfg = ACCEPT_FOREIGN_CONFIG[best];
-                return (
-                  <span className={`chip ${cfg.chipClass}`} style={{ fontSize: '10px', padding: '1px 5px' }}>
-                    {best === 'NO_SCHEME' ? 'No scheme' : `Imports: ${best}`}
-                  </span>
-                );
-              })()
-            ) : (
-              <span className={`chip ${selectedMeta.status === 'ACTIVE' ? 'chip-a' : ''}`}>
-                {STATUS_CONFIG[selectedMeta.status].label}
-              </span>
-            )}
+            {(() => {
+              const best = countryAcceptsForeign[selectedMeta.iso]?.status || 'NO_SCHEME';
+              const cfg = ACCEPT_FOREIGN_CONFIG[best];
+              return (
+                <span className={`chip ${cfg.chipClass}`} style={{ fontSize: '10px', padding: '1px 5px' }}>
+                  {best === 'NO_SCHEME' ? 'No scheme' : `Imports: ${best}`}
+                </span>
+              );
+            })()}
           </span>
           <span className="map-m-peek-legal">{selectedMeta.legal}</span>
           <span className="map-m-peek-figs">
@@ -1997,7 +1974,7 @@ export function MapScreen() {
                 }}
               >
                 <div className="eyebrow" style={{ padding: '6px 10px 4px' }}>
-                  {c.iso} · {c.name} · {STATUS_CONFIG[c.status].label}
+                  {c.iso} · {c.name} · {ACCEPT_FOREIGN_CONFIG[countryAcceptsForeign[c.iso]?.status || 'NO_SCHEME'].label}
                 </div>
                 {items.map(it => (
                   <button

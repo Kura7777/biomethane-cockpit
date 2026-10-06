@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { POS_SCHEMES } from '../../../domain/routes/routeMatrix.generated';
 import { MARKETS } from '../../../domain/markets/registry';
-import { COUNTRIES, STATUS_CONFIG, FILTER_CONFIG, getTradePlaybook } from '../MapScreen';
+import { COUNTRIES, FILTER_CONFIG, getTradePlaybook } from '../MapScreen';
 import { getCertificateRoute } from '../../../domain/registries/certificateRoutes';
 
 describe('Map accuracy fixes (01-accuracy.md audit requirements)', () => {
@@ -13,7 +13,6 @@ describe('Map accuracy fixes (01-accuracy.md audit requirements)', () => {
 
     const statuses = Object.values(COUNTRIES).map(c => c.status);
     expect(statuses).not.toContain('RESTRICTED');
-    expect((STATUS_CONFIG as Record<string, unknown>)['RESTRICTED']).toBeUndefined();
   });
 
   it('D: Plant and TWh numbers match MARKETS where available', () => {
@@ -68,9 +67,8 @@ describe('Map accuracy fixes (01-accuracy.md audit requirements)', () => {
     expect(dePlaybook.executionDesc).toMatch(/physical capacity booking only if.*requires/i);
   });
 
-  it('I: Switzerland and Norway do not mention grid-isolated; FUTURE_2028 is renamed', () => {
+  it('I: Switzerland and Norway do not mention grid-isolated', () => {
     expect(COUNTRIES['Switzerland'].legal).not.toContain('grid-isolated');
     expect(COUNTRIES['Norway'].legal).not.toContain('grid-isolated');
-    expect(STATUS_CONFIG.FUTURE_2028.label).toBe('No national biomethane scheme yet');
   });
 });
