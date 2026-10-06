@@ -9,7 +9,7 @@ import {
   Line,
   Marker,
 } from 'react-simple-maps';
-import { ArrowLeftRight, X, ChevronDown, ChevronRight, Copy, Check } from 'lucide-react';
+import { ArrowLeftRight, X, ChevronDown, ChevronRight, Copy, Check, ExternalLink } from 'lucide-react';
 import geoData from '../../assets/countries-50m.json';
 import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 import { Sheet } from '../../shared/ui';
@@ -22,6 +22,7 @@ import { calculateLogisticsRoute, calculateDijkstraCorridor } from '../../domain
 import { getMarketForRoute, getMarketAndCocForRoute } from '../../domain/trade/dealDefaults';
 import { getPosRoute } from '../../domain/routes';
 import { POS_SCHEMES } from '../../domain/routes/routeMatrix.generated';
+import type { PosAcceptsForeign } from '../../domain/routes/types';
 import { MARKETS } from '../../domain/markets/registry';
 import {
   getRegistryByCountry,
@@ -80,6 +81,62 @@ export const COUNTRIES: Record<string, CountryMeta> = {
 /** Default map centre [lon, lat]: midpoint of the 28 jurisdictions (Ireland/Portugal to Finland). */
 const MAP_HOME: [number, number] = [15.6, 50.4];
 
+export type AcceptForeignStatus = PosAcceptsForeign | 'NO_SCHEME';
+
+export const ACCEPT_FOREIGN_CONFIG: Record<AcceptForeignStatus, { label: string; fill: string; swatch: string; chipClass: string }> = {
+  YES: {
+    label: 'Accepts foreign biomethane',
+    fill: 'color-mix(in srgb, var(--color-status-pass-text) 72%, var(--color-bg))',
+    swatch: 'var(--color-status-pass-text)',
+    chipClass: 'chip-pass',
+  },
+  GO_REQUIRED: {
+    label: 'Foreign accepted (GO cancelled in national registry)',
+    fill: 'color-mix(in srgb, var(--color-accent) 72%, var(--color-bg))',
+    swatch: 'var(--color-accent)',
+    chipClass: 'chip-a',
+  },
+  OPEN: {
+    label: 'Open / not settled in national law',
+    fill: 'color-mix(in srgb, var(--color-status-warn-text) 72%, var(--color-bg))',
+    swatch: 'var(--color-status-warn-text)',
+    chipClass: 'chip-warn',
+  },
+  NO: {
+    label: 'Closed to foreign / domestic only',
+    fill: 'color-mix(in srgb, var(--color-text) 22%, var(--color-bg))',
+    swatch: 'color-mix(in srgb, var(--color-text) 35%, var(--color-bg))',
+    chipClass: '',
+  },
+  NO_SCHEME: {
+    label: 'No scheme on record',
+    fill: 'color-mix(in srgb, var(--color-text) 7%, var(--color-bg))',
+    swatch: 'color-mix(in srgb, var(--color-text) 12%, var(--color-bg))',
+    chipClass: 'dim',
+  },
+};
+
+/**
+ * Priority order for picking most permissive scheme: YES > GO_REQUIRED > OPEN > NO
+ */
+const ACCEPT_FOREIGN_PRIORITY: Record<PosAcceptsForeign, number> = {
+  YES: 4,
+  GO_REQUIRED: 3,
+  OPEN: 2,
+  NO: 1,
+};
+
+export function getBestAcceptsForeign(countryIso: string): { status: AcceptForeignStatus; schemeName?: string } {
+  const schemes = Object.values(POS_SCHEMES).filter(s => s.country === countryIso);
+  if (schemes.length === 0) return { status: 'NO_SCHEME' };
+  schemes.sort((a, b) => ACCEPT_FOREIGN_PRIORITY[b.acceptsForeign] - ACCEPT_FOREIGN_PRIORITY[a.acceptsForeign]);
+  return { status: schemes[0].acceptsForeign, schemeName: schemes[0].name };
+}
+
+/**
+ * Backward compatibility alias for legacy test assertions.
+ * @deprecated Use ACCEPT_FOREIGN_CONFIG instead.
+ */
 export const STATUS_CONFIG = {
   ACTIVE: { label: 'Active market', fill: 'color-mix(in srgb, var(--color-text) 72%, var(--color-bg))', swatch: 'var(--color-text)' },
   EMERGING: { label: 'Emerging', fill: 'color-mix(in srgb, var(--color-text) 38%, var(--color-bg))', swatch: 'var(--color-neutral-500)' },
@@ -95,7 +152,7 @@ const SELL_FILL: Record<SellCategory, string> = {
   SELL_NOW: 'color-mix(in srgb, var(--color-status-pass-text) 72%, var(--color-bg))',
   CHECK_FIRST: 'color-mix(in srgb, var(--color-status-warn-text) 72%, var(--color-bg))',
   CLOSED: 'color-mix(in srgb, var(--color-text) 14%, var(--color-bg))',
-  NO_DATA: STATUS_CONFIG.NONE.fill,
+  NO_DATA: ACCEPT_FOREIGN_CONFIG.NO_SCHEME.fill,
 };
 
 const SELL_LEGEND: { key: 'ORIGIN' | SellCategory; label: string; swatch: string }[] = [
@@ -103,7 +160,7 @@ const SELL_LEGEND: { key: 'ORIGIN' | SellCategory; label: string; swatch: string
   { key: 'SELL_NOW', label: 'Ready to trade', swatch: 'var(--color-status-pass-text)' },
   { key: 'CHECK_FIRST', label: 'Review needed / workaround', swatch: 'var(--color-status-warn-text)' },
   { key: 'CLOSED', label: 'Closed / domestic only', swatch: 'color-mix(in srgb, var(--color-text) 25%, var(--color-bg))' },
-  { key: 'NO_DATA', label: 'Not researched', swatch: STATUS_CONFIG.NONE.swatch },
+  { key: 'NO_DATA', label: 'Not researched', swatch: ACCEPT_FOREIGN_CONFIG.NO_SCHEME.swatch },
 ];
 
 const AUDIT_REF = 'Audited 4 Oct 2026 — sources in docs/research/route-audit-2026-10-04.';
@@ -357,13 +414,22 @@ export function MapScreen() {
   const targetMeta = COUNTRIES[target] || COUNTRIES['Germany'];
   const selectedMeta = COUNTRIES[selectedCountryName] || COUNTRIES['Germany'];
 
-  const statusCounts = useMemo(() => {
-    const counts = { ACTIVE: 0, EMERGING: 0, FUTURE_2028: 0, NONE: 0 };
+  const countryAcceptsForeign = useMemo(() => {
+    const map: Record<string, { status: AcceptForeignStatus; schemeName?: string }> = {};
     Object.values(COUNTRIES).forEach(c => {
-      counts[c.status]++;
+      map[c.iso] = getBestAcceptsForeign(c.iso);
+    });
+    return map;
+  }, []);
+
+  const complianceCounts = useMemo(() => {
+    const counts: Record<AcceptForeignStatus, number> = { YES: 0, GO_REQUIRED: 0, OPEN: 0, NO: 0, NO_SCHEME: 0 };
+    Object.values(COUNTRIES).forEach(c => {
+      const best = countryAcceptsForeign[c.iso];
+      if (best) counts[best.status]++;
     });
     return counts;
-  }, []);
+  }, [countryAcceptsForeign]);
 
   const allIsos = useMemo(() => Object.values(COUNTRIES).map(c => c.iso), []);
   const nameByIso = useMemo(() => {
@@ -615,11 +681,11 @@ export function MapScreen() {
                   geographies.filter(geo => COUNTRIES[geo.properties.name]).map(geo => {
                     const name = geo.properties.name;
                     const cMeta = COUNTRIES[name];
-                    const status = cMeta ? cMeta.status : 'NONE';
-                    let fill = STATUS_CONFIG[status].fill;
+                    const acceptStatus = cMeta ? countryAcceptsForeign[cMeta.iso]?.status || 'NO_SCHEME' : 'NO_SCHEME';
+                    let fill = ACCEPT_FOREIGN_CONFIG[acceptStatus].fill;
                     if (view === 'SELL') {
                       fill = !cMeta
-                        ? STATUS_CONFIG.NONE.fill
+                        ? ACCEPT_FOREIGN_CONFIG.NO_SCHEME.fill
                         : name === origin
                         ? 'var(--color-text)'
                         : SELL_FILL[classifyRoute(routeByIso[cMeta.iso], filter)];
@@ -854,7 +920,7 @@ export function MapScreen() {
           aria-pressed={view === 'COMPLIANCE'}
           onClick={() => setView('COMPLIANCE')}
         >
-          Compliance status
+          Who accepts imports
         </button>
       </div>
       {view === 'SELL' && (
@@ -902,16 +968,18 @@ export function MapScreen() {
       </div>
     ) : (
       <div style={{ display: 'flex', flexDirection: 'column', gap: `${gap}px` }}>
-        {(['ACTIVE', 'EMERGING', 'FUTURE_2028'] as const).map(st => (
-          <div key={st} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: `${fontPx}px` }}>
-            <span style={{ width: `${swatchPx}px`, height: `${swatchPx}px`, flex: 'none', backgroundColor: STATUS_CONFIG[st].swatch }} />
-            <span style={{ flex: 1 }}>{STATUS_CONFIG[st].label}</span>
-            <span className="num mut" style={{ fontSize: '12px' }}>{statusCounts[st]}</span>
-          </div>
-        ))}
+        {(['YES', 'GO_REQUIRED', 'OPEN', 'NO', 'NO_SCHEME'] as const)
+          .filter(st => complianceCounts[st] > 0)
+          .map(st => (
+            <div key={st} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: `${fontPx}px` }}>
+              <span style={{ width: `${swatchPx}px`, height: `${swatchPx}px`, flex: 'none', backgroundColor: ACCEPT_FOREIGN_CONFIG[st].swatch }} />
+              <span style={{ flex: 1 }}>{ACCEPT_FOREIGN_CONFIG[st].label}</span>
+              <span className="num mut" style={{ fontSize: '12px' }}>{complianceCounts[st]}</span>
+            </div>
+          ))}
         <div className="mut" style={{ fontSize: `${fontPx - 1}px`, marginTop: '4px', borderTop: '1px solid var(--color-divider)', paddingTop: '4px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          <div>Number = biomethane plants (desk estimate)</div>
-          <div>EU ETS2 applies EU-wide from 2028</div>
+          <div>Rule: statutory acceptance of imported biomethane for compliance</div>
+          <div>Most permissive scheme shown where a country has multiple</div>
         </div>
       </div>
     );
@@ -1237,11 +1305,23 @@ export function MapScreen() {
   const railBody = (
     <>
         <div style={{ padding: '16px 18px', borderBottom: '2px solid var(--color-divider)' }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px' }}>
             <span className="eyebrow">Jurisdiction</span>
-            <span className={`chip ${selectedMeta.status === 'ACTIVE' ? 'chip-a' : ''}`}>
-              {STATUS_CONFIG[selectedMeta.status].label}
-            </span>
+            {view === 'COMPLIANCE' ? (
+              (() => {
+                const best = countryAcceptsForeign[selectedMeta.iso]?.status || 'NO_SCHEME';
+                const cfg = ACCEPT_FOREIGN_CONFIG[best];
+                return (
+                  <span className={`chip ${cfg.chipClass}`} style={{ fontSize: '11px', padding: '1px 6px' }}>
+                    {best === 'NO_SCHEME' ? 'No scheme' : `Imports: ${best}`}
+                  </span>
+                );
+              })()
+            ) : (
+              <span className={`chip ${selectedMeta.status === 'ACTIVE' ? 'chip-a' : ''}`}>
+                {STATUS_CONFIG[selectedMeta.status].label}
+              </span>
+            )}
           </div>
           <h4 style={{ margin: '6px 0 2px', fontSize: '20px', fontWeight: 800 }}>{selectedMeta.name}</h4>
           <div style={{ fontSize: '12px' }} className="mut">
@@ -1396,35 +1476,66 @@ export function MapScreen() {
             if (countrySchemes.length === 0) {
               return (
                 <p style={{ fontSize: '12px', lineHeight: 1.55, margin: 0 }} className="mut">
-                  No audited compliance scheme for {selectedMeta.name}.
+                  No scheme on record.
                 </p>
               );
             }
             return (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {countrySchemes.map(s => (
-                  <div key={s.id} style={{ fontSize: '12px', lineHeight: 1.45, paddingBottom: '8px', borderBottom: '1px solid var(--color-divider)' }}>
-                    <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-                      <span>{s.name}</span>
-                      <span className={`chip ${s.acceptsForeign === 'YES' ? 'chip-pass' : s.acceptsForeign === 'NO' ? '' : 'chip-warn'}`} style={{ fontSize: '10px', padding: '1px 5px' }}>
-                        Foreign gas: {s.acceptsForeign}
-                      </span>
-                    </div>
-                    {s.legalBasis && (
-                      <div className="mut" style={{ fontSize: '11px', marginTop: '2px' }}>
-                        <strong>Basis:</strong> {s.legalBasis}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {countrySchemes.map(s => {
+                  const cfg = ACCEPT_FOREIGN_CONFIG[s.acceptsForeign];
+                  return (
+                    <div key={s.id} style={{ fontSize: '12px', lineHeight: 1.45, paddingBottom: '10px', borderBottom: '1px solid var(--color-divider)' }}>
+                      <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                        <span>{s.name}</span>
+                        <span className={`chip ${cfg.chipClass}`} style={{ fontSize: '10px', padding: '1px 6px' }} title={cfg.label}>
+                          {s.acceptsForeign}
+                        </span>
                       </div>
-                    )}
-                    {s.conditions && s.conditions !== 'None' && (
-                      <div style={{ fontSize: '11px', marginTop: '2px' }}>
-                        <strong>Conditions:</strong> {s.conditions}
-                      </div>
-                    )}
-                    <div className="mut" style={{ fontSize: '11px', marginTop: '2px' }}>
-                      {firstSentence(s.reason)}
+                      {s.legalBasis && (
+                        <div className="mut" style={{ fontSize: '11px', marginTop: '3px' }}>
+                          <strong>Basis:</strong> {s.legalBasis}
+                        </div>
+                      )}
+                      {s.conditions && s.conditions !== 'None' && (
+                        <div style={{ fontSize: '11px', marginTop: '3px' }}>
+                          <strong>Conditions:</strong> {s.conditions}
+                        </div>
+                      )}
+                      {s.reason && (
+                        <div className="mut" style={{ fontSize: '11px', marginTop: '3px' }}>
+                          <strong>Reason:</strong> {s.reason}
+                        </div>
+                      )}
+                      {s.sources && s.sources.length > 0 && (
+                        <div style={{ marginTop: '5px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                          <span className="eyebrow" style={{ fontSize: '10px' }}>Sources:</span>
+                          {s.sources.map((src, idx) => (
+                            <a
+                              key={idx}
+                              href={src.url}
+                              target="_blank"
+                              rel="noreferrer noopener"
+                              style={{
+                                fontSize: '11px',
+                                color: 'var(--color-primary, #10b981)',
+                                textDecoration: 'underline',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '3px',
+                                overflowWrap: 'anywhere',
+                              }}
+                              title={src.quote || src.claim}
+                            >
+                              <span>{src.claim}</span>
+                              <ExternalLink size={10} style={{ flexShrink: 0 }} />
+                            </a>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             );
           })()}
@@ -1572,9 +1683,21 @@ export function MapScreen() {
           <span className="map-m-peek-handle" aria-hidden="true" />
           <span className="map-m-peek-top">
             <span className="map-m-peek-name">{selectedMeta.name}</span>
-            <span className={`chip ${selectedMeta.status === 'ACTIVE' ? 'chip-a' : ''}`}>
-              {STATUS_CONFIG[selectedMeta.status].label}
-            </span>
+            {view === 'COMPLIANCE' ? (
+              (() => {
+                const best = countryAcceptsForeign[selectedMeta.iso]?.status || 'NO_SCHEME';
+                const cfg = ACCEPT_FOREIGN_CONFIG[best];
+                return (
+                  <span className={`chip ${cfg.chipClass}`} style={{ fontSize: '10px', padding: '1px 5px' }}>
+                    {best === 'NO_SCHEME' ? 'No scheme' : `Imports: ${best}`}
+                  </span>
+                );
+              })()
+            ) : (
+              <span className={`chip ${selectedMeta.status === 'ACTIVE' ? 'chip-a' : ''}`}>
+                {STATUS_CONFIG[selectedMeta.status].label}
+              </span>
+            )}
           </span>
           <span className="map-m-peek-legal">{selectedMeta.legal}</span>
           <span className="map-m-peek-figs">
@@ -1624,7 +1747,7 @@ export function MapScreen() {
             <div className="map-m-legend">
               {viewToggle(true)}
               <div className="eyebrow" style={{ margin: '14px 0 8px' }}>
-                {view === 'SELL' ? `Trade Opportunities (${originMeta.iso})` : 'Compliance status'}
+                {view === 'SELL' ? `Trade Opportunities (${originMeta.iso})` : 'Who accepts imports'}
               </div>
               {legendList(13, 10, 6)}
               <div className="mut" style={{ fontSize: '12px', marginTop: '10px' }}>
@@ -1698,14 +1821,23 @@ export function MapScreen() {
             <h3 className="ptitle" style={{ fontSize: '18px', margin: 0 }}>Compliance &amp; logistics map</h3>
             <div className="subttl" style={{ display: 'flex', alignItems: 'center', margin: 0 }}>
               <span style={{ display: 'inline-flex', gap: '12px', flexWrap: 'wrap' }}>
-                {(['ACTIVE', 'EMERGING', 'FUTURE_2028', 'NONE'] as const)
-                  .filter(st => statusCounts[st] > 0)
-                  .map(st => (
-                    <span key={st} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ width: '9px', height: '9px', backgroundColor: STATUS_CONFIG[st].swatch }} />
-                      {STATUS_CONFIG[st].label} · {statusCounts[st]}
+                {view === 'COMPLIANCE' ? (
+                  (['YES', 'GO_REQUIRED', 'OPEN', 'NO', 'NO_SCHEME'] as const)
+                    .filter(st => complianceCounts[st] > 0)
+                    .map(st => (
+                      <span key={st} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ width: '9px', height: '9px', backgroundColor: ACCEPT_FOREIGN_CONFIG[st].swatch }} />
+                        {ACCEPT_FOREIGN_CONFIG[st].label.split(' ')[0]} · {complianceCounts[st]}
+                      </span>
+                    ))
+                ) : (
+                  (['SELL_NOW', 'CHECK_FIRST', 'CLOSED'] as const).map(cat => (
+                    <span key={cat} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ width: '9px', height: '9px', backgroundColor: SELL_LEGEND.find(l => l.key === cat)?.swatch }} />
+                      {SELL_LEGEND.find(l => l.key === cat)?.label} · {categoryCounts[cat]}
                     </span>
-                  ))}
+                  ))
+                )}
               </span>
             </div>
           </div>
@@ -1959,7 +2091,7 @@ export function MapScreen() {
 
             <div style={{ borderTop: controlsOpen ? '1px solid var(--color-divider)' : 0, marginTop: controlsOpen ? '8px' : 0, paddingTop: controlsOpen ? '8px' : 0 }}>
               <div className="eyebrow" style={{ marginBottom: '5px' }}>
-                {view === 'SELL' ? `Trade Opportunities (${originMeta.iso})` : 'Compliance status'}
+                {view === 'SELL' ? `Trade Opportunities (${originMeta.iso})` : 'Who accepts imports'}
               </div>
               {legendList(12, 9, 4)}
             </div>
@@ -1981,7 +2113,14 @@ export function MapScreen() {
                 padding: '10px 12px',
               }}
             >
-              <div className="eyebrow">{view === 'SELL' ? 'Trade Opportunities' : STATUS_CONFIG[hoveredCountry.status].label}</div>
+              <div className="eyebrow">
+                {view === 'SELL'
+                  ? 'Trade Opportunities'
+                  : (() => {
+                      const best = countryAcceptsForeign[hoveredCountry.iso]?.status || 'NO_SCHEME';
+                      return ACCEPT_FOREIGN_CONFIG[best].label;
+                    })()}
+              </div>
               <div style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '17px', marginTop: '4px' }}>
                 {hoveredCountry.name}
               </div>
