@@ -19,6 +19,7 @@ import { RouteVerdictCard, posOpenId } from './RouteVerdictCard';
 import { getPlaybookDealUrl } from './tradePlaybook';
 import { buildDealUrl } from '../../domain/trade/dealParams';
 import { calculateLogisticsRoute, calculateDijkstraCorridor } from '../../domain/logistics/engine';
+import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
 import { getMarketForRoute, getMarketAndCocForRoute } from '../../domain/trade/dealDefaults';
 import { getPosRoute } from '../../domain/routes';
 import { POS_SCHEMES } from '../../domain/routes/routeMatrix.generated';
@@ -579,9 +580,12 @@ export function MapScreen() {
     return getTradePlaybook(originMeta.iso, targetMeta.iso, currentRoute);
   }, [originMeta.iso, targetMeta.iso, currentRoute]);
 
+  const assumptionsVersion = useAssumptionsVersion();
+
   const corridorCalculation = useMemo(() => {
     return calculateLogisticsRoute(originMeta.iso, targetMeta.iso);
-  }, [originMeta.iso, targetMeta.iso]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [originMeta.iso, targetMeta.iso, assumptionsVersion]);
 
   const dijkstraPath = useMemo(() => {
     return calculateDijkstraCorridor(originMeta.iso, targetMeta.iso);
@@ -1407,7 +1411,8 @@ export function MapScreen() {
                     : 'Unverified'}
                 </span>
               </div>
-              <div style={{ fontSize: '12px' }} className="mut">
+              <div style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }} className="mut">
+                <span className="chip chip-info" style={{ fontSize: '10px' }}>Desk estimate</span>
                 {corridorCalculation.modes.virtualSwap.regulatoryFeasibility === 'CONTESTED'
                   ? 'Recommended · contested in some member states'
                   : 'Single mass balance zone transfer'}
@@ -1422,7 +1427,8 @@ export function MapScreen() {
                     : 'Unverified'}
                 </span>
               </div>
-              <div style={{ fontSize: '12px' }} className="mut">
+              <div style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }} className="mut">
+                <span className="chip chip-info" style={{ fontSize: '10px' }}>Desk estimate (partial)</span>
                 {(() => {
                   const selPosRoute = getPosRoute(originMeta.iso, selectedMeta.iso);
                   const selPossible = (selPosRoute.schemes || []).filter(s => s.status === 'POSSIBLE');
@@ -1440,10 +1446,11 @@ export function MapScreen() {
                 <span className="num" style={{ color: corridorCalculation.modes.bioLng.totalCostEurMwh !== null ? 'var(--color-text)' : 'var(--color-accent-700)' }}>
                   {corridorCalculation.modes.bioLng.totalCostEurMwh !== null
                     ? `€${corridorCalculation.modes.bioLng.totalCostEurMwh.toFixed(2)}`
-                    : 'Tariff incomplete'}
+                    : 'Unverified'}
                 </span>
               </div>
-              <div style={{ fontSize: '12px' }} className="mut">
+              <div style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }} className="mut">
+                <span className="chip chip-info" style={{ fontSize: '10px' }}>Desk estimate</span>
                 Liquefaction leg unverified — never summed around a null tariff
               </div>
             </div>

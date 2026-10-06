@@ -2,6 +2,7 @@ import { DeliveryMode, LogisticsAssessment, ModeCostBreakdown, InterconnectionPo
 import { INTERCONNECTION_POINTS, HUB_BASIS_SPREADS, HUB_DISTANCES_KM, PIPELINE_SEGMENT_DISTANCES, CAM_NC_DURATION_MULTIPLIERS, NATIONAL_BIOMETHANE_INJECTION_INCENTIVES } from './corridors';
 import { MARKETS } from '../markets/registry';
 import { COUNTRY_NAMES } from '../markets/constants';
+import { getAssumption } from '../assumptions/registry';
 
 /**
  * Standard Gas Transmission Network Graph for Europe.
@@ -349,10 +350,10 @@ export function calculateLogisticsRoute(
   // -------------------------------------------------------------
   // MODE 1: Commercial Inter-Hub Swap + UDB PoS Title Transfer
   // -------------------------------------------------------------
-  const swapOriginInjectionFee = 0.80; // Indicative local origin entry tariff
-  const swapBasisHedgingFee = Math.abs(hubBasisSpreadEurMwh) > 0 ? Math.abs(hubBasisSpreadEurMwh) : 0.65;
-  const swapUdbCertificationFee = 0.45; // Indicative RED III electronic PoS audit & registry fee
-  const swapExecutionBrokerage = 0.25; // Indicative OTC / broker clearing fee
+  const swapOriginInjectionFee = getAssumption('logistics.swapOriginInjectionFeeEurPerMwh'); // Indicative local origin entry tariff
+  const swapBasisHedgingFee = Math.abs(hubBasisSpreadEurMwh) > 0 ? Math.abs(hubBasisSpreadEurMwh) : getAssumption('logistics.swapBasisHedgingFallbackEurPerMwh');
+  const swapUdbCertificationFee = getAssumption('logistics.swapUdbCertificationFeeEurPerMwh'); // Indicative RED III electronic PoS audit & registry fee
+  const swapExecutionBrokerage = getAssumption('logistics.swapExecutionBrokerageEurPerMwh'); // Indicative OTC / broker clearing fee
   const swapTotalEurMwh = Number((swapOriginInjectionFee + swapBasisHedgingFee + swapUdbCertificationFee + swapExecutionBrokerage).toFixed(2));
 
   const virtualSwapBreakdown: ModeCostBreakdown = {
@@ -408,8 +409,8 @@ export function calculateLogisticsRoute(
   // MODE 2: Physical Pipeline Transit Wheeling Corridor
   // -------------------------------------------------------------
   const physicalEntryExitTariffs = totalPhysicalTariffEurMwh;
-  const physicalBalancingReserve = 0.50; // Daily balancing margin across multi-TSO zones
-  const physicalPrismaAuctionFee = 0.15;
+  const physicalBalancingReserve = getAssumption('logistics.physicalBalancingReserveEurPerMwh'); // Daily balancing margin across multi-TSO zones
+  const physicalPrismaAuctionFee = getAssumption('logistics.physicalPrismaAuctionFeeEurPerMwh');
   const physicalTotalEurMwh = (totalPhysicalTariffEurMwh !== null && shrinkageEurMwh !== null && countryPath.length > 0)
     ? Number((totalPhysicalTariffEurMwh + shrinkageEurMwh + physicalBalancingReserve + physicalPrismaAuctionFee + swapUdbCertificationFee).toFixed(2))
     : null;
@@ -496,12 +497,14 @@ export function calculateLogisticsRoute(
   // -------------------------------------------------------------
   // MODE 3: Bio-LNG Virtual Pipeline (Cryogenic Road / ISO Tanker)
   // -------------------------------------------------------------
-  const liquefactionCapexOpex = 8.50; // Cryogenic upgrading / small-scale liquefaction
-  const roadTransportRatePerKm = 0.0065; // ~€1.70/km for 20t trailer = €0.0065/MWh/km
+  const liquefactionCapexOpex = getAssumption('logistics.bioLngLiquefactionCapexOpexEurPerMwh'); // Cryogenic upgrading / small-scale liquefaction
+  const roadTransportRatePerKm = getAssumption('logistics.bioLngRoadFreightRateEurPerMwhPerKm'); // ~€1.70/km for 20t trailer = €0.0065/MWh/km
+  const roadFreightCeiling = getAssumption('logistics.bioLngRoadFreightCeilingEurPerMwh');
+  const roadFreightFloor = getAssumption('logistics.bioLngRoadFreightFloorEurPerMwh');
   const roadFreightEurMwh = distanceKm !== null
-    ? Number(Math.min(22.00, Math.max(4.00, distanceKm * roadTransportRatePerKm)).toFixed(2))
+    ? Number(Math.min(roadFreightCeiling, Math.max(roadFreightFloor, distanceKm * roadTransportRatePerKm)).toFixed(2))
     : null;
-  const regasificationTerminalFee = 2.00; // Destination regasification or bunkering terminal handling
+  const regasificationTerminalFee = getAssumption('logistics.bioLngRegasificationTerminalFeeEurPerMwh'); // Destination regasification or bunkering terminal handling
   const bioLngTotalEurMwh = roadFreightEurMwh !== null
     ? Number((liquefactionCapexOpex + roadFreightEurMwh + regasificationTerminalFee + swapUdbCertificationFee).toFixed(2))
     : null;
