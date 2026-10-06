@@ -34,15 +34,39 @@ export function gateVerdictLabel(g: GateResult) {
   return g.verdict === 'PASS' ? 'Pass' : g.verdict === 'HARD_BLOCK' ? 'Hard block' : 'Conditional / unresolved';
 }
 
-export function ScGateChips({ gates }: { gates: GateResult[] | undefined }) {
+export function ScGateChips({
+  gates,
+  onGateClick,
+}: {
+  gates: GateResult[] | undefined;
+  /** When given, each letter becomes a button that opens the statutory audit at that gate. */
+  onGateClick?: (gateIndex: number) => void;
+}) {
   if (!gates) return null;
   return (
     <span className="sc-gates" role="img" aria-label="Gates: Scheme, UDB, Mass balance, Annex IX, GHG, Member state">
-      {gates.map((g, i) => (
-        <span key={i} className="sc-gate" title={`${SC_GATE_TITLES[i]} — ${gateVerdictLabel(g)}`} style={gateStyle(g)}>
-          {SC_GATE_LETTERS[i]}
-        </span>
-      ))}
+      {gates.map((g, i) =>
+        onGateClick ? (
+          <button
+            key={i}
+            type="button"
+            className="sc-gate"
+            title={`${SC_GATE_TITLES[i]} — ${gateVerdictLabel(g)} (click to audit)`}
+            aria-label={`${SC_GATE_TITLES[i]}: ${gateVerdictLabel(g)}. Open statutory audit`}
+            style={{ ...gateStyle(g), cursor: 'pointer' }}
+            onClick={e => {
+              e.stopPropagation();
+              onGateClick(i);
+            }}
+          >
+            {SC_GATE_LETTERS[i]}
+          </button>
+        ) : (
+          <span key={i} className="sc-gate" title={`${SC_GATE_TITLES[i]} — ${gateVerdictLabel(g)}`} style={gateStyle(g)}>
+            {SC_GATE_LETTERS[i]}
+          </span>
+        )
+      )}
     </span>
   );
 }
