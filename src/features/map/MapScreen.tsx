@@ -16,6 +16,7 @@ import { Sheet } from '../../shared/ui';
 import './map.css';
 import { LogisticsModal } from '../logistics/LogisticsModal';
 import { RouteVerdictCard, posOpenId } from './RouteVerdictCard';
+import { getPlaybookDealUrl } from './tradePlaybook';
 import { buildDealUrl } from '../../domain/trade/dealParams';
 import { calculateLogisticsRoute, calculateDijkstraCorridor } from '../../domain/logistics/engine';
 import { getMarketForRoute, getMarketAndCocForRoute } from '../../domain/trade/dealDefaults';
@@ -578,11 +579,10 @@ export function MapScreen() {
 
   const handleSimulateTrade = () => {
     if (!currentTradeTarget) return;
-    navigate(buildDealUrl({
-      originCountry: originMeta.iso,
-      marketId: currentTradeTarget.marketId,
-      coc: currentTradeTarget.coc,
-    }));
+    const dealUrl = getPlaybookDealUrl(originMeta.iso, targetMeta.iso, currentRoute, filter);
+    if (dealUrl) {
+      navigate(dealUrl);
+    }
   };
 
   const sortedCountries = useMemo(() => {
@@ -1059,7 +1059,7 @@ export function MapScreen() {
           </button>
 
           {playbook.isTradeable && (() => {
-            const rowTarget = getMarketAndCocForRoute(r, filter);
+            const rowDealUrl = getPlaybookDealUrl(originMeta.iso, r.target, r, filter);
             return (
               <button
                 type="button"
@@ -1067,16 +1067,12 @@ export function MapScreen() {
                 style={{ fontSize: '11px', padding: '0 8px', height: '26px', minHeight: '26px', flex: '0 0 auto', whiteSpace: 'nowrap' }}
                 onClick={e => {
                   e.stopPropagation();
-                  if (!rowTarget) return;
+                  if (!rowDealUrl) return;
                   setIsSummaryOpen(false);
-                  navigate(buildDealUrl({
-                    originCountry: originMeta.iso,
-                    marketId: rowTarget.marketId,
-                    coc: rowTarget.coc,
-                  }));
+                  navigate(rowDealUrl);
                 }}
-                disabled={!rowTarget}
-                title={rowTarget ? `Simulate ${originMeta.iso} ➔ ${r.target} in Trade Builder` : 'No tradeable market mapped for this route'}
+                disabled={!rowDealUrl}
+                title={rowDealUrl ? `Simulate ${originMeta.iso} ➔ ${r.target} in Trade Builder` : 'No tradeable market mapped for this route'}
               >
                 Trade ➔
               </button>
@@ -1795,7 +1791,7 @@ export function MapScreen() {
               setCtxMenu(null);
             };
             const ctxRoute = getCertificateRoute(originMeta.iso, c.iso);
-            const ctxTradeTarget = getMarketAndCocForRoute(ctxRoute, filter);
+            const ctxDealUrl = getPlaybookDealUrl(originMeta.iso, c.iso, ctxRoute, filter);
             const items: { label: string; onClick: () => void; disabled?: boolean; title?: string }[] = [
               { label: isO ? 'Origin (current)' : 'Set as origin', onClick: run(() => setOriginFromMenu(ctxMenu.name)), disabled: isO },
               { label: isT ? 'Target (current)' : 'Set as target', onClick: run(() => setTargetFromMenu(ctxMenu.name)), disabled: isT },
@@ -1803,16 +1799,12 @@ export function MapScreen() {
               {
                 label: `Simulate ${originMeta.iso} → ${c.iso} in Trade Builder`,
                 onClick: run(() => {
-                  if (ctxTradeTarget) {
-                    navigate(buildDealUrl({
-                      originCountry: originMeta.iso,
-                      marketId: ctxTradeTarget.marketId,
-                      coc: ctxTradeTarget.coc,
-                    }));
+                  if (ctxDealUrl) {
+                    navigate(ctxDealUrl);
                   }
                 }),
-                disabled: isO || !ctxTradeTarget,
-                title: !ctxTradeTarget ? 'No tradeable market mapped for this route' : undefined,
+                disabled: isO || !ctxDealUrl,
+                title: !ctxDealUrl ? 'No tradeable market mapped for this route' : undefined,
               },
               { label: 'Zoom to country', onClick: run(() => { setMapCenter(c.center); setZoomLevel(z => Math.max(z, 6)); }) },
             ];

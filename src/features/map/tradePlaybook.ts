@@ -1,5 +1,12 @@
 import { getPosRoute } from '../../domain/routes';
 import { POSSIBLE_STATUSES, type CertificateRoute } from '../../domain/registries/certificateRoutes';
+import { buildDealUrl } from '../../domain/trade/dealParams';
+import {
+  getMarketAndCocForRoute,
+  defaultVolumeMwh,
+  defaultCi,
+  type RouteCertFilter,
+} from '../../domain/trade/dealDefaults';
 
 export type TradeArchetype = 'BOTH' | 'CERT_ONLY' | 'POS_ONLY' | 'CHECK_FIRST' | 'CLOSED' | 'NO_DATA';
 
@@ -15,6 +22,33 @@ export interface TradePlaybookDetails {
   executionTitle: string;
   executionDesc: string;
   defaultCoc: 'BOOK_AND_CLAIM' | 'MASS_BALANCE';
+  dealUrl?: string | null;
+}
+
+/**
+ * Builds the canonical Trade Builder link for a corridor from audited route data,
+ * matching market, chain of custody (GO -> BOOK_AND_CLAIM, PoS -> MASS_BALANCE),
+ * and calibrated volume and CI from dealDefaults.
+ */
+export function getPlaybookDealUrl(
+  originIso: string,
+  targetIso: string,
+  r: CertificateRoute | undefined,
+  filter: RouteCertFilter = 'ALL',
+): string | null {
+  if (!r) return null;
+  const target = getMarketAndCocForRoute(r, filter);
+  if (!target) return null;
+  const ciData = defaultCi(originIso, 'manure');
+  return buildDealUrl({
+    originCountry: originIso,
+    marketId: target.marketId,
+    coc: target.coc,
+    volume: defaultVolumeMwh(),
+    ci: ciData.ci,
+    ciIsEstimated: true,
+    feedstock: 'manure',
+  });
 }
 
 export function getTradePlaybook(originIso: string, targetIso: string, r: CertificateRoute | undefined): TradePlaybookDetails {
@@ -31,9 +65,11 @@ export function getTradePlaybook(originIso: string, targetIso: string, r: Certif
       executionTitle: 'Not Available',
       executionDesc: 'Corridor data unavailable.',
       defaultCoc: 'BOOK_AND_CLAIM',
+      dealUrl: null,
     };
   }
 
+  const dealUrl = getPlaybookDealUrl(originIso, targetIso, r);
   const goPossible = POSSIBLE_STATUSES.includes(r.status);
   const posPossible = r.pos?.status === 'POSSIBLE';
   const posRoute = getPosRoute(originIso, targetIso);
@@ -71,6 +107,7 @@ export function getTradePlaybook(originIso: string, targetIso: string, r: Certif
       executionTitle: `Electronic Transfer (${hubs}) or Interconnected Grid Delivery`,
       executionDesc: bothExecutionDesc,
       defaultCoc: 'MASS_BALANCE',
+      dealUrl,
     };
   }
 
@@ -88,6 +125,7 @@ export function getTradePlaybook(originIso: string, targetIso: string, r: Certif
       executionTitle: `Registry Account Transfer via ${hubs}`,
       executionDesc: `Initiate electronic cancellation or transfer in national registry to ${targetIso} counterpart.`,
       defaultCoc: 'BOOK_AND_CLAIM',
+      dealUrl,
     };
   }
 
@@ -108,6 +146,7 @@ export function getTradePlaybook(originIso: string, targetIso: string, r: Certif
       executionTitle: 'Interconnected Grid Delivery + PoS',
       executionDesc: posExecutionDesc,
       defaultCoc: 'MASS_BALANCE',
+      dealUrl,
     };
   }
 
@@ -124,6 +163,7 @@ export function getTradePlaybook(originIso: string, targetIso: string, r: Certif
       executionTitle: 'Ex-Domain Cancellation or Bilateral Contract',
       executionDesc: 'Cancel certificate in origin registry explicitly for beneficiary in destination, subject to local regulator acceptance.',
       defaultCoc: 'BOOK_AND_CLAIM',
+      dealUrl: null,
     };
   }
 
@@ -139,5 +179,6 @@ export function getTradePlaybook(originIso: string, targetIso: string, r: Certif
     executionTitle: 'No Statutory Corridor Available',
     executionDesc: 'Trade cannot be settled under current legal framework.',
     defaultCoc: 'BOOK_AND_CLAIM',
+    dealUrl: null,
   };
 }
