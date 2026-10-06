@@ -292,7 +292,7 @@ describe('calc fix 4 & 5: Origination and Trade Builder reconciliation', () => {
 describe('calc fix 6: value stack prices certificate leg at chosen side', () => {
   it('prices certificate using state.marks.pricingSides.certificateSide instead of hardcoded mid', async () => {
     const { computeValueStack } = await import('../valueStack/engine');
-    const { MarksState } = await import('../netback/types');
+    type PriceSide = 'bid' | 'offer' | 'mid';
 
     const testMarks = {
       marks: {
@@ -307,11 +307,23 @@ describe('calc fix 6: value stack prices certificate leg at chosen side', () => 
       },
       gasIndex: { bid: null, offer: null, mid: null, updatedAt: null },
       fx: { gbpEur: null, chfEur: null, updatedAt: null },
-      pricingSides: { certificateSide: 'bid' as const, moleculeSide: 'bid' as const },
+      pricingSides: { certificateSide: 'bid' as PriceSide, moleculeSide: 'bid' as PriceSide },
+    };
+
+    const baseInput = {
+      client: 'DE_FUEL_SUPPLIER' as const,
+      volumeMWh: 10000,
+      carbonIntensity: -100,
+      deliveryYear: 2026,
+      intraEuShare: null,
+      smallSiteShare: null,
+      ets2PassThrough: null,
+      greenTariffPremiumEurPerMWh: null,
+      offerPremiumEurPerMWh: null,
     };
 
     // With bid requested
-    const stackBid = computeValueStack({ client: 'DE_FUEL_SUPPLIER', volumeMWh: 10000, carbonIntensity: -100 }, testMarks);
+    const stackBid = computeValueStack(baseInput, testMarks as any);
     const deThgRowBid = stackBid.rows.find(r => r.regime === 'German THG quota');
     // For CI -100, tCO2ePerMWh is ~0.6984, so 140 * 0.6984 = ~97.776
     expect(deThgRowBid).toBeDefined();
@@ -319,7 +331,7 @@ describe('calc fix 6: value stack prices certificate leg at chosen side', () => 
 
     // With offer requested
     testMarks.pricingSides.certificateSide = 'offer';
-    const stackOffer = computeValueStack({ client: 'DE_FUEL_SUPPLIER', volumeMWh: 10000, carbonIntensity: -100 }, testMarks);
+    const stackOffer = computeValueStack(baseInput, testMarks as any);
     const deThgRowOffer = stackOffer.rows.find(r => r.regime === 'German THG quota');
     expect(deThgRowOffer).toBeDefined();
     expect(deThgRowOffer?.eurPerMWh).toBeCloseTo(160 * 0.6984, 1);

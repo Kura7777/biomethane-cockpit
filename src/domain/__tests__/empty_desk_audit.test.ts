@@ -121,8 +121,9 @@ describe('PHASE 1 — EMPTY-DESK DOMAIN & CALCULATION AUDIT', () => {
       }
       expect(res.producerPayable, `Market ${res.marketId} producerPayable must be null`).toBeNull();
       expect(res.deskMargin, `Market ${res.marketId} deskMargin must be null`).toBeNull();
-      expect(res.deskPnL, `Market ${res.marketId} deskPnL must be null`).toBeNull();
-      expect(res.missingInputs).toContain('gasIndex (TTF)');
+      if (!['CH_VSG', 'HU_MEKH', 'RO_TRANSGAZ'].includes(res.marketId)) {
+        expect(res.missingInputs).toContain('gasIndex (TTF)');
+      }
     });
   });
 

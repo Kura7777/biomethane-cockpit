@@ -292,7 +292,7 @@ export function DealTicket({
               <dd>{netback.deskMargin !== null ? `€${netback.deskMargin.toFixed(2)}/MWh` : '—'}</dd>
             </div>
             <div className="tt-figure-row">
-              <dt>Annual P&amp;L</dt>
+              <dt>Deal P&amp;L</dt>
               <dd>{netback.deskMargin !== null ? `€${annualPnl.toLocaleString()}` : '—'}</dd>
             </div>
           </dl>

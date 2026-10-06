@@ -127,7 +127,7 @@ export function TradeEconomicsStep({
               </dd>
             </div>
             <div>
-              <dt>Annual Gross P&amp;L</dt>
+              <dt>Deal Gross P&amp;L</dt>
               <dd className={`tb-num ${pnlClass}`}>
                 {netback.deskMargin !== null ? `€${annualPnl.toLocaleString()}` : '—'}
               </dd>

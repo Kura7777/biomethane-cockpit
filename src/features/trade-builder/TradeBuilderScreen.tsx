@@ -2039,7 +2039,7 @@ export function TradeBuilderScreen() {
             </div>
           </div>
           <div style={{ backgroundColor: 'var(--color-bg)', padding: '12px 18px' }}>
-            <div className="eyebrow">Annual P&amp;L</div>
+            <div className="eyebrow">Deal P&amp;L</div>
             <div className="num" style={{ fontSize: '19px', fontWeight: 800, color: (netback.deskMargin ?? 0) < 0 ? 'var(--color-pnl-neg)' : 'var(--color-pnl-pos)' }}>
               {netback.deskMargin !== null ? `€${annualPnl.toLocaleString()}` : '—'}
             </div>

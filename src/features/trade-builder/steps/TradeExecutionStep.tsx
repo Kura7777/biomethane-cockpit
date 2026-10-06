@@ -69,7 +69,7 @@ Feedstock: ${consignment.feedstock}
 Carbon Intensity: ${consignment.carbonIntensity} gCO2e/MJ
 Net Netback: €${netNetbackVal.toFixed(2)} / MWh
 Trader Desk Margin: €${deskMarginEurMwh} / MWh
-Annual Gross P&L: €${annualPnl.toLocaleString()}
+Deal Gross P&L: €${annualPnl.toLocaleString()}
 Delivery Point (VTP): ${getVtpForMarket(selectedMarket.country)}
 Compliance Verdict: ${currentTradeAssessment.eligibility.overallVerdict} (${currentTradeAssessment.eligibility.gates.filter(g => g.verdict === 'PASS').length}/${currentTradeAssessment.eligibility.gates.length} gates pass)
 Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
@@ -130,7 +130,7 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
             <div className="tb-kv-row"><span>Carbon Intensity</span><span>{consignment.carbonIntensity} gCO₂e/MJ</span></div>
             <div className="tb-kv-row"><span>Wholesale Net Netback</span><span className={netNetbackVal >= 0 ? 'tb-pos' : 'tb-neg'}>€{netNetbackVal.toFixed(2)} / MWh</span></div>
             <div className="tb-kv-row"><span>Trader Desk Margin</span><span className={annualPnl >= 0 ? 'tb-pos' : 'tb-neg'}>€{deskMarginEurMwh} / MWh</span></div>
-            <div className="tb-kv-row"><span>Annual Desk P&amp;L</span><span className={annualPnl >= 0 ? 'tb-pos' : 'tb-neg'}>€{annualPnl.toLocaleString()}</span></div>
+            <div className="tb-kv-row"><span>Deal Desk P&amp;L</span><span className={annualPnl >= 0 ? 'tb-pos' : 'tb-neg'}>€{annualPnl.toLocaleString()}</span></div>
             <div className="tb-kv-row"><span>Physical VTP Delivery</span><span>{getVtpForMarket(selectedMarket.country)}</span></div>
             <div className="tb-kv-row"><span>Governing Standard</span><span>EFET 2026 Biomethane Annex / RED III Art. 30</span></div>
           </div>

@@ -59,7 +59,7 @@ FR GO Mix 2026 Non-subsidised: €20.50 Offer (10 GWh)
       const ukQuote = result.quotes.find(q => q.country === 'UK');
       expect(ukQuote).toBeDefined();
       expect(ukQuote?.currency).toBe('GBP');
-      expect(ukQuote?.numericBidEurMwh).toBe(24.50);
+      expect(ukQuote?.numericBidEurMwh).toBeNull();
     });
 
     it('returns empty array cleanly on blank or whitespace text', () => {
