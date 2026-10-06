@@ -28,7 +28,7 @@ import {
   Mail,
 } from 'lucide-react';
 import { showToast } from '../../../app/DeskToastContainer';
-import type { FuelEuMarketPrices, FuelEuPoolPrices } from '../../../domain/fueleu/marketPrices';
+import { poolingEconomicsForBalance, type FuelEuMarketPrices, type FuelEuPoolPrices } from '../../../domain/fueleu/marketPrices';
 
 const MONO_FONT = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
 
@@ -102,18 +102,23 @@ export function ShippingTermSheetStep({
     markTag('FuelEU pool', marketPrices.poolSource),
   ].join(' | ');
 
+  const poolingEcon = useMemo(
+    () => poolingEconomicsForBalance(counterparty.compliance_balance_2026_tco2e, counterparty.penalty_2026_y1_eur, pool),
+    [counterparty.compliance_balance_2026_tco2e, counterparty.penalty_2026_y1_eur, pool]
+  );
+
   const effectiveClientSavingsEur = useMemo(() => {
     if (pathway === 'PHYSICAL') {
       return marineQuote.totalClientSavingsEur || counterparty.client_savings_physical_eur;
     }
-    return counterparty.client_savings_pooling_eur;
-  }, [pathway, marineQuote.totalClientSavingsEur, counterparty.client_savings_physical_eur, counterparty.client_savings_pooling_eur]);
+    return poolingEcon.savingsEur ?? 0;
+  }, [pathway, marineQuote.totalClientSavingsEur, counterparty.client_savings_physical_eur, poolingEcon.savingsEur]);
 
   const effectiveDeskMarginEur = useMemo(() => {
     return pathway === 'PHYSICAL'
       ? counterparty.desk_margin_physical_eur
-      : counterparty.desk_margin_pooling_eur;
-  }, [pathway, counterparty.desk_margin_physical_eur, counterparty.desk_margin_pooling_eur]);
+      : poolingEcon.marginEur ?? 0;
+  }, [pathway, counterparty.desk_margin_physical_eur, poolingEcon.marginEur]);
 
   const generateFullTermSheetText = () => {
     return `================================================================================

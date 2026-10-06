@@ -21,7 +21,14 @@ export const TIER_LABEL = {
 
 export type StrategyTierIndex = keyof typeof TIER_LABEL;
 
-/** Positional layout of one encoded row. Rank is the row's position (1-based); combined exposure is penalty + ETS EUR; conventional vessels are vessels - LNG vessels. */
+/**
+ * Positional layout of one encoded row. Rank is the row's position (1-based); combined exposure is
+ * penalty + ETS EUR; conventional vessels are vessels - LNG vessels.
+ *
+ * No pooling saving/margin columns: those depend on the live FuelEU pool mark (Pricing desk), so
+ * they are computed at render time from compliance_balance_2026_tco2e + penalty_2026_y1_eur via
+ * poolingEconomicsForBalance() (marketPrices.ts), never stored.
+ */
 export const COL = {
   name: 0,
   segment: 1,
@@ -42,19 +49,17 @@ export const COL = {
   bioZeroT: 16,
   savePhys: 17,
   marginPhys: 18,
-  savePool: 19,
-  marginPool: 20,
-  fleetCap: 21,
-  lngVessels: 22,
-  etsTco2: 23,
-  etsEur: 24,
-  companyImo: 25,
-  shipImos: 26,
-  lngShipCount: 27,
-  otherFuel: 28,
-  partial: 29,
-  group: 30,
-  bearer: 31,
+  fleetCap: 19,
+  lngVessels: 20,
+  etsTco2: 21,
+  etsEur: 22,
+  companyImo: 23,
+  shipImos: 24,
+  lngShipCount: 25,
+  otherFuel: 26,
+  partial: 27,
+  group: 28,
+  bearer: 29,
 } as const;
 
 /** Tonnes at whole-tonne precision once they reach 1,000 t; one decimal below that so small fleets are not distorted. */
@@ -66,9 +71,6 @@ export function slimTonnes(x: number): number {
 export interface ShippingTargetsPack {
   source: FuelEuDatasetSource;
   fuelSplitMethod: string;
-  /** Register prices baked into every outreach pitch at generation time. */
-  poolBuyPriceEurPerTco2e: number;
-  poolSellPriceEurPerTco2e: number;
   segments: string[];
   fleetCapabilities: FleetCapability[];
   /** [group_id, group_name, entityType, parent_group_id ('' when none)] */
@@ -86,13 +88,15 @@ export interface PitchInputs {
   penalty2026Y1: number;
   bioNeg100Mwh: number;
   savePhys: number;
-  savePool: number;
   surplus: boolean;
-  poolBuyPrice: number;
-  poolSellPrice: number;
 }
 
-/** The outreach copy for one company; generated data and the decoder both use this so the text cannot diverge. */
+/**
+ * The outreach copy for one company; generated data and the decoder both use this so the text
+ * cannot diverge. Carries no Article 21 pool pricing — that depends on the live FUELEU mark
+ * (Pricing desk), so a caller showing pool-priced € figures must append them at render time from
+ * poolingEconomicsForBalance() (marketPrices.ts) and state the mark date, never bake a price here.
+ */
 export function buildOutreachPitch(p: PitchInputs): string {
   const head =
     `Indicative estimate from EU MRV ${p.reportingPeriod} (fuel split estimated): ${p.name}'s ${p.vessels} EU-scope ` +
@@ -100,15 +104,15 @@ export function buildOutreachPitch(p: PitchInputs): string {
   if (p.surplus) {
     return (
       head +
-      `+${(p.balance2026 / 1000).toFixed(1)} kt compliance surplus. Our desk can monetise this Article 21 surplus into deficit fleets at the ` +
-      `register bid (€${p.poolSellPrice.toFixed(2)}/tCO2e), an indicative €${(p.savePool / 1e6).toFixed(2)}M of commercial value.`
+      `+${(p.balance2026 / 1000).toFixed(1)} kt compliance surplus, available for Article 21 pooling into deficit ` +
+      `fleets. Commercial value is priced against the live FuelEU pool mark.`
     );
   }
   return (
     head +
     `${(Math.abs(p.balance2026) / 1000).toFixed(1)} kt deficit and an indicative €${(p.penalty2026Y1 / 1e6).toFixed(2)}M Annex IV penalty exposure. ` +
-    `Closing it would require an estimated ${(p.bioNeg100Mwh / 1000).toFixed(1)} GWh of -100 CI Bio-LNG, or an ` +
-    `Article 21 pool allocation at the register offer (€${p.poolBuyPrice.toFixed(2)}/tCO2e), an indicative up to €${(p.savePhys / 1e6).toFixed(2)}M in net compliance savings.`
+    `Closing it would require an estimated ${(p.bioNeg100Mwh / 1000).toFixed(1)} GWh of -100 CI Bio-LNG, physical bunkering alone offers up to ` +
+    `€${(p.savePhys / 1e6).toFixed(2)}M in net compliance savings; an Article 21 pool allocation is priced separately against the live FuelEU pool mark.`
   );
 }
 
@@ -126,7 +130,6 @@ export function decodeShippingTargets(pack: ShippingTargetsPack): ShippingCounte
     const ghgie = r[COL.ghgie] as number;
     const bioMwh = r[COL.bioNeg100Mwh] as number;
     const savePhys = r[COL.savePhys] as number;
-    const savePool = r[COL.savePool] as number;
     return {
       rank: i + 1,
       parent_name: name,
@@ -148,8 +151,6 @@ export function decodeShippingTargets(pack: ShippingTargetsPack): ShippingCounte
       bio_lng_required_zero_t: r[COL.bioZeroT] as number,
       client_savings_physical_eur: savePhys,
       desk_margin_physical_eur: r[COL.marginPhys] as number,
-      client_savings_pooling_eur: savePool,
-      desk_margin_pooling_eur: r[COL.marginPool] as number,
       outreachPitch: buildOutreachPitch({
         name,
         reportingPeriod: source.reportingPeriod,
@@ -159,10 +160,7 @@ export function decodeShippingTargets(pack: ShippingTargetsPack): ShippingCounte
         penalty2026Y1: pen26,
         bioNeg100Mwh: bioMwh,
         savePhys,
-        savePool,
         surplus: tier === 4,
-        poolBuyPrice: pack.poolBuyPriceEurPerTco2e,
-        poolSellPrice: pack.poolSellPriceEurPerTco2e,
       }),
       fleetCapability: pack.fleetCapabilities[r[COL.fleetCap] as number],
       lng_vessels_in_scope: lngVessels,

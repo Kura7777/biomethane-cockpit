@@ -21,6 +21,7 @@ import {
 import { buildDealUrl } from '../trade/dealParams';
 import mrvData from '../../../data/fueleu_mrv_2025_companies.json';
 import { slimTonnes } from '../fueleu/shippingTargetsCodec';
+import { poolingEconomicsForBalance } from '../fueleu/marketPrices';
 import { TEST_QUOTE_MARKET_INPUTS, TEST_POOL } from './fixtures/fueleuPrices';
 
 const FORBIDDEN_PITCH_WORDS = ['435', 'audited', 'verified', 'guaranteed', 'Article 20'];
@@ -41,8 +42,6 @@ describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2025)', () => {
       expect(Number.isFinite(c.bio_lng_required_neg100_t)).toBe(true);
       expect(Number.isFinite(c.client_savings_physical_eur)).toBe(true);
       expect(Number.isFinite(c.desk_margin_physical_eur)).toBe(true);
-      expect(Number.isFinite(c.client_savings_pooling_eur)).toBe(true);
-      expect(Number.isFinite(c.desk_margin_pooling_eur)).toBe(true);
 
       // Fleet Capability & Joint Regulatory Exposure asserts
       expect(['DUAL_FUEL_LNG', 'CONVENTIONAL_ONLY']).toContain(c.fleetCapability);
@@ -92,7 +91,7 @@ describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2025)', () => {
         consecutiveYearsNonCompliant: 1,
         shareThirdCountryVoyages: 0,
       };
-      const r25 = calculateVesselExposure({ ...base, targetYear: 2025, poolPrices: TEST_POOL });
+      const r25 = calculateVesselExposure({ ...base, targetYear: 2025 });
       const r30 = calculateVesselExposure({ ...base, targetYear: 2030 });
 
       expect(c.total_energy_mwh, c.parent_name).toBe(Math.round(r25.totalEnergyMwh));
@@ -107,8 +106,6 @@ describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2025)', () => {
       expect(c.bio_lng_required_zero_t, c.parent_name).toBe(slimTonnes(r25.bioLngRequiredZeroCiTonnes));
       expect(c.client_savings_physical_eur, c.parent_name).toBe(Math.round(r25.physicalSavingsEur));
       expect(c.desk_margin_physical_eur, c.parent_name).toBe(Math.round(r25.physicalTradingMarginEur));
-      expect(c.client_savings_pooling_eur, c.parent_name).toBe(Math.round(r25.poolingSavingsEur!));
-      expect(c.desk_margin_pooling_eur, c.parent_name).toBe(Math.round(r25.poolingArrangementMarginEur!));
 
       const fleet = calculateFleetCapability(c.vessels_in_scope, c.vlsfo_tonnes, c.mgo_tonnes, c.lng_tonnes);
       expect(c.fleetCapability, c.parent_name).toBe(fleet.fleetCapability);
@@ -162,6 +159,38 @@ describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2025)', () => {
         expect(c.outreachPitch, `${c.parent_name} pitch contains banned term "${word}"`).not.toContain(word);
       }
     }
+  });
+
+  it('a displayed pooling saving moves with the FuelEU pool mark and is null with no mark', () => {
+    const deficitTarget = FUEL_EU_SHIPPING_COUNTERPARTIES.find(c => c.compliance_balance_2026_tco2e < 0)!;
+    const surplusTarget = FUEL_EU_SHIPPING_COUNTERPARTIES.find(c => c.compliance_balance_2026_tco2e > 0)!;
+
+    // No mark loaded: every field is null, for a deficit or a surplus company.
+    const noMark = poolingEconomicsForBalance(deficitTarget.compliance_balance_2026_tco2e, deficitTarget.penalty_2026_y1_eur, null);
+    expect(noMark.savingsEur).toBeNull();
+    expect(noMark.marginEur).toBeNull();
+    expect(noMark.poolCostEur).toBeNull();
+
+    // Moving the mark offer moves the deficit company's saving.
+    const lowOffer = poolingEconomicsForBalance(deficitTarget.compliance_balance_2026_tco2e, deficitTarget.penalty_2026_y1_eur, TEST_POOL);
+    const highOffer = poolingEconomicsForBalance(deficitTarget.compliance_balance_2026_tco2e, deficitTarget.penalty_2026_y1_eur, {
+      offerEurPerTco2e: TEST_POOL.offerEurPerTco2e + 50,
+      bidEurPerTco2e: TEST_POOL.bidEurPerTco2e + 50,
+      spreadEurPerTco2e: TEST_POOL.spreadEurPerTco2e,
+    });
+    expect(lowOffer.savingsEur).not.toBeNull();
+    expect(highOffer.savingsEur).not.toBeNull();
+    expect(highOffer.savingsEur).not.toBe(lowOffer.savingsEur);
+
+    // Moving the mark bid moves the surplus company's monetised value the same way.
+    const lowBid = poolingEconomicsForBalance(surplusTarget.compliance_balance_2026_tco2e, surplusTarget.penalty_2026_y1_eur, TEST_POOL);
+    const highBid = poolingEconomicsForBalance(surplusTarget.compliance_balance_2026_tco2e, surplusTarget.penalty_2026_y1_eur, {
+      offerEurPerTco2e: TEST_POOL.offerEurPerTco2e + 50,
+      bidEurPerTco2e: TEST_POOL.bidEurPerTco2e + 50,
+      spreadEurPerTco2e: TEST_POOL.spreadEurPerTco2e,
+    });
+    expect(lowBid.savingsEur).toBeGreaterThan(0);
+    expect(highBid.savingsEur).toBeGreaterThan(lowBid.savingsEur!);
   });
 
   it('sum of in-scope CO2 across the dataset matches the source EU MRV JSON (for the same eligible rows)', () => {
@@ -583,7 +612,8 @@ describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2025)', () => {
         expect(cp.desk_margin_physical_eur).toBeGreaterThan(0);
       }
       if (cp.compliance_balance_2026_tco2e !== 0) {
-        expect(cp.desk_margin_pooling_eur).toBeGreaterThan(0);
+        const econ = poolingEconomicsForBalance(cp.compliance_balance_2026_tco2e, cp.penalty_2026_y1_eur, TEST_POOL);
+        expect(econ.marginEur).toBeGreaterThan(0);
       }
     }
   });
@@ -593,8 +623,13 @@ describe('FuelEU Maritime Domain & Shipping Targets (EU MRV 2025)', () => {
     expect(surplusTarget).toBeDefined();
     expect(surplusTarget!.compliance_balance_2026_tco2e).toBeGreaterThan(0);
     expect(surplusTarget!.penalty_2026_y1_eur).toBe(0);
-    expect(surplusTarget!.client_savings_pooling_eur).toBeGreaterThan(0);
-    expect(surplusTarget!.desk_margin_pooling_eur).toBeGreaterThan(0);
+    const surplusEcon = poolingEconomicsForBalance(
+      surplusTarget!.compliance_balance_2026_tco2e,
+      surplusTarget!.penalty_2026_y1_eur,
+      TEST_POOL
+    );
+    expect(surplusEcon.savingsEur).toBeGreaterThan(0);
+    expect(surplusEcon.marginEur).toBeGreaterThan(0);
 
     const url = buildDealUrl({
       marketId: 'FUELEU',

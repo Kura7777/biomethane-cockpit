@@ -7,7 +7,7 @@ import {
   DEFAULT_GREEN_PREMIUM_EUR_MWH,
   DEFAULT_VLSFO_PRICE_USD_PER_TONNE,
 } from '../../../domain/fueleu/calculator';
-import type { FuelEuMarketPrices, FuelEuPoolPrices } from '../../../domain/fueleu/marketPrices';
+import { poolingEconomicsForBalance, type FuelEuMarketPrices, type FuelEuPoolPrices } from '../../../domain/fueleu/marketPrices';
 import { SourceChip } from '../../../shared/ui/SourceChip';
 import {
   Sliders,
@@ -166,15 +166,20 @@ export function ShippingBunkerPricingStep({
     );
   };
 
+  const poolingEcon = useMemo(
+    () => poolingEconomicsForBalance(counterparty.compliance_balance_2026_tco2e, counterparty.penalty_2026_y1_eur, pool),
+    [counterparty.compliance_balance_2026_tco2e, counterparty.penalty_2026_y1_eur, pool]
+  );
+
   const clientSavingsEur =
     pathway === 'PHYSICAL'
       ? marineQuote.totalClientSavingsEur || counterparty.client_savings_physical_eur
-      : counterparty.client_savings_pooling_eur;
+      : poolingEcon.savingsEur ?? 0;
 
   const tradingMarginEur =
     pathway === 'PHYSICAL'
       ? counterparty.desk_margin_physical_eur
-      : counterparty.desk_margin_pooling_eur;
+      : poolingEcon.marginEur ?? 0;
 
   return (
     <div className="w-full max-w-[1600px] mx-auto p-4 sm:p-5 space-y-4">

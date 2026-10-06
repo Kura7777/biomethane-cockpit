@@ -216,8 +216,6 @@ export interface ShippingCounterparty {
   bio_lng_required_zero_t: number;
   client_savings_physical_eur: number;
   desk_margin_physical_eur: number;
-  client_savings_pooling_eur: number;
-  desk_margin_pooling_eur: number;
   /** Not present in EU MRV data. Left undefined rather than invented. */
   key_executive?: string;
   /** Not present in EU MRV data. Left undefined rather than invented. */

@@ -3,7 +3,7 @@ import { Search, ArrowUp, ArrowDown, ArrowUpDown, Download, ChevronLeft, Chevron
 import { FUEL_EU_SHIPPING_GROUPS, FuelEuShippingGroup } from '../../domain/fueleu/groups';
 import { FUEL_EU_SHIPPING_COUNTERPARTIES } from '../../domain/fueleu/shippingTargetsData';
 import { ShippingCounterparty, GroupEntityType } from '../../domain/fueleu/types';
-import { NO_POOL_MARK } from '../../domain/fueleu/marketPrices';
+import { NO_POOL_MARK, poolingEconomicsForBalance } from '../../domain/fueleu/marketPrices';
 import { useFuelEuPrices } from './useFuelEuPrices';
 import { sortRows, scaleDivergingBarWidth, SortDirection } from '../../domain/fueleu/uiHelpers';
 import { FuelEuSidePanel, FuelEuDirectoryRow } from './FuelEuSidePanel';
@@ -126,11 +126,9 @@ export function FuelEuDirectoryDesk({
       return FUEL_EU_SHIPPING_GROUPS.map(g => {
         const members = membersByGroup.get(g.id) || [];
         const isSurplus = g.sumOfCompanyBalances2026 >= 0;
-        const poolCostEur = isSurplus || offer === null ? null : Math.abs(g.sumOfCompanyBalances2026) * offer;
-        const savingEur =
-          offer === null || bid === null
-            ? null
-            : isSurplus ? Math.abs(g.sumOfCompanyBalances2026) * bid : g.sumOfCompanyPenalties2026 - (poolCostEur ?? 0);
+        const econ = poolingEconomicsForBalance(g.sumOfCompanyBalances2026, g.sumOfCompanyPenalties2026, pool);
+        const poolCostEur = econ.poolCostEur;
+        const savingEur = econ.savingsEur;
         return {
           key: `group:${g.id}`,
           name: g.name,
@@ -155,11 +153,9 @@ export function FuelEuDirectoryDesk({
     return FUEL_EU_SHIPPING_COUNTERPARTIES.map(c => {
       const group = FUEL_EU_SHIPPING_GROUPS.find(g => g.id === c.group_id);
       const isSurplus = c.compliance_balance_2026_tco2e >= 0;
-      const poolCostEur = isSurplus || offer === null ? null : Math.abs(c.compliance_balance_2026_tco2e) * offer;
-      const savingEur =
-        offer === null || bid === null
-          ? null
-          : isSurplus ? Math.abs(c.compliance_balance_2026_tco2e) * bid : c.penalty_2026_y1_eur - (poolCostEur ?? 0);
+      const econ = poolingEconomicsForBalance(c.compliance_balance_2026_tco2e, c.penalty_2026_y1_eur, pool);
+      const poolCostEur = econ.poolCostEur;
+      const savingEur = econ.savingsEur;
       return {
         key: `company:${c.company_imo}`,
         name: c.parent_name,

@@ -58,3 +58,39 @@ export function fuelEuMarketPrices(marks: MarksState): FuelEuMarketPrices {
 export const NO_TTF_MARK = 'No TTF mark — set it in Pricing';
 export const NO_EUA_MARK = 'No EUA mark — set it in Pricing';
 export const NO_POOL_MARK = 'No FuelEU pool mark — set it in Pricing';
+
+export interface PoolingEconomics {
+  /** Saving (deficit route) or surplus monetisation value (surplus route) at the live FUELEU mark. Null with no mark. */
+  savingsEur: number | null;
+  /** Desk margin on the pooling route at the live FUELEU mark. Null with no mark. */
+  marginEur: number | null;
+  /** Cost of closing a deficit via pooling, at the mark offer. Null for a surplus balance or no mark. */
+  poolCostEur: number | null;
+}
+
+/**
+ * Article 21 pooling economics for a compliance balance, at the live FUELEU pool mark. Same
+ * formula as calculateVesselExposure's pooling branch (calculator.ts) — kept here so every screen
+ * that shows a pooling saving/margin computes it from the mark, not from a number baked into the
+ * dataset at generation time. Null in every field when no pool mark is loaded.
+ */
+export function poolingEconomicsForBalance(
+  balanceTco2e: number,
+  penaltyY1Eur: number,
+  pool: FuelEuPoolPrices | null
+): PoolingEconomics {
+  if (pool === null) return { savingsEur: null, marginEur: null, poolCostEur: null };
+  if (balanceTco2e >= 0) {
+    return {
+      savingsEur: balanceTco2e * pool.bidEurPerTco2e,
+      marginEur: balanceTco2e * pool.spreadEurPerTco2e,
+      poolCostEur: null,
+    };
+  }
+  const poolCostEur = Math.abs(balanceTco2e) * pool.offerEurPerTco2e;
+  return {
+    savingsEur: Math.max(0, penaltyY1Eur - poolCostEur),
+    marginEur: Math.abs(balanceTco2e) * pool.spreadEurPerTco2e,
+    poolCostEur,
+  };
+}

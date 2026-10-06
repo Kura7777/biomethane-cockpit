@@ -42,10 +42,10 @@ import {
   calculateVesselExposure,
   calculateFleetCapability,
   EU_ETS_PHASE_IN_2026,
-  EUA_BENCHMARK_EUR_PER_TONNE,
   FUELEU_GWP_CH4,
 } from '../src/domain/fueleu/calculator';
-import { getAssumption, fuelEuPoolBidPriceEurPerTco2e } from '../src/domain/assumptions/registry';
+import { getAssumption } from '../src/domain/assumptions/registry';
+import { getBenchmarkForMarket } from '../src/domain/markets/marketBenchmarks';
 import type { ShippingCounterparty, FuelEuDatasetSource, GroupEntityType, FuelCostBearer, FuelCostBearerType, GroupContact, FleetCapability } from '../src/domain/fueleu/types';
 import {
   COL,
@@ -130,9 +130,11 @@ const datasetSource: FuelEuDatasetSource = {
   sha256: raw.source.sha256,
 };
 
-const poolBuyPrice = getAssumption('fueleu.poolBuyPriceEurPerTco2e');
-const poolSellPrice = fuelEuPoolBidPriceEurPerTco2e();
-const euaPrice = EUA_BENCHMARK_EUR_PER_TONNE;
+// EUA price: like the FuelEU pool price, this is a market mark (EU_ETS1), not a desk assumption.
+// The dataset is generated offline (no marks store to read), so it uses the EU_ETS1 benchmark mid
+// as its one-time snapshot — the same approach scripts/build_fueleu_shipping_targets.ts already
+// takes for every other mark-sourced input it cannot read live.
+const euaPrice = getBenchmarkForMarket('EU_ETS1')!.midPrice;
 
 // ---------------- Group map (optional — the script must not fail if it's absent) ----------------
 let groupMap: GroupMapFile | null = null;
@@ -283,8 +285,6 @@ const built: Built[] = eligible.map((c): Built => {
   const bioLngRequiredNeg100Mwh = Math.round(r26.bioLngRequiredNeg100Mwh);
   const clientSavingsPhysical = Math.round(r26.physicalSavingsEur);
   const deskMarginPhysical = Math.round(r26.physicalTradingMarginEur);
-  const clientSavingsPooling = Math.round(r26.poolingSavingsEur);
-  const deskMarginPooling = Math.round(r26.poolingArrangementMarginEur);
   const complianceBalance2026 = round(r26.complianceBalanceTco2e, 1);
 
   const group = lookupGroup(c.company_imo, c.parent_name);
@@ -299,10 +299,7 @@ const built: Built[] = eligible.map((c): Built => {
     penalty2026Y1: penalty2026Y1,
     bioNeg100Mwh: bioLngRequiredNeg100Mwh,
     savePhys: clientSavingsPhysical,
-    savePool: clientSavingsPooling,
     surplus,
-    poolBuyPrice,
-    poolSellPrice,
   });
 
   const row: Built = {
@@ -326,8 +323,6 @@ const built: Built[] = eligible.map((c): Built => {
     bio_lng_required_zero_t: r26.bioLngRequiredZeroCiTonnes,
     client_savings_physical_eur: clientSavingsPhysical,
     desk_margin_physical_eur: deskMarginPhysical,
-    client_savings_pooling_eur: clientSavingsPooling,
-    desk_margin_pooling_eur: deskMarginPooling,
     outreachPitch,
     fleetCapability: fleet.fleetCapability,
     lng_vessels_in_scope: fleet.lngVesselsInScope,
@@ -415,8 +410,6 @@ const encodedRows: (string | number)[][] = built.map(r => {
   tuple[COL.bioZeroT] = slimTonnes(r.bio_lng_required_zero_t);
   tuple[COL.savePhys] = r.client_savings_physical_eur;
   tuple[COL.marginPhys] = r.desk_margin_physical_eur;
-  tuple[COL.savePool] = r.client_savings_pooling_eur;
-  tuple[COL.marginPool] = r.desk_margin_pooling_eur;
   tuple[COL.fleetCap] = indexOf(fleetCapabilities, r.fleetCapability, (a, b) => a === b);
   tuple[COL.lngVessels] = r.lng_vessels_in_scope;
   tuple[COL.etsTco2] = Math.round(r.ets_exposure_2026_tco2);
@@ -438,8 +431,6 @@ const encodedRows: (string | number)[][] = built.map(r => {
 const pack: ShippingTargetsPack = {
   source: datasetSource,
   fuelSplitMethod: built[0].fuelSplitMethod,
-  poolBuyPriceEurPerTco2e: poolBuyPrice,
-  poolSellPriceEurPerTco2e: poolSellPrice,
   segments,
   fleetCapabilities,
   groups: groupTable,
@@ -455,7 +446,7 @@ const pack: ShippingTargetsPack = {
     'rank', 'parent_name', 'segment', 'vessels_in_scope', 'strategy_tier', 'total_energy_mwh', 'actual_ghgie',
     'compliance_balance_2026_tco2e', 'penalty_2026_y1_eur', 'penalty_2026_y2_eur', 'compliance_balance_2030_tco2e',
     'penalty_2030_y1_eur', 'bio_lng_required_neg100_mwh', 'client_savings_physical_eur', 'desk_margin_physical_eur',
-    'client_savings_pooling_eur', 'desk_margin_pooling_eur', 'outreachPitch', 'fleetCapability', 'lng_vessels_in_scope',
+    'outreachPitch', 'fleetCapability', 'lng_vessels_in_scope',
     'conventional_vessels_in_scope', 'ets_exposure_2026_eur', 'combined_regulatory_exposure_2026_eur', 'company_imo',
     'fuelSplitMethod', 'lngShipCount', 'otherFuelSuspectedShips', 'partialReportShips', 'group_id', 'group_name',
     'entityType', 'parent_group_id',
@@ -496,8 +487,6 @@ lines.push('');
 lines.push('const PACK: ShippingTargetsPack = {');
 lines.push(`  source: ${JSON.stringify(pack.source)},`);
 lines.push(`  fuelSplitMethod: ${JSON.stringify(pack.fuelSplitMethod)},`);
-lines.push(`  poolBuyPriceEurPerTco2e: ${pack.poolBuyPriceEurPerTco2e},`);
-lines.push(`  poolSellPriceEurPerTco2e: ${pack.poolSellPriceEurPerTco2e},`);
 lines.push(`  segments: ${JSON.stringify(pack.segments)},`);
 lines.push(`  fleetCapabilities: ${JSON.stringify(pack.fleetCapabilities)},`);
 lines.push(`  groups: ${JSON.stringify(pack.groups)},`);
