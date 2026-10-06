@@ -16,12 +16,16 @@ import { SIMULATED_SOURCE_NAME } from '../../domain/marks/simulate';
 import { buildMarketLadder, type MarketLadderRow } from '../../domain/arbitrage/marketLadder';
 import { markSideWarning } from '../../domain/netback/sideFallback';
 import { originationRouteStatus } from '../../domain/arbitrage/routeStatus';
+import { isVoluntaryMarket } from '../../domain/markets/registry';
 import { RouteVerdictCard } from '../map/RouteVerdictCard';
 import { RouteStatusBadge } from './RouteStatusBadge';
 import { buildOpportunityDealUrl } from './dealUrl';
 import type { SourcedOpportunity } from './PlantScannerTable';
 
 const TOP_N = 8;
+const STALE_DAYS = 30;
+
+type BookFilter = 'ALL' | 'COMPLIANCE' | 'VOLUNTARY';
 
 interface MarketLadderProps {
   opportunity: SourcedOpportunity;
@@ -54,19 +58,41 @@ export function MarketLadder({ opportunity, volumeMwh, complianceYear = null }: 
   const [showAll, setShowAll] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [sheetId, setSheetId] = useState<string | null>(null);
+  const [bookFilter, setBookFilter] = useState<BookFilter>('ALL');
+  const [tradeableOnly, setTradeableOnly] = useState(false);
+  const [hideStale, setHideStale] = useState(false);
+  const [minMargin, setMinMargin] = useState('');
 
   const ladder = useMemo(
     () => buildMarketLadder({ ...opportunity, complianceYear }, volumeMwh, state.marks, state.costs),
     [opportunity, volumeMwh, complianceYear, state.marks, state.costs]
   );
 
+  const filtered = useMemo(() => {
+    const minMarginNum = minMargin.trim() === '' ? null : Number(minMargin);
+    return ladder.ranked.filter(row => {
+      if (row.isChosen) return true; // the chosen route is always shown
+      if (bookFilter === 'COMPLIANCE' && isVoluntaryMarket(row.marketId)) return false;
+      if (bookFilter === 'VOLUNTARY' && !isVoluntaryMarket(row.marketId)) return false;
+      if (tradeableOnly && originationRouteStatus(row.verdict) !== 'TRADEABLE') return false;
+      if (hideStale) {
+        const days = getMarkAgeDays({ provenance: row.sourceProvenance, updatedAt: row.markUpdatedAt });
+        if (days !== null && days > STALE_DAYS) return false;
+      }
+      if (minMarginNum !== null && !Number.isNaN(minMarginNum)) {
+        if ((row.deskMarginEurPerMwh ?? -Infinity) < minMarginNum) return false;
+      }
+      return true;
+    });
+  }, [ladder.ranked, bookFilter, tradeableOnly, hideStale, minMargin]);
+
   const visible = useMemo(() => {
-    if (showAll) return ladder.ranked;
-    const top = ladder.ranked.slice(0, TOP_N);
+    if (showAll) return filtered;
+    const top = filtered.slice(0, TOP_N);
     // The market this route was built for is always on screen, even when it ranks below the cut.
-    const chosen = ladder.ranked.find(r => r.isChosen && !top.includes(r));
+    const chosen = filtered.find(r => r.isChosen && !top.includes(r));
     return chosen ? [...top, chosen] : top;
-  }, [ladder.ranked, showAll]);
+  }, [filtered, showAll]);
 
   const sourceFor = (row: MarketLadderRow) => {
     const badge = row.isModelled && !row.sourceProvenance
@@ -158,6 +184,45 @@ export function MarketLadder({ opportunity, volumeMwh, complianceYear = null }: 
         <Link to="/pricing" style={{ color: 'var(--color-accent)' }} className="font-medium hover:underline">Change in Pricing desk →</Link>
       </p>
 
+      <div className="flex flex-wrap items-center gap-2 mb-2" data-testid="ladder-filters">
+        <div className="flex items-center gap-1" role="group" aria-label="Book filter">
+          {(['ALL', 'COMPLIANCE', 'VOLUNTARY'] as const).map(b => (
+            <button
+              key={b}
+              type="button"
+              className={`chip ${bookFilter === b ? 'chip-a' : ''}`}
+              onClick={() => setBookFilter(b)}
+              data-testid={`ladder-book-${b}`}
+            >
+              {b === 'ALL' ? 'All' : b === 'COMPLIANCE' ? 'Compliance' : 'Voluntary'}
+            </button>
+          ))}
+        </div>
+        <label className="flex items-center gap-1 text-[11px] cursor-pointer" style={{ color: 'var(--color-muted)' }}>
+          <input type="checkbox" checked={tradeableOnly} onChange={e => setTradeableOnly(e.target.checked)} />
+          Tradeable only
+        </label>
+        <label className="flex items-center gap-1 text-[11px] cursor-pointer" style={{ color: 'var(--color-muted)' }}>
+          <input type="checkbox" checked={hideStale} onChange={e => setHideStale(e.target.checked)} />
+          Hide marks older than 30d
+        </label>
+        <label className="flex items-center gap-1 text-[11px]" style={{ color: 'var(--color-muted)' }}>
+          Min margin €/MWh
+          <input
+            type="number"
+            value={minMargin}
+            onChange={e => setMinMargin(e.target.value)}
+            placeholder="off"
+            className="w-16 text-[11px]"
+            style={{ borderColor: 'var(--color-line)', borderRadius: 'var(--radius-control)', padding: '1px 4px' }}
+            data-testid="ladder-min-margin"
+          />
+        </label>
+        <span className="text-[11px] ml-auto" style={{ color: 'var(--color-muted)' }} data-testid="ladder-filter-count">
+          {filtered.length} of {ladder.ranked.length} markets shown
+        </span>
+      </div>
+
       {isMobile ? (
         <>
           <LadderCards
@@ -234,7 +299,18 @@ export function MarketLadder({ opportunity, volumeMwh, complianceYear = null }: 
                       <td className="py-2 pr-3">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <RouteStatusBadge verdict={row.verdict} detail={row.eligibilitySummary} />
-                          <ScGateChips gates={row.gates} />
+                          <ScGateChips gates={row.gates} onGateClick={gateIndex => openAuditor(row.marketId, gateIndex)} />
+                          {originationRouteStatus(row.verdict) !== 'TRADEABLE' && (
+                            <button
+                              type="button"
+                              className="chip chip-neutral"
+                              style={{ cursor: 'pointer' }}
+                              onClick={() => openAuditor(row.marketId, firstOpenGate(row))}
+                              title="Open the statutory audit at the first blocking gate"
+                            >
+                              Why blocked?
+                            </button>
+                          )}
                         </div>
                       </td>
                       <td className="py-2 pr-3 text-right tabular-nums font-bold" style={{ color: net < 0 ? 'var(--color-pnl-neg)' : 'var(--color-text)' }}>
@@ -296,14 +372,14 @@ export function MarketLadder({ opportunity, volumeMwh, complianceYear = null }: 
         </div>
       )}
 
-      {ladder.ranked.length > TOP_N && (
+      {filtered.length > TOP_N && (
         <button
           type="button"
           onClick={() => setShowAll(v => !v)}
           style={{ color: 'var(--color-accent)' }}
           className="mt-2 text-xs font-medium cursor-pointer hover:underline"
         >
-          {showAll ? `Show top ${TOP_N} only` : `Show all ${ladder.ranked.length} markets with a netback`}
+          {showAll ? `Show top ${TOP_N} only` : `Show all ${filtered.length} markets with a netback`}
         </button>
       )}
 
