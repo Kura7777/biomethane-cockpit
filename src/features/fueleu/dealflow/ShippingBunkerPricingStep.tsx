@@ -3,9 +3,9 @@ import React, { useMemo } from 'react';
 import { ShippingCounterparty } from '../../../domain/fueleu/types';
 import {
   calculateMarineBunkerQuotation,
-  DEFAULT_LIQUEFACTION_FEE_EUR_MWH,
-  DEFAULT_GREEN_PREMIUM_EUR_MWH,
-  DEFAULT_VLSFO_PRICE_USD_PER_TONNE,
+  defaultLiquefactionFeeEurMwh,
+  defaultGreenPremiumEurMwh,
+  defaultVlsfoPriceUsdPerTonne,
 } from '../../../domain/fueleu/calculator';
 import { poolingEconomicsForBalance, type FuelEuMarketPrices, type FuelEuPoolPrices } from '../../../domain/fueleu/marketPrices';
 import { SourceChip } from '../../../shared/ui/SourceChip';
@@ -95,10 +95,10 @@ export function ShippingBunkerPricingStep({
 
   const handleResetDefaults = () => {
     setTtfGasIndex(null);
-    setLiquefactionFee(DEFAULT_LIQUEFACTION_FEE_EUR_MWH);
-    setGreenPremium(DEFAULT_GREEN_PREMIUM_EUR_MWH);
+    setLiquefactionFee(defaultLiquefactionFeeEurMwh());
+    setGreenPremium(defaultGreenPremiumEurMwh());
     setEuaPrice(null);
-    setVlsfoPrice(DEFAULT_VLSFO_PRICE_USD_PER_TONNE);
+    setVlsfoPrice(defaultVlsfoPriceUsdPerTonne());
     showToast('Pricing parameters reset: TTF and EUA back to the Pricing desk marks', 'INFO');
   };
 

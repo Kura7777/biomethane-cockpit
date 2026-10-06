@@ -210,15 +210,25 @@ export function lngEtsNonCo2Co2eTonnes(tonnes: number, engine: LngEngineType = D
  */
 export const LHV_BIO_LNG_GJ_PER_TONNE = LHV_BIO_LNG_MJ_PER_TONNE / 1000;          // 50 GJ/t Bio-LNG
 export const MWH_PER_TONNE_BIO_LNG = LHV_BIO_LNG_MJ_PER_TONNE / MJ_PER_MWH;       // 13.8889 MWh/t
-export const EUR_USD_DEFAULT_FX = getAssumption('fueleu.eurUsdFxRate');
-export const DEFAULT_LIQUEFACTION_FEE_EUR_MWH = getAssumption('fueleu.liquefactionFeeEurPerMwh');
-export const DEFAULT_GREEN_PREMIUM_EUR_MWH = getAssumption('fueleu.greenPremiumEurPerMwh');
+/** Desk assumption, read at call time — not a module-level constant — so a Pricing desk edit
+ * applies without a reload. */
+export function eurUsdDefaultFx(): number {
+  return getAssumption('fueleu.eurUsdFxRate');
+}
+export function defaultLiquefactionFeeEurMwh(): number {
+  return getAssumption('fueleu.liquefactionFeeEurPerMwh');
+}
+export function defaultGreenPremiumEurMwh(): number {
+  return getAssumption('fueleu.greenPremiumEurPerMwh');
+}
 /**
  * @deprecated No longer used by calculateMarineBunkerQuotation: only LNG-capable ships can burn
  * Bio-LNG, so the quote's counterfactual is fossil LNG on the same engine, not VLSFO. Kept as a
- * plain constant so existing UI state (a VLSFO price slider) still compiles.
+ * function so existing UI state (a VLSFO price slider) still compiles.
  */
-export const DEFAULT_VLSFO_PRICE_USD_PER_TONNE = getAssumption('fueleu.defaultVlsfoPriceUsdPerTonne');
+export function defaultVlsfoPriceUsdPerTonne(): number {
+  return getAssumption('fueleu.defaultVlsfoPriceUsdPerTonne');
+}
 
 export const VESSEL_ARCHETYPES: VesselArchetype[] = [
   {
@@ -619,10 +629,10 @@ export function calculateMarineBunkerQuotation(
   input: MarineBunkerQuotationInput
 ): MarineBunkerQuotationResult {
   const ttfGasIndex = input.ttfGasIndexEurMwh;
-  const liquefactionFee = input.liquefactionFeeEurMwh !== undefined ? input.liquefactionFeeEurMwh : DEFAULT_LIQUEFACTION_FEE_EUR_MWH;
-  const greenPremium = input.greenPremiumEurMwh !== undefined ? input.greenPremiumEurMwh : DEFAULT_GREEN_PREMIUM_EUR_MWH;
+  const liquefactionFee = input.liquefactionFeeEurMwh !== undefined ? input.liquefactionFeeEurMwh : defaultLiquefactionFeeEurMwh();
+  const greenPremium = input.greenPremiumEurMwh !== undefined ? input.greenPremiumEurMwh : defaultGreenPremiumEurMwh();
   const euaPriceEur = input.euaPriceEurPerTonne;
-  const eurUsdRate = input.eurUsdRate !== undefined ? input.eurUsdRate : EUR_USD_DEFAULT_FX;
+  const eurUsdRate = input.eurUsdRate !== undefined ? input.eurUsdRate : eurUsdDefaultFx();
   const bioLngCi = input.bioLngCi !== undefined ? input.bioLngCi : -100;
   const targetYear = input.targetYear !== undefined ? input.targetYear : 2025;
   const lngEngine = input.lngEngineType ?? DEFAULT_LNG_ENGINE;

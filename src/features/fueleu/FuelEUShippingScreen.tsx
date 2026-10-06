@@ -18,9 +18,9 @@ import { ShippingCounterparty } from '../../domain/fueleu/types';
 import { Tabs } from '../../shared/ui/Tabs';
 import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 import {
-  DEFAULT_LIQUEFACTION_FEE_EUR_MWH,
-  DEFAULT_GREEN_PREMIUM_EUR_MWH,
-  DEFAULT_VLSFO_PRICE_USD_PER_TONNE,
+  defaultLiquefactionFeeEurMwh,
+  defaultGreenPremiumEurMwh,
+  defaultVlsfoPriceUsdPerTonne,
   FUELEU_ACTIVE_PERIOD,
 } from '../../domain/fueleu/calculator';
 import { NO_TTF_MARK, NO_EUA_MARK, NO_POOL_MARK, shippingCombinedRegulatoryExposureEur } from '../../domain/fueleu/marketPrices';
@@ -96,9 +96,9 @@ export function FuelEUShippingScreen() {
     euaPrice === null ? NO_EUA_MARK : null,
     marketPrices.pool === null ? NO_POOL_MARK : null,
   ].filter((m): m is string => m !== null);
-  const [liquefactionFee, setLiquefactionFee] = useState<number>(DEFAULT_LIQUEFACTION_FEE_EUR_MWH);
-  const [greenPremium, setGreenPremium] = useState<number>(DEFAULT_GREEN_PREMIUM_EUR_MWH);
-  const [vlsfoPrice, setVlsfoPrice] = useState<number>(DEFAULT_VLSFO_PRICE_USD_PER_TONNE);
+  const [liquefactionFee, setLiquefactionFee] = useState<number>(defaultLiquefactionFeeEurMwh());
+  const [greenPremium, setGreenPremium] = useState<number>(defaultGreenPremiumEurMwh());
+  const [vlsfoPrice, setVlsfoPrice] = useState<number>(defaultVlsfoPriceUsdPerTonne());
 
   // Calibrate pathway when selected counterparty changes
   useEffect(() => {
@@ -161,10 +161,10 @@ export function FuelEUShippingScreen() {
   const handleResetDeal = () => {
     setPathway('PHYSICAL');
     setTtfOverride(null);
-    setLiquefactionFee(DEFAULT_LIQUEFACTION_FEE_EUR_MWH);
-    setGreenPremium(DEFAULT_GREEN_PREMIUM_EUR_MWH);
+    setLiquefactionFee(defaultLiquefactionFeeEurMwh());
+    setGreenPremium(defaultGreenPremiumEurMwh());
     setEuaOverride(null);
-    setVlsfoPrice(DEFAULT_VLSFO_PRICE_USD_PER_TONNE);
+    setVlsfoPrice(defaultVlsfoPriceUsdPerTonne());
     setSearchParams(prev => {
       const next = new URLSearchParams(prev);
       next.delete('company');
