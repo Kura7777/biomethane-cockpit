@@ -67,7 +67,25 @@ export function RouteVerdictCard({ origin, target, filter = 'ALL', showMapLink =
           {filter !== 'POS' && (
             <div>
               <div className="eyebrow" style={{ marginBottom: '3px' }}>GO (Book &amp; Claim)</div>
-              <div><strong>Status:</strong> {CERT_ROUTE_LABELS[r.status]} · <strong>Via:</strong> {goDetails.via && goDetails.via !== 'NONE' ? (goDetails.via === 'ERGAR' ? 'ERGaR' : goDetails.via) : '—'} · <strong>Evidence:</strong> {EVIDENCE_GRADE_TEXT[goDetails.grade] || goDetails.grade}</div>
+              <div>
+                <strong>Status:</strong> {CERT_ROUTE_LABELS[r.status]} · <strong>Via:</strong>{' '}
+                {goDetails.via && goDetails.via !== 'NONE' ? (
+                  goDetails.via === 'ERGAR' ? (
+                    <a href="#/registries?registry=ERGaR" style={{ color: 'var(--color-accent)', textDecoration: 'underline' }}>
+                      ERGaR
+                    </a>
+                  ) : goDetails.via === 'AIB' ? (
+                    <a href="#/registries?registry=AIB" style={{ color: 'var(--color-accent)', textDecoration: 'underline' }}>
+                      AIB
+                    </a>
+                  ) : (
+                    goDetails.via
+                  )
+                ) : (
+                  '—'
+                )}{' '}
+                · <strong>Evidence:</strong> {EVIDENCE_GRADE_TEXT[goDetails.grade] || goDetails.grade}
+              </div>
               <div className="mut" style={{ marginTop: '2px' }}>{goDetails.reason}</div>
               {goDetails.conditions && goDetails.conditions.length > 0 && (
                 <div style={{ marginTop: '3px' }}><strong>Conditions:</strong> {goDetails.conditions.join('; ')}</div>

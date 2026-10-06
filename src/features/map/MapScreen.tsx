@@ -24,6 +24,9 @@ import { getPosRoute } from '../../domain/routes';
 import { POS_SCHEMES } from '../../domain/routes/routeMatrix.generated';
 import { MARKETS } from '../../domain/markets/registry';
 import {
+  getRegistryByCountry,
+} from '../../domain/registries/registryDirectory';
+import {
   getCertificateRoute,
   getCertificateRoutesFrom,
   CERT_ROUTE_LABELS,
@@ -802,9 +805,24 @@ export function MapScreen() {
                   {CERT_ROUTE_LABELS[currentRoute.status]}
                 </div>
                 <div style={{ fontSize: '12px' }} className="mut">
-                  {currentRoute.hubs.length > 0
-                    ? currentRoute.hubs.map(h => (h === 'AIB' ? 'AIB' : 'ERGaR')).join(' + ')
-                    : firstSentence(currentRoute.reason)}
+                  {currentRoute.hubs.length > 0 ? (
+                    <span>
+                      Via:{' '}
+                      {currentRoute.hubs.map((h, i) => (
+                        <React.Fragment key={h}>
+                          {i > 0 && ' + '}
+                          <a
+                            href={`#/registries?registry=${h}`}
+                            style={{ color: 'var(--color-primary, #10b981)', textDecoration: 'underline' }}
+                          >
+                            {h === 'AIB' ? 'AIB' : 'ERGaR'}
+                          </a>
+                        </React.Fragment>
+                      ))}
+                    </span>
+                  ) : (
+                    firstSentence(currentRoute.reason)
+                  )}
                 </div>
                 <div style={{ fontSize: '12px', overflowWrap: 'anywhere' }} className="mut">
                   PoS: {currentRoute.pos ? currentRoute.pos.status : 'NO_DATA'}
@@ -1229,6 +1247,21 @@ export function MapScreen() {
           <div style={{ fontSize: '12px' }} className="mut">
             {selectedMeta.legal}
           </div>
+          {(() => {
+            const reg = getRegistryByCountry(selectedMeta.iso);
+            if (!reg) return null;
+            return (
+              <div style={{ fontSize: '12px', marginTop: '4px' }}>
+                <span className="mut">Registry: </span>
+                <a
+                  href={`#/registries?country=${selectedMeta.iso}`}
+                  style={{ color: 'var(--color-primary, #10b981)', textDecoration: 'underline', fontWeight: 600 }}
+                >
+                  {reg.registryName} ({reg.operator})
+                </a>
+              </div>
+            );
+          })()}
 
           {/* Prominent One-Click Assignment Buttons */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '14px' }}>

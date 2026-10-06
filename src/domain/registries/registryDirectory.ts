@@ -542,3 +542,17 @@ export const REGISTRY_DIRECTORY: RegistryDirectoryEntry[] = [
 export function getRegistryByCountry(countryCode: string): RegistryDirectoryEntry | undefined {
   return REGISTRY_DIRECTORY.find(r => r.countryCode === countryCode.toUpperCase());
 }
+
+export function findRegistry(query: string): RegistryDirectoryEntry | undefined {
+  if (!query) return undefined;
+  const q = query.trim();
+  const qUpper = q.toUpperCase();
+  const byCode = getRegistryByCountry(qUpper);
+  if (byCode) return byCode;
+  const qLower = q.toLowerCase();
+  return REGISTRY_DIRECTORY.find(r =>
+    r.registryName.toLowerCase().includes(qLower) ||
+    r.operator.toLowerCase().includes(qLower) ||
+    r.countryName.toLowerCase().includes(qLower)
+  );
+}

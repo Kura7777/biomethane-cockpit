@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ChevronDown, ChevronRight, ExternalLink, X } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import {
   REGISTRY_DIRECTORY,
   RegistryDirectoryEntry,
   TriState,
   getRegistryByCountry,
+  findRegistry,
 } from '../../domain/registries/registryDirectory';
 import {
   fetchEnerginetDailyBiogas,
@@ -225,9 +227,58 @@ type TabId = 'directory' | 'routes' | 'production' | 'live';
 
 export function RegistryHub() {
   const isMobile = useIsMobile();
-  const [activeTab, setActiveTab] = useState<TabId>('directory');
-  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const initialTab = (searchParams.get('tab') as TabId) || 'directory';
+  const paramCountry = searchParams.get('country');
+  const paramRegistry = searchParams.get('registry');
+
+  const resolvedInitialCountry = useMemo(() => {
+    if (paramCountry) {
+      const match = getRegistryByCountry(paramCountry);
+      if (match) return match.countryCode;
+    }
+    if (paramRegistry) {
+      const match = findRegistry(paramRegistry);
+      if (match) return match.countryCode;
+    }
+    return null;
+  }, [paramCountry, paramRegistry]);
+
+  const [activeTab, setActiveTab] = useState<TabId>(() => {
+    if (paramRegistry && (paramRegistry.toUpperCase() === 'ERGAR' || paramRegistry.toUpperCase() === 'AIB')) {
+      return 'routes';
+    }
+    return initialTab;
+  });
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(resolvedInitialCountry);
   const [correctionsOpen, setCorrectionsOpen] = useState(false);
+
+  // Sync external search param changes into component state
+  useEffect(() => {
+    const c = searchParams.get('country');
+    const r = searchParams.get('registry');
+    const t = searchParams.get('tab') as TabId | null;
+    if (c) {
+      const match = getRegistryByCountry(c);
+      if (match && match.countryCode !== selectedCountry) {
+        setSelectedCountry(match.countryCode);
+        setActiveTab('directory');
+      }
+    } else if (r) {
+      if (r.toUpperCase() === 'ERGAR' || r.toUpperCase() === 'AIB') {
+        setActiveTab('routes');
+      } else {
+        const match = findRegistry(r);
+        if (match && match.countryCode !== selectedCountry) {
+          setSelectedCountry(match.countryCode);
+          setActiveTab('directory');
+        }
+      }
+    } else if (t && t !== activeTab) {
+      setActiveTab(t);
+    }
+  }, [searchParams]);
 
   const [routeOrigin, setRouteOrigin] = useState<string>('DK');
   const [routeDestIsMarket, setRouteDestIsMarket] = useState(false);
@@ -243,6 +294,26 @@ export function RegistryHub() {
     fetchOdreAnnualProduction().then(r => { if (!cancelled) setOdre(r); });
     return () => { cancelled = true; };
   }, []);
+
+  const handleSelectCountry = (countryCode: string | null) => {
+    setSelectedCountry(countryCode);
+    const nextParams = new URLSearchParams(searchParams);
+    if (countryCode) {
+      nextParams.set('country', countryCode);
+      nextParams.delete('registry');
+    } else {
+      nextParams.delete('country');
+      nextParams.delete('registry');
+    }
+    setSearchParams(nextParams, { replace: true });
+  };
+
+  const handleTabChange = (newTab: TabId) => {
+    setActiveTab(newTab);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('tab', newTab);
+    setSearchParams(nextParams, { replace: true });
+  };
 
   const selectedEntry = selectedCountry ? getRegistryByCountry(selectedCountry) : undefined;
 
@@ -279,7 +350,7 @@ export function RegistryHub() {
               <div className="ds-panel-title">{selectedEntry.registryName}</div>
               <div className="ds-panel-meta">{selectedEntry.countryName} ({selectedEntry.countryCode}) · {selectedEntry.operator}</div>
             </div>
-            <button type="button" className="ds-icon-btn ds-icon-btn-sm" aria-label="Close panel" onClick={() => setSelectedCountry(null)}>
+            <button type="button" className="ds-icon-btn ds-icon-btn-sm" aria-label="Close panel" onClick={() => handleSelectCountry(null)}>
               <X size={14} />
             </button>
           </div>
@@ -409,7 +480,7 @@ export function RegistryHub() {
             type="button"
             className={`btn rh-tab ${activeTab === id ? 'btn-primary' : 'btn-secondary'}`}
             onClick={e => {
-              setActiveTab(id);
+              handleTabChange(id);
               if (isMobile) e.currentTarget.scrollIntoView({ inline: 'center', block: 'nearest' });
             }}
           >
@@ -440,7 +511,7 @@ export function RegistryHub() {
                   { label: 'ERGaR', value: <span className={`chip ${triChipClass(e.ergar)}`}>{triLabel(e.ergar)}</span> },
                   { label: 'Cross-border route', span: 2, value: e.crossBorderRoutes[0] || 'None confirmed' },
                 ]}
-                onSelect={e => setSelectedCountry(e.countryCode)}
+                onSelect={e => handleSelectCountry(e.countryCode)}
               />
             ) : (
             <>
@@ -462,7 +533,7 @@ export function RegistryHub() {
                   role="option"
                   aria-selected={selectedCountry === entry.countryCode}
                   className={`ds-row rh-directory-cols ${selectedCountry === entry.countryCode ? 'selected' : ''}`}
-                  onClick={() => setSelectedCountry(entry.countryCode)}
+                  onClick={() => handleSelectCountry(entry.countryCode)}
                 >
                   <div className="num" style={{ fontWeight: 600 }}>{entry.countryCode}</div>
                   <div className="rh-cell-ellipsis" title={entry.registryName}>{entry.registryName}</div>
@@ -484,7 +555,7 @@ export function RegistryHub() {
           {isMobile ? (
             <Sheet
               open={!!selectedEntry}
-              onClose={() => setSelectedCountry(null)}
+              onClose={() => handleSelectCountry(null)}
               variant="full"
               title={selectedEntry?.registryName}
               subtitle={selectedEntry ? `${selectedEntry.countryName} (${selectedEntry.countryCode}) · ${selectedEntry.operator}` : undefined}
