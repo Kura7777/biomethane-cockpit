@@ -141,6 +141,11 @@ export function getDefaultMarketForOrigin(originIso?: string): string {
   return defaultMarketForOrigin(originIso);
 }
 
+function newDealId(): string {
+  const stamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  return `DEAL-${stamp}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+}
+
 export function TradeBuilderScreen() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -196,6 +201,7 @@ export function TradeBuilderScreen() {
     setDeliveryStartDate('2026-01-01');
     setDeliveryEndDate('2026-12-31');
     setDeliveryProfile('FLAT_MONTHLY');
+    setDealId(newDealId());
     setSearchParams(prev => {
       const next = new URLSearchParams();
       next.set('step', '1');
@@ -206,6 +212,22 @@ export function TradeBuilderScreen() {
 
   const deal = useMemo(() => parseDealParams(searchParams), [searchParams]);
   const linkedPlant = useMemo(() => deal.plantId ? BIOMETHANE_PLANTS.find(p => p.id === deal.plantId) : null, [deal.plantId]);
+  // Each deal gets its own blotter id: a reopened deal keeps the one it was saved under, a new deal
+  // gets a fresh one, so two deals on the same route never overwrite each other in the blotter.
+  const [dealId, setDealId] = useState<string>(() => deal.dealId || newDealId());
+  // A new link arriving while the builder is open is a different deal: give it its own id. Step and
+  // view-mode changes rewrite the URL too, so they are left out of the comparison.
+  const dealLinkKey = useMemo(() => {
+    const p = new URLSearchParams(searchParams);
+    p.delete('step');
+    p.delete('mode');
+    return p.toString();
+  }, [searchParams]);
+  const [idLinkKey, setIdLinkKey] = useState(dealLinkKey);
+  if (idLinkKey !== dealLinkKey) {
+    setIdLinkKey(dealLinkKey);
+    setDealId(deal.dealId || newDealId());
+  }
 
   const [origin, setOrigin] = useState<string>(deal.originCountry || 'DK');
   const [feedstockKey, setFeedstockKey] = useState<string>(deal.feedstock || 'manure');
@@ -263,7 +285,8 @@ export function TradeBuilderScreen() {
     if (parsed.volumeMWh) setVolumeMwh(parsed.volumeMWh);
   };
 
-  // Sync with searchParams if they change
+  // Load a deal's values when a new link arrives. Keyed on the link without step/mode: moving
+  // between steps rewrites the URL, and re-running this then would undo the trader's edits.
   useEffect(() => {
     if (deal.marketId) {
       setMarketId(deal.marketId);
@@ -293,7 +316,7 @@ export function TradeBuilderScreen() {
     if (deal.deliveryStartDate) setDeliveryStartDate(deal.deliveryStartDate);
     if (deal.deliveryEndDate) setDeliveryEndDate(deal.deliveryEndDate);
     if (deal.deliveryProfile) setDeliveryProfile(deal.deliveryProfile);
-  }, [deal, linkedPlant]);
+  }, [dealLinkKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const selectedMarket = useMemo(() => getMarketById(marketId) || MARKETS[0], [marketId]);
 
@@ -629,7 +652,7 @@ export function TradeBuilderScreen() {
   const annualPnl = Math.round((netback.deskMargin ?? 0) * volumeMwh);
 
   const currentTradeAssessment: TradeAssessment = useMemo(() => ({
-    id: deal.plantId ? `DEAL-2026-${origin}-${deal.plantId.replace(/^plant_/, '').toUpperCase()}` : `DEAL-2026-${origin}-${selectedMarket.id}`,
+    id: dealId,
     createdAt: new Date().toISOString(),
     consignment,
     targetMarketId: selectedMarket.id,
@@ -639,7 +662,7 @@ export function TradeBuilderScreen() {
     marks: state.marks,
     costs: routeCosts,
     userNotes: deal.plantName ? `Physical asset sourcing from ${deal.plantName}` : 'Trade Builder Assessment',
-  }), [origin, deal, selectedMarket, consignment, assessment, netback, state.marks, routeCosts]);
+  }), [dealId, deal, selectedMarket, consignment, assessment, netback, state.marks, routeCosts]);
 
   // Continuously sync active trade builder deal state to global window for the Auditor
   useEffect(() => {

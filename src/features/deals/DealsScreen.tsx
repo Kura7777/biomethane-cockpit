@@ -8,6 +8,7 @@ import { deriveSourceBadge, SourceBadge } from '../../domain/markets/types';
 import { SIMULATED_SOURCE_NAME } from '../../domain/marks/simulate';
 import { getMarketById } from '../../domain/markets/registry';
 import { computeNetback } from '../../domain/netback/engine';
+import { getRouteTransitTariff } from '../../domain/arbitrage/origins';
 import { NetbackResult } from '../../domain/netback/types';
 import { AssessmentStatus, TradeAssessment } from '../../domain/trade/types';
 import { buildDealUrl } from '../../domain/trade/dealParams';
@@ -70,6 +71,10 @@ export function DealsScreen() {
   const [repricedIds, setRepriced] = useState<Record<string, NetbackResult | null>>({});
   const [noteDraftId, setNoteDraftId] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState('');
+  // A status change is staged here with a note box before it's dispatched, rather than firing
+  // the moment the <select> changes — the trader may want to say why.
+  const [pendingStatus, setPendingStatus] = useState<{ id: string; status: AssessmentStatus } | null>(null);
+  const [statusNoteDraft, setStatusNoteDraft] = useState('');
 
   const deals = state.savedAssessments;
 
@@ -79,7 +84,8 @@ export function DealsScreen() {
   );
 
   const totalMwh = visible.reduce((sum, d) => sum + (d.consignment.volumeMWh ?? 0), 0);
-  const totalPnl = visible.reduce((sum, d) => sum + (d.netback.deskPnL ?? 0), 0);
+  // Dead deals stay listed but don't count towards the book's P&L.
+  const totalPnl = visible.filter(d => statusOf(d) !== 'DEAD').reduce((sum, d) => sum + (d.netback.deskPnL ?? 0), 0);
 
   const counts = useMemo(() => {
     const byStatus: Record<string, number> = {};
@@ -105,6 +111,7 @@ export function DealsScreen() {
       counterparty: c.counterparty ?? undefined,
       plantId: c.originPlantId ?? undefined,
       plantName: c.originPlantName ?? undefined,
+      dealId: a.id,
     }));
   };
 
@@ -131,7 +138,11 @@ export function DealsScreen() {
       }
       const market = getMarketById(a.targetMarketId);
       if (!market) return { ...prev, [a.id]: null };
-      const result = computeNetback(market, a.consignment, state.marks, state.costs, undefined, state.marks.fuelEUOptions);
+      // Price it the way the Trade Builder does today: current marks and pricing sides, current costs,
+      // and the route's corridor transit tariff in place of the generic logistics cost.
+      const tariff = getRouteTransitTariff(a.consignment.originCountry, market.country);
+      const costs = tariff != null ? { ...state.costs, logistics: tariff } : state.costs;
+      const result = computeNetback(market, a.consignment, state.marks, costs, state.marks.pricingSides);
       return { ...prev, [a.id]: result };
     });
   };

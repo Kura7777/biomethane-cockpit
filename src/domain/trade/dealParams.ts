@@ -47,6 +47,8 @@ export interface DealParams {
   networkOperator?: string;
   contactEmail?: string;
   contactPhone?: string;
+  /** Blotter id of a saved deal being reopened, so a re-save updates that row instead of adding one. */
+  dealId?: string;
 }
 
 /** Canonical key -> spellings accepted on the way in, newest first. */
@@ -79,6 +81,7 @@ const ALIASES: Record<keyof DealParams, string[]> = {
   networkOperator: ['networkOperator'],
   contactEmail: ['contactEmail'],
   contactPhone: ['contactPhone'],
+  dealId: ['dealId'],
 };
 
 const NUMERIC_KEYS = ['ci', 'volume', 'plantCapacityNm3h', 'plantAnnualGWh', 'plantCommittedVolume', 'complianceYear'] as const;

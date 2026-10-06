@@ -95,12 +95,15 @@ describe('deal blotter — Open round trip', () => {
       coc: c.chainOfCustody,
       udb: c.udbStatus,
       pos: c.posStatus,
+      dealId: assessment.id,
     });
     const parsed = parseDealParams(new URLSearchParams(url.slice(url.indexOf('?') + 1)));
     expect(parsed.marketId).toBe(assessment.targetMarketId);
     expect(parsed.originCountry).toBe(c.originCountry);
     expect(parsed.feedstock).toBe(c.feedstock);
     expect(parsed.volume).toBe(c.volumeMWh);
+    // The deal's own id comes back too, so a re-save updates this row rather than adding one.
+    expect(parsed.dealId).toBe(assessment.id);
   });
 });
 
