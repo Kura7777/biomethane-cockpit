@@ -120,8 +120,27 @@ export function DealsScreen() {
     setConfirmDeleteId(null);
   };
 
-  const handleStatusChange = (a: TradeAssessment, status: AssessmentStatus) => {
-    dispatch({ type: 'SET_ASSESSMENT_STATUS', id: a.id, status });
+  const handleStatusSelect = (a: TradeAssessment, status: AssessmentStatus) => {
+    if (status === statusOf(a)) return;
+    setPendingStatus({ id: a.id, status });
+    setStatusNoteDraft('');
+  };
+
+  const handleConfirmStatus = () => {
+    if (!pendingStatus) return;
+    dispatch({
+      type: 'SET_ASSESSMENT_STATUS',
+      id: pendingStatus.id,
+      status: pendingStatus.status,
+      note: statusNoteDraft.trim() ? statusNoteDraft.trim() : undefined,
+    });
+    setPendingStatus(null);
+    setStatusNoteDraft('');
+  };
+
+  const handleCancelStatus = () => {
+    setPendingStatus(null);
+    setStatusNoteDraft('');
   };
 
   const handleSaveNote = (id: string) => {
@@ -147,24 +166,50 @@ export function DealsScreen() {
     });
   };
 
-  const StatusControl = ({ a }: { a: TradeAssessment }) => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-      <select
-        className="input"
-        style={{ fontSize: '12px', padding: '4px 6px' }}
-        value={statusOf(a)}
-        data-testid={`status-select-${a.id}`}
-        onChange={e => handleStatusChange(a, e.target.value as AssessmentStatus)}
-      >
-        {STATUS_ORDER.map(s => (
-          <option key={s} value={s}>{STATUS_LABEL[s]}</option>
-        ))}
-      </select>
-      <span className="mut" style={{ fontSize: '10.5px' }}>
-        {lastStatusChangeAt(a) ? formatDate(lastStatusChangeAt(a)) : '—'}
-      </span>
-    </div>
-  );
+  const StatusControl = ({ a }: { a: TradeAssessment }) => {
+    const pending = pendingStatus?.id === a.id ? pendingStatus : null;
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: '150px' }}>
+        <select
+          className="input"
+          style={{ fontSize: '12px', padding: '4px 6px' }}
+          value={pending?.status ?? statusOf(a)}
+          data-testid={`status-select-${a.id}`}
+          onChange={e => handleStatusSelect(a, e.target.value as AssessmentStatus)}
+        >
+          {STATUS_ORDER.map(s => (
+            <option key={s} value={s}>{STATUS_LABEL[s]}</option>
+          ))}
+        </select>
+        {pending ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <input
+              type="text"
+              className="input"
+              style={{ fontSize: '12px', padding: '4px 6px' }}
+              placeholder="Note (optional)"
+              value={statusNoteDraft}
+              onChange={e => setStatusNoteDraft(e.target.value)}
+              autoFocus
+              data-testid={`status-note-${a.id}`}
+            />
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <button type="button" className="btn btn-secondary" style={{ fontSize: '11px', padding: '2px 8px' }} onClick={handleConfirmStatus} data-testid={`confirm-status-${a.id}`}>
+                Confirm
+              </button>
+              <button type="button" className="btn btn-ghost" style={{ fontSize: '11px', padding: '2px 8px' }} onClick={handleCancelStatus}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <span className="mut" style={{ fontSize: '10.5px' }}>
+            {lastStatusChangeAt(a) ? formatDate(lastStatusChangeAt(a)) : '—'}
+          </span>
+        )}
+      </div>
+    );
+  };
 
   const NotesCell = ({ a }: { a: TradeAssessment }) => {
     if (noteDraftId === a.id) {
