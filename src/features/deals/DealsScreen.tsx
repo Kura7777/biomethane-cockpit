@@ -232,7 +232,7 @@ export function DealsScreen() {
           display: 'flex',
           alignItems: 'flex-end',
           gap: '20px',
-          padding: '16px 18px',
+          padding: '16px var(--ds-page-gutter, 18px)',
           borderBottom: '2px solid var(--color-divider)',
           flexWrap: 'wrap',
         }}
@@ -265,13 +265,13 @@ export function DealsScreen() {
         </div>
       </div>
 
-      <div style={{ padding: '10px 18px', display: 'flex', gap: '20px', fontSize: '12px' }} className="mut">
+      <div style={{ padding: '10px var(--ds-page-gutter, 18px)', display: 'flex', flexWrap: 'wrap', gap: '12px 20px', fontSize: '12px' }} className="mut">
         <span>Showing <span className="num font-semibold">{visible.length}</span> of {deals.length} deals</span>
         <span>Total volume: <span className="num font-semibold">{totalMwh.toLocaleString()}</span> MWh</span>
         <span>Total deal P&amp;L: <span className="num font-semibold">{formatEur(totalPnl)}</span></span>
       </div>
 
-      <div style={{ padding: '0 18px 18px' }}>
+      <div style={{ padding: '0 var(--ds-page-gutter, 18px) 18px' }}>
         {visible.length === 0 ? (
           <div className="mc-empty" data-testid="deals-empty">
             No saved deals yet. Save one from the Trade Builder.
