@@ -34,8 +34,8 @@ export function corporateHandoffUrls(args: {
         coc,
         volume: args.volumeMWh ?? undefined,
         counterparty: buyer,
-        ci: args.maxCi ?? undefined,
-        ciIsEstimated: args.maxCi !== null,
+        // The buyer's max CI is a constraint, not the plant's CI, so it is not passed as \`ci\`:
+        // the Trade Builder takes the plant CI from deal defaults. Use "Source it" to filter by max CI.
       })
     : null;
 

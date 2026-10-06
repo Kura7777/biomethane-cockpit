@@ -40,7 +40,7 @@ describe('corporateHandoffUrls', () => {
     expect(params.get('coc')).toBe('BOOK_AND_CLAIM');
     expect(params.get('volume')).toBe('8000');
     expect(params.get('counterparty')).toBe('Acme Co');
-    expect(params.get('ci')).toBe('25');
+    expect(params.get('ci')).toBeNull(); // max CI is a buyer constraint, never the plant CI
   });
 
   it('uses MASS_BALANCE for GO+PoS and physical orders', () => {
