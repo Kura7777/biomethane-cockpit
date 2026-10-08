@@ -1,7 +1,7 @@
 import { EUROPEAN_MARKET_BENCHMARKS } from '../markets/marketBenchmarks';
 import { ETS1_GAS_SHARE_SECTORS, defaultGasShare } from '../ets1/gasShare';
 import { ETS2_SEGMENT_SHARES } from '../ets2/segmentShare';
-import { FEEDSTOCK_REGISTRY, COUNTRY_FEEDSTOCK_CI_PROFILES, DEFAULT_FEEDSTOCK_CI_PROFILE } from '../consignment/feedstockData';
+import { FEEDSTOCK_REGISTRY } from '../consignment/feedstockData';
 import { HUB_BASIS_SPREADS, INTERCONNECTION_POINTS } from '../logistics/corridorsData';
 
 /**
@@ -15,7 +15,7 @@ import { HUB_BASIS_SPREADS, INTERCONNECTION_POINTS } from '../logistics/corridor
  * never silently changed: a reset always returns to the value and source shown here.
  */
 
-export type AssumptionCategory = 'FUELEU' | 'DEMAND' | 'RISK' | 'DEAL' | 'LOGISTICS' | 'FEEDSTOCK' | 'COST' | 'CI_TIER';
+export type AssumptionCategory = 'FUELEU' | 'DEMAND' | 'RISK' | 'DEAL' | 'LOGISTICS' | 'FEEDSTOCK' | 'COST';
 
 /** How much weight the default can bear. */
 export type AssumptionBasis =
@@ -104,39 +104,6 @@ const INTERCONNECTION_TARIFF_ASSUMPTIONS: AssumptionDefinition[] = VERIFIED_INTE
   },
 ]);
 
-/** One assumption per country×feedstock CI tier (optimistic/base/conservative). The underlying
- * COUNTRY_FEEDSTOCK_CI_PROFILES / DEFAULT_FEEDSTOCK_CI_PROFILE literals are untouched (they still
- * supply the range bounds and the set of known country/feedstock rows); getCountryFeedstockCI
- * reads the tier value through this assumption instead of the literal. */
-const CI_TIERS: Array<'optimistic' | 'base' | 'conservative'> = ['optimistic', 'base', 'conservative'];
-function ciTierAssumption(scope: string, country: string | null, feedstockKey: string, tier: 'optimistic' | 'base' | 'conservative', value: number, range: [number, number]): AssumptionDefinition {
-  const feedstockName = FEEDSTOCK_REGISTRY[feedstockKey]?.name ?? feedstockKey;
-  return {
-    key: `ci.tier.${scope}.${feedstockKey}.${tier}`,
-    category: 'CI_TIER',
-    label: `${country ? `${country} ` : 'Default '}${feedstockName} CI — ${tier}`,
-    unit: 'gCO₂e/MJ',
-    defaultValue: value,
-    basis: 'DESK_ESTIMATE',
-    source: country
-      ? `Desk judgement, country-specific tier for ${country} (see consignment/feedstocks.ts COUNTRY_FEEDSTOCK_CI_PROFILES).`
-      : 'Desk judgement, fallback tier used when the origin country has no specific profile (see consignment/feedstocks.ts DEFAULT_FEEDSTOCK_CI_PROFILE).',
-    usedIn: 'getCountryFeedstockCI: Trade Builder CI stepper tier picker (optimistic/base/conservative) by origin country and feedstock',
-    min: range[0],
-    max: range[1],
-  };
-}
-const COUNTRY_FEEDSTOCK_CI_ASSUMPTIONS: AssumptionDefinition[] = [
-  ...Object.entries(COUNTRY_FEEDSTOCK_CI_PROFILES).flatMap(([country, feedstocks]) =>
-    Object.entries(feedstocks).flatMap(([feedstockKey, t]) =>
-      CI_TIERS.map(tier => ciTierAssumption(country, country, feedstockKey, tier, t[tier], t.range))
-    )
-  ),
-  ...Object.entries(DEFAULT_FEEDSTOCK_CI_PROFILE).flatMap(([feedstockKey, t]) =>
-    CI_TIERS.map(tier => ciTierAssumption('DEFAULT', null, feedstockKey, tier, t[tier], t.range))
-  ),
-];
-
 /** Share of each country's gas demand under ETS2, used to scope supplier volumes (see ets2/segmentShare.ts). */
 const ETS2_SEGMENT_SHARE_ASSUMPTIONS: AssumptionDefinition[] = Object.values(ETS2_SEGMENT_SHARES).map(r => ({
   key: `ets2.segmentShare.${r.iso}`,
@@ -199,7 +166,6 @@ export const ASSUMPTION_DEFINITIONS: AssumptionDefinition[] = [
   },
   ...HUB_BASIS_SPREAD_ASSUMPTIONS,
   ...INTERCONNECTION_TARIFF_ASSUMPTIONS,
-  ...COUNTRY_FEEDSTOCK_CI_ASSUMPTIONS,
 
   // ── Deal defaults ──────────────────────────────────────────────────────────
   {
