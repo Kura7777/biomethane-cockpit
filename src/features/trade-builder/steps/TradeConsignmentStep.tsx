@@ -3,7 +3,7 @@ import { CertificationScheme, ChainOfCustody, DeliveryProfile, UDBStatus, PoSSta
 import { Market } from '../../../domain/markets/types';
 import { BiomethanePlant } from '../../../domain/plants/types';
 import { DealParams } from '../../../domain/trade/dealParams';
-import { getCountryFeedstockCI } from '../../../domain/consignment/feedstocks';
+import { feedstockDefaultCi } from '../../../domain/assumptions/registry';
 import { getVtpForMarket } from '../TradeBuilderScreen';
 import { Lock, FileUp, Scale, AlertTriangle } from 'lucide-react';
 
@@ -81,8 +81,6 @@ interface TradeConsignmentStepProps {
   setPosStatus: (status: PoSStatus) => void;
   ci: number;
   setCi: (ci: number) => void;
-  ciTier: 'conservative' | 'base' | 'optimistic';
-  setCiTier: (tier: 'conservative' | 'base' | 'optimistic') => void;
   ghgSavingPct: number;
   volumeMwh: number;
   setVolumeMwh: (vol: number) => void;
@@ -140,8 +138,6 @@ export function TradeConsignmentStep({
   setPosStatus,
   ci,
   setCi,
-  ciTier,
-  setCiTier,
   ghgSavingPct,
   volumeMwh,
   setVolumeMwh,
@@ -193,12 +189,6 @@ export function TradeConsignmentStep({
   const profileLabel = (dp: string) => {
     const words = dp.replace(/_/g, ' ').toLowerCase();
     return words.charAt(0).toUpperCase() + words.slice(1);
-  };
-
-  const ciTierLabel: Record<'conservative' | 'base' | 'optimistic', string> = {
-    conservative: 'Conservative',
-    base: 'Base',
-    optimistic: 'Optimistic',
   };
 
   return (
@@ -335,8 +325,7 @@ export function TradeConsignmentStep({
                     className={`chip ${f.key === feedstockKey ? 'chip-a' : ''}`}
                     onClick={() => {
                       setFeedstockKey(f.key);
-                      const benchmark = getCountryFeedstockCI(origin, f.key, ciTier);
-                      setCi(benchmark.ci);
+                      setCi(feedstockDefaultCi(f.key) ?? f.defaultCI);
                       onCiSourceChange('estimate');
                     }}
                   >
@@ -480,23 +469,6 @@ export function TradeConsignmentStep({
                   ) : ciProvenance === 'estimated' ? (
                     <span className="chip chip-warn" title="Feedstock default or benchmark CI, not from an audited PoS. Treat as indicative until the producer's PoS is received.">Estimated CI</span>
                   ) : null}
-                </div>
-                <div className="seg" role="group" aria-label="CI benchmark tier">
-                  {(['conservative', 'base', 'optimistic'] as const).map(t => (
-                    <button
-                      key={t}
-                      type="button"
-                      className={`seg-opt ${ciTier === t ? 'active' : ''}`}
-                      onClick={() => {
-                        setCiTier(t);
-                        const benchmark = getCountryFeedstockCI(origin, feedstockKey, t);
-                        setCi(benchmark.ci);
-                        onCiSourceChange('estimate');
-                      }}
-                    >
-                      {ciTierLabel[t]}
-                    </button>
-                  ))}
                 </div>
               </div>
 
