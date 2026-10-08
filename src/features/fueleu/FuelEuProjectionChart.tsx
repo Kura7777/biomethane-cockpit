@@ -30,10 +30,9 @@ function niceCeil(value: number): number {
   if (value <= 0) return 1;
   const exp = Math.floor(Math.log10(value));
   const base = value / Math.pow(10, exp);
-  let niceBase: number;
   // Finer steps than 1/2/5 so the curve fills most of the height (e.g. €5.01bn → €6bn, not €10bn).
   const steps = [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10];
-  niceBase = steps.find(st => base <= st) ?? 10;
+  const niceBase = steps.find(st => base <= st) ?? 10;
   return niceBase * Math.pow(10, exp);
 }
 

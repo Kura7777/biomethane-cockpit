@@ -87,8 +87,8 @@ export function validateUdbRegistrationSyntax(udbId: string): boolean {
   const trimmed = udbId.trim();
   // Standard format: EU-UDB-[A-Z]{2}-\d{4,8} or custom national prefix
   const standardPattern = /^EU-UDB-[A-Z]{2}-\d{4,8}$/i;
-  const nationalSchemePattern = /^(ISCC|REDCERT|DENA|VERTICER|ENERGINET|ENAGAS|GSE|GGCS)-[A-Z0-9_\-]+$/i;
-  const gbPattern = /^GB-[A-Z0-9_\-]+$/i;
+  const nationalSchemePattern = /^(ISCC|REDCERT|DENA|VERTICER|ENERGINET|ENAGAS|GSE|GGCS)-[A-Z0-9_-]+$/i;
+  const gbPattern = /^GB-[A-Z0-9_-]+$/i;
   return standardPattern.test(trimmed) || nationalSchemePattern.test(trimmed) || gbPattern.test(trimmed);
 }
 

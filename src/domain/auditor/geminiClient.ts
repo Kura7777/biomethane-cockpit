@@ -234,7 +234,7 @@ function extractRecommendations(text: string): string[] {
       continue;
     }
     if (capturing && (line.trim().startsWith('*') || line.trim().startsWith('-') || /^\d+\./.test(line.trim()))) {
-      recs.push(line.replace(/^[\*\-\d\.]+\s*/, '').trim());
+      recs.push(line.replace(/^[*\-\d.]+\s*/, '').trim());
     }
   }
 

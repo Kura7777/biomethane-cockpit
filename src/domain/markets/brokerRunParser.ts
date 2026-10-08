@@ -323,7 +323,7 @@ export function cleanNumber(str: string | undefined | null): number | null {
  */
 export function resolveMarketId(productStr: string): { marketId: string | null; marketName: string; canonicalName: string } {
   const raw = productStr.trim().replace(/^['"]+|['"]+$/g, '');
-  const norm = raw.toUpperCase().replace(/[\-_]/g, ' ').replace(/\s+/g, ' ');
+  const norm = raw.toUpperCase().replace(/[-_]/g, ' ').replace(/\s+/g, ' ');
 
   // 1. Direct ID match against MARKETS registry
   const direct = MARKETS.find(m => m.id.toUpperCase() === raw.toUpperCase());
@@ -333,7 +333,7 @@ export function resolveMarketId(productStr: string): { marketId: string | null; 
 
   // 2. Exact match in PRODUCT_ALIAS_MAP
   for (const [key, marketId] of Object.entries(PRODUCT_ALIAS_MAP)) {
-    const normKey = key.toUpperCase().replace(/[\-_]/g, ' ').replace(/\s+/g, ' ');
+    const normKey = key.toUpperCase().replace(/[-_]/g, ' ').replace(/\s+/g, ' ');
     if (norm === normKey) {
       const matched = MARKETS.find(m => m.id === marketId);
       const name = marketId === 'GAS_TTF' ? 'TTF Natural Gas Index' : (matched?.name || marketId);
@@ -344,7 +344,7 @@ export function resolveMarketId(productStr: string): { marketId: string | null; 
   // 3. Substring matching: sorted by descending alias length
   const sortedAliases = Object.entries(PRODUCT_ALIAS_MAP).sort((a, b) => b[0].length - a[0].length);
   for (const [key, marketId] of sortedAliases) {
-    const normKey = key.toUpperCase().replace(/[\-_]/g, ' ').replace(/\s+/g, ' ');
+    const normKey = key.toUpperCase().replace(/[-_]/g, ' ').replace(/\s+/g, ' ');
     if (norm.includes(normKey)) {
       const matched = MARKETS.find(m => m.id === marketId);
       const name = marketId === 'GAS_TTF' ? 'TTF Natural Gas Index' : (matched?.name || marketId);

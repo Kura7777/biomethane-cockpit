@@ -1240,7 +1240,7 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                             {(() => {
                               const statusQ = plant.research.openQuestions?.find(q => q.toLowerCase().startsWith('company status:'));
                               const chStatus = plant.research.registrationId?.check?.companyStatus ||
-                                (statusQ ? statusQ.match(/company status:\s*([^—\-]+)/i)?.[1]?.trim() : null);
+                                (statusQ ? statusQ.match(/company status:\s*([^—-]+)/i)?.[1]?.trim() : null);
                               if (!chStatus || chStatus.toLowerCase() === 'active') return null;
                               return (
                                 <span style={{

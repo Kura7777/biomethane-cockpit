@@ -312,7 +312,7 @@ test.describe('inputs', () => {
 });
 
 test.describe('pwa', () => {
-  test.beforeEach(async ({}, testInfo) => {
+  test.beforeEach(async (_fixtures, testInfo) => {
     test.skip(testInfo.project.name !== 'mobile-chrome', 'Service worker / install checks run once, on mobile-chrome only');
   });
 
