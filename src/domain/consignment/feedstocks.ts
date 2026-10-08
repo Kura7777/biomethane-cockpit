@@ -1,15 +1,8 @@
 import { AnnexClassification, Consignment } from './types';
-import { getAssumption } from '../assumptions/registry';
-import {
-  FeedstockInfo,
-  FEEDSTOCK_REGISTRY,
-  FeedstockCITier,
-  COUNTRY_FEEDSTOCK_CI_PROFILES,
-  DEFAULT_FEEDSTOCK_CI_PROFILE,
-} from './feedstockData';
+import { FeedstockInfo, FEEDSTOCK_REGISTRY } from './feedstockData';
 
-export type { FeedstockInfo, FeedstockCITier };
-export { FEEDSTOCK_REGISTRY, COUNTRY_FEEDSTOCK_CI_PROFILES, DEFAULT_FEEDSTOCK_CI_PROFILE };
+export type { FeedstockInfo };
+export { FEEDSTOCK_REGISTRY };
 
 /**
  * Standard Named Reference Consignments
@@ -97,38 +90,3 @@ export const REFERENCE_CONSIGNMENTS: Record<string, Consignment> = {
     counterparty: null,
   },
 };
-
-export function getCountryFeedstockCI(
-  originCountry: string,
-  feedstockKey: string,
-  tier: 'optimistic' | 'base' | 'conservative' = 'base'
-): { ci: number; min: number; max: number; tier: 'optimistic' | 'base' | 'conservative' } {
-  const hasCountryProfile = !!COUNTRY_FEEDSTOCK_CI_PROFILES[originCountry]?.[feedstockKey];
-  const hasDefaultProfile = !!DEFAULT_FEEDSTOCK_CI_PROFILE[feedstockKey];
-
-  if (hasCountryProfile) {
-    const profile = COUNTRY_FEEDSTOCK_CI_PROFILES[originCountry][feedstockKey];
-    return {
-      ci: getAssumption(`ci.tier.${originCountry}.${feedstockKey}.${tier}`),
-      min: profile.range[0],
-      max: profile.range[1],
-      tier,
-    };
-  }
-  if (hasDefaultProfile) {
-    const profile = DEFAULT_FEEDSTOCK_CI_PROFILE[feedstockKey];
-    return {
-      ci: getAssumption(`ci.tier.DEFAULT.${feedstockKey}.${tier}`),
-      min: profile.range[0],
-      max: profile.range[1],
-      tier,
-    };
-  }
-  const fallbackProfile = { optimistic: -50, base: 18, conservative: 40, range: [-100, 50] as [number, number] };
-  return {
-    ci: fallbackProfile[tier],
-    min: fallbackProfile.range[0],
-    max: fallbackProfile.range[1],
-    tier,
-  };
-}

@@ -3,8 +3,8 @@ import { AnnexClassification } from './types';
 /**
  * Pure data, no dependency on the assumptions registry — kept separate from feedstocks.ts so the
  * registry can read these literal structures (feedstock ids, names, range bounds) at module-load
- * time without a circular import. The current *values* of the CI tiers are read through
- * feedstocks.ts's getCountryFeedstockCI() / feedstockDefaultCi() instead of the literals here.
+ * time without a circular import. The current *value* of a feedstock's default CI is read through
+ * assumptions/registry.ts's feedstockDefaultCi() instead of the defaultCI literal here.
  */
 
 export interface FeedstockInfo {
@@ -99,67 +99,4 @@ export const FEEDSTOCK_REGISTRY: Record<string, FeedstockInfo> = {
     notes: 'Food processing and industrial biogenic residues.',
     citation: 'RED III Annex IX Part A',
   },
-};
-
-export interface FeedstockCITier {
-  optimistic: number;
-  base: number;
-  conservative: number;
-  range: [number, number];
-}
-
-export const COUNTRY_FEEDSTOCK_CI_PROFILES: Record<string, Record<string, FeedstockCITier>> = {
-  DK: {
-    manure: { optimistic: -120, base: -105, conservative: -90, range: [-150, -75] },
-    agricultural_residues: { optimistic: 10, base: 14, conservative: 22, range: [8, 28] },
-    food_waste: { optimistic: 10, base: 14, conservative: 22, range: [8, 30] },
-    sewage_sludge: { optimistic: 15, base: 20, conservative: 28, range: [12, 35] },
-    energy_crops: { optimistic: 38, base: 42, conservative: 50, range: [35, 58] },
-  },
-  DE: {
-    manure: { optimistic: -95, base: -70, conservative: -45, range: [-120, -35] },
-    agricultural_residues: { optimistic: 12, base: 16, conservative: 24, range: [10, 30] },
-    food_waste: { optimistic: 12, base: 16, conservative: 24, range: [10, 32] },
-    sewage_sludge: { optimistic: 16, base: 22, conservative: 30, range: [14, 38] },
-    energy_crops: { optimistic: 38, base: 42, conservative: 52, range: [35, 60] },
-  },
-  NL: {
-    manure: { optimistic: -90, base: -65, conservative: -40, range: [-110, -30] },
-    agricultural_residues: { optimistic: 12, base: 16, conservative: 24, range: [10, 30] },
-    food_waste: { optimistic: 10, base: 14, conservative: 22, range: [8, 30] },
-    sewage_sludge: { optimistic: 15, base: 22, conservative: 30, range: [12, 38] },
-    energy_crops: { optimistic: 38, base: 42, conservative: 50, range: [35, 58] },
-  },
-  FR: {
-    manure: { optimistic: -80, base: -55, conservative: -30, range: [-100, -20] },
-    agricultural_residues: { optimistic: 12, base: 16, conservative: 24, range: [10, 30] },
-    food_waste: { optimistic: 12, base: 16, conservative: 24, range: [10, 32] },
-    sewage_sludge: { optimistic: 16, base: 22, conservative: 30, range: [14, 38] },
-    energy_crops: { optimistic: 38, base: 42, conservative: 52, range: [35, 60] },
-  },
-  IT: {
-    manure: { optimistic: -85, base: -60, conservative: -35, range: [-105, -25] },
-    agricultural_residues: { optimistic: 12, base: 16, conservative: 24, range: [10, 30] },
-    food_waste: { optimistic: 8, base: 12, conservative: 20, range: [6, 28] },
-    sewage_sludge: { optimistic: 16, base: 22, conservative: 30, range: [14, 38] },
-    energy_crops: { optimistic: 38, base: 42, conservative: 52, range: [35, 60] },
-  },
-  GB: {
-    manure: { optimistic: -60, base: -40, conservative: -20, range: [-80, -10] },
-    agricultural_residues: { optimistic: 12, base: 18, conservative: 26, range: [10, 32] },
-    food_waste: { optimistic: 10, base: 15, conservative: 24, range: [8, 32] },
-    sewage_sludge: { optimistic: 16, base: 22, conservative: 30, range: [14, 38] },
-    energy_crops: { optimistic: 38, base: 42, conservative: 52, range: [35, 60] },
-  },
-};
-
-export const DEFAULT_FEEDSTOCK_CI_PROFILE: Record<string, FeedstockCITier> = {
-  manure: { optimistic: -100, base: -75, conservative: -50, range: [-130, -30] },
-  agricultural_residues: { optimistic: 12, base: 16, conservative: 24, range: [10, 30] },
-  food_waste: { optimistic: 10, base: 14, conservative: 24, range: [8, 32] },
-  sewage_sludge: { optimistic: 16, base: 22, conservative: 30, range: [14, 38] },
-  used_cooking_oil: { optimistic: 10, base: 15, conservative: 22, range: [8, 28] },
-  energy_crops: { optimistic: 38, base: 42, conservative: 52, range: [35, 60] },
-  landfill_gas: { optimistic: 8, base: 12, conservative: 20, range: [5, 25] },
-  industrial_bio_waste: { optimistic: 15, base: 24, conservative: 35, range: [12, 45] },
 };
