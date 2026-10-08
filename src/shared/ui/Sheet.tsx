@@ -88,7 +88,6 @@ export function Sheet({
       unlockScroll();
       previouslyFocused.current?.focus?.();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, inlineDesktop]);
 
   useEffect(() => {

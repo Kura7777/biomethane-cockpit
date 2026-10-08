@@ -562,7 +562,6 @@ export function TradeBuilderScreen() {
       .sort((a, b) => (b.netNetback ?? -Infinity) - (a.netNetback ?? -Infinity))
       .slice(0, 3);
     if (process.env.NODE_ENV !== 'production') {
-      // eslint-disable-next-line no-console
       console.log(`[DealTicket] best-route recompute: ${(performance.now() - t0).toFixed(1)}ms`);
     }
     return results;

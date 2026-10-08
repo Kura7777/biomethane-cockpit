@@ -116,7 +116,6 @@ export function FuelEuDirectoryDesk({
     if (!q) return;
     const exact = FUEL_EU_SHIPPING_GROUPS.find(g => g.name.toLowerCase() === q);
     if (exact) setSelectedKey(`group:${exact.id}`);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialQuery]);
 
   const membersByGroup = useMemo(() => {
