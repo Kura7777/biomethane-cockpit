@@ -13,7 +13,7 @@ describe('getPageTitle', () => {
   });
 
   it('resolves a nested path under a nav route to that route\'s label', () => {
-    expect(getPageTitle('/plants/friedland')).toBe('Plants (1,975)');
+    expect(getPageTitle('/plants/friedland')).toBe('Plants (1,974)');
   });
 
   it('falls back to a capitalized route segment for a route outside SIDEBAR_ITEMS', () => {

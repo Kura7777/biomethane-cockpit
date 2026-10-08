@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { gotoScreen, collectPageErrors, appErrors, expectNoErrorBoundary } from './helpers';
 
-test.describe('Plants Registry (1,975 Audited Facilities)', () => {
+test.describe('Plants Registry (1,974 Audited Facilities)', () => {
   test('renders the full registry directory and country macro stats sidebar', async ({ page }) => {
     const errors = collectPageErrors(page);
 
@@ -9,15 +9,17 @@ test.describe('Plants Registry (1,975 Audited Facilities)', () => {
     await expectNoErrorBoundary(page);
 
     const main = page.locator('#main-content');
-    await expect(main).toContainText(/Plant registry/i);
-    await expect(main).toContainText(/1,975 facilities/i);
-    await expect(main).toContainText(/Country totals/i);
+    await expect(main).toContainText(/Plants/i);
+    await expect(main).toContainText(/1,974 facilities/i);
+    // The first facility is auto-selected on load, so the side panel opens on its detail
+    // rather than the country totals rail — that rail only shows with nothing selected.
+    await expect(main).toContainText(/Supply/i);
+    await expect(main).toContainText(/Counterparty/i);
 
     // Verify table headers
-    await expect(main).toContainText('Facility');
+    await expect(main).toContainText('Plant');
     await expect(main).toContainText('Operator');
-    await expect(main).toContainText('Nm³/h');
-    await expect(main).toContainText('GWh/y');
+    await expect(main).toContainText('Output');
     await expect(main).toContainText('Feedstock');
 
     expect(appErrors(errors)).toEqual([]);
@@ -27,54 +29,56 @@ test.describe('Plants Registry (1,975 Audited Facilities)', () => {
     const errors = collectPageErrors(page);
     await gotoScreen(page, '/plants');
 
-    // Filter by country chip "DK"
-    const dkChip = page.locator('button.chip').filter({ hasText: /DK/ }).first();
-    await dkChip.click();
-    await expect(dkChip).toHaveClass(/chip-a/);
+    // Filter by country select
+    await page.getByLabel('Country', { exact: true }).selectOption('DK');
+    await expect(page.locator('.plants-active-chips .chip', { hasText: 'Country: DK' })).toBeVisible();
 
-    const rows = page.locator('table.table tbody tr');
+    const rows = page.locator('[role="listbox"][aria-label="Plant directory"] [role="option"]');
     const dkCount = await rows.count();
     expect(dkCount).toBeGreaterThan(0);
 
     // Filter by text search
-    const searchInput = page.getByPlaceholder(/Filter facility name/i);
+    const searchInput = page.getByTestId('plant-search-input');
     await searchInput.fill('Nature Energy');
 
-    const filteredCount = await page.locator('table.table tbody tr').count();
+    const filteredCount = await rows.count();
     expect(filteredCount).toBeGreaterThan(0);
 
-    // Filter by "Grid Injected" chip
-    const injectedChip = page.locator('button.chip').filter({ hasText: /Grid Injected/i }).first();
-    await injectedChip.click();
-    await expect(injectedChip).toHaveClass(/chip-a/);
+    // Clear the country filter, then filter by grid tier via the "+ More" popover
+    await page.locator('.plants-active-chips button[aria-label="Remove country filter"]').click();
+    await searchInput.fill('');
+    await page.getByRole('button', { name: '+ More' }).click();
+    await page.getByRole('menu').getByRole('combobox').nth(2).selectOption('TSO');
+    await expect(page.locator('.plants-active-chips .chip', { hasText: 'Grid: TSO' })).toBeVisible();
 
     expect(appErrors(errors)).toEqual([]);
   });
 
-  test('opens detailed facility record modal and inspects technical attributes', async ({ page }) => {
+  test('opens the facility detail panel and inspects technical attributes', async ({ page }) => {
     const errors = collectPageErrors(page);
     await gotoScreen(page, '/plants');
 
     // Click first plant row
-    const firstRow = page.locator('table.table tbody tr').first();
+    const firstRow = page.locator('[role="listbox"][aria-label="Plant directory"] [role="option"]').first();
     await firstRow.click();
 
-    const modal = page.getByRole('dialog', { name: /Facility record/i });
-    await expect(modal).toBeVisible();
+    const panel = page.locator('aside.plants-aside');
+    await expect(panel).toBeVisible();
 
-    // Verify modal sections
-    await expect(modal).toContainText(/Operator/i);
-    await expect(modal).toContainText(/Capacity Nm³\/h/i);
-    await expect(modal).toContainText(/Annual energy GWh/i);
-    await expect(modal).toContainText(/Feedstock/i);
-    await expect(modal).toContainText(/Upgrading technology/i);
-    await expect(modal).toContainText(/Grid connection/i);
-    await expect(modal).toContainText(/Registry/i);
-    await expect(modal).toContainText(/GIE \/ EBA European Biomethane Map 2026/i);
+    // Verify panel sections
+    await expect(panel).toContainText(/Output/i);
+    await expect(panel).toContainText(/Capacity/i);
+    await expect(panel).toContainText(/CI \(default\)/i);
+    await expect(panel).toContainText(/Feedstock/i);
+    await expect(panel).toContainText(/Grid operator/i);
+    await expect(panel).toContainText(/Legal entity/i);
+    await expect(panel).toContainText(/Data quality/i);
 
-    // Close modal via Escape key
-    await page.keyboard.press('Escape');
-    await expect(modal).not.toBeVisible();
+    // Selecting a different row swaps the panel to that facility
+    const secondRow = page.locator('[role="listbox"][aria-label="Plant directory"] [role="option"]').nth(1);
+    const secondName = await secondRow.locator('.ds-row-name').innerText();
+    await secondRow.click();
+    await expect(panel.locator('.ds-panel-title')).toHaveText(secondName);
 
     expect(appErrors(errors)).toEqual([]);
   });
@@ -83,18 +87,18 @@ test.describe('Plants Registry (1,975 Audited Facilities)', () => {
     const errors = collectPageErrors(page);
     await gotoScreen(page, '/plants');
 
-    const searchInput = page.getByPlaceholder(/Filter facility name/i);
+    const searchInput = page.getByTestId('plant-search-input');
     await searchInput.fill('NonExistentPlantName999XYZ');
 
     const main = page.locator('#main-content');
     await expect(main).toContainText(/No matching facility/i);
 
-    const clearBtn = page.getByRole('button', { name: /Clear filter/i });
+    const clearBtn = page.getByTestId('clear-filter-btn');
     await expect(clearBtn).toBeVisible();
     await clearBtn.click();
 
-    // Reset restores table
-    await expect(page.locator('table.table tbody tr')).not.toHaveCount(0);
+    // Reset restores the directory
+    await expect(page.locator('[role="listbox"][aria-label="Plant directory"] [role="option"]')).not.toHaveCount(0);
 
     expect(appErrors(errors)).toEqual([]);
   });

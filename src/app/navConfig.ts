@@ -36,7 +36,7 @@ export interface NavSection {
  */
 export const SIDEBAR_ITEMS: NavItem[] = [
   { to: '/sourcing', label: 'Origination', keyHint: '1', icon: Compass },
-  { to: '/plants', label: 'Plants (1,975)', keyHint: '2', icon: Building2 },
+  { to: '/plants', label: 'Plants (1,974)', keyHint: '2', icon: Building2 },
   { to: '/registries', label: 'Registries & Flows', keyHint: 'G', icon: ShieldCheck },
   { to: '/map', label: 'Logistics Map', keyHint: '3', icon: Globe },
   { to: '/trade', label: 'Trade Builder', keyHint: '4', icon: Zap },
