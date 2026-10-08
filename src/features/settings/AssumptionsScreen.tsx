@@ -14,26 +14,6 @@ import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 import './mobileSettings.css';
 import { BASIS_LABEL } from '../../shared/components/AssumptionsStrip';
 import { REGULATORY_CONSTANT_ROWS } from '../../domain/regulatory/constants';
-import { COUNTRY_FEEDSTOCK_CI_PROFILES, DEFAULT_FEEDSTOCK_CI_PROFILE, FEEDSTOCK_REGISTRY } from '../../domain/consignment/feedstocks';
-
-const CI_TIER_COLUMNS: Array<'optimistic' | 'base' | 'conservative'> = ['optimistic', 'base', 'conservative'];
-
-interface CiTierRow {
-  scope: string;
-  scopeLabel: string;
-  feedstockKey: string;
-}
-
-const CI_TIER_ROWS: CiTierRow[] = [
-  ...Object.entries(COUNTRY_FEEDSTOCK_CI_PROFILES).flatMap(([country, feedstocks]) =>
-    Object.keys(feedstocks).map(feedstockKey => ({ scope: country, scopeLabel: country, feedstockKey }))
-  ),
-  ...Object.keys(DEFAULT_FEEDSTOCK_CI_PROFILE).map(feedstockKey => ({
-    scope: 'DEFAULT',
-    scopeLabel: 'Default (no country profile)',
-    feedstockKey,
-  })),
-];
 
 const CATEGORY_LABEL: Record<AssumptionCategory, { title: string; blurb: string }> = {
   DEAL: {
@@ -58,15 +38,11 @@ const CATEGORY_LABEL: Record<AssumptionCategory, { title: string; blurb: string 
   },
   FEEDSTOCK: {
     title: 'Feedstock default CI',
-    blurb: 'Default carbon intensity per feedstock, used when the desk has not entered one for a consignment. Country × feedstock CI tiers are shown separately below.',
+    blurb: 'Default carbon intensity per feedstock, used when the desk has not entered one for a consignment.',
   },
   COST: {
     title: 'Cost tables',
     blurb: 'Transit tariffs, hub basis spreads and interconnection point tariffs — shown on the Costs tab, not repeated here.',
-  },
-  CI_TIER: {
-    title: 'CI by country',
-    blurb: 'Country × feedstock CI tiers — shown as a compact table below, not repeated here.',
   },
 };
 
@@ -262,67 +238,6 @@ export function AssumptionsScreen() {
             </section>
           );
         })}
-
-        <section style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-panel)', overflow: 'hidden' }}>
-          <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-divider)' }}>
-            <h2 style={{ margin: 0, fontSize: '13px', fontWeight: 800 }}>CI by country</h2>
-            <div className="mut" style={{ fontSize: '11px', marginTop: '2px' }}>
-              Country × feedstock carbon-intensity tiers used by the Trade Builder's CI stepper (getCountryFeedstockCI).
-              "Default" rows apply when the origin country has no country-specific profile below.
-            </div>
-          </div>
-          <div style={{ overflowX: 'auto' }}>
-            <table className="table" style={{ width: '100%', fontSize: '12px' }}>
-              <thead>
-                <tr>
-                  <th style={{ textAlign: 'left' }}>Country</th>
-                  <th style={{ textAlign: 'left' }}>Feedstock</th>
-                  {CI_TIER_COLUMNS.map(tier => (
-                    <th key={tier} style={{ textAlign: 'right', width: '110px', textTransform: 'capitalize' }}>{tier}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {CI_TIER_ROWS.map(row => (
-                  <tr key={`${row.scope}.${row.feedstockKey}`}>
-                    <td className="mut" style={{ fontSize: '11px' }}>{row.scopeLabel}</td>
-                    <td style={{ fontWeight: 600 }}>{FEEDSTOCK_REGISTRY[row.feedstockKey]?.name ?? row.feedstockKey}</td>
-                    {CI_TIER_COLUMNS.map(tier => {
-                      const key = `ci.tier.${row.scope}.${row.feedstockKey}.${tier}`;
-                      const overridden = isOverridden(key);
-                      return (
-                        <td key={tier} style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                          <input
-                            type="number"
-                            className="input num"
-                            aria-label={`${row.scopeLabel} ${row.feedstockKey} ${tier}`}
-                            value={getAssumption(key)}
-                            step="any"
-                            onChange={e => {
-                              const v = e.target.valueAsNumber;
-                              if (Number.isFinite(v)) setAssumption(key, v);
-                            }}
-                            style={{ width: '64px', fontSize: '12px', padding: '2px 4px', textAlign: 'right', borderColor: overridden ? 'var(--color-accent)' : undefined }}
-                          />
-                          {overridden && (
-                            <button
-                              type="button"
-                              onClick={() => resetAssumption(key)}
-                              title="Reset to default"
-                              style={{ background: 'none', border: 'none', padding: '0 0 0 3px', color: 'var(--color-accent)', cursor: 'pointer', fontSize: '10px' }}
-                            >
-                              ↺
-                            </button>
-                          )}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
 
         <section style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-panel)', overflow: 'hidden' }}>
           <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-divider)' }}>
