@@ -5,7 +5,6 @@ import { computeAllNetbacks, computeNetback } from '../netback/engine';
 import { evaluateEligibility } from '../eligibility/engine';
 import { searchSourcingRoutes } from '../arbitrage/sourcingAdapter';
 import { calculateDualLegOfftake, DEFAULT_INSTITUTIONAL_OFFTAKE } from '../offtake/engine';
-import { evaluateCommercialGates } from '../offtake/commercialGates';
 import { Consignment } from '../consignment/types';
 import { MarkEntry } from '../markets/types';
 import { REFERENCE_CONSIGNMENTS } from '../consignment/feedstocks';
@@ -203,23 +202,5 @@ describe('PHASE 1 — EMPTY-DESK DOMAIN & CALCULATION AUDIT', () => {
     expect(offtakeRes.totalAnnualRevenueMinEur).toBeNull();
     expect(offtakeRes.totalAnnualRevenueMaxEur).toBeNull();
     expect(offtakeRes.missingInputs).toContain('gasIndex');
-  });
-
-  it('5. Commercial Gates on Empty Desk: evaluates cleanly with unpriced tags rather than inventing numbers', () => {
-    const evaluation = evaluateCommercialGates(DEFAULT_INSTITUTIONAL_OFFTAKE, {});
-
-    expect(evaluation.gates.length).toBe(12);
-    expect(evaluation.overallVerdict).toBe('CONDITIONAL');
-
-    // Index factor gate should flag unpriced impact
-    const indexFactorGate = evaluation.gates.find(g => g.gate === 'INDEX_FACTOR');
-    expect(indexFactorGate).toBeDefined();
-    expect(indexFactorGate?.impactEurPerMWh).toBeNull();
-    expect(indexFactorGate?.impactBasis).toContain('discount');
-
-    // CI slider gate should flag missing destination mark
-    const ciSliderGate = evaluation.gates.find(g => g.gate === 'CI_SLIDER_SHARE');
-    expect(ciSliderGate).toBeDefined();
-    expect(ciSliderGate?.impactEurPerMWh).toBeNull();
   });
 });

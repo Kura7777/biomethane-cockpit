@@ -226,11 +226,6 @@ describe('ARCHITECTURE — no fabricated values', () => {
       coefficient: '0.99',
       because: 'Contract-specified physical gas index discount factor from Institutional/Puzzle Term Sheet.',
     },
-    {
-      file: 'domain/offtake/commercialGates.ts',
-      coefficient: '0.901',
-      because: 'Standard European biomethane conversion factor (Gross HHV to Net LHV calorific ratio).',
-    },
   ];
 
   function isAllowed(hit: Hit): boolean {
