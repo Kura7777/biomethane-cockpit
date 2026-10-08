@@ -47,9 +47,9 @@ export function defaultCi(
 
 /**
  * Resolves the plant's CI.
- * The desk decided 2026-10-08 that every screen uses one flat default CI per feedstock:
- * plant.verifiedCarbonIntensity is a bulk-assigned census value, never audited, and is never
- * read here — see the field's own type comment in plants/types.ts.
+ * The desk decided 2026-10-08 that every screen uses one flat default CI per feedstock —
+ * the plant dataset never carried an audited per-plant CI, only a bulk-assigned census
+ * value, since removed from the dataset as unused (see scripts/strip-unused-plant-fields.mjs).
  */
 export function plantCi(plant: {
   primaryFeedstockCategory?: string | null;
