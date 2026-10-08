@@ -128,6 +128,7 @@ describe('Commercial assumptions register', () => {
           'origination.deskTake': 5,
           'scanner.someRetiredKey': 1,
           'farmgate.someRetiredKey': 2,
+          'ci.tier.DE.manure.base': -70, // retired with the country×feedstock CI tier system
           'clients.firstDealShare': 20, // a live key — kept
         })
       );
@@ -136,6 +137,7 @@ describe('Commercial assumptions register', () => {
       expect(loaded['origination.deskTake']).toBeUndefined();
       expect(loaded['scanner.someRetiredKey']).toBeUndefined();
       expect(loaded['farmgate.someRetiredKey']).toBeUndefined();
+      expect(loaded['ci.tier.DE.manure.base']).toBeUndefined();
     } finally {
       (globalThis as { localStorage?: unknown }).localStorage = previous;
     }
