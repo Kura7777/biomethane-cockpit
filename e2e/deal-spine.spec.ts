@@ -5,15 +5,15 @@ import { gotoScreen, clearDeskState, collectPageErrors, appErrors } from './help
  * Walks a deal end to end the way a trader would — plant first, and buyer first — checking
  * that the fields recorded at each hand-off (Why: CI, volume, counterparty, desk margin) survive
  * the trip from Plants/Corporate orders through Origination/Map, into the Trade Builder, and
- * into the blotter. Three real bugs were found this way (see deal-walk-report.md) and are pinned
- * here with test.fail() so a fix shows up as a newly-green test instead of a silent regression.
+ * into the blotter. Findings #1-#3 (see deal-walk-report.md) were pinned with test.fail() guards
+ * until fixed in the spine-fix job; they now run as ordinary passing assertions.
  *
  * Runs against a fresh desk (cleared localStorage) so the Pricing desk → Costs override below is
  * the only non-default assumption in play, and against the production build per playwright.config.ts.
  */
 
 test.describe('Deal spine: plant first', () => {
-  test('plant -> map -> trade builder drops the plant\'s own CI and volume (Finding #2)', async ({ page }) => {
+  test('plant -> map -> trade builder carries the plant\'s name and feedstock-default CI (Finding #2, fixed)', async ({ page }) => {
     await clearDeskState(page);
     const errors = collectPageErrors(page);
 
@@ -23,40 +23,41 @@ test.describe('Deal spine: plant first', () => {
     await registryTransfer.waitFor({ state: 'visible' });
     await registryTransfer.fill('1.5');
 
-    // Plants: filter to Denmark and read the first manure plant's own verified CI + output.
+    // Plants: filter to Denmark and read the first manure plant's row. The desk's 2026-10-08
+    // decision means every plant's displayed CI is the flat feedstock default (manure: -100).
     await gotoScreen(page, '/plants');
     await page.getByLabel('Country').first().selectOption('DK');
     const firstRow = page.locator('[role="option"], .ds-row').first();
     await expect(firstRow).toBeVisible();
     const rowText = await firstRow.innerText();
     const plantName = rowText.split('\n')[0].trim();
-    const verifiedCiMatch = rowText.match(/−?-?(\d+(\.\d+)?)/); // first numeric token after the name (CI chip)
     expect(plantName.length, 'could not read a plant name from the Plants row').toBeGreaterThan(0);
+    expect(rowText, 'a DK plant\'s CI chip should show the manure feedstock default (-100), not a per-plant census value').toContain('100.0');
 
-    // "Where can this gas go?" only ever passes the origin country — not the plant, its CI, or its
-    // volume (PlantsScreen.tsx navigate(`/map?origin=...`)). Pin that gap here.
+    // "Where can this gas go?" now passes the plant id along with the origin country.
     const corridorLink = firstRow.locator('button:has-text("Where can this gas go?")').first();
     await corridorLink.click();
     await page.waitForLoadState('networkidle').catch(() => {});
-    expect(page.url(), 'the Plants -> Map hand-off should only carry ?origin= today (Finding #2)').toMatch(/\/map\?origin=DK/);
-    expect(page.url()).not.toContain('plantId');
-    expect(page.url()).not.toContain('ci=');
+    expect(page.url(), 'the Plants -> Map hand-off should carry both origin and plant').toMatch(/\/map\?origin=DK&plant=/);
 
-    // Map: send the DK->DE corridor to the Trade Builder exactly the way "Germany THG" does.
-    await gotoScreen(page, '/map?origin=DK&target=DE&filter=ALL');
+    // Map: the playbook card should say which plant this corridor was sourced from, and send that
+    // plant on into the Trade Builder exactly the way "Germany THG" does.
+    await expect(page.getByTestId('trade-playbook-card')).toContainText('Sourced from');
+    const setTarget = new URL(page.url().replace('#', ''));
+    setTarget.searchParams.set('target', 'DE');
+    setTarget.searchParams.set('filter', 'ALL');
+    await gotoScreen(page, `/map?${setTarget.searchParams.toString()}`);
     const tradeBtn = page.getByRole('button', { name: /Trade/ }).first();
     await tradeBtn.waitFor({ state: 'visible' });
     await tradeBtn.click();
     await page.waitForLoadState('networkidle').catch(() => {});
 
-    // The Trade Builder never saw the plant: it falls back to the DK/manure country-tier default
-    // (-105 g/MJ) and the generic desk default volume (20,000 MWh), not the plant's own numbers.
+    // The Trade Builder now sees the plant: its name reaches the Product step, and the CI is the
+    // same flat feedstock default shown everywhere else (-100), never the old DK/manure tier default.
     const tbUrl = new URL(page.url().replace('#', ''));
-    const ciParam = tbUrl.searchParams.get('ci');
-    const volumeParam = tbUrl.searchParams.get('volume');
-    test.fail(true, 'Finding #2: map hand-off fabricates a generic DK/manure consignment instead of carrying the selected plant\'s verified CI and annual volume');
-    expect(ciParam, 'Trade Builder CI should match the plant\'s own verified CI, not the generic DK/manure tier default').not.toBe('-105');
-    expect(volumeParam, 'Trade Builder volume should match the plant\'s own annual output, not the generic desk default').not.toBe('20000');
+    expect(tbUrl.searchParams.get('plantName'), 'Trade Builder URL should carry the plant\'s name').toBeTruthy();
+    expect(tbUrl.searchParams.get('ci'), 'Trade Builder CI should be the flat manure feedstock default').toBe('-100');
+    await expect(page.locator('#main-content')).toContainText(tbUrl.searchParams.get('plantName')!);
 
     expect(appErrors(errors)).toEqual([]);
   });
@@ -105,7 +106,7 @@ test.describe('Deal spine: plant first', () => {
     await expect(page.locator('[data-testid^="reprice-result-"]').first()).toContainText('Today:');
   });
 
-  test('reopening a saved deal fabricates a FuelEU shipping counterparty narrative on an ordinary THG deal (Finding #3)', async ({ page }) => {
+  test('reopening a saved deal with no buyer shows no fake buyer and no FuelEU narrative (Finding #3, fixed)', async ({ page }) => {
     await clearDeskState(page);
 
     await gotoScreen(
@@ -121,7 +122,14 @@ test.describe('Deal spine: plant first', () => {
     await page.locator('[data-testid^="open-deal-"]').first().click();
     await page.waitForLoadState('networkidle').catch(() => {});
 
-    test.fail(true, 'Finding #3: TradeBuilderScreen.tsx:427 defaults the reopened counterparty to "European Offtake Buyer", which then trips TradeConsignmentStep.tsx:209\'s (deal.counterparty && deal.feedstock === \'manure\') check and shows a fabricated "FuelEU Maritime Upstream Sourcing Hedge" badge on a plain DE THG deal with no shipping or FuelEU link');
+    await expect(
+      page.locator('#main-content'),
+      'a reopened deal with no counterparty set should show "No buyer yet", never a fabricated name'
+    ).toContainText('No buyer yet');
+    await expect(
+      page.locator('#main-content'),
+      'a reopened deal with no counterparty set should never show "European Offtake Buyer"'
+    ).not.toContainText('European Offtake Buyer');
     await expect(
       page.locator('#main-content'),
       'a DK->DE THG deal with no counterparty set should not claim to be a FuelEU Maritime Upstream Sourcing Hedge'
@@ -144,13 +152,11 @@ test.describe('Deal spine: buyer first', () => {
     await expect(page.locator('#main-content')).toContainText('Buyer max CI: -20');
   });
 
-  test('Origination Step 2 shows the buyer\'s max CI as every plant\'s own CI (Finding #1)', async ({ page }) => {
+  test('Origination Step 2 shows the flat feedstock default CI, filtered by the buyer\'s max CI (Finding #1, fixed)', async ({ page }) => {
     await clearDeskState(page);
 
-    // Pick an arbitrary, specific max CI. sourcingAdapter.ts:45-47 feeds the buyer's
-    // maxCarbonIntensity constraint into the scan as the consignment CI for every opportunity, so
-    // the plant list ends up displaying this exact number as if it were each plant's own CI —
-    // Stoholm's real verified CI (Plants registry) is -82.0 g/MJ, never -55.
+    // maxCi=-55 is below (less negative than) manure's flat feedstock default of -100, so the
+    // default passes the filter: Stoholm should show CI -100, never the buyer's -55 ceiling.
     await gotoScreen(page, '/sourcing?maxCi=-55&buyer=Edison+Next');
     await page.getByRole('button', { name: /Scan European plants/i }).click();
     await page.waitForLoadState('networkidle').catch(() => {});
@@ -158,8 +164,20 @@ test.describe('Deal spine: buyer first', () => {
     const stoholmIdx = body.indexOf('Stoholm');
     expect(stoholmIdx, 'could not find the Stoholm (DK) plant on Origination Step 2').toBeGreaterThan(-1);
     const stoholmBlock = body.slice(stoholmIdx, stoholmIdx + 150);
-
-    test.fail(true, 'Finding #1: Origination Step 2 displays the buyer\'s Max CI ceiling (-55) as Stoholm\'s own carbon intensity instead of its real verified CI (-82.0, per the Plants registry), and the "exceeds max CI" filter never actually filters anything as a result');
     expect(stoholmBlock, 'Stoholm\'s displayed CI should not equal the buyer\'s max-CI constraint').not.toContain('CI: -55');
+    expect(stoholmBlock, 'Stoholm should show the flat manure feedstock default (-100), not a per-plant census value').toContain('-100');
+  });
+
+  test('a tighter max CI than the feedstock default actually excludes plants (Finding #1, fixed)', async ({ page }) => {
+    await clearDeskState(page);
+
+    // -150 is below (more negative than) manure's flat feedstock default of -100: every manure
+    // plant should now be excluded, and the screen should say how many were.
+    await gotoScreen(page, '/sourcing?maxCi=-150&buyer=Edison+Next');
+    await page.getByRole('button', { name: /Scan European plants/i }).click();
+    await page.waitForLoadState('networkidle').catch(() => {});
+    await expect(page.getByTestId('excluded-by-max-ci')).toBeVisible();
+    const body = await page.locator('#main-content').innerText();
+    expect(body.indexOf('Stoholm'), 'Stoholm\'s CI (-100) is above a -150 max CI and should now be excluded').toBe(-1);
   });
 });
