@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MARKETS, getMarketById, isVoluntaryMarket } from '../../domain/markets/registry';
 import { FEEDSTOCK_REGISTRY, REFERENCE_CONSIGNMENTS } from '../../domain/consignment/feedstocks';
-import { feedstockDefaultCi } from '../../domain/assumptions/registry';
+import { feedstockDefaultCi, getAssumption } from '../../domain/assumptions/registry';
 import { Consignment, CertificationScheme, ChainOfCustody, AnnexClassification, DeliveryProfile, UDBStatus, PoSStatus } from '../../domain/consignment/types';
 import { TradeAssessment } from '../../domain/trade/types';
 import { useAppState } from '../../store/context';
@@ -195,9 +195,9 @@ export function TradeBuilderScreen() {
     setChainOfCustody('MASS_BALANCE');
     setUdbStatus('PENDING');
     setPosStatus('PENDING');
-    setCi(-100);
+    setCi(feedstockDefaultCi('manure')!);
     setCiSource('deal');
-    setVolumeMwh(10000);
+    setVolumeMwh(getAssumption('deal.defaultVolumeMwh'));
     setMarketId('DE_THG');
     setComplianceYear(2026);
     setVintagePreset('CAL_YEAR');
@@ -240,7 +240,9 @@ export function TradeBuilderScreen() {
   const [chainOfCustody, setChainOfCustody] = useState<ChainOfCustody>((deal.coc as ChainOfCustody) || 'MASS_BALANCE');
   const [udbStatus, setUdbStatus] = useState<UDBStatus>(deal.udb || 'PENDING');
   const [posStatus, setPosStatus] = useState<PoSStatus>(deal.pos || 'PENDING');
-  const [ci, setCi] = useState<number>(deal.ci !== null && deal.ci !== undefined ? deal.ci : -100);
+  const [ci, setCi] = useState<number>(
+    deal.ci !== null && deal.ci !== undefined ? deal.ci : (feedstockDefaultCi(deal.feedstock || 'manure') ?? feedstockDefaultCi('manure')!)
+  );
   // Where the CI on screen came from: the deal link, a feedstock/benchmark estimate, an uploaded PoS, or a manual slider edit.
   // Plant CIs in the census are feedstock defaults, so a plant-linked CI is never shown as verified.
   const [ciSource, setCiSource] = useState<'deal' | 'estimate' | 'pos' | 'manual'>('deal');
@@ -251,7 +253,7 @@ export function TradeBuilderScreen() {
     ? Math.round((deal.plantAnnualGWh || linkedPlant!.annualEnergyGWh!) * 1000)
     : null;
   const [volumeMwh, setVolumeMwh] = useState<number>(
-    deal.volume || (plantTotalMWh || 10000)
+    deal.volume || (plantTotalMWh || getAssumption('deal.defaultVolumeMwh'))
   );
   const [plantCommittedMwh, setPlantCommittedMwh] = useState<number>(deal.plantCommittedVolume || 0);
 

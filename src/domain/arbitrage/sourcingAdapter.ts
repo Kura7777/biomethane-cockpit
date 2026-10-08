@@ -1,3 +1,4 @@
+import { getAssumption } from '../assumptions/registry';
 import { CertificationScheme, ChainOfCustody } from '../consignment/types';
 import { FEEDSTOCK_REGISTRY } from '../consignment/feedstocks';
 import { MarksState, CostInputs } from '../netback/types';
@@ -41,7 +42,7 @@ export function searchSourcingRoutes(
     ? 'SEGREGATION'
     : (req.chainOfCustody || 'MASS_BALANCE');
 
-  const volumeForScan = req.volumeMwh ?? 10000;
+  const volumeForScan = req.volumeMwh ?? getAssumption('deal.defaultVolumeMwh');
   // The buyer's maxCarbonIntensity is a filter (below), never the priced CI. The priced CI is
   // either the desk's explicit ciOverride or (left undefined) each feedstock's flat default.
   const ciForScan = req.ciOverride ?? undefined;
