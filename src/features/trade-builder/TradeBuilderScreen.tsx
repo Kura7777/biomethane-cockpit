@@ -855,7 +855,7 @@ export function TradeBuilderScreen() {
                     borderRadius: 'var(--radius-bar)',
                   }}
                 >
-                  AUDITED ASSET LOCKED
+                  CENSUS ASSET LOCKED
                 </span>
               </div>
             ) : (
@@ -1297,7 +1297,7 @@ export function TradeBuilderScreen() {
                   <strong style={{ fontSize: '13px' }}>{deal.plantName || linkedPlant?.name}</strong>
                 </div>
                 <span className="chip" style={{ fontSize: '12px', fontWeight: 700, backgroundColor: 'var(--color-status-pos-bg)', color: 'var(--color-status-pos-text)', border: '1px solid var(--color-status-pos-border)' }}>
-                  Audited Asset Locked
+                  Census Asset Locked
                 </span>
               </div>
               <div style={{ fontSize: '12px', lineHeight: 1.4 }} className="mut">

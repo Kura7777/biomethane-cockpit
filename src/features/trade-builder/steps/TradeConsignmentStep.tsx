@@ -236,7 +236,7 @@ export function TradeConsignmentStep({
                   {currentOriginObj.flag} {deal.plantName || linkedPlant?.name}{' '}
                   <span className="tb-badge pos">
                     <Lock size={11} />
-                    <span>AUDITED ASSET LOCKED</span>
+                    <span>CENSUS ASSET LOCKED</span>
                   </span>
                 </span>
                 <dl className="tb-facts-list">
@@ -262,7 +262,7 @@ export function TradeConsignmentStep({
                   )}
                   {linkedPlant?.feedstockDetails && (
                     <div>
-                      <dt>Audited Substrates</dt>
+                      <dt>Registry Substrates</dt>
                       <dd>{linkedPlant.feedstockDetails}</dd>
                     </div>
                   )}

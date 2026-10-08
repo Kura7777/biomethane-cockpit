@@ -416,7 +416,7 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                     alignItems: 'center',
                     gap: '3px'
                   }}>
-                    <ShieldCheck size={12} /> Audited Meter
+                    <ShieldCheck size={12} /> Verified Attributes
                   </span>
                 )}
               </div>
@@ -1378,7 +1378,7 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
                       {plant.research.siteAddress && (
                         <div>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
-                            <span style={{ fontSize: '10px', color: t.textMuted, textTransform: 'uppercase' }}>Audited Physical Address</span>
+                            <span style={{ fontSize: '10px', color: t.textMuted, textTransform: 'uppercase' }}>Researched Physical Address</span>
                             {plant.research.siteAddress.check && (
                               <span style={{
                                 fontSize: '9px',

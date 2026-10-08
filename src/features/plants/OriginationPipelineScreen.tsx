@@ -298,7 +298,7 @@ export function OriginationPipelineScreen() {
               borderRadius: 'var(--radius-control)',
               border: '1px solid var(--color-accent)'
             }}>
-              {COMBINED_BIOMETHANE_PLANTS.length.toLocaleString()} AUDITED FACILITIES
+              {COMBINED_BIOMETHANE_PLANTS.length.toLocaleString()} CENSUS FACILITIES
             </span>
           </div>
           <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: 'var(--color-text-secondary)', maxWidth: '950px', lineHeight: 1.5 }}>
