@@ -2,6 +2,7 @@ import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { visualizer } from 'rollup-plugin-visualizer';
 import { apiServerPlugin } from './src/server/vitePlugin';
 
 // https://vite.dev/config/
@@ -96,6 +97,15 @@ export default defineConfig({
         enabled: false,
       },
     }),
+    // Bundle composition report. Opt-in only: `ANALYZE=1 npm run build` writes
+    // dist/stats.html instead of touching the default build output.
+    process.env.ANALYZE === '1' &&
+      visualizer({
+        filename: 'dist/stats.html',
+        template: 'treemap',
+        gzipSize: true,
+        brotliSize: true,
+      }),
   ],
   test: {
     exclude: ['**/node_modules/**', '**/e2e/**', '**/dist/**', '**/.claude/**'], // .claude/worktrees holds other agents' repo copies
