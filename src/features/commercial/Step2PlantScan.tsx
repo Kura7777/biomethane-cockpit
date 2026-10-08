@@ -28,6 +28,10 @@ interface Step2PlantScanProps {
   onSelectOpp: (opp: SourcedOpportunity) => void;
   onBack: () => void;
   onNext: () => void;
+  /** Plants behind origin x feedstock corridors excluded by the buyer's max CI. */
+  excludedPlantCount?: number;
+  /** The buyer's max CI constraint, for the excluded-plants message. */
+  maxCarbonIntensity?: number | null;
 }
 
 export type PlantSortOption = 'MARGIN_DESC' | 'PRICE_ASC' | 'CAPACITY_DESC' | 'DISTANCE_ASC';
@@ -37,7 +41,9 @@ export function Step2PlantScan({
   selectedOpp,
   onSelectOpp,
   onBack,
-  onNext
+  onNext,
+  excludedPlantCount = 0,
+  maxCarbonIntensity = null,
 }: Step2PlantScanProps) {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
@@ -262,6 +268,20 @@ export function Step2PlantScan({
               className="text-xs border px-2 py-0.5 font-medium"
             >
               Filter: {selectedCountry}
+            </span>
+          )}
+          {maxCarbonIntensity !== null && excludedPlantCount > 0 && (
+            <span
+              style={{
+                borderRadius: 'var(--radius-control)',
+                backgroundColor: 'var(--color-status-neg-bg, rgba(220, 38, 38, 0.08))',
+                borderColor: 'var(--color-status-neg-border, rgba(220, 38, 38, 0.25))',
+                color: 'var(--color-status-neg-ink, #b91c1c)',
+              }}
+              className="text-xs border px-2 py-0.5 font-medium"
+              data-testid="excluded-by-max-ci"
+            >
+              {excludedPlantCount} plant{excludedPlantCount === 1 ? '' : 's'} excluded — above buyer's max CI of {maxCarbonIntensity} gCO₂e/MJ
             </span>
           )}
         </div>

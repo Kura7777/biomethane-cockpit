@@ -85,6 +85,9 @@ export interface SourcingSearchResult {
   blocked: ArbitrageOpportunity[];
   evaluated: number;                     // how many combinations were tried
   unpriced: number;                      // how many had no usable mark
+  excludedByMaxCi: number;               // how many origin x feedstock x market combos were excluded by the buyer's max CI constraint
+  /** Distinct origin/feedstock pairs excluded by the max CI constraint, for counting the plants behind them. */
+  excludedOriginFeedstocks: Array<{ originCountry: string; feedstockKey: string }>;
   request: ClientRequest;
   generatedAt: string;
 }

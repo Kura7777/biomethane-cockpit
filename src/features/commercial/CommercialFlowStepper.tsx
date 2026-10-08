@@ -144,6 +144,14 @@ export function CommercialFlowStepper() {
     return applyCiOverride(plantOpps, request.ciOverride);
   }, [searchResult.tradeable, request.ciOverride]);
 
+  // How many plants behind the excluded origin x feedstock corridors, for Step 2's "excluded" count.
+  const excludedPlantCount = useMemo(() => {
+    return searchResult.excludedOriginFeedstocks.reduce(
+      (sum, { originCountry, feedstockKey }) => sum + findPlantsForOrigination(originCountry, feedstockKey).length,
+      0
+    );
+  }, [searchResult.excludedOriginFeedstocks]);
+
   // Automatically select top plant if none chosen
   const activeOpp = useMemo(() => {
     if (selectedOpp && opportunities.some(o => o.id === selectedOpp.id)) {
@@ -255,6 +263,8 @@ export function CommercialFlowStepper() {
             onSelectOpp={opp => setSelectedOpp(opp)}
             onBack={() => setCurrentStep(1)}
             onNext={() => setCurrentStep(3)}
+            excludedPlantCount={excludedPlantCount}
+            maxCarbonIntensity={request.constraints.maxCarbonIntensity}
           />
         )}
 

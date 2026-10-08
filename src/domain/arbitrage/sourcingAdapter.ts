@@ -42,14 +42,16 @@ export function searchSourcingRoutes(
     : (req.chainOfCustody || 'MASS_BALANCE');
 
   const volumeForScan = req.volumeMwh ?? 10000;
-  const ciForScan = req.constraints?.maxCarbonIntensity !== undefined && req.constraints?.maxCarbonIntensity !== null
-    ? req.constraints.maxCarbonIntensity 
-    : undefined;
+  // The buyer's maxCarbonIntensity is a filter (below), never the priced CI. The priced CI is
+  // either the desk's explicit ciOverride or (left undefined) each feedstock's flat default.
+  const ciForScan = req.ciOverride ?? undefined;
 
   const tradeable: ArbitrageOpportunity[] = [];
   const blocked: ArbitrageOpportunity[] = [];
   let evaluated = 0;
   let unpriced = 0;
+  let excludedByMaxCi = 0;
+  const excludedOriginFeedstockKeys = new Set<string>();
 
   for (const feedstockKey of feedstocksToSearch) {
     for (const scheme of schemesToSearch) {
@@ -73,6 +75,8 @@ export function searchSourcingRoutes(
 
         // Apply constraints
         if (req.constraints?.maxCarbonIntensity != null && opp.carbonIntensity > req.constraints.maxCarbonIntensity) {
+          excludedByMaxCi++;
+          excludedOriginFeedstockKeys.add(`${opp.originCountry}::${opp.feedstockKey}`);
           continue;
         }
 
@@ -119,11 +123,18 @@ export function searchSourcingRoutes(
     return (b.totalTerminalValueStackEurPerMWh ?? 0) - (a.totalTerminalValueStackEurPerMWh ?? 0);
   });
 
+  const excludedOriginFeedstocks = Array.from(excludedOriginFeedstockKeys).map(key => {
+    const [originCountry, feedstockKey] = key.split('::');
+    return { originCountry, feedstockKey };
+  });
+
   return {
     tradeable,
     blocked,
     evaluated,
     unpriced,
+    excludedByMaxCi,
+    excludedOriginFeedstocks,
     request: req,
     generatedAt: new Date().toISOString(),
   };
