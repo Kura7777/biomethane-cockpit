@@ -2,45 +2,33 @@ import { test, expect } from '@playwright/test';
 import { gotoScreen, collectPageErrors, appErrors, expectNoErrorBoundary } from './helpers';
 
 test.describe('Registries, Citations & Data Provenance', () => {
-  test('navigates registries hub views (Overview, Telemetry, Ingestion, Ledger, Simulator)', async ({ page }) => {
+  test('navigates registries hub views (Registry directory, Route checker, Production statistics, Live data)', async ({ page }) => {
     const errors = collectPageErrors(page);
 
     await gotoScreen(page, '/registries');
     await expectNoErrorBoundary(page);
 
     const main = page.locator('#main-content');
-    await expect(main).toContainText(/European Registry & Balance of Trade Hub/i);
-    await expect(main).toContainText(/22 Jurisdictions|22 National Registries/i);
+    await expect(main).toContainText(/Registries & cross-border routes/i);
+    await expect(main).toContainText(/Registry directory/i);
 
-    // Switch to Live Flow Telemetry view
-    const telemetryTab = page.getByRole('button', { name: /Live Flow Telemetry|TSO Feeds/i }).first();
-    if (await telemetryTab.isVisible()) {
-      await telemetryTab.click();
-      await expectNoErrorBoundary(page);
-      await expect(main).toContainText(/Pan-European Real-Time TSO Flow Telemetry|Injection Velocity/i);
-    }
+    // Switch to Route checker view
+    const routesTab = page.getByRole('button', { name: /^Route checker$/i }).first();
+    await routesTab.click();
+    await expectNoErrorBoundary(page);
+    await expect(main).toContainText(/Origin registry/i);
 
-    // Switch to Ingestion view
-    const ingestionTab = page.getByRole('button', { name: /Ingestion/i }).first();
-    if (await ingestionTab.isVisible()) {
-      await ingestionTab.click();
-      await expectNoErrorBoundary(page);
-    }
+    // Switch to Production statistics view
+    const productionTab = page.getByRole('button', { name: /^Production statistics$/i }).first();
+    await productionTab.click();
+    await expectNoErrorBoundary(page);
+    await expect(main).toContainText(/Only figures directly pulled from a source/i);
 
-    // Switch to Ledger view
-    const ledgerTab = page.getByRole('button', { name: /Ledger/i }).first();
-    if (await ledgerTab.isVisible()) {
-      await ledgerTab.click();
-      await expectNoErrorBoundary(page);
-    }
-
-    // Switch to Simulator view
-    const simTab = page.getByRole('button', { name: /Simulator/i }).first();
-    if (await simTab.isVisible()) {
-      await simTab.click();
-      await expectNoErrorBoundary(page);
-      await expect(main).toContainText(/Transfer Simulator|Cross-Border/i);
-    }
+    // Switch to Live data view
+    const liveTab = page.getByRole('button', { name: /^Live data$/i }).first();
+    await liveTab.click();
+    await expectNoErrorBoundary(page);
+    await expect(main).toContainText(/Denmark — daily biomethane injection/i);
 
     expect(appErrors(errors)).toEqual([]);
   });
