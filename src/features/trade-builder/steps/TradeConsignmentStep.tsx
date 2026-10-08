@@ -195,21 +195,23 @@ export function TradeConsignmentStep({
     <div className="tb-form">
       {section === 'PRODUCT' && (
         <>
-          {/* Upstream FuelEU Maritime hedge context (deal handed over from FuelEU) */}
-          {(deal.marketId === 'FUELEU' || (deal.counterparty && deal.feedstock === 'manure')) && (
-            <div className="tb-form-row">
-              <span className="tb-form-label">Counterparty</span>
-              <div className="tb-form-control">
-                <span className="tb-form-value">
-                  {deal.counterparty || 'Maritime Fleet Buyer'}{' '}
+          {/* Counterparty — a missing one is shown as none, never a fabricated name */}
+          <div className="tb-form-row">
+            <span className="tb-form-label">Counterparty</span>
+            <div className="tb-form-control">
+              <span className="tb-form-value">
+                {deal.counterparty || 'No buyer yet'}{' '}
+                {deal.marketId === 'FUELEU' && (
                   <span className="tb-badge info">FuelEU Maritime Upstream Sourcing Hedge</span>
-                </span>
+                )}
+              </span>
+              {deal.marketId === 'FUELEU' && (
                 <p className="tb-hint tb-num">
                   {volumeMwh.toLocaleString()} MWh physical biomethane requirement · -100 gCO₂e/MJ Manure · 100% RED III Compliant. Sourcing pipeline biomethane on the European gas grid via RED III Mass Balance to feed cryogenic Bio-LNG liquefaction at European bunkering terminals.
                 </p>
-              </div>
+              )}
             </div>
-          )}
+          </div>
 
           {/* PoS Certificate Ingestion */}
           <div className="tb-form-row">
