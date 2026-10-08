@@ -11,8 +11,7 @@ test.describe('Compliance & Logistics Map', () => {
     const main = page.locator('#main-content');
     await expect(main).toContainText(/Compliance & logistics map/i);
     await expect(main).toContainText(/Active corridor/i);
-    await expect(main).toContainText(/Transit tariff/i);
-    await expect(main).toContainText(/Basis to TTF/i);
+    await expect(main).toContainText(/Physical transit/i);
 
     // Zoom buttons
     const zoomIn = page.getByRole('button', { name: /Zoom in/i });
@@ -30,19 +29,18 @@ test.describe('Compliance & Logistics Map', () => {
     expect(appErrors(errors)).toEqual([]);
   });
 
-  test('interacts with origin/target modes and updates the active corridor', async ({ page }) => {
+  test('changes origin and target and updates the active corridor', async ({ page }) => {
     const errors = collectPageErrors(page);
     await gotoScreen(page, '/map');
 
-    // Click "Set origin"
-    const originBtn = page.getByRole('button', { name: /Set origin/i });
-    await originBtn.click();
-    await expect(originBtn).toHaveClass(/btn-primary/);
+    const main = page.locator('#main-content');
+    await expect(main).toContainText(/DK \(Denmark\) ➔ DE \(Germany\)/i);
 
-    // Click "Set target"
-    const targetBtn = page.getByRole('button', { name: /Set target/i });
-    await targetBtn.click();
-    await expect(targetBtn).toHaveClass(/btn-primary/);
+    await page.getByLabel('Origin country').first().selectOption('France');
+    await expect(main).toContainText(/FR \(France\) ➔ DE \(Germany\)/i);
+
+    await page.getByLabel('Target country').first().selectOption('Italy');
+    await expect(main).toContainText(/FR \(France\) ➔ IT \(Italy\)/i);
 
     expect(appErrors(errors)).toEqual([]);
   });
@@ -92,10 +90,10 @@ test.describe('Compliance & Logistics Map', () => {
     await gotoScreen(page, '/map');
     await expectNoErrorBoundary(page);
 
-    const main = page.locator('#main-content');
-    await expect(main).toContainText(/Compliance status/i);
-    await expect(main).toContainText(/Active ·/i);
-    await expect(main).toContainText(/Restricted ·/i);
+    const summary = page.getByTestId('map-summary-card');
+    await expect(summary).toContainText(/Ready to trade/i);
+    await expect(summary).toContainText(/Review needed/i);
+    await expect(summary).toContainText(/Closed/i);
 
     expect(appErrors(errors)).toEqual([]);
   });
