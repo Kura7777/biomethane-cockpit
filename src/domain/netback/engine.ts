@@ -274,7 +274,7 @@ function computeCertificateValueCore(
   let capped = false;
   let capReason: string | null = null;
   let statusNote: string | null = null;
-  let isModelled = false;
+  const isModelled = false;
 
   switch (market.unitOfAccount) {
     case 'EUR_PER_TCO2E': {

@@ -537,8 +537,8 @@ function generateMarkdown() {
   lines.push('');
 
   // GO Grid Table
-  let header = '| From \\ To | ' + COUNTRIES.join(' | ') + ' |';
-  let sep = '|---|' + COUNTRIES.map(() => '---').join('|') + '|';
+  const header = '| From \\ To | ' + COUNTRIES.join(' | ') + ' |';
+  const sep = '|---|' + COUNTRIES.map(() => '---').join('|') + '|';
   lines.push(header);
   lines.push(sep);
 

@@ -143,17 +143,17 @@ export function scanEuropeanArbitrage(
         ? Number((netbackRes.netbackCappedAt + (netbackRes.totalCosts ?? 0)).toFixed(2))
         : (certValEur !== null ? Number((certValEur + molValEur).toFixed(2)) : null);
 
-      let destinationNetback = netbackRes.netNetback;
-      let deskNetMargin = netbackRes.deskMargin;
-      let producerPayable = netbackRes.producerPayable;
+      const destinationNetback = netbackRes.netNetback;
+      const deskNetMargin = netbackRes.deskMargin;
+      const producerPayable = netbackRes.producerPayable;
       let marginAllocationType: 'TRANSPORT_COMPLIANCE' | 'MARITIME_INSETTING' | 'WHOLESALE_BASE' = 'TRANSPORT_COMPLIANCE';
       if (market.id === 'FUELEU') {
         marginAllocationType = 'MARITIME_INSETTING';
       } else if (market.id === 'VOL_SCOPE1' || market.id === 'DK_GO' || market.id === 'EU_ETS1') {
         marginAllocationType = 'WHOLESALE_BASE';
       }
-      let marginPct = netbackRes.marginPercent;
-      let totalDealProfit = deskNetMargin !== null ? deskNetMargin * volumeMWh : null;
+      const marginPct = netbackRes.marginPercent;
+      const totalDealProfit = deskNetMargin !== null ? deskNetMargin * volumeMWh : null;
 
       // Generate human rationale
       let rationale = `${origin.flag} ${origin.countryName} ➔ ${market.country} ${market.name}: `;

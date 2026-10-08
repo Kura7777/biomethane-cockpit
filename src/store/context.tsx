@@ -134,7 +134,7 @@ export function migrateState(raw: unknown): AppState {
 
   const rawRecord = raw as RawStateShape;
   const stateVersion = rawRecord.schemaVersion || 1;
-  let migrated: AppState = { ...(raw as AppState) };
+  const migrated: AppState = { ...(raw as AppState) };
 
   if (stateVersion < 2) {
     // Migrate marks shape to include updatedAt and source
