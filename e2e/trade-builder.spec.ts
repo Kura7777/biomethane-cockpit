@@ -2,10 +2,12 @@ import { test, expect } from '@playwright/test';
 import { gotoScreen, collectPageErrors, appErrors, expectNoErrorBoundary } from './helpers';
 
 test.describe('Trade Builder Screen & Pricing Engine', () => {
-  test('renders the 3-column layout with live waterfall and metrics', async ({ page }) => {
+  test('renders the 3-column desk grid with live waterfall and metrics', async ({ page }) => {
     const errors = collectPageErrors(page);
 
-    await gotoScreen(page, '/trade?marketId=DE_THG&originCountry=DK&feedstock=manure&ci=-100&volume=15000');
+    // The desk grid is now a view toggled from the default step-by-step "Deal flow"; ?mode=grid
+    // selects it directly (TradeBuilderScreen.tsx reads ?mode= on load).
+    await gotoScreen(page, '/trade?marketId=DE_THG&originCountry=DK&feedstock=manure&ci=-100&volume=15000&mode=grid');
     await expectNoErrorBoundary(page);
 
     const main = page.locator('#main-content');
@@ -17,14 +19,14 @@ test.describe('Trade Builder Screen & Pricing Engine', () => {
     // Column 2: Destination & Legal Validation
     await expect(main).toContainText('2Destination & legal validation');
     await expect(main).toContainText('Germany THG Quota');
-    await expect(main).toContainText(/Six-gate audit/i);
+    await expect(main).toContainText(/Gate audit · \d+ of \d+ clear/i);
 
     // Column 3: Netback & Dossier
     await expect(main).toContainText('3Netback & dossier');
     await expect(main).toContainText('Net netback');
     await expect(main).toContainText('Waterfall');
     await expect(main).toContainText('Certificate value');
-    await expect(main).toContainText('Delivered cost');
+    await expect(main).toContainText('Producer payable');
     await expect(main).toContainText('15,000 MWh');
 
     expect(appErrors(errors)).toEqual([]);
@@ -55,39 +57,44 @@ test.describe('Trade Builder Screen & Pricing Engine', () => {
 
   test('saves dossier and confirms with desk notification toast', async ({ page }) => {
     const errors = collectPageErrors(page);
-    await gotoScreen(page, '/trade?marketId=NL_ERE&originCountry=DK&feedstock=manure&ci=-80');
+    await gotoScreen(page, '/trade?marketId=NL_ERE&originCountry=DK&feedstock=manure&ci=-80&mode=grid');
 
-    const saveBtn = page.locator('[data-testid="save-dossier-btn"]').or(page.getByRole('button', { name: /save dossier/i })).first();
+    const saveBtn = page.locator('[data-testid="save-dossier-btn"]').or(page.getByRole('button', { name: /save to blotter/i })).first();
     await expect(saveBtn).toBeVisible();
     await saveBtn.click();
 
-    await expect(page.getByText(/dossier saved/i)).toBeVisible();
+    await expect(page.getByText(/saved to blotter/i)).toBeVisible();
     await expectNoErrorBoundary(page);
 
     expect(appErrors(errors)).toEqual([]);
   });
 
-  test('opens EFET term sheet preview modal and exports PDF successfully', async ({ page }) => {
+  test('opens the EFET Annex document review and exports its PDF', async ({ page }) => {
     const errors = collectPageErrors(page);
-    await gotoScreen(page, '/trade?marketId=DE_THG&originCountry=DK&feedstock=manure&ci=-100');
+    await gotoScreen(page, '/trade?marketId=DE_THG&originCountry=DK&feedstock=manure&ci=-100&mode=grid');
 
-    const previewBtn = page.locator('[data-testid="term-sheet-btn"]').or(page.getByRole('button', { name: /term sheet/i })).first();
+    // The old single "Term Sheet" preview is now a multi-document "Deal Document Drafts" modal;
+    // the EFET Annex is opened directly via its own sidebar button. (Not .or(getByRole('button',
+    // { name: /efet annex/i })): the "Review Deal Package" button's own visible label also
+    // contains the words "EFET Annex" and sits earlier in the DOM, so that union would match it
+    // instead and open on the Term Sheet tab.)
+    const previewBtn = page.locator('[data-testid="efet-annex-btn"]');
     await expect(previewBtn).toBeVisible();
     await previewBtn.click();
 
     // Verify modal is open and displays EFET terms
-    const modal = page.getByRole('dialog', { name: /efet biomethane/i });
+    const modal = page.getByRole('dialog', { name: /deal document drafts/i });
     await expect(modal).toBeVisible();
-    await expect(modal).toContainText(/EFET Biomethane Annex & Transaction Confirmation/i);
-    await expect(modal).toContainText(/SHA-256/i);
+    await expect(modal).toContainText(/Draft Individual Transaction Confirmation/i);
+    await expect(modal).toContainText(/Fingerprint/i);
 
     // Download PDF from inside modal
     const downloadPromise = page.waitForEvent('download');
-    const downloadBtn = modal.getByRole('button', { name: /download pdf/i }).first();
+    const downloadBtn = modal.getByRole('button', { name: /download draft confirmation/i }).first();
     await downloadBtn.click();
     const download = await downloadPromise;
 
-    expect(download.suggestedFilename()).toMatch(/^EFET-Biomethane-.*\.pdf$/i);
+    expect(download.suggestedFilename()).toMatch(/^Draft-Confirmation-.*\.pdf$/i);
 
     // Close modal
     const closeBtn = modal.getByRole('button', { name: /Esc ✕|✕|Close/i }).first();
@@ -99,7 +106,7 @@ test.describe('Trade Builder Screen & Pricing Engine', () => {
 
   test('opens and closes delivery playbook modal', async ({ page }) => {
     const errors = collectPageErrors(page);
-    await gotoScreen(page, '/trade?marketId=DE_THG&originCountry=DK');
+    await gotoScreen(page, '/trade?marketId=DE_THG&originCountry=DK&mode=grid');
 
     const playbookBtn = page.locator('[data-testid="delivery-playbook-btn"]').or(page.getByRole('button', { name: /delivery|logistics/i })).first();
     await expect(playbookBtn).toBeVisible();
