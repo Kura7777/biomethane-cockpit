@@ -232,7 +232,7 @@ export function OriginationPipelineScreen() {
         `"${p.supportScheme || 'National Feed-in Tariff / Guarantees of Origin'}"`,
         p.annualEnergyGWh ?? '',
         `"${(p.primaryFeedstockCategory || '').replace(/"/g, '""')}"`,
-        p.verifiedCarbonIntensity ?? '',
+        plantCi(p).ci,
         `"${q?.confidenceLabel || 'Unverified Lead'}"`,
         `"${flags.replace(/"/g, '""')}"`,
         `"${(reg?.registerName || '').replace(/"/g, '""')}"`,

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { Maximize2, Minimize2, X } from 'lucide-react';
 import { BiomethanePlant, CountryMacroStat } from '../../domain/plants/types';
+import { plantCi } from '../../domain/trade/dealDefaults';
 import { Sheet } from '../../shared/ui';
 import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 
@@ -112,7 +113,7 @@ export function PlantsSidePanel({
   }
 
   const status = contactStatus(plant);
-  const ci = plant.verifiedCarbonIntensity;
+  const ci = plantCi(plant).ci;
   const flags: string[] = [];
   if (plant.dataQuality) {
     if (plant.dataQuality.approximateCoordinates) flags.push(DATA_QUALITY_LABELS.approximateCoordinates);

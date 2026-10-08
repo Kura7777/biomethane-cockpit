@@ -333,6 +333,25 @@ describe('ARCHITECTURE — no new hard-coded price', () => {
   });
 });
 
+describe('ARCHITECTURE — plant CI is always the feedstock default', () => {
+  /**
+   * verifiedCarbonIntensity in plantsData.ts is a census value, bulk-assigned by enrichment
+   * scripts and never audited (see plantsData.ts:135 and dealDefaults.ts plantCi()). The desk
+   * decided 2026-10-08 that every screen shows and uses one flat default CI per feedstock
+   * instead. This guards against a new read of the field creeping back in anywhere but its
+   * own type declaration.
+   */
+  it('reads verifiedCarbonIntensity nowhere outside domain/plants/types.ts', () => {
+    const files = OUTSIDE_TESTS.filter(f => f.path !== 'domain/plants/types.ts' && f.path !== 'domain/plants/plantsData.ts');
+    const hits = findLines(files, /\bverifiedCarbonIntensity\b/);
+    expect(
+      hits,
+      `verifiedCarbonIntensity is a census value, never audited — read the feedstock default ` +
+        `instead via plantCi()/feedstockDefaultCi() in domain/trade/dealDefaults.ts.${report(hits)}`
+    ).toEqual([]);
+  });
+});
+
 describe('ARCHITECTURE — cost tables stay on the assumptions register', () => {
   /**
    * getRouteTransitTariff, HUB_BASIS_SPREADS and INTERCONNECTION_POINTS entry/exit tariffs were

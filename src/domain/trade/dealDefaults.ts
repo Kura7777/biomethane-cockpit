@@ -47,24 +47,16 @@ export function defaultCi(
 
 /**
  * Resolves the plant's CI.
- * Returns plant.verifiedCarbonIntensity when not null/undefined (0 is a valid value).
- * Otherwise falls back to defaultCi for the origin country and mapped feedstock.
- * Always estimated (census CIs are feedstock defaults, not audited PoS certificates).
+ * The desk decided 2026-10-08 that every screen uses one flat default CI per feedstock:
+ * plant.verifiedCarbonIntensity is a bulk-assigned census value, never audited, and is never
+ * read here — see the field's own type comment in plants/types.ts.
  */
 export function plantCi(plant: {
-  verifiedCarbonIntensity?: number | null;
-  countryCode?: string;
   primaryFeedstockCategory?: string | null;
   feedstockDetails?: string | null;
   canonicalFeedstockKey?: string | null;
 }): { ci: number; ciIsEstimated: true } {
-  if (plant.verifiedCarbonIntensity !== null && plant.verifiedCarbonIntensity !== undefined) {
-    return {
-      ci: plant.verifiedCarbonIntensity,
-      ciIsEstimated: true,
-    };
-  }
-  return defaultCi(plant.countryCode || '', feedstockKeyForPlant(plant));
+  return defaultCi('', feedstockKeyForPlant(plant));
 }
 
 /**

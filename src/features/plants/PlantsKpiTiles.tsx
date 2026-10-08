@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { BiomethanePlant } from '../../domain/plants/types';
+import { plantCi } from '../../domain/trade/dealDefaults';
 import { KpiRow, KpiTile } from '../../shared/ui/KpiTile';
 
 /**
@@ -20,8 +21,8 @@ export function PlantsKpiTiles({ plants }: { plants: BiomethanePlant[] }) {
     for (const p of plants) {
       const gwh = p.annualEnergyGWh || 0;
       totalGWh += gwh;
-      const ci = p.verifiedCarbonIntensity;
-      if (ci !== null && ci !== undefined && ci < 0) {
+      const ci = plantCi(p).ci;
+      if (ci < 0) {
         negGWh += gwh;
         negCount++;
       }
@@ -63,7 +64,7 @@ export function PlantsKpiTiles({ plants }: { plants: BiomethanePlant[] }) {
       />
 
       <KpiTile
-        label="Negative-CI supply"
+        label="Negative-CI supply (feedstock default)"
         value={`${stats.negSharePct.toFixed(1)}%`}
         barPercent={stats.negSharePct}
         sub={`${stats.negCount.toLocaleString()} plants below zero CI · mostly manure & slurry`}

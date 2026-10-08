@@ -6,7 +6,7 @@ import {
 } from '../../domain/plants/registry';
 import { BiomethanePlant } from '../../domain/plants/types';
 import { buildDealUrl } from '../../domain/trade/dealParams';
-import { plantDealParams } from '../../domain/trade/dealDefaults';
+import { plantDealParams, plantCi, feedstockKeyForPlant } from '../../domain/trade/dealDefaults';
 import { OriginationPipelineScreen } from './OriginationPipelineScreen';
 import { PlantSourcingDrawer } from './PlantSourcingDrawer';
 import { PlantsKpiTiles } from './PlantsKpiTiles';
@@ -52,7 +52,7 @@ function feedstockMatch(p: BiomethanePlant, selected: string): boolean {
       feedStr.includes('slurry') ||
       feedStr.includes('gülle') ||
       feedStr.includes('lisier') ||
-      (p.verifiedCarbonIntensity !== null && p.verifiedCarbonIntensity !== undefined && p.verifiedCarbonIntensity < 0)
+      feedstockKeyForPlant(p) === 'manure'
     );
   }
   if (selected === 'ORGANIC_WASTE') {
@@ -277,7 +277,7 @@ export function PlantsScreen() {
       if (selectedCountry !== 'ALL' && (p.countryCode || '').toUpperCase() !== selectedCountry.toUpperCase()) return false;
       if (!feedstockMatch(p, selectedFeedstock)) return false;
 
-      const ci = p.verifiedCarbonIntensity;
+      const ci = plantCi(p).ci;
       if (selectedCiRange === 'DEEP_NEGATIVE') {
         if (ci === null || ci === undefined || ci >= -50) return false;
       } else if (selectedCiRange === 'SUB_ZERO') {
@@ -392,8 +392,8 @@ export function PlantsScreen() {
           valB = b.annualEnergyGWh || 0;
           break;
         case 'ci':
-          valA = a.verifiedCarbonIntensity ?? 999;
-          valB = b.verifiedCarbonIntensity ?? 999;
+          valA = plantCi(a).ci;
+          valB = plantCi(b).ci;
           break;
       }
       if (typeof valA === 'string' && typeof valB === 'string') {
@@ -477,7 +477,7 @@ export function PlantsScreen() {
       p.annualEnergyGWh ?? '',
       `"${(p.primaryFeedstockCategory || '').replace(/"/g, '""')}"`,
       `"${(p.feedstockDetails || '').replace(/"/g, '""')}"`,
-      p.verifiedCarbonIntensity ?? '',
+      plantCi(p).ci,
       `"${(p.upgradingTechnology || '').replace(/"/g, '""')}"`,
       p.commissioningYear ?? '',
       `"${p.corporateWebsite || ''}"`,
@@ -872,7 +872,7 @@ export function PlantsScreen() {
                         const status = contactStatus(p);
                         return [
                           { label: 'Feedstock', value: p.primaryFeedstockCategory || 'Agricultural / Waste' },
-                          { label: 'CI', value: renderCiChip(p.verifiedCarbonIntensity) },
+                          { label: 'CI (feedstock default)', value: renderCiChip(plantCi(p).ci) },
                           {
                             label: 'Contact',
                             value: (
@@ -1003,7 +1003,7 @@ export function PlantsScreen() {
                           </div>
                           <div style={{ minWidth: 0 }}>
                             <div className="plants-feedstock-cell">{p.primaryFeedstockCategory || 'Agricultural / Waste'}</div>
-                            {renderCiChip(p.verifiedCarbonIntensity)}
+                            {renderCiChip(plantCi(p).ci)}
                           </div>
                           <div className="plants-col-grid plants-grid-cell">
                             <div title={p.networkOperator || ''}>{p.networkOperator || '—'}</div>

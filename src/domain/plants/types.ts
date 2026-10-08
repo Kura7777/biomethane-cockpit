@@ -87,7 +87,7 @@ export interface BiomethanePlant {
   // Origination & Compliance Attributes (EEG 2027 Cliff & RED III UDB Trackers)
   supportScheme?: string | null; // e.g. 'EEG' | 'FR_TARIF_ACHAT' | 'SDE++' | 'UK_RHI' | 'NONE'
   supportExpiryDate?: string | null; // ISO string / Year e.g. '2026-12-31'
-  verifiedCarbonIntensity?: number | null; // gCO2e/MJ audited CI
+  verifiedCarbonIntensity?: number | null; // gCO2e/MJ census value, bulk-assigned, not used — see domain/trade/dealDefaults.ts plantCi()
   auditedCarbonIntensity?: number | null;
   canonicalFeedstockKey?: string | null;
   primaryUpgradingTech?: string | null;

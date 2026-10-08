@@ -100,11 +100,13 @@ describe('dealDefaults', () => {
     });
   });
 
-  describe('Zero is a real CI', () => {
-    it('plantCi with verifiedCarbonIntensity: 0 returns 0 and ciIsEstimated: true', () => {
-      const res = plantCi({ verifiedCarbonIntensity: 0, countryCode: 'DK' });
-      expect(res.ci).toBe(0);
-      expect(res.ciIsEstimated).toBe(true);
+  describe('plantCi never reads verifiedCarbonIntensity', () => {
+    it('plantCi ignores verifiedCarbonIntensity and always returns the feedstock default', () => {
+      const withCi = plantCi({ verifiedCarbonIntensity: 0, canonicalFeedstockKey: 'manure' } as any);
+      const withoutCi = plantCi({ canonicalFeedstockKey: 'manure' } as any);
+      expect(withCi.ci).toBe(withoutCi.ci);
+      expect(withCi.ci).toBe(getAssumption('feedstock.defaultCi.manure'));
+      expect(withCi.ciIsEstimated).toBe(true);
     });
   });
 });
