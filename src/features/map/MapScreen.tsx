@@ -307,7 +307,10 @@ export function MapScreen() {
   const [view, setView] = useState<MapView>('SELL');
   const [filter, setFilter] = useState<RouteFilter>(initialParams.filter);
 
-  // Keep URL query params synchronized with corridor selection
+  // Keep URL query params synchronized with corridor selection. Carries the `plant` param
+  // (Plants "Where can this gas go?" hand-off) forward unchanged — it's consumed elsewhere by
+  // reading searchParams directly, not by this effect, so rewriting with only origin/target/filter
+  // would silently drop it on the very first render.
   useEffect(() => {
     const originIso = COUNTRIES[origin]?.iso || 'DK';
     const targetIso = COUNTRIES[target]?.iso || 'DE';
@@ -316,7 +319,13 @@ export function MapScreen() {
     const urlFilter = searchParams.get('filter')?.toUpperCase();
 
     if (urlOrigin !== originIso || urlTarget !== targetIso || urlFilter !== filter) {
-      setSearchParams({ origin: originIso, target: targetIso, filter }, { replace: true });
+      const plantParam = searchParams.get('plant');
+      setSearchParams(
+        plantParam
+          ? { origin: originIso, target: targetIso, filter, plant: plantParam }
+          : { origin: originIso, target: targetIso, filter },
+        { replace: true }
+      );
     }
   }, [origin, target, filter, searchParams, setSearchParams]);
 
