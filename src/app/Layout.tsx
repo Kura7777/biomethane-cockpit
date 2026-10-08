@@ -1,5 +1,5 @@
 import React, { Suspense, useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { Outlet, useNavigate, useLocation, NavLink } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { ErrorBoundary } from '../shared/components/ErrorBoundary';
 import { CommandPalette } from '../shared/components/CommandPalette';
 import { Header } from './Header';
@@ -206,7 +206,7 @@ export function Layout() {
           )}
         </div>
 
-        {/* Bottom Right: Auto-Save, Hard Drive Backup, Connectors & Shortcuts */}
+        {/* Bottom Right: Auto-Save, Hard Drive Backup & Shortcuts */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           {/* Live Auto-Save Indicator & 1-Click Backup */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -270,23 +270,7 @@ export function Layout() {
 
           <span style={{ opacity: 0.3 }}>│</span>
 
-          {/* Connectors Quick Link */}
-          <NavLink
-            to="/connectors"
-            style={{
-              color: 'var(--color-muted)',
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-              fontSize: '11px',
-            }}
-            title="TSO & API Data Connectors"
-          >
-            <span>🔌 Connectors</span>
-          </NavLink>
-
-          <span style={{ opacity: 0.3 }}>│</span>
+          {/* Connectors hidden from the footer until there are live data feeds; /connectors still routes. */}
 
           <span>Keys 1–7 screens · ⌘K command</span>
         </div>

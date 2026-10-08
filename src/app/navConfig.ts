@@ -46,7 +46,7 @@ export const SIDEBAR_ITEMS: NavItem[] = [
   { to: '/corporate', label: 'Corporate orders', keyHint: 'Q', icon: Briefcase },
   { to: '/pricing', label: 'Pricing Desk', keyHint: '5', icon: FileSpreadsheet },
   { to: '/deals', label: 'Deal Blotter', keyHint: '', icon: BookOpen },
-  { to: '/connectors', label: 'Data Connectors', keyHint: 'K', icon: Zap },
+  // Data Connectors hidden here until there are live data feeds; /connectors still routes.
   { to: '/data-sources', label: 'Data Sources', keyHint: '7', icon: Database },
   { to: '/regulation-check', label: 'Regulation check', keyHint: '', icon: ShieldAlert },
 ];

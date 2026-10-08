@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Search, Scale, Sun, Moon, Zap, ChevronRight, Download, FolderOpen, Share } from 'lucide-react';
+import { Search, Scale, Sun, Moon, ChevronRight, Download, FolderOpen, Share } from 'lucide-react';
 import { Sheet } from '../shared/ui/Sheet';
 import { useAppState, buildDeskBackupFile } from '../store/context';
 import { useTheme } from '../store/theme';
@@ -36,7 +35,6 @@ export function DeskSheet({
 }: DeskSheetProps) {
   const { state } = useAppState();
   const { theme, toggleTheme } = useTheme();
-  const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [installState, setInstallState] = useState(getInstallState());
 
@@ -94,11 +92,7 @@ export function DeskSheet({
           <span className="desk-sheet-row-label">Theme</span>
           <span className="desk-sheet-row-value">{theme === 'dark' ? 'Dark' : 'Light'}</span>
         </button>
-        <button type="button" className="desk-sheet-row" onClick={() => { onClose(); navigate('/connectors'); }}>
-          <Zap size={17} className="desk-sheet-row-icon" aria-hidden="true" />
-          <span className="desk-sheet-row-label">Connectors</span>
-          <ChevronRight size={16} className="desk-sheet-row-chevron" aria-hidden="true" />
-        </button>
+        {/* Connectors hidden from the nav until there are live data feeds; the route stays so it can come back. */}
       </div>
 
       <div className="desk-sheet-group">
