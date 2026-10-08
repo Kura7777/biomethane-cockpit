@@ -43,7 +43,6 @@ export const REGISTRIES = {
       },
       {
         use: ['EXDOMAIN'],
-        use: ['EXDOMAIN'],
         claim: 'Ex-domain cancellation prohibited except exceptional agreement',
         url: 'https://www.aib-net.org/sites/default/files/assets/facts/domain-protocols/AIB-2024-DPAT-E-Control%20Austria%20Domain%20Protocol%2025052023_Correction%20200092024_clean%20version_.pdf',
         quote: 'Cancelation for usage in another Domain (i.e., Ex Domain Cancellations) is not allowed (in exceptional cases only within AIB Members and under the precondition to sign a cancellation agreement).',
@@ -868,7 +867,6 @@ export const REGISTRIES = {
         grade: 'PRIMARY'
       },
       {
-        use: ['DEST'],
         use: ['DEST'],
         claim: 'Swedish Domain Protocol R5 restricts imports to EU/treaty states and bars ex-domain',
         url: 'https://www.aib-net.org/sites/default/files/assets/facts/domain-protocols/AIB-2026-DPSE-Domain%20Protocol%20Sweden%202026%20Release%205%20Clean.pdf',
