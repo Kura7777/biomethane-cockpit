@@ -590,7 +590,7 @@ Headquarters Address: ${plant.headquartersAddress || 'N/A'}${tag('headquartersAd
               type="button"
               onClick={() => {
                 onClose();
-                navigate(`/map?origin=${encodeURIComponent(plant.countryCode)}`);
+                navigate(`/map?origin=${encodeURIComponent(plant.countryCode)}&plant=${encodeURIComponent(plant.id)}`);
               }}
               style={{
                 display: 'inline-flex',

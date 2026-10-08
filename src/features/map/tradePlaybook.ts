@@ -5,8 +5,10 @@ import {
   getMarketAndCocForRoute,
   defaultVolumeMwh,
   defaultCi,
+  plantDealParams,
   type RouteCertFilter,
 } from '../../domain/trade/dealDefaults';
+import type { BiomethanePlant } from '../../domain/plants/types';
 
 export type TradeArchetype = 'BOTH' | 'CERT_ONLY' | 'POS_ONLY' | 'CHECK_FIRST' | 'CLOSED' | 'NO_DATA';
 
@@ -29,16 +31,29 @@ export interface TradePlaybookDetails {
  * Builds the canonical Trade Builder link for a corridor from audited route data,
  * matching market, chain of custody (GO -> BOOK_AND_CLAIM, PoS -> MASS_BALANCE),
  * and calibrated volume and CI from dealDefaults.
+ *
+ * When `plant` is given (the map was reached from a specific plant via Plants/Origination),
+ * the link carries that plant's own name, feedstock, CI and volume (plantDealParams) instead of
+ * the generic no-plant default. With no plant, the corridor defaults to manure at the feedstock's
+ * flat default CI — callers must label this as a default, not an audited value.
  */
 export function getPlaybookDealUrl(
   originIso: string,
   targetIso: string,
   r: CertificateRoute | undefined,
   filter: RouteCertFilter = 'ALL',
+  plant?: BiomethanePlant | null,
 ): string | null {
   if (!r) return null;
   const target = getMarketAndCocForRoute(r, filter);
   if (!target) return null;
+  if (plant) {
+    return buildDealUrl({
+      ...plantDealParams(plant),
+      marketId: target.marketId,
+      coc: target.coc,
+    });
+  }
   const ciData = defaultCi(originIso, 'manure');
   return buildDealUrl({
     originCountry: originIso,

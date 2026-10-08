@@ -18,6 +18,7 @@ import { LogisticsModal } from '../logistics/LogisticsModal';
 import { RouteVerdictCard, posOpenId } from './RouteVerdictCard';
 import { getPlaybookDealUrl } from './tradePlaybook';
 import { buildDealUrl } from '../../domain/trade/dealParams';
+import { COMBINED_BIOMETHANE_PLANTS } from '../../domain/plants/registry';
 import { calculateLogisticsRoute, calculateDijkstraCorridor } from '../../domain/logistics/engine';
 import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
 import { getMarketForRoute, getMarketAndCocForRoute } from '../../domain/trade/dealDefaults';
@@ -639,9 +640,18 @@ export function MapScreen() {
 
   const currentTradeTarget = useMemo(() => getMarketAndCocForRoute(currentRoute, filter), [currentRoute, filter]);
 
+  // The plant this map session was reached from (Plants "Where can this gas go?"), only while its
+  // own country is still the selected origin — swapping origin drops the plant-specific hand-off.
+  const linkedPlantId = searchParams.get('plant');
+  const linkedPlant = useMemo(() => {
+    if (!linkedPlantId) return null;
+    return COMBINED_BIOMETHANE_PLANTS.find(p => p.id === linkedPlantId) ?? null;
+  }, [linkedPlantId]);
+  const activeLinkedPlant = linkedPlant && linkedPlant.countryCode === originMeta.iso ? linkedPlant : null;
+
   const handleSimulateTrade = () => {
     if (!currentTradeTarget) return;
-    const dealUrl = getPlaybookDealUrl(originMeta.iso, targetMeta.iso, currentRoute, filter);
+    const dealUrl = getPlaybookDealUrl(originMeta.iso, targetMeta.iso, currentRoute, filter, activeLinkedPlant);
     if (dealUrl) {
       navigate(dealUrl);
     }
@@ -1091,6 +1101,12 @@ export function MapScreen() {
         </div>
       </div>
 
+      <div className="mut" style={{ fontSize: '11px', marginBottom: '6px' }}>
+        {activeLinkedPlant
+          ? `Sourced from ${activeLinkedPlant.name}`
+          : 'Feedstock: manure (default — choose in Trade Builder)'}
+      </div>
+
       <button
         type="button"
         className="btn btn-primary btn-block"
@@ -1138,7 +1154,7 @@ export function MapScreen() {
           </button>
 
           {playbook.isTradeable && (() => {
-            const rowDealUrl = getPlaybookDealUrl(originMeta.iso, r.target, r, filter);
+            const rowDealUrl = getPlaybookDealUrl(originMeta.iso, r.target, r, filter, activeLinkedPlant);
             return (
               <button
                 type="button"
@@ -1940,7 +1956,7 @@ export function MapScreen() {
               setCtxMenu(null);
             };
             const ctxRoute = getCertificateRoute(originMeta.iso, c.iso);
-            const ctxDealUrl = getPlaybookDealUrl(originMeta.iso, c.iso, ctxRoute, filter);
+            const ctxDealUrl = getPlaybookDealUrl(originMeta.iso, c.iso, ctxRoute, filter, activeLinkedPlant);
             const items: { label: string; onClick: () => void; disabled?: boolean; title?: string }[] = [
               { label: isO ? 'Origin (current)' : 'Set as origin', onClick: run(() => setOriginFromMenu(ctxMenu.name)), disabled: isO },
               { label: isT ? 'Target (current)' : 'Set as target', onClick: run(() => setTargetFromMenu(ctxMenu.name)), disabled: isT },

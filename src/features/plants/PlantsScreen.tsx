@@ -894,7 +894,7 @@ export function PlantsScreen() {
                                 type="button"
                                 onClick={e => {
                                   e.stopPropagation();
-                                  navigate(`/map?origin=${encodeURIComponent(p.countryCode)}`);
+                                  navigate(`/map?origin=${encodeURIComponent(p.countryCode)}&plant=${encodeURIComponent(p.id)}`);
                                 }}
                                 style={{
                                   display: 'inline-flex',
@@ -971,7 +971,7 @@ export function PlantsScreen() {
                                 className="plants-corridor-link"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  navigate(`/map?origin=${encodeURIComponent(p.countryCode)}`);
+                                  navigate(`/map?origin=${encodeURIComponent(p.countryCode)}&plant=${encodeURIComponent(p.id)}`);
                                 }}
                                 title={`Where can this gas go? (View ${p.countryCode} corridors)`}
                                 style={{

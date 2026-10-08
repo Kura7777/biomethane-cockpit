@@ -135,7 +135,7 @@ export function PlantsSidePanel({
       <button
         type="button"
         className="btn btn-secondary plants-panel-btn"
-        onClick={() => navigate(`/map?origin=${encodeURIComponent(plant.countryCode)}`)}
+        onClick={() => navigate(`/map?origin=${encodeURIComponent(plant.countryCode)}&plant=${encodeURIComponent(plant.id)}`)}
         title={`View cross-border corridors for ${plant.countryCode}`}
       >
         Where can this gas go?
