@@ -787,7 +787,9 @@ describe('SITE-WIDE ACCURACY & MATHEMATICAL GROUND-TRUTH AUDIT', () => {
           chainOfCustody: 'BOOK_AND_CLAIM',
           delivery: { type: 'CALENDAR', startDate: '2026-01-01', endDate: '2026-12-31', complianceYear: 2026 },
           volumeMwh: 25000,
-          constraints: { maxCarbonIntensity: 15, maxDeliveredCostEurMwh: null, physicalDeliveryRequired: false },
+          // 25, not 15: food_waste's flat feedstock default CI is 20 (feedstock.defaultCi.food_waste) —
+          // the buyer's max CI is a real filter now (Finding #1), so it must actually admit that default.
+          constraints: { maxCarbonIntensity: 25, maxDeliveredCostEurMwh: null, physicalDeliveryRequired: false },
           counterparty: 'Tech Data Center',
           notes: 'Voluntary Scope 1',
         },
