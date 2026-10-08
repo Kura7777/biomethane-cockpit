@@ -83,7 +83,8 @@ function AppContent() {
 
             {/* Plants & Registries Pages */}
             <Route path="/plants" element={<PlantsScreen />} />
-            <Route path="/plants/pipeline" element={<OriginationPipelineScreen />} />
+            {/* /origination is the one address for this screen; the old plants-prefixed path redirects here. */}
+            <Route path="/plants/pipeline" element={<Navigate to="/origination" replace />} />
             <Route path="/origination" element={<OriginationPipelineScreen />} />
             <Route path="/registries" element={<RegistriesScreen />} />
             <Route path="/data-sources" element={<DataSourcesScreen />} />

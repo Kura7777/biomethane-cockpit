@@ -12,6 +12,8 @@ export const ROUTES: { path: string; name: string }[] = [
   { path: '/marks', name: 'Marks & broker run' },
   { path: '/pricing', name: 'Pricing desk alias' },
   { path: '/plants', name: 'Plants registry' },
+  { path: '/plants/pipeline', name: 'Origination pipeline (plants alias, redirects to /origination)' },
+  { path: '/origination', name: 'Origination pipeline' },
   { path: '/registries', name: 'Registries hub' },
   { path: '/data-sources', name: 'Data sources & provenance' },
   { path: '/provenance', name: 'Provenance alias' },
@@ -98,7 +100,8 @@ export async function clearDeskState(page: Page) {
  * FuelEU desk, the origination pipeline, connectors, assumptions...) and also carries
  * a couple of pure `<Navigate>` aliases (/risk, /value-stack) that render nothing of
  * their own — this list is the routing table's actual surface area, aliases included,
- * redirects excluded.
+ * redirects excluded. /plants/pipeline is now a redirect to /origination, so it lives
+ * in ROUTES, not here.
  */
 export const MOBILE_ROUTES: { path: string; name: string }[] = [
   { path: '/', name: 'Sourcing desk (landing)' },
@@ -108,7 +111,6 @@ export const MOBILE_ROUTES: { path: string; name: string }[] = [
   { path: '/pricing', name: 'Pricing desk alias' },
   { path: '/marks', name: 'Marks & broker run' },
   { path: '/plants', name: 'Plants registry' },
-  { path: '/plants/pipeline', name: 'Origination pipeline (plants alias)' },
   { path: '/origination', name: 'Origination pipeline' },
   { path: '/registries', name: 'Registries hub' },
   { path: '/data-sources', name: 'Data sources & provenance' },
