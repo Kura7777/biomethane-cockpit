@@ -421,7 +421,7 @@ export function parseBrokerRunText(
     }
 
     // Determine delimiter: tab, pipe, semicolon, comma, colon
-    let parts: string[] = [];
+    let parts: string[];
     if (line.includes('\t')) {
       parts = line.split('\t');
     } else if (line.includes('|')) {
@@ -755,7 +755,7 @@ function parseSingleBrokerLine(line: string, id: string, gbpEurFx?: number): Bro
   }
 
   // 8. Institutional Product Class Disambiguation
-  let productClass: ProductClass = 'GO_VOLUNTARY';
+  let productClass: ProductClass;
   let quoteClass: BrokerMarketQuote['class'] = 'GO';
 
   const isHighValue = (numericBid !== null && numericBid > 70) || (numericOffer !== null && numericOffer > 70);

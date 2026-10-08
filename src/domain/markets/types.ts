@@ -166,7 +166,7 @@ export function getMarkAgeDays(
   target: string | null | undefined | MarkTimeObject
 ): number | null {
   if (!target) return null;
-  let dateStr: string | null = null;
+  let dateStr: string | null;
   if (typeof target === 'string') {
     dateStr = target;
   } else {

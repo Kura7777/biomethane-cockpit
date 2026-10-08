@@ -535,7 +535,7 @@ function quarantineUnreadableState(key: string, raw: string): void {
 
 function getInitialState(): AppState {
   for (const key of KNOWN_STORAGE_KEYS) {
-    let stored: string | null = null;
+    let stored: string | null;
     try {
       stored = localStorage.getItem(key);
     } catch (e) {

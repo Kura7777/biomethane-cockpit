@@ -268,8 +268,8 @@ function computeCertificateValueCore(
     return null; // No mark -> null, never zero
   }
 
-  let valueEurPerMWh: number | null = null;
-  let calculation = '';
+  let valueEurPerMWh: number | null;
+  let calculation: string;
   let unitConversion = '';
   let capped = false;
   let capReason: string | null = null;

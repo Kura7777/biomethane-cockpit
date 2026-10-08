@@ -348,9 +348,9 @@ export function evaluatePlantContactQuality(
   }
 
   // Determine overall confidence tier
-  let confidence: ContactConfidence = 'UNVERIFIED_LEAD';
-  let confidenceLabel = 'Unverified Lead';
-  let confidenceBadgeColor: 'red' | 'amber' | 'blue' | 'slate' = 'blue';
+  let confidence: ContactConfidence;
+  let confidenceLabel: string;
+  let confidenceBadgeColor: 'red' | 'amber' | 'blue' | 'slate';
 
   if (!hasEmail && !hasPhone) {
     confidence = 'NO_CONTACT';

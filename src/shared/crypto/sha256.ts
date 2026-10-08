@@ -9,8 +9,8 @@ export function sha256(ascii: string): string {
 
   const mathPow = Math.pow;
   const maxWord = mathPow(2, 32);
-  let i = 0;
-  let j = 0;
+  let i: number;
+  let j: number;
 
   const K: number[] = [];
   const H: number[] = [];

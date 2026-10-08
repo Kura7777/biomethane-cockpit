@@ -448,8 +448,8 @@ export function calculateVesselExposure(input: VesselCalculationInput): VesselCa
   let bioLngRequiredZeroCiMwh = 0;
   let physicalSavingsEur = 0;
   let physicalTradingMarginEur = 0;
-  let poolingSavingsEur: number | null = 0;
-  let poolingArrangementMarginEur: number | null = 0;
+  let poolingSavingsEur: number | null;
+  let poolingArrangementMarginEur: number | null;
   const poolPrices = input.poolPrices ?? null;
 
   if (!isOverCompliant) {

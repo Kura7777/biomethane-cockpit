@@ -279,7 +279,7 @@ export function calculateLogisticsRoute(
   const dsoInjectionCreditEurMwh = injectionIncentive?.creditEurMwh ?? 0;
 
   // Authentic spatial Dijkstra corridor distance across European pipeline transmission segments
-  let distanceKm: number | null = null;
+  let distanceKm: number | null;
   if (origin === target) {
     distanceKm = 0;
   } else {
@@ -416,7 +416,7 @@ export function calculateLogisticsRoute(
     ? Number((totalPhysicalTariffEurMwh + shrinkageEurMwh + physicalBalancingReserve + physicalPrismaAuctionFee + swapUdbCertificationFee).toFixed(2))
     : null;
 
-  let physicalSummary = '';
+  let physicalSummary: string;
   if (countryPath.length === 0) {
     physicalSummary = `No continuous interconnected physical pipeline route found between ${originName} and ${targetName}.`;
   } else if (unverifiedLegs.length > 0) {

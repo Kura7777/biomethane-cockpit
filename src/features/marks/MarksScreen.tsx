@@ -111,7 +111,7 @@ export function MarksScreen() {
         || (bookFilter === 'VOLUNTARY' && q.productClass === 'GO_VOLUNTARY');
 
       // Country filter
-      let matchCountry = false;
+      let matchCountry: boolean;
       if (selectedCountryGroup === 'ALL') {
         matchCountry = true;
       } else if (selectedCountryGroup === 'BALTICS') {
