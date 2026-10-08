@@ -1,5 +1,5 @@
-import { getAssumption } from '../assumptions/registry';
-import { FEEDSTOCK_REGISTRY, getCountryFeedstockCI } from '../consignment/feedstocks';
+import { getAssumption, feedstockDefaultCi } from '../assumptions/registry';
+import { FEEDSTOCK_REGISTRY } from '../consignment/feedstocks';
 import type { ChainOfCustody } from '../consignment/types';
 import { MARKETS } from '../markets/registry';
 import type { BiomethanePlant } from '../plants/types';
@@ -31,15 +31,16 @@ export function feedstockKeyForPlant(plant: {
 }
 
 /**
- * Returns the base default CI for an origin and feedstock key from audited profiles.
- * Always marked estimated.
+ * Returns the desk's default CI for a feedstock (Pricing desk → Desk assumptions). Always marked
+ * estimated. originIso is kept in the signature for callers that resolve a plant's country, but
+ * the default CI is one flat value per feedstock — it is not read.
  */
 export function defaultCi(
   originIso: string,
   feedstockKey: string
 ): { ci: number; ciIsEstimated: true } {
   return {
-    ci: getCountryFeedstockCI(originIso, feedstockKey, 'base').ci,
+    ci: feedstockDefaultCi(feedstockKey) ?? 0,
     ciIsEstimated: true,
   };
 }
