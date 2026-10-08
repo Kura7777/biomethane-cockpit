@@ -3,7 +3,6 @@ import { Market } from '../../../domain/markets/types';
 import { TradeAssessment } from '../../../domain/trade/types';
 import { DocumentTab } from '../LegalPackageModal';
 import { getVtpForMarket } from '../TradeBuilderScreen';
-import { generateStatutoryAuditMemoPdf } from '../../../domain/trade/legalPackage';
 import {
   RotateCcw,
   FileText,
@@ -91,8 +90,10 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
     setTimeout(() => setCopiedSummary(false), 2500);
   };
 
-  const handleDownloadAuditMemo = () => {
+  const handleDownloadAuditMemo = async () => {
+    showToast('Preparing PDF…');
     try {
+      const { generateStatutoryAuditMemoPdf } = await import('../../../domain/trade/legalPackagePdf');
       const doc = generateStatutoryAuditMemoPdf(currentTradeAssessment);
       const filename = `AUDIT-TR-${currentTradeAssessment.id}-${selectedMarket.id}.pdf`;
       doc.save(filename);

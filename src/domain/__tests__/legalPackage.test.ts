@@ -1,17 +1,19 @@
 import { describe, it, expect } from 'vitest';
-import { 
-  calculateTradeIntegritySeal, 
-  generateEfetBiomethaneAnnexPdf, 
-  generateCommercialTermSheetPdf,
-  generateStatutoryAuditMemoPdf,
+import {
+  calculateTradeIntegritySeal,
   generateEtrmCsvPayload,
   generateUdbNominationXmlPayload,
   inferDeskRole,
   resolveParties,
   describePricing,
   generateFpMLDealPayload,
-  generateEtrmJsonPayload 
+  generateEtrmJsonPayload
 } from '../trade/legalPackage';
+import {
+  generateEfetBiomethaneAnnexPdf,
+  generateCommercialTermSheetPdf,
+  generateStatutoryAuditMemoPdf,
+} from '../trade/legalPackagePdf';
 import { TradeAssessment } from '../trade/types';
 import { REFERENCE_CONSIGNMENTS } from '../consignment/feedstocks';
 import { MARKETS } from '../markets/registry';

@@ -16,7 +16,7 @@ import { defaultMarketForOrigin } from '../../domain/trade/dealDefaults';
 import { LogisticsModal } from '../logistics/LogisticsModal';
 import { LegalPackageModal, DocumentTab } from './LegalPackageModal';
 import { showToast } from '../../app/DeskToastContainer';
-import { generateEfetBiomethaneAnnexPdf, generateCommercialTermSheetPdf, downloadDealFile } from '../../domain/trade/legalPackage';
+import { downloadDealFile } from '../../domain/trade/legalPackage';
 import { PoSUploaderModal } from './PoSUploaderModal';
 import { ParsedPoSCertificate } from '../../domain/consignment/posParser';
 import { SIMULATED_SOURCE_NAME } from '../../domain/marks/simulate';
@@ -705,8 +705,10 @@ export function TradeBuilderScreen() {
     setJustSavedId(currentTradeAssessment.id);
   };
 
-  const handleExportPdf = () => {
+  const handleExportPdf = async () => {
+    showToast('Preparing PDF…');
     try {
+      const { generateEfetBiomethaneAnnexPdf } = await import('../../domain/trade/legalPackagePdf');
       const pdf = generateEfetBiomethaneAnnexPdf(currentTradeAssessment);
       downloadDealFile(`EFET_Annex_${selectedMarket.id}_${origin}.pdf`, pdf.output('blob'), 'application/pdf');
       showToast('EFET Annex PDF downloaded');
@@ -715,8 +717,10 @@ export function TradeBuilderScreen() {
     }
   };
 
-  const handleExportTermSheetPdf = () => {
+  const handleExportTermSheetPdf = async () => {
+    showToast('Preparing PDF…');
     try {
+      const { generateCommercialTermSheetPdf } = await import('../../domain/trade/legalPackagePdf');
       const pdf = generateCommercialTermSheetPdf(currentTradeAssessment);
       downloadDealFile(`TermSheet_${selectedMarket.id}_${origin}.pdf`, pdf.output('blob'), 'application/pdf');
       showToast('Commercial Term Sheet PDF downloaded');

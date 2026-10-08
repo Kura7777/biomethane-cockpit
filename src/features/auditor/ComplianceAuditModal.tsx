@@ -14,7 +14,6 @@ import {
   normalizeAuditorTab,
   normalizeTradeAuditContext
 } from '../../domain/auditor/types';
-import { generateStatutoryAuditMemoPdf } from '../../domain/trade/legalPackage';
 import { TradeAssessment } from '../../domain/trade/types';
 import { computeNetback } from '../../domain/netback/engine';
 import { Consignment } from '../../domain/consignment/types';
@@ -366,8 +365,10 @@ export function ComplianceAuditModal({
     };
   };
 
-  const handleExportPdf = () => {
+  const handleExportPdf = async () => {
+    showToast('Preparing PDF…');
     try {
+      const { generateStatutoryAuditMemoPdf } = await import('../../domain/trade/legalPackagePdf');
       const assessment = buildAssessmentForExport();
       const pdf = generateStatutoryAuditMemoPdf(assessment, {}, auditResult || undefined);
       const filename = `AUDIT-MEMO-${activeTrade.originCountry}-${activeTrade.targetMarketId}-${Date.now().toString().slice(-4)}.pdf`;

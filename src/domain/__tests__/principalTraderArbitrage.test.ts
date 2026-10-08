@@ -1,12 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import { parseBrokerRunText } from '../markets/brokerRunParser';
-import { 
-  generateCommercialTermSheetPdf, 
-  generateEtrmCsvPayload, 
-  generateUdbNominationXmlPayload, 
-  generateEfetBiomethaneAnnexPdf,
-  calculateTradeIntegritySeal 
+import {
+  generateEtrmCsvPayload,
+  generateUdbNominationXmlPayload,
+  calculateTradeIntegritySeal
 } from '../trade/legalPackage';
+import {
+  generateCommercialTermSheetPdf,
+  generateEfetBiomethaneAnnexPdf,
+} from '../trade/legalPackagePdf';
 import { TradeAssessment } from '../trade/types';
 import { REFERENCE_CONSIGNMENTS } from '../consignment/feedstocks';
 import { MARKETS } from '../markets/registry';

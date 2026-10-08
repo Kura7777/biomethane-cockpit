@@ -1,11 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { TradeAssessment } from '../../domain/trade/types';
-import { 
-  generateEfetBiomethaneAnnexPdf, 
-  generateCommercialTermSheetPdf,
-  generateStatutoryAuditMemoPdf,
-  generateFpMLDealPayload, 
-  generateEtrmJsonPayload, 
+import {
+  generateFpMLDealPayload,
+  generateEtrmJsonPayload,
   generateEtrmCsvPayload,
   generateUdbNominationXmlPayload,
   calculateTradeIntegritySeal,
@@ -119,30 +116,38 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
       setAuditMemoPdfBlobUrl('');
       return;
     }
-    try {
+    let tsUrl = '';
+    let efetUrl = '';
+    let auditUrl = '';
+    let cancelled = false;
+
+    import('../../domain/trade/legalPackagePdf').then(({
+      generateCommercialTermSheetPdf,
+      generateEfetBiomethaneAnnexPdf,
+      generateStatutoryAuditMemoPdf,
+    }) => {
+      if (cancelled) return;
       const tsDoc = generateCommercialTermSheetPdf(assessment, legalOptions);
-      const tsBlob = tsDoc.output('blob');
-      const tsUrl = URL.createObjectURL(tsBlob);
+      tsUrl = URL.createObjectURL(tsDoc.output('blob'));
       setTermSheetPdfBlobUrl(tsUrl);
 
       const efetDoc = generateEfetBiomethaneAnnexPdf(assessment, legalOptions);
-      const efetBlob = efetDoc.output('blob');
-      const efetUrl = URL.createObjectURL(efetBlob);
+      efetUrl = URL.createObjectURL(efetDoc.output('blob'));
       setEfetPdfBlobUrl(efetUrl);
 
       const auditDoc = generateStatutoryAuditMemoPdf(assessment, legalOptions);
-      const auditBlob = auditDoc.output('blob');
-      const auditUrl = URL.createObjectURL(auditBlob);
+      auditUrl = URL.createObjectURL(auditDoc.output('blob'));
       setAuditMemoPdfBlobUrl(auditUrl);
-
-      return () => {
-        URL.revokeObjectURL(tsUrl);
-        URL.revokeObjectURL(efetUrl);
-        URL.revokeObjectURL(auditUrl);
-      };
-    } catch (e) {
+    }).catch(e => {
       console.error('Failed to generate PDF preview blobs:', e);
-    }
+    });
+
+    return () => {
+      cancelled = true;
+      if (tsUrl) URL.revokeObjectURL(tsUrl);
+      if (efetUrl) URL.revokeObjectURL(efetUrl);
+      if (auditUrl) URL.revokeObjectURL(auditUrl);
+    };
   }, [isOpen, assessment, legalOptions]);
 
   // Document 3: ETRM CSV & JSON payloads
@@ -233,8 +238,10 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
     setTimeout(() => setCopiedType(null), 2500);
   };
 
-  const handleDownloadTermSheetPdf = () => {
+  const handleDownloadTermSheetPdf = async () => {
+    showToast('Preparing PDF…');
     try {
+      const { generateCommercialTermSheetPdf } = await import('../../domain/trade/legalPackagePdf');
       const doc = generateCommercialTermSheetPdf(assessment, legalOptions);
       const filename = `Indicative-TermSheet-${assessment.id}-${assessment.targetMarketId}.pdf`;
       doc.save(filename);
@@ -244,8 +251,10 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
     }
   };
 
-  const handleDownloadEfetPdf = () => {
+  const handleDownloadEfetPdf = async () => {
+    showToast('Preparing PDF…');
     try {
+      const { generateEfetBiomethaneAnnexPdf } = await import('../../domain/trade/legalPackagePdf');
       const doc = generateEfetBiomethaneAnnexPdf(assessment, legalOptions);
       const filename = `Draft-Confirmation-${assessment.id}-${assessment.targetMarketId}.pdf`;
       doc.save(filename);
@@ -281,8 +290,10 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
     }
   };
 
-  const handleDownloadAuditMemoPdf = () => {
+  const handleDownloadAuditMemoPdf = async () => {
+    showToast('Preparing PDF…');
     try {
+      const { generateStatutoryAuditMemoPdf } = await import('../../domain/trade/legalPackagePdf');
       const doc = generateStatutoryAuditMemoPdf(assessment, legalOptions);
       const filename = `PreScreen-${assessment.id}-${assessment.targetMarketId}.pdf`;
       doc.save(filename);
@@ -292,12 +303,12 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
     }
   };
 
-  const handleDownloadCompletePackage = () => {
-    handleDownloadTermSheetPdf();
-    handleDownloadEfetPdf();
+  const handleDownloadCompletePackage = async () => {
+    await handleDownloadTermSheetPdf();
+    await handleDownloadEfetPdf();
     handleDownloadEtrmCsv();
     handleDownloadUdbXml();
-    handleDownloadAuditMemoPdf();
+    await handleDownloadAuditMemoPdf();
     showToast('All 5 draft documents downloaded');
   };
 
