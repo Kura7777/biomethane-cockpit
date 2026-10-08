@@ -103,7 +103,7 @@ export function ShippingExposureStep({
       return [
         {
           title: 'Dual-Fuel Propulsion Leverage',
-          detail: `${counterparty.parent_name}'s fleet features ${counterparty.lng_vessels_in_scope} cryogenic Dual-Fuel LNG vessels calling European hubs (${counterparty.primary_bunkering_hubs}), ready for immediate physical Bio-LNG bunkering.`,
+          detail: `${counterparty.parent_name}'s fleet features ${counterparty.lng_vessels_in_scope} cryogenic Dual-Fuel LNG vessels calling ${counterparty.primary_bunkering_hubs || 'EU ports'}, ready for immediate physical Bio-LNG bunkering.`,
         },
         {
           title: 'Statutory Exposure Neutralisation',
@@ -111,7 +111,12 @@ export function ShippingExposureStep({
         },
         {
           title: 'Double Statutory Exemption (RED III + EU ETS)',
-          detail: `Bunkering ${(counterparty.bio_lng_required_neg100_t).toLocaleString()} tonnes of -100 CI manure Bio-LNG delivers 0.000 tCO2/t EU ETS zero-rating and captures +€${(counterparty.client_savings_physical_eur / counterparty.bio_lng_required_neg100_t).toFixed(2)}/t in net client arbitrage.`,
+          // client_savings_physical_eur is the statutory penalty avoided net of the Bio-LNG premium
+          // for the fleet's WHOLE deficit — dividing it by bio_lng_required_neg100_t (the minimum
+          // tonnage needed to close that same deficit) produces a blended rate many multiples of any
+          // real Bio-LNG market price (see spine-fix-report.md item 5), not a usable per-tonne margin.
+          // Show the total saving instead.
+          detail: `Bunkering ${(counterparty.bio_lng_required_neg100_t).toLocaleString()} tonnes of -100 CI manure Bio-LNG delivers 0.000 tCO2/t EU ETS zero-rating and captures +€${(counterparty.client_savings_physical_eur / 1e6).toFixed(1)}M in net client arbitrage.`,
         },
         {
           title: 'Estimated Financial Uplift',

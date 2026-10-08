@@ -221,11 +221,11 @@ export function ShippingBunkerPricingStep({
           <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
             {isSurplus ? (
               <>
-                Monetising <strong style={{ color: 'var(--color-status-pos-text)' }}>+{(counterparty.compliance_balance_2026_tco2e / 1000).toFixed(1)} kt FuelEU surplus</strong> via Article 21 pooling · FuelEU database (Art. 19) registry transfer across <strong style={{ color: 'var(--color-accent)' }}>{counterparty.primary_bunkering_hubs}</strong>
+                Monetising <strong style={{ color: 'var(--color-status-pos-text)' }}>+{(counterparty.compliance_balance_2026_tco2e / 1000).toFixed(1)} kt FuelEU surplus</strong> via Article 21 pooling · FuelEU database (Art. 19) registry transfer across <strong style={{ color: 'var(--color-accent)' }}>{counterparty.primary_bunkering_hubs || 'EU ports'}</strong>
               </>
             ) : (
               <>
-                Structuring compliance for <strong style={{ color: 'var(--color-text)' }}>{counterparty.bio_lng_required_neg100_t.toLocaleString()} tonnes Bio-LNG</strong> ({counterparty.bio_lng_required_neg100_mwh.toLocaleString()} MWh) · Delivery at <strong style={{ color: 'var(--color-accent)' }}>{counterparty.primary_bunkering_hubs}</strong>
+                Structuring compliance for <strong style={{ color: 'var(--color-text)' }}>{counterparty.bio_lng_required_neg100_t.toLocaleString()} tonnes Bio-LNG</strong> ({counterparty.bio_lng_required_neg100_mwh.toLocaleString()} MWh) · Delivery at <strong style={{ color: 'var(--color-accent)' }}>{counterparty.primary_bunkering_hubs || 'EU ports'}</strong>
               </>
             )}
           </div>
