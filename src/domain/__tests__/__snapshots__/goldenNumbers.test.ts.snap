@@ -1,0 +1,185 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden numbers (refactor safety net) > FuelEU: statutory penalty and bio-LNG closure 1`] = `
+{
+  "closure": {
+    "energyMj": 5465958.021097,
+    "mwh": 1518.321673,
+    "tonnes": 109.31916,
+  },
+  "penaltyEur": 638488.060273,
+}
+`;
+
+exports[`golden numbers (refactor safety net) > calculateLogisticsRoute: DK to DE, all modes 1`] = `
+{
+  "distanceKm": 550,
+  "modes": {
+    "bioLng": 14.95,
+    "physicalPipeline": null,
+    "virtualSwap": 1.6,
+  },
+  "recommendedMode": "VIRTUAL_SWAP",
+}
+`;
+
+exports[`golden numbers (refactor safety net) > computeNetback: Danish manure 20,000 MWh across active compliance markets 1`] = `
+[
+  {
+    "certificateValueEurPerMwh": 197.05,
+    "marketId": "DE_THG",
+    "netNetback": 174.9,
+  },
+  {
+    "certificateValueEurPerMwh": 77.12,
+    "marketId": "FR_CPB",
+    "netNetback": 105.02,
+  },
+  {
+    "certificateValueEurPerMwh": 231.87,
+    "marketId": "NL_ERE",
+    "netNetback": 259.77,
+  },
+]
+`;
+
+exports[`golden numbers (refactor safety net) > priceCorporateOrder: GO-only spec against the default desk 1`] = `
+{
+  "annualValueEur": 212214,
+  "ctdAverageCostEurPerMwh": 18.2214,
+  "offerEurPerMWh": 21.2214,
+}
+`;
+
+exports[`golden numbers (refactor safety net) > scanEuropeanArbitrage: manure, 20,000 MWh, 2026 1`] = `
+{
+  "count": 784,
+  "top25": [
+    {
+      "deskNetMarginEurPerMWh": 1.25,
+      "key": "AT_AIB_GO",
+      "totalTerminalValueStackEurPerMWh": 53.96,
+    },
+    {
+      "deskNetMarginEurPerMWh": 2.76,
+      "key": "AT_AT_EGG",
+      "totalTerminalValueStackEurPerMWh": 112.54,
+    },
+    {
+      "deskNetMarginEurPerMWh": 2.31,
+      "key": "AT_BE_TRANSPORT",
+      "totalTerminalValueStackEurPerMWh": 97.1,
+    },
+    {
+      "deskNetMarginEurPerMWh": 2.3,
+      "key": "AT_CH_VSG",
+      "totalTerminalValueStackEurPerMWh": 96.97,
+    },
+    {
+      "deskNetMarginEurPerMWh": 2.27,
+      "key": "AT_CZ_POZE",
+      "totalTerminalValueStackEurPerMWh": 95.53,
+    },
+    {
+      "deskNetMarginEurPerMWh": 1.54,
+      "key": "AT_DE_GO",
+      "totalTerminalValueStackEurPerMWh": 64.92,
+    },
+    {
+      "deskNetMarginEurPerMWh": 4.34,
+      "key": "AT_DE_THG",
+      "totalTerminalValueStackEurPerMWh": 176.92,
+    },
+    {
+      "deskNetMarginEurPerMWh": 1.73,
+      "key": "AT_DK_GO",
+      "totalTerminalValueStackEurPerMWh": 73.92,
+    },
+    {
+      "deskNetMarginEurPerMWh": 2.18,
+      "key": "AT_EE_TRANSPORT",
+      "totalTerminalValueStackEurPerMWh": 92.18,
+    },
+    {
+      "deskNetMarginEurPerMWh": 1.8,
+      "key": "AT_ES_GDO",
+      "totalTerminalValueStackEurPerMWh": 76.93,
+    },
+    {
+      "deskNetMarginEurPerMWh": 1.07,
+      "key": "AT_EU_ETS1",
+      "totalTerminalValueStackEurPerMWh": 46.93,
+    },
+    {
+      "deskNetMarginEurPerMWh": 2.4,
+      "key": "AT_FI_TRANSPORT",
+      "totalTerminalValueStackEurPerMWh": 100.93,
+    },
+    {
+      "deskNetMarginEurPerMWh": 2.56,
+      "key": "AT_FR_CPB",
+      "totalTerminalValueStackEurPerMWh": 107.04,
+    },
+    {
+      "deskNetMarginEurPerMWh": 1.14,
+      "key": "AT_FR_GO",
+      "totalTerminalValueStackEurPerMWh": 50.42,
+    },
+    {
+      "deskNetMarginEurPerMWh": 2.42,
+      "key": "AT_FR_TIRUERT",
+      "totalTerminalValueStackEurPerMWh": 101.74,
+    },
+    {
+      "deskNetMarginEurPerMWh": 2.3,
+      "key": "AT_FUELEU",
+      "totalTerminalValueStackEurPerMWh": 96.21,
+    },
+    {
+      "deskNetMarginEurPerMWh": 2.12,
+      "key": "AT_IT_CIC",
+      "totalTerminalValueStackEurPerMWh": 88.03,
+    },
+    {
+      "deskNetMarginEurPerMWh": 2.15,
+      "key": "AT_LT_ALT_FUELS",
+      "totalTerminalValueStackEurPerMWh": 90.71,
+    },
+    {
+      "deskNetMarginEurPerMWh": 2.08,
+      "key": "AT_LV_CONEXUS",
+      "totalTerminalValueStackEurPerMWh": 88.05,
+    },
+    {
+      "deskNetMarginEurPerMWh": 6.42,
+      "key": "AT_NL_ERE",
+      "totalTerminalValueStackEurPerMWh": 261.79,
+    },
+    {
+      "deskNetMarginEurPerMWh": 1.53,
+      "key": "AT_NL_GO",
+      "totalTerminalValueStackEurPerMWh": 65.92,
+    },
+    {
+      "deskNetMarginEurPerMWh": 2.28,
+      "key": "AT_NO_STATNETT",
+      "totalTerminalValueStackEurPerMWh": 96,
+    },
+    {
+      "deskNetMarginEurPerMWh": 2.25,
+      "key": "AT_PL_OZE",
+      "totalTerminalValueStackEurPerMWh": 94.77,
+    },
+    {
+      "deskNetMarginEurPerMWh": 2.65,
+      "key": "AT_SE_TAX",
+      "totalTerminalValueStackEurPerMWh": 110.7,
+    },
+    {
+      "deskNetMarginEurPerMWh": 1.36,
+      "key": "AT_UK_RGGO",
+      "totalTerminalValueStackEurPerMWh": 59.3,
+    },
+  ],
+}
+`;
