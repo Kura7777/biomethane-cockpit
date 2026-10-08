@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MARKETS, getMarketById, isVoluntaryMarket } from '../../domain/markets/registry';
-import { FEEDSTOCK_REGISTRY, REFERENCE_CONSIGNMENTS, getCountryFeedstockCI } from '../../domain/consignment/feedstocks';
+import { FEEDSTOCK_REGISTRY, REFERENCE_CONSIGNMENTS } from '../../domain/consignment/feedstocks';
 import { feedstockDefaultCi } from '../../domain/assumptions/registry';
 import { Consignment, CertificationScheme, ChainOfCustody, AnnexClassification, DeliveryProfile, UDBStatus, PoSStatus } from '../../domain/consignment/types';
 import { TradeAssessment } from '../../domain/trade/types';
@@ -197,7 +197,6 @@ export function TradeBuilderScreen() {
     setPosStatus('PENDING');
     setCi(-100);
     setCiSource('deal');
-    setCiTier('base');
     setVolumeMwh(10000);
     setMarketId('DE_THG');
     setComplianceYear(2026);
@@ -245,7 +244,6 @@ export function TradeBuilderScreen() {
   // Where the CI on screen came from: the deal link, a feedstock/benchmark estimate, an uploaded PoS, or a manual slider edit.
   // Plant CIs in the census are feedstock defaults, so a plant-linked CI is never shown as verified.
   const [ciSource, setCiSource] = useState<'deal' | 'estimate' | 'pos' | 'manual'>('deal');
-  const [ciTier, setCiTier] = useState<'optimistic' | 'base' | 'conservative'>('base');
   const [marketId, setMarketId] = useState<string>(
     deal.marketId || state.selectedMarketId || getDefaultMarketForOrigin(deal.originCountry)
   );
@@ -1109,8 +1107,6 @@ export function TradeBuilderScreen() {
                         setPosStatus={setPosStatus}
                         ci={ci}
                         setCi={setCi}
-                        ciTier={ciTier}
-                        setCiTier={setCiTier}
                         ghgSavingPct={ghgSavingPct}
                         volumeMwh={volumeMwh}
                         setVolumeMwh={setVolumeMwh}
@@ -1617,25 +1613,6 @@ export function TradeBuilderScreen() {
                     Estimated CI
                   </span>
                 ) : null}
-                <div style={{ display: 'flex', gap: '2px' }}>
-                  {(['conservative', 'base', 'optimistic'] as const).map(t => (
-                    <button
-                      key={t}
-                      type="button"
-                      className={`chip ${ciTier === t ? 'chip-a' : ''}`}
-                      style={{ fontSize: '12px', padding: '1px 5px', textTransform: 'capitalize' }}
-                      onClick={() => {
-                        setCiTier(t);
-                        const benchmark = getCountryFeedstockCI(origin, feedstockKey, t);
-                        setCi(benchmark.ci);
-                        setCiSource('estimate');
-                      }}
-                      title={`Set ${t} ISCC benchmark CI for ${origin} ${feedstockKey}`}
-                    >
-                      {t.slice(0, 4)}
-                    </button>
-                  ))}
-                </div>
               </div>
               <span className="num" style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '22px' }}>
                 {ci >= 0 ? `+${ci}` : `−${Math.abs(ci)}`}
