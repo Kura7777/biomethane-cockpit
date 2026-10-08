@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Scale, Sun, Moon, Zap, SlidersHorizontal, ChevronRight, Download, FolderOpen, Share } from 'lucide-react';
+import { Search, Scale, Sun, Moon, Zap, ChevronRight, Download, FolderOpen, Share } from 'lucide-react';
 import { Sheet } from '../shared/ui/Sheet';
 import { useAppState, buildDeskBackupFile } from '../store/context';
 import { useTheme } from '../store/theme';
@@ -97,11 +97,6 @@ export function DeskSheet({
         <button type="button" className="desk-sheet-row" onClick={() => { onClose(); navigate('/connectors'); }}>
           <Zap size={17} className="desk-sheet-row-icon" aria-hidden="true" />
           <span className="desk-sheet-row-label">Connectors</span>
-          <ChevronRight size={16} className="desk-sheet-row-chevron" aria-hidden="true" />
-        </button>
-        <button type="button" className="desk-sheet-row" onClick={() => { onClose(); navigate('/settings'); }}>
-          <SlidersHorizontal size={17} className="desk-sheet-row-icon" aria-hidden="true" />
-          <span className="desk-sheet-row-label">Settings</span>
           <ChevronRight size={16} className="desk-sheet-row-chevron" aria-hidden="true" />
         </button>
       </div>

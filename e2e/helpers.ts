@@ -18,7 +18,7 @@ export const ROUTES: { path: string; name: string }[] = [
   { path: '/map', name: 'Compliance & logistics map' },
   { path: '/risk', name: 'Portfolio risk' },
   { path: '/citations', name: 'Statutory citations' },
-  { path: '/settings', name: 'Desk settings' },
+  { path: '/settings', name: 'Settings (redirects to Pricing desk)' },
   { path: '/ets2', name: 'EU ETS exposure' },
   { path: '/corporate', name: 'Corporate orders' },
   { path: '/value-stack', name: 'Value stack (redirects to Clients)' },
@@ -120,7 +120,6 @@ export const MOBILE_ROUTES: { path: string; name: string }[] = [
   { path: '/trade', name: 'Trade builder' },
   { path: '/citations', name: 'Statutory citations' },
   { path: '/connectors', name: 'Data connectors' },
-  { path: '/settings', name: 'Desk settings' },
   { path: '/assumptions', name: 'Assumptions' },
 ];
 

@@ -48,7 +48,6 @@ const RegistriesScreen = lazyWithRetry(() => import('../features/registries/Regi
 const CitationsScreen = lazyWithRetry(() => import('../features/citations/CitationsScreen').then(m => ({ default: m.CitationsScreen })));
 const DataSourcesScreen = lazyWithRetry(() => import('../features/provenance/DataSourcesScreen').then(m => ({ default: m.DataSourcesScreen })));
 const DataConnectorsScreen = lazyWithRetry(() => import('../features/settings/DataConnectorsScreen').then(m => ({ default: m.DataConnectorsScreen })));
-const SettingsScreen = lazyWithRetry(() => import('../features/settings/SettingsScreen').then(m => ({ default: m.SettingsScreen })));
 const CorporateOrderScreen = lazyWithRetry(() => import('../features/corporate/CorporateOrderScreen').then(m => ({ default: m.CorporateOrderScreen })));
 const ClientsScreen = lazyWithRetry(() => import('../features/clients/ClientsScreen').then(m => ({ default: m.ClientsScreen })));
 const Ets2Screen = lazyWithRetry(() => import('../features/ets2/Ets2Screen').then(m => ({ default: m.Ets2Screen })));
@@ -109,7 +108,8 @@ function AppContent() {
             <Route path="/library" element={<Navigate to="/trade" replace />} />
             <Route path="/citations" element={<CitationsScreen />} />
             <Route path="/connectors" element={<DataConnectorsScreen />} />
-            <Route path="/settings" element={<SettingsScreen />} />
+            {/* Settings had no real settings — Backup/Restore already covers it from the Pricing desk footer. */}
+            <Route path="/settings" element={<Navigate to="/pricing" replace />} />
             {/* Kept for old bookmarks — the Assumptions screen now lives inside the Pricing desk. */}
             <Route path="/assumptions" element={<Navigate to="/pricing?tab=assumptions" replace />} />
             <Route path="/regulation-check" element={<RegulationCheckScreen />} />
