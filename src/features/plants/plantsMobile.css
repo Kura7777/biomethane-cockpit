@@ -51,6 +51,13 @@
     font-size: 17px !important;
     overflow-wrap: anywhere;
   }
+  /* The netback-yield card's source chip is its last child, not a value div — it must stay
+     chip-sized and just wrap instead of inheriting the 17px/anywhere rule above. */
+  .opl-netback-chip {
+    font-size: 12px !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+  }
   .opl-filters {
     flex-direction: column;
     align-items: stretch !important;

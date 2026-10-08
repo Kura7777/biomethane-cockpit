@@ -432,6 +432,7 @@ export function OriginationPipelineScreen() {
             </div>
             <div style={{ marginTop: '6px' }}>
               <SourceChip
+                className="opl-netback-chip"
                 badge={deriveSourceBadge(netbackYield.provenance, SIMULATED_SOURCE_NAME)}
                 suffix={netbackYield.updatedAt ? `mark ${netbackYield.updatedAt.slice(0, 10)}` : undefined}
                 title="Best eligible market, net of costs, for each plant shown below"
