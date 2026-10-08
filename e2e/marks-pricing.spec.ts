@@ -9,35 +9,37 @@ test.describe('Marks & Pricing Desk', () => {
     await expectNoErrorBoundary(page);
 
     const main = page.locator('#main-content');
-    await expect(main).toContainText(/Pricing desk & broker runs/i);
+    await expect(main).toContainText(/Pricing Desk & Master Order Book/i);
     await expect(main).toContainText(/TTF M\+1/i);
     await expect(main).toContainText(/GBP \/ EUR/i);
-    await expect(main).toContainText(/CHF \/ EUR/i);
-    await expect(main).toContainText(/Marks filled/i);
 
-    // Verify marks table headers
-    await expect(main).toContainText('Market');
-    await expect(main).toContainText('Bid');
-    await expect(main).toContainText('Mid');
-    await expect(main).toContainText('Offer');
-    await expect(main).toContainText('Spread');
+    // Verify the order-book table headers
+    await expect(main).toContainText('Country');
+    await expect(main).toContainText('Class');
+    await expect(main).toContainText('BID Price');
+    await expect(main).toContainText('OFFER Price');
+    await expect(main).toContainText('Mark');
 
     expect(appErrors(errors)).toEqual([]);
   });
 
-  test('edits a mark and updates bid, offer, spread, and manual provenance', async ({ page }) => {
+  test('sets a broker quote as a market\'s reference mark', async ({ page }) => {
     const errors = collectPageErrors(page);
     await gotoScreen(page, '/marks');
 
-    const midInput = page.getByLabel(/^Mid mark for Germany THG/i).first();
-    await expect(midInput).toBeVisible();
+    // The order book's quotes are sourced, read-only broker data; the desk's one editable action
+    // per market is picking which quote row feeds the deal engines as that market's reference mark.
+    const useAsMarkBtn = page.getByRole('button', { name: 'Use as mark' }).first();
+    await expect(useAsMarkBtn).toBeVisible();
+    const row = useAsMarkBtn.locator('xpath=ancestor::tr');
+    const rowIndex = await page.locator('tbody tr').evaluateAll(
+      (rows, target) => rows.indexOf(target as HTMLTableRowElement),
+      await row.elementHandle(),
+    );
+    await useAsMarkBtn.click();
 
-    await midInput.fill('240.00');
-    await midInput.blur();
-
-    // Verify row reflects desk manual update
-    const row = page.locator('table.table tbody tr').filter({ hasText: /Germany THG/i }).first();
-    await expect(row).toContainText(/Desk · manual/i);
+    await expect(page.getByText(/Set as .+ reference mark/i)).toBeVisible();
+    await expect(page.locator('tbody tr').nth(rowIndex)).toContainText('★ Ref');
 
     expect(appErrors(errors)).toEqual([]);
   });
@@ -46,7 +48,7 @@ test.describe('Marks & Pricing Desk', () => {
     const errors = collectPageErrors(page);
     await gotoScreen(page, '/marks');
 
-    const exportBtn = page.getByRole('button', { name: /export snapshot/i });
+    const exportBtn = page.getByRole('button', { name: /export order book csv/i });
     await expect(exportBtn).toBeVisible();
 
     // The export creates an <a> tag and clicks it for download
@@ -60,18 +62,22 @@ test.describe('Marks & Pricing Desk', () => {
     const errors = collectPageErrors(page);
     await gotoScreen(page, '/marks');
 
-    const importBtn = page.getByRole('button', { name: /import broker run/i });
+    const importBtn = page.getByRole('button', { name: /paste broker run/i });
     await expect(importBtn).toBeVisible();
     await importBtn.click();
 
     const modal = page.getByRole('dialog', { name: /import broker run/i });
     await expect(modal).toBeVisible();
+
+    // The importer starts empty; paste a run with its own dated header so the commit button enables.
+    await modal.locator('#brokerRun').fill('Run dated 2026-09-12\nDE THG  280.00 / 290.00');
+
     await expect(modal).toContainText(/Lines detected/i);
     await expect(modal).toContainText(/Markets matched/i);
 
     // Commit parsed marks
     const commitBtn = modal.getByRole('button', { name: /parse and write/i });
-    await expect(commitBtn).toBeVisible();
+    await expect(commitBtn).toBeEnabled();
     await commitBtn.click();
 
     // Modal closes
