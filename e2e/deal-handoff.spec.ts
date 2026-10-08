@@ -33,7 +33,7 @@ test.describe('Deal Handoff & Query Parameter Survival', () => {
     expect(await isChipActive(page, /Book & claim/i), 'Chain of custody Book & claim was not selected').toBe(true);
 
     // Target Market in deal header
-    await expect(page.locator('#main-content')).toContainText(/NL_ERE/);
+    await expect(page.locator('#main-content')).toContainText(/Netherlands ERE/);
 
     // Volume & CI
     await page.getByRole('button', { name: /Volume & schedule/i }).first().click();
