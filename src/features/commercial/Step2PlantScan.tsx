@@ -185,7 +185,7 @@ export function Step2PlantScan({
           Select source biomethane facility
         </h1>
         <p style={{ color: 'var(--color-muted)' }} className="text-xs sm:text-sm font-normal max-w-2xl">
-          Scanned 1,975+ European plants. Filter by origin country, inspect census capacity and gate prices, and select a production asset:
+          Scanned 1,974+ European plants. Filter by origin country, inspect census capacity and gate prices, and select a production asset:
         </p>
       </div>
 

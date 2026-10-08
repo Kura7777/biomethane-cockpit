@@ -39,7 +39,7 @@ export function CommandPalette({ isOpen, onClose, onOpenPlaybook, onOpenImporter
     { kind: 'Screen', label: 'Trade builder', hint: '4', id: 's-trade', run: () => { navigate('/trade'); onClose(); } },
     { kind: 'Screen', label: 'Pricing desk & broker runs', hint: '5', id: 's-pricing', run: () => { navigate('/pricing'); onClose(); } },
     { kind: 'Screen', label: 'Portfolio risk & VaR', hint: 'R', id: 's-risk', run: () => { navigate('/risk'); onClose(); } },
-    { kind: 'Screen', label: 'Plant registry (1,975)', hint: '2', id: 's-plants', run: () => { navigate('/plants'); onClose(); } },
+    { kind: 'Screen', label: 'Plant registry (1,974)', hint: '2', id: 's-plants', run: () => { navigate('/plants'); onClose(); } },
     { kind: 'Screen', label: 'Registries & flow telemetry', hint: 'G', id: 's-registries', run: () => { navigate('/registries'); onClose(); } },
     { kind: 'Screen', label: 'Compliance & logistics map', hint: '3', id: 's-map', run: () => { navigate('/map'); onClose(); } },
     { kind: 'Screen', label: 'Statutory citations', hint: 'C', id: 's-citations', run: () => { navigate('/citations'); onClose(); } },

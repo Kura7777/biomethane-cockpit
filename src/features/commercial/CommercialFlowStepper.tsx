@@ -74,7 +74,7 @@ export function applyCiOverride(opps: SourcedOpportunity[], ciOverride: number |
 
 const STEPS = [
   { step: 1, title: '1. Order Intake', desc: 'Enter order specs' },
-  { step: 2, title: '2. Sourced Plants', desc: 'Scan 1,975+ facilities' },
+  { step: 2, title: '2. Sourced Plants', desc: 'Scan 1,974+ facilities' },
   { step: 3, title: '3. Route & Costs', desc: 'Corridor map & pricing' },
   { step: 4, title: '4. Deal Summary', desc: 'Indicative term sheet' },
 ];
@@ -91,7 +91,7 @@ export function CommercialFlowStepper() {
     return searchSourcingRoutes(request, state.marks, state.costs, DEFAULT_WHAT_IF_SCENARIO);
   }, [request, state.marks, state.costs]);
 
-  // Enrich with 1,975+ plants
+  // Enrich with 1,974+ plants
   const opportunities: SourcedOpportunity[] = useMemo(() => {
     const rawOpps = searchResult.tradeable;
     if (rawOpps.length === 0) return [];

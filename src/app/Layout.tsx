@@ -14,7 +14,7 @@ import { useIsMobile } from '../shared/hooks/useMediaQuery';
 // they're captured even before the mobile Desk sheet (the only current caller) ever mounts.
 import './installPrompt';
 
-const DATA_SOURCE_TEXT = 'GIE / EBA European Biomethane Map 2026 · 1,975 facilities · RED III consolidated to August 2026';
+const DATA_SOURCE_TEXT = 'GIE / EBA European Biomethane Map 2026 · 1,974 facilities · RED III consolidated to August 2026';
 
 export function Layout() {
   const navigate = useNavigate();

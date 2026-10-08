@@ -93,7 +93,7 @@ export function Step1OrderIntake({ request, onChange, onNext }: Step1OrderIntake
           Receive &amp; configure commercial order
         </h1>
         <p style={{ color: 'var(--color-muted)' }} className="text-xs sm:text-sm font-normal max-w-2xl">
-          Enter buyer specifications to scan 1,975+ European biomethane production plants, compute real-time margins, and structure your deal.
+          Enter buyer specifications to scan 1,974+ European biomethane production plants, compute real-time margins, and structure your deal.
         </p>
         {request.counterparty && (
           <div
@@ -451,7 +451,7 @@ export function Step1OrderIntake({ request, onChange, onNext }: Step1OrderIntake
         >
           <div style={{ color: 'var(--color-muted)' }} className="flex items-center gap-1.5 text-xs">
             <CheckCircle2 className="w-4 h-4 shrink-0" style={{ color: 'var(--color-status-pass-ink)' }} />
-            <span>Configured for <strong>1,975+</strong> real European biomethane production plants</span>
+            <span>Configured for <strong>1,974+</strong> real European biomethane production plants</span>
           </div>
           <button
             type="button"
