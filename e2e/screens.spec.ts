@@ -47,7 +47,7 @@ test.describe('Screen Rendering & Route Health', () => {
       Demand: ['Clients', 'EU ETS', 'FuelEU Maritime', 'Corporate orders'],
       Supply: ['Origination', 'Plants', 'Map', 'Registries'],
       Pricing: ['Pricing desk', 'Trade builder'],
-      Reference: ['Citations', 'Sources', 'Assumptions'],
+      Reference: ['Citations', 'Sources'],
     };
 
     const nav = page.getByRole('navigation', { name: 'Workspaces' });
