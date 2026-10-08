@@ -7,8 +7,13 @@ import { MobileTabBar } from './MobileTabBar';
 import { DeskToastContainer, showToast } from './DeskToastContainer';
 import { useAppState, downloadDeskBackup, readBackupFile } from '../store/context';
 import { SIMULATED_SOURCE_NAME } from '../domain/marks/simulate';
-import { ComplianceAuditModal } from '../features/auditor/ComplianceAuditModal';
 import { AuditorModalTab, normalizeAuditorTab, normalizeTradeAuditContext, TradeAuditContext } from '../domain/auditor/types';
+
+// Lazy: pulls in the statutory routes/certificate matrix (routeMatrix.generated.ts, ~2.8MB)
+// via geminiClient -> eligibility gates. Only fetched once the Auditor is first opened.
+const ComplianceAuditModal = React.lazy(() =>
+  import('../features/auditor/ComplianceAuditModal').then(m => ({ default: m.ComplianceAuditModal }))
+);
 import { useIsMobile } from '../shared/hooks/useMediaQuery';
 // Side-effect import: registers the beforeinstallprompt/appinstalled listeners at startup so
 // they're captured even before the mobile Desk sheet (the only current caller) ever mounts.
@@ -23,10 +28,17 @@ export function Layout() {
   const isMobile = useIsMobile();
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   const [isAuditorOpen, setIsAuditorOpen] = useState(false);
+  // Keeps the (lazy-loaded) modal mounted after its first open so chat state
+  // and tab selection persist across closes, matching the pre-lazy behaviour.
+  const [auditorMounted, setAuditorMounted] = useState(false);
   const [activeAuditDeal, setActiveAuditDeal] = useState<TradeAuditContext | undefined>(undefined);
   const [auditorInitialTab, setAuditorInitialTab] = useState<AuditorModalTab>('GATE_BREAKDOWN');
   const [auditorFocusedGate, setAuditorFocusedGate] = useState<number | undefined>(undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isAuditorOpen) setAuditorMounted(true);
+  }, [isAuditorOpen]);
 
   const handleBackup = useCallback(() => {
     try {
@@ -294,17 +306,21 @@ export function Layout() {
       {/* Global Command Palette Modal */}
       <CommandPalette isOpen={isPaletteOpen} onClose={() => setIsPaletteOpen(false)} />
 
-      {/* Global Statutory Compliance Auditor Modal */}
-      <ComplianceAuditModal 
-        isOpen={isAuditorOpen} 
-        onClose={() => {
-          setIsAuditorOpen(false);
-          setAuditorFocusedGate(undefined);
-        }} 
-        dealContextOverride={activeAuditDeal}
-        initialTab={auditorInitialTab}
-        focusedGateIndex={auditorFocusedGate}
-      />
+      {/* Global Statutory Compliance Auditor Modal — lazy, so it only loads once opened */}
+      {auditorMounted && (
+        <Suspense fallback={null}>
+          <ComplianceAuditModal
+            isOpen={isAuditorOpen}
+            onClose={() => {
+              setIsAuditorOpen(false);
+              setAuditorFocusedGate(undefined);
+            }}
+            dealContextOverride={activeAuditDeal}
+            initialTab={auditorInitialTab}
+            focusedGateIndex={auditorFocusedGate}
+          />
+        </Suspense>
+      )}
 
       {/* Global Toast Container */}
       <DeskToastContainer />
