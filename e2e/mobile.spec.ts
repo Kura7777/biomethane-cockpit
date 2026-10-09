@@ -312,7 +312,10 @@ test.describe('inputs', () => {
 });
 
 test.describe('pwa', () => {
-  test.beforeEach(async (_fixtures, testInfo) => {
+  // Playwright requires the first param to be an object-destructuring pattern (its fixture
+  // injection mechanism parses the source), even when no fixture is needed here.
+  // eslint-disable-next-line no-empty-pattern
+  test.beforeEach(async ({}, testInfo) => {
     test.skip(testInfo.project.name !== 'mobile-chrome', 'Service worker / install checks run once, on mobile-chrome only');
   });
 
