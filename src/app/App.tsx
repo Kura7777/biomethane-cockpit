@@ -73,7 +73,7 @@ function AppContent() {
         <Routes>
           <Route element={<Layout />}>
             {/* Primary Workspaces */}
-            <Route path="/" element={<CommercialFlowStepper />} />
+            <Route path="/" element={<MorningBriefScreen />} />
             <Route path="/sourcing" element={<CommercialFlowStepper />} />
             <Route path="/commercial" element={<CommercialFlowStepper />} />
             <Route path="/desk" element={<Navigate to="/sourcing" replace />} />
@@ -107,7 +107,7 @@ function AppContent() {
             {/* Supporting Tools & Desks */}
             <Route path="/trade" element={<TradeBuilderScreen />} />
             <Route path="/deals" element={<DealsScreen />} />
-            <Route path="/risk" element={<Navigate to="/" replace />} />
+            <Route path="/risk" element={<Navigate to="/sourcing" replace />} />
             <Route path="/library" element={<Navigate to="/trade" replace />} />
             <Route path="/citations" element={<CitationsScreen />} />
             <Route path="/connectors" element={<DataConnectorsScreen />} />

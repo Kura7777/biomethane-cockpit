@@ -124,7 +124,7 @@ export function Layout() {
         return;
       }
 
-      if (k === 'b') navigate('/brief');
+      if (k === 'b') navigate('/');
       if (e.key === '1') navigate('/sourcing');
       if (e.key === '2') navigate('/plants');
       if (e.key === '3') navigate('/map');

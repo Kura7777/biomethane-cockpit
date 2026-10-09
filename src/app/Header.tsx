@@ -61,7 +61,7 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
 
   return (
     <header className="app-header select-none z-50">
-      <button type="button" className="app-brand" onClick={() => navigate('/sourcing')}>
+      <button type="button" className="app-brand" onClick={() => navigate('/')}>
         <span className="app-brand-mark" aria-hidden="true">
           <Flame size={13} strokeWidth={2.25} />
         </span>
@@ -76,7 +76,7 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
       <span className="app-header-sep" aria-hidden="true" />
 
       <nav className="app-header-nav" aria-label="Workspaces" ref={navRef}>
-        <NavLink to="/brief" className={({ isActive }) => `app-tab ${isActive ? 'active' : ''}`} title="Morning brief (B)">
+        <NavLink to="/" className={`app-tab ${isNavItemActive('/brief', location.pathname) ? 'active' : ''}`} title="Morning brief (B)">
           <Sunrise size={13} aria-hidden="true" style={{ marginRight: 6 }} />
           <span>Brief</span>
         </NavLink>

@@ -5,7 +5,7 @@ export const routeUrl = (path: string) => `/#${path}`;
 
 /** Every path declared in src/app/App.tsx, with a heading each screen must show. */
 export const ROUTES: { path: string; name: string }[] = [
-  { path: '/', name: 'Sourcing desk (landing)' },
+  { path: '/', name: 'Morning brief (landing)' },
   { path: '/sourcing', name: 'Sourcing desk' },
   { path: '/commercial', name: 'Commercial sourcing alias' },
   { path: '/brief', name: 'Morning brief' },
@@ -105,7 +105,7 @@ export async function clearDeskState(page: Page) {
  * in ROUTES, not here.
  */
 export const MOBILE_ROUTES: { path: string; name: string }[] = [
-  { path: '/', name: 'Sourcing desk (landing)' },
+  { path: '/', name: 'Morning brief (landing)' },
   { path: '/sourcing', name: 'Sourcing desk' },
   { path: '/commercial', name: 'Commercial sourcing alias' },
   { path: '/brief', name: 'Morning brief' },

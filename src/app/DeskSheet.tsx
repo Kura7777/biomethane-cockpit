@@ -79,7 +79,7 @@ export function DeskSheet({
     <Sheet open={open} onClose={onClose} title="Desk" testId="desk-sheet" ariaLabel="Desk">
       <div className="desk-sheet-group">
         <div className="desk-sheet-group-title">Tools</div>
-        <button type="button" className="desk-sheet-row" onClick={() => { onClose(); navigate('/brief'); }}>
+        <button type="button" className="desk-sheet-row" onClick={() => { onClose(); navigate('/'); }}>
           <Sunrise size={17} className="desk-sheet-row-icon" aria-hidden="true" />
           <span className="desk-sheet-row-label">Morning brief</span>
           <ChevronRight size={16} className="desk-sheet-row-chevron" aria-hidden="true" />
