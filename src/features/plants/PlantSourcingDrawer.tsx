@@ -108,7 +108,7 @@ export function PlantSourcingDrawer({ plant, onClose }: PlantSourcingDrawerProps
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [onClose]);
 
   if (!plant) return null;
 
