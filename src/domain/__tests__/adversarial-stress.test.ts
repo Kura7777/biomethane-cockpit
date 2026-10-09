@@ -509,8 +509,12 @@ describe('Empirical Adversarial Stress & Fuzz Suite (Milestone 1 & 3 Verificatio
 
         for (const a of assessments) {
           expect(['ELIGIBLE', 'CONDITIONAL', 'UNRESOLVED', 'UNKNOWN', 'HARD_BLOCK']).toContain(a.overallVerdict);
-          // 5 statutory gates emitted (with UDB, registry transfer and cross-border PoS folded into CHAIN_OF_CUSTODY)
+          // 5 gates: UDB, registry transfer and cross-border PoS are items of CHAIN_OF_CUSTODY (job GGE-1 step 5).
+          // Registry transfer applies only to GO markets, cross-border PoS only to the others.
           expect(a.gates.length).toBe(5);
+          const items = a.gates.find(g => g.gate === 'CHAIN_OF_CUSTODY')?.checklist?.map(i => i.id) ?? [];
+          const market = MARKETS.find(m => m.id === a.marketId)!;
+          expect(items).not.toContain(isGoTransferMarket(market) ? 'cross-border-pos' : 'registry-transfer');
           expect(a.summary.length).toBeGreaterThan(5);
 
           // Invariant: if any gate is HARD_BLOCK, overallVerdict must be HARD_BLOCK
