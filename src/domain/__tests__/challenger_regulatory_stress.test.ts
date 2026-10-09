@@ -1,21 +1,17 @@
 import { describe, it, expect } from 'vitest';
-import { evaluateEligibility, evaluateAllMarkets } from '../eligibility/engine';
+import { evaluateEligibility } from '../eligibility/engine';
 import { 
   computeCertificateValue, 
   computeNetback, 
   tCO2ePerMWh, 
   computeFuelEUDeficitClosureValue,
-  FUELEU_BASELINE_CI,
   FUELEU_TARGET_CI_2025,
-  FUELEU_TARGET_CI_2030,
-  RTFO_KG_PER_MWH
+  FUELEU_TARGET_CI_2030
 } from '../netback/engine';
 import { getMarketById, MARKETS } from '../markets/registry';
 import { Consignment } from '../consignment/types';
 import { MarksState, CostInputs } from '../netback/types';
 import { REFERENCE_CONSIGNMENTS } from '../consignment/feedstocks';
-import { CI_COMPARATOR_ROAD_TRANSPORT } from '../markets/constants';
-import { FR_CPB_CEILING_EUR_MWH } from '../regulatory/constants';
 
 const zeroCosts: CostInputs = {
   transferCosts: 0,

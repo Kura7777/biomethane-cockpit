@@ -2,19 +2,12 @@
 // Empirical Verification & Adversarial Stress Harness for the 14 Mandatory Statutory Spot Checks
 // Audited Route Matrix Freeze: 2026-10-04
 
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const ROOT_DIR = path.resolve(__dirname, '..', '..');
-
 async function run() {
   console.log('================================================================');
   console.log('  14 MANDATORY STATUTORY SPOT CHECKS EMPIRICAL TEST HARNESS     ');
   console.log('================================================================\n');
 
-  const { GO_ROUTES, POS_ROUTES, POS_SCHEMES, ROUTE_AUDIT_ACCESSED } = await import(
+  const { GO_ROUTES, POS_ROUTES, ROUTE_AUDIT_ACCESSED } = await import(
     '../../src/domain/routes/routeMatrix.generated.ts'
   );
   const { COUNTRIES, REGISTRIES, POS_ORIGIN } = await import('./rules.mjs');
@@ -129,7 +122,7 @@ async function run() {
   // -------------------------------------------------------------
   test(7, 'SE <-> AIB members: GO = POSSIBLE (13 members both directions); SE > CH = OPEN', () => {
     const aibConnected = Object.entries(REGISTRIES)
-      .filter(([iso, r]) => r.aib === 'CONNECTED')
+      .filter(([, r]) => r.aib === 'CONNECTED')
       .map(([iso]) => iso);
 
     // 13 bidirectional members (excluding SE and CH)
@@ -383,14 +376,14 @@ async function run() {
 
   test('S7', 'All citations in GO_ROUTES and POS_ROUTES are valid URLs', () => {
     let invalidUrls = 0;
-    for (const [key, route] of Object.entries(GO_ROUTES)) {
+    for (const [, route] of Object.entries(GO_ROUTES)) {
       for (const s of route.sources || []) {
         if (!s.url || (!s.url.startsWith('https://') && !s.url.startsWith('http://'))) {
           invalidUrls++;
         }
       }
     }
-    for (const [key, route] of Object.entries(POS_ROUTES)) {
+    for (const [, route] of Object.entries(POS_ROUTES)) {
       for (const sc of route.schemes || []) {
         for (const s of sc.sources || []) {
           if (!s.url || (!s.url.startsWith('https://') && !s.url.startsWith('http://'))) {

@@ -5,8 +5,7 @@ import {
   getForwardQuote,
   getTenorByYear,
   calculateSeasonalSpread,
-  FORWARD_YEARS,
-  STATUTORY_OBLIGATION_TRAJECTORIES,
+  FORWARD_YEARS
 } from '../curves/engine';
 import { MarksState } from '../netback/types';
 

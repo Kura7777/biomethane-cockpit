@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { validate, regenerate } from '../../../scripts/lib/plantResearchWriter';
 import { PLANT_RESEARCH } from '../plants/plantResearch.generated';
 import { BIOMETHANE_PLANTS } from '../plants/plantsData';
-import { PlantResearch, SourcedValue } from '../plants/types';
+import { PlantResearch } from '../plants/types';
 import { getVerifiedPlantDossier } from '../plants/statutoryDossiers';
 import fs from 'node:fs';
 import path from 'node:path';

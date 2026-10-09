@@ -7,7 +7,7 @@ import {
   computeOriginationBreakdown,
   fmtEurPerMwh,
   fmtEurTotal,
-  type PriceSource,
+  type PriceSource
 } from '../../domain/arbitrage/originationBreakdown';
 import { SourceChip } from '../../shared/ui/SourceChip';
 import { RouteStatusBadge } from './RouteStatusBadge';
@@ -21,11 +21,7 @@ import {
   ArrowLeft, 
   ArrowRight, 
   Calculator, 
-  TrendingUp, 
   Navigation, 
-  DollarSign, 
-  ShieldCheck, 
-  Sparkles,
   ArrowUpRight,
   ArrowDownRight
 } from 'lucide-react';

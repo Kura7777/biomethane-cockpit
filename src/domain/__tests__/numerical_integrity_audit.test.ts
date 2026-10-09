@@ -12,7 +12,7 @@ import {
 } from '../offtake/engine';
 import { getMarketById } from '../markets/registry';
 import { REFERENCE_CONSIGNMENTS } from '../consignment/feedstocks';
-import { MarksState, CostInputs } from '../netback/types';
+import { MarksState } from '../netback/types';
 import { simulateDesk } from '../marks/simulate';
 import { migrateState, createDefaultState } from '../../store/context';
 

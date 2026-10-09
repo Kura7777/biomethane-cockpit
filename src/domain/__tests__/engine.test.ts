@@ -5,7 +5,6 @@ import {
   computeNetback, 
   tCO2ePerMWh, 
   computeFuelEUDeficitClosureValue,
-  selectMarkPrice,
   RTFO_KG_PER_MWH
 } from '../netback/engine';
 import { getMarketById, MARKETS } from '../markets/registry';
@@ -13,15 +12,14 @@ import { getMarkAgeDays, getMarkStaleness, getMarkReliability, MarkEntry } from 
 import { Consignment } from '../consignment/types';
 import { MarksState, CostInputs } from '../netback/types';
 import { SIMULATED_SOURCE_NAME } from '../marks/simulate';
-import { rankNetbacks, getHighestBlockedOpportunity } from '../netback/ranking';
+import { rankNetbacks } from '../netback/ranking';
 import { generateTradeSummary } from '../trade/summary';
 import { assessmentContainsPraData } from '../trade/licensing';
 import { TradeAssessment } from '../trade/types';
 import { migrateState, createDefaultState, CURRENT_SCHEMA_VERSION } from '../../store/context';
 import { REFERENCE_CONSIGNMENTS } from '../consignment/feedstocks';
-import { scanEuropeanArbitrage } from '../arbitrage/engine';
-import { getRouteTransitTariff, calculateRealisticCommercialDeskMargin } from '../arbitrage/origins';
-import { BIOMETHANE_PLANTS, DEVELOPER_PORTFOLIOS, COUNTRY_MACRO_STATS, getPlantsByCountry, searchPlants } from '../plants/registry';
+import { calculateRealisticCommercialDeskMargin } from '../arbitrage/origins';
+import { BIOMETHANE_PLANTS, getPlantsByCountry } from '../plants/registry';
 
 const emptyCosts: CostInputs = {
   transferCosts: null,

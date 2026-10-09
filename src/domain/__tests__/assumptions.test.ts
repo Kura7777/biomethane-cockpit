@@ -3,14 +3,13 @@ import {
   ASSUMPTION_DEFINITIONS,
   getAssumption,
   setAssumption,
-  resetAssumption,
   resetAllAssumptions,
   isOverridden,
   subscribeAssumptions,
   getAssumptionsVersion,
   fuelEuPoolSpreadEurPerTco2e,
   fuelEuPoolBidPriceEurPerTco2e,
-  loadOverrides,
+  loadOverrides
 } from '../assumptions/registry';
 import { calculateVesselExposure } from '../fueleu/calculator';
 import { getBenchmarkForMarket } from '../markets/marketBenchmarks';

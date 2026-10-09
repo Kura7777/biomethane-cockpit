@@ -7,7 +7,7 @@ import {
   Geography,
   ZoomableGroup,
   Line,
-  Marker,
+  Marker
 } from 'react-simple-maps';
 import { ArrowLeftRight, X, ChevronDown, ChevronRight, Copy, Check, ExternalLink } from 'lucide-react';
 import geoData from '../../assets/countries-50m.json';
@@ -17,25 +17,22 @@ import './map.css';
 import { LogisticsModal } from '../logistics/LogisticsModal';
 import { RouteVerdictCard, posOpenId } from './RouteVerdictCard';
 import { getPlaybookDealUrl } from './tradePlaybook';
-import { buildDealUrl } from '../../domain/trade/dealParams';
 import { COMBINED_BIOMETHANE_PLANTS } from '../../domain/plants/registry';
 import { calculateLogisticsRoute, calculateDijkstraCorridor } from '../../domain/logistics/engine';
 import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
-import { getMarketForRoute, getMarketAndCocForRoute } from '../../domain/trade/dealDefaults';
+import { getMarketAndCocForRoute } from '../../domain/trade/dealDefaults';
 import { getPosRoute } from '../../domain/routes';
 import { POS_SCHEMES } from '../../domain/routes/routeMatrix.generated';
 import type { PosAcceptsForeign } from '../../domain/routes/types';
-import { MARKETS } from '../../domain/markets/registry';
 import {
-  getRegistryByCountry,
+  getRegistryByCountry
 } from '../../domain/registries/registryDirectory';
 import {
   getCertificateRoute,
   getCertificateRoutesFrom,
   CERT_ROUTE_LABELS,
   POSSIBLE_STATUSES,
-  type CertRouteStatus,
-  type CertificateRoute,
+  type CertificateRoute
 } from '../../domain/registries/certificateRoutes';
 import { ORIGIN_CAVEATS } from '../../domain/registries/hubConnectivity';
 
@@ -444,12 +441,6 @@ export function MapScreen() {
     certRoutes.forEach(r => { m[r.target] = r; });
     return m;
   }, [certRoutes]);
-  const hasPipeline = useMemo(() => {
-    const m: Record<string, boolean> = {};
-    certRoutes.forEach(r => { m[r.target] = calculateDijkstraCorridor(originMeta.iso, r.target).segments.length > 0; });
-    return m;
-  }, [certRoutes, originMeta.iso]);
-
   const categoryCounts = useMemo(() => {
     const counts: Record<SellCategory, number> = { SELL_NOW: 0, CHECK_FIRST: 0, CLOSED: 0, NO_DATA: 0 };
     certRoutes.forEach(r => {
@@ -577,14 +568,6 @@ export function MapScreen() {
   }, [certRoutes, filter]);
 
   const currentRoute = useMemo(() => getCertificateRoute(originMeta.iso, targetMeta.iso), [originMeta.iso, targetMeta.iso]);
-
-  const selectedRoute = useMemo(() => {
-    return getCertificateRoute(originMeta.iso, selectedMeta.iso);
-  }, [originMeta.iso, selectedMeta.iso]);
-
-  const selectedPlaybook = useMemo(() => {
-    return getTradePlaybook(originMeta.iso, selectedMeta.iso, selectedRoute);
-  }, [originMeta.iso, selectedMeta.iso, selectedRoute]);
 
   const currentPlaybook = useMemo(() => {
     return getTradePlaybook(originMeta.iso, targetMeta.iso, currentRoute);

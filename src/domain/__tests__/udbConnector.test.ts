@@ -3,8 +3,7 @@ import {
   validateUdbRegistrationSyntax,
   verifyAndMintUdbPoS,
   verifyExistingPoSCertificate,
-  EU_INTERCONNECTED_GAS_GRID_COUNTRIES,
-  STATUTORY_UDB_CITATIONS,
+  STATUTORY_UDB_CITATIONS
 } from '../udb/udbConnector';
 import { UdbTransactionRequest } from '../udb/types';
 

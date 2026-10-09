@@ -7,7 +7,7 @@ import {
   type BreakdownOpportunity,
 } from '../arbitrage/originationBreakdown';
 import { originationRouteStatus } from '../arbitrage/routeStatus';
-import { resetAllAssumptions, setAssumption, ASSUMPTION_DEFINITIONS } from '../assumptions/registry';
+import { resetAllAssumptions, ASSUMPTION_DEFINITIONS } from '../assumptions/registry';
 import { SIMULATED_SOURCE_NAME } from '../marks/simulate';
 import type { GasIndexMark, PricingSides } from '../netback/types';
 

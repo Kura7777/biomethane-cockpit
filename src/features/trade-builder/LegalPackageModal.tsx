@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { TradeAssessment } from '../../domain/trade/types';
 import {
-  generateFpMLDealPayload,
   generateEtrmJsonPayload,
   generateEtrmCsvPayload,
   generateUdbNominationXmlPayload,

@@ -1,4 +1,4 @@
-import { AnnexClassification, Consignment } from './types';
+import { Consignment } from './types';
 import { FeedstockInfo, FEEDSTOCK_REGISTRY } from './feedstockData';
 
 export type { FeedstockInfo };

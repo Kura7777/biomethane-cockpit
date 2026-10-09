@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateDijkstraCorridor, calculateLogisticsRoute, findShortestPipelinePath, PIPELINE_ADJACENCY } from '../logistics/engine';
+import { calculateDijkstraCorridor, calculateLogisticsRoute, PIPELINE_ADJACENCY } from '../logistics/engine';
 
 describe('Spatial Dijkstra Corridor Routing & Distance Integration', () => {
   describe('Dijkstra Shortest Path across Interconnected Gas Grid', () => {

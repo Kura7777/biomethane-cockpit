@@ -1,8 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { AppState } from '../../store/context';
 import { MARKETS } from '../markets/registry';
-import { computeAllNetbacks, computeNetback } from '../netback/engine';
-import { evaluateEligibility } from '../eligibility/engine';
+import { computeAllNetbacks } from '../netback/engine';
 import { searchSourcingRoutes } from '../arbitrage/sourcingAdapter';
 import { calculateDualLegOfftake, DEFAULT_INSTITUTIONAL_OFFTAKE } from '../offtake/engine';
 import { Consignment } from '../consignment/types';

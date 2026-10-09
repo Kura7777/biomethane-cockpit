@@ -7,8 +7,6 @@ import { feedstockDefaultCi } from '../../../domain/assumptions/registry';
 import { getVtpForMarket } from '../TradeBuilderScreen';
 import { Lock, FileUp, Scale, AlertTriangle } from 'lucide-react';
 
-const MONO_FONT = 'var(--font-mono, "IBM Plex Mono", monospace)';
-
 export interface OriginOption {
   code: string;
   name: string;
@@ -142,8 +140,6 @@ export function TradeConsignmentStep({
   volumeMwh,
   setVolumeMwh,
   plantTotalMWh,
-  plantCommittedMwh,
-  availablePlantCapacity,
   ciProvenance,
   onCiSourceChange,
   isOversubscribed,
@@ -156,10 +152,6 @@ export function TradeConsignmentStep({
   setProdStartDate,
   prodEndDate,
   setProdEndDate,
-  deliveryStartDate,
-  setDeliveryStartDate,
-  deliveryEndDate,
-  setDeliveryEndDate,
   deliveryProfile,
   setDeliveryProfile,
   selectedMarket,

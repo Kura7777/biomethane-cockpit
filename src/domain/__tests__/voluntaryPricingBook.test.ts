@@ -1,9 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { MARKETS, isVoluntaryMarket, getMarketsByDeskCategory, getMarketById } from '../markets/registry';
+import { isVoluntaryMarket, getMarketsByDeskCategory, getMarketById } from '../markets/registry';
 import { simulateDesk } from '../marks/simulate';
 import { INITIAL_BROKER_QUOTES } from '../markets/brokerMarketData';
 import { generateEtrmCsvPayload } from '../trade/legalPackage';
-import { TradeAssessment } from '../trade/types';
 import { REFERENCE_CONSIGNMENTS } from '../consignment/feedstocks';
 
 describe('Dual-Book Architecture (50% Compliance / 50% Voluntary GO Book)', () => {

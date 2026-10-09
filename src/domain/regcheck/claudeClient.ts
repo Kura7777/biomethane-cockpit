@@ -243,7 +243,7 @@ export async function runRegulationCheck(options: RunCheckOptions = {}): Promise
   let data: any;
   try {
     data = await response.json();
-  } catch (err: any) {
+  } catch {
     throw new Error('Failed to parse response body as JSON from api.anthropic.com.');
   }
 

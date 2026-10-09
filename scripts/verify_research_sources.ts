@@ -17,15 +17,12 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as dns from 'node:dns/promises';
-import { fileURLToPath } from 'node:url';
 import {
   PlantResearch,
   SourceCheckStatus,
   SourceCheckDetail,
   ContactScope,
-  OutreachTier,
-  SourcedValue,
-  ResearchContact,
+  OutreachTier
 } from '../src/domain/plants/types';
 import { RAW_BIOMETHANE_PLANTS } from '../src/domain/plants/plantsData';
 import { normalizePlantRegistry } from '../src/domain/plants/dataQuality';

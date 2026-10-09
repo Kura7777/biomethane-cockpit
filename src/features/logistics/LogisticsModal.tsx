@@ -1,7 +1,7 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { calculateLogisticsRoute } from '../../domain/logistics/engine';
 import { useAppState } from '../../store/context';
-import { HUB_BASIS_SPREADS, INTERCONNECTION_POINTS, CAM_NC_DURATION_MULTIPLIERS, NATIONAL_BIOMETHANE_INJECTION_INCENTIVES, hubBasisSpread } from '../../domain/logistics/corridors';
+import { HUB_BASIS_SPREADS, CAM_NC_DURATION_MULTIPLIERS, NATIONAL_BIOMETHANE_INJECTION_INCENTIVES, hubBasisSpread } from '../../domain/logistics/corridors';
 import './logistics.css';
 import { ModeCostBreakdown, CapacityDuration } from '../../domain/logistics/types';
 
@@ -46,11 +46,6 @@ export function LogisticsModal({
 
   const durationConfig = CAM_NC_DURATION_MULTIPLIERS[selectedDuration];
   const injectionIncentive = NATIONAL_BIOMETHANE_INJECTION_INCENTIVES[originCountry];
-
-  const ipList = INTERCONNECTION_POINTS.filter(
-    ip => (ip.fromCountry === originCountry && ip.toCountry === targetCountry) ||
-          (ip.fromCountry === targetCountry && ip.toCountry === originCountry)
-  );
 
   const modeList: {
     tag: string;

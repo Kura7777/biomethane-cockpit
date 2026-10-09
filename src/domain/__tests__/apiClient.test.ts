@@ -26,7 +26,6 @@ describe('Client-side API Adapter & Server Ledgers', () => {
   });
 
   it('filters deals by status, marketId, and text query', async () => {
-    const all = await apiClient.getDeals();
     const executedOnly = await apiClient.getDeals({ status: 'EXECUTED' });
     expect(executedOnly.deals.every(d => d.status === 'EXECUTED')).toBe(true);
 

@@ -17,23 +17,18 @@ import {
   Zap, 
   ShieldCheck, 
   Copy, 
-  Check, 
   X, 
   MapPin, 
-  Flame, 
   Activity, 
-  ArrowRight,
   Globe,
   Scale,
   AlertTriangle,
   AlertOctagon,
   ShieldAlert,
-  Info,
   Linkedin,
   UserCheck,
   PlusCircle,
   Trash2,
-  Bookmark,
   CheckCircle2,
   ChevronDown,
   ChevronUp,
@@ -106,7 +101,6 @@ export function PlantSourcingDrawer({ plant, onClose }: PlantSourcingDrawerProps
   const isDark = theme === 'dark';
   const [activeTab, setActiveTab] = useState<DrawerTab>('COMMERCIAL');
   const [showMatchEvidence, setShowMatchEvidence] = useState(false);
-  const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [deskOverride, setDeskOverride] = useState<TraderDeskOverride | null>(() => plant ? getTraderDeskOverride(plant.id) : null);
   const [isEditingOverride, setIsEditingOverride] = useState(false);
   const [showRawCensus, setShowRawCensus] = useState(false);
@@ -178,9 +172,7 @@ export function PlantSourcingDrawer({ plant, onClose }: PlantSourcingDrawerProps
   const copyToClipboard = (text: string, key: string) => {
     if (!text) return;
     navigator.clipboard.writeText(text);
-    setCopiedKey(key);
     showToast(`Copied ${key} to clipboard`, 'info');
-    setTimeout(() => setCopiedKey(null), 2000);
   };
 
   const feedstockKey = feedstockKeyForPlant(plant);

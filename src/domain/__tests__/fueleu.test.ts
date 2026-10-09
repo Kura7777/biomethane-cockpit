@@ -9,14 +9,12 @@ import {
   FUELEU_VLSFO_WTW,
   LHV_BIO_LNG_MJ_PER_TONNE,
   LHV_VLSFO_MJ_PER_TONNE,
-  CALLING_REGIONS,
-  TRADE_LANES,
   getStrategyTierBadgeClass,
   bioLngFuelEUIntensity,
   fuelEuInScopeFactor,
   closeDeficitWithBioLng,
   penaltyEur,
-  fossilLngWtw,
+  fossilLngWtw
 } from '../fueleu';
 import { buildDealUrl } from '../trade/dealParams';
 import mrvData from '../../../data/fueleu_mrv_2025_companies.json';

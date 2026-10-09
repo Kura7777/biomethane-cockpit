@@ -15,7 +15,7 @@ import { parseOriginationUrl, OriginationUrlParams } from './originationUrl';
 import { MARKETS } from '../../domain/markets/registry';
 import { FEEDSTOCK_REGISTRY } from '../../domain/consignment/feedstocks';
 import './commercialMobile.css';
-import { Check, ArrowRight, Sparkles, Building2, TrendingUp, Navigation } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 const INITIAL_REQUEST: ClientRequest = {
   feedstockKey: 'manure',

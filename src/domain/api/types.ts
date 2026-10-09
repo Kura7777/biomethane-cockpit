@@ -1,7 +1,7 @@
-import { DealRecord, DealStatus, DealAuditEntry, DealFilterCriteria } from '../deals/types';
+import { DealRecord } from '../deals/types';
 import { MarksState } from '../netback/types';
 import { MarksAuditRecord } from '../marks/marksStore';
-import { Role, RoleDefinition, SessionState } from '../auth/types';
+import { RoleDefinition, SessionState } from '../auth/types';
 
 export interface ApiResponse<T> {
   success: boolean;

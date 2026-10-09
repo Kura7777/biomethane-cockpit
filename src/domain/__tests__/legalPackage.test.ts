@@ -12,11 +12,10 @@ import {
 import {
   generateEfetBiomethaneAnnexPdf,
   generateCommercialTermSheetPdf,
-  generateStatutoryAuditMemoPdf,
+  generateStatutoryAuditMemoPdf
 } from '../trade/legalPackagePdf';
 import { TradeAssessment } from '../trade/types';
 import { REFERENCE_CONSIGNMENTS } from '../consignment/feedstocks';
-import { MARKETS } from '../markets/registry';
 
 describe('Hybrid Legal Package & ETRM Export Engine', () => {
   const baseConsignment = {

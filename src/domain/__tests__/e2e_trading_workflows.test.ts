@@ -1,18 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import { isGoTransferMarket } from '../eligibility/gates/registry-transfer';
-import { evaluateEligibility, evaluateAllMarkets } from '../eligibility/engine';
+import { evaluateEligibility } from '../eligibility/engine';
 import { 
   computeCertificateValue, 
   computeNetback, 
-  computeAllNetbacks,
   tCO2ePerMWh, 
   computeFuelEUDeficitClosureValue,
-  selectMarkPrice,
   RTFO_KG_PER_MWH,
   BIOMETHANE_KWH_PER_KG,
   FUELEU_BASELINE_CI,
-  FUELEU_TARGET_CI_2025,
-  FUELEU_TARGET_CI_2030,
+  FUELEU_TARGET_CI_2025
 } from '../netback/engine';
 import { 
   findShortestPipelinePath, 
@@ -21,15 +18,13 @@ import {
 } from '../logistics/engine';
 import { MARKETS, getMarketById } from '../markets/registry';
 import {
-  CI_COMPARATOR_ROAD_TRANSPORT,
-  CI_COMPARATOR_HEAT,
   MWH_PER_CIC_ADVANCED,
-  MWH_PER_CIC_CONVENTIONAL,
+  MWH_PER_CIC_CONVENTIONAL
 } from '../markets/constants';
 import { FR_CPB_CEILING_EUR_MWH } from '../regulatory/constants';
 import { FEEDSTOCK_REGISTRY, REFERENCE_CONSIGNMENTS } from '../consignment/feedstocks';
 import { Consignment, AnnexClassification, CertificationScheme, ChainOfCustody } from '../consignment/types';
-import { MarksState, CostInputs, NetbackResult } from '../netback/types';
+import { MarksState, CostInputs } from '../netback/types';
 import { generateTradeSummary } from '../trade/summary';
 import { assessmentContainsPraData } from '../trade/licensing';
 import { TradeAssessment } from '../trade/types';

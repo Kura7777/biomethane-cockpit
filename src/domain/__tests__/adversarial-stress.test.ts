@@ -6,13 +6,10 @@ import {
   computeAllNetbacks,
   tCO2ePerMWh, 
   computeFuelEUDeficitClosureValue,
-  selectMarkPrice,
-  RTFO_KG_PER_MWH,
-  FUELEU_BASELINE_CI,
   FUELEU_TARGET_CI_2025,
-  FUELEU_TARGET_CI_2030,
+  FUELEU_TARGET_CI_2030
 } from '../netback/engine';
-import { calculateLogisticsRoute, findShortestPipelinePath, resolveInterconnectionPoints } from '../logistics/engine';
+import { calculateLogisticsRoute, findShortestPipelinePath } from '../logistics/engine';
 import { evaluateEligibility, evaluateAllMarkets } from '../eligibility/engine';
 import { MARKETS, getMarketById } from '../markets/registry';
 import { REFERENCE_CONSIGNMENTS } from '../consignment/feedstocks';

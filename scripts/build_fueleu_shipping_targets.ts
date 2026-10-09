@@ -42,9 +42,8 @@ import {
   calculateVesselExposure,
   calculateFleetCapability,
   EU_ETS_PHASE_IN_2026,
-  FUELEU_GWP_CH4,
+  FUELEU_GWP_CH4
 } from '../src/domain/fueleu/calculator';
-import { getAssumption } from '../src/domain/assumptions/registry';
 import type { ShippingCounterparty, FuelEuDatasetSource, GroupEntityType, FuelCostBearer, FuelCostBearerType, GroupContact, FleetCapability } from '../src/domain/fueleu/types';
 import {
   COL,
@@ -52,7 +51,7 @@ import {
   buildOutreachPitch,
   decodeShippingTargets,
   slimTonnes,
-  type ShippingTargetsPack,
+  type ShippingTargetsPack
 } from '../src/domain/fueleu/shippingTargetsCodec';
 
 const __filename = fileURLToPath(import.meta.url);

@@ -3,20 +3,18 @@ import {
   applyMarkUpdates,
   seedMarksFromPricingBook,
   isSimulatedMark,
-  findDefaultReferenceRow,
   resolveMarketForQuote,
   rowFeedsMarket,
   quoteIdentityForMarket,
-  createMarkUpdateFromRow,
+  createMarkUpdateFromRow
 } from '../applyMarks';
 import {
   INITIAL_PRICING_BOOK,
   BASELINE_RUN_META,
   NON_BROKER_SEED_ROW_IDS,
   PricingBookEntry,
-  toSupplyEntries,
+  toSupplyEntries
 } from '../../markets/brokerRun.seed';
-import { MARKETS } from '../../markets/registry';
 import { AppState, appReducer, migrateState, CURRENT_SCHEMA_VERSION } from '../../../store/context';
 import { createEmptyDeskState } from '../../__tests__/empty_desk_audit.test';
 import { priceCorporateOrder, buildSupplyBook, CorporateOrderSpec } from '../../corporate/orderPricer';

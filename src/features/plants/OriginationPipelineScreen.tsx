@@ -6,7 +6,7 @@ import { buildDealUrl } from '../../domain/trade/dealParams';
 import { plantDealParams, plantCi, feedstockKeyForPlant, defaultMarketForOrigin, defaultVolumeMwh } from '../../domain/trade/dealDefaults';
 import { FEEDSTOCK_REGISTRY } from '../../domain/consignment/feedstocks';
 import { buildMarketLadder } from '../../domain/arbitrage/marketLadder';
-import { deriveSourceBadge, getMarkAgeDays } from '../../domain/markets/types';
+import { deriveSourceBadge } from '../../domain/markets/types';
 import { SIMULATED_SOURCE_NAME } from '../../domain/marks/simulate';
 import { useAppState } from '../../store/context';
 import { SourceChip } from '../../shared/ui/SourceChip';

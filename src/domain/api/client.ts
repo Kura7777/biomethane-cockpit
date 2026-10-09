@@ -6,8 +6,8 @@ import {
   saveMarksAuditRecord,
   registerMarksAuditSyncHandler,
 } from '../marks/marksStore';
-import { Role, RoleDefinition, SessionState } from '../auth/types';
-import { getActiveRole, setActiveRole, getSessionState } from '../auth/authStore';
+import { Role } from '../auth/types';
+import { setActiveRole, getSessionState } from '../auth/authStore';
 import { ROLE_DEFINITIONS } from '../auth/rbac';
 import { INITIAL_LEDGER_DEALS, dealLedger } from '../../server/dealLedger';
 import {

@@ -1,6 +1,6 @@
 import { MARKETS } from '../markets/registry';
 import { UnitOfAccount } from '../markets/types';
-import { BrokerMarketQuote, ProductClass, ProvenanceTier } from './brokerMarketData';
+import { BrokerMarketQuote, ProductClass } from './brokerMarketData';
 
 export interface ParsedBrokerMark {
   id: string;

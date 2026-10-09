@@ -92,7 +92,6 @@ const fmtDelta = (v: number | null): string => (v == null ? '—' : `${v >= 0 ? 
  *  props — the ticket itself renders and edits producer pricing inline, nothing else. */
 export function DealTicket({
   dealId,
-  originFlag,
   originCode,
   originName,
   marketLabel,

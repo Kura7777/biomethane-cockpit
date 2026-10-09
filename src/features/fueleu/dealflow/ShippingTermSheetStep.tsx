@@ -5,10 +5,10 @@ import { useNavigate } from 'react-router-dom';
 import {
   ShippingCounterparty,
   CALLING_REGIONS,
-  TRADE_LANES,
+  TRADE_LANES
 } from '../../../domain/fueleu/types';
 import {
-  calculateMarineBunkerQuotation,
+  calculateMarineBunkerQuotation
 } from '../../../domain/fueleu/calculator';
 import { buildDealUrl } from '../../../domain/trade/dealParams';
 import { defaultVolumeMwh, FUELEU_BIO_LNG_DEFAULT_ORIGIN } from '../../../domain/trade/dealDefaults';
@@ -18,15 +18,12 @@ import {
   Copy,
   Check,
   Download,
-  Zap,
   ArrowLeft,
   RotateCcw,
   CheckCircle2,
-  Building2,
   Scale,
-  ShieldCheck,
   ExternalLink,
-  Mail,
+  Mail
 } from 'lucide-react';
 import { showToast } from '../../../app/DeskToastContainer';
 import { poolingEconomicsForBalance, shippingEtsExposureEur, shippingCombinedRegulatoryExposureEur, type FuelEuMarketPrices, type FuelEuPoolPrices } from '../../../domain/fueleu/marketPrices';
@@ -63,7 +60,6 @@ export function ShippingTermSheetStep({
   onReset,
 }: ShippingTermSheetStepProps) {
   const navigate = useNavigate();
-  const [copied, setCopied] = useState(false);
   const [dealCopied, setDealCopied] = useState(false);
   const [isBooked, setIsBooked] = useState(false);
 
@@ -228,9 +224,7 @@ ${
       // fallback
     }
 
-    setCopied(true);
     showToast(`Downloaded Term Sheet for ${counterparty.parent_name}!`, 'SUCCESS');
-    setTimeout(() => setCopied(false), 2500);
   };
 
   const handleCopyDealSummary = () => {

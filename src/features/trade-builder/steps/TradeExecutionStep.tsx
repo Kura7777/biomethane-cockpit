@@ -13,9 +13,8 @@ import {
   Scale,
   Database,
   MapPin,
-  CheckCircle2,
   FolderDown,
-  ShieldCheck,
+  ShieldCheck
 } from 'lucide-react';
 import { showToast } from '../../../app/DeskToastContainer';
 import { useIsMobile } from '../../../shared/hooks/useMediaQuery';
@@ -41,7 +40,6 @@ interface TradeExecutionStepProps {
 export function TradeExecutionStep({
   currentTradeAssessment,
   selectedMarket,
-  origin,
   volumeMwh,
   netNetbackVal,
   deskMarginEurMwh,

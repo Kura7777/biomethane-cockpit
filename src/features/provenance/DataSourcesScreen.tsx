@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { MobileCardList } from '../../shared/ui';
 import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 import './dataSources.css';
-import { DATA_SOURCES_DIRECTORY, DataSourceRecord, ProvenanceTier } from '../../domain/provenance/dataSourcesDirectory';
+import { DATA_SOURCES_DIRECTORY, ProvenanceTier } from '../../domain/provenance/dataSourcesDirectory';
 
 type CategoryFilter = 'All' | 'Plants' | 'Pricing' | 'Registries' | 'Logistics';
 

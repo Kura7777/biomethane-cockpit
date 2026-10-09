@@ -1,4 +1,4 @@
-import { DeliveryMode, LogisticsAssessment, ModeCostBreakdown, InterconnectionPoint, CapacityDuration, TsoTariffComponent } from './types';
+import { LogisticsAssessment, ModeCostBreakdown, InterconnectionPoint, CapacityDuration, TsoTariffComponent } from './types';
 import { INTERCONNECTION_POINTS, HUB_BASIS_SPREADS, HUB_DISTANCES_KM, PIPELINE_SEGMENT_DISTANCES, CAM_NC_DURATION_MULTIPLIERS, NATIONAL_BIOMETHANE_INJECTION_INCENTIVES, hubBasisSpread, resolvedIpTariffs } from './corridors';
 import { MARKETS } from '../markets/registry';
 import { COUNTRY_NAMES } from '../markets/constants';
@@ -409,7 +409,6 @@ export function calculateLogisticsRoute(
   // -------------------------------------------------------------
   // MODE 2: Physical Pipeline Transit Wheeling Corridor
   // -------------------------------------------------------------
-  const physicalEntryExitTariffs = totalPhysicalTariffEurMwh;
   const physicalBalancingReserve = getAssumption('logistics.physicalBalancingReserveEurPerMwh'); // Daily balancing margin across multi-TSO zones
   const physicalPrismaAuctionFee = getAssumption('logistics.physicalPrismaAuctionFeeEurPerMwh');
   const physicalTotalEurMwh = (totalPhysicalTariffEurMwh !== null && shrinkageEurMwh !== null && countryPath.length > 0)

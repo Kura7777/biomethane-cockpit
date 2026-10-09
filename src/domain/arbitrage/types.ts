@@ -1,6 +1,5 @@
-import { Consignment, CertificationScheme, ChainOfCustody, DeliveryPeriod } from '../consignment/types';
-import { Market } from '../markets/types';
-import { NetbackResult, BundleReference } from '../netback/types';
+import { CertificationScheme, ChainOfCustody, DeliveryPeriod } from '../consignment/types';
+import { BundleReference } from '../netback/types';
 import type { PriceSide } from '../markets/types';
 import { EligibilityAssessment, OverallVerdict } from '../eligibility/types';
 

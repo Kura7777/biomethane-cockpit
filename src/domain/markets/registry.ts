@@ -1,4 +1,4 @@
-import { Market, Uncertainty } from './types';
+import { Market } from './types';
 
 export const MARKETS: Market[] = [
   // -------------------------------------------------------------

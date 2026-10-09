@@ -22,7 +22,11 @@ export default tseslint.config(
       // Downgraded to warn: the repo has existing violations this job doesn't fix (job 1 of 3,
       // safety nets before refactoring). These counts are the to-do list for the next jobs.
       'no-empty-pattern': 'warn',
-      '@typescript-eslint/no-unused-vars': 'warn',
+      // argsIgnorePattern/varsIgnorePattern: the codebase already names deliberately-unused
+      // params and destructure-to-omit bindings with a leading underscore (e.g. _transitTariff,
+      // the { omit: _omitted, ...rest } pattern) — match that existing convention instead of
+      // forcing call-site churn.
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'warn',
       'no-dupe-keys': 'warn',
       'react-hooks/set-state-in-effect': 'warn',
@@ -42,7 +46,7 @@ export default tseslint.config(
     },
     rules: {
       'no-dupe-keys': 'warn',
-      '@typescript-eslint/no-unused-vars': 'warn',
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
     },
   }
 );

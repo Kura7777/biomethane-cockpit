@@ -7,10 +7,7 @@ import {
   Building2,
   ArrowRight,
   Sparkles,
-  Layers,
   CheckCircle2,
-  Calendar,
-  DollarSign,
   Leaf
 } from 'lucide-react';
 

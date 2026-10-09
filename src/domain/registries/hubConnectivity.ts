@@ -36,11 +36,9 @@ const URL_BE_WALLONIA =
   'https://energie.wallonie.be/home/les-marches-et-les-acteurs/le-marche-des-garanties-d-origine/faq-garanties-d-origine-pour-le-gaz-renouvelable.html';
 const URL_AIB_MEMBERS = 'https://www.aib-net.org/facts/aib-member-countries-regions/aib-members';
 const URL_ERGAR_COO = 'https://www.ergar.org/ergar-schemes/ergar-coo-scheme/';
-const URL_ERGAR_STATS = 'https://www.ergar.org/ergar-schemes/coo-scheme-statistics/';
 const URL_ERGAR_LT = 'https://www.ergar.org/2026/04/amber-grid-joins-the-ergar-hub-expanding-opportunities-for-lithuanian-biomethane/';
 const URL_DENA_INTL = 'https://www.dena.de/en/biogasregister/trade-of-biomethane/international-trade/';
 const URL_PRONOVO_IMPORT = 'https://pronovo.ch/import-von-gas-hkn/';
-const URL_SE_NEWS = 'https://www.energinyheter.se/20260609/34898/energimyndigheten-vill-infora-internationella-ursprungsgarantier-gas';
 const URL_IT_PROTOCOL =
   'https://www.aib-net.org/sites/default/files/assets/facts/domain-protocols/AIB-2024-DPIT-GSE%20Italy%20-%20Domain%20Protocol%20Italy%2020240710%20-%20clean%20clean.pdf';
 const URL_GB_DE = 'https://www.greengas.org.uk/news/guidance-from-dena-on-uses-of-imported-biomethane-updated';

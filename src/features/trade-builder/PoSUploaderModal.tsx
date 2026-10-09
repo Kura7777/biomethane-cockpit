@@ -6,12 +6,9 @@ import {
   UploadCloud, 
   CheckCircle2, 
   AlertTriangle, 
-  ShieldCheck, 
   Sparkles, 
   ArrowRight, 
-  X,
-  Copy,
-  Layers
+  X
 } from 'lucide-react';
 
 interface PoSUploaderModalProps {

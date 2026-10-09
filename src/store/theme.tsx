@@ -17,7 +17,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     try {
       const stored = localStorage.getItem(THEME_STORAGE_KEY);
       if (stored === 'light' || stored === 'dark') return stored;
-    } catch (e) {
+    } catch {
       // ignore
     }
     return 'light';
@@ -26,7 +26,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       localStorage.setItem(THEME_STORAGE_KEY, theme);
-    } catch (e) {
+    } catch {
       // ignore
     }
     const root = document.documentElement;

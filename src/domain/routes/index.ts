@@ -11,24 +11,19 @@ import {
   GO_ROUTES,
   POS_ROUTES,
   POS_SCHEMES,
-  ROUTE_AUDIT_ACCESSED,
+  ROUTE_AUDIT_ACCESSED
 } from './routeMatrix.generated';
 
 import {
   AUDITED_COUNTRIES,
-  type AuditedCountryCode,
-  type EvidenceGrade,
   type GoRouteRecord,
   type GoRouteResult,
   type GoRouteStatus,
-  type GoVia,
   type PosRouteRecord,
   type PosRouteResult,
   type PosRouteStatus,
-  type PosRouteSummary,
   type PosSchemeRecord,
-  type PosSchemeResult,
-  type RouteSource,
+  type PosSchemeResult
 } from './types';
 
 // Re-export all types and generated artifacts

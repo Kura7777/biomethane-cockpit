@@ -8,17 +8,10 @@ import {
   Building2, 
   ArrowRight, 
   ArrowLeft, 
-  ShieldCheck, 
   Search, 
-  MapPin, 
   Check, 
-  Sparkles,
-  Layers,
   Zap,
-  Flame,
   ArrowUpDown,
-  Filter,
-  CheckCircle2,
   User
 } from 'lucide-react';
 

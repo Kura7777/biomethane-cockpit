@@ -1,11 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useAppState } from '../../store/context';
 import { parseBrokerRunText, BrokerParseResult } from '../../domain/markets/brokerRunParser';
-import { calculateMarksDiff, MarkDiffItem } from '../../domain/marks/marksStore';
 import { PricingBookEntry } from '../../domain/markets/brokerRun.seed';
 import { quoteIdentityForMarket } from '../../domain/marks/applyMarks';
 import { showToast } from '../../app/DeskToastContainer';
-import { Calendar, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Calendar, CheckCircle2 } from 'lucide-react';
 
 interface BrokerRunImporterModalProps {
   isOpen: boolean;
@@ -15,7 +14,7 @@ interface BrokerRunImporterModalProps {
 }
 
 export function BrokerRunImporterModal({ isOpen, onClose, onCommitted, onFail }: BrokerRunImporterModalProps) {
-  const { state, dispatch } = useAppState();
+  const { dispatch } = useAppState();
   // Starts empty as required by Phase 1b
   const [inputText, setInputText] = useState<string>('');
   const [customDate, setCustomDate] = useState<string>('');
@@ -34,10 +33,6 @@ export function BrokerRunImporterModal({ isOpen, onClose, onCommitted, onFail }:
   }, [inputText, customDate]);
 
   const effectiveRunDate = parseResult.extractedDate || customDate;
-
-  const diffItems: MarkDiffItem[] = useMemo(() => {
-    return calculateMarksDiff(parseResult.marks, state.marks);
-  }, [parseResult.marks, state.marks]);
 
   if (!isOpen) return null;
 

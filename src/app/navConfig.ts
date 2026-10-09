@@ -7,15 +7,13 @@ import {
   Database,
   Zap,
   BookOpen,
-  TrendingUp,
-  Radar,
   Scale,
   ShieldCheck,
   Anchor,
   Flame,
   Briefcase,
   Users,
-  ShieldAlert,
+  ShieldAlert
 } from 'lucide-react';
 
 export interface NavItem {

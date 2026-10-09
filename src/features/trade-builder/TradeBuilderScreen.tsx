@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MARKETS, getMarketById, isVoluntaryMarket } from '../../domain/markets/registry';
-import { FEEDSTOCK_REGISTRY, REFERENCE_CONSIGNMENTS } from '../../domain/consignment/feedstocks';
+import { FEEDSTOCK_REGISTRY } from '../../domain/consignment/feedstocks';
 import { feedstockDefaultCi, getAssumption } from '../../domain/assumptions/registry';
 import { Consignment, CertificationScheme, ChainOfCustody, AnnexClassification, DeliveryProfile, UDBStatus, PoSStatus } from '../../domain/consignment/types';
 import { TradeAssessment } from '../../domain/trade/types';
@@ -28,7 +28,7 @@ import { TradeConsignmentStep, UDB_OPTIONS, POS_OPTIONS } from './steps/TradeCon
 import { TradeMarketAuditStep } from './steps/TradeMarketAuditStep';
 import { TradeEconomicsStep, WaterfallRow } from './steps/TradeEconomicsStep';
 import { TradeExecutionStep } from './steps/TradeExecutionStep';
-import { ListOrdered, LayoutGrid, CheckCircle2, XCircle, AlertTriangle, ArrowRight, ChevronUp } from 'lucide-react';
+import { ListOrdered, LayoutGrid, ArrowRight, ChevronUp } from 'lucide-react';
 import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
 import { AssumptionsStrip } from '../../shared/components/AssumptionsStrip';
 import { FlowSteps } from '../../shared/ui/FlowSteps';
@@ -207,7 +207,7 @@ export function TradeBuilderScreen() {
     setDeliveryEndDate('2026-12-31');
     setDeliveryProfile('FLAT_MONTHLY');
     setDealId(newDealId());
-    setSearchParams(prev => {
+    setSearchParams(() => {
       const next = new URLSearchParams();
       next.set('step', '1');
       return next;
@@ -711,7 +711,7 @@ export function TradeBuilderScreen() {
       const pdf = generateEfetBiomethaneAnnexPdf(currentTradeAssessment);
       downloadDealFile(`EFET_Annex_${selectedMarket.id}_${origin}.pdf`, pdf.output('blob'), 'application/pdf');
       showToast('EFET Annex PDF downloaded');
-    } catch (e) {
+    } catch {
       showToast('Failed to generate EFET PDF');
     }
   };
@@ -723,7 +723,7 @@ export function TradeBuilderScreen() {
       const pdf = generateCommercialTermSheetPdf(currentTradeAssessment);
       downloadDealFile(`TermSheet_${selectedMarket.id}_${origin}.pdf`, pdf.output('blob'), 'application/pdf');
       showToast('Commercial Term Sheet PDF downloaded');
-    } catch (e) {
+    } catch {
       showToast('Failed to generate Term Sheet PDF');
     }
   };

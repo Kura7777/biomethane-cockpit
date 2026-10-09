@@ -29,7 +29,7 @@ import {
   calculateVesselExposure,
 } from '../fueleu/calculator';
 import { generateForwardCurves, MARKET_METADATA } from '../curves/engine';
-import { TEST_QUOTE_MARKET_INPUTS, TEST_POOL } from './fixtures/fueleuPrices';
+import { TEST_QUOTE_MARKET_INPUTS } from './fixtures/fueleuPrices';
 
 /**
  * Regression suite for the September 2026 quantitative & statutory audit.

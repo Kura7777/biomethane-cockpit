@@ -2,7 +2,7 @@ import React, { createContext, useContext, useReducer, useEffect, useState, Reac
 import { Consignment } from '../domain/consignment/types';
 import { MarksState, CostInputs, PricingSides } from '../domain/netback/types';
 import { TradeAssessment, AssessmentStatus } from '../domain/trade/types';
-import { PriceSide, MarkEntry, MarkProvenance, getMarkStaleness } from '../domain/markets/types';
+import { PriceSide, MarkEntry, MarkProvenance } from '../domain/markets/types';
 import { MARKETS } from '../domain/markets/registry';
 import { REFERENCE_CONSIGNMENTS } from '../domain/consignment/feedstocks';
 import { simulateDesk } from '../domain/marks/simulate';
@@ -996,7 +996,7 @@ export function readBackupFile(file: File): Promise<AppState> {
         const text = reader.result as string;
         const imported = importState(text);
         resolve(imported);
-      } catch (err) {
+      } catch {
         reject(new Error('Invalid backup file format. Must be a valid Biomethane Desk JSON backup.'));
       }
     };

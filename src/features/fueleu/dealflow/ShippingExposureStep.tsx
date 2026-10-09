@@ -4,11 +4,9 @@ import React, { useState, useMemo } from 'react';
 import {
   ShippingCounterparty,
   CALLING_REGIONS,
-  TRADE_LANES,
-  getStrategyTierBadgeClass,
+  getStrategyTierBadgeClass
 } from '../../../domain/fueleu/types';
 import {
-  Building2,
   Ship,
   Flame,
   Scale,
@@ -23,8 +21,7 @@ import {
   AlertTriangle,
   ShieldCheck,
   Zap,
-  TrendingDown,
-  UserCheck,
+  UserCheck
 } from 'lucide-react';
 import { showToast } from '../../../app/DeskToastContainer';
 import { useFuelEuPrices } from '../useFuelEuPrices';

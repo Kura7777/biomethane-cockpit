@@ -2,12 +2,10 @@ import { describe, it, expect, afterEach } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  feedstockKeyForPlant,
-  defaultCi,
   plantCi,
   defaultVolumeMwh,
   defaultMarketForOrigin,
-  plantDealParams,
+  plantDealParams
 } from '../dealDefaults';
 import { FEEDSTOCK_REGISTRY } from '../../consignment/feedstocks';
 import { BIOMETHANE_PLANTS } from '../../plants/registry';

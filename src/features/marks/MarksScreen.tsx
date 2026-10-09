@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { MARKETS, isVoluntaryMarket } from '../../domain/markets/registry';
-import { Market, deriveSourceBadge } from '../../domain/markets/types';
+import { deriveSourceBadge } from '../../domain/markets/types';
 import { useAppState } from '../../store/context';
 import { SIMULATED_SOURCE_NAME } from '../../domain/marks/simulate';
 import { SourceChip } from '../../shared/ui/SourceChip';
@@ -18,19 +17,9 @@ import { Sheet, MobileCardList } from '../../shared/ui';
 import {
   Download,
   Search,
-  RefreshCw,
   FileSpreadsheet,
-  Layers,
-  Check,
-  Globe,
-  Scale,
-  ShieldCheck,
   Filter,
-  ExternalLink,
-  Info,
-  Sparkles,
-  Calendar,
-  Star,
+  Sparkles
 } from 'lucide-react';
 
 function formatAge(dateStr?: string | null): string {

@@ -8,8 +8,7 @@ import {
   isDeadOrSyntheticDomain,
   isOperatorDomainMismatch,
   isOperatorRegionalMismatch,
-  normalizeToSlug,
-  SHARED_CONTACT_THRESHOLD,
+  normalizeToSlug
 } from '../plants/contactQuality';
 import { getOfficialRegisterForCountry, buildOfficialRegisterSearchUrl } from '../plants/officialRegisters';
 import { BiomethanePlant } from '../plants/types';

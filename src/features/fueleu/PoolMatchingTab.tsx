@@ -11,8 +11,6 @@ import { FuelEuPoolIndexChart } from './FuelEuPoolIndexChart';
 import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 import { MobileCardList } from '../../shared/ui';
 
-const MONO_FONT = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
-
 const TOP_N_OPTIONS = [5, 10, 20, 50] as const;
 
 export interface PoolMatchingTabProps {

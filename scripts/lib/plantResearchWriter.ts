@@ -5,7 +5,7 @@
  */
 import * as fs from 'fs';
 import * as path from 'path';
-import { PlantResearch, SourcedValue, ResearchContact } from '../../src/domain/plants/types';
+import { PlantResearch, SourcedValue } from '../../src/domain/plants/types';
 
 export interface CountryResearchFile {
   countryCode: string;

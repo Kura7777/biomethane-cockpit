@@ -1,9 +1,7 @@
 import {
   RegistryId,
   InjectionBatch,
-  BatchAnnexClassification,
-  BatchStatus,
-  GridInterconnectionStatus,
+  BatchAnnexClassification
 } from './types';
 
 export interface RegistryImportResult {

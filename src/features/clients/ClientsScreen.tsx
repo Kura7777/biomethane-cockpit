@@ -660,7 +660,6 @@ function CompanyPage(props: {
   const deficit = p.fueleu.reduce((s, f) => s + f.deficit2026Tco2e, 0);
   const maritimeT = p.fueleu.reduce((s, f) => s + f.etsCo2Tco2, 0);
   const sites = p.ets1.flatMap(c => c.sites).sort((a, b) => b.verifiedLatestTco2 - a.verifiedLatestTco2);
-  const ets1T = sites.reduce((s, v) => s + v.verifiedLatestTco2, 0);
   const ets1FitT = p.ets1.reduce((s, c) => s + c.fitVerifiedLatestTco2, 0);
   const has = (m: MarketKey) => p.markets.includes(m);
   const costNow = costNowCell(x);

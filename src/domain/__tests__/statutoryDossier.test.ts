@@ -7,13 +7,12 @@ import {
   generateLinkedInOriginationUrl,
   generateLinkedInCompanySearchUrl,
   generateStatutoryRegistrySearchUrl,
-  isSynthesisedEntityName,
+  isSynthesisedEntityName
 } from '../plants/statutoryDossiers';
 import { 
   getTraderDeskOverride, 
   saveTraderDeskOverride, 
   deleteTraderDeskOverride,
-  getAllTraderDeskOverrides,
   clearAllTraderDeskOverrides,
   exportTraderOverridesJson,
   importTraderOverridesJson

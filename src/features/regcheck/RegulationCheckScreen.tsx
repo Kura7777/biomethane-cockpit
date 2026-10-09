@@ -14,8 +14,7 @@ import {
   KeyRound,
   FileCheck2,
   HelpCircle,
-  RefreshCw,
-  Layers
+  RefreshCw
 } from 'lucide-react';
 import { REGCHECK_WATCHLIST } from '../../domain/regcheck/watchlist';
 import type {

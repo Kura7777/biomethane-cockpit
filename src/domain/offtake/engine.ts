@@ -2,8 +2,7 @@ import {
   DualLegOfftakeStructure, 
   DualLegPricingResult, 
   CiSliderConfig, 
-  SdePlusPlusTerms,
-  EnergyHeatingValueBasis 
+  SdePlusPlusTerms
 } from './types';
 
 export const HHV_TO_LHV_FACTOR = 0.901; // Standard European biomethane conversion factor (Gross to Net calorific value)

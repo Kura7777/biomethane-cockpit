@@ -58,7 +58,7 @@ export async function testGeminiApiKey(key: string): Promise<{ valid: boolean; m
       if (res.status === 400 && parsedMsg.toLowerCase().includes('api key')) {
         return { valid: false, error: `Invalid API Key (${parsedMsg})` };
       }
-    } catch (e: any) {
+    } catch {
       // Continue to next model if network/fetch failed
     }
   }

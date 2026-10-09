@@ -860,7 +860,7 @@ describe('SITE-WIDE ACCURACY & MATHEMATICAL GROUND-TRUTH AUDIT', () => {
   describe('12. Pan-European Plant Technical & Feedstock Reality Invariants', () => {
     
     it('verifies 100% of all 1,974 facilities have non-null feedstock and technical stack attributions', async () => {
-      const { BIOMETHANE_PLANTS, COUNTRY_MACRO_STATS } = await import('../plants/registry');
+      const { BIOMETHANE_PLANTS } = await import('../plants/registry');
 
       expect(BIOMETHANE_PLANTS.length).toBe(1974);
 

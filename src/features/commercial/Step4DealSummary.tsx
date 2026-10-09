@@ -10,7 +10,7 @@ import {
   fmtEurPerMwh,
   fmtEurTotal,
   ttfMarkLine,
-  type PriceSource,
+  type PriceSource
 } from '../../domain/arbitrage/originationBreakdown';
 import { originationRouteStatus } from '../../domain/arbitrage/routeStatus';
 import { SourceChip } from '../../shared/ui/SourceChip';
@@ -20,15 +20,8 @@ import {
   CheckCircle2, 
   Copy, 
   Check, 
-  Printer, 
   RotateCcw, 
-  Building2, 
-  TrendingUp, 
-  FileText, 
   ArrowLeft,
-  ShieldCheck,
-  Flame,
-  ArrowRight,
   Zap,
   Scale
 } from 'lucide-react';

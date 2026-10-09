@@ -5,7 +5,7 @@ import {
   calculateMarineBunkerQuotation,
   defaultLiquefactionFeeEurMwh,
   defaultGreenPremiumEurMwh,
-  defaultVlsfoPriceUsdPerTonne,
+  defaultVlsfoPriceUsdPerTonne
 } from '../../../domain/fueleu/calculator';
 import { poolingEconomicsForBalance, type FuelEuMarketPrices, type FuelEuPoolPrices } from '../../../domain/fueleu/marketPrices';
 import { SourceChip } from '../../../shared/ui/SourceChip';
@@ -18,13 +18,8 @@ import {
   RotateCcw,
   Sparkles,
   TrendingUp,
-  ShieldCheck,
-  Zap,
-  DollarSign,
   Plus,
-  Minus,
-  CheckCircle2,
-  Ship,
+  Minus
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { showToast } from '../../../app/DeskToastContainer';
@@ -76,7 +71,6 @@ export function ShippingBunkerPricingStep({
 }: ShippingBunkerPricingStepProps) {
   const isDualFuel = counterparty.fleetCapability === 'DUAL_FUEL_LNG';
   const isSurplus = counterparty.compliance_balance_2026_tco2e > 0;
-  const absDeficit = Math.abs(counterparty.compliance_balance_2026_tco2e);
 
   // Compute live marine quotation
   const marineQuote = useMemo(() => {

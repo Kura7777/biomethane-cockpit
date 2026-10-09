@@ -44,7 +44,7 @@ export function Layout() {
     try {
       const filename = downloadDeskBackup(state);
       showToast(`✓ Desk backup saved to drive · ${filename}`);
-    } catch (err) {
+    } catch {
       showToast('Failed to create desk backup');
     }
   }, [state]);

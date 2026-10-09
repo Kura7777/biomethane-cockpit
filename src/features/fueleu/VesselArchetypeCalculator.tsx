@@ -7,7 +7,7 @@ import {
   FUELEU_MGO_WTW,
   fossilLngWtw,
   LHV_VLSFO_MJ_PER_TONNE,
-  LHV_MGO_MJ_PER_TONNE,
+  LHV_MGO_MJ_PER_TONNE
 } from '../../domain/fueleu/calculator';
 import { FUELEU_ACTIVE_PERIOD, COMPLIANCE_YEAR_PERIOD_LABELS } from './complianceYears';
 import { VesselArchetype, VesselCalculationInput } from '../../domain/fueleu/types';
@@ -15,16 +15,9 @@ import { buildDealUrl } from '../../domain/trade/dealParams';
 import { defaultVolumeMwh, FUELEU_BIO_LNG_DEFAULT_ORIGIN } from '../../domain/trade/dealDefaults';
 import { buildOriginationUrl } from '../commercial/originationUrl';
 import {
-  Ship,
   Zap,
   ShieldCheck,
   RotateCcw,
-  Sliders,
-  TrendingDown,
-  Coins,
-  ChevronRight,
-  FileSpreadsheet,
-  FileText,
   Anchor,
   Flame,
   Check,

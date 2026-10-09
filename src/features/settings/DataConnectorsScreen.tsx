@@ -11,16 +11,11 @@ import { useAppState } from '../../store/context';
 import { showToast } from '../../app/DeskToastContainer';
 import { PageShell } from '../../shared/ui/PageShell';
 import {
-  Key,
-  Activity,
   RefreshCw,
   CheckCircle2,
   AlertCircle,
   FileText,
-  Database,
   Zap,
-  Layers,
-  ExternalLink,
   Lock,
   Eye,
   EyeOff
@@ -68,7 +63,7 @@ export function DataConnectorsScreen() {
     setConnectors(prev => prev.map(c => c.id === id ? { ...c, [field]: value } : c));
   };
 
-  const handleSaveConnector = (id: string) => {
+  const handleSaveConnector = () => {
     saveConnectors(connectors);
     showToast('Credentials saved successfully');
   };
@@ -373,7 +368,7 @@ export function DataConnectorsScreen() {
                   <button
                     type="button"
                     className="btn btn-primary dc-save-btn"
-                    onClick={() => handleSaveConnector(c.id)}
+                    onClick={() => handleSaveConnector()}
                   >
                     Save
                   </button>

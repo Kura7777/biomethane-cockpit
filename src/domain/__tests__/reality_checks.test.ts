@@ -3,7 +3,6 @@ import { MARKETS, getMarketById } from '../markets/registry';
 import { evaluateGHGThresholdGate } from '../eligibility/gates/ghg-threshold';
 import { REFERENCE_CONSIGNMENTS } from '../consignment/feedstocks';
 import { computeNetback } from '../netback/engine';
-import { CI_COMPARATOR_HEAT, CI_COMPARATOR_ROAD_TRANSPORT } from '../markets/constants';
 import { MarksState, CostInputs } from '../netback/types';
 
 describe('Reality Checks & Institutional Ground-Truth Suite (Task 2.5)', () => {

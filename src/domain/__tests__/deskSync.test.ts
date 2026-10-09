@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { deskSync } from '../sync/deskSync';
 import { SyncEvent, ToastNotification } from '../sync/types';
 

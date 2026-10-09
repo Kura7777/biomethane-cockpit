@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { searchSourcingRoutes } from '../arbitrage/sourcingAdapter';
-import { ClientRequest, RegulatoryWhatIfScenario } from '../arbitrage/types';
+import { ClientRequest } from '../arbitrage/types';
 import { MarksState, CostInputs } from '../netback/types';
 import { DEFAULT_WHAT_IF_SCENARIO } from '../arbitrage/engine';
 import { PRODUCING_ORIGINS } from '../arbitrage/origins';

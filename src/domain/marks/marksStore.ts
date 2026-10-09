@@ -1,5 +1,4 @@
 import { MarksState } from '../netback/types';
-import { MarkProvenance } from '../markets/types';
 import { ParsedBrokerMark } from '../markets/brokerRunParser';
 
 export const MARKS_AUDIT_STORAGE_KEY = 'biomethane_marks_audit_log_v1';
