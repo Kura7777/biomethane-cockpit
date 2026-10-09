@@ -9,6 +9,8 @@ import {
   TBA
 } from '../../../domain/trade/legalPackage';
 import { MARKETS } from '../../../domain/markets/registry';
+import { buildCustodyClauses } from '../../../domain/trade/custodyClauses';
+import { CustodyClausesBlock } from './CustodyClausesBlock';
 
 interface LegalTabTermSheetProps {
   assessment: TradeAssessment;
@@ -50,6 +52,7 @@ export function LegalTabTermSheet({
   const deliveryPeriodLabel = dp?.startDate && dp?.endDate ? `${dp.startDate} to ${dp.endDate}` : TBA;
   const deliveryPointLabel = dp?.deliveryPointVtp || `${c.injectionCountry} virtual trading point ${TBA}`;
   const originLabel = c.originPlantName || c.name || TBA;
+  const custodyClauses = buildCustodyClauses(assessment);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -245,6 +248,11 @@ export function LegalTabTermSheet({
             >
               Transfer of {attributeLabel} via {targetMarket.registry || TBA}; transfer deadline {TBA}. Seller to warrant that the attributes have not been claimed elsewhere, including under national support schemes, and to disclose any support received. Remedies for late or invalid evidence {TBA}.
             </div>
+            {custodyClauses && (
+              <div style={{ marginTop: '8px' }}>
+                <CustodyClausesBlock clauses={custodyClauses} detail="summary" />
+              </div>
+            )}
           </div>
 
           {/* Status */}

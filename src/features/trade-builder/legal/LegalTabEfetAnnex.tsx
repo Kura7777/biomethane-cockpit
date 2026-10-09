@@ -8,6 +8,8 @@ import {
   TBA
 } from '../../../domain/trade/legalPackage';
 import { MARKETS } from '../../../domain/markets/registry';
+import { buildCustodyClauses } from '../../../domain/trade/custodyClauses';
+import { CustodyClausesBlock } from './CustodyClausesBlock';
 
 interface LegalTabEfetAnnexProps {
   assessment: TradeAssessment;
@@ -47,6 +49,7 @@ export function LegalTabEfetAnnex({
   const deliveryPeriodLabel = dp?.startDate && dp?.endDate ? `${dp.startDate} to ${dp.endDate}` : TBA;
   const deliveryPointLabel = dp?.deliveryPointVtp || `${c.injectionCountry} virtual trading point ${TBA}`;
   const originLabel = c.originPlantName || c.name || TBA;
+  const custodyClauses = buildCustodyClauses(assessment);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -208,7 +211,10 @@ export function LegalTabEfetAnnex({
             </table>
           </div>
 
-          {/* Section 4: Execution */}
+          {/* Section 4: chain-of-custody undertakings (GO + PoS, or PoS-only) */}
+          {custodyClauses && <CustodyClausesBlock clauses={custodyClauses} detail="full" />}
+
+          {/* Section 5: Execution */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginTop: '10px' }}>
             <div style={{ borderTop: '2px solid var(--color-divider)', paddingTop: '8px' }}>
               <div style={{ fontSize: '12px', fontWeight: 700 }}>For: {legalOptions.sellerName}</div>

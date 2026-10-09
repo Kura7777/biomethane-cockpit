@@ -2,6 +2,7 @@ import { jsPDF } from 'jspdf';
 import { TradeAssessment } from './types';
 import { MARKETS, isVoluntaryMarket } from '../markets/registry';
 import { LegalCitation, OverallVerdict } from '../eligibility/types';
+import { CustodyClauses, buildCustodyClauses } from './custodyClauses';
 import {
   TBA,
   LegalAnnexOptions,
@@ -50,6 +51,81 @@ function drawRows(doc: jsPDF, rows: string[][], margin: number, y: number, label
   return y;
 }
 
+/** Starts a new page when the next block would run into the footer. Returns the y to draw at. */
+function ensureSpace(doc: jsPDF, y: number, needed: number): number {
+  if (y + needed > 278) {
+    doc.addPage();
+    return 20;
+  }
+  return y;
+}
+
+function drawPara(doc: jsPDF, text: string, margin: number, y: number, indent = 2, width = 170, lineHeight = 3.3): number {
+  const lines = doc.splitTextToSize(text, width);
+  y = ensureSpace(doc, y, lines.length * lineHeight + 1);
+  doc.text(lines, margin + indent, y);
+  return y + lines.length * lineHeight + 1.2;
+}
+
+/**
+ * Chain-of-custody undertakings: seller warranties, claw-back indemnity, retention, deliverables,
+ * timing and risk disclosure. `compact` (term sheet) leaves out the deliverables list; `internal`
+ * (pre-screen memo) adds the claw-back exposure, which never goes on a counterparty document.
+ */
+function drawCustodyClauses(
+  doc: jsPDF,
+  clauses: CustodyClauses,
+  number: string,
+  margin: number,
+  y: number,
+  opts: { compact?: boolean; internal?: boolean } = {}
+): number {
+  const label = (text: string) => {
+    y = ensureSpace(doc, y, 8);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(15, 23, 42);
+    doc.text(text, margin + 2, y);
+    y += 3.6;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(71, 85, 105);
+  };
+
+  y = ensureSpace(doc, y, 14);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(15, 23, 42);
+  doc.text(`${number}. ${clauses.heading.toUpperCase()} (DRAFTING POINTS)`, margin, y, { maxWidth: 174 });
+  y += 5;
+
+  label('Seller warranties');
+  clauses.warranties.forEach((w, i) => { y = drawPara(doc, `${i + 1}. ${w.text} (${w.ref})`, margin, y, 4, 166); });
+  if (clauses.indemnity) {
+    label('Indemnity');
+    y = drawPara(doc, clauses.indemnity, margin, y, 4, 166);
+  }
+  label('Retention');
+  y = drawPara(doc, clauses.retention, margin, y, 4, 166);
+  if (!opts.compact) {
+    label('Deliverables');
+    clauses.deliverables.forEach(d => { y = drawPara(doc, `- ${d}`, margin, y, 4, 166); });
+  }
+  if (clauses.timing) {
+    label('Timing');
+    y = drawPara(doc, clauses.timing, margin, y, 4, 166);
+  }
+  if (clauses.riskDisclosure.length > 0) {
+    label('Risk disclosure');
+    clauses.riskDisclosure.forEach(r => { y = drawPara(doc, `- ${r}`, margin, y, 4, 166); });
+  }
+  if (opts.internal && clauses.internalExposure) {
+    label('Claw-back exposure (internal only)');
+    y = drawPara(doc, clauses.internalExposure, margin, y, 4, 166);
+  }
+  return y + 2;
+}
+
 function drawFingerprint(doc: jsPDF, seal: string, margin: number, y: number): void {
   doc.setFillColor(241, 245, 249);
   doc.setDrawColor(148, 163, 184);
@@ -83,6 +159,7 @@ export function generateEfetBiomethaneAnnexPdf(
   const dp = c.deliveryPeriod;
   const isVoluntary = isVoluntaryMarket(assessment.targetMarketId);
   const isNlDeal = assessment.targetMarketId === 'NL_ERE' || c.originCountry === 'NL' || c.injectionCountry === 'NL';
+  const custodyClauses = buildCustodyClauses(assessment);
 
   const margin = 18;
   let y = 20;
@@ -166,6 +243,10 @@ export function generateEfetBiomethaneAnnexPdf(
   ], margin, y, 48);
   y += 2;
 
+  if (custodyClauses) {
+    // GO + PoS (NL GGE) or PoS-only (DE THG): the chain-of-custody undertakings replace the generic warranty.
+    y = drawCustodyClauses(doc, custodyClauses, '4', margin, y);
+  } else {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8.5);
   doc.setTextColor(15, 23, 42);
@@ -180,7 +261,9 @@ export function generateEfetBiomethaneAnnexPdf(
   const splitSubsidy = doc.splitTextToSize(subsidyText, 172);
   doc.text(splitSubsidy, margin + 2, y);
   y += splitSubsidy.length * 3.4 + 3;
+  }
 
+  y = ensureSpace(doc, y, 14 + Math.min(el.gates.length, 6) * 3.6);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8.5);
   doc.setTextColor(15, 23, 42);
@@ -198,6 +281,7 @@ export function generateEfetBiomethaneAnnexPdf(
   });
   y += 4;
 
+  y = ensureSpace(doc, y, 36);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8.5);
   doc.setTextColor(15, 23, 42);
@@ -233,6 +317,7 @@ export function generateCommercialTermSheetPdf(
   const seal = calculateTradeIntegritySeal(assessment);
   const isVoluntary = isVoluntaryMarket(assessment.targetMarketId);
   const dp = c.deliveryPeriod;
+  const custodyClauses = buildCustodyClauses(assessment);
 
   const margin = 18;
   let y = 20;
@@ -317,6 +402,11 @@ export function generateCommercialTermSheetPdf(
   doc.text(splitTransfer, margin + 2, y);
   y += splitTransfer.length * 3.4 + 5;
 
+  if (custodyClauses) {
+    y = drawCustodyClauses(doc, custodyClauses, '4', margin, y, { compact: true });
+  }
+  y = ensureSpace(doc, y, 28);
+
   doc.setFont('helvetica', 'italic');
   doc.setFontSize(7);
   doc.setTextColor(100, 116, 139);
@@ -361,6 +451,10 @@ export function generateStatutoryAuditMemoPdf(
   const parties = resolveParties(assessment, options);
   const seal = calculateTradeIntegritySeal(assessment);
   const margin = 18;
+  // The extra page is for the paired GO + PoS (NL GGE) deal; the PoS-only subset stays in the confirmation.
+  const built = buildCustodyClauses(assessment);
+  const custodyClauses = built?.variant === 'PAIRED_GO_POS' ? built : null;
+  const totalPages = custodyClauses ? 3 : 2;
   // The verdict always comes from the deterministic gate engine; AI output is commentary only.
   const verdict = PRESCREEN_VERDICT[el.overallVerdict] ?? PRESCREEN_VERDICT.UNKNOWN;
 
@@ -455,7 +549,7 @@ export function generateStatutoryAuditMemoPdf(
   doc.setFontSize(6.5);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(148, 163, 184);
-  doc.text(`INTERNAL · DESK PRE-SCREEN · PRESCREEN-${assessment.id} · PAGE 1 OF 2`, margin, 287);
+  doc.text(`INTERNAL · DESK PRE-SCREEN · PRESCREEN-${assessment.id} · PAGE 1 OF ${totalPages}`, margin, 287);
 
   // PAGE 2
   doc.addPage();
@@ -558,7 +652,25 @@ export function generateStatutoryAuditMemoPdf(
   doc.setFontSize(6.5);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(148, 163, 184);
-  doc.text(`INTERNAL · DESK PRE-SCREEN · PRESCREEN-${assessment.id} · PAGE 2 OF 2`, margin, 287);
+  doc.text(`INTERNAL · DESK PRE-SCREEN · PRESCREEN-${assessment.id} · PAGE 2 OF ${totalPages}`, margin, 287);
+
+  // PAGE 3: chain-of-custody undertakings, risk disclosure and (internal) claw-back exposure
+  if (custodyClauses) {
+    doc.addPage();
+    y = 18;
+    doc.setFillColor(15, 23, 42);
+    doc.rect(margin, y, 174, 12, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9.5);
+    doc.setTextColor(255, 255, 255);
+    doc.text('DESK REGULATORY PRE-SCREEN · CHAIN OF CUSTODY', margin + 4, y + 7.5);
+    y += 17;
+    drawCustodyClauses(doc, custodyClauses, '5', margin, y, { internal: true });
+    doc.setFontSize(6.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(148, 163, 184);
+    doc.text(`INTERNAL · DESK PRE-SCREEN · PRESCREEN-${assessment.id} · PAGE 3 OF ${totalPages}`, margin, 287);
+  }
 
   return doc;
 }

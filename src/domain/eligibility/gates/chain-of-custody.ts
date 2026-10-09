@@ -152,6 +152,22 @@ export function ggeEffectiveBookingDeadline(productionEnd: string, deliveryYear:
   return goExpiry < bookingWindowEnd ? goExpiry : bookingWindowEnd;
 }
 
+/** The deal's year of delivery and the GO's production end, the two dates the booking deadline needs. */
+function bookingInputs(consignment: Consignment): { productionEnd: string | null; deliveryYear: number | null } {
+  const productionEnd = consignment.custody?.go?.productionEnd || consignment.deliveryPeriod?.productionEndDate || null;
+  const dpEnd = consignment.deliveryPeriod?.endDate ?? null;
+  const deliveryYear = consignment.deliveryPeriod?.complianceYear
+    ?? (dpEnd ? Number(dpEnd.slice(0, 4)) : null)
+    ?? (productionEnd ? Number(productionEnd.slice(0, 4)) : null);
+  return { productionEnd, deliveryYear };
+}
+
+/** The effective NEa booking deadline for a deal (the checklist's date), or null while the dates are not entered. */
+export function ggeBookingDeadlineFor(consignment: Consignment): string | null {
+  const { productionEnd, deliveryYear } = bookingInputs(consignment);
+  return productionEnd && deliveryYear !== null ? ggeEffectiveBookingDeadline(productionEnd, deliveryYear) : null;
+}
+
 function daysBetween(fromIso: string, toIso: string): number {
   return Math.round((Date.parse(`${toIso.slice(0, 10)}T00:00:00Z`) - Date.parse(`${fromIso.slice(0, 10)}T00:00:00Z`)) / 86_400_000);
 }
@@ -270,11 +286,7 @@ function pairedChecklist(consignment: Consignment, market: Market): GateResult {
 
   // 8. Deadlines: GO validity / Spanish export window and the 1 May booking window (R9, R10, S5)
   const deadlineCites = [CITATIONS.NL_GGE_DRAFT_BESLUIT, CITATIONS.NL_GGE_DRAFT_REGELING];
-  const productionEnd = go?.productionEnd || consignment.deliveryPeriod?.productionEndDate || null;
-  const dpEnd = consignment.deliveryPeriod?.endDate ?? null;
-  const deliveryYear = consignment.deliveryPeriod?.complianceYear
-    ?? (dpEnd ? Number(dpEnd.slice(0, 4)) : null)
-    ?? (productionEnd ? Number(productionEnd.slice(0, 4)) : null);
+  const { productionEnd, deliveryYear } = bookingInputs(consignment);
   const planned = custody?.plannedBookingDate ?? null;
   if (!productionEnd || deliveryYear === null || !planned) {
     entries.push(entry('booking-deadlines', 'Booking & export deadlines', 'TODO', 'Enter the GO production end and the planned NEa booking date to check GO validity and the 1 May booking window (R9, R10).', deadlineCites));

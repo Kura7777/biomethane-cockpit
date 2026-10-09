@@ -219,6 +219,7 @@ export function chainOfCustodyLabel(coc: ChainOfCustody): string {
 }
 
 export function environmentalAttributeLabel(market: Market | undefined, marketId: string, udbStatus?: UDBStatus): string {
+  if (market?.requiresGoAndPos) return 'Guarantee of Origin (GO) and Proof of Sustainability (PoS) for the same MWh, delivered together';
   if (market?.isGuaranteeOfOrigin || isVoluntaryMarket(marketId)) return 'Guarantees of Origin (GO)';
   if (marketId === 'UK_RTFO') return 'Renewable Transport Fuel Certificates (RTFCs) under the UK RTFO';
   if (marketId === 'FUELEU') return 'Proof of Sustainability supporting FuelEU Maritime compliance';
@@ -454,7 +455,7 @@ export function generateEtrmJsonPayload(assessment: TradeAssessment, options: Le
       targetMarketName: assessment.targetMarketName,
       attributeType: environmentalAttributeLabel(market, assessment.targetMarketId, c.udbStatus),
       contractCiGco2ePerMj: c.carbonIntensity,
-      fossilComparatorGco2ePerMj: 94.0, // RED III transport comparator
+      fossilComparatorGco2ePerMj: market?.fossilComparatorGCo2eMj ?? 94.0, // the market's own comparator, else the RED III transport one
       attributeValueEurMwh: nb.certificateValue?.valueEurPerMWh ?? null,
       priceCeilingEurMwh: market?.ceilingEurMwh ?? (assessment.targetMarketId === 'FR_CPB' ? 100.0 : null),
       registrySystem: market?.registry ?? null,

@@ -47,6 +47,35 @@ CI: +38.5 gCO2e/MJ
 Chain of Custody: Book and Claim
 Volume: 10,000 MWh`;
 
+const SAMPLE_POS_ISCC_ES = `ISCC EU Proof of Sustainability
+PoS Number: EU-ISCC-PoS-ES214-0004471
+UDB Reference: UDB-ES-2027-000381
+Certificate Number: EU-ISCC-Cert-ES214-99482710
+Issuing Body: DNV Business Assurance
+Country: ES
+Raw material: 100% pig slurry and cattle manure
+Country of origin of raw material: Spain
+Quantity: 900 MWh
+GHG emissions per step (gCO2eq/MJ):
+  eec (cultivation): 0.0
+  ep (processing): 24.5
+  etd (transport and distribution): 3.1
+  eu (fuel in use): 0.0
+  esca (soil carbon accumulation): 0.0
+  eccs: 0.0
+  eccr: 0.0
+  el: 0.0
+Total GHG emissions: -40.0 gCO2eq/MJ
+Operating aid / support received: none
+Chain of Custody: Mass Balance`;
+
+/** A custody field the certificate did not state: shown so the trader knows to enter it by hand. */
+function Stated({ value }: { value: React.ReactNode | null }) {
+  return value === null || value === '' ? <span className="text-amber-300">enter manually</span> : <>{value}</>;
+}
+
+const SUPPORT_LABEL = { NONE: 'No support', INVESTMENT: 'Investment aid only', OPERATING: 'Operating aid', UNKNOWN: 'Not stated' } as const;
+
 export function PoSUploaderModal({ isOpen, onClose, onApply }: PoSUploaderModalProps) {
   const [inputText, setInputText] = useState<string>('');
 
@@ -63,7 +92,8 @@ export function PoSUploaderModal({ isOpen, onClose, onApply }: PoSUploaderModalP
       return;
     }
     onApply(parsed);
-    showToast(`Loaded PoS Certificate ${parsed.certificateNumber} (${parsed.primaryFeedstockName}, CI ${parsed.carbonIntensityGCo2Mj} g/MJ)`, 'success');
+    const ci = parsed.custody.ciTotal;
+    showToast(`Loaded PoS Certificate ${parsed.certificateNumber} (${parsed.primaryFeedstockName}, ${ci === null ? 'CI not stated: enter manually' : `CI ${ci} g/MJ`})`, 'success');
     onClose();
   };
 
@@ -129,6 +159,13 @@ export function PoSUploaderModal({ isOpen, onClose, onApply }: PoSUploaderModalP
                 className="px-2.5 py-1.5 rounded-md bg-stone-800 border border-stone-700 hover:border-emerald-500 text-stone-300 hover:text-white transition-all text-xs flex items-center gap-1.5 max-md:min-h-11"
               >
                 🇩🇰 ISCC EU (Danish Manure -92.5 CI)
+              </button>
+              <button
+                type="button"
+                onClick={() => setInputText(SAMPLE_POS_ISCC_ES)}
+                className="px-2.5 py-1.5 rounded-md bg-stone-800 border border-stone-700 hover:border-emerald-500 text-stone-300 hover:text-white transition-all text-xs flex items-center gap-1.5 max-md:min-h-11"
+              >
+                🇪🇸 ISCC EU (Spanish manure, GGE pack)
               </button>
               <button
                 type="button"
@@ -216,16 +253,51 @@ export function PoSUploaderModal({ isOpen, onClose, onApply }: PoSUploaderModalP
                 </div>
 
                 <div className="p-2.5 rounded bg-stone-900 border border-stone-800">
-                  <div className="text-stone-400 text-xs">Certified CI</div>
-                  <div className="tabular-nums font-bold text-amber-300">
-                    {parsed.carbonIntensityGCo2Mj > 0 ? `+${parsed.carbonIntensityGCo2Mj}` : parsed.carbonIntensityGCo2Mj} gCO₂e/MJ
+                  <div className="text-stone-400 text-xs">Certified CI (total)</div>
+                  <div className="tabular-nums font-bold text-amber-300" data-testid="pos-parsed-ci">
+                    <Stated value={parsed.custody.ciTotal === null ? null : `${parsed.custody.ciTotal > 0 ? '+' : ''}${parsed.custody.ciTotal} gCO₂e/MJ`} />
                   </div>
                 </div>
 
                 <div className="p-2.5 rounded bg-stone-900 border border-stone-800">
                   <div className="text-stone-400 text-xs">Volume / Batch</div>
-                  <div className="tabular-nums font-bold text-stone-200">
-                    {parsed.volumeMWh.toLocaleString()} MWh
+                  <div className="tabular-nums font-bold text-stone-200" data-testid="pos-parsed-mwh">
+                    <Stated value={parsed.custody.mwh === null ? null : `${parsed.custody.mwh.toLocaleString()} MWh`} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Chain-of-custody pack fields (R14): what the text states, the rest stays empty */}
+              <div className="space-y-2" data-testid="pos-custody-fields">
+                <div className="text-stone-400 text-xs font-medium">Written into the custody pack</div>
+                <div className="grid grid-cols-2 max-sm:grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="p-2.5 rounded bg-stone-900 border border-stone-800">
+                    <div className="text-stone-400 text-xs">PoS number</div>
+                    <div className="font-mono font-semibold text-stone-200 truncate"><Stated value={parsed.custody.posNumber} /></div>
+                  </div>
+                  <div className="p-2.5 rounded bg-stone-900 border border-stone-800">
+                    <div className="text-stone-400 text-xs">UDB number</div>
+                    <div className="font-mono font-semibold text-stone-200 truncate"><Stated value={parsed.custody.udbNumber} /></div>
+                  </div>
+                  <div className="p-2.5 rounded bg-stone-900 border border-stone-800">
+                    <div className="text-stone-400 text-xs">Scheme</div>
+                    <div className="font-semibold text-stone-200"><Stated value={parsed.custody.scheme} /></div>
+                  </div>
+                  <div className="p-2.5 rounded bg-stone-900 border border-stone-800">
+                    <div className="text-stone-400 text-xs">Feedstock origin country</div>
+                    <div className="font-semibold text-stone-200"><Stated value={parsed.custody.feedstockOriginCountry} /></div>
+                  </div>
+                  <div className="p-2.5 rounded bg-stone-900 border border-stone-800">
+                    <div className="text-stone-400 text-xs">Support declared</div>
+                    <div className="font-semibold text-stone-200">
+                      <Stated value={parsed.custody.supportDeclared === null ? null : SUPPORT_LABEL[parsed.custody.supportDeclared]} />
+                    </div>
+                  </div>
+                  <div className="p-2.5 rounded bg-stone-900 border border-stone-800">
+                    <div className="text-stone-400 text-xs">Per-step CI (Annex VI)</div>
+                    <div className="font-semibold text-stone-200 tabular-nums">
+                      <Stated value={parsed.custody.ciSteps === null ? null : Object.entries(parsed.custody.ciSteps).map(([k, v]) => `${k} ${v}`).join(' · ')} />
+                    </div>
                   </div>
                 </div>
               </div>
