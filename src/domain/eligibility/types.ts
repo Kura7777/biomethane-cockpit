@@ -27,6 +27,7 @@ export interface GateChecklistItem {
   status: GateChecklistStatus;
   detail: string;
   citations: LegalCitation[];
+  remedy?: string | null;
 }
 
 export interface GateResult {

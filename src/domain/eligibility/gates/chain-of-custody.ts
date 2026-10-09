@@ -1,17 +1,31 @@
 import { Consignment } from '../../consignment/types';
 import { Market } from '../../markets/types';
-import { GateResult, GateName, GateVerdict, GateChecklistItem } from '../types';
+import { GateResult, GateName, GateVerdict, GateChecklistItem, GateChecklistStatus, LegalCitation } from '../types';
 import { CITATIONS } from '../citations';
 import { getGoRoute } from '../../routes';
 import { evaluateUDBGate } from './udb';
 import { evaluateRegistryTransferGate, isGoTransferMarket } from './registry-transfer';
 import { evaluateCrossBorderPosGate } from './cross-border-pos';
 import { evaluateSchemeGate } from './scheme';
-import { evaluateGHGThresholdGate } from './ghg-threshold';
-import { getLhvFactorForOrigin } from '../../assumptions/registry';
+import { getAssumption, getLhvFactorForOrigin } from '../../assumptions/registry';
+import {
+  NL_GGE_BOOKING_DEADLINE_MONTH_DAY,
+  NL_GGE_GO_VALIDITY_MONTHS,
+  RED_HEAT_THRESHOLD_POST_2021,
+  RED_HEAT_THRESHOLD_POST_2026,
+} from '../../regulatory/constants';
+import { CI_COMPARATOR_HEAT } from '../../markets/constants';
 
 const GATE: GateName = 'CHAIN_OF_CUSTODY';
 const GATE_LABEL = 'Chain of Custody';
+
+/**
+ * One Chain-of-custody check per deal. The UDB, cross-border PoS and registry-transfer gates are
+ * folded in as checklist items; their evaluators stay as helpers (and keep their own behaviour).
+ *
+ * Gate verdict: worst item wins — FAIL → HARD_BLOCK; an item taken from a helper keeps that
+ * helper's UNRESOLVED / UNKNOWN; WARN / TODO → CONDITIONAL; otherwise PASS.
+ */
 
 function normIso(iso?: string | null): string {
   const u = (iso || '').toUpperCase();
@@ -23,569 +37,342 @@ const EU_EEA_COUNTRIES = new Set([
   'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE', 'IS', 'LI', 'NO',
 ]);
 
-const EC_RECOGNIZED_SCHEMES = new Set([
-  'ISCC_EU', 'REDCERT_EU', 'SURE', '2BSVS', 'BETTER_BIOMASS', 'KZR_INIG',
-]);
+const VERDICT_RANK: Record<GateVerdict, number> = { PASS: 0, CONDITIONAL: 1, UNKNOWN: 2, UNRESOLVED: 3, HARD_BLOCK: 4 };
 
-export function evaluateChainOfCustodyGate(consignment: Consignment, market: Market): GateResult {
-  const origin = normIso(consignment.injectionCountry || consignment.originCountry);
-  const custody = consignment.custody;
+const STATUS_VERDICT: Record<GateChecklistStatus, GateVerdict> = {
+  PASS: 'PASS', WARN: 'CONDITIONAL', TODO: 'CONDITIONAL', FAIL: 'HARD_BLOCK',
+};
 
-  // =========================================================================
-  // Case A: Paired Markets (requiresGoAndPos, e.g. NL_GGE)
-  // =========================================================================
-  if (market.requiresGoAndPos) {
-    const checklist: GateChecklistItem[] = [];
+/** A checklist row plus the verdict it contributes (a folded helper can contribute UNRESOLVED / UNKNOWN). */
+interface Entry {
+  item: GateChecklistItem;
+  verdict: GateVerdict;
+  confidence: GateResult['confidence'];
+  /** Advisory rows are shown but never move the gate verdict. */
+  advisory?: boolean;
+}
 
-    // 1. Origin in EU/EEA (R24)
-    const isEuEea = EU_EEA_COUNTRIES.has(origin);
-    checklist.push({
-      id: 'origin-eu-eea',
-      label: 'Origin in EU/EEA',
-      status: isEuEea ? 'PASS' : 'FAIL',
-      detail: isEuEea
-        ? `Biomethane produced in EU/EEA (${origin}) meets origin requirements (R24).`
-        : `Origin country ${origin} is outside EU/EEA; non-EEA biomethane is ineligible for NL GGE (R24).`,
-      citations: [CITATIONS.NL_GGE_TK_VERSLAG, CITATIONS.NL_GGE_DRAFT_BESLUIT],
-    });
+function entry(
+  id: string,
+  label: string,
+  status: GateChecklistStatus,
+  detail: string,
+  citations: LegalCitation[],
+  remedy: string | null = null,
+): Entry {
+  return { item: { id, label, status, detail, citations, remedy }, verdict: STATUS_VERDICT[status], confidence: 'HIGH' };
+}
 
-    // 2. GO route to NL via AIB (getGoRoute) (S1, R8)
-    if (origin === 'NL') {
-      checklist.push({
-        id: 'go-route-nl',
-        label: 'GO route to NL (AIB)',
-        status: 'PASS',
-        detail: 'Domestic Dutch delivery via VertiCer (S1, R8).',
-        citations: [CITATIONS.NL_GGE_DRAFT_BESLUIT],
-      });
-    } else {
-      const route = getGoRoute(origin, 'NL');
-      let routeStatus: 'PASS' | 'FAIL' | 'WARN' = 'WARN';
-      let routeDetail = `GO route from ${origin} to NL via AIB is unconfirmed.`;
-      if (route.status === 'POSSIBLE') {
-        routeStatus = 'PASS';
-        routeDetail = `GO route from ${origin} to NL via AIB hub is open and verified (S1, R8).`;
-      } else if (route.status === 'NOT_POSSIBLE') {
-        routeStatus = 'FAIL';
-        routeDetail = `GO route from ${origin} to NL via AIB hub is NOT possible (e.g. export restriction or non-connected registry) (R8).`;
-      }
-      checklist.push({
-        id: 'go-route-nl',
-        label: 'GO route to NL (AIB)',
-        status: routeStatus,
-        detail: routeDetail,
-        citations: [CITATIONS.NL_GGE_DRAFT_BESLUIT],
-      });
-    }
+function statusOf(verdict: GateVerdict): GateChecklistStatus {
+  if (verdict === 'HARD_BLOCK') return 'FAIL';
+  if (verdict === 'CONDITIONAL') return 'WARN';
+  if (verdict === 'PASS') return 'PASS';
+  return 'TODO';
+}
 
-    // 3. Certified chain: EC-recognised scheme, plus own and counterparty trader certified. Null -> TODO (R13, R16)
-    const schemeToCheck = custody?.pos?.scheme ?? consignment.certificationScheme;
-    const isEcScheme = EC_RECOGNIZED_SCHEMES.has(schemeToCheck);
-    if (!isEcScheme) {
-      checklist.push({
-        id: 'certified-chain',
-        label: 'Certified chain (EC scheme & traders)',
-        status: 'FAIL',
-        detail: `Certification scheme ${schemeToCheck} is not recognised by the European Commission under RED III (R13).`,
-        citations: [CITATIONS.RED_III_VOLUNTARY_SCHEMES, CITATIONS.NL_GGE_DRAFT_REGELING],
-      });
-    } else if (!custody || custody.claims?.ownTraderCertified == null || custody.claims?.counterpartyCertified == null) {
-      checklist.push({
-        id: 'certified-chain',
-        label: 'Certified chain (EC scheme & traders)',
-        status: 'TODO',
-        detail: 'Trader certification status (own and counterparty certified economic operators) must be verified (R13, R16).',
-        citations: [CITATIONS.NL_GGE_DRAFT_REGELING],
-      });
-    } else if (custody.claims.ownTraderCertified === false || custody.claims.counterpartyCertified === false) {
-      checklist.push({
-        id: 'certified-chain',
-        label: 'Certified chain (EC scheme & traders)',
-        status: 'FAIL',
-        detail: 'Trading entities must be certified economic operators under an EC-recognised voluntary scheme (R13, R16).',
-        citations: [CITATIONS.NL_GGE_DRAFT_REGELING],
-      });
-    } else {
-      checklist.push({
-        id: 'certified-chain',
-        label: 'Certified chain (EC scheme & traders)',
-        status: 'PASS',
-        detail: `Certified under ${schemeToCheck}; own trader and counterparty are certified economic operators (R13, R16).`,
-        citations: [CITATIONS.NL_GGE_DRAFT_REGELING],
-      });
-    }
+/** Folds a helper gate result into a checklist row, keeping its verdict, reason, remedy and sources. */
+function fromGate(id: string, label: string, g: GateResult): Entry {
+  return {
+    item: { id, label, status: statusOf(g.verdict), detail: g.reason, citations: g.citations, remedy: g.remedy },
+    verdict: g.verdict,
+    confidence: g.confidence,
+  };
+}
 
-    // 4. GO + PoS paired:
-    // GO MWh converted with lhvFactor matches PoS MWh within ±0.5%, and GO production period covers PoS period;
-    // missing data -> TODO; mismatch -> FAIL (R5–R7)
-    if (!custody?.go || !custody?.pos || custody.go.energyMWh == null || custody.pos.mwh == null) {
-      checklist.push({
-        id: 'go-pos-pairing',
-        label: 'GO + PoS paired',
-        status: 'TODO',
-        detail: 'GO and PoS records required to verify volume pairing and period coverage (R5–R7).',
-        citations: [CITATIONS.NL_GGE_DRAFT_BESLUIT, CITATIONS.NL_GGE_DRAFT_REGELING, CITATIONS.EU_IR_2022_996],
-      });
-    } else {
-      const lhvFactor = getLhvFactorForOrigin(origin);
-      const goMWh = custody.go.energyMWh;
-      const posMWh = custody.pos.mwh;
-      const goBasis = custody.go.energyBasis || 'HHV';
-      const goLhvMWh = goBasis === 'LHV' ? goMWh : goMWh * lhvFactor;
-      const diffPct = Math.abs(goLhvMWh - posMWh) / (posMWh || 1);
+function worse(a: Entry, b: Entry): Entry {
+  return VERDICT_RANK[b.verdict] > VERDICT_RANK[a.verdict] ? b : a;
+}
 
-      let periodMismatch = false;
-      if (custody.go.productionStart && custody.go.productionEnd && consignment.deliveryPeriod) {
-        const deliveryStart = typeof consignment.deliveryPeriod === 'object' ? consignment.deliveryPeriod.startDate : consignment.deliveryPeriod;
-        const deliveryEnd = typeof consignment.deliveryPeriod === 'object' ? consignment.deliveryPeriod.endDate : consignment.deliveryPeriod;
-        if (deliveryStart && custody.go.productionStart > deliveryStart) periodMismatch = true;
-        if (deliveryEnd && custody.go.productionEnd < deliveryEnd) periodMismatch = true;
-      }
+function result(entries: Entry[], passReason: string, citations: LegalCitation[]): GateResult {
+  const counted = entries.filter(e => !e.advisory);
+  const decisive = counted.reduce<Entry | null>((acc, e) => (acc ? worse(acc, e) : e), null);
+  const checklist = entries.map(e => e.item);
 
-      if (diffPct > 0.005) {
-        checklist.push({
-          id: 'go-pos-pairing',
-          label: 'GO + PoS paired',
-          status: 'FAIL',
-          detail: `Energy mismatch: GO ${goLhvMWh.toFixed(1)} MWh (LHV) does not match PoS ${posMWh.toFixed(1)} MWh within ±0.5% (difference ${(diffPct * 100).toFixed(2)}%) (R5–R7).`,
-          citations: [CITATIONS.NL_GGE_DRAFT_BESLUIT, CITATIONS.NL_GGE_DRAFT_REGELING],
-        });
-      } else if (periodMismatch) {
-        checklist.push({
-          id: 'go-pos-pairing',
-          label: 'GO + PoS paired',
-          status: 'FAIL',
-          detail: 'GO production period does not cover the PoS delivery period (R9).',
-          citations: [CITATIONS.NL_GGE_DRAFT_BESLUIT],
-        });
-      } else {
-        checklist.push({
-          id: 'go-pos-pairing',
-          label: 'GO + PoS paired',
-          status: 'PASS',
-          detail: `GO (${goMWh} MWh ${goBasis}) pairs with PoS (${posMWh} MWh) under LHV factor ${lhvFactor} within ±0.5% (R5–R7).`,
-          citations: [CITATIONS.NL_GGE_DRAFT_BESLUIT, CITATIONS.NL_GGE_DRAFT_REGELING],
-        });
-      }
-    }
-
-    // 5. No operating aid: NONE or INVESTMENT -> PASS; OPERATING -> FAIL; UNKNOWN -> TODO (R11, R12)
-    const support = custody?.go?.supportType ?? custody?.pos?.supportDeclared ?? 'UNKNOWN';
-    if (!custody || support === 'UNKNOWN') {
-      checklist.push({
-        id: 'no-operating-aid',
-        label: 'No operating aid',
-        status: 'TODO',
-        detail: 'Declaration of public support is required (operating aid is prohibited; investment aid is permitted) (R11, R12).',
-        citations: [CITATIONS.NL_GGE_DRAFT_BESLUIT, CITATIONS.NL_GGE_KAMERSTUK_36947],
-      });
-    } else if (support === 'OPERATING') {
-      checklist.push({
-        id: 'no-operating-aid',
-        label: 'No operating aid',
-        status: 'FAIL',
-        detail: 'Production received operating aid (exploitatiesubsidie); ineligible for NL GGE crediting (R11).',
-        citations: [CITATIONS.NL_GGE_DRAFT_BESLUIT],
-      });
-    } else {
-      checklist.push({
-        id: 'no-operating-aid',
-        label: 'No operating aid',
-        status: 'PASS',
-        detail: support === 'INVESTMENT'
-          ? 'Received investment aid only; compatible with NL GGE (Kamerstuk 36947 nr. 8) (R12).'
-          : 'No public operating aid declared (R11).',
-        citations: [CITATIONS.NL_GGE_DRAFT_BESLUIT, CITATIONS.NL_GGE_KAMERSTUK_36947],
-      });
-    }
-
-    // 6. Spanish PRTR grant: if origin ES and prtrGrant YES without prtrLegalCheckDone -> WARN (S3)
-    if (origin !== 'ES') {
-      checklist.push({
-        id: 'spanish-prtr-grant',
-        label: 'Spanish PRTR grant',
-        status: 'PASS',
-        detail: 'Not applicable for non-Spanish origins.',
-        citations: [],
-      });
-    } else if (!custody || custody.claims?.prtrGrant === 'UNKNOWN') {
-      checklist.push({
-        id: 'spanish-prtr-grant',
-        label: 'Spanish PRTR grant',
-        status: 'TODO',
-        detail: 'Verify whether Spanish PRTR biogas capital grants were received (Orden TED/706/2022 Art. 5.3) (S3).',
-        citations: [CITATIONS.ES_ORDEN_TED_706_2022],
-      });
-    } else if (custody.claims?.prtrGrant === 'YES' && !custody.claims?.prtrLegalCheckDone) {
-      checklist.push({
-        id: 'spanish-prtr-grant',
-        label: 'Spanish PRTR grant',
-        status: 'WARN',
-        detail: 'Plant received Spanish PRTR grant without legal check confirming compatibility of tradable certificates (Orden TED/706/2022 Art. 5.3) (S3).',
-        citations: [CITATIONS.ES_ORDEN_TED_706_2022],
-      });
-    } else {
-      checklist.push({
-        id: 'spanish-prtr-grant',
-        label: 'Spanish PRTR grant',
-        status: 'PASS',
-        detail: custody.claims?.prtrGrant === 'YES'
-          ? 'PRTR grant compatibility verified via legal check (Orden TED/706/2022 Art. 5.3) (S3).'
-          : 'No Spanish PRTR grant received (S3).',
-        citations: [CITATIONS.ES_ORDEN_TED_706_2022],
-      });
-    }
-
-    // 7. GHG saving: saving = (80 - CI) / 80; >=80% -> PASS; 70-80% -> WARN; <70% -> FAIL (O2)
-    const ci = custody?.pos?.ciTotal ?? consignment.carbonIntensity;
-    const comparator = market.fossilComparatorGCo2eMj ?? 80;
-    const saving = (comparator - ci) / comparator;
-    if (saving >= 0.80) {
-      checklist.push({
-        id: 'ghg-saving',
-        label: 'GHG saving threshold',
-        status: 'PASS',
-        detail: `GHG saving ${(saving * 100).toFixed(1)}% ≥ 80% heat threshold (RED Art. 29(10)) (O2).`,
-        citations: [CITATIONS.RED_III_GHG_HEAT_POWER, CITATIONS.NL_GGE_DRAFT_REGELING],
-      });
-    } else if (saving >= 0.70) {
-      checklist.push({
-        id: 'ghg-saving',
-        label: 'GHG saving threshold',
-        status: 'WARN',
-        detail: `GHG saving ${(saving * 100).toFixed(1)}% is between 70% and 80% (threshold category unconfirmed) (O2).`,
-        citations: [CITATIONS.RED_III_GHG_HEAT_POWER, CITATIONS.NL_GGE_DRAFT_REGELING],
-      });
-    } else {
-      checklist.push({
-        id: 'ghg-saving',
-        label: 'GHG saving threshold',
-        status: 'FAIL',
-        detail: `GHG saving ${(saving * 100).toFixed(1)}% < 70% statutory threshold (RED Art. 29(10)) (O2).`,
-        citations: [CITATIONS.RED_III_GHG_HEAT_POWER, CITATIONS.NL_GGE_DRAFT_REGELING],
-      });
-    }
-
-    // 8. Deadlines:
-    // effective booking deadline = min(productionEnd + 12m, 1 May of delivery year + 1)
-    // for ES origins, export deadline is productionEnd + 12m (S5)
-    // WARN if plannedBookingDate is after deadline or fewer than 60 days remain; TODO if dates missing (R9, R10)
-    const prodEnd = custody?.go?.productionEnd;
-    const plannedBooking = custody?.plannedBookingDate;
-    if (!prodEnd || !plannedBooking) {
-      checklist.push({
-        id: 'booking-deadlines',
-        label: 'Booking & export deadlines',
-        status: 'TODO',
-        detail: 'GO production end date and planned booking date required to evaluate statutory booking windows (R9, R10).',
-        citations: [CITATIONS.NL_GGE_DRAFT_BESLUIT],
-      });
-    } else {
-      const prodEndDate = new Date(prodEnd);
-      const prodEndPlus12m = new Date(prodEndDate);
-      prodEndPlus12m.setFullYear(prodEndPlus12m.getFullYear() + 1);
-      const prodEndPlus12mStr = prodEndPlus12m.toISOString().slice(0, 10);
-
-      const deliveryYear = prodEndDate.getFullYear();
-      const may1NextYearStr = `${deliveryYear + 1}-05-01`;
-      const effectiveDeadlineStr = prodEndPlus12mStr < may1NextYearStr ? prodEndPlus12mStr : may1NextYearStr;
-
-      const plannedDate = new Date(plannedBooking);
-      const deadlineDate = new Date(effectiveDeadlineStr);
-      const daysRemaining = Math.round((deadlineDate.getTime() - plannedDate.getTime()) / (1000 * 60 * 60 * 24));
-
-      if (plannedBooking > effectiveDeadlineStr) {
-        checklist.push({
-          id: 'booking-deadlines',
-          label: 'Booking & export deadlines',
-          status: 'WARN',
-          detail: `Planned booking date ${plannedBooking} exceeds effective deadline ${effectiveDeadlineStr} (R9, R10).`,
-          citations: [CITATIONS.NL_GGE_DRAFT_BESLUIT],
-        });
-      } else if (daysRemaining < 60) {
-        checklist.push({
-          id: 'booking-deadlines',
-          label: 'Booking & export deadlines',
-          status: 'WARN',
-          detail: `Only ${daysRemaining} days remaining before effective booking deadline ${effectiveDeadlineStr} (R9, R10).`,
-          citations: [CITATIONS.NL_GGE_DRAFT_BESLUIT],
-        });
-      } else {
-        checklist.push({
-          id: 'booking-deadlines',
-          label: 'Booking & export deadlines',
-          status: 'PASS',
-          detail: `Planned booking ${plannedBooking} is within effective deadline ${effectiveDeadlineStr} (${daysRemaining} days margin) (R9, R10).`,
-          citations: [CITATIONS.NL_GGE_DRAFT_BESLUIT],
-        });
-      }
-    }
-
-    // 9. No double claim (notUsedElsewhere) (R25)
-    if (!custody || custody.claims?.notUsedElsewhere == null) {
-      checklist.push({
-        id: 'no-double-claim',
-        label: 'No double claim',
-        status: 'TODO',
-        detail: 'Confirmation required that certificates are not used elsewhere (R25).',
-        citations: [CITATIONS.NL_GGE_DRAFT_BESLUIT],
-      });
-    } else if (custody.claims.notUsedElsewhere === false) {
-      checklist.push({
-        id: 'no-double-claim',
-        label: 'No double claim',
-        status: 'FAIL',
-        detail: 'Certificates have already been claimed or surrendered elsewhere; cannot serve NL GGE (R25).',
-        citations: [CITATIONS.NL_GGE_DRAFT_BESLUIT],
-      });
-    } else {
-      checklist.push({
-        id: 'no-double-claim',
-        label: 'No double claim',
-        status: 'PASS',
-        detail: 'Confirmed not used or claimed in any other scheme or delivery (R25).',
-        citations: [CITATIONS.NL_GGE_DRAFT_BESLUIT],
-      });
-    }
-
-    // 10. UDB: PASS with info note "not mandatory for gas yet" (O4)
-    checklist.push({
-      id: 'udb-gas-module',
-      label: 'Union Database (UDB)',
-      status: 'PASS',
-      detail: 'UDB gas module not mandatory yet; GO+PoS interim route applies (O4).',
-      citations: [CITATIONS.UDB_IMPLEMENTING_REG],
-    });
-
-    // 11. Law status: WARN "Senate vote pending — not yet law" while market has uncertainties (O6)
-    const hasUncertainties = market.uncertainties && market.uncertainties.length > 0;
-    checklist.push({
-      id: 'legislative-status',
-      label: 'Legislative status',
-      status: hasUncertainties ? 'WARN' : 'PASS',
-      detail: hasUncertainties
-        ? 'Senate vote pending — not yet law (Wet bijmengverplichting groen gas, Kamerstuk 36947) (O6).'
-        : 'Wet bijmengverplichting groen gas fully enacted.',
-      citations: [CITATIONS.NL_GGE_KAMERSTUK_36947, CITATIONS.NL_GGE_TK_VERSLAG],
-    });
-
-    // Verdict derivation: any FAIL gives HARD_BLOCK; else any WARN/TODO gives CONDITIONAL; else PASS.
-    // legislative-status is a market advisory item and does not demote an otherwise fully-filled trade from PASS to CONDITIONAL.
-    const custodyItems = checklist.filter(item => item.id !== 'legislative-status');
-    const failItem = checklist.find(item => item.status === 'FAIL');
-    const warnOrTodoItem = custodyItems.find(item => item.status === 'WARN' || item.status === 'TODO');
-
-    let verdict: GateVerdict = 'PASS';
-    let reason = `All chain of custody criteria met for ${market.name}. GO and PoS paired for joint VertiCer booking.`;
-    let remedy: string | null = null;
-
-    if (failItem) {
-      verdict = 'HARD_BLOCK';
-      reason = `Chain of custody blocked at [${failItem.label}]: ${failItem.detail}`;
-      remedy = `Resolve blocking requirement for ${failItem.label}.`;
-    } else if (warnOrTodoItem) {
-      verdict = 'CONDITIONAL';
-      reason = `Chain of custody conditional at [${warnOrTodoItem.label}]: ${warnOrTodoItem.detail}`;
-      remedy = `Fulfill conditions: ${custodyItems.filter(i => i.status === 'WARN' || i.status === 'TODO').map(i => i.label).join(', ')}.`;
-    }
-
-    return {
-      gate: GATE,
-      gateLabel: GATE_LABEL,
-      verdict,
-      reason,
-      remedy,
-      citations: [CITATIONS.NL_GGE_DRAFT_BESLUIT, CITATIONS.NL_GGE_DRAFT_REGELING],
-      confidence: 'HIGH',
-      checklist,
-    };
+  if (!decisive || decisive.verdict === 'PASS') {
+    return { gate: GATE, gateLabel: GATE_LABEL, verdict: 'PASS', reason: passReason, remedy: null, citations, confidence: 'HIGH', checklist };
   }
 
-  // =========================================================================
-  // Case B: GO (book-and-claim) markets
-  // =========================================================================
-  if (isGoTransferMarket(market)) {
-    const checklist: GateChecklistItem[] = [];
-    const regGate = evaluateRegistryTransferGate(consignment, market);
-    if (regGate) {
-      checklist.push({
-        id: 'registry-transfer',
-        label: 'Registry transfer',
-        status: regGate.verdict === 'HARD_BLOCK' ? 'FAIL' : regGate.verdict === 'CONDITIONAL' ? 'WARN' : 'PASS',
-        detail: regGate.reason,
-        citations: regGate.citations,
-      });
-    }
-
-    checklist.push({
-      id: 'coc-model',
-      label: 'Chain of custody model',
-      status: 'PASS',
-      detail: `${market.name} accepts book-and-claim / Guarantee of Origin transfer.`,
-      citations: [CITATIONS.RED_III_CHAIN_OF_CUSTODY],
-    });
-
-    const failItem = checklist.find(i => i.status === 'FAIL');
-    const warnItem = checklist.find(i => i.status === 'WARN' || i.status === 'TODO');
-
-    const verdict: GateVerdict = failItem ? 'HARD_BLOCK' : warnItem ? 'CONDITIONAL' : (regGate?.verdict ?? 'PASS');
-
-    return {
-      gate: GATE,
-      gateLabel: GATE_LABEL,
-      verdict,
-      reason: regGate?.reason ?? `${market.name} accepts book-and-claim transfer.`,
-      remedy: regGate?.remedy ?? null,
-      citations: regGate?.citations ?? [CITATIONS.RED_III_CHAIN_OF_CUSTODY],
-      confidence: regGate?.confidence ?? 'HIGH',
-      checklist,
-    };
-  }
-
-  // =========================================================================
-  // Case C: Compliance markets (PoS / Mass Balance)
-  // =========================================================================
-  if (consignment.chainOfCustody === 'BOOK_AND_CLAIM' && !market.acceptsBookAndClaim) {
-    const checklist: GateChecklistItem[] = [
-      {
-        id: 'coc-model',
-        label: 'Chain of custody model',
-        status: 'FAIL',
-        detail: `Book-and-claim chain of custody does not meet RED III requirements for ${market.name}. All transport compliance markets, FuelEU Maritime, and EU ETS require mass balance or physical segregation.`,
-        citations: [CITATIONS.RED_III_CHAIN_OF_CUSTODY],
-      },
-    ];
-    return {
-      gate: GATE,
-      gateLabel: GATE_LABEL,
-      verdict: 'HARD_BLOCK',
-      reason: `Book-and-claim chain of custody does not meet RED III requirements for ${market.name}. All transport compliance markets, FuelEU Maritime, and EU ETS require mass balance or physical segregation \u2014 the physical gas must be trackable through the grid.`,
-      remedy: 'Switch to mass balance chain of custody. This requires the physical gas to be injected into the interconnected gas grid with mass balance accounting at the injection point.',
-      citations: [CITATIONS.RED_III_CHAIN_OF_CUSTODY],
-      confidence: 'HIGH',
-      checklist,
-    };
-  }
-
-  // Mass balance / segregation compliance markets:
-  // origin, PoS route (cross-border PoS matrix), certified chain, GHG threshold, double claim, and UDB
-  const checklist: GateChecklistItem[] = [];
-
-  // 1. Origin / Injection
-  const nonEuInjection = consignment.injectionIsEU === false;
-  if (nonEuInjection && market.requiresUDB) {
-    checklist.push({
-      id: 'origin',
-      label: 'Origin and gas grid injection',
-      status: 'FAIL',
-      detail: `Consignment is injected into a non-EU gas grid (${consignment.injectionCountry}). Gas injected into a non-EU grid cannot be tracked in the UDB mass balance system.`,
-      citations: [CITATIONS.RED_III_UDB],
-    });
-  } else {
-    checklist.push({
-      id: 'origin',
-      label: 'Origin and gas grid injection',
-      status: 'PASS',
-      detail: `Injected into European interconnected gas grid (${consignment.injectionCountry || consignment.originCountry}).`,
-      citations: [CITATIONS.RED_III_CHAIN_OF_CUSTODY],
-    });
-  }
-
-  // 2. PoS route (cross-border PoS matrix)
-  const posGate = evaluateCrossBorderPosGate(consignment, market);
-  if (posGate) {
-    checklist.push({
-      id: 'cross-border-pos',
-      label: 'Cross-border PoS route',
-      status: posGate.verdict === 'HARD_BLOCK' ? 'FAIL' : posGate.verdict === 'CONDITIONAL' ? 'WARN' : 'PASS',
-      detail: posGate.reason,
-      citations: posGate.citations,
-    });
-  } else {
-    checklist.push({
-      id: 'cross-border-pos',
-      label: 'Cross-border PoS route',
-      status: 'PASS',
-      detail: `Domestic delivery within ${market.country} or no cross-border PoS restriction.`,
-      citations: [],
-    });
-  }
-
-  // 3. Certified chain
-  const schemeGate = evaluateSchemeGate(consignment, market);
-  checklist.push({
-    id: 'certified-chain',
-    label: 'Voluntary scheme certification',
-    status: schemeGate.verdict === 'HARD_BLOCK' ? 'FAIL' : schemeGate.verdict === 'CONDITIONAL' ? 'WARN' : 'PASS',
-    detail: schemeGate.reason,
-    citations: schemeGate.citations,
-  });
-
-  // 4. GHG threshold
-  const ghgGate = evaluateGHGThresholdGate(consignment, market);
-  checklist.push({
-    id: 'ghg-threshold',
-    label: 'GHG emission threshold',
-    status: ghgGate.verdict === 'HARD_BLOCK' ? 'FAIL' : ghgGate.verdict === 'CONDITIONAL' ? 'WARN' : 'PASS',
-    detail: ghgGate.reason,
-    citations: ghgGate.citations,
-  });
-
-  // 5. Double claim
-  if (custody?.claims?.notUsedElsewhere === false) {
-    checklist.push({
-      id: 'no-double-claim',
-      label: 'No double claim',
-      status: 'FAIL',
-      detail: 'Certificates have already been claimed or surrendered elsewhere.',
-      citations: [CITATIONS.RED_III_CHAIN_OF_CUSTODY],
-    });
-  } else {
-    checklist.push({
-      id: 'no-double-claim',
-      label: 'No double claim',
-      status: 'PASS',
-      detail: 'No double claim identified; certificates valid for single surrender.',
-      citations: [CITATIONS.RED_III_CHAIN_OF_CUSTODY],
-    });
-  }
-
-  // 6. UDB
-  const udbGate = evaluateUDBGate(consignment, market);
-  checklist.push({
-    id: 'udb-recording',
-    label: 'Union Database (UDB)',
-    status: udbGate.verdict === 'HARD_BLOCK' ? 'FAIL' : udbGate.verdict === 'CONDITIONAL' ? 'WARN' : 'PASS',
-    detail: udbGate.reason,
-    citations: udbGate.citations,
-  });
-
-  // Verdict derivation:
-  const failItem = checklist.find(i => i.status === 'FAIL');
-  const warnOrTodoItem = checklist.find(i => i.status === 'WARN' || i.status === 'TODO');
-
-  let verdict: GateVerdict = 'PASS';
-  let reason = `Mass balance chain of custody meets RED III requirements for ${market.name}.`;
-  let remedy: string | null = null;
-
-  if (failItem) {
-    verdict = 'HARD_BLOCK';
-    reason = `Chain of custody blocked at [${failItem.label}]: ${failItem.detail}`;
-    remedy = `Resolve blocking requirement for ${failItem.label}.`;
-  } else if (warnOrTodoItem) {
-    verdict = 'CONDITIONAL';
-    reason = `Chain of custody conditional at [${warnOrTodoItem.label}]: ${warnOrTodoItem.detail}`;
-    remedy = `Fulfill conditions: ${checklist.filter(i => i.status === 'WARN' || i.status === 'TODO').map(i => i.label).join(', ')}.`;
-  }
-
+  const open = counted.filter(e => e.verdict !== 'PASS').map(e => e.item.label);
+  const remedy = decisive.item.remedy
+    ?? (decisive.verdict === 'HARD_BLOCK' ? `Resolve: ${decisive.item.label}.` : `Still to clear: ${open.join(', ')}.`);
   return {
     gate: GATE,
     gateLabel: GATE_LABEL,
-    verdict,
-    reason,
+    verdict: decisive.verdict,
+    reason: decisive.item.detail,
     remedy,
-    citations: [CITATIONS.RED_III_CHAIN_OF_CUSTODY],
-    confidence: 'HIGH',
+    citations: decisive.item.citations.length > 0 ? decisive.item.citations : citations,
+    confidence: decisive.confidence,
     checklist,
   };
+}
+
+/** Chain-of-custody model row: book-and-claim only where the market accepts it (RED III Art 30). */
+function cocModelEntry(consignment: Consignment, market: Market): Entry {
+  const coc = consignment.chainOfCustody;
+  const label = 'Chain of custody model';
+  if (coc === 'MASS_BALANCE') {
+    return entry('coc-model', label, 'PASS', 'Mass balance: the physical gas is tracked through the interconnected gas grid with mass balance accounting.', [CITATIONS.RED_III_CHAIN_OF_CUSTODY]);
+  }
+  if (coc === 'SEGREGATION') {
+    return entry('coc-model', label, 'PASS', 'Physical segregation exceeds RED III requirements. The biomethane is kept separate from conventional gas throughout the supply chain.', [CITATIONS.RED_III_CHAIN_OF_CUSTODY]);
+  }
+  if (coc === 'BOOK_AND_CLAIM') {
+    if (market.acceptsBookAndClaim) {
+      return entry('coc-model', label, 'PASS', `${market.name} accepts book-and-claim chain of custody. The environmental attributes are traded separately from the physical gas molecule.`, []);
+    }
+    return entry(
+      'coc-model', label, 'FAIL',
+      `Book-and-claim chain of custody does not meet RED III requirements for ${market.name}. All transport compliance markets, FuelEU Maritime, and EU ETS require mass balance or physical segregation — the physical gas must be trackable through the grid.`,
+      [CITATIONS.RED_III_CHAIN_OF_CUSTODY],
+      'Switch to mass balance chain of custody. This requires the physical gas to be injected into the interconnected gas grid with mass balance accounting at the injection point.',
+    );
+  }
+  return { ...entry('coc-model', label, 'TODO', `Unknown chain of custody model: ${coc}.`, []), verdict: 'UNKNOWN', confidence: 'LOW' };
+}
+
+function addMonthsIso(isoDate: string, months: number): string {
+  const d = new Date(`${isoDate.slice(0, 10)}T00:00:00Z`);
+  const day = d.getUTCDate();
+  d.setUTCDate(1);
+  d.setUTCMonth(d.getUTCMonth() + months);
+  const lastDay = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate();
+  d.setUTCDate(Math.min(day, lastDay));
+  return d.toISOString().slice(0, 10);
+}
+
+/**
+ * Last day a GO + PoS can be booked in the NEa GGE register: the earlier of GO expiry
+ * (production end + 12 months, R9; for Spain also the Enagás export window, S5) and
+ * 1 May of the year after delivery (R10).
+ */
+export function ggeEffectiveBookingDeadline(productionEnd: string, deliveryYear: number): string {
+  const goExpiry = addMonthsIso(productionEnd, NL_GGE_GO_VALIDITY_MONTHS);
+  const bookingWindowEnd = `${deliveryYear + 1}-${NL_GGE_BOOKING_DEADLINE_MONTH_DAY}`;
+  return goExpiry < bookingWindowEnd ? goExpiry : bookingWindowEnd;
+}
+
+function daysBetween(fromIso: string, toIso: string): number {
+  return Math.round((Date.parse(`${toIso.slice(0, 10)}T00:00:00Z`) - Date.parse(`${fromIso.slice(0, 10)}T00:00:00Z`)) / 86_400_000);
+}
+
+// ---------------------------------------------------------------------------
+// Paired GO + PoS markets (requiresGoAndPos, e.g. NL_GGE)
+// ---------------------------------------------------------------------------
+function pairedChecklist(consignment: Consignment, market: Market): GateResult {
+  const origin = normIso(consignment.injectionCountry || consignment.originCountry);
+  const custody = consignment.custody ?? null;
+  const go = custody?.go ?? null;
+  const pos = custody?.pos ?? null;
+  const claims = custody?.claims ?? null;
+  const target = normIso(market.country);
+  const entries: Entry[] = [];
+
+  // 1. Origin in EU/EEA (R24)
+  entries.push(EU_EEA_COUNTRIES.has(origin)
+    ? entry('origin-eu-eea', 'Origin in EU/EEA', 'PASS', `Produced and injected in ${origin}, inside the EU/EEA (R24).`, [CITATIONS.NL_GGE_TK_VERSLAG])
+    : entry('origin-eu-eea', 'Origin in EU/EEA', 'FAIL', `Origin ${origin || 'unknown'} is outside the EU/EEA; only EU/EEA biomethane counts for the GGE obligation (R24).`, [CITATIONS.NL_GGE_TK_VERSLAG], 'Source from an EU/EEA plant injecting into the EU grid.'));
+
+  // 2. GO route via the AIB hub (R8, S1)
+  if (origin === target) {
+    entries.push(entry('go-route-nl', 'GO route to NL (AIB)', 'PASS', 'Domestic Dutch GvO in VertiCer; transfer to the NEa account (R8).', [CITATIONS.NL_GGE_DRAFT_BESLUIT]));
+  } else {
+    const route = getGoRoute(origin, target);
+    if (route.status === 'POSSIBLE') {
+      entries.push(entry('go-route-nl', 'GO route to NL (AIB)', 'PASS', `GOs move ${origin} → ${target} via the AIB hub into VertiCer (R8, S1).`, [CITATIONS.NL_GGE_DRAFT_BESLUIT]));
+    } else if (route.status === 'NOT_POSSIBLE') {
+      entries.push(entry('go-route-nl', 'GO route to NL (AIB)', 'FAIL', `No GO route ${origin} → ${target}: the origin registry cannot transfer GOs into VertiCer via the AIB hub, so the GGE booking (GO + PoS) is impossible (R5, R8).`, [CITATIONS.NL_GGE_DRAFT_BESLUIT], 'Source from an AIB-connected origin (e.g. Spain) or a Dutch plant.'));
+    } else {
+      entries.push(entry('go-route-nl', 'GO route to NL (AIB)', 'WARN', `GO route ${origin} → ${target} is not confirmed (${route.status}); check the registry connection before contracting (R8).`, [CITATIONS.NL_GGE_DRAFT_BESLUIT]));
+    }
+  }
+
+  // 3. Certified chain: EC-recognised scheme + own and counterparty trader certified (R13, R16)
+  const certLabel = 'Certified chain (scheme + traders)';
+  const schemeGate = evaluateSchemeGate({ ...consignment, certificationScheme: (pos?.scheme || consignment.certificationScheme) as Consignment['certificationScheme'] }, market);
+  const certCitations = [CITATIONS.NL_GGE_DRAFT_REGELING, ...schemeGate.citations];
+  if (schemeGate.verdict === 'HARD_BLOCK') {
+    const folded = fromGate('certified-chain', certLabel, schemeGate);
+    entries.push({ ...folded, item: { ...folded.item, citations: certCitations } });
+  } else if (claims?.ownTraderCertified === false || claims?.counterpartyCertified === false) {
+    entries.push(entry('certified-chain', certLabel, 'FAIL', 'Every link in the chain must be a certified economic operator under an EC-recognised scheme; the supplier issues its PoS from the previous link’s PoS (R13, R16).', certCitations, 'Get the uncertified trader certified (ISCC EU / REDcert-EU) or trade through a certified entity.'));
+  } else if (claims?.ownTraderCertified == null || claims?.counterpartyCertified == null) {
+    entries.push(entry('certified-chain', certLabel, 'TODO', 'Confirm our own and the counterparty’s scheme certification (certified economic operators) (R13, R16).', certCitations));
+  } else {
+    entries.push(entry('certified-chain', certLabel, 'PASS', `${schemeGate.reason} Own trader and counterparty certified (R13, R16).`, certCitations));
+  }
+
+  // 4. GO + PoS paired on the same MWh and period (R5–R7)
+  const pairCites = [CITATIONS.NL_GGE_DRAFT_BESLUIT, CITATIONS.NL_GGE_DRAFT_REGELING, CITATIONS.EU_IR_2022_996];
+  if (consignment.chainOfCustody === 'BOOK_AND_CLAIM') {
+    entries.push(entry('go-pos-pairing', 'GO + PoS paired', 'FAIL', `Book-and-claim chain of custody does not meet RED III requirements for ${market.name}: the GGE booking needs a GO and a mass-balance PoS for the same physical delivery (R5–R7).`, pairCites, 'Trade the GO and PoS together on mass balance.'));
+  } else if (!go || !pos || go.energyMWh == null || pos.mwh == null) {
+    entries.push(entry('go-pos-pairing', 'GO + PoS paired', 'TODO', 'Enter the GO and PoS records to check they cover the same MWh and period (R5–R7).', pairCites));
+  } else {
+    const factor = go.energyBasis === 'LHV' ? 1 : getLhvFactorForOrigin(go.issuingCountry || origin);
+    const goLhv = go.energyMWh * factor;
+    const gapPct = pos.mwh > 0 ? (Math.abs(goLhv - pos.mwh) / pos.mwh) * 100 : Infinity;
+    const tolerancePct = getAssumption('market.nl_gge.pairingTolerancePct');
+    const dp = consignment.deliveryPeriod;
+    const periodGap = Boolean(
+      (dp?.startDate && go.productionStart && go.productionStart > dp.startDate) ||
+      (dp?.endDate && go.productionEnd && go.productionEnd < dp.endDate),
+    );
+    if (gapPct > tolerancePct) {
+      entries.push(entry('go-pos-pairing', 'GO + PoS paired', 'FAIL', `GO ${goLhv.toFixed(1)} MWh LHV (${go.energyMWh} MWh ${go.energyBasis} × ${factor}) vs PoS ${pos.mwh} MWh: ${gapPct.toFixed(2)}% apart, above the ${tolerancePct}% tolerance (R5–R7).`, pairCites, 'Match the GO and PoS volumes for the same delivery.'));
+    } else if (periodGap) {
+      entries.push(entry('go-pos-pairing', 'GO + PoS paired', 'FAIL', `GO production period ${go.productionStart} – ${go.productionEnd} does not cover the delivery period ${dp?.startDate} – ${dp?.endDate} (R5, R9).`, pairCites, 'Use GOs from the production period of the delivered gas.'));
+    } else {
+      entries.push(entry('go-pos-pairing', 'GO + PoS paired', 'PASS', `GO ${go.energyMWh} MWh ${go.energyBasis} × ${factor} = ${goLhv.toFixed(1)} MWh LHV matches PoS ${pos.mwh} MWh within ${tolerancePct}% (R5–R7).`, pairCites));
+    }
+  }
+
+  // 5. No operating aid (R11, R12)
+  const support = go?.supportType && go.supportType !== 'UNKNOWN' ? go.supportType : (pos?.supportDeclared ?? 'UNKNOWN');
+  const aidCites = [CITATIONS.NL_GGE_DRAFT_BESLUIT, CITATIONS.NL_GGE_KAMERSTUK_36947];
+  if (support === 'OPERATING') {
+    entries.push(entry('no-operating-aid', 'No operating aid', 'FAIL', 'The GO / PoS declares operating aid (exploitatiesubsidie) for this production; NEa will not credit it (R11).', aidCites, 'Source from unsubsidised production (investment aid is allowed).'));
+  } else if (support === 'NONE' || support === 'INVESTMENT') {
+    entries.push(entry('no-operating-aid', 'No operating aid', 'PASS', support === 'INVESTMENT' ? 'Investment aid only, which is compatible (R12).' : 'No operating aid declared (R11).', aidCites));
+  } else {
+    entries.push(entry('no-operating-aid', 'No operating aid', 'TODO', 'Confirm the GO support field / PoS support declaration: operating aid blocks crediting, investment aid is fine (R11, R12).', aidCites));
+  }
+
+  // 6. Spanish PRTR grant (S3, Orden TED/706/2022 Art 5.3)
+  if (origin === 'ES') {
+    const prtr = claims?.prtrGrant ?? 'UNKNOWN';
+    if (prtr === 'YES' && !claims?.prtrLegalCheckDone) {
+      entries.push(entry('spanish-prtr-grant', 'Spanish PRTR grant', 'WARN', 'Plant has a PRTR biogas grant: Orden TED/706/2022 Art 5.3 may bar agreements to obtain “certificados verdes”. Legal check not yet done (S3).', [CITATIONS.ES_ORDEN_TED_706_2022], 'Get a legal opinion on the grant call terms before selling GGE-eligible GO + PoS.'));
+    } else if (prtr === 'UNKNOWN') {
+      entries.push(entry('spanish-prtr-grant', 'Spanish PRTR grant', 'TODO', 'Confirm whether the plant received a PRTR biogas grant (Orden TED/706/2022 Art 5.3) (S3).', [CITATIONS.ES_ORDEN_TED_706_2022]));
+    } else {
+      entries.push(entry('spanish-prtr-grant', 'Spanish PRTR grant', 'PASS', prtr === 'YES' ? 'PRTR grant: legal check done (S3).' : 'No PRTR grant (S3).', [CITATIONS.ES_ORDEN_TED_706_2022]));
+    }
+  } else {
+    entries.push(entry('spanish-prtr-grant', 'Spanish PRTR grant', 'PASS', 'Not applicable: non-Spanish origin.', []));
+  }
+
+  // 7. GHG saving vs the 80 g heat comparator; RED Art 29(10) heat tiers (O2)
+  const comparator = market.fossilComparatorGCo2eMj ?? CI_COMPARATOR_HEAT;
+  const ci = pos?.ciTotal ?? consignment.carbonIntensity;
+  const saving = (comparator - ci) / comparator;
+  const ghgCites = [CITATIONS.RED_III_GHG_HEAT_POWER, CITATIONS.NL_GGE_DRAFT_REGELING];
+  const savingText = `Saving (${comparator} − ${ci}) / ${comparator} = ${(saving * 100).toFixed(0)}%`;
+  const lowPct = RED_HEAT_THRESHOLD_POST_2021 * 100;
+  const highPct = RED_HEAT_THRESHOLD_POST_2026 * 100;
+  if (saving >= RED_HEAT_THRESHOLD_POST_2026) {
+    entries.push(entry('ghg-saving', 'GHG saving threshold', 'PASS', `${savingText}, above both the ${lowPct}% and ${highPct}% heat thresholds (O2).`, ghgCites));
+  } else if (saving >= RED_HEAT_THRESHOLD_POST_2021) {
+    entries.push(entry('ghg-saving', 'GHG saving threshold', 'WARN', `${savingText}: passes ${lowPct}% but not ${highPct}% — threshold category unconfirmed, depends on the plant’s start date (O2).`, ghgCites, 'Confirm the plant’s commissioning date and threshold tier.'));
+  } else {
+    entries.push(entry('ghg-saving', 'GHG saving threshold', 'FAIL', `${savingText}, below the ${lowPct}% minimum (O2).`, ghgCites, 'Use lower-CI gas.'));
+  }
+
+  // 8. Deadlines: GO validity / Spanish export window and the 1 May booking window (R9, R10, S5)
+  const deadlineCites = [CITATIONS.NL_GGE_DRAFT_BESLUIT, CITATIONS.NL_GGE_DRAFT_REGELING];
+  const productionEnd = go?.productionEnd || consignment.deliveryPeriod?.productionEndDate || null;
+  const dpEnd = consignment.deliveryPeriod?.endDate ?? null;
+  const deliveryYear = consignment.deliveryPeriod?.complianceYear
+    ?? (dpEnd ? Number(dpEnd.slice(0, 4)) : null)
+    ?? (productionEnd ? Number(productionEnd.slice(0, 4)) : null);
+  const planned = custody?.plannedBookingDate ?? null;
+  if (!productionEnd || deliveryYear === null || !planned) {
+    entries.push(entry('booking-deadlines', 'Booking & export deadlines', 'TODO', 'Enter the GO production end and the planned NEa booking date to check GO validity and the 1 May booking window (R9, R10).', deadlineCites));
+  } else {
+    const deadline = ggeEffectiveBookingDeadline(productionEnd, deliveryYear);
+    const margin = daysBetween(planned, deadline);
+    const warnDays = getAssumption('market.nl_gge.bookingWarningDays');
+    const esNote = origin === 'ES' ? ` Spanish GOs must also leave Enagás within ${NL_GGE_GO_VALIDITY_MONTHS} months of production (S5).` : '';
+    if (margin < 0) {
+      entries.push(entry('booking-deadlines', 'Booking & export deadlines', 'WARN', `Planned booking ${planned} is after the effective deadline ${deadline} (R9, R10).${esNote}`, deadlineCites, `Book by ${deadline}.`));
+    } else if (margin < warnDays) {
+      entries.push(entry('booking-deadlines', 'Booking & export deadlines', 'WARN', `Planned booking ${planned} leaves ${margin} days before the effective deadline ${deadline} (desk margin ${warnDays} days) (R9, R10).${esNote}`, deadlineCites));
+    } else {
+      entries.push(entry('booking-deadlines', 'Booking & export deadlines', 'PASS', `Planned booking ${planned}, ${margin} days before the effective deadline ${deadline} (R9, R10).${esNote}`, deadlineCites));
+    }
+  }
+
+  // 9. No double claim (R25)
+  if (claims?.notUsedElsewhere === false) {
+    entries.push(entry('no-double-claim', 'No double claim', 'FAIL', 'The GO / PoS is already used elsewhere (e.g. ERE, THG, Spanish quota); the same delivery cannot serve two schemes (R25).', [CITATIONS.NL_GGE_DRAFT_BESLUIT], 'Use certificates not claimed anywhere else.'));
+  } else if (claims?.notUsedElsewhere === true) {
+    entries.push(entry('no-double-claim', 'No double claim', 'PASS', 'Seller confirms the GO / PoS is not used in any other scheme (R25).', [CITATIONS.NL_GGE_DRAFT_BESLUIT]));
+  } else {
+    entries.push(entry('no-double-claim', 'No double claim', 'TODO', 'Get the seller’s declaration that the GO / PoS is not claimed elsewhere (R25).', [CITATIONS.NL_GGE_DRAFT_BESLUIT]));
+  }
+
+  // 10. UDB: not mandatory for gas yet (O4)
+  entries.push(entry('udb-recording', 'Union Database (UDB)', 'PASS', 'Info: the UDB gas module is not mandatory for gas yet; the GO + PoS interim route applies (O4).', [CITATIONS.UDB_IMPLEMENTING_REG]));
+
+  // 11. Law status (O6) — advisory: shown, but a fully documented deal still passes
+  const pending = market.uncertainties.length > 0;
+  entries.push({
+    ...entry('legislative-status', 'Law status', pending ? 'WARN' : 'PASS',
+      pending ? 'Senate vote pending — not yet law. Draft Besluit / Regeling may still change (O6).' : 'Obligation in force.',
+      [CITATIONS.NL_GGE_KAMERSTUK_36947, CITATIONS.NL_GGE_TK_VERSLAG]),
+    advisory: true,
+  });
+
+  return result(
+    entries,
+    `GO + PoS chain complete for ${market.name}: paired on the same MWh, certified, unsubsidised and bookable in time.`,
+    [CITATIONS.NL_GGE_DRAFT_BESLUIT, CITATIONS.NL_GGE_DRAFT_REGELING],
+  );
+}
+
+// ---------------------------------------------------------------------------
+// GO (book-and-claim) markets: registry transfer as today
+// ---------------------------------------------------------------------------
+function goChecklist(consignment: Consignment, market: Market): GateResult {
+  const entries: Entry[] = [cocModelEntry(consignment, market)];
+  const registry = evaluateRegistryTransferGate(consignment, market);
+  if (registry) entries.push(fromGate('registry-transfer', 'Registry transfer', registry));
+  entries.push(fromGate('udb-recording', 'Union Database (UDB)', evaluateUDBGate(consignment, market)));
+  return result(entries, `${market.name}: GO can be transferred to the destination registry.`, [CITATIONS.RED_III_CHAIN_OF_CUSTODY]);
+}
+
+// ---------------------------------------------------------------------------
+// PoS (mass balance) compliance and other markets
+// ---------------------------------------------------------------------------
+function posChecklist(consignment: Consignment, market: Market): GateResult {
+  const custody = consignment.custody ?? null;
+  const udb = evaluateUDBGate(consignment, market);
+  const entries: Entry[] = [cocModelEntry(consignment, market)];
+
+  // Origin / grid injection: a non-EU grid blocks a market that needs UDB recording.
+  if (consignment.injectionIsEU === false && market.requiresUDB) {
+    entries.push(fromGate('origin', 'Origin and grid injection', udb));
+  } else {
+    entries.push(entry('origin', 'Origin and grid injection', 'PASS', `Injected into the ${consignment.injectionCountry || consignment.originCountry} grid.`, [CITATIONS.RED_III_CHAIN_OF_CUSTODY]));
+  }
+
+  // PoS route (audited cross-border matrix); omitted for domestic trades and markets with no audited scheme.
+  const pos = evaluateCrossBorderPosGate(consignment, market);
+  if (pos) entries.push(fromGate('cross-border-pos', 'Cross-border PoS route', pos));
+
+  // Certified chain: the scheme (also its own gate, ahead of this one) plus trader certification when entered.
+  const scheme = fromGate('certified-chain', 'Certified chain', evaluateSchemeGate(consignment, market));
+  const claims = custody?.claims ?? null;
+  if (claims && (claims.ownTraderCertified === false || claims.counterpartyCertified === false)) {
+    entries.push(worse(scheme, entry('certified-chain', 'Certified chain', 'FAIL', 'A trader in the chain is not a certified economic operator (RED III Art 30).', [CITATIONS.RED_III_VOLUNTARY_SCHEMES], 'Trade through certified entities only.')));
+  } else {
+    entries.push(scheme);
+  }
+
+  // Double claim, only when the deal carries a declaration.
+  if (claims?.notUsedElsewhere === false) {
+    entries.push(entry('no-double-claim', 'No double claim', 'FAIL', 'The PoS is already claimed elsewhere; the same delivery cannot serve two schemes.', [CITATIONS.RED_III_CHAIN_OF_CUSTODY], 'Use a PoS not claimed anywhere else.'));
+  } else if (claims?.notUsedElsewhere === true) {
+    entries.push(entry('no-double-claim', 'No double claim', 'PASS', 'Seller confirms the PoS is not claimed elsewhere.', [CITATIONS.RED_III_CHAIN_OF_CUSTODY]));
+  }
+
+  entries.push(fromGate('udb-recording', 'Union Database (UDB)', udb));
+
+  return result(entries, `Chain of custody meets RED III requirements for ${market.name}.`, [CITATIONS.RED_III_CHAIN_OF_CUSTODY]);
+}
+
+export function evaluateChainOfCustodyGate(consignment: Consignment, market: Market): GateResult {
+  if (market.requiresGoAndPos) return pairedChecklist(consignment, market);
+  if (isGoTransferMarket(market)) return goChecklist(consignment, market);
+  return posChecklist(consignment, market);
 }

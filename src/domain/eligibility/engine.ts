@@ -7,6 +7,13 @@ import { evaluateFeedstockGate } from './gates/feedstock';
 import { evaluateGHGThresholdGate } from './gates/ghg-threshold';
 import { evaluateMarketSpecificGate } from './gates/market-specific';
 
+const ROUTE_ITEMS = new Set(['registry-transfer', 'cross-border-pos']);
+
+function isRouteOnlyBlock(g: GateResult): boolean {
+  const failed = g.checklist?.filter(i => i.status === 'FAIL') ?? [];
+  return g.gate === 'CHAIN_OF_CUSTODY' && failed.length > 0 && failed.every(i => ROUTE_ITEMS.has(i.id));
+}
+
 export function evaluateEligibility(
   consignment: Consignment,
   market: Market
@@ -24,7 +31,11 @@ export function evaluateEligibility(
   let overallVerdict: OverallVerdict = 'ELIGIBLE';
   let blockingGate: GateName | null = null;
 
-  const firstBlock = gates.find(g => g.verdict === 'HARD_BLOCK');
+  // Registry-transfer and cross-border PoS used to be separate gates checked after the market-specific
+  // gate; a Chain-of-custody block that comes only from those items keeps that place in the order, so
+  // the deal still reports the market's own reason first when both apply.
+  const blocks = gates.filter(g => g.verdict === 'HARD_BLOCK');
+  const firstBlock = blocks.find(g => !isRouteOnlyBlock(g)) ?? blocks[0];
   if (firstBlock) {
     overallVerdict = 'HARD_BLOCK';
     blockingGate = firstBlock.gate;

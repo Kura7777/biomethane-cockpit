@@ -2,6 +2,7 @@ import { Consignment } from '../../consignment/types';
 import { Market } from '../../markets/types';
 import { GateResult, GateName } from '../types';
 import { CITATIONS } from '../citations';
+import { NL_GGE_START_YEAR } from '../../regulatory/constants';
 
 const GATE: GateName = 'MARKET_SPECIFIC';
 const GATE_LABEL = 'Market-Specific Requirements';
@@ -122,6 +123,28 @@ export function evaluateMarketSpecificGate(consignment: Consignment, market: Mar
         confidence: 'HIGH',
       };
     }
+
+    case 'NL_GGE':
+      if (complianceYear !== null && complianceYear < NL_GGE_START_YEAR) {
+        return {
+          gate: GATE,
+          gateLabel: GATE_LABEL,
+          verdict: 'UNKNOWN',
+          reason: `The Dutch green-gas obligation starts with compliance year ${NL_GGE_START_YEAR}; compliance year ${complianceYear} has no GGE obligation.`,
+          remedy: `Set delivery in ${NL_GGE_START_YEAR} or later.`,
+          citations: [CITATIONS.NL_GGE_KAMERSTUK_36947],
+          confidence: 'HIGH',
+        };
+      }
+      return {
+        gate: GATE,
+        gateLabel: GATE_LABEL,
+        verdict: 'PASS',
+        reason: 'NL GGE: obligated gas suppliers book GO + PoS in the NEa GGE register by 1 May of the year after delivery. Senate vote pending (see Chain of custody → Law status).',
+        remedy: null,
+        citations: [CITATIONS.NL_GGE_DRAFT_BESLUIT, CITATIONS.NL_GGE_KAMERSTUK_36947],
+        confidence: 'MEDIUM',
+      };
 
     case 'NL_ERE':
       return {

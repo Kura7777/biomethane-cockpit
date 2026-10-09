@@ -66,6 +66,9 @@ export const NL_GGE_OBLIGATION_TRAJECTORY_MT: Readonly<Record<number, number>> =
  */
 export const NL_GGE_BANKING_CAP_PCT = 10;
 
+/** First compliance year of the obligation (target start 1 Jan 2027; Senate vote pending, O6). */
+export const NL_GGE_START_YEAR = 2027;
+
 /**
  * GGE Booking Deadline: 1 May of the calendar year following delivery (Y+1) (R10).
  * Source: Ontwerpbesluit bijmengverplichting groen gas 2.2.1 Table 2.
@@ -126,6 +129,8 @@ export interface RegulatoryConstantRow {
   value: string;
   unit: string;
   citation: string | null;
+  /** Link to the cited source, shown on #/pricing → Desk assumptions. */
+  url?: string | null;
   usedIn: string;
 }
 
@@ -185,23 +190,35 @@ export const REGULATORY_CONSTANT_ROWS: RegulatoryConstantRow[] = [
     value: String(NL_GGE_FOSSIL_COMPARATOR_GCO2E_MJ),
     unit: 'gCO₂e/MJ',
     citation: 'RED Annex VI B pt 19; Draft Regeling toelichting 2.3',
+    url: 'https://www.internetconsultatie.nl/bijmengverplichtinggroengasmr/b1',
     usedIn: 'Netback engine: baseline fossil reference for Dutch GGE reduction volume calculation',
   },
   {
-    key: 'NL_GGE_BUYOUT_2027',
-    label: 'NL GGE 2027 buy-out ceiling',
-    value: String(NL_GGE_BUYOUT_EUR_PER_TCO2E[2027]),
+    key: 'NL_GGE_BUYOUT_EUR_PER_TCO2E',
+    label: 'NL GGE buy-out (price ceiling), 2027–2035',
+    value: Object.values(NL_GGE_BUYOUT_EUR_PER_TCO2E).join(' / '),
     unit: '€/tCO₂e',
-    citation: 'Concept Regeling bijmengverplichting groen gas Art. 2 (€450/t in 2027 to €527/t in 2035)',
-    usedIn: 'Statutory non-compliance buy-out price and ceiling on GGE mark',
+    citation: 'Concept Regeling bijmengverplichting groen gas Art. 2 (R19)',
+    url: 'https://www.internetconsultatie.nl/bijmengverplichtinggroengasmr/b1',
+    usedIn: 'Ceiling for the NL GGE mark: the netback warns when the mark is above the compliance year’s buy-out (÷1000 for €/GGE)',
   },
   {
-    key: 'NL_GGE_OBLIGATION_2027',
-    label: 'NL GGE 2027 national obligation',
-    value: String(NL_GGE_OBLIGATION_TRAJECTORY_MT[2027]),
+    key: 'NL_GGE_OBLIGATION_TRAJECTORY_MT',
+    label: 'NL GGE national obligation, 2027–2031 (flat to 2035)',
+    value: [2027, 2028, 2029, 2030, 2031].map(y => NL_GGE_OBLIGATION_TRAJECTORY_MT[y]).join(' / '),
     unit: 'Mt CO₂e',
-    citation: 'Ontwerpbesluit bijmengverplichting groen gas Art. 1 (0.63 Mt in 2027 to 2.85 Mt in 2031–2035)',
-    usedIn: 'National trajectory reference for green gas obligation volume',
+    citation: 'Ontwerpbesluit bijmengverplichting groen gas Art. 1 (R18)',
+    url: 'https://www.internetconsultatie.nl/bijmengverplichtinggroengasamvb/b1',
+    usedIn: 'Market notes and demand sizing for the NL GGE market',
+  },
+  {
+    key: 'NL_GGE_START_YEAR',
+    label: 'NL GGE first compliance year',
+    value: String(NL_GGE_START_YEAR),
+    unit: 'year',
+    citation: 'Wet bijmengverplichting groen gas (Kamerstuk 36947), passed Tweede Kamer 6 Oct 2026; Senate vote pending (O6)',
+    url: 'https://zoek.officielebekendmakingen.nl/kst-36947-8',
+    usedIn: 'Market-specific gate: NL GGE deals before this compliance year are not tradeable',
   },
   {
     key: 'NL_GGE_BANKING_CAP_PCT',
@@ -209,6 +226,7 @@ export const REGULATORY_CONSTANT_ROWS: RegulatoryConstantRow[] = [
     value: String(NL_GGE_BANKING_CAP_PCT),
     unit: '%',
     citation: 'Ontwerpbesluit bijmengverplichting groen gas Art. 11',
+    url: 'https://www.internetconsultatie.nl/bijmengverplichtinggroengasamvb/b1',
     usedIn: 'Maximum banking of own written-off obligation to next compliance year',
   },
   {
@@ -217,6 +235,7 @@ export const REGULATORY_CONSTANT_ROWS: RegulatoryConstantRow[] = [
     value: '1 May Y+1',
     unit: 'date',
     citation: 'Ontwerpbesluit bijmengverplichting groen gas 2.2.1 Table 2',
+    url: 'https://www.internetconsultatie.nl/bijmengverplichtinggroengasamvb/b1',
     usedIn: 'Deadline for booking delivered gas in NEa register',
   },
   {
@@ -225,6 +244,7 @@ export const REGULATORY_CONSTANT_ROWS: RegulatoryConstantRow[] = [
     value: String(NL_GGE_GO_VALIDITY_MONTHS),
     unit: 'months',
     citation: 'Ontwerpbesluit bijmengverplichting groen gas 2.2.1; Concept Regeling 2.3',
+    url: 'https://www.internetconsultatie.nl/bijmengverplichtinggroengasamvb/b1',
     usedIn: 'Maximum validity period of Guarantee of Origin after production period end',
   },
   {
@@ -233,6 +253,7 @@ export const REGULATORY_CONSTANT_ROWS: RegulatoryConstantRow[] = [
     value: String(NL_GGE_CLAWBACK_YEARS),
     unit: 'years',
     citation: 'Ontwerpbesluit bijmengverplichting groen gas Art. 6, 2.3',
+    url: 'https://www.internetconsultatie.nl/bijmengverplichtinggroengasamvb/b1',
     usedIn: 'NEa audit and re-determination window for previously booked gas',
   },
   {
@@ -241,6 +262,7 @@ export const REGULATORY_CONSTANT_ROWS: RegulatoryConstantRow[] = [
     value: `${RED_HEAT_THRESHOLD_POST_2021 * 100}% / ${RED_HEAT_THRESHOLD_POST_2026 * 100}%`,
     unit: '%',
     citation: 'RED III Art. 29(10)(d) (category unconfirmed for gas grid injection)',
+    url: 'https://eur-lex.europa.eu/eli/dir/2023/2413/oj',
     usedIn: 'GHG threshold gate for heat/power installations commissioned post-2021 (70%) and post-2026 (80%)',
   },
   ...Object.entries(CAM_NC_DURATION_MULTIPLIERS).map(([code, row]) => ({
