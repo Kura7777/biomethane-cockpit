@@ -66,7 +66,7 @@ describe('isLinearMarkUnit', () => {
 
 describe('computeGateBadge', () => {
   const gate = (gate: string, verdict: GateResult['verdict'], gateLabel: string): GateResult => ({
-    gate: gate as any,
+    gate: gate as GateResult['gate'],
     gateLabel,
     verdict,
     reason: `${gateLabel} reason`,

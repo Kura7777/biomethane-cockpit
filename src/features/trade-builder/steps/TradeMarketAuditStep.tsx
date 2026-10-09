@@ -39,7 +39,7 @@ export function TradeMarketAuditStep({
   }, []);
 
   const openAuditor = (extra: Record<string, unknown> = {}) => {
-    const activeDeal = (typeof window !== 'undefined' && (window as any).__ACTIVE_TRADE_BUILDER_DEAL__) || {};
+    const activeDeal = (typeof window !== 'undefined' && (window as unknown as { __ACTIVE_TRADE_BUILDER_DEAL__?: Record<string, unknown> }).__ACTIVE_TRADE_BUILDER_DEAL__) || {};
     const activeCi = typeof activeDeal.carbonIntensity === 'number' ? activeDeal.carbonIntensity : Math.round(94.0 * (1 - ghgSavingPct / 100));
     window.dispatchEvent(new CustomEvent('open-compliance-auditor', {
       detail: {
