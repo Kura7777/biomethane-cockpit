@@ -366,6 +366,22 @@ export function migrateState(raw: unknown): AppState {
     });
   }
 
+  if (stateVersion < 15) {
+    // Schema v15 migration: the NL green-gas obligation (NL_GGE) is a new market. A saved desk gets its
+    // pricing-book row and a simulated mark (flagged Simulated) so #/pricing can show and edit it.
+    // Saved deals need nothing: Consignment.custody is optional and a missing pack reads as TODOs.
+    if (Array.isArray(migrated.pricingBook) && !migrated.pricingBook.some(r => r.id === 'nl_gge')) {
+      const seedRow = INITIAL_PRICING_BOOK.find(r => r.id === 'nl_gge');
+      if (seedRow) migrated.pricingBook = [...migrated.pricingBook, seedRow];
+    }
+    if (migrated.marks?.marks && !migrated.marks.marks.NL_GGE) {
+      migrated.marks = {
+        ...migrated.marks,
+        marks: { ...migrated.marks.marks, NL_GGE: simulateDesk().marks.marks.NL_GGE },
+      };
+    }
+  }
+
   migrated.schemaVersion = CURRENT_SCHEMA_VERSION;
 
   // Ensure all active markets exist in marks dictionary

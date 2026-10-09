@@ -3,7 +3,7 @@ import { useAppState } from '../../store/context';
 import { ProducerPricing } from '../../domain/netback/types';
 import { SIMULATED_SOURCE_NAME } from '../../domain/marks/simulate';
 import { CostFieldSource } from '../../store/context';
-import { getAssumption, setAssumption, resetAssumption, isOverridden } from '../../domain/assumptions/registry';
+import { getAssumption, getAssumptionDefinition, setAssumption, resetAssumption, isOverridden } from '../../domain/assumptions/registry';
 import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
 import { HUB_BASIS_SPREADS, INTERCONNECTION_POINTS } from '../../domain/logistics/corridors';
 
@@ -44,6 +44,8 @@ const TRANSIT_TARIFF_ROWS: { key: string; label: string }[] = [
   { key: 'cost.transit.euPooling', label: 'EU-wide pooling / marine bunkering' },
   { key: 'cost.transit.multiZone', label: 'Multi-zone transit' },
 ];
+
+const GGE_COST_ROWS = ['cost.gge.enagasGoExport', 'cost.gge.verticerGoImport'];
 
 const VERIFIED_IP_ROWS = INTERCONNECTION_POINTS.filter(
   ip => ip.entryTariffEurMwh !== null && ip.exitTariffEurMwh !== null
@@ -100,6 +102,39 @@ function CostTablesSection() {
                   <td style={{ textAlign: 'right' }}><AssumptionCell assumptionKey={`cost.hubBasis.${country}`} /></td>
                 </tr>
               ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="eyebrow" style={{ marginBottom: '6px' }}>NL green-gas obligation (GGE) route costs (€/MWh)</div>
+        <div style={{ overflowX: 'auto', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-control)', marginBottom: '16px' }}>
+          <table className="table" style={{ margin: 0, width: '100%', fontSize: '12px' }}>
+            <thead>
+              <tr>
+                <th style={{ textAlign: 'left' }}>Cost</th>
+                <th style={{ textAlign: 'right', width: '110px' }}>€/MWh</th>
+              </tr>
+            </thead>
+            <tbody>
+              {GGE_COST_ROWS.map(key => {
+                const def = getAssumptionDefinition(key);
+                return (
+                  <tr key={key}>
+                    <td title={def?.source}>
+                      {def?.label}
+                      {def?.source.startsWith('OPEN') && <span className="chip chip-warn" style={{ fontSize: '10px', marginLeft: '6px' }}>OPEN</span>}
+                      <div className="mut" style={{ fontSize: '10.5px' }}>{def?.usedIn}</div>
+                    </td>
+                    <td style={{ textAlign: 'right' }}><AssumptionCell assumptionKey={key} /></td>
+                  </tr>
+                );
+              })}
+              <tr>
+                <td colSpan={2} className="mut" style={{ fontSize: '11px' }}>
+                  PVB–TTF spread: the ES row of the hub basis table above, charged only on a delivered-TTF deal (structure B).
+                  Certification / audit cost: the certification cost field below.
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>

@@ -109,6 +109,7 @@ export function resolveMarketForQuote(quote: {
   // 3. Netherlands
   if (c === 'NL') {
     if (cls === 'ERE' || cls === 'HBE') return 'NL_ERE';
+    if (cls === 'GGE') return 'NL_GGE';
     if (cls === 'GO') return 'NL_GO';
   }
 

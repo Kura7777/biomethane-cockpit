@@ -531,7 +531,7 @@ describe('Pricing Desk & Ingress Seam Unit Tests (Phase 1b)', () => {
       expect(next.marks.marks['DE_GO'].source).toBe('Broker run');
       // NL ERE is a desk-estimate row, so it is not seeded as a broker mark.
       expect(isSimulatedMark(next.marks.marks['NL_ERE'])).toBe(true);
-      expect(next.pricingBook.length).toBe(69);
+      expect(next.pricingBook.length).toBe(70); // 69 + the NL GGE reference row (job GGE-1)
     });
 
     it('simulated over simulated refreshes; older real observation never replaces a newer one; correction may re-date', () => {
@@ -625,7 +625,7 @@ describe('Pricing Desk & Ingress Seam Unit Tests (Phase 1b)', () => {
 
     it('reference (non-broker) rows have blank volumes and are not tradeable; broker rows keep theirs', () => {
       const ref = INITIAL_PRICING_BOOK.filter(r => r.provenanceTier !== 'BROKER_RUN');
-      expect(ref.length).toBe(33); // 29 reference rows + the 4 seed rows that were wrongly tagged Broker
+      expect(ref.length).toBe(34); // 29 reference rows + the 4 seed rows that were wrongly tagged Broker + NL GGE (job GGE-1)
       for (const r of ref) {
         expect(r.isTradeable, r.id).toBe(false);
         expect(r.bidVolume, r.id).toBe('');

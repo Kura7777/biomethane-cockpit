@@ -1,3 +1,4 @@
+import { NL_GGE_BUYOUT_EUR_PER_TCO2E, NL_GGE_START_YEAR } from '../regulatory/constants';
 export type ProductClass = 'BUNDLED_COMPLIANCE' | 'GO_VOLUNTARY' | 'PHYSICAL_BROWN' | 'TICKET_ONLY';
 
 export type ProvenanceTier = 'BROKER_RUN' | 'WEB_INDEX' | 'STATUTORY_DIRECTIVE' | 'MODELLED_SIMULATED';
@@ -68,6 +69,7 @@ export const INITIAL_BROKER_QUOTES: BrokerMarketQuote[] = [
   { id: 'nl_4', country: 'NL', class: 'GO', productClass: 'GO_VOLUNTARY', feedstock: 'Waste', vintage: '2026', certified: 'Certified', subsidized: 'Subsidised', ciScore: '<0gCO2/MJ', bidPrice: '', offerPrice: '€ 30.00', bidVolume: '', offerVolume: '10GWh', currency: 'EUR', numericOfferEurMwh: 30.00, highlight: true, derivedFrom: 'STX / Marex OTC Broker Run (2026/2027)', provenanceTier: 'BROKER_RUN' },
   { id: 'nl_5', country: 'NL', class: 'GO', productClass: 'GO_VOLUNTARY', feedstock: 'Waste', vintage: 'Q425', certified: 'Certified', subsidized: 'Subsidised', ciScore: '<20gCO2/MJ', bidPrice: '', offerPrice: '€ 30.00', bidVolume: '', offerVolume: '15GWh', currency: 'EUR', numericOfferEurMwh: 30.00, derivedFrom: 'STX / Marex OTC Broker Run (2026/2027)', provenanceTier: 'BROKER_RUN' },
   { id: 'nl_ere', country: 'NL', class: 'ERE', productClass: 'BUNDLED_COMPLIANCE', feedstock: 'Manure & Industrial Bio-Waste', vintage: '2026', certified: 'NEa REV / VertiCer', subsidized: 'Unsubsidised', ciScore: '<-30gCO2/MJ', bidPrice: '€ 0.330/kg', offerPrice: '€ 0.350/kg', bidVolume: '', offerVolume: '', currency: 'EUR', derivedFrom: 'Desk estimate — not from the broker run; replace with a sourced price', provenanceTier: 'MODELLED_SIMULATED' },
+  { id: 'nl_gge', country: 'NL', class: 'GGE', productClass: 'BUNDLED_COMPLIANCE', feedstock: 'GO + PoS bundle (unsubsidised, EU/EEA)', vintage: '2027', certified: 'NEa GGE / VertiCer', subsidized: 'Unsubsidised', ciScore: '', bidPrice: '€ 0.370/kg', offerPrice: '€ 0.390/kg', bidVolume: '', offerVolume: '', currency: 'EUR', derivedFrom: `Simulated — no traded GGE price yet (spec O5). Ceiling: ${NL_GGE_START_YEAR} buy-out €${(NL_GGE_BUYOUT_EUR_PER_TCO2E[NL_GGE_START_YEAR] / 1000).toFixed(3)}/kg (Concept Regeling Art 2)`, provenanceTier: 'MODELLED_SIMULATED' },
 
   // =========================================================================
   // 4. GERMANY (THG BUNDLED & GO)
