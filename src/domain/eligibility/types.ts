@@ -19,6 +19,16 @@ export interface LegalCitation {
   nationalTransposition?: string; // e.g., "§37a BImSchG"
 }
 
+export type GateChecklistStatus = 'PASS' | 'FAIL' | 'WARN' | 'TODO';
+
+export interface GateChecklistItem {
+  id: string;
+  label: string;
+  status: GateChecklistStatus;
+  detail: string;
+  citations: LegalCitation[];
+}
+
 export interface GateResult {
   gate: GateName;
   gateLabel: string;           // Human-readable gate name
@@ -27,6 +37,7 @@ export interface GateResult {
   remedy: string | null;       // What would fix it
   citations: LegalCitation[];  // Legal references
   confidence: 'HIGH' | 'MEDIUM' | 'LOW';
+  checklist?: GateChecklistItem[];
 }
 
 export type OverallVerdict = 'ELIGIBLE' | 'CONDITIONAL' | 'HARD_BLOCK' | 'UNRESOLVED' | 'UNKNOWN';

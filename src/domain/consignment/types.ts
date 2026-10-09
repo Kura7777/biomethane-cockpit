@@ -42,4 +42,56 @@ export interface Consignment {
   originPlantId?: string | null;   // registry plant the deal was sourced from (offtake origination)
   originPlantName?: string | null;
   observedBundlePriceEurPerMwh?: number | null; // observed all-in clearing bundle price (€/MWh) for reality check
+  custody?: CustodyPack | null;
+}
+
+export type EnergyBasis = 'HHV' | 'LHV' | 'UNKNOWN';
+export type SupportType = 'NONE' | 'INVESTMENT' | 'OPERATING' | 'UNKNOWN';
+export type DealStructure = 'BUNDLE_AT_ORIGIN' | 'BUNDLE_DELIVERED_TTF';
+
+export interface GoRecord {
+  registry: string;
+  issuingCountry: string;
+  seriesNumber: string;
+  issueDate: string;
+  productionStart: string;
+  productionEnd: string;
+  energyMWh: number;
+  energyBasis: EnergyBasis;
+  supportType: SupportType;
+  gridInjected: boolean | null;
+}
+
+export interface PosFeedstockShare {
+  feedstock: string;
+  pctOfReduction: number;
+}
+
+export interface PosRecord {
+  posNumber: string;
+  udbNumber?: string | null;
+  scheme: string;
+  feedstock: string;
+  feedstockOriginCountry: string;
+  feedstockShares: PosFeedstockShare[];
+  ciTotal: number | null;
+  ciSteps: Record<string, number> | null;
+  supportDeclared: SupportType;
+  mwh: number;
+}
+
+export interface Claims {
+  notUsedElsewhere: boolean | null;
+  prtrGrant: 'NONE' | 'YES' | 'UNKNOWN';
+  prtrLegalCheckDone: boolean;
+  ownTraderCertified: boolean | null;
+  counterpartyCertified: boolean | null;
+}
+
+export interface CustodyPack {
+  go: GoRecord | null;
+  pos: PosRecord | null;
+  claims: Claims;
+  structure: DealStructure;
+  plannedBookingDate: string | null;
 }

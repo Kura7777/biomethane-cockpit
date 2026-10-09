@@ -59,6 +59,13 @@ const PRODUCT_ALIAS_MAP: Record<string, string> = {
   'DUTCH HBE ERE': 'NL_ERE',
   'NETHERLANDS ERE': 'NL_ERE',
 
+  // Netherlands GGE (Groen Gas Verplichting)
+  'GGE': 'NL_GGE',
+  'NL_GGE': 'NL_GGE',
+  'DUTCH GGE': 'NL_GGE',
+  'NETHERLANDS GGE': 'NL_GGE',
+  'NL GREEN GAS': 'NL_GGE',
+
   // France CPB / TIRUERT
   'CPB': 'FR_CPB',
   'FR_CPB': 'FR_CPB',
@@ -143,6 +150,7 @@ const PRODUCT_ALIAS_MAP: Record<string, string> = {
 const DEFAULT_UNITS: Record<string, string> = {
   DE_THG: 'EUR_PER_TCO2E',
   NL_ERE: 'EUR_PER_KG_CO2E',
+  NL_GGE: 'EUR_PER_KG_CO2E',
   FR_CPB: 'EUR_PER_MWH',
   UK_RTFO: 'GBP_PER_RTFC',
   UK_RGGO: 'EUR_PER_MWH',

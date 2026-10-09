@@ -60,6 +60,10 @@ export interface Market {
   deskCategory?: 'COMPLIANCE' | 'VOLUNTARY'; // Top-level commercial desk categorization
   uncertainties: Uncertainty[];
   quotaTrajectory?: QuotaTrajectoryStep[];
+  /** Paired compliance instrument: requires both EECS GO and sustainability PoS for the same MWh (e.g. NL_GGE) */
+  requiresGoAndPos?: boolean;
+  /** Custom statutory fossil reference comparator in gCO2e/MJ (e.g. 80 for NL_GGE heat, 94 for transport) */
+  fossilComparatorGCo2eMj?: number;
   
   // Real-world plant and production infrastructure metadata
   productionPlants?: number;     // Active operational biomethane plants

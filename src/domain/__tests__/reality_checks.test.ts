@@ -71,7 +71,7 @@ describe('Reality Checks & Institutional Ground-Truth Suite (Task 2.5)', () => {
 
   describe('1. Market Sector Taxonomy & Statutory Comparator Invariant', () => {
     it('verifies every market in the registry has an explicit sector defined', () => {
-      expect(MARKETS.length).toBe(38);
+      expect(MARKETS.length).toBe(39);
       for (const m of MARKETS) {
         expect(['TRANSPORT', 'HEAT_POWER', 'VOLUNTARY', 'MARITIME']).toContain(m.sector);
       }

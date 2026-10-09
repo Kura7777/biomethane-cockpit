@@ -15,6 +15,7 @@ import {
   UK_RTFC_BUYOUT_GBP,
   FUELEU_STATUTORY_PENALTY_PER_TONNE,
   FUELEU_PENALTY_VLSFO_MJ_PER_TONNE,
+  NL_GGE_BUYOUT_EUR_PER_TCO2E,
 } from '../regulatory/constants';
 
 import {
@@ -23,7 +24,7 @@ import {
   FUELEU_TARGET_2030,
   bioLngFuelEUIntensity,
 } from '../fueleu/calculator';
-import { getAssumption } from '../assumptions/registry';
+import { getAssumption, getLhvFactorForOrigin } from '../assumptions/registry';
 import { DE_THG_BUNDLE_MAX_CI, selectDeThgBundleReference } from '../markets/deThgBundle';
 
 /**
@@ -294,6 +295,27 @@ function computeCertificateValueCore(
       break;
     }
     case 'EUR_PER_KG_CO2E': {
+      const comparator = market.fossilComparatorGCo2eMj ?? CI_COMPARATOR_ROAD_TRANSPORT;
+      if (market.id === 'NL_GGE') {
+        // Dutch Green Gas Obligation (Wet bijmengverplichting groen gas, Kamerstuk 36947):
+        // 1 GGE = 1 kg CO2e reduction = (80 − CI) × 3.6 × lhvFactor (R3, R4, O1)
+        const origin = consignment.originCountry || consignment.injectionCountry || 'ES';
+        const lhvFactor = getLhvFactorForOrigin(origin);
+        const ggePerMwh = (comparator - ci) * 3.6 * lhvFactor;
+        valueEurPerMWh = mark * ggePerMwh;
+
+        const openFlag = origin.toUpperCase() === 'ES' ? ' [OPEN: Spanish GO basis to confirm]' : '';
+        unitConversion = `(${comparator} − (${ci})) × 3.6 × ${lhvFactor.toFixed(2)} (LHV factor${openFlag}) = ${ggePerMwh.toFixed(1)} GGE/MWh`;
+        calculation = `${ggePerMwh.toFixed(1)} GGE/MWh × €${mark.toFixed(4)}/GGE (${pricingSide}) = €${valueEurPerMWh.toFixed(2)}/MWh`;
+
+        const complianceYear = consignment.deliveryPeriod?.complianceYear ?? 2027;
+        const buyoutEurPerT = NL_GGE_BUYOUT_EUR_PER_TCO2E[complianceYear] ?? 450;
+        const buyoutEurPerKg = buyoutEurPerT / 1000;
+        if (mark > buyoutEurPerKg) {
+          statusNote = `Warning: mark €${mark.toFixed(4)}/GGE is above the ${complianceYear} buy-out ceiling of €${buyoutEurPerKg.toFixed(4)}/GGE (€${buyoutEurPerT}/t).`;
+        }
+        break;
+      }
       // Netherlands ERE (Wet milieubeheer / REV): 1 ERE = 1 kg CO₂e avoided
       const isAdvanced = consignment.annexClassification === 'IX_A' ||
         (consignment.feedstock || '').toLowerCase().includes('manure') ||
@@ -490,7 +512,10 @@ export function computeNetback(
   if (costs.certificationCosts === null) missingInputs.push('certificationCosts');
   if (costs.logistics === null) missingInputs.push('logistics');
 
-  const costValues = [costs?.transferCosts, costs?.certificationCosts, costs?.logistics, costs?.otherCosts]
+  const isStructureBDeliveredTtf = market.id === 'NL_GGE' && consignment.custody?.structure === 'BUNDLE_DELIVERED_TTF';
+  const pvbTtfSpread = isStructureBDeliveredTtf ? (getAssumption('cost.spread.pvbTtf') ?? 1.35) : null;
+
+  const costValues = [costs?.transferCosts, costs?.certificationCosts, costs?.logistics, costs?.otherCosts, pvbTtfSpread]
     .filter((c): c is number => typeof c === 'number' && !isNaN(c));
   const totalCosts = costValues.length > 0 ? costValues.reduce((a, b) => a + b, 0) : null;
 

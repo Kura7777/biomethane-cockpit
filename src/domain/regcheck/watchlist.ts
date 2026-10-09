@@ -118,17 +118,108 @@ export const REGCHECK_WATCHLIST: WatchItem[] = [
     watchType: 'fact'
   },
 
-  // 10. NL ERE & groen gas bill
+  // 10. NL ERE Dutch origin rule
   {
     id: 'nl_ere_dutch_origin_rule',
-    topic: 'Dutch ERE domestic origin rule & bijmengverplichting status',
-    claim: 'Dutch transport quota (ERE) under Regeling energie vervoer Art. 7 accepts solely Dutch-produced green gas GvOs for inboekingen; the bijmengverplichting groen gas bill is pending.',
+    topic: 'Dutch ERE domestic origin rule',
+    claim: 'Dutch transport quota (ERE) under Regeling energie vervoer Art. 7 accepts solely Dutch-produced green gas GvOs for inboekingen; Tweede Kamer passed Wet bijmengverplichting groen gas on 6 October 2026.',
     appImpact: 'Hard-blocks foreign biomethane mass-balance imports into the Dutch ERE transport compliance market.',
     sources: [
       { label: 'NEa Renewable Energy FAQ', url: 'https://www.emissieautoriteit.nl/' },
       { label: 'Wettenbank Regeling Energie Vervoer', url: 'https://wetten.overheid.nl/' }
     ],
     watchType: 'fact'
+  },
+
+  // 10a. Senate vote on Wet bijmengverplichting groen gas (Kamerstuk 36947)
+  {
+    id: 'nl_gge_senate_vote',
+    topic: 'Senate (Eerste Kamer) vote on Wet bijmengverplichting groen gas (Kamerstuk 36947)',
+    claim: 'Tweede Kamer passed Wet bijmengverplichting groen gas on 6 October 2026; Senate plenary review and vote pending prior to 1 January 2027 entry into force.',
+    appImpact: 'Formally enacts the Dutch green gas obligation and establishes primary statutory authority for the quota trajectory.',
+    sources: [
+      { label: 'Eerste Kamer Dossier 36947', url: 'https://www.eerstekamer.nl/wetsvoorstel/36947_wet_bijmengverplichting' },
+      { label: 'Tweede Kamer Plenair Verslag 6 Oct 2026', url: 'https://www.tweedekamer.nl/kamerstukken/plenaire_verslagen/detail/2026-2027/10' }
+    ],
+    watchType: 'open_question'
+  },
+
+  // 10b. Final Besluit and Regeling bijmengverplichting groen gas publication
+  {
+    id: 'nl_gge_secondary_legislation',
+    topic: 'Final publication of Besluit and Regeling bijmengverplichting groen gas',
+    claim: 'Draft AMvB and draft Ministeriële Regeling establish the 80 gCO2e/MJ fossil comparator, joint GO+PoS booking in VertiCer, and the €450–€527/t buy-out schedule; final texts pending publication in Staatsblad and Staatscourant.',
+    appImpact: 'Formalizes operational booking deadlines (1 May Y+1), LHV energy calculation conventions, and audit requirements.',
+    sources: [
+      { label: 'Internetconsultatie Draft Besluit', url: 'https://www.internetconsultatie.nl/bijmengverplichtinggroengasamvb/b1' },
+      { label: 'Internetconsultatie Draft Regeling', url: 'https://www.internetconsultatie.nl/bijmengverplichtinggroengasmr/b1' }
+    ],
+    watchType: 'open_question'
+  },
+
+  // 10c. NEa GGE register opening
+  {
+    id: 'nl_gge_register_opening',
+    topic: 'NEa GGE register module implementation and account opening',
+    claim: 'NEa and VertiCer are configuring the GGE register module for joint GO cancellation and PoS surrender; registration for obligated energy suppliers opens prior to 2027 compliance.',
+    appImpact: 'Enables obligated energy suppliers to hold GGE accounts and surrender paired GO+PoS compliance volumes.',
+    sources: [
+      { label: 'NEa Register Groen Gas', url: 'https://www.emissieautoriteit.nl/' },
+      { label: 'VertiCer Gas Registry', url: 'https://verticer.eu/' }
+    ],
+    watchType: 'open_question'
+  },
+
+  // 10d. ISCC / REDcert gas mass-balance rules (O3)
+  {
+    id: 'iscc_redcert_gas_mb_rules',
+    topic: 'ISCC EU and REDcert gas mass-balance transaction guidance (O3)',
+    claim: 'Voluntary schemes require PoS to remain linked to gas deliveries; clarification pending from certifying bodies on whether trade transfer must settle at origin hub (PVB) or destination (TTF).',
+    appImpact: 'Determines whether Trade Structure A (bundle at origin) or Structure B (bundle delivered TTF) is mandated by certifying bodies.',
+    sources: [
+      { label: 'ISCC EU 203 System Document', url: 'https://www.iscc-system.org/certification/iscc-system-documents/' },
+      { label: 'REDcert Gas Scheme Rules', url: 'https://www.redcert.org/en/' }
+    ],
+    watchType: 'open_question'
+  },
+
+  // 10e. UDB gas module go-live (O4)
+  {
+    id: 'udb_gas_module_golive',
+    topic: 'Union Database (UDB) gaseous fuels module operational go-live (O4)',
+    claim: 'European Commission and EBA roadmap indicates UDB gas module operational rollout; mandatory recording for gaseous fuels across interconnected grid anticipated once live.',
+    appImpact: 'Transitions cross-border gas compliance traceability from interim national registry GO+PoS booking to automated UDB transaction logging.',
+    sources: [
+      { label: 'European Commission Union Database', url: 'https://energy.ec.europa.eu/topics/renewable-energy/bioenergy/union-database_en' },
+      { label: 'European Biogas Association UDB Leaflet', url: 'https://www.europeanbiogas.eu/publication/union-database-leaflet/' }
+    ],
+    watchType: 'open_question'
+  },
+
+  // 10f. Spanish non-transport quota decree (S6)
+  {
+    id: 'es_non_transport_quota_decree',
+    topic: 'Spanish non-transport biomethane quota decree (S6)',
+    claim: 'Spain preparing Royal Decree introducing non-transport biomethane obligations ramping from 0.5% in 2028 to 6% in 2035, competing with export demand.',
+    appImpact: 'Increases domestic Spanish biomethane certificate demand and tightens export supply into NL GGE and DE THG.',
+    sources: [
+      { label: 'MITECO Biogás y Biometano', url: 'https://www.miteco.gob.es/es/energia/energia-electrica/biogas.html' },
+      { label: 'BOE Real Decreto 611/2026', url: 'https://www.boe.es/eli/es/rd/2026/06/11/611' }
+    ],
+    watchType: 'open_question'
+  },
+
+  // 10g. DE THG proposal to exclude origin-subsidised fuels
+  {
+    id: 'de_thg_subsidised_fuels_exclusion',
+    topic: 'German proposal to exclude origin-subsidised fuels from THG-Quote',
+    claim: 'German BMUV proposals under 38. BImSchV revision to exclude foreign biomethane that received production or operating aid in the country of origin.',
+    appImpact: 'Restricts foreign volumes receiving dual or operating support from generating German THG quota credits, mirroring NL GGE rules.',
+    sources: [
+      { label: 'BMUV Immissionsschutz', url: 'https://www.bmuv.de/themen/luft-laerm-mobilitaet/verkehr/erneuerbare-energien-im-verkehr' },
+      { label: 'Zoll THG-Quote Merkblatt', url: 'https://www.zoll.de/' }
+    ],
+    watchType: 'open_question'
   },
 
   // 11. IT CIC domestic requirement

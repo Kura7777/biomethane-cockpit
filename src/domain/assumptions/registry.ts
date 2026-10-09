@@ -498,7 +498,97 @@ export const ASSUMPTION_DEFINITIONS: AssumptionDefinition[] = [
     min: 0,
     max: 1,
   })),
+  // ── NL GGE & Spain deal assumptions ──────────────────────────────────────
+  {
+    key: 'market.nl_gge.lhvFactor.ES',
+    category: 'RISK',
+    label: 'NL GGE: Spanish GO LHV/HHV conversion factor',
+    unit: 'factor',
+    defaultValue: 0.90,
+    basis: 'DESK_ESTIMATE',
+    source: 'OPEN — NEa uses LHV (R3); Spanish GO energy basis to confirm (PCS/HHV vs PCI/LHV). Default 0.90 based on pure methane LHV/HHV ≈ 0.901.',
+    usedIn: 'Netback engine: converts Spanish gross (PCS/HHV) GO MWh into net (PCI/LHV) MWh for NL GGE quantity formula',
+    min: 0.8,
+    max: 1.0,
+  },
+  {
+    key: 'market.nl_gge.lhvFactor.default',
+    category: 'RISK',
+    label: 'NL GGE: Default GO LHV conversion factor (other origins)',
+    unit: 'factor',
+    defaultValue: 1.00,
+    basis: 'DESK_ESTIMATE',
+    source: 'Unverified — 1.00 default for other countries pending national registry energy basis confirmation.',
+    usedIn: 'Netback engine: LHV conversion factor for non-Spanish origins',
+    min: 0.8,
+    max: 1.0,
+  },
+  {
+    key: 'deal.defaultStructure.isDeliveredTtf',
+    category: 'DEAL',
+    label: 'NL GGE: Default deal structure (0 = Bundle at origin PVB, 1 = Delivered TTF)',
+    unit: 'flag',
+    defaultValue: 0,
+    basis: 'DESK_POLICY',
+    source: 'Desk policy (spec O3): default BUNDLE_AT_ORIGIN (PVB). Delivered TTF carries hub basis spread.',
+    usedIn: 'Trade Builder: default structure selection when creating a deal',
+    min: 0,
+    max: 1,
+  },
+  {
+    key: 'cost.spread.pvbTtf',
+    category: 'COST',
+    label: 'PVB–TTF hub basis spread (Structure B: Delivered TTF)',
+    unit: '€/MWh',
+    defaultValue: 1.35,
+    basis: 'DESK_ESTIMATE',
+    source: 'MIBGAS PVB vs Dutch TTF basis spread from desk cost register (+1.35 €/MWh).',
+    usedIn: 'Netback engine: deducted from netback only when deal structure is BUNDLE_DELIVERED_TTF',
+    min: 0,
+  },
+  {
+    key: 'cost.transfer.enagasExport',
+    category: 'COST',
+    label: 'Enagás GTS GO export fee',
+    unit: '€/MWh',
+    defaultValue: 0.05,
+    basis: 'DESK_ESTIMATE',
+    source: 'Enagás GTS registry export fee schedule (~€0.05/MWh).',
+    usedIn: 'Netback engine: registry transfer fee for Spanish GO export to AIB hub',
+    min: 0,
+  },
+  {
+    key: 'cost.transfer.verticerImport',
+    category: 'COST',
+    label: 'VertiCer GO import / transfer fee',
+    unit: '€/MWh',
+    defaultValue: 0.05,
+    basis: 'DESK_ESTIMATE',
+    source: 'VertiCer AIB hub import and transfer fee schedule (~€0.05/MWh).',
+    usedIn: 'Netback engine: registry transfer fee for Dutch VertiCer account import',
+    min: 0,
+  },
+  {
+    key: 'cost.certification.auditPerMwh',
+    category: 'COST',
+    label: 'Sustainability scheme audit & certificate fee',
+    unit: '€/MWh',
+    defaultValue: 0.40,
+    basis: 'DESK_ESTIMATE',
+    source: 'Desk estimate for ISCC/REDcert annual audit and certificate issuance fee per MWh.',
+    usedIn: 'Netback engine: certification costs',
+    min: 0,
+  },
 ];
+
+/** Resolves the LHV factor for an origin country for NL_GGE calculation (spec O1, R3, R4). */
+export function getLhvFactorForOrigin(originCountry?: string | null): number {
+  const norm = (originCountry || '').toUpperCase();
+  if (norm === 'ES') {
+    return getAssumption('market.nl_gge.lhvFactor.ES') ?? 0.90;
+  }
+  return getAssumption('market.nl_gge.lhvFactor.default') ?? 1.00;
+}
 
 const DEFINITIONS_BY_KEY = new Map(ASSUMPTION_DEFINITIONS.map(d => [d.key, d]));
 

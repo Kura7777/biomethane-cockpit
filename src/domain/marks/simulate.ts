@@ -45,6 +45,10 @@ export function simulateDesk(now: Date = new Date()): { marks: MarksState; costs
 
   // Price ALL Pan-European markets in the registry (Compliance + Voluntary + Emerging)
   MARKETS.forEach(market => {
+    if (market.id === 'NL_GGE') {
+      // Generated after costs to preserve existing PRNG sequence for golden numbers
+      return;
+    }
     const isVol = isVoluntaryMarket(market.id);
     const benchmark = getBenchmarkForMarket(market.id);
     const dp = precisionFor(market.unitOfAccount);
@@ -91,7 +95,7 @@ export function simulateDesk(now: Date = new Date()): { marks: MarksState; costs
 
   const ttfMid = between(26, 34);
 
-  return {
+  const res = {
     marks: {
       marks,
       gasIndex: {
@@ -100,7 +104,7 @@ export function simulateDesk(now: Date = new Date()): { marks: MarksState; costs
         mid: round(ttfMid, 2),
         updatedAt: now.toISOString(),
         provenance: {
-          sourceType: 'ESTIMATE',
+          sourceType: 'ESTIMATE' as const,
           sourceName: SIMULATED_SOURCE_NAME,
           sourceUrl: null,
           observedAt: now.toISOString(),
@@ -112,14 +116,14 @@ export function simulateDesk(now: Date = new Date()): { marks: MarksState; costs
         chfEur: round(between(1.04, 1.08), 3),
         updatedAt: now.toISOString(),
         provenance: {
-          sourceType: 'ESTIMATE',
+          sourceType: 'ESTIMATE' as const,
           sourceName: SIMULATED_SOURCE_NAME,
           sourceUrl: null,
           observedAt: now.toISOString(),
           note: 'Synthetic test data — not a real mark.',
         },
       },
-      pricingSides: { certificateSide: 'bid', moleculeSide: 'bid' },
+      pricingSides: { certificateSide: 'bid' as const, moleculeSide: 'bid' as const },
     },
     costs: {
       transferCosts: round(between(0.6, 1.8), 2),
@@ -127,13 +131,38 @@ export function simulateDesk(now: Date = new Date()): { marks: MarksState; costs
       logistics: round(between(0.2, 0.9), 2),
       otherCosts: null,
       producerPricing: {
-        mode: 'INDEX_LINKED',
+        mode: 'INDEX_LINKED' as const,
         fixedPriceEurPerMwh: null,
         indexLinkedShare: round(between(0.965, 0.980), 3),
         source: SIMULATED_SOURCE_NAME,
         lastVerified: now.toISOString(),
-        confidence: 'UNVERIFIED',
+        confidence: 'UNVERIFIED' as const,
       },
     },
   };
+
+  // Generate NL_GGE mark ensuring it stays strictly below the €0.45 buy-out ceiling (R19)
+  const ggeBenchmark = getBenchmarkForMarket('NL_GGE');
+  const ggeMid = ggeBenchmark ? ggeBenchmark.midPrice : round(between(0.35, 0.40), 3);
+  const ggeHalfSpread = round(ggeMid * 0.02, 3);
+  const ggeOffer = Math.min(round(ggeMid + ggeHalfSpread, 3), 0.449);
+  const ggeBid = round(ggeMid - ggeHalfSpread, 3);
+  const ggeObservedAt = new Date(now.getTime() - Math.floor(between(0, 10)) * 86_400_000).toISOString();
+  res.marks.marks['NL_GGE'] = {
+    marketId: 'NL_GGE',
+    bid: ggeBid,
+    offer: ggeOffer,
+    mid: round(ggeMid, 3),
+    updatedAt: now.toISOString(),
+    source: SIMULATED_SOURCE_NAME,
+    provenance: {
+      sourceType: 'ESTIMATE',
+      sourceName: SIMULATED_SOURCE_NAME,
+      sourceUrl: null,
+      observedAt: ggeObservedAt,
+      note: 'Synthetic forward mark below the €0.45 GGE buy-out ceiling.',
+    },
+  };
+
+  return res;
 }

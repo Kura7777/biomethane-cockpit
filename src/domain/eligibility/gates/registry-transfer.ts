@@ -12,7 +12,7 @@ const LABEL = 'Registry transfer';
  * mass balance and never move through GO hubs; ETS zero-rating is not a GO registry transfer.
  */
 export function isGoTransferMarket(market: Market): boolean {
-  return market.acceptsBookAndClaim === true && market.id !== 'VOL_EU_ETS';
+  return market.requiresGoAndPos === true || (market.acceptsBookAndClaim === true && market.id !== 'VOL_EU_ETS');
 }
 
 function toCitations(sources: HubSource[]): LegalCitation[] {

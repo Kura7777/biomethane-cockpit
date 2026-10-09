@@ -2,33 +2,23 @@ import { Consignment } from '../consignment/types';
 import { Market } from '../markets/types';
 import { EligibilityAssessment, GateResult, GateName, OverallVerdict } from './types';
 import { evaluateSchemeGate } from './gates/scheme';
-import { evaluateUDBGate } from './gates/udb';
 import { evaluateChainOfCustodyGate } from './gates/chain-of-custody';
 import { evaluateFeedstockGate } from './gates/feedstock';
 import { evaluateGHGThresholdGate } from './gates/ghg-threshold';
 import { evaluateMarketSpecificGate } from './gates/market-specific';
-import { evaluateRegistryTransferGate } from './gates/registry-transfer';
-import { evaluateCrossBorderPosGate } from './gates/cross-border-pos';
 
 export function evaluateEligibility(
   consignment: Consignment,
   market: Market
 ): EligibilityAssessment {
-  // Run all gates — collect full trail, don't stop at first block
+  // Run all 5 statutory gates — collect full trail, don't stop at first block
   const gates: GateResult[] = [
     evaluateSchemeGate(consignment, market),
-    evaluateUDBGate(consignment, market),
     evaluateChainOfCustodyGate(consignment, market),
     evaluateFeedstockGate(consignment, market),
     evaluateGHGThresholdGate(consignment, market),
     evaluateMarketSpecificGate(consignment, market),
   ];
-
-  // GO (book-and-claim) markets also depend on registry hub connectivity
-  const registryGate = evaluateRegistryTransferGate(consignment, market);
-  if (registryGate) gates.push(registryGate);
-  const posGate = evaluateCrossBorderPosGate(consignment, market);
-  if (posGate) gates.push(posGate);
 
   // Determine overall verdict (priority: HARD_BLOCK > UNRESOLVED > UNKNOWN > CONDITIONAL > ELIGIBLE)
   let overallVerdict: OverallVerdict = 'ELIGIBLE';

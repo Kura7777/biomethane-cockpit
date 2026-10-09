@@ -848,6 +848,28 @@ export const EUROPEAN_MARKET_BENCHMARKS: MarketBenchmarkQuote[] = [
     annualProductionTWh: 0.05,
     productionPlants: 2,
   },
+  {
+    marketId: 'NL_GGE',
+    name: 'Netherlands Green Gas Obligation (GGE)',
+    shortName: 'NL GGE',
+    country: 'NL',
+    countryName: 'Netherlands',
+    status: 'EMERGING',
+    deskCategory: 'COMPLIANCE',
+    unitOfAccount: 'EUR_PER_KG_CO2E',
+    unitLabel: '€/GGE (kg CO₂e)',
+    bidPrice: 0.370,
+    offerPrice: 0.390,
+    midPrice: 0.380,
+    currency: 'EUR',
+    provenanceTier: 'MODELLED_SIMULATED',
+    sourceName: 'Desk GGE Valuation Model',
+    observedAt: '2026-10-09',
+    provenanceNote: 'Simulated forward mark for 2027 delivery below €0.45/kg buy-out ceiling (Wm titel 9.9).',
+    registry: 'NEa GGE-register; VertiCer',
+    annualProductionTWh: 3.2,
+    productionPlants: 82,
+  },
 ];
 
 export function getBenchmarkForMarket(marketId: string): MarketBenchmarkQuote | undefined {
