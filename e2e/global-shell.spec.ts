@@ -14,9 +14,10 @@ test.describe('Global Shell, Theme Toggle & Command Palette', () => {
     await expect(header).toContainText(/Biomethane Desk/i);
     await expect(header).toContainText(/Trader/i);
 
-    // Clicking brand logo navigates to /sourcing
+    // Clicking brand logo goes home, to the Morning brief
     await header.getByText('Biomethane Desk').click();
-    await expect(page).toHaveURL(/#\/sourcing/);
+    await expect(page).toHaveURL(/#\/$/);
+    await expect(page.getByTestId('morning-brief')).toBeVisible();
     await expectNoErrorBoundary(page);
 
     expect(appErrors(errors)).toEqual([]);

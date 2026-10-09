@@ -13,7 +13,8 @@ import {
   Flame,
   Briefcase,
   Users,
-  ShieldAlert
+  ShieldAlert,
+  Sunrise
 } from 'lucide-react';
 
 export interface NavItem {
@@ -33,6 +34,7 @@ export interface NavSection {
  * Standard SIDEBAR_ITEMS preserved for route title derivation and tests.
  */
 export const SIDEBAR_ITEMS: NavItem[] = [
+  { to: '/brief', label: 'Morning brief', keyHint: 'B', icon: Sunrise },
   { to: '/sourcing', label: 'Origination', keyHint: '1', icon: Compass },
   { to: '/plants', label: 'Plants (1,974)', keyHint: '2', icon: Building2 },
   { to: '/registries', label: 'Registries & Flows', keyHint: 'G', icon: ShieldCheck },
@@ -112,7 +114,8 @@ export const WORKSPACE_TABS: NavItem[] = NAV_GROUPS.flatMap(g => g.items);
 
 /** Whether a nav item is the current page, including the aliases each screen answers to. */
 export function isNavItemActive(to: string, pathname: string): boolean {
-  if (to === '/sourcing') return pathname === '/' || pathname.startsWith('/sourcing') || pathname.startsWith('/commercial');
+  if (to === '/brief') return pathname === '/' || pathname.startsWith('/brief');
+  if (to === '/sourcing') return pathname.startsWith('/sourcing') || pathname.startsWith('/commercial');
   if (to === '/pricing') return pathname.startsWith('/pricing') || pathname.startsWith('/marks');
   if (to === '/data-sources') return pathname.startsWith('/data-sources') || pathname.startsWith('/sources') || pathname.startsWith('/provenance');
   if (to === '/fueleu-shipping') return pathname.startsWith('/fueleu') || pathname.startsWith('/shipping');
@@ -121,7 +124,8 @@ export function isNavItemActive(to: string, pathname: string): boolean {
 }
 
 export function getPageTitle(pathname: string): string {
-  if (pathname === '/' || pathname === '/sourcing') {
+  if (pathname === '/') return 'Morning brief';
+  if (pathname === '/sourcing') {
     return 'Origination';
   }
 
