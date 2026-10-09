@@ -6,6 +6,11 @@ import { REFERENCE_CONSIGNMENTS } from '../consignment/feedstocks';
 import type { Consignment, CustodyPack } from '../consignment/types';
 import type { MarksState, CostInputs } from '../netback/types';
 import { getLhvFactorForOrigin } from '../assumptions/registry';
+import { computeCertificateValue, ggeRouteCostLines } from '../netback/engine';
+import { ggeEffectiveBookingDeadline } from '../eligibility/gates/chain-of-custody';
+import { simulateDesk } from '../marks/simulate';
+import { migrateState, createDefaultState } from '../../store/context';
+import { NL_GGE_BUYOUT_EUR_PER_TCO2E } from '../regulatory/constants';
 
 describe('Job GGE-1 — NL_GGE Market, Valuation and Chain of Custody', () => {
   const emptyCosts: CostInputs = {
@@ -100,40 +105,25 @@ describe('Job GGE-1 — NL_GGE Market, Valuation and Chain of Custody', () => {
   describe('§6 Golden Example Verification', () => {
     it('matches trade spec §6 numbers exactly: 388,800 GGE, €174,960 at €0.45, 150% saving, deadline 2028-03-31', () => {
       const market = getMarketById('NL_GGE')!;
-      expect(market).toBeDefined();
+      expect(market.fossilComparatorGCo2eMj).toBe(80);
+      expect(getLhvFactorForOrigin('ES')).toBe(0.9);
 
-      // 1. LHV factor for Spain is 0.90
-      const lhvFactor = getLhvFactorForOrigin('ES');
-      expect(lhvFactor).toBe(0.90);
-
-      // 2. 1,000 GO MWh (HHV) -> 900 MWh (LHV)
-      const goMWh = 1000;
-      const mwhLhv = goMWh * lhvFactor;
-      expect(mwhLhv).toBe(900);
-
-      // 3. GGE calculation: (80 - (-40)) * 3.6 * 0.90 = 388.8 GGE/MWh
-      const ggePerMwh = (80 - (-40)) * 3.6 * lhvFactor;
-      expect(ggePerMwh).toBe(388.8);
-
-      const totalGge = ggePerMwh * goMWh;
-      expect(totalGge).toBe(388800);
-
-      // 4. Valuation at €0.45/GGE = €174,960 total -> €174.96/MWh
+      // Valuation through the engine: (80 − (−40)) × 3.6 × 0.90 = 388.8 GGE per GO MWh, × €0.45 = €174.96/MWh
       const netback = computeNetback(market, esManureGgeConsignment, ggeMarks, emptyCosts, 'mid');
-      expect(netback.certificateValue?.valueEurPerMWh).toBeCloseTo(174.96, 2);
-      expect(netback.certificateValue?.valueEurPerMWh! * goMWh).toBeCloseTo(174960, 0);
+      const cv = netback.certificateValue!;
+      expect(cv.unitConversion).toContain('= 388.8 GGE per GO MWh');
+      expect(cv.valueEurPerMWh).toBe(174.96);
+      const goMwh = esManureGgeConsignment.custody!.go!.energyMWh;
+      expect(Math.round((cv.valueEurPerMWh! / 0.45) * goMwh)).toBe(388_800);
+      expect(Math.round(cv.valueEurPerMWh! * goMwh)).toBe(174_960);
 
-      // 5. Saving = (80 - (-40)) / 80 = 150%
-      const saving = (80 - (-40)) / 80;
-      expect(saving).toBe(1.50);
-
-      // 6. Booking deadline for March 2027 production:
-      // min(2027-03-31 + 12m, 2028-05-01) = 2028-03-31
-      const prodEnd = new Date('2027-03-31');
-      const prodEndPlus12m = new Date(prodEnd);
-      prodEndPlus12m.setFullYear(prodEndPlus12m.getFullYear() + 1);
-      const effectiveDeadlineStr = prodEndPlus12m.toISOString().slice(0, 10);
-      expect(effectiveDeadlineStr).toBe('2028-03-31');
+      // Saving and deadline through the Chain-of-custody checklist
+      const coc = evaluateEligibility(esManureGgeConsignment, market).gates.find(g => g.gate === 'CHAIN_OF_CUSTODY')!;
+      expect(coc.checklist!.find(i => i.id === 'ghg-saving')!.detail).toContain('= 150%');
+      expect(ggeEffectiveBookingDeadline('2027-03-31', 2027)).toBe('2028-03-31');
+      expect(coc.checklist!.find(i => i.id === 'booking-deadlines')!.detail).toContain('effective deadline 2028-03-31');
+      // Production ending late in the year: the 1 May Y+1 booking window binds first
+      expect(ggeEffectiveBookingDeadline('2027-12-31', 2027)).toBe('2028-05-01');
     });
   });
 
@@ -235,6 +225,95 @@ describe('Job GGE-1 — NL_GGE Market, Valuation and Chain of Custody', () => {
       expect(cocGate.verdict).toBe('CONDITIONAL');
       const todos = cocGate.checklist?.filter(i => i.status === 'TODO');
       expect(todos && todos.length > 0).toBe(true);
+    });
+  });
+
+  describe('Valuation, marks and costs', () => {
+    const gge = getMarketById('NL_GGE')!;
+
+    it('NL_ERE still values on the 94 transport comparator; NL_GGE on 80 from the market field', () => {
+      const ere = getMarketById('NL_ERE')!;
+      expect(ere.fossilComparatorGCo2eMj).toBeUndefined();
+      const ereMarks: MarksState = { ...ggeMarks, marks: { NL_ERE: { ...ggeMarks.marks.NL_GGE, marketId: 'NL_ERE', mid: 0.34 } } };
+      const ereValue = computeCertificateValue(ere, esManureGgeConsignment, ereMarks, 'mid')!;
+      expect(ereValue.valueEurPerMWh).toBeCloseTo(0.34 * (94 + 40) * 3.6, 6);
+      expect(computeCertificateValue(gge, esManureGgeConsignment, ggeMarks, 'mid')!.unitConversion).toContain('(80 − (-40))');
+    });
+
+    it('warns (does not cap) when the mark is above the compliance year buy-out', () => {
+      const high: MarksState = { ...ggeMarks, marks: { NL_GGE: { ...ggeMarks.marks.NL_GGE, mid: 0.5 } } };
+      const cv = computeCertificateValue(gge, esManureGgeConsignment, high, 'mid')!;
+      expect(cv.statusNote).toContain('mark above buy-out ceiling');
+      expect(cv.valueEurPerMWh).toBeCloseTo(0.5 * 388.8, 6);
+      expect(computeCertificateValue(gge, esManureGgeConsignment, ggeMarks, 'mid')!.statusNote ?? '').not.toContain('above buy-out');
+    });
+
+    it('the simulated GGE mark stays below the 2027 buy-out', () => {
+      const m = simulateDesk().marks.marks.NL_GGE;
+      expect(m.offer!).toBeLessThan(NL_GGE_BUYOUT_EUR_PER_TCO2E[2027] / 1000);
+      expect(m.source).toBe('SIMULATED');
+    });
+
+    it('GO fees always apply for a Spanish GO; the hub spread only for structure B (delivered TTF)', () => {
+      const a = ggeRouteCostLines(gge, esManureGgeConsignment).map(l => l.key);
+      expect(a).toEqual(['cost.gge.enagasGoExport', 'cost.gge.verticerGoImport']);
+      const b = ggeRouteCostLines(gge, { ...esManureGgeConsignment, custody: { ...fullCustodyPack, structure: 'BUNDLE_DELIVERED_TTF' } }).map(l => l.key);
+      expect(b).toEqual(['cost.gge.enagasGoExport', 'cost.gge.verticerGoImport', 'cost.hubBasis.ES']);
+      expect(ggeRouteCostLines(getMarketById('NL_ERE')!, esManureGgeConsignment)).toEqual([]);
+    });
+
+    it('NL_GGE is selectable for 2027 deals (EMERGING) but not before its start year', () => {
+      expect(gge.status).toBe('EMERGING');
+      const ms = (year: number) => evaluateEligibility(
+        { ...esManureGgeConsignment, deliveryPeriod: { ...esManureGgeConsignment.deliveryPeriod!, complianceYear: year } }, gge,
+      ).gates.find(g => g.gate === 'MARKET_SPECIFIC')!.verdict;
+      expect(ms(2027)).toBe('PASS');
+      expect(ms(2026)).toBe('UNKNOWN');
+    });
+  });
+
+  describe('Checklist shape', () => {
+    it('NL_GGE carries the 11 spec items; book-and-claim fails the pairing item', () => {
+      const coc = evaluateEligibility(esManureGgeConsignment, getMarketById('NL_GGE')!).gates.find(g => g.gate === 'CHAIN_OF_CUSTODY')!;
+      expect(coc.checklist!.map(i => i.id)).toEqual([
+        'origin-eu-eea', 'go-route-nl', 'certified-chain', 'go-pos-pairing', 'no-operating-aid', 'spanish-prtr-grant',
+        'ghg-saving', 'booking-deadlines', 'no-double-claim', 'udb-recording', 'legislative-status',
+      ]);
+      expect(coc.checklist!.find(i => i.id === 'legislative-status')!.status).toBe('WARN');
+      const bc = evaluateEligibility({ ...esManureGgeConsignment, chainOfCustody: 'BOOK_AND_CLAIM' }, getMarketById('NL_GGE')!);
+      expect(bc.gates.find(g => g.gate === 'CHAIN_OF_CUSTODY')!.checklist!.find(i => i.id === 'go-pos-pairing')!.status).toBe('FAIL');
+    });
+
+    it('a GO / PoS volume mismatch fails the pairing item', () => {
+      const off = { ...esManureGgeConsignment, custody: { ...fullCustodyPack, pos: { ...fullCustodyPack.pos!, mwh: 1000 } } };
+      const coc = evaluateEligibility(off, getMarketById('NL_GGE')!).gates.find(g => g.gate === 'CHAIN_OF_CUSTODY')!;
+      expect(coc.verdict).toBe('HARD_BLOCK');
+      expect(coc.checklist!.find(i => i.id === 'go-pos-pairing')!.status).toBe('FAIL');
+    });
+
+    it('ES -> DE_THG uses the PoS-only subset (no GO route, no GGE items)', () => {
+      const coc = evaluateEligibility(esManureGgeConsignment, getMarketById('DE_THG')!).gates.find(g => g.gate === 'CHAIN_OF_CUSTODY')!;
+      expect(coc.checklist!.map(i => i.id)).toEqual(['coc-model', 'origin', 'cross-border-pos', 'certified-chain', 'no-double-claim', 'udb-recording']);
+    });
+  });
+
+  describe('Store migration', () => {
+    it('a v14 desk loads: saved deals without custody still evaluate; NL GGE row and mark are added', () => {
+      const fresh = createDefaultState();
+      const legacy = {
+        ...fresh,
+        schemaVersion: 14,
+        pricingBook: fresh.pricingBook.filter(r => r.id !== 'nl_gge'),
+        marks: { ...fresh.marks, marks: Object.fromEntries(Object.entries(fresh.marks.marks).filter(([id]) => id !== 'NL_GGE')) },
+        consignments: [REFERENCE_CONSIGNMENTS.DANISH_MANURE],
+      };
+      const migrated = migrateState(JSON.parse(JSON.stringify(legacy)));
+      expect(migrated.pricingBook.some(r => r.id === 'nl_gge')).toBe(true);
+      expect(migrated.marks.marks.NL_GGE?.mid).not.toBeNull();
+      const deal = migrated.consignments[0];
+      expect(deal.custody).toBeUndefined();
+      const coc = evaluateEligibility(deal, getMarketById('NL_GGE')!).gates.find(g => g.gate === 'CHAIN_OF_CUSTODY')!;
+      expect(coc.checklist!.filter(i => i.status === 'TODO').length).toBeGreaterThan(0);
     });
   });
 });
