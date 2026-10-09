@@ -40,13 +40,20 @@ const CATEGORY_LABEL: Record<AssumptionCategory, { title: string; blurb: string 
     title: 'Feedstock default CI',
     blurb: 'Default carbon intensity per feedstock, used when the desk has not entered one for a consignment.',
   },
+  GGE: {
+    title: 'NL green-gas obligation (GGE)',
+    blurb: 'Desk inputs for the Dutch GGE trade (GO + PoS bundle). Items marked OPEN are unconfirmed — check them before pricing a deal.',
+  },
   COST: {
     title: 'Cost tables',
     blurb: 'Transit tariffs, hub basis spreads and interconnection point tariffs — shown on the Costs tab, not repeated here.',
   },
 };
 
-const CATEGORIES: AssumptionCategory[] = ['DEAL', 'FUELEU', 'DEMAND', 'RISK', 'LOGISTICS', 'FEEDSTOCK'];
+/** An assumption whose source is flagged OPEN is an unconfirmed input the desk must check. */
+const isOpenItem = (source: string) => source.startsWith('OPEN');
+
+const CATEGORIES: AssumptionCategory[] = ['DEAL', 'GGE', 'FUELEU', 'DEMAND', 'RISK', 'LOGISTICS', 'FEEDSTOCK'];
 
 export function AssumptionsScreen() {
   useAssumptionsVersion();
@@ -159,6 +166,7 @@ export function AssumptionsScreen() {
                           <span className={`chip ${d.basis === 'MARKET_MARK' ? 'chip-pos' : ''}`} style={{ marginLeft: 'auto' }}>
                             {BASIS_LABEL[d.basis]}
                           </span>
+                          {isOpenItem(d.source) && <span className="chip chip-warn" title={d.source}>OPEN</span>}
                         </div>
                         {overridden && (
                           <div className="asm-card-reset">
@@ -190,7 +198,7 @@ export function AssumptionsScreen() {
                       return (
                         <tr key={d.key}>
                           <td>
-                            <div style={{ fontWeight: 600 }}>{d.label}</div>
+                            <div style={{ fontWeight: 600 }} title={d.source}>{d.label}</div>
                             <div className="mut" style={{ fontSize: '10.5px' }}>{d.usedIn}</div>
                           </td>
                           <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
@@ -226,6 +234,9 @@ export function AssumptionsScreen() {
                             <span className={`chip ${d.basis === 'MARKET_MARK' ? 'chip-pos' : ''}`} style={{ fontSize: '10px' }}>
                               {BASIS_LABEL[d.basis]}
                             </span>
+                            {isOpenItem(d.source) && (
+                              <span className="chip chip-warn" style={{ fontSize: '10px', marginLeft: '4px' }} title={d.source}>OPEN</span>
+                            )}
                           </td>
                           <td className="mut" style={{ fontSize: '11px' }}>{d.source}</td>
                         </tr>
@@ -262,7 +273,15 @@ export function AssumptionsScreen() {
                   <tr key={r.key}>
                     <td style={{ fontWeight: 600 }}>{r.label}</td>
                     <td className="num" style={{ textAlign: 'right' }}>{r.value} <span className="mut">{r.unit}</span></td>
-                    <td className="mut" style={{ fontSize: '11px' }}>{r.citation ?? 'citation missing'}</td>
+                    <td className="mut" style={{ fontSize: '11px' }}>
+                      {r.citation ?? 'citation missing'}
+                      {r.url && (
+                        <>
+                          {' '}
+                          <a href={r.url} target="_blank" rel="noopener noreferrer">source</a>
+                        </>
+                      )}
+                    </td>
                     <td className="mut" style={{ fontSize: '11px' }}>{r.usedIn}</td>
                   </tr>
                 ))}

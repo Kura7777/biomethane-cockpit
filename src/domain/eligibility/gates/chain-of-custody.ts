@@ -237,7 +237,7 @@ export function evaluateChainOfCustodyGate(consignment: Consignment, market: Mar
     }
 
     // 7. GHG saving: saving = (80 - CI) / 80; >=80% -> PASS; 70-80% -> WARN; <70% -> FAIL (O2)
-    const ci = custody?.pos?.ciTotal ?? consignment.ciScore;
+    const ci = custody?.pos?.ciTotal ?? consignment.carbonIntensity;
     const comparator = market.fossilComparatorGCo2eMj ?? 80;
     const saving = (comparator - ci) / comparator;
     if (saving >= 0.80) {

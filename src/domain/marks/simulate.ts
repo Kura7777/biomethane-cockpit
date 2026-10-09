@@ -2,6 +2,7 @@ import { MARKETS, isVoluntaryMarket } from '../markets/registry';
 import { MarkEntry, UnitOfAccount } from '../markets/types';
 import { MarksState, CostInputs } from '../netback/types';
 import { getBenchmarkForMarket } from '../markets/marketBenchmarks';
+import { NL_GGE_BUYOUT_EUR_PER_TCO2E, NL_GGE_START_YEAR } from '../regulatory/constants';
 
 /**
  * Generates an institutional trading desk baseline for all European markets, so the Trade Builder,
@@ -45,10 +46,7 @@ export function simulateDesk(now: Date = new Date()): { marks: MarksState; costs
 
   // Price ALL Pan-European markets in the registry (Compliance + Voluntary + Emerging)
   MARKETS.forEach(market => {
-    if (market.id === 'NL_GGE') {
-      // Generated after costs to preserve existing PRNG sequence for golden numbers
-      return;
-    }
+    if (market.id === 'NL_GGE') return; // generated last, below its buy-out (see end)
     const isVol = isVoluntaryMarket(market.id);
     const benchmark = getBenchmarkForMarket(market.id);
     const dp = precisionFor(market.unitOfAccount);
@@ -141,17 +139,17 @@ export function simulateDesk(now: Date = new Date()): { marks: MarksState; costs
     },
   };
 
-  // Generate NL_GGE mark ensuring it stays strictly below the €0.45 buy-out ceiling (R19)
+  // NL GGE is generated last so the PRNG sequence for every other mark (and the golden numbers)
+  // is unchanged. No GGE trades yet (spec O5): the offer is kept below the first-year buy-out.
+  const ggeCeiling = NL_GGE_BUYOUT_EUR_PER_TCO2E[NL_GGE_START_YEAR] / 1000;
   const ggeBenchmark = getBenchmarkForMarket('NL_GGE');
-  const ggeMid = ggeBenchmark ? ggeBenchmark.midPrice : round(between(0.35, 0.40), 3);
-  const ggeHalfSpread = round(ggeMid * 0.02, 3);
-  const ggeOffer = Math.min(round(ggeMid + ggeHalfSpread, 3), 0.449);
-  const ggeBid = round(ggeMid - ggeHalfSpread, 3);
-  const ggeObservedAt = new Date(now.getTime() - Math.floor(between(0, 10)) * 86_400_000).toISOString();
+  const ggeMid = ggeBenchmark ? ggeBenchmark.midPrice : between(BANDS.EUR_PER_KG_CO2E[0], BANDS.EUR_PER_KG_CO2E[1]);
+  const ggeHalfSpread = ggeMid * between(0.01, 0.03);
+  const ggeOffer = Math.min(ggeMid + ggeHalfSpread, ggeCeiling - 0.001);
   res.marks.marks['NL_GGE'] = {
     marketId: 'NL_GGE',
-    bid: ggeBid,
-    offer: ggeOffer,
+    bid: round(ggeMid - ggeHalfSpread, 3),
+    offer: round(ggeOffer, 3),
     mid: round(ggeMid, 3),
     updatedAt: now.toISOString(),
     source: SIMULATED_SOURCE_NAME,
@@ -159,8 +157,8 @@ export function simulateDesk(now: Date = new Date()): { marks: MarksState; costs
       sourceType: 'ESTIMATE',
       sourceName: SIMULATED_SOURCE_NAME,
       sourceUrl: null,
-      observedAt: ggeObservedAt,
-      note: 'Synthetic forward mark below the €0.45 GGE buy-out ceiling.',
+      observedAt: now.toISOString(),
+      note: `Synthetic test data — no GGE trades yet; kept below the ${NL_GGE_START_YEAR} buy-out of €${ggeCeiling.toFixed(3)}/GGE.`,
     },
   };
 

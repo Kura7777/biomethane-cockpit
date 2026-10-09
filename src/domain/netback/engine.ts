@@ -6,7 +6,7 @@ import {
 } from '../markets/constants';
 import { Market, PriceSide, getMarkAgeDays } from '../markets/types';
 import { Consignment } from '../consignment/types';
-import { BundleReference, CostInputs, CertificateValueResult, NetbackResult, NetbackBranch, MarksState, FuelEUOptions, PricingSides, NetbackSides, ValuationRange, PrincipalRiskMetrics } from './types';
+import { BundleReference, CostInputs, CertificateValueResult, NetbackResult, NetbackBranch, MarksState, FuelEUOptions, PricingSides, NetbackSides, ValuationRange, PrincipalRiskMetrics, RouteCostLine } from './types';
 import { EligibilityAssessment } from '../eligibility/types';
 import { hubBasisSpread } from '../logistics/corridors';
 import {
@@ -24,7 +24,7 @@ import {
   FUELEU_TARGET_2030,
   bioLngFuelEUIntensity,
 } from '../fueleu/calculator';
-import { getAssumption, getLhvFactorForOrigin } from '../assumptions/registry';
+import { getAssumption, getAssumptionDefinition, getLhvFactorForOrigin } from '../assumptions/registry';
 import { DE_THG_BUNDLE_MAX_CI, selectDeThgBundleReference } from '../markets/deThgBundle';
 
 /**
@@ -296,23 +296,28 @@ function computeCertificateValueCore(
     }
     case 'EUR_PER_KG_CO2E': {
       const comparator = market.fossilComparatorGCo2eMj ?? CI_COMPARATOR_ROAD_TRANSPORT;
-      if (market.id === 'NL_GGE') {
-        // Dutch Green Gas Obligation (Wet bijmengverplichting groen gas, Kamerstuk 36947):
-        // 1 GGE = 1 kg CO2e reduction = (80 − CI) × 3.6 × lhvFactor (R3, R4, O1)
-        const origin = consignment.originCountry || consignment.injectionCountry || 'ES';
-        const lhvFactor = getLhvFactorForOrigin(origin);
-        const ggePerMwh = (comparator - ci) * 3.6 * lhvFactor;
+      if (market.requiresGoAndPos) {
+        // Dutch green-gas obligation (Wm titel 9.9, Kamerstuk 36947): 1 GGE = 1 kg CO2e reduction.
+        // GGE per GO MWh = (comparator − CI) × 3.6 GJ/MWh × LHV factor of the GO's energy basis (R3, R4, O1).
+        const go = consignment.custody?.go ?? null;
+        const goCountry = go?.issuingCountry || consignment.injectionCountry || consignment.originCountry;
+        const lhvFactor = go?.energyBasis === 'LHV' ? 1 : getLhvFactorForOrigin(goCountry);
+        const posCi = consignment.custody?.pos?.ciTotal ?? ci;
+        const ggePerMwh = ((comparator - posCi) * MJ_PER_MWH / 1000) * lhvFactor;
         valueEurPerMWh = mark * ggePerMwh;
 
-        const openFlag = origin.toUpperCase() === 'ES' ? ' [OPEN: Spanish GO basis to confirm]' : '';
-        unitConversion = `(${comparator} − (${ci})) × 3.6 × ${lhvFactor.toFixed(2)} (LHV factor${openFlag}) = ${ggePerMwh.toFixed(1)} GGE/MWh`;
-        calculation = `${ggePerMwh.toFixed(1)} GGE/MWh × €${mark.toFixed(4)}/GGE (${pricingSide}) = €${valueEurPerMWh.toFixed(2)}/MWh`;
+        const basisNote = go?.energyBasis === 'LHV'
+          ? 'GO already on LHV'
+          : `LHV factor for ${goCountry || 'unknown origin'}, Pricing desk${(goCountry || '').toUpperCase() === 'ES' ? ' — OPEN: Spanish GO basis to confirm' : ''}`;
+        unitConversion = `(${comparator} − (${posCi})) gCO₂e/MJ × 3.6 GJ/MWh × ${lhvFactor} (${basisNote}) = ${ggePerMwh.toFixed(1)} GGE per GO MWh`;
+        calculation = `${ggePerMwh.toFixed(1)} GGE/MWh × €${mark.toFixed(3)}/GGE (${pricingSide}) = €${valueEurPerMWh.toFixed(2)}/MWh`;
 
-        const complianceYear = consignment.deliveryPeriod?.complianceYear ?? 2027;
-        const buyoutEurPerT = NL_GGE_BUYOUT_EUR_PER_TCO2E[complianceYear] ?? 450;
-        const buyoutEurPerKg = buyoutEurPerT / 1000;
-        if (mark > buyoutEurPerKg) {
-          statusNote = `Warning: mark €${mark.toFixed(4)}/GGE is above the ${complianceYear} buy-out ceiling of €${buyoutEurPerKg.toFixed(4)}/GGE (€${buyoutEurPerT}/t).`;
+        const complianceYear = consignment.deliveryPeriod?.complianceYear ?? null;
+        const buyoutEurPerT = complianceYear !== null ? NL_GGE_BUYOUT_EUR_PER_TCO2E[complianceYear] : undefined;
+        if (buyoutEurPerT !== undefined && mark > buyoutEurPerT / 1000) {
+          statusNote = `Warning: mark above buy-out ceiling — €${mark.toFixed(3)}/GGE vs the ${complianceYear} buy-out of €${(buyoutEurPerT / 1000).toFixed(3)}/GGE (€${buyoutEurPerT}/t). No supplier pays more than the buy-out.`;
+        } else if (buyoutEurPerT === undefined) {
+          statusNote = 'No GGE buy-out on file for this compliance year — set the delivery year to check the mark against the ceiling.';
         }
         break;
       }
@@ -463,6 +468,31 @@ function computeCertificateValueCore(
  * Compute full netback for one market with strict completeness tracking.
  * Transparently records missing inputs rather than silently hiding them with defaults.
  */
+/**
+ * Extra cost lines for a paired GO + PoS market (NL GGE), all from the Pricing desk → Costs tab:
+ * the origin registry's GO export fee (Spain: Enagás), the VertiCer import fee, and — only for
+ * structure B (bundle delivered TTF) — the origin hub → TTF basis spread. Structure comes from the
+ * deal's custody pack, else the desk default (Desk assumptions → GGE).
+ */
+export function ggeRouteCostLines(market: Market, consignment: Consignment): RouteCostLine[] {
+  if (!market.requiresGoAndPos) return [];
+  const origin = (consignment.custody?.go?.issuingCountry || consignment.injectionCountry || consignment.originCountry || '').toUpperCase();
+  const lines: RouteCostLine[] = [];
+  if (origin === 'ES') {
+    lines.push({ key: 'cost.gge.enagasGoExport', label: 'Enagás GdO export fee', eurPerMwh: getAssumption('cost.gge.enagasGoExport') });
+  }
+  if (origin !== market.country.toUpperCase()) {
+    lines.push({ key: 'cost.gge.verticerGoImport', label: 'VertiCer GvO import', eurPerMwh: getAssumption('cost.gge.verticerGoImport') });
+  }
+  const structure = consignment.custody?.structure
+    ?? (getAssumption('market.nl_gge.defaultStructureDeliveredTtf') >= 1 ? 'BUNDLE_DELIVERED_TTF' : 'BUNDLE_AT_ORIGIN');
+  const hubKey = `cost.hubBasis.${origin}`;
+  if (structure === 'BUNDLE_DELIVERED_TTF' && getAssumptionDefinition(hubKey)) {
+    lines.push({ key: hubKey, label: `Hub spread ${origin} → TTF (delivered TTF)`, eurPerMwh: getAssumption(hubKey) });
+  }
+  return lines;
+}
+
 export function computeNetback(
   market: Market, 
   consignment: Consignment, 
@@ -512,10 +542,8 @@ export function computeNetback(
   if (costs.certificationCosts === null) missingInputs.push('certificationCosts');
   if (costs.logistics === null) missingInputs.push('logistics');
 
-  const isStructureBDeliveredTtf = market.id === 'NL_GGE' && consignment.custody?.structure === 'BUNDLE_DELIVERED_TTF';
-  const pvbTtfSpread = isStructureBDeliveredTtf ? (getAssumption('cost.spread.pvbTtf') ?? 1.35) : null;
-
-  const costValues = [costs?.transferCosts, costs?.certificationCosts, costs?.logistics, costs?.otherCosts, pvbTtfSpread]
+  const routeCostLines = ggeRouteCostLines(market, consignment);
+  const costValues = [costs?.transferCosts, costs?.certificationCosts, costs?.logistics, costs?.otherCosts, ...routeCostLines.map(l => l.eurPerMwh)]
     .filter((c): c is number => typeof c === 'number' && !isNaN(c));
   const totalCosts = costValues.length > 0 ? costValues.reduce((a, b) => a + b, 0) : null;
 
@@ -822,6 +850,7 @@ export function computeNetback(
     blockingReason: null,
     isComplete,
     missingInputs,
+    routeCostLines,
     uncertaintyBranches,
     valuationRange,
     statusNote,

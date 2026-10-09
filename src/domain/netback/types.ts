@@ -88,6 +88,13 @@ export interface ValuationRange {
   gateId: string;               // 'MARKET_SPECIFIC'
 }
 
+/** A cost line the engine adds for a specific route (e.g. NL GGE registry fees), sourced from the Pricing desk. */
+export interface RouteCostLine {
+  key: string;
+  label: string;
+  eurPerMwh: number;
+}
+
 export interface NetbackResult {
   marketId: string;
   marketName: string;
@@ -104,6 +111,8 @@ export interface NetbackResult {
   isTheoretical: boolean;           // true if market is blocked
   blockingReason: string | null;
   isComplete: boolean;              // true ONLY if certificate, molecule, and all standard cost components are entered
+  /** Route-specific cost lines included in totalCosts (NL GGE: GO fees, TTF spread for structure B). */
+  routeCostLines?: RouteCostLine[];
   missingInputs: string[];          // List of missing cost/molecule components (e.g. ['moleculeValue', 'transferCosts', 'logistics'])
   uncertaintyBranches: NetbackBranch[] | null;  // For Germany: both DC branches
   valuationRange?: ValuationRange | null;       // Headline valuation range under regulatory uncertainty

@@ -87,7 +87,6 @@ describe('Job GGE-1 — NL_GGE Market, Valuation and Chain of Custody', () => {
     chainOfCustody: 'MASS_BALANCE',
     feedstock: 'manure',
     carbonIntensity: -40,
-    ciScore: -40,
     volumeMWh: 1000,
     deliveryPeriod: {
       type: 'CALENDAR',

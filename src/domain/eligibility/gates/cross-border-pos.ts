@@ -15,7 +15,6 @@ const LABEL = 'Cross-border PoS';
 export const MARKET_TO_POS_SCHEME: Readonly<Record<string, string>> = {
   DE_THG: 'DE_THG',
   NL_ERE: 'NL_ERE',
-  NL_GGE: 'NL_ERE',
   FR_TIRUERT: 'FR_TIRUERT',
   FR_CPB: 'FR_CPB',
   IT_CIC: 'IT_CIC',
@@ -60,7 +59,7 @@ function toCitations(sources: RouteSource[]): LegalCitation[] {
  * Omitted (null) for domestic trades, GO markets, and markets with no audited scheme.
  */
 export function evaluateCrossBorderPosGate(consignment: Consignment, market: Market): GateResult | null {
-  if (isGoTransferMarket(market) && !market.requiresGoAndPos) return null;
+  if (isGoTransferMarket(market)) return null;
   const schemeId = MARKET_TO_POS_SCHEME[market.id];
   if (!schemeId) return null;
 
