@@ -1367,3 +1367,8 @@ html.dark .tb-range {
     order: -1;
   }
 }
+
+/* The chain-of-custody checklist sits in the gate list as one panel, not a button row */
+.tb-gate-checklist {
+  padding: 14px 12px;
+}

@@ -345,9 +345,13 @@ function extractPosCustody(
 
   const originRaw = text.match(/(?:country\s+of\s+origin\s+of\s+(?:the\s+)?(?:raw\s+material|feedstock|biomass|substrate)s?|origin\s+of\s+(?:the\s+)?(?:raw\s+material|feedstock)s?|feedstock\s+origin|raw\s+material\s+origin|country\s+of\s+origin|herkunftsland)\s*[:=]\s*([^\n\r;,]+)/i)?.[1];
 
+  const ciSteps = extractCiSteps(text);
+
   // Total: a line labelled total/overall wins; otherwise a labelled carbon-intensity line.
   const totalMatch = text.match(new RegExp(String.raw`(?:total|overall)[^\n:=]*[:=]\s*` + NUM + String.raw`\s*` + UNIT, 'i'))
-    ?? text.match(new RegExp(String.raw`(?:carbon\s*intensity|certified\s*ci|ghg\s*emissions?|thg-emissionen)\s*[:=]?\s*` + NUM + String.raw`\s*` + UNIT, 'i'));
+    ?? text.match(new RegExp(String.raw`(?:carbon\s*intensity|certified\s*ci|\bci\b|(?:ghg|greenhouse\s*gas)\s*emissions?|thg-emissionen)\s*[:=]?\s*` + NUM + String.raw`\s*` + UNIT, 'i'))
+    // A document with no step table and one unit-bearing figure: that figure is the total.
+    ?? (ciSteps === null ? text.match(new RegExp(NUM + String.raw`\s*` + UNIT, 'i')) : null);
 
   const mwhMatch = text.match(/(?:quantity|volume|menge|energiegehalt)[^\n\d:=]*[:=]?\s*(\d[\d.,]*)\s*(mwh|gwh)\b/i)
     ?? text.match(/(\d[\d.,]*)\s*(mwh|gwh)\b/i);
@@ -365,7 +369,7 @@ function extractPosCustody(
     feedstockOriginCountry: originRaw ? countryToIso(originRaw) : null,
     feedstockShares: substrates.map(s => ({ feedstock: s.canonicalCategory, pctOfReduction: s.percentage })),
     ciTotal: totalMatch ? toNumber(totalMatch[1]) : null,
-    ciSteps: extractCiSteps(text),
+    ciSteps,
     supportDeclared: extractSupport(text),
     mwh,
   };

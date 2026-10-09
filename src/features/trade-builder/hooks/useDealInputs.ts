@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { SetURLSearchParams } from 'react-router-dom';
-import { CertificationScheme, ChainOfCustody, UDBStatus, PoSStatus } from '../../../domain/consignment/types';
+import { CertificationScheme, ChainOfCustody, UDBStatus, PoSStatus, CustodyPack } from '../../../domain/consignment/types';
+import { emptyCustodyPack, posRecordFromParsed } from '../../../domain/consignment/custody';
+import { TradeAssessment } from '../../../domain/trade/types';
 import { feedstockDefaultCi, getAssumption } from '../../../domain/assumptions/registry';
 import { BIOMETHANE_PLANTS } from '../../../domain/plants/registry';
 import { parseDealParams } from '../../../domain/trade/dealParams';
@@ -12,7 +14,8 @@ import { useDealSchedule } from './useDealSchedule';
 export function useDealInputs(
   searchParams: URLSearchParams,
   setSearchParams: SetURLSearchParams,
-  selectedMarketIdFromStore: string | null
+  selectedMarketIdFromStore: string | null,
+  savedAssessments: TradeAssessment[] = []
 ) {
   const deal = useMemo(() => parseDealParams(searchParams), [searchParams]);
   const linkedPlant = useMemo(() => (deal.plantId ? BIOMETHANE_PLANTS.find(p => p.id === deal.plantId) : null), [deal.plantId]);
@@ -35,6 +38,13 @@ export function useDealInputs(
     setIdLinkKey(dealLinkKey);
     setDealId(deal.dealId || newDealId());
   }
+
+  // The chain-of-custody pack (GO + PoS records, claims). null until the trader enters something; a
+  // reopened blotter deal gets back the pack it was saved with.
+  const savedCustody = (id?: string): CustodyPack | null =>
+    (id ? savedAssessments.find(a => a.id === id)?.consignment.custody : null) ?? null;
+  const [custody, setCustody] = useState<CustodyPack | null>(() => savedCustody(deal.dealId));
+  const patchCustody = (patch: (c: CustodyPack) => CustodyPack) => setCustody(prev => patch(prev ?? emptyCustodyPack()));
 
   const [origin, setOrigin] = useState<string>(deal.originCountry || 'DK');
   const [feedstockKey, setFeedstockKey] = useState<string>(deal.feedstock || 'manure');
@@ -72,6 +82,7 @@ export function useDealInputs(
       // Apply statutory default routing when no explicit market was specified
       setMarketId(getDefaultMarketForOrigin(deal.originCountry));
     }
+    setCustody(savedCustody(deal.dealId));
     if (deal.originCountry) setOrigin(deal.originCountry);
     if (deal.feedstock) setFeedstockKey(deal.feedstock);
     if (deal.ci !== null && deal.ci !== undefined) {
@@ -101,11 +112,13 @@ export function useDealInputs(
     if (parsed.scheme && parsed.scheme !== 'UNKNOWN') setScheme(parsed.scheme);
     if (parsed.chainOfCustody) setChainOfCustody(parsed.chainOfCustody);
     if (parsed.canonicalFeedstock) setFeedstockKey(parsed.canonicalFeedstock);
-    if (parsed.carbonIntensityGCo2Mj !== undefined) {
-      setCi(parsed.carbonIntensityGCo2Mj);
+    // Only what the certificate itself states: no fallback CI or volume is written as if it were read.
+    if (parsed.custody.ciTotal !== null) {
+      setCi(parsed.custody.ciTotal);
       setCiSource('pos');
     }
-    if (parsed.volumeMWh) setVolumeMwh(parsed.volumeMWh);
+    if (parsed.custody.mwh !== null) setVolumeMwh(parsed.custody.mwh);
+    patchCustody(c => ({ ...c, pos: posRecordFromParsed(parsed) }));
   };
 
   const handleResetDeal = () => {
@@ -119,6 +132,7 @@ export function useDealInputs(
     setCiSource('deal');
     setVolumeMwh(getAssumption('deal.defaultVolumeMwh'));
     setMarketId('DE_THG');
+    setCustody(null);
     schedule.resetSchedule();
     setDealId(newDealId());
     setSearchParams(() => {
@@ -158,6 +172,8 @@ export function useDealInputs(
     plantCommittedMwh,
     setPlantCommittedMwh,
     plantTotalMWh,
+    custody,
+    patchCustody,
     schedule,
     handleApplyPoS,
     handleResetDeal,

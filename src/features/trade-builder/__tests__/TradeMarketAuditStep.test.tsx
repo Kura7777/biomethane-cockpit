@@ -3,44 +3,46 @@ import { describe, it, expect } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { TradeMarketAuditStep } from '../steps/TradeMarketAuditStep';
 import { getMarketById } from '../../../domain/markets/registry';
-import { EligibilityAssessment } from '../../../domain/eligibility/types';
+import { EligibilityAssessment, GateChecklistItem, GateVerdict } from '../../../domain/eligibility/types';
 
-describe('TradeMarketAuditStep — See corridor on map link', () => {
-  const frGoMarket = getMarketById('FR_GO')!;
-  const ukRtfoMarket = getMarketById('UK_RTFO')!;
+/**
+ * Registry transfer, cross-border PoS and UDB are rows of the one Chain-of-custody checklist, so the
+ * "See corridor on map" link belongs to those rows (it used to hang off separate gates).
+ */
+function assessmentWith(marketId: string, verdict: GateVerdict, checklist: GateChecklistItem[]): EligibilityAssessment {
+  return {
+    marketId,
+    marketName: marketId,
+    overallVerdict: verdict === 'PASS' ? 'ELIGIBLE' : verdict === 'HARD_BLOCK' ? 'HARD_BLOCK' : 'CONDITIONAL',
+    blockingGate: verdict === 'HARD_BLOCK' ? 'CHAIN_OF_CUSTODY' : null,
+    summary: 'summary',
+    gates: [
+      {
+        gate: 'CHAIN_OF_CUSTODY',
+        gateLabel: 'Chain of Custody',
+        verdict,
+        reason: 'reason',
+        remedy: null,
+        citations: [],
+        confidence: 'HIGH',
+        checklist,
+      },
+    ],
+  };
+}
 
-  it('renders "See corridor on map" for REGISTRY_TRANSFER gate on HARD_BLOCK with filter=GO', () => {
-    const assessment: EligibilityAssessment = {
-      marketId: 'FR_GO',
-      marketName: 'France Guarantees of Origin (EEX)',
-      overallVerdict: 'HARD_BLOCK',
-      blockingGate: 'REGISTRY_TRANSFER',
-      summary: 'Blocked on registry transfer',
-      gates: [
-        {
-          gate: 'REGISTRY_TRANSFER',
-          gateLabel: 'Cross-Border Registry Transfer',
-          verdict: 'HARD_BLOCK',
-          reason: 'No bilateral link between Energinet and EEX',
-          remedy: null,
-          citations: [{
-            shortName: 'ERGaR Scheme Rules',
-            fullReference: 'ERGaR CoO Scheme v2.0',
-            establishes: 'Registry interconnection',
-            sourceUrl: 'https://ergar.org',
-            verifiedDate: '2026-01-01',
-          }],
-          confidence: 'HIGH',
-        },
-      ],
-    };
+const row = (id: string, label: string, status: GateChecklistItem['status']): GateChecklistItem => ({
+  id, label, status, detail: `${label} detail`, citations: [], remedy: null,
+});
 
+describe('TradeMarketAuditStep — chain-of-custody checklist', () => {
+  it('links a failing registry-transfer row to the GO corridor on the map', () => {
     const html = renderToStaticMarkup(
       <TradeMarketAuditStep
         marketId="FR_GO"
         setMarketId={() => {}}
-        selectedMarket={frGoMarket}
-        assessment={assessment}
+        selectedMarket={getMarketById('FR_GO')!}
+        assessment={assessmentWith('FR_GO', 'HARD_BLOCK', [row('registry-transfer', 'Registry transfer', 'FAIL')])}
         ghgSavingPct={85}
         origin="DK"
       />
@@ -50,78 +52,49 @@ describe('TradeMarketAuditStep — See corridor on map link', () => {
     expect(html).toContain('href="#/map?origin=DK&amp;target=FR&amp;filter=GO"');
   });
 
-  it('renders "See corridor on map" for CROSS_BORDER_POS gate on CONDITIONAL with filter=POS', () => {
-    const assessment: EligibilityAssessment = {
-      marketId: 'UK_RTFO',
-      marketName: 'UK Renewable Transport Fuel Obligation',
-      overallVerdict: 'CONDITIONAL',
-      blockingGate: null,
-      summary: 'Requires nominated capacity bookings',
-      gates: [
-        {
-          gate: 'CROSS_BORDER_POS',
-          gateLabel: 'Cross-Border PoS Recognition',
-          verdict: 'CONDITIONAL',
-          reason: 'Nominated capacity bookings across interconnectors required',
-          remedy: 'Book capacity',
-          citations: [{
-            shortName: 'RTFO Guidance 2026',
-            fullReference: 'Department for Transport RTFO Guidance',
-            establishes: 'Mass balance border requirements',
-            sourceUrl: 'https://gov.uk',
-            verifiedDate: '2026-01-01',
-          }],
-          confidence: 'HIGH',
-        },
-      ],
-    };
-
+  it('links a conditional cross-border-pos row to the PoS corridor on the map', () => {
     const html = renderToStaticMarkup(
       <TradeMarketAuditStep
         marketId="UK_RTFO"
         setMarketId={() => {}}
-        selectedMarket={ukRtfoMarket}
-        assessment={assessment}
+        selectedMarket={getMarketById('UK_RTFO')!}
+        assessment={assessmentWith('UK_RTFO', 'CONDITIONAL', [row('cross-border-pos', 'Cross-border PoS route', 'WARN')])}
         ghgSavingPct={85}
         origin="DK"
       />
     );
 
-    expect(html).toContain('See corridor on map');
     expect(html).toContain('href="#/map?origin=DK&amp;target=GB&amp;filter=POS"');
   });
 
-  it('does not render "See corridor on map" when gate passes', () => {
-    const assessment: EligibilityAssessment = {
-      marketId: 'FR_GO',
-      marketName: 'France Guarantees of Origin (EEX)',
-      overallVerdict: 'ELIGIBLE',
-      blockingGate: null,
-      summary: 'All gates clear',
-      gates: [
-        {
-          gate: 'REGISTRY_TRANSFER',
-          gateLabel: 'Cross-Border Registry Transfer',
-          verdict: 'PASS',
-          reason: 'Bilateral link active',
-          remedy: null,
-          citations: [],
-          confidence: 'HIGH',
-        },
-      ],
-    };
-
+  it('shows no corridor link when the route row passes', () => {
     const html = renderToStaticMarkup(
       <TradeMarketAuditStep
         marketId="FR_GO"
         setMarketId={() => {}}
-        selectedMarket={frGoMarket}
-        assessment={assessment}
+        selectedMarket={getMarketById('FR_GO')!}
+        assessment={assessmentWith('FR_GO', 'PASS', [row('registry-transfer', 'Registry transfer', 'PASS')])}
         ghgSavingPct={85}
         origin="DK"
       />
     );
 
     expect(html).not.toContain('See corridor on map');
+  });
+
+  it('offers NL GGE in the market list although it is not ACTIVE yet', () => {
+    const html = renderToStaticMarkup(
+      <TradeMarketAuditStep
+        marketId="NL_GGE"
+        setMarketId={() => {}}
+        selectedMarket={getMarketById('NL_GGE')!}
+        assessment={assessmentWith('NL_GGE', 'PASS', [row('go-pos-pairing', 'GO + PoS paired', 'PASS')])}
+        ghgSavingPct={85}
+        origin="ES"
+      />
+    );
+
+    expect(html).toContain('Green-gas obligation (GO + PoS together)');
+    expect(html).toContain('GGE');
   });
 });

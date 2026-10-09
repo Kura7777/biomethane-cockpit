@@ -2,7 +2,10 @@ import React, { useMemo } from 'react';
 import { Market } from '../../../domain/markets/types';
 import { MARKETS, isVoluntaryMarket } from '../../../domain/markets/registry';
 import { EligibilityAssessment } from '../../../domain/eligibility/types';
-import { ShieldCheck, AlertTriangle, XCircle, CheckCircle2, Scale, BookOpen, Package, ChevronRight, MapPin } from 'lucide-react';
+import { CustodyPack } from '../../../domain/consignment/types';
+import { custodyPartsForMarket } from '../../../domain/consignment/custody';
+import { CocChecklistPanel } from '../custody/CocChecklistPanel';
+import { ShieldCheck, AlertTriangle, XCircle, CheckCircle2, Scale, BookOpen, Package, ChevronRight } from 'lucide-react';
 
 interface TradeMarketAuditStepProps {
   marketId: string;
@@ -11,6 +14,10 @@ interface TradeMarketAuditStepProps {
   assessment: EligibilityAssessment;
   ghgSavingPct: number;
   origin: string;
+  /** The deal's custody pack, so checklist rows can say which field is still empty. */
+  custody?: CustodyPack | null;
+  /** Jump to the field that fixes a checklist row (opens the product step first). */
+  onFixField?: (fieldId: string) => void;
 }
 
 export function TradeMarketAuditStep({
@@ -20,6 +27,8 @@ export function TradeMarketAuditStep({
   assessment,
   ghgSavingPct,
   origin,
+  custody = null,
+  onFixField,
 }: TradeMarketAuditStepProps) {
   const isPass = assessment.overallVerdict === 'ELIGIBLE';
   const isBlock = assessment.overallVerdict === 'HARD_BLOCK';
@@ -33,6 +42,9 @@ export function TradeMarketAuditStep({
   const industrialMarkets = useMemo(() => {
     return MARKETS.filter(m => m.status === 'ACTIVE' && (m.sector === 'HEAT_POWER' || m.id === 'EU_ETS_INDUSTRIAL'));
   }, []);
+
+  // The Dutch green-gas obligation is EMERGING (not yet law), so it is not in the ACTIVE groups above.
+  const gasObligationMarkets = useMemo(() => MARKETS.filter(m => m.requiresGoAndPos), []);
 
   const voluntaryMarkets = useMemo(() => {
     return MARKETS.filter(m => m.status === 'ACTIVE' && (isVoluntaryMarket(m.id) || ['DE_GO', 'NL_GO', 'FR_GO', 'UK_RGGO', 'VOL_SCOPE1'].includes(m.id)));
@@ -60,6 +72,7 @@ export function TradeMarketAuditStep({
   const marketGroups: { title: string; markets: Market[]; prefix?: string }[] = [
     { title: 'National Transport Quotas (RED III Annex IX-A)', markets: transportMarkets },
     { title: 'Compliance Industrial ETS (Directive (EU) 2023/959)', markets: industrialMarkets, prefix: 'EU' },
+    { title: 'Green-gas obligation (GO + PoS together)', markets: gasObligationMarkets },
     { title: 'Voluntary & Guarantees of Origin (Unbundled / Scope 1)', markets: voluntaryMarkets },
   ];
 
@@ -177,14 +190,25 @@ export function TradeMarketAuditStep({
 
           <ol className="tb-gates">
             {assessment.gates.map((g, gIdx) => {
+              // Chain of custody is one checklist (origin, GO/PoS route, pairing, aid, deadlines, claims).
+              if (g.gate === 'CHAIN_OF_CUSTODY' && g.checklist) {
+                return (
+                  <li key={gIdx} className="tb-gate-checklist">
+                    <CocChecklistPanel
+                      gate={g}
+                      origin={origin}
+                      targetCountry={selectedMarket.country}
+                      custody={custody}
+                      parts={custodyPartsForMarket(selectedMarket)}
+                      onFix={onFixField}
+                      onAudit={() => openAuditor({ focusedGateIndex: gIdx })}
+                    />
+                  </li>
+                );
+              }
               const gatePass = g.verdict === 'PASS';
               const gateBlock = g.verdict === 'HARD_BLOCK';
               const gateClass = gatePass ? 'pos' : gateBlock ? 'neg' : 'warn';
-              const isCorridorGate = g.gate === 'REGISTRY_TRANSFER' || g.gate === 'CROSS_BORDER_POS';
-              const showCorridorLink = isCorridorGate && (g.verdict === 'HARD_BLOCK' || g.verdict === 'CONDITIONAL');
-              const corridorFilter = g.gate === 'REGISTRY_TRANSFER' ? 'GO' : 'POS';
-              const targetCountry = selectedMarket.country;
-              const corridorUrl = `#/map?origin=${encodeURIComponent(origin)}&target=${encodeURIComponent(targetCountry)}&filter=${corridorFilter}`;
 
               return (
                 <li key={gIdx}>
@@ -219,27 +243,6 @@ export function TradeMarketAuditStep({
                       )}
                     </span>
                   </button>
-                  {showCorridorLink && (
-                    <div className="tb-corridor-link-wrap" style={{ padding: '4px 12px 8px 44px' }}>
-                      <a
-                        href={corridorUrl}
-                        className="tb-corridor-map-link"
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '5px',
-                          fontSize: '12px',
-                          fontWeight: 600,
-                          color: 'var(--color-accent-700, #0284c7)',
-                          textDecoration: 'none',
-                        }}
-                      >
-                        <MapPin size={12} />
-                        <span>See corridor on map</span>
-                        <ChevronRight size={12} />
-                      </a>
-                    </div>
-                  )}
                 </li>
               );
             })}

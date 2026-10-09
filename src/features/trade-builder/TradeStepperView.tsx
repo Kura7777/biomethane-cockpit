@@ -11,6 +11,7 @@ import { DocumentTab } from './LegalPackageModal';
 import { useDealInputs } from './hooks/useDealInputs';
 import { useDealPricing } from './hooks/useDealPricing';
 import { AppState } from '../../store/state';
+import { focusFieldWhenReady } from './custody/checklistModel';
 
 interface TradeStepperViewProps {
   currentStep: DealStep;
@@ -76,6 +77,8 @@ export const TradeStepperView: React.FC<TradeStepperViewProps> = ({
     setVolumeMwh,
     plantCommittedMwh,
     plantTotalMWh,
+    custody,
+    patchCustody,
     schedule,
   } = dealInputs;
 
@@ -87,6 +90,7 @@ export const TradeStepperView: React.FC<TradeStepperViewProps> = ({
     plantCommittedPct,
     effectiveUdbStatus,
     assessment,
+    cocGate,
     routeCosts,
     netback,
     currentMark,
@@ -115,6 +119,12 @@ export const TradeStepperView: React.FC<TradeStepperViewProps> = ({
   const currentFeedstockObj = FEEDSTOCKS.find(f => f.key === feedstockKey) || FEEDSTOCKS[0];
   const currentSchemeObj = SCHEMES.find(s => s.scheme === scheme) || SCHEMES[0];
   const currentCustodyObj = CUSTODIES.find(c => c.custody === chainOfCustody) || CUSTODIES[0];
+
+  // A checklist row's fix link: the custody fields live in the product step.
+  const handleFixField = (fieldId: string) => {
+    onStepChange(1);
+    focusFieldWhenReady(fieldId);
+  };
 
   const nextAction = (step: DealStep) => (
     <div className="tb-step-actions m-sticky-actions">
@@ -190,6 +200,10 @@ export const TradeStepperView: React.FC<TradeStepperViewProps> = ({
                       deal={deal}
                       linkedPlant={linkedPlant}
                       onOpenPoS={onOpenPoS}
+                      custody={custody}
+                      onCustodyChange={patchCustody}
+                      cocGate={cocGate}
+                      onViewChecklist={() => onStepChange(3)}
                       section={id === 1 ? 'PRODUCT' : 'SCHEDULE'}
                     />
                     {nextAction(id)}
@@ -205,6 +219,8 @@ export const TradeStepperView: React.FC<TradeStepperViewProps> = ({
                       assessment={assessment}
                       ghgSavingPct={ghgSavingPct}
                       origin={origin}
+                      custody={custody}
+                      onFixField={handleFixField}
                     />
                     {nextAction(3)}
                   </>

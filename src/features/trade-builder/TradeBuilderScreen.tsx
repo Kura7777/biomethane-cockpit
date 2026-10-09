@@ -56,7 +56,7 @@ export function TradeBuilderScreen() {
   const [legalPackageTab, setLegalPackageTab] = useState<DocumentTab>('TERM_SHEET');
   const [justSavedId, setJustSavedId] = useState<string | null>(null);
 
-  const dealInputs = useDealInputs(searchParams, setSearchParams, state.selectedMarketId);
+  const dealInputs = useDealInputs(searchParams, setSearchParams, state.selectedMarketId, state.savedAssessments);
   const pricing = useDealPricing(dealInputs, state, dispatch);
 
   const {

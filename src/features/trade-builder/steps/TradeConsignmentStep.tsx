@@ -3,6 +3,10 @@ import { CertificationScheme, ChainOfCustody, DeliveryProfile, UDBStatus, PoSSta
 import { Market } from '../../../domain/markets/types';
 import { BiomethanePlant } from '../../../domain/plants/types';
 import { DealParams } from '../../../domain/trade/dealParams';
+import { CustodyPack } from '../../../domain/consignment/types';
+import { GateResult } from '../../../domain/eligibility/types';
+import { CustodyPackForm } from '../custody/CustodyPackForm';
+import { FIELD_IDS } from '../custody/checklistModel';
 import { feedstockDefaultCi } from '../../../domain/assumptions/registry';
 import { getVtpForMarket } from '../TradeBuilderScreen';
 import { Lock, FileUp, Scale, AlertTriangle } from 'lucide-react';
@@ -109,6 +113,12 @@ interface TradeConsignmentStepProps {
   deal: Partial<DealParams>;
   linkedPlant: BiomethanePlant | null | undefined;
   onOpenPoS: () => void;
+  /** Chain-of-custody pack (GO + PoS records, claims); null until the trader enters something. */
+  custody: CustodyPack | null;
+  onCustodyChange: (patch: (c: CustodyPack) => CustodyPack) => void;
+  /** The Chain-of-custody gate, for the status line above the pack. */
+  cocGate?: GateResult;
+  onViewChecklist?: () => void;
   /** PRODUCT: origin, feedstock, certification, CI and PoS ingestion. SCHEDULE: volume and delivery schedule. */
   section: 'PRODUCT' | 'SCHEDULE';
 }
@@ -159,6 +169,10 @@ export function TradeConsignmentStep({
   deal,
   linkedPlant,
   onOpenPoS,
+  custody,
+  onCustodyChange,
+  cocGate,
+  onViewChecklist,
   section,
 }: TradeConsignmentStepProps) {
   const monthlyRateMwh = Math.round(volumeMwh / 12);
@@ -273,7 +287,7 @@ export function TradeConsignmentStep({
           )}
 
           {/* Origin Country Selector */}
-          <div className="tb-form-row">
+          <div className="tb-form-row" id={FIELD_IDS.origin}>
             <span className="tb-form-label">Origin</span>
             <div className="tb-form-control">
               <div className="tb-chips">
@@ -347,7 +361,7 @@ export function TradeConsignmentStep({
           </div>
 
           {/* Certification Scheme */}
-          <div className="tb-form-row">
+          <div className="tb-form-row" id={FIELD_IDS.scheme}>
             <span className="tb-form-label">Certification</span>
             <div className="tb-form-control">
               <div className="tb-chips">
@@ -367,7 +381,7 @@ export function TradeConsignmentStep({
           </div>
 
           {/* Chain of Custody */}
-          <div className="tb-form-row">
+          <div className="tb-form-row" id={FIELD_IDS.cocModel}>
             <span className="tb-form-label">Chain of custody</span>
             <div className="tb-form-control">
               <div className="tb-chips">
@@ -387,7 +401,7 @@ export function TradeConsignmentStep({
           </div>
 
           {/* Union Database Status */}
-          <div className="tb-form-row">
+          <div className="tb-form-row" id={FIELD_IDS.udb}>
             <span className="tb-form-label">UDB status</span>
             <div className="tb-form-control">
               <div className="tb-chips">
@@ -503,6 +517,22 @@ export function TradeConsignmentStep({
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Chain-of-custody pack: GO + PoS records, claims, structure. One section; which parts show depends on the market. */}
+          <div className="tb-form-row">
+            <span className="tb-form-label">Custody pack</span>
+            <div className="tb-form-control">
+              <CustodyPackForm
+                market={selectedMarket}
+                origin={origin}
+                custody={custody}
+                onChange={onCustodyChange}
+                onOpenPoS={onOpenPoS}
+                gate={cocGate}
+                onViewChecklist={onViewChecklist}
+              />
             </div>
           </div>
         </>

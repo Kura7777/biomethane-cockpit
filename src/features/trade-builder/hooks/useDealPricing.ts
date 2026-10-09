@@ -39,6 +39,7 @@ export function useDealPricing(
     volumeMwh,
     plantCommittedMwh,
     plantTotalMWh,
+    custody,
     schedule,
   } = dealInputs;
 
@@ -101,6 +102,7 @@ export function useDealPricing(
         plantCommittedVolumeMWh: plantCommittedMwh,
       },
       counterparty: deal.counterparty || deal.legalEntityName || linkedPlant?.legalEntityName || linkedPlant?.operator || null,
+      custody,
     };
   }, [
     origin,
@@ -124,6 +126,7 @@ export function useDealPricing(
     linkedPlant,
     plantTotalMWh,
     plantCommittedMwh,
+    custody,
   ]);
 
   // Eligibility evaluation
@@ -263,12 +266,11 @@ export function useDealPricing(
     });
   };
 
-  // GHG savings % uses correct comparator per market sector:
+  // GHG savings % uses the market's own comparator when it sets one (NL GGE: 80), else the sector's:
   // Heat/Industrial (EU_ETS, DE_GO, NL_GO, FR_GO, VOL_SCOPE1) → 80 gCO₂e/MJ comparator (RED III Art. 29(10) heat)
   // Transport/Maritime/RTFO → 94 gCO₂e/MJ comparator (RED III Art. 29(10) transport)
-  const ghgComparator = ['EU_ETS_INDUSTRIAL', 'DE_GO', 'NL_GO', 'FR_GO', 'VOL_SCOPE1', 'UK_RGGO'].includes(selectedMarket.id)
-    ? 80.0
-    : 94.0;
+  const ghgComparator = selectedMarket.fossilComparatorGCo2eMj
+    ?? (['EU_ETS_INDUSTRIAL', 'DE_GO', 'NL_GO', 'FR_GO', 'VOL_SCOPE1', 'UK_RGGO'].includes(selectedMarket.id) ? 80.0 : 94.0);
   const ghgSavingPct = Math.round(((ghgComparator - ci) / ghgComparator) * 100);
   const currentSide = state.marks.pricingSides?.certificateSide || 'mid';
 
@@ -359,6 +361,8 @@ export function useDealPricing(
   }, [origin, marketId, feedstockKey, ci, volumeMwh, linkedPlant, deal, selectedMarket, netback, molVal, certVal]);
 
   const failingGates = assessment.gates.filter(g => g.verdict !== 'PASS');
+  // The one chain-of-custody gate; its checklist is what the trader works through.
+  const cocGate = assessment.gates.find(g => g.gate === 'CHAIN_OF_CUSTODY');
   const headerGateBadge = computeGateBadge(assessment.gates, assessment.overallVerdict);
   const blockedBadgeTitle = failingGates
     .map(g => `${g.gateLabel}: ${g.reason}`)
@@ -408,6 +412,7 @@ export function useDealPricing(
     annualPnl,
     currentTradeAssessment,
     failingGates,
+    cocGate,
     headerGateBadge,
     blockedBadgeTitle,
     ciProvenance,
