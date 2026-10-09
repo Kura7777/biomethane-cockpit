@@ -1,6 +1,10 @@
 import { MARKETS, isVoluntaryMarket } from '../../../domain/markets/registry';
 import { Market } from '../../../domain/markets/types';
 import { EligibilityAssessment, GateResult } from '../../../domain/eligibility/types';
+import { CustodyPack } from '../../../domain/consignment/types';
+import { custodyPartsForMarket } from '../../../domain/consignment/custody';
+import { CocChecklistPanel } from '../custody/CocChecklistPanel';
+import { focusFieldWhenReady } from '../custody/checklistModel';
 
 interface TradeGridDestinationColProps {
   marketId: string;
@@ -9,6 +13,7 @@ interface TradeGridDestinationColProps {
   assessment: EligibilityAssessment;
   origin: string;
   ghgSavingPct: number;
+  custody: CustodyPack | null;
 }
 
 export function TradeGridDestinationCol({
@@ -18,6 +23,7 @@ export function TradeGridDestinationCol({
   assessment,
   origin,
   ghgSavingPct,
+  custody,
 }: TradeGridDestinationColProps) {
   return (
     <div style={{ borderRight: '2px solid var(--color-divider)', display: 'flex', flexDirection: 'column' }}>
@@ -57,7 +63,7 @@ export function TradeGridDestinationCol({
           16 compliance mechanisms across 15 jurisdictions — France runs two in parallel.
         </p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-          {MARKETS.filter(m => m.status === 'ACTIVE').map(m => (
+          {MARKETS.filter(m => m.status === 'ACTIVE' || m.requiresGoAndPos).map(m => (
             <button
               key={m.id}
               type="button"
@@ -114,6 +120,21 @@ export function TradeGridDestinationCol({
           Gate audit · {assessment.gates.filter((g: GateResult) => g.verdict === 'PASS').length} of {assessment.gates.length} clear
         </div>
         {assessment.gates.map((g: GateResult, gIdx: number) => {
+          // Chain of custody is one checklist; both columns are on screen, so a fix link just scrolls to the field.
+          if (g.gate === 'CHAIN_OF_CUSTODY' && g.checklist) {
+            return (
+              <div key={gIdx} style={{ padding: '9px 0', borderBottom: '1px solid var(--color-divider)' }}>
+                <CocChecklistPanel
+                  gate={g}
+                  origin={origin}
+                  targetCountry={selectedMarket.country}
+                  custody={custody}
+                  parts={custodyPartsForMarket(selectedMarket)}
+                  onFix={focusFieldWhenReady}
+                />
+              </div>
+            );
+          }
           const isPass = g.verdict === 'PASS';
           const isBlock = g.verdict === 'HARD_BLOCK';
           const isUnresolved = g.verdict === 'UNRESOLVED';

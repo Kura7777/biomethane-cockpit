@@ -7,6 +7,7 @@ import { ProducerPricing, NetbackResult } from '../../domain/netback/types';
 import { Market } from '../../domain/markets/types';
 import { UDBStatus, PoSStatus } from '../../domain/consignment/types';
 import { GateResult } from '../../domain/eligibility/types';
+import { GgeBreakdown } from '../../domain/netback/gge';
 
 interface TradeSummaryRailProps {
   isMobile: boolean;
@@ -48,6 +49,7 @@ interface TradeSummaryRailProps {
   onSwitchMarket: (id: string) => void;
   onBuildDealPackage: () => void;
   onGoToGate: () => void;
+  gge?: GgeBreakdown | null;
 }
 
 export function TradeSummaryRail({
@@ -90,6 +92,7 @@ export function TradeSummaryRail({
   onSwitchMarket,
   onBuildDealPackage,
   onGoToGate,
+  gge,
 }: TradeSummaryRailProps) {
   const headlineTone = netNetbackVal >= 0 ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)';
   const pnlTone = (netback.deskMargin ?? 0) >= 0 ? 'var(--color-status-pos-text)' : 'var(--color-status-neg-text)';
@@ -134,6 +137,7 @@ export function TradeSummaryRail({
       sensitivities={ticketSensitivities}
       bestRoutes={bestRoutes}
       onSwitchMarket={onSwitchMarket}
+      gge={gge}
     />
   );
 

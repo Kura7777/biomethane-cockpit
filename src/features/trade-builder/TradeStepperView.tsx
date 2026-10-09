@@ -91,6 +91,7 @@ export const TradeStepperView: React.FC<TradeStepperViewProps> = ({
     effectiveUdbStatus,
     assessment,
     cocGate,
+    gge,
     routeCosts,
     netback,
     currentMark,
@@ -313,6 +314,7 @@ export const TradeStepperView: React.FC<TradeStepperViewProps> = ({
           onSwitchMarket={setMarketId}
           onBuildDealPackage={() => onStepChange(5)}
           onGoToGate={() => onStepChange(3)}
+          gge={gge}
         />
       )}
     </div>

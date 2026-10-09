@@ -7,6 +7,9 @@ import { Market } from '../../../domain/markets/types';
 import { TradeGridCapacityCard } from './TradeGridCapacityCard';
 import { TradeGridProductCard } from './TradeGridProductCard';
 import { TradeGridScheduleCard } from './TradeGridScheduleCard';
+import { CustodyPack } from '../../../domain/consignment/types';
+import { GateResult } from '../../../domain/eligibility/types';
+import { CustodyPackForm } from '../custody/CustodyPackForm';
 
 interface TradeGridConsignmentColProps {
   origin: string;
@@ -31,6 +34,7 @@ interface TradeGridConsignmentColProps {
   ciSource: 'deal' | 'estimate' | 'pos' | 'manual';
   setCiSource: (source: 'deal' | 'estimate' | 'pos' | 'manual') => void;
   ghgSavingPct: number;
+  ghgComparator: number;
   volumeMwh: number;
   setVolumeMwh: (vol: number) => void;
   plantTotalMWh: number | null;
@@ -60,6 +64,9 @@ interface TradeGridConsignmentColProps {
   molVal: number;
   certVal: number;
   netNetbackVal: number;
+  custody: CustodyPack | null;
+  onCustodyChange: (patch: (c: CustodyPack) => CustodyPack) => void;
+  cocGate?: GateResult;
 }
 
 export function TradeGridConsignmentCol({
@@ -85,6 +92,7 @@ export function TradeGridConsignmentCol({
   ciSource,
   setCiSource,
   ghgSavingPct,
+  ghgComparator,
   volumeMwh,
   setVolumeMwh,
   plantTotalMWh,
@@ -114,6 +122,9 @@ export function TradeGridConsignmentCol({
   molVal,
   certVal,
   netNetbackVal,
+  custody,
+  onCustodyChange,
+  cocGate,
 }: TradeGridConsignmentColProps) {
   return (
     <div style={{ borderRight: '2px solid var(--color-divider)', display: 'flex', flexDirection: 'column' }}>
@@ -186,6 +197,7 @@ export function TradeGridConsignmentCol({
           ciSource={ciSource}
           setCiSource={setCiSource}
           ghgSavingPct={ghgSavingPct}
+          ghgComparator={ghgComparator}
           volumeMwh={volumeMwh}
           deal={deal}
           linkedPlant={linkedPlant}
@@ -196,6 +208,19 @@ export function TradeGridConsignmentCol({
           certVal={certVal}
           netNetbackVal={netNetbackVal}
         />
+
+        {/* Chain-of-custody pack: GO + PoS records, claims, structure */}
+        <div className="card-flat" style={{ padding: '14px' }}>
+          <h5 style={{ margin: '0 0 10px', fontSize: '13px', fontWeight: 600 }}>Custody pack</h5>
+          <CustodyPackForm
+            market={selectedMarket}
+            origin={origin}
+            custody={custody}
+            onChange={onCustodyChange}
+            onOpenPoS={() => setIsPoSUploaderOpen(true)}
+            gate={cocGate}
+          />
+        </div>
 
         {/* Production Period (Vintage) & Delivery Schedule Card */}
         <TradeGridScheduleCard

@@ -4,6 +4,7 @@ import { FEEDSTOCK_REGISTRY } from '../../../domain/consignment/feedstocks';
 import { Consignment, AnnexClassification, UDBStatus } from '../../../domain/consignment/types';
 import { evaluateEligibility } from '../../../domain/eligibility/engine';
 import { computeNetback, selectMarkPrice } from '../../../domain/netback/engine';
+import { computeGgeBreakdown } from '../../../domain/netback/gge';
 import { ProducerPricing, CostInputs } from '../../../domain/netback/types';
 import { certificateMarkSlope } from '../../../domain/netback/headroom';
 import { getRouteTransitTariff } from '../../../domain/arbitrage/origins';
@@ -176,6 +177,11 @@ export function useDealPricing(
     ? computeBreakEvenMark(currentMark, certK, netback.theoreticalNetback ?? null, netback.netbackCappedAt)
     : null;
 
+  // NL GGE: the numbers behind the green-gas value for the ticket's GGE line (null for every other market).
+  const gge = selectedMarket.requiresGoAndPos && currentMark != null
+    ? computeGgeBreakdown(selectedMarket, consignment, currentMark)
+    : null;
+
   // Deal ticket: sensitivities — only modelled when the market isn't bundle-capped (headroom
   // text takes over there instead). Re-runs the existing engine with bumped inputs; no new
   // pricing formulas live here.
@@ -316,6 +322,8 @@ export function useDealPricing(
     { label: 'Certification', val: `−${certCost.toFixed(2)}`, num: certCost, kind: 'sub' },
     { label: transitLabel, val: `−${transitCost.toFixed(2)}`, num: transitCost, kind: 'sub' },
     ...(otherCost > 0 ? [{ label: 'Other costs', val: `−${otherCost.toFixed(2)}`, num: otherCost, kind: 'sub' as const }] : []),
+    // Route-specific costs the engine added (NL GGE: GO export / import fees, TTF spread for structure B), so the waterfall adds up.
+    ...(netback.routeCostLines ?? []).map(l => ({ label: l.label, val: `−${l.eurPerMwh.toFixed(2)}`, num: l.eurPerMwh, kind: 'sub' as const })),
     // Realisable cap: the market pays the traded bundle, not the full modelled value.
     ...(netback.netbackCappedAt != null && netback.theoreticalNetback != null ? [{ label: 'Bundle cap (not captured)', val: `−${(netback.theoreticalNetback - netNetbackVal).toFixed(2)}`, num: netback.theoreticalNetback - netNetbackVal, kind: 'sub' as const }] : []),
     { label: 'Net netback', val: `${netNetbackVal >= 0 ? '+' : '−'}${Math.abs(netNetbackVal).toFixed(2)}`, num: Math.abs(netNetbackVal), kind: 'net' },
@@ -413,6 +421,7 @@ export function useDealPricing(
     currentTradeAssessment,
     failingGates,
     cocGate,
+    gge,
     headerGateBadge,
     blockedBadgeTitle,
     ciProvenance,

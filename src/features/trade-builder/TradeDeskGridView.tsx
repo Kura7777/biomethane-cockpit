@@ -1,8 +1,9 @@
-import { CertificationScheme, ChainOfCustody, UDBStatus, PoSStatus, DeliveryProfile } from '../../domain/consignment/types';
+import { CertificationScheme, ChainOfCustody, UDBStatus, PoSStatus, DeliveryProfile, CustodyPack } from '../../domain/consignment/types';
 import { Market } from '../../domain/markets/types';
 import { TradeAssessment } from '../../domain/trade/types';
-import { EligibilityAssessment } from '../../domain/eligibility/types';
+import { EligibilityAssessment, GateResult } from '../../domain/eligibility/types';
 import { NetbackResult } from '../../domain/netback/types';
+import { GgeBreakdown } from '../../domain/netback/gge';
 import { DealParams } from '../../domain/trade/dealParams';
 import { BiomethanePlant } from '../../domain/plants/types';
 import { DocumentTab } from './LegalPackageModal';
@@ -36,6 +37,7 @@ interface TradeDeskGridViewProps {
   ciSource: 'deal' | 'estimate' | 'pos' | 'manual';
   setCiSource: (source: 'deal' | 'estimate' | 'pos' | 'manual') => void;
   ghgSavingPct: number;
+  ghgComparator: number;
   volumeMwh: number;
   setVolumeMwh: (vol: number) => void;
   plantTotalMWh: number | null;
@@ -82,6 +84,10 @@ interface TradeDeskGridViewProps {
   onViewInBlotter: () => void;
   molVal: number;
   certVal: number;
+  custody: CustodyPack | null;
+  onCustodyChange: (patch: (c: CustodyPack) => CustodyPack) => void;
+  cocGate?: GateResult;
+  gge?: GgeBreakdown | null;
 }
 
 export function TradeDeskGridView(props: TradeDeskGridViewProps) {
@@ -119,6 +125,7 @@ export function TradeDeskGridView(props: TradeDeskGridViewProps) {
         ciSource={props.ciSource}
         setCiSource={props.setCiSource}
         ghgSavingPct={props.ghgSavingPct}
+        ghgComparator={props.ghgComparator}
         volumeMwh={props.volumeMwh}
         setVolumeMwh={props.setVolumeMwh}
         plantTotalMWh={props.plantTotalMWh}
@@ -148,6 +155,9 @@ export function TradeDeskGridView(props: TradeDeskGridViewProps) {
         molVal={props.molVal}
         certVal={props.certVal}
         netNetbackVal={props.netNetbackVal}
+        custody={props.custody}
+        onCustodyChange={props.onCustodyChange}
+        cocGate={props.cocGate}
       />
 
       {/* ─── Column 2: Destination & Legal Validation ─── */}
@@ -158,6 +168,7 @@ export function TradeDeskGridView(props: TradeDeskGridViewProps) {
         assessment={props.assessment}
         origin={props.origin}
         ghgSavingPct={props.ghgSavingPct}
+        custody={props.custody}
       />
 
       {/* ─── Column 3: Netback & Dossier ─── */}
@@ -188,6 +199,7 @@ export function TradeDeskGridView(props: TradeDeskGridViewProps) {
         ci={props.ci}
         molVal={props.molVal}
         certVal={props.certVal}
+        gge={props.gge}
       />
     </div>
   );

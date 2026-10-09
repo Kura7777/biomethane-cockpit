@@ -83,6 +83,8 @@ export function TradeBuilderScreen() {
     plantCommittedMwh,
     setPlantCommittedMwh,
     plantTotalMWh,
+    custody,
+    patchCustody,
     schedule,
     handleApplyPoS,
     handleResetDeal,
@@ -97,8 +99,11 @@ export function TradeBuilderScreen() {
     isNonEuOrigin,
     effectiveUdbStatus,
     assessment,
+    cocGate,
+    gge,
     netback,
     ghgSavingPct,
+    ghgComparator,
     currentSide,
     waterfallRows,
     waterfallMax,
@@ -262,6 +267,7 @@ export function TradeBuilderScreen() {
           onSwitchMarket={setMarketId}
           onBuildDealPackage={() => handleStepChange(5)}
           onGoToGate={() => handleStepChange(3)}
+          gge={gge}
         />
       )}
 
@@ -312,6 +318,7 @@ export function TradeBuilderScreen() {
           ciSource={ciSource}
           setCiSource={setCiSource}
           ghgSavingPct={ghgSavingPct}
+          ghgComparator={ghgComparator}
           volumeMwh={volumeMwh}
           setVolumeMwh={setVolumeMwh}
           plantTotalMWh={plantTotalMWh}
@@ -358,6 +365,10 @@ export function TradeBuilderScreen() {
           onViewInBlotter={() => navigate('/deals')}
           molVal={molVal}
           certVal={certVal}
+          custody={custody}
+          onCustodyChange={patchCustody}
+          cocGate={cocGate}
+          gge={gge}
         />
       )}
 

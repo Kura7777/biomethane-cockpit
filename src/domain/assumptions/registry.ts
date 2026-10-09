@@ -601,6 +601,11 @@ export function getAssumptionDefinition(key: string): AssumptionDefinition | und
   return DEFINITIONS_BY_KEY.get(key);
 }
 
+/** An assumption whose source starts "OPEN" is an unconfirmed desk input: show an OPEN chip wherever it prices a deal. */
+export function isAssumptionOpen(key: string): boolean {
+  return DEFINITIONS_BY_KEY.get(key)?.source.startsWith('OPEN') ?? false;
+}
+
 // ---------------------------------------------------------------------------
 // Override store
 // ---------------------------------------------------------------------------

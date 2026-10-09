@@ -30,6 +30,8 @@ interface TradeGridProductCardProps {
   ciSource: 'deal' | 'estimate' | 'pos' | 'manual';
   setCiSource: (source: 'deal' | 'estimate' | 'pos' | 'manual') => void;
   ghgSavingPct: number;
+  /** The market's fossil comparator (gCO₂e/MJ) the saving is measured against. */
+  ghgComparator: number;
   volumeMwh: number;
   deal: Partial<DealParams>;
   linkedPlant: BiomethanePlant | null | undefined;
@@ -64,6 +66,7 @@ export const TradeGridProductCard: React.FC<TradeGridProductCardProps> = ({
   ciSource,
   setCiSource,
   ghgSavingPct,
+  ghgComparator,
   volumeMwh,
   deal,
   linkedPlant,
@@ -99,6 +102,7 @@ export const TradeGridProductCard: React.FC<TradeGridProductCardProps> = ({
           Origin Jurisdiction
         </label>
         <select
+          id="tb-field-origin"
           aria-label="Origin Jurisdiction"
           value={origin}
           onChange={e => setOrigin(e.target.value)}
@@ -151,6 +155,7 @@ export const TradeGridProductCard: React.FC<TradeGridProductCardProps> = ({
             Scheme
           </label>
           <select
+            id="tb-field-scheme"
             aria-label="Scheme"
             value={scheme}
             onChange={e => setScheme(e.target.value as CertificationScheme)}
@@ -172,6 +177,7 @@ export const TradeGridProductCard: React.FC<TradeGridProductCardProps> = ({
             Chain of Custody
           </label>
           <select
+            id="tb-field-coc-model"
             aria-label="Chain of Custody"
             value={chainOfCustody}
             onChange={e => setChainOfCustody(e.target.value as ChainOfCustody)}
@@ -196,6 +202,7 @@ export const TradeGridProductCard: React.FC<TradeGridProductCardProps> = ({
             Union Database (UDB)
           </label>
           <select
+            id="tb-field-udb"
             aria-label="Union Database (UDB)"
             value={udbStatus}
             onChange={e => setUdbStatus(e.target.value as UDBStatus)}
@@ -279,7 +286,7 @@ export const TradeGridProductCard: React.FC<TradeGridProductCardProps> = ({
         <span>+50</span>
       </div>
       <div className="kv" style={{ marginTop: '12px' }}>
-        <span className="lbl">GHG saving vs 94.0 baseline</span>
+        <span className="lbl">GHG saving vs {ghgComparator} baseline</span>
         <span />
         <span className="num" style={{ fontSize: '15px', fontWeight: 800 }}>
           {ghgSavingPct}%

@@ -6,6 +6,8 @@ import { UDBStatus, PoSStatus } from '../../domain/consignment/types';
 import { showToast } from '../../app/DeskToastContainer';
 import { computeGateBadge } from './ticketMath';
 import { markSideWarning } from '../../domain/netback/sideFallback';
+import { GgeBreakdown } from '../../domain/netback/gge';
+import { GgeValueLine } from './GgeValueLine';
 
 const MONO_FONT = 'var(--font-mono, "IBM Plex Mono", monospace)';
 
@@ -82,6 +84,9 @@ export interface DealTicketProps {
   /** True when volumeMwh was derived from a site's own emissions (e.g. the ETS1 site hand-off),
    *  not typed or confirmed by the trader — same provenance idea as ciIsEstimated. */
   volumeIsEstimated?: boolean;
+
+  /** NL GGE only: the numbers behind the green-gas value (GGE per MWh, LHV factor, mark vs buy-out). */
+  gge?: GgeBreakdown | null;
 }
 
 const fmtDelta = (v: number | null): string => (v == null ? '—' : `${v >= 0 ? '+' : '−'}€${Math.abs(v).toFixed(2)}/MWh`);
@@ -122,6 +127,7 @@ export function DealTicket({
   bestRoutes,
   onSwitchMarket,
   volumeIsEstimated,
+  gge,
 }: DealTicketProps) {
   const [showFullReason, setShowFullReason] = useState(false);
 
@@ -181,6 +187,18 @@ export function DealTicket({
             {volumeIsEstimated ? '≈ ' : ''}{volumeMwh.toLocaleString()} MWh{volumeIsEstimated ? ' (estimated from site emissions)' : ''}
           </div>
         </div>
+
+        {gge && (
+          <div className="tt-section">
+            <div className="tt-subhead">GGE value</div>
+            <GgeValueLine
+              gge={gge}
+              valueEurPerMwh={netback.certificateValue?.valueEurPerMWh ?? null}
+              costLines={netback.routeCostLines ?? []}
+              variant="ticket"
+            />
+          </div>
+        )}
 
         <div className="tt-section">
           <div className="tt-subhead">Producer bid</div>

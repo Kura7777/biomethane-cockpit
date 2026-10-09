@@ -8,6 +8,8 @@ import { WaterfallRow } from '../steps/TradeEconomicsStep';
 import { RISK_SUITE_ASSUMPTIONS, FEEDSTOCKS } from '../options';
 import { DealParams } from '../../../domain/trade/dealParams';
 import { BiomethanePlant } from '../../../domain/plants/types';
+import { GgeBreakdown } from '../../../domain/netback/gge';
+import { GgeValueLine } from '../GgeValueLine';
 
 interface TradeGridNetbackColProps {
   netback: NetbackResult;
@@ -36,6 +38,7 @@ interface TradeGridNetbackColProps {
   ci: number;
   molVal: number;
   certVal: number;
+  gge?: GgeBreakdown | null;
 }
 
 export function TradeGridNetbackCol({
@@ -65,6 +68,7 @@ export function TradeGridNetbackCol({
   ci,
   molVal,
   certVal,
+  gge,
 }: TradeGridNetbackColProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -131,6 +135,19 @@ export function TradeGridNetbackCol({
           </div>
         )}
       </div>
+
+      {/* NL GGE: the green-gas value behind the certificate leg */}
+      {gge && (
+        <div style={{ padding: '16px 18px', borderBottom: '1px solid var(--color-divider)' }}>
+          <div className="eyebrow" style={{ marginBottom: '6px' }}>GGE value</div>
+          <GgeValueLine
+            gge={gge}
+            valueEurPerMwh={netback.certificateValue?.valueEurPerMWh ?? null}
+            costLines={netback.routeCostLines ?? []}
+            variant="grid"
+          />
+        </div>
+      )}
 
       {/* Waterfall */}
       <div style={{ padding: '16px 18px', borderBottom: '1px solid var(--color-divider)' }}>

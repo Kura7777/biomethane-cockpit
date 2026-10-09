@@ -9,13 +9,13 @@ import { Consignment } from '../consignment/types';
 import { BundleReference, CostInputs, CertificateValueResult, NetbackResult, NetbackBranch, MarksState, FuelEUOptions, PricingSides, NetbackSides, ValuationRange, PrincipalRiskMetrics, RouteCostLine } from './types';
 import { EligibilityAssessment } from '../eligibility/types';
 import { hubBasisSpread } from '../logistics/corridors';
+import { computeGgeBreakdown } from './gge';
 import {
   FR_CPB_CEILING_EUR_MWH,
   DE_THG_PENALTY_EUR_PER_TCO2E,
   UK_RTFC_BUYOUT_GBP,
   FUELEU_STATUTORY_PENALTY_PER_TONNE,
   FUELEU_PENALTY_VLSFO_MJ_PER_TONNE,
-  NL_GGE_BUYOUT_EUR_PER_TCO2E,
 } from '../regulatory/constants';
 
 import {
@@ -24,7 +24,7 @@ import {
   FUELEU_TARGET_2030,
   bioLngFuelEUIntensity,
 } from '../fueleu/calculator';
-import { getAssumption, getAssumptionDefinition, getLhvFactorForOrigin } from '../assumptions/registry';
+import { getAssumption, getAssumptionDefinition } from '../assumptions/registry';
 import { DE_THG_BUNDLE_MAX_CI, selectDeThgBundleReference } from '../markets/deThgBundle';
 
 /**
@@ -299,24 +299,19 @@ function computeCertificateValueCore(
       if (market.requiresGoAndPos) {
         // Dutch green-gas obligation (Wm titel 9.9, Kamerstuk 36947): 1 GGE = 1 kg CO2e reduction.
         // GGE per GO MWh = (comparator − CI) × 3.6 GJ/MWh × LHV factor of the GO's energy basis (R3, R4, O1).
-        const go = consignment.custody?.go ?? null;
-        const goCountry = go?.issuingCountry || consignment.injectionCountry || consignment.originCountry;
-        const lhvFactor = go?.energyBasis === 'LHV' ? 1 : getLhvFactorForOrigin(goCountry);
-        const posCi = consignment.custody?.pos?.ciTotal ?? ci;
-        const ggePerMwh = ((comparator - posCi) * MJ_PER_MWH / 1000) * lhvFactor;
+        const gge = computeGgeBreakdown(market, consignment, mark);
+        const ggePerMwh = gge.ggePerGoMwh;
         valueEurPerMWh = mark * ggePerMwh;
 
-        const basisNote = go?.energyBasis === 'LHV'
+        const basisNote = gge.goOnLhv
           ? 'GO already on LHV'
-          : `LHV factor for ${goCountry || 'unknown origin'}, Pricing desk${(goCountry || '').toUpperCase() === 'ES' ? ' — OPEN: Spanish GO basis to confirm' : ''}`;
-        unitConversion = `(${comparator} − (${posCi})) gCO₂e/MJ × 3.6 GJ/MWh × ${lhvFactor} (${basisNote}) = ${ggePerMwh.toFixed(1)} GGE per GO MWh`;
+          : `LHV factor for ${gge.goCountry || 'unknown origin'}, Pricing desk${(gge.goCountry || '').toUpperCase() === 'ES' ? ' — OPEN: Spanish GO basis to confirm' : ''}`;
+        unitConversion = `(${comparator} − (${gge.ciUsed})) gCO₂e/MJ × 3.6 GJ/MWh × ${gge.lhvFactor} (${basisNote}) = ${ggePerMwh.toFixed(1)} GGE per GO MWh`;
         calculation = `${ggePerMwh.toFixed(1)} GGE/MWh × €${mark.toFixed(3)}/GGE (${pricingSide}) = €${valueEurPerMWh.toFixed(2)}/MWh`;
 
-        const complianceYear = consignment.deliveryPeriod?.complianceYear ?? null;
-        const buyoutEurPerT = complianceYear !== null ? NL_GGE_BUYOUT_EUR_PER_TCO2E[complianceYear] : undefined;
-        if (buyoutEurPerT !== undefined && mark > buyoutEurPerT / 1000) {
-          statusNote = `Warning: mark above buy-out ceiling — €${mark.toFixed(3)}/GGE vs the ${complianceYear} buy-out of €${(buyoutEurPerT / 1000).toFixed(3)}/GGE (€${buyoutEurPerT}/t). No supplier pays more than the buy-out.`;
-        } else if (buyoutEurPerT === undefined) {
+        if (gge.aboveBuyout && gge.buyoutEurPerGge !== null) {
+          statusNote = `Warning: mark above buy-out ceiling — €${mark.toFixed(3)}/GGE vs the ${gge.complianceYear} buy-out of €${gge.buyoutEurPerGge.toFixed(3)}/GGE (€${gge.buyoutEurPerTonne}/t). No supplier pays more than the buy-out.`;
+        } else if (gge.buyoutEurPerGge === null) {
           statusNote = 'No GGE buy-out on file for this compliance year — set the delivery year to check the mark against the ceiling.';
         }
         break;
