@@ -13,7 +13,8 @@ import {
   Flame,
   Briefcase,
   Users,
-  ShieldAlert
+  ShieldAlert,
+  Sunrise
 } from 'lucide-react';
 
 export interface NavItem {
@@ -33,6 +34,7 @@ export interface NavSection {
  * Standard SIDEBAR_ITEMS preserved for route title derivation and tests.
  */
 export const SIDEBAR_ITEMS: NavItem[] = [
+  { to: '/brief', label: 'Morning brief', keyHint: 'B', icon: Sunrise },
   { to: '/sourcing', label: 'Origination', keyHint: '1', icon: Compass },
   { to: '/plants', label: 'Plants (1,974)', keyHint: '2', icon: Building2 },
   { to: '/registries', label: 'Registries & Flows', keyHint: 'G', icon: ShieldCheck },

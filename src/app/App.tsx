@@ -53,6 +53,7 @@ const ClientsScreen = lazyWithRetry(() => import('../features/clients/ClientsScr
 const Ets2Screen = lazyWithRetry(() => import('../features/ets2/Ets2Screen').then(m => ({ default: m.Ets2Screen })));
 const FuelEUShippingScreen = lazyWithRetry(() => import('../features/fueleu/FuelEUShippingScreen').then(m => ({ default: m.FuelEUShippingScreen })));
 const RegulationCheckScreen = lazyWithRetry(() => import('../features/regcheck/RegulationCheckScreen').then(m => ({ default: m.RegulationCheckScreen })));
+const MorningBriefScreen = lazyWithRetry(() => import('../features/briefing/MorningBriefScreen').then(m => ({ default: m.MorningBriefScreen })));
 const DealsScreen = lazyWithRetry(() => import('../features/deals/DealsScreen').then(m => ({ default: m.DealsScreen })));
 
 import { ThemeProvider } from '../store/theme';
@@ -77,6 +78,7 @@ function AppContent() {
             <Route path="/commercial" element={<CommercialFlowStepper />} />
             <Route path="/desk" element={<Navigate to="/sourcing" replace />} />
             <Route path="/scanner" element={<Navigate to="/sourcing" replace />} />
+            <Route path="/brief" element={<MorningBriefScreen />} />
             <Route path="/map" element={<MapScreen />} />
             <Route path="/pricing" element={<PricingScreen />} />
             <Route path="/marks" element={<PricingScreen />} />

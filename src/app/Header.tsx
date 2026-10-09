@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, NavLink } from 'react-router-dom';
-import { Scale, Moon, Sun, Search, Flame, ChevronDown } from 'lucide-react';
+import { Scale, Moon, Sun, Search, Flame, ChevronDown, Sunrise } from 'lucide-react';
 import './header.css';
 import { NAV_GROUPS, isNavItemActive, getPageTitle } from './navConfig';
 import { useTheme } from '../store/theme';
@@ -76,6 +76,10 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
       <span className="app-header-sep" aria-hidden="true" />
 
       <nav className="app-header-nav" aria-label="Workspaces" ref={navRef}>
+        <NavLink to="/brief" className={({ isActive }) => `app-tab ${isActive ? 'active' : ''}`} title="Morning brief (B)">
+          <Sunrise size={13} aria-hidden="true" style={{ marginRight: 6 }} />
+          <span>Brief</span>
+        </NavLink>
         {NAV_GROUPS.map(group => {
           const current = group.items.find(item => isNavItemActive(item.to, location.pathname));
           const open = openGroup === group.id;
