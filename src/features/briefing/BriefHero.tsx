@@ -1,6 +1,6 @@
 import React from 'react';
-import type { BriefMark, LadderHeadline, MarkFreshnessSummary } from '../../domain/briefing/morningBrief';
-import { fmt2, fmtPrice } from './briefUi';
+import type { BriefMark } from '../../domain/briefing/morningBrief';
+import { fmtPrice } from './briefUi';
 
 const SOURCE_COLOUR: Record<string, string> = {
   EXCHANGE_AUCTION: 'var(--bf-c3)',
@@ -14,47 +14,24 @@ const SOURCE_COLOUR: Record<string, string> = {
 export const sourceColour = (t: string | null) => (t ? SOURCE_COLOUR[t] ?? 'var(--bf-muted)' : 'var(--bf-muted)');
 
 export function BriefHero({
-  greeting, today, consignmentName, headline, freshness, tickers, onTick,
+  greeting, firstName, today, tickers, onTick,
 }: {
   greeting: string;
+  firstName: string;
   today: Date;
-  consignmentName: string;
-  headline: LadderHeadline;
-  freshness: MarkFreshnessSummary;
   tickers: BriefMark[];
   onTick: (m: BriefMark) => void;
 }) {
   const dateText = today.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-  const { best, runnerUp, leadEurMwh, bestBlocked } = headline;
-  const stale = freshness.stale + freshness.veryStale;
   return (
     <header className="bf-hero bf-rise" id="brief-top">
       <div className="bf-eyebrow">
         <span className="bf-live" aria-hidden="true" />
         <span>Morning brief</span><span aria-hidden="true">·</span><span>{dateText}</span>
       </div>
-      <h1 className="bf-title">{greeting}.</h1>
+      <h1 className="bf-title">{greeting}, {firstName}.</h1>
       <p className="bf-take" data-testid="brief-takeaway">
-        {best ? (
-          <>
-            Best home for <b>{consignmentName}</b> right now is <b>{best.marketName}</b> at{' '}
-            <b className="mono">{fmt2(best.netNetback)} €/MWh</b> net
-            {runnerUp && leadEurMwh !== null ? <>, {fmt2(leadEurMwh)} €/MWh clear of {runnerUp.marketName}.</> : '.'}{' '}
-          </>
-        ) : (
-          <>No market can take <b>{consignmentName}</b> on today's marks. </>
-        )}
-        {bestBlocked && (
-          <>{bestBlocked.marketName} would pay more ({fmt2(bestBlocked.netNetback)} €/MWh) but is blocked{bestBlocked.blockingGate ? ` at ${bestBlocked.blockingGate.toLowerCase().replace(/_/g, ' ')}` : ''}. </>
-        )}
-        {stale > 0 ? (
-          <span className="bf-alert">
-            <span className="bf-dot" style={{ background: 'var(--color-status-warn-border)' }} />
-            <span><b>{stale} of {freshness.total}</b> marks are over a week old{freshness.estimates ? <> and <b>{freshness.estimates}</b> are estimates</> : null} — refresh them on the Pricing desk.</span>
-          </span>
-        ) : (
-          <span>All {freshness.total} marks are under a week old.</span>
-        )}
+        Here's your daily snapshot of the European biomethane market.
       </p>
       {tickers.length > 0 && (
         <div className="bf-ticker" aria-label="Market marks">
