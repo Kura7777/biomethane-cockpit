@@ -138,7 +138,7 @@ export const REGCHECK_WATCHLIST: WatchItem[] = [
     claim: 'Tweede Kamer passed Wet bijmengverplichting groen gas on 6 October 2026; Senate plenary review and vote pending prior to 1 January 2027 entry into force.',
     appImpact: 'Formally enacts the Dutch green gas obligation and establishes primary statutory authority for the quota trajectory.',
     sources: [
-      { label: 'Eerste Kamer Dossier 36947', url: 'https://www.eerstekamer.nl/wetsvoorstel/36947_wet_bijmengverplichting' },
+      { label: 'Kamerstuk 36947 nr. 8', url: 'https://zoek.officielebekendmakingen.nl/kst-36947-8' },
       { label: 'Tweede Kamer Plenair Verslag 6 Oct 2026', url: 'https://www.tweedekamer.nl/kamerstukken/plenaire_verslagen/detail/2026-2027/10' }
     ],
     watchType: 'open_question'
@@ -200,11 +200,11 @@ export const REGCHECK_WATCHLIST: WatchItem[] = [
   {
     id: 'es_non_transport_quota_decree',
     topic: 'Spanish non-transport biomethane quota decree (S6)',
-    claim: 'Spain preparing Royal Decree introducing non-transport biomethane obligations ramping from 0.5% in 2028 to 6% in 2035, competing with export demand.',
+    claim: 'Spain is drafting a non-transport biomethane quota, reported at 0.5% in 2028 rising to 6% in 2035, alongside the transport obligation from 2027 (RD 611/2026). Both from a desk research report — not yet re-read against the BOE.',
     appImpact: 'Increases domestic Spanish biomethane certificate demand and tightens export supply into NL GGE and DE THG.',
     sources: [
       { label: 'MITECO Biogás y Biometano', url: 'https://www.miteco.gob.es/es/energia/energia-electrica/biogas.html' },
-      { label: 'BOE Real Decreto 611/2026', url: 'https://www.boe.es/eli/es/rd/2026/06/11/611' }
+      { label: 'BOE (search RD 611/2026)', url: 'https://www.boe.es/' }
     ],
     watchType: 'open_question'
   },
@@ -213,7 +213,7 @@ export const REGCHECK_WATCHLIST: WatchItem[] = [
   {
     id: 'de_thg_subsidised_fuels_exclusion',
     topic: 'German proposal to exclude origin-subsidised fuels from THG-Quote',
-    claim: 'German BMUV proposals under 38. BImSchV revision to exclude foreign biomethane that received production or operating aid in the country of origin.',
+    claim: 'Reported German proposal to exclude fuels that received production or operating aid in the country of origin from the THG quota. Source not yet confirmed — check before relying on it for the ES → DE THG trade.',
     appImpact: 'Restricts foreign volumes receiving dual or operating support from generating German THG quota credits, mirroring NL GGE rules.',
     sources: [
       { label: 'BMUV Immissionsschutz', url: 'https://www.bmuv.de/themen/luft-laerm-mobilitaet/verkehr/erneuerbare-energien-im-verkehr' },
