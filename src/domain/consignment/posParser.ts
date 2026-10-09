@@ -9,7 +9,8 @@
  * - Raw JSON / CSV Consignment Declarations
  */
 
-import { ChainOfCustody } from './types';
+import { ChainOfCustody, SupportType } from './types';
+import { PRODUCING_ORIGINS } from '../arbitrage/origins';
 
 export interface ParsedSubstrate {
   name: string;
@@ -36,6 +37,29 @@ export interface ParsedPoSCertificate {
   chainOfCustody: ChainOfCustody;
   auditNotes: string[];
   confidenceScore: number;
+  /** What the text itself states for the custody pack. A field the text does not state is null. */
+  custody: ParsedPosCustody;
+}
+
+/**
+ * The chain-of-custody pack fields a PoS states (draft Regeling Art 4(1)(b), R14). Unlike the
+ * fields above, none of these is defaulted: not found means null, and the form shows "enter manually".
+ */
+export interface ParsedPosCustody {
+  posNumber: string | null;
+  udbNumber: string | null;
+  /** Scheme code, e.g. ISCC_EU; null when the scheme is not recognised. */
+  scheme: string | null;
+  feedstock: string | null;
+  /** ISO alpha-2 of the country the raw material came from. */
+  feedstockOriginCountry: string | null;
+  /** Share of each feedstock as the PoS gives it (mass share when no reduction split is stated). */
+  feedstockShares: { feedstock: string; pctOfReduction: number }[];
+  ciTotal: number | null;
+  /** Annex VI per-step values (eec, el, ep, etd, eu, esca, eccs, eccr) found in the text. */
+  ciSteps: Record<string, number> | null;
+  supportDeclared: SupportType | null;
+  mwh: number | null;
 }
 
 const FOSSIL_COMPARATOR = 94.0; // RED III Fossil Fuel Comparator (gCO2e/MJ)
@@ -233,5 +257,116 @@ export function parseProofOfSustainability(rawInput: string): ParsedPoSCertifica
     chainOfCustody,
     auditNotes: notes,
     confidenceScore: Math.min(100, confidence),
+    custody: extractPosCustody(text, scheme, substrates),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Chain-of-custody pack fields (R14). Nothing here is defaulted.
+// ---------------------------------------------------------------------------
+
+/** "-40,5", "−40.5", "+3" → number. */
+function toNumber(raw: string): number | null {
+  const n = Number(raw.replace('−', '-').replace(',', '.').replace(/\s/g, ''));
+  return Number.isFinite(n) ? n : null;
+}
+
+/** "25,000" and "25.000" are both 25 000; "1,5" and "1.5" are 1.5. */
+function toQuantity(raw: string): number | null {
+  const t = raw.trim();
+  if (/^\d{1,3}([.,]\d{3})+$/.test(t)) return Number(t.replace(/[.,]/g, ''));
+  return toNumber(t);
+}
+
+const COUNTRY_ALIASES: Record<string, string> = {
+  'españa': 'ES', espana: 'ES', deutschland: 'DE', nederland: 'NL', danmark: 'DK', italia: 'IT',
+  'österreich': 'AT', osterreich: 'AT', 'belgië': 'BE', belgie: 'BE', belgique: 'BE', sverige: 'SE',
+  suomi: 'FI', polska: 'PL', 'united kingdom': 'GB', uk: 'GB',
+};
+
+function countryToIso(raw: string): string | null {
+  const t = raw.trim().replace(/[.)\]]+$/, '');
+  if (/^[A-Za-z]{2}$/.test(t)) return t.toUpperCase();
+  const key = t.toLowerCase();
+  if (COUNTRY_ALIASES[key]) return COUNTRY_ALIASES[key];
+  const hit = Object.values(PRODUCING_ORIGINS).find(o => o.countryName.toLowerCase() === key);
+  return hit ? hit.countryCode : null;
+}
+
+/** Annex VI steps: the short code or the long name in the PoS table. */
+const STEP_LABELS: Array<[string, RegExp]> = [
+  ['eec', /\b(?:eec|cultivation|extraction(?:\s+or\s+cultivation)?)\b/i],
+  ['el', /\b(?:el|land[\s-]*use\s+change)\b/i],
+  ['ep', /\b(?:ep|processing)\b/i],
+  ['etd', /\b(?:etd|transport(?:\s+and|\s*&)?\s*distribution)\b/i],
+  ['eu', /\b(?:eu|fuel\s+in\s+use)\b/i],
+  ['esca', /\b(?:esca|soil\s+carbon\s+accumulation)\b/i],
+  ['eccs', /\b(?:eccs|carbon\s+capture\s+and\s+(?:geological\s+)?storage)\b/i],
+  ['eccr', /\b(?:eccr|carbon\s+capture\s+and\s+replacement)\b/i],
+];
+
+const UNIT = String.raw`(?:g\s*co[2₂]\s*e?q?\s*\/\s*mj)`;
+const NUM = String.raw`([+\-−]?\d+(?:[.,]\d+)?)`;
+
+function extractCiSteps(text: string): Record<string, number> | null {
+  const steps: Record<string, number> = {};
+  const lineRe = new RegExp(String.raw`^[\s\-*•]*([A-Za-z][A-Za-z\s&()/-]*?)\s*[:=]\s*` + NUM + String.raw`\s*(?:` + UNIT + String.raw`)?\s*$`, 'i');
+  for (const line of text.split(/\r?\n/)) {
+    // "eec (cultivation): -1.5 gCO2eq/MJ" or "Processing = 12.3" — one step per line, value after the separator.
+    const m = line.match(lineRe);
+    if (!m) continue;
+    const value = toNumber(m[2]);
+    if (value === null) continue;
+    for (const [key, re] of STEP_LABELS) {
+      if (re.test(m[1]) && !(key in steps)) { steps[key] = value; break; }
+    }
+  }
+  return Object.keys(steps).length > 0 ? steps : null;
+}
+
+function extractSupport(text: string): SupportType | null {
+  const line = text.split(/\r?\n/).find(l => /\b(?:support|aid|subsid\w*|exploitatiesubsidie|feed-in)\b/i.test(l));
+  if (!line) return null;
+  const l = line.toLowerCase();
+  const negated = /\b(?:no|none|nil|not|without)\b/.test(l) || /[:=]\s*n\/a\b/.test(l);
+  if (/\b(?:operating|production|exploitatie\w*|feed-in|sde)/.test(l) && !negated) return 'OPERATING';
+  if (/investment|investering/.test(l) && !/\bno investment\b/.test(l)) return 'INVESTMENT';
+  if (negated) return 'NONE';
+  return null;
+}
+
+function extractPosCustody(
+  text: string,
+  scheme: ParsedPoSCertificate['scheme'],
+  substrates: ParsedSubstrate[],
+): ParsedPosCustody {
+  const posNumber = text.match(/(?:\bpos\b|proof\s+of\s+sustainability)\s*(?:number|no\.?|nr\.?|#|id)\s*[:=]\s*([A-Z0-9][A-Z0-9_/.-]{4,})/i)?.[1] ?? null;
+  const udbNumber = text.match(/\budb\s*(?:number|no\.?|nr\.?|id|reference|ref\.?)\s*[:=]\s*([A-Z0-9][A-Z0-9_/.-]{3,})/i)?.[1] ?? null;
+
+  const originRaw = text.match(/(?:country\s+of\s+origin\s+of\s+(?:the\s+)?(?:raw\s+material|feedstock|biomass|substrate)s?|origin\s+of\s+(?:the\s+)?(?:raw\s+material|feedstock)s?|feedstock\s+origin|raw\s+material\s+origin|country\s+of\s+origin|herkunftsland)\s*[:=]\s*([^\n\r;,]+)/i)?.[1];
+
+  // Total: a line labelled total/overall wins; otherwise a labelled carbon-intensity line.
+  const totalMatch = text.match(new RegExp(String.raw`(?:total|overall)[^\n:=]*[:=]\s*` + NUM + String.raw`\s*` + UNIT, 'i'))
+    ?? text.match(new RegExp(String.raw`(?:carbon\s*intensity|certified\s*ci|ghg\s*emissions?|thg-emissionen)\s*[:=]?\s*` + NUM + String.raw`\s*` + UNIT, 'i'));
+
+  const mwhMatch = text.match(/(?:quantity|volume|menge|energiegehalt)[^\n\d:=]*[:=]?\s*(\d[\d.,]*)\s*(mwh|gwh)\b/i)
+    ?? text.match(/(\d[\d.,]*)\s*(mwh|gwh)\b/i);
+  let mwh: number | null = null;
+  if (mwhMatch) {
+    const q = toQuantity(mwhMatch[1]);
+    mwh = q === null ? null : (/gwh/i.test(mwhMatch[2]) ? q * 1000 : q);
+  }
+
+  return {
+    posNumber,
+    udbNumber,
+    scheme: scheme === 'UNKNOWN' ? null : scheme,
+    feedstock: substrates.length > 0 ? substrates.map(s => `${s.percentage}% ${s.name}`).join(' + ') : null,
+    feedstockOriginCountry: originRaw ? countryToIso(originRaw) : null,
+    feedstockShares: substrates.map(s => ({ feedstock: s.canonicalCategory, pctOfReduction: s.percentage })),
+    ciTotal: totalMatch ? toNumber(totalMatch[1]) : null,
+    ciSteps: extractCiSteps(text),
+    supportDeclared: extractSupport(text),
+    mwh,
   };
 }

@@ -74,3 +74,71 @@ describe('Proof of Sustainability (PoS) Certificate Parser', () => {
     expect(parsed.auditNotes.some(n => n.includes('voluntary book-and-claim'))).toBe(true);
   });
 });
+
+describe('PoS parser — chain-of-custody pack fields (R14)', () => {
+  const iscc = `
+    ISCC EU Proof of Sustainability
+    PoS Number: EU-ISCC-PoS-ES214-0004471
+    UDB Reference: UDB-ES-2027-000381
+    Certificate Number: EU-ISCC-Cert-ES214-99482710
+    Issuing Body: DNV Business Assurance
+    Country: ES
+    Raw material: 100% pig slurry and cattle manure
+    Country of origin of raw material: Spain
+    Quantity: 1,000 MWh
+    GHG emissions per step (gCO2eq/MJ):
+      eec (cultivation): 0.0
+      ep (processing): 24.5
+      etd (transport and distribution): 3.1
+      eu (fuel in use): 0.0
+      esca: 0.0
+      eccs: 0.0
+      eccr: 0.0
+      el: 0.0
+    Total GHG emissions: -40.0 gCO2eq/MJ
+    Operating aid / support received: none
+    Chain of Custody: Mass Balance
+  `;
+
+  it('reads PoS and UDB numbers, scheme, feedstock origin, support and MWh', () => {
+    const { custody } = parseProofOfSustainability(iscc);
+    expect(custody.posNumber).toBe('EU-ISCC-PoS-ES214-0004471');
+    expect(custody.udbNumber).toBe('UDB-ES-2027-000381');
+    expect(custody.scheme).toBe('ISCC_EU');
+    expect(custody.feedstock).toContain('Manure');
+    expect(custody.feedstockOriginCountry).toBe('ES');
+    expect(custody.supportDeclared).toBe('NONE');
+    expect(custody.mwh).toBe(1000);
+  });
+
+  it('takes the labelled total, not a per-step value, as the CI', () => {
+    expect(parseProofOfSustainability(iscc).custody.ciTotal).toBe(-40);
+  });
+
+  it('reads the per-step Annex VI values', () => {
+    const { ciSteps } = parseProofOfSustainability(iscc).custody;
+    expect(ciSteps).toMatchObject({ eec: 0, ep: 24.5, etd: 3.1, eu: 0 });
+  });
+
+  it('leaves fields it cannot find null instead of defaulting them', () => {
+    const { custody } = parseProofOfSustainability('REDcert-EU System Certificate\nCountry: DE');
+    expect(custody.posNumber).toBeNull();
+    expect(custody.udbNumber).toBeNull();
+    expect(custody.feedstock).toBeNull();
+    expect(custody.feedstockOriginCountry).toBeNull();
+    expect(custody.ciTotal).toBeNull();
+    expect(custody.ciSteps).toBeNull();
+    expect(custody.supportDeclared).toBeNull();
+    expect(custody.mwh).toBeNull();
+  });
+
+  it('classifies investment aid and operating aid', () => {
+    expect(parseProofOfSustainability('ISCC EU\nSupport received: investment grant (PRTR)').custody.supportDeclared).toBe('INVESTMENT');
+    expect(parseProofOfSustainability('ISCC EU\nOperating aid received: yes (feed-in tariff)').custody.supportDeclared).toBe('OPERATING');
+  });
+
+  it('reads European-format quantities and GWh', () => {
+    expect(parseProofOfSustainability('ISCC EU\nQuantity: 25.000 MWh').custody.mwh).toBe(25000);
+    expect(parseProofOfSustainability('ISCC EU\nVolume: 1,5 GWh').custody.mwh).toBe(1500);
+  });
+});

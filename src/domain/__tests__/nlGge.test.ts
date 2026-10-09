@@ -113,7 +113,7 @@ describe('Job GGE-1 — NL_GGE Market, Valuation and Chain of Custody', () => {
       const cv = netback.certificateValue!;
       expect(cv.unitConversion).toContain('= 388.8 GGE per GO MWh');
       expect(cv.valueEurPerMWh).toBe(174.96);
-      const goMwh = esManureGgeConsignment.custody!.go!.energyMWh;
+      const goMwh = esManureGgeConsignment.custody!.go!.energyMWh!;
       expect(Math.round((cv.valueEurPerMWh! / 0.45) * goMwh)).toBe(388_800);
       expect(Math.round(cv.valueEurPerMWh! * goMwh)).toBe(174_960);
 

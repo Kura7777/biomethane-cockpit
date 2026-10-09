@@ -56,7 +56,8 @@ export interface GoRecord {
   issueDate: string;
   productionStart: string;
   productionEnd: string;
-  energyMWh: number;
+  /** null until entered. */
+  energyMWh: number | null;
   energyBasis: EnergyBasis;
   supportType: SupportType;
   gridInjected: boolean | null;
@@ -67,17 +68,19 @@ export interface PosFeedstockShare {
   pctOfReduction: number;
 }
 
+/** A PoS record as captured on the deal. A field the desk (or the uploader) could not fill stays null. */
 export interface PosRecord {
-  posNumber: string;
+  posNumber: string | null;
   udbNumber?: string | null;
-  scheme: string;
-  feedstock: string;
-  feedstockOriginCountry: string;
+  scheme: string | null;
+  feedstock: string | null;
+  feedstockOriginCountry: string | null;
   feedstockShares: PosFeedstockShare[];
   ciTotal: number | null;
+  /** Per-step Annex VI values (gCO2e/MJ), keyed by step name (eec, el, ep, etd, eu, esca, eccs, eccr). */
   ciSteps: Record<string, number> | null;
   supportDeclared: SupportType;
-  mwh: number;
+  mwh: number | null;
 }
 
 export interface Claims {
