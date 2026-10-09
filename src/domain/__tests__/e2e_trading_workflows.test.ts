@@ -28,6 +28,11 @@ import { MarksState, CostInputs } from '../netback/types';
 import { generateTradeSummary } from '../trade/summary';
 import { assessmentContainsPraData } from '../trade/licensing';
 import { TradeAssessment } from '../trade/types';
+import type { EligibilityAssessment } from '../eligibility/types';
+
+/** UDB, cross-border PoS and registry transfer are items of the one Chain-of-custody gate (job GGE-1 step 5). */
+const cocItem = (a: EligibilityAssessment, id: string) =>
+  a.gates.find(g => g.gate === 'CHAIN_OF_CUSTODY')?.checklist?.find(i => i.id === id);
 
 // ============================================================================
 // FIXTURES & BASE TEST DATA
@@ -135,15 +140,15 @@ describe('E2E Trading Workflows & Multi-Tier Regulatory Stress Suite (Milestone 
 
         // RECORDED state -> PASS
         const cRecorded: Consignment = { ...REFERENCE_CONSIGNMENTS.DANISH_MANURE, udbStatus: 'RECORDED', injectionIsEU: true };
-        expect(evaluateEligibility(cRecorded, deMarket).gates.find(g => g.gate === 'UDB_RECORDING')?.verdict).toBe('PASS');
+        expect(cocItem(evaluateEligibility(cRecorded, deMarket), 'udb-recording')?.status).toBe('PASS');
 
         // PENDING state -> CONDITIONAL
         const cPending: Consignment = { ...REFERENCE_CONSIGNMENTS.DANISH_MANURE, udbStatus: 'PENDING', injectionIsEU: true };
-        expect(evaluateEligibility(cPending, deMarket).gates.find(g => g.gate === 'UDB_RECORDING')?.verdict).toBe('CONDITIONAL');
+        expect(cocItem(evaluateEligibility(cPending, deMarket), 'udb-recording')?.status).toBe('WARN');
 
         // NOT_RECORDED state -> CONDITIONAL
         const cNotRecorded: Consignment = { ...REFERENCE_CONSIGNMENTS.DANISH_MANURE, udbStatus: 'NOT_RECORDED', injectionIsEU: true };
-        expect(evaluateEligibility(cNotRecorded, deMarket).gates.find(g => g.gate === 'UDB_RECORDING')?.verdict).toBe('CONDITIONAL');
+        expect(cocItem(evaluateEligibility(cNotRecorded, deMarket), 'udb-recording')?.status).toBe('WARN');
       });
 
       it('strictly HARD_BLOCKs third-country non-EU grid injection (GB, CH) from UDB compliance markets', () => {
@@ -155,9 +160,9 @@ describe('E2E Trading Workflows & Multi-Tier Regulatory Stress Suite (Milestone 
           udbStatus: 'NOT_RECORDED'
         };
         const assessment = evaluateEligibility(cUkGrid, deMarket);
-        const udbGate = assessment.gates.find(g => g.gate === 'UDB_RECORDING')!;
-        expect(udbGate.verdict).toBe('HARD_BLOCK');
-        expect(udbGate.reason).toContain('non-EU gas grid (GB)');
+        const udbItem = cocItem(assessment, 'udb-recording')!;
+        expect(udbItem.status).toBe('FAIL');
+        expect(udbItem.detail).toContain('non-EU gas grid (GB)');
         expect(assessment.overallVerdict).toBe('HARD_BLOCK');
       });
 
@@ -167,9 +172,9 @@ describe('E2E Trading Workflows & Multi-Tier Regulatory Stress Suite (Milestone 
 
         for (const market of noUdbMarkets) {
           const assessment = evaluateEligibility(cUkGrid, market);
-          const udbGate = assessment.gates.find(g => g.gate === 'UDB_RECORDING')!;
-          expect(udbGate.verdict).toBe('PASS');
-          expect(udbGate.reason).toContain('does not require Union Database recording');
+          const udbItem = cocItem(assessment, 'udb-recording')!;
+          expect(udbItem.status).toBe('PASS');
+          expect(udbItem.detail).toContain('does not require Union Database recording');
         }
       });
     });
@@ -179,8 +184,10 @@ describe('E2E Trading Workflows & Multi-Tier Regulatory Stress Suite (Milestone 
         const complianceMarket = getMarketById('NL_ERE')!;
         for (const coc of ['MASS_BALANCE', 'SEGREGATION'] as ChainOfCustody[]) {
           const c: Consignment = { ...REFERENCE_CONSIGNMENTS.DANISH_MANURE, chainOfCustody: coc };
-          const gate = evaluateEligibility(c, complianceMarket).gates.find(g => g.gate === 'CHAIN_OF_CUSTODY')!;
-          expect(gate.verdict).toBe('PASS');
+          // Spec es-nl-gge-trade-spec-2026-10-09 / job GGE-1 step 5: mass balance is no longer an
+          // unconditional PASS of the whole gate (DK -> NL_ERE now fails its PoS-route item there);
+          // the custody model item itself still passes.
+          expect(cocItem(evaluateEligibility(c, complianceMarket), 'coc-model')?.status).toBe('PASS');
         }
       });
 
@@ -606,26 +613,27 @@ describe('E2E Trading Workflows & Multi-Tier Regulatory Stress Suite (Milestone 
             // INVARIANT 1: Assessment must have a defined overallVerdict
             expect(assessment.overallVerdict).toBeDefined();
             expect(['ELIGIBLE', 'CONDITIONAL', 'HARD_BLOCK', 'UNRESOLVED', 'UNKNOWN']).toContain(assessment.overallVerdict);
-            // Extra gates: REGISTRY_TRANSFER (GO markets) or CROSS_BORDER_POS (audited compliance schemes, cross-border only)
-            const posGates = assessment.gates.filter(g => g.gate === 'CROSS_BORDER_POS').length;
+            // 5 gates; registry transfer (GO markets) or cross-border PoS (audited compliance schemes,
+            // cross-border only) are items of the Chain-of-custody gate.
+            expect(assessment.gates.length).toBe(5);
+            const posItem = cocItem(assessment, 'cross-border-pos');
+            const registryItem = cocItem(assessment, 'registry-transfer');
             if (isGoTransferMarket(market)) {
-              expect(assessment.gates.length).toBe(7);
-              expect(posGates).toBe(0);
+              expect(posItem).toBeUndefined();
             } else {
-              expect(assessment.gates.length).toBe(6 + posGates);
-              expect(posGates).toBeLessThanOrEqual(1);
+              expect(registryItem).toBeUndefined();
             }
 
             // INVARIANT 2: Non-EU grid injection (GB, CH) MUST be HARD_BLOCK for any market requiring UDB
             if (!origin.isEU && market.requiresUDB) {
               expect(assessment.overallVerdict).toBe('HARD_BLOCK');
-              expect(assessment.blockingGate).toBe('UDB_RECORDING');
+              expect(assessment.blockingGate).toBe('CHAIN_OF_CUSTODY');
+              expect(cocItem(assessment, 'udb-recording')?.status).toBe('FAIL');
             }
 
             // INVARIANT 3: Non-EU origin entering UK_RTFO or VOL_SCOPE1 MUST NOT be blocked by UDB
             if (!origin.isEU && (market.id === 'UK_RTFO' || market.id === 'VOL_SCOPE1')) {
-              const udbGate = assessment.gates.find(g => g.gate === 'UDB_RECORDING')!;
-              expect(udbGate.verdict).toBe('PASS');
+              expect(cocItem(assessment, 'udb-recording')?.status).toBe('PASS');
             }
 
             // INVARIANT 4: Netback certificate value calculation should execute cleanly
@@ -775,7 +783,8 @@ describe('E2E Trading Workflows & Multi-Tier Regulatory Stress Suite (Milestone 
       const assessment = evaluateEligibility(consignment, market);
       // Audit 2026-10-04: CPB are earned only by biomethane injected in France, so NL-injected gas is blocked
       expect(assessment.overallVerdict).toBe('HARD_BLOCK');
-      expect(assessment.blockingGate).toBe('CROSS_BORDER_POS');
+      expect(assessment.blockingGate).toBe('CHAIN_OF_CUSTODY');
+      expect(cocItem(assessment, 'cross-border-pos')?.status).toBe('FAIL');
 
       // Test with broker mark above €100 cap
       const highCpbMarks: MarksState = {
@@ -859,8 +868,8 @@ describe('E2E Trading Workflows & Multi-Tier Regulatory Stress Suite (Milestone 
       const deMarket = getMarketById('DE_THG')!;
       const deAssessment = evaluateEligibility(consignment, deMarket);
       expect(deAssessment.overallVerdict).toBe('HARD_BLOCK');
-      expect(deAssessment.blockingGate).toBe('UDB_RECORDING');
-      expect(deAssessment.gates.find(g => g.gate === 'UDB_RECORDING')?.remedy).toContain('RTFO');
+      expect(deAssessment.blockingGate).toBe('CHAIN_OF_CUSTODY');
+      expect(cocItem(deAssessment, 'udb-recording')?.remedy).toContain('RTFO');
 
       // 2. UK RTFO must PASS
       const ukMarket = getMarketById('UK_RTFO')!;

@@ -3,6 +3,15 @@ import { evaluateEligibility } from '../eligibility/engine';
 import { getMarketById } from '../markets/registry';
 import { REFERENCE_CONSIGNMENTS } from '../consignment/feedstocks';
 import type { Consignment } from '../consignment/types';
+import type { EligibilityAssessment } from '../eligibility/types';
+
+/** Cross-border PoS and registry transfer are items of the one Chain-of-custody gate (job GGE-1 step 5).
+ * Item status maps back to the helper verdict it was folded from (TODO ← UNRESOLVED for these helpers). */
+const STATUS_TO_VERDICT = { PASS: 'PASS', WARN: 'CONDITIONAL', FAIL: 'HARD_BLOCK', TODO: 'UNRESOLVED' } as const;
+function foldedItem(a: EligibilityAssessment, id: string) {
+  const item = a.gates.find(g => g.gate === 'CHAIN_OF_CUSTODY')?.checklist?.find(i => i.id === id);
+  return item && { verdict: STATUS_TO_VERDICT[item.status], reason: item.detail, remedy: item.remedy, citations: item.citations };
+}
 
 function consignmentFrom(iso: string, custody: Consignment['chainOfCustody'] = 'BOOK_AND_CLAIM'): Consignment {
   return {
@@ -16,7 +25,7 @@ function consignmentFrom(iso: string, custody: Consignment['chainOfCustody'] = '
 
 function gateFor(origin: string, marketId: string) {
   const a = evaluateEligibility(consignmentFrom(origin), getMarketById(marketId)!);
-  return { a, gate: a.gates.find(g => g.gate === 'REGISTRY_TRANSFER') };
+  return { a, gate: foldedItem(a, 'registry-transfer') };
 }
 
 describe('REGISTRY_TRANSFER gate (GO markets)', () => {
@@ -28,7 +37,7 @@ describe('REGISTRY_TRANSFER gate (GO markets)', () => {
   it('DK -> DE_GO passes (dena lists Energinet on ERGaR)', () => {
     expect(gateFor('DK', 'DE_GO').gate?.verdict).toBe('PASS');
   });
-  it.each(['ES_GDO', 'FR_GO', 'AIB_GO'])('DK -> %s is HARD_BLOCK at REGISTRY_TRANSFER', id => {
+  it.each(['ES_GDO', 'FR_GO', 'AIB_GO'])('DK -> %s is HARD_BLOCK at the registry-transfer item', id => {
     const { a, gate } = gateFor('DK', id);
     expect(gate?.verdict).toBe('HARD_BLOCK');
     expect(gate?.remedy).toBeTruthy();
@@ -64,6 +73,8 @@ describe('REGISTRY_TRANSFER gate (GO markets)', () => {
     expect(gateFor('DK', 'VOL_SCOPE1').gate?.verdict).toBe('PASS');
     expect(gateFor('PL', 'VOL_SCOPE1').gate?.verdict).toBe('CONDITIONAL');
     expect(gateFor('GR', 'VOL_SCOPE1').gate?.verdict).toBe('UNRESOLVED');
+    // The folded gate keeps the helper's UNRESOLVED rather than flattening it to CONDITIONAL.
+    expect(gateFor('GR', 'VOL_SCOPE1').a.gates.find(g => g.gate === 'CHAIN_OF_CUSTODY')?.verdict).toBe('UNRESOLVED');
   });
   it('VOL_EU_ETS is not a GO transfer market', () => {
     expect(gateFor('DK', 'VOL_EU_ETS').gate).toBeUndefined();
@@ -73,16 +84,16 @@ describe('REGISTRY_TRANSFER gate (GO markets)', () => {
 describe('REGISTRY_TRANSFER gate does not apply to compliance (PoS / mass balance) markets', () => {
   it.each(['DE_THG', 'NL_ERE', 'FR_CPB', 'IT_CIC'])('DK -> %s has no REGISTRY_TRANSFER gate', id => {
     const a = evaluateEligibility(consignmentFrom('DK', 'MASS_BALANCE'), getMarketById(id)!);
-    expect(a.gates.some(g => g.gate === 'REGISTRY_TRANSFER')).toBe(false);
+    expect(foldedItem(a, 'registry-transfer')).toBeUndefined();
   });
-  it.each(['DE_THG', 'NL_ERE', 'IT_CIC'])('DK -> %s carries 7 gates (6 + CROSS_BORDER_POS)', id => {
+  it.each(['DE_THG', 'NL_ERE', 'IT_CIC'])('DK -> %s carries 5 gates, with the cross-border PoS item in Chain of custody', id => {
     const a = evaluateEligibility(consignmentFrom('DK', 'MASS_BALANCE'), getMarketById(id)!);
-    expect(a.gates).toHaveLength(7);
-    expect(a.gates.some(g => g.gate === 'CROSS_BORDER_POS')).toBe(true);
+    expect(a.gates).toHaveLength(5);
+    expect(foldedItem(a, 'cross-border-pos')).toBeDefined();
   });
-  it('DK -> FR_CPB is an audited scheme (French-injected gas only): CROSS_BORDER_POS applies, 7 gates', () => {
+  it('DK -> FR_CPB is an audited scheme (French-injected gas only): cross-border PoS item applies, 5 gates', () => {
     const a = evaluateEligibility(consignmentFrom('DK', 'MASS_BALANCE'), getMarketById('FR_CPB')!);
-    expect(a.gates.some(g => g.gate === 'CROSS_BORDER_POS')).toBe(true);
-    expect(a.gates).toHaveLength(7);
+    expect(foldedItem(a, 'cross-border-pos')).toBeDefined();
+    expect(a.gates).toHaveLength(5);
   });
 });

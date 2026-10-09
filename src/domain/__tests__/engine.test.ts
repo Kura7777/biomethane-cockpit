@@ -20,6 +20,11 @@ import { migrateState, createDefaultState, CURRENT_SCHEMA_VERSION } from '../../
 import { REFERENCE_CONSIGNMENTS } from '../consignment/feedstocks';
 import { calculateRealisticCommercialDeskMargin } from '../arbitrage/origins';
 import { BIOMETHANE_PLANTS, getPlantsByCountry } from '../plants/registry';
+import type { EligibilityAssessment } from '../eligibility/types';
+
+/** UDB, cross-border PoS and registry transfer are items of the one Chain-of-custody gate (job GGE-1 step 5). */
+const cocItem = (a: EligibilityAssessment, id: string) =>
+  a.gates.find(g => g.gate === 'CHAIN_OF_CUSTODY')?.checklist?.find(i => i.id === id);
 
 const emptyCosts: CostInputs = {
   transferCosts: null,
@@ -69,11 +74,11 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
       const assessment = evaluateEligibility(consignment, deMarket);
       expect(assessment.overallVerdict).toBe('HARD_BLOCK');
 
-      const udbGate = assessment.gates.find(g => g.gate === 'UDB_RECORDING');
-      expect(udbGate).toBeDefined();
-      expect(udbGate?.verdict).toBe('HARD_BLOCK');
-      expect(udbGate?.reason).toContain('non-EU gas grid');
-      expect(udbGate?.remedy).toContain('RTFO');
+      const udbItem = cocItem(assessment, 'udb-recording');
+      expect(udbItem).toBeDefined();
+      expect(udbItem?.status).toBe('FAIL');
+      expect(udbItem?.detail).toContain('non-EU gas grid');
+      expect(udbItem?.remedy).toContain('RTFO');
     });
 
     it('§E2: Danish manure, EU grid, ISCC EU, mass balance, UDB recorded ➔ DE_THG passes market-specific gate at 1× single counting (Drs 21/5530)', () => {
@@ -91,7 +96,7 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
       expect(netback.certificateValue?.statusNote).toContain('Compliance year not set — assumed 2026+ (single counting)');
     });
 
-    it('§E3: Danish manure ➔ FR_CPB and NL_ERE are HARD_BLOCK at CROSS_BORDER_POS (CPB: French-injected gas only; Regeling energie vervoer Art. 7: Dutch-produced green gas only)', () => {
+    it('§E3: Danish manure ➔ FR_CPB and NL_ERE are HARD_BLOCK at the cross-border PoS item (CPB: French-injected gas only; Regeling energie vervoer Art. 7: Dutch-produced green gas only)', () => {
       const consignment = REFERENCE_CONSIGNMENTS.DANISH_MANURE;
       const frMarket = getMarketById('FR_CPB')!;
       const nlMarket = getMarketById('NL_ERE')!;
@@ -100,9 +105,11 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
       const nlAssessment = evaluateEligibility(consignment, nlMarket);
 
       expect(frAssessment.overallVerdict).toBe('HARD_BLOCK');
-      expect(frAssessment.blockingGate).toBe('CROSS_BORDER_POS');
+      expect(frAssessment.blockingGate).toBe('CHAIN_OF_CUSTODY');
+      expect(cocItem(frAssessment, 'cross-border-pos')?.status).toBe('FAIL');
       expect(nlAssessment.overallVerdict).toBe('HARD_BLOCK');
-      expect(nlAssessment.blockingGate).toBe('CROSS_BORDER_POS');
+      expect(nlAssessment.blockingGate).toBe('CHAIN_OF_CUSTODY');
+      expect(cocItem(nlAssessment, 'cross-border-pos')?.status).toBe('FAIL');
     });
 
     it('§E4: ISCC PLUS consignment ➔ all compliance markets blocked at scheme gate, voluntary passes', () => {
@@ -816,8 +823,7 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
       const ukConsignment = REFERENCE_CONSIGNMENTS.UK_FOOD_WASTE;
       const ukEligibility = evaluateEligibility(ukConsignment, deMarket);
       expect(ukEligibility.overallVerdict).toBe('HARD_BLOCK');
-      const udbGate = ukEligibility.gates.find(g => g.gate === 'UDB_RECORDING');
-      expect(udbGate?.verdict).toBe('HARD_BLOCK');
+      expect(cocItem(ukEligibility, 'udb-recording')?.status).toBe('FAIL');
 
       // 7. All plant records have verified attributes
       expect(BIOMETHANE_PLANTS.length).toBeGreaterThan(1900);

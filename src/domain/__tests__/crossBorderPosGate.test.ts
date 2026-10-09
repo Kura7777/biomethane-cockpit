@@ -3,6 +3,15 @@ import { evaluateEligibility } from '../eligibility/engine';
 import { getMarketById } from '../markets/registry';
 import { REFERENCE_CONSIGNMENTS } from '../consignment/feedstocks';
 import type { Consignment } from '../consignment/types';
+import type { EligibilityAssessment } from '../eligibility/types';
+
+/** Cross-border PoS and registry transfer are items of the one Chain-of-custody gate (job GGE-1 step 5).
+ * Item status maps back to the helper verdict it was folded from (TODO ← UNRESOLVED for these helpers). */
+const STATUS_TO_VERDICT = { PASS: 'PASS', WARN: 'CONDITIONAL', FAIL: 'HARD_BLOCK', TODO: 'UNRESOLVED' } as const;
+function foldedItem(a: EligibilityAssessment, id: string) {
+  const item = a.gates.find(g => g.gate === 'CHAIN_OF_CUSTODY')?.checklist?.find(i => i.id === id);
+  return item && { verdict: STATUS_TO_VERDICT[item.status], reason: item.detail, remedy: item.remedy, citations: item.citations };
+}
 
 function consignmentFrom(iso: string): Consignment {
   return {
@@ -16,7 +25,7 @@ function consignmentFrom(iso: string): Consignment {
 
 function posGate(origin: string, marketId: string) {
   const a = evaluateEligibility(consignmentFrom(origin), getMarketById(marketId)!);
-  return a.gates.find(g => g.gate === 'CROSS_BORDER_POS');
+  return foldedItem(a, 'cross-border-pos');
 }
 
 const EU = ['AT', 'BE', 'BG', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'NL', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK'];
@@ -53,7 +62,7 @@ describe('CROSS_BORDER_POS gate: audited spot checks (2026-10-04)', () => {
     expect(g?.citations.length).toBeGreaterThan(0);
     expect(g?.citations[0].sourceUrl).toMatch(/^https?:\/\//);
   });
-  it('gate is omitted for domestic trades and GO markets', () => {
+  it('item is omitted for domestic trades and GO markets', () => {
     expect(posGate('NL', 'NL_ERE')).toBeUndefined();
     expect(posGate('DK', 'FR_CPB')?.verdict).toBe('HARD_BLOCK'); // FR_CPB audited: French-injected gas only
     expect(posGate('DK', 'ES_GDO')).toBeUndefined();

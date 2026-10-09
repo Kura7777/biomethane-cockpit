@@ -12,6 +12,11 @@ import { getMarketById, MARKETS } from '../markets/registry';
 import { Consignment } from '../consignment/types';
 import { MarksState, CostInputs } from '../netback/types';
 import { REFERENCE_CONSIGNMENTS } from '../consignment/feedstocks';
+import type { EligibilityAssessment } from '../eligibility/types';
+
+/** UDB, cross-border PoS and registry transfer are items of the one Chain-of-custody gate (job GGE-1 step 5). */
+const cocItem = (a: EligibilityAssessment, id: string) =>
+  a.gates.find(g => g.gate === 'CHAIN_OF_CUSTODY')?.checklist?.find(i => i.id === id);
 
 const zeroCosts: CostInputs = {
   transferCosts: 0,
@@ -66,12 +71,12 @@ describe('Empirical Challenger 2 — Regulatory Boundary Conditions & Mathematic
       for (const market of euUdbMarkets) {
         const assessment = evaluateEligibility(ukGridConsignment, market);
         expect(assessment.overallVerdict).toBe('HARD_BLOCK');
-        expect(assessment.blockingGate).toBe('UDB_RECORDING');
+        expect(assessment.blockingGate).toBe('CHAIN_OF_CUSTODY');
         
-        const udbGate = assessment.gates.find(g => g.gate === 'UDB_RECORDING');
-        expect(udbGate?.verdict).toBe('HARD_BLOCK');
-        expect(udbGate?.reason).toContain('non-EU gas grid (GB)');
-        expect(udbGate?.reason).toContain('Union Database operates within the EU regulatory perimeter only');
+        const udbItem = cocItem(assessment, 'udb-recording');
+        expect(udbItem?.status).toBe('FAIL');
+        expect(udbItem?.detail).toContain('non-EU gas grid (GB)');
+        expect(udbItem?.detail).toContain('Union Database operates within the EU regulatory perimeter only');
       }
     });
 
@@ -99,7 +104,7 @@ describe('Empirical Challenger 2 — Regulatory Boundary Conditions & Mathematic
       expect(frAssessment.overallVerdict).toBe('HARD_BLOCK');
       expect(nlAssessment.overallVerdict).toBe('HARD_BLOCK');
 
-      expect(deAssessment.gates.find(g => g.gate === 'UDB_RECORDING')?.verdict).toBe('HARD_BLOCK');
+      expect(cocItem(deAssessment, 'udb-recording')?.status).toBe('FAIL');
     });
 
     it('Allows domestic UK gas to clear UK RTFO and voluntary Scope 1 without EU UDB block', () => {
@@ -111,8 +116,8 @@ describe('Empirical Challenger 2 — Regulatory Boundary Conditions & Mathematic
       const volAssessment = evaluateEligibility(ukConsignment, volMarket);
 
       // UK RTFO and Voluntary do not require EU UDB
-      expect(rtfoAssessment.gates.find(g => g.gate === 'UDB_RECORDING')?.verdict).toBe('PASS');
-      expect(volAssessment.gates.find(g => g.gate === 'UDB_RECORDING')?.verdict).toBe('PASS');
+      expect(cocItem(rtfoAssessment, 'udb-recording')?.status).toBe('PASS');
+      expect(cocItem(volAssessment, 'udb-recording')?.status).toBe('PASS');
       expect(rtfoAssessment.overallVerdict).not.toBe('HARD_BLOCK');
       expect(volAssessment.overallVerdict).toBe('ELIGIBLE');
     });
@@ -140,9 +145,9 @@ describe('Empirical Challenger 2 — Regulatory Boundary Conditions & Mathematic
       const penResult = evaluateEligibility(pendingConsignment, frMarket);
       const notResult = evaluateEligibility(notRecordedConsignment, frMarket);
 
-      expect(recResult.gates.find(g => g.gate === 'UDB_RECORDING')?.verdict).toBe('PASS');
-      expect(penResult.gates.find(g => g.gate === 'UDB_RECORDING')?.verdict).toBe('CONDITIONAL');
-      expect(notResult.gates.find(g => g.gate === 'UDB_RECORDING')?.verdict).toBe('CONDITIONAL');
+      expect(cocItem(recResult, 'udb-recording')?.status).toBe('PASS');
+      expect(cocItem(penResult, 'udb-recording')?.status).toBe('WARN');
+      expect(cocItem(notResult, 'udb-recording')?.status).toBe('WARN');
     });
   });
 
@@ -332,7 +337,10 @@ describe('Empirical Challenger 2 — Regulatory Boundary Conditions & Mathematic
 
         const cocGate = assessment.gates.find(g => g.gate === 'CHAIN_OF_CUSTODY');
         expect(cocGate?.verdict).toBe('HARD_BLOCK');
-        expect(cocGate?.reason).toContain('Book-and-claim chain of custody does not meet RED III requirements');
+        // Paired GO + PoS markets (NL_GGE) flag it on the GO + PoS pairing item; others on the model item.
+        const modelItem = cocItem(assessment, market.requiresGoAndPos ? 'go-pos-pairing' : 'coc-model');
+        expect(modelItem?.status).toBe('FAIL');
+        expect(modelItem?.detail).toContain('Book-and-claim chain of custody does not meet RED III requirements');
       }
     });
 
@@ -346,9 +354,9 @@ describe('Empirical Challenger 2 — Regulatory Boundary Conditions & Mathematic
       expect(bcAllowedMarkets.length).toBeGreaterThanOrEqual(1);
 
       for (const market of bcAllowedMarkets) {
+        // The gate also carries the registry transfer now; the custody model itself must still pass.
         const assessment = evaluateEligibility(bcConsignment, market);
-        const cocGate = assessment.gates.find(g => g.gate === 'CHAIN_OF_CUSTODY');
-        expect(cocGate?.verdict).toBe('PASS');
+        expect(cocItem(assessment, 'coc-model')?.status).toBe('PASS');
       }
     });
 
@@ -362,11 +370,12 @@ describe('Empirical Challenger 2 — Regulatory Boundary Conditions & Mathematic
         chainOfCustody: 'SEGREGATION',
       };
 
-      for (const market of MARKETS) {
-        const mbGate = evaluateEligibility(mbConsignment, market).gates.find(g => g.gate === 'CHAIN_OF_CUSTODY');
-        const segGate = evaluateEligibility(segConsignment, market).gates.find(g => g.gate === 'CHAIN_OF_CUSTODY');
-        expect(mbGate?.verdict).toBe('PASS');
-        expect(segGate?.verdict).toBe('PASS');
+      // Spec es-nl-gge-trade-spec-2026-10-09 / job GGE-1 step 5: mass balance is no longer an
+      // unconditional PASS of the whole Chain-of-custody gate — the gate now also carries UDB, PoS
+      // route and registry checks per market. The custody model item itself still passes.
+      for (const market of MARKETS.filter(m => !m.requiresGoAndPos)) {
+        expect(cocItem(evaluateEligibility(mbConsignment, market), 'coc-model')?.status, market.id).toBe('PASS');
+        expect(cocItem(evaluateEligibility(segConsignment, market), 'coc-model')?.status, market.id).toBe('PASS');
       }
     });
   });
