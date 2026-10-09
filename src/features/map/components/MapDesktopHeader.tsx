@@ -6,7 +6,6 @@ import {
   MapView,
   SellCategory
 } from '../mapConstants';
-import { MarketConfig } from '../../../domain/markets/types';
 
 interface MapDesktopHeaderProps {
   view: MapView;
@@ -15,7 +14,7 @@ interface MapDesktopHeaderProps {
   origin: string;
   target: string;
   sortedCountries: Array<[string, CountryMeta]>;
-  currentTradeTarget: MarketConfig | null;
+  currentTradeTarget: unknown;
   setOriginFromMenu: (val: string) => void;
   setTargetFromMenu: (val: string) => void;
   setOrigin: (val: string) => void;

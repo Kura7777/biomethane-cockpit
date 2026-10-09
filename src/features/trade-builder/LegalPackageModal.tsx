@@ -113,11 +113,11 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
       masterAgreementDate={masterAgreementDate}
       sellerName={sellerName}
       buyerName={buyerName}
-      onDeskRoleChange={setDeskRole}
-      onDeskEntityChange={setDeskEntity}
-      onCounterpartyNameChange={setCounterpartyName}
-      onGoverningLawChange={setGoverningLaw}
-      onMasterAgreementDateChange={setMasterAgreementDate}
+      setDeskRole={setDeskRole}
+      setDeskEntity={setDeskEntity}
+      setCounterpartyName={setCounterpartyName}
+      setGoverningLaw={setGoverningLaw}
+      setMasterAgreementDate={setMasterAgreementDate}
     />
   );
 

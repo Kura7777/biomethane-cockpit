@@ -13,8 +13,7 @@ import {
 import { MapSvgLayer } from './MapSvgLayer';
 import { MapCountryRailBody, MapCountryRailButtons } from './MapCountryRail';
 import { TradePlaybookDetails } from '../tradePlaybook';
-import { CrossBorderRouteResult } from '../../../domain/logistics/crossBorderTariffs';
-import { MarketConfig } from '../../../domain/markets/types';
+import { CertificateRoute } from '../../../domain/registries/certificateRoutes';
 import { BiomethanePlant } from '../../../domain/plants/types';
 
 interface MapMobileViewProps {
@@ -28,19 +27,26 @@ interface MapMobileViewProps {
   setMode: (mode: 'ORIGIN' | 'TARGET') => void;
   view: MapView;
   filter: RouteFilter;
-  countryAcceptsForeign: Record<string, { status: AcceptForeignStatus; scheme: string; note: string }>;
-  routeByIso: Record<string, { category: SellCategory; totalTransitFeeEurMwh: number | null; corridorString: string; marketId: string }>;
+  countryAcceptsForeign: Record<string, { status: AcceptForeignStatus; schemeName?: string }>;
+  routeByIso: Record<string, CertificateRoute>;
   activeLinkedPlant: BiomethanePlant | null;
   panelOpen: boolean;
   setPanelOpen: (open: boolean) => void;
   sortedCountries: Array<[string, CountryMeta]>;
-  currentTradeTarget: MarketConfig | null;
+  currentTradeTarget: unknown;
   currentPlaybook: TradePlaybookDetails;
-  categoryCounts: { FULLY_TRADEABLE: number; SDE_PLUS_PLUS_ONLY: number; UNPROFITABLE: number; HARD_BLOCK: number };
-  tradeableBreakdown: { massBalanceYes: number; massBalanceNo: number };
-  topRoutes: Array<{ iso: string; name: string; category: SellCategory; transitFee: number | null; corridor: string; marketId: string }>;
-  corridorCalculation: CrossBorderRouteResult;
-  handleCountryClick: (name: string, meta: CountryMeta) => void;
+  categoryCounts: Record<SellCategory, number>;
+  tradeableBreakdown: { both: number; certOnly: number; posOnly: number };
+  topRoutes: Array<{ iso: string; name: string; badge: string }>;
+  corridorCalculation: {
+    modes: {
+      virtualSwap: { totalCostEurMwh: number | null; regulatoryFeasibility: string };
+      physicalPipeline: { totalCostEurMwh: number | null };
+      bioLng: { totalCostEurMwh: number | null };
+    };
+    physicalRoute?: { totalPhysicalTariffEurMwh: number | null };
+  };
+  handleCountryClick: (name: string) => void;
   setOriginFromMenu: (val: string) => void;
   setTargetFromMenu: (val: string) => void;
   setSelectedCountryName: (val: string) => void;
@@ -87,7 +93,7 @@ export function MapMobileView({
   setIsSummaryOpen,
 }: MapMobileViewProps) {
   const transitFigure =
-    corridorCalculation.physicalRoute.totalPhysicalTariffEurMwh !== null
+    corridorCalculation.physicalRoute?.totalPhysicalTariffEurMwh !== null && corridorCalculation.physicalRoute?.totalPhysicalTariffEurMwh !== undefined
       ? `€${corridorCalculation.physicalRoute.totalPhysicalTariffEurMwh.toFixed(2)}`
       : 'Unverified';
 

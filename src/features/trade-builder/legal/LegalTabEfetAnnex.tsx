@@ -37,7 +37,7 @@ export function LegalTabEfetAnnex({
   };
 
   const volumeLabel = c.volumeMWh != null ? `${c.volumeMWh.toLocaleString()} MWh` : TBA;
-  const pricingLines = describePricing(assessment, legalOptions.deskRole);
+  const pricingLines = describePricing(assessment, legalOptions.deskRole || 'SELLER');
   const attributeLabel = environmentalAttributeLabel(
     MARKETS.find(m => m.id === assessment.targetMarketId),
     assessment.targetMarketId,

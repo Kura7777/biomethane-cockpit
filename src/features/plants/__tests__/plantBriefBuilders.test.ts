@@ -13,6 +13,7 @@ describe('plantBriefBuilders', () => {
     country: 'Germany',
     countryCode: 'DE',
     countryFlag: '🇩🇪',
+    provenance: 'GIE/EBA European Biomethane Map 2026',
     operator: 'Danpower Energie GmbH',
     legalEntityName: 'Danpower Biogas KW GmbH',
     annualEnergyGWh: 75,
@@ -27,8 +28,6 @@ describe('plantBriefBuilders', () => {
     contactPhone: '+49 3375 12345',
     corporateWebsite: 'www.danpower.de',
     headquartersAddress: 'Potsdamer Str. 1, Berlin',
-    latitude: 52.3,
-    longitude: 13.6,
   };
 
   it('builds an authentic origination brief string with all parameters', () => {
@@ -75,7 +74,7 @@ describe('plantBriefBuilders', () => {
         },
       ]
     };
-    const best = getBestResearchContact(researchContacts);
+    const best = getBestResearchContact(researchContacts as unknown as Parameters<typeof getBestResearchContact>[0]);
     expect(best.isVerified).toBe(true);
     expect(best.text).toBe('SALES_OR_ENERGY_EMAIL: origination@company.com');
   });

@@ -10,7 +10,7 @@ import {
 import { MapLegend, MapViewToggle } from './MapLegend';
 
 interface MapOptionsPanelProps {
-  panelRef: React.RefObject<HTMLDivElement | null>;
+  panelRef: React.Ref<HTMLDivElement>;
   controlsOpen: boolean;
   setControlsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   view: MapView;

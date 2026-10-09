@@ -255,3 +255,5 @@ export function resolveCorridorParams(params: URLSearchParams): { origin: string
 
   return { origin: originName, target: targetName, filter: filterVal };
 }
+
+export { POSSIBLE_STATUSES };
