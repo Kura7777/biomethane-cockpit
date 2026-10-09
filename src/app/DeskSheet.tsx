@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Search, Scale, Sun, Moon, ChevronRight, Download, FolderOpen, Share } from 'lucide-react';
+import { Search, Scale, Sun, Moon, ChevronRight, Download, FolderOpen, Share, Sunrise } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Sheet } from '../shared/ui/Sheet';
 import { useAppState, buildDeskBackupFile } from '../store/context';
 import { useTheme } from '../store/theme';
@@ -73,10 +74,16 @@ export function DeskSheet({
 
   const showInstallSection = installState === 'available' || installState === 'ios';
 
+  const navigate = useNavigate();
   return (
     <Sheet open={open} onClose={onClose} title="Desk" testId="desk-sheet" ariaLabel="Desk">
       <div className="desk-sheet-group">
         <div className="desk-sheet-group-title">Tools</div>
+        <button type="button" className="desk-sheet-row" onClick={() => { onClose(); navigate('/'); }}>
+          <Sunrise size={17} className="desk-sheet-row-icon" aria-hidden="true" />
+          <span className="desk-sheet-row-label">Morning brief</span>
+          <ChevronRight size={16} className="desk-sheet-row-chevron" aria-hidden="true" />
+        </button>
         <button type="button" className="desk-sheet-row" onClick={() => { onClose(); onOpenPalette(); }}>
           <Search size={17} className="desk-sheet-row-icon" aria-hidden="true" />
           <span className="desk-sheet-row-label">Search commands</span>
