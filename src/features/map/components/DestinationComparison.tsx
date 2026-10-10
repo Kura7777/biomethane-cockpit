@@ -3,6 +3,7 @@ import { useAppState } from '../../../store/context';
 import { compareDestinationsForPlant } from '../../../domain/arbitrage/plantDestinations';
 import { buildDealUrl, DEAL_ROUTE } from '../../../domain/trade/dealParams';
 import { BiomethanePlant } from '../../../domain/plants/types';
+import { Term } from '../../glossary/Term';
 import { usePageContext } from '../../helper/usePageContext';
 
 interface DestinationComparisonProps {
@@ -10,6 +11,9 @@ interface DestinationComparisonProps {
   origin: string;
   plant: BiomethanePlant | null;
 }
+
+/** Markets whose short name has a glossary entry. */
+const MARKET_TERM: Record<string, string> = { NL_GGE: 'gge', DE_THG: 'thg-quote', NL_ERE: 'ere', FR_CPB: 'cpb' };
 
 const VERDICT_LABEL: Record<string, { label: string; chip: string }> = {
   ELIGIBLE: { label: 'Eligible', chip: 'chip-pass' },
@@ -53,7 +57,7 @@ export function DestinationComparison({ origin, plant }: DestinationComparisonPr
           return (
             <div key={r.marketId} data-testid={`dest-row-${r.marketId}`} style={{ padding: '8px 0', borderTop: '1px solid var(--color-divider)' }}>
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
-                <strong style={{ fontSize: '13px' }}>{r.shortName}</strong>
+                <strong style={{ fontSize: '13px' }}>{MARKET_TERM[r.marketId] ? <Term id={MARKET_TERM[r.marketId]}>{r.shortName}</Term> : r.shortName}</strong>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                   <span className={`chip ${v.chip}`} style={{ fontSize: '11px' }}>{v.label}</span>
                   <span className="num" style={{ fontSize: '13px', fontWeight: 700 }} data-testid={`dest-value-${r.marketId}`}>

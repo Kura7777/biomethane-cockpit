@@ -4,6 +4,7 @@ import type { BriefLadderRow } from '../../domain/briefing/morningBrief';
 import type { Consignment } from '../../domain/consignment/types';
 import { buildDealUrl } from '../../domain/trade/dealParams';
 import { Chips, pctOf, Tip, type TipState, fmt1, fmt2, linear, pointIn, prefersMotion, ticks, useWidth } from './briefUi';
+import { Term } from '../glossary/Term';
 
 const VERDICT_CLASS: Record<string, string> = { ELIGIBLE: 'ok', CONDITIONAL: 'ok', UNRESOLVED: 'warn', HARD_BLOCK: 'neg', UNKNOWN: 'neg' };
 const verdictText = (v: string) => v.replace(/_/g, ' ').toLowerCase();
@@ -60,7 +61,7 @@ export function BriefLadder({
       </div>
       <div className="bf-split">
         <div className="bf-card bf-rise">
-          <h3>Netback ladder · {data.filter(d => d.rank !== null).length} tradeable of {rows.length}</h3>
+          <h3><Term id="netback">Netback</Term> ladder · {data.filter(d => d.rank !== null).length} tradeable of {rows.length}</h3>
           <p className="note">
             €/MWh net to the desk.{' '}
             <label style={{ cursor: 'pointer' }}>

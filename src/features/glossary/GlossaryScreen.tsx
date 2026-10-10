@@ -2,6 +2,11 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ChevronDown, ExternalLink, Search } from 'lucide-react';
 import { GLOSSARY, GlossaryEntry, GLOSSARY_BY_ID, normaliseGlossaryText, searchGlossary } from '../../domain/help/glossary';
+import { termStatus } from '../../domain/help/termStatus';
+import { termExample } from '../../domain/help/termExamples';
+import { REGCHECK_WATCHLIST } from '../../domain/regcheck/watchlist';
+import { useOptionalAppState } from '../../store/context';
+import { TermStatusBadge } from './TermStatusBadge';
 import './glossary.css';
 
 /** First letter of the term for the A–Z grouping; anything that is not a letter files under #. */
@@ -19,13 +24,33 @@ function resolveTermParam(param: string | null): string | null {
   return hit ? hit.id : null;
 }
 
+/** Live worked example for a formula term; recomputed from the desk's marks and costs. */
+function WorkedExample({ id }: { id: string }) {
+  const app = useOptionalAppState();
+  const marks = app?.state.marks;
+  const costs = app?.state.costs;
+  const example = useMemo(() => (marks && costs ? termExample(id, { marks, costs }) : null), [id, marks, costs]);
+  if (!example) return null;
+  return (
+    <div className="gl-block gl-example" data-testid="glossary-example">
+      <div className="eyebrow">Worked example (live)</div>
+      <ul className="gl-example-lines">
+        {example.lines.map((l, i) => <li key={i}>{l}</li>)}
+      </ul>
+      <p className="gl-example-inputs mut">{example.inputs} <Link to="/pricing">Edit on #/pricing</Link></p>
+    </div>
+  );
+}
+
 function EntryCard({ entry, open, onToggle }: { entry: GlossaryEntry; open: boolean; onToggle: () => void }) {
   const bodyId = `gl-body-${entry.id}`;
+  const status = termStatus(entry.id);
+  const watches = status ? status.watchIds.map(w => REGCHECK_WATCHLIST.find(x => x.id === w)).filter(Boolean) : [];
   return (
     <article id={`gl-${entry.id}`} className={`gl-entry ${open ? 'gl-entry--open' : ''}`} data-testid={`glossary-entry-${entry.id}`}>
       <button type="button" className="gl-entry-head" aria-expanded={open} aria-controls={bodyId} onClick={onToggle}>
         <span className="gl-entry-titles">
-          <span className="gl-term">{entry.term}</span>
+          <span className="gl-term">{entry.term}{status && <> <TermStatusBadge status={status} /></>}</span>
           <span className="gl-short">{entry.short}</span>
         </span>
         <ChevronDown size={16} className="gl-chevron" aria-hidden="true" />
@@ -35,10 +60,25 @@ function EntryCard({ entry, open, onToggle }: { entry: GlossaryEntry; open: bool
         <div id={bodyId} className="gl-entry-body">
           <p className="gl-plain">{entry.plain}</p>
 
+          {status && (
+            <div className="gl-block gl-status" data-testid="glossary-status">
+              <div className="eyebrow">Legal status · checked {status.checked}</div>
+              <p className="gl-why">{status.detail}</p>
+              {watches.length > 0 && (
+                <p className="gl-aliases mut">
+                  <span className="gl-label">On the watchlist:</span> {watches.map(w => w!.topic).join(' · ')}{' — '}
+                  <Link to="/regulation-check">Regulation check →</Link>
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="gl-block">
             <div className="eyebrow">Why it matters</div>
             <p className="gl-why">{entry.whyItMatters}</p>
           </div>
+
+          <WorkedExample id={entry.id} />
 
           {entry.aliases.length > 0 && (
             <p className="gl-aliases mut">

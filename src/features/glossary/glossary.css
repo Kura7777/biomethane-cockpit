@@ -247,3 +247,9 @@
     align-items: center;
   }
 }
+
+/* Worked example and legal status blocks */
+.gl-example-lines { margin: 4px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.5; }
+.gl-example-lines li { margin-bottom: 2px; font-variant-numeric: tabular-nums; }
+.gl-example-inputs { margin: 6px 0 0; font-size: 11px; }
+.gl-term .term-status { margin-left: 6px; vertical-align: 2px; }

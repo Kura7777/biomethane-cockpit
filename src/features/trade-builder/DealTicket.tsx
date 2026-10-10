@@ -8,6 +8,7 @@ import { computeGateBadge } from './ticketMath';
 import { markSideWarning } from '../../domain/netback/sideFallback';
 import { GgeBreakdown } from '../../domain/netback/gge';
 import { GgeValueLine } from './GgeValueLine';
+import { Term } from '../glossary/Term';
 
 const MONO_FONT = 'var(--font-mono, "IBM Plex Mono", monospace)';
 
@@ -193,7 +194,7 @@ export function DealTicket({
 
         {gge && (
           <div className="tt-section">
-            <div className="tt-subhead">GGE value</div>
+            <div className="tt-subhead"><Term id="gge">GGE</Term> value</div>
             <GgeValueLine
               gge={gge}
               valueEurPerMwh={netback.certificateValue?.valueEurPerMWh ?? null}

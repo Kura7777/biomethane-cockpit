@@ -64,6 +64,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/** The app state if inside AppProvider, else null (for components that also render in static previews). */
+export function useOptionalAppState(): AppContextValue | null {
+  return useContext(AppContext);
+}
+
 export function useAppState(): AppContextValue {
   const ctx = useContext(AppContext);
   if (!ctx) throw new Error('useAppState must be used within AppProvider');

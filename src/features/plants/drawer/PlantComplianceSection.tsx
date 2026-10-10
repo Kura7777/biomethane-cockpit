@@ -2,11 +2,14 @@ import { PlantCompliance, SourcedValue } from '../../../domain/plants/types';
 import { certificateExpiry, ggeReadiness, ReadinessStatus } from '../../../domain/plants/compliance';
 import { PlantDrawerTheme } from './plantDrawerTheme';
 import { usePageContext } from '../../helper/usePageContext';
+import { Term } from '../../glossary/Term';
 
 /** One researched compliance fact: its label and how to show its value. */
 interface ComplianceRow {
   key: keyof PlantCompliance;
   label: string;
+  /** Glossary entry for the label, shown as a term tooltip. */
+  termId?: string;
   text: (sv: SourcedValue<any> & { bdnsResult?: string }) => string;
 }
 
@@ -18,7 +21,7 @@ const INJECTION_TEXT: Record<string, string> = {
 };
 
 const COMPLIANCE_ROWS: ComplianceRow[] = [
-  { key: 'gdoRegistered', label: 'Enagás GdO registered', text: sv => String(sv.value) },
+  { key: 'gdoRegistered', label: 'Enagás GdO registered', termId: 'enagas-gdo', text: sv => String(sv.value) },
   { key: 'injection', label: 'Grid injection', text: sv => INJECTION_TEXT[sv.value] ?? String(sv.value) },
   { key: 'operatingSince', label: 'Operating since', text: sv => String(sv.value) },
   { key: 'actualProductionGWh', label: 'Actual output', text: sv => `${sv.value.value} GWh (${sv.value.year})` },
@@ -27,11 +30,13 @@ const COMPLIANCE_ROWS: ComplianceRow[] = [
   {
     key: 'certification',
     label: 'Certification',
+    termId: 'voluntary-scheme',
     text: sv => `${String(sv.value.scheme).replace('_', ' ')} ${sv.value.certificateNumber} · valid to ${sv.value.validUntil} (${sv.value.status})`,
   },
   {
     key: 'prtrGrant',
     label: 'PRTR biogas grant',
+    termId: 'prtr',
     text: sv => (sv.value === 'UNKNOWN' && sv.bdnsResult === 'NO_RECORD' ? 'UNKNOWN — not found (partial register)' : String(sv.value)),
   },
   { key: 'otherAid', label: 'Other aid', text: sv => String(sv.value) },
@@ -131,7 +136,7 @@ export function PlantComplianceSection({ compliance, isDark, t }: PlantComplianc
           return (
             <div key={row.key} data-testid={`compliance-field-${row.key}`} data-unknown={unknown ? 'true' : 'false'} style={{ padding: '6px 0', borderBottom: `1px solid ${t.borderLight}` }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
-                <span style={{ color: t.textMuted, flexShrink: 0 }}>{row.label}</span>
+                <span style={{ color: t.textMuted, flexShrink: 0 }}>{row.termId ? <Term id={row.termId}>{row.label}</Term> : row.label}</span>
                 <strong style={{ color: unknown ? amber : t.textMain, textAlign: 'right', overflowWrap: 'anywhere', minWidth: 0 }}>
                   {sv ? row.text(sv) : 'UNKNOWN — not found'}
                 </strong>

@@ -1,0 +1,65 @@
+/* Glossary term in running UI text: dotted underline, definition on hover, focus or tap. */
+.term-ref { position: relative; display: inline; }
+.term-ref-btn {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
+  text-decoration: underline dotted;
+  text-decoration-color: var(--color-muted);
+  text-underline-offset: 3px;
+  cursor: help;
+}
+.term-ref-btn:focus-visible { outline: 2px solid var(--color-header-bg); outline-offset: 2px; border-radius: 2px; }
+
+.term-pop {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 70;
+  width: max-content;
+  max-width: min(300px, calc(100vw - 32px));
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: normal;
+  text-align: left;
+}
+.term-pop-head { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; font-size: 13px; }
+.term-pop-short { display: block; color: var(--color-muted); }
+.term-pop-link { display: inline-block; margin-top: 6px; font-weight: 600; }
+
+/* Hover shows it on desktop; a tap or keyboard toggle sets --open (touch has no hover). */
+@media (hover: hover) and (pointer: fine) {
+  .term-ref:hover .term-pop { display: block; }
+}
+.term-ref--open .term-pop,
+.term-ref:focus-within .term-pop { display: block; }
+
+/* Legal-status pill (glossary entries and term tooltips) */
+.term-status {
+  display: inline-block;
+  padding: 1px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+  color: var(--color-text);
+}
+.term-status--in-force { border-color: var(--color-status-pos-text, var(--color-border)); color: var(--color-status-pos-text, var(--color-text)); }
+.term-status--pending { border-color: var(--color-status-warn-text, var(--color-border)); color: var(--color-status-warn-text, var(--color-text)); }
+.term-status--review { border-color: var(--color-muted); color: var(--color-muted); }

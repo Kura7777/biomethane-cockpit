@@ -11,6 +11,7 @@ import { FIELD_IDS } from '../custody/checklistModel';
 import { feedstockDefaultCi } from '../../../domain/assumptions/registry';
 import { getVtpForMarket } from '../TradeBuilderScreen';
 import { Lock, FileUp, Scale, AlertTriangle } from 'lucide-react';
+import { Term } from '../../glossary/Term';
 
 export interface OriginOption {
   code: string;
@@ -229,7 +230,7 @@ export function TradeConsignmentStep({
 
           {/* PoS Certificate Ingestion */}
           <div className="tb-form-row">
-            <span className="tb-form-label">Proof of Sustainability</span>
+            <span className="tb-form-label"><Term id="pos">Proof of Sustainability</Term></span>
             <div className="tb-form-control">
               <div className="tb-row-start">
                 <button type="button" onClick={onOpenPoS} className="btn btn-secondary" data-testid="pos-uploader-btn">
@@ -398,7 +399,7 @@ export function TradeConsignmentStep({
 
           {/* Chain of Custody */}
           <div className="tb-form-row" id={FIELD_IDS.cocModel}>
-            <span className="tb-form-label">Chain of custody</span>
+            <span className="tb-form-label"><Term id="chain-of-custody">Chain of custody</Term></span>
             <div className="tb-form-control">
               <div className="tb-chips">
                 {custodies.map(c => (
@@ -418,7 +419,7 @@ export function TradeConsignmentStep({
 
           {/* Union Database Status */}
           <div className="tb-form-row" id={FIELD_IDS.udb}>
-            <span className="tb-form-label">UDB status</span>
+            <span className="tb-form-label"><Term id="udb">UDB</Term> status</span>
             <div className="tb-form-control">
               <div className="tb-chips">
                 {UDB_OPTIONS.map(opt => {
@@ -480,7 +481,7 @@ export function TradeConsignmentStep({
 
           {/* Carbon Intensity */}
           <div className="tb-form-row">
-            <span className="tb-form-label">Carbon intensity</span>
+            <span className="tb-form-label"><Term id="carbon-intensity">Carbon intensity</Term></span>
             <div className="tb-form-control">
               <div className="tb-row">
                 <div className="tb-row-start">
