@@ -212,6 +212,12 @@
     align-items: stretch;
   }
 
+  /* In the column layout the 260px flex-basis became a 260px height. */
+  .gl-search {
+    flex: 0 0 auto;
+    max-width: none;
+  }
+
   .gl-search {
     max-width: none;
   }
