@@ -12,8 +12,8 @@ import type { DealParams } from './dealParams';
  * Maps a plant record to an audited FEEDSTOCK_REGISTRY key.
  * Mixed organics map to food_waste — the plant dataset's `organic_waste`
  * is not a registry key, and emitting it made Trade Builder relabel the deal.
- * A plant whose researched feedstock mix sets `feedstockForCi` (mixed feedstock: the higher-CI
- * category unless manure is the majority) uses that key.
+ * A plant whose researched feedstock sets `feedstockForCi` (the actual mix, never an ISCC scope list:
+ * manure majority or manure only → manure; otherwise the non-manure category described) uses that key.
  */
 export function feedstockKeyForPlant(plant: {
   id?: string | null;

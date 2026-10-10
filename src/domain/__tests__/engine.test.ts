@@ -1478,7 +1478,8 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
 
         const migrated = migrateState(v5State);
         expect(migrated.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
-        expect(migrated.consignments).toHaveLength(1);
+        // The sample set intentionally grew: the v16 migration adds the Spanish manure benchmark to a saved desk.
+        expect(migrated.consignments).toHaveLength(2);
         expect(migrated.consignments[0].name).toBe('Existing Consignment');
         expect(migrated.consignments[0].volumeMWh).toBe(5000);
         expect(migrated.consignments[0].deliveryPeriod).toEqual({
@@ -1697,7 +1698,8 @@ describe('European Biomethane Desk Cockpit — Work Order Verification & Regress
 
         const migrated = migrateState(v6State);
         expect(migrated.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
-        expect(migrated.consignments).toHaveLength(1);
+        // The sample set intentionally grew: the v16 migration adds the Spanish manure benchmark to a saved desk.
+        expect(migrated.consignments).toHaveLength(2);
         expect(migrated.consignments[0].counterparty).toBeNull();
         expect(migrated.consignments[0].deliveryPeriod?.complianceYear).toBe(2026);
       });

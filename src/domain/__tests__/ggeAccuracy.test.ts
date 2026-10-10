@@ -8,6 +8,7 @@ import {
   researchedOperatingSince,
   researchedPlantEntity,
 } from '../plants/compliance';
+import { migrateState } from '../../store/context';
 import { evaluateEligibility } from '../eligibility/engine';
 import { getMarketById } from '../markets/registry';
 import { compareDestinations, bestDestination } from '../arbitrage/destinationComparison';
@@ -77,7 +78,7 @@ describe('mixed feedstock: the default CI follows the conservative category', ()
       const c = r.compliance;
       if (!c?.feedstockForCi) continue;
       expect(FEEDSTOCK_REGISTRY[c.feedstockForCi], id).toBeDefined();
-      expect(c.feedstockMixed, id).toBe(true);
+      expect(typeof c.feedstockMixed, id).toBe('boolean');
       expect(c.feedstockCiNote, id).toBeTruthy();
     }
   });
@@ -97,6 +98,60 @@ describe('mixed feedstock: the default CI follows the conservative category', ()
   it('a manure-majority mix keeps manure, and a single-category plant is untouched', () => {
     expect(plantFeedstockForCi('plant_es_10')).toEqual({ key: 'manure', mixed: true });
     expect(plantFeedstockForCi('plant_es_18')).toBeNull();
+  });
+});
+
+describe('actual feedstock, not the ISCC scope list, sets feedstockForCi', () => {
+  it('final table', () => {
+    const table = Object.fromEntries(
+      Object.entries(PLANT_RESEARCH).filter(([, r]) => r.compliance?.feedstockForCi).map(([id, r]) => [id, r.compliance!.feedstockForCi]),
+    );
+    expect(table).toEqual({
+      plant_es_1: 'food_waste', plant_es_7: 'sewage_sludge', plant_es_8: 'manure', plant_es_10: 'manure',
+      plant_es_11: 'food_waste', plant_es_12: 'industrial_bio_waste', plant_es_14: 'manure', plant_es_15: 'food_waste',
+      plant_es_19: 'food_waste', plant_es_20: 'food_waste', plant_es_22: 'manure', plant_es_26: 'food_waste',
+    });
+  });
+
+  it('Lorca and Vila-sana value at the manure default', () => {
+    for (const id of ['plant_es_22', 'plant_es_14']) {
+      const plant = BIOMETHANE_PLANTS.find(p => p.id === id)!;
+      expect(feedstockKeyForPlant(plant), id).toBe('manure');
+      const gge = compareDestinationsForPlant({ origin: 'ES', plant, marks, costs }).find(r => r.marketId === 'NL_GGE')!;
+      expect(gge.ci, id).toBe(feedstockDefaultCi('manure'));
+    }
+  });
+});
+
+describe('an estimated CI never blocks the GHG item', () => {
+  it('BioVO with no PoS: GHG saving is WARN, and the plant is still blocked by the REER operating aid', () => {
+    const biovo = BIOMETHANE_PLANTS.find(p => p.id === 'plant_es_7')!;
+    const ci = feedstockDefaultCi(feedstockKeyForPlant(biovo))!;
+    const c: Consignment = {
+      ...REFERENCE_CONSIGNMENTS.SPANISH_MANURE,
+      carbonIntensity: ci,
+      custody: { ...emptyCustodyPack(), ...getPlantComplianceDefaults('plant_es_7', 'ES', NOW) },
+    };
+    const items = evaluateEligibility(c, getMarketById('NL_GGE')!).gates.find(g => g.gate === 'CHAIN_OF_CUSTODY')!.checklist!;
+    const ghg = items.find(i => i.id === 'ghg-saving')!;
+    expect(ghg.status).toBe('WARN');
+    expect(ghg.detail).toMatch(/^Estimated CI 25 g → saving 69%: below 70% at this estimate\. Get the PoS CI\.$/);
+    expect(items.find(i => i.id === 'no-operating-aid')!.status).toBe('FAIL');
+    // A sourced PoS CI below the threshold still FAILs
+    const sourced = { ...c, custody: { ...c.custody!, pos: { ...c.custody!.pos, ciTotal: 40 } } };
+    const items2 = evaluateEligibility(sourced as Consignment, getMarketById('NL_GGE')!).gates.find(g => g.gate === 'CHAIN_OF_CUSTODY')!.checklist!;
+    expect(items2.find(i => i.id === 'ghg-saving')!.status).toBe('FAIL');
+  });
+});
+
+describe('saved desks get the Spanish sample (v16 migration)', () => {
+  const saved = (consignments: Consignment[]) => ({ schemaVersion: 15, consignments, activeConsignmentId: consignments[0].id });
+  it('adds it once to a saved desk, and does not duplicate it', () => {
+    const once = migrateState(saved([REFERENCE_CONSIGNMENTS.DANISH_MANURE]));
+    expect(once.consignments.map(c => c.id)).toEqual([REFERENCE_CONSIGNMENTS.DANISH_MANURE.id, REFERENCE_CONSIGNMENTS.SPANISH_MANURE.id]);
+    const already = migrateState(saved([REFERENCE_CONSIGNMENTS.SPANISH_MANURE, REFERENCE_CONSIGNMENTS.DANISH_MANURE]));
+    expect(already.consignments.filter(c => c.id === REFERENCE_CONSIGNMENTS.SPANISH_MANURE.id)).toHaveLength(1);
+    expect(migrateState(once).consignments).toHaveLength(2);
   });
 });
 

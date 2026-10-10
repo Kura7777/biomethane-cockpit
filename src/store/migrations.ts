@@ -382,6 +382,15 @@ export function migrateState(raw: unknown): AppState {
     }
   }
 
+  if (stateVersion < 16 && Array.isArray(migrated.consignments) && migrated.consignments.length > 0) {
+    // Schema v16 migration: a saved desk gets the Spanish manure sample (so the Morning brief ladder
+    // shows NL GGE), unless the desk already holds it.
+    const sample = REFERENCE_CONSIGNMENTS.SPANISH_MANURE;
+    if (!migrated.consignments.some(c => c.id === sample.id)) {
+      migrated.consignments = [...migrated.consignments, sample];
+    }
+  }
+
   migrated.schemaVersion = CURRENT_SCHEMA_VERSION;
 
   // Ensure all active markets exist in marks dictionary

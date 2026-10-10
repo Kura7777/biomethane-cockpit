@@ -12,7 +12,7 @@ import {
 } from '../domain/markets/brokerRun.seed';
 import { seedMarksFromPricingBook } from '../domain/marks/applyMarks';
 
-export const CURRENT_SCHEMA_VERSION = 15;
+export const CURRENT_SCHEMA_VERSION = 16;
 
 /** Where a scalar CostInputs field's current value came from, for the Pricing desk → Costs tab. */
 export type CostFieldSource = 'SIMULATED' | 'MANUAL';
