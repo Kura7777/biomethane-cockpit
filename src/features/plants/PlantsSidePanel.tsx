@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { Maximize2, Minimize2, X } from 'lucide-react';
 import { BiomethanePlant, CountryMacroStat } from '../../domain/plants/types';
 import { plantCi } from '../../domain/trade/dealDefaults';
+import { plantEnergyFigure } from '../../domain/plants/compliance';
 import { Sheet } from '../../shared/ui';
 import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 
@@ -113,6 +114,7 @@ export function PlantsSidePanel({
   }
 
   const status = contactStatus(plant);
+  const energy = plantEnergyFigure(plant);
   const ci = plantCi(plant).ci;
   const flags: string[] = [];
   if (plant.dataQuality) {
@@ -182,7 +184,9 @@ export function PlantsSidePanel({
         <div className="plants-panel-stats">
           <div>
             <div className="ds-panel-stat-label">Output</div>
-            <div className="ds-panel-stat-value num">{plant.annualEnergyGWh ? plant.annualEnergyGWh.toFixed(1) : '—'} <span className="unit">GWh/y</span></div>
+            <div className="ds-panel-stat-value num">{energy ? energy.gwh.toFixed(1) : '—'} <span className="unit">GWh/y</span></div>
+            {energy?.label && <div className="mut" style={{ fontSize: '10px' }}>{energy.label}</div>}
+            {energy?.year && <div className="mut" style={{ fontSize: '10px' }}>Actual {energy.year}</div>}
           </div>
           <div>
             <div className="ds-panel-stat-label">Capacity</div>

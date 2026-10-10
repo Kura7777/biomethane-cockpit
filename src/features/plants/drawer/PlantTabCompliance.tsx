@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Scale, ChevronDown, ChevronUp, ShieldCheck } from 'lucide-react';
 import { BiomethanePlant } from '../../../domain/plants/types';
 import { PlantDrawerTheme } from './plantDrawerTheme';
+import { PlantComplianceSection } from './PlantComplianceSection';
 
 interface PlantTabComplianceProps {
   plant: BiomethanePlant;
@@ -46,6 +47,8 @@ export function PlantTabCompliance({
           Run 6-Gate Audit ↗
         </button>
       </div>
+
+      {plant.research?.compliance && <PlantComplianceSection compliance={plant.research.compliance} isDark={isDark} t={t} />}
 
       {/* Raw Census Baseline Collapsible */}
       <div>

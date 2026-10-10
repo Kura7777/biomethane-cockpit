@@ -1,4 +1,5 @@
 import { BiomethanePlant, CommercialContactLead } from '../../domain/plants/types';
+import { CAPACITY_ESTIMATE_LABEL, isMapCapacityEstimate } from '../../domain/plants/compliance';
 
 export const LEAD_SOURCE_LABEL: Record<CommercialContactLead['source'], string> = {
   SOURCE_DATASET: 'From registry data',
@@ -66,7 +67,7 @@ Legal Entity: ${plant.legalEntityName || 'N/A'}${tag('legalEntityName')}
 Registration / Statutory ID: ${plant.companyRegistrationId || 'Not verified'}
 Network Operator (TSO/DSO): ${plant.networkOperator || 'N/A'}
 Grid Connection: ${plant.gridConnectionType || 'Distribution Grid Injection'}
-Annual Capacity: ${plant.annualEnergyGWh ? `${plant.annualEnergyGWh} GWh/y (${(plant.annualEnergyGWh * 1000).toLocaleString()} MWh/y)` : 'N/A'} (${plant.capacityNm3h ? `${plant.capacityNm3h} Nm³/h` : 'N/A'})
+Annual Capacity: ${plant.annualEnergyGWh ? `${plant.annualEnergyGWh} GWh/y (${(plant.annualEnergyGWh * 1000).toLocaleString()} MWh/y)${isMapCapacityEstimate(plant) ? ` — ${CAPACITY_ESTIMATE_LABEL}` : ''}` : 'N/A'} (${plant.capacityNm3h ? `${plant.capacityNm3h} Nm³/h` : 'N/A'})
 Feedstock Substrate: ${plant.primaryFeedstockCategory || 'N/A'} (${plant.feedstockDetails || 'N/A'})
 Carbon Intensity: ${ciValue} gCO2e/MJ (RED III Annex IX)
 Upgrading Tech: ${plant.upgradingTechnology || 'Membrane separation'}

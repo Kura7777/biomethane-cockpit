@@ -1,6 +1,7 @@
 import { Activity } from 'lucide-react';
 import { BiomethanePlant } from '../../../domain/plants/types';
 import { PlantDrawerTheme } from './plantDrawerTheme';
+import { plantEnergyFigure } from '../../../domain/plants/compliance';
 
 interface PlantTabTechnicalProps {
   plant: BiomethanePlant;
@@ -15,6 +16,7 @@ export function PlantTabTechnical({
   isDark,
   t,
 }: PlantTabTechnicalProps) {
+  const energy = plantEnergyFigure(plant);
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', minWidth: 0 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '4px', borderBottom: `1px solid ${t.borderLight}` }}>
@@ -27,9 +29,15 @@ export function PlantTabTechnical({
       {/* Clean Open Key-Value Specification Rows */}
       <div style={{ display: 'flex', flexDirection: 'column', fontSize: '12px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: `1px solid ${t.borderLight}` }}>
-          <span style={{ color: t.textMuted }}>Annual Injected Energy:</span>
-          <strong style={{ color: t.textMain }}>
-            {plant.annualEnergyGWh ? `${plant.annualEnergyGWh.toLocaleString()} GWh/y (${(plant.annualEnergyGWh * 1000).toLocaleString()} MWh/y)` : '—'}
+          <span style={{ color: t.textMuted }}>{energy?.year ? 'Annual Injected Energy:' : 'Annual Energy:'}</span>
+          <strong style={{ color: t.textMain, textAlign: 'right' }}>
+            {energy ? `${energy.gwh.toLocaleString()} GWh/y (${(energy.gwh * 1000).toLocaleString()} MWh/y)` : '—'}
+            {energy?.label && <span style={{ display: 'block', fontSize: '10px', fontWeight: 500, color: t.textMuted }}>{energy.label}</span>}
+            {energy?.year && energy.source && (
+              <span style={{ display: 'block', fontSize: '10px', fontWeight: 500, color: t.textMuted }}>
+                Actual {energy.year} · <a href={energy.source.sourceUrl} target="_blank" rel="noopener noreferrer" style={{ color: t.textSecondary }}>source</a>
+              </span>
+            )}
           </strong>
         </div>
 

@@ -35,7 +35,8 @@ describe('plantBriefBuilders', () => {
     expect(brief).toContain('=== BIOMETHANE ASSET ORIGINATION BRIEF ===');
     expect(brief).toContain('Facility: Königs Wusterhausen Biogas (DE 🇩🇪)');
     expect(brief).toContain('Plant ID: DE-BIO-001');
-    expect(brief).toContain('Annual Capacity: 75 GWh/y (75,000 MWh/y) (700 Nm³/h)');
+    // The plant's figure comes from the GIE/EBA map, so the brief says it is capacity-based
+    expect(brief).toContain('Annual Capacity: 75 GWh/y (75,000 MWh/y) — Capacity-based estimate (700 Nm³/h)');
     expect(brief).toContain('Carbon Intensity: -100 gCO2e/MJ (RED III Annex IX)');
     expect(brief).toContain('Operating Entity: Danpower Energie GmbH');
   });

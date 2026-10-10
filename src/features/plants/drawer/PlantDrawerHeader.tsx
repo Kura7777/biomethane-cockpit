@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { BiomethanePlant, TraderDeskOverride } from '../../../domain/plants/types';
 import { PlantDrawerTheme } from './plantDrawerTheme';
+import { plantEnergyFigure } from '../../../domain/plants/compliance';
 
 interface PlantDrawerHeaderProps {
   plant: BiomethanePlant;
@@ -48,6 +49,7 @@ export function PlantDrawerHeader({
   handleCopyTermSheet,
   onNavigateMap,
 }: PlantDrawerHeaderProps) {
+  const energy = plantEnergyFigure(plant);
   return (
     <div
       className="psd-header"
@@ -164,15 +166,23 @@ export function PlantDrawerHeader({
         <div>
           <span style={{ fontSize: '10px', color: t.textMuted, display: 'block', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Annual Energy</span>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-            <strong style={{ fontSize: '15px', color: t.textMain, fontWeight: 800 }}>
-              {plant.annualEnergyGWh ? `${plant.annualEnergyGWh.toLocaleString()} GWh/y` : '—'}
+            <strong style={{ fontSize: '15px', color: t.textMain, fontWeight: 800 }} data-testid="plant-annual-energy">
+              {energy ? `${energy.gwh.toLocaleString()} GWh/y` : '—'}
             </strong>
-            {plant.annualEnergyGWh && (
+            {energy && (
               <span style={{ fontSize: '11px', color: t.textMuted }}>
-                ({(plant.annualEnergyGWh * 1000).toLocaleString()} MWh)
+                ({(energy.gwh * 1000).toLocaleString()} MWh)
               </span>
             )}
           </div>
+          {energy?.label && (
+            <span style={{ fontSize: '10px', color: t.textMuted, display: 'block' }} data-testid="plant-energy-label">{energy.label}</span>
+          )}
+          {energy?.year && energy.source && (
+            <span style={{ fontSize: '10px', color: t.textMuted, display: 'block' }} data-testid="plant-energy-actual">
+              Actual {energy.year} · <a href={energy.source.sourceUrl} target="_blank" rel="noopener noreferrer" style={{ color: t.textSecondary }}>source</a>
+            </span>
+          )}
         </div>
 
         <div style={{ height: '22px', width: '1px', backgroundColor: t.border }} />
