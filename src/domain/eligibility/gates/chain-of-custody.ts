@@ -250,7 +250,7 @@ function pairedChecklist(consignment: Consignment, market: Market): GateResult {
   const support = go?.supportType && go.supportType !== 'UNKNOWN' ? go.supportType : (pos?.supportDeclared ?? 'UNKNOWN');
   const aidCites = [CITATIONS.NL_GGE_DRAFT_BESLUIT, CITATIONS.NL_GGE_KAMERSTUK_36947];
   if (support === 'OPERATING') {
-    entries.push(entry('no-operating-aid', 'No operating aid', 'FAIL', 'The GO / PoS declares operating aid (exploitatiesubsidie) for this production; NEa will not credit it (R11).', aidCites, 'Source from unsubsidised production (investment aid is allowed).'));
+    entries.push(entry('no-operating-aid', 'No operating aid', 'FAIL', `The GO / PoS declares operating aid (exploitatiesubsidie) for this production; NEa will not credit it (R11).${go?.supportNote ? ` Researched: ${go.supportNote}` : ''}`, aidCites, 'Source from unsubsidised production (investment aid is allowed).'));
   } else if (support === 'NONE' || support === 'INVESTMENT') {
     entries.push(entry('no-operating-aid', 'No operating aid', 'PASS', support === 'INVESTMENT' ? 'Investment aid only, which is compatible (R12).' : 'No operating aid declared (R11).', aidCites));
   } else {
@@ -262,6 +262,8 @@ function pairedChecklist(consignment: Consignment, market: Market): GateResult {
     const prtr = claims?.prtrGrant ?? 'UNKNOWN';
     if (prtr === 'YES' && !claims?.prtrLegalCheckDone) {
       entries.push(entry('spanish-prtr-grant', 'Spanish PRTR grant', 'WARN', 'Plant has a PRTR biogas grant: Orden TED/706/2022 Art 5.3 may bar agreements to obtain “certificados verdes”. Legal check not yet done (S3).', [CITATIONS.ES_ORDEN_TED_706_2022], 'Get a legal opinion on the grant call terms before selling GGE-eligible GO + PoS.'));
+    } else if (prtr !== 'YES' && claims?.prtrOtherProgramme && !claims.prtrLegalCheckDone) {
+      entries.push(entry('spanish-prtr-grant', 'Spanish PRTR grant', 'WARN', 'PRTR-funded grant under another programme; Orden TED/706 Art 5.3 is specific to the biogas programme, check this grant’s own conditions on green certificates (S3).', [CITATIONS.ES_ORDEN_TED_706_2022], 'Check the other programme’s grant terms before selling GGE-eligible GO + PoS.'));
     } else if (prtr === 'UNKNOWN') {
       entries.push(entry('spanish-prtr-grant', 'Spanish PRTR grant', 'TODO', 'Confirm whether the plant received a PRTR biogas grant (Orden TED/706/2022 Art 5.3) (S3).', [CITATIONS.ES_ORDEN_TED_706_2022]));
     } else {

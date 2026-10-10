@@ -2,6 +2,7 @@ import { getAssumption, feedstockDefaultCi } from '../assumptions/registry';
 import { FEEDSTOCK_REGISTRY } from '../consignment/feedstocks';
 import type { ChainOfCustody } from '../consignment/types';
 import { MARKETS } from '../markets/registry';
+import { plantFeedstockForCi } from '../plants/compliance';
 import type { BiomethanePlant } from '../plants/types';
 import type { CertificateRoute } from '../registries/certificateRoutes';
 import { getPosRoute } from '../routes/index';
@@ -11,12 +12,17 @@ import type { DealParams } from './dealParams';
  * Maps a plant record to an audited FEEDSTOCK_REGISTRY key.
  * Mixed organics map to food_waste — the plant dataset's `organic_waste`
  * is not a registry key, and emitting it made Trade Builder relabel the deal.
+ * A plant whose researched feedstock mix sets `feedstockForCi` (mixed feedstock: the higher-CI
+ * category unless manure is the majority) uses that key.
  */
 export function feedstockKeyForPlant(plant: {
+  id?: string | null;
   primaryFeedstockCategory?: string | null;
   feedstockDetails?: string | null;
   canonicalFeedstockKey?: string | null;
 }): string {
+  const researched = plantFeedstockForCi(plant.id);
+  if (researched && researched.key in FEEDSTOCK_REGISTRY) return researched.key;
   if (plant.canonicalFeedstockKey) {
     const k = plant.canonicalFeedstockKey.toLowerCase();
     if (k === 'organic_waste') return 'food_waste';
@@ -52,6 +58,7 @@ export function defaultCi(
  * value, since removed from the dataset as unused (see scripts/strip-unused-plant-fields.mjs).
  */
 export function plantCi(plant: {
+  id?: string | null;
   primaryFeedstockCategory?: string | null;
   feedstockDetails?: string | null;
   canonicalFeedstockKey?: string | null;

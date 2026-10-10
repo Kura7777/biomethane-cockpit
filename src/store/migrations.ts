@@ -411,6 +411,7 @@ export function migrateState(raw: unknown): AppState {
   if (!Array.isArray(migrated.consignments) || migrated.consignments.length === 0) {
     migrated.consignments = [
       REFERENCE_CONSIGNMENTS.DANISH_MANURE,
+      REFERENCE_CONSIGNMENTS.SPANISH_MANURE,
       REFERENCE_CONSIGNMENTS.UK_FOOD_WASTE,
       REFERENCE_CONSIGNMENTS.ISCC_PLUS_VOLUNTARY,
     ];

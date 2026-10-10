@@ -6,6 +6,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { PlantCompliance, PlantResearch, SourcedValue } from '../../src/domain/plants/types';
+import { FEEDSTOCK_REGISTRY } from '../../src/domain/consignment/feedstockData';
 
 export interface CountryResearchFile {
   countryCode: string;
@@ -42,6 +43,7 @@ function checkSourcedValue(sv: SourcedValue<any> | null | undefined, fieldName: 
 
 const TRI_STATES = ['YES', 'NO', 'UNKNOWN'];
 const INJECTION_LEVELS = ['TSO', 'DSO', 'OFF_GRID', 'UNKNOWN'];
+const AID_CLASSES = ['OPERATING', 'INVESTMENT_ONLY', 'NONE_FOUND'];
 
 /** The SourcedValue fields of a compliance block, in the order the drawer lists them. */
 export const COMPLIANCE_VALUE_FIELDS = [
@@ -86,6 +88,15 @@ export function validateCompliance(plantId: string, c: PlantCompliance): void {
   }
   if (c.reportedCI && typeof c.reportedCI.value !== 'number') {
     throw new Error(`[${plantId}] compliance.reportedCI must be a number (gCO2e/MJ)`);
+  }
+  if (c.otherAid && !c.aidClass) {
+    throw new Error(`[${plantId}] compliance.otherAid is set, so aidClass (OPERATING, INVESTMENT_ONLY or NONE_FOUND) is required`);
+  }
+  if (c.aidClass && !AID_CLASSES.includes(c.aidClass)) {
+    throw new Error(`[${plantId}] compliance.aidClass must be OPERATING, INVESTMENT_ONLY or NONE_FOUND`);
+  }
+  if (c.feedstockForCi && !FEEDSTOCK_REGISTRY[c.feedstockForCi]) {
+    throw new Error(`[${plantId}] compliance.feedstockForCi "${c.feedstockForCi}" is not a FEEDSTOCK_REGISTRY key`);
   }
   if (c.excluded && !c.excludedReason?.trim()) {
     throw new Error(`[${plantId}] excluded compliance record needs excludedReason`);

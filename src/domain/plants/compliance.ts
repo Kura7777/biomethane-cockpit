@@ -54,15 +54,17 @@ export function certificateExpiry(compliance: PlantCompliance | null | undefined
 export type AidStatus = 'OPERATING' | 'INVESTMENT_ONLY' | 'NONE_FOUND';
 
 /**
- * Classifies the researched `otherAid` text. The research writes "OPERATING AID …" for operating aid
- * (often entity-level electricity support, to be confirmed against the digester); anything else it
- * lists is investment aid or loans. No record means none was found, not that none exists.
+ * The researched aid class, set by hand next to the `otherAid` text. OPERATING is often entity-level
+ * electricity support, to be confirmed against the digester. No record means none was found, not
+ * that none exists.
  */
 export function aidStatus(compliance: PlantCompliance | null | undefined): AidStatus {
-  const text = compliance?.otherAid?.value;
-  if (!text) return 'NONE_FOUND';
-  // The research leads with "OPERATING AID" when it found some; "No operating aid found" later in the text is not a hit.
-  return /^\s*operating aid/i.test(String(text)) ? 'OPERATING' : 'INVESTMENT_ONLY';
+  return compliance?.aidClass ?? 'NONE_FOUND';
+}
+
+/** True when the plant has a PRTR-funded grant under another programme and the biogas grant is not confirmed. */
+function otherPrtrOnly(compliance: PlantCompliance): boolean {
+  return Boolean(compliance.otherPrtrFunded) && compliance.prtrGrant?.value !== 'YES';
 }
 
 function supportTypeFor(compliance: PlantCompliance): SupportType {
@@ -124,7 +126,7 @@ export function ggeReadiness(compliance: PlantCompliance | null | undefined, now
   const aid = aidStatus(compliance);
   items.push(
     aid === 'OPERATING'
-      ? { id: 'aid', label: 'No operating aid', status: 'FLAG', detail: 'Operating aid found (often entity-level electricity support): confirm it is not fed by this digester.' }
+      ? { id: 'aid', label: 'No operating aid', status: 'FLAG', detail: compliance.aidNote || 'Operating aid found (often entity-level electricity support): confirm it is not fed by this digester.' }
       : aid === 'INVESTMENT_ONLY'
         ? { id: 'aid', label: 'No operating aid', status: 'OK', detail: 'Investment aid or loans only (allowed on the Dutch side). Confirm the GO support field.' }
         : { id: 'aid', label: 'No operating aid', status: 'OK', detail: 'None found in public records. Confirm the GO support field.' },
@@ -133,6 +135,8 @@ export function ggeReadiness(compliance: PlantCompliance | null | undefined, now
   const prtr = compliance.prtrGrant;
   if (prtr?.value === 'YES') {
     items.push({ id: 'prtr', label: 'PRTR', status: 'WARN', detail: 'PRTR biogas grant received: legal check of Orden TED/706/2022 Art. 5.3 needed before selling GO + PoS.' });
+  } else if (otherPrtrOnly(compliance)) {
+    items.push({ id: 'prtr', label: 'PRTR', status: 'WARN', detail: 'PRTR-funded grant (other programme): check its terms.' });
   } else if (prtr?.value === 'NO') {
     items.push({ id: 'prtr', label: 'PRTR', status: 'OK', detail: 'No PRTR biogas grant.' });
   } else {
@@ -210,6 +214,7 @@ export function complianceDefaults(compliance: PlantCompliance, country: string,
     issuingCountry: iso,
     energyBasis: GO_ENERGY_BASIS_BY_COUNTRY[iso] ?? 'UNKNOWN',
     supportType: support,
+    ...(support === 'OPERATING' && compliance.aidNote ? { supportNote: compliance.aidNote } : {}),
     gridInjected: inj === 'TSO' || inj === 'DSO' ? true : inj === 'OFF_GRID' ? false : null,
   };
 
@@ -224,6 +229,7 @@ export function complianceDefaults(compliance: PlantCompliance, country: string,
   const claims: Claims = {
     ...emptyClaims(),
     prtrGrant: compliance.prtrGrant?.value === 'YES' ? 'YES' : compliance.prtrGrant?.value === 'NO' ? 'NONE' : 'UNKNOWN',
+    ...(otherPrtrOnly(compliance) ? { prtrOtherProgramme: true } : {}),
     // The counterparty is certified only while its scheme certificate is in date.
     counterpartyCertified: expiry ? expiry.state !== 'EXPIRED' : null,
   };
@@ -287,6 +293,21 @@ export function resolveCounterparty(
     .filter(Boolean);
   const isRegistryFallback = !asked || registryNames.includes(norm(asked)) || norm(asked) === norm(researched.name);
   return isRegistryFallback ? { name: researched.name, source: researched } : { name: asked, source: null };
+}
+
+/**
+ * The FEEDSTOCK_REGISTRY key to take a default CI from for a plant whose feedstock mix is researched,
+ * and whether the mix is mixed. Null when the research sets none (the plant's registry feedstock applies).
+ */
+export function plantFeedstockForCi(plantId: string | null | undefined): { key: string; mixed: boolean } | null {
+  const c = plantId ? getPlantCompliance(plantId) : null;
+  return c?.feedstockForCi ? { key: c.feedstockForCi, mixed: Boolean(c.feedstockMixed) } : null;
+}
+
+/** Researched start of operation (YYYY-MM) and the source it came from, in place of the registry's unverified commissioning year. */
+export function researchedOperatingSince(plantId: string): { value: string; sourceUrl: string } | null {
+  const sv = getPlantCompliance(plantId)?.operatingSince;
+  return sv?.value ? { value: String(sv.value), sourceUrl: sv.sourceUrl } : null;
 }
 
 /** The plant's published CI with its source, or null. A CI is never taken from anything unsourced. */

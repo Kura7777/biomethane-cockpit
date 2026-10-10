@@ -1,10 +1,8 @@
 import { useMemo } from 'react';
 import { useAppState } from '../../../store/context';
-import { compareDestinations } from '../../../domain/arbitrage/destinationComparison';
+import { compareDestinationsForPlant } from '../../../domain/arbitrage/plantDestinations';
 import { buildDealUrl, DEAL_ROUTE } from '../../../domain/trade/dealParams';
 import { BiomethanePlant } from '../../../domain/plants/types';
-import { feedstockKeyForPlant } from '../../../domain/trade/dealDefaults';
-import { reportedCiForPlant } from '../../../domain/plants/compliance';
 
 interface DestinationComparisonProps {
   /** Origin country ISO code. */
@@ -25,13 +23,7 @@ export function DestinationComparison({ origin, plant }: DestinationComparisonPr
   const { state } = useAppState();
   // Value the plant's own feedstock at its published CI when it has one, else that feedstock's default CI.
   const rows = useMemo(
-    () => compareDestinations({
-      origin,
-      marks: state.marks,
-      costs: state.costs,
-      feedstockKey: plant ? feedstockKeyForPlant(plant) : undefined,
-      reportedCi: plant ? reportedCiForPlant(plant.id) : null,
-    }),
+    () => compareDestinationsForPlant({ origin, plant, marks: state.marks, costs: state.costs }),
     [origin, plant, state.marks, state.costs]
   );
   if (rows.length === 0) return null;

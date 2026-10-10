@@ -28,6 +28,8 @@ export interface DestinationRow {
   ci: number;
   /** Where that CI came from, e.g. "CI −100 g (manure default)" or "CI −42 g (published, source)". */
   ciLabel: string;
+  /** The market's law is not in force yet (the checklist's law-status item is open). */
+  notYetLaw: boolean;
 }
 
 /** A carbon intensity the plant itself publishes (sourced); used instead of the feedstock default. */
@@ -49,6 +51,8 @@ export function compareDestinations(args: {
   feedstockKey?: string;
   /** The plant's own sourced CI, if it publishes one; else the feedstock's default CI is used. */
   reportedCi?: ReportedCi | null;
+  /** The feedstock mix has more than one category: the label says the default CI is for a mixed feedstock. */
+  feedstockMixed?: boolean;
   volumeMWh?: number;
 }): DestinationRow[] {
   const profile = PRODUCING_ORIGINS[args.origin];
@@ -58,7 +62,7 @@ export function compareDestinations(args: {
   const ci = args.reportedCi ? args.reportedCi.value : getAssumption(`feedstock.defaultCi.${feedstock.id}`);
   const ciLabel = args.reportedCi
     ? `CI ${signedCi(ci)} g (published, source)`
-    : `CI ${signedCi(ci)} g (${feedstockKey.replace(/_/g, ' ')} default)`;
+    : `CI ${signedCi(ci)} g (${feedstockKey.replace(/_/g, ' ')} default${args.feedstockMixed ? ', mixed feedstock' : ''})`;
   const consignment = buildArbitrageConsignment({
     originCountry: profile.countryCode,
     originCountryName: profile.countryName,
@@ -108,6 +112,22 @@ export function compareDestinations(args: {
       netNetbackEurPerMwh: blocked ? null : nb.netNetback,
       ci,
       ciLabel,
+      notYetLaw: coc?.checklist?.some(i => i.id === 'legislative-status' && i.status === 'WARN') ?? false,
     }];
   });
+}
+
+/**
+ * The route with the highest value among the rows that are not blocked, labelled with what is still
+ * open ("NL GGE (open items, not yet law)"). Null when every route is blocked.
+ */
+export function bestDestination(rows: DestinationRow[]): { row: DestinationRow; label: string } | null {
+  const open = rows.filter(r => !r.blocked && r.netNetbackEurPerMwh !== null);
+  if (open.length === 0) return null;
+  const row = open.reduce((a, b) => (b.netNetbackEurPerMwh! > a.netNetbackEurPerMwh! ? b : a));
+  const notes = [
+    row.verdict === 'CONDITIONAL' ? 'open items' : row.verdict === 'UNRESOLVED' ? 'unresolved' : null,
+    row.notYetLaw ? 'not yet law' : null,
+  ].filter(Boolean);
+  return { row, label: notes.length > 0 ? `${row.shortName} (${notes.join(', ')})` : row.shortName };
 }

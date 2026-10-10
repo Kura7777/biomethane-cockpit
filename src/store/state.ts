@@ -77,6 +77,7 @@ export function createDefaultState(): AppState {
     referenceRowIds,
     consignments: [
       REFERENCE_CONSIGNMENTS.DANISH_MANURE,
+      REFERENCE_CONSIGNMENTS.SPANISH_MANURE,
       REFERENCE_CONSIGNMENTS.UK_FOOD_WASTE,
       REFERENCE_CONSIGNMENTS.ISCC_PLUS_VOLUNTARY,
     ],

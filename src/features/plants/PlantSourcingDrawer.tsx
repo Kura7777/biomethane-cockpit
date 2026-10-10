@@ -270,7 +270,6 @@ export function PlantSourcingDrawer({ plant, onClose }: PlantSourcingDrawerProps
           isDark={isDark}
           t={t}
           ciValue={ciValue}
-          defaultMarket={defaultMarket}
           deskOverride={deskOverride}
           linkedinSearchUrl={linkedinSearchUrl}
           handleLaunchTrade={handleLaunchTrade}

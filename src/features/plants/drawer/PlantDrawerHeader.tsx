@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import {
   ShieldCheck,
   Minimize2,
@@ -12,7 +13,10 @@ import {
 } from 'lucide-react';
 import { BiomethanePlant, TraderDeskOverride } from '../../../domain/plants/types';
 import { PlantDrawerTheme } from './plantDrawerTheme';
-import { plantEnergyFigure } from '../../../domain/plants/compliance';
+import { plantEnergyFigure, researchedOperatingSince, researchedPlantEntity } from '../../../domain/plants/compliance';
+import { useAppState } from '../../../store/context';
+import { compareDestinationsForPlant } from '../../../domain/arbitrage/plantDestinations';
+import { bestDestination } from '../../../domain/arbitrage/destinationComparison';
 
 interface PlantDrawerHeaderProps {
   plant: BiomethanePlant;
@@ -22,7 +26,6 @@ interface PlantDrawerHeaderProps {
   isDark: boolean;
   t: PlantDrawerTheme;
   ciValue: number;
-  defaultMarket: string;
   deskOverride: TraderDeskOverride | null;
   linkedinSearchUrl: string;
   handleLaunchTrade: () => void;
@@ -40,7 +43,6 @@ export function PlantDrawerHeader({
   isDark,
   t,
   ciValue,
-  defaultMarket,
   deskOverride,
   linkedinSearchUrl,
   handleLaunchTrade,
@@ -50,6 +52,14 @@ export function PlantDrawerHeader({
   onNavigateMap,
 }: PlantDrawerHeaderProps) {
   const energy = plantEnergyFigure(plant);
+  const { state } = useAppState();
+  const entity = researchedPlantEntity(plant.id);
+  const since = researchedOperatingSince(plant.id);
+  // Same comparison as the map's "Where can this gas go?", so the two cannot disagree.
+  const best = useMemo(
+    () => bestDestination(compareDestinationsForPlant({ origin: plant.countryCode, plant, marks: state.marks, costs: state.costs })),
+    [plant, state.marks, state.costs],
+  );
   return (
     <div
       className="psd-header"
@@ -102,8 +112,18 @@ export function PlantDrawerHeader({
             {plant.name}
           </h2>
           <p style={{ fontSize: '12px', color: t.textMuted, margin: '3px 0 0 0', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-            <span style={{ color: t.textSecondary, fontWeight: 500 }}>{plant.operator || plant.legalEntityName || 'Independent Producer'}</span>
-            {plant.commissioningYear && <span>• Comm. {plant.commissioningYear}</span>}
+            {entity ? (
+              <span style={{ color: t.textSecondary, fontWeight: 500 }} data-testid="plant-header-entity">
+                {entity.name} <a href={entity.url} target="_blank" rel="noopener noreferrer" style={{ color: t.textMuted, fontWeight: 400 }}>(researched)</a>
+              </span>
+            ) : (
+              <span style={{ color: t.textSecondary, fontWeight: 500 }}>{plant.operator || plant.legalEntityName || 'Independent Producer'}</span>
+            )}
+            {since ? (
+              <span data-testid="plant-header-since">
+                • Operating since {since.value} <a href={since.sourceUrl} target="_blank" rel="noopener noreferrer" style={{ color: t.textMuted }}>(researched)</a>
+              </span>
+            ) : plant.commissioningYear && <span>• Comm. {plant.commissioningYear}</span>}
             {plant.networkOperator && <span>• Grid: <strong style={{ color: t.textSecondary }}>{plant.networkOperator}</strong></span>}
           </p>
         </div>
@@ -219,8 +239,8 @@ export function PlantDrawerHeader({
 
         <div>
           <span style={{ fontSize: '10px', color: t.textMuted, display: 'block', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Optimal Route</span>
-          <strong style={{ fontSize: '13px', color: isDark ? '#38bdf8' : '#0284c7', fontWeight: 700 }}>
-            {defaultMarket}
+          <strong style={{ fontSize: '13px', color: isDark ? '#38bdf8' : '#0284c7', fontWeight: 700 }} data-testid="plant-optimal-route">
+            {best ? best.label : 'No open route'}
           </strong>
         </div>
       </div>

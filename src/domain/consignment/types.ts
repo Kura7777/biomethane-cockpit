@@ -62,6 +62,8 @@ export interface GoRecord {
   energyMWh: number | null;
   energyBasis: EnergyBasis;
   supportType: SupportType;
+  /** Why the support type was pre-filled (from plant research), shown with the checklist. */
+  supportNote?: string;
   gridInjected: boolean | null;
 }
 
@@ -89,6 +91,8 @@ export interface Claims {
   notUsedElsewhere: boolean | null;
   prtrGrant: 'NONE' | 'YES' | 'UNKNOWN';
   prtrLegalCheckDone: boolean;
+  /** The plant has a PRTR-funded grant under another programme (not the Orden TED/706 biogas call): its own terms need a check. */
+  prtrOtherProgramme?: boolean;
   ownTraderCertified: boolean | null;
   counterpartyCertified: boolean | null;
 }

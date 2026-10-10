@@ -1,5 +1,6 @@
 import { Consignment } from './types';
 import { FeedstockInfo, FEEDSTOCK_REGISTRY } from './feedstockData';
+import { feedstockDefaultCi, getAssumption } from '../assumptions/registry';
 
 export type { FeedstockInfo };
 export { FEEDSTOCK_REGISTRY };
@@ -27,6 +28,27 @@ export const REFERENCE_CONSIGNMENTS: Record<string, Consignment> = {
     posStatus: 'ISSUED',
     volumeMWh: 10000,
     deliveryPeriod: null,
+    counterparty: null,
+  },
+  /** Spanish manure into the NL green-gas obligation (delivery 2027), so the Morning brief ladder shows NL GGE. */
+  SPANISH_MANURE: {
+    id: 'ref_es_manure',
+    name: 'Spanish Manure Benchmark',
+    originCountry: 'ES',
+    originCountryName: 'Spain',
+    feedstock: 'manure',
+    feedstockName: FEEDSTOCK_REGISTRY.manure.name,
+    annexClassification: FEEDSTOCK_REGISTRY.manure.annexClassification,
+    carbonIntensity: feedstockDefaultCi('manure') ?? FEEDSTOCK_REGISTRY.manure.defaultCI,
+    commissioningDateRange: 'POST_2021_TO_2025',
+    certificationScheme: 'ISCC_EU',
+    chainOfCustody: 'MASS_BALANCE',
+    injectionCountry: 'ES',
+    injectionIsEU: true,
+    udbStatus: 'RECORDED',
+    posStatus: 'ISSUED',
+    volumeMWh: getAssumption('deal.defaultVolumeMwh'),
+    deliveryPeriod: { type: 'CALENDAR', startDate: '2027-01-01', endDate: '2027-12-31', complianceYear: 2027 },
     counterparty: null,
   },
   UK_FOOD_WASTE: {

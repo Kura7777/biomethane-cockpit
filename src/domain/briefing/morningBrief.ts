@@ -145,14 +145,24 @@ export interface BriefLadderRow {
   missingInputs: string[];
 }
 
+/** Not-yet-law markets the ladder still shows when the consignment can reach them (the NL green-gas obligation). */
+const LADDER_EMERGING_MARKETS = ['NL_GGE'];
+
 /**
  * One consignment priced into every active market, ranked exactly as the Scanner and Origination
  * ladders rank it. Markets with no netback (a missing mark) are left out — the Pricing desk lists those.
+ * NL GGE (not yet law) joins only when the consignment is not blocked from it, so a Danish or German
+ * sample's ladder is unchanged.
  */
 export function buildConsignmentLadder(consignment: Consignment, marks: MarksState, costs: CostInputs): BriefLadderRow[] {
-  const markets = MARKETS.filter(m => m.status === 'ACTIVE');
   const eligibility = new Map<string, EligibilityAssessment>();
-  for (const m of markets) eligibility.set(m.id, evaluateEligibility(consignment, m));
+  const markets = MARKETS.filter(m => {
+    if (m.status !== 'ACTIVE' && !LADDER_EMERGING_MARKETS.includes(m.id)) return false;
+    const assessment = evaluateEligibility(consignment, m);
+    eligibility.set(m.id, assessment);
+    const blocked = assessment.overallVerdict === 'HARD_BLOCK' || assessment.overallVerdict === 'UNKNOWN';
+    return m.status === 'ACTIVE' || !blocked;
+  });
   const netbacks = computeAllNetbacks(consignment, markets, marks, costs, eligibility, marks.pricingSides);
   const ranked = rankNetbacks(netbacks, eligibility);
 

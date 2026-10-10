@@ -158,6 +158,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "retrievedAt": "2026-10-09T21:30:00Z",
         "note": "Sedigas typology 'Agroganadero'. Redexis acquired the site of 'Energy Green Almazán' (a SANDACH/animal by-product rendering plant) - see ISCC scope below. No % mix published."
       },
+      "feedstockMixed": true,
+      "feedstockForCi": "sewage_sludge",
+      "feedstockCiNote": "ISCC scope list (manure, sewage sludge, ABP, whey, UCO, food waste), no split published: highest-CI category",
       "certification": {
         "value": {
           "scheme": "ISCC_EU",
@@ -177,6 +180,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "bdnsResult": "NO_RECORD"
       },
       "otherAid": null,
+      "aidClass": "NONE_FOUND",
+      "otherPrtrFunded": false,
+      "aidNote": "No aid found in public records.",
       "reportedCI": null,
       "currentOfftake": null,
       "nominalCapacityGWh": {
@@ -350,6 +356,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "retrievedAt": "2026-10-09T21:30:00Z",
         "note": "SECONDARY (Forbes España 2023-07-18, design stage): 'desde estiércol vacuno y purín porcino hasta lodos de depuradora y residuos de las industrias agroalimentarias cercanas'. ISCC scope: manure, food waste, sewage sludge, food-industry wastewater, whey permeate."
       },
+      "feedstockMixed": true,
+      "feedstockForCi": "manure",
+      "feedstockCiNote": "cattle manure ~50,000 t + pig slurry ~30,000 t = ~80% of ~100,000 t (planned): manure majority",
       "certification": {
         "value": {
           "scheme": "ISCC_EU",
@@ -374,6 +383,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "retrievedAt": "2026-10-09T21:30:00Z",
         "note": "BDNS SB97442009, convocatoria 300692 'Incentivos Regionales para la corrección de los desequilibrios económicos interterritoriales'."
       },
+      "aidClass": "INVESTMENT_ONLY",
+      "otherPrtrFunded": false,
+      "aidNote": "Investment aid only: regional incentive EUR 1.2M (2023).",
       "reportedCI": null,
       "currentOfftake": {
         "value": "Nedgia injection agreement for 40 GWh/y; commercial offtaker / GO owner not published",
@@ -538,6 +550,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "retrievedAt": "2026-10-09T21:30:00Z",
         "note": "SECONDARY: 'unas 15.000 toneladas de deyecciones de ganado porcino, vacuno y avícola' ... 'unas 35.000 toneladas de residuos agroalimentarios'. ISCC scope also lists UCO, grease trap fat, crude glycerine, fish oil etc."
       },
+      "feedstockMixed": true,
+      "feedstockForCi": "food_waste",
+      "feedstockCiNote": "~15,000 t manure vs ~35,000 t agro-food and industrial waste: manure ~30%, not the majority",
       "certification": {
         "value": {
           "scheme": "ISCC_EU",
@@ -562,6 +577,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "retrievedAt": "2026-10-09T21:30:00Z",
         "note": "BDNS nifCif=B42220830."
       },
+      "aidClass": "INVESTMENT_ONLY",
+      "otherPrtrFunded": true,
+      "aidNote": "Investment aid only: IDAE/FEDER thermal, EREN-CyL PRTR EUR 157,800, Junta CyL direct subsidy.",
       "reportedCI": null,
       "currentOfftake": null,
       "nominalCapacityGWh": {
@@ -721,6 +739,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "retrievedAt": "2026-10-09T21:30:00Z",
         "note": "ISCC raw material: 'Industrial wastewater and derivatives, Waste/residues from processing of vegetable or animal oil (Animal fats from rendering (category 3))'. es.json said poultry/livestock manure; the certificate does not list manure."
       },
+      "feedstockMixed": true,
+      "feedstockForCi": "industrial_bio_waste",
+      "feedstockCiNote": "industrial wastewater + category-3 animal fats, no manure: industrial biogenic residues",
       "certification": {
         "value": {
           "scheme": "ISCC_EU",
@@ -745,6 +766,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "retrievedAt": "2026-10-09T21:30:00Z",
         "note": "BDNS convocatorias 919691 (2024), 841508 (2023), 759155 (2022) 'Retribución específica de los productores de energía eléctrica a partir de fuentes de energía renovables, cogeneración y residuos (RECORE)'. Concession codes e.g. SB155427634, SB155424859, SB143203931. Confirm the REER (RD 413/2014 / RECORE 'retribución específica') electricity unit on this entity is NOT fed by the digester whose gas is sold as biomethane; if it is, the gas has operating aid and fails NL R11."
       },
+      "aidClass": "OPERATING",
+      "otherPrtrFunded": false,
+      "aidNote": "REER electricity operating aid, entity-level (~EUR 3.96M in 2024): confirm the REER lines are not fed by this digester.",
       "reportedCI": null,
       "currentOfftake": null,
       "nominalCapacityGWh": {
@@ -802,6 +826,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
       "certification": null,
       "prtrGrant": null,
       "otherAid": null,
+      "aidClass": "NONE_FOUND",
+      "otherPrtrFunded": false,
+      "aidNote": "No aid found in public records.",
       "reportedCI": null,
       "currentOfftake": null,
       "nominalCapacityGWh": null,
@@ -949,6 +976,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "retrievedAt": "2026-10-09T21:30:00Z",
         "note": "ISCC raw material: 'Manure, Wastewater from the food industry, Sewage sludge'. Article (Energías Renovables 2024-06-26): plant 'ubicada en una explotación ganadera'."
       },
+      "feedstockMixed": true,
+      "feedstockForCi": "sewage_sludge",
+      "feedstockCiNote": "pig slurry + food-industry wastewater + sewage sludge, no split: highest-CI category",
       "certification": {
         "value": {
           "scheme": "ISCC_EU",
@@ -968,6 +998,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "bdnsResult": "NO_RECORD"
       },
       "otherAid": null,
+      "aidClass": "NONE_FOUND",
+      "otherPrtrFunded": false,
+      "aidNote": "No aid found in public records.",
       "reportedCI": null,
       "currentOfftake": null,
       "nominalCapacityGWh": {
@@ -1126,6 +1159,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "retrievedAt": "2026-10-09T21:30:00Z",
         "note": "Biogas is produced at Biogasnalia (waste manager) and upgraded by UNUE. No manure."
       },
+      "feedstockMixed": true,
+      "feedstockForCi": "sewage_sludge",
+      "feedstockCiNote": "agro-industrial/food waste + sewage sludge, no split: highest-CI category",
       "certification": {
         "value": {
           "scheme": "ISCC_EU",
@@ -1145,6 +1181,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "bdnsResult": "NO_RECORD"
       },
       "otherAid": null,
+      "aidClass": "NONE_FOUND",
+      "otherPrtrFunded": false,
+      "aidNote": "No aid found in public records.",
       "reportedCI": null,
       "currentOfftake": null,
       "nominalCapacityGWh": {
@@ -1201,6 +1240,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
       "certification": null,
       "prtrGrant": null,
       "otherAid": null,
+      "aidClass": "NONE_FOUND",
+      "otherPrtrFunded": false,
+      "aidNote": "No aid found in public records.",
       "reportedCI": null,
       "currentOfftake": null,
       "nominalCapacityGWh": null,
@@ -1362,6 +1404,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "retrievedAt": "2026-10-09T21:30:00Z",
         "note": "BDNS 919691/841508/759155 codes SB155409768, SB143184037, SB105983089. HTN's biogas CHP is REER-supported."
       },
+      "aidClass": "OPERATING",
+      "otherPrtrFunded": false,
+      "aidNote": "REER electricity operating aid, entity-level (~EUR 383k in 2024, HTN): confirm the REER unit is not fed by this digester.",
       "reportedCI": null,
       "currentOfftake": null,
       "nominalCapacityGWh": null,
@@ -1553,6 +1598,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         }
       },
       "otherAid": null,
+      "aidClass": "NONE_FOUND",
+      "otherPrtrFunded": false,
+      "aidNote": "No aid found in public records.",
       "reportedCI": null,
       "currentOfftake": null,
       "nominalCapacityGWh": {
@@ -1720,6 +1768,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "retrievedAt": "2026-10-09T21:30:00Z",
         "note": "SECONDARY: 'prioritises the recovery of agricultural and livestock by-products, especially pig slurry'. ISCC scope also lists grease-trap fat, food waste, category-3 fats, manure."
       },
+      "feedstockMixed": true,
+      "feedstockForCi": "food_waste",
+      "feedstockCiNote": "\"especially pig slurry\" plus ~56,500 t/y agro-food waste, no tonnage split: not shown to be majority manure",
       "certification": {
         "value": {
           "scheme": "ISCC_EU",
@@ -1752,6 +1803,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "retrievedAt": "2026-10-09T21:30:00Z",
         "note": "BDNS REER codes SB155394966, SB143167535, SB105968755; Navarra codes SB118771762, SB108851260. Press: 'The initiative has been financed by the Institute for Energy Diversification and Saving (IDAE)'. Confirm the REER (RD 413/2014 / RECORE 'retribución específica') electricity unit on this entity is NOT fed by the digester whose gas is sold as biomethane; if it is, the gas has operating aid and fails NL R11."
       },
+      "aidClass": "OPERATING",
+      "otherPrtrFunded": false,
+      "aidNote": "REER electricity operating aid for the site's CHP (EUR 103k in 2024): confirm the CHP is not fed by this digester's gas.",
       "reportedCI": null,
       "currentOfftake": null,
       "nominalCapacityGWh": {
@@ -1944,6 +1998,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "bdnsResult": "NO_RECORD"
       },
       "otherAid": null,
+      "aidClass": "NONE_FOUND",
+      "otherPrtrFunded": false,
+      "aidNote": "No aid found in public records.",
       "reportedCI": null,
       "currentOfftake": null,
       "nominalCapacityGWh": {
@@ -2103,6 +2160,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "retrievedAt": "2026-10-09T21:30:00Z",
         "note": "SECONDARY: 'procesará cada año 104.000 toneladas de restos agroganaderos' ... 'gallinaza, purín porcino, alperujo, lactosuero'."
       },
+      "feedstockMixed": true,
+      "feedstockForCi": "food_waste",
+      "feedstockCiNote": "poultry manure, pig slurry, olive-mill alperujo, whey (~104,000 t/y), no split: not shown to be majority manure",
       "certification": null,
       "prtrGrant": {
         "value": "UNKNOWN",
@@ -2112,6 +2172,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "bdnsResult": "NO_RECORD"
       },
       "otherAid": null,
+      "aidClass": "NONE_FOUND",
+      "otherPrtrFunded": false,
+      "aidNote": "No aid found in public records.",
       "reportedCI": null,
       "currentOfftake": null,
       "nominalCapacityGWh": {
@@ -2274,6 +2337,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "bdnsResult": "NO_RECORD"
       },
       "otherAid": null,
+      "aidClass": "NONE_FOUND",
+      "otherPrtrFunded": false,
+      "aidNote": "No aid found in public records.",
       "reportedCI": null,
       "currentOfftake": null,
       "nominalCapacityGWh": null,
@@ -2427,6 +2493,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "retrievedAt": "2026-10-09T21:30:00Z",
         "note": "ISCC raw material list; no percentages. Redexis press (Lorca+Los Alcázares): 211,000 t/y of agro-food, agro-industrial and livestock waste for 80 GWh/y combined."
       },
+      "feedstockMixed": true,
+      "feedstockForCi": "sewage_sludge",
+      "feedstockCiNote": "ISCC scope list incl. manure, sewage sludge, food waste, no split: highest-CI category",
       "certification": {
         "value": {
           "scheme": "ISCC_EU",
@@ -2446,6 +2515,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "bdnsResult": "NO_RECORD"
       },
       "otherAid": null,
+      "aidClass": "NONE_FOUND",
+      "otherPrtrFunded": false,
+      "aidNote": "No aid found in public records.",
       "reportedCI": null,
       "currentOfftake": {
         "value": "Pavilion Energy (Singapore) - first Redexis Renovables biomethane sale (May 2024), volume and term not published",
@@ -2613,6 +2685,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "bdnsResult": "NO_RECORD"
       },
       "otherAid": null,
+      "aidClass": "NONE_FOUND",
+      "otherPrtrFunded": false,
+      "aidNote": "No aid found in public records.",
       "reportedCI": null,
       "currentOfftake": null,
       "nominalCapacityGWh": null,
@@ -2808,6 +2883,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "retrievedAt": "2026-10-09T21:30:00Z",
         "note": "BDNS convocatorias 815687, 584207."
       },
+      "aidClass": "INVESTMENT_ONLY",
+      "otherPrtrFunded": false,
+      "aidNote": "Investment-type support only: CDTI innovation loans.",
       "reportedCI": null,
       "currentOfftake": null,
       "nominalCapacityGWh": {
@@ -2983,6 +3061,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "bdnsResult": "NO_RECORD"
       },
       "otherAid": null,
+      "aidClass": "NONE_FOUND",
+      "otherPrtrFunded": false,
+      "aidNote": "No aid found in public records.",
       "reportedCI": null,
       "currentOfftake": null,
       "nominalCapacityGWh": {
@@ -3154,6 +3235,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "retrievedAt": "2026-10-09T21:30:00Z",
         "note": "ISCC raw material list, no percentages; Sedigas typology 'Agroganadero'."
       },
+      "feedstockMixed": true,
+      "feedstockForCi": "sewage_sludge",
+      "feedstockCiNote": "ISCC scope list (fats, feed/food waste, manure, sewage sludge, UCO), no split: highest-CI category",
       "certification": {
         "value": {
           "scheme": "ISCC_EU",
@@ -3200,6 +3284,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "retrievedAt": "2026-10-09T21:30:00Z",
         "note": "BDNS codes SB136875473/474, SB97294066, PR97408441 (loan), SB116143701."
       },
+      "aidClass": "INVESTMENT_ONLY",
+      "otherPrtrFunded": true,
+      "aidNote": "Investment aid only: PERTE, PRTR innovation EUR 865k, loan, FEDER R&D, regional grants.",
       "reportedCI": null,
       "currentOfftake": null,
       "nominalCapacityGWh": {
@@ -3399,6 +3486,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "retrievedAt": "2026-10-09T21:30:00Z",
         "note": "BDNS codes SB129261537 (2025-04-25) and SB137204592 (2025-10-21)."
       },
+      "aidClass": "INVESTMENT_ONLY",
+      "otherPrtrFunded": true,
+      "aidNote": "Investment aid only: Generalitat biogas call 2024 + ICAEN PRTR thermal.",
       "reportedCI": null,
       "currentOfftake": {
         "value": "Axpo Iberia (long-term biomethane purchase agreement signed 2020; term not published); Axpo Iberia + Sorigué hold 80% since 2023",
@@ -3579,6 +3669,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "bdnsResult": "NO_RECORD"
       },
       "otherAid": null,
+      "aidClass": "NONE_FOUND",
+      "otherPrtrFunded": false,
+      "aidNote": "No aid found in public records.",
       "reportedCI": null,
       "currentOfftake": null,
       "nominalCapacityGWh": {
@@ -3756,6 +3849,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "bdnsResult": "NO_RECORD"
       },
       "otherAid": null,
+      "aidClass": "NONE_FOUND",
+      "otherPrtrFunded": false,
+      "aidNote": "No aid found in public records.",
       "reportedCI": null,
       "currentOfftake": null,
       "nominalCapacityGWh": {
@@ -3917,6 +4013,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "bdnsResult": "NO_RECORD"
       },
       "otherAid": null,
+      "aidClass": "NONE_FOUND",
+      "otherPrtrFunded": false,
+      "aidNote": "No aid found in public records.",
       "reportedCI": null,
       "currentOfftake": null,
       "nominalCapacityGWh": null,
@@ -4084,6 +4183,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "retrievedAt": "2026-10-09T21:30:00Z",
         "note": "ISCC raw material: 'Organic municipal solid waste (MSW), Sewage sludge'. Sedigas typology 'EDAR'."
       },
+      "feedstockMixed": true,
+      "feedstockForCi": "sewage_sludge",
+      "feedstockCiNote": "municipal organic waste + sewage sludge, no split: highest-CI category",
       "certification": {
         "value": {
           "scheme": "ISCC_EU",
@@ -4116,6 +4218,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "retrievedAt": "2026-10-09T21:30:00Z",
         "note": "BDNS codes e.g. SB155400216 (REER 2024-01-01), SB143174949, SB105975055; direct ARC subsidy 543984. REER is operating aid on ELECTRICITY at the entity - Confirm the REER (RD 413/2014 / RECORE 'retribución específica') electricity unit on this entity is NOT fed by the digester whose gas is sold as biomethane; if it is, the gas has operating aid and fails NL R11."
       },
+      "aidClass": "OPERATING",
+      "otherPrtrFunded": false,
+      "aidNote": "REER 'retribución específica' electricity aid, entity-level (EUR 106k in 2024): confirm the REER unit is not fed by this digester.",
       "reportedCI": null,
       "currentOfftake": {
         "value": "Naturgy: 'Naturgy se garantiza la compra de hasta 22 GWh de biometano durante un año prorrogable.'",
@@ -4280,6 +4385,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "retrievedAt": "2026-10-09T21:30:00Z",
         "note": "ISCC raw material list; no percentages published. Ence press (2024-12-19): produces 'compost y ... fertilizante orgánico'."
       },
+      "feedstockMixed": true,
+      "feedstockForCi": "sewage_sludge",
+      "feedstockCiNote": "ISCC scope list incl. manure and sewage sludge, no split: highest-CI category",
       "certification": {
         "value": {
           "scheme": "ISCC_EU",
@@ -4299,6 +4407,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "bdnsResult": "NO_RECORD"
       },
       "otherAid": null,
+      "aidClass": "NONE_FOUND",
+      "otherPrtrFunded": false,
+      "aidNote": "No aid found in public records.",
       "reportedCI": null,
       "currentOfftake": {
         "value": "Un 'relevante comercializadora de gas' (unnamed) - 15-year agreement signed by Ence",
@@ -4481,6 +4592,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "bdnsResult": "NO_RECORD"
       },
       "otherAid": null,
+      "aidClass": "NONE_FOUND",
+      "otherPrtrFunded": false,
+      "aidNote": "No aid found in public records.",
       "reportedCI": null,
       "currentOfftake": null,
       "nominalCapacityGWh": {

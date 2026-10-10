@@ -199,6 +199,16 @@ export interface PlantCompliance {
   certification: SourcedValue<PlantCertificate> | null;
   prtrGrant: PrtrGrantValue | null;
   otherAid: SourcedValue | null;
+  /** What `otherAid` amounts to, set by hand from its text: operating aid blocks NL GGE crediting, investment aid does not. */
+  aidClass?: 'OPERATING' | 'INVESTMENT_ONLY' | 'NONE_FOUND';
+  /** True when a PRTR-funded grant under another programme (not Orden TED/706 biogas) was found. */
+  otherPrtrFunded?: boolean;
+  /** Short reason behind `aidClass`, shown with the checklist. */
+  aidNote?: string;
+  /** FEEDSTOCK_REGISTRY key whose default CI to use when `feedstockMix` lists more than one category. */
+  feedstockForCi?: string;
+  feedstockMixed?: boolean;
+  feedstockCiNote?: string;
   /** Published carbon intensity, gCO2e/MJ. Only a sourced value may ever default a CI. */
   reportedCI: SourcedValue<number> | null;
   currentOfftake: SourcedValue | null;

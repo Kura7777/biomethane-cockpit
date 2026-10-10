@@ -251,8 +251,8 @@ export function CustodyPackForm({ market, origin, custody, onChange, onOpenPoS, 
                   <option value="YES">Plant has a PRTR grant</option>
                 </select>
               </Field>
-              {claims.prtrGrant === 'YES' && (
-                <Field id="cust-claim-prtr-legal" label="Grant terms checked">
+              {(claims.prtrGrant === 'YES' || claims.prtrOtherProgramme) && (
+                <Field id="cust-claim-prtr-legal" label="Grant terms checked" hint={claims.prtrGrant !== 'YES' ? 'PRTR-funded grant under another programme: check its terms.' : undefined}>
                   <select id="cust-claim-prtr-legal" className="input" value={claims.prtrLegalCheckDone ? 'yes' : 'no'} onChange={e => patchClaims({ prtrLegalCheckDone: e.target.value === 'yes' })}>
                     <option value="no">Legal check not done</option>
                     <option value="yes">Legal check done: sale permitted</option>

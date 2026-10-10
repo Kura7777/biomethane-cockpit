@@ -151,8 +151,9 @@ describe('GGE readiness', () => {
     expect(by.grid.status).toBe('OK');
     expect(by.certified.status).toBe('OK');
     expect(by.aid.status).toBe('OK');
-    expect(by.prtr.status).toBe('UNKNOWN');
-    expect(by.prtr.detail).toMatch(/not found \(partial register\)/i);
+    // Biogas grant not found, but an EREN-CyL PRTR grant under another programme is
+    expect(by.prtr.status).toBe('WARN');
+    expect(by.prtr.detail).toBe('PRTR-funded grant (other programme): check its terms.');
     expect(by.ci.status).toBe('UNKNOWN');
   });
 
@@ -177,7 +178,7 @@ describe('getPlantComplianceDefaults', () => {
     const d = getPlantComplianceDefaults('plant_es_11', 'ES', NOW);
     expect(d.go).toMatchObject({ registry: 'Enagás GTS', issuingCountry: 'ES', gridInjected: true, supportType: 'INVESTMENT', energyBasis: 'HHV', energyMWh: null });
     expect(d.pos).toMatchObject({ scheme: 'ISCC_EU', supportDeclared: 'INVESTMENT', ciTotal: null, mwh: null });
-    expect(d.claims).toMatchObject({ prtrGrant: 'UNKNOWN', counterpartyCertified: true, prtrLegalCheckDone: false });
+    expect(d.claims).toMatchObject({ prtrGrant: 'UNKNOWN', counterpartyCertified: true, prtrLegalCheckDone: false, prtrOtherProgramme: true });
   });
 
   it('maps the researched facts: operating aid, PRTR grant, expired certificate, off-grid', () => {
