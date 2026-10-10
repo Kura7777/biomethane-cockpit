@@ -236,6 +236,13 @@
   .ph-fab { bottom: calc(48px + env(safe-area-inset-bottom) + 10px); }
 }
 
+/* Pages with a sticky action bar (e.g. the Trade Builder's "Next" button): sit above it, never on it.
+   The bar is 12px + 44px + 12px padding/button plus a 1px border. */
+body:has(.m-sticky-actions) .ph-fab { bottom: calc(56px + env(safe-area-inset-bottom) + 12px + 69px); }
+@media (orientation: landscape) and (max-height: 500px) {
+  body:has(.m-sticky-actions) .ph-fab { bottom: calc(48px + env(safe-area-inset-bottom) + 10px + 69px); }
+}
+
 .ph-sheet-footer { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .ph-sheet-footer .ph-chips { flex-wrap: wrap; overflow: visible; }
 .ph-sheet-footer .ph-chip { white-space: normal; max-width: 100%; text-align: left; }
