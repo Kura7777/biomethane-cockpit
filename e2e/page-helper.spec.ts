@@ -100,27 +100,6 @@ test.describe('Page helper capsule (desktop)', () => {
     expect(body).toContain('go-route-nl');
   });
 
-  test('moving to a new screen offers help; Yes opens it, and it can be switched off', async ({ page }) => {
-    await gotoScreen(page, '/glossary');
-    // No prompt on the first page load.
-    await expect(page.getByTestId('helper-nudge')).toHaveCount(0);
-
-    await page.evaluate(() => { window.location.hash = '#/pricing'; });
-    const nudge = page.getByTestId('helper-nudge');
-    await expect(nudge).toContainText('Would you like help with this page?');
-    await page.getByTestId('helper-nudge-yes').click();
-    await expect(page.getByTestId('page-helper')).toHaveAttribute('data-open', 'true');
-    await expect(nudge).toHaveCount(0);
-
-    await page.keyboard.press('Escape');
-    await page.evaluate(() => { window.location.hash = '#/clients'; });
-    await expect(page.getByTestId('helper-nudge')).toBeVisible();
-    await page.getByTestId('helper-nudge-never').click();
-    await page.evaluate(() => { window.location.hash = '#/deals'; });
-    await expect(page.getByTestId('helper-open')).toBeVisible();
-    await expect(page.getByTestId('helper-nudge')).toHaveCount(0);
-  });
-
   test('geometry at 1600×950: capsule clears the status bar, card stays in the viewport, no Trade Builder button is covered', async ({ page }) => {
     await gotoScreen(page, DK_NL_GGE);
     const rect = async (sel: string) => page.locator(sel).first().evaluate(el => {

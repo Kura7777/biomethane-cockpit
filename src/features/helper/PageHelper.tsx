@@ -322,57 +322,6 @@ function ModeNote({ aiMode }: { aiMode: boolean }) {
   );
 }
 
-// ── The "Would you like help?" nudge ───────────────────────────────────────
-
-const NUDGE_OFF_KEY = 'biomethane-helper-nudge-off';
-const NUDGE_SECONDS = 9;
-
-function nudgeDisabled(): boolean {
-  try { return localStorage.getItem(NUDGE_OFF_KEY) === '1'; } catch { return false; }
-}
-
-/**
- * A small prompt that appears when the trader moves to a new screen, so they know the helper is there.
- * It goes away by itself, is skipped while the helper is open, and can be switched off for good.
- */
-function useNudge(pageKey: string, open: boolean) {
-  const [shownFor, setShownFor] = useState<string | null>(null);
-  const first = useRef(true);
-
-  useEffect(() => {
-    if (first.current) { first.current = false; return; }
-    if (open || nudgeDisabled()) { setShownFor(null); return; }
-    setShownFor(pageKey);
-    const t = window.setTimeout(() => setShownFor(null), NUDGE_SECONDS * 1000);
-    return () => window.clearTimeout(t);
-    // Only a change of page raises the prompt; opening the helper just hides it.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pageKey]);
-
-  const visible = shownFor === pageKey && !open;
-  return {
-    visible,
-    dismiss: () => setShownFor(null),
-    disableForever: () => {
-      try { localStorage.setItem(NUDGE_OFF_KEY, '1'); } catch { /* ignore */ }
-      setShownFor(null);
-    },
-  };
-}
-
-function Nudge({ title, onYes, onNo, onNever }: { title: string; onYes: () => void; onNo: () => void; onNever: () => void }) {
-  return (
-    <div className="ph-nudge" role="status" data-testid="helper-nudge">
-      <div className="ph-nudge-text">Would you like help with this page? <span className="ph-muted">({title})</span></div>
-      <div className="ph-nudge-actions">
-        <button type="button" className="ph-nudge-yes" data-testid="helper-nudge-yes" onClick={onYes}>Yes, help me</button>
-        <button type="button" className="ph-nudge-no" data-testid="helper-nudge-no" onClick={onNo}>Not now</button>
-        <button type="button" className="ph-link" data-testid="helper-nudge-never" onClick={onNever}>Don’t ask again</button>
-      </div>
-    </div>
-  );
-}
-
 // ── The capsule and chat card ───────────────────────────────────────────────
 
 /**
@@ -390,15 +339,6 @@ export function PageHelper() {
   const capsuleRef = useRef<HTMLButtonElement>(null);
   const liftedBottom = useCapsuleBottom(!isMobile, canonicalRoute(pathname));
   const wasOpen = useRef(open);
-  const nudge = useNudge(canonicalRoute(pathname), open);
-  const nudgeEl = nudge.visible ? (
-    <Nudge
-      title={chat.title}
-      onYes={() => { nudge.dismiss(); setHelperOpen(true); }}
-      onNo={nudge.dismiss}
-      onNever={nudge.disableForever}
-    />
-  ) : null;
 
   // A new page starts on its own chat.
   const pageKey = canonicalRoute(pathname);
@@ -434,7 +374,6 @@ export function PageHelper() {
   if (isMobile) {
     return (
       <div className="ph-root ph-root--compact">
-        {nudgeEl}
         <button
           ref={capsuleRef}
           type="button"
@@ -474,7 +413,6 @@ export function PageHelper() {
       style={liftedBottom && liftedBottom > 44 ? ({ '--ph-bottom': `${liftedBottom}px` } as React.CSSProperties) : undefined}
       data-testid="page-helper"
       data-open={open ? 'true' : 'false'} data-expanded={expanded ? 'true' : 'false'}>
-      {nudgeEl}
       {open && expanded && <div className="ph-backdrop" data-testid="helper-backdrop" onClick={() => setHelperExpanded(false)} />}
       {open && (
         <section

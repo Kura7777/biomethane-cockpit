@@ -22,19 +22,6 @@ test.describe('Page helper (compact layout)', () => {
     expect(noOverflow).toBe(true);
   });
 
-  test('the prompt appears above the Ask capsule after changing screen and stays inside the viewport', async ({ page }) => {
-    await gotoScreen(page, '/glossary');
-    await page.evaluate(() => { window.location.hash = '#/pricing'; });
-    const nudge = page.getByTestId('helper-nudge');
-    await expect(nudge).toBeVisible();
-    const box = await nudge.boundingBox();
-    const vw = page.viewportSize()!.width;
-    expect(box!.x).toBeGreaterThanOrEqual(0);
-    expect(box!.x + box!.width).toBeLessThanOrEqual(vw);
-    await page.getByTestId('helper-nudge-yes').click();
-    await expect(page.getByTestId('helper-sheet')).toBeVisible();
-  });
-
   test('the Ask capsule never overlaps the tab bar or the sticky action bar', async ({ page }) => {
     await gotoScreen(page, '/trade?marketId=NL_GGE&originCountry=DK&feedstock=manure&ci=-100&volume=15000');
     const box = (sel: string) => page.locator(sel).first().boundingBox();
