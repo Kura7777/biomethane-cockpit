@@ -3,6 +3,7 @@ import { useAppState } from '../../../store/context';
 import { compareDestinationsForPlant } from '../../../domain/arbitrage/plantDestinations';
 import { buildDealUrl, DEAL_ROUTE } from '../../../domain/trade/dealParams';
 import { BiomethanePlant } from '../../../domain/plants/types';
+import { usePageContext } from '../../helper/usePageContext';
 
 interface DestinationComparisonProps {
   /** Origin country ISO code. */
@@ -26,6 +27,18 @@ export function DestinationComparison({ origin, plant }: DestinationComparisonPr
     () => compareDestinationsForPlant({ origin, plant, marks: state.marks, costs: state.costs }),
     [origin, plant, state.marks, state.costs]
   );
+  usePageContext('/map', () => ({
+    origin,
+    selectedPlant: plant ? { name: plant.name, country: plant.countryCode } : null,
+    destinations: rows.map(r => ({
+      market: r.shortName,
+      verdict: r.verdict,
+      valueEurPerMwh: r.netNetbackEurPerMwh === null ? null : Math.round(r.netNetbackEurPerMwh * 100) / 100,
+      ciUsed: r.ciLabel,
+      openItems: r.openItems,
+      ...(r.reason ? { reason: r.reason } : {}),
+    })),
+  }), 'destinations');
   if (rows.length === 0) return null;
 
   return (

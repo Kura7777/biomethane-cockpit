@@ -30,6 +30,8 @@ export interface DestinationRow {
   ciLabel: string;
   /** The market's law is not in force yet (the checklist's law-status item is open). */
   notYetLaw: boolean;
+  /** Custody checklist rows still to enter or confirm (TODO, or WARN other than the law status). */
+  openItems: number;
 }
 
 /** A carbon intensity the plant itself publishes (sourced); used instead of the feedstock default. */
@@ -113,6 +115,7 @@ export function compareDestinations(args: {
       ci,
       ciLabel,
       notYetLaw: coc?.checklist?.some(i => i.id === 'legislative-status' && i.status === 'WARN') ?? false,
+      openItems: open.length,
     }];
   });
 }

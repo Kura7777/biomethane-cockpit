@@ -326,7 +326,8 @@ export function MapScreen() {
         <div
           style={{
             marginTop: 'auto',
-            padding: '16px 18px',
+            // Bottom room so the rail's last button can scroll clear of the floating help capsule.
+            padding: '16px 18px 64px',
             borderTop: '2px solid var(--color-divider)',
             display: 'flex',
             flexDirection: 'column',

@@ -7,6 +7,8 @@ import { Tabs, TabItem } from '../../shared/ui/Tabs';
 import { useAppState } from '../../store/context';
 import { isDeThgBundleMarkId } from '../../domain/markets/deThgBundle';
 import { isSimulatedMark } from '../../domain/marks/applyMarks';
+import { ASSUMPTION_DEFINITIONS, isAssumptionOpen } from '../../domain/assumptions/registry';
+import { usePageContext } from '../helper/usePageContext';
 
 type PricingTab = 'prices' | 'costs' | 'assumptions';
 
@@ -40,6 +42,12 @@ export function PricingScreen() {
     });
     return { broker, manual, simulated };
   }, [state.marks.marks]);
+
+  usePageContext('/pricing', () => ({
+    activeTab,
+    marks: markSourceCounts,
+    openAssumptions: ASSUMPTION_DEFINITIONS.filter(d => isAssumptionOpen(d.key)).map(d => ({ label: d.label, why: d.source.replace(/^OPEN\s*[—-]\s*/, '') })),
+  }));
 
   const setTab = (tab: PricingTab) => {
     const next = new URLSearchParams(params);

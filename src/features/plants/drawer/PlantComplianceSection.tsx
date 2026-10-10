@@ -1,6 +1,7 @@
 import { PlantCompliance, SourcedValue } from '../../../domain/plants/types';
 import { certificateExpiry, ggeReadiness, ReadinessStatus } from '../../../domain/plants/compliance';
 import { PlantDrawerTheme } from './plantDrawerTheme';
+import { usePageContext } from '../../helper/usePageContext';
 
 /** One researched compliance fact: its label and how to show its value. */
 interface ComplianceRow {
@@ -58,6 +59,22 @@ export function PlantComplianceSection({ compliance, isDark, t }: PlantComplianc
   const link = isDark ? '#38bdf8' : '#0284c7';
   const readiness = ggeReadiness(compliance);
   const expiry = certificateExpiry(compliance);
+  usePageContext('/plants', () => {
+    const cert = compliance.certification?.value;
+    return {
+      plantCompliance: {
+        readiness: readiness?.summary ?? null,
+        readinessItems: (readiness?.items ?? []).map(i => ({ id: i.id, label: i.label, status: i.status, detail: i.detail })),
+        aid: compliance.otherAid ? String(compliance.otherAid.value) : null,
+        prtrGrant: compliance.prtrGrant ? String(compliance.prtrGrant.value) : null,
+        certificate: cert && typeof cert === 'object' ? { scheme: cert.scheme, validUntil: cert.validUntil, status: cert.status } : null,
+        certificateExpiry: expiry ? { state: expiry.state, daysLeft: expiry.daysLeft } : null,
+        feedstockForCi: compliance.feedstockMix ? String(compliance.feedstockMix.value) : null,
+        openQuestions: compliance.openQuestions.slice(0, 4),
+      },
+    };
+  }, 'plant-compliance');
+
   const toneFor = (st: ReadinessStatus) => (st === 'OK' ? green : st === 'FLAG' ? red : amber);
 
   return (

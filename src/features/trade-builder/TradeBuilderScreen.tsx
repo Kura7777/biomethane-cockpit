@@ -7,6 +7,9 @@ import { showToast } from '../../app/DeskToastContainer';
 import { downloadDealFile } from '../../domain/trade/legalPackage';
 import { PoSUploaderModal } from './PoSUploaderModal';
 import { useIsMobile } from '../../shared/hooks/useMediaQuery';
+import { usePageContext } from '../helper/usePageContext';
+import { custodyPartsForMarket } from '../../domain/consignment/custody';
+import { fieldTargetFor } from './custody/checklistModel';
 import {
   DealStep,
   DEAL_STEPS,
@@ -123,6 +126,37 @@ export function TradeBuilderScreen() {
   const currentFeedstockObj = FEEDSTOCKS.find(f => f.key === feedstockKey) || FEEDSTOCKS[0];
   const currentSchemeObj = SCHEMES.find(s => s.scheme === scheme) || SCHEMES[0];
   const currentCustodyObj = CUSTODIES.find(c => c.custody === chainOfCustody) || CUSTODIES[0];
+
+  // What the page helper can see: the deal, its custody checklist and the netback lines (no keys, no store).
+  usePageContext('/trade', () => {
+    const rows = cocGate?.checklist ?? [];
+    const parts = custodyPartsForMarket(selectedMarket);
+    return {
+      deal: {
+        marketId,
+        market: selectedMarket.name,
+        origin,
+        feedstock: currentFeedstockObj.label,
+        ci,
+        ciSource: pricing.ciProvenance === 'pos' ? 'PoS' : ciSource === 'manual' ? 'manual' : pricing.ciProvenance === 'estimated' ? 'estimate' : 'published',
+        volume: volumeMwh,
+        volumeBasis: volumeUnit,
+        overall: assessment.overallVerdict,
+      },
+      checklist: rows.map(i => ({
+        id: i.id,
+        label: i.label,
+        status: i.status,
+        detail: i.detail,
+        ...(i.status !== 'PASS' && i.remedy ? { remedy: i.remedy } : {}),
+      })),
+      openCustodyFields: rows
+        .filter(i => i.status !== 'PASS')
+        .map(i => ({ item: i.id, field: fieldTargetFor(i, custody, parts) }))
+        .filter(f => f.field),
+      netbackEurPerMwh: waterfallRows.map(r => ({ line: r.label, value: r.kind === 'sub' ? -r.num : r.num })),
+    };
+  });
 
   const handleStepChange = (step: DealStep) => {
     setSearchParams(prev => {
