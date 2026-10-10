@@ -281,3 +281,16 @@ body:has(.m-sticky-actions) .ph-root--compact { --ph-bottom: calc(56px + env(saf
 @media (prefers-reduced-motion: reduce) {
   .ph-card { animation: none; }
 }
+
+/* Answer tables, web sources and the live answer (HELP-4) */
+.ph-answer { white-space: pre-wrap; }
+.ph-table-wrap { overflow-x: auto; margin: 6px 0; white-space: normal; }
+.ph-table { border-collapse: collapse; font-size: 12px; width: 100%; }
+.ph-table th, .ph-table td { border: 1px solid var(--color-border); padding: 4px 8px; text-align: left; vertical-align: top; }
+.ph-table th { background: var(--color-bg); font-weight: 600; }
+.ph-sources { margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--color-border); font-size: 12px; }
+.ph-sources-title { font-weight: 600; color: var(--color-muted); margin-bottom: 2px; }
+.ph-sources ul { margin: 0; padding-left: 16px; }
+.ph-sources li { margin-bottom: 2px; overflow-wrap: anywhere; }
+.ph-answer a, .ph-sources a { color: inherit; text-decoration: underline; text-underline-offset: 2px; overflow-wrap: anywhere; }
+.ph-answer a:hover, .ph-sources a:hover { color: var(--color-muted); }

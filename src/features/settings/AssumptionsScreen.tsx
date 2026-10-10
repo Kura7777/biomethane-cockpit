@@ -16,6 +16,10 @@ import { BASIS_LABEL } from '../../shared/components/AssumptionsStrip';
 import { REGULATORY_CONSTANT_ROWS } from '../../domain/regulatory/constants';
 
 const CATEGORY_LABEL: Record<AssumptionCategory, { title: string; blurb: string }> = {
+  HELPER: {
+    title: 'Desk helper (AI assistant)',
+    blurb: 'Which Claude model answers in the page helper, and whether it may search the web. Uses your own Anthropic key.',
+  },
   DEAL: {
     title: 'Deal defaults',
     blurb: 'Shared volume fallback when a facility publishes no annual output.',
@@ -53,7 +57,7 @@ const CATEGORY_LABEL: Record<AssumptionCategory, { title: string; blurb: string 
 /** An assumption whose source is flagged OPEN is an unconfirmed input the desk must check. */
 const isOpenItem = (source: string) => source.startsWith('OPEN');
 
-const CATEGORIES: AssumptionCategory[] = ['DEAL', 'GGE', 'FUELEU', 'DEMAND', 'RISK', 'LOGISTICS', 'FEEDSTOCK'];
+const CATEGORIES: AssumptionCategory[] = ['DEAL', 'GGE', 'FUELEU', 'DEMAND', 'RISK', 'LOGISTICS', 'FEEDSTOCK', 'HELPER'];
 
 export function AssumptionsScreen() {
   useAssumptionsVersion();

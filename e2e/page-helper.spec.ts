@@ -70,18 +70,37 @@ test.describe('Page helper capsule (desktop)', () => {
     await expect(page.getByTestId('helper-offline-answer')).toBeVisible();
   });
 
-  test('AI mode sends the guide and page context with the key only in the header', async ({ page }) => {
+  test('AI mode streams an answer, runs a desk tool, and keeps the key in the header only', async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem('biomethane_anthropic_api_key', 'sk-ant-e2e-test-key-123456'));
-    let body = '';
+    const sse = (events: object[]) => events.map(e => `event: ${(e as { type: string }).type}\ndata: ${JSON.stringify(e)}\n\n`).join('');
+    const start = { type: 'message_start', message: { id: 'msg_1', type: 'message', role: 'assistant', model: 'claude-opus-5-5', content: [], stop_reason: null, stop_sequence: null, usage: { input_tokens: 1, output_tokens: 0 } } };
+    const end = (stop: string) => [{ type: 'message_delta', delta: { stop_reason: stop, stop_sequence: null }, usage: { output_tokens: 1 } }, { type: 'message_stop' }];
+    const answer = [
+      '**DK → NL GGE is blocked** because Danish GOs cannot reach the Dutch registry yet.',
+      '',
+      '| Leg | Status |',
+      '|---|---|',
+      '| DK → NL GO | Not possible |',
+      '| ES → NL GO | Possible |',
+      '',
+      'Open the pricing desk: [[go:/pricing?tab=assumptions|Desk assumptions]] and [[go:/nope|Nowhere]].',
+    ].join('\n');
+    const bodies: string[] = [];
     let keyHeader = '';
-    await page.route('https://api.anthropic.com/v1/messages', async route => {
-      body = route.request().postData() ?? '';
+    await page.route('https://api.anthropic.com/v1/messages*', async route => {
+      bodies.push(route.request().postData() ?? '');
       keyHeader = route.request().headers()['x-api-key'] ?? '';
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ content: [{ type: 'text', text: 'Open the pricing desk: [[go:/pricing?tab=assumptions|Desk assumptions]] and [[go:/nope|Nowhere]].' }] }),
-      });
+      const events = bodies.length === 1
+        ? [start,
+          { type: 'content_block_start', index: 0, content_block: { type: 'tool_use', id: 'tu_1', name: 'get_route', input: {} } },
+          { type: 'content_block_delta', index: 0, delta: { type: 'input_json_delta', partial_json: '{"origin":"DK","destination":"NL"}' } },
+          { type: 'content_block_stop', index: 0 }, ...end('tool_use')]
+        : [start,
+          { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } },
+          { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: answer } },
+          { type: 'content_block_delta', index: 0, delta: { type: 'citations_delta', citation: { type: 'web_search_result_location', url: 'https://www.emissieautoriteit.nl/', title: 'NEa', encrypted_index: 'x', cited_text: 'x' } } },
+          { type: 'content_block_stop', index: 0 }, ...end('end_turn')];
+      await route.fulfill({ status: 200, contentType: 'text/event-stream', body: sse(events) });
     });
 
     await gotoScreen(page, DK_NL_GGE);
@@ -91,13 +110,21 @@ test.describe('Page helper capsule (desktop)', () => {
     await page.getByTestId('helper-input').fill('Why is this blocked?');
     await page.getByTestId('helper-send').click();
 
-    await expect(page.getByTestId('helper-answer')).toContainText('Open the pricing desk');
+    await expect(page.getByTestId('helper-answer')).toContainText('DK → NL GGE is blocked');
+    await expect(page.getByTestId('helper-answer').locator('table')).toBeVisible();
     await expect(page.getByTestId('helper-go')).toHaveCount(1);
+    await expect(page.getByTestId('helper-sources')).toContainText('NEa');
+    expect(bodies).toHaveLength(2);
     expect(keyHeader).toBe('sk-ant-e2e-test-key-123456');
-    expect(body).not.toContain('sk-ant-e2e-test-key');
-    expect(body).toContain('cache_control');
-    expect(body).toContain('PAGE GUIDE: Trade Builder');
-    expect(body).toContain('go-route-nl');
+    for (const b of bodies) expect(b).not.toContain('sk-ant-e2e-test-key');
+    expect(bodies[0]).toContain('cache_control');
+    expect(bodies[0]).toContain('PAGE GUIDE: Trade Builder');
+    expect(bodies[0]).toContain('go-route-nl');
+    expect(bodies[0]).toContain('claude-opus-5-5');
+    expect(bodies[0]).toContain('web_search_20260209');
+    // The tool ran in the browser and its result went back to the model.
+    expect(bodies[1]).toContain('tool_result');
+    expect(bodies[1]).toContain('NOT_POSSIBLE');
   });
 
   test('geometry at 1600×950: capsule clears the status bar, card stays in the viewport, no Trade Builder button is covered', async ({ page }) => {

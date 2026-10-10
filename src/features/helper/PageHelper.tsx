@@ -1,9 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowUp, ChevronDown, Maximize2, MessageCircle, Minimize2, X } from 'lucide-react';
+import { ArrowUp, ChevronDown, Maximize2, MessageCircle, Minimize2, Square, X } from 'lucide-react';
 import { Sheet } from '../../shared/ui/Sheet';
 import { useIsMobile } from '../../shared/hooks/useMediaQuery';
-import { getStoredAnthropicApiKey } from '../../domain/regcheck/claudeClient';
+import { DEFAULT_CLAUDE_MODEL, THOROUGH_CLAUDE_MODEL, getStoredAnthropicApiKey } from '../../domain/regcheck/claudeClient';
+import { getAssumption } from '../../domain/assumptions/registry';
+import { useOptionalAppState } from '../../store/context';
 import { getPageGuide, type PageGuide } from '../../domain/help/pageGuides';
 import { GLOSSARY_BY_ID } from '../../domain/help/glossary';
 import {
@@ -21,7 +23,7 @@ import {
   parseAnswer,
   type HelperTurn,
 } from '../../domain/help/helperLogic';
-import { askHelper } from '../../domain/help/helperClient';
+import { askHelperStream } from '../../domain/help/helperClient';
 import { appendHelperTurn, getHelperSnapshot, setHelperExpanded, setHelperOpen, setHelperViewing, useHelperStore } from './helperStore';
 import './helper.css';
 
@@ -46,6 +48,10 @@ interface Chat {
   busy: boolean;
   shownKey: string;
   turns: readonly HelperTurn[];
+  /** The answer being streamed right now, and what the helper is doing ("Searching the web"). */
+  liveText: string;
+  status: string | null;
+  stop: () => void;
   previous: { key: string; title: string } | null;
   viewingPrevious: boolean;
   suggestions: string[];
@@ -63,6 +69,12 @@ function useHelperChat(): Chat {
   const contextVersion = useSyncExternalStore(subscribePageContext, getPageContextVersion, getPageContextVersion);
   const online = useSyncExternalStore(subscribeOnline, getOnline, () => true);
   const [busy, setBusy] = useState(false);
+  const [liveText, setLiveText] = useState('');
+  const [status, setStatus] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const app = useOptionalAppState();
+  const appRef = useRef(app);
+  useEffect(() => { appRef.current = app; }, [app]);
 
   const pageKey = canonicalRoute(pathname);
   const guide = getPageGuide(pathname);
@@ -98,15 +110,42 @@ function useHelperChat(): Chat {
       return;
     }
 
+    const state = appRef.current?.state;
+    if (!state) {
+      appendHelperTurn(pageKey, { id: nextId(), role: 'error', text: 'The desk data is not loaded yet. Try again in a moment.' });
+      return;
+    }
+    const controller = new AbortController();
+    abortRef.current = controller;
     setBusy(true);
-    askHelper({ apiKey: key, route: pageKey, guide, history, question, context: live })
-      .then(text => appendHelperTurn(pageKey, { id: nextId(), role: 'assistant', text }))
-      .catch((err: unknown) => appendHelperTurn(pageKey, {
-        id: nextId(),
-        role: 'error',
-        text: err instanceof Error ? err.message : 'The helper could not answer.',
-      }))
-      .finally(() => setBusy(false));
+    setLiveText('');
+    let streamed = '';
+    askHelperStream({
+      apiKey: key,
+      model: getAssumption('helper.useOpus') >= 1 ? THOROUGH_CLAUDE_MODEL : DEFAULT_CLAUDE_MODEL,
+      webSearch: getAssumption('helper.webSearch') >= 1,
+      route: pageKey,
+      guide,
+      history,
+      question,
+      context: live,
+      toolCtx: { marks: state.marks, costs: state.costs },
+      signal: controller.signal,
+      onText: delta => { streamed += delta; setLiveText(streamed); },
+      onStatus: setStatus,
+    })
+      .then(answer => appendHelperTurn(pageKey, { id: nextId(), role: 'assistant', text: answer.text, sources: answer.sources }))
+      .catch((err: unknown) => {
+        // Keep whatever was already written when the trader stops or the stream fails midway.
+        if (streamed.trim()) appendHelperTurn(pageKey, { id: nextId(), role: 'assistant', text: streamed.trim() });
+        appendHelperTurn(pageKey, { id: nextId(), role: 'error', text: err instanceof Error ? err.message : 'The helper could not answer.' });
+      })
+      .finally(() => {
+        abortRef.current = null;
+        setBusy(false);
+        setLiveText('');
+        setStatus(null);
+      });
   }, [busy, pathname, search, pageKey, guide]);
 
   return {
@@ -117,6 +156,9 @@ function useHelperChat(): Chat {
     busy,
     shownKey,
     turns,
+    liveText,
+    status,
+    stop: () => abortRef.current?.abort(),
     previous: previousKey ? { key: previousKey, title: titleFor(previousKey) } : null,
     viewingPrevious: store.viewing !== null && store.viewing !== pageKey,
     suggestions,
@@ -126,20 +168,97 @@ function useHelperChat(): Chat {
 
 // ── Rendering ───────────────────────────────────────────────────────────────
 
-/** An assistant answer: text with "[[go:/route|Label]]" turned into buttons. Never HTML. */
+/** **bold** inside a run of text; everything else stays plain text (never HTML). */
+/** Bare http(s) URLs become links that open in a new tab; trailing punctuation stays text. */
+function Linked({ text }: { text: string }) {
+  const parts = text.split(/(https?:\/\/[^\s<>()[\]]+)/g);
+  return (
+    <>
+      {parts.map((p, i) => {
+        if (i % 2 === 0) return <React.Fragment key={i}>{p}</React.Fragment>;
+        const url = p.replace(/[.,;:!?'"]+$/, '');
+        return <React.Fragment key={i}><a href={url} target="_blank" rel="noopener noreferrer">{url}</a>{p.slice(url.length)}</React.Fragment>;
+      })}
+    </>
+  );
+}
+
+function Inline({ text }: { text: string }) {
+  const parts = text.split(/(\*\*[^*\n]{1,120}\*\*)/g);
+  return <>{parts.map((p, i) => (p.startsWith('**') && p.endsWith('**') && p.length > 4 ? <strong key={i}><Linked text={p.slice(2, -2)} /></strong> : <Linked key={i} text={p} />))}</>;
+}
+
+/** Text with "[[go:/route|Label]]" turned into buttons and **bold** kept. */
+function RichText({ text, onNavigate }: { text: string; onNavigate: (to: string) => void }) {
+  return (
+    <>
+      {parseAnswer(text).map((s, i) => {
+        if (s.kind === 'link') {
+          return (
+            <button key={i} type="button" className="ph-go" data-testid="helper-go" onClick={() => onNavigate(s.to)}>
+              {s.label} →
+            </button>
+          );
+        }
+        return <Inline key={i} text={s.text} />;
+      })}
+    </>
+  );
+}
+
+type AnswerBlock = { kind: 'text'; text: string } | { kind: 'table'; rows: string[][] };
+const TABLE_LINE = /^\s*\|.*\|\s*$/;
+const TABLE_RULE = /^:?-{2,}:?$/;
+
+/** Split an answer into text runs and "| a | b |" tables (a header row, an optional |---| row, then rows). */
+export function splitTables(text: string): AnswerBlock[] {
+  const out: AnswerBlock[] = [];
+  const lines = text.split('\n');
+  let buf: string[] = [];
+  const flush = () => {
+    if (buf.length) { out.push({ kind: 'text', text: buf.join('\n') }); buf = []; }
+  };
+  let i = 0;
+  while (i < lines.length) {
+    if (TABLE_LINE.test(lines[i])) {
+      const raw: string[] = [];
+      const rows: string[][] = [];
+      while (i < lines.length && TABLE_LINE.test(lines[i])) {
+        raw.push(lines[i]);
+        const cells = lines[i].trim().slice(1, -1).split('|').map(c => c.trim());
+        if (!cells.every(c => TABLE_RULE.test(c))) rows.push(cells);
+        i++;
+      }
+      if (rows.length >= 2) { flush(); out.push({ kind: 'table', rows }); } else buf.push(...raw);
+      continue;
+    }
+    buf.push(lines[i]);
+    i++;
+  }
+  flush();
+  return out;
+}
+
+/** An assistant answer: text, small tables and "[[go:/route|Label]]" buttons. Never HTML. */
 export function AnswerView({ text, onNavigate }: { text: string; onNavigate: (to: string) => void }) {
-  const segments = parseAnswer(text);
   return (
     <div className="ph-answer" data-testid="helper-answer">
-      {segments.map((s, i) => {
-        if (s.kind === 'text') return <React.Fragment key={i}>{s.text}</React.Fragment>;
-        if (s.kind === 'plain') return <React.Fragment key={i}>{s.text}</React.Fragment>;
-        return (
-          <button key={i} type="button" className="ph-go" data-testid="helper-go" onClick={() => onNavigate(s.to)}>
-            {s.label} →
-          </button>
-        );
-      })}
+      {splitTables(text).map((block, i) =>
+        block.kind === 'text' ? (
+          <RichText key={i} text={block.text} onNavigate={onNavigate} />
+        ) : (
+          <div key={i} className="ph-table-wrap">
+            <table className="ph-table">
+              <thead><tr>{block.rows[0].map((c, j) => <th key={j}><RichText text={c} onNavigate={onNavigate} /></th>)}</tr></thead>
+              <tbody>
+                {block.rows.slice(1).map((r, k) => (
+                  <tr key={k}>{r.map((c, j) => <td key={j}><RichText text={c} onNavigate={onNavigate} /></td>)}</tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+      )}
     </div>
   );
 }
@@ -174,7 +293,23 @@ function Overview({ guide, onNavigate }: { guide: PageGuide | undefined; onNavig
 
 function Turn({ turn, onNavigate }: { turn: HelperTurn; onNavigate: (to: string) => void }) {
   if (turn.role === 'user') return <div className="ph-msg ph-msg--user" data-testid="helper-user">{turn.text}</div>;
-  if (turn.role === 'assistant') return <div className="ph-msg"><AnswerView text={turn.text} onNavigate={onNavigate} /></div>;
+  if (turn.role === 'assistant') {
+    return (
+      <div className="ph-msg">
+        <AnswerView text={turn.text} onNavigate={onNavigate} />
+        {turn.sources && turn.sources.length > 0 && (
+          <div className="ph-sources" data-testid="helper-sources">
+            <div className="ph-sources-title">Web sources</div>
+            <ul>
+              {turn.sources.map(src => (
+                <li key={src.url}><a href={src.url} target="_blank" rel="noopener noreferrer">{src.title}</a></li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    );
+  }
   if (turn.role === 'error') return <div className="ph-msg ph-msg--error" role="alert" data-testid="helper-error">{turn.text}</div>;
   const entries = (turn.termIds ?? []).map(id => GLOSSARY_BY_ID[id]).filter(Boolean);
   return (
@@ -194,7 +329,7 @@ function ChatBody({ chat, onNavigate, emptyChips }: { chat: Chat; onNavigate: (t
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (typeof endRef.current?.scrollIntoView === 'function') endRef.current.scrollIntoView({ block: 'end' });
-  }, [chat.turns.length, chat.busy]);
+  }, [chat.turns.length, chat.busy, chat.liveText.length > 0, chat.status]);
 
   return (
     <div className="ph-body" data-testid="helper-body">
@@ -212,7 +347,10 @@ function ChatBody({ chat, onNavigate, emptyChips }: { chat: Chat; onNavigate: (t
         </>
       )}
       {chat.turns.map(t => <Turn key={t.id} turn={t} onNavigate={onNavigate} />)}
-      {chat.busy && <div className="ph-msg ph-thinking" data-testid="helper-thinking" aria-live="polite">Thinking…</div>}
+      {chat.busy && chat.liveText && <div className="ph-msg" data-testid="helper-live"><AnswerView text={chat.liveText} onNavigate={onNavigate} /></div>}
+      {chat.busy && (chat.status || !chat.liveText) && (
+        <div className="ph-msg ph-thinking" data-testid="helper-thinking" aria-live="polite">{chat.status ?? 'Thinking'}…</div>
+      )}
       {chat.previous && !chat.viewingPrevious && (
         <button type="button" className="ph-link ph-prev-link" data-testid="helper-previous" onClick={() => setHelperViewing(chat.previous!.key)}>
           Previous page chat ({chat.previous.title})
@@ -305,9 +443,15 @@ function ChatInput({ chat, autoFocus }: { chat: Chat; autoFocus?: boolean }) {
         maxLength={500}
         autoFocus={autoFocus}
       />
-      <button type="submit" className="ph-send" data-testid="helper-send" disabled={chat.busy || !value.trim()} aria-label="Ask">
-        <ArrowUp size={16} aria-hidden="true" />
-      </button>
+      {chat.busy ? (
+        <button type="button" className="ph-send" data-testid="helper-stop" onClick={chat.stop} aria-label="Stop the answer">
+          <Square size={14} aria-hidden="true" />
+        </button>
+      ) : (
+        <button type="submit" className="ph-send" data-testid="helper-send" disabled={!value.trim()} aria-label="Ask">
+          <ArrowUp size={16} aria-hidden="true" />
+        </button>
+      )}
     </form>
   );
 }

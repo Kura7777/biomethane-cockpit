@@ -24,10 +24,9 @@ export const GCAL_PER_CIC_ADVANCED = 5;
 export const MWH_PER_CIC_CONVENTIONAL = GCAL_PER_CIC_CONVENTIONAL * MWH_PER_GCAL; // 11.63
 export const MWH_PER_CIC_ADVANCED = GCAL_PER_CIC_ADVANCED * MWH_PER_GCAL; // 5.815
 
-// FuelEU Annex IV penalty constants and the statutory ceilings below are defined for real in
-// src/domain/regulatory/constants.ts (single source) — re-exported here for callers still
-// using this historical import path.
-export { FR_CPB_CEILING_EUR_MWH, DE_THG_PENALTY_EUR_PER_TCO2E, UK_RTFC_BUYOUT_GBP } from '../regulatory/constants';
+// FuelEU Annex IV penalty constants and the statutory ceilings are defined in
+// src/domain/regulatory/constants.ts. They are not re-exported here: regulatory/constants imports
+// CI_COMPARATOR_HEAT from this file, and a re-export back would make an import cycle.
 
 /**
  * GHG Saving Thresholds for Transport (by commissioning date)

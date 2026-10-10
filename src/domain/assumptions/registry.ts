@@ -15,7 +15,7 @@ import { HUB_BASIS_SPREADS, INTERCONNECTION_POINTS } from '../logistics/corridor
  * never silently changed: a reset always returns to the value and source shown here.
  */
 
-export type AssumptionCategory = 'FUELEU' | 'DEMAND' | 'RISK' | 'DEAL' | 'LOGISTICS' | 'FEEDSTOCK' | 'COST' | 'GGE';
+export type AssumptionCategory = 'FUELEU' | 'DEMAND' | 'RISK' | 'DEAL' | 'LOGISTICS' | 'FEEDSTOCK' | 'COST' | 'GGE' | 'HELPER';
 
 /** How much weight the default can bear. */
 export type AssumptionBasis =
@@ -521,6 +521,31 @@ export const ASSUMPTION_DEFINITIONS: AssumptionDefinition[] = [
     source: 'Unverified — each origin registry’s GO energy basis is not yet checked; 1.00 treats the GO MWh as already LHV. Spec O1.',
     usedIn: 'NL GGE valuation and Chain-of-custody check for non-Spanish GOs on HHV or unknown basis',
     min: 0.8,
+    max: 1,
+  },
+  // ── Desk helper (the AI assistant on every page) ──────────────────────────
+  {
+    key: 'helper.useOpus',
+    category: 'HELPER',
+    label: 'Desk helper model (1 = Claude Opus 5.5, 0 = Claude Sonnet 5.5)',
+    unit: 'flag',
+    defaultValue: 1,
+    basis: 'DESK_POLICY',
+    source: 'Opus 5.5 gives the strongest answers; Sonnet 5.5 costs about half per token. Uses your own Anthropic key.',
+    usedIn: 'Desk helper: which Claude model answers questions in AI mode',
+    min: 0,
+    max: 1,
+  },
+  {
+    key: 'helper.webSearch',
+    category: 'HELPER',
+    label: 'Desk helper web search (1 = on, 0 = off)',
+    unit: 'flag',
+    defaultValue: 1,
+    basis: 'DESK_POLICY',
+    source: 'Lets the helper search the web for current regulatory facts the app does not hold, with source links. Each search is billed to your key.',
+    usedIn: 'Desk helper: adds the server-side web search tool (up to 5 searches per question)',
+    min: 0,
     max: 1,
   },
   {
