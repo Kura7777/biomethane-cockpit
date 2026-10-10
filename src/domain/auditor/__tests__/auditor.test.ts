@@ -5,7 +5,7 @@ import { TradeAuditContext, normalizeAuditorTab, normalizeTradeAuditContext } fr
 
 describe('Closed-Domain Statutory Compliance Auditor', () => {
   it('strictly verifies verbatim quotes against the local knowledge vault', () => {
-    const validQuote = 'Greenhouse gas emissions savings from biofuels, bioliquids and biomass fuels shall be at least 70%';
+    const validQuote = 'By 21 November 2024, the Commission shall ensure that a Union database is set up to enable the tracing of liquid and gaseous renewable fuels and recycled carbon fuels';
     const check = verifyQuoteAgainstVault(validQuote);
     expect(check.verified).toBe(true);
     expect(check.matchedDoc?.id).toBe('red_iii_directive');
@@ -18,7 +18,7 @@ describe('Closed-Domain Statutory Compliance Auditor', () => {
   });
 
   it('extracts and flags quote proofs from raw text', () => {
-    const sampleText = 'According to "Article 29(10)(d): Greenhouse gas emissions savings from biofuels, bioliquids and biomass fuels shall be at least 70% for electricity, heating and cooling" installations must comply.';
+    const sampleText = 'According to "By 21 November 2024, the Commission shall ensure that a Union database is set up to enable the tracing" the database was due.';
     const proofs = extractQuoteProofsFromText(sampleText);
     expect(proofs.length).toBeGreaterThan(0);
     expect(proofs[0].isVerbatimVerified).toBe(true);
