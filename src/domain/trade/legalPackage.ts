@@ -1,6 +1,7 @@
 import { TradeAssessment } from './types';
 import { MARKETS, isVoluntaryMarket } from '../markets/registry';
 import { Market } from '../markets/types';
+import { CI_COMPARATOR_ROAD_TRANSPORT } from '../markets/constants';
 import { AnnexClassification, ChainOfCustody, UDBStatus } from '../consignment/types';
 
 /**
@@ -455,7 +456,7 @@ export function generateEtrmJsonPayload(assessment: TradeAssessment, options: Le
       targetMarketName: assessment.targetMarketName,
       attributeType: environmentalAttributeLabel(market, assessment.targetMarketId, c.udbStatus),
       contractCiGco2ePerMj: c.carbonIntensity,
-      fossilComparatorGco2ePerMj: market?.fossilComparatorGCo2eMj ?? 94.0, // the market's own comparator, else the RED III transport one
+      fossilComparatorGco2ePerMj: market?.fossilComparatorGCo2eMj ?? CI_COMPARATOR_ROAD_TRANSPORT, // the market's own comparator, else the RED III transport one
       attributeValueEurMwh: nb.certificateValue?.valueEurPerMWh ?? null,
       priceCeilingEurMwh: market?.ceilingEurMwh ?? (assessment.targetMarketId === 'FR_CPB' ? 100.0 : null),
       registrySystem: market?.registry ?? null,
