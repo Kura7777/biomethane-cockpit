@@ -285,7 +285,7 @@ export function resolveCounterparty(
   const registryNames = [plant.legalEntityName, plant.operator, plant.operatingCompany, plant.name, `${plant.name} Producer`, 'European Biomethane Producer', 'Operating Entity']
     .map(norm)
     .filter(Boolean);
-  const isRegistryFallback = !asked || registryNames.includes(norm(asked));
+  const isRegistryFallback = !asked || registryNames.includes(norm(asked)) || norm(asked) === norm(researched.name);
   return isRegistryFallback ? { name: researched.name, source: researched } : { name: asked, source: null };
 }
 

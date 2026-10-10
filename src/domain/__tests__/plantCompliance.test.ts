@@ -251,6 +251,8 @@ describe('researched counterparty entity', () => {
     expect(r.name).toBe('Biolvegas S.L.');
     expect(r.source!.url).toMatch(/^https?:\/\//);
     expect(resolveCounterparty(olvega, undefined).name).toBe('Biolvegas S.L.');
+    // A deal link that already carries the researched name still shows where it came from
+    expect(resolveCounterparty(olvega, 'Biolvegas S.L.').source!.url).toBe(r.source!.url);
     expect(resolveCounterparty(olvega, `${olvega.name} Producer`).name).toBe('Biolvegas S.L.');
   });
 
