@@ -55,6 +55,7 @@ const FuelEUShippingScreen = lazyWithRetry(() => import('../features/fueleu/Fuel
 const RegulationCheckScreen = lazyWithRetry(() => import('../features/regcheck/RegulationCheckScreen').then(m => ({ default: m.RegulationCheckScreen })));
 const MorningBriefScreen = lazyWithRetry(() => import('../features/briefing/MorningBriefScreen').then(m => ({ default: m.MorningBriefScreen })));
 const DealsScreen = lazyWithRetry(() => import('../features/deals/DealsScreen').then(m => ({ default: m.DealsScreen })));
+const GlossaryScreen = lazyWithRetry(() => import('../features/glossary/GlossaryScreen').then(m => ({ default: m.GlossaryScreen })));
 
 import { ThemeProvider } from '../store/theme';
 
@@ -116,6 +117,7 @@ function AppContent() {
             {/* Kept for old bookmarks — the Assumptions screen now lives inside the Pricing desk. */}
             <Route path="/assumptions" element={<Navigate to="/pricing?tab=assumptions" replace />} />
             <Route path="/regulation-check" element={<RegulationCheckScreen />} />
+            <Route path="/glossary" element={<GlossaryScreen />} />
 
             {/* Fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />

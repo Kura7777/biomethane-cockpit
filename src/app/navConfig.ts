@@ -14,7 +14,8 @@ import {
   Briefcase,
   Users,
   ShieldAlert,
-  Sunrise
+  Sunrise,
+  BookA
 } from 'lucide-react';
 
 export interface NavItem {
@@ -105,6 +106,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { to: '/citations', label: 'Citations', keyHint: 'C', icon: Scale, description: 'Statutory citations' },
       { to: '/data-sources', label: 'Sources', keyHint: '7', icon: Database, description: 'Data sources and provenance' },
       { to: '/regulation-check', label: 'Regulation check', keyHint: '', icon: ShieldAlert, description: 'Weekly check that the app\'s rules still match the law' },
+      { to: '/glossary', label: 'Glossary', keyHint: '', icon: BookA, description: 'What each term means and why it matters on a deal' },
     ],
   },
 ];

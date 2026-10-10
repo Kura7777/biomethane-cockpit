@@ -27,6 +27,7 @@ export const ROUTES: { path: string; name: string }[] = [
   { path: '/value-stack', name: 'Value stack (redirects to Clients)' },
   { path: '/clients', name: 'Clients directory' },
   { path: '/clients?company=edison', name: 'Client company page' },
+  { path: '/glossary', name: 'Glossary' },
 ];
 
 /**
@@ -125,6 +126,7 @@ export const MOBILE_ROUTES: { path: string; name: string }[] = [
   { path: '/citations', name: 'Statutory citations' },
   { path: '/connectors', name: 'Data connectors' },
   { path: '/assumptions', name: 'Assumptions' },
+  { path: '/glossary', name: 'Glossary' },
 ];
 
 /** Wait for network activity to settle after a navigation or interaction. */
