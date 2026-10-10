@@ -545,7 +545,7 @@ export const GLOSSARY: GlossaryEntry[] = [
   {
     id: 'manure-credit',
     term: 'Manure credit (negative CI)',
-    aliases: ['negative CI', 'negative carbon intensity', 'e_am', 'eam', 'avoided methane', 'avoided methane credit', 'deep negative'],
+    aliases: ['negative CI', 'negative carbon intensity', 'avoided methane', 'avoided methane credit', 'deep negative'],
     short: 'The avoided-methane credit that pulls manure-based gas to a negative carbon intensity.',
     plain: 'RED’s lifecycle rules count the methane that digesting manure avoids, compared with storing it raw, as a credit in the gas’s carbon intensity. That credit can pull CI below zero. It is a physical accounting credit, separate from any quota counting rules, so it stays intact when a market stops double counting. The negative figure comes from manure management, not from upgrading the gas.',
     whyItMatters: 'Each extra negative gram lifts the certificate yield per MWh, which is why manure gas is worth most per MWh in quota markets. Confirm the credit is on the PoS, not assumed.',
