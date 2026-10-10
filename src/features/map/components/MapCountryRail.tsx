@@ -12,6 +12,7 @@ import { getRegistryByCountry } from '../../../domain/registries/registryDirecto
 import { POS_SCHEMES } from '../../../domain/routes/routeMatrix.generated';
 import { getPosRoute } from '../../../domain/routes';
 import { BiomethanePlant } from '../../../domain/plants/types';
+import { DestinationComparison } from './DestinationComparison';
 
 interface MapCountryRailProps {
   origin: string;
@@ -250,6 +251,8 @@ export function MapCountryRailBody({
           </button>
         </div>
       </div>
+
+      {view === 'SELL' && <DestinationComparison origin={originMeta.iso} plant={activeLinkedPlant} />}
 
       {view === 'SELL' && (
         originMeta.iso !== targetMeta.iso ? (
