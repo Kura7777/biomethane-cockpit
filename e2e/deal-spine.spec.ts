@@ -35,7 +35,8 @@ test.describe('Deal spine: plant first', () => {
     expect(rowText, 'a DK plant\'s CI chip should show the manure feedstock default (-100), not a per-plant census value').toContain('100.0');
 
     // "Where can this gas go?" now passes the plant id along with the origin country.
-    const corridorLink = firstRow.locator('button:has-text("Where can this gas go?")').first();
+    await firstRow.click();
+    const corridorLink = page.getByRole('button', { name: 'Where can this gas go?' }).first();
     await corridorLink.click();
     await page.waitForLoadState('networkidle').catch(() => {});
     expect(page.url(), 'the Plants -> Map hand-off should carry both origin and plant').toMatch(/\/map\?origin=DK&plant=/);
