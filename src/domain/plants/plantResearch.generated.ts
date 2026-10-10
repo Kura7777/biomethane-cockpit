@@ -159,8 +159,8 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "note": "Sedigas typology 'Agroganadero'. Redexis acquired the site of 'Energy Green Almazán' (a SANDACH/animal by-product rendering plant) - see ISCC scope below. No % mix published."
       },
       "feedstockMixed": true,
-      "feedstockForCi": "sewage_sludge",
-      "feedstockCiNote": "ISCC scope list (manure, sewage sludge, ABP, whey, UCO, food waste), no split published: highest-CI category",
+      "feedstockForCi": "food_waste",
+      "feedstockCiNote": "Sedigas lists Almazán as \"Agroganadero\" (agro-livestock mix), no split published: non-manure category described. ISCC scope list not used",
       "certification": {
         "value": {
           "scheme": "ISCC_EU",
@@ -976,9 +976,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "retrievedAt": "2026-10-09T21:30:00Z",
         "note": "ISCC raw material: 'Manure, Wastewater from the food industry, Sewage sludge'. Article (Energías Renovables 2024-06-26): plant 'ubicada en una explotación ganadera'."
       },
-      "feedstockMixed": true,
-      "feedstockForCi": "sewage_sludge",
-      "feedstockCiNote": "pig slurry + food-industry wastewater + sewage sludge, no split: highest-CI category",
+      "feedstockMixed": false,
+      "feedstockForCi": "manure",
+      "feedstockCiNote": "actual feedstock: pig slurry from the Porgaporcs farm; other ISCC scope-list items are permitted, not actual",
       "certification": {
         "value": {
           "scheme": "ISCC_EU",
@@ -1159,9 +1159,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "retrievedAt": "2026-10-09T21:30:00Z",
         "note": "Biogas is produced at Biogasnalia (waste manager) and upgraded by UNUE. No manure."
       },
-      "feedstockMixed": true,
-      "feedstockForCi": "sewage_sludge",
-      "feedstockCiNote": "agro-industrial/food waste + sewage sludge, no split: highest-CI category",
+      "feedstockMixed": false,
+      "feedstockForCi": "food_waste",
+      "feedstockCiNote": "actual feedstock: agro-industrial/food waste; sewage sludge is on the ISCC scope list only",
       "certification": {
         "value": {
           "scheme": "ISCC_EU",
@@ -2493,9 +2493,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "retrievedAt": "2026-10-09T21:30:00Z",
         "note": "ISCC raw material list; no percentages. Redexis press (Lorca+Los Alcázares): 211,000 t/y of agro-food, agro-industrial and livestock waste for 80 GWh/y combined."
       },
-      "feedstockMixed": true,
-      "feedstockForCi": "sewage_sludge",
-      "feedstockCiNote": "ISCC scope list incl. manure, sewage sludge, food waste, no split: highest-CI category",
+      "feedstockMixed": false,
+      "feedstockForCi": "manure",
+      "feedstockCiNote": "actual feedstock: swine slurry (Redexis / es.json); other ISCC scope-list items are permitted, not actual",
       "certification": {
         "value": {
           "scheme": "ISCC_EU",
@@ -3236,8 +3236,8 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "note": "ISCC raw material list, no percentages; Sedigas typology 'Agroganadero'."
       },
       "feedstockMixed": true,
-      "feedstockForCi": "sewage_sludge",
-      "feedstockCiNote": "ISCC scope list (fats, feed/food waste, manure, sewage sludge, UCO), no split: highest-CI category",
+      "feedstockForCi": "food_waste",
+      "feedstockCiNote": "actual feedstock: agro-food residues + livestock by-products, no split",
       "certification": {
         "value": {
           "scheme": "ISCC_EU",
@@ -4185,7 +4185,7 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
       },
       "feedstockMixed": true,
       "feedstockForCi": "sewage_sludge",
-      "feedstockCiNote": "municipal organic waste + sewage sludge, no split: highest-CI category",
+      "feedstockCiNote": "actual feedstock: municipal organic waste (FORSU) + sewage sludge, no split",
       "certification": {
         "value": {
           "scheme": "ISCC_EU",
@@ -4385,9 +4385,9 @@ export const PLANT_RESEARCH: Record<string, PlantResearch> = {
         "retrievedAt": "2026-10-09T21:30:00Z",
         "note": "ISCC raw material list; no percentages published. Ence press (2024-12-19): produces 'compost y ... fertilizante orgánico'."
       },
-      "feedstockMixed": true,
-      "feedstockForCi": "sewage_sludge",
-      "feedstockCiNote": "ISCC scope list incl. manure and sewage sludge, no split: highest-CI category",
+      "feedstockMixed": false,
+      "feedstockForCi": "manure",
+      "feedstockCiNote": "ISCC scope list only; actual mix unpublished; estimate from primary category (manure)",
       "certification": {
         "value": {
           "scheme": "ISCC_EU",

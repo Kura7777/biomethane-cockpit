@@ -275,6 +275,7 @@ function pairedChecklist(consignment: Consignment, market: Market): GateResult {
 
   // 7. GHG saving vs the 80 g heat comparator; RED Art 29(10) heat tiers (O2)
   const comparator = market.fossilComparatorGCo2eMj ?? CI_COMPARATOR_HEAT;
+  const ciSourced = pos?.ciTotal != null;
   const ci = pos?.ciTotal ?? consignment.carbonIntensity;
   const saving = (comparator - ci) / comparator;
   const ghgCites = [CITATIONS.RED_III_GHG_HEAT_POWER, CITATIONS.NL_GGE_DRAFT_REGELING];
@@ -285,6 +286,9 @@ function pairedChecklist(consignment: Consignment, market: Market): GateResult {
     entries.push(entry('ghg-saving', 'GHG saving threshold', 'PASS', `${savingText}, above both the ${lowPct}% and ${highPct}% heat thresholds (O2).`, ghgCites));
   } else if (saving >= RED_HEAT_THRESHOLD_POST_2021) {
     entries.push(entry('ghg-saving', 'GHG saving threshold', 'WARN', `${savingText}: passes ${lowPct}% but not ${highPct}% — threshold category unconfirmed, depends on the plant’s start date (O2).`, ghgCites, 'Confirm the plant’s commissioning date and threshold tier.'));
+  } else if (!ciSourced) {
+    // An estimated CI (feedstock default) must never block: the real figure is on the PoS.
+    entries.push(entry('ghg-saving', 'GHG saving threshold', 'WARN', `Estimated CI ${ci} g → saving ${(saving * 100).toFixed(0)}%: below ${lowPct}% at this estimate. Get the PoS CI.`, ghgCites, 'Get the PoS CI.'));
   } else {
     entries.push(entry('ghg-saving', 'GHG saving threshold', 'FAIL', `${savingText}, below the ${lowPct}% minimum (O2).`, ghgCites, 'Use lower-CI gas.'));
   }
