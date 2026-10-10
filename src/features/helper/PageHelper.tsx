@@ -235,6 +235,37 @@ function Chips({ chat, onPick, limit }: { chat: Chat; onPick: (q: string) => voi
   );
 }
 
+/**
+ * Screens with a pinned footer in their side rail (the Trade Builder's "Build deal package", the map's
+ * "Open delivery playbook") sit exactly where the capsule floats. Lift the capsule just above that footer.
+ * Returns the extra distance from the window bottom (px) the capsule needs, or null for none.
+ */
+function useCapsuleBottom(enabled: boolean, routeKey: string): number | null {
+  const [bottom, setBottom] = useState<number | null>(null);
+  useEffect(() => {
+    if (!enabled) return;
+    let frame = 0;
+    const measure = () => {
+      frame = 0;
+      const el = document.querySelector('.ds-aside-footer');
+      const rect = el?.getBoundingClientRect();
+      const next = rect && rect.width > 0 && rect.height > 0 ? Math.ceil(window.innerHeight - rect.top + 8) : null;
+      setBottom(prev => (prev === next ? prev : next));
+    };
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(measure); };
+    schedule();
+    const mo = new MutationObserver(schedule);
+    mo.observe(document.body, { childList: true, subtree: true });
+    window.addEventListener('resize', schedule);
+    return () => {
+      mo.disconnect();
+      window.removeEventListener('resize', schedule);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [enabled, routeKey]);
+  return enabled ? bottom : null;
+}
+
 const INPUT_MAX_PX = 4 * 20 + 14; // four lines of 20px plus padding
 
 function ChatInput({ chat, autoFocus }: { chat: Chat; autoFocus?: boolean }) {
@@ -357,6 +388,7 @@ export function PageHelper() {
   const chat = useHelperChat();
   const { open, expanded } = store;
   const capsuleRef = useRef<HTMLButtonElement>(null);
+  const liftedBottom = useCapsuleBottom(!isMobile, canonicalRoute(pathname));
   const wasOpen = useRef(open);
   const nudge = useNudge(canonicalRoute(pathname), open);
   const nudgeEl = nudge.visible ? (
@@ -437,7 +469,11 @@ export function PageHelper() {
   }
 
   return (
-    <div className="ph-root" data-testid="page-helper" data-open={open ? 'true' : 'false'} data-expanded={expanded ? 'true' : 'false'}>
+    <div
+      className="ph-root"
+      style={liftedBottom && liftedBottom > 44 ? ({ '--ph-bottom': `${liftedBottom}px` } as React.CSSProperties) : undefined}
+      data-testid="page-helper"
+      data-open={open ? 'true' : 'false'} data-expanded={expanded ? 'true' : 'false'}>
       {nudgeEl}
       {open && expanded && <div className="ph-backdrop" data-testid="helper-backdrop" onClick={() => setHelperExpanded(false)} />}
       {open && (

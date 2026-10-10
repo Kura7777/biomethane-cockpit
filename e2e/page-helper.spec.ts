@@ -160,4 +160,14 @@ test.describe('Page helper capsule (desktop)', () => {
     expect(big.right).toBeLessThanOrEqual(vp.width);
     expect(big.bottom).toBeLessThanOrEqual(vp.height);
   });
+
+  test('the map rail scrolls its last button clear of the capsule', async ({ page }) => {
+    await gotoScreen(page, '/map');
+    const playbook = page.getByRole('button', { name: /Open delivery playbook/i });
+    await playbook.scrollIntoViewIfNeeded();
+    const cap = await page.getByTestId('helper-open').boundingBox();
+    const btn = await playbook.boundingBox();
+    expect(btn!.y + btn!.height).toBeLessThanOrEqual(cap!.y + 1);
+    await playbook.click();
+  });
 });

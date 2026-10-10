@@ -31,10 +31,6 @@ body:has(.m-sticky-actions) .ph-root--compact { --ph-bottom: calc(56px + env(saf
   body:has(.m-sticky-actions) .ph-root--compact { --ph-bottom: calc(48px + env(safe-area-inset-bottom) + 10px + 69px); }
 }
 
-/* Screens with a pinned footer in their side rail (the Trade Builder's "Build deal package"): lift the capsule
-   clear of it. The footer is a 32px button with 12px padding above and below, plus its border. */
-body:has(.ds-aside-footer) .ph-root:not(.ph-root--compact) { --ph-bottom: calc(44px + 58px); }
-
 /* ── The capsule ── */
 .ph-capsule {
   position: fixed;
