@@ -278,6 +278,24 @@ test.describe('shell', () => {
     await expect(sheet.getByRole('button', { name: /restore/i })).toBeVisible();
   });
 
+  test('brief: logo is a 44px tap target back to the brief; ticker and tiles are not clipped', async ({ page }) => {
+    await gotoScreen(page, '/pricing');
+    const logo = page.getByRole('button', { name: 'Morning brief' });
+    const box = await logo.boundingBox();
+    expect(box?.width ?? 0).toBeGreaterThanOrEqual(44);
+    expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
+    await logo.click();
+    await expect(page.getByTestId('morning-brief')).toBeVisible();
+
+    const tick = page.locator('.bf-tick').first();
+    await expect(tick).toBeVisible();
+    const tb = await tick.boundingBox();
+    expect(tb?.x ?? -1, 'first ticker label starts inside the viewport').toBeGreaterThanOrEqual(0);
+
+    const kpis = await page.locator('.bf-kpi').evaluateAll(els => els.map(e => Math.round(e.getBoundingClientRect().top)));
+    expect(new Set(kpis).size, 'six KPI tiles in two columns make three rows').toBe(3);
+  });
+
   test('desktop footer is not rendered on mobile', async ({ page }) => {
     await gotoScreen(page, '/sourcing');
     await expect(page.locator('footer.app-footer')).toHaveCount(0);

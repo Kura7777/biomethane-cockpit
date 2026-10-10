@@ -61,7 +61,7 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
 
   return (
     <header className="app-header select-none z-50">
-      <button type="button" className="app-brand" onClick={() => navigate('/')}>
+      <button type="button" className="app-brand" aria-label="Morning brief" title="Morning brief" onClick={() => navigate('/')}>
         <span className="app-brand-mark" aria-hidden="true">
           <Flame size={13} strokeWidth={2.25} />
         </span>

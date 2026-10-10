@@ -57,6 +57,10 @@
 .bf-tick .n { font-weight: 600; font-size: 12px; }
 .bf-tick .v { font-size: 17px; font-family: var(--font-mono); transition: color .2s; }
 .bf-tick .u { font-size: 11px; color: var(--color-muted); }
+.bf-ticker.still { overflow-x: auto; scrollbar-width: none; -webkit-mask-image: none; mask-image: none; }
+.bf-ticker.still::-webkit-scrollbar { display: none; }
+.bf-ticker-cap { font-size: 11px; color: var(--color-muted); margin-bottom: 6px; }
+.bf-ticker.still .bf-tick:first-child { padding-left: 0; }
 .bf-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; flex: none; }
 
 /* ── section nav ── */
@@ -65,7 +69,7 @@
 .bf-chip:hover { border-color: var(--color-muted); }
 .bf-chip[aria-pressed="true"] { background: var(--color-text); border-color: var(--color-text); color: var(--color-bg); }
 .bf-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-@media (max-width: 700px) {
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
   .bf-nav { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
   .bf-nav .bf-chip { flex: none; }
   .bf-hero { padding: 20px 18px 14px; }
@@ -78,6 +82,15 @@
 .bf-kpi .lbl { font-size: 12px; color: var(--color-muted); }
 .bf-kpi .big { font-family: var(--font-mono); font-size: clamp(24px, 2.4vw, 30px); line-height: 1.15; }
 .bf-kpi .sub { font-size: 12px; color: var(--color-muted); }
+
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
+  .bf { gap: 22px; }
+  .bf-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .bf-kpi { padding: 10px 12px; gap: 2px; min-width: 0; }
+  .bf-kpi .lbl { font-size: 11px; line-height: 1.25; overflow-wrap: anywhere; }
+  .bf-kpi .big { font-size: 20px; }
+  .bf-kpi .sub { font-size: 11px; line-height: 1.25; overflow-wrap: anywhere; }
+}
 
 /* ── sections & cards ── */
 .bf-sec { scroll-margin-top: 64px; }
@@ -140,7 +153,7 @@
 .bf .agebar { width: 48px; height: 5px; border-radius: 3px; background: var(--bf-grid); overflow: hidden; }
 .bf .agebar i { display: block; height: 100%; border-radius: 3px; }
 .bf .marginbar { background-repeat: no-repeat; background-position: right center; }
-@media (max-width: 700px) { .bf .hide-sm { display: none; } }
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) { .bf .hide-sm { display: none; } }
 
 /* ── watch ── */
 .bf-watch { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 10px; }

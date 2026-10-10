@@ -391,6 +391,14 @@
     }
   }
 
+  /* The logo is the one-tap way back to the Morning brief: give it a thumb-sized hit area. */
+  .app-brand {
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+    margin-left: -10px;
+  }
+
   .app-brand-text,
   .app-header-sep,
   .app-header-nav,

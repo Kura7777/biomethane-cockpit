@@ -1,5 +1,6 @@
 import React from 'react';
 import type { BriefMark } from '../../domain/briefing/morningBrief';
+import { useIsMobile, useMediaQuery } from '../../shared/hooks/useMediaQuery';
 import { fmtPrice } from './briefUi';
 
 const SOURCE_COLOUR: Record<string, string> = {
@@ -22,6 +23,11 @@ export function BriefHero({
   tickers: BriefMark[];
   onTick: (m: BriefMark) => void;
 }) {
+  // Phones and reduced-motion get a still, swipeable row; the marquee clipped its first label there.
+  const compact = useIsMobile();
+  const reduced = useMediaQuery('(prefers-reduced-motion: reduce)');
+  const still = compact || reduced;
+  const copies = still ? [0] : [0, 1];
   const dateText = today.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   return (
     <header className="bf-hero bf-rise" id="brief-top">
@@ -34,9 +40,10 @@ export function BriefHero({
         Here's your daily snapshot of the European biomethane market.
       </p>
       {tickers.length > 0 && (
-        <div className="bf-ticker" aria-label="Market marks">
-          <div className="bf-track run" style={{ ['--bf-tickdur' as string]: `${tickers.length * 3.2}s` }}>
-            {[0, 1].map(copy =>
+        <div className={`bf-ticker${still ? ' still' : ''}`} aria-label="Market marks">
+          {compact && <div className="bf-ticker-cap">Mid prices · swipe, tap to find on the board</div>}
+          <div className={`bf-track${still ? '' : ' run'}`} style={{ ['--bf-tickdur' as string]: `${tickers.length * 3.2}s` }}>
+            {copies.map(copy =>
               tickers.map(m => (
                 <button
                   key={`${copy}-${m.marketId}`}
