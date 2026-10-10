@@ -5,6 +5,8 @@ import { Consignment, AnnexClassification, UDBStatus } from '../../../domain/con
 import { evaluateEligibility } from '../../../domain/eligibility/engine';
 import { computeNetback, selectMarkPrice } from '../../../domain/netback/engine';
 import { computeGgeBreakdown } from '../../../domain/netback/gge';
+import { volumeUnitLabel } from '../../../domain/consignment/custody';
+import { resolveCounterparty } from '../../../domain/plants/compliance';
 import { ProducerPricing, CostInputs } from '../../../domain/netback/types';
 import { certificateMarkSlope } from '../../../domain/netback/headroom';
 import { getRouteTransitTariff } from '../../../domain/arbitrage/origins';
@@ -62,6 +64,12 @@ export function useDealPricing(
   const isNonEuOrigin = origin === 'GB' || origin === 'CH' || origin === 'NO';
   const effectiveUdbStatus: UDBStatus = isNonEuOrigin ? 'NOT_RECORDED' : udbStatus;
 
+  // Seller name: the researched legal entity (e.g. Biolvegas S.L., not the census's "Bioenergía de Ólvega") unless the trader named one.
+  const sellerEntity = useMemo(
+    () => resolveCounterparty(linkedPlant, deal.counterparty || deal.legalEntityName),
+    [linkedPlant, deal.counterparty, deal.legalEntityName],
+  );
+
   const consignment: Consignment = useMemo(() => {
     const originObj = ORIGINS.find(o => o.code === origin) || ORIGINS[0];
     const regFeedstock = FEEDSTOCK_REGISTRY[feedstockKey];
@@ -102,7 +110,8 @@ export function useDealPricing(
         plantTotalCapacityMWh: plantTotalMWh,
         plantCommittedVolumeMWh: plantCommittedMwh,
       },
-      counterparty: deal.counterparty || deal.legalEntityName || linkedPlant?.legalEntityName || linkedPlant?.operator || null,
+      counterparty: sellerEntity.name,
+      counterpartySource: sellerEntity.source ? { name: sellerEntity.source.name, url: sellerEntity.source.url, note: sellerEntity.source.note } : null,
       custody,
     };
   }, [
@@ -125,6 +134,7 @@ export function useDealPricing(
     statutorySurrenderDeadline,
     deal,
     linkedPlant,
+    sellerEntity,
     plantTotalMWh,
     plantCommittedMwh,
     custody,
@@ -388,8 +398,12 @@ export function useDealPricing(
     : selectedMarket.shortName;
   const ticketMarketLabel = `${selectedMarket.countryName} ${marketShortNameNoPrefix}`;
 
+  // "MWh (GO, HHV)" on a paired GO + PoS market: the value is per GO MWh.
+  const volumeUnit = volumeUnitLabel(selectedMarket, custody);
+
   return {
     selectedMarket,
+    volumeUnit,
     statutorySurrenderDeadline,
     monthlyRateMwh,
     dailyRateMwh,

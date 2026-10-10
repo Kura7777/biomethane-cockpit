@@ -23,6 +23,7 @@ interface TradeEconomicsStepProps {
   waterfallRows: WaterfallRow[];
   waterfallMax: number;
   volumeMwh: number;
+  volumeUnit?: string;
   grossTotal: number;
   deskMarginEurMwh: string;
   annualPnl: number;
@@ -65,6 +66,7 @@ export function TradeEconomicsStep({
   waterfallRows,
   waterfallMax,
   volumeMwh,
+  volumeUnit = 'MWh',
   grossTotal,
   deskMarginEurMwh,
   annualPnl,
@@ -119,7 +121,7 @@ export function TradeEconomicsStep({
           <dl className="tb-figures">
             <div>
               <dt>Contract Traded Volume</dt>
-              <dd className="tb-num">{volumeMwh.toLocaleString()} MWh</dd>
+              <dd className="tb-num">{volumeMwh.toLocaleString()} {volumeUnit}</dd>
             </div>
             <div>
               <dt>Gross Deal Notional</dt>

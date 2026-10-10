@@ -1,8 +1,9 @@
 import { TradeAssessment } from './types';
-import { MARKETS, isVoluntaryMarket } from '../markets/registry';
+import { MARKETS, getMarketById, isVoluntaryMarket } from '../markets/registry';
 import { Market } from '../markets/types';
 import { CI_COMPARATOR_ROAD_TRANSPORT } from '../markets/constants';
 import { AnnexClassification, ChainOfCustody, UDBStatus } from '../consignment/types';
+import { volumeUnitLabel } from '../consignment/custody';
 
 /**
  * Deal documentation generators.
@@ -230,6 +231,13 @@ export function environmentalAttributeLabel(market: Market | undefined, marketId
 }
 
 export const fmtMwh = (v: number | null | undefined) => (v != null ? `${v.toLocaleString()} MWh` : TBA);
+
+/** Deal volume with its basis: "1,000 MWh (GO, HHV)" on a paired GO + PoS market, plain MWh elsewhere. */
+export function fmtDealVolume(assessment: TradeAssessment): string {
+  const c = assessment.consignment;
+  if (c.volumeMWh == null) return TBA;
+  return `${c.volumeMWh.toLocaleString()} ${volumeUnitLabel(getMarketById(assessment.targetMarketId), c.custody)}`;
+}
 export const orTba = (v: string | number | null | undefined) => (v != null && String(v).trim() !== '' ? String(v) : TBA);
 
 /**

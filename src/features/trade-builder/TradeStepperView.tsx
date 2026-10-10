@@ -74,6 +74,7 @@ export const TradeStepperView: React.FC<TradeStepperViewProps> = ({
     marketId,
     setMarketId,
     volumeMwh,
+    goVolumeMwh,
     setVolumeMwh,
     plantCommittedMwh,
     plantTotalMWh,
@@ -84,6 +85,7 @@ export const TradeStepperView: React.FC<TradeStepperViewProps> = ({
 
   const {
     selectedMarket,
+    volumeUnit,
     statutorySurrenderDeadline,
     availablePlantCapacity,
     isOversubscribed,
@@ -174,6 +176,8 @@ export const TradeStepperView: React.FC<TradeStepperViewProps> = ({
                       setCi={setCi}
                       ghgSavingPct={ghgSavingPct}
                       volumeMwh={volumeMwh}
+                      volumeUnit={volumeUnit}
+                      goVolumeMwh={goVolumeMwh}
                       setVolumeMwh={setVolumeMwh}
                       plantTotalMWh={plantTotalMWh}
                       plantCommittedMwh={plantCommittedMwh}
@@ -238,6 +242,7 @@ export const TradeStepperView: React.FC<TradeStepperViewProps> = ({
                       waterfallRows={waterfallRows}
                       waterfallMax={waterfallMax}
                       volumeMwh={volumeMwh}
+                      volumeUnit={volumeUnit}
                       grossTotal={grossTotal}
                       deskMarginEurMwh={deskMarginEurMwh}
                       annualPnl={annualPnl}
@@ -255,6 +260,7 @@ export const TradeStepperView: React.FC<TradeStepperViewProps> = ({
                     selectedMarket={selectedMarket}
                     origin={origin}
                     volumeMwh={volumeMwh}
+                    volumeUnit={volumeUnit}
                     netNetbackVal={netNetbackVal}
                     deskMarginEurMwh={deskMarginEurMwh}
                     annualPnl={annualPnl}
@@ -295,6 +301,7 @@ export const TradeStepperView: React.FC<TradeStepperViewProps> = ({
           ciProvenance={ciProvenance}
           ciIsManual={ciSource === 'manual'}
           volumeMwh={volumeMwh}
+          volumeUnit={volumeUnit}
           volumeIsEstimated={deal.volumeIsEstimated}
           isTtfSimulated={isTtfSimulated}
           markSourceLabel={markSourceLabel}

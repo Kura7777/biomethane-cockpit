@@ -39,6 +39,8 @@ export interface DealTicketProps {
   marketLabel: string;
   netback: NetbackResult;
   volumeMwh: number;
+  /** "MWh", or "MWh (GO, HHV)" on a paired GO + PoS market. */
+  volumeUnit?: string;
   annualPnl: number;
   gates: GateResult[];
   overallVerdict: string;
@@ -102,6 +104,7 @@ export function DealTicket({
   marketLabel,
   netback,
   volumeMwh,
+  volumeUnit = 'MWh',
   annualPnl,
   gates,
   overallVerdict,
@@ -151,7 +154,7 @@ export function DealTicket({
         ? `${(producerPricing.indexLinkedShare * 100).toFixed(1)}% index-linked`
         : 'pricing unset';
     const producerPayableText = netback.producerPayable != null ? netback.producerPayable.toFixed(2) : '—';
-    const volumeText = `${volumeIsEstimated ? '≈ ' : ''}${volumeMwh.toLocaleString()} MWh${volumeIsEstimated ? ' (estimated from site emissions)' : ''}`;
+    const volumeText = `${volumeIsEstimated ? '≈ ' : ''}${volumeMwh.toLocaleString()} ${volumeUnit}${volumeIsEstimated ? ' (estimated from site emissions)' : ''}`;
     const line = `${originName} ${feedstockLabel}, CI ${ci} gCO₂e/MJ (${ciLabel}), ${schemeLabel} ${custodyLabel}, ${volumeText} ${vintageLabel}: €${producerPayableText}/MWh (${mode}). Indicative, subject to contract.`;
     try {
       await navigator.clipboard.writeText(line);
@@ -184,7 +187,7 @@ export function DealTicket({
             </div>
           )}
           <div className="tt-capped" data-testid="deal-ticket-volume">
-            {volumeIsEstimated ? '≈ ' : ''}{volumeMwh.toLocaleString()} MWh{volumeIsEstimated ? ' (estimated from site emissions)' : ''}
+            {volumeIsEstimated ? '≈ ' : ''}{volumeMwh.toLocaleString()} {volumeUnit}{volumeIsEstimated ? ' (estimated from site emissions)' : ''}
           </div>
         </div>
 

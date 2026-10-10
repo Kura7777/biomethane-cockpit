@@ -13,7 +13,7 @@ import {
   environmentalAttributeLabel,
   describePricing,
   isBlocked,
-  fmtMwh,
+  fmtDealVolume,
   orTba,
 } from './legalPackage';
 
@@ -215,12 +215,12 @@ export function generateEfetBiomethaneAnnexPdf(
   const profileDesc = profile === 'FLAT_MONTHLY' ? 'Flat monthly' : profile === 'FLAT_DAILY' ? 'Flat daily' : profile === 'BULLET' ? 'Bullet' : TBA;
   y = drawRows(doc, isVoluntary ? [
     ['Structure:', 'Certificate only — no physical gas delivered to Buyer.'],
-    ['Quantity:', `${fmtMwh(c.volumeMWh)} of ${environmentalAttributeLabel(market, assessment.targetMarketId, c.udbStatus)}`],
+    ['Quantity:', `${fmtDealVolume(assessment)} of ${environmentalAttributeLabel(market, assessment.targetMarketId, c.udbStatus)}`],
     ['Transfer Mechanism:', `Transfer and cancellation on ${market?.registry || TBA}`],
   ] : [
     ['Commodity:', 'Biomethane meeting EN 16723-1 and the injection specification of the delivery grid.'],
     ['Delivery Point:', dp?.deliveryPointVtp || `${c.injectionCountry} virtual trading point ${TBA}`],
-    ['Contract Quantity:', fmtMwh(c.volumeMWh)],
+    ['Contract Quantity:', fmtDealVolume(assessment)],
     ['Delivery Period:', `${orTba(dp?.startDate)} to ${orTba(dp?.endDate)} · Profile: ${profileDesc}`],
     ['Volume Tolerance:', `${TBA} (e.g. ±5% annual operational tolerance)`],
   ], margin, y, 48);
@@ -355,14 +355,14 @@ export function generateCommercialTermSheetPdf(
   const profileDesc = profile === 'FLAT_MONTHLY' ? 'flat monthly' : profile === 'FLAT_DAILY' ? 'flat daily' : profile === 'BULLET' ? 'bullet' : TBA;
   y = drawRows(doc, isVoluntary ? [
     ['Product:', `${environmentalAttributeLabel(market, assessment.targetMarketId, c.udbStatus)} — unbundled, no physical gas delivery`],
-    ['Quantity:', fmtMwh(c.volumeMWh)],
+    ['Quantity:', fmtDealVolume(assessment)],
     ['Origin Facility:', `${c.originPlantName || c.name || TBA} (${c.originCountry})`],
     ['Feedstock:', `${c.feedstockName} — ${annexClassificationLabel(c.annexClassification)}`],
     ['Carbon Intensity:', `${c.carbonIntensity} gCO₂e/MJ (declared)`],
     ['Registry:', market?.registry || TBA],
   ] : [
     ['Product:', 'Biomethane meeting EN 16723-1, with environmental attributes'],
-    ['Quantity:', fmtMwh(c.volumeMWh)],
+    ['Quantity:', fmtDealVolume(assessment)],
     ['Delivery Period:', `${orTba(dp?.startDate)} to ${orTba(dp?.endDate)}, ${profileDesc}`],
     ['Delivery Point:', dp?.deliveryPointVtp || `${c.injectionCountry} virtual trading point`],
     ['Origin Facility:', `${c.originPlantName || c.name || TBA} (${c.originCountry})`],
@@ -505,7 +505,7 @@ export function generateStatutoryAuditMemoPdf(
   const netbackStr = nb.netNetback != null ? `€${nb.netNetback.toFixed(2)}/MWh` : 'n/a';
   const marginStr = nb.deskMargin != null ? ` · desk margin €${nb.deskMargin.toFixed(2)}/MWh` : '';
   y = drawRows(doc, [
-    ['Volume:', fmtMwh(c.volumeMWh)],
+    ['Volume:', fmtDealVolume(assessment)],
     ['Feedstock:', `${c.feedstockName} — ${annexClassificationLabel(c.annexClassification)}`],
     ['Carbon Intensity:', `${c.carbonIntensity} gCO₂e/MJ · commissioning ${c.commissioningDateRange.replace(/_/g, ' ').toLowerCase()}`],
     ['Scheme / Custody:', `${c.certificationScheme.replace(/_/g, ' ')} · ${chainOfCustodyLabel(c.chainOfCustody)}`],

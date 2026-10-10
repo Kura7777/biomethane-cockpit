@@ -24,6 +24,7 @@ interface TradeExecutionStepProps {
   selectedMarket: Market;
   origin: string;
   volumeMwh: number;
+  volumeUnit?: string;
   netNetbackVal: number;
   deskMarginEurMwh: string;
   annualPnl: number;
@@ -41,6 +42,7 @@ export function TradeExecutionStep({
   currentTradeAssessment,
   selectedMarket,
   volumeMwh,
+  volumeUnit = 'MWh',
   netNetbackVal,
   deskMarginEurMwh,
   annualPnl,
@@ -65,7 +67,7 @@ Date: ${new Date().toISOString().split('T')[0]}
 Consignment: ${consignment.name}
 Origin: ${consignment.originCountry} (${consignment.originCountryName})
 Target Market: ${selectedMarket.name} (${selectedMarket.country})
-Volume: ${volumeMwh.toLocaleString()} MWh
+Volume: ${volumeMwh.toLocaleString()} ${volumeUnit}
 Feedstock: ${consignment.feedstock}
 Carbon Intensity: ${consignment.carbonIntensity} gCO2e/MJ
 Net Netback: €${netNetbackVal.toFixed(2)} / MWh
@@ -128,7 +130,7 @@ Standard: EFET 2026 Biomethane Annex / RED III Mass Balance`.trim();
             <div className="tb-kv-row"><span>Asset / Consignment</span><span>{consignment.name}</span></div>
             <div className="tb-kv-row"><span>Origin Country</span><span>{consignment.originCountry} ({consignment.originCountryName})</span></div>
             <div className="tb-kv-row"><span>Target Market</span><span>{selectedMarket.name} ({selectedMarket.country})</span></div>
-            <div className="tb-kv-row"><span>Contract Volume</span><span>{volumeMwh.toLocaleString()} MWh</span></div>
+            <div className="tb-kv-row"><span>Contract Volume</span><span>{volumeMwh.toLocaleString()} {volumeUnit}</span></div>
             <div className="tb-kv-row"><span>Certified Feedstock</span><span>{consignment.feedstock} ({consignment.annexClassification})</span></div>
             <div className="tb-kv-row"><span>Carbon Intensity</span><span>{consignment.carbonIntensity} gCO₂e/MJ</span></div>
             <div className="tb-kv-row"><span>Wholesale Net Netback</span><span className={netNetbackVal >= 0 ? 'tb-pos' : 'tb-neg'}>€{netNetbackVal.toFixed(2)} / MWh</span></div>

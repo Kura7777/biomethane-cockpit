@@ -30,6 +30,8 @@ interface TradeSummaryRailProps {
   ciProvenance: 'pos' | 'estimated' | null;
   ciIsManual: boolean;
   volumeMwh: number;
+  /** "MWh", or "MWh (GO, HHV)" on a paired GO + PoS market. */
+  volumeUnit?: string;
   volumeIsEstimated?: boolean;
   isTtfSimulated: boolean;
   markSourceLabel: string | null;
@@ -73,6 +75,7 @@ export function TradeSummaryRail({
   ciProvenance,
   ciIsManual,
   volumeMwh,
+  volumeUnit,
   volumeIsEstimated,
   isTtfSimulated,
   markSourceLabel,
@@ -107,6 +110,7 @@ export function TradeSummaryRail({
       marketLabel={ticketMarketLabel}
       netback={netback}
       volumeMwh={volumeMwh}
+      volumeUnit={volumeUnit}
       volumeIsEstimated={volumeIsEstimated}
       annualPnl={annualPnl}
       gates={gates}

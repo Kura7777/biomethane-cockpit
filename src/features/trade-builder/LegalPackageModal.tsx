@@ -109,6 +109,7 @@ export function LegalPackageModal({ isOpen, onClose, assessment, initialTab }: L
       deskRole={deskRole}
       deskEntity={deskEntity}
       counterpartyName={counterpartyName}
+      counterpartySource={assessment?.consignment.counterpartySource}
       governingLaw={governingLaw}
       masterAgreementDate={masterAgreementDate}
       sellerName={sellerName}

@@ -92,6 +92,7 @@ export function TradeBuilderScreen() {
 
   const {
     selectedMarket,
+    volumeUnit,
     statutorySurrenderDeadline,
     availablePlantCapacity,
     isOversubscribed,
@@ -248,6 +249,7 @@ export function TradeBuilderScreen() {
           ciProvenance={pricing.ciProvenance}
           ciIsManual={ciSource === 'manual'}
           volumeMwh={volumeMwh}
+          volumeUnit={volumeUnit}
           volumeIsEstimated={deal.volumeIsEstimated}
           isTtfSimulated={pricing.isTtfSimulated}
           markSourceLabel={pricing.markSourceLabel}

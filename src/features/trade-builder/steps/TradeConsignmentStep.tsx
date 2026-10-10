@@ -1,3 +1,4 @@
+import { CAPACITY_ESTIMATE_LABEL, isMapCapacityEstimate, resolveCounterparty } from '../../../domain/plants/compliance';
 import React from 'react';
 import { CertificationScheme, ChainOfCustody, DeliveryProfile, UDBStatus, PoSStatus } from '../../../domain/consignment/types';
 import { Market } from '../../../domain/markets/types';
@@ -85,6 +86,10 @@ interface TradeConsignmentStepProps {
   setCi: (ci: number) => void;
   ghgSavingPct: number;
   volumeMwh: number;
+  /** "MWh", or "MWh (GO, HHV)" on a paired GO + PoS market. */
+  volumeUnit?: string;
+  /** Set when the GO's MWh (custody pack) drives the deal volume. */
+  goVolumeMwh?: number | null;
   setVolumeMwh: (vol: number) => void;
   plantTotalMWh: number | null;
   plantCommittedMwh: number;
@@ -148,6 +153,8 @@ export function TradeConsignmentStep({
   setCi,
   ghgSavingPct,
   volumeMwh,
+  volumeUnit = 'MWh',
+  goVolumeMwh = null,
   setVolumeMwh,
   plantTotalMWh,
   ciProvenance,
@@ -177,6 +184,7 @@ export function TradeConsignmentStep({
 }: TradeConsignmentStepProps) {
   const monthlyRateMwh = Math.round(volumeMwh / 12);
   const dailyRateMwh = Number((volumeMwh / 365).toFixed(1));
+  const operatingEntity = resolveCounterparty(linkedPlant, deal.counterparty || deal.legalEntityName);
 
   const openAuditor = (detail: Record<string, unknown>) => {
     window.dispatchEvent(new CustomEvent('open-compliance-auditor', {
@@ -248,7 +256,12 @@ export function TradeConsignmentStep({
                 <dl className="tb-facts-list">
                   <div>
                     <dt>Operating Entity</dt>
-                    <dd>{deal.legalEntityName || linkedPlant?.legalEntityName || linkedPlant?.operator || 'Operating Entity'}</dd>
+                    <dd data-testid="operating-entity">
+                      {operatingEntity.name || 'Operating Entity'}
+                      {operatingEntity.source && (
+                        <>{' '}<a href={operatingEntity.source.url} target="_blank" rel="noopener noreferrer" title={operatingEntity.source.note}>(source)</a></>
+                      )}
+                    </dd>
                   </div>
                   <div>
                     <dt>Grid Injection TSO</dt>
@@ -257,7 +270,10 @@ export function TradeConsignmentStep({
                   {(deal.plantAnnualGWh || linkedPlant?.annualEnergyGWh) && (
                     <div>
                       <dt>Facility Capacity</dt>
-                      <dd className="tb-num">{deal.plantAnnualGWh || linkedPlant?.annualEnergyGWh} GWh/y</dd>
+                      <dd className="tb-num">
+                        {deal.plantAnnualGWh || linkedPlant?.annualEnergyGWh} GWh/y
+                        {linkedPlant && isMapCapacityEstimate(linkedPlant) && <span className="tb-hint" data-testid="plant-energy-label" style={{ display: 'block' }}>{CAPACITY_ESTIMATE_LABEL}</span>}
+                      </dd>
                     </div>
                   )}
                   {linkedPlant?.upgradingTechnology && (
@@ -552,9 +568,10 @@ export function TradeConsignmentStep({
                   className="input tb-num tb-volume-input"
                   value={volumeMwh}
                   onChange={e => setVolumeMwh(Math.max(0, Number(e.target.value) || 0))}
-                  aria-label="Contract traded volume (MWh)"
+                  readOnly={goVolumeMwh !== null}
+                  aria-label={`Contract traded volume (${volumeUnit})`}
                 />
-                <span className="tb-label">MWh</span>
+                <span className="tb-label">{volumeUnit}</span>
                 <div className="tb-chips">
                   {[5000, 10000, 25000, 50000].map(v => (
                     <button
@@ -568,6 +585,11 @@ export function TradeConsignmentStep({
                   ))}
                 </div>
               </div>
+              {goVolumeMwh !== null && (
+                <p className="tb-hint" data-testid="volume-from-go">
+                  Set from the GO: the GGE value is per GO MWh, so the deal volume is the GO's {goVolumeMwh.toLocaleString()} {volumeUnit}. Change it in the custody pack.
+                </p>
+              )}
               <p className="tb-hint tb-num">
                 Delivery Run-rate: ~{monthlyRateMwh.toLocaleString()} MWh/mo · {dailyRateMwh.toLocaleString()} MWh/d
               </p>

@@ -6,6 +6,8 @@ interface LegalPackageTermsPanelProps {
   deskEntity: string;
   setDeskEntity: (entity: string) => void;
   counterpartyName: string;
+  /** Where a researched counterparty name was read from; shown under the field. */
+  counterpartySource?: { name: string; url: string; note?: string } | null;
   setCounterpartyName: (name: string) => void;
   governingLaw: 'ENGLISH_LAW' | 'GERMAN_LAW';
   setGoverningLaw: (law: 'ENGLISH_LAW' | 'GERMAN_LAW') => void;
@@ -21,6 +23,7 @@ export function LegalPackageTermsPanel({
   deskEntity,
   setDeskEntity,
   counterpartyName,
+  counterpartySource,
   setCounterpartyName,
   governingLaw,
   setGoverningLaw,
@@ -74,6 +77,12 @@ export function LegalPackageTermsPanel({
           onChange={e => setCounterpartyName(e.target.value)}
           style={{ width: '100%', fontSize: '12px' }}
         />
+        {counterpartySource && counterpartyName === counterpartySource.name && (
+          <div className="mut" data-testid="counterparty-source" style={{ fontSize: '11px', marginTop: '3px' }}>
+            Researched entity ·{' '}
+            <a href={counterpartySource.url} target="_blank" rel="noopener noreferrer" title={counterpartySource.note}>source</a>
+          </div>
+        )}
       </div>
       <div>
         <label className="eyebrow" style={{ display: 'block', marginBottom: '3px' }}>Governing law</label>

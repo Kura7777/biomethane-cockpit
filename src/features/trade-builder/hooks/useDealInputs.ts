@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { SetURLSearchParams } from 'react-router-dom';
 import { CertificationScheme, ChainOfCustody, UDBStatus, PoSStatus, CustodyPack } from '../../../domain/consignment/types';
-import { emptyCustodyPack, posRecordFromParsed } from '../../../domain/consignment/custody';
+import { emptyCustodyPack, goBasisVolumeMwh, posRecordFromParsed } from '../../../domain/consignment/custody';
+import { getPlantComplianceDefaults } from '../../../domain/plants/compliance';
+import { getMarketById } from '../../../domain/markets/registry';
 import { TradeAssessment } from '../../../domain/trade/types';
 import { feedstockDefaultCi, getAssumption } from '../../../domain/assumptions/registry';
 import { BIOMETHANE_PLANTS } from '../../../domain/plants/registry';
@@ -43,7 +45,15 @@ export function useDealInputs(
   // reopened blotter deal gets back the pack it was saved with.
   const savedCustody = (id?: string): CustodyPack | null =>
     (id ? savedAssessments.find(a => a.id === id)?.consignment.custody : null) ?? null;
-  const [custody, setCustody] = useState<CustodyPack | null>(() => savedCustody(deal.dealId));
+  // A deal from a plant with compliance research starts with the pack pre-filled from it (scheme,
+  // support, PRTR, grid injection, registry). Never CI: that only comes from a sourced PoS CI.
+  const initialCustody = (id?: string): CustodyPack | null => {
+    const saved = savedCustody(id);
+    if (saved || !deal.plantId) return saved;
+    const defaults = getPlantComplianceDefaults(deal.plantId);
+    return defaults.go ? { ...emptyCustodyPack(), ...defaults } : null;
+  };
+  const [custody, setCustody] = useState<CustodyPack | null>(() => initialCustody(deal.dealId));
   const patchCustody = (patch: (c: CustodyPack) => CustodyPack) => setCustody(prev => patch(prev ?? emptyCustodyPack()));
 
   const [origin, setOrigin] = useState<string>(deal.originCountry || 'DK');
@@ -82,7 +92,7 @@ export function useDealInputs(
       // Apply statutory default routing when no explicit market was specified
       setMarketId(getDefaultMarketForOrigin(deal.originCountry));
     }
-    setCustody(savedCustody(deal.dealId));
+    setCustody(initialCustody(deal.dealId));
     if (deal.originCountry) setOrigin(deal.originCountry);
     if (deal.feedstock) setFeedstockKey(deal.feedstock);
     if (deal.ci !== null && deal.ci !== undefined) {
@@ -143,6 +153,9 @@ export function useDealInputs(
     showToast('Trade parameters reset to default benchmarks', 'SUCCESS');
   };
 
+  // On a paired GO + PoS market the deal volume is the GO's MWh once entered (value is per GO MWh).
+  const goVolumeMwh = goBasisVolumeMwh(getMarketById(marketId), custody);
+
   return {
     deal,
     linkedPlant,
@@ -167,7 +180,9 @@ export function useDealInputs(
     setCiSource,
     marketId,
     setMarketId,
-    volumeMwh,
+    volumeMwh: goVolumeMwh ?? volumeMwh,
+    /** Set when the GO's MWh drives the deal volume; the entered volume is then ignored. */
+    goVolumeMwh,
     setVolumeMwh,
     plantCommittedMwh,
     setPlantCommittedMwh,

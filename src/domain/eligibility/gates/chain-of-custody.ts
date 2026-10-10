@@ -238,6 +238,9 @@ function pairedChecklist(consignment: Consignment, market: Market): GateResult {
       entries.push(entry('go-pos-pairing', 'GO + PoS paired', 'FAIL', `GO ${goLhv.toFixed(1)} MWh LHV (${go.energyMWh} MWh ${go.energyBasis} × ${factor}) vs PoS ${pos.mwh} MWh: ${gapPct.toFixed(2)}% apart, above the ${tolerancePct}% tolerance (R5–R7).`, pairCites, 'Match the GO and PoS volumes for the same delivery.'));
     } else if (periodGap) {
       entries.push(entry('go-pos-pairing', 'GO + PoS paired', 'FAIL', `GO production period ${go.productionStart} – ${go.productionEnd} does not cover the delivery period ${dp?.startDate} – ${dp?.endDate} (R5, R9).`, pairCites, 'Use GOs from the production period of the delivered gas.'));
+    } else if (consignment.volumeMWh != null && Math.abs(consignment.volumeMWh - go.energyMWh) > 0.5) {
+      // The GGE value is per GO MWh on the GO's energy basis; a deal sized on the PoS's LHV MWh would under-state the notional.
+      entries.push(entry('go-pos-pairing', 'GO + PoS paired', 'WARN', `GO and PoS cover the same delivery, but the deal volume (${consignment.volumeMWh} MWh) differs from the GO's ${go.energyMWh} MWh ${go.energyBasis}. The GGE value is per GO MWh, so size the deal on the GO's MWh (R3, R4).`, pairCites, 'Set the deal volume to the GO MWh.'));
     } else {
       entries.push(entry('go-pos-pairing', 'GO + PoS paired', 'PASS', `GO ${go.energyMWh} MWh ${go.energyBasis} × ${factor} = ${goLhv.toFixed(1)} MWh LHV matches PoS ${pos.mwh} MWh within ${tolerancePct}% (R5–R7).`, pairCites));
     }
