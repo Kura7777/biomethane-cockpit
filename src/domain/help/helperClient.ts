@@ -10,6 +10,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { sanitizeKey } from '../regcheck/claudeClient';
 import { buildSystemBlocks, formatUserTurn, HELPER_MAX_TOKENS, type HelperSource, type HelperTurn } from './helperLogic';
 import { HELPER_TOOLS, HELPER_TOOL_LABELS, runHelperTool, type HelperToolContext } from './helperTools';
+import { helperModelById } from './helperModels';
 import type { PageGuide } from './pageGuides';
 
 /** Most model ↔ tool round trips per question before the helper stops and answers with what it has. */
@@ -29,19 +30,22 @@ export interface HelperRequestInput {
   context: Record<string, unknown>;
 }
 
-/** The request parameters that do not change during one question's tool loop (everything but messages). */
+/**
+ * The request parameters that do not change during one question's tool loop (everything but messages).
+ * Per model: Haiku 5.5 takes the basic web search tool and no server-side fallback (helperModels.ts).
+ */
 export function buildHelperRequestBase(input: Pick<HelperRequestInput, 'model' | 'webSearch' | 'route' | 'guide'>) {
+  const model = helperModelById(input.model);
   const tools: Anthropic.Beta.BetaToolUnion[] = [...HELPER_TOOLS];
-  if (input.webSearch) tools.push({ type: 'web_search_20260209', name: 'web_search', max_uses: HELPER_WEB_SEARCH_MAX_USES });
+  if (input.webSearch) tools.push({ type: model.webSearchTool, name: 'web_search', max_uses: HELPER_WEB_SEARCH_MAX_USES });
   return {
-    model: input.model,
+    model: model.id,
     max_tokens: HELPER_MAX_TOKENS,
-    // Thinking stays adaptive (the default on Opus 5.5 / Sonnet 5.5); effort is set explicitly.
+    // Thinking stays adaptive (the default on the 5.5 models); effort is set explicitly.
     output_config: { effort: 'medium' as const },
     system: buildSystemBlocks(input.guide, input.route),
     tools,
-    betas: [FALLBACK_BETA],
-    fallbacks: 'default' as const,
+    ...(model.serverFallback ? { betas: [FALLBACK_BETA], fallbacks: 'default' as const } : {}),
   };
 }
 

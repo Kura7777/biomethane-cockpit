@@ -26,6 +26,8 @@ export interface HelperTurn {
   termIds?: string[];
   /** For assistant turns: web pages the answer cited. */
   sources?: HelperSource[];
+  /** For assistant turns: the model that answered (display name, e.g. "Opus 5.5"). */
+  model?: string;
 }
 
 /**

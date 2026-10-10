@@ -361,3 +361,85 @@ body:has(.m-sticky-actions) .ph-root--compact { --ph-bottom: calc(56px + env(saf
 .ask-starter:disabled { opacity: 0.5; cursor: default; }
 /* Table cells wrap at spaces only (the message itself allows breaks anywhere for long URLs). */
 .ph-table th, .ph-table td { overflow-wrap: normal; }
+
+/* ── Working indicator: pulsing dot, stepping dots, elapsed seconds ─────────── */
+.ph-thinking { display: inline-flex; align-items: center; gap: 6px; color: var(--color-muted); font-style: italic; }
+.ph-pulse { flex: none; width: 8px; height: 8px; border-radius: 999px; background: var(--color-header-bg); animation: ph-pulse 1.2s ease-in-out infinite; }
+.ph-dots { display: inline-flex; margin-left: -6px; }
+.ph-dots span { animation: ph-step 1.4s ease-in-out infinite both; }
+.ph-dots span:nth-child(2) { animation-delay: 0.2s; }
+.ph-dots span:nth-child(3) { animation-delay: 0.4s; }
+.ph-elapsed { font-style: normal; font-size: 11px; font-variant-numeric: tabular-nums; opacity: 0.8; }
+@keyframes ph-pulse { 0%, 100% { transform: scale(0.7); opacity: 0.45; } 50% { transform: scale(1); opacity: 1; } }
+@keyframes ph-step { 0%, 80%, 100% { opacity: 0.2; } 40% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .ph-pulse, .ph-dots span { animation: none; }
+  .ph-dots span { opacity: 1; }
+}
+.ph-answered-by { margin-top: 4px; font-size: 11px; color: var(--color-muted); }
+
+/* ── Ask the desk: model picker ─────────────────────────────────────────────── */
+.ask-model { position: relative; flex: none; }
+.ask-model-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ask-model-btn:hover:not(:disabled) { border-color: var(--color-text); }
+.ask-model-btn:disabled { opacity: 0.5; cursor: default; }
+.ask-model-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 40;
+  width: min(360px, calc(100vw - 32px));
+  padding: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ask-model-opt {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  line-height: 1.4;
+  cursor: pointer;
+}
+.ask-model-opt:hover, .ask-model-opt:focus-visible { background: var(--color-bg); }
+.ask-model-opt.is-current { background: var(--color-bg); }
+.ask-model-opt-head { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+.ask-model-tag { color: var(--color-muted); font-size: 12px; }
+.ask-model-check { margin-left: auto; }
+.ask-model-use { color: var(--color-text); }
+.ask-model-cost { color: var(--color-muted); }
+.ask-model-note { margin: 4px 10px 2px; font-size: 11px; color: var(--color-muted); }
+/* Compact layout: the app header already says "Ask the desk", so drop the repeat and keep the bar to one row. */
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
+  .ask-title { display: none; }
+  .ask-head { gap: 8px; }
+  /* The model menu spans the screen under the bar instead of hanging off the button. */
+  .ask-head { position: relative; }
+  .ask-model { position: static; }
+  .ask-model-menu { left: 12px; right: 12px; width: auto; top: calc(100% - 2px); }
+}

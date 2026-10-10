@@ -1,6 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { buildSuggestedQuestions, offlineAnswer, parseAnswer, matchGlossaryInText, buildSystemBlocks } from '../helperLogic';
 import { askHelperStream, buildHelperRequestBase, buildHelperMessages } from '../helperClient';
+import { HELPER_MODELS, currentHelperModel, helperModelFor } from '../helperModels';
+import { resetAllAssumptions, setAssumption } from '../../assumptions/registry';
 import type { MarksState, CostInputs } from '../../netback/types';
 import { getPageGuide } from '../pageGuides';
 
@@ -110,6 +112,30 @@ describe('AI mode request', () => {
     expect(on.betas).toContain('server-side-fallback-2026-07-01');
     const off = buildHelperRequestBase({ ...input, webSearch: false });
     expect(off.tools.some(t => 'type' in t && t.type === 'web_search_20260209')).toBe(false);
+  });
+  it('fits the request to each model: Haiku gets the basic web search and no server-side fallback', () => {
+    const sonnet = buildHelperRequestBase({ ...input, model: 'claude-sonnet-5-5' });
+    expect(sonnet.model).toBe('claude-sonnet-5-5');
+    expect(sonnet.fallbacks).toBe('default');
+    const haiku = buildHelperRequestBase({ ...input, model: 'claude-haiku-5-5' });
+    expect(haiku.model).toBe('claude-haiku-5-5');
+    expect(haiku.tools.some(t => 'type' in t && t.type === 'web_search_20250305')).toBe(true);
+    expect(haiku.tools.some(t => 'type' in t && t.type === 'web_search_20260209')).toBe(false);
+    expect('fallbacks' in haiku).toBe(false);
+    expect('betas' in haiku).toBe(false);
+    // An unknown id falls back to the default model rather than sending a bad one.
+    expect(buildHelperRequestBase({ ...input, model: 'nope' }).model).toBe('claude-opus-5-5');
+  });
+  it('maps the helper.model setting to a model, with Opus as the default', () => {
+    resetAllAssumptions();
+    expect(currentHelperModel().id).toBe('claude-opus-5-5');
+    setAssumption('helper.model', 0);
+    expect(currentHelperModel().id).toBe('claude-haiku-5-5');
+    setAssumption('helper.model', 1);
+    expect(currentHelperModel().id).toBe('claude-sonnet-5-5');
+    expect(helperModelFor(1.4).name).toBe('Sonnet 5.5');
+    resetAllAssumptions();
+    for (const m of HELPER_MODELS) expect(m.useFor.length).toBeGreaterThan(20);
   });
   it('keeps roles alternating when an earlier request failed', () => {
     const msgs = buildHelperMessages([

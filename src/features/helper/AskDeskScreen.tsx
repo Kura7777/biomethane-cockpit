@@ -1,9 +1,75 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle, RotateCcw } from 'lucide-react';
+import { Check, ChevronDown, MessageCircle, RotateCcw } from 'lucide-react';
+import { setAssumption } from '../../domain/assumptions/registry';
+import { HELPER_MODELS, currentHelperModel } from '../../domain/help/helperModels';
+import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
 import { ChatBody, ChatInput, ModeNote, useHelperChat } from './PageHelper';
 import { clearHelperConversation } from './helperStore';
 import './helper.css';
+
+/**
+ * Which Claude model answers: a button showing the current one, opening a menu that says what each
+ * model is for. It writes the desk setting helper.model, so #/pricing shows the same choice.
+ */
+function ModelPicker({ disabled }: { disabled: boolean }) {
+  useAssumptionsVersion();
+  const current = currentHelperModel();
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => { if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  return (
+    <div className="ask-model" ref={rootRef}>
+      <button
+        type="button"
+        className="ask-model-btn"
+        data-testid="ask-model"
+        aria-haspopup="true"
+        aria-expanded={open}
+        disabled={disabled}
+        title="Choose the Claude model that answers"
+        onClick={() => setOpen(!open)}
+      >
+        {current.name} <ChevronDown size={14} aria-hidden="true" />
+      </button>
+      {open && (
+        <div className="ask-model-menu" role="menu" aria-label="Claude model" data-testid="ask-model-menu">
+          {HELPER_MODELS.map(m => (
+            <button
+              key={m.id}
+              type="button"
+              role="menuitemradio"
+              aria-checked={m.id === current.id}
+              className={`ask-model-opt ${m.id === current.id ? 'is-current' : ''}`}
+              data-testid={`ask-model-${m.value}`}
+              onClick={() => { setAssumption('helper.model', m.value); setOpen(false); }}
+            >
+              <span className="ask-model-opt-head">
+                <strong>{m.name}</strong> <span className="ask-model-tag">{m.tagline}</span>
+                {m.id === current.id && <Check size={14} aria-hidden="true" className="ask-model-check" />}
+              </span>
+              <span className="ask-model-use">{m.useFor}</span>
+              <span className="ask-model-cost">{m.speedAndCost}</span>
+            </button>
+          ))}
+          <p className="ask-model-note">Saved for the desk; also on Pricing desk → Desk assumptions.</p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 /**
  * Ask the desk (#/ask): the general chat on the main bar. Same engine as the page helper (model,
@@ -38,6 +104,7 @@ export function AskDeskScreen() {
           <strong className="ask-title">Ask the desk</strong>
           <span className={`ph-mode ${chat.aiMode ? 'ph-mode--ai' : ''}`} data-testid="helper-mode">{chat.aiMode ? 'AI answers' : 'Offline help'}</span>
         </div>
+        <ModelPicker disabled={chat.busy} />
         <button
           type="button"
           className="ask-new"

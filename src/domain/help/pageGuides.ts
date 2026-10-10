@@ -653,17 +653,16 @@ export const PAGE_GUIDES: PageGuide[] = [
     howToRead: [
       { section: 'Conversation', text: 'One running conversation for this browser tab. It stays while you move around the app; New chat clears it. Answers stream in, and Stop ends one early.' },
       { section: 'Where answers come from', text: 'The app’s own data first: desk marks, certificate routes, destination pricing, plants and legal sources. Then web search, then general knowledge, which is labelled so you know to check it.' },
-      { section: 'Settings', text: 'The model and web search are set on the Pricing desk under Desk assumptions, Desk helper. Your Anthropic key is set on the Regulation check page.' },
+      { section: 'Model', text: 'The model button at the top picks Opus, Sonnet or Haiku, each with what it is for. The same setting, and web search, sit on the Pricing desk under Desk assumptions. Your Anthropic key is set on Regulation check.' },
     ],
     commonTasks: [
       {
-        question: 'How do I switch between Opus and Sonnet?',
+        question: 'Which model should I use?',
         steps: [
-          'Open the Pricing desk, Desk assumptions tab.',
-          'Find the Desk helper section.',
-          'Set the model flag: 1 for Opus, 0 for Sonnet.',
+          'Click the model button at the top of this page.',
+          'Opus for analysis you will act on, Sonnet for everyday questions, Haiku for quick look-ups.',
+          'The choice is saved and also shows on the Pricing desk.',
         ],
-        link: '/pricing?tab=assumptions',
       },
       {
         question: 'How do I add my API key?',

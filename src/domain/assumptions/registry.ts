@@ -525,16 +525,16 @@ export const ASSUMPTION_DEFINITIONS: AssumptionDefinition[] = [
   },
   // ── Desk helper (the AI assistant on every page) ──────────────────────────
   {
-    key: 'helper.useOpus',
+    key: 'helper.model',
     category: 'HELPER',
-    label: 'Desk helper model (1 = Claude Opus 5.5, 0 = Claude Sonnet 5.5)',
-    unit: 'flag',
-    defaultValue: 1,
+    label: 'Desk helper model (2 = Claude Opus 5.5, 1 = Claude Sonnet 5.5, 0 = Claude Haiku 5.5)',
+    unit: 'model',
+    defaultValue: 2,
     basis: 'DESK_POLICY',
-    source: 'Opus 5.5 gives the strongest answers; Sonnet 5.5 costs about half per token. Uses your own Anthropic key.',
-    usedIn: 'Desk helper: which Claude model answers questions in AI mode',
+    source: 'Opus 5.5 gives the strongest answers; Sonnet 5.5 costs about half as much; Haiku 5.5 is fastest and cheapest but weaker on multi-step analysis. Also switchable on Ask the desk. Uses your own Anthropic key.',
+    usedIn: 'Desk helper and Ask the desk: which Claude model answers questions in AI mode',
     min: 0,
-    max: 1,
+    max: 2,
   },
   {
     key: 'helper.webSearch',

@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowUp, ChevronDown, Maximize2, MessageCircle, Minimize2, Square, X } from 'lucide-react';
 import { Sheet } from '../../shared/ui/Sheet';
 import { useIsMobile } from '../../shared/hooks/useMediaQuery';
-import { DEFAULT_CLAUDE_MODEL, THOROUGH_CLAUDE_MODEL, getStoredAnthropicApiKey } from '../../domain/regcheck/claudeClient';
+import { getStoredAnthropicApiKey } from '../../domain/regcheck/claudeClient';
 import { getAssumption } from '../../domain/assumptions/registry';
 import { useOptionalAppState } from '../../store/context';
 import { getPageGuide, type PageGuide } from '../../domain/help/pageGuides';
@@ -24,6 +24,7 @@ import {
   type HelperTurn,
 } from '../../domain/help/helperLogic';
 import { askHelperStream } from '../../domain/help/helperClient';
+import { currentHelperModel } from '../../domain/help/helperModels';
 import { appendHelperTurn, getHelperSnapshot, setHelperExpanded, setHelperOpen, setHelperViewing, useHelperStore } from './helperStore';
 import './helper.css';
 
@@ -126,9 +127,10 @@ export function useHelperChat(): Chat {
     setBusy(true);
     setLiveText('');
     let streamed = '';
+    const model = currentHelperModel();
     askHelperStream({
       apiKey: key,
-      model: getAssumption('helper.useOpus') >= 1 ? THOROUGH_CLAUDE_MODEL : DEFAULT_CLAUDE_MODEL,
+      model: model.id,
       webSearch: getAssumption('helper.webSearch') >= 1,
       route: pageKey,
       guide,
@@ -140,10 +142,10 @@ export function useHelperChat(): Chat {
       onText: delta => { streamed += delta; setLiveText(streamed); },
       onStatus: setStatus,
     })
-      .then(answer => appendHelperTurn(pageKey, { id: nextId(), role: 'assistant', text: answer.text, sources: answer.sources }))
+      .then(answer => appendHelperTurn(pageKey, { id: nextId(), role: 'assistant', text: answer.text, sources: answer.sources, model: model.name }))
       .catch((err: unknown) => {
         // Keep whatever was already written when the trader stops or the stream fails midway.
-        if (streamed.trim()) appendHelperTurn(pageKey, { id: nextId(), role: 'assistant', text: streamed.trim() });
+        if (streamed.trim()) appendHelperTurn(pageKey, { id: nextId(), role: 'assistant', text: streamed.trim(), model: model.name });
         appendHelperTurn(pageKey, { id: nextId(), role: 'error', text: err instanceof Error ? err.message : 'The helper could not answer.' });
       })
       .finally(() => {
@@ -313,6 +315,7 @@ function Turn({ turn, onNavigate }: { turn: HelperTurn; onNavigate: (to: string)
             </ul>
           </div>
         )}
+        {turn.model && <div className="ph-answered-by" data-testid="helper-answered-by">{turn.model}</div>}
       </div>
     );
   }
@@ -366,7 +369,7 @@ export function ChatBody({ chat, onNavigate, emptyChips, variant = 'page', empty
       {chat.turns.map(t => <Turn key={t.id} turn={t} onNavigate={onNavigate} />)}
       {chat.busy && chat.liveText && <div className="ph-msg" data-testid="helper-live"><AnswerView text={chat.liveText} onNavigate={onNavigate} /></div>}
       {chat.busy && (chat.status || !chat.liveText) && (
-        <div className="ph-msg ph-thinking" data-testid="helper-thinking" aria-live="polite">{chat.status ?? 'Thinking'}…</div>
+        <ThinkingLine status={chat.status ?? 'Thinking'} />
       )}
       {variant === 'page' && chat.previous && !chat.viewingPrevious && (
         <button type="button" className="ph-link ph-prev-link" data-testid="helper-previous" onClick={() => setHelperViewing(chat.previous!.key)}>
@@ -374,6 +377,30 @@ export function ChatBody({ chat, onNavigate, emptyChips, variant = 'page', empty
         </button>
       )}
       <div ref={endRef} />
+    </div>
+  );
+}
+
+/** Seconds since the current question was sent, shown once the wait is long enough to wonder about. */
+function useElapsedSeconds(): number {
+  const [seconds, setSeconds] = useState(0);
+  useEffect(() => {
+    const started = Date.now();
+    const timer = window.setInterval(() => setSeconds(Math.floor((Date.now() - started) / 1000)), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+  return seconds;
+}
+
+/** "Thinking…" with a pulsing dot and stepping dots, so a long Opus think visibly keeps going. */
+function ThinkingLine({ status }: { status: string }) {
+  const seconds = useElapsedSeconds();
+  return (
+    <div className="ph-msg ph-thinking" data-testid="helper-thinking" role="status" aria-live="polite">
+      <span className="ph-pulse" aria-hidden="true" />
+      <span>{status}</span>
+      <span className="ph-dots" aria-hidden="true"><span>.</span><span>.</span><span>.</span></span>
+      {seconds >= 3 && <span className="ph-elapsed">{seconds}s</span>}
     </div>
   );
 }

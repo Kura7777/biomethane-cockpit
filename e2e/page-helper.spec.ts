@@ -215,4 +215,50 @@ test.describe('Ask the desk (desktop)', () => {
     await expect(page.getByTestId('helper-user')).toHaveCount(0);
     expect(appErrors(errors)).toEqual([]);
   });
+
+  test('the model picker explains each model, switches to Haiku, and the working line animates', async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('biomethane_anthropic_api_key', 'sk-ant-e2e-test-key-123456'));
+    let body = '';
+    let release: () => void = () => {};
+    const held = new Promise<void>(r => { release = r; });
+    await page.route('https://api.anthropic.com/v1/messages*', async route => {
+      body = route.request().postData() ?? '';
+      await held;
+      const sse = (events: object[]) => events.map(e => `event: ${(e as { type: string }).type}\ndata: ${JSON.stringify(e)}\n\n`).join('');
+      await route.fulfill({ status: 200, contentType: 'text/event-stream', body: sse([
+        { type: 'message_start', message: { id: 'm', type: 'message', role: 'assistant', model: 'claude-haiku-5-5', content: [], stop_reason: null, stop_sequence: null, usage: { input_tokens: 1, output_tokens: 0 } } },
+        { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } },
+        { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: 'A GGE is one kilogram of CO2e reduction.' } },
+        { type: 'content_block_stop', index: 0 },
+        { type: 'message_delta', delta: { stop_reason: 'end_turn', stop_sequence: null }, usage: { output_tokens: 1 } }, { type: 'message_stop' }]) });
+    });
+
+    await gotoScreen(page, '/ask');
+    await expect(page.getByTestId('ask-model')).toHaveText(/Opus 5\.5/);
+    await page.getByTestId('ask-model').click();
+    const menu = page.getByTestId('ask-model-menu');
+    await expect(menu.getByRole('menuitemradio')).toHaveCount(3);
+    await expect(menu).toContainText('Deepest reasoning');
+    await expect(menu).toContainText('Quick look-ups');
+    await page.getByTestId('ask-model-0').click();
+    await expect(menu).toHaveCount(0);
+    await expect(page.getByTestId('ask-model')).toHaveText(/Haiku 5\.5/);
+
+    await page.getByTestId('helper-input').fill('What is a GGE?');
+    await page.getByTestId('helper-send').click();
+    const working = page.getByTestId('helper-thinking');
+    await expect(working).toBeVisible();
+    await expect(working.locator('.ph-pulse')).toHaveCSS('animation-name', 'ph-pulse');
+    await expect(page.getByTestId('ask-model')).toBeDisabled();
+    release();
+    await expect(page.getByTestId('helper-answer')).toContainText('one kilogram');
+    await expect(page.getByTestId('helper-answered-by')).toHaveText('Haiku 5.5');
+    expect(body).toContain('"model":"claude-haiku-5-5"');
+    expect(body).toContain('web_search_20250305');
+    expect(body).not.toContain('"fallbacks"');
+
+    // The same desk setting shows on the Pricing desk.
+    await gotoScreen(page, '/pricing?tab=assumptions');
+    await expect(page.getByText('Desk helper model (2 = Claude Opus 5.5, 1 = Claude Sonnet 5.5, 0 = Claude Haiku 5.5)')).toBeVisible();
+  });
 });
