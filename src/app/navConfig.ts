@@ -15,7 +15,8 @@ import {
   Users,
   ShieldAlert,
   Sunrise,
-  BookA
+  BookA,
+  MessageCircle
 } from 'lucide-react';
 
 export interface NavItem {
@@ -50,6 +51,7 @@ export const SIDEBAR_ITEMS: NavItem[] = [
   // Data Connectors hidden here until there are live data feeds; /connectors still routes.
   { to: '/data-sources', label: 'Data Sources', keyHint: '7', icon: Database },
   { to: '/regulation-check', label: 'Regulation check', keyHint: '', icon: ShieldAlert },
+  { to: '/ask', label: 'Ask the desk', keyHint: '', icon: MessageCircle },
 ];
 
 export interface NavGroup {
@@ -110,6 +112,12 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
 ];
+
+/**
+ * The general desk chat. It sits on the main bar next to Reference (and in the phone tab bar)
+ * rather than inside a menu, because the trader uses it all day.
+ */
+export const ASK_NAV_ITEM: NavItem = { to: '/ask', label: 'Ask the desk', keyHint: '', icon: MessageCircle, description: 'General chat about markets, regulation, routes, plants and deals' };
 
 /** Every workspace in menu order (flat list kept for callers that need it). */
 export const WORKSPACE_TABS: NavItem[] = NAV_GROUPS.flatMap(g => g.items);

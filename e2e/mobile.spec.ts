@@ -238,7 +238,7 @@ test.describe('shell', () => {
     await gotoScreen(page, '/sourcing');
     await expect(page.getByTestId('mobile-tabbar')).toBeVisible();
 
-    const tabIds = [...NAV_GROUPS.map(g => `tab-${g.id}`), 'tab-desk'];
+    const tabIds = [...NAV_GROUPS.map(g => `tab-${g.id}`), 'tab-ask', 'tab-desk'];
     for (const id of tabIds) {
       const tab = page.getByTestId(id);
       await expect(tab, `${id} should be visible`).toBeVisible();

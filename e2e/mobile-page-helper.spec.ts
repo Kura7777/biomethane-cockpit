@@ -34,3 +34,20 @@ test.describe('Page helper (compact layout)', () => {
     expect(cap!.x + cap!.width).toBeLessThanOrEqual(vw);
   });
 });
+
+test.describe('Ask the desk (compact layout)', () => {
+  test('the Ask tab opens the general chat and the page capsule steps aside', async ({ page }) => {
+    await gotoScreen(page, '/sourcing');
+    await page.getByTestId('tab-ask').click();
+    await expect(page).toHaveURL(/#\/ask$/);
+    await expect(page.getByTestId('ask-screen')).toBeVisible();
+    await expect(page.getByTestId('tab-ask')).toHaveClass(/active/);
+    await expect(page.getByTestId('helper-open')).toHaveCount(0);
+    await expect(page.getByTestId('helper-input')).toBeVisible();
+    const input = await page.getByTestId('helper-input').boundingBox();
+    const tab = await page.getByTestId('mobile-tabbar').boundingBox();
+    expect(input!.y + input!.height).toBeLessThanOrEqual(tab!.y);
+    const noOverflow = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1);
+    expect(noOverflow).toBe(true);
+  });
+});

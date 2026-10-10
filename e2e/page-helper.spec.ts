@@ -177,3 +177,42 @@ test.describe('Page helper capsule (desktop)', () => {
     await playbook.click();
   });
 });
+
+test.describe('Ask the desk (desktop)', () => {
+  test('sits on the main bar right after Reference and opens a full-page chat without the capsule', async ({ page }) => {
+    const errors = collectPageErrors(page);
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await gotoScreen(page, DK_NL_GGE);
+
+    const ask = page.getByTestId('nav-ask');
+    await expect(ask).toBeVisible();
+    const reference = page.locator('.app-group-btn', { hasText: 'Reference' });
+    const [refBox, askBox] = [await reference.boundingBox(), await ask.boundingBox()];
+    expect(askBox!.x).toBeGreaterThan(refBox!.x + refBox!.width - 1);
+    expect(askBox!.x + askBox!.width).toBeLessThanOrEqual(1280);
+    // The bar does not overflow, even with "· Trade builder" showing on Pricing.
+    expect(await page.locator('.app-header-nav').evaluate(el => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+
+    await ask.click();
+    await expect(page).toHaveURL(/#\/ask$/);
+    await expect(ask).toHaveClass(/active/);
+    await expect(page.getByTestId('ask-screen')).toBeVisible();
+    await expect(page.getByTestId('page-helper')).toHaveCount(0);
+    await expect(page.getByTestId('helper-input')).toBeFocused();
+    await expect(page.getByTestId('ask-new-chat')).toBeDisabled();
+
+    await page.getByTestId('ask-starters').getByRole('button').first().click();
+    await expect(page.getByTestId('helper-user')).toHaveCount(1);
+    await expect(page.getByTestId('helper-offline-answer')).toBeVisible();
+
+    // The conversation survives a trip to another page; New chat clears it.
+    await page.evaluate(() => { window.location.hash = '#/glossary'; });
+    await expect(page.getByTestId('helper-open')).toBeVisible();
+    await page.getByTestId('nav-ask').click();
+    await expect(page.getByTestId('helper-user')).toHaveCount(1);
+    await page.getByTestId('ask-new-chat').click();
+    await expect(page.getByTestId('ask-empty')).toBeVisible();
+    await expect(page.getByTestId('helper-user')).toHaveCount(0);
+    expect(appErrors(errors)).toEqual([]);
+  });
+});

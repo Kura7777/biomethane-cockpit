@@ -36,6 +36,7 @@ export const KNOWN_ROUTES: readonly string[] = [
   '/assumptions',
   '/regulation-check',
   '/glossary',
+  '/ask',
 ];
 
 const KNOWN = new Set(KNOWN_ROUTES);

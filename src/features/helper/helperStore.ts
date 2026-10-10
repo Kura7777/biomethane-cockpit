@@ -88,6 +88,14 @@ export function appendHelperTurn(pageKey: string, turn: HelperTurn): void {
   });
 }
 
+/** "New chat": forget one page's conversation. */
+export function clearHelperConversation(pageKey: string): void {
+  if (!snapshot.conversations[pageKey]) return;
+  const conversations = { ...snapshot.conversations };
+  delete conversations[pageKey];
+  set({ ...snapshot, conversations, recent: snapshot.recent.filter(k => k !== pageKey), viewing: snapshot.viewing === pageKey ? null : snapshot.viewing });
+}
+
 export function setHelperViewing(pageKey: string | null): void {
   if (snapshot.viewing === pageKey) return;
   set({ ...snapshot, viewing: pageKey });

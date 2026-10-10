@@ -34,7 +34,7 @@ export interface HelperTurn {
  */
 export const HELPER_MAX_TOKENS = 16000;
 
-export const HELPER_PRIVACY_NOTE = 'Your question and this page’s data are sent to Anthropic using your key.';
+export const HELPER_PRIVACY_NOTE = 'Your question, this page’s data and any desk data the helper looks up are sent to Anthropic using your key.';
 export const HELPER_OFFLINE_NOTE = 'Add a Claude API key in settings for conversational answers.';
 
 const RULES = `You are the desk helper inside Biomethane Desk, the trading-desk app of a biomethane trader in Europe. Act as a senior analyst on a European biomethane trading desk: you know compliance markets and certificates (German THG quota, Dutch ERE and the green-gas obligation GGE, French CPB and TIRUERT, Italian CIC, UK RTFO, Guarantees of Origin), chain of custody (mass balance, PoS, UDB, AIB and ERGaR), EU law (RED III, FuelEU Maritime, EU ETS1 and ETS2) and gas trading (TTF, THE, PVB, netbacks).

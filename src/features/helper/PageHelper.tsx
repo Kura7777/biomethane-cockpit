@@ -27,6 +27,9 @@ import { askHelperStream } from '../../domain/help/helperClient';
 import { appendHelperTurn, getHelperSnapshot, setHelperExpanded, setHelperOpen, setHelperViewing, useHelperStore } from './helperStore';
 import './helper.css';
 
+/** The route of the general desk chat (AskDeskScreen). */
+export const ASK_ROUTE = '/ask';
+
 function subscribeOnline(cb: () => void) {
   window.addEventListener('online', cb);
   window.addEventListener('offline', cb);
@@ -40,7 +43,7 @@ const getOnline = () => (typeof navigator === 'undefined' ? true : navigator.onL
 let turnCounter = 0;
 const nextId = () => `t${Date.now().toString(36)}${(turnCounter++).toString(36)}`;
 
-interface Chat {
+export interface Chat {
   pageKey: string;
   guide: PageGuide | undefined;
   title: string;
@@ -62,8 +65,11 @@ function titleFor(key: string): string {
   return getPageGuide(key)?.title ?? key;
 }
 
-/** Conversation state for the page the trader is on: AI or offline answers, per-page history, suggestions. */
-function useHelperChat(): Chat {
+/**
+ * Conversation state for the page the trader is on: AI or offline answers, per-page history, suggestions.
+ * On #/ask the "page" is the general desk chat, so the same hook drives the Ask the desk screen.
+ */
+export function useHelperChat(): Chat {
   const { pathname, search } = useLocation();
   const store = useHelperStore();
   const contextVersion = useSyncExternalStore(subscribePageContext, getPageContextVersion, getPageContextVersion);
@@ -325,7 +331,17 @@ function Turn({ turn, onNavigate }: { turn: HelperTurn; onNavigate: (to: string)
   );
 }
 
-function ChatBody({ chat, onNavigate, emptyChips }: { chat: Chat; onNavigate: (to: string) => void; emptyChips?: React.ReactNode }) {
+interface ChatBodyProps {
+  chat: Chat;
+  onNavigate: (to: string) => void;
+  emptyChips?: React.ReactNode;
+  /** 'desk' is the general chat on #/ask: its own empty state, no page overview, no previous-page link. */
+  variant?: 'page' | 'desk';
+  /** Replaces the greeting and overview when the conversation is empty. */
+  emptyState?: React.ReactNode;
+}
+
+export function ChatBody({ chat, onNavigate, emptyChips, variant = 'page', emptyState }: ChatBodyProps) {
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (typeof endRef.current?.scrollIntoView === 'function') endRef.current.scrollIntoView({ block: 'end' });
@@ -339,7 +355,8 @@ function ChatBody({ chat, onNavigate, emptyChips }: { chat: Chat; onNavigate: (t
           <button type="button" className="ph-link" onClick={() => setHelperViewing(null)}>Back to this page</button>
         </div>
       )}
-      {chat.turns.length === 0 && !chat.viewingPrevious && (
+      {chat.turns.length === 0 && !chat.viewingPrevious && emptyState}
+      {chat.turns.length === 0 && !chat.viewingPrevious && !emptyState && (
         <>
           <p className="ph-greeting" data-testid="helper-greeting">Ask about this page: what it shows, a term, or what to do next.</p>
           {emptyChips}
@@ -351,7 +368,7 @@ function ChatBody({ chat, onNavigate, emptyChips }: { chat: Chat; onNavigate: (t
       {chat.busy && (chat.status || !chat.liveText) && (
         <div className="ph-msg ph-thinking" data-testid="helper-thinking" aria-live="polite">{chat.status ?? 'Thinking'}…</div>
       )}
-      {chat.previous && !chat.viewingPrevious && (
+      {variant === 'page' && chat.previous && !chat.viewingPrevious && (
         <button type="button" className="ph-link ph-prev-link" data-testid="helper-previous" onClick={() => setHelperViewing(chat.previous!.key)}>
           Previous page chat ({chat.previous.title})
         </button>
@@ -361,7 +378,7 @@ function ChatBody({ chat, onNavigate, emptyChips }: { chat: Chat; onNavigate: (t
   );
 }
 
-function Chips({ chat, onPick, limit }: { chat: Chat; onPick: (q: string) => void; limit: number }) {
+export function Chips({ chat, onPick, limit }: { chat: Chat; onPick: (q: string) => void; limit: number }) {
   const list = chat.suggestions.slice(0, limit);
   if (list.length === 0) return null;
   return (
@@ -406,7 +423,7 @@ function useCapsuleBottom(enabled: boolean, routeKey: string): number | null {
 
 const INPUT_MAX_PX = 4 * 20 + 14; // four lines of 20px plus padding
 
-function ChatInput({ chat, autoFocus }: { chat: Chat; autoFocus?: boolean }) {
+export function ChatInput({ chat, autoFocus, placeholder = 'Ask about this page…' }: { chat: Chat; autoFocus?: boolean; placeholder?: string }) {
   const [value, setValue] = useState('');
   const ref = useRef<HTMLTextAreaElement>(null);
 
@@ -438,9 +455,9 @@ function ChatInput({ chat, autoFocus }: { chat: Chat; autoFocus?: boolean }) {
             submit();
           }
         }}
-        placeholder="Ask about this page…"
-        aria-label="Ask about this page"
-        maxLength={500}
+        placeholder={placeholder}
+        aria-label={placeholder.replace(/…$/, '')}
+        maxLength={2000}
         autoFocus={autoFocus}
       />
       {chat.busy ? (
@@ -456,7 +473,7 @@ function ChatInput({ chat, autoFocus }: { chat: Chat; autoFocus?: boolean }) {
   );
 }
 
-function ModeNote({ aiMode }: { aiMode: boolean }) {
+export function ModeNote({ aiMode }: { aiMode: boolean }) {
   return aiMode ? (
     <p className="ph-note" data-testid="helper-privacy">{HELPER_PRIVACY_NOTE}</p>
   ) : (
@@ -510,6 +527,9 @@ export function PageHelper() {
     navigate(to);
     if (isMobile) setHelperOpen(false);
   }, [navigate, isMobile]);
+
+  // The general chat has its own screen at #/ask; the page capsule steps aside there.
+  if (pageKey === ASK_ROUTE) return null;
 
   const modeChip = (
     <span className={`ph-mode ${chat.aiMode ? 'ph-mode--ai' : ''}`} data-testid="helper-mode">{chat.aiMode ? 'AI answers' : 'Offline help'}</span>

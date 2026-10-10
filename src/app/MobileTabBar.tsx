@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import { Users, Compass, FileSpreadsheet, BookOpen, LayoutGrid } from 'lucide-react';
-import { NAV_GROUPS, isNavItemActive } from './navConfig';
+import { NavLink, useLocation } from 'react-router-dom';
+import { Users, Compass, FileSpreadsheet, BookOpen, LayoutGrid, MessageCircle } from 'lucide-react';
+import { ASK_NAV_ITEM, NAV_GROUPS, isNavItemActive } from './navConfig';
 import { NavSheet } from './NavSheet';
 import { DeskSheet, DeskSheetProps } from './DeskSheet';
 import './mobileShell.css';
@@ -45,6 +45,14 @@ export function MobileTabBar(deskSheetProps: MobileTabBarProps) {
             </button>
           );
         })}
+        <NavLink
+          to={ASK_NAV_ITEM.to}
+          className={`mobile-tab ${isNavItemActive(ASK_NAV_ITEM.to, location.pathname) ? 'active' : ''}`}
+          data-testid="tab-ask"
+        >
+          <MessageCircle size={20} aria-hidden="true" />
+          <span className="mobile-tab-label">Ask</span>
+        </NavLink>
         <button
           type="button"
           className="mobile-tab"

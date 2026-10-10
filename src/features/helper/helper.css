@@ -294,3 +294,70 @@ body:has(.m-sticky-actions) .ph-root--compact { --ph-bottom: calc(56px + env(saf
 .ph-sources li { margin-bottom: 2px; overflow-wrap: anywhere; }
 .ph-answer a, .ph-sources a { color: inherit; text-decoration: underline; text-underline-offset: 2px; overflow-wrap: anywhere; }
 .ph-answer a:hover, .ph-sources a:hover { color: var(--color-muted); }
+
+/* ── Ask the desk (#/ask): the general chat, full page ─────────────────────── */
+.ask-screen { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; background: var(--color-bg); }
+.ask-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px max(16px, calc((100% - 820px) / 2));
+  border-bottom: 1px solid var(--color-divider);
+  background: var(--color-surface);
+}
+.ask-head-text { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 10px; }
+.ask-title { font-size: 15px; }
+.ask-new {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.ask-new:hover:not(:disabled) { border-color: var(--color-text); }
+.ask-new:disabled { opacity: 0.5; cursor: default; }
+/* The body scrolls edge to edge; its content sits in a centred reading column. */
+.ask-screen .ph-body { padding: 20px max(16px, calc((100% - 820px) / 2)); gap: 12px; }
+.ask-screen .ph-msg { max-width: none; }
+.ask-screen .ph-msg--user { max-width: 80%; }
+.ask-foot { flex: none; padding: 10px max(16px, calc((100% - 820px) / 2)) 12px; border-top: 1px solid var(--color-divider); background: var(--color-surface); }
+.ask-column { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+
+.ask-empty { margin: auto 0; padding: 24px 0; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; }
+.ask-empty-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: var(--color-header-bg);
+  color: var(--color-header-text);
+}
+.ask-empty-title { margin: 0; font-size: 20px; }
+.ask-empty-text { margin: 0; max-width: 560px; color: var(--color-muted); line-height: 1.5; }
+.ask-starters { margin-top: 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px; width: 100%; }
+.ask-starter {
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  line-height: 1.4;
+  cursor: pointer;
+}
+.ask-starter:hover:not(:disabled) { border-color: var(--color-text); }
+.ask-starter:disabled { opacity: 0.5; cursor: default; }
+/* Table cells wrap at spaces only (the message itself allows breaks anywhere for long URLs). */
+.ph-table th, .ph-table td { overflow-wrap: normal; }

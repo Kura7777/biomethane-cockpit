@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, NavLink } from 'react-router-dom';
-import { Scale, Moon, Sun, Search, Flame, ChevronDown, Sunrise } from 'lucide-react';
+import { Scale, Moon, Sun, Search, Flame, ChevronDown, Sunrise, MessageCircle } from 'lucide-react';
 import './header.css';
-import { NAV_GROUPS, isNavItemActive, getPageTitle } from './navConfig';
+import { ASK_NAV_ITEM, NAV_GROUPS, isNavItemActive, getPageTitle } from './navConfig';
 import { useTheme } from '../store/theme';
 import { getLastRegcheckReport, isRegcheckStale } from '../domain/regcheck/storage';
 
@@ -159,6 +159,15 @@ export function Header({ onOpenSearch, onOpenAuditor }: HeaderProps) {
             </div>
           );
         })}
+        <NavLink
+          to={ASK_NAV_ITEM.to}
+          className={`app-tab ${isNavItemActive(ASK_NAV_ITEM.to, location.pathname) ? 'active' : ''}`}
+          title="Ask the desk: a general chat about markets, regulation, routes, plants and deals"
+          data-testid="nav-ask"
+        >
+          <MessageCircle size={13} aria-hidden="true" style={{ marginRight: 6 }} />
+          <span>{ASK_NAV_ITEM.label}</span>
+        </NavLink>
       </nav>
 
       <div className="app-header-actions">

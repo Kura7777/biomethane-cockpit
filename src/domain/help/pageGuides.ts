@@ -646,6 +646,44 @@ export const PAGE_GUIDES: PageGuide[] = [
       'Where can I see a term used in the app?',
     ],
   },
+  {
+    route: '/ask',
+    title: 'Ask the desk',
+    purpose: 'A general chat for any question about markets, regulation, routes, plants or deals, not tied to one page. It uses the same model, tools and settings as the page helper.',
+    howToRead: [
+      { section: 'Conversation', text: 'One running conversation for this browser tab. It stays while you move around the app; New chat clears it. Answers stream in, and Stop ends one early.' },
+      { section: 'Where answers come from', text: 'The app’s own data first: desk marks, certificate routes, destination pricing, plants and legal sources. Then web search, then general knowledge, which is labelled so you know to check it.' },
+      { section: 'Settings', text: 'The model and web search are set on the Pricing desk under Desk assumptions, Desk helper. Your Anthropic key is set on the Regulation check page.' },
+    ],
+    commonTasks: [
+      {
+        question: 'How do I switch between Opus and Sonnet?',
+        steps: [
+          'Open the Pricing desk, Desk assumptions tab.',
+          'Find the Desk helper section.',
+          'Set the model flag: 1 for Opus, 0 for Sonnet.',
+        ],
+        link: '/pricing?tab=assumptions',
+      },
+      {
+        question: 'How do I add my API key?',
+        steps: [
+          'Open Regulation check.',
+          'Paste your Anthropic key into the key field.',
+          'Come back here and ask again.',
+        ],
+        link: '/regulation-check',
+      },
+    ],
+    keyTerms: ['netback', 'mark', 'go', 'pos', 'gge'],
+    suggestedQuestions: [
+      'Which destination pays most for Spanish manure today?',
+      'Explain the Dutch 2027 green-gas obligation for a trader',
+      'Why can’t Danish GOs be sold into the Netherlands?',
+      'How does FuelEU pooling work for bio-LNG?',
+      'What is on the regulatory watchlist right now?',
+    ],
+  },
 ];
 
 export const PAGE_GUIDES_BY_ROUTE: Readonly<Record<string, PageGuide>> = Object.fromEntries(PAGE_GUIDES.map(g => [g.route, g]));

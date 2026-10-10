@@ -250,3 +250,6 @@
   font-weight: 500;
   color: var(--color-text);
 }
+
+/* The Ask tab is a link, not a button. */
+a.mobile-tab { text-decoration: none; }
