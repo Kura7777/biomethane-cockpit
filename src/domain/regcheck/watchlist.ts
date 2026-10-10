@@ -448,5 +448,18 @@ export const REGCHECK_WATCHLIST: WatchItem[] = [
       { label: 'BMUV Biofuels and Emissions Control Portal', url: 'https://www.bmuv.de/' }
     ],
     watchType: 'open_question'
+  },
+
+  // RED Annex V/VI review: manure-based default values and the manure credit
+  {
+    id: 'red_annex_vi_manure_review',
+    topic: 'Commission review of RED III Annexes V and VI: manure-based biogas/biomethane default values',
+    claim: 'The Commission is revising RED III Annexes V and VI, including manure-based default values; stakeholders (e.g. IATP, Changing Markets, July 2026 open letter) argue the -45 gCO2eq/MJ avoided-emissions credit (e_sca) overstates savings. No change has been adopted yet.',
+    appImpact: 'A smaller manure credit would raise manure CI and cut value in CI-based markets (NL GGE, NL ERE, DE THG) and the GHG checks.',
+    sources: [
+      { label: 'Changing Markets open letter on RED III Annex V and VI (manure)', url: 'https://changingmarkets.org/open-letter-to-the-eu-commission-on-the-revision-of-annex-v-and-vi-of-the-renewable-energy-directive-directive-eu-2023-2413-red-iii-ensuring-accurate-greenhouse-gas-accounting-for-manure-based-b/' },
+      { label: 'IATP comments on the Annex V/VI revision (Jan 2026)', url: 'https://www.iatp.org/node/45423' }
+    ],
+    watchType: 'open_question'
   }
 ];

@@ -46,7 +46,7 @@ export const MARKETS: Market[] = [
     liquidityTier: 'TIER_1_CORE',
     unitOfAccount: 'EUR_PER_KG_CO2E',
     unitLabel: '€/kgCO₂e',
-    notes: 'Replaced HBE from 1 Jan 2026. 1 ERE = 1 kg CO₂e avoided. Structurally advantages low-CI molecules. No multipliers. Note: NL GGE (green gas obligation) is a separate scheme under Wm titel 9.9; the same physical delivery and GO cannot serve both ERE and GGE (R25).',
+    notes: 'Replaced HBE from 1 Jan 2026. 1 ERE = 1 kg CO₂e avoided. Structurally advantages low-CI molecules. Note: NL GGE (green gas obligation) is a separate scheme under Wm titel 9.9; the same physical delivery and GO cannot serve both ERE and GGE (R25).',
     legalBasis: 'Wet milieubeheer, Regeling energie vervoer',
     registry: 'NEa REV / myVertiCer',
     ceilingEurMwh: null,

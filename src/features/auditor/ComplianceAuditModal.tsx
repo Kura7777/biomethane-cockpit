@@ -162,7 +162,7 @@ export function ComplianceAuditModal({
     },
     {
       label: '✅ DK → DE THG',
-      description: 'Annex IX Manure & e_am Methane Avoidance Bonus',
+      description: 'Annex IX manure & the RED manure credit (avoided methane)',
       context: {
         originCountry: 'DK',
         originPlantId: 'DK-BIO-042',
@@ -727,10 +727,10 @@ ${auditResult.recommendations.map(r => `• ${r}`).join('\n')}`.trim();
                   🇬🇧 UK UDB Border Block
                 </button>
                 <button
-                  onClick={() => handleSendQa('How does German 38. BImSchV treat the manure bonus e_am vs the 2x multiplier?')}
+                  onClick={() => handleSendQa('How does the German THG quota treat the RED manure credit now that double counting has ended?')}
                   className="amc-qa-chip"
                 >
-                  🐄 German e_am Decoupling
+                  🐄 Manure credit vs double counting
                 </button>
                 <button
                   onClick={() => handleSendQa('What are the remedies under EFET if the seller fails to deliver valid PoS?')}

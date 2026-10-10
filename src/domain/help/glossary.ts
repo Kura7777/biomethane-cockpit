@@ -179,7 +179,7 @@ export const GLOSSARY: GlossaryEntry[] = [
     term: 'ERE (Dutch transport emission-reduction unit)',
     aliases: ['ERE', 'NL ERE', 'HBE', 'HBE-G', 'energie voor vervoer'],
     short: 'The Dutch transport-fuel obligation unit: one ERE is one kilogram of CO₂e avoided.',
-    plain: 'The ERE replaced the earlier HBE system. One ERE is 1 kg of CO₂e avoided, with no multipliers, so low-carbon-intensity gas is structurally favoured. The Dutch emissions authority administers it. The same delivery and the same GO cannot also serve the Dutch green-gas obligation.',
+    plain: 'The ERE replaced the earlier HBE system. One ERE is 1 kg of CO₂e avoided, so low-carbon-intensity gas is structurally favoured. The Dutch emissions authority administers it. The same delivery and the same GO cannot also serve the Dutch green-gas obligation.',
     whyItMatters: 'ERE and GGE are separate markets competing for the same molecule. A GO or PoS used in one cannot be used in the other, so decide which market a delivery goes to before you sell.',
     appLinks: [
       { label: 'Pricing desk, NL ERE mark', route: '/pricing' },
@@ -505,7 +505,7 @@ export const GLOSSARY: GlossaryEntry[] = [
     term: 'GHG saving threshold',
     aliases: ['GHG saving', 'GHG savings', 'saving threshold', 'GHG threshold', 'greenhouse gas saving'],
     short: 'The minimum percentage emissions saving against the fossil comparator that a gas must reach to qualify.',
-    plain: `For transport, RED III Art. 29(10) needs a ${TRANSPORT_SAVING_PCT}% saving, which means CI at or below ${RED3_TRANSPORT_MAX_CI} gCO₂e/MJ against the ${CI_COMPARATOR_ROAD_TRANSPORT} comparator. For heat and power the app tests ${HEAT_LOW_PCT}% for installations starting 2021 to 2025 and ${HEAT_HIGH_PCT}% from 2026, and flags the category as unconfirmed for gas-grid injection.`,
+    plain: `For transport, RED III Art. 29(10) needs a ${TRANSPORT_SAVING_PCT}% saving, which means CI at or below ${RED3_TRANSPORT_MAX_CI} gCO₂e/MJ against the ${CI_COMPARATOR_ROAD_TRANSPORT} comparator. For heat and power, RED III requires ${HEAT_HIGH_PCT}% for installations starting operation after 20 November 2023 and ${HEAT_LOW_PCT}% for those starting from 2021 until then, with stricter tiers later. The app warns between the two, because the category that applies to grid-injected gas is unconfirmed.`,
     whyItMatters: 'Below the minimum the checklist row fails. Between the two heat thresholds it warns, because the right category depends on the commissioning date. Pick lower-CI gas or confirm the category.',
     appLinks: [
       { label: 'Trade Builder, GHG saving', route: '/trade' },
@@ -628,7 +628,7 @@ export const GLOSSARY: GlossaryEntry[] = [
     term: 'Double counting (quota multiplier)',
     aliases: ['double counting', 'double-counting', 'single counting', 'multiplier'],
     short: 'A quota rule that counted advanced-feedstock fuel twice towards the target; Germany ended it for 2026.',
-    plain: 'Germany applied double counting for advanced biofuels through compliance year 2025 and abolished it from 2026 under Drs 21/5530, so single counting applies; the promulgation date is unconfirmed in the app. The physical manure credit in the carbon calculation is unaffected. Dutch ERE has no multipliers.',
+    plain: 'Germany applied double counting for advanced biofuels through compliance year 2025 and abolished it from 2026 under Drs 21/5530, so single counting applies; the promulgation date is unconfirmed in the app. The physical manure credit in the carbon calculation is unaffected.',
     whyItMatters: 'Check the compliance year before you price a German vintage: earlier years keep the multiplier, later ones do not.',
     appLinks: [
       { label: 'Pricing desk, DE THG', route: '/pricing' },

@@ -89,8 +89,10 @@ export const NL_GGE_CLAWBACK_YEARS = 5;
 
 /**
  * RED Art 29(10) heat/cooling GHG saving thresholds (O2, flagged category unconfirmed):
- * 70% for installations starting operation 2021–2025; 80% from 2026.
- * Source: RED III Directive (EU) 2023/2413 Art. 29(10)(d).
+ * RED III requires 80% for installations starting operation after 20 November 2023 and 70% for those
+ * starting from 1 January 2021 until then (stricter tiers later). The app warns between the two because the
+ * category that applies to grid-injected gas is unconfirmed.
+ * Source: RED III Directive (EU) 2023/2413 Art. 29(10)(d)–(e).
  */
 export const RED_HEAT_THRESHOLD_POST_2021 = 0.70;
 export const RED_HEAT_THRESHOLD_POST_2026 = 0.80;
@@ -261,9 +263,9 @@ export const REGULATORY_CONSTANT_ROWS: RegulatoryConstantRow[] = [
     label: 'RED heat/cooling GHG saving thresholds',
     value: `${RED_HEAT_THRESHOLD_POST_2021 * 100}% / ${RED_HEAT_THRESHOLD_POST_2026 * 100}%`,
     unit: '%',
-    citation: 'RED III Art. 29(10)(d) (category unconfirmed for gas grid injection)',
+    citation: 'RED III Art. 29(10)(d)–(e) (category unconfirmed for gas grid injection)',
     url: 'https://eur-lex.europa.eu/eli/dir/2023/2413/oj',
-    usedIn: 'GHG threshold gate for heat/power installations commissioned post-2021 (70%) and post-2026 (80%)',
+    usedIn: 'GHG threshold gate for heat/power: 70% (installations starting 2021 to 20 Nov 2023) and 80% (starting after 20 Nov 2023)',
   },
   ...Object.entries(CAM_NC_DURATION_MULTIPLIERS).map(([code, row]) => ({
     key: `CAM_NC.${code}`,

@@ -151,7 +151,7 @@ export function evaluateMarketSpecificGate(consignment: Consignment, market: Mar
         gate: GATE,
         gateLabel: GATE_LABEL,
         verdict: 'PASS',
-        reason: 'Netherlands ERE (Emissions Reduction Units) replaced the HBE system from 1 January 2026. 1 ERE = 1 kg CO₂e avoided. The unit shift from volume-based (HBE) to CO₂e-based (ERE) structurally advantages low-CI molecules — they generate more EREs per MWh. No multipliers, no double counting. Registry: NEa REV on myVertiCer.',
+        reason: 'Netherlands ERE (Emissions Reduction Units) replaced the HBE system from 1 January 2026. 1 ERE = 1 kg CO₂e avoided. The unit shift from volume-based (HBE) to CO₂e-based (ERE) structurally advantages low-CI molecules — they generate more EREs per MWh. Registry: NEa REV on myVertiCer.',
         remedy: null,
         citations: [CITATIONS.NL_ERE],
         confidence: 'HIGH',

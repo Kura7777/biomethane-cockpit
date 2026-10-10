@@ -19,10 +19,10 @@ export const LEGAL_CITATIONS: LegalCitation[] = [
     applicableMarkets: ['DE_THG', 'NL_ERE', 'FR_CPB', 'FR_TIRUERT', 'IT_CIC', 'DK_INJECTION', 'SE_TAX_EXEMPTION', 'ES_GTS', 'PL_OZE', 'BE_REGIONAL'],
     complianceGate: 'SCHEME Gate, GHG Gate, ANNEX_IX Gate, MASS_BALANCE Gate',
     penaltiesOrCaps: 'National transposition quotas vary (€250–€600/tCO2e or €100/MWh ceiling).',
-    deskRuleSummary: 'To count toward EU transport mandates, biomethane must achieve at least 70% GHG savings for installations commissioned after 2021 (CI ≤ 28.2 gCO2e/MJ vs 94.0 gCO2e/MJ baseline) and maintain strict mass balance chain of custody.',
+    deskRuleSummary: 'To count toward EU transport mandates, biomethane from installations starting operation from 2021 must achieve at least 65% GHG savings (CI ≤ 32.9 gCO2e/MJ against the 94 gCO2e/MJ transport comparator) and use a mass balance chain of custody. Heat and power use the 80 gCO2e/MJ comparator and stricter thresholds (Art. 29(10)(d)–(e)).',
     keyStatutoryExcerpts: [
       'Article 25(1): Member States shall set an obligation on fuel suppliers to ensure that the share of renewable energy within the final consumption of energy in the transport sector is at least 29% by 2030 or leads to a greenhouse gas intensity reduction of at least 14.5% by 2030.',
-      'Article 29(10)(d): Greenhouse gas emissions savings from biofuels, bioliquids and biomass fuels shall be at least 70% for electricity, heating and cooling production from biomass fuels used in installations starting operation from 1 January 2021 to 31 December 2025, and at least 80% for installations starting operation from 1 January 2026.',
+      'Article 29(10)(c)–(e) (summary, not verbatim): at least 65% savings for biofuels, biogas consumed in transport and bioliquids from installations starting operation from 1 January 2021; for electricity, heating and cooling from biomass fuels, at least 80% for installations starting operation after 20 November 2023 and at least 70% for installations starting operation from 1 January 2021 until 20 November 2023, with stricter tiers applying later.',
       'Article 31a(1): The Commission shall ensure that a Union database is established to enable the tracing of liquid and gaseous transport fuels that are eligible for being counted towards the numerator referred to in point (b) of Article 27(1).'
     ],
     crossReferences: ['Implementing Regulation (EU) 2022/996 (UDB data rules, Art. 18)', 'RED II Directive (EU) 2018/2001 Art. 28(2)&(4)'],
@@ -162,7 +162,7 @@ export const LEGAL_CITATIONS: LegalCitation[] = [
     applicableMarkets: ['DE_THG'],
     complianceGate: 'ANNEX_IX Gate, GHG Gate & UDB Gate',
     penaltiesOrCaps: 'Statutory non-compliance buyout penalty: €600 per tonne of CO2 equivalent shortfall (€0.60/kg CO2e).',
-    deskRuleSummary: 'German THG valuation: compliance year 2026+ enforces 1× single counting under Bundestag Drucksache 21/5530. Pre-2026 compliance vintages retain historical 2× double counting. Negative CI from avoided methane emissions (e_am) is a physical GHG accounting credit under RED III Annex V and remains 100% intact.',
+    deskRuleSummary: 'German THG valuation: compliance year 2026+ enforces 1× single counting under Bundestag Drucksache 21/5530. Pre-2026 compliance vintages retain historical 2× double counting. Negative CI from the RED manure credit (avoided methane, counted in the e_sca term of the Annex VI formula) is part of the GHG calculation, not a counting multiplier, so it is unaffected.',
     keyStatutoryExcerpts: [
       'Bundestag Drucksache 21/5530: "Die Quote für fortschrittliche Biokraftstoffe wird angehoben, die Doppelanrechnung entfällt."',
       'Bundestag Drucksache 21/5530: "Die Doppelanrechnung für fortschrittliche Biokraftstoffe werde abgeschafft."',
@@ -192,13 +192,13 @@ export const LEGAL_CITATIONS: LegalCitation[] = [
     jurisdictionName: 'Netherlands',
     category: 'NATIONAL_QUOTA_LAW',
     status: 'IN_FORCE',
-    effectiveDate: '1 January 2022 (Annual updates by Nederlandse Emissieautoriteit - NEa)',
-    primaryArticle: 'Wet milieubeheer Art. 9.7.1.1, Besluit hernieuwbare energie vervoer Art. 12–25',
-    summary: 'Governs the Dutch Energy for Transport Units (Hernieuwbare Brandstofeenheden - HBE / ERE) quota regime. Fuel suppliers must surrender HBE units each year. Advanced biomethane generates HBE-G (Advanced / Annex IX-A) or HBE-O (Other renewable fuels), which trade freely on the Dutch compliance exchange administered by NEa.',
+    effectiveDate: '1 January 2026 (ERE replaced the HBE system; annual updates by the Nederlandse Emissieautoriteit - NEa)',
+    primaryArticle: 'Wet milieubeheer Titel 9.7, Regeling energie vervoer',
+    summary: 'Governs the Dutch Energy for Transport quota. From 1 January 2026 the emission reduction unit (ERE) replaced the earlier HBE units: 1 ERE represents 1 kg CO2e reduction. Fuel suppliers surrender EREs in the NEa register (REV). Only green-gas GvOs for gas produced in the Netherlands can be used for booking (Regeling energie vervoer Art. 7, per the NEa FAQ in the route audit).',
     applicableMarkets: ['NL_ERE'],
     complianceGate: 'MASS_BALANCE Gate & VertiCer Registry Gate',
     penaltiesOrCaps: 'Administrative fine based on non-compliance shortfall plus mandatory compliance carry-over.',
-    deskRuleSummary: '1 GJ of injected biomethane equates to 1 HBE unit. Manure and organic biowaste injected into the European grid and registered with VertiCer qualify for HBE-G generation provided the physical gas reaches a Dutch grid interconnection point or virtual UDB allocation.',
+    deskRuleSummary: 'ERE value scales with the CO2e reduction per MWh, so low-CI gas earns more units. Foreign biomethane cannot be booked into ERE (Dutch-produced green gas only); the separate Dutch green-gas obligation (GGE) does accept EU imports.',
     keyStatutoryExcerpts: [
       'Besluit energie vervoer Art. 14: Een inboeker kan hernieuwbare energie inboeken in het register hernieuwbare energie vervoer indien deze energie is geleverd aan de Nederlandse markt voor vervoer.',
       'Wet milieubeheer Art. 9.7.2.1: De jaarverplichting wordt uitgedrukt in een percentage van de totale hoeveelheid benzine en diesel die de vergunninghouder in het kalenderjaar heeft uitgeslagen.'
@@ -218,29 +218,29 @@ export const LEGAL_CITATIONS: LegalCitation[] = [
   {
     id: 'fr-code-energie-cpb',
     code: 'FR_CODE_ENERGIE_CPB',
-    shortTitle: 'French Energy Code (CPB / Arrêté Tarifaire Biogaz)',
-    officialTitle: 'Code de l\'énergie Articles L446-1 à L446-23 & Arrêté du 13 décembre 2021 fixant les conditions d\'achat du biométhane injecté dans les réseaux de gaz naturel',
+    shortTitle: 'French CPB obligation (certificats de production de biogaz)',
+    officialTitle: 'Code de l\'énergie, CPB provisions introduced by Loi n° 2021-1104 « Climat et résilience », and Décret n° 2024-718 du 6 juillet 2024',
     jurisdiction: 'FR',
     jurisdictionName: 'France',
     category: 'NATIONAL_QUOTA_LAW',
     status: 'IN_FORCE',
-    effectiveDate: '13 December 2021 (Periodic formula indexations by CRE)',
-    primaryArticle: 'Articles L446-4, L446-5, R446-1 à R446-16',
-    summary: 'Governs the French statutory purchase obligation and feed-in tariff contract framework (Contrat d\'achat biométhane - CPB) administered by the Commission de Régulation de l\'Énergie (CRE). Guarantees a regulated purchase price for biomethane injected into GRTgaz, Teréga, or GRDF networks for up to 15 years.',
+    effectiveDate: 'First obligation period 1 January 2026 – 31 December 2028',
+    primaryArticle: 'Code de l\'énergie (CPB provisions, Loi Climat et résilience 2021); Décret n° 2024-718',
+    summary: 'Natural gas suppliers must surrender certificats de production de biogaz (CPB) each year in proportion to their gas supplied to residential and tertiary final consumers. CPBs correspond to biomethane injected without public support; suppliers produce biomethane themselves or buy CPBs from producers. This is separate from the feed-in tariff (contrat d\'achat), which supports subsidised plants.',
     applicableMarkets: ['FR_CPB'],
     complianceGate: 'SCHEME Gate & EEX Register Gate',
-    penaltiesOrCaps: 'Statutory ceiling cap of €100.00/MWh applies to open-market cross-border certificate valuations under French compliance regulations.',
-    deskRuleSummary: 'French CPB certificate netbacks bind at a statutory ceiling of €100.00/MWh. Even if market bids exceed this level, compliance value is capped by the French national clearing threshold.',
+    penaltiesOrCaps: 'A €100 penalty per missing CPB caps certificate value; for the first period the penalty is payable at its end (2029, per the 2026 public consultation).',
+    deskRuleSummary: 'French CPB certificate netbacks bind at the €100/MWh penalty ceiling: no supplier pays more than the penalty. Only unsubsidised biomethane generates CPBs.',
     keyStatutoryExcerpts: [
-      'Article L446-4: Les producteurs de biométhane bénéficient, à leur demande, d\'un contrat d\'achat pour le biométhane injecté dans le réseau de gaz naturel conclu avec un fournisseur de gaz naturel désigné par l\'autorité administrative.',
-      'Article R446-12: Le tarif d\'achat applicable est fixé par arrêté des ministres chargés de l\'énergie et du budget après avis de la Commission de régulation de l\'énergie.'
+      'Décret n° 2024-718 (summary, not verbatim): sets out the CPB obligation, under which gas suppliers surrender certificates for biomethane injected without public support, in proportion to their supply to residential and tertiary final consumers.',
+      'First obligation period (summary): 1 January 2026 to 31 December 2028; indicative incorporation trajectory 0.8 TWh (2026), 3.1 TWh (2027), 6.5 TWh (2028) per the 2026 consultation on the post-2028 trajectory.'
     ],
     crossReferences: ['Registre National des Garanties d\'Origine (EEX France)', 'TIRUERT (Code des douanes Art. 266 quindecies)'],
-    officialUrl: 'https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000043960350',
-    officialUrlLabel: 'Légifrance Official Portal (Code de l\'énergie Art. L446-1)',
+    officialUrl: 'https://www.legifrance.gouv.fr/search/all?query=d%C3%A9cret%202024-718',
+    officialUrlLabel: 'Légifrance search: Décret n° 2024-718 du 6 juillet 2024',
     additionalLinks: [
-      { label: 'Commission de Régulation de l\'Énergie (CRE) Tarifs Biogaz', url: 'https://www.cre.fr/electricite-et-gaz/energies-renouvelables/biomethane' },
-      { label: 'EEX France Registre National des Garanties d\'Origine', url: 'https://www.powernext.com/national-registry-guarantees-origin' }
+      { label: 'Connaissance des Énergies: obligation CPB, ce qui va changer', url: 'https://www.connaissancedesenergies.org/obligation-de-certificats-de-production-de-biogaz-cpb-ce-qui-va-changer-241104' },
+      { label: 'Ministère: consultation trajectoire CPB post-2028 (2026)', url: 'https://www.consultations-publiques.developpement-durable.gouv.fr/IMG/pdf/20260504_-_courrier_de_consultation_trajectoire_cpb_post-2028.pdf' }
     ]
   },
   {
@@ -1014,11 +1014,11 @@ export const LEGAL_CITATIONS: LegalCitation[] = [
     summary: 'Defines how greenhouse gas emissions ($E$) are computed across the biomethane lifecycle:\n\n$$E = e_{ec} + e_l + e_p + e_{td} + e_u - e_{sca} - e_{ccs} - e_{ccr} - e_{am}$$\n\nWhere:\n* $e_{ec}$: emissions from the extraction or cultivation of raw materials\n* $e_p$: emissions from processing and biogas upgrading\n* $e_{td}$: emissions from transport and grid distribution\n* $e_{sca}$: emission savings from soil carbon accumulation via improved agriculture\n* $e_{am}$: emission savings from avoided manure methane emissions (−45 to −100 gCO2e/MJ credit)\n* **Fossil Comparator Baseline**: Fixed at **94.0 gCO₂e/MJ**.',
     applicableMarkets: ['DE_THG', 'NL_ERE', 'FR_CPB', 'IT_CIC', 'EU_FUELEU_2025'],
     complianceGate: 'GHG Gate',
-    penaltiesOrCaps: 'Consignments with CI > 28.2 gCO2e/MJ fail the mandatory 70% reduction threshold for new installations.',
-    deskRuleSummary: 'Negative carbon intensities (e.g. −100 gCO2e/MJ) are achieved through the $e_{am}$ avoided methane credit for closed manure storage. In quota markets like Germany THG, each negative gCO2e/MJ avoided directly increases the certificate yield per MWh.',
+    penaltiesOrCaps: 'Transport: consignments with CI > 32.9 gCO2e/MJ fail the 65% saving threshold against the 94 gCO2e/MJ comparator.',
+    deskRuleSummary: 'Negative carbon intensities come from the RED manure credit: the methane avoided by digesting manure instead of storing it raw is credited in the GHG calculation (e_sca). In quota markets like Germany THG, each negative gCO2e/MJ directly increases the certificate yield per MWh. The credit must appear on the PoS.',
     keyStatutoryExcerpts: [
-      'Annex VI Part C Paragraph 1: Greenhouse gas emissions from the production and use of biomass fuels shall be calculated as: E = e_ec + e_l + e_p + e_td + e_u - e_sca - e_ccs - e_ccr - e_am.',
-      'Annex VI Part C Paragraph 19: The fossil fuel comparator for transport fuel baseline shall be 94 gCO2eq/MJ.'
+      'Annex VI Part B point 1: Greenhouse gas emissions from the production and use of biomass fuels shall be calculated as: E = e_ec + e_l + e_p + e_td + e_u - e_sca - e_ccs - e_ccr.',
+      'Annex VI Part B point 19 (summary): the fossil fuel comparator is 94 gCO2eq/MJ for biomethane used as transport fuel and 80 gCO2eq/MJ for heat.'
     ],
     crossReferences: ['ISCC EU Document 205', 'JRC Biomethane Default Factors'],
     officialUrl: 'https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32018L2001#anx_VI',
