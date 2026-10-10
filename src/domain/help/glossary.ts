@@ -275,7 +275,7 @@ export const GLOSSARY: GlossaryEntry[] = [
     term: 'Buy-out (compliance penalty price)',
     aliases: ['buy-out', 'buyout', 'buy-out price', 'afkoopsom', 'price ceiling', 'penalty ceiling'],
     short: 'The fixed statutory price an obligated party can pay instead of delivering certificates; it caps certificate value.',
-    plain: 'In obligation markets a shortfall can be settled at a statutory buy-out price. Since no obligated party rationally pays more, it acts as a ceiling on certificate value. Germany, the UK, France, FuelEU and the Dutch GGE each have one; the GGE schedule is published per year. Using the buy-out forfeits banking.',
+    plain: 'In obligation markets a shortfall can be settled at a statutory buy-out price. Since no obligated party rationally pays more, it acts as a ceiling on certificate value. Germany, the UK, France, FuelEU and the Dutch GGE each have one; the GGE schedule is published per year. Under the Dutch GGE, using the buy-out also forfeits banking for that year.',
     whyItMatters: 'A mark above the buy-out is a warning, not an opportunity: the netback flags it. The statutory values are listed under Regulatory constants on the pricing desk.',
     appLinks: [
       { label: 'Regulatory constants', route: '/pricing?tab=assumptions' },
@@ -547,7 +547,7 @@ export const GLOSSARY: GlossaryEntry[] = [
     term: 'Manure credit (negative CI)',
     aliases: ['negative CI', 'negative carbon intensity', 'e_am', 'eam', 'avoided methane', 'avoided methane credit', 'deep negative'],
     short: 'The avoided-methane credit that pulls manure-based gas to a negative carbon intensity.',
-    plain: 'Manure stored in closed storage earns an avoided-methane credit (e_am) in the RED lifecycle calculation, which can pull CI deeply negative. It is a physical accounting credit, separate from any quota counting rules, so it stays intact when a market stops double counting. The negative figure comes from manure management, not from upgrading the gas.',
+    plain: 'RED’s lifecycle rules count the methane that digesting manure avoids, compared with storing it raw, as a credit in the gas’s carbon intensity. That credit can pull CI below zero. It is a physical accounting credit, separate from any quota counting rules, so it stays intact when a market stops double counting. The negative figure comes from manure management, not from upgrading the gas.',
     whyItMatters: 'Each extra negative gram lifts the certificate yield per MWh, which is why manure gas is worth most per MWh in quota markets. Confirm the credit is on the PoS, not assumed.',
     appLinks: [
       { label: 'Morning brief, netback ladder', route: '/brief' },
