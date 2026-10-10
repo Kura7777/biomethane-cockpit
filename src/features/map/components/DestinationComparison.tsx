@@ -3,6 +3,8 @@ import { useAppState } from '../../../store/context';
 import { compareDestinations } from '../../../domain/arbitrage/destinationComparison';
 import { buildDealUrl, DEAL_ROUTE } from '../../../domain/trade/dealParams';
 import { BiomethanePlant } from '../../../domain/plants/types';
+import { feedstockKeyForPlant } from '../../../domain/trade/dealDefaults';
+import { reportedCiForPlant } from '../../../domain/plants/compliance';
 
 interface DestinationComparisonProps {
   /** Origin country ISO code. */
@@ -21,9 +23,16 @@ const VERDICT_LABEL: Record<string, { label: string; chip: string }> = {
 /** "Where can this gas go?": the green-gas obligation next to the other destinations for this origin, same engines as the Trade Builder. */
 export function DestinationComparison({ origin, plant }: DestinationComparisonProps) {
   const { state } = useAppState();
+  // Value the plant's own feedstock at its published CI when it has one, else that feedstock's default CI.
   const rows = useMemo(
-    () => compareDestinations({ origin, marks: state.marks, costs: state.costs }),
-    [origin, state.marks, state.costs]
+    () => compareDestinations({
+      origin,
+      marks: state.marks,
+      costs: state.costs,
+      feedstockKey: plant ? feedstockKeyForPlant(plant) : undefined,
+      reportedCi: plant ? reportedCiForPlant(plant.id) : null,
+    }),
+    [origin, plant, state.marks, state.costs]
   );
   if (rows.length === 0) return null;
 
@@ -47,6 +56,7 @@ export function DestinationComparison({ origin, plant }: DestinationComparisonPr
                   </span>
                 </span>
               </div>
+              <div className="mut num" style={{ fontSize: '11px', marginTop: '2px' }} data-testid={`dest-ci-${r.marketId}`}>{r.ciLabel}</div>
               {r.reason && <div className="mut" style={{ fontSize: '11px', lineHeight: 1.4, marginTop: '2px' }}>{r.reason}</div>}
               {!r.blocked && (
                 <a href={`#${tradeUrl || DEAL_ROUTE}`} style={{ fontSize: '12px', color: 'var(--color-accent)', fontWeight: 600 }} data-testid={`dest-trade-${r.marketId}`}>

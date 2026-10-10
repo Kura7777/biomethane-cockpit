@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { compareDestinations } from '../arbitrage/destinationComparison';
 import { MarksState } from '../netback/types';
+import { feedstockDefaultCi } from '../assumptions/registry';
 
 const marks = {
   marks: {
@@ -32,5 +33,38 @@ describe('destination comparison', () => {
 
   it('adds a transport market of the origin country when the registry has one', () => {
     expect(compareDestinations({ origin: 'NL', marks, costs }).map(r => r.marketId)).toContain('NL_ERE');
+  });
+
+  it('values the plant\'s own feedstock: a landfill plant does not show manure values', () => {
+    const manure = compareDestinations({ origin: 'ES', marks, costs, feedstockKey: 'manure' });
+    const landfill = compareDestinations({ origin: 'ES', marks, costs, feedstockKey: 'landfill_gas' });
+    const mCi = feedstockDefaultCi('manure')!;
+    const lCi = feedstockDefaultCi('landfill_gas')!;
+    expect(lCi).not.toBe(mCi);
+    for (const id of ['NL_GGE', 'DE_THG']) {
+      const m = manure.find(r => r.marketId === id)!;
+      const l = landfill.find(r => r.marketId === id)!;
+      expect(m.ci).toBe(mCi);
+      expect(l.ci).toBe(lCi);
+      expect(l.ciLabel).toContain('landfill gas default');
+      expect(l.ciLabel).not.toContain('manure');
+      expect(l.netNetbackEurPerMwh).not.toBe(m.netNetbackEurPerMwh);
+    }
+  });
+
+  it('labels the CI used: the feedstock default, or the plant\'s published CI when it has one', () => {
+    const def = compareDestinations({ origin: 'ES', marks, costs }).find(r => r.marketId === 'NL_GGE')!;
+    expect(def.ciLabel).toBe('CI −100 g (manure default)');
+
+    const published = compareDestinations({ origin: 'ES', marks, costs, reportedCi: { value: -42, sourceUrl: 'https://example.com/pos' } })
+      .find(r => r.marketId === 'NL_GGE')!;
+    expect(published.ci).toBe(-42);
+    expect(published.ciLabel).toBe('CI −42 g (published, source)');
+    expect(published.netNetbackEurPerMwh).not.toBe(def.netNetbackEurPerMwh);
+  });
+
+  it('falls back to manure only for an unknown feedstock key, and says so in the label', () => {
+    const r = compareDestinations({ origin: 'ES', marks, costs, feedstockKey: 'not_a_feedstock' }).find(x => x.marketId === 'NL_GGE')!;
+    expect(r.ciLabel).toContain('manure default');
   });
 });

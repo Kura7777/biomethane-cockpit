@@ -24,6 +24,20 @@ export interface DestinationRow {
   /** Why it is blocked (the failing check, e.g. the GO route) or what is still open; null when clear. */
   reason: string | null;
   netNetbackEurPerMwh: number | null;
+  /** The CI (gCO2e/MJ) the row was valued with. */
+  ci: number;
+  /** Where that CI came from, e.g. "CI −100 g (manure default)" or "CI −42 g (published, source)". */
+  ciLabel: string;
+}
+
+/** A carbon intensity the plant itself publishes (sourced); used instead of the feedstock default. */
+export interface ReportedCi {
+  value: number;
+  sourceUrl: string;
+}
+
+function signedCi(ci: number): string {
+  return `${ci < 0 ? '−' : ''}${Math.abs(ci)}`;
 }
 
 const COMPARED_MARKETS = ['NL_GGE', 'DE_THG'];
@@ -33,18 +47,25 @@ export function compareDestinations(args: {
   marks: MarksState;
   costs: CostInputs;
   feedstockKey?: string;
+  /** The plant's own sourced CI, if it publishes one; else the feedstock's default CI is used. */
+  reportedCi?: ReportedCi | null;
   volumeMWh?: number;
 }): DestinationRow[] {
   const profile = PRODUCING_ORIGINS[args.origin];
   if (!profile) return [];
-  const feedstock = FEEDSTOCK_REGISTRY[args.feedstockKey ?? 'manure'] ?? FEEDSTOCK_REGISTRY.manure;
+  const feedstockKey = args.feedstockKey && FEEDSTOCK_REGISTRY[args.feedstockKey] ? args.feedstockKey : 'manure';
+  const feedstock = FEEDSTOCK_REGISTRY[feedstockKey];
+  const ci = args.reportedCi ? args.reportedCi.value : getAssumption(`feedstock.defaultCi.${feedstock.id}`);
+  const ciLabel = args.reportedCi
+    ? `CI ${signedCi(ci)} g (published, source)`
+    : `CI ${signedCi(ci)} g (${feedstockKey.replace(/_/g, ' ')} default)`;
   const consignment = buildArbitrageConsignment({
     originCountry: profile.countryCode,
     originCountryName: profile.countryName,
-    feedstockKey: FEEDSTOCK_REGISTRY[args.feedstockKey ?? ''] ? (args.feedstockKey as string) : 'manure',
+    feedstockKey,
     feedstockName: feedstock.name,
     annexClassification: feedstock.annexClassification,
-    carbonIntensity: getAssumption(`feedstock.defaultCi.${feedstock.id}`),
+    carbonIntensity: ci,
     scheme: 'ISCC_EU',
     chainOfCustody: 'MASS_BALANCE',
     isEUGrid: originIsEuGrid(profile),
@@ -85,6 +106,8 @@ export function compareDestinations(args: {
       blocked,
       reason,
       netNetbackEurPerMwh: blocked ? null : nb.netNetback,
+      ci,
+      ciLabel,
     }];
   });
 }
