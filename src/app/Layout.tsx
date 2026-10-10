@@ -193,7 +193,7 @@ export function Layout() {
         </ErrorBoundary>
       </main>
 
-      {/* Page helper: a slim dock above the status bar on desktop, a round "?" button and sheet on a phone. */}
+      {/* Page helper: a floating capsule (chat card on desktop, sheet on a phone). Nothing is added to the page flow. */}
       <PageHelper />
 
       {/* 28px Status Bar & Tools Footer (desktop only — the mobile shell uses the Desk sheet instead) */}

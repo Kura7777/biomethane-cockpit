@@ -4,15 +4,18 @@ import type { HelperTurn } from '../../domain/help/helperLogic';
 /**
  * Helper session state, kept outside React so the chat survives the screen changes that unmount
  * and remount the dock's panel:
- *  - whether the panel was open (sessionStorage, so it follows the browser tab);
+ *  - whether the chat card was open, and whether it was enlarged (sessionStorage, so it follows the browser tab);
  *  - one conversation per page, kept for the session. Changing page shows that page's own chat
  *    (empty the first time); the previous page's chat stays reachable through "Previous page chat".
  */
 
 const OPEN_KEY = 'biomethane-helper-open';
+const EXPANDED_KEY = 'biomethane-helper-expanded';
 
 export interface HelperSnapshot {
   open: boolean;
+  /** The card is shown as a large centred window. Only meaningful while open. */
+  expanded: boolean;
   conversations: Readonly<Record<string, readonly HelperTurn[]>>;
   /** Pages that have a conversation, most recent first. */
   recent: readonly string[];
@@ -20,15 +23,24 @@ export interface HelperSnapshot {
   viewing: string | null;
 }
 
-function readOpen(): boolean {
+function readFlag(key: string): boolean {
   try {
-    return typeof sessionStorage !== 'undefined' && sessionStorage.getItem(OPEN_KEY) === '1';
+    return typeof sessionStorage !== 'undefined' && sessionStorage.getItem(key) === '1';
   } catch {
     return false;
   }
 }
 
-let snapshot: HelperSnapshot = { open: readOpen(), conversations: {}, recent: [], viewing: null };
+function writeFlag(key: string, on: boolean): void {
+  try {
+    if (typeof sessionStorage !== 'undefined') sessionStorage.setItem(key, on ? '1' : '0');
+  } catch {
+    // Private mode: the panel just does not remember.
+  }
+}
+
+const startOpen = readFlag(OPEN_KEY);
+let snapshot: HelperSnapshot = { open: startOpen, expanded: startOpen && readFlag(EXPANDED_KEY), conversations: {}, recent: [], viewing: null };
 const listeners = new Set<() => void>();
 
 function set(next: HelperSnapshot): void {
@@ -49,14 +61,22 @@ export function useHelperStore(): HelperSnapshot {
   return useSyncExternalStore(subscribeHelper, getHelperSnapshot, getHelperSnapshot);
 }
 
+/** Closing also returns the card to its normal size. */
 export function setHelperOpen(open: boolean): void {
-  try {
-    if (typeof sessionStorage !== 'undefined') sessionStorage.setItem(OPEN_KEY, open ? '1' : '0');
-  } catch {
-    // Private mode: the panel just does not remember.
-  }
-  if (snapshot.open === open) return;
-  set({ ...snapshot, open });
+  writeFlag(OPEN_KEY, open);
+  const expanded = open && snapshot.expanded;
+  writeFlag(EXPANDED_KEY, expanded);
+  if (snapshot.open === open && snapshot.expanded === expanded) return;
+  set({ ...snapshot, open, expanded });
+}
+
+/** Enlarge the card into the centred window (opening it if needed) or step back to the card. */
+export function setHelperExpanded(expanded: boolean): void {
+  writeFlag(OPEN_KEY, expanded || snapshot.open);
+  writeFlag(EXPANDED_KEY, expanded);
+  const open = expanded || snapshot.open;
+  if (snapshot.open === open && snapshot.expanded === expanded) return;
+  set({ ...snapshot, open, expanded });
 }
 
 export function appendHelperTurn(pageKey: string, turn: HelperTurn): void {
@@ -75,5 +95,5 @@ export function setHelperViewing(pageKey: string | null): void {
 
 /** Test helper: back to a fresh session. */
 export function resetHelperStore(): void {
-  set({ open: false, conversations: {}, recent: [], viewing: null });
+  set({ open: false, expanded: false, conversations: {}, recent: [], viewing: null });
 }

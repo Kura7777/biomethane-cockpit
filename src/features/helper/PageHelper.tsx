@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowUp, ChevronDown, CircleHelp } from 'lucide-react';
+import { ArrowUp, ChevronDown, Maximize2, MessageCircle, Minimize2, X } from 'lucide-react';
 import { Sheet } from '../../shared/ui/Sheet';
 import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 import { getStoredAnthropicApiKey } from '../../domain/regcheck/claudeClient';
@@ -22,7 +22,7 @@ import {
   type HelperTurn,
 } from '../../domain/help/helperLogic';
 import { askHelper } from '../../domain/help/helperClient';
-import { appendHelperTurn, getHelperSnapshot, setHelperOpen, setHelperViewing, useHelperStore } from './helperStore';
+import { appendHelperTurn, getHelperSnapshot, setHelperExpanded, setHelperOpen, setHelperViewing, useHelperStore } from './helperStore';
 import './helper.css';
 
 function subscribeOnline(cb: () => void) {
@@ -190,7 +190,7 @@ function Turn({ turn, onNavigate }: { turn: HelperTurn; onNavigate: (to: string)
   );
 }
 
-function ChatBody({ chat, onNavigate }: { chat: Chat; onNavigate: (to: string) => void }) {
+function ChatBody({ chat, onNavigate, emptyChips }: { chat: Chat; onNavigate: (to: string) => void; emptyChips?: React.ReactNode }) {
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (typeof endRef.current?.scrollIntoView === 'function') endRef.current.scrollIntoView({ block: 'end' });
@@ -204,7 +204,13 @@ function ChatBody({ chat, onNavigate }: { chat: Chat; onNavigate: (to: string) =
           <button type="button" className="ph-link" onClick={() => setHelperViewing(null)}>Back to this page</button>
         </div>
       )}
-      {chat.turns.length === 0 && !chat.viewingPrevious && <Overview guide={chat.guide} onNavigate={onNavigate} />}
+      {chat.turns.length === 0 && !chat.viewingPrevious && (
+        <>
+          <p className="ph-greeting" data-testid="helper-greeting">Ask about this page: what it shows, a term, or what to do next.</p>
+          {emptyChips}
+          <Overview guide={chat.guide} onNavigate={onNavigate} />
+        </>
+      )}
       {chat.turns.map(t => <Turn key={t.id} turn={t} onNavigate={onNavigate} />)}
       {chat.busy && <div className="ph-msg ph-thinking" data-testid="helper-thinking" aria-live="polite">Thinking…</div>}
       {chat.previous && !chat.viewingPrevious && (
@@ -229,21 +235,40 @@ function Chips({ chat, onPick, limit }: { chat: Chat; onPick: (q: string) => voi
   );
 }
 
+const INPUT_MAX_PX = 4 * 20 + 14; // four lines of 20px plus padding
+
 function ChatInput({ chat, autoFocus }: { chat: Chat; autoFocus?: boolean }) {
   const [value, setValue] = useState('');
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!value.trim()) return;
+  const ref = useRef<HTMLTextAreaElement>(null);
+
+  // One line that grows to four.
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(el.scrollHeight, INPUT_MAX_PX)}px`;
+  }, [value]);
+
+  const submit = () => {
+    if (!value.trim() || chat.busy) return;
     chat.send(value);
     setValue('');
   };
   return (
-    <form className="ph-form" onSubmit={submit}>
-      <input
+    <form className="ph-form" onSubmit={e => { e.preventDefault(); submit(); }}>
+      <textarea
+        ref={ref}
         className="ph-input"
         data-testid="helper-input"
         value={value}
+        rows={1}
         onChange={e => setValue(e.target.value)}
+        onKeyDown={e => {
+          if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+            e.preventDefault();
+            submit();
+          }
+        }}
         placeholder="Ask about this page…"
         aria-label="Ask about this page"
         maxLength={500}
@@ -317,10 +342,11 @@ function Nudge({ title, onYes, onNo, onNever }: { title: string; onYes: () => vo
   );
 }
 
-// ── The dock ────────────────────────────────────────────────────────────────
+// ── The capsule and chat card ───────────────────────────────────────────────
 
 /**
- * The page helper: a slim bar at the bottom of the page (a round "?" and a sheet on a phone).
+ * The page helper: a capsule floating at the bottom-right that opens a chat card (and, from there, a large
+ * centred window). On a phone the capsule opens the full-screen sheet instead.
  * Read-only: it explains the page and links to other pages; it never changes desk data.
  */
 export function PageHelper() {
@@ -329,7 +355,9 @@ export function PageHelper() {
   const { pathname } = useLocation();
   const store = useHelperStore();
   const chat = useHelperChat();
-  const open = store.open;
+  const { open, expanded } = store;
+  const capsuleRef = useRef<HTMLButtonElement>(null);
+  const wasOpen = useRef(open);
   const nudge = useNudge(canonicalRoute(pathname), open);
   const nudgeEl = nudge.visible ? (
     <Nudge
@@ -344,15 +372,23 @@ export function PageHelper() {
   const pageKey = canonicalRoute(pathname);
   useEffect(() => { setHelperViewing(null); }, [pageKey]);
 
-  // Esc collapses the desktop panel.
+  // Esc steps back: expanded window → card → closed.
   useEffect(() => {
     if (isMobile || !open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !e.defaultPrevented) setHelperOpen(false);
+      if (e.key !== 'Escape' || e.defaultPrevented) return;
+      if (getHelperSnapshot().expanded) setHelperExpanded(false);
+      else setHelperOpen(false);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [isMobile, open]);
+
+  // Focus returns to the capsule when the card closes (the card focuses its own input on open).
+  useEffect(() => {
+    if (wasOpen.current && !open) capsuleRef.current?.focus();
+    wasOpen.current = open;
+  }, [open]);
 
   const go = useCallback((to: string) => {
     navigate(to);
@@ -365,10 +401,19 @@ export function PageHelper() {
 
   if (isMobile) {
     return (
-      <>
+      <div className="ph-root ph-root--compact">
         {nudgeEl}
-        <button type="button" className="ph-fab" data-testid="helper-fab" aria-label="Ask about this page" aria-haspopup="dialog" onClick={() => setHelperOpen(true)}>
-          <CircleHelp size={22} aria-hidden="true" />
+        <button
+          ref={capsuleRef}
+          type="button"
+          className="ph-capsule"
+          data-testid="helper-open"
+          aria-label="Ask about this page"
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          onClick={() => setHelperOpen(true)}
+        >
+          <MessageCircle size={18} aria-hidden="true" /> Ask
         </button>
         <Sheet
           open={open}
@@ -387,41 +432,66 @@ export function PageHelper() {
         >
           <ChatBody chat={chat} onNavigate={go} />
         </Sheet>
-      </>
-    );
-  }
-
-  if (!open) {
-    return (
-      <section className="ph-dock" data-testid="page-helper" data-open="false" aria-label="Page helper">
-        {nudgeEl}
-        <div className="ph-bar">
-          <button type="button" className="ph-ask" data-testid="helper-open" onClick={() => setHelperOpen(true)}>
-            <CircleHelp size={15} aria-hidden="true" /> Ask about this page…
-          </button>
-          <Chips chat={chat} limit={3} onPick={q => { setHelperOpen(true); chat.send(q); }} />
-        </div>
-      </section>
+      </div>
     );
   }
 
   return (
-    <section className="ph-dock ph-dock--open" data-testid="page-helper" data-open="true" aria-label="Page helper">
-      <header className="ph-head">
-        <CircleHelp size={15} aria-hidden="true" />
-        <strong>Ask about this page</strong>
-        <span className="ph-muted">{chat.title}</span>
-        {modeChip}
-        <button type="button" className="ph-close" data-testid="helper-close" onClick={() => setHelperOpen(false)} aria-label="Collapse helper (Esc)" title="Collapse (Esc)">
-          <ChevronDown size={16} aria-hidden="true" />
-        </button>
-      </header>
-      <ChatBody chat={chat} onNavigate={go} />
-      <footer className="ph-foot">
-        <Chips chat={chat} limit={3} onPick={chat.send} />
-        <ChatInput chat={chat} autoFocus />
-        <ModeNote aiMode={chat.aiMode} />
-      </footer>
-    </section>
+    <div className="ph-root" data-testid="page-helper" data-open={open ? 'true' : 'false'} data-expanded={expanded ? 'true' : 'false'}>
+      {nudgeEl}
+      {open && expanded && <div className="ph-backdrop" data-testid="helper-backdrop" onClick={() => setHelperExpanded(false)} />}
+      {open && (
+        <section
+          className={`ph-card ${expanded ? 'ph-card--expanded' : ''}`}
+          data-testid="helper-card"
+          role="dialog"
+          aria-modal={expanded}
+          aria-label="Desk helper"
+        >
+          <header className="ph-head">
+            <div className="ph-head-text">
+              <strong className="ph-title">Desk helper</strong>
+              <span className="ph-subtitle" data-testid="helper-subtitle">{chat.title}</span>
+            </div>
+            {modeChip}
+            <button
+              type="button"
+              className="ph-icon-btn"
+              data-testid="helper-expand"
+              onClick={() => setHelperExpanded(!expanded)}
+              aria-label={expanded ? 'Back to the small card' : 'Open bigger'}
+              title={expanded ? 'Back to the small card (Esc)' : 'Open bigger'}
+            >
+              {expanded ? <Minimize2 size={15} aria-hidden="true" /> : <Maximize2 size={15} aria-hidden="true" />}
+            </button>
+            <button type="button" className="ph-icon-btn" data-testid="helper-close" onClick={() => setHelperOpen(false)} aria-label="Close helper" title="Close">
+              <X size={16} aria-hidden="true" />
+            </button>
+          </header>
+          <ChatBody
+            chat={chat}
+            onNavigate={go}
+            emptyChips={<Chips chat={chat} limit={3} onPick={chat.send} />}
+          />
+          <footer className="ph-foot">
+            {chat.turns.length > 0 && <Chips chat={chat} limit={3} onPick={chat.send} />}
+            <ChatInput chat={chat} autoFocus />
+            <ModeNote aiMode={chat.aiMode} />
+          </footer>
+        </section>
+      )}
+      <button
+        ref={capsuleRef}
+        type="button"
+        className={`ph-capsule ${open ? 'ph-capsule--open' : ''}`}
+        data-testid={open ? 'helper-capsule-close' : 'helper-open'}
+        aria-expanded={open}
+        aria-haspopup="dialog"
+        aria-label={open ? 'Close the desk helper' : 'Ask about this page'}
+        onClick={() => setHelperOpen(!open)}
+      >
+        {open ? <><ChevronDown size={18} aria-hidden="true" /> Close</> : <><MessageCircle size={18} aria-hidden="true" /> Ask about this page</>}
+      </button>
+    </div>
   );
 }

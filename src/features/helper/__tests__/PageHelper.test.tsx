@@ -12,14 +12,16 @@ const render = (location: string) =>
     </StaticRouter>
   );
 
-describe('PageHelper dock', () => {
-  it('renders on every route with the ask bar', () => {
+describe('PageHelper capsule', () => {
+  it('renders the capsule on every route, closed, with no card', () => {
     for (const route of KNOWN_ROUTES) {
       const html = render(route);
       expect(html, route).toContain('data-testid="page-helper"');
-      expect(html, route).toContain('Ask about this page…');
+      expect(html, route).toContain('Ask about this page');
+      expect(html, route).toContain('data-testid="helper-open"');
+      expect(html, route).toContain('aria-expanded="false"');
+      expect(html, route).not.toContain('data-testid="helper-card"');
     }
-    expect(render('/trade')).toContain('data-testid="helper-chips"');
   });
   it('makes no network call while rendering', () => {
     const original = globalThis.fetch;
