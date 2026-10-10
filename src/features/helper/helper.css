@@ -4,6 +4,7 @@
  */
 
 .ph-dock {
+  position: relative;
   flex: none;
   display: flex;
   flex-direction: column;
@@ -251,3 +252,46 @@ body:has(.m-sticky-actions) .ph-fab { bottom: calc(56px + env(safe-area-inset-bo
 @media (min-width: 768px) and (pointer: fine) {
   .ph-input { font-size: 13px; }
 }
+
+/* ── "Would you like help with this page?" prompt ── */
+.ph-nudge {
+  position: absolute;
+  left: 18px;
+  bottom: calc(100% + 8px);
+  z-index: 60;
+  max-width: min(420px, calc(100vw - 36px));
+  padding: 10px 14px;
+  border: 1px solid var(--color-accent);
+  border-radius: 10px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+  font-size: 13px;
+  animation: ph-nudge-in 180ms ease-out;
+}
+.ph-nudge-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.ph-nudge-yes, .ph-nudge-no {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ph-nudge-yes { border: 1px solid var(--color-accent); background: var(--color-accent); color: #fff; }
+.ph-nudge-no { border: 1px solid var(--color-border); background: transparent; color: var(--color-text); }
+.ph-nudge .ph-link { font-size: 11px; color: var(--color-muted); }
+
+/* On a phone the prompt sits above the round button, inside the viewport. */
+.ph-fab ~ .ph-nudge, .ph-nudge:has(+ .ph-fab) {
+  position: fixed;
+  left: auto;
+  right: max(12px, env(safe-area-inset-right));
+  bottom: calc(56px + env(safe-area-inset-bottom) + 12px + 44px + 8px);
+  max-width: calc(100vw - 24px);
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .ph-nudge:has(+ .ph-fab) { bottom: calc(48px + env(safe-area-inset-bottom) + 10px + 44px + 8px); }
+}
+@keyframes ph-nudge-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .ph-nudge { animation: none; } }

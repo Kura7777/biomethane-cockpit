@@ -20,4 +20,17 @@ test.describe('Page helper (compact layout)', () => {
     const noOverflow = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1);
     expect(noOverflow).toBe(true);
   });
+
+  test('the prompt appears above the ? button after changing screen and stays inside the viewport', async ({ page }) => {
+    await gotoScreen(page, '/glossary');
+    await page.evaluate(() => { window.location.hash = '#/pricing'; });
+    const nudge = page.getByTestId('helper-nudge');
+    await expect(nudge).toBeVisible();
+    const box = await nudge.boundingBox();
+    const vw = page.viewportSize()!.width;
+    expect(box!.x).toBeGreaterThanOrEqual(0);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(vw);
+    await page.getByTestId('helper-nudge-yes').click();
+    await expect(page.getByTestId('helper-sheet')).toBeVisible();
+  });
 });

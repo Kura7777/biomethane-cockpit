@@ -82,4 +82,25 @@ test.describe('Page helper dock (desktop)', () => {
     expect(body).toContain('PAGE GUIDE: Trade Builder');
     expect(body).toContain('go-route-nl');
   });
+
+  test('moving to a new screen offers help; Yes opens it, and it can be switched off', async ({ page }) => {
+    await gotoScreen(page, '/glossary');
+    // No prompt on the first page load.
+    await expect(page.getByTestId('helper-nudge')).toHaveCount(0);
+
+    await page.evaluate(() => { window.location.hash = '#/pricing'; });
+    const nudge = page.getByTestId('helper-nudge');
+    await expect(nudge).toContainText('Would you like help with this page?');
+    await page.getByTestId('helper-nudge-yes').click();
+    await expect(page.getByTestId('page-helper')).toHaveAttribute('data-open', 'true');
+    await expect(nudge).toHaveCount(0);
+
+    await page.keyboard.press('Escape');
+    await page.evaluate(() => { window.location.hash = '#/clients'; });
+    await expect(page.getByTestId('helper-nudge')).toBeVisible();
+    await page.getByTestId('helper-nudge-never').click();
+    await page.evaluate(() => { window.location.hash = '#/deals'; });
+    await expect(page.getByTestId('page-helper')).toBeVisible();
+    await expect(page.getByTestId('helper-nudge')).toHaveCount(0);
+  });
 });
