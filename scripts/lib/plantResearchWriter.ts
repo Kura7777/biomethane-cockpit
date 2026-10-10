@@ -5,7 +5,7 @@
  */
 import * as fs from 'fs';
 import * as path from 'path';
-import { PlantResearch, SourcedValue } from '../../src/domain/plants/types';
+import { PlantCompliance, PlantResearch, SourcedValue } from '../../src/domain/plants/types';
 
 export interface CountryResearchFile {
   countryCode: string;
@@ -38,6 +38,59 @@ function checkSourcedValue(sv: SourcedValue<any> | null | undefined, fieldName: 
       throw new Error(`[${plantId}] ${fieldName} sourced from third-party directory (${sv.sourceUrl}) must be marked in note as "third-party directory — confirm"`);
     }
   }
+}
+
+const TRI_STATES = ['YES', 'NO', 'UNKNOWN'];
+const INJECTION_LEVELS = ['TSO', 'DSO', 'OFF_GRID', 'UNKNOWN'];
+
+/** The SourcedValue fields of a compliance block, in the order the drawer lists them. */
+export const COMPLIANCE_VALUE_FIELDS = [
+  'gdoRegistered', 'injection', 'operatingSince', 'actualProductionGWh', 'capacityNm3h', 'feedstockMix',
+  'certification', 'prtrGrant', 'otherAid', 'reportedCI', 'currentOfftake', 'nominalCapacityGWh',
+] as const;
+
+/**
+ * Compliance block rules: every non-null value carries a source and a retrieval date; enum fields
+ * hold known values; a PRTR grant the public register could not find stays UNKNOWN (the register
+ * covers only part of the programme, so absence is not NO); excluded records say why.
+ */
+export function validateCompliance(plantId: string, c: PlantCompliance): void {
+  for (const field of COMPLIANCE_VALUE_FIELDS) {
+    checkSourcedValue((c as unknown as Record<string, SourcedValue<any> | null | undefined>)[field], `compliance.${field}`, plantId);
+  }
+  if (c.gdoRegistered && !TRI_STATES.includes(c.gdoRegistered.value)) {
+    throw new Error(`[${plantId}] compliance.gdoRegistered must be YES, NO or UNKNOWN`);
+  }
+  if (c.injection && !INJECTION_LEVELS.includes(c.injection.value)) {
+    throw new Error(`[${plantId}] compliance.injection must be TSO, DSO, OFF_GRID or UNKNOWN`);
+  }
+  if (c.prtrGrant) {
+    if (!TRI_STATES.includes(c.prtrGrant.value)) {
+      throw new Error(`[${plantId}] compliance.prtrGrant must be YES, NO or UNKNOWN`);
+    }
+    if (c.prtrGrant.value === 'NO' && c.prtrGrant.bdnsResult === 'NO_RECORD') {
+      throw new Error(`[${plantId}] compliance.prtrGrant NO_RECORD in BDNS must stay UNKNOWN, not NO (the register is partial)`);
+    }
+  }
+  if (c.certification) {
+    const cert = c.certification.value;
+    if (!cert || !cert.scheme || !cert.certificateNumber || isNaN(Date.parse(cert.validUntil))) {
+      throw new Error(`[${plantId}] compliance.certification needs scheme, certificateNumber and a valid validUntil date`);
+    }
+  }
+  if (c.actualProductionGWh) {
+    const a = c.actualProductionGWh.value;
+    if (typeof a?.value !== 'number' || !(a.value >= 0) || !Number.isInteger(a.year)) {
+      throw new Error(`[${plantId}] compliance.actualProductionGWh needs a numeric value and an integer year`);
+    }
+  }
+  if (c.reportedCI && typeof c.reportedCI.value !== 'number') {
+    throw new Error(`[${plantId}] compliance.reportedCI must be a number (gCO2e/MJ)`);
+  }
+  if (c.excluded && !c.excludedReason?.trim()) {
+    throw new Error(`[${plantId}] excluded compliance record needs excludedReason`);
+  }
+  checkSourcedValue(c.correctedEntity, 'compliance.correctedEntity', plantId);
 }
 
 /**
@@ -77,6 +130,8 @@ export function validate(research: PlantResearch): void {
   checkSourcedValue(research.siteCoordinates, 'siteCoordinates', id);
   checkSourcedValue(research.website, 'website', id);
   checkSourcedValue(research.plantLink, 'plantLink', id);
+
+  if (research.compliance) validateCompliance(id, research.compliance);
 
   for (let i = 0; i < (research.injectionOrOfftakeNotes || []).length; i++) {
     checkSourcedValue(research.injectionOrOfftakeNotes[i], `injectionOrOfftakeNotes[${i}]`, id);
@@ -188,10 +243,29 @@ export function writeCountryResearch(file: CountryResearchFile): void {
   regenerate();
 }
 
+/** Compliance file for a country: `{ researchedAt, global, plants: { [plantId]: PlantCompliance } }`. */
+export interface ComplianceFile {
+  researchedAt: string;
+  global?: Record<string, unknown>;
+  plants: Record<string, PlantCompliance>;
+}
+
+/** Reads data/plant_research/<cc>.compliance.json (if any) and checks it points only at researched plants. */
+export function loadCompliance(cc: string, plants: PlantResearch[]): Record<string, PlantCompliance> {
+  const file = path.join(DATA_DIR, `${cc}.compliance.json`);
+  if (!fs.existsSync(file)) return {};
+  const parsed: ComplianceFile = JSON.parse(fs.readFileSync(file, 'utf8'));
+  const known = new Set(plants.map(p => p.plantId));
+  for (const id of Object.keys(parsed.plants || {})) {
+    if (!known.has(id)) throw new Error(`[${id}] ${cc}.compliance.json has no matching research record in ${cc}.json`);
+  }
+  return parsed.plants || {};
+}
+
 export function regenerate(): void {
   fs.mkdirSync(DATA_DIR, { recursive: true });
   const rawFiles = fs.readdirSync(DATA_DIR)
-    .filter(f => f.endsWith('.json') && !f.endsWith('.verification.json'))
+    .filter(f => f.endsWith('.json') && !f.endsWith('.verification.json') && !f.endsWith('.compliance.json'))
     .sort();
 
   const allPlants: Record<string, PlantResearch> = {};
@@ -215,7 +289,10 @@ export function regenerate(): void {
       }
     }
 
+    const compliance = loadCompliance(cc, plants);
+
     for (const p of plants) {
+      if (compliance[p.plantId]) p.compliance = compliance[p.plantId];
       if (verMap && verMap[p.plantId]) {
         const vr = verMap[p.plantId];
         if (p.tier === 'UNRESOLVED' || !p.legalEntity) {

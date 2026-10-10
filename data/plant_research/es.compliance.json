@@ -1,0 +1,1846 @@
+{
+  "researchedAt": "2026-10-09T21:30:00Z",
+  "global": {
+    "enagasGoEnergyBasis": {
+      "value": "PCS / HHV (gross calorific value), 'o, en su caso, lo que determine la normativa aplicable'",
+      "sourceUrl": "https://www.boe.es/buscar/act.php?id=BOE-A-2022-17721",
+      "retrievedAt": "2026-10-09T21:30:00Z",
+      "note": "Orden TED/1026/2022 (BOE-A-2022-17721), procedimiento de gestión, 5.1: 'Una garantía de origen corresponde a la producción neta de 1 MWh de gases renovables. La cuantificación de la energía neta producida se calcula utilizando el valor del PCS o, en su caso, lo que determine la normativa aplicable.' Enagás consultation draft agrees: 'De acuerdo al borrador de la norma CEN-16325 la cuantificación de la energía neta producida se calcula en términos de PCS.' RD 611/2026 art. 41.3.b ('La garantía de origen corresponde a un volumen estándar de 1 MWh') adds no energy basis. The Enagás FAQ page itself could not be retrieved (gdogas.es is a login SPA). Same Orden, capacity definition: 'dividiendo entre 24 su capacidad de producción en kWh/d con base a PCS'.",
+      "sources": [
+        "https://www.boe.es/buscar/act.php?id=BOE-A-2022-17721",
+        "https://www.enagas.es/content/dam/enagas/es/ficheros/gestion-tecnica-sistema/informacion-gestion-tecnica/consulta-publicas/abiertas/Documento%20de%20consulta.pdf",
+        "https://www.boe.es/buscar/act.php?id=BOE-A-2026-16011"
+      ]
+    },
+    "enagasExportWindow": {
+      "value": {
+        "transferExportValidMonthsFromProduction": 12,
+        "redeemOnlyUntilMonthsFromProduction": 18,
+        "expiredAfterMonths": 18
+      },
+      "sourceUrl": "https://www.boe.es/buscar/act.php?id=BOE-A-2022-17721",
+      "retrievedAt": "2026-10-09T21:30:00Z",
+      "note": "Orden TED/1026/2022, 5.7.2: 'Caducidad parcial: La modificación de «Válida para la Transferencia, Redención y Exportación» a «Válida para la Redención», transcurridos 12 meses desde la producción de la energía que dio lugar a la garantía de origen.' / 'Caducidad total: La modificación de «Válida para la Redención» a «Expirada», transcurridos 18 meses desde la producción de la energía...' RD 611/2026 art. 41.3.d (in force 1 Jan 2027): 'Serán válidas por un periodo máximo de 12 meses desde la fecha de producción de la unidad de energía correspondiente. Transcurrido un periodo de 18 meses desde la producción de la unidad de energía, todas las garantías de origen que no hayan sido redimidas expirarán. Por tanto, durante el plazo entre los 12 y los 18 meses desde la producción de la unidad de energía, la garantía de origen únicamente podrá ser redimida.' and 41.3.f: 'Serán exportables a otros Estados miembros de la Unión Europea.'",
+      "sources": [
+        "https://www.boe.es/buscar/act.php?id=BOE-A-2022-17721",
+        "https://www.boe.es/buscar/act.php?id=BOE-A-2026-16011"
+      ]
+    },
+    "enagasAidFieldOnGo": {
+      "value": "YES - the GO carries a 'Public support' field (investment and production aid) today, and a national-support flag + type under RD 611/2026",
+      "sourceUrl": "https://www.boe.es/buscar/act.php?id=BOE-A-2022-17721",
+      "retrievedAt": "2026-10-09T21:30:00Z",
+      "note": "Orden TED/1026/2022, GO content item 13: '13) Ayudas financieras/Public support. Se indicará si la instalación de producción ha recibido o recibe ayudas financieras a la inversión o a la producción por parte de sistemas de apoyo nacionales. En tal caso, se detallará el sistema de apoyo correspondiente.' RD 611/2026 art. 41.4.d: 'si la unidad de energía se ha beneficiado de un sistema de apoyo nacional y el tipo de sistema de apoyo, así como la fecha en la que la instalación comenzó a funcionar.' Also (new) 41.4.g adds the sustainability-proof reference and 41.4.f the 'gas inyectado en red' vs off-grid logistics flag. NB the Spanish field covers investment aid TOO, so a PRTR/regional capex grant will show on the GO - NL R11 only bans operating aid, R12 allows investment aid.",
+      "sources": [
+        "https://www.boe.es/buscar/act.php?id=BOE-A-2022-17721",
+        "https://www.boe.es/buscar/act.php?id=BOE-A-2026-16011"
+      ]
+    },
+    "spainProduction2025": {
+      "value": {
+        "gwh": 410,
+        "basis": "last 12 months to ~Dec 2025, ~22 plants",
+        "nameplateSumGWh_SedigasJan2026_25plants": 867,
+        "nedgiaNetworkGWh2025": 170
+      },
+      "sourceUrl": "https://www.energias-renovables.com/bioenergia/espa-a-cerrar--el-2025-con-20251210",
+      "retrievedAt": "2026-10-09T21:30:00Z",
+      "note": "SECONDARY (Energías Renovables 2025-12-10): 'España finalizará el 2025 con 22 plantas de biometano en operación' (Sedigas) and 'la producción de estas instalaciones durante los últimos 12 meses se situó por encima de los 410 GWh' (Enagás GTS). CNMC IPN/CNMC/025/26 was NOT located in public search (CNMC's last located hard number: 243 GWh for 2023, 9 plants). Nedgia: '>170 GWh' via 14 plants in 2025 (Forbes/Energías Renovables 2026-02-11, not read verbatim). Sum of Sedigas 'capacidad nominal' for 24 plants (Dec 2025) = 847 GWh, +20 Utiel = 867 GWh: nameplate is ~2x actual, and most plants started during 2024-25, so the app's annualEnergyGWh (~2.3 TWh) is ~5x actual.",
+      "sources": [
+        "https://www.energias-renovables.com/bioenergia/espa-a-cerrar--el-2025-con-20251210",
+        "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "https://www.google.com/maps/d/kml?mid=1MlUal3iMn6GLk84oXIjbbHe63N8F3CU&forcekml=1"
+      ]
+    },
+    "firstEsGoToNl": null,
+    "firstEsGoToNl_note": "No public record found. AIB Annual Report 2025 (Spain-Enagás page): '2 547 GWh of GOs were transacted' (all Spanish GOs, not gas-only); Section 04: gas GO issuance ~6.4 TWh in 2025 'activity is concentrated in Italy and the Netherlands'. No country-pair gas table is published. The 'observed transfers (2,587 MWh / 4)' in the trade spec come from the app's route matrix and were NOT verified here. Enagás GTS and VertiCer are both EECS-Gas scheme members ('By the end of 2025, 13 AIB members were part of the EECS Gas Scheme: ... Enagas (Spain) ... VertiCer (Netherlands)'), so the route exists. Source: https://www.aib-net.org/sites/default/files/assets/aib/AIB%20Annual%20Report%20full%20version%202025%20-%2003.06.2026.pdf",
+    "enagasRegistrySize": {
+      "value": {
+        "renewableMethaneDevices_confirmedSustainability": 18,
+        "renewableMethaneDevices_withoutConfirmedSustainability": 1,
+        "accountHolders": 228
+      },
+      "sourceUrl": "https://www.aib-net.org/sites/default/files/assets/aib/AIB%20Annual%20Report%20full%20version%202025%20-%2003.06.2026.pdf",
+      "retrievedAt": "2026-10-09T21:30:00Z",
+      "note": "AIB Annual Report 2025, Spain-Enagás page: 'Gas – Renewable methane with confirmed sustainability criteria met | 18 | 113'; 'Gas – Renewable methane without confirmed sustainability criteria met | 1 | 3'; '228 Number of account holders'. => at most ~19 Spanish biomethane devices were GdO-registered at end-2025 vs 22-24 injecting plants."
+    },
+    "sedigasOperatingPlantsList": {
+      "value": "24 plants (Dec 2025 PDF) / 25 placemarks (live map, + Utiel Feb 2026) / homepage text '26 plantas de biometano operativas'",
+      "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+      "retrievedAt": "2026-10-09T21:30:00Z",
+      "note": "Master list used for injection level, 'entrada en operación' and nameplate GWh. Table columns: Denominación, Tipología, Promotor, Localidad, Provincia, Inyección a red, Operador, Entrada en operación, GWh/año with footnote '(**) Capacidad nominal'."
+    },
+    "bdnsCoverageCaveat": {
+      "value": {
+        "idaeBiogasConcessionsInBDNS": 52,
+        "totalEUR_million": 40.9,
+        "orderInitialBudgetEUR_million": 150
+      },
+      "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&numeroConvocatoria=642067",
+      "retrievedAt": "2026-10-09T21:30:00Z",
+      "note": "BDNS shows 52 concessions (EUR 40.9M) under calls 642067 + 642077; Orden TED/706/2022 (BOE-A-2022-12470): 'Esta orden establece una dotación inicial de 150 millones de euros'. So an absent record is NOT a confirmed NO. All prtrGrant values other than YES are therefore UNKNOWN (bdnsResult=NO_RECORD where nothing was found). Ask each operator for its IDAE resolution / confirm with IDAE (bzn-biogas@miteco.es per MITECO)."
+    },
+    "art53Verbatim": {
+      "value": "Orden TED/706/2022 Art. 5.3 + Art. 2.6",
+      "sourceUrl": "https://www.boe.es/boe/dias/2022/07/26/pdfs/BOE-A-2022-12470.pdf",
+      "retrievedAt": "2026-10-09T21:30:00Z",
+      "note": "5.3: 'No obstante lo anterior, salvo que se indique lo contrario en las convocatorias, la aceptación de la ayuda que se conceda es incompatible con la existencia de cualquier acuerdo suscrito por parte del beneficiario/a que se utilice para la obtención de certificados verdes, en el marco de un mecanismo de apoyo, establecido, o que se pudiera establecer en el futuro, en el ámbito nacional, de la Unión Europea o internacional. En el caso de que, con posterioridad a la aceptación de la ayuda, el biometano generado se utilice para la obtención de certificados verdes, el beneficiario/a deberá comunicar que tiene concedida esta u otras ayudas y el importe de las mismas. [...] En otro caso la venta deberá quedar condicionada a que su comprador y el resto de sujetos que participen lo comuniquen finalmente a la entidad que los emita.' Definition 'Certificados verdes: Documento comercializable expedido en el marco de un mecanismo de apoyo, generalmente una obligación'. GOs: 'las ayudas de la presente orden son compatibles con la percepción de garantías de origen.' Reading: a NL GGE (obligation-based tradable) is plausibly a 'certificado verde'-type mechanism, so the clause is a live risk, but the text is a notification + incompatibility-with-agreement clause and the CALL may say otherwise ('salvo que se indique lo contrario en las convocatorias'). Legal opinion needed per plant."
+    },
+    "missingFromApp": [
+      {
+        "name": "Cycle 0 Lleida#1 (Granja La Carbona)",
+        "operator": "CYCLE 0 LLEIDA SOCIEDAD LIMITADA (Cycle 0)",
+        "location": "Vallfogona de Balaguer, Lleida",
+        "feedstock": "Agroganadero (cattle manure/slurry)",
+        "injecting": "DSO Nedgia, entry sep-24, nameplate 15 GWh",
+        "source": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "iscc": {
+          "certificateNumber": "EU-ISCC-Cert-ES216-20268025",
+          "validUntil": "2027-09-25",
+          "file": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTY0OTk2X0VVLUlTQ0MtQ2VydC1FUzIxNi0yMDI2ODAyNQ=="
+        },
+        "prtr": "UNKNOWN - Cycle 0 group entities SVP1/2/4/5/Maians hold IDAE biogas PRTR grants; this entity not matched in BDNS lists",
+        "recordType": "CANDIDATE",
+        "plantId": null
+      },
+      {
+        "name": "Biogastur Generación Navia",
+        "operator": "Biogastur-CLA (Biogastur / Central Lechera Asturiana)",
+        "location": "Navia, Asturias",
+        "feedstock": "Agroganadero",
+        "injecting": "DSO Nortegas, entry jun-25, nameplate 35 GWh",
+        "source": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "iscc": {
+          "certificateNumber": "EU-ISCC-Cert-ES216-20268140",
+          "validUntil": "2027-06-16",
+          "file": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTUwNTQ5X0VVLUlTQ0MtQ2VydC1FUzIxNi0yMDI2ODE0MA=="
+        },
+        "prtr": "UNKNOWN (CIF not in dataset)",
+        "recordType": "CANDIDATE",
+        "plantId": null
+      },
+      {
+        "name": "EcoGalia",
+        "operator": "Cycle 0 / ToySal",
+        "location": "O Porriño, Pontevedra",
+        "feedstock": "Industrial (Sedigas typology)",
+        "injecting": "DSO Nedgia, entry oct-25, nameplate 40 GWh",
+        "source": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "iscc": null,
+        "prtr": "UNKNOWN",
+        "recordType": "CANDIDATE",
+        "plantId": null
+      },
+      {
+        "name": "Artajona (Cycle 0 SVP1 S.L.)",
+        "operator": "Cycle 0",
+        "location": "Artajona, Navarra",
+        "feedstock": "cattle manure",
+        "injecting": "DSO Nedgia, entry nov-25, 15 GWh nameplate (~120 Nm3/h)",
+        "source": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "iscc": {
+          "certificateNumber": "EU-ISCC-Cert-ES216-20260043",
+          "validUntil": "2027-09-01",
+          "file": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTYxNzgwX0VVLUlTQ0MtQ2VydC1FUzIxNi0yMDI2MDA0Mw=="
+        },
+        "prtr": "YES - IDAE EUR 773,632.75 (CIF B72566383 'CYCLE O SVP1', 2025-12-02, call 642067)",
+        "note": "This is the REAL Artajona plant; the app's plant_es_17 (HTN Biogás) is a different/non-injecting entity.",
+        "recordType": "CANDIDATE",
+        "plantId": null,
+        "appPlantId": "plant_es_17"
+      },
+      {
+        "name": "Manlleu (Cycle 0 Maians S.L.)",
+        "operator": "Cycle 0",
+        "location": "Manlleu, Barcelona",
+        "feedstock": "cattle manure",
+        "injecting": "DSO Nedgia, entry nov-25, 15 GWh nameplate",
+        "source": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "iscc": {
+          "certificateNumber": "EU-ISCC-Cert-ES216-20260016",
+          "validUntil": "2027-07-06",
+          "file": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTU0MjM1X0VVLUlTQ0MtQ2VydC1FUzIxNi0yMDI2MDAxNg=="
+        },
+        "prtr": "YES - IDAE EUR 476,520.35 (CIF B72566151 'CYCLE O MAIANS', 2025-12-02)",
+        "note": "REAL Manlleu plant; app's plant_es_23 (Depuradors d'Osona EDAR) is not in Sedigas' list.",
+        "recordType": "CANDIDATE",
+        "plantId": null,
+        "appPlantId": "plant_es_23"
+      }
+    ],
+    "unverifiedIsccBiomethaneHolders": {
+      "value": [
+        "Heygaz Molina (Molina de Segura, Murcia) EU-ISCC-Cert-SE205-00001539 valid to 2027-05-07 (biogas+biomethane)",
+        "Gipuzkoa Ingurumena BI SA (San Sebastián area) EU-ISCC-Cert-PL219-91353601 valid to 2027-07-14 (biomethane)",
+        "Alcarràs Bioproductors SAT 1641 CAT (Lleida) EU-ISCC-Cert-ES216-20250033 valid to 2026-12-21 (biomethane)",
+        "Biogas de Guijuelo SL (Salamanca) EU-ISCC-Cert-ES216-20260224 valid to 2027-05-17 (biomethane); IDAE PRTR EUR 865,028.63 (2025-12-02)",
+        "Aperham (Vilademuls, Girona) EU-ISCC-Cert-ES216-20250153 valid to 2026-11-16 (biomethane)",
+        "Liquid Natural Gaz SL (Mas Jonquer, Girona) EU-ISCC-Cert-ES216-20266085 valid to 2027-04-16 (biomethane/bio-LNG)",
+        "Soluciones Totales de Biometano SL (Pina de Ebro, Zaragoza) EU-ISCC-Cert-PL214-51909225 valid to 2026-12-21; Sologas Valorización y Energía (As Somozas, A Coruña) EU-ISCC-Cert-ES216-20268114 valid to 2027-03-20 (bio-LNG)",
+        "Estrella de Levante (Espinardo, Murcia), Aquambiente (Andalucía), Agro Valorizaciones (La Calahorra - see plant_es_20)"
+      ],
+      "sourceUrl": "https://www.iscc-system.org/certification/valid-certificates/",
+      "retrievedAt": "2026-10-09T21:30:00Z",
+      "note": "ISCC public database query (filters country=ES, process unit BG/BM, status valid + expired/withdrawn/suspended, 2026-10-09). These hold ISCC biomethane/biogas certificates but are NOT in Sedigas' injecting list: may be bio-LNG/CNG/trucked or pre-injection - NO injection evidence, so not counted as 'missing injecting plants'."
+    },
+    "certificateDatabaseCoverage": {
+      "value": {
+        "ISCC": "queried (full ES BG/BM list, 111 certificates)",
+        "REDcert": "queried (export of all Spanish certificates, 62 rows: none is a biogas/biomethane plant - UCO/FAME/chemical traders only)",
+        "SURE": "queried by company name for 25 plant/parent names: no Spanish biogas/biomethane plant (only forestry/olive/waste-wood holders)"
+      },
+      "sourceUrl": "https://redcert.eu/ZertifikateDatenAnzeige.aspx",
+      "retrievedAt": "2026-10-09T21:30:00Z",
+      "note": "REDcert: ASP.NET export (Land=Spanien) 2026-10-09; SURE: https://certification.sure-system.org/SearchVerifications by name; ISCC: https://iscc-system.org/wp-json/api/certificates (the site's own JSON backend)."
+    }
+  },
+  "plants": {
+    "plant_es_1": {
+      "gdoRegistered": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.aib-net.org/sites/default/files/assets/aib/AIB%20Annual%20Report%20full%20version%202025%20-%2003.06.2026.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "No per-plant list of Enagás GdO registrations is public (gdogas.es is a login SPA). System-level: AIB Annual Report 2025, Spain-Enagás page: 'Gas – Renewable methane with confirmed sustainability criteria met | 18 production devices | 113 MW'; 'Gas – Renewable methane without confirmed sustainability criteria met | 1 | 3'. No plant-specific statement found."
+      },
+      "injection": {
+        "value": "DSO",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 15 Almazán | Agroganadero | Redexis Renovables | Almazán | Soria | Distribución | Nedgia | abr-25 | 25 || Operator column says Nedgia; es.json (Redexis network) differs - both are distribution (DSO)."
+      },
+      "operatingSince": {
+        "value": "2025-04",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 15 Almazán | ... | abr-25 | 25 || 'Entrada en operación' = abr-25. "
+      },
+      "actualProductionGWh": null,
+      "capacityNm3h": null,
+      "feedstockMix": {
+        "value": "Agro-livestock (Sedigas 'Agroganadero'); ISCC scope list: manure, sewage sludge, animal by-products cat.2, food-industry wastewater, whey permeate, wet pomace, UCO, food waste ... (permitted list, NO percentages published)",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas typology 'Agroganadero'. Redexis acquired the site of 'Energy Green Almazán' (a SANDACH/animal by-product rendering plant) - see ISCC scope below. No % mix published."
+      },
+      "certification": {
+        "value": {
+          "scheme": "ISCC_EU",
+          "certificateNumber": "EU-ISCC-Cert-ES216-20269110",
+          "validUntil": "2027-03-16",
+          "status": "VALID"
+        },
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTM3NTY5X0VVLUlTQ0MtQ2VydC1FUzIxNi0yMDI2OTExMA==",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "BIORED ALMAZAN, Carretera de Gomara km 2,8, 42200 Almazán, Spain | EU-ISCC-Cert-ES216-20269110 | 17.03.26 – 16.03.27 | Scope: Collecting Point, Processing Unit | Processing Unit Type: Biomethane plant | Raw Material: Manure, Sewage sludge, Animal by-products (category 2), Wastewater from the food industry, Industrial wastewater and derivatives, Non-edible cereal residues and waste from grain milling and processing: wheat, corn, barley, rice, Whey permeate, Wet pomace, Waste/residues from processing of vegetable or animal oil (Brown grease / grease trap fat), Waste/residues from processing of vegetable or animal oil (Used cooking  | Products: Biomethane | Issuing CB: Amspec Iberia SL, Vilagarcia de Arousa-Pontevedra, ES || DESK NOTE: Holder 'BIORED ALMAZAN' = Biored Almazán S.L. (CIF B95927380 per es.json; BDNS names the same CIF 'ENERGYGREEN GAS ALMAZAN SOCIEDAD LTDA.')."
+      },
+      "prtrGrant": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=B95927380",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "NOT FOUND in BDNS (infosubvenciones.es, queried 2026-10-09 by nifCif=B95927380 'ENERGYGREEN GAS ALMAZAN / Biored Almazán S.L.'; IDAE calls 642067/642077 = Programa de incentivos a proyectos singulares de instalaciones de biogás, Orden TED/706/2022). NOT proof of NO: BDNS lists only EUR 40.9M of concessions for those two programme lines vs the Orden's 'dotación inicial de 150 millones de euros' (BOE-A-2022-12470), and an SPV may hold a grant under another CIF. Only item found: ICO guarantee EUR 140,000 (2022-03-31, convocatoria 553219, Covid financing guarantee) - not an investment grant.",
+        "bdnsResult": "NO_RECORD"
+      },
+      "otherAid": null,
+      "reportedCI": null,
+      "currentOfftake": null,
+      "nominalCapacityGWh": {
+        "value": 25,
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 15 Almazán | ... | 25 || Column 'GWh / año' is footnoted '(**) Capacidad nominal' - NAMEPLATE, not production."
+      },
+      "openQuestions": [
+        "Confirm Enagás GdO registration (gdogas.es) and 'Public support' field on issued GOs directly with the operator.",
+        "No published per-plant ACTUAL production (Sedigas lists nameplate only). Ask plant / Nedgia / Enagás GTS for metered injection by month.",
+        "No PoS / carbon-intensity published for this plant; request PoS (gCO2e/MJ per step) from operator.",
+        "Offtaker / GO marketing route not published (Redexis Renovables sells via its own contracts; only the Lorca plant has a published first sale).",
+        "ISCC scope includes UCO and animal by-products cat.2 - confirm actual feedstock mix and Annex IX A/B split before relying on a manure-type CI."
+      ],
+      "researchedAt": "2026-10-09T21:30:00Z"
+    },
+    "plant_es_2": {
+      "gdoRegistered": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.aib-net.org/sites/default/files/assets/aib/AIB%20Annual%20Report%20full%20version%202025%20-%2003.06.2026.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "No per-plant list of Enagás GdO registrations is public (gdogas.es is a login SPA). System-level: AIB Annual Report 2025, Spain-Enagás page: 'Gas – Renewable methane with confirmed sustainability criteria met | 18 production devices | 113 MW'; 'Gas – Renewable methane without confirmed sustainability criteria met | 1 | 3'. No plant-specific statement found."
+      },
+      "injection": {
+        "value": "DSO",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 5 Bens | EDAR | Naturgy | A Coruña | A Coruña | Distribución | Nedgia | ene-22 | 8"
+      },
+      "operatingSince": {
+        "value": "2022-01",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 5 Bens | EDAR | Naturgy | ... | ene-22 | 8 || 'Entrada en operación' = ene-22. "
+      },
+      "actualProductionGWh": null,
+      "capacityNm3h": null,
+      "feedstockMix": {
+        "value": "Sewage sludge (EDAR)",
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTQ1OTMxX0VVLUlTQ0MtQ2VydC1QTDIxNC0xMDEzOTI5Ng==",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "ISCC raw material for the Naturgy biomethane unit at EDAR Bens: 'Sewage sludge'. Sedigas typology 'EDAR'."
+      },
+      "certification": {
+        "value": {
+          "scheme": "ISCC_EU",
+          "certificateNumber": "EU-ISCC-Cert-PL214-10139296",
+          "validUntil": "2027-05-12",
+          "status": "VALID"
+        },
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTQ1OTMxX0VVLUlTQ0MtQ2VydC1QTDIxNC0xMDEzOTI5Ng==",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Naturgy Nuevas Energías S.L.U., Calle Lugar de Bens s/n, 15010 A Coruña, Spain | EU-ISCC-Cert-PL214-10139296 | 13.05.26 – 12.05.27 | Scope: Processing Unit, Trader | Processing Unit Type: Biomethane plant | Raw Material: Sewage sludge | Products: Biomethane | Issuing CB: Bureau Veritas Polska Sp. z o.o., Warsaw, PL || DESK NOTE: Certificate holder is Naturgy Nuevas Energías (biomethane upgrading), NOT 'Edar Bens S.A.' (es.json legal entity). EDAR BENS holds a separate ISCC BIOGAS-only cert PL214-10230263 (valid to 2027-05-16, product 'Biogas')."
+      },
+      "prtrGrant": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=A70290358",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "NOT FOUND in BDNS (infosubvenciones.es, queried 2026-10-09 by nifCif=A70290358 'Edar Bens S.A.'; IDAE calls 642067/642077 = Programa de incentivos a proyectos singulares de instalaciones de biogás, Orden TED/706/2022). NOT proof of NO: BDNS lists only EUR 40.9M of concessions for those two programme lines vs the Orden's 'dotación inicial de 150 millones de euros' (BOE-A-2022-12470), and an SPV may hold a grant under another CIF. BDNS returned 0 concessions for this CIF. Upgrading entity (Naturgy Nuevas Energías, CIF B88263249) also 0 concessions.",
+        "bdnsResult": "NO_RECORD"
+      },
+      "otherAid": null,
+      "reportedCI": null,
+      "currentOfftake": null,
+      "nominalCapacityGWh": {
+        "value": 8,
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 5 Bens | ... | 8 || Column 'GWh / año' is footnoted '(**) Capacidad nominal' - NAMEPLATE, not production."
+      },
+      "openQuestions": [
+        "Entity mismatch: es.json says Edar Bens S.A. (CIF A70290358); biomethane ISCC and Sedigas promoter = Naturgy. Who sells the GO/PoS - Naturgy or the consortium?",
+        "Confirm Enagás GdO registration (gdogas.es) and 'Public support' field on issued GOs directly with the operator.",
+        "No published per-plant ACTUAL production (Sedigas lists nameplate only). Ask plant / Nedgia / Enagás GTS for metered injection by month.",
+        "No PoS / carbon-intensity published for this plant; request PoS (gCO2e/MJ per step) from operator.",
+        "Sewage sludge only: check eligibility of the PoS for NL GGE feedstock rules and that the 8 GWh nameplate is not the only meaningful volume (very small)."
+      ],
+      "researchedAt": "2026-10-09T21:30:00Z"
+    },
+    "plant_es_3": {
+      "gdoRegistered": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.aib-net.org/sites/default/files/assets/aib/AIB%20Annual%20Report%20full%20version%202025%20-%2003.06.2026.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "No per-plant list of Enagás GdO registrations is public (gdogas.es is a login SPA). System-level: AIB Annual Report 2025, Spain-Enagás page: 'Gas – Renewable methane with confirmed sustainability criteria met | 18 production devices | 113 MW'; 'Gas – Renewable methane without confirmed sustainability criteria met | 1 | 3'. Axpo is the commercialiser; no public GdO registration statement found."
+      },
+      "injection": {
+        "value": "DSO",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 4 Torres Santamaria | Agroganadero | Axpo Iberia | Vallfogona Balaguer | Lleida | Distribución | Nedgia | dic-21 | 30"
+      },
+      "operatingSince": {
+        "value": "2021-12",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 4 Torres Santamaria | ... | dic-21 | 30 || Energías Renovables (2022-02-07) reports the start of injection on 7 Feb 2022: 'ha comenzado a inyectarlo' / 'sus residuos ganaderos en biometano'. Both tiers are >= 2021."
+      },
+      "actualProductionGWh": null,
+      "capacityNm3h": null,
+      "feedstockMix": {
+        "value": "100% dairy-cow manure ('residuos ganaderos')",
+        "sourceUrl": "https://www.energias-renovables.com/bioenergia/la-granja-torre-santamaria-comienza-a-inyectar-20220207",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "SECONDARY: 'sus residuos ganaderos en biometano' (Energías Renovables 2022-02-07). ISCC raw material: 'Manure, Straw, Feed waste'. es.json cites Axpo: 100% dairy cow manure."
+      },
+      "certification": {
+        "value": {
+          "scheme": "ISCC_EU",
+          "certificateNumber": "EU-ISCC-Cert-PL219-90195803",
+          "validUntil": "2027-04-09",
+          "status": "VALID"
+        },
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTQwODUxX0VVLUlTQ0MtQ2VydC1QTDIxOS05MDE5NTgwMw==",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "NOGUERA RENOVABLES SL, CARRE ESTACIO NUM 42, 25600 VALLFAGONA DE BALAGUER, LLEIDA, Spain | EU-ISCC-Cert-PL219-90195803 | 10.04.26 – 09.04.27 | Scope: Collecting Point, Processing Unit | Processing Unit Type: Biogas plant | Biomethane plant | Raw Material: Manure, Straw, Feed waste | Products: Biomethane | Issuing CB: Control Union Poland Sp. z o.o., Zielona Gora, PL"
+      },
+      "prtrGrant": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=B25719485",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "BDNS nifCif=B25719485 (Noguera Renovables SL): two grants - ICAEN PRTR renewable-thermal programme (not Orden TED/706) and a Generalitat biogas-plant call. NO IDAE Orden TED/706 grant found. Whether either covers the biomethane upgrade, and whether their terms contain a 'certificados verdes' incompatibility, is UNKNOWN - legal check needed.",
+        "details": {
+          "granted": "UNKNOWN",
+          "found": [
+            {
+              "program": "ICAEN 'Programa de incentivos para la implantación de instalaciones de energías renovables térmicas ... en el marco del Plan de Recuperación y Resiliencia'",
+              "amountEUR": 84091,
+              "date": "2025-10-21",
+              "code": "SB137204592"
+            },
+            {
+              "program": "Generalitat Dept. Agricultura 'Ayudas ... plantas de biogás y tratamiento ... digeridos para el año 2024' (call 749934; not labelled PRTR in BDNS)",
+              "amountEUR": 582401.36,
+              "date": "2025-04-25",
+              "code": "SB129261537"
+            }
+          ]
+        }
+      },
+      "otherAid": {
+        "value": "Investment aid (regional): EUR 582,401.36 Generalitat biogas call 2024 + EUR 84,091 ICAEN PRTR thermal. No operating aid found.",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=B25719485",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "BDNS codes SB129261537 (2025-04-25) and SB137204592 (2025-10-21)."
+      },
+      "reportedCI": null,
+      "currentOfftake": {
+        "value": "Axpo Iberia (long-term biomethane purchase agreement signed 2020; term not published); Axpo Iberia + Sorigué hold 80% since 2023",
+        "sourceUrl": "https://www.energias-renovables.com/bioenergia/la-granja-torre-santamaria-comienza-a-inyectar-20220207",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "SECONDARY: 'el primer acuerdo de compraventa de biometano a largo plazo en España, firmado por Torre Santamaría con Axpo Iberia'."
+      },
+      "nominalCapacityGWh": {
+        "value": 30,
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 4 Torres Santamaria | ... | 30 || Column 'GWh / año' is footnoted '(**) Capacidad nominal' - NAMEPLATE, not production."
+      },
+      "openQuestions": [
+        "Contract end date / whether GOs and PoS are included in the Axpo PPA and free to resell (term unpublished).",
+        "Confirm Enagás GdO registration (gdogas.es) and 'Public support' field on issued GOs directly with the operator.",
+        "No published per-plant ACTUAL production (Sedigas lists nameplate only). Ask plant / Nedgia / Enagás GTS for metered injection by month.",
+        "No PoS / carbon-intensity published for this plant; request PoS (gCO2e/MJ per step) from operator.",
+        "Do the Generalitat (749934) and ICAEN grants trigger any 'certificados verdes' incompatibility clause in their own bases?"
+      ],
+      "researchedAt": "2026-10-09T21:30:00Z"
+    },
+    "plant_es_4": {
+      "gdoRegistered": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.aib-net.org/sites/default/files/assets/aib/AIB%20Annual%20Report%20full%20version%202025%20-%2003.06.2026.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "No per-plant list of Enagás GdO registrations is public (gdogas.es is a login SPA). System-level: AIB Annual Report 2025, Spain-Enagás page: 'Gas – Renewable methane with confirmed sustainability criteria met | 18 production devices | 113 MW'; 'Gas – Renewable methane without confirmed sustainability criteria met | 1 | 3'. No plant-specific statement found."
+      },
+      "injection": {
+        "value": "DSO",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 2 Elena | Vertedero | Naturgy | Cerdanyola del Vallès | Barcelona | Distribución | Nedgia | jun-21 | 12"
+      },
+      "operatingSince": {
+        "value": "2021-06",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 2 Elena | Vertedero | Naturgy | ... | jun-21 | 12 || 'Entrada en operación' = jun-21. "
+      },
+      "actualProductionGWh": null,
+      "capacityNm3h": null,
+      "feedstockMix": {
+        "value": "Landfill gas (closed Elena landfill)",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas typology 'Vertedero'. Landfill gas is waste-derived but is NOT manure / bio-waste digestate."
+      },
+      "certification": {
+        "value": {
+          "scheme": "ISCC_EU",
+          "certificateNumber": "EU-ISCC-Cert-PL214-05061925",
+          "validUntil": "2026-07-22",
+          "status": "EXPIRED"
+        },
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTA0MzQ3X0VVLUlTQ0MtQ2VydC1QTDIxNC0wNTA2MTkyNQ==",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Naturgy Nuevas Energías S.L.U., Vial 2a Parc de l'Alba S/N, 08942 Cerdanyola del Vallès (Barcelona), Spain | EU-ISCC-Cert-PL214-05061925 | 23.07.25 – 22.07.26 | Scope: Trader, Processing Unit | Processing Unit Type: Biomethane plant | Biogas plant | Raw Material: --no materials handled as sustainable in the previous certification period-- | Products: - | Issuing CB: Bureau Veritas Polska Sp. z o.o., Warsaw, PL || DESK NOTE: EXPIRED 2026-07-22 and no later certificate found. The listed raw-material line says '--no materials handled as sustainable in the previous certification period--'."
+      },
+      "prtrGrant": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=B88263249",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "NOT FOUND in BDNS (infosubvenciones.es, queried 2026-10-09 by nifCif=B88263249 'Naturgy Nuevas Energías S.L.U.'; IDAE calls 642067/642077 = Programa de incentivos a proyectos singulares de instalaciones de biogás, Orden TED/706/2022). NOT proof of NO: BDNS lists only EUR 40.9M of concessions for those two programme lines vs the Orden's 'dotación inicial de 150 millones de euros' (BOE-A-2022-12470), and an SPV may hold a grant under another CIF. ",
+        "bdnsResult": "NO_RECORD"
+      },
+      "otherAid": null,
+      "reportedCI": null,
+      "currentOfftake": null,
+      "nominalCapacityGWh": {
+        "value": 12,
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 2 Elena | ... | 12 || Column 'GWh / año' is footnoted '(**) Capacidad nominal' - NAMEPLATE, not production."
+      },
+      "openQuestions": [
+        "ISCC certificate lapsed 2026-07-22 and previous-period volume was nil - plant may not be producing certified biomethane. Confirm.",
+        "Confirm Enagás GdO registration (gdogas.es) and 'Public support' field on issued GOs directly with the operator.",
+        "No published per-plant ACTUAL production (Sedigas lists nameplate only). Ask plant / Nedgia / Enagás GTS for metered injection by month.",
+        "No PoS / carbon-intensity published for this plant; request PoS (gCO2e/MJ per step) from operator."
+      ],
+      "researchedAt": "2026-10-09T21:30:00Z"
+    },
+    "plant_es_5": {
+      "gdoRegistered": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.aib-net.org/sites/default/files/assets/aib/AIB%20Annual%20Report%20full%20version%202025%20-%2003.06.2026.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "No per-plant list of Enagás GdO registrations is public (gdogas.es is a login SPA). System-level: AIB Annual Report 2025, Spain-Enagás page: 'Gas – Renewable methane with confirmed sustainability criteria met | 18 production devices | 113 MW'; 'Gas – Renewable methane without confirmed sustainability criteria met | 1 | 3'. No plant-specific statement found."
+      },
+      "injection": {
+        "value": "DSO",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 8 Can Mata | Vertedero | PreZero | Els Hostalets de Pierola | Barcelona | Distribución | Nedgia | jun-23 | 70"
+      },
+      "operatingSince": {
+        "value": "2023-06",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 8 Can Mata | Vertedero | PreZero | ... | jun-23 | 70 || 'Entrada en operación' = jun-23. Waga/PreZero press: plant operational 20 June 2023 (secondary)."
+      },
+      "actualProductionGWh": null,
+      "capacityNm3h": null,
+      "feedstockMix": {
+        "value": "Landfill gas (controlled waste repository, 'Organic municipal solid waste (MSW)')",
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTQwOTg4X0VVLUlTQ0MtQ2VydC1OTDIyMC0yMjczMzEwMDA0",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "ISCC raw material: 'Organic municipal solid waste (MSW)'. Sedigas typology 'Vertedero'."
+      },
+      "certification": {
+        "value": {
+          "scheme": "ISCC_EU",
+          "certificateNumber": "EU-ISCC-Cert-NL220-2273310004",
+          "validUntil": "2027-05-21",
+          "status": "VALID"
+        },
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTQwOTg4X0VVLUlTQ0MtQ2VydC1OTDIyMC0yMjczMzEwMDA0",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "WAGA ENERGY, B-231 4, 08781 Els Hostalets de Pierola, Barcelona, Spain | EU-ISCC-Cert-NL220-2273310004 | 22.05.26 – 21.05.27 | Scope: Point of Origin, Processing Unit | Processing Unit Type: Biomethane plant | Raw Material: Organic municipal solid waste (MSW) | Products: Biomethane | Issuing CB: DEKRA Certification B.V., Arnhem, NL || DESK NOTE: Holder is Waga Energy (WAGABOX operator), not PreZero España (es.json legal entity)."
+      },
+      "prtrGrant": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=A82741067",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "NOT FOUND in BDNS (infosubvenciones.es, queried 2026-10-09 by nifCif=A82741067 'PreZero España S.A.'; IDAE calls 642067/642077 = Programa de incentivos a proyectos singulares de instalaciones de biogás, Orden TED/706/2022). NOT proof of NO: BDNS lists only EUR 40.9M of concessions for those two programme lines vs the Orden's 'dotación inicial de 150 millones de euros' (BOE-A-2022-12470), and an SPV may hold a grant under another CIF. PreZero CIF has 25 concessions, none under biogas/PRTR biogas calls (hydrogen-mobility and wind-blade recycling PRTR grants are unrelated). Waga Energy España S.L. (the plant operator) not checked - no CIF in es.json.",
+        "bdnsResult": "NO_RECORD"
+      },
+      "otherAid": null,
+      "reportedCI": null,
+      "currentOfftake": null,
+      "nominalCapacityGWh": {
+        "value": 70,
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 8 Can Mata | ... | 70 || Column 'GWh / año' is footnoted '(**) Capacidad nominal' - NAMEPLATE, not production."
+      },
+      "openQuestions": [
+        "Waga Energy is the certificate holder/operator; es.json legal entity is PreZero. Who sells GO/PoS? Waga España CIF not in dataset (B16746091 in es.json note) - check BDNS for it.",
+        "Press (secondary, not fetched verbatim): EUR 2.4M EU Innovation Fund Small Scale grant - investment aid; confirm.",
+        "Long-term PPA with a private operator (name unpublished) - GO/PoS rights?",
+        "Confirm Enagás GdO registration (gdogas.es) and 'Public support' field on issued GOs directly with the operator.",
+        "No published per-plant ACTUAL production (Sedigas lists nameplate only). Ask plant / Nedgia / Enagás GTS for metered injection by month.",
+        "No PoS / carbon-intensity published for this plant; request PoS (gCO2e/MJ per step) from operator."
+      ],
+      "researchedAt": "2026-10-09T21:30:00Z"
+    },
+    "plant_es_6": {
+      "gdoRegistered": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.aib-net.org/sites/default/files/assets/aib/AIB%20Annual%20Report%20full%20version%202025%20-%2003.06.2026.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "No per-plant list of Enagás GdO registrations is public (gdogas.es is a login SPA). System-level: AIB Annual Report 2025, Spain-Enagás page: 'Gas – Renewable methane with confirmed sustainability criteria met | 18 production devices | 113 MW'; 'Gas – Renewable methane without confirmed sustainability criteria met | 1 | 3'. Not in Sedigas injecting list; registration unlikely but unverified."
+      },
+      "injection": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "TRARGISA Girona Campdorà does not appear in the Sedigas list of operating injecting plants (Jan 2026) nor in its live map (25 placemarks)."
+      },
+      "operatingSince": null,
+      "actualProductionGWh": null,
+      "capacityNm3h": null,
+      "feedstockMix": null,
+      "certification": null,
+      "prtrGrant": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=A17068511",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "NOT FOUND in BDNS (infosubvenciones.es, queried 2026-10-09 by nifCif=A17068511 'TRARGISA'; IDAE calls 642067/642077 = Programa de incentivos a proyectos singulares de instalaciones de biogás, Orden TED/706/2022). NOT proof of NO: BDNS lists only EUR 40.9M of concessions for those two programme lines vs the Orden's 'dotación inicial de 150 millones de euros' (BOE-A-2022-12470), and an SPV may hold a grant under another CIF. BDNS: 1 concession only (not biogas-related).",
+        "bdnsResult": "NO_RECORD"
+      },
+      "otherAid": null,
+      "reportedCI": null,
+      "currentOfftake": null,
+      "nominalCapacityGWh": null,
+      "openQuestions": [
+        "No ISCC / REDcert / SURE certificate found for TRARGISA / CTR Girona Campdorà, and the plant is NOT in Sedigas' 24/25-plant injecting list (Jan 2026). es.json itself only says 'trial injection'/'local mobility'.",
+        "Duplicate of plant_es_21 (same CIF A17068511) - merge in the app.",
+        "Duplicate of plant_es_21.",
+        "Is there any biomethane upgrading at Campdorà at all? Municipal vehicles (buses/trucks) only?"
+      ],
+      "researchedAt": "2026-10-09T21:30:00Z",
+      "excluded": true,
+      "excludedReason": "Duplicate of plant_es_21 (same CIF A17068511, TRARGISA Campdorà); not in the Sedigas injecting list. Merge or remove is the desk's call."
+    },
+    "plant_es_7": {
+      "gdoRegistered": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.aib-net.org/sites/default/files/assets/aib/AIB%20Annual%20Report%20full%20version%202025%20-%2003.06.2026.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "No per-plant list of Enagás GdO registrations is public (gdogas.es is a login SPA). System-level: AIB Annual Report 2025, Spain-Enagás page: 'Gas – Renewable methane with confirmed sustainability criteria met | 18 production devices | 113 MW'; 'Gas – Renewable methane without confirmed sustainability criteria met | 1 | 3'. No plant-specific statement found. PRTR beneficiaries of Orden TED/706/2022 must register: 'f) Inscribir las instalaciones de su titularidad que resulten proyectos subvencionados ... en el Registro de instalaciones de producción de gas procedente de fuentes renovables' (BOE-A-2022-12470) - an obligation, not proof it is done."
+      },
+      "injection": {
+        "value": "DSO",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 9 BioVO | EDAR | Consorcio BS+GRVO | Granollers | Barcelona | Distribución | Nedgia | oct-23 | 22"
+      },
+      "operatingSince": {
+        "value": "2023-10",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 9 BioVO | ... | oct-23 | 22 || 'Entrada en operación' = oct-23. Sedigas live map says 'Octubre (2021)' (typo); the PDF says oct-23."
+      },
+      "actualProductionGWh": null,
+      "capacityNm3h": null,
+      "feedstockMix": {
+        "value": "Municipal organic waste (FORSU) + sewage sludge",
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTU4NjM5X0VVLUlTQ0MtQ2VydC1FUzIxNi0yMDI2ODA2NA==",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "ISCC raw material: 'Organic municipal solid waste (MSW), Sewage sludge'. Sedigas typology 'EDAR'."
+      },
+      "certification": {
+        "value": {
+          "scheme": "ISCC_EU",
+          "certificateNumber": "EU-ISCC-Cert-ES216-20268064",
+          "validUntil": "2027-07-30",
+          "status": "VALID"
+        },
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTU4NjM5X0VVLUlTQ0MtQ2VydC1FUzIxNi0yMDI2ODA2NA==",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "CONSORCI PER A LA GESTIÓ DELS RESIDUS DEL VALLÈS ORIENTAL, CAMÍ RAL S/N, 08401 GRANOLLERS - BARCELONA, Spain | EU-ISCC-Cert-ES216-20268064 | 31.07.26 – 30.07.27 | Scope: Collecting Point, Point of Origin, Processing Unit | Processing Unit Type: Biogas plant | Biomethane plant | Raw Material: Organic municipal solid waste (MSW), Sewage sludge | Products: Biogas, Biomethane | Issuing CB: Amspec Iberia SL, Vilagarcia de Arousa-Pontevedra, ES"
+      },
+      "prtrGrant": {
+        "value": "YES",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=P5809509B&numeroConvocatoria=642077",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "BDNS record SB89488825: beneficiario 'CONSORCI PER A LA GESTIÓ DELS RESIDUS DEL VALLÈS ORIENTAL', importe 2503750, fecha concesión 2025-12-02, convocatoria 642077 'Primera convocatoria del programa de incentivos a proyectos singulares de instalaciones de biogás, en el marco del Plan de Recuperación, Transformación y Resiliencia' (IDAE). Orden TED/706/2022 Art. 5.3 (BOE): 'la aceptación de la ayuda que se conceda es incompatible con la existencia de cualquier acuerdo suscrito por parte del beneficiario/a que se utilice para la obtención de certificados verdes, en el marco de un mecanismo de apoyo, establecido, o que se pudiera establecer en el futuro, en el ámbito nacional, de la Unión Europea o internacional.' Also: 'las ayudas de la presente orden son compatibles con la percepción de garantías de origen.' (BOE-A-2022-12470).",
+        "details": {
+          "granted": true,
+          "program": "IDAE Programa de incentivos 2 (biogás)",
+          "amountEUR": 2503750,
+          "concessionDate": "2025-12-02",
+          "bdnsConcessionCode": "SB89488825",
+          "beneficiaryNameInBDNS": "CONSORCI PER A LA GESTIÓ DELS RESIDUS DEL VALLÈS ORIENTAL",
+          "orderBasis": "Orden TED/706/2022"
+        }
+      },
+      "otherAid": {
+        "value": "PRTR / Catalan waste-agency investment subsidies (EUR 52.3M direct subsidy 2022-12-21 for the AD/composting extension, others) + REER 'retribución específica' electricity aid (EUR 106,363.69 in 2024; 199,711.56 in 2023; 321,278.07 in 2022)",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=P5809509B",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "BDNS codes e.g. SB155400216 (REER 2024-01-01), SB143174949, SB105975055; direct ARC subsidy 543984. REER is operating aid on ELECTRICITY at the entity - Confirm the REER (RD 413/2014 / RECORE 'retribución específica') electricity unit on this entity is NOT fed by the digester whose gas is sold as biomethane; if it is, the gas has operating aid and fails NL R11."
+      },
+      "reportedCI": null,
+      "currentOfftake": {
+        "value": "Naturgy: 'Naturgy se garantiza la compra de hasta 22 GWh de biometano durante un año prorrogable.'",
+        "sourceUrl": "https://www.energias-renovables.com/bioenergia/naturgy-adquirira-el-biometano-producido-en-la-20230531",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "SECONDARY (Energías Renovables 2023-05-31). Current status of renewal unknown."
+      },
+      "nominalCapacityGWh": {
+        "value": 22,
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 9 BioVO | ... | 22 || Column 'GWh / año' is footnoted '(**) Capacidad nominal' - NAMEPLATE, not production."
+      },
+      "openQuestions": [
+        "IDAE PRTR grant EUR 2.5M: does selling GO+PoS into the Dutch GGE scheme count as an agreement 'que se utilice para la obtención de certificados verdes'? Legal check (Orden TED/706 Art. 5.3).",
+        "Confirm the REER (RD 413/2014 / RECORE 'retribución específica') electricity unit on this entity is NOT fed by the digester whose gas is sold as biomethane; if it is, the gas has operating aid and fails NL R11.",
+        "Nedgia press release (HTTP 403, not read) quotes 4 GWh/y injection rising to 27 GWh - nameplate 22 vs actual unknown.",
+        "Confirm Enagás GdO registration (gdogas.es) and 'Public support' field on issued GOs directly with the operator.",
+        "No published per-plant ACTUAL production (Sedigas lists nameplate only). Ask plant / Nedgia / Enagás GTS for metered injection by month.",
+        "No PoS / carbon-intensity published for this plant; request PoS (gCO2e/MJ per step) from operator."
+      ],
+      "researchedAt": "2026-10-09T21:30:00Z"
+    },
+    "plant_es_8": {
+      "gdoRegistered": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.aib-net.org/sites/default/files/assets/aib/AIB%20Annual%20Report%20full%20version%202025%20-%2003.06.2026.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "No per-plant list of Enagás GdO registrations is public (gdogas.es is a login SPA). System-level: AIB Annual Report 2025, Spain-Enagás page: 'Gas – Renewable methane with confirmed sustainability criteria met | 18 production devices | 113 MW'; 'Gas – Renewable methane without confirmed sustainability criteria met | 1 | 3'. No plant-specific statement found."
+      },
+      "injection": {
+        "value": "TSO",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 6 La Galera | Agroganadero | Biometagás | La Galera | Tarragona | Transporte | Enagas | abr-23 | 50 || Sedigas lists network operator Enagás = TRANSPORT network (TSO injection)."
+      },
+      "operatingSince": {
+        "value": "2023-04",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 6 La Galera | ... | abr-23 | 50 || 'Entrada en operación' = abr-23. Enagás press release 2023-04-28 'inicio de la inyección de biometano en La Galera' (title only read)."
+      },
+      "actualProductionGWh": null,
+      "capacityNm3h": null,
+      "feedstockMix": {
+        "value": "Manure, sewage sludge, wet pomace, bio-waste from trade/services, food waste, feed waste, industrial wastewater (ISCC scope list, no %)",
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTU3Mzc0X0VVLUlTQ0MtQ2VydC1QTDIxNC0xMDA2MjI4Ng==",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "ISCC raw material list; no percentages published. Ence press (2024-12-19): produces 'compost y ... fertilizante orgánico'."
+      },
+      "certification": {
+        "value": {
+          "scheme": "ISCC_EU",
+          "certificateNumber": "EU-ISCC-Cert-PL214-10062286",
+          "validUntil": "2027-07-25",
+          "status": "VALID"
+        },
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTU3Mzc0X0VVLUlTQ0MtQ2VydC1QTDIxNC0xMDA2MjI4Ng==",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Biometagas La Galera, Camí de Masdenverge S/n, 43515 La Galera - Tarragona, Spain | EU-ISCC-Cert-PL214-10062286 | 26.07.26 – 25.07.27 | Scope: Collecting Point, Processing Unit | Processing Unit Type: Biogas plant | Biomethane plant | Raw Material: Manure, Sewage sludge, Wet pomace, Organic waste and similar waste flows from trade, services and companies (bio-waste from trade, services and companies), Food waste, Feed waste, Industrial wastewater and derivatives | Products: Biogas, Biomethane | Issuing CB: Bureau Veritas Polska Sp. z o.o., Warsaw, PL"
+      },
+      "prtrGrant": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=B43990449",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "NOT FOUND in BDNS (infosubvenciones.es, queried 2026-10-09 by nifCif=B43990449 'Biometagàs La Galera S.L.'; IDAE calls 642067/642077 = Programa de incentivos a proyectos singulares de instalaciones de biogás, Orden TED/706/2022). NOT proof of NO: BDNS lists only EUR 40.9M of concessions for those two programme lines vs the Orden's 'dotación inicial de 150 millones de euros' (BOE-A-2022-12470), and an SPV may hold a grant under another CIF. BDNS: 0 concessions.",
+        "bdnsResult": "NO_RECORD"
+      },
+      "otherAid": null,
+      "reportedCI": null,
+      "currentOfftake": {
+        "value": "Un 'relevante comercializadora de gas' (unnamed) - 15-year agreement signed by Ence",
+        "sourceUrl": "https://www.energias-renovables.com/bioenergia/ence-adquiere-su-primera-planta-de-biometano-20241219",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "SECONDARY: 'ya ha firmado un acuerdo a 15 años vista' ... 'una relevante comercializadora de gas para la venta del biometano producido por la planta' (Energías Renovables 2024-12-19). Counterparty and GO/PoS rights unpublished; capacity 'hasta un máximo de 50 GWh'."
+      },
+      "nominalCapacityGWh": {
+        "value": 50,
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 6 La Galera | ... | 50 || Column 'GWh / año' is footnoted '(**) Capacidad nominal' - NAMEPLATE, not production."
+      },
+      "openQuestions": [
+        "Output appears contracted for ~15 years to an unnamed gas marketer - is there any free volume / are GOs included?",
+        "Ence figures (secondary): design 'hasta un máximo de 50 GWh'; current output not quantified in the article read.",
+        "Confirm Enagás GdO registration (gdogas.es) and 'Public support' field on issued GOs directly with the operator.",
+        "No published per-plant ACTUAL production (Sedigas lists nameplate only). Ask plant / Nedgia / Enagás GTS for metered injection by month.",
+        "No PoS / carbon-intensity published for this plant; request PoS (gCO2e/MJ per step) from operator."
+      ],
+      "researchedAt": "2026-10-09T21:30:00Z"
+    },
+    "plant_es_9": {
+      "gdoRegistered": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.aib-net.org/sites/default/files/assets/aib/AIB%20Annual%20Report%20full%20version%202025%20-%2003.06.2026.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "No per-plant list of Enagás GdO registrations is public (gdogas.es is a login SPA). System-level: AIB Annual Report 2025, Spain-Enagás page: 'Gas – Renewable methane with confirmed sustainability criteria met | 18 production devices | 113 MW'; 'Gas – Renewable methane without confirmed sustainability criteria met | 1 | 3'. No plant-specific statement found."
+      },
+      "injection": {
+        "value": "TSO",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 1 Valdemingomez | Residuo Municipal | PreZero | Madrid | Madrid | Transporte | Enagas | feb-12 | 180 || Transport network (Enagás)."
+      },
+      "operatingSince": {
+        "value": "2012-02",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 1 Valdemingomez | ... | feb-12 | 180 || 'Entrada en operación' = feb-12. Pre-2015 start: lowest-tier RED GHG threshold for installations that started before the RED cut-off dates."
+      },
+      "actualProductionGWh": null,
+      "capacityNm3h": null,
+      "feedstockMix": {
+        "value": "Municipal organic waste (MSW)",
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTU0NjMzX0VVLUlTQ0MtQ2VydC1OTDIyMC0yMjM5NTM0MDA4",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "ISCC raw material: 'Organic municipal solid waste (MSW)'. Sedigas typology 'Residuo Municipal'."
+      },
+      "certification": {
+        "value": {
+          "scheme": "ISCC_EU",
+          "certificateNumber": "EU-ISCC-Cert-NL220-2239534008",
+          "validUntil": "2027-08-22",
+          "status": "VALID"
+        },
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTU0NjMzX0VVLUlTQ0MtQ2VydC1OTDIyMC0yMjM5NTM0MDA4",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Prezero Gestión de Residuos S.A., Carretera de Valencia Km14, Ctra. Vertedero Municipal Valdemingomez 14, 28031 Madrid, Spain | EU-ISCC-Cert-NL220-2239534008 | 23.08.26 – 22.08.27 | Scope: Collecting Point, Processing Unit | Processing Unit Type: Biogas plant | Biomethane plant | Raw Material: Organic municipal solid waste (MSW) | Products: Biogas, Biomethane | Issuing CB: DEKRA Certification B.V., Arnhem, NL || DESK NOTE: Holder is PreZero Gestión de Residuos S.A. (formerly Cespa); es.json legal entity is Ayuntamiento de Madrid."
+      },
+      "prtrGrant": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=P2807900B",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "NOT FOUND in BDNS (infosubvenciones.es, queried 2026-10-09 by nifCif=P2807900B 'Ayuntamiento de Madrid'; IDAE calls 642067/642077 = Programa de incentivos a proyectos singulares de instalaciones de biogás, Orden TED/706/2022). NOT proof of NO: BDNS lists only EUR 40.9M of concessions for those two programme lines vs the Orden's 'dotación inicial de 150 millones de euros' (BOE-A-2022-12470), and an SPV may hold a grant under another CIF. Ayuntamiento de Madrid has 87 unrelated concessions (ZBE, digital etc.); none under biogas/PRTR biogas. Operator PreZero Gestión de Residuos S.A. not checked.",
+        "bdnsResult": "NO_RECORD"
+      },
+      "otherAid": null,
+      "reportedCI": null,
+      "currentOfftake": null,
+      "nominalCapacityGWh": {
+        "value": 180,
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 1 Valdemingomez | ... | 180 || Column 'GWh / año' is footnoted '(**) Capacidad nominal' - NAMEPLATE, not production."
+      },
+      "openQuestions": [
+        "Press (Energías Renovables 2015, secondary): in 2014 ~6 million m3 biomethane injected vs 19 million forecast - nameplate 180 GWh in Sedigas is far above any published actual.",
+        "Municipal-waste plant under a public concession: is any support (feed-in / waste-treatment fee) attached? Not published.",
+        "Confirm Enagás GdO registration (gdogas.es) and 'Public support' field on issued GOs directly with the operator.",
+        "No published per-plant ACTUAL production (Sedigas lists nameplate only). Ask plant / Nedgia / Enagás GTS for metered injection by month.",
+        "No PoS / carbon-intensity published for this plant; request PoS (gCO2e/MJ per step) from operator."
+      ],
+      "researchedAt": "2026-10-09T21:30:00Z"
+    },
+    "plant_es_10": {
+      "gdoRegistered": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.aib-net.org/sites/default/files/assets/aib/AIB%20Annual%20Report%20full%20version%202025%20-%2003.06.2026.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "No per-plant list of Enagás GdO registrations is public (gdogas.es is a login SPA). System-level: AIB Annual Report 2025, Spain-Enagás page: 'Gas – Renewable methane with confirmed sustainability criteria met | 18 production devices | 113 MW'; 'Gas – Renewable methane without confirmed sustainability criteria met | 1 | 3'. No plant-specific statement found."
+      },
+      "injection": {
+        "value": "DSO",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 16 Montes de Toledo | Agroganadero | Biomethane Initiatives | Noez | Toledo | Distribución | Nedgia | may-25 | 40"
+      },
+      "operatingSince": {
+        "value": "2025-05",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 16 Montes de Toledo | ... | may-25 | 40 || 'Entrada en operación' = may-25. "
+      },
+      "actualProductionGWh": null,
+      "capacityNm3h": null,
+      "feedstockMix": {
+        "value": "Cattle manure ~50,000 t, pig slurry ~30,000 t, sewage sludge + agro-food waste ~20,000 t (planned)",
+        "sourceUrl": "https://forbes.es/ultima-hora/313104/la-planta-de-biomethane-initiatives-en-toledo-inyectara-40-gwh-de-gas-renovable-a-la-red-de-naturgy/",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "SECONDARY (Forbes España 2023-07-18, design stage): 'desde estiércol vacuno y purín porcino hasta lodos de depuradora y residuos de las industrias agroalimentarias cercanas'. ISCC scope: manure, food waste, sewage sludge, food-industry wastewater, whey permeate."
+      },
+      "certification": {
+        "value": {
+          "scheme": "ISCC_EU",
+          "certificateNumber": "EU-ISCC-Cert-PL214-61640426",
+          "validUntil": "2027-05-13",
+          "status": "VALID"
+        },
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTQ2NTc5X0VVLUlTQ0MtQ2VydC1QTDIxNC02MTY0MDQyNg==",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Biometano Montes de Toledo, polígono 3 Parcela 149, 45162 Noez, Spain | EU-ISCC-Cert-PL214-61640426 | 14.05.26 – 13.05.27 | Scope: Collecting Point, Processing Unit | Processing Unit Type: Biogas plant | Biomethane plant | Raw Material: Manure, Food waste, Sewage sludge, Wastewater from the food industry, Industrial wastewater and derivatives, Whey permeate | Products: Biogas, Biomethane | Issuing CB: Bureau Veritas Polska Sp. z o.o., Warsaw, PL"
+      },
+      "prtrGrant": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=B42797563",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "NOT FOUND in BDNS (infosubvenciones.es, queried 2026-10-09 by nifCif=B42797563 'Biometano Montes de Toledo S.L.'; IDAE calls 642067/642077 = Programa de incentivos a proyectos singulares de instalaciones de biogás, Orden TED/706/2022). NOT proof of NO: BDNS lists only EUR 40.9M of concessions for those two programme lines vs the Orden's 'dotación inicial de 150 millones de euros' (BOE-A-2022-12470), and an SPV may hold a grant under another CIF. Only grant found: 'Incentivos Regionales para la corrección de los desequilibrios económicos interterritoriales' EUR 1,197,706.05 (2023-12-28, SB97442009) - a regional INVESTMENT incentive, not PRTR.",
+        "bdnsResult": "NO_RECORD"
+      },
+      "otherAid": {
+        "value": "Investment aid: regional incentive EUR 1,197,706.05 (2023-12-28). No operating aid found.",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=B42797563",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "BDNS SB97442009, convocatoria 300692 'Incentivos Regionales para la corrección de los desequilibrios económicos interterritoriales'."
+      },
+      "reportedCI": null,
+      "currentOfftake": {
+        "value": "Nedgia injection agreement for 40 GWh/y; commercial offtaker / GO owner not published",
+        "sourceUrl": "https://forbes.es/ultima-hora/313104/la-planta-de-biomethane-initiatives-en-toledo-inyectara-40-gwh-de-gas-renovable-a-la-red-de-naturgy/",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "SECONDARY: Biomethane Initiatives 'ha llegado a un acuerdo con Nedgia, la distribuidora de gas del grupo Naturgy' (a grid-connection/injection agreement, not necessarily a gas sale)."
+      },
+      "nominalCapacityGWh": {
+        "value": 40,
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 16 Montes de Toledo | ... | 40 || Column 'GWh / año' is footnoted '(**) Capacidad nominal' - NAMEPLATE, not production."
+      },
+      "openQuestions": [
+        "Who buys gas + GOs? (Nedgia deal = injection). Candidate for a Spanish-origin GO+PoS purchase.",
+        "Confirm Enagás GdO registration (gdogas.es) and 'Public support' field on issued GOs directly with the operator.",
+        "No published per-plant ACTUAL production (Sedigas lists nameplate only). Ask plant / Nedgia / Enagás GTS for metered injection by month.",
+        "No PoS / carbon-intensity published for this plant; request PoS (gCO2e/MJ per step) from operator."
+      ],
+      "researchedAt": "2026-10-09T21:30:00Z"
+    },
+    "plant_es_11": {
+      "gdoRegistered": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.aib-net.org/sites/default/files/assets/aib/AIB%20Annual%20Report%20full%20version%202025%20-%2003.06.2026.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "No per-plant list of Enagás GdO registrations is public (gdogas.es is a login SPA). System-level: AIB Annual Report 2025, Spain-Enagás page: 'Gas – Renewable methane with confirmed sustainability criteria met | 18 production devices | 113 MW'; 'Gas – Renewable methane without confirmed sustainability criteria met | 1 | 3'. No plant-specific statement found."
+      },
+      "injection": {
+        "value": "DSO",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 7 Biovelgas | Agroganadero | Nortegas | Ólvega | Soria | Distribución | Redexis | abr-23 | 30 || Sedigas network operator Redexis (es.json said Nortegas network) - DSO either way."
+      },
+      "operatingSince": {
+        "value": "2023-04",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 7 Biovelgas | ... | abr-23 | 30 || 'Entrada en operación' = abr-23. Energías Renovables 2023-04-25: 'la primera inyección en red de biometano'."
+      },
+      "actualProductionGWh": null,
+      "capacityNm3h": null,
+      "feedstockMix": {
+        "value": "~15,000 t/y pig, cattle and poultry manure ('deyecciones') + ~35,000 t/y agro-food waste, industrial waste and waste oils",
+        "sourceUrl": "https://www.energias-renovables.com/bioenergia/biolvegas-comienza-a-inyectar-biometano-en-la-20230425",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "SECONDARY: 'unas 15.000 toneladas de deyecciones de ganado porcino, vacuno y avícola' ... 'unas 35.000 toneladas de residuos agroalimentarios'. ISCC scope also lists UCO, grease trap fat, crude glycerine, fish oil etc."
+      },
+      "certification": {
+        "value": {
+          "scheme": "ISCC_EU",
+          "certificateNumber": "EU-ISCC-Cert-ES216-20267051",
+          "validUntil": "2027-02-22",
+          "status": "VALID"
+        },
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTM0NTAzX0VVLUlTQ0MtQ2VydC1FUzIxNi0yMDI2NzA1MQ==",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Biolvegas, Camino Marojales 1, 42110 Olvega, Spain | EU-ISCC-Cert-ES216-20267051 | 23.02.26 – 22.02.27 | Scope: Collecting Point, Processing Unit | Processing Unit Type: Biomethane plant | Raw Material: Manure, Brown grease / grease trap fat, Crude glycerine, Food waste, Sewage sludge, Spent bleaching earth, Used cooking oil (UCO), Husks, Wastewater from the food industry, Sugar beet residues, Waste fish oil, Transesterification residues (TER), Residues from the processing of corn/maize, Industrial wastewater and derivatives, Dairy waste scum, Fruit/vegetable residues and waste (Only tails, leaves, stalks and husks) | Products: Biomethane | Issuing CB: Amspec Iberia SL, Vilagarcia de Arousa-Pontevedra, ES"
+      },
+      "prtrGrant": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=B42220830",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "NOT FOUND in BDNS (infosubvenciones.es, queried 2026-10-09 by nifCif=B42220830 'Biolvegas S.L.'; IDAE calls 642067/642077 = Programa de incentivos a proyectos singulares de instalaciones de biogás, Orden TED/706/2022). NOT proof of NO: BDNS lists only EUR 40.9M of concessions for those two programme lines vs the Orden's 'dotación inicial de 150 millones de euros' (BOE-A-2022-12470), and an SPV may hold a grant under another CIF. Found: IDAE 'ayudas a la inversión en instalaciones de producción de energía térmica ... Castilla y León cofinanciadas con Fondos UE' EUR 1,223,609.43 (2024-10-14, call 539757, thermal not biogas) and an EREN-CyL PRTR 'autoconsumo ... sector residencial' EUR 157,800 (2023-12-29, call 585415) - neither is the biogas programme; legal check advisable.",
+        "bdnsResult": "NO_RECORD"
+      },
+      "otherAid": {
+        "value": "Investment aid: IDAE/FEDER thermal EUR 1,223,609.43 (SB63939239, 2024-10-14); EREN-CyL PRTR EUR 157,800 (SB104695107); Junta CyL direct subsidy EUR 61,872.18 (2022-06-03). No operating aid found.",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=B42220830",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "BDNS nifCif=B42220830."
+      },
+      "reportedCI": null,
+      "currentOfftake": null,
+      "nominalCapacityGWh": {
+        "value": 30,
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 7 Biovelgas | ... | 30 || Column 'GWh / año' is footnoted '(**) Capacidad nominal' - NAMEPLATE, not production."
+      },
+      "openQuestions": [
+        "ISCC raw-material list contains UCO and other Annex IX B items: the PoS may be a blend - ask for feedstock split.",
+        "Confirm Enagás GdO registration (gdogas.es) and 'Public support' field on issued GOs directly with the operator.",
+        "No published per-plant ACTUAL production (Sedigas lists nameplate only). Ask plant / Nedgia / Enagás GTS for metered injection by month.",
+        "No PoS / carbon-intensity published for this plant; request PoS (gCO2e/MJ per step) from operator.",
+        "Offtaker unpublished."
+      ],
+      "researchedAt": "2026-10-09T21:30:00Z"
+    },
+    "plant_es_12": {
+      "gdoRegistered": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.aib-net.org/sites/default/files/assets/aib/AIB%20Annual%20Report%20full%20version%202025%20-%2003.06.2026.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "No per-plant list of Enagás GdO registrations is public (gdogas.es is a login SPA). System-level: AIB Annual Report 2025, Spain-Enagás page: 'Gas – Renewable methane with confirmed sustainability criteria met | 18 production devices | 113 MW'; 'Gas – Renewable methane without confirmed sustainability criteria met | 1 | 3'. No plant-specific statement found."
+      },
+      "injection": {
+        "value": "DSO",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 14 Coren | Agroindustrial | Coren | Arrabaldo | Ourense | Distribución | Nedgia | mar-25 | 25 || Contradicts es.json note ('industrial heat and transport fleet') - Sedigas lists grid injection from Mar 2025."
+      },
+      "operatingSince": {
+        "value": "2025-03",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 14 Coren | ... | mar-25 | 25 || 'Entrada en operación' = mar-25. "
+      },
+      "actualProductionGWh": null,
+      "capacityNm3h": null,
+      "feedstockMix": {
+        "value": "Industrial wastewater and derivatives + animal fats from rendering (category 3) - NOT poultry manure per ISCC scope",
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTQ5MjY4X0VVLUlTQ0MtQ2VydC1FUzIxNi0yMDI2ODAyOA==",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "ISCC raw material: 'Industrial wastewater and derivatives, Waste/residues from processing of vegetable or animal oil (Animal fats from rendering (category 3))'. es.json said poultry/livestock manure; the certificate does not list manure."
+      },
+      "certification": {
+        "value": {
+          "scheme": "ISCC_EU",
+          "certificateNumber": "EU-ISCC-Cert-ES216-20268028",
+          "validUntil": "2027-06-02",
+          "status": "VALID"
+        },
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTQ5MjY4X0VVLUlTQ0MtQ2VydC1FUzIxNi0yMDI2ODAyOA==",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Cooperativas Ourensanas, Sociedad Cooperativa Galega, LG Centro de Procesado Avícola, Santa Cruz De Arrabaldo, Ourense, Spain | EU-ISCC-Cert-ES216-20268028 | 03.06.26 – 02.06.27 | Scope: Point of Origin, Processing Unit | Processing Unit Type: Biomethane plant | Raw Material: Industrial wastewater and derivatives, Waste/residues from processing of vegetable or animal oil (Animal fats from rendering (category 3)) | Products: Biomethane | Issuing CB: Amspec Iberia SL, Vilagarcia de Arousa-Pontevedra, ES"
+      },
+      "prtrGrant": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=F32001976",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "NOT FOUND in BDNS (infosubvenciones.es, queried 2026-10-09 by nifCif=F32001976 'Cooperativas Ourensanas S.C.G. (COREN)'; IDAE calls 642067/642077 = Programa de incentivos a proyectos singulares de instalaciones de biogás, Orden TED/706/2022). NOT proof of NO: BDNS lists only EUR 40.9M of concessions for those two programme lines vs the Orden's 'dotación inicial de 150 millones de euros' (BOE-A-2022-12470), and an SPV may hold a grant under another CIF. 63 BDNS concessions; none under IDAE biogas calls. Others: Inega energy-efficiency grant EUR 284,025 (2025-06-09, SB136572968) and thermal-renewables programme grants (Inega 616244, MRR/PRTR, 2023, ~EUR 32-59k each) - not the biogas programme.",
+        "bdnsResult": "NO_RECORD"
+      },
+      "otherAid": {
+        "value": "OPERATING AID (electricity, entity-level): REER 'retribución específica' ~EUR 3.96M in 2024 (3 lines), ~EUR 3.06M in 2023, ~EUR 2.69M in 2022",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=F32001976",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "BDNS convocatorias 919691 (2024), 841508 (2023), 759155 (2022) 'Retribución específica de los productores de energía eléctrica a partir de fuentes de energía renovables, cogeneración y residuos (RECORE)'. Concession codes e.g. SB155427634, SB155424859, SB143203931. Confirm the REER (RD 413/2014 / RECORE 'retribución específica') electricity unit on this entity is NOT fed by the digester whose gas is sold as biomethane; if it is, the gas has operating aid and fails NL R11."
+      },
+      "reportedCI": null,
+      "currentOfftake": null,
+      "nominalCapacityGWh": {
+        "value": 25,
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 14 Coren | ... | 25 || Column 'GWh / año' is footnoted '(**) Capacidad nominal' - NAMEPLATE, not production."
+      },
+      "openQuestions": [
+        "Confirm the REER (RD 413/2014 / RECORE 'retribución específica') electricity unit on this entity is NOT fed by the digester whose gas is sold as biomethane; if it is, the gas has operating aid and fails NL R11.",
+        "Feedstock contradiction: ISCC = industrial effluents + category-3 rendering fats (slaughterhouse), es.json = poultry manure. Which is it? Is the PoS manure-based?",
+        "Confirm Enagás GdO registration (gdogas.es) and 'Public support' field on issued GOs directly with the operator.",
+        "No published per-plant ACTUAL production (Sedigas lists nameplate only). Ask plant / Nedgia / Enagás GTS for metered injection by month.",
+        "No PoS / carbon-intensity published for this plant; request PoS (gCO2e/MJ per step) from operator.",
+        "Offtaker unpublished (es.json mentions own industrial heat/transport fleet - confirm what fraction is injected)."
+      ],
+      "researchedAt": "2026-10-09T21:30:00Z"
+    },
+    "plant_es_13": {
+      "gdoRegistered": {
+        "value": "NO",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "No such plant in Sedigas' list; es.json says no biomethane plant exists at Granja San José (Tamarite de Litera)."
+      },
+      "injection": {
+        "value": "OFF_GRID",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "No injection facility exists (per es.json open question; Sedigas list has no entry)."
+      },
+      "operatingSince": null,
+      "actualProductionGWh": null,
+      "capacityNm3h": null,
+      "feedstockMix": null,
+      "certification": null,
+      "prtrGrant": null,
+      "otherAid": null,
+      "reportedCI": null,
+      "currentOfftake": null,
+      "nominalCapacityGWh": null,
+      "openQuestions": [
+        "Not a plant: es.json flags it as an erroneous duplicate of Torre Santamaría (plant_es_3). Remove from the app."
+      ],
+      "researchedAt": "2026-10-09T21:30:00Z",
+      "excluded": true,
+      "excludedReason": "Not a plant: erroneous duplicate of Torre Santamaría (plant_es_3) per the earlier es.json research; no injection facility exists."
+    },
+    "plant_es_14": {
+      "gdoRegistered": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.aib-net.org/sites/default/files/assets/aib/AIB%20Annual%20Report%20full%20version%202025%20-%2003.06.2026.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "No per-plant list of Enagás GdO registrations is public (gdogas.es is a login SPA). System-level: AIB Annual Report 2025, Spain-Enagás page: 'Gas – Renewable methane with confirmed sustainability criteria met | 18 production devices | 113 MW'; 'Gas – Renewable methane without confirmed sustainability criteria met | 1 | 3'. No plant-specific statement found."
+      },
+      "injection": {
+        "value": "DSO",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 10 Vila-Sana | Agroganadero | Naturgy | Vila-Sana | Lleida | Distribución | Nedgia | jul-24 | 12 || Promoter in Sedigas is Naturgy (not Ecològic Biogàs S.L.); site is the Porgaporcs farm."
+      },
+      "operatingSince": {
+        "value": "2024-07",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 10 Vila-Sana | ... | jul-24 | 12 || 'Entrada en operación' = jul-24. Energías Renovables 2024-06-26: Naturgy 'ha puesto en marcha su tercera planta de biometano en España'."
+      },
+      "actualProductionGWh": null,
+      "capacityNm3h": null,
+      "feedstockMix": {
+        "value": "Pig slurry / manure (Porgaporcs farm) + food-industry wastewater, sewage sludge (ISCC scope)",
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTUyNTA1X0VVLUlTQ0MtQ2VydC1QTDIxNC0wMDY1MzI3Ng==",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "ISCC raw material: 'Manure, Wastewater from the food industry, Sewage sludge'. Article (Energías Renovables 2024-06-26): plant 'ubicada en una explotación ganadera'."
+      },
+      "certification": {
+        "value": {
+          "scheme": "ISCC_EU",
+          "certificateNumber": "EU-ISCC-Cert-PL214-00653276",
+          "validUntil": "2027-06-22",
+          "status": "VALID"
+        },
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTUyNTA1X0VVLUlTQ0MtQ2VydC1QTDIxNC0wMDY1MzI3Ng==",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Naturgy Nuevas Energías S.L.U., Camí de Linyola, pol.14 parcela 3 sn, 25245 Vila-sana, Spain | EU-ISCC-Cert-PL214-00653276 | 23.06.26 – 22.06.27 | Scope: Processing Unit | Processing Unit Type: Biomethane plant | Raw Material: Manure, Wastewater from the food industry, Sewage sludge | Products: Biomethane | Issuing CB: Bureau Veritas Polska Sp. z o.o., Warsaw, PL || DESK NOTE: Holder is Naturgy; biogas ISCC cert for PORGAPORCS S.L. (PL214-20153216, valid to 2027-06-22) is separate."
+      },
+      "prtrGrant": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=B25626771",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "NOT FOUND in BDNS (infosubvenciones.es, queried 2026-10-09 by nifCif=B25626771 'Ecològic Biogàs S.L.'; IDAE calls 642067/642077 = Programa de incentivos a proyectos singulares de instalaciones de biogás, Orden TED/706/2022). NOT proof of NO: BDNS lists only EUR 40.9M of concessions for those two programme lines vs the Orden's 'dotación inicial de 150 millones de euros' (BOE-A-2022-12470), and an SPV may hold a grant under another CIF. BDNS: 0 concessions for Ecològic Biogàs; Naturgy Nuevas Energías (B88263249) 0. Porgaporcs S.L. (farm) not checked.",
+        "bdnsResult": "NO_RECORD"
+      },
+      "otherAid": null,
+      "reportedCI": null,
+      "currentOfftake": null,
+      "nominalCapacityGWh": {
+        "value": 12,
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 10 Vila-Sana | ... | 12 || Column 'GWh / año' is footnoted '(**) Capacidad nominal' - NAMEPLATE, not production."
+      },
+      "openQuestions": [
+        "Entity mismatch: es.json = Ecològic Biogàs S.L. (Ecobiogas/Porgaporcs); biomethane ISCC + Sedigas promoter = Naturgy. Who owns the GO/PoS?",
+        "Confirm Enagás GdO registration (gdogas.es) and 'Public support' field on issued GOs directly with the operator.",
+        "No published per-plant ACTUAL production (Sedigas lists nameplate only). Ask plant / Nedgia / Enagás GTS for metered injection by month.",
+        "No PoS / carbon-intensity published for this plant; request PoS (gCO2e/MJ per step) from operator."
+      ],
+      "researchedAt": "2026-10-09T21:30:00Z"
+    },
+    "plant_es_15": {
+      "gdoRegistered": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.aib-net.org/sites/default/files/assets/aib/AIB%20Annual%20Report%20full%20version%202025%20-%2003.06.2026.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "No per-plant list of Enagás GdO registrations is public (gdogas.es is a login SPA). System-level: AIB Annual Report 2025, Spain-Enagás page: 'Gas – Renewable methane with confirmed sustainability criteria met | 18 production devices | 113 MW'; 'Gas – Renewable methane without confirmed sustainability criteria met | 1 | 3'. No plant-specific statement found."
+      },
+      "injection": {
+        "value": "DSO",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 3 Unue | Industrial | Enagás Renovable | Villalonquéjar | Burgos | Distribución | Nedgia | sep-21 | 20"
+      },
+      "operatingSince": {
+        "value": "2021-09",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 3 Unue | ... | sep-21 | 20 || 'Entrada en operación' = sep-21. Enagás press release 2021-11-03 (secondary reading): first injection Sept 2021."
+      },
+      "actualProductionGWh": null,
+      "capacityNm3h": null,
+      "feedstockMix": {
+        "value": "Agro-industrial organic waste / food waste + sewage sludge (ISCC scope: 'Food waste, Sewage sludge')",
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTUxMTgyX0VVLUlTQ0MtQ2VydC1QTDIxNC0xMDA1MzIwNg==",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Biogas is produced at Biogasnalia (waste manager) and upgraded by UNUE. No manure."
+      },
+      "certification": {
+        "value": {
+          "scheme": "ISCC_EU",
+          "certificateNumber": "EU-ISCC-Cert-PL214-10053206",
+          "validUntil": "2027-06-15",
+          "status": "VALID"
+        },
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTUxMTgyX0VVLUlTQ0MtQ2VydC1QTDIxNC0xMDA1MzIwNg==",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Unue Gas Renovable S.L., Condado de Treviño 77, 09001 Polígono de Villalonquéjar, Burgos, Spain | EU-ISCC-Cert-PL214-10053206 | 16.06.26 – 15.06.27 | Scope: Processing Unit | Processing Unit Type: Biomethane plant | Raw Material: Food waste, Sewage sludge | Products: Biomethane | Issuing CB: Bureau Veritas Polska Sp. z o.o., Warsaw, PL || DESK NOTE: Holder is Unue Gas Renovable S.L. (es.json lists Enagás Renovable S.A.); the biogas site holds its own ISCC (Biogasnalia, PL214-10050296)."
+      },
+      "prtrGrant": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=A88511183",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "NOT FOUND in BDNS (infosubvenciones.es, queried 2026-10-09 by nifCif=A88511183 'Enagás Renovable S.A.'; IDAE calls 642067/642077 = Programa de incentivos a proyectos singulares de instalaciones de biogás, Orden TED/706/2022). NOT proof of NO: BDNS lists only EUR 40.9M of concessions for those two programme lines vs the Orden's 'dotación inicial de 150 millones de euros' (BOE-A-2022-12470), and an SPV may hold a grant under another CIF. BDNS: 0 concessions. UNUE Gas Renovable S.L. and Biogasnalia do not appear in the IDAE biogas beneficiary lists (calls 642067/642077) - their CIFs are not in es.json.",
+        "bdnsResult": "NO_RECORD"
+      },
+      "otherAid": null,
+      "reportedCI": null,
+      "currentOfftake": null,
+      "nominalCapacityGWh": {
+        "value": 20,
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 3 Unue | ... | 20 || Column 'GWh / año' is footnoted '(**) Capacidad nominal' - NAMEPLATE, not production."
+      },
+      "openQuestions": [
+        "Entity: UNUE Gas Renovable S.L. is the ISCC holder; es.json lists Enagás Renovable. Need CIF for BDNS check.",
+        "Offtaker / GO owner unpublished (press only covers injection).",
+        "Confirm Enagás GdO registration (gdogas.es) and 'Public support' field on issued GOs directly with the operator.",
+        "No published per-plant ACTUAL production (Sedigas lists nameplate only). Ask plant / Nedgia / Enagás GTS for metered injection by month.",
+        "No PoS / carbon-intensity published for this plant; request PoS (gCO2e/MJ per step) from operator."
+      ],
+      "researchedAt": "2026-10-09T21:30:00Z"
+    },
+    "plant_es_16": {
+      "gdoRegistered": {
+        "value": "NO",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "No such plant in Sedigas' list or ISCC database."
+      },
+      "injection": {
+        "value": "OFF_GRID",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "No injection facility exists."
+      },
+      "operatingSince": null,
+      "actualProductionGWh": null,
+      "capacityNm3h": null,
+      "feedstockMix": null,
+      "certification": null,
+      "prtrGrant": null,
+      "otherAid": null,
+      "reportedCI": null,
+      "currentOfftake": null,
+      "nominalCapacityGWh": null,
+      "openQuestions": [
+        "Not a plant: es.json says 'Armental' is a parish in A Peroxa with no permit and fabricated contact. Remove from the app. (The Ourense plant actually injecting is COREN at Santa Cruz de Arrabaldo = plant_es_12.)"
+      ],
+      "researchedAt": "2026-10-09T21:30:00Z",
+      "excluded": true,
+      "excludedReason": "Not a plant: 'Armental' is a parish in A Peroxa with no permit and a fabricated contact per the earlier es.json research. The Ourense plant that injects is COREN (plant_es_12)."
+    },
+    "plant_es_17": {
+      "gdoRegistered": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.aib-net.org/sites/default/files/assets/aib/AIB%20Annual%20Report%20full%20version%202025%20-%2003.06.2026.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "No per-plant list of Enagás GdO registrations is public (gdogas.es is a login SPA). System-level: AIB Annual Report 2025, Spain-Enagás page: 'Gas – Renewable methane with confirmed sustainability criteria met | 18 production devices | 113 MW'; 'Gas – Renewable methane without confirmed sustainability criteria met | 1 | 3'. No plant-specific statement found."
+      },
+      "injection": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas' Artajona row is 'Artajona | Agroganadero | Cycle 0 | Artajona | Navarra | Distribución | Nedgia | nov-25 | 15' - promoter Cycle 0, NOT HTN Biogás / Grupo AN. HTN's Artajona plant is not in the Sedigas injecting list."
+      },
+      "operatingSince": null,
+      "actualProductionGWh": null,
+      "capacityNm3h": null,
+      "feedstockMix": {
+        "value": "Cattle manure (for the Cycle 0 Artajona plant)",
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTYxNzgwX0VVLUlTQ0MtQ2VydC1FUzIxNi0yMDI2MDA0Mw==",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "ISCC for Cycle 0 SVP1 S.L., Artajona: 'Raw Material: Manure'. Not shown to be the HTN plant."
+      },
+      "certification": null,
+      "prtrGrant": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=B31971229",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "NOT FOUND in BDNS (infosubvenciones.es, queried 2026-10-09 by nifCif=B31971229 'Hibridación Termosolar Navarra S.L.'; IDAE calls 642067/642077 = Programa de incentivos a proyectos singulares de instalaciones de biogás, Orden TED/706/2022). NOT proof of NO: BDNS lists only EUR 40.9M of concessions for those two programme lines vs the Orden's 'dotación inicial de 150 millones de euros' (BOE-A-2022-12470), and an SPV may hold a grant under another CIF. Found only REER electricity aid. NB: the Artajona biomethane plant is Cycle 0 SVP1 S.L. (CIF B72566383) which received IDAE PRTR biogas EUR 773,632.75 (2025-12-02, call 642067) - if the app means that plant, PRTR = YES.",
+        "bdnsResult": "NO_RECORD"
+      },
+      "otherAid": {
+        "value": "OPERATING AID (electricity, entity-level): REER ~EUR 383k (2024), 407k (2023), 702k (2022) for HTN",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=B31971229",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "BDNS 919691/841508/759155 codes SB155409768, SB143184037, SB105983089. HTN's biogas CHP is REER-supported."
+      },
+      "reportedCI": null,
+      "currentOfftake": null,
+      "nominalCapacityGWh": null,
+      "openQuestions": [
+        "Entity mismatch: the injecting plant at Artajona is Cycle 0 SVP1 S.L. (ISCC EU-ISCC-Cert-ES216-20260043, valid to 2027-09-01; Sedigas nov-25, 15 GWh; ~120 Nm3/h) not HTN Biogás. Re-point plant_es_17 to Cycle 0 SVP1 - which has IDAE PRTR EUR 773,632.75.",
+        "Confirm the REER (RD 413/2014 / RECORE 'retribución específica') electricity unit on this entity is NOT fed by the digester whose gas is sold as biomethane; if it is, the gas has operating aid and fails NL R11.",
+        "Confirm Enagás GdO registration (gdogas.es) and 'Public support' field on issued GOs directly with the operator.",
+        "No published per-plant ACTUAL production (Sedigas lists nameplate only). Ask plant / Nedgia / Enagás GTS for metered injection by month.",
+        "No PoS / carbon-intensity published for this plant; request PoS (gCO2e/MJ per step) from operator."
+      ],
+      "researchedAt": "2026-10-09T21:30:00Z",
+      "correctedEntity": {
+        "value": {
+          "name": "Cycle 0 SVP1 S.L.",
+          "cif": "B72566383",
+          "certificateNumber": "EU-ISCC-Cert-ES216-20260043",
+          "prtrGrantEur": 773632.75
+        },
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas operating-plant list names Cycle 0 as promoter of the injecting plant at Artajona, Navarra (DSO Nedgia, entry nov-25, 15 GWh nameplate (~120 Nm3/h)). ISCC certificate EU-ISCC-Cert-ES216-20260043 valid to 2027-09-01 (https://hub.iscc-system.org/FileHandler/download/certificateFile/MTYxNzgwX0VVLUlTQ0MtQ2VydC1FUzIxNi0yMDI2MDA0Mw==). PRTR: YES - IDAE EUR 773,632.75 (CIF B72566383 'CYCLE O SVP1', 2025-12-02, call 642067). The app's record for this site names a different company."
+      }
+    },
+    "plant_es_18": {
+      "gdoRegistered": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.aib-net.org/sites/default/files/assets/aib/AIB%20Annual%20Report%20full%20version%202025%20-%2003.06.2026.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "No per-plant list of Enagás GdO registrations is public (gdogas.es is a login SPA). System-level: AIB Annual Report 2025, Spain-Enagás page: 'Gas – Renewable methane with confirmed sustainability criteria met | 18 production devices | 113 MW'; 'Gas – Renewable methane without confirmed sustainability criteria met | 1 | 3'. No plant-specific statement found. PRTR beneficiaries of Orden TED/706/2022 must register: 'f) Inscribir las instalaciones de su titularidad que resulten proyectos subvencionados ... en el Registro de instalaciones de producción de gas procedente de fuentes renovables' (BOE-A-2022-12470) - an obligation, not proof it is done."
+      },
+      "injection": {
+        "value": "DSO",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 12 Lleida#2 | Agroganadero | Cycle 0 | Bellcaire d'Urgell | Lleida | Distribucion | Nedgia | sep-24 | 15 || Cycle 0 press (secondary): gas is trucked to a Cycle 0-operated injection point ('virtual pipeline') - confirm the injection point's network operator."
+      },
+      "operatingSince": {
+        "value": "2024-09",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 12 Lleida#2 | ... | sep-24 | 15 || 'Entrada en operación' = sep-24. "
+      },
+      "actualProductionGWh": null,
+      "capacityNm3h": null,
+      "feedstockMix": {
+        "value": "Cattle manure ('Raw Material: Manure')",
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTQ5NDI1X0VVLUlTQ0MtQ2VydC1FUzIyNi0yMDI2MDAxMQ==",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "ISCC raw material: 'Manure'. Plant at Granja Cal Serret."
+      },
+      "certification": {
+        "value": {
+          "scheme": "ISCC_EU",
+          "certificateNumber": "EU-ISCC-Cert-ES226-20260011",
+          "validUntil": "2027-07-08",
+          "status": "VALID"
+        },
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTQ5NDI1X0VVLUlTQ0MtQ2VydC1FUzIyNi0yMDI2MDAxMQ==",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Cycle 0 Bellcaire S.L., Planta de Biogas Granja Cal Serret, t.m na, 25680 Vallfogona de Balaguer, Spain | EU-ISCC-Cert-ES226-20260011 | 09.07.26 – 08.07.27 | Scope: Collecting Point, Processing Unit | Processing Unit Type: Biomethane plant | Raw Material: Manure | Products: Biomethane | Issuing CB: BMC Assurance, S.L, Santander, ES"
+      },
+      "prtrGrant": {
+        "value": "YES",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=B72566664&numeroConvocatoria=642067",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "BDNS record SB89488758: beneficiario 'CYCLE O SVP2, S.L.', importe 400325.46, fecha concesión 2023-07-05, convocatoria 642067 'Primera convocatoria del programa de incentivos a proyectos singulares de instalaciones de biogás, en el marco del Plan de Recuperación, Transformación y Resiliencia' (IDAE). Orden TED/706/2022 Art. 5.3 (BOE): 'la aceptación de la ayuda que se conceda es incompatible con la existencia de cualquier acuerdo suscrito por parte del beneficiario/a que se utilice para la obtención de certificados verdes, en el marco de un mecanismo de apoyo, establecido, o que se pudiera establecer en el futuro, en el ámbito nacional, de la Unión Europea o internacional.' Also: 'las ayudas de la presente orden son compatibles con la percepción de garantías de origen.' (BOE-A-2022-12470).",
+        "details": {
+          "granted": true,
+          "program": "IDAE Programa de incentivos 1 (biogás)",
+          "amountEUR": 400325.46,
+          "concessionDate": "2023-07-05",
+          "bdnsConcessionCode": "SB89488758",
+          "beneficiaryNameInBDNS": "CYCLE O SVP2, S.L.",
+          "orderBasis": "Orden TED/706/2022"
+        }
+      },
+      "otherAid": null,
+      "reportedCI": null,
+      "currentOfftake": null,
+      "nominalCapacityGWh": {
+        "value": 15,
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 12 Lleida#2 | ... | 15 || Column 'GWh / año' is footnoted '(**) Capacidad nominal' - NAMEPLATE, not production."
+      },
+      "openQuestions": [
+        "PRTR: BDNS names the CIF B72566664 'CYCLE O SVP2, S.L.'; es.json attaches the same CIF to 'Cycle 0 Bellcaire SL' (VIES-verified). Confirm SVP2 = Bellcaire plant (renamed SPV) before relying on this.",
+        "IDAE grant EUR 400,325.46 -> Orden TED/706 Art. 5.3 legal check before selling GO+PoS into NL GGE.",
+        "ISCC address says 'Vallfogona de Balaguer' while Sedigas says Bellcaire d'Urgell - confirm same site.",
+        "Confirm Enagás GdO registration (gdogas.es) and 'Public support' field on issued GOs directly with the operator.",
+        "No published per-plant ACTUAL production (Sedigas lists nameplate only). Ask plant / Nedgia / Enagás GTS for metered injection by month.",
+        "No PoS / carbon-intensity published for this plant; request PoS (gCO2e/MJ per step) from operator.",
+        "Offtaker unpublished."
+      ],
+      "researchedAt": "2026-10-09T21:30:00Z"
+    },
+    "plant_es_19": {
+      "gdoRegistered": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.aib-net.org/sites/default/files/assets/aib/AIB%20Annual%20Report%20full%20version%202025%20-%2003.06.2026.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "No per-plant list of Enagás GdO registrations is public (gdogas.es is a login SPA). System-level: AIB Annual Report 2025, Spain-Enagás page: 'Gas – Renewable methane with confirmed sustainability criteria met | 18 production devices | 113 MW'; 'Gas – Renewable methane without confirmed sustainability criteria met | 1 | 3'. No plant-specific statement found. PRTR beneficiaries of Orden TED/706/2022 must register: 'f) Inscribir las instalaciones de su titularidad que resulten proyectos subvencionados ... en el Registro de instalaciones de producción de gas procedente de fuentes renovables' (BOE-A-2022-12470) - an obligation, not proof it is done."
+      },
+      "injection": {
+        "value": "DSO",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 18 Cabanillas | Agroganadero | E-Cogeneración Cabanillas | Cabanillas | Navarra | Distribución | Nedgia | jul-25 | 22"
+      },
+      "operatingSince": {
+        "value": "2025-07",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 18 Cabanillas | ... | jul-25 | 22 || 'Entrada en operación' = jul-25. Press 2025-08-18 (Invest in Navarra): grid connection announced August 2025. The site's biogas/CHP (370 kWe) dates from 2011."
+      },
+      "actualProductionGWh": null,
+      "capacityNm3h": {
+        "value": 320,
+        "sourceUrl": "https://investinnavarra.com/en/navarra-connects-its-first-biomethane-plant-to-the-gas-network-promoted-by-naturgy/",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "SECONDARY: 'it will be able to inject up to 320 Nm³/h of biomethane' and 'will inject 22 GWh of green gas per year into the network of its distributor, Nedgia'."
+      },
+      "feedstockMix": {
+        "value": "Livestock and agricultural by-products, 'especially pig slurry', plus local agro-food industry waste (~56,500 t/y)",
+        "sourceUrl": "https://investinnavarra.com/en/navarra-connects-its-first-biomethane-plant-to-the-gas-network-promoted-by-naturgy/",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "SECONDARY: 'prioritises the recovery of agricultural and livestock by-products, especially pig slurry'. ISCC scope also lists grease-trap fat, food waste, category-3 fats, manure."
+      },
+      "certification": {
+        "value": {
+          "scheme": "ISCC_EU",
+          "certificateNumber": "EU-ISCC-Cert-ES216-20260026",
+          "validUntil": "2027-06-30",
+          "status": "VALID"
+        },
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTUzMzUyX0VVLUlTQ0MtQ2VydC1FUzIxNi0yMDI2MDAyNg==",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "E-COGENERACION CABANILLAS, S.L., Polígono 7 Parcela 30, 31511 Cabanillas, Spain | EU-ISCC-Cert-ES216-20260026 | 01.07.26 – 30.06.27 | Scope: Collecting Point, Processing Unit | Processing Unit Type: Biomethane plant | Raw Material: Brown grease / grease trap fat, Feed waste, Sewage sludge, Animal fats from rendering (category 3), Flower bulbs, Food waste, Fruit/vegetable residues and waste (Only tails, leaves, stalks and husks), Industrial wastewater and derivatives, Manure, Wastewater from the food industry, Spent bleaching earth, Wastewater from the paper- and cardboard industry, Used cooking oil (UCO) entirely of veg. origin, Crude glycerine | Products: Biomethane | Issuing CB: Amspec Iberia SL, Vilagarcia de Arousa-Pontevedra, ES"
+      },
+      "prtrGrant": {
+        "value": "YES",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=B31948664&numeroConvocatoria=642067",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "BDNS record SB89488719: beneficiario 'E-COGENERACION CABANILLAS SL', importe 628325.22, fecha concesión 2025-12-02, convocatoria 642067 'Primera convocatoria del programa de incentivos a proyectos singulares de instalaciones de biogás, en el marco del Plan de Recuperación, Transformación y Resiliencia' (IDAE). Orden TED/706/2022 Art. 5.3 (BOE): 'la aceptación de la ayuda que se conceda es incompatible con la existencia de cualquier acuerdo suscrito por parte del beneficiario/a que se utilice para la obtención de certificados verdes, en el marco de un mecanismo de apoyo, establecido, o que se pudiera establecer en el futuro, en el ámbito nacional, de la Unión Europea o internacional.' Also: 'las ayudas de la presente orden son compatibles con la percepción de garantías de origen.' (BOE-A-2022-12470).",
+        "details": {
+          "granted": true,
+          "program": "IDAE Programa de incentivos 1 (biogás)",
+          "amountEUR": 628325.22,
+          "concessionDate": "2025-12-02",
+          "bdnsConcessionCode": "SB89488719",
+          "beneficiaryNameInBDNS": "E-COGENERACION CABANILLAS SL",
+          "orderBasis": "Orden TED/706/2022"
+        }
+      },
+      "otherAid": {
+        "value": "OPERATING AID (electricity): REER EUR 103,338.81 (2024), 106,782.84 (2023), 122,787.72 (2022) for the site's CHP; investment aid: Navarra SME industrial investment grants EUR 131,850 (2024), 125,900 (2023), 70,919 (2023), 30,843 (2022)",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=B31948664",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "BDNS REER codes SB155394966, SB143167535, SB105968755; Navarra codes SB118771762, SB108851260. Press: 'The initiative has been financed by the Institute for Energy Diversification and Saving (IDAE)'. Confirm the REER (RD 413/2014 / RECORE 'retribución específica') electricity unit on this entity is NOT fed by the digester whose gas is sold as biomethane; if it is, the gas has operating aid and fails NL R11."
+      },
+      "reportedCI": null,
+      "currentOfftake": null,
+      "nominalCapacityGWh": {
+        "value": 22,
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 18 Cabanillas | ... | 22 || Column 'GWh / año' is footnoted '(**) Capacidad nominal' - NAMEPLATE, not production."
+      },
+      "openQuestions": [
+        "IDAE PRTR EUR 628,325.22 -> Art. 5.3 legal check.",
+        "Confirm the REER (RD 413/2014 / RECORE 'retribución específica') electricity unit on this entity is NOT fed by the digester whose gas is sold as biomethane; if it is, the gas has operating aid and fails NL R11.",
+        "Offtaker unpublished.",
+        "Confirm Enagás GdO registration (gdogas.es) and 'Public support' field on issued GOs directly with the operator.",
+        "No published per-plant ACTUAL production (Sedigas lists nameplate only). Ask plant / Nedgia / Enagás GTS for metered injection by month.",
+        "No PoS / carbon-intensity published for this plant; request PoS (gCO2e/MJ per step) from operator."
+      ],
+      "researchedAt": "2026-10-09T21:30:00Z"
+    },
+    "plant_es_20": {
+      "gdoRegistered": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.aib-net.org/sites/default/files/assets/aib/AIB%20Annual%20Report%20full%20version%202025%20-%2003.06.2026.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "No per-plant list of Enagás GdO registrations is public (gdogas.es is a login SPA). System-level: AIB Annual Report 2025, Spain-Enagás page: 'Gas – Renewable methane with confirmed sustainability criteria met | 18 production devices | 113 MW'; 'Gas – Renewable methane without confirmed sustainability criteria met | 1 | 3'. Plant inaugurated Dec 2025; no registration statement found."
+      },
+      "injection": {
+        "value": "DSO",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 23 La Calahorra | Agroganadero | AGR Biogás | La Calahorra | Granada | Disbribución | Redexis | dic-25 | 58 || PDF says Redexis, live Sedigas map says Nedgia; a Junta de Andalucía notice (not read verbatim) describes a connection to the Huércal-Overa-Baza-Guadix transport pipeline - verify whether injection is TSO or DSO."
+      },
+      "operatingSince": {
+        "value": "2025-12",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 23 La Calahorra | ... | dic-25 | 58 || 'Entrada en operación' = dic-25. El Debate 2025-12-03: 'Esta semana se ha inaugurado, en el municipio granadino de La Calahorra' ... 'con inyección directa a la red gasística general'."
+      },
+      "actualProductionGWh": null,
+      "capacityNm3h": null,
+      "feedstockMix": {
+        "value": "Poultry manure, pig slurry, olive-mill 'alperujo', whey (lactosuero) - ~104,000 t/y",
+        "sourceUrl": "https://www.eldebate.com/espana/andalucia/20251203/primera-planta-andaluza-convierte-residuos-granjas-energia-11000-hogares_361241_amp.html",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "SECONDARY: 'procesará cada año 104.000 toneladas de restos agroganaderos' ... 'gallinaza, purín porcino, alperujo, lactosuero'."
+      },
+      "certification": null,
+      "prtrGrant": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=A90381401",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "NOT FOUND in BDNS (infosubvenciones.es, queried 2026-10-09 by nifCif=A90381401 'AGR Biogás S.A.'; IDAE calls 642067/642077 = Programa de incentivos a proyectos singulares de instalaciones de biogás, Orden TED/706/2022). NOT proof of NO: BDNS lists only EUR 40.9M of concessions for those two programme lines vs the Orden's 'dotación inicial de 150 millones de euros' (BOE-A-2022-12470), and an SPV may hold a grant under another CIF. BDNS: 1 concession, not biogas. The operating SPV may be 'Agro Valorizaciones'.",
+        "bdnsResult": "NO_RECORD"
+      },
+      "otherAid": null,
+      "reportedCI": null,
+      "currentOfftake": null,
+      "nominalCapacityGWh": {
+        "value": 58,
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 23 La Calahorra | ... | 58 || Column 'GWh / año' is footnoted '(**) Capacidad nominal' - NAMEPLATE, not production."
+      },
+      "openQuestions": [
+        "Is 'Agro Valorizaciones' (ISCC holder at La Calahorra) the AGR Biogás SPV? Obtain the certificate and PoS.",
+        "TSO vs DSO connection (Redexis/Nedgia/Enagás transport pipeline) conflicting.",
+        "Brand-new (Dec 2025): no production history; local opposition reported (aquifer) - permit risk.",
+        "Confirm Enagás GdO registration (gdogas.es) and 'Public support' field on issued GOs directly with the operator.",
+        "No published per-plant ACTUAL production (Sedigas lists nameplate only). Ask plant / Nedgia / Enagás GTS for metered injection by month.",
+        "No PoS / carbon-intensity published for this plant; request PoS (gCO2e/MJ per step) from operator.",
+        "Offtaker unpublished.",
+        "Unconfirmed ISCC candidate (not asserted as this plant's certificate; source https://hub.iscc-system.org/FileHandler/download/certificateFile/MTM0NzAxX0VVLUlTQ0MtQ2VydC1JRDIxOC0wMjI0MjYwMTE4): CANDIDATE ONLY (not asserted): EU-ISCC-Cert-ID218-0224260118, valid 24.02.26-23.02.27, holder 'AGRO VALORIZACIONES, GR-6103 Conexión A-92 Charches, km. 4 Polígono 505, parcela 59, 18512 La Calahorra, Spain', Biomethane plant, Raw Material: Whey permeate, Olives residues, Industrial wastewater and derivatives, Manure. Same municipality and feedstock as AGR Biogás, but holder name differs - SPV relationship unverified."
+      ],
+      "researchedAt": "2026-10-09T21:30:00Z"
+    },
+    "plant_es_21": {
+      "gdoRegistered": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.aib-net.org/sites/default/files/assets/aib/AIB%20Annual%20Report%20full%20version%202025%20-%2003.06.2026.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "No per-plant list of Enagás GdO registrations is public (gdogas.es is a login SPA). System-level: AIB Annual Report 2025, Spain-Enagás page: 'Gas – Renewable methane with confirmed sustainability criteria met | 18 production devices | 113 MW'; 'Gas – Renewable methane without confirmed sustainability criteria met | 1 | 3'. Not in Sedigas injecting list; registration unlikely but unverified."
+      },
+      "injection": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "TRARGISA Girona Campdorà does not appear in the Sedigas list of operating injecting plants (Jan 2026) nor in its live map (25 placemarks)."
+      },
+      "operatingSince": null,
+      "actualProductionGWh": null,
+      "capacityNm3h": null,
+      "feedstockMix": null,
+      "certification": null,
+      "prtrGrant": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=A17068511",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "NOT FOUND in BDNS (infosubvenciones.es, queried 2026-10-09 by nifCif=A17068511 'TRARGISA'; IDAE calls 642067/642077 = Programa de incentivos a proyectos singulares de instalaciones de biogás, Orden TED/706/2022). NOT proof of NO: BDNS lists only EUR 40.9M of concessions for those two programme lines vs the Orden's 'dotación inicial de 150 millones de euros' (BOE-A-2022-12470), and an SPV may hold a grant under another CIF. BDNS: 1 concession only (not biogas-related).",
+        "bdnsResult": "NO_RECORD"
+      },
+      "otherAid": null,
+      "reportedCI": null,
+      "currentOfftake": null,
+      "nominalCapacityGWh": null,
+      "openQuestions": [
+        "No ISCC / REDcert / SURE certificate found for TRARGISA / CTR Girona Campdorà, and the plant is NOT in Sedigas' 24/25-plant injecting list (Jan 2026). es.json itself only says 'trial injection'/'local mobility'.",
+        "Duplicate of plant_es_21 (same CIF A17068511) - merge in the app.",
+        "Duplicate of plant_es_6.",
+        "Is there any biomethane upgrading at Campdorà at all? Municipal vehicles (buses/trucks) only?"
+      ],
+      "researchedAt": "2026-10-09T21:30:00Z",
+      "excluded": true,
+      "excludedReason": "Duplicate of plant_es_6 (same CIF A17068511, TRARGISA Campdorà); not in the Sedigas injecting list. Merge or remove is the desk's call."
+    },
+    "plant_es_22": {
+      "gdoRegistered": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.aib-net.org/sites/default/files/assets/aib/AIB%20Annual%20Report%20full%20version%202025%20-%2003.06.2026.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "No per-plant list of Enagás GdO registrations is public (gdogas.es is a login SPA). System-level: AIB Annual Report 2025, Spain-Enagás page: 'Gas – Renewable methane with confirmed sustainability criteria met | 18 production devices | 113 MW'; 'Gas – Renewable methane without confirmed sustainability criteria met | 1 | 3'. No plant-specific statement found. Redexis-Pavilion contract expressly transfers 'las garantías de origen correspondientes', which implies GOs are issued."
+      },
+      "injection": {
+        "value": "DSO",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 13 Lorca | Agroganadero | BioRed Lorca | Lorca | Murcia | Distribución | Redexis | ene-25 | 30"
+      },
+      "operatingSince": {
+        "value": "2025-01",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 13 Lorca | ... | ene-25 | 30 || 'Entrada en operación' = ene-25. "
+      },
+      "actualProductionGWh": null,
+      "capacityNm3h": null,
+      "feedstockMix": {
+        "value": "Manure, sewage sludge, food waste, food-industry wastewater, industrial wastewater (ISCC scope; Redexis: swine slurry per es.json)",
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTI1NDU5X0VVLUlTQ0MtQ2VydC1FUzIxNi0yMDI1OTEwOQ==",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "ISCC raw material list; no percentages. Redexis press (Lorca+Los Alcázares): 211,000 t/y of agro-food, agro-industrial and livestock waste for 80 GWh/y combined."
+      },
+      "certification": {
+        "value": {
+          "scheme": "ISCC_EU",
+          "certificateNumber": "EU-ISCC-Cert-ES216-20259109",
+          "validUntil": "2026-12-19",
+          "status": "VALID"
+        },
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTI1NDU5X0VVLUlTQ0MtQ2VydC1FUzIxNi0yMDI1OTEwOQ==",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "BIORED LORCA, Paraje de la Pinosa, Pol 314 Parcela 9, 30800 Lorca, Spain | EU-ISCC-Cert-ES216-20259109 | 20.12.25 – 19.12.26 | Scope: Collecting Point, Processing Unit | Processing Unit Type: Biomethane plant | Raw Material: Manure, Sewage sludge, Food waste, Wastewater from the food industry, Industrial wastewater and derivatives | Products: Biomethane | Issuing CB: Certificadora Gallega del Noroeste SL, Vilagarcia de Arousa-Pontevedra, ES || DESK NOTE: Expires 2026-12-19 - renewal due within ~10 weeks."
+      },
+      "prtrGrant": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=B54212873",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "NOT FOUND in BDNS (infosubvenciones.es, queried 2026-10-09 by nifCif=B54212873 'Biored Lorca S.L.'; IDAE calls 642067/642077 = Programa de incentivos a proyectos singulares de instalaciones de biogás, Orden TED/706/2022). NOT proof of NO: BDNS lists only EUR 40.9M of concessions for those two programme lines vs the Orden's 'dotación inicial de 150 millones de euros' (BOE-A-2022-12470), and an SPV may hold a grant under another CIF. Only an ICO guarantee EUR 320,000 (2022-11-21).",
+        "bdnsResult": "NO_RECORD"
+      },
+      "otherAid": null,
+      "reportedCI": null,
+      "currentOfftake": {
+        "value": "Pavilion Energy (Singapore) - first Redexis Renovables biomethane sale (May 2024), volume and term not published",
+        "sourceUrl": "https://www.energias-renovables.com/bioenergia/redexis-renovables-cierra-su-primer-contrato-para-20240513",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "SECONDARY: 'el biometano producido en la planta de BioRed Lorca, en la Región de Murcia' ... 'irá acompañada de la transmisión de los certificados de sostenibilidad y de las garantías de origen correspondientes'. Volume/duration not stated in the article."
+      },
+      "nominalCapacityGWh": {
+        "value": 30,
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 13 Lorca | ... | 30 || Column 'GWh / año' is footnoted '(**) Capacidad nominal' - NAMEPLATE, not production."
+      },
+      "openQuestions": [
+        "Output is (at least partly) contracted to Pavilion Energy incl. GOs + sustainability certificates; term/volume unknown - is there free volume?",
+        "ISCC cert expires 2026-12-19.",
+        "Confirm Enagás GdO registration (gdogas.es) and 'Public support' field on issued GOs directly with the operator.",
+        "No published per-plant ACTUAL production (Sedigas lists nameplate only). Ask plant / Nedgia / Enagás GTS for metered injection by month.",
+        "No PoS / carbon-intensity published for this plant; request PoS (gCO2e/MJ per step) from operator."
+      ],
+      "researchedAt": "2026-10-09T21:30:00Z"
+    },
+    "plant_es_23": {
+      "gdoRegistered": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.aib-net.org/sites/default/files/assets/aib/AIB%20Annual%20Report%20full%20version%202025%20-%2003.06.2026.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "No per-plant list of Enagás GdO registrations is public (gdogas.es is a login SPA). System-level: AIB Annual Report 2025, Spain-Enagás page: 'Gas – Renewable methane with confirmed sustainability criteria met | 18 production devices | 113 MW'; 'Gas – Renewable methane without confirmed sustainability criteria met | 1 | 3'. No plant-specific statement found."
+      },
+      "injection": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas' Manlleu row is 'Manlleu | Agroganadero | Cycle 0 | Manlleu | Barcelona | Distribución | Nedgia | nov-25 | 15' - promoter Cycle 0 (livestock manure), NOT Depuradors d'Osona's EDAR sludge digester. The EDAR is not in the Sedigas injecting list."
+      },
+      "operatingSince": null,
+      "actualProductionGWh": null,
+      "capacityNm3h": null,
+      "feedstockMix": {
+        "value": "Cattle manure (Cycle 0 Maians plant)",
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTU0MjM1X0VVLUlTQ0MtQ2VydC1FUzIxNi0yMDI2MDAxNg==",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "ISCC for Cycle 0 Maians S.L., Manlleu: 'Raw Material: Manure'."
+      },
+      "certification": null,
+      "prtrGrant": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=B60858982",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "NOT FOUND in BDNS (infosubvenciones.es, queried 2026-10-09 by nifCif=B60858982 'Depuradors d'Osona S.L.'; IDAE calls 642067/642077 = Programa de incentivos a proyectos singulares de instalaciones de biogás, Orden TED/706/2022). NOT proof of NO: BDNS lists only EUR 40.9M of concessions for those two programme lines vs the Orden's 'dotación inicial de 150 millones de euros' (BOE-A-2022-12470), and an SPV may hold a grant under another CIF. If the app means the Cycle 0 Manlleu plant: Cycle 0 Maians S.L. (CIF B72566151) received IDAE PRTR biogas EUR 476,520.35 (2025-12-02, call 642067) -> PRTR = YES.",
+        "bdnsResult": "NO_RECORD"
+      },
+      "otherAid": null,
+      "reportedCI": null,
+      "currentOfftake": null,
+      "nominalCapacityGWh": null,
+      "openQuestions": [
+        "Entity mismatch: the injecting plant at Manlleu is Cycle 0 Maians S.L. (ISCC EU-ISCC-Cert-ES216-20260016 valid to 2027-07-06; Sedigas nov-25, 15 GWh). Re-point plant_es_23 to it - with IDAE PRTR EUR 476,520.35.",
+        "Confirm Enagás GdO registration (gdogas.es) and 'Public support' field on issued GOs directly with the operator.",
+        "No published per-plant ACTUAL production (Sedigas lists nameplate only). Ask plant / Nedgia / Enagás GTS for metered injection by month.",
+        "No PoS / carbon-intensity published for this plant; request PoS (gCO2e/MJ per step) from operator."
+      ],
+      "researchedAt": "2026-10-09T21:30:00Z",
+      "correctedEntity": {
+        "value": {
+          "name": "Cycle 0 Maians S.L.",
+          "cif": "B72566151",
+          "certificateNumber": "EU-ISCC-Cert-ES216-20260016",
+          "prtrGrantEur": 476520.35
+        },
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas operating-plant list names Cycle 0 as promoter of the injecting plant at Manlleu, Barcelona (DSO Nedgia, entry nov-25, 15 GWh nameplate). ISCC certificate EU-ISCC-Cert-ES216-20260016 valid to 2027-07-06 (https://hub.iscc-system.org/FileHandler/download/certificateFile/MTU0MjM1X0VVLUlTQ0MtQ2VydC1FUzIxNi0yMDI2MDAxNg==). PRTR: YES - IDAE EUR 476,520.35 (CIF B72566151 'CYCLE O MAIANS', 2025-12-02). The app's record for this site names a different company."
+      }
+    },
+    "plant_es_24": {
+      "gdoRegistered": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.aib-net.org/sites/default/files/assets/aib/AIB%20Annual%20Report%20full%20version%202025%20-%2003.06.2026.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "No per-plant list of Enagás GdO registrations is public (gdogas.es is a login SPA). System-level: AIB Annual Report 2025, Spain-Enagás page: 'Gas – Renewable methane with confirmed sustainability criteria met | 18 production devices | 113 MW'; 'Gas – Renewable methane without confirmed sustainability criteria met | 1 | 3'. No plant-specific statement found. PRTR beneficiaries of Orden TED/706/2022 must register: 'f) Inscribir las instalaciones de su titularidad que resulten proyectos subvencionados ... en el Registro de instalaciones de producción de gas procedente de fuentes renovables' (BOE-A-2022-12470) - an obligation, not proof it is done."
+      },
+      "injection": {
+        "value": "DSO",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 24 Gunvor | Industrial | Gunvor Group | Palos de la Frontera | Huelva | Disbribución | Nedgia | dic-25 | 45 || Interempresas (2026-02-04) says only 'red de gas natural de Andalucía' and does not name Nedgia."
+      },
+      "operatingSince": {
+        "value": "2025-12",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 24 Gunvor | ... | dic-25 | 45 || 'Entrada en operación' = dic-25. Interempresas: 'La puesta en marcha del sistema de inyección se completó en diciembre de 2025'."
+      },
+      "actualProductionGWh": null,
+      "capacityNm3h": null,
+      "feedstockMix": {
+        "value": "Liquid industrial waste (105 m3/day of industrial liquid effluent from the biodiesel complex)",
+        "sourceUrl": "https://www.interempresas.net/Reciclaje/621331-Veolia-logra-primera-produccion-biometano-partir-residuos-industriales-Andalucia.html",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "SECONDARY: 'la instalación trata 105 m³ de residuos industriales líquidos' ... 'más de 8.000 m³ de biometano al día' ... 'genera más de 32 GWh al año' (Veolia figure vs Sedigas nameplate 45 GWh)."
+      },
+      "certification": {
+        "value": {
+          "scheme": "ISCC_EU",
+          "certificateNumber": "EU-ISCC-Cert-DE119-34268594",
+          "validUntil": "2027-02-28",
+          "status": "VALID"
+        },
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTM1NTEwX0VVLUlTQ0MtQ2VydC1ERTExOS0zNDI2ODU5NA==",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Gunvor España SL, P.I. Nuevo Puerto, Parcelas 52-53, 21810 Palos de la Frontera (Huelva), Spain | EU-ISCC-Cert-DE119-34268594 | 01.03.26 – 28.02.27 | Scope: Point of Origin, Processing Unit, Trader with Storage | Processing Unit Type: Biodiesel plant | Biogas plant | Biomethane plant | Raw Material: Used cooking oil (UCO) entirely of veg. origin, Soapstock acid oil contaminated with sulphur, Crude glycerine, Matter Organic Non-Glycerol (MONG), Residue of FAME end distillation (Used cooking oil (UCO)), Residue of FAME end distillation (Used cooking oil (UCO) entirely of veg. origin), Empty Palm Fruit Bunches (EFB) oil, Waste/residues from processing of vegetable or animal oil (uncategorized), Industrial wastewate | Products: Biodiesel, Bio heating oil, Refined oil, Biogas, Biomethane, Spent bleaching earth oil | Issuing CB: ASG Cert GmbH, Munich, DE || DESK NOTE: Multi-product site certificate (biodiesel + biogas + biomethane); feedstock list is a biodiesel UCO/glycerine/MONG list - check that the biomethane chain's raw material is in scope."
+      },
+      "prtrGrant": {
+        "value": "YES",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=B88223813&numeroConvocatoria=642067",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "BDNS record SB89488720: beneficiario 'GUNVOR ESPAÑA, S.L.', importe 244121.72, fecha concesión 2023-07-05, convocatoria 642067 'Primera convocatoria del programa de incentivos a proyectos singulares de instalaciones de biogás, en el marco del Plan de Recuperación, Transformación y Resiliencia' (IDAE). Orden TED/706/2022 Art. 5.3 (BOE): 'la aceptación de la ayuda que se conceda es incompatible con la existencia de cualquier acuerdo suscrito por parte del beneficiario/a que se utilice para la obtención de certificados verdes, en el marco de un mecanismo de apoyo, establecido, o que se pudiera establecer en el futuro, en el ámbito nacional, de la Unión Europea o internacional.' Also: 'las ayudas de la presente orden son compatibles con la percepción de garantías de origen.' (BOE-A-2022-12470).",
+        "details": {
+          "granted": true,
+          "program": "IDAE Programa de incentivos 1 (biogás)",
+          "amountEUR": 244121.72,
+          "concessionDate": "2023-07-05",
+          "bdnsConcessionCode": "SB89488720",
+          "beneficiaryNameInBDNS": "GUNVOR ESPAÑA, S.L.",
+          "orderBasis": "Orden TED/706/2022"
+        }
+      },
+      "otherAid": {
+        "value": "Loans: CDTI EUR 1,070,892.24 (2025-05-30) and EUR 2,727,273 (2022-12-22) innovation loans (investment-type support)",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=B88223813",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "BDNS convocatorias 815687, 584207."
+      },
+      "reportedCI": null,
+      "currentOfftake": null,
+      "nominalCapacityGWh": {
+        "value": 45,
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 24 Gunvor | ... | 45 || Column 'GWh / año' is footnoted '(**) Capacidad nominal' - NAMEPLATE, not production."
+      },
+      "openQuestions": [
+        "IDAE PRTR EUR 244,121.72 -> Art. 5.3 legal check (BDNS beneficiary is Gunvor España SL; project not named in BDNS).",
+        "Feedstock is industrial effluent from biodiesel (Annex IX?) - eligibility and CI to be confirmed in PoS.",
+        "Nameplate 45 (Sedigas) vs 32 GWh (Veolia).",
+        "Confirm Enagás GdO registration (gdogas.es) and 'Public support' field on issued GOs directly with the operator.",
+        "No published per-plant ACTUAL production (Sedigas lists nameplate only). Ask plant / Nedgia / Enagás GTS for metered injection by month.",
+        "No PoS / carbon-intensity published for this plant; request PoS (gCO2e/MJ per step) from operator."
+      ],
+      "researchedAt": "2026-10-09T21:30:00Z"
+    },
+    "plant_es_25": {
+      "gdoRegistered": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.aib-net.org/sites/default/files/assets/aib/AIB%20Annual%20Report%20full%20version%202025%20-%2003.06.2026.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "No per-plant list of Enagás GdO registrations is public (gdogas.es is a login SPA). System-level: AIB Annual Report 2025, Spain-Enagás page: 'Gas – Renewable methane with confirmed sustainability criteria met | 18 production devices | 113 MW'; 'Gas – Renewable methane without confirmed sustainability criteria met | 1 | 3'. Started Feb 2026; no registration statement found."
+      },
+      "injection": {
+        "value": "DSO",
+        "sourceUrl": "https://www.google.com/maps/d/kml?mid=1MlUal3iMn6GLk84oXIjbbHe63N8F3CU&forcekml=1",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas live map placemark: 'Utiel | Promotor: Naturgy-AEMA Ubicación: Utiel (Valencia) Inyección a red: Distribución Operador de red: Nedgia Entrada en operación: Febrero (2026) Capacidad (GWh/año): 20'. (Not in the Dec-2025 PDF.)"
+      },
+      "operatingSince": {
+        "value": "2026-02",
+        "sourceUrl": "https://www.google.com/maps/d/kml?mid=1MlUal3iMn6GLk84oXIjbbHe63N8F3CU&forcekml=1",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas live map: 'Entrada en operación: Febrero (2026)'."
+      },
+      "actualProductionGWh": null,
+      "capacityNm3h": null,
+      "feedstockMix": {
+        "value": "Agro-industrial waste (planned)",
+        "sourceUrl": "https://www.corresponsables.com/actualidad/naturgy-avanza-en-la-construccion-de-la-primera-planta-que-inyectara-gas-renovable-en-la-red-de-distribucion-de-la-comunidad-valenciana/",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "SECONDARY (search summary, not fetched): 'residuos agroindustriales'. ISCC certificate lists no materials yet."
+      },
+      "certification": {
+        "value": {
+          "scheme": "ISCC_EU",
+          "certificateNumber": "EU-ISCC-Cert-PL214-81414225",
+          "validUntil": "2027-01-25",
+          "status": "VALID"
+        },
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTMxMjc1X0VVLUlTQ0MtQ2VydC1QTDIxNC04MTQxNDIyNQ==",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Naturgy Nuevas Energías S.L.U., Calle Cabrias 503, 46300 Utiel, Spain | EU-ISCC-Cert-PL214-81414225 | 26.01.26 – 25.01.27 | Scope: Processing Unit | Processing Unit Type: Biomethane plant | Raw Material: --no materials handled as sustainable in the previous certification period-- | Products: - | Issuing CB: Bureau Veritas Polska Sp. z o.o., Warsaw, PL || DESK NOTE: Certificate lists '--no materials handled as sustainable in the previous certification period--' = no certified volume yet. AEMA Servicios Energéticos holds a separate BIOGAS cert (ES216-20260173, valid to 2027-02-19)."
+      },
+      "prtrGrant": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=B88263249",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "NOT FOUND in BDNS (infosubvenciones.es, queried 2026-10-09 by nifCif=B88263249 'Naturgy Nuevas Energías S.L.U.'; IDAE calls 642067/642077 = Programa de incentivos a proyectos singulares de instalaciones de biogás, Orden TED/706/2022). NOT proof of NO: BDNS lists only EUR 40.9M of concessions for those two programme lines vs the Orden's 'dotación inicial de 150 millones de euros' (BOE-A-2022-12470), and an SPV may hold a grant under another CIF. ",
+        "bdnsResult": "NO_RECORD"
+      },
+      "otherAid": null,
+      "reportedCI": null,
+      "currentOfftake": null,
+      "nominalCapacityGWh": {
+        "value": 20,
+        "sourceUrl": "https://www.google.com/maps/d/kml?mid=1MlUal3iMn6GLk84oXIjbbHe63N8F3CU&forcekml=1",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas live map 'Capacidad (GWh/año): 20' (nameplate)."
+      },
+      "openQuestions": [
+        "First weeks of operation: no production history, no PoS yet.",
+        "Confirm GdO registration and PoS issuance route (Naturgy owns the ISCC unit; AEMA the biogas).",
+        "No published per-plant ACTUAL production (Sedigas lists nameplate only). Ask plant / Nedgia / Enagás GTS for metered injection by month.",
+        "No PoS / carbon-intensity published for this plant; request PoS (gCO2e/MJ per step) from operator."
+      ],
+      "researchedAt": "2026-10-09T21:30:00Z"
+    },
+    "plant_es_26": {
+      "gdoRegistered": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.aib-net.org/sites/default/files/assets/aib/AIB%20Annual%20Report%20full%20version%202025%20-%2003.06.2026.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "No per-plant list of Enagás GdO registrations is public (gdogas.es is a login SPA). System-level: AIB Annual Report 2025, Spain-Enagás page: 'Gas – Renewable methane with confirmed sustainability criteria met | 18 production devices | 113 MW'; 'Gas – Renewable methane without confirmed sustainability criteria met | 1 | 3'. No plant-specific statement found."
+      },
+      "injection": {
+        "value": "DSO",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 19 Tuero Ventas Baños | Agroganadero | Tuero Medioambiente | Venta de Baños | Palencia | Distribucion | Nedgia | ago-25 | 33"
+      },
+      "operatingSince": {
+        "value": "2025-08",
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 19 Tuero Ventas Baños | ... | ago-25 | 33 || 'Entrada en operación' = ago-25. "
+      },
+      "actualProductionGWh": null,
+      "capacityNm3h": null,
+      "feedstockMix": {
+        "value": "Agro-food residues and livestock by-products (ISCC scope: category-3 fats, feed waste, food waste, manure, sewage sludge, food-industry wastewater, UCO, ABP cat.3)",
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTUzNzU0X0VVLUlTQ0MtQ2VydC1ERTEwMC0yNTE4ODEyNg==",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "ISCC raw material list, no percentages; Sedigas typology 'Agroganadero'."
+      },
+      "certification": {
+        "value": {
+          "scheme": "ISCC_EU",
+          "certificateNumber": "EU-ISCC-Cert-DE100-25188126",
+          "validUntil": "2027-08-20",
+          "status": "VALID"
+        },
+        "sourceUrl": "https://hub.iscc-system.org/FileHandler/download/certificateFile/MTUzNzU0X0VVLUlTQ0MtQ2VydC1ERTEwMC0yNTE4ODEyNg==",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "TUERO MEDIOAMBIENTE S.L, C/ TREN EXPRESO PARC 310-311, 34200 VENTA DE BAÑOS - PALENCIA, Spain | EU-ISCC-Cert-DE100-25188126 | 21.08.26 – 20.08.27 | Scope: Collecting Point, Processing Unit | Processing Unit Type: Biomethane plant | Biogas plant | Treatment plant for waste/ residues | Raw Material: Animal fats from rendering (category 3), Feed waste, Food waste, Manure, Sewage sludge, Wastewater from the food industry, Waste/residues from processing of vegetable or animal oil (Used cooking oil (UCO)), Animal by-products (category 3) | Products: Biogas, Biomethane | Issuing CB: SGS Germany GmbH, Emstek, DE"
+      },
+      "prtrGrant": {
+        "value": "UNKNOWN",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=B49197551",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "BDNS nifCif=B49197551 (Tuero Medioambiente S.L.): large PRTR INDUSTRIAL grants (not the IDAE biogas programme). Whether they fund the biomethane unit or the adjacent pasta factory is not stated in BDNS. No IDAE Orden TED/706 grant found.",
+        "details": {
+          "granted": "UNKNOWN",
+          "found": [
+            {
+              "program": "PERTE de Descarbonización Industrial (PRTR) 'Convocatoria anticipada de las ayudas de actuación integral para la descarbonización de la industria manufacturera'",
+              "amountEUR": 1614237.9,
+              "date": "2025-10-06",
+              "code": "SB136875473"
+            },
+            {
+              "program": "same call",
+              "amountEUR": 125650,
+              "date": "2025-10-06",
+              "code": "SB136875474"
+            },
+            {
+              "program": "'Plan de innovación y sostenibilidad en el ámbito de la industria manufacturera' (PRTR 2023)",
+              "amountEUR": 865427.6,
+              "date": "2023-12-18",
+              "code": "SB97294066"
+            }
+          ]
+        }
+      },
+      "otherAid": {
+        "value": "Investment aid: PERTE industrial decarbonisation EUR 1.74M (2025), PRTR innovation EUR 865k (2023) + EUR 2.6M loan, ICE FEDER R&D EUR 148k, regional grants. No operating aid found.",
+        "sourceUrl": "https://www.infosubvenciones.es/bdnstrans/api/concesiones/busqueda?vpd=GE&nifCif=B49197551",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "BDNS codes SB136875473/474, SB97294066, PR97408441 (loan), SB116143701."
+      },
+      "reportedCI": null,
+      "currentOfftake": null,
+      "nominalCapacityGWh": {
+        "value": 33,
+        "sourceUrl": "https://biometano.sedigas.es/wp-content/uploads/2026/01/202512-sedigas-plantas-biometano-operativas-en-espana-24.pdf",
+        "retrievedAt": "2026-10-09T21:30:00Z",
+        "note": "Sedigas 'Plantas de Biometano Operativas en España' (updated Jan 2026) row: 19 Tuero Ventas Baños | ... | 33 || Column 'GWh / año' is footnoted '(**) Capacidad nominal' - NAMEPLATE, not production."
+      },
+      "openQuestions": [
+        "PRTR industrial grants EUR ~2.6M: scope (plant vs factory) and whether their bases contain a certificates incompatibility.",
+        "es.json says gas also piped to the adjacent pasta factory - what share is injected vs consumed on site?",
+        "Offtaker unpublished.",
+        "Confirm Enagás GdO registration (gdogas.es) and 'Public support' field on issued GOs directly with the operator.",
+        "No published per-plant ACTUAL production (Sedigas lists nameplate only). Ask plant / Nedgia / Enagás GTS for metered injection by month.",
+        "No PoS / carbon-intensity published for this plant; request PoS (gCO2e/MJ per step) from operator."
+      ],
+      "researchedAt": "2026-10-09T21:30:00Z"
+    }
+  }
+}

@@ -161,6 +161,55 @@ export interface PlantResearch {
   researchedAt: string;
   openQuestions: string[]; // what a trader should still confirm
   plantLink?: SourcedValue | null; // source linking the plant to that entity
+  /** Chain-of-custody facts for green-gas deals (data/plant_research/<cc>.compliance.json). Absent where not researched. */
+  compliance?: PlantCompliance | null;
+}
+
+export type TriState = 'YES' | 'NO' | 'UNKNOWN';
+export type InjectionLevel = 'TSO' | 'DSO' | 'OFF_GRID' | 'UNKNOWN';
+
+/** A scheme certificate as read off the scheme database. */
+export interface PlantCertificate {
+  scheme: string;           // e.g. 'ISCC_EU'
+  certificateNumber: string;
+  validUntil: string;       // ISO date
+  status: 'VALID' | 'EXPIRED' | string;
+}
+
+/** PRTR (Orden TED/706/2022) biogas grant. `bdnsResult` NO_RECORD means the public register showed nothing, which is not proof of NO. */
+export interface PrtrGrantValue extends SourcedValue<TriState> {
+  bdnsResult?: 'NO_RECORD' | string;
+  details?: Record<string, unknown>;
+}
+
+/**
+ * Compliance facts for one plant. Every value is a SourcedValue (source link + verbatim quote in
+ * `note`) or null when nothing was found. "UNKNOWN" as a value means a source was searched and said
+ * nothing; it is never read as NO. In particular a missing PRTR grant stays UNKNOWN because the
+ * public grants register (BDNS) lists only part of the programme.
+ */
+export interface PlantCompliance {
+  gdoRegistered: SourcedValue<TriState> | null;
+  injection: SourcedValue<InjectionLevel> | null;
+  operatingSince: SourcedValue | null;
+  /** Metered output for a year, in GWh. Distinct from the map's capacity-based annualEnergyGWh. */
+  actualProductionGWh: SourcedValue<{ value: number; year: number }> | null;
+  capacityNm3h: SourcedValue<number> | null;
+  feedstockMix: SourcedValue | null;
+  certification: SourcedValue<PlantCertificate> | null;
+  prtrGrant: PrtrGrantValue | null;
+  otherAid: SourcedValue | null;
+  /** Published carbon intensity, gCO2e/MJ. Only a sourced value may ever default a CI. */
+  reportedCI: SourcedValue<number> | null;
+  currentOfftake: SourcedValue | null;
+  nominalCapacityGWh?: SourcedValue<number> | null;
+  openQuestions: string[];
+  researchedAt: string;
+  /** True for records that are not a real injecting plant (duplicate or not a plant). Kept in the data, left out of shortlists. */
+  excluded?: boolean;
+  excludedReason?: string;
+  /** The injecting entity actually at this site, when the app's record points at a different company. */
+  correctedEntity?: SourcedValue<{ name: string; cif?: string; certificateNumber?: string; prtrGrantEur?: number }> | null;
 }
 
 export type RegistrationCheckStatus = 'CONFIRMED' | 'MISMATCH' | 'NOT_FOUND' | 'ERROR';

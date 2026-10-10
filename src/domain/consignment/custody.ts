@@ -96,3 +96,22 @@ export function missingPosFields(pos: PosRecord | null): string[] {
   if (pos.mwh === null) out.push('MWh');
   return out;
 }
+
+/**
+ * The deal volume for a paired GO + PoS market. The GGE value is per GO MWh on the GO's own energy
+ * basis, so once the pack states the GO's energy that figure is the deal volume (and the notional is
+ * GO MWh × €/GO-MWh). The PoS may state fewer MWh on LHV; that is checked by the pairing item, not
+ * used to size the deal. Null when the market is not paired or the GO energy is not entered.
+ */
+export function goBasisVolumeMwh(market: Pick<Market, 'requiresGoAndPos'> | undefined, custody: CustodyPack | null | undefined): number | null {
+  const mwh = custody?.go?.energyMWh;
+  return market?.requiresGoAndPos && typeof mwh === 'number' && mwh > 0 ? mwh : null;
+}
+
+/** Unit label for the deal volume: "MWh (GO, HHV)" on a paired market, plain "MWh" elsewhere. */
+export function volumeUnitLabel(market: Pick<Market, 'requiresGoAndPos'> | undefined, custody: CustodyPack | null | undefined): string {
+  if (!market?.requiresGoAndPos) return 'MWh';
+  const basis = custody?.go?.energyBasis;
+  return basis === 'HHV' || basis === 'LHV' ? `MWh (GO, ${basis})` : 'MWh (GO)';
+}
+
