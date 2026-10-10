@@ -15,6 +15,7 @@ const ComplianceAuditModal = React.lazy(() =>
   import('../features/auditor/ComplianceAuditModal').then(m => ({ default: m.ComplianceAuditModal }))
 );
 import { useIsMobile } from '../shared/hooks/useMediaQuery';
+import { PageHelper } from '../features/helper/PageHelper';
 // Side-effect import: registers the beforeinstallprompt/appinstalled listeners at startup so
 // they're captured even before the mobile Desk sheet (the only current caller) ever mounts.
 import './installPrompt';
@@ -191,6 +192,9 @@ export function Layout() {
           </Suspense>
         </ErrorBoundary>
       </main>
+
+      {/* Page helper: a slim dock above the status bar on desktop, a round "?" button and sheet on a phone. */}
+      <PageHelper />
 
       {/* 28px Status Bar & Tools Footer (desktop only — the mobile shell uses the Desk sheet instead) */}
       {!isMobile && (

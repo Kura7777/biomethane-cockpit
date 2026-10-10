@@ -17,6 +17,7 @@ import { BriefOrderBook } from './BriefOrderBook';
 import { BriefRoutes } from './BriefRoutes';
 import { BriefSupply } from './BriefSupply';
 import { BriefWatch } from './BriefWatch';
+import { usePageContext } from '../helper/usePageContext';
 import './brief.css';
 
 /** The arbitrage scan on the brief uses the desk's default origination feedstock and a 10 GWh lot. */
@@ -63,6 +64,25 @@ export function MorningBriefScreen() {
 
   const plantCount = supply ? supply.reduce((s, r) => s + r.plants, 0) : null;
   const supplyTWh = supply ? supply.reduce((s, r) => s + r.annualGWh, 0) / 1000 : null;
+
+  const thgMark = marks.find(m => m.marketId === 'DE_THG');
+  const euaMark = marks.find(m => m.marketId === 'EU_ETS1');
+  usePageContext('/brief', () => ({
+    kpis: {
+      topNetbackEurPerMwh: headline.best ? { market: headline.best.marketName, value: Math.round(headline.best.netNetback * 100) / 100 } : null,
+      deThgMid: thgMark?.mid ?? null,
+      ets1Mid: euaMark?.mid ?? null,
+      fueleuPoolLatest: fueleuTraded ? { period: fueleuTraded.latest.period, value: fueleuTraded.latest.value } : null,
+      freshMarks: freshness.total ? `${freshness.fresh} of ${freshness.total}` : null,
+      estimatedMarks: freshness.estimates,
+      plantsTracked: plantCount,
+    },
+    ladder: {
+      consignment: consignment?.name ?? null,
+      top3: ladder.filter(r => r.rank !== null).slice(0, 3).map(r => ({ market: r.marketName, verdict: r.verdict, netNetbackEurPerMwh: Math.round(r.netNetback * 100) / 100 })),
+      blockedBest: headline.bestBlocked ? headline.bestBlocked.marketName : null,
+    },
+  }));
 
   const go = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 

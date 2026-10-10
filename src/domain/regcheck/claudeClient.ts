@@ -160,7 +160,7 @@ export function extractJsonFromText(rawText: string): unknown {
   }
 }
 
-function sanitizeKey(msg: string, key?: string): string {
+export function sanitizeKey(msg: string, key?: string): string {
   if (!key) return msg;
   const clean = key.trim();
   if (clean.length < 4) return msg;
