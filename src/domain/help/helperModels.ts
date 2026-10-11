@@ -47,7 +47,7 @@ export const HELPER_MODELS: readonly HelperModel[] = [
     serverFallback: true,
     webSearchTool: 'web_search_20260209',
     effort: 'medium',
-    price: { input: 'helper.price.opus55.inputUsdPerMTok', output: 'helper.price.opus55.outputUsdPerMTok', cacheRead: 'helper.price.anthropic.cacheReadX.opusSonnet' },
+    price: { input: 'helper.price.opus55.inputUsdPerMTok', output: 'helper.price.opus55.outputUsdPerMTok', cacheRead: 'helper.price.anthropic.cacheReadX.opus' },
   },
   {
     ...CLAUDE_COMMON,
@@ -60,7 +60,7 @@ export const HELPER_MODELS: readonly HelperModel[] = [
     serverFallback: true,
     webSearchTool: 'web_search_20260209',
     effort: 'low',
-    price: { input: 'helper.price.sonnet55.inputUsdPerMTok', output: 'helper.price.sonnet55.outputUsdPerMTok', cacheRead: 'helper.price.anthropic.cacheReadX.opusSonnet' },
+    price: { input: 'helper.price.sonnet55.inputUsdPerMTok', output: 'helper.price.sonnet55.outputUsdPerMTok', cacheRead: 'helper.price.anthropic.cacheReadX.sonnetHaiku' },
   },
   {
     ...CLAUDE_COMMON,
@@ -73,7 +73,7 @@ export const HELPER_MODELS: readonly HelperModel[] = [
     serverFallback: false,
     webSearchTool: 'web_search_20250305',
     effort: 'low',
-    price: { input: 'helper.price.haiku55.inputUsdPerMTok', output: 'helper.price.haiku55.outputUsdPerMTok', cacheRead: 'helper.price.anthropic.cacheReadX.haiku' },
+    price: { input: 'helper.price.haiku55.inputUsdPerMTok', output: 'helper.price.haiku55.outputUsdPerMTok', cacheRead: 'helper.price.anthropic.cacheReadX.sonnetHaiku' },
   },
   {
     ...GEMINI_COMMON,
@@ -92,7 +92,7 @@ export const HELPER_MODELS: readonly HelperModel[] = [
     id: 'gemini-3.5-flash-lite',
     name: 'Gemini 3.5 Flash-Lite',
     tagline: 'Google, fast and cheap',
-    useFor: 'Quick look-ups and everyday questions from Google’s cheapest current model. Uses the desk’s own data and look-ups; it does not search the web.',
+    useFor: 'Quick look-ups and everyday questions from one of Google’s cheapest current models. Uses the desk’s own data and look-ups; it does not search the web.',
     speedAndCost: 'Fast; a few times the cost of Haiku, far below Opus.',
     googleSearch: false,
     price: { input: 'helper.price.gemini35flashlite.inputUsdPerMTok', output: 'helper.price.gemini35flashlite.outputUsdPerMTok', cacheRead: 'helper.price.gemini.cachedInputFraction' },
