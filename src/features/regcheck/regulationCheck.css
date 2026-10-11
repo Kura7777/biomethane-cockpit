@@ -504,3 +504,7 @@
   gap: 12px;
   text-align: center;
 }
+
+.regcheck-key-saved { font-size: 12px; color: var(--color-muted); font-variant-numeric: tabular-nums; }
+.regcheck-key-problem { flex-basis: 100%; font-size: 12px; color: var(--color-status-warn-text, #8a5a00); }
+.regcheck-key-ok { font-size: 12px; color: var(--color-status-pass-text, #2f6b3a); }

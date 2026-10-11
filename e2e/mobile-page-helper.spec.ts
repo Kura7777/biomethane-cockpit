@@ -51,3 +51,36 @@ test.describe('Ask the desk (compact layout)', () => {
     expect(noOverflow).toBe(true);
   });
 });
+
+test.describe('Anthropic key on a phone', () => {
+  test('a key pasted with phone clutter is cleaned on save, and a rejected key names the one saved here', async ({ page }) => {
+    await gotoScreen(page, '/regulation-check');
+    const input = page.getByTestId('regcheck-key-input');
+    await expect(input).toHaveAttribute('autocapitalize', 'none');
+    await input.fill(' Sk-ant-api03-e2e test key ​9876 ');
+    await page.getByRole('button', { name: 'Save' }).click();
+    await expect(page.getByTestId('regcheck-key-saved')).toContainText('sk-ant-…9876 (27 characters)');
+    expect(await page.evaluate(() => localStorage.getItem('biomethane_anthropic_api_key'))).toBe('sk-ant-api03-e2etestkey9876');
+    // 27 characters is far too short for a real key: warn before any network call.
+    await expect(page.getByTestId('regcheck-key-problem')).toContainText('Only 27 characters');
+    await page.route('https://api.anthropic.com/v1/models*', route => route.fulfill({
+      status: 401,
+      contentType: 'application/json',
+      body: JSON.stringify({ type: 'error', error: { type: 'authentication_error', message: 'invalid x-api-key' } }),
+    }));
+    await page.getByTestId('regcheck-key-test').click();
+    await expect(page.getByTestId('regcheck-key-result')).toContainText('Anthropic rejected this key (HTTP 401)');
+
+    await page.route('https://api.anthropic.com/v1/messages*', route => route.fulfill({
+      status: 401,
+      contentType: 'application/json',
+      body: JSON.stringify({ type: 'error', error: { type: 'authentication_error', message: 'invalid x-api-key' } }),
+    }));
+    await gotoScreen(page, '/ask');
+    await page.getByTestId('helper-input').fill('What is a GGE?');
+    await page.getByTestId('helper-send').click();
+    const error = page.getByTestId('helper-error');
+    await expect(error).toContainText('saved on this device (sk-ant-…9876');
+    await expect(error).not.toContainText('e2etestkey');
+  });
+});

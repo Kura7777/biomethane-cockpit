@@ -8,6 +8,7 @@
  */
 import Anthropic from '@anthropic-ai/sdk';
 import { sanitizeKey } from '../regcheck/claudeClient';
+import { anthropicKeyFingerprint } from '../regcheck/storage';
 import { buildSystemBlocks, formatUserTurn, HELPER_MAX_TOKENS, type HelperSource, type HelperTurn } from './helperLogic';
 import { HELPER_TOOLS, HELPER_TOOL_LABELS, runHelperTool, type HelperToolContext } from './helperTools';
 import { helperModelById } from './helperModels';
@@ -76,7 +77,10 @@ export interface HelperStreamCallbacks {
 
 function friendlyError(err: unknown, apiKey: string): Error {
   if (err instanceof Anthropic.APIUserAbortError) return new Error('Stopped.');
-  if (err instanceof Anthropic.AuthenticationError) return new Error('Invalid Anthropic API key (HTTP 401). Check it on the Regulation check page.');
+  if (err instanceof Anthropic.AuthenticationError) {
+    // Keys are saved per device and per browser, so the one here may not be the one that works elsewhere.
+    return new Error(`Anthropic did not accept the key saved on this device (${anthropicKeyFingerprint(apiKey)}, HTTP 401). Keys are saved per device: re-enter it on the Regulation check page and compare the last four characters with your Anthropic console.`);
+  }
   if (err instanceof Anthropic.PermissionDeniedError) return new Error(sanitizeKey(`Anthropic API access forbidden (HTTP 403): ${err.message}`, apiKey));
   if (err instanceof Anthropic.RateLimitError) return new Error('Anthropic API rate limit reached (HTTP 429). Wait a moment and try again.');
   if (err instanceof Anthropic.APIConnectionError) return new Error('Could not reach api.anthropic.com. Check your connection.');

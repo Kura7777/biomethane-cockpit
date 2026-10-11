@@ -33,6 +33,8 @@ import {
   getStoredAnthropicApiKey,
   setStoredAnthropicApiKey,
   clearStoredAnthropicApiKey,
+  normaliseAnthropicApiKey,
+  anthropicKeyFingerprint,
   getLastRegcheckReport,
   saveLastRegcheckReport,
   clearLastRegcheckReport,
@@ -40,6 +42,7 @@ import {
   isRegcheckStale
 } from '../../domain/regcheck/storage';
 import { FIXTURE_REGCHECK_REPORT } from '../../domain/regcheck/fixture';
+import { anthropicKeyShapeProblem, testAnthropicApiKey, type AnthropicKeyCheck } from '../../domain/regcheck/keyCheck';
 import { showToast } from '../../app/DeskToastContainer';
 import './regulationCheck.css';
 
@@ -98,6 +101,7 @@ export function RegulationCheckScreen() {
   const [apiKey, setApiKey] = useState('');
   const [savedKey, setSavedKey] = useState('');
   const [showKey, setShowKey] = useState(false);
+  const [keyCheck, setKeyCheck] = useState<AnthropicKeyCheck | 'testing' | null>(null);
   const [model, setModel] = useState<ClaudeModelChoice>(DEFAULT_CLAUDE_MODEL);
   const [report, setReport] = useState<RegcheckReport | null>(null);
   const [isRunning, setIsRunning] = useState(false);
@@ -155,9 +159,11 @@ export function RegulationCheckScreen() {
   }, [isRunning]);
 
   const handleSaveKey = () => {
-    const trimmed = apiKey.trim();
-    setStoredAnthropicApiKey(trimmed);
-    setSavedKey(trimmed);
+    const clean = normaliseAnthropicApiKey(apiKey);
+    setStoredAnthropicApiKey(clean);
+    setSavedKey(clean);
+    setApiKey('');
+    setKeyCheck(null);
     showToast('Anthropic API key saved to browser storage');
   };
 
@@ -165,7 +171,13 @@ export function RegulationCheckScreen() {
     clearStoredAnthropicApiKey();
     setSavedKey('');
     setApiKey('');
+    setKeyCheck(null);
     showToast('Anthropic API key cleared');
+  };
+
+  const handleTestKey = async () => {
+    setKeyCheck('testing');
+    setKeyCheck(await testAnthropicApiKey(savedKey));
   };
 
   const handleRunCheck = async () => {
@@ -310,7 +322,10 @@ export function RegulationCheckScreen() {
                   value={apiKey}
                   onChange={e => setApiKey(e.target.value)}
                   autoComplete="off"
+                  autoCapitalize="none"
+                  autoCorrect="off"
                   spellCheck={false}
+                  data-testid="regcheck-key-input"
                 />
                 <button
                   type="button"
@@ -326,10 +341,36 @@ export function RegulationCheckScreen() {
                 className="btn btn-primary"
                 style={{ padding: '6px 12px', fontSize: '12px' }}
                 onClick={handleSaveKey}
-                disabled={!apiKey.trim() || apiKey === savedKey}
+                disabled={!normaliseAnthropicApiKey(apiKey) || normaliseAnthropicApiKey(apiKey) === savedKey}
               >
                 Save
               </button>
+              {savedKey && (
+                <span className="regcheck-key-saved" data-testid="regcheck-key-saved" title="Keys are saved per device and per browser. Compare this with the key in your Anthropic console.">
+                  Saved on this device: {anthropicKeyFingerprint(savedKey)}
+                </span>
+              )}
+              {savedKey && anthropicKeyShapeProblem(savedKey) && (
+                <span className="regcheck-key-problem" role="alert" data-testid="regcheck-key-problem">{anthropicKeyShapeProblem(savedKey)}</span>
+              )}
+              {savedKey && (
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  style={{ padding: '6px 12px', fontSize: '12px' }}
+                  onClick={handleTestKey}
+                  disabled={keyCheck === 'testing'}
+                  data-testid="regcheck-key-test"
+                  title="Checks the key with Anthropic by listing one model. No tokens are used and nothing is charged."
+                >
+                  {keyCheck === 'testing' ? 'Testing…' : 'Test key'}
+                </button>
+              )}
+              {keyCheck && keyCheck !== 'testing' && (
+                <span className={keyCheck.ok ? 'regcheck-key-ok' : 'regcheck-key-problem'} role="status" data-testid="regcheck-key-result">
+                  {keyCheck.ok ? 'Key works: Anthropic accepted it.' : keyCheck.reason}
+                </span>
+              )}
               {savedKey && (
                 <button
                   type="button"
@@ -349,14 +390,14 @@ export function RegulationCheckScreen() {
                   className={`regcheck-model-btn ${model === DEFAULT_CLAUDE_MODEL ? 'active' : ''}`}
                   onClick={() => setModel(DEFAULT_CLAUDE_MODEL)}
                 >
-                  Standard (Sonnet 3.7)
+                  Standard (Sonnet 5.5)
                 </button>
                 <button
                   type="button"
                   className={`regcheck-model-btn ${model === THOROUGH_CLAUDE_MODEL ? 'active' : ''}`}
                   onClick={() => setModel(THOROUGH_CLAUDE_MODEL)}
                 >
-                  Thorough (Opus 3.7)
+                  Thorough (Opus 5.5)
                 </button>
               </div>
 

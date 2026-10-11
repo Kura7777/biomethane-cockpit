@@ -4,10 +4,33 @@ import { isRegcheckReport } from './types';
 export const ANTHROPIC_API_KEY_STORAGE_KEY = 'biomethane_anthropic_api_key';
 export const REGCHECK_LAST_REPORT_STORAGE_KEY = 'biomethane_regcheck_last_report';
 
+/**
+ * An Anthropic key is one unbroken run of letters, digits, '-' and '_'. Pasting on a phone (from a note,
+ * an email or a password manager) can add spaces, line breaks or zero-width characters, turn "--" into
+ * an em dash or '-' into a curly dash, and capitalise the first letter. Undo those so the key sent is
+ * the key that was copied. Applied on save and on read, so a key saved before this fix is repaired too.
+ */
+export function normaliseAnthropicApiKey(raw: string): string {
+  let key = raw
+    .replace(/[\s\u200B-\u200D\u2060\uFEFF]/g, '')
+    .replace(/\u2014/g, '--')
+    .replace(/[\u2010-\u2013\u2015\u2212]/g, '-');
+  if (/^sk-ant-/i.test(key)) key = `sk-ant-${key.slice(7)}`;
+  return key;
+}
+
+/**
+ * Enough to tell two saved keys apart, never the key itself: the first seven characters (the public
+ * "sk-ant-" prefix on a real key), the last four, and the length.
+ */
+export function anthropicKeyFingerprint(key: string): string {
+  return key ? `${key.slice(0, 7)}…${key.slice(-4)} (${key.length} characters)` : '';
+}
+
 export function getStoredAnthropicApiKey(): string {
   if (typeof localStorage === 'undefined') return '';
   try {
-    return localStorage.getItem(ANTHROPIC_API_KEY_STORAGE_KEY) || '';
+    return normaliseAnthropicApiKey(localStorage.getItem(ANTHROPIC_API_KEY_STORAGE_KEY) || '');
   } catch {
     return '';
   }
@@ -16,7 +39,7 @@ export function getStoredAnthropicApiKey(): string {
 export function setStoredAnthropicApiKey(key: string): void {
   if (typeof localStorage === 'undefined') return;
   try {
-    localStorage.setItem(ANTHROPIC_API_KEY_STORAGE_KEY, key.trim());
+    localStorage.setItem(ANTHROPIC_API_KEY_STORAGE_KEY, normaliseAnthropicApiKey(key));
   } catch {
     // Ignore localStorage write failures (e.g. private browsing quota)
   }
