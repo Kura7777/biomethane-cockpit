@@ -2,16 +2,18 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check, ChevronDown, MessageCircle, RotateCcw } from 'lucide-react';
 import { setAssumption } from '../../domain/assumptions/registry';
-import { HELPER_MODELS, currentHelperModel } from '../../domain/help/helperModels';
+import { currentHelperModel, helperModelsFor } from '../../domain/help/helperModels';
 import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
 import { formatUsd } from '../../domain/help/helperCost';
 import { ChatBody, ChatInput, ModeNote, useHelperChat, useTodaySpend } from './PageHelper';
 import { clearHelperConversation } from './helperStore';
+import { ProviderSwitch } from './ProviderSwitch';
 import './helper.css';
 
 /**
- * Which Claude model answers: a button showing the current one, opening a menu that says what each
- * model is for. It writes the desk setting helper.model, so #/pricing shows the same choice.
+ * Which model answers: a button showing the current one, opening a menu that says what each of the
+ * current provider's models is for (Claude or Gemini is chosen with the switch beside it). It writes the
+ * desk setting helper.model, so #/pricing shows the same choice.
  */
 function ModelPicker({ disabled }: { disabled: boolean }) {
   useAssumptionsVersion();
@@ -47,7 +49,7 @@ function ModelPicker({ disabled }: { disabled: boolean }) {
       </button>
       {open && (
         <div className="ask-model-menu" role="menu" aria-label="Model" data-testid="ask-model-menu">
-          {HELPER_MODELS.map(m => (
+          {helperModelsFor(current.provider).map(m => (
             <button
               key={m.id}
               type="button"
@@ -65,7 +67,7 @@ function ModelPicker({ disabled }: { disabled: boolean }) {
               <span className="ask-model-cost">{m.speedAndCost}</span>
             </button>
           ))}
-          <p className="ask-model-note">Claude models use your Anthropic key, Gemini models your Gemini key (Regulation check). Saved for the desk; also on Pricing desk → Desk assumptions.</p>
+          <p className="ask-model-note">{current.provider === 'google' ? 'Uses your Gemini key' : 'Uses your Anthropic key'} (Regulation check). Switch between Claude and Gemini beside this menu. Saved for the desk; also on Pricing desk → Desk assumptions.</p>
         </div>
       )}
     </div>
@@ -107,6 +109,7 @@ export function AskDeskScreen() {
           <span className={`ph-mode ${chat.aiMode ? 'ph-mode--ai' : ''}`} data-testid="helper-mode">{chat.aiMode ? 'AI answers' : 'Offline help'}</span>
         </div>
         <span className="ask-today" data-testid="ask-today" title="Estimated from the token counts each answer reports and the list prices on Pricing desk → Desk assumptions. Kept on this device.">Today ≈ {formatUsd(todaySpend)}</span>
+        <ProviderSwitch disabled={chat.busy} />
         <ModelPicker disabled={chat.busy} />
         <button
           type="button"

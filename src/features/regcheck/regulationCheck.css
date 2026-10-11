@@ -513,3 +513,5 @@
 .regcheck-keys { display: flex; flex-direction: column; gap: 14px; flex: 1 1 100%; }
 .regcheck-keys-title { font-size: 13px; }
 .regcheck-keys .regcheck-key-form + .regcheck-key-form { padding-top: 14px; border-top: 1px solid var(--color-divider, var(--color-border)); }
+.regcheck-provider { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; }
+.regcheck-key-inuse { margin-left: 6px; padding: 1px 8px; border: 1px solid var(--color-text); border-radius: 999px; font-size: 11px; font-weight: 600; }

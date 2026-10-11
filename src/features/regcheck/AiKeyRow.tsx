@@ -28,7 +28,7 @@ const SMALL = { padding: '6px 12px', fontSize: '12px' } as const;
  * One saved API key: input, Save, "Saved on this device: <fingerprint>", Test key and Clear. The same
  * pattern for each provider; the key lives in this browser's localStorage and is only ever sent in a header.
  */
-export function AiKeyRow({ provider, onSavedChange }: { provider: AiKeyProvider; onSavedChange?: (key: string) => void }) {
+export function AiKeyRow({ provider, onSavedChange, inUse = false }: { provider: AiKeyProvider; onSavedChange?: (key: string) => void; /** The desk helper uses this provider now. */ inUse?: boolean }) {
   const [saved, setSaved] = useState(() => provider.get());
   const [draft, setDraft] = useState(saved);
   const [show, setShow] = useState(false);
@@ -63,6 +63,7 @@ export function AiKeyRow({ provider, onSavedChange }: { provider: AiKeyProvider;
       <span style={{ fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
         <KeyRound size={14} />
         {provider.name} API Key:
+        {inUse && <span className="regcheck-key-inuse" data-testid={`${t}-inuse`}>Used by the helper</span>}
       </span>
       <div className="regcheck-key-input-wrap">
         <input

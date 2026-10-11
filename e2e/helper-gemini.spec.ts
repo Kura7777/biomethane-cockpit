@@ -31,10 +31,16 @@ test.describe('Desk helper with Gemini', () => {
     await gotoScreen(page, '/ask');
     await expect(page.getByTestId('helper-mode')).toHaveText('Offline help'); // default Haiku needs the Anthropic key
     await expect(page.getByTestId('helper-offline-note')).toContainText('Add a Claude API key');
-    await page.getByTestId('ask-model').click();
-    await expect(page.getByTestId('ask-model-menu').getByRole('menuitemradio')).toHaveCount(5);
-    await page.getByTestId('ask-model-3').click();
+    // One provider at a time: switching to Gemini lands on Flash-Lite and the menu lists only Gemini models.
+    await expect(page.getByTestId('provider-switch-anthropic')).toHaveAttribute('aria-checked', 'true');
+    await page.getByTestId('provider-switch-google').click();
+    await expect(page.getByTestId('provider-switch-google')).toHaveAttribute('aria-checked', 'true');
+    await expect(page.getByTestId('provider-switch-anthropic')).toHaveAttribute('aria-checked', 'false');
     await expect(page.getByTestId('ask-model')).toHaveText(/Gemini 3\.5 Flash-Lite/);
+    await page.getByTestId('ask-model').click();
+    await expect(page.getByTestId('ask-model-menu').getByRole('menuitemradio')).toHaveCount(2);
+    await expect(page.getByTestId('ask-model-0')).toHaveCount(0);
+    await page.keyboard.press('Escape');
     await expect(page.getByTestId('helper-mode')).toHaveText('AI answers');
     await expect(page.getByTestId('helper-privacy')).toContainText('sent to Google');
     await expect(page.getByTestId('ask-today')).toHaveText('Today ≈ $0.00');
@@ -120,5 +126,18 @@ test.describe('Desk helper with Gemini', () => {
     // Raising the cap on the Pricing desk lets the next question through (still no call here: the cap check alone is under test).
     await note.getByRole('link').click();
     await expect(page.getByText('Desk helper daily AI budget on this device (0 = no cap)')).toBeVisible();
+  });
+
+  test('Regulation check: one provider is used by the helper at a time, and the switch matches Ask the desk', async ({ page }) => {
+    await gotoScreen(page, '/regulation-check');
+    await expect(page.getByTestId('regcheck-provider-switch-anthropic')).toHaveAttribute('aria-checked', 'true');
+    await expect(page.getByTestId('regcheck-key-inuse')).toBeVisible();
+    await expect(page.getByTestId('regcheck-gemini-key-inuse')).toHaveCount(0);
+    await page.getByTestId('regcheck-provider-switch-google').click();
+    await expect(page.getByTestId('regcheck-gemini-key-inuse')).toBeVisible();
+    await expect(page.getByTestId('regcheck-key-inuse')).toHaveCount(0);
+    await gotoScreen(page, '/ask');
+    await expect(page.getByTestId('provider-switch-google')).toHaveAttribute('aria-checked', 'true');
+    await expect(page.getByTestId('ask-model')).toHaveText(/Gemini 3\.5 Flash-Lite/);
   });
 });

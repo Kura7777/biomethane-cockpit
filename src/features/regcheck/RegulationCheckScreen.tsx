@@ -46,6 +46,9 @@ import {
 import { FIXTURE_REGCHECK_REPORT } from '../../domain/regcheck/fixture';
 import { anthropicKeyShapeProblem, geminiKeyShapeProblem, testAnthropicApiKey, testGeminiApiKeyLive } from '../../domain/regcheck/keyCheck';
 import { AiKeyRow, type AiKeyProvider } from './AiKeyRow';
+import { ProviderSwitch } from '../helper/ProviderSwitch';
+import { currentHelperProvider } from '../../domain/help/helperModels';
+import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
 import { showToast } from '../../app/DeskToastContainer';
 import './regulationCheck.css';
 
@@ -132,7 +135,19 @@ export function generateFixHandoff(report: RegcheckReport): string {
   return lines.join('\n');
 }
 
+/** Which provider the desk helper and Ask the desk use; the Regulation check itself always runs on Claude. */
+function HelperProviderChoice() {
+  return (
+    <div className="regcheck-provider" data-testid="regcheck-provider">
+      <span>Desk helper and Ask the desk use:</span>
+      <ProviderSwitch testId="regcheck-provider-switch" />
+    </div>
+  );
+}
+
 export function RegulationCheckScreen() {
+  useAssumptionsVersion();
+  const helperProvider = currentHelperProvider();
   const [savedKey, setSavedKey] = useState('');
   const [model, setModel] = useState<ClaudeModelChoice>(DEFAULT_CLAUDE_MODEL);
   const [report, setReport] = useState<RegcheckReport | null>(null);
@@ -320,8 +335,9 @@ export function RegulationCheckScreen() {
           <div className="regcheck-config-row">
             <div className="regcheck-keys" data-testid="regcheck-ai-keys">
               <strong className="regcheck-keys-title">AI keys</strong>
-              <AiKeyRow provider={ANTHROPIC_KEY} onSavedChange={setSavedKey} />
-              <AiKeyRow provider={GEMINI_KEY} />
+              <HelperProviderChoice />
+              <AiKeyRow provider={ANTHROPIC_KEY} onSavedChange={setSavedKey} inUse={helperProvider === 'anthropic'} />
+              <AiKeyRow provider={GEMINI_KEY} inUse={helperProvider === 'google'} />
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>

@@ -241,11 +241,12 @@ test.describe('Ask the desk (desktop)', () => {
     await expect(page.getByTestId('ask-model')).toHaveText(/Haiku 5\.5/);
     await page.getByTestId('ask-model').click();
     const menu = page.getByTestId('ask-model-menu');
-    await expect(menu.getByRole('menuitemradio')).toHaveCount(5);
+    // Claude is on, so the menu lists only the three Claude models.
+    await expect(menu.getByRole('menuitemradio')).toHaveCount(3);
     await expect(menu).toContainText('Deepest reasoning');
     await expect(menu).toContainText('Quick look-ups');
-    await expect(menu).toContainText('Gemini 2.5 Pro');
-    await expect(menu).toContainText('Gemini 3.5 Flash-Lite');
+    await expect(page.getByTestId('ask-model-3')).toHaveCount(0);
+    await expect(page.getByTestId('ask-model-4')).toHaveCount(0);
     await page.getByTestId('ask-model-2').click();
     await expect(menu).toHaveCount(0);
     await expect(page.getByTestId('ask-model')).toHaveText(/Opus 5\.5/);

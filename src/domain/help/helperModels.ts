@@ -8,9 +8,14 @@
  * Costs in the text are stated relative to each other; the list prices are desk assumptions on #/pricing
  * (helper.price.*), read by helperCost.ts.
  */
-import { getAssumption } from '../assumptions/registry';
+import { getAssumption, setAssumption } from '../assumptions/registry';
 
 export type HelperProvider = 'anthropic' | 'google';
+
+export const HELPER_PROVIDERS: readonly HelperProvider[] = ['anthropic', 'google'];
+export const PROVIDER_LABEL: Readonly<Record<HelperProvider, string>> = { anthropic: 'Claude', google: 'Gemini' };
+/** Where switching provider lands: that provider's cheapest model (Haiku 5.5, Gemini Flash-Lite). */
+const PROVIDER_DEFAULT_VALUE: Readonly<Record<HelperProvider, number>> = { anthropic: 0, google: 3 };
 
 export interface HelperModel {
   /** The helper.model setting value. */
@@ -113,4 +118,19 @@ export function helperModelById(id: string): HelperModel {
 /** The model the desk has chosen right now. */
 export function currentHelperModel(): HelperModel {
   return helperModelFor(getAssumption('helper.model'));
+}
+
+/** The provider of the chosen model: the helper uses one provider at a time. */
+export function currentHelperProvider(): HelperProvider {
+  return currentHelperModel().provider;
+}
+
+/** The models one provider offers, in menu order. */
+export function helperModelsFor(provider: HelperProvider): HelperModel[] {
+  return HELPER_MODELS.filter(m => m.provider === provider);
+}
+
+/** Switch the helper to Claude or Gemini (a no-op if it already uses that provider). */
+export function setHelperProvider(provider: HelperProvider): void {
+  if (currentHelperProvider() !== provider) setAssumption('helper.model', PROVIDER_DEFAULT_VALUE[provider]);
 }
