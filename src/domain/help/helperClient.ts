@@ -9,15 +9,16 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { sanitizeKey } from '../regcheck/claudeClient';
 import { anthropicKeyFingerprint } from '../regcheck/storage';
-import { buildSystemBlocks, formatUserTurn, HELPER_MAX_TOKENS, type HelperSource, type HelperTurn } from './helperLogic';
+import { buildHelperHistory, buildSystemBlocks, HELPER_MAX_TOKENS, type HelperSource, type HelperTurn } from './helperLogic';
+import { addUsage, EMPTY_USAGE, estimateCostUsd, type HelperUsage } from './helperCost';
 import { HELPER_TOOLS, HELPER_TOOL_LABELS, runHelperTool, type HelperToolContext } from './helperTools';
 import { helperModelById } from './helperModels';
 import type { PageGuide } from './pageGuides';
 
 /** Most model ↔ tool round trips per question before the helper stops and answers with what it has. */
-export const HELPER_MAX_TOOL_ROUNDS = 8;
+export const HELPER_MAX_TOOL_ROUNDS = 4;
 /** Web searches the server may run per question. */
-export const HELPER_WEB_SEARCH_MAX_USES = 5;
+export const HELPER_WEB_SEARCH_MAX_USES = 2;
 const FALLBACK_BETA = 'server-side-fallback-2026-07-01';
 
 export interface HelperRequestInput {
@@ -38,34 +39,30 @@ export interface HelperRequestInput {
 export function buildHelperRequestBase(input: Pick<HelperRequestInput, 'model' | 'webSearch' | 'route' | 'guide'>) {
   const model = helperModelById(input.model);
   const tools: Anthropic.Beta.BetaToolUnion[] = [...HELPER_TOOLS];
-  if (input.webSearch) tools.push({ type: model.webSearchTool, name: 'web_search', max_uses: HELPER_WEB_SEARCH_MAX_USES });
+  if (input.webSearch && model.webSearchTool) tools.push({ type: model.webSearchTool, name: 'web_search', max_uses: HELPER_WEB_SEARCH_MAX_USES });
   return {
     model: model.id,
     max_tokens: HELPER_MAX_TOKENS,
-    // Thinking stays adaptive (the default on the 5.5 models); effort is set explicitly.
-    output_config: { effort: 'medium' as const },
+    // Thinking stays adaptive (the default on the 5.5 models); effort is set per model (helperModels.ts).
+    output_config: { effort: model.effort ?? ('low' as const) },
     system: buildSystemBlocks(input.guide, input.route),
     tools,
     ...(model.serverFallback ? { betas: [FALLBACK_BETA], fallbacks: 'default' as const } : {}),
   };
 }
 
-/** The conversation for one question: earlier turns (text only), then the question with the live page context. */
+/** The conversation for one question: the last few earlier turns (text only), then the question with the live page context. */
 export function buildHelperMessages(history: HelperTurn[], question: string, context: Record<string, unknown>): Anthropic.Beta.BetaMessageParam[] {
-  const messages: Anthropic.Beta.BetaMessageParam[] = [];
-  for (const t of history) {
-    if (t.role === 'user') messages.push({ role: 'user', content: t.sent ?? t.text });
-    else if (t.role === 'assistant' && t.text.trim()) messages.push({ role: 'assistant', content: t.text });
-  }
-  // Drop a dangling user turn (a failed or stopped request) so roles keep alternating.
-  while (messages.length > 0 && messages[messages.length - 1].role === 'user') messages.pop();
-  messages.push({ role: 'user', content: formatUserTurn(question, context) });
-  return messages;
+  return buildHelperHistory(history, question, context).map(m => ({ role: m.role, content: m.text }));
 }
 
 export interface HelperAnswer {
   text: string;
   sources: HelperSource[];
+  /** Token counts summed over every round of the tool loop. */
+  usage: HelperUsage;
+  /** Estimated cost in US dollars from `usage` and the HELPER price assumptions. */
+  costUsd: number;
 }
 
 export interface HelperStreamCallbacks {
@@ -115,11 +112,14 @@ export async function askHelperStream(
   const messages = buildHelperMessages(input.history, input.question, input.context);
   const sources = new Map<string, HelperSource>();
   let text = '';
+  let usage = EMPTY_USAGE;
 
   try {
     for (let round = 0; round < HELPER_MAX_TOOL_ROUNDS; round++) {
       input.onStatus(round === 0 ? 'Thinking' : 'Writing');
-      const stream = client.beta.messages.stream({ ...base, messages }, { signal: input.signal });
+      // On the last allowed round the model must answer with what it has rather than ask for another tool.
+      const lastRound = round === HELPER_MAX_TOOL_ROUNDS - 1;
+      const stream = client.beta.messages.stream({ ...base, ...(lastRound ? { tool_choice: { type: 'none' as const } } : {}), messages }, { signal: input.signal });
 
       for await (const event of stream) {
         if (event.type === 'content_block_start') {
@@ -136,6 +136,13 @@ export async function askHelperStream(
       }
       const message = await stream.finalMessage();
       collectSources(message.content, sources);
+      usage = addUsage(usage, {
+        inputTokens: message.usage.input_tokens,
+        cacheWriteTokens: message.usage.cache_creation_input_tokens ?? 0,
+        cacheReadTokens: message.usage.cache_read_input_tokens ?? 0,
+        outputTokens: message.usage.output_tokens,
+        webSearches: message.usage.server_tool_use?.web_search_requests ?? 0,
+      });
 
       if (message.stop_reason === 'refusal') {
         if (!text.trim()) throw new Error('The model declined to answer that question.');
@@ -168,5 +175,5 @@ export async function askHelperStream(
   }
 
   if (!text.trim()) throw new Error('The model returned no text.');
-  return { text: sanitizeKey(text, apiKey).trim(), sources: [...sources.values()].slice(0, 8) };
+  return { text: sanitizeKey(text, apiKey).trim(), sources: [...sources.values()].slice(0, 8), usage, costUsd: estimateCostUsd(helperModelById(input.model), usage) };
 }

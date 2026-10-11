@@ -58,7 +58,7 @@ test.describe('Anthropic key on a phone', () => {
     const input = page.getByTestId('regcheck-key-input');
     await expect(input).toHaveAttribute('autocapitalize', 'none');
     await input.fill(' Sk-ant-api03-e2e test key ​9876 ');
-    await page.getByRole('button', { name: 'Save' }).click();
+    await page.getByTestId('regcheck-key-save').click();
     await expect(page.getByTestId('regcheck-key-saved')).toContainText('sk-ant-…9876 (27 characters)');
     expect(await page.evaluate(() => localStorage.getItem('biomethane_anthropic_api_key'))).toBe('sk-ant-api03-e2etestkey9876');
     // 27 characters is far too short for a real key: warn before any network call.

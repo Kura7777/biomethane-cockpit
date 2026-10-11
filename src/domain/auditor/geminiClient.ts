@@ -1,3 +1,4 @@
+import { GEMINI_API_KEY_STORAGE_KEY, getStoredGeminiApiKey, setStoredGeminiApiKey } from '../regcheck/storage';
 import { getFullKnowledgeContext } from './knowledgeBase';
 import { CI_COMPARATOR_ROAD_TRANSPORT } from '../markets/constants';
 import { FR_CPB_CEILING_EUR_MWH, RED3_TRANSPORT_MAX_CI } from '../regulatory/constants';
@@ -7,17 +8,18 @@ import type { Consignment } from '../consignment/types';
 import { extractQuoteProofsFromText, verifyQuoteAgainstVault } from './verifier';
 import { TradeAuditContext, AuditorResponse, GateAuditCheck, normalizeTradeAuditContext } from './types';
 
-export const GEMINI_API_KEY_STORAGE_KEY = 'biomethane_gemini_api_key';
+// The Gemini key is shared with the desk helper, so it lives with the other saved keys (regcheck/storage.ts).
+export { GEMINI_API_KEY_STORAGE_KEY };
+
+/** Stable Gemini models, tried in order (ai.google.dev/gemini-api/docs/models, read 2026-10-11). */
+const GEMINI_AUDITOR_MODELS = ['gemini-3.8-flash', 'gemini-3.6-flash'];
 
 export function getStoredApiKey(): string {
-  if (typeof localStorage === 'undefined') return '';
-  return localStorage.getItem(GEMINI_API_KEY_STORAGE_KEY) || '';
+  return getStoredGeminiApiKey();
 }
 
 export function setStoredApiKey(key: string): void {
-  if (typeof localStorage !== 'undefined') {
-    localStorage.setItem(GEMINI_API_KEY_STORAGE_KEY, key.trim());
-  }
+  setStoredGeminiApiKey(key);
 }
 
 /**
@@ -34,14 +36,14 @@ export async function testGeminiApiKey(key: string): Promise<{ valid: boolean; m
     generationConfig: { maxOutputTokens: 5 }
   };
 
-  const models = ['gemini-1.5-flash', 'gemini-2.0-flash'];
+  const models = GEMINI_AUDITOR_MODELS;
 
   for (const model of models) {
     try {
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${cleanKey}`;
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
       const res = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': cleanKey },
         body: JSON.stringify(testPayload)
       });
 
@@ -142,15 +144,15 @@ Then structure your assessment with:
     }
   };
 
-  const models = ['gemini-1.5-flash', 'gemini-2.0-flash'];
+  const models = GEMINI_AUDITOR_MODELS;
   let lastError: string | null = null;
 
   for (const model of models) {
     try {
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
       const response = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
         body: JSON.stringify(payload)
       });
 

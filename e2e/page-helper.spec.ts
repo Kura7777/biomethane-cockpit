@@ -71,7 +71,11 @@ test.describe('Page helper capsule (desktop)', () => {
   });
 
   test('AI mode streams an answer, runs a desk tool, and keeps the key in the header only', async ({ page }) => {
-    await page.addInitScript(() => localStorage.setItem('biomethane_anthropic_api_key', 'sk-ant-e2e-test-key-123456'));
+    await page.addInitScript(() => {
+      localStorage.setItem('biomethane_anthropic_api_key', 'sk-ant-e2e-test-key-123456');
+      // The desk defaults to Haiku with web search off; this test exercises Opus with web search on.
+      localStorage.setItem('biomethane-desk.assumptions.v1', JSON.stringify({ 'helper.model': 2, 'helper.webSearch': 1 }));
+    });
     const sse = (events: object[]) => events.map(e => `event: ${(e as { type: string }).type}\ndata: ${JSON.stringify(e)}\n\n`).join('');
     const start = { type: 'message_start', message: { id: 'msg_1', type: 'message', role: 'assistant', model: 'claude-opus-5-5', content: [], stop_reason: null, stop_sequence: null, usage: { input_tokens: 1, output_tokens: 0 } } };
     const end = (stop: string) => [{ type: 'message_delta', delta: { stop_reason: stop, stop_sequence: null }, usage: { output_tokens: 1 } }, { type: 'message_stop' }];
@@ -234,14 +238,19 @@ test.describe('Ask the desk (desktop)', () => {
     });
 
     await gotoScreen(page, '/ask');
-    await expect(page.getByTestId('ask-model')).toHaveText(/Opus 5\.5/);
+    await expect(page.getByTestId('ask-model')).toHaveText(/Haiku 5\.5/);
     await page.getByTestId('ask-model').click();
     const menu = page.getByTestId('ask-model-menu');
-    await expect(menu.getByRole('menuitemradio')).toHaveCount(3);
+    await expect(menu.getByRole('menuitemradio')).toHaveCount(5);
     await expect(menu).toContainText('Deepest reasoning');
     await expect(menu).toContainText('Quick look-ups');
-    await page.getByTestId('ask-model-0').click();
+    await expect(menu).toContainText('Gemini 2.5 Pro');
+    await expect(menu).toContainText('Gemini 3.5 Flash-Lite');
+    await page.getByTestId('ask-model-2').click();
     await expect(menu).toHaveCount(0);
+    await expect(page.getByTestId('ask-model')).toHaveText(/Opus 5\.5/);
+    await page.getByTestId('ask-model').click();
+    await page.getByTestId('ask-model-0').click();
     await expect(page.getByTestId('ask-model')).toHaveText(/Haiku 5\.5/);
 
     await page.getByTestId('helper-input').fill('What is a GGE?');
@@ -252,13 +261,14 @@ test.describe('Ask the desk (desktop)', () => {
     await expect(page.getByTestId('ask-model')).toBeDisabled();
     release();
     await expect(page.getByTestId('helper-answer')).toContainText('one kilogram');
-    await expect(page.getByTestId('helper-answered-by')).toHaveText('Haiku 5.5');
+    await expect(page.getByTestId('helper-answered-by')).toHaveText(/^Haiku 5\.5 · ≈ (<\$0\.001|\$0\.00\d)$/);
     expect(body).toContain('"model":"claude-haiku-5-5"');
-    expect(body).toContain('web_search_20250305');
+    expect(body).toContain('"effort":"low"');
+    expect(body).not.toContain('web_search'); // off by default
     expect(body).not.toContain('"fallbacks"');
 
     // The same desk setting shows on the Pricing desk.
     await gotoScreen(page, '/pricing?tab=assumptions');
-    await expect(page.getByText('Desk helper model (2 = Claude Opus 5.5, 1 = Claude Sonnet 5.5, 0 = Claude Haiku 5.5)')).toBeVisible();
+    await expect(page.getByText('Desk helper model (0 = Claude Haiku 5.5, 1 = Claude Sonnet 5.5, 2 = Claude Opus 5.5, 3 = Gemini 3.5 Flash-Lite, 4 = Gemini 2.5 Pro)')).toBeVisible();
   });
 });

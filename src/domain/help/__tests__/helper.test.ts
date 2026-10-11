@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { buildSuggestedQuestions, offlineAnswer, parseAnswer, matchGlossaryInText, buildSystemBlocks } from '../helperLogic';
 import { askHelperStream, buildHelperRequestBase, buildHelperMessages } from '../helperClient';
 import { HELPER_MODELS, currentHelperModel, helperModelFor } from '../helperModels';
-import { resetAllAssumptions, setAssumption } from '../../assumptions/registry';
+import { getAssumption, resetAllAssumptions, setAssumption } from '../../assumptions/registry';
 import type { MarksState, CostInputs } from '../../netback/types';
 import { getPageGuide } from '../pageGuides';
 
@@ -124,11 +124,19 @@ describe('AI mode request', () => {
     expect('fallbacks' in haiku).toBe(false);
     expect('betas' in haiku).toBe(false);
     // An unknown id falls back to the default model rather than sending a bad one.
-    expect(buildHelperRequestBase({ ...input, model: 'nope' }).model).toBe('claude-opus-5-5');
+    expect(buildHelperRequestBase({ ...input, model: 'nope' }).model).toBe('claude-haiku-5-5');
   });
-  it('maps the helper.model setting to a model, with Opus as the default', () => {
+  it('maps the helper.model setting to a model, with Haiku as the default and web search off', () => {
     resetAllAssumptions();
+    expect(currentHelperModel().id).toBe('claude-haiku-5-5');
+    expect(getAssumption('helper.webSearch')).toBe(0);
+    expect(getAssumption('helper.dailyCapUsd')).toBe(2);
+    setAssumption('helper.model', 2);
     expect(currentHelperModel().id).toBe('claude-opus-5-5');
+    setAssumption('helper.model', 3);
+    expect(currentHelperModel()).toMatchObject({ provider: 'google', id: 'gemini-3.5-flash-lite' });
+    setAssumption('helper.model', 4);
+    expect(currentHelperModel()).toMatchObject({ provider: 'google', id: 'gemini-2.5-pro' });
     setAssumption('helper.model', 0);
     expect(currentHelperModel().id).toBe('claude-haiku-5-5');
     setAssumption('helper.model', 1);

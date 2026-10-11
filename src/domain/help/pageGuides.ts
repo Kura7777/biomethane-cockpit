@@ -652,15 +652,15 @@ export const PAGE_GUIDES: PageGuide[] = [
     purpose: 'A general chat for any question about markets, regulation, routes, plants or deals, not tied to one page. It uses the same model, tools and settings as the page helper.',
     howToRead: [
       { section: 'Conversation', text: 'One running conversation for this browser tab. It stays while you move around the app; New chat clears it. Answers stream in, and Stop ends one early.' },
-      { section: 'Where answers come from', text: 'The app’s own data first: desk marks, certificate routes, destination pricing, plants and legal sources. Then web search, then general knowledge, which is labelled so you know to check it.' },
-      { section: 'Model', text: 'The model button at the top picks Opus, Sonnet or Haiku, each with what it is for. The same setting, and web search, sit on the Pricing desk under Desk assumptions. Your Anthropic key is set on Regulation check.' },
+      { section: 'Where answers come from', text: 'The app’s own data first: desk marks, certificate routes, destination pricing, plants and legal sources. Then general knowledge, which is labelled so you know to check it. Web search for Claude models is off by default; switch it on in Desk assumptions.' },
+      { section: 'Model', text: 'The model button at the top picks Haiku (the default), Sonnet, Opus or a Gemini model. Each answer shows its model and an estimated cost; the header shows today’s total. Prices, web search and the daily budget sit on the Pricing desk under Desk assumptions.' },
     ],
     commonTasks: [
       {
         question: 'Which model should I use?',
         steps: [
           'Click the model button at the top of this page.',
-          'Opus for analysis you will act on, Sonnet for everyday questions, Haiku for quick look-ups.',
+          'Haiku for quick look-ups (the default), Sonnet for everyday questions, Opus for analysis you will act on.',
           'The choice is saved and also shows on the Pricing desk.',
         ],
       },
@@ -668,7 +668,7 @@ export const PAGE_GUIDES: PageGuide[] = [
         question: 'How do I add my API key?',
         steps: [
           'Open Regulation check.',
-          'Paste your Anthropic key into the key field.',
+          'Paste your Anthropic key (Claude models) or Gemini key (Gemini models) into its field and save.',
           'Come back here and ask again.',
         ],
         link: '/regulation-check',

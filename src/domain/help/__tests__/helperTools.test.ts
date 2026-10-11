@@ -15,7 +15,7 @@ const run = async (name: string, input: object) => JSON.parse(await runHelperToo
 
 describe('helper tools (read-only lookups into app data)', () => {
   it('every tool is strict, closed and in a stable order', () => {
-    expect(HELPER_TOOLS.map(t => t.name)).toEqual(['get_marks', 'get_route', 'price_destinations', 'search_plants', 'get_plant', 'search_sources']);
+    expect(HELPER_TOOLS.map(t => t.name)).toEqual(['get_marks', 'get_route', 'price_destinations', 'search_plants', 'get_plant', 'search_sources', 'lookup_reference']);
     for (const t of HELPER_TOOLS) {
       expect(t.strict).toBe(true);
       expect((t.input_schema as { additionalProperties?: boolean }).additionalProperties).toBe(false);
@@ -51,6 +51,25 @@ describe('helper tools (read-only lookups into app data)', () => {
   it('bad input throws, so the loop can return is_error', async () => {
     await expect(runHelperTool('price_destinations', { origin: 'ES', feedstock: 'unicorn' }, ctx)).rejects.toThrow(/unknown feedstock/);
     await expect(runHelperTool('nope', {}, ctx)).rejects.toThrow(/unknown tool/);
+  });
+});
+
+describe('lookup_reference (the full text behind the system-prompt index)', () => {
+  it('returns the full glossary entry for a term id', async () => {
+    const out = await run('lookup_reference', { query: 'gge' });
+    expect(out.glossary[0]).toMatchObject({ id: 'gge' });
+    expect(out.glossary[0].meaning.length).toBeGreaterThan(40);
+    expect(out.glossary[0].whyItMatters.length).toBeGreaterThan(10);
+  });
+  it('returns the matching regulatory knowledge-base document', async () => {
+    const out = await run('lookup_reference', { query: 'RED III Article 29 greenhouse gas savings' });
+    expect(out.knowledgeBase[0].id).toBe('red_iii_directive');
+    expect(out.knowledgeBase[0].text).toContain('Article 29');
+  });
+  it('returns market details by id, says so when nothing matches, and rejects an empty query', async () => {
+    expect((await run('lookup_reference', { query: 'NL_GGE' })).markets[0].id).toBe('NL_GGE');
+    expect((await run('lookup_reference', { query: 'qqqzzz' })).note).toContain('Nothing in the reference');
+    await expect(runHelperTool('lookup_reference', { query: ' ' }, ctx)).rejects.toThrow('query is required');
   });
 });
 

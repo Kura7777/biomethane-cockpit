@@ -2,6 +2,8 @@ import type { RegcheckReport } from './types';
 import { isRegcheckReport } from './types';
 
 export const ANTHROPIC_API_KEY_STORAGE_KEY = 'biomethane_anthropic_api_key';
+/** The one Gemini key: the Compliance Auditor and the desk helper both read it. */
+export const GEMINI_API_KEY_STORAGE_KEY = 'biomethane_gemini_api_key';
 export const REGCHECK_LAST_REPORT_STORAGE_KEY = 'biomethane_regcheck_last_report';
 
 /**
@@ -49,6 +51,48 @@ export function clearStoredAnthropicApiKey(): void {
   if (typeof localStorage === 'undefined') return;
   try {
     localStorage.removeItem(ANTHROPIC_API_KEY_STORAGE_KEY);
+  } catch {
+    // Ignore
+  }
+}
+
+/**
+ * A Gemini key is one unbroken run of letters, digits, '-' and '_' (typically "AIza" + 35 characters).
+ * Same phone-paste clutter as the Anthropic key: spaces, line breaks, zero-width characters and curly dashes.
+ */
+export function normaliseGeminiApiKey(raw: string): string {
+  return raw
+    .replace(/[\s\u200B-\u200D\u2060\uFEFF]/g, '')
+    .replace(/[\u2010-\u2015\u2212]/g, '-');
+}
+
+/** Enough to tell two saved keys apart, never the key itself: the first four characters, the last four, and the length. */
+export function geminiKeyFingerprint(key: string): string {
+  return key ? `${key.slice(0, 4)}…${key.slice(-4)} (${key.length} characters)` : '';
+}
+
+export function getStoredGeminiApiKey(): string {
+  if (typeof localStorage === 'undefined') return '';
+  try {
+    return normaliseGeminiApiKey(localStorage.getItem(GEMINI_API_KEY_STORAGE_KEY) || '');
+  } catch {
+    return '';
+  }
+}
+
+export function setStoredGeminiApiKey(key: string): void {
+  if (typeof localStorage === 'undefined') return;
+  try {
+    localStorage.setItem(GEMINI_API_KEY_STORAGE_KEY, normaliseGeminiApiKey(key));
+  } catch {
+    // Ignore localStorage write failures (e.g. private browsing quota)
+  }
+}
+
+export function clearStoredGeminiApiKey(): void {
+  if (typeof localStorage === 'undefined') return;
+  try {
+    localStorage.removeItem(GEMINI_API_KEY_STORAGE_KEY);
   } catch {
     // Ignore
   }

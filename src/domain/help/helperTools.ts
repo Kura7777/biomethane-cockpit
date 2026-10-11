@@ -13,6 +13,7 @@ import { FEEDSTOCK_REGISTRY } from '../consignment/feedstocks';
 import { LEGAL_CITATIONS, getCitationById } from '../citations/registry';
 import { loadPlantsAsync } from '../plants/registry';
 import { getPlantCompliance, aidStatus } from '../plants/compliance';
+import { lookupReference } from './referenceLookup';
 
 export interface HelperToolContext {
   marks: MarksState;
@@ -61,6 +62,12 @@ export const HELPER_TOOLS: Anthropic.Beta.BetaTool[] = [
     strict: true,
     input_schema: obj({ query: { type: 'string' } }, ['query']),
   },
+  {
+    name: 'lookup_reference',
+    description: 'Full text behind the index in the system prompt: glossary definitions (with why they matter and sources), regulatory knowledge-base documents (law, articles, registries, contracts), market details (legal basis, registry, open points) and watchlist items. Query with a term, a market id, a law or a topic, for example "gge", "RED III Article 29", "NL_GGE", "mass balance".',
+    strict: true,
+    input_schema: obj({ query: { type: 'string', description: 'A term, id, law or topic' } }, ['query']),
+  },
 ];
 
 export const HELPER_TOOL_LABELS: Record<string, string> = {
@@ -70,6 +77,7 @@ export const HELPER_TOOL_LABELS: Record<string, string> = {
   search_plants: 'Searching plants',
   get_plant: 'Reading plant data',
   search_sources: 'Searching legal sources',
+  lookup_reference: 'Looking up the reference',
   web_search: 'Searching the web',
 };
 
@@ -179,6 +187,8 @@ export async function runHelperTool(name: string, input: unknown, ctx: HelperToo
         summary: c.summary, deskRule: c.deskRuleSummary, url: c.officialUrl,
       })));
     }
+    case 'lookup_reference':
+      return lookupReference(str(args.query));
     default:
       throw new Error(`unknown tool "${name}"`);
   }

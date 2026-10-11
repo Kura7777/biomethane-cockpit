@@ -5,13 +5,10 @@ import {
   Copy,
   Check,
   ExternalLink,
-  Eye,
-  EyeOff,
   AlertTriangle,
   Info,
   Clock,
   Sparkles,
-  KeyRound,
   FileCheck2,
   HelpCircle,
   RefreshCw
@@ -35,6 +32,11 @@ import {
   clearStoredAnthropicApiKey,
   normaliseAnthropicApiKey,
   anthropicKeyFingerprint,
+  getStoredGeminiApiKey,
+  setStoredGeminiApiKey,
+  clearStoredGeminiApiKey,
+  normaliseGeminiApiKey,
+  geminiKeyFingerprint,
   getLastRegcheckReport,
   saveLastRegcheckReport,
   clearLastRegcheckReport,
@@ -42,9 +44,42 @@ import {
   isRegcheckStale
 } from '../../domain/regcheck/storage';
 import { FIXTURE_REGCHECK_REPORT } from '../../domain/regcheck/fixture';
-import { anthropicKeyShapeProblem, testAnthropicApiKey, type AnthropicKeyCheck } from '../../domain/regcheck/keyCheck';
+import { anthropicKeyShapeProblem, geminiKeyShapeProblem, testAnthropicApiKey, testGeminiApiKeyLive } from '../../domain/regcheck/keyCheck';
+import { AiKeyRow, type AiKeyProvider } from './AiKeyRow';
 import { showToast } from '../../app/DeskToastContainer';
 import './regulationCheck.css';
+
+const ANTHROPIC_KEY: AiKeyProvider = {
+  name: 'Anthropic',
+  placeholder: 'sk-ant-api03-...',
+  testPrefix: 'regcheck-key',
+  get: getStoredAnthropicApiKey,
+  set: setStoredAnthropicApiKey,
+  clear: clearStoredAnthropicApiKey,
+  normalise: normaliseAnthropicApiKey,
+  fingerprint: anthropicKeyFingerprint,
+  shapeProblem: anthropicKeyShapeProblem,
+  test: key => testAnthropicApiKey(key),
+  consoleName: 'Anthropic console',
+  testTitle: 'Checks the key with Anthropic by listing one model. No tokens are used and nothing is charged.',
+  okText: 'Key works: Anthropic accepted it.',
+};
+
+const GEMINI_KEY: AiKeyProvider = {
+  name: 'Gemini',
+  placeholder: 'AIza...',
+  testPrefix: 'regcheck-gemini-key',
+  get: getStoredGeminiApiKey,
+  set: setStoredGeminiApiKey,
+  clear: clearStoredGeminiApiKey,
+  normalise: normaliseGeminiApiKey,
+  fingerprint: geminiKeyFingerprint,
+  shapeProblem: geminiKeyShapeProblem,
+  test: key => testGeminiApiKeyLive(key),
+  consoleName: 'Google AI Studio',
+  testTitle: 'Checks the key with Google by listing one model. Nothing is generated and nothing is charged. The same key serves the Compliance Auditor and the desk helper.',
+  okText: 'Key works: Google accepted it.',
+};
 
 export function generateFixHandoff(report: RegcheckReport): string {
   const changedItems = report.items.filter(i => i.status === 'CHANGED');
@@ -98,10 +133,7 @@ export function generateFixHandoff(report: RegcheckReport): string {
 }
 
 export function RegulationCheckScreen() {
-  const [apiKey, setApiKey] = useState('');
   const [savedKey, setSavedKey] = useState('');
-  const [showKey, setShowKey] = useState(false);
-  const [keyCheck, setKeyCheck] = useState<AnthropicKeyCheck | 'testing' | null>(null);
   const [model, setModel] = useState<ClaudeModelChoice>(DEFAULT_CLAUDE_MODEL);
   const [report, setReport] = useState<RegcheckReport | null>(null);
   const [isRunning, setIsRunning] = useState(false);
@@ -123,7 +155,6 @@ export function RegulationCheckScreen() {
   useEffect(() => {
     const key = getStoredAnthropicApiKey();
     setSavedKey(key);
-    setApiKey(key);
 
     // Check for fixture URL param (?regcheckFixture=1 or ?fixture=1)
     const urlParams = new URLSearchParams(window.location.search || window.location.hash.split('?')[1] || '');
@@ -157,28 +188,6 @@ export function RegulationCheckScreen() {
       }
     };
   }, [isRunning]);
-
-  const handleSaveKey = () => {
-    const clean = normaliseAnthropicApiKey(apiKey);
-    setStoredAnthropicApiKey(clean);
-    setSavedKey(clean);
-    setApiKey('');
-    setKeyCheck(null);
-    showToast('Anthropic API key saved to browser storage');
-  };
-
-  const handleClearKey = () => {
-    clearStoredAnthropicApiKey();
-    setSavedKey('');
-    setApiKey('');
-    setKeyCheck(null);
-    showToast('Anthropic API key cleared');
-  };
-
-  const handleTestKey = async () => {
-    setKeyCheck('testing');
-    setKeyCheck(await testAnthropicApiKey(savedKey));
-  };
 
   const handleRunCheck = async () => {
     if (!savedKey) {
@@ -309,78 +318,10 @@ export function RegulationCheckScreen() {
         {/* Settings Area */}
         <div className="regcheck-config-card">
           <div className="regcheck-config-row">
-            <div className="regcheck-key-form">
-              <span style={{ fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                <KeyRound size={14} />
-                Anthropic API Key:
-              </span>
-              <div className="regcheck-key-input-wrap">
-                <input
-                  type={showKey ? 'text' : 'password'}
-                  className="regcheck-input"
-                  placeholder="sk-ant-api03-..."
-                  value={apiKey}
-                  onChange={e => setApiKey(e.target.value)}
-                  autoComplete="off"
-                  autoCapitalize="none"
-                  autoCorrect="off"
-                  spellCheck={false}
-                  data-testid="regcheck-key-input"
-                />
-                <button
-                  type="button"
-                  className="regcheck-visibility-toggle"
-                  onClick={() => setShowKey(!showKey)}
-                  aria-label={showKey ? 'Hide key' : 'Show key'}
-                >
-                  {showKey ? <EyeOff size={15} /> : <Eye size={15} />}
-                </button>
-              </div>
-              <button
-                type="button"
-                className="btn btn-primary"
-                style={{ padding: '6px 12px', fontSize: '12px' }}
-                onClick={handleSaveKey}
-                disabled={!normaliseAnthropicApiKey(apiKey) || normaliseAnthropicApiKey(apiKey) === savedKey}
-              >
-                Save
-              </button>
-              {savedKey && (
-                <span className="regcheck-key-saved" data-testid="regcheck-key-saved" title="Keys are saved per device and per browser. Compare this with the key in your Anthropic console.">
-                  Saved on this device: {anthropicKeyFingerprint(savedKey)}
-                </span>
-              )}
-              {savedKey && anthropicKeyShapeProblem(savedKey) && (
-                <span className="regcheck-key-problem" role="alert" data-testid="regcheck-key-problem">{anthropicKeyShapeProblem(savedKey)}</span>
-              )}
-              {savedKey && (
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  style={{ padding: '6px 12px', fontSize: '12px' }}
-                  onClick={handleTestKey}
-                  disabled={keyCheck === 'testing'}
-                  data-testid="regcheck-key-test"
-                  title="Checks the key with Anthropic by listing one model. No tokens are used and nothing is charged."
-                >
-                  {keyCheck === 'testing' ? 'Testing…' : 'Test key'}
-                </button>
-              )}
-              {keyCheck && keyCheck !== 'testing' && (
-                <span className={keyCheck.ok ? 'regcheck-key-ok' : 'regcheck-key-problem'} role="status" data-testid="regcheck-key-result">
-                  {keyCheck.ok ? 'Key works: Anthropic accepted it.' : keyCheck.reason}
-                </span>
-              )}
-              {savedKey && (
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  style={{ padding: '6px 12px', fontSize: '12px' }}
-                  onClick={handleClearKey}
-                >
-                  Clear
-                </button>
-              )}
+            <div className="regcheck-keys" data-testid="regcheck-ai-keys">
+              <strong className="regcheck-keys-title">AI keys</strong>
+              <AiKeyRow provider={ANTHROPIC_KEY} onSavedChange={setSavedKey} />
+              <AiKeyRow provider={GEMINI_KEY} />
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>

@@ -28,16 +28,25 @@ export interface HelperTurn {
   sources?: HelperSource[];
   /** For assistant turns: the model that answered (display name, e.g. "Opus 5.5"). */
   model?: string;
+  /** For assistant turns: the estimated cost of the answer in US dollars (helperCost.ts). */
+  costUsd?: number;
+  /** For offline turns: the daily AI budget was used up, so this answer is offline; the UI adds a link to the cap. */
+  budgetNote?: string;
 }
 
 /**
  * Ceiling on one response, thinking included (thinking is always on for Opus 5.5 / Sonnet 5.5).
  * The answer length itself is steered by the rules; this only stops a runaway.
  */
-export const HELPER_MAX_TOKENS = 16000;
+export const HELPER_MAX_TOKENS = 8000;
+/** Earlier user and assistant turns sent with a question; older ones stay on screen but are not sent. */
+export const HELPER_HISTORY_TURNS = 6;
 
-export const HELPER_PRIVACY_NOTE = 'Your question, this page’s data and any desk data the helper looks up are sent to Anthropic using your key.';
-export const HELPER_OFFLINE_NOTE = 'Add a Claude API key in settings for conversational answers.';
+export const helperPrivacyNote = (provider: string) =>
+  `Your question, this page’s data and any desk data the helper looks up are sent to ${provider} using your key.`;
+export const helperOfflineNote = (keyName: string) => `Add a ${keyName} API key in settings for conversational answers.`;
+export const helperBudgetNote = (capUsd: number) =>
+  `Today’s AI budget ($${capUsd.toFixed(2)}) is used up on this device; showing offline help. Change the cap on the Pricing desk.`;
 
 const RULES = `You are the desk helper inside Biomethane Desk, the trading-desk app of a biomethane trader in Europe. Act as a senior analyst on a European biomethane trading desk: you know compliance markets and certificates (German THG quota, Dutch ERE and the green-gas obligation GGE, French CPB and TIRUERT, Italian CIC, UK RTFO, Guarantees of Origin), chain of custody (mass balance, PoS, UDB, AIB and ERGaR), EU law (RED III, FuelEU Maritime, EU ETS1 and ETS2) and gas trading (TTF, THE, PVB, netbacks).
 
@@ -45,7 +54,8 @@ HOW TO ANSWER
 1. Answer the question fully and directly. Lead with the answer, then the detail a trader needs: what it means for a deal. Usually 120 to 250 words; more only if asked or if the question really needs it.
 2. Use the best source available, in this order:
    a. The app's own verified data: the knowledge pack below, the page guide, the user's page_context, and your tools (get_marks, get_route, price_destinations, search_plants, get_plant, search_sources). Use the tools whenever live marks, routes, plant data, legal sources or a valuation would help, rather than guessing.
-   b. Web search, when it is available, for current facts or regulatory detail the app does not hold. Prefer primary sources: EUR-Lex, official government, regulator and registry sites.
+      The knowledge pack below is an index. For the full definition of a glossary term, the text of a regulatory document or a market's legal basis and open points, call lookup_reference before answering; do not answer such detail from the one-line index entry.
+   b. Web search, only when it is available to you, for current facts or regulatory detail the app does not hold. Prefer primary sources: EUR-Lex, official government, regulator and registry sites.
    c. Your own expert knowledge.
    Never refuse or say "I don't know" just because the app's data does not cover something: answer from b or c. Say you are unsure only when you genuinely are.
 3. Mark anything substantive that rests only on general knowledge with "(general knowledge)", so the trader knows to verify it. If the app's verified data conflicts with general knowledge, follow the app's data and say so.
@@ -77,6 +87,26 @@ export function buildGuideBlock(guide: PageGuide | undefined, route: string): st
     .map(t => `- ${t.question} ${t.steps.map((s, i) => `${i + 1}) ${s}`).join(' ')}${t.link ? ` [[go:${t.link}|Open]]` : ''}`)
     .join('\n');
   return `PAGE GUIDE: ${guide.title} (${guide.route})\nPurpose: ${guide.purpose}\nHow to read this page:\n${read}\nCommon tasks:\n${tasks}\nKey terms: ${guide.keyTerms.join(', ')}`;
+}
+
+/** The conversation for one question, in no provider's format: roles and text only. */
+export interface HelperMessage { role: 'user' | 'assistant'; text: string }
+
+/**
+ * Earlier turns (text only, the last HELPER_HISTORY_TURNS of them), then the question with the live page
+ * context. A dangling user turn (a failed or stopped request) is dropped so roles keep alternating, and
+ * the history never starts with an assistant turn.
+ */
+export function buildHelperHistory(history: HelperTurn[], question: string, context: Record<string, unknown>): HelperMessage[] {
+  const all: HelperMessage[] = [];
+  for (const t of history) {
+    if (t.role === 'user') all.push({ role: 'user', text: t.sent ?? t.text });
+    else if (t.role === 'assistant' && t.text.trim()) all.push({ role: 'assistant', text: t.text });
+  }
+  while (all.length > 0 && all[all.length - 1].role === 'user') all.pop();
+  const recent = all.slice(-HELPER_HISTORY_TURNS);
+  while (recent.length > 0 && recent[0].role === 'assistant') recent.shift();
+  return [...recent, { role: 'user', text: formatUserTurn(question, context) }];
 }
 
 export interface SystemBlock {

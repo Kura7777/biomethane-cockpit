@@ -4,7 +4,8 @@ import { Check, ChevronDown, MessageCircle, RotateCcw } from 'lucide-react';
 import { setAssumption } from '../../domain/assumptions/registry';
 import { HELPER_MODELS, currentHelperModel } from '../../domain/help/helperModels';
 import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
-import { ChatBody, ChatInput, ModeNote, useHelperChat } from './PageHelper';
+import { formatUsd } from '../../domain/help/helperCost';
+import { ChatBody, ChatInput, ModeNote, useHelperChat, useTodaySpend } from './PageHelper';
 import { clearHelperConversation } from './helperStore';
 import './helper.css';
 
@@ -39,13 +40,13 @@ function ModelPicker({ disabled }: { disabled: boolean }) {
         aria-haspopup="true"
         aria-expanded={open}
         disabled={disabled}
-        title="Choose the Claude model that answers"
+        title="Choose the model that answers"
         onClick={() => setOpen(!open)}
       >
         {current.name} <ChevronDown size={14} aria-hidden="true" />
       </button>
       {open && (
-        <div className="ask-model-menu" role="menu" aria-label="Claude model" data-testid="ask-model-menu">
+        <div className="ask-model-menu" role="menu" aria-label="Model" data-testid="ask-model-menu">
           {HELPER_MODELS.map(m => (
             <button
               key={m.id}
@@ -64,7 +65,7 @@ function ModelPicker({ disabled }: { disabled: boolean }) {
               <span className="ask-model-cost">{m.speedAndCost}</span>
             </button>
           ))}
-          <p className="ask-model-note">Saved for the desk; also on Pricing desk → Desk assumptions.</p>
+          <p className="ask-model-note">Claude models use your Anthropic key, Gemini models your Gemini key (Regulation check). Saved for the desk; also on Pricing desk → Desk assumptions.</p>
         </div>
       )}
     </div>
@@ -79,6 +80,7 @@ function ModelPicker({ disabled }: { disabled: boolean }) {
 export function AskDeskScreen() {
   const navigate = useNavigate();
   const chat = useHelperChat();
+  const todaySpend = useTodaySpend();
   const go = useCallback((to: string) => navigate(to), [navigate]);
 
   const empty = (
@@ -104,6 +106,7 @@ export function AskDeskScreen() {
           <strong className="ask-title">Ask the desk</strong>
           <span className={`ph-mode ${chat.aiMode ? 'ph-mode--ai' : ''}`} data-testid="helper-mode">{chat.aiMode ? 'AI answers' : 'Offline help'}</span>
         </div>
+        <span className="ask-today" data-testid="ask-today" title="Estimated from the token counts each answer reports and the list prices on Pricing desk → Desk assumptions. Kept on this device.">Today ≈ {formatUsd(todaySpend)}</span>
         <ModelPicker disabled={chat.busy} />
         <button
           type="button"
@@ -119,7 +122,7 @@ export function AskDeskScreen() {
       <footer className="ask-foot">
         <div className="ask-column">
           <ChatInput chat={chat} autoFocus placeholder="Ask the desk anything…" />
-          <ModeNote aiMode={chat.aiMode} />
+          <ModeNote chat={chat} />
         </div>
       </footer>
     </div>

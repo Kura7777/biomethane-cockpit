@@ -4,7 +4,9 @@ import { ArrowUp, ChevronDown, Maximize2, MessageCircle, Minimize2, Square, X } 
 import { Sheet } from '../../shared/ui/Sheet';
 import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 import { getStoredAnthropicApiKey } from '../../domain/regcheck/claudeClient';
+import { getStoredGeminiApiKey } from '../../domain/regcheck/storage';
 import { getAssumption } from '../../domain/assumptions/registry';
+import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
 import { useOptionalAppState } from '../../store/context';
 import { getPageGuide, type PageGuide } from '../../domain/help/pageGuides';
 import { GLOSSARY_BY_ID } from '../../domain/help/glossary';
@@ -15,8 +17,9 @@ import {
   subscribePageContext,
 } from '../../domain/help/pageContext';
 import {
-  HELPER_OFFLINE_NOTE,
-  HELPER_PRIVACY_NOTE,
+  helperBudgetNote,
+  helperOfflineNote,
+  helperPrivacyNote,
   buildSuggestedQuestions,
   formatUserTurn,
   offlineAnswer,
@@ -24,9 +27,23 @@ import {
   type HelperTurn,
 } from '../../domain/help/helperLogic';
 import { askHelperStream } from '../../domain/help/helperClient';
-import { currentHelperModel } from '../../domain/help/helperModels';
+import { askGeminiStream } from '../../domain/help/geminiHelperClient';
+import { currentHelperModel, type HelperModel } from '../../domain/help/helperModels';
+import { addTodaySpendUsd, dailyCapReached, dailyCapUsd, formatUsd, getTodaySpendUsd, subscribeTodaySpend } from '../../domain/help/helperCost';
 import { appendHelperTurn, getHelperSnapshot, setHelperExpanded, setHelperOpen, setHelperViewing, useHelperStore } from './helperStore';
 import './helper.css';
+
+/** The saved key for a model's provider ("" when none). */
+function storedKeyFor(model: HelperModel): string {
+  return (model.provider === 'google' ? getStoredGeminiApiKey() : getStoredAnthropicApiKey()).trim();
+}
+const providerName = (model: HelperModel) => (model.provider === 'google' ? 'Google' : 'Anthropic');
+const keyName = (model: HelperModel) => (model.provider === 'google' ? 'Gemini' : 'Claude');
+
+/** Estimated AI spend so far today on this device (re-renders when an answer adds to it). */
+export function useTodaySpend(): number {
+  return useSyncExternalStore(subscribeTodaySpend, getTodaySpendUsd, getTodaySpendUsd);
+}
 
 /** The route of the general desk chat (AskDeskScreen). */
 export const ASK_ROUTE = '/ask';
@@ -49,6 +66,9 @@ export interface Chat {
   guide: PageGuide | undefined;
   title: string;
   aiMode: boolean;
+  /** The model that will answer, and which key it needs ("Claude" or "Gemini"), for the offline note. */
+  model: HelperModel;
+  keyName: string;
   busy: boolean;
   shownKey: string;
   turns: readonly HelperTurn[];
@@ -85,8 +105,9 @@ export function useHelperChat(): Chat {
 
   const pageKey = canonicalRoute(pathname);
   const guide = getPageGuide(pathname);
-  const apiKey = getStoredAnthropicApiKey().trim();
-  const aiMode = Boolean(apiKey) && online;
+  useAssumptionsVersion(); // the chosen model can change on Ask the desk or on #/pricing
+  const model = currentHelperModel();
+  const aiMode = Boolean(storedKeyFor(model)) && online;
 
   // eslint-disable-next-line react-hooks/exhaustive-deps -- contextVersion is the change signal for the provider registry
   const context = useMemo(() => getPageContext(pathname, search), [pathname, search, contextVersion]);
@@ -105,7 +126,8 @@ export function useHelperChat(): Chat {
     const userTurn: HelperTurn = { id: nextId(), role: 'user', text: question, sent: formatUserTurn(question, live) };
     appendHelperTurn(pageKey, userTurn);
 
-    const key = getStoredAnthropicApiKey().trim();
+    const model = currentHelperModel();
+    const key = storedKeyFor(model);
     if (!key || !getOnline()) {
       const answer = offlineAnswer(question, guide, live);
       appendHelperTurn(pageKey, {
@@ -113,6 +135,19 @@ export function useHelperChat(): Chat {
         role: 'offline',
         text: answer.lines.join('\n'),
         termIds: answer.glossary.map(g => g.id),
+      });
+      return;
+    }
+
+    const cap = dailyCapUsd();
+    if (cap !== null && dailyCapReached()) {
+      const answer = offlineAnswer(question, guide, live);
+      appendHelperTurn(pageKey, {
+        id: nextId(),
+        role: 'offline',
+        text: answer.lines.join('\n'),
+        termIds: answer.glossary.map(g => g.id),
+        budgetNote: helperBudgetNote(cap),
       });
       return;
     }
@@ -127,8 +162,8 @@ export function useHelperChat(): Chat {
     setBusy(true);
     setLiveText('');
     let streamed = '';
-    const model = currentHelperModel();
-    askHelperStream({
+    const ask = model.provider === 'google' ? askGeminiStream : askHelperStream;
+    ask({
       apiKey: key,
       model: model.id,
       webSearch: getAssumption('helper.webSearch') >= 1,
@@ -142,7 +177,10 @@ export function useHelperChat(): Chat {
       onText: delta => { streamed += delta; setLiveText(streamed); },
       onStatus: setStatus,
     })
-      .then(answer => appendHelperTurn(pageKey, { id: nextId(), role: 'assistant', text: answer.text, sources: answer.sources, model: model.name }))
+      .then(answer => {
+        addTodaySpendUsd(answer.costUsd);
+        appendHelperTurn(pageKey, { id: nextId(), role: 'assistant', text: answer.text, sources: answer.sources, model: model.name, costUsd: answer.costUsd });
+      })
       .catch((err: unknown) => {
         // Keep whatever was already written when the trader stops or the stream fails midway.
         if (streamed.trim()) appendHelperTurn(pageKey, { id: nextId(), role: 'assistant', text: streamed.trim(), model: model.name });
@@ -161,6 +199,8 @@ export function useHelperChat(): Chat {
     guide,
     title: guide?.title ?? pageKey,
     aiMode,
+    model,
+    keyName: keyName(model),
     busy,
     shownKey,
     turns,
@@ -315,7 +355,11 @@ function Turn({ turn, onNavigate }: { turn: HelperTurn; onNavigate: (to: string)
             </ul>
           </div>
         )}
-        {turn.model && <div className="ph-answered-by" data-testid="helper-answered-by">{turn.model}</div>}
+        {turn.model && (
+          <div className="ph-answered-by" data-testid="helper-answered-by">
+            {turn.model}{turn.costUsd !== undefined && <span data-testid="helper-cost"> · ≈ {formatUsd(turn.costUsd)}</span>}
+          </div>
+        )}
       </div>
     );
   }
@@ -324,6 +368,12 @@ function Turn({ turn, onNavigate }: { turn: HelperTurn; onNavigate: (to: string)
   return (
     <div className="ph-msg" data-testid="helper-offline-answer">
       {turn.text && <div className="ph-answer">{turn.text}</div>}
+      {turn.budgetNote && (
+        <p className="ph-note ph-budget-note" data-testid="helper-budget-note">
+          {turn.budgetNote.split(' Change the cap')[0]}{' '}
+          <Link to="/pricing?tab=assumptions">Change the cap on the Pricing desk.</Link>
+        </p>
+      )}
       {entries.map(e => (
         <div key={e.id} className="ph-term" data-testid={`helper-term-${e.id}`}>
           <strong>{e.term}</strong> — {e.short}{' '}
@@ -500,12 +550,12 @@ export function ChatInput({ chat, autoFocus, placeholder = 'Ask about this page�
   );
 }
 
-export function ModeNote({ aiMode }: { aiMode: boolean }) {
-  return aiMode ? (
-    <p className="ph-note" data-testid="helper-privacy">{HELPER_PRIVACY_NOTE}</p>
+export function ModeNote({ chat }: { chat: Chat }) {
+  return chat.aiMode ? (
+    <p className="ph-note" data-testid="helper-privacy">{helperPrivacyNote(providerName(chat.model))}</p>
   ) : (
     <p className="ph-note" data-testid="helper-offline-note">
-      {HELPER_OFFLINE_NOTE} <Link to="/regulation-check">Open settings →</Link>
+      {helperOfflineNote(chat.keyName)} <Link to="/regulation-check">Open settings →</Link>
     </p>
   );
 }
@@ -588,7 +638,7 @@ export function PageHelper() {
             <div className="ph-sheet-footer">
               <Chips chat={chat} limit={3} onPick={chat.send} />
               <ChatInput chat={chat} />
-              <ModeNote aiMode={chat.aiMode} />
+              <ModeNote chat={chat} />
             </div>
           }
         >
@@ -641,7 +691,7 @@ export function PageHelper() {
           <footer className="ph-foot">
             {chat.turns.length > 0 && <Chips chat={chat} limit={3} onPick={chat.send} />}
             <ChatInput chat={chat} autoFocus />
-            <ModeNote aiMode={chat.aiMode} />
+            <ModeNote chat={chat} />
           </footer>
         </section>
       )}
