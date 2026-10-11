@@ -24,6 +24,9 @@ export type AnthropicKeyCheck = { ok: true } | { ok: false; reason: string };
 
 export async function testAnthropicApiKey(key: string, /** Tests only. */ fetchImpl?: typeof fetch): Promise<AnthropicKeyCheck> {
   if (!key) return { ok: false, reason: 'No key is saved on this device.' };
+  // A cut or shortened key cannot work, and one with "…" cannot even be sent as a header.
+  const shape = anthropicKeyShapeProblem(key);
+  if (shape) return { ok: false, reason: shape };
   const client = new Anthropic({ apiKey: key, dangerouslyAllowBrowser: true, maxRetries: 0, ...(fetchImpl ? { fetch: fetchImpl } : {}) });
   try {
     await client.models.list({ limit: 1 });

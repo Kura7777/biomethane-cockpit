@@ -45,5 +45,9 @@ describe('Anthropic key check', () => {
     const res = await testAnthropicApiKey(FULL, denied);
     expect(res.ok).toBe(false);
     expect(!res.ok && res.reason).toMatch(/HTTP 401/);
+
+    const never = (async () => { throw new Error('should not be called'); }) as unknown as typeof fetch;
+    const cut = await testAnthropicApiKey('sk-ant-api03-Ab1…xyz9', never);
+    expect(!cut.ok && cut.reason).toMatch(/shortened key/);
   });
 });

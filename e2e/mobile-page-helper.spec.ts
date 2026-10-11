@@ -69,7 +69,7 @@ test.describe('Anthropic key on a phone', () => {
       body: JSON.stringify({ type: 'error', error: { type: 'authentication_error', message: 'invalid x-api-key' } }),
     }));
     await page.getByTestId('regcheck-key-test').click();
-    await expect(page.getByTestId('regcheck-key-result')).toContainText('Anthropic rejected this key (HTTP 401)');
+    await expect(page.getByTestId('regcheck-key-result')).toContainText('Only 27 characters');
 
     await page.route('https://api.anthropic.com/v1/messages*', route => route.fulfill({
       status: 401,
