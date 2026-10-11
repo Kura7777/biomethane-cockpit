@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { gotoScreen, collectPageErrors, appErrors } from './helpers';
+import { gotoScreen, collectPageErrors, appErrors, preferClaude } from './helpers';
 
 const DK_NL_GGE = '/trade?marketId=NL_GGE&originCountry=DK&feedstock=manure&ci=-100&volume=15000';
 
@@ -25,7 +25,7 @@ test.describe('Page helper capsule (desktop)', () => {
     await expect(page.getByTestId('helper-mode')).toHaveText('Offline help');
     await expect(page.getByTestId('helper-greeting')).toBeVisible();
     await expect(page.getByTestId('helper-overview')).toContainText('Trade Builder');
-    await expect(page.getByTestId('helper-offline-note')).toContainText('Add a Claude API key in settings for conversational answers.');
+    await expect(page.getByTestId('helper-offline-note')).toContainText('Add a Gemini API key in settings for conversational answers.');
     await expect(page.getByTestId('helper-chips').getByRole('button', { name: /^Why is .* failing\?$/ })).toBeVisible({ timeout: 10_000 });
 
     // The chip reads the live checklist from the page, with no network call.
@@ -73,7 +73,7 @@ test.describe('Page helper capsule (desktop)', () => {
   test('AI mode streams an answer, runs a desk tool, and keeps the key in the header only', async ({ page }) => {
     await page.addInitScript(() => {
       localStorage.setItem('biomethane_anthropic_api_key', 'sk-ant-e2e-test-key-123456');
-      // The desk defaults to Haiku with web search off; this test exercises Opus with web search on.
+      // The desk defaults to Gemini 3.8 Flash with web search off; this test exercises Opus with web search on.
       localStorage.setItem('biomethane-desk.assumptions.v1', JSON.stringify({ 'helper.model': 2, 'helper.webSearch': 1 }));
     });
     const sse = (events: object[]) => events.map(e => `event: ${(e as { type: string }).type}\ndata: ${JSON.stringify(e)}\n\n`).join('');
@@ -222,6 +222,7 @@ test.describe('Ask the desk (desktop)', () => {
 
   test('the model picker explains each model, switches to Haiku, and the working line animates', async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem('biomethane_anthropic_api_key', 'sk-ant-e2e-test-key-123456'));
+    await preferClaude(page);
     let body = '';
     let release: () => void = () => {};
     const held = new Promise<void>(r => { release = r; });
@@ -270,6 +271,6 @@ test.describe('Ask the desk (desktop)', () => {
 
     // The same desk setting shows on the Pricing desk.
     await gotoScreen(page, '/pricing?tab=assumptions');
-    await expect(page.getByText('Desk helper model (0 = Claude Haiku 5.5, 1 = Claude Sonnet 5.5, 2 = Claude Opus 5.5, 3 = Gemini 3.5 Flash-Lite, 4 = Gemini 2.5 Pro)')).toBeVisible();
+    await expect(page.getByText('Desk helper model (0 = Claude Haiku 5.5, 1 = Claude Sonnet 5.5, 2 = Claude Opus 5.5, 3 = Gemini 3.5 Flash-Lite, 4 = Gemini 2.5 Pro, 5 = Gemini 3.8 Flash)')).toBeVisible();
   });
 });

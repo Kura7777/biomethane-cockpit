@@ -14,8 +14,8 @@ export type HelperProvider = 'anthropic' | 'google';
 
 export const HELPER_PROVIDERS: readonly HelperProvider[] = ['anthropic', 'google'];
 export const PROVIDER_LABEL: Readonly<Record<HelperProvider, string>> = { anthropic: 'Claude', google: 'Gemini' };
-/** Where switching provider lands: that provider's cheapest model (Haiku 5.5, Gemini Flash-Lite). */
-const PROVIDER_DEFAULT_VALUE: Readonly<Record<HelperProvider, number>> = { anthropic: 0, google: 3 };
+/** Where switching provider lands: Haiku 5.5 for Claude, Gemini 3.8 Flash (the desk default) for Gemini. */
+const PROVIDER_DEFAULT_VALUE: Readonly<Record<HelperProvider, number>> = { anthropic: 0, google: 5 };
 
 export interface HelperModel {
   /** The helper.model setting value. */
@@ -82,6 +82,17 @@ export const HELPER_MODELS: readonly HelperModel[] = [
   },
   {
     ...GEMINI_COMMON,
+    value: 5,
+    id: 'gemini-3.8-flash',
+    name: 'Gemini 3.8 Flash',
+    tagline: 'Google, newest all-rounder',
+    useFor: 'The desk default: everyday and multi-step desk questions from Google’s newest Flash model. Uses the desk’s own data and look-ups; it does not search the web.',
+    speedAndCost: 'Fast; about a fifth of Opus per token, a few times Haiku. Google doubles its price on 1 January 2027.',
+    googleSearch: false,
+    price: { input: 'helper.price.gemini38flash.inputUsdPerMTok', output: 'helper.price.gemini38flash.outputUsdPerMTok', cacheRead: 'helper.price.gemini.cachedInputFraction' },
+  },
+  {
+    ...GEMINI_COMMON,
     value: 4,
     id: 'gemini-2.5-pro',
     name: 'Gemini 2.5 Pro',
@@ -104,15 +115,22 @@ export const HELPER_MODELS: readonly HelperModel[] = [
   },
 ];
 
-export const DEFAULT_HELPER_MODEL = HELPER_MODELS[2];
+/** The desk default for every chat: Gemini 3.8 Flash. */
+export const DEFAULT_HELPER_MODEL = HELPER_MODELS.find(m => m.id === 'gemini-3.8-flash')!;
 
 /** The model for a helper.model value (rounded, so an odd value typed on #/pricing still picks one). */
 export function helperModelFor(value: number): HelperModel {
   return HELPER_MODELS.find(m => m.value === Math.round(value)) ?? DEFAULT_HELPER_MODEL;
 }
 
-export function helperModelById(id: string): HelperModel {
-  return HELPER_MODELS.find(m => m.id === id) ?? DEFAULT_HELPER_MODEL;
+/**
+ * The model with this id. An unknown id falls back to that provider's default, so a provider's client
+ * never sends another provider's model id.
+ */
+export function helperModelById(id: string, provider?: HelperProvider): HelperModel {
+  const found = HELPER_MODELS.find(m => m.id === id && (!provider || m.provider === provider));
+  if (found) return found;
+  return provider ? HELPER_MODELS.find(m => m.value === PROVIDER_DEFAULT_VALUE[provider])! : DEFAULT_HELPER_MODEL;
 }
 
 /** The model the desk has chosen right now. */

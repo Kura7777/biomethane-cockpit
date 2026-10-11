@@ -37,7 +37,7 @@ export interface HelperRequestInput {
  * Per model: Haiku 5.5 takes the basic web search tool and no server-side fallback (helperModels.ts).
  */
 export function buildHelperRequestBase(input: Pick<HelperRequestInput, 'model' | 'webSearch' | 'route' | 'guide'>) {
-  const model = helperModelById(input.model);
+  const model = helperModelById(input.model, 'anthropic');
   const tools: Anthropic.Beta.BetaToolUnion[] = [...HELPER_TOOLS];
   if (input.webSearch && model.webSearchTool) tools.push({ type: model.webSearchTool, name: 'web_search', max_uses: HELPER_WEB_SEARCH_MAX_USES });
   return {
@@ -175,5 +175,5 @@ export async function askHelperStream(
   }
 
   if (!text.trim()) throw new Error('The model returned no text.');
-  return { text: sanitizeKey(text, apiKey).trim(), sources: [...sources.values()].slice(0, 8), usage, costUsd: estimateCostUsd(helperModelById(input.model), usage) };
+  return { text: sanitizeKey(text, apiKey).trim(), sources: [...sources.values()].slice(0, 8), usage, costUsd: estimateCostUsd(helperModelById(input.model, 'anthropic'), usage) };
 }

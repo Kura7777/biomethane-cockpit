@@ -653,14 +653,14 @@ export const PAGE_GUIDES: PageGuide[] = [
     howToRead: [
       { section: 'Conversation', text: 'One running conversation for this browser tab. It stays while you move around the app; New chat clears it. Answers stream in, and Stop ends one early.' },
       { section: 'Where answers come from', text: 'The app’s own data first: desk marks, certificate routes, destination pricing, plants and legal sources. Then general knowledge, which is labelled so you know to check it. Web search for Claude models is off by default; switch it on in Desk assumptions.' },
-      { section: 'Model', text: 'The model button at the top picks Haiku (the default), Sonnet, Opus or a Gemini model. Each answer shows its model and an estimated cost; the header shows today’s total. Prices, web search and the daily budget sit on the Pricing desk under Desk assumptions.' },
+      { section: 'Model', text: 'The Claude or Gemini switch picks the provider and the model button picks the model; Gemini 3.8 Flash is the default. Each answer shows its model and an estimated cost; the header shows today’s total. Prices, web search and the daily budget sit on the Pricing desk under Desk assumptions.' },
     ],
     commonTasks: [
       {
         question: 'Which model should I use?',
         steps: [
-          'Click the model button at the top of this page.',
-          'Haiku for quick look-ups (the default), Sonnet for everyday questions, Opus for analysis you will act on.',
+          'Pick Claude or Gemini, then click the model button.',
+          'Gemini 3.8 Flash (the default) or Haiku for everyday questions, Opus for analysis you will act on.',
           'The choice is saved and also shows on the Pricing desk.',
         ],
       },

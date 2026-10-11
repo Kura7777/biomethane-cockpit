@@ -65,6 +65,16 @@ export function appErrors(errors: string[]): string[] {
 }
 
 /** Wait for a screen to finish its lazy chunk + Suspense fallback. */
+/** The desk defaults to Gemini 3.8 Flash; tests written for Claude pick Haiku 5.5 first (on every load). */
+export async function preferClaude(page: Page) {
+  await page.addInitScript(() => {
+    const key = 'biomethane-desk.assumptions.v1';
+    let overrides: Record<string, number> = {};
+    try { overrides = JSON.parse(localStorage.getItem(key) || '{}'); } catch { /* start clean */ }
+    localStorage.setItem(key, JSON.stringify({ ...overrides, 'helper.model': 0 }));
+  });
+}
+
 export async function gotoScreen(page: Page, path: string) {
   await page.goto(routeUrl(path));
   await expect(page.getByText('Loading module...')).toHaveCount(0, { timeout: 15_000 });

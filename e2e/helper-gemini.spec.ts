@@ -29,18 +29,20 @@ test.describe('Desk helper with Gemini', () => {
     page.on('request', r => { if (r.url().includes('api.anthropic.com')) anthropic.push(r.url()); });
 
     await gotoScreen(page, '/ask');
-    await expect(page.getByTestId('helper-mode')).toHaveText('Offline help'); // default Haiku needs the Anthropic key
-    await expect(page.getByTestId('helper-offline-note')).toContainText('Add a Claude API key');
-    // One provider at a time: switching to Gemini lands on Flash-Lite and the menu lists only Gemini models.
-    await expect(page.getByTestId('provider-switch-anthropic')).toHaveAttribute('aria-checked', 'true');
-    await page.getByTestId('provider-switch-google').click();
+    // The desk default is Gemini 3.8 Flash, and only the Gemini models are listed.
     await expect(page.getByTestId('provider-switch-google')).toHaveAttribute('aria-checked', 'true');
     await expect(page.getByTestId('provider-switch-anthropic')).toHaveAttribute('aria-checked', 'false');
-    await expect(page.getByTestId('ask-model')).toHaveText(/Gemini 3\.5 Flash-Lite/);
+    await expect(page.getByTestId('ask-model')).toHaveText(/Gemini 3\.8 Flash/);
     await page.getByTestId('ask-model').click();
-    await expect(page.getByTestId('ask-model-menu').getByRole('menuitemradio')).toHaveCount(2);
+    await expect(page.getByTestId('ask-model-menu').getByRole('menuitemradio')).toHaveCount(3);
     await expect(page.getByTestId('ask-model-0')).toHaveCount(0);
     await page.keyboard.press('Escape');
+    // One provider at a time: Claude lands on Haiku (no Anthropic key here, so offline), Gemini back on 3.8 Flash.
+    await page.getByTestId('provider-switch-anthropic').click();
+    await expect(page.getByTestId('ask-model')).toHaveText(/Haiku 5\.5/);
+    await expect(page.getByTestId('helper-offline-note')).toContainText('Add a Claude API key');
+    await page.getByTestId('provider-switch-google').click();
+    await expect(page.getByTestId('ask-model')).toHaveText(/Gemini 3\.8 Flash/);
     await expect(page.getByTestId('helper-mode')).toHaveText('AI answers');
     await expect(page.getByTestId('helper-privacy')).toContainText('sent to Google');
     await expect(page.getByTestId('ask-today')).toHaveText('Today ≈ $0.00');
@@ -48,12 +50,12 @@ test.describe('Desk helper with Gemini', () => {
     await page.getByTestId('helper-input').fill('What is a GGE?');
     await page.getByTestId('helper-send').click();
     await expect(page.getByTestId('helper-answer')).toContainText('Dutch green-gas certificate');
-    // 7,000 in at $0.30 + 500 out at $2.50 per million tokens = $0.00335.
-    await expect(page.getByTestId('helper-answered-by')).toHaveText('Gemini 3.5 Flash-Lite · ≈ $0.003');
-    await expect(page.getByTestId('ask-today')).toHaveText('Today ≈ $0.003');
+    // 7,000 in at $0.75 + 500 out at $3.75 per million tokens = $0.007125.
+    await expect(page.getByTestId('helper-answered-by')).toHaveText('Gemini 3.8 Flash · ≈ $0.007');
+    await expect(page.getByTestId('ask-today')).toHaveText('Today ≈ $0.007');
 
     expect(seen).toHaveLength(1);
-    expect(seen[0].url).toBe('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:streamGenerateContent?alt=sse');
+    expect(seen[0].url).toBe('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:streamGenerateContent?alt=sse');
     expect(seen[0].key).toBe(GEMINI_KEY);
     expect(seen[0].body).toContain('systemInstruction');
     expect(seen[0].body).toContain('functionDeclarations');
@@ -105,7 +107,7 @@ test.describe('Desk helper with Gemini', () => {
   test('once today\'s budget is used up no AI is called and the answer is offline with a link to the cap', async ({ page }) => {
     await page.addInitScript(({ key, assumptions }) => {
       localStorage.setItem('biomethane_anthropic_api_key', key);
-      localStorage.setItem(assumptions, JSON.stringify({ 'helper.dailyCapUsd': 2 }));
+      localStorage.setItem(assumptions, JSON.stringify({ 'helper.dailyCapUsd': 2, 'helper.model': 0 }));
       const d = new Date();
       const pad = (n: number) => String(n).padStart(2, '0');
       localStorage.setItem('biomethane_helper_spend', JSON.stringify({ date: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`, usd: 2.05 }));
@@ -130,14 +132,15 @@ test.describe('Desk helper with Gemini', () => {
 
   test('Regulation check: one provider is used by the helper at a time, and the switch matches Ask the desk', async ({ page }) => {
     await gotoScreen(page, '/regulation-check');
-    await expect(page.getByTestId('regcheck-provider-switch-anthropic')).toHaveAttribute('aria-checked', 'true');
-    await expect(page.getByTestId('regcheck-key-inuse')).toBeVisible();
-    await expect(page.getByTestId('regcheck-gemini-key-inuse')).toHaveCount(0);
-    await page.getByTestId('regcheck-provider-switch-google').click();
+    // Gemini is the desk default.
+    await expect(page.getByTestId('regcheck-provider-switch-google')).toHaveAttribute('aria-checked', 'true');
     await expect(page.getByTestId('regcheck-gemini-key-inuse')).toBeVisible();
     await expect(page.getByTestId('regcheck-key-inuse')).toHaveCount(0);
+    await page.getByTestId('regcheck-provider-switch-anthropic').click();
+    await expect(page.getByTestId('regcheck-key-inuse')).toBeVisible();
+    await expect(page.getByTestId('regcheck-gemini-key-inuse')).toHaveCount(0);
     await gotoScreen(page, '/ask');
-    await expect(page.getByTestId('provider-switch-google')).toHaveAttribute('aria-checked', 'true');
-    await expect(page.getByTestId('ask-model')).toHaveText(/Gemini 3\.5 Flash-Lite/);
+    await expect(page.getByTestId('provider-switch-anthropic')).toHaveAttribute('aria-checked', 'true');
+    await expect(page.getByTestId('ask-model')).toHaveText(/Haiku 5\.5/);
   });
 });

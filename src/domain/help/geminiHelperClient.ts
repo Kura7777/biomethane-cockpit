@@ -65,7 +65,7 @@ export function buildGeminiContents(history: HelperRequestInput['history'], ques
 
 /** The request body for one round (everything but the key, which travels in a header). */
 export function buildGeminiRequestBody(input: Pick<HelperRequestInput, 'model' | 'webSearch' | 'route' | 'guide'>, contents: GeminiContent[], lastRound: boolean) {
-  const model = helperModelById(input.model);
+  const model = helperModelById(input.model, 'google');
   const tools: Record<string, unknown>[] = [{ functionDeclarations: geminiFunctionDeclarations() }];
   if (input.webSearch && model.googleSearch) tools.push({ googleSearch: {} });
   return {
@@ -147,7 +147,7 @@ export async function askGeminiStream(
 ): Promise<HelperAnswer> {
   const apiKey = input.apiKey.trim();
   if (!apiKey) throw new Error('No Gemini API key is set.');
-  const model = helperModelById(input.model);
+  const model = helperModelById(input.model, 'google');
   const doFetch = input.fetchImpl ?? ((url: string, init?: RequestInit) => fetch(url, init));
   const url = `${GEMINI_API_BASE}/models/${model.id}:streamGenerateContent?alt=sse`;
   const contents = buildGeminiContents(input.history, input.question, input.context);

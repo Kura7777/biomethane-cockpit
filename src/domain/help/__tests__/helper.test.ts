@@ -126,9 +126,11 @@ describe('AI mode request', () => {
     // An unknown id falls back to the default model rather than sending a bad one.
     expect(buildHelperRequestBase({ ...input, model: 'nope' }).model).toBe('claude-haiku-5-5');
   });
-  it('maps the helper.model setting to a model, with Haiku as the default and web search off', () => {
+  it('maps the helper.model setting to a model, with Gemini 3.8 Flash as the default and web search off', () => {
     resetAllAssumptions();
-    expect(currentHelperModel().id).toBe('claude-haiku-5-5');
+    expect(currentHelperModel()).toMatchObject({ provider: 'google', id: 'gemini-3.8-flash' });
+    setAssumption('helper.model', 5);
+    expect(currentHelperModel().name).toBe('Gemini 3.8 Flash');
     expect(getAssumption('helper.webSearch')).toBe(0);
     expect(getAssumption('helper.dailyCapUsd')).toBe(2);
     setAssumption('helper.model', 2);

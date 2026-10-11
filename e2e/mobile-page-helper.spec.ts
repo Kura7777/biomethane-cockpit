@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { gotoScreen } from './helpers';
+import { gotoScreen, preferClaude } from './helpers';
 
 test.describe('Page helper (compact layout)', () => {
   test('the Ask capsule opens the helper sheet and there is no desktop card', async ({ page }) => {
@@ -54,6 +54,7 @@ test.describe('Ask the desk (compact layout)', () => {
 
 test.describe('Anthropic key on a phone', () => {
   test('a key pasted with phone clutter is cleaned on save, and a rejected key names the one saved here', async ({ page }) => {
+    await preferClaude(page);
     await gotoScreen(page, '/regulation-check');
     const input = page.getByTestId('regcheck-key-input');
     await expect(input).toHaveAttribute('autocapitalize', 'none');
