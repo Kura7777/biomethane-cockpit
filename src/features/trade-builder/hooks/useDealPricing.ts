@@ -34,6 +34,7 @@ export function useDealPricing(
     feedstockKey,
     scheme,
     chainOfCustody,
+    physicalForm,
     udbStatus,
     posStatus,
     ci,
@@ -113,12 +114,14 @@ export function useDealPricing(
       counterparty: sellerEntity.name,
       counterpartySource: sellerEntity.source ? { name: sellerEntity.source.name, url: sellerEntity.source.url, note: sellerEntity.source.note } : null,
       custody,
+      physicalForm,
     };
   }, [
     origin,
     feedstockKey,
     scheme,
     chainOfCustody,
+    physicalForm,
     effectiveUdbStatus,
     posStatus,
     ci,

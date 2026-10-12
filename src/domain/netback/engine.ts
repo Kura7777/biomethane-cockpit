@@ -470,9 +470,20 @@ function computeCertificateValueCore(
  * deal's custody pack, else the desk default (Desk assumptions → GGE).
  */
 export function ggeRouteCostLines(market: Market, consignment: Consignment): RouteCostLine[] {
-  if (!market.requiresGoAndPos) return [];
-  const origin = (consignment.custody?.go?.issuingCountry || consignment.injectionCountry || consignment.originCountry || '').toUpperCase();
   const lines: RouteCostLine[] = [];
+
+  // FuelEU Maritime: Gaseous grid biomethane requires physical liquefaction tolling (~€14-€18/MWh)
+  // unless explicitly traded as pre-liquefied cryogenic Bio-LNG.
+  if (market.id === 'FUELEU' && consignment.physicalForm !== 'BIO_LNG_CRYOGENIC') {
+    lines.push({
+      key: 'fueleu.liquefactionFeeEurPerMwh',
+      label: 'Cryogenic liquefaction & bunkering toll',
+      eurPerMwh: getAssumption('fueleu.liquefactionFeeEurPerMwh') ?? 14,
+    });
+  }
+
+  if (!market.requiresGoAndPos) return lines;
+  const origin = (consignment.custody?.go?.issuingCountry || consignment.injectionCountry || consignment.originCountry || '').toUpperCase();
   if (origin === 'ES') {
     lines.push({ key: 'cost.gge.enagasGoExport', label: 'Enagás GdO export fee', eurPerMwh: getAssumption('cost.gge.enagasGoExport') });
   }

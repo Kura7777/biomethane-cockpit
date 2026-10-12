@@ -65,6 +65,8 @@ export const TradeStepperView: React.FC<TradeStepperViewProps> = ({
     setScheme,
     chainOfCustody,
     setChainOfCustody,
+    physicalForm,
+    setPhysicalForm,
     posStatus,
     setPosStatus,
     ci,
@@ -168,6 +170,8 @@ export const TradeStepperView: React.FC<TradeStepperViewProps> = ({
                       setChainOfCustody={setChainOfCustody}
                       custodies={CUSTODIES}
                       currentCustodyObj={currentCustodyObj}
+                      physicalForm={physicalForm}
+                      setPhysicalForm={setPhysicalForm}
                       udbStatus={effectiveUdbStatus}
                       setUdbStatus={dealInputs.setUdbStatus}
                       posStatus={posStatus}

@@ -60,6 +60,9 @@ export function useDealInputs(
   const [feedstockKey, setFeedstockKey] = useState<string>(deal.feedstock || 'manure');
   const [scheme, setScheme] = useState<CertificationScheme>((deal.scheme as CertificationScheme) || 'ISCC_EU');
   const [chainOfCustody, setChainOfCustody] = useState<ChainOfCustody>((deal.coc as ChainOfCustody) || 'MASS_BALANCE');
+  const [physicalForm, setPhysicalForm] = useState<'GRID_INJECTED_GAS' | 'BIO_LNG_CRYOGENIC'>(
+    (deal as unknown as { physicalForm?: 'GRID_INJECTED_GAS' | 'BIO_LNG_CRYOGENIC' }).physicalForm || 'GRID_INJECTED_GAS'
+  );
   const [udbStatus, setUdbStatus] = useState<UDBStatus>(deal.udb || 'PENDING');
   const [posStatus, setPosStatus] = useState<PoSStatus>(deal.pos || 'PENDING');
   const [ci, setCi] = useState<number>(
@@ -170,6 +173,8 @@ export function useDealInputs(
     setScheme,
     chainOfCustody,
     setChainOfCustody,
+    physicalForm,
+    setPhysicalForm,
     udbStatus,
     setUdbStatus,
     posStatus,

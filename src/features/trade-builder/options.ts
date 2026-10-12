@@ -111,6 +111,11 @@ export const CUSTODIES: { custody: ChainOfCustody; label: string; hint: string }
   { custody: 'BOOK_AND_CLAIM', label: 'Book & claim', hint: 'Book & claim hard-blocks FuelEU Maritime and every RED III compliance route — mass balance is required by Art. 30(1).' },
 ];
 
+export const PHYSICAL_FORMS: { form: 'GRID_INJECTED_GAS' | 'BIO_LNG_CRYOGENIC'; label: string; hint: string }[] = [
+  { form: 'GRID_INJECTED_GAS', label: 'Grid Pipeline Gas (Gaseous)', hint: 'Injected into national gas grids. Requires cryogenic liquefaction tolling (~€14-€18/MWh) or Art. 21 pooling to bunker into ships.' },
+  { form: 'BIO_LNG_CRYOGENIC', label: 'Bio-LNG (Cryogenic Liquid)', hint: 'Pre-liquefied cryogenic liquid (-162°C). Zero marginal liquefaction fee for direct bunkering under FuelEU Maritime.' },
+];
+
 /**
  * Per-origin statutory default market routing.
  * Delegates to centralized defaultMarketForOrigin in dealDefaults.ts.

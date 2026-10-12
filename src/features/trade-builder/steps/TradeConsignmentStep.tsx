@@ -79,6 +79,8 @@ interface TradeConsignmentStepProps {
   setChainOfCustody: (coc: ChainOfCustody) => void;
   custodies: CustodyOption[];
   currentCustodyObj: CustodyOption;
+  physicalForm?: 'GRID_INJECTED_GAS' | 'BIO_LNG_CRYOGENIC';
+  setPhysicalForm?: (form: 'GRID_INJECTED_GAS' | 'BIO_LNG_CRYOGENIC') => void;
   udbStatus: UDBStatus;
   setUdbStatus: (status: UDBStatus) => void;
   posStatus: PoSStatus;
@@ -146,6 +148,8 @@ export function TradeConsignmentStep({
   setChainOfCustody,
   custodies,
   currentCustodyObj,
+  physicalForm = 'GRID_INJECTED_GAS',
+  setPhysicalForm,
   udbStatus,
   setUdbStatus,
   posStatus,
@@ -414,6 +418,34 @@ export function TradeConsignmentStep({
                 ))}
               </div>
               <p className="tb-hint">{currentCustodyObj.hint}</p>
+            </div>
+          </div>
+
+          {/* Physical Form: Pipeline Grid Methane vs Cryogenic Bio-LNG */}
+          <div className="tb-form-row">
+            <span className="tb-form-label">Physical Form</span>
+            <div className="tb-form-control">
+              <div className="tb-chips">
+                <button
+                  type="button"
+                  className={`chip ${physicalForm === 'GRID_INJECTED_GAS' ? 'chip-a' : ''}`}
+                  onClick={() => setPhysicalForm?.('GRID_INJECTED_GAS')}
+                >
+                  Grid Pipeline Gas (Gaseous)
+                </button>
+                <button
+                  type="button"
+                  className={`chip ${physicalForm === 'BIO_LNG_CRYOGENIC' ? 'chip-a' : ''}`}
+                  onClick={() => setPhysicalForm?.('BIO_LNG_CRYOGENIC')}
+                >
+                  Bio-LNG (Cryogenic Liquid)
+                </button>
+              </div>
+              <p className="tb-hint">
+                {physicalForm === 'BIO_LNG_CRYOGENIC'
+                  ? 'Pre-liquefied cryogenic liquid (-162°C). Directly bunkerable into vessels under FuelEU Maritime with €0 marginal liquefaction toll.'
+                  : 'Injected into national pipeline grids. Routing into FuelEU Maritime incurs cryogenic liquefaction & bunkering toll (~€14–€18/MWh).'}
+              </p>
             </div>
           </div>
 

@@ -20,6 +20,8 @@ export interface DeliveryPeriod {
   plantCommittedVolumeMWh?: number | null; // Pre-committed volume sold to other offtakers
 }
 
+export type PhysicalGasForm = 'GRID_INJECTED_GAS' | 'BIO_LNG_CRYOGENIC';
+
 export interface Consignment {
   id: string;
   name: string;  // user-given label
@@ -45,6 +47,8 @@ export interface Consignment {
   originPlantName?: string | null;
   observedBundlePriceEurPerMwh?: number | null; // observed all-in clearing bundle price (€/MWh) for reality check
   custody?: CustodyPack | null;
+  /** Physical aggregate state of the fuel: pipeline gaseous grid injection vs cryogenic liquid Bio-LNG */
+  physicalForm?: PhysicalGasForm;
 }
 
 export type EnergyBasis = 'HHV' | 'LHV' | 'UNKNOWN';
