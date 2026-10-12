@@ -67,20 +67,25 @@ export function buildGeminiContents(history: HelperRequestInput['history'], ques
 export function buildGeminiRequestBody(input: Pick<HelperRequestInput, 'model' | 'webSearch' | 'route' | 'guide'>, contents: GeminiContent[], lastRound: boolean) {
   const model = helperModelById(input.model, 'google');
   const tools: Record<string, unknown>[] = [{ functionDeclarations: geminiFunctionDeclarations() }];
-  // Google Search combined with function calling requires includeServerSideToolInvocations. That mode requires
-  // every previous turn in history to preserve raw server-side toolCall/toolResponse/thoughtSignatures; plain-text
-  // history causes Gemini to fail on follow-ups. Restricting googleSearch to initial turns (contents.length <= 1)
-  // allows initial search while keeping multi-turn follow-up conversations stable.
-  const hasGoogleSearch = Boolean(input.webSearch && model.googleSearch && contents.length <= 1);
+  const hasGoogleSearch = Boolean(input.webSearch && model.googleSearch);
   if (hasGoogleSearch) tools.push({ googleSearch: {} });
 
   const toolConfig: Record<string, unknown> = {};
   if (hasGoogleSearch) {
-    // Required by Gemini API when combining built-in tools (Google Search) with function calling
     toolConfig.includeServerSideToolInvocations = true;
   }
   if (lastRound) {
     toolConfig.functionCallingConfig = { mode: 'NONE' };
+  }
+
+  const isPro = model.id.includes('pro');
+  const generationConfig: Record<string, unknown> = {
+    maxOutputTokens: HELPER_MAX_TOKENS,
+  };
+  // Turn off internal thinking traces on Flash models to ensure instant deterministic text streaming
+  // and prevent missing thought signatures from breaking stateless multi-turn chat history.
+  if (!isPro) {
+    generationConfig.thinkingConfig = { thinkingBudget: 0 };
   }
 
   return {
@@ -88,14 +93,14 @@ export function buildGeminiRequestBody(input: Pick<HelperRequestInput, 'model' |
     contents,
     tools,
     ...(Object.keys(toolConfig).length > 0 ? { toolConfig } : {}),
-    generationConfig: { maxOutputTokens: HELPER_MAX_TOKENS },
+    generationConfig,
   };
 }
 
 // ── Response handling ───────────────────────────────────────────────────────
 
 interface GeminiChunk {
-  candidates?: { content?: { parts?: GeminiPart[] }; finishReason?: string; groundingMetadata?: { groundingChunks?: { web?: { uri?: string; title?: string } }[] } }[];
+  candidates?: { content?: { parts?: GeminiPart[] }; finishReason?: string; finishMessage?: string; groundingMetadata?: { groundingChunks?: { web?: { uri?: string; title?: string } }[] } }[];
   usageMetadata?: { promptTokenCount?: number; cachedContentTokenCount?: number; candidatesTokenCount?: number; thoughtsTokenCount?: number; toolUsePromptTokenCount?: number };
   error?: { message?: string };
 }
@@ -170,6 +175,7 @@ export async function askGeminiStream(
   let text = '';
   let truncated = false;
   let lastFinishReason: string | undefined;
+  let lastFinishMessage: string | undefined;
 
   try {
     for (let round = 0; round < HELPER_MAX_TOOL_ROUNDS; round++) {
@@ -193,6 +199,9 @@ export async function askGeminiStream(
         if (cand.finishReason) {
           lastFinishReason = cand.finishReason;
           if (cand.finishReason === 'MAX_TOKENS') truncated = true;
+        }
+        if (cand.finishMessage) {
+          lastFinishMessage = cand.finishMessage;
         }
         for (const g of cand.groundingMetadata?.groundingChunks ?? []) {
           const uri = g.web?.uri;
@@ -258,7 +267,8 @@ export async function askGeminiStream(
     if (lastFinishReason === 'RECITATION') {
       throw new Error('Google Gemini stopped output due to a recitation/source filter.');
     }
-    throw new Error(truncated ? 'Gemini ran out of room before it wrote an answer. Ask a narrower question or try again.' : 'The model returned no text.');
+    const detail = lastFinishMessage ? ` (${lastFinishMessage})` : (lastFinishReason && lastFinishReason !== 'STOP' ? ` (${lastFinishReason})` : '');
+    throw new Error(truncated ? 'Gemini ran out of room before it wrote an answer. Ask a narrower question or try again.' : `The model returned no text${detail}.`);
   }
   return { text: sanitizeKey(text, apiKey).trim(), sources: [...sources.values()].slice(0, 8), usage, costUsd: estimateCostUsd(model, usage) };
 }
