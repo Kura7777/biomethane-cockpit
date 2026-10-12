@@ -49,12 +49,17 @@ describe('Gemini request', () => {
     expect(body.systemInstruction.parts[0].text).toBe(buildSystemBlocks(undefined, '/ask').map(b => b.text).join('\n\n'));
     expect(body.contents.map(c => c.role)).toEqual(['user', 'model', 'user']);
     expect(body.generationConfig.maxOutputTokens).toBe(8000);
+    expect(body.generationConfig.thinkingConfig).toEqual({ thinkingLevel: 'low' });
     // gemini-3.5-flash-lite has googleSearch off:
     expect(JSON.stringify(body.tools)).not.toContain('googleSearch');
-    // gemini-3.8-flash has googleSearch enabled when webSearch is true, and requires includeServerSideToolInvocations:
+    // gemini-3.8-flash has googleSearch enabled when webSearch is true, requires includeServerSideToolInvocations, and uses thinkingLevel: 'low':
     const flashWithSearch = buildGeminiRequestBody({ ...input, model: 'gemini-3.8-flash', webSearch: true }, [], false);
     expect(JSON.stringify(flashWithSearch.tools)).toContain('googleSearch');
     expect(flashWithSearch.toolConfig).toEqual({ includeServerSideToolInvocations: true });
+    expect(flashWithSearch.generationConfig.thinkingConfig).toEqual({ thinkingLevel: 'low' });
+    // gemini-2.5-pro does not override thinkingConfig:
+    const proBody = buildGeminiRequestBody({ ...input, model: 'gemini-2.5-pro' }, [], false);
+    expect(proBody.generationConfig.thinkingConfig).toBeUndefined();
     // when webSearch is false, googleSearch stays out even on gemini-3.8-flash:
     const flashNoSearch = buildGeminiRequestBody({ ...input, model: 'gemini-3.8-flash', webSearch: false }, [], false);
     expect(JSON.stringify(flashNoSearch.tools)).not.toContain('googleSearch');

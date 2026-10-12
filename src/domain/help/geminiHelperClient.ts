@@ -79,12 +79,17 @@ export function buildGeminiRequestBody(input: Pick<HelperRequestInput, 'model' |
   }
 
   const isPro = model.id.includes('pro');
+  const isGemini3 = model.id.includes('gemini-3');
   const generationConfig: Record<string, unknown> = {
     maxOutputTokens: HELPER_MAX_TOKENS,
   };
-  // Turn off internal thinking traces on Flash models to ensure instant deterministic text streaming
-  // and prevent missing thought signatures from breaking stateless multi-turn chat history.
-  if (!isPro) {
+  // Gemini 3 Flash and Flash-Lite do not support disabling thinking (thinkingBudget is unsupported on Gemini 3).
+  // Setting thinkingBudget: 0 on Gemini 3 models causes 0 output tokens or empty candidate completions.
+  // We set thinkingLevel to 'low' for Gemini 3 models to minimize latency and token consumption while preserving reasoning.
+  if (isGemini3) {
+    generationConfig.thinkingConfig = { thinkingLevel: 'low' };
+  } else if (!isPro) {
+    // Gemini 2.5 Flash models support thinkingBudget: 0 to turn off thinking traces.
     generationConfig.thinkingConfig = { thinkingBudget: 0 };
   }
 

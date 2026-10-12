@@ -473,8 +473,8 @@ export function ggeRouteCostLines(market: Market, consignment: Consignment): Rou
   const lines: RouteCostLine[] = [];
 
   // FuelEU Maritime: Gaseous grid biomethane requires physical liquefaction tolling (~€14-€18/MWh)
-  // unless explicitly traded as pre-liquefied cryogenic Bio-LNG.
-  if (market.id === 'FUELEU' && consignment.physicalForm !== 'BIO_LNG_CRYOGENIC') {
+  // when explicitly traded as grid-injected gas for a marine vessel.
+  if (market.id === 'FUELEU' && consignment.physicalForm === 'GRID_INJECTED_GAS') {
     lines.push({
       key: 'fueleu.liquefactionFeeEurPerMwh',
       label: 'Cryogenic liquefaction & bunkering toll',
