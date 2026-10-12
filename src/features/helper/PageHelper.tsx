@@ -253,16 +253,65 @@ function InlineCode({ text }: { text: string }) {
   );
 }
 
-/** **bold** inside a run of text, preserving inline code and links. */
+/** Clean raw LaTeX formulas into legible mathematical typography. */
+export function cleanMathText(text: string): string {
+  if (!text) return '';
+  return text
+    // Replace LaTeX text macros
+    .replace(/\\(?:text|mathrm|mathbf|mathit)\{([^}]+)\}/g, '$1')
+    // Brackets
+    .replace(/\\left\s*\[/g, '[')
+    .replace(/\\right\s*\]/g, ']')
+    .replace(/\\left\s*\(/g, '(')
+    .replace(/\\right\s*\)/g, ')')
+    // Common operators and greek symbols
+    .replace(/\\times/g, '×')
+    .replace(/\\cdot/g, '·')
+    .replace(/\\Delta/g, 'Δ')
+    .replace(/\\alpha/g, 'α')
+    .replace(/\\beta/g, 'β')
+    .replace(/\\pm/g, '±')
+    .replace(/\\leq/g, '≤')
+    .replace(/\\geq/g, '≥')
+    .replace(/\\rightarrow/g, '→')
+    .replace(/\\to/g, '→')
+    .replace(/\\approx/g, '≈')
+    .replace(/\\%/g, '%')
+    .replace(/\\_/g, '_')
+    // Chemistry & common subscripts
+    .replace(/CO_2/g, 'CO₂')
+    .replace(/CH_4/g, 'CH₄')
+    .replace(/N_2O/g, 'N₂O')
+    .replace(/_\{([^}]+)\}/g, ' ($1)')
+    .replace(/\^\{([^}]+)\}/g, '^$1');
+}
+
+/** Inline math `$formula$` cleaned and rendered with math badge. */
+function InlineMath({ text }: { text: string }) {
+  const parts = text.split(/(\$[^$\n]{1,160}\$)/g);
+  return (
+    <>
+      {parts.map((p, i) =>
+        p.startsWith('$') && p.endsWith('$') && p.length > 2 ? (
+          <span key={i} className="ph-math">{cleanMathText(p.slice(1, -1))}</span>
+        ) : (
+          <InlineCode key={i} text={p} />
+        )
+      )}
+    </>
+  );
+}
+
+/** **bold** inside a run of text, preserving inline math, code and links. */
 function Inline({ text }: { text: string }) {
-  const parts = text.split(/(\*\*[^*\n]{1,120}\*\*)/g);
+  const parts = text.split(/(\*\*[^*\n]{1,240}\*\*)/g);
   return (
     <>
       {parts.map((p, i) =>
         p.startsWith('**') && p.endsWith('**') && p.length > 4 ? (
-          <strong key={i}><InlineCode text={p.slice(2, -2)} /></strong>
+          <strong key={i}><InlineMath text={p.slice(2, -2)} /></strong>
         ) : (
-          <InlineCode key={i} text={p} />
+          <InlineMath key={i} text={p} />
         )
       )}
     </>
@@ -308,13 +357,21 @@ function RichText({ text, onNavigate }: { text: string; onNavigate: (to: string)
   );
 }
 
-type AnswerBlock = { kind: 'text'; text: string } | { kind: 'table'; rows: string[][] };
+export type AnswerBlock =
+  | { kind: 'heading'; level: number; text: string }
+  | { kind: 'divider' }
+  | { kind: 'code'; code: string; lang?: string }
+  | { kind: 'formula'; formula: string }
+  | { kind: 'table'; rows: string[][] }
+  | { kind: 'list'; ordered: boolean; items: string[] }
+  | { kind: 'paragraph'; text: string };
+
 const TABLE_LINE = /^\s*\|.*\|\s*$/;
 const TABLE_RULE = /^:?-{2,}:?$/;
 
-/** Split an answer into text runs and "| a | b |" tables (a header row, an optional |---| row, then rows). */
-export function splitTables(text: string): AnswerBlock[] {
-  const out: AnswerBlock[] = [];
+/** Split an answer into text runs and "| a | b |" tables (preserved for backwards-compatibility). */
+export function splitTables(text: string): ({ kind: 'text'; text: string } | { kind: 'table'; rows: string[][] })[] {
+  const out: ({ kind: 'text'; text: string } | { kind: 'table'; rows: string[][] })[] = [];
   const lines = text.split('\n');
   let buf: string[] = [];
   const flush = () => {
@@ -341,26 +398,233 @@ export function splitTables(text: string): AnswerBlock[] {
   return out;
 }
 
-/** An assistant answer: text, small tables and "[[go:/route|Label]]" buttons. Never HTML. */
+/** Parses markdown headings, dividers, code blocks, formulas, tables, lists, and paragraphs. */
+export function parseAnswerBlocks(text: string): AnswerBlock[] {
+  const blocks: AnswerBlock[] = [];
+  const lines = text.split('\n');
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+    const trimmed = line.trim();
+
+    // 1. Blank line: skip
+    if (!trimmed) {
+      i++;
+      continue;
+    }
+
+    // 2. Fenced code block: ``` ... ```
+    if (trimmed.startsWith('```')) {
+      const lang = trimmed.slice(3).trim();
+      const codeLines: string[] = [];
+      i++;
+      while (i < lines.length && !lines[i].trim().startsWith('```')) {
+        codeLines.push(lines[i]);
+        i++;
+      }
+      if (i < lines.length) i++;
+      blocks.push({ kind: 'code', code: codeLines.join('\n'), lang: lang || undefined });
+      continue;
+    }
+
+    // 3. Block formula: $$ ... $$
+    if (trimmed.startsWith('$$')) {
+      if (trimmed.length > 4 && trimmed.endsWith('$$') && trimmed.indexOf('$$', 2) === trimmed.length - 2) {
+        blocks.push({ kind: 'formula', formula: trimmed.slice(2, -2).trim() });
+        i++;
+        continue;
+      }
+      const formulaLines: string[] = [trimmed.slice(2)];
+      i++;
+      while (i < lines.length && !lines[i].trim().includes('$$')) {
+        formulaLines.push(lines[i]);
+        i++;
+      }
+      if (i < lines.length) {
+        formulaLines.push(lines[i].replace(/\$\$.*$/, ''));
+        i++;
+      }
+      blocks.push({ kind: 'formula', formula: formulaLines.join(' ').trim() });
+      continue;
+    }
+
+    // 4. Horizontal rule: --- or ***
+    if (/^[-*_]{3,}$/.test(trimmed)) {
+      blocks.push({ kind: 'divider' });
+      i++;
+      continue;
+    }
+
+    // 5. Headings: #, ##, ###, ####
+    const headingMatch = trimmed.match(/^(#{1,6})\s+(.*)$/);
+    if (headingMatch) {
+      blocks.push({
+        kind: 'heading',
+        level: headingMatch[1].length,
+        text: headingMatch[2].trim(),
+      });
+      i++;
+      continue;
+    }
+
+    // 6. Markdown Tables: | a | b |
+    if (TABLE_LINE.test(line)) {
+      const rows: string[][] = [];
+      while (i < lines.length && TABLE_LINE.test(lines[i])) {
+        const cells = lines[i].trim().slice(1, -1).split('|').map(c => c.trim());
+        if (!cells.every(c => TABLE_RULE.test(c))) {
+          rows.push(cells);
+        }
+        i++;
+      }
+      if (rows.length >= 2) {
+        blocks.push({ kind: 'table', rows });
+      } else {
+        blocks.push({ kind: 'paragraph', text: rows.map(r => r.join(' | ')).join('\n') });
+      }
+      continue;
+    }
+
+    // 7. Bullet or Ordered Lists
+    const bulletMatch = trimmed.match(/^[-*•]\s+(.*)$/);
+    const orderedMatch = trimmed.match(/^(\d+)\.\s+(.*)$/);
+    if (bulletMatch || orderedMatch) {
+      const isOrdered = Boolean(orderedMatch);
+      const items: string[] = [];
+      while (i < lines.length) {
+        const curTrim = lines[i].trim();
+        if (!curTrim) break;
+        const b = curTrim.match(/^[-*•]\s+(.*)$/);
+        const o = curTrim.match(/^\d+\.\s+(.*)$/);
+        if (isOrdered && o) {
+          items.push(o[1]);
+          i++;
+        } else if (!isOrdered && b) {
+          items.push(b[1]);
+          i++;
+        } else if (lines[i].startsWith('  ') || lines[i].startsWith('\t')) {
+          if (items.length > 0) {
+            items[items.length - 1] += '\n' + curTrim;
+          } else {
+            items.push(curTrim);
+          }
+          i++;
+        } else {
+          break;
+        }
+      }
+      blocks.push({ kind: 'list', ordered: isOrdered, items });
+      continue;
+    }
+
+    // 8. Regular text paragraph
+    const paraLines: string[] = [];
+    while (i < lines.length) {
+      const curTrim = lines[i].trim();
+      if (!curTrim) break;
+      if (
+        curTrim.startsWith('```') ||
+        curTrim.startsWith('$$') ||
+        /^[-*_]{3,}$/.test(curTrim) ||
+        /^#{1,6}\s+/.test(curTrim) ||
+        TABLE_LINE.test(lines[i]) ||
+        /^[-*•]\s+/.test(curTrim) ||
+        /^\d+\.\s+/.test(curTrim)
+      ) {
+        break;
+      }
+      paraLines.push(lines[i]);
+      i++;
+    }
+    if (paraLines.length > 0) {
+      blocks.push({ kind: 'paragraph', text: paraLines.join('\n') });
+    }
+  }
+
+  return blocks;
+}
+
+/** An assistant answer: clean headings, structured paragraphs, styled tables, formula blocks, and links. */
 export function AnswerView({ text, onNavigate }: { text: string; onNavigate: (to: string) => void }) {
+  const blocks = parseAnswerBlocks(text);
   return (
     <div className="ph-answer" data-testid="helper-answer">
-      {splitTables(text).map((block, i) =>
-        block.kind === 'text' ? (
-          <RichText key={i} text={block.text} onNavigate={onNavigate} />
-        ) : (
-          <div key={i} className="ph-table-wrap">
-            <table className="ph-table">
-              <thead><tr>{block.rows[0].map((c, j) => <th key={j}><RichText text={c} onNavigate={onNavigate} /></th>)}</tr></thead>
-              <tbody>
-                {block.rows.slice(1).map((r, k) => (
-                  <tr key={k}>{r.map((c, j) => <td key={j}><RichText text={c} onNavigate={onNavigate} /></td>)}</tr>
+      {blocks.map((block, i) => {
+        switch (block.kind) {
+          case 'heading': {
+            if (block.level <= 2) {
+              return <h2 key={i} className="ph-h2"><RichText text={block.text} onNavigate={onNavigate} /></h2>;
+            }
+            if (block.level === 3) {
+              return <h3 key={i} className="ph-h3"><RichText text={block.text} onNavigate={onNavigate} /></h3>;
+            }
+            return <h4 key={i} className="ph-h4"><RichText text={block.text} onNavigate={onNavigate} /></h4>;
+          }
+          case 'divider':
+            return <hr key={i} className="ph-divider" />;
+          case 'code':
+            return (
+              <pre key={i} className="ph-code-block">
+                <code>{block.code}</code>
+              </pre>
+            );
+          case 'formula':
+            return (
+              <div key={i} className="ph-formula-card">
+                <strong>Formula:</strong> <code>{cleanMathText(block.formula)}</code>
+              </div>
+            );
+          case 'table':
+            return (
+              <div key={i} className="ph-table-wrap">
+                <table className="ph-table">
+                  <thead>
+                    <tr>
+                      {block.rows[0].map((c, j) => (
+                        <th key={j}><RichText text={c} onNavigate={onNavigate} /></th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {block.rows.slice(1).map((r, k) => (
+                      <tr key={k}>
+                        {r.map((c, j) => (
+                          <td key={j}><RichText text={c} onNavigate={onNavigate} /></td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            );
+          case 'list': {
+            if (block.ordered) {
+              return (
+                <ol key={i} className="ph-ol">
+                  {block.items.map((it, idx) => (
+                    <li key={idx}><RichText text={it} onNavigate={onNavigate} /></li>
+                  ))}
+                </ol>
+              );
+            }
+            return (
+              <ul key={i} className="ph-ul">
+                {block.items.map((it, idx) => (
+                  <li key={idx}><RichText text={it} onNavigate={onNavigate} /></li>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        )
-      )}
+              </ul>
+            );
+          }
+          case 'paragraph':
+          default:
+            return (
+              <p key={i} className="ph-p">
+                <RichText text={block.text} onNavigate={onNavigate} />
+              </p>
+            );
+        }
+      })}
     </div>
   );
 }
