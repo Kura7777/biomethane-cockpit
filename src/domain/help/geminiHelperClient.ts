@@ -165,6 +165,7 @@ export async function askGeminiStream(
   let usage = EMPTY_USAGE;
   let text = '';
   let truncated = false;
+  let lastFinishReason: string | undefined;
 
   try {
     for (let round = 0; round < HELPER_MAX_TOOL_ROUNDS; round++) {
@@ -185,31 +186,33 @@ export async function askGeminiStream(
         if (chunk.usageMetadata) meta = chunk.usageMetadata;
         const cand = chunk.candidates?.[0];
         if (!cand) continue;
-        if (cand.finishReason === 'MAX_TOKENS') truncated = true;
+        if (cand.finishReason) {
+          lastFinishReason = cand.finishReason;
+          if (cand.finishReason === 'MAX_TOKENS') truncated = true;
+        }
         for (const g of cand.groundingMetadata?.groundingChunks ?? []) {
           const uri = g.web?.uri;
           if (uri && /^https?:\/\//i.test(uri) && !sources.has(uri)) sources.set(uri, { title: g.web?.title || uri, url: uri });
         }
         for (const part of cand.content?.parts ?? []) {
-          if (part.thought) continue; // thinking summaries are not part of the answer
+          // Always preserve every part (including thoughts and thought signatures) in model history for multi-step continuity
+          parts.push(part);
+          if (part.thought) {
+            // Thinking traces are internal reasoning; do not show to user as answer text
+            continue;
+          }
           if (part.toolCall) {
             input.onStatus('Searching the web');
-            parts.push(part);
           } else if (part.toolResponse) {
-            parts.push(part);
+            // Server-side tool response
           } else if (part.functionCall) {
             input.onStatus(HELPER_TOOL_LABELS[part.functionCall.name] ?? `Looking up ${part.functionCall.name}`);
-            parts.push(part);
           } else if (part.text) {
             input.onStatus(null);
             if (!roundHasText && text && !text.endsWith('\n')) { text += '\n\n'; input.onText('\n\n'); }
             roundHasText = true;
             text += part.text;
             input.onText(part.text);
-            parts.push(part);
-          } else {
-            // Keep other parts (e.g. thoughtSignature) in history
-            parts.push(part);
           }
         }
       }
@@ -245,6 +248,12 @@ export async function askGeminiStream(
   }
 
   if (!text.trim()) {
+    if (lastFinishReason === 'SAFETY') {
+      throw new Error('Google Gemini safety filters blocked the response for this query. Try rephrasing the question.');
+    }
+    if (lastFinishReason === 'RECITATION') {
+      throw new Error('Google Gemini stopped output due to a recitation/source filter.');
+    }
     throw new Error(truncated ? 'Gemini ran out of room before it wrote an answer. Ask a narrower question or try again.' : 'The model returned no text.');
   }
   return { text: sanitizeKey(text, apiKey).trim(), sources: [...sources.values()].slice(0, 8), usage, costUsd: estimateCostUsd(model, usage) };
