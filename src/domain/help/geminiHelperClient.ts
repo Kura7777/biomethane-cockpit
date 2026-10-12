@@ -67,7 +67,11 @@ export function buildGeminiContents(history: HelperRequestInput['history'], ques
 export function buildGeminiRequestBody(input: Pick<HelperRequestInput, 'model' | 'webSearch' | 'route' | 'guide'>, contents: GeminiContent[], lastRound: boolean) {
   const model = helperModelById(input.model, 'google');
   const tools: Record<string, unknown>[] = [{ functionDeclarations: geminiFunctionDeclarations() }];
-  const hasGoogleSearch = Boolean(input.webSearch && model.googleSearch);
+  // Google Search combined with function calling requires includeServerSideToolInvocations. That mode requires
+  // every previous turn in history to preserve raw server-side toolCall/toolResponse/thoughtSignatures; plain-text
+  // history causes Gemini to fail on follow-ups. Restricting googleSearch to initial turns (contents.length <= 1)
+  // allows initial search while keeping multi-turn follow-up conversations stable.
+  const hasGoogleSearch = Boolean(input.webSearch && model.googleSearch && contents.length <= 1);
   if (hasGoogleSearch) tools.push({ googleSearch: {} });
 
   const toolConfig: Record<string, unknown> = {};
