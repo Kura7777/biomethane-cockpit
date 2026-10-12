@@ -6,7 +6,7 @@ describe('Registry directory — pinning key sourced facts (registries.md, acces
   it('has exactly one entry per country, each with a resolvable country code', () => {
     const codes = REGISTRY_DIRECTORY.map(r => r.countryCode);
     expect(new Set(codes).size).toBe(codes.length);
-    expect(codes.length).toBe(22);
+    expect(codes.length).toBe(28);
   });
 
   it('every entry carries at least one source URL', () => {
