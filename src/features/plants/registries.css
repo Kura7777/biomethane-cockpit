@@ -81,7 +81,7 @@
 }
 
 .rh-directory-cols {
-  grid-template-columns: 60px minmax(160px, 1.6fr) 90px 70px 70px 70px minmax(160px, 1.6fr) 110px;
+  grid-template-columns: minmax(130px, 1.2fr) minmax(160px, 1.6fr) 85px 65px 65px 65px minmax(150px, 1.5fr) 105px;
 }
 
 .rh-cell-ellipsis {

@@ -8,6 +8,7 @@ import {
   getRegistryByCountry,
   findRegistry,
 } from '../../domain/registries/registryDirectory';
+import { PRODUCING_ORIGINS } from '../../domain/arbitrage/origins';
 import {
   fetchEnerginetDailyBiogas,
   EnerginetBiogasResult,
@@ -535,7 +536,11 @@ export function RegistryHub() {
                   className={`ds-row rh-directory-cols ${selectedCountry === entry.countryCode ? 'selected' : ''}`}
                   onClick={() => handleSelectCountry(entry.countryCode)}
                 >
-                  <div className="num" style={{ fontWeight: 600 }}>{entry.countryCode}</div>
+                  <div className="rh-cell-ellipsis" style={{ display: 'flex', alignItems: 'center', gap: '6px' }} title={`${entry.countryName} (${entry.countryCode})`}>
+                    <span style={{ fontSize: '14px' }}>{PRODUCING_ORIGINS[entry.countryCode]?.flag || '🇪🇺'}</span>
+                    <span className="num" style={{ fontWeight: 700, color: 'var(--color-text)' }}>{entry.countryCode}</span>
+                    <span style={{ color: 'var(--color-muted)', fontSize: '12px' }}>{entry.countryName}</span>
+                  </div>
                   <div className="rh-cell-ellipsis" title={entry.registryName}>{entry.registryName}</div>
                   <div>{entry.issues.replace('_AND_', ' + ')}</div>
                   <div><span className={`chip ${triChipClass(entry.aibGasScheme)}`}>{triLabel(entry.aibGasScheme)}</span></div>
