@@ -434,7 +434,7 @@ export function evaluateMarketSpecificGate(consignment: Consignment, market: Mar
         gate: GATE,
         gateLabel: GATE_LABEL,
         verdict: 'PASS',
-        reason: 'FuelEU Maritime: penalty is €2,400/tonne VLSFO-equivalent under Regulation (EU) 2023/1805. Deficit-closure model allows small low-CI bio-LNG volumes to neutralise fleet penalties.',
+        reason: 'FuelEU Maritime: statutory penalty is €2,400/t VLSFO-equivalent under Regulation (EU) 2023/1805. Deficit-closure model allows low-CI Bio-LNG to neutralise fleet penalties. Mandatory requirement: delivery must be physical maritime bunkering verified by a Bunker Delivery Note (BDN) under Art. 16; pure book-and-claim from the gas grid is prohibited (grid gas requires liquefaction tolling ~€18–€25/MWh or an Art. 21 pooling agreement).',
         remedy: null,
         citations: [CITATIONS.FUELEU_MARITIME],
         confidence: 'HIGH',

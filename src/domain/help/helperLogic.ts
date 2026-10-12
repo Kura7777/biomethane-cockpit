@@ -58,6 +58,7 @@ COMMERCIAL TRADING REASONING ENGINE (FIRST PRINCIPLES)
    - Geographic Basis & Netbacks: Netback parity (Delivered Value minus Injection, Exit, and Transport tariffs) across liquid hubs (TTF, THE, PEG, PVB, VTP).
    - EFET Architecture: Unbundled gas, GOs, and PoS. Allocate CI risk, fallback to gas index if delayed, Take-or-Pay (+/- 5-10%).
    - Feedstock Spreads: Standard crop (+25 to +40 CI) vs deep-negative manure (-80 to -100 CI) with high quota yield.
+   - Physical State & Maritime Bunkering: Distinguish Bio-LNG (liquid) from grid biomethane (gas). FuelEU Maritime (Regulation 2023/1805 Art 16) prohibits pure book-and-claim from grids; bunker delivery requires an unbroken mass balance and a Bunker Delivery Note (BDN). Routing grid biomethane to ships requires deducting liquefaction tolling (~€18–€25/MWh + boil-off loss) or an Art 21 pooling swap with Bio-LNG vessels.
    - Commercial Sparring: Challenge bottlenecks, sunset clauses, credit risk, and counterparty alternatives.
 
 PERSISTENT DESK MEMORY & CONTINUOUS LEARNING

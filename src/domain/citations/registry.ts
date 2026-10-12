@@ -94,24 +94,26 @@ Food and feed crops (Article 26(1)): their share may be no more than one percent
     category: 'EU_REGULATION',
     status: 'PHASED_IN_2026',
     effectiveDate: '1 January 2025 (Annual compliance cycles starting 2025/2026)',
-    primaryArticle: 'Articles 2(1), 4(2), 21; Annex II & Annex IV Part B',
+    primaryArticle: 'Articles 2(1), 4(2), 16, 21; Annex I, II & IV Part B',
     summary: `Regulation (EU) 2023/1805 sets decreasing well-to-wake GHG intensity limits for the energy used on ships of above 5 000 gross tonnage calling at EU ports (Art. 2(1)).
 Reference value: ${FUELEU_REFERENCE_INTENSITY} gCO2eq/MJ (Art. 4(2)); it is the 2020 fleet reference value, not the intensity of one fuel.
 Limits (Art. 4(2)): 2025 (-${reductionPct(FUELEU_TARGET_2025)}% = ${FUELEU_TARGET_2025} gCO2eq/MJ); 2030 (-${reductionPct(FUELEU_TARGET_2030)}% = ${FUELEU_TARGET_2030}); 2035 (-${reductionPct(FUELEU_TARGET_2035)}% = ${FUELEU_TARGET_2035}); 2040 (-${reductionPct(FUELEU_TARGET_2040)}% = ${FUELEU_TARGET_2040}); 2045 (-${reductionPct(FUELEU_TARGET_2045)}% = ${FUELEU_TARGET_2045}); 2050 (-${reductionPct(FUELEU_TARGET_2050)}% = ${FUELEU_TARGET_2050}).
 Penalty (Annex IV Part B, applied through Art. 23): EUR ${FUELEU_STATUTORY_PENALTY_PER_TONNE.toLocaleString('en-US')} per tonne of VLSFO energy equivalent, where one tonne of VLSFO is ${FUELEU_PENALTY_VLSFO_MJ_PER_TONNE.toLocaleString('en-US')} MJ. The penalty is calculated from the size of the compliance deficit.
 Lower calorific value of LNG (Annex II): 0.0491 MJ/g, which is 49,100 MJ per tonne.
+Bunkering & Mass Balance Chain of Custody (Article 16 & Annex I): Fuels bunkered must be verified by accredited verifiers via Bunker Delivery Notes (BDNs) under an unbroken mass balance system. Pure book-and-claim for gaseous biomethane via the grid without physical liquefaction/delivery into a ship is prohibited.
 Compliance pooling (Article 21): two or more ships may pool their compliance balances to comply with Art. 4. A pool surplus, for example from Bio-LNG with a low or negative certified carbon intensity, can offset the deficits of other ships in the pool, so the pool avoids the penalty only to the extent that the pool's combined balance is not a deficit.
 EU ETS maritime (Directive (EU) 2023/959): maritime emissions are phased in at 40% of 2024 emissions, 70% of 2025 and 100% of 2026. Sustainable biofuels and biomethane that meet the RED sustainability criteria carry a zero CO2 emission factor. Methane and nitrous oxide are not covered by that zero factor.`,
     applicableMarkets: ['EU_FUELEU_2025', 'EU_FUELEU_2030', 'SE_TAX_EXEMPTION'],
     complianceGate: 'MASS_BALANCE Gate & GHG Gate (Well-to-Wake boundary)',
     penaltiesOrCaps: `Statutory non-compliance penalty: EUR ${FUELEU_STATUTORY_PENALTY_PER_TONNE.toLocaleString('en-US')} per tonne of VLSFO energy equivalent (${FUELEU_PENALTY_VLSFO_MJ_PER_TONNE.toLocaleString('en-US')} MJ/tonne), increasing by 10% compounding per consecutive non-compliant reporting year.`,
-    deskRuleSummary: `Bio-LNG bunkered in EU ports receives full well-to-wake credit against shipping intensity baselines (${FUELEU_TARGET_2025} gCO2e/MJ in 2025). Negative CI biomethane (e.g. Danish manure Bio-LNG at −100 gCO2e/MJ) generates surplus compliance balances tradeable through FuelEU compliance pools.`,
+    deskRuleSummary: `Bio-LNG bunkered in EU ports receives full well-to-wake credit against shipping intensity baselines (${FUELEU_TARGET_2025} gCO2e/MJ in 2025) backed by a Bunker Delivery Note (BDN) under Art. 16. Pure book-and-claim for gaseous grid biomethane is barred; pipeline gas requires liquefaction tolling (~€18–€25/MWh) or an Article 21 pooling agreement. Negative CI biomethane (e.g. Danish manure Bio-LNG at −100 gCO2e/MJ) generates surplus compliance balances tradeable through FuelEU compliance pools.`,
     keyStatutoryExcerpts: [
       `Article 4(2): From 1 January 2025, the yearly average greenhouse gas intensity of the energy used on-board by a ship during a reporting period shall not exceed: (a) -${reductionPct(FUELEU_TARGET_2025)}% from 1 January 2025 (${FUELEU_TARGET_2025} gCO2eq/MJ); (b) -${reductionPct(FUELEU_TARGET_2030)}% from 1 January 2030 (${FUELEU_TARGET_2030} gCO2eq/MJ) against the reference value of ${FUELEU_REFERENCE_INTENSITY} gCO2eq/MJ.`,
+      `Article 16: Bunker delivery notes (BDNs) and accredited verifier certification under an unbroken chain of custody/mass balance establish the GHG intensity and fuel quantity used on-board.`,
       `Annex IV Part B: Statutory penalty is EUR ${FUELEU_STATUTORY_PENALTY_PER_TONNE.toLocaleString('en-US')} per tonne of VLSFO energy equivalent (${FUELEU_PENALTY_VLSFO_MJ_PER_TONNE.toLocaleString('en-US')} MJ per tonne).`,
       'Article 21(1): Two or more ships managed by the same company or by different companies may establish a pool to collectively comply with the requirements of Article 4.'
     ],
-    crossReferences: ['Regulation (EU) 2023/1805 Art. 2(1), 4(2), 21; Annex II; Annex IV Part B', 'Directive (EU) 2023/959 amending Directive 2003/87/EC (maritime in the EU ETS)', 'IMO MARPOL Annex VI'],
+    crossReferences: ['Regulation (EU) 2023/1805 Art. 2(1), 4(2), 16, 21; Annex I, II & IV Part B', 'Directive (EU) 2023/959 amending Directive 2003/87/EC (maritime in the EU ETS)', 'IMO MARPOL Annex VI'],
     officialUrl: 'https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32023R1805',
     officialUrlLabel: 'EUR-Lex Official Portal (Regulation 2023/1805)',
     additionalLinks: [
