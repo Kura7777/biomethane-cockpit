@@ -51,14 +51,20 @@ describe('Gemini request', () => {
     expect(body.generationConfig.maxOutputTokens).toBe(8000);
     // gemini-3.5-flash-lite has googleSearch off:
     expect(JSON.stringify(body.tools)).not.toContain('googleSearch');
-    // gemini-3.8-flash has googleSearch enabled when webSearch is true:
+    // gemini-3.8-flash has googleSearch enabled when webSearch is true, and requires includeServerSideToolInvocations:
     const flashWithSearch = buildGeminiRequestBody({ ...input, model: 'gemini-3.8-flash', webSearch: true }, [], false);
     expect(JSON.stringify(flashWithSearch.tools)).toContain('googleSearch');
+    expect(flashWithSearch.toolConfig).toEqual({ includeServerSideToolInvocations: true });
     // when webSearch is false, googleSearch stays out even on gemini-3.8-flash:
     const flashNoSearch = buildGeminiRequestBody({ ...input, model: 'gemini-3.8-flash', webSearch: false }, [], false);
     expect(JSON.stringify(flashNoSearch.tools)).not.toContain('googleSearch');
+    expect('toolConfig' in flashNoSearch).toBe(false);
     expect('toolConfig' in body).toBe(false);
     expect(buildGeminiRequestBody(input, [], true).toolConfig).toEqual({ functionCallingConfig: { mode: 'NONE' } });
+    expect(buildGeminiRequestBody({ ...input, model: 'gemini-3.8-flash', webSearch: true }, [], true).toolConfig).toEqual({
+      includeServerSideToolInvocations: true,
+      functionCallingConfig: { mode: 'NONE' },
+    });
   });
   it('posts to streamGenerateContent with the key only in the x-goog-api-key header', async () => {
     const fetchImpl = vi.fn(async () => answerChunk());

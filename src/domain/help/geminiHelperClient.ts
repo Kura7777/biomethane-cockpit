@@ -53,6 +53,8 @@ interface GeminiPart {
   thoughtSignature?: string;
   functionCall?: { name: string; args?: Record<string, unknown>; id?: string };
   functionResponse?: { name: string; id?: string; response: Record<string, unknown> };
+  toolCall?: { toolType?: string; args?: Record<string, unknown>; id?: string };
+  toolResponse?: { toolType?: string; response?: Record<string, unknown>; id?: string };
 }
 interface GeminiContent { role: 'user' | 'model'; parts: GeminiPart[] }
 
@@ -65,13 +67,23 @@ export function buildGeminiContents(history: HelperRequestInput['history'], ques
 export function buildGeminiRequestBody(input: Pick<HelperRequestInput, 'model' | 'webSearch' | 'route' | 'guide'>, contents: GeminiContent[], lastRound: boolean) {
   const model = helperModelById(input.model, 'google');
   const tools: Record<string, unknown>[] = [{ functionDeclarations: geminiFunctionDeclarations() }];
-  if (input.webSearch && model.googleSearch) tools.push({ googleSearch: {} });
+  const hasGoogleSearch = Boolean(input.webSearch && model.googleSearch);
+  if (hasGoogleSearch) tools.push({ googleSearch: {} });
+
+  const toolConfig: Record<string, unknown> = {};
+  if (hasGoogleSearch) {
+    // Required by Gemini API when combining built-in tools (Google Search) with function calling
+    toolConfig.includeServerSideToolInvocations = true;
+  }
+  if (lastRound) {
+    toolConfig.functionCallingConfig = { mode: 'NONE' };
+  }
+
   return {
     systemInstruction: { parts: [{ text: buildSystemBlocks(input.guide, input.route).map(b => b.text).join('\n\n') }] },
     contents,
     tools,
-    // On the last allowed round the model must answer with what it has rather than ask for another tool.
-    ...(lastRound ? { toolConfig: { functionCallingConfig: { mode: 'NONE' } } } : {}),
+    ...(Object.keys(toolConfig).length > 0 ? { toolConfig } : {}),
     generationConfig: { maxOutputTokens: HELPER_MAX_TOKENS },
   };
 }
@@ -180,7 +192,12 @@ export async function askGeminiStream(
         }
         for (const part of cand.content?.parts ?? []) {
           if (part.thought) continue; // thinking summaries are not part of the answer
-          if (part.functionCall) {
+          if (part.toolCall) {
+            input.onStatus('Searching the web');
+            parts.push(part);
+          } else if (part.toolResponse) {
+            parts.push(part);
+          } else if (part.functionCall) {
             input.onStatus(HELPER_TOOL_LABELS[part.functionCall.name] ?? `Looking up ${part.functionCall.name}`);
             parts.push(part);
           } else if (part.text) {
@@ -189,6 +206,9 @@ export async function askGeminiStream(
             roundHasText = true;
             text += part.text;
             input.onText(part.text);
+            parts.push(part);
+          } else {
+            // Keep other parts (e.g. thoughtSignature) in history
             parts.push(part);
           }
         }
