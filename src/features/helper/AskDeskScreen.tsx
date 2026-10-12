@@ -547,51 +547,75 @@ export function AskDeskScreen() {
   return (
     <div className="ask-screen" data-testid="ask-screen">
       <header className="ask-head">
-        <div className="ask-head-text">
-          <strong className="ask-title">Ask the desk</strong>
+        <div className="ask-head-left">
+          <div className="ask-brand-group">
+            <strong className="ask-title">Ask the desk</strong>
+            <button
+              type="button"
+              className={`ask-status-pill ${chat.aiMode ? 'ask-status-pill--live' : 'ask-status-pill--offline'}`}
+              data-testid="helper-mode"
+              title={chat.aiMode ? 'AI answers enabled (click to manage keys)' : 'Offline help mode (click to add API key)'}
+              onClick={() => setKeyModalOpen(true)}
+            >
+              <span className={`ask-status-dot ${chat.aiMode ? 'is-live' : ''}`} aria-hidden="true" />
+              <span>{chat.aiMode ? 'AI answers' : 'Offline help'}</span>
+            </button>
+          </div>
+          <span
+            className="ask-today"
+            data-testid="ask-today"
+            title="Estimated from the token counts each answer reports and the list prices on Pricing desk → Desk assumptions. Kept on this device."
+          >
+            Today ≈ {formatUsd(todaySpend)}
+          </span>
+        </div>
+
+        <div className="ask-head-right">
+          <div className="ask-tools-group">
+            <button
+              type="button"
+              className="ask-key-btn"
+              data-testid="ask-open-memory"
+              title="View custom rules, lessons learned, and trade memory"
+              onClick={() => setMemoryModalOpen(true)}
+            >
+              <Brain size={13} aria-hidden="true" />
+              <span>Memory</span>
+              {rulesCount > 0 && <span className="ask-mem-badge">{rulesCount}</span>}
+            </button>
+            <button
+              type="button"
+              className="ask-key-btn"
+              data-testid="ask-open-keys"
+              title="Manage Gemini and Anthropic API keys on this device"
+              onClick={() => setKeyModalOpen(true)}
+            >
+              <KeyRound size={13} aria-hidden="true" />
+              <span>Keys</span>
+            </button>
+          </div>
+
+          <span className="ask-head-divider" aria-hidden="true" />
+
+          <div className="ask-tools-group ask-model-group">
+            <ProviderSwitch disabled={chat.busy} />
+            <ModelPicker disabled={chat.busy} />
+          </div>
+
+          <span className="ask-head-divider" aria-hidden="true" />
+
           <button
             type="button"
-            className={`ph-mode ph-mode--btn ${chat.aiMode ? 'ph-mode--ai' : ''}`}
-            data-testid="helper-mode"
-            title={chat.aiMode ? 'AI answers enabled (click to manage keys)' : 'Offline help mode (click to add API key)'}
-            onClick={() => setKeyModalOpen(true)}
+            className={`ask-new ${confirmClear ? 'ask-new--confirm' : ''}`}
+            data-testid="ask-new-chat"
+            disabled={chat.busy || chat.turns.length === 0}
+            onClick={handleNewChat}
+            title={confirmClear ? 'Click again to confirm clearing conversation' : 'Start a fresh conversation'}
           >
-            {chat.aiMode ? 'AI answers' : 'Offline help'}
+            <RotateCcw size={13} aria-hidden="true" />
+            <span>{confirmClear ? 'Clear chat?' : 'New chat'}</span>
           </button>
         </div>
-        <span className="ask-today" data-testid="ask-today" title="Estimated from the token counts each answer reports and the list prices on Pricing desk → Desk assumptions. Kept on this device.">
-          Today ≈ {formatUsd(todaySpend)}
-        </span>
-        <button
-          type="button"
-          className="ask-key-btn"
-          data-testid="ask-open-memory"
-          title="View custom rules, lessons learned, and trade memory"
-          onClick={() => setMemoryModalOpen(true)}
-        >
-          <Brain size={13} aria-hidden="true" /> Memory {rulesCount > 0 && <span className="ask-mem-badge">{rulesCount}</span>}
-        </button>
-        <button
-          type="button"
-          className="ask-key-btn"
-          data-testid="ask-open-keys"
-          title="Manage Gemini and Anthropic API keys on this device"
-          onClick={() => setKeyModalOpen(true)}
-        >
-          <KeyRound size={13} aria-hidden="true" /> Keys
-        </button>
-        <ProviderSwitch disabled={chat.busy} />
-        <ModelPicker disabled={chat.busy} />
-        <button
-          type="button"
-          className={`ask-new ${confirmClear ? 'ask-new--confirm' : ''}`}
-          data-testid="ask-new-chat"
-          disabled={chat.busy || chat.turns.length === 0}
-          onClick={handleNewChat}
-          title={confirmClear ? 'Click again to confirm clearing conversation' : 'Start a fresh conversation'}
-        >
-          <RotateCcw size={14} aria-hidden="true" /> {confirmClear ? 'Clear chat?' : 'New chat'}
-        </button>
       </header>
       <ChatBody chat={wrappedChat} onNavigate={go} variant="desk" emptyState={empty} />
       <footer className="ask-foot">

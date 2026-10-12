@@ -28,7 +28,7 @@ import {
 } from '../../domain/help/helperLogic';
 import { askHelperStream } from '../../domain/help/helperClient';
 import { askGeminiStream } from '../../domain/help/geminiHelperClient';
-import { currentHelperModel, type HelperModel } from '../../domain/help/helperModels';
+import { currentHelperModel, setHelperProvider, type HelperModel } from '../../domain/help/helperModels';
 import { addTodaySpendUsd, dailyCapReached, dailyCapUsd, formatUsd, getTodaySpendUsd, subscribeTodaySpend } from '../../domain/help/helperCost';
 import { appendHelperTurn, getHelperSnapshot, setHelperExpanded, setHelperOpen, setHelperViewing, useHelperStore } from './helperStore';
 import './helper.css';
@@ -106,8 +106,20 @@ export function useHelperChat(): Chat {
   const pageKey = canonicalRoute(pathname);
   const guide = getPageGuide(pathname);
   useAssumptionsVersion(); // the chosen model can change on Ask the desk or on #/pricing
+
+  // Smart auto-fallback: if currently on Anthropic but no Claude key is saved
+  // while a Gemini key IS saved, automatically switch provider to Google (Gemini)
+  useEffect(() => {
+    const m = currentHelperModel();
+    if (m.provider === 'anthropic' && !getStoredAnthropicApiKey().trim() && getStoredGeminiApiKey().trim()) {
+      setHelperProvider('google');
+    }
+  }, []);
+
   const model = currentHelperModel();
-  const aiMode = Boolean(storedKeyFor(model)) && online;
+  const hasClaudeKey = Boolean(getStoredAnthropicApiKey().trim());
+  const hasGeminiKey = Boolean(getStoredGeminiApiKey().trim());
+  const aiMode = (Boolean(storedKeyFor(model)) || (model.provider === 'anthropic' && !hasClaudeKey && hasGeminiKey)) && online;
 
   // eslint-disable-next-line react-hooks/exhaustive-deps -- contextVersion is the change signal for the provider registry
   const context = useMemo(() => getPageContext(pathname, search), [pathname, search, contextVersion]);
@@ -126,8 +138,14 @@ export function useHelperChat(): Chat {
     const userTurn: HelperTurn = { id: nextId(), role: 'user', text: question, sent: formatUserTurn(question, live) };
     appendHelperTurn(pageKey, userTurn);
 
-    const model = currentHelperModel();
-    const key = storedKeyFor(model);
+    let model = currentHelperModel();
+    let key = storedKeyFor(model);
+    // If current model has no key, but Gemini key is available, auto-switch to Gemini
+    if (!key && model.provider === 'anthropic' && getStoredGeminiApiKey().trim()) {
+      setHelperProvider('google');
+      model = currentHelperModel();
+      key = storedKeyFor(model);
+    }
     if (!key || !getOnline()) {
       const answer = offlineAnswer(question, guide, live);
       appendHelperTurn(pageKey, {
