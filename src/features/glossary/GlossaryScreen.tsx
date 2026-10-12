@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ChevronDown, ExternalLink, Search } from 'lucide-react';
+import { ChevronDown, ExternalLink, MessageSquare, Search, Sparkles } from 'lucide-react';
 import { GLOSSARY, GlossaryEntry, GLOSSARY_BY_ID, normaliseGlossaryText, searchGlossary } from '../../domain/help/glossary';
 import { termStatus } from '../../domain/help/termStatus';
 import { termExample } from '../../domain/help/termExamples';
@@ -129,6 +129,24 @@ function EntryCard({ entry, open, onToggle }: { entry: GlossaryEntry; open: bool
               </div>
             </div>
           )}
+
+          <div className="gl-block gl-ask-desk" data-testid="glossary-ask-desk">
+            <div className="gl-ask-desk-head">
+              <Sparkles size={13} style={{ color: 'var(--color-primary, #10b981)' }} aria-hidden="true" />
+              <span>Ask the desk agent for more information</span>
+            </div>
+            <p className="gl-ask-desk-text">
+              Have deeper regulatory, pricing, or structuring questions about {entry.term}? Ask the AI Desk Analyst for tailored cross-border trade analysis.
+            </p>
+            <Link
+              to={`/ask?q=${encodeURIComponent(`Can you explain ${entry.term} in detail and how it impacts biomethane trading, cross-border routes, and compliance obligations?`)}`}
+              className="gl-ask-desk-btn"
+              data-testid="ask-desk-term-btn"
+            >
+              <MessageSquare size={13} aria-hidden="true" />
+              <span>Ask the desk agent about {entry.term} →</span>
+            </Link>
+          </div>
         </div>
       )}
     </article>

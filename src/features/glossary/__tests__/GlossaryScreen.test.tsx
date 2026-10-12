@@ -54,4 +54,13 @@ describe('GlossaryScreen', () => {
     const html = render('/glossary');
     expect(html).not.toContain('aria-expanded="true"');
   });
+
+  it('renders "Ask the desk agent" section when an entry is opened', () => {
+    const html = render('/glossary?term=aib-hub');
+    expect(html).toContain('data-testid="glossary-ask-desk"');
+    expect(html).toContain('Ask the desk agent for more information');
+    expect(html).toContain('data-testid="ask-desk-term-btn"');
+    expect(html).toContain('/ask?q=');
+    expect(html).toContain('AIB hub');
+  });
 });

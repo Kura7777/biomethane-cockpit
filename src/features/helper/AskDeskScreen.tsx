@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Brain, Check, ChevronDown, Download, FileText, KeyRound, MessageCircle, Paperclip, Plus, RotateCcw, Trash2, Upload, X } from 'lucide-react';
 import { setAssumption } from '../../domain/assumptions/registry';
 import { currentHelperModel, helperModelsFor, type HelperProvider } from '../../domain/help/helperModels';
@@ -412,6 +412,9 @@ function ModelPicker({ disabled }: { disabled: boolean }) {
  */
 export function AskDeskScreen() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const queryParam = searchParams.get('q');
+  const handledQueryRef = useRef<string | null>(null);
   const chat = useHelperChat();
   const todaySpend = useTodaySpend();
   const go = useCallback((to: string) => navigate(to), [navigate]);
@@ -514,6 +517,14 @@ export function AskDeskScreen() {
       chat.send(prompt);
     }
   }, [attachedDoc, chat]);
+
+  useEffect(() => {
+    if (queryParam && queryParam.trim() && handledQueryRef.current !== queryParam && !chat.busy) {
+      handledQueryRef.current = queryParam;
+      handleSendPrompt(queryParam.trim());
+      setSearchParams({}, { replace: true });
+    }
+  }, [queryParam, chat.busy, handleSendPrompt, setSearchParams]);
 
   const wrappedChat = {
     ...chat,

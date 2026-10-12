@@ -47,7 +47,12 @@ export function lookupReference(query: string): string {
 
   const docs = rank(KNOWLEDGE_VAULT_DOCS, words, d => `${d.title} ${d.content}`, d => d.id === nq || d.id === q)
     .slice(0, MAX_DOCS)
-    .map(d => ({ id: d.id, title: d.title, sources: d.sources, text: d.content }));
+    .map(d => ({
+      id: d.id,
+      title: d.title,
+      sources: d.sources,
+      text: d.content.length > 4500 ? `${d.content.slice(0, 4500)}... [truncated]` : d.content,
+    }));
 
   const markets = rank(MARKETS, words, m => `${m.id} ${m.name} ${m.countryName} ${m.legalBasis} ${m.notes}`, m => m.id.toLowerCase() === nq)
     .slice(0, MAX_MARKETS)
@@ -63,6 +68,5 @@ export function lookupReference(query: string): string {
   if (glossary.length + docs.length + markets.length + watch.length === 0) {
     return JSON.stringify({ query: q, note: 'Nothing in the reference matched. Try another word, or answer from web search or general knowledge and say so.' });
   }
-  const reply = JSON.stringify({ query: q, glossary, knowledgeBase: docs, markets, watchlist: watch });
-  return reply.length <= MAX_REPLY_CHARS ? reply : `${reply.slice(0, MAX_REPLY_CHARS)} [truncated: narrow the query]`;
+  return JSON.stringify({ query: q, glossary, knowledgeBase: docs, markets, watchlist: watch });
 }
