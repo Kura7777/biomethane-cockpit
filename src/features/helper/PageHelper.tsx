@@ -701,7 +701,7 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
-function Turn({ turn, onNavigate }: { turn: HelperTurn; onNavigate: (to: string) => void }) {
+function Turn({ turn, onNavigate, onRetry }: { turn: HelperTurn; onNavigate: (to: string) => void; onRetry?: () => void }) {
   if (turn.role === 'user') return <div className="ph-msg ph-msg--user" data-testid="helper-user">{turn.text}</div>;
   if (turn.role === 'assistant') {
     return (
@@ -726,7 +726,35 @@ function Turn({ turn, onNavigate }: { turn: HelperTurn; onNavigate: (to: string)
       </div>
     );
   }
-  if (turn.role === 'error') return <div className="ph-msg ph-msg--error" role="alert" data-testid="helper-error">{turn.text}</div>;
+  if (turn.role === 'error') {
+    return (
+      <div className="ph-msg ph-msg--error" role="alert" data-testid="helper-error">
+        <div>{turn.text}</div>
+        {onRetry && (
+          <button
+            type="button"
+            className="ph-retry-btn"
+            onClick={onRetry}
+            style={{
+              marginTop: '8px',
+              fontSize: '12px',
+              padding: '4px 10px',
+              borderRadius: '4px',
+              border: '1px solid currentColor',
+              background: 'transparent',
+              color: 'inherit',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            ↻ Retry question
+          </button>
+        )}
+      </div>
+    );
+  }
   const entries = (turn.termIds ?? []).map(id => GLOSSARY_BY_ID[id]).filter(Boolean);
   return (
     <div className="ph-msg" data-testid="helper-offline-answer">
@@ -795,7 +823,19 @@ export function ChatBody({ chat, onNavigate, emptyChips, variant = 'page', empty
           <Overview guide={chat.guide} onNavigate={onNavigate} />
         </>
       )}
-      {chat.turns.map(t => <Turn key={t.id} turn={t} onNavigate={onNavigate} />)}
+      {chat.turns.map((t, idx) => {
+        let retryFn: (() => void) | undefined;
+        if (t.role === 'error') {
+          for (let i = idx - 1; i >= 0; i--) {
+            if (chat.turns[i].role === 'user') {
+              const q = chat.turns[i].text;
+              retryFn = () => chat.send(q);
+              break;
+            }
+          }
+        }
+        return <Turn key={t.id} turn={t} onNavigate={onNavigate} onRetry={retryFn} />;
+      })}
       {chat.busy && chat.liveText && <div className="ph-msg" data-testid="helper-live"><AnswerView text={chat.liveText} onNavigate={onNavigate} /></div>}
       {chat.busy && (chat.status || !chat.liveText) && (
         <ThinkingLine status={chat.status ?? 'Thinking'} />

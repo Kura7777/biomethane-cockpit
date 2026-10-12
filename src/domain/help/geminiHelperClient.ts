@@ -183,6 +183,7 @@ export async function askGeminiStream(
   let lastFinishMessage: string | undefined;
 
   try {
+    let lastParts: GeminiPart[] = [];
     for (let round = 0; round < HELPER_MAX_TOOL_ROUNDS; round++) {
       input.onStatus(round === 0 ? 'Thinking' : 'Writing');
       const res = await doFetch(url, {
@@ -234,6 +235,7 @@ export async function askGeminiStream(
           }
         }
       }
+      lastParts = parts;
       if (meta) {
         const cached = meta.cachedContentTokenCount ?? 0;
         usage = addUsage(usage, {
@@ -258,6 +260,42 @@ export async function askGeminiStream(
         }
       }));
       contents.push({ role: 'user', parts: answers });
+    }
+
+    // Auto-recovery pass: if no answer text was captured (e.g. candidate stream dropped or was marked internal),
+    // recover gracefully rather than failing immediately.
+    if (!text.trim() && !input.signal?.aborted && lastFinishReason !== 'SAFETY' && lastFinishReason !== 'RECITATION') {
+      const thoughtText = lastParts.filter(p => p.thought && p.text).map(p => p.text).join('\n\n').trim();
+      if (thoughtText && thoughtText.length > 50) {
+        text = thoughtText;
+        input.onText(text);
+      } else {
+        input.onStatus('Completing answer');
+        try {
+          const recoveryBody = buildGeminiRequestBody(input, contents, true);
+          recoveryBody.toolConfig = { functionCallingConfig: { mode: 'NONE' } };
+          const recRes = await doFetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+            body: JSON.stringify(recoveryBody),
+            signal: input.signal,
+          });
+          if (recRes.ok) {
+            for await (const chunk of readSse(recRes)) {
+              const cand = chunk.candidates?.[0];
+              if (cand?.finishReason) lastFinishReason = cand.finishReason;
+              for (const p of cand?.content?.parts ?? []) {
+                if (p.text && !p.thought) {
+                  text += p.text;
+                  input.onText(p.text);
+                }
+              }
+            }
+          }
+        } catch {
+          // If recovery attempt fails, fall through to standard diagnostic
+        }
+      }
     }
   } catch (err) {
     throw friendlyError(err, apiKey);
