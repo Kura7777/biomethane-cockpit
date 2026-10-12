@@ -712,7 +712,7 @@ function Turn({ turn, onNavigate }: { turn: HelperTurn; onNavigate: (to: string)
   const entries = (turn.termIds ?? []).map(id => GLOSSARY_BY_ID[id]).filter(Boolean);
   return (
     <div className="ph-msg" data-testid="helper-offline-answer">
-      {turn.text && <div className="ph-answer">{turn.text}</div>}
+      {turn.text && <AnswerView text={turn.text} onNavigate={onNavigate} />}
       {turn.budgetNote && (
         <p className="ph-note ph-budget-note" data-testid="helper-budget-note">
           {turn.budgetNote.split(' Change the cap')[0]}{' '}
