@@ -971,6 +971,166 @@ Non-EU grid boundary (desk reading): Great Britain's grid is physically linked t
   },
 
   // =========================================================================
+  // SLOVAKIA (SK)
+  // =========================================================================
+  {
+    id: 'sk-zakon-309-oze',
+    code: 'SK_ZAKON_309_2009_OZE',
+    shortTitle: 'Slovak Renewable Energy Act (Zákon č. 309/2009 Z. z. o podpore OZE)',
+    officialTitle: 'Zákon č. 309/2009 Z. z. o podpore obnoviteľných zdrojov energie a vysoko účinnej kombinovanej výroby a o zmene a doplnení niektorých zákonov',
+    jurisdiction: 'SK',
+    jurisdictionName: 'Slovakia',
+    category: 'NATIONAL_QUOTA_LAW',
+    status: 'IN_FORCE',
+    effectiveDate: 'Continuous transpositions of RED II/RED III (notably Act No. 363/2021 Coll.)',
+    primaryArticle: '§ 11b (Register obnoviteľných plynov a záruky pôvodu biometánu)',
+    summary: 'Governs the production, grid injection, and commercial certification of biomethane in Slovakia. Section 11b mandates the establishment of the national Register of Renewable Gases (Register obnoviteľných plynov) administered by SPP – distribúcia, a.s. under Ministry of Economy designation. Operates through the international G-REX platform connected to ERGaR for issuing and verifying electronic Guarantees of Origin (1 MWh = 1 GO) meeting EU sustainability criteria.',
+    applicableMarkets: ['SK_SPP', 'DE_THG', 'AT_EAG', 'CZ_OTE'],
+    complianceGate: 'SPP Register Obnoviteľných Plynov Gate & ÚRSO Price Regulation',
+    penaltiesOrCaps: 'Regulatory non-compliance sanctions under ÚRSO and loss of statutory support eligibility.',
+    deskRuleSummary: 'Slovakia operates the G-REX electronic registry operated by SPP – distribúcia with direct ERGaR Hub connectivity, allowing mass-balanced exports into Central European transit hubs (Austria, Czech Republic, Germany).',
+    keyStatutoryExcerpts: [
+      '§ 11b ods. 1: Register obnoviteľných plynov je elektronický systém, v ktorom sa evidujú údaje o vydaných, prevedených, uplatnených a zrušených zárukách pôvodu obnoviteľného plynu.',
+      '§ 11b ods. 4: Prevádzkovateľ distribučnej siete, ktorý plní úlohy plynárenského dispečingu, vedie register obnoviteľných plynov a zabezpečuje jeho prepojenie s medzinárodnými registrami záruk pôvodu.'
+    ],
+    crossReferences: ['SPP - distribúcia G-REX Registry Rules', 'ÚRSO Price Decisions', 'Directive (EU) 2018/2001 Art. 19'],
+    officialUrl: 'https://www.slov-lex.sk/pravne-predpisy/SK/ZZ/2009/309/',
+    officialUrlLabel: 'Slov-Lex Official Slovak Legislation Portal (Zákon č. 309/2009 Z. z.)',
+    additionalLinks: [
+      { label: 'SPP – distribúcia Register obnoviteľných plynov', url: 'https://www.spp-distribucia.sk/register-obnovitelnych-plynov/' },
+      { label: 'ÚRSO Regulatory Office for Network Industries', url: 'https://www.urso.gov.sk/' }
+    ]
+  },
+
+  // =========================================================================
+  // SLOVENIA (SI)
+  // =========================================================================
+  {
+    id: 'si-zsrove-obnovljivi-viri',
+    code: 'SI_ZSROVE_2021',
+    shortTitle: 'Slovenian Renewable Energy Promotion Act (ZSROVE)',
+    officialTitle: 'Zakon o spodbujanju rabe obnovljivih virov energije (ZSROVE, Uradni list RS, št. 121/21 in spremembe)',
+    jurisdiction: 'SI',
+    jurisdictionName: 'Slovenia',
+    category: 'NATIONAL_QUOTA_LAW',
+    status: 'IN_FORCE',
+    effectiveDate: '23 July 2021 (Transposition of RED II and RED III provisions)',
+    primaryArticle: 'Členi 41–46 (Potrdila o izvoru za pline iz obnovljivih virov) & Člen 57 (Priključitev na plinsko omrežje)',
+    summary: 'Establishes the Slovenian national framework for renewable gas promotion, guarantees of origin, and grid connection. Designates Borzen d.o.o. (the national market operator) as the competent authority for issuing and managing the electronic Guarantees of Origin registry for biomethane and renewable hydrogen. Mandates Plinovodi d.o.o. as natural gas TSO to ensure non-discriminatory injection, blending quality, and system balancing.',
+    applicableMarkets: ['SI_BORZEN', 'IT_CIC', 'AT_EAG'],
+    complianceGate: 'Borzen Register Potrdil o Izvoru Gate & Plinovodi Network Code',
+    penaltiesOrCaps: 'Energy Agency (Agencija za energijo) penalties for fuel supplier quota default.',
+    deskRuleSummary: 'Slovenia acts as an important South-Central European gas transit node with bidirectional pipeline interconnectors to Italy (Gorizia/Šempeter) and Austria (Murfeld/Ceršak).',
+    keyStatutoryExcerpts: [
+      'Člen 41: Za vsako proizvedeno in v omrežje oddano megavatno uro plina iz obnovljivih virov se izda eno potrdilo o izvoru v elektronski obliki.',
+      'Člen 57: Sistemski operater prenosnega omrežja za plin mora zagotoviti prednostni ali zagotovljeni dostop do omrežja za pline iz obnovljivih virov, če so izpolnjene tehnične in varnostne zahteve.'
+    ],
+    crossReferences: ['Plinovodi Network Code for Gas Transmission', 'Borzen Rules on the Register of Guarantees of Origin'],
+    officialUrl: 'http://pisrs.si/Pis.web/pregledPredpisa?id=ZAKO8236',
+    officialUrlLabel: 'PISRS Official Slovenian Legal Information System (ZSROVE)',
+    additionalLinks: [
+      { label: 'Borzen Center za podpore (Support Centre & Register)', url: 'https://www.borzen.si/' },
+      { label: 'Plinovodi Transmission System Operator', url: 'https://www.plinovodi.si/' }
+    ]
+  },
+
+  // =========================================================================
+  // CROATIA (HR)
+  // =========================================================================
+  {
+    id: 'hr-zakon-oie-biometan',
+    code: 'HR_ZAKON_OIE_NN_138_21',
+    shortTitle: 'Croatian Renewable Energy Act (Zakon o OIE i visokoučinkovitoj kogeneraciji)',
+    officialTitle: 'Zakon o obnovljivim izvorima energije i visokoučinkovitoj kogeneraciji (Narodne novine, br. 138/21 i 83/23)',
+    jurisdiction: 'HR',
+    jurisdictionName: 'Croatia',
+    category: 'NATIONAL_QUOTA_LAW',
+    status: 'IN_FORCE',
+    effectiveDate: 'Continuous harmonization with RED II/RED III and European Gas Decarbonisation Package',
+    primaryArticle: 'Članak 24 (Poticanje proizvodnje obnovljivog plina), Članak 43 (Registar jamstava podrijetla)',
+    summary: 'Governs renewable gas production incentives, market premiums, and grid injection into the Croatian transmission network. HROTE (Hrvatski operator tržišta energije d.o.o.) operates the national Guarantees of Origin registry for renewable gas and oversees balancing settlement. Plinacro d.o.o. regulates technical connection rules, entry/exit capacities, and quality standards for injection into the national transmission grid.',
+    applicableMarkets: ['HR_HROTE', 'SI_BORZEN', 'HU_MEKH', 'IT_CIC'],
+    complianceGate: 'HROTE Jamstva Podrijetla Register Gate & Plinacro Mrežna Pravila',
+    penaltiesOrCaps: 'HERA (Croatian Energy Regulatory Agency) regulatory sanctions for market participants.',
+    deskRuleSummary: 'Croatia features the Krk LNG terminal and transmission interconnection to Slovenia and Hungary; biomethane grid injection qualifies for tradeable GOs on HROTE registry.',
+    keyStatutoryExcerpts: [
+      'Članak 43. stavak 1: HROTE uspostavlja i vodi registar jamstava podrijetla energije u elektroničkom obliku, uključujući jamstva podrijetla za biometan i druge obnovljive plinove.',
+      'Članak 24. stavak 3: Postrojenja za proizvodnju biometana ostvaruju pravo na priključenje na transportni sustav plina u skladu s mrežnim pravilima operatora transportnog sustava.'
+    ],
+    crossReferences: ['Plinacro Network Code (Mrežna pravila transportnog sustava)', 'HROTE Rules on Guarantees of Origin'],
+    officialUrl: 'https://narodne-novine.nn.hr/clanci/sluzbeni/2021_12_138_2408.html',
+    officialUrlLabel: 'Narodne Novine Official Gazette of Croatia (Zakon o OIE)',
+    additionalLinks: [
+      { label: 'HROTE Croatian Energy Market Operator', url: 'https://www.hrote.hr/' },
+      { label: 'Plinacro Gas Transmission System Operator', url: 'https://www.plinacro.hr/' }
+    ]
+  },
+
+  // =========================================================================
+  // BULGARIA (BG)
+  // =========================================================================
+  {
+    id: 'bg-zevi-biomethane',
+    code: 'BG_ZEVI_LAW_2011',
+    shortTitle: 'Bulgarian Renewable Energy Act (Закон за енергията от възобновяеми източници - ЗЕВИ)',
+    officialTitle: 'Закон за енергията от възобновяеми източници (ЗЕВИ, Обн. ДВ. бр. 35 от 2011 г., изм. и доп. ДВ. бр. 86 от 2023 г.)',
+    jurisdiction: 'BG',
+    jurisdictionName: 'Bulgaria',
+    category: 'NATIONAL_QUOTA_LAW',
+    status: 'IN_FORCE',
+    effectiveDate: 'Continuous transpositions (Amended 2023 transposing RED II/III provisions)',
+    primaryArticle: 'Член 18 (Присъединяване към газопреносната мрежа), Член 34 (Гаранции за произход за газ от ВИ)',
+    summary: 'Governs the statutory framework for renewable gas production, priority grid connection, and Guarantees of Origin. SEDA (Sustainable Energy Development Agency / АУЕР) acts as the National Issuing Body administering the electronic register of Guarantees of Origin for renewable gases. Bulgartransgaz EAD governs commercial dispatching, gas quality requirements, and transmission access.',
+    applicableMarkets: ['BG_SEDA', 'GR_DAPEEP', 'RO_ANRE'],
+    complianceGate: 'SEDA Guarantees of Origin Register & Bulgartransgaz CDP System',
+    penaltiesOrCaps: 'EWRC (Energy and Water Regulatory Commission) fines for supplier renewable obligation default.',
+    deskRuleSummary: 'Bulgaria forms the core Southeast European transit corridor connecting Greece, Romania, and the Balkans with trans-Balkan reverse-flow capability.',
+    keyStatutoryExcerpts: [
+      'Член 34, ал. 1: Агенцията за устойчиво енергийно развитие (АУЕР) издава, прехвърля и отменя гаранции за произход на енергия от възобновяеми източници, включително за газ от възобновяеми източници.',
+      'Член 18, ал. 2: Операторът на газопреносната мрежа (Булгартрансгаз) е длъжен да присъедини производителите на биометан при спазване на техническите изисквания за качество на газа.'
+    ],
+    crossReferences: ['Bulgartransgaz Transmission Network Rules', 'SEDA Registry Guidelines'],
+    officialUrl: 'https://www.me.government.bg/bg/library/zakon-za-energiyata-ot-vazobnovyaemi-iztochnici-zevi-38-c25-m258-1.html',
+    officialUrlLabel: 'Ministry of Energy of Bulgaria (ЗЕВИ Official Text)',
+    additionalLinks: [
+      { label: 'SEDA Sustainable Energy Development Agency (АУЕР)', url: 'https://www.seea.government.bg/' },
+      { label: 'Bulgartransgaz Gas Transmission Operator', url: 'https://www.bulgartransgaz.bg/' }
+    ]
+  },
+
+  // =========================================================================
+  // LUXEMBOURG (LU)
+  // =========================================================================
+  {
+    id: 'lu-loi-gaz-2007',
+    code: 'LU_LOI_GAZ_2007',
+    shortTitle: 'Luxembourg Natural Gas Market Act (Loi du 1er août 2007)',
+    officialTitle: 'Loi du 1er août 2007 relative à l\'organisation du marché du gaz naturel, telle que modifiée',
+    jurisdiction: 'LU',
+    jurisdictionName: 'Luxembourg',
+    category: 'NATIONAL_QUOTA_LAW',
+    status: 'IN_FORCE',
+    effectiveDate: 'Continuous revisions aligning with European Gas Packages and RED Directives',
+    primaryArticle: 'Article 21 (Garanties d\'origine pour les gaz renouvelables et biogaz)',
+    summary: 'Governs natural gas and renewable gas transportation, distribution, and commercial tracking in Luxembourg. Article 21 mandates the national electronic registry for Guarantees of Origin for renewable gases administered under the supervision of the Institut Luxembourgeois de Régulation (ILR). Creos Luxembourg S.A. operates the transmission/distribution grid ensuring injection quality and metering.',
+    applicableMarkets: ['LU_ILR', 'BE_REGIONAL', 'DE_THG', 'FR_CPB'],
+    complianceGate: 'ILR Registre National des Garanties d\'Origine Gate & Creos Network Access',
+    penaltiesOrCaps: 'ILR administrative fines for market participant non-compliance.',
+    deskRuleSummary: 'Luxembourg is integrated into the Belux market area with Belgium and direct interconnectors with France and Germany, enabling frictionless cross-border wheeling.',
+    keyStatutoryExcerpts: [
+      'Article 21(1): Un système de garanties d\'origine est établi pour prouver aux clients finals la part ou la quantité d\'énergie produite à partir de sources renouvelables dans le réseau de gaz naturel.',
+      'Article 21(3): L\'Institut Luxembourgeois de Régulation (ILR) supervise l\'émission, le transfert et l\'annulation des garanties d\'origine pour les gaz renouvelables dans un registre électronique sécurisé.'
+    ],
+    crossReferences: ['Grand-Ducal Regulation on Renewable Gas Guarantees of Origin', 'Creos Network Connection Terms'],
+    officialUrl: 'https://legilux.public.lu/eli/etat/leg/loi/2007/08/01/n3/jo',
+    officialUrlLabel: 'Legilux Official Journal of the Grand Duchy of Luxembourg',
+    additionalLinks: [
+      { label: 'ILR Institut Luxembourgeois de Régulation', url: 'https://www.ilr.lu/' },
+      { label: 'Creos Luxembourg Grid Operator', url: 'https://www.creos-net.lu/' }
+    ]
+  },
+
+  // =========================================================================
   // CERTIFICATION SCHEMES & STANDARDS
   // =========================================================================
   {

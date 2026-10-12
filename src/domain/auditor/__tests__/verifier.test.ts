@@ -4,15 +4,15 @@ import { verifyQuoteAgainstVault, extractQuoteProofsFromText } from '../verifier
 import { KNOWLEDGE_VAULT_DOCS } from '../knowledgeBase';
 
 describe('Legal Citations & Verifier Comprehensive Audit', () => {
-  it('contains exactly 41 statutory citations with unique IDs and codes', () => {
-    expect(LEGAL_CITATIONS.length).toBe(41);
+  it('contains exactly 46 statutory citations with unique IDs and codes', () => {
+    expect(LEGAL_CITATIONS.length).toBe(46);
     const ids = new Set(LEGAL_CITATIONS.map(c => c.id));
     const codes = new Set(LEGAL_CITATIONS.map(c => c.code));
-    expect(ids.size).toBe(41);
-    expect(codes.size).toBe(41);
+    expect(ids.size).toBe(46);
+    expect(codes.size).toBe(46);
   });
 
-  it('all 41 citations are present in the unified knowledge base', () => {
+  it('all 46 citations are present in the unified knowledge base', () => {
     for (const citation of LEGAL_CITATIONS) {
       // Either direct ID match or legacy alias ID
       const inVault = KNOWLEDGE_VAULT_DOCS.some(
@@ -22,7 +22,7 @@ describe('Legal Citations & Verifier Comprehensive Audit', () => {
     }
   });
 
-  it('verifies verbatim quotes across all 41 legal citations', () => {
+  it('verifies verbatim quotes across all 46 legal citations', () => {
     const unverified: Array<{ id: string; excerpt: string }> = [];
 
     for (const citation of LEGAL_CITATIONS) {

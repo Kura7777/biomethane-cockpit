@@ -31,6 +31,11 @@ export type JurisdictionCode =
   | 'HU'
   | 'GR'
   | 'RO'
+  | 'SK'
+  | 'SI'
+  | 'HR'
+  | 'BG'
+  | 'LU'
   | (string & {});
 
 export type StatutoryStatus = 
