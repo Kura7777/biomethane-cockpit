@@ -5,8 +5,24 @@ import { VitePWA } from 'vite-plugin-pwa';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { apiServerPlugin } from './src/server/vitePlugin';
 
+import { execSync } from 'child_process';
+
+let commitHash = 'dev';
+try {
+  commitHash = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ||
+    execSync('git rev-parse --short HEAD').toString().trim();
+} catch {
+  commitHash = 'dev';
+}
+
+const buildTime = new Date().toISOString().replace('T', ' ').slice(0, 16);
+
 // https://vite.dev/config/
 export default defineConfig({
+  define: {
+    __APP_COMMIT__: JSON.stringify(commitHash),
+    __APP_BUILD_TIME__: JSON.stringify(buildTime),
+  },
   base: './', // Ensures static deployment / file:// / subpath compatibility
   // Desk state (marks, costs, saved assessments) lives in localStorage, which is scoped per
   // origin — so a drifting port silently orphans hand-keyed marks. strictPort makes a taken

@@ -154,7 +154,26 @@ export function DeskSheet({
           {dataSourceText}
           {simulatedCount > 0 && <span className="desk-sheet-footer-accent"> · {simulatedCount} simulated</span>}
         </div>
-        <div className="desk-sheet-footer-user">Trader</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <a
+            href={`https://github.com/Kura7777/biomethane-cockpit/commit/${typeof __APP_COMMIT__ !== 'undefined' ? __APP_COMMIT__ : 'main'}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              fontFamily: 'var(--font-mono, monospace)',
+              fontSize: '11px',
+              color: 'var(--color-muted)',
+              textDecoration: 'none',
+              padding: '1px 5px',
+              borderRadius: '3px',
+              backgroundColor: 'var(--color-surface, rgba(255,255,255,0.05))',
+              border: '1px solid var(--color-divider, rgba(255,255,255,0.1))',
+            }}
+          >
+            v1.0 · {typeof __APP_COMMIT__ !== 'undefined' ? __APP_COMMIT__ : 'dev'}
+          </a>
+          <span className="desk-sheet-footer-user">Trader</span>
+        </div>
       </div>
     </Sheet>
   );

@@ -290,6 +290,31 @@ export function Layout() {
           {/* Connectors hidden from the footer until there are live data feeds; /connectors still routes. */}
 
           <span>Keys 1–7 screens · ⌘K command</span>
+
+          <span style={{ opacity: 0.3 }}>│</span>
+
+          <a
+            href={`https://github.com/Kura7777/biomethane-cockpit/commit/${typeof __APP_COMMIT__ !== 'undefined' ? __APP_COMMIT__ : 'main'}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={`Deployed commit: ${typeof __APP_COMMIT__ !== 'undefined' ? __APP_COMMIT__ : 'dev'} (Built: ${typeof __APP_BUILD_TIME__ !== 'undefined' ? __APP_BUILD_TIME__ : 'local'})`}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              fontFamily: 'var(--font-mono, monospace)',
+              fontSize: '11px',
+              color: 'var(--color-muted)',
+              textDecoration: 'none',
+              padding: '1px 5px',
+              borderRadius: '3px',
+              backgroundColor: 'var(--color-surface, rgba(255,255,255,0.05))',
+              border: '1px solid var(--color-divider, rgba(255,255,255,0.1))',
+            }}
+          >
+            <span style={{ color: 'var(--color-primary, #10b981)' }}>●</span>
+            <span>v1.0 · {typeof __APP_COMMIT__ !== 'undefined' ? __APP_COMMIT__ : 'dev'}</span>
+          </a>
         </div>
       </footer>
       )}
