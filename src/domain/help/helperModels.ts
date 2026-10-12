@@ -86,9 +86,9 @@ export const HELPER_MODELS: readonly HelperModel[] = [
     id: 'gemini-3.8-flash',
     name: 'Gemini 3.8 Flash',
     tagline: 'Google, newest all-rounder',
-    useFor: 'The desk default: everyday and multi-step desk questions from Google’s newest Flash model. Uses the desk’s own data and look-ups; it does not search the web.',
+    useFor: 'The desk default: everyday and multi-step desk questions from Google’s newest Flash model. Looks up the desk’s own data and routes first; searches the web if information is not found in the app.',
     speedAndCost: 'Fast; about a fifth of Opus per token, a few times Haiku. Google doubles its price on 1 January 2027.',
-    googleSearch: false,
+    googleSearch: true,
     price: { input: 'helper.price.gemini38flash.inputUsdPerMTok', output: 'helper.price.gemini38flash.outputUsdPerMTok', cacheRead: 'helper.price.gemini.cachedInputFraction' },
   },
   {
@@ -97,9 +97,9 @@ export const HELPER_MODELS: readonly HelperModel[] = [
     id: 'gemini-2.5-pro',
     name: 'Gemini 2.5 Pro',
     tagline: 'Google, strongest',
-    useFor: 'A second opinion from Google on regulatory or multi-step questions. Uses the desk’s own data and look-ups; it does not search the web.',
+    useFor: 'A second opinion from Google on regulatory or multi-step questions. Looks up the desk’s own data and routes first; searches the web if information is not found in the app.',
     speedAndCost: 'Slower; mid cost, well below Opus.',
-    googleSearch: false,
+    googleSearch: true,
     price: { input: 'helper.price.gemini25pro.inputUsdPerMTok', output: 'helper.price.gemini25pro.outputUsdPerMTok', cacheRead: 'helper.price.gemini.cachedInputFraction' },
   },
   {

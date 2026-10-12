@@ -4,11 +4,9 @@
  * sources and its estimated cost. Plain REST with fetch (models/{id}:streamGenerateContent?alt=sse);
  * the trader's Gemini key goes in the x-goog-api-key header only, never in the URL, body or an error.
  *
- * Read on 2026-10-11 (ai.google.dev/gemini-api/docs): Google now documents the Interactions API for
- * new work, but generateContent / streamGenerateContent are still current v1beta methods. Combining
- * Google Search grounding with function calling is documented for Gemini 3 models in the Interactions
- * API only, so the helper leaves Google Search out (HelperModel.googleSearch is false for both Gemini
- * models) and still parses groundingMetadata sources for when it is switched on.
+ * Read on 2026-10-11 (ai.google.dev/gemini-api/docs): Google documents generateContent / streamGenerateContent
+ * as current v1beta methods. Google Search grounding combined with function calling is supported and enabled
+ * (HelperModel.googleSearch), and groundingMetadata sources are parsed and returned with the answer.
  */
 import { sanitizeKey } from '../regcheck/claudeClient';
 import { geminiKeyFingerprint } from '../regcheck/storage';

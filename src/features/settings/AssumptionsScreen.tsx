@@ -18,7 +18,7 @@ import { REGULATORY_CONSTANT_ROWS } from '../../domain/regulatory/constants';
 const CATEGORY_LABEL: Record<AssumptionCategory, { title: string; blurb: string }> = {
   HELPER: {
     title: 'Desk helper (AI assistant)',
-    blurb: 'Which Claude model answers in the page helper and Ask the desk, and whether it may search the web. Uses your own Anthropic key.',
+    blurb: 'Which model answers in the page helper and Ask the desk (Gemini 3.8 Flash by default), and whether it may search the web. Uses your Gemini or Anthropic key.',
   },
   DEAL: {
     title: 'Deal defaults',

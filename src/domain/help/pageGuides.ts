@@ -652,7 +652,7 @@ export const PAGE_GUIDES: PageGuide[] = [
     purpose: 'A general chat for any question about markets, regulation, routes, plants or deals, not tied to one page. It uses the same model, tools and settings as the page helper.',
     howToRead: [
       { section: 'Conversation', text: 'One running conversation for this browser tab. It stays while you move around the app; New chat clears it. Answers stream in, and Stop ends one early.' },
-      { section: 'Where answers come from', text: 'The app’s own data first: desk marks, certificate routes, destination pricing, plants and legal sources. Then general knowledge, which is labelled so you know to check it. Web search for Claude models is off by default; switch it on in Desk assumptions.' },
+      { section: 'Where answers come from', text: 'The app’s own verified data first: desk marks, certificate routes, destination pricing, plants and legal sources. If the app does not have the information, it searches the internet (via Google Search grounding on Gemini, or web search on Claude) with source citations, then general knowledge.' },
       { section: 'Model', text: 'The Claude or Gemini switch picks the provider and the model button picks the model; Gemini 3.8 Flash is the default. Each answer shows its model and an estimated cost; the header shows today’s total. Prices, web search and the daily budget sit on the Pricing desk under Desk assumptions.' },
     ],
     commonTasks: [
