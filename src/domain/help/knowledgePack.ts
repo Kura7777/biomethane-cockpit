@@ -17,9 +17,9 @@ import { KNOWLEDGE_VAULT_DOCS } from '../auditor/knowledgeBase';
 import { GLOSSARY } from './glossary';
 
 /** Longest watchlist claim / glossary summary / KB title kept in the cached block. */
-const WATCH_CLAIM_CHARS = 75;
-const GLOSSARY_SHORT_CHARS = 45;
-const KB_TITLE_CHARS = 45;
+const WATCH_CLAIM_CHARS = 55;
+const GLOSSARY_SHORT_CHARS = 32;
+const KB_TITLE_CHARS = 36;
 
 /** Cut at a word boundary with an ellipsis; the full text is one lookup_reference call away. */
 export function clip(text: string, max: number): string {

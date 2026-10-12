@@ -168,7 +168,7 @@ const UDB_MASS_BALANCE_DOSSIER: KnowledgeDocument = {
 };
 
 // ---------------------------------------------------------------------------
-// 2. Specialized Contractual & Cross-Border Hub Connectivity Dossiers
+// 2. Specialized Contractual, Merchant Trading & Hub Connectivity Dossiers
 // ---------------------------------------------------------------------------
 
 const EFET_BIOMETHANE_DOSSIER: KnowledgeDocument = {
@@ -184,6 +184,104 @@ const EFET_BIOMETHANE_DOSSIER: KnowledgeDocument = {
 Separate the molecule from the environmental attribute: physical gas is delivered at a virtual trading point and priced on a wholesale index such as TTF Day-Ahead, while the Proof of Sustainability (PoS) and any Guarantee of Origin travel as environmental attributes.
 Sustainability-proof default (desk position): if the seller delivers gas but fails to deliver a valid PoS that meets the audited RED criteria (at least ${TRANSPORT_SAVING_PCT}% GHG savings for transport use), the buyer may re-price the trade down to the gas index without paying the green premium.
 Cure period and remedies: agree a cure period for late PoS delivery, replacement-cost cover if it is not cured, and a termination trigger. The lengths of these periods are negotiated per deal; the vault does not hold standard numbers.`,
+};
+
+const MERCHANT_COMMODITY_ARBITRAGE_DOSSIER: KnowledgeDocument = {
+  id: 'merchant_commodity_trading_principles',
+  title: 'Merchant Commodity Trading Principles: Arbitrage, Basis & Physical Risk',
+  sourceFile: '04_EFET_Biomethane_Contract_Term_Sheet_Analysis.md',
+  category: 'CONTRACTS',
+  sources: [
+    'Trafigura — Commodities Demystified: A Guide to Trading and the Global Supply Chain (Jonathan Kingsman)',
+    'Helyette Geman — Commodities and Commodity Derivatives: Modeling and Pricing for Energy (Wiley)',
+    'Ilia Bouchouev — Virtual Barrels: Quantitative Trading in Energy Markets (Palgrave Macmillan 2023)',
+  ],
+  content: `Merchant commodity trading creates value by transforming physical energy across three fundamental dimensions: space (geographic arbitrage), time (carry and storage optionality), and form (upgrading, processing, and feedstock conversion).
+1. Arbitrage Across Space: In biomethane, geographic arbitrage is defined by netback pricing: Delivered Market Value minus Grid Injection Tariffs, Transmission Exit Fees, and Virtual Interconnector Tariffs. Physical gas trades relative to hub benchmarks (TTF, THE, PEG, PVB, VTP), while the green attribute clears at the destination with the highest statutory compliance value.
+2. Arbitrage Across Time: Environmental compliance markets operate on statutory compliance calendar cycles (e.g. German THG surrender by April 15, Dutch ERE surrender by April 30, FuelEU Maritime balance by April 30). Carry trade economics reflect the convenience yield of holding verified Proof of Sustainability (PoS) batches in registries versus spot sales, accounting for regulatory sunset risk and financing costs.
+3. Arbitrage Across Form: Transforming raw biogas into grid-compliant biomethane or liquid Bio-LNG monetizes upgrading spreads. Feedstock blending captures non-linear compliance value under RED Annex IX Part A advanced biofuels versus Part B food/feed crop caps.
+4. Physical Risk Management: Physical merchant traders manage basis risk (spread between physical injection point and index settlement point), operational volume tolerance (Take-or-Pay clauses with +/- 5% to 10% operational swing), and counterparty delivery default.`,
+};
+
+const EFET_BIOMETHANE_MASTER_AGREEMENT_DOSSIER: KnowledgeDocument = {
+  id: 'efet_biomethane_master_agreement_2026',
+  title: 'Energy Traders Europe (EFET) Biomethane Master Agreement (2025/2026 Framework)',
+  sourceFile: '04_EFET_Biomethane_Contract_Term_Sheet_Analysis.md',
+  category: 'CONTRACTS',
+  sources: [
+    'Energy Traders Europe (EFET) Biomethane Master Agreement Standard Form & Guidance Notes (2025/2026)',
+    'EFET General Agreement Concerning the Delivery and Acceptance of Natural Gas (Version 2.0)',
+    'CEGH / EFET Biogas Certificates Standard Agreement',
+  ],
+  content: `The Energy Traders Europe (formerly EFET) Biomethane Master Agreement establishes the standard contractual architecture for wholesale biomethane transactions across Europe, explicitly unbundling three distinct commercial products:
+1. Physical Biomethane Molecule: Title transfer and delivery of grid-quality methane gas at designated Virtual Trading Points (VTPs) or entry nodes, governed by standard EFET Gas physical delivery rules, operational imbalance mechanisms, and index settlement (e.g. ICIS/Argus TTF Front Month or Day-Ahead).
+2. Guarantees of Origin (GOs): Electronic certificates proving renewable origin (EECS-compliant), transferred via AIB Gas Scheme or ERGaR CERT-X platforms for voluntary corporate scope 1 / ETS decarbonization.
+3. Proof of Sustainability (PoS): Certified mass balance sustainability attributes compliance with RED III Articles 29-31, tracked through the European Commission Union Database (UDB) or recognized national schemes.
+Contractual Risk Allocation:
+- Failure to Deliver Sustainability Documentation: If physical gas is delivered but PoS or GOs are rejected or delayed past the agreed Longstop Date, the transaction automatically falls back to Natural Gas Index pricing, relieving the buyer of green premium obligations.
+- Verification and Recalibration: If an independent certifier invalidates the carbon intensity (CI) post-delivery, the seller indemnifies the buyer for resulting penalty exposures or replaces the consignment with equivalent certified volume within the agreed cure window.
+- Operational Tolerances: Standard delivery includes defined daily and monthly tolerance bands (typically +/- 5% to 10%), outside of which cash-settlement default damages apply based on replacement market costs.`,
+};
+
+const ARGUS_ICIS_PRICING_DOSSIER: KnowledgeDocument = {
+  id: 'argus_icis_biomethane_pricing_methodology',
+  title: 'Argus & ICIS European Biomethane & Certificate Pricing Methodologies',
+  sourceFile: '02_National_Compliance_Quotas_and_Formulas.md',
+  category: 'NATIONAL_QUOTA',
+  sources: [
+    'Argus Media — European Natural Gas & Biofuels Methodology and Specifications Guide',
+    'ICIS European Biomethane Markets (EBM) IOSCO-Compliant Assessment Framework (2026)',
+    'S&P Global Platts — Biomethane Guarantees of Origin Methodology',
+  ],
+  content: `Institutional pricing of European biomethane follows an IOSCO-compliant assessment framework reflecting spot trades, broker runs, and forward curves.
+Pricing Component Structure:
+Total Biomethane Value = Natural Gas Hub Benchmark (TTF / THE) + Green Attribute Premium + Avoided Compliance Quota Value.
+1. Carbon Intensity (CI) Tiers:
+- Standard RED Biomethane: Produced from energy crops or crop residues with positive or low carbon intensities (typically +20 to +40 gCO2eq/MJ). Trades at a modest green premium over natural gas (typically +€10 to +€25/MWh).
+- Advanced Waste / Negative CI Biomethane: Produced from agricultural manure or industrial slurries achieving deep-negative carbon intensities (-80 to -100+ gCO2eq/MJ due to avoided methane emissions). In quota markets like Germany (38. BImSchV) and the Netherlands (Wet milieubeheer), each MWh generates substantial avoided GHG quota certificates, commanding premiums of +€30 to +€60/MWh above crop gas.
+2. Market Clearing Mechanisms:
+- Transport Sector Clearing: Markets such as DE THG, NL ERE, FR CPB, and IT CIC enforce statutory penalty ceilings (€450-€600/t CO2 in DE, €100/MWh ceiling in FR CPB). Market prices clear at the marginal cost of compliance minus buyer processing margins.
+- Voluntary / Scope 1 Clearing: Corporate buyers purchase GOs via AIB or ERGaR registries for CSRD / GHG Protocol Scope 1 reporting. These trade independently of transport quota values and are exempt from the RED III 65% transport GHG savings hurdle.`,
+};
+
+const ERGAR_SINGLE_GRID_MASS_BALANCE_DOSSIER: KnowledgeDocument = {
+  id: 'ergar_udb_cross_border_mass_balance',
+  title: 'Cross-Border Mass Balance: The European Gas Grid as a Single Logistical Facility',
+  sourceFile: '03_UDB_and_European_Registry_Architecture.md',
+  category: 'UDB_REGISTRY',
+  sources: [
+    'ERGaR RED MB Scheme Rules & REGATRACE Deliverable D3.2 (European Renewable Gas Registry)',
+    'European Commission DG ENER — Union Database (UDB) System Manual for Economic Operators',
+    'BIOSURF Proposal on Cross-Border Biomethane Administration within Interconnected Grids',
+  ],
+  content: `Cross-border physical trading of biomethane across the European Union relies on the statutory concept of the interconnected natural gas grid as a Single Logistical Facility.
+1. Mass Balance Logistics:
+- Under RED III Article 31b and Implementing Regulation (EU) 2022/996, consignments of biomethane injected into the interconnected EU transmission grid do not require physical tracking of individual methane molecules.
+- Instead, mass balancing requires that the total volume of biomethane withdrawn from the grid matches the verified volume injected, adjusted for pipeline grid losses, within the defined mass balance accounting period (typically monthly or quarterly).
+2. Interconnection Integrity:
+- The single logistical facility rule strictly applies only between grids that are physically interconnected. Transfers between continental European systems (e.g. Denmark, Germany, Netherlands, France, Italy, Belgium, Austria) clear seamlessly through the Union Database (UDB).
+- Great Britain (GB): Post-Brexit, the UK gas grid is isolated from the EU UDB mass balance regime. While physical interconnectors (IUK, BBL) exist, EU UDB does not recognize mass balance credits originating from GB injection into EU compliance quotas without physical consignment tracking. Similarly, UK RGGO strictly restricts certification to gas injected directly into Great Britain grids.
+3. Dual Certificate Separation (ERGaR CoO vs RED MB):
+- ERGaR CoO operates on book-and-claim for Guarantees of Origin across national registries (dena, VertiCer, Energinet, AGCS).
+- ERGaR RED MB operates on mass balance for transport compliance, verifying that a PoS cannot be claimed if the underlying gas volume was not physically delivered into the grid.`,
+};
+
+const FUELEU_POOLING_AND_ETS2_DOSSIER: KnowledgeDocument = {
+  id: 'fueleu_maritime_compliance_pooling',
+  title: 'FuelEU Maritime (EU 2023/1805) Bio-LNG Banking, Borrowing & Compliance Pooling',
+  sourceFile: '11_FuelEU_Maritime_and_EU_ETS_Shipping_Desk.md',
+  category: 'FUELEU',
+  sources: [
+    'Regulation (EU) 2023/1805 on the use of renewable and low-carbon fuels in maritime transport (Articles 15, 20 & 21)',
+    'Directive (EU) 2023/959 amending Directive 2003/87/EC (EU ETS2 Buildings & Road Transport)',
+    'DNV / Clean Marine Maritime Compliance Advisory Guidelines',
+  ],
+  content: `FuelEU Maritime (Regulation (EU) 2023/1805) establishes GHG intensity reduction targets for ships >= 5,000 GT calling at EU ports, starting with a 2% reduction in 2025 against the 91.16 gCO2eq/MJ baseline, scaling to -6% in 2030 and -80% in 2050.
+Commercial Monetization Mechanics for Bio-LNG:
+1. Compliance Surplus Pooling (Article 21): A ship using Bio-LNG generates a substantial compliance surplus (negative GHG intensity relative to the target). Under Article 21, shipping companies can pool compliance balances across fleets or sell surplus units to deficit ships bilaterally.
+2. Statutory Penalty Ceiling: Deficit ships must pay a statutory penalty of €2,400 per tonne of VLSFO equivalent deficit, which equates to an effective floor value for Bio-LNG compliance units when fossil LNG or fuel oil triggers penalties.
+3. Banking and Borrowing (Article 20): A vessel with a compliance surplus in compliance year N may bank up to 100% of the surplus to year N+1. A deficit vessel may borrow an advance compliance surplus of up to 2% with a 10% penalty factor applied in the subsequent year.
+4. EU ETS2 Interplay: Biomethane supplied for transport and heating is zero-rated under EU ETS2 if certified under RED III mass balance, exempting fuel suppliers from purchasing ETS2 allowances (surrender starts 2027-2028).`,
 };
 
 const GO_HUB_CONNECTIVITY_DOSSIER: KnowledgeDocument = {
@@ -208,7 +306,7 @@ GO hub connectivity does not govern Proof of Sustainability / mass-balance compl
 // 3. Pan-European Citations Compiled into Knowledge Vault
 // ---------------------------------------------------------------------------
 
-// Core 8 legacy IDs mapped to their underlying primary citations
+// Core legacy and commercial dossiers
 const CORE_LEGACY_DOSSIERS: KnowledgeDocument[] = [
   RED_III_DOSSIER,
   FUELEU_MARITIME_DOSSIER,
@@ -219,6 +317,11 @@ const CORE_LEGACY_DOSSIERS: KnowledgeDocument[] = [
   UK_RTFO_DOSSIER,
   UDB_MASS_BALANCE_DOSSIER,
   EFET_BIOMETHANE_DOSSIER,
+  MERCHANT_COMMODITY_ARBITRAGE_DOSSIER,
+  EFET_BIOMETHANE_MASTER_AGREEMENT_DOSSIER,
+  ARGUS_ICIS_PRICING_DOSSIER,
+  ERGAR_SINGLE_GRID_MASS_BALANCE_DOSSIER,
+  FUELEU_POOLING_AND_ETS2_DOSSIER,
   GO_HUB_CONNECTIVITY_DOSSIER,
 ];
 

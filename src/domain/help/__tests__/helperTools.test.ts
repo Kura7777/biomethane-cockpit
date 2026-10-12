@@ -15,7 +15,17 @@ const run = async (name: string, input: object) => JSON.parse(await runHelperToo
 
 describe('helper tools (read-only lookups into app data)', () => {
   it('every tool is strict, closed and in a stable order', () => {
-    expect(HELPER_TOOLS.map(t => t.name)).toEqual(['get_marks', 'get_route', 'price_destinations', 'search_plants', 'get_plant', 'search_sources', 'lookup_reference']);
+    expect(HELPER_TOOLS.map(t => t.name)).toEqual([
+      'get_marks',
+      'get_route',
+      'price_destinations',
+      'search_plants',
+      'get_plant',
+      'search_sources',
+      'lookup_reference',
+      'get_desk_memory',
+      'save_desk_memory',
+    ]);
     for (const t of HELPER_TOOLS) {
       expect(t.strict).toBe(true);
       expect((t.input_schema as { additionalProperties?: boolean }).additionalProperties).toBe(false);
@@ -47,6 +57,19 @@ describe('helper tools (read-only lookups into app data)', () => {
     const hits = await run('search_sources', { query: 'FuelEU Maritime penalty' });
     expect(hits.length).toBeGreaterThan(0);
     expect(hits[0].url).toMatch(/^https?:/);
+  });
+  it('saves and retrieves rules via get_desk_memory and save_desk_memory', async () => {
+    const saveRes = await run('save_desk_memory', {
+      subject: 'TotalEnergies',
+      rule: 'Insists on bilateral UDB transfer and RED III certified manure substrate.',
+      category: 'counterparty',
+    });
+    expect(saveRes.success).toBe(true);
+    expect(saveRes.savedRule.subject).toBe('TotalEnergies');
+
+    const fetchRes = await run('get_desk_memory', { query: 'TotalEnergies' });
+    expect(fetchRes.rulesFound).toBeGreaterThan(0);
+    expect(fetchRes.rules[0].subject).toBe('TotalEnergies');
   });
   it('bad input throws, so the loop can return is_error', async () => {
     await expect(runHelperTool('price_destinations', { origin: 'ES', feedstock: 'unicorn' }, ctx)).rejects.toThrow(/unknown feedstock/);

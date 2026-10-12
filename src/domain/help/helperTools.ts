@@ -14,6 +14,7 @@ import { LEGAL_CITATIONS, getCitationById } from '../citations/registry';
 import { loadPlantsAsync } from '../plants/registry';
 import { getPlantCompliance, aidStatus } from '../plants/compliance';
 import { lookupReference } from './referenceLookup';
+import { searchDeskMemory, saveDeskRule, type DeskMemoryRule } from './deskMemory';
 
 export interface HelperToolContext {
   marks: MarksState;
@@ -68,6 +69,22 @@ export const HELPER_TOOLS: Anthropic.Beta.BetaTool[] = [
     strict: true,
     input_schema: obj({ query: { type: 'string', description: 'A term, id, law or topic' } }, ['query']),
   },
+  {
+    name: 'get_desk_memory',
+    description: 'Query persistent desk memory: custom rules, counterparty traits (e.g. Shell, Eni requirements), tariff notes, and past deal journals recorded on this desk.',
+    strict: true,
+    input_schema: obj({ query: { type: 'string', description: 'Keyword, market, or counterparty name (or empty string for all)' } }, ['query']),
+  },
+  {
+    name: 'save_desk_memory',
+    description: 'Save a custom trading rule, counterparty requirement, tariff note, or market lesson to persistent desk memory when the trader instructs "remember this...", "note this down", or states a policy.',
+    strict: true,
+    input_schema: obj({
+      subject: { type: 'string', description: 'Counterparty name, market code, or topic (e.g. "Shell", "DE_THG", "Danish grid exit")' },
+      rule: { type: 'string', description: 'The exact rule, requirement, or commercial lesson to remember' },
+      category: { type: 'string', enum: ['counterparty', 'market', 'tariff', 'contract', 'general'], description: 'Category of the rule' }
+    }, ['subject', 'rule', 'category']),
+  },
 ];
 
 export const HELPER_TOOL_LABELS: Record<string, string> = {
@@ -78,6 +95,8 @@ export const HELPER_TOOL_LABELS: Record<string, string> = {
   get_plant: 'Reading plant data',
   search_sources: 'Searching legal sources',
   lookup_reference: 'Looking up the reference',
+  get_desk_memory: 'Checking desk memory & rules',
+  save_desk_memory: 'Saving rule to desk memory',
   web_search: 'Searching the web',
 };
 
@@ -189,6 +208,33 @@ export async function runHelperTool(name: string, input: unknown, ctx: HelperToo
     }
     case 'lookup_reference':
       return lookupReference(str(args.query));
+    case 'get_desk_memory': {
+      const q = str(args.query);
+      const res = searchDeskMemory(q);
+      return JSON.stringify({
+        query: q,
+        rulesFound: res.rules.length,
+        rules: res.rules.slice(0, 8),
+        dealsFound: res.deals.length,
+        deals: res.deals.slice(0, 5),
+      });
+    }
+    case 'save_desk_memory': {
+      const subject = str(args.subject);
+      const rule = str(args.rule);
+      const category = str(args.category) as DeskMemoryRule['category'];
+      if (!subject || !rule) throw new Error('subject and rule are required to save desk memory');
+      const saved = saveDeskRule({
+        subject,
+        rule,
+        category: category || 'general',
+      });
+      return JSON.stringify({
+        success: true,
+        savedRule: saved,
+        confirmation: `Successfully recorded rule for "${saved.subject}" in persistent desk memory.`,
+      });
+    }
     default:
       throw new Error(`unknown tool "${name}"`);
   }

@@ -1,11 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Check, ChevronDown, KeyRound, MessageCircle, RotateCcw, X } from 'lucide-react';
+import { Brain, Check, ChevronDown, Download, FileText, KeyRound, MessageCircle, Paperclip, Plus, RotateCcw, Trash2, Upload, X } from 'lucide-react';
 import { setAssumption } from '../../domain/assumptions/registry';
 import { currentHelperModel, helperModelsFor, type HelperProvider } from '../../domain/help/helperModels';
 import { useAssumptionsVersion } from '../../shared/hooks/useAssumptionsVersion';
 import { formatUsd } from '../../domain/help/helperCost';
 import { isSimulatedMark } from '../../domain/marks/applyMarks';
+import {
+  getDeskRules,
+  saveDeskRule,
+  deleteDeskRule,
+  clearDeskRules,
+  exportDeskMemoryJson,
+  importDeskMemoryJson,
+  type DeskMemoryRule,
+} from '../../domain/help/deskMemory';
 import {
   getStoredAnthropicApiKey,
   setStoredAnthropicApiKey,
@@ -159,6 +168,178 @@ function KeyDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
 }
 
 /**
+ * Desk Memory & Continuous Learning Dialog:
+ * Shows stored trading rules, lessons learned, and counterparty traits.
+ */
+function MemoryDialog({ open, onClose, onRuleChange }: { open: boolean; onClose: () => void; onRuleChange: () => void }) {
+  const [rules, setRules] = useState<DeskMemoryRule[]>([]);
+  const [subject, setSubject] = useState('');
+  const [ruleText, setRuleText] = useState('');
+  const [category, setCategory] = useState<DeskMemoryRule['category']>('counterparty');
+  const [statusMsg, setStatusMsg] = useState<string | null>(null);
+
+  const refresh = () => setRules(getDeskRules());
+
+  useEffect(() => {
+    if (open) {
+      refresh();
+      setSubject('');
+      setRuleText('');
+      setStatusMsg(null);
+    }
+  }, [open]);
+
+  if (!open) return null;
+
+  const handleAdd = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!subject.trim() || !ruleText.trim()) return;
+    saveDeskRule({ subject: subject.trim(), rule: ruleText.trim(), category });
+    setSubject('');
+    setRuleText('');
+    setStatusMsg('✓ Rule saved to desk memory.');
+    refresh();
+    onRuleChange();
+    setTimeout(() => setStatusMsg(null), 3000);
+  };
+
+  const handleDelete = (id: string) => {
+    deleteDeskRule(id);
+    refresh();
+    onRuleChange();
+  };
+
+  const handleExport = () => {
+    const json = exportDeskMemoryJson();
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `biomethane_desk_memory_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const text = ev.target?.result as string;
+      if (text && importDeskMemoryJson(text)) {
+        refresh();
+        onRuleChange();
+        setStatusMsg('✓ Memory imported successfully.');
+        setTimeout(() => setStatusMsg(null), 3000);
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  return (
+    <div className="ask-modal-backdrop" onClick={onClose} data-testid="ask-memory-backdrop">
+      <div className="ask-modal" role="dialog" aria-modal="true" aria-label="Desk Memory & Custom Rules" onClick={e => e.stopPropagation()} style={{ maxWidth: 540 }}>
+        <header className="ask-modal-head">
+          <div className="ask-modal-title">
+            <Brain size={16} aria-hidden="true" />
+            <strong>Desk Memory & Learned Rules</strong>
+          </div>
+          <button type="button" className="ph-icon-btn" aria-label="Close" onClick={onClose}><X size={16} /></button>
+        </header>
+        <div className="ask-modal-body">
+          <p className="ask-modal-note">
+            The desk autonomously records custom counterparty traits, tariff rules, and trade reflections whenever you say "Remember this..." in chat. Stored locally in this browser.
+          </p>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+            <span style={{ fontSize: 13, fontWeight: 600 }}>Active Rules ({rules.length})</span>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button type="button" className="ph-icon-btn" title="Export Memory Backup" onClick={handleExport}><Download size={14} /></button>
+              <label className="ph-icon-btn" title="Import Memory Backup" style={{ cursor: 'pointer' }}>
+                <Upload size={14} />
+                <input type="file" accept=".json" style={{ display: 'none' }} onChange={handleImport} />
+              </label>
+              {rules.length > 0 && (
+                <button type="button" className="ph-icon-btn" title="Clear All Rules" onClick={() => { if (confirm('Clear all stored desk rules?')) { clearDeskRules(); refresh(); onRuleChange(); } }}><Trash2 size={14} /></button>
+              )}
+            </div>
+          </div>
+
+          <div className="ask-mem-rules-list">
+            {rules.length === 0 ? (
+              <p style={{ margin: '16px 0', fontSize: 12, color: 'var(--color-muted)', textAlign: 'center' }}>
+                No custom rules stored yet. Tell the desk in chat: <em>"Remember: Shell requires bilateral UDB transfer and CI below -50"</em> or add one below.
+              </p>
+            ) : (
+              rules.map(r => (
+                <div key={r.id} className="ask-mem-rule-card">
+                  <div>
+                    <span className="ask-mem-rule-tag">{r.category}</span>
+                    <strong>{r.subject}:</strong> {r.rule}
+                  </div>
+                  <button type="button" className="ask-mem-rule-del" title="Delete rule" onClick={() => handleDelete(r.id)}>
+                    <X size={13} />
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+
+          <form className="ask-mem-add-form" onSubmit={handleAdd}>
+            <span style={{ fontSize: 12, fontWeight: 600 }}>Add Custom Rule</span>
+            <div className="ask-mem-add-row">
+              <input
+                type="text"
+                className="ask-modal-input"
+                style={{ flex: '1 1 50%' }}
+                placeholder="Subject (e.g. Shell, Eni, DK Tariff)"
+                value={subject}
+                onChange={e => setSubject(e.target.value)}
+              />
+              <select
+                className="ask-modal-input"
+                style={{ flex: '0 0 120px' }}
+                value={category}
+                onChange={e => setCategory(e.target.value as DeskMemoryRule['category'])}
+              >
+                <option value="counterparty">Counterparty</option>
+                <option value="market">Market</option>
+                <option value="tariff">Tariff</option>
+                <option value="contract">Contract</option>
+                <option value="general">General</option>
+              </select>
+            </div>
+            <textarea
+              className="ask-modal-input"
+              rows={2}
+              placeholder="Rule description or requirement..."
+              value={ruleText}
+              onChange={e => setRuleText(e.target.value)}
+            />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
+              <button
+                type="submit"
+                className="ask-modal-btn-save"
+                disabled={!subject.trim() || !ruleText.trim()}
+              >
+                <Plus size={13} style={{ marginRight: 4 }} /> Add Rule
+              </button>
+            </div>
+          </form>
+
+          {statusMsg && <div className="ask-modal-status" style={{ marginTop: 6 }}>{statusMsg}</div>}
+        </div>
+        <footer className="ask-modal-foot">
+          <div className="ask-modal-foot-right">
+            <button type="button" className="ask-modal-btn-cancel" onClick={onClose}>Close</button>
+          </div>
+        </footer>
+      </div>
+    </div>
+  );
+}
+
+/**
  * Which model answers: a button showing the current one, opening a menu that says what each of the
  * current provider's models is for (Claude or Gemini is chosen with the switch beside it). It writes the
  * desk setting helper.model, so #/pricing shows the same choice.
@@ -235,7 +416,15 @@ export function AskDeskScreen() {
   const todaySpend = useTodaySpend();
   const go = useCallback((to: string) => navigate(to), [navigate]);
   const [keyModalOpen, setKeyModalOpen] = useState(false);
+  const [memoryModalOpen, setMemoryModalOpen] = useState(false);
+  const [rulesCount, setRulesCount] = useState(() => getDeskRules().length);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [attachedDoc, setAttachedDoc] = useState<{ name: string; size: string; content: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const refreshRulesCount = () => {
+    setRulesCount(getDeskRules().length);
+  };
 
   // Register high-level desk awareness for general trading questions
   const app = useOptionalAppState();
@@ -248,6 +437,7 @@ export function AskDeskScreen() {
       todaySpendEstimateUsd: todaySpend,
       provider: chat.model.provider,
       model: chat.model.name,
+      deskMemoryRulesCount: rulesCount,
     };
   });
 
@@ -259,19 +449,96 @@ export function AskDeskScreen() {
     }
     setConfirmClear(false);
     clearHelperConversation(chat.pageKey);
+    setAttachedDoc(null);
   };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const sizeStr = file.size < 1024 * 1024
+      ? `${Math.round(file.size / 1024)} KB`
+      : `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
+
+    const reader = new FileReader();
+
+    if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+      // Read PDF bytes and extract printable text chunks
+      reader.onload = ev => {
+        const buffer = ev.target?.result as ArrayBuffer;
+        if (!buffer) return;
+        const bytes = new Uint8Array(buffer);
+        let text = '';
+        let currentChunk = '';
+        for (let i = 0; i < bytes.length; i++) {
+          const b = bytes[i];
+          if ((b >= 32 && b <= 126) || b === 10 || b === 13 || b === 9) {
+            currentChunk += String.fromCharCode(b);
+          } else {
+            if (currentChunk.length >= 4) {
+              text += currentChunk + ' ';
+            }
+            currentChunk = '';
+          }
+        }
+        if (currentChunk.length >= 4) text += currentChunk;
+        const cleaned = text.replace(/\s+/g, ' ').slice(0, 30000); // Up to ~30k chars
+        setAttachedDoc({
+          name: file.name,
+          size: sizeStr,
+          content: cleaned || `[Binary PDF with ${file.size} bytes: text layer not directly extractable]`,
+        });
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      // Plain text, markdown, json, csv
+      reader.onload = ev => {
+        const content = (ev.target?.result as string) || '';
+        setAttachedDoc({
+          name: file.name,
+          size: sizeStr,
+          content: content.slice(0, 30000),
+        });
+      };
+      reader.readAsText(file);
+    }
+    e.target.value = '';
+  };
+
+  const handleSendPrompt = useCallback((prompt: string) => {
+    if (attachedDoc) {
+      const fullText = `[ATTACHED REFERENCE DOCUMENT: ${attachedDoc.name} (${attachedDoc.size})]\n${attachedDoc.content}\n\n[TRADER QUESTION]:\n${prompt}`;
+      chat.send(fullText);
+      setAttachedDoc(null);
+    } else {
+      chat.send(prompt);
+    }
+  }, [attachedDoc, chat]);
+
+  const wrappedChat = {
+    ...chat,
+    send: handleSendPrompt,
+  };
+
+  const COMMERCIAL_STARTERS = [
+    'How should we structure an EFET term sheet for Danish manure into German THG?',
+    'Where is the cross-border netback highest today for a -80 CI manure asset?',
+    'Stress-test a TTF + €35 floor deal for an agricultural plant in Spain.',
+    'Compare FuelEU Maritime Bio-LNG pooling vs German THG quota.',
+    'Remember: Shell will not accept CI above -50 and requires bilateral UDB transfer within 10 days.',
+  ];
 
   const empty = (
     <div className="ask-empty" data-testid="ask-empty">
       <span className="ask-empty-mark" aria-hidden="true"><MessageCircle size={22} /></span>
       <h1 className="ask-empty-title">Ask the desk</h1>
       <p className="ask-empty-text">
-        Markets, regulation, certificate routes, plants or a deal. Answers use the desk’s own marks, routes and
-        pricing first, then the web, and say when something is general knowledge.
+        Commercial structures, cross-border arbitrage, regulatory compliance, plant sourcing, or stress-testing a deal.
+        Learns custom rules and counterparty traits over time.
       </p>
       <div className="ask-starters" data-testid="ask-starters">
         {chat.suggestions.map(q => (
-          <button key={q} type="button" className="ask-starter" disabled={chat.busy} onClick={() => chat.send(q)}>{q}</button>
+          <button key={q} type="button" className="ask-starter" disabled={chat.busy} onClick={() => handleSendPrompt(q)}>{q}</button>
         ))}
       </div>
     </div>
@@ -298,6 +565,15 @@ export function AskDeskScreen() {
         <button
           type="button"
           className="ask-key-btn"
+          data-testid="ask-open-memory"
+          title="View custom rules, lessons learned, and trade memory"
+          onClick={() => setMemoryModalOpen(true)}
+        >
+          <Brain size={13} aria-hidden="true" /> Memory {rulesCount > 0 && <span className="ask-mem-badge">{rulesCount}</span>}
+        </button>
+        <button
+          type="button"
+          className="ask-key-btn"
           data-testid="ask-open-keys"
           title="Manage Gemini and Anthropic API keys on this device"
           onClick={() => setKeyModalOpen(true)}
@@ -317,14 +593,46 @@ export function AskDeskScreen() {
           <RotateCcw size={14} aria-hidden="true" /> {confirmClear ? 'Clear chat?' : 'New chat'}
         </button>
       </header>
-      <ChatBody chat={chat} onNavigate={go} variant="desk" emptyState={empty} />
+      <ChatBody chat={wrappedChat} onNavigate={go} variant="desk" emptyState={empty} />
       <footer className="ask-foot">
         <div className="ask-column">
-          <ChatInput chat={chat} autoFocus placeholder="Ask the desk anything…" />
-          <ModeNote chat={chat} />
+          {attachedDoc && (
+            <div className="ask-attachment-pill" data-testid="ask-attachment-pill">
+              <FileText size={13} aria-hidden="true" />
+              <span>{attachedDoc.name} ({attachedDoc.size})</span>
+              <button type="button" onClick={() => setAttachedDoc(null)} aria-label="Remove attached file"><X size={12} /></button>
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+            <button
+              type="button"
+              className="ask-attach-btn"
+              data-testid="ask-attach-btn"
+              title="Attach a trading book chapter, broker report, or term sheet"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Paperclip size={13} aria-hidden="true" /> Attach Doc
+            </button>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <ChatInput chat={wrappedChat} autoFocus placeholder="Ask the desk anything…" />
+            </div>
+          </div>
+          <input
+            type="file"
+            ref={fileInputRef}
+            accept=".pdf,.txt,.md,.json,.csv"
+            style={{ display: 'none' }}
+            onChange={handleFileSelect}
+          />
+          <ModeNote chat={wrappedChat} />
         </div>
       </footer>
       <KeyDialog open={keyModalOpen} onClose={() => setKeyModalOpen(false)} />
+      <MemoryDialog
+        open={memoryModalOpen}
+        onClose={() => setMemoryModalOpen(false)}
+        onRuleChange={refreshRulesCount}
+      />
     </div>
   );
 }
