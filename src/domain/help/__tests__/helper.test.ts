@@ -155,6 +155,14 @@ describe('AI mode request', () => {
     ], 'q', {});
     expect(msgs.map(m => m.role)).toEqual(['user', 'assistant', 'user']);
   });
+  it('prunes redundant page_context from historical user turns', () => {
+    const msgs = buildHelperMessages([
+      { id: '1', role: 'user', text: 'first question', sent: 'first question\n\n<page_context>\n{"huge":"data"}\n</page_context>' },
+      { id: '2', role: 'assistant', text: 'first answer' },
+    ], 'second question', { current: 'context' });
+    expect(msgs[0].content).toBe('first question');
+    expect(String(msgs[2].content)).toContain('<page_context>\n{"current":"context"}\n</page_context>');
+  });
   it('streams the answer and sends the key only in the header', async () => {
     const fetchImpl = vi.fn(async (_url: string, _init: RequestInit) => textReply('answer'));
     let streamed = '';

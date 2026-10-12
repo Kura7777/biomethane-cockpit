@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowUp, ChevronDown, Maximize2, MessageCircle, Minimize2, Square, X } from 'lucide-react';
+import { ArrowUp, Check, ChevronDown, Copy, Maximize2, MessageCircle, Minimize2, Square, X } from 'lucide-react';
 import { Sheet } from '../../shared/ui/Sheet';
 import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 import { getStoredAnthropicApiKey } from '../../domain/regcheck/claudeClient';
@@ -182,9 +182,16 @@ export function useHelperChat(): Chat {
         appendHelperTurn(pageKey, { id: nextId(), role: 'assistant', text: answer.text, sources: answer.sources, model: model.name, costUsd: answer.costUsd });
       })
       .catch((err: unknown) => {
+        const isAbort =
+          (err instanceof Error && (err.name === 'AbortError' || err.message === 'Stopped.')) ||
+          err === 'Stopped.';
         // Keep whatever was already written when the trader stops or the stream fails midway.
-        if (streamed.trim()) appendHelperTurn(pageKey, { id: nextId(), role: 'assistant', text: streamed.trim(), model: model.name });
-        appendHelperTurn(pageKey, { id: nextId(), role: 'error', text: err instanceof Error ? err.message : 'The helper could not answer.' });
+        if (streamed.trim()) {
+          appendHelperTurn(pageKey, { id: nextId(), role: 'assistant', text: streamed.trim(), model: model.name });
+        }
+        if (!isAbort) {
+          appendHelperTurn(pageKey, { id: nextId(), role: 'error', text: err instanceof Error ? err.message : 'The helper could not answer.' });
+        }
       })
       .finally(() => {
         abortRef.current = null;
@@ -216,7 +223,6 @@ export function useHelperChat(): Chat {
 
 // ── Rendering ───────────────────────────────────────────────────────────────
 
-/** **bold** inside a run of text; everything else stays plain text (never HTML). */
 /** Bare http(s) URLs become links that open in a new tab; trailing punctuation stays text. */
 function Linked({ text }: { text: string }) {
   const parts = text.split(/(https?:\/\/[^\s<>()[\]]+)/g);
@@ -231,12 +237,60 @@ function Linked({ text }: { text: string }) {
   );
 }
 
-function Inline({ text }: { text: string }) {
-  const parts = text.split(/(\*\*[^*\n]{1,120}\*\*)/g);
-  return <>{parts.map((p, i) => (p.startsWith('**') && p.endsWith('**') && p.length > 4 ? <strong key={i}><Linked text={p.slice(2, -2)} /></strong> : <Linked key={i} text={p} />))}</>;
+/** Inline `code` inside runs of text. */
+function InlineCode({ text }: { text: string }) {
+  const parts = text.split(/(`[^`\n]{1,120}`)/g);
+  return (
+    <>
+      {parts.map((p, i) =>
+        p.startsWith('`') && p.endsWith('`') && p.length > 2 ? (
+          <code key={i} className="ph-code">{p.slice(1, -1)}</code>
+        ) : (
+          <Linked key={i} text={p} />
+        )
+      )}
+    </>
+  );
 }
 
-/** Text with "[[go:/route|Label]]" turned into buttons and **bold** kept. */
+/** **bold** inside a run of text, preserving inline code and links. */
+function Inline({ text }: { text: string }) {
+  const parts = text.split(/(\*\*[^*\n]{1,120}\*\*)/g);
+  return (
+    <>
+      {parts.map((p, i) =>
+        p.startsWith('**') && p.endsWith('**') && p.length > 4 ? (
+          <strong key={i}><InlineCode text={p.slice(2, -2)} /></strong>
+        ) : (
+          <InlineCode key={i} text={p} />
+        )
+      )}
+    </>
+  );
+}
+
+/** Markdown links `[label](url)`, inline code, bold, and bare URLs. */
+function MarkdownText({ text }: { text: string }) {
+  const parts = text.split(/(\[[^\]\n]{1,120}\]\(https?:\/\/[^\s)]+\))/g);
+  return (
+    <>
+      {parts.map((p, i) => {
+        const linkMatch = p.match(/^\[([^\]\n]{1,120})\]\((https?:\/\/[^\s)]+)\)$/);
+        if (linkMatch) {
+          const [, label, url] = linkMatch;
+          return (
+            <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="ph-md-link">
+              {label}
+            </a>
+          );
+        }
+        return <Inline key={i} text={p} />;
+      })}
+    </>
+  );
+}
+
+/** Text with "[[go:/route|Label]]" turned into buttons and markdown formatted. */
 function RichText({ text, onNavigate }: { text: string; onNavigate: (to: string) => void }) {
   return (
     <>
@@ -248,7 +302,7 @@ function RichText({ text, onNavigate }: { text: string; onNavigate: (to: string)
             </button>
           );
         }
-        return <Inline key={i} text={s.text} />;
+        return <MarkdownText key={i} text={s.text} />;
       })}
     </>
   );
@@ -339,6 +393,32 @@ function Overview({ guide, onNavigate }: { guide: PageGuide | undefined; onNavig
   );
 }
 
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const onCopy = useCallback(() => {
+    try {
+      navigator.clipboard.writeText(text);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Ignore
+    }
+  }, [text]);
+  return (
+    <button
+      type="button"
+      className="ph-copy-btn"
+      data-testid="helper-copy"
+      aria-label={copied ? 'Copied to clipboard' : 'Copy answer to clipboard'}
+      title={copied ? 'Copied!' : 'Copy answer'}
+      onClick={onCopy}
+    >
+      {copied ? <Check size={12} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}
+      <span>{copied ? 'Copied' : 'Copy'}</span>
+    </button>
+  );
+}
+
 function Turn({ turn, onNavigate }: { turn: HelperTurn; onNavigate: (to: string) => void }) {
   if (turn.role === 'user') return <div className="ph-msg ph-msg--user" data-testid="helper-user">{turn.text}</div>;
   if (turn.role === 'assistant') {
@@ -357,7 +437,8 @@ function Turn({ turn, onNavigate }: { turn: HelperTurn; onNavigate: (to: string)
         )}
         {turn.model && (
           <div className="ph-answered-by" data-testid="helper-answered-by">
-            {turn.model}{turn.costUsd !== undefined && <span data-testid="helper-cost"> · ≈ {formatUsd(turn.costUsd)}</span>}
+            <span>{turn.model}{turn.costUsd !== undefined && <span data-testid="helper-cost"> · ≈ {formatUsd(turn.costUsd)}</span>}</span>
+            <CopyButton text={turn.text} />
           </div>
         )}
       </div>
@@ -396,12 +477,28 @@ interface ChatBodyProps {
 
 export function ChatBody({ chat, onNavigate, emptyChips, variant = 'page', emptyState }: ChatBodyProps) {
   const endRef = useRef<HTMLDivElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const userScrolledUp = useRef(false);
+
+  const onScroll = useCallback(() => {
+    const el = bodyRef.current;
+    if (!el) return;
+    const distanceToBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    userScrolledUp.current = distanceToBottom > 80;
+  }, []);
+
   useEffect(() => {
-    if (typeof endRef.current?.scrollIntoView === 'function') endRef.current.scrollIntoView({ block: 'end' });
-  }, [chat.turns.length, chat.busy, chat.liveText.length > 0, chat.status]);
+    if (chat.busy) userScrolledUp.current = false;
+  }, [chat.busy]);
+
+  useEffect(() => {
+    if (!userScrolledUp.current && typeof endRef.current?.scrollIntoView === 'function') {
+      endRef.current.scrollIntoView({ block: 'end' });
+    }
+  }, [chat.turns.length, chat.busy, chat.liveText, chat.status]);
 
   return (
-    <div className="ph-body" data-testid="helper-body">
+    <div className="ph-body" data-testid="helper-body" ref={bodyRef} onScroll={onScroll}>
       {chat.viewingPrevious && (
         <div className="ph-prev-banner">
           Previous page chat: {titleFor(chat.shownKey)}.{' '}

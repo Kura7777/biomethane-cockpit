@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { StaticRouter } from 'react-router-dom/server';
-import { PageHelper, ASK_ROUTE } from '../PageHelper';
+import { PageHelper, ASK_ROUTE, AnswerView } from '../PageHelper';
 import { AskDeskScreen } from '../AskDeskScreen';
 import { appendHelperTurn, clearHelperConversation, getHelperSnapshot, resetHelperStore } from '../helperStore';
 import { getPageGuide } from '../../../domain/help/pageGuides';
@@ -66,4 +66,18 @@ describe('Ask the desk (#/ask)', () => {
     expect(getHelperSnapshot().conversations['/trade']).toHaveLength(1);
     resetHelperStore();
   });
+  it('renders copy button on assistant turns', () => {
+    resetHelperStore();
+    appendHelperTurn(ASK_ROUTE, { id: 'a', role: 'assistant', text: 'GGE is a green gas unit in Netherlands.', model: 'Gemini 3.8 Flash' });
+    const html = renderAsk();
+    expect(html).toContain('data-testid="helper-copy"');
+    expect(html).toContain('Copy');
+    resetHelperStore();
+  });
+  it('renders inline code and markdown links in AnswerView', () => {
+    const html = renderToStaticMarkup(<AnswerView text="Check `DE_THG` and [EUR-Lex](https://eur-lex.europa.eu) today." onNavigate={() => {}} />);
+    expect(html).toContain('<code class="ph-code">DE_THG</code>');
+    expect(html).toContain('<a href="https://eur-lex.europa.eu" target="_blank" rel="noopener noreferrer" class="ph-md-link">EUR-Lex</a>');
+  });
 });
+

@@ -16,9 +16,10 @@ import { REGCHECK_WATCHLIST } from '../regcheck/watchlist';
 import { KNOWLEDGE_VAULT_DOCS } from '../auditor/knowledgeBase';
 import { GLOSSARY } from './glossary';
 
-/** Longest watchlist claim / glossary summary kept in the cached block. */
-const WATCH_CLAIM_CHARS = 100;
-const GLOSSARY_SHORT_CHARS = 65;
+/** Longest watchlist claim / glossary summary / KB title kept in the cached block. */
+const WATCH_CLAIM_CHARS = 75;
+const GLOSSARY_SHORT_CHARS = 45;
+const KB_TITLE_CHARS = 45;
 
 /** Cut at a word boundary with an ellipsis; the full text is one lookup_reference call away. */
 export function clip(text: string, max: number): string {
@@ -44,7 +45,7 @@ function watchlistBlock(): string {
 }
 
 function referenceIndexBlock(): string {
-  const kb = KNOWLEDGE_VAULT_DOCS.map(d => `- [${d.id}] ${d.title}`);
+  const kb = KNOWLEDGE_VAULT_DOCS.map(d => `- [${d.id}] ${clip(d.title, KB_TITLE_CHARS)}`);
   const glossary = GLOSSARY.map(e => `- ${e.term} [${e.id}]: ${clip(e.short, GLOSSARY_SHORT_CHARS)}`);
   return [
     `REGULATORY KNOWLEDGE BASE, fact-checked against primary law (${KNOWLEDGE_VAULT_DOCS.length} documents; full text via lookup_reference)`,

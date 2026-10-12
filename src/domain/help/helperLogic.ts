@@ -100,7 +100,7 @@ export interface HelperMessage { role: 'user' | 'assistant'; text: string }
 export function buildHelperHistory(history: HelperTurn[], question: string, context: Record<string, unknown>): HelperMessage[] {
   const all: HelperMessage[] = [];
   for (const t of history) {
-    if (t.role === 'user') all.push({ role: 'user', text: t.sent ?? t.text });
+    if (t.role === 'user') all.push({ role: 'user', text: t.text });
     else if (t.role === 'assistant' && t.text.trim()) all.push({ role: 'assistant', text: t.text });
   }
   while (all.length > 0 && all[all.length - 1].role === 'user') all.pop();

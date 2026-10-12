@@ -1,4 +1,41 @@
 import { LegalCitation } from './types';
+import {
+  DE_THG_PENALTY_EUR_PER_TCO2E,
+  FR_CPB_CEILING_EUR_MWH,
+  FUELEU_PENALTY_VLSFO_MJ_PER_TONNE,
+  FUELEU_STATUTORY_PENALTY_PER_TONNE,
+  RED3_TRANSPORT_MAX_CI,
+  RED_HEAT_THRESHOLD_POST_2021,
+  RED_HEAT_THRESHOLD_POST_2026,
+  UK_RTFC_BUYOUT_GBP,
+  NL_GGE_BUYOUT_EUR_PER_TCO2E,
+  NL_GGE_FOSSIL_COMPARATOR_GCO2E_MJ,
+  NL_GGE_BANKING_CAP_PCT,
+  NL_GGE_CLAWBACK_YEARS,
+  NL_GGE_GO_VALIDITY_MONTHS,
+} from '../regulatory/constants';
+import {
+  CI_COMPARATOR_ROAD_TRANSPORT,
+  CI_COMPARATOR_HEAT,
+  GCAL_PER_CIC_CONVENTIONAL,
+  GCAL_PER_CIC_ADVANCED,
+  MWH_PER_CIC_CONVENTIONAL,
+  MWH_PER_CIC_ADVANCED,
+} from '../markets/constants';
+import {
+  FUELEU_REFERENCE_INTENSITY,
+  FUELEU_TARGET_2025,
+  FUELEU_TARGET_2030,
+  FUELEU_TARGET_2035,
+  FUELEU_TARGET_2040,
+  FUELEU_TARGET_2045,
+  FUELEU_TARGET_2050,
+} from '../fueleu/calculator';
+
+const TRANSPORT_SAVING_PCT = Math.round((1 - RED3_TRANSPORT_MAX_CI / CI_COMPARATOR_ROAD_TRANSPORT) * 100);
+const HEAT_LOW_PCT = Math.round(RED_HEAT_THRESHOLD_POST_2021 * 100);
+const HEAT_HIGH_PCT = Math.round(RED_HEAT_THRESHOLD_POST_2026 * 100);
+const reductionPct = (target: number) => Math.round((1 - target / FUELEU_REFERENCE_INTENSITY) * 1000) / 10;
 
 export const LEGAL_CITATIONS: LegalCitation[] = [
   // =========================================================================
@@ -14,18 +51,32 @@ export const LEGAL_CITATIONS: LegalCitation[] = [
     category: 'EU_DIRECTIVE',
     status: 'IN_FORCE',
     effectiveDate: '20 November 2023 (Transposition by 21 May 2025)',
-    primaryArticle: 'Articles 25, 29, 30, 31, 31a & Annex IX',
-    summary: 'The overarching statutory foundation for European biomethane, advanced biofuels, and renewable gas trading. Mandates that Member States achieve at least a 29% renewable energy share in transport or a 14.5% GHG intensity reduction by 2030, with a binding 5.5% sub-target for advanced biofuels (Annex IX-A) and RFNBOs.',
+    primaryArticle: 'Articles 25, 26, 27, 29, 30, 31, 31a & Annex IX',
+    summary: `Article 25(1)(a)(i): Member States shall set an obligation on fuel suppliers so that the "share of renewable energy within the final consumption of energy in the transport sector of at least 29 % by 2030" is reached, or a greenhouse gas intensity reduction of at least 14.5% by 2030 (Art. 25(1)(b)).
+Transport fuel GHG threshold (Article 29(10), first subparagraph, point (c), unchanged from RED II): biofuels and biogas consumed in the transport sector from installations starting operation from 1 January 2021 must achieve at least ${TRANSPORT_SAVING_PCT}% GHG savings. Against the ${CI_COMPARATOR_ROAD_TRANSPORT} gCO2eq/MJ fossil comparator (Annex V Part C point 19) this means carbon intensity CI <= ${RED3_TRANSPORT_MAX_CI} gCO2eq/MJ. Earlier installations: at least 50% (operating on or before 5 October 2015) and at least 60% (6 October 2015 to 31 December 2020), points (a) and (b).
+Heat and power GHG thresholds (Article 29(10)(d) to (h), as amended by RED III): for electricity, heating and cooling from biomass fuels, installations "that started operating after 20 November 2023, at least 80 %". Older installations have tiered rules by thermal input and age, for example 70% rising to 80%, in points (e) to (h). The desk simplifies this to ${HEAT_LOW_PCT}% / ${HEAT_HIGH_PCT}% (regulatory constants) and flags the category as unconfirmed for gas-grid injection. The comparator for heat is ${CI_COMPARATOR_HEAT} gCO2eq/MJ.
+Article 31a(1): "By 21 November 2024, the Commission shall ensure that a Union database is set up to enable the tracing of liquid and gaseous renewable fuels and recycled carbon fuels."
+Article 27(2)(c): for the Art. 25(1) transport targets, the share of fuels "produced from the feedstock listed in Annex IX" counts as twice its energy content in the RED III counting rules. National quota laws then differ (Germany ends double counting from 2026, see the German document).
+Annex IX Part A (advanced feedstocks) includes, among others: algae cultivated on land in ponds or photobioreactors, the biomass fraction of mixed municipal waste, biowaste from private households subject to separate collection, straw, animal manure and sewage sludge, palm oil mill effluent and empty palm fruit bunches, tall oil pitch and crude glycerine.
+Annex IX Part B lists used cooking oil and animal fats of categories 1 and 2 (Regulation (EC) No 1069/2009); their contribution is capped (Annex IX Part B limit, 1.7% of transport energy).
+Food and feed crops (Article 26(1)): their share may be no more than one percentage point higher than the 2020 share in that Member State, up to a maximum of 7% of final energy consumption in road and rail transport. They still count towards targets within that cap; whether a national quota accepts them is set by national law.`,
     applicableMarkets: ['DE_THG', 'NL_ERE', 'FR_CPB', 'FR_TIRUERT', 'IT_CIC', 'DK_INJECTION', 'SE_TAX_EXEMPTION', 'ES_GTS', 'PL_OZE', 'BE_REGIONAL'],
     complianceGate: 'SCHEME Gate, GHG Gate, ANNEX_IX Gate, MASS_BALANCE Gate',
-    penaltiesOrCaps: 'National transposition quotas vary (€250–€600/tCO2e or €100/MWh ceiling).',
-    deskRuleSummary: 'To count toward EU transport mandates, biomethane from installations starting operation from 2021 must achieve at least 65% GHG savings (CI ≤ 32.9 gCO2e/MJ against the 94 gCO2e/MJ transport comparator) and use a mass balance chain of custody. Heat and power use the 80 gCO2e/MJ comparator and stricter thresholds (Art. 29(10)(d)–(e)).',
+    penaltiesOrCaps: `National transposition quotas vary (€250–€600/tCO2e or €100/MWh ceiling). CI must satisfy ≤ ${RED3_TRANSPORT_MAX_CI} gCO2eq/MJ for transport (65% savings vs ${CI_COMPARATOR_ROAD_TRANSPORT} gCO2eq/MJ comparator).`,
+    deskRuleSummary: `To count toward EU transport mandates, biomethane from installations starting operation from 2021 must achieve at least ${TRANSPORT_SAVING_PCT}% GHG savings (CI <= ${RED3_TRANSPORT_MAX_CI} gCO2eq/MJ against the ${CI_COMPARATOR_ROAD_TRANSPORT} gCO2eq/MJ transport comparator) and use a mass balance chain of custody. Heat and power use the ${CI_COMPARATOR_HEAT} gCO2eq/MJ comparator and stricter thresholds (Art. 29(10)(d)–(e)).`,
     keyStatutoryExcerpts: [
-      'Article 25(1): Member States shall set an obligation on fuel suppliers to ensure that the share of renewable energy within the final consumption of energy in the transport sector is at least 29% by 2030 or leads to a greenhouse gas intensity reduction of at least 14.5% by 2030.',
-      'Article 29(10)(c)–(e) (summary, not verbatim): at least 65% savings for biofuels, biogas consumed in transport and bioliquids from installations starting operation from 1 January 2021; for electricity, heating and cooling from biomass fuels, at least 80% for installations starting operation after 20 November 2023 and at least 70% for installations starting operation from 1 January 2021 until 20 November 2023, with stricter tiers applying later.',
-      'Article 31a(1): The Commission shall ensure that a Union database is established to enable the tracing of liquid and gaseous transport fuels that are eligible for being counted towards the numerator referred to in point (b) of Article 27(1).'
+      'Article 25(1)(a)(i): Member States shall set an obligation on fuel suppliers so that the "share of renewable energy within the final consumption of energy in the transport sector of at least 29 % by 2030" is reached, or a greenhouse gas intensity reduction of at least 14.5% by 2030.',
+      `Article 29(10)(c): at least ${TRANSPORT_SAVING_PCT}% savings for biofuels, biogas consumed in transport and bioliquids from installations starting operation from 1 January 2021 (against the ${CI_COMPARATOR_ROAD_TRANSPORT} gCO2eq/MJ fossil comparator, CI <= ${RED3_TRANSPORT_MAX_CI} gCO2eq/MJ).`,
+      `Article 29(10)(d): for electricity, heating and cooling from biomass fuels, installations "that started operating after 20 November 2023, at least 80 %" (against the ${CI_COMPARATOR_HEAT} gCO2eq/MJ heat comparator).`,
+      'Article 31a(1): "By 21 November 2024, the Commission shall ensure that a Union database is set up to enable the tracing of liquid and gaseous renewable fuels and recycled carbon fuels."',
+      'Article 27(2)(c): the share of fuels "produced from the feedstock listed in Annex IX" counts as twice its energy content in the RED III baseline counting rules.'
     ],
-    crossReferences: ['Implementing Regulation (EU) 2022/996 (UDB data rules, Art. 18)', 'RED II Directive (EU) 2018/2001 Art. 28(2)&(4)'],
+    crossReferences: [
+      'Directive (EU) 2023/2413 (RED III) Art. 25(1), 26(1), 27(2), 29(10), 31a(1); Directive (EU) 2018/2001 (RED II) Art. 29(10)(a)-(c) and Annex V Part C pt 19',
+      'Annex IX Parts A and B (as amended by RED III)',
+      'Implementing Regulation (EU) 2022/996 (UDB data rules, Art. 18)',
+      'RED II Directive (EU) 2018/2001 Art. 28(2)&(4)'
+    ],
     officialUrl: 'https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32023L2413',
     officialUrlLabel: 'EUR-Lex Official Portal (Directive 2023/2413)',
     additionalLinks: [
@@ -43,17 +94,24 @@ export const LEGAL_CITATIONS: LegalCitation[] = [
     category: 'EU_REGULATION',
     status: 'PHASED_IN_2026',
     effectiveDate: '1 January 2025 (Annual compliance cycles starting 2025/2026)',
-    primaryArticle: 'Articles 4, 5, 20, 21 & Annex I–II',
-    summary: 'Establishes decreasing limits on the well-to-wake greenhouse gas (GHG) intensity of energy used on-board ships above 5,000 gross tonnage calling at EU ports. Creates a dedicated commercial market for Bio-LNG and compressed Bio-CNG bunkering with compliance pooling mechanisms across vessel fleets.',
+    primaryArticle: 'Articles 2(1), 4(2), 21; Annex II & Annex IV Part B',
+    summary: `Regulation (EU) 2023/1805 sets decreasing well-to-wake GHG intensity limits for the energy used on ships of above 5 000 gross tonnage calling at EU ports (Art. 2(1)).
+Reference value: ${FUELEU_REFERENCE_INTENSITY} gCO2eq/MJ (Art. 4(2)); it is the 2020 fleet reference value, not the intensity of one fuel.
+Limits (Art. 4(2)): 2025 (-${reductionPct(FUELEU_TARGET_2025)}% = ${FUELEU_TARGET_2025} gCO2eq/MJ); 2030 (-${reductionPct(FUELEU_TARGET_2030)}% = ${FUELEU_TARGET_2030}); 2035 (-${reductionPct(FUELEU_TARGET_2035)}% = ${FUELEU_TARGET_2035}); 2040 (-${reductionPct(FUELEU_TARGET_2040)}% = ${FUELEU_TARGET_2040}); 2045 (-${reductionPct(FUELEU_TARGET_2045)}% = ${FUELEU_TARGET_2045}); 2050 (-${reductionPct(FUELEU_TARGET_2050)}% = ${FUELEU_TARGET_2050}).
+Penalty (Annex IV Part B, applied through Art. 23): EUR ${FUELEU_STATUTORY_PENALTY_PER_TONNE.toLocaleString('en-US')} per tonne of VLSFO energy equivalent, where one tonne of VLSFO is ${FUELEU_PENALTY_VLSFO_MJ_PER_TONNE.toLocaleString('en-US')} MJ. The penalty is calculated from the size of the compliance deficit.
+Lower calorific value of LNG (Annex II): 0.0491 MJ/g, which is 49,100 MJ per tonne.
+Compliance pooling (Article 21): two or more ships may pool their compliance balances to comply with Art. 4. A pool surplus, for example from Bio-LNG with a low or negative certified carbon intensity, can offset the deficits of other ships in the pool, so the pool avoids the penalty only to the extent that the pool's combined balance is not a deficit.
+EU ETS maritime (Directive (EU) 2023/959): maritime emissions are phased in at 40% of 2024 emissions, 70% of 2025 and 100% of 2026. Sustainable biofuels and biomethane that meet the RED sustainability criteria carry a zero CO2 emission factor. Methane and nitrous oxide are not covered by that zero factor.`,
     applicableMarkets: ['EU_FUELEU_2025', 'EU_FUELEU_2030', 'SE_TAX_EXEMPTION'],
     complianceGate: 'MASS_BALANCE Gate & GHG Gate (Well-to-Wake boundary)',
-    penaltiesOrCaps: 'Statutory non-compliance penalty: €2,400 per tonne VLSFO equivalent energy shortfall, increasing by 10% compounding per consecutive non-compliant reporting year.',
-    deskRuleSummary: 'Bio-LNG bunkered in EU ports receives full well-to-wake credit against shipping intensity baselines (91.16 gCO2e/MJ in 2025). Negative CI biomethane (e.g. Danish manure Bio-LNG at −100 gCO2e/MJ) generates surplus compliance balances tradeable through FuelEU compliance pools.',
+    penaltiesOrCaps: `Statutory non-compliance penalty: EUR ${FUELEU_STATUTORY_PENALTY_PER_TONNE.toLocaleString('en-US')} per tonne of VLSFO energy equivalent (${FUELEU_PENALTY_VLSFO_MJ_PER_TONNE.toLocaleString('en-US')} MJ/tonne), increasing by 10% compounding per consecutive non-compliant reporting year.`,
+    deskRuleSummary: `Bio-LNG bunkered in EU ports receives full well-to-wake credit against shipping intensity baselines (${FUELEU_TARGET_2025} gCO2e/MJ in 2025). Negative CI biomethane (e.g. Danish manure Bio-LNG at −100 gCO2e/MJ) generates surplus compliance balances tradeable through FuelEU compliance pools.`,
     keyStatutoryExcerpts: [
-      'Article 4(2): From 1 January 2025, the yearly average greenhouse gas intensity of the energy used on-board by a ship during a reporting period shall not exceed: (a) -2% from 1 January 2025; (b) -6% from 1 January 2030; (c) -14.5% from 1 January 2035; (d) -31% from 1 January 2040; (e) -62% from 1 January 2045; (f) -80% from 1 January 2050.',
+      `Article 4(2): From 1 January 2025, the yearly average greenhouse gas intensity of the energy used on-board by a ship during a reporting period shall not exceed: (a) -${reductionPct(FUELEU_TARGET_2025)}% from 1 January 2025 (${FUELEU_TARGET_2025} gCO2eq/MJ); (b) -${reductionPct(FUELEU_TARGET_2030)}% from 1 January 2030 (${FUELEU_TARGET_2030} gCO2eq/MJ) against the reference value of ${FUELEU_REFERENCE_INTENSITY} gCO2eq/MJ.`,
+      `Annex IV Part B: Statutory penalty is EUR ${FUELEU_STATUTORY_PENALTY_PER_TONNE.toLocaleString('en-US')} per tonne of VLSFO energy equivalent (${FUELEU_PENALTY_VLSFO_MJ_PER_TONNE.toLocaleString('en-US')} MJ per tonne).`,
       'Article 21(1): Two or more ships managed by the same company or by different companies may establish a pool to collectively comply with the requirements of Article 4.'
     ],
-    crossReferences: ['Directive 2003/87/EC (EU ETS Maritime)', 'IMO MARPOL Annex VI'],
+    crossReferences: ['Regulation (EU) 2023/1805 Art. 2(1), 4(2), 21; Annex II; Annex IV Part B', 'Directive (EU) 2023/959 amending Directive 2003/87/EC (maritime in the EU ETS)', 'IMO MARPOL Annex VI'],
     officialUrl: 'https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32023R1805',
     officialUrlLabel: 'EUR-Lex Official Portal (Regulation 2023/1805)',
     additionalLinks: [
@@ -71,17 +129,24 @@ export const LEGAL_CITATIONS: LegalCitation[] = [
     category: 'EU_REGULATION',
     status: 'RESTRICTED',
     effectiveDate: 'Statutory deadline 21 November 2024 (RED III Art. 31a(1)); gas module NOT YET LIVE — launch postponed to end of 2026 (European Biogas Association)',
-    primaryArticle: 'RED III Art. 31a; RED II Art. 28(2)&(4); Implementing Regulation (EU) 2022/996 Art. 18',
-    summary: 'The mandatory EU Union Database (UDB) traceability infrastructure for liquid and gaseous renewable fuels, including biomethane. For gas, it is a self-declared, monthly-batch Proof of Sustainability (PoS) system covering injection, in-grid "Transfer Gas PoS" reallocation, and exit-point withdrawal — not a real-time telemetry feed. As of this research the UDB gas module is NOT live for economic operators; the go-live has slipped roughly two years past its statutory deadline.',
+    primaryArticle: 'RED III Art. 31a(1); RED II Art. 28(2)&(4); Implementing Regulation (EU) 2022/996 Art. 18',
+    summary: `Under RED III Article 31a(1) the Commission had to set up a Union database for tracing liquid and gaseous renewable fuels by 21 November 2024. Implementing Regulation (EU) 2022/996 treats the interconnected EU gas grid as a single mass-balancing system for gaseous fuels, and Art. 30 RED requires economic operators to show compliance through audited chain-of-custody records using mass balance. The UDB gas module is NOT YET LIVE for economic operators: its launch has been postponed to the end of 2026 (European Biogas Association), roughly two years past the statutory deadline. For gas the UDB is a self-declared, monthly-batch Proof of Sustainability (PoS) record with a "Transfer Gas PoS" in-grid reallocation feature. It is distinct from Guarantee of Origin (GO) trading (RED Art. 19, AIB EECS Gas Scheme, ERGaR Certificate of Origin scheme). Until the UDB gas module launches, cross-border compliance traceability continues to run through national registries and voluntary sustainability schemes (ISCC EU, REDcert EU, Nabisy, etc.).
+
+Consignment Title Transfer Lifecycle (this desk's own trade-simulation model, not a documented UDB state machine):
+1. DRAFT: Initial transaction prepared.
+2. SUBMITTED: Registered with origin registry and sent to UDB.
+3. PENDING_UDB_LAUNCH: Boundary and protocol checks pass, but the UDB gas module is not yet live so nothing can be formally recorded yet.
+4. TRANSFERRED: Recipient registry confirms credit to buyer account (once the UDB gas module is live).
+5. BLOCKED: Transfer blocked if the cross-border mass balance boundary is broken (for example a GB injection to an EU destination without a recognition arrangement or physical segregation).`,
     applicableMarkets: ['DE_THG', 'NL_ERE', 'FR_CPB', 'FR_TIRUERT', 'IT_CIC', 'DK_INJECTION'],
     complianceGate: 'UDB Gate & MASS_BALANCE Gate',
     penaltiesOrCaps: 'Until the UDB gas module is live, cross-border compliance traceability continues to run through national registries and voluntary sustainability schemes (ISCC EU, REDcert EU, Nabisy, etc.), not the UDB.',
     deskRuleSummary: 'UDB does not replace AIB or ERGaR for Guarantee of Origin (GO) trading — GOs are a separate, RED Art. 19 disclosure instrument. Biomethane injected into non-EU grids (e.g. Great Britain) cannot be registered in the UDB for EU compliance without a ratified bilateral mutual recognition treaty under RED III Art. 31a, once the module is live.',
     keyStatutoryExcerpts: [
-      'RED III Art. 31a(1) (paraphrased from secondary sources): by 21 November 2024 a Union database is established to enable the traceability of renewable liquid and gaseous fuels and recycled carbon fuels.',
+      'Article 31a(1): "By 21 November 2024, the Commission shall ensure that a Union database is set up to enable the tracing of liquid and gaseous renewable fuels and recycled carbon fuels."',
       'European Biogas Association, "Your short guide to the Union Database": expected launch now pushed to the end of 2026.'
     ],
-    crossReferences: ['RED III Article 31a', 'RED II Article 28(2)&(4)', 'Implementing Regulation (EU) 2022/996', 'ERGaR Scheme Documentation', 'AIB EECS Gas Scheme'],
+    crossReferences: ['Directive (EU) 2023/2413 Art. 31a(1); Art. 30(1)', 'IR (EU) 2022/996 (interconnected EU grid as a single mass-balance system)', 'ERGaR Scheme Documentation', 'AIB EECS Gas Scheme'],
     officialUrl: 'https://energy.ec.europa.eu/topics/renewable-energy/bioenergy/biofuels/union-database-liquid-and-gaseous-renewable-and-recycled-carbon-fuels_en',
     officialUrlLabel: 'European Commission — Union Database for liquid and gaseous renewable and recycled carbon fuels',
     additionalLinks: [
@@ -157,19 +222,23 @@ export const LEGAL_CITATIONS: LegalCitation[] = [
     category: 'NATIONAL_QUOTA_LAW',
     status: 'IN_FORCE',
     effectiveDate: 'In force (Continuous quota escalations through 2030; single counting from 2026)',
-    primaryArticle: '§37a Abs. 1–6, §37c, 38. BImSchV §5 & §11; Bundestag Drucksache 21/5530',
-    summary: 'The statutory engine for the German Greenhouse Gas Reduction Quota (THG-Quote). Obligates mineral oil companies to reduce the carbon footprint of their fuel pool by 10.5% in 2026 (rising to 25% in 2030). Double counting for advanced biofuels (Annex IX-A) applied through compliance year 2025; from 2026, double counting is abolished under Bundestag Drucksache 21/5530 (promulgation date not yet confirmed), and single counting (1×) applies.',
+    primaryArticle: '§ 37a, § 37c(2) BImSchG; 38. BImSchV §5 & §11; Bundestag Drucksache 21/5530',
+    summary: `Under § 37a BImSchG and the 38. BImSchV, fuel suppliers in Germany must meet an escalating greenhouse gas reduction quota (THG-Quote). The non-compliance penalty is EUR ${DE_THG_PENALTY_EUR_PER_TCO2E} per tCO2e of shortfall (§ 37c(2) BImSchG), which caps what a certificate can be worth.
+Manure credit: the RED lifecycle calculation includes a credit of 45 gCO2eq per MJ of manure used as biogas feedstock for improved agricultural and manure management. It sits in the e_sca term (Annex V Part C point 6 and Annex VI Part B point 6) and applies to anaerobic digestion of animal manure. The credit is per MJ of manure input, not per MJ of fuel. The certified carbon intensity on the Proof of Sustainability can therefore be deep negative, but the figure to use is the one on the PoS, not an assumed range. The desk does not hold a storage-type condition for the credit.
+Counting: Germany applied double counting for advanced biofuels through compliance year 2025. It is abolished from 2026 under the Zweites Gesetz zur Weiterentwicklung der THG-Quote (Bundestag Drucksache 21/5530; adopted by the Bundestag 23 April 2026 and Bundesrat 8 May 2026; promulgation date not yet confirmed), so single counting (1x) applies from the 2026 compliance year. Treat the promulgation as unconfirmed. The manure credit in the carbon-intensity calculation is a physical accounting credit and is unaffected by quota counting rules.
+BLE Nabisy: biomethane sold as a transport fuel is booked in the BLE's state database Nabisy on the basis of a certified Proof of Sustainability. Imported gas: dena guidance for the GB to DE case says quantities from outside the EU need additional mass-balance proof; the desk treats GB-injected gas as not clearing into EU quota markets without physical segregation (desk reading, see the UDB document).`,
     applicableMarkets: ['DE_THG'],
     complianceGate: 'ANNEX_IX Gate, GHG Gate & UDB Gate',
-    penaltiesOrCaps: 'Statutory non-compliance buyout penalty: €600 per tonne of CO2 equivalent shortfall (€0.60/kg CO2e).',
-    deskRuleSummary: 'German THG valuation: compliance year 2026+ enforces 1× single counting under Bundestag Drucksache 21/5530. Pre-2026 compliance vintages retain historical 2× double counting. Negative CI from the RED manure credit (avoided methane, counted in the e_sca term of the Annex VI formula) is part of the GHG calculation, not a counting multiplier, so it is unaffected.',
+    penaltiesOrCaps: `Statutory non-compliance buyout penalty: EUR ${DE_THG_PENALTY_EUR_PER_TCO2E} per tCO2e of shortfall (§ 37c(2) BImSchG).`,
+    deskRuleSummary: `German THG valuation: compliance year 2026+ enforces 1× single counting under Bundestag Drucksache 21/5530 (promulgation date not yet confirmed). Pre-2026 compliance vintages retain historical 2× double counting. Negative CI from the RED manure credit (45 gCO2eq per MJ of manure in the e_sca term) is part of the GHG calculation, not a counting multiplier.`,
     keyStatutoryExcerpts: [
+      `§ 37c(2) BImSchG: Non-compliance penalty is EUR ${DE_THG_PENALTY_EUR_PER_TCO2E} per tCO2e of shortfall.`,
       'Bundestag Drucksache 21/5530: "Die Quote für fortschrittliche Biokraftstoffe wird angehoben, die Doppelanrechnung entfällt."',
-      'Bundestag Drucksache 21/5530: "Die Doppelanrechnung für fortschrittliche Biokraftstoffe werde abgeschafft."',
-      '§37a Abs. 4: Die Verpflichtung nach Absatz 1 Satz 1 wird für Kraftstoffe, die unter Verwendung von Abfällen oder Reststoffen im Sinne der Anlage 1 hergestellt wurden, doppelt auf die Erfüllung der Verpflichtung nach Absatz 1 Satz 1 angerechnet (historische Anwendung bis einschließlich Verpflichtungsjahr 2025).',
+      'Bundestag Drucksache 21/5530: "Die Doppelanrechnung für fortschrittliche Biokraftstoffe werde abgeschafft." (promulgation date not yet confirmed; single counting applies from 2026).',
+      'Annex V Part C point 6 & Annex VI Part B point 6: credit of 45 gCO2eq per MJ of manure input in the e_sca term for improved agricultural and manure management.',
       '38. BImSchV §11: Der Nachweis über die Erfüllung der Voraussetzungen ist durch die Vorlage von Nachhaltigkeitsnachweisen nach der Biokraftstoff-Nachhaltigkeitsverordnung zu erbringen.'
     ],
-    crossReferences: ['Biokraft-NachV (Biokraftstoff-Nachhaltigkeitsverordnung)', 'dena Biogasregister Technical Guidelines', 'Bundestag Drucksache 21/5530'],
+    crossReferences: ['§ 37a BImSchG; § 37c(2) BImSchG (penalty); 38. BImSchV', 'Bundestag Drucksache 21/5530 (Zweites Gesetz zur Weiterentwicklung der THG-Quote; promulgation date not yet confirmed)', 'RED II/III Annex V Part C pt 6 and Annex VI Part B pt 6 (e_sca, improved agricultural and manure management)', 'dena guidance on imports'],
     officialUrl: 'https://dserver.bundestag.de/btd/21/055/2105530.pdf',
     officialUrlLabel: 'Bundestag Drucksache 21/5530',
     additionalLinks: [
@@ -194,16 +263,19 @@ export const LEGAL_CITATIONS: LegalCitation[] = [
     status: 'IN_FORCE',
     effectiveDate: '1 January 2026 (ERE replaced the HBE system; annual updates by the Nederlandse Emissieautoriteit - NEa)',
     primaryArticle: 'Wet milieubeheer Titel 9.7, Regeling energie vervoer',
-    summary: 'Governs the Dutch Energy for Transport quota. From 1 January 2026 the emission reduction unit (ERE) replaced the earlier HBE units: 1 ERE represents 1 kg CO2e reduction. Fuel suppliers surrender EREs in the NEa register (REV). Only green-gas GvOs for gas produced in the Netherlands can be used for booking (Regeling energie vervoer Art. 7, per the NEa FAQ in the route audit).',
+    summary: `The Nederlandse Emissieautoriteit (NEa) oversees the Dutch renewable fuel systems. Since 1 January 2026 the earlier HBE (Hernieuwbare Brandstofeenheden) system for transport has been replaced by the ERE (Emissie Reductie Eenheid) system under the Brandstoftransitieverplichting. One ERE is one kilogram of CO2 reduction against the fossil reference, so it is counted in CO2 reduction, not in energy units. The old HBE-G double-counting multiplier for Annex IX Part A feedstock belonged to the energy-based HBE system and must not be applied to ERE; low-carbon-intensity gas is favoured through the kilograms of CO2e avoided. Confirm any special feedstock rule in the Besluit and Regeling energie vervoer before relying on it.
+VertiCer is the Dutch registry that issues Guarantees of Origin for biomethane and green gas. Foreign GOs reach VertiCer via the AIB hub.
+Green-gas obligation (GGE): a separate Dutch obligation (Kamerstuk 36947, chapter 9.9 of the Wet milieubeheer) passed the Tweede Kamer on 6 October 2026 and awaits the Senate, so it is not yet law. The draft rules need the GO and the PoS for the same MWh. The same delivery cannot serve both the ERE and the green-gas obligation.`,
     applicableMarkets: ['NL_ERE'],
     complianceGate: 'MASS_BALANCE Gate & VertiCer Registry Gate',
     penaltiesOrCaps: 'Administrative fine based on non-compliance shortfall plus mandatory compliance carry-over.',
-    deskRuleSummary: 'ERE value scales with the CO2e reduction per MWh, so low-CI gas earns more units. Foreign biomethane cannot be booked into ERE (Dutch-produced green gas only); the separate Dutch green-gas obligation (GGE) does accept EU imports.',
+    deskRuleSummary: 'ERE units measure one kilogram of CO2 reduction. Dutch transport accepts only Dutch green gas in REV, while Dutch GGE obligation accepts EU imports. The old HBE-G double-counting multiplier must not be applied to ERE.',
     keyStatutoryExcerpts: [
+      'Wet milieubeheer Titel 9.7: 1 ERE represents one kilogram of CO2 reduction against the fossil reference.',
       'Besluit energie vervoer Art. 14: Een inboeker kan hernieuwbare energie inboeken in het register hernieuwbare energie vervoer indien deze energie is geleverd aan de Nederlandse markt voor vervoer.',
-      'Wet milieubeheer Art. 9.7.2.1: De jaarverplichting wordt uitgedrukt in een percentage van de totale hoeveelheid benzine en diesel die de vergunninghouder in het kalenderjaar heeft uitgeslagen.'
+      'Wet milieubeheer (chapter 9.9, Kamerstuk 36947): separate green-gas obligation passed Tweede Kamer on 6 October 2026 and awaits the Senate (not yet law).'
     ],
-    crossReferences: ['VertiCer Regeling Garanties van Oorsprong', 'NEa Guideline Inboeken Hernieuwbare Gas'],
+    crossReferences: ['Wet milieubeheer (Energie voor vervoer)', 'RVO "Hernieuwbare energie voor vervoer"', 'VertiCer Regeling Garanties van Oorsprong', 'Kamerstuk 36947 (Wet bijmengverplichting groen gas)'],
     officialUrl: 'https://wetten.overheid.nl/BWBR0003245/',
     officialUrlLabel: 'Overheid.nl Official Legal Text (Wet milieubeheer)',
     additionalLinks: [
@@ -225,19 +297,21 @@ export const LEGAL_CITATIONS: LegalCitation[] = [
     category: 'NATIONAL_QUOTA_LAW',
     status: 'IN_FORCE',
     effectiveDate: 'First obligation period 1 January 2026 – 31 December 2028',
-    primaryArticle: 'Code de l\'énergie (CPB provisions, Loi Climat et résilience 2021); Décret n° 2024-718',
-    summary: 'Natural gas suppliers must surrender certificats de production de biogaz (CPB) each year in proportion to their gas supplied to residential and tertiary final consumers. CPBs correspond to biomethane injected without public support; suppliers produce biomethane themselves or buy CPBs from producers. This is separate from the feed-in tariff (contrat d\'achat), which supports subsidised plants.',
+    primaryArticle: 'Code de l\'énergie Art. L.446-24 et seq.; Décret n° 2024-718 du 6 juillet 2024',
+    summary: `France obliges natural gas suppliers above a size threshold to surrender Certificats de Production de Biogaz (CPB) in proportion to their customers' consumption, under the Code de l'énergie (Art. L.446-24 and following). The first obligation period runs 2026 to 2028 and the obligation is phased in. Producers receive CPBs; suppliers surrender them.
+Penalty ceiling: a supplier that does not surrender certificates pays a penalty of EUR ${FR_CPB_CEILING_EUR_MWH} per MWh of missing CPB. Paying it does not count as surrendering the certificate, but no supplier rationally pays more than the penalty, so it caps the certificate value. Any calculated delivered stack above EUR ${FR_CPB_CEILING_EUR_MWH}/MWh is clamped at that level.
+TIRUERT: France's incentive tax on fuel distributors that miss renewable-fuel targets in road transport (Code des douanes Art. 266 quindecies). Advanced biomethane supplied as Bio-CNG or Bio-LNG reduces or removes the liability. The scheme is moving to a GHG-based version (IRICC). The vault holds no confirmed counting multiplier for TIRUERT.`,
     applicableMarkets: ['FR_CPB'],
     complianceGate: 'SCHEME Gate & EEX Register Gate',
-    penaltiesOrCaps: 'A €100 penalty per missing CPB caps certificate value; for the first period the penalty is payable at its end (2029, per the 2026 public consultation).',
-    deskRuleSummary: 'French CPB certificate netbacks bind at the €100/MWh penalty ceiling: no supplier pays more than the penalty. Only unsubsidised biomethane generates CPBs.',
+    penaltiesOrCaps: `Statutory penalty ceiling: EUR ${FR_CPB_CEILING_EUR_MWH} per MWh of missing CPB (Code de l'énergie Art. L.446-24).`,
+    deskRuleSummary: `French CPB certificate netbacks bind at the EUR ${FR_CPB_CEILING_EUR_MWH}/MWh penalty ceiling: no supplier pays more than the penalty. Only unsubsidised biomethane generates CPBs.`,
     keyStatutoryExcerpts: [
-      'Décret n° 2024-718 (summary, not verbatim): sets out the CPB obligation, under which gas suppliers surrender certificates for biomethane injected without public support, in proportion to their supply to residential and tertiary final consumers.',
-      'First obligation period (summary): 1 January 2026 to 31 December 2028; indicative incorporation trajectory 0.8 TWh (2026), 3.1 TWh (2027), 6.5 TWh (2028) per the 2026 consultation on the post-2028 trajectory.'
+      `Code de l'énergie Art. L.446-24: Gas suppliers must surrender CPBs with a non-compliance penalty of EUR ${FR_CPB_CEILING_EUR_MWH} per MWh.`,
+      'Décret n° 2024-718 du 6 juillet 2024: First obligation period runs 1 January 2026 to 31 December 2028 for biomethane injected without public support.'
     ],
-    crossReferences: ['Registre National des Garanties d\'Origine (EEX France)', 'TIRUERT (Code des douanes Art. 266 quindecies)'],
-    officialUrl: 'https://www.legifrance.gouv.fr/search/all?query=d%C3%A9cret%202024-718',
-    officialUrlLabel: 'Légifrance search: Décret n° 2024-718 du 6 juillet 2024',
+    crossReferences: ['Code de l\'énergie Art. L.446-24 et seq.', 'Décret n° 2024-718 du 6 juillet 2024', 'Registre National des Garanties d\'Origine (EEX France)', 'Code des douanes Art. 266 quindecies (TIRUERT)'],
+    officialUrl: 'https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000043961125',
+    officialUrlLabel: 'Légifrance Official Portal (Code de l\'énergie Art. L.446-24)',
     additionalLinks: [
       { label: 'Connaissance des Énergies: obligation CPB, ce qui va changer', url: 'https://www.connaissancedesenergies.org/obligation-de-certificats-de-production-de-biogaz-cpb-ce-qui-va-changer-241104' },
       { label: 'Ministère: consultation trajectoire CPB post-2028 (2026)', url: 'https://www.consultations-publiques.developpement-durable.gouv.fr/IMG/pdf/20260504_-_courrier_de_consultation_trajectoire_cpb_post-2028.pdf' }
@@ -254,7 +328,7 @@ export const LEGAL_CITATIONS: LegalCitation[] = [
     status: 'IN_FORCE',
     effectiveDate: 'Annual updates in the French Budget Law (Loi de Finances)',
     primaryArticle: 'Code des douanes Article 266 quindecies, CIBS Articles L312-1 et seq.',
-    summary: 'French transport fuel obligation tax. Imposes a financial penalty on fuel distributors who fail to achieve target shares of renewable fuels in the road transport pool. Annex IX-A advanced biomethane and Bio-CNG/Bio-LNG supply reduce or eliminate TIRUERT tax liability.',
+    summary: 'French transport fuel obligation tax. Imposes a financial penalty on fuel distributors who fail to achieve target shares of renewable fuels in the road transport pool. Annex IX-A advanced biomethane and Bio-CNG/Bio-LNG supply reduce or eliminate TIRUERT tax liability. The scheme is transitioning to a GHG-based mechanism (IRICC).',
     applicableMarkets: ['FR_TIRUERT'],
     complianceGate: 'ANNEX_IX Gate & UDB Gate',
     penaltiesOrCaps: 'Statutory non-compliance tax rate: up to €168.00 per hectolitre fuel shortfall or equivalent energy penalty.',
@@ -262,7 +336,7 @@ export const LEGAL_CITATIONS: LegalCitation[] = [
     keyStatutoryExcerpts: [
       'Article 266 quindecies: Les redevables de la taxe incitative sont les personnes qui mettent à la consommation en France des carburants. Le montant de la taxe est assis sur le volume total des carburants distribués diminué des quantités d\'énergie renouvelable incorporées.'
     ],
-    crossReferences: ['Code de l\'énergie Art. L446-1', 'French DGEC Circular on Biofuels'],
+    crossReferences: ['Code de l\'énergie Art. L446-1', 'French DGEC Circular on Biofuels', 'Code des douanes Art. 266 quindecies'],
     officialUrl: 'https://www.douane.gouv.fr/fiche/taxe-incitative-relative-lutilisation-denergie-renouvelable-dans-les-transports-tiruert',
     officialUrlLabel: 'Douane Française Official TIRUERT Guidance',
     additionalLinks: [
@@ -283,17 +357,19 @@ export const LEGAL_CITATIONS: LegalCitation[] = [
     category: 'NATIONAL_QUOTA_LAW',
     status: 'IN_FORCE',
     effectiveDate: '2 March 2018 (Extended via PNRR investment incentives to 2026)',
-    primaryArticle: 'Articoli 3, 5, 6 & 8',
-    summary: 'Governs the Italian Certificate of Release for Consumption (Certificati di Immissione in Consumo - CIC) scheme administered by Gestore dei Servizi Energetici (GSE). Advanced biomethane injected into SNAM or distribution grids earns 1 CIC per 10 Gcal (approx. 11.63 MWh), with GSE guaranteeing a fixed floor price of €375.00 per CIC for 10 years.',
+    primaryArticle: 'DM 2 marzo 2018 Articoli 3, 5, 6 & 8; DM 15 settembre 2022',
+    summary: `Certificati di Immissione in Consumo (CIC) are administered by GSE (Gestore dei Servizi Energetici) under the Decreto Ministeriale of 2 March 2018 for biomethane and other advanced biofuels in transport. One CIC is issued per ${GCAL_PER_CIC_CONVENTIONAL} Gcal of conventional biomethane (about ${MWH_PER_CIC_CONVENTIONAL.toFixed(2)} MWh) or per ${GCAL_PER_CIC_ADVANCED} Gcal of advanced biomethane (about ${MWH_PER_CIC_ADVANCED.toFixed(3)} MWh). Advanced biomethane is made from Annex IX Part A feedstock, for example the organic fraction of municipal waste (FORSU), manure and agricultural residues.
+The Decreto Ministeriale of 15 September 2022 is a different instrument: the PNRR biomethane decree. It supports new or converted plants with a capital grant plus an incentive tariff on net biomethane production for 15 years from start-up, awarded through competitive procedures. It does not create the CIC.
+GO export: GOs from supported transport or other-use plants cannot be exported from Italy (AIB domain protocol).`,
     applicableMarkets: ['IT_CIC'],
     complianceGate: 'GSE Register Gate & MASS_BALANCE Gate',
-    penaltiesOrCaps: 'GSE guaranteed minimum floor of €375.00/CIC (€32.24/MWh certificate floor) with market upside on the GME exchange.',
-    deskRuleSummary: 'Italian CIC valuation provides high revenue certainty for agro-industrial manure and municipal biowaste consignments due to the statutory GSE floor mechanism and Italian CNG transport penetration.',
+    penaltiesOrCaps: `GSE guaranteed floor price: €375.00/CIC (1 CIC = ${GCAL_PER_CIC_ADVANCED} Gcal / ~${MWH_PER_CIC_ADVANCED.toFixed(3)} MWh advanced, or ${GCAL_PER_CIC_CONVENTIONAL} Gcal / ~${MWH_PER_CIC_CONVENTIONAL.toFixed(2)} MWh conventional).`,
+    deskRuleSummary: `Italian CIC valuation provides high revenue certainty for agro-industrial manure and municipal biowaste consignments due to the statutory GSE floor mechanism (€375.00/CIC). GOs from supported Italian plants cannot be exported.`,
     keyStatutoryExcerpts: [
-      'Articolo 5(1): Ai produttori di biometano avanzato immesso nella rete del gas naturale e destinato al settore dei trasporti è riconosciuto un certificato di immissione in consumo per ogni 10 Gcal di biometano avanzato prodotto e immesso in consumo.',
+      `D.M. 2 marzo 2018 Articolo 5(1): Ai produttori di biometano è riconosciuto 1 CIC ogni ${GCAL_PER_CIC_CONVENTIONAL} Gcal di biometano convenzionale (~${MWH_PER_CIC_CONVENTIONAL.toFixed(2)} MWh) o ogni ${GCAL_PER_CIC_ADVANCED} Gcal di biometano avanzato (~${MWH_PER_CIC_ADVANCED.toFixed(3)} MWh).`,
       'Articolo 6(2): Il GSE ritira i CIC rilasciati a fronte della produzione di biometano avanzato al prezzo fisso di 375 euro per ciascun CIC per un periodo di dieci anni.'
     ],
-    crossReferences: ['GSE Regolamento Applicativo D.M. 2 Marzo 2018', 'SNAM Codice di Rete'],
+    crossReferences: ['DM 2 marzo 2018 (CIC)', 'DM 15 settembre 2022 (PNRR Biomethane Decree)', 'GSE Regolamento Applicativo', 'AIB Italian Domain Protocol'],
     officialUrl: 'https://www.gse.it/servizi-per-te/fonti-rinnovabili/biometano',
     officialUrlLabel: 'GSE Gestore Servizi Energetici Official Portal',
     additionalLinks: [
@@ -347,17 +423,20 @@ export const LEGAL_CITATIONS: LegalCitation[] = [
     category: 'NATIONAL_QUOTA_LAW',
     status: 'RESTRICTED',
     effectiveDate: 'In force (Post-Brexit separate national compliance market)',
-    primaryArticle: 'Articles 3, 4, 5, 16 & 21',
-    summary: 'The UK transport fuel obligation administered by the Department for Transport (DfT). Fuel suppliers must redeem Renewable Transport Fuel Certificates (RTFCs). Biomethane from wastes receives double counting (Development Fuel or Main RTFC). However, following Brexit and RED III Art. 31a implementation, gas injected into Great Britain networks cannot clear the EU Union Database (UDB).',
+    primaryArticle: 'SI 2007/3072 Articles 3, 4, 5, 16, 17 & 21',
+    summary: `The UK Renewable Transport Fuel Obligation (RTFO Order 2007, SI 2007/3072) obliges fuel suppliers to redeem Renewable Transport Fuel Certificates (RTFCs) or pay the buy-out. Fuel from certain wastes and residues is awarded double the RTFCs. The buy-out is GBP ${UK_RTFC_BUYOUT_GBP.toFixed(2)} per standard RTFC and GBP 0.80 per development-fuel certificate (DfT guide 2024). The desk models certificates per kg of biomethane from a lower heating value of 50 MJ/kg (see the netback engine); that conversion is a desk assumption, not a DfT figure. "dRTFC" is the market quote unit used in the desk's broker data.
+GGCS (Green Gas Certification Scheme) is the GB biomethane certificate scheme; it is on the ERGaR hub, not AIB. Its RGGO certificates relate to gas injected into the Great Britain grid. The detailed scheme-rule section is not verified in the vault.
+Non-EU grid boundary (desk reading): Great Britain's grid is physically linked to the Continent, but it sits outside the EU's single interconnected mass-balance area under IR (EU) 2022/996, so GB-injected gas cannot clear into EU quota markets (DE, NL, FR, IT) on mass balance alone. The workaround is physical segregation, for example shipping segregated Bio-LNG, or a recognition agreement. dena also requires extra mass-balance proof for non-EU quantities.`,
     applicableMarkets: ['UK_RTFO'],
     complianceGate: 'DfT RTFO Register Gate (BLOCKED at EU UDB Gate)',
-    penaltiesOrCaps: 'Buyout price of £0.50 per RTFC certificate (or £0.80 per Development Fuel certificate).',
-    deskRuleSummary: 'GB Grid Boundary Rule: Biomethane injected into the GB National Gas transmission network cannot be imported into continental EU compliance markets (Germany THG, Netherlands ERE, France CPB) under UDB rules. UK-produced biomethane must either supply the domestic UK RTFO / GGSS schemes or be transported physically as segregated Bio-LNG.',
+    penaltiesOrCaps: `Statutory buy-out price: GBP ${UK_RTFC_BUYOUT_GBP.toFixed(2)} per standard RTFC, and GBP 0.80 per development-fuel certificate (DfT guide 2024).`,
+    deskRuleSummary: `GB Grid Boundary Rule: Biomethane injected into the GB National Gas transmission network cannot be imported into continental EU compliance markets (Germany THG, Netherlands ERE, France CPB) under UDB rules. Buyout ceiling is GBP ${UK_RTFC_BUYOUT_GBP.toFixed(2)}/RTFC.`,
     keyStatutoryExcerpts: [
-      'RTFO Order Article 16: An RTF certificate may be issued in respect of renewable transport fuel if the fuel is supplied at or for delivery to places in the United Kingdom.',
-      'DfT RTFO Guidance 2024: Mass balance across the UK/EU natural gas interconnectors is not mutually recognized for EU Union Database compliance without an international agreement.'
+      `RTFO Order Article 17: Statutory buyout price is GBP ${UK_RTFC_BUYOUT_GBP.toFixed(2)} per standard RTFC.`,
+      `DfT RTFO Guide 2024: Buy-out is GBP ${UK_RTFC_BUYOUT_GBP.toFixed(2)} per standard RTFC and GBP 0.80 per development-fuel RTFC; double RTFCs awarded for waste and residue fuels.`,
+      'RTFO Order Article 16: An RTF certificate may be issued in respect of renewable transport fuel if the fuel is supplied at or for delivery to places in the United Kingdom.'
     ],
-    crossReferences: ['Green Gas Support Scheme (GGSS)', 'Renewable Heat Incentive (RHI)'],
+    crossReferences: ['Renewable Transport Fuel Obligations Order 2007 (SI 2007/3072)', 'DfT RTFO Guidance', 'IR (EU) 2022/996 (interconnected EU grid as one mass-balance area)'],
     officialUrl: 'https://www.legislation.gov.uk/uksi/2007/3072/contents',
     officialUrlLabel: 'Legislation.gov.uk Official Portal (RTFO Order)',
     additionalLinks: [
@@ -1011,16 +1090,28 @@ export const LEGAL_CITATIONS: LegalCitation[] = [
     status: 'IN_FORCE',
     effectiveDate: 'Standard methodology across all EU compliance systems',
     primaryArticle: 'RED III Annex VI Part B & Part C',
-    summary: 'Defines how greenhouse gas emissions ($E$) are computed across the biomethane lifecycle:\n\n$$E = e_{ec} + e_l + e_p + e_{td} + e_u - e_{sca} - e_{ccs} - e_{ccr} - e_{am}$$\n\nWhere:\n* $e_{ec}$: emissions from the extraction or cultivation of raw materials\n* $e_p$: emissions from processing and biogas upgrading\n* $e_{td}$: emissions from transport and grid distribution\n* $e_{sca}$: emission savings from soil carbon accumulation via improved agriculture\n* $e_{am}$: emission savings from avoided manure methane emissions (−45 to −100 gCO2e/MJ credit)\n* **Fossil Comparator Baseline**: Fixed at **94.0 gCO₂e/MJ**.',
+    summary: `Defines how greenhouse gas emissions (E) are computed across the biomethane lifecycle:
+
+$$E = e_{ec} + e_l + e_p + e_{td} + e_u - e_{sca} - e_{ccs} - e_{ccr}$$
+
+Where:
+* $e_{ec}$: emissions from extraction or cultivation of raw materials
+* $e_p$: emissions from processing and biogas upgrading
+* $e_{td}$: emissions from transport and grid distribution
+* $e_{sca}$: emission savings from soil carbon accumulation via improved agricultural management (including animal manure anaerobic digestion credit of 45 gCO2eq per MJ of manure input)
+* $e_{ccs} / e_{ccr}$: emission savings from carbon capture and storage or replacement
+* **Fossil Comparators**: ${CI_COMPARATOR_ROAD_TRANSPORT} gCO2e/MJ for transport; ${CI_COMPARATOR_HEAT} gCO2e/MJ for heat.
+* **65% Transport Threshold**: CI <= ${RED3_TRANSPORT_MAX_CI} gCO2e/MJ.`,
     applicableMarkets: ['DE_THG', 'NL_ERE', 'FR_CPB', 'IT_CIC', 'EU_FUELEU_2025'],
     complianceGate: 'GHG Gate',
-    penaltiesOrCaps: 'Transport: consignments with CI > 32.9 gCO2e/MJ fail the 65% saving threshold against the 94 gCO2e/MJ comparator.',
-    deskRuleSummary: 'Negative carbon intensities come from the RED manure credit: the methane avoided by digesting manure instead of storing it raw is credited in the GHG calculation (e_sca). In quota markets like Germany THG, each negative gCO2e/MJ directly increases the certificate yield per MWh. The credit must appear on the PoS.',
+    penaltiesOrCaps: `Transport: consignments with CI > ${RED3_TRANSPORT_MAX_CI} gCO2e/MJ fail the 65% saving threshold against the ${CI_COMPARATOR_ROAD_TRANSPORT} gCO2e/MJ comparator.`,
+    deskRuleSummary: `Negative carbon intensities come from the RED manure credit: the methane avoided by digesting manure instead of storing it raw is credited in the GHG calculation (45 gCO2eq per MJ of manure in the e_sca term). In quota markets like Germany THG, each negative gCO2e/MJ directly increases the certificate yield per MWh. The credit must appear on the PoS.`,
     keyStatutoryExcerpts: [
       'Annex VI Part B point 1: Greenhouse gas emissions from the production and use of biomass fuels shall be calculated as: E = e_ec + e_l + e_p + e_td + e_u - e_sca - e_ccs - e_ccr.',
-      'Annex VI Part B point 19 (summary): the fossil fuel comparator is 94 gCO2eq/MJ for biomethane used as transport fuel and 80 gCO2eq/MJ for heat.'
+      `Annex VI Part B point 19: the fossil fuel comparator is ${CI_COMPARATOR_ROAD_TRANSPORT} gCO2eq/MJ for biomethane used as transport fuel and ${CI_COMPARATOR_HEAT} gCO2eq/MJ for heat.`,
+      'Annex VI Part B point 6: credit of 45 gCO2eq per MJ of manure in the e_sca term for improved agricultural and manure management.'
     ],
-    crossReferences: ['ISCC EU Document 205', 'JRC Biomethane Default Factors'],
+    crossReferences: ['ISCC EU Document 205', 'JRC Biomethane Default Factors', 'RED II/III Annex V Part C & Annex VI Part B'],
     officialUrl: 'https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32018L2001#anx_VI',
     officialUrlLabel: 'EUR-Lex Full Text (Annex VI GHG Methodology)'
   },
@@ -1086,16 +1177,16 @@ export const LEGAL_CITATIONS: LegalCitation[] = [
     status: 'FUTURE_2027_2028',
     effectiveDate: '1 January 2027 (Draft consulted summer 2026)',
     primaryArticle: 'Articles 2, 4, 5, 6',
-    summary: 'Details administrative and technical rules for NL GGE: fossil comparator of 80 gCO2e/MJ (heat), LHV energy basis, buy-out schedule from €450/t (2027) to €527/t (2035), and booking data fields (feedstock origin country, per-step CI).',
+    summary: `Details administrative and technical rules for NL GGE: fossil comparator of ${NL_GGE_FOSSIL_COMPARATOR_GCO2E_MJ} gCO2e/MJ (heat), LHV energy basis, buy-out schedule from €${NL_GGE_BUYOUT_EUR_PER_TCO2E[2027]}/t (2027) to €${NL_GGE_BUYOUT_EUR_PER_TCO2E[2035]}/t (2035), banking cap of ${NL_GGE_BANKING_CAP_PCT}%, 5-year clawback window (${NL_GGE_CLAWBACK_YEARS} years), GO validity of ${NL_GGE_GO_VALIDITY_MONTHS} months, and booking data fields (feedstock origin country, per-step CI).`,
     applicableMarkets: ['NL_GGE'],
     complianceGate: 'Chain of Custody Gate & GHG Gate',
-    penaltiesOrCaps: 'Statutory buy-out schedule: 2027 €450/t, 2028 €459/t, 2029 €468/t, 2030 €478/t, 2035 €527/t.',
-    deskRuleSummary: '1 GGE = 1 kg CO2e reduction = (80 - CI) * 3.6 * MWh_LHV. No operating aid allowed. MWh converted to LHV basis.',
+    penaltiesOrCaps: `Statutory buy-out schedule: 2027 €${NL_GGE_BUYOUT_EUR_PER_TCO2E[2027]}/t, 2028 €${NL_GGE_BUYOUT_EUR_PER_TCO2E[2028]}/t, 2029 €${NL_GGE_BUYOUT_EUR_PER_TCO2E[2029]}/t, 2030 €${NL_GGE_BUYOUT_EUR_PER_TCO2E[2030]}/t, 2035 €${NL_GGE_BUYOUT_EUR_PER_TCO2E[2035]}/t.`,
+    deskRuleSummary: `1 GGE = 1 kg CO2e reduction = (${NL_GGE_FOSSIL_COMPARATOR_GCO2E_MJ} - CI) * 3.6 * MWh_LHV. No operating aid allowed. MWh converted to LHV basis.`,
     keyStatutoryExcerpts: [
       'Toelichting 2.3: Deze GvO en PoS mogen niet los van elkaar verhandeld worden. De energieleverancier moet beide documenten in bezit hebben.',
-      'Artikel 2: Het bedrag van de afkoopsom bedraagt in 2027 € 450 per ton CO2-equivalent.'
+      `Artikel 2: Het bedrag van de afkoopsom bedraagt in 2027 € ${NL_GGE_BUYOUT_EUR_PER_TCO2E[2027]} per ton CO2-equivalent.`
     ],
-    crossReferences: ['Ontwerpbesluit bijmengverplichting groen gas', 'RED III Annex VI'],
+    crossReferences: ['Ontwerpbesluit bijmengverplichting groen gas', 'RED III Annex VI', 'Concept Regeling bijmengverplichting groen gas'],
     officialUrl: 'https://www.internetconsultatie.nl/bijmengverplichtinggroengasmr/b1',
     officialUrlLabel: 'Internetconsultatie Concept Regeling',
   },

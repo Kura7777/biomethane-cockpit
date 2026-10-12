@@ -11,6 +11,7 @@ import type { HelperTurn } from '../../domain/help/helperLogic';
 
 const OPEN_KEY = 'biomethane-helper-open';
 const EXPANDED_KEY = 'biomethane-helper-expanded';
+const CONVERSATIONS_KEY = 'biomethane-helper-conversations';
 
 export interface HelperSnapshot {
   open: boolean;
@@ -39,8 +40,40 @@ function writeFlag(key: string, on: boolean): void {
   }
 }
 
+function readConversations(): Record<string, readonly HelperTurn[]> {
+  try {
+    if (typeof sessionStorage !== 'undefined') {
+      const raw = sessionStorage.getItem(CONVERSATIONS_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') return parsed;
+      }
+    }
+  } catch {
+    // Storage unavailable or damaged
+  }
+  return {};
+}
+
+function writeConversations(conversations: Record<string, readonly HelperTurn[]>): void {
+  try {
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.setItem(CONVERSATIONS_KEY, JSON.stringify(conversations));
+    }
+  } catch {
+    // Storage quota or private browsing
+  }
+}
+
 const startOpen = readFlag(OPEN_KEY);
-let snapshot: HelperSnapshot = { open: startOpen, expanded: startOpen && readFlag(EXPANDED_KEY), conversations: {}, recent: [], viewing: null };
+const storedConversations = readConversations();
+let snapshot: HelperSnapshot = {
+  open: startOpen,
+  expanded: startOpen && readFlag(EXPANDED_KEY),
+  conversations: storedConversations,
+  recent: Object.keys(storedConversations),
+  viewing: null,
+};
 const listeners = new Set<() => void>();
 
 function set(next: HelperSnapshot): void {
@@ -81,9 +114,11 @@ export function setHelperExpanded(expanded: boolean): void {
 
 export function appendHelperTurn(pageKey: string, turn: HelperTurn): void {
   const existing = snapshot.conversations[pageKey] ?? [];
+  const nextConversations = { ...snapshot.conversations, [pageKey]: [...existing, turn] };
+  writeConversations(nextConversations);
   set({
     ...snapshot,
-    conversations: { ...snapshot.conversations, [pageKey]: [...existing, turn] },
+    conversations: nextConversations,
     recent: [pageKey, ...snapshot.recent.filter(k => k !== pageKey)],
   });
 }
@@ -93,6 +128,7 @@ export function clearHelperConversation(pageKey: string): void {
   if (!snapshot.conversations[pageKey]) return;
   const conversations = { ...snapshot.conversations };
   delete conversations[pageKey];
+  writeConversations(conversations);
   set({ ...snapshot, conversations, recent: snapshot.recent.filter(k => k !== pageKey), viewing: snapshot.viewing === pageKey ? null : snapshot.viewing });
 }
 
@@ -103,5 +139,15 @@ export function setHelperViewing(pageKey: string | null): void {
 
 /** Test helper: back to a fresh session. */
 export function resetHelperStore(): void {
+  try {
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.removeItem(CONVERSATIONS_KEY);
+      sessionStorage.removeItem(OPEN_KEY);
+      sessionStorage.removeItem(EXPANDED_KEY);
+    }
+  } catch {
+    // Ignore
+  }
   set({ open: false, expanded: false, conversations: {}, recent: [], viewing: null });
 }
+
