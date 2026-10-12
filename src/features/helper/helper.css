@@ -296,7 +296,15 @@ body:has(.m-sticky-actions) .ph-root--compact { --ph-bottom: calc(56px + env(saf
 .ph-answer a:hover, .ph-sources a:hover { color: var(--color-muted); }
 
 /* ── Ask the desk (#/ask): the general chat, full page ─────────────────────── */
-.ask-screen { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; background: var(--color-bg); }
+.ask-screen {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+  overflow: hidden;
+}
 .ask-head {
   flex: none;
   display: flex;
@@ -326,13 +334,33 @@ body:has(.m-sticky-actions) .ph-root--compact { --ph-bottom: calc(56px + env(saf
 .ask-new:hover:not(:disabled) { border-color: var(--color-text); }
 .ask-new:disabled { opacity: 0.5; cursor: default; }
 /* The body scrolls edge to edge; its content sits in a centred reading column. */
-.ask-screen .ph-body { padding: 20px max(16px, calc((100% - 820px) / 2)); gap: 12px; }
+.ask-screen .ph-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 20px max(16px, calc((100% - 820px) / 2));
+  gap: 12px;
+}
 .ask-screen .ph-msg { max-width: none; }
 .ask-screen .ph-msg--user { max-width: 80%; }
-.ask-foot { flex: none; padding: 10px max(16px, calc((100% - 820px) / 2)) 12px; border-top: 1px solid var(--color-divider); background: var(--color-surface); }
+.ask-foot {
+  flex: none;
+  padding: 10px max(16px, calc((100% - 820px) / 2)) max(12px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--color-divider);
+  background: var(--color-surface);
+}
 .ask-column { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 
-.ask-empty { margin: auto 0; padding: 24px 0; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; }
+.ask-empty {
+  margin: auto 0;
+  padding: 16px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+}
 .ask-empty-mark {
   display: inline-flex;
   align-items: center;
@@ -345,7 +373,13 @@ body:has(.m-sticky-actions) .ph-root--compact { --ph-bottom: calc(56px + env(saf
 }
 .ask-empty-title { margin: 0; font-size: 20px; }
 .ask-empty-text { margin: 0; max-width: 560px; color: var(--color-muted); line-height: 1.5; }
-.ask-starters { margin-top: 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px; width: 100%; }
+.ask-starters {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 8px;
+  width: 100%;
+}
 .ask-starter {
   padding: 10px 12px;
   border: 1px solid var(--color-border);
@@ -437,23 +471,61 @@ body:has(.m-sticky-actions) .ph-root--compact { --ph-bottom: calc(56px + env(saf
 .ask-model-use { color: var(--color-text); }
 .ask-model-cost { color: var(--color-muted); }
 .ask-model-note { margin: 4px 10px 2px; font-size: 11px; color: var(--color-muted); }
-/* Compact layout: the app header already says "Ask the desk", so drop the repeat and keep the bar to one row. */
+
+/* Compact mobile layout (<768px): clean horizontal scroll strip for controls, touch targets, and resilient viewport height */
 @media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
+  .ask-screen {
+    height: 100%;
+    min-height: 0;
+  }
   .ask-title { display: none; }
-  .ask-head { gap: 8px; }
-  /* The model menu spans the screen under the bar instead of hanging off the button. */
-  .ask-head { position: relative; }
+  .ask-head {
+    gap: 8px;
+    padding: 8px 12px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    position: relative;
+  }
+  .ask-head::-webkit-scrollbar { display: none; }
+  .ask-head-text { flex: none; }
+  .ask-today { display: none; }
   .ask-model { position: static; }
-  .ask-model-menu { left: 12px; right: 12px; width: auto; top: calc(100% - 2px); }
+  .ask-model-menu {
+    left: 8px;
+    right: 8px;
+    width: auto;
+    top: calc(100% + 4px);
+    max-height: 60vh;
+  }
+  .ask-screen .ph-body {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+  .ask-starters {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .ask-starter {
+    padding: 8px 10px;
+    font-size: 12.5px;
+  }
+  .ask-foot {
+    padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px));
+  }
+  .ph-input {
+    font-size: 15px;
+    padding: 8px 12px;
+  }
+  .ph-send {
+    width: 40px;
+    height: 40px;
+  }
 }
 
 /* The budget note links with the answer text colour, not the accent. */
 .ph-budget-note a { color: inherit; text-decoration: underline; }
-/* Compact layout: the mode chip, today's total, model and New chat wrap instead of overlapping. */
-@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
-  .ask-head { flex-wrap: wrap; }
-  .ask-head-text { flex: 1 1 auto; }
-}
 
 /* ── Claude | Gemini: one provider at a time ───────────────────────────────── */
 .provider-switch { flex: none; display: inline-flex; padding: 2px; border: 1px solid var(--color-border); border-radius: 7px; background: var(--color-bg); }
