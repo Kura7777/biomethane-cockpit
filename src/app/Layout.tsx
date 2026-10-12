@@ -125,6 +125,16 @@ export function Layout() {
         return;
       }
 
+      // Do NOT hijack standard browser shortcuts (Ctrl+C for Copy, Ctrl+V for Paste, Ctrl+R, etc.)
+      if (e.ctrlKey || e.metaKey || e.altKey) {
+        return;
+      }
+
+      // Do not navigate if user has highlighted text on the screen (e.g. preparing to copy)
+      if (window.getSelection()?.toString()) {
+        return;
+      }
+
       if (k === 'b') navigate('/');
       if (e.key === '1') navigate('/sourcing');
       if (e.key === '2') navigate('/plants');
