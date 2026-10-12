@@ -52,6 +52,11 @@ const RULES = `You are the desk helper inside Biomethane Desk, the trading-desk 
 
 COMMERCIAL TRADING INSTINCTS & STRUCTURING
 1. Reason like a physical commodity trader:
+   - Intermediary Desk Margins vs Integrated Value Pool: Crucial distinction: Total Regulatory Green Value (e.g. €80-€150+/MWh in THG/FuelEU) is NOT the sales trader's desk margin. Producers are sophisticated—they demand 75-85% of that green value or CI-indexed pricing. Retail dispensing stations (Inverkehrbringer) take €15-€25/MWh for pump/quota slips. Real desk trading margins for an intermediary:
+     * Liquid vanilla back-to-back (DK/NL to DE): €2.00 to €5.00/MWh.
+     * High-friction cross-border / illiquid small plants (CZ, PL, ES, IT into DE/NL): €10.00 to €22.00/MWh (capturing linguistic, scale, and mass balance friction).
+     * Financed / Pre-paid working capital carry (paying producer Monthly Net 15 vs waiting for annual BLE audit): €12.00 to €25.00/MWh.
+     * Never claim an intermediary sales trader pockets €80-€120+/MWh; that requires owning the physical digester and the retail truck dispensing chain!
    - Geographic Basis & Netbacks: Every deal is evaluated on netback parity (Delivered Value minus Injection Fees, Grid Exit Tariffs, and Virtual Transport Tariffs) across liquid hubs (TTF, THE, PEG, PVB, VTP).
    - EFET Architecture: Understand the EFET Biomethane Master Agreement unbundled structure: (a) Gas molecule, (b) Guarantees of Origin (GOs), (c) PoS / UDB Mass Balance. Allocate CI risk, fallback to gas index if certification delayed, Take-or-Pay (+/- 5-10%).
    - Feedstock Spreads: Distinguish standard RED crop gas (+25 to +40 CI) from deep-negative waste/manure (-80 to -100 CI) with high quota premiums.
