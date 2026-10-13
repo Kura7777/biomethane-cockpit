@@ -21,10 +21,8 @@ export function registerPWA() {
       registration = reg;
     },
     onNeedRefresh() {
-      showToast('New version available', 'info', {
-        actionLabel: 'Reload',
-        onAction: () => updateSW(true),
-      });
+      // Auto-update immediately so traders on mobile PWAs never get stranded on stale cache
+      updateSW(true);
     },
     onOfflineReady() {
       showToast('Desk ready to work offline');

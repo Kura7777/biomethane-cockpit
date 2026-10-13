@@ -40,7 +40,7 @@ export default defineConfig({
     tailwindcss(),
     apiServerPlugin(),
     VitePWA({
-      registerType: 'prompt',
+      registerType: 'autoUpdate',
       injectRegister: null, // we call registerSW ourselves from src/app/pwa.ts
       strategies: 'generateSW',
       // Without this, vite-plugin-pwa treats an asset that exceeds
@@ -81,15 +81,18 @@ export default defineConfig({
         // Default maximumFileSizeToCacheInBytes (2 MiB) intentionally keeps the
         // multi-MB plant/data chunks out of the precache; they're runtime-cached below.
         cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true,
         navigateFallback: 'index.html',
         navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
           {
             urlPattern: ({ url, sameOrigin }) => sameOrigin && /\/assets\/.*\.js$/.test(url.pathname),
-            handler: 'CacheFirst',
+            handler: 'NetworkFirst',
             options: {
               cacheName: 'desk-chunks',
-              expiration: { maxEntries: 80, maxAgeSeconds: 60 * 60 * 24 * 60 },
+              networkTimeoutSeconds: 3,
+              expiration: { maxEntries: 80, maxAgeSeconds: 60 * 60 * 24 * 30 },
               cacheableResponse: { statuses: [0, 200] },
             },
           },
