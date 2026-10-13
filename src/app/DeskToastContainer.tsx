@@ -58,9 +58,17 @@ export function DeskToastContainer() {
     <div
       style={{
         position: 'fixed',
-        // Compact layout: the toast rides under the header, never over the tab bar or a sticky
-        // action bar's buttons.
-        ...(isMobile ? { top: 'calc(52px + env(safe-area-inset-top))' } : { bottom: '44px' }),
+        ...(isMobile
+          ? {
+              bottom: 'calc(76px + env(safe-area-inset-bottom, 0px))',
+              borderRadius: '12px',
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.22)',
+            }
+          : {
+              bottom: '44px',
+              borderRadius: '4px',
+              boxShadow: 'var(--shadow-lg)',
+            }),
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 1100, // matches --z-toast in index.css
@@ -71,12 +79,11 @@ export function DeskToastContainer() {
         padding: '10px 16px',
         background: 'var(--color-text)',
         color: 'var(--color-bg)',
-        boxShadow: 'var(--shadow-lg)',
       }}
       role="status"
       aria-live="polite"
     >
-      <span style={{ width: '8px', height: '8px', background: 'var(--color-accent)', flex: 'none' }} />
+      <span style={{ width: '8px', height: '8px', borderRadius: isMobile ? '50%' : '1px', background: 'var(--color-accent)', flex: 'none' }} />
       <span style={{ fontSize: '13px', fontWeight: 600, whiteSpace: isMobile ? 'normal' : 'nowrap', wordBreak: 'break-word' }}>
         {toast.message}
       </span>

@@ -18,13 +18,19 @@
     -webkit-text-size-adjust: 100%;
   }
 
-  /* iOS zooms the viewport on focusing any input under 16px; keep the visual size the same
-     by trimming padding/height instead of shrinking the font. !important is deliberate here:
-     this has to win over any feature-authored input styling (src/features/**, out of scope
-     for this pass) that hardcodes a smaller font-size, wherever it sits in load order. */
+  /* Android Chrome & modern mobile: clean, proportional 14px form inputs that harmonize with the typography scale */
   input, select, textarea, .input {
-    font-size: 16px !important;
+    font-size: 14px;
+    font-family: var(--font-body);
   }
+
+  /* Only iOS Safari requires 16px to prevent automatic zooming on input focus */
+  @supports (-webkit-touch-callout: none) {
+    input, select, textarea, .input {
+      font-size: 16px !important;
+    }
+  }
+
   textarea.input {
     padding: 8px 10px;
   }
@@ -39,11 +45,33 @@
   }
 
   .ds-kpi-card {
-    padding: 14px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    border: 1px solid color-mix(in srgb, var(--color-divider) 55%, transparent);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
   }
 
   .ds-kpi-value {
     font-size: 22px;
+    font-weight: 600;
+  }
+
+  /* Android De-boxification: Eliminate nested box-in-a-box clutter on mobile */
+  .panel .panel,
+  .ds-card .ds-card,
+  .panel .ds-card,
+  .ds-card .panel {
+    border: none !important;
+    box-shadow: none !important;
+    background: color-mix(in srgb, var(--color-subtier) 55%, transparent) !important;
+    border-radius: 12px !important;
+  }
+
+  .ds-card,
+  .panel {
+    border-radius: 16px;
+    border: 1px solid color-mix(in srgb, var(--color-divider) 55%, transparent);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
   }
 
   .ds-header {
@@ -53,6 +81,8 @@
 
   .ds-h1 {
     font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
   }
 
   .ds-header-actions {
@@ -90,10 +120,11 @@
   }
 
   .ds-card-body {
-    padding: 14px;
+    padding: 16px;
   }
   .ds-card-header {
-    padding: 12px 14px;
+    padding: 14px 16px;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-divider) 50%, transparent);
   }
 
   /* Tables tighten up; wrap in .table-scroll (below) when a table is wider than the gutter. */
@@ -106,11 +137,13 @@
   .ds-row {
     height: auto;
     min-height: 56px;
-    padding: 10px 14px;
+    padding: 12px 16px;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-divider) 50%, transparent);
   }
 
   .ds-thead-row {
-    padding: 10px 14px;
+    padding: 10px 16px;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-divider) 50%, transparent);
   }
 }
 
@@ -271,18 +304,17 @@
 }
 
 /* ── MobileCardList (shared/ui/MobileCardList.tsx) ──
- * The standard mobile stand-in for a wide table row. New component, so styled once here
- * rather than gated behind a breakpoint — feature agents choose when to render it. */
+ * The standard mobile stand-in for a wide table row. Modern Android FinTech card styling. */
 .mc-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .mc-empty {
-  padding: 24px 16px;
+  padding: 32px 16px;
   text-align: center;
-  font-size: 13px;
+  font-size: 13.5px;
   color: var(--color-muted);
 }
 
@@ -293,30 +325,37 @@
   font: inherit;
   color: inherit;
   background: var(--color-surface);
-  border: 1px solid var(--color-divider);
-  border-radius: 12px;
-  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--color-divider) 35%, transparent);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   cursor: default;
+  transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+}
+
+.dark .mc-card {
+  border-color: color-mix(in srgb, var(--color-border) 40%, transparent);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
 }
 
 .mc-card--clickable {
   cursor: pointer;
-  transition: background-color 120ms ease, border-color 120ms ease;
 }
 
 .mc-card--clickable:active {
-  background: var(--color-subtier);
+  transform: scale(0.99);
+  background: color-mix(in srgb, var(--color-subtier) 60%, transparent);
 }
 
 .mc-card--selected {
   border-color: var(--color-accent);
-  box-shadow: inset 0 0 0 1px var(--color-accent);
+  box-shadow: 0 0 0 1px var(--color-accent), 0 2px 8px color-mix(in srgb, var(--color-accent) 20%, transparent);
 }
 
 .mc-card-top {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  gap: 12px;
 }
 
 .mc-card-heading {
@@ -325,23 +364,25 @@
 }
 
 .mc-card-title {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--color-text);
+  line-height: 1.3;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .mc-card-subtitle {
-  margin-top: 2px;
-  font-size: 12.5px;
+  margin-top: 3px;
+  font-size: 13px;
   color: var(--color-muted);
+  line-height: 1.35;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .mc-card-badges {
-  margin-top: 6px;
+  margin-top: 8px;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
@@ -354,32 +395,40 @@
 
 .mc-card-metric {
   font-family: var(--font-mono);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--color-text);
   font-variant-numeric: tabular-nums;
+  line-height: 1.2;
 }
 
 .mc-card-metric-label {
-  margin-top: 2px;
+  margin-top: 3px;
   font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
   color: var(--color-muted);
 }
 
 .mc-card-chevron {
   flex: none;
   align-self: center;
-  font-size: 18px;
+  font-size: 20px;
+  line-height: 1;
   color: var(--color-muted);
+  opacity: 0.6;
 }
 
 .mc-card-fields {
   margin: 12px 0 0;
-  padding-top: 12px;
-  border-top: 1px solid var(--color-divider);
+  padding: 12px 14px;
+  border: none;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--color-subtier) 50%, transparent);
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px 12px;
+  gap: 8px 12px;
 }
 
 .mc-card-field--span2 {
@@ -388,7 +437,7 @@
 
 .mc-card-field dt {
   margin: 0 0 2px;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -397,8 +446,10 @@
 
 .mc-card-field dd {
   margin: 0;
-  font-size: 13px;
+  font-size: 13.5px;
+  font-weight: 500;
   color: var(--color-text);
+  line-height: 1.3;
 }
 
 .mc-tone-pos { color: var(--color-status-pos-text); }
@@ -554,6 +605,16 @@
   #main-content h1 {
     font-size: 22px !important;
     line-height: 1.2;
+  }
+  .deals-status-chips {
+    width: 100% !important;
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    padding-bottom: 6px !important;
+    scrollbar-width: none !important;
+  }
+  .deals-status-chips::-webkit-scrollbar {
+    display: none !important;
   }
 }
 

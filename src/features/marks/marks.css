@@ -14,14 +14,101 @@
   .marks-col-subsidized { display: none; }
 }
 
-/* Mobile pricing desk: compact action row, search + Filters, filter/edit sheet layouts. */
+/* Mobile pricing desk: compact action row, 2x2 Executive Bento KPIs, search + Filters, filter/edit sheet layouts. */
 .marks-mobile-controls { display: none; }
 @media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
-  .marks-mobile-controls { display: flex; gap: 8px; margin-bottom: 12px; }
-  .marks-actions { width: 100%; }
-  .marks-actions > .btn { flex: 1 1 100%; min-height: 44px; justify-content: center; }
+  .marks-header {
+    padding: 16px 16px 12px !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-divider) 55%, transparent) !important;
+  }
+  .marks-header .subttl {
+    font-size: 11.5px !important;
+    line-height: 1.35 !important;
+    opacity: 0.85;
+  }
+  .marks-actions {
+    width: 100% !important;
+    display: flex !important;
+    gap: 8px !important;
+    margin-top: 10px !important;
+  }
+  .marks-actions > .btn {
+    flex: 1 1 0 !important;
+    min-height: 44px !important;
+    justify-content: center !important;
+    border-radius: 14px !important;
+    font-size: 12.5px !important;
+  }
+
+  /* 2x2 Executive Bento Grid for Pricing Desk */
+  .marks-kpis {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    padding: 14px 16px !important;
+  }
+  .marks-kpis .ds-kpi-card {
+    background: var(--color-panel) !important;
+    border: none !important;
+    border-radius: 16px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+    padding: 12px 14px !important;
+    border-left: 3.5px solid var(--color-accent) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+  }
+  .marks-kpis .ds-kpi-card:nth-child(2) {
+    border-left-color: #8b5cf6 !important;
+  }
+  .marks-kpis .ds-kpi-card:nth-child(3) {
+    border-left-color: var(--color-pnl-pos) !important;
+  }
+  .marks-kpis .ds-kpi-card:nth-child(4) {
+    border-left-color: #d97706 !important;
+  }
+  .marks-kpis .ds-kpi-label {
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    color: var(--color-muted) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.02em !important;
+  }
+  .marks-kpis .ds-kpi-value {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    font-variant-numeric: tabular-nums !important;
+    margin: 4px 0 2px !important;
+    line-height: 1.2 !important;
+  }
+  .marks-kpis .ds-kpi-sub {
+    font-size: 10.5px !important;
+    color: var(--color-muted) !important;
+    line-height: 1.3 !important;
+  }
+
+  .marks-mobile-controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    padding: 0 16px;
+  }
+  .marks-mobile-controls input {
+    border-radius: 14px !important;
+    border: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent) !important;
+    background: var(--color-surface) !important;
+    font-size: 14px !important;
+    min-height: 44px !important;
+    padding: 10px 14px 10px 36px !important;
+  }
+  .marks-mobile-controls .btn {
+    border-radius: 14px !important;
+    min-height: 44px !important;
+    font-weight: 600 !important;
+    padding: 0 16px !important;
+  }
   .marks-chip-grid { display: flex; flex-wrap: wrap; gap: 8px; }
-  .marks-chip-grid > .btn { min-height: 44px; }
+  .marks-chip-grid > .btn { min-height: 40px; border-radius: 9999px; }
   .marks-edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 }
 

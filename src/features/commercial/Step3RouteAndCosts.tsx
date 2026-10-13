@@ -146,7 +146,7 @@ export function Step3RouteAndCosts({
               borderColor: 'var(--color-line)',
               borderRadius: 'var(--radius-card)',
             }}
-            className="border p-4 flex-1 flex flex-col shadow-xs"
+            className="cf-route-panel border p-4 flex-1 flex flex-col shadow-xs"
           >
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -225,7 +225,7 @@ export function Step3RouteAndCosts({
               borderColor: 'var(--color-line)',
               borderRadius: 'var(--radius-card)',
             }}
-            className="border p-5 shadow-xs flex-1 flex flex-col"
+            className="cf-waterfall-panel border p-5 shadow-xs flex-1 flex flex-col"
           >
             {/* Waterfall Header */}
             <div

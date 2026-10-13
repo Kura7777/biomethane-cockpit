@@ -40,7 +40,9 @@ export function MobileTabBar(deskSheetProps: MobileTabBarProps) {
               aria-expanded={openGroupId === group.id}
               onClick={() => setOpenGroupId(group.id)}
             >
-              {Icon && <Icon size={20} aria-hidden="true" />}
+              <span className="mobile-tab-icon-pill">
+                {Icon && <Icon size={19} aria-hidden="true" />}
+              </span>
               <span className="mobile-tab-label">{group.label}</span>
             </button>
           );
@@ -50,7 +52,9 @@ export function MobileTabBar(deskSheetProps: MobileTabBarProps) {
           className={`mobile-tab ${isNavItemActive(ASK_NAV_ITEM.to, location.pathname) ? 'active' : ''}`}
           data-testid="tab-ask"
         >
-          <MessageCircle size={20} aria-hidden="true" />
+          <span className="mobile-tab-icon-pill">
+            <MessageCircle size={19} aria-hidden="true" />
+          </span>
           <span className="mobile-tab-label">Ask</span>
         </NavLink>
         <button
@@ -61,7 +65,9 @@ export function MobileTabBar(deskSheetProps: MobileTabBarProps) {
           aria-expanded={deskOpen}
           onClick={() => setDeskOpen(true)}
         >
-          <LayoutGrid size={20} aria-hidden="true" />
+          <span className="mobile-tab-icon-pill">
+            <LayoutGrid size={19} aria-hidden="true" />
+          </span>
           <span className="mobile-tab-label">Desk</span>
         </button>
       </nav>

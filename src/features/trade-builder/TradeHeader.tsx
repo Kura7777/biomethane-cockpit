@@ -190,8 +190,8 @@ export function TradeHeader({
             </button>
           )}
 
-          {/* View Mode Toggle */}
-          <div style={{ display: 'flex', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-control)', overflow: 'hidden' }}>
+          {/* View Mode Toggle: desktop only */}
+          <div className="m-hide" style={{ display: 'flex', border: '1px solid var(--color-divider)', borderRadius: 'var(--radius-control)', overflow: 'hidden' }}>
             <button
               type="button"
               onClick={() => onToggleMode('STEPPER')}

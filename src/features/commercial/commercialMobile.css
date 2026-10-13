@@ -5,55 +5,115 @@
     padding-left: 16px;
     padding-right: 16px;
     padding-top: 16px;
-    padding-bottom: 0;
+    padding-bottom: 96px;
   }
   .cf-step h1 {
-    font-size: 20px;
-    line-height: 1.25;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin-bottom: 4px;
   }
 
-  /* Quick RFQ presets: one horizontally scrolling row of cards that bleeds past the card padding */
+  .cf-step > div.border,
+  .cf-step .border {
+    border-radius: 16px;
+    border-color: color-mix(in srgb, var(--color-divider) 55%, transparent);
+  }
+
+  /* ── Step 1 De-Boxification: Free-flowing presets and unified grouped form ── */
+  .cf-presets-container {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin-bottom: 20px !important;
+  }
+  .cf-presets-container .cf-presets-desc {
+    display: none !important;
+  }
+
   .cf-presets {
     display: flex !important;
-    gap: 10px;
-    overflow-x: auto;
-    margin: 0 -16px;
-    padding: 2px 16px 6px;
-    scroll-snap-type: x mandatory;
-    scroll-padding-left: 16px;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    gap: 10px !important;
+    overflow-x: auto !important;
+    margin: 4px -16px 0 !important;
+    padding: 4px 16px 8px !important;
+    scroll-snap-type: x mandatory !important;
+    scroll-padding-left: 16px !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
   }
   .cf-presets::-webkit-scrollbar {
-    display: none;
+    display: none !important;
   }
   .cf-presets > button {
-    flex: 0 0 min(72%, 260px);
-    scroll-snap-align: start;
-    min-height: 64px;
+    flex: 0 0 230px !important;
+    scroll-snap-align: start !important;
+    min-height: 68px !important;
+    border-radius: 16px !important;
+    border: none !important;
+    background: var(--color-panel) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+    padding: 12px 14px !important;
+  }
+  .cf-presets > button:active {
+    transform: scale(0.97);
   }
 
-  /* Form fields: single column, 44px targets */
-  .cf-step select,
-  .cf-step input[type='number'],
-  .cf-step input[type='text'] {
-    min-height: 44px;
+  /* Main Form Container: Clean unified grouped surface */
+  .cf-order-card {
+    background: var(--color-panel) !important;
+    border: none !important;
+    border-radius: 20px !important;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04) !important;
+    padding: 20px 16px !important;
+    margin-bottom: 24px !important;
   }
-  .cf-step .cf-select-wrap {
-    min-height: 44px;
+  .cf-order-card label {
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    margin-bottom: 6px !important;
+    color: var(--color-text) !important;
+  }
+  .cf-order-card select,
+  .cf-order-card input[type='number'],
+  .cf-order-card input[type='text'] {
+    min-height: 46px !important;
+    border-radius: 12px !important;
+    border: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent) !important;
+    background: color-mix(in srgb, var(--color-bg) 60%, transparent) !important;
+    font-size: 14px !important;
+    padding: 10px 14px !important;
+    color: var(--color-text) !important;
+  }
+  .cf-order-card select:focus,
+  .cf-order-card input:focus {
+    border-color: var(--color-accent) !important;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 25%, transparent) !important;
+  }
+  .cf-field-hint {
+    display: none !important;
   }
   .cf-unit {
-    top: 13px !important;
+    top: 14px !important;
   }
 
-  /* Step 2 filter bar: stack, search and sort go full width */
+  /* Step 2 filter bar: sleek unified surface */
   .cf-filterbar {
+    background: var(--color-panel) !important;
+    border: none !important;
+    border-radius: 18px !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
+    padding: 16px !important;
     align-items: stretch !important;
+    margin-bottom: 16px !important;
   }
   .cf-filter-controls {
     width: 100%;
     flex-direction: column;
     align-items: stretch !important;
+    gap: 10px !important;
   }
   .cf-search {
     width: 100%;
@@ -61,6 +121,11 @@
   .cf-search input {
     width: 100% !important;
     min-height: 44px;
+    border-radius: 12px !important;
+    border: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent) !important;
+    background: color-mix(in srgb, var(--color-bg) 60%, transparent) !important;
+    font-size: 14px !important;
+    padding: 10px 14px 10px 34px !important;
   }
   .cf-search svg {
     top: 15px !important;
@@ -68,17 +133,96 @@
   .cf-sort {
     width: 100%;
     min-height: 44px;
+    border-radius: 12px !important;
+    border: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent) !important;
+    background: color-mix(in srgb, var(--color-bg) 60%, transparent) !important;
   }
   .cf-sort select {
     flex: 1;
     min-height: 40px;
+    font-size: 14px !important;
+  }
+  .cf-filter-controls select,
+  .cf-filter-controls input[type='number'] {
+    width: 100% !important;
+    min-height: 44px !important;
+    border-radius: 12px !important;
+    border: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent) !important;
+    background: color-mix(in srgb, var(--color-bg) 60%, transparent) !important;
+    font-size: 14px !important;
+    padding: 10px 14px !important;
   }
   .cf-country-chip {
-    min-height: 40px;
+    min-height: 38px;
+    border-radius: 9999px !important;
+    border: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent) !important;
   }
   .cf-quick {
     min-width: 44px;
     min-height: 44px;
+    border-radius: 12px !important;
+  }
+
+  /* Step 2 Plant Opportunity Cards: Modern FinTech Surface */
+  .cf-plant-card {
+    background: var(--color-panel) !important;
+    border: none !important;
+    border-radius: 18px !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
+    padding: 16px !important;
+    margin-bottom: 12px !important;
+    transition: transform 120ms ease, box-shadow 120ms ease;
+  }
+  .cf-plant-card:active {
+    transform: scale(0.99);
+  }
+  .cf-plant-card--selected {
+    background: color-mix(in srgb, var(--color-pnl-pos) 8%, var(--color-panel)) !important;
+    box-shadow: 0 0 0 2px var(--color-pnl-pos), 0 4px 14px color-mix(in srgb, var(--color-pnl-pos) 20%, transparent) !important;
+  }
+
+  /* Step 3 Route & Costs: Unified grouped panels & borderless waterfall */
+  .cf-route-panel,
+  .cf-waterfall-panel {
+    background: var(--color-panel) !important;
+    border: none !important;
+    border-radius: 20px !important;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04) !important;
+    padding: 18px 16px !important;
+    margin-bottom: 16px !important;
+  }
+  .cf-route-panel > div.border,
+  .cf-waterfall-panel div.border {
+    border: none !important;
+    background: color-mix(in srgb, var(--color-bg) 55%, transparent) !important;
+    border-radius: 12px !important;
+    padding: 12px 14px !important;
+  }
+
+  /* Step 4 Deal Summary: Clean executive term sheet presentation */
+  .cf-summary-container {
+    background: var(--color-panel) !important;
+    border: none !important;
+    border-radius: 20px !important;
+    box-shadow: 0 2px 14px rgba(0, 0, 0, 0.04) !important;
+    overflow: hidden !important;
+  }
+  .cf-summary-highlights {
+    border-bottom: none !important;
+    gap: 8px !important;
+    padding: 12px !important;
+  }
+  .cf-summary-highlights > div {
+    border: none !important;
+    border-radius: 14px !important;
+    background: color-mix(in srgb, var(--color-bg) 60%, transparent) !important;
+    padding: 14px 16px !important;
+  }
+  .cf-summary-container .grid.grid-cols-1.sm\:grid-cols-2 > div {
+    border: none !important;
+    border-radius: 14px !important;
+    background: color-mix(in srgb, var(--color-bg) 60%, transparent) !important;
+    padding: 12px 14px !important;
   }
 
   /* Step 3: waterfall header wraps so the spread badge never squeezes the title */
@@ -147,17 +291,14 @@
 }
 
 @media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
-  /* Step 1: the bar lives inside the 20px-padded form card, so bleed by 20px, not 16px. The
-     "Configured for 1,975+ plants" caption repeats the intro paragraph; it is hidden here so the bar
-     stays one thumb-height tall. */
+  /* Step 1: Clean action bar placement */
   .cf-actions.cf-actions-col {
-    margin: 0 -20px -20px;
-    padding: 12px 20px;
-    border-bottom-left-radius: var(--radius-card);
-    border-bottom-right-radius: var(--radius-card);
+    margin: 20px 0 0 !important;
+    padding: 0 !important;
+    border: none !important;
   }
   .cf-actions.cf-actions-col > div {
-    display: none;
+    display: none !important;
   }
 }
 

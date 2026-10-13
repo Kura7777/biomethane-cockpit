@@ -300,7 +300,7 @@ export function DealsScreen() {
           </div>
         </div>
 
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+        <div className="deals-status-chips" style={{ marginLeft: 'auto', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
           <button
             type="button"
             className={`chip ${statusFilter === 'ALL' ? 'chip-a' : ''} cursor-pointer`}

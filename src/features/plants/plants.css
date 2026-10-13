@@ -647,10 +647,14 @@
     width: auto;
     min-width: 0;
     height: 44px;
+    border-radius: 12px;
   }
   .plants-toolbar-mobile .ds-search input {
     min-width: 0;
     width: 100%;
+    border-radius: 12px !important;
+    border: 1px solid color-mix(in srgb, var(--color-divider) 55%, transparent) !important;
+    font-size: 14px !important;
   }
   .plants-filters-btn {
     position: relative;
@@ -659,6 +663,8 @@
     gap: 6px;
     min-height: 44px;
     padding: 0 14px;
+    border-radius: 12px;
+    font-weight: 500;
   }
   .plants-filters-btn.active {
     border-color: var(--color-accent);
@@ -679,6 +685,9 @@
     grid-column: 1 / -1;
     width: 100%;
     height: 40px;
+    border-radius: 12px !important;
+    border: 1px solid color-mix(in srgb, var(--color-divider) 55%, transparent) !important;
+    font-size: 13.5px !important;
   }
   .plants-active-chips .plants-filter-chip button,
   .plants-clear-all {
@@ -700,17 +709,22 @@
     overflow: visible;
   }
   .plants-table-wrap .ds-tfoot {
-    border: 1px solid var(--color-divider);
-    border-radius: var(--radius-card);
-    margin-top: 12px;
+    border: 1px solid color-mix(in srgb, var(--color-divider) 50%, transparent);
+    border-radius: 16px;
+    background: var(--color-surface);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    margin-top: 14px;
     gap: 8px 12px;
+    padding: 12px 16px;
   }
   .plants-table-wrap .ds-pagination button {
     width: 44px;
     height: 44px;
+    border-radius: 12px;
   }
   .plants-page-select {
     min-height: 40px;
+    border-radius: 10px;
   }
 
   /* Filter sheet */
@@ -798,19 +812,49 @@
   .plants-aside-sheet .ds-aside-section:first-child {
     padding-top: 4px;
   }
+  .plants-kpis {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
   .plants-kpis .ds-kpi-card {
-    padding: 12px;
-    gap: 4px;
+    background: var(--color-panel) !important;
+    border: none !important;
+    border-radius: 16px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+    padding: 12px 14px !important;
+    border-left: 3.5px solid var(--color-accent) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+  }
+  .plants-kpis .ds-kpi-card:nth-child(2) {
+    border-left-color: var(--color-pnl-pos) !important;
+  }
+  .plants-kpis .ds-kpi-card:nth-child(3) {
+    border-left-color: #8b5cf6 !important;
+  }
+  .plants-kpis .ds-kpi-card:nth-child(4) {
+    border-left-color: #d97706 !important;
   }
   .plants-kpis .ds-kpi-label {
-    font-size: 12px;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    color: var(--color-muted) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.02em !important;
   }
   .plants-kpis .ds-kpi-value {
-    font-size: 20px;
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    font-variant-numeric: tabular-nums !important;
+    margin: 4px 0 2px !important;
+    line-height: 1.2 !important;
   }
   .plants-kpis .ds-kpi-sub {
-    font-size: 11.5px;
-    line-height: 1.35;
+    font-size: 10.5px !important;
+    color: var(--color-muted) !important;
+    line-height: 1.3 !important;
   }
   .plants-aside-sheet .plants-panel-stats {
     gap: 8px;

@@ -647,16 +647,32 @@ html.dark .fe-scope { --fe-sel: #1b2029; }
 @media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
   .fueleu-desk { --fe-page-gutter: 16px; }
 
-  .fe-header { padding: 16px var(--fe-page-gutter) 12px; align-items: flex-start; }
+  .fe-header {
+    padding: 16px var(--fe-page-gutter) 12px;
+    align-items: flex-start;
+    border-bottom: 1px solid color-mix(in srgb, var(--fe-line) 55%, transparent);
+  }
   .fe-h1 { font-size: 20px; }
-  .fe-header-actions { width: 100%; flex-wrap: wrap; align-items: stretch; }
-  .fe-pill { height: auto; min-height: 44px; padding: 8px 12px; white-space: normal; flex-wrap: wrap; gap: 2px 8px; min-width: 0; }
-  .fe-pill .fe-pill-label { font-size: 12px; }
-  .fe-pill .fe-pill-sub { font-size: 12px !important; }
+  .fe-header-actions { width: 100%; flex-wrap: wrap; align-items: stretch; gap: 8px; margin-top: 10px; }
+  .fe-pill {
+    height: auto;
+    min-height: 44px;
+    padding: 10px 14px;
+    white-space: normal;
+    flex-wrap: wrap;
+    gap: 2px 8px;
+    min-width: 0;
+    border-radius: 14px !important;
+    border: 1px solid color-mix(in srgb, var(--fe-line) 40%, transparent) !important;
+    background: var(--color-surface) !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+  }
+  .fe-pill .fe-pill-label { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--fe-muted); }
+  .fe-pill .fe-pill-sub { font-size: 11.5px !important; }
   .fe-header-actions > .fe-pill:first-child { flex: 1 1 100%; }
   .fe-header-actions > .fe-pill:nth-child(2) { flex: 1 1 0; }
-  .fe-icon-btn { width: 44px; height: 44px; }
-  .fe-icon-btn-sm { width: 44px !important; height: 44px !important; }
+  .fe-icon-btn { width: 44px; height: 44px; border-radius: 12px; }
+  .fe-icon-btn-sm { width: 44px !important; height: 44px !important; border-radius: 12px; }
 
   .fe-tabs {
     padding: 0 var(--fe-page-gutter);
@@ -666,11 +682,54 @@ html.dark .fe-scope { --fe-sel: #1b2029; }
     scrollbar-width: none;
   }
   .fe-tabs::-webkit-scrollbar { display: none; }
-  .fe-tab { white-space: nowrap; min-height: 44px; padding: 0; flex-shrink: 0; }
+  .fe-tab { white-space: nowrap; min-height: 44px; padding: 0; flex-shrink: 0; font-size: 13px; }
 
-  .fe-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 16px var(--fe-page-gutter); }
-  .fe-kpi-card { padding: 14px; }
-  .fe-kpi-value { font-size: 22px; }
+  /* 2x2 Executive Bento Grid for FuelEU Desk */
+  .fe-kpis {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    padding: 14px var(--fe-page-gutter) !important;
+  }
+  .fe-kpi-card {
+    background: var(--color-panel) !important;
+    border: none !important;
+    border-radius: 16px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+    padding: 12px 14px !important;
+    border-left: 3.5px solid var(--fe-deficit, #ef4444) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+  }
+  .fe-kpi-card:nth-child(2) {
+    border-left-color: var(--fe-surplus, #10b981) !important;
+  }
+  .fe-kpi-card:nth-child(3) {
+    border-left-color: var(--fe-accent, #3b82f6) !important;
+  }
+  .fe-kpi-card:nth-child(4) {
+    border-left-color: #d97706 !important;
+  }
+  .fe-kpi-label {
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    color: var(--fe-muted) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.02em !important;
+  }
+  .fe-kpi-value {
+    font-size: 19px !important;
+    font-weight: 700 !important;
+    font-variant-numeric: tabular-nums !important;
+    margin: 4px 0 2px !important;
+    line-height: 1.2 !important;
+  }
+  .fe-kpi-sub {
+    font-size: 10.5px !important;
+    color: var(--fe-muted) !important;
+    line-height: 1.3 !important;
+  }
 
   .fe-body { padding: 4px var(--fe-page-gutter) 24px; }
   .fe-directory-grid { gap: 16px; }

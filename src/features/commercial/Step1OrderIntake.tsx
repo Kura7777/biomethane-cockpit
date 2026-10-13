@@ -131,9 +131,9 @@ export function Step1OrderIntake({ request, onChange, onNext }: Step1OrderIntake
           borderColor: 'var(--color-line)',
           borderRadius: 'var(--radius-card)',
         }}
-        className="border p-4 mb-5 shadow-xs"
+        className="cf-presets-container border p-4 mb-5 shadow-xs"
       >
-        <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
+        <div className="cf-presets-header flex items-center justify-between flex-wrap gap-2 mb-3">
           <span
             style={{ color: 'var(--color-text)' }}
             className="text-xs font-semibold flex items-center gap-1.5"
@@ -141,7 +141,7 @@ export function Step1OrderIntake({ request, onChange, onNext }: Step1OrderIntake
             <Sparkles className="w-3.5 h-3.5" style={{ color: 'var(--color-accent)' }} />
             Quick RFQ presets
           </span>
-          <span style={{ color: 'var(--color-muted)' }} className="text-xs font-normal">
+          <span style={{ color: 'var(--color-muted)' }} className="cf-presets-desc text-xs font-normal">
             Click to auto-populate standard industry trade requests
           </span>
         </div>
@@ -275,7 +275,7 @@ export function Step1OrderIntake({ request, onChange, onNext }: Step1OrderIntake
           borderColor: 'var(--color-line)',
           borderRadius: 'var(--radius-card)',
         }}
-        className="border p-5 sm:p-6 shadow-xs space-y-6"
+        className="cf-order-card border p-5 sm:p-6 shadow-xs space-y-6"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
           {/* Buyer Market */}
@@ -304,7 +304,7 @@ export function Step1OrderIntake({ request, onChange, onNext }: Step1OrderIntake
                 </option>
               ))}
             </select>
-            <span style={{ color: 'var(--color-muted)' }} className="text-[11px] mt-1 block">
+            <span style={{ color: 'var(--color-muted)' }} className="cf-field-hint text-[11px] mt-1 block">
               Specifies the compliance offtake territory &amp; statutory quota regulations
             </span>
           </div>
@@ -340,7 +340,7 @@ export function Step1OrderIntake({ request, onChange, onNext }: Step1OrderIntake
                 MWh
               </span>
             </div>
-            <span style={{ color: 'var(--color-muted)' }} className="text-[11px] mt-1 block">
+            <span style={{ color: 'var(--color-muted)' }} className="cf-field-hint text-[11px] mt-1 block">
               {(request.volumeMwh || 10000) >= 1000 ? `${((request.volumeMwh || 10000) / 1000).toFixed(1)} GWh total trade volume` : 'Standard parcel'}
             </span>
           </div>
@@ -371,7 +371,7 @@ export function Step1OrderIntake({ request, onChange, onNext }: Step1OrderIntake
                 </option>
               ))}
             </select>
-            <span style={{ color: 'var(--color-muted)' }} className="text-[11px] mt-1 block">
+            <span style={{ color: 'var(--color-muted)' }} className="cf-field-hint text-[11px] mt-1 block">
               Determines greenhouse gas abatement and compliance certificate multiplier
             </span>
           </div>
@@ -406,7 +406,7 @@ export function Step1OrderIntake({ request, onChange, onNext }: Step1OrderIntake
               <option value="CALENDAR">📆 Calendar Year 2026</option>
               <option value="CUSTOM">📝 Spot / Immediate Delivery</option>
             </select>
-            <span style={{ color: 'var(--color-muted)' }} className="text-[11px] mt-1 block">
+            <span style={{ color: 'var(--color-muted)' }} className="cf-field-hint text-[11px] mt-1 block">
               Surrender deadline: Compliance Year 2026
             </span>
           </div>
@@ -434,7 +434,7 @@ export function Step1OrderIntake({ request, onChange, onNext }: Step1OrderIntake
             placeholder="each plant's own CI"
             data-testid="ci-override-input"
           />
-          <span style={{ color: 'var(--color-muted)' }} className="text-[11px] mt-1 block">
+          <span style={{ color: 'var(--color-muted)' }} className="cf-field-hint text-[11px] mt-1 block">
             {request.ciOverride !== null && request.ciOverride !== undefined
               ? `Replaces every plant's own CI with ${request.ciOverride} (your assumption) for this order.`
               : 'Leave empty to use each plant’s own carbon intensity, as today.'}

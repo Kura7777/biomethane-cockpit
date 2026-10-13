@@ -83,13 +83,28 @@
 .cl-empty { margin: 16px 0 4px; color: var(--color-text-muted); font-size: 13px; text-align: center; }
 .cl-legend { margin-top: -4px; }
 
-/* Phone KPI block: a 2x2 grid of small tiles, the rest folded away, so the first company stays on screen. */
-.cl-mkpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
-.cl-mkpi { display: flex; flex-direction: column; gap: 1px; padding: 8px 10px; border: 1px solid var(--color-divider); border-radius: var(--radius-control); background: var(--color-surface); min-width: 0; }
-.cl-mkpi span { font-size: 11px; color: var(--color-text-muted); }
-.cl-mkpi strong { font-size: 17px; font-weight: 600; line-height: 1.15; white-space: nowrap; }
+/* Phone KPI block: an executive 2x2 bento grid with indicator accent bars. */
+.cl-mkpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 8px; }
+.cl-mkpi {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 2px;
+  padding: 12px 14px;
+  border: none;
+  border-radius: 16px;
+  background: var(--color-panel);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border-left: 3.5px solid var(--color-accent);
+  min-width: 0;
+}
+.cl-mkpi:nth-child(2) { border-left-color: var(--color-pnl-pos); }
+.cl-mkpi:nth-child(3) { border-left-color: #8b5cf6; }
+.cl-mkpi:nth-child(4) { border-left-color: #d97706; }
+.cl-mkpi span { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--color-muted); }
+.cl-mkpi strong { font-size: 18px; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; white-space: nowrap; margin: 2px 0; }
 .cl-mkpi strong small { font-size: 11px; font-weight: 400; margin-left: 2px; }
-.cl-mkpi em { font-style: normal; font-size: 11px; color: var(--color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.cl-mkpi-more { grid-column: 1 / -1; font-size: 12px; color: var(--color-text-muted); }
+.cl-mkpi em { font-style: normal; font-size: 10.5px; color: var(--color-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cl-mkpi-more { grid-column: 1 / -1; font-size: 12px; color: var(--color-muted); }
 .cl-mkpi-more summary { cursor: pointer; padding: 4px 0; }
 .cl-mkpi-more div { padding: 2px 0; }

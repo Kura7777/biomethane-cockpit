@@ -69,27 +69,45 @@
 .bf-chip:hover { border-color: var(--color-muted); }
 .bf-chip[aria-pressed="true"] { background: var(--color-text); border-color: var(--color-text); color: var(--color-bg); }
 .bf-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
-  .bf-nav { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
-  .bf-nav .bf-chip { flex: none; }
-  .bf-hero { padding: 20px 18px 14px; }
+/* ── KPIs (desktop base) ── */
+.bf-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
 }
-
-/* ── KPIs ── */
-.bf-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 12px; }
-.bf-kpi { position: relative; overflow: hidden; background: var(--color-panel); border: 1px solid var(--color-border); border-radius: var(--bf-radius); padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; }
-.bf-kpi::after { content: ""; position: absolute; left: 0; top: 0; width: 100%; height: 3px; background: var(--bf-accent, var(--bf-c1)); transform-origin: left; }
-.bf-kpi .lbl { font-size: 12px; color: var(--color-muted); }
-.bf-kpi .big { font-family: var(--font-mono); font-size: clamp(24px, 2.4vw, 30px); line-height: 1.15; }
-.bf-kpi .sub { font-size: 12px; color: var(--color-muted); }
-
-@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
-  .bf { gap: 22px; }
-  .bf-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-  .bf-kpi { padding: 10px 12px; gap: 2px; min-width: 0; }
-  .bf-kpi .lbl { font-size: 11px; line-height: 1.25; overflow-wrap: anywhere; }
-  .bf-kpi .big { font-size: 20px; }
-  .bf-kpi .sub { font-size: 11px; line-height: 1.25; overflow-wrap: anywhere; }
+.bf-kpi {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 6px;
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--bf-radius);
+  padding: 16px 18px;
+  transition: transform .15s ease, border-color .15s ease;
+}
+.bf-kpi:hover {
+  border-color: var(--color-muted);
+}
+.bf-kpi .lbl {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+.bf-kpi .big {
+  font-family: var(--font-mono);
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--color-text);
+}
+.bf-kpi .sub {
+  font-size: 12px;
+  color: var(--color-muted);
+  line-height: 1.35;
 }
 
 /* ── sections & cards ── */
@@ -188,3 +206,213 @@
 @keyframes bfFloat { from { transform: translate(0, 0) scale(1); } to { transform: translate(-60px, 40px) scale(1.15); } }
 @keyframes bfGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @keyframes bfDraw { to { stroke-dashoffset: 0; } }
+
+/* ══════════════════════════════════════════════════════════════════════
+   MOBILE & TOUCH OVERRIDES (max-width: 767.98px)
+   Total De-boxification, Executive Bento Grid, and Institutional M3 Ergonomics
+   ══════════════════════════════════════════════════════════════════════ */
+@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px) {
+  /* ── Canvas ── */
+  .bf {
+    gap: 16px;
+    padding-top: 8px;
+    padding-bottom: 72px;
+  }
+
+  /* ── Hero: Clean border-free surface ── */
+  .bf-hero {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 8px 0 2px !important;
+  }
+  .bf-hero::before,
+  .bf-hero::after {
+    display: none !important;
+  }
+  .bf-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: var(--color-muted);
+    margin-bottom: 4px;
+  }
+  .bf-title {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin: 4px 0 6px;
+  }
+  .bf-take {
+    font-size: 13.5px;
+    line-height: 1.45;
+    color: var(--color-muted);
+  }
+
+  /* ── Ticker: Horizontal pill strip ── */
+  .bf-ticker {
+    margin-top: 14px;
+    border-top: none !important;
+    padding-top: 0;
+  }
+  .bf-ticker-cap {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+    margin-bottom: 8px;
+  }
+  .bf-tick {
+    border-right: none !important;
+    background: var(--color-panel);
+    border: 1px solid color-mix(in srgb, var(--color-border) 40%, transparent);
+    border-radius: 9999px;
+    padding: 6px 14px;
+    margin-right: 8px;
+    gap: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  }
+  .bf-tick .n { font-size: 11px; font-weight: 600; color: var(--color-muted); }
+  .bf-tick .v { font-size: 14px; font-weight: 700; }
+  .bf-tick .u { font-size: 10px; color: var(--color-muted); }
+
+  /* ── Section navigation: Blurred pill rail ── */
+  .bf-chips {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+    padding-bottom: 2px !important;
+    -webkit-overflow-scrolling: touch;
+    gap: 6px !important;
+  }
+  .bf-chips .bf-chip {
+    flex: none !important;
+    white-space: nowrap !important;
+  }
+
+  .bf-nav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 6px var(--ds-page-gutter, 16px);
+    margin: -4px calc(var(--ds-page-gutter, 16px) * -1) 0;
+    gap: 8px;
+    background: color-mix(in srgb, var(--color-bg) 92%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .bf-nav .bf-chip {
+    flex: none;
+    border: none;
+    background: color-mix(in srgb, var(--color-subtier) 65%, transparent);
+    border-radius: 9999px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .bf-nav .bf-chip[aria-pressed="true"] {
+    background: var(--color-text);
+    color: var(--color-bg);
+    font-weight: 600;
+  }
+
+  /* ── Executive Market Pulse: High-density 2x3 Bento Grid ── */
+  .bf-kpis {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+  .bf-kpi {
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    background: var(--color-panel) !important;
+    border: none !important;
+    border-radius: 16px !important;
+    padding: 12px 10px 10px 12px !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04) !important;
+    overflow: hidden !important;
+    gap: 2px !important;
+    min-height: 82px !important;
+  }
+  .bf-kpi::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 3.5px;
+    background: var(--bf-accent);
+    border-radius: 3px 0 0 3px;
+  }
+  .bf-kpi::after {
+    display: none !important;
+  }
+  .bf-kpi .lbl {
+    font-size: 9.5px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.04em !important;
+    text-transform: uppercase !important;
+    color: var(--color-muted) !important;
+    line-height: 1.25 !important;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .bf-kpi .big {
+    font-family: var(--font-mono) !important;
+    font-size: 21px !important;
+    font-weight: 700 !important;
+    line-height: 1.1 !important;
+    color: var(--color-text) !important;
+    margin: 4px 0 2px !important;
+  }
+  .bf-kpi .sub {
+    font-size: 10px !important;
+    color: var(--color-muted) !important;
+    line-height: 1.25 !important;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ── Content & Data Cards: Soft elevation, zero box borders ── */
+  .bf-sec > h2 {
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.01em !important;
+    margin: 0 0 4px !important;
+  }
+  .bf-sec > p.lede {
+    font-size: 12.5px !important;
+    line-height: 1.4 !important;
+    margin: 0 0 10px !important;
+  }
+  .bf-card,
+  .bf-w {
+    background: var(--color-panel) !important;
+    border: none !important;
+    border-radius: 18px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+    padding: 16px 14px !important;
+  }
+
+  .bf .hide-sm { display: none !important; }
+
+  /* ── Tables on mobile ── */
+  .bf table { font-size: 11.5px; }
+  .bf th, .bf td {
+    padding: 7px 6px;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-border) 40%, transparent);
+  }
+
+  /* ── Redundant Ask capsule hidden on mobile ── */
+  .ph-capsule {
+    display: none !important;
+  }
+}

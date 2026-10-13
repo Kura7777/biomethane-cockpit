@@ -407,7 +407,7 @@ export function Step2PlantScan({
                   borderColor: isSelected ? 'var(--color-pnl-pos)' : 'var(--color-line)',
                   borderRadius: 'var(--radius-card)',
                 }}
-                className="p-3.5 border transition-all cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-2xs hover:border-[var(--color-muted)]"
+                className={`cf-plant-card ${isSelected ? 'cf-plant-card--selected' : ''} p-3.5 border transition-all cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-2xs hover:border-[var(--color-muted)]`}
               >
                 {/* Left: Plant Info */}
                 <div className="flex items-start gap-3">

@@ -186,7 +186,7 @@ ${b.sideWarning ? `• WARNING: ${b.sideWarning}
           borderColor: 'var(--color-line)',
           borderRadius: 'var(--radius-card)',
         }}
-        className="border overflow-hidden shadow-xs mb-5"
+        className="cf-summary-container border overflow-hidden shadow-xs mb-5"
       >
         {/* Deal Ref & Action Bar */}
         <div
@@ -235,7 +235,7 @@ ${b.sideWarning ? `• WARNING: ${b.sideWarning}
         {/* Top Highlight Cards */}
         <div
           style={{ borderColor: 'var(--color-line)' }}
-          className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-[var(--color-line)] border-b"
+          className="cf-summary-highlights grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-[var(--color-line)] border-b"
         >
           <div className="p-4 sm:p-5">
             <span style={{ color: 'var(--color-muted)' }} className="text-xs font-medium block">

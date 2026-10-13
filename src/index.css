@@ -7,9 +7,8 @@
    the OS and the app theme disagreed. */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* max-md: means "compact layout", the same condition as MOBILE_QUERY: narrower than 768px, or a
-   touch device narrower than 1024px (iPad portrait) or shorter than 500px (phone in landscape). */
-@custom-variant max-md (@media (max-width: 767.98px), (pointer: coarse) and (max-width: 1023.98px), (pointer: coarse) and (max-height: 500px));
+/* max-md: means "compact layout" (screen narrower than 768px). */
+@custom-variant max-md (@media (max-width: 767.98px));
 
 @theme {
   --color-bg: #f6f6f3;

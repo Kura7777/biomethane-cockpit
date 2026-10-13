@@ -224,11 +224,20 @@
 
   .gl-search .input {
     min-height: 44px;
-    font-size: 16px;
+    font-size: 14px;
+    border-radius: 12px;
+  }
+
+  .gl-entry {
+    border-radius: 14px;
+    border: 1px solid color-mix(in srgb, var(--color-divider) 45%, transparent);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+    overflow: hidden;
   }
 
   .gl-entry-head {
-    min-height: 44px;
+    min-height: 48px;
+    padding: 12px 14px;
   }
 
   .gl-az-btn {

@@ -254,6 +254,7 @@ export function MarksScreen() {
     <PageShell>
       {/* Top Header Bar */}
       <div
+        className="marks-header"
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -311,7 +312,7 @@ export function MarksScreen() {
       </div>
 
       {/* Four-cell Institutional Ledger Strip */}
-      <KpiRow columns={4}>
+      <KpiRow columns={4} className="marks-kpis">
         <KpiTile
           label={
             <span style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px' }}>
