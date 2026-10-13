@@ -15,6 +15,8 @@ import { loadPlantsAsync } from '../plants/registry';
 import { getPlantCompliance, aidStatus } from '../plants/compliance';
 import { lookupReference } from './referenceLookup';
 import { searchDeskMemory, saveDeskRule, type DeskMemoryRule } from './deskMemory';
+import { FUEL_EU_SHIPPING_COUNTERPARTIES } from '../fueleu/shippingTargetsData';
+import { FUEL_EU_SHIPPING_GROUPS } from '../fueleu/groups';
 
 export interface HelperToolContext {
   marks: MarksState;
@@ -85,6 +87,25 @@ export const HELPER_TOOLS: Anthropic.Beta.BetaTool[] = [
       category: { type: 'string', enum: ['counterparty', 'market', 'tariff', 'contract', 'general'], description: 'Category of the rule' }
     }, ['subject', 'rule', 'category']),
   },
+  {
+    name: 'search_shipping_counterparties',
+    description: 'Search official FuelEU Maritime shipping companies and commercial groups (EU MRV 2025 dataset, 14,050 vessels in scope across 3,400+ companies). Returns matches with rank, segment, fleet capability (DUAL_FUEL_LNG vs CONVENTIONAL_ONLY), 2026 compliance deficit (tCO2e), penalty exposure (€), and Bio-LNG requirement (MWh). Filter by query (company name e.g. "Maersk", "MSC", "Grimaldi", "Hapag-Lloyd"), segment (e.g. "Container ship", "Oil tanker", "Bulk carrier", "Ro-pax ship", "Cruise"), and/or fleetCapability ("DUAL_FUEL_LNG" or "CONVENTIONAL_ONLY").',
+    strict: true,
+    input_schema: obj({
+      query: { type: ['string', 'null'], description: 'Company or group name search string' },
+      segment: { type: ['string', 'null'], description: 'Vessel segment filter (e.g. "Container ship", "Oil tanker", "Bulk carrier", "Ro-pax ship")' },
+      fleetCapability: { type: ['string', 'null'], enum: ['DUAL_FUEL_LNG', 'CONVENTIONAL_ONLY', null], description: 'Optional fleet capability filter' },
+      limit: { type: ['number', 'null'], description: 'Max results (default 10, max 25)' }
+    }, ['query', 'segment', 'fleetCapability', 'limit']),
+  },
+  {
+    name: 'get_shipping_counterparty',
+    description: 'Get full FuelEU Maritime compliance profile and commercial dossier for one shipping company or group by rank (1-3400+) or company/group name. Returns vessels, fuel consumption breakdown (VLSFO, MGO, LNG tonnes), 2026/2030 deficits, Year 1 & Year 2 penalty escalation, Bio-LNG required, ETS exposure, group roll-up, and institutional outreach pitch.',
+    strict: true,
+    input_schema: obj({
+      rankOrName: { type: 'string', description: 'Rank number (e.g. "1") or exact/partial company name (e.g. "Maersk A/S", "MSC", "Carnival")' }
+    }, ['rankOrName']),
+  },
 ];
 
 export const HELPER_TOOL_LABELS: Record<string, string> = {
@@ -97,6 +118,8 @@ export const HELPER_TOOL_LABELS: Record<string, string> = {
   lookup_reference: 'Looking up the reference',
   get_desk_memory: 'Checking desk memory & rules',
   save_desk_memory: 'Saving rule to desk memory',
+  search_shipping_counterparties: 'Searching FuelEU shipping companies',
+  get_shipping_counterparty: 'Reading FuelEU shipping profile',
   web_search: 'Searching the web',
 };
 
@@ -233,6 +256,140 @@ export async function runHelperTool(name: string, input: unknown, ctx: HelperToo
         success: true,
         savedRule: saved,
         confirmation: `Successfully recorded rule for "${saved.subject}" in persistent desk memory.`,
+      });
+    }
+    case 'search_shipping_counterparties': {
+      const q = str(args.query).trim().toLowerCase();
+      const seg = str(args.segment).trim().toLowerCase();
+      const cap = str(args.fleetCapability).trim().toUpperCase();
+      const limit = Math.min(Math.max(typeof args.limit === 'number' ? Math.floor(args.limit) : 10, 1), 25);
+
+      if (!q && !seg && !cap) {
+        // Return top counterparties by deficit penalty
+        const top = FUEL_EU_SHIPPING_COUNTERPARTIES.slice(0, limit);
+        return JSON.stringify({
+          totalFound: FUEL_EU_SHIPPING_COUNTERPARTIES.length,
+          results: top.map(c => ({
+            rank: c.rank,
+            name: c.parent_name,
+            group: c.group_name,
+            segment: c.segment,
+            vessels: c.vessels_in_scope,
+            fleetCapability: c.fleetCapability,
+            lngVessels: c.lng_vessels_in_scope,
+            deficit2026Tco2e: c.compliance_balance_2026_tco2e,
+            penalty2026Y1Eur: c.penalty_2026_y1_eur,
+            bioLngRequiredMwh: c.bio_lng_required_neg100_mwh,
+            strategyTier: c.strategy_tier,
+          })),
+        });
+      }
+
+      const matches = FUEL_EU_SHIPPING_COUNTERPARTIES.filter(c => {
+        if (q) {
+          const matchName = c.parent_name.toLowerCase().includes(q);
+          const matchGroup = c.group_name.toLowerCase().includes(q);
+          const matchImo = c.company_imo.includes(q);
+          if (!matchName && !matchGroup && !matchImo) return false;
+        }
+        if (seg) {
+          if (!c.segment.toLowerCase().includes(seg)) return false;
+        }
+        if (cap) {
+          if (c.fleetCapability !== cap) return false;
+        }
+        return true;
+      });
+
+      return JSON.stringify({
+        query: q || null,
+        segmentFilter: seg || null,
+        fleetCapabilityFilter: cap || null,
+        totalFound: matches.length,
+        results: matches.slice(0, limit).map(c => ({
+          rank: c.rank,
+          name: c.parent_name,
+          group: c.group_name,
+          segment: c.segment,
+          vessels: c.vessels_in_scope,
+          fleetCapability: c.fleetCapability,
+          lngVessels: c.lng_vessels_in_scope,
+          deficit2026Tco2e: c.compliance_balance_2026_tco2e,
+          penalty2026Y1Eur: c.penalty_2026_y1_eur,
+          bioLngRequiredMwh: c.bio_lng_required_neg100_mwh,
+          strategyTier: c.strategy_tier,
+        })),
+      });
+    }
+    case 'get_shipping_counterparty': {
+      const q = str(args.rankOrName).trim();
+      if (!q) throw new Error('rankOrName is required (e.g. rank "1" or company name "Maersk")');
+
+      // 1. Try matching by numerical rank first
+      const rankNum = parseInt(q, 10);
+      let match = !isNaN(rankNum) && rankNum > 0 && rankNum <= FUEL_EU_SHIPPING_COUNTERPARTIES.length
+        ? FUEL_EU_SHIPPING_COUNTERPARTIES[rankNum - 1]
+        : undefined;
+
+      // 2. Exact or substring match on parent_name or group_name
+      if (!match) {
+        const qLower = q.toLowerCase();
+        match = FUEL_EU_SHIPPING_COUNTERPARTIES.find(c => c.parent_name.toLowerCase() === qLower)
+          || FUEL_EU_SHIPPING_COUNTERPARTIES.find(c => c.parent_name.toLowerCase().includes(qLower))
+          || FUEL_EU_SHIPPING_COUNTERPARTIES.find(c => c.group_name.toLowerCase().includes(qLower));
+      }
+
+      if (!match) {
+        throw new Error(`No shipping counterparty found for "${q}". Try calling search_shipping_counterparties first.`);
+      }
+
+      // Check for associated group roll-up details
+      const group = FUEL_EU_SHIPPING_GROUPS.find(g => g.id === match!.group_id);
+
+      return JSON.stringify({
+        rank: match.rank,
+        name: match.parent_name,
+        companyImo: match.company_imo,
+        segment: match.segment,
+        strategyTier: match.strategy_tier,
+        vesselsInScope: match.vessels_in_scope,
+        fleetCapability: match.fleetCapability,
+        lngVesselsInScope: match.lng_vessels_in_scope,
+        conventionalVesselsInScope: match.conventional_vessels_in_scope,
+        fuelMix: {
+          vlsfoTonnes: match.vlsfo_tonnes,
+          mgoTonnes: match.mgo_tonnes,
+          lngTonnes: match.lng_tonnes,
+          totalEnergyMwh: match.total_energy_mwh,
+          actualGhgie: match.actual_ghgie,
+          targetGhgie2026: 89.34,
+        },
+        regulatoryExposure: {
+          complianceBalance2026Tco2e: match.compliance_balance_2026_tco2e,
+          penalty2026Y1Eur: match.penalty_2026_y1_eur,
+          penalty2026Y2Eur: match.penalty_2026_y2_eur,
+          complianceBalance2030Tco2e: match.compliance_balance_2030_tco2e,
+          penalty2030Y1Eur: match.penalty_2030_y1_eur,
+          etsExposure2026Tco2: match.ets_exposure_2026_tco2,
+        },
+        bioLngSolutions: {
+          bioLngRequiredNeg100Tonnes: match.bio_lng_required_neg100_t,
+          bioLngRequiredNeg100Mwh: match.bio_lng_required_neg100_mwh,
+          bioLngRequiredZeroTonnes: match.bio_lng_required_zero_t,
+          clientSavingsPhysicalEur: match.client_savings_physical_eur,
+        },
+        group: {
+          id: match.group_id,
+          name: match.group_name,
+          entityType: match.entityType,
+          totalGroupVessels: group?.vessels ?? match.vessels_in_scope,
+          totalGroupMembers: group?.memberCompanyCount ?? 1,
+          groupPooledBalance2026Tco2e: group?.sumOfCompanyBalances2026 ?? match.compliance_balance_2026_tco2e,
+          groupSumPenalties2026Eur: group?.sumOfCompanyPenalties2026 ?? match.penalty_2026_y1_eur,
+          contacts: group?.contacts ?? [],
+        },
+        outreachPitch: match.outreachPitch,
+        source: match.source,
       });
     }
     default:

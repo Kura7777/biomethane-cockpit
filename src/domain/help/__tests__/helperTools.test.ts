@@ -25,6 +25,8 @@ describe('helper tools (read-only lookups into app data)', () => {
       'lookup_reference',
       'get_desk_memory',
       'save_desk_memory',
+      'search_shipping_counterparties',
+      'get_shipping_counterparty',
     ]);
     for (const t of HELPER_TOOLS) {
       expect(t.strict).toBe(true);
@@ -70,6 +72,35 @@ describe('helper tools (read-only lookups into app data)', () => {
     const fetchRes = await run('get_desk_memory', { query: 'TotalEnergies' });
     expect(fetchRes.rulesFound).toBeGreaterThan(0);
     expect(fetchRes.rules[0].subject).toBe('TotalEnergies');
+  });
+  it('searches and retrieves shipping counterparties under FuelEU Maritime', async () => {
+    // 1. Search by query 'Maersk'
+    const maerskSearch = await run('search_shipping_counterparties', { query: 'Maersk' });
+    expect(maerskSearch.totalFound).toBeGreaterThan(0);
+    expect(maerskSearch.results[0].name).toContain('Maersk');
+    expect(maerskSearch.results[0].penalty2026Y1Eur).toBeGreaterThan(0);
+
+    // 2. Search by segment 'Container ship'
+    const containerSearch = await run('search_shipping_counterparties', { segment: 'Container ship', limit: 5 });
+    expect(containerSearch.results.length).toBe(5);
+    expect(containerSearch.results.every((r: { segment: string }) => r.segment === 'Container ship')).toBe(true);
+
+    // 3. Search dual-fuel LNG capability
+    const dualFuelSearch = await run('search_shipping_counterparties', { fleetCapability: 'DUAL_FUEL_LNG', limit: 5 });
+    expect(dualFuelSearch.results.every((r: { fleetCapability: string }) => r.fleetCapability === 'DUAL_FUEL_LNG')).toBe(true);
+
+    // 4. Get by rank '1'
+    const rank1 = await run('get_shipping_counterparty', { rankOrName: '1' });
+    expect(rank1.rank).toBe(1);
+    expect(rank1.name).toBe('Maersk A/S');
+    expect(rank1.fuelMix.vlsfoTonnes).toBeGreaterThan(0);
+    expect(rank1.regulatoryExposure.penalty2026Y1Eur).toBeGreaterThan(1000000);
+    expect(rank1.group.name).toContain('Maersk');
+
+    // 5. Get by name 'MSC'
+    const msc = await run('get_shipping_counterparty', { rankOrName: 'MSC' });
+    expect(msc.name).toContain('MSC');
+    expect(msc.regulatoryExposure.complianceBalance2026Tco2e).toBeLessThan(0);
   });
   it('bad input throws, so the loop can return is_error', async () => {
     await expect(runHelperTool('price_destinations', { origin: 'ES', feedstock: 'unicorn' }, ctx)).rejects.toThrow(/unknown feedstock/);

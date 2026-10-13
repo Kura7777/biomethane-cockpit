@@ -56,10 +56,14 @@ function referenceIndexBlock(): string {
   ].join('\n');
 }
 
+function shippingDirectoryBlock(): string {
+  return `FUELEU MARITIME SHIPPING DIRECTORY (14,050 vessels in scope across 3,400+ shipping companies and groups from official EU MRV). Call search_shipping_counterparties or get_shipping_counterparty to look up shipping companies, their compliance deficit, penalty exposure, and Bio-LNG demand.`;
+}
+
 /** The full pack. Built once per page load; identical across requests for the same app data. */
 let cached: string | null = null;
 export function buildKnowledgePack(): string {
   if (cached) return cached;
-  cached = [marketsBlock(), constantsBlock(), watchlistBlock(), referenceIndexBlock()].join('\n\n');
+  cached = [marketsBlock(), constantsBlock(), watchlistBlock(), shippingDirectoryBlock(), referenceIndexBlock()].join('\n\n');
   return cached;
 }
