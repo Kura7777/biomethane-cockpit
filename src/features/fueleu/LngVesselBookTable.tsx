@@ -9,7 +9,7 @@ import { MobileCardList } from '../../shared/ui';
 
 const MONO_FONT = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
 
-type SortField = 'name' | 'imo' | 'shipType' | 'group_id' | 'in_scope_lng_t' | 'ghgie' | 'balance2026Tco2e' | 'extraSurplusValueEurAtBid' | 'bioLngNeededTonnes';
+type SortField = 'name' | 'imo' | 'shipType' | 'portOfRegistry' | 'verifierName' | 'group_id' | 'in_scope_lng_t' | 'ghgie' | 'balance2026Tco2e' | 'extraSurplusValueEurAtBid' | 'bioLngNeededTonnes';
 type SortDirection = 'asc' | 'desc';
 
 const MOBILE_PAGE = 40;
@@ -18,6 +18,8 @@ const SORT_LABELS: Record<SortField, string> = {
   name: 'Ship',
   imo: 'IMO',
   shipType: 'Type',
+  portOfRegistry: 'Registry',
+  verifierName: 'Verifier',
   group_id: 'Group',
   in_scope_lng_t: 'In-scope LNG (t)',
   ghgie: 'GHGIE',
@@ -55,7 +57,7 @@ export function LngVesselBookTable() {
       setSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'));
     } else {
       setSortField(field);
-      setSortDirection(field === 'name' || field === 'imo' || field === 'shipType' || field === 'group_id' ? 'asc' : 'desc');
+      setSortDirection(field === 'name' || field === 'imo' || field === 'shipType' || field === 'portOfRegistry' || field === 'verifierName' || field === 'group_id' ? 'asc' : 'desc');
     }
   };
 
@@ -224,6 +226,8 @@ export function LngVesselBookTable() {
               const isDeficit = r.balance2026Tco2e < 0;
               return [
                 { label: 'IMO', value: r.imo, mono: true },
+                { label: 'Registry', value: r.portOfRegistry || '—' },
+                { label: 'Verifier', value: r.verifierName || '—' },
                 { label: 'In-scope LNG (t)', value: r.in_scope_lng_t.toLocaleString(), mono: true },
                 { label: 'GHGIE', value: r.ghgie.toFixed(2), mono: true },
                 { label: 'Extra surplus (t)', value: `+${r.extraSurplusIfFullBioLngTco2e.toLocaleString()}`, mono: true, tone: 'pos' },
@@ -244,18 +248,20 @@ export function LngVesselBookTable() {
         <table className="table" style={{ width: '100%', margin: 0 }}>
           <thead>
             <tr>
-              {th('SHIP', 'name', 'left', '200px')}
-              {th('IMO', 'imo', 'left', '90px')}
-              {th('TYPE', 'shipType', 'left', '140px')}
-              {th('GROUP', 'group_id', 'left', '170px')}
-              {th('IN-SCOPE LNG (t)', 'in_scope_lng_t', 'right', '130px')}
-              {th('GHGIE', 'ghgie', 'right', '90px', 'Achieved GHG intensity, gCO2e/MJ')}
-              {th('2026 BALANCE', 'balance2026Tco2e', 'right', '120px', 'FuelEU compliance balance, tCO2e (+ surplus / − deficit)')}
-              {th('EXTRA SURPLUS (t)', 'extraSurplusValueEurAtBid', 'right', '130px', 'Additional compliance surplus, tCO2e, if 100% of in-scope LNG were -100 CI Bio-LNG')}
-              <th style={{ width: '120px', textAlign: 'right', padding: '8px 8px', whiteSpace: 'nowrap' }} title="Extra surplus value at the live desk bid">
+              {th('SHIP', 'name', 'left', '180px')}
+              {th('IMO', 'imo', 'left', '85px')}
+              {th('TYPE', 'shipType', 'left', '120px')}
+              {th('REGISTRY', 'portOfRegistry', 'left', '110px')}
+              {th('VERIFIER', 'verifierName', 'left', '140px')}
+              {th('GROUP', 'group_id', 'left', '150px')}
+              {th('IN-SCOPE LNG (t)', 'in_scope_lng_t', 'right', '120px')}
+              {th('GHGIE', 'ghgie', 'right', '80px', 'Achieved GHG intensity, gCO2e/MJ')}
+              {th('2026 BALANCE', 'balance2026Tco2e', 'right', '110px', 'FuelEU compliance balance, tCO2e (+ surplus / − deficit)')}
+              {th('EXTRA SURPLUS (t)', 'extraSurplusValueEurAtBid', 'right', '120px', 'Additional compliance surplus, tCO2e, if 100% of in-scope LNG were -100 CI Bio-LNG')}
+              <th style={{ width: '110px', textAlign: 'right', padding: '8px 8px', whiteSpace: 'nowrap' }} title="Extra surplus value at the live desk bid">
                 EXTRA SURPLUS (€)
               </th>
-              {th('BIO-LNG TO CLOSE (t)', 'bioLngNeededTonnes', 'right', '140px', 'Bio-LNG needed to bring the 2026 balance to zero — only non-zero for ships in deficit')}
+              {th('BIO-LNG TO CLOSE (t)', 'bioLngNeededTonnes', 'right', '130px', 'Bio-LNG needed to bring the 2026 balance to zero — only non-zero for ships in deficit')}
             </tr>
           </thead>
           <tbody>
@@ -273,6 +279,10 @@ export function LngVesselBookTable() {
                   </td>
                   <td className="num font-mono" style={{ padding: '6px 8px', fontSize: '11px', fontFamily: MONO_FONT }}>{r.imo}</td>
                   <td style={{ padding: '6px 8px', fontSize: '11px', color: 'var(--color-muted)' }}>{r.shipType}</td>
+                  <td style={{ padding: '6px 8px', fontSize: '11px', color: 'var(--color-text)' }}>{r.portOfRegistry || '—'}</td>
+                  <td style={{ padding: '6px 8px', fontSize: '11px', color: 'var(--color-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px' }} title={r.verifierName || undefined}>
+                    {r.verifierName || '—'}
+                  </td>
                   <td style={{ padding: '6px 8px', fontSize: '11px' }}>{groupNameById.get(r.group_id) || r.group_id}</td>
                   <td className="num font-mono" style={{ textAlign: 'right', padding: '6px 8px', fontSize: '11.5px' }}>{r.in_scope_lng_t.toLocaleString()}</td>
                   <td className="num font-mono" style={{ textAlign: 'right', padding: '6px 8px', fontSize: '11.5px' }}>{r.ghgie.toFixed(2)}</td>

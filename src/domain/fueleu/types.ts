@@ -257,6 +257,10 @@ export interface ShippingCounterparty {
    *  element shape stays uniform (an added always-toggling optional field on ~3,500 rows tips
    *  TypeScript's array-literal inference into a "union type too complex" error). */
   parent_group_id: string;
+  /** Accredited verification bodies auditing ships in this fleet (EU MRV THETIS col 12). */
+  verifiers: string[];
+  /** Flag / port registries represented in this fleet (EU MRV THETIS col 5). */
+  registries: string[];
   /** Who typically bears marine fuel cost/FuelEU compliance cost for this row's segment (industry-typical default, not a fact about this specific company). */
   fuelCostBearer: FuelCostBearer;
 }

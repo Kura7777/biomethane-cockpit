@@ -60,6 +60,8 @@ export const COL = {
   partial: 26,
   group: 27,
   bearer: 28,
+  verifiers: 29,
+  registries: 30,
 } as const;
 
 /** Tonnes at whole-tonne precision once they reach 1,000 t; one decimal below that so small fleets are not distorted. */
@@ -76,6 +78,8 @@ export interface ShippingTargetsPack {
   /** [group_id, group_name, entityType, parent_group_id ('' when none)] */
   groups: [string, string, GroupEntityType, string][];
   bearers: FuelCostBearer[];
+  verifiersTable?: string[];
+  registriesTable?: string[];
   rows: (string | number)[][];
 }
 
@@ -177,6 +181,12 @@ export function decodeShippingTargets(pack: ShippingTargetsPack): ShippingCounte
       group_name: grp[1],
       entityType: grp[2],
       parent_group_id: grp[3],
+      verifiers: pack.verifiersTable && r[COL.verifiers] !== undefined && r[COL.verifiers] !== ''
+        ? String(r[COL.verifiers]).split(',').map(idx => pack.verifiersTable![Number(idx)]).filter(Boolean)
+        : [],
+      registries: pack.registriesTable && r[COL.registries] !== undefined && r[COL.registries] !== ''
+        ? String(r[COL.registries]).split(',').map(idx => pack.registriesTable![Number(idx)]).filter(Boolean)
+        : [],
       fuelCostBearer: pack.bearers[r[COL.bearer] as number],
     };
   });

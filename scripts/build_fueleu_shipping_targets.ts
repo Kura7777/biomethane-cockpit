@@ -80,6 +80,8 @@ interface MrvCompany {
   fuelSplitMethod: string;
   partialReportShips: number;
   otherFuelSuspectedShips: number;
+  verifiers?: string[];
+  registries?: string[];
 }
 
 interface MrvFile {
@@ -325,6 +327,8 @@ const built: Built[] = eligible.map((c): Built => {
     lngShipCount: c.lngShipCount,
     otherFuelSuspectedShips: c.otherFuelSuspectedShips,
     partialReportShips: c.partialReportShips,
+    verifiers: c.verifiers ?? [],
+    registries: c.registries ?? [],
     contacts: [],
     group_id: group.group_id,
     group_name: group.group_name,
@@ -355,6 +359,8 @@ const segments: string[] = [];
 const fleetCapabilities: FleetCapability[] = [];
 const groupTable: [string, string, GroupEntityType, string][] = [];
 const bearerTable: FuelCostBearer[] = [];
+const verifiersTable: string[] = [];
+const registriesTable: string[] = [];
 const indexOf = <T>(table: T[], value: T, same: (a: T, b: T) => boolean): number => {
   const i = table.findIndex(t => same(t, value));
   if (i >= 0) return i;
@@ -409,6 +415,8 @@ const encodedRows: (string | number)[][] = built.map(r => {
     (a, b) => a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[3] === b[3],
   );
   tuple[COL.bearer] = indexOf(bearerTable, r.fuelCostBearer, (a, b) => a.typicalBearer === b.typicalBearer && a.note === b.note);
+  tuple[COL.verifiers] = r.verifiers.map(v => indexOf(verifiersTable, v, (a, b) => a === b)).join(',');
+  tuple[COL.registries] = r.registries.map(reg => indexOf(registriesTable, reg, (a, b) => a === b)).join(',');
   return tuple;
 });
 
@@ -419,6 +427,8 @@ const pack: ShippingTargetsPack = {
   fleetCapabilities,
   groups: groupTable,
   bearers: bearerTable,
+  verifiersTable,
+  registriesTable,
   rows: encodedRows,
 };
 
@@ -442,6 +452,8 @@ const pack: ShippingTargetsPack = {
     }
     if (JSON.stringify(d.ship_imos) !== JSON.stringify(b.ship_imos)) throw new Error(`Codec mismatch on ship_imos row ${i + 1}`);
     if (JSON.stringify(d.fuelCostBearer) !== JSON.stringify(b.fuelCostBearer)) throw new Error(`Codec mismatch on fuelCostBearer row ${i + 1}`);
+    if (JSON.stringify(d.verifiers) !== JSON.stringify(b.verifiers)) throw new Error(`Codec mismatch on verifiers row ${i + 1}`);
+    if (JSON.stringify(d.registries) !== JSON.stringify(b.registries)) throw new Error(`Codec mismatch on registries row ${i + 1}`);
   });
 }
 
@@ -475,6 +487,8 @@ lines.push(`  segments: ${JSON.stringify(pack.segments)},`);
 lines.push(`  fleetCapabilities: ${JSON.stringify(pack.fleetCapabilities)},`);
 lines.push(`  groups: ${JSON.stringify(pack.groups)},`);
 lines.push(`  bearers: ${JSON.stringify(pack.bearers)},`);
+lines.push(`  verifiersTable: ${JSON.stringify(pack.verifiersTable)},`);
+lines.push(`  registriesTable: ${JSON.stringify(pack.registriesTable)},`);
 lines.push('  rows: [');
 for (const row of pack.rows) lines.push(JSON.stringify(row) + ',');
 lines.push('  ],');

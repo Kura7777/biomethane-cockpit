@@ -23,6 +23,8 @@ interface MrvShip {
   name: string;
   shipType: string;
   company_imo: string;
+  portOfRegistry?: string | null;
+  verifierName?: string | null;
   scopeShare: number;
   in_scope_vlsfo_t: number;
   in_scope_mgo_t: number;
@@ -54,7 +56,11 @@ if (fs.existsSync(GROUP_MAP_PATH)) {
   }
 }
 
-const bidPrice = fuelEuPoolBidPriceEurPerTco2e();
+import { EUROPEAN_MARKET_BENCHMARKS } from '../src/domain/markets/marketBenchmarks';
+
+const fueleuBenchmark = EUROPEAN_MARKET_BENCHMARKS.find(b => b.marketId === 'FUELEU');
+const fueleuOfferPrice = fueleuBenchmark?.offerPrice ?? 108.60;
+const bidPrice = fuelEuPoolBidPriceEurPerTco2e(fueleuOfferPrice);
 
 const lngShips = shipsFile.ships.filter(s => s.isLng);
 
@@ -63,6 +69,8 @@ export interface LngShipRow {
   name: string;
   shipType: string;
   company_imo: string;
+  portOfRegistry?: string | null;
+  verifierName?: string | null;
   group_id: string;
   scopeShare: number;
   in_scope_vlsfo_t: number;
@@ -99,6 +107,8 @@ const rows: LngShipRow[] = lngShips.map((s): LngShipRow => {
     name: s.name,
     shipType: s.shipType,
     company_imo: s.company_imo,
+    portOfRegistry: s.portOfRegistry || null,
+    verifierName: s.verifierName || null,
     group_id: companyImoToGroupId.get(s.company_imo) ?? `unmapped-${s.company_imo}`,
     scopeShare: s.scopeShare,
     in_scope_vlsfo_t: s.in_scope_vlsfo_t,
@@ -131,6 +141,8 @@ lines.push('  imo: string;');
 lines.push('  name: string;');
 lines.push('  shipType: string;');
 lines.push('  company_imo: string;');
+lines.push('  portOfRegistry?: string | null;');
+lines.push('  verifierName?: string | null;');
 lines.push('  group_id: string;');
 lines.push('  scopeShare: number;');
 lines.push('  in_scope_vlsfo_t: number;');

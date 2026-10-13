@@ -186,9 +186,11 @@ EXPECTED_HEADERS = {
     0: "IMO Number",              # ship IMO (first occurrence)
     1: "Name",                    # ship name (first occurrence)
     2: "Ship type",
+    5: "Port of Registry",
     7: "Ice Class",
     8: "IMO Number",              # company IMO (second occurrence)
     9: "Name",                    # company name (second occurrence)
+    12: "Verifier Name",
     23: "Total fuel consumption",
     28: "Total CO",                # "Total CO₂ emissions" -- avoid unicode subscript matching issues
     29: "CO",                      # between MS ports
@@ -206,9 +208,11 @@ EXPECTED_HEADERS_FULL = {
     0: "IMO Number",
     1: "Name",
     2: "Ship type",
+    5: "Port of Registry",
     7: "Ice Class",
     8: "IMO Number",
     9: "Name",
+    12: "Verifier Name",
     23: "Total fuel consumption",
     28: "Total CO₂ emissions",
     29: "CO₂ emissions from all voyages between ports under a MS jurisdiction",
@@ -351,6 +355,8 @@ def main():
         "lngShipCount": 0,
         "partialReportShips": 0,
         "otherFuelSuspectedShips": 0,
+        "verifiers": defaultdict(int),
+        "registries": defaultdict(int),
     })
 
     total_ships = 0
@@ -389,8 +395,10 @@ def main():
                 gt_filtered[ship_type][0] += 1
                 gt_filtered[ship_type][1] += num(row[28])
                 continue
+            port_of_registry = (row[5] or "").strip() if row[5] else None
             company_imo = row[8]
             company_name = (row[9] or "").strip() if row[9] else None
+            verifier_name = (row[12] or "").strip() if row[12] else None
 
             fuel_t = num(row[23])
             total_co2 = num(row[28])
@@ -443,6 +451,10 @@ def main():
             c["total_co2_t"] += total_co2
             c["ets_co2_t"] += ets_co2
             c["ch4_t"] += ch4_t
+            if verifier_name:
+                c["verifiers"][verifier_name] += 1
+            if port_of_registry:
+                c["registries"][port_of_registry] += 1
             if is_lng:
                 c["lngShipCount"] += 1
                 if len(lng_ship_examples) < 8:
@@ -458,6 +470,8 @@ def main():
                     "name": ship_name,
                     "shipType": ship_type,
                     "company_imo": company_key,
+                    "portOfRegistry": port_of_registry,
+                    "verifierName": verifier_name,
                     "iceClass": row[7],
                     "partialReport": is_partial,
                     "scopeShare": round(scope_share, 4),
@@ -510,6 +524,8 @@ def main():
     company_list = []
     for key, c in companies.items():
         segment = max(c["segment_co2_by_type"].items(), key=lambda kv: kv[1])[0] if c["segment_co2_by_type"] else "Unknown"
+        top_verifiers = [v for v, _ in sorted(c["verifiers"].items(), key=lambda kv: kv[1], reverse=True)[:3]]
+        top_registries = [r for r, _ in sorted(c["registries"].items(), key=lambda kv: kv[1], reverse=True)[:5]]
         company_list.append({
             "company_imo": c["company_imo"],
             "parent_name": c["parent_name"] or "(unknown)",
@@ -527,6 +543,8 @@ def main():
             "fuelSplitMethod": "ESTIMATED_FROM_MRV_CO2_CH4",
             "partialReportShips": c["partialReportShips"],
             "otherFuelSuspectedShips": c["otherFuelSuspectedShips"],
+            "verifiers": top_verifiers,
+            "registries": top_registries,
         })
 
     company_list.sort(key=lambda c: c["in_scope_co2_t"], reverse=True)

@@ -21,7 +21,8 @@ import {
   AlertTriangle,
   ShieldCheck,
   Zap,
-  UserCheck
+  UserCheck,
+  Anchor
 } from 'lucide-react';
 import { showToast } from '../../../app/DeskToastContainer';
 import { useFuelEuPrices } from '../useFuelEuPrices';
@@ -223,6 +224,49 @@ export function ShippingExposureStep({
             <span>·</span>
             <span>Hubs: {counterparty.primary_bunkering_hubs || '—'}</span>
           </div>
+
+          {(counterparty.verifiers?.length > 0 || counterparty.registries?.length > 0) && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', flexWrap: 'wrap', marginTop: '3px' }}>
+              {counterparty.verifiers?.length > 0 && (
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '1px 6px',
+                    backgroundColor: 'var(--color-subtier)',
+                    border: '1px solid var(--color-divider)',
+                    borderRadius: '2px',
+                    color: 'var(--color-text)',
+                  }}
+                  title="Accredited Verification Body / Auditor (EU MRV THETIS)"
+                >
+                  <ShieldCheck size={11} style={{ color: 'var(--color-status-pos-text)' }} />
+                  <span style={{ color: 'var(--color-muted)' }}>Verifier:</span>
+                  <strong>{counterparty.verifiers.slice(0, 2).join(', ')}{counterparty.verifiers.length > 2 ? ` +${counterparty.verifiers.length - 2}` : ''}</strong>
+                </span>
+              )}
+              {counterparty.registries?.length > 0 && (
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '1px 6px',
+                    backgroundColor: 'var(--color-subtier)',
+                    border: '1px solid var(--color-divider)',
+                    borderRadius: '2px',
+                    color: 'var(--color-text)',
+                  }}
+                  title="Port of Registry / Flag State (EU MRV THETIS)"
+                >
+                  <Anchor size={11} style={{ color: 'var(--color-accent)' }} />
+                  <span style={{ color: 'var(--color-muted)' }}>Flag / Registry:</span>
+                  <strong>{counterparty.registries.slice(0, 3).join(', ')}{counterparty.registries.length > 3 ? ` +${counterparty.registries.length - 3}` : ''}</strong>
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Right Quick Metric Chips */}

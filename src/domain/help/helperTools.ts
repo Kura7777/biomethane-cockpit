@@ -95,8 +95,9 @@ export const HELPER_TOOLS: Anthropic.Beta.BetaTool[] = [
       query: { type: ['string', 'null'], description: 'Company or group name search string' },
       segment: { type: ['string', 'null'], description: 'Vessel segment filter (e.g. "Container ship", "Oil tanker", "Bulk carrier", "Ro-pax ship")' },
       fleetCapability: { type: ['string', 'null'], enum: ['DUAL_FUEL_LNG', 'CONVENTIONAL_ONLY', null], description: 'Optional fleet capability filter' },
+      verifier: { type: ['string', 'null'], description: 'Optional accredited verification body filter (e.g. "DNV", "Bureau Veritas", "RINA", "Lloyd\'s")' },
       limit: { type: ['number', 'null'], description: 'Max results (default 10, max 25)' }
-    }, ['query', 'segment', 'fleetCapability', 'limit']),
+    }, ['query', 'segment', 'fleetCapability', 'verifier', 'limit']),
   },
   {
     name: 'get_shipping_counterparty',
@@ -262,9 +263,10 @@ export async function runHelperTool(name: string, input: unknown, ctx: HelperToo
       const q = str(args.query).trim().toLowerCase();
       const seg = str(args.segment).trim().toLowerCase();
       const cap = str(args.fleetCapability).trim().toUpperCase();
+      const ver = str(args.verifier).trim().toLowerCase();
       const limit = Math.min(Math.max(typeof args.limit === 'number' ? Math.floor(args.limit) : 10, 1), 25);
 
-      if (!q && !seg && !cap) {
+      if (!q && !seg && !cap && !ver) {
         // Return top counterparties by deficit penalty
         const top = FUEL_EU_SHIPPING_COUNTERPARTIES.slice(0, limit);
         return JSON.stringify({
@@ -277,6 +279,8 @@ export async function runHelperTool(name: string, input: unknown, ctx: HelperToo
             vessels: c.vessels_in_scope,
             fleetCapability: c.fleetCapability,
             lngVessels: c.lng_vessels_in_scope,
+            verifiers: c.verifiers || [],
+            registries: c.registries || [],
             deficit2026Tco2e: c.compliance_balance_2026_tco2e,
             penalty2026Y1Eur: c.penalty_2026_y1_eur,
             bioLngRequiredMwh: c.bio_lng_required_neg100_mwh,
@@ -298,6 +302,9 @@ export async function runHelperTool(name: string, input: unknown, ctx: HelperToo
         if (cap) {
           if (c.fleetCapability !== cap) return false;
         }
+        if (ver) {
+          if (!c.verifiers?.some(v => v.toLowerCase().includes(ver))) return false;
+        }
         return true;
       });
 
@@ -305,6 +312,7 @@ export async function runHelperTool(name: string, input: unknown, ctx: HelperToo
         query: q || null,
         segmentFilter: seg || null,
         fleetCapabilityFilter: cap || null,
+        verifierFilter: ver || null,
         totalFound: matches.length,
         results: matches.slice(0, limit).map(c => ({
           rank: c.rank,
@@ -314,6 +322,8 @@ export async function runHelperTool(name: string, input: unknown, ctx: HelperToo
           vessels: c.vessels_in_scope,
           fleetCapability: c.fleetCapability,
           lngVessels: c.lng_vessels_in_scope,
+          verifiers: c.verifiers || [],
+          registries: c.registries || [],
           deficit2026Tco2e: c.compliance_balance_2026_tco2e,
           penalty2026Y1Eur: c.penalty_2026_y1_eur,
           bioLngRequiredMwh: c.bio_lng_required_neg100_mwh,
@@ -356,6 +366,8 @@ export async function runHelperTool(name: string, input: unknown, ctx: HelperToo
         fleetCapability: match.fleetCapability,
         lngVesselsInScope: match.lng_vessels_in_scope,
         conventionalVesselsInScope: match.conventional_vessels_in_scope,
+        verifiers: match.verifiers || [],
+        registries: match.registries || [],
         fuelMix: {
           vlsfoTonnes: match.vlsfo_tonnes,
           mgoTonnes: match.mgo_tonnes,
