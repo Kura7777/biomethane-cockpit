@@ -11,7 +11,7 @@ describe('Auditor Gemini calls', () => {
     const res = await testGeminiApiKey('AIzaSyTESTSECRET1234567890abcdefghijk');
     expect(res.valid).toBe(true);
     const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
-    expect(url).toBe('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent');
+    expect(url).toBe('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent');
     expect(url).not.toContain('key=');
     expect((init.headers as Record<string, string>)['x-goog-api-key']).toBe('AIzaSyTESTSECRET1234567890abcdefghijk');
     expect(String(init.body)).not.toContain('AIzaSy');

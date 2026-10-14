@@ -14,12 +14,18 @@ import { Layout } from './Layout';
  * Builder came to be imported but unrouted while nine screens linked to it.
  * architecture.test.ts now fails if a navigate() target is missing from this file.
  */
-function lazyWithRetry<T extends React.ComponentType<any>>(
+export function lazyWithRetry<T extends React.ComponentType<any>>(
   factory: () => Promise<{ default: T }>
 ) {
   return React.lazy(async () => {
     try {
-      return await factory();
+      const component = await factory();
+      try {
+        sessionStorage.removeItem('chunk_reload_' + window.location.hash);
+      } catch {
+        // Safe fallback in restricted environments
+      }
+      return component;
     } catch (error: any) {
       const isChunkError =
         error?.message?.includes('Failed to fetch dynamically imported module') ||
@@ -58,6 +64,7 @@ const MorningBriefScreen = lazyWithRetry(() => import('../features/briefing/Morn
 const DealsScreen = lazyWithRetry(() => import('../features/deals/DealsScreen').then(m => ({ default: m.DealsScreen })));
 const AskDeskScreen = lazyWithRetry(() => import('../features/helper/AskDeskScreen').then(m => ({ default: m.AskDeskScreen })));
 const GlossaryScreen = lazyWithRetry(() => import('../features/glossary/GlossaryScreen').then(m => ({ default: m.GlossaryScreen })));
+const SettingsScreen = lazyWithRetry(() => import('../features/settings/SettingsScreen').then(m => ({ default: m.SettingsScreen })));
 
 import { ThemeProvider } from '../store/theme';
 
@@ -114,8 +121,8 @@ function AppContent() {
             <Route path="/library" element={<Navigate to="/trade" replace />} />
             <Route path="/citations" element={<CitationsScreen />} />
             <Route path="/connectors" element={<DataConnectorsScreen />} />
-            {/* Settings had no real settings — Backup/Restore already covers it from the Pricing desk footer. */}
-            <Route path="/settings" element={<Navigate to="/pricing" replace />} />
+            {/* Desk settings & Gemini API key security */}
+            <Route path="/settings" element={<SettingsScreen />} />
             {/* Kept for old bookmarks — the Assumptions screen now lives inside the Pricing desk. */}
             <Route path="/assumptions" element={<Navigate to="/pricing?tab=assumptions" replace />} />
             <Route path="/regulation-check" element={<RegulationCheckScreen />} />

@@ -132,12 +132,25 @@ export function scanEuropeanArbitrage(
         ...costs,
         logistics: transitCost,
       };
-      const netbackRes = computeNetback(market, consignment, customMarks, routeCosts, marks.pricingSides);
+      const netbackRes = computeNetback(
+        market,
+        consignment,
+        customMarks,
+        routeCosts,
+        marks.pricingSides,
+        customMarks.fuelEUOptions,
+        scenario.frCpbPenaltyCap
+      );
 
       const isTradeable = eligibility.overallVerdict === 'ELIGIBLE' || eligibility.overallVerdict === 'CONDITIONAL' || eligibility.overallVerdict === 'UNRESOLVED';
       const isBlocked = eligibility.overallVerdict === 'HARD_BLOCK' || eligibility.overallVerdict === 'UNKNOWN';
 
-      const certValEur = netbackRes.certificateValue?.valueEurPerMWh ?? null;
+      let certValEur = netbackRes.certificateValue?.valueEurPerMWh ?? null;
+      if (market.id === 'FR_CPB' && certValEur !== null && scenario.frCpbPenaltyCap != null) {
+        if (certValEur > scenario.frCpbPenaltyCap) {
+          certValEur = scenario.frCpbPenaltyCap;
+        }
+      }
       const molValEur = isAllInMarket(market.id) ? 0 : (netbackRes.moleculeValue ?? 0);
       const grossRevenue = netbackRes.netbackCappedAt !== null && netbackRes.netbackCappedAt !== undefined
         ? Number((netbackRes.netbackCappedAt + (netbackRes.totalCosts ?? 0)).toFixed(2))
@@ -169,6 +182,8 @@ export function scanEuropeanArbitrage(
         keyRiskOrTrap = 'UDB Non-EU Boundary Trap: UK injected biomethane cannot clear EU compliance reporting.';
       } else if (scheme === 'ISCC_PLUS' && market.id !== 'VOL_SCOPE1') {
         keyRiskOrTrap = 'Voluntary Scheme Trap: ISCC PLUS is not recognized under RED III compliance quotas.';
+      } else if (market.id === 'FR_CPB' && (origin.countryCode !== 'FR' || consignment.injectionCountry !== 'FR')) {
+        keyRiskOrTrap = 'French CPB Domestic Injection Restriction: Only biomethane produced and injected in France qualifies for CPBs (Code de l\'énergie Art. L.446-24 & R.446-12-20). Route to FR_TIRUERT, DE_THG, or NL_ERE.';
       }
 
       // Determine toConfirm checklist

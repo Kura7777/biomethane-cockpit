@@ -111,6 +111,52 @@ describe('Reality Checks & Institutional Ground-Truth Suite (Task 2.5)', () => {
       expect(result.reason).toContain('vs. comparator 94 gCO₂e/MJ');
       expect(result.reason).toContain('73.4%');
     });
+
+    it('evaluates paired GO + PoS markets (NL_GGE): CONDITIONAL with remedy when PoS CI is not yet uploaded, HARD_BLOCK when audited PoS CI fails', () => {
+      const nlGge = getMarketById('NL_GGE')!;
+      expect(nlGge.requiresGoAndPos).toBe(true);
+      expect(nlGge.fossilComparatorGCo2eMj).toBe(80);
+
+      // Estimated CI = 25 g, threshold 70% (requires CI <= 24 g) -> saving is 68.75% < 70%
+      const consignmentWithoutPos = {
+        ...REFERENCE_CONSIGNMENTS.SPANISH_MANURE,
+        carbonIntensity: 25.0,
+        commissioningDateRange: 'POST_2021_TO_2025' as const,
+        custody: undefined,
+      };
+
+      const condResult = evaluateGHGThresholdGate(consignmentWithoutPos, nlGge);
+      expect(condResult.verdict).toBe('CONDITIONAL');
+      expect(condResult.remedy).toBe('Get the PoS CI.');
+
+      // Audited PoS CI = 30 g (still failing) -> must HARD_BLOCK
+      const consignmentWithFailingPos = {
+        ...consignmentWithoutPos,
+        custody: {
+          pos: {
+            ciTotal: 30.0,
+          },
+        } as any,
+      };
+
+      const failResult = evaluateGHGThresholdGate(consignmentWithFailingPos, nlGge);
+      expect(failResult.verdict).toBe('HARD_BLOCK');
+
+      // Audited PoS CI = 15 g (passing) -> must PASS even if base consignment CI was 25 g
+      const consignmentWithPassingPos = {
+        ...consignmentWithoutPos,
+        carbonIntensity: 25.0,
+        custody: {
+          pos: {
+            ciTotal: 15.0,
+          },
+        } as any,
+      };
+
+      const passResult = evaluateGHGThresholdGate(consignmentWithPassingPos, nlGge);
+      expect(passResult.verdict).toBe('PASS');
+      expect(passResult.reason).toContain('CI: 15 gCO₂e/MJ');
+    });
   });
 
   describe('2. Negative Margin Reachability & Market Clearing Checks', () => {

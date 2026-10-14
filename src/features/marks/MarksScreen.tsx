@@ -19,7 +19,8 @@ import {
   Search,
   FileSpreadsheet,
   Filter,
-  Sparkles
+  Sparkles,
+  Camera
 } from 'lucide-react';
 
 function formatAge(dateStr?: string | null): string {
@@ -40,7 +41,7 @@ function formatRunDate(iso?: string | null): string {
 }
 
 export function MarksScreen() {
-  const { state, dispatch } = useAppState();
+  const { state, dispatch, snapshotPriorClose } = useAppState();
   const [isImporterOpen, setIsImporterOpen] = useState(false);
   const [isDateModalOpen, setIsDateModalOpen] = useState(false);
   const [dateInputValue, setDateInputValue] = useState(state.pricingRunMeta?.receivedOn || '2026-08-18');
@@ -298,6 +299,19 @@ export function MarksScreen() {
           >
             <Sparkles className="w-3.5 h-3.5" />
             Paste Broker Run (1-Click)
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            style={{ fontSize: '12px', padding: '6px 14px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            onClick={() => {
+              snapshotPriorClose(state.marks);
+              showToast('Current marks snapshotted as prior close baseline', 'success');
+            }}
+            title="Snapshot current live marks into localStorage as prior close baseline for day-over-day tracking"
+          >
+            <Camera className="w-3.5 h-3.5" />
+            Snapshot Current Marks as Prior Close
           </button>
           <button
             type="button"

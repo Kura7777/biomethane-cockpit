@@ -29,11 +29,59 @@ export interface PrincipalRiskMetrics {
   statutoryCeilingEurMwh: number | null;      // Legal penalty cap (e.g. €100 CPB, ~€314 THG)
 }
 
+export type FuelEUEngineProfile = 'NONE_WTW_CERTIFIED' | 'DIESEL_DF_SS' | 'OTTO_DF_SS' | 'OTTO_DF_MS';
+
+export interface FuelEUEngineProfileInfo {
+  id: FuelEUEngineProfile;
+  label: string;
+  slipPct: number;
+  ttwAdderGco2ePerMj: number;
+  description: string;
+  citation: string;
+}
+
+export const FUELEU_ENGINE_PROFILES: Record<FuelEUEngineProfile, FuelEUEngineProfileInfo> = {
+  NONE_WTW_CERTIFIED: {
+    id: 'NONE_WTW_CERTIFIED',
+    label: 'None / WtW Certified (0.0 g/MJ)',
+    slipPct: 0.0,
+    ttwAdderGco2ePerMj: 0.0,
+    description: 'Consignment CI already includes TtW or uses zero-slip fuel cell/boiler',
+    citation: 'Regulation (EU) 2023/1805 Annex II',
+  },
+  DIESEL_DF_SS: {
+    id: 'DIESEL_DF_SS',
+    label: 'Diesel DF Slow Speed (+1.5 g/MJ)',
+    slipPct: 0.2,
+    ttwAdderGco2ePerMj: 1.5,
+    description: 'Diesel slow speed HPDF (0.2% slip, +1.5 gCO2e/MJ TtW adder)',
+    citation: 'Regulation (EU) 2023/1805 Annex II',
+  },
+  OTTO_DF_SS: {
+    id: 'OTTO_DF_SS',
+    label: 'Otto DF Slow Speed (+10.4 g/MJ)',
+    slipPct: 1.7,
+    ttwAdderGco2ePerMj: 10.4,
+    description: 'Otto dual-fuel slow speed (1.7% slip, +10.4 gCO2e/MJ TtW adder)',
+    citation: 'Regulation (EU) 2023/1805 Annex II',
+  },
+  OTTO_DF_MS: {
+    id: 'OTTO_DF_MS',
+    label: 'Otto DF Medium Speed (+18.8 g/MJ)',
+    slipPct: 3.1,
+    ttwAdderGco2ePerMj: 18.8,
+    description: 'Otto dual-fuel medium speed (3.1% slip, +18.8 gCO2e/MJ TtW adder)',
+    citation: 'Regulation (EU) 2023/1805 Annex II',
+  },
+};
+
 export interface FuelEUOptions {
   shipActualCI?: number;            // Vessel's actual baseline intensity in gCO2e/MJ (default 91.16)
   consecutiveYears?: number;        // Consecutive non-compliance years: 1 (0%), 2 (+10%), 3 (+20%), 4 (+30%)
   targetYear?: 2025 | 2030;         // Target compliance year (default 2025 -> 89.34 gCO2e/MJ)
   deficitMWhCap?: number | null;    // Maximum deficit MWh cap for vessel
+  engineProfile?: FuelEUEngineProfile;
+  ttwMethaneSlipAdderGmj?: number;  // Optional manual slip adder override in gCO2e/MJ
 }
 
 export interface PricingSides {

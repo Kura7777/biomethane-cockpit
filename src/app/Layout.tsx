@@ -70,14 +70,18 @@ export function Layout() {
   };
 
   const handleOpenAuditor = useCallback(() => {
-    const globalDeal = (window as any).__ACTIVE_TRADE_BUILDER_DEAL__;
+    const globalDeal = location.pathname.startsWith('/trade')
+      ? (window as any).__ACTIVE_TRADE_BUILDER_DEAL__
+      : undefined;
     if (globalDeal) {
       setActiveAuditDeal(normalizeTradeAuditContext(globalDeal));
+    } else {
+      setActiveAuditDeal(undefined);
     }
     setAuditorInitialTab('GATE_BREAKDOWN');
     setAuditorFocusedGate(undefined);
     setIsAuditorOpen(true);
-  }, []);
+  }, [location.pathname]);
 
   // Count simulated marks
   const simulatedCount = useMemo(() => {
@@ -87,7 +91,7 @@ export function Layout() {
     ).length;
   }, [state.marks.marks]);
 
-  // Global Keyboard Shortcuts (1-7, S, R, C, Cmd+K, Esc)
+  // Global Keyboard Shortcuts (1-7, S, R, C, G, M, E, L, Q, Cmd+K, Esc)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const k = e.key.toLowerCase();
@@ -100,9 +104,13 @@ export function Layout() {
 
       if ((e.altKey && k === 'a') || ((e.ctrlKey || e.metaKey) && k === 'j')) {
         e.preventDefault();
-        const globalDeal = (window as any).__ACTIVE_TRADE_BUILDER_DEAL__;
+        const globalDeal = location.pathname.startsWith('/trade')
+          ? (window as any).__ACTIVE_TRADE_BUILDER_DEAL__
+          : undefined;
         if (globalDeal) {
           setActiveAuditDeal(normalizeTradeAuditContext(globalDeal));
+        } else {
+          setActiveAuditDeal(undefined);
         }
         setAuditorInitialTab('GATE_BREAKDOWN');
         setAuditorFocusedGate(undefined);
@@ -145,6 +153,11 @@ export function Layout() {
       if (k === 'r') navigate('/risk');
       if (k === 'c') navigate('/citations');
       if (k === 's') navigate('/sourcing');
+      if (k === 'g') navigate('/registries');
+      if (k === 'm') navigate('/fueleu-shipping');
+      if (k === 'e') navigate('/ets2');
+      if (k === 'l') navigate('/clients');
+      if (k === 'q') navigate('/corporate');
     };
 
     window.addEventListener('keydown', handleKeyDown);

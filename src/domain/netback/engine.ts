@@ -6,7 +6,7 @@ import {
 } from '../markets/constants';
 import { Market, PriceSide, getMarkAgeDays } from '../markets/types';
 import { Consignment } from '../consignment/types';
-import { BundleReference, CostInputs, CertificateValueResult, NetbackResult, NetbackBranch, MarksState, FuelEUOptions, PricingSides, NetbackSides, ValuationRange, PrincipalRiskMetrics, RouteCostLine } from './types';
+import { BundleReference, CostInputs, CertificateValueResult, NetbackResult, NetbackBranch, MarksState, FuelEUOptions, PricingSides, NetbackSides, ValuationRange, PrincipalRiskMetrics, RouteCostLine, FUELEU_ENGINE_PROFILES } from './types';
 import { EligibilityAssessment } from '../eligibility/types';
 import { hubBasisSpread } from '../logistics/corridors';
 import { computeGgeBreakdown } from './gge';
@@ -153,10 +153,11 @@ export function computeFuelEUDeficitClosureValue(
   consignmentCI: number,
   consecutiveYears: number = 1,
   targetCI: number = FUELEU_TARGET_CI_2025,
-  shipActualCI: number = FUELEU_BASELINE_CI
+  shipActualCI: number = FUELEU_BASELINE_CI,
+  ttwMethaneSlipAdderGmj: number = 0
 ): { valueEurPerMWh: number; calculation: string; unitConversion: string } {
   const penaltyMultiplier = 1 + Math.max(0, (consecutiveYears - 1) / 10);
-  const bioWtw = bioLngFuelEUIntensity(consignmentCI);
+  const bioWtw = bioLngFuelEUIntensity(consignmentCI) + ttwMethaneSlipAdderGmj;
   const deltaCI = shipActualCI - bioWtw; // gCO₂e removed per MJ of ship fuel displaced
   
   if (shipActualCI <= 0) {
@@ -180,7 +181,8 @@ export function computeFuelEUDeficitClosureValue(
     * deltaCI * Math.max(0, targetCI) / (shipActualCI * shipActualCI) * penaltyMultiplier;
   const valueEurPerMWh = penaltyPerMJ * MJ_PER_MWH;
 
-  const unitConversion = `FuelEU Target: ${targetCI} g/MJ | Ship CI: ${shipActualCI.toFixed(2)} g/MJ | Bio-LNG WtW: ${bioWtw.toFixed(2)} g/MJ (RED CI ${consignmentCI} + slip) | ΔCI: ${deltaCI.toFixed(1)} g/MJ | Penalty: €${FUELEU_STATUTORY_PENALTY_PER_TONNE.toLocaleString('en-GB')}/t VLSFO-eq (Yr ${consecutiveYears}: ${((penaltyMultiplier - 1) * 100).toFixed(0)}% escalation)`;
+  const slipNote = ttwMethaneSlipAdderGmj !== 0 ? ` + ${ttwMethaneSlipAdderGmj} TtW slip` : '';
+  const unitConversion = `FuelEU Target: ${targetCI} g/MJ | Ship CI: ${shipActualCI.toFixed(2)} g/MJ | Bio-LNG WtW: ${bioWtw.toFixed(2)} g/MJ (RED CI ${consignmentCI} + slip${slipNote}) | ΔCI: ${deltaCI.toFixed(1)} g/MJ | Penalty: €${FUELEU_STATUTORY_PENALTY_PER_TONNE.toLocaleString('en-GB')}/t VLSFO-eq (Yr ${consecutiveYears}: ${((penaltyMultiplier - 1) * 100).toFixed(0)}% escalation)`;
   const calculation = `(€${FUELEU_STATUTORY_PENALTY_PER_TONNE.toLocaleString('en-GB')} ÷ ${FUELEU_PENALTY_VLSFO_MJ_PER_TONNE.toLocaleString('en-GB')}) × ${deltaCI.toFixed(1)} × ${targetCI} ÷ ${shipActualCI.toFixed(2)}² × ${penaltyMultiplier.toFixed(1)} × 3600 = €${valueEurPerMWh.toFixed(2)}/MWh compliance value`;
 
   return { valueEurPerMWh, calculation, unitConversion };
@@ -195,9 +197,10 @@ export function computeCertificateValue(
   consignment: Consignment, 
   marks: MarksState,
   side?: PriceSide,
-  fuelEUOptions?: FuelEUOptions
+  fuelEUOptions?: FuelEUOptions,
+  frCpbPenaltyCap?: number
 ): CertificateValueResult | null {
-  const result = computeCertificateValueCore(market, consignment, marks, side, fuelEUOptions);
+  const result = computeCertificateValueCore(market, consignment, marks, side, fuelEUOptions, frCpbPenaltyCap);
   if (!result) return result;
   // Record which side the mark really came from (a modelled value with no mark has no side).
   const sideRequested = side ?? marks.pricingSides.certificateSide;
@@ -212,7 +215,8 @@ function computeCertificateValueCore(
   consignment: Consignment, 
   marks: MarksState,
   side?: PriceSide,
-  fuelEUOptions?: FuelEUOptions
+  fuelEUOptions?: FuelEUOptions,
+  frCpbPenaltyCap?: number
 ): CertificateValueResult | null {
   const pricingSide = side ?? marks.pricingSides.certificateSide;
   const markObj = marks.marks[market.id];
@@ -228,13 +232,16 @@ function computeCertificateValueCore(
     const shipActualCI = opts.shipActualCI ?? FUELEU_BASELINE_CI;
     const consecutiveYears = opts.consecutiveYears ?? 1;
     const targetCI = opts.targetYear === 2030 ? FUELEU_TARGET_CI_2030 : FUELEU_TARGET_CI_2025;
+    const ttwAdder = opts.ttwMethaneSlipAdderGmj ?? (
+      opts.engineProfile ? FUELEU_ENGINE_PROFILES[opts.engineProfile]?.ttwAdderGco2ePerMj ?? 0 : 0
+    );
 
     if (mark !== null) {
       // The FuelEU desk mark is quoted in €/tCO₂e of compliance balance (registry unitLabel),
       // so it must be converted through the consignment's surplus vs the FuelEU target intensity.
-      const deficitModel = computeFuelEUDeficitClosureValue(ci, consecutiveYears, targetCI, shipActualCI);
+      const deficitModel = computeFuelEUDeficitClosureValue(ci, consecutiveYears, targetCI, shipActualCI, ttwAdder);
       // Surplus vs target uses the Bio-LNG's FuelEU well-to-wake intensity (RED CI + engine slip).
-      const bioWtw = bioLngFuelEUIntensity(ci);
+      const bioWtw = bioLngFuelEUIntensity(ci) + ttwAdder;
       const surplusTco2ePerMWh = Math.max(0, ((targetCI - bioWtw) * MJ_PER_MWH) / 1_000_000);
       const markValueEurPerMWh = mark * surplusTco2ePerMWh;
       return {
@@ -250,7 +257,7 @@ function computeCertificateValueCore(
       };
     } else {
       // Modelled value when no desk mark is entered
-      const deficitModel = computeFuelEUDeficitClosureValue(ci, consecutiveYears, targetCI, shipActualCI);
+      const deficitModel = computeFuelEUDeficitClosureValue(ci, consecutiveYears, targetCI, shipActualCI, ttwAdder);
       return {
         valueEurPerMWh: deficitModel.valueEurPerMWh,
         calculation: deficitModel.calculation,
@@ -340,11 +347,12 @@ function computeCertificateValueCore(
       } else {
         calculation = `Direct market mark (${pricingSide}): €${mark.toFixed(2)}/MWh`;
       }
-      if (market.id === 'FR_CPB' && valueEurPerMWh > FR_CPB_CEILING_EUR_MWH) {
-        valueEurPerMWh = FR_CPB_CEILING_EUR_MWH;
+      const cpbCap = frCpbPenaltyCap ?? FR_CPB_CEILING_EUR_MWH;
+      if (market.id === 'FR_CPB' && valueEurPerMWh > cpbCap) {
+        valueEurPerMWh = cpbCap;
         capped = true;
-        capReason = `French CPB penalty ceiling: €${FR_CPB_CEILING_EUR_MWH}/MWh. (Code de l'énergie, Art. L.446-24)`;
-        calculation = `Mark €${mark.toFixed(2)}/MWh → CAPPED at €${FR_CPB_CEILING_EUR_MWH}/MWh legal ceiling`;
+        capReason = `French CPB penalty ceiling: €${cpbCap}/MWh. (Code de l'énergie, Art. L.446-24)`;
+        calculation = `Mark €${mark.toFixed(2)}/MWh → CAPPED at €${cpbCap}/MWh legal ceiling`;
       }
       break;
     }
@@ -505,7 +513,8 @@ export function computeNetback(
   marks: MarksState, 
   costs: CostInputs,
   side?: PriceSide | PricingSides,
-  fuelEUOptions?: FuelEUOptions
+  fuelEUOptions?: FuelEUOptions,
+  frCpbPenaltyCap?: number
 ): NetbackResult {
   let pricingSides: PricingSides;
   if (!side) {
@@ -517,7 +526,8 @@ export function computeNetback(
     pricingSides = { certificateSide: side.certificateSide, moleculeSide: side.moleculeSide };
   }
 
-  const certVal = computeCertificateValue(market, consignment, marks, pricingSides.certificateSide, fuelEUOptions);
+  const cpbCap = frCpbPenaltyCap ?? FR_CPB_CEILING_EUR_MWH;
+  const certVal = computeCertificateValue(market, consignment, marks, pricingSides.certificateSide, fuelEUOptions, frCpbPenaltyCap);
   if (certVal?.valueEurPerMWh != null) {
     certVal.valueEurPerMWh = Number(certVal.valueEurPerMWh.toFixed(2));
   }
@@ -528,11 +538,11 @@ export function computeNetback(
     certVal.valueEurPerMWh = Number((certVal.valueEurPerMWh * alpha).toFixed(2));
     certVal.calculation = `${certVal.calculation} × α(${alpha.toFixed(2)}) = €${certVal.valueEurPerMWh.toFixed(2)}/MWh`;
     // The CPB penalty ceiling is statutory — no sensitivity multiplier may lift the value above it.
-    if (market.id === 'FR_CPB' && certVal.valueEurPerMWh > FR_CPB_CEILING_EUR_MWH) {
-      certVal.valueEurPerMWh = FR_CPB_CEILING_EUR_MWH;
+    if (market.id === 'FR_CPB' && certVal.valueEurPerMWh > cpbCap) {
+      certVal.valueEurPerMWh = cpbCap;
       certVal.capped = true;
-      certVal.capReason = `French CPB penalty ceiling: €${FR_CPB_CEILING_EUR_MWH}/MWh (applied after α indexation).`;
-      certVal.calculation = `${certVal.calculation} → CAPPED at €${FR_CPB_CEILING_EUR_MWH}/MWh legal ceiling`;
+      certVal.capReason = `French CPB penalty ceiling: €${cpbCap}/MWh (applied after α indexation).`;
+      certVal.calculation = `${certVal.calculation} → CAPPED at €${cpbCap}/MWh legal ceiling`;
     }
   }
 
@@ -567,11 +577,11 @@ export function computeNetback(
   // Must be rounded on the same basis as the chosen-side cert value above, otherwise the
   // ±0.005 residue survives into crossingCost (±0.01 once DE_THG doubles it) and shows a
   // phantom spread benefit when the chosen side already equals mid.
-  const midCertVal = computeCertificateValue(market, consignment, marks, 'mid', fuelEUOptions);
+  const midCertVal = computeCertificateValue(market, consignment, marks, 'mid', fuelEUOptions, frCpbPenaltyCap);
   if (midCertVal?.valueEurPerMWh != null) {
     const rawMid = Number(midCertVal.valueEurPerMWh.toFixed(2));
     const alphaMid = alpha !== 1.0 ? Number((rawMid * alpha).toFixed(2)) : rawMid;
-    midCertVal.valueEurPerMWh = market.id === 'FR_CPB' ? Math.min(alphaMid, FR_CPB_CEILING_EUR_MWH) : alphaMid;
+    midCertVal.valueEurPerMWh = market.id === 'FR_CPB' ? Math.min(alphaMid, cpbCap) : alphaMid;
   }
   const midMolVal = selectMarkPrice(marks.gasIndex, 'mid');
   let atMid: number | null = null;
@@ -810,7 +820,7 @@ export function computeNetback(
 
   let statutoryCeilingEurMwh: number | null = null;
   if (market.id === 'FR_CPB') {
-    statutoryCeilingEurMwh = FR_CPB_CEILING_EUR_MWH;
+    statutoryCeilingEurMwh = cpbCap;
   } else if (market.id === 'DE_THG') {
     statutoryCeilingEurMwh = Number((DE_THG_PENALTY_EUR_PER_TCO2E * tCO2ePerMWh(consignment.carbonIntensity)).toFixed(2));
   }

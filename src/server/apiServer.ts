@@ -89,8 +89,12 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
       const actorRole = (body.actorRole || authService.getSession().activeRole) as Role;
       const note = body.note;
 
-      const created = dealLedger.createDeal(body.deal || body, actor, actorRole, note);
-      sendJson(res, 201, { success: true, deal: created });
+      try {
+        const created = dealLedger.createDeal(body.deal || body, actor, actorRole, note);
+        sendJson(res, 201, { success: true, deal: created });
+      } catch (err: any) {
+        sendJson(res, 403, { success: false, error: err.message });
+      }
       return true;
     }
 

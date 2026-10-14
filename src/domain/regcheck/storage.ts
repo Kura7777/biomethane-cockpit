@@ -71,28 +71,69 @@ export function geminiKeyFingerprint(key: string): string {
   return key ? `${key.slice(0, 4)}…${key.slice(-4)} (${key.length} characters)` : '';
 }
 
-export function getStoredGeminiApiKey(): string {
-  if (typeof localStorage === 'undefined') return '';
+export const GEMINI_API_KEY_PERSIST_KEY = 'biomethane_gemini_api_key_persist';
+
+export function isGeminiKeyPersisted(): boolean {
+  if (typeof localStorage === 'undefined') return false;
   try {
-    return normaliseGeminiApiKey(localStorage.getItem(GEMINI_API_KEY_STORAGE_KEY) || '');
+    return localStorage.getItem(GEMINI_API_KEY_PERSIST_KEY) === 'true';
   } catch {
-    return '';
+    return false;
   }
 }
 
-export function setStoredGeminiApiKey(key: string): void {
-  if (typeof localStorage === 'undefined') return;
+export function getStoredGeminiApiKey(): string {
   try {
-    localStorage.setItem(GEMINI_API_KEY_STORAGE_KEY, normaliseGeminiApiKey(key));
+    if (typeof sessionStorage !== 'undefined') {
+      const sessionKey = sessionStorage.getItem(GEMINI_API_KEY_STORAGE_KEY);
+      if (sessionKey) return normaliseGeminiApiKey(sessionKey);
+    }
+    if (typeof localStorage !== 'undefined') {
+      const localKey = localStorage.getItem(GEMINI_API_KEY_STORAGE_KEY);
+      if (localKey) return normaliseGeminiApiKey(localKey);
+    }
   } catch {
-    // Ignore localStorage write failures (e.g. private browsing quota)
+    return '';
+  }
+  return '';
+}
+
+export function setStoredGeminiApiKey(key: string, persistToLocalStorage?: boolean): void {
+  const norm = normaliseGeminiApiKey(key);
+  try {
+    if (typeof sessionStorage !== 'undefined') {
+      if (norm) {
+        sessionStorage.setItem(GEMINI_API_KEY_STORAGE_KEY, norm);
+      } else {
+        sessionStorage.removeItem(GEMINI_API_KEY_STORAGE_KEY);
+      }
+    }
+    if (typeof localStorage !== 'undefined') {
+      const shouldPersist = persistToLocalStorage !== undefined ? persistToLocalStorage : isGeminiKeyPersisted();
+      if (norm && shouldPersist) {
+        localStorage.setItem(GEMINI_API_KEY_STORAGE_KEY, norm);
+        localStorage.setItem(GEMINI_API_KEY_PERSIST_KEY, 'true');
+      } else {
+        localStorage.removeItem(GEMINI_API_KEY_STORAGE_KEY);
+        if (persistToLocalStorage === false) {
+          localStorage.removeItem(GEMINI_API_KEY_PERSIST_KEY);
+        }
+      }
+    }
+  } catch {
+    // Ignore storage write failures (e.g. private browsing quota)
   }
 }
 
 export function clearStoredGeminiApiKey(): void {
-  if (typeof localStorage === 'undefined') return;
   try {
-    localStorage.removeItem(GEMINI_API_KEY_STORAGE_KEY);
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.removeItem(GEMINI_API_KEY_STORAGE_KEY);
+    }
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(GEMINI_API_KEY_STORAGE_KEY);
+      localStorage.removeItem(GEMINI_API_KEY_PERSIST_KEY);
+    }
   } catch {
     // Ignore
   }

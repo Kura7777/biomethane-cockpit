@@ -141,4 +141,22 @@ describe('PoS parser — chain-of-custody pack fields (R14)', () => {
     expect(parseProofOfSustainability('ISCC EU\nQuantity: 25.000 MWh').custody.mwh).toBe(25000);
     expect(parseProofOfSustainability('ISCC EU\nVolume: 1,5 GWh').custody.mwh).toBe(1500);
   });
+
+  it('verifies 1.250 GWh parses to 1250 MWh and 100% Klärschlamm parses as sewage', () => {
+    const text = `
+      ISCC EU Certificate
+      Certificate Number: EU-ISCC-Cert-DE100-99482710
+      Issuing Body: TÜV Rheinland
+      Country: DE
+      Substrates: 100% Klärschlamm
+      Quantity: 1.250 GWh
+      Certified CI: 22.0 gCO2e/MJ
+      Chain of Custody: Mass Balance
+    `;
+    const parsed = parseProofOfSustainability(text);
+    expect(parsed.canonicalFeedstock).toBe('sewage');
+    expect(parsed.volumeMWh).toBe(1250);
+    expect(parsed.custody.mwh).toBe(1250);
+  });
 });
+

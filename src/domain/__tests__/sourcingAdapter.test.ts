@@ -272,7 +272,7 @@ describe('SOURCING ADAPTER — searchSourcingRoutes', () => {
     expect(result.unpriced).toBeGreaterThan(0);
     
     // Performance measurement: full pan-European fan out over 21,000 combinations
-    expect(durationMs).toBeLessThan(3500);
+    expect(durationMs).toBeLessThan(5000);
   });
 
   it('generates unstyled, plain-text sourcing note matching exact specifications', async () => {

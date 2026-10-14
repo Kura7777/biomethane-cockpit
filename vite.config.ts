@@ -35,6 +35,30 @@ export default defineConfig({
     port: 4200,
     strictPort: true,
   },
+  build: {
+    chunkSizeWarningLimit: 2000,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          const norm = id.replace(/\\/g, '/');
+          if (norm.includes('countries-50m.json')) {
+            return 'geo-data';
+          }
+          if (
+            norm.includes('src/domain/plants/registry') ||
+            norm.includes('src/domain/plants/plantsData') ||
+            norm.includes('src/domain/plants/verifiedPlants') ||
+            norm.includes('src/domain/plants/registerMatches') ||
+            norm.includes('src/domain/plants/plantResearch') ||
+            norm.includes('src/domain/plants/registrationChecks') ||
+            norm.includes('src/domain/plants/statutoryDossiers')
+          ) {
+            return 'plants-data';
+          }
+        },
+      },
+    },
+  },
   plugins: [
     react(),
     tailwindcss(),

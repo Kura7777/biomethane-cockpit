@@ -3,16 +3,17 @@ import { getFullKnowledgeContext } from './knowledgeBase';
 import { CI_COMPARATOR_ROAD_TRANSPORT } from '../markets/constants';
 import { FR_CPB_CEILING_EUR_MWH, RED3_TRANSPORT_MAX_CI } from '../regulatory/constants';
 import { getMarketById } from '../markets/registry';
-import { evaluateRegistryTransferGate } from '../eligibility/gates/registry-transfer';
-import type { Consignment } from '../consignment/types';
+import { evaluateEligibility } from '../eligibility/engine';
+import type { Consignment, AnnexClassification, CertificationScheme, ChainOfCustody, UDBStatus, PoSStatus } from '../consignment/types';
+import { FEEDSTOCK_REGISTRY } from '../consignment/feedstockData';
 import { extractQuoteProofsFromText, verifyQuoteAgainstVault } from './verifier';
-import { TradeAuditContext, AuditorResponse, GateAuditCheck, normalizeTradeAuditContext } from './types';
+import { TradeAuditContext, AuditorResponse, GateAuditCheck, AuditorVerdict, normalizeTradeAuditContext } from './types';
 
 // The Gemini key is shared with the desk helper, so it lives with the other saved keys (regcheck/storage.ts).
 export { GEMINI_API_KEY_STORAGE_KEY };
 
-/** Stable Gemini models, tried in order (ai.google.dev/gemini-api/docs/models, read 2026-10-11). */
-const GEMINI_AUDITOR_MODELS = ['gemini-3.8-flash', 'gemini-3.6-flash'];
+/** Stable Gemini models, tried in order (ai.google.dev/gemini-api/docs/models). */
+const GEMINI_AUDITOR_MODELS = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash'];
 
 export function getStoredApiKey(): string {
   return getStoredGeminiApiKey();
@@ -251,9 +252,88 @@ function extractRecommendations(text: string): string[] {
   return recs.slice(0, 5);
 }
 
+function mapFeedstockKey(raw?: string): string {
+  const f = (raw || '').toLowerCase().trim();
+  if (FEEDSTOCK_REGISTRY[f]) return f;
+  if (f.includes('manure') || f.includes('slurry')) return 'manure';
+  if (f.includes('food') || f.includes('bio_waste') || f.includes('biowaste')) return 'food_waste';
+  if (f.includes('sewage') || f.includes('sludge')) return 'sewage_sludge';
+  if (f.includes('residue') || f.includes('straw') || f.includes('agri')) return 'agricultural_residues';
+  if (f.includes('crop') || f.includes('maize')) return 'energy_crops';
+  if (f.includes('landfill')) return 'landfill_gas';
+  if (f.includes('uco') || f.includes('cooking')) return 'used_cooking_oil';
+  if (f.includes('industrial')) return 'industrial_bio_waste';
+  return 'manure';
+}
+
 /**
- * Exhaustive Deterministic Engine (6 statutory gates + Registry Transfer for GO markets)
- * Evaluates all statutory gates with full depth and legal citations.
+ * Normalizes a TradeAuditContext into a full Consignment object suitable for evaluateEligibility.
+ */
+export function buildConsignmentFromTradeContext(trade: TradeAuditContext, rawTrade?: any): Consignment {
+  const origin = (trade.originCountry || 'DE').toUpperCase();
+  const injectionCountry = ((rawTrade as any)?.injectionCountry || origin).toUpperCase();
+  const isNonEu = injectionCountry === 'GB' || injectionCountry === 'UK' || injectionCountry === 'CH';
+  const injectionIsEU = (rawTrade as any)?.injectionIsEU ?? !isNonEu;
+
+  const rawScheme = (trade.certificationScheme || '').toUpperCase();
+  let scheme: CertificationScheme = 'ISCC_EU';
+  if (rawScheme.includes('PLUS')) scheme = 'ISCC_PLUS';
+  else if (rawScheme.includes('REDCERT2')) scheme = 'REDCERT2';
+  else if (rawScheme.includes('REDCERT')) scheme = 'REDCERT_EU';
+  else if (rawScheme.includes('2BS')) scheme = '2BSVS';
+  else if (rawScheme.includes('KZR')) scheme = 'KZR_INIG';
+  else if (rawScheme.includes('NONE') || rawScheme.includes('UNVERIFIED')) {
+    scheme = rawScheme as any;
+  }
+
+  const rawCoc = (trade.chainOfCustody || '').toUpperCase();
+  let chainOfCustody: ChainOfCustody = 'MASS_BALANCE';
+  if (rawCoc.includes('BOOK')) chainOfCustody = 'BOOK_AND_CLAIM';
+  else if (rawCoc.includes('SEGREGAT')) chainOfCustody = 'SEGREGATION';
+
+  const feedstockKey = mapFeedstockKey(trade.feedstockCategory || trade.feedstock);
+  const regFeedstock = FEEDSTOCK_REGISTRY[feedstockKey];
+  const feedstockName = regFeedstock?.name ?? (trade.feedstockCategory || 'Biomass');
+  const annexClassification: AnnexClassification = (trade.annexClassification as AnnexClassification)
+    || regFeedstock?.annexClassification
+    || (feedstockKey === 'energy_crops' ? 'CROP' : 'IX_A');
+
+  const udbStatus: UDBStatus = (rawTrade as any)?.udbStatus
+    ?? (!injectionIsEU ? 'NOT_RECORDED' : 'RECORDED');
+
+  const posStatus: PoSStatus = (rawTrade as any)?.posStatus ?? 'ISSUED';
+  const volumeMWh = trade.annualVolumeMWh ?? trade.volumeMWh ?? 10000;
+
+  return {
+    id: trade.originPlantId ? `CONSIGN-${trade.originPlantId}` : `CONSIGN-${origin}-${feedstockKey}`,
+    name: trade.plantName ? `${trade.plantName} (${origin})` : `${origin} ${feedstockName}`,
+    originCountry: origin,
+    originCountryName: origin,
+    feedstock: feedstockKey,
+    feedstockName,
+    annexClassification,
+    carbonIntensity: trade.carbonIntensity,
+    commissioningDateRange: (rawTrade as any)?.commissioningDateRange ?? 'POST_2021_TO_2025',
+    certificationScheme: scheme,
+    chainOfCustody,
+    injectionCountry,
+    injectionIsEU,
+    udbStatus,
+    posStatus,
+    volumeMWh,
+    deliveryPeriod: (rawTrade as any)?.deliveryPeriod ?? null,
+    custody: (rawTrade as any)?.custody ?? null,
+    originPlantId: trade.originPlantId,
+    originPlantName: trade.plantName,
+  };
+}
+
+/**
+ * Exhaustive Deterministic Engine
+ * Evaluates statutory compliance by strictly delegating to evaluateEligibility,
+ * mapping all gates & chain-of-custody checklist items into GateAuditCheck[],
+ * clamping French CPB delivered netbacks to the statutory ceiling, and deriving
+ * the overall verdict directly from the statutory assessment.
  */
 function runExhaustiveDeterministicAudit(
   prompt: string,
@@ -277,198 +357,91 @@ function runExhaustiveDeterministicAudit(
   }
 
   const trade = normalizeTradeAuditContext(rawTrade);
-  const checks: GateAuditCheck[] = [];
-  let isApproved = true;
-  let isConditional = false;
-
-  // Gate 1: Scheme Gate
-  const scheme = (trade.certificationScheme || 'ISCC_EU').toUpperCase();
-  if (scheme.includes('NONE') || scheme.includes('UNVERIFIED')) {
-    isApproved = false;
-    checks.push({
-      gateName: '1. Certification Scheme Gate',
-      status: 'FAIL',
-      details: 'HARD BLOCK: Production facility lacks an approved EU voluntary sustainability scheme (ISCC EU / REDcert-EU).',
-      citation: 'RED III Art. 30(4) (Commission-recognised voluntary schemes)'
-    });
-  } else {
-    checks.push({
-      gateName: '1. Certification Scheme Gate',
-      status: 'PASS',
-      details: 'ISCC EU / REDcert EU are Commission-recognised voluntary schemes that can certify the chain; the destination market may add its own registry steps.',
-      citation: 'RED III Art. 30(4) (Commission-recognised voluntary schemes)'
-    });
-  }
-
-  // Gate 2: UDB Mass Balance Gate (Non-EU Grid Boundary)
-  const isGb = trade.originCountry === 'GB' || trade.originCountry === 'UK';
-  const isEuTarget = ['DE_THG', 'NL_ERE', 'FR_CPB', 'IT_CIC'].includes(trade.targetMarketId);
-  if (isGb && isEuTarget) {
-    isApproved = false;
-    checks.push({
-      gateName: '2. Union Database (UDB) Gate',
-      status: 'FAIL',
-      details: 'HARD BLOCK: The Great Britain gas grid sits outside the EU single mass-balance area. Biomethane injected in GB cannot clear into EU quota markets on mass balance alone; it needs physical segregation or a recognition arrangement.',
-      citation: 'RED III Art. 31a; IR (EU) 2022/996 (interconnected EU grid as one mass-balance area)'
-    });
-  } else {
-    checks.push({
-      gateName: '2. Union Database (UDB) Gate',
-      status: 'PASS',
-      details: `Origin grid (${trade.originCountry}) is interconnected to the single European gas system; mass balance is possible. The UDB gas module is not yet live (end-2026), so recording runs via national registries meanwhile.`,
-      citation: 'RED III Art. 31a; IR (EU) 2022/996 (interconnected EU grid as one mass-balance area)'
-    });
-  }
-
-  // Gate 3: Chain of Custody Gate
-  const custody = (trade.chainOfCustody || 'MASS_BALANCE').toUpperCase();
-  // Book-and-claim markets per the market registry (GO markets incl. DK_GO, ES_GDO, PT_EEGO, AIB_GO).
-  const isVol = getMarketById(trade.targetMarketId)?.acceptsBookAndClaim === true;
-  if (!isVol && custody.includes('BOOK')) {
-    isApproved = false;
-    checks.push({
-      gateName: '3. Chain of Custody Gate',
-      status: 'FAIL',
-      details: 'HARD BLOCK: Book-and-claim (certificates traded apart from the gas) is not valid for EU quota compliance. Mass balance within the interconnected gas system is required.',
-      citation: 'RED III Art. 30 (mass balance and audited chain of custody)'
-    });
-  } else {
-    checks.push({
-      gateName: '3. Chain of Custody Gate',
-      status: 'PASS',
-      details: isVol 
-        ? 'Book-and-claim unbundled certificate transfer recognized for voluntary Guarantee of Origin registries.'
-        : 'Mass balance chain of custody verified. Book-and-claim strictly quarantined to voluntary GO markets.',
-      citation: 'RED III Art. 30 (mass balance and audited chain of custody)'
-    });
-  }
-
-  // Gate 4: Feedstock Annex IX Gate
-  const rawFeedstock = (trade.feedstockCategory || trade.feedstock || '').toLowerCase();
-  const isManureOrWaste = rawFeedstock.includes('manure') || 
-                          rawFeedstock.includes('slurry') || 
-                          rawFeedstock.includes('residue') ||
-                          rawFeedstock.includes('waste');
-  const isCrops = rawFeedstock.includes('crop') || 
-                  rawFeedstock.includes('maize');
-
-  if (isCrops && !isVol && ['DE_THG', 'NL_ERE', 'FR_CPB', 'IT_CIC'].includes(trade.targetMarketId)) {
-    isApproved = false;
-    checks.push({
-      gateName: '4. Feedstock Annex IX Gate',
-      status: 'FAIL',
-      details: 'HARD BLOCK: Food and feed crops are capped under RED III Art. 26(1) and are not advanced feedstock; the desk blocks them in these national quota markets.',
-      citation: 'RED III Art. 26(1) and Annex IX'
-    });
-  } else if (isManureOrWaste) {
-    checks.push({
-      gateName: '4. Feedstock Annex IX Gate',
-      status: 'PASS',
-      details: 'Annex IX Part A (animal manure and sewage sludge). Qualifies as advanced feedstock in compliance transport markets (single counting in DE from 2026 under Drs 21/5530, promulgation unconfirmed; double RTFCs in the UK RTFO).',
-      citation: 'RED III Annex IX Part A; 38. BImSchV; Bundestag Drs 21/5530'
-    });
-  } else {
-    checks.push({
-      gateName: '4. Feedstock Annex IX Gate',
-      status: 'PASS',
-      details: isCrops && isVol 
-        ? 'Energy crops are accepted in voluntary Scope 1 and GO markets, which are not RED III transport quotas and are not bound by the Art. 26 transport cap.'
-        : 'Biomass substrate meets sustainability criteria.',
-      citation: 'RED III Art. 29'
-    });
-  }
-
-  // Gate 5: RED III GHG Savings Gate (transport comparator, min savings 65% -> CI <= RED3_TRANSPORT_MAX_CI)
-  const ghgSavingsPct = Math.round(((CI_COMPARATOR_ROAD_TRANSPORT - trade.carbonIntensity) / CI_COMPARATOR_ROAD_TRANSPORT) * 100);
-
-  if (!isVol && trade.carbonIntensity > RED3_TRANSPORT_MAX_CI && ['DE_THG', 'NL_ERE', 'FR_CPB', 'IT_CIC', 'UK_RTFO'].includes(trade.targetMarketId)) {
-    isApproved = false;
-    checks.push({
-      gateName: '5. RED III GHG Savings Gate',
-      status: 'FAIL',
-      details: `HARD BLOCK: Declared Carbon Intensity (${trade.carbonIntensity} gCO2e/MJ, ${ghgSavingsPct}% savings) fails the mandatory 65% GHG savings threshold (CI <= ${RED3_TRANSPORT_MAX_CI} gCO2e/MJ).`,
-      citation: 'RED III Art. 29(10)(c) (65% for transport biogas, installations from 2021)'
-    });
-  } else if (isVol) {
-    checks.push({
-      gateName: '5. RED III GHG Savings Gate (Voluntary Exemption)',
-      status: 'PASS',
-      details: `EXEMPT: Voluntary and Guarantee of Origin markets (${trade.targetMarketId}) are exempt from the 65% transport minimum GHG savings threshold.`,
-      citation: 'RED III Art. 19 (Guarantees of Origin) & EECS Rules'
-    });
-  } else {
-    checks.push({
-      gateName: '5. RED III GHG Savings Gate',
-      status: 'PASS',
-      details: `EXCEEDS THRESHOLD: Declared Carbon Intensity (${trade.carbonIntensity} gCO2e/MJ) achieves ${ghgSavingsPct}% GHG savings vs ${CI_COMPARATOR_ROAD_TRANSPORT} gCO2e/MJ fossil comparator (exceeds 65% statutory minimum).`,
-      citation: 'RED III Art. 29(10)(c)'
-    });
-  }
-
-  // Gate 6: Market-Specific Gating & Statutory Ceilings
-  if (trade.targetMarketId === 'UK_RGGO') {
-    if (!isGb) {
-      isApproved = false;
-      checks.push({
-        gateName: '6. UK RGGO Grid Origin Gating',
+  const targetMarket = getMarketById(trade.targetMarketId);
+  if (!targetMarket) {
+    return {
+      verdict: 'REJECTED',
+      headline: `Statutory Audit Verdict: REJECTED (${trade.originCountry} → ${trade.targetMarketId})`,
+      explanation: `Target market ${trade.targetMarketId} is not recognized in the regulatory register.`,
+      checks: [{
+        gateName: 'Market Recognition Gate',
         status: 'FAIL',
-        details: 'HARD BLOCK: The Green Gas Certification Scheme (GGCS) issues RGGOs for gas injected into the Great Britain (GB) grid. Continental European origins cannot issue RGGOs.',
-        citation: 'GGCS scheme rules (section reference not verified)'
-      });
+        details: `Target market ${trade.targetMarketId} was not found.`,
+      }],
+      quoteProofs: [],
+      recommendations: ['Select a valid target market from the market registry.'],
+      rawText: `Target market ${trade.targetMarketId} is not recognized.`,
+      sourceEngine: 'DETERMINISTIC_VAULT',
+      apiError: errorNotice
+    };
+  }
+
+  const consignment = buildConsignmentFromTradeContext(trade, rawTrade);
+  const assessment = evaluateEligibility(consignment, targetMarket);
+  const checks: GateAuditCheck[] = [];
+
+  for (const gate of assessment.gates) {
+    if (gate.gate === 'CHAIN_OF_CUSTODY' && gate.checklist && gate.checklist.length > 0) {
+      for (const item of gate.checklist) {
+        let status: 'PASS' | 'FAIL' | 'FLAG';
+        if (item.status === 'PASS') status = 'PASS';
+        else if (item.status === 'FAIL') status = 'FAIL';
+        else status = 'FLAG';
+
+        checks.push({
+          gateName: item.label,
+          status,
+          details: `${status === 'FAIL' ? 'HARD BLOCK: ' : ''}${item.detail}${item.remedy && status !== 'PASS' ? ' ' + item.remedy : ''}`,
+          citation: item.citations[0]?.shortName ?? item.citations[0]?.fullReference,
+        });
+      }
     } else {
+      let status: 'PASS' | 'FAIL' | 'FLAG';
+      if (gate.verdict === 'PASS') status = 'PASS';
+      else if (gate.verdict === 'HARD_BLOCK') status = 'FAIL';
+      else status = 'FLAG';
+
+      const gateName = gate.gate === 'MARKET_SPECIFIC'
+        ? `${gate.gateLabel} (${targetMarket.id})`
+        : gate.gateLabel;
+
       checks.push({
-        gateName: '6. UK RGGO Registry Eligibility',
-        status: 'PASS',
-        details: 'GB production facility eligible for Green Gas Certification Scheme (GGCS) registration and RGGO issuance.',
-        citation: 'GGCS scheme rules (section reference not verified)'
+        gateName,
+        status,
+        details: `${status === 'FAIL' ? 'HARD BLOCK: ' : ''}${gate.reason}${gate.remedy && status !== 'PASS' ? ' ' + gate.remedy : ''}`,
+        citation: gate.citations[0]?.shortName ?? gate.citations[0]?.fullReference,
       });
     }
-  } else if (trade.targetMarketId === 'FR_CPB' && (trade.deliveredValueEurMwh || 0) > FR_CPB_CEILING_EUR_MWH) {
-    isConditional = true;
+  }
+
+  // Check French CPB price ceiling clamp
+  let isClamped = false;
+  if (targetMarket.id === 'FR_CPB' && (trade.deliveredValueEurMwh || 0) > FR_CPB_CEILING_EUR_MWH) {
+    isClamped = true;
     checks.push({
-      gateName: '6. French Statutory CPB Price Ceiling',
+      gateName: 'French Statutory CPB Price Ceiling',
       status: 'FLAG',
       details: `STATUTORY CLAMP: Delivered price (€${trade.deliveredValueEurMwh?.toFixed(2)}/MWh) exceeds the French CPB penalty ceiling of €${FR_CPB_CEILING_EUR_MWH.toFixed(2)}/MWh. Revenue will be clamped at €${FR_CPB_CEILING_EUR_MWH.toFixed(2)}/MWh.`,
       citation: "Code de l'énergie Art. L.446-24 et seq. (CPB penalty)"
     });
-  } else if (trade.targetMarketId === 'DE_THG') {
-    checks.push({
-      gateName: '6. German 38. BImSchV & Nabisy Registration',
-      status: 'PASS',
-      details: 'Eligible for German THG quota surrender. Single counting (1×) applies from 2026 under Bundestag Drucksache 21/5530 (promulgation date not yet confirmed). The manure credit in the carbon-intensity calculation is unaffected by quota counting.',
-      citation: '38. BImSchV, § 37a BImSchG & Bundestag Drs 21/5530'
-    });
+  }
+
+  let verdict: AuditorVerdict;
+  if (assessment.overallVerdict === 'HARD_BLOCK') {
+    verdict = 'REJECTED';
+  } else if (
+    isClamped ||
+    assessment.overallVerdict === 'CONDITIONAL' ||
+    assessment.overallVerdict === 'UNRESOLVED' ||
+    assessment.overallVerdict === 'UNKNOWN'
+  ) {
+    verdict = 'CONDITIONAL_PASS';
   } else {
-    checks.push({
-      gateName: '6. Destination Market Regulatory Quota',
-      status: 'PASS',
-      details: `Compliant with national quota administration rules for ${trade.targetMarketId}.`,
-      citation: 'National quota rules of the destination market (not checked in detail)'
-    });
+    verdict = 'APPROVED';
   }
 
-  // Gate 7: Registry Transfer (GO markets only; compliance PoS trades do not move through GO hubs)
-  const goMarket = getMarketById(trade.targetMarketId);
-  if (goMarket) {
-    const registryGate = evaluateRegistryTransferGate(
-      { originCountry: trade.originCountry, injectionCountry: trade.originCountry } as Consignment,
-      goMarket
-    );
-    if (registryGate) {
-      const status: GateAuditCheck['status'] =
-        registryGate.verdict === 'PASS' ? 'PASS' : registryGate.verdict === 'HARD_BLOCK' ? 'FAIL' : 'FLAG';
-      if (status === 'FAIL') isApproved = false;
-      if (status === 'FLAG') isConditional = true;
-      checks.push({
-        gateName: '7. Registry Transfer Gate',
-        status,
-        details: `${status === 'FAIL' ? 'HARD BLOCK: ' : ''}${registryGate.reason}${registryGate.remedy && status !== 'PASS' ? ' ' + registryGate.remedy : ''}`,
-        citation: registryGate.citations[0]?.sourceUrl ?? 'AIB / ERGaR registry hub connectivity (research 4 Oct 2026)'
-      });
-    }
-  }
-
-  const verdict: AuditorResponse['verdict'] = !isApproved ? 'REJECTED' : isConditional ? 'CONDITIONAL_PASS' : 'APPROVED';
+  const isApproved = verdict === 'APPROVED';
+  const ghgSavingsPct = Math.round(((CI_COMPARATOR_ROAD_TRANSPORT - trade.carbonIntensity) / CI_COMPARATOR_ROAD_TRANSPORT) * 100);
 
   const explanation = `### Chief Compliance Officer Statutory Audit Report
 **Transaction:** ${trade.originCountry} (${trade.originPlantId || 'Asset'}) → ${trade.targetMarketId}  
@@ -477,23 +450,44 @@ function runExhaustiveDeterministicAudit(
 ${errorNotice ? `> ⚠ *API Notice: Gemini API connection returned: ${errorNotice}. Full audit executed via local statutory compliance rules.*` : ''}
 
 #### 1. Statutory Eligibility Assessment
+${assessment.summary}
+
 ${isApproved 
   ? `This proposed transaction is **COMPLIANT** with European Renewable Energy Directive (RED III) standards and eligible for quota surrender in target market **${trade.targetMarketId}**. The consignment satisfies all grid injection, mass balance, feedstock classification, and greenhouse gas savings requirements.`
+  : verdict === 'CONDITIONAL_PASS'
+  ? `This proposed transaction is **CONDITIONALLY ELIGIBLE** for target market **${trade.targetMarketId}**. Certain documentation, registry transfer steps, or pricing ceiling constraints must be satisfied.`
   : `This proposed transaction is **NON-COMPLIANT** and violates mandatory European or national regulatory gating rules. Executing this trade will result in title rejection by the recipient national registry.`}
 
 #### 2. Carbon Intensity & Avoided Methane Dynamics
 - **Fossil Fuel Baseline:** ${CI_COMPARATOR_ROAD_TRANSPORT} gCO₂eq/MJ
 - **Achieved GHG Savings:** **${ghgSavingsPct}%** (Mandatory statutory threshold: **65%**, requiring CI ≤ ${RED3_TRANSPORT_MAX_CI} gCO₂eq/MJ).
-- **Substrate Classification:** Animal manure qualifies under **Annex IX Part A**. Under German 38. BImSchV and the Zweites Gesetz zur Weiterentwicklung der THG-Quote (Bundestag Drucksache 21/5530; promulgation date not yet confirmed), single counting (1×) applies for 2026+ compliance. The manure credit in the carbon-intensity calculation (45 gCO₂eq per MJ of manure digested, RED Annex V Part C point 6 / Annex VI Part B point 6) is a physical accounting credit and is unaffected by quota counting; use the certified CI on the PoS.
+- **Substrate Classification:** Substrate classified as **${consignment.annexClassification}** (${consignment.feedstockName}). Under German 38. BImSchV and the Zweites Gesetz zur Weiterentwicklung der THG-Quote (Bundestag Drucksache 21/5530; promulgation date not yet confirmed), single counting (1×) applies for 2026+ compliance. The manure credit in the carbon-intensity calculation (45 gCO₂eq per MJ of manure digested, RED Annex V Part C point 6 / Annex VI Part B point 6) is a physical accounting credit and is unaffected by quota counting; use the certified CI on the PoS.
 
 #### 3. Registry & UDB Recording Logistics
-- Gas grid injection in **${trade.originCountry}** connects to the interconnected European transmission pipeline network.
+- Gas grid injection in **${consignment.injectionCountry}** (${consignment.injectionIsEU ? 'connects to the interconnected European transmission pipeline network' : 'non-EU grid boundary'}).
 - The **Union Database (UDB)** gas module is **not yet live** (launch postponed to end-2026 per the European Biogas Association); this desk's internal trade tracker models a lifecycle of \`DRAFT\` → \`SUBMITTED\` → \`PENDING_UDB_LAUNCH\` → \`TRANSFERRED\`, but no consignment can be formally recorded in the UDB until it launches. In the meantime, cross-border compliance traceability runs through national registries and ERGaR/AIB GO routes.
 
 #### 4. Recommended EFET Contractual Protective Clauses
 1. **Proof of Sustainability (PoS) Delivery Schedule:** Agree a fixed electronic delivery date for the valid PoS after each injection month.
 2. **Cure Period & Gas-Index Fallback:** Include a negotiated cure period for delayed PoS (length to be agreed; not an EFET-standard term). If seller fails to deliver a RED III-compliant PoS, buyer retains the contractual right to re-price the molecule to the gas index (TTF Day-Ahead) without paying the green certificate premium.
 3. **Regulatory Change Protection:** Ensure clause covering statutory amendments or national quota mandate adjustments without indemnification penalty.`;
+
+  const remedies = assessment.gates
+    .flatMap(g => [g.remedy, ...(g.checklist?.map(c => c.remedy) || [])])
+    .filter((r): r is string => Boolean(r));
+
+  const recommendations = isApproved
+    ? [
+        'Execute the desk contract schedule with an agreed PoS cure period',
+        'Lock electronic transfer schedule in origin registry to prevent domestic cancellation',
+        'Monitor UDB launch status (postponed to end-2026 per EBA) before relying on it for commercial invoice generation'
+      ]
+    : remedies.length > 0
+    ? remedies.slice(0, 4)
+    : [
+        'Re-route volume to a voluntary Scope 1 or GO market where the route checker shows an open path',
+        'Replace crop substrate with Annex IX Part A agricultural residues'
+      ];
 
   return {
     verdict,
@@ -509,16 +503,7 @@ ${isApproved
         isVerbatimVerified: check.verified
       };
     }),
-    recommendations: isApproved
-      ? [
-          'Execute the desk contract schedule with an agreed PoS cure period',
-          'Lock electronic transfer schedule in origin registry to prevent domestic cancellation',
-          'Monitor UDB launch status (postponed to end-2026 per EBA) before relying on it for commercial invoice generation'
-        ]
-      : [
-          'Re-route volume to a voluntary Scope 1 or GO market where the route checker shows an open path',
-          'Replace crop substrate with Annex IX Part A agricultural residues'
-        ],
+    recommendations,
     rawText: explanation,
     sourceEngine: 'DETERMINISTIC_VAULT',
     apiError: errorNotice

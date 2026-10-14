@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { verifyQuoteAgainstVault, extractQuoteProofsFromText } from '../verifier';
-import { queryAuditor } from '../geminiClient';
+import { queryAuditor, buildConsignmentFromTradeContext } from '../geminiClient';
 import { TradeAuditContext, normalizeAuditorTab, normalizeTradeAuditContext } from '../types';
+import { evaluateEligibility } from '../../eligibility/engine';
+import { getMarketById } from '../../markets/registry';
 
 describe('Closed-Domain Statutory Compliance Auditor', () => {
   it('strictly verifies verbatim quotes against the local knowledge vault', () => {
@@ -84,8 +86,23 @@ describe('Closed-Domain Statutory Compliance Auditor', () => {
     expect(ghgCheck?.status).toBe('FAIL');
   });
 
-  it('deterministic offline audit approves compliant negative-CI Danish manure to German THG', async () => {
-    const compliantTrade: TradeAuditContext = {
+  it('deterministic offline audit approves fully compliant domestic German manure to German THG', async () => {
+    const domesticCompliantTrade: TradeAuditContext = {
+      originCountry: 'DE',
+      targetMarketId: 'DE_THG',
+      feedstockCategory: 'MANURE_SLURRY',
+      carbonIntensity: -85.0,
+      annualVolumeMWh: 100000,
+      deliveredValueEurMwh: 92.5
+    };
+
+    const res = await queryAuditor('Audit trade', domesticCompliantTrade);
+    expect(res.verdict).toBe('APPROVED');
+    expect(res.checks.every(c => c.status === 'PASS')).toBe(true);
+  });
+
+  it('deterministic offline audit evaluates cross-border Danish manure to German THG as CONDITIONAL_PASS matching eligibility engine', async () => {
+    const crossBorderTrade: TradeAuditContext = {
       originCountry: 'DK',
       targetMarketId: 'DE_THG',
       feedstockCategory: 'MANURE_SLURRY',
@@ -94,9 +111,10 @@ describe('Closed-Domain Statutory Compliance Auditor', () => {
       deliveredValueEurMwh: 92.5
     };
 
-    const res = await queryAuditor('Audit trade', compliantTrade);
-    expect(res.verdict).toBe('APPROVED');
-    expect(res.checks.every(c => c.status === 'PASS')).toBe(true);
+    const res = await queryAuditor('Audit trade', crossBorderTrade);
+    expect(res.verdict).toBe('CONDITIONAL_PASS');
+    const posCheck = res.checks.find(c => c.gateName.includes('Cross-border') || c.gateName.includes('PoS'));
+    expect(posCheck?.status).toBe('FLAG');
   });
 
   it('deterministic offline audit flags delivered netbacks exceeding French CPB €100.00 ceiling', async () => {
@@ -145,4 +163,97 @@ describe('Closed-Domain Statutory Compliance Auditor', () => {
     const ghgCheck = res.checks.find(c => c.gateName.includes('GHG'));
     expect(ghgCheck?.status).toBe('PASS');
   });
+});
+
+describe('Auditor & Eligibility Engine Synchronization (Zero Split-Brain)', () => {
+  const crossBorderTestCases: Array<{ label: string; trade: TradeAuditContext }> = [
+    {
+      label: 'DK -> DE_THG (Danish manure to German THG)',
+      trade: {
+        originCountry: 'DK',
+        targetMarketId: 'DE_THG',
+        feedstockCategory: 'MANURE_SLURRY',
+        carbonIntensity: -85.0,
+        annualVolumeMWh: 100000,
+      },
+    },
+    {
+      label: 'GB -> DE_THG (non-EU injection into EU quota)',
+      trade: {
+        originCountry: 'GB',
+        targetMarketId: 'DE_THG',
+        feedstockCategory: 'MANURE_SLURRY',
+        carbonIntensity: -80.0,
+        annualVolumeMWh: 50000,
+      },
+    },
+    {
+      label: 'NL -> UK_RGGO (non-UK origin into GGCS RGGO registry)',
+      trade: {
+        originCountry: 'NL',
+        targetMarketId: 'UK_RGGO',
+        feedstockCategory: 'AGRICULTURAL_RESIDUES',
+        carbonIntensity: 15.0,
+        annualVolumeMWh: 20000,
+      },
+    },
+    {
+      label: 'DK -> FR_CPB (Danish injection into France CPB)',
+      trade: {
+        originCountry: 'DK',
+        targetMarketId: 'FR_CPB',
+        feedstockCategory: 'MANURE_SLURRY',
+        carbonIntensity: -85.0,
+        annualVolumeMWh: 40000,
+      },
+    },
+    {
+      label: 'DE -> VOL_SCOPE1 (Energy crop into voluntary Scope 1)',
+      trade: {
+        originCountry: 'DE',
+        targetMarketId: 'VOL_SCOPE1',
+        feedstockCategory: 'ENERGY_CROPS',
+        carbonIntensity: 42.0,
+        annualVolumeMWh: 15000,
+      },
+    },
+    {
+      label: 'FR -> FR_CPB (Domestic compliant France CPB)',
+      trade: {
+        originCountry: 'FR',
+        targetMarketId: 'FR_CPB',
+        feedstockCategory: 'AGRICULTURAL_RESIDUES',
+        carbonIntensity: 12.0,
+        annualVolumeMWh: 30000,
+        deliveredValueEurMwh: 85.0,
+      },
+    },
+    {
+      label: 'DE -> DE_THG with High CI (> 65% requirement)',
+      trade: {
+        originCountry: 'DE',
+        targetMarketId: 'DE_THG',
+        feedstockCategory: 'ENERGY_CROPS',
+        carbonIntensity: 50.0,
+        annualVolumeMWh: 25000,
+      },
+    },
+  ];
+
+  for (const tc of crossBorderTestCases) {
+    it(`produces strictly identical verdicts for ${tc.label}`, async () => {
+      const auditorRes = await queryAuditor('Audit trade', tc.trade);
+      const market = getMarketById(tc.trade.targetMarketId)!;
+      const consignment = buildConsignmentFromTradeContext(tc.trade);
+      const eligibilityRes = evaluateEligibility(consignment, market);
+
+      const expectedVerdict = eligibilityRes.overallVerdict === 'HARD_BLOCK'
+        ? 'REJECTED'
+        : eligibilityRes.overallVerdict === 'ELIGIBLE'
+        ? 'APPROVED'
+        : 'CONDITIONAL_PASS';
+
+      expect(auditorRes.verdict).toBe(expectedVerdict);
+    });
+  }
 });

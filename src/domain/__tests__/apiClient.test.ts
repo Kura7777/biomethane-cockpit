@@ -118,6 +118,70 @@ describe('Client-side API Adapter & Server Ledgers', () => {
     expect(riskSettle.deal?.status).toBe('SETTLED');
   });
 
+  it('enforces RBAC permissions for deal creation and execution, and prevents transitions from SETTLED', async () => {
+    // COMPLIANCE_OFFICER has no TRADE_CREATE permission
+    const unauthCreate = await apiClient.createDeal(
+      { tradeTitle: 'Compliance Creation Attempt' },
+      'Officer Jane',
+      'COMPLIANCE_OFFICER'
+    );
+    expect(unauthCreate.success).toBe(false);
+    expect(unauthCreate.error).toContain('TRADE_CREATE');
+
+    // Valid create by TRADER
+    const validCreate = await apiClient.createDeal({
+      tradeTitle: 'Permission Lifecycle Deal',
+      marketId: 'DE_THG',
+      status: 'PRICED',
+    });
+    expect(validCreate.success).toBe(true);
+    const dealId = validCreate.deal!.id;
+
+    // Transition to EXECUTED requires TRADE_EXECUTE (RISK_MANAGER lacks it)
+    const riskExec = await apiClient.transitionDeal(
+      dealId,
+      'EXECUTED',
+      'Risk Manager Sarah',
+      'RISK_MANAGER',
+      'Attempt execute'
+    );
+    expect(riskExec.success).toBe(false);
+    expect(riskExec.error).toContain('TRADE_EXECUTE');
+
+    // TRADER has TRADE_EXECUTE
+    const traderExec = await apiClient.transitionDeal(
+      dealId,
+      'EXECUTED',
+      'Trader Chris',
+      'TRADER',
+      'Authorized execute'
+    );
+    expect(traderExec.success).toBe(true);
+    expect(traderExec.deal?.status).toBe('EXECUTED');
+
+    // Settle with RISK_MANAGER
+    const settleRes = await apiClient.transitionDeal(
+      dealId,
+      'SETTLED',
+      'Risk Manager Sarah',
+      'RISK_MANAGER',
+      'Authorized settle'
+    );
+    expect(settleRes.success).toBe(true);
+    expect(settleRes.deal?.status).toBe('SETTLED');
+
+    // Backward transition from SETTLED is prohibited
+    const revertRes = await apiClient.transitionDeal(
+      dealId,
+      'EXECUTED',
+      'Trader Chris',
+      'TRADER',
+      'Attempt revert'
+    );
+    expect(revertRes.success).toBe(false);
+    expect(revertRes.error).toContain('settled and immutable');
+  });
+
   it('persists marks and retrieves broker audit records', async () => {
     const auditRes = await apiClient.getMarksAudit();
     expect(auditRes.success).toBe(true);

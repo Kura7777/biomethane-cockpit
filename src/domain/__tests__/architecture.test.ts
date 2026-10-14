@@ -202,6 +202,21 @@ describe('ARCHITECTURE — no fabricated values', () => {
       because: 'EU ETS: MRR 2018/2066 Annex VI natural gas 56.1 tCO2/TJ × 0.0036 TJ/MWh (exact unit conversion).',
     },
     {
+      file: 'domain/netback/types.ts',
+      coefficient: '18.8',
+      because: 'Regulation (EU) 2023/1805 Annex II: Otto dual-fuel medium speed (3.1% slip) +18.8 gCO2e/MJ TtW adder.',
+    },
+    {
+      file: 'domain/netback/types.ts',
+      coefficient: '10.4',
+      because: 'Regulation (EU) 2023/1805 Annex II: Otto dual-fuel slow speed (1.7% slip) +10.4 gCO2e/MJ TtW adder.',
+    },
+    {
+      file: 'domain/netback/types.ts',
+      coefficient: '1.5',
+      because: 'Regulation (EU) 2023/1805 Annex II: Diesel slow speed HPDF (0.2% slip) +1.5 gCO2e/MJ TtW adder.',
+    },
+    {
       file: 'domain/logistics/engine.ts',
       coefficient: '0.0035',
       because: 'Documented pipeline shrinkage curve per 500 km.',

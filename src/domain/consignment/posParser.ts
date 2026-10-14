@@ -143,7 +143,8 @@ export function parseProofOfSustainability(rawInput: string): ParsedPoSCertifica
   const manureMatch = text.match(/(\d+(?:\.\d+)?)\s*%\s*(?:cattle|swine|pig|dairy|cow|liquid|poultry)?\s*(?:manure|slurry|gülle|festmist|lisier)/i)
     || text.match(/(?:manure|slurry|gülle|festmist|lisier)\s*[:=]?\s*(\d+(?:\.\d+)?)\s*%/i);
   const foodWasteMatch = text.match(/(\d+(?:\.\d+)?)\s*%\s*(?:food\s*waste|organic\s*waste|biowaste|bioabfall|déchets\s*alimentaires)/i);
-  const sewageMatch = text.match(/(\d+(?:\.\d+)?)\s*%\s*(?:sewage|sludge|klPowerärschlamm|boues)/i);
+  const sewageMatch = text.match(/(\d+(?:\.\d+)?)\s*%\s*(?:sewage|sludge|klärschlamm|klaerschlamm|boues)/i)
+    || text.match(/(?:sewage|sludge|klärschlamm|klaerschlamm|boues)\s*[:=]?\s*(\d+(?:\.\d+)?)\s*%/i);
   const cropMatch = text.match(/(\d+(?:\.\d+)?)\s*%\s*(?:maize|corn|energy\s*crops|nawaro|cultures\s*dédiées)/i);
 
   if (manureMatch) {
@@ -171,7 +172,7 @@ export function parseProofOfSustainability(rawInput: string): ParsedPoSCertifica
       canonicalFeedstock = 'food_waste';
       annexIxClassification = 'ANNEX_IX_A';
       confidence += 20;
-    } else if (/sewage|sludge/i.test(text)) {
+    } else if (/sewage|sludge|klärschlamm|klaerschlamm/i.test(text)) {
       substrates.push({ name: 'Municipal Wastewater Sludge', percentage: 100, canonicalCategory: 'sewage' });
       canonicalFeedstock = 'sewage';
       annexIxClassification = 'ANNEX_IX_A';
@@ -215,16 +216,16 @@ export function parseProofOfSustainability(rawInput: string): ParsedPoSCertifica
 
   // 8. Quantity / Volume (MWh or Nm3)
   let volumeMWh = 10000;
-  const volMatch = text.match(/(?:quantity|volume|menge|energiegehalt)\s*[:=]?\s*(\d+(?:[.,]\d+)?)\s*(?:mwh|gwh|nm3|nm³)/i)
-    || text.match(/(\d{1,3}(?:[.,]\d{3})*(?:\.\d+)?)\s*(?:mwh)/i);
+  const volMatch = text.match(/(?:quantity|volume|menge|energiegehalt)[^\n\d:=]*[:=]?\s*(\d[\d.,]*)\s*(mwh|gwh|nm3|nm³)/i)
+    || text.match(/(\d[\d.,]*)\s*(mwh|gwh)\b/i);
   if (volMatch) {
-    const rawVal = parseFloat(volMatch[1].replace(/,/g, ''));
-    if (/gwh/i.test(volMatch[0])) {
-      volumeMWh = rawVal * 1000;
-    } else {
-      volumeMWh = rawVal;
+    const unitStr = volMatch[2] || volMatch[0];
+    const isGwh = /gwh/i.test(unitStr);
+    const q = toQuantity(volMatch[1], isGwh);
+    if (q !== null) {
+      volumeMWh = isGwh ? q * 1000 : q;
+      confidence += 10;
     }
-    confidence += 10;
   }
 
   // 9. Chain of Custody
@@ -271,9 +272,22 @@ function toNumber(raw: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-/** "25,000" and "25.000" are both 25 000; "1,5" and "1.5" are 1.5. */
-function toQuantity(raw: string): number | null {
+/** "25,000" and "25.000" are both 25 000; "1,5" and "1.5" are 1.5; "1.250 GWh" is 1.25 GWh. */
+function toQuantity(raw: string, unitOrIsGwh?: string | boolean): number | null {
+  const isGwh = typeof unitOrIsGwh === 'boolean' ? unitOrIsGwh : typeof unitOrIsGwh === 'string' && /gwh/i.test(unitOrIsGwh);
   const t = raw.trim();
+  if (isGwh) {
+    const hasMultipleSeparators = (t.match(/[.,]/g) ?? []).length > 1;
+    if (hasMultipleSeparators && /^\d{1,3}([.,]\d{3})+$/.test(t)) {
+      return Number(t.replace(/[.,]/g, ''));
+    }
+    const intPartMatch = t.match(/^(\d+)/);
+    const intPart = intPartMatch ? parseInt(intPartMatch[1], 10) : 0;
+    if (intPart < 100 || !/^\d{1,3}([.,]\d{3})+$/.test(t)) {
+      return toNumber(t);
+    }
+    return Number(t.replace(/[.,]/g, ''));
+  }
   if (/^\d{1,3}([.,]\d{3})+$/.test(t)) return Number(t.replace(/[.,]/g, ''));
   return toNumber(t);
 }
@@ -357,8 +371,9 @@ function extractPosCustody(
     ?? text.match(/(\d[\d.,]*)\s*(mwh|gwh)\b/i);
   let mwh: number | null = null;
   if (mwhMatch) {
-    const q = toQuantity(mwhMatch[1]);
-    mwh = q === null ? null : (/gwh/i.test(mwhMatch[2]) ? q * 1000 : q);
+    const isGwh = /gwh/i.test(mwhMatch[2]);
+    const q = toQuantity(mwhMatch[1], isGwh);
+    mwh = q === null ? null : (isGwh ? q * 1000 : q);
   }
 
   return {

@@ -34,11 +34,11 @@ export function evaluateGHGThresholdGate(consignment: Consignment, market: Marke
 
   // Determine market sector to select the right comparator and thresholds
   const isHeatPowerMarket = market.sector === 'HEAT_POWER';
-  const comparator = isHeatPowerMarket ? CI_COMPARATOR_HEAT : CI_COMPARATOR_ROAD_TRANSPORT;
+  const comparator = market.fossilComparatorGCo2eMj ?? (isHeatPowerMarket ? CI_COMPARATOR_HEAT : CI_COMPARATOR_ROAD_TRANSPORT);
   const thresholds = isHeatPowerMarket ? GHG_THRESHOLDS_HEAT_POWER : GHG_THRESHOLDS_TRANSPORT;
   const citationPrimary = isHeatPowerMarket ? (CITATIONS.RED_III_GHG_HEAT_POWER ?? CITATIONS.RED_III_GHG_TRANSPORT) : CITATIONS.RED_III_GHG_TRANSPORT;
 
-  const ci = consignment.carbonIntensity;
+  const ci = consignment.custody?.pos?.ciTotal ?? consignment.carbonIntensity;
   const saving = (comparator - ci) / comparator;
   const savingPct = (saving * 100).toFixed(1);
 
@@ -66,6 +66,18 @@ export function evaluateGHGThresholdGate(consignment: Consignment, market: Marke
       remedy: null,
       citations: [citationPrimary, CITATIONS.RED_III_COMPARATOR],
       confidence: 'HIGH',
+    };
+  }
+
+  if (market.requiresGoAndPos && consignment.custody?.pos?.ciTotal == null) {
+    return {
+      gate: GATE,
+      gateLabel: GATE_LABEL,
+      verdict: 'CONDITIONAL',
+      reason: `GHG saving of ${savingPct}% (estimated CI: ${ci} gCO₂e/MJ vs. comparator ${comparator} gCO₂e/MJ) is below the required minimum of ${minSavingPct}% for ${consignment.commissioningDateRange.replace(/_/g, ' ').toLowerCase()} installations, but ${market.name} requires an audited Proof of Sustainability (PoS) which will supply the final certified CI.`,
+      remedy: 'Get the PoS CI.',
+      citations: [citationPrimary, CITATIONS.RED_III_COMPARATOR],
+      confidence: 'MEDIUM',
     };
   }
 

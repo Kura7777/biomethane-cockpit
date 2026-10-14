@@ -79,6 +79,7 @@ export interface LogisticsAssessment {
     totalPhysicalTariffEurMwh: number | null;
     unverifiedLegs: string[];
     shrinkageLossPct: number | null;
+    shrinkagePct?: number | null;
     shrinkageEurMwh: number | null;
   };
   hubSpread: {

@@ -8,7 +8,7 @@ import {
 } from '../marks/marksStore';
 import { Role } from '../auth/types';
 import { setActiveRole, getSessionState } from '../auth/authStore';
-import { ROLE_DEFINITIONS } from '../auth/rbac';
+import { ROLE_DEFINITIONS, hasPermission } from '../auth/rbac';
 import { INITIAL_LEDGER_DEALS, dealLedger } from '../../server/dealLedger';
 import {
   DealsResponse,
@@ -149,6 +149,14 @@ class ApiClient {
     role: Role = 'TRADER',
     note?: string
   ): Promise<DealResponse> {
+    if (!hasPermission(role, 'TRADE_CREATE')) {
+      return {
+        success: false,
+        error: `Creation requires TRADE_CREATE permission (role: ${role})`,
+        isFallback: false,
+      };
+    }
+
     try {
       const res = await fetch(`${this.baseUrl}/api/v1/deals`, {
         method: 'POST',
@@ -160,8 +168,12 @@ class ApiClient {
       return { success: true, deal: data.deal, isFallback: false };
     } catch {
       if (typeof localStorage === 'undefined') {
-        const record = dealLedger.createDeal(dealData, actor, role, note);
-        return { success: true, deal: record, isFallback: true };
+        try {
+          const record = dealLedger.createDeal(dealData, actor, role, note);
+          return { success: true, deal: record, isFallback: true };
+        } catch (err: any) {
+          return { success: false, error: err?.message, isFallback: true };
+        }
       }
       const deals = this.getLocalDeals();
       const id = dealData.id || `DEAL-2026-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -216,6 +228,22 @@ class ApiClient {
     role: Role = 'TRADER',
     note = ''
   ): Promise<DealResponse> {
+    if (newStatus === 'EXECUTED' && !hasPermission(role, 'TRADE_EXECUTE')) {
+      return {
+        success: false,
+        error: `Execution requires TRADE_EXECUTE permission (role: ${role})`,
+        isFallback: false,
+      };
+    }
+
+    if (newStatus === 'SETTLED' && !hasPermission(role, 'TRADE_SETTLE')) {
+      return {
+        success: false,
+        error: `Settlement requires TRADE_SETTLE permission (role: ${role})`,
+        isFallback: false,
+      };
+    }
+
     try {
       const res = await fetch(`${this.baseUrl}/api/v1/deals/${encodeURIComponent(id)}/transition`, {
         method: 'POST',
@@ -241,11 +269,32 @@ class ApiClient {
         return { success: false, error: `Deal ${id} not found`, isFallback: true };
       }
 
-      // Role check in fallback
-      if (newStatus === 'SETTLED' && role !== 'RISK_MANAGER' && role !== 'COMPLIANCE_OFFICER') {
+      if (existing.status === newStatus) {
+        return { success: true, deal: existing, isFallback: true };
+      }
+
+      // Settled deals are immutable: prevent backward transitions
+      if (existing.status === 'SETTLED') {
         return {
           success: false,
-          error: `Settlement requires RISK_MANAGER or COMPLIANCE_OFFICER role`,
+          error: `Deal ${id} is settled and immutable. Transitions from SETTLED are prohibited.`,
+          isFallback: true,
+        };
+      }
+
+      // Role check in fallback
+      if (newStatus === 'SETTLED' && !hasPermission(role, 'TRADE_SETTLE')) {
+        return {
+          success: false,
+          error: `Settlement requires TRADE_SETTLE permission (role: ${role})`,
+          isFallback: true,
+        };
+      }
+
+      if (newStatus === 'EXECUTED' && !hasPermission(role, 'TRADE_EXECUTE')) {
+        return {
+          success: false,
+          error: `Execution requires TRADE_EXECUTE permission (role: ${role})`,
           isFallback: true,
         };
       }

@@ -46,14 +46,24 @@ scratch/
 *.sln
 *.sw?
 
-# AntiGravity / Gemini generated artifacts
+# AntiGravity / Gemini generated artifacts & logs
 .gemini
-.agents
+.agents/
+codebase_dump*.txt
+src_*_only.txt
+src_only.txt
+Claude outputs/
+Biomethane_NotebookLM_Vault/
+
+# Critique & internal audit reports
+AUDIT_REPORT.md
+01_Report_Critique.md
 
 # Confidential deal & counterparty documents
 Contracts/
 contracts_text/
 NotebookLM_Sources/
+*.pdf
 
 # Large temporary archives, media, and test artifacts
 *.zip
@@ -63,7 +73,7 @@ NotebookLM_Sources/
 /*.png
 /*.jpg
 /*.csv
-/*.xlsx
+*.xlsx
 /*.json
 !package*.json
 !tsconfig*.json

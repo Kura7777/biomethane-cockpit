@@ -334,12 +334,14 @@ export function calculateLogisticsRoute(
   
   // Pipeline Shrinkage & Fuel Gas (null if distance or gas price is not provided)
   // No transmission transit (domestic delivery) means no cross-border compressor fuel gas.
-  const shrinkageLossPct = distanceKm === null
-    ? null
-    : distanceKm === 0
+  const shrinkageLossPct = (distanceKm === 0 || origin === target)
     ? 0
+    : distanceKm === null
+    ? null
     : Number(Math.max(0.003, (distanceKm / 500) * 0.0035).toFixed(4));
-  const shrinkageEurMwh = (baseGasPriceEurMwh !== null && shrinkageLossPct !== null)
+  const shrinkageEurMwh = (origin === target || distanceKm === 0)
+    ? 0
+    : (baseGasPriceEurMwh !== null && shrinkageLossPct !== null)
     ? Number((baseGasPriceEurMwh * shrinkageLossPct).toFixed(2))
     : null;
 
@@ -624,6 +626,7 @@ export function calculateLogisticsRoute(
       totalPhysicalTariffEurMwh,
       unverifiedLegs,
       shrinkageLossPct,
+      shrinkagePct: shrinkageLossPct,
       shrinkageEurMwh,
     },
     hubSpread: {

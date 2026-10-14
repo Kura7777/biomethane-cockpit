@@ -1,5 +1,6 @@
 import { DealRecord, DealStatus, DealAuditEntry, DealFilterCriteria } from '../domain/deals/types';
 import { Role } from '../domain/auth/types';
+import { hasPermission } from '../domain/auth/rbac';
 
 export const INITIAL_LEDGER_DEALS: DealRecord[] = [
   {
@@ -206,6 +207,10 @@ class DealLedger {
     actorRole: Role = 'TRADER',
     note?: string
   ): DealRecord {
+    if (!hasPermission(actorRole, 'TRADE_CREATE')) {
+      throw new Error(`Creation requires TRADE_CREATE permission (role: ${actorRole})`);
+    }
+
     const id = input.id || `DEAL-2026-${Math.floor(1000 + Math.random() * 9000)}`;
     const now = new Date().toISOString();
     const initialStatus: DealStatus = input.status || 'DRAFT';
@@ -265,22 +270,29 @@ class DealLedger {
       return { success: true, deal: JSON.parse(JSON.stringify(existing)) };
     }
 
+    // Settled deals are immutable: prevent backward transitions
+    if (existing.status === 'SETTLED') {
+      return {
+        success: false,
+        error: `Deal ${id} is settled and immutable. Transitions from SETTLED are prohibited.`,
+      };
+    }
+
     // Role-based validation rules for lifecycle transitions
     if (newStatus === 'SETTLED') {
-      if (actorRole !== 'RISK_MANAGER' && actorRole !== 'COMPLIANCE_OFFICER') {
+      if (!hasPermission(actorRole, 'TRADE_SETTLE')) {
         return {
           success: false,
-          error: `Settlement requires RISK_MANAGER or COMPLIANCE_OFFICER authorization (current: ${actorRole})`,
+          error: `Settlement requires TRADE_SETTLE permission (role: ${actorRole})`,
         };
       }
     }
 
-    if (newStatus === 'EXECUTED' && existing.status !== 'PRICED' && existing.status !== 'RFQ') {
-      // Direct execution without pricing or RFQ requires risk sign-off
-      if (actorRole !== 'RISK_MANAGER' && actorRole !== 'TRADER') {
+    if (newStatus === 'EXECUTED') {
+      if (!hasPermission(actorRole, 'TRADE_EXECUTE')) {
         return {
           success: false,
-          error: `Execution requires TRADER or RISK_MANAGER role (current: ${actorRole})`,
+          error: `Execution requires TRADE_EXECUTE permission (role: ${actorRole})`,
         };
       }
     }

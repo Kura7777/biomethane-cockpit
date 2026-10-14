@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppState } from '../../store/context';
 import { LogisticsModal } from '../logistics/LogisticsModal';
@@ -58,6 +58,14 @@ export function TradeBuilderScreen() {
   const [isPoSUploaderOpen, setIsPoSUploaderOpen] = useState(false);
   const [legalPackageTab, setLegalPackageTab] = useState<DocumentTab>('TERM_SHEET');
   const [justSavedId, setJustSavedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (typeof window !== 'undefined') {
+        delete (window as any).__ACTIVE_TRADE_BUILDER_DEAL__;
+      }
+    };
+  }, []);
 
   const dealInputs = useDealInputs(searchParams, setSearchParams, state.selectedMarketId, state.savedAssessments);
   const pricing = useDealPricing(dealInputs, state, dispatch);

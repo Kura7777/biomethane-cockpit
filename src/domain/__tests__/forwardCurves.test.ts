@@ -114,4 +114,18 @@ describe('Forward Curves Engine (Cal-2026 to Cal-2030)', () => {
     expect(quote.mid).toBeGreaterThan(0.34);
     expect(quote.statutoryObligationPct).toBe(33.0);
   });
+
+  it('uses selectMarkPrice to derive curve base prompt when only bid and offer are quoted without mid', () => {
+    const marks: MarksState = {
+      marks: {
+        DE_THG: { marketId: 'DE_THG', mid: null, bid: 280.0, offer: 290.0, updatedAt: null, source: null },
+      },
+      gasIndex: { mid: null, bid: 38.0, offer: 40.0, updatedAt: null },
+      fx: { gbpEur: 1.17, chfEur: 1.05, updatedAt: null },
+      pricingSides: { certificateSide: 'mid', moleculeSide: 'mid' },
+    };
+    const book = generateForwardCurves(marks);
+    expect(book.ttfGasCurve.basePromptMid).toBe(39.0); // (38.0 + 40.0) / 2
+    expect(book.curves.DE_THG.basePromptMid).toBe(285.0); // (280.0 + 290.0) / 2
+  });
 });

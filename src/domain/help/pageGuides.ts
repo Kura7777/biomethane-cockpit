@@ -683,6 +683,41 @@ export const PAGE_GUIDES: PageGuide[] = [
       'What is on the regulatory watchlist right now?',
     ],
   },
+  {
+    route: '/settings',
+    title: 'Desk settings',
+    purpose: 'Configure AI copilot API keys, client-side browser storage options, desk trading parameters and export data backups.',
+    howToRead: [
+      { section: 'Google Gemini API Configuration', text: 'Enter and test your Google Gemini API key. Storage defaults to sessionStorage for ephemeral tab execution, with an opt-in checkbox to persist across browser sessions in localStorage.' },
+      { section: 'Trading Desk Parameters & Defaults', text: 'View pricing side evaluation mode (Bid, Mid, Offer), active origin country benchmark, and applicable RED III statutory rules.' },
+      { section: 'Data Snapshots & Maintenance', text: 'Export desk marks, custom logistics costs and trading settings as a JSON file for backup and restoration.' },
+    ],
+    commonTasks: [
+      {
+        question: 'How do I connect my Gemini API key?',
+        steps: [
+          'Paste your key from Google AI Studio into the API Key input.',
+          'Click Test Connection to verify validity against Google endpoints.',
+          'Click Save Key to store in sessionStorage (or tick persist for localStorage).',
+        ],
+        link: '/settings',
+      },
+      {
+        question: 'Where is my API key stored?',
+        steps: [
+          'Keys are stored strictly in client-side browser storage (sessionStorage or localStorage).',
+          'Keys are never sent to remote backends or third-party servers.',
+        ],
+        link: '/settings',
+      },
+    ],
+    keyTerms: ['red-iii', 'udb', 'mark', 'netback'],
+    suggestedQuestions: [
+      'Is my Gemini API key stored securely on my device?',
+      'How do I test my Google AI Studio API key?',
+      'How do I export a JSON backup of my desk marks?',
+    ],
+  },
 ];
 
 export const PAGE_GUIDES_BY_ROUTE: Readonly<Record<string, PageGuide>> = Object.fromEntries(PAGE_GUIDES.map(g => [g.route, g]));
