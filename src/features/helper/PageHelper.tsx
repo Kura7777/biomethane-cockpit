@@ -31,6 +31,7 @@ import { askGeminiStream } from '../../domain/help/geminiHelperClient';
 import { currentHelperModel, setHelperProvider, type HelperModel } from '../../domain/help/helperModels';
 import { addTodaySpendUsd, dailyCapReached, dailyCapUsd, formatUsd, getTodaySpendUsd, subscribeTodaySpend } from '../../domain/help/helperCost';
 import { appendHelperTurn, getHelperSnapshot, setHelperExpanded, setHelperOpen, setHelperViewing, useHelperStore } from './helperStore';
+import type { BrokerParseResult } from '../../domain/markets/brokerRunParser';
 import './helper.css';
 
 /** The saved key for a model's provider ("" when none). */
@@ -80,6 +81,8 @@ export interface Chat {
   viewingPrevious: boolean;
   suggestions: string[];
   send: (question: string) => void;
+  stagedRun: BrokerParseResult | null;
+  clearStagedRun: () => void;
 }
 
 function titleFor(key: string): string {
@@ -98,6 +101,7 @@ export function useHelperChat(): Chat {
   const [busy, setBusy] = useState(false);
   const [liveText, setLiveText] = useState('');
   const [status, setStatus] = useState<string | null>(null);
+  const [stagedRun, setStagedRun] = useState<BrokerParseResult | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const app = useOptionalAppState();
   const appRef = useRef(app);
@@ -196,7 +200,11 @@ export function useHelperChat(): Chat {
       history,
       question,
       context: live,
-      toolCtx: { marks: state.marks, costs: state.costs },
+      toolCtx: {
+        marks: state.marks,
+        costs: state.costs,
+        onStageMarks: (res: BrokerParseResult) => setStagedRun(res),
+      },
       signal: controller.signal,
       onText: delta => { streamed += delta; setLiveText(streamed); },
       onStatus: setStatus,
@@ -242,6 +250,8 @@ export function useHelperChat(): Chat {
     viewingPrevious: store.viewing !== null && store.viewing !== pageKey,
     suggestions,
     send,
+    stagedRun,
+    clearStagedRun: () => setStagedRun(null),
   };
 }
 

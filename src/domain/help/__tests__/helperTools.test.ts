@@ -27,6 +27,9 @@ describe('helper tools (read-only lookups into app data)', () => {
       'save_desk_memory',
       'search_shipping_counterparties',
       'get_shipping_counterparty',
+      'parse_and_stage_marks',
+      'solve_deal_breakeven',
+      'evaluate_contract_or_pos',
     ]);
     for (const t of HELPER_TOOLS) {
       expect(t.strict).toBe(true);
@@ -101,6 +104,56 @@ describe('helper tools (read-only lookups into app data)', () => {
     const msc = await run('get_shipping_counterparty', { rankOrName: 'MSC' });
     expect(msc.name).toContain('MSC');
     expect(msc.regulatoryExposure.complianceBalance2026Tco2e).toBeLessThan(0);
+  });
+  it('parse_and_stage_marks parses quotes and triggers onStageMarks callback', async () => {
+    let stagedData: any = null;
+    const testCtx = { ...ctx, onStageMarks: (res: any) => { stagedData = res; } };
+    const rawRun = `DE THG 2026: 295 / 305 €/tCO2e
+NL GGE 2026: 0.38 / 0.42
+TTF: 39.10`;
+    const res = JSON.parse(await runHelperTool('parse_and_stage_marks', { text: rawRun, brokerName: 'Marex' }, testCtx));
+    expect(res.status).toBe('staged');
+    expect(res.validCount).toBeGreaterThan(0);
+    expect(res.stagedMarks.some((m: any) => m.marketId === 'DE_THG')).toBe(true);
+    expect(stagedData).not.toBeNull();
+    expect(stagedData.validCount).toBeGreaterThan(0);
+  });
+  it('solve_deal_breakeven ranks European destinations, calculates margins, and emits Trade Builder deep-links', async () => {
+    const res = JSON.parse(await runHelperTool('solve_deal_breakeven', {
+      origin: 'DK',
+      feedstock: 'manure',
+      customCi: -85,
+      producerPriceEur: 95,
+      targetMarginEur: 4,
+    }, ctx));
+
+    expect(res.origin).toBe('DK');
+    expect(res.ciUsed).toBe(-85);
+    expect(res.destinationsEvaluated).toBeGreaterThan(0);
+    expect(res.rankedDestinations.length).toBeGreaterThan(0);
+    const top = res.rankedDestinations[0];
+    expect(top.netNetbackEurPerMwh).toBeGreaterThan(0);
+    expect(top.maxPlantGatePriceEur).toBeDefined();
+    expect(top.deepLink).toContain('[[go:/trade?');
+    expect(top.deepLink).toContain('origin=DK');
+    expect(top.deepLink).toContain('ci=-85');
+  });
+  it('evaluate_contract_or_pos parses certificate, verifies RED III compliance, and generates custody clauses', async () => {
+    const samplePos = `ISCC EU Proof of Sustainability
+Certificate Number: EU-ISCC-Cert-ES214-99482710
+Issuing Body: DNV Business Assurance
+Country: ES
+Raw material: 100% pig slurry and cattle manure
+Total GHG emissions: -40.0 gCO2eq/MJ
+Chain of Custody: Mass Balance`;
+
+    const res = JSON.parse(await runHelperTool('evaluate_contract_or_pos', { text: samplePos }, ctx));
+    expect(res.isValid).toBe(true);
+    expect(res.scheme).toBe('ISCC_EU');
+    expect(res.canonicalFeedstock).toBe('manure');
+    expect(res.redIiiCompliant).toBe(true);
+    expect(res.marketClearance.length).toBeGreaterThan(0);
+    expect(res.custodyClauses.length).toBeGreaterThan(0);
   });
   it('bad input throws, so the loop can return is_error', async () => {
     await expect(runHelperTool('price_destinations', { origin: 'ES', feedstock: 'unicorn' }, ctx)).rejects.toThrow(/unknown feedstock/);

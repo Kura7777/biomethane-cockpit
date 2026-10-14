@@ -30,6 +30,9 @@ import { usePageContext } from './usePageContext';
 import { ChatBody, ChatInput, ModeNote, useHelperChat, useTodaySpend } from './PageHelper';
 import { clearHelperConversation } from './helperStore';
 import { ProviderSwitch } from './ProviderSwitch';
+import { extractPdfText } from '../../utils/pdfReader';
+import { StagedMarksCard } from './StagedMarksCard';
+import { showToast } from '../../app/DeskToastContainer';
 import './helper.css';
 
 /**
@@ -466,31 +469,21 @@ export function AskDeskScreen() {
     const reader = new FileReader();
 
     if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
-      // Read PDF bytes and extract printable text chunks
-      reader.onload = ev => {
+      // Decompress FlateDecode streams and extract real PDF text
+      reader.onload = async ev => {
         const buffer = ev.target?.result as ArrayBuffer;
         if (!buffer) return;
-        const bytes = new Uint8Array(buffer);
-        let text = '';
-        let currentChunk = '';
-        for (let i = 0; i < bytes.length; i++) {
-          const b = bytes[i];
-          if ((b >= 32 && b <= 126) || b === 10 || b === 13 || b === 9) {
-            currentChunk += String.fromCharCode(b);
-          } else {
-            if (currentChunk.length >= 4) {
-              text += currentChunk + ' ';
-            }
-            currentChunk = '';
-          }
+        try {
+          const cleaned = await extractPdfText(buffer, 35000);
+          setAttachedDoc({
+            name: file.name,
+            size: sizeStr,
+            content: cleaned || `[PDF document ${file.name} with ${file.size} bytes: text layer not directly extractable]`,
+          });
+        } catch (err) {
+          console.error('Failed to parse PDF text:', err);
+          showToast('Failed to extract text from PDF document', 'error');
         }
-        if (currentChunk.length >= 4) text += currentChunk;
-        const cleaned = text.replace(/\s+/g, ' ').slice(0, 30000); // Up to ~30k chars
-        setAttachedDoc({
-          name: file.name,
-          size: sizeStr,
-          content: cleaned || `[Binary PDF with ${file.size} bytes: text layer not directly extractable]`,
-        });
       };
       reader.readAsArrayBuffer(file);
     } else {
@@ -631,6 +624,12 @@ export function AskDeskScreen() {
       <ChatBody chat={wrappedChat} onNavigate={go} variant="desk" emptyState={empty} />
       <footer className="ask-foot">
         <div className="ask-column">
+          {chat.stagedRun && (
+            <StagedMarksCard
+              stagedRun={chat.stagedRun}
+              onDismiss={chat.clearStagedRun}
+            />
+          )}
           {attachedDoc && (
             <div className="ask-attachment-pill" data-testid="ask-attachment-pill">
               <FileText size={13} aria-hidden="true" />

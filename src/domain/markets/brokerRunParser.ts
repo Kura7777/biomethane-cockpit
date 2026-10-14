@@ -300,7 +300,8 @@ export function cleanNumber(str: string | undefined | null): number | null {
   let s = str.trim();
   s = s.replace(/['"]/g, '').trim();
   s = s.replace(/[€£$\u00A5\u20BD%]/g, '').trim();
-  s = s.replace(/(?:EUR|GBP|USD|CHF|MWh|tCO2e|kgCO2e|CIC|dRTFC|\/MWh|\/tCO2e|\/kgCO2e|\/dRTFC)/gi, '').trim();
+  s = s.replace(/(?:\/(?:MWh|tCO2e|kgCO2e|dRTFC|tCO2|therm)|EUR|GBP|USD|CHF|MWh|tCO2e|kgCO2e|CIC|dRTFC)/gi, '').trim();
+  s = s.replace(/\/+$/, '').trim();
   s = s.replace(/\s+/g, '');
   if (!s) return null;
 
@@ -486,7 +487,20 @@ export function parseBrokerRunText(
         const item = parts[pIdx];
         const itemLower = item.toLowerCase();
 
-        if (item.includes('/') && !/\d{2,4}\/\d{1,2}\/\d{2,4}/.test(item)) {
+        const spreadMatch = item.match(/^([€£$]?\s*[0-9.,]+)\s*\/\s*([€£$]?\s*[0-9.,]+)(?:\s*(.*))?$/);
+        if (spreadMatch && !/\d{2,4}\/\d{1,2}\/\d{2,4}/.test(item)) {
+          const b = cleanNumber(spreadMatch[1]);
+          const a = cleanNumber(spreadMatch[2]);
+          if (b !== null && a !== null) {
+            bidVal = b;
+            askVal = a;
+            midVal = Number(((b + a) / 2).toFixed(3));
+            if (spreadMatch[3] && !unitStr) {
+              unitStr = spreadMatch[3].trim();
+            }
+            continue;
+          }
+        } else if (item.includes('/') && !/\d{2,4}\/\d{1,2}\/\d{2,4}/.test(item)) {
           const slashParts = item.split('/');
           if (slashParts.length === 2) {
             const b = cleanNumber(slashParts[0]);

@@ -17,10 +17,19 @@ import { lookupReference } from './referenceLookup';
 import { searchDeskMemory, saveDeskRule, type DeskMemoryRule } from './deskMemory';
 import { FUEL_EU_SHIPPING_COUNTERPARTIES } from '../fueleu/shippingTargetsData';
 import { FUEL_EU_SHIPPING_GROUPS } from '../fueleu/groups';
+import { parseBrokerRunText, type BrokerParseResult } from '../markets/brokerRunParser';
+import { parseProofOfSustainability } from '../consignment/posParser';
+import { evaluateEligibility } from '../eligibility/engine';
+import { buildCustodyClauses } from '../trade/custodyClauses';
+import { buildArbitrageConsignment, originIsEuGrid } from '../arbitrage/engine';
+import { PRODUCING_ORIGINS, getRouteTransitTariff } from '../arbitrage/origins';
+import { computeNetback } from '../netback/engine';
+import { getAssumption } from '../assumptions/registry';
 
 export interface HelperToolContext {
   marks: MarksState;
   costs: CostInputs;
+  onStageMarks?: (result: BrokerParseResult) => void;
 }
 
 type Schema = Anthropic.Beta.BetaTool['input_schema'];
@@ -107,6 +116,39 @@ export const HELPER_TOOLS: Anthropic.Beta.BetaTool[] = [
       rankOrName: { type: 'string', description: 'Rank number (e.g. "1") or exact/partial company name (e.g. "Maersk A/S", "MSC", "Carnival")' }
     }, ['rankOrName']),
   },
+  {
+    name: 'parse_and_stage_marks',
+    description: 'Parse raw broker runs, OTC quotes, or price updates from chat text and stage candidate mark updates for trader review. Supports markets like DE_THG, NL_ERE, NL_GGE, UK_RTFO, TTF, and THE. Staged marks can be committed to the desk with 1-click.',
+    strict: true,
+    input_schema: obj({
+      text: { type: 'string', description: 'Raw broker run text, price updates, or OTC quote message' },
+      date: { type: ['string', 'null'], description: 'Optional observation date (YYYY-MM-DD)' },
+      brokerName: { type: ['string', 'null'], description: 'Optional broker label (e.g. "Marex", "STX", "SCB")' },
+    }, ['text', 'date', 'brokerName']),
+  },
+  {
+    name: 'solve_deal_breakeven',
+    description: 'Reverse-solve merchant deal economics across all 32 European markets: calculates maximum plant-gate price, net trader margin, required CI breakeven, and 1-click Trade Builder execution links. Evaluates custom CI, producer asking price, and profit sharing.',
+    strict: true,
+    input_schema: obj({
+      origin: { type: 'string', description: 'Origin country ISO code (e.g. DK, DE, ES, NL, FR, IT, GB)' },
+      feedstock: { type: 'string', description: 'Feedstock key: manure, energy_crops, food_waste, sewage, landfill_gas' },
+      customCi: { type: ['number', 'null'], description: 'Optional custom carbon intensity in gCO2e/MJ (e.g. -85, 24)' },
+      producerPriceEur: { type: ['number', 'null'], description: 'Optional producer asking price in EUR/MWh' },
+      targetMarginEur: { type: ['number', 'null'], description: 'Optional target desk margin in EUR/MWh (default 0)' },
+      producerSharePct: { type: ['number', 'null'], description: 'Optional upside profit-share percentage to producer (e.g. 90)' },
+      volumeMWh: { type: ['number', 'null'], description: 'Optional deal volume in MWh' },
+    }, ['origin', 'feedstock', 'customCi', 'producerPriceEur', 'targetMarginEur', 'producerSharePct', 'volumeMWh']),
+  },
+  {
+    name: 'evaluate_contract_or_pos',
+    description: 'Run forensic statutory compliance and contract evaluation on an uploaded or pasted Proof of Sustainability (PoS) certificate or EFET contract snippet. Extracts audited substrate mix, verified CI, Annex IX classification, tests destination market clearance (DE THG, NL GGE, FuelEU), and checks required custody clauses.',
+    strict: true,
+    input_schema: obj({
+      text: { type: 'string', description: 'Raw text of PoS certificate, schedule, or contract snippet' },
+      targetMarket: { type: ['string', 'null'], description: 'Optional specific target market ID (e.g. DE_THG, NL_GGE, FUELEU)' },
+    }, ['text', 'targetMarket']),
+  },
 ];
 
 export const HELPER_TOOL_LABELS: Record<string, string> = {
@@ -121,6 +163,9 @@ export const HELPER_TOOL_LABELS: Record<string, string> = {
   save_desk_memory: 'Saving rule to desk memory',
   search_shipping_counterparties: 'Searching FuelEU shipping companies',
   get_shipping_counterparty: 'Reading FuelEU shipping profile',
+  parse_and_stage_marks: 'Parsing & staging broker marks',
+  solve_deal_breakeven: 'Solving deal breakeven across Europe',
+  evaluate_contract_or_pos: 'Evaluating contract & PoS compliance',
   web_search: 'Searching the web',
 };
 
@@ -402,6 +447,217 @@ export async function runHelperTool(name: string, input: unknown, ctx: HelperToo
         },
         outreachPitch: match.outreachPitch,
         source: match.source,
+      });
+    }
+    case 'parse_and_stage_marks': {
+      const text = str(args.text);
+      const date = args.date ? str(args.date) : undefined;
+      const broker = args.brokerName ? str(args.brokerName) : 'Chat Staged Run';
+      if (!text.trim()) throw new Error('text is required to parse broker marks');
+      const res = parseBrokerRunText(text, broker, date);
+      if (ctx.onStageMarks) {
+        ctx.onStageMarks(res);
+      }
+      return JSON.stringify({
+        status: 'staged',
+        extractedDate: res.extractedDate,
+        brokerDetected: res.brokerDetected,
+        validCount: res.validCount,
+        totalLines: res.totalLines,
+        stagedMarks: res.marks.filter(m => m.isValid).map(m => ({
+          marketId: m.marketId,
+          marketName: m.marketName,
+          bid: m.bid,
+          offer: m.ask,
+          mid: m.midPrice,
+          unit: m.unit,
+        })),
+        unmatchedLines: res.skippedLines.slice(0, 5),
+        instruction: 'Staged for trader review. Trader can commit marks to desk with 1-click in the cockpit or review in the broker run importer modal.',
+      });
+    }
+    case 'solve_deal_breakeven': {
+      const origin = normalizeCountryCode(str(args.origin));
+      const feedstockKey = str(args.feedstock) || 'manure';
+      if (!origin) throw new Error('origin must be an ISO country code');
+      const profile = PRODUCING_ORIGINS[origin];
+      if (!profile) throw new Error(`unsupported origin country "${origin}"`);
+      const feedstock = FEEDSTOCK_REGISTRY[feedstockKey];
+      if (!feedstock) throw new Error(`unknown feedstock "${feedstockKey}"; use one of ${Object.keys(FEEDSTOCK_REGISTRY).join(', ')}`);
+
+      const customCi = typeof args.customCi === 'number' ? args.customCi : null;
+      const effectiveCi = customCi !== null ? customCi : getAssumption(`feedstock.defaultCi.${feedstock.id}`);
+      const producerPrice = typeof args.producerPriceEur === 'number' ? args.producerPriceEur : null;
+      const targetMargin = typeof args.targetMarginEur === 'number' ? args.targetMarginEur : 0;
+      const producerSharePct = typeof args.producerSharePct === 'number' ? args.producerSharePct : null;
+      const volumeMWh = typeof args.volumeMWh === 'number' ? args.volumeMWh : (getAssumption('deal.defaultVolumeMwh') ?? 10000);
+
+      const consignment = buildArbitrageConsignment({
+        originCountry: profile.countryCode,
+        originCountryName: profile.countryName,
+        feedstockKey,
+        feedstockName: feedstock.name,
+        annexClassification: feedstock.annexClassification,
+        carbonIntensity: effectiveCi,
+        scheme: 'ISCC_EU',
+        chainOfCustody: 'MASS_BALANCE',
+        isEUGrid: originIsEuGrid(profile),
+        volumeMWh,
+        complianceYear: null,
+      });
+
+      const candidateMarkets = MARKETS.filter(m => m.status === 'ACTIVE');
+
+      const results = candidateMarkets.flatMap(market => {
+        const eligibility = evaluateEligibility(consignment, market);
+        const blocked = eligibility.overallVerdict === 'HARD_BLOCK' || eligibility.overallVerdict === 'UNKNOWN';
+        if (blocked) return [];
+
+        const transitTariff = getRouteTransitTariff(profile.countryCode, market.country);
+        const costs: CostInputs = { ...ctx.costs, logistics: transitTariff };
+        const pricingSides = ctx.marks?.pricingSides ?? { gasSide: 'MID' as const, certificateSide: 'MID' as const };
+        const nb = computeNetback(market, consignment, ctx.marks, costs, pricingSides);
+        if (nb.netNetback === null) return [];
+
+        const netEur = Math.round(nb.netNetback * 100) / 100;
+        const maxPlantGate = Math.round((netEur - targetMargin) * 100) / 100;
+        const grossMargin = producerPrice !== null ? Math.round((netEur - producerPrice) * 100) / 100 : null;
+
+        let profitShareDesk = grossMargin;
+        if (grossMargin !== null && producerSharePct !== null && grossMargin > 0) {
+          const shareFrac = producerSharePct / 100;
+          profitShareDesk = Math.round((grossMargin * (1 - shareFrac)) * 100) / 100;
+        }
+
+        let maxCiBreakeven: number | null = null;
+        if (market.id === 'DE_THG' && producerPrice !== null) {
+          const thgMark = ctx.marks?.marks?.DE_THG;
+          const thgPrice = thgMark?.mid ?? thgMark?.bid ?? 300;
+          const gasIndexMid = ctx.marks?.gasIndex?.mid ?? 35;
+          const reqRevenue = (producerPrice + targetMargin) + (costs.logistics || 0) + (costs.transferCosts || 0) - gasIndexMid;
+          if (thgPrice > 0 && reqRevenue > 0) {
+            maxCiBreakeven = Math.round((84 - (reqRevenue / (0.0036 * thgPrice))) * 10) / 10;
+          }
+        }
+
+        const deepLink = `[[go:/trade?origin=${origin}&market=${market.id}&feedstock=${feedstockKey}&ci=${effectiveCi}${producerPrice !== null ? `&producerPrice=${producerPrice}` : ''}|Open in Trade Builder]]`;
+
+        return [{
+          marketId: market.id,
+          marketName: market.name,
+          country: market.country,
+          verdict: eligibility.overallVerdict,
+          netNetbackEurPerMwh: netEur,
+          maxPlantGatePriceEur: maxPlantGate,
+          deskGrossMarginEur: grossMargin,
+          deskNetWithProfitShareEur: profitShareDesk,
+          maxCiBreakevenForProducerPrice: maxCiBreakeven,
+          transitTariffEur: transitTariff,
+          deepLink,
+        }];
+      });
+
+      results.sort((a, b) => b.netNetbackEurPerMwh - a.netNetbackEurPerMwh);
+
+      return JSON.stringify({
+        origin,
+        feedstock: feedstockKey,
+        ciUsed: effectiveCi,
+        volumeMWh,
+        producerAskingPriceEur: producerPrice,
+        targetDeskMarginEur: targetMargin,
+        destinationsEvaluated: results.length,
+        rankedDestinations: results.slice(0, 10),
+      });
+    }
+    case 'evaluate_contract_or_pos': {
+      const text = str(args.text);
+      const targetMarket = args.targetMarket ? str(args.targetMarket) : null;
+      if (!text.trim()) throw new Error('text is required to evaluate contract or PoS');
+
+      const pos = parseProofOfSustainability(text);
+      const origin = pos.countryCode || 'DK';
+      const profile = PRODUCING_ORIGINS[origin] || PRODUCING_ORIGINS['DK'];
+      const feedstockKey = pos.canonicalFeedstock || 'manure';
+      const feedstock = FEEDSTOCK_REGISTRY[feedstockKey] || FEEDSTOCK_REGISTRY['manure'];
+
+      const consignment = buildArbitrageConsignment({
+        originCountry: profile.countryCode,
+        originCountryName: profile.countryName,
+        feedstockKey,
+        feedstockName: feedstock.name,
+        annexClassification: pos.annexIxClassification === 'ANNEX_IX_A' ? 'IX_A' : pos.annexIxClassification === 'ANNEX_IX_B' ? 'IX_B' : pos.annexIxClassification === 'CROP_BASED' ? 'CROP' : 'OTHER',
+        carbonIntensity: pos.carbonIntensityGCo2Mj,
+        scheme: pos.scheme === 'REDCERT_EU' ? 'REDCERT_EU' : pos.scheme === '2BSVS' ? '2BSVS' : pos.scheme === 'KZR_INIG' ? 'KZR_INIG' : pos.scheme === 'ISCC_PLUS' ? 'ISCC_PLUS' : 'ISCC_EU',
+        chainOfCustody: pos.chainOfCustody || 'MASS_BALANCE',
+        isEUGrid: originIsEuGrid(profile),
+        volumeMWh: pos.volumeMWh || 1000,
+        complianceYear: null,
+      });
+
+      const checkMarkets = targetMarket
+        ? MARKETS.filter(m => m.id === targetMarket)
+        : MARKETS.filter(m => ['DE_THG', 'NL_GGE', 'NL_ERE', 'IT_CIC', 'FR_CPB', 'UK_RTFO', 'EU_ETS1', 'FUELEU', 'VOL_SCOPE1'].includes(m.id));
+
+      const marketClearance = checkMarkets.map(m => {
+        const el = evaluateEligibility(consignment, m);
+        return {
+          marketId: m.id,
+          marketName: m.name,
+          verdict: el.overallVerdict,
+          summary: el.summary,
+          failingGates: el.gates.filter(g => g.verdict === 'HARD_BLOCK').map(g => g.gateLabel),
+          openItems: el.gates.flatMap(g => g.checklist?.filter(i => i.status === 'TODO' || (i.status === 'WARN' && i.id !== 'legislative-status')) ?? []).map(i => i.label),
+        };
+      });
+
+      const custodyClauses = checkMarkets
+        .map(m => {
+          const clauses = buildCustodyClauses({ id: 'eval', targetMarketId: m.id, consignment } as any);
+          return clauses ? {
+            marketId: m.id,
+            variant: clauses.variant,
+            warrantiesCount: clauses.warranties.length,
+            keyWarranties: clauses.warranties.slice(0, 3).map(w => `${w.ref}: ${w.text}`),
+          } : null;
+        })
+        .filter(Boolean);
+
+      const auditFlags: string[] = [];
+      if (pos.scheme === 'ISCC_PLUS') {
+        auditFlags.push('CRITICAL: ISCC PLUS is voluntary book-and-claim only; invalid for EU RED III compliance quotas.');
+      }
+      if (pos.ghgSavingsPct < 65) {
+        auditFlags.push(`FAIL: GHG savings of ${pos.ghgSavingsPct}% falls below the statutory RED III 65% transport minimum threshold.`);
+      }
+      if (!pos.custody.udbNumber) {
+        auditFlags.push('MISSING: Union Database (UDB) registration number is not stated on this certificate.');
+      }
+      if (!pos.custody.ciSteps) {
+        auditFlags.push('AUDIT NOTE: Annex VI step-by-step emission values (eec, ep, etd, eccs) are not itemised.');
+      }
+      if (pos.countryCode === 'GB') {
+        auditFlags.push('CROSS-BORDER: GB injected biomethane cannot clear EU UDB without physical segregation.');
+      }
+
+      return JSON.stringify({
+        isValid: pos.isValid,
+        scheme: pos.scheme,
+        schemeLabel: pos.schemeLabel,
+        certificateNumber: pos.certificateNumber,
+        issuingBody: pos.issuingBody,
+        producerName: pos.producerName,
+        countryCode: pos.countryCode,
+        feedstock: pos.primaryFeedstockName,
+        canonicalFeedstock: pos.canonicalFeedstock,
+        annexClassification: pos.annexIxClassification,
+        carbonIntensityGCo2Mj: pos.carbonIntensityGCo2Mj,
+        ghgSavingsPct: pos.ghgSavingsPct,
+        redIiiCompliant: pos.ghgSavingsPct >= 65,
+        statedCustody: pos.custody,
+        auditFlags,
+        marketClearance,
+        custodyClauses,
       });
     }
     default:
