@@ -43,6 +43,13 @@ export interface TradeAuditContext {
   certificationScheme?: string;
   chainOfCustody?: string;
   annexClassification?: string;
+  injectionCountry?: string;
+  injectionIsEU?: boolean;
+  udbStatus?: string;
+  posStatus?: string;
+  commissioningDateRange?: string;
+  deliveryPeriod?: any;
+  custody?: any;
 }
 
 export function normalizeAuditorTab(tab?: string): AuditorModalTab {
@@ -109,6 +116,13 @@ export function normalizeTradeAuditContext(raw?: any, fallback?: TradeAuditConte
     certificationScheme: raw?.certificationScheme || fallback?.certificationScheme,
     chainOfCustody: raw?.chainOfCustody || fallback?.chainOfCustody,
     annexClassification: raw?.annexClassification || fallback?.annexClassification,
+    injectionCountry: raw?.injectionCountry || fallback?.injectionCountry,
+    injectionIsEU: typeof raw?.injectionIsEU === 'boolean' ? raw.injectionIsEU : fallback?.injectionIsEU,
+    udbStatus: raw?.udbStatus || fallback?.udbStatus,
+    posStatus: raw?.posStatus || fallback?.posStatus,
+    commissioningDateRange: raw?.commissioningDateRange || fallback?.commissioningDateRange,
+    deliveryPeriod: raw?.deliveryPeriod || fallback?.deliveryPeriod,
+    custody: raw?.custody || fallback?.custody,
   };
 }
 

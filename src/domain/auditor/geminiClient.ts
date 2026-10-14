@@ -271,9 +271,11 @@ function mapFeedstockKey(raw?: string): string {
  */
 export function buildConsignmentFromTradeContext(trade: TradeAuditContext, rawTrade?: any): Consignment {
   const origin = (trade.originCountry || 'DE').toUpperCase();
-  const injectionCountry = ((rawTrade as any)?.injectionCountry || origin).toUpperCase();
-  const isNonEu = injectionCountry === 'GB' || injectionCountry === 'UK' || injectionCountry === 'CH';
-  const injectionIsEU = (rawTrade as any)?.injectionIsEU ?? !isNonEu;
+  const injectionCountry = (trade.injectionCountry || (rawTrade as any)?.injectionCountry || origin).toUpperCase();
+  const isNonEu = injectionCountry === 'GB' || injectionCountry === 'UK' || injectionCountry === 'CH' || injectionCountry === 'NO';
+  const injectionIsEU = typeof trade.injectionIsEU === 'boolean'
+    ? trade.injectionIsEU
+    : ((rawTrade as any)?.injectionIsEU ?? !isNonEu);
 
   const rawScheme = (trade.certificationScheme || '').toUpperCase();
   let scheme: CertificationScheme = 'ISCC_EU';
@@ -298,10 +300,13 @@ export function buildConsignmentFromTradeContext(trade: TradeAuditContext, rawTr
     || regFeedstock?.annexClassification
     || (feedstockKey === 'energy_crops' ? 'CROP' : 'IX_A');
 
-  const udbStatus: UDBStatus = (rawTrade as any)?.udbStatus
+  const udbStatus: UDBStatus = (trade.udbStatus as UDBStatus)
+    ?? (rawTrade as any)?.udbStatus
     ?? (!injectionIsEU ? 'NOT_RECORDED' : 'RECORDED');
 
-  const posStatus: PoSStatus = (rawTrade as any)?.posStatus ?? 'ISSUED';
+  const posStatus: PoSStatus = (trade.posStatus as PoSStatus)
+    ?? (rawTrade as any)?.posStatus
+    ?? 'ISSUED';
   const volumeMWh = trade.annualVolumeMWh ?? trade.volumeMWh ?? 10000;
 
   return {
@@ -313,7 +318,7 @@ export function buildConsignmentFromTradeContext(trade: TradeAuditContext, rawTr
     feedstockName,
     annexClassification,
     carbonIntensity: trade.carbonIntensity,
-    commissioningDateRange: (rawTrade as any)?.commissioningDateRange ?? 'POST_2021_TO_2025',
+    commissioningDateRange: (trade.commissioningDateRange as any) ?? (rawTrade as any)?.commissioningDateRange ?? 'POST_2021_TO_2025',
     certificationScheme: scheme,
     chainOfCustody,
     injectionCountry,
@@ -321,8 +326,8 @@ export function buildConsignmentFromTradeContext(trade: TradeAuditContext, rawTr
     udbStatus,
     posStatus,
     volumeMWh,
-    deliveryPeriod: (rawTrade as any)?.deliveryPeriod ?? null,
-    custody: (rawTrade as any)?.custody ?? null,
+    deliveryPeriod: trade.deliveryPeriod ?? (rawTrade as any)?.deliveryPeriod ?? null,
+    custody: trade.custody ?? (rawTrade as any)?.custody ?? null,
     originPlantId: trade.originPlantId,
     originPlantName: trade.plantName,
   };

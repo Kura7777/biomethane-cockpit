@@ -185,9 +185,13 @@ function pairedChecklist(consignment: Consignment, market: Market): GateResult {
   const entries: Entry[] = [];
 
   // 1. Origin in EU/EEA (R24)
-  entries.push(EU_EEA_COUNTRIES.has(origin)
-    ? entry('origin-eu-eea', 'Origin in EU/EEA', 'PASS', `Produced and injected in ${origin}, inside the EU/EEA (R24).`, [CITATIONS.NL_GGE_TK_VERSLAG])
-    : entry('origin-eu-eea', 'Origin in EU/EEA', 'FAIL', `Origin ${origin || 'unknown'} is outside the EU/EEA; only EU/EEA biomethane counts for the GGE obligation (R24).`, [CITATIONS.NL_GGE_TK_VERSLAG], 'Source from an EU/EEA plant injecting into the EU grid.'));
+  if (consignment.injectionIsEU === false || go?.gridInjected === false) {
+    entries.push(entry('origin-eu-eea', 'Origin in EU/EEA', 'FAIL', 'Biomethane must be physically injected into an EU/EEA gas network (R5, R24).', [CITATIONS.NL_GGE_TK_VERSLAG], 'Ensure the biomethane is grid-injected in an EU/EEA country.'));
+  } else {
+    entries.push(EU_EEA_COUNTRIES.has(origin)
+      ? entry('origin-eu-eea', 'Origin in EU/EEA', 'PASS', `Produced and injected in ${origin}, inside the EU/EEA (R24).`, [CITATIONS.NL_GGE_TK_VERSLAG])
+      : entry('origin-eu-eea', 'Origin in EU/EEA', 'FAIL', `Origin ${origin || 'unknown'} is outside the EU/EEA; only EU/EEA biomethane counts for the GGE obligation (R24).`, [CITATIONS.NL_GGE_TK_VERSLAG], 'Source from an EU/EEA plant injecting into the EU grid.'));
+  }
 
   // 2. GO route via the AIB hub (R8, S1)
   if (origin === target) {
