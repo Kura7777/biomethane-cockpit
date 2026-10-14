@@ -88,7 +88,7 @@ export const HELPER_TOOLS: Anthropic.Beta.BetaTool[] = [
   },
   {
     name: 'save_desk_memory',
-    description: 'Save a custom trading rule, counterparty requirement, tariff note, or market lesson to persistent desk memory when the trader instructs "remember this...", "note this down", or states a policy.',
+    description: 'Save a custom qualitative rule, counterparty preference, or contract note to persistent desk memory when the trader instructs "remember this...", "note this down", or states a policy. NEVER use this tool for market prices, quotes, or gas index updates (use parse_and_stage_marks instead).',
     strict: true,
     input_schema: obj({
       subject: { type: 'string', description: 'Counterparty name, market code, or topic (e.g. "Shell", "DE_THG", "Danish grid exit")' },
