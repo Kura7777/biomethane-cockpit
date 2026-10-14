@@ -414,6 +414,56 @@ export function MarksScreen() {
         </div>
       </div>
 
+      {/* Institutional Desk View Selector Bar (Prominent Top Navigation) */}
+      <div
+        style={{
+          padding: '10px 18px 6px',
+          backgroundColor: 'var(--color-surface)',
+          borderBottom: '1px solid var(--color-divider)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '12px',
+          overflowX: 'auto',
+        }}
+      >
+        <div className="marks-view-bar" style={{ marginBottom: '4px' }}>
+          <button
+            type="button"
+            className={`marks-view-btn ${activeView === 'CURVES' ? 'active' : ''}`}
+            onClick={() => setActiveView('CURVES')}
+          >
+            <TrendingUp className="w-3.5 h-3.5" />
+            📈 Forward Curves by Hub &amp; Feedstock
+          </button>
+          <button
+            type="button"
+            className={`marks-view-btn ${activeView === 'COMPLIANCE' ? 'active' : ''}`}
+            onClick={() => setActiveView('COMPLIANCE')}
+          >
+            <Scale className="w-3.5 h-3.5" />
+            🏛️ Statutory Compliance Quotas (DE, NL, UK, FR, IT)
+          </button>
+          <button
+            type="button"
+            className={`marks-view-btn ${activeView === 'VOLUNTARY' ? 'active' : ''}`}
+            onClick={() => setActiveView('VOLUNTARY')}
+          >
+            <Leaf className="w-3.5 h-3.5" />
+            🌱 Guarantees of Origin (dena, VertiCer, EEX, GGCS)
+          </button>
+          <button
+            type="button"
+            className={`marks-view-btn ${activeView === 'ALL' ? 'active' : ''}`}
+            onClick={() => setActiveView('ALL')}
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5" />
+            📋 Master Quotes Blotter (All {quotes.length} Quotes by Country)
+          </button>
+        </div>
+      </div>
+
+
       {/* Four-cell Institutional Ledger Strip */}
       <KpiRow columns={4} className="marks-kpis">
         <KpiTile
@@ -497,55 +547,6 @@ export function MarksScreen() {
           }
         />
       </KpiRow>
-
-      {/* Institutional Desk View Selector Bar */}
-      <div
-        style={{
-          padding: '10px 18px 0',
-          backgroundColor: 'var(--color-surface)',
-          borderBottom: '1px solid var(--color-divider)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '12px',
-          overflowX: 'auto',
-        }}
-      >
-        <div className="marks-view-bar" style={{ marginBottom: '8px' }}>
-          <button
-            type="button"
-            className={`marks-view-btn ${activeView === 'CURVES' ? 'active' : ''}`}
-            onClick={() => setActiveView('CURVES')}
-          >
-            <TrendingUp className="w-3.5 h-3.5" />
-            Forward Curves &amp; Tenor Strip (CME Institutional)
-          </button>
-          <button
-            type="button"
-            className={`marks-view-btn ${activeView === 'COMPLIANCE' ? 'active' : ''}`}
-            onClick={() => setActiveView('COMPLIANCE')}
-          >
-            <Scale className="w-3.5 h-3.5" />
-            Statutory Compliance Quotas
-          </button>
-          <button
-            type="button"
-            className={`marks-view-btn ${activeView === 'VOLUNTARY' ? 'active' : ''}`}
-            onClick={() => setActiveView('VOLUNTARY')}
-          >
-            <Leaf className="w-3.5 h-3.5" />
-            Guarantees of Origin (GO Matrix)
-          </button>
-          <button
-            type="button"
-            className={`marks-view-btn ${activeView === 'ALL' ? 'active' : ''}`}
-            onClick={() => setActiveView('ALL')}
-          >
-            <FileSpreadsheet className="w-3.5 h-3.5" />
-            Master Quotes Blotter ({quotes.length})
-          </button>
-        </div>
-      </div>
 
       {/* Main Order Book Container */}
       <div style={{ padding: '16px 18px 24px' }}>
