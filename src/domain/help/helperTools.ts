@@ -17,7 +17,7 @@ import { lookupReference } from './referenceLookup';
 import { searchDeskMemory, saveDeskRule, type DeskMemoryRule } from './deskMemory';
 import { FUEL_EU_SHIPPING_COUNTERPARTIES } from '../fueleu/shippingTargetsData';
 import { FUEL_EU_SHIPPING_GROUPS } from '../fueleu/groups';
-import { parseBrokerRunText, type BrokerParseResult } from '../markets/brokerRunParser';
+import { parseBrokerRunText, resolveMarketId, DEFAULT_UNITS, type BrokerParseResult, type ParsedBrokerMark } from '../markets/brokerRunParser';
 import { parseProofOfSustainability } from '../consignment/posParser';
 import { evaluateEligibility } from '../eligibility/engine';
 import { buildCustodyClauses } from '../trade/custodyClauses';
@@ -121,10 +121,21 @@ export const HELPER_TOOLS: Anthropic.Beta.BetaTool[] = [
     description: 'Parse raw broker runs, OTC quotes, or price updates from chat text and stage candidate mark updates for trader review. Supports markets like DE_THG, NL_ERE, NL_GGE, UK_RTFO, TTF, and THE. Staged marks can be committed to the desk with 1-click.',
     strict: true,
     input_schema: obj({
-      text: { type: 'string', description: 'Raw broker run text, price updates, or OTC quote message' },
+      text: { type: ['string', 'null'], description: 'Raw broker run text, price updates, or OTC quote message' },
+      marks: {
+        type: ['array', 'null'],
+        description: 'Optional structured marks to stage directly if already extracted (e.g. marketId: DE_THG, bid: 295, ask: 305, mid: 300, unit: EUR_PER_TCO2E)',
+        items: obj({
+          marketId: { type: 'string', description: 'Market ID (e.g. DE_THG, GAS_TTF, NL_ERE, UK_RTFO, NL_GGE)' },
+          bid: { type: ['number', 'null'], description: 'Bid price' },
+          offer: { type: ['number', 'null'], description: 'Offer or ask price' },
+          mid: { type: ['number', 'null'], description: 'Mid price' },
+          unit: { type: ['string', 'null'], description: 'Unit of account' },
+        }, ['marketId', 'bid', 'offer', 'mid', 'unit'])
+      },
       date: { type: ['string', 'null'], description: 'Optional observation date (YYYY-MM-DD)' },
       brokerName: { type: ['string', 'null'], description: 'Optional broker label (e.g. "Marex", "STX", "SCB")' },
-    }, ['text', 'date', 'brokerName']),
+    }, ['text', 'marks', 'date', 'brokerName']),
   },
   {
     name: 'solve_deal_breakeven',
@@ -450,11 +461,58 @@ export async function runHelperTool(name: string, input: unknown, ctx: HelperToo
       });
     }
     case 'parse_and_stage_marks': {
-      const text = str(args.text);
+      const rawText = args.text ? str(args.text) : '';
       const date = args.date ? str(args.date) : undefined;
       const broker = args.brokerName ? str(args.brokerName) : 'Chat Staged Run';
-      if (!text.trim()) throw new Error('text is required to parse broker marks');
-      const res = parseBrokerRunText(text, broker, date);
+      const structuredMarks = Array.isArray(args.marks) ? (args.marks as Record<string, unknown>[]) : null;
+
+      let res: BrokerParseResult;
+      if (structuredMarks && structuredMarks.length > 0) {
+        const effDate = date || new Date().toISOString().slice(0, 10);
+        const marks: ParsedBrokerMark[] = structuredMarks.map((sm, idx) => {
+          const { marketId, marketName } = resolveMarketId(str(sm.marketId));
+          const bid = typeof sm.bid === 'number' ? sm.bid : null;
+          const ask = typeof sm.offer === 'number' ? sm.offer : (typeof sm.ask === 'number' ? sm.ask : null);
+          const mid = typeof sm.mid === 'number' ? sm.mid : (bid !== null && ask !== null ? Number(((bid + ask) / 2).toFixed(3)) : null);
+          const unit = str(sm.unit) || (marketId ? DEFAULT_UNITS[marketId] : 'EUR_PER_MWH') || 'EUR_PER_MWH';
+          const isValid = !!marketId && (mid !== null || (bid !== null && ask !== null));
+          return {
+            id: `staged_${Date.now()}_${idx + 1}`,
+            rawLine: `${marketId}: bid ${bid ?? '—'} / ask ${ask ?? '—'} / mid ${mid ?? '—'}`,
+            marketId,
+            marketName,
+            productRaw: str(sm.marketId),
+            midPrice: mid,
+            bid,
+            ask,
+            unit,
+            assessmentDate: effDate,
+            brokerSource: broker,
+            isValid,
+            validationErrors: isValid ? [] : ['Missing valid price or unrecognized market'],
+            validationWarnings: [],
+          };
+        });
+
+        res = {
+          marks,
+          quotes: [],
+          errors: [],
+          warnings: [],
+          brokerDetected: broker,
+          inferredSource: 'GENERIC_OTC',
+          totalLines: marks.length,
+          rawLineCount: marks.length,
+          validCount: marks.filter(m => m.isValid).length,
+          parsedQuoteCount: 0,
+          skippedLines: [],
+          extractedDate: effDate,
+        };
+      } else {
+        if (!rawText.trim()) throw new Error('text or marks is required to parse broker marks');
+        res = parseBrokerRunText(rawText, broker, date);
+      }
+
       if (ctx.onStageMarks) {
         ctx.onStageMarks(res);
       }

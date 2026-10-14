@@ -117,6 +117,25 @@ TTF: 39.10`;
     expect(res.stagedMarks.some((m: any) => m.marketId === 'DE_THG')).toBe(true);
     expect(stagedData).not.toBeNull();
     expect(stagedData.validCount).toBeGreaterThan(0);
+
+    // Test natural language single-sentence prompt: "Update DE THG 2026 to 295 / 305 €/tCO2e and TTF M+1 to 38.50 €/MWh"
+    const sentenceRun = "Update DE THG 2026 to 295 / 305 €/tCO2e and TTF M+1 to 38.50 €/MWh";
+    const resSentence = JSON.parse(await runHelperTool('parse_and_stage_marks', { text: sentenceRun }, testCtx));
+    expect(resSentence.validCount).toBe(2);
+    expect(resSentence.stagedMarks.some((m: any) => m.marketId === 'DE_THG' && m.bid === 295 && m.offer === 305)).toBe(true);
+    expect(resSentence.stagedMarks.some((m: any) => m.marketId === 'GAS_TTF' && m.mid === 38.5)).toBe(true);
+
+    // Test structured marks array
+    const structuredRun = {
+      marks: [
+        { marketId: 'DE_THG', bid: 295, offer: 305, mid: 300, unit: 'EUR_PER_TCO2E' },
+        { marketId: 'GAS_TTF', mid: 38.50, unit: 'EUR_PER_MWH' }
+      ]
+    };
+    const resStructured = JSON.parse(await runHelperTool('parse_and_stage_marks', structuredRun, testCtx));
+    expect(resStructured.validCount).toBe(2);
+    expect(resStructured.stagedMarks[0].marketId).toBe('DE_THG');
+    expect(resStructured.stagedMarks[1].marketId).toBe('GAS_TTF');
   });
   it('solve_deal_breakeven ranks European destinations, calculates margins, and emits Trade Builder deep-links', async () => {
     const res = JSON.parse(await runHelperTool('solve_deal_breakeven', {

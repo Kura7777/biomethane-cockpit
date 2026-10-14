@@ -147,7 +147,7 @@ const PRODUCT_ALIAS_MAP: Record<string, string> = {
   'GAS INDEX': 'GAS_TTF',
 };
 
-const DEFAULT_UNITS: Record<string, string> = {
+export const DEFAULT_UNITS: Record<string, string> = {
   DE_THG: 'EUR_PER_TCO2E',
   NL_ERE: 'EUR_PER_KG_CO2E',
   NL_GGE: 'EUR_PER_KG_CO2E',
@@ -373,9 +373,15 @@ export function parseBrokerRunText(
   defaultDate?: string,
   gbpEurFx?: number
 ): BrokerParseResult {
-  const lines = rawText
+  // Pre-process conversational updates: split multi-quote sentences joined by " and ", " & ", or commas
+  let processedText = rawText;
+  if (!processedText.includes('\n') && /\b(?:and|&)\b/i.test(processedText)) {
+    processedText = processedText.replace(/\s+\b(?:and|&)\b\s+/gi, '\n');
+  }
+
+  const lines = processedText
     .split(/\r?\n/)
-    .map(l => l.trim())
+    .map(l => l.trim().replace(/^['"]+|['"]+$/g, '').replace(/^(?:update|set|mark|stage)\s+/i, ''))
     .filter(l => l.length > 0);
 
   const marks: ParsedBrokerMark[] = [];
@@ -429,7 +435,7 @@ export function parseBrokerRunText(
       continue;
     }
 
-    // Determine delimiter: tab, pipe, semicolon, comma, colon
+    // Determine delimiter: tab, pipe, semicolon, colon, conversational " to "/" at "/" = ", or comma
     let parts: string[];
     if (line.includes('\t')) {
       parts = line.split('\t');
@@ -437,10 +443,12 @@ export function parseBrokerRunText(
       parts = line.split('|');
     } else if (line.includes(';') && !line.includes(',')) {
       parts = line.split(';');
-    } else if (line.includes(',')) {
-      parts = line.split(',');
     } else if (line.includes(':')) {
       parts = line.split(':');
+    } else if (/\s+(?:to|at|=)\s+/i.test(line)) {
+      parts = line.split(/\s+(?:to|at|=)\s+/i);
+    } else if (line.includes(',')) {
+      parts = line.split(',');
     } else {
       parts = line.split(/\s{2,}/);
     }
@@ -500,7 +508,7 @@ export function parseBrokerRunText(
             }
             continue;
           }
-        } else if (item.includes('/') && !/\d{2,4}\/\d{1,2}\/\d{2,4}/.test(item)) {
+        } else if (item.includes('/') && !/\d{2,4}\/\d{1,2}\/\d{2,4}/.test(item) && /\d+\s*\/\s*[€£$]?\s*\d+/.test(item)) {
           const slashParts = item.split('/');
           if (slashParts.length === 2) {
             const b = cleanNumber(slashParts[0]);
@@ -518,14 +526,19 @@ export function parseBrokerRunText(
           bidVal = cleanNumber(item.replace(/bid:?/i, ''));
         } else if (itemLower.startsWith('ask') || itemLower.startsWith('offer') || itemLower.includes('ask:') || itemLower.includes('offer:')) {
           askVal = cleanNumber(item.replace(/(ask|offer):?/i, ''));
+        } else if (cleanNumber(item) !== null) {
+          const num = cleanNumber(item);
+          if (midVal === null && pIdx === 1) midVal = num;
+          else if (bidVal === null && pIdx === 2) bidVal = num;
+          else if (askVal === null && pIdx === 3) askVal = num;
+          if (!unitStr && /[a-zA-Z€£$]/.test(item)) {
+            const extractedUnit = item.replace(/[0-9.,\s€£$]/g, '').trim();
+            if (extractedUnit) unitStr = extractedUnit;
+          }
         } else if (itemLower.includes('eur') || itemLower.includes('gbp') || itemLower.includes('mwh') || itemLower.includes('tco2') || itemLower.includes('cic')) {
           unitStr = item;
         } else if (/\d{4}[-/.]\d{2}[-/.]\d{2}/.test(item) || /\d{2}[-/.]\d{2}[-/.]\d{4}/.test(item)) {
           dateStr = normalizeDate(item);
-        } else if (cleanNumber(item) !== null) {
-          if (midVal === null && pIdx === 1) midVal = cleanNumber(item);
-          else if (bidVal === null && pIdx === 2) bidVal = cleanNumber(item);
-          else if (askVal === null && pIdx === 3) askVal = cleanNumber(item);
         } else if (item.length > 2) {
           sourceStr = item;
         }
