@@ -68,6 +68,7 @@ export function isSimulatedMark(entry?: { source?: string | null; provenance?: M
 export function quoteIdentityForMarket(marketId: string): { country: string; class: string; productClass: 'GO_VOLUNTARY' | 'BUNDLED_COMPLIANCE' } | null {
   const table: Record<string, { country: string; class: string; productClass: 'GO_VOLUNTARY' | 'BUNDLED_COMPLIANCE' }> = {
     DE_THG: { country: 'DE', class: 'THG', productClass: 'BUNDLED_COMPLIANCE' },
+    DE_THG_BUNDLE: { country: 'DE', class: 'THG_BUNDLED', productClass: 'BUNDLED_COMPLIANCE' },
     NL_ERE: { country: 'NL', class: 'ERE', productClass: 'BUNDLED_COMPLIANCE' },
     FR_CPB: { country: 'FR', class: 'CPB', productClass: 'BUNDLED_COMPLIANCE' },
     UK_RTFO: { country: 'UK', class: 'RTFO', productClass: 'BUNDLED_COMPLIANCE' },

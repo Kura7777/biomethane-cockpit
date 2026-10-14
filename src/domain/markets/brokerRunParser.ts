@@ -39,7 +39,17 @@ export type FreeformSource = 'STX' | 'ACT' | 'MAREX' | 'CFP' | 'GENERIC_OTC';
 
 // Canonical aliases for mapping product names to active market IDs
 const PRODUCT_ALIAS_MAP: Record<string, string> = {
-  // Germany THG
+  // Germany THG Bundled Physical Gas + Certificate
+  'THG BUNDLE': 'DE_THG_BUNDLE',
+  'THG BUNDLED': 'DE_THG_BUNDLE',
+  'DE THG BUNDLE': 'DE_THG_BUNDLE',
+  'DE THG BUNDLED': 'DE_THG_BUNDLE',
+  'MANURE + PHYSICAL GAS': 'DE_THG_BUNDLE',
+  'MANURE + GAS': 'DE_THG_BUNDLE',
+  'GERMAN BUNDLED': 'DE_THG_BUNDLE',
+  'THG PHYSICAL': 'DE_THG_BUNDLE',
+
+  // Germany THG Pure Statutory Quota
   'THG': 'DE_THG',
   'DE_THG': 'DE_THG',
   'GERMAN THG': 'DE_THG',
@@ -149,6 +159,7 @@ const PRODUCT_ALIAS_MAP: Record<string, string> = {
 
 export const DEFAULT_UNITS: Record<string, string> = {
   DE_THG: 'EUR_PER_TCO2E',
+  DE_THG_BUNDLE: 'EUR_PER_MWH',
   NL_ERE: 'EUR_PER_KG_CO2E',
   NL_GGE: 'EUR_PER_KG_CO2E',
   FR_CPB: 'EUR_PER_MWH',
