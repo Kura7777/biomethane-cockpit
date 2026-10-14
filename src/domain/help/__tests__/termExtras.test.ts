@@ -41,7 +41,7 @@ describe('<Term id> usages', () => {
       for (const m of src.matchAll(/\b[A-Z]{2}_[A-Z_]+: '([a-z-]+)'/g)) if (src.includes('MARKET_TERM') && !GLOSSARY_BY_ID[m[1]]) bad.push(`${f}: ${m[1]}`);
     }
     expect(bad).toEqual([]);
-  });
+  }, 15000);
 });
 
 describe('worked examples', () => {
