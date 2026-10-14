@@ -245,4 +245,39 @@ describe('Broker Run Parser & Importer Engine', () => {
       expect(history[0].brokerSource).toBe('Argus Media');
     });
   });
+
+  describe('Broker Quoting Conventions & Product Disambiguation', () => {
+    it('correctly routes pure statutory quota vs bundled physical gas vs voluntary GO', () => {
+      expect(resolveMarketId('THG Bundled H2 2026').marketId).toBe('DE_THG_BUNDLE');
+      expect(resolveMarketId('Manure + Physical Gas').marketId).toBe('DE_THG_BUNDLE');
+      expect(resolveMarketId('German THG 2026').marketId).toBe('DE_THG');
+      expect(resolveMarketId('DE GO').marketId).toBe('DE_GO');
+      expect(resolveMarketId('RTFO').marketId).toBe('UK_RTFO');
+      expect(resolveMarketId('UK RGGO').marketId).toBe('UK_RGGO');
+      expect(resolveMarketId('HBE-G').marketId).toBe('NL_ERE');
+      expect(resolveMarketId('TTF M+1').marketId).toBe('GAS_TTF');
+    });
+
+    it('parses multi-instrument conversational run with distinct units', () => {
+      const text = 'STX: German THG: 295 / 305 €/tCO2e and THG Bundled: 147 / 152 €/MWh and TTF M+1: 38.50 €/MWh';
+      const res = parseBrokerRunText(text, 'STX');
+      expect(res.marks.length).toBe(3);
+
+      const pureThg = res.marks.find(m => m.marketId === 'DE_THG');
+      expect(pureThg).toBeDefined();
+      expect(pureThg?.bid).toBe(295);
+      expect(pureThg?.ask).toBe(305);
+      expect(pureThg?.unit).toMatch(/tCO2e|EUR_PER_TCO2E/i);
+
+      const bundledThg = res.marks.find(m => m.marketId === 'DE_THG_BUNDLE');
+      expect(bundledThg).toBeDefined();
+      expect(bundledThg?.bid).toBe(147);
+      expect(bundledThg?.ask).toBe(152);
+      expect(bundledThg?.unit).toMatch(/MWh/i);
+
+      const ttf = res.marks.find(m => m.marketId === 'GAS_TTF');
+      expect(ttf).toBeDefined();
+      expect(ttf?.midPrice).toBe(38.5);
+    });
+  });
 });

@@ -386,6 +386,15 @@ export function parseBrokerRunText(
 ): BrokerParseResult {
   // Pre-process conversational updates: split multi-quote sentences joined by " and ", " & ", or commas
   let processedText = rawText;
+  let brokerDetected = defaultBroker;
+
+  // Detect leading broker label like "STX: " or "Marex quoting "
+  const leadingBrokerMatch = processedText.match(/^(STX|MAREX|CFP|BELEKTRON|ARGUS|ICIS|GFI|TFS|SCB)[\s:]+(?:quoting|says|run)?\s*/i);
+  if (leadingBrokerMatch) {
+    brokerDetected = leadingBrokerMatch[1].toUpperCase();
+    processedText = processedText.slice(leadingBrokerMatch[0].length);
+  }
+
   if (!processedText.includes('\n') && /\b(?:and|&)\b/i.test(processedText)) {
     processedText = processedText.replace(/\s+\b(?:and|&)\b\s+/gi, '\n');
   }
@@ -405,8 +414,6 @@ export function parseBrokerRunText(
   const effectiveDate = defaultDate
     ? normalizeDate(defaultDate)
     : (detectedDateInText || normalizeDate(null));
-
-  let brokerDetected = defaultBroker;
 
   if (lines.length === 0) {
     return {
