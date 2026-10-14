@@ -59,7 +59,7 @@ const ALIASES: Record<keyof DealParams, string[]> = {
   feedstock: ['feedstock'],
   ci: ['ci'],
   ciIsEstimated: ['ciIsEstimated', 'estimatedCi'],
-  volume: ['volume'],
+  volume: ['volume', 'volumeMwh', 'volumeMWh'],
   volumeIsEstimated: ['volumeIsEstimated', 'estimatedVolume'],
   scheme: ['scheme'],
   coc: ['coc'],

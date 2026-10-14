@@ -598,7 +598,7 @@ export async function runHelperTool(name: string, input: unknown, ctx: HelperToo
           }
         }
 
-        const deepLink = `[[go:/trade?origin=${origin}&market=${market.id}&feedstock=${feedstockKey}&ci=${effectiveCi}${producerPrice !== null ? `&producerPrice=${producerPrice}` : ''}|Open in Trade Builder]]`;
+        const deepLink = `[[go:/trade?origin=${origin}&market=${market.id}&feedstock=${feedstockKey}&ci=${effectiveCi}&volume=${volumeMWh}${producerPrice !== null && producerPrice > 0 ? `&producerPrice=${producerPrice}` : ''}|Open in Trade Builder]]`;
 
         return [{
           marketId: market.id,
