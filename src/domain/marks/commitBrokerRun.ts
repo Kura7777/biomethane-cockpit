@@ -26,6 +26,28 @@ export function commitBrokerRunToState(
     const bidNum = item.bid ?? null;
     const offerNum = item.ask ?? null;
     const currency = item.unit.startsWith('GBP') ? 'GBP' : 'EUR';
+    const isPerTonne = item.unit === 'EUR_PER_TCO2E' || item.marketId === 'DE_THG';
+    const isMwh = item.unit === 'EUR_PER_MWH' || (!item.unit.startsWith('GBP') && !isPerTonne && item.marketId !== 'NL_ERE' && item.marketId !== 'IT_CIC');
+
+    // Extract 4-digit vintage year if present in raw text
+    const vintageMatch = (item.rawLine + ' ' + item.productRaw).match(/\b(202\d)\b/);
+    const vintage = vintageMatch ? vintageMatch[1] : '—';
+
+    // Format display prices with appropriate unit suffix
+    const formatPrice = (val: number | null) => {
+      if (val === null) return '';
+      if (currency === 'GBP') return `£${val.toFixed(2)}`;
+      if (isPerTonne) return `€ ${val.toFixed(2)}/t`;
+      return `€ ${val.toFixed(2)}`;
+    };
+
+    // Clean up feedstock label if it's just a raw market code
+    let feedstockLabel = item.productRaw;
+    if (item.marketId === 'DE_THG' && /^(?:DE[_\s]?THG(?:\s+202\d)?|THG)$/i.test(item.productRaw.trim())) {
+      feedstockLabel = 'German THG Quota Benchmark (DE_THG)';
+    } else if (item.marketId === 'UK_RTFO' && /^(?:UK[_\s]?RTFO|RTFO|RTFC)$/i.test(item.productRaw.trim())) {
+      feedstockLabel = 'UK RTFO Development RTFC Benchmark';
+    }
 
     return {
       id: `paste_${Date.now()}_${idx + 1}`,
@@ -34,15 +56,15 @@ export function commitBrokerRunToState(
       country: identity.country,
       class: identity.class,
       productClass: identity.productClass,
-      feedstock: item.productRaw,
-      vintage: '—',
+      feedstock: feedstockLabel,
+      vintage,
       certified: '—',
       subsidized: '—',
       ciScore: '—',
       ciNumeric: null,
       currency,
-      bidPrice: bidNum !== null ? (currency === 'GBP' ? `£${bidNum}` : `€ ${bidNum}`) : '',
-      offerPrice: offerNum !== null ? (currency === 'GBP' ? `£${offerNum}` : `€ ${offerNum}`) : '',
+      bidPrice: formatPrice(bidNum),
+      offerPrice: formatPrice(offerNum),
       bidPriceNumeric: bidNum,
       offerPriceNumeric: offerNum,
       bidText: null,
@@ -53,8 +75,8 @@ export function commitBrokerRunToState(
       offerVolumeGWh: null,
       bidVolumeText: null,
       offerVolumeText: null,
-      numericBidEurMwh: currency === 'EUR' ? bidNum : null,
-      numericOfferEurMwh: currency === 'EUR' ? offerNum : null,
+      numericBidEurMwh: isMwh ? bidNum : null,
+      numericOfferEurMwh: isMwh ? offerNum : null,
       highlight: false,
       isHighInterest: false,
       derivedFrom: `${parseResult.brokerDetected} broker paste (run dated ${effectiveRunDate})`,

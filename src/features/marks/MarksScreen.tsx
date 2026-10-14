@@ -58,29 +58,49 @@ export function MarksScreen() {
   const [provenanceFilter, setProvenanceFilter] = useState<'ALL' | ProvenanceTier>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // Country pill definitions
-  const countryPills = [
-    { label: 'ALL', id: 'ALL' },
-    { label: 'UK (12)', id: 'UK' },
-    { label: 'FR (8)', id: 'FR' },
-    { label: 'NL (6)', id: 'NL' },
-    { label: 'DE (5)', id: 'DE' },
-    { label: 'DK (7)', id: 'DK' },
-    { label: 'AIB (4)', id: 'AIB' },
-    { label: 'IT (3)', id: 'IT' },
-    { label: 'ES (2)', id: 'ES' },
-    { label: 'SE', id: 'SE' },
-    { label: 'AT', id: 'AT' },
-    { label: 'FI', id: 'FI' },
-    { label: 'BE', id: 'BE' },
-    { label: 'PL', id: 'PL' },
-    { label: 'CZ', id: 'CZ' },
-    { label: 'CH', id: 'CH' },
-    { label: 'NO', id: 'NO' },
-    { label: 'Baltics (3)', id: 'BALTICS' },
-    { label: 'CEE & South (9)', id: 'CEE' },
-    { label: 'EU (2)', id: 'EU' },
-  ];
+  // Dynamically compute country pill definitions and counts from live quotes
+  const countryPills = useMemo(() => {
+    const defs = [
+      { name: 'ALL', id: 'ALL' },
+      { name: 'UK', id: 'UK' },
+      { name: 'FR', id: 'FR' },
+      { name: 'NL', id: 'NL' },
+      { name: 'DE', id: 'DE' },
+      { name: 'DK', id: 'DK' },
+      { name: 'AIB', id: 'AIB' },
+      { name: 'IT', id: 'IT' },
+      { name: 'ES', id: 'ES' },
+      { name: 'SE', id: 'SE' },
+      { name: 'AT', id: 'AT' },
+      { name: 'FI', id: 'FI' },
+      { name: 'BE', id: 'BE' },
+      { name: 'PL', id: 'PL' },
+      { name: 'CZ', id: 'CZ' },
+      { name: 'CH', id: 'CH' },
+      { name: 'NO', id: 'NO' },
+      { name: 'Baltics', id: 'BALTICS' },
+      { name: 'CEE & South', id: 'CEE' },
+      { name: 'EU', id: 'EU' },
+    ];
+
+    return defs.map(p => {
+      if (p.id === 'ALL') {
+        return { label: 'ALL', id: 'ALL' };
+      }
+      let count = 0;
+      if (p.id === 'BALTICS') {
+        count = quotes.filter(q => ['EE', 'LT', 'LV'].includes(q.country)).length;
+      } else if (p.id === 'CEE') {
+        count = quotes.filter(q => ['IE', 'PT', 'HU', 'SK', 'RO', 'BG', 'HR', 'SI', 'GR'].includes(q.country)).length;
+      } else {
+        count = quotes.filter(q => q.country === p.id).length;
+      }
+      return {
+        label: count > 0 ? `${p.name} (${count})` : p.name,
+        id: p.id,
+      };
+    });
+  }, [quotes]);
 
   // Handle cell edit - dispatched to central store seam
   const handleCellEdit = (id: string, field: 'bidPrice' | 'offerPrice' | 'bidVolume' | 'offerVolume', val: string) => {
