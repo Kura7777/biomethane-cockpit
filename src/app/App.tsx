@@ -1,6 +1,7 @@
 import React, { Suspense } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider } from '../store/context';
+import { ErrorBoundary } from '../shared/components/ErrorBoundary';
 import { Layout } from './Layout';
 
 /**
@@ -132,10 +133,12 @@ function AppContent() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <AppProvider>
-        <AppContent />
-      </AppProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <AppProvider>
+          <AppContent />
+        </AppProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
