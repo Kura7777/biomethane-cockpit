@@ -58,6 +58,10 @@ export function migrateState(raw: unknown): AppState {
   const stateVersion = rawRecord.schemaVersion || 1;
   const migrated: AppState = { ...(raw as AppState) };
 
+  if (!migrated.marks || !migrated.marks.marks || typeof migrated.marks.marks !== 'object') {
+    migrated.marks = createDefaultState().marks;
+  }
+
   if (stateVersion < 2) {
     // Migrate marks shape to include updatedAt and source
     const rawMarks = rawRecord.marks?.marks || {};

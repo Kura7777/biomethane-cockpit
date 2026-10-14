@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useDeferredValue } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { COMBINED_BIOMETHANE_PLANTS } from '../../domain/plants/registry';
 import { BiomethanePlant } from '../../domain/plants/types';
+import { CertificationScheme } from '../../domain/consignment/types';
 import { buildDealUrl } from '../../domain/trade/dealParams';
 import { plantDealParams, plantCi, feedstockKeyForPlant, defaultMarketForOrigin, defaultVolumeMwh } from '../../domain/trade/dealDefaults';
 import { FEEDSTOCK_REGISTRY } from '../../domain/consignment/feedstocks';
@@ -17,6 +18,17 @@ import { MobileCardList } from '../../shared/ui';
 import './plantsMobile.css';
 import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 
+
+function normalizePlantScheme(raw: string | null | undefined): CertificationScheme {
+  if (!raw) return 'ISCC_EU';
+  const u = raw.toUpperCase();
+  if (u.includes('REDCERT2')) return 'REDCERT2';
+  if (u.includes('REDCERT')) return 'REDCERT_EU';
+  if (u.includes('PLUS')) return 'ISCC_PLUS';
+  if (u.includes('2BS')) return '2BSVS';
+  if (u.includes('KZR')) return 'KZR_INIG';
+  return 'ISCC_EU';
+}
 
 function mobileContactBadge(p: BiomethanePlant) {
   const base = { fontSize: 12, padding: '2px 8px', borderRadius: 4, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 } as const;
@@ -55,6 +67,7 @@ export function OriginationPipelineScreen() {
   const [feedstockFilter, setFeedstockFilter] = useState<'ALL' | 'MANURE' | 'WASTE' | 'CROPS' | 'SEWAGE' | 'LANDFILL'>('ALL');
   const [expiryFilter, setExpiryFilter] = useState<'ALL' | 'EXPIRING_SOON' | 'ACTIVE_SUBSIDY' | 'MERCHANT'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
   const [selectedPlantForDrawer, setSelectedPlantForDrawer] = useState<BiomethanePlant | null>(null);
 
@@ -80,8 +93,8 @@ export function OriginationPipelineScreen() {
       }
 
       // Search
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
+      if (deferredSearchQuery.trim()) {
+        const q = deferredSearchQuery.toLowerCase();
         const match = 
           p.name.toLowerCase().includes(q) ||
           (p.operator && p.operator.toLowerCase().includes(q)) ||
@@ -110,7 +123,7 @@ export function OriginationPipelineScreen() {
 
       return true;
     });
-  }, [selectedCountry, searchQuery, feedstockFilter, expiryFilter]);
+  }, [selectedCountry, deferredSearchQuery, feedstockFilter, expiryFilter]);
 
   // Aggregate Stats
   const stats = useMemo(() => {
@@ -160,7 +173,7 @@ export function OriginationPipelineScreen() {
           feedstockKey,
           feedstockName: feedstockInfo.name,
           carbonIntensity: plantCi(p).ci,
-          certificationScheme: (p.certificationScheme as any) || 'ISCC_EU',
+          certificationScheme: normalizePlantScheme(p.certificationScheme),
           chainOfCustody: 'MASS_BALANCE',
           targetMarketId: defaultMarketForOrigin(p.countryCode),
         },
@@ -217,6 +230,12 @@ export function OriginationPipelineScreen() {
       'Headquarters Address'
     ];
 
+    const csvSafe = (val: string | number | null | undefined): string => {
+      if (val === null || val === undefined) return '""';
+      const str = String(val).replace(/"/g, '""');
+      return /^[=+\-@]/.test(str) ? `"'${str}"` : `"${str}"`;
+    };
+
     const rows = filteredPipeline.map(p => {
       const q = p.contactQuality;
       const flags = (q?.reasons || []).join('; ');
@@ -224,25 +243,25 @@ export function OriginationPipelineScreen() {
       const searchUrl = reg?.searchUrl || reg?.url || '';
 
       return [
-        `"${p.id}"`,
-        `"${p.name.replace(/"/g, '""')}"`,
-        `"${p.countryCode}"`,
+        csvSafe(p.id),
+        csvSafe(p.name),
+        csvSafe(p.countryCode),
         p.commissioningYear ?? '',
-        `"${(p.companyRegistrationId || '').replace(/"/g, '""')}"`,
-        `"${p.supportScheme || 'National Feed-in Tariff / Guarantees of Origin'}"`,
+        csvSafe(p.companyRegistrationId || ''),
+        csvSafe(p.supportScheme || 'National Feed-in Tariff / Guarantees of Origin'),
         p.annualEnergyGWh ?? '',
-        `"${(p.primaryFeedstockCategory || '').replace(/"/g, '""')}"`,
+        csvSafe(p.primaryFeedstockCategory || ''),
         plantCi(p).ci,
-        `"${q?.confidenceLabel || 'Unverified Lead'}"`,
-        `"${flags.replace(/"/g, '""')}"`,
-        `"${(reg?.registerName || '').replace(/"/g, '""')}"`,
-        `"${searchUrl.replace(/"/g, '""')}"`,
-        `"${p.corporateWebsite || ''}"`,
-        `"${p.contactEmail || ''}"`,
-        `"${p.contactPhone || ''}"`,
-        `"${(p.networkOperator || '').replace(/"/g, '""')}"`,
-        `"${(p.operator || p.legalEntityName || '').replace(/"/g, '""')}"`,
-        `"${(p.headquartersAddress || '').replace(/"/g, '""')}"`
+        csvSafe(q?.confidenceLabel || 'Unverified Lead'),
+        csvSafe(flags),
+        csvSafe(reg?.registerName || ''),
+        csvSafe(searchUrl),
+        csvSafe(p.corporateWebsite || ''),
+        csvSafe(p.contactEmail || ''),
+        csvSafe(p.contactPhone || ''),
+        csvSafe(p.networkOperator || ''),
+        csvSafe(p.operator || p.legalEntityName || ''),
+        csvSafe(p.headquartersAddress || '')
       ];
     });
 
@@ -264,7 +283,7 @@ export function OriginationPipelineScreen() {
       legalEntityName: plant.legalEntityName || plant.operator || undefined,
       contactEmail: plant.contactEmail || undefined,
       contactPhone: plant.contactPhone || undefined,
-      scheme: (plant.certificationScheme as any) || 'ISCC_EU',
+      scheme: normalizePlantScheme(plant.certificationScheme),
     });
 
     navigate(url);

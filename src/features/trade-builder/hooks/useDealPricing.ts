@@ -376,10 +376,20 @@ export function useDealPricing(
       feedstockCategory: FEEDSTOCKS.find(f => f.key === feedstockKey)?.label || feedstockKey,
       carbonIntensity: ci,
       deliveredValueEurMwh: netback.netNetback ?? (molVal + certVal),
+      certificationScheme: consignment.certificationScheme,
+      chainOfCustody: consignment.chainOfCustody,
+      annexClassification: consignment.annexClassification,
+      udbStatus: consignment.udbStatus,
+      posStatus: consignment.posStatus,
+      injectionCountry: consignment.injectionCountry,
+      injectionIsEU: consignment.injectionIsEU,
+      deliveryPeriod: consignment.deliveryPeriod,
+      commissioningDateRange: consignment.commissioningDateRange,
+      custody: consignment.custody,
     };
     (window as unknown as { __ACTIVE_TRADE_BUILDER_DEAL__: unknown }).__ACTIVE_TRADE_BUILDER_DEAL__ = currentDealPayload;
     window.dispatchEvent(new CustomEvent('trade-builder-deal-updated', { detail: currentDealPayload }));
-  }, [origin, marketId, feedstockKey, ci, volumeMwh, linkedPlant, deal, selectedMarket, netback, molVal, certVal]);
+  }, [origin, marketId, feedstockKey, ci, volumeMwh, linkedPlant, deal, selectedMarket, netback, molVal, certVal, consignment]);
 
   const failingGates = assessment.gates.filter(g => g.verdict !== 'PASS');
   // The one chain-of-custody gate; its checklist is what the trader works through.

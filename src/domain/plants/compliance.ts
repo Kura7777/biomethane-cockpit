@@ -13,8 +13,13 @@ import type { BiomethanePlant, PlantCompliance, SourcedValue } from './types';
 /** Registry that issues a country's gas GOs, as it appears on the GO. Only countries researched so far. */
 const GO_REGISTRY_BY_COUNTRY: Record<string, string> = { ES: 'Enagás GTS' };
 
-/** Spanish GOs quantify energy on PCS (gross calorific value) — Orden TED/1026/2022 §5.1. */
-const GO_ENERGY_BASIS_BY_COUNTRY: Record<string, GoRecord['energyBasis']> = { ES: 'HHV' };
+/** Spanish, French, Dutch, and Belgian gas GOs quantify energy on PCS / Gross Calorific Value (HHV). */
+const GO_ENERGY_BASIS_BY_COUNTRY: Record<string, GoRecord['energyBasis']> = {
+  ES: 'HHV',
+  FR: 'HHV',
+  NL: 'HHV',
+  BE: 'HHV',
+};
 
 export const CAPACITY_ESTIMATE_LABEL = 'Capacity-based estimate';
 

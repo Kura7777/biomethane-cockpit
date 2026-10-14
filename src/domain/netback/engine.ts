@@ -324,10 +324,7 @@ function computeCertificateValueCore(
         break;
       }
       // Netherlands ERE (Wet milieubeheer / REV): 1 ERE = 1 kg CO₂e avoided
-      const isAdvanced = consignment.annexClassification === 'IX_A' ||
-        (consignment.feedstock || '').toLowerCase().includes('manure') ||
-        (consignment.feedstock || '').toLowerCase().includes('slurry') ||
-        (consignment.feedstock || '').toLowerCase().includes('waste');
+      const isAdvanced = consignment.annexClassification === 'IX_A';
       const ticketCategory = isAdvanced ? 'ERE-A (Advanced Annex IX-A)' : 'ERE-C (Conventional)';
       const co2eTonnes = tCO2ePerMWh(ci);
       const co2eKg = co2eTonnes * 1000;
@@ -377,7 +374,7 @@ function computeCertificateValueCore(
     }
     case 'GBP_PER_RTFC': {
       const fxRate = marks.fx.gbpEur;
-      if (fxRate === null) {
+      if (fxRate === null || !Number.isFinite(fxRate) || fxRate < 0) {
         return {
           valueEurPerMWh: null,
           unitConversion: '£/RTFC → €/MWh requires GBP/EUR FX rate',
@@ -422,7 +419,7 @@ function computeCertificateValueCore(
     }
     case 'GBP_PER_DRTFC': {
       const fxRate = marks.fx.gbpEur;
-      if (fxRate === null) {
+      if (fxRate === null || !Number.isFinite(fxRate) || fxRate < 0) {
         return {
           valueEurPerMWh: null,
           unitConversion: '£/dRTFC → €/MWh requires GBP/EUR FX rate',
@@ -561,7 +558,7 @@ export function computeNetback(
   const routeCostLines = ggeRouteCostLines(market, consignment);
   const costValues = [costs?.transferCosts, costs?.certificationCosts, costs?.logistics, costs?.otherCosts, ...routeCostLines.map(l => l.eurPerMwh)]
     .filter((c): c is number => typeof c === 'number' && !isNaN(c));
-  const totalCosts = costValues.length > 0 ? costValues.reduce((a, b) => a + b, 0) : null;
+  const totalCosts = costValues.length > 0 ? Number(costValues.reduce((a, b) => a + b, 0).toFixed(4)) : null;
 
   // Net Netback calculation (at chosen sides):
   // If cert value is null or NaN, netback is null.

@@ -39,7 +39,7 @@ export function computeGgeBreakdown(market: Market, consignment: Consignment, ma
   const lhvFactor = goOnLhv ? 1 : getLhvFactorForOrigin(goCountry);
   const posCi = consignment.custody?.pos?.ciTotal ?? null;
   const ciUsed = posCi ?? consignment.carbonIntensity;
-  const ggePerGoMwh = ((comparator - ciUsed) * MJ_PER_MWH / 1000) * lhvFactor;
+  const ggePerGoMwh = (Math.max(0, comparator - ciUsed) * MJ_PER_MWH / 1000) * lhvFactor;
 
   const complianceYear = consignment.deliveryPeriod?.complianceYear ?? null;
   const buyoutEurPerT = complianceYear !== null ? NL_GGE_BUYOUT_EUR_PER_TCO2E[complianceYear] : undefined;

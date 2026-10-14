@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAppState } from '../../store/context';
-import { ProducerPricing } from '../../domain/netback/types';
+import { ProducerPricing, CostInputs } from '../../domain/netback/types';
 import { SIMULATED_SOURCE_NAME } from '../../domain/marks/simulate';
 import { CostFieldSource } from '../../store/context';
 import { getAssumption, getAssumptionDefinition, setAssumption, resetAssumption, isOverridden } from '../../domain/assumptions/registry';
@@ -239,12 +239,12 @@ export function CostsScreen() {
 
   const setScalar = (key: ScalarCostField['key'], raw: string) => {
     if (raw === '') {
-      dispatch({ type: 'SET_COSTS', costs: { [key]: null } as any });
+      dispatch({ type: 'SET_COSTS', costs: { [key]: null } as Partial<CostInputs> });
       return;
     }
     const v = Number(raw);
     if (Number.isFinite(v)) {
-      dispatch({ type: 'SET_COSTS', costs: { [key]: v } as any });
+      dispatch({ type: 'SET_COSTS', costs: { [key]: v } as Partial<CostInputs> });
     }
   };
 

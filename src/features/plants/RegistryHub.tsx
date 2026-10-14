@@ -206,13 +206,13 @@ function evaluateRoute(origin: RegistryDirectoryEntry, destinationCode: string, 
     }
   } else if (destIsMarket && destMarket) {
     // Registry-to-compliance-market: the GO/PoS distinction from udb_process.md
-    routeLines.push(
+    blockerLines.push(
       `The Guarantee of Origin (GO) issued by ${origin.registryName} is a disclosure instrument (RED Art. 19), not a compliance instrument. Counting toward ${destMarket.label} requires a valid Proof of Sustainability (PoS) chain — via the Union Database (not yet live; launch postponed to end-2026 per EBA) or the relevant national/voluntary sustainability scheme recognised by that compliance market. This research does not confirm whether ${origin.countryName}-origin gas is recognised by ${destMarket.label} at the certificate level.`
     );
     sourceUrls.push({ label: 'UDB vs GO vs PoS distinction (udb_process.md)', url: UDB_SOURCE_URL });
   }
 
-  const supported = routeLines.length > 0;
+  const supported = routeLines.length > 0 && blockerLines.length === 0;
   const headline = supported
     ? `Our sources support a route from ${origin.countryName} to ${destIsMarket ? destMarket?.label : destRegistry?.countryName}.`
     : 'Not supported by our sources — check with the registry.';

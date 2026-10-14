@@ -4,7 +4,8 @@ import {
   queryAuditor,
   getStoredApiKey,
   setStoredApiKey,
-  testGeminiApiKey
+  testGeminiApiKey,
+  buildConsignmentFromTradeContext
 } from '../../domain/auditor/geminiClient';
 import {
   AuditorResponse,
@@ -302,24 +303,11 @@ export function ComplianceAuditModal({
   // Convert TradeAuditContext to TradeAssessment for PDF export
   const buildAssessmentForExport = (): TradeAssessment => {
     const targetMarketObj = MARKETS.find(m => m.id === activeTrade.targetMarketId) || MARKETS[0];
+    const rawTrade = dealContextOverride || liveTradeDeal;
+    const baseConsignment = buildConsignmentFromTradeContext(activeTrade, rawTrade);
     const consignment: Consignment = {
-      id: activeTrade.originPlantId || 'BIO-FACILITY-01',
-      name: activeTrade.plantName || `${activeTrade.originCountry} Biomethane Facility`,
-      originCountry: activeTrade.originCountry,
-      originCountryName: activeTrade.originCountry,
-      injectionCountry: activeTrade.originCountry,
-      injectionIsEU: activeTrade.originCountry !== 'GB' && activeTrade.originCountry !== 'UK',
-      feedstock: activeTrade.feedstockCategory,
-      feedstockName: activeTrade.feedstockCategory,
-      carbonIntensity: activeTrade.carbonIntensity,
-      annexClassification: activeTrade.carbonIntensity < 35 ? 'IX_A' : 'CROP',
-      commissioningDateRange: 'POST_2021_TO_2025',
-      certificationScheme: 'ISCC_EU',
-      chainOfCustody: 'MASS_BALANCE',
-      udbStatus: 'RECORDED',
-      posStatus: 'ISSUED',
-      volumeMWh: activeTrade.annualVolumeMWh || 25000,
-      counterparty: 'OFFTAKE COUNTERPARTY CORP',
+      ...baseConsignment,
+      counterparty: (rawTrade as any)?.counterparty || 'OFFTAKE COUNTERPARTY CORP',
     };
 
     const calculatedNetback = computeNetback(

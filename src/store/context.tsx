@@ -88,6 +88,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => clearTimeout(timeout);
   }, [state]);
 
+  // Synchronize state across multiple open tabs to prevent split-brain overwrites
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEY && e.newValue) {
+        try {
+          const hydrated = migrateState(JSON.parse(e.newValue));
+          dispatch({ type: 'IMPORT_STATE', state: hydrated });
+        } catch {
+          // Ignore malformed cross-tab payload
+        }
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
   return (
     <AppContext.Provider value={{ state, dispatch, isSaving, lastSavedAt, priorCloseMarks, snapshotPriorClose }}>
       {children}

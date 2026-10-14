@@ -103,6 +103,12 @@ export function useHelperChat(): Chat {
   const appRef = useRef(app);
   useEffect(() => { appRef.current = app; }, [app]);
 
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, []);
+
   const pageKey = canonicalRoute(pathname);
   const guide = getPageGuide(pathname);
   useAssumptionsVersion(); // the chosen model can change on Ask the desk or on #/pricing

@@ -225,7 +225,7 @@ export async function runRegulationCheck(options: RunCheckOptions = {}): Promise
       // Ignore
     }
 
-    parsedMsg = sanitizeKey(parsedMsg, apiKey);
+    parsedMsg = sanitizeKey(parsedMsg, apiKey).slice(0, 400);
 
     if (response.status === 401) {
       throw new Error(`Invalid Anthropic API key (HTTP 401). Please verify your key at console.anthropic.com.`);
@@ -235,6 +235,9 @@ export async function runRegulationCheck(options: RunCheckOptions = {}): Promise
     }
     if (response.status === 403) {
       throw new Error(`Anthropic API access forbidden (HTTP 403): ${parsedMsg}`);
+    }
+    if (response.status === 503 || response.status === 529) {
+      throw new Error(`Anthropic API is temporarily overloaded (HTTP ${response.status}). Please retry in a moment.`);
     }
 
     throw new Error(`Anthropic API error (HTTP ${response.status}): ${parsedMsg}`);

@@ -115,7 +115,7 @@ export function ShippingTermSheetStep({
 
   const effectiveClientSavingsEur = useMemo(() => {
     if (pathway === 'PHYSICAL') {
-      return marineQuote.totalClientSavingsEur || counterparty.client_savings_physical_eur;
+      return marineQuote.totalClientSavingsEur ?? counterparty.client_savings_physical_eur;
     }
     return poolingEcon.savingsEur ?? 0;
   }, [pathway, marineQuote.totalClientSavingsEur, counterparty.client_savings_physical_eur, poolingEcon.savingsEur]);
