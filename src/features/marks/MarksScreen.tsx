@@ -7,7 +7,7 @@ import { isDeThgBundleMarkId } from '../../domain/markets/deThgBundle';
 import { isSimulatedMark, resolveMarketForQuote, rowFeedsMarket, rowHasPrice } from '../../domain/marks/applyMarks';
 import { BrokerRunImporterModal } from './BrokerRunImporterModal';
 import { showToast } from '../../app/DeskToastContainer';
-import { PricingBookEntry } from '../../domain/markets/brokerRun.seed';
+import { PricingBookEntry, NON_BROKER_SEED_ROW_IDS } from '../../domain/markets/brokerRun.seed';
 import { ProvenanceTier } from '../../domain/markets/brokerMarketData';
 import { PageShell } from '../../shared/ui/PageShell';
 import './marks.css';
@@ -49,8 +49,35 @@ export function MarksScreen() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // Master Quotes State comes directly from app state (persisted in store)
-  const quotes: PricingBookEntry[] = state.pricingBook || [];
+  // Master Quotes State: automatically deduplicates benchmark marks by pruning
+  // obsolete previous pastes and legacy synthetic placeholders when a sourced mark is active.
+  const quotes: PricingBookEntry[] = useMemo(() => {
+    const raw = state.pricingBook || [];
+    const activeRefIds = state.referenceRowIds || {};
+
+    const activeMarketsWithRef = new Map<string, string>();
+    for (const [mId, rowId] of Object.entries(activeRefIds)) {
+      if (rowId) activeMarketsWithRef.set(mId, rowId);
+    }
+
+    return raw.filter(q => {
+      const mId = resolveMarketForQuote(q);
+      if (!mId) return true;
+
+      const activeRefId = activeMarketsWithRef.get(mId);
+      if (activeRefId) {
+        // If this row is a previous pasted benchmark row but NOT the active reference, prune it
+        if (q.id.startsWith('paste_') && q.id !== activeRefId) {
+          return false;
+        }
+        // If a real broker mark is active, prune legacy synthetic placeholders for this market
+        if (q.provenanceTier === 'MODELLED_SIMULATED' && NON_BROKER_SEED_ROW_IDS.includes(q.id)) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [state.pricingBook, state.referenceRowIds]);
 
   // Filter states
   const [bookFilter, setBookFilter] = useState<'ALL' | 'COMPLIANCE' | 'VOLUNTARY'>('ALL');

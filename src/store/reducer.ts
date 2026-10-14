@@ -1,4 +1,4 @@
-import { BrokerRunMeta, PricingBookEntry } from '../domain/markets/brokerRun.seed';
+import { BrokerRunMeta, PricingBookEntry, NON_BROKER_SEED_ROW_IDS } from '../domain/markets/brokerRun.seed';
 import { DE_THG_BUNDLE_MARK_PREFIX } from '../domain/markets/deThgBundle';
 import { simulateDesk } from '../domain/marks/simulate';
 import {
@@ -318,7 +318,6 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       };
     }
     case 'ADD_PRICING_RUN': {
-      const nextBook = [...state.pricingBook, ...action.rows];
       const updates: MarkUpdate[] = [];
       const nextRefIds = { ...state.referenceRowIds };
       const candidates: { mId: string; rowId: string; update: MarkUpdate }[] = [];
@@ -340,6 +339,28 @@ export function appReducer(state: AppState, action: AppAction): AppState {
           nextRefIds[mId] = rowId;
         }
       }
+
+      // Deduplication: when a winning benchmark quote is committed for a market,
+      // it replaces obsolete previous pastes and synthetic placeholder rows for that market.
+      const winningMarketIds = new Set(
+        candidates
+          .filter(({ mId, rowId }) => nextRefIds[mId] === rowId)
+          .map(({ mId }) => mId)
+      );
+
+      const filteredExisting = state.pricingBook.filter(existing => {
+        const existingMid = resolveMarketForQuote(existing);
+        if (existingMid && winningMarketIds.has(existingMid)) {
+          // Replace previous pasted benchmark rows for this market
+          if (existing.id.startsWith('paste_')) return false;
+          // Replace legacy synthetic placeholder estimates for this market
+          if (existing.provenanceTier === 'MODELLED_SIMULATED' && NON_BROKER_SEED_ROW_IDS.includes(existing.id)) return false;
+        }
+        return true;
+      });
+
+      const nextBook = [...filteredExisting, ...action.rows];
+
       return {
         ...state,
         pricingBook: nextBook,
