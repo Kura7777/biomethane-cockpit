@@ -14,14 +14,27 @@ import './marks.css';
 import { KpiRow, KpiTile } from '../../shared/ui/KpiTile';
 import { useIsMobile } from '../../shared/hooks/useMediaQuery';
 import { Sheet, MobileCardList } from '../../shared/ui';
+import { ForwardCurvesView } from './ForwardCurvesView';
+import { ComplianceLadderView } from './ComplianceLadderView';
+import { GuaranteesOfOriginView } from './GuaranteesOfOriginView';
+import { sortQuotesChronologically, SortField, SortDirection } from './marksSort';
 import {
   Download,
   Search,
   FileSpreadsheet,
   Filter,
   Sparkles,
-  Camera
+  Camera,
+  TrendingUp,
+  Scale,
+  Leaf,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
+
+export type PricingDeskView = 'CURVES' | 'COMPLIANCE' | 'VOLUNTARY' | 'ALL';
+
 
 function formatAge(dateStr?: string | null): string {
   if (!dateStr) return '—';
@@ -80,6 +93,30 @@ export function MarksScreen() {
   }, [state.pricingBook, state.referenceRowIds]);
 
   // Filter states
+  const [activeView, setActiveView] = useState<PricingDeskView>('CURVES');
+  const [blotterSortField, setBlotterSortField] = useState<SortField>('tenor');
+  const [blotterSortDirection, setBlotterSortDirection] = useState<SortDirection>('asc');
+
+  const toggleSort = (field: SortField) => {
+    if (blotterSortField === field) {
+      setBlotterSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setBlotterSortField(field);
+      setBlotterSortDirection('asc');
+    }
+  };
+
+  const renderSortIcon = (field: SortField) => {
+    if (blotterSortField !== field) {
+      return <ArrowUpDown className="w-3 h-3 opacity-40 ml-1 inline" />;
+    }
+    return blotterSortDirection === 'asc' ? (
+      <ArrowUp className="w-3 h-3 text-accent ml-1 inline" style={{ color: 'var(--color-accent)' }} />
+    ) : (
+      <ArrowDown className="w-3 h-3 text-accent ml-1 inline" style={{ color: 'var(--color-accent)' }} />
+    );
+  };
+
   const [bookFilter, setBookFilter] = useState<'ALL' | 'COMPLIANCE' | 'VOLUNTARY'>('ALL');
   const [selectedCountryGroup, setSelectedCountryGroup] = useState<string>('ALL');
   const [provenanceFilter, setProvenanceFilter] = useState<'ALL' | ProvenanceTier>('ALL');
@@ -177,6 +214,11 @@ export function MarksScreen() {
     });
   }, [quotes, bookFilter, selectedCountryGroup, provenanceFilter, searchQuery]);
 
+  // Master sorted filtered quotes for blotter and mobile cards
+  const sortedFilteredQuotes = useMemo(() => {
+    return sortQuotesChronologically(filteredQuotes, blotterSortField, blotterSortDirection);
+  }, [filteredQuotes, blotterSortField, blotterSortDirection]);
+
   // Provenance counts for quotes in book
   const provenanceCounts = useMemo(() => {
     const counts: Record<ProvenanceTier, number> = {
@@ -216,7 +258,7 @@ export function MarksScreen() {
 
   const handleExportCsv = () => {
     const headers = ['Country', 'Class', 'Feedstock', 'Vintage', 'Certified', 'Subsidized', 'CI Score', 'BID Price', 'OFFER Price', 'BID Volume', 'OFFER Volume', 'Price Derived From', 'Provenance Tier'];
-    const rows = filteredQuotes.map(q => [
+    const rows = sortedFilteredQuotes.map(q => [
       q.country,
       q.class,
       `"${q.feedstock}"`,
@@ -456,8 +498,72 @@ export function MarksScreen() {
         />
       </KpiRow>
 
+      {/* Institutional Desk View Selector Bar */}
+      <div
+        style={{
+          padding: '10px 18px 0',
+          backgroundColor: 'var(--color-surface)',
+          borderBottom: '1px solid var(--color-divider)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '12px',
+          overflowX: 'auto',
+        }}
+      >
+        <div className="marks-view-bar" style={{ marginBottom: '8px' }}>
+          <button
+            type="button"
+            className={`marks-view-btn ${activeView === 'CURVES' ? 'active' : ''}`}
+            onClick={() => setActiveView('CURVES')}
+          >
+            <TrendingUp className="w-3.5 h-3.5" />
+            Forward Curves &amp; Tenor Strip (CME Institutional)
+          </button>
+          <button
+            type="button"
+            className={`marks-view-btn ${activeView === 'COMPLIANCE' ? 'active' : ''}`}
+            onClick={() => setActiveView('COMPLIANCE')}
+          >
+            <Scale className="w-3.5 h-3.5" />
+            Statutory Compliance Quotas
+          </button>
+          <button
+            type="button"
+            className={`marks-view-btn ${activeView === 'VOLUNTARY' ? 'active' : ''}`}
+            onClick={() => setActiveView('VOLUNTARY')}
+          >
+            <Leaf className="w-3.5 h-3.5" />
+            Guarantees of Origin (GO Matrix)
+          </button>
+          <button
+            type="button"
+            className={`marks-view-btn ${activeView === 'ALL' ? 'active' : ''}`}
+            onClick={() => setActiveView('ALL')}
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5" />
+            Master Quotes Blotter ({quotes.length})
+          </button>
+        </div>
+      </div>
+
       {/* Main Order Book Container */}
       <div style={{ padding: '16px 18px 24px' }}>
+        {activeView === 'CURVES' && (
+          <ForwardCurvesView quotes={quotes} />
+        )}
+
+        {activeView === 'COMPLIANCE' && (
+          <ComplianceLadderView quotes={quotes} onCellEdit={handleCellEdit} />
+        )}
+
+        {activeView === 'VOLUNTARY' && (
+          <GuaranteesOfOriginView quotes={quotes} onCellEdit={handleCellEdit} />
+        )}
+
+        {activeView === 'ALL' && (
+          <>
+
         {isMobile ? (
           <div className="marks-mobile-controls">
             <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
@@ -606,7 +712,7 @@ export function MarksScreen() {
         {isMobile ? (
           <MobileCardList
             testId="marks-cards"
-            items={filteredQuotes}
+            items={sortedFilteredQuotes}
             getKey={q => q.id}
             title={q => (
               <span style={{ fontWeight: q.highlight ? 700 : 600 }}>
@@ -675,23 +781,65 @@ export function MarksScreen() {
           <table className="table" style={{ margin: 0 }}>
             <thead>
               <tr>
-                <th style={{ width: '55px', textAlign: 'center' }}>Country</th>
-                <th style={{ width: '75px', textAlign: 'center' }}>Class</th>
+                <th
+                  style={{ width: '68px', textAlign: 'center' }}
+                  className="marks-th-sortable"
+                  onClick={() => toggleSort('country')}
+                  title="Sort by Country ISO"
+                >
+                  Country {renderSortIcon('country')}
+                </th>
+                <th
+                  style={{ width: '75px', textAlign: 'center' }}
+                  className="marks-th-sortable"
+                  onClick={() => toggleSort('class')}
+                  title="Sort by Market Class"
+                >
+                  Class {renderSortIcon('class')}
+                </th>
                 <th style={{ minWidth: '200px' }}>Feedstock &amp; Specification</th>
-                <th style={{ width: '75px', textAlign: 'center' }}>Vintage</th>
+                <th
+                  style={{ width: '85px', textAlign: 'center' }}
+                  className="marks-th-sortable"
+                  onClick={() => toggleSort('tenor')}
+                  title="Sort chronologically by Delivery Tenor / Vintage"
+                >
+                  Vintage {renderSortIcon('tenor')}
+                </th>
                 <th style={{ width: '112px', textAlign: 'center' }}>Certified</th>
                 <th className="marks-col-subsidized" style={{ width: '95px', textAlign: 'center' }}>Subsidized</th>
                 <th style={{ width: '95px', textAlign: 'center' }}>CI Score</th>
-                <th style={{ width: '105px', textAlign: 'right' }}>BID Price</th>
-                <th style={{ width: '105px', textAlign: 'right' }}>OFFER Price</th>
+                <th
+                  style={{ width: '110px', textAlign: 'right' }}
+                  className="marks-th-sortable"
+                  onClick={() => toggleSort('bid')}
+                  title="Sort by BID Price"
+                >
+                  BID Price {renderSortIcon('bid')}
+                </th>
+                <th
+                  style={{ width: '110px', textAlign: 'right' }}
+                  className="marks-th-sortable"
+                  onClick={() => toggleSort('offer')}
+                  title="Sort by OFFER Price"
+                >
+                  OFFER Price {renderSortIcon('offer')}
+                </th>
                 <th style={{ width: '95px', textAlign: 'right' }}>BID Vol</th>
-                <th style={{ width: '95px', textAlign: 'right' }}>OFFER Vol</th>
+                <th
+                  style={{ width: '95px', textAlign: 'right' }}
+                  className="marks-th-sortable"
+                  onClick={() => toggleSort('volume')}
+                  title="Sort by Volume"
+                >
+                  OFFER Vol {renderSortIcon('volume')}
+                </th>
                 <th className="marks-col-source">Price Derived From</th>
                 <th style={{ width: '112px', textAlign: 'center' }}>Mark</th>
               </tr>
             </thead>
             <tbody>
-              {filteredQuotes.map(q => {
+              {sortedFilteredQuotes.map(q => {
                 const isFocus = Boolean(q.highlight);
                 const { badgeClass, badgeLabel } = provenanceBadge(q);
                 const marketId = resolveMarketForQuote(q);
@@ -918,9 +1066,11 @@ export function MarksScreen() {
             * Bids and offers are for certificates / quota premium only. Base natural gas index (TTF M+1{gasIndexPrice !== null && gasIndexPrice !== undefined ? `: €${gasIndexPrice.toFixed(2)}/MWh` : ''}) added on top for bundled physical delivery.
           </span>
           <span className="num" style={{ fontWeight: 600 }}>
-            {filteredQuotes.length} quotes displayed ({quotes.length} total across Europe)
+            {sortedFilteredQuotes.length} quotes displayed ({quotes.length} total across Europe)
           </span>
         </div>
+          </>
+        )}
       </div>
 
       {isMobile && (
