@@ -53,14 +53,42 @@ function safeGetItem(key: string): string | null {
   return null;
 }
 
-function safeSetItem(key: string, val: string): void {
+function safeSetItem(key: string, val: string): boolean {
   try {
     if (typeof window !== 'undefined' && window.localStorage) {
       window.localStorage.setItem(key, val);
+      return true;
     }
   } catch {
-    // Ignore storage quota or access errors
+    // Storage quota or access error: reported to the caller
   }
+  return false;
+}
+
+/** Limits on a rule the helper proposes. */
+export const DESK_RULE_MAX_SUBJECT_CHARS = 80;
+export const DESK_RULE_MAX_RULE_CHARS = 400;
+export const DESK_RULE_MAX_COUNT = 100;
+const RULE_CATEGORIES: DeskMemoryRule['category'][] = ['counterparty', 'market', 'tariff', 'contract', 'general'];
+
+/** Checks a proposed rule (length caps, rule count); nothing is stored. */
+export function validateDeskRuleInput(input: { subject: string; rule: string; category: string }):
+  { ok: true; rule: { subject: string; rule: string; category: DeskMemoryRule['category'] } } | { ok: false; error: string } {
+  const subject = input.subject.trim();
+  const rule = input.rule.trim();
+  if (!subject || !rule) return { ok: false, error: 'subject and rule are required to save desk memory' };
+  if (subject.length > DESK_RULE_MAX_SUBJECT_CHARS) return { ok: false, error: `subject is longer than ${DESK_RULE_MAX_SUBJECT_CHARS} characters` };
+  if (rule.length > DESK_RULE_MAX_RULE_CHARS) return { ok: false, error: `rule is longer than ${DESK_RULE_MAX_RULE_CHARS} characters; shorten it` };
+  if (getDeskRules().length >= DESK_RULE_MAX_COUNT) return { ok: false, error: `desk memory already holds ${DESK_RULE_MAX_COUNT} rules; delete some first` };
+  const category = RULE_CATEGORIES.includes(input.category as DeskMemoryRule['category']) ? (input.category as DeskMemoryRule['category']) : 'general';
+  return { ok: true, rule: { subject, rule, category } };
+}
+
+/** Stores a rule and verifies the write; reports a storage failure instead of pretending success. */
+export function saveDeskRuleChecked(input: { subject: string; rule: string; category: DeskMemoryRule['category'] }): { ok: true; rule: DeskMemoryRule } | { ok: false; error: string } {
+  const saved = saveDeskRule({ ...input, source: 'user_command' });
+  const stored = (safeGetItem(STORAGE_KEY_RULES) ?? '').includes(saved.id);
+  return stored ? { ok: true, rule: saved } : { ok: false, error: 'Browser storage refused the write (full or blocked); the rule was not saved.' };
 }
 
 /** In-memory fallback if localStorage is disabled or unavailable. */

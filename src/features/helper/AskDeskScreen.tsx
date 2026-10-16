@@ -31,7 +31,7 @@ import { ChatBody, ChatInput, ModeNote, useHelperChat, useTodaySpend } from './P
 import { clearHelperConversation } from './helperStore';
 import { ProviderSwitch } from './ProviderSwitch';
 import { extractPdfText } from '../../utils/pdfReader';
-import { StagedMarksCard } from './StagedMarksCard';
+import { wrapAttachment } from '../../domain/help/helperLogic';
 import { showToast } from '../../app/DeskToastContainer';
 import './helper.css';
 
@@ -431,6 +431,12 @@ export function AskDeskScreen() {
   const refreshRulesCount = () => {
     setRulesCount(getDeskRules().length);
   };
+  // A rule confirmed from the staged-memory card changes the count.
+  useEffect(() => {
+    const onChange = () => setRulesCount(getDeskRules().length);
+    window.addEventListener('desk-memory-changed', onChange);
+    return () => window.removeEventListener('desk-memory-changed', onChange);
+  }, []);
 
   // Register high-level desk awareness for general trading questions
   const app = useOptionalAppState();
@@ -478,11 +484,11 @@ export function AskDeskScreen() {
           setAttachedDoc({
             name: file.name,
             size: sizeStr,
-            content: cleaned || `[PDF document ${file.name} with ${file.size} bytes: text layer not directly extractable]`,
+            content: cleaned,
           });
         } catch (err) {
-          console.error('Failed to parse PDF text:', err);
-          showToast('Failed to extract text from PDF document', 'error');
+          // A PdfReadError says why and asks the trader to paste the text; nothing is attached.
+          showToast(err instanceof Error && err.name === 'PdfReadError' ? err.message : 'Failed to extract text from the PDF. Paste the text instead.', 'error');
         }
       };
       reader.readAsArrayBuffer(file);
@@ -503,7 +509,7 @@ export function AskDeskScreen() {
 
   const handleSendPrompt = useCallback((prompt: string) => {
     if (attachedDoc) {
-      const fullText = `[ATTACHED REFERENCE DOCUMENT: ${attachedDoc.name} (${attachedDoc.size})]\n${attachedDoc.content}\n\n[TRADER QUESTION]:\n${prompt}`;
+      const fullText = wrapAttachment(attachedDoc.name, attachedDoc.size, attachedDoc.content, prompt);
       chat.send(fullText);
       setAttachedDoc(null);
     } else {
@@ -624,12 +630,6 @@ export function AskDeskScreen() {
       <ChatBody chat={wrappedChat} onNavigate={go} variant="desk" emptyState={empty} />
       <footer className="ask-foot">
         <div className="ask-column">
-          {chat.stagedRun && (
-            <StagedMarksCard
-              stagedRun={chat.stagedRun}
-              onDismiss={chat.clearStagedRun}
-            />
-          )}
           {attachedDoc && (
             <div className="ask-attachment-pill" data-testid="ask-attachment-pill">
               <FileText size={13} aria-hidden="true" />

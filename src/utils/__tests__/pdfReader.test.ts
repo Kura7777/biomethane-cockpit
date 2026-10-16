@@ -55,13 +55,4 @@ endobj
     expect(text).toContain('Biomethane Proof of Sustainability');
     expect(text).toContain('Feedstock: 100% Manure');
   });
-
-  it('falls back to ASCII scanner when no streams are detected', async () => {
-    const raw = '%PDF-1.4 Header without streams but with printable text like Cert-99482710 and REDcert';
-    const encoder = new TextEncoder();
-    const buffer = encoder.encode(raw).buffer;
-    const text = await extractPdfText(buffer);
-
-    expect(text).toContain('Cert-99482710');
-  });
 });

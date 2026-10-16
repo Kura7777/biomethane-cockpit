@@ -30,6 +30,8 @@ describe('helper tools (read-only lookups into app data)', () => {
       'parse_and_stage_marks',
       'solve_deal_breakeven',
       'evaluate_contract_or_pos',
+      'get_desk_inputs',
+      'get_forward_quotes',
     ]);
     for (const t of HELPER_TOOLS) {
       expect(t.strict).toBe(true);
@@ -37,7 +39,9 @@ describe('helper tools (read-only lookups into app data)', () => {
     }
   });
   it('get_marks returns the mid (or bid/offer midpoint) and flags unknown ids', async () => {
-    const out = await run('get_marks', { marketIds: ['NL_GGE', 'NOPE'] });
+    const res = await run('get_marks', { marketIds: ['NL_GGE', 'NOPE'] });
+    const out = res.marks;
+    expect(res.inputs.marks[0].id).toBe('NL_GGE');
     expect(out[0]).toMatchObject({ marketId: 'NL_GGE', mid: 0.38 });
     expect(out[1].error).toContain('unknown');
   });
@@ -47,7 +51,7 @@ describe('helper tools (read-only lookups into app data)', () => {
   });
   it('price_destinations values Spanish manure into NL GGE with the desk engines', async () => {
     const desk = getInitialState();
-    const rows = JSON.parse(await runHelperTool('price_destinations', { origin: 'ES', feedstock: 'manure' }, { marks: desk.marks, costs: desk.costs }));
+    const rows = JSON.parse(await runHelperTool('price_destinations', { origin: 'ES', feedstock: 'manure' }, { marks: desk.marks, costs: desk.costs })).destinations;
     const gge = rows.find((r: { market: string }) => r.market === 'NL_GGE');
     expect(gge).toBeDefined();
     expect(gge.notYetLaw).toBe(true);
@@ -63,18 +67,13 @@ describe('helper tools (read-only lookups into app data)', () => {
     expect(hits.length).toBeGreaterThan(0);
     expect(hits[0].url).toMatch(/^https?:/);
   });
-  it('saves and retrieves rules via get_desk_memory and save_desk_memory', async () => {
-    const saveRes = await run('save_desk_memory', {
-      subject: 'TotalEnergies',
-      rule: 'Insists on bilateral UDB transfer and RED III certified manure substrate.',
-      category: 'counterparty',
-    });
-    expect(saveRes.success).toBe(true);
-    expect(saveRes.savedRule.subject).toBe('TotalEnergies');
-
+  it('save_desk_memory only stages the rule for trader confirmation', async () => {
+    let staged: unknown = null;
+    const res = JSON.parse(await runHelperTool('save_desk_memory', { subject: 'TotalEnergies', rule: 'Insists on bilateral UDB transfer.', category: 'counterparty' }, { ...ctx, onStageMemory: r => { staged = r; } }));
+    expect(res.status).toBe('staged_for_trader_confirmation');
+    expect(staged).toMatchObject({ subject: 'TotalEnergies', category: 'counterparty' });
     const fetchRes = await run('get_desk_memory', { query: 'TotalEnergies' });
-    expect(fetchRes.rulesFound).toBeGreaterThan(0);
-    expect(fetchRes.rules[0].subject).toBe('TotalEnergies');
+    expect(fetchRes.rules.some((r: { subject: string }) => r.subject === 'TotalEnergies')).toBe(false);
   });
   it('searches and retrieves shipping counterparties under FuelEU Maritime', async () => {
     // 1. Search by query 'Maersk'
@@ -137,27 +136,22 @@ TTF: 39.10`;
     expect(resStructured.stagedMarks[0].marketId).toBe('DE_THG');
     expect(resStructured.stagedMarks[1].marketId).toBe('GAS_TTF');
   });
-  it('solve_deal_breakeven ranks European destinations, calculates margins, and emits Trade Builder deep-links', async () => {
+  it('solve_deal_breakeven ranks the compared destinations, margins and Trade Builder deep-links', async () => {
     const res = JSON.parse(await runHelperTool('solve_deal_breakeven', {
-      origin: 'DK',
-      feedstock: 'manure',
-      customCi: -85,
-      producerPriceEur: 95,
-      targetMarginEur: 4,
-    }, ctx));
-
+      origin: 'DK', feedstock: 'manure', customCi: -85, producerPriceEur: 95, targetMarginEur: 4,
+      producerSharePct: null, volumeMWh: null,
+    }, { marks: getInitialState().marks, costs: getInitialState().costs }));
     expect(res.origin).toBe('DK');
     expect(res.ciUsed).toBe(-85);
-    expect(res.destinationsEvaluated).toBeGreaterThan(0);
     expect(res.rankedDestinations.length).toBeGreaterThan(0);
     const top = res.rankedDestinations[0];
-    expect(top.netNetbackEurPerMwh).toBeGreaterThan(0);
     expect(top.maxPlantGatePriceEur).toBeDefined();
     expect(top.deepLink).toContain('[[go:/trade?');
     expect(top.deepLink).toContain('origin=DK');
     expect(top.deepLink).toContain('ci=-85');
+    expect(top.deepLink).not.toContain('producerPrice');
   });
-  it('evaluate_contract_or_pos parses certificate, verifies RED III compliance, and generates custody clauses', async () => {
+  it('evaluate_contract_or_pos reads a PoS text, reports found/defaulted fields and runs clearance only on stated values', async () => {
     const samplePos = `ISCC EU Proof of Sustainability
 Certificate Number: EU-ISCC-Cert-ES214-99482710
 Issuing Body: DNV Business Assurance
@@ -165,12 +159,12 @@ Country: ES
 Raw material: 100% pig slurry and cattle manure
 Total GHG emissions: -40.0 gCO2eq/MJ
 Chain of Custody: Mass Balance`;
-
-    const res = JSON.parse(await runHelperTool('evaluate_contract_or_pos', { text: samplePos }, ctx));
-    expect(res.isValid).toBe(true);
+    const res = JSON.parse(await runHelperTool('evaluate_contract_or_pos', { text: samplePos, targetMarket: null }, ctx));
+    expect(res.schemeFound).toBe(true);
     expect(res.scheme).toBe('ISCC_EU');
-    expect(res.canonicalFeedstock).toBe('manure');
-    expect(res.redIiiCompliant).toBe(true);
+    expect(res.verification).toMatch(/not verified/i);
+    expect(res.fieldsFound.country).toBe('ES');
+    expect(res.fieldsDefaulted).toContain('volumeMWh');
     expect(res.marketClearance.length).toBeGreaterThan(0);
     expect(res.custodyClauses.length).toBeGreaterThan(0);
   });

@@ -183,8 +183,11 @@ export async function askGeminiStream(
   let lastFinishMessage: string | undefined;
 
   try {
-    let lastParts: GeminiPart[] = [];
     for (let round = 0; round < HELPER_MAX_TOOL_ROUNDS; round++) {
+      if (round > 0 && input.budgetReached?.()) {
+        if (!text.trim()) throw new Error('The daily AI budget was used up while looking things up. Raise the cap on the Pricing desk or try again tomorrow.');
+        break;
+      }
       input.onStatus(round === 0 ? 'Thinking' : 'Writing');
       const res = await doFetch(url, {
         method: 'POST',
@@ -235,14 +238,15 @@ export async function askGeminiStream(
           }
         }
       }
-      lastParts = parts;
       if (meta) {
         const cached = meta.cachedContentTokenCount ?? 0;
-        usage = addUsage(usage, {
+        const roundUsage = {
           inputTokens: Math.max(0, (meta.promptTokenCount ?? 0) - cached) + (meta.toolUsePromptTokenCount ?? 0),
           cacheReadTokens: cached,
           outputTokens: (meta.candidatesTokenCount ?? 0) + (meta.thoughtsTokenCount ?? 0),
-        });
+        };
+        usage = addUsage(usage, roundUsage);
+        input.onSpend?.(estimateCostUsd(model, addUsage(EMPTY_USAGE, roundUsage)));
       }
 
       const calls = parts.filter(p => p.functionCall);
@@ -265,12 +269,10 @@ export async function askGeminiStream(
     // Auto-recovery pass: if no answer text was captured (e.g. candidate stream dropped or was marked internal),
     // recover gracefully rather than failing immediately.
     if (!text.trim() && !input.signal?.aborted && lastFinishReason !== 'SAFETY' && lastFinishReason !== 'RECITATION') {
-      const thoughtText = lastParts.filter(p => p.thought && p.text).map(p => p.text).join('\n\n').trim();
-      if (thoughtText && thoughtText.length > 50) {
-        text = thoughtText;
-        input.onText(text);
-      } else {
+      // Thinking traces are never shown as the answer; ask once more for the answer text itself.
+      {
         input.onStatus('Completing answer');
+        let recoveryMeta: GeminiChunk['usageMetadata'];
         try {
           const recoveryBody = buildGeminiRequestBody(input, contents, true);
           recoveryBody.toolConfig = { functionCallingConfig: { mode: 'NONE' } };
@@ -282,6 +284,7 @@ export async function askGeminiStream(
           });
           if (recRes.ok) {
             for await (const chunk of readSse(recRes)) {
+              if (chunk.usageMetadata) recoveryMeta = chunk.usageMetadata;
               const cand = chunk.candidates?.[0];
               if (cand?.finishReason) lastFinishReason = cand.finishReason;
               for (const p of cand?.content?.parts ?? []) {
@@ -294,6 +297,17 @@ export async function askGeminiStream(
           }
         } catch {
           // If recovery attempt fails, fall through to standard diagnostic
+        }
+        // The recovery pass is a paid call too: count it.
+        if (recoveryMeta) {
+          const cached = recoveryMeta.cachedContentTokenCount ?? 0;
+          const recUsage = {
+            inputTokens: Math.max(0, (recoveryMeta.promptTokenCount ?? 0) - cached) + (recoveryMeta.toolUsePromptTokenCount ?? 0),
+            cacheReadTokens: cached,
+            outputTokens: (recoveryMeta.candidatesTokenCount ?? 0) + (recoveryMeta.thoughtsTokenCount ?? 0),
+          };
+          usage = addUsage(usage, recUsage);
+          input.onSpend?.(estimateCostUsd(model, addUsage(EMPTY_USAGE, recUsage)));
         }
       }
     }

@@ -19,6 +19,9 @@ export function commitBrokerRunToState(
   if (validMarks.length === 0) return 0;
 
   const now = new Date().toISOString();
+  // Numbers the desk helper extracted from chat text are never labelled as a broker observation.
+  const chatLabel = parseResult.chatExtractedLabel ?? null;
+  const originLabel = chatLabel ?? `${parseResult.brokerDetected} broker paste`;
   const runId = `broker-run-${effectiveRunDate}-${Date.now()}`;
 
   // Build new pricing book rows for state.pricingBook
@@ -86,7 +89,7 @@ export function commitBrokerRunToState(
       numericOfferEurMwh: isMwh ? offerNum : null,
       highlight: false,
       isHighInterest: false,
-      derivedFrom: `${parseResult.brokerDetected} broker paste (run dated ${effectiveRunDate})`,
+      derivedFrom: `${originLabel} (run dated ${effectiveRunDate})`,
       provenanceTier: 'BROKER_RUN',
       observedAt: effectiveRunDate,
       isTradeable: true,
@@ -119,10 +122,10 @@ export function commitBrokerRunToState(
         updatedAt: now,
         provenance: {
           sourceType: 'BROKER_INDICATION',
-          sourceName: parseResult.brokerDetected,
+          sourceName: chatLabel ?? parseResult.brokerDetected,
           sourceUrl: null,
           observedAt: effectiveRunDate,
-          note: 'Imported via broker run staging',
+          note: chatLabel ? 'Extracted by the desk helper from chat text; not a verified broker run' : 'Imported via broker run staging',
         },
       });
     } else if (item.marketId) {
@@ -132,14 +135,14 @@ export function commitBrokerRunToState(
         mid: item.midPrice,
         bid: item.bid,
         offer: item.ask,
-        source: `BROKER · ${parseResult.brokerDetected}`,
+        source: chatLabel ? `CHAT-EXTRACTED · ${parseResult.brokerDetected}` : `BROKER · ${parseResult.brokerDetected}`,
         updatedAt: now,
         provenance: {
           sourceType: 'BROKER_INDICATION',
-          sourceName: parseResult.brokerDetected,
+          sourceName: chatLabel ?? parseResult.brokerDetected,
           sourceUrl: null,
           observedAt: effectiveRunDate,
-          note: `Imported via broker run (${effectiveRunDate})`,
+          note: chatLabel ? `Extracted by the desk helper from chat text (${effectiveRunDate}); not a verified broker run` : `Imported via broker run (${effectiveRunDate})`,
         },
       });
     }
