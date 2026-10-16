@@ -107,7 +107,10 @@ function isBooleanKey(key: keyof DealParams): key is BooleanKey {
  * the URL would arrive at the builder as the literal string "undefined" and be
  * rendered as a counterparty name.
  */
-export function buildDealUrl(params: Partial<DealParams>): string {
+/** Link builders may pass null for a value they do not know; it is simply left out of the URL. */
+export type DealUrlInput = { [K in keyof DealParams]?: DealParams[K] | null };
+
+export function buildDealUrl(params: DealUrlInput): string {
   const query = new URLSearchParams();
 
   for (const key of Object.keys(ALIASES) as (keyof DealParams)[]) {

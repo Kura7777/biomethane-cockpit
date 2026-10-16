@@ -4,6 +4,7 @@ import { MarksState } from '../netback/types';
 import { scanEuropeanArbitrage, DEFAULT_WHAT_IF_SCENARIO } from '../arbitrage/engine';
 import { FEEDSTOCK_REGISTRY } from '../consignment/feedstocks';
 import { buildDealUrl } from '../trade/dealParams';
+import { getAssumption, feedstockDefaultCi } from '../assumptions/registry';
 import {
   BriefingParams,
   MorningBriefingSummary,
@@ -486,7 +487,7 @@ export function generateMorningBriefing(params: BriefingParams): MorningBriefing
     scheme = 'ISCC_EU',
     chainOfCustody = 'MASS_BALANCE',
     scenario = DEFAULT_WHAT_IF_SCENARIO,
-    defaultDealVolumeMWh = 120000,
+    defaultDealVolumeMWh = getAssumption('deal.defaultVolumeMwh'),
     asOfDate = new Date(),
   } = params;
 
@@ -502,7 +503,8 @@ export function generateMorningBriefing(params: BriefingParams): MorningBriefing
 
   // 3. Scan Arbitrage Corridors
   const feedstockInfo = FEEDSTOCK_REGISTRY[selectedFeedstockKey] || FEEDSTOCK_REGISTRY.manure;
-  const targetCI = ciOverride ?? feedstockInfo.defaultCI;
+  // Desk default CI for the feedstock (Pricing desk → Desk assumptions), not the registry's static value.
+  const targetCI = ciOverride ?? feedstockDefaultCi(selectedFeedstockKey) ?? feedstockInfo.defaultCI;
 
   const arbScan = scanEuropeanArbitrage(
     currentMarks,

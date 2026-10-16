@@ -118,7 +118,7 @@ export function buildCustodyClauses(assessment: TradeAssessment): CustodyClauses
     const market = getMarketById(assessment.targetMarketId);
     if (market) {
       const gge = computeGgeBreakdown(market, c, 0).ggePerGoMwh * (c.custody?.go?.energyMWh ?? volume);
-      internalExposure = `${Math.round(gge).toLocaleString()} GGE at the ${year} buy-out about €${Math.round(gge * buyoutPerTonne / 1000).toLocaleString()} if the NEa re-determines the whole delivery.`;
+      internalExposure = `${Math.round(gge).toLocaleString('en-GB')} GGE at the ${year} buy-out about €${Math.round(gge * buyoutPerTonne / 1000).toLocaleString('en-GB')} if the NEa re-determines the whole delivery.`;
     }
   }
 
