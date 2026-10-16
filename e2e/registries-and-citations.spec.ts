@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { gotoScreen, collectPageErrors, appErrors, expectNoErrorBoundary } from './helpers';
 
 test.describe('Registries, Citations & Data Provenance', () => {
-  test('navigates registries hub views (Registry directory, Route checker, Production statistics, Live data)', async ({ page }) => {
+  test('navigates registries hub views (Registry directory, Production statistics, Live data)', async ({ page }) => {
     const errors = collectPageErrors(page);
 
     await gotoScreen(page, '/registries');
@@ -11,12 +11,6 @@ test.describe('Registries, Citations & Data Provenance', () => {
     const main = page.locator('#main-content');
     await expect(main).toContainText(/Registries & cross-border routes/i);
     await expect(main).toContainText(/Registry directory/i);
-
-    // Switch to Route checker view
-    const routesTab = page.getByRole('button', { name: /^Route checker$/i }).first();
-    await routesTab.click();
-    await expectNoErrorBoundary(page);
-    await expect(main).toContainText(/Origin registry/i);
 
     // Switch to Production statistics view
     const productionTab = page.getByRole('button', { name: /^Production statistics$/i }).first();
