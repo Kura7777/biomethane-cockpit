@@ -8,7 +8,7 @@ import { CustodyPack } from '../../../domain/consignment/types';
 import { GateResult } from '../../../domain/eligibility/types';
 import { CustodyPackForm } from '../custody/CustodyPackForm';
 import { FIELD_IDS } from '../custody/checklistModel';
-import { feedstockDefaultCi } from '../../../domain/assumptions/registry';
+import { feedstockDefaultCi, getAssumption } from '../../../domain/assumptions/registry';
 import { getVtpForMarket } from '../TradeBuilderScreen';
 import { Lock, FileUp, Scale, AlertTriangle } from 'lucide-react';
 import { Term } from '../../glossary/Term';
@@ -444,7 +444,7 @@ export function TradeConsignmentStep({
               <p className="tb-hint">
                 {physicalForm === 'BIO_LNG_CRYOGENIC'
                   ? 'Pre-liquefied cryogenic liquid (-162°C). Directly bunkerable into vessels under FuelEU Maritime with €0 marginal liquefaction toll.'
-                  : 'Injected into national pipeline grids. Routing into FuelEU Maritime incurs cryogenic liquefaction & bunkering toll (~€14–€18/MWh).'}
+                  : `Injected into national pipeline grids. Routing into FuelEU Maritime incurs a cryogenic liquefaction & bunkering toll (desk assumption: €${getAssumption('fueleu.liquefactionFeeEurPerMwh').toFixed(2)}/MWh, set on Pricing → Desk assumptions).`}
               </p>
             </div>
           </div>

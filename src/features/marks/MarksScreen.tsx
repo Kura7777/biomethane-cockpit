@@ -407,7 +407,7 @@ export function MarksScreen() {
             onClick={() => setActiveView('CURVES')}
           >
             <TrendingUp className="w-3.5 h-3.5" />
-            📈 Forward Curves by Hub &amp; Feedstock
+            📈 Forward Strip (quoted tenors only)
           </button>
           <button
             type="button"
