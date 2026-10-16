@@ -654,7 +654,7 @@
     width: 100%;
     border-radius: 12px !important;
     border: 1px solid color-mix(in srgb, var(--color-divider) 55%, transparent) !important;
-    font-size: 14px !important;
+    font-size: 16px !important;
   }
   .plants-filters-btn {
     position: relative;
