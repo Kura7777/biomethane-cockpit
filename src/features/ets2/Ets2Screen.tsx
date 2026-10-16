@@ -281,7 +281,7 @@ export function Ets2Screen() {
         <div className="ds-card-header">
           <div>
             <div className="ds-card-title">Client inputs</div>
-            <div className="ds-card-meta">Every number is yours — nothing is defaulted</div>
+            <div className="ds-card-meta">Prices and volumes are yours; pass-through and share switched start at 100% (edit them)</div>
           </div>
         </div>
         <div className="ds-card-body ets-form">
@@ -299,7 +299,7 @@ export function Ets2Screen() {
           />
           <div className="ets-chips">
             {deskMid !== null && <button type="button" className="ets-chip" onClick={() => setPrice(String(deskMid))}>Desk mark €{deskMid.toFixed(2)}</button>}
-            <button type="button" className="ets-chip" onClick={() => setPrice(String(PRICE_CONTROL_TRIGGER_EUR_2020))}>€{PRICE_CONTROL_TRIGGER_EUR_2020} trigger (2020 €)</button>
+            <button type="button" className="ets-chip" onClick={() => setPrice(String(PRICE_CONTROL_TRIGGER_EUR_2020))} title="The Art. 30h trigger is quoted in 2020 prices; its nominal equivalent in a later year is higher. This chip only fills the 2020-money number as a scenario price.">€{PRICE_CONTROL_TRIGGER_EUR_2020} (2020 € trigger, not nominal)</button>
           </div>
           <Field label="Carbon price already paid" value={existingPrice} onChange={setExistingPrice} unit="€/tCO₂" hint="e.g. Germany's BEHG. Leave blank if none." />
           <Field label="Supplier pass-through" value={passThroughPct} onChange={setPassThroughPct} unit="%" hint="Share of the supplier's allowance cost on the client's bill." />

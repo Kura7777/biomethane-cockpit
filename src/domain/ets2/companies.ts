@@ -87,7 +87,8 @@ function endUser(id: string, name: string, countryIso: string, sector: string, n
     shareBasis: null,
     gasVolumeTWh: null,
     gasVolumeBasis: 'GCV',
-    confidence: 'HIGH',
+    // Programme members, not clients: the membership is sourced, their gas use is not.
+    confidence: 'MEDIUM',
     sector,
     evidence: [{ ...CLEAN_HEAT_SOURCE, note }, CLEAN_HEAT_PARTNER],
     contacts: [],

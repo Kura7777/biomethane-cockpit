@@ -530,7 +530,6 @@ function ets1Opportunities(p: CompanyProfile, marks: MarksState, year: number): 
         ? [`Mostly refining and oil & gas installations (${Math.round(oilGasT).toLocaleString('en-GB')} of ${Math.round(fitGrossT).toLocaleString('en-GB')} tCO₂ at fit sites): these often burn their own fuel gas, and offshore platforms have no grid connection for biomethane — only grid-fed onshore units qualify.`]
         : []),
       ...(processHeatT > 0 ? [`Process-heat sites (the strongest fit): ${Math.round(processHeatT).toLocaleString('en-GB')} tCO₂.`] : []),
-      'Sites below 20 MW rated thermal input fall under ETS2 instead — check before sizing.',
     ],
     stack: spec,
     action: null,
