@@ -111,8 +111,8 @@ describe('Empirical Adversarial Stress & Fuzz Suite (Milestone 1 & 3 Verificatio
 
       const certVal = computeCertificateValue(deMarket, testConsignment, baseMarks, 'bid');
       expect(certVal).not.toBeNull();
-      // 290 * -0.0936 = -27.144
-      expect(certVal!.valueEurPerMWh).toBeCloseTo(-27.144, 2);
+      // updated aud-trade: CI >= 94 saves no GHG, so the certificate is worth 0 (was a negative -27.144)
+      expect(certVal!.valueEurPerMWh).toBe(0);
 
       // Eligibility check: GHG gate must HARD_BLOCK
       const eligibility = evaluateEligibility(testConsignment, deMarket);
@@ -318,11 +318,12 @@ describe('Empirical Adversarial Stress & Fuzz Suite (Milestone 1 & 3 Verificatio
       expect(frCertVal?.capped).toBe(true);
       expect(frCertVal?.capReason).toContain('Art. L.446-24');
 
-      // Germany THG scales linearly
+      // Germany THG scales linearly up to the statutory penalty (updated aud-trade: capped at 600 EUR/t)
       const deMarket = getMarketById('DE_THG')!;
       const deCertVal = computeCertificateValue(deMarket, consignment, highMarks, 'bid');
-      // 2000 * 0.6984 = 1396.80
-      expect(deCertVal?.valueEurPerMWh).toBeCloseTo(1396.80, 1);
+      // 600 * 0.6984 = 419.04 (mark 2000 capped at the penalty)
+      expect(deCertVal?.valueEurPerMWh).toBeCloseTo(419.04, 1);
+      expect(deCertVal?.capped).toBe(true);
 
       // Italy CIC Advanced (Annex IX-A): 2000 / 5.815 = 343.94
       const itMarket = getMarketById('IT_CIC')!;

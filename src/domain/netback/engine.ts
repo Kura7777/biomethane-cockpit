@@ -225,6 +225,8 @@ function computeCertificateValueCore(
   const provenance = markObj?.provenance ?? null;
 
   const ci = consignment.carbonIntensity;
+  // A non-finite CI (NaN / Infinity / missing) cannot be valued: report no value, never NaN.
+  if (typeof ci !== 'number' || !Number.isFinite(ci)) return null;
 
   // Handle FuelEU Maritime specially (distinguish desk mark vs modelled deficit closure)
   if (market.unitOfAccount === 'EUR_PER_TCO2E_DEFICIT') {
@@ -295,10 +297,21 @@ function computeCertificateValueCore(
         break;
       }
       // Germany THG
-      const co2e = tCO2ePerMWh(ci);
-      valueEurPerMWh = mark * co2e;
+      // CI at or above the comparator saves no GHG: the certificate is worth 0, never negative.
+      const co2e = Math.max(0, tCO2ePerMWh(ci));
+      // §37c(2) BImSchG: the €600/tCO₂e penalty is the legal replacement cost, so no obligated party pays more.
+      const isDeThg = market.id === 'DE_THG';
+      const effectiveMark = isDeThg ? Math.min(mark, DE_THG_PENALTY_EUR_PER_TCO2E) : mark;
+      if (isDeThg && mark > DE_THG_PENALTY_EUR_PER_TCO2E) {
+        capped = true;
+        capReason = `German THG statutory penalty: €${DE_THG_PENALTY_EUR_PER_TCO2E}/tCO₂e (§37c(2) BImSchG).`;
+      }
+      valueEurPerMWh = effectiveMark * co2e;
       unitConversion = `(${CI_COMPARATOR_ROAD_TRANSPORT} − (${ci})) × ${MJ_PER_MWH} / 1,000,000 = ${co2e.toFixed(4)} tCO₂e/MWh`;
-      calculation = `${co2e.toFixed(4)} tCO₂e/MWh × €${mark.toFixed(2)}/tCO₂e (${pricingSide}) = €${valueEurPerMWh.toFixed(2)}/MWh`;
+      calculation = `${co2e.toFixed(4)} tCO₂e/MWh × €${effectiveMark.toFixed(2)}/tCO₂e (${pricingSide}${capped ? `, mark €${mark.toFixed(2)} capped at statutory penalty` : ''}) = €${valueEurPerMWh.toFixed(2)}/MWh`;
+      if (ci >= CI_COMPARATOR_ROAD_TRANSPORT) {
+        statusNote = `CI ${ci} gCO₂e/MJ is at or above the ${CI_COMPARATOR_ROAD_TRANSPORT} comparator: no GHG reduction, certificate value is 0.`;
+      }
       break;
     }
     case 'EUR_PER_KG_CO2E': {
@@ -308,16 +321,22 @@ function computeCertificateValueCore(
         // GGE per GO MWh = (comparator − CI) × 3.6 GJ/MWh × LHV factor of the GO's energy basis (R3, R4, O1).
         const gge = computeGgeBreakdown(market, consignment, mark);
         const ggePerMwh = gge.ggePerGoMwh;
-        valueEurPerMWh = mark * ggePerMwh;
+        // No supplier pays more than the statutory buy-out: cap the mark like the CPB / RTFO ceilings.
+        const ggeBuyout = gge.buyoutEurPerGge;
+        const ggeCapped = gge.aboveBuyout && ggeBuyout !== null;
+        const effectiveGgeMark = ggeCapped ? ggeBuyout : mark;
+        valueEurPerMWh = effectiveGgeMark * ggePerMwh;
 
         const basisNote = gge.goOnLhv
           ? 'GO already on LHV'
           : `LHV factor for ${gge.goCountry || 'unknown origin'}, Pricing desk${(gge.goCountry || '').toUpperCase() === 'ES' ? ' — OPEN: Spanish GO basis to confirm' : ''}`;
         unitConversion = `(${comparator} − (${gge.ciUsed})) gCO₂e/MJ × 3.6 GJ/MWh × ${gge.lhvFactor} (${basisNote}) = ${ggePerMwh.toFixed(1)} GGE per GO MWh`;
-        calculation = `${ggePerMwh.toFixed(1)} GGE/MWh × €${mark.toFixed(3)}/GGE (${pricingSide}) = €${valueEurPerMWh.toFixed(2)}/MWh`;
+        calculation = `${ggePerMwh.toFixed(1)} GGE/MWh × €${effectiveGgeMark.toFixed(3)}/GGE (${pricingSide}${ggeCapped ? `, mark €${mark.toFixed(3)} capped at buy-out` : ''}) = €${valueEurPerMWh.toFixed(2)}/MWh`;
 
-        if (gge.aboveBuyout && gge.buyoutEurPerGge !== null) {
-          statusNote = `Warning: mark above buy-out ceiling — €${mark.toFixed(3)}/GGE vs the ${gge.complianceYear} buy-out of €${gge.buyoutEurPerGge.toFixed(3)}/GGE (€${gge.buyoutEurPerTonne}/t). No supplier pays more than the buy-out.`;
+        if (ggeCapped && gge.buyoutEurPerGge !== null) {
+          capped = true;
+          capReason = `NL GGE buy-out ${gge.complianceYear}: €${gge.buyoutEurPerGge.toFixed(3)}/GGE (€${gge.buyoutEurPerTonne}/t).`;
+          statusNote = `Capped: mark €${mark.toFixed(3)}/GGE is above the ${gge.complianceYear} buy-out of €${gge.buyoutEurPerGge.toFixed(3)}/GGE (€${gge.buyoutEurPerTonne}/t). No supplier pays more than the buy-out.`;
         } else if (gge.buyoutEurPerGge === null) {
           statusNote = 'No GGE buy-out on file for this compliance year — set the delivery year to check the mark against the ceiling.';
         }
@@ -374,7 +393,7 @@ function computeCertificateValueCore(
     }
     case 'GBP_PER_RTFC': {
       const fxRate = marks.fx.gbpEur;
-      if (fxRate === null || !Number.isFinite(fxRate) || fxRate < 0) {
+      if (fxRate === null || !Number.isFinite(fxRate) || fxRate <= 0) {
         return {
           valueEurPerMWh: null,
           unitConversion: '£/RTFC → €/MWh requires GBP/EUR FX rate',
@@ -419,7 +438,7 @@ function computeCertificateValueCore(
     }
     case 'GBP_PER_DRTFC': {
       const fxRate = marks.fx.gbpEur;
-      if (fxRate === null || !Number.isFinite(fxRate) || fxRate < 0) {
+      if (fxRate === null || !Number.isFinite(fxRate) || fxRate <= 0) {
         return {
           valueEurPerMWh: null,
           unitConversion: '£/dRTFC → €/MWh requires GBP/EUR FX rate',
@@ -477,13 +496,13 @@ function computeCertificateValueCore(
 export function ggeRouteCostLines(market: Market, consignment: Consignment): RouteCostLine[] {
   const lines: RouteCostLine[] = [];
 
-  // FuelEU Maritime: Gaseous grid biomethane requires physical liquefaction tolling (~€14-€18/MWh)
+  // FuelEU Maritime: Gaseous grid biomethane requires physical liquefaction tolling (fee from Pricing desk: fueleu.liquefactionFeeEurPerMwh)
   // when explicitly traded as grid-injected gas for a marine vessel.
   if (market.id === 'FUELEU' && consignment.physicalForm === 'GRID_INJECTED_GAS') {
     lines.push({
       key: 'fueleu.liquefactionFeeEurPerMwh',
       label: 'Cryogenic liquefaction & bunkering toll',
-      eurPerMwh: getAssumption('fueleu.liquefactionFeeEurPerMwh') ?? 14,
+      eurPerMwh: getAssumption('fueleu.liquefactionFeeEurPerMwh'),
     });
   }
 
@@ -545,6 +564,7 @@ export function computeNetback(
 
   const isAllIn = isAllInMarket(market.id);
   const missingInputs: string[] = [];
+  if (!Number.isFinite(consignment.carbonIntensity)) missingInputs.push('carbonIntensity (CI required)');
 
   // Molecule value (TTF index) at chosen molecule side
   const molVal = selectMarkPrice(marks.gasIndex, pricingSides.moleculeSide);
@@ -667,7 +687,7 @@ export function computeNetback(
     missingInputs.push('deliveryPeriod');
   }
 
-  const isComplete = missingInputs.length === 0 && certVal?.valueEurPerMWh != null;
+  const isComplete = missingInputs.length === 0 && Number.isFinite(certVal?.valueEurPerMWh);
 
   // Germany THG branches:
   // - If complianceYear <= 2025: double counting applies cleanly (historical 2x multiplier)

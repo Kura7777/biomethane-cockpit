@@ -1,3 +1,4 @@
+import { describeCommissioning } from '../../consignment/commissioning';
 import { Consignment } from '../../consignment/types';
 import { Market } from '../../markets/types';
 import { GateResult, GateName } from '../types';
@@ -62,7 +63,7 @@ export function evaluateGHGThresholdGate(consignment: Consignment, market: Marke
       gate: GATE,
       gateLabel: GATE_LABEL,
       verdict: 'PASS',
-      reason: `GHG saving of ${savingPct}% (CI: ${ci} gCO₂e/MJ vs. comparator ${comparator} gCO₂e/MJ) meets the required minimum of ${minSavingPct}% for ${consignment.commissioningDateRange.replace(/_/g, ' ').toLowerCase()} installations.`,
+      reason: `GHG saving of ${savingPct}% (CI: ${ci} gCO₂e/MJ vs. comparator ${comparator} gCO₂e/MJ) meets the required minimum of ${minSavingPct}% for ${describeCommissioning(consignment)}.`,
       remedy: null,
       citations: [citationPrimary, CITATIONS.RED_III_COMPARATOR],
       confidence: 'HIGH',
@@ -74,7 +75,7 @@ export function evaluateGHGThresholdGate(consignment: Consignment, market: Marke
       gate: GATE,
       gateLabel: GATE_LABEL,
       verdict: 'CONDITIONAL',
-      reason: `GHG saving of ${savingPct}% (estimated CI: ${ci} gCO₂e/MJ vs. comparator ${comparator} gCO₂e/MJ) is below the required minimum of ${minSavingPct}% for ${consignment.commissioningDateRange.replace(/_/g, ' ').toLowerCase()} installations, but ${market.name} requires an audited Proof of Sustainability (PoS) which will supply the final certified CI.`,
+      reason: `GHG saving of ${savingPct}% (estimated CI: ${ci} gCO₂e/MJ vs. comparator ${comparator} gCO₂e/MJ) is below the required minimum of ${minSavingPct}% for ${describeCommissioning(consignment)}, but ${market.name} requires an audited Proof of Sustainability (PoS) which will supply the final certified CI.`,
       remedy: 'Get the PoS CI.',
       citations: [citationPrimary, CITATIONS.RED_III_COMPARATOR],
       confidence: 'MEDIUM',
@@ -85,7 +86,7 @@ export function evaluateGHGThresholdGate(consignment: Consignment, market: Marke
     gate: GATE,
     gateLabel: GATE_LABEL,
     verdict: 'HARD_BLOCK',
-    reason: `GHG saving of ${savingPct}% (CI: ${ci} gCO₂e/MJ vs. comparator ${comparator} gCO₂e/MJ) is BELOW the required minimum of ${minSavingPct}% for ${consignment.commissioningDateRange.replace(/_/g, ' ').toLowerCase()} installations.`,
+    reason: `GHG saving of ${savingPct}% (CI: ${ci} gCO₂e/MJ vs. comparator ${comparator} gCO₂e/MJ) is BELOW the required minimum of ${minSavingPct}% for ${describeCommissioning(consignment)}.`,
     remedy: `Reduce the carbon intensity of the production process, or source biomethane from a plant with a lower CI. The target CI for ${minSavingPct}% saving is ≤${(comparator * (1 - minSaving)).toFixed(1)} gCO₂e/MJ.`,
     citations: [citationPrimary, CITATIONS.RED_III_COMPARATOR],
     confidence: 'HIGH',

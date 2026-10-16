@@ -240,11 +240,12 @@ describe('Job GGE-1 — NL_GGE Market, Valuation and Chain of Custody', () => {
       expect(computeCertificateValue(gge, esManureGgeConsignment, ggeMarks, 'mid')!.unitConversion).toContain('(80 − (-40))');
     });
 
-    it('warns (does not cap) when the mark is above the compliance year buy-out', () => {
+    it('caps at the compliance year buy-out when the mark is above it (updated aud-trade: was warn-only)', () => {
       const high: MarksState = { ...ggeMarks, marks: { NL_GGE: { ...ggeMarks.marks.NL_GGE, mid: 0.5 } } };
       const cv = computeCertificateValue(gge, esManureGgeConsignment, high, 'mid')!;
-      expect(cv.statusNote).toContain('mark above buy-out ceiling');
-      expect(cv.valueEurPerMWh).toBeCloseTo(0.5 * 388.8, 6);
+      expect(cv.statusNote).toContain('Capped');
+      expect(cv.capped).toBe(true);
+      expect(cv.valueEurPerMWh).toBeCloseTo(0.45 * 388.8, 6);
       expect(computeCertificateValue(gge, esManureGgeConsignment, ggeMarks, 'mid')!.statusNote ?? '').not.toContain('above buy-out');
     });
 

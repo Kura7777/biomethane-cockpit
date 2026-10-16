@@ -2,11 +2,13 @@ import { MARKETS } from '../markets/registry';
 import { getMarkAgeDays } from '../markets/types';
 import { Consignment, CertificationScheme, ChainOfCustody } from '../consignment/types';
 import { FEEDSTOCK_REGISTRY } from '../consignment/feedstocks';
+import { commissioningRangeFromYear } from '../consignment/commissioning';
 import { MarksState, CostInputs } from '../netback/types';
 import { computeNetback, isAllInMarket } from '../netback/engine';
 import { evaluateEligibility } from '../eligibility/engine';
 import { PRODUCING_ORIGINS, getRouteTransitTariff } from './origins';
 import { getAssumption } from '../assumptions/registry';
+import { FR_CPB_CEILING_EUR_MWH } from '../regulatory/constants';
 import {
   ArbitrageOpportunity,
   ArbitrageMatrixCell,
@@ -16,7 +18,7 @@ import {
 export const DEFAULT_WHAT_IF_SCENARIO: RegulatoryWhatIfScenario = {
   ukUdbRecognition: false,
   fuelEUEscalationYears: 1,
-  frCpbPenaltyCap: 100,
+  frCpbPenaltyCap: FR_CPB_CEILING_EUR_MWH,
 };
 
 /**
@@ -34,9 +36,12 @@ export function buildArbitrageConsignment(args: {
   chainOfCustody: ChainOfCustody;
   isEUGrid: boolean;
   volumeMWh: number;
+  /** Plant commissioning year when known; otherwise the strictest bar is assumed. */
+  commissioningYear?: number | null;
   /** The year the certificate is surrendered against; selects the broker bundle mark for DE THG. */
   complianceYear?: number | null;
 }): Consignment {
+  const commissioning = commissioningRangeFromYear(args.commissioningYear);
   return {
     id: `arb_${args.originCountry}_${args.feedstockKey}`,
     name: `${args.originCountryName} ${args.feedstockName}`,
@@ -46,7 +51,8 @@ export function buildArbitrageConsignment(args: {
     feedstockName: args.feedstockName,
     annexClassification: args.annexClassification,
     carbonIntensity: args.carbonIntensity,
-    commissioningDateRange: 'POST_2021_TO_2025',
+    commissioningDateRange: commissioning.range,
+    commissioningDateAssumed: commissioning.assumed,
     certificationScheme: args.scheme,
     chainOfCustody: args.chainOfCustody,
     injectionCountry: args.originCountry,

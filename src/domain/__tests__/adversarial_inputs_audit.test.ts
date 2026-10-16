@@ -47,12 +47,12 @@ describe('PHASE 2 — ADVERSARIAL INPUTS STRESS-TEST AUDIT', () => {
       expect(isNaN(netback.netNetback as number)).toBe(false);
     });
 
-    it('CI = +200 (> 94): produces negative certificate value without crashing or silent clamping', () => {
+    it('CI = +200 (> 94): certificate value is 0 (no GHG reduction), never negative (updated aud-trade)', () => {
       const consignment200: Consignment = { ...baseConsignment, carbonIntensity: 200.0 };
       const certVal = computeCertificateValue(deThgMarket, consignment200, marks, 'bid');
 
       expect(certVal).not.toBeNull();
-      expect(certVal?.valueEurPerMWh).toBeLessThan(0);
+      expect(certVal?.valueEurPerMWh).toBe(0);
       expect(isFinite(certVal?.valueEurPerMWh as number)).toBe(true);
       
       // Regulatory eligibility gate: GHG threshold gate blocks it
@@ -239,7 +239,7 @@ describe('PHASE 2 — ADVERSARIAL INPUTS STRESS-TEST AUDIT', () => {
   // 5. FX EDGES
   // --------------------------------------------------------------------------
   describe('5. FX Stress-Testing', () => {
-    it('FX rate = 0: converts foreign currency to €0.00 without division by zero', () => {
+    it('FX rate = 0: no value (null) with a warning, never a silent €0.00 (updated aud-trade)', () => {
       const zeroFxMarks: MarksState = {
         ...marks,
         fx: {
@@ -252,7 +252,8 @@ describe('PHASE 2 — ADVERSARIAL INPUTS STRESS-TEST AUDIT', () => {
       const certVal = computeCertificateValue(ukRtfoMarket, ukConsignment, zeroFxMarks, 'bid');
       
       expect(certVal).not.toBeNull();
-      expect(certVal?.valueEurPerMWh).toBe(0.00);
+      expect(certVal?.valueEurPerMWh).toBeNull();
+      expect(certVal?.statusNote).toMatch(/FX/);
     });
   });
 });
