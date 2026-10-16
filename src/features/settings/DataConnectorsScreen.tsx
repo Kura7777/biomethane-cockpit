@@ -103,7 +103,7 @@ export function DataConnectorsScreen() {
       setParsedRun(null);
       return;
     }
-    const res = parseBrokerRunText(text);
+    const res = parseBrokerRunText(text, undefined, undefined, state.marks.fx.gbpEur ?? undefined);
     setParsedRun(res);
   };
 
@@ -111,28 +111,24 @@ export function DataConnectorsScreen() {
     if (!parsedRun || parsedRun.quotes.length === 0) return;
 
     let appliedCount = 0;
-    const marketMap: Record<string, string> = {
-      DE: 'DE_THG',
-      NL: 'NL_ERE',
-      FR: 'FR_CPB',
-      UK: 'UK_RTFO',
-      IT: 'IT_CIC',
-    };
-
     parsedRun.quotes.forEach(quote => {
-      const marketId = marketMap[quote.country];
-      if (marketId && (quote.numericBidEurMwh || quote.numericOfferEurMwh)) {
+      // The parser resolves the market and converts the price into that market's own unit of account
+      // (bidMarketUnit / offerMarketUnit). A quote it could not place or convert is never applied.
+      const marketId = quote.isValid ? quote.marketId : null;
+      const qBid = quote.bidMarketUnit;
+      const qOffer = quote.offerMarketUnit;
+      if (marketId && (qBid !== null || qOffer !== null)) {
         const existing = state.marks.marks[marketId];
         const now = new Date().toISOString();
 
         dispatch({
           type: 'SET_MARK',
           marketId,
-          bid: quote.numericBidEurMwh ?? existing?.bid ?? null,
-          offer: quote.numericOfferEurMwh ?? existing?.offer ?? null,
-          mid: quote.numericBidEurMwh && quote.numericOfferEurMwh
-            ? (quote.numericBidEurMwh + quote.numericOfferEurMwh) / 2
-            : quote.numericBidEurMwh ?? quote.numericOfferEurMwh ?? existing?.mid ?? null,
+          bid: qBid ?? existing?.bid ?? null,
+          offer: qOffer ?? existing?.offer ?? null,
+          mid: qBid !== null && qOffer !== null
+            ? (qBid + qOffer) / 2
+            : qBid ?? qOffer ?? existing?.mid ?? null,
           source: `${parsedRun.inferredSource} (OTC Run)`,
           provenance: {
             sourceType: 'BROKER_INDICATION',

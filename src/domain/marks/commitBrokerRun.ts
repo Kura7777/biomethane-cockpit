@@ -1,4 +1,6 @@
-import { BrokerParseResult } from '../markets/brokerRunParser';
+import { BrokerParseResult, DEFAULT_UNITS } from '../markets/brokerRunParser';
+import { MARKETS } from '../markets/registry';
+import { findTenorInText } from './tenorLabel';
 import { PricingBookEntry } from '../markets/brokerRun.seed';
 import { quoteIdentityForMarket } from './applyMarks';
 import { AppAction } from '../../store/state';
@@ -25,19 +27,24 @@ export function commitBrokerRunToState(
     const identity = quoteIdentityForMarket(item.marketId as string)!;
     const bidNum = item.bid ?? null;
     const offerNum = item.ask ?? null;
-    const currency = item.unit.startsWith('GBP') ? 'GBP' : 'EUR';
-    const isPerTonne = item.unit === 'EUR_PER_TCO2E' || item.marketId === 'DE_THG';
-    const isMwh = item.unit === 'EUR_PER_MWH' || (!item.unit.startsWith('GBP') && !isPerTonne && item.marketId !== 'NL_ERE' && item.marketId !== 'IT_CIC');
+    // The mark's numbers are in the market's own unit of account (the parser converts or rejects before
+    // this). Only a genuine EUR/MWh price may ever be written into numeric*EurMwh: a EUR/t, EUR/kg,
+    // EUR/CIC or GBP/RTFC number is never treated as EUR/MWh.
+    const marketUnit = (item.marketId ? (DEFAULT_UNITS[item.marketId] ?? MARKETS.find(m => m.id === item.marketId)?.unitOfAccount) : null) ?? item.unit;
+    const currency = marketUnit.startsWith('GBP') ? 'GBP' : 'EUR';
+    const isPerTonne = marketUnit.startsWith('EUR_PER_TCO2E');
+    const isPerKg = marketUnit === 'EUR_PER_KG_CO2E';
+    const isMwh = marketUnit === 'EUR_PER_MWH';
 
-    // Extract 4-digit vintage year if present in raw text
-    const vintageMatch = (item.rawLine + ' ' + item.productRaw).match(/\b(202\d)\b/);
-    const vintage = vintageMatch ? vintageMatch[1] : '—';
+    // Canonical tenor label (Cal 2027, Q1 2027, H2 2026 ...) from the parser or the raw text; '—' only when none is stated.
+    const vintage = item.vintage ?? findTenorInText(item.rawLine + ' ' + item.productRaw) ?? '—';
 
     // Format display prices with appropriate unit suffix
     const formatPrice = (val: number | null) => {
       if (val === null) return '';
       if (currency === 'GBP') return `£${val.toFixed(2)}`;
       if (isPerTonne) return `€ ${val.toFixed(2)}/t`;
+      if (isPerKg) return `€ ${val.toFixed(3)}/kg`;
       return `€ ${val.toFixed(2)}`;
     };
 
@@ -60,7 +67,7 @@ export function commitBrokerRunToState(
       vintage,
       certified: '—',
       subsidized: '—',
-      ciScore: '—',
+      ciScore: item.ciScore ?? '—',
       ciNumeric: null,
       currency,
       bidPrice: formatPrice(bidNum),

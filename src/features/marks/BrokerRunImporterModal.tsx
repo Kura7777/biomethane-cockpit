@@ -1,8 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useAppState } from '../../store/context';
 import { parseBrokerRunText, BrokerParseResult } from '../../domain/markets/brokerRunParser';
-import { PricingBookEntry } from '../../domain/markets/brokerRun.seed';
-import { quoteIdentityForMarket } from '../../domain/marks/applyMarks';
 import { commitBrokerRunToState } from '../../domain/marks/commitBrokerRun';
 import { showToast } from '../../app/DeskToastContainer';
 import { Calendar, CheckCircle2 } from 'lucide-react';
@@ -15,7 +13,7 @@ interface BrokerRunImporterModalProps {
 }
 
 export function BrokerRunImporterModal({ isOpen, onClose, onCommitted, onFail }: BrokerRunImporterModalProps) {
-  const { dispatch } = useAppState();
+  const { state, dispatch } = useAppState();
   // Starts empty as required by Phase 1b
   const [inputText, setInputText] = useState<string>('');
   const [customDate, setCustomDate] = useState<string>('');
@@ -30,8 +28,8 @@ export function BrokerRunImporterModal({ isOpen, onClose, onCommitted, onFail }:
   }, [isOpen, onClose]);
 
   const parseResult: BrokerParseResult = useMemo(() => {
-    return parseBrokerRunText(inputText, 'Broker Panel', customDate || undefined);
-  }, [inputText, customDate]);
+    return parseBrokerRunText(inputText, 'Broker Panel', customDate || undefined, state.marks.fx.gbpEur ?? undefined);
+  }, [inputText, customDate, state.marks.fx.gbpEur]);
 
   const effectiveRunDate = parseResult.extractedDate || customDate;
 
@@ -197,6 +195,20 @@ UK RTFO  0.205 / 0.225`}
               </div>
             </div>
           </div>
+
+          {parseResult.marks.some(m => !m.isValid || m.validationWarnings.length > 0) && (
+            <ul style={{ fontSize: '12px', lineHeight: 1.5, margin: 0, paddingLeft: '18px' }} className="mut">
+              {parseResult.marks
+                .filter(m => !m.isValid || m.validationWarnings.length > 0)
+                .map(m => (
+                  <li key={m.id + m.rawLine}>
+                    <span style={{ fontWeight: 600 }}>{m.isValid ? 'Check' : 'Not imported'}:</span> {m.rawLine}
+                    {' — '}
+                    {[...m.validationErrors, ...m.validationWarnings].join('; ')}
+                  </li>
+                ))}
+            </ul>
+          )}
 
           <p style={{ fontSize: '12px', lineHeight: 1.55, margin: 0 }} className="mut">
             Unmatched market codes are never guessed — they are reported and skipped, so a mistyped line cannot silently overwrite a desk mark.
